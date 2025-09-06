@@ -37,7 +37,6 @@ export const useTaskStore = defineStore("task", {
     outdatedTasksPath: [],
     rebuildableTasksPath: [],
     untrackedTasksPath: [],
-    // Asset state data with both task_path and display_path
     modifiedAssetsState: [],
     outdatedAssetsState: [],
     rebuildableAssetsState: [],

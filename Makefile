@@ -25,27 +25,10 @@ PYTHON_SCRIPT := populate.py
 all: build
 
 # Run development environment
-.PHONY: dev
-dev:
+.PHONY: client
+client:
 	wails3 dev
 
-# Run development environment
-.PHONY: dev-server
-dev-server:
-ifeq ($(DETECTED_OS),Windows)
-	air -c .\.server_air.toml
-else
-	air -c ./.server_air_darwin.toml
-endif
-
-# Run development environment for studio
-.PHONY: dev-studio
-dev-studio:
-ifeq ($(DETECTED_OS),Windows)
-	air -c .\.studio_server_air.toml
-else
-	air -c ./.studio_server_air_darwin.toml
-endif
 
 # Build the Clustta Engine project
 .PHONY: build
@@ -57,16 +40,6 @@ ifeq ($(DETECTED_OS),Windows)
 else ifeq ($(DETECTED_OS),Darwin)
 	wails3 package
 	bash ./macappstore-build.sh
-endif
-
-# Build the server
-.PHONY: build-server
-build-server:
-	@echo "Building Server"
-ifeq ($(DETECTED_OS),Windows)
-	go build -ldflags "-s -w" -o "..\clustta\$(SERVER_BINARY)" ./cmd/studio_server
-else
-	go build -ldflags "-s -w" -o "../clustta/$(SERVER_BINARY)" ./cmd/studio_server
 endif
 
 # Build for development

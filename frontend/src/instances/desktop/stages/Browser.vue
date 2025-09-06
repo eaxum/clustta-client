@@ -1566,6 +1566,36 @@ const revertAllChanges = async () => {
 		});
 };
 
+const updateAllModified = async () => {
+	modals.setModalVisibility('popUpModal', false);
+	
+	// Get current navigation context
+	let path;
+	path = entityStore.navigatedEntity?.type === 'entity'
+		? entityStore.navigatedEntity?.entity_path
+		: entityStore.navigatedEntity?.item_path;
+
+	const outdatedTasksPath = taskStore.outdatedTasksPath;
+	let filteredPaths;
+
+	// Filter paths based on current context
+	if (path) {
+		filteredPaths = outdatedTasksPath.filter(item => item.startsWith(path));
+	} else {
+		filteredPaths = outdatedTasksPath;
+	}
+
+	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
+		.then((response) => {
+			taskStore.outdatedTasksPath = taskStore.outdatedTasksPath.filter(item => !filteredPaths.includes(item));
+			softRefresh();
+		})
+		.catch((error) => {
+			notificationStore.errorNotification("Failed to Revert Tasks", error)
+			console.error(error);
+		});
+};
+
 const prepResetPopUpModal = () => {
 	clearSelection();
 	trayStates.popUpModalIcon = 'revert'
@@ -1584,7 +1614,7 @@ const prepAllCheckpointModal = () => {
 
 const updateAll = () => {
 	clearSelection();
-	revertAllChanges();
+	updateAllModified();
 };
 
 const clearSelection = () => {
