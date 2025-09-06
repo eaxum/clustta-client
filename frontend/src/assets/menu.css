@@ -1,0 +1,60 @@
+.filter-menu-item {
+    overflow: hidden;
+    background-color: transparent;
+    text-align: center;
+    font-size: 14px;
+    line-height: 14px;
+    background-color: transparent;
+    color: white;
+    position: relative;
+    border-radius: 8px;
+    border-radius: var(--small-radius);
+    box-sizing: border-box;
+    cursor: pointer;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding-left: .3rem;
+    height: max-content;
+    width: max-content;
+    min-width: max-content;
+    min-height: max-content;
+    width: 100%;
+    /* aspect-ratio: 1/1; */
+    transition: all 0.3s ease;
+    /* background-color: rebeccapurple; */
+}
+
+.filter-menu-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+.entity-item-menu-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.filter-menu-container {
+    display: flex;
+    flex-direction: column;
+    color: white;
+    align-items: center;
+    gap: .3rem;
+    padding: .6rem;
+    box-sizing: border-box;
+    width: max-content;
+    width: 250px;
+    height: max-content;
+    max-height: 80vh;
+  }
+
+  .disabled{
+    opacity: .5;
+    pointer-events: none;
+  }
+
+.menu-divider{
+width: 96%;
+border-bottom: 1px solid var(--white) ;
+opacity: .1;
+} 

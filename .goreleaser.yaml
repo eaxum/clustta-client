@@ -1,0 +1,102 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+
+# The lines below are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/need to use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 1
+workspace_name: clustta_cli
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+    # you may remove this if you don't need go generate
+    - go generate ./...
+
+# post:
+#   hooks:
+#     - ./move_binaries.ps1
+
+builds:
+  - id: windows
+    main: ./cmd/cli
+    binary: >-
+      {{ .WorkspaceName }}-x86_64-pc-windows-msvc.exe
+    env:
+      - CGO_ENABLED=1
+      - CC=x86_64-w64-mingw32-gcc
+    goos:
+      - windows
+    goarch:
+      - amd64
+    ldflags: -s -w
+
+  # macOS build configuration
+  - id: darwin
+    main: ./cmd/cli
+    binary: >-
+      {{ .WorkspaceName }}-x86_64-apple-darwin
+    env:
+      - CGO_ENABLED=1
+      - CC=o64-clang
+    goos:
+      - darwin
+    goarch:
+      - arm64
+    ldflags: -s -w
+
+  # - main: ./cmd/cli
+  #   # clustta_cli-x86_64-pc-windows-msvc.exe
+  #   # clustta_cli-x86_64-apple-darwin
+  #   # binary: "{{ .WorkspaceName }}-{{ .Arch }}-{{ .Os }}-{{ .Arm }}"
+  #   binary: >-
+  #     {{ .WorkspaceName }}-
+  #     {{- if eq .Arch "amd64" }}x86_64
+  #     {{- else if eq .Arch "386" }}i386
+  #     {{- else }}{{ .Arch }}{{ end }}
+  #     {{- if eq .Os "windows"  }}-pc-windows-msvc
+  #     {{- else if eq .Os "darwin"  }}-apple-darwin{{ end }}
+  #   env:
+  #     # - CGO_ENABLED=0
+  #     - CGO_ENABLED=1
+  #     - CC=x86_64-w64-mingw32-gcc # For cross-compiling
+  #   goos:
+  #     # - linux
+  #     - windows
+  #     - darwin
+  #   goarch:
+  #     - amd64
+  #   # - arm
+  #   # - arm64
+  #   # goarm:
+  #   #   - 6
+  #   #   - 7
+  #   ignore:
+  #     - goos: darwin
+  #       goarch: 386
+  # ldflags:
+  #   - -s -w -X "main.buildVersion={{ .Tag }} ({{ .ShortCommit }} {{ .Date }})"
+
+archives:
+  - format: tar.gz
+    # this name template makes the OS and Arch compatible with the results of `uname`.
+    name_template: >-
+      {{ .WorkspaceName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    format_overrides:
+      - goos: windows
+        format: zip
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,2.01978,1.01834)">
+        <g>
+            <g transform="matrix(0.874784,0,0,0.874784,0.571338,0.494426)">
+                <g transform="matrix(19.4318,0,0,19.4318,10.0646,18.4848)">
+                </g>
+                <text x="0.273px" y="18.485px" style="font-family:'Georgia';font-size:19.432px;fill:white;stroke:white;stroke-width:0.2px;">a</text>
+            </g>
+            <g transform="matrix(0.874784,0,0,0.874784,9.34191,0.494426)">
+                <g transform="matrix(19.4318,0,0,19.4318,11.1557,18.4848)">
+                </g>
+                <text x="0.273px" y="18.485px" style="font-family:'Georgia';font-size:19.432px;fill:white;stroke:white;stroke-width:0.2px;">b</text>
+            </g>
+        </g>
+    </g>
+</svg>

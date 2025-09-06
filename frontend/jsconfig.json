@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "module": "esnext",
+        "moduleResolution": "node",
+        "lib": [
+            "esnext",
+            "dom",
+            "dom.iterable",
+            "scripthost"
+        ],
+        "baseUrl": ".",
+        "target": "ES6",
+        "paths": {
+            "@/*": [
+                "src/*"
+            ],
+        }
+    }
+}

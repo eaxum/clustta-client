@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <rect id="cloud-down" x="0" y="0" width="24" height="24" style="fill:none;"/>
+    <g id="cloud-down1" serif:id="cloud-down">
+        <g transform="matrix(0.869102,0,0,0.869102,1.94506,1.51036)">
+            <g>
+                <g transform="matrix(1.21443,0,0,1.21443,-5.5986,-4.01066)">
+                    <path d="M6.64,11.566C6.477,11.046 6.388,10.492 6.388,9.918C6.388,6.879 8.856,4.412 11.894,4.412C13.858,4.412 15.584,5.443 16.558,6.992" style="fill:none;stroke:white;stroke-width:1.42px;"/>
+                </g>
+                <g transform="matrix(0.975941,0,0,0.975941,-6.88743,5.39754)">
+                    <path d="M11.894,15.424C8.856,15.424 6.388,12.957 6.388,9.918C6.388,7.66 7.751,5.718 9.697,4.869" style="fill:none;stroke:white;stroke-width:1.77px;"/>
+                </g>
+                <g transform="matrix(1.19431,0,0,1.19431,3.08009,2.02934)">
+                    <path d="M6.388,9.918C6.388,6.879 8.856,4.412 11.894,4.412C14.933,4.412 17.4,6.879 17.4,9.918C17.4,12.957 14.933,15.424 11.894,15.424L1.58,15.424" style="fill:none;stroke:white;stroke-width:1.45px;"/>
+                </g>
+                <g transform="matrix(0.994829,0,0,0.994829,1.32266,1.45657)">
+                    <g transform="matrix(1.15659,-0,-0,1.15659,-3.57918,-3.21101)">
+                        <path d="M14.224,13.235L11.253,16.206L8.282,13.235" style="fill:none;stroke:white;stroke-width:1.5px;stroke-linejoin:miter;stroke-miterlimit:10;"/>
+                        <path d="M11.253,13.569L11.253,16.206" style="fill:none;stroke:white;stroke-width:1.5px;"/>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

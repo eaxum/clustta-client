@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 33 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-319,0)">
+        <g id="sketch" transform="matrix(1,0,0,1,-320.438,-2.66454e-15)">
+            <rect x="639.469" y="0" width="32" height="32" style="fill:none;"/>
+            <g id="sketch-symbol" transform="matrix(0.0813823,0,0,0.0813823,639.469,1.52115)">
+                <path id="Path" d="M85.79,11.715L196.603,0L307.415,11.715L393.206,126.881L196.603,355.823L0,126.881L85.79,11.715Z" style="fill:rgb(253,179,0);fill-rule:nonzero;"/>
+                <g id="Group" transform="matrix(1,0,0,1,0,126.881)">
+                    <path id="Path1" serif:id="Path" d="M79.634,0L196.603,228.942L0,0L79.634,0Z" style="fill:rgb(234,108,0);fill-rule:nonzero;"/>
+                    <g id="Path2" serif:id="Path" transform="matrix(-1,0,0,1,589.808,0)">
+                        <path d="M276.236,0L393.205,228.942L196.602,0L276.236,0Z" style="fill:rgb(234,108,0);fill-rule:nonzero;"/>
+                    </g>
+                    <path id="Path3" serif:id="Path" d="M79.634,0L313.572,0L196.603,228.942L79.634,0Z" style="fill:rgb(253,173,0);fill-rule:nonzero;"/>
+                </g>
+                <g id="Group1" serif:id="Group">
+                    <path id="Path4" serif:id="Path" d="M196.603,0L85.79,11.715L79.634,126.881L196.603,0Z" style="fill:rgb(253,210,49);fill-rule:nonzero;"/>
+                    <g id="Path5" serif:id="Path" transform="matrix(-1,0,0,1,510.174,0)">
+                        <path d="M313.571,0L202.758,11.715L196.602,126.881L313.571,0Z" style="fill:rgb(253,210,49);fill-rule:nonzero;"/>
+                    </g>
+                    <g id="Path6" serif:id="Path" transform="matrix(-1,0,0,1,700.621,0)">
+                        <path d="M307.415,126.881L393.206,11.715L387.049,126.881L307.415,126.881Z" style="fill:rgb(253,173,0);fill-rule:nonzero;"/>
+                    </g>
+                    <path id="Path7" serif:id="Path" d="M0,126.881L85.79,11.715L79.634,126.881L0,126.881Z" style="fill:rgb(253,173,0);fill-rule:nonzero;"/>
+                    <path id="Path8" serif:id="Path" d="M196.603,0L79.634,126.881L313.572,126.881L196.603,0Z" style="fill:rgb(254,238,183);fill-rule:nonzero;"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,229 @@
+<template>
+  <div class="header-tab-root" :class="{ 'fullwidth-header-tab-root' :  fullWidth, 'icon-header-tab-root' : iconsOnly }">
+    <!-- <div class="header-tab-container" > -->
+      <div v-for="(dataType, index) in dataTypes" :key="dataType.name" 
+        v-tooltip="((filterIndex !== index || iconsOnly) && useTooltip ) ? utils.capitalizeStr(dataType.name) : ''"
+        @click="filterList(index, dataType.name)" class="tab-button"
+        :class="{ 'selected-tab-button': useSelected ? selectedTab === dataType.name : filterIndex === index , 'fullwidth-tab-button' :  fullWidth }">
+        <div v-if="useFunctions">
+          <div class="alert-items" v-if="alertItems(dataType.name).value !== 0 && displayCount"
+            :class="{ 'alert-items-with-text' : alertItems(dataType.name).value !== 0, 'critical-items': criticalItems(dataType.name).value }">
+            {{ alertItems(dataType.name) }}
+          </div>
+          <div class="alert-items" v-else-if="alertItems(dataType.name).value"
+            :class="{'critical-items': criticalItems(dataType.name).value }">
+          </div>
+        </div>
+        <div class="tab-content">
+          <div v-if="!iconsOnly && (filterIndex === index || fullWidth)" class="selected-tab-button-text"> {{ utils.capitalizeStr(dataType.name) }}</div>
+          <img class="small-icons" :src="getAppIcon(dataType.icon)" :class="{ 'inverted-icon': filterIndex === index }">
+        </div>
+      </div>
+    <!-- </div> -->
+  </div>
+</template>
+
+<script setup>
+
+import { useIconStore } from '@/stores/icons';
+const iconStore = useIconStore();
+
+const getAppIcon = (iconName) => {
+  const formattedIconName = getIconName(iconName)
+  const icon = iconStore.getAppIcon(formattedIconName);
+  return icon
+};
+
+const getIconName = (path) => {
+  if (!path.includes('/') && !path.includes('.svg')) {
+    return path;
+  }
+  return path.split('/').pop().replace('.svg', '');
+};
+
+import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
+import { useTrayStates } from '@/stores/TrayStates';
+import utils from '@/services/utils';
+const trayStates = useTrayStates();
+
+const emit = defineEmits(['filter']);
+
+const props = defineProps({
+  dataTypes: { type: Array, default: () => [] },
+  alertItems: {
+    type:Function, 
+    default: (dummy) => {
+      return dummy = {item : 0}
+    }
+  },
+  criticalItems: {
+    type:Function, 
+    default: (dummy) => {
+      return dummy = {item : 0}
+    }
+  },
+  useFunctions: { type: Boolean, default: false },
+  forWorkspace: { type: Boolean, default: false },
+  displayCount: { type: Boolean, default: true },
+  fullWidth: { type: Boolean, default: false },
+  iconsOnly: { type: Boolean, default: false },
+  useSelected: { type: Boolean, default: false },
+  useTooltip: { type: Boolean, default: true },
+  selectedTab: { type: String, default: '' },
+});
+
+const filterIndex = ref(0);
+
+const filterList = (index, dataType) => {
+  highlightFilter(index);
+  emit('filter', dataType);
+};
+
+const highlightFilter = (index) => {
+  filterIndex.value = index;
+};
+
+onMounted(() => {
+});
+</script>
+
+<style scoped>
+
+.header-tab-root{
+  display: flex;
+  flex-direction: row;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;
+  height: max-content;
+  gap: .5rem;
+  padding: .3rem .3rem;
+  color: white;
+  /* background-color: firebrick; */
+}
+
+.fullwidth-header-tab-root{
+  width: max-content;
+}
+
+.icon-header-tab-root{
+  width: min-content;
+}
+
+.header-tab-container {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  box-sizing: border-box;
+  /* width: 100%; */
+  justify-content: space-evenly;
+  overflow: hidden;
+  border-radius: 8px;
+  color: white;
+  padding: 1rem .3rem;
+  gap: .5rem;
+  overflow: hidden;
+  background-color: goldenrod;
+}
+
+.fullwidth-header-tab-container{
+  width: max-content;
+}
+
+.selected-tab-button-text {
+  padding: .2rem .1rem;
+}
+
+.tab-button{
+  position: relative;
+  border-radius: 8px;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  height: max-content;
+  transition: all .2s ease-in-out;
+  background-color: var(--black-steel);
+  justify-content: center;
+  padding:  5px .6rem;
+}
+
+.tab-button:hover{
+  background-color: rgb(121, 121, 121);
+  background-color: #ffffff15;
+}
+.tab-button:active{
+  background-color: rgb(70, 70, 70);
+  background-color: #00000013;
+}
+
+.tab-button-pressed {
+  box-sizing: border-box;
+  background-color: rgba(0, 0, 0, 0.216);
+  outline: solid 1px white;
+  outline-offset: -1px;
+}
+
+.selected-tab-button {
+  transition: all .2s ease-in-out;
+  background-color: rgba(0, 0, 0, 0.216);
+  outline: solid 1px white;
+  outline-offset: -1px;
+  width: 100%;
+  background-color: white;
+  color: black;
+}
+
+.fullwidth-tab-button {
+  width: max-content;
+}
+.selected-tab-button:hover {
+  background-color: rgba(0, 0, 0, 0.216);
+  background-color: white;
+  color: black;
+}
+
+.tab-content{
+  display: flex;
+  /* background-color: rebeccapurple; */
+}
+
+.alert-items {
+  overflow: hidden;
+  width: 3px;
+  height: 3px;
+  background-color: #ecb603;
+  border-radius: 5px;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: -3px;
+  right: -3px;
+  border-radius: 10px;
+  padding: 3px;
+  font-size: 12px;
+  color: white;
+  /* outline-offset: -1px; */
+}
+
+.alert-items-with-text{
+  outline: solid 1px rgb(236, 182, 3);
+  width: 10px;
+  height: 10px;
+  top: -5px;
+  right: -5px;
+
+}
+
+.critical-items {
+  outline: solid 1px #bd2d2d;
+  background-color: #bd2d2d;
+}
+
+</style>

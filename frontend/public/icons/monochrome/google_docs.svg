@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 33 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-406,0)">
+        <g id="google_docs" transform="matrix(1,0,0,1,-233.014,-2.66454e-15)">
+            <rect x="639.469" y="0" width="32" height="32" style="fill:none;"/>
+            <g id="Docs-icon" transform="matrix(0.492308,0,0,0.492308,643.899,2.66454e-15)">
+                <g id="Group">
+                    <g id="Clipped">
+                        <path id="Path" d="M29.375,0L4.406,0C1.983,0 0,1.994 0,4.432L0,60.568C0,63.006 1.983,65 4.406,65L42.594,65C45.017,65 47,63.006 47,60.568L47,17.727L36.719,10.341L29.375,0Z" style="fill:rgb(66,133,244);fill-rule:nonzero;"/>
+                    </g>
+                    <g id="Clipped1" serif:id="Clipped">
+                        <path id="Path1" serif:id="Path" d="M30.664,16.431L47,32.858L47,17.727L30.664,16.431Z" style="fill:url(#_Linear1);fill-rule:nonzero;"/>
+                    </g>
+                    <g id="Clipped2" serif:id="Clipped">
+                        <path id="Shape" d="M11.75,47.273L35.25,47.273L35.25,44.318L11.75,44.318L11.75,47.273ZM11.75,53.182L29.375,53.182L29.375,50.227L11.75,50.227L11.75,53.182ZM11.75,32.5L11.75,35.455L35.25,35.455L35.25,32.5L11.75,32.5ZM11.75,41.364L35.25,41.364L35.25,38.409L11.75,38.409L11.75,41.364Z" style="fill:rgb(241,241,241);fill-rule:nonzero;"/>
+                    </g>
+                    <g transform="matrix(1,0,0,1,26.4375,-2.95454)">
+                        <g id="Clipped3" serif:id="Clipped">
+                            <g id="Group1" serif:id="Group">
+                                <g>
+                                    <path id="Path2" serif:id="Path" d="M2.938,2.955L2.938,16.25C2.938,18.699 4.909,20.682 7.344,20.682L20.563,20.682L2.938,2.955Z" style="fill:rgb(161,194,250);fill-rule:nonzero;"/>
+                                </g>
+                            </g>
+                        </g>
+                    </g>
+                    <g id="Clipped4" serif:id="Clipped">
+                        <path id="Path3" serif:id="Path" d="M4.406,0C1.983,0 0,1.994 0,4.432L0,4.801C0,2.364 1.983,0.369 4.406,0.369L29.375,0.369L29.375,0L4.406,0Z" style="fill:white;fill-opacity:0.2;fill-rule:nonzero;"/>
+                    </g>
+                    <g id="Clipped5" serif:id="Clipped">
+                        <path id="Path4" serif:id="Path" d="M42.594,64.631L4.406,64.631C1.983,64.631 0,62.636 0,60.199L0,60.568C0,63.006 1.983,65 4.406,65L42.594,65C45.017,65 47,63.006 47,60.568L47,60.199C47,62.636 45.017,64.631 42.594,64.631Z" style="fill:rgb(26,35,126);fill-opacity:0.2;fill-rule:nonzero;"/>
+                    </g>
+                    <g id="Clipped6" serif:id="Clipped">
+                        <path id="Path5" serif:id="Path" d="M33.781,17.727C31.347,17.727 29.375,15.744 29.375,13.295L29.375,13.665C29.375,16.113 31.347,18.097 33.781,18.097L47,18.097L47,17.727L33.781,17.727Z" style="fill:rgb(26,35,126);fill-opacity:0.1;fill-rule:nonzero;"/>
+                    </g>
+                </g>
+                <path id="Path6" serif:id="Path" d="M29.375,0L4.406,0C1.983,0 0,1.994 0,4.432L0,60.568C0,63.006 1.983,65 4.406,65L42.594,65C45.017,65 47,63.006 47,60.568L47,17.727L29.375,0Z" style="fill:url(#_Radial2);fill-rule:nonzero;"/>
+            </g>
+        </g>
+    </g>
+    <defs>
+        <linearGradient id="_Linear1" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(9.19655e-16,15.0191,-15.0191,9.19655e-16,38.8328,17.8414)"><stop offset="0" style="stop-color:rgb(26,35,126);stop-opacity:0.2"/><stop offset="1" style="stop-color:rgb(26,35,126);stop-opacity:0.02"/></linearGradient>
+        <radialGradient id="_Radial2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(104.812,0,0,104.812,2.97794,3.53265)"><stop offset="0" style="stop-color:white;stop-opacity:0.1"/><stop offset="1" style="stop-color:white;stop-opacity:0"/></radialGradient>
+    </defs>
+</svg>

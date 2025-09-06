@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 33 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-185,0)">
+        <g id="figma" transform="matrix(1,0,0,1,-454.408,-3.55271e-15)">
+            <rect x="639.469" y="0" width="32" height="32" style="fill:none;"/>
+            <clipPath id="_clip1">
+                <rect x="639.469" y="0" width="32" height="32"/>
+            </clipPath>
+            <g clip-path="url(#_clip1)">
+                <g transform="matrix(0.0128,0,0,0.0128,644.8,-1.15463e-14)">
+                    <path id="path0_fill" d="M416.833,2500C646.833,2500 833.5,2313.33 833.5,2083.33L833.5,1666.67L416.833,1666.67C186.833,1666.67 0.167,1853.33 0.167,2083.33C0.167,2313.33 186.833,2500 416.833,2500Z" style="fill:rgb(10,207,131);fill-rule:nonzero;"/>
+                    <path id="path1_fill" d="M0.167,1250C0.167,1020 186.833,833.333 416.833,833.333L833.5,833.333L833.5,1666.67L416.833,1666.67C186.833,1666.67 0.167,1480 0.167,1250Z" style="fill:rgb(162,89,255);fill-rule:nonzero;"/>
+                    <path id="path1_fill_1_" d="M0.167,416.667C0.167,186.667 186.833,0 416.833,0L833.5,0L833.5,833.333L416.833,833.333C186.833,833.333 0.167,646.667 0.167,416.667Z" style="fill:rgb(242,78,30);fill-rule:nonzero;"/>
+                    <path id="path2_fill" d="M833.5,0L1250.17,0C1480.17,0 1666.83,186.667 1666.83,416.667C1666.83,646.667 1480.17,833.333 1250.17,833.333L833.5,833.333L833.5,0Z" style="fill:rgb(255,114,98);fill-rule:nonzero;"/>
+                    <path id="path3_fill" d="M1666.83,1250C1666.83,1480 1480.17,1666.67 1250.17,1666.67C1020.17,1666.67 833.5,1480 833.5,1250C833.5,1020 1020.17,833.333 1250.17,833.333C1480.17,833.333 1666.83,1020 1666.83,1250Z" style="fill:rgb(26,188,254);fill-rule:nonzero;"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
