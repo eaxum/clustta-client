@@ -1,0 +1,11 @@
+.\clustta_cli.exe importer import-data --data-folder ./test_data/data --database ./test_data/clustta.db
+go run .\cmd\studio_key\ .\data\clustta.db Studio
+docker compose -f ./cmd/server/compose.yml up -d
+docker compose -f ./cmd/studio_server/compose.yml up -d
+
+protoc --go_out=. .\internal\repository\schema.proto
+pbjs -t static-module -w es6 --keep-case -o .\frontend\src\lib\repositorypb.js .\internal\repository\schema.proto
+
+docker build -f .\cmd\studio_server\Dockerfile -t clustta/clustta:latest -t clustta/clustta:0.3.60 .
+
+MsixPackagingTool.exe create-package --template ".\Clustta_template.xml" -v

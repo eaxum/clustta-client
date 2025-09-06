@@ -1,0 +1,36 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build:dev": "vite build --minify false --mode development",
+    "build": "vite build --mode production",
+    "preview": "vite preview",
+    "proto:generate": "pbjs -t static-module -w es6 -o src/protos/example.js src/protos/example.proto && pbts -o src/protos/example.d.ts src/protos/example.js"
+  },
+  "dependencies": {
+    "@dagrejs/dagre": "^1.1.4",
+    "@vue-flow/background": "^1.3.0",
+    "@vue-flow/controls": "^1.1.2",
+    "@vue-flow/core": "^1.41.0",
+    "@vue-flow/minimap": "^1.5.0",
+    "buffer": "^6.0.3",
+    "cropperjs": "^1.6.2",
+    "mitt": "^3.0.1",
+    "pako": "^2.1.0",
+    "pinia": "^2.1.7",
+    "protobufjs": "^7.5.2",
+    "uuid": "^11.1.0",
+    "vue": "^3.3.4",
+    "vue-advanced-cropper": "^2.8.8",
+    "vue-cropperjs": "^5.0.0",
+    "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.5",
+    "@wailsio/runtime": "latest",
+    "vite": "^5.0.0"
+  }
+}

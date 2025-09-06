@@ -1,0 +1,359 @@
+syntax = "proto3";
+package repository;
+
+option go_package = "internal/repository/repositorypb";
+
+message User {
+    string id = 1;
+    int64 mtime = 2;
+    string added_at = 3;
+    string username = 4;
+    string email = 5;
+    string first_name = 6;
+    string last_name = 7;
+    bytes photo = 8;
+    string role_id = 9;
+    bool synced = 10;
+    string role = 11; 
+}
+
+message EntityType {
+  string id = 1;
+  int64 mtime = 2;
+  string name = 3;
+  string icon = 4;
+  bool synced = 5;
+}
+
+message TaskType {
+  string id = 1;
+  int64 mtime = 2;
+  string name = 3;
+  string icon = 4;
+  bool synced = 5;
+}
+
+message Task {
+  string id = 1;
+  int64 mtime = 2;
+  string created_at = 3;
+  string name = 4;
+  string description = 5;
+  string extension = 6;
+  bool is_resource = 7;
+  string status_id = 8;
+  string task_type_id = 9;
+  string entity_id = 10;
+  string assignee_id = 11;
+  string assigner_id = 12;
+  bool is_link = 13;
+  string pointer = 14;
+  string preview_id = 15;
+  bool trashed = 16;
+  bool synced = 17;
+}
+
+message Entity {
+  string id = 1;
+  int64 mtime = 2;
+  string created_at = 3;
+  string name = 4;
+  string entity_path = 5;
+  string description = 6;
+  bool trashed = 7;
+  string entity_type_id = 8;
+  string parent_id = 9;
+  string preview_id = 10;
+  bool synced = 11;
+  bool is_library = 12;
+}
+
+message EntityAssignee {
+  string id = 1;
+  int64 mtime = 2;
+  string entity_id = 3;
+  string assignee_id = 4;
+  string assigner_id = 5;
+  bool synced = 6;
+}
+
+message TaskDependency {
+  string id = 1;
+  int64 mtime = 2;
+  string task_id = 3;
+  string dependency_id = 4;
+  string dependency_type_id = 5;
+  bool synced = 6;
+}
+
+message EntityDependency {
+  string id = 1;
+  int64 mtime = 2;
+  string task_id = 3;
+  string dependency_id = 4;
+  string dependency_type_id = 5;
+  bool synced = 6;
+}
+
+message Workflow {
+  string id = 1;
+  int64 mtime = 2;
+  string name = 3;
+  bool synced = 4;
+}
+
+message WorkflowTask {
+  string id = 1;
+  int64 mtime = 2;
+  string name = 3;
+  string template_id = 4;
+  bool is_resource = 5;
+  string workflow_id = 6;
+  string task_type_id = 7;
+  string workflow_entity_id = 8;
+  bool is_link = 9;
+  string pointer = 10;
+  bool synced = 11;
+}
+
+message WorkflowEntity {
+  string id = 1;
+  int64 mtime = 2;
+  string name = 3;
+  string workflow_id = 4;
+  string entity_type_id = 5;
+  string parent_id = 6;
+  bool synced = 7;
+}
+
+message WorkflowLink {
+  string id = 1;
+  int64 mtime = 2;
+  string name = 3;
+  string entity_type_id = 4;
+  string workflow_id = 5;
+  string linked_workflow_id = 6;
+  string linked_workflow_name = 7;
+  bool synced = 8;
+}
+
+message DependencyType {
+  string id = 1;
+  int64 mtime = 2;
+  string name = 3;
+  bool synced = 4;
+}
+
+message Status {
+  string id = 1;
+  int64 mtime = 2;
+  string name = 3;
+  string short_name = 4;
+  string color = 5;
+  bool synced = 6;
+}
+
+message Tag {
+  string id = 1;
+  int64 mtime = 2;
+  string name = 3;
+  bool synced = 4;
+}
+
+message TaskTag {
+  string id = 1;
+  int64 mtime = 2;
+  string task_id = 3;
+  string tag_id = 4;
+  bool synced = 5;
+}
+
+message Checkpoint {
+  string id = 1;
+  int64 mtime = 2;
+  string created_at = 3;
+  string task_id = 4;
+  string xxhash_checksum = 5;
+  int64 time_modified = 6;
+  int64 file_size = 7;
+  string comment = 8;
+  string chunks = 9;
+  string author_uid = 10;
+  string preview_id = 11;
+  bool trashed = 12;
+  bool synced = 13;
+}
+
+message Role {
+  string id = 1;
+  int64 mtime = 2;
+  string name = 3;
+  bool synced = 4;
+
+  bool view_entity = 5;
+  bool create_entity = 6;
+  bool update_entity = 7;
+  bool delete_entity = 8;
+
+  bool view_task = 9;
+  bool create_task = 10;
+  bool update_task = 11;
+  bool delete_task = 12;
+
+  bool view_template = 13;
+  bool create_template = 14;
+  bool update_template = 15;
+  bool delete_template = 16;
+
+  bool view_checkpoint = 17;
+  bool create_checkpoint = 18;
+  bool delete_checkpoint = 19;
+
+  bool pull_chunk = 20;
+
+  bool assign_task = 21;
+  bool unassign_task = 22;
+
+  bool add_user = 23;
+  bool remove_user = 24;
+  bool change_role = 25;
+
+  bool change_status = 26;
+  bool set_done_task = 27;
+  bool set_retake_task = 28;
+
+  bool view_done_task = 29;
+
+  bool manage_dependencies = 30;
+}
+
+message UserRole {
+  string id = 1;
+  int64 mtime = 2;
+  string user_id = 3;
+  string role_id = 4;
+  bool synced = 5;
+}
+
+message Template {
+  string id = 1;
+  int64 mtime = 2;
+  string name = 3;
+  string extension = 4;
+  string chunks = 5;
+  string xxhash_checksum = 6;
+  int64 file_size = 7;
+  bool trashed = 8;
+  bool synced = 9;
+}
+
+message Preview {
+  string hash = 1;
+  bytes preview = 2;
+  string extension = 3;
+}
+
+message Tomb {
+  string id = 1;
+  int64 mtime = 2;
+  string table_name = 3;
+  bool synced = 4;
+}
+
+message ProjectData {
+    string project_preview = 1;
+    repeated Task tasks = 2;
+    repeated TaskType task_types = 3;
+    repeated Checkpoint tasks_checkpoints = 4;
+    repeated TaskDependency task_dependencies = 5;
+    repeated EntityDependency entity_dependencies = 6;
+
+    repeated Status statuses = 7;
+    repeated DependencyType dependency_types = 8;
+
+    repeated User users = 9;
+    repeated Role roles = 10;
+
+    repeated EntityType entity_types = 11;
+    repeated Entity entities = 12;
+    repeated EntityAssignee entity_assignees = 13;
+
+    repeated Template templates = 14;
+    repeated Tag tags = 15;
+    repeated TaskTag tasks_tags = 16;
+
+    repeated Workflow workflows = 17;
+    repeated WorkflowLink workflow_links = 18;
+    repeated WorkflowEntity workflow_entities = 19;
+    repeated WorkflowTask workflow_tasks = 20;
+
+    repeated Tomb tomb = 21;
+}
+
+message FullTask {
+  string id = 1;
+  int64 mtime = 2 [json_name = "mtime"];
+  string created_at = 3 [json_name = "created_at"];
+  string name = 4 [json_name = "name"];
+  string description = 5 [json_name = "description"];
+  string extension = 6 [json_name = "extension"];
+  bool is_resource = 7 [json_name = "is_resource"];
+  string status_id = 8 [json_name = "status_id"];
+  string status_short_name = 9 [json_name = "status_short_name"];
+  string task_type_id = 10 [json_name = "task_type_id"];
+  string task_type_name = 11 [json_name = "task_type_name"];
+  string task_type_icon = 12 [json_name = "task_type_icon"];
+  string entity_id = 13;
+  string entity_name = 14;
+  string entity_path = 15;
+  string task_path = 16;
+  string assignee_id = 17;
+  string assignee_email = 18;
+  string assignee_name = 19;
+  string assigner_id = 20;
+  string assigner_email = 21;
+  string assigner_name = 22;
+  bool is_dependency = 23;
+  int32 dependency_level = 24;
+  string file_path = 25;
+  repeated string tags = 26;
+  string tags_raw = 27;
+  repeated string entity_dependencies = 28;
+  string entity_dependencies_raw = 29;
+  repeated string dependencies = 30;
+  string dependencies_raw = 31;
+  string file_status = 32;
+  Status status = 33;
+  bool is_link = 34;
+  string pointer = 35;
+  string preview_id = 36;
+  bytes preview = 37;
+  string preview_extension = 38;
+  repeated Checkpoint checkpoints = 39;
+  bool trashed = 40;
+  bool synced = 41;
+  string type = 42;
+}
+
+message ChunkInfo {
+  string hash = 3 [json_name = "hash"];
+  int64 size = 2 [json_name = "size"];
+}
+
+message FullTaskList {
+  repeated FullTask full_tasks = 1;
+}
+
+message Previews {
+  repeated Preview previews = 1;
+}
+
+message ChunkHashes {
+  repeated string chunk_hashes = 1;
+}
+
+message ChunkInfos {
+  repeated ChunkInfo chunk_infos = 1;
+}
+
+

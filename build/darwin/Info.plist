@@ -1,0 +1,29 @@
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>CFBundlePackageType</key>
+        <string>APPL</string>
+        <key>CFBundleName</key>
+        <string>Clustta</string>
+        <key>CFBundleExecutable</key>
+        <string>clustta</string>
+        <key>CFBundleIdentifier</key>
+        <string>com.clustta.clustta</string>
+        <key>CFBundleVersion</key>
+        <string>0.3.60</string>
+        <key>CFBundleGetInfoString</key>
+        <string>This is a comment</string>
+        <key>CFBundleShortVersionString</key>
+        <string>0.3.60</string>
+        <key>CFBundleIconFile</key>
+        <string>icons</string>
+        <key>LSMinimumSystemVersion</key>
+        <string>10.13.0</string>
+        <key>LSApplicationCategoryType</key>
+        <string>public.app-category.productivity</string>
+        <key>NSHighResolutionCapable</key>
+        <string>true</string>
+        <key>NSHumanReadableCopyright</key>
+        <string>© now, Eaxum Creative LTD</string>
+    </dict>
+</plist>
