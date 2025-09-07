@@ -20,7 +20,7 @@ import GridItem from '@/instances/common/components/GridItem.vue';
 // state imports
 import { useMenu } from '@/stores/menu';
 import { useStageStore } from '@/stores/stages';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from '@/stores/projects';
@@ -29,7 +29,7 @@ import { useDndStore } from '@/stores/dnd';
 // states/stores
 const menu = useMenu();
 const stage = useStageStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const assetStore = useAssetStore();
 const projectStore = useProjectStore();
@@ -144,7 +144,7 @@ const onDragStart = (e, id) => {
 };
 
 const selectedEntity = computed(() => {
-    return entityStore.navigatedEntity
+    return collectionStore.navigatedEntity
 });
 
 const isUntracked = computed(() => {
@@ -153,7 +153,7 @@ const isUntracked = computed(() => {
 
 const entityEntities = computed(() => {
   const entityId = selectedEntity.value?.id;
-  const childEntities = entityStore.getEntityChildren(entityId);
+  const childEntities = collectionStore.getEntityChildren(entityId);
   return childEntities 
 
 });
@@ -222,7 +222,7 @@ const entityData = computed(() => {
 });
 
 const navigatorItemData = computed(() => {
-  return entityStore.navigatedEntity ? entityData.value : props.rootItems;
+  return collectionStore.navigatedEntity ? entityData.value : props.rootItems;
 })
 
 // methods
@@ -303,5 +303,8 @@ onUnmounted(() => {
 	width: 100%;
 }
 </style>
+
+
+
 
 

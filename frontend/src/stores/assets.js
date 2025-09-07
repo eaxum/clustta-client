@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { isValidWeblink, isValidPointer } from "@/lib/pointer";
 import { metadata } from "@/lib/metadata";
-import { useEntityStore } from "./entity";
+import { useCollectionStore } from "./collections";
 import { TaskService, TagService } from "@/../bindings/clustta/services";
 import { useIconStore } from "./icons";
 import utils from "@/services/utils";
@@ -267,7 +267,7 @@ export const useAssetStore = defineStore("asset", {
     getDisplayedTasks: (state) => {
       const stageStore = useStageStore();
       const commonStore = useCommonStore();
-      const entityStore = useEntityStore();
+      const collectionStore = useCollectionStore();
       let filteredTasks = state.getFilteredTasks;
       let showEntities = commonStore.showEntities;
 
@@ -291,15 +291,15 @@ export const useAssetStore = defineStore("asset", {
     },
 
     // getEntityTasks: (state) => {
-    //   const entityStore = useEntityStore();
+    //   const collectionStore = useCollectionStore();
     //   let tasks = {};
     //   let taskIds = [];
-    //   if (entityStore.selectedEntity) {
+    //   if (collectionStore.selectedEntity) {
     //     for (let i = 0; i < state.tasks.length; i++) {
     //       let task = state.tasks[i];
     //       if (
     //         task.trashed === false &&
-    //         task.entity_id === entityStore.selectedEntity.id
+    //         task.entity_id === collectionStore.selectedEntity.id
     //       ) {
     //         tasks[task.id] = task;
     //         taskIds.push(task.id);
@@ -325,7 +325,7 @@ export const useAssetStore = defineStore("asset", {
     // },
 
     doneTasksExist: (state) => {
-      const entityStore = useEntityStore();
+      const collectionStore = useCollectionStore();
       for (let i = 0; i < state.tasks.length; i++) {
         let task = state.tasks[i];
         if (task.trashed) {
@@ -805,14 +805,14 @@ export const useAssetStore = defineStore("asset", {
       return "modified";
     },
     getTaskEntity(taskId, recursive = false) {
-      const entityStore = useEntityStore();
+      const collectionStore = useCollectionStore();
       let taskIndex = this.tasks_index[taskId];
       let task = this.tasks[taskIndex];
       let entityId = task.entity_id;
       let parentEntities = [];
 
       if (entityId) {
-        let parentEntity = entityStore.findEntity(entityId);
+        let parentEntity = collectionStore.findEntity(entityId);
         if (parentEntity) {
           parentEntities.push(parentEntity);
         }
@@ -820,7 +820,7 @@ export const useAssetStore = defineStore("asset", {
           let parentId = parentEntity.parent_id;
           let depth = 0;
           while (parentId && depth < 20) {
-            let parentEntity = entityStore.findEntity(parentId);
+            let parentEntity = collectionStore.findEntity(parentId);
             if (parentEntity) {
               parentEntities.push(parentEntity);
               parentId = parentEntity.parent_id;
@@ -942,3 +942,6 @@ export const useAssetStore = defineStore("asset", {
 
   },
 });
+
+
+

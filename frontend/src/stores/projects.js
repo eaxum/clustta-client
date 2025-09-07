@@ -8,7 +8,7 @@ import {
 import { useNotificationStore } from "./notifications";
 import { useCommonStore } from "./common";
 import { useUserStore } from "./users";
-import { useEntityStore } from "./entity";
+import { useCollectionStore } from "./collections";
 import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from "./stages";
 import { usePaneStore } from "./panes";
@@ -127,7 +127,7 @@ export const useProjectStore = defineStore("projects", {
     },
     async gotoProject(project) {
       const commonStore = useCommonStore();
-      const entityStore = useEntityStore();
+      const collectionStore = useCollectionStore();
       const assetStore = useAssetStore();
       const stage = useStageStore();
       const panes = usePaneStore();
@@ -144,12 +144,12 @@ export const useProjectStore = defineStore("projects", {
       commonStore.activeWorkspace = "Default";
       commonStore.resetFilters();
 
-      entityStore.entities = [];
+      collectionStore.entities = [];
       assetStore.tasks = [];
 
       commonStore.navigatorMode = false;
-      entityStore.navigatedEntity = null;
-      entityStore.selectedEntity = null;
+      collectionStore.navigatedEntity = null;
+      collectionStore.selectedEntity = null;
       assetStore.selectedTask = null;
 
       stage.expandedEntities = {};
@@ -320,7 +320,7 @@ export const useProjectStore = defineStore("projects", {
     //   //   return;
     //   // }
     //   const userStore = useUserStore();
-    //   const entityStore = useEntityStore();
+    //   const collectionStore = useCollectionStore();
     //   const assetStore = useAssetStore();
     //   let project = this.activeProject;
     //   if (project) {
@@ -472,7 +472,7 @@ export const useProjectStore = defineStore("projects", {
         return;
       }
       const userStore = useUserStore();
-      const entityStore = useEntityStore();
+      const collectionStore = useCollectionStore();
       const assetStore = useAssetStore();
       const ignoredExtensions = ["blend1", ".tif", "tmp"];
       let project = this.activeProject;
@@ -562,4 +562,7 @@ export const useProjectStore = defineStore("projects", {
     },
   },
 });
+
+
+
 

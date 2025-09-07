@@ -49,7 +49,7 @@ import { useMenu } from '@/stores/menu';
 
 // store imports
 import { useNotificationStore } from '@/stores/notifications';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useStageStore } from '@/stores/stages';
@@ -73,7 +73,7 @@ const assetStore = useAssetStore();
 const templateStore = useTemplateStore();
 const projectStore = useProjectStore();
 const commonStore = useCommonStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 
 // stores
 const notificationStore = useNotificationStore();
@@ -185,13 +185,13 @@ const createTask = async (launch = false, comment = "new file") => {
   let entities = stageStore.markedEntities
   let template = templateStore.templates.find(template => template.name === templateStore.selectedTemplateName);
   templateStore.lastUsedTemplate = template.name;
-  const isNested = commonStore.navigatorMode && !!entityStore.navigatedEntity;
+  const isNested = commonStore.navigatorMode && !!collectionStore.navigatedEntity;
   if (entities.length <= 1) {
 
     let entityId = "";
     
     if (isNested) {
-      entityId = entityStore.navigatedEntity.id;
+      entityId = collectionStore.navigatedEntity.id;
     } else if (entities.length > 0){
       entityId = entities[0];
     }
@@ -376,5 +376,8 @@ onUnmounted(() => {
   margin-top: 0;
 }
 </style>
+
+
+
 
 

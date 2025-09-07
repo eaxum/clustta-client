@@ -19,17 +19,17 @@
 // imports
 import { computed, onMounted } from 'vue';
 import { useDndStore } from '@/stores/dnd';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 
 
 const dndStore = useDndStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 
 const dropLocation = computed(() => {
     if (!dndStore.targetItemId) {
         return 'Root'
     } else {
-        const entityName = entityStore.findEntity(dndStore.targetItemId).name;
+        const entityName = collectionStore.findEntity(dndStore.targetItemId).name;
         return entityName
     }
 });
@@ -103,4 +103,7 @@ const props = defineProps({
     color: white;
 }
 </style>
+
+
+
 

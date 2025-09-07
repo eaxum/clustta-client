@@ -101,7 +101,7 @@ import '@vue-flow/core/dist/theme-default.css';
 
 // state imports
 import { useCommonStore } from '@/stores/common';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDependencyStore } from '@/stores/dependency';
@@ -122,7 +122,7 @@ const dependencyStore = useDependencyStore();
 const tagStore = useTagStore();
 const menu = useMenu();
 const commonStore = useCommonStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 
@@ -324,7 +324,7 @@ const updateFilteredTasks = async () => {
 
 const updateFilteredEntities = async () => {
   try {
-    filteredEntities.value = await entityStore.filterEntities(sidebarEntities.value);
+    filteredEntities.value = await collectionStore.filterEntities(sidebarEntities.value);
   } catch (error) {
     console.error("Error filtering entities:", error);
     filteredEntities.value = [];
@@ -1086,5 +1086,8 @@ onUnmounted(() => {
 
 }
 </style>
+
+
+
 
 

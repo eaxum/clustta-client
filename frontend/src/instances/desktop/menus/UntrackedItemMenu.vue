@@ -66,7 +66,7 @@ import { useAssetStore } from '@/stores/assets';
 import { useTemplateStore } from '@/stores/template';
 import { useProjectStore } from '@/stores/projects';
 import { useUntrackedItemStore } from '@/stores/untracked';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import emitter from '@/lib/mitt';
 
 // components
@@ -84,7 +84,7 @@ const modals = useDesktopModalStore();
 const modalStore = useModalStore();
 const notificationStore = useNotificationStore();
 const assetStore = useAssetStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const templateStore = useTemplateStore();
 const projectStore = useProjectStore();
 const untrackedItemStore = useUntrackedItemStore();
@@ -177,7 +177,7 @@ const deleteItem = async () => {
     FSService.DeleteFile(item.file_path);
     projectStore.removeUntrackedTask(item.id);
   } else if (item.type == 'untracked_entity') {
-    entityStore.selectedEntity = null;
+    collectionStore.selectedEntity = null;
     FSService.DeleteFolder(item.file_path);
     projectStore.removeUntrackedEntity(item.id)
   }
@@ -242,5 +242,8 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
+
+
+
 
 

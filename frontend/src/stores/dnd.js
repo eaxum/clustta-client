@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { useStageStore } from "@/stores/stages";
 import { useAssetStore } from "@/stores/assets";
-import { useEntityStore } from "@/stores/entity";
+import { useCollectionStore } from "@/stores/collections";
 import { useProjectStore } from '@/stores/projects';
 
 export const useDndStore = defineStore("dnd", {
@@ -297,3 +297,4 @@ export const useDndStore = defineStore("dnd", {
     },
   },
 });
+

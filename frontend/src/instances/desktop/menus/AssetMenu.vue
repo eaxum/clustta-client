@@ -74,7 +74,7 @@ import { useModalStore } from '@/stores/modals';
 import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from '@/stores/projects';
 import { useCommonStore } from '@/stores/common';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import emitter from '@/lib/mitt';
 
 // components
@@ -93,7 +93,7 @@ const notificationStore = useNotificationStore();
 const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const commonStore = useCommonStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 
 // refs
 const popUpMenu = ref(null);
@@ -253,8 +253,8 @@ const goToLocation = async () => {
     if (selectedTask && selectedTask.entity_id) {
       const parentEntity = await EntityService.GetEntityByID(projectStore.activeProject.uri, selectedTask.entity_id);
       if (parentEntity) {
-        entityStore.navigatedEntity = parentEntity;
-        entityStore.selectedEntity = parentEntity;
+        collectionStore.navigatedEntity = parentEntity;
+        collectionStore.selectedEntity = parentEntity;
       }
     }
   } catch (error) {
@@ -424,5 +424,8 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
+
+
+
 
 

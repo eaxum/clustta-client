@@ -21,7 +21,7 @@ import { onMounted, computed, ref } from 'vue';
 import utils from '@/services/utils';
 
 // store imports
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useProjectStore } from '@/stores/projects';
 import { useNotificationStore } from '@/stores/notifications';
@@ -34,7 +34,7 @@ import PageState from '@/instances/common/components/PageState.vue';
 import { EntityService } from '@/../bindings/clustta/services/index';
 
 // states
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
@@ -43,9 +43,9 @@ const notificationStore = useNotificationStore();
 // computed props
 const projectEntityTypes = computed(() => {
   
-    let entityTypes = entityStore.getEntityTypes;
+    let entityTypes = collectionStore.getEntityTypes;
     let viewEntityTypeIds = [];
-    let entities = entityStore.entities;
+    let entities = collectionStore.entities;
 
     for (const entity of entities){
       let entityTypeId = entity.entity_type_id;
@@ -95,7 +95,7 @@ const addEntityType = () => {
 const prepEditEntityType = (selectedEntityTypeId) => {
 
   console.log(selectedEntityTypeId)
-  entityStore.selectedEntityType = entityStore.getEntityTypes.find((item) => item.id === selectedEntityTypeId)
+  collectionStore.selectedEntityType = collectionStore.getEntityTypes.find((item) => item.id === selectedEntityTypeId)
   modals.setModalVisibility('editCollectionTypeModal', true);
 };
 
@@ -107,8 +107,8 @@ const deleteEntityType = async (entityTypeId) => {
   EntityService.DeleteEntityType(projectStore.activeProject.uri, entityTypeId)
     .then((response) => {
       notificationStore.addNotification("Entity Type Deleted", "", "success");
-      const index = entityStore.entityTypes.findIndex(entityType => entityType.id === entityTypeId);
-      entityStore.entityTypes.splice(index, 1);
+      const index = collectionStore.entityTypes.findIndex(entityType => entityType.id === entityTypeId);
+      collectionStore.entityTypes.splice(index, 1);
     })
     .catch((error) => {
       notificationStore.errorNotification("Error Deleting Entity Type", error);
@@ -159,4 +159,7 @@ onMounted(async () => {
   background-color: var(--black-steel);
 }
 </style>
+
+
+
 

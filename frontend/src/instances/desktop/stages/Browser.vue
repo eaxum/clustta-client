@@ -126,7 +126,7 @@ import { FSService, SyncService, DialogService } from '@/../bindings/clustta/ser
 
 // state imports
 import { useCommonStore } from '@/stores/common';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useAssetStore } from '@/stores/assets';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useStageStore } from '@/stores/stages';
@@ -155,7 +155,7 @@ const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const panes = usePaneStore();
 const commonStore = useCommonStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const assetStore = useAssetStore();
 const menu = useMenu();
 const tagStore = useTagStore();
@@ -374,7 +374,7 @@ const checkHoverState = () => {
 	if (!dndStore.isDragging) return
 	dndStore.targetItemId = null;
 
-	const allTargets = entityStore.getEntities;
+	const allTargets = collectionStore.getEntities;
 	for (let target of allTargets) {
 		let targetEl = dndStore.itemRefs[target.id];
 		if (!targetEl) {
@@ -469,12 +469,12 @@ const hideExtensionsFilter = computed(() => {
 });
 
 const canModifyEntity = computed(() => {
-	if (!entityStore.selectedEntity) {
+	if (!collectionStore.selectedEntity) {
 		return false
 	}
-	let selectedIsMarked = stage.markedItems.includes(entityStore.selectedEntity.id)
+	let selectedIsMarked = stage.markedItems.includes(collectionStore.selectedEntity.id)
 	if (selectedIsMarked && stage.markedItems.length === 1) {
-		return entityStore.selectedEntity.can_modify
+		return collectionStore.selectedEntity.can_modify
 	} else {
 		return false
 	}
@@ -489,13 +489,13 @@ const entityExpanded = computed(() => {
 });
 
 const navigatedEntity = computed(() => {
-	return entityStore.navigatedEntity;
+	return collectionStore.navigatedEntity;
 });
 
 // computed getters
 const projectEntities = computed(() => {
 
-	const allEntities = entityStore.getFilteredEntities;
+	const allEntities = collectionStore.getFilteredEntities;
 	const trashedItems = trayStates.trashables;
 	const trashedItemIds = trashedItems.map(item => item.id);
 	const nestedEntities = allEntities.filter((item) => !item.parent_id);
@@ -616,7 +616,7 @@ const projectUntrackedFolders = computed(() => {
 });
 
 const selectedEntity = computed(() => {
-	return entityStore.navigatedEntity
+	return collectionStore.navigatedEntity
 });
 
 const isUntracked = computed(() => {
@@ -625,7 +625,7 @@ const isUntracked = computed(() => {
 
 const entityEntities = computed(() => {
 	const entityId = selectedEntity.value?.id;
-	const childEntities = entityStore.getEntityChildren(entityId);
+	const childEntities = collectionStore.getEntityChildren(entityId);
 	return childEntities
 
 });
@@ -707,9 +707,9 @@ const canModify = (task) => {
 // state compute props
 const isTasksModified = computed(() => {
 	let path;
-	path = entityStore.navigatedEntity?.type === 'entity'
-		? entityStore.navigatedEntity?.entity_path
-		: entityStore.navigatedEntity?.item_path;
+	path = collectionStore.navigatedEntity?.type === 'entity'
+		? collectionStore.navigatedEntity?.entity_path
+		: collectionStore.navigatedEntity?.item_path;
 
 
 	const modifiedTasksPath = assetStore.modifiedTasksPath;
@@ -728,7 +728,7 @@ const isTasksModified = computed(() => {
 
 const isTasksOutdated = computed(() => {
 
-	let path = entityStore.navigatedEntity?.entity_path;
+	let path = collectionStore.navigatedEntity?.entity_path;
 	const outdatedTasksPath = assetStore.outdatedTasksPath;
 
 	let filteredPaths;
@@ -744,7 +744,7 @@ const isTasksOutdated = computed(() => {
 
 const isTasksRebuildable = computed(() => {
 
-	let path = entityStore.navigatedEntity?.entity_path;
+	let path = collectionStore.navigatedEntity?.entity_path;
 	const rebuildableTasksPath = assetStore.rebuildableTasksPath;
 
 	let filteredPaths;
@@ -760,9 +760,9 @@ const isTasksRebuildable = computed(() => {
 
 const isTasksUntracked = computed(() => {
 	let path;
-	path = entityStore.navigatedEntity?.type === 'entity'
-		? entityStore.navigatedEntity?.entity_path
-		: entityStore.navigatedEntity?.item_path;
+	path = collectionStore.navigatedEntity?.type === 'entity'
+		? collectionStore.navigatedEntity?.entity_path
+		: collectionStore.navigatedEntity?.item_path;
 
 
 	const untrackedTasksPath = assetStore.untrackedTasksPath;
@@ -1076,7 +1076,7 @@ const freeUpSpace = async () => {
 	stage.firstSelectedItemId = '';
 	stage.lastSelectedItemId = '';
 	assetStore.selectedTask = null;
-	entityStore.selectedEntity = null;
+	collectionStore.selectedEntity = null;
 
 	const allItemsToDelete = dndStore.allViewItems.filter((item) => stage.markedItems.includes(item.id))
 
@@ -1153,7 +1153,7 @@ const deleteMultipleItems = async () => {
 	stage.firstSelectedItemId = '';
 	stage.lastSelectedItemId = '';
 	assetStore.selectedTask = null;
-	entityStore.selectedEntity = null;
+	collectionStore.selectedEntity = null;
 
 	const allItemsToDelete = dndStore.allViewItems.filter((item) => stage.markedItems.includes(item.id))
 
@@ -1198,7 +1198,7 @@ const deleteMultipleEntities = async (entityIds) => {
 	for (let entityId of entityIds) {
 		await EntityService.DeleteEntity(projectStore.activeProject.uri, entityId, true)
 			.then(async (response) => {
-				await entityStore.markEntityAsDeleted(entityId);
+				await collectionStore.markEntityAsDeleted(entityId);
 				notificationStore.addNotification("Entity moved to Trash.", '', "success", false);
 			})
 			.catch((error) => {
@@ -1270,7 +1270,7 @@ const illustration = () => {
 
 const openMenu = (event) => {
 	assetStore.selectedTask = null;
-	entityStore.selectedEntity = null;
+	collectionStore.selectedEntity = null;
 	projectStore.selectedUntrackedItem = null;
 	handleClickOutside(event, true)
 	if (kanbanView.value) {
@@ -1397,8 +1397,8 @@ const importItems = async () => {
 
 const getCurrentDirectory = () => {
 	// If in navigator mode (viewing inside an entity/folder)
-	if (commonStore.navigatorMode && entityStore.navigatedEntity) {
-		const navigated = entityStore.navigatedEntity;
+	if (commonStore.navigatorMode && collectionStore.navigatedEntity) {
+		const navigated = collectionStore.navigatedEntity;
 		// Return the file path of the current entity or folder
 		return navigated.file_path;
 	}
@@ -1473,11 +1473,11 @@ const collapseAll = () => {
 	stage.expandedEntities = {};
 	stage.markedEntities = [];
 	stage.firstSelectedEntityId = '';
-	entityStore.selectedEntity = null;
+	collectionStore.selectedEntity = null;
 };
 
 const expandAll = () => {
-	const entities = entityStore.getEntities;
+	const entities = collectionStore.getEntities;
 	const expandedEntities = {};
 
 	for (let i = 0; i < entities.length; i++) {
@@ -1492,8 +1492,8 @@ const expandAll = () => {
 
 const rebuildAll = async () => { 
 
-	const path = entityStore.navigatedEntity?.entity_path;
-	const navigatedEntityId = entityStore.navigatedEntity?.id;
+	const path = collectionStore.navigatedEntity?.entity_path;
+	const navigatedEntityId = collectionStore.navigatedEntity?.id;
 	const rebuildableTasksPath = assetStore.rebuildableTasksPath;
 
 	notificationStore.cancleFunction = SyncService.CancelSync;
@@ -1541,9 +1541,9 @@ const revertAllChanges = async () => {
 	
 	// Get current navigation context
 	let path;
-	path = entityStore.navigatedEntity?.type === 'entity'
-		? entityStore.navigatedEntity?.entity_path
-		: entityStore.navigatedEntity?.item_path;
+	path = collectionStore.navigatedEntity?.type === 'entity'
+		? collectionStore.navigatedEntity?.entity_path
+		: collectionStore.navigatedEntity?.item_path;
 
 	const modifiedTasksPath = assetStore.modifiedTasksPath;
 	let filteredPaths;
@@ -1571,9 +1571,9 @@ const updateAllModified = async () => {
 	
 	// Get current navigation context
 	let path;
-	path = entityStore.navigatedEntity?.type === 'entity'
-		? entityStore.navigatedEntity?.entity_path
-		: entityStore.navigatedEntity?.item_path;
+	path = collectionStore.navigatedEntity?.type === 'entity'
+		? collectionStore.navigatedEntity?.entity_path
+		: collectionStore.navigatedEntity?.item_path;
 
 	const outdatedTasksPath = assetStore.outdatedTasksPath;
 	let filteredPaths;
@@ -1623,7 +1623,7 @@ const clearSelection = () => {
 	stage.firstSelectedItemId = '';
 	stage.lastSelectedItemId = '';
 	assetStore.selectedTask = null;
-	entityStore.selectedEntity = null;
+	collectionStore.selectedEntity = null;
 }
 
 const handleClickOutside = (event, rightClick = false) => {
@@ -1640,7 +1640,7 @@ const handleClickOutside = (event, rightClick = false) => {
 				stage.lastSelectedItemId = '';
 				stage.selectedItem = null;
 				assetStore.selectedTask = null;
-				entityStore.selectedEntity = null;
+				collectionStore.selectedEntity = null;
 				stage.cutItems = [];
 				projectStore.selectedUntrackedItem = null;
 			}
@@ -1698,8 +1698,8 @@ const refresh = async () => {
 	if (!commonStore.navigatorMode) {
 		children = await EntityService.GetEntityChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false)
 	} else {
-		const navigatedEntityId = entityStore.navigatedEntity?.id;
-		const entity_file_path = entityStore.navigatedEntity?.file_path;
+		const navigatedEntityId = collectionStore.navigatedEntity?.id;
+		const entity_file_path = collectionStore.navigatedEntity?.file_path;
 		children = await EntityService.GetEntityChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false)
 	}
 
@@ -1749,8 +1749,8 @@ const softRefresh = async () => {
 
 		} else {
 
-			const navigatedEntityId = entityStore.navigatedEntity?.id;
-			const entity_file_path = entityStore.navigatedEntity?.file_path;
+			const navigatedEntityId = collectionStore.navigatedEntity?.id;
+			const entity_file_path = collectionStore.navigatedEntity?.file_path;
 			
 			const entityItems = await EntityService.GetEntityChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false)
 
@@ -1758,7 +1758,7 @@ const softRefresh = async () => {
 			tasks = entityItems['tasks'];
 		}	
 		
-			children['entities'] = await entityStore.filterEntities(entities);
+			children['entities'] = await collectionStore.filterEntities(entities);
 			children['tasks'] = await assetStore.filterTasks(tasks);
 
 	} else {
@@ -1767,8 +1767,8 @@ const softRefresh = async () => {
 			children = await EntityService.GetEntityChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false)
 
 		} else {
-			const navigatedEntityId = entityStore.navigatedEntity?.id;
-			const entity_file_path = entityStore.navigatedEntity?.file_path;
+			const navigatedEntityId = collectionStore.navigatedEntity?.id;
+			const entity_file_path = collectionStore.navigatedEntity?.file_path;
 			children = await EntityService.GetEntityChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false);
 		}
 	}
@@ -1807,7 +1807,7 @@ watch(() => projectStore.activeProject, async () => {
 	}
 });
 
-watch(() => entityStore.navigatedEntity, async () => {
+watch(() => collectionStore.navigatedEntity, async () => {
 	await softRefresh();
 });
 
@@ -2269,5 +2269,8 @@ onBeforeUnmount(() => {
 	box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
 }
 </style>
+
+
+
 
 

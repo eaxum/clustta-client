@@ -74,7 +74,7 @@
 import { computed, onMounted, ref, nextTick } from 'vue';
 import { CheckpointService, EntityService, TaskService, TrashService } from "@/../bindings/clustta/services";
 import utils from '@/services/utils';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 
 import { useTrayStates } from '@/stores/TrayStates';
 import { useIconStore } from '@/stores/icons';
@@ -103,7 +103,7 @@ const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const assetStore = useAssetStore();
 const stage = useStageStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 
 const getAppIcon = (iconName) => {
@@ -183,7 +183,7 @@ const selectItem = async (taskPath) => {
 
 }
 
-// entityStore.navigateToEntity(entity);
+// collectionStore.navigateToEntity(entity);
 //   commonStore.navigatorMode = true;
 
 const findItem = async (taskPath) => {
@@ -194,7 +194,7 @@ const findItem = async (taskPath) => {
     const taskParent = allEntities.find((item) => item.id === task.entity_id );
     
     if(taskParent){
-        entityStore.navigateToEntity(taskParent);
+        collectionStore.navigateToEntity(taskParent);
         commonStore.navigatorMode = true;
     } 
     
@@ -486,5 +486,8 @@ onMounted(() => {
     height: 100%;
 }
 </style>
+
+
+
 
 
