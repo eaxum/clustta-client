@@ -17,8 +17,8 @@ export const useProjectTemplateStore = defineStore("project_template", {
     projectTemplates: [],
     activeProjectTemplate: {},
     taskTemplates: [],
-    taskTypes: [],
-    entityTypes: [],
+    assetTypes: [],
+    collectionTypes: [],
   }),
   getters: {
     getTemplates: (state) => {
@@ -76,15 +76,15 @@ export const useProjectTemplateStore = defineStore("project_template", {
         this.taskTemplates.push(template);
       }
 
-      let taskTypes = await TaskService.GetTaskTypes(
+      let assetTypes = await TaskService.GetTaskTypes(
         this.activeProjectTemplate.uri
       );
-      this.taskTypes = taskTypes;
+      this.assetTypes = assetTypes;
 
-      let entityTypes = await EntityService.GetEntityTypes(
+      let collectionTypes = await EntityService.GetEntityTypes(
         this.activeProjectTemplate.uri
       );
-      this.entityTypes = entityTypes;
+      this.collectionTypes = collectionTypes;
     },
   },
 });

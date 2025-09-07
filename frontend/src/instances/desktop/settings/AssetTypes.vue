@@ -54,7 +54,7 @@ const projectTaskTypes = computed(() => {
   let taskTypes = assetStore.getAssetTypes;
   console.log(taskTypes)
   let viewTaskTypeIds = [];
-  let tasks = assetStore.tasks;
+  let tasks = assetStore.assets;
 
   for (const task of tasks){
     let taskTypeId = task.task_type_id;
@@ -98,7 +98,7 @@ const addTaskType = () => {
 
 const prepEditTaskType = (selectedTaskTypeId) => {
   console.log(selectedTaskTypeId)
-  assetStore.selectedTaskType = assetStore.getAssetTypes.find((item) => item.id === selectedTaskTypeId)
+  assetStore.selectedAssetType = assetStore.getAssetTypes.find((item) => item.id === selectedTaskTypeId)
   modals.setModalVisibility('editAssetTypeModal', true);
 
 };
@@ -111,8 +111,8 @@ const deleteTaskType = async (taskTypeId) => {
   TaskService.DeleteTaskType(projectStore.activeProject.uri, taskTypeId)
     .then((response) => {
       notificationStore.addNotification("Task Type Deleted", "", "success");
-      const index = assetStore.taskTypes.findIndex(taskType => taskType.id === taskTypeId);
-      assetStore.taskTypes.splice(index, 1);
+      const index = assetStore.assetTypes.findIndex(taskType => taskType.id === taskTypeId);
+      assetStore.assetTypes.splice(index, 1);
     })
     .catch((error) => {
       notificationStore.errorNotification("Error Deleting Task Type", error);

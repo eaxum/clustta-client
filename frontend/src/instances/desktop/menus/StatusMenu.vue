@@ -46,7 +46,7 @@ const selectStatus = async (fullStatus) => {
   stage.operationActive = true;
   const projectPath = projectStore.activeProject.uri;
   const status = statusStore.statuses.find(item => item.short_name === statusName.toLowerCase());
-  let task = assetStore.selectedTask;
+  let task = assetStore.selectedAsset;
   
   await TaskService.ChangeStatus(projectPath, task.id, status.id)
     .then((data) => {

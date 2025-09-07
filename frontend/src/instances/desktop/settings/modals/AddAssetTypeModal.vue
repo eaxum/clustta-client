@@ -54,7 +54,7 @@ const isAwaitingResponse = ref(false);
 
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allTaskTypeIcons  = assetStore.taskTypes.map((item) => item.icon);
+  const allTaskTypeIcons  = assetStore.assetTypes.map((item) => item.icon);
   return allIcons.filter((icon) => !allTaskTypeIcons.includes(icon))
 })
 
@@ -95,7 +95,7 @@ const createTaskType = () => {
   TaskService.CreateTaskType(projectStore.activeProject.uri, taskTypeName.value, taskTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification("Task Type Created", "", "success");
-      assetStore.taskTypes.push(response);
+      assetStore.assetTypes.push(response);
       closeModal();
     })
     .catch((error) => {

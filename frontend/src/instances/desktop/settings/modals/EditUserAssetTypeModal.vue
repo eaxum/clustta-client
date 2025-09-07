@@ -54,7 +54,7 @@ const isAwaitingResponse = ref(false);
 
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allTaskTypeIcons = assetStore.taskTypes.map((item) => item.icon);
+  const allTaskTypeIcons = assetStore.assetTypes.map((item) => item.icon);
   return allIcons.filter((icon) => !allTaskTypeIcons.includes(icon))
 })
 
@@ -92,11 +92,11 @@ const handleEnterKey = (event) => {
 };
 
 const updateTaskType = () => {
-  TaskService.UpdateTaskType(projectStore.activeProject.uri, assetStore.selectedTaskType.id, taskTypeName.value, taskTypeIcon.value)
+  TaskService.UpdateTaskType(projectStore.activeProject.uri, assetStore.selectedAssetType.id, taskTypeName.value, taskTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification("Task Type Updated", "", "success");
-      const index = assetStore.taskTypes.findIndex(taskType => taskType.id === assetStore.selectedTaskType.id);
-      assetStore.taskTypes[index] = response
+      const index = assetStore.assetTypes.findIndex(taskType => taskType.id === assetStore.selectedAssetType.id);
+      assetStore.assetTypes[index] = response
       closeModal();
     })
     .catch((error) => {
@@ -105,8 +105,8 @@ const updateTaskType = () => {
 };
 
 onMounted(() => {
-//   taskTypeName.value = assetStore.selectedTaskType.name;
-//   taskTypeIcon.value = assetStore.selectedTaskType.icon;
+//   taskTypeName.value = assetStore.selectedAssetType.name;
+//   taskTypeIcon.value = assetStore.selectedAssetType.icon;
 })
 
 

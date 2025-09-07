@@ -566,14 +566,14 @@ const prepFreeUpSpacePopUpModal = () => {
 };
 
 const freeUpSpace = async () => {
-  let task = assetStore.selectedTask;
+  let task = assetStore.selectedAsset;
   let taskDir = task.file_path.replace(/\\/g, '/');
   await FSService.DeleteFile(taskDir)
     .then((response) => {
       task.file_status = 'rebuildable';
-      assetStore.rebuildableTasksPath.push(task.task_path)
-      assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
-      assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter(taskPath => taskPath !== task.task_path);
+      assetStore.rebuildableAssetsPath.push(task.task_path)
+      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path)
+      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => taskPath !== task.task_path);
       emitter.emit('refresh-browser');
     })
     .catch((error) => {
@@ -584,17 +584,17 @@ const freeUpSpace = async () => {
 
 const deleteTask = async () => {
   if (props.task.type === 'task') {
-    let taskId = assetStore.selectedTask.id;
+    let taskId = assetStore.selectedAsset.id;
     TaskService.DeleteTask(projectStore.activeProject.uri, taskId, true)
       .then(async (response) => {
-        assetStore.selectedTask = null;
+        assetStore.selectedAsset = null;
         stage.markedItems = [];
         emitter.emit('refresh-browser');
       })
       .catch((error) => {
         notificationStore.errorNotification("Task failed to delete.", error)
       });
-    let longMessage = `Task of name: ${assetStore.selectedTask.name} was moved to Trash.`
+    let longMessage = `Task of name: ${assetStore.selectedAsset.name} was moved to Trash.`
     notificationStore.addNotification("Task moved to Trash.", longMessage, "success", true);
   } else if (props.task.type === 'untracked_task') {
     prepDeleteUntrackedTaskPopUpModal();
@@ -637,9 +637,9 @@ const taskTypeIcon = computed(() => {
 
 // methods
 const closeStatusMenu = () => {
-  props.task.status = assetStore.selectedTask.status
-  props.task.status_id = assetStore.selectedTask.status_id
-  props.task.status_short_name = assetStore.selectedTask.status_short_name
+  props.task.status = assetStore.selectedAsset.status
+  props.task.status_id = assetStore.selectedAsset.status_id
+  props.task.status_short_name = assetStore.selectedAsset.status_short_name
   statusMenuDisplayed.value = false;
 };
 
@@ -679,8 +679,8 @@ const launchTaskCommand = async () => {
 
 const prepCreateCheckpoint = (index, mask, event) => {
   const task = props.task
-  assetStore.selectedTask = task;
-  console.log(assetStore.selectedTask)
+  assetStore.selectedAsset = task;
+  console.log(assetStore.selectedAsset)
   handleClick(index, task, event);
   modals.setModalVisibility('createCheckpointModal', true);
 };
@@ -712,8 +712,8 @@ const revertTask = async (index, task, event) => {
 
   CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [taskId])
     .then(async (response) => {
-      assetStore.rebuildableTasksPath = assetStore.rebuildableTasksPath.filter(taskPath => taskPath !== task.task_path)
-      assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
+      assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(taskPath => taskPath !== task.task_path)
+      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path)
       let fileStatus = await assetStore.getAssetFileStatus(task)
       props.task.file_status = fileStatus;
       emitter.emit('get-project-data')
@@ -765,7 +765,7 @@ const toggleDisplayStatusMenu = (index, task, event) => {
   if (!userStore.canDo('change_status')) {
     return
   }
-  assetStore.isTaskStatus = true;
+  assetStore.isAssetTaskStatus = true;
   assetStore.selectAsset(task);
   statusMenuDisplayed.value = true;
 };

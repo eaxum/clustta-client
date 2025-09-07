@@ -246,13 +246,11 @@ const resetDndValues = () => {
 };
 
 const refresh = async () => {
-  assetStore.tasksLoaded = false;
+  assetStore.assetsLoaded = false;
   await projectStore.refreshActiveProject()
   await statusStore.reloadStatuses();
-  await collectionStore.reloadCollections();
-  await assetStore.reloadAssets();
   projectStore.getUntrackedItems()
-  assetStore.tasksLoaded = true;
+  assetStore.assetsLoaded = true;
 };
 
 const handleEnterKey = (event) => {

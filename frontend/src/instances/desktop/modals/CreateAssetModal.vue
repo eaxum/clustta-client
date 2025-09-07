@@ -181,7 +181,7 @@ const closeModal = () => {
 
 const createTask = async (launch = false, comment = "new file") => {
   isAwaitingResponse.value = true;
-  let selectedTaskType = assetStore.taskTypes.find(item => item.name === taskType.value);
+  let selectedTaskType = assetStore.assetTypes.find(item => item.name === taskType.value);
   let entities = stageStore.markedEntities
   let template = templateStore.templates.find(template => template.name === templateStore.selectedTemplateName);
   templateStore.lastUsedTemplate = template.name;
@@ -221,7 +221,6 @@ const createTask = async (launch = false, comment = "new file") => {
           taskName.value = "";
           tags.value = [];
         }
-        await assetStore.reloadAssets();
         isAwaitingResponse.value = false;
         successMessage = 'Created ' + taskName.value + ' successfully.'
         notificationStore.addNotification(successMessage, "", "success")
@@ -235,42 +234,7 @@ const createTask = async (launch = false, comment = "new file") => {
         notificationStore.errorNotification("Error creating task", error)
       });
   } else {
-
-    // await TaskService.CreateTasks(projectStore.activeProject.uri,
-    //   taskName.value,
-    //   "",
-    //   selectedTaskType.id,
-    //   entities,
-    //   isResource.value,
-    //   template.id,
-    //   "",
-    //   "",
-    //   false,
-    //   tags.value,
-    //   "",
-    //   comment,)
-    //   .then(async (data) => {
-    //     let successMessage = 'Creating ' + taskName.value + '...'
-    //     notificationStore.addNotification(successMessage, "", "success")
-    //     await assetStore.reloadAssets();
-    //     isAwaitingResponse.value = false;
-    //     successMessage = 'Created ' + taskName.value + ' successfully.'
-    //     notificationStore.addNotification(successMessage, "", "success")
-    //     if (!trayStates.keepModalOpen) {
-    //       closeModal();
-    //     } else {
-    //       taskName.value = "";
-    //       tags.value = [];
-    //     }
-
-    //     if (launch) {
-    //       FSService.LaunchFile(data.file_path)
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.log(error)
-    //     notificationStore.errorNotification("Error creating task", error)
-    //   });
+    // create same asset in multiple entities
   }
 
 };

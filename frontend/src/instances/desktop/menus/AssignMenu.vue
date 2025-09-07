@@ -77,7 +77,7 @@ const searchUserInput = ref(null);
 const searchUserTerm = ref('');
 
 // computed properties
-const task = computed(() => { return assetStore.selectedTask });
+const task = computed(() => { return assetStore.selectedAsset });
 const multipleTasks = computed(() => { return stage.markedItems.length > 1 });
 
 const projectCollaborators = computed(() => {

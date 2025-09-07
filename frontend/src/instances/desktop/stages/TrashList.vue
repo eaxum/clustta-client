@@ -215,7 +215,7 @@ const editParams = (itemType) => {
 // onMounted hook
 onBeforeMount(async () => {
   trayStates.showMeta = false;
-  tasks.value = assetStore.tasks;
+  tasks.value = assetStore.assets;
   trayStates.trashables = await TrashService.GetTrashs(projectStore.activeProject.uri);
 });
 

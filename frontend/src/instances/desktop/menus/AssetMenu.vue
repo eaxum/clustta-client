@@ -99,9 +99,9 @@ const collectionStore = useCollectionStore();
 const popUpMenu = ref(null);
 
 // computed properties
-const task = computed(() => { return assetStore.selectedTask });
+const task = computed(() => { return assetStore.selectedAsset });
 const isNotOnDisk = computed(() => { return task.value?.file_status === 'rebuildable' });
-const isTaskModified = computed(() => { return assetStore.selectedTask.file_status === 'modified' });
+const isTaskModified = computed(() => { return assetStore.selectedAsset.file_status === 'modified' });
 
 const filtersActive = computed(() => {
 	const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
@@ -144,7 +144,7 @@ const getAppIcon = (iconName) => {
 };
 
 const launchTaskWithCommand = async () => {
-  let task = assetStore.selectedTask
+  let task = assetStore.selectedAsset
   if (task.is_link && isValidWeblink(task.pointer)) {
     Browser.OpenURL(task.pointer)
   } else {
@@ -178,7 +178,7 @@ const duplicateTask = async () => {
   try {
 
     stage.operationActive = true;
-    let selectedTask = assetStore.selectedTask;
+    let selectedTask = assetStore.selectedAsset;
     
 		await TaskService.DuplicateTask(projectStore.activeProject.uri, selectedTask.id)
 		.then((duplicatedTask) => {
@@ -249,7 +249,7 @@ const goToLocation = async () => {
     commonStore.navigatorMode = true;
     
     // Get the parent entity of the selected task
-    const selectedTask = assetStore.selectedTask;
+    const selectedTask = assetStore.selectedAsset;
     if (selectedTask && selectedTask.entity_id) {
       const parentEntity = await EntityService.GetEntityByID(projectStore.activeProject.uri, selectedTask.entity_id);
       if (parentEntity) {
@@ -266,13 +266,13 @@ const goToLocation = async () => {
 const revealInExplorer = async () => {
 
   menu.hideContextMenu();
-  const taskId = assetStore.selectedTask.id;
+  const taskId = assetStore.selectedAsset.id;
 
-  if(assetStore.selectedTask.file_status == "rebuildable"){
+  if(assetStore.selectedAsset.file_status == "rebuildable"){
     await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [taskId])
     .then( async (response) => {
-      assetStore.rebuildableTasksPath = assetStore.rebuildableTasksPath.filter(taskPath => taskPath !== task.task_path)
-      assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path);
+      assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(taskPath => taskPath !== task.task_path)
+      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path);
       emitter.emit('get-project-data')
     })
     .catch((error) => {
@@ -281,14 +281,14 @@ const revealInExplorer = async () => {
     });
 
   } 
-  TaskService.RevealTask(projectStore.activeProject.uri, assetStore.selectedTask.id);
+  TaskService.RevealTask(projectStore.activeProject.uri, assetStore.selectedAsset.id);
 };
 
 const revertTask = async () => {
-  let taskId = assetStore.selectedTask.id;
+  let taskId = assetStore.selectedAsset.id;
   CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [taskId])
     .then((response) => {
-      assetStore.selectedTask.file_status = "normal"
+      assetStore.selectedAsset.file_status = "normal"
     })
     .catch((error) => {
       notificationStore.errorNotification("Failed to Revert Task", error)
@@ -298,7 +298,7 @@ const revertTask = async () => {
 
 // methods
 const copyTaskPath = async (pathType) => {
-  let task = assetStore.selectedTask;
+  let task = assetStore.selectedAsset;
   console.log(task)
   let taskPath = task.file_path;
   taskPath = taskPath.replace(/\\/g, '/');
@@ -317,16 +317,16 @@ const copyTaskPath = async (pathType) => {
 };
 
 const deleteTask = async () => {
-  let taskId = assetStore.selectedTask.id;
-  let longMessage = `Asset of name: ${assetStore.selectedTask.name} was moved to Trash.`
+  let taskId = assetStore.selectedAsset.id;
+  let longMessage = `Asset of name: ${assetStore.selectedAsset.name} was moved to Trash.`
   panes.setPaneVisibility('projectDetails', true);
   menu.hideContextMenu();
-  assetStore.selectedTask = null;
+  assetStore.selectedAsset = null;
   TaskService.DeleteTask(projectStore.activeProject.uri, taskId, true)
     .then(async (response) => {
       trayStates.undoItemId = taskId;
       trayStates.undoFunction = undoTaskDelete;
-      assetStore.selectedTask = null;
+      assetStore.selectedAsset = null;
       stage.markedItems = [];
       projectStore.refreshActiveProject()
       emitter.emit('refresh-browser');
@@ -349,14 +349,14 @@ const undoTaskDelete = async () => {
 }
 
 const freeUpSpace = async () => {
-  let task = assetStore.selectedTask;
+  let task = assetStore.selectedAsset;
   let taskDir = task.file_path.replace(/\\/g, '/');
   await FSService.DeleteFile(taskDir)
     .then((response) => {
       task.file_status = 'rebuildable';
-      assetStore.rebuildableTasksPath.push(task.task_path)
-      assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
-      assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter(taskPath => taskPath !== task.task_path);
+      assetStore.rebuildableAssetsPath.push(task.task_path)
+      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path)
+      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => taskPath !== task.task_path);
       emitter.emit('refresh-browser')
     })
     .catch((error) => {

@@ -149,7 +149,7 @@ const deleteUntrackedFile = () => {
   FSService.DeleteFile(untrackedItem.value.file_path);
   projectStore.removeUntrackedTask(untrackedItem.value.id);
   panes.setPaneVisibility('projectDetails', true)
-  assetStore.selectedTask = null;
+  assetStore.selectedAsset = null;
   stage.markedItems = [];
   emitter.emit('refresh-browser')
   modals.disableAllModals();

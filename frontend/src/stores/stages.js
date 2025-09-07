@@ -395,7 +395,7 @@ export const useStageStore = defineStore("stages", {
       const collectionStore = useCollectionStore();
       const projectStore = useProjectStore();
 
-      assetStore.selectedTask = null;
+      assetStore.selectedAsset = null;
       collectionStore.selectedCollection = null;
       projectStore.selectedUntrackedItem = null;
     },

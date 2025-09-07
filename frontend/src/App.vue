@@ -95,7 +95,7 @@ async function pullData() {
 }
 
 const operationsActive = computed(() => {
-    return stageStore.operationActive || !!modals.activeModal || !!menu.activeMenu || !assetStore.tasksLoaded || stageStore.activeStage !== 'browser'
+    return stageStore.operationActive || !!modals.activeModal || !!menu.activeMenu || !assetStore.assetsLoaded || stageStore.activeStage !== 'browser'
 });
 
 function startCheckSycnTokenInterval() {

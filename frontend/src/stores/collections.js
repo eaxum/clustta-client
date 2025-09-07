@@ -125,9 +125,15 @@ export const useCollectionStore = defineStore("collection", {
 
         filteredCollections = collections
           .filter((collection) => {
+
+            // matched asset types
+            const collectionType = this.collectionTypes.find(
+              (item) => item.id === collection.entity_type_id
+            );
+
             const collectionTypeMatch =
               selectedCollectionTypes.length === 0 ||
-              selectedCollectionTypes.includes(collection.entity_type.toLowerCase());
+              selectedCollectionTypes.includes(collectionType.name.toLowerCase());
 
             return collectionTypeMatch;
           })
