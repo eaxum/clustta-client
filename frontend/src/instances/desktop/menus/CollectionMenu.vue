@@ -74,7 +74,7 @@ import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import utils from '@/services/utils';
 
 // services
-import { EntityService, SyncService, TaskService, TrashService, CheckpointService } from "@/../bindings/clustta/services";
+import { EntityService, SyncService, AssetService, TrashService, CheckpointService } from "@/../bindings/clustta/services";
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -329,7 +329,7 @@ const freeUpSpace = async () => {
       // let project = projectStore.activeProject
       // assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => !taskPath.startsWith(collectionStore.selectedCollection.entity_path))
       // assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => !taskPath.startsWith(collectionStore.selectedCollection.entity_path))
-      // TaskService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates)=>{
+      // AssetService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates)=>{
       //   assetStore.modifiedAssetsPath = assetsStates.modified
       //   assetStore.outdatedAssetsPath = assetsStates.outdated
       //   assetStore.rebuildableAssetsPath = assetsStates.rebuildable

@@ -55,7 +55,7 @@ import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
 // services
-import { EntityService, TaskService } from "@/../bindings/clustta/services";
+import { EntityService, AssetService } from "@/../bindings/clustta/services";
 import { TrashService } from "@/../bindings/clustta/services";
 
 // states/store imports
@@ -311,7 +311,7 @@ const freeUpProjectSpace = async () => {
     .then((response) => {
       projectStore.refreshProjects()
       
-      TaskService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates)=>{
+      AssetService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates)=>{
         console.log(assetsStates)
         assetStore.modifiedAssetsPath = assetsStates.modified
         assetStore.outdatedAssetsPath = assetsStates.outdated

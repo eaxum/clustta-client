@@ -66,7 +66,7 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useCommonStore } from '@/stores/common';
 import { useTrayStates } from '@/stores/TrayStates';
-import { CheckpointService, TaskService } from "@/../bindings/clustta/services";
+import { CheckpointService, AssetService } from "@/../bindings/clustta/services";
 import { onMounted, ref, computed, onBeforeUnmount } from 'vue';
 import { useNotificationStore } from '@/stores/notifications';
 import { useAssetStore } from '@/stores/assets';

@@ -160,7 +160,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useCommonStore } from '@/stores/common';
 
 // services
-import { TaskService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/../bindings/clustta/services";
 
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -279,7 +279,7 @@ const revealInExplorer = async () => {
     });
 
   } 
-  TaskService.RevealTask(projectStore.activeProject.uri, assetStore.selectedAsset.id);
+  AssetService.RevealTask(projectStore.activeProject.uri, assetStore.selectedAsset.id);
 };
 
 const toggleIsTask = async () => {
@@ -288,7 +288,7 @@ const toggleIsTask = async () => {
   let isTask = assetStore.selectedAsset.is_resource;
   let task = assetStore.selectedAsset;
     
-  await TaskService.ToggleIsTask(projectPath, task.id,  isTask)
+  await AssetService.ToggleIsTask(projectPath, task.id,  isTask)
     .then((data) => {
 
       assetStore.selectedAsset.is_resource = !isTask;
@@ -314,7 +314,7 @@ const changeTaskType = async (taskTypeName) => {
   const projectPath = projectStore.activeProject.uri;
   let task = assetStore.selectedAsset;
 
-  await TaskService.UpdateTask(projectPath, task.id, task.name, newTaskType.id, task.is_resource, '', task.tags)
+  await AssetService.UpdateTask(projectPath, task.id, task.name, newTaskType.id, task.is_resource, '', task.tags)
     .then((data) => {
       task.task_type_name = newTaskType.name;
       task.task_type_icon = newTaskType.icon;
@@ -341,7 +341,7 @@ const setStatus = async (statusName) => {
   const status = statusStore.statuses.find(item => item.short_name === statusName.toLowerCase());
   let task = assetStore.selectedAsset;
   
-  await TaskService.ChangeStatus(projectPath, task.id, status.id)
+  await AssetService.ChangeStatus(projectPath, task.id, status.id)
     .then((data) => {
       task.status_short_name = status.short_name;
       task.status = status;

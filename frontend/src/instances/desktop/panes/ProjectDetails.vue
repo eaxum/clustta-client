@@ -122,7 +122,7 @@
 <script setup>
 // imports
 import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue';
-import { SettingsService, ProjectService, SyncService, TaskService } from "@/../bindings/clustta/services";
+import { SettingsService, ProjectService, SyncService, AssetService } from "@/../bindings/clustta/services";
 import { ClipboardService, FSService } from '@/../bindings/clustta/services/index';
 import emitter from '@/lib/mitt';
 
@@ -380,7 +380,7 @@ const getClusttaSize = async() => {
 
 const getAssetCount = async() => {
   let project = projectStore.getActiveProject;
-  assetCount.value = await TaskService.GetTaskCount(project.uri);
+  assetCount.value = await AssetService.GetTaskCount(project.uri);
 }
 
 const getCollectionCount = async() => {

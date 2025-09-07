@@ -48,7 +48,7 @@ import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
 // services
-import { TaskService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/../bindings/clustta/services";
 
 // states/store imports
 import { useMenu } from '@/stores/menu';
@@ -165,7 +165,7 @@ const assignSingleTask = async (assigneeId) => {
   let taskId = selectedTask.id;
   let user = collaboratorsList.value.find((item) => item.id === assigneeId);
   let userId = user ? user.id : "";
-  await TaskService.AssignTask(projectStore.activeProject.uri, taskId, userId)
+  await AssetService.AssignTask(projectStore.activeProject.uri, taskId, userId)
     .then(async (data) => {
       // Update local task data
       selectedTask.assignee_id = userId;
@@ -187,7 +187,7 @@ const assignSingleTask = async (assigneeId) => {
 const unassignSingleTask = async () => {
   let selectedTask = task.value;
   let taskId = selectedTask.id;
-  await TaskService.UnassignTask(projectStore.activeProject.uri, taskId)
+  await AssetService.UnassignTask(projectStore.activeProject.uri, taskId)
     .then(async (data) => {
       selectedTask.assignee_id = null;
       
@@ -209,7 +209,7 @@ const assignMultipleTasks = async (assigneeId) => {
 
   for (const taskId of taskIds) {
     let userId = assigneeId;
-    await TaskService.AssignTask(projectStore.activeProject.uri, taskId, userId)
+    await AssetService.AssignTask(projectStore.activeProject.uri, taskId, userId)
       .then(async (data) => {
         
         emitTaskUpdates(taskId, [
@@ -231,7 +231,7 @@ const unassignMultipleTasks = async () => {
   let taskIds = stage.markedItems;
 
   for (const taskId of taskIds) {
-    await TaskService.UnassignTask(projectStore.activeProject.uri, taskId)
+    await AssetService.UnassignTask(projectStore.activeProject.uri, taskId)
       .then(async (data) => {
         // Update local task data
         let task = assetStore.findAsset(taskId);

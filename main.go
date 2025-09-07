@@ -96,7 +96,7 @@ func main() {
 			application.NewService(&services.SyncService{}),
 			application.NewService(&services.UserService{}),
 			application.NewService(&services.TagService{}),
-			application.NewService(&services.TaskService{}),
+			application.NewService(&services.AssetService{}),
 			application.NewService(&services.TemplateService{}),
 			application.NewService(&services.TrashService{}),
 			application.NewService(&services.WorkflowService{}),

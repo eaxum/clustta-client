@@ -97,7 +97,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import CheckpointListSkeleton from '@/instances/common/components/CheckpointListSkeleton.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { useProjectStore } from '@/stores/projects';
-import { FSService, TaskService } from '@/../bindings/clustta/services/index';
+import { FSService, AssetService } from '@/../bindings/clustta/services/index';
 
 // props
 const props = defineProps({

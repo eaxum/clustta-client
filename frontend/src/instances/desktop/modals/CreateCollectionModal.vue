@@ -45,7 +45,7 @@ import { onMounted, watchEffect, ref, computed, onUnmounted } from 'vue';
 import emitter from '@/lib/mitt';
 
 // services
-import { CheckpointService, TaskService, EntityService } from "@/../bindings/clustta/services";
+import { CheckpointService, AssetService, EntityService } from "@/../bindings/clustta/services";
 import { FSService } from '@/../bindings/clustta/services/index';
 
 // state imports
@@ -340,7 +340,7 @@ const changeEntityParent = async (entityId, parentId) => {
 };
 
 const changeTaskEntity = async (taskId, entityId) => {
-  await TaskService.ChangeTaskEntity(projectStore.activeProject.uri, taskId, entityId)
+  await AssetService.ChangeTaskEntity(projectStore.activeProject.uri, taskId, entityId)
     .then((response) => {
       assetStore.changeAssetEntity(taskId, entityId);
       const successMessage = 'Moved successfully.'

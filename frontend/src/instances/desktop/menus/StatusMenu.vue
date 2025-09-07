@@ -18,7 +18,7 @@ import { useProjectStore } from '@/stores/projects';
 
 
 // services
-import { TaskService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/../bindings/clustta/services";
 import emitter from '@/lib/mitt';
 
 const menu = useMenu();
@@ -48,7 +48,7 @@ const selectStatus = async (fullStatus) => {
   const status = statusStore.statuses.find(item => item.short_name === statusName.toLowerCase());
   let task = assetStore.selectedAsset;
   
-  await TaskService.ChangeStatus(projectPath, task.id, status.id)
+  await AssetService.ChangeStatus(projectPath, task.id, status.id)
     .then((data) => {
       task.status_short_name = status.short_name;
       task.status = status;

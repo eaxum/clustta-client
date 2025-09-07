@@ -63,7 +63,7 @@
 
 <script setup>
 // imports
-import { ProjectService, EntityService, TaskService, CheckpointService, TrashService } from "@/../bindings/clustta/services";
+import { ProjectService, EntityService, AssetService, CheckpointService, TrashService } from "@/../bindings/clustta/services";
 
 import { reactive, computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import utils from '@/services/utils';
@@ -128,7 +128,7 @@ const loadAssetTasks = async () => {
   try {
     const projectPath = projectStore.activeProject?.uri;
     if (projectPath) {
-      const tasks = await TaskService.GetAssetTasks(projectPath);
+      const tasks = await AssetService.GetAssetTasks(projectPath);
       await assetStore.processAssetsIconsAndPreviews(tasks);
       cards.value = tasks; // Update cards ref with the fetched tasks
       await updateFilteredCards(); // Update filtered cards
@@ -407,7 +407,7 @@ const setStatus = async () => {
   try {
     const projectPath = projectStore.activeProject?.uri;
     if (projectPath && taskId && status) {
-      await TaskService.ChangeStatus(projectPath, taskId, status.id);
+      await AssetService.ChangeStatus(projectPath, taskId, status.id);
       
       // The card position has already been updated in putCardInColumn
       // No need to update local data again here since putCardInColumn handles positioning

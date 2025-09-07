@@ -50,7 +50,7 @@ import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import utils from '@/services/utils';
 
 // services
-import { TaskService, CheckpointService } from "@/../bindings/clustta/services";
+import { AssetService, CheckpointService } from "@/../bindings/clustta/services";
 import { TrashService } from "@/../bindings/clustta/services";
 
 // states/store imports

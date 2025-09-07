@@ -23,7 +23,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useCommonStore } from '@/stores/common';
 
 import VirtuaItem from '@/instances/common/components/VirtuaItem.vue';
-import { TaskService } from '@/../bindings/clustta/services';
+import { AssetService } from '@/../bindings/clustta/services';
 import { useProjectStore } from '@/stores/projects';
 
 const stage = useStageStore();

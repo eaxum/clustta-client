@@ -74,7 +74,7 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue';
 import utils from '@/services/utils';
-import { TaskService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/../bindings/clustta/services";
 
 // store imports
 import { useIconStore } from '@/stores/icons';

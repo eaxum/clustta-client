@@ -18,7 +18,7 @@
 <script setup>
 // imports
 import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
-import { TaskService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/../bindings/clustta/services";
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 import { isValidWeblink } from '@/lib/pointer';
@@ -89,7 +89,7 @@ const getTaskDependencies = async() => {
   const selectedTaskDependencies = assetStore.selectedAsset?.dependencies;
   const selectedTaskEntityDependencies = assetStore.selectedAsset?.entity_dependencies;
   allDependencies = [ ...selectedTaskDependencies, ...selectedTaskEntityDependencies];
-  const children = await TaskService.GetTaskDependencies(project.uri, allDependencies);
+  const children = await AssetService.GetTaskDependencies(project.uri, allDependencies);
 
   for (let i = 0; i < children.length; i++) {
       let item = children[i];
@@ -145,7 +145,7 @@ const removeDependency = async (dependencyId, itemType) => {
 
   if (itemType === "task") {
     selectedTaskDependencies = task.dependencies;
-    await TaskService.RemoveTaskDependency(projectStore.activeProject.uri, task.id, dependencyId)
+    await AssetService.RemoveTaskDependency(projectStore.activeProject.uri, task.id, dependencyId)
       .then((response) => {
         notificationStore.addNotification("Dependency Removed", "", "success");
         taskDependencies.value = taskDependencies.value.filter((task) => task.id !== dependencyId)
@@ -158,7 +158,7 @@ const removeDependency = async (dependencyId, itemType) => {
       });
   } else {
     selectedTaskDependencies = task.entity_dependencies;
-    await TaskService.RemoveEntityDependency(projectStore.activeProject.uri, task.id, dependencyId)
+    await AssetService.RemoveEntityDependency(projectStore.activeProject.uri, task.id, dependencyId)
       .then((response) => {
         notificationStore.addNotification("Dependency Removed", "", "success");
         taskDependencies.value = taskDependencies.value.filter((task) => task.id !== dependencyId)

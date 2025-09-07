@@ -160,7 +160,7 @@
 // imports
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { isValidWeblink } from '@/lib/pointer';
-import { TaskService, CheckpointService, FSService } from "@/../bindings/clustta/services";
+import { AssetService, CheckpointService, FSService } from "@/../bindings/clustta/services";
 import { SyncService } from "@/../bindings/clustta/services";
 import utils from '@/services/utils';
 import { Events } from "@wailsio/runtime";
@@ -436,7 +436,7 @@ const updateTaskName = async () => {
 
   if (props.task.type === 'task') {
 
-    await TaskService.RenameTask(projectStore.activeProject.uri, taskId, editableTaskName.value)
+    await AssetService.RenameTask(projectStore.activeProject.uri, taskId, editableTaskName.value)
       .then((data) => {
         task.name = editableTaskName.value;
         
@@ -585,7 +585,7 @@ const freeUpSpace = async () => {
 const deleteTask = async () => {
   if (props.task.type === 'task') {
     let taskId = assetStore.selectedAsset.id;
-    TaskService.DeleteTask(projectStore.activeProject.uri, taskId, true)
+    AssetService.DeleteTask(projectStore.activeProject.uri, taskId, true)
       .then(async (response) => {
         assetStore.selectedAsset = null;
         stage.markedItems = [];
