@@ -1,27 +1,30 @@
 import { defineStore } from "pinia";
+
+import { EntityService } from "@/../bindings/clustta/services";
+
 import { useCommonStore } from "@/stores/common";
 import { useAssetStore } from "@/stores/assets";
-import utils from "@/services/utils";
-import { EntityService } from "@/../bindings/clustta/services";
 import { useProjectStore } from "./projects";
+
+import utils from "@/services/utils";
 
 export const useCollectionStore = defineStore("collection", {
   state: () => ({
-    entities: [],
-    entities_index: {},
-    entity_children_index: {},
-    entityTypes: [],
-    entityNameIndex: {},
-    selectedEntity: null,
-    selectedEntityType: null,
-    navigatedEntity: null,
+    collections: [],
+    collections_index: {},
+    collection_children_index: {},
+    collectionTypes: [],
+    collectionNameIndex: {},
+    selectedCollection: null,
+    selectedCollectionType: null,
+    navigatedCollection: null,
   }),
   getters: {
     getCollectionTypes: (state) => {
-      return state.entityTypes;
+      return state.collectionTypes;
     },
     getCollectionTypesNames: (state) => {
-      let collectionTypes = state.entityTypes;
+      let collectionTypes = state.collectionTypes;
       let collectionTypesNames = [];
       for (let i = 0; i < collectionTypes.length; i++) {
         let collectionType = collectionTypes[i];
@@ -30,13 +33,13 @@ export const useCollectionStore = defineStore("collection", {
       return collectionTypesNames;
     },
     getCollections: (state) => {
-      return state.entities;
+      return state.collections;
     },
     getFilteredCollections: (state) => {
       const commonStore = useCommonStore();
       const assetStore = useAssetStore();
 
-      const collections = state.entities;
+      const collections = state.collections;
       const viewSearchQuery = commonStore.viewSearchQuery;
       const workspaceSearchQuery = commonStore.workspaceSearchQuery;
 
@@ -158,21 +161,21 @@ export const useCollectionStore = defineStore("collection", {
       return sortedCollections;
     },
     async markCollectionAsDeleted(collectionId) {
-      let collectionIndex = this.entities_index[collectionId];
-      this.entities[collectionIndex].trashed = true;
+      let collectionIndex = this.collections_index[collectionId];
+      this.collections[collectionIndex].trashed = true;
     },
     
     async unmarkCollectionAsDeleted(collectionId) {
-      let collectionIndex = this.entities_index[collectionId];
-      this.entities[collectionIndex].trashed = false;
+      let collectionIndex = this.collections_index[collectionId];
+      this.collections[collectionIndex].trashed = false;
     },
 
     // @deprecated - This method is not currently used
     async markMultipleCollectionsAsDeleted(collectionIds) {
       for (const collectionId of collectionIds) {
-        let collectionIndex = this.entities_index[collectionId];
+        let collectionIndex = this.collections_index[collectionId];
         if (collectionIndex !== undefined) {
-          this.entities[collectionIndex].trashed = true;
+          this.collections[collectionIndex].trashed = true;
         }
       }
     },
@@ -180,9 +183,9 @@ export const useCollectionStore = defineStore("collection", {
     // @deprecated - This method is not currently used
     async unmarkMultipleCollectionsAsDeleted(collectionIds) {
       for (const collectionId of collectionIds) {
-        let collectionIndex = this.entities_index[collectionId];
+        let collectionIndex = this.collections_index[collectionId];
         if (collectionIndex !== undefined) {
-          this.entities[collectionIndex].trashed = false;
+          this.collections[collectionIndex].trashed = false;
         }
       }
     },
@@ -192,7 +195,7 @@ export const useCollectionStore = defineStore("collection", {
       let collectionTypes = await EntityService.GetEntityTypes(
         projectStore.activeProject.uri
       );
-      this.entityTypes = collectionTypes.map(type => ({
+      this.collectionTypes = collectionTypes.map(type => ({
         ...type,
         type: 'entity-type',
       }));
@@ -203,7 +206,7 @@ export const useCollectionStore = defineStore("collection", {
       let collections = await EntityService.GetEntities(
         projectStore.activeProject.uri
       );
-      this.entities = collections;
+      this.collections = collections;
       await this.rebuildCollectionsIndex();
     },
 
@@ -211,37 +214,37 @@ export const useCollectionStore = defineStore("collection", {
       let collectionIndex = {};
       let collectionChildrenIndex = {};
       let collectionNameIndex = {};
-      for (let i = 0; i < this.entities.length; i++) {
-        let collectionId = this.entities[i].id;
-        let parentId = this.entities[i].parent_id;
+      for (let i = 0; i < this.collections.length; i++) {
+        let collectionId = this.collections[i].id;
+        let parentId = this.collections[i].parent_id;
         collectionIndex[collectionId] = i;
-        collectionNameIndex[this.entities[i].name] = this.entities[i];
+        collectionNameIndex[this.collections[i].name] = this.collections[i];
         if (!collectionChildrenIndex[parentId]) {
           collectionChildrenIndex[parentId] = [collectionId];
         } else {
           collectionChildrenIndex[parentId].push(collectionId);
         }
       }
-      this.entities_index = collectionIndex;
-      this.entity_children_index = collectionChildrenIndex;
-      this.entityNameIndex = collectionNameIndex;
+      this.collections_index = collectionIndex;
+      this.collection_children_index = collectionChildrenIndex;
+      this.collectionNameIndex = collectionNameIndex;
     },
 
     findCollection(id) {
-      let collectionIndex = this.entities_index[id];
-      return this.entities[collectionIndex];
+      let collectionIndex = this.collections_index[id];
+      return this.collections[collectionIndex];
     },
 
     findCollectionByName(name) {
-      return this.entityNameIndex[name];
+      return this.collectionNameIndex[name];
     },
 
     selectCollection(collection) {
-      this.selectedEntity = collection;
+      this.selectedCollection = collection;
     },
 
     getChildCollections(collectionId, recursive = false) {
-      let childCollectionIds = this.entity_children_index[collectionId] || [];
+      let childCollectionIds = this.collection_children_index[collectionId] || [];
       let collections = childCollectionIds.map((collectionId) => this.findCollection(collectionId));
 
       if (recursive) {
@@ -256,7 +259,7 @@ export const useCollectionStore = defineStore("collection", {
     // @deprecated - This method is not currently used
     getAllCollectionChildren(collectionId) {
       let allChildren = {};
-      let directChildren = this.entity_children_index[collectionId] || [];
+      let directChildren = this.collection_children_index[collectionId] || [];
       
       for (let childId of directChildren) {
         allChildren[childId] = this.getAllCollectionChildren(childId);
@@ -267,8 +270,8 @@ export const useCollectionStore = defineStore("collection", {
 
     getCollectionTypeIcon(collectionTypeId) {
       let collectionTypeIcon = "";
-      for (let i = 0; i < this.entityTypes.length; i++) {
-        let type = this.entityTypes[i];
+      for (let i = 0; i < this.collectionTypes.length; i++) {
+        let type = this.collectionTypes[i];
         if (type.id === collectionTypeId) {
           collectionTypeIcon = type.icon;
           break;
@@ -277,7 +280,7 @@ export const useCollectionStore = defineStore("collection", {
       return collectionTypeIcon;
     },
     navigateToCollection(collection) {
-      this.navigatedEntity = collection;
+      this.navigatedCollection = collection;
     },
   },
 });

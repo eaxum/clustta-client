@@ -119,9 +119,9 @@ const previewImportItems = async () => {
   await ImportService.ImportFolder(projectStore.activeProject.uri, parentId, folders, files, workingDir, projectStore.activeProject.ignore_list)
     .then((response) => {
       if (dndStore.trackedParents.length + dndStore.untrackedParents.length > 0) {
-        let entityTypeId = collectionStore.entityTypes.find((item) => item.name === "generic")?.id;
+        let entityTypeId = collectionStore.collectionTypes.find((item) => item.name === "generic")?.id;
         for (let trackedParent of dndStore.trackedParents) {
-          let entityData = collectionStore.entities.find((item) => item.entity_path === trackedParent);
+          let entityData = collectionStore.collections.find((item) => item.entity_path === trackedParent);
           entityData.is_tracked_parent = true
           entityData.is_expanded = true
           trackedParentData.push(entityData)

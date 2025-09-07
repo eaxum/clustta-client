@@ -251,7 +251,7 @@ const goToProjects = () => {
 
 const showProjectCheckpoints = () => {
 	
-	collectionStore.selectedEntity  = null ;
+	collectionStore.selectedCollection  = null ;
 	assetStore.selectedTask = null ;
 	projectStore.selectedUntrackedItem = null;
 

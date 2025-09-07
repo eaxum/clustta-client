@@ -116,7 +116,7 @@ const setWorkspace = (workspaceName) => {
   }
   const workspace = commonStore.workspaces.find((item) => item.name === workspaceName);
 	commonStore.navigatorMode = false;
-	collectionStore.navigatedEntity = null;
+	collectionStore.navigatedCollection = null;
   commonStore.setActiveWorkspace(workspace);
   console.log(commonStore.taskFilters)
   emitter.emit('refresh-browser');

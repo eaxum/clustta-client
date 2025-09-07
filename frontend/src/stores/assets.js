@@ -294,12 +294,12 @@ export const useAssetStore = defineStore("asset", {
     //   const collectionStore = useCollectionStore();
     //   let tasks = {};
     //   let taskIds = [];
-    //   if (collectionStore.selectedEntity) {
+    //   if (collectionStore.selectedCollection) {
     //     for (let i = 0; i < state.tasks.length; i++) {
     //       let task = state.tasks[i];
     //       if (
     //         task.trashed === false &&
-    //         task.entity_id === collectionStore.selectedEntity.id
+    //         task.entity_id === collectionStore.selectedCollection.id
     //       ) {
     //         tasks[task.id] = task;
     //         taskIds.push(task.id);

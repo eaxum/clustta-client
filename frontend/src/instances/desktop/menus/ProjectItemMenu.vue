@@ -189,7 +189,7 @@ const deleteProject = async () => {
 };
 
 const rebuildAll = async () => {
-  // let entity = collectionStore.selectedEntity;
+  // let entity = collectionStore.selectedCollection;
   menu.hideContextMenu();
   notificationStore.cancleFunction = SyncService.CancelSync
   notificationStore.canCancel = true

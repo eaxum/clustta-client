@@ -144,12 +144,12 @@ export const useProjectStore = defineStore("projects", {
       commonStore.activeWorkspace = "Default";
       commonStore.resetFilters();
 
-      collectionStore.entities = [];
+      collectionStore.collections = [];
       assetStore.tasks = [];
 
       commonStore.navigatorMode = false;
-      collectionStore.navigatedEntity = null;
-      collectionStore.selectedEntity = null;
+      collectionStore.navigatedCollection = null;
+      collectionStore.selectedCollection = null;
       assetStore.selectedTask = null;
 
       stage.expandedEntities = {};

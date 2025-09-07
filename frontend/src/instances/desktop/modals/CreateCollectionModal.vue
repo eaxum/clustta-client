@@ -186,14 +186,14 @@ const createEntityAndMove = async () => {
   let parentId = parent?.id
 
   isAwaitingResponse.value = true;
-  let selectedEntityType = collectionStore.entityTypes.find(item => item.name === entityType.value);
+  let selectedEntityType = collectionStore.collectionTypes.find(item => item.name === entityType.value);
 
 
   EntityService.CreateEntity(projectStore.activeProject.uri, entityName.value, "", selectedEntityType.id, parentId, "", isLibrary.value)
     .then(async data => {
       const successMessage = entityName.value + ' collection created';
       const newEntity = data;
-      collectionStore.selectedEntity = newEntity;
+      collectionStore.selectedCollection = newEntity;
       isAwaitingResponse.value = false;
       await moveIntoFolder(newEntity.id);
       closeModal();
@@ -216,7 +216,7 @@ const createEntityAndMove = async () => {
 }
 
 const selectedEntityTypeId = computed(() => {
-  const selectedEntityType = collectionStore.entityTypes.find(item => item.name === entityType.value);
+  const selectedEntityType = collectionStore.collectionTypes.find(item => item.name === entityType.value);
   return selectedEntityType?.id;
 })
 
@@ -225,8 +225,8 @@ const createSingleEntity = async () => {
   let parentId ;
   if(stage.selectedItem && stage.selectedItem.type === 'entity'){
     parentId = stage.markedItems[0]
-  } else if (collectionStore.navigatedEntity) {
-    parentId = collectionStore.navigatedEntity.id;
+  } else if (collectionStore.navigatedCollection) {
+    parentId = collectionStore.navigatedCollection.id;
   } else {
     parentId = '';
   }
@@ -235,7 +235,7 @@ const createSingleEntity = async () => {
     .then(async data => {
       if(!isMultiple){
       const newEntity = data;
-      collectionStore.selectedEntity = newEntity;
+      collectionStore.selectedCollection = newEntity;
       const successMessage = entityName.value + ' collection created';
       notificationStore.addNotification(successMessage, "", "success");
       stage.firstSelectedItemId = newEntity.id;
@@ -287,7 +287,7 @@ const moveIntoFolder = async (activeItemId) => {
       await changeTaskEntity(taskId, entityId);
     } else {
 
-      let entity = collectionStore.selectedEntity
+      let entity = collectionStore.selectedCollection
       // console.log(entity)
       // return
       await FSService.MakeDirs(entity.file_path)

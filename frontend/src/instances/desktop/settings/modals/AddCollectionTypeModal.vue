@@ -83,7 +83,7 @@ const createEntityType = () => {
   EntityService.CreateEntityType(projectStore.activeProject.uri, entityTypeName.value, entityTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification("Collection type created", "", "success");
-      collectionStore.entityTypes.push(response);
+      collectionStore.collectionTypes.push(response);
       closeModal();
     })
     .catch((error) => {

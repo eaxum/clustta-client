@@ -1,6 +1,6 @@
 <template>
   <div class="general-pane-header">
-    <HeaderArea v-if="collectionStore.selectedEntity" :title="utils.capitalizeStr(collectionStore.selectedEntity?.name)"
+    <HeaderArea v-if="collectionStore.selectedCollection" :title="utils.capitalizeStr(collectionStore.selectedCollection?.name)"
       :icon="entityTypeIcon" />
 
     <ActionButton v-if="userStore.canDo('update_entity')" :icon="getAppIcon('parameters')" v-tooltip="'Rename Entity'"
@@ -10,28 +10,28 @@
   <div class="general-pane-root">
     <div class="general-pane-container">
 
-      <div v-if="collectionStore.selectedEntity?.preview" class="entity-thumb-container">
+      <div v-if="collectionStore.selectedCollection?.preview" class="entity-thumb-container">
         <div class="entity-thumb">
-          <img v-if="collectionStore.selectedEntity.preview" class="screenshot-thumb"
-            :src="'data:image/png;base64,' + collectionStore.selectedEntity.preview">
+          <img v-if="collectionStore.selectedCollection.preview" class="screenshot-thumb"
+            :src="'data:image/png;base64,' + collectionStore.selectedCollection.preview">
           <img v-else class="screenshot-thumb" src="/page-states/no_image.png">
         </div>
       </div>
 
-      <div v-if="collectionStore.selectedEntity" class="pane-parameter-section">
+      <div v-if="collectionStore.selectedCollection" class="pane-parameter-section">
         <div class="action-bar" v-if="userStore.canDo('update_entity')">
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="'Collection type'" />
             <DropDownBox :items="collectionStore.getCollectionTypesNames"
-              :selectedItem="collectionStore.selectedEntity.entity_type_name" :onSelect="changeEntityType"
+              :selectedItem="collectionStore.selectedCollection.entity_type_name" :onSelect="changeEntityType"
               :fixedWidth="true" />
           </div>
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('bookmark')" :label="'Library'" />
 
-            <ToggleSwitch v-tooltip="collectionStore.selectedEntity.is_library ? 'Unmark as library' : 'Mark as a library'"
-              @click="changeIsLibrary" :switchValueProp="collectionStore.selectedEntity.is_library" />
+            <ToggleSwitch v-tooltip="collectionStore.selectedCollection.is_library ? 'Unmark as library' : 'Mark as a library'"
+              @click="changeIsLibrary" :switchValueProp="collectionStore.selectedCollection.is_library" />
           </div>
 
           <div class="vertical-flex assignees-search">
@@ -70,7 +70,7 @@
             Location
           </div>
             <div class="simple-text-value" >
-              {{ collectionStore.selectedEntity.file_path }}
+              {{ collectionStore.selectedCollection.file_path }}
             </div>
             <div class="pane-parameter-actions">
               <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy Path'" @click="copyEntityPath('entity')"/>
@@ -165,7 +165,7 @@ const collaboratorsList = computed(() => {
       full_name: `${user.first_name} ${user.last_name}`,
       avatarColor: userStore.userProfileColor(user.id)
     }))
-    .filter((user) => collectionStore.selectedEntity.assignee_ids?.includes(user.id));
+    .filter((user) => collectionStore.selectedCollection.assignee_ids?.includes(user.id));
 });
 
 const projectUsers = computed(() => {
@@ -175,7 +175,7 @@ const projectUsers = computed(() => {
       full_name: `${user.first_name} ${user.last_name}`,
       avatarColor: userStore.userProfileColor(user.id)
     }))
-    .filter((user) => !collectionStore.selectedEntity.assignee_ids?.includes(user.id));
+    .filter((user) => !collectionStore.selectedCollection.assignee_ids?.includes(user.id));
   return availableUsers;
 });
 
@@ -189,12 +189,12 @@ const emitEntityUpdates = (entityId, updates) => {
 };
 
 const revealInExplorer = async () => {
-  await FSService.MakeDirs(collectionStore.selectedEntity.file_path)
-  FSService.RevealInExplorer(collectionStore.selectedEntity.file_path)
+  await FSService.MakeDirs(collectionStore.selectedCollection.file_path)
+  FSService.RevealInExplorer(collectionStore.selectedCollection.file_path)
 };
 
 const copyEntityPath = async () => {
-  let entity = collectionStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   let entityDir = entity.file_path;
   entityDir = entityDir.replace(/\\/g, '/');
   await ClipboardService.WriteText(entityDir);
@@ -204,14 +204,14 @@ const copyEntityPath = async () => {
 
 const removeUser = (user) => {
   const userId = user.id;
-  EntityService.Unassign(projectStore.activeProject.uri, collectionStore.selectedEntity.id, userId)
+  EntityService.Unassign(projectStore.activeProject.uri, collectionStore.selectedCollection.id, userId)
     .then((data) => {
       // Update local entity data
-      collectionStore.selectedEntity.assignee_ids = collectionStore.selectedEntity.assignee_ids.filter(t => t !== userId);
+      collectionStore.selectedCollection.assignee_ids = collectionStore.selectedCollection.assignee_ids.filter(t => t !== userId);
       
       // Emit updates using helper function
-      emitEntityUpdates(collectionStore.selectedEntity.id, [
-        { property: 'assignee_ids', value: collectionStore.selectedEntity.assignee_ids }
+      emitEntityUpdates(collectionStore.selectedCollection.id, [
+        { property: 'assignee_ids', value: collectionStore.selectedCollection.assignee_ids }
       ]);
       
       projectStore.refreshActiveProject();
@@ -225,18 +225,18 @@ const removeUser = (user) => {
 const addUser = (user) => {
   const userId = user.id;
 
-  if (collectionStore.selectedEntity.assignee_ids.includes(userId)) {
+  if (collectionStore.selectedCollection.assignee_ids.includes(userId)) {
     return
   }
   else {
-    EntityService.Assign(projectStore.activeProject.uri, collectionStore.selectedEntity.id, userId)
+    EntityService.Assign(projectStore.activeProject.uri, collectionStore.selectedCollection.id, userId)
       .then((data) => {
         // Update local entity data
-        collectionStore.selectedEntity.assignee_ids.push(userId);
+        collectionStore.selectedCollection.assignee_ids.push(userId);
         
         // Emit updates using helper function
-        emitEntityUpdates(collectionStore.selectedEntity.id, [
-          { property: 'assignee_ids', value: collectionStore.selectedEntity.assignee_ids }
+        emitEntityUpdates(collectionStore.selectedCollection.id, [
+          { property: 'assignee_ids', value: collectionStore.selectedCollection.assignee_ids }
         ]);
         
         projectStore.refreshActiveProject();
@@ -249,7 +249,7 @@ const addUser = (user) => {
 };
 
 const parentName = computed(() => {
-  const parentId = collectionStore.selectedEntity.parent_id
+  const parentId = collectionStore.selectedCollection.parent_id
   const parent = collectionStore.getCollections.find((item) => item.id === parentId)
   return parent ? parent.entity_path.replace(/\//g, ' / ') : 'None'
 });
@@ -262,7 +262,7 @@ const changeEntityType = async (entityTypeName) => {
   newEntityType = entityTypes.find((item) => item.name === entityTypeName);
 
   const projectPath = projectStore.activeProject.uri;
-  let entity = collectionStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
 
   await EntityService.ChangeType(projectPath, entity.id, newEntityType.id)
     .then((data) => {
@@ -288,16 +288,16 @@ const changeEntityType = async (entityTypeName) => {
 const changeIsLibrary = async () => {
   stage.operationActive = true;
   const projectPath = projectStore.activeProject.uri;
-  let entity = collectionStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
 
-  await EntityService.ChangeIsLibrary(projectPath, entity.id, !collectionStore.selectedEntity.is_library)
+  await EntityService.ChangeIsLibrary(projectPath, entity.id, !collectionStore.selectedCollection.is_library)
     .then((data) => {
       // Update local entity data
-      collectionStore.selectedEntity.is_library = !collectionStore.selectedEntity.is_library;
+      collectionStore.selectedCollection.is_library = !collectionStore.selectedCollection.is_library;
       
       // Emit updates using helper function
       emitEntityUpdates(entity.id, [
-        { property: 'is_library', value: collectionStore.selectedEntity.is_library }
+        { property: 'is_library', value: collectionStore.selectedCollection.is_library }
       ]);
       
       projectStore.refreshActiveProject();
@@ -313,7 +313,7 @@ const changeIsLibrary = async () => {
 const numberOfSelectedEntities = ref(0);
 
 const entityTypeIcon = computed(() => {
-  const icon = '/types-icons/' + collectionStore.selectedEntity?.entity_type_icon + '.svg';
+  const icon = '/types-icons/' + collectionStore.selectedCollection?.entity_type_icon + '.svg';
   if (icon) {
     return icon
   } else {
@@ -331,7 +331,7 @@ const assetsOnDiskCount = ref(0);
 const collectionsOnDiskCount = ref(0);
 
 const collectionPath = computed(() => {
-  const path = collectionStore.selectedEntity?.file_path;
+  const path = collectionStore.selectedCollection?.file_path;
   return path?.replace(/\\/g, '/')
 });
 
@@ -341,7 +341,7 @@ const getCollectionSize = async() => {
 }
 
 const getItemsCount = async() => {
-  let entity = collectionStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   assetsOnDiskCount.value = await FSService.FileCount(entity?.file_path);
   collectionsOnDiskCount.value = await FSService.FolderCount(entity?.file_path);
 }
@@ -353,7 +353,7 @@ const getProjectData = async () => {
   getCollectionSize();
 }
 
-watch(() => collectionStore.selectedEntity, () => {
+watch(() => collectionStore.selectedCollection, () => {
   collectionSize.value = 0;
   assetsOnDiskCount.value = 0;
   collectionsOnDiskCount.value = 0;
@@ -363,8 +363,8 @@ watch(() => collectionStore.selectedEntity, () => {
 
 // onMounted
 onMounted(() => {
-  if (!collectionStore.selectedEntity) {
-    collectionStore.selectedEntity = collectionStore.getCollections[0];
+  if (!collectionStore.selectedCollection) {
+    collectionStore.selectedCollection = collectionStore.getCollections[0];
   }
   getProjectData();
 	emitter.on('get-project-data', getProjectData);

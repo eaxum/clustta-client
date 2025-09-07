@@ -177,7 +177,7 @@ const deleteItem = async () => {
     FSService.DeleteFile(item.file_path);
     projectStore.removeUntrackedTask(item.id);
   } else if (item.type == 'untracked_entity') {
-    collectionStore.selectedEntity = null;
+    collectionStore.selectedCollection = null;
     FSService.DeleteFolder(item.file_path);
     projectStore.removeUntrackedEntity(item.id)
   }

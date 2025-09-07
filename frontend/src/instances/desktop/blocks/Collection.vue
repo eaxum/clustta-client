@@ -469,7 +469,7 @@ const prepFreeUpSpacePopUpModal = () => {
 };
 
 const freeUpSpace = async () => {
-  let entity = collectionStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   let entityDir = entity.file_path.replace(/\\/g, '/');
   await FSService.DeleteFolder(entityDir)
     .then((response) => {
@@ -484,11 +484,11 @@ const freeUpSpace = async () => {
 
 const deleteEntity = async () => {
   if (props.entity.type === 'entity') {
-    let entity = collectionStore.selectedEntity;
+    let entity = collectionStore.selectedCollection;
     EntityService.DeleteEntity(projectStore.activeProject.uri, entity.id)
       .then(async (response) => {
         emitter.emit('refresh-browser');
-        collectionStore.selectedEntity = null;
+        collectionStore.selectedCollection = null;
         stage.markedItems = [];
       })
       .catch((error) => {

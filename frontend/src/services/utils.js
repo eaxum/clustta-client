@@ -241,7 +241,7 @@ const utils = {
     const collectionStore = useCollectionStore();
     let parentPaths = this.getParentPaths(untracked.entity_path);
     for (let parent of parentPaths) {
-      let entity = collectionStore.entities.find(
+      let entity = collectionStore.collections.find(
         (item) => item.entity_path === parent
       );
       if (entity !== undefined) {

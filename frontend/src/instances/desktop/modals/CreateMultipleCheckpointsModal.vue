@@ -144,9 +144,9 @@ const currentModifiedDisplayPaths = computed(() => {
   
   // Filter by navigation context
   let path;
-  path = collectionStore.navigatedEntity?.type === 'entity'
-    ? collectionStore.navigatedEntity?.entity_path
-    : collectionStore.navigatedEntity?.item_path;
+  path = collectionStore.navigatedCollection?.type === 'entity'
+    ? collectionStore.navigatedCollection?.entity_path
+    : collectionStore.navigatedCollection?.item_path;
 
   let filteredAssets;
   if (path) {
@@ -173,9 +173,9 @@ const currentModifiedDisplayPaths = computed(() => {
 
 const allUntrackedPaths = computed(() => {
   let path;
-  path = collectionStore.navigatedEntity?.type === 'entity'
-    ? collectionStore.navigatedEntity?.entity_path
-    : collectionStore.navigatedEntity?.item_path;
+  path = collectionStore.navigatedCollection?.type === 'entity'
+    ? collectionStore.navigatedCollection?.entity_path
+    : collectionStore.navigatedCollection?.item_path;
 
 
   const untrackedTasksPath = assetStore.untrackedTasksPath;

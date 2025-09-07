@@ -359,7 +359,7 @@ const viewCheckpoints = () => {
 
 const visiblePanes = computed(() => {
   if (stage.activeStage === 'browser') {
-    if (!collectionStore.selectedEntity && !assetStore.selectedTask && !projectStore.selectedUntrackedItem) {
+    if (!collectionStore.selectedCollection && !assetStore.selectedTask && !projectStore.selectedUntrackedItem) {
       if (!stage.markedItems.length) {
         if(panes.activeModal !== 'projectCheckpoints'){
           panes.setPaneVisibility('projectDetails', true);
@@ -532,7 +532,7 @@ const deleteMultipleItems = async () => {
   await deleteMultipleEntities();
   await deleteMultipleTasks();
   stage.markedItems = [];
-  collectionStore.selectedEntity = null;
+  collectionStore.selectedCollection = null;
 };
 
 const deleteMultipleEntities = async () => {
@@ -544,7 +544,7 @@ const deleteMultipleEntities = async () => {
       .then(async (response) => {
         if(onlyEntities.value){
           stage.markedItems = [];
-          collectionStore.selectedEntity = null;
+          collectionStore.selectedCollection = null;
         }
       })
       .catch((error) => {
@@ -618,7 +618,7 @@ const clearSelection = () => {
 	stage.firstSelectedItemId = '';
 	stage.lastSelectedItemId = '';
 	assetStore.selectedTask = null;
-	collectionStore.selectedEntity = null;
+	collectionStore.selectedCollection = null;
 }
 
 const deleteMultipleTasks = async () => {

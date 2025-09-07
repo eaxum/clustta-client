@@ -118,9 +118,9 @@ const revealInExplorer = async () => {
     await FSService.MakeDirs(project.working_directory)
     FSService.RevealInExplorer(project.working_directory)
   } else {
-    let path = collectionStore.navigatedEntity?.type === 'entity' 
-      ? collectionStore.navigatedEntity.entity_path
-      : collectionStore.navigatedEntity.item_path;
+    let path = collectionStore.navigatedCollection?.type === 'entity' 
+      ? collectionStore.navigatedCollection.entity_path
+      : collectionStore.navigatedCollection.item_path;
 
     const trimmedPath = path.endsWith('/') ? path.slice(0, -1) : path;
     let explorerPath = `${project.working_directory}${trimmedPath}`
@@ -143,9 +143,9 @@ const copyDirectoryPath = async () => {
     await ClipboardService.WriteText(projectDir);
   } else {
 
-    let path = collectionStore.navigatedEntity?.type === 'entity' 
-      ? collectionStore.navigatedEntity.entity_path
-      : collectionStore.navigatedEntity.item_path;
+    let path = collectionStore.navigatedCollection?.type === 'entity' 
+      ? collectionStore.navigatedCollection.entity_path
+      : collectionStore.navigatedCollection.item_path;
 
     let explorerPath = `${project.working_directory}${path}`
     explorerPath = explorerPath.replace(/\\/g, '/');
@@ -258,8 +258,8 @@ const importItems = async () => {
 
 const getCurrentDirectory = () => {
   // Check if we're in navigator mode (inside an entity/folder)
-  if (commonStore.navigatorMode && collectionStore.navigatedEntity) {
-    const navigated = collectionStore.navigatedEntity;
+  if (commonStore.navigatorMode && collectionStore.navigatedCollection) {
+    const navigated = collectionStore.navigatedCollection;
     // Return the file path of the current entity or folder
     return navigated.file_path;
   }
@@ -332,7 +332,7 @@ const freeUpProjectSpace = async () => {
 };
 
 const freeUpEntitySpace = async () => {
-  let entity = collectionStore.navigatedEntity;
+  let entity = collectionStore.navigatedCollection;
   let entityDir = entity.file_path.replace(/\\/g, '/');
   await FSService.DeleteFolder(entityDir)
     .then((response) => {
@@ -347,8 +347,8 @@ const freeUpEntitySpace = async () => {
 const rebuildAll = async () => { 
   menu.hideContextMenu();
 
-	const path = collectionStore.navigatedEntity?.entity_path;
-	const navigatedEntityId = collectionStore.navigatedEntity?.id;
+	const path = collectionStore.navigatedCollection?.entity_path;
+	const navigatedEntityId = collectionStore.navigatedCollection?.id;
 	const rebuildableTasksPath = assetStore.rebuildableTasksPath;
 
 	notificationStore.cancleFunction = SyncService.CancelSync;
@@ -373,7 +373,7 @@ const prepFreeUpSpacePopUpModal = () => {
   menu.hideContextMenu();
   let project = projectStore.getActiveProject;
   if(commonStore.navigatorMode){
-    const navigatedEntity = collectionStore.navigatedEntity;
+    const navigatedEntity = collectionStore.navigatedCollection;
     trayStates.popUpModalTitle = `Delete the files in \"${navigatedEntity.name}\"? `;
     trayStates.popUpModalMessage = `This will clear the contents of \"${navigatedEntity.name}\". Please save your checkpoints before proceeding to avoid losing your work`;
     trayStates.popUpModalFunction = freeUpEntitySpace;
