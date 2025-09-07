@@ -585,7 +585,7 @@ watchEffect(() => {
 });
 
 const exploreEntity = (entity) => {
-  collectionStore.navigateToEntity(entity);
+  collectionStore.navigateToCollection(entity);
   commonStore.navigatorMode = true;
 };
 
@@ -1077,8 +1077,3 @@ onBeforeUnmount(() => {
   /* padding: 5px; */
 }
 </style>
-
-
-
-
-

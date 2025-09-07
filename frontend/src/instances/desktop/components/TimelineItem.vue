@@ -183,7 +183,7 @@ const selectItem = async (taskPath) => {
 
 }
 
-// collectionStore.navigateToEntity(entity);
+// collectionStore.navigateToCollection(entity);
 //   commonStore.navigatorMode = true;
 
 const findItem = async (taskPath) => {
@@ -194,7 +194,7 @@ const findItem = async (taskPath) => {
     const taskParent = allEntities.find((item) => item.id === task.entity_id );
     
     if(taskParent){
-        collectionStore.navigateToEntity(taskParent);
+        collectionStore.navigateToCollection(taskParent);
         commonStore.navigatorMode = true;
     } 
     
@@ -486,11 +486,3 @@ onMounted(() => {
     height: 100%;
 }
 </style>
-
-
-
-
-
-
-
-

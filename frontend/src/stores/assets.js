@@ -812,7 +812,7 @@ export const useAssetStore = defineStore("asset", {
       let parentEntities = [];
 
       if (entityId) {
-        let parentEntity = collectionStore.findEntity(entityId);
+        let parentEntity = collectionStore.findCollection(entityId);
         if (parentEntity) {
           parentEntities.push(parentEntity);
         }
@@ -820,7 +820,7 @@ export const useAssetStore = defineStore("asset", {
           let parentId = parentEntity.parent_id;
           let depth = 0;
           while (parentId && depth < 20) {
-            let parentEntity = collectionStore.findEntity(parentId);
+            let parentEntity = collectionStore.findCollection(parentId);
             if (parentEntity) {
               parentEntities.push(parentEntity);
               parentId = parentEntity.parent_id;
@@ -942,10 +942,3 @@ export const useAssetStore = defineStore("asset", {
 
   },
 });
-
-
-
-
-
-
-

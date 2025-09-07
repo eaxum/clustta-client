@@ -374,7 +374,7 @@ const checkHoverState = () => {
 	if (!dndStore.isDragging) return
 	dndStore.targetItemId = null;
 
-	const allTargets = collectionStore.getEntities;
+	const allTargets = collectionStore.getCollections;
 	for (let target of allTargets) {
 		let targetEl = dndStore.itemRefs[target.id];
 		if (!targetEl) {
@@ -495,7 +495,7 @@ const navigatedEntity = computed(() => {
 // computed getters
 const projectEntities = computed(() => {
 
-	const allEntities = collectionStore.getFilteredEntities;
+	const allEntities = collectionStore.getFilteredCollections;
 	const trashedItems = trayStates.trashables;
 	const trashedItemIds = trashedItems.map(item => item.id);
 	const nestedEntities = allEntities.filter((item) => !item.parent_id);
@@ -1198,7 +1198,7 @@ const deleteMultipleEntities = async (entityIds) => {
 	for (let entityId of entityIds) {
 		await EntityService.DeleteEntity(projectStore.activeProject.uri, entityId, true)
 			.then(async (response) => {
-				await collectionStore.markEntityAsDeleted(entityId);
+				await collectionStore.markCollectionAsDeleted(entityId);
 				notificationStore.addNotification("Entity moved to Trash.", '', "success", false);
 			})
 			.catch((error) => {
@@ -1477,7 +1477,7 @@ const collapseAll = () => {
 };
 
 const expandAll = () => {
-	const entities = collectionStore.getEntities;
+	const entities = collectionStore.getCollections;
 	const expandedEntities = {};
 
 	for (let i = 0; i < entities.length; i++) {
@@ -1758,7 +1758,7 @@ const softRefresh = async () => {
 			tasks = entityItems['tasks'];
 		}	
 		
-			children['entities'] = await collectionStore.filterEntities(entities);
+			children['entities'] = await collectionStore.filterCollections(entities);
 			children['tasks'] = await assetStore.filterAssets(tasks);
 
 	} else {
@@ -2269,12 +2269,3 @@ onBeforeUnmount(() => {
 	box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
 }
 </style>
-
-
-
-
-
-
-
-
-

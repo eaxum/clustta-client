@@ -43,7 +43,7 @@ import IconGrid from '@/instances/desktop/components/IconGrid.vue';
 
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allEntityTypeIcons = collectionStore.getEntityTypes.map((item) => item.icon);
+  const allEntityTypeIcons = collectionStore.getCollectionTypes.map((item) => item.icon);
   return allIcons.filter((icon) => !allEntityTypeIcons.includes(icon))
 })
 
@@ -208,7 +208,3 @@ const createEntityType = () => {
 
 }
 </style>
-
-
-
-

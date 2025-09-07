@@ -114,7 +114,7 @@ const getAppIcon = (iconName) => {
 
 const parentName = computed(() => {
   const parentId = projectStore.selectedUntrackedItem.parent_id
-  const parent = collectionStore.getEntities.find((item) => item.id === parentId)
+  const parent = collectionStore.getCollections.find((item) => item.id === parentId)
   return parent ? parent.name : 'None'
 });
 
@@ -349,8 +349,3 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 </style>
-
-
-
-
-

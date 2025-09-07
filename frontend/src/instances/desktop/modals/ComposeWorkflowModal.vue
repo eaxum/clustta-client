@@ -186,7 +186,7 @@ const isValueChanged = computed(() => {
 });
 
 const entityTypeIcon = computed(() => {
-  const selectedEntityType = collectionStore.getEntityTypes.find((item) => item.name === entityType.value);
+  const selectedEntityType = collectionStore.getCollectionTypes.find((item) => item.name === entityType.value);
   if (!selectedEntityType) {
     return 'folder'
   } else {
@@ -392,7 +392,3 @@ onBeforeUnmount(() => {
   margin-top: 0;
 }
 </style>
-
-
-
-

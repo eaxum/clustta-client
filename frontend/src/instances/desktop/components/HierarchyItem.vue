@@ -35,7 +35,7 @@
 
       <div v-if="!isHierarchyRoot && !item.is_tracked_parent" class="hierarchy-item-config">
 
-        <DropDownBox v-if="item.entity_type_id" :items="collectionStore.getEntityTypesNames" :selectedItem="entityType"
+        <DropDownBox v-if="item.entity_type_id" :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType"
           :onSelect="selectEntityType" :fullWidth="false" />
 
         <DropDownBox v-else :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" :fullWidth="false" />
@@ -284,7 +284,7 @@ const selectTaskType = (taskTypeName) => {
 const selectEntityType = (entityTypeName) => {
 
   let newEntityType;
-  const entityTypes = collectionStore.getEntityTypes;
+  const entityTypes = collectionStore.getCollectionTypes;
   newEntityType = entityTypes.find((item) => item.name === entityTypeName);
 
   let previewData = dndStore.previewData['entities'];
@@ -468,10 +468,3 @@ const selectEntityType = (entityTypeName) => {
   transform: rotate(90deg);
 }
 </style>
-
-
-
-
-
-
-

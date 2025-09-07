@@ -249,7 +249,7 @@ const refresh = async () => {
   assetStore.tasksLoaded = false;
   await projectStore.refreshActiveProject()
   await statusStore.reloadStatuses();
-  await collectionStore.reloadEntities();
+  await collectionStore.reloadCollections();
   await assetStore.reloadAssets();
   projectStore.getUntrackedItems()
   assetStore.tasksLoaded = true;
@@ -530,10 +530,3 @@ onUnmounted(() => {
   max-height: 400px;
 }
 </style>
-
-
-
-
-
-
-

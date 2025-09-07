@@ -23,7 +23,7 @@
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="'Collection type'" />
-            <DropDownBox :items="collectionStore.getEntityTypesNames"
+            <DropDownBox :items="collectionStore.getCollectionTypesNames"
               :selectedItem="collectionStore.selectedEntity.entity_type_name" :onSelect="changeEntityType"
               :fixedWidth="true" />
           </div>
@@ -250,7 +250,7 @@ const addUser = (user) => {
 
 const parentName = computed(() => {
   const parentId = collectionStore.selectedEntity.parent_id
-  const parent = collectionStore.getEntities.find((item) => item.id === parentId)
+  const parent = collectionStore.getCollections.find((item) => item.id === parentId)
   return parent ? parent.entity_path.replace(/\//g, ' / ') : 'None'
 });
 
@@ -258,7 +258,7 @@ const changeEntityType = async (entityTypeName) => {
   stage.operationActive = true;
 
   let newEntityType;
-  const entityTypes = collectionStore.getEntityTypes;
+  const entityTypes = collectionStore.getCollectionTypes;
   newEntityType = entityTypes.find((item) => item.name === entityTypeName);
 
   const projectPath = projectStore.activeProject.uri;
@@ -364,7 +364,7 @@ watch(() => collectionStore.selectedEntity, () => {
 // onMounted
 onMounted(() => {
   if (!collectionStore.selectedEntity) {
-    collectionStore.selectedEntity = collectionStore.getEntities[0];
+    collectionStore.selectedEntity = collectionStore.getCollections[0];
   }
   getProjectData();
 	emitter.on('get-project-data', getProjectData);
@@ -495,7 +495,3 @@ onBeforeUnmount(() => {
   padding: 1rem .5rem;
 }
 </style>
-
-
-
-

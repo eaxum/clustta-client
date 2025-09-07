@@ -62,7 +62,7 @@
         <div v-else-if="onlyEntities" class="action-bar">
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="'Collection type'" />
-            <DropDownBox :items="collectionStore.getEntityTypesNames" :selectedItem="entityType"
+            <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType"
               :onSelect="changeEntityType" :fixedWidth="true" />
           </div>
 
@@ -394,7 +394,7 @@ const itemTypes = ref(['task', 'resource']);
 const collectionMode = ref(['basic', 'library']);
 const itemType = ref(itemTypes.value[0]);
 const taskType = ref(assetStore.getAssetTypesNames[0]);
-const entityType = ref(collectionStore.getEntityTypesNames[0]);
+const entityType = ref(collectionStore.getCollectionTypesNames[0]);
 const detailsPaneRoot = ref(null);
 
 
@@ -716,7 +716,7 @@ const moveIntoFolder = async () => {
       await changeTaskEntity(taskId, entityId);
     } else {
 
-      let entity = collectionStore.findEntity(activeItemId)
+      let entity = collectionStore.findCollection(activeItemId)
 
       await FSService.MakeDirs(entity.file_path)
       let newPath = await FSService.JoinPath(entity.file_path, item.name)
@@ -925,7 +925,7 @@ const changeEntityType = async (entityTypeName) => {
   stage.operationActive = true;
 
   let newEntityType;
-  const entityTypes = collectionStore.getEntityTypes;
+  const entityTypes = collectionStore.getCollectionTypes;
   newEntityType = entityTypes.find((item) => item.name === entityTypeName);
   entityType.value = entityTypeName;
 
@@ -1192,11 +1192,3 @@ onUnmounted(() => {
   flex-direction: column;
 }
 </style>
-
-
-
-
-
-
-
-

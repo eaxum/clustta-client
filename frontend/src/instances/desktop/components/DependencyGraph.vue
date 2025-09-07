@@ -324,7 +324,7 @@ const updateFilteredTasks = async () => {
 
 const updateFilteredEntities = async () => {
   try {
-    filteredEntities.value = await collectionStore.filterEntities(sidebarEntities.value);
+    filteredEntities.value = await collectionStore.filterCollections(sidebarEntities.value);
   } catch (error) {
     console.error("Error filtering entities:", error);
     filteredEntities.value = [];
@@ -1086,11 +1086,3 @@ onUnmounted(() => {
 
 }
 </style>
-
-
-
-
-
-
-
-
