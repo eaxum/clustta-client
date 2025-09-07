@@ -38,7 +38,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { TaskService } from "@/../bindings/clustta/services";
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import iconData from "@/data/iconData.json";
 
 // components
@@ -53,14 +53,14 @@ const isAwaitingResponse = ref(false);
 
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allTaskTypeIcons = taskStore.taskTypes.map((item) => item.icon);
+  const allTaskTypeIcons = assetStore.taskTypes.map((item) => item.icon);
   return allIcons.filter((icon) => !allTaskTypeIcons.includes(icon))
 })
 
 // stores
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectTemplateStore = useProjectTemplateStore();
 
 const taskTypeName = ref('');
@@ -213,3 +213,5 @@ const createTaskType = () => {
 
 }
 </style>
+
+

@@ -62,7 +62,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
 import { useModalStore } from '@/stores/modals';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useTemplateStore } from '@/stores/template';
 import { useProjectStore } from '@/stores/projects';
 import { useUntrackedItemStore } from '@/stores/untracked';
@@ -83,7 +83,7 @@ const stage = useStageStore();
 const modals = useDesktopModalStore();
 const modalStore = useModalStore();
 const notificationStore = useNotificationStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const entityStore = useEntityStore();
 const templateStore = useTemplateStore();
 const projectStore = useProjectStore();
@@ -153,7 +153,7 @@ const revealInExplorer = () => {
 
 const copyItemPath = async (pathType) => {
   return
-  let task = taskStore.selectedTask;
+  let task = assetStore.selectedTask;
   console.log(task)
   let taskPath = task.file_path;
   taskPath = taskPath.replace(/\\/g, '/');
@@ -173,7 +173,7 @@ const deleteItem = async () => {
   panes.setPaneVisibility('projectDetails', true);
   let item = untrackedItemStore.selectedUntrackedItem
   if (item.type == 'untracked_task') {
-    taskStore.selectedTask = null;
+    assetStore.selectedTask = null;
     FSService.DeleteFile(item.file_path);
     projectStore.removeUntrackedTask(item.id);
   } else if (item.type == 'untracked_entity') {
@@ -242,3 +242,5 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
+
+

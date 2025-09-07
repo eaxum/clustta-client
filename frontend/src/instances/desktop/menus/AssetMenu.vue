@@ -71,7 +71,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
 import { useModalStore } from '@/stores/modals';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from '@/stores/projects';
 import { useCommonStore } from '@/stores/common';
 import { useEntityStore } from '@/stores/entity';
@@ -90,7 +90,7 @@ const stage = useStageStore();
 const modals = useDesktopModalStore();
 const modalStore = useModalStore();
 const notificationStore = useNotificationStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const commonStore = useCommonStore();
 const entityStore = useEntityStore();
@@ -99,9 +99,9 @@ const entityStore = useEntityStore();
 const popUpMenu = ref(null);
 
 // computed properties
-const task = computed(() => { return taskStore.selectedTask });
+const task = computed(() => { return assetStore.selectedTask });
 const isNotOnDisk = computed(() => { return task.value?.file_status === 'rebuildable' });
-const isTaskModified = computed(() => { return taskStore.selectedTask.file_status === 'modified' });
+const isTaskModified = computed(() => { return assetStore.selectedTask.file_status === 'modified' });
 
 const filtersActive = computed(() => {
 	const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
@@ -144,7 +144,7 @@ const getAppIcon = (iconName) => {
 };
 
 const launchTaskWithCommand = async () => {
-  let task = taskStore.selectedTask
+  let task = assetStore.selectedTask
   if (task.is_link && isValidWeblink(task.pointer)) {
     Browser.OpenURL(task.pointer)
   } else {
@@ -154,7 +154,7 @@ const launchTaskWithCommand = async () => {
     } else {
       CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [task.id])
         .then(async (response) => {
-          let fileStatus = await taskStore.getTaskFileStatus(task)
+          let fileStatus = await assetStore.getTaskFileStatus(task)
           task.file_status = fileStatus
           FSService.LaunchFileWith(file_path)
         })
@@ -178,12 +178,12 @@ const duplicateTask = async () => {
   try {
 
     stage.operationActive = true;
-    let selectedTask = taskStore.selectedTask;
+    let selectedTask = assetStore.selectedTask;
     
 		await TaskService.DuplicateTask(projectStore.activeProject.uri, selectedTask.id)
 		.then((duplicatedTask) => {
 			emitter.emit('refresh-browser')
-			taskStore.selectTask(duplicatedTask);
+			assetStore.selectTask(duplicatedTask);
 			stage.selectedItem = duplicatedTask;
 			stage.markedItems = [duplicatedTask.id];
 			stage.lastSelectedItemId = "";
@@ -213,7 +213,7 @@ const buildWithDependencies = async () => {
   menu.hideContextMenu();
   let taskIds = [task.value.id, ...task.value.dependencies];
   for (let entityId of task.value.entity_dependencies) {
-    let entityTasks = taskStore.getEntityTasks(entityId, true);
+    let entityTasks = assetStore.getEntityTasks(entityId, true);
     for (let entityTask of entityTasks) {
       if (!taskIds.includes(entityTask.id)) {
         taskIds.push(entityTask.id);
@@ -249,7 +249,7 @@ const goToLocation = async () => {
     commonStore.navigatorMode = true;
     
     // Get the parent entity of the selected task
-    const selectedTask = taskStore.selectedTask;
+    const selectedTask = assetStore.selectedTask;
     if (selectedTask && selectedTask.entity_id) {
       const parentEntity = await EntityService.GetEntityByID(projectStore.activeProject.uri, selectedTask.entity_id);
       if (parentEntity) {
@@ -266,13 +266,13 @@ const goToLocation = async () => {
 const revealInExplorer = async () => {
 
   menu.hideContextMenu();
-  const taskId = taskStore.selectedTask.id;
+  const taskId = assetStore.selectedTask.id;
 
-  if(taskStore.selectedTask.file_status == "rebuildable"){
+  if(assetStore.selectedTask.file_status == "rebuildable"){
     await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [taskId])
     .then( async (response) => {
-      taskStore.rebuildableTasksPath = taskStore.rebuildableTasksPath.filter(taskPath => taskPath !== task.task_path)
-      taskStore.outdatedTasksPath = taskStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path);
+      assetStore.rebuildableTasksPath = assetStore.rebuildableTasksPath.filter(taskPath => taskPath !== task.task_path)
+      assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path);
       emitter.emit('get-project-data')
     })
     .catch((error) => {
@@ -281,14 +281,14 @@ const revealInExplorer = async () => {
     });
 
   } 
-  TaskService.RevealTask(projectStore.activeProject.uri, taskStore.selectedTask.id);
+  TaskService.RevealTask(projectStore.activeProject.uri, assetStore.selectedTask.id);
 };
 
 const revertTask = async () => {
-  let taskId = taskStore.selectedTask.id;
+  let taskId = assetStore.selectedTask.id;
   CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [taskId])
     .then((response) => {
-      taskStore.selectedTask.file_status = "normal"
+      assetStore.selectedTask.file_status = "normal"
     })
     .catch((error) => {
       notificationStore.errorNotification("Failed to Revert Task", error)
@@ -298,7 +298,7 @@ const revertTask = async () => {
 
 // methods
 const copyTaskPath = async (pathType) => {
-  let task = taskStore.selectedTask;
+  let task = assetStore.selectedTask;
   console.log(task)
   let taskPath = task.file_path;
   taskPath = taskPath.replace(/\\/g, '/');
@@ -317,16 +317,16 @@ const copyTaskPath = async (pathType) => {
 };
 
 const deleteTask = async () => {
-  let taskId = taskStore.selectedTask.id;
-  let longMessage = `Asset of name: ${taskStore.selectedTask.name} was moved to Trash.`
+  let taskId = assetStore.selectedTask.id;
+  let longMessage = `Asset of name: ${assetStore.selectedTask.name} was moved to Trash.`
   panes.setPaneVisibility('projectDetails', true);
   menu.hideContextMenu();
-  taskStore.selectedTask = null;
+  assetStore.selectedTask = null;
   TaskService.DeleteTask(projectStore.activeProject.uri, taskId, true)
     .then(async (response) => {
       trayStates.undoItemId = taskId;
       trayStates.undoFunction = undoTaskDelete;
-      taskStore.selectedTask = null;
+      assetStore.selectedTask = null;
       stage.markedItems = [];
       projectStore.refreshActiveProject()
       emitter.emit('refresh-browser');
@@ -341,7 +341,7 @@ const deleteTask = async () => {
 const undoTaskDelete = async () => {
   TrashService.Restore(projectStore.activeProject.uri, trayStates.undoItemId, "task")
     .then(async (response) => {
-      taskStore.unmarkTaskAsDeleted(trayStates.undoItemId)
+      assetStore.unmarkTaskAsDeleted(trayStates.undoItemId)
     })
     .catch((error) => {
       notificationStore.errorNotification("Error Restoring Item", error)
@@ -349,14 +349,14 @@ const undoTaskDelete = async () => {
 }
 
 const freeUpSpace = async () => {
-  let task = taskStore.selectedTask;
+  let task = assetStore.selectedTask;
   let taskDir = task.file_path.replace(/\\/g, '/');
   await FSService.DeleteFile(taskDir)
     .then((response) => {
       task.file_status = 'rebuildable';
-      taskStore.rebuildableTasksPath.push(task.task_path)
-      taskStore.outdatedTasksPath = taskStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
-      taskStore.modifiedTasksPath = taskStore.modifiedTasksPath.filter(taskPath => taskPath !== task.task_path);
+      assetStore.rebuildableTasksPath.push(task.task_path)
+      assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
+      assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter(taskPath => taskPath !== task.task_path);
       emitter.emit('refresh-browser')
     })
     .catch((error) => {
@@ -424,3 +424,5 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
+
+

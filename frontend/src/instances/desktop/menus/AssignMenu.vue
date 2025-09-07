@@ -54,7 +54,7 @@ import { TaskService } from "@/../bindings/clustta/services";
 import { useMenu } from '@/stores/menu';
 import { useStageStore } from '@/stores/stages';
 import { useUserStore } from '@/stores/users';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 
@@ -67,7 +67,7 @@ const userStore = useUserStore();
 const menu = useMenu();
 const stage = useStageStore();
 const notificationStore = useNotificationStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 
@@ -77,7 +77,7 @@ const searchUserInput = ref(null);
 const searchUserTerm = ref('');
 
 // computed properties
-const task = computed(() => { return taskStore.selectedTask });
+const task = computed(() => { return assetStore.selectedTask });
 const multipleTasks = computed(() => { return stage.markedItems.length > 1 });
 
 const projectCollaborators = computed(() => {
@@ -234,7 +234,7 @@ const unassignMultipleTasks = async () => {
     await TaskService.UnassignTask(projectStore.activeProject.uri, taskId)
       .then(async (data) => {
         // Update local task data
-        let task = taskStore.findTask(taskId);
+        let task = assetStore.findTask(taskId);
         task.assignee_id = null;
         
         // Emit updates using helper function
@@ -336,3 +336,5 @@ onBeforeUnmount(() => {
   min-height: min-content;
 }
 </style>
+
+

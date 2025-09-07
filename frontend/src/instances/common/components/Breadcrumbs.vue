@@ -497,3 +497,5 @@ watch(() => projectStore.activeProject?.uri, async () => {
 }
 
 </style>
+
+

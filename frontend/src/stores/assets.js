@@ -14,7 +14,7 @@ import { repository } from "@/lib/repositorypb";
 import pako from "pako";
 import emitter from "@/lib/mitt";
 
-export const useTaskStore = defineStore("task", {
+export const useAssetStore = defineStore("asset", {
   state: () => ({
     tasks: [],
     taskTypes: [],

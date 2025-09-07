@@ -24,7 +24,7 @@
         :fullWidth="false" />
 
       <div v-if="tasksSelected" class="hierarchy-item-type-options">
-        <DropDownBox :items="taskStore.getTaskTypesNames" :selectedItem="taskType" :onSelect="selectTaskType"
+        <DropDownBox :items="assetStore.getTaskTypesNames" :selectedItem="taskType" :onSelect="selectTaskType"
           :fullWidth="false" />
       </div>
 
@@ -65,7 +65,7 @@ import { useDndStore } from '@/stores/dnd';
 import { useEntityStore } from '@/stores/entity';
 import { useTemplateStore } from '@/stores/template';
 import { useMenu } from '@/stores/menu';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
 
 // components
@@ -76,7 +76,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 // state imports
 const dndStore = useDndStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const entityStore = useEntityStore();
 const templateStore = useTemplateStore();
 const menu = useMenu();
@@ -420,7 +420,7 @@ const changeItemType = (newItemTypeName) => {
 const selectTaskType = (taskTypeName) => {
 
   let newTaskType;
-  const taskTypes = taskStore.getTaskTypes;
+  const taskTypes = assetStore.getTaskTypes;
   newTaskType = taskTypes.find((item) => item.name === taskTypeName);
 
 
@@ -534,7 +534,7 @@ const removeItem = (item) => {
 
 onMounted(async () => {
   entityType.value = entityStore.getEntityTypesNames[0];
-  taskType.value = taskStore.getTaskTypesNames[0];
+  taskType.value = assetStore.getTaskTypesNames[0];
 });
 
 
@@ -611,3 +611,5 @@ onMounted(async () => {
   gap: .5rem;
 }
 </style>
+
+

@@ -6,7 +6,7 @@ import { nextTick } from "vue";
 import { defineStore } from "pinia";
 import { useUserStore } from "@/stores/users";
 import { useEntityStore } from "./entity";
-import { useTaskStore } from "./task";
+import { useAssetStore } from "@/stores/assets";
 import { useTemplateStore } from "./template";
 import { useDependencyStore } from "./dependency";
 import { useStatusStore } from "./status";
@@ -118,7 +118,7 @@ export const useTrayStates = defineStore("useTrayStates", {
     async refreshData() {
       const userStore = useUserStore();
       const entityStore = useEntityStore();
-      const taskStore = useTaskStore();
+      const assetStore = useAssetStore();
       const templateStore = useTemplateStore();
       const workflowStore = useWorkflowStore();
       const dependencyStore = useDependencyStore();
@@ -131,14 +131,14 @@ export const useTrayStates = defineStore("useTrayStates", {
       // console.time("loading_general_data");
       await userStore.reloadUsers();
       await entityStore.reloadEntityTypes();
-      await taskStore.reloadTaskTypes();
+      await assetStore.reloadTaskTypes();
       // await entityStore.reloadEntities();
       await templateStore.reloadTemplates();
       await workflowStore.reloadWorkflows();
       await statusStore.reloadStatuses();
       await dependencyStore.reloadDependencyTypes();
       await tagStore.reloadTags();
-      // await taskStore.reloadTasks();
+      // await assetStore.reloadTasks();
       // await projectStore.reloadUntrackedItems();
       // console.timeEnd("loading_general_data");
     },

@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { useStageStore } from "@/stores/stages";
-import { useTaskStore } from "@/stores/task";
+import { useAssetStore } from "@/stores/assets";
 import { useEntityStore } from "@/stores/entity";
 import { useProjectStore } from '@/stores/projects';
 

@@ -102,7 +102,7 @@ import '@vue-flow/core/dist/theme-default.css';
 // state imports
 import { useCommonStore } from '@/stores/common';
 import { useEntityStore } from '@/stores/entity';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDependencyStore } from '@/stores/dependency';
 import { useTagStore } from '@/stores/tags';
@@ -123,7 +123,7 @@ const tagStore = useTagStore();
 const menu = useMenu();
 const commonStore = useCommonStore();
 const entityStore = useEntityStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 
 // refs
@@ -251,7 +251,7 @@ const projectTasks = computed(() => {
 });
 
 const projectData = computed(() => {
-  const selectedTask = taskStore.selectedTask;
+  const selectedTask = assetStore.selectedTask;
   if (!selectedTask) return [];
   
   const allData = [...projectTasks.value, ...projectEntities.value]
@@ -315,7 +315,7 @@ const fetchSidebarData = async () => {
 
 const updateFilteredTasks = async () => {
   try {
-    filteredTasks.value = await taskStore.filterTasks(sidebarTasks.value);
+    filteredTasks.value = await assetStore.filterTasks(sidebarTasks.value);
   } catch (error) {
     console.error("Error filtering tasks:", error);
     filteredTasks.value = [];
@@ -333,7 +333,7 @@ const updateFilteredEntities = async () => {
 
 const buildGraphFromDependencies = async () => {
   isLoadingGraph.value = true;
-  const selectedTask = taskStore.selectedTask;
+  const selectedTask = assetStore.selectedTask;
   
   if (!selectedTask) {
     graphData.value = { nodes: [], edges: [] };
@@ -510,7 +510,7 @@ watch([showTasks, showEntities], () => {
 });
 
 // Watch for selected task changes and rebuild graph
-watch(() => taskStore.selectedTask, async (newTask) => {
+watch(() => assetStore.selectedTask, async (newTask) => {
   if (newTask) {
     await buildGraphFromDependencies();
   }
@@ -558,7 +558,7 @@ const selectTask = async (taskId) => {
   }
   
   if (task) {
-    taskStore.selectTask(task);
+    assetStore.selectTask(task);
     await fetchSidebarData()
     await buildGraphFromDependencies();
     
@@ -569,7 +569,7 @@ const selectTask = async (taskId) => {
 };
 
 const addDependency = async (dependencyId, itemType) => {
-  const task = taskStore.selectedTask;
+  const task = assetStore.selectedTask;
   const allDependencies = [...sidebarTasks.value, ...sidebarEntities.value];
 
   let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
@@ -613,7 +613,7 @@ const addDependency = async (dependencyId, itemType) => {
 };
 
 const removeDependency = async (dependencyId, itemType) => {
-  const task = taskStore.selectedTask;
+  const task = assetStore.selectedTask;
   if (itemType === "task") {
     await TaskService.RemoveTaskDependency(projectStore.activeProject.uri, task.id, dependencyId)
       .then(async(response) => {
@@ -664,7 +664,7 @@ onMounted(async () => {
   await fetchSidebarData();
   
   // Build initial graph if there's a selected task
-  if (taskStore.selectedTask) {
+  if (assetStore.selectedTask) {
     await buildGraphFromDependencies();
   }
   
@@ -1086,3 +1086,5 @@ onUnmounted(() => {
 
 }
 </style>
+
+

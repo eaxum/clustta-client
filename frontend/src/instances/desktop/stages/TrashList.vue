@@ -37,7 +37,7 @@ import TrashItem from '@/instances/desktop/components/TrashItem.vue';
 import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 import { useEntityStore } from '@/stores/entity';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { onBeforeMount } from 'vue';
 import { useProjectStore } from '@/stores/projects';
 
@@ -45,7 +45,7 @@ import { useProjectStore } from '@/stores/projects';
 const trayStates = useTrayStates();
 const modalStore = useModalStore();
 const entityStore = useEntityStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 
 // refs
@@ -215,7 +215,7 @@ const editParams = (itemType) => {
 // onMounted hook
 onBeforeMount(async () => {
   trayStates.showMeta = false;
-  tasks.value = taskStore.tasks;
+  tasks.value = assetStore.tasks;
   trayStates.trashables = await TrashService.GetTrashs(projectStore.activeProject.uri);
 });
 
@@ -370,3 +370,5 @@ onBeforeUnmount(async () => {
   min-width: max-content;
 }
 </style>
+
+

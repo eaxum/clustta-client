@@ -32,7 +32,7 @@ import utils from '@/services/utils';
 import { TaskService } from "@/../bindings/clustta/services";
 
 // store imports
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useProjectStore } from '@/stores/projects';
@@ -44,17 +44,17 @@ import ActionBar from '@/instances/desktop/components/ActionBar.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 
 // states
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
 
 const projectTaskTypes = computed(() => {
   
-  let taskTypes = taskStore.getTaskTypes;
+  let taskTypes = assetStore.getTaskTypes;
   console.log(taskTypes)
   let viewTaskTypeIds = [];
-  let tasks = taskStore.tasks;
+  let tasks = assetStore.tasks;
 
   for (const task of tasks){
     let taskTypeId = task.task_type_id;
@@ -98,7 +98,7 @@ const addTaskType = () => {
 
 const prepEditTaskType = (selectedTaskTypeId) => {
   console.log(selectedTaskTypeId)
-  taskStore.selectedTaskType = taskStore.getTaskTypes.find((item) => item.id === selectedTaskTypeId)
+  assetStore.selectedTaskType = assetStore.getTaskTypes.find((item) => item.id === selectedTaskTypeId)
   modals.setModalVisibility('editAssetTypeModal', true);
 
 };
@@ -111,8 +111,8 @@ const deleteTaskType = async (taskTypeId) => {
   TaskService.DeleteTaskType(projectStore.activeProject.uri, taskTypeId)
     .then((response) => {
       notificationStore.addNotification("Task Type Deleted", "", "success");
-      const index = taskStore.taskTypes.findIndex(taskType => taskType.id === taskTypeId);
-      taskStore.taskTypes.splice(index, 1);
+      const index = assetStore.taskTypes.findIndex(taskType => taskType.id === taskTypeId);
+      assetStore.taskTypes.splice(index, 1);
     })
     .catch((error) => {
       notificationStore.errorNotification("Error Deleting Task Type", error);
@@ -162,3 +162,5 @@ onMounted(async () => {
   background-color: var(--black-steel);
 }
 </style>
+
+

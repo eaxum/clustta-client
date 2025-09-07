@@ -22,7 +22,7 @@ import { useMenu } from '@/stores/menu';
 import { useStageStore } from '@/stores/stages';
 import { useEntityStore } from '@/stores/entity';
 import { useCommonStore } from '@/stores/common';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
 
@@ -31,7 +31,7 @@ const menu = useMenu();
 const stage = useStageStore();
 const entityStore = useEntityStore();
 const commonStore = useCommonStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const dndStore = useDndStore();
 
@@ -160,14 +160,14 @@ const entityEntities = computed(() => {
 
 const entityTasks = computed(() => {
   const entityId = selectedEntity.value?.id;
-  return taskStore.getEntityTasks(entityId)?.filter((item) => !item?.is_resource)
+  return assetStore.getEntityTasks(entityId)?.filter((item) => !item?.is_resource)
 
 });
 
 const entityResources = computed(() => {
 
   const entityId = selectedEntity.value?.id;
-  return taskStore.getEntityTasks(entityId)?.filter((item) => item.is_resource)
+  return assetStore.getEntityTasks(entityId)?.filter((item) => item.is_resource)
 
 });
 
@@ -303,3 +303,5 @@ onUnmounted(() => {
 	width: 100%;
 }
 </style>
+
+

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { useMenu } from "@/stores/menu";
 import { usePaneStore } from "@/stores/panes";
-import { useTaskStore } from "@/stores/task";
+import { useAssetStore } from '@/stores/assets';
 import { useEntityStore } from "@/stores/entity";
 import { useDndStore } from "@/stores/dnd";
 import { useProjectStore } from "@/stores/projects";
@@ -163,7 +163,7 @@ export const useStageStore = defineStore("stages", {
         }
         this.expandedEntities = newExpandedEntities;
       } else {
-        const taskStore = useTaskStore();
+        const assetStore = useAssetStore();
         // Initialize with 0 initially, the actual height will be set by onHeightChange
         this.expandedEntities = {
           ...this.expandedEntities,
@@ -362,7 +362,7 @@ export const useStageStore = defineStore("stages", {
 
     selectItem(item, itemType, solo = false) {
       const panes = usePaneStore();
-      const taskStore = useTaskStore();
+      const assetStore = useAssetStore();
       const entityStore = useEntityStore();
       const projectStore = useProjectStore();
 
@@ -375,11 +375,11 @@ export const useStageStore = defineStore("stages", {
         this.selectedItem = item;
         // panes.setPaneVisibility("collectionDetails", true);
       } else if (itemType === "task") {
-        taskStore.selectTask(item);
+        assetStore.selectTask(item);
         this.selectedItem = item;
         // panes.setPaneVisibility("assetDetails", true);
       } else if (itemType === "resource") {
-        taskStore.selectTask(item);
+        assetStore.selectTask(item);
         this.selectedItem = item;
         // panes.setPaneVisibility("assetDetails", true);
       } else {
@@ -391,11 +391,11 @@ export const useStageStore = defineStore("stages", {
     },
 
     deselectAllItems() {
-      const taskStore = useTaskStore();
+      const assetStore = useAssetStore();
       const entityStore = useEntityStore();
       const projectStore = useProjectStore();
 
-      taskStore.selectedTask = null;
+      assetStore.selectedTask = null;
       entityStore.selectedEntity = null;
       projectStore.selectedUntrackedItem = null;
     },

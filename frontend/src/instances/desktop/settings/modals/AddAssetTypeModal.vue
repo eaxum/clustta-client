@@ -40,7 +40,7 @@ import { TemplateService } from "@/../bindings/clustta/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { TaskService } from "@/../bindings/clustta/services";
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import iconData from "@/data/iconData.json";
 
 // components
@@ -54,7 +54,7 @@ const isAwaitingResponse = ref(false);
 
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allTaskTypeIcons  = taskStore.taskTypes.map((item) => item.icon);
+  const allTaskTypeIcons  = assetStore.taskTypes.map((item) => item.icon);
   return allIcons.filter((icon) => !allTaskTypeIcons.includes(icon))
 })
 
@@ -62,7 +62,7 @@ const icons = computed(() => {
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 
 const taskTypeName = ref('');
 const taskTypeIcon = ref('generic');
@@ -95,7 +95,7 @@ const createTaskType = () => {
   TaskService.CreateTaskType(projectStore.activeProject.uri, taskTypeName.value, taskTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification("Task Type Created", "", "success");
-      taskStore.taskTypes.push(response);
+      assetStore.taskTypes.push(response);
       closeModal();
     })
     .catch((error) => {
@@ -218,3 +218,5 @@ const createTaskType = () => {
 
 }
 </style>
+
+

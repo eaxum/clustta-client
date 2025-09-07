@@ -103,3 +103,4 @@ const props = defineProps({
     color: white;
 }
 </style>
+

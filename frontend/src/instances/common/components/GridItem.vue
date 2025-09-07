@@ -18,7 +18,7 @@ import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 
 import { useMenu } from '@/stores/menu';
 import { useDndStore } from '@/stores/dnd';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
 import { useEntityStore } from '@/stores/entity';
 import { useScrollStore } from '@/stores/scroll';
@@ -29,7 +29,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 const menu = useMenu();
 const stage = useStageStore();
 const dndStore = useDndStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const scrollStore = useScrollStore();
 const entityStore = useEntityStore();
 const untrackedItemStore = useUntrackedItemStore();
@@ -65,7 +65,7 @@ const openCollectionMenu = (event) => {
 const openAssetMenu = (event) => {
   const id = props.child.id;
   const task = props.child;
-  taskStore.selectTask(task);
+  assetStore.selectTask(task);
   stage.markedTasks = [id];
   menu.showContextMenu(event, 'assetMenu', true);
 };
@@ -282,3 +282,5 @@ onBeforeUnmount(() => {
   /* padding-right: 1px; */
 }
 </style>
+
+

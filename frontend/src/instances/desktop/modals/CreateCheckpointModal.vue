@@ -79,7 +79,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useNotificationStore } from '@/stores/notifications';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from '@/stores/projects';
 import { DialogService } from '@/../bindings/clustta/services/index';
 import { useStatusStore } from '@/stores/status';
@@ -88,7 +88,7 @@ import { useStatusStore } from '@/stores/status';
 const userStore = useUserStore();
 const trayStates = useTrayStates();
 const message = ref('');
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const statusStore = useStatusStore();
@@ -113,13 +113,13 @@ const isValueChanged = computed(() => {
   );
 });
 
-const statusMenuDisplayed = computed(() => { return taskStore.selectedTask.type !== "untracked_task" && displayStatusMenu.value });
+const statusMenuDisplayed = computed(() => { return assetStore.selectedTask.type !== "untracked_task" && displayStatusMenu.value });
 
 const taskStatus = computed(() => {
-  if (taskStore.selectedTask.type === "untracked_task") {
+  if (assetStore.selectedTask.type === "untracked_task") {
     return statusStore.statuses.find((item) => item.name === 'todo')
   }
-  return taskStore.selectedTask.status;
+  return assetStore.selectedTask.status;
 });
 
 // methods
@@ -131,7 +131,7 @@ const toggleDisplayStatusMenu = () => {
   if (!userStore.canDo('change_status')) {
     return
   }
-  taskStore.isTaskStatus = true;
+  assetStore.isTaskStatus = true;
   displayStatusMenu.value = true;
 };
 
@@ -155,16 +155,16 @@ const handleEnterKey = (event) => {
 
 const createCheckPoint = async () => {
   isAwaitingResponse.value = true;
-  let taskPath = taskStore.selectedTask.task_path
+  let taskPath = assetStore.selectedTask.task_path
   let comment = message.value
   let previewPath = trayStates.previewFullPath;
   let groupId = uuidv4()
-  if (taskStore.selectedTask.type === "task") {
+  if (assetStore.selectedTask.type === "task") {
     CheckpointService.AddCheckpoint(projectStore.activeProject.uri, [taskPath], comment, previewPath, groupId, useImageAsCover.value)
       .then((response) => {
         emitter.emit('refresh-browser');
-        taskStore.modifiedTasksPath = taskStore.modifiedTasksPath.filter((modifiedTaskPath) => modifiedTaskPath !== taskPath)
-        taskStore.selectedTask.file_status = "normal"
+        assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter((modifiedTaskPath) => modifiedTaskPath !== taskPath)
+        assetStore.selectedTask.file_status = "normal"
         projectStore.refreshProjects();
         isAwaitingResponse.value = false;
         closeModal();
@@ -176,7 +176,7 @@ const createCheckPoint = async () => {
   } else {
     await CheckpointService.AddUntrackedTask(projectStore.activeProject.uri, projectStore.activeProject.working_directory, [taskPath], 0, 1, comment, previewPath, groupId)
       .then((response) => {
-        taskStore.untrackedTasksPath = taskStore.untrackedTasksPath.filter((path) => path !== taskPath)
+        assetStore.untrackedTasksPath = assetStore.untrackedTasksPath.filter((path) => path !== taskPath)
         emitter.emit('refresh-browser');
         projectStore.refreshProjects();
         isAwaitingResponse.value = false;
@@ -340,3 +340,6 @@ onUnmounted(() => {
   color: var(--attention);
 }
 </style>
+
+
+

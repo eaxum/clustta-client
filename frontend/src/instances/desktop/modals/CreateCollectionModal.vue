@@ -54,7 +54,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 // store imports
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useEntityStore } from '@/stores/entity';
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
@@ -74,7 +74,7 @@ import BatchGenerator from '@/instances/desktop/components/BatchGenerator.vue';
 const trayStates = useTrayStates();
 
 // stores
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const iconStore = useIconStore();
 const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
@@ -260,7 +260,7 @@ const createMultipleEntities = async () => {
 const itemsToGroup = ref([]);
 
 const allProjectItems = computed(() => {
-  const allTasks = taskStore.getTasks;
+  const allTasks = assetStore.getTasks;
   const allEntities = entityStore.getEntities;
   const alluntrackedFiles = projectStore.untrackedFiles;
   const alluntrackedFolders = projectStore.untrackedFolders;
@@ -342,7 +342,7 @@ const changeEntityParent = async (entityId, parentId) => {
 const changeTaskEntity = async (taskId, entityId) => {
   await TaskService.ChangeTaskEntity(projectStore.activeProject.uri, taskId, entityId)
     .then((response) => {
-      taskStore.changeTaskEntity(taskId, entityId);
+      assetStore.changeTaskEntity(taskId, entityId);
       const successMessage = 'Moved successfully.'
       notificationStore.addNotification(successMessage, "", "success")
     })
@@ -452,3 +452,5 @@ onUnmounted(() => {
 }
 
 </style>
+
+

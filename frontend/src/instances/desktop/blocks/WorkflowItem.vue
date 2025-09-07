@@ -61,7 +61,7 @@ import utils from '@/services/utils';
 
 // states/store imports
 import { useIconStore } from '@/stores/icons';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useEntityStore } from '@/stores/entity';
 import { useTemplateStore } from '@/stores/template';
 
@@ -71,7 +71,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 // emits
 
 const iconStore = useIconStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const entityStore = useEntityStore();
 const templateStore = useTemplateStore();
 
@@ -112,8 +112,8 @@ const workflowItemIcon = computed(() => {
 
 const workflowTaskIcon = computed(() => {
   const workflow = props.entity;
-  console.log(taskStore.getTaskTypeIcon(workflow.task_type_id))
-  return taskStore.getTaskTypeIcon(workflow.task_type_id)
+  console.log(assetStore.getTaskTypeIcon(workflow.task_type_id))
+  return assetStore.getTaskTypeIcon(workflow.task_type_id)
 });
 
 const templateIcon = computed(() => {
@@ -516,3 +516,5 @@ onBeforeUnmount(() => {
   /* padding: 5px; */
 }
 </style>
+
+

@@ -9,7 +9,7 @@ import { useNotificationStore } from "./notifications";
 import { useCommonStore } from "./common";
 import { useUserStore } from "./users";
 import { useEntityStore } from "./entity";
-import { useTaskStore } from "./task";
+import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from "./stages";
 import { usePaneStore } from "./panes";
 import { useTrayStates } from "./TrayStates";
@@ -128,7 +128,7 @@ export const useProjectStore = defineStore("projects", {
     async gotoProject(project) {
       const commonStore = useCommonStore();
       const entityStore = useEntityStore();
-      const taskStore = useTaskStore();
+      const assetStore = useAssetStore();
       const stage = useStageStore();
       const panes = usePaneStore();
       const trayStates = useTrayStates();
@@ -145,12 +145,12 @@ export const useProjectStore = defineStore("projects", {
       commonStore.resetFilters();
 
       entityStore.entities = [];
-      taskStore.tasks = [];
+      assetStore.tasks = [];
 
       commonStore.navigatorMode = false;
       entityStore.navigatedEntity = null;
       entityStore.selectedEntity = null;
-      taskStore.selectedTask = null;
+      assetStore.selectedTask = null;
 
       stage.expandedEntities = {};
       stage.setStageVisibility("browser", true);
@@ -321,7 +321,7 @@ export const useProjectStore = defineStore("projects", {
     //   // }
     //   const userStore = useUserStore();
     //   const entityStore = useEntityStore();
-    //   const taskStore = useTaskStore();
+    //   const assetStore = useAssetStore();
     //   let project = this.activeProject;
     //   if (project) {
     //     let untrackedItems = await ProjectService.GetUntrackedItems(
@@ -473,7 +473,7 @@ export const useProjectStore = defineStore("projects", {
       }
       const userStore = useUserStore();
       const entityStore = useEntityStore();
-      const taskStore = useTaskStore();
+      const assetStore = useAssetStore();
       const ignoredExtensions = ["blend1", ".tif", "tmp"];
       let project = this.activeProject;
       if (project) {
@@ -562,3 +562,4 @@ export const useProjectStore = defineStore("projects", {
     },
   },
 });
+

@@ -177,3 +177,4 @@ const isDead = computed(() => {
 }
 
 </style>
+

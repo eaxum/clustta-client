@@ -23,7 +23,7 @@ import emitter from '@/lib/mitt';
 import { useMenu } from '@/stores/menu';
 import { useCommonStore } from '@/stores/common';
 import { useTemplateStore } from '@/stores/template';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 
 // components
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
@@ -32,14 +32,14 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 const menu = useMenu();
 const commonStore = useCommonStore();
 const templateStore = useTemplateStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 
 // refs
 const collectionMenu = ref(null);
 
 const allExtensions = computed(() => {
   let templates = templateStore.getTemplates;
-  return taskStore.projectExtensions
+  return assetStore.projectExtensions
 
 });
 
@@ -89,3 +89,5 @@ onBeforeUnmount(() => {
 @import "@/assets/menu.css";
 
 </style>
+
+

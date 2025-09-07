@@ -21,7 +21,7 @@ import utils from '@/services/utils';
 // states/store imports
 import { useMenu } from '@/stores/menu';
 import { useCommonStore } from '@/stores/common';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useTagStore } from '@/stores/tags';
 
 // components
@@ -31,7 +31,7 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 const menu = useMenu();
 const commonStore = useCommonStore();
 const tagStore = useTagStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 
 // refs
 const collectionMenu = ref(null);
@@ -39,7 +39,7 @@ const collectionMenu = ref(null);
 const viewTags = computed(() => {
   let tags = tagStore.tags;
 		let viewTags = [];
-		let filteredTaskResults = taskStore.getFilteredTasks;
+		let filteredTaskResults = assetStore.getFilteredTasks;
 
 		for (const task of filteredTaskResults){
 			let taskTags = task.tags;
@@ -102,3 +102,5 @@ onBeforeUnmount(() => {
 @import "@/assets/desktop.css";
 @import "@/assets/menu.css";
 </style>
+
+
