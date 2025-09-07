@@ -540,7 +540,7 @@ const deleteMultipleEntities = async () => {
   const entityIds = stage.markedItems;
 
   for (let entityId of entityIds) {
-    await CollectionService.DeleteEntity(projectStore.activeProject.uri, entityId, true)
+    await CollectionService.DeleteCollection(projectStore.activeProject.uri, entityId, true)
       .then(async (response) => {
         if(onlyEntities.value){
           stage.markedItems = [];
@@ -756,7 +756,7 @@ const moveIntoFolder = async () => {
 
 const changeEntityParent = async (entityId, parentId) => {
 
-  await CollectionService.ChangeEntityParent(projectStore.activeProject.uri, entityId, parentId)
+  await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityId, parentId)
     .then((response) => {
       const successMessage = 'Moved successfully.'
       notificationStore.addNotification(successMessage, "", "success")

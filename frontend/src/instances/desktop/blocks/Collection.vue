@@ -386,7 +386,7 @@ const updateEntityName = async () => {
     let entity = props.entity;
     let entityId = entity.id;
     
-    await CollectionService.RenameEntity(projectStore.activeProject.uri, entityId, editableEntityName.value)
+    await CollectionService.RenameCollection(projectStore.activeProject.uri, entityId, editableEntityName.value)
       .then((data) => {
         entity.name = editableEntityName.value;
         emitEntityUpdates(entityId, [
@@ -485,7 +485,7 @@ const freeUpSpace = async () => {
 const deleteEntity = async () => {
   if (props.entity.type === 'entity') {
     let entity = collectionStore.selectedCollection;
-    CollectionService.DeleteEntity(projectStore.activeProject.uri, entity.id)
+      CollectionService.DeleteCollection(projectStore.activeProject.uri, entity.id, true)
       .then(async (response) => {
         emitter.emit('refresh-browser');
         collectionStore.selectedCollection = null;

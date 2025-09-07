@@ -195,7 +195,7 @@ const handleKeyArrowKeys = async (event) => {
       } else {
 
         let parent;
-        const allEntities = await CollectionService.GetEntities(projectStore.activeProject.uri)
+        const allEntities = await       CollectionService.GetCollections(projectStore.activeProject.uri)
         const alluntrackedFolders = projectStore.untrackedFolders;
 
         // const allItems = [...allEntities, ...alluntrackedFolders];
@@ -237,7 +237,7 @@ const loadEntityChildren = async () => {
   if (props.child.type == "entity" || props.child.type == 'untracked_entity') {
     let isUntracked = props.child.type == 'untracked_entity'
     let project = projectStore.activeProject
-    let children = await CollectionService.GetEntityChildren(project.uri, props.child.id, project.working_directory, props.child.file_path, project.ignore_list, isUntracked)
+    let children = await CollectionService.GetCollectionChildren(project.uri, props.child.id, project.working_directory, props.child.file_path, project.ignore_list, isUntracked)
     await assetStore.processAssetsIconsAndPreviews(children.tasks);
     await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
 

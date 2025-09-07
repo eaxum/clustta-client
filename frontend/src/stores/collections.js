@@ -198,7 +198,7 @@ export const useCollectionStore = defineStore("collection", {
 
     async reloadCollectionTypes() {
       const projectStore = useProjectStore();
-      let collectionTypes = await CollectionService.GetEntityTypes(
+      let collectionTypes = await CollectionService.GetCollectionTypes(
         projectStore.activeProject.uri
       );
       this.collectionTypes = collectionTypes.map(type => ({
@@ -209,7 +209,7 @@ export const useCollectionStore = defineStore("collection", {
 
     async reloadCollections() {
       const projectStore = useProjectStore();
-      let collections = await CollectionService.GetEntities(
+      let collections = await CollectionService.GetCollections(
         projectStore.activeProject.uri
       );
       this.collections = collections;

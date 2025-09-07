@@ -185,7 +185,7 @@ const updateEntityMeta = async () => {
   let newEntityTypeId = entityTypeId.value;
   let entity = collectionStore.selectedCollection;
   if (entity.name != entityName.value) {
-    await CollectionService.RenameEntity(projectStore.activeProject.uri, entityId, entityName.value)
+    await CollectionService.RenameCollection(projectStore.activeProject.uri, entityId, entityName.value)
       .then((data) => {
         entity.name = entityName.value;
         emitter.emit('refresh-browser');
