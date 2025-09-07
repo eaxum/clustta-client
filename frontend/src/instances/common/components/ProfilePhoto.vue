@@ -103,3 +103,4 @@ const getAppIcon = (iconName) => {
     visibility: hidden;
   }
   </style>
+

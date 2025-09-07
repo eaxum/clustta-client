@@ -80,7 +80,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
 import { useCommonStore } from '@/stores/common';
 
@@ -101,7 +101,7 @@ const trayStates = useTrayStates();
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const stage = useStageStore();
 const entityStore = useEntityStore();
 const commonStore = useCommonStore();
@@ -167,7 +167,7 @@ const revertProject = async (createdAt) => {
                 "success",
                 false
             )
-            taskStore.refreshAllFilesStatus()
+            assetStore.refreshAllFilesStatus()
         })
         .catch((error) => {
             console.log(error)
@@ -199,13 +199,13 @@ const findItem = async (taskPath) => {
     } 
     
     stage.deselectAllItems();
-    taskStore.selectTask(taskId)
+    assetStore.selectTask(taskId)
     stage.firstSelectedItemId = taskId;
     stage.markedItems = [taskId];
     selectedTaskId.value = taskId;
 
     return
-    const taskParents = taskStore.getTaskEntity(taskId, true);
+    const taskParents = assetStore.getTaskEntity(taskId, true);
     const taskParentIds = taskParents.map((item) => item.id)
 
     for(const parentId of taskParentIds){
@@ -217,7 +217,7 @@ const findItem = async (taskPath) => {
     }
     
     stage.deselectAllItems();
-    taskStore.selectTask(taskId)
+    assetStore.selectTask(taskId)
     stage.firstSelectedItemId = taskId;
     stage.markedItems = [taskId];
     selectedTaskId.value = taskId;
@@ -486,3 +486,5 @@ onMounted(() => {
     height: 100%;
 }
 </style>
+
+

@@ -18,7 +18,7 @@ import { useScrollStore } from '@/stores/scroll';
 import { useStageStore } from '@/stores/stages';
 import { useMenu } from '@/stores/menu';
 import { useDndStore } from '@/stores/dnd';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useCommonStore } from '@/stores/common';
 
@@ -29,7 +29,7 @@ import { useProjectStore } from '@/stores/projects';
 const stage = useStageStore();
 const menu = useMenu();
 const dndStore = useDndStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const scrollStore = useScrollStore();
 const modals = useDesktopModalStore();
@@ -426,10 +426,10 @@ const updateAssetState = async () => {
   for (let i = 0; i < visibleChildren.value.length; i++) {
     let visibleChild = visibleChildren.value[i];
     if (visibleChild.type == "task") {
-      let fileStatus = await taskStore.getTaskFileStatus(visibleChild)
+      let fileStatus = await assetStore.getTaskFileStatus(visibleChild)
       if (fileStatus === "modified") {
-        if (!taskStore.modifiedTasksPath.includes(visibleChild.task_path)) {
-          taskStore.addModifiedTaskPath(visibleChild.task_path)
+        if (!assetStore.modifiedTasksPath.includes(visibleChild.task_path)) {
+          assetStore.addModifiedTaskPath(visibleChild.task_path)
         }
       }
       props.items[visibleChild.index].file_status = fileStatus;
@@ -476,3 +476,5 @@ const onMouseLeave = () => {
   color: wheat;
 }
 </style>
+
+

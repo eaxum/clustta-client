@@ -139,7 +139,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
 import { useModalStore } from '@/stores/modals';
 import { useEntityStore } from '@/stores/entity';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useCommonStore } from '@/stores/common';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
@@ -157,7 +157,7 @@ const stage = useStageStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const entityStore = useEntityStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const commonStore = useCommonStore();
 const iconStore = useIconStore();
@@ -262,7 +262,7 @@ const rebuildAll = async () => {
   notificationStore.canCancel = true
   await EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
     .then((data) => {
-      taskStore.refreshEntityFilesStatus("")
+      assetStore.refreshEntityFilesStatus("")
       getProjectData()
     }).catch(error => {
       console.log(error)
@@ -521,3 +521,5 @@ onBeforeUnmount(() => {
   font-size: 13px;
 }
 </style>
+
+

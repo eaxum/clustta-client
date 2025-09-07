@@ -80,7 +80,7 @@ import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
 import { usePaneStore } from '@/stores/panes';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -102,7 +102,7 @@ const stage = useStageStore();
 const projectStore = useProjectStore();
 const dndStore = useDndStore();
 const panes = usePaneStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 
 // vars
 const debugging = ref(true);
@@ -149,7 +149,7 @@ const deleteUntrackedFile = () => {
   FSService.DeleteFile(untrackedItem.value.file_path);
   projectStore.removeUntrackedTask(untrackedItem.value.id);
   panes.setPaneVisibility('projectDetails', true)
-  taskStore.selectedTask = null;
+  assetStore.selectedTask = null;
   stage.markedItems = [];
   emitter.emit('refresh-browser')
   modals.disableAllModals();
@@ -349,3 +349,5 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 </style>
+
+

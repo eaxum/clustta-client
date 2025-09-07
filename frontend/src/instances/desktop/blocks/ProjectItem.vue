@@ -64,7 +64,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useEntityStore } from '@/stores/entity';
 import { useCommonStore } from '@/stores/common';
 import { useProjectStore } from '@/stores/projects';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 
 // components
@@ -79,7 +79,7 @@ const panes = usePaneStore();
 const stage = useStageStore();
 const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const commonStore = useCommonStore();
 const entityStore = useEntityStore();
@@ -486,3 +486,5 @@ onBeforeUnmount(() => {
   color: black;
 }
 </style>
+
+

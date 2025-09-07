@@ -72,7 +72,7 @@ import emitter from '@/lib/mitt';
 // stores/state imports
 import { useCommonStore } from '@/stores/common';
 import { useEntityStore } from '@/stores/entity';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 
 import { useStatusStore } from '@/stores/status';
@@ -84,7 +84,7 @@ import TaskItemCard from '@/instances/desktop/components/TaskItemCard.vue'
 
 // stores/state 
 const dndStore = useDndStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const statusStore = useStatusStore();
 const commonStore = useCommonStore();
 const entityStore = useEntityStore();
@@ -129,7 +129,7 @@ const loadAssetTasks = async () => {
     const projectPath = projectStore.activeProject?.uri;
     if (projectPath) {
       const tasks = await TaskService.GetAssetTasks(projectPath);
-      await taskStore.processTasksIconsAndPreviews(tasks);
+      await assetStore.processTasksIconsAndPreviews(tasks);
       cards.value = tasks; // Update cards ref with the fetched tasks
       await updateFilteredCards(); // Update filtered cards
     }
@@ -143,7 +143,7 @@ const updateFilteredCards = async () => {
   try {
     
     if (cards.value && cards.value.length > 0) {
-      const filtered = await taskStore.filterTasks(cards.value);
+      const filtered = await assetStore.filterTasks(cards.value);
       filteredCards.value = filtered || [];
     } else {
       filteredCards.value = [];
@@ -333,8 +333,8 @@ const onDragStart = (e, id, isMinimized) => {
 
  
   const taskId = id;
-  const task = taskStore.getTasks.find(item => item.id === taskId );
-  taskStore.selectTask(task);
+  const task = assetStore.getTasks.find(item => item.id === taskId );
+  assetStore.selectTask(task);
 
   dndStore.ghostCardStyle.width = selectedCard.clientWidth - paddingLeft - paddingRight;
   dndStore.ghostCardStyle.cursorDistance.x = e.pageX - cardRect.x;
@@ -774,3 +774,5 @@ onUnmounted(() => {
   box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
 }
 </style>
+
+

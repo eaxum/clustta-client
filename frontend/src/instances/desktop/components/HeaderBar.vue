@@ -17,7 +17,7 @@
 			<div v-if="stage.activeStage === 'dependencies'" class="header-bar-dependencies">
 				<ActionButton :icon="getAppIcon('arrow-left')" @click="goToList()" v-tooltip="'Back'" />
 				<div class="header-area-container" @click="toggleFullTaskPath()">
-					<HeaderArea :title="taskName" :miniDisplay="true" :customIcon="taskStore.selectedTask.icon" />
+					<HeaderArea :title="taskName" :miniDisplay="true" :customIcon="assetStore.selectedTask.icon" />
 				</div>
 			</div>
 
@@ -111,7 +111,7 @@ import { usePaneStore } from '@/stores/panes';
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
 import { useEntityStore } from '@/stores/entity';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
@@ -128,7 +128,7 @@ const projectStore = useProjectStore();
 const panes = usePaneStore();
 const stage = useStageStore();
 const entityStore = useEntityStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const userStore = useUserStore();
@@ -149,7 +149,7 @@ const getAppIcon = (iconName) => {
 
 // computed properties
 const taskName = computed(() => {
-	const task = taskStore.selectedTask;
+	const task = assetStore.selectedTask;
 	if (!task) {
 		return
 	}
@@ -232,8 +232,8 @@ const emptyTrash = async () => {
 };
 
 const goToList = () => {
-	if (taskStore.selectedTask) {
-		const taskId = taskStore.selectedTask.id;
+	if (assetStore.selectedTask) {
+		const taskId = assetStore.selectedTask.id;
 		stage.markedTasks = [taskId];
 	}
 	stage.setStageVisibility('browser', true);
@@ -252,7 +252,7 @@ const goToProjects = () => {
 const showProjectCheckpoints = () => {
 	
 	entityStore.selectedEntity  = null ;
-	taskStore.selectedTask = null ;
+	assetStore.selectedTask = null ;
 	projectStore.selectedUntrackedItem = null;
 
 	if (panes.activeModal !== 'projectCheckpoints' || !panes.showDetailsPane) {
@@ -494,3 +494,5 @@ const goToSettings = () => {
 	width: 400px;
 }
 </style>
+
+

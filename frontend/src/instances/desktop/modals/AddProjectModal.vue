@@ -69,7 +69,7 @@ import { useProjectStore } from '@/stores/projects';
 import { useNotificationStore } from '@/stores/notifications';
 import { useEntityStore } from '@/stores/entity';
 import { useStageStore } from '@/stores/stages';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useCommonStore } from '@/stores/common';
 import { useMenu } from '@/stores/menu';
 
@@ -90,7 +90,7 @@ const projectTemplateStore = useProjectTemplateStore();
 const notificationStore = useNotificationStore();
 const entityStore = useEntityStore();
 const stage = useStageStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const commonStore = useCommonStore();
 const menu = useMenu();
 
@@ -257,10 +257,10 @@ const resetProjectData = () => {
   commonStore.resetFilters();
 
   entityStore.entities = [];
-  taskStore.tasks = [];
+  assetStore.tasks = [];
 
   entityStore.selectedEntity = null;
-  taskStore.selectedTask = null;
+  assetStore.selectedTask = null;
 
   stage.expandedEntities = {};
 
@@ -471,3 +471,6 @@ onMounted(async () => {
   justify-content: center;
 }
 </style>
+
+
+

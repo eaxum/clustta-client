@@ -48,7 +48,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useStageStore } from '@/stores/stages';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useEntityStore } from '@/stores/entity';
 import { useStatusStore } from '@/stores/status';
 import { useProjectStore } from '@/stores/projects';
@@ -71,7 +71,7 @@ const modals = useDesktopModalStore();
 const statusStore = useStatusStore();
 const projectStore = useProjectStore();
 const entityStore = useEntityStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const dndStore = useDndStore();
 
 // vars
@@ -246,13 +246,13 @@ const resetDndValues = () => {
 };
 
 const refresh = async () => {
-  taskStore.tasksLoaded = false;
+  assetStore.tasksLoaded = false;
   await projectStore.refreshActiveProject()
   await statusStore.reloadStatuses();
   await entityStore.reloadEntities();
-  await taskStore.reloadTasks();
+  await assetStore.reloadTasks();
   projectStore.getUntrackedItems()
-  taskStore.tasksLoaded = true;
+  assetStore.tasksLoaded = true;
 };
 
 const handleEnterKey = (event) => {
@@ -530,3 +530,5 @@ onUnmounted(() => {
   max-height: 400px;
 }
 </style>
+
+

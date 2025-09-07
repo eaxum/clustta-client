@@ -33,7 +33,7 @@
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('brush-plus')" :label="'Asset type'" />
-            <DropDownBox :items="taskStore.getTaskTypesNames" :selectedItem="taskType" :onSelect="changeTaskType"
+            <DropDownBox :items="assetStore.getTaskTypesNames" :selectedItem="taskType" :onSelect="changeTaskType"
               :fixedWidth="true" />
           </div>
 
@@ -120,7 +120,7 @@ import emitter from '@/lib/mitt';
 import { computed, ref, onMounted, onUnmounted, watchEffect, watch, nextTick } from 'vue';
 import { usePaneStore } from '@/stores/panes';
 import { useStageStore } from '@/stores/stages';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useEntityStore } from '@/stores/entity';
 import { useProjectStore } from '@/stores/projects';
 import { useStatusStore } from '@/stores/status';
@@ -154,7 +154,7 @@ import { addIgnoredItem } from '@/lib/untracked';
 const panes = usePaneStore();
 const iconStore = useIconStore();
 const stage = useStageStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const entityStore = useEntityStore();
 const statusStore = useStatusStore();
 const projectStore = useProjectStore();
@@ -242,7 +242,7 @@ const numberOfSelectedTasks = computed(() => {
 
 const singleTask = computed(() => {
   numberOfSelectedTasks.value = stage.markedItems.length;
-  const isSingleTask = stage.markedItems.length <= 1 && taskStore.selectedTask;
+  const isSingleTask = stage.markedItems.length <= 1 && assetStore.selectedTask;
   return isSingleTask
 });
 
@@ -359,7 +359,7 @@ const viewCheckpoints = () => {
 
 const visiblePanes = computed(() => {
   if (stage.activeStage === 'browser') {
-    if (!entityStore.selectedEntity && !taskStore.selectedTask && !projectStore.selectedUntrackedItem) {
+    if (!entityStore.selectedEntity && !assetStore.selectedTask && !projectStore.selectedUntrackedItem) {
       if (!stage.markedItems.length) {
         if(panes.activeModal !== 'projectCheckpoints'){
           panes.setPaneVisibility('projectDetails', true);
@@ -393,7 +393,7 @@ const multiTypeChange = ref(false);
 const itemTypes = ref(['task', 'resource']);
 const collectionMode = ref(['basic', 'library']);
 const itemType = ref(itemTypes.value[0]);
-const taskType = ref(taskStore.getTaskTypesNames[0]);
+const taskType = ref(assetStore.getTaskTypesNames[0]);
 const entityType = ref(entityStore.getEntityTypesNames[0]);
 const detailsPaneRoot = ref(null);
 
@@ -420,7 +420,7 @@ const projectStatuses = computed(() => {
 
 const tasksModified = computed(() => {
   const markedItems = stage.markedItems;
-  const modifiedAssetsState = taskStore.getModifiedDisplayPaths;
+  const modifiedAssetsState = assetStore.getModifiedDisplayPaths;
   
   // Check if any of the marked items exist in the modified assets state
   return modifiedAssetsState.some((assetState) => markedItems.includes(assetState.task_id));
@@ -511,7 +511,7 @@ const setMultipleStatus = async (statusName) => {
   const status = statusStore.statuses.find(item => item.short_name === statusName.toLowerCase())
   // return
   const taskIds = stage.markedItems;
-  await taskStore.setMultipleStatus(status, taskIds);
+  await assetStore.setMultipleStatus(status, taskIds);
   defaultStatus.value = statusName.toUpperCase();
   stage.operationActive = false;
 };
@@ -617,7 +617,7 @@ const clearSelection = () => {
 	stage.selectedItems = [];
 	stage.firstSelectedItemId = '';
 	stage.lastSelectedItemId = '';
-	taskStore.selectedTask = null;
+	assetStore.selectedTask = null;
 	entityStore.selectedEntity = null;
 }
 
@@ -666,9 +666,9 @@ const freeUpSpace = async () => {
     await FSService.DeleteFile(taskPath)
       .then((response) => {
         task.file_status = 'rebuildable'; 
-        taskStore.rebuildableTasksPath.push(task.task_path)
-        taskStore.outdatedTasksPath = taskStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
-        taskStore.modifiedTasksPath = taskStore.modifiedTasksPath.filter(taskPath => taskPath !== task.task_path);
+        assetStore.rebuildableTasksPath.push(task.task_path)
+        assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
+        assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter(taskPath => taskPath !== task.task_path);
         
         // Emit task updates to notify components of file state changes
         emitTaskUpdates(task.id, { file_status: 'rebuildable' });
@@ -901,7 +901,7 @@ const changeTaskType = async (taskTypeName) => {
   stage.operationActive = true;
 
   let newTaskType;
-  const taskTypes = taskStore.getTaskTypes;
+  const taskTypes = assetStore.getTaskTypes;
   newTaskType = taskTypes.find((item) => item.name === taskTypeName);
   taskType.value = taskTypeName;
 
@@ -1026,7 +1026,7 @@ const rebuildCollections = async () => {
     
     await EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entityIdsString)
       .then((data) => {
-        taskStore.refreshEntityFilesStatus();
+        assetStore.refreshEntityFilesStatus();
         notificationStore.addNotification(`${entityIds.length} collection(s) rebuilt successfully`, '', "success", false);
       })
       .catch((error) => {
@@ -1192,3 +1192,5 @@ onUnmounted(() => {
   flex-direction: column;
 }
 </style>
+
+

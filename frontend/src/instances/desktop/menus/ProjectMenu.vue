@@ -68,7 +68,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
 import { useModalStore } from '@/stores/modals';
 import { useEntityStore } from '@/stores/entity';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useCommonStore } from '@/stores/common';
 import { useProjectStore } from '@/stores/projects';
 import { useTemplateStore } from '@/stores/template';
@@ -90,7 +90,7 @@ const modals = useDesktopModalStore();
 const modalStore = useModalStore();
 const notificationStore = useNotificationStore();
 const entityStore = useEntityStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const commonStore = useCommonStore();
 const templateStore = useTemplateStore();
@@ -341,9 +341,9 @@ const freeUpProjectSpace = async () => {
       
       TaskService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates)=>{
         console.log(assetsStates)
-        taskStore.modifiedTasksPath = assetsStates.modified
-        taskStore.outdatedTasksPath = assetsStates.outdated
-        taskStore.rebuildableTasksPath = assetsStates.rebuildable
+        assetStore.modifiedTasksPath = assetsStates.modified
+        assetStore.outdatedTasksPath = assetsStates.outdated
+        assetStore.rebuildableTasksPath = assetsStates.rebuildable
       })
 
       if (projectStore.activeProject.id == project.id) {
@@ -377,7 +377,7 @@ const rebuildAll = async () => {
 
 	const path = entityStore.navigatedEntity?.entity_path;
 	const navigatedEntityId = entityStore.navigatedEntity?.id;
-	const rebuildableTasksPath = taskStore.rebuildableTasksPath;
+	const rebuildableTasksPath = assetStore.rebuildableTasksPath;
 
 	notificationStore.cancleFunction = SyncService.CancelSync;
 	notificationStore.canCancel = true;
@@ -386,9 +386,9 @@ const rebuildAll = async () => {
 		.then((data) => {
 
 			if(path){
-				taskStore.rebuildableTasksPath = rebuildableTasksPath.filter(item => !item.startsWith(path))
+				assetStore.rebuildableTasksPath = rebuildableTasksPath.filter(item => !item.startsWith(path))
 			} else {
-				taskStore.rebuildableTasksPath = [];
+				assetStore.rebuildableTasksPath = [];
 			}
 
 			softRefresh();
@@ -495,3 +495,5 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
+
+

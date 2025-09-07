@@ -70,7 +70,7 @@ import utils from '@/services/utils';
 // state imports
 import { useMenu } from '@/stores/menu';
 import { useDndStore } from '@/stores/dnd';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
 import { useEntityStore } from '@/stores/entity';
 import { useTemplateStore } from '@/stores/template';
@@ -79,7 +79,7 @@ import { useTemplateStore } from '@/stores/template';
 const menu = useMenu();
 const stage = useStageStore();
 const dndStore = useDndStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const entityStore = useEntityStore();
 const templateStore = useTemplateStore();
 
@@ -128,7 +128,7 @@ const resourceType = computed(() => {
 
 
 const taskTypeNames = computed(() => {
-  return taskStore.getTaskTypesNames.filter((item) => item !== taskType.value);
+  return assetStore.getTaskTypesNames.filter((item) => item !== taskType.value);
 });
 
 const itemTypes = computed(() => {
@@ -264,7 +264,7 @@ const changeItemType = (newItemTypeName) => {
 const selectTaskType = (taskTypeName) => {
 
   let newTaskType;
-  const taskTypes = taskStore.getTaskTypes;
+  const taskTypes = assetStore.getTaskTypes;
   newTaskType = taskTypes.find((item) => item.name === taskTypeName);
 
   let previewData = dndStore.previewData['tasks'];
@@ -468,3 +468,5 @@ const selectEntityType = (entityTypeName) => {
   transform: rotate(90deg);
 }
 </style>
+
+

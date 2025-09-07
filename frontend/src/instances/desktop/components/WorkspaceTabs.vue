@@ -496,3 +496,4 @@ const getTabStyle = (index) => {
   transition: transform 0.2s ease;
 }
 </style>
+

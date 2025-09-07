@@ -27,7 +27,7 @@ import utils from "@/services/utils";
 // store/state imports
 import { useUserStore } from '@/stores/users';
 import { useNotificationStore } from '@/stores/notifications';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 
 // services
 import { TaskService } from "@/../bindings/clustta/services";
@@ -41,7 +41,7 @@ import { useProjectStore } from '@/stores/projects';
 const trayStates = useTrayStates();
 const userStore = useUserStore();
 const notificationStore = useNotificationStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 
 // refs
@@ -50,7 +50,7 @@ const entityIcon = ref('');
 
 // computed props
 const assignTo = computed(() => { return trayStates.assignTo });
-const task = computed(() => { return taskStore.selectedTask });
+const task = computed(() => { return assetStore.selectedTask });
 
 const entity = computed(() => {
   if (assignTo.value === 'task') {
@@ -109,7 +109,7 @@ const assignTask = async (index) => {
   let userId = user ? user.id : "";
   await TaskService.AssignTask(projectStore.activeProject.uri, taskId, userId)
     .then(async (data) => {
-      taskStore.findTask(taskId).assignee_id = userId;
+      assetStore.findTask(taskId).assignee_id = userId;
       notificationStore.addNotification("Task Assigned Successfully.", "", "success")
     })
     .catch((error) => {
@@ -123,7 +123,7 @@ const unassignTask = async (index) => {
   let taskId = entity.value.id;
   await TaskService.UnassignTask(projectStore.activeProject.uri, taskId)
     .then(async (data) => {
-      taskStore.findTask(taskId).assignee_id = ""
+      assetStore.findTask(taskId).assignee_id = ""
       notificationStore.addNotification("Task UnAssigned Successfully.", "", "success")
     })
     .catch((error) => {
@@ -166,3 +166,5 @@ onMounted(() => {
   justify-content: flex-start;
 }
 </style>
+
+

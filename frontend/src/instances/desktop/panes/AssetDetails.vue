@@ -8,9 +8,9 @@
   <div class="general-pane-root">
     <div class="general-pane-container">
 
-      <div v-if="taskStore.selectedTask?.preview" class="entity-thumb-container">
+      <div v-if="assetStore.selectedTask?.preview" class="entity-thumb-container">
         <div class="entity-thumb">
-          <img v-if="taskStore.selectedTask.preview" class="screenshot-thumb" :src="taskStore.selectedTask.preview">
+          <img v-if="assetStore.selectedTask.preview" class="screenshot-thumb" :src="assetStore.selectedTask.preview">
           <img v-else class="screenshot-thumb" src="/page-states/no_image.png">
         </div>
       </div>
@@ -20,21 +20,21 @@
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('brush-plus')" :label="'Type'" />
-            <DropDownBox :items="taskStore.getTaskTypesNames" :selectedItem="taskStore.selectedTask.task_type_name"
+            <DropDownBox :items="assetStore.getTaskTypesNames" :selectedItem="assetStore.selectedTask.task_type_name"
               :onSelect="changeTaskType" :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('clock')" :label="'Status'" />
-            <DropDownBox :items="projectStatuses" :selectedItem="taskStore.selectedTask.status_short_name"
+            <DropDownBox :items="projectStatuses" :selectedItem="assetStore.selectedTask.status_short_name"
               :onSelect="setStatus" :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('shapes')" :label="'Task'" />
 
-            <ToggleSwitch v-tooltip="!taskStore.selectedTask.is_resource ? 'Unset as Task' : 'Set as Task'"
-              @click="toggleIsTask" :switchValueProp="!taskStore.selectedTask.is_resource" />
+            <ToggleSwitch v-tooltip="!assetStore.selectedTask.is_resource ? 'Unset as Task' : 'Set as Task'"
+              @click="toggleIsTask" :switchValueProp="!assetStore.selectedTask.is_resource" />
           </div>
 
         </div>
@@ -47,16 +47,16 @@
               Parent
             </div>
             <div class="simple-text-value">
-              {{ taskStore.selectedTask.entity_name }}
+              {{ assetStore.selectedTask.entity_name }}
             </div>
           </div>
 
-          <div v-if="!taskStore.selectedTask.is_link" class="pane-parameter-detail">
+          <div v-if="!assetStore.selectedTask.is_link" class="pane-parameter-detail">
             <div class="simple-text-key">
               Extension
             </div>
             <div class="simple-text-value">
-              {{ taskStore.selectedTask.extension }}
+              {{ assetStore.selectedTask.extension }}
             </div>
           </div>
 
@@ -64,13 +64,13 @@
             <div class="simple-text-key">
               Assigned to
             </div>
-            <ActionButton v-if="taskStore.selectedTask.assignee_id" :iconAfter="true" :label="userFullName" v-tooltip="'See all tasks'" :buttonFunction="showAllTasks"/>
+            <ActionButton v-if="assetStore.selectedTask.assignee_id" :iconAfter="true" :label="userFullName" v-tooltip="'See all tasks'" :buttonFunction="showAllTasks"/>
             <div v-else class="simple-text-value">
               {{ userFullName }}
             </div>
           </div>
 
-          <div v-if="!taskStore.selectedTask.is_link" class="pane-parameter-detail">
+          <div v-if="!assetStore.selectedTask.is_link" class="pane-parameter-detail">
             <div class="simple-text-key">
               Checkpoint Comment
             </div>
@@ -79,7 +79,7 @@
             </div>
           </div>
 
-          <div v-if="lastCheckpoint?.comment !== 'No checkpoints' && !taskStore.selectedTask.is_link"
+          <div v-if="lastCheckpoint?.comment !== 'No checkpoints' && !assetStore.selectedTask.is_link"
             class="pane-parameter-detail">
             <div class="simple-text-key">
               Checkpoint Date
@@ -95,7 +95,7 @@
               Location
             </div>
               <div class="simple-text-value">
-                {{ taskStore.selectedTask.file_path }}
+                {{ assetStore.selectedTask.file_path }}
               </div>
               <div class="pane-parameter-actions">
                 <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy Path'" @click="copyTaskPath('task')"/>
@@ -103,12 +103,12 @@
               </div>
           </div>
 
-          <div v-if="!taskStore.selectedTask.is_link" class="pane-parameter-detail">
+          <div v-if="!assetStore.selectedTask.is_link" class="pane-parameter-detail">
             <div class="simple-text-key">
               File State
             </div>
             <div class="simple-text-value">
-              {{ taskStore.selectedTask.file_status }}
+              {{ assetStore.selectedTask.file_status }}
             </div>
           </div>
 
@@ -121,7 +121,7 @@
           </div>
         </div>
 
-          <div v-if="taskStore.selectedTask.tags.length" class="pane-parameter-detail">
+          <div v-if="assetStore.selectedTask.tags.length" class="pane-parameter-detail">
             <div class="simple-text-key">
               Tags
             </div>
@@ -131,7 +131,7 @@
       </div>
 
       <div class="pane-parameter-section">
-        <TagContainer :tags="taskStore.selectedTask.tags" :displayOnly="true" />
+        <TagContainer :tags="assetStore.selectedTask.tags" :displayOnly="true" />
       </div>
 
     </div>
@@ -153,7 +153,7 @@ import { useProjectStore } from '@/stores/projects';
 import { useUserStore } from '@/stores/users';
 import { useStageStore } from '@/stores/stages';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useStatusStore } from '@/stores/status';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
@@ -171,7 +171,7 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import AssigneeItem from '@/instances/common/components/AssigneeItem.vue';
 
 // stores
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const stage = useStageStore();
 const userStore = useUserStore();
 const modals = useDesktopModalStore();
@@ -198,19 +198,19 @@ const projectStatuses = computed(() => {
 
 const singleTask = computed(() => {
   numberOfSelectedTasks.value = stage.markedTasks.length;
-  const isSingleTask = stage.markedTasks.length <= 1 && taskStore.selectedTask;
+  const isSingleTask = stage.markedTasks.length <= 1 && assetStore.selectedTask;
   return isSingleTask
 });
 
 const selectedTaskName = computed(() => {
-  if (taskStore.selectedTask) {
-    return singleTask.value ? taskStore.selectedTask.name : 'Multiple tasks selected'
+  if (assetStore.selectedTask) {
+    return singleTask.value ? assetStore.selectedTask.name : 'Multiple tasks selected'
   }
 });
 
 const selectedTaskIcon = computed(() => {
-  if (taskStore.selectedTask) {
-    return singleTask.value ? taskStore.selectedTask.icon : '/icons/categories.svg'
+  if (assetStore.selectedTask) {
+    return singleTask.value ? assetStore.selectedTask.icon : '/icons/categories.svg'
   }
 });
 
@@ -228,7 +228,7 @@ const emitTaskUpdates = (taskId, updates) => {
 };
 
 const copyTaskPath = async (pathType) => {
-  let task = taskStore.selectedTask;
+  let task = assetStore.selectedTask;
   let taskPath = task.file_path;
   taskPath = taskPath.replace(/\\/g, '/');
   let taskDir = taskPath.split('/').slice(0, -1).join('/');
@@ -248,8 +248,8 @@ const showAllTasks = () => {
   commonStore.activeWorkspace = 'Default'
   commonStore.resetFilters();
   commonStore.navigatorMode = false;
-  if (taskStore.selectedTask?.assignee_id) {
-    const assignee = userStore.getUserData(taskStore.selectedTask.assignee_id);
+  if (assetStore.selectedTask?.assignee_id) {
+    const assignee = userStore.getUserData(assetStore.selectedTask.assignee_id);
     if (assignee) {
       const assigneeFilter = {
         name: `${assignee.first_name} ${assignee.last_name}`,
@@ -265,12 +265,12 @@ const showAllTasks = () => {
 };
 
 const revealInExplorer = async () => {
-  const taskId = taskStore.selectedTask.id;
-  if(taskStore.selectedTask.file_status == "rebuildable"){
+  const taskId = assetStore.selectedTask.id;
+  if(assetStore.selectedTask.file_status == "rebuildable"){
     await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [taskId])
     .then( async (response) => {
-      taskStore.rebuildableTasksPath = taskStore.rebuildableTasksPath.filter(taskPath => taskPath !== task.task_path)
-      taskStore.outdatedTasksPath = taskStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path);
+      assetStore.rebuildableTasksPath = assetStore.rebuildableTasksPath.filter(taskPath => taskPath !== task.task_path)
+      assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path);
       emitter.emit('get-project-data')
     })
     .catch((error) => {
@@ -279,19 +279,19 @@ const revealInExplorer = async () => {
     });
 
   } 
-  TaskService.RevealTask(projectStore.activeProject.uri, taskStore.selectedTask.id);
+  TaskService.RevealTask(projectStore.activeProject.uri, assetStore.selectedTask.id);
 };
 
 const toggleIsTask = async () => {
   stage.operationActive = true;
   const projectPath = projectStore.activeProject.uri;
-  let isTask = taskStore.selectedTask.is_resource;
-  let task = taskStore.selectedTask;
+  let isTask = assetStore.selectedTask.is_resource;
+  let task = assetStore.selectedTask;
     
   await TaskService.ToggleIsTask(projectPath, task.id,  isTask)
     .then((data) => {
 
-      taskStore.selectedTask.is_resource = !isTask;
+      assetStore.selectedTask.is_resource = !isTask;
       emitTaskUpdates(task.id, [
         { property: 'is_resource', value: !isTask }
       ]);
@@ -308,11 +308,11 @@ const changeTaskType = async (taskTypeName) => {
   stage.operationActive = true;
 
   let newTaskType;
-  const taskTypes = taskStore.getTaskTypes;
+  const taskTypes = assetStore.getTaskTypes;
   newTaskType = taskTypes.find((item) => item.name === taskTypeName);
 
   const projectPath = projectStore.activeProject.uri;
-  let task = taskStore.selectedTask;
+  let task = assetStore.selectedTask;
 
   await TaskService.UpdateTask(projectPath, task.id, task.name, newTaskType.id, task.is_resource, '', task.tags)
     .then((data) => {
@@ -339,7 +339,7 @@ const setStatus = async (statusName) => {
   stage.operationActive = true;
   const projectPath = projectStore.activeProject.uri;
   const status = statusStore.statuses.find(item => item.short_name === statusName.toLowerCase());
-  let task = taskStore.selectedTask;
+  let task = assetStore.selectedTask;
   
   await TaskService.ChangeStatus(projectPath, task.id, status.id)
     .then((data) => {
@@ -361,8 +361,8 @@ const setStatus = async (statusName) => {
 };
 
 const userFullName = computed(() => {
-  let user = userStore.getUserData(taskStore.selectedTask.assignee_id);
-  if (taskStore.selectedTask.assignee_id) {
+  let user = userStore.getUserData(assetStore.selectedTask.assignee_id);
+  if (assetStore.selectedTask.assignee_id) {
     let fullname = `${user.first_name} ${user.last_name}`;
     return fullname
   } else {
@@ -371,7 +371,7 @@ const userFullName = computed(() => {
 });
 
 const lastCheckpoint = computed(() => {
-  let task = taskStore.selectedTask;
+  let task = assetStore.selectedTask;
   if (task.is_link) return ''
   let checkpoint = task.checkpoints[0];
   return checkpoint ? { comment: checkpoint.comment, created_at: checkpoint.created_at } : { comment: 'No checkpoints', created_at: task.created_at };
@@ -395,7 +395,7 @@ const editTask = () => {
 const assetSize = ref(0);
 
 const assetPath = computed(() => {
-  const path = taskStore.selectedTask?.file_path;
+  const path = assetStore.selectedTask?.file_path;
   return path?.replace(/\\/g, '/')
 });
 
@@ -412,7 +412,7 @@ const getProjectData = async () => {
   getAssetSize();
 }
 
-watch(() => taskStore.selectedTask, () => {
+watch(() => assetStore.selectedTask, () => {
   assetSize.value = 0;
   getProjectData();
 });
@@ -546,3 +546,5 @@ onBeforeUnmount(() => {
   flex-direction: column;
 }
 </style>
+
+

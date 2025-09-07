@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { useCommonStore } from "@/stores/common";
-import { useTaskStore } from "@/stores/task";
+import { useAssetStore } from "@/stores/assets";
 import utils from "@/services/utils";
 import { EntityService } from "@/../bindings/clustta/services";
 import { useProjectStore } from "./projects";
@@ -34,7 +34,7 @@ export const useEntityStore = defineStore("entity", {
     },
     getFilteredEntities: (state) => {
       const commonStore = useCommonStore();
-      const taskStore = useTaskStore();
+      const assetStore = useAssetStore();
 
       const entities = state.entities;
       const viewSearchQuery = commonStore.viewSearchQuery;
@@ -83,7 +83,7 @@ export const useEntityStore = defineStore("entity", {
   actions: {
     filterEntities(entities){
       const commonStore = useCommonStore();
-      const taskStore = useTaskStore();
+      const assetStore = useAssetStore();
 
       const viewSearchQuery = commonStore.viewSearchQuery;
       const workspaceSearchQuery = commonStore.workspaceSearchQuery;

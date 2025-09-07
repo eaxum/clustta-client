@@ -146,7 +146,7 @@ import { Events } from "@wailsio/runtime";
 // states/store imports
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { usePaneStore } from '@/stores/panes';
 import { useStageStore } from '@/stores/stages';
 import { useCommonStore } from '@/stores/common';
@@ -171,7 +171,7 @@ const panes = usePaneStore();
 const stage = useStageStore();
 const projectStore = useProjectStore();
 const entityStore = useEntityStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const commonStore = useCommonStore();
 const dndStore = useDndStore();
 const modals = useDesktopModalStore();
@@ -309,19 +309,19 @@ const operationsActive = computed(() => {
 });
 
 const itemsModified = computed(() => {
-  return taskStore.modifiedTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
+  return assetStore.modifiedTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
 });
 
 const itemsUntracked = computed(() => {
-  return taskStore.untrackedTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
+  return assetStore.untrackedTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
 });
 
 const itemsOutdated = computed(() => {
-  return taskStore.outdatedTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
+  return assetStore.outdatedTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
 });
 
 const itemsRebuildable = computed(() => {
-  return taskStore.rebuildableTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
+  return assetStore.rebuildableTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
 });
 
 //methods
@@ -431,10 +431,10 @@ const triggerRename = () => {
 const updateEntityAssets = async () => {
 	notificationStore.cancleFunction = SyncService.CancelSync
 	notificationStore.canCancel = true
-  let entityOutdatedAssets = taskStore.outdatedTasksPath.filter(taskPath => taskPath.startsWith(props.entity.entity_path))
+  let entityOutdatedAssets = assetStore.outdatedTasksPath.filter(taskPath => taskPath.startsWith(props.entity.entity_path))
 	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entityOutdatedAssets)
 		.then((data) => {
-			taskStore.outdatedTasksPath = taskStore.outdatedTasksPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path))
+			assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path))
 			emitter.emit('refresh-browser');
 		}).catch(async (error) => {
 			notificationStore.errorNotification("Error Rebuilding All", error)
@@ -446,7 +446,7 @@ const rebuildEntity = async () => {
 	notificationStore.canCancel = true
 	await EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, props.entity.id)
 		.then((data) => {
-			taskStore.rebuildableTasksPath = taskStore.rebuildableTasksPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path))
+			assetStore.rebuildableTasksPath = assetStore.rebuildableTasksPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path))
 			emitter.emit('refresh-browser');
 		}).catch(async (error) => {
 			notificationStore.errorNotification("Error Rebuilding All", error)
@@ -474,7 +474,7 @@ const freeUpSpace = async () => {
   await FSService.DeleteFolder(entityDir)
     .then((response) => {
       emitter.emit('refresh-browser');
-      taskStore.refreshEntityFilesStatus(entity.id)
+      assetStore.refreshEntityFilesStatus(entity.id)
     })
     .catch((error) => {
       console.error(error);
@@ -1077,3 +1077,5 @@ onBeforeUnmount(() => {
   /* padding: 5px; */
 }
 </style>
+
+

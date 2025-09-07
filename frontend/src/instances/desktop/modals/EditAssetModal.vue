@@ -54,7 +54,7 @@ import { TaskService, ClipboardService } from "@/../bindings/clustta/services";
 // state imports
 import { useUserStore } from '@/stores/users';
 import { useTrayStates } from '@/stores/TrayStates';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useProjectStore } from '@/stores/projects';
 import { useMenu } from '@/stores/menu';
@@ -70,7 +70,7 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 // stores
 const menu = useMenu();
 const trayStates = useTrayStates();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
 const modals = useDesktopModalStore();
@@ -94,12 +94,12 @@ const isResource = ref(false);
 
 // computed properties
 const projectTags = computed(() => {
-  const allTags = taskStore.projectTags;
+  const allTags = assetStore.projectTags;
   return allTags.filter(item => !tags.value.includes(item));
 });
 
 const task = computed(() => {
-  return taskStore.selectedTask;
+  return assetStore.selectedTask;
 });
 
 const title = computed(() => {
@@ -111,7 +111,7 @@ const icon = computed(() => {
 })
 
 const taskTypeNames = computed(() => {
-  return taskStore.getTaskTypesNames;
+  return assetStore.getTaskTypesNames;
 });
 
 const itemType = ref('');
@@ -138,7 +138,7 @@ const itemTypes = computed(() => {
 });
 
 const isValueChanged = computed(() => {
-  const task = taskStore.selectedTask;
+  const task = assetStore.selectedTask;
   if (!task) {
     return false
   }
@@ -156,7 +156,7 @@ const isValueChanged = computed(() => {
 const selectTaskType = (taskTypeName) => {
 
   let newTaskType;
-  const taskTypes = taskStore.getTaskTypes;
+  const taskTypes = assetStore.getTaskTypes;
   newTaskType = taskTypes.find((item) => item.name === taskTypeName);
 
   taskType.value = taskTypeName;
@@ -212,13 +212,13 @@ const updateTask = async () => {
   taskTypeId.value;
 
   isAwaitingResponse.value = true;
-  let taskId = taskStore.selectedTask.id;
-  let task = taskStore.selectedTask;
+  let taskId = assetStore.selectedTask.id;
+  let task = assetStore.selectedTask;
   let data = {};
   let newTaskTags = tags.value;
 
   let newTaskType;
-  const taskTypes = taskStore.getTaskTypes;
+  const taskTypes = assetStore.getTaskTypes;
   newTaskType = taskTypes.find((item) => item.id === taskTypeId.value);
 
   if (taskName.value === "") {
@@ -265,7 +265,7 @@ watchEffect(() => {
 // onMounted
 onMounted(() => {
   trayStates.tagSearchQuery = '';
-  let task = taskStore.selectedTask;
+  let task = assetStore.selectedTask;
   console.log(task)
   taskName.value = task.name;
   taskWebLink.value = task.pointer;
@@ -304,3 +304,5 @@ onMounted(() => {
   flex: 1;
 }
 </style>
+
+

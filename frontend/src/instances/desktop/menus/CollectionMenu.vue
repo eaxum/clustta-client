@@ -86,7 +86,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
 import { useModalStore } from '@/stores/modals';
 import { useEntityStore } from '@/stores/entity';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useCommonStore } from '@/stores/common';
 import { useProjectStore } from '@/stores/projects';
 import { useWorkflowStore } from '@/stores/workflow';
@@ -107,7 +107,7 @@ const modals = useDesktopModalStore();
 const modalStore = useModalStore();
 const notificationStore = useNotificationStore();
 const entityStore = useEntityStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const workflowStore = useWorkflowStore();
 const commonStore = useCommonStore();
@@ -123,7 +123,7 @@ const hasModifiedContents = computed(() => {
   if (!entity) return false;
   
   const entityPath = entity.entity_path;
-  const modifiedTasksPath = taskStore.modifiedTasksPath;
+  const modifiedTasksPath = assetStore.modifiedTasksPath;
   
   if (!entityPath || !modifiedTasksPath.length) return false;
   
@@ -327,12 +327,12 @@ const freeUpSpace = async () => {
       emitter.emit('refresh-browser');
       
       // let project = projectStore.activeProject
-      // taskStore.outdatedTasksPath = taskStore.outdatedTasksPath.filter(taskPath => !taskPath.startsWith(entityStore.selectedEntity.entity_path))
-      // taskStore.modifiedTasksPath = taskStore.modifiedTasksPath.filter(taskPath => !taskPath.startsWith(entityStore.selectedEntity.entity_path))
+      // assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => !taskPath.startsWith(entityStore.selectedEntity.entity_path))
+      // assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter(taskPath => !taskPath.startsWith(entityStore.selectedEntity.entity_path))
       // TaskService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates)=>{
-      //   taskStore.modifiedTasksPath = assetsStates.modified
-      //   taskStore.outdatedTasksPath = assetsStates.outdated
-      //   taskStore.rebuildableTasksPath = assetsStates.rebuildable
+      //   assetStore.modifiedTasksPath = assetsStates.modified
+      //   assetStore.outdatedTasksPath = assetsStates.outdated
+      //   assetStore.rebuildableTasksPath = assetsStates.rebuildable
       // })
 
     })
@@ -351,7 +351,7 @@ const rebuildCollection = () => {
   notificationStore.canCancel = true
   EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entity.id)
     .then((data) => {
-      taskStore.refreshEntityFilesStatus(entity.id)
+      assetStore.refreshEntityFilesStatus(entity.id)
       emitter.emit('refresh-browser');
     }).catch(error => {
       console.log(error)
@@ -385,7 +385,7 @@ const revertContents = async () => {
   if (!entity) return;
   
   const entityPath = entity.entity_path;
-  const modifiedTasksPath = taskStore.modifiedTasksPath;
+  const modifiedTasksPath = assetStore.modifiedTasksPath;
   
   // Filter only the modified tasks within this entity's path recursively
   const entityModifiedPaths = modifiedTasksPath.filter(taskPath => taskPath.startsWith(entityPath));
@@ -403,7 +403,7 @@ const revertContents = async () => {
     );
     
     // Update the global modified tasks list by removing the reverted paths
-    taskStore.modifiedTasksPath = taskStore.modifiedTasksPath.filter(
+    assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter(
       taskPath => !entityModifiedPaths.includes(taskPath)
     );
     
@@ -482,3 +482,5 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
+
+

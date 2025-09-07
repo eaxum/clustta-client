@@ -29,7 +29,7 @@ import { EntityService } from "@/../bindings/clustta/services";
 // states/store imports
 import { useStageStore } from '@/stores/stages';
 import { useNotificationStore } from '@/stores/notifications';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
 
@@ -42,7 +42,7 @@ import PageState from '@/instances/common/components/PageState.vue';
 // states/stores
 const stage = useStageStore();
 const notificationStore = useNotificationStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 
@@ -60,7 +60,7 @@ const getAppIcon = (iconName) => {
 };
 
 const selectedTask = computed(() => {
-  return taskStore.selectedTask
+  return assetStore.selectedTask
 });
 
 const goToDependencyGraph = () => {
@@ -79,15 +79,15 @@ const emitTaskUpdates = (taskId, updates) => {
   emitter.emit('update-children', updateData);
 };
 
-watch(() => taskStore.selectedTask, async () => {
+watch(() => assetStore.selectedTask, async () => {
     getTaskDependencies();
 }, { deep: true });
 
 const getTaskDependencies = async() => {
 	let project = projectStore.activeProject
   let allDependencies;
-  const selectedTaskDependencies = taskStore.selectedTask?.dependencies;
-  const selectedTaskEntityDependencies = taskStore.selectedTask?.entity_dependencies;
+  const selectedTaskDependencies = assetStore.selectedTask?.dependencies;
+  const selectedTaskEntityDependencies = assetStore.selectedTask?.entity_dependencies;
   allDependencies = [ ...selectedTaskDependencies, ...selectedTaskEntityDependencies];
   const children = await TaskService.GetTaskDependencies(project.uri, allDependencies);
 
@@ -101,15 +101,15 @@ const getTaskDependencies = async() => {
         extension = utils.getFileExtension(item.pointer).substring(1);
       } else if (!item.is_link) {
         extension = children[i].extension?.toLowerCase().substring(1);
-        if (!taskStore.projectExtensionsFlat.includes(extension)) {
-          taskStore.projectExtensionsFlat.push(extension);
+        if (!assetStore.projectExtensionsFlat.includes(extension)) {
+          assetStore.projectExtensionsFlat.push(extension);
           let extensionData = {
             name: extension,
             type: "extension",
             extension: "." + extension,
             icon: (await iconStore.getIcon(extension)) || "",
           };
-          taskStore.projectExtensions.push(extensionData);
+          assetStore.projectExtensions.push(extensionData);
         }
       }
       let iconPath = "";
@@ -139,7 +139,7 @@ const handleRemoveDependency = (payload) => {
 };
 
 const removeDependency = async (dependencyId, itemType) => {
-  const task = taskStore.selectedTask;
+  const task = assetStore.selectedTask;
   let selectedTaskDependencies;
   console.log(itemType)
 
@@ -239,3 +239,5 @@ onUnmounted(() => {
   align-items: flex-start;
 }
 </style>
+
+

@@ -53,7 +53,7 @@ import { useEntityStore } from '@/stores/entity';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useStageStore } from '@/stores/stages';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useTemplateStore } from '@/stores/template';
 import { useProjectStore } from '@/stores/projects';
 
@@ -69,7 +69,7 @@ let placeholder = 'Add Tags, use commas to confirm'
 
 // states
 const trayStates = useTrayStates();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const templateStore = useTemplateStore();
 const projectStore = useProjectStore();
 const commonStore = useCommonStore();
@@ -91,7 +91,7 @@ const modalContainer = ref(null);
 const showTaskOptions = ref(true);
 const isAwaitingResponse = ref(false);
 const isResource = ref(false);
-const taskType = ref(taskStore.getTaskTypesNames[0]);
+const taskType = ref(assetStore.getTaskTypesNames[0]);
 
 // computed properties
 const title = computed(() => trayStates.popUpModalTitle);
@@ -101,12 +101,12 @@ const isValueChanged = computed(() => {
   return taskName.value !== '';
 });
 const projectTags = computed(() => {
-  const allTags = taskStore.projectTags;
+  const allTags = assetStore.projectTags;
   return allTags.filter(item => !tags.value.includes(item));
 });
 
 const taskTypeNames = computed(() => {
-  return taskStore.getTaskTypesNames;
+  return assetStore.getTaskTypesNames;
 });
 
 const itemType = ref('Task');
@@ -181,7 +181,7 @@ const closeModal = () => {
 
 const createTask = async (launch = false, comment = "new file") => {
   isAwaitingResponse.value = true;
-  let selectedTaskType = taskStore.taskTypes.find(item => item.name === taskType.value);
+  let selectedTaskType = assetStore.taskTypes.find(item => item.name === taskType.value);
   let entities = stageStore.markedEntities
   let template = templateStore.templates.find(template => template.name === templateStore.selectedTemplateName);
   templateStore.lastUsedTemplate = template.name;
@@ -221,7 +221,7 @@ const createTask = async (launch = false, comment = "new file") => {
           taskName.value = "";
           tags.value = [];
         }
-        await taskStore.reloadTasks();
+        await assetStore.reloadTasks();
         isAwaitingResponse.value = false;
         successMessage = 'Created ' + taskName.value + ' successfully.'
         notificationStore.addNotification(successMessage, "", "success")
@@ -252,7 +252,7 @@ const createTask = async (launch = false, comment = "new file") => {
     //   .then(async (data) => {
     //     let successMessage = 'Creating ' + taskName.value + '...'
     //     notificationStore.addNotification(successMessage, "", "success")
-    //     await taskStore.reloadTasks();
+    //     await assetStore.reloadTasks();
     //     isAwaitingResponse.value = false;
     //     successMessage = 'Created ' + taskName.value + ' successfully.'
     //     notificationStore.addNotification(successMessage, "", "success")
@@ -285,7 +285,7 @@ watchEffect(() => {
 // onMounted hook
 onMounted(() => {
   menu.clickOutsideMask = null;
-  taskName.value = utils.capitalizeStr(taskStore.getTaskTypesNames[0]);
+  taskName.value = utils.capitalizeStr(assetStore.getTaskTypesNames[0]);
   trayStates.listItemsBoundary = modalContainer.value;
   trayStates.tagSearchQuery = '';
   trayStates.itemTags = [];
@@ -376,3 +376,5 @@ onUnmounted(() => {
   margin-top: 0;
 }
 </style>
+
+

@@ -167,7 +167,7 @@ import { Events } from "@wailsio/runtime";
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useMenu } from '@/stores/menu';
 import { useIconStore } from '@/stores/icons';
 import { usePaneStore } from '@/stores/panes';
@@ -196,7 +196,7 @@ const panes = usePaneStore();
 const stage = useStageStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const commonStore = useCommonStore();
 const entityStore = useEntityStore();
 const projectStore = useProjectStore();
@@ -566,14 +566,14 @@ const prepFreeUpSpacePopUpModal = () => {
 };
 
 const freeUpSpace = async () => {
-  let task = taskStore.selectedTask;
+  let task = assetStore.selectedTask;
   let taskDir = task.file_path.replace(/\\/g, '/');
   await FSService.DeleteFile(taskDir)
     .then((response) => {
       task.file_status = 'rebuildable';
-      taskStore.rebuildableTasksPath.push(task.task_path)
-      taskStore.outdatedTasksPath = taskStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
-      taskStore.modifiedTasksPath = taskStore.modifiedTasksPath.filter(taskPath => taskPath !== task.task_path);
+      assetStore.rebuildableTasksPath.push(task.task_path)
+      assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
+      assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter(taskPath => taskPath !== task.task_path);
       emitter.emit('refresh-browser');
     })
     .catch((error) => {
@@ -584,17 +584,17 @@ const freeUpSpace = async () => {
 
 const deleteTask = async () => {
   if (props.task.type === 'task') {
-    let taskId = taskStore.selectedTask.id;
+    let taskId = assetStore.selectedTask.id;
     TaskService.DeleteTask(projectStore.activeProject.uri, taskId, true)
       .then(async (response) => {
-        taskStore.selectedTask = null;
+        assetStore.selectedTask = null;
         stage.markedItems = [];
         emitter.emit('refresh-browser');
       })
       .catch((error) => {
         notificationStore.errorNotification("Task failed to delete.", error)
       });
-    let longMessage = `Task of name: ${taskStore.selectedTask.name} was moved to Trash.`
+    let longMessage = `Task of name: ${assetStore.selectedTask.name} was moved to Trash.`
     notificationStore.addNotification("Task moved to Trash.", longMessage, "success", true);
   } else if (props.task.type === 'untracked_task') {
     prepDeleteUntrackedTaskPopUpModal();
@@ -637,9 +637,9 @@ const taskTypeIcon = computed(() => {
 
 // methods
 const closeStatusMenu = () => {
-  props.task.status = taskStore.selectedTask.status
-  props.task.status_id = taskStore.selectedTask.status_id
-  props.task.status_short_name = taskStore.selectedTask.status_short_name
+  props.task.status = assetStore.selectedTask.status
+  props.task.status_id = assetStore.selectedTask.status_id
+  props.task.status_short_name = assetStore.selectedTask.status_short_name
   statusMenuDisplayed.value = false;
 };
 
@@ -664,7 +664,7 @@ const launchTaskCommand = async () => {
     } else {
       CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [task.id])
         .then(async (response) => {
-          let fileStatus = await taskStore.getTaskFileStatus(task)
+          let fileStatus = await assetStore.getTaskFileStatus(task)
           props.task.file_status = fileStatus
           FSService.LaunchFile(file_path)
         })
@@ -679,8 +679,8 @@ const launchTaskCommand = async () => {
 
 const prepCreateCheckpoint = (index, mask, event) => {
   const task = props.task
-  taskStore.selectedTask = task;
-  console.log(taskStore.selectedTask)
+  assetStore.selectedTask = task;
+  console.log(assetStore.selectedTask)
   handleClick(index, task, event);
   modals.setModalVisibility('createCheckpointModal', true);
 };
@@ -712,9 +712,9 @@ const revertTask = async (index, task, event) => {
 
   CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [taskId])
     .then(async (response) => {
-      taskStore.rebuildableTasksPath = taskStore.rebuildableTasksPath.filter(taskPath => taskPath !== task.task_path)
-      taskStore.outdatedTasksPath = taskStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
-      let fileStatus = await taskStore.getTaskFileStatus(task)
+      assetStore.rebuildableTasksPath = assetStore.rebuildableTasksPath.filter(taskPath => taskPath !== task.task_path)
+      assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
+      let fileStatus = await assetStore.getTaskFileStatus(task)
       props.task.file_status = fileStatus;
       emitter.emit('get-project-data')
     })
@@ -765,14 +765,14 @@ const toggleDisplayStatusMenu = (index, task, event) => {
   if (!userStore.canDo('change_status')) {
     return
   }
-  taskStore.isTaskStatus = true;
-  taskStore.selectTask(task);
+  assetStore.isTaskStatus = true;
+  assetStore.selectTask(task);
   statusMenuDisplayed.value = true;
 };
 
 const goToDependencies = (index, task, event) => {
   handleClick(index, task, event);
-  taskStore.selectTask(task);
+  assetStore.selectTask(task);
   stage.setStageVisibility('dependencies', true);
 };
 
@@ -780,7 +780,7 @@ const viewCheckpoints = (index, task, event) => {
   // stage.handleClick(event, task);
   // handleClick(index, task, event);
   stage.markedItems = [task.id];
-  taskStore.selectTask(task);
+  assetStore.selectTask(task);
   emitter.emit('view-checkpoints');
   // panes.setPaneVisibility('checkpoints', true);
   panes.showDetailsPane = true;
@@ -794,7 +794,7 @@ const prepAssignTask = (index, task, event) => {
 
 
   const id = task.id;
-  taskStore.selectTask(task);
+  assetStore.selectTask(task);
   stage.markedTasks = [id];
   menu.showContextMenu(event, 'assignMenu', true);
 };
@@ -1250,3 +1250,5 @@ onBeforeUnmount(() => {
   /* flex: 1; */
 }
 </style>
+
+

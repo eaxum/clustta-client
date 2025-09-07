@@ -70,7 +70,7 @@ import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
 
@@ -84,7 +84,7 @@ const userStore = useUserStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 
@@ -195,7 +195,7 @@ const rebuildAll = async () => {
   notificationStore.canCancel = true
   await EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
     .then((data) => {
-      taskStore.refreshEntityFilesStatus("")
+      assetStore.refreshEntityFilesStatus("")
     }).catch(error => {
       console.log(error)
     })
@@ -315,3 +315,5 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
+
+

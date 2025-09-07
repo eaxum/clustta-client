@@ -33,7 +33,7 @@ import emitter from '@/lib/mitt';
 
 import { useMenu } from '@/stores/menu';
 import { useDndStore } from '@/stores/dnd';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
 import { useEntityStore } from '@/stores/entity';
 import { useScrollStore } from '@/stores/scroll';
@@ -47,7 +47,7 @@ import { useIconStore } from '@/stores/icons';
 const menu = useMenu();
 const stage = useStageStore();
 const dndStore = useDndStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const scrollStore = useScrollStore();
 const iconStore = useIconStore();
 const entityStore = useEntityStore();
@@ -100,7 +100,7 @@ const openCollectionMenu = (event) => {
 const openAssetMenu = (event) => {
   const id = props.child.id;
   const task = props.child;
-  taskStore.selectTask(task);
+  assetStore.selectTask(task);
   stage.markedTasks = [id];
   menu.showContextMenu(event, 'assetMenu', true);
 };
@@ -238,11 +238,11 @@ const loadEntityChildren = async () => {
     let isUntracked = props.child.type == 'untracked_entity'
     let project = projectStore.activeProject
     let children = await EntityService.GetEntityChildren(project.uri, props.child.id, project.working_directory, props.child.file_path, project.ignore_list, isUntracked)
-    await taskStore.processTasksIconsAndPreviews(children.tasks);
-    await taskStore.processUntrackedTasksIcons(children.untracked_tasks);
+    await assetStore.processTasksIconsAndPreviews(children.tasks);
+    await assetStore.processUntrackedTasksIcons(children.untracked_tasks);
 
     let childrenEntities = filtersActive.value ? await entityStore.filterEntities(children.entities) : children.entities ;
-		let childrenTasks = filtersActive.value ? await taskStore.filterTasks(children.tasks) : children.tasks ;
+		let childrenTasks = filtersActive.value ? await assetStore.filterTasks(children.tasks) : children.tasks ;
 
     entityChildren.value = [...childrenEntities, ...children.untracked_entities, ...childrenTasks,  ...children.untracked_tasks]
     hasChildren.value = entityChildren.value.length > 0
@@ -370,3 +370,5 @@ onBeforeUnmount(() => {
   background-color: forestgreen;
 }
 </style>
+
+
