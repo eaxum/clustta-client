@@ -137,7 +137,7 @@ const hasModifiedContents = computed(() => {
 const collectionMenu = ref(null);
 
 const editEntity = () => {
-  modals.setModalVisibility('editEntityModal', true);
+  modals.setModalVisibility('editCollectionModal', true);
   menu.hideContextMenu();
 };
 
@@ -159,7 +159,7 @@ const revealInExplorer = async () => {
 
 const createEntity = () => {
   stage.expandEntity(entityStore.selectedEntity);
-  modals.setModalVisibility('createEntityModal', true);
+  modals.setModalVisibility('createCollectionModal', true);
   menu.hideContextMenu();
 };
 

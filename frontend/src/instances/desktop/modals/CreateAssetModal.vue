@@ -176,7 +176,7 @@ const scrollAppIntoView = () => {
 
 const closeModal = () => {
   trayStates.searchTags = false;
-  modals.setModalVisibility("createTaskModal", false);
+  modals.setModalVisibility("createAssetModal", false);
 };
 
 const createTask = async (launch = false, comment = "new file") => {

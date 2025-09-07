@@ -389,7 +389,7 @@ const formatMtime = (mtime) => {
 };
 
 const editTask = () => {
-  modals.setModalVisibility('editTaskModal', true);
+  modals.setModalVisibility('editAssetModal', true);
 };
 
 const assetSize = ref(0);

@@ -168,7 +168,7 @@ const launchTaskWithCommand = async () => {
 };
 
 const editTask = () => {
-  modals.setModalVisibility('editTaskModal', true);
+  modals.setModalVisibility('editAssetModal', true);
   menu.hideContextMenu();
 };
 

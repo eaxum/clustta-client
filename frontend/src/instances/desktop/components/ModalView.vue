@@ -24,12 +24,12 @@ import AddProjectModal from '@/instances/desktop/modals/AddProjectModal.vue';
 import CloneProjectModal from '@/instances/desktop/modals/CloneProjectModal.vue';
 import EditProjectModal from '@/instances/desktop/modals/EditProjectModal.vue';
 
-import CreateEntityModal from '@/instances/desktop/modals/CreateEntityModal.vue';
-import EditEntityModal from '@/instances/desktop/modals/EditEntityModal.vue';
+import CreateCollectionModal from '@/instances/desktop/modals/CreateCollectionModal.vue';
+import EditCollectionModal from '@/instances/desktop/modals/EditCollectionModal.vue';
 
-import CreateTaskModal from '@/instances/desktop/modals/CreateTaskModal.vue';
+import CreateAssetModal from '@/instances/desktop/modals/CreateAssetModal.vue';
 import SelectAppModal from '@/instances/desktop/modals/SelectAppModal.vue';
-import EditTaskModal from '@/instances/desktop/modals/EditTaskModal.vue';
+import EditAssetModal from '@/instances/desktop/modals/EditAssetModal.vue';
 
 import AddWebLinkModal from '@/instances/desktop/modals/AddWebLinkModal.vue';
 
@@ -48,10 +48,10 @@ import AddTemplateModal from '@/instances/desktop/settings/modals/AddTemplateMod
 import EditTemplateModal from '@/instances/desktop/settings/modals/EditTemplateModal.vue';
 
 import AddAssetTypeModal from '@/instances/desktop/settings/modals/AddAssetTypeModal.vue';
-import EditTaskTypeModal from '@/instances/desktop/settings/modals/EditTaskTypeModal.vue';
+import EditAssetTypeModal from '@/instances/desktop/settings/modals/EditAssetTypeModal.vue';
 
 import AddCollectionTypeModal from '@/instances/desktop/settings/modals/AddCollectionTypeModal.vue';
-import EditEntityTypeModal from '@/instances/desktop/settings/modals/EditEntityTypeModal.vue';
+import EditCollectionTypeModal from '@/instances/desktop/settings/modals/EditCollectionTypeModal.vue';
 
 import EditCollaboratorModal from '@/instances/desktop/settings/modals/EditCollaboratorModal.vue';
 import ManageCollaboratorModal from '@/instances/desktop/settings/modals/ManageCollaboratorModal.vue';
@@ -103,10 +103,10 @@ const modalComponents = {
   addWebLinkModal: AddWebLinkModal,
 
   addAssetTypeModal: AddAssetTypeModal,
-  editTaskTypeModal: EditTaskTypeModal,
+  editAssetTypeModal: EditAssetTypeModal,
 
   addCollectionTypeModal: AddCollectionTypeModal,
-  editEntityTypeModal: EditEntityTypeModal,
+  editCollectionTypeModal: EditCollectionTypeModal,
 
   addRoleModal: AddRoleModal,
   editRoleModal: EditRoleModal,
@@ -123,8 +123,8 @@ const modalComponents = {
   dirOnboardModal: DirOnboardModal,
   
   editProjectModal: EditProjectModal,
-  editTaskModal: EditTaskModal,
-  editEntityModal: EditEntityModal,
+  editAssetModal: EditAssetModal,
+  editCollectionModal: EditCollectionModal,
   createMultipleCheckpointsModal: CreateMultipleCheckpointsModal,
   editCollaboratorModal: EditCollaboratorModal,
   editTemplateModal: EditTemplateModal,
@@ -140,8 +140,8 @@ const modalComponents = {
   configWorkflowModal: ConfigWorkflowModal,
   selectWorkflowModal: SelectWorkflowModal,
 
-  createTaskModal: CreateTaskModal,
-  createEntityModal: CreateEntityModal,
+  createAssetModal: CreateAssetModal,
+  createCollectionModal: CreateCollectionModal,
   selectAppModal: SelectAppModal,
 };
 

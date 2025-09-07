@@ -12,19 +12,19 @@
 
       <div class="workflow-items-container">
         <div class="workflow-item" v-for="workflow in workflowLinks">
-          <WorkflowEntityItem v-if="!isEditing(workflow.id)" @edit="editWorkflow" @delete="deleteWorkflowItem"
+          <WorkflowItem v-if="!isEditing(workflow.id)" @edit="editWorkflow" @delete="deleteWorkflowItem"
             :entity="workflow" :isParent="true" />
           <EditWorkflowItem v-else :isUpdate="true" :workflowItemData="workflow" @update="update" @cancel="cancel" />
         </div>
 
         <div class="workflow-item" v-for="workflow in workflowEntities">
-          <WorkflowEntityItem v-if="!isEditing(workflow.id)" @edit="editWorkflow" @delete="deleteWorkflowItem"
+          <WorkflowItem v-if="!isEditing(workflow.id)" @edit="editWorkflow" @delete="deleteWorkflowItem"
             :entity="workflow" :isParent="true" />
           <EditWorkflowItem v-else :isUpdate="true" :workflowItemData="workflow" @update="update" @cancel="cancel" />
         </div>
 
         <div class="workflow-item" v-for="workflow in workflowTasks">
-          <WorkflowEntityItem v-if="!isEditing(workflow.id)" @edit="editWorkflow" @delete="deleteWorkflowItem"
+          <WorkflowItem v-if="!isEditing(workflow.id)" @edit="editWorkflow" @delete="deleteWorkflowItem"
             :entity="workflow" :isParent="true" />
           <EditWorkflowItem v-else :isUpdate="true" :workflowItemData="workflow" @update="update" @cancel="cancel" />
         </div>
@@ -69,7 +69,7 @@ import { useProjectStore } from '@/stores/projects';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-import WorkflowEntityItem from '@/instances/desktop/blocks/WorkflowEntityItem.vue';
+import WorkflowItem from '@/instances/desktop/blocks/WorkflowItem.vue';
 import EditWorkflowItem from '@/instances/desktop/blocks/EditWorkflowItem.vue';
 
 // states

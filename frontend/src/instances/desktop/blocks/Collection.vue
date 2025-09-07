@@ -208,7 +208,7 @@ Events.On('rename-item', async () => {
 Events.On('edit-item', async () => {
   if (operationsActive.value) return
   if (isEntityInFocus.value && userStore.canDo('update_entity')) {
-    modals.setModalVisibility('editEntityModal', true);
+    modals.setModalVisibility('editCollectionModal', true);
   }
 });
 

@@ -1,7 +1,6 @@
 <template>
   <div class="apps-container-full">
     <span class="arrow-buttons" @click="scrollElement(-1)"><img class="small-icons" src="/icons/arrow_left.svg"></span>
-    <!-- <span class="arrow-buttons"  :class="{ 'arrow-buttons-disabled': !canScrollLeftRef }" @click="scrollElement(-1)"><img class="small-icons" src="/icons/arrow_left.svg"></span> -->
     <div class="apps-container" @wheel="handleWheel">
       <div ref="scrollableElement" class="apps-flex">
         <span v-for="(template) in iconStore.appsWithIcons" :key="template.id" class="apps-flex-item"
@@ -16,7 +15,6 @@
     </div>
     <span class="arrow-buttons" @click="scrollElement(1)"><img class="small-icons" src="/icons/arrow_right.svg"></span>
   </div>
-  <!-- <span class="list-item" v-if="entityStore.getEntitiesNames.length && !taskStore.getTasks.length" @click="editParams('createTaskModal')" v-stop-propagation><img class="small-icons" src="/icons/add_file.svg">New Task</span> -->
 
 </template>
 
@@ -41,12 +39,10 @@ const props = defineProps({
 
 const selectApp = (event, template) => {
   const templateName = template.name
-  //console.log(template.name);
   const templateIcon = template.icon;
   templateStore.selectedTemplateName = templateName;
   trayStates.popUpModalIcon = templateIcon;
   trayStates.popUpModalTitle = ('New ' + templateName.replace(/_/g, " ") + ' task').toLowerCase().replace(/(^\w|\s\w)/g, match => match.toUpperCase());
-  // editParams('createTaskModal');
 
   const selectedIcon = event.target;
   const appsCenter = scrollableElement.value.offsetWidth / 2;
@@ -67,10 +63,6 @@ const handleWheel = (event) => {
   const delta = Math.sign(event.deltaY);
   element.scrollLeft += delta * 50; // Adjust scroll speed as needed
   event.preventDefault(); // Prevent the default vertical scrolling behavior
-}
-
-const editParams = (itemType) => {
-  modalStore.setModalVisibility(itemType, true);
 }
 
 
@@ -111,7 +103,6 @@ const canScrollRef = () => {
 </script>
 
 <style scoped>
-/* @import "@/assets/tray.css"; */
 
 .small-icons {
   min-width: 20px;
@@ -133,7 +124,6 @@ const canScrollRef = () => {
 .apps-container {
   box-sizing: border-box;
   overflow: hidden;
-  /* background-color: chartreuse; */
   padding: .2rem;
   flex: 1;
   display: flex;
