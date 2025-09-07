@@ -108,7 +108,7 @@ const replaceSymbols = (name) => {
 };
 
 const deleteTaskType = async (taskTypeId) => {
-  AssetService.DeleteTaskType(projectStore.activeProject.uri, taskTypeId)
+  AssetService.DeleteAssetType(projectStore.activeProject.uri, taskTypeId)
     .then((response) => {
       notificationStore.addNotification("Task Type Deleted", "", "success");
       const index = assetStore.assetTypes.findIndex(taskType => taskType.id === taskTypeId);

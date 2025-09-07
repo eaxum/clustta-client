@@ -279,7 +279,7 @@ const revealInExplorer = async () => {
     });
 
   } 
-  AssetService.RevealTask(projectStore.activeProject.uri, assetStore.selectedAsset.id);
+  AssetService.RevealAsset(projectStore.activeProject.uri, assetStore.selectedAsset.id);
 };
 
 const toggleIsTask = async () => {
@@ -314,7 +314,7 @@ const changeTaskType = async (taskTypeName) => {
   const projectPath = projectStore.activeProject.uri;
   let task = assetStore.selectedAsset;
 
-  await AssetService.UpdateTask(projectPath, task.id, task.name, newTaskType.id, task.is_resource, '', task.tags)
+  await AssetService.UpdateAsset(projectPath, task.id, task.name, newTaskType.id, task.is_resource, '', task.tags)
     .then((data) => {
       task.task_type_name = newTaskType.name;
       task.task_type_icon = newTaskType.icon;

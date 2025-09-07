@@ -165,7 +165,7 @@ const assignSingleTask = async (assigneeId) => {
   let taskId = selectedTask.id;
   let user = collaboratorsList.value.find((item) => item.id === assigneeId);
   let userId = user ? user.id : "";
-  await AssetService.AssignTask(projectStore.activeProject.uri, taskId, userId)
+  await AssetService.AssignAsset(projectStore.activeProject.uri, taskId, userId)
     .then(async (data) => {
       // Update local task data
       selectedTask.assignee_id = userId;
@@ -187,7 +187,7 @@ const assignSingleTask = async (assigneeId) => {
 const unassignSingleTask = async () => {
   let selectedTask = task.value;
   let taskId = selectedTask.id;
-  await AssetService.UnassignTask(projectStore.activeProject.uri, taskId)
+  await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId)
     .then(async (data) => {
       selectedTask.assignee_id = null;
       
@@ -209,7 +209,7 @@ const assignMultipleTasks = async (assigneeId) => {
 
   for (const taskId of taskIds) {
     let userId = assigneeId;
-    await AssetService.AssignTask(projectStore.activeProject.uri, taskId, userId)
+    await AssetService.AssignAsset(projectStore.activeProject.uri, taskId, userId)
       .then(async (data) => {
         
         emitTaskUpdates(taskId, [
@@ -231,7 +231,7 @@ const unassignMultipleTasks = async () => {
   let taskIds = stage.markedItems;
 
   for (const taskId of taskIds) {
-    await AssetService.UnassignTask(projectStore.activeProject.uri, taskId)
+    await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId)
       .then(async (data) => {
         // Update local task data
         let task = assetStore.findAsset(taskId);

@@ -340,7 +340,7 @@ const changeEntityParent = async (entityId, parentId) => {
 };
 
 const changeTaskEntity = async (taskId, entityId) => {
-  await AssetService.ChangeTaskEntity(projectStore.activeProject.uri, taskId, entityId)
+  await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskId, entityId)
     .then((response) => {
       assetStore.changeAssetEntity(taskId, entityId);
       const successMessage = 'Moved successfully.'

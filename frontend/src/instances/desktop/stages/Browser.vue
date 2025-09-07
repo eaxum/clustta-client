@@ -313,7 +313,7 @@ const duplicateTask = async () => {
 		stage.markedItems = [];
 		assetStore.selectedAsset = null;
 
-		await AssetService.DuplicateTask(projectStore.activeProject.uri, selectedItemId)
+		await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedItemId)
 		.then((duplicatedTask) => {
 			softRefresh();
 			assetStore.selectAsset(duplicatedTask);
@@ -758,7 +758,7 @@ const changeEntityParent = async (entityId, parentId) => {
 };
 
 const changeTaskEntity = async (taskId, entityId) => {
-	await AssetService.ChangeTaskEntity(projectStore.activeProject.uri, taskId, entityId)
+	await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskId, entityId)
 		.then((response) => {
 			const successMessage = 'Moved successfully.'
 			notificationStore.addNotification(successMessage, "", "success")
@@ -769,7 +769,7 @@ const changeTaskEntity = async (taskId, entityId) => {
 };
 
 const addDependency = async (taskId, dependencyId, dependencyTypeId) => {
-	await AssetService.AddTaskDependency(projectStore.activeProject.uri, taskId, dependencyId, dependencyTypeId)
+	await AssetService.AddAssetDependency(projectStore.activeProject.uri, taskId, dependencyId, dependencyTypeId)
 		.then((response) => {
 			// assetStore.addDependency(taskId, dependencyId, "task");
 			const successMessage = 'Dependency Added.'
@@ -967,7 +967,7 @@ const deleteMultipleItems = async () => {
 
 const deleteMultipleTasks = async (taskIds) => {
 	for (let taskId of taskIds) {
-		await AssetService.DeleteTask(projectStore.activeProject.uri, taskId, true)
+		await AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
 			.then(async (response) => {
 				softRefresh()
 				notificationStore.addNotification("Tasks moved to Trash.", '', "success", false);
@@ -1521,13 +1521,13 @@ const softRefresh = async () => {
 				const rootItems = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
 
 				entities = rootItems['entities'];
-				tasks = commonStore.onlyAssets ? await AssetService.GetTasks(project.uri) : rootItems['tasks'];
+				tasks = commonStore.onlyAssets ? await AssetService.GetAssets(project.uri) : rootItems['tasks'];
 
 			} else {
 
 				// fetch everything
 				entities = await CollectionService.GetCollections(project.uri);
-				tasks = await AssetService.GetTasks(project.uri);
+				tasks = await AssetService.GetAssets(project.uri);
 			}
 
 			entities = commonStore.onlyAssets ? [] : entities;

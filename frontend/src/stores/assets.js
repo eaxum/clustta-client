@@ -542,7 +542,7 @@ export const useAssetStore = defineStore("asset", {
 
     async reloadAssetTypes() {
       const projectStore = useProjectStore();
-      let assetTypes = await AssetService.GetTaskTypes(
+      let assetTypes = await AssetService.GetAssetTypes(
         projectStore.activeProject.uri
       );
       this.assetTypes = assetTypes.map(type => ({

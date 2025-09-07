@@ -87,7 +87,7 @@ const handleEnterKey = (event) => {
 };
 
 const createTaskType = () => {
-  AssetService.CreateTaskType(projectTemplateStore.activeProjectTemplate.uri, taskTypeName.value, taskTypeIcon.value)
+  AssetService.CreateAssetType(projectTemplateStore.activeProjectTemplate.uri, taskTypeName.value, taskTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification("Task Type Created", "", "success");
       projectTemplateStore.reloadProjectTemplate()

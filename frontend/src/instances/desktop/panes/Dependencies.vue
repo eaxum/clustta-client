@@ -89,7 +89,7 @@ const getTaskDependencies = async() => {
   const selectedTaskDependencies = assetStore.selectedAsset?.dependencies;
   const selectedTaskEntityDependencies = assetStore.selectedAsset?.entity_dependencies;
   allDependencies = [ ...selectedTaskDependencies, ...selectedTaskEntityDependencies];
-  const children = await AssetService.GetTaskDependencies(project.uri, allDependencies);
+  const children = await AssetService.GetAssetDependencies(project.uri, allDependencies);
 
   for (let i = 0; i < children.length; i++) {
       let item = children[i];
@@ -145,7 +145,7 @@ const removeDependency = async (dependencyId, itemType) => {
 
   if (itemType === "task") {
     selectedTaskDependencies = task.dependencies;
-    await AssetService.RemoveTaskDependency(projectStore.activeProject.uri, task.id, dependencyId)
+    await AssetService.RemoveAssetDependency(projectStore.activeProject.uri, task.id, dependencyId)
       .then((response) => {
         notificationStore.addNotification("Dependency Removed", "", "success");
         taskDependencies.value = taskDependencies.value.filter((task) => task.id !== dependencyId)

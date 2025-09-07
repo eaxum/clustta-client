@@ -92,7 +92,7 @@ const handleEnterKey = (event) => {
 };
 
 const updateTaskType = () => {
-  AssetService.UpdateTaskType(projectStore.activeProject.uri, assetStore.selectedAssetType.id, taskTypeName.value, taskTypeIcon.value)
+  AssetService.UpdateAssetType(projectStore.activeProject.uri, assetStore.selectedAssetType.id, taskTypeName.value, taskTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification("Task Type Updated", "", "success");
       const index = assetStore.assetTypes.findIndex(taskType => taskType.id === assetStore.selectedAssetType.id);

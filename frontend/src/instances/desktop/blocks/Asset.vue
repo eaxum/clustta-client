@@ -436,7 +436,7 @@ const updateTaskName = async () => {
 
   if (props.task.type === 'task') {
 
-    await AssetService.RenameTask(projectStore.activeProject.uri, taskId, editableTaskName.value)
+    await AssetService.RenameAsset(projectStore.activeProject.uri, taskId, editableTaskName.value)
       .then((data) => {
         task.name = editableTaskName.value;
         
@@ -585,7 +585,7 @@ const freeUpSpace = async () => {
 const deleteTask = async () => {
   if (props.task.type === 'task') {
     let taskId = assetStore.selectedAsset.id;
-    AssetService.DeleteTask(projectStore.activeProject.uri, taskId, true)
+    AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
       .then(async (response) => {
         assetStore.selectedAsset = null;
         stage.markedItems = [];

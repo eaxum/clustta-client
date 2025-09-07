@@ -3,7 +3,7 @@ import {
   SettingsService,
 } from "@/../bindings/clustta/services/index";
 
-let defaultTheme = "light";
+let defaultTheme = "dark";
 
 await SettingsService.GetTheme()
   .then((response) => {

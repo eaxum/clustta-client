@@ -295,7 +295,7 @@ const fetchSidebarData = async () => {
     
     // Fetch all tasks and entities for the sidebar
     const [tasksResult, entitiesResult] = await Promise.all([
-      AssetService.GetTasks(projectPath),
+      AssetService.GetAssets(projectPath),
       CollectionService.GetCollections(projectPath)
     ]);
     
@@ -548,7 +548,7 @@ const selectTask = async (taskId) => {
   if (!task) {
     // If not found in sidebar, try to fetch it from the service
     try {
-      const allTasks = await AssetService.GetTasks(projectStore.activeProject.uri);
+      const allTasks = await AssetService.GetAssets(projectStore.activeProject.uri);
       task = allTasks.find(item => item.id === taskId);
     } catch (error) {
       console.error("Error fetching task:", error);
@@ -574,7 +574,7 @@ const addDependency = async (dependencyId, itemType) => {
 
   let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
   if (itemType === "task") {
-    await AssetService.AddTaskDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+    await AssetService.AddAssetDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
       .then( async(response) => {
         notificationStore.addNotification("Dependency Added", "", "success");
         const addedDependency = allDependencies.find((newDependency) => newDependency.id === dependencyId);
@@ -615,7 +615,7 @@ const addDependency = async (dependencyId, itemType) => {
 const removeDependency = async (dependencyId, itemType) => {
   const task = assetStore.selectedAsset;
   if (itemType === "task") {
-    await AssetService.RemoveTaskDependency(projectStore.activeProject.uri, task.id, dependencyId)
+    await AssetService.RemoveAssetDependency(projectStore.activeProject.uri, task.id, dependencyId)
       .then(async(response) => {
         notificationStore.addNotification("Dependency Removed", "", "success");
         dependencies.value = dependencies.value.filter(id => id !== dependencyId);

@@ -188,7 +188,7 @@ const selectItem = async (taskPath) => {
 
 const findItem = async (taskPath) => {
     const allEntities = await CollectionService.GetCollections(projectStore.activeProject.uri)
-    const allTasks = await AssetService.GetTasks(projectStore.activeProject.uri)
+    const allTasks = await AssetService.GetAssets(projectStore.activeProject.uri)
     const task = allTasks.find((item) => item.task_path === taskPath);
     const taskId = task?.id;
     const taskParent = allEntities.find((item) => item.id === task.entity_id );

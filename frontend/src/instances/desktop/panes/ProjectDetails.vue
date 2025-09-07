@@ -380,7 +380,7 @@ const getClusttaSize = async() => {
 
 const getAssetCount = async() => {
   let project = projectStore.getActiveProject;
-  assetCount.value = await AssetService.GetTaskCount(project.uri);
+  assetCount.value = await AssetService.GetAssetCount(project.uri);
 }
 
 const getCollectionCount = async() => {

@@ -236,7 +236,7 @@ const updateTask = async () => {
     return;
   }
 
-  await AssetService.UpdateTask(projectStore.activeProject.uri, taskId, taskName.value, taskTypeId.value, isResource.value, taskWebLink.value, newTaskTags)
+  await AssetService.UpdateAsset(projectStore.activeProject.uri, taskId, taskName.value, taskTypeId.value, isResource.value, taskWebLink.value, newTaskTags)
     .then((data) => {
       task.name = taskName.value;
       task.pointer = taskWebLink.value;
