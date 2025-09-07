@@ -131,14 +131,14 @@ export const useTrayStates = defineStore("useTrayStates", {
       // console.time("loading_general_data");
       await userStore.reloadUsers();
       await collectionStore.reloadEntityTypes();
-      await assetStore.reloadTaskTypes();
+      await assetStore.reloadAssetTypes();
       // await collectionStore.reloadEntities();
       await templateStore.reloadTemplates();
       await workflowStore.reloadWorkflows();
       await statusStore.reloadStatuses();
       await dependencyStore.reloadDependencyTypes();
       await tagStore.reloadTags();
-      // await assetStore.reloadTasks();
+      // await assetStore.reloadAssets();
       // await projectStore.reloadUntrackedItems();
       // console.timeEnd("loading_general_data");
     },
@@ -202,6 +202,10 @@ export const useTrayStates = defineStore("useTrayStates", {
     },
   },
 });
+
+
+
+
 
 
 

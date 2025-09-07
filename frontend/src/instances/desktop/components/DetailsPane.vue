@@ -33,7 +33,7 @@
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('brush-plus')" :label="'Asset type'" />
-            <DropDownBox :items="assetStore.getTaskTypesNames" :selectedItem="taskType" :onSelect="changeTaskType"
+            <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="taskType" :onSelect="changeTaskType"
               :fixedWidth="true" />
           </div>
 
@@ -393,7 +393,7 @@ const multiTypeChange = ref(false);
 const itemTypes = ref(['task', 'resource']);
 const collectionMode = ref(['basic', 'library']);
 const itemType = ref(itemTypes.value[0]);
-const taskType = ref(assetStore.getTaskTypesNames[0]);
+const taskType = ref(assetStore.getAssetTypesNames[0]);
 const entityType = ref(collectionStore.getEntityTypesNames[0]);
 const detailsPaneRoot = ref(null);
 
@@ -768,7 +768,7 @@ const changeEntityParent = async (entityId, parentId) => {
 };
 
 const changeTaskEntity = async (taskId, entityId) => {
-  await TaskService.ChangeTaskEntity(projectStore.activeProject.uri, taskId, entityId)
+  await TaskService.changeAssetEntity(projectStore.activeProject.uri, taskId, entityId)
     .then((response) => {
       const successMessage = 'Moved successfully.'
       notificationStore.addNotification(successMessage, "", "success")
@@ -901,7 +901,7 @@ const changeTaskType = async (taskTypeName) => {
   stage.operationActive = true;
 
   let newTaskType;
-  const taskTypes = assetStore.getTaskTypes;
+  const taskTypes = assetStore.getAssetTypes;
   newTaskType = taskTypes.find((item) => item.name === taskTypeName);
   taskType.value = taskTypeName;
 
@@ -1192,6 +1192,9 @@ onUnmounted(() => {
   flex-direction: column;
 }
 </style>
+
+
+
 
 
 

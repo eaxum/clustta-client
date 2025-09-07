@@ -43,8 +43,8 @@ const assetStore = useAssetStore();
 const collectionMenu = ref(null);
 
 const projectTaskTypes = computed(() => {
-  console.log(assetStore.getTaskTypes)
-  return assetStore.getTaskTypes
+  console.log(assetStore.getAssetTypes)
+  return assetStore.getAssetTypes
 });
 
 // methods
@@ -90,5 +90,7 @@ onBeforeUnmount(() => {
 @import "@/assets/desktop.css";
 @import "@/assets/menu.css";
 </style>
+
+
 
 

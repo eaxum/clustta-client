@@ -273,5 +273,9 @@ export const useCollectionStore = defineStore("collection", {
       }
       return entityTypeIcon;
     },
+    navigateToEntity(entity) {
+      this.navigatedEntity = entity;
+    },
   },
 });
+

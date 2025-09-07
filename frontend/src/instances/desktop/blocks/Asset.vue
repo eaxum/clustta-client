@@ -664,7 +664,7 @@ const launchTaskCommand = async () => {
     } else {
       CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [task.id])
         .then(async (response) => {
-          let fileStatus = await assetStore.getTaskFileStatus(task)
+          let fileStatus = await assetStore.getAssetFileStatus(task)
           props.task.file_status = fileStatus
           FSService.LaunchFile(file_path)
         })
@@ -714,7 +714,7 @@ const revertTask = async (index, task, event) => {
     .then(async (response) => {
       assetStore.rebuildableTasksPath = assetStore.rebuildableTasksPath.filter(taskPath => taskPath !== task.task_path)
       assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
-      let fileStatus = await assetStore.getTaskFileStatus(task)
+      let fileStatus = await assetStore.getAssetFileStatus(task)
       props.task.file_status = fileStatus;
       emitter.emit('get-project-data')
     })
@@ -766,13 +766,13 @@ const toggleDisplayStatusMenu = (index, task, event) => {
     return
   }
   assetStore.isTaskStatus = true;
-  assetStore.selectTask(task);
+  assetStore.selectAsset(task);
   statusMenuDisplayed.value = true;
 };
 
 const goToDependencies = (index, task, event) => {
   handleClick(index, task, event);
-  assetStore.selectTask(task);
+  assetStore.selectAsset(task);
   stage.setStageVisibility('dependencies', true);
 };
 
@@ -780,7 +780,7 @@ const viewCheckpoints = (index, task, event) => {
   // stage.handleClick(event, task);
   // handleClick(index, task, event);
   stage.markedItems = [task.id];
-  assetStore.selectTask(task);
+  assetStore.selectAsset(task);
   emitter.emit('view-checkpoints');
   // panes.setPaneVisibility('checkpoints', true);
   panes.showDetailsPane = true;
@@ -794,7 +794,7 @@ const prepAssignTask = (index, task, event) => {
 
 
   const id = task.id;
-  assetStore.selectTask(task);
+  assetStore.selectAsset(task);
   stage.markedTasks = [id];
   menu.showContextMenu(event, 'assignMenu', true);
 };
@@ -1250,6 +1250,8 @@ onBeforeUnmount(() => {
   /* flex: 1; */
 }
 </style>
+
+
 
 
 

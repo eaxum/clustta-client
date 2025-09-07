@@ -24,7 +24,7 @@
         :fullWidth="false" />
 
       <div v-if="tasksSelected" class="hierarchy-item-type-options">
-        <DropDownBox :items="assetStore.getTaskTypesNames" :selectedItem="taskType" :onSelect="selectTaskType"
+        <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="taskType" :onSelect="selectTaskType"
           :fullWidth="false" />
       </div>
 
@@ -420,7 +420,7 @@ const changeItemType = (newItemTypeName) => {
 const selectTaskType = (taskTypeName) => {
 
   let newTaskType;
-  const taskTypes = assetStore.getTaskTypes;
+  const taskTypes = assetStore.getAssetTypes;
   newTaskType = taskTypes.find((item) => item.name === taskTypeName);
 
 
@@ -534,7 +534,7 @@ const removeItem = (item) => {
 
 onMounted(async () => {
   entityType.value = collectionStore.getEntityTypesNames[0];
-  taskType.value = assetStore.getTaskTypesNames[0];
+  taskType.value = assetStore.getAssetTypesNames[0];
 });
 
 
@@ -611,6 +611,8 @@ onMounted(async () => {
   gap: .5rem;
 }
 </style>
+
+
 
 
 

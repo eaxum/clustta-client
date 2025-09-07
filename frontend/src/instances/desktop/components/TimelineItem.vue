@@ -199,13 +199,13 @@ const findItem = async (taskPath) => {
     } 
     
     stage.deselectAllItems();
-    assetStore.selectTask(taskId)
+    assetStore.selectAsset(taskId)
     stage.firstSelectedItemId = taskId;
     stage.markedItems = [taskId];
     selectedTaskId.value = taskId;
 
     return
-    const taskParents = assetStore.getTaskEntity(taskId, true);
+    const taskParents = assetStore.getAssetEntity(taskId, true);
     const taskParentIds = taskParents.map((item) => item.id)
 
     for(const parentId of taskParentIds){
@@ -217,7 +217,7 @@ const findItem = async (taskPath) => {
     }
     
     stage.deselectAllItems();
-    assetStore.selectTask(taskId)
+    assetStore.selectAsset(taskId)
     stage.firstSelectedItemId = taskId;
     stage.markedItems = [taskId];
     selectedTaskId.value = taskId;
@@ -486,6 +486,9 @@ onMounted(() => {
     height: 100%;
 }
 </style>
+
+
+
 
 
 

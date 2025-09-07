@@ -375,11 +375,11 @@ export const useStageStore = defineStore("stages", {
         this.selectedItem = item;
         // panes.setPaneVisibility("collectionDetails", true);
       } else if (itemType === "task") {
-        assetStore.selectTask(item);
+        assetStore.selectAsset(item);
         this.selectedItem = item;
         // panes.setPaneVisibility("assetDetails", true);
       } else if (itemType === "resource") {
-        assetStore.selectTask(item);
+        assetStore.selectAsset(item);
         this.selectedItem = item;
         // panes.setPaneVisibility("assetDetails", true);
       } else {
@@ -450,6 +450,9 @@ export const useStageStore = defineStore("stages", {
     },
   },
 });
+
+
+
 
 
 

@@ -25,7 +25,7 @@
 
       <div v-else class="hierarchy-item-config">
         <div v-if="!item.entity_type_id" class="hierarchy-item-type-options">
-          <ListBox v-if="item.task_type_id" :items="assetStore.getTaskTypesNames" :selectedItem="taskType"
+          <ListBox v-if="item.task_type_id" :items="assetStore.getAssetTypesNames" :selectedItem="taskType"
             :onSelect="selectTaskType" />
         </div>
         <ActionButton :icon="getAppIcon('trash')" v-tooltip="'Remove'" @click="removeItem(item)" />
@@ -344,6 +344,8 @@ const selectEntityType = (entityTypeName) => {
   /* padding-left: 0px; */
 }
 </style>
+
+
 
 
 

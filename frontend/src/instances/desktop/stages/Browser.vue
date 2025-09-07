@@ -316,7 +316,7 @@ const duplicateTask = async () => {
 		await TaskService.DuplicateTask(projectStore.activeProject.uri, selectedItemId)
 		.then((duplicatedTask) => {
 			softRefresh();
-			assetStore.selectTask(duplicatedTask);
+			assetStore.selectAsset(duplicatedTask);
 			stage.selectedItem = duplicatedTask;
 			stage.markedItems = [duplicatedTask.id];
 			stage.lastSelectedItemId = "";
@@ -435,7 +435,7 @@ const filtersActive = computed(() => {
 const viewTags = computed(() => {
 	let tags = tagStore.tags;
 	let viewTags = [];
-	let filteredTaskResults = assetStore.getFilteredTasks;
+	let filteredTaskResults = assetStore.getFilteredAssets;
 
 	for (const task of filteredTaskResults) {
 		let taskTags = task.tags;
@@ -457,7 +457,7 @@ const viewTags = computed(() => {
 
 const hideExtensionsFilter = computed(() => {
 	let viewExtensions = [];
-	let filteredTaskResults = assetStore.getFilteredTasks;
+	let filteredTaskResults = assetStore.getFilteredAssets;
 
 	for (const task of filteredTaskResults) {
 		let taskExtension = task.extension;
@@ -520,7 +520,7 @@ const projectEntities = computed(() => {
 
 const projectTasks = computed(() => {
 	// return []
-	const allTasks = assetStore.getFilteredTasks.filter((item) => !item.is_resource);
+	const allTasks = assetStore.getFilteredAssets.filter((item) => !item.is_resource);
 	const trashedItems = trayStates.trashables;
 	const trashedItemIds = trashedItems.map(item => item.id);
 	const viewEntities = projectEntities.value;
@@ -632,14 +632,14 @@ const entityEntities = computed(() => {
 
 const entityTasks = computed(() => {
 	const entityId = selectedEntity.value?.id;
-	return assetStore.getEntityTasks(entityId)?.filter((item) => !item?.is_resource)
+	return assetStore.getEntityAssets(entityId)?.filter((item) => !item?.is_resource)
 
 });
 
 const entityResources = computed(() => {
 
 	const entityId = selectedEntity.value?.id;
-	return assetStore.getEntityTasks(entityId)?.filter((item) => item.is_resource)
+	return assetStore.getEntityAssets(entityId)?.filter((item) => item.is_resource)
 
 });
 
@@ -1111,7 +1111,7 @@ const freeUpMultipleTaskSpace = async (selectedTasks) => {
 		}
 	};
 	for (const taskId of taskIds) {
-		let task = assetStore.getTasks.find((item) => item.id === taskId);
+		let task = assetStore.getAssets.find((item) => item.id === taskId);
 		let taskPath = task.file_path.replace(/\\/g, '/')
 		await FSService.DeleteFile(taskPath)
 			.then((response) => {
@@ -1703,9 +1703,9 @@ const refresh = async () => {
 		children = await EntityService.GetEntityChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false)
 	}
 
-	await assetStore.processTasksIconsAndPreviews(children.tasks);
+	await assetStore.processAssetsIconsAndPreviews(children.tasks);
 
-	await assetStore.processUntrackedTasksIcons(children.untracked_tasks);
+	await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
 
 	rootData.value = [...children.entities, ...children.untracked_entities, ...children.tasks, ...children.untracked_tasks];
 	assetStore.tasksLoaded = true;
@@ -1759,7 +1759,7 @@ const softRefresh = async () => {
 		}	
 		
 			children['entities'] = await collectionStore.filterEntities(entities);
-			children['tasks'] = await assetStore.filterTasks(tasks);
+			children['tasks'] = await assetStore.filterAssets(tasks);
 
 	} else {
 		if (!commonStore.navigatorMode) {
@@ -1774,11 +1774,11 @@ const softRefresh = async () => {
 	}
 
 	if (children.tasks) {
-		await assetStore.processTasksIconsAndPreviews(children.tasks);
+		await assetStore.processAssetsIconsAndPreviews(children.tasks);
 	}
 
 	if (children.untracked_tasks) {
-		await assetStore.processUntrackedTasksIcons(children.untracked_tasks);
+		await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
 	}
 
 
@@ -2269,6 +2269,10 @@ onBeforeUnmount(() => {
 	box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
 }
 </style>
+
+
+
+
 
 
 

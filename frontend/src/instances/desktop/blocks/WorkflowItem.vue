@@ -112,13 +112,13 @@ const workflowItemIcon = computed(() => {
 
 const workflowTaskIcon = computed(() => {
   const workflow = props.entity;
-  console.log(assetStore.getTaskTypeIcon(workflow.task_type_id))
-  return assetStore.getTaskTypeIcon(workflow.task_type_id)
+  console.log(assetStore.getAssetTypeIcon(workflow.task_type_id))
+  return assetStore.getAssetTypeIcon(workflow.task_type_id)
 });
 
 const templateIcon = computed(() => {
   const workflow = props.entity;
-  return templateStore.getTaskTypeIcon(workflow.template_id)
+  return templateStore.getAssetTypeIcon(workflow.template_id)
 });
 
 // methods
@@ -516,6 +516,8 @@ onBeforeUnmount(() => {
   /* padding: 5px; */
 }
 </style>
+
+
 
 
 

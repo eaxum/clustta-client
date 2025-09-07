@@ -260,7 +260,7 @@ const createMultipleEntities = async () => {
 const itemsToGroup = ref([]);
 
 const allProjectItems = computed(() => {
-  const allTasks = assetStore.getTasks;
+  const allTasks = assetStore.getAssets;
   const allEntities = collectionStore.getEntities;
   const alluntrackedFiles = projectStore.untrackedFiles;
   const alluntrackedFolders = projectStore.untrackedFolders;
@@ -340,9 +340,9 @@ const changeEntityParent = async (entityId, parentId) => {
 };
 
 const changeTaskEntity = async (taskId, entityId) => {
-  await TaskService.ChangeTaskEntity(projectStore.activeProject.uri, taskId, entityId)
+  await TaskService.changeAssetEntity(projectStore.activeProject.uri, taskId, entityId)
     .then((response) => {
-      assetStore.changeTaskEntity(taskId, entityId);
+      assetStore.changeAssetEntity(taskId, entityId);
       const successMessage = 'Moved successfully.'
       notificationStore.addNotification(successMessage, "", "success")
     })
@@ -452,6 +452,9 @@ onUnmounted(() => {
 }
 
 </style>
+
+
+
 
 
 

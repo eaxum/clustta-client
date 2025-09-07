@@ -111,7 +111,7 @@ const icon = computed(() => {
 })
 
 const taskTypeNames = computed(() => {
-  return assetStore.getTaskTypesNames;
+  return assetStore.getAssetTypesNames;
 });
 
 const itemType = ref('');
@@ -156,7 +156,7 @@ const isValueChanged = computed(() => {
 const selectTaskType = (taskTypeName) => {
 
   let newTaskType;
-  const taskTypes = assetStore.getTaskTypes;
+  const taskTypes = assetStore.getAssetTypes;
   newTaskType = taskTypes.find((item) => item.name === taskTypeName);
 
   taskType.value = taskTypeName;
@@ -218,7 +218,7 @@ const updateTask = async () => {
   let newTaskTags = tags.value;
 
   let newTaskType;
-  const taskTypes = assetStore.getTaskTypes;
+  const taskTypes = assetStore.getAssetTypes;
   newTaskType = taskTypes.find((item) => item.id === taskTypeId.value);
 
   if (taskName.value === "") {
@@ -304,5 +304,7 @@ onMounted(() => {
   flex: 1;
 }
 </style>
+
+
 
 

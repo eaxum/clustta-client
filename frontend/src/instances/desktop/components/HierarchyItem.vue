@@ -128,7 +128,7 @@ const resourceType = computed(() => {
 
 
 const taskTypeNames = computed(() => {
-  return assetStore.getTaskTypesNames.filter((item) => item !== taskType.value);
+  return assetStore.getAssetTypesNames.filter((item) => item !== taskType.value);
 });
 
 const itemTypes = computed(() => {
@@ -264,7 +264,7 @@ const changeItemType = (newItemTypeName) => {
 const selectTaskType = (taskTypeName) => {
 
   let newTaskType;
-  const taskTypes = assetStore.getTaskTypes;
+  const taskTypes = assetStore.getAssetTypes;
   newTaskType = taskTypes.find((item) => item.name === taskTypeName);
 
   let previewData = dndStore.previewData['tasks'];
@@ -468,6 +468,8 @@ const selectEntityType = (entityTypeName) => {
   transform: rotate(90deg);
 }
 </style>
+
+
 
 
 

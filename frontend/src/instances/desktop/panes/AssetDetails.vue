@@ -20,7 +20,7 @@
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('brush-plus')" :label="'Type'" />
-            <DropDownBox :items="assetStore.getTaskTypesNames" :selectedItem="assetStore.selectedTask.task_type_name"
+            <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="assetStore.selectedTask.task_type_name"
               :onSelect="changeTaskType" :fixedWidth="true" />
           </div>
 
@@ -308,7 +308,7 @@ const changeTaskType = async (taskTypeName) => {
   stage.operationActive = true;
 
   let newTaskType;
-  const taskTypes = assetStore.getTaskTypes;
+  const taskTypes = assetStore.getAssetTypes;
   newTaskType = taskTypes.find((item) => item.name === taskTypeName);
 
   const projectPath = projectStore.activeProject.uri;
@@ -546,5 +546,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
 }
 </style>
+
+
 
 

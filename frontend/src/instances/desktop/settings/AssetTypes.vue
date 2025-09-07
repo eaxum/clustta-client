@@ -51,7 +51,7 @@ const projectStore = useProjectStore();
 
 const projectTaskTypes = computed(() => {
   
-  let taskTypes = assetStore.getTaskTypes;
+  let taskTypes = assetStore.getAssetTypes;
   console.log(taskTypes)
   let viewTaskTypeIds = [];
   let tasks = assetStore.tasks;
@@ -98,7 +98,7 @@ const addTaskType = () => {
 
 const prepEditTaskType = (selectedTaskTypeId) => {
   console.log(selectedTaskTypeId)
-  assetStore.selectedTaskType = assetStore.getTaskTypes.find((item) => item.id === selectedTaskTypeId)
+  assetStore.selectedTaskType = assetStore.getAssetTypes.find((item) => item.id === selectedTaskTypeId)
   modals.setModalVisibility('editAssetTypeModal', true);
 
 };
@@ -162,5 +162,7 @@ onMounted(async () => {
   background-color: var(--black-steel);
 }
 </style>
+
+
 
 

@@ -100,7 +100,7 @@ const openCollectionMenu = (event) => {
 const openAssetMenu = (event) => {
   const id = props.child.id;
   const task = props.child;
-  assetStore.selectTask(task);
+  assetStore.selectAsset(task);
   stage.markedTasks = [id];
   menu.showContextMenu(event, 'assetMenu', true);
 };
@@ -238,11 +238,11 @@ const loadEntityChildren = async () => {
     let isUntracked = props.child.type == 'untracked_entity'
     let project = projectStore.activeProject
     let children = await EntityService.GetEntityChildren(project.uri, props.child.id, project.working_directory, props.child.file_path, project.ignore_list, isUntracked)
-    await assetStore.processTasksIconsAndPreviews(children.tasks);
-    await assetStore.processUntrackedTasksIcons(children.untracked_tasks);
+    await assetStore.processAssetsIconsAndPreviews(children.tasks);
+    await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
 
     let childrenEntities = filtersActive.value ? await collectionStore.filterEntities(children.entities) : children.entities ;
-		let childrenTasks = filtersActive.value ? await assetStore.filterTasks(children.tasks) : children.tasks ;
+		let childrenTasks = filtersActive.value ? await assetStore.filterAssets(children.tasks) : children.tasks ;
 
     entityChildren.value = [...childrenEntities, ...children.untracked_entities, ...childrenTasks,  ...children.untracked_tasks]
     hasChildren.value = entityChildren.value.length > 0
@@ -370,6 +370,8 @@ onBeforeUnmount(() => {
   background-color: forestgreen;
 }
 </style>
+
+
 
 
 
