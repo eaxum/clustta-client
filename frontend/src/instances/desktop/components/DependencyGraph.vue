@@ -83,7 +83,7 @@ const getAppIcon = (iconName) => {
 // imports
 import { ref, computed, onMounted, watch, nextTick, markRaw, onUnmounted, reactive } from 'vue'
 import dagre from '@dagrejs/dagre'
-import { TaskService, EntityService } from "@/../bindings/clustta/services";
+import { AssetService, EntityService } from "@/../bindings/clustta/services";
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
@@ -295,7 +295,7 @@ const fetchSidebarData = async () => {
     
     // Fetch all tasks and entities for the sidebar
     const [tasksResult, entitiesResult] = await Promise.all([
-      TaskService.GetTasks(projectPath),
+      AssetService.GetTasks(projectPath),
       EntityService.GetEntities(projectPath)
     ]);
     
@@ -343,7 +343,7 @@ const buildGraphFromDependencies = async () => {
 
   try {
     // Use the new recursive dependencies service with proper depth control
-    const dependencyItems = await TaskService.GetRecursiveDependencies(
+    const dependencyItems = await AssetService.GetRecursiveDependencies(
       projectStore.activeProject.uri, 
       selectedTask.id, 
       maxDepth.value
@@ -548,7 +548,7 @@ const selectTask = async (taskId) => {
   if (!task) {
     // If not found in sidebar, try to fetch it from the service
     try {
-      const allTasks = await TaskService.GetTasks(projectStore.activeProject.uri);
+      const allTasks = await AssetService.GetTasks(projectStore.activeProject.uri);
       task = allTasks.find(item => item.id === taskId);
     } catch (error) {
       console.error("Error fetching task:", error);
@@ -574,7 +574,7 @@ const addDependency = async (dependencyId, itemType) => {
 
   let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
   if (itemType === "task") {
-    await TaskService.AddTaskDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+    await AssetService.AddTaskDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
       .then( async(response) => {
         notificationStore.addNotification("Dependency Added", "", "success");
         const addedDependency = allDependencies.find((newDependency) => newDependency.id === dependencyId);
@@ -592,7 +592,7 @@ const addDependency = async (dependencyId, itemType) => {
         notificationStore.errorNotification("Error adding dependencies", error);
       });
   } else {
-    await TaskService.AddEntityDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+    await AssetService.AddEntityDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
       .then( async(response) => {
         notificationStore.addNotification("Dependency Added", "", "success");
         const addedDependency = allDependencies.find((newDependency) => newDependency.id === dependencyId);
@@ -615,7 +615,7 @@ const addDependency = async (dependencyId, itemType) => {
 const removeDependency = async (dependencyId, itemType) => {
   const task = assetStore.selectedAsset;
   if (itemType === "task") {
-    await TaskService.RemoveTaskDependency(projectStore.activeProject.uri, task.id, dependencyId)
+    await AssetService.RemoveTaskDependency(projectStore.activeProject.uri, task.id, dependencyId)
       .then(async(response) => {
         notificationStore.addNotification("Dependency Removed", "", "success");
         dependencies.value = dependencies.value.filter(id => id !== dependencyId);
@@ -628,7 +628,7 @@ const removeDependency = async (dependencyId, itemType) => {
         notificationStore.errorNotification("Error removing dependencies", error);
       });
   } else {
-    await TaskService.RemoveEntityDependency(projectStore.activeProject.uri, task.id, dependencyId)
+    await AssetService.RemoveEntityDependency(projectStore.activeProject.uri, task.id, dependencyId)
       .then(async(response) => {
         notificationStore.addNotification("Dependency Removed", "", "success");
         dependencies.value = dependencies.value.filter(id => id !== dependencyId);

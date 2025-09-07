@@ -39,7 +39,7 @@ import { useProjectStore } from '@/stores/projects';
 import { TemplateService } from "@/../bindings/clustta/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { TaskService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/../bindings/clustta/services";
 import { useAssetStore } from '@/stores/assets';
 import iconData from "@/data/iconData.json";
 
@@ -92,7 +92,7 @@ const handleEnterKey = (event) => {
 };
 
 const createTaskType = () => {
-  TaskService.CreateTaskType(projectStore.activeProject.uri, taskTypeName.value, taskTypeIcon.value)
+  AssetService.CreateTaskType(projectStore.activeProject.uri, taskTypeName.value, taskTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification("Task Type Created", "", "success");
       assetStore.assetTypes.push(response);

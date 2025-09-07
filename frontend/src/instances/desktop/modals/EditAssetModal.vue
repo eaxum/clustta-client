@@ -49,7 +49,7 @@ import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
 // services
-import { TaskService, ClipboardService } from "@/../bindings/clustta/services";
+import { AssetService, ClipboardService } from "@/../bindings/clustta/services";
 
 // state imports
 import { useUserStore } from '@/stores/users';
@@ -236,7 +236,7 @@ const updateTask = async () => {
     return;
   }
 
-  await TaskService.UpdateTask(projectStore.activeProject.uri, taskId, taskName.value, taskTypeId.value, isResource.value, taskWebLink.value, newTaskTags)
+  await AssetService.UpdateTask(projectStore.activeProject.uri, taskId, taskName.value, taskTypeId.value, isResource.value, taskWebLink.value, newTaskTags)
     .then((data) => {
       task.name = taskName.value;
       task.pointer = taskWebLink.value;

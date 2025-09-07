@@ -38,7 +38,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useProjectStore } from '@/stores/projects';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { TaskService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/../bindings/clustta/services";
 import { useAssetStore } from '@/stores/assets';
 import iconData from "@/data/iconData.json";
 
@@ -92,7 +92,7 @@ const handleEnterKey = (event) => {
 };
 
 const updateTaskType = () => {
-  TaskService.UpdateTaskType(projectStore.activeProject.uri, assetStore.selectedAssetType.id, taskTypeName.value, taskTypeIcon.value)
+  AssetService.UpdateTaskType(projectStore.activeProject.uri, assetStore.selectedAssetType.id, taskTypeName.value, taskTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification("Task Type Updated", "", "success");
       const index = assetStore.assetTypes.findIndex(taskType => taskType.id === assetStore.selectedAssetType.id);

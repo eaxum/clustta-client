@@ -42,7 +42,7 @@ import { isValidWeblink } from '@/lib/pointer';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
-import { ClipboardService, TaskService, FSService } from "@/../bindings/clustta/services";
+import { ClipboardService, AssetService, FSService } from "@/../bindings/clustta/services";
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -196,7 +196,7 @@ const createTask = async (launch = false, comment = "new file") => {
     if (entities.length > 0) {
       entityId = entities[0]
     }
-    await TaskService.CreateTask(
+    await AssetService.CreateTask(
       projectStore.activeProject.uri,
       taskName.value,
       "",

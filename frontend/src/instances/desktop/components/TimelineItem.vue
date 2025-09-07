@@ -72,7 +72,7 @@
 
 <script setup>
 import { computed, onMounted, ref, nextTick } from 'vue';
-import { CheckpointService, EntityService, TaskService, TrashService } from "@/../bindings/clustta/services";
+import { CheckpointService, EntityService, AssetService, TrashService } from "@/../bindings/clustta/services";
 import utils from '@/services/utils';
 import { useCollectionStore } from '@/stores/collections';
 
@@ -188,7 +188,7 @@ const selectItem = async (taskPath) => {
 
 const findItem = async (taskPath) => {
     const allEntities = await EntityService.GetEntities(projectStore.activeProject.uri)
-    const allTasks = await TaskService.GetTasks(projectStore.activeProject.uri)
+    const allTasks = await AssetService.GetTasks(projectStore.activeProject.uri)
     const task = allTasks.find((item) => item.task_path === taskPath);
     const taskId = task?.id;
     const taskParent = allEntities.find((item) => item.id === task.entity_id );

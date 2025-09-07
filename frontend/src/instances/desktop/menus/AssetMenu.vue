@@ -59,7 +59,7 @@ const iconStore = useIconStore();
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 
 // services
-import { TaskService, CheckpointService, EntityService } from "@/../bindings/clustta/services";
+import { AssetService, CheckpointService, EntityService } from "@/../bindings/clustta/services";
 import { TrashService } from "@/../bindings/clustta/services";
 
 // states/store imports
@@ -180,7 +180,7 @@ const duplicateTask = async () => {
     stage.operationActive = true;
     let selectedTask = assetStore.selectedAsset;
     
-		await TaskService.DuplicateTask(projectStore.activeProject.uri, selectedTask.id)
+		await AssetService.DuplicateTask(projectStore.activeProject.uri, selectedTask.id)
 		.then((duplicatedTask) => {
 			emitter.emit('refresh-browser')
 			assetStore.selectAsset(duplicatedTask);
@@ -281,7 +281,7 @@ const revealInExplorer = async () => {
     });
 
   } 
-  TaskService.RevealTask(projectStore.activeProject.uri, assetStore.selectedAsset.id);
+  AssetService.RevealTask(projectStore.activeProject.uri, assetStore.selectedAsset.id);
 };
 
 const revertTask = async () => {
@@ -322,7 +322,7 @@ const deleteTask = async () => {
   panes.setPaneVisibility('projectDetails', true);
   menu.hideContextMenu();
   assetStore.selectedAsset = null;
-  TaskService.DeleteTask(projectStore.activeProject.uri, taskId, true)
+  AssetService.DeleteTask(projectStore.activeProject.uri, taskId, true)
     .then(async (response) => {
       trayStates.undoItemId = taskId;
       trayStates.undoFunction = undoTaskDelete;

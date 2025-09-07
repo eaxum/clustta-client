@@ -53,7 +53,7 @@ import { ref, computed, watchEffect, onMounted, onBeforeUnmount } from 'vue';
 import utils from '@/services/utils';
 import { v4 as uuidv4 } from 'uuid';
 
-import { TaskService, FSService, WorkflowService } from "@/../bindings/clustta/services";
+import { AssetService, FSService, WorkflowService } from "@/../bindings/clustta/services";
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';

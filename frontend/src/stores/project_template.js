@@ -6,7 +6,7 @@ import {
   SettingsService,
   ProjectService,
   TemplateService,
-  TaskService,
+  AssetService,
   EntityService,
   SyncService,
   FSService,
@@ -76,7 +76,7 @@ export const useProjectTemplateStore = defineStore("project_template", {
         this.taskTemplates.push(template);
       }
 
-      let assetTypes = await TaskService.GetTaskTypes(
+      let assetTypes = await AssetService.GetTaskTypes(
         this.activeProjectTemplate.uri
       );
       this.assetTypes = assetTypes;

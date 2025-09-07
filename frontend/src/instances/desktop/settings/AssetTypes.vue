@@ -29,7 +29,7 @@ import { onMounted, computed, ref } from 'vue';
 import utils from '@/services/utils';
 
 // services
-import { TaskService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/../bindings/clustta/services";
 
 // store imports
 import { useAssetStore } from '@/stores/assets';
@@ -108,7 +108,7 @@ const replaceSymbols = (name) => {
 };
 
 const deleteTaskType = async (taskTypeId) => {
-  TaskService.DeleteTaskType(projectStore.activeProject.uri, taskTypeId)
+  AssetService.DeleteTaskType(projectStore.activeProject.uri, taskTypeId)
     .then((response) => {
       notificationStore.addNotification("Task Type Deleted", "", "success");
       const index = assetStore.assetTypes.findIndex(taskType => taskType.id === taskTypeId);

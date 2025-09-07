@@ -111,7 +111,7 @@
 
 <script setup>
 // services
-import { CheckpointService, TaskService, EntityService, SyncService } from "@/../bindings/clustta/services";
+import { CheckpointService, AssetService, EntityService, SyncService } from "@/../bindings/clustta/services";
 import { TrashService } from "@/../bindings/clustta/services";
 import { FSService } from '@/../bindings/clustta/services/index';
 import emitter from '@/lib/mitt';
@@ -625,7 +625,7 @@ const deleteMultipleTasks = async () => {
   stage.operationActive = true;
   const taskIds = stage.markedItems;
   for (let taskId of taskIds) {
-    await TaskService.DeleteTask(projectStore.activeProject.uri, taskId, true)
+    await AssetService.DeleteTask(projectStore.activeProject.uri, taskId, true)
       .then(async (response) => {
         emitter.emit('refresh-browser');
         notificationStore.addNotification("Assets moved to Trash.", '', "success", false);
@@ -643,7 +643,7 @@ const deleteMultipleTasks = async () => {
 const unassignTasks = async () => {
   let taskIds = stage.markedItems;
   for (const taskId of taskIds) {
-    await TaskService.UnassignTask(projectStore.activeProject.uri, taskId)
+    await AssetService.UnassignTask(projectStore.activeProject.uri, taskId)
       .then(async (data) => {
       })
       .catch((error) => {
@@ -768,7 +768,7 @@ const changeEntityParent = async (entityId, parentId) => {
 };
 
 const changeTaskEntity = async (taskId, entityId) => {
-  await TaskService.ChangeTaskEntity(projectStore.activeProject.uri, taskId, entityId)
+  await AssetService.ChangeTaskEntity(projectStore.activeProject.uri, taskId, entityId)
     .then((response) => {
       const successMessage = 'Moved successfully.'
       notificationStore.addNotification(successMessage, "", "success")
@@ -817,7 +817,7 @@ const addTaskDependency = async (task, dependencyId) => {
 
   let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
 
-  await TaskService.AddTaskDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+  await AssetService.AddTaskDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
     .then((response) => {
       if (!task.dependencies) {
         task.dependencies = [];
@@ -836,7 +836,7 @@ const addEntityDependency = async (task, dependencyId) => {
 
   let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
 
-  await TaskService.AddEntityDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+  await AssetService.AddEntityDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
     .then((response) => {
       // Update the local task object with the new entity dependency
       if (!task.entity_dependencies) {
@@ -884,7 +884,7 @@ const toggleIsTask = async (newAssetType) => {
   const selectedTaskIds = stage.markedItems;
 
   for (const taskId of selectedTaskIds) {
-    await TaskService.ToggleIsTask(projectPath, taskId, isResource)
+    await AssetService.ToggleIsTask(projectPath, taskId, isResource)
       .then((data) => {
       })
       .catch((error) => {
@@ -909,7 +909,7 @@ const changeTaskType = async (taskTypeName) => {
   const selectedTasksIds = stage.markedItems;
 
   for (const taskId of selectedTasksIds) {
-    await TaskService.ChangeTaskType(projectPath, taskId, newTaskType.id)
+    await AssetService.ChangeTaskType(projectPath, taskId, newTaskType.id)
       .then((data) => {
       })
       .catch((error) => {

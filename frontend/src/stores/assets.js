@@ -5,7 +5,7 @@ import emitter from "@/lib/mitt";
 import { defineStore } from "pinia";
 import { isValidWeblink, isValidPointer } from "@/lib/pointer";
 import { useCollectionStore } from "./collections";
-import { TaskService, TagService } from "@/../bindings/clustta/services";
+import { AssetService, TagService } from "@/../bindings/clustta/services";
 import { useIconStore } from "./icons";
 import { useCommonStore } from "@/stores/common";
 import { useUserStore } from "./users";
@@ -542,7 +542,7 @@ export const useAssetStore = defineStore("asset", {
 
     async reloadAssetTypes() {
       const projectStore = useProjectStore();
-      let assetTypes = await TaskService.GetTaskTypes(
+      let assetTypes = await AssetService.GetTaskTypes(
         projectStore.activeProject.uri
       );
       this.assetTypes = assetTypes.map(type => ({
@@ -586,7 +586,7 @@ export const useAssetStore = defineStore("asset", {
 
     async setStatus(status, assetId) {
       const projectStore = useProjectStore();
-      await TaskService.ChangeStatus(
+      await AssetService.ChangeStatus(
         projectStore.activeProject.uri,
         assetId,
         status.id
@@ -601,7 +601,7 @@ export const useAssetStore = defineStore("asset", {
     async setMultipleStatus(status, assetIds) {
       const projectStore = useProjectStore();
       for (const assetId of assetIds) {
-        await TaskService.ChangeStatus(
+        await AssetService.ChangeStatus(
           projectStore.activeProject.uri,
           assetId,
           status.id
@@ -822,7 +822,7 @@ export const useAssetStore = defineStore("asset", {
       this.loadingAssetStates = true;
       const projectStore = useProjectStore();
       let project = projectStore.activeProject
-      await TaskService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates) => {
+      await AssetService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates) => {
         this.modifiedAssetsPath = assetsStates.modified.map(item => item.task_path)
         this.outdatedAssetsPath = assetsStates.outdated.map(item => item.task_path)
         this.rebuildableAssetsPath = assetsStates.rebuildable.map(item => item.task_path)
@@ -832,7 +832,7 @@ export const useAssetStore = defineStore("asset", {
         this.outdatedAssetsState = assetsStates.outdated
         this.rebuildableAssetsState = assetsStates.rebuildable
       })
-      await TaskService.GetUntrackedFiles(project.uri, project.working_directory, project.ignore_list).then((untrackedFiles) => {
+      await AssetService.GetUntrackedFiles(project.uri, project.working_directory, project.ignore_list).then((untrackedFiles) => {
         this.untrackedAssetsPath = untrackedFiles
       })
       // stage.operationActive = false

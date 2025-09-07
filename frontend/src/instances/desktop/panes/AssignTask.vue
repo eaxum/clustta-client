@@ -30,7 +30,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useAssetStore } from '@/stores/assets';
 
 // services
-import { TaskService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/../bindings/clustta/services";
 
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -107,7 +107,7 @@ const assignTask = async (index) => {
   let taskId = entity.value.id;
   let user = collaboratorsList.value[index];
   let userId = user ? user.id : "";
-  await TaskService.AssignTask(projectStore.activeProject.uri, taskId, userId)
+  await AssetService.AssignTask(projectStore.activeProject.uri, taskId, userId)
     .then(async (data) => {
       assetStore.findAsset(taskId).assignee_id = userId;
       notificationStore.addNotification("Task Assigned Successfully.", "", "success")
@@ -121,7 +121,7 @@ const assignTask = async (index) => {
 const unassignTask = async (index) => {
   let task = entity.value;
   let taskId = entity.value.id;
-  await TaskService.UnassignTask(projectStore.activeProject.uri, taskId)
+  await AssetService.UnassignTask(projectStore.activeProject.uri, taskId)
     .then(async (data) => {
       assetStore.findAsset(taskId).assignee_id = ""
       notificationStore.addNotification("Task UnAssigned Successfully.", "", "success")
