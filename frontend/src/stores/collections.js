@@ -21,13 +21,13 @@ export const useCollectionStore = defineStore("collection", {
       return state.entityTypes;
     },
     getCollectionTypesNames: (state) => {
-      let entityTypes = state.entityTypes;
-      let entityTypesNames = [];
-      for (let i = 0; i < entityTypes.length; i++) {
-        let entityType = entityTypes[i];
-        entityTypesNames.push(entityType.name);
+      let collectionTypes = state.entityTypes;
+      let collectionTypesNames = [];
+      for (let i = 0; i < collectionTypes.length; i++) {
+        let collectionType = collectionTypes[i];
+        collectionTypesNames.push(collectionType.name);
       }
-      return entityTypesNames;
+      return collectionTypesNames;
     },
     getCollections: (state) => {
       return state.entities;
@@ -36,24 +36,24 @@ export const useCollectionStore = defineStore("collection", {
       const commonStore = useCommonStore();
       const assetStore = useAssetStore();
 
-      const entities = state.entities;
+      const collections = state.entities;
       const viewSearchQuery = commonStore.viewSearchQuery;
       const workspaceSearchQuery = commonStore.workspaceSearchQuery;
 
-      let filteredEntities;
+      let filteredCollections;
 
       if (commonStore.entityFilters.length) {
-        const selectedEntityTypes = commonStore.entityFilters
+        const selectedCollectionTypes = commonStore.entityFilters
           .filter((filter) => filter.type === "entity-type")
           .map((filter) => filter.name.toLowerCase());
 
-        filteredEntities = entities
-          .filter((entity) => {
-            const entityTypeMatch =
-              selectedEntityTypes.length === 0 ||
-              selectedEntityTypes.includes(entity.entity_type.toLowerCase());
+        filteredCollections = collections
+          .filter((collection) => {
+            const collectionTypeMatch =
+              selectedCollectionTypes.length === 0 ||
+              selectedCollectionTypes.includes(collection.entity_type.toLowerCase());
 
-            return entityTypeMatch;
+            return collectionTypeMatch;
           })
           .filter(
             (item) =>
@@ -65,7 +65,7 @@ export const useCollectionStore = defineStore("collection", {
                 .includes(workspaceSearchQuery)
           );
       } else {
-        filteredEntities = entities.filter(
+        filteredCollections = collections.filter(
           (item) =>
             item.entity_path
               .toLowerCase()
@@ -76,57 +76,57 @@ export const useCollectionStore = defineStore("collection", {
         );
       }
 
-      const sortedEntities = utils.sortPathAlphabetically(
-        filteredEntities,
+      const sortedCollections = utils.sortPathAlphabetically(
+        filteredCollections,
         "entity"
       );
-      return sortedEntities;
+      return sortedCollections;
     },
 
     getDisplayedCollections: (state) => {
       const commonStore = useCommonStore();
-      let filteredEntities = state.getFilteredCollections;
-      let displayedEntities = [];
+      let filteredCollections = state.getFilteredCollections;
+      let displayedCollections = [];
 
-      for (let i = 0; i < filteredEntities.length; i++) {
-        let entity = filteredEntities[i];
-        if (entity.trashed === false) {
-          displayedEntities.push(entity);
+      for (let i = 0; i < filteredCollections.length; i++) {
+        let collection = filteredCollections[i];
+        if (collection.trashed === false) {
+          displayedCollections.push(collection);
         }
       }
 
-      return displayedEntities;
+      return displayedCollections;
     },
 
     getDisplayedCollectionsNames: (state) => {
-      const sortedEntities = state.getDisplayedCollections.slice().sort((a, b) => {
+      const sortedCollections = state.getDisplayedCollections.slice().sort((a, b) => {
         return a.name.localeCompare(b.name);
       });
-      return sortedEntities.map((entity) => entity.name);
+      return sortedCollections.map((collection) => collection.name);
     },
   },
   actions: {
-    filterCollections(entities){
+    filterCollections(collections){
       const commonStore = useCommonStore();
       const assetStore = useAssetStore();
 
       const viewSearchQuery = commonStore.viewSearchQuery;
       const workspaceSearchQuery = commonStore.workspaceSearchQuery;
 
-      let filteredEntities;
+      let filteredCollections;
 
       if (commonStore.entityFilters.length) {
-        const selectedEntityTypes = commonStore.entityFilters
+        const selectedCollectionTypes = commonStore.entityFilters
           .filter((filter) => filter.type === "entity-type")
           .map((filter) => filter.name.toLowerCase());
 
-        filteredEntities = entities
-          .filter((entity) => {
-            const entityTypeMatch =
-              selectedEntityTypes.length === 0 ||
-              selectedEntityTypes.includes(entity.entity_type.toLowerCase());
+        filteredCollections = collections
+          .filter((collection) => {
+            const collectionTypeMatch =
+              selectedCollectionTypes.length === 0 ||
+              selectedCollectionTypes.includes(collection.entity_type.toLowerCase());
 
-            return entityTypeMatch;
+            return collectionTypeMatch;
           })
           .filter(
             (item) => {
@@ -139,7 +139,7 @@ export const useCollectionStore = defineStore("collection", {
             }
           );
       } else {
-        filteredEntities = entities.filter(
+        filteredCollections = collections.filter(
           (item) => {
             const nameMatch = !viewSearchQuery || item.name?.toLowerCase().includes(viewSearchQuery.toLowerCase());
             const entityPathMatch = !viewSearchQuery || item.entity_path?.toLowerCase().includes(viewSearchQuery.toLowerCase());
@@ -151,48 +151,48 @@ export const useCollectionStore = defineStore("collection", {
         );
       }
 
-      const sortedEntities = utils.sortPathAlphabetically(
-        filteredEntities,
+      const sortedCollections = utils.sortPathAlphabetically(
+        filteredCollections,
         "entity"
       );
-      return sortedEntities;
+      return sortedCollections;
     },
-    async markCollectionAsDeleted(entityId) {
-      let entityIndex = this.entities_index[entityId];
-      this.entities[entityIndex].trashed = true;
+    async markCollectionAsDeleted(collectionId) {
+      let collectionIndex = this.entities_index[collectionId];
+      this.entities[collectionIndex].trashed = true;
     },
     
-    async unmarkCollectionAsDeleted(entityId) {
-      let entityIndex = this.entities_index[entityId];
-      this.entities[entityIndex].trashed = false;
+    async unmarkCollectionAsDeleted(collectionId) {
+      let collectionIndex = this.entities_index[collectionId];
+      this.entities[collectionIndex].trashed = false;
     },
 
     // @deprecated - This method is not currently used
-    async markMultipleCollectionsAsDeleted(entityIds) {
-      for (const entityId of entityIds) {
-        let entityIndex = this.entities_index[entityId];
-        if (entityIndex !== undefined) {
-          this.entities[entityIndex].trashed = true;
+    async markMultipleCollectionsAsDeleted(collectionIds) {
+      for (const collectionId of collectionIds) {
+        let collectionIndex = this.entities_index[collectionId];
+        if (collectionIndex !== undefined) {
+          this.entities[collectionIndex].trashed = true;
         }
       }
     },
 
     // @deprecated - This method is not currently used
-    async unmarkMultipleCollectionsAsDeleted(entityIds) {
-      for (const entityId of entityIds) {
-        let entityIndex = this.entities_index[entityId];
-        if (entityIndex !== undefined) {
-          this.entities[entityIndex].trashed = false;
+    async unmarkMultipleCollectionsAsDeleted(collectionIds) {
+      for (const collectionId of collectionIds) {
+        let collectionIndex = this.entities_index[collectionId];
+        if (collectionIndex !== undefined) {
+          this.entities[collectionIndex].trashed = false;
         }
       }
     },
 
     async reloadCollectionTypes() {
       const projectStore = useProjectStore();
-      let entityTypes = await EntityService.GetEntityTypes(
+      let collectionTypes = await EntityService.GetEntityTypes(
         projectStore.activeProject.uri
       );
-      this.entityTypes = entityTypes.map(type => ({
+      this.entityTypes = collectionTypes.map(type => ({
         ...type,
         type: 'entity-type',
       }));
@@ -200,63 +200,63 @@ export const useCollectionStore = defineStore("collection", {
 
     async reloadCollections() {
       const projectStore = useProjectStore();
-      let entities = await EntityService.GetEntities(
+      let collections = await EntityService.GetEntities(
         projectStore.activeProject.uri
       );
-      this.entities = entities;
+      this.entities = collections;
       await this.rebuildCollectionsIndex();
     },
 
     async rebuildCollectionsIndex() {
-      let entityIndex = {};
-      let entityChildrenIndex = {};
-      let entityNameIndex = {};
+      let collectionIndex = {};
+      let collectionChildrenIndex = {};
+      let collectionNameIndex = {};
       for (let i = 0; i < this.entities.length; i++) {
-        let entityId = this.entities[i].id;
+        let collectionId = this.entities[i].id;
         let parentId = this.entities[i].parent_id;
-        entityIndex[entityId] = i;
-        entityNameIndex[this.entities[i].name] = this.entities[i];
-        if (!entityChildrenIndex[parentId]) {
-          entityChildrenIndex[parentId] = [entityId];
+        collectionIndex[collectionId] = i;
+        collectionNameIndex[this.entities[i].name] = this.entities[i];
+        if (!collectionChildrenIndex[parentId]) {
+          collectionChildrenIndex[parentId] = [collectionId];
         } else {
-          entityChildrenIndex[parentId].push(entityId);
+          collectionChildrenIndex[parentId].push(collectionId);
         }
       }
-      this.entities_index = entityIndex;
-      this.entity_children_index = entityChildrenIndex;
-      this.entityNameIndex = entityNameIndex;
+      this.entities_index = collectionIndex;
+      this.entity_children_index = collectionChildrenIndex;
+      this.entityNameIndex = collectionNameIndex;
     },
 
     findCollection(id) {
-      let entityIndex = this.entities_index[id];
-      return this.entities[entityIndex];
+      let collectionIndex = this.entities_index[id];
+      return this.entities[collectionIndex];
     },
 
     findCollectionByName(name) {
       return this.entityNameIndex[name];
     },
 
-    selectCollection(entity) {
-      this.selectedEntity = entity;
+    selectCollection(collection) {
+      this.selectedEntity = collection;
     },
 
-    getChildCollections(entityId, recursive = false) {
-      let childEntityIds = this.entity_children_index[entityId] || [];
-      let entities = childEntityIds.map((entityId) => this.findCollection(entityId));
+    getChildCollections(collectionId, recursive = false) {
+      let childCollectionIds = this.entity_children_index[collectionId] || [];
+      let collections = childCollectionIds.map((collectionId) => this.findCollection(collectionId));
 
       if (recursive) {
-        for (let childId of childEntityIds) {
-          entities = entities.concat(this.getChildCollections(childId, true));
+        for (let childId of childCollectionIds) {
+          collections = collections.concat(this.getChildCollections(childId, true));
         }
       }
 
-      return entities;
+      return collections;
     },
 
     // @deprecated - This method is not currently used
-    getAllCollectionChildren(entityId) {
+    getAllCollectionChildren(collectionId) {
       let allChildren = {};
-      let directChildren = this.entity_children_index[entityId] || [];
+      let directChildren = this.entity_children_index[collectionId] || [];
       
       for (let childId of directChildren) {
         allChildren[childId] = this.getAllCollectionChildren(childId);
@@ -265,19 +265,19 @@ export const useCollectionStore = defineStore("collection", {
       return allChildren;
     },
 
-    getCollectionTypeIcon(entityTypeId) {
-      let entityTypeIcon = "";
+    getCollectionTypeIcon(collectionTypeId) {
+      let collectionTypeIcon = "";
       for (let i = 0; i < this.entityTypes.length; i++) {
         let type = this.entityTypes[i];
-        if (type.id === entityTypeId) {
-          entityTypeIcon = type.icon;
+        if (type.id === collectionTypeId) {
+          collectionTypeIcon = type.icon;
           break;
         }
       }
-      return entityTypeIcon;
+      return collectionTypeIcon;
     },
-    navigateToCollection(entity) {
-      this.navigatedEntity = entity;
+    navigateToCollection(collection) {
+      this.navigatedEntity = collection;
     },
   },
 });
