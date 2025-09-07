@@ -129,8 +129,6 @@ const loadAssetTasks = async () => {
     const projectPath = projectStore.activeProject?.uri;
     if (projectPath) {
       const tasks = await TaskService.GetAssetTasks(projectPath);
-      console.log(tasks)
-      console.log(assetStore.assetTypes)
       await assetStore.processAssetsIconsAndPreviews(tasks);
       cards.value = tasks; // Update cards ref with the fetched tasks
       await updateFilteredCards(); // Update filtered cards
@@ -176,7 +174,6 @@ const filledColumns = computed(() => {
       .filter(card => card.status_id === column.id)
       // .sort((a, b) => priorityMap.value[b.priority] - priorityMap.value[a.priority])
   }));
-  // console.log(result)
   return result
 });
 
@@ -228,7 +225,6 @@ const stopScrolling = () => {
 // Handle mouse movement inside the container
 const handleMouseMove = (e) => {
   const el = scrollContainerRef.value
-  // console.log(el)
   if (!el) return
   
   const rect = el.getBoundingClientRect()
@@ -319,7 +315,6 @@ const onDragStart = (e, id, isMinimized) => {
   if(isMinimized){
     return
   }
-  // console.log(draggedItemRefs.value)
   let selectedCard = draggedItemRefs.value[id];
   let cardRect = selectedCard.getBoundingClientRect();
   
@@ -535,7 +530,6 @@ watch(() => cards.value, async () => {
 
 watch(() => commonStore.taskFilters, async () => {
   await updateFilteredCards();
-  console.log(commonStore.taskFilters)
 }, { deep: true });
 
 watch(() => commonStore.viewSearchQuery, async () => {
