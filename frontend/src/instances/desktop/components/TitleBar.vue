@@ -115,7 +115,6 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
 import { useThemeStore } from '@/stores/theme';
 
-import TrafficLights from '@/instances/desktop/components/TrafficLights.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { useStudioStore } from '@/stores/studio';

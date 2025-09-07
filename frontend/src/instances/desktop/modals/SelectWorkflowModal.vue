@@ -8,7 +8,7 @@
       <div class="workflow-template-list">
         <!-- <WorkflowTemplate v-for="workflowTemplate in workflowTemplates" :workflowTemplate="workflowTemplate" /> -->
         
-        <WorkflowEntityItem v-for="workflow in workflowStore.workflows" @expand="expandWorkflowItem"
+        <WorkflowItem v-for="workflow in workflowStore.workflows" @expand="expandWorkflowItem"
              :entity="workflow" @select="selectWorkflowTemplate" :selectable="true"
             :isExpanded="isExpanded(workflow.id)" :isParent="true" />
       </div>
@@ -43,7 +43,7 @@ import { useSettingsStore } from '@/stores/settings';
 
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import WorkflowEntityItem from '@/instances/desktop/blocks/WorkflowEntityItem.vue';
+import WorkflowItem from '@/instances/desktop/blocks/WorkflowItem.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
 
 // stores

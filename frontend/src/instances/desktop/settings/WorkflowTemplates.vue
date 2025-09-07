@@ -6,7 +6,7 @@
 
       <div v-if="workflowStore.workflows.length" class="settings-component-body">
         <div class="workflow-items-container">
-          <WorkflowEntityItem v-for="workflow in workflowStore.workflows" @expand="expandWorkflowItem"
+          <WorkflowItem v-for="workflow in workflowStore.workflows" @expand="expandWorkflowItem"
             @delete="deleteWorkflowItem" @edit="editWorkflowItem" :entity="workflow"
             :isExpanded="isExpanded(workflow.id)" :isParent="true" />
         </div>
@@ -33,7 +33,7 @@ import { useWorkflowStore } from '@/stores/workflow';
 
 // components
 import ActionBar from '@/instances/desktop/components/ActionBar.vue';
-import WorkflowEntityItem from '@/instances/desktop/blocks/WorkflowEntityItem.vue';
+import WorkflowItem from '@/instances/desktop/blocks/WorkflowItem.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 
 // states

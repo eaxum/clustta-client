@@ -323,7 +323,7 @@ const entityTypeIcon = computed(() => {
 
 
 const editEntity = () => {
-  modals.setModalVisibility('editEntityModal', true);
+  modals.setModalVisibility('editCollectionModal', true);
 };
 
 const collectionSize = ref(0);

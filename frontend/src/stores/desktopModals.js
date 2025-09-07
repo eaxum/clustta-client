@@ -20,12 +20,12 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       configWorkflowModal: false,
       selectWorkflowModal: false,
 
-      createEntityModal: false,
-      editEntityModal: false,
+      createCollectionModal: false,
+      editCollectionModal: false,
 
-      createTaskModal: false,
+      createAssetModal: false,
       selectAppModal: false,
-      editTaskModal: false,
+      editAssetModal: false,
 
       addWebLinkModal: false,
 
@@ -45,10 +45,10 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       editTemplateModal: false,
 
       addAssetTypeModal: false,
-      editTaskTypeModal: false,
+      editAssetTypeModal: false,
 
       addCollectionTypeModal: false,
-      editEntityTypeModal: false,
+      editCollectionTypeModal: false,
 
       manageCollaboratorModal: false,
       addCollaboratorModal: false,

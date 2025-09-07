@@ -99,7 +99,7 @@ const addTaskType = () => {
 const prepEditTaskType = (selectedTaskTypeId) => {
   console.log(selectedTaskTypeId)
   taskStore.selectedTaskType = taskStore.getTaskTypes.find((item) => item.id === selectedTaskTypeId)
-  modals.setModalVisibility('editTaskTypeModal', true);
+  modals.setModalVisibility('editAssetTypeModal', true);
 
 };
 

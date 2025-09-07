@@ -96,7 +96,7 @@ const prepEditEntityType = (selectedEntityTypeId) => {
 
   console.log(selectedEntityTypeId)
   entityStore.selectedEntityType = entityStore.getEntityTypes.find((item) => item.id === selectedEntityTypeId)
-  modals.setModalVisibility('editEntityTypeModal', true);
+  modals.setModalVisibility('editCollectionTypeModal', true);
 };
 
 const replaceSymbols = (name) => {

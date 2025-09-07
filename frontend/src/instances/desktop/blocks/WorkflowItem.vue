@@ -41,9 +41,9 @@
         @before-leave="utils.startTransition" @after-leave="utils.endTransition">
         <div v-if="isExpanded" class="entity-child-root">
 
-          <WorkflowEntityItem v-for="workflowItem in entity.links" :entity="workflowItem" />
-          <WorkflowEntityItem v-for="workflowItem in entity.entities" :entity="workflowItem" />
-          <WorkflowEntityItem v-for="workflowItem in entity.tasks" :entity="workflowItem" />
+          <WorkflowItem v-for="workflowItem in entity.links" :entity="workflowItem" />
+          <WorkflowItem v-for="workflowItem in entity.entities" :entity="workflowItem" />
+          <WorkflowItem v-for="workflowItem in entity.tasks" :entity="workflowItem" />
 
         </div>
       </transition>

@@ -125,11 +125,11 @@ const handleEnterKey = (event) => {
 };
 
 const escape = () => {
-  modals.setModalVisibility('createEntityModal', false);
+  modals.setModalVisibility('createCollectionModal', false);
 };
 
 const closeModal = () => {
-  modals.setModalVisibility("createEntityModal", false);
+  modals.setModalVisibility("createCollectionModal", false);
 };
 
 const selectEntityType = (entityTypeName) => {

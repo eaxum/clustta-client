@@ -1292,7 +1292,7 @@ const disableMenus = () => {
 
 const createEntity = () => {
 	clearSelection();
-	modals.setModalVisibility('createEntityModal', true);
+	modals.setModalVisibility('createCollectionModal', true);
 };
 
 const createWorkflow = () => {

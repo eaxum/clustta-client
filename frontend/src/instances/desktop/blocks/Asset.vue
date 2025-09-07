@@ -505,7 +505,7 @@ Events.On('rename-item', async () => {
 Events.On('edit-item', async () => {
   if (operationsActive.value) return
   if (isTaskInFocus.value && userStore.canDo('update_task')) {
-    modals.setModalVisibility('editTaskModal', true);
+    modals.setModalVisibility('editAssetModal', true);
   }
 });
 

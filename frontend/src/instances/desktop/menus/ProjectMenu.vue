@@ -158,7 +158,7 @@ const copyDirectoryPath = async () => {
 };
 
 const createEntity = () => {
-  modals.setModalVisibility('createEntityModal', true);
+  modals.setModalVisibility('createCollectionModal', true);
   menu.hideContextMenu();
 };
 

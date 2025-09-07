@@ -66,7 +66,7 @@ const selectApp = (name, icon) => {
   trayStates.popUpModalIcon = icon;
   trayStates.popUpModalTitle = ('New ' + name.replace(/_/g, " ") + ' asset').toLowerCase().replace(/(^\w|\s\w)/g, match => match.toUpperCase());
   trayStates.selectedApp = document.querySelector(`.apps-grid-item-selected`);
-  modals.setModalVisibility('createTaskModal', true);
+  modals.setModalVisibility('createAssetModal', true);
 };
 
 const replaceSymbols = (name) => {
