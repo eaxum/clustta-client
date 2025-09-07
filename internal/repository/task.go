@@ -2044,6 +2044,7 @@ func GetAssetTasks(tx *sqlx.Tx) ([]models.Task, error) {
 			assignee_id,
 			preview,
 			status_id,
+			task_type_id,
 			extension
 		FROM full_task %s ORDER BY name`, queryWhereClause)
 
