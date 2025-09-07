@@ -154,7 +154,7 @@ const launchTaskWithCommand = async () => {
     } else {
       CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [task.id])
         .then(async (response) => {
-          let fileStatus = await assetStore.getTaskFileStatus(task)
+          let fileStatus = await assetStore.getAssetFileStatus(task)
           task.file_status = fileStatus
           FSService.LaunchFileWith(file_path)
         })
@@ -183,7 +183,7 @@ const duplicateTask = async () => {
 		await TaskService.DuplicateTask(projectStore.activeProject.uri, selectedTask.id)
 		.then((duplicatedTask) => {
 			emitter.emit('refresh-browser')
-			assetStore.selectTask(duplicatedTask);
+			assetStore.selectAsset(duplicatedTask);
 			stage.selectedItem = duplicatedTask;
 			stage.markedItems = [duplicatedTask.id];
 			stage.lastSelectedItemId = "";
@@ -213,7 +213,7 @@ const buildWithDependencies = async () => {
   menu.hideContextMenu();
   let taskIds = [task.value.id, ...task.value.dependencies];
   for (let entityId of task.value.entity_dependencies) {
-    let entityTasks = assetStore.getEntityTasks(entityId, true);
+    let entityTasks = assetStore.getEntityAssets(entityId, true);
     for (let entityTask of entityTasks) {
       if (!taskIds.includes(entityTask.id)) {
         taskIds.push(entityTask.id);
@@ -341,7 +341,7 @@ const deleteTask = async () => {
 const undoTaskDelete = async () => {
   TrashService.Restore(projectStore.activeProject.uri, trayStates.undoItemId, "task")
     .then(async (response) => {
-      assetStore.unmarkTaskAsDeleted(trayStates.undoItemId)
+      assetStore.unmarkAssetAsDeleted(trayStates.undoItemId)
     })
     .catch((error) => {
       notificationStore.errorNotification("Error Restoring Item", error)
@@ -424,6 +424,8 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
+
+
 
 
 

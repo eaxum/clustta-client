@@ -91,7 +91,7 @@ const modalContainer = ref(null);
 const showTaskOptions = ref(true);
 const isAwaitingResponse = ref(false);
 const isResource = ref(false);
-const taskType = ref(assetStore.getTaskTypesNames[0]);
+const taskType = ref(assetStore.getAssetTypesNames[0]);
 
 // computed properties
 const title = computed(() => trayStates.popUpModalTitle);
@@ -106,7 +106,7 @@ const projectTags = computed(() => {
 });
 
 const taskTypeNames = computed(() => {
-  return assetStore.getTaskTypesNames;
+  return assetStore.getAssetTypesNames;
 });
 
 const itemType = ref('Task');
@@ -221,7 +221,7 @@ const createTask = async (launch = false, comment = "new file") => {
           taskName.value = "";
           tags.value = [];
         }
-        await assetStore.reloadTasks();
+        await assetStore.reloadAssets();
         isAwaitingResponse.value = false;
         successMessage = 'Created ' + taskName.value + ' successfully.'
         notificationStore.addNotification(successMessage, "", "success")
@@ -252,7 +252,7 @@ const createTask = async (launch = false, comment = "new file") => {
     //   .then(async (data) => {
     //     let successMessage = 'Creating ' + taskName.value + '...'
     //     notificationStore.addNotification(successMessage, "", "success")
-    //     await assetStore.reloadTasks();
+    //     await assetStore.reloadAssets();
     //     isAwaitingResponse.value = false;
     //     successMessage = 'Created ' + taskName.value + ' successfully.'
     //     notificationStore.addNotification(successMessage, "", "success")
@@ -285,7 +285,7 @@ watchEffect(() => {
 // onMounted hook
 onMounted(() => {
   menu.clickOutsideMask = null;
-  taskName.value = utils.capitalizeStr(assetStore.getTaskTypesNames[0]);
+  taskName.value = utils.capitalizeStr(assetStore.getAssetTypesNames[0]);
   trayStates.listItemsBoundary = modalContainer.value;
   trayStates.tagSearchQuery = '';
   trayStates.itemTags = [];
@@ -376,6 +376,9 @@ onUnmounted(() => {
   margin-top: 0;
 }
 </style>
+
+
+
 
 
 

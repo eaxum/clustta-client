@@ -84,7 +84,7 @@ const workflowTemplateId = ref('');
 
 // computed
 const taskType = computed(() => {
-    const allTaskTypes = assetStore.getTaskTypes;
+    const allTaskTypes = assetStore.getAssetTypes;
     const selectedTaskType = allTaskTypes.find((item) => item.id === taskTypeId.value);
     return selectedTaskType ? selectedTaskType.name : 'Select task type'
 });
@@ -121,7 +121,7 @@ const projectWorkflowNames = computed(() => {
 const selectedWorkflowName = ref(projectWorkflowNames.value[0]);
 
 const taskTypeNames = computed(() => {
-    return assetStore.getTaskTypesNames;
+    return assetStore.getAssetTypesNames;
 });
 
 const taskTemplates = computed(() => {
@@ -147,7 +147,7 @@ const newWorkflowItemData = computed(() => {
     let data = {};
     if (itemTypeName === 'Task') {
 
-        const allTaskTypes = assetStore.getTaskTypes;
+        const allTaskTypes = assetStore.getAssetTypes;
         const firstTaskType = allTaskTypes[0];
         taskTypeIcon.value = taskTypeIcon.value ? taskTypeIcon.value : firstTaskType.icon;
         taskTypeId.value = taskTypeId.value ? taskTypeId.value : firstTaskType.id;
@@ -245,7 +245,7 @@ const getAppIcon = (iconName) => {
 };
 
 const selectTaskType = (taskTypeName) => {
-    const allTaskTypes = assetStore.getTaskTypes;
+    const allTaskTypes = assetStore.getAssetTypes;
     const selectedTaskType = allTaskTypes.find((item) => item.name === taskTypeName);
 
     taskTypeId.value = selectedTaskType.id;
@@ -350,6 +350,8 @@ onBeforeUnmount(() => {
     outline-offset: -1px;
 }
 </style>
+
+
 
 
 

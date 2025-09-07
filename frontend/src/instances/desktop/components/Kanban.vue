@@ -129,7 +129,7 @@ const loadAssetTasks = async () => {
     const projectPath = projectStore.activeProject?.uri;
     if (projectPath) {
       const tasks = await TaskService.GetAssetTasks(projectPath);
-      await assetStore.processTasksIconsAndPreviews(tasks);
+      await assetStore.processAssetsIconsAndPreviews(tasks);
       cards.value = tasks; // Update cards ref with the fetched tasks
       await updateFilteredCards(); // Update filtered cards
     }
@@ -143,7 +143,7 @@ const updateFilteredCards = async () => {
   try {
     
     if (cards.value && cards.value.length > 0) {
-      const filtered = await assetStore.filterTasks(cards.value);
+      const filtered = await assetStore.filterAssets(cards.value);
       filteredCards.value = filtered || [];
     } else {
       filteredCards.value = [];
@@ -333,8 +333,8 @@ const onDragStart = (e, id, isMinimized) => {
 
  
   const taskId = id;
-  const task = assetStore.getTasks.find(item => item.id === taskId );
-  assetStore.selectTask(task);
+  const task = assetStore.getAssets.find(item => item.id === taskId );
+  assetStore.selectAsset(task);
 
   dndStore.ghostCardStyle.width = selectedCard.clientWidth - paddingLeft - paddingRight;
   dndStore.ghostCardStyle.cursorDistance.x = e.pageX - cardRect.x;
@@ -774,6 +774,9 @@ onUnmounted(() => {
   box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
 }
 </style>
+
+
+
 
 
 

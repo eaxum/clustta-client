@@ -160,14 +160,14 @@ const entityEntities = computed(() => {
 
 const entityTasks = computed(() => {
   const entityId = selectedEntity.value?.id;
-  return assetStore.getEntityTasks(entityId)?.filter((item) => !item?.is_resource)
+  return assetStore.getEntityAssets(entityId)?.filter((item) => !item?.is_resource)
 
 });
 
 const entityResources = computed(() => {
 
   const entityId = selectedEntity.value?.id;
-  return assetStore.getEntityTasks(entityId)?.filter((item) => item.is_resource)
+  return assetStore.getEntityAssets(entityId)?.filter((item) => item.is_resource)
 
 });
 
@@ -303,6 +303,8 @@ onUnmounted(() => {
 	width: 100%;
 }
 </style>
+
+
 
 
 

@@ -109,7 +109,7 @@ const assignTask = async (index) => {
   let userId = user ? user.id : "";
   await TaskService.AssignTask(projectStore.activeProject.uri, taskId, userId)
     .then(async (data) => {
-      assetStore.findTask(taskId).assignee_id = userId;
+      assetStore.findAsset(taskId).assignee_id = userId;
       notificationStore.addNotification("Task Assigned Successfully.", "", "success")
     })
     .catch((error) => {
@@ -123,7 +123,7 @@ const unassignTask = async (index) => {
   let taskId = entity.value.id;
   await TaskService.UnassignTask(projectStore.activeProject.uri, taskId)
     .then(async (data) => {
-      assetStore.findTask(taskId).assignee_id = ""
+      assetStore.findAsset(taskId).assignee_id = ""
       notificationStore.addNotification("Task UnAssigned Successfully.", "", "success")
     })
     .catch((error) => {
@@ -166,5 +166,7 @@ onMounted(() => {
   justify-content: flex-start;
 }
 </style>
+
+
 
 

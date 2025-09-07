@@ -39,7 +39,7 @@ const collectionMenu = ref(null);
 const viewTags = computed(() => {
   let tags = tagStore.tags;
 		let viewTags = [];
-		let filteredTaskResults = assetStore.getFilteredTasks;
+		let filteredTaskResults = assetStore.getFilteredAssets;
 
 		for (const task of filteredTaskResults){
 			let taskTags = task.tags;
@@ -102,5 +102,7 @@ onBeforeUnmount(() => {
 @import "@/assets/desktop.css";
 @import "@/assets/menu.css";
 </style>
+
+
 
 

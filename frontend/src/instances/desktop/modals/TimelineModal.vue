@@ -109,7 +109,7 @@ const refresh = async () => {
   await projectStore.refreshActiveProject()
   await statusStore.reloadStatuses();
   await collectionStore.reloadEntities();
-  await assetStore.reloadTasks();
+  await assetStore.reloadAssets();
   projectStore.getUntrackedItems()
   assetStore.tasksLoaded = true;
 };
@@ -456,6 +456,8 @@ onUnmounted(() => {
   padding: .5rem;
 }
 </style>
+
+
 
 
 

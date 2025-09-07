@@ -315,7 +315,7 @@ const fetchSidebarData = async () => {
 
 const updateFilteredTasks = async () => {
   try {
-    filteredTasks.value = await assetStore.filterTasks(sidebarTasks.value);
+    filteredTasks.value = await assetStore.filterAssets(sidebarTasks.value);
   } catch (error) {
     console.error("Error filtering tasks:", error);
     filteredTasks.value = [];
@@ -558,7 +558,7 @@ const selectTask = async (taskId) => {
   }
   
   if (task) {
-    assetStore.selectTask(task);
+    assetStore.selectAsset(task);
     await fetchSidebarData()
     await buildGraphFromDependencies();
     
@@ -1086,6 +1086,9 @@ onUnmounted(() => {
 
 }
 </style>
+
+
+
 
 
 

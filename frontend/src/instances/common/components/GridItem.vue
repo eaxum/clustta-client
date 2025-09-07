@@ -65,7 +65,7 @@ const openCollectionMenu = (event) => {
 const openAssetMenu = (event) => {
   const id = props.child.id;
   const task = props.child;
-  assetStore.selectTask(task);
+  assetStore.selectAsset(task);
   stage.markedTasks = [id];
   menu.showContextMenu(event, 'assetMenu', true);
 };
@@ -282,6 +282,8 @@ onBeforeUnmount(() => {
   /* padding-right: 1px; */
 }
 </style>
+
+
 
 
 

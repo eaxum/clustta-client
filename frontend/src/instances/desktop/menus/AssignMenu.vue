@@ -234,7 +234,7 @@ const unassignMultipleTasks = async () => {
     await TaskService.UnassignTask(projectStore.activeProject.uri, taskId)
       .then(async (data) => {
         // Update local task data
-        let task = assetStore.findTask(taskId);
+        let task = assetStore.findAsset(taskId);
         task.assignee_id = null;
         
         // Emit updates using helper function
@@ -336,5 +336,7 @@ onBeforeUnmount(() => {
   min-height: min-content;
 }
 </style>
+
+
 
 
