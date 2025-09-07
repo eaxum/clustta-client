@@ -63,7 +63,7 @@
 <script setup>
 
 
-import { FSService, AssetService, EntityService } from "@/../bindings/clustta/services";
+import { FSService, AssetService, CollectionService } from "@/../bindings/clustta/services";
 
 // imports
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';

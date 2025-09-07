@@ -62,7 +62,7 @@ import { ClipboardService, FSService } from '@/../bindings/clustta/services/inde
 import emitter from '@/lib/mitt';
 
 // services
-import { EntityService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/../bindings/clustta/services";
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -193,7 +193,7 @@ const rebuildAll = async () => {
   menu.hideContextMenu();
   notificationStore.cancleFunction = SyncService.CancelSync
   notificationStore.canCancel = true
-  await EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
+  await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
     .then((data) => {
       assetStore.refreshEntityFilesStatus("")
     }).catch(error => {

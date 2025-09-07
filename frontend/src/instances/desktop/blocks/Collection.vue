@@ -138,7 +138,7 @@
 <script setup>
 // imports
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch, watchEffect } from 'vue';
-import { CheckpointService, EntityService, FSService, SyncService, AssetService } from "@/../bindings/clustta/services";
+import { CheckpointService, CollectionService, FSService, SyncService, AssetService } from "@/../bindings/clustta/services";
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 import { Events } from "@wailsio/runtime";
@@ -386,7 +386,7 @@ const updateEntityName = async () => {
     let entity = props.entity;
     let entityId = entity.id;
     
-    await EntityService.RenameEntity(projectStore.activeProject.uri, entityId, editableEntityName.value)
+    await CollectionService.RenameEntity(projectStore.activeProject.uri, entityId, editableEntityName.value)
       .then((data) => {
         entity.name = editableEntityName.value;
         emitEntityUpdates(entityId, [
@@ -444,7 +444,7 @@ const updateEntityAssets = async () => {
 const rebuildEntity = async () => {
 	notificationStore.cancleFunction = SyncService.CancelSync
 	notificationStore.canCancel = true
-	await EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, props.entity.id)
+	await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, props.entity.id)
 		.then((data) => {
 			assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path))
 			emitter.emit('refresh-browser');
@@ -485,7 +485,7 @@ const freeUpSpace = async () => {
 const deleteEntity = async () => {
   if (props.entity.type === 'entity') {
     let entity = collectionStore.selectedCollection;
-    EntityService.DeleteEntity(projectStore.activeProject.uri, entity.id)
+    CollectionService.DeleteEntity(projectStore.activeProject.uri, entity.id)
       .then(async (response) => {
         emitter.emit('refresh-browser');
         collectionStore.selectedCollection = null;

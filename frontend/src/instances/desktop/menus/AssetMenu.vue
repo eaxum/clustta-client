@@ -59,7 +59,7 @@ const iconStore = useIconStore();
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 
 // services
-import { AssetService, CheckpointService, EntityService } from "@/../bindings/clustta/services";
+import { AssetService, CheckpointService, CollectionService } from "@/../bindings/clustta/services";
 import { TrashService } from "@/../bindings/clustta/services";
 
 // states/store imports
@@ -251,7 +251,7 @@ const goToLocation = async () => {
     // Get the parent entity of the selected task
     const selectedTask = assetStore.selectedAsset;
     if (selectedTask && selectedTask.entity_id) {
-      const parentEntity = await EntityService.GetEntityByID(projectStore.activeProject.uri, selectedTask.entity_id);
+      const parentEntity = await CollectionService.GetEntityByID(projectStore.activeProject.uri, selectedTask.entity_id);
       if (parentEntity) {
         collectionStore.navigatedCollection = parentEntity;
         collectionStore.selectedCollection = parentEntity;

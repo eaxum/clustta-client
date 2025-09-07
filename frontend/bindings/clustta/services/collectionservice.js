@@ -21,7 +21,7 @@ import * as $models from "./models.js";
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function Assign(projectPath, entityId, userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(611943161, projectPath, entityId, userId));
+    let $resultPromise = /** @type {any} */($Call.ByID(2838915874, projectPath, entityId, userId));
     return $resultPromise;
 }
 
@@ -32,7 +32,7 @@ export function Assign(projectPath, entityId, userId) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function ChangeEntityParent(projectPath, entityId, parentId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2991813619, projectPath, entityId, parentId));
+    let $resultPromise = /** @type {any} */($Call.ByID(325099640, projectPath, entityId, parentId));
     return $resultPromise;
 }
 
@@ -43,7 +43,7 @@ export function ChangeEntityParent(projectPath, entityId, parentId) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function ChangeIsLibrary(projectPath, entityId, isLibrary) {
-    let $resultPromise = /** @type {any} */($Call.ByID(505397091, projectPath, entityId, isLibrary));
+    let $resultPromise = /** @type {any} */($Call.ByID(2948869046, projectPath, entityId, isLibrary));
     return $resultPromise;
 }
 
@@ -54,7 +54,7 @@ export function ChangeIsLibrary(projectPath, entityId, isLibrary) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function ChangeType(projectPath, entityId, entityTypeId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(4255157640, projectPath, entityId, entityTypeId));
+    let $resultPromise = /** @type {any} */($Call.ByID(489875783, projectPath, entityId, entityTypeId));
     return $resultPromise;
 }
 
@@ -67,7 +67,7 @@ export function ChangeType(projectPath, entityId, entityTypeId) {
  * @returns {Promise<models$0.Entity[]> & { cancel(): void }}
  */
 export function CreateEntities(projectPath, name, description, entityTypeId, parentId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3952166287, projectPath, name, description, entityTypeId, parentId));
+    let $resultPromise = /** @type {any} */($Call.ByID(1645097088, projectPath, name, description, entityTypeId, parentId));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType0($result);
     }));
@@ -86,7 +86,7 @@ export function CreateEntities(projectPath, name, description, entityTypeId, par
  * @returns {Promise<models$0.Entity> & { cancel(): void }}
  */
 export function CreateEntity(projectPath, name, description, entityTypeId, parentId, previewPath, isLibrary) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3642338551, projectPath, name, description, entityTypeId, parentId, previewPath, isLibrary));
+    let $resultPromise = /** @type {any} */($Call.ByID(3498346356, projectPath, name, description, entityTypeId, parentId, previewPath, isLibrary));
     return $resultPromise;
 }
 
@@ -98,7 +98,7 @@ export function CreateEntity(projectPath, name, description, entityTypeId, paren
  * @returns {Promise<models$0.EntityType> & { cancel(): void }}
  */
 export function CreateEntityType(projectPath, entityTypeName, entityTypeIcon) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2410066447, projectPath, entityTypeName, entityTypeIcon));
+    let $resultPromise = /** @type {any} */($Call.ByID(1075536572, projectPath, entityTypeName, entityTypeIcon));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
@@ -113,7 +113,7 @@ export function CreateEntityType(projectPath, entityTypeName, entityTypeIcon) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function DeleteEntity(projectPath, entityId, removeFiles) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1832564460, projectPath, entityId, removeFiles));
+    let $resultPromise = /** @type {any} */($Call.ByID(2552267571, projectPath, entityId, removeFiles));
     return $resultPromise;
 }
 
@@ -123,7 +123,7 @@ export function DeleteEntity(projectPath, entityId, removeFiles) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function DeleteEntityType(projectPath, id) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2995145476, projectPath, id));
+    let $resultPromise = /** @type {any} */($Call.ByID(1615647211, projectPath, id));
     return $resultPromise;
 }
 
@@ -132,7 +132,7 @@ export function DeleteEntityType(projectPath, id) {
  * @returns {Promise<models$0.Entity[]> & { cancel(): void }}
  */
 export function GetEntities(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2773358599, projectPath));
+    let $resultPromise = /** @type {any} */($Call.ByID(2776317274, projectPath));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType0($result);
     }));
@@ -146,7 +146,7 @@ export function GetEntities(projectPath) {
  * @returns {Promise<models$0.Entity> & { cancel(): void }}
  */
 export function GetEntityByID(projectPath, entityId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(930516039, projectPath, entityId));
+    let $resultPromise = /** @type {any} */($Call.ByID(3647431870, projectPath, entityId));
     return $resultPromise;
 }
 
@@ -160,7 +160,7 @@ export function GetEntityByID(projectPath, entityId) {
  * @returns {Promise<$models.EntityItems> & { cancel(): void }}
  */
 export function GetEntityChildren(projectPath, entityId, projectWorkingDir, entityFolderPath, ignoreList, isUntracked) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3835725672, projectPath, entityId, projectWorkingDir, entityFolderPath, ignoreList, isUntracked));
+    let $resultPromise = /** @type {any} */($Call.ByID(2333916309, projectPath, entityId, projectWorkingDir, entityFolderPath, ignoreList, isUntracked));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType2($result);
     }));
@@ -173,7 +173,7 @@ export function GetEntityChildren(projectPath, entityId, projectWorkingDir, enti
  * @returns {Promise<number> & { cancel(): void }}
  */
 export function GetEntityCount(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2144627222, projectPath));
+    let $resultPromise = /** @type {any} */($Call.ByID(1900444641, projectPath));
     return $resultPromise;
 }
 
@@ -183,7 +183,7 @@ export function GetEntityCount(projectPath) {
  * @returns {Promise<models$0.Task[]> & { cancel(): void }}
  */
 export function GetEntityTasks(projectPath, entityId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1007109839, projectPath, entityId));
+    let $resultPromise = /** @type {any} */($Call.ByID(1530475324, projectPath, entityId));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType3($result);
     }));
@@ -196,7 +196,7 @@ export function GetEntityTasks(projectPath, entityId) {
  * @returns {Promise<models$0.EntityType[]> & { cancel(): void }}
  */
 export function GetEntityTypes(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3737941740, projectPath));
+    let $resultPromise = /** @type {any} */($Call.ByID(2879379579, projectPath));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType4($result);
     }));
@@ -212,7 +212,7 @@ export function GetEntityTypes(projectPath) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function Rebuild(projectPath, remoteUrl, entityIds, userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3693104303, projectPath, remoteUrl, entityIds, userId));
+    let $resultPromise = /** @type {any} */($Call.ByID(1269618418, projectPath, remoteUrl, entityIds, userId));
     return $resultPromise;
 }
 
@@ -223,7 +223,7 @@ export function Rebuild(projectPath, remoteUrl, entityIds, userId) {
  * @returns {Promise<models$0.Entity> & { cancel(): void }}
  */
 export function RenameEntity(projectPath, entityId, newName) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3849373497, projectPath, entityId, newName));
+    let $resultPromise = /** @type {any} */($Call.ByID(425420182, projectPath, entityId, newName));
     return $resultPromise;
 }
 
@@ -233,7 +233,7 @@ export function RenameEntity(projectPath, entityId, newName) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function RevealEntity(projectPath, entityId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3419943186, projectPath, entityId));
+    let $resultPromise = /** @type {any} */($Call.ByID(3917072061, projectPath, entityId));
     return $resultPromise;
 }
 
@@ -243,7 +243,7 @@ export function RevealEntity(projectPath, entityId) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function RevertEntities(projectPath, entityIds) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2582293481, projectPath, entityIds));
+    let $resultPromise = /** @type {any} */($Call.ByID(2585369498, projectPath, entityIds));
     return $resultPromise;
 }
 
@@ -254,7 +254,7 @@ export function RevertEntities(projectPath, entityIds) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function Unassign(projectPath, entityId, userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1060540626, projectPath, entityId, userId));
+    let $resultPromise = /** @type {any} */($Call.ByID(3540910669, projectPath, entityId, userId));
     return $resultPromise;
 }
 
@@ -266,7 +266,7 @@ export function Unassign(projectPath, entityId, userId) {
  * @returns {Promise<models$0.EntityType> & { cancel(): void }}
  */
 export function UpdateEntityType(projectPath, id, entityTypeName, entityTypeIcon) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3047135774, projectPath, id, entityTypeName, entityTypeIcon));
+    let $resultPromise = /** @type {any} */($Call.ByID(1807353633, projectPath, id, entityTypeName, entityTypeIcon));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
@@ -281,7 +281,7 @@ export function UpdateEntityType(projectPath, id, entityTypeName, entityTypeIcon
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function UpdatePreview(projectPath, entityId, previewPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(247139203, projectPath, entityId, previewPath));
+    let $resultPromise = /** @type {any} */($Call.ByID(406683254, projectPath, entityId, previewPath));
     return $resultPromise;
 }
 

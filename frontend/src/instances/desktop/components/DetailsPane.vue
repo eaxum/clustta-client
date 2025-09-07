@@ -111,7 +111,7 @@
 
 <script setup>
 // services
-import { CheckpointService, AssetService, EntityService, SyncService } from "@/../bindings/clustta/services";
+import { CheckpointService, AssetService, CollectionService, SyncService } from "@/../bindings/clustta/services";
 import { TrashService } from "@/../bindings/clustta/services";
 import { FSService } from '@/../bindings/clustta/services/index';
 import emitter from '@/lib/mitt';
@@ -209,7 +209,7 @@ const assignCollections = async (user) => {
       continue;
     }
 
-    await EntityService.Assign(projectStore.activeProject.uri, entityId, userId)
+    await CollectionService.Assign(projectStore.activeProject.uri, entityId, userId)
       .then((data) => {
         // Update the specific item in stage.selectedItems to reflect the assignment
         const itemIndex = stage.selectedItems.findIndex(item => item.id === entityId);
@@ -540,7 +540,7 @@ const deleteMultipleEntities = async () => {
   const entityIds = stage.markedItems;
 
   for (let entityId of entityIds) {
-    await EntityService.DeleteEntity(projectStore.activeProject.uri, entityId, true)
+    await CollectionService.DeleteEntity(projectStore.activeProject.uri, entityId, true)
       .then(async (response) => {
         if(onlyEntities.value){
           stage.markedItems = [];
@@ -756,7 +756,7 @@ const moveIntoFolder = async () => {
 
 const changeEntityParent = async (entityId, parentId) => {
 
-  await EntityService.ChangeEntityParent(projectStore.activeProject.uri, entityId, parentId)
+  await CollectionService.ChangeEntityParent(projectStore.activeProject.uri, entityId, parentId)
     .then((response) => {
       const successMessage = 'Moved successfully.'
       notificationStore.addNotification(successMessage, "", "success")
@@ -933,7 +933,7 @@ const changeEntityType = async (entityTypeName) => {
   const selectedEntitiesId = stage.markedItems
 
   for (const entityId of selectedEntitiesId) {
-    await EntityService.ChangeType(projectPath, entityId, newEntityType.id)
+    await CollectionService.ChangeType(projectPath, entityId, newEntityType.id)
       .then((data) => {
       })
       .catch((error) => {
@@ -954,7 +954,7 @@ const changeIsLibrary = async (collectionMode) => {
   const selectedCollectionIds = stage.markedItems;
 
   for (const collectionId of selectedCollectionIds) {
-    await EntityService.ChangeIsLibrary(projectPath, collectionId, isLibrary)
+    await CollectionService.ChangeIsLibrary(projectPath, collectionId, isLibrary)
       .then((data) => {
 
       })
@@ -976,7 +976,7 @@ const unassignCollections = async () => {
     
     for (const assigneeId of currentAssigneeIds) {
       
-        await EntityService.Unassign(projectStore.activeProject.uri, collection.id, assigneeId)
+        await CollectionService.Unassign(projectStore.activeProject.uri, collection.id, assigneeId)
           .then((data) => {
             const itemIndex = stage.selectedItems.findIndex(item => item.id === collection.id);
             if (itemIndex !== -1) {
@@ -1024,7 +1024,7 @@ const rebuildCollections = async () => {
     const entityIds = stage.markedItems;
     const entityIdsString = entityIds.join(',');
     
-    await EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entityIdsString)
+    await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entityIdsString)
       .then((data) => {
         assetStore.refreshEntityFilesStatus();
         notificationStore.addNotification(`${entityIds.length} collection(s) rebuilt successfully`, '', "success", false);

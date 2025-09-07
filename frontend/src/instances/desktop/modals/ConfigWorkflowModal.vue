@@ -42,7 +42,7 @@
 import { onMounted, watchEffect, ref, computed, onUnmounted  } from 'vue';
 
 // services
-import { EntityService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/../bindings/clustta/services";
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';

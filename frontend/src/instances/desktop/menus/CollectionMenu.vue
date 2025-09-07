@@ -74,7 +74,7 @@ import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import utils from '@/services/utils';
 
 // services
-import { EntityService, SyncService, AssetService, TrashService, CheckpointService } from "@/../bindings/clustta/services";
+import { CollectionService, SyncService, AssetService, TrashService, CheckpointService } from "@/../bindings/clustta/services";
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -305,7 +305,7 @@ const generateUniqueDestinationPath = async (directory, fileName) => {
 const deleteEntity = async () => {
   let entity = collectionStore.selectedCollection;
   panes.setPaneVisibility('projectDetails', true);
-  EntityService.DeleteEntity(projectStore.activeProject.uri, entity.id)
+  CollectionService.DeleteEntity(projectStore.activeProject.uri, entity.id)
     .then(async (response) => {
       stage.markedItems = [];
       collectionStore.selectedCollection = null;
@@ -349,7 +349,7 @@ const rebuildCollection = () => {
   let entity = collectionStore.selectedCollection;
   notificationStore.cancleFunction = SyncService.CancelSync
   notificationStore.canCancel = true
-  EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entity.id)
+  CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entity.id)
     .then((data) => {
       assetStore.refreshEntityFilesStatus(entity.id)
       emitter.emit('refresh-browser');

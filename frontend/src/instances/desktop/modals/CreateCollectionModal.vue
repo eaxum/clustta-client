@@ -45,7 +45,7 @@ import { onMounted, watchEffect, ref, computed, onUnmounted } from 'vue';
 import emitter from '@/lib/mitt';
 
 // services
-import { CheckpointService, AssetService, EntityService } from "@/../bindings/clustta/services";
+import { CheckpointService, AssetService, CollectionService } from "@/../bindings/clustta/services";
 import { FSService } from '@/../bindings/clustta/services/index';
 
 // state imports
@@ -167,7 +167,7 @@ const createEntityAndMove = async () => {
   const type = stage.selectedItem?.type;
 	let project = projectStore.activeProject;
 
-  const allEntities = await EntityService.GetEntities(project.uri);
+  const allEntities = await CollectionService.GetEntities(project.uri);
 
   let parent;
 
@@ -189,7 +189,7 @@ const createEntityAndMove = async () => {
   let selectedEntityType = collectionStore.collectionTypes.find(item => item.name === entityType.value);
 
 
-  EntityService.CreateEntity(projectStore.activeProject.uri, entityName.value, "", selectedEntityType.id, parentId, "", isLibrary.value)
+  CollectionService.CreateEntity(projectStore.activeProject.uri, entityName.value, "", selectedEntityType.id, parentId, "", isLibrary.value)
     .then(async data => {
       const successMessage = entityName.value + ' collection created';
       const newEntity = data;
@@ -231,7 +231,7 @@ const createSingleEntity = async () => {
     parentId = '';
   }
 
-  await EntityService.CreateEntity(projectStore.activeProject.uri, entityName.value, "", selectedEntityTypeId.value, parentId, "", isLibrary.value)
+  await CollectionService.CreateEntity(projectStore.activeProject.uri, entityName.value, "", selectedEntityTypeId.value, parentId, "", isLibrary.value)
     .then(async data => {
       if(!isMultiple){
       const newEntity = data;
@@ -327,7 +327,7 @@ const moveIntoFolder = async (activeItemId) => {
 
 const changeEntityParent = async (entityId, parentId) => {
 
-  await EntityService.ChangeEntityParent(projectStore.activeProject.uri, entityId, parentId)
+  await CollectionService.ChangeEntityParent(projectStore.activeProject.uri, entityId, parentId)
     .then((response) => {
       collectionStore.changeEntityParent(entityId, parentId);
       const successMessage = 'Moved successfully.'

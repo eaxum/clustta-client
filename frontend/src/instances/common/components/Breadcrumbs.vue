@@ -43,7 +43,7 @@
 
 <script setup>
 import { ref, computed, onUnmounted, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
-import { EntityService, ClipboardService, FSService } from '@/../bindings/clustta/services';
+import { CollectionService, ClipboardService, FSService } from '@/../bindings/clustta/services';
 
 const emit = defineEmits(['filter']);
 
@@ -265,7 +265,7 @@ const goToCollection = async (selectedPath) => {
     const navigatedEntity = collectionStore.navigatedCollection;
     const navigatedEntityType = navigatedEntity.type;
     if(navigatedEntityType === 'entity'){
-      currentEntity = await EntityService.GetEntityByID(projectStore.activeProject.uri, navigatedEntity.parent_id);
+      currentEntity = await CollectionService.GetEntityByID(projectStore.activeProject.uri, navigatedEntity.parent_id);
     } else {
       console.log(allUntrackedFolders)
       currentEntity = allUntrackedFolders.find((collection) => collection.item_path === clickedPath)
@@ -295,7 +295,7 @@ const goUpALevel = async () => {
     return
   }
 
-  const parentEntity = await EntityService.GetEntityByID(projectStore.activeProject.uri, parentEntityId);
+  const parentEntity = await CollectionService.GetEntityByID(projectStore.activeProject.uri, parentEntityId);
 
 	if(parentEntity){
 		collectionStore.navigatedCollection = parentEntity;

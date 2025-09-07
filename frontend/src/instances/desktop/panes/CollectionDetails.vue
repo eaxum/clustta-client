@@ -123,7 +123,7 @@ const getAppIcon = (iconName) => {
   return icon
 };
 
-import { ClipboardService, EntityService } from "@/../bindings/clustta/services";
+import { ClipboardService, CollectionService } from "@/../bindings/clustta/services";
 import { FSService } from '@/../bindings/clustta/services/index';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import AssigneeItem from '@/instances/common/components/AssigneeItem.vue'
@@ -204,7 +204,7 @@ const copyEntityPath = async () => {
 
 const removeUser = (user) => {
   const userId = user.id;
-  EntityService.Unassign(projectStore.activeProject.uri, collectionStore.selectedCollection.id, userId)
+  CollectionService.Unassign(projectStore.activeProject.uri, collectionStore.selectedCollection.id, userId)
     .then((data) => {
       // Update local entity data
       collectionStore.selectedCollection.assignee_ids = collectionStore.selectedCollection.assignee_ids.filter(t => t !== userId);
@@ -229,7 +229,7 @@ const addUser = (user) => {
     return
   }
   else {
-    EntityService.Assign(projectStore.activeProject.uri, collectionStore.selectedCollection.id, userId)
+    CollectionService.Assign(projectStore.activeProject.uri, collectionStore.selectedCollection.id, userId)
       .then((data) => {
         // Update local entity data
         collectionStore.selectedCollection.assignee_ids.push(userId);
@@ -264,7 +264,7 @@ const changeEntityType = async (entityTypeName) => {
   const projectPath = projectStore.activeProject.uri;
   let entity = collectionStore.selectedCollection;
 
-  await EntityService.ChangeType(projectPath, entity.id, newEntityType.id)
+  await CollectionService.ChangeType(projectPath, entity.id, newEntityType.id)
     .then((data) => {
       // Update local entity data
       entity.entity_type_name = newEntityType.name;
@@ -290,7 +290,7 @@ const changeIsLibrary = async () => {
   const projectPath = projectStore.activeProject.uri;
   let entity = collectionStore.selectedCollection;
 
-  await EntityService.ChangeIsLibrary(projectPath, entity.id, !collectionStore.selectedCollection.is_library)
+  await CollectionService.ChangeIsLibrary(projectPath, entity.id, !collectionStore.selectedCollection.is_library)
     .then((data) => {
       // Update local entity data
       collectionStore.selectedCollection.is_library = !collectionStore.selectedCollection.is_library;

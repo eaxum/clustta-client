@@ -54,7 +54,7 @@ import emitter from '@/lib/mitt';
 
 // services
 import { DialogService } from '@/../bindings/clustta/services/index';
-import { EntityService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/../bindings/clustta/services";
 
 // state imports
 import { useNotificationStore } from '@/stores/notifications';
@@ -185,7 +185,7 @@ const updateEntityMeta = async () => {
   let newEntityTypeId = entityTypeId.value;
   let entity = collectionStore.selectedCollection;
   if (entity.name != entityName.value) {
-    await EntityService.RenameEntity(projectStore.activeProject.uri, entityId, entityName.value)
+    await CollectionService.RenameEntity(projectStore.activeProject.uri, entityId, entityName.value)
       .then((data) => {
         entity.name = entityName.value;
         emitter.emit('refresh-browser');
@@ -196,7 +196,7 @@ const updateEntityMeta = async () => {
       });
   }
   if (entity.entityTypeId != newEntityTypeId) {
-    await EntityService.ChangeType(projectStore.activeProject.uri, entityId, newEntityTypeId)
+    await CollectionService.ChangeType(projectStore.activeProject.uri, entityId, newEntityTypeId)
       .then((data) => {
         entity.entity_type_name = entityType.value;
         entity.entity_type_icon = entityTypeIcon.value;
@@ -208,7 +208,7 @@ const updateEntityMeta = async () => {
       });
   }
   if (entity.isLibrary != isLibrary.value) {
-    await EntityService.ChangeIsLibrary(projectStore.activeProject.uri, entityId, isLibrary.value)
+    await CollectionService.ChangeIsLibrary(projectStore.activeProject.uri, entityId, isLibrary.value)
     .then((data) => {
       entity.isLibrary = isLibrary.value;
     })
@@ -226,7 +226,7 @@ const updateEntityCover = async () => {
 
   const filePath = coverImagePath.value;
   console.log(filePath)
-  await EntityService.UpdatePreview(projectStore.activeProject.uri, entityId, filePath).then(() => {
+  await CollectionService.UpdatePreview(projectStore.activeProject.uri, entityId, filePath).then(() => {
     entity.preview = entityPreview.value;
     console.log('removed')
   }).catch((error) => {
