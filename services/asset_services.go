@@ -45,7 +45,7 @@ type AssetsStates struct {
 	Outdated    []AssetStateItem `json:"outdated"`
 }
 
-func (t *AssetService) GetTaskCount(projectPath string) (int, error) {
+func (t *AssetService) GetAssetCount(projectPath string) (int, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return 0, err
@@ -62,7 +62,7 @@ func (t *AssetService) GetTaskCount(projectPath string) (int, error) {
 
 	return count, nil
 }
-func (t *AssetService) CreateTask(projectPath, name, description, taskTypeId, entityId string, isResource bool, templateId, templateFilePath, pointer string, isLink bool, tags []string, previewPath, comment string) (models.Task, error) {
+func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, entityId string, isResource bool, templateId, templateFilePath, pointer string, isLink bool, tags []string, previewPath, comment string) (models.Task, error) {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -149,7 +149,7 @@ func (t *AssetService) CreateTask(projectPath, name, description, taskTypeId, en
 	return createdTask, nil
 }
 
-func (t *AssetService) DuplicateTask(projectPath, sourceTaskId string) (models.Task, error) {
+func (t *AssetService) DuplicateAsset(projectPath, sourceTaskId string) (models.Task, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.Task{}, err
@@ -292,7 +292,7 @@ func (t *AssetService) ChangeStatus(projectPath, taskId, statusId string) error 
 	return nil
 }
 
-func (t *AssetService) ChangeTaskEntity(projectPath, taskId, entityId string) error {
+func (t *AssetService) ChangeAssetCollection(projectPath, taskId, entityId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -311,7 +311,7 @@ func (t *AssetService) ChangeTaskEntity(projectPath, taskId, entityId string) er
 	}
 	return nil
 }
-func (t *AssetService) DeleteTask(projectPath, taskId string, removeFiles bool) error {
+func (t *AssetService) DeleteAsset(projectPath, taskId string, removeFiles bool) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -335,7 +335,7 @@ func (t *AssetService) DeleteTask(projectPath, taskId string, removeFiles bool) 
 	return nil
 }
 
-func (t *AssetService) UpdateTask(projectPath, taskId, name, taskTypeId string, isResource bool, pointer string, tags []string) (models.Task, error) {
+func (t *AssetService) UpdateAsset(projectPath, taskId, name, taskTypeId string, isResource bool, pointer string, tags []string) (models.Task, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.Task{}, err
@@ -359,7 +359,7 @@ func (t *AssetService) UpdateTask(projectPath, taskId, name, taskTypeId string, 
 	return updatedTask, nil
 }
 
-func (t *AssetService) ChangeTaskType(projectPath, taskId, taskTypeId string) error {
+func (t *AssetService) ChangeAssetType(projectPath, taskId, taskTypeId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -405,7 +405,7 @@ func (t *AssetService) ToggleIsTask(projectPath, taskId string, isTask bool) err
 	return nil
 }
 
-func (t *AssetService) RenameTask(projectPath, taskId, name string) (models.Task, error) {
+func (t *AssetService) RenameAsset(projectPath, taskId, name string) (models.Task, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.Task{}, err
@@ -464,7 +464,7 @@ func (t *AssetService) AddPreview(projectPath, taskId, previewPath string) (mode
 	return updatedTask, nil
 }
 
-func (t *AssetService) AssignTask(projectPath, taskId, userId string) error {
+func (t *AssetService) AssignAsset(projectPath, taskId, userId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -487,7 +487,7 @@ func (t *AssetService) AssignTask(projectPath, taskId, userId string) error {
 	}
 	return nil
 }
-func (t *AssetService) UnassignTask(projectPath, taskId string) error {
+func (t *AssetService) UnassignAsset(projectPath, taskId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -510,7 +510,7 @@ func (t *AssetService) UnassignTask(projectPath, taskId string) error {
 	}
 	return nil
 }
-func (t *AssetService) TaskFileStatus(projectPath, taskId string) (string, error) {
+func (t *AssetService) AssetFileStatus(projectPath, taskId string) (string, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return "", err
@@ -528,7 +528,7 @@ func (t *AssetService) TaskFileStatus(projectPath, taskId string) (string, error
 	}
 	return task.FileStatus, nil
 }
-func (t *AssetService) TaskFilesStatus(projectPath string, taskIds []string) (map[string]string, error) {
+func (t *AssetService) AssetFilesStatus(projectPath string, taskIds []string) (map[string]string, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return map[string]string{}, err
@@ -565,7 +565,7 @@ func (t *AssetService) ToggleIsResource(projectPath string, taskIds []string, is
 	return nil
 }
 
-func (t *AssetService) RevealTask(projectPath, taskId string) error {
+func (t *AssetService) RevealAsset(projectPath, taskId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -628,7 +628,7 @@ func (t *AssetService) RemoveEntityDependency(projectPath, taskId, dependencyId 
 	}
 	return nil
 }
-func (t *AssetService) AddTaskDependency(projectPath, taskId, dependencyId, dependencyTypeId string) (models.TaskDependency, error) {
+func (t *AssetService) AddAssetDependency(projectPath, taskId, dependencyId, dependencyTypeId string) (models.TaskDependency, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.TaskDependency{}, err
@@ -651,7 +651,7 @@ func (t *AssetService) AddTaskDependency(projectPath, taskId, dependencyId, depe
 
 	return taskDependency, nil
 }
-func (t *AssetService) RemoveTaskDependency(projectPath, taskId, dependencyId string) error {
+func (t *AssetService) RemoveAssetDependency(projectPath, taskId, dependencyId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -672,7 +672,7 @@ func (t *AssetService) RemoveTaskDependency(projectPath, taskId, dependencyId st
 	}
 	return nil
 }
-func (t *AssetService) GetTaskDependencies2(projectPath string, taskIds []string) ([]models.Task, error) {
+func (t *AssetService) GetAssetDependencies2(projectPath string, taskIds []string) ([]models.Task, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return []models.Task{}, err
@@ -709,7 +709,7 @@ func (t *AssetService) GetTaskDependencies2(projectPath string, taskIds []string
 
 	return tasks, nil
 }
-func (t *AssetService) GetTaskDependencies(projectPath string, taskIds []string) ([]interface{}, error) {
+func (t *AssetService) GetAssetDependencies(projectPath string, taskIds []string) ([]interface{}, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return []interface{}{}, err
@@ -1003,7 +1003,7 @@ func (t *AssetService) GetRecursiveDependencies(projectPath string, taskId strin
 	return result, nil
 }
 
-func (t *AssetService) GetTasks(projectPath string) ([]models.Task, error) {
+func (t *AssetService) GetAssets(projectPath string) ([]models.Task, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
 		return []models.Task{}, err
@@ -1069,7 +1069,7 @@ func (t *AssetService) TestData() string {
 	return "test"
 }
 
-func (t *AssetService) GetTasksPB(projectPath string) ([]byte, error) {
+func (t *AssetService) GetAssetsPB(projectPath string) ([]byte, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
 		return []byte{}, err
@@ -1152,8 +1152,8 @@ func (t *AssetService) GetTasksPB(projectPath string) ([]byte, error) {
 	}
 }
 
-// task types
-func (t *AssetService) GetTaskTypes(projectPath string) ([]models.TaskType, error) {
+// asset types
+func (t *AssetService) GetAssetTypes(projectPath string) ([]models.TaskType, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
 		return []models.TaskType{}, err
@@ -1172,7 +1172,7 @@ func (t *AssetService) GetTaskTypes(projectPath string) ([]models.TaskType, erro
 	return taskTypes, nil
 }
 
-func (t *AssetService) DeleteTaskType(projectPath, id string) error {
+func (t *AssetService) DeleteAssetType(projectPath, id string) error {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
 		return err
@@ -1196,7 +1196,7 @@ func (t *AssetService) DeleteTaskType(projectPath, id string) error {
 	return nil
 }
 
-func (t *AssetService) CreateTaskType(projectPath, name, icon string) (models.TaskType, error) {
+func (t *AssetService) CreateAssetType(projectPath, name, icon string) (models.TaskType, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
 		return models.TaskType{}, err
@@ -1220,7 +1220,7 @@ func (t *AssetService) CreateTaskType(projectPath, name, icon string) (models.Ta
 	return taskTypes, nil
 }
 
-func (t *AssetService) UpdateTaskType(projectPath, id, name, icon string) (models.TaskType, error) {
+func (t *AssetService) UpdateAssetType(projectPath, id, name, icon string) (models.TaskType, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
 		return models.TaskType{}, err

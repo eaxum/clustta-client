@@ -180,7 +180,7 @@ const duplicateTask = async () => {
     stage.operationActive = true;
     let selectedTask = assetStore.selectedAsset;
     
-		await AssetService.DuplicateTask(projectStore.activeProject.uri, selectedTask.id)
+		await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedTask.id)
 		.then((duplicatedTask) => {
 			emitter.emit('refresh-browser')
 			assetStore.selectAsset(duplicatedTask);
@@ -281,7 +281,7 @@ const revealInExplorer = async () => {
     });
 
   } 
-  AssetService.RevealTask(projectStore.activeProject.uri, assetStore.selectedAsset.id);
+  AssetService.RevealAsset(projectStore.activeProject.uri, assetStore.selectedAsset.id);
 };
 
 const revertTask = async () => {
@@ -322,7 +322,7 @@ const deleteTask = async () => {
   panes.setPaneVisibility('projectDetails', true);
   menu.hideContextMenu();
   assetStore.selectedAsset = null;
-  AssetService.DeleteTask(projectStore.activeProject.uri, taskId, true)
+  AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
     .then(async (response) => {
       trayStates.undoItemId = taskId;
       trayStates.undoFunction = undoTaskDelete;

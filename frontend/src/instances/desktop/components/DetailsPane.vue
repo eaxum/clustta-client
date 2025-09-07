@@ -625,7 +625,7 @@ const deleteMultipleTasks = async () => {
   stage.operationActive = true;
   const taskIds = stage.markedItems;
   for (let taskId of taskIds) {
-    await AssetService.DeleteTask(projectStore.activeProject.uri, taskId, true)
+    await AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
       .then(async (response) => {
         emitter.emit('refresh-browser');
         notificationStore.addNotification("Assets moved to Trash.", '', "success", false);
@@ -643,7 +643,7 @@ const deleteMultipleTasks = async () => {
 const unassignTasks = async () => {
   let taskIds = stage.markedItems;
   for (const taskId of taskIds) {
-    await AssetService.UnassignTask(projectStore.activeProject.uri, taskId)
+    await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId)
       .then(async (data) => {
       })
       .catch((error) => {
@@ -768,7 +768,7 @@ const changeEntityParent = async (entityId, parentId) => {
 };
 
 const changeTaskEntity = async (taskId, entityId) => {
-  await AssetService.ChangeTaskEntity(projectStore.activeProject.uri, taskId, entityId)
+  await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskId, entityId)
     .then((response) => {
       const successMessage = 'Moved successfully.'
       notificationStore.addNotification(successMessage, "", "success")
@@ -817,7 +817,7 @@ const addTaskDependency = async (task, dependencyId) => {
 
   let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
 
-  await AssetService.AddTaskDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+  await AssetService.AddAssetDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
     .then((response) => {
       if (!task.dependencies) {
         task.dependencies = [];
@@ -909,7 +909,7 @@ const changeTaskType = async (taskTypeName) => {
   const selectedTasksIds = stage.markedItems;
 
   for (const taskId of selectedTasksIds) {
-    await AssetService.ChangeTaskType(projectPath, taskId, newTaskType.id)
+    await AssetService.ChangeAssetType(projectPath, taskId, newTaskType.id)
       .then((data) => {
       })
       .catch((error) => {

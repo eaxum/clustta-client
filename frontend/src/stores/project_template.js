@@ -76,7 +76,7 @@ export const useProjectTemplateStore = defineStore("project_template", {
         this.taskTemplates.push(template);
       }
 
-      let assetTypes = await AssetService.GetTaskTypes(
+      let assetTypes = await AssetService.GetAssetTypes(
         this.activeProjectTemplate.uri
       );
       this.assetTypes = assetTypes;

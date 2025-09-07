@@ -196,7 +196,7 @@ const createTask = async (launch = false, comment = "new file") => {
     if (entities.length > 0) {
       entityId = entities[0]
     }
-    await AssetService.CreateTask(
+    await AssetService.CreateAsset(
       projectStore.activeProject.uri,
       taskName.value,
       "",
