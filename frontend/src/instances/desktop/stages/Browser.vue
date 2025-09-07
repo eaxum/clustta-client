@@ -102,7 +102,7 @@
 				<GhostItem v-bind="draggedCard" :data="draggedCard" />
 			</div>
 
-			<TaskListSkeleton v-if="!assetStore.tasksLoaded" />
+			<TaskListSkeleton v-if="!assetStore.assetsLoaded" />
 			<VirtuaScroll v-else-if="rootData.length && !commonStore.useGrid" :items="rootData" />
 			<GridView v-else-if="rootData.length" :rootItems="rootData" />
 			<PageState v-else :message="message()" :prompt="prompt()" :illustration="illustration()" />
@@ -193,7 +193,7 @@ const rootData = ref([]);
 import { Events } from "@wailsio/runtime";
 
 const operationsActive = computed(() => {
-	return stage.operationActive || !!modals.activeModal || !!menu.activeMenu || !assetStore.tasksLoaded || stage.activeStage !== 'browser'
+	return stage.operationActive || !!modals.activeModal || !!menu.activeMenu || !assetStore.assetsLoaded || stage.activeStage !== 'browser'
 });
 
 Events.On('reload-view', async () => {
@@ -311,7 +311,7 @@ const duplicateTask = async () => {
 		stage.operationActive = true
 		
 		stage.markedItems = [];
-		assetStore.selectedTask = null;
+		assetStore.selectedAsset = null;
 
 		await TaskService.DuplicateTask(projectStore.activeProject.uri, selectedItemId)
 		.then((duplicatedTask) => {
@@ -497,7 +497,7 @@ const isTasksModified = computed(() => {
 		: collectionStore.navigatedCollection?.item_path;
 
 
-	const modifiedTasksPath = assetStore.modifiedTasksPath;
+	const modifiedTasksPath = assetStore.modifiedAssetsPath;
 	let filteredPaths;
 
 	filteredPaths = modifiedTasksPath.filter(item => item.startsWith(path));
@@ -514,7 +514,7 @@ const isTasksModified = computed(() => {
 const isTasksOutdated = computed(() => {
 
 	let path = collectionStore.navigatedCollection?.entity_path;
-	const outdatedTasksPath = assetStore.outdatedTasksPath;
+	const outdatedTasksPath = assetStore.outdatedAssetsPath;
 
 	let filteredPaths;
 
@@ -530,7 +530,7 @@ const isTasksOutdated = computed(() => {
 const isTasksRebuildable = computed(() => {
 
 	let path = collectionStore.navigatedCollection?.entity_path;
-	const rebuildableTasksPath = assetStore.rebuildableTasksPath;
+	const rebuildableTasksPath = assetStore.rebuildableAssetsPath;
 
 	let filteredPaths;
 
@@ -550,7 +550,7 @@ const isTasksUntracked = computed(() => {
 		: collectionStore.navigatedCollection?.item_path;
 
 
-	const untrackedTasksPath = assetStore.untrackedTasksPath;
+	const untrackedTasksPath = assetStore.untrackedAssetsPath;
 	let filteredPaths;
 
 	filteredPaths = untrackedTasksPath.filter(item => item.startsWith(path));
@@ -860,7 +860,7 @@ const freeUpSpace = async () => {
 
 	stage.firstSelectedItemId = '';
 	stage.lastSelectedItemId = '';
-	assetStore.selectedTask = null;
+	assetStore.selectedAsset = null;
 	collectionStore.selectedCollection = null;
 
 	const allItemsToDelete = dndStore.allViewItems.filter((item) => stage.markedItems.includes(item.id))
@@ -937,7 +937,7 @@ const deleteMultipleItems = async () => {
 
 	stage.firstSelectedItemId = '';
 	stage.lastSelectedItemId = '';
-	assetStore.selectedTask = null;
+	assetStore.selectedAsset = null;
 	collectionStore.selectedCollection = null;
 
 	const allItemsToDelete = dndStore.allViewItems.filter((item) => stage.markedItems.includes(item.id))
@@ -1054,7 +1054,7 @@ const illustration = () => {
 };
 
 const openMenu = (event) => {
-	assetStore.selectedTask = null;
+	assetStore.selectedAsset = null;
 	collectionStore.selectedCollection = null;
 	projectStore.selectedUntrackedItem = null;
 	handleClickOutside(event, true)
@@ -1279,7 +1279,7 @@ const rebuildAll = async () => {
 
 	const path = collectionStore.navigatedCollection?.entity_path;
 	const navigatedEntityId = collectionStore.navigatedCollection?.id;
-	const rebuildableTasksPath = assetStore.rebuildableTasksPath;
+	const rebuildableTasksPath = assetStore.rebuildableAssetsPath;
 
 	notificationStore.cancleFunction = SyncService.CancelSync;
 	notificationStore.canCancel = true;
@@ -1293,7 +1293,7 @@ const rebuildAll = async () => {
 		await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, userTaskIds)
 		.then(() => {
 			
-			assetStore.rebuildableTasksPath = rebuildableTasksPath.filter(taskPath => 
+			assetStore.rebuildableAssetsPath = rebuildableTasksPath.filter(taskPath => 
 				!userTaskPaths.some(userTaskPath => taskPath.startsWith(userTaskPath))
 			);
 			softRefresh();
@@ -1309,9 +1309,9 @@ const rebuildAll = async () => {
 			.then((data) => {
 
 				if(path){
-					assetStore.rebuildableTasksPath = rebuildableTasksPath.filter(item => !item.startsWith(path))
+					assetStore.rebuildableAssetsPath = rebuildableTasksPath.filter(item => !item.startsWith(path))
 				} else {
-					assetStore.rebuildableTasksPath = [];
+					assetStore.rebuildableAssetsPath = [];
 				}
 
 				softRefresh();
@@ -1330,7 +1330,7 @@ const revertAllChanges = async () => {
 		? collectionStore.navigatedCollection?.entity_path
 		: collectionStore.navigatedCollection?.item_path;
 
-	const modifiedTasksPath = assetStore.modifiedTasksPath;
+	const modifiedTasksPath = assetStore.modifiedAssetsPath;
 	let filteredPaths;
 
 	// Filter paths based on current context
@@ -1342,7 +1342,7 @@ const revertAllChanges = async () => {
 
 	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
 		.then((response) => {
-			assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter(item => !filteredPaths.includes(item));
+			assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(item => !filteredPaths.includes(item));
 			softRefresh();
 		})
 		.catch((error) => {
@@ -1360,7 +1360,7 @@ const updateAllModified = async () => {
 		? collectionStore.navigatedCollection?.entity_path
 		: collectionStore.navigatedCollection?.item_path;
 
-	const outdatedTasksPath = assetStore.outdatedTasksPath;
+	const outdatedTasksPath = assetStore.outdatedAssetsPath;
 	let filteredPaths;
 
 	// Filter paths based on current context
@@ -1372,7 +1372,7 @@ const updateAllModified = async () => {
 
 	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
 		.then((response) => {
-			assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(item => !filteredPaths.includes(item));
+			assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(item => !filteredPaths.includes(item));
 			softRefresh();
 		})
 		.catch((error) => {
@@ -1407,7 +1407,7 @@ const clearSelection = () => {
 	stage.selectedItems = [];
 	stage.firstSelectedItemId = '';
 	stage.lastSelectedItemId = '';
-	assetStore.selectedTask = null;
+	assetStore.selectedAsset = null;
 	collectionStore.selectedCollection = null;
 }
 
@@ -1424,7 +1424,7 @@ const handleClickOutside = (event, rightClick = false) => {
 				stage.firstSelectedItemId = '';
 				stage.lastSelectedItemId = '';
 				stage.selectedItem = null;
-				assetStore.selectedTask = null;
+				assetStore.selectedAsset = null;
 				collectionStore.selectedCollection = null;
 				stage.cutItems = [];
 				projectStore.selectedUntrackedItem = null;
@@ -1436,7 +1436,7 @@ const handleClickOutside = (event, rightClick = false) => {
 				stage.firstSelectedItemId = '';
 				stage.lastSelectedItemId = '';
 				stage.selectedItem = null;
-				assetStore.selectedTask = null;
+				assetStore.selectedAsset = null;
 				stage.cutItems = [];
 				projectStore.selectedUntrackedItem = null;
 			}
@@ -1471,9 +1471,9 @@ const refresh = async () => {
 	if(kanbanView.value){
 		return
 	}
-	assetStore.tasksLoaded = false;
-	assetStore.modifiedTasksPath = []
-	assetStore.untrackedTasksPath = [];
+	assetStore.assetsLoaded = false;
+	assetStore.modifiedAssetsPath = []
+	assetStore.untrackedAssetsPath = [];
 	stage.cutItems = [];
 	await projectStore.refreshActiveProject();
 	await trayStates.refreshData();
@@ -1493,7 +1493,7 @@ const refresh = async () => {
 	await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
 
 	rootData.value = [...children.entities, ...children.untracked_entities, ...children.tasks, ...children.untracked_tasks];
-	assetStore.tasksLoaded = true;
+	assetStore.assetsLoaded = true;
 	console.log(children);
 
 	assetStore.reloadAssetStates();
@@ -1501,7 +1501,7 @@ const refresh = async () => {
 };
 
 const softRefresh = async () => {
-	assetStore.tasksLoaded = false;
+	assetStore.assetsLoaded = false;
 	stage.cutItems = [];
 
 	let children = {};
@@ -1573,12 +1573,12 @@ const softRefresh = async () => {
 
 	rootData.value = [...(allEntities ?? []), ...(allTasks ?? []), ...(children.untracked_entities ?? []), ...(children.untracked_tasks ?? [])];
 
-	assetStore.tasksLoaded = true;
+	assetStore.assetsLoaded = true;
 	assetStore.reloadAssetStates();
 };
 
-watch(() => assetStore.tasksLoaded, async () => {
-	if (assetStore.tasksLoaded) {
+watch(() => assetStore.assetsLoaded, async () => {
+	if (assetStore.assetsLoaded) {
 		const scrollTop = scrollStore.scrollTop;
 		await nextTick();
 		scrollStore.requestScroll(scrollTop);

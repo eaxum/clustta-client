@@ -257,10 +257,10 @@ const resetProjectData = () => {
   commonStore.resetFilters();
 
   collectionStore.collections = [];
-  assetStore.tasks = [];
+  assetStore.assets = [];
 
   collectionStore.selectedCollection = null;
-  assetStore.selectedTask = null;
+  assetStore.selectedAsset = null;
 
   stage.expandedEntities = {};
 

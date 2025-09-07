@@ -132,13 +132,11 @@ export const useTrayStates = defineStore("useTrayStates", {
       await userStore.reloadUsers();
       await collectionStore.reloadCollectionTypes();
       await assetStore.reloadAssetTypes();
-      // await collectionStore.reloadCollections();
       await templateStore.reloadTemplates();
       await workflowStore.reloadWorkflows();
       await statusStore.reloadStatuses();
       await dependencyStore.reloadDependencyTypes();
       await tagStore.reloadTags();
-      // await assetStore.reloadAssets();
       // await projectStore.reloadUntrackedItems();
       // console.timeEnd("loading_general_data");
     },

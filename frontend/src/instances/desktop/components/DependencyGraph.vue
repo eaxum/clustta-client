@@ -251,7 +251,7 @@ const projectTasks = computed(() => {
 });
 
 const projectData = computed(() => {
-  const selectedTask = assetStore.selectedTask;
+  const selectedTask = assetStore.selectedAsset;
   if (!selectedTask) return [];
   
   const allData = [...projectTasks.value, ...projectEntities.value]
@@ -333,7 +333,7 @@ const updateFilteredEntities = async () => {
 
 const buildGraphFromDependencies = async () => {
   isLoadingGraph.value = true;
-  const selectedTask = assetStore.selectedTask;
+  const selectedTask = assetStore.selectedAsset;
   
   if (!selectedTask) {
     graphData.value = { nodes: [], edges: [] };
@@ -510,7 +510,7 @@ watch([showTasks, showEntities], () => {
 });
 
 // Watch for selected task changes and rebuild graph
-watch(() => assetStore.selectedTask, async (newTask) => {
+watch(() => assetStore.selectedAsset, async (newTask) => {
   if (newTask) {
     await buildGraphFromDependencies();
   }
@@ -569,7 +569,7 @@ const selectTask = async (taskId) => {
 };
 
 const addDependency = async (dependencyId, itemType) => {
-  const task = assetStore.selectedTask;
+  const task = assetStore.selectedAsset;
   const allDependencies = [...sidebarTasks.value, ...sidebarEntities.value];
 
   let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
@@ -613,7 +613,7 @@ const addDependency = async (dependencyId, itemType) => {
 };
 
 const removeDependency = async (dependencyId, itemType) => {
-  const task = assetStore.selectedTask;
+  const task = assetStore.selectedAsset;
   if (itemType === "task") {
     await TaskService.RemoveTaskDependency(projectStore.activeProject.uri, task.id, dependencyId)
       .then(async(response) => {
@@ -664,7 +664,7 @@ onMounted(async () => {
   await fetchSidebarData();
   
   // Build initial graph if there's a selected task
-  if (assetStore.selectedTask) {
+  if (assetStore.selectedAsset) {
     await buildGraphFromDependencies();
   }
   

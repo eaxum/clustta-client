@@ -50,7 +50,7 @@ const entityIcon = ref('');
 
 // computed props
 const assignTo = computed(() => { return trayStates.assignTo });
-const task = computed(() => { return assetStore.selectedTask });
+const task = computed(() => { return assetStore.selectedAsset });
 
 const entity = computed(() => {
   if (assignTo.value === 'task') {

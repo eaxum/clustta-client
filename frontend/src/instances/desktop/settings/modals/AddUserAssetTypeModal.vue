@@ -53,7 +53,7 @@ const isAwaitingResponse = ref(false);
 
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allTaskTypeIcons = assetStore.taskTypes.map((item) => item.icon);
+  const allTaskTypeIcons = assetStore.assetTypes.map((item) => item.icon);
   return allIcons.filter((icon) => !allTaskTypeIcons.includes(icon))
 })
 

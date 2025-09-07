@@ -60,7 +60,7 @@ const getAppIcon = (iconName) => {
 };
 
 const selectedTask = computed(() => {
-  return assetStore.selectedTask
+  return assetStore.selectedAsset
 });
 
 const goToDependencyGraph = () => {
@@ -79,15 +79,15 @@ const emitTaskUpdates = (taskId, updates) => {
   emitter.emit('update-children', updateData);
 };
 
-watch(() => assetStore.selectedTask, async () => {
+watch(() => assetStore.selectedAsset, async () => {
     getTaskDependencies();
 }, { deep: true });
 
 const getTaskDependencies = async() => {
 	let project = projectStore.activeProject
   let allDependencies;
-  const selectedTaskDependencies = assetStore.selectedTask?.dependencies;
-  const selectedTaskEntityDependencies = assetStore.selectedTask?.entity_dependencies;
+  const selectedTaskDependencies = assetStore.selectedAsset?.dependencies;
+  const selectedTaskEntityDependencies = assetStore.selectedAsset?.entity_dependencies;
   allDependencies = [ ...selectedTaskDependencies, ...selectedTaskEntityDependencies];
   const children = await TaskService.GetTaskDependencies(project.uri, allDependencies);
 
@@ -139,7 +139,7 @@ const handleRemoveDependency = (payload) => {
 };
 
 const removeDependency = async (dependencyId, itemType) => {
-  const task = assetStore.selectedTask;
+  const task = assetStore.selectedAsset;
   let selectedTaskDependencies;
   console.log(itemType)
 

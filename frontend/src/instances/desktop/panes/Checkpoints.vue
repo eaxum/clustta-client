@@ -89,14 +89,14 @@ const updateExpanded = (index) => {
 
 // computed props
 const itemName = computed(() => {
-  if (!assetStore.selectedTask) {
+  if (!assetStore.selectedAsset) {
     return 'No task Selected'
   }
-  return assetStore.selectedTask.name;
+  return assetStore.selectedAsset.name;
 });
 
 const checkpointEntity = computed(() => {
-  return assetStore.selectedTask;
+  return assetStore.selectedAsset;
 });
 
 watch(checkpointEntity, () => {
@@ -106,19 +106,19 @@ watch(checkpointEntity, () => {
 const refreshCheckpoints = async () => {
 
   taskHash.value = "";
-  if (assetStore.selectedTask && await FSService.Exists(assetStore.selectedTask.file_path)) {
-    taskHash.value = await FSService.FileHash(assetStore.selectedTask.file_path);
+  if (assetStore.selectedAsset && await FSService.Exists(assetStore.selectedAsset.file_path)) {
+    taskHash.value = await FSService.FileHash(assetStore.selectedAsset.file_path);
   }
 
   trayStates.checkpointsLoaded = false;
   checkpoints.value = [];
 
-  if (!assetStore.selectedTask) {
+  if (!assetStore.selectedAsset) {
     trayStates.checkpointsLoaded = true;
     return;
   }
 
-  let task = assetStore.selectedTask;
+  let task = assetStore.selectedAsset;
   let taskCheckpoints = await CheckpointService.GetCheckpoints(projectStore.activeProject.uri, task.id)
     .then((data) => {
       return data;
@@ -175,8 +175,8 @@ const refreshCheckpoints = async () => {
 
 const updateTaskHash = async () => {
   taskHash.value = "";
-  if (assetStore.selectedTask && await FSService.Exists(assetStore.selectedTask.file_path)) {
-    taskHash.value = await FSService.FileHash(assetStore.selectedTask.file_path);
+  if (assetStore.selectedAsset && await FSService.Exists(assetStore.selectedAsset.file_path)) {
+    taskHash.value = await FSService.FileHash(assetStore.selectedAsset.file_path);
   }
 };
 

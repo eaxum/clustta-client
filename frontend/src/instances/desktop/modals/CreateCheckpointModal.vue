@@ -113,13 +113,13 @@ const isValueChanged = computed(() => {
   );
 });
 
-const statusMenuDisplayed = computed(() => { return assetStore.selectedTask.type !== "untracked_task" && displayStatusMenu.value });
+const statusMenuDisplayed = computed(() => { return assetStore.selectedAsset.type !== "untracked_task" && displayStatusMenu.value });
 
 const taskStatus = computed(() => {
-  if (assetStore.selectedTask.type === "untracked_task") {
+  if (assetStore.selectedAsset.type === "untracked_task") {
     return statusStore.statuses.find((item) => item.name === 'todo')
   }
-  return assetStore.selectedTask.status;
+  return assetStore.selectedAsset.status;
 });
 
 // methods
@@ -131,7 +131,7 @@ const toggleDisplayStatusMenu = () => {
   if (!userStore.canDo('change_status')) {
     return
   }
-  assetStore.isTaskStatus = true;
+  assetStore.isAssetTaskStatus = true;
   displayStatusMenu.value = true;
 };
 
@@ -155,16 +155,16 @@ const handleEnterKey = (event) => {
 
 const createCheckPoint = async () => {
   isAwaitingResponse.value = true;
-  let taskPath = assetStore.selectedTask.task_path
+  let taskPath = assetStore.selectedAsset.task_path
   let comment = message.value
   let previewPath = trayStates.previewFullPath;
   let groupId = uuidv4()
-  if (assetStore.selectedTask.type === "task") {
+  if (assetStore.selectedAsset.type === "task") {
     CheckpointService.AddCheckpoint(projectStore.activeProject.uri, [taskPath], comment, previewPath, groupId, useImageAsCover.value)
       .then((response) => {
         emitter.emit('refresh-browser');
-        assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter((modifiedTaskPath) => modifiedTaskPath !== taskPath)
-        assetStore.selectedTask.file_status = "normal"
+        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter((modifiedTaskPath) => modifiedTaskPath !== taskPath)
+        assetStore.selectedAsset.file_status = "normal"
         projectStore.refreshProjects();
         isAwaitingResponse.value = false;
         closeModal();
@@ -176,7 +176,7 @@ const createCheckPoint = async () => {
   } else {
     await CheckpointService.AddUntrackedTask(projectStore.activeProject.uri, projectStore.activeProject.working_directory, [taskPath], 0, 1, comment, previewPath, groupId)
       .then((response) => {
-        assetStore.untrackedTasksPath = assetStore.untrackedTasksPath.filter((path) => path !== taskPath)
+        assetStore.untrackedAssetsPath = assetStore.untrackedAssetsPath.filter((path) => path !== taskPath)
         emitter.emit('refresh-browser');
         projectStore.refreshProjects();
         isAwaitingResponse.value = false;

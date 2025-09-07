@@ -153,7 +153,7 @@ const revealInExplorer = () => {
 
 const copyItemPath = async (pathType) => {
   return
-  let task = assetStore.selectedTask;
+  let task = assetStore.selectedAsset;
   console.log(task)
   let taskPath = task.file_path;
   taskPath = taskPath.replace(/\\/g, '/');
@@ -173,7 +173,7 @@ const deleteItem = async () => {
   panes.setPaneVisibility('projectDetails', true);
   let item = untrackedItemStore.selectedUntrackedItem
   if (item.type == 'untracked_task') {
-    assetStore.selectedTask = null;
+    assetStore.selectedAsset = null;
     FSService.DeleteFile(item.file_path);
     projectStore.removeUntrackedTask(item.id);
   } else if (item.type == 'untracked_entity') {

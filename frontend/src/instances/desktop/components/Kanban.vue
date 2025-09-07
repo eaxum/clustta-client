@@ -129,6 +129,8 @@ const loadAssetTasks = async () => {
     const projectPath = projectStore.activeProject?.uri;
     if (projectPath) {
       const tasks = await TaskService.GetAssetTasks(projectPath);
+      console.log(tasks)
+      console.log(assetStore.assetTypes)
       await assetStore.processAssetsIconsAndPreviews(tasks);
       cards.value = tasks; // Update cards ref with the fetched tasks
       await updateFilteredCards(); // Update filtered cards
@@ -533,6 +535,7 @@ watch(() => cards.value, async () => {
 
 watch(() => commonStore.taskFilters, async () => {
   await updateFilteredCards();
+  console.log(commonStore.taskFilters)
 }, { deep: true });
 
 watch(() => commonStore.viewSearchQuery, async () => {

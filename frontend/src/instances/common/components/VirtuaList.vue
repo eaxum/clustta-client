@@ -428,7 +428,7 @@ const updateAssetState = async () => {
     if (visibleChild.type == "task") {
       let fileStatus = await assetStore.getAssetFileStatus(visibleChild)
       if (fileStatus === "modified") {
-        if (!assetStore.modifiedTasksPath.includes(visibleChild.task_path)) {
+        if (!assetStore.modifiedAssetsPath.includes(visibleChild.task_path)) {
           assetStore.addModifiedAssetPath(visibleChild.task_path)
         }
       }

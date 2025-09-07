@@ -242,7 +242,7 @@ const numberOfSelectedTasks = computed(() => {
 
 const singleTask = computed(() => {
   numberOfSelectedTasks.value = stage.markedItems.length;
-  const isSingleTask = stage.markedItems.length <= 1 && assetStore.selectedTask;
+  const isSingleTask = stage.markedItems.length <= 1 && assetStore.selectedAsset;
   return isSingleTask
 });
 
@@ -359,7 +359,7 @@ const viewCheckpoints = () => {
 
 const visiblePanes = computed(() => {
   if (stage.activeStage === 'browser') {
-    if (!collectionStore.selectedCollection && !assetStore.selectedTask && !projectStore.selectedUntrackedItem) {
+    if (!collectionStore.selectedCollection && !assetStore.selectedAsset && !projectStore.selectedUntrackedItem) {
       if (!stage.markedItems.length) {
         if(panes.activeModal !== 'projectCheckpoints'){
           panes.setPaneVisibility('projectDetails', true);
@@ -617,7 +617,7 @@ const clearSelection = () => {
 	stage.selectedItems = [];
 	stage.firstSelectedItemId = '';
 	stage.lastSelectedItemId = '';
-	assetStore.selectedTask = null;
+	assetStore.selectedAsset = null;
 	collectionStore.selectedCollection = null;
 }
 
@@ -666,9 +666,9 @@ const freeUpSpace = async () => {
     await FSService.DeleteFile(taskPath)
       .then((response) => {
         task.file_status = 'rebuildable'; 
-        assetStore.rebuildableTasksPath.push(task.task_path)
-        assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
-        assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter(taskPath => taskPath !== task.task_path);
+        assetStore.rebuildableAssetsPath.push(task.task_path)
+        assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path)
+        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => taskPath !== task.task_path);
         
         // Emit task updates to notify components of file state changes
         emitTaskUpdates(task.id, { file_status: 'rebuildable' });

@@ -309,19 +309,19 @@ const operationsActive = computed(() => {
 });
 
 const itemsModified = computed(() => {
-  return assetStore.modifiedTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
+  return assetStore.modifiedAssetsPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
 });
 
 const itemsUntracked = computed(() => {
-  return assetStore.untrackedTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
+  return assetStore.untrackedAssetsPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
 });
 
 const itemsOutdated = computed(() => {
-  return assetStore.outdatedTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
+  return assetStore.outdatedAssetsPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
 });
 
 const itemsRebuildable = computed(() => {
-  return assetStore.rebuildableTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
+  return assetStore.rebuildableAssetsPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
 });
 
 //methods
@@ -431,10 +431,10 @@ const triggerRename = () => {
 const updateEntityAssets = async () => {
 	notificationStore.cancleFunction = SyncService.CancelSync
 	notificationStore.canCancel = true
-  let entityOutdatedAssets = assetStore.outdatedTasksPath.filter(taskPath => taskPath.startsWith(props.entity.entity_path))
+  let entityOutdatedAssets = assetStore.outdatedAssetsPath.filter(taskPath => taskPath.startsWith(props.entity.entity_path))
 	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entityOutdatedAssets)
 		.then((data) => {
-			assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path))
+			assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path))
 			emitter.emit('refresh-browser');
 		}).catch(async (error) => {
 			notificationStore.errorNotification("Error Rebuilding All", error)
@@ -446,7 +446,7 @@ const rebuildEntity = async () => {
 	notificationStore.canCancel = true
 	await EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, props.entity.id)
 		.then((data) => {
-			assetStore.rebuildableTasksPath = assetStore.rebuildableTasksPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path))
+			assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path))
 			emitter.emit('refresh-browser');
 		}).catch(async (error) => {
 			notificationStore.errorNotification("Error Rebuilding All", error)

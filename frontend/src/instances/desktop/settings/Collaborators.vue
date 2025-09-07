@@ -62,7 +62,7 @@ const projectCollaborators = computed(() => {
 
   let projectUsers = userStore.getProjectCollaborators;
   let assignedUserIds = [];
-  let tasks = assetStore.tasks;
+  let tasks = assetStore.assets;
 
   for (const task of tasks) {
     let taskAssigneeId = task.assignee_id;

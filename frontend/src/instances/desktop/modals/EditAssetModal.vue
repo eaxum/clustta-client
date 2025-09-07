@@ -99,7 +99,7 @@ const projectTags = computed(() => {
 });
 
 const task = computed(() => {
-  return assetStore.selectedTask;
+  return assetStore.selectedAsset;
 });
 
 const title = computed(() => {
@@ -138,7 +138,7 @@ const itemTypes = computed(() => {
 });
 
 const isValueChanged = computed(() => {
-  const task = assetStore.selectedTask;
+  const task = assetStore.selectedAsset;
   if (!task) {
     return false
   }
@@ -212,8 +212,8 @@ const updateTask = async () => {
   taskTypeId.value;
 
   isAwaitingResponse.value = true;
-  let taskId = assetStore.selectedTask.id;
-  let task = assetStore.selectedTask;
+  let taskId = assetStore.selectedAsset.id;
+  let task = assetStore.selectedAsset;
   let data = {};
   let newTaskTags = tags.value;
 
@@ -265,7 +265,7 @@ watchEffect(() => {
 // onMounted
 onMounted(() => {
   trayStates.tagSearchQuery = '';
-  let task = assetStore.selectedTask;
+  let task = assetStore.selectedAsset;
   console.log(task)
   taskName.value = task.name;
   taskWebLink.value = task.pointer;

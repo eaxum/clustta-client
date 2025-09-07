@@ -104,24 +104,6 @@ function getPathParent(path) {
   return path.substring(0, lastSlashIndex);
 }
 
-const refresh = async () => {
-  assetStore.tasksLoaded = false;
-  await projectStore.refreshActiveProject()
-  await statusStore.reloadStatuses();
-  await collectionStore.reloadCollections();
-  await assetStore.reloadAssets();
-  projectStore.getUntrackedItems()
-  assetStore.tasksLoaded = true;
-};
-
-const handleEnterKey = (event) => {
-  importItems();
-};
-
-const escape = () => {
-  modals.setModalVisibility('timelineModal', false);
-};
-
 const closeModal = () => {
   modals.setModalVisibility("timelineModal", false);
 };

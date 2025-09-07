@@ -313,9 +313,9 @@ const freeUpProjectSpace = async () => {
       
       TaskService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates)=>{
         console.log(assetsStates)
-        assetStore.modifiedTasksPath = assetsStates.modified
-        assetStore.outdatedTasksPath = assetsStates.outdated
-        assetStore.rebuildableTasksPath = assetsStates.rebuildable
+        assetStore.modifiedAssetsPath = assetsStates.modified
+        assetStore.outdatedAssetsPath = assetsStates.outdated
+        assetStore.rebuildableAssetsPath = assetsStates.rebuildable
       })
 
       if (projectStore.activeProject.id == project.id) {
@@ -349,7 +349,7 @@ const rebuildAll = async () => {
 
 	const path = collectionStore.navigatedCollection?.entity_path;
 	const navigatedEntityId = collectionStore.navigatedCollection?.id;
-	const rebuildableTasksPath = assetStore.rebuildableTasksPath;
+	const rebuildableTasksPath = assetStore.rebuildableAssetsPath;
 
 	notificationStore.cancleFunction = SyncService.CancelSync;
 	notificationStore.canCancel = true;
@@ -358,9 +358,9 @@ const rebuildAll = async () => {
 		.then((data) => {
 
 			if(path){
-				assetStore.rebuildableTasksPath = rebuildableTasksPath.filter(item => !item.startsWith(path))
+				assetStore.rebuildableAssetsPath = rebuildableTasksPath.filter(item => !item.startsWith(path))
 			} else {
-				assetStore.rebuildableTasksPath = [];
+				assetStore.rebuildableAssetsPath = [];
 			}
 
 			softRefresh();

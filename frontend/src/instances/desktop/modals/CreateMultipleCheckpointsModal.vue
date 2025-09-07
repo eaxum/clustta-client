@@ -178,7 +178,7 @@ const allUntrackedPaths = computed(() => {
     : collectionStore.navigatedCollection?.item_path;
 
 
-  const untrackedTasksPath = assetStore.untrackedTasksPath;
+  const untrackedTasksPath = assetStore.untrackedAssetsPath;
   let filteredPaths;
 
   filteredPaths = untrackedTasksPath.filter(item => item.startsWith(path));
@@ -231,7 +231,7 @@ const createCheckPoints = async () => {
   
   await CheckpointService.AddCheckpoint(projectStore.activeProject.uri, taskPathsForCheckpoints, comment, previewPath, groupId, useImageAsCover.value)
     .then((response) => {
-      assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter((modifiedTaskPath) => !taskPathsForCheckpoints.includes(modifiedTaskPath))
+      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter((modifiedTaskPath) => !taskPathsForCheckpoints.includes(modifiedTaskPath))
     })
     .catch((error) => {
       console.error(error);
@@ -252,7 +252,7 @@ const createCheckPoints = async () => {
     isAwaitingResponse.value = false;
     notificationStore.errorNotification("Error Creating Checkpoint", error)
   }
-  assetStore.untrackedTasksPath = assetStore.untrackedTasksPath.filter((untrackedTaskPath) => !currentUntrackedPaths.value.includes(untrackedTaskPath))
+  assetStore.untrackedAssetsPath = assetStore.untrackedAssetsPath.filter((untrackedTaskPath) => !currentUntrackedPaths.value.includes(untrackedTaskPath))
 
 
   emitter.emit('refresh-browser');

@@ -145,12 +145,12 @@ export const useProjectStore = defineStore("projects", {
       commonStore.resetFilters();
 
       collectionStore.collections = [];
-      assetStore.tasks = [];
+      assetStore.assets = [];
 
       commonStore.navigatorMode = false;
       collectionStore.navigatedCollection = null;
       collectionStore.selectedCollection = null;
-      assetStore.selectedTask = null;
+      assetStore.selectedAsset = null;
 
       stage.expandedEntities = {};
       stage.setStageVisibility("browser", true);

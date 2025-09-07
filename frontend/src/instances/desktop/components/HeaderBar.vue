@@ -17,7 +17,7 @@
 			<div v-if="stage.activeStage === 'dependencies'" class="header-bar-dependencies">
 				<ActionButton :icon="getAppIcon('arrow-left')" @click="goToList()" v-tooltip="'Back'" />
 				<div class="header-area-container" @click="toggleFullTaskPath()">
-					<HeaderArea :title="taskName" :miniDisplay="true" :customIcon="assetStore.selectedTask.icon" />
+					<HeaderArea :title="taskName" :miniDisplay="true" :customIcon="assetStore.selectedAsset.icon" />
 				</div>
 			</div>
 
@@ -149,7 +149,7 @@ const getAppIcon = (iconName) => {
 
 // computed properties
 const taskName = computed(() => {
-	const task = assetStore.selectedTask;
+	const task = assetStore.selectedAsset;
 	if (!task) {
 		return
 	}
@@ -232,8 +232,8 @@ const emptyTrash = async () => {
 };
 
 const goToList = () => {
-	if (assetStore.selectedTask) {
-		const taskId = assetStore.selectedTask.id;
+	if (assetStore.selectedAsset) {
+		const taskId = assetStore.selectedAsset.id;
 		stage.markedTasks = [taskId];
 	}
 	stage.setStageVisibility('browser', true);
@@ -252,7 +252,7 @@ const goToProjects = () => {
 const showProjectCheckpoints = () => {
 	
 	collectionStore.selectedCollection  = null ;
-	assetStore.selectedTask = null ;
+	assetStore.selectedAsset = null ;
 	projectStore.selectedUntrackedItem = null;
 
 	if (panes.activeModal !== 'projectCheckpoints' || !panes.showDetailsPane) {

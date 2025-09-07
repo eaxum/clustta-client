@@ -123,7 +123,7 @@ const hasModifiedContents = computed(() => {
   if (!entity) return false;
   
   const entityPath = entity.entity_path;
-  const modifiedTasksPath = assetStore.modifiedTasksPath;
+  const modifiedTasksPath = assetStore.modifiedAssetsPath;
   
   if (!entityPath || !modifiedTasksPath.length) return false;
   
@@ -327,12 +327,12 @@ const freeUpSpace = async () => {
       emitter.emit('refresh-browser');
       
       // let project = projectStore.activeProject
-      // assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => !taskPath.startsWith(collectionStore.selectedCollection.entity_path))
-      // assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter(taskPath => !taskPath.startsWith(collectionStore.selectedCollection.entity_path))
+      // assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => !taskPath.startsWith(collectionStore.selectedCollection.entity_path))
+      // assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => !taskPath.startsWith(collectionStore.selectedCollection.entity_path))
       // TaskService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates)=>{
-      //   assetStore.modifiedTasksPath = assetsStates.modified
-      //   assetStore.outdatedTasksPath = assetsStates.outdated
-      //   assetStore.rebuildableTasksPath = assetsStates.rebuildable
+      //   assetStore.modifiedAssetsPath = assetsStates.modified
+      //   assetStore.outdatedAssetsPath = assetsStates.outdated
+      //   assetStore.rebuildableAssetsPath = assetsStates.rebuildable
       // })
 
     })
@@ -385,7 +385,7 @@ const revertContents = async () => {
   if (!entity) return;
   
   const entityPath = entity.entity_path;
-  const modifiedTasksPath = assetStore.modifiedTasksPath;
+  const modifiedTasksPath = assetStore.modifiedAssetsPath;
   
   // Filter only the modified tasks within this entity's path recursively
   const entityModifiedPaths = modifiedTasksPath.filter(taskPath => taskPath.startsWith(entityPath));
@@ -403,7 +403,7 @@ const revertContents = async () => {
     );
     
     // Update the global modified tasks list by removing the reverted paths
-    assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter(
+    assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(
       taskPath => !entityModifiedPaths.includes(taskPath)
     );
     
