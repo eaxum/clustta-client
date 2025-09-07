@@ -139,7 +139,7 @@ const deleteUntrackedFolder = () => {
   FSService.DeleteFolder(untrackedItem.value.file_path);
   projectStore.removeUntrackedEntity(untrackedItem.value.id);
   panes.setPaneVisibility('projectDetails', true)
-  collectionStore.selectedEntity = null;
+  collectionStore.selectedCollection = null;
   stage.markedItems = [];
   emitter.emit('refresh-browser')
   modals.disableAllModals();
@@ -180,7 +180,7 @@ const importFolder = () => {
   let parentPaths = utils.getParentPaths(untrackedItem.value.entity_path)
   if (!inRoot) {
     for (let parent of parentPaths) {
-      parentId = collectionStore.entities.find((item) => item.entity_path === parent)?.id;
+      parentId = collectionStore.collections.find((item) => item.entity_path === parent)?.id;
       if (parentId !== undefined) {
         break
       }
@@ -203,7 +203,7 @@ const importTask = () => {
   let parentPaths = utils.getParentPaths(untrackedItem.value.entity_path)
   if (!inRoot) {
     for (let parent of parentPaths) {
-      parentId = collectionStore.entities.find((item) => item.entity_path === parent)?.id;
+      parentId = collectionStore.collections.find((item) => item.entity_path === parent)?.id;
       if (parentId !== undefined) {
         break
       }

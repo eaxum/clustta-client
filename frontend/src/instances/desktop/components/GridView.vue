@@ -144,7 +144,7 @@ const onDragStart = (e, id) => {
 };
 
 const selectedEntity = computed(() => {
-    return collectionStore.navigatedEntity
+    return collectionStore.navigatedCollection
 });
 
 const isUntracked = computed(() => {
@@ -222,7 +222,7 @@ const entityData = computed(() => {
 });
 
 const navigatorItemData = computed(() => {
-  return collectionStore.navigatedEntity ? entityData.value : props.rootItems;
+  return collectionStore.navigatedCollection ? entityData.value : props.rootItems;
 })
 
 // methods

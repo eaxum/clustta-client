@@ -185,13 +185,13 @@ const createTask = async (launch = false, comment = "new file") => {
   let entities = stageStore.markedEntities
   let template = templateStore.templates.find(template => template.name === templateStore.selectedTemplateName);
   templateStore.lastUsedTemplate = template.name;
-  const isNested = commonStore.navigatorMode && !!collectionStore.navigatedEntity;
+  const isNested = commonStore.navigatorMode && !!collectionStore.navigatedCollection;
   if (entities.length <= 1) {
 
     let entityId = "";
     
     if (isNested) {
-      entityId = collectionStore.navigatedEntity.id;
+      entityId = collectionStore.navigatedCollection.id;
     } else if (entities.length > 0){
       entityId = entities[0];
     }

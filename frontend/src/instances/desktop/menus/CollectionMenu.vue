@@ -14,10 +14,10 @@
 
     <!-- Create -->
     <ActionButton :icon="getAppIcon('brush-plus')" :showLabel="true" :fullWidth="true" label="Add Asset"
-      v-if="templateStore.getTemplates.length && (userStore.canDo('create_task') || collectionStore.selectedEntity.can_modify)" :buttonFunction="createTask" />
+      v-if="templateStore.getTemplates.length && (userStore.canDo('create_task') || collectionStore.selectedCollection.can_modify)" :buttonFunction="createTask" />
 
     <ActionButton :icon="getAppIcon('folder-plus')" :showLabel="true" :fullWidth="true" label="Add Collection"
-      v-if="userStore.canDo('create_entity') || collectionStore.selectedEntity.can_modify" :buttonFunction="createEntity" />
+      v-if="userStore.canDo('create_entity') || collectionStore.selectedCollection.can_modify" :buttonFunction="createEntity" />
 
     <ActionButton :icon="getAppIcon('workflow-plus')" :showLabel="true" :fullWidth="true" label="Add Workflow"
       v-if="workflowStore.workflows.length && userStore.canDo('create_task')" :buttonFunction="addWorkflow" />
@@ -25,13 +25,13 @@
     
 
     <!-- <ActionButton :icon="getAppIcon('website-link')" :showLabel="true" :fullWidth="true" label="New Link"
-      v-if="userStore.canDo('create_task') || collectionStore.selectedEntity.can_modify" :buttonFunction="createLink" /> -->
+      v-if="userStore.canDo('create_task') || collectionStore.selectedCollection.can_modify" :buttonFunction="createLink" /> -->
 
     <ActionButton :icon="getAppIcon('arrow-down-ramp')" :showLabel="true" :fullWidth="true" label="Import Items"
       v-if="userStore.canDo('create_task')" :buttonFunction="importItems" />
 
 
-    <span v-if="userStore.canDo('update_entity') || collectionStore.selectedEntity.can_modify" class="menu-divider"></span>
+    <span v-if="userStore.canDo('update_entity') || collectionStore.selectedCollection.can_modify" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
     <span class="horizontal-flex">
@@ -114,12 +114,12 @@ const commonStore = useCommonStore();
 
 // computed
 const canSelectContent = computed(() => {
-  const entityId = collectionStore.selectedEntity.id;
+  const entityId = collectionStore.selectedCollection.id;
   return entityId in stage.expandedEntities && stage.entityDataIds.length
 })
 
 const hasModifiedContents = computed(() => {
-  const entity = collectionStore.selectedEntity;
+  const entity = collectionStore.selectedCollection;
   if (!entity) return false;
   
   const entityPath = entity.entity_path;
@@ -152,25 +152,25 @@ const selectContent = () => {
 };
 
 const revealInExplorer = async () => {
-  await FSService.MakeDirs(collectionStore.selectedEntity.file_path)
-  FSService.RevealInExplorer(collectionStore.selectedEntity.file_path)
+  await FSService.MakeDirs(collectionStore.selectedCollection.file_path)
+  FSService.RevealInExplorer(collectionStore.selectedCollection.file_path)
   menu.hideContextMenu();
 };
 
 const createEntity = () => {
-  stage.expandEntity(collectionStore.selectedEntity);
+  stage.expandEntity(collectionStore.selectedCollection);
   modals.setModalVisibility('createCollectionModal', true);
   menu.hideContextMenu();
 };
 
 const createTask = () => {
-  stage.expandEntity(collectionStore.selectedEntity);
+  stage.expandEntity(collectionStore.selectedCollection);
   modals.setModalVisibility('selectAppModal', true);
   menu.hideContextMenu();
 };
 
 const createLink = () => {
-  stage.expandEntity(collectionStore.selectedEntity);
+  stage.expandEntity(collectionStore.selectedCollection);
   modals.setModalVisibility('addWebLinkModal', true);
   menu.hideContextMenu();
 };
@@ -248,7 +248,7 @@ const importItems = async () => {
 
     // Expand entity and refresh the view to show imported items
     if (successCount > 0) {
-      stage.expandEntity(collectionStore.selectedEntity);
+      stage.expandEntity(collectionStore.selectedCollection);
       emitter.emit('refresh-browser');
     }
 
@@ -262,7 +262,7 @@ const importItems = async () => {
 
 const getCurrentDirectory = () => {
   // Return the file path of the currently selected entity
-  return collectionStore.selectedEntity?.file_path;
+  return collectionStore.selectedCollection?.file_path;
 };
 
 const generateUniqueDestinationPath = async (directory, fileName) => {
@@ -303,12 +303,12 @@ const generateUniqueDestinationPath = async (directory, fileName) => {
 
 // methods
 const deleteEntity = async () => {
-  let entity = collectionStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   panes.setPaneVisibility('projectDetails', true);
   EntityService.DeleteEntity(projectStore.activeProject.uri, entity.id)
     .then(async (response) => {
       stage.markedItems = [];
-      collectionStore.selectedEntity = null;
+      collectionStore.selectedCollection = null;
       emitter.emit('refresh-browser')
     })
     .catch((error) => {
@@ -320,15 +320,15 @@ const deleteEntity = async () => {
 };
 
 const freeUpSpace = async () => {
-  let entity = collectionStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   let entityDir = entity.file_path.replace(/\\/g, '/');
   await FSService.DeleteFolder(entityDir)
     .then((response) => {
       emitter.emit('refresh-browser');
       
       // let project = projectStore.activeProject
-      // assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => !taskPath.startsWith(collectionStore.selectedEntity.entity_path))
-      // assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter(taskPath => !taskPath.startsWith(collectionStore.selectedEntity.entity_path))
+      // assetStore.outdatedTasksPath = assetStore.outdatedTasksPath.filter(taskPath => !taskPath.startsWith(collectionStore.selectedCollection.entity_path))
+      // assetStore.modifiedTasksPath = assetStore.modifiedTasksPath.filter(taskPath => !taskPath.startsWith(collectionStore.selectedCollection.entity_path))
       // TaskService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates)=>{
       //   assetStore.modifiedTasksPath = assetsStates.modified
       //   assetStore.outdatedTasksPath = assetsStates.outdated
@@ -346,7 +346,7 @@ const freeUpSpace = async () => {
 
 const rebuildCollection = () => {
   menu.hideContextMenu();
-  let entity = collectionStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   notificationStore.cancleFunction = SyncService.CancelSync
   notificationStore.canCancel = true
   EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entity.id)
@@ -360,7 +360,7 @@ const rebuildCollection = () => {
 };
 
 const copyEntityPath = async () => {
-  let entity = collectionStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   let entityDir = entity.file_path;
   entityDir = entityDir.replace(/\\/g, '/');
   await ClipboardService.WriteText(entityDir);
@@ -381,7 +381,7 @@ const prepRevertContentsPopUpModal = () => {
 const revertContents = async () => {
   modals.setModalVisibility('popUpModal', false);
   
-  const entity = collectionStore.selectedEntity;
+  const entity = collectionStore.selectedCollection;
   if (!entity) return;
   
   const entityPath = entity.entity_path;

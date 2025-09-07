@@ -147,14 +147,14 @@ const addSingleWorkflow = async () => {
   let entityId = ""
   if(stageStore.selectedItem && stageStore.selectedItem.type === 'entity'){
     entityId = stageStore.markedItems[0]
-  } else if (collectionStore.navigatedEntity) {
-    entityId = collectionStore.navigatedEntity.id;
+  } else if (collectionStore.navigatedCollection) {
+    entityId = collectionStore.navigatedCollection.id;
   } else {
     entityId = '';
   }
   
 
-  let entityTypeData = collectionStore.entityTypes.find((entityTypeData) => entityTypeData.name === entityType.value)
+  let entityTypeData = collectionStore.collectionTypes.find((entityTypeData) => entityTypeData.name === entityType.value)
   await WorkflowService.AddWorkflow(
     projectStore.activeProject.uri, workflowStore.selectedWorkflow.id,
     workflowName.value, entityTypeData.id, entityId

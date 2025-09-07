@@ -80,11 +80,11 @@ const handleEnterKey = (event) => {
 };
 
 const updateEntityType = () => {
-  EntityService.UpdateEntityType(projectStore.activeProject.uri, collectionStore.selectedEntityType.id, entityTypeName.value, entityTypeIcon.value)
+  EntityService.UpdateEntityType(projectStore.activeProject.uri, collectionStore.selectedCollectionType.id, entityTypeName.value, entityTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification("Collection type Updated", "", "success");
-      const index = collectionStore.entityTypes.findIndex(entityType => entityType.id === collectionStore.selectedEntityType.id);
-      collectionStore.entityTypes[index] = response
+      const index = collectionStore.collectionTypes.findIndex(entityType => entityType.id === collectionStore.selectedCollectionType.id);
+      collectionStore.collectionTypes[index] = response
       closeModal();
     })
     .catch((error) => {
@@ -93,8 +93,8 @@ const updateEntityType = () => {
 };
 
 onMounted(() => {
-  entityTypeName.value = collectionStore.selectedEntityType.name;
-  entityTypeIcon.value = collectionStore.selectedEntityType.icon;
+  entityTypeName.value = collectionStore.selectedCollectionType.name;
+  entityTypeIcon.value = collectionStore.selectedCollectionType.icon;
 })
 
 

@@ -318,7 +318,7 @@ const importItem = (index, task, event) => {
   let parentPaths = utils.getParentPaths(props.task.entity_path)
   if (!inRoot) {
     for (let parent of parentPaths) {
-      parentId = collectionStore.entities.find((item) => item.entity_path === parent)?.id;
+      parentId = collectionStore.collections.find((item) => item.entity_path === parent)?.id;
       if (parentId !== undefined) {
         break
       }

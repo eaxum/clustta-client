@@ -253,8 +253,8 @@ const goToLocation = async () => {
     if (selectedTask && selectedTask.entity_id) {
       const parentEntity = await EntityService.GetEntityByID(projectStore.activeProject.uri, selectedTask.entity_id);
       if (parentEntity) {
-        collectionStore.navigatedEntity = parentEntity;
-        collectionStore.selectedEntity = parentEntity;
+        collectionStore.navigatedCollection = parentEntity;
+        collectionStore.selectedCollection = parentEntity;
       }
     }
   } catch (error) {

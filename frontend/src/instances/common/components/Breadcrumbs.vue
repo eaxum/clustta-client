@@ -69,7 +69,7 @@ const props = defineProps({
 });
 
 const navigatedEntity = computed(() => {
-  return collectionStore.navigatedEntity;
+  return collectionStore.navigatedCollection;
 });
 
 const path = computed(() => {
@@ -183,9 +183,9 @@ const copyDirectoryPath = async () => {
     await ClipboardService.WriteText(projectDir);
   } else {
 
-    let path = collectionStore.navigatedEntity?.type === 'entity' 
-      ? collectionStore.navigatedEntity.entity_path
-      : collectionStore.navigatedEntity.item_path;
+    let path = collectionStore.navigatedCollection?.type === 'entity' 
+      ? collectionStore.navigatedCollection.entity_path
+      : collectionStore.navigatedCollection.item_path;
 
     let explorerPath = `${project.working_directory}${path}`
     explorerPath = explorerPath.replace(/\\/g, '/');
@@ -205,9 +205,9 @@ const revealInExplorer = async () => {
     await FSService.MakeDirs(project.working_directory)
     FSService.RevealInExplorer(project.working_directory)
   } else {
-    let path = collectionStore.navigatedEntity?.type === 'entity' 
-      ? collectionStore.navigatedEntity.entity_path
-      : collectionStore.navigatedEntity.item_path;
+    let path = collectionStore.navigatedCollection?.type === 'entity' 
+      ? collectionStore.navigatedCollection.entity_path
+      : collectionStore.navigatedCollection.item_path;
 
     const trimmedPath = path.endsWith('/') ? path.slice(0, -1) : path;
     let explorerPath = `${project.working_directory}${trimmedPath}`
@@ -262,7 +262,7 @@ const goToCollection = async (selectedPath) => {
     const allUntrackedFolders = projectStore.untrackedFolders;
     
     let currentEntity;
-    const navigatedEntity = collectionStore.navigatedEntity;
+    const navigatedEntity = collectionStore.navigatedCollection;
     const navigatedEntityType = navigatedEntity.type;
     if(navigatedEntityType === 'entity'){
       currentEntity = await EntityService.GetEntityByID(projectStore.activeProject.uri, navigatedEntity.parent_id);
@@ -272,8 +272,8 @@ const goToCollection = async (selectedPath) => {
     }
     console.log(currentEntity)
 
-    collectionStore.navigatedEntity = currentEntity;
-    collectionStore.selectedEntity = currentEntity;
+    collectionStore.navigatedCollection = currentEntity;
+    collectionStore.selectedCollection = currentEntity;
 };
 
 const getAppIcon = (iconName) => {
@@ -283,11 +283,11 @@ const getAppIcon = (iconName) => {
 
 const goHome = () => {
 	commonStore.navigatorMode = false;
-	collectionStore.navigatedEntity = null;
+	collectionStore.navigatedCollection = null;
 };
 
 const goUpALevel = async () => {
-	const entity = collectionStore.navigatedEntity;
+	const entity = collectionStore.navigatedCollection;
   let parentEntityId = entity.parent_id;
 
   if(!parentEntityId){
@@ -298,8 +298,8 @@ const goUpALevel = async () => {
   const parentEntity = await EntityService.GetEntityByID(projectStore.activeProject.uri, parentEntityId);
 
 	if(parentEntity){
-		collectionStore.navigatedEntity = parentEntity;
-		collectionStore.selectedEntity = parentEntity;
+		collectionStore.navigatedCollection = parentEntity;
+		collectionStore.selectedCollection = parentEntity;
 	} else {
 		commonStore.navigatorMode = false;
 	}
@@ -307,8 +307,8 @@ const goUpALevel = async () => {
 
 watch(() => projectStore.activeProject?.uri, async () => {
 	commonStore.navigatorMode = false;
-  collectionStore.navigatedEntity = null;
-  collectionStore.selectedEntity = null;
+  collectionStore.navigatedCollection = null;
+  collectionStore.selectedCollection = null;
   
 });
 

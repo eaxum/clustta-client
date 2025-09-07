@@ -45,7 +45,7 @@ const projectEntityTypes = computed(() => {
   
     let entityTypes = collectionStore.getCollectionTypes;
     let viewEntityTypeIds = [];
-    let entities = collectionStore.entities;
+    let entities = collectionStore.collections;
 
     for (const entity of entities){
       let entityTypeId = entity.entity_type_id;
@@ -95,7 +95,7 @@ const addEntityType = () => {
 const prepEditEntityType = (selectedEntityTypeId) => {
 
   console.log(selectedEntityTypeId)
-  collectionStore.selectedEntityType = collectionStore.getCollectionTypes.find((item) => item.id === selectedEntityTypeId)
+  collectionStore.selectedCollectionType = collectionStore.getCollectionTypes.find((item) => item.id === selectedEntityTypeId)
   modals.setModalVisibility('editCollectionTypeModal', true);
 };
 
@@ -107,8 +107,8 @@ const deleteEntityType = async (entityTypeId) => {
   EntityService.DeleteEntityType(projectStore.activeProject.uri, entityTypeId)
     .then((response) => {
       notificationStore.addNotification("Entity Type Deleted", "", "success");
-      const index = collectionStore.entityTypes.findIndex(entityType => entityType.id === entityTypeId);
-      collectionStore.entityTypes.splice(index, 1);
+      const index = collectionStore.collectionTypes.findIndex(entityType => entityType.id === entityTypeId);
+      collectionStore.collectionTypes.splice(index, 1);
     })
     .catch((error) => {
       notificationStore.errorNotification("Error Deleting Entity Type", error);

@@ -192,7 +192,7 @@ const getMeta = (type, id, parent_id, data) => {
 
 const findParentID = (id) => {
   const entityId = tasks.value.filter(item => item.id === id)[0].entity_id;
-  const entityName = collectionStore.entities.filter(item => item.id === entityId)[0].name;
+  const entityName = collectionStore.collections.filter(item => item.id === entityId)[0].name;
   // console.log(entityName);
   return entityName;
 };

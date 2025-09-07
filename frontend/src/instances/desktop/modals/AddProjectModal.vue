@@ -256,10 +256,10 @@ const resetProjectData = () => {
   commonStore.activeWorkspace = 'Default';
   commonStore.resetFilters();
 
-  collectionStore.entities = [];
+  collectionStore.collections = [];
   assetStore.tasks = [];
 
-  collectionStore.selectedEntity = null;
+  collectionStore.selectedCollection = null;
   assetStore.selectedTask = null;
 
   stage.expandedEntities = {};

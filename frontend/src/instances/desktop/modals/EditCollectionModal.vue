@@ -101,7 +101,7 @@ const OldisLibrary = ref(null);
 
 // computed properties
 const entity = computed(() => {
-  return collectionStore.selectedEntity;
+  return collectionStore.selectedCollection;
 });
 
 const isNameChanged = computed(() => {
@@ -181,9 +181,9 @@ const closeModal = (all) => {
 
 const updateEntityMeta = async () => {
 
-  let entityId = collectionStore.selectedEntity.id;
+  let entityId = collectionStore.selectedCollection.id;
   let newEntityTypeId = entityTypeId.value;
-  let entity = collectionStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   if (entity.name != entityName.value) {
     await EntityService.RenameEntity(projectStore.activeProject.uri, entityId, entityName.value)
       .then((data) => {
@@ -221,7 +221,7 @@ const updateEntityMeta = async () => {
 
 const updateEntityCover = async () => {
 
-  let entityId = collectionStore.selectedEntity.id;
+  let entityId = collectionStore.selectedCollection.id;
   let entity = collectionStore.findCollection(entityId);
 
   const filePath = coverImagePath.value;
@@ -274,8 +274,8 @@ watchEffect(() => {
 
 // onMounted
 onMounted(() => {
-  let entity = collectionStore.selectedEntity;
-  selectedEntity.value = collectionStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
+  selectedEntity.value = collectionStore.selectedCollection;
   entityName.value = entity.name;
   oldEntityName.value = entity.name;
   entityPreview.value = entity.preview;
