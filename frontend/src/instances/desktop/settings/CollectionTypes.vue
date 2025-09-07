@@ -43,7 +43,7 @@ const notificationStore = useNotificationStore();
 // computed props
 const projectEntityTypes = computed(() => {
   
-    let entityTypes = collectionStore.getEntityTypes;
+    let entityTypes = collectionStore.getCollectionTypes;
     let viewEntityTypeIds = [];
     let entities = collectionStore.entities;
 
@@ -95,7 +95,7 @@ const addEntityType = () => {
 const prepEditEntityType = (selectedEntityTypeId) => {
 
   console.log(selectedEntityTypeId)
-  collectionStore.selectedEntityType = collectionStore.getEntityTypes.find((item) => item.id === selectedEntityTypeId)
+  collectionStore.selectedEntityType = collectionStore.getCollectionTypes.find((item) => item.id === selectedEntityTypeId)
   modals.setModalVisibility('editCollectionTypeModal', true);
 };
 
@@ -159,7 +159,3 @@ onMounted(async () => {
   background-color: var(--black-steel);
 }
 </style>
-
-
-
-

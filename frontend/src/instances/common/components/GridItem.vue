@@ -58,7 +58,7 @@ const openCollectionMenu = (event) => {
   const id = props.child.id;
   const entity = props.child;
   stage.markedEntities = [id];
-  collectionStore.selectEntity(entity);
+  collectionStore.selectCollection(entity);
   menu.showContextMenu(event, 'collectionMenu', true);
 };
 
@@ -173,7 +173,7 @@ const handleKeyArrowKeys = (event) => {
         
         let parent; 
         
-        const allEntities = collectionStore.getEntities;
+        const allEntities = collectionStore.getCollections;
         const alluntrackedFolders = projectStore.untrackedFolders;
         const allItems = [ ...allEntities, ...alluntrackedFolders];
 
@@ -282,10 +282,3 @@ onBeforeUnmount(() => {
   /* padding-right: 1px; */
 }
 </style>
-
-
-
-
-
-
-

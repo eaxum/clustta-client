@@ -304,34 +304,6 @@ const generateUniqueDestinationPath = async (directory, fileName) => {
   return await FSService.JoinPath(directory, timestampFileName);
 };
 
-// methods
-const deleteEntity = async () => {
-  let entity = collectionStore.selectedEntity;
-  EntityService.DeleteEntity(projectStore.activeProject.uri, entity.id)
-    .then(async (response) => {
-      await collectionStore.markEntityAsDeleted(entity.id);
-      collectionStore.reloadSelectedEntity();
-      trayStates.undoItemId = entity.id;
-      trayStates.undoFunction = undoEntityDelete;
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-  let longMessage = `Entity of name: ${entity.name} was moved to Trash.`
-  notificationStore.addNotification("Entity moved to Trash.", longMessage, "success", true);
-  menu.hideContextMenu();
-};
-
-const undoEntityDelete = async () => {
-  TrashService.Restore(projectStore.activeProject.uri, trayStates.undoItemId, "entity")
-    .then(async (response) => {
-      collectionStore.unmarkEntityAsDeleted(trayStates.undoItemId)
-    })
-    .catch((error) => {
-      notificationStore.errorNotification("Error Restoring Item", error)
-    });
-};
-
 const freeUpProjectSpace = async () => {
   let project = projectStore.getActiveProject;
   console.log(project.working_directory)
@@ -495,8 +467,3 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
-
-
-
-
-

@@ -17,7 +17,7 @@
 
     <div class="hierarchy-item-config">
 
-      <DropDownBox v-if="entitiesSelected" :items="collectionStore.getEntityTypesNames" :selectedItem="entityType"
+      <DropDownBox v-if="entitiesSelected" :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType"
         :onSelect="selectEntityType" :fullWidth="false" />
 
       <DropDownBox v-if="tasksSelected" :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType"
@@ -157,7 +157,7 @@ const targetEntity = computed(() => {
   if (!dndStore.targetItemId) {
     return null;
   }
-  return collectionStore.getEntities.find(entity => entity.id === dndStore.targetItemId);
+  return collectionStore.getCollections.find(entity => entity.id === dndStore.targetItemId);
 });
 
 const previewData = computed(() => {
@@ -448,7 +448,7 @@ const selectTaskType = (taskTypeName) => {
 const selectEntityType = (entityTypeName) => {
 
   let newEntityType;
-  const entityTypes = collectionStore.getEntityTypes;
+  const entityTypes = collectionStore.getCollectionTypes;
   newEntityType = entityTypes.find((item) => item.name === entityTypeName);
 
 
@@ -533,7 +533,7 @@ const removeItem = (item) => {
 };
 
 onMounted(async () => {
-  entityType.value = collectionStore.getEntityTypesNames[0];
+  entityType.value = collectionStore.getCollectionTypesNames[0];
   taskType.value = assetStore.getAssetTypesNames[0];
 });
 
@@ -611,10 +611,3 @@ onMounted(async () => {
   gap: .5rem;
 }
 </style>
-
-
-
-
-
-
-

@@ -371,7 +371,7 @@ export const useStageStore = defineStore("stages", {
       }
 
       if (itemType === "entity") {
-        collectionStore.selectEntity(item);
+        collectionStore.selectCollection(item);
         this.selectedItem = item;
         // panes.setPaneVisibility("collectionDetails", true);
       } else if (itemType === "task") {
@@ -450,9 +450,3 @@ export const useStageStore = defineStore("stages", {
     },
   },
 });
-
-
-
-
-
-

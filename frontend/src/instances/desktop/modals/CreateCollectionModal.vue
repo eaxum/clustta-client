@@ -15,7 +15,7 @@
       <BatchGenerator v-else ref="batchGen" @updateData="onUpdateCollections" />
 
       <div class="input-section">
-        <DropDownBox :items="collectionStore.getEntityTypesNames" :selectedItem="entityType" :onSelect="selectEntityType" />
+        <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="selectEntityType" />
       </div>
 
       <div class="horizontal-flex">
@@ -92,7 +92,7 @@ const entityName = ref('');
 const showTaskOptions = ref(true);
 const popUpActions = ref(null);
 const isAwaitingResponse = ref(false);
-const entityType = ref(collectionStore.getEntityTypesNames[0]);
+const entityType = ref(collectionStore.getCollectionTypesNames[0]);
 const isLibrary = ref(false)
 const isMultiple = ref(false);
 const batchGen = ref(null);
@@ -261,7 +261,7 @@ const itemsToGroup = ref([]);
 
 const allProjectItems = computed(() => {
   const allTasks = assetStore.getAssets;
-  const allEntities = collectionStore.getEntities;
+  const allEntities = collectionStore.getCollections;
   const alluntrackedFiles = projectStore.untrackedFiles;
   const alluntrackedFolders = projectStore.untrackedFolders;
 
@@ -452,11 +452,3 @@ onUnmounted(() => {
 }
 
 </style>
-
-
-
-
-
-
-
-

@@ -69,8 +69,8 @@ const useDeep = ref(false);
 
 
 const entityTypes = computed(() => {
-  console.log(collectionStore.getEntityTypes)
-  return collectionStore.getEntityTypes
+  console.log(collectionStore.getCollectionTypes)
+  return collectionStore.getCollectionTypes
 });
 
 
@@ -132,7 +132,3 @@ onBeforeUnmount(() => {
 @import "@/assets/desktop.css";
 @import "@/assets/menu.css";
 </style>
-
-
-
-

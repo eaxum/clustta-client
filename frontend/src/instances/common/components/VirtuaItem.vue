@@ -93,7 +93,7 @@ const openCollectionMenu = (event) => {
   const id = props.child.id;
   const entity = props.child;
   stage.markedEntities = [id];
-  collectionStore.selectEntity(entity);
+  collectionStore.selectCollection(entity);
   menu.showContextMenu(event, 'collectionMenu', true);
 };
 
@@ -241,7 +241,7 @@ const loadEntityChildren = async () => {
     await assetStore.processAssetsIconsAndPreviews(children.tasks);
     await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
 
-    let childrenEntities = filtersActive.value ? await collectionStore.filterEntities(children.entities) : children.entities ;
+    let childrenEntities = filtersActive.value ? await collectionStore.filterCollections(children.entities) : children.entities ;
 		let childrenTasks = filtersActive.value ? await assetStore.filterAssets(children.tasks) : children.tasks ;
 
     entityChildren.value = [...childrenEntities, ...children.untracked_entities, ...childrenTasks,  ...children.untracked_tasks]
@@ -370,10 +370,3 @@ onBeforeUnmount(() => {
   background-color: forestgreen;
 }
 </style>
-
-
-
-
-
-
-

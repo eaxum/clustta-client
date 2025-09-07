@@ -17,7 +17,7 @@
       <div class="input-section drop-down-box-section">
         <DropDownBox :items="projectWorkflowNames" :selectedItem="selectedWorkflowName"
           :onSelect="changeSelectedWorkflow" />
-        <DropDownBox :items="collectionStore.getEntityTypesNames" :selectedItem="entityType" :onSelect="selectEntityType" />
+        <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="selectEntityType" />
       </div>
 
       
@@ -87,7 +87,7 @@ const modalContainer = ref(null);
 const showTaskOptions = ref(true);
 const popUpActions = ref(null);
 const isAwaitingResponse = ref(false);
-const entityType = ref(collectionStore.getEntityTypesNames[0]);
+const entityType = ref(collectionStore.getCollectionTypesNames[0]);
 const selectedWorkflowName = ref(workflowStore.selectedWorkflow.name);
 const workflowName = ref(workflowStore.selectedWorkflow.name);
 const stageStore = useStageStore();
@@ -282,7 +282,3 @@ onUnmounted(() => {
   max-height: 400px;
 }
 </style>
-
-
-
-

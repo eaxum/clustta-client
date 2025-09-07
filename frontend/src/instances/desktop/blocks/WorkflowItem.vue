@@ -104,7 +104,7 @@ const workflowItemIcon = computed(() => {
   const workflow = props.entity;
 
   if (workflow.entity_type_id) {
-    return collectionStore.getEntityTypeIcon(workflow.entity_type_id)
+    return collectionStore.getCollectionTypeIcon(workflow.entity_type_id)
   } else {
     return 'folder'
   }
@@ -516,10 +516,3 @@ onBeforeUnmount(() => {
   /* padding: 5px; */
 }
 </style>
-
-
-
-
-
-
-

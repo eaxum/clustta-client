@@ -29,7 +29,7 @@ const dropLocation = computed(() => {
     if (!dndStore.targetItemId) {
         return 'Root'
     } else {
-        const entityName = collectionStore.findEntity(dndStore.targetItemId).name;
+        const entityName = collectionStore.findCollection(dndStore.targetItemId).name;
         return entityName
     }
 });
@@ -103,7 +103,3 @@ const props = defineProps({
     color: white;
 }
 </style>
-
-
-
-

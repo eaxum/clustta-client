@@ -130,9 +130,9 @@ export const useTrayStates = defineStore("useTrayStates", {
       // await new Promise((r) => setTimeout(r, 5000));
       // console.time("loading_general_data");
       await userStore.reloadUsers();
-      await collectionStore.reloadEntityTypes();
+      await collectionStore.reloadCollectionTypes();
       await assetStore.reloadAssetTypes();
-      // await collectionStore.reloadEntities();
+      // await collectionStore.reloadCollections();
       await templateStore.reloadTemplates();
       await workflowStore.reloadWorkflows();
       await statusStore.reloadStatuses();
@@ -202,10 +202,3 @@ export const useTrayStates = defineStore("useTrayStates", {
     },
   },
 });
-
-
-
-
-
-
-

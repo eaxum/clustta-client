@@ -17,10 +17,10 @@ export const useCollectionStore = defineStore("collection", {
     navigatedEntity: null,
   }),
   getters: {
-    getEntityTypes: (state) => {
+    getCollectionTypes: (state) => {
       return state.entityTypes;
     },
-    getEntityTypesNames: (state) => {
+    getCollectionTypesNames: (state) => {
       let entityTypes = state.entityTypes;
       let entityTypesNames = [];
       for (let i = 0; i < entityTypes.length; i++) {
@@ -29,10 +29,10 @@ export const useCollectionStore = defineStore("collection", {
       }
       return entityTypesNames;
     },
-    getEntities: (state) => {
+    getCollections: (state) => {
       return state.entities;
     },
-    getFilteredEntities: (state) => {
+    getFilteredCollections: (state) => {
       const commonStore = useCommonStore();
       const assetStore = useAssetStore();
 
@@ -83,9 +83,9 @@ export const useCollectionStore = defineStore("collection", {
       return sortedEntities;
     },
 
-    getDisplayedEntities: (state) => {
+    getDisplayedCollections: (state) => {
       const commonStore = useCommonStore();
-      let filteredEntities = state.getFilteredEntities;
+      let filteredEntities = state.getFilteredCollections;
       let displayedEntities = [];
 
       for (let i = 0; i < filteredEntities.length; i++) {
@@ -98,15 +98,15 @@ export const useCollectionStore = defineStore("collection", {
       return displayedEntities;
     },
 
-    getDisplayedEntitiesNames: (state) => {
-      const sortedEntities = state.getDisplayedEntities.slice().sort((a, b) => {
+    getDisplayedCollectionsNames: (state) => {
+      const sortedEntities = state.getDisplayedCollections.slice().sort((a, b) => {
         return a.name.localeCompare(b.name);
       });
       return sortedEntities.map((entity) => entity.name);
     },
   },
   actions: {
-    filterEntities(entities){
+    filterCollections(entities){
       const commonStore = useCommonStore();
       const assetStore = useAssetStore();
 
@@ -157,17 +157,18 @@ export const useCollectionStore = defineStore("collection", {
       );
       return sortedEntities;
     },
-    async markEntityAsDeleted(entityId) {
+    async markCollectionAsDeleted(entityId) {
       let entityIndex = this.entities_index[entityId];
       this.entities[entityIndex].trashed = true;
     },
     
-    async unmarkEntityAsDeleted(entityId) {
+    async unmarkCollectionAsDeleted(entityId) {
       let entityIndex = this.entities_index[entityId];
       this.entities[entityIndex].trashed = false;
     },
 
-    async markMultipleEntitiesAsDeleted(entityIds) {
+    // @deprecated - This method is not currently used
+    async markMultipleCollectionsAsDeleted(entityIds) {
       for (const entityId of entityIds) {
         let entityIndex = this.entities_index[entityId];
         if (entityIndex !== undefined) {
@@ -176,7 +177,8 @@ export const useCollectionStore = defineStore("collection", {
       }
     },
 
-    async unmarkMultipleEntitiesAsDeleted(entityIds) {
+    // @deprecated - This method is not currently used
+    async unmarkMultipleCollectionsAsDeleted(entityIds) {
       for (const entityId of entityIds) {
         let entityIndex = this.entities_index[entityId];
         if (entityIndex !== undefined) {
@@ -185,7 +187,7 @@ export const useCollectionStore = defineStore("collection", {
       }
     },
 
-    async reloadEntityTypes() {
+    async reloadCollectionTypes() {
       const projectStore = useProjectStore();
       let entityTypes = await EntityService.GetEntityTypes(
         projectStore.activeProject.uri
@@ -196,16 +198,16 @@ export const useCollectionStore = defineStore("collection", {
       }));
     },
 
-    async reloadEntities() {
+    async reloadCollections() {
       const projectStore = useProjectStore();
       let entities = await EntityService.GetEntities(
         projectStore.activeProject.uri
       );
       this.entities = entities;
-      await this.rebuildEntitiesIndex();
+      await this.rebuildCollectionsIndex();
     },
 
-    async rebuildEntitiesIndex() {
+    async rebuildCollectionsIndex() {
       let entityIndex = {};
       let entityChildrenIndex = {};
       let entityNameIndex = {};
@@ -225,44 +227,45 @@ export const useCollectionStore = defineStore("collection", {
       this.entityNameIndex = entityNameIndex;
     },
 
-    findEntity(id) {
+    findCollection(id) {
       let entityIndex = this.entities_index[id];
       return this.entities[entityIndex];
     },
 
-    findEntityByName(name) {
+    findCollectionByName(name) {
       return this.entityNameIndex[name];
     },
 
-    selectEntity(entity) {
+    selectCollection(entity) {
       this.selectedEntity = entity;
     },
 
-    getChildEntities(entityId, recursive = false) {
+    getChildCollections(entityId, recursive = false) {
       let childEntityIds = this.entity_children_index[entityId] || [];
-      let entities = childEntityIds.map((entityId) => this.findEntity(entityId));
+      let entities = childEntityIds.map((entityId) => this.findCollection(entityId));
 
       if (recursive) {
         for (let childId of childEntityIds) {
-          entities = entities.concat(this.getChildEntities(childId, true));
+          entities = entities.concat(this.getChildCollections(childId, true));
         }
       }
 
       return entities;
     },
 
-    getAllEntityChildren(entityId) {
+    // @deprecated - This method is not currently used
+    getAllCollectionChildren(entityId) {
       let allChildren = {};
       let directChildren = this.entity_children_index[entityId] || [];
       
       for (let childId of directChildren) {
-        allChildren[childId] = this.getAllEntityChildren(childId);
+        allChildren[childId] = this.getAllCollectionChildren(childId);
       }
       
       return allChildren;
     },
 
-    getEntityTypeIcon(entityTypeId) {
+    getCollectionTypeIcon(entityTypeId) {
       let entityTypeIcon = "";
       for (let i = 0; i < this.entityTypes.length; i++) {
         let type = this.entityTypes[i];
@@ -273,9 +276,8 @@ export const useCollectionStore = defineStore("collection", {
       }
       return entityTypeIcon;
     },
-    navigateToEntity(entity) {
+    navigateToCollection(entity) {
       this.navigatedEntity = entity;
     },
   },
 });
-

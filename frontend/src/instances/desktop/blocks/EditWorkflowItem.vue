@@ -90,7 +90,7 @@ const taskType = computed(() => {
 });
 
 const entityType = computed(() => {
-    const allEntityTypes = collectionStore.getEntityTypes;
+    const allEntityTypes = collectionStore.getCollectionTypes;
     const selectedEntityType = allEntityTypes.find((item) => item.id === entityTypeId.value);
     return selectedEntityType ? selectedEntityType.name : 'Select collection type'
 });
@@ -129,7 +129,7 @@ const taskTemplates = computed(() => {
 });
 
 const entityTypeNames = computed(() => {
-    return collectionStore.getEntityTypesNames;
+    return collectionStore.getCollectionTypesNames;
 });
 
 const itemTypes = computed(() => {
@@ -166,7 +166,7 @@ const newWorkflowItemData = computed(() => {
         };
     } else if (itemTypeName === 'Collection') {
 
-        const allEntityTypes = collectionStore.getEntityTypes;
+        const allEntityTypes = collectionStore.getCollectionTypes;
         const firstEntityType = allEntityTypes[0];
         entityTypeIcon.value = entityTypeIcon.value ? entityTypeIcon.value : firstEntityType.icon;
         entityTypeId.value = entityTypeId.value ? entityTypeId.value : firstEntityType.id;
@@ -253,7 +253,7 @@ const selectTaskType = (taskTypeName) => {
 };
 
 const selectEntityType = (entityTypeName) => {
-    const allEntityTypes = collectionStore.getEntityTypes;
+    const allEntityTypes = collectionStore.getCollectionTypes;
     const selectedEntityType = allEntityTypes.find((item) => item.name === entityTypeName);
 
     entityTypeId.value = selectedEntityType.id;
@@ -350,10 +350,3 @@ onBeforeUnmount(() => {
     outline-offset: -1px;
 }
 </style>
-
-
-
-
-
-
-

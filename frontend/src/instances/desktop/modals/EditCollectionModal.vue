@@ -23,7 +23,7 @@
       </div>
 
       <div class="input-section">
-        <DropDownBox :items="collectionStore.getEntityTypesNames" :selectedItem="entityType" :onSelect="changeEntityType" />
+        <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="changeEntityType" />
       </div>
 
       <div class="horizontal-flex is-library-prompt">
@@ -147,7 +147,7 @@ const handleEnterKey = (event) => {
 const changeEntityType = (entityTypeName) => {
 
   let newEntityType;
-  const entityTypes = collectionStore.getEntityTypes;
+  const entityTypes = collectionStore.getCollectionTypes;
   newEntityType = entityTypes.find((item) => item.name === entityTypeName);
 
   entityType.value = newEntityType.name;
@@ -222,7 +222,7 @@ const updateEntityMeta = async () => {
 const updateEntityCover = async () => {
 
   let entityId = collectionStore.selectedEntity.id;
-  let entity = collectionStore.findEntity(entityId);
+  let entity = collectionStore.findCollection(entityId);
 
   const filePath = coverImagePath.value;
   console.log(filePath)
@@ -255,7 +255,7 @@ const updateEntity = async () => {
     await updateEntityCover();
   }
 
-  await collectionStore.reloadEntities();
+  await collectionStore.reloadCollections();
   isAwaitingResponse.value = false;
   closeModal();
 
@@ -319,7 +319,3 @@ onMounted(() => {
   /* padding: 1rem .5rem; */
 }
 </style>
-
-
-
-
