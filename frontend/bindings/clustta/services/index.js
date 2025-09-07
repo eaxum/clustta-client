@@ -8,9 +8,9 @@ import * as AssetService from "./assetservice.js";
 import * as AuthService from "./authservice.js";
 import * as CheckpointService from "./checkpointservice.js";
 import * as ClipboardService from "./clipboardservice.js";
+import * as CollectionService from "./collectionservice.js";
 import * as DependencyTypeService from "./dependencytypeservice.js";
 import * as DialogService from "./dialogservice.js";
-import * as EntityService from "./entityservice.js";
 import * as FSService from "./fsservice.js";
 import * as ImportService from "./importservice.js";
 import * as LogService from "./logservice.js";
@@ -31,9 +31,9 @@ export {
     AuthService,
     CheckpointService,
     ClipboardService,
+    CollectionService,
     DependencyTypeService,
     DialogService,
-    EntityService,
     FSService,
     ImportService,
     LogService,

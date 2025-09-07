@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 
-import { EntityService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/../bindings/clustta/services";
 
 import { useCommonStore } from "@/stores/common";
 import { useAssetStore } from "@/stores/assets";
@@ -198,7 +198,7 @@ export const useCollectionStore = defineStore("collection", {
 
     async reloadCollectionTypes() {
       const projectStore = useProjectStore();
-      let collectionTypes = await EntityService.GetEntityTypes(
+      let collectionTypes = await CollectionService.GetEntityTypes(
         projectStore.activeProject.uri
       );
       this.collectionTypes = collectionTypes.map(type => ({
@@ -209,7 +209,7 @@ export const useCollectionStore = defineStore("collection", {
 
     async reloadCollections() {
       const projectStore = useProjectStore();
-      let collections = await EntityService.GetEntities(
+      let collections = await CollectionService.GetEntities(
         projectStore.activeProject.uri
       );
       this.collections = collections;

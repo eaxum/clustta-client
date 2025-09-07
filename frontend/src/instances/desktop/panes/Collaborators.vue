@@ -12,7 +12,7 @@ import { SettingsService, ProjectService, SyncService } from "@/../bindings/clus
 import { ClipboardService, FSService } from '@/../bindings/clustta/services/index';
 
 // services
-import { EntityService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/../bindings/clustta/services";
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';

@@ -7,7 +7,7 @@ import {
   ProjectService,
   TemplateService,
   AssetService,
-  EntityService,
+  CollectionService,
   SyncService,
   FSService,
 } from "@/../bindings/clustta/services";
@@ -81,7 +81,7 @@ export const useProjectTemplateStore = defineStore("project_template", {
       );
       this.assetTypes = assetTypes;
 
-      let collectionTypes = await EntityService.GetEntityTypes(
+      let collectionTypes = await CollectionService.GetEntityTypes(
         this.activeProjectTemplate.uri
       );
       this.collectionTypes = collectionTypes;

@@ -24,7 +24,7 @@ import utils from '@/services/utils';
 import { isValidWeblink } from '@/lib/pointer';
 
 // services
-import { EntityService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/../bindings/clustta/services";
 
 // states/store imports
 import { useStageStore } from '@/stores/stages';

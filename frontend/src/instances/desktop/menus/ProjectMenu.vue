@@ -55,7 +55,7 @@ import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
 // services
-import { EntityService, AssetService } from "@/../bindings/clustta/services";
+import { CollectionService, AssetService } from "@/../bindings/clustta/services";
 import { TrashService } from "@/../bindings/clustta/services";
 
 // states/store imports
@@ -354,7 +354,7 @@ const rebuildAll = async () => {
 	notificationStore.cancleFunction = SyncService.CancelSync;
 	notificationStore.canCancel = true;
 
-	await EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedEntityId)
+	await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedEntityId)
 		.then((data) => {
 
 			if(path){

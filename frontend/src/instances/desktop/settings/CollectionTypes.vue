@@ -31,7 +31,7 @@ import { useIconStore } from '@/stores/icons';
 import ScrollList from '@/instances/desktop/components/ScrollList.vue';
 import ActionBar from '@/instances/desktop/components/ActionBar.vue';
 import PageState from '@/instances/common/components/PageState.vue';
-import { EntityService } from '@/../bindings/clustta/services/index';
+import { CollectionService } from '@/../bindings/clustta/services/index';
 
 // states
 const collectionStore = useCollectionStore();
@@ -104,7 +104,7 @@ const replaceSymbols = (name) => {
 };
 
 const deleteEntityType = async (entityTypeId) => {
-  EntityService.DeleteEntityType(projectStore.activeProject.uri, entityTypeId)
+  CollectionService.DeleteEntityType(projectStore.activeProject.uri, entityTypeId)
     .then((response) => {
       notificationStore.addNotification("Entity Type Deleted", "", "success");
       const index = collectionStore.collectionTypes.findIndex(entityType => entityType.id === entityTypeId);

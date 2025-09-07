@@ -30,7 +30,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { EntityService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/../bindings/clustta/services";
 import { useCollectionStore } from '@/stores/collections';
 import { useProjectStore } from '@/stores/projects';
 import iconData from "@/data/iconData.json";
@@ -80,7 +80,7 @@ const handleEnterKey = (event) => {
 };
 
 const updateEntityType = () => {
-  EntityService.UpdateEntityType(projectStore.activeProject.uri, collectionStore.selectedCollectionType.id, entityTypeName.value, entityTypeIcon.value)
+  CollectionService.UpdateEntityType(projectStore.activeProject.uri, collectionStore.selectedCollectionType.id, entityTypeName.value, entityTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification("Collection type Updated", "", "success");
       const index = collectionStore.collectionTypes.findIndex(entityType => entityType.id === collectionStore.selectedCollectionType.id);

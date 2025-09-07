@@ -83,7 +83,7 @@ const getAppIcon = (iconName) => {
 // imports
 import { ref, computed, onMounted, watch, nextTick, markRaw, onUnmounted, reactive } from 'vue'
 import dagre from '@dagrejs/dagre'
-import { AssetService, EntityService } from "@/../bindings/clustta/services";
+import { AssetService, CollectionService } from "@/../bindings/clustta/services";
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
@@ -296,7 +296,7 @@ const fetchSidebarData = async () => {
     // Fetch all tasks and entities for the sidebar
     const [tasksResult, entitiesResult] = await Promise.all([
       AssetService.GetTasks(projectPath),
-      EntityService.GetEntities(projectPath)
+      CollectionService.GetEntities(projectPath)
     ]);
     
     sidebarTasks.value = tasksResult || [];
