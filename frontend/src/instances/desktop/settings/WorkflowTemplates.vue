@@ -25,7 +25,7 @@
 import { onMounted, computed, ref } from 'vue';
 
 // store imports
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
 import { useIconStore } from '@/stores/icons';
@@ -163,4 +163,5 @@ onMounted(async () => {
   overflow: hidden;
 }
 </style>
+
 

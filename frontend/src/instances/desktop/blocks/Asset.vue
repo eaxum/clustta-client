@@ -176,7 +176,7 @@ import { useUserStore } from '@/stores/users';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
 import { useCommonStore } from '@/stores/common';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
 import emitter from '@/lib/mitt';
@@ -198,7 +198,7 @@ const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const assetStore = useAssetStore();
 const commonStore = useCommonStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const projectStore = useProjectStore();
 const dndStore = useDndStore();
 
@@ -318,7 +318,7 @@ const importItem = (index, task, event) => {
   let parentPaths = utils.getParentPaths(props.task.entity_path)
   if (!inRoot) {
     for (let parent of parentPaths) {
-      parentId = entityStore.entities.find((item) => item.entity_path === parent)?.id;
+      parentId = collectionStore.entities.find((item) => item.entity_path === parent)?.id;
       if (parentId !== undefined) {
         break
       }
@@ -1250,5 +1250,8 @@ onBeforeUnmount(() => {
   /* flex: 1; */
 }
 </style>
+
+
+
 
 

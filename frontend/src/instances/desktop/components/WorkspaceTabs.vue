@@ -40,7 +40,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue'
 
 // state imports
 import { useIconStore } from '@/stores/icons';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useProjectStore } from '@/stores/projects';
 import { useDesktopModalStore } from '@/stores/desktopModals';
@@ -49,7 +49,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 
 // states/stores
 const iconStore = useIconStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const projectStore = useProjectStore();
 const modals = useDesktopModalStore();
@@ -116,7 +116,7 @@ const setWorkspace = (workspaceName) => {
   }
   const workspace = commonStore.workspaces.find((item) => item.name === workspaceName);
 	commonStore.navigatorMode = false;
-	entityStore.navigatedEntity = null;
+	collectionStore.navigatedEntity = null;
   commonStore.setActiveWorkspace(workspace);
   console.log(commonStore.taskFilters)
   emitter.emit('refresh-browser');
@@ -496,4 +496,7 @@ const getTabStyle = (index) => {
   transition: transform 0.2s ease;
 }
 </style>
+
+
+
 

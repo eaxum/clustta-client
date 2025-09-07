@@ -73,7 +73,7 @@ import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
 import { useIconStore } from '@/stores/icons';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { v4 as uuidv4 } from 'uuid';
 import emitter from '@/lib/mitt';
 import ActionButton from '../components/ActionButton.vue';
@@ -87,7 +87,7 @@ const useImageAsCover = ref(true);
 const stage = useStageStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 
 const showCheckpointItems = ref(false);
@@ -144,9 +144,9 @@ const currentModifiedDisplayPaths = computed(() => {
   
   // Filter by navigation context
   let path;
-  path = entityStore.navigatedEntity?.type === 'entity'
-    ? entityStore.navigatedEntity?.entity_path
-    : entityStore.navigatedEntity?.item_path;
+  path = collectionStore.navigatedEntity?.type === 'entity'
+    ? collectionStore.navigatedEntity?.entity_path
+    : collectionStore.navigatedEntity?.item_path;
 
   let filteredAssets;
   if (path) {
@@ -173,9 +173,9 @@ const currentModifiedDisplayPaths = computed(() => {
 
 const allUntrackedPaths = computed(() => {
   let path;
-  path = entityStore.navigatedEntity?.type === 'entity'
-    ? entityStore.navigatedEntity?.entity_path
-    : entityStore.navigatedEntity?.item_path;
+  path = collectionStore.navigatedEntity?.type === 'entity'
+    ? collectionStore.navigatedEntity?.entity_path
+    : collectionStore.navigatedEntity?.item_path;
 
 
   const untrackedTasksPath = assetStore.untrackedTasksPath;
@@ -396,6 +396,9 @@ onBeforeUnmount(() => {
   animation: loadingRotate .5s linear infinite;
 }
 </style>
+
+
+
 
 
 

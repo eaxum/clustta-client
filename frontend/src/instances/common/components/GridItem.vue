@@ -20,7 +20,7 @@ import { useMenu } from '@/stores/menu';
 import { useDndStore } from '@/stores/dnd';
 import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useScrollStore } from '@/stores/scroll';
 import { useUntrackedItemStore } from '@/stores/untracked';
 import { useProjectStore } from '@/stores/projects';
@@ -31,7 +31,7 @@ const stage = useStageStore();
 const dndStore = useDndStore();
 const assetStore = useAssetStore();
 const scrollStore = useScrollStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const untrackedItemStore = useUntrackedItemStore();
 const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
@@ -58,7 +58,7 @@ const openCollectionMenu = (event) => {
   const id = props.child.id;
   const entity = props.child;
   stage.markedEntities = [id];
-  entityStore.selectEntity(entity);
+  collectionStore.selectEntity(entity);
   menu.showContextMenu(event, 'collectionMenu', true);
 };
 
@@ -173,7 +173,7 @@ const handleKeyArrowKeys = (event) => {
         
         let parent; 
         
-        const allEntities = entityStore.getEntities;
+        const allEntities = collectionStore.getEntities;
         const alluntrackedFolders = projectStore.untrackedFolders;
         const allItems = [ ...allEntities, ...alluntrackedFolders];
 
@@ -282,5 +282,8 @@ onBeforeUnmount(() => {
   /* padding-right: 1px; */
 }
 </style>
+
+
+
 
 

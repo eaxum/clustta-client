@@ -150,7 +150,7 @@ import { useAssetStore } from '@/stores/assets';
 import { usePaneStore } from '@/stores/panes';
 import { useStageStore } from '@/stores/stages';
 import { useCommonStore } from '@/stores/common';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useUserStore } from '@/stores/users';
 import { useDndStore } from '@/stores/dnd';
 import { useProjectStore } from '@/stores/projects';
@@ -170,7 +170,7 @@ const menu = useMenu();
 const panes = usePaneStore();
 const stage = useStageStore();
 const projectStore = useProjectStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const assetStore = useAssetStore();
 const commonStore = useCommonStore();
 const dndStore = useDndStore();
@@ -469,7 +469,7 @@ const prepFreeUpSpacePopUpModal = () => {
 };
 
 const freeUpSpace = async () => {
-  let entity = entityStore.selectedEntity;
+  let entity = collectionStore.selectedEntity;
   let entityDir = entity.file_path.replace(/\\/g, '/');
   await FSService.DeleteFolder(entityDir)
     .then((response) => {
@@ -484,11 +484,11 @@ const freeUpSpace = async () => {
 
 const deleteEntity = async () => {
   if (props.entity.type === 'entity') {
-    let entity = entityStore.selectedEntity;
+    let entity = collectionStore.selectedEntity;
     EntityService.DeleteEntity(projectStore.activeProject.uri, entity.id)
       .then(async (response) => {
         emitter.emit('refresh-browser');
-        entityStore.selectedEntity = null;
+        collectionStore.selectedEntity = null;
         stage.markedItems = [];
       })
       .catch((error) => {
@@ -585,7 +585,7 @@ watchEffect(() => {
 });
 
 const exploreEntity = (entity) => {
-  entityStore.navigateToEntity(entity);
+  collectionStore.navigateToEntity(entity);
   commonStore.navigatorMode = true;
 };
 
@@ -1077,5 +1077,8 @@ onBeforeUnmount(() => {
   /* padding: 5px; */
 }
 </style>
+
+
+
 
 

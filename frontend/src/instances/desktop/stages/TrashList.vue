@@ -36,7 +36,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 import TrashItem from '@/instances/desktop/components/TrashItem.vue';
 import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
 import PageState from '@/instances/common/components/PageState.vue';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useAssetStore } from '@/stores/assets';
 import { onBeforeMount } from 'vue';
 import { useProjectStore } from '@/stores/projects';
@@ -44,7 +44,7 @@ import { useProjectStore } from '@/stores/projects';
 // states and stores
 const trayStates = useTrayStates();
 const modalStore = useModalStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 
@@ -192,7 +192,7 @@ const getMeta = (type, id, parent_id, data) => {
 
 const findParentID = (id) => {
   const entityId = tasks.value.filter(item => item.id === id)[0].entity_id;
-  const entityName = entityStore.entities.filter(item => item.id === entityId)[0].name;
+  const entityName = collectionStore.entities.filter(item => item.id === entityId)[0].name;
   // console.log(entityName);
   return entityName;
 };
@@ -370,5 +370,8 @@ onBeforeUnmount(async () => {
   min-width: max-content;
 }
 </style>
+
+
+
 
 

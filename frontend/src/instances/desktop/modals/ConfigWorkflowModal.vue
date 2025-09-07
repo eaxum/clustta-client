@@ -17,7 +17,7 @@
       <div class="input-section drop-down-box-section">
         <DropDownBox :items="projectWorkflowNames" :selectedItem="selectedWorkflowName"
           :onSelect="changeSelectedWorkflow" />
-        <DropDownBox :items="entityStore.getEntityTypesNames" :selectedItem="entityType" :onSelect="selectEntityType" />
+        <DropDownBox :items="collectionStore.getEntityTypesNames" :selectedItem="entityType" :onSelect="selectEntityType" />
       </div>
 
       
@@ -51,7 +51,7 @@ import emitter from '@/lib/mitt';
 // store imports
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useProjectStore } from '@/stores/projects';
 import { useMenu } from '@/stores/menu';
 import { useWorkflowStore } from '@/stores/workflow';
@@ -76,7 +76,7 @@ const workflowStore = useWorkflowStore();
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const menu = useMenu();
 
 // vars
@@ -87,7 +87,7 @@ const modalContainer = ref(null);
 const showTaskOptions = ref(true);
 const popUpActions = ref(null);
 const isAwaitingResponse = ref(false);
-const entityType = ref(entityStore.getEntityTypesNames[0]);
+const entityType = ref(collectionStore.getEntityTypesNames[0]);
 const selectedWorkflowName = ref(workflowStore.selectedWorkflow.name);
 const workflowName = ref(workflowStore.selectedWorkflow.name);
 const stageStore = useStageStore();
@@ -147,14 +147,14 @@ const addSingleWorkflow = async () => {
   let entityId = ""
   if(stageStore.selectedItem && stageStore.selectedItem.type === 'entity'){
     entityId = stageStore.markedItems[0]
-  } else if (entityStore.navigatedEntity) {
-    entityId = entityStore.navigatedEntity.id;
+  } else if (collectionStore.navigatedEntity) {
+    entityId = collectionStore.navigatedEntity.id;
   } else {
     entityId = '';
   }
   
 
-  let entityTypeData = entityStore.entityTypes.find((entityTypeData) => entityTypeData.name === entityType.value)
+  let entityTypeData = collectionStore.entityTypes.find((entityTypeData) => entityTypeData.name === entityType.value)
   await WorkflowService.AddWorkflow(
     projectStore.activeProject.uri, workflowStore.selectedWorkflow.id,
     workflowName.value, entityTypeData.id, entityId
@@ -282,4 +282,7 @@ onUnmounted(() => {
   max-height: 400px;
 }
 </style>
+
+
+
 

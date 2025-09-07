@@ -52,12 +52,12 @@ import { ref, computed } from 'vue'
 
 // state imports
 import { useAssetStore } from '@/stores/assets';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useDndStore } from '@/stores/dnd';
 
 // stores
 const assetStore = useAssetStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const dndStore = useDndStore();
 
 // components
@@ -344,5 +344,7 @@ const selectEntityType = (entityTypeName) => {
   /* padding-left: 0px; */
 }
 </style>
+
+
 
 

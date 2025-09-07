@@ -49,7 +49,7 @@ import utils from '@/services/utils';
 import { useMenu } from '@/stores/menu';
 import { useCommonStore } from '@/stores/common';
 import { useStatusStore } from '@/stores/status';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useStageStore } from '@/stores/stages';
 
 // components
@@ -59,7 +59,7 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 const menu = useMenu();
 const commonStore = useCommonStore();
 const statusStore = useStatusStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const stage = useStageStore();
 
 // refs
@@ -69,8 +69,8 @@ const useDeep = ref(false);
 
 
 const entityTypes = computed(() => {
-  console.log(entityStore.getEntityTypes)
-  return entityStore.getEntityTypes
+  console.log(collectionStore.getEntityTypes)
+  return collectionStore.getEntityTypes
 });
 
 
@@ -132,4 +132,7 @@ onBeforeUnmount(() => {
 @import "@/assets/desktop.css";
 @import "@/assets/menu.css";
 </style>
+
+
+
 

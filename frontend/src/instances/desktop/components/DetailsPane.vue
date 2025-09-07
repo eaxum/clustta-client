@@ -62,7 +62,7 @@
         <div v-else-if="onlyEntities" class="action-bar">
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="'Collection type'" />
-            <DropDownBox :items="entityStore.getEntityTypesNames" :selectedItem="entityType"
+            <DropDownBox :items="collectionStore.getEntityTypesNames" :selectedItem="entityType"
               :onSelect="changeEntityType" :fixedWidth="true" />
           </div>
 
@@ -121,7 +121,7 @@ import { computed, ref, onMounted, onUnmounted, watchEffect, watch, nextTick } f
 import { usePaneStore } from '@/stores/panes';
 import { useStageStore } from '@/stores/stages';
 import { useAssetStore } from '@/stores/assets';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useProjectStore } from '@/stores/projects';
 import { useStatusStore } from '@/stores/status';
 import { useUserStore } from '@/stores/users';
@@ -155,7 +155,7 @@ const panes = usePaneStore();
 const iconStore = useIconStore();
 const stage = useStageStore();
 const assetStore = useAssetStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const statusStore = useStatusStore();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
@@ -359,7 +359,7 @@ const viewCheckpoints = () => {
 
 const visiblePanes = computed(() => {
   if (stage.activeStage === 'browser') {
-    if (!entityStore.selectedEntity && !assetStore.selectedTask && !projectStore.selectedUntrackedItem) {
+    if (!collectionStore.selectedEntity && !assetStore.selectedTask && !projectStore.selectedUntrackedItem) {
       if (!stage.markedItems.length) {
         if(panes.activeModal !== 'projectCheckpoints'){
           panes.setPaneVisibility('projectDetails', true);
@@ -394,7 +394,7 @@ const itemTypes = ref(['task', 'resource']);
 const collectionMode = ref(['basic', 'library']);
 const itemType = ref(itemTypes.value[0]);
 const taskType = ref(assetStore.getTaskTypesNames[0]);
-const entityType = ref(entityStore.getEntityTypesNames[0]);
+const entityType = ref(collectionStore.getEntityTypesNames[0]);
 const detailsPaneRoot = ref(null);
 
 
@@ -532,7 +532,7 @@ const deleteMultipleItems = async () => {
   await deleteMultipleEntities();
   await deleteMultipleTasks();
   stage.markedItems = [];
-  entityStore.selectedEntity = null;
+  collectionStore.selectedEntity = null;
 };
 
 const deleteMultipleEntities = async () => {
@@ -544,7 +544,7 @@ const deleteMultipleEntities = async () => {
       .then(async (response) => {
         if(onlyEntities.value){
           stage.markedItems = [];
-          entityStore.selectedEntity = null;
+          collectionStore.selectedEntity = null;
         }
       })
       .catch((error) => {
@@ -618,7 +618,7 @@ const clearSelection = () => {
 	stage.firstSelectedItemId = '';
 	stage.lastSelectedItemId = '';
 	assetStore.selectedTask = null;
-	entityStore.selectedEntity = null;
+	collectionStore.selectedEntity = null;
 }
 
 const deleteMultipleTasks = async () => {
@@ -716,7 +716,7 @@ const moveIntoFolder = async () => {
       await changeTaskEntity(taskId, entityId);
     } else {
 
-      let entity = entityStore.findEntity(activeItemId)
+      let entity = collectionStore.findEntity(activeItemId)
 
       await FSService.MakeDirs(entity.file_path)
       let newPath = await FSService.JoinPath(entity.file_path, item.name)
@@ -925,7 +925,7 @@ const changeEntityType = async (entityTypeName) => {
   stage.operationActive = true;
 
   let newEntityType;
-  const entityTypes = entityStore.getEntityTypes;
+  const entityTypes = collectionStore.getEntityTypes;
   newEntityType = entityTypes.find((item) => item.name === entityTypeName);
   entityType.value = entityTypeName;
 
@@ -1192,5 +1192,8 @@ onUnmounted(() => {
   flex-direction: column;
 }
 </style>
+
+
+
 
 

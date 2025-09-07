@@ -35,7 +35,7 @@ import { useMenu } from '@/stores/menu';
 import { useDndStore } from '@/stores/dnd';
 import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useScrollStore } from '@/stores/scroll';
 import { useUntrackedItemStore } from '@/stores/untracked';
 import { useProjectStore } from '@/stores/projects';
@@ -50,7 +50,7 @@ const dndStore = useDndStore();
 const assetStore = useAssetStore();
 const scrollStore = useScrollStore();
 const iconStore = useIconStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const untrackedItemStore = useUntrackedItemStore();
 const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
@@ -93,7 +93,7 @@ const openCollectionMenu = (event) => {
   const id = props.child.id;
   const entity = props.child;
   stage.markedEntities = [id];
-  entityStore.selectEntity(entity);
+  collectionStore.selectEntity(entity);
   menu.showContextMenu(event, 'collectionMenu', true);
 };
 
@@ -241,7 +241,7 @@ const loadEntityChildren = async () => {
     await assetStore.processTasksIconsAndPreviews(children.tasks);
     await assetStore.processUntrackedTasksIcons(children.untracked_tasks);
 
-    let childrenEntities = filtersActive.value ? await entityStore.filterEntities(children.entities) : children.entities ;
+    let childrenEntities = filtersActive.value ? await collectionStore.filterEntities(children.entities) : children.entities ;
 		let childrenTasks = filtersActive.value ? await assetStore.filterTasks(children.tasks) : children.tasks ;
 
     entityChildren.value = [...childrenEntities, ...children.untracked_entities, ...childrenTasks,  ...children.untracked_tasks]
@@ -370,5 +370,8 @@ onBeforeUnmount(() => {
   background-color: forestgreen;
 }
 </style>
+
+
+
 
 

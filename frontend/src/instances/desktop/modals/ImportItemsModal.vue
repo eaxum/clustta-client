@@ -49,7 +49,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useStageStore } from '@/stores/stages';
 import { useAssetStore } from '@/stores/assets';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useStatusStore } from '@/stores/status';
 import { useProjectStore } from '@/stores/projects';
 import { useImportStore } from '@/stores/import';
@@ -70,7 +70,7 @@ const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const statusStore = useStatusStore();
 const projectStore = useProjectStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const assetStore = useAssetStore();
 const dndStore = useDndStore();
 
@@ -119,9 +119,9 @@ const previewImportItems = async () => {
   await ImportService.ImportFolder(projectStore.activeProject.uri, parentId, folders, files, workingDir, projectStore.activeProject.ignore_list)
     .then((response) => {
       if (dndStore.trackedParents.length + dndStore.untrackedParents.length > 0) {
-        let entityTypeId = entityStore.entityTypes.find((item) => item.name === "generic")?.id;
+        let entityTypeId = collectionStore.entityTypes.find((item) => item.name === "generic")?.id;
         for (let trackedParent of dndStore.trackedParents) {
-          let entityData = entityStore.entities.find((item) => item.entity_path === trackedParent);
+          let entityData = collectionStore.entities.find((item) => item.entity_path === trackedParent);
           entityData.is_tracked_parent = true
           entityData.is_expanded = true
           trackedParentData.push(entityData)
@@ -249,7 +249,7 @@ const refresh = async () => {
   assetStore.tasksLoaded = false;
   await projectStore.refreshActiveProject()
   await statusStore.reloadStatuses();
-  await entityStore.reloadEntities();
+  await collectionStore.reloadEntities();
   await assetStore.reloadTasks();
   projectStore.getUntrackedItems()
   assetStore.tasksLoaded = true;
@@ -530,5 +530,8 @@ onUnmounted(() => {
   max-height: 400px;
 }
 </style>
+
+
+
 
 

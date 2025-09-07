@@ -17,7 +17,7 @@
 
     <div class="hierarchy-item-config">
 
-      <DropDownBox v-if="entitiesSelected" :items="entityStore.getEntityTypesNames" :selectedItem="entityType"
+      <DropDownBox v-if="entitiesSelected" :items="collectionStore.getEntityTypesNames" :selectedItem="entityType"
         :onSelect="selectEntityType" :fullWidth="false" />
 
       <DropDownBox v-if="tasksSelected" :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType"
@@ -62,7 +62,7 @@ import emitter from '@/lib/mitt';
 
 import { ref, computed, onMounted } from 'vue'
 import { useDndStore } from '@/stores/dnd';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useTemplateStore } from '@/stores/template';
 import { useMenu } from '@/stores/menu';
 import { useAssetStore } from '@/stores/assets';
@@ -77,7 +77,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 // state imports
 const dndStore = useDndStore();
 const assetStore = useAssetStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const templateStore = useTemplateStore();
 const menu = useMenu();
 const stage = useStageStore();
@@ -157,7 +157,7 @@ const targetEntity = computed(() => {
   if (!dndStore.targetItemId) {
     return null;
   }
-  return entityStore.getEntities.find(entity => entity.id === dndStore.targetItemId);
+  return collectionStore.getEntities.find(entity => entity.id === dndStore.targetItemId);
 });
 
 const previewData = computed(() => {
@@ -448,7 +448,7 @@ const selectTaskType = (taskTypeName) => {
 const selectEntityType = (entityTypeName) => {
 
   let newEntityType;
-  const entityTypes = entityStore.getEntityTypes;
+  const entityTypes = collectionStore.getEntityTypes;
   newEntityType = entityTypes.find((item) => item.name === entityTypeName);
 
 
@@ -533,7 +533,7 @@ const removeItem = (item) => {
 };
 
 onMounted(async () => {
-  entityType.value = entityStore.getEntityTypesNames[0];
+  entityType.value = collectionStore.getEntityTypesNames[0];
   taskType.value = assetStore.getTaskTypesNames[0];
 });
 
@@ -611,5 +611,8 @@ onMounted(async () => {
   gap: .5rem;
 }
 </style>
+
+
+
 
 

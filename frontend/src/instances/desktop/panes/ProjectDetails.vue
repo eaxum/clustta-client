@@ -138,7 +138,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
 import { useModalStore } from '@/stores/modals';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useAssetStore } from '@/stores/assets';
 import { useCommonStore } from '@/stores/common';
 import { useIconStore } from '@/stores/icons';
@@ -156,7 +156,7 @@ const panes = usePaneStore();
 const stage = useStageStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const commonStore = useCommonStore();
@@ -256,7 +256,7 @@ const deleteProject = async () => {
 };
 
 const rebuildAll = async () => {
-  // let entity = entityStore.selectedEntity;
+  // let entity = collectionStore.selectedEntity;
   menu.hideContextMenu();
   notificationStore.cancleFunction = SyncService.CancelSync
   notificationStore.canCancel = true
@@ -521,5 +521,8 @@ onBeforeUnmount(() => {
   font-size: 13px;
 }
 </style>
+
+
+
 
 

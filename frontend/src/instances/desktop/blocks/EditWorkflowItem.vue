@@ -40,14 +40,14 @@ import { v4 as uuidv4 } from 'uuid';
 
 // store imports
 import { useAssetStore } from '@/stores/assets';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useTemplateStore } from '@/stores/template';
 import { useWorkflowStore } from '@/stores/workflow';
 import { useIconStore } from '@/stores/icons';
 
 // states imports
 const assetStore = useAssetStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const templateStore = useTemplateStore();
 const workflowStore = useWorkflowStore();
 const iconStore = useIconStore();
@@ -90,7 +90,7 @@ const taskType = computed(() => {
 });
 
 const entityType = computed(() => {
-    const allEntityTypes = entityStore.getEntityTypes;
+    const allEntityTypes = collectionStore.getEntityTypes;
     const selectedEntityType = allEntityTypes.find((item) => item.id === entityTypeId.value);
     return selectedEntityType ? selectedEntityType.name : 'Select collection type'
 });
@@ -129,7 +129,7 @@ const taskTemplates = computed(() => {
 });
 
 const entityTypeNames = computed(() => {
-    return entityStore.getEntityTypesNames;
+    return collectionStore.getEntityTypesNames;
 });
 
 const itemTypes = computed(() => {
@@ -166,7 +166,7 @@ const newWorkflowItemData = computed(() => {
         };
     } else if (itemTypeName === 'Collection') {
 
-        const allEntityTypes = entityStore.getEntityTypes;
+        const allEntityTypes = collectionStore.getEntityTypes;
         const firstEntityType = allEntityTypes[0];
         entityTypeIcon.value = entityTypeIcon.value ? entityTypeIcon.value : firstEntityType.icon;
         entityTypeId.value = entityTypeId.value ? entityTypeId.value : firstEntityType.id;
@@ -253,7 +253,7 @@ const selectTaskType = (taskTypeName) => {
 };
 
 const selectEntityType = (entityTypeName) => {
-    const allEntityTypes = entityStore.getEntityTypes;
+    const allEntityTypes = collectionStore.getEntityTypes;
     const selectedEntityType = allEntityTypes.find((item) => item.name === entityTypeName);
 
     entityTypeId.value = selectedEntityType.id;
@@ -350,5 +350,8 @@ onBeforeUnmount(() => {
     outline-offset: -1px;
 }
 </style>
+
+
+
 
 

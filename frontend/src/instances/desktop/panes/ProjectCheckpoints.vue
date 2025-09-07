@@ -41,7 +41,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useStageStore } from '@/stores/stages';
 import { useAssetStore } from '@/stores/assets';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useStatusStore } from '@/stores/status';
 import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
@@ -488,5 +488,6 @@ const updateExpanded = (index) => {
   /* background-color: rgba(0, 0, 0, 0.295); */
 }
 </style>
+
 
 

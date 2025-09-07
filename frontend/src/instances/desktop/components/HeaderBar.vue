@@ -110,7 +110,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 import { usePaneStore } from '@/stores/panes';
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
@@ -127,7 +127,7 @@ const trayStates = useTrayStates();
 const projectStore = useProjectStore();
 const panes = usePaneStore();
 const stage = useStageStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
@@ -251,7 +251,7 @@ const goToProjects = () => {
 
 const showProjectCheckpoints = () => {
 	
-	entityStore.selectedEntity  = null ;
+	collectionStore.selectedEntity  = null ;
 	assetStore.selectedTask = null ;
 	projectStore.selectedUntrackedItem = null;
 
@@ -494,5 +494,8 @@ const goToSettings = () => {
 	width: 400px;
 }
 </style>
+
+
+
 
 

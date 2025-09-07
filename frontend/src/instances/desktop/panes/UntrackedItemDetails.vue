@@ -74,7 +74,7 @@ import emitter from '@/lib/mitt';
 import { useIconStore } from '@/stores/icons';
 import { useUserStore } from '@/stores/users';
 import { useModalStore } from '@/stores/modals';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
@@ -96,7 +96,7 @@ const trayStates = useTrayStates();
 const iconStore = useIconStore();
 const userStore = useUserStore();
 const modalStore = useModalStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const modals = useDesktopModalStore();
 const stage = useStageStore();
 const projectStore = useProjectStore();
@@ -114,7 +114,7 @@ const getAppIcon = (iconName) => {
 
 const parentName = computed(() => {
   const parentId = projectStore.selectedUntrackedItem.parent_id
-  const parent = entityStore.getEntities.find((item) => item.id === parentId)
+  const parent = collectionStore.getEntities.find((item) => item.id === parentId)
   return parent ? parent.name : 'None'
 });
 
@@ -139,7 +139,7 @@ const deleteUntrackedFolder = () => {
   FSService.DeleteFolder(untrackedItem.value.file_path);
   projectStore.removeUntrackedEntity(untrackedItem.value.id);
   panes.setPaneVisibility('projectDetails', true)
-  entityStore.selectedEntity = null;
+  collectionStore.selectedEntity = null;
   stage.markedItems = [];
   emitter.emit('refresh-browser')
   modals.disableAllModals();
@@ -180,7 +180,7 @@ const importFolder = () => {
   let parentPaths = utils.getParentPaths(untrackedItem.value.entity_path)
   if (!inRoot) {
     for (let parent of parentPaths) {
-      parentId = entityStore.entities.find((item) => item.entity_path === parent)?.id;
+      parentId = collectionStore.entities.find((item) => item.entity_path === parent)?.id;
       if (parentId !== undefined) {
         break
       }
@@ -203,7 +203,7 @@ const importTask = () => {
   let parentPaths = utils.getParentPaths(untrackedItem.value.entity_path)
   if (!inRoot) {
     for (let parent of parentPaths) {
-      parentId = entityStore.entities.find((item) => item.entity_path === parent)?.id;
+      parentId = collectionStore.entities.find((item) => item.entity_path === parent)?.id;
       if (parentId !== undefined) {
         break
       }
@@ -349,5 +349,8 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 </style>
+
+
+
 
 

@@ -71,7 +71,7 @@ import emitter from '@/lib/mitt';
 
 // stores/state imports
 import { useCommonStore } from '@/stores/common';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 
@@ -87,7 +87,7 @@ const dndStore = useDndStore();
 const assetStore = useAssetStore();
 const statusStore = useStatusStore();
 const commonStore = useCommonStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 
@@ -774,5 +774,7 @@ onUnmounted(() => {
   box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
 }
 </style>
+
+
 
 

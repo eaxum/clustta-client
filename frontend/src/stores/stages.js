@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { useMenu } from "@/stores/menu";
 import { usePaneStore } from "@/stores/panes";
 import { useAssetStore } from '@/stores/assets';
-import { useEntityStore } from "@/stores/entity";
+import { useCollectionStore } from "@/stores/collections";
 import { useDndStore } from "@/stores/dnd";
 import { useProjectStore } from "@/stores/projects";
 
@@ -363,7 +363,7 @@ export const useStageStore = defineStore("stages", {
     selectItem(item, itemType, solo = false) {
       const panes = usePaneStore();
       const assetStore = useAssetStore();
-      const entityStore = useEntityStore();
+      const collectionStore = useCollectionStore();
       const projectStore = useProjectStore();
 
       if (solo) {
@@ -371,7 +371,7 @@ export const useStageStore = defineStore("stages", {
       }
 
       if (itemType === "entity") {
-        entityStore.selectEntity(item);
+        collectionStore.selectEntity(item);
         this.selectedItem = item;
         // panes.setPaneVisibility("collectionDetails", true);
       } else if (itemType === "task") {
@@ -392,11 +392,11 @@ export const useStageStore = defineStore("stages", {
 
     deselectAllItems() {
       const assetStore = useAssetStore();
-      const entityStore = useEntityStore();
+      const collectionStore = useCollectionStore();
       const projectStore = useProjectStore();
 
       assetStore.selectedTask = null;
-      entityStore.selectedEntity = null;
+      collectionStore.selectedEntity = null;
       projectStore.selectedUntrackedItem = null;
     },
 
@@ -450,3 +450,6 @@ export const useStageStore = defineStore("stages", {
     },
   },
 });
+
+
+

@@ -40,7 +40,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useStageStore } from '@/stores/stages';
 import { useAssetStore } from '@/stores/assets';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useStatusStore } from '@/stores/status';
 import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
@@ -63,7 +63,7 @@ const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const statusStore = useStatusStore();
 const projectStore = useProjectStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const assetStore = useAssetStore();
 const dndStore = useDndStore();
 const userStore = useUserStore();
@@ -108,7 +108,7 @@ const refresh = async () => {
   assetStore.tasksLoaded = false;
   await projectStore.refreshActiveProject()
   await statusStore.reloadStatuses();
-  await entityStore.reloadEntities();
+  await collectionStore.reloadEntities();
   await assetStore.reloadTasks();
   projectStore.getUntrackedItems()
   assetStore.tasksLoaded = true;
@@ -456,5 +456,8 @@ onUnmounted(() => {
   padding: .5rem;
 }
 </style>
+
+
+
 
 

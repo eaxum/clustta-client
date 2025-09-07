@@ -49,13 +49,13 @@ const emit = defineEmits(['filter']);
 
 import { useIconStore } from '@/stores/icons';
 import { useCommonStore } from '@/stores/common';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useProjectStore } from '@/stores/projects';
 import { useNotificationStore } from '@/stores/notifications';
 
 const iconStore = useIconStore();
 const commonStore = useCommonStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
 
@@ -69,7 +69,7 @@ const props = defineProps({
 });
 
 const navigatedEntity = computed(() => {
-  return entityStore.navigatedEntity;
+  return collectionStore.navigatedEntity;
 });
 
 const path = computed(() => {
@@ -183,9 +183,9 @@ const copyDirectoryPath = async () => {
     await ClipboardService.WriteText(projectDir);
   } else {
 
-    let path = entityStore.navigatedEntity?.type === 'entity' 
-      ? entityStore.navigatedEntity.entity_path
-      : entityStore.navigatedEntity.item_path;
+    let path = collectionStore.navigatedEntity?.type === 'entity' 
+      ? collectionStore.navigatedEntity.entity_path
+      : collectionStore.navigatedEntity.item_path;
 
     let explorerPath = `${project.working_directory}${path}`
     explorerPath = explorerPath.replace(/\\/g, '/');
@@ -205,9 +205,9 @@ const revealInExplorer = async () => {
     await FSService.MakeDirs(project.working_directory)
     FSService.RevealInExplorer(project.working_directory)
   } else {
-    let path = entityStore.navigatedEntity?.type === 'entity' 
-      ? entityStore.navigatedEntity.entity_path
-      : entityStore.navigatedEntity.item_path;
+    let path = collectionStore.navigatedEntity?.type === 'entity' 
+      ? collectionStore.navigatedEntity.entity_path
+      : collectionStore.navigatedEntity.item_path;
 
     const trimmedPath = path.endsWith('/') ? path.slice(0, -1) : path;
     let explorerPath = `${project.working_directory}${trimmedPath}`
@@ -262,7 +262,7 @@ const goToCollection = async (selectedPath) => {
     const allUntrackedFolders = projectStore.untrackedFolders;
     
     let currentEntity;
-    const navigatedEntity = entityStore.navigatedEntity;
+    const navigatedEntity = collectionStore.navigatedEntity;
     const navigatedEntityType = navigatedEntity.type;
     if(navigatedEntityType === 'entity'){
       currentEntity = await EntityService.GetEntityByID(projectStore.activeProject.uri, navigatedEntity.parent_id);
@@ -272,8 +272,8 @@ const goToCollection = async (selectedPath) => {
     }
     console.log(currentEntity)
 
-    entityStore.navigatedEntity = currentEntity;
-    entityStore.selectedEntity = currentEntity;
+    collectionStore.navigatedEntity = currentEntity;
+    collectionStore.selectedEntity = currentEntity;
 };
 
 const getAppIcon = (iconName) => {
@@ -283,11 +283,11 @@ const getAppIcon = (iconName) => {
 
 const goHome = () => {
 	commonStore.navigatorMode = false;
-	entityStore.navigatedEntity = null;
+	collectionStore.navigatedEntity = null;
 };
 
 const goUpALevel = async () => {
-	const entity = entityStore.navigatedEntity;
+	const entity = collectionStore.navigatedEntity;
   let parentEntityId = entity.parent_id;
 
   if(!parentEntityId){
@@ -298,8 +298,8 @@ const goUpALevel = async () => {
   const parentEntity = await EntityService.GetEntityByID(projectStore.activeProject.uri, parentEntityId);
 
 	if(parentEntity){
-		entityStore.navigatedEntity = parentEntity;
-		entityStore.selectedEntity = parentEntity;
+		collectionStore.navigatedEntity = parentEntity;
+		collectionStore.selectedEntity = parentEntity;
 	} else {
 		commonStore.navigatorMode = false;
 	}
@@ -307,8 +307,8 @@ const goUpALevel = async () => {
 
 watch(() => projectStore.activeProject?.uri, async () => {
 	commonStore.navigatorMode = false;
-  entityStore.navigatedEntity = null;
-  entityStore.selectedEntity = null;
+  collectionStore.navigatedEntity = null;
+  collectionStore.selectedEntity = null;
   
 });
 
@@ -497,5 +497,8 @@ watch(() => projectStore.activeProject?.uri, async () => {
 }
 
 </style>
+
+
+
 
 

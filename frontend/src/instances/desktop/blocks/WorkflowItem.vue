@@ -62,7 +62,7 @@ import utils from '@/services/utils';
 // states/store imports
 import { useIconStore } from '@/stores/icons';
 import { useAssetStore } from '@/stores/assets';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useTemplateStore } from '@/stores/template';
 
 // components
@@ -72,7 +72,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 const iconStore = useIconStore();
 const assetStore = useAssetStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const templateStore = useTemplateStore();
 
 // props
@@ -104,7 +104,7 @@ const workflowItemIcon = computed(() => {
   const workflow = props.entity;
 
   if (workflow.entity_type_id) {
-    return entityStore.getEntityTypeIcon(workflow.entity_type_id)
+    return collectionStore.getEntityTypeIcon(workflow.entity_type_id)
   } else {
     return 'folder'
   }
@@ -516,5 +516,8 @@ onBeforeUnmount(() => {
   /* padding: 5px; */
 }
 </style>
+
+
+
 
 

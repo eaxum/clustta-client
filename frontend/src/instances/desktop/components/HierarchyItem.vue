@@ -35,7 +35,7 @@
 
       <div v-if="!isHierarchyRoot && !item.is_tracked_parent" class="hierarchy-item-config">
 
-        <DropDownBox v-if="item.entity_type_id" :items="entityStore.getEntityTypesNames" :selectedItem="entityType"
+        <DropDownBox v-if="item.entity_type_id" :items="collectionStore.getEntityTypesNames" :selectedItem="entityType"
           :onSelect="selectEntityType" :fullWidth="false" />
 
         <DropDownBox v-else :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" :fullWidth="false" />
@@ -72,7 +72,7 @@ import { useMenu } from '@/stores/menu';
 import { useDndStore } from '@/stores/dnd';
 import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useTemplateStore } from '@/stores/template';
 
 // stores
@@ -80,7 +80,7 @@ const menu = useMenu();
 const stage = useStageStore();
 const dndStore = useDndStore();
 const assetStore = useAssetStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const templateStore = useTemplateStore();
 
 // components
@@ -284,7 +284,7 @@ const selectTaskType = (taskTypeName) => {
 const selectEntityType = (entityTypeName) => {
 
   let newEntityType;
-  const entityTypes = entityStore.getEntityTypes;
+  const entityTypes = collectionStore.getEntityTypes;
   newEntityType = entityTypes.find((item) => item.name === entityTypeName);
 
   let previewData = dndStore.previewData['entities'];
@@ -468,5 +468,8 @@ const selectEntityType = (entityTypeName) => {
   transform: rotate(90deg);
 }
 </style>
+
+
+
 
 
