@@ -2,20 +2,20 @@
   <div ref="popUpMenu" class="filter-menu-container">
 
     <ActionButton v-if="userStore.canDo('pull_chunk')" :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true"
-      label="Open With" :buttonFunction="launchTaskWithCommand" />
+      label="Open With" :buttonFunction="launchAssetWithCommand" />
 
     <span v-if="userStore.canDo('pull_chunk')" class="menu-divider"></span>
 
     <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
-      label="Rename Asset" :buttonFunction="renameTask" />
+      label="Rename Asset" :buttonFunction="renameAsset" />
 
     <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('parameters')" :showLabel="true"
-      :fullWidth="true" label="Edit Asset" :buttonFunction="editTask" />
+      :fullWidth="true" label="Edit Asset" :buttonFunction="editAsset" />
 
     <ActionButton v-if="userStore.canDo('create_task')" :icon="getAppIcon('copy')" :showLabel="true"
-      :fullWidth="true" label="Duplicate Asset" :buttonFunction="duplicateTask" />
+      :fullWidth="true" label="Duplicate Asset" :buttonFunction="duplicateAsset" />
 
-    <ActionButton v-if="task.dependencies.length || task.entity_dependencies.length" :icon="getAppIcon('jigsaw')" :showLabel="true"
+    <ActionButton v-if="asset.dependencies.length || asset.entity_dependencies.length" :icon="getAppIcon('jigsaw')" :showLabel="true"
       :fullWidth="true" label="Build with dependencies" :buttonFunction="buildWithDependencies" />
 
     <ActionButton v-if="userStore.canDo('manage_dependencies')" :icon="getAppIcon('dependency')" :showLabel="true"
@@ -29,13 +29,13 @@
     <span class="horizontal-flex">
       <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" label="Show in Explorer"
         :buttonFunction="revealInExplorer" />
-      <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyTaskPath('task')"
+      <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyAssetPath('asset')"
         v-tooltip="'Copy Path'" />
     </span>
 
     <!-- Checkpoints -->
-    <ActionButton v-if="isTaskModified" :noFilter="true" :icon="getAppIcon('revert-alert')" :showLabel="true" :fullWidth="true"
-      label="Revert File" :buttonFunction="revertTask" />
+    <ActionButton v-if="isAssetModified" :noFilter="true" :icon="getAppIcon('revert-alert')" :showLabel="true" :fullWidth="true"
+      label="Revert File" :buttonFunction="revertAsset" />
 
     <span v-if="userStore.canDo('update_task')" class="menu-divider"></span>
 
@@ -45,7 +45,7 @@
 
     <!-- Delete Task -->
     <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Delete Asset"
-      v-if="userStore.canDo('delete_task')" :buttonFunction="deleteTask" />
+      v-if="userStore.canDo('delete_task')" :buttonFunction="deleteAsset" />
 
   </div>
 
@@ -99,9 +99,9 @@ const collectionStore = useCollectionStore();
 const popUpMenu = ref(null);
 
 // computed properties
-const task = computed(() => { return assetStore.selectedAsset });
-const isNotOnDisk = computed(() => { return task.value?.file_status === 'rebuildable' });
-const isTaskModified = computed(() => { return assetStore.selectedAsset.file_status === 'modified' });
+const asset = computed(() => { return assetStore.selectedAsset });
+const isNotOnDisk = computed(() => { return asset.value?.file_status === 'rebuildable' });
+const isAssetModified = computed(() => { return assetStore.selectedAsset.file_status === 'modified' });
 
 const filtersActive = computed(() => {
 	const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
@@ -143,51 +143,51 @@ const getAppIcon = (iconName) => {
   return icon
 };
 
-const launchTaskWithCommand = async () => {
-  let task = assetStore.selectedAsset
-  if (task.is_link && isValidWeblink(task.pointer)) {
-    Browser.OpenURL(task.pointer)
+const launchAssetWithCommand = async () => {
+  let asset = assetStore.selectedAsset
+  if (asset.is_link && isValidWeblink(asset.pointer)) {
+    Browser.OpenURL(asset.pointer)
   } else {
-    let file_path = task.pointer ? task.pointer : task.file_path
+    let file_path = asset.pointer ? asset.pointer : asset.file_path
     if (await FSService.Exists(file_path)) {
       FSService.LaunchFileWith(file_path)
     } else {
-      CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [task.id])
+      CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [asset.id])
         .then(async (response) => {
-          let fileStatus = await assetStore.getAssetFileStatus(task)
-          task.file_status = fileStatus
+          let fileStatus = await assetStore.getAssetFileStatus(asset)
+          asset.file_status = fileStatus
           FSService.LaunchFileWith(file_path)
         })
         .catch((error) => {
           console.log(error)
-          notificationStore.errorNotification("Error Rebuilding Task", error)
+          notificationStore.errorNotification("Error Rebuilding Asset", error)
         });
     }
   }
   menu.hideContextMenu();
 };
 
-const editTask = () => {
+const editAsset = () => {
   modals.setModalVisibility('editAssetModal', true);
   menu.hideContextMenu();
 };
 
-const duplicateTask = async () => {
+const duplicateAsset = async () => {
   menu.hideContextMenu();
   
   try {
 
     stage.operationActive = true;
-    let selectedTask = assetStore.selectedAsset;
+    let selectedAsset = assetStore.selectedAsset;
     
-		await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedTask.id)
-		.then((duplicatedTask) => {
+		await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedAsset.id)
+		.then((duplicatedAsset) => {
 			emitter.emit('refresh-browser')
-			assetStore.selectAsset(duplicatedTask);
-			stage.selectedItem = duplicatedTask;
-			stage.markedItems = [duplicatedTask.id];
+			assetStore.selectAsset(duplicatedAsset);
+			stage.selectedItem = duplicatedAsset;
+			stage.markedItems = [duplicatedAsset.id];
 			stage.lastSelectedItemId = "";
-			stage.firstSelectedItemId = duplicatedTask.id;
+			stage.firstSelectedItemId = duplicatedAsset.id;
       
       stage.operationActive = false;
 
@@ -199,33 +199,33 @@ const duplicateTask = async () => {
 		})
     
   } catch (error) {
-    console.error('Error duplicating task:', error);
+    console.error('Error duplicating asset:', error);
     notificationStore.errorNotification('Failed to Duplicate Asset', error);
   }
 };
 
-const renameTask = () => {
-  emitter.emit('renameTask');
+const renameAsset = () => {
+  emitter.emit('renameAsset');
   menu.hideContextMenu();
 };
 
 const buildWithDependencies = async () => {
   menu.hideContextMenu();
-  let taskIds = [task.value.id, ...task.value.dependencies];
-  for (let entityId of task.value.entity_dependencies) {
-    let entityTasks = assetStore.getEntityAssets(entityId, true);
-    for (let entityTask of entityTasks) {
-      if (!taskIds.includes(entityTask.id)) {
-        taskIds.push(entityTask.id);
+  let assetIds = [asset.value.id, ...asset.value.dependencies];
+  for (let entityId of asset.value.entity_dependencies) {
+    let entityAssets = assetStore.getEntityAssets(entityId, true);
+    for (let entityAsset of entityAssets) {
+      if (!assetIds.includes(entityAsset.id)) {
+        assetIds.push(entityAsset.id);
       }
     }
   }
-  await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, taskIds)
+  await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, assetIds)
     .then((response) => {
       emitter.emit('refresh-browser');
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error Revering Tasks", error);
+      notificationStore.errorNotification("Error Reverting Assets", error);
       console.error(error);
     });
 };
@@ -248,10 +248,10 @@ const goToLocation = async () => {
     // Enable navigator mode
     commonStore.navigatorMode = true;
     
-    // Get the parent entity of the selected task
-    const selectedTask = assetStore.selectedAsset;
-    if (selectedTask && selectedTask.entity_id) {
-      const parentEntity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, selectedTask.entity_id);
+    // Get the parent entity of the selected asset
+    const selectedAsset = assetStore.selectedAsset;
+    if (selectedAsset && selectedAsset.entity_id) {
+      const parentEntity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, selectedAsset.entity_id);
       if (parentEntity) {
         collectionStore.navigatedCollection = parentEntity;
         collectionStore.selectedCollection = parentEntity;
@@ -266,17 +266,17 @@ const goToLocation = async () => {
 const revealInExplorer = async () => {
 
   menu.hideContextMenu();
-  const taskId = assetStore.selectedAsset.id;
+  const assetId = assetStore.selectedAsset.id;
 
   if(assetStore.selectedAsset.file_status == "rebuildable"){
-    await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [taskId])
+    await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [assetId])
     .then( async (response) => {
-      assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(taskPath => taskPath !== task.task_path)
-      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path);
+      assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(assetPath => assetPath !== asset.task_path)
+      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.task_path);
       emitter.emit('get-project-data')
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error downloading Task", error);
+      notificationStore.errorNotification("Error downloading Asset", error);
       console.error(error);
     });
 
@@ -284,48 +284,46 @@ const revealInExplorer = async () => {
   AssetService.RevealAsset(projectStore.activeProject.uri, assetStore.selectedAsset.id);
 };
 
-const revertTask = async () => {
-  let taskId = assetStore.selectedAsset.id;
-  CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [taskId])
+const revertAsset = async () => {
+  let assetId = assetStore.selectedAsset.id;
+  CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [assetId])
     .then((response) => {
       assetStore.selectedAsset.file_status = "normal"
     })
     .catch((error) => {
-      notificationStore.errorNotification("Failed to Revert Task", error)
+      notificationStore.errorNotification("Failed to Revert Asset", error)
     });
   menu.hideContextMenu();
 };
 
 // methods
-const copyTaskPath = async (pathType) => {
-  let task = assetStore.selectedAsset;
-  console.log(task)
-  let taskPath = task.file_path;
-  taskPath = taskPath.replace(/\\/g, '/');
-  let taskDir = taskPath.split('/').slice(0, -1).join('/');
-  let resourcesFolder = taskDir + '/resources';
-  let outputPath = taskDir + '/output';
+const copyAssetPath = async (pathType) => {
+  let asset = assetStore.selectedAsset;
+  console.log(asset)
+  let assetPath = asset.file_path;
+  assetPath = assetPath.replace(/\\/g, '/');
+  let assetDir = assetPath.split('/').slice(0, -1).join('/');
+  let resourcesFolder = assetDir + '/resources';
+  let outputPath = assetDir + '/output';
   if (pathType === 'resources') {
-    taskPath = resourcesFolder;
+    assetPath = resourcesFolder;
   } else if (pathType === 'output') {
-    taskPath = outputPath;
+    assetPath = outputPath;
   }
-  await ClipboardService.WriteText(taskPath);
+  await ClipboardService.WriteText(assetPath);
   const message = 'Path copied to clipboard';
   notificationStore.addNotification(message, "", "success");
   menu.hideContextMenu();
 };
 
-const deleteTask = async () => {
-  let taskId = assetStore.selectedAsset.id;
+const deleteAsset = async () => {
+  let assetId = assetStore.selectedAsset.id;
   let longMessage = `Asset of name: ${assetStore.selectedAsset.name} was moved to Trash.`
   panes.setPaneVisibility('projectDetails', true);
   menu.hideContextMenu();
   assetStore.selectedAsset = null;
-  AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
+  AssetService.DeleteAsset(projectStore.activeProject.uri, assetId, true)
     .then(async (response) => {
-      trayStates.undoItemId = taskId;
-      trayStates.undoFunction = undoTaskDelete;
       assetStore.selectedAsset = null;
       stage.markedItems = [];
       projectStore.refreshActiveProject()
@@ -338,25 +336,15 @@ const deleteTask = async () => {
 
 };
 
-const undoTaskDelete = async () => {
-  TrashService.Restore(projectStore.activeProject.uri, trayStates.undoItemId, "task")
-    .then(async (response) => {
-      assetStore.unmarkAssetAsDeleted(trayStates.undoItemId)
-    })
-    .catch((error) => {
-      notificationStore.errorNotification("Error Restoring Item", error)
-    });
-}
-
 const freeUpSpace = async () => {
-  let task = assetStore.selectedAsset;
-  let taskDir = task.file_path.replace(/\\/g, '/');
-  await FSService.DeleteFile(taskDir)
+  let asset = assetStore.selectedAsset;
+  let assetDir = asset.file_path.replace(/\\/g, '/');
+  await FSService.DeleteFile(assetDir)
     .then((response) => {
-      task.file_status = 'rebuildable';
-      assetStore.rebuildableAssetsPath.push(task.task_path)
-      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path)
-      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => taskPath !== task.task_path);
+      asset.file_status = 'rebuildable';
+      assetStore.rebuildableAssetsPath.push(asset.task_path)
+      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.task_path)
+      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(assetPath => assetPath !== asset.task_path);
       emitter.emit('refresh-browser')
     })
     .catch((error) => {
@@ -366,8 +354,8 @@ const freeUpSpace = async () => {
 };
 
 const prepFreeUpSpacePopUpModal = () => {
-  trayStates.popUpModalTitle = "Free Up Task Space";
-  trayStates.popUpModalMessage = "Are you sure you want to delete this task working files? This will permanently remove all uncheckpointed resources and all task outputs. Please confirm if you wish to proceed.";
+  trayStates.popUpModalTitle = "Free Up Asset Space";
+  trayStates.popUpModalMessage = "Are you sure you want to delete this asset working files? This will permanently remove all uncheckpointed resources and all asset outputs. Please confirm if you wish to proceed.";
   trayStates.popUpModalIcon = 'broom';
   trayStates.popUpModalFunction = freeUpSpace;
   modals.setModalVisibility('popUpModal', true);

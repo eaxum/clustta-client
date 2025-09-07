@@ -114,7 +114,7 @@ const launchTaskWithCommand = async () => {
 };
 
 const renameItem = () => {
-  emitter.emit('renameTask');
+  emitter.emit('renameAsset');
   menu.hideContextMenu();
 };
 

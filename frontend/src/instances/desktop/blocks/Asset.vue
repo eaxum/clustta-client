@@ -806,12 +806,12 @@ const handleClickOutside = (event) => {
 };
 
 onMounted(async () => {
-  emitter.on('renameTask', menuRename);
+  emitter.on('renameAsset', menuRename);
   document.addEventListener('click', handleClickOutside);
 });
 
 onBeforeUnmount(() => {
-  emitter.off('renameTask', menuRename);
+  emitter.off('renameAsset', menuRename);
   document.removeEventListener('click', handleClickOutside);
 });
 
