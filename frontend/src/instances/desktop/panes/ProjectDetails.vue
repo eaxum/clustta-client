@@ -385,7 +385,7 @@ const getAssetCount = async() => {
 
 const getCollectionCount = async() => {
   let project = projectStore.getActiveProject;
-  collectionCount.value = await CollectionService.GetEntityCount(project.uri);
+  collectionCount.value = await CollectionService.GetCollectionCount(project.uri);
 }
 
 const getProjectData = async () => {

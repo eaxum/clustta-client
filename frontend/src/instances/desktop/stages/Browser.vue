@@ -650,7 +650,7 @@ const onDragStop = async (event) => {
 						await changeTaskEntity(taskId, entityId);
 					} else {
 
-  						let entity = await CollectionService.GetEntityByID(projectStore.activeProject.uri, dndStore.targetItemId)
+  						let entity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, dndStore.targetItemId)
 						await FSService.MakeDirs(entity.file_path)
 						let extension = draggedEntity.type === 'untracked_task' ? draggedEntity.extension : '';
 						let fullName = draggedEntity.name + extension
@@ -746,7 +746,7 @@ const onDragStop = async (event) => {
 
 const changeEntityParent = async (entityId, parentId) => {
 
-	await CollectionService.ChangeEntityParent(projectStore.activeProject.uri, entityId, parentId)
+	await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityId, parentId)
 		.then((response) => {
 			const successMessage = 'Moved successfully.'
 			notificationStore.addNotification(successMessage, "", "success")
@@ -981,7 +981,7 @@ const deleteMultipleTasks = async (taskIds) => {
 
 const deleteMultipleEntities = async (entityIds) => {
 	for (let entityId of entityIds) {
-		await CollectionService.DeleteEntity(projectStore.activeProject.uri, entityId, true)
+		await CollectionService.DeleteCollection(projectStore.activeProject.uri, entityId, true)
 			.then(async (response) => {
 				await collectionStore.markCollectionAsDeleted(entityId);
 				notificationStore.addNotification("Entity moved to Trash.", '', "success", false);
@@ -1481,11 +1481,11 @@ const refresh = async () => {
 	let project = projectStore.activeProject
 
 	if (!commonStore.navigatorMode) {
-		children = await CollectionService.GetEntityChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false)
+		children = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false)
 	} else {
 		const navigatedEntityId = collectionStore.navigatedCollection?.id;
 		const entity_file_path = collectionStore.navigatedCollection?.file_path;
-		children = await CollectionService.GetEntityChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false)
+		children = await CollectionService.GetCollectionChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false)
 	}
 
 	await assetStore.processAssetsIconsAndPreviews(children.tasks);
@@ -1518,7 +1518,7 @@ const softRefresh = async () => {
 			if(!searching){
 
 				// fetch only root items
-				const rootItems = await CollectionService.GetEntityChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
+				const rootItems = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
 
 				entities = rootItems['entities'];
 				tasks = commonStore.onlyAssets ? await AssetService.GetTasks(project.uri) : rootItems['tasks'];
@@ -1526,7 +1526,7 @@ const softRefresh = async () => {
 			} else {
 
 				// fetch everything
-				entities = await CollectionService.GetEntities(project.uri);
+				entities = await CollectionService.GetCollections(project.uri);
 				tasks = await AssetService.GetTasks(project.uri);
 			}
 
@@ -1537,7 +1537,7 @@ const softRefresh = async () => {
 			const navigatedEntityId = collectionStore.navigatedCollection?.id;
 			const entity_file_path = collectionStore.navigatedCollection?.file_path;
 			
-			const entityItems = await CollectionService.GetEntityChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false)
+			const entityItems = await CollectionService.GetCollectionChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false)
 
 			entities = entityItems['entities'];
 			tasks = entityItems['tasks'];
@@ -1549,12 +1549,12 @@ const softRefresh = async () => {
 	} else {
 		if (!commonStore.navigatorMode) {
 
-			children = await CollectionService.GetEntityChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false)
+			children = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false)
 
 		} else {
 			const navigatedEntityId = collectionStore.navigatedCollection?.id;
 			const entity_file_path = collectionStore.navigatedCollection?.file_path;
-			children = await CollectionService.GetEntityChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false);
+			children = await CollectionService.GetCollectionChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false);
 		}
 	}
 

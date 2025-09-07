@@ -251,7 +251,7 @@ const goToLocation = async () => {
     // Get the parent entity of the selected task
     const selectedTask = assetStore.selectedAsset;
     if (selectedTask && selectedTask.entity_id) {
-      const parentEntity = await CollectionService.GetEntityByID(projectStore.activeProject.uri, selectedTask.entity_id);
+      const parentEntity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, selectedTask.entity_id);
       if (parentEntity) {
         collectionStore.navigatedCollection = parentEntity;
         collectionStore.selectedCollection = parentEntity;

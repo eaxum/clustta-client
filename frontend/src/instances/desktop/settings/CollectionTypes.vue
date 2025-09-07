@@ -104,7 +104,7 @@ const replaceSymbols = (name) => {
 };
 
 const deleteEntityType = async (entityTypeId) => {
-  CollectionService.DeleteEntityType(projectStore.activeProject.uri, entityTypeId)
+  CollectionService.DeleteCollectionType(projectStore.activeProject.uri, entityTypeId)
     .then((response) => {
       notificationStore.addNotification("Entity Type Deleted", "", "success");
       const index = collectionStore.collectionTypes.findIndex(entityType => entityType.id === entityTypeId);

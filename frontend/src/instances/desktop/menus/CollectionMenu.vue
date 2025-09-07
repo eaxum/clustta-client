@@ -305,7 +305,7 @@ const generateUniqueDestinationPath = async (directory, fileName) => {
 const deleteEntity = async () => {
   let entity = collectionStore.selectedCollection;
   panes.setPaneVisibility('projectDetails', true);
-  CollectionService.DeleteEntity(projectStore.activeProject.uri, entity.id)
+  CollectionService.DeleteCollection(projectStore.activeProject.uri, entity.id)
     .then(async (response) => {
       stage.markedItems = [];
       collectionStore.selectedCollection = null;

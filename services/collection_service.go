@@ -31,7 +31,7 @@ type EntityItems struct {
 type CollectionService struct {
 }
 
-func (t *CollectionService) GetEntityCount(projectPath string) (int, error) {
+func (t *CollectionService) GetCollectionCount(projectPath string) (int, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return 0, err
@@ -48,7 +48,7 @@ func (t *CollectionService) GetEntityCount(projectPath string) (int, error) {
 
 	return count, nil
 }
-func (e *CollectionService) CreateEntity(projectPath, name, description, entityTypeId, parentId, previewPath string, isLibrary bool) (models.Entity, error) {
+func (e *CollectionService) CreateCollection(projectPath, name, description, entityTypeId, parentId, previewPath string, isLibrary bool) (models.Entity, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.Entity{}, err
@@ -91,7 +91,7 @@ func (e *CollectionService) CreateEntity(projectPath, name, description, entityT
 	return createdEntity, nil
 }
 
-func (e *CollectionService) RenameEntity(projectPath, entityId, newName string) (models.Entity, error) {
+func (e *CollectionService) RenameCollection(projectPath, entityId, newName string) (models.Entity, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.Entity{}, err
@@ -116,8 +116,8 @@ func (e *CollectionService) RenameEntity(projectPath, entityId, newName string) 
 	return updatedEntity, nil
 }
 
-func (e *CollectionService) CreateEntities(projectPath, name, description, entityTypeId, parentId string) ([]models.Entity, error) {
-	//TODO implement CreateEntities
+func (e *CollectionService) CreateCollections(projectPath, name, description, entityTypeId, parentId string) ([]models.Entity, error) {
+	//TODO implement CreateCollections
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return []models.Entity{}, err
@@ -132,7 +132,7 @@ func (e *CollectionService) CreateEntities(projectPath, name, description, entit
 	return []models.Entity{}, nil
 }
 
-func (e *CollectionService) DeleteEntity(projectPath, entityId string, removeFiles bool) error {
+func (e *CollectionService) DeleteCollection(projectPath, entityId string, removeFiles bool) error {
 
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -154,7 +154,7 @@ func (e *CollectionService) DeleteEntity(projectPath, entityId string, removeFil
 	return nil
 }
 
-func (e *CollectionService) GetEntities(projectPath string) ([]models.Entity, error) {
+func (e *CollectionService) GetCollections(projectPath string) ([]models.Entity, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return []models.Entity{}, err
@@ -199,7 +199,7 @@ func (e *CollectionService) GetEntities(projectPath string) ([]models.Entity, er
 	}
 }
 
-func (e *CollectionService) GetEntityChildren(projectPath, entityId, projectWorkingDir, entityFolderPath string, ignoreList []string, isUntracked bool) (EntityItems, error) {
+func (e *CollectionService) GetCollectionChildren(projectPath, entityId, projectWorkingDir, entityFolderPath string, ignoreList []string, isUntracked bool) (EntityItems, error) {
 	children := EntityItems{
 		Tasks:            make([]models.Task, 0),
 		Entities:         make([]models.Entity, 0),
@@ -322,7 +322,7 @@ func (e *CollectionService) GetEntityChildren(projectPath, entityId, projectWork
 	return children, nil
 }
 
-func (e *CollectionService) GetEntityTasks(projectPath, entityId string) ([]models.Task, error) {
+func (e *CollectionService) GetCollectionTasks(projectPath, entityId string) ([]models.Task, error) {
 	if entityId == "root" {
 		entityId = ""
 	}
@@ -339,7 +339,7 @@ func (e *CollectionService) GetEntityTasks(projectPath, entityId string) ([]mode
 	return repository.GetEntityTasks(tx, entityId)
 }
 
-func (e *CollectionService) GetEntityByID(projectPath, entityId string) (models.Entity, error) {
+func (e *CollectionService) GetCollectionByID(projectPath, entityId string) (models.Entity, error) {
 	if entityId == "root" {
 		entityId = ""
 	}
@@ -643,7 +643,7 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 	return nil
 }
 
-func (e *CollectionService) RevealEntity(projectPath, entityId string) error {
+func (e *CollectionService) RevealCollection(projectPath, entityId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -663,7 +663,7 @@ func (e *CollectionService) RevealEntity(projectPath, entityId string) error {
 	return nil
 }
 
-func (e *CollectionService) RevertEntities(projectPath string, entityIds []string) error {
+func (e *CollectionService) RevertCollections(projectPath string, entityIds []string) error {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -707,7 +707,7 @@ func (e *CollectionService) RevertEntities(projectPath string, entityIds []strin
 	return nil
 }
 
-func (e *CollectionService) ChangeEntityParent(projectPath, entityId, parentId string) error {
+func (e *CollectionService) ChangeCollectionParent(projectPath, entityId, parentId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -823,8 +823,8 @@ func (e *CollectionService) Unassign(projectPath, entityId, userId string) error
 	return nil
 }
 
-// entity types
-func (e *CollectionService) CreateEntityType(projectPath, entityTypeName, entityTypeIcon string) (models.EntityType, error) {
+// collection types
+func (e *CollectionService) CreateCollectionType(projectPath, entityTypeName, entityTypeIcon string) (models.EntityType, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.EntityType{}, err
@@ -848,7 +848,7 @@ func (e *CollectionService) CreateEntityType(projectPath, entityTypeName, entity
 	tx.Commit()
 	return entityType, nil
 }
-func (e *CollectionService) UpdateEntityType(projectPath, id, entityTypeName, entityTypeIcon string) (models.EntityType, error) {
+func (e *CollectionService) UpdateCollectionType(projectPath, id, entityTypeName, entityTypeIcon string) (models.EntityType, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.EntityType{}, err
@@ -876,7 +876,7 @@ func (e *CollectionService) UpdateEntityType(projectPath, id, entityTypeName, en
 	return entityType, nil
 }
 
-func (e *CollectionService) DeleteEntityType(projectPath, id string) error {
+func (e *CollectionService) DeleteCollectionType(projectPath, id string) error {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
 		return err
@@ -900,7 +900,7 @@ func (e *CollectionService) DeleteEntityType(projectPath, id string) error {
 	return nil
 }
 
-func (e *CollectionService) GetEntityTypes(projectPath string) ([]models.EntityType, error) {
+func (e *CollectionService) GetCollectionTypes(projectPath string) ([]models.EntityType, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return []models.EntityType{}, err

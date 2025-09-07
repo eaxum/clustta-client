@@ -80,7 +80,7 @@ const handleEnterKey = (event) => {
 };
 
 const createEntityType = () => {
-  CollectionService.CreateEntityType(projectStore.activeProject.uri, entityTypeName.value, entityTypeIcon.value)
+  CollectionService.CreateCollectionType(projectStore.activeProject.uri, entityTypeName.value, entityTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification("Collection type created", "", "success");
       collectionStore.collectionTypes.push(response);

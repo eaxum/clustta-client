@@ -81,7 +81,7 @@ export const useProjectTemplateStore = defineStore("project_template", {
       );
       this.assetTypes = assetTypes;
 
-      let collectionTypes = await CollectionService.GetEntityTypes(
+      let collectionTypes = await CollectionService.GetCollectionTypes(
         this.activeProjectTemplate.uri
       );
       this.collectionTypes = collectionTypes;

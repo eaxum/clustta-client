@@ -296,7 +296,7 @@ const fetchSidebarData = async () => {
     // Fetch all tasks and entities for the sidebar
     const [tasksResult, entitiesResult] = await Promise.all([
       AssetService.GetTasks(projectPath),
-      CollectionService.GetEntities(projectPath)
+      CollectionService.GetCollections(projectPath)
     ]);
     
     sidebarTasks.value = tasksResult || [];
