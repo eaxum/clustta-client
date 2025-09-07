@@ -46,56 +46,56 @@ export const useAssetStore = defineStore("asset", {
       return state.taskTypes;
     },
     getAssetTypesNames: (state) => {
-      let taskTypes = state.taskTypes;
-      let taskTypesNames = [];
-      for (let i = 0; i < taskTypes.length; i++) {
-        let taskType = taskTypes[i];
-        taskTypesNames.push(taskType.name);
+      let assetTypes = state.taskTypes;
+      let assetTypesNames = [];
+      for (let i = 0; i < assetTypes.length; i++) {
+        let assetType = assetTypes[i];
+        assetTypesNames.push(assetType.name);
       }
-      return taskTypesNames;
+      return assetTypesNames;
     },
     getAssets: (state) => {
       const commonStore = useCommonStore();
 
-      let tasks = [];
+      let assets = [];
       for (let i = 0; i < state.tasks.length; i++) {
-        let task = state.tasks[i];
+        let asset = state.tasks[i];
         if (
-          task.trashed === false &&
-          (state.showDoneTasks || task.status.name !== "done") &&
+          asset.trashed === false &&
+          (state.showDoneTasks || asset.status.name !== "done") &&
           (!state.showTraySearch ||
-            state.taskListTags.every((tag) => task.tags.includes(tag))) &&
+            state.taskListTags.every((tag) => asset.tags.includes(tag))) &&
           (commonStore.viewSearchQuery === "" ||
             !state.showTraySearch ||
-            task.name
+            asset.name
               .toLowerCase()
               .includes(commonStore.viewSearchQuery.toLowerCase()))
         ) {
-          tasks.push(task);
+          assets.push(asset);
         }
       }
 
       // Sort entitys with closed entitys at the bottom
-      // tasks.sort((a, b) => {
+      // assets.sort((a, b) => {
       //   return a.name.localeCompare(b.name);
       // });
-      return tasks;
+      return assets;
     },
 
     getAssignedAssets: (state) => {
       const commonStore = useCommonStore();
       const userStore = useUserStore();
       let user = userStore.user;
-      let tasks = [];
+      let assets = [];
       for (let i = 0; i < state.tasks.length; i++) {
-        let task = state.tasks[i];
-        if (task.assignee_id === user.id && task.trashed === false) {
-          tasks.push(task);
+        let asset = state.tasks[i];
+        if (asset.assignee_id === user.id && asset.trashed === false) {
+          assets.push(asset);
         }
       }
 
       // Sort entitys with closed entitys at the bottom
-      tasks.sort((a, b) => {
+      assets.sort((a, b) => {
         return a.name.localeCompare(b.name);
       });
       return state.tasks;
@@ -104,33 +104,33 @@ export const useAssetStore = defineStore("asset", {
     getFilteredAssets: (state) => {
       const commonStore = useCommonStore();
 
-      let tasks = [];
+      let assets = [];
       for (let i = 0; i < state.tasks.length; i++) {
-        let task = state.tasks[i];
+        let asset = state.tasks[i];
         if (
-          task.trashed === false &&
-          (state.showDoneTasks || task.status.name !== "done") &&
+          asset.trashed === false &&
+          (state.showDoneTasks || asset.status.name !== "done") &&
           (!state.showTraySearch ||
-            state.taskListTags.every((tag) => task.tags.includes(tag))) &&
+            state.taskListTags.every((tag) => asset.tags.includes(tag))) &&
           (commonStore.viewSearchQuery === "" ||
             !state.showTraySearch ||
-            task.name
+            asset.name
               .toLowerCase()
               .includes(commonStore.viewSearchQuery.toLowerCase()))
         ) {
-          tasks.push(task);
+          assets.push(asset);
         }
       }
 
       // Sort entitys with closed entitys at the bottom
-      // tasks.sort((a, b) => {
+      // assets.sort((a, b) => {
       //   return a.name.localeCompare(b.name);
       // });
 
       const viewSearchQuery = commonStore.viewSearchQuery;
       const workspaceSearchQuery = commonStore.workspaceSearchQuery;
 
-      let filteredTask;
+      let filteredAsset;
 
       const assigneeFilters =
         commonStore.hasAssignees || commonStore.noAssignees;
@@ -153,16 +153,16 @@ export const useAssetStore = defineStore("asset", {
         const selectedExtensions = commonStore.taskFilters
           .filter((filter) => filter.type === "extension")
           .map((filter) => filter.extension.toLowerCase());
-        const selectedTaskTypes = commonStore.taskFilters
+        const selectedAssetTypes = commonStore.taskFilters
           .filter((filter) => filter.type === "task-type")
           .map((filter) => filter.name.toLowerCase());
 
-        filteredTask = tasks
-          .filter((task) => {
+        filteredAsset = assets
+          .filter((asset) => {
             // matched status
             const statusMatch =
               selectedStatus.length === 0 ||
-              selectedStatus.includes(task.status_short_name.toLowerCase());
+              selectedStatus.includes(asset.status_short_name.toLowerCase());
 
             // matched tags
             let tagMatch;
@@ -171,9 +171,9 @@ export const useAssetStore = defineStore("asset", {
               tagMatch =
                 selectedTags.length === 0 ||
                 selectedTags.some((tag) =>
-                  task.tags.some(
-                    (taskTag) =>
-                      taskTag.replace(/\s+/g, "").toLowerCase() ===
+                  asset.tags.some(
+                    (assetTag) =>
+                      assetTag.replace(/\s+/g, "").toLowerCase() ===
                       tag.replace(/\s+/g, "").toLowerCase()
                   )
                 );
@@ -181,9 +181,9 @@ export const useAssetStore = defineStore("asset", {
               tagMatch =
                 selectedTags.length === 0 ||
                 selectedTags.every((tag) =>
-                  task.tags.some(
-                    (taskTag) =>
-                      taskTag.replace(/\s+/g, "").toLowerCase() ===
+                  asset.tags.some(
+                    (assetTag) =>
+                      assetTag.replace(/\s+/g, "").toLowerCase() ===
                       tag.replace(/\s+/g, "").toLowerCase()
                   )
                 );
@@ -192,32 +192,32 @@ export const useAssetStore = defineStore("asset", {
             // matched assignees
             let assigneeMatch;
             if (commonStore.hasAssignees) {
-              assigneeMatch = task.assignee_id;
+              assigneeMatch = asset.assignee_id;
             } else if (commonStore.noAssignees) {
-              assigneeMatch = !task.assignee_id;
+              assigneeMatch = !asset.assignee_id;
             } else {
               assigneeMatch =
                 selectedAssignees.length === 0 ||
-                selectedAssignees.includes(task.assignee_id);
+                selectedAssignees.includes(asset.assignee_id);
             }
 
             // matched states
             const stateMatch =
               selectedState.length === 0 ||
-              selectedState.includes(task.file_status);
+              selectedState.includes(asset.file_status);
 
             // matched extensions
             const extensionMatch =
               selectedExtensions.length === 0 ||
-              selectedExtensions.includes(task.extension.toLowerCase());
+              selectedExtensions.includes(asset.extension.toLowerCase());
 
-            // matched task types
-            const taskType = state.taskTypes.find(
-              (item) => item.id === task.task_type_id
+            // matched asset types
+            const assetType = state.taskTypes.find(
+              (item) => item.id === asset.task_type_id
             );
-            const taskTypeMatch =
-              selectedTaskTypes.length === 0 ||
-              selectedTaskTypes.includes(taskType.name.toLowerCase());
+            const assetTypeMatch =
+              selectedAssetTypes.length === 0 ||
+              selectedAssetTypes.includes(assetType.name.toLowerCase());
 
             return (
               statusMatch &&
@@ -225,7 +225,7 @@ export const useAssetStore = defineStore("asset", {
               tagMatch &&
               stateMatch &&
               extensionMatch &&
-              taskTypeMatch
+              assetTypeMatch
             );
           })
           .filter(
@@ -239,13 +239,13 @@ export const useAssetStore = defineStore("asset", {
                 .replace(/\\/g, "/")
                 .includes(workspaceSearchQuery)
           );
-        // const sortedTasks = utils.sortAlphabetically(filteredTask);
-        // const sortedTasks = utils.sortPathAlphabetically(filteredTask, "task");
+        // const sortedAssets = utils.sortAlphabetically(filteredAsset);
+        // const sortedAssets = utils.sortPathAlphabetically(filteredAsset, "asset");
         return commonStore.showDependencies
-          ? filteredTask
-          : filteredTask.filter((item) => !item.is_dependency);
+          ? filteredAsset
+          : filteredAsset.filter((item) => !item.is_dependency);
       } else {
-        filteredTask = tasks.filter(
+        filteredAsset = assets.filter(
           (item) =>
             item.file_path
               .toLowerCase()
@@ -256,11 +256,11 @@ export const useAssetStore = defineStore("asset", {
               .replace(/\\/g, "/")
               .includes(workspaceSearchQuery)
         );
-        // const sortedTasks = utils.sortAlphabetically(filteredTask);
-        // const sortedTasks = utils.sortPathAlphabetically(filteredTask, "task");
+        // const sortedAssets = utils.sortAlphabetically(filteredAsset);
+        // const sortedAssets = utils.sortPathAlphabetically(filteredAsset, "asset");
         return commonStore.showDependencies
-          ? filteredTask
-          : filteredTask.filter((item) => !item.is_dependency);
+          ? filteredAsset
+          : filteredAsset.filter((item) => !item.is_dependency);
       }
     },
 
@@ -268,26 +268,26 @@ export const useAssetStore = defineStore("asset", {
       const stageStore = useStageStore();
       const commonStore = useCommonStore();
       const collectionStore = useCollectionStore();
-      let filteredTasks = state.getFilteredAssets;
+      let filteredAssets = state.getFilteredAssets;
       let showEntities = commonStore.showEntities;
 
       let expandedEntities = stageStore.expandedEntities;
-      let displayedTasks = [];
+      let displayedAssets = [];
 
-      for (let i = 0; i < filteredTasks.length; i++) {
-        let task = filteredTasks[i];
+      for (let i = 0; i < filteredAssets.length; i++) {
+        let asset = filteredAssets[i];
         if (showEntities) {
           if (
-            task.entity_id === "" ||
-            task.entity_id in expandedEntities // Changed from expandedEntities.includes(task.entity_id)
+            asset.entity_id === "" ||
+            asset.entity_id in expandedEntities // Changed from expandedEntities.includes(asset.entity_id)
           ) {
-            displayedTasks.push(task);
+            displayedAssets.push(asset);
           }
         } else {
-          displayedTasks.push(task);
+          displayedAssets.push(asset);
         }
       }
-      return displayedTasks;
+      return displayedAssets;
     },
 
     // getEntityTasks: (state) => {
@@ -327,11 +327,11 @@ export const useAssetStore = defineStore("asset", {
     doneAssetsExist: (state) => {
       const collectionStore = useCollectionStore();
       for (let i = 0; i < state.tasks.length; i++) {
-        let task = state.tasks[i];
-        if (task.trashed) {
+        let asset = state.tasks[i];
+        if (asset.trashed) {
           continue;
         }
-        if (state.showDoneTasks || task.status.name === "done") {
+        if (state.showDoneTasks || asset.status.name === "done") {
           return true;
         }
       }
@@ -343,17 +343,17 @@ export const useAssetStore = defineStore("asset", {
     },
 
     getDisplayAssetsFileStatus: (state) => {
-      //return the most important file status of the tasks
+      //return the most important file status of the assets
       let statusPiority = ["modified", "missing", "outdated", "normal"];
       let status = "normal";
       for (let i = 0; i < state.getDisplayedAssets.length; i++) {
-        let task = state.getDisplayedAssets[i];
+        let asset = state.getDisplayedAssets[i];
         if (
-          task.file_status &&
-          statusPiority.indexOf(task.file_status) <
+          asset.file_status &&
+          statusPiority.indexOf(asset.file_status) <
             statusPiority.indexOf(status)
         ) {
-          status = task.file_status;
+          status = asset.file_status;
         }
       }
       return status;
@@ -372,13 +372,13 @@ export const useAssetStore = defineStore("asset", {
   },
   actions: {
 
-    async filterAssets (tasks){
+    async filterAssets (assets){
 
       const commonStore = useCommonStore();
       const viewSearchQuery = commonStore.viewSearchQuery || "";
       const workspaceSearchQuery = commonStore.workspaceSearchQuery || "";
 
-      let filteredTask;
+      let filteredAsset;
 
       const assigneeFilters =
         commonStore.hasAssignees || commonStore.noAssignees;
@@ -400,16 +400,16 @@ export const useAssetStore = defineStore("asset", {
         const selectedExtensions = commonStore.taskFilters
           .filter((filter) => filter.type === "extension")
           .map((filter) => filter.extension.toLowerCase());
-        const selectedTaskTypes = commonStore.taskFilters
+        const selectedAssetTypes = commonStore.taskFilters
           .filter((filter) => filter.type === "asset-type")
           .map((filter) => filter.name.toLowerCase());
 
-        filteredTask = tasks
-          .filter((task) => {
+        filteredAsset = assets
+          .filter((asset) => {
             // matched status
             const statusMatch =
               selectedStatus.length === 0 ||
-              selectedStatus.includes(task.status_short_name.toLowerCase());
+              selectedStatus.includes(asset.status_short_name.toLowerCase());
 
             // matched tags
             let tagMatch;
@@ -418,9 +418,9 @@ export const useAssetStore = defineStore("asset", {
               tagMatch =
                 selectedTags.length === 0 ||
                 selectedTags.some((tag) =>
-                  task.tags.some(
-                    (taskTag) =>
-                      taskTag.replace(/\s+/g, "").toLowerCase() ===
+                  asset.tags.some(
+                    (assetTag) =>
+                      assetTag.replace(/\s+/g, "").toLowerCase() ===
                       tag.replace(/\s+/g, "").toLowerCase()
                   )
                 );
@@ -428,9 +428,9 @@ export const useAssetStore = defineStore("asset", {
               tagMatch =
                 selectedTags.length === 0 ||
                 selectedTags.every((tag) =>
-                  task.tags.some(
-                    (taskTag) =>
-                      taskTag.replace(/\s+/g, "").toLowerCase() ===
+                  asset.tags.some(
+                    (assetTag) =>
+                      assetTag.replace(/\s+/g, "").toLowerCase() ===
                       tag.replace(/\s+/g, "").toLowerCase()
                   )
                 );
@@ -439,32 +439,32 @@ export const useAssetStore = defineStore("asset", {
             // matched assignees
             let assigneeMatch;
             if (commonStore.hasAssignees) {
-              assigneeMatch = task.assignee_id;
+              assigneeMatch = asset.assignee_id;
             } else if (commonStore.noAssignees) {
-              assigneeMatch = !task.assignee_id;
+              assigneeMatch = !asset.assignee_id;
             } else {
               assigneeMatch =
                 selectedAssignees.length === 0 ||
-                selectedAssignees.includes(task.assignee_id);
+                selectedAssignees.includes(asset.assignee_id);
             }
 
             // matched states
             const stateMatch =
               selectedState.length === 0 ||
-              selectedState.includes(task.file_status);
+              selectedState.includes(asset.file_status);
 
             // matched extensions
             const extensionMatch =
               selectedExtensions.length === 0 ||
-              selectedExtensions.includes(task.extension.toLowerCase());
+              selectedExtensions.includes(asset.extension.toLowerCase());
 
-            // matched task types
-            const taskType = this.taskTypes.find(
-              (item) => item.id === task.task_type_id
+            // matched asset types
+            const assetType = this.taskTypes.find(
+              (item) => item.id === asset.task_type_id
             );
-            const taskTypeMatch =
-              selectedTaskTypes.length === 0 ||
-              selectedTaskTypes.includes(taskType.name.toLowerCase());
+            const assetTypeMatch =
+              selectedAssetTypes.length === 0 ||
+              selectedAssetTypes.includes(assetType.name.toLowerCase());
 
             return (
               statusMatch &&
@@ -472,7 +472,7 @@ export const useAssetStore = defineStore("asset", {
               tagMatch &&
               stateMatch &&
               extensionMatch &&
-              taskTypeMatch
+              assetTypeMatch
             );
           })
           .filter(
@@ -486,10 +486,10 @@ export const useAssetStore = defineStore("asset", {
             }
           );
         return commonStore.showResources
-          ? filteredTask
-          : filteredTask.filter((item) => !item.is_resource);
+          ? filteredAsset
+          : filteredAsset.filter((item) => !item.is_resource);
       } else {
-        filteredTask = tasks.filter(
+        filteredAsset = assets.filter(
           (item) => {
             const nameMatch = !viewSearchQuery || item.name?.toLowerCase().includes(viewSearchQuery.toLowerCase());
             const filePathMatch = !viewSearchQuery || item.file_path?.toLowerCase().replace(/\\/g, "/").includes(viewSearchQuery.toLowerCase());
@@ -500,95 +500,95 @@ export const useAssetStore = defineStore("asset", {
           }
         );
         return commonStore.showResources
-          ? filteredTask
-          : filteredTask.filter((item) => !item.is_resource);
+          ? filteredAsset
+          : filteredAsset.filter((item) => !item.is_resource);
       }
     },
-    async addModifiedAssetPath(taskPath) {
-      if (!(taskPath in this.modifiedTasksPath)) {
-        this.modifiedTasksPath.push(taskPath);
+    async addModifiedAssetPath(assetPath) {
+      if (!(assetPath in this.modifiedTasksPath)) {
+        this.modifiedTasksPath.push(assetPath);
       }
     },
-    async removeModifiedAssetPath(taskPath) {
-        this.modifiedTasksPath.filter((item)=>item !== taskPath)
+    async removeModifiedAssetPath(assetPath) {
+        this.modifiedTasksPath.filter((item)=>item !== assetPath)
     },
     async refreshDisplayedFilesStatus() {
       if (!this.getDisplayedAssets.length) {
         return;
       }
       for (let i = 0; i < this.getDisplayedAssets.length; i++) {
-        let task_id = this.getDisplayedAssets[i].id;
-        let taskIndex = this.tasks_index[task_id];
-        let status = await this.getAssetFileStatus(this.tasks[taskIndex]);
-        this.tasks[taskIndex].file_status = status;
+        let asset_id = this.getDisplayedAssets[i].id;
+        let assetIndex = this.tasks_index[asset_id];
+        let status = await this.getAssetFileStatus(this.tasks[assetIndex]);
+        this.tasks[assetIndex].file_status = status;
       }
     },
 
     async refreshEntityFilesStatus(entity_id) {
-      let taskIds = [];
-      for (let task of this.tasks) {
-        if (entity_id == task.entity_id || entity_id === "") {
-          taskIds.push(task.id);
+      let assetIds = [];
+      for (let asset of this.tasks) {
+        if (entity_id == asset.entity_id || entity_id === "") {
+          assetIds.push(asset.id);
         }
       }
 
-      for (let i = 0; i < taskIds.length; i++) {
-        let task_id = taskIds[i];
-        let taskIndex = this.tasks_index[task_id];
-        let status = await this.getAssetFileStatus(this.tasks[taskIndex]);
-        this.tasks[taskIndex].file_status = status;
+      for (let i = 0; i < assetIds.length; i++) {
+        let asset_id = assetIds[i];
+        let assetIndex = this.tasks_index[asset_id];
+        let status = await this.getAssetFileStatus(this.tasks[assetIndex]);
+        this.tasks[assetIndex].file_status = status;
       }
     },
 
     async refreshAllFilesStatus() {
-      let taskIds = [];
-      for (let task of this.tasks) {
-        taskIds.push(task.id);
+      let assetIds = [];
+      for (let asset of this.tasks) {
+        assetIds.push(asset.id);
       }
 
-      for (let i = 0; i < taskIds.length; i++) {
-        let task_id = taskIds[i];
-        let taskIndex = this.tasks_index[task_id];
-        let status = await this.getAssetFileStatus(this.tasks[taskIndex]);
-        this.tasks[taskIndex].file_status = status;
+      for (let i = 0; i < assetIds.length; i++) {
+        let asset_id = assetIds[i];
+        let assetIndex = this.tasks_index[asset_id];
+        let status = await this.getAssetFileStatus(this.tasks[assetIndex]);
+        this.tasks[assetIndex].file_status = status;
       }
     },
 
-    async markAssetAsDeleted(taskId) {
-      let taskIndex = this.tasks_index[taskId];
-      this.tasks[taskIndex].trashed = true;
+    async markAssetAsDeleted(assetId) {
+      let assetIndex = this.tasks_index[assetId];
+      this.tasks[assetIndex].trashed = true;
     },
 
-    async unmarkAssetAsDeleted(taskId) {
-      let taskIndex = this.tasks_index[taskId];
-      this.tasks[taskIndex].trashed = false;
+    async unmarkAssetAsDeleted(assetId) {
+      let assetIndex = this.tasks_index[assetId];
+      this.tasks[assetIndex].trashed = false;
     },
 
     // here
-    async markMultipleAssetsAsDeleted(taskIds) {
-      for (const taskId of taskIds) {
-        let taskIndex = this.tasks_index[taskId];
-        if (taskIndex) {
-          this.tasks[taskIndex].trashed = true;
+    async markMultipleAssetsAsDeleted(assetIds) {
+      for (const assetId of assetIds) {
+        let assetIndex = this.tasks_index[assetId];
+        if (assetIndex) {
+          this.tasks[assetIndex].trashed = true;
         }
       }
     },
 
-    async unmarkMultipleAssetsAsDeleted(taskIds) {
-      for (const taskId of taskIds) {
-        let taskIndex = this.tasks_index[taskId];
-        if (taskIndex) {
-          this.tasks[taskIndex].trashed = false;
+    async unmarkMultipleAssetsAsDeleted(assetIds) {
+      for (const assetId of assetIds) {
+        let assetIndex = this.tasks_index[assetId];
+        if (assetIndex) {
+          this.tasks[assetIndex].trashed = false;
         }
       }
     },
 
     async reloadAssetTypes() {
       const projectStore = useProjectStore();
-      let taskTypes = await TaskService.GetTaskTypes(
+      let assetTypes = await TaskService.GetTaskTypes(
         projectStore.activeProject.uri
       );
-      this.taskTypes = taskTypes.map(type => ({
+      this.taskTypes = assetTypes.map(type => ({
         ...type,
         type: 'asset-type',
       }));
@@ -611,84 +611,84 @@ export const useAssetStore = defineStore("asset", {
       await TaskService.TestData();
       console.timeEnd("test_loading");
 
-      console.time("tasks_loading");
+      console.time("assets_loading");
       let btasks = await TaskService.GetTasksPB(projectStore.activeProject.uri);
-      console.timeEnd("tasks_loading");
+      console.timeEnd("assets_loading");
 
-      console.time("tasks_decoding");
-      let taskBinary = pako.inflate(utils.base64ToUint8Array(btasks));
+      console.time("assets_decoding");
+      let assetBinary = pako.inflate(utils.base64ToUint8Array(btasks));
 
-      let fullTaskList = repository.FullTaskList.decode(taskBinary);
-      let tasks = fullTaskList.full_tasks;
-      console.timeEnd("tasks_decoding");
+      let fullAssetList = repository.FullTaskList.decode(assetBinary);
+      let assets = fullAssetList.full_tasks;
+      console.timeEnd("assets_decoding");
 
-      // let tasks = await TaskService.GetTasks(projectStore.activeProject.uri);
-      await this.processAssetsIconsAndPreviews(tasks);
-      this.tasks = tasks;
+      // let assets = await TaskService.GetTasks(projectStore.activeProject.uri);
+      await this.processAssetsIconsAndPreviews(assets);
+      this.tasks = assets;
       await this.rebuildAssetsIndex();
       this.tasksLoaded = true;
     },
 
     async rebuildAssetsIndex() {
-      let taskIndex = {};
-      let entityTasksIndex = {};
-      let modifiedTasksPath = [];
+      let assetIndex = {};
+      let entityAssetsIndex = {};
+      let modifiedAssetsPath = [];
       for (let i = 0; i < this.tasks.length; i++) {
         if (this.tasks[i].file_status === "modified") {
-          modifiedTasksPath.push(this.tasks[i].task_path);
+          modifiedAssetsPath.push(this.tasks[i].task_path);
         }
         let entityId = this.tasks[i].entity_id;
-        let taskId = this.tasks[i].id;
-        taskIndex[taskId] = i;
-        if (!entityTasksIndex[entityId]) {
-          entityTasksIndex[entityId] = [taskId];
+        let assetId = this.tasks[i].id;
+        assetIndex[assetId] = i;
+        if (!entityAssetsIndex[entityId]) {
+          entityAssetsIndex[entityId] = [assetId];
         } else {
-          entityTasksIndex[entityId].push(taskId);
+          entityAssetsIndex[entityId].push(assetId);
         }
       }
-      this.tasks_index = taskIndex;
-      this.entity_tasks_index = entityTasksIndex;
-      this.modifiedTasksPath = modifiedTasksPath;
+      this.tasks_index = assetIndex;
+      this.entity_tasks_index = entityAssetsIndex;
+      this.modifiedTasksPath = modifiedAssetsPath;
     },
 
     findAsset(id) {
-      let taskIndex = this.tasks_index[id];
-      return this.tasks[taskIndex];
+      let assetIndex = this.tasks_index[id];
+      return this.tasks[assetIndex];
     },
 
     getEntityAssets(entityId, recursive = false, entityMap = {}) {
-      let entityTaskIds = this.entity_tasks_index[entityId] || [];
-      let tasks = entityTaskIds.map((taskId) => this.findAsset(taskId));
+      let entityAssetIds = this.entity_tasks_index[entityId] || [];
+      let assets = entityAssetIds.map((assetId) => this.findAsset(assetId));
 
       if (recursive && entityMap[entityId]) {
         for (let childId of entityMap[entityId]) {
-          tasks = tasks.concat(this.getEntityAssets(childId, true, entityMap));
+          assets = assets.concat(this.getEntityAssets(childId, true, entityMap));
         }
       }
 
-      return tasks;
+      return assets;
     },
-    selectAsset(task) {
-      this.selectedTask = task;
+    selectAsset(asset) {
+      this.selectedTask = asset;
     },
 
-    getAssetTypeIcon(taskTypeId) {
-      let taskTypeIcon = "";
+    getAssetTypeIcon(assetTypeId) {
+      let assetTypeIcon = "";
       for (let i = 0; i < this.taskTypes.length; i++) {
         let type = this.taskTypes[i];
-        if (type.id === taskTypeId) {
-          taskTypeIcon = type.icon;
+        if (type.id === assetTypeId) {
+          assetTypeIcon = type.icon;
           break;
         }
       }
-      return taskTypeIcon;
+      return assetTypeIcon;
     },
 
-    async setStatus(status, taskId) {
+    async setStatus(status, assetId) {
       const projectStore = useProjectStore();
       await TaskService.ChangeStatus(
         projectStore.activeProject.uri,
-        taskId,
+        assetId,
         status.id
       )
         .then((data) => {
@@ -698,12 +698,12 @@ export const useAssetStore = defineStore("asset", {
         });
       emitter.emit("refresh-browser");
     },
-    async setMultipleStatus(status, taskIds) {
+    async setMultipleStatus(status, assetIds) {
       const projectStore = useProjectStore();
-      for (const taskId of taskIds) {
+      for (const assetId of assetIds) {
         await TaskService.ChangeStatus(
           projectStore.activeProject.uri,
-          taskId,
+          assetId,
           status.id
         )
           .then((data) => {})
@@ -716,51 +716,51 @@ export const useAssetStore = defineStore("asset", {
     toggleShowDoneAssets() {
       this.showDoneTasks = !this.showDoneTasks;
     },
-    addDependency(task_id, dependency_id, itemType) {
-      let taskIndex = this.tasks_index[task_id];
-      if (itemType === "task") {
-        this.tasks[taskIndex].dependencies.push(dependency_id);
+    addDependency(asset_id, dependency_id, itemType) {
+      let assetIndex = this.tasks_index[asset_id];
+      if (itemType === "asset") {
+        this.tasks[assetIndex].dependencies.push(dependency_id);
       } else {
-        this.tasks[taskIndex].entity_dependencies.push(dependency_id);
+        this.tasks[assetIndex].entity_dependencies.push(dependency_id);
       }
     },
-    removeDependency(task_id, dependency_id, itemType) {
-      let taskIndex = this.tasks_index[task_id];
-      if (itemType === "task") {
-        let dependencies = this.tasks[taskIndex].dependencies;
-        this.tasks[taskIndex].dependencies = dependencies.filter(
+    removeDependency(asset_id, dependency_id, itemType) {
+      let assetIndex = this.tasks_index[asset_id];
+      if (itemType === "asset") {
+        let dependencies = this.tasks[assetIndex].dependencies;
+        this.tasks[assetIndex].dependencies = dependencies.filter(
           (dep) => dep !== dependency_id
         );
       } else {
-        let entity_dependencies = this.tasks[taskIndex].entity_dependencies;
-        this.tasks[taskIndex].entity_dependencies = entity_dependencies.filter(
+        let entity_dependencies = this.tasks[assetIndex].entity_dependencies;
+        this.tasks[assetIndex].entity_dependencies = entity_dependencies.filter(
           (dep) => dep !== dependency_id
         );
       }
     },
-    changeAssetEntity(task_id, entityId) {
-      let taskIndex = this.tasks_index[task_id];
-      this.tasks[taskIndex].entity_id = entityId;
+    changeAssetEntity(asset_id, entityId) {
+      let assetIndex = this.tasks_index[asset_id];
+      this.tasks[assetIndex].entity_id = entityId;
       this.rebuildAssetsIndex();
     },
     addAssetsCheckpoint(checkpoints) {
       for (let checkpoint of checkpoints) {
-        let taskId = checkpoint.task_id;
-        let taskIndex = this.tasks_index[taskId];
-        console.log(this.tasks[taskIndex]);
-        this.tasks[taskIndex].checkpoints.unshift(checkpoint);
+        let assetId = checkpoint.task_id;
+        let assetIndex = this.tasks_index[assetId];
+        console.log(this.tasks[assetIndex]);
+        this.tasks[assetIndex].checkpoints.unshift(checkpoint);
       }
     },
-    async getAssetFileStatus(task) {
-      if (!task) {
+    async getAssetFileStatus(asset) {
+      if (!asset) {
         return "normal";
       }
-      let filePath = task.file_path;
-      let checkpoints = task.checkpoints;
-      if (task.is_link && (await isValidPointer(task.pointer))) {
+      let filePath = asset.file_path;
+      let checkpoints = asset.checkpoints;
+      if (asset.is_link && (await isValidPointer(asset.pointer))) {
         return "normal";
       }
-      if (task.IsLink && (await isValidPointer(task.pointer))) {
+      if (asset.IsLink && (await isValidPointer(asset.pointer))) {
         return "missing";
       }
 
@@ -804,11 +804,11 @@ export const useAssetStore = defineStore("asset", {
 
       return "modified";
     },
-    getAssetEntity(taskId, recursive = false) {
+    getAssetEntity(assetId, recursive = false) {
       const collectionStore = useCollectionStore();
-      let taskIndex = this.tasks_index[taskId];
-      let task = this.tasks[taskIndex];
-      let entityId = task.entity_id;
+      let assetIndex = this.tasks_index[assetId];
+      let asset = this.tasks[assetIndex];
+      let entityId = asset.entity_id;
       let parentEntities = [];
 
       if (entityId) {
@@ -834,27 +834,27 @@ export const useAssetStore = defineStore("asset", {
       return parentEntities;
     },
 
-    async processAssetsIconsAndPreviews(tasks) {
+    async processAssetsIconsAndPreviews(assets) {
       const iconStore = useIconStore();
       
-      if (!tasks || !Array.isArray(tasks)) {
-        return tasks;
+      if (!assets || !Array.isArray(assets)) {
+        return assets;
       }
 
-      for (let i = 0; i < tasks.length; i++) {
-        let task = tasks[i];
+      for (let i = 0; i < assets.length; i++) {
+        let asset = assets[i];
         let extension = "";
         
         // Set file_path from pointer if it exists
-        if (task.pointer) {
-          task.file_path = task.pointer;
+        if (asset.pointer) {
+          asset.file_path = asset.pointer;
         }
         
         // Determine extension
-        if (task.is_link && !isValidWeblink(task.pointer)) {
-          extension = utils.getFileExtension(task.pointer).substring(1);
-        } else if (!task.is_link) {
-          extension = task.extension.toLowerCase().substring(1);
+        if (asset.is_link && !isValidWeblink(asset.pointer)) {
+          extension = utils.getFileExtension(asset.pointer).substring(1);
+        } else if (!asset.is_link) {
+          extension = asset.extension.toLowerCase().substring(1);
           
           // Add to project extensions if not already present
           if (!this.projectExtensionsFlat.includes(extension)) {
@@ -871,34 +871,34 @@ export const useAssetStore = defineStore("asset", {
         
         // Set icon
         let iconPath = "";
-        if (task.is_link && isValidWeblink(task.pointer)) {
-          iconPath = await iconStore.getWebIcon(task.pointer);
+        if (asset.is_link && isValidWeblink(asset.pointer)) {
+          iconPath = await iconStore.getWebIcon(asset.pointer);
         } else {
           iconPath = (await iconStore.getIcon(extension)) || "";
         }
-        task.icon = iconPath;
+        asset.icon = iconPath;
         
         // Set preview
         let preview = null;
-        if (task.preview) {
-          preview = "data:image/png;base64," + task.preview;
+        if (asset.preview) {
+          preview = "data:image/png;base64," + asset.preview;
         }
-        task.preview = preview;
+        asset.preview = preview;
       }
       
-      return tasks;
+      return assets;
     },
 
-    async processUntrackedAssetsIcons(untrackedTasks) {
+    async processUntrackedAssetsIcons(untrackedAssets) {
       const iconStore = useIconStore();
       
-      if (!untrackedTasks || !Array.isArray(untrackedTasks)) {
-        return untrackedTasks;
+      if (!untrackedAssets || !Array.isArray(untrackedAssets)) {
+        return untrackedAssets;
       }
 
-      for (let i = 0; i < untrackedTasks.length; i++) {
+      for (let i = 0; i < untrackedAssets.length; i++) {
         let extension = "";
-        extension = untrackedTasks[i].extension.toLowerCase().substring(1);
+        extension = untrackedAssets[i].extension.toLowerCase().substring(1);
         
         // Add to project extensions if not already present
         if (!this.projectExtensionsFlat.includes(extension)) {
@@ -913,10 +913,10 @@ export const useAssetStore = defineStore("asset", {
         }
 
         let iconPath = (await iconStore.getIcon(extension)) || "";
-        untrackedTasks[i].icon = iconPath;
+        untrackedAssets[i].icon = iconPath;
       }
       
-      return untrackedTasks;
+      return untrackedAssets;
     },
 
     async reloadAssetStates(){
