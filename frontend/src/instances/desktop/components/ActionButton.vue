@@ -71,28 +71,31 @@ const isDead = computed(() => {
   box-sizing: border-box;
   cursor: pointer;
   display: flex;
-  /* gap: 5px; */
   align-items: center;
   padding: .3rem;
   height: max-content;
   width: max-content;
   min-width: max-content;
   min-height: max-content;
-  /* aspect-ratio: 1/1; */
   transition: all 0.3s ease;
-  /* background-color: rebeccapurple; */
   opacity: 1;
 
 }
 
-.action-button:hover {
-  background-color: rgb(121, 121, 121);
+[data-theme="dark"] .action-button:hover{
   background-color: #ffffff15;
 }
 
-.action-button:active {
-  background-color: rgb(70, 70, 70);
+[data-theme="dark"] .action-button:active {
   background-color: #00000013;
+}
+
+.action-button:hover {
+  background-color: rgba(0, 0, 0, 0.11);
+}
+
+.action-button:active {
+  background-color: rgba(0, 0, 0, 0.11);
 }
 
 .action-button-pressed {
