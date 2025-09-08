@@ -61,8 +61,8 @@
 		<div class="header-bar-actions">
 
 			<div class="local-project-actions" v-if="stage.selectedStage === 'browser'">
-				<!-- <ActionButton v-if="userStore.canDo('view_checkpoint')" :icon="getAppIcon('layers')"
-					@click="showProjectCheckpoints()" v-tooltip="'Project Checkpoints'" /> -->
+				<ActionButton v-if="userStore.canDo('view_checkpoint')" :icon="getAppIcon('layers')"
+					@click="showProjectCheckpoints()" v-tooltip="'Project Checkpoints'" />
 				<ActionButton v-if="userStore.canDo('delete_task')" :icon="getAppIcon('trash')" @click="goToTrash()"
 					v-tooltip="'Trash'" />
 				<ActionButton v-if="userStore.canDo('create_task')" :icon="getAppIcon('briefcase-cog')"
@@ -77,7 +77,7 @@
 					:iconAfter="true" v-tooltip="'Revert local changes'" :useBackground="true" label="Revert" />
 
 				<ActionButton v-if="unSynced" :icon="getAppIcon('cloud-up')" :iconAfter="true" :isAlert="unSynced"
-					:useBackground="true" label="Save" @click="syncData" v-tooltip="'Save'" />
+					:useBackground="true" label="Sync" @click="syncData" v-tooltip="'Sync'" />
 
 				<!-- <ActionButton :icon="getAppIcon('bell')" @click="panes.setPaneVisibility('notifications', true)" v-tooltip="'Notifications'"  /> -->
 			</div>

@@ -1133,6 +1133,7 @@ onUnmounted(() => {
   overflow: hidden;
   flex: 1 1 50%;
   background-color: var(--black);
+	background-color: var(--black-steel);
   border-radius: var(--large-radius)
 }
 

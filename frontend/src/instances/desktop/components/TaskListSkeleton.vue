@@ -2,14 +2,6 @@
 <div class="task-skeleton-container" >
   <div v-for="(skeleton, index) in skeletonArray" :key="index" class="task-skeleton-item" 
   :style="{ animationDelay : `${(skeleton - 1) * 0.2}s` }">
-    <!-- <div class="task-skeleton-spacer"> </div>
-    <div class="thumb-skeleton"> </div>
-    <div class="icon-skeleton" ></div>
-    <div class="task-skeleton-item-launcher"> </div>
-    <div class="icon-skeleton" ></div>
-    <div class="status-pill"></div>
-    <div class="icon-skeleton" ></div>
-    <div class="icon-skeleton" ></div> -->
   </div>
   
 </div>
@@ -54,7 +46,7 @@ onMounted(async () => {
 .task-skeleton-item{
   display: flex;
   gap: .5rem;
-  color: white;
+  color: var(--white);
   align-items: center;
   padding-left: .5rem;
   box-sizing: border-box;
@@ -74,7 +66,7 @@ onMounted(async () => {
 
 .task-skeleton-item-launcher{
     box-sizing: border-box;
-    background-color: white;
+    background-color: var(--white);
     opacity: .1;
     width: 100%;
     height: 30px;
@@ -84,7 +76,7 @@ onMounted(async () => {
 
 .task-skeleton-spacer{
     box-sizing: border-box;
-    /* background-color: white; */
+    /* background-color: var(--white); */
     opacity: .1;
     width: 50px;
     height: 30px;
@@ -94,7 +86,7 @@ onMounted(async () => {
 
 .thumb-skeleton{
     box-sizing: border-box;
-    background-color: white;
+    background-color: var(--white);
     opacity: .1;
     height: 80%;
     aspect-ratio: 16/9;
@@ -103,7 +95,7 @@ onMounted(async () => {
 
 .status-pill{
     box-sizing: border-box;
-    background-color: white;
+    background-color: var(--white);
     opacity: .1;
     width: 5rem;
     height: 30px;
@@ -113,7 +105,7 @@ onMounted(async () => {
 
 .icon-skeleton{
     box-sizing: border-box;
-    background-color: white;
+    background-color: var(--white);
     opacity: .1;
     /* width: 5rem; */
     height: 50%;

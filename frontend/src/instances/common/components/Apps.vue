@@ -42,7 +42,7 @@ const selectApp = (event, template) => {
   const templateIcon = template.icon;
   templateStore.selectedTemplateName = templateName;
   trayStates.popUpModalIcon = templateIcon;
-  trayStates.popUpModalTitle = ('New ' + templateName.replace(/_/g, " ") + ' task').toLowerCase().replace(/(^\w|\s\w)/g, match => match.toUpperCase());
+  trayStates.popUpModalTitle = ('New ' + templateName.replace(/_/g, " ") + ' asset').toLowerCase().replace(/(^\w|\s\w)/g, match => match.toUpperCase());
 
   const selectedIcon = event.target;
   const appsCenter = scrollableElement.value.offsetWidth / 2;
