@@ -5887,6 +5887,7 @@ export const repository = $root.repository = (() => {
          * @property {string|null} [preview_id] Checkpoint preview_id
          * @property {boolean|null} [trashed] Checkpoint trashed
          * @property {boolean|null} [synced] Checkpoint synced
+         * @property {string|null} [group_id] Checkpoint group_id
          */
 
         /**
@@ -6009,6 +6010,14 @@ export const repository = $root.repository = (() => {
         Checkpoint.prototype.synced = false;
 
         /**
+         * Checkpoint group_id.
+         * @member {string} group_id
+         * @memberof repository.Checkpoint
+         * @instance
+         */
+        Checkpoint.prototype.group_id = "";
+
+        /**
          * Creates a new Checkpoint instance using the specified properties.
          * @function create
          * @memberof repository.Checkpoint
@@ -6058,6 +6067,8 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 12, wireType 0 =*/96).bool(message.trashed);
             if (message.synced != null && Object.hasOwnProperty.call(message, "synced"))
                 writer.uint32(/* id 13, wireType 0 =*/104).bool(message.synced);
+            if (message.group_id != null && Object.hasOwnProperty.call(message, "group_id"))
+                writer.uint32(/* id 14, wireType 2 =*/114).string(message.group_id);
             return writer;
         };
 
@@ -6146,6 +6157,10 @@ export const repository = $root.repository = (() => {
                         message.synced = reader.bool();
                         break;
                     }
+                case 14: {
+                        message.group_id = reader.string();
+                        break;
+                    }
                 default:
                     reader.skipType(tag & 7);
                     break;
@@ -6220,6 +6235,9 @@ export const repository = $root.repository = (() => {
             if (message.synced != null && message.hasOwnProperty("synced"))
                 if (typeof message.synced !== "boolean")
                     return "synced: boolean expected";
+            if (message.group_id != null && message.hasOwnProperty("group_id"))
+                if (!$util.isString(message.group_id))
+                    return "group_id: string expected";
             return null;
         };
 
@@ -6282,6 +6300,8 @@ export const repository = $root.repository = (() => {
                 message.trashed = Boolean(object.trashed);
             if (object.synced != null)
                 message.synced = Boolean(object.synced);
+            if (object.group_id != null)
+                message.group_id = String(object.group_id);
             return message;
         };
 
@@ -6324,6 +6344,7 @@ export const repository = $root.repository = (() => {
                 object.preview_id = "";
                 object.trashed = false;
                 object.synced = false;
+                object.group_id = "";
             }
             if (message.id != null && message.hasOwnProperty("id"))
                 object.id = message.id;
@@ -6360,6 +6381,8 @@ export const repository = $root.repository = (() => {
                 object.trashed = message.trashed;
             if (message.synced != null && message.hasOwnProperty("synced"))
                 object.synced = message.synced;
+            if (message.group_id != null && message.hasOwnProperty("group_id"))
+                object.group_id = message.group_id;
             return object;
         };
 

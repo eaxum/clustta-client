@@ -25,6 +25,7 @@
 
 		<div class="dash-board-header">
 				<div v-if="isDefaultWorkspace" class="create-menu">
+					<!-- <ActionButton :icon="getAppIcon('layers')" v-tooltip="'Populate Ids'" :buttonFunction="addGroupIds" /> -->
 					<ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Refresh'" :buttonFunction="refresh" />
 					<ActionButton :icon="getAppIcon('brush-plus')"
 						v-if=" !kanbanView && templateStore.getTemplates.length && (userStore.canDo('create_task') || canModifyEntity)"
@@ -123,6 +124,7 @@ import emitter from '@/lib/mitt';
 // services
 import { CollectionService, AssetService, CheckpointService, TrashService } from "@/../bindings/clustta/services";
 import { FSService, SyncService, DialogService } from '@/../bindings/clustta/services/index';
+
 
 // state imports
 import { useCommonStore } from '@/stores/common';
@@ -1273,6 +1275,10 @@ const expandAll = () => {
 	}
 
 	stage.expandedEntities = expandedEntities;
+};
+
+const addGroupIds = async () => {
+	CheckpointService.AddMissingGroupIds(projectStore.activeProject.uri);
 };
 
 const rebuildAll = async () => { 

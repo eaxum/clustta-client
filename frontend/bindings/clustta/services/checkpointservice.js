@@ -33,6 +33,15 @@ export function AddCheckpoint(projectPath, taskPaths, message, previewPath, grou
 
 /**
  * @param {string} projectPath
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function AddMissingGroupIds(projectPath) {
+    let $resultPromise = /** @type {any} */($Call.ByID(2914642103, projectPath));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} projectPath
  * @param {string} projectWorkingDir
  * @param {string[]} taskPaths
  * @param {number} completed
