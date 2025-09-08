@@ -182,6 +182,7 @@ message Checkpoint {
   string preview_id = 11;
   bool trashed = 12;
   bool synced = 13;
+  string group_id = 14;
 }
 
 message Role {

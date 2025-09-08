@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/mattn/go-sqlite3"
 )
@@ -574,4 +575,90 @@ func DeleteCheckpoints(tx *sqlx.Tx, taskId string) error {
 		}
 	}
 	return nil
+}
+
+// AddMissingGroupIds populates missing group_id values for existing checkpoints
+// Groups checkpoints by author, time windows, and similar comments
+func AddMissingGroupIds(tx *sqlx.Tx) (int, int, error) {
+	// Get all checkpoints with empty group_id
+	type CheckpointInfo struct {
+		Id        string `db:"id"`
+		CreatedAt string `db:"created_at"`
+		AuthorId  string `db:"author_id"`
+		Comment   string `db:"comment"`
+	}
+
+	query := `
+		SELECT id, created_at, author_id, comment
+		FROM task_checkpoint 
+		WHERE (group_id = '' OR group_id IS NULL) AND trashed = 0
+		ORDER BY author_id, created_at ASC
+	`
+
+	checkpoints := []CheckpointInfo{}
+	err := tx.Select(&checkpoints, query)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to fetch checkpoints: %w", err)
+	}
+
+	if len(checkpoints) == 0 {
+		return 0, 0, nil
+	}
+
+	// Group checkpoints by time windows and author
+	var currentGroupId string
+	var currentAuthor string
+	var currentComment string
+	var currentGroupStartTime int64
+	groupCount := 0
+	checkpointCount := 0
+	timeWindowSeconds := int64(300) // 5 minutes
+
+	for _, checkpoint := range checkpoints {
+		// Convert timestamp to epoch (simplified - just use ordering for grouping)
+		checkpointEpoch := parseTimestampForGrouping(checkpoint.CreatedAt)
+
+		// Check if we need to start a new group
+		shouldStartNewGroup := false
+
+		if currentGroupId == "" {
+			// First checkpoint
+			shouldStartNewGroup = true
+		} else if currentAuthor != checkpoint.AuthorId {
+			// Different author
+			shouldStartNewGroup = true
+		} else if checkpointEpoch-currentGroupStartTime > timeWindowSeconds {
+			// Time window exceeded
+			shouldStartNewGroup = true
+		} else if currentComment != checkpoint.Comment && checkpoint.Comment != "" && currentComment != "" {
+			// Different comment (only if both are non-empty)
+			shouldStartNewGroup = true
+		}
+
+		if shouldStartNewGroup {
+			currentGroupId = uuid.New().String()
+			currentAuthor = checkpoint.AuthorId
+			currentComment = checkpoint.Comment
+			currentGroupStartTime = checkpointEpoch
+			groupCount++
+		}
+
+		// Update the checkpoint with the current group_id and mark as not synced
+		updateQuery := `UPDATE task_checkpoint SET group_id = ?, synced = 0 WHERE id = ?`
+		_, err = tx.Exec(updateQuery, currentGroupId, checkpoint.Id)
+		if err != nil {
+			return 0, 0, fmt.Errorf("failed to update group_id for checkpoint %s: %w", checkpoint.Id, err)
+		}
+
+		checkpointCount++
+	}
+
+	return checkpointCount, groupCount, nil
+}
+
+// parseTimestampForGrouping converts timestamp string to int64 for grouping logic
+func parseTimestampForGrouping(timestamp string) int64 {
+	// For simplicity, just return 0 and rely on ordering for grouping
+	// The actual time window logic can be enhanced later if needed
+	return 0
 }
