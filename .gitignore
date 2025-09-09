@@ -12,7 +12,7 @@ dist/
 .DS_Store
 cmd/demo*
 tmp/
-data/
+# data/
 projects/
 .env
 config.json
