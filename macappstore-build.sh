@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# APP_CERTIFICATE="3rd Party Mac Developer Application: Eaxum Creative LTD (XZHBM768JV)"
 APP_CERTIFICATE="Apple Distribution: Eaxum Creative LTD (XZHBM768JV)"
 PKG_CERTIFICATE="3rd Party Mac Developer Installer: Eaxum Creative LTD (XZHBM768JV)"
 APP_NAME="clustta"
