@@ -445,7 +445,7 @@ onMounted(() => {
 .trash-item-label-text {
     font-family: 'Inter', sans-serif;
     font-size: 14px;
-    font-weight: 200;
+    /* font-weight: 200; */
     color: var(--white);
     text-overflow: ellipsis;
 }

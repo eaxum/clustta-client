@@ -25,7 +25,6 @@
 
 		<div class="dash-board-header">
 				<div v-if="isDefaultWorkspace" class="create-menu">
-					<!-- <ActionButton :icon="getAppIcon('layers')" v-tooltip="'Populate Ids'" :buttonFunction="addGroupIds" /> -->
 					<ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Refresh'" :buttonFunction="refresh" />
 					<ActionButton :icon="getAppIcon('brush-plus')"
 						v-if=" !kanbanView && templateStore.getTemplates.length && (userStore.canDo('create_task') || canModifyEntity)"
@@ -1275,10 +1274,6 @@ const expandAll = () => {
 	}
 
 	stage.expandedEntities = expandedEntities;
-};
-
-const addGroupIds = async () => {
-	CheckpointService.AddMissingGroupIds(projectStore.activeProject.uri);
 };
 
 const rebuildAll = async () => { 
