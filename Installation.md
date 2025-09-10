@@ -18,7 +18,6 @@ To run the development environment, we need a number of dependencies:
 - Go
 - Wails3
 - Air
-- NSIS (for Windows builds)
 - Protocol Buffers (Protoc & PBJS)
 
 
@@ -38,9 +37,6 @@ To run the development server, we will use `Air`. Install using Go Modules:
 ```bash
 go install github.com/air-verse/air@latest
 ```
-
-## NSIS(Optional - if you want to deploy to Microsoft store)
-Install NSIS https://nsis.sourceforge.io/Download and add to path
 
 ## Protocol buffers
 To transmit data efficiently, Clustta uses protocol buffers to serialize data for transmission.
@@ -111,49 +107,7 @@ make build
 
 This will execute the `build` command on the `Makefile` depending on the development OS.
 
-## Windows
-For windows, it will: 
-1. Output an `exe` file into `.\bin`. You can run this executable on any windows machine even starting the development environment.
-2. Invoke the `MsixPackagingTool.exe` to build the `msix` package using the parameters set in the `.\Clustta_template.xml`. 
-3. Output the MSIX file into  `.\bin\msix`. This is the version that will be submitted to the Microsoft Store through the [Partner Center](https://partner.microsoft.com).
-
-
-> ⚠️ NOTE
->
-> For `2` and `3` to work, you must have installed [NSIS](https://nsis.sourceforge.io/Download) and added it to PATH.
-
-<br>
-
-> ⚠️ NOTE
->
-> The `Installer Path` parameter in the `.\Clustta_template.xml` needs to be hardcoded as for some reason, it doesn't recognize relative paths.
-
-<br>
-
-```bash
-<Installer Path="C:\path\to\clustta\bin\Clustta-amd64-installer.exe" Arguments="/S" />
-```
-
-## MacOS [TODO]
-For windows, it will: 
-1. Output an `exe` file into `.\bin`. You can run this executable on any windows machine even starting the development environment.
-2. Invoke the `MsixPackagingTool.exe` to build the `msix` package using the parameters set in the `.\Clustta_template.xml`. 
-3. Output the MSIX file into  `.\bin\msix`. This is the version that will be submitted to the Microsoft Store through the [Partner Center](https://partner.microsoft.com).
-
-## Updating the versions
-To bump an update, edit the `version` in these files:
-
-`Clustta_template.xml`
-
-`build/windows/info.json`
-
-`build/windows/nsis/wails_tools.nsh`
-
-`commands.txt`
-
-`frontend/src/services/utils.js`
-
-The current format is `x.x.xx`
+This will output the executable into the respective OS directories.
 
 
 
