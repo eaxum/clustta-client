@@ -40,4 +40,4 @@ internal/LICENSE
 *.provisionprofile
 macappstore-build.sh
 Clustta_template.xml
-clustta.entitlements
+build/darwin/clustta.entitlements
