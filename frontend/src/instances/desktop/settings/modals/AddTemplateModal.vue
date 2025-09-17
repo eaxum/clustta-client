@@ -81,11 +81,8 @@ const handleEnterKey = (event) => {
 };
 
 const selectFile = async () => {
-  if (!trayStates.userPin) {
-    await trayStates.togglePin()
-  }
-  // TODO this is broken
-  const result = await DialogService.SelectFileDialog("Select Image File", "*");
+  
+  const result = await DialogService.SelectFileDialog("Select Template File", "*.");
   if (result) {
     let filePath = result.replace(/\\/g, '/');
     let fileName = filePath.split('/').pop();
@@ -95,10 +92,6 @@ const selectFile = async () => {
       templateName.value = fileName.split('.').slice(0, -1).join('.');
     }
     fileIsSelected.value = true;
-  }
-
-  if (!trayStates.userPin) {
-    await trayStates.togglePin()
   }
 };
 

@@ -67,14 +67,14 @@
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
           </div>
 
-          <div class="settings-item" @click="Browser.OpenURL('https://app.clustta.com')">
+          <!-- <div class="settings-item" @click="Browser.OpenURL('https://app.clustta.com')">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('person')"></div>
             <div class="settings-content">
               <div class="settings-header">Account</div>
               <div class="settings-body">Manage your account and data online.</div>
             </div>
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
-          </div>
+          </div> -->
 
           <div class="settings-item" @click="displayAppInfo()" v-stop-propagation>
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('info')"></div>
@@ -149,6 +149,7 @@ const displayAppInfo = () => {
 };
 
 const launchDirConfigModal = () => {
+  // modals.setModalVisibility('dirOnboardModal', true);
   modals.setModalVisibility('directoryConfigModal', true);
 };
 

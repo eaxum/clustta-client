@@ -113,6 +113,8 @@ const logUserIn = async (username, password) => {
       
       // Refresh account store to pick up the newly added account
       await accountStore.refreshAccounts();
+      projectDirectoryExists.value = await SettingsService.GetProjectDirectory();
+
       console.log(accountStore.accounts)
       
       // Check if this is an additional account login
@@ -127,10 +129,11 @@ const logUserIn = async (username, password) => {
           stageStore
         });
         
+        if(!projectDirectoryExists.value){
+            setDirectories();
+        }
+
       } else {
-        // For first-time login, continue with normal flow
-        // Check EULA and directory setup (like Login.vue)
-        await showEula();
         
         await themeStore.initializeTheme();
         await projectStore.loadStudios();
@@ -141,9 +144,7 @@ const logUserIn = async (username, password) => {
           trayStates.refreshData();
           modals.setModalVisibility("loginModal", false);
         } else {
-          if(eulaAccepted.value){
-            setDirectories();
-          }
+          setDirectories();
         }
       }
     })

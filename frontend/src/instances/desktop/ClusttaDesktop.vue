@@ -100,7 +100,7 @@ onMounted(async () => {
 
 onBeforeUnmount(async () => {
 	document.removeEventListener('click', hideContextMenu);
-})
+});
 
 
 </script>
