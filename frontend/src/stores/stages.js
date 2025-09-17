@@ -5,9 +5,11 @@ import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from "@/stores/collections";
 import { useDndStore } from "@/stores/dnd";
 import { useProjectStore } from "@/stores/projects";
+import { AppService } from '@/../bindings/clustta/services/index';
 
 export const useStageStore = defineStore("stages", {
   state: () => ({
+    os: '',
     stages: {
       projects: false,
       browser: false,
@@ -87,6 +89,11 @@ export const useStageStore = defineStore("stages", {
     }
   },
   actions: {
+    cmdOrCtrlKey(event) {
+      // Use cmd key on macOS, ctrl key on other platforms
+      return this.os === 'darwin' ? event.metaKey : event.ctrlKey;
+    },
+    
     setStageVisibility(stageName, value) {
       if (this.stages.hasOwnProperty(stageName)) {
         // Check if the modal is already active
@@ -179,7 +186,7 @@ export const useStageStore = defineStore("stages", {
       const id = item.id;
       const untrackedTypes = ["folder", "file"];
 
-      if (event.ctrlKey) {
+      if (this.cmdOrCtrlKey(event)) {
         if (!this.markedItems.includes(id)) {
           this.markedItems.push(id);
           this.selectedItems.push(item);
@@ -262,7 +269,7 @@ export const useStageStore = defineStore("stages", {
         }
       }
 
-      if (event.ctrlKey) {
+      if (this.cmdOrCtrlKey(event)) {
         if (this.markedItems.length === 1 && this.markedItems.includes(id)) {
           return;
         }

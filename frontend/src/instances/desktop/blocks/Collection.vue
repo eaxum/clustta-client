@@ -4,14 +4,18 @@
     :style="commonStore.useGrid ? gridStyles : itemHeightStyles"
     :class="{
       'entity-item-grid': commonStore.useGrid,
-      'entity-item-selected': stage.markedItems.includes(entity.id) && !isGhost,
-      'entity-item-cut': stage.cutItems.map((item) => item.id).includes(entity.id) && !isGhost,
-      'entity-item-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === entity.id && !isGhost,
-      'entity-item-last-selected': stage.lastSelectedItemId === entity.id && !isGhost,
-      'drop-zone-hovered': isHovered
-    }">
+      'entity-item-grid-selected': commonStore.useGrid && stage.markedItems.includes(entity.id) && !isGhost,
+      'entity-item-grid-cut': commonStore.useGrid && stage.cutItems.map((item) => item.id).includes(entity.id) && !isGhost,
+      'entity-item-grid-only-selected': commonStore.useGrid && stage.markedItems.length === 1 && stage.firstSelectedItemId === entity.id && !isGhost,
+      'entity-item-grid-last-selected': commonStore.useGrid && stage.lastSelectedItemId === entity.id && !isGhost,
 
-    <div v-if="!commonStore.useGrid && props.loadingChildren" class="entity-spacer">
+      
+      'entity-item-selected': !commonStore.useGrid && stage.markedItems.includes(entity.id) && !isGhost,
+      'entity-item-cut': !commonStore.useGrid && stage.cutItems.map((item) => item.id).includes(entity.id) && !isGhost,
+      'entity-item-only-selected': !commonStore.useGrid && stage.markedItems.length === 1 && stage.firstSelectedItemId === entity.id && !isGhost,
+      'entity-item-last-selected': !commonStore.useGrid && stage.lastSelectedItemId === entity.id && !isGhost,
+      'drop-zone-hovered': isHovered
+    }">    <div v-if="!commonStore.useGrid && props.loadingChildren" class="entity-spacer">
       <span class="single-action-button">
         <img class="small-icons loading-children-icon" :src="getAppIcon('loading')">
       </span>
@@ -132,6 +136,7 @@
 
 
     </div>
+
   </div>
 </template>
 
@@ -707,6 +712,28 @@ onBeforeUnmount(() => {
   padding-left: 0px;
   outline: none;
   background-color: transparent;
+}
+
+.entity-item-grid-selected {
+  outline: 1px solid rgb(255, 255, 255);
+  outline-offset: -1.5px;
+  background-color: var(--blue-steel);
+}
+
+.entity-item-grid-cut {
+  opacity: .5;
+}
+
+.entity-item-grid-last-selected {
+  outline: 1px solid rgb(255, 255, 255);
+  outline-offset: -1.5px;
+  background-color: var(--solid-blue-steel);
+}
+
+.entity-item-grid-only-selected {
+  outline: 1px solid rgb(255, 255, 255);
+  outline-offset: -1.5px;
+  background-color: var(--solid-blue-steel);
 }
 
 .main-entity-item-grid{
