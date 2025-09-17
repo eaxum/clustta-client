@@ -1548,6 +1548,7 @@ type Checkpoint struct {
 	PreviewId      string                 `protobuf:"bytes,11,opt,name=preview_id,json=previewId,proto3" json:"preview_id,omitempty"`
 	Trashed        bool                   `protobuf:"varint,12,opt,name=trashed,proto3" json:"trashed,omitempty"`
 	Synced         bool                   `protobuf:"varint,13,opt,name=synced,proto3" json:"synced,omitempty"`
+	GroupId        string                 `protobuf:"bytes,14,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1671,6 +1672,13 @@ func (x *Checkpoint) GetSynced() bool {
 		return x.Synced
 	}
 	return false
+}
+
+func (x *Checkpoint) GetGroupId() string {
+	if x != nil {
+		return x.GroupId
+	}
+	return ""
 }
 
 type Role struct {
@@ -3228,7 +3236,7 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x17\n" +
 	"\atask_id\x18\x03 \x01(\tR\x06taskId\x12\x15\n" +
 	"\x06tag_id\x18\x04 \x01(\tR\x05tagId\x12\x16\n" +
-	"\x06synced\x18\x05 \x01(\bR\x06synced\"\xf7\x02\n" +
+	"\x06synced\x18\x05 \x01(\bR\x06synced\"\x92\x03\n" +
 	"\n" +
 	"Checkpoint\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
@@ -3247,7 +3255,8 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\n" +
 	"preview_id\x18\v \x01(\tR\tpreviewId\x12\x18\n" +
 	"\atrashed\x18\f \x01(\bR\atrashed\x12\x16\n" +
-	"\x06synced\x18\r \x01(\bR\x06synced\"\x95\b\n" +
+	"\x06synced\x18\r \x01(\bR\x06synced\x12\x19\n" +
+	"\bgroup_id\x18\x0e \x01(\tR\agroupId\"\x95\b\n" +
 	"\x04Role\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x12\n" +

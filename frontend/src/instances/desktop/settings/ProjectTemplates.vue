@@ -37,14 +37,14 @@
                     :editItems="true" :editListItem="prepEditTemplate" :deleteItems="true"
                     :deleteListItem="deleteTaskTemplate" />
 
-                <ScrollList v-else-if="projectTemplateStore.taskTypes.length && activeTemplateContext === 'Task types'"
-                    :items="projectTemplateStore.taskTypes" :useIcons="true" :useItemId="true" :wrapItems="true"
+                <ScrollList v-else-if="projectTemplateStore.assetTypes.length && activeTemplateContext === 'Task types'"
+                    :items="projectTemplateStore.assetTypes" :useIcons="true" :useItemId="true" :wrapItems="true"
                     :editItems="true" :editListItem="prepEditTaskType" :deleteItems="true"
                     :deleteListItem="deleteTaskType" />
 
                 <ScrollList
-                    v-else-if="projectTemplateStore.entityTypes.length && activeTemplateContext === 'Collection types'"
-                    :items="projectTemplateStore.entityTypes" :useIcons="true" :useItemId="true" :wrapItems="true"
+                    v-else-if="projectTemplateStore.collectionTypes.length && activeTemplateContext === 'Collection types'"
+                    :items="projectTemplateStore.collectionTypes" :useIcons="true" :useItemId="true" :wrapItems="true"
                     :editItems="true" :editListItem="prepEditEntityType" :deleteItems="true"
                     :deleteListItem="deleteEntityType" />
 
@@ -74,7 +74,7 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue';
 import utils from '@/services/utils';
-import { TaskService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/../bindings/clustta/services";
 
 // store imports
 import { useIconStore } from '@/stores/icons';
@@ -259,7 +259,7 @@ const prepEditTaskType = (selectedTaskTypeId) => {
 };
 
 const deleteTaskType = async (taskTypeId) => {
-    projectTemplateStore.taskTypes = projectTemplateStore.taskTypes.filter((taskType) => taskType.id !== taskTypeId);
+    projectTemplateStore.assetTypes = projectTemplateStore.assetTypes.filter((taskType) => taskType.id !== taskTypeId);
 };
 
 // entity types
@@ -273,7 +273,7 @@ const prepEditEntityType = (selectedEntityTypeId) => {
 };
 
 const deleteEntityType = async (entityTypeId) => {
-    projectTemplateStore.entityTypes = projectTemplateStore.entityTypes.filter((entityType) => entityType.id !== entityTypeId);
+    projectTemplateStore.collectionTypes = projectTemplateStore.collectionTypes.filter((entityType) => entityType.id !== entityTypeId);
 };
 
 const prepDeletePopUpModal = () => {
@@ -380,3 +380,4 @@ onMounted(async () => {
     align-items: center;
 }
 </style>
+

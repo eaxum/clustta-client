@@ -100,7 +100,7 @@ onMounted(async () => {
 
 onBeforeUnmount(async () => {
 	document.removeEventListener('click', hideContextMenu);
-})
+});
 
 
 </script>
@@ -192,3 +192,4 @@ onBeforeUnmount(async () => {
 	padding-top: 0;
 }
 </style>
+

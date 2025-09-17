@@ -41,7 +41,7 @@ import { ref, computed, watchEffect, onMounted, onUnmounted } from 'vue';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
-import { TaskService, FSService } from "@/../bindings/clustta/services";
+import { AssetService, FSService } from "@/../bindings/clustta/services";
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -49,11 +49,11 @@ import { useMenu } from '@/stores/menu';
 
 // store imports
 import { useNotificationStore } from '@/stores/notifications';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useStageStore } from '@/stores/stages';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useTemplateStore } from '@/stores/template';
 import { useProjectStore } from '@/stores/projects';
 
@@ -69,11 +69,11 @@ let placeholder = 'Add Tags, use commas to confirm'
 
 // states
 const trayStates = useTrayStates();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const templateStore = useTemplateStore();
 const projectStore = useProjectStore();
 const commonStore = useCommonStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 
 // stores
 const notificationStore = useNotificationStore();
@@ -91,7 +91,7 @@ const modalContainer = ref(null);
 const showTaskOptions = ref(true);
 const isAwaitingResponse = ref(false);
 const isResource = ref(false);
-const taskType = ref(taskStore.getTaskTypesNames[0]);
+const taskType = ref(assetStore.getAssetTypesNames[0]);
 
 // computed properties
 const title = computed(() => trayStates.popUpModalTitle);
@@ -101,12 +101,12 @@ const isValueChanged = computed(() => {
   return taskName.value !== '';
 });
 const projectTags = computed(() => {
-  const allTags = taskStore.projectTags;
+  const allTags = assetStore.projectTags;
   return allTags.filter(item => !tags.value.includes(item));
 });
 
 const taskTypeNames = computed(() => {
-  return taskStore.getTaskTypesNames;
+  return assetStore.getAssetTypesNames;
 });
 
 const itemType = ref('Task');
@@ -181,22 +181,22 @@ const closeModal = () => {
 
 const createTask = async (launch = false, comment = "new file") => {
   isAwaitingResponse.value = true;
-  let selectedTaskType = taskStore.taskTypes.find(item => item.name === taskType.value);
+  let selectedTaskType = assetStore.assetTypes.find(item => item.name === taskType.value);
   let entities = stageStore.markedEntities
   let template = templateStore.templates.find(template => template.name === templateStore.selectedTemplateName);
   templateStore.lastUsedTemplate = template.name;
-  const isNested = commonStore.navigatorMode && !!entityStore.navigatedEntity;
+  const isNested = commonStore.navigatorMode && !!collectionStore.navigatedCollection;
   if (entities.length <= 1) {
 
     let entityId = "";
     
     if (isNested) {
-      entityId = entityStore.navigatedEntity.id;
+      entityId = collectionStore.navigatedCollection.id;
     } else if (entities.length > 0){
       entityId = entities[0];
     }
 
-    await TaskService.CreateTask(
+    await AssetService.CreateAsset(
       projectStore.activeProject.uri,
       taskName.value,
       "",
@@ -221,7 +221,6 @@ const createTask = async (launch = false, comment = "new file") => {
           taskName.value = "";
           tags.value = [];
         }
-        await taskStore.reloadTasks();
         isAwaitingResponse.value = false;
         successMessage = 'Created ' + taskName.value + ' successfully.'
         notificationStore.addNotification(successMessage, "", "success")
@@ -235,42 +234,7 @@ const createTask = async (launch = false, comment = "new file") => {
         notificationStore.errorNotification("Error creating task", error)
       });
   } else {
-
-    // await TaskService.CreateTasks(projectStore.activeProject.uri,
-    //   taskName.value,
-    //   "",
-    //   selectedTaskType.id,
-    //   entities,
-    //   isResource.value,
-    //   template.id,
-    //   "",
-    //   "",
-    //   false,
-    //   tags.value,
-    //   "",
-    //   comment,)
-    //   .then(async (data) => {
-    //     let successMessage = 'Creating ' + taskName.value + '...'
-    //     notificationStore.addNotification(successMessage, "", "success")
-    //     await taskStore.reloadTasks();
-    //     isAwaitingResponse.value = false;
-    //     successMessage = 'Created ' + taskName.value + ' successfully.'
-    //     notificationStore.addNotification(successMessage, "", "success")
-    //     if (!trayStates.keepModalOpen) {
-    //       closeModal();
-    //     } else {
-    //       taskName.value = "";
-    //       tags.value = [];
-    //     }
-
-    //     if (launch) {
-    //       FSService.LaunchFile(data.file_path)
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.log(error)
-    //     notificationStore.errorNotification("Error creating task", error)
-    //   });
+    // create same asset in multiple entities
   }
 
 };
@@ -285,7 +249,7 @@ watchEffect(() => {
 // onMounted hook
 onMounted(() => {
   menu.clickOutsideMask = null;
-  taskName.value = utils.capitalizeStr(taskStore.getTaskTypesNames[0]);
+  taskName.value = utils.capitalizeStr(assetStore.getAssetTypesNames[0]);
   trayStates.listItemsBoundary = modalContainer.value;
   trayStates.tagSearchQuery = '';
   trayStates.itemTags = [];
@@ -376,3 +340,11 @@ onUnmounted(() => {
   margin-top: 0;
 }
 </style>
+
+
+
+
+
+
+
+

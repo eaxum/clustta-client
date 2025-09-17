@@ -52,10 +52,10 @@ import { useModalStore } from '@/stores/modals';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useProjectStore } from '@/stores/projects';
 import { useNotificationStore } from '@/stores/notifications';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useStageStore } from '@/stores/stages';
 import { usePaneStore } from '@/stores/panes';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useCommonStore } from '@/stores/common';
 import { useMenu } from '@/stores/menu';
 import { useSettingsStore } from '@/stores/settings';
@@ -334,3 +334,6 @@ onMounted(async () => {
   justify-content: center;
 }
 </style>
+
+
+

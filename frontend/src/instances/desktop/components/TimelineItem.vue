@@ -72,15 +72,15 @@
 
 <script setup>
 import { computed, onMounted, ref, nextTick } from 'vue';
-import { CheckpointService, EntityService, TaskService, TrashService } from "@/../bindings/clustta/services";
+import { CheckpointService, CollectionService, AssetService, TrashService } from "@/../bindings/clustta/services";
 import utils from '@/services/utils';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 
 import { useTrayStates } from '@/stores/TrayStates';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
 import { useCommonStore } from '@/stores/common';
 
@@ -101,9 +101,9 @@ const trayStates = useTrayStates();
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const stage = useStageStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 
 const getAppIcon = (iconName) => {
@@ -167,7 +167,7 @@ const revertProject = async (createdAt) => {
                 "success",
                 false
             )
-            taskStore.refreshAllFilesStatus()
+            assetStore.refreshAllFilesStatus()
         })
         .catch((error) => {
             console.log(error)
@@ -183,29 +183,29 @@ const selectItem = async (taskPath) => {
 
 }
 
-// entityStore.navigateToEntity(entity);
+// collectionStore.navigateToCollection(entity);
 //   commonStore.navigatorMode = true;
 
 const findItem = async (taskPath) => {
-    const allEntities = await EntityService.GetEntities(projectStore.activeProject.uri)
-    const allTasks = await TaskService.GetTasks(projectStore.activeProject.uri)
+    const allEntities = await CollectionService.GetCollections(projectStore.activeProject.uri)
+    const allTasks = await AssetService.GetAssets(projectStore.activeProject.uri)
     const task = allTasks.find((item) => item.task_path === taskPath);
     const taskId = task?.id;
     const taskParent = allEntities.find((item) => item.id === task.entity_id );
     
     if(taskParent){
-        entityStore.navigateToEntity(taskParent);
+        collectionStore.navigateToCollection(taskParent);
         commonStore.navigatorMode = true;
     } 
     
     stage.deselectAllItems();
-    taskStore.selectTask(taskId)
+    assetStore.selectAsset(taskId)
     stage.firstSelectedItemId = taskId;
     stage.markedItems = [taskId];
     selectedTaskId.value = taskId;
 
     return
-    const taskParents = taskStore.getTaskEntity(taskId, true);
+    const taskParents = assetStore.getAssetEntity(taskId, true);
     const taskParentIds = taskParents.map((item) => item.id)
 
     for(const parentId of taskParentIds){
@@ -217,7 +217,7 @@ const findItem = async (taskPath) => {
     }
     
     stage.deselectAllItems();
-    taskStore.selectTask(taskId)
+    assetStore.selectAsset(taskId)
     stage.firstSelectedItemId = taskId;
     stage.markedItems = [taskId];
     selectedTaskId.value = taskId;
@@ -445,7 +445,7 @@ onMounted(() => {
 .trash-item-label-text {
     font-family: 'Inter', sans-serif;
     font-size: 14px;
-    font-weight: 200;
+    /* font-weight: 200; */
     color: var(--white);
     text-overflow: ellipsis;
 }

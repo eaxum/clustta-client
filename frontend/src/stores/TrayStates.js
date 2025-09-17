@@ -5,8 +5,8 @@ import { nextTick } from "vue";
 // stores
 import { defineStore } from "pinia";
 import { useUserStore } from "@/stores/users";
-import { useEntityStore } from "./entity";
-import { useTaskStore } from "./task";
+import { useCollectionStore } from "./collections";
+import { useAssetStore } from "@/stores/assets";
 import { useTemplateStore } from "./template";
 import { useDependencyStore } from "./dependency";
 import { useStatusStore } from "./status";
@@ -117,8 +117,8 @@ export const useTrayStates = defineStore("useTrayStates", {
     },
     async refreshData() {
       const userStore = useUserStore();
-      const entityStore = useEntityStore();
-      const taskStore = useTaskStore();
+      const collectionStore = useCollectionStore();
+      const assetStore = useAssetStore();
       const templateStore = useTemplateStore();
       const workflowStore = useWorkflowStore();
       const dependencyStore = useDependencyStore();
@@ -130,15 +130,13 @@ export const useTrayStates = defineStore("useTrayStates", {
       // await new Promise((r) => setTimeout(r, 5000));
       // console.time("loading_general_data");
       await userStore.reloadUsers();
-      await entityStore.reloadEntityTypes();
-      await taskStore.reloadTaskTypes();
-      // await entityStore.reloadEntities();
+      await collectionStore.reloadCollectionTypes();
+      await assetStore.reloadAssetTypes();
       await templateStore.reloadTemplates();
       await workflowStore.reloadWorkflows();
       await statusStore.reloadStatuses();
       await dependencyStore.reloadDependencyTypes();
       await tagStore.reloadTags();
-      // await taskStore.reloadTasks();
       // await projectStore.reloadUntrackedItems();
       // console.timeEnd("loading_general_data");
     },

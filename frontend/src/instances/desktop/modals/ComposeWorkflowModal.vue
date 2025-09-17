@@ -53,7 +53,7 @@ import { ref, computed, watchEffect, onMounted, onBeforeUnmount } from 'vue';
 import utils from '@/services/utils';
 import { v4 as uuidv4 } from 'uuid';
 
-import { TaskService, FSService, WorkflowService } from "@/../bindings/clustta/services";
+import { AssetService, FSService, WorkflowService } from "@/../bindings/clustta/services";
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -61,7 +61,7 @@ import { useMenu } from '@/stores/menu';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useWorkflowStore } from '@/stores/workflow';
 import { useProjectStore } from '@/stores/projects';
 
@@ -75,7 +75,7 @@ import EditWorkflowItem from '@/instances/desktop/blocks/EditWorkflowItem.vue';
 // states
 const trayStates = useTrayStates();
 const iconStore = useIconStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const workflowStore = useWorkflowStore();
 const projectStore = useProjectStore();
 
@@ -186,7 +186,7 @@ const isValueChanged = computed(() => {
 });
 
 const entityTypeIcon = computed(() => {
-  const selectedEntityType = entityStore.getEntityTypes.find((item) => item.name === entityType.value);
+  const selectedEntityType = collectionStore.getCollectionTypes.find((item) => item.name === entityType.value);
   if (!selectedEntityType) {
     return 'folder'
   } else {

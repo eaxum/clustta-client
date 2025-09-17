@@ -11,7 +11,7 @@
 
     </div>
 
-    <div v-if="taskStore.loadingAssetStates" class="horizontal-flex input-alert loading-items-count">
+    <div v-if="assetStore.loadingAssetStates" class="horizontal-flex input-alert loading-items-count">
       <span class="single-action-button" v-tooltip="'Refreshing Asset states'">
         <img class="small-icons loading-children-icon" :src="getAppIcon('loading')">
       </span>
@@ -66,28 +66,28 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useCommonStore } from '@/stores/common';
 import { useTrayStates } from '@/stores/TrayStates';
-import { CheckpointService, TaskService } from "@/../bindings/clustta/services";
+import { CheckpointService, AssetService } from "@/../bindings/clustta/services";
 import { onMounted, ref, computed, onBeforeUnmount } from 'vue';
 import { useNotificationStore } from '@/stores/notifications';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
 import { useIconStore } from '@/stores/icons';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { v4 as uuidv4 } from 'uuid';
 import emitter from '@/lib/mitt';
 import ActionButton from '../components/ActionButton.vue';
 import utils from '@/services/utils';
 
 const trayStates = useTrayStates();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const useImageAsCover = ref(true);
 const stage = useStageStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 
 const showCheckpointItems = ref(false);
@@ -114,7 +114,7 @@ const isValueChanged = computed(() => {
     'todo',
     'fmf'
   ]
-  return !taskStore.loadingAssetStates && message.value.trim().length > 6 && !forbiddenComments.some(comment =>
+  return !assetStore.loadingAssetStates && message.value.trim().length > 6 && !forbiddenComments.some(comment =>
     message.value.toLowerCase().includes(comment.toLowerCase())
   );
 });
@@ -140,13 +140,13 @@ const removeItem = (itemPath) => {
 
 const currentModifiedDisplayPaths = computed(() => {
   // Get the display paths for UI
-  const modifiedAssetsState = taskStore.getModifiedDisplayPaths;
+  const modifiedAssetsState = assetStore.getModifiedDisplayPaths;
   
   // Filter by navigation context
   let path;
-  path = entityStore.navigatedEntity?.type === 'entity'
-    ? entityStore.navigatedEntity?.entity_path
-    : entityStore.navigatedEntity?.item_path;
+  path = collectionStore.navigatedCollection?.type === 'entity'
+    ? collectionStore.navigatedCollection?.entity_path
+    : collectionStore.navigatedCollection?.item_path;
 
   let filteredAssets;
   if (path) {
@@ -173,12 +173,12 @@ const currentModifiedDisplayPaths = computed(() => {
 
 const allUntrackedPaths = computed(() => {
   let path;
-  path = entityStore.navigatedEntity?.type === 'entity'
-    ? entityStore.navigatedEntity?.entity_path
-    : entityStore.navigatedEntity?.item_path;
+  path = collectionStore.navigatedCollection?.type === 'entity'
+    ? collectionStore.navigatedCollection?.entity_path
+    : collectionStore.navigatedCollection?.item_path;
 
 
-  const untrackedTasksPath = taskStore.untrackedTasksPath;
+  const untrackedTasksPath = assetStore.untrackedAssetsPath;
   let filteredPaths;
 
   filteredPaths = untrackedTasksPath.filter(item => item.startsWith(path));
@@ -231,7 +231,7 @@ const createCheckPoints = async () => {
   
   await CheckpointService.AddCheckpoint(projectStore.activeProject.uri, taskPathsForCheckpoints, comment, previewPath, groupId, useImageAsCover.value)
     .then((response) => {
-      taskStore.modifiedTasksPath = taskStore.modifiedTasksPath.filter((modifiedTaskPath) => !taskPathsForCheckpoints.includes(modifiedTaskPath))
+      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter((modifiedTaskPath) => !taskPathsForCheckpoints.includes(modifiedTaskPath))
     })
     .catch((error) => {
       console.error(error);
@@ -252,7 +252,7 @@ const createCheckPoints = async () => {
     isAwaitingResponse.value = false;
     notificationStore.errorNotification("Error Creating Checkpoint", error)
   }
-  taskStore.untrackedTasksPath = taskStore.untrackedTasksPath.filter((untrackedTaskPath) => !currentUntrackedPaths.value.includes(untrackedTaskPath))
+  assetStore.untrackedAssetsPath = assetStore.untrackedAssetsPath.filter((untrackedTaskPath) => !currentUntrackedPaths.value.includes(untrackedTaskPath))
 
 
   emitter.emit('refresh-browser');
@@ -270,7 +270,7 @@ const createCheckPoints = async () => {
 onMounted(
   async () => {
     if(trayStates.createMultipleCheckpoints){
-      await taskStore.reloadAssetStates();
+      await assetStore.reloadAssetStates();
     }
     trayStates.screenshot = null
     trayStates.previewFile = ""
@@ -396,3 +396,9 @@ onBeforeUnmount(() => {
   animation: loadingRotate .5s linear infinite;
 }
 </style>
+
+
+
+
+
+

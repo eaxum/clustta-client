@@ -35,13 +35,13 @@ import CheckpointListSkeleton from '@/instances/common/components/CheckpointList
 
 // store/state imports
 import { useTrayStates } from '@/stores/TrayStates';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useUserStore } from '@/stores/users';
 import { useProjectStore } from '@/stores/projects';
 
 // stores/states
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
 const notificationStore = useNotificationStore();
@@ -89,14 +89,14 @@ const updateExpanded = (index) => {
 
 // computed props
 const itemName = computed(() => {
-  if (!taskStore.selectedTask) {
+  if (!assetStore.selectedAsset) {
     return 'No task Selected'
   }
-  return taskStore.selectedTask.name;
+  return assetStore.selectedAsset.name;
 });
 
 const checkpointEntity = computed(() => {
-  return taskStore.selectedTask;
+  return assetStore.selectedAsset;
 });
 
 watch(checkpointEntity, () => {
@@ -106,19 +106,19 @@ watch(checkpointEntity, () => {
 const refreshCheckpoints = async () => {
 
   taskHash.value = "";
-  if (taskStore.selectedTask && await FSService.Exists(taskStore.selectedTask.file_path)) {
-    taskHash.value = await FSService.FileHash(taskStore.selectedTask.file_path);
+  if (assetStore.selectedAsset && await FSService.Exists(assetStore.selectedAsset.file_path)) {
+    taskHash.value = await FSService.FileHash(assetStore.selectedAsset.file_path);
   }
 
   trayStates.checkpointsLoaded = false;
   checkpoints.value = [];
 
-  if (!taskStore.selectedTask) {
+  if (!assetStore.selectedAsset) {
     trayStates.checkpointsLoaded = true;
     return;
   }
 
-  let task = taskStore.selectedTask;
+  let task = assetStore.selectedAsset;
   let taskCheckpoints = await CheckpointService.GetCheckpoints(projectStore.activeProject.uri, task.id)
     .then((data) => {
       return data;
@@ -175,8 +175,8 @@ const refreshCheckpoints = async () => {
 
 const updateTaskHash = async () => {
   taskHash.value = "";
-  if (taskStore.selectedTask && await FSService.Exists(taskStore.selectedTask.file_path)) {
-    taskHash.value = await FSService.FileHash(taskStore.selectedTask.file_path);
+  if (assetStore.selectedAsset && await FSService.Exists(assetStore.selectedAsset.file_path)) {
+    taskHash.value = await FSService.FileHash(assetStore.selectedAsset.file_path);
   }
 };
 
@@ -287,3 +287,6 @@ onBeforeUnmount(() => {
   /* background-color: rgba(0, 0, 0, 0.295); */
 }
 </style>
+
+
+

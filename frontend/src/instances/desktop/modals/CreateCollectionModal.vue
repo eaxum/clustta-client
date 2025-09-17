@@ -15,7 +15,7 @@
       <BatchGenerator v-else ref="batchGen" @updateData="onUpdateCollections" />
 
       <div class="input-section">
-        <DropDownBox :items="entityStore.getEntityTypesNames" :selectedItem="entityType" :onSelect="selectEntityType" />
+        <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="selectEntityType" />
       </div>
 
       <div class="horizontal-flex">
@@ -45,7 +45,7 @@ import { onMounted, watchEffect, ref, computed, onUnmounted } from 'vue';
 import emitter from '@/lib/mitt';
 
 // services
-import { CheckpointService, TaskService, EntityService } from "@/../bindings/clustta/services";
+import { CheckpointService, AssetService, CollectionService } from "@/../bindings/clustta/services";
 import { FSService } from '@/../bindings/clustta/services/index';
 
 // state imports
@@ -54,8 +54,8 @@ import { useTrayStates } from '@/stores/TrayStates';
 // store imports
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useTaskStore } from '@/stores/task';
-import { useEntityStore } from '@/stores/entity';
+import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
 import { useMenu } from '@/stores/menu';
@@ -74,12 +74,12 @@ import BatchGenerator from '@/instances/desktop/components/BatchGenerator.vue';
 const trayStates = useTrayStates();
 
 // stores
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const iconStore = useIconStore();
 const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const stage = useStageStore();
 const menu = useMenu();
 
@@ -92,7 +92,7 @@ const entityName = ref('');
 const showTaskOptions = ref(true);
 const popUpActions = ref(null);
 const isAwaitingResponse = ref(false);
-const entityType = ref(entityStore.getEntityTypesNames[0]);
+const entityType = ref(collectionStore.getCollectionTypesNames[0]);
 const isLibrary = ref(false)
 const isMultiple = ref(false);
 const batchGen = ref(null);
@@ -167,7 +167,7 @@ const createEntityAndMove = async () => {
   const type = stage.selectedItem?.type;
 	let project = projectStore.activeProject;
 
-  const allEntities = await EntityService.GetEntities(project.uri);
+  const allEntities = await CollectionService.GetCollections(project.uri);
 
   let parent;
 
@@ -186,14 +186,14 @@ const createEntityAndMove = async () => {
   let parentId = parent?.id
 
   isAwaitingResponse.value = true;
-  let selectedEntityType = entityStore.entityTypes.find(item => item.name === entityType.value);
+  let selectedEntityType = collectionStore.collectionTypes.find(item => item.name === entityType.value);
 
 
-  EntityService.CreateEntity(projectStore.activeProject.uri, entityName.value, "", selectedEntityType.id, parentId, "", isLibrary.value)
+  CollectionService.CreateCollection(projectStore.activeProject.uri, entityName.value, "", selectedEntityType.id, parentId, "", isLibrary.value)
     .then(async data => {
       const successMessage = entityName.value + ' collection created';
       const newEntity = data;
-      entityStore.selectedEntity = newEntity;
+      collectionStore.selectedCollection = newEntity;
       isAwaitingResponse.value = false;
       await moveIntoFolder(newEntity.id);
       closeModal();
@@ -216,7 +216,7 @@ const createEntityAndMove = async () => {
 }
 
 const selectedEntityTypeId = computed(() => {
-  const selectedEntityType = entityStore.entityTypes.find(item => item.name === entityType.value);
+  const selectedEntityType = collectionStore.collectionTypes.find(item => item.name === entityType.value);
   return selectedEntityType?.id;
 })
 
@@ -225,17 +225,17 @@ const createSingleEntity = async () => {
   let parentId ;
   if(stage.selectedItem && stage.selectedItem.type === 'entity'){
     parentId = stage.markedItems[0]
-  } else if (entityStore.navigatedEntity) {
-    parentId = entityStore.navigatedEntity.id;
+  } else if (collectionStore.navigatedCollection) {
+    parentId = collectionStore.navigatedCollection.id;
   } else {
     parentId = '';
   }
 
-  await EntityService.CreateEntity(projectStore.activeProject.uri, entityName.value, "", selectedEntityTypeId.value, parentId, "", isLibrary.value)
+  await CollectionService.CreateCollection(projectStore.activeProject.uri, entityName.value, "", selectedEntityTypeId.value, parentId, "", isLibrary.value)
     .then(async data => {
       if(!isMultiple){
       const newEntity = data;
-      entityStore.selectedEntity = newEntity;
+      collectionStore.selectedCollection = newEntity;
       const successMessage = entityName.value + ' collection created';
       notificationStore.addNotification(successMessage, "", "success");
       stage.firstSelectedItemId = newEntity.id;
@@ -260,8 +260,8 @@ const createMultipleEntities = async () => {
 const itemsToGroup = ref([]);
 
 const allProjectItems = computed(() => {
-  const allTasks = taskStore.getTasks;
-  const allEntities = entityStore.getEntities;
+  const allTasks = assetStore.getAssets;
+  const allEntities = collectionStore.getCollections;
   const alluntrackedFiles = projectStore.untrackedFiles;
   const alluntrackedFolders = projectStore.untrackedFolders;
 
@@ -287,7 +287,7 @@ const moveIntoFolder = async (activeItemId) => {
       await changeTaskEntity(taskId, entityId);
     } else {
 
-      let entity = entityStore.selectedEntity
+      let entity = collectionStore.selectedCollection
       // console.log(entity)
       // return
       await FSService.MakeDirs(entity.file_path)
@@ -327,9 +327,9 @@ const moveIntoFolder = async (activeItemId) => {
 
 const changeEntityParent = async (entityId, parentId) => {
 
-  await EntityService.ChangeEntityParent(projectStore.activeProject.uri, entityId, parentId)
+  await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityId, parentId)
     .then((response) => {
-      entityStore.changeEntityParent(entityId, parentId);
+      collectionStore.changeEntityParent(entityId, parentId);
       const successMessage = 'Moved successfully.'
       notificationStore.addNotification(successMessage, "", "success")
     })
@@ -340,9 +340,9 @@ const changeEntityParent = async (entityId, parentId) => {
 };
 
 const changeTaskEntity = async (taskId, entityId) => {
-  await TaskService.ChangeTaskEntity(projectStore.activeProject.uri, taskId, entityId)
+  await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskId, entityId)
     .then((response) => {
-      taskStore.changeTaskEntity(taskId, entityId);
+      assetStore.changeAssetEntity(taskId, entityId);
       const successMessage = 'Moved successfully.'
       notificationStore.addNotification(successMessage, "", "success")
     })

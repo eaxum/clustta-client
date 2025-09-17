@@ -19,7 +19,7 @@ import { ProjectService } from "@/../bindings/clustta/services";
 import utils from '@/services/utils';
 
 // store imports
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 
@@ -31,7 +31,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 
 
 // states
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const userStore = useUserStore();
 const projectStore = useProjectStore();
 
@@ -62,7 +62,7 @@ const projectCollaborators = computed(() => {
 
   let projectUsers = userStore.getProjectCollaborators;
   let assignedUserIds = [];
-  let tasks = taskStore.tasks;
+  let tasks = assetStore.assets;
 
   for (const task of tasks) {
     let taskAssigneeId = task.assignee_id;
@@ -149,3 +149,5 @@ const deleteCollaborator = (userId) => {
   background-color: var(--black-steel);
 }
 </style>
+
+

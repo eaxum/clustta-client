@@ -13,8 +13,6 @@ import (
 	"clustta/internal/constants"
 	"clustta/internal/error_service"
 	"clustta/internal/repository/models"
-
-	"github.com/zalando/go-keyring"
 )
 
 type Token struct {
@@ -185,26 +183,13 @@ func FetchUserData(email string) (models.User, error) {
 }
 
 func GetToken() (Token, error) {
-	// Try to get the active account from multi-account structure first
+	// Get the active account from multi-account structure
 	activeToken, err := GetActiveAccount()
-	if err == nil {
-		return activeToken, nil
-	}
-
-	// Fallback to old single token format for backwards compatibility
-	service := "clustta"
-	key := "token"
-
-	token, err := keyring.Get(service, key)
 	if err != nil {
 		return Token{}, err
 	}
-	var tokenStruct Token
-	err = json.Unmarshal([]byte(token), &tokenStruct)
-	if err != nil {
-		return Token{}, err
-	}
-	return tokenStruct, nil
+
+	return activeToken, nil
 }
 
 func SetToken(
@@ -220,12 +205,19 @@ func SetToken(
 }
 
 func DeleteToken() error {
-	service := "clustta"
-	key := "token"
-	err := keyring.Delete(service, key)
+	// Get current active account
+	activeToken, err := GetActiveAccount()
+	if err != nil {
+		// No active account to delete
+		return nil
+	}
+
+	// Remove the active account from multi-account structure
+	err = RemoveAccount(activeToken.User.Id)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

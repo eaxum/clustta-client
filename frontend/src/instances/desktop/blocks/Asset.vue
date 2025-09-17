@@ -2,10 +2,15 @@
   <div ref="taskItem" class="task-item-main" v-return="launchSelectedTask" v-esc="handleEscKey" v-stop-propagation
     :style="commonStore.useGrid ? gridStyles : itemHeightStyles" :class="{
       'task-item-grid': commonStore.useGrid,
-      'task-item-selected': stage.markedItems.includes(task.id) && !isGhost,
-      'task-item-cut': stage.cutItems.map((item) => item.id).includes(task.id) && !isGhost,
-      'task-item-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
-      'task-item-last-selected': stage.lastSelectedItemId === task.id && !isGhost,
+      'task-item-grid-selected': commonStore.useGrid && stage.markedItems.includes(task.id) && !isGhost,
+      'task-item-grid-cut': commonStore.useGrid && stage.cutItems.map((item) => item.id).includes(task.id) && !isGhost,
+      'task-item-grid-only-selected': commonStore.useGrid && stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
+      'task-item-grid-last-selected': commonStore.useGrid && stage.lastSelectedItemId === task.id && !isGhost,
+      
+      'task-item-selected': !commonStore.useGrid && stage.markedItems.includes(task.id) && !isGhost,
+      'task-item-cut': !commonStore.useGrid && stage.cutItems.map((item) => item.id).includes(task.id) && !isGhost,
+      'task-item-only-selected': !commonStore.useGrid && stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
+      'task-item-last-selected': !commonStore.useGrid && stage.lastSelectedItemId === task.id && !isGhost,
       'task-item-child': task.parent_id,
       'drop-zone-hovered': isHovered
     }" @dblclick="launchTaskCommand()">
@@ -160,14 +165,14 @@
 // imports
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { isValidWeblink } from '@/lib/pointer';
-import { TaskService, CheckpointService, FSService } from "@/../bindings/clustta/services";
+import { AssetService, CheckpointService, FSService } from "@/../bindings/clustta/services";
 import { SyncService } from "@/../bindings/clustta/services";
 import utils from '@/services/utils';
 import { Events } from "@wailsio/runtime";
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useMenu } from '@/stores/menu';
 import { useIconStore } from '@/stores/icons';
 import { usePaneStore } from '@/stores/panes';
@@ -176,7 +181,7 @@ import { useUserStore } from '@/stores/users';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
 import { useCommonStore } from '@/stores/common';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
 import emitter from '@/lib/mitt';
@@ -196,9 +201,9 @@ const panes = usePaneStore();
 const stage = useStageStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const commonStore = useCommonStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const projectStore = useProjectStore();
 const dndStore = useDndStore();
 
@@ -318,7 +323,7 @@ const importItem = (index, task, event) => {
   let parentPaths = utils.getParentPaths(props.task.entity_path)
   if (!inRoot) {
     for (let parent of parentPaths) {
-      parentId = entityStore.entities.find((item) => item.entity_path === parent)?.id;
+      parentId = collectionStore.collections.find((item) => item.entity_path === parent)?.id;
       if (parentId !== undefined) {
         break
       }
@@ -436,7 +441,7 @@ const updateTaskName = async () => {
 
   if (props.task.type === 'task') {
 
-    await TaskService.RenameTask(projectStore.activeProject.uri, taskId, editableTaskName.value)
+    await AssetService.RenameAsset(projectStore.activeProject.uri, taskId, editableTaskName.value)
       .then((data) => {
         task.name = editableTaskName.value;
         
@@ -566,14 +571,14 @@ const prepFreeUpSpacePopUpModal = () => {
 };
 
 const freeUpSpace = async () => {
-  let task = taskStore.selectedTask;
+  let task = assetStore.selectedAsset;
   let taskDir = task.file_path.replace(/\\/g, '/');
   await FSService.DeleteFile(taskDir)
     .then((response) => {
       task.file_status = 'rebuildable';
-      taskStore.rebuildableTasksPath.push(task.task_path)
-      taskStore.outdatedTasksPath = taskStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
-      taskStore.modifiedTasksPath = taskStore.modifiedTasksPath.filter(taskPath => taskPath !== task.task_path);
+      assetStore.rebuildableAssetsPath.push(task.task_path)
+      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path)
+      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => taskPath !== task.task_path);
       emitter.emit('refresh-browser');
     })
     .catch((error) => {
@@ -584,17 +589,17 @@ const freeUpSpace = async () => {
 
 const deleteTask = async () => {
   if (props.task.type === 'task') {
-    let taskId = taskStore.selectedTask.id;
-    TaskService.DeleteTask(projectStore.activeProject.uri, taskId, true)
+    let taskId = assetStore.selectedAsset.id;
+    AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
       .then(async (response) => {
-        taskStore.selectedTask = null;
+        assetStore.selectedAsset = null;
         stage.markedItems = [];
         emitter.emit('refresh-browser');
       })
       .catch((error) => {
         notificationStore.errorNotification("Task failed to delete.", error)
       });
-    let longMessage = `Task of name: ${taskStore.selectedTask.name} was moved to Trash.`
+    let longMessage = `Task of name: ${assetStore.selectedAsset.name} was moved to Trash.`
     notificationStore.addNotification("Task moved to Trash.", longMessage, "success", true);
   } else if (props.task.type === 'untracked_task') {
     prepDeleteUntrackedTaskPopUpModal();
@@ -637,9 +642,9 @@ const taskTypeIcon = computed(() => {
 
 // methods
 const closeStatusMenu = () => {
-  props.task.status = taskStore.selectedTask.status
-  props.task.status_id = taskStore.selectedTask.status_id
-  props.task.status_short_name = taskStore.selectedTask.status_short_name
+  props.task.status = assetStore.selectedAsset.status
+  props.task.status_id = assetStore.selectedAsset.status_id
+  props.task.status_short_name = assetStore.selectedAsset.status_short_name
   statusMenuDisplayed.value = false;
 };
 
@@ -664,7 +669,7 @@ const launchTaskCommand = async () => {
     } else {
       CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [task.id])
         .then(async (response) => {
-          let fileStatus = await taskStore.getTaskFileStatus(task)
+          let fileStatus = await assetStore.getAssetFileStatus(task)
           props.task.file_status = fileStatus
           FSService.LaunchFile(file_path)
         })
@@ -679,8 +684,8 @@ const launchTaskCommand = async () => {
 
 const prepCreateCheckpoint = (index, mask, event) => {
   const task = props.task
-  taskStore.selectedTask = task;
-  console.log(taskStore.selectedTask)
+  assetStore.selectedAsset = task;
+  console.log(assetStore.selectedAsset)
   handleClick(index, task, event);
   modals.setModalVisibility('createCheckpointModal', true);
 };
@@ -712,9 +717,9 @@ const revertTask = async (index, task, event) => {
 
   CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [taskId])
     .then(async (response) => {
-      taskStore.rebuildableTasksPath = taskStore.rebuildableTasksPath.filter(taskPath => taskPath !== task.task_path)
-      taskStore.outdatedTasksPath = taskStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
-      let fileStatus = await taskStore.getTaskFileStatus(task)
+      assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(taskPath => taskPath !== task.task_path)
+      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path)
+      let fileStatus = await assetStore.getAssetFileStatus(task)
       props.task.file_status = fileStatus;
       emitter.emit('get-project-data')
     })
@@ -765,14 +770,14 @@ const toggleDisplayStatusMenu = (index, task, event) => {
   if (!userStore.canDo('change_status')) {
     return
   }
-  taskStore.isTaskStatus = true;
-  taskStore.selectTask(task);
+  assetStore.isAssetTaskStatus = true;
+  assetStore.selectAsset(task);
   statusMenuDisplayed.value = true;
 };
 
 const goToDependencies = (index, task, event) => {
   handleClick(index, task, event);
-  taskStore.selectTask(task);
+  assetStore.selectAsset(task);
   stage.setStageVisibility('dependencies', true);
 };
 
@@ -780,7 +785,7 @@ const viewCheckpoints = (index, task, event) => {
   // stage.handleClick(event, task);
   // handleClick(index, task, event);
   stage.markedItems = [task.id];
-  taskStore.selectTask(task);
+  assetStore.selectAsset(task);
   emitter.emit('view-checkpoints');
   // panes.setPaneVisibility('checkpoints', true);
   panes.showDetailsPane = true;
@@ -794,7 +799,7 @@ const prepAssignTask = (index, task, event) => {
 
 
   const id = task.id;
-  taskStore.selectTask(task);
+  assetStore.selectAsset(task);
   stage.markedTasks = [id];
   menu.showContextMenu(event, 'assignMenu', true);
 };
@@ -806,12 +811,12 @@ const handleClickOutside = (event) => {
 };
 
 onMounted(async () => {
-  emitter.on('renameTask', menuRename);
+  emitter.on('renameAsset', menuRename);
   document.addEventListener('click', handleClickOutside);
 });
 
 onBeforeUnmount(() => {
-  emitter.off('renameTask', menuRename);
+  emitter.off('renameAsset', menuRename);
   document.removeEventListener('click', handleClickOutside);
 });
 
@@ -883,6 +888,28 @@ onBeforeUnmount(() => {
   padding-left: 0px;
   outline: none;
   background-color: transparent;
+}
+
+.task-item-grid-selected {
+  outline: 1px solid rgb(255, 255, 255);
+  outline-offset: -1.5px;
+  background-color: var(--blue-steel);
+}
+
+.task-item-grid-cut {
+  opacity: .5;
+}
+
+.task-item-grid-last-selected {
+  outline: 1px solid rgb(255, 255, 255);
+  outline-offset: -1.5px;
+  background-color: var(--solid-blue-steel);
+}
+
+.task-item-grid-only-selected {
+  outline: 1px solid rgb(255, 255, 255);
+  outline-offset: -1.5px;
+  background-color: var(--solid-blue-steel);
 }
 
 .main-task-item-grid {
@@ -1250,3 +1277,10 @@ onBeforeUnmount(() => {
   /* flex: 1; */
 }
 </style>
+
+
+
+
+
+
+

@@ -63,7 +63,7 @@
 <script setup>
 
 
-import { FSService, TaskService, EntityService } from "@/../bindings/clustta/services";
+import { FSService, AssetService, CollectionService } from "@/../bindings/clustta/services";
 
 // imports
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
@@ -74,13 +74,13 @@ import emitter from '@/lib/mitt';
 import { useIconStore } from '@/stores/icons';
 import { useUserStore } from '@/stores/users';
 import { useModalStore } from '@/stores/modals';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
 import { usePaneStore } from '@/stores/panes';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -96,13 +96,13 @@ const trayStates = useTrayStates();
 const iconStore = useIconStore();
 const userStore = useUserStore();
 const modalStore = useModalStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const modals = useDesktopModalStore();
 const stage = useStageStore();
 const projectStore = useProjectStore();
 const dndStore = useDndStore();
 const panes = usePaneStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 
 // vars
 const debugging = ref(true);
@@ -114,7 +114,7 @@ const getAppIcon = (iconName) => {
 
 const parentName = computed(() => {
   const parentId = projectStore.selectedUntrackedItem.parent_id
-  const parent = entityStore.getEntities.find((item) => item.id === parentId)
+  const parent = collectionStore.getCollections.find((item) => item.id === parentId)
   return parent ? parent.name : 'None'
 });
 
@@ -139,7 +139,7 @@ const deleteUntrackedFolder = () => {
   FSService.DeleteFolder(untrackedItem.value.file_path);
   projectStore.removeUntrackedEntity(untrackedItem.value.id);
   panes.setPaneVisibility('projectDetails', true)
-  entityStore.selectedEntity = null;
+  collectionStore.selectedCollection = null;
   stage.markedItems = [];
   emitter.emit('refresh-browser')
   modals.disableAllModals();
@@ -149,7 +149,7 @@ const deleteUntrackedFile = () => {
   FSService.DeleteFile(untrackedItem.value.file_path);
   projectStore.removeUntrackedTask(untrackedItem.value.id);
   panes.setPaneVisibility('projectDetails', true)
-  taskStore.selectedTask = null;
+  assetStore.selectedAsset = null;
   stage.markedItems = [];
   emitter.emit('refresh-browser')
   modals.disableAllModals();
@@ -180,7 +180,7 @@ const importFolder = () => {
   let parentPaths = utils.getParentPaths(untrackedItem.value.entity_path)
   if (!inRoot) {
     for (let parent of parentPaths) {
-      parentId = entityStore.entities.find((item) => item.entity_path === parent)?.id;
+      parentId = collectionStore.collections.find((item) => item.entity_path === parent)?.id;
       if (parentId !== undefined) {
         break
       }
@@ -203,7 +203,7 @@ const importTask = () => {
   let parentPaths = utils.getParentPaths(untrackedItem.value.entity_path)
   if (!inRoot) {
     for (let parent of parentPaths) {
-      parentId = entityStore.entities.find((item) => item.entity_path === parent)?.id;
+      parentId = collectionStore.collections.find((item) => item.entity_path === parent)?.id;
       if (parentId !== undefined) {
         break
       }

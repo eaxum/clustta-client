@@ -67,9 +67,9 @@ import { ProjectService, SyncService } from "@/../bindings/clustta/services";
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useProjectStore } from '@/stores/projects';
 import { useNotificationStore } from '@/stores/notifications';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useStageStore } from '@/stores/stages';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useCommonStore } from '@/stores/common';
 import { useMenu } from '@/stores/menu';
 
@@ -88,9 +88,9 @@ const modals = useDesktopModalStore();
 const projectStore = useProjectStore()
 const projectTemplateStore = useProjectTemplateStore();
 const notificationStore = useNotificationStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const stage = useStageStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const commonStore = useCommonStore();
 const menu = useMenu();
 
@@ -256,11 +256,11 @@ const resetProjectData = () => {
   commonStore.activeWorkspace = 'Default';
   commonStore.resetFilters();
 
-  entityStore.entities = [];
-  taskStore.tasks = [];
+  collectionStore.collections = [];
+  assetStore.assets = [];
 
-  entityStore.selectedEntity = null;
-  taskStore.selectedTask = null;
+  collectionStore.selectedCollection = null;
+  assetStore.selectedAsset = null;
 
   stage.expandedEntities = {};
 
@@ -471,3 +471,9 @@ onMounted(async () => {
   justify-content: center;
 }
 </style>
+
+
+
+
+
+

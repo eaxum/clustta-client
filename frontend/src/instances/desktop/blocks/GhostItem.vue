@@ -25,16 +25,16 @@
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 
 import { useDndStore } from '@/stores/dnd';
-import { useTaskStore } from '@/stores/task';
-import { useEntityStore } from '@/stores/entity';
+import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
 import { useStageStore } from '@/stores/stages';
 import { useCommonStore } from '@/stores/common';
 import { useMenu } from '@/stores/menu';
 
 
 const dndStore = useDndStore();
-const entityStore = useEntityStore();
-const taskStore = useTaskStore();
+const collectionStore = useCollectionStore();
+const assetStore = useAssetStore();
 const stage = useStageStore();
 const menu = useMenu();
 const commonStore = useCommonStore();
@@ -251,3 +251,6 @@ const dropMessage = computed(() => {
   opacity: .25;
 }
 </style>
+
+
+

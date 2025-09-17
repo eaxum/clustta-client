@@ -21,7 +21,7 @@ import * as $models from "./models.js";
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function Assign(projectPath, entityId, userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(611943161, projectPath, entityId, userId));
+    let $resultPromise = /** @type {any} */($Call.ByID(2838915874, projectPath, entityId, userId));
     return $resultPromise;
 }
 
@@ -31,8 +31,8 @@ export function Assign(projectPath, entityId, userId) {
  * @param {string} parentId
  * @returns {Promise<void> & { cancel(): void }}
  */
-export function ChangeEntityParent(projectPath, entityId, parentId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2991813619, projectPath, entityId, parentId));
+export function ChangeCollectionParent(projectPath, entityId, parentId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(2168719759, projectPath, entityId, parentId));
     return $resultPromise;
 }
 
@@ -43,7 +43,7 @@ export function ChangeEntityParent(projectPath, entityId, parentId) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function ChangeIsLibrary(projectPath, entityId, isLibrary) {
-    let $resultPromise = /** @type {any} */($Call.ByID(505397091, projectPath, entityId, isLibrary));
+    let $resultPromise = /** @type {any} */($Call.ByID(2948869046, projectPath, entityId, isLibrary));
     return $resultPromise;
 }
 
@@ -54,7 +54,7 @@ export function ChangeIsLibrary(projectPath, entityId, isLibrary) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function ChangeType(projectPath, entityId, entityTypeId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(4255157640, projectPath, entityId, entityTypeId));
+    let $resultPromise = /** @type {any} */($Call.ByID(489875783, projectPath, entityId, entityTypeId));
     return $resultPromise;
 }
 
@@ -64,10 +64,24 @@ export function ChangeType(projectPath, entityId, entityTypeId) {
  * @param {string} description
  * @param {string} entityTypeId
  * @param {string} parentId
- * @returns {Promise<models$0.Entity[]> & { cancel(): void }}
+ * @param {string} previewPath
+ * @param {boolean} isLibrary
+ * @returns {Promise<models$0.Entity> & { cancel(): void }}
  */
-export function CreateEntities(projectPath, name, description, entityTypeId, parentId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3952166287, projectPath, name, description, entityTypeId, parentId));
+export function CreateCollection(projectPath, name, description, entityTypeId, parentId, previewPath, isLibrary) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1857306755, projectPath, name, description, entityTypeId, parentId, previewPath, isLibrary));
+    return $resultPromise;
+}
+
+/**
+ * collection types
+ * @param {string} projectPath
+ * @param {string} entityTypeName
+ * @param {string} entityTypeIcon
+ * @returns {Promise<models$0.EntityType> & { cancel(): void }}
+ */
+export function CreateCollectionType(projectPath, entityTypeName, entityTypeIcon) {
+    let $resultPromise = /** @type {any} */($Call.ByID(4202352859, projectPath, entityTypeName, entityTypeIcon));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType0($result);
     }));
@@ -81,24 +95,10 @@ export function CreateEntities(projectPath, name, description, entityTypeId, par
  * @param {string} description
  * @param {string} entityTypeId
  * @param {string} parentId
- * @param {string} previewPath
- * @param {boolean} isLibrary
- * @returns {Promise<models$0.Entity> & { cancel(): void }}
+ * @returns {Promise<models$0.Entity[]> & { cancel(): void }}
  */
-export function CreateEntity(projectPath, name, description, entityTypeId, parentId, previewPath, isLibrary) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3642338551, projectPath, name, description, entityTypeId, parentId, previewPath, isLibrary));
-    return $resultPromise;
-}
-
-/**
- * entity types
- * @param {string} projectPath
- * @param {string} entityTypeName
- * @param {string} entityTypeIcon
- * @returns {Promise<models$0.EntityType> & { cancel(): void }}
- */
-export function CreateEntityType(projectPath, entityTypeName, entityTypeIcon) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2410066447, projectPath, entityTypeName, entityTypeIcon));
+export function CreateCollections(projectPath, name, description, entityTypeId, parentId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(901921232, projectPath, name, description, entityTypeId, parentId));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
@@ -112,8 +112,8 @@ export function CreateEntityType(projectPath, entityTypeName, entityTypeIcon) {
  * @param {boolean} removeFiles
  * @returns {Promise<void> & { cancel(): void }}
  */
-export function DeleteEntity(projectPath, entityId, removeFiles) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1832564460, projectPath, entityId, removeFiles));
+export function DeleteCollection(projectPath, entityId, removeFiles) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3363308644, projectPath, entityId, removeFiles));
     return $resultPromise;
 }
 
@@ -122,22 +122,9 @@ export function DeleteEntity(projectPath, entityId, removeFiles) {
  * @param {string} id
  * @returns {Promise<void> & { cancel(): void }}
  */
-export function DeleteEntityType(projectPath, id) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2995145476, projectPath, id));
+export function DeleteCollectionType(projectPath, id) {
+    let $resultPromise = /** @type {any} */($Call.ByID(2991338316, projectPath, id));
     return $resultPromise;
-}
-
-/**
- * @param {string} projectPath
- * @returns {Promise<models$0.Entity[]> & { cancel(): void }}
- */
-export function GetEntities(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2773358599, projectPath));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType0($result);
-    }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
@@ -145,8 +132,8 @@ export function GetEntities(projectPath) {
  * @param {string} entityId
  * @returns {Promise<models$0.Entity> & { cancel(): void }}
  */
-export function GetEntityByID(projectPath, entityId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(930516039, projectPath, entityId));
+export function GetCollectionByID(projectPath, entityId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1116836093, projectPath, entityId));
     return $resultPromise;
 }
 
@@ -159,8 +146,8 @@ export function GetEntityByID(projectPath, entityId) {
  * @param {boolean} isUntracked
  * @returns {Promise<$models.EntityItems> & { cancel(): void }}
  */
-export function GetEntityChildren(projectPath, entityId, projectWorkingDir, entityFolderPath, ignoreList, isUntracked) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3835725672, projectPath, entityId, projectWorkingDir, entityFolderPath, ignoreList, isUntracked));
+export function GetCollectionChildren(projectPath, entityId, projectWorkingDir, entityFolderPath, ignoreList, isUntracked) {
+    let $resultPromise = /** @type {any} */($Call.ByID(985363246, projectPath, entityId, projectWorkingDir, entityFolderPath, ignoreList, isUntracked));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType2($result);
     }));
@@ -172,8 +159,8 @@ export function GetEntityChildren(projectPath, entityId, projectWorkingDir, enti
  * @param {string} projectPath
  * @returns {Promise<number> & { cancel(): void }}
  */
-export function GetEntityCount(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2144627222, projectPath));
+export function GetCollectionCount(projectPath) {
+    let $resultPromise = /** @type {any} */($Call.ByID(773498904, projectPath));
     return $resultPromise;
 }
 
@@ -182,8 +169,8 @@ export function GetEntityCount(projectPath) {
  * @param {string} entityId
  * @returns {Promise<models$0.Task[]> & { cancel(): void }}
  */
-export function GetEntityTasks(projectPath, entityId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1007109839, projectPath, entityId));
+export function GetCollectionTasks(projectPath, entityId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1367523417, projectPath, entityId));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType3($result);
     }));
@@ -195,10 +182,23 @@ export function GetEntityTasks(projectPath, entityId) {
  * @param {string} projectPath
  * @returns {Promise<models$0.EntityType[]> & { cancel(): void }}
  */
-export function GetEntityTypes(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3737941740, projectPath));
+export function GetCollectionTypes(projectPath) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1279663726, projectPath));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType4($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
+ * @param {string} projectPath
+ * @returns {Promise<models$0.Entity[]> & { cancel(): void }}
+ */
+export function GetCollections(projectPath) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1787506934, projectPath));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType1($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -212,7 +212,7 @@ export function GetEntityTypes(projectPath) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function Rebuild(projectPath, remoteUrl, entityIds, userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3693104303, projectPath, remoteUrl, entityIds, userId));
+    let $resultPromise = /** @type {any} */($Call.ByID(1269618418, projectPath, remoteUrl, entityIds, userId));
     return $resultPromise;
 }
 
@@ -222,8 +222,8 @@ export function Rebuild(projectPath, remoteUrl, entityIds, userId) {
  * @param {string} newName
  * @returns {Promise<models$0.Entity> & { cancel(): void }}
  */
-export function RenameEntity(projectPath, entityId, newName) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3849373497, projectPath, entityId, newName));
+export function RenameCollection(projectPath, entityId, newName) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3064640869, projectPath, entityId, newName));
     return $resultPromise;
 }
 
@@ -232,8 +232,8 @@ export function RenameEntity(projectPath, entityId, newName) {
  * @param {string} entityId
  * @returns {Promise<void> & { cancel(): void }}
  */
-export function RevealEntity(projectPath, entityId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3419943186, projectPath, entityId));
+export function RevealCollection(projectPath, entityId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1753210934, projectPath, entityId));
     return $resultPromise;
 }
 
@@ -242,8 +242,8 @@ export function RevealEntity(projectPath, entityId) {
  * @param {string[]} entityIds
  * @returns {Promise<void> & { cancel(): void }}
  */
-export function RevertEntities(projectPath, entityIds) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2582293481, projectPath, entityIds));
+export function RevertCollections(projectPath, entityIds) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1570908726, projectPath, entityIds));
     return $resultPromise;
 }
 
@@ -254,7 +254,7 @@ export function RevertEntities(projectPath, entityIds) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function Unassign(projectPath, entityId, userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1060540626, projectPath, entityId, userId));
+    let $resultPromise = /** @type {any} */($Call.ByID(3540910669, projectPath, entityId, userId));
     return $resultPromise;
 }
 
@@ -265,10 +265,10 @@ export function Unassign(projectPath, entityId, userId) {
  * @param {string} entityTypeIcon
  * @returns {Promise<models$0.EntityType> & { cancel(): void }}
  */
-export function UpdateEntityType(projectPath, id, entityTypeName, entityTypeIcon) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3047135774, projectPath, id, entityTypeName, entityTypeIcon));
+export function UpdateCollectionType(projectPath, id, entityTypeName, entityTypeIcon) {
+    let $resultPromise = /** @type {any} */($Call.ByID(4261460618, projectPath, id, entityTypeName, entityTypeIcon));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType1($result);
+        return $$createType0($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -281,13 +281,13 @@ export function UpdateEntityType(projectPath, id, entityTypeName, entityTypeIcon
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function UpdatePreview(projectPath, entityId, previewPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(247139203, projectPath, entityId, previewPath));
+    let $resultPromise = /** @type {any} */($Call.ByID(406683254, projectPath, entityId, previewPath));
     return $resultPromise;
 }
 
 // Private type creation functions
-const $$createType0 = $Create.Array($Create.Any);
-const $$createType1 = models$0.EntityType.createFrom;
+const $$createType0 = models$0.EntityType.createFrom;
+const $$createType1 = $Create.Array($Create.Any);
 const $$createType2 = $models.EntityItems.createFrom;
 const $$createType3 = $Create.Array($Create.Any);
-const $$createType4 = $Create.Array($$createType1);
+const $$createType4 = $Create.Array($$createType0);

@@ -17,14 +17,14 @@
 
     <div class="hierarchy-item-config">
 
-      <DropDownBox v-if="entitiesSelected" :items="entityStore.getEntityTypesNames" :selectedItem="entityType"
+      <DropDownBox v-if="entitiesSelected" :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType"
         :onSelect="selectEntityType" :fullWidth="false" />
 
       <DropDownBox v-if="tasksSelected" :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType"
         :fullWidth="false" />
 
       <div v-if="tasksSelected" class="hierarchy-item-type-options">
-        <DropDownBox :items="taskStore.getTaskTypesNames" :selectedItem="taskType" :onSelect="selectTaskType"
+        <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="taskType" :onSelect="selectTaskType"
           :fullWidth="false" />
       </div>
 
@@ -62,10 +62,10 @@ import emitter from '@/lib/mitt';
 
 import { ref, computed, onMounted } from 'vue'
 import { useDndStore } from '@/stores/dnd';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useTemplateStore } from '@/stores/template';
 import { useMenu } from '@/stores/menu';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
 
 // components
@@ -76,8 +76,8 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 // state imports
 const dndStore = useDndStore();
-const taskStore = useTaskStore();
-const entityStore = useEntityStore();
+const assetStore = useAssetStore();
+const collectionStore = useCollectionStore();
 const templateStore = useTemplateStore();
 const menu = useMenu();
 const stage = useStageStore();
@@ -157,7 +157,7 @@ const targetEntity = computed(() => {
   if (!dndStore.targetItemId) {
     return null;
   }
-  return entityStore.getEntities.find(entity => entity.id === dndStore.targetItemId);
+  return collectionStore.getCollections.find(entity => entity.id === dndStore.targetItemId);
 });
 
 const previewData = computed(() => {
@@ -420,7 +420,7 @@ const changeItemType = (newItemTypeName) => {
 const selectTaskType = (taskTypeName) => {
 
   let newTaskType;
-  const taskTypes = taskStore.getTaskTypes;
+  const taskTypes = assetStore.getAssetTypes;
   newTaskType = taskTypes.find((item) => item.name === taskTypeName);
 
 
@@ -448,7 +448,7 @@ const selectTaskType = (taskTypeName) => {
 const selectEntityType = (entityTypeName) => {
 
   let newEntityType;
-  const entityTypes = entityStore.getEntityTypes;
+  const entityTypes = collectionStore.getCollectionTypes;
   newEntityType = entityTypes.find((item) => item.name === entityTypeName);
 
 
@@ -533,8 +533,8 @@ const removeItem = (item) => {
 };
 
 onMounted(async () => {
-  entityType.value = entityStore.getEntityTypesNames[0];
-  taskType.value = taskStore.getTaskTypesNames[0];
+  entityType.value = collectionStore.getCollectionTypesNames[0];
+  taskType.value = assetStore.getAssetTypesNames[0];
 });
 
 

@@ -10,7 +10,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted } from 'vue';
 import { useMenu } from '@/stores/menu';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useStatusStore } from '@/stores/status';
 import { useUserStore } from '@/stores/users';
 import { useStageStore } from '@/stores/stages';
@@ -18,12 +18,12 @@ import { useProjectStore } from '@/stores/projects';
 
 
 // services
-import { TaskService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/../bindings/clustta/services";
 import emitter from '@/lib/mitt';
 
 const menu = useMenu();
 const stage = useStageStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const statusStore = useStatusStore();
 const userStore = useUserStore();
 const projectStore = useProjectStore();
@@ -46,9 +46,9 @@ const selectStatus = async (fullStatus) => {
   stage.operationActive = true;
   const projectPath = projectStore.activeProject.uri;
   const status = statusStore.statuses.find(item => item.short_name === statusName.toLowerCase());
-  let task = taskStore.selectedTask;
+  let task = assetStore.selectedAsset;
   
-  await TaskService.ChangeStatus(projectPath, task.id, status.id)
+  await AssetService.ChangeStatus(projectPath, task.id, status.id)
     .then((data) => {
       task.status_short_name = status.short_name;
       task.status = status;
@@ -171,3 +171,6 @@ onBeforeUnmount(() => {
   color: black;
 }
 </style>
+
+
+

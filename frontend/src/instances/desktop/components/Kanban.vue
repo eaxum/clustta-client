@@ -63,7 +63,7 @@
 
 <script setup>
 // imports
-import { ProjectService, EntityService, TaskService, CheckpointService, TrashService } from "@/../bindings/clustta/services";
+import { ProjectService, CollectionService, AssetService, CheckpointService, TrashService } from "@/../bindings/clustta/services";
 
 import { reactive, computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import utils from '@/services/utils';
@@ -71,8 +71,8 @@ import emitter from '@/lib/mitt';
 
 // stores/state imports
 import { useCommonStore } from '@/stores/common';
-import { useEntityStore } from '@/stores/entity';
-import { useTaskStore } from '@/stores/task';
+import { useCollectionStore } from '@/stores/collections';
+import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 
 import { useStatusStore } from '@/stores/status';
@@ -84,10 +84,10 @@ import TaskItemCard from '@/instances/desktop/components/TaskItemCard.vue'
 
 // stores/state 
 const dndStore = useDndStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const statusStore = useStatusStore();
 const commonStore = useCommonStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 
@@ -128,8 +128,8 @@ const loadAssetTasks = async () => {
   try {
     const projectPath = projectStore.activeProject?.uri;
     if (projectPath) {
-      const tasks = await TaskService.GetAssetTasks(projectPath);
-      await taskStore.processTasksIconsAndPreviews(tasks);
+      const tasks = await AssetService.GetAssetTasks(projectPath);
+      await assetStore.processAssetsIconsAndPreviews(tasks);
       cards.value = tasks; // Update cards ref with the fetched tasks
       await updateFilteredCards(); // Update filtered cards
     }
@@ -143,7 +143,7 @@ const updateFilteredCards = async () => {
   try {
     
     if (cards.value && cards.value.length > 0) {
-      const filtered = await taskStore.filterTasks(cards.value);
+      const filtered = await assetStore.filterAssets(cards.value);
       filteredCards.value = filtered || [];
     } else {
       filteredCards.value = [];
@@ -174,7 +174,6 @@ const filledColumns = computed(() => {
       .filter(card => card.status_id === column.id)
       // .sort((a, b) => priorityMap.value[b.priority] - priorityMap.value[a.priority])
   }));
-  // console.log(result)
   return result
 });
 
@@ -226,7 +225,6 @@ const stopScrolling = () => {
 // Handle mouse movement inside the container
 const handleMouseMove = (e) => {
   const el = scrollContainerRef.value
-  // console.log(el)
   if (!el) return
   
   const rect = el.getBoundingClientRect()
@@ -317,7 +315,6 @@ const onDragStart = (e, id, isMinimized) => {
   if(isMinimized){
     return
   }
-  // console.log(draggedItemRefs.value)
   let selectedCard = draggedItemRefs.value[id];
   let cardRect = selectedCard.getBoundingClientRect();
   
@@ -333,8 +330,8 @@ const onDragStart = (e, id, isMinimized) => {
 
  
   const taskId = id;
-  const task = taskStore.getTasks.find(item => item.id === taskId );
-  taskStore.selectTask(task);
+  const task = assetStore.getAssets.find(item => item.id === taskId );
+  assetStore.selectAsset(task);
 
   dndStore.ghostCardStyle.width = selectedCard.clientWidth - paddingLeft - paddingRight;
   dndStore.ghostCardStyle.cursorDistance.x = e.pageX - cardRect.x;
@@ -410,7 +407,7 @@ const setStatus = async () => {
   try {
     const projectPath = projectStore.activeProject?.uri;
     if (projectPath && taskId && status) {
-      await TaskService.ChangeStatus(projectPath, taskId, status.id);
+      await AssetService.ChangeStatus(projectPath, taskId, status.id);
       
       // The card position has already been updated in putCardInColumn
       // No need to update local data again here since putCardInColumn handles positioning
@@ -774,3 +771,10 @@ onUnmounted(() => {
   box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
 }
 </style>
+
+
+
+
+
+
+

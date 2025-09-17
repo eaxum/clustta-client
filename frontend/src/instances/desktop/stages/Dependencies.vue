@@ -27,3 +27,4 @@ import DependencyGraph from '@/instances/desktop/components/DependencyGraph.vue'
 }
 
 </style>
+

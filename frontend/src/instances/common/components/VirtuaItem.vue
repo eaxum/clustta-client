@@ -33,24 +33,24 @@ import emitter from '@/lib/mitt';
 
 import { useMenu } from '@/stores/menu';
 import { useDndStore } from '@/stores/dnd';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useScrollStore } from '@/stores/scroll';
 import { useUntrackedItemStore } from '@/stores/untracked';
 import { useProjectStore } from '@/stores/projects';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useCommonStore } from '@/stores/common';
-import { EntityService } from '@/../bindings/clustta/services';
+import { CollectionService } from '@/../bindings/clustta/services';
 import { useIconStore } from '@/stores/icons';
 
 const menu = useMenu();
 const stage = useStageStore();
 const dndStore = useDndStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const scrollStore = useScrollStore();
 const iconStore = useIconStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const untrackedItemStore = useUntrackedItemStore();
 const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
@@ -93,14 +93,14 @@ const openCollectionMenu = (event) => {
   const id = props.child.id;
   const entity = props.child;
   stage.markedEntities = [id];
-  entityStore.selectEntity(entity);
+  collectionStore.selectCollection(entity);
   menu.showContextMenu(event, 'collectionMenu', true);
 };
 
 const openAssetMenu = (event) => {
   const id = props.child.id;
   const task = props.child;
-  taskStore.selectTask(task);
+  assetStore.selectAsset(task);
   stage.markedTasks = [id];
   menu.showContextMenu(event, 'assetMenu', true);
 };
@@ -195,7 +195,7 @@ const handleKeyArrowKeys = async (event) => {
       } else {
 
         let parent;
-        const allEntities = await EntityService.GetEntities(projectStore.activeProject.uri)
+        const allEntities = await       CollectionService.GetCollections(projectStore.activeProject.uri)
         const alluntrackedFolders = projectStore.untrackedFolders;
 
         // const allItems = [...allEntities, ...alluntrackedFolders];
@@ -237,12 +237,12 @@ const loadEntityChildren = async () => {
   if (props.child.type == "entity" || props.child.type == 'untracked_entity') {
     let isUntracked = props.child.type == 'untracked_entity'
     let project = projectStore.activeProject
-    let children = await EntityService.GetEntityChildren(project.uri, props.child.id, project.working_directory, props.child.file_path, project.ignore_list, isUntracked)
-    await taskStore.processTasksIconsAndPreviews(children.tasks);
-    await taskStore.processUntrackedTasksIcons(children.untracked_tasks);
+    let children = await CollectionService.GetCollectionChildren(project.uri, props.child.id, project.working_directory, props.child.file_path, project.ignore_list, isUntracked)
+    await assetStore.processAssetsIconsAndPreviews(children.tasks);
+    await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
 
-    let childrenEntities = filtersActive.value ? await entityStore.filterEntities(children.entities) : children.entities ;
-		let childrenTasks = filtersActive.value ? await taskStore.filterTasks(children.tasks) : children.tasks ;
+    let childrenEntities = filtersActive.value ? await collectionStore.filterCollections(children.entities) : children.entities ;
+		let childrenTasks = filtersActive.value ? await assetStore.filterAssets(children.tasks) : children.tasks ;
 
     entityChildren.value = [...childrenEntities, ...children.untracked_entities, ...childrenTasks,  ...children.untracked_tasks]
     hasChildren.value = entityChildren.value.length > 0

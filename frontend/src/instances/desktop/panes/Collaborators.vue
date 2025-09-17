@@ -12,7 +12,7 @@ import { SettingsService, ProjectService, SyncService } from "@/../bindings/clus
 import { ClipboardService, FSService } from '@/../bindings/clustta/services/index';
 
 // services
-import { EntityService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/../bindings/clustta/services";
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -23,8 +23,8 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
 import { useModalStore } from '@/stores/modals';
-import { useEntityStore } from '@/stores/entity';
-import { useTaskStore } from '@/stores/task';
+import { useCollectionStore } from '@/stores/collections';
+import { useAssetStore } from '@/stores/assets';
 import { useCommonStore } from '@/stores/common';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
@@ -41,8 +41,8 @@ const panes = usePaneStore();
 const stage = useStageStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const entityStore = useEntityStore();
-const taskStore = useTaskStore();
+const collectionStore = useCollectionStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const commonStore = useCommonStore();
 const iconStore = useIconStore();
@@ -85,3 +85,6 @@ onBeforeUnmount(() => {
   align-items: flex-start;
 }
 </style>
+
+
+

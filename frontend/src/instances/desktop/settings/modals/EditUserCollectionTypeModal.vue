@@ -30,8 +30,8 @@
 import { ref, onMounted, computed } from 'vue';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { EntityService } from "@/../bindings/clustta/services";
-import { useEntityStore } from '@/stores/entity';
+import { CollectionService } from "@/../bindings/clustta/services";
+import { useCollectionStore } from '@/stores/collections';
 import { useProjectStore } from '@/stores/projects';
 import iconData from "@/data/iconData.json";
 
@@ -42,7 +42,7 @@ import IconGrid from '@/instances/desktop/components/IconGrid.vue';
 
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allEntityTypeIcons = entityStore.getEntityTypes.map((item) => item.icon);
+  const allEntityTypeIcons = collectionStore.getCollectionTypes.map((item) => item.icon);
   return allIcons.filter((icon) => !allEntityTypeIcons.includes(icon))
 })
 
@@ -53,7 +53,7 @@ const isAwaitingResponse = ref(false);
 // stores
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const projectStore = useProjectStore();
 
 const displayIconSelector = ref(true);
@@ -80,11 +80,11 @@ const handleEnterKey = (event) => {
 };
 
 const updateEntityType = () => {
-  EntityService.UpdateEntityType(projectStore.activeProject.uri, entityStore.selectedEntityType.id, entityTypeName.value, entityTypeIcon.value)
+  CollectionService.UpdateCollectionType(projectStore.activeProject.uri, collectionStore.selectedCollectionType.id, entityTypeName.value, entityTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification("Collection type Updated", "", "success");
-      const index = entityStore.entityTypes.findIndex(entityType => entityType.id === entityStore.selectedEntityType.id);
-      entityStore.entityTypes[index] = response
+      const index = collectionStore.collectionTypes.findIndex(entityType => entityType.id === collectionStore.selectedCollectionType.id);
+      collectionStore.collectionTypes[index] = response
       closeModal();
     })
     .catch((error) => {
@@ -93,8 +93,8 @@ const updateEntityType = () => {
 };
 
 onMounted(() => {
-//   entityTypeName.value = entityStore.selectedEntityType.name;
-//   entityTypeIcon.value = entityStore.selectedEntityType.icon;
+//   entityTypeName.value = collectionStore.selectedCollectionType.name;
+//   entityTypeIcon.value = collectionStore.selectedCollectionType.icon;
 })
 
 

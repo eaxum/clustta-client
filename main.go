@@ -80,28 +80,28 @@ func main() {
 		Logger:         logger,
 		SingleInstance: singleInstanceOpt,
 		Services: []application.Service{
-			application.NewService(&services.FSService{}),
-			application.NewService(&services.LogService{}),
-			application.NewService(&services.ClipboardService{}),
-			application.NewService(&services.DialogService{}),
-			application.NewService(&services.AuthService{}),
 			application.NewService(&services.AccountService{}),
+			application.NewService(&services.AppService{}),
+			application.NewService(&services.AssetService{}),
+			application.NewService(&services.AuthService{}),
 			application.NewService(&services.CheckpointService{}),
+			application.NewService(&services.ClipboardService{}),
+			application.NewService(&services.CollectionService{}),
 			application.NewService(&services.DependencyTypeService{}),
-			application.NewService(&services.EntityService{}),
+			application.NewService(&services.DialogService{}),
+			application.NewService(&services.FSService{}),
 			application.NewService(&services.ImportService{}),
+			application.NewService(&services.LogService{}),
 			application.NewService(&services.ProjectService{}),
 			application.NewService(&services.SettingsService{}),
 			application.NewService(&services.StatusService{}),
+			application.NewService(&services.StudioService{}),
 			application.NewService(&services.SyncService{}),
-			application.NewService(&services.UserService{}),
 			application.NewService(&services.TagService{}),
-			application.NewService(&services.TaskService{}),
 			application.NewService(&services.TemplateService{}),
 			application.NewService(&services.TrashService{}),
+			application.NewService(&services.UserService{}),
 			application.NewService(&services.WorkflowService{}),
-			application.NewService(&services.AppService{}),
-			application.NewService(&services.StudioService{}),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
@@ -146,6 +146,75 @@ func main() {
 
 	frameless := runtime.GOOS != "darwin"
 
+	// Determine the modifier key based on the operating system
+	var modifier string
+	switch runtime.GOOS {
+	case "darwin":
+		modifier = "cmd"
+	default:
+		modifier = "ctrl"
+	}
+
+	// Build the key bindings map dynamically
+	keyBindings := map[string]func(window *application.WebviewWindow){
+		"F2": func(window *application.WebviewWindow) {
+			app.EmitEvent("rename-item")
+		},
+		"F3": func(window *application.WebviewWindow) {
+			app.EmitEvent("search")
+		},
+		"F5": func(window *application.WebviewWindow) {
+			app.EmitEvent("reload-view")
+		},
+		"return": func(window *application.WebviewWindow) {
+			app.EmitEvent("enter-item")
+		},
+		"shift+delete": func(window *application.WebviewWindow) {
+			app.EmitEvent("delete-item")
+		},
+		"delete": func(window *application.WebviewWindow) {
+			app.EmitEvent("free-item-space")
+		},
+	}
+
+	// Add modifier-based key bindings
+	keyBindings[modifier+"+F2"] = func(window *application.WebviewWindow) {
+		app.EmitEvent("edit-item")
+	}
+	keyBindings[modifier+"+n"] = func(window *application.WebviewWindow) {
+		app.EmitEvent("new-project")
+	}
+	keyBindings[modifier+"+s"] = func(window *application.WebviewWindow) {
+		app.EmitEvent("sync-project")
+	}
+	keyBindings[modifier+"+shift+c"] = func(window *application.WebviewWindow) {
+		app.EmitEvent("add-checkpoint")
+	}
+	keyBindings[modifier+"+k"] = func(window *application.WebviewWindow) {
+		app.EmitEvent("new-collection")
+	}
+	keyBindings[modifier+"+t"] = func(window *application.WebviewWindow) {
+		app.EmitEvent("new-task")
+	}
+	keyBindings[modifier+"+l"] = func(window *application.WebviewWindow) {
+		app.EmitEvent("new-web-link")
+	}
+	keyBindings[modifier+"+g"] = func(window *application.WebviewWindow) {
+		app.EmitEvent("group-items")
+	}
+	keyBindings[modifier+"+c"] = func(window *application.WebviewWindow) {
+		app.EmitEvent("copy-items")
+	}
+	keyBindings[modifier+"+x"] = func(window *application.WebviewWindow) {
+		app.EmitEvent("cut-items")
+	}
+	keyBindings[modifier+"+v"] = func(window *application.WebviewWindow) {
+		app.EmitEvent("paste-items")
+	}
+	keyBindings[modifier+"+d"] = func(window *application.WebviewWindow) {
+		app.EmitEvent("duplicate-task")
+	}
+
 	window := app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
 		Name:              "main",
 		Title:             "Clustta",
@@ -172,62 +241,7 @@ func main() {
 		Windows: application.WindowsWindow{
 			DisableFramelessWindowDecorations: false,
 		},
-		KeyBindings: map[string]func(window *application.WebviewWindow){
-			"F2": func(window *application.WebviewWindow) {
-				app.EmitEvent("rename-item")
-			},
-			"ctrl+F2": func(window *application.WebviewWindow) {
-				app.EmitEvent("edit-item")
-			},
-			"F3": func(window *application.WebviewWindow) {
-				app.EmitEvent("search")
-			},
-			"F5": func(window *application.WebviewWindow) {
-				app.EmitEvent("reload-view")
-			},
-			"return": func(window *application.WebviewWindow) {
-				app.EmitEvent("enter-item")
-			},
-			"shift+delete": func(window *application.WebviewWindow) {
-				app.EmitEvent("delete-item")
-			},
-			"delete": func(window *application.WebviewWindow) {
-				app.EmitEvent("free-item-space")
-			},
-			"ctrl+n": func(window *application.WebviewWindow) {
-				app.EmitEvent("new-project")
-			},
-			"ctrl+s": func(window *application.WebviewWindow) {
-				app.EmitEvent("sync-project")
-			},
-			"ctrl+shift+c": func(window *application.WebviewWindow) {
-				app.EmitEvent("add-checkpoint")
-			},
-			"ctrl+k": func(window *application.WebviewWindow) {
-				app.EmitEvent("new-collection")
-			},
-			"ctrl+t": func(window *application.WebviewWindow) {
-				app.EmitEvent("new-task")
-			},
-			"ctrl+l": func(window *application.WebviewWindow) {
-				app.EmitEvent("new-web-link")
-			},
-			"ctrl+g": func(window *application.WebviewWindow) {
-				app.EmitEvent("group-items")
-			},
-			"ctrl+c": func(window *application.WebviewWindow) {
-				app.EmitEvent("copy-items")
-			},
-			"ctrl+x": func(window *application.WebviewWindow) {
-				app.EmitEvent("cut-items")
-			},
-			"ctrl+v": func(window *application.WebviewWindow) {
-				app.EmitEvent("paste-items")
-			},
-			"ctrl+d": func(window *application.WebviewWindow) {
-				app.EmitEvent("duplicate-task")
-			},
-		},
+		KeyBindings:    keyBindings,
 		BackgroundType: application.BackgroundTypeTransparent,
 		URL:            "/",
 	})

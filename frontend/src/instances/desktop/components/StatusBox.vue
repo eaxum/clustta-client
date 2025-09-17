@@ -12,11 +12,11 @@
 import { computed, onBeforeUnmount, onMounted } from 'vue';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useMenu } from '@/stores/menu';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useStatusStore } from '@/stores/status';
 
 const menu = useMenu();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const statusStore = useStatusStore();
 
 const flyoutTop = computed(() => menu.flyoutTop);
@@ -24,7 +24,7 @@ const flyoutLeft = computed(() => menu.flyoutLeft);
 const flyoutWidth = computed(() => menu.flyoutWidth);
 
 const selectStatus = (status) => {
-  taskStore.setStatus(status);
+  assetStore.setStatus(status);
   menu.showStatusOptions = false;
 };
 
@@ -138,3 +138,6 @@ onBeforeUnmount(() => {
   color: black;
 }
 </style>
+
+
+

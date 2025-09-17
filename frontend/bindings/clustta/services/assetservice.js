@@ -15,6 +15,22 @@ import * as models$0 from "../internal/repository/models/models.js";
 import * as $models from "./models.js";
 
 /**
+ * @param {string} projectPath
+ * @param {string} taskId
+ * @param {string} dependencyId
+ * @param {string} dependencyTypeId
+ * @returns {Promise<models$0.TaskDependency> & { cancel(): void }}
+ */
+export function AddAssetDependency(projectPath, taskId, dependencyId, dependencyTypeId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1782495003, projectPath, taskId, dependencyId, dependencyTypeId));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType0($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
  * dependencies
  * @param {string} projectPath
  * @param {string} taskId
@@ -23,7 +39,7 @@ import * as $models from "./models.js";
  * @returns {Promise<models$0.TaskDependency> & { cancel(): void }}
  */
 export function AddEntityDependency(projectPath, taskId, dependencyId, dependencyTypeId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2079808687, projectPath, taskId, dependencyId, dependencyTypeId));
+    let $resultPromise = /** @type {any} */($Call.ByID(4021458000, projectPath, taskId, dependencyId, dependencyTypeId));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType0($result);
     }));
@@ -38,21 +54,29 @@ export function AddEntityDependency(projectPath, taskId, dependencyId, dependenc
  * @returns {Promise<models$0.Task> & { cancel(): void }}
  */
 export function AddPreview(projectPath, taskId, previewPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(57241959, projectPath, taskId, previewPath));
+    let $resultPromise = /** @type {any} */($Call.ByID(3759703590, projectPath, taskId, previewPath));
     return $resultPromise;
 }
 
 /**
  * @param {string} projectPath
  * @param {string} taskId
- * @param {string} dependencyId
- * @param {string} dependencyTypeId
- * @returns {Promise<models$0.TaskDependency> & { cancel(): void }}
+ * @returns {Promise<string> & { cancel(): void }}
  */
-export function AddTaskDependency(projectPath, taskId, dependencyId, dependencyTypeId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(658233541, projectPath, taskId, dependencyId, dependencyTypeId));
+export function AssetFileStatus(projectPath, taskId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1128980665, projectPath, taskId));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} projectPath
+ * @param {string[]} taskIds
+ * @returns {Promise<{ [_: string]: string }> & { cancel(): void }}
+ */
+export function AssetFilesStatus(projectPath, taskIds) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3141819454, projectPath, taskIds));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType0($result);
+        return $$createType1($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -64,8 +88,30 @@ export function AddTaskDependency(projectPath, taskId, dependencyId, dependencyT
  * @param {string} userId
  * @returns {Promise<void> & { cancel(): void }}
  */
-export function AssignTask(projectPath, taskId, userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1592692070, projectPath, taskId, userId));
+export function AssignAsset(projectPath, taskId, userId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1650043410, projectPath, taskId, userId));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} projectPath
+ * @param {string} taskId
+ * @param {string} entityId
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function ChangeAssetCollection(projectPath, taskId, entityId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1344461689, projectPath, taskId, entityId));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} projectPath
+ * @param {string} taskId
+ * @param {string} taskTypeId
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function ChangeAssetType(projectPath, taskId, taskTypeId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(568329317, projectPath, taskId, taskTypeId));
     return $resultPromise;
 }
 
@@ -76,29 +122,7 @@ export function AssignTask(projectPath, taskId, userId) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function ChangeStatus(projectPath, taskId, statusId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1901582300, projectPath, taskId, statusId));
-    return $resultPromise;
-}
-
-/**
- * @param {string} projectPath
- * @param {string} taskId
- * @param {string} entityId
- * @returns {Promise<void> & { cancel(): void }}
- */
-export function ChangeTaskEntity(projectPath, taskId, entityId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(573078664, projectPath, taskId, entityId));
-    return $resultPromise;
-}
-
-/**
- * @param {string} projectPath
- * @param {string} taskId
- * @param {string} taskTypeId
- * @returns {Promise<void> & { cancel(): void }}
- */
-export function ChangeTaskType(projectPath, taskId, taskTypeId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3975614759, projectPath, taskId, taskTypeId));
+    let $resultPromise = /** @type {any} */($Call.ByID(2581918589, projectPath, taskId, statusId));
     return $resultPromise;
 }
 
@@ -118,8 +142,8 @@ export function ChangeTaskType(projectPath, taskId, taskTypeId) {
  * @param {string} comment
  * @returns {Promise<models$0.Task> & { cancel(): void }}
  */
-export function CreateTask(projectPath, name, description, taskTypeId, entityId, isResource, templateId, templateFilePath, pointer, isLink, tags, previewPath, comment) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1931795311, projectPath, name, description, taskTypeId, entityId, isResource, templateId, templateFilePath, pointer, isLink, tags, previewPath, comment));
+export function CreateAsset(projectPath, name, description, taskTypeId, entityId, isResource, templateId, templateFilePath, pointer, isLink, tags, previewPath, comment) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3537301857, projectPath, name, description, taskTypeId, entityId, isResource, templateId, templateFilePath, pointer, isLink, tags, previewPath, comment));
     return $resultPromise;
 }
 
@@ -129,10 +153,10 @@ export function CreateTask(projectPath, name, description, taskTypeId, entityId,
  * @param {string} icon
  * @returns {Promise<models$0.TaskType> & { cancel(): void }}
  */
-export function CreateTaskType(projectPath, name, icon) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2862188343, projectPath, name, icon));
+export function CreateAssetType(projectPath, name, icon) {
+    let $resultPromise = /** @type {any} */($Call.ByID(2315337865, projectPath, name, icon));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType1($result);
+        return $$createType2($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -144,8 +168,8 @@ export function CreateTaskType(projectPath, name, icon) {
  * @param {boolean} removeFiles
  * @returns {Promise<void> & { cancel(): void }}
  */
-export function DeleteTask(projectPath, taskId, removeFiles) {
-    let $resultPromise = /** @type {any} */($Call.ByID(439895824, projectPath, taskId, removeFiles));
+export function DeleteAsset(projectPath, taskId, removeFiles) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3374367108, projectPath, taskId, removeFiles));
     return $resultPromise;
 }
 
@@ -154,8 +178,8 @@ export function DeleteTask(projectPath, taskId, removeFiles) {
  * @param {string} id
  * @returns {Promise<void> & { cancel(): void }}
  */
-export function DeleteTaskType(projectPath, id) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1594721336, projectPath, id));
+export function DeleteAssetType(projectPath, id) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1866707372, projectPath, id));
     return $resultPromise;
 }
 
@@ -164,9 +188,46 @@ export function DeleteTaskType(projectPath, id) {
  * @param {string} sourceTaskId
  * @returns {Promise<models$0.Task> & { cancel(): void }}
  */
-export function DuplicateTask(projectPath, sourceTaskId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3380275022, projectPath, sourceTaskId));
+export function DuplicateAsset(projectPath, sourceTaskId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(301515392, projectPath, sourceTaskId));
     return $resultPromise;
+}
+
+/**
+ * @param {string} projectPath
+ * @returns {Promise<number> & { cancel(): void }}
+ */
+export function GetAssetCount(projectPath) {
+    let $resultPromise = /** @type {any} */($Call.ByID(4117607374, projectPath));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} projectPath
+ * @param {string[]} taskIds
+ * @returns {Promise<any[]> & { cancel(): void }}
+ */
+export function GetAssetDependencies(projectPath, taskIds) {
+    let $resultPromise = /** @type {any} */($Call.ByID(2929165906, projectPath, taskIds));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType3($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
+ * @param {string} projectPath
+ * @param {string[]} taskIds
+ * @returns {Promise<models$0.Task[]> & { cancel(): void }}
+ */
+export function GetAssetDependencies2(projectPath, taskIds) {
+    let $resultPromise = /** @type {any} */($Call.ByID(948472096, projectPath, taskIds));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType4($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -175,9 +236,49 @@ export function DuplicateTask(projectPath, sourceTaskId) {
  * @returns {Promise<models$0.Task[]> & { cancel(): void }}
  */
 export function GetAssetTasks(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(956150776, projectPath));
+    let $resultPromise = /** @type {any} */($Call.ByID(173054263, projectPath));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType2($result);
+        return $$createType4($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
+ * asset types
+ * @param {string} projectPath
+ * @returns {Promise<models$0.TaskType[]> & { cancel(): void }}
+ */
+export function GetAssetTypes(projectPath) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3278131604, projectPath));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType5($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
+ * @param {string} projectPath
+ * @returns {Promise<models$0.Task[]> & { cancel(): void }}
+ */
+export function GetAssets(projectPath) {
+    let $resultPromise = /** @type {any} */($Call.ByID(4140153068, projectPath));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType4($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
+ * @param {string} projectPath
+ * @returns {Promise<string> & { cancel(): void }}
+ */
+export function GetAssetsPB(projectPath) {
+    let $resultPromise = /** @type {any} */($Call.ByID(2358901634, projectPath));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $Create.ByteSlice($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -190,9 +291,9 @@ export function GetAssetTasks(projectPath) {
  * @returns {Promise<$models.AssetsStates> & { cancel(): void }}
  */
 export function GetAssetsStates(projectPath, projectWorkingDir, ignoreList) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2035124169, projectPath, projectWorkingDir, ignoreList));
+    let $resultPromise = /** @type {any} */($Call.ByID(4116784294, projectPath, projectWorkingDir, ignoreList));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType3($result);
+        return $$createType6($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -205,86 +306,9 @@ export function GetAssetsStates(projectPath, projectWorkingDir, ignoreList) {
  * @returns {Promise<any[]> & { cancel(): void }}
  */
 export function GetRecursiveDependencies(projectPath, taskId, maxDepth) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1013059747, projectPath, taskId, maxDepth));
+    let $resultPromise = /** @type {any} */($Call.ByID(2219419678, projectPath, taskId, maxDepth));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType4($result);
-    }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
-}
-
-/**
- * @param {string} projectPath
- * @returns {Promise<number> & { cancel(): void }}
- */
-export function GetTaskCount(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(165191286, projectPath));
-    return $resultPromise;
-}
-
-/**
- * @param {string} projectPath
- * @param {string[]} taskIds
- * @returns {Promise<any[]> & { cancel(): void }}
- */
-export function GetTaskDependencies(projectPath, taskIds) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3819122714, projectPath, taskIds));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType4($result);
-    }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
-}
-
-/**
- * @param {string} projectPath
- * @param {string[]} taskIds
- * @returns {Promise<models$0.Task[]> & { cancel(): void }}
- */
-export function GetTaskDependencies2(projectPath, taskIds) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2179256056, projectPath, taskIds));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType2($result);
-    }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
-}
-
-/**
- * task types
- * @param {string} projectPath
- * @returns {Promise<models$0.TaskType[]> & { cancel(): void }}
- */
-export function GetTaskTypes(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1292368460, projectPath));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType5($result);
-    }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
-}
-
-/**
- * @param {string} projectPath
- * @returns {Promise<models$0.Task[]> & { cancel(): void }}
- */
-export function GetTasks(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2597102420, projectPath));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType2($result);
-    }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
-}
-
-/**
- * @param {string} projectPath
- * @returns {Promise<string> & { cancel(): void }}
- */
-export function GetTasksPB(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2745590538, projectPath));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $Create.ByteSlice($result);
+        return $$createType3($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -297,12 +321,23 @@ export function GetTasksPB(projectPath) {
  * @returns {Promise<string[]> & { cancel(): void }}
  */
 export function GetUntrackedFiles(projectPath, projectWorkingDir, ignoreList) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2061405540, projectPath, projectWorkingDir, ignoreList));
+    let $resultPromise = /** @type {any} */($Call.ByID(1088682931, projectPath, projectWorkingDir, ignoreList));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType6($result);
+        return $$createType7($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
+}
+
+/**
+ * @param {string} projectPath
+ * @param {string} taskId
+ * @param {string} dependencyId
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function RemoveAssetDependency(projectPath, taskId, dependencyId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(2690010132, projectPath, taskId, dependencyId));
+    return $resultPromise;
 }
 
 /**
@@ -312,18 +347,7 @@ export function GetUntrackedFiles(projectPath, projectWorkingDir, ignoreList) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function RemoveEntityDependency(projectPath, taskId, dependencyId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1730012840, projectPath, taskId, dependencyId));
-    return $resultPromise;
-}
-
-/**
- * @param {string} projectPath
- * @param {string} taskId
- * @param {string} dependencyId
- * @returns {Promise<void> & { cancel(): void }}
- */
-export function RemoveTaskDependency(projectPath, taskId, dependencyId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(929027242, projectPath, taskId, dependencyId));
+    let $resultPromise = /** @type {any} */($Call.ByID(2303119221, projectPath, taskId, dependencyId));
     return $resultPromise;
 }
 
@@ -333,8 +357,8 @@ export function RemoveTaskDependency(projectPath, taskId, dependencyId) {
  * @param {string} name
  * @returns {Promise<models$0.Task> & { cancel(): void }}
  */
-export function RenameTask(projectPath, taskId, name) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1715890325, projectPath, taskId, name));
+export function RenameAsset(projectPath, taskId, name) {
+    let $resultPromise = /** @type {any} */($Call.ByID(2068335707, projectPath, taskId, name));
     return $resultPromise;
 }
 
@@ -343,40 +367,16 @@ export function RenameTask(projectPath, taskId, name) {
  * @param {string} taskId
  * @returns {Promise<void> & { cancel(): void }}
  */
-export function RevealTask(projectPath, taskId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3456753802, projectPath, taskId));
+export function RevealAsset(projectPath, taskId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1172749270, projectPath, taskId));
     return $resultPromise;
-}
-
-/**
- * @param {string} projectPath
- * @param {string} taskId
- * @returns {Promise<string> & { cancel(): void }}
- */
-export function TaskFileStatus(projectPath, taskId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3832012991, projectPath, taskId));
-    return $resultPromise;
-}
-
-/**
- * @param {string} projectPath
- * @param {string[]} taskIds
- * @returns {Promise<{ [_: string]: string }> & { cancel(): void }}
- */
-export function TaskFilesStatus(projectPath, taskIds) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1455559164, projectPath, taskIds));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType7($result);
-    }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function TestData() {
-    let $resultPromise = /** @type {any} */($Call.ByID(990698894));
+    let $resultPromise = /** @type {any} */($Call.ByID(605945379));
     return $resultPromise;
 }
 
@@ -387,7 +387,7 @@ export function TestData() {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function ToggleIsResource(projectPath, taskIds, isResource) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3609164234, projectPath, taskIds, isResource));
+    let $resultPromise = /** @type {any} */($Call.ByID(3235593635, projectPath, taskIds, isResource));
     return $resultPromise;
 }
 
@@ -398,7 +398,7 @@ export function ToggleIsResource(projectPath, taskIds, isResource) {
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function ToggleIsTask(projectPath, taskId, isTask) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2831225231, projectPath, taskId, isTask));
+    let $resultPromise = /** @type {any} */($Call.ByID(1903957406, projectPath, taskId, isTask));
     return $resultPromise;
 }
 
@@ -407,8 +407,8 @@ export function ToggleIsTask(projectPath, taskId, isTask) {
  * @param {string} taskId
  * @returns {Promise<void> & { cancel(): void }}
  */
-export function UnassignTask(projectPath, taskId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3746757145, projectPath, taskId));
+export function UnassignAsset(projectPath, taskId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(2170415471, projectPath, taskId));
     return $resultPromise;
 }
 
@@ -422,8 +422,8 @@ export function UnassignTask(projectPath, taskId) {
  * @param {string[]} tags
  * @returns {Promise<models$0.Task> & { cancel(): void }}
  */
-export function UpdateTask(projectPath, taskId, name, taskTypeId, isResource, pointer, tags) {
-    let $resultPromise = /** @type {any} */($Call.ByID(4026603718, projectPath, taskId, name, taskTypeId, isResource, pointer, tags));
+export function UpdateAsset(projectPath, taskId, name, taskTypeId, isResource, pointer, tags) {
+    let $resultPromise = /** @type {any} */($Call.ByID(2839243450, projectPath, taskId, name, taskTypeId, isResource, pointer, tags));
     return $resultPromise;
 }
 
@@ -434,10 +434,10 @@ export function UpdateTask(projectPath, taskId, name, taskTypeId, isResource, po
  * @param {string} icon
  * @returns {Promise<models$0.TaskType> & { cancel(): void }}
  */
-export function UpdateTaskType(projectPath, id, name, icon) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1929056854, projectPath, id, name, icon));
+export function UpdateAssetType(projectPath, id, name, icon) {
+    let $resultPromise = /** @type {any} */($Call.ByID(865399386, projectPath, id, name, icon));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType1($result);
+        return $$createType2($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -445,10 +445,10 @@ export function UpdateTaskType(projectPath, id, name, icon) {
 
 // Private type creation functions
 const $$createType0 = models$0.TaskDependency.createFrom;
-const $$createType1 = models$0.TaskType.createFrom;
-const $$createType2 = $Create.Array($Create.Any);
-const $$createType3 = $models.AssetsStates.createFrom;
+const $$createType1 = $Create.Map($Create.Any, $Create.Any);
+const $$createType2 = models$0.TaskType.createFrom;
+const $$createType3 = $Create.Array($Create.Any);
 const $$createType4 = $Create.Array($Create.Any);
-const $$createType5 = $Create.Array($$createType1);
-const $$createType6 = $Create.Array($Create.Any);
-const $$createType7 = $Create.Map($Create.Any, $Create.Any);
+const $$createType5 = $Create.Array($$createType2);
+const $$createType6 = $models.AssetsStates.createFrom;
+const $$createType7 = $Create.Array($Create.Any);

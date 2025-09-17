@@ -61,8 +61,8 @@ import utils from '@/services/utils';
 
 // states/store imports
 import { useIconStore } from '@/stores/icons';
-import { useTaskStore } from '@/stores/task';
-import { useEntityStore } from '@/stores/entity';
+import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
 import { useTemplateStore } from '@/stores/template';
 
 // components
@@ -71,8 +71,8 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 // emits
 
 const iconStore = useIconStore();
-const taskStore = useTaskStore();
-const entityStore = useEntityStore();
+const assetStore = useAssetStore();
+const collectionStore = useCollectionStore();
 const templateStore = useTemplateStore();
 
 // props
@@ -104,7 +104,7 @@ const workflowItemIcon = computed(() => {
   const workflow = props.entity;
 
   if (workflow.entity_type_id) {
-    return entityStore.getEntityTypeIcon(workflow.entity_type_id)
+    return collectionStore.getCollectionTypeIcon(workflow.entity_type_id)
   } else {
     return 'folder'
   }
@@ -112,13 +112,13 @@ const workflowItemIcon = computed(() => {
 
 const workflowTaskIcon = computed(() => {
   const workflow = props.entity;
-  console.log(taskStore.getTaskTypeIcon(workflow.task_type_id))
-  return taskStore.getTaskTypeIcon(workflow.task_type_id)
+  console.log(assetStore.getAssetTypeIcon(workflow.task_type_id))
+  return assetStore.getAssetTypeIcon(workflow.task_type_id)
 });
 
 const templateIcon = computed(() => {
   const workflow = props.entity;
-  return templateStore.getTaskTypeIcon(workflow.template_id)
+  return templateStore.getAssetTypeIcon(workflow.template_id)
 });
 
 // methods

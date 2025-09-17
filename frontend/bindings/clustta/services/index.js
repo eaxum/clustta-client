@@ -4,12 +4,13 @@
 
 import * as AccountService from "./accountservice.js";
 import * as AppService from "./appservice.js";
+import * as AssetService from "./assetservice.js";
 import * as AuthService from "./authservice.js";
 import * as CheckpointService from "./checkpointservice.js";
 import * as ClipboardService from "./clipboardservice.js";
+import * as CollectionService from "./collectionservice.js";
 import * as DependencyTypeService from "./dependencytypeservice.js";
 import * as DialogService from "./dialogservice.js";
-import * as EntityService from "./entityservice.js";
 import * as FSService from "./fsservice.js";
 import * as ImportService from "./importservice.js";
 import * as LogService from "./logservice.js";
@@ -19,7 +20,6 @@ import * as StatusService from "./statusservice.js";
 import * as StudioService from "./studioservice.js";
 import * as SyncService from "./syncservice.js";
 import * as TagService from "./tagservice.js";
-import * as TaskService from "./taskservice.js";
 import * as TemplateService from "./templateservice.js";
 import * as TrashService from "./trashservice.js";
 import * as UserService from "./userservice.js";
@@ -27,12 +27,13 @@ import * as WorkflowService from "./workflowservice.js";
 export {
     AccountService,
     AppService,
+    AssetService,
     AuthService,
     CheckpointService,
     ClipboardService,
+    CollectionService,
     DependencyTypeService,
     DialogService,
-    EntityService,
     FSService,
     ImportService,
     LogService,
@@ -42,7 +43,6 @@ export {
     StudioService,
     SyncService,
     TagService,
-    TaskService,
     TemplateService,
     TrashService,
     UserService,
