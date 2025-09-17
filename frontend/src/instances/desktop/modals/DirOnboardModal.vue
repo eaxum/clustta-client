@@ -1,57 +1,23 @@
 <template>
   <div class="modal-container">
-    <HeaderArea :title="title" :icon="'explorer'" :showSearch="showSearch" />
-    <!-- {{  userDirectory }}
-    {{  userName }} -->
+    <HeaderArea :title="'Select Clustta directory'" :icon="'explorer'" :showSearch="showSearch" />
     <div class="general-container">
 
-        <div v-if="firstStage" class="onboard-item-container">
+        <div class="onboard-item-container">
 
             <img class="onboard-image" src="/page-states/project_cropped.png">
 
             <div class="pop-up-text-container">
                 <div class="pop-up-body">
-                Select the folder where you would like to create your projects. If you already have a location, you can select it and Clustta will display your older projects as well.
+                Select the folder where Clustta will create and save your projects. You can change this later in the app settings.
                 </div>
-                <!-- <div class="pop-up-body tip">
-                e.g Users/username/Documents/...
-                </div> -->
             </div>
 
-            
-            <div v-if="projectsDirectory" class="input-section">
+            <div v-if="selectedClusttaDirectory" class="input-section">
                 <div class="horizontal-flex">
-                <input v-model="projectsDirectory" class="input-short read-only-input" type="text"
+                <input v-model="selectedClusttaDirectory" class="input-short read-only-input" type="text"
                     placeholder="Projects Directory" ref="projectsDirectoryInput" />
-                <!-- <span @click="pasteDirectoryPath('projectsDir', 'Projects Directory')" class="single-action-button" v-tooltip="'Paste link'"><img
-                    class="small-icons" :src="getAppIcon('clipboard')"></span> -->
-                <span @click="selectDirectory('projectsDir')" class="single-action-button" v-tooltip="'Browse Path'"><img
-                    class="small-icons" :src="getAppIcon('explorer')"></span>
-                </div>
-            </div>
-
-        </div>
-
-         <div v-else class="onboard-item-container">
-
-            <img class="onboard-image" src="/page-states/data.png">
-
-            <div class="pop-up-text-container">
-                <div class="pop-up-body">
-                Now let's give Clustta permission to save data and backups of your projects. In the dialogue that appears, click Select Folder.
-                </div>
-                <!-- <div class="pop-up-body tip">
-                Select Users/username/
-                </div> -->
-            </div>
-
-            <div v-if="rootDataDirectory" class="input-section">
-                <div class="horizontal-flex">
-                <input v-model="fullDataDirectory" class="input-short read-only-input" type="text" placeholder="Clustta Data Directory"
-                    ref="rootDataDirectoryInput" />
-                <!-- <span @click="pasteDirectoryPath('dataDir')" class="single-action-button" v-tooltip="'Paste link'"><img
-                    class="small-icons" :src="getAppIcon('clipboard')"></span> -->
-                <span @click="selectDirectory('dataDir', 'Clustta Data Directory')" class="single-action-button" v-tooltip="'Browse Path'"><img
+                <span @click="selectDirectory()" class="single-action-button" v-tooltip="'Browse Path'"><img
                     class="small-icons" :src="getAppIcon('explorer')"></span>
                 </div>
             </div>
@@ -59,10 +25,8 @@
         </div>
 
       <div class="pop-up-actions" :class="{ 'spaced-out' : firstStage}" >
-        <button v-if="!firstStage" class="button default" @click="toggleStage()" v-stop-propagation>Back</button>
-        <button v-if="!projectsDirectory" class="button colored" @click="selectDirectory('projectsDir', 'Projects Directory')" v-stop-propagation>Select Projects Folder</button>
-        <button v-else-if="!firstStage && !rootDataDirectory" class="button colored" @click="selectDirectory('dataDir', 'Clustta Data Directory')" v-stop-propagation>Select Data Folder</button>
-        <button v-else class="button colored" @click="proceed()" v-stop-propagation>{{ firstStage ? 'Next' : 'Save' }}</button>
+        <button v-if="!selectedClusttaDirectory" class="button colored" @click="selectDirectory()" v-stop-propagation>Select 'Clustta' Folder</button>
+        <button v-else class="button colored" @click="saveChanges()" v-stop-propagation>Save</button>
       </div>
 
     </div>
@@ -92,7 +56,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
 import { v4 as uuidv4 } from "uuid";
-import { ClipboardService, SettingsService, DialogService } from '@/../bindings/clustta/services/index';
+import { ClipboardService, SettingsService, DialogService, FSService } from '@/../bindings/clustta/services/index';
 
 
 //refs
@@ -107,10 +71,9 @@ const sharedDataDirectory = ref('');
 const projectsDirectory = ref('');
 const projectsDirectoryInput = ref(null);
 
-const rootDataDirectory = ref('');
-const rootDataDirectoryInput = ref(null);
+const defaultClusttaDirectory = ref('');
+const selectedClusttaDirectory = ref('');
 
-const userDirectory = ref('');
 const userName = ref('');
 
 const firstStage = ref(true);
@@ -120,35 +83,12 @@ let showSearch = false;
 
 
 //methods
-const title = computed(() => {
-    const path = 'Configure Directories';
-    const step = firstStage.value ? 1 : 2;
-    return 'Configure Directories' + ` ${step} / 2`
-});
-
-const fullDataDirectory = computed(() => {
-    const path = rootDataDirectory.value;
-    return rootDataDirectory.value ? path.replace(/\/clustta/g, '') + '/clustta' : ''
-});
-
-const proceed = () => {
-    if(firstStage.value){
-        toggleStage()
-    } else {
-        saveChanges()
-    }
-};
-
-const toggleStage = () => {
-    console.log('toggled')
-    firstStage.value = !firstStage.value 
-};
 
 const pasteDirectoryPath = async (context) => {
   ClipboardService.ReadText()
     .then(path => {
       if (context === 'dataDir') {
-        rootDataDirectory.value = path;
+        selectedClusttaDirectory.value = path;
       }else if (context === 'projectsDir') {
         projectsDirectory.value = path;
       }
@@ -157,33 +97,38 @@ const pasteDirectoryPath = async (context) => {
     });
 };
 
-const selectDirectory = async (context, title) => {
 
-    let directory;
 
-    if(context === 'projectsDir'){
-        directory = projectsDirectory.value ? projectsDirectory.value : `${userDirectory.value}/Documents`;
-    }else if(context === 'dataDir'){
-        directory = rootDataDirectory.value ? rootDataDirectory.value : userDirectory.value;
-    }
+const selectDirectory = async () => {
 
-    const result = await DialogService.SelectSpecificFolderDialog(title, directory);
-    if (result) {
+  let title = 'Clustta Directory';
+  let directory;
+  let pathExists = false;
 
-        let fileDir = result.replace(/\\/g, '/');
+  try {
+      pathExists = await FSService.DirExists(defaultClusttaDirectory.value);
+  } catch (error) {
+      pathExists = false;
+  }
+  
+  directory = pathExists && !selectedClusttaDirectory.value ? defaultClusttaDirectory.value : selectedClusttaDirectory.value;
 
-        if (context === 'projectsDir') {
-            projectsDirectory.value = fileDir;
-        } else if (context === 'dataDir') {
-            rootDataDirectory.value = fileDir;
-            personalDataDirectory.value = fullDataDirectory.value + '/projects';
-            sharedDataDirectory.value = fullDataDirectory.value + '/shared_projects';
-        } 
-    }
+  const result = await DialogService.SelectSpecificFolderDialog(title, directory);
+
+  if (result) {
+
+      let fileDir = result.replace(/\\/g, '/');
+      selectedClusttaDirectory.value = fileDir.replace(/\/clustta/g, '') + '/clustta';
+
+      projectsDirectory.value = selectedClusttaDirectory.value + '/mnt';
+      personalDataDirectory.value = selectedClusttaDirectory.value + '/projects';
+      sharedDataDirectory.value = selectedClusttaDirectory.value + '/shared_projects';
+
+  };
+
 };
 
 const saveChanges = async () => {
-    console.log(projectsDirectory.value, personalDataDirectory.value, sharedDataDirectory.value)
     await SettingsService.SetWorkingDirectory(projectsDirectory.value)
     await SettingsService.SetProjectDirectory(personalDataDirectory.value)
     await SettingsService.SetSharedProjectDirectory(sharedDataDirectory.value)
@@ -211,7 +156,8 @@ const handleEnterKey = (event) => {
 onMounted(async () => {
   await SettingsService.GetUserDirectory()
     .then((response) => {
-      userDirectory.value = response
+      defaultClusttaDirectory.value = `${response}clustta`;
+      console.log(defaultClusttaDirectory.value)
     })
     .catch((error) => {
       notificationStore.addNotification(
@@ -224,19 +170,6 @@ onMounted(async () => {
   await SettingsService.GetUsername()
     .then((response) => {
       userName.value = response
-    })
-    .catch((error) => {
-      notificationStore.addNotification(
-        "Error Loading Settings",
-        error.message,
-        "error",
-        false
-      )
-    });
-
-  await SettingsService.GetWorkingDirectory()
-    .then((response) => {
-    //   projectsDirectory.value = response
     })
     .catch((error) => {
       notificationStore.addNotification(

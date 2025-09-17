@@ -311,9 +311,6 @@ const props = defineProps({
 
 .scroll-list-item-meta-container {
   display: flex;
-  /* background-color: crimson; */
-  /* background-color: forestgreen; */
-  /* flex: 1; */
   height: 100%;
   box-sizing: border-box;
   align-items: center;
@@ -325,11 +322,8 @@ const props = defineProps({
   height: max-content;
   height: 100%;
   flex-direction: column;
-  /* background-color: rgba(0, 0, 0, 0.144); */
-  /* background-color: rosybrown; */
-  /* flex: 1; */
   min-height: max-content;
-  overflow: hidden;
+  /* overflow: hidden; */
   width: 100%;
   border-radius: 10px;
   padding: 1%;
@@ -339,13 +333,6 @@ const props = defineProps({
 }
 
 .scroll-list-container-wrap {
-  /* width: 100%;
-  display: grid;
-  gap: 10px;
-  grid-template-columns: auto auto auto;
-  box-sizing: border-box; */
-
-  
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
 	gap: 10px;

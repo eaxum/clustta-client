@@ -1,5 +1,13 @@
 <template>
-    <div class="auth-guard-root">
+
+  <!-- check auth -->
+    <div v-if="isCheckingAuth" class="login-area-container">
+      <div class="loading-icon">
+        <img src="/icons/loading.svg" />
+      </div>
+    </div>
+
+    <div v-else class="auth-guard-root">
         <SignUp v-if="showSignUp" @toggle-login="toggleLogin" />
         <Login  v-else @toggle-login="toggleLogin"  />
         <InfoBar />
@@ -8,21 +16,71 @@
 
 <script setup>
 // imports
-import { ref, onBeforeUnmount } from 'vue';
+import { ref, onBeforeMount, onBeforeUnmount } from 'vue';
 
 // components
 import Login from '@/instances/desktop/pages/Login.vue'
 import SignUp from '@/instances/desktop/pages/SignUp.vue'
 import InfoBar from '@/instances/desktop/components/InfoBar.vue'
 
+// services
+import { AuthService, SettingsService } from '@/../bindings/clustta/services';
+
+// stores
+import { useUserStore } from '@/stores/users';
+import { useProjectStore } from '@/stores/projects';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+
+// store instances
+const userStore = useUserStore();
+const projectStore = useProjectStore();
+const modals = useDesktopModalStore();
 
 // refs
 const showSignUp = ref(false);
+const isCheckingAuth = ref(true);
 
 // methods
 const toggleLogin = () => {
     showSignUp.value = !showSignUp.value;
 }
+
+const setDirectories = async () => {
+	  modals.setModalVisibility('dirOnboardModal', true);
+};
+
+
+onBeforeMount(async () => {
+
+  await AuthService.AuthUser()
+    .then(async (user) => {
+      userStore.user = user;
+      isCheckingAuth.value = false;
+    })
+    .catch((error) => {
+      isCheckingAuth.value = false;
+    })
+
+  await AuthService.IsAuthenticated()
+    .then(async (data) => {
+      if (data[0] === true) {
+        userStore.user = data[1];
+        userStore.isUserAuthenticated = true;
+      };
+      isCheckingAuth.value = false;
+    })
+    .catch((error) => {
+      isCheckingAuth.value = false;
+    });
+
+    await projectStore.loadStudios();
+    let projectDirectoryExists = await SettingsService.GetProjectDirectory();
+    if(projectDirectoryExists){
+      await projectStore.loadProjects();
+    } else {
+      setDirectories();
+    }
+})
 
 onBeforeUnmount(() => {
     showSignUp.value = false;

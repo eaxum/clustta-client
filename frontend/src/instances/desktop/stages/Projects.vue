@@ -74,7 +74,6 @@ import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue';
 // stores/state imports
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
-import { useTrayStates } from '@/stores/TrayStates';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { usePaneStore } from '@/stores/panes';
 import { useMenu } from '@/stores/menu';
@@ -92,11 +91,9 @@ import { FSService, SettingsService } from '@/../bindings/clustta/services/index
 import { Events } from "@wailsio/runtime";
 
 // refs
-const trayStates = useTrayStates();
 const stage = useStageStore();
 const projectStore = useProjectStore();
 const modals = useDesktopModalStore();
-const projectToRemove = ref(null);
 const userStore = useUserStore();
 const panes = usePaneStore();
 const menu = useMenu();
@@ -335,8 +332,6 @@ const handleEscapeKey = (event) => {
 onMounted(() => {
 	projectStore.projectSearchQuery = ''
 	panes.showDetailsPane = false;
-	// projectStore.activeProject = null;
-	// console.log(projectStore.activeProject)
 
 	// Add event listener for escape key
 	document.addEventListener('keydown', handleEscapeKey);

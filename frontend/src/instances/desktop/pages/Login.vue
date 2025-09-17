@@ -1,12 +1,5 @@
 <template>
   <div class="page-root login-page-root">
-    
-    <!-- check auth -->
-    <div v-if="isCheckingAuth" class="login-area-container">
-      <div class="loading-icon">
-        <img src="/icons/loading.svg" />
-      </div>
-    </div>
 
     <!-- responsive root -->
     <div class="auth-root">
@@ -106,10 +99,7 @@ const modals = useDesktopModalStore();
 
 // refs
 const error = ref('');
-const clusttaVersion = ref("");
-const currentVersion = ref('');
 const isAwaitingResponse = ref(false);
-const isCheckingAuth = ref(true);
 const isPasswordVisible = ref(false)
 
 // components
@@ -173,17 +163,18 @@ const handleLogin = async () => {
       userStore.user = data.user;
       userStore.isUserAuthenticated = true;
 
-      await showEula();
+      // await showEula();
 
       await themeStore.initializeTheme();
       await projectStore.loadStudios();
 
+      projectDirectoryExists.value = await SettingsService.GetProjectDirectory();
+
       if(projectDirectoryExists.value){
-        await loadProjects();
+        await projectStore.loadProjects();
+        trayStates.refreshData();
       } else {
-        if(eulaAccepted.value){
-          setDirectories();
-        }
+        setDirectories();
       }
 
     })
@@ -208,31 +199,6 @@ const handleEnterKey = (event) => {
     handleLogin();
   }
 };
-
-onBeforeMount(async () => {
-  await AuthService.AuthUser()
-    .then(async (user) => {
-      userStore.user = user;
-      await projectStore.loadStudios();
-      await projectStore.loadProjects();
-      isCheckingAuth.value = false;
-    })
-    .catch((error) => {
-      isCheckingAuth.value = false;
-    })
-
-  AuthService.IsAuthenticated()
-    .then(async (data) => {
-      if (data[0] === true) {
-        userStore.user = data[1];
-        userStore.isUserAuthenticated = true;
-      };
-      isCheckingAuth.value = false;
-    })
-    .catch((error) => {
-      isCheckingAuth.value = false;
-    })
-})
 
 onMounted( async () => {
 })

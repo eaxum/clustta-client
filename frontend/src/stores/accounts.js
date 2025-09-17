@@ -1,5 +1,12 @@
 import { defineStore } from 'pinia';
-import { AccountService } from "@/../bindings/clustta/services";
+import { AccountService, SettingsService } from "@/../bindings/clustta/services";
+import { useUserStore } from '@/stores/users';
+import { useProjectStore } from '@/stores/projects';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useThemeStore } from '@/stores/theme';
+import { useNotificationStore } from '@/stores/notifications';
+import { useStageStore } from '@/stores/stages';
+import { useDesktopModalStore } from '@/stores/desktopModals';
 
 export const useAccountStore = defineStore('accounts', {
   state: () => ({
@@ -136,9 +143,15 @@ export const useAccountStore = defineStore('accounts', {
     },
 
     // Complete account switch with UI updates (call from components)
-    async switchToAccount(userId, stores) {
+    async switchToAccount(userId) {
       try {
-        const { userStore, projectStore, trayStates, themeStore, notificationStore, stageStore } = stores;
+        const userStore = useUserStore();
+        const projectStore = useProjectStore();
+        const trayStates = useTrayStates();
+        const themeStore = useThemeStore();
+        const notificationStore = useNotificationStore();
+        const stageStore = useStageStore();
+        const modals = useDesktopModalStore();
         
         // Change stage to projects before account switch for better UX
         if (stageStore) {
@@ -161,8 +174,20 @@ export const useAccountStore = defineStore('accounts', {
           // Refresh application data for the new user
           await themeStore.initializeTheme();
           await projectStore.loadStudios();
-          await projectStore.loadProjects();
-          trayStates.refreshData();
+          
+          // Check if project directory exists before loading projects
+          const projectDirectoryExists = await SettingsService.GetProjectDirectory();
+          
+          if (projectDirectoryExists) {
+            console.log('exists')
+            // Load projects if directory exists
+            await projectStore.loadProjects();
+            trayStates.refreshData();
+          } else {
+            console.log('not-exists')
+            // Trigger directory onboarding if directory doesn't exist
+              modals.setModalVisibility('dirOnboardModal', true);
+          }
           
           notificationStore.addNotification("Account Switched", `Switched to ${activeAccount.user.first_name} ${activeAccount.user.last_name}`, "success");
         } else {
@@ -175,7 +200,7 @@ export const useAccountStore = defineStore('accounts', {
         return activeAccount;
       } catch (error) {
         console.error('Account switch error:', error);
-        const { notificationStore } = stores;
+        const notificationStore = useNotificationStore();
         notificationStore.errorNotification("Switch Failed", error.message || 'Unable to switch accounts');
         throw error;
       }
