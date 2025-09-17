@@ -14,10 +14,10 @@
 
     <!-- Create -->
     <ActionButton :icon="getAppIcon('brush-plus')" :showLabel="true" :fullWidth="true" label="Add Asset"
-      v-if="templateStore.getTemplates.length && (userStore.canDo('create_task') || entityStore.selectedEntity.can_modify)" :buttonFunction="createTask" />
+      v-if="templateStore.getTemplates.length && (userStore.canDo('create_task') || collectionStore.selectedCollection.can_modify)" :buttonFunction="createTask" />
 
     <ActionButton :icon="getAppIcon('folder-plus')" :showLabel="true" :fullWidth="true" label="Add Collection"
-      v-if="userStore.canDo('create_entity') || entityStore.selectedEntity.can_modify" :buttonFunction="createEntity" />
+      v-if="userStore.canDo('create_entity') || collectionStore.selectedCollection.can_modify" :buttonFunction="createEntity" />
 
     <ActionButton :icon="getAppIcon('workflow-plus')" :showLabel="true" :fullWidth="true" label="Add Workflow"
       v-if="workflowStore.workflows.length && userStore.canDo('create_task')" :buttonFunction="addWorkflow" />
@@ -25,13 +25,13 @@
     
 
     <!-- <ActionButton :icon="getAppIcon('website-link')" :showLabel="true" :fullWidth="true" label="New Link"
-      v-if="userStore.canDo('create_task') || entityStore.selectedEntity.can_modify" :buttonFunction="createLink" /> -->
+      v-if="userStore.canDo('create_task') || collectionStore.selectedCollection.can_modify" :buttonFunction="createLink" /> -->
 
     <ActionButton :icon="getAppIcon('arrow-down-ramp')" :showLabel="true" :fullWidth="true" label="Import Items"
       v-if="userStore.canDo('create_task')" :buttonFunction="importItems" />
 
 
-    <span v-if="userStore.canDo('update_entity') || entityStore.selectedEntity.can_modify" class="menu-divider"></span>
+    <span v-if="userStore.canDo('update_entity') || collectionStore.selectedCollection.can_modify" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
     <span class="horizontal-flex">
@@ -74,7 +74,7 @@ import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import utils from '@/services/utils';
 
 // services
-import { EntityService, SyncService, TaskService, TrashService, CheckpointService } from "@/../bindings/clustta/services";
+import { CollectionService, SyncService, AssetService, TrashService, CheckpointService } from "@/../bindings/clustta/services";
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -85,8 +85,8 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
 import { useModalStore } from '@/stores/modals';
-import { useEntityStore } from '@/stores/entity';
-import { useTaskStore } from '@/stores/task';
+import { useCollectionStore } from '@/stores/collections';
+import { useAssetStore } from '@/stores/assets';
 import { useCommonStore } from '@/stores/common';
 import { useProjectStore } from '@/stores/projects';
 import { useWorkflowStore } from '@/stores/workflow';
@@ -106,24 +106,24 @@ const stage = useStageStore();
 const modals = useDesktopModalStore();
 const modalStore = useModalStore();
 const notificationStore = useNotificationStore();
-const entityStore = useEntityStore();
-const taskStore = useTaskStore();
+const collectionStore = useCollectionStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const workflowStore = useWorkflowStore();
 const commonStore = useCommonStore();
 
 // computed
 const canSelectContent = computed(() => {
-  const entityId = entityStore.selectedEntity.id;
+  const entityId = collectionStore.selectedCollection.id;
   return entityId in stage.expandedEntities && stage.entityDataIds.length
 })
 
 const hasModifiedContents = computed(() => {
-  const entity = entityStore.selectedEntity;
+  const entity = collectionStore.selectedCollection;
   if (!entity) return false;
   
   const entityPath = entity.entity_path;
-  const modifiedTasksPath = taskStore.modifiedTasksPath;
+  const modifiedTasksPath = assetStore.modifiedAssetsPath;
   
   if (!entityPath || !modifiedTasksPath.length) return false;
   
@@ -152,25 +152,25 @@ const selectContent = () => {
 };
 
 const revealInExplorer = async () => {
-  await FSService.MakeDirs(entityStore.selectedEntity.file_path)
-  FSService.RevealInExplorer(entityStore.selectedEntity.file_path)
+  await FSService.MakeDirs(collectionStore.selectedCollection.file_path)
+  FSService.RevealInExplorer(collectionStore.selectedCollection.file_path)
   menu.hideContextMenu();
 };
 
 const createEntity = () => {
-  stage.expandEntity(entityStore.selectedEntity);
+  stage.expandEntity(collectionStore.selectedCollection);
   modals.setModalVisibility('createCollectionModal', true);
   menu.hideContextMenu();
 };
 
 const createTask = () => {
-  stage.expandEntity(entityStore.selectedEntity);
+  stage.expandEntity(collectionStore.selectedCollection);
   modals.setModalVisibility('selectAppModal', true);
   menu.hideContextMenu();
 };
 
 const createLink = () => {
-  stage.expandEntity(entityStore.selectedEntity);
+  stage.expandEntity(collectionStore.selectedCollection);
   modals.setModalVisibility('addWebLinkModal', true);
   menu.hideContextMenu();
 };
@@ -248,7 +248,7 @@ const importItems = async () => {
 
     // Expand entity and refresh the view to show imported items
     if (successCount > 0) {
-      stage.expandEntity(entityStore.selectedEntity);
+      stage.expandEntity(collectionStore.selectedCollection);
       emitter.emit('refresh-browser');
     }
 
@@ -262,7 +262,7 @@ const importItems = async () => {
 
 const getCurrentDirectory = () => {
   // Return the file path of the currently selected entity
-  return entityStore.selectedEntity?.file_path;
+  return collectionStore.selectedCollection?.file_path;
 };
 
 const generateUniqueDestinationPath = async (directory, fileName) => {
@@ -303,12 +303,12 @@ const generateUniqueDestinationPath = async (directory, fileName) => {
 
 // methods
 const deleteEntity = async () => {
-  let entity = entityStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   panes.setPaneVisibility('projectDetails', true);
-  EntityService.DeleteEntity(projectStore.activeProject.uri, entity.id)
+  CollectionService.DeleteCollection(projectStore.activeProject.uri, entity.id)
     .then(async (response) => {
       stage.markedItems = [];
-      entityStore.selectedEntity = null;
+      collectionStore.selectedCollection = null;
       emitter.emit('refresh-browser')
     })
     .catch((error) => {
@@ -320,19 +320,19 @@ const deleteEntity = async () => {
 };
 
 const freeUpSpace = async () => {
-  let entity = entityStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   let entityDir = entity.file_path.replace(/\\/g, '/');
   await FSService.DeleteFolder(entityDir)
     .then((response) => {
       emitter.emit('refresh-browser');
       
       // let project = projectStore.activeProject
-      // taskStore.outdatedTasksPath = taskStore.outdatedTasksPath.filter(taskPath => !taskPath.startsWith(entityStore.selectedEntity.entity_path))
-      // taskStore.modifiedTasksPath = taskStore.modifiedTasksPath.filter(taskPath => !taskPath.startsWith(entityStore.selectedEntity.entity_path))
-      // TaskService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates)=>{
-      //   taskStore.modifiedTasksPath = assetsStates.modified
-      //   taskStore.outdatedTasksPath = assetsStates.outdated
-      //   taskStore.rebuildableTasksPath = assetsStates.rebuildable
+      // assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => !taskPath.startsWith(collectionStore.selectedCollection.entity_path))
+      // assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => !taskPath.startsWith(collectionStore.selectedCollection.entity_path))
+      // AssetService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates)=>{
+      //   assetStore.modifiedAssetsPath = assetsStates.modified
+      //   assetStore.outdatedAssetsPath = assetsStates.outdated
+      //   assetStore.rebuildableAssetsPath = assetsStates.rebuildable
       // })
 
     })
@@ -346,12 +346,12 @@ const freeUpSpace = async () => {
 
 const rebuildCollection = () => {
   menu.hideContextMenu();
-  let entity = entityStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   notificationStore.cancleFunction = SyncService.CancelSync
   notificationStore.canCancel = true
-  EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entity.id)
+  CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entity.id)
     .then((data) => {
-      taskStore.refreshEntityFilesStatus(entity.id)
+      assetStore.refreshEntityFilesStatus(entity.id)
       emitter.emit('refresh-browser');
     }).catch(error => {
       console.log(error)
@@ -360,7 +360,7 @@ const rebuildCollection = () => {
 };
 
 const copyEntityPath = async () => {
-  let entity = entityStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   let entityDir = entity.file_path;
   entityDir = entityDir.replace(/\\/g, '/');
   await ClipboardService.WriteText(entityDir);
@@ -381,11 +381,11 @@ const prepRevertContentsPopUpModal = () => {
 const revertContents = async () => {
   modals.setModalVisibility('popUpModal', false);
   
-  const entity = entityStore.selectedEntity;
+  const entity = collectionStore.selectedCollection;
   if (!entity) return;
   
   const entityPath = entity.entity_path;
-  const modifiedTasksPath = taskStore.modifiedTasksPath;
+  const modifiedTasksPath = assetStore.modifiedAssetsPath;
   
   // Filter only the modified tasks within this entity's path recursively
   const entityModifiedPaths = modifiedTasksPath.filter(taskPath => taskPath.startsWith(entityPath));
@@ -403,7 +403,7 @@ const revertContents = async () => {
     );
     
     // Update the global modified tasks list by removing the reverted paths
-    taskStore.modifiedTasksPath = taskStore.modifiedTasksPath.filter(
+    assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(
       taskPath => !entityModifiedPaths.includes(taskPath)
     );
     
@@ -482,3 +482,8 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
+
+
+
+
+

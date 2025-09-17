@@ -63,7 +63,7 @@ import { useUserStore } from '@/stores/users';
 import { useProjectStore } from '@/stores/projects';
 import { useNotificationStore } from '@/stores/notifications';
 import { useModalStore } from '@/stores/modals';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 
 // states
 const trayStates = useTrayStates();
@@ -76,7 +76,7 @@ const userStore = useUserStore();
 const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
 const modalStore = useModalStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 
 // refs
 const searchQuery = ref('');
@@ -229,3 +229,6 @@ const logUserOut = async () => {
   background-color: darkorange;
 }
 </style>
+
+
+

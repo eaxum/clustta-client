@@ -286,6 +286,7 @@ func ToPbCheckpoints(checkpoints []models.Checkpoint) []*repositorypb.Checkpoint
 			PreviewId:      c.PreviewId,
 			Trashed:        c.Trashed,
 			Synced:         c.Synced,
+			GroupId:        c.GroupId,
 		}
 	}
 	return pb
@@ -859,6 +860,7 @@ func FromPbCheckpoint(pb *repositorypb.Checkpoint) models.Checkpoint {
 		PreviewId:      pb.PreviewId,
 		Trashed:        pb.Trashed,
 		Synced:         pb.Synced,
+		GroupId:        pb.GroupId,
 	}
 }
 

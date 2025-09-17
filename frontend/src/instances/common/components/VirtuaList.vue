@@ -18,18 +18,18 @@ import { useScrollStore } from '@/stores/scroll';
 import { useStageStore } from '@/stores/stages';
 import { useMenu } from '@/stores/menu';
 import { useDndStore } from '@/stores/dnd';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useCommonStore } from '@/stores/common';
 
 import VirtuaItem from '@/instances/common/components/VirtuaItem.vue';
-import { TaskService } from '@/../bindings/clustta/services';
+import { AssetService } from '@/../bindings/clustta/services';
 import { useProjectStore } from '@/stores/projects';
 
 const stage = useStageStore();
 const menu = useMenu();
 const dndStore = useDndStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const scrollStore = useScrollStore();
 const modals = useDesktopModalStore();
@@ -98,7 +98,7 @@ const onMouseDown = (event, item, index) => {
     itemType = item.item_type;
   }
 
-  if(!stage.markedItems.includes(id) || event.ctrlKey){
+  if(!stage.markedItems.includes(id) || stage.cmdOrCtrlKey(event)){
     stage.handleClick(event, item, itemType, allItems);
   }
 
@@ -137,7 +137,7 @@ const onMouseUp = (event, item) => {
     itemType = item.item_type;
   }
 
-  if (stage.markedItems.includes(id) && !event.ctrlKey) {
+  if (stage.markedItems.includes(id) && !stage.cmdOrCtrlKey(event)) {
     stage.handleClick(event, item, itemType, allItems);
   }
 
@@ -426,10 +426,10 @@ const updateAssetState = async () => {
   for (let i = 0; i < visibleChildren.value.length; i++) {
     let visibleChild = visibleChildren.value[i];
     if (visibleChild.type == "task") {
-      let fileStatus = await taskStore.getTaskFileStatus(visibleChild)
+      let fileStatus = await assetStore.getAssetFileStatus(visibleChild)
       if (fileStatus === "modified") {
-        if (!taskStore.modifiedTasksPath.includes(visibleChild.task_path)) {
-          taskStore.addModifiedTaskPath(visibleChild.task_path)
+        if (!assetStore.modifiedAssetsPath.includes(visibleChild.task_path)) {
+          assetStore.addModifiedAssetPath(visibleChild.task_path)
         }
       }
       props.items[visibleChild.index].file_status = fileStatus;
@@ -476,3 +476,7 @@ const onMouseLeave = () => {
   color: wheat;
 }
 </style>
+
+
+
+

@@ -6,8 +6,8 @@ import {
   SettingsService,
   ProjectService,
   TemplateService,
-  TaskService,
-  EntityService,
+  AssetService,
+  CollectionService,
   SyncService,
   FSService,
 } from "@/../bindings/clustta/services";
@@ -17,8 +17,8 @@ export const useProjectTemplateStore = defineStore("project_template", {
     projectTemplates: [],
     activeProjectTemplate: {},
     taskTemplates: [],
-    taskTypes: [],
-    entityTypes: [],
+    assetTypes: [],
+    collectionTypes: [],
   }),
   getters: {
     getTemplates: (state) => {
@@ -76,15 +76,15 @@ export const useProjectTemplateStore = defineStore("project_template", {
         this.taskTemplates.push(template);
       }
 
-      let taskTypes = await TaskService.GetTaskTypes(
+      let assetTypes = await AssetService.GetAssetTypes(
         this.activeProjectTemplate.uri
       );
-      this.taskTypes = taskTypes;
+      this.assetTypes = assetTypes;
 
-      let entityTypes = await EntityService.GetEntityTypes(
+      let collectionTypes = await CollectionService.GetCollectionTypes(
         this.activeProjectTemplate.uri
       );
-      this.entityTypes = entityTypes;
+      this.collectionTypes = collectionTypes;
     },
   },
 });

@@ -42,7 +42,7 @@ import { isValidWeblink } from '@/lib/pointer';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
-import { ClipboardService, TaskService, FSService } from "@/../bindings/clustta/services";
+import { ClipboardService, AssetService, FSService } from "@/../bindings/clustta/services";
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -50,7 +50,7 @@ import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useStageStore } from '@/stores/stages';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from '@/stores/projects';
 import { useIconStore } from '@/stores/icons';
 
@@ -67,7 +67,7 @@ let placeholder = 'Add Tags, use commas to confirm'
 // states
 const iconStore = useIconStore();
 const trayStates = useTrayStates();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 
 // stores
@@ -87,7 +87,7 @@ const modalContainer = ref(null);
 const showTaskOptions = ref(true);
 const isAwaitingResponse = ref(false);
 const isResource = ref(false);
-const taskType = ref(taskStore.getTaskTypesNames[0]);
+const taskType = ref(assetStore.getAssetTypesNames[0]);
 
 // computed properties
 const title = 'Add web link';
@@ -96,12 +96,12 @@ const isValueChanged = computed(() => {
   return taskName.value !== '' && isValidWeblink(taskWebLink.value);
 });
 const projectTags = computed(() => {
-  const allTags = taskStore.projectTags;
+  const allTags = assetStore.projectTags;
   return allTags.filter(item => !tags.value.includes(item));
 });
 
 const taskTypeNames = computed(() => {
-  return taskStore.getTaskTypesNames;
+  return assetStore.getAssetTypesNames;
 });
 
 const itemType = ref('Task');
@@ -189,14 +189,14 @@ const closeModal = () => {
 };
 const createTask = async (launch = false, comment = "new file") => {
   isAwaitingResponse.value = true;
-  let selectedTaskType = taskStore.taskTypes.find(item => item.name === taskType.value);
+  let selectedTaskType = assetStore.assetTypes.find(item => item.name === taskType.value);
   let entities = stageStore.markedEntities
   if (entities.length <= 1) {
     let entityId = ""
     if (entities.length > 0) {
       entityId = entities[0]
     }
-    await TaskService.CreateTask(
+    await AssetService.CreateAsset(
       projectStore.activeProject.uri,
       taskName.value,
       "",
@@ -220,7 +220,6 @@ const createTask = async (launch = false, comment = "new file") => {
           taskName.value = "";
           tags.value = [];
         }
-        await taskStore.reloadTasks();
         isAwaitingResponse.value = false;
         successMessage = 'Created ' + taskName.value + ' successfully.'
         notificationStore.addNotification(successMessage, "", "success")
@@ -234,42 +233,6 @@ const createTask = async (launch = false, comment = "new file") => {
         notificationStore.errorNotification("Error creating task", error)
       });
   } else {
-
-    // await TaskService.CreateTasks(projectStore.activeProject.uri,
-    //   taskName.value,
-    //   "",
-    //   selectedTaskType.id,
-    //   entities,
-    //   isResource.value,
-    //   "",
-    //   "",
-    //   "",
-    //   false,
-    //   tags.value,
-    //   "",
-    //   comment)
-    //   .then(async (data) => {
-    //     let successMessage = 'Creating ' + taskName.value + '...'
-    //     notificationStore.addNotification(successMessage, "", "success")
-    //     await taskStore.reloadTasks();
-    //     isAwaitingResponse.value = false;
-    //     successMessage = 'Created ' + taskName.value + ' successfully.'
-    //     notificationStore.addNotification(successMessage, "", "success")
-    //     if (!trayStates.keepModalOpen) {
-    //       closeModal();
-    //     } else {
-    //       taskName.value = "";
-    //       tags.value = [];
-    //     }
-
-    //     if (launch) {
-    //       FSService.LaunchFile(data.file_path)
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.log(error)
-    //     notificationStore.errorNotification("Error creating task", error)
-    //   });
 
   }
 
@@ -285,7 +248,7 @@ watchEffect(() => {
 // onMounted hook
 onMounted(() => {
   menu.clickOutsideMask = null;
-  taskName.value = utils.capitalizeStr(taskStore.getTaskTypesNames[0]);
+  taskName.value = utils.capitalizeStr(assetStore.getAssetTypesNames[0]);
   trayStates.listItemsBoundary = modalContainer.value;
   trayStates.tagSearchQuery = '';
   trayStates.itemTags = [];
@@ -366,3 +329,8 @@ onMounted(() => {
   margin-top: 0;
 }
 </style>
+
+
+
+
+

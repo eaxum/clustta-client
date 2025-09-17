@@ -23,7 +23,7 @@
       </div>
 
       <div class="input-section">
-        <DropDownBox :items="entityStore.getEntityTypesNames" :selectedItem="entityType" :onSelect="changeEntityType" />
+        <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="changeEntityType" />
       </div>
 
       <div class="horizontal-flex is-library-prompt">
@@ -54,11 +54,11 @@ import emitter from '@/lib/mitt';
 
 // services
 import { DialogService } from '@/../bindings/clustta/services/index';
-import { EntityService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/../bindings/clustta/services";
 
 // state imports
 import { useNotificationStore } from '@/stores/notifications';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useProjectStore } from '@/stores/projects';
 import { useMenu } from '@/stores/menu';
@@ -72,7 +72,7 @@ import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // states
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
@@ -101,7 +101,7 @@ const OldisLibrary = ref(null);
 
 // computed properties
 const entity = computed(() => {
-  return entityStore.selectedEntity;
+  return collectionStore.selectedCollection;
 });
 
 const isNameChanged = computed(() => {
@@ -147,7 +147,7 @@ const handleEnterKey = (event) => {
 const changeEntityType = (entityTypeName) => {
 
   let newEntityType;
-  const entityTypes = entityStore.getEntityTypes;
+  const entityTypes = collectionStore.getCollectionTypes;
   newEntityType = entityTypes.find((item) => item.name === entityTypeName);
 
   entityType.value = newEntityType.name;
@@ -181,11 +181,11 @@ const closeModal = (all) => {
 
 const updateEntityMeta = async () => {
 
-  let entityId = entityStore.selectedEntity.id;
+  let entityId = collectionStore.selectedCollection.id;
   let newEntityTypeId = entityTypeId.value;
-  let entity = entityStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   if (entity.name != entityName.value) {
-    await EntityService.RenameEntity(projectStore.activeProject.uri, entityId, entityName.value)
+    await CollectionService.RenameCollection(projectStore.activeProject.uri, entityId, entityName.value)
       .then((data) => {
         entity.name = entityName.value;
         emitter.emit('refresh-browser');
@@ -196,7 +196,7 @@ const updateEntityMeta = async () => {
       });
   }
   if (entity.entityTypeId != newEntityTypeId) {
-    await EntityService.ChangeType(projectStore.activeProject.uri, entityId, newEntityTypeId)
+    await CollectionService.ChangeType(projectStore.activeProject.uri, entityId, newEntityTypeId)
       .then((data) => {
         entity.entity_type_name = entityType.value;
         entity.entity_type_icon = entityTypeIcon.value;
@@ -208,7 +208,7 @@ const updateEntityMeta = async () => {
       });
   }
   if (entity.isLibrary != isLibrary.value) {
-    await EntityService.ChangeIsLibrary(projectStore.activeProject.uri, entityId, isLibrary.value)
+    await CollectionService.ChangeIsLibrary(projectStore.activeProject.uri, entityId, isLibrary.value)
     .then((data) => {
       entity.isLibrary = isLibrary.value;
     })
@@ -221,12 +221,12 @@ const updateEntityMeta = async () => {
 
 const updateEntityCover = async () => {
 
-  let entityId = entityStore.selectedEntity.id;
-  let entity = entityStore.findEntity(entityId);
+  let entityId = collectionStore.selectedCollection.id;
+  let entity = collectionStore.findCollection(entityId);
 
   const filePath = coverImagePath.value;
   console.log(filePath)
-  await EntityService.UpdatePreview(projectStore.activeProject.uri, entityId, filePath).then(() => {
+  await CollectionService.UpdatePreview(projectStore.activeProject.uri, entityId, filePath).then(() => {
     entity.preview = entityPreview.value;
     console.log('removed')
   }).catch((error) => {
@@ -255,7 +255,7 @@ const updateEntity = async () => {
     await updateEntityCover();
   }
 
-  await entityStore.reloadEntities();
+  await collectionStore.reloadCollections();
   isAwaitingResponse.value = false;
   closeModal();
 
@@ -274,8 +274,8 @@ watchEffect(() => {
 
 // onMounted
 onMounted(() => {
-  let entity = entityStore.selectedEntity;
-  selectedEntity.value = entityStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
+  selectedEntity.value = collectionStore.selectedCollection;
   entityName.value = entity.name;
   oldEntityName.value = entity.name;
   entityPreview.value = entity.preview;

@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 import { FSService } from "@/../bindings/clustta/services/index";
 import { nextTick } from "vue";
-import { useEntityStore } from "@/stores/entity";
+import { useCollectionStore } from "@/stores/collections";
 import { md5 } from "./crypto.js";
 
 const utils = {
@@ -238,10 +238,10 @@ const utils = {
     return paths;
   },
   getUntrackedEntityparent(untracked) {
-    const entityStore = useEntityStore();
+    const collectionStore = useCollectionStore();
     let parentPaths = this.getParentPaths(untracked.entity_path);
     for (let parent of parentPaths) {
-      let entity = entityStore.entities.find(
+      let entity = collectionStore.collections.find(
         (item) => item.entity_path === parent
       );
       if (entity !== undefined) {
@@ -258,3 +258,6 @@ const utils = {
 };
 
 export default utils;
+
+
+

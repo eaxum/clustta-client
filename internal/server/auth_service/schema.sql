@@ -1,0 +1,6 @@
+
+CREATE TABLE IF NOT EXISTS tokens (
+	email TEXT PRIMARY KEY,
+	token TEXT NOT NULL,
+	expires_at TIMESTAMP NOT NULL
+);

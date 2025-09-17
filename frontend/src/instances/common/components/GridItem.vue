@@ -18,9 +18,9 @@ import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 
 import { useMenu } from '@/stores/menu';
 import { useDndStore } from '@/stores/dnd';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useScrollStore } from '@/stores/scroll';
 import { useUntrackedItemStore } from '@/stores/untracked';
 import { useProjectStore } from '@/stores/projects';
@@ -29,9 +29,9 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 const menu = useMenu();
 const stage = useStageStore();
 const dndStore = useDndStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const scrollStore = useScrollStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const untrackedItemStore = useUntrackedItemStore();
 const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
@@ -58,14 +58,14 @@ const openCollectionMenu = (event) => {
   const id = props.child.id;
   const entity = props.child;
   stage.markedEntities = [id];
-  entityStore.selectEntity(entity);
+  collectionStore.selectCollection(entity);
   menu.showContextMenu(event, 'collectionMenu', true);
 };
 
 const openAssetMenu = (event) => {
   const id = props.child.id;
   const task = props.child;
-  taskStore.selectTask(task);
+  assetStore.selectAsset(task);
   stage.markedTasks = [id];
   menu.showContextMenu(event, 'assetMenu', true);
 };
@@ -173,7 +173,7 @@ const handleKeyArrowKeys = (event) => {
         
         let parent; 
         
-        const allEntities = entityStore.getEntities;
+        const allEntities = collectionStore.getCollections;
         const alluntrackedFolders = projectStore.untrackedFolders;
         const allItems = [ ...allEntities, ...alluntrackedFolders];
 

@@ -1,6 +1,6 @@
 <template>
   <div class="general-pane-header">
-    <HeaderArea v-if="entityStore.selectedEntity" :title="utils.capitalizeStr(entityStore.selectedEntity?.name)"
+    <HeaderArea v-if="collectionStore.selectedCollection" :title="utils.capitalizeStr(collectionStore.selectedCollection?.name)"
       :icon="entityTypeIcon" />
 
     <ActionButton v-if="userStore.canDo('update_entity')" :icon="getAppIcon('parameters')" v-tooltip="'Rename Entity'"
@@ -10,28 +10,28 @@
   <div class="general-pane-root">
     <div class="general-pane-container">
 
-      <div v-if="entityStore.selectedEntity?.preview" class="entity-thumb-container">
+      <div v-if="collectionStore.selectedCollection?.preview" class="entity-thumb-container">
         <div class="entity-thumb">
-          <img v-if="entityStore.selectedEntity.preview" class="screenshot-thumb"
-            :src="'data:image/png;base64,' + entityStore.selectedEntity.preview">
+          <img v-if="collectionStore.selectedCollection.preview" class="screenshot-thumb"
+            :src="'data:image/png;base64,' + collectionStore.selectedCollection.preview">
           <img v-else class="screenshot-thumb" src="/page-states/no_image.png">
         </div>
       </div>
 
-      <div v-if="entityStore.selectedEntity" class="pane-parameter-section">
+      <div v-if="collectionStore.selectedCollection" class="pane-parameter-section">
         <div class="action-bar" v-if="userStore.canDo('update_entity')">
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="'Collection type'" />
-            <DropDownBox :items="entityStore.getEntityTypesNames"
-              :selectedItem="entityStore.selectedEntity.entity_type_name" :onSelect="changeEntityType"
+            <DropDownBox :items="collectionStore.getCollectionTypesNames"
+              :selectedItem="collectionStore.selectedCollection.entity_type_name" :onSelect="changeEntityType"
               :fixedWidth="true" />
           </div>
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('bookmark')" :label="'Library'" />
 
-            <ToggleSwitch v-tooltip="entityStore.selectedEntity.is_library ? 'Unmark as library' : 'Mark as a library'"
-              @click="changeIsLibrary" :switchValueProp="entityStore.selectedEntity.is_library" />
+            <ToggleSwitch v-tooltip="collectionStore.selectedCollection.is_library ? 'Unmark as library' : 'Mark as a library'"
+              @click="changeIsLibrary" :switchValueProp="collectionStore.selectedCollection.is_library" />
           </div>
 
           <div class="vertical-flex assignees-search">
@@ -70,7 +70,7 @@
             Location
           </div>
             <div class="simple-text-value" >
-              {{ entityStore.selectedEntity.file_path }}
+              {{ collectionStore.selectedCollection.file_path }}
             </div>
             <div class="pane-parameter-actions">
               <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy Path'" @click="copyEntityPath('entity')"/>
@@ -123,7 +123,7 @@ const getAppIcon = (iconName) => {
   return icon
 };
 
-import { ClipboardService, EntityService } from "@/../bindings/clustta/services";
+import { ClipboardService, CollectionService } from "@/../bindings/clustta/services";
 import { FSService } from '@/../bindings/clustta/services/index';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import AssigneeItem from '@/instances/common/components/AssigneeItem.vue'
@@ -135,7 +135,7 @@ import emitter from '@/lib/mitt';
 
 // store imports
 import { useUserStore } from '@/stores/users';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
@@ -149,7 +149,7 @@ import { useNotificationStore } from '@/stores/notifications';
 
 // stores
 const userStore = useUserStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const modals = useDesktopModalStore();
 const stage = useStageStore();
 const projectStore = useProjectStore();
@@ -165,7 +165,7 @@ const collaboratorsList = computed(() => {
       full_name: `${user.first_name} ${user.last_name}`,
       avatarColor: userStore.userProfileColor(user.id)
     }))
-    .filter((user) => entityStore.selectedEntity.assignee_ids?.includes(user.id));
+    .filter((user) => collectionStore.selectedCollection.assignee_ids?.includes(user.id));
 });
 
 const projectUsers = computed(() => {
@@ -175,7 +175,7 @@ const projectUsers = computed(() => {
       full_name: `${user.first_name} ${user.last_name}`,
       avatarColor: userStore.userProfileColor(user.id)
     }))
-    .filter((user) => !entityStore.selectedEntity.assignee_ids?.includes(user.id));
+    .filter((user) => !collectionStore.selectedCollection.assignee_ids?.includes(user.id));
   return availableUsers;
 });
 
@@ -189,12 +189,12 @@ const emitEntityUpdates = (entityId, updates) => {
 };
 
 const revealInExplorer = async () => {
-  await FSService.MakeDirs(entityStore.selectedEntity.file_path)
-  FSService.RevealInExplorer(entityStore.selectedEntity.file_path)
+  await FSService.MakeDirs(collectionStore.selectedCollection.file_path)
+  FSService.RevealInExplorer(collectionStore.selectedCollection.file_path)
 };
 
 const copyEntityPath = async () => {
-  let entity = entityStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   let entityDir = entity.file_path;
   entityDir = entityDir.replace(/\\/g, '/');
   await ClipboardService.WriteText(entityDir);
@@ -204,14 +204,14 @@ const copyEntityPath = async () => {
 
 const removeUser = (user) => {
   const userId = user.id;
-  EntityService.Unassign(projectStore.activeProject.uri, entityStore.selectedEntity.id, userId)
+  CollectionService.Unassign(projectStore.activeProject.uri, collectionStore.selectedCollection.id, userId)
     .then((data) => {
       // Update local entity data
-      entityStore.selectedEntity.assignee_ids = entityStore.selectedEntity.assignee_ids.filter(t => t !== userId);
+      collectionStore.selectedCollection.assignee_ids = collectionStore.selectedCollection.assignee_ids.filter(t => t !== userId);
       
       // Emit updates using helper function
-      emitEntityUpdates(entityStore.selectedEntity.id, [
-        { property: 'assignee_ids', value: entityStore.selectedEntity.assignee_ids }
+      emitEntityUpdates(collectionStore.selectedCollection.id, [
+        { property: 'assignee_ids', value: collectionStore.selectedCollection.assignee_ids }
       ]);
       
       projectStore.refreshActiveProject();
@@ -225,18 +225,18 @@ const removeUser = (user) => {
 const addUser = (user) => {
   const userId = user.id;
 
-  if (entityStore.selectedEntity.assignee_ids.includes(userId)) {
+  if (collectionStore.selectedCollection.assignee_ids.includes(userId)) {
     return
   }
   else {
-    EntityService.Assign(projectStore.activeProject.uri, entityStore.selectedEntity.id, userId)
+    CollectionService.Assign(projectStore.activeProject.uri, collectionStore.selectedCollection.id, userId)
       .then((data) => {
         // Update local entity data
-        entityStore.selectedEntity.assignee_ids.push(userId);
+        collectionStore.selectedCollection.assignee_ids.push(userId);
         
         // Emit updates using helper function
-        emitEntityUpdates(entityStore.selectedEntity.id, [
-          { property: 'assignee_ids', value: entityStore.selectedEntity.assignee_ids }
+        emitEntityUpdates(collectionStore.selectedCollection.id, [
+          { property: 'assignee_ids', value: collectionStore.selectedCollection.assignee_ids }
         ]);
         
         projectStore.refreshActiveProject();
@@ -249,8 +249,8 @@ const addUser = (user) => {
 };
 
 const parentName = computed(() => {
-  const parentId = entityStore.selectedEntity.parent_id
-  const parent = entityStore.getEntities.find((item) => item.id === parentId)
+  const parentId = collectionStore.selectedCollection.parent_id
+  const parent = collectionStore.getCollections.find((item) => item.id === parentId)
   return parent ? parent.entity_path.replace(/\//g, ' / ') : 'None'
 });
 
@@ -258,13 +258,13 @@ const changeEntityType = async (entityTypeName) => {
   stage.operationActive = true;
 
   let newEntityType;
-  const entityTypes = entityStore.getEntityTypes;
+  const entityTypes = collectionStore.getCollectionTypes;
   newEntityType = entityTypes.find((item) => item.name === entityTypeName);
 
   const projectPath = projectStore.activeProject.uri;
-  let entity = entityStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
 
-  await EntityService.ChangeType(projectPath, entity.id, newEntityType.id)
+  await CollectionService.ChangeType(projectPath, entity.id, newEntityType.id)
     .then((data) => {
       // Update local entity data
       entity.entity_type_name = newEntityType.name;
@@ -288,16 +288,16 @@ const changeEntityType = async (entityTypeName) => {
 const changeIsLibrary = async () => {
   stage.operationActive = true;
   const projectPath = projectStore.activeProject.uri;
-  let entity = entityStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
 
-  await EntityService.ChangeIsLibrary(projectPath, entity.id, !entityStore.selectedEntity.is_library)
+  await CollectionService.ChangeIsLibrary(projectPath, entity.id, !collectionStore.selectedCollection.is_library)
     .then((data) => {
       // Update local entity data
-      entityStore.selectedEntity.is_library = !entityStore.selectedEntity.is_library;
+      collectionStore.selectedCollection.is_library = !collectionStore.selectedCollection.is_library;
       
       // Emit updates using helper function
       emitEntityUpdates(entity.id, [
-        { property: 'is_library', value: entityStore.selectedEntity.is_library }
+        { property: 'is_library', value: collectionStore.selectedCollection.is_library }
       ]);
       
       projectStore.refreshActiveProject();
@@ -313,7 +313,7 @@ const changeIsLibrary = async () => {
 const numberOfSelectedEntities = ref(0);
 
 const entityTypeIcon = computed(() => {
-  const icon = '/types-icons/' + entityStore.selectedEntity?.entity_type_icon + '.svg';
+  const icon = '/types-icons/' + collectionStore.selectedCollection?.entity_type_icon + '.svg';
   if (icon) {
     return icon
   } else {
@@ -331,7 +331,7 @@ const assetsOnDiskCount = ref(0);
 const collectionsOnDiskCount = ref(0);
 
 const collectionPath = computed(() => {
-  const path = entityStore.selectedEntity?.file_path;
+  const path = collectionStore.selectedCollection?.file_path;
   return path?.replace(/\\/g, '/')
 });
 
@@ -341,7 +341,7 @@ const getCollectionSize = async() => {
 }
 
 const getItemsCount = async() => {
-  let entity = entityStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   assetsOnDiskCount.value = await FSService.FileCount(entity?.file_path);
   collectionsOnDiskCount.value = await FSService.FolderCount(entity?.file_path);
 }
@@ -353,7 +353,7 @@ const getProjectData = async () => {
   getCollectionSize();
 }
 
-watch(() => entityStore.selectedEntity, () => {
+watch(() => collectionStore.selectedCollection, () => {
   collectionSize.value = 0;
   assetsOnDiskCount.value = 0;
   collectionsOnDiskCount.value = 0;
@@ -363,8 +363,8 @@ watch(() => entityStore.selectedEntity, () => {
 
 // onMounted
 onMounted(() => {
-  if (!entityStore.selectedEntity) {
-    entityStore.selectedEntity = entityStore.getEntities[0];
+  if (!collectionStore.selectedCollection) {
+    collectionStore.selectedCollection = collectionStore.getCollections[0];
   }
   getProjectData();
 	emitter.on('get-project-data', getProjectData);

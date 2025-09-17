@@ -4,14 +4,18 @@
     :style="commonStore.useGrid ? gridStyles : itemHeightStyles"
     :class="{
       'entity-item-grid': commonStore.useGrid,
-      'entity-item-selected': stage.markedItems.includes(entity.id) && !isGhost,
-      'entity-item-cut': stage.cutItems.map((item) => item.id).includes(entity.id) && !isGhost,
-      'entity-item-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === entity.id && !isGhost,
-      'entity-item-last-selected': stage.lastSelectedItemId === entity.id && !isGhost,
-      'drop-zone-hovered': isHovered
-    }">
+      'entity-item-grid-selected': commonStore.useGrid && stage.markedItems.includes(entity.id) && !isGhost,
+      'entity-item-grid-cut': commonStore.useGrid && stage.cutItems.map((item) => item.id).includes(entity.id) && !isGhost,
+      'entity-item-grid-only-selected': commonStore.useGrid && stage.markedItems.length === 1 && stage.firstSelectedItemId === entity.id && !isGhost,
+      'entity-item-grid-last-selected': commonStore.useGrid && stage.lastSelectedItemId === entity.id && !isGhost,
 
-    <div v-if="!commonStore.useGrid && props.loadingChildren" class="entity-spacer">
+      
+      'entity-item-selected': !commonStore.useGrid && stage.markedItems.includes(entity.id) && !isGhost,
+      'entity-item-cut': !commonStore.useGrid && stage.cutItems.map((item) => item.id).includes(entity.id) && !isGhost,
+      'entity-item-only-selected': !commonStore.useGrid && stage.markedItems.length === 1 && stage.firstSelectedItemId === entity.id && !isGhost,
+      'entity-item-last-selected': !commonStore.useGrid && stage.lastSelectedItemId === entity.id && !isGhost,
+      'drop-zone-hovered': isHovered
+    }">    <div v-if="!commonStore.useGrid && props.loadingChildren" class="entity-spacer">
       <span class="single-action-button">
         <img class="small-icons loading-children-icon" :src="getAppIcon('loading')">
       </span>
@@ -132,13 +136,14 @@
 
 
     </div>
+
   </div>
 </template>
 
 <script setup>
 // imports
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch, watchEffect } from 'vue';
-import { CheckpointService, EntityService, FSService, SyncService, TaskService } from "@/../bindings/clustta/services";
+import { CheckpointService, CollectionService, FSService, SyncService, AssetService } from "@/../bindings/clustta/services";
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 import { Events } from "@wailsio/runtime";
@@ -146,11 +151,11 @@ import { Events } from "@wailsio/runtime";
 // states/store imports
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { usePaneStore } from '@/stores/panes';
 import { useStageStore } from '@/stores/stages';
 import { useCommonStore } from '@/stores/common';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useUserStore } from '@/stores/users';
 import { useDndStore } from '@/stores/dnd';
 import { useProjectStore } from '@/stores/projects';
@@ -170,8 +175,8 @@ const menu = useMenu();
 const panes = usePaneStore();
 const stage = useStageStore();
 const projectStore = useProjectStore();
-const entityStore = useEntityStore();
-const taskStore = useTaskStore();
+const collectionStore = useCollectionStore();
+const assetStore = useAssetStore();
 const commonStore = useCommonStore();
 const dndStore = useDndStore();
 const modals = useDesktopModalStore();
@@ -309,19 +314,19 @@ const operationsActive = computed(() => {
 });
 
 const itemsModified = computed(() => {
-  return taskStore.modifiedTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
+  return assetStore.modifiedAssetsPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
 });
 
 const itemsUntracked = computed(() => {
-  return taskStore.untrackedTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
+  return assetStore.untrackedAssetsPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
 });
 
 const itemsOutdated = computed(() => {
-  return taskStore.outdatedTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
+  return assetStore.outdatedAssetsPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
 });
 
 const itemsRebuildable = computed(() => {
-  return taskStore.rebuildableTasksPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
+  return assetStore.rebuildableAssetsPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
 });
 
 //methods
@@ -386,7 +391,7 @@ const updateEntityName = async () => {
     let entity = props.entity;
     let entityId = entity.id;
     
-    await EntityService.RenameEntity(projectStore.activeProject.uri, entityId, editableEntityName.value)
+    await CollectionService.RenameCollection(projectStore.activeProject.uri, entityId, editableEntityName.value)
       .then((data) => {
         entity.name = editableEntityName.value;
         emitEntityUpdates(entityId, [
@@ -431,10 +436,10 @@ const triggerRename = () => {
 const updateEntityAssets = async () => {
 	notificationStore.cancleFunction = SyncService.CancelSync
 	notificationStore.canCancel = true
-  let entityOutdatedAssets = taskStore.outdatedTasksPath.filter(taskPath => taskPath.startsWith(props.entity.entity_path))
+  let entityOutdatedAssets = assetStore.outdatedAssetsPath.filter(taskPath => taskPath.startsWith(props.entity.entity_path))
 	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entityOutdatedAssets)
 		.then((data) => {
-			taskStore.outdatedTasksPath = taskStore.outdatedTasksPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path))
+			assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path))
 			emitter.emit('refresh-browser');
 		}).catch(async (error) => {
 			notificationStore.errorNotification("Error Rebuilding All", error)
@@ -444,9 +449,9 @@ const updateEntityAssets = async () => {
 const rebuildEntity = async () => {
 	notificationStore.cancleFunction = SyncService.CancelSync
 	notificationStore.canCancel = true
-	await EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, props.entity.id)
+	await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, props.entity.id)
 		.then((data) => {
-			taskStore.rebuildableTasksPath = taskStore.rebuildableTasksPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path))
+			assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path))
 			emitter.emit('refresh-browser');
 		}).catch(async (error) => {
 			notificationStore.errorNotification("Error Rebuilding All", error)
@@ -469,12 +474,12 @@ const prepFreeUpSpacePopUpModal = () => {
 };
 
 const freeUpSpace = async () => {
-  let entity = entityStore.selectedEntity;
+  let entity = collectionStore.selectedCollection;
   let entityDir = entity.file_path.replace(/\\/g, '/');
   await FSService.DeleteFolder(entityDir)
     .then((response) => {
       emitter.emit('refresh-browser');
-      taskStore.refreshEntityFilesStatus(entity.id)
+      assetStore.refreshEntityFilesStatus(entity.id)
     })
     .catch((error) => {
       console.error(error);
@@ -484,11 +489,11 @@ const freeUpSpace = async () => {
 
 const deleteEntity = async () => {
   if (props.entity.type === 'entity') {
-    let entity = entityStore.selectedEntity;
-    EntityService.DeleteEntity(projectStore.activeProject.uri, entity.id)
+    let entity = collectionStore.selectedCollection;
+      CollectionService.DeleteCollection(projectStore.activeProject.uri, entity.id, true)
       .then(async (response) => {
         emitter.emit('refresh-browser');
-        entityStore.selectedEntity = null;
+        collectionStore.selectedCollection = null;
         stage.markedItems = [];
       })
       .catch((error) => {
@@ -585,7 +590,7 @@ watchEffect(() => {
 });
 
 const exploreEntity = (entity) => {
-  entityStore.navigateToEntity(entity);
+  collectionStore.navigateToCollection(entity);
   commonStore.navigatorMode = true;
 };
 
@@ -707,6 +712,28 @@ onBeforeUnmount(() => {
   padding-left: 0px;
   outline: none;
   background-color: transparent;
+}
+
+.entity-item-grid-selected {
+  outline: 1px solid rgb(255, 255, 255);
+  outline-offset: -1.5px;
+  background-color: var(--blue-steel);
+}
+
+.entity-item-grid-cut {
+  opacity: .5;
+}
+
+.entity-item-grid-last-selected {
+  outline: 1px solid rgb(255, 255, 255);
+  outline-offset: -1.5px;
+  background-color: var(--solid-blue-steel);
+}
+
+.entity-item-grid-only-selected {
+  outline: 1px solid rgb(255, 255, 255);
+  outline-offset: -1.5px;
+  background-color: var(--solid-blue-steel);
 }
 
 .main-entity-item-grid{

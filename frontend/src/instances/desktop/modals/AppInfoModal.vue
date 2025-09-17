@@ -41,7 +41,7 @@ import { ref, onMounted } from 'vue';
 import utils from "@/services/utils";
 
 // store/state imports
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 
 // components
@@ -57,7 +57,7 @@ const clusttaVersion = ref("");
 const isAwaitingResponse = ref(false);
 
 // states/stores
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const modals = useDesktopModalStore();
 
 // methods
@@ -185,3 +185,6 @@ onMounted(async () => {
 
 }
 </style>
+
+
+

@@ -33,7 +33,7 @@
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('brush-plus')" :label="'Asset type'" />
-            <DropDownBox :items="taskStore.getTaskTypesNames" :selectedItem="taskType" :onSelect="changeTaskType"
+            <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="taskType" :onSelect="changeTaskType"
               :fixedWidth="true" />
           </div>
 
@@ -62,7 +62,7 @@
         <div v-else-if="onlyEntities" class="action-bar">
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="'Collection type'" />
-            <DropDownBox :items="entityStore.getEntityTypesNames" :selectedItem="entityType"
+            <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType"
               :onSelect="changeEntityType" :fixedWidth="true" />
           </div>
 
@@ -111,7 +111,7 @@
 
 <script setup>
 // services
-import { CheckpointService, TaskService, EntityService, SyncService } from "@/../bindings/clustta/services";
+import { CheckpointService, AssetService, CollectionService, SyncService } from "@/../bindings/clustta/services";
 import { TrashService } from "@/../bindings/clustta/services";
 import { FSService } from '@/../bindings/clustta/services/index';
 import emitter from '@/lib/mitt';
@@ -120,8 +120,8 @@ import emitter from '@/lib/mitt';
 import { computed, ref, onMounted, onUnmounted, watchEffect, watch, nextTick } from 'vue';
 import { usePaneStore } from '@/stores/panes';
 import { useStageStore } from '@/stores/stages';
-import { useTaskStore } from '@/stores/task';
-import { useEntityStore } from '@/stores/entity';
+import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
 import { useProjectStore } from '@/stores/projects';
 import { useStatusStore } from '@/stores/status';
 import { useUserStore } from '@/stores/users';
@@ -154,8 +154,8 @@ import { addIgnoredItem } from '@/lib/untracked';
 const panes = usePaneStore();
 const iconStore = useIconStore();
 const stage = useStageStore();
-const taskStore = useTaskStore();
-const entityStore = useEntityStore();
+const assetStore = useAssetStore();
+const collectionStore = useCollectionStore();
 const statusStore = useStatusStore();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
@@ -209,7 +209,7 @@ const assignCollections = async (user) => {
       continue;
     }
 
-    await EntityService.Assign(projectStore.activeProject.uri, entityId, userId)
+    await CollectionService.Assign(projectStore.activeProject.uri, entityId, userId)
       .then((data) => {
         // Update the specific item in stage.selectedItems to reflect the assignment
         const itemIndex = stage.selectedItems.findIndex(item => item.id === entityId);
@@ -242,7 +242,7 @@ const numberOfSelectedTasks = computed(() => {
 
 const singleTask = computed(() => {
   numberOfSelectedTasks.value = stage.markedItems.length;
-  const isSingleTask = stage.markedItems.length <= 1 && taskStore.selectedTask;
+  const isSingleTask = stage.markedItems.length <= 1 && assetStore.selectedAsset;
   return isSingleTask
 });
 
@@ -359,7 +359,7 @@ const viewCheckpoints = () => {
 
 const visiblePanes = computed(() => {
   if (stage.activeStage === 'browser') {
-    if (!entityStore.selectedEntity && !taskStore.selectedTask && !projectStore.selectedUntrackedItem) {
+    if (!collectionStore.selectedCollection && !assetStore.selectedAsset && !projectStore.selectedUntrackedItem) {
       if (!stage.markedItems.length) {
         if(panes.activeModal !== 'projectCheckpoints'){
           panes.setPaneVisibility('projectDetails', true);
@@ -393,8 +393,8 @@ const multiTypeChange = ref(false);
 const itemTypes = ref(['task', 'resource']);
 const collectionMode = ref(['basic', 'library']);
 const itemType = ref(itemTypes.value[0]);
-const taskType = ref(taskStore.getTaskTypesNames[0]);
-const entityType = ref(entityStore.getEntityTypesNames[0]);
+const taskType = ref(assetStore.getAssetTypesNames[0]);
+const entityType = ref(collectionStore.getCollectionTypesNames[0]);
 const detailsPaneRoot = ref(null);
 
 
@@ -420,7 +420,7 @@ const projectStatuses = computed(() => {
 
 const tasksModified = computed(() => {
   const markedItems = stage.markedItems;
-  const modifiedAssetsState = taskStore.getModifiedDisplayPaths;
+  const modifiedAssetsState = assetStore.getModifiedDisplayPaths;
   
   // Check if any of the marked items exist in the modified assets state
   return modifiedAssetsState.some((assetState) => markedItems.includes(assetState.task_id));
@@ -511,7 +511,7 @@ const setMultipleStatus = async (statusName) => {
   const status = statusStore.statuses.find(item => item.short_name === statusName.toLowerCase())
   // return
   const taskIds = stage.markedItems;
-  await taskStore.setMultipleStatus(status, taskIds);
+  await assetStore.setMultipleStatus(status, taskIds);
   defaultStatus.value = statusName.toUpperCase();
   stage.operationActive = false;
 };
@@ -532,7 +532,7 @@ const deleteMultipleItems = async () => {
   await deleteMultipleEntities();
   await deleteMultipleTasks();
   stage.markedItems = [];
-  entityStore.selectedEntity = null;
+  collectionStore.selectedCollection = null;
 };
 
 const deleteMultipleEntities = async () => {
@@ -540,11 +540,11 @@ const deleteMultipleEntities = async () => {
   const entityIds = stage.markedItems;
 
   for (let entityId of entityIds) {
-    await EntityService.DeleteEntity(projectStore.activeProject.uri, entityId, true)
+    await CollectionService.DeleteCollection(projectStore.activeProject.uri, entityId, true)
       .then(async (response) => {
         if(onlyEntities.value){
           stage.markedItems = [];
-          entityStore.selectedEntity = null;
+          collectionStore.selectedCollection = null;
         }
       })
       .catch((error) => {
@@ -617,15 +617,15 @@ const clearSelection = () => {
 	stage.selectedItems = [];
 	stage.firstSelectedItemId = '';
 	stage.lastSelectedItemId = '';
-	taskStore.selectedTask = null;
-	entityStore.selectedEntity = null;
+	assetStore.selectedAsset = null;
+	collectionStore.selectedCollection = null;
 }
 
 const deleteMultipleTasks = async () => {
   stage.operationActive = true;
   const taskIds = stage.markedItems;
   for (let taskId of taskIds) {
-    await TaskService.DeleteTask(projectStore.activeProject.uri, taskId, true)
+    await AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
       .then(async (response) => {
         emitter.emit('refresh-browser');
         notificationStore.addNotification("Assets moved to Trash.", '', "success", false);
@@ -643,7 +643,7 @@ const deleteMultipleTasks = async () => {
 const unassignTasks = async () => {
   let taskIds = stage.markedItems;
   for (const taskId of taskIds) {
-    await TaskService.UnassignTask(projectStore.activeProject.uri, taskId)
+    await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId)
       .then(async (data) => {
       })
       .catch((error) => {
@@ -666,9 +666,9 @@ const freeUpSpace = async () => {
     await FSService.DeleteFile(taskPath)
       .then((response) => {
         task.file_status = 'rebuildable'; 
-        taskStore.rebuildableTasksPath.push(task.task_path)
-        taskStore.outdatedTasksPath = taskStore.outdatedTasksPath.filter(taskPath => taskPath !== task.task_path)
-        taskStore.modifiedTasksPath = taskStore.modifiedTasksPath.filter(taskPath => taskPath !== task.task_path);
+        assetStore.rebuildableAssetsPath.push(task.task_path)
+        assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path)
+        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => taskPath !== task.task_path);
         
         // Emit task updates to notify components of file state changes
         emitTaskUpdates(task.id, { file_status: 'rebuildable' });
@@ -716,7 +716,7 @@ const moveIntoFolder = async () => {
       await changeTaskEntity(taskId, entityId);
     } else {
 
-      let entity = entityStore.findEntity(activeItemId)
+      let entity = collectionStore.findCollection(activeItemId)
 
       await FSService.MakeDirs(entity.file_path)
       let newPath = await FSService.JoinPath(entity.file_path, item.name)
@@ -756,7 +756,7 @@ const moveIntoFolder = async () => {
 
 const changeEntityParent = async (entityId, parentId) => {
 
-  await EntityService.ChangeEntityParent(projectStore.activeProject.uri, entityId, parentId)
+  await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityId, parentId)
     .then((response) => {
       const successMessage = 'Moved successfully.'
       notificationStore.addNotification(successMessage, "", "success")
@@ -768,7 +768,7 @@ const changeEntityParent = async (entityId, parentId) => {
 };
 
 const changeTaskEntity = async (taskId, entityId) => {
-  await TaskService.ChangeTaskEntity(projectStore.activeProject.uri, taskId, entityId)
+  await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskId, entityId)
     .then((response) => {
       const successMessage = 'Moved successfully.'
       notificationStore.addNotification(successMessage, "", "success")
@@ -817,7 +817,7 @@ const addTaskDependency = async (task, dependencyId) => {
 
   let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
 
-  await TaskService.AddTaskDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+  await AssetService.AddAssetDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
     .then((response) => {
       if (!task.dependencies) {
         task.dependencies = [];
@@ -836,7 +836,7 @@ const addEntityDependency = async (task, dependencyId) => {
 
   let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
 
-  await TaskService.AddEntityDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+  await AssetService.AddEntityDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
     .then((response) => {
       // Update the local task object with the new entity dependency
       if (!task.entity_dependencies) {
@@ -884,7 +884,7 @@ const toggleIsTask = async (newAssetType) => {
   const selectedTaskIds = stage.markedItems;
 
   for (const taskId of selectedTaskIds) {
-    await TaskService.ToggleIsTask(projectPath, taskId, isResource)
+    await AssetService.ToggleIsTask(projectPath, taskId, isResource)
       .then((data) => {
       })
       .catch((error) => {
@@ -901,7 +901,7 @@ const changeTaskType = async (taskTypeName) => {
   stage.operationActive = true;
 
   let newTaskType;
-  const taskTypes = taskStore.getTaskTypes;
+  const taskTypes = assetStore.getAssetTypes;
   newTaskType = taskTypes.find((item) => item.name === taskTypeName);
   taskType.value = taskTypeName;
 
@@ -909,7 +909,7 @@ const changeTaskType = async (taskTypeName) => {
   const selectedTasksIds = stage.markedItems;
 
   for (const taskId of selectedTasksIds) {
-    await TaskService.ChangeTaskType(projectPath, taskId, newTaskType.id)
+    await AssetService.ChangeAssetType(projectPath, taskId, newTaskType.id)
       .then((data) => {
       })
       .catch((error) => {
@@ -925,7 +925,7 @@ const changeEntityType = async (entityTypeName) => {
   stage.operationActive = true;
 
   let newEntityType;
-  const entityTypes = entityStore.getEntityTypes;
+  const entityTypes = collectionStore.getCollectionTypes;
   newEntityType = entityTypes.find((item) => item.name === entityTypeName);
   entityType.value = entityTypeName;
 
@@ -933,7 +933,7 @@ const changeEntityType = async (entityTypeName) => {
   const selectedEntitiesId = stage.markedItems
 
   for (const entityId of selectedEntitiesId) {
-    await EntityService.ChangeType(projectPath, entityId, newEntityType.id)
+    await CollectionService.ChangeType(projectPath, entityId, newEntityType.id)
       .then((data) => {
       })
       .catch((error) => {
@@ -954,7 +954,7 @@ const changeIsLibrary = async (collectionMode) => {
   const selectedCollectionIds = stage.markedItems;
 
   for (const collectionId of selectedCollectionIds) {
-    await EntityService.ChangeIsLibrary(projectPath, collectionId, isLibrary)
+    await CollectionService.ChangeIsLibrary(projectPath, collectionId, isLibrary)
       .then((data) => {
 
       })
@@ -976,7 +976,7 @@ const unassignCollections = async () => {
     
     for (const assigneeId of currentAssigneeIds) {
       
-        await EntityService.Unassign(projectStore.activeProject.uri, collection.id, assigneeId)
+        await CollectionService.Unassign(projectStore.activeProject.uri, collection.id, assigneeId)
           .then((data) => {
             const itemIndex = stage.selectedItems.findIndex(item => item.id === collection.id);
             if (itemIndex !== -1) {
@@ -1024,9 +1024,9 @@ const rebuildCollections = async () => {
     const entityIds = stage.markedItems;
     const entityIdsString = entityIds.join(',');
     
-    await EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entityIdsString)
+    await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entityIdsString)
       .then((data) => {
-        taskStore.refreshEntityFilesStatus();
+        assetStore.refreshEntityFilesStatus();
         notificationStore.addNotification(`${entityIds.length} collection(s) rebuilt successfully`, '', "success", false);
       })
       .catch((error) => {
@@ -1133,6 +1133,7 @@ onUnmounted(() => {
   overflow: hidden;
   flex: 1 1 50%;
   background-color: var(--black);
+	background-color: var(--black-steel);
   border-radius: var(--large-radius)
 }
 

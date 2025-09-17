@@ -29,8 +29,8 @@
 import { ref, onMounted, computed } from 'vue';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { EntityService } from "@/../bindings/clustta/services";
-import { useEntityStore } from '@/stores/entity';
+import { CollectionService } from "@/../bindings/clustta/services";
+import { useCollectionStore } from '@/stores/collections';
 import { useProjectStore } from '@/stores/projects';
 import { useProjectTemplateStore } from '@/stores/project_template';
 
@@ -43,7 +43,7 @@ import IconGrid from '@/instances/desktop/components/IconGrid.vue';
 
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allEntityTypeIcons = entityStore.getEntityTypes.map((item) => item.icon);
+  const allEntityTypeIcons = collectionStore.getCollectionTypes.map((item) => item.icon);
   return allIcons.filter((icon) => !allEntityTypeIcons.includes(icon))
 })
 
@@ -54,7 +54,7 @@ const isAwaitingResponse = ref(false);
 // stores
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const projectStore = useProjectStore();
 const projectTemplateStore = useProjectTemplateStore();
 
@@ -82,7 +82,7 @@ const handleEnterKey = (event) => {
 };
 
 const createEntityType = () => {
-  EntityService.CreateEntityType(projectTemplateStore.activeProjectTemplate.uri, entityTypeName.value, entityTypeIcon.value)
+  CollectionService.CreateCollectionType(projectTemplateStore.activeProjectTemplate.uri, entityTypeName.value, entityTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification("Collection type created", "", "success");
       projectTemplateStore.reloadProjectTemplate()

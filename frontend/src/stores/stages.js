@@ -1,13 +1,15 @@
 import { defineStore } from "pinia";
 import { useMenu } from "@/stores/menu";
 import { usePaneStore } from "@/stores/panes";
-import { useTaskStore } from "@/stores/task";
-import { useEntityStore } from "@/stores/entity";
+import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from "@/stores/collections";
 import { useDndStore } from "@/stores/dnd";
 import { useProjectStore } from "@/stores/projects";
+import { AppService } from '@/../bindings/clustta/services/index';
 
 export const useStageStore = defineStore("stages", {
   state: () => ({
+    os: '',
     stages: {
       projects: false,
       browser: false,
@@ -87,6 +89,11 @@ export const useStageStore = defineStore("stages", {
     }
   },
   actions: {
+    cmdOrCtrlKey(event) {
+      // Use cmd key on macOS, ctrl key on other platforms
+      return this.os === 'darwin' ? event.metaKey : event.ctrlKey;
+    },
+    
     setStageVisibility(stageName, value) {
       if (this.stages.hasOwnProperty(stageName)) {
         // Check if the modal is already active
@@ -163,7 +170,7 @@ export const useStageStore = defineStore("stages", {
         }
         this.expandedEntities = newExpandedEntities;
       } else {
-        const taskStore = useTaskStore();
+        const assetStore = useAssetStore();
         // Initialize with 0 initially, the actual height will be set by onHeightChange
         this.expandedEntities = {
           ...this.expandedEntities,
@@ -179,7 +186,7 @@ export const useStageStore = defineStore("stages", {
       const id = item.id;
       const untrackedTypes = ["folder", "file"];
 
-      if (event.ctrlKey) {
+      if (this.cmdOrCtrlKey(event)) {
         if (!this.markedItems.includes(id)) {
           this.markedItems.push(id);
           this.selectedItems.push(item);
@@ -262,7 +269,7 @@ export const useStageStore = defineStore("stages", {
         }
       }
 
-      if (event.ctrlKey) {
+      if (this.cmdOrCtrlKey(event)) {
         if (this.markedItems.length === 1 && this.markedItems.includes(id)) {
           return;
         }
@@ -362,8 +369,8 @@ export const useStageStore = defineStore("stages", {
 
     selectItem(item, itemType, solo = false) {
       const panes = usePaneStore();
-      const taskStore = useTaskStore();
-      const entityStore = useEntityStore();
+      const assetStore = useAssetStore();
+      const collectionStore = useCollectionStore();
       const projectStore = useProjectStore();
 
       if (solo) {
@@ -371,15 +378,15 @@ export const useStageStore = defineStore("stages", {
       }
 
       if (itemType === "entity") {
-        entityStore.selectEntity(item);
+        collectionStore.selectCollection(item);
         this.selectedItem = item;
         // panes.setPaneVisibility("collectionDetails", true);
       } else if (itemType === "task") {
-        taskStore.selectTask(item);
+        assetStore.selectAsset(item);
         this.selectedItem = item;
         // panes.setPaneVisibility("assetDetails", true);
       } else if (itemType === "resource") {
-        taskStore.selectTask(item);
+        assetStore.selectAsset(item);
         this.selectedItem = item;
         // panes.setPaneVisibility("assetDetails", true);
       } else {
@@ -391,12 +398,12 @@ export const useStageStore = defineStore("stages", {
     },
 
     deselectAllItems() {
-      const taskStore = useTaskStore();
-      const entityStore = useEntityStore();
+      const assetStore = useAssetStore();
+      const collectionStore = useCollectionStore();
       const projectStore = useProjectStore();
 
-      taskStore.selectedTask = null;
-      entityStore.selectedEntity = null;
+      assetStore.selectedAsset = null;
+      collectionStore.selectedCollection = null;
       projectStore.selectedUntrackedItem = null;
     },
 

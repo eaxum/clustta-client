@@ -38,8 +38,8 @@ import { ref, onMounted, computed } from 'vue';
 import { useProjectStore } from '@/stores/projects';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { TaskService } from "@/../bindings/clustta/services";
-import { useTaskStore } from '@/stores/task';
+import { AssetService } from "@/../bindings/clustta/services";
+import { useAssetStore } from '@/stores/assets';
 import iconData from "@/data/iconData.json";
 
 // components
@@ -53,7 +53,7 @@ const isAwaitingResponse = ref(false);
 
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allTaskTypeIcons = taskStore.taskTypes.map((item) => item.icon);
+  const allTaskTypeIcons = assetStore.assetTypes.map((item) => item.icon);
   return allIcons.filter((icon) => !allTaskTypeIcons.includes(icon))
 })
 
@@ -61,7 +61,7 @@ const icons = computed(() => {
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 
 const taskTypeName = ref('');
 const taskTypeIcon = ref('generic');
@@ -91,11 +91,11 @@ const handleEnterKey = (event) => {
 };
 
 const updateTaskType = () => {
-  TaskService.UpdateTaskType(projectStore.activeProject.uri, taskStore.selectedTaskType.id, taskTypeName.value, taskTypeIcon.value)
+  AssetService.UpdateAssetType(projectStore.activeProject.uri, assetStore.selectedAssetType.id, taskTypeName.value, taskTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification("Task Type Updated", "", "success");
-      const index = taskStore.taskTypes.findIndex(taskType => taskType.id === taskStore.selectedTaskType.id);
-      taskStore.taskTypes[index] = response
+      const index = assetStore.assetTypes.findIndex(taskType => taskType.id === assetStore.selectedAssetType.id);
+      assetStore.assetTypes[index] = response
       closeModal();
     })
     .catch((error) => {
@@ -104,8 +104,8 @@ const updateTaskType = () => {
 };
 
 onMounted(() => {
-  taskTypeName.value = taskStore.selectedTaskType.name;
-  taskTypeIcon.value = taskStore.selectedTaskType.icon;
+  taskTypeName.value = assetStore.selectedAssetType.name;
+  taskTypeIcon.value = assetStore.selectedAssetType.icon;
 })
 
 
@@ -223,3 +223,5 @@ onMounted(() => {
 
 }
 </style>
+
+

@@ -1,5 +1,5 @@
 <template>
-<div class="task-list-container" >
+<div class="checkpoint-list-container" >
 
     <div class="checkpoint-item-skeleton" v-for="(skeleton, index) in skeletonArray" :key="index"  :style="{ animationDelay : `${(skeleton - 1) * 0.2}s` }">
         <div class="checkpoint-item-thumb-skeleton"  >
@@ -175,7 +175,7 @@ opacity: .1;
 border-radius: 10px;
 }
 
-.task-list-container{
+.checkpoint-list-container{
 
   width: 98%;
   height: 100%;
@@ -210,3 +210,4 @@ border-radius: 10px;
   
   
   
+

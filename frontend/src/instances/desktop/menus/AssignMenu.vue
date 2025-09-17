@@ -48,13 +48,13 @@ import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
 // services
-import { TaskService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/../bindings/clustta/services";
 
 // states/store imports
 import { useMenu } from '@/stores/menu';
 import { useStageStore } from '@/stores/stages';
 import { useUserStore } from '@/stores/users';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 
@@ -67,7 +67,7 @@ const userStore = useUserStore();
 const menu = useMenu();
 const stage = useStageStore();
 const notificationStore = useNotificationStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 
@@ -77,7 +77,7 @@ const searchUserInput = ref(null);
 const searchUserTerm = ref('');
 
 // computed properties
-const task = computed(() => { return taskStore.selectedTask });
+const task = computed(() => { return assetStore.selectedAsset });
 const multipleTasks = computed(() => { return stage.markedItems.length > 1 });
 
 const projectCollaborators = computed(() => {
@@ -165,7 +165,7 @@ const assignSingleTask = async (assigneeId) => {
   let taskId = selectedTask.id;
   let user = collaboratorsList.value.find((item) => item.id === assigneeId);
   let userId = user ? user.id : "";
-  await TaskService.AssignTask(projectStore.activeProject.uri, taskId, userId)
+  await AssetService.AssignAsset(projectStore.activeProject.uri, taskId, userId)
     .then(async (data) => {
       // Update local task data
       selectedTask.assignee_id = userId;
@@ -187,7 +187,7 @@ const assignSingleTask = async (assigneeId) => {
 const unassignSingleTask = async () => {
   let selectedTask = task.value;
   let taskId = selectedTask.id;
-  await TaskService.UnassignTask(projectStore.activeProject.uri, taskId)
+  await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId)
     .then(async (data) => {
       selectedTask.assignee_id = null;
       
@@ -209,7 +209,7 @@ const assignMultipleTasks = async (assigneeId) => {
 
   for (const taskId of taskIds) {
     let userId = assigneeId;
-    await TaskService.AssignTask(projectStore.activeProject.uri, taskId, userId)
+    await AssetService.AssignAsset(projectStore.activeProject.uri, taskId, userId)
       .then(async (data) => {
         
         emitTaskUpdates(taskId, [
@@ -231,10 +231,10 @@ const unassignMultipleTasks = async () => {
   let taskIds = stage.markedItems;
 
   for (const taskId of taskIds) {
-    await TaskService.UnassignTask(projectStore.activeProject.uri, taskId)
+    await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId)
       .then(async (data) => {
         // Update local task data
-        let task = taskStore.findTask(taskId);
+        let task = assetStore.findAsset(taskId);
         task.assignee_id = null;
         
         // Emit updates using helper function
@@ -336,3 +336,7 @@ onBeforeUnmount(() => {
   min-height: min-content;
 }
 </style>
+
+
+
+

@@ -39,15 +39,15 @@ import utils from '@/services/utils';
 import { v4 as uuidv4 } from 'uuid';
 
 // store imports
-import { useTaskStore } from '@/stores/task';
-import { useEntityStore } from '@/stores/entity';
+import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
 import { useTemplateStore } from '@/stores/template';
 import { useWorkflowStore } from '@/stores/workflow';
 import { useIconStore } from '@/stores/icons';
 
 // states imports
-const taskStore = useTaskStore();
-const entityStore = useEntityStore();
+const assetStore = useAssetStore();
+const collectionStore = useCollectionStore();
 const templateStore = useTemplateStore();
 const workflowStore = useWorkflowStore();
 const iconStore = useIconStore();
@@ -84,13 +84,13 @@ const workflowTemplateId = ref('');
 
 // computed
 const taskType = computed(() => {
-    const allTaskTypes = taskStore.getTaskTypes;
+    const allTaskTypes = assetStore.getAssetTypes;
     const selectedTaskType = allTaskTypes.find((item) => item.id === taskTypeId.value);
     return selectedTaskType ? selectedTaskType.name : 'Select task type'
 });
 
 const entityType = computed(() => {
-    const allEntityTypes = entityStore.getEntityTypes;
+    const allEntityTypes = collectionStore.getCollectionTypes;
     const selectedEntityType = allEntityTypes.find((item) => item.id === entityTypeId.value);
     return selectedEntityType ? selectedEntityType.name : 'Select collection type'
 });
@@ -121,7 +121,7 @@ const projectWorkflowNames = computed(() => {
 const selectedWorkflowName = ref(projectWorkflowNames.value[0]);
 
 const taskTypeNames = computed(() => {
-    return taskStore.getTaskTypesNames;
+    return assetStore.getAssetTypesNames;
 });
 
 const taskTemplates = computed(() => {
@@ -129,7 +129,7 @@ const taskTemplates = computed(() => {
 });
 
 const entityTypeNames = computed(() => {
-    return entityStore.getEntityTypesNames;
+    return collectionStore.getCollectionTypesNames;
 });
 
 const itemTypes = computed(() => {
@@ -147,7 +147,7 @@ const newWorkflowItemData = computed(() => {
     let data = {};
     if (itemTypeName === 'Task') {
 
-        const allTaskTypes = taskStore.getTaskTypes;
+        const allTaskTypes = assetStore.getAssetTypes;
         const firstTaskType = allTaskTypes[0];
         taskTypeIcon.value = taskTypeIcon.value ? taskTypeIcon.value : firstTaskType.icon;
         taskTypeId.value = taskTypeId.value ? taskTypeId.value : firstTaskType.id;
@@ -166,7 +166,7 @@ const newWorkflowItemData = computed(() => {
         };
     } else if (itemTypeName === 'Collection') {
 
-        const allEntityTypes = entityStore.getEntityTypes;
+        const allEntityTypes = collectionStore.getCollectionTypes;
         const firstEntityType = allEntityTypes[0];
         entityTypeIcon.value = entityTypeIcon.value ? entityTypeIcon.value : firstEntityType.icon;
         entityTypeId.value = entityTypeId.value ? entityTypeId.value : firstEntityType.id;
@@ -245,7 +245,7 @@ const getAppIcon = (iconName) => {
 };
 
 const selectTaskType = (taskTypeName) => {
-    const allTaskTypes = taskStore.getTaskTypes;
+    const allTaskTypes = assetStore.getAssetTypes;
     const selectedTaskType = allTaskTypes.find((item) => item.name === taskTypeName);
 
     taskTypeId.value = selectedTaskType.id;
@@ -253,7 +253,7 @@ const selectTaskType = (taskTypeName) => {
 };
 
 const selectEntityType = (entityTypeName) => {
-    const allEntityTypes = entityStore.getEntityTypes;
+    const allEntityTypes = collectionStore.getCollectionTypes;
     const selectedEntityType = allEntityTypes.find((item) => item.name === entityTypeName);
 
     entityTypeId.value = selectedEntityType.id;

@@ -59,7 +59,7 @@ import { useIconStore } from '@/stores/icons';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 
 // states/stores
 const userStore = useUserStore();
@@ -67,7 +67,7 @@ const trayStates = useTrayStates();
 const menu = useMenu();
 const panes = usePaneStore();
 const stage = useStageStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const commonStore = useCommonStore();
 const iconStore = useIconStore();
 
@@ -368,3 +368,4 @@ const profileColor = (uuid) => {
   /* flex: 1; */
 }
 </style>
+

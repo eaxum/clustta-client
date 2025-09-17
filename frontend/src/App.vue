@@ -14,7 +14,7 @@ import emitter from '@/lib/mitt';
 
 // components
 import ClusttaDesktop from '@/instances/desktop/ClusttaDesktop.vue';
-import { useTaskStore } from './stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from './stores/projects';
 import { SyncService, ProjectService } from "@/../bindings/clustta/services";
 import { System, Window } from "@wailsio/runtime";
@@ -26,7 +26,7 @@ import { useAccountStore } from '@/stores/accounts';
 
 const windowNameTop = ref();
 const projectStore = useProjectStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const menu = useMenu();
@@ -69,7 +69,7 @@ async function updateFileStates() {
         return
     }
     try {
-        await taskStore.refreshDisplayedFilesStatus()
+        await assetStore.refreshDisplayedFilesStatus()
     } catch (err) {
         console.log(err)
         LogService.LogError("error procesing file status: " + err.message)
@@ -95,7 +95,7 @@ async function pullData() {
 }
 
 const operationsActive = computed(() => {
-    return stageStore.operationActive || !!modals.activeModal || !!menu.activeMenu || !taskStore.tasksLoaded || stageStore.activeStage !== 'browser'
+    return stageStore.operationActive || !!modals.activeModal || !!menu.activeMenu || !assetStore.assetsLoaded || stageStore.activeStage !== 'browser'
 });
 
 function startCheckSycnTokenInterval() {
@@ -180,3 +180,5 @@ onMounted(async () => {
 <style scoped>
 @import "@/assets/tray.css";
 </style>
+
+

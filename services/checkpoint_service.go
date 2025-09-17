@@ -1054,3 +1054,27 @@ func (c *CheckpointService) RevertProject(projectPath, remoteUrl string, checkpo
 	app.EmitEvent("progress-update", progress)
 	return nil
 }
+
+func (c *CheckpointService) AddMissingGroupIds(projectPath string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	totalUpdated, totalGroups, err := repository.AddMissingGroupIds(tx)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	output.Message(fmt.Sprintf("Migration completed: Updated %d checkpoints into %d groups (marked as not synced)", totalUpdated, totalGroups))
+
+	tx.Commit()
+	return nil
+}

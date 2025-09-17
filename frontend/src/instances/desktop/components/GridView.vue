@@ -20,18 +20,18 @@ import GridItem from '@/instances/common/components/GridItem.vue';
 // state imports
 import { useMenu } from '@/stores/menu';
 import { useStageStore } from '@/stores/stages';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
 
 // states/stores
 const menu = useMenu();
 const stage = useStageStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const dndStore = useDndStore();
 
@@ -72,7 +72,7 @@ const dragTimer = ref(null);
 const onMouseDown = (event, item, index) => {
     const id = item.id;
 
-    const allItems = entityData.value;
+    const allItems = props.rootItems;
 
     let itemType;
 
@@ -88,7 +88,7 @@ const onMouseDown = (event, item, index) => {
     itemType = item.item_type;
     }
 
-    if(!stage.markedItems.includes(id) || event.ctrlKey){
+    if(!stage.markedItems.includes(id) || stage.cmdOrCtrlKey(event)){
     stage.handleClick(event, item, itemType, allItems);
     }
 
@@ -110,7 +110,7 @@ const onMouseUp = (event, item) => {
 
     const id = item.id;
 
-    const allItems = entityData.value;
+    const allItems = props.rootItems;
 
     let itemType;
 
@@ -126,7 +126,7 @@ const onMouseUp = (event, item) => {
     itemType = item.item_type;
     }
 
-    if (stage.markedItems.includes(id) && !event.ctrlKey) {
+    if (stage.markedItems.includes(id) && !stage.cmdOrCtrlKey(event)) {
     stage.handleClick(event, item, itemType, allItems);
     }
 
@@ -142,88 +142,6 @@ const onDragStart = (e, id) => {
     }
     dndStore.onDragStart(e, id);
 };
-
-const selectedEntity = computed(() => {
-    return entityStore.navigatedEntity
-});
-
-const isUntracked = computed(() => {
-    return selectedEntity.value?.type !== 'entity'
-})
-
-const entityEntities = computed(() => {
-  const entityId = selectedEntity.value?.id;
-  const childEntities = entityStore.getEntityChildren(entityId);
-  return childEntities 
-
-});
-
-const entityTasks = computed(() => {
-  const entityId = selectedEntity.value?.id;
-  return taskStore.getEntityTasks(entityId)?.filter((item) => !item?.is_resource)
-
-});
-
-const entityResources = computed(() => {
-
-  const entityId = selectedEntity.value?.id;
-  return taskStore.getEntityTasks(entityId)?.filter((item) => item.is_resource)
-
-});
-
-const entityUntrackedFiles = computed(() => {
-  if (!commonStore.showChildTasks || !commonStore.showUntracked) {
-    return []
-  }
-  let entityPath
-  if (isUntracked.value) {
-    entityPath = selectedEntity.value?.item_path;
-  } else {
-    entityPath = selectedEntity.value?.entity_path;
-  }
-  const projectUntrackedFiles = projectStore.untrackedFiles;
-
-  let childUntrackedFiles
-  if (isUntracked.value) {
-    childUntrackedFiles = projectUntrackedFiles.filter((item) => item.entity_path && item.entity_path === selectedEntity.value?.item_path);
-  } else {
-
-    childUntrackedFiles = projectUntrackedFiles.filter((item) => item.entity_path && item.entity_path === selectedEntity.value?.entity_path);
-  }
-
-  return childUntrackedFiles;
-
-});
-
-const entityUntrackedFolders = computed(() => {
-  if (!commonStore.showChildEntities || !commonStore.showUntracked) {
-    return []
-  }
-
-  const entityUntrackedFolders = projectStore.untrackedFolders;
-  let childUntrackedFolders
-  if (isUntracked.value) {
-    childUntrackedFolders = entityUntrackedFolders.filter((item) => item.entity_path && item.entity_path === selectedEntity.value?.item_path);
-  } else {
-    childUntrackedFolders = entityUntrackedFolders.filter((item) => item.entity_path && item.entity_path === selectedEntity.value?.entity_path);
-  }
-
-  return childUntrackedFolders;
-
-});
-
-const entityData = computed(() => {
-  const allEntityData = [...entityEntities.value, ...entityUntrackedFolders.value, ...entityTasks.value, ...entityResources.value, ...entityUntrackedFiles.value];
-  const validEntityData = allEntityData.filter((item) => !item?.trashed);
-  const noDependencyData = validEntityData.filter((item) => !item?.is_dependency)
-  return commonStore.showDependencies
-    ? validEntityData
-    : noDependencyData;
-});
-
-const navigatorItemData = computed(() => {
-  return entityStore.navigatedEntity ? entityData.value : props.rootItems;
-})
 
 // methods
 const disableMenu = () => {
@@ -303,3 +221,10 @@ onUnmounted(() => {
 	width: 100%;
 }
 </style>
+
+
+
+
+
+
+

@@ -62,7 +62,7 @@ import { ClipboardService, FSService } from '@/../bindings/clustta/services/inde
 import emitter from '@/lib/mitt';
 
 // services
-import { EntityService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/../bindings/clustta/services";
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -70,7 +70,7 @@ import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
 
@@ -84,7 +84,7 @@ const userStore = useUserStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 
@@ -189,13 +189,13 @@ const deleteProject = async () => {
 };
 
 const rebuildAll = async () => {
-  // let entity = entityStore.selectedEntity;
+  // let entity = collectionStore.selectedCollection;
   menu.hideContextMenu();
   notificationStore.cancleFunction = SyncService.CancelSync
   notificationStore.canCancel = true
-  await EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
+  await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
     .then((data) => {
-      taskStore.refreshEntityFilesStatus("")
+      assetStore.refreshEntityFilesStatus("")
     }).catch(error => {
       console.log(error)
     })
@@ -315,3 +315,6 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
+
+
+

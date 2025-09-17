@@ -89,7 +89,7 @@ import { CheckpointService } from "@/../bindings/clustta/services";
 // stores/state imports
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 
@@ -97,7 +97,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import CheckpointListSkeleton from '@/instances/common/components/CheckpointListSkeleton.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { useProjectStore } from '@/stores/projects';
-import { FSService, TaskService } from '@/../bindings/clustta/services/index';
+import { FSService, AssetService } from '@/../bindings/clustta/services/index';
 
 // props
 const props = defineProps({
@@ -126,7 +126,7 @@ const emit = defineEmits(['refreshCheckpoints', 'update-task-hash', 'update-expa
 const modals = useDesktopModalStore();
 const userStore = useUserStore();
 const trayStates = useTrayStates();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 
@@ -163,7 +163,7 @@ const revertToVersion = (id, checkpointId) => {
         .then((response) => {
             emit('update-task-hash');
             emit('refreshCheckpoints');
-            taskStore.refreshDisplayedFilesStatus()
+            assetStore.refreshDisplayedFilesStatus()
         })
         .catch((error) => {
             console.log(error)
@@ -178,7 +178,7 @@ const revertToVersion = (id, checkpointId) => {
 };
 
 const viewVersion = (id, checkpointId) => {
-    CheckpointService.ViewCheckpoint(projectStore.activeProject.uri, checkpointId, taskStore.selectedTask.name, taskStore.selectedTask.extension)
+    CheckpointService.ViewCheckpoint(projectStore.activeProject.uri, checkpointId, assetStore.selectedAsset.name, assetStore.selectedAsset.extension)
         .then((response) => {
             //console.log(response)
         })
@@ -533,3 +533,6 @@ onBeforeUnmount(() => {
     height: 100%;
 }
 </style>
+
+
+

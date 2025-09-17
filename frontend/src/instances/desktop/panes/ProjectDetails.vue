@@ -122,12 +122,12 @@
 <script setup>
 // imports
 import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue';
-import { SettingsService, ProjectService, SyncService, TaskService } from "@/../bindings/clustta/services";
+import { SettingsService, ProjectService, SyncService, AssetService } from "@/../bindings/clustta/services";
 import { ClipboardService, FSService } from '@/../bindings/clustta/services/index';
 import emitter from '@/lib/mitt';
 
 // services
-import { EntityService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/../bindings/clustta/services";
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -138,8 +138,8 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
 import { useModalStore } from '@/stores/modals';
-import { useEntityStore } from '@/stores/entity';
-import { useTaskStore } from '@/stores/task';
+import { useCollectionStore } from '@/stores/collections';
+import { useAssetStore } from '@/stores/assets';
 import { useCommonStore } from '@/stores/common';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
@@ -156,8 +156,8 @@ const panes = usePaneStore();
 const stage = useStageStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const entityStore = useEntityStore();
-const taskStore = useTaskStore();
+const collectionStore = useCollectionStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const commonStore = useCommonStore();
 const iconStore = useIconStore();
@@ -256,13 +256,13 @@ const deleteProject = async () => {
 };
 
 const rebuildAll = async () => {
-  // let entity = entityStore.selectedEntity;
+  // let entity = collectionStore.selectedCollection;
   menu.hideContextMenu();
   notificationStore.cancleFunction = SyncService.CancelSync
   notificationStore.canCancel = true
-  await EntityService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
+  await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
     .then((data) => {
-      taskStore.refreshEntityFilesStatus("")
+      assetStore.refreshEntityFilesStatus("")
       getProjectData()
     }).catch(error => {
       console.log(error)
@@ -380,12 +380,12 @@ const getClusttaSize = async() => {
 
 const getAssetCount = async() => {
   let project = projectStore.getActiveProject;
-  assetCount.value = await TaskService.GetTaskCount(project.uri);
+  assetCount.value = await AssetService.GetAssetCount(project.uri);
 }
 
 const getCollectionCount = async() => {
   let project = projectStore.getActiveProject;
-  collectionCount.value = await EntityService.GetEntityCount(project.uri);
+  collectionCount.value = await CollectionService.GetCollectionCount(project.uri);
 }
 
 const getProjectData = async () => {
@@ -521,3 +521,8 @@ onBeforeUnmount(() => {
   font-size: 13px;
 }
 </style>
+
+
+
+
+

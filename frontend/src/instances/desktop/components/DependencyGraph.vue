@@ -83,7 +83,7 @@ const getAppIcon = (iconName) => {
 // imports
 import { ref, computed, onMounted, watch, nextTick, markRaw, onUnmounted, reactive } from 'vue'
 import dagre from '@dagrejs/dagre'
-import { TaskService, EntityService } from "@/../bindings/clustta/services";
+import { AssetService, CollectionService } from "@/../bindings/clustta/services";
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
@@ -101,8 +101,8 @@ import '@vue-flow/core/dist/theme-default.css';
 
 // state imports
 import { useCommonStore } from '@/stores/common';
-import { useEntityStore } from '@/stores/entity';
-import { useTaskStore } from '@/stores/task';
+import { useCollectionStore } from '@/stores/collections';
+import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDependencyStore } from '@/stores/dependency';
 import { useTagStore } from '@/stores/tags';
@@ -122,8 +122,8 @@ const dependencyStore = useDependencyStore();
 const tagStore = useTagStore();
 const menu = useMenu();
 const commonStore = useCommonStore();
-const entityStore = useEntityStore();
-const taskStore = useTaskStore();
+const collectionStore = useCollectionStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 
 // refs
@@ -251,7 +251,7 @@ const projectTasks = computed(() => {
 });
 
 const projectData = computed(() => {
-  const selectedTask = taskStore.selectedTask;
+  const selectedTask = assetStore.selectedAsset;
   if (!selectedTask) return [];
   
   const allData = [...projectTasks.value, ...projectEntities.value]
@@ -295,8 +295,8 @@ const fetchSidebarData = async () => {
     
     // Fetch all tasks and entities for the sidebar
     const [tasksResult, entitiesResult] = await Promise.all([
-      TaskService.GetTasks(projectPath),
-      EntityService.GetEntities(projectPath)
+      AssetService.GetAssets(projectPath),
+      CollectionService.GetCollections(projectPath)
     ]);
     
     sidebarTasks.value = tasksResult || [];
@@ -315,7 +315,7 @@ const fetchSidebarData = async () => {
 
 const updateFilteredTasks = async () => {
   try {
-    filteredTasks.value = await taskStore.filterTasks(sidebarTasks.value);
+    filteredTasks.value = await assetStore.filterAssets(sidebarTasks.value);
   } catch (error) {
     console.error("Error filtering tasks:", error);
     filteredTasks.value = [];
@@ -324,7 +324,7 @@ const updateFilteredTasks = async () => {
 
 const updateFilteredEntities = async () => {
   try {
-    filteredEntities.value = await entityStore.filterEntities(sidebarEntities.value);
+    filteredEntities.value = await collectionStore.filterCollections(sidebarEntities.value);
   } catch (error) {
     console.error("Error filtering entities:", error);
     filteredEntities.value = [];
@@ -333,7 +333,7 @@ const updateFilteredEntities = async () => {
 
 const buildGraphFromDependencies = async () => {
   isLoadingGraph.value = true;
-  const selectedTask = taskStore.selectedTask;
+  const selectedTask = assetStore.selectedAsset;
   
   if (!selectedTask) {
     graphData.value = { nodes: [], edges: [] };
@@ -343,7 +343,7 @@ const buildGraphFromDependencies = async () => {
 
   try {
     // Use the new recursive dependencies service with proper depth control
-    const dependencyItems = await TaskService.GetRecursiveDependencies(
+    const dependencyItems = await AssetService.GetRecursiveDependencies(
       projectStore.activeProject.uri, 
       selectedTask.id, 
       maxDepth.value
@@ -510,7 +510,7 @@ watch([showTasks, showEntities], () => {
 });
 
 // Watch for selected task changes and rebuild graph
-watch(() => taskStore.selectedTask, async (newTask) => {
+watch(() => assetStore.selectedAsset, async (newTask) => {
   if (newTask) {
     await buildGraphFromDependencies();
   }
@@ -548,7 +548,7 @@ const selectTask = async (taskId) => {
   if (!task) {
     // If not found in sidebar, try to fetch it from the service
     try {
-      const allTasks = await TaskService.GetTasks(projectStore.activeProject.uri);
+      const allTasks = await AssetService.GetAssets(projectStore.activeProject.uri);
       task = allTasks.find(item => item.id === taskId);
     } catch (error) {
       console.error("Error fetching task:", error);
@@ -558,7 +558,7 @@ const selectTask = async (taskId) => {
   }
   
   if (task) {
-    taskStore.selectTask(task);
+    assetStore.selectAsset(task);
     await fetchSidebarData()
     await buildGraphFromDependencies();
     
@@ -569,12 +569,12 @@ const selectTask = async (taskId) => {
 };
 
 const addDependency = async (dependencyId, itemType) => {
-  const task = taskStore.selectedTask;
+  const task = assetStore.selectedAsset;
   const allDependencies = [...sidebarTasks.value, ...sidebarEntities.value];
 
   let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
   if (itemType === "task") {
-    await TaskService.AddTaskDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+    await AssetService.AddAssetDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
       .then( async(response) => {
         notificationStore.addNotification("Dependency Added", "", "success");
         const addedDependency = allDependencies.find((newDependency) => newDependency.id === dependencyId);
@@ -592,7 +592,7 @@ const addDependency = async (dependencyId, itemType) => {
         notificationStore.errorNotification("Error adding dependencies", error);
       });
   } else {
-    await TaskService.AddEntityDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+    await AssetService.AddEntityDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
       .then( async(response) => {
         notificationStore.addNotification("Dependency Added", "", "success");
         const addedDependency = allDependencies.find((newDependency) => newDependency.id === dependencyId);
@@ -613,9 +613,9 @@ const addDependency = async (dependencyId, itemType) => {
 };
 
 const removeDependency = async (dependencyId, itemType) => {
-  const task = taskStore.selectedTask;
+  const task = assetStore.selectedAsset;
   if (itemType === "task") {
-    await TaskService.RemoveTaskDependency(projectStore.activeProject.uri, task.id, dependencyId)
+    await AssetService.RemoveAssetDependency(projectStore.activeProject.uri, task.id, dependencyId)
       .then(async(response) => {
         notificationStore.addNotification("Dependency Removed", "", "success");
         dependencies.value = dependencies.value.filter(id => id !== dependencyId);
@@ -628,7 +628,7 @@ const removeDependency = async (dependencyId, itemType) => {
         notificationStore.errorNotification("Error removing dependencies", error);
       });
   } else {
-    await TaskService.RemoveEntityDependency(projectStore.activeProject.uri, task.id, dependencyId)
+    await AssetService.RemoveEntityDependency(projectStore.activeProject.uri, task.id, dependencyId)
       .then(async(response) => {
         notificationStore.addNotification("Dependency Removed", "", "success");
         dependencies.value = dependencies.value.filter(id => id !== dependencyId);
@@ -664,7 +664,7 @@ onMounted(async () => {
   await fetchSidebarData();
   
   // Build initial graph if there's a selected task
-  if (taskStore.selectedTask) {
+  if (assetStore.selectedAsset) {
     await buildGraphFromDependencies();
   }
   

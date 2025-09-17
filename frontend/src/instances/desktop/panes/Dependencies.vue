@@ -18,18 +18,18 @@
 <script setup>
 // imports
 import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
-import { TaskService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/../bindings/clustta/services";
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 import { isValidWeblink } from '@/lib/pointer';
 
 // services
-import { EntityService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/../bindings/clustta/services";
 
 // states/store imports
 import { useStageStore } from '@/stores/stages';
 import { useNotificationStore } from '@/stores/notifications';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
 
@@ -42,7 +42,7 @@ import PageState from '@/instances/common/components/PageState.vue';
 // states/stores
 const stage = useStageStore();
 const notificationStore = useNotificationStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 
@@ -60,7 +60,7 @@ const getAppIcon = (iconName) => {
 };
 
 const selectedTask = computed(() => {
-  return taskStore.selectedTask
+  return assetStore.selectedAsset
 });
 
 const goToDependencyGraph = () => {
@@ -79,17 +79,17 @@ const emitTaskUpdates = (taskId, updates) => {
   emitter.emit('update-children', updateData);
 };
 
-watch(() => taskStore.selectedTask, async () => {
+watch(() => assetStore.selectedAsset, async () => {
     getTaskDependencies();
 }, { deep: true });
 
 const getTaskDependencies = async() => {
 	let project = projectStore.activeProject
   let allDependencies;
-  const selectedTaskDependencies = taskStore.selectedTask?.dependencies;
-  const selectedTaskEntityDependencies = taskStore.selectedTask?.entity_dependencies;
+  const selectedTaskDependencies = assetStore.selectedAsset?.dependencies;
+  const selectedTaskEntityDependencies = assetStore.selectedAsset?.entity_dependencies;
   allDependencies = [ ...selectedTaskDependencies, ...selectedTaskEntityDependencies];
-  const children = await TaskService.GetTaskDependencies(project.uri, allDependencies);
+  const children = await AssetService.GetAssetDependencies(project.uri, allDependencies);
 
   for (let i = 0; i < children.length; i++) {
       let item = children[i];
@@ -101,15 +101,15 @@ const getTaskDependencies = async() => {
         extension = utils.getFileExtension(item.pointer).substring(1);
       } else if (!item.is_link) {
         extension = children[i].extension?.toLowerCase().substring(1);
-        if (!taskStore.projectExtensionsFlat.includes(extension)) {
-          taskStore.projectExtensionsFlat.push(extension);
+        if (!assetStore.projectExtensionsFlat.includes(extension)) {
+          assetStore.projectExtensionsFlat.push(extension);
           let extensionData = {
             name: extension,
             type: "extension",
             extension: "." + extension,
             icon: (await iconStore.getIcon(extension)) || "",
           };
-          taskStore.projectExtensions.push(extensionData);
+          assetStore.projectExtensions.push(extensionData);
         }
       }
       let iconPath = "";
@@ -139,13 +139,13 @@ const handleRemoveDependency = (payload) => {
 };
 
 const removeDependency = async (dependencyId, itemType) => {
-  const task = taskStore.selectedTask;
+  const task = assetStore.selectedAsset;
   let selectedTaskDependencies;
   console.log(itemType)
 
   if (itemType === "task") {
     selectedTaskDependencies = task.dependencies;
-    await TaskService.RemoveTaskDependency(projectStore.activeProject.uri, task.id, dependencyId)
+    await AssetService.RemoveAssetDependency(projectStore.activeProject.uri, task.id, dependencyId)
       .then((response) => {
         notificationStore.addNotification("Dependency Removed", "", "success");
         taskDependencies.value = taskDependencies.value.filter((task) => task.id !== dependencyId)
@@ -158,7 +158,7 @@ const removeDependency = async (dependencyId, itemType) => {
       });
   } else {
     selectedTaskDependencies = task.entity_dependencies;
-    await TaskService.RemoveEntityDependency(projectStore.activeProject.uri, task.id, dependencyId)
+    await AssetService.RemoveEntityDependency(projectStore.activeProject.uri, task.id, dependencyId)
       .then((response) => {
         notificationStore.addNotification("Dependency Removed", "", "success");
         taskDependencies.value = taskDependencies.value.filter((task) => task.id !== dependencyId)
@@ -239,3 +239,5 @@ onUnmounted(() => {
   align-items: flex-start;
 }
 </style>
+
+

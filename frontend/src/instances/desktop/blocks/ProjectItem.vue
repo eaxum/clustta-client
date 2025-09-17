@@ -61,10 +61,10 @@ import { useStageStore } from '@/stores/stages';
 import { useUserStore } from '@/stores/users';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useProjectStore } from '@/stores/projects';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 
 // components
@@ -79,10 +79,10 @@ const panes = usePaneStore();
 const stage = useStageStore();
 const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
-const taskStore = useTaskStore();
+const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const commonStore = useCommonStore();
-const entityStore = useEntityStore();
+const collectionStore = useCollectionStore();
 const iconStore = useIconStore();
 
 // props
@@ -486,3 +486,7 @@ onBeforeUnmount(() => {
   color: black;
 }
 </style>
+
+
+
+

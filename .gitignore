@@ -36,3 +36,8 @@ build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
 /_benchmark/output**
 newData*
 clustta.pkg
+internal/LICENSE
+*.provisionprofile
+macappstore-build.sh
+Clustta_template.xml
+build/darwin/clustta.entitlements

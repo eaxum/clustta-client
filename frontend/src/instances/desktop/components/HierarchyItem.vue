@@ -35,7 +35,7 @@
 
       <div v-if="!isHierarchyRoot && !item.is_tracked_parent" class="hierarchy-item-config">
 
-        <DropDownBox v-if="item.entity_type_id" :items="entityStore.getEntityTypesNames" :selectedItem="entityType"
+        <DropDownBox v-if="item.entity_type_id" :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType"
           :onSelect="selectEntityType" :fullWidth="false" />
 
         <DropDownBox v-else :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" :fullWidth="false" />
@@ -70,17 +70,17 @@ import utils from '@/services/utils';
 // state imports
 import { useMenu } from '@/stores/menu';
 import { useDndStore } from '@/stores/dnd';
-import { useTaskStore } from '@/stores/task';
+import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
-import { useEntityStore } from '@/stores/entity';
+import { useCollectionStore } from '@/stores/collections';
 import { useTemplateStore } from '@/stores/template';
 
 // stores
 const menu = useMenu();
 const stage = useStageStore();
 const dndStore = useDndStore();
-const taskStore = useTaskStore();
-const entityStore = useEntityStore();
+const assetStore = useAssetStore();
+const collectionStore = useCollectionStore();
 const templateStore = useTemplateStore();
 
 // components
@@ -128,7 +128,7 @@ const resourceType = computed(() => {
 
 
 const taskTypeNames = computed(() => {
-  return taskStore.getTaskTypesNames.filter((item) => item !== taskType.value);
+  return assetStore.getAssetTypesNames.filter((item) => item !== taskType.value);
 });
 
 const itemTypes = computed(() => {
@@ -264,7 +264,7 @@ const changeItemType = (newItemTypeName) => {
 const selectTaskType = (taskTypeName) => {
 
   let newTaskType;
-  const taskTypes = taskStore.getTaskTypes;
+  const taskTypes = assetStore.getAssetTypes;
   newTaskType = taskTypes.find((item) => item.name === taskTypeName);
 
   let previewData = dndStore.previewData['tasks'];
@@ -284,7 +284,7 @@ const selectTaskType = (taskTypeName) => {
 const selectEntityType = (entityTypeName) => {
 
   let newEntityType;
-  const entityTypes = entityStore.getEntityTypes;
+  const entityTypes = collectionStore.getCollectionTypes;
   newEntityType = entityTypes.find((item) => item.name === entityTypeName);
 
   let previewData = dndStore.previewData['entities'];

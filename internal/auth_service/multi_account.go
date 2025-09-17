@@ -20,8 +20,11 @@ func GetMultiAccountToken() (MultiAccountToken, error) {
 
 	tokenData, err := keyring.Get(service, key)
 	if err != nil {
-		// If multi-account structure doesn't exist, try to migrate from old single token
-		return migrateFromSingleToken()
+		// If multi-account structure doesn't exist, return empty structure
+		return MultiAccountToken{
+			ActiveAccountId: "",
+			Accounts:        make(map[string]Token),
+		}, nil
 	}
 
 	var multiToken MultiAccountToken

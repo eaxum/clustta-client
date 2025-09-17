@@ -17,7 +17,7 @@
 			<div v-if="stage.activeStage === 'dependencies'" class="header-bar-dependencies">
 				<ActionButton :icon="getAppIcon('arrow-left')" @click="goToList()" v-tooltip="'Back'" />
 				<div class="header-area-container" @click="toggleFullTaskPath()">
-					<HeaderArea :title="taskName" :miniDisplay="true" :customIcon="taskStore.selectedTask.icon" />
+					<HeaderArea :title="taskName" :miniDisplay="true" :customIcon="assetStore.selectedAsset.icon" />
 				</div>
 			</div>
 
@@ -61,8 +61,8 @@
 		<div class="header-bar-actions">
 
 			<div class="local-project-actions" v-if="stage.selectedStage === 'browser'">
-				<!-- <ActionButton v-if="userStore.canDo('view_checkpoint')" :icon="getAppIcon('layers')"
-					@click="showProjectCheckpoints()" v-tooltip="'Project Checkpoints'" /> -->
+				<ActionButton v-if="userStore.canDo('view_checkpoint')" :icon="getAppIcon('layers')"
+					@click="showProjectCheckpoints()" v-tooltip="'Project Checkpoints'" />
 				<ActionButton v-if="userStore.canDo('delete_task')" :icon="getAppIcon('trash')" @click="goToTrash()"
 					v-tooltip="'Trash'" />
 				<ActionButton v-if="userStore.canDo('create_task')" :icon="getAppIcon('briefcase-cog')"
@@ -77,7 +77,7 @@
 					:iconAfter="true" v-tooltip="'Revert local changes'" :useBackground="true" label="Revert" />
 
 				<ActionButton v-if="unSynced" :icon="getAppIcon('cloud-up')" :iconAfter="true" :isAlert="unSynced"
-					:useBackground="true" label="Save" @click="syncData" v-tooltip="'Save'" />
+					:useBackground="true" label="Sync" @click="syncData" v-tooltip="'Sync'" />
 
 				<!-- <ActionButton :icon="getAppIcon('bell')" @click="panes.setPaneVisibility('notifications', true)" v-tooltip="'Notifications'"  /> -->
 			</div>
@@ -110,8 +110,8 @@ import { useTrayStates } from '@/stores/TrayStates';
 import { usePaneStore } from '@/stores/panes';
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
-import { useEntityStore } from '@/stores/entity';
-import { useTaskStore } from '@/stores/task';
+import { useCollectionStore } from '@/stores/collections';
+import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
@@ -127,8 +127,8 @@ const trayStates = useTrayStates();
 const projectStore = useProjectStore();
 const panes = usePaneStore();
 const stage = useStageStore();
-const entityStore = useEntityStore();
-const taskStore = useTaskStore();
+const collectionStore = useCollectionStore();
+const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const userStore = useUserStore();
@@ -149,7 +149,7 @@ const getAppIcon = (iconName) => {
 
 // computed properties
 const taskName = computed(() => {
-	const task = taskStore.selectedTask;
+	const task = assetStore.selectedAsset;
 	if (!task) {
 		return
 	}
@@ -232,8 +232,8 @@ const emptyTrash = async () => {
 };
 
 const goToList = () => {
-	if (taskStore.selectedTask) {
-		const taskId = taskStore.selectedTask.id;
+	if (assetStore.selectedAsset) {
+		const taskId = assetStore.selectedAsset.id;
 		stage.markedTasks = [taskId];
 	}
 	stage.setStageVisibility('browser', true);
@@ -251,8 +251,8 @@ const goToProjects = () => {
 
 const showProjectCheckpoints = () => {
 	
-	entityStore.selectedEntity  = null ;
-	taskStore.selectedTask = null ;
+	collectionStore.selectedCollection  = null ;
+	assetStore.selectedAsset = null ;
 	projectStore.selectedUntrackedItem = null;
 
 	if (panes.activeModal !== 'projectCheckpoints' || !panes.showDetailsPane) {
@@ -494,3 +494,8 @@ const goToSettings = () => {
 	width: 400px;
 }
 </style>
+
+
+
+
+
