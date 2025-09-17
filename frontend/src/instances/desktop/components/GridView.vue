@@ -72,7 +72,7 @@ const dragTimer = ref(null);
 const onMouseDown = (event, item, index) => {
     const id = item.id;
 
-    const allItems = entityData.value;
+    const allItems = props.rootItems;
 
     let itemType;
 
@@ -88,7 +88,7 @@ const onMouseDown = (event, item, index) => {
     itemType = item.item_type;
     }
 
-    if(!stage.markedItems.includes(id) || event.ctrlKey){
+    if(!stage.markedItems.includes(id) || stage.cmdOrCtrlKey(event)){
     stage.handleClick(event, item, itemType, allItems);
     }
 
@@ -110,7 +110,7 @@ const onMouseUp = (event, item) => {
 
     const id = item.id;
 
-    const allItems = entityData.value;
+    const allItems = props.rootItems;
 
     let itemType;
 
@@ -126,7 +126,7 @@ const onMouseUp = (event, item) => {
     itemType = item.item_type;
     }
 
-    if (stage.markedItems.includes(id) && !event.ctrlKey) {
+    if (stage.markedItems.includes(id) && !stage.cmdOrCtrlKey(event)) {
     stage.handleClick(event, item, itemType, allItems);
     }
 
@@ -142,88 +142,6 @@ const onDragStart = (e, id) => {
     }
     dndStore.onDragStart(e, id);
 };
-
-const selectedEntity = computed(() => {
-    return collectionStore.navigatedCollection
-});
-
-const isUntracked = computed(() => {
-    return selectedEntity.value?.type !== 'entity'
-})
-
-const entityEntities = computed(() => {
-  const entityId = selectedEntity.value?.id;
-  const childEntities = collectionStore.getEntityChildren(entityId);
-  return childEntities 
-
-});
-
-const entityTasks = computed(() => {
-  const entityId = selectedEntity.value?.id;
-  return assetStore.getEntityAssets(entityId)?.filter((item) => !item?.is_resource)
-
-});
-
-const entityResources = computed(() => {
-
-  const entityId = selectedEntity.value?.id;
-  return assetStore.getEntityAssets(entityId)?.filter((item) => item.is_resource)
-
-});
-
-const entityUntrackedFiles = computed(() => {
-  if (!commonStore.showChildTasks || !commonStore.showUntracked) {
-    return []
-  }
-  let entityPath
-  if (isUntracked.value) {
-    entityPath = selectedEntity.value?.item_path;
-  } else {
-    entityPath = selectedEntity.value?.entity_path;
-  }
-  const projectUntrackedFiles = projectStore.untrackedFiles;
-
-  let childUntrackedFiles
-  if (isUntracked.value) {
-    childUntrackedFiles = projectUntrackedFiles.filter((item) => item.entity_path && item.entity_path === selectedEntity.value?.item_path);
-  } else {
-
-    childUntrackedFiles = projectUntrackedFiles.filter((item) => item.entity_path && item.entity_path === selectedEntity.value?.entity_path);
-  }
-
-  return childUntrackedFiles;
-
-});
-
-const entityUntrackedFolders = computed(() => {
-  if (!commonStore.showChildEntities || !commonStore.showUntracked) {
-    return []
-  }
-
-  const entityUntrackedFolders = projectStore.untrackedFolders;
-  let childUntrackedFolders
-  if (isUntracked.value) {
-    childUntrackedFolders = entityUntrackedFolders.filter((item) => item.entity_path && item.entity_path === selectedEntity.value?.item_path);
-  } else {
-    childUntrackedFolders = entityUntrackedFolders.filter((item) => item.entity_path && item.entity_path === selectedEntity.value?.entity_path);
-  }
-
-  return childUntrackedFolders;
-
-});
-
-const entityData = computed(() => {
-  const allEntityData = [...entityEntities.value, ...entityUntrackedFolders.value, ...entityTasks.value, ...entityResources.value, ...entityUntrackedFiles.value];
-  const validEntityData = allEntityData.filter((item) => !item?.trashed);
-  const noDependencyData = validEntityData.filter((item) => !item?.is_dependency)
-  return commonStore.showDependencies
-    ? validEntityData
-    : noDependencyData;
-});
-
-const navigatorItemData = computed(() => {
-  return collectionStore.navigatedCollection ? entityData.value : props.rootItems;
-})
 
 // methods
 const disableMenu = () => {

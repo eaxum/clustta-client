@@ -2,10 +2,15 @@
   <div ref="taskItem" class="task-item-main" v-return="launchSelectedTask" v-esc="handleEscKey" v-stop-propagation
     :style="commonStore.useGrid ? gridStyles : itemHeightStyles" :class="{
       'task-item-grid': commonStore.useGrid,
-      'task-item-selected': stage.markedItems.includes(task.id) && !isGhost,
-      'task-item-cut': stage.cutItems.map((item) => item.id).includes(task.id) && !isGhost,
-      'task-item-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
-      'task-item-last-selected': stage.lastSelectedItemId === task.id && !isGhost,
+      'task-item-grid-selected': commonStore.useGrid && stage.markedItems.includes(task.id) && !isGhost,
+      'task-item-grid-cut': commonStore.useGrid && stage.cutItems.map((item) => item.id).includes(task.id) && !isGhost,
+      'task-item-grid-only-selected': commonStore.useGrid && stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
+      'task-item-grid-last-selected': commonStore.useGrid && stage.lastSelectedItemId === task.id && !isGhost,
+      
+      'task-item-selected': !commonStore.useGrid && stage.markedItems.includes(task.id) && !isGhost,
+      'task-item-cut': !commonStore.useGrid && stage.cutItems.map((item) => item.id).includes(task.id) && !isGhost,
+      'task-item-only-selected': !commonStore.useGrid && stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
+      'task-item-last-selected': !commonStore.useGrid && stage.lastSelectedItemId === task.id && !isGhost,
       'task-item-child': task.parent_id,
       'drop-zone-hovered': isHovered
     }" @dblclick="launchTaskCommand()">
@@ -883,6 +888,28 @@ onBeforeUnmount(() => {
   padding-left: 0px;
   outline: none;
   background-color: transparent;
+}
+
+.task-item-grid-selected {
+  outline: 1px solid rgb(255, 255, 255);
+  outline-offset: -1.5px;
+  background-color: var(--blue-steel);
+}
+
+.task-item-grid-cut {
+  opacity: .5;
+}
+
+.task-item-grid-last-selected {
+  outline: 1px solid rgb(255, 255, 255);
+  outline-offset: -1.5px;
+  background-color: var(--solid-blue-steel);
+}
+
+.task-item-grid-only-selected {
+  outline: 1px solid rgb(255, 255, 255);
+  outline-offset: -1.5px;
+  background-color: var(--solid-blue-steel);
 }
 
 .main-task-item-grid {

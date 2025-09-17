@@ -98,7 +98,7 @@ const onMouseDown = (event, item, index) => {
     itemType = item.item_type;
   }
 
-  if(!stage.markedItems.includes(id) || event.ctrlKey){
+  if(!stage.markedItems.includes(id) || stage.cmdOrCtrlKey(event)){
     stage.handleClick(event, item, itemType, allItems);
   }
 
@@ -137,7 +137,7 @@ const onMouseUp = (event, item) => {
     itemType = item.item_type;
   }
 
-  if (stage.markedItems.includes(id) && !event.ctrlKey) {
+  if (stage.markedItems.includes(id) && !stage.cmdOrCtrlKey(event)) {
     stage.handleClick(event, item, itemType, allItems);
   }
 
