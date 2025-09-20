@@ -6,6 +6,6 @@ docker compose -f ./cmd/studio_server/compose.yml up -d
 protoc --go_out=. .\internal\repository\schema.proto
 pbjs -t static-module -w es6 --keep-case -o .\frontend\src\lib\repositorypb.js .\internal\repository\schema.proto
 
-docker build -f .\cmd\studio_server\Dockerfile -t clustta/clustta:latest -t clustta/clustta:0.3.60 .
+docker build -f .\cmd\studio_server\Dockerfile -t clustta/clustta:latest -t clustta/clustta:0.3.61 .
 
 MsixPackagingTool.exe create-package --template ".\Clustta_template.xml" -v

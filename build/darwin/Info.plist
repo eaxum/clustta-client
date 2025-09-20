@@ -10,13 +10,13 @@
         <key>CFBundleIdentifier</key>
         <string>com.clustta.clustta</string>
         <key>CFBundleVersion</key>
-        <string>0.3.604</string>
+        <string>0.3.610</string>
         <key>ITSAppUsesNonExemptEncryption</key>
         <false/>
         <key>CFBundleGetInfoString</key>
         <string>This is a comment</string>
         <key>CFBundleShortVersionString</key>
-        <string>0.3.600</string>
+        <string>0.3.610</string>
         <key>CFBundleIconFile</key>
         <string>icons</string>
         <key>LSMinimumSystemVersion</key>

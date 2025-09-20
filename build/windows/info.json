@@ -1,10 +1,10 @@
 {
 	"fixed": {
-		"file_version": "0.3.60"
+		"file_version": "0.3.61"
 	},
 	"info": {
 		"0000": {
-			"ProductVersion": "0.3.60",
+			"ProductVersion": "0.3.61",
 			"CompanyName": "Eaxum LLC",
 			"FileDescription": "Clustta",
 			"LegalCopyright": "© 2025, Eaxum LLC",
