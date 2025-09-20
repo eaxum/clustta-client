@@ -99,3 +99,11 @@ func (a *AuthService) DeactivateUserAccount() error {
 func (a *AuthService) SendInvitationEmail(email, studioName, projectName string) error {
 	return auth_service.SendInvitationEmail(email, studioName, projectName)
 }
+
+func (a *AuthService) VerifyOTP(email, token string) error {
+	return auth_service.VerifyOTP(email, token)
+}
+
+func (a *AuthService) ResendToken(email string) error {
+	return auth_service.ResendToken(email)
+}
