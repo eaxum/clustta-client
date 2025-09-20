@@ -41,3 +41,4 @@ internal/LICENSE
 macappstore-build.sh
 Clustta_template.xml
 build/darwin/clustta.entitlements
+*.mjs

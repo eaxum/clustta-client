@@ -8,8 +8,9 @@
     </div>
 
     <div v-else class="auth-guard-root">
-        <SignUp v-if="showSignUp" @toggle-login="toggleLogin" />
-        <Login  v-else @toggle-login="toggleLogin"  />
+        <SignUp v-if="showSignUp" @toggle-login="toggleLogin" @signup-success="showVerification" />
+        <VerifyEmail v-else-if="showVerifyEmail" :user-email="userEmail" @toggle-login="hideVerification" @verification-success="onVerificationSuccess" />
+        <Login v-else @toggle-login="toggleLogin" />
         <InfoBar />
     </div>
 </template>
@@ -21,6 +22,7 @@ import { ref, onBeforeMount, onBeforeUnmount } from 'vue';
 // components
 import Login from '@/instances/desktop/pages/Login.vue'
 import SignUp from '@/instances/desktop/pages/SignUp.vue'
+import VerifyEmail from '@/instances/desktop/pages/VerifyEmail.vue'
 import InfoBar from '@/instances/desktop/components/InfoBar.vue'
 
 // services
@@ -38,11 +40,37 @@ const modals = useDesktopModalStore();
 
 // refs
 const showSignUp = ref(false);
+const showVerifyEmail = ref(false);
 const isCheckingAuth = ref(true);
+const userEmail = ref('');
 
 // methods
 const toggleLogin = () => {
     showSignUp.value = !showSignUp.value;
+    showVerifyEmail.value = false; // Hide verify account when toggling
+}
+
+const showVerification = (email) => {
+    showSignUp.value = false;
+    showVerifyEmail.value = true;
+    userEmail.value = email;
+}
+
+const hideVerification = () => {
+    showVerifyEmail.value = false;
+}
+
+const onVerificationSuccess = async () => {
+    showVerifyEmail.value = false;
+    userStore.isUserAuthenticated = true;
+    
+    await projectStore.loadStudios();
+    let projectDirectoryExists = await SettingsService.GetProjectDirectory();
+    if(projectDirectoryExists){
+      await projectStore.loadProjects();
+    } else {
+      setDirectories();
+    }
 }
 
 const setDirectories = async () => {
@@ -177,6 +205,7 @@ onBeforeUnmount(() => {
 
 .auth-form-container {
   padding: 1rem;
+  box-sizing: border-box;
   width: 100%;
   max-width: 480px;
 }
@@ -200,6 +229,11 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 0px;
   width: 100%;
+  /* background-color: forestgreen; */
+  align-items: center;
+  /* padding: .2rem; */
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .toggle-button {
@@ -316,10 +350,6 @@ onBeforeUnmount(() => {
   height: 50px;
   border-radius: var(--normal-radius);
   padding: 0.75rem;
-}
-
-.input-short {
-  /* Retained because it's used in the template */
 }
 
 .submit-button {

@@ -145,7 +145,7 @@ const notificationStore = useNotificationStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 
-const emit = defineEmits(['toggle-login']);
+const emit = defineEmits(['toggle-login', 'signup-success']);
 
 // refs
 const isPasswordVisible = ref(false);
@@ -338,35 +338,27 @@ const handleRegister = async () => {
   try {
     if (registerForm.password !== registerForm.confirm_password) {
       error.value = 'Passwords do not match'
+      isAwaitingResponse.value = false;
       return
     }
 
     await AuthService.Register(registerForm.first_name, registerForm.last_name, registerForm.username, registerForm.email, registerForm.password, registerForm.confirm_password)
     .then(async (data) => {
+      // Registration successful, emit signup-success to trigger verification flow
+      notificationStore.addNotification("Registration Successful", "Please check your email for a verification code.", "success");
+      emit('signup-success', registerForm.email);
+      isAwaitingResponse.value = false;
     }).catch((error) => {
+      console.log(error);
+      isAwaitingResponse.value = false;
+      notificationStore.errorNotification("Registration Failed", error.message || "Registration failed. Please try again.");
       return
     })
 
-    await AuthService.Login(registerForm.username, registerForm.password)
-      .then(async (data) => {
-        
-        showEula();
-        userStore.user = data.user
-        userStore.isUserAuthenticated = true
-        await projectStore.loadStudios();
-        await projectStore.loadProjects();
-        trayStates.refreshData();
-      })
-      .catch((error) => {
-        console.log(error)
-        isAwaitingResponse.value = false;
-        notificationStore.errorNotification("Error Loggin In", error)
-      });
-
   } catch (err) {
     error.value = err.response?.data?.message || 'Registration failed'
+    isAwaitingResponse.value = false;
   }
-  isAwaitingResponse.value = false;
 };
 
 onMounted(() => {
