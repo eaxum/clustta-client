@@ -122,7 +122,7 @@ const isLoginFormFilled = computed(() => {
 });
 
 // emits
-const emit = defineEmits(['toggle-login']);
+const emit = defineEmits(['toggle-login', 'show-verification']);
 
 // methods
 const getAppIcon = (iconName) => {
@@ -138,19 +138,7 @@ const hidePassword = () => {
   isPasswordVisible.value = false
 };
 
-const eulaAccepted = ref(false);
 const projectDirectoryExists = ref(false);
-
-const showEula = async () => {
-
-  projectDirectoryExists.value = await SettingsService.GetProjectDirectory();
-  projectStore.projectsLoaded = !projectDirectoryExists.value;
-  eulaAccepted.value = await SettingsService.GetEulaAccepted();
-
-  if(eulaAccepted.value) return
-	modals.setModalVisibility('eulaModal', true);
-
-};
 
 const toggleLogin = () => {
   emit('toggle-login')
@@ -158,12 +146,12 @@ const toggleLogin = () => {
 
 const handleLogin = async () => {
   isAwaitingResponse.value = true;
+  error.value = '';
+  
   await AuthService.Login(loginForm.email, loginForm.password)
     .then(async (data) => {
       userStore.user = data.user;
       userStore.isUserAuthenticated = true;
-
-      // await showEula();
 
       await themeStore.initializeTheme();
       await projectStore.loadStudios();
@@ -179,9 +167,21 @@ const handleLogin = async () => {
 
     })
     .catch((error) => {
-      console.log(error)
+      console.log(error);
       isAwaitingResponse.value = false;
-      notificationStore.errorNotification("Error Loggin In", error)
+      
+      // Check if error indicates user needs verification
+      const errorMessage = error.message || error.toString();
+      const isUnverifiedUser = errorMessage.toLowerCase().includes('please verify your email before logging in');
+      
+      if (isUnverifiedUser) {
+        notificationStore.addNotification("Verification Required", "Please verify your account to continue.", "info");
+        emit('show-verification', { email: loginForm.email, password: loginForm.password });
+      } else {
+        // Handle other login errors normally
+        error.value = errorMessage;
+        notificationStore.errorNotification("Error Logging In", errorMessage);
+      }
     });
 };
 

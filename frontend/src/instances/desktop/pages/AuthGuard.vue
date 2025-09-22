@@ -8,8 +8,9 @@
     </div>
 
     <div v-else class="auth-guard-root">
-        <SignUp v-if="showSignUp" @toggle-login="toggleLogin" />
-        <Login  v-else @toggle-login="toggleLogin"  />
+        <SignUp v-if="showSignUp" @toggle-login="toggleLogin" @signup-success="showVerification" />
+        <VerifyEmail v-else-if="showVerifyEmail" :user-email="userEmail" :user-password="userPassword" @toggle-login="hideVerification" @verification-success="onVerificationSuccess" />
+        <Login v-else @toggle-login="toggleLogin" @show-verification="showVerificationFromLogin" />
         <InfoBar />
     </div>
 </template>
@@ -21,6 +22,7 @@ import { ref, onBeforeMount, onBeforeUnmount } from 'vue';
 // components
 import Login from '@/instances/desktop/pages/Login.vue'
 import SignUp from '@/instances/desktop/pages/SignUp.vue'
+import VerifyEmail from '@/instances/desktop/pages/VerifyEmail.vue'
 import InfoBar from '@/instances/desktop/components/InfoBar.vue'
 
 // services
@@ -38,11 +40,55 @@ const modals = useDesktopModalStore();
 
 // refs
 const showSignUp = ref(false);
+const showVerifyEmail = ref(false);
 const isCheckingAuth = ref(true);
+const userEmail = ref('');
+const userPassword = ref('');
 
 // methods
 const toggleLogin = () => {
     showSignUp.value = !showSignUp.value;
+    showVerifyEmail.value = false; // Hide verify account when toggling
+}
+
+const showVerification = (credentials) => {
+    showSignUp.value = false;
+    showVerifyEmail.value = true;
+    userEmail.value = credentials.email;
+    userPassword.value = credentials.password;
+}
+
+const showVerificationFromLogin = async (credentials) => {
+    showSignUp.value = false;
+    showVerifyEmail.value = true;
+    userEmail.value = credentials.email;
+    userPassword.value = credentials.password;
+    
+    // Automatically resend verification token for login attempts
+    try {
+        await AuthService.ResendToken(credentials.email);
+        // The notification will be handled by the VerifyEmail component
+    } catch (error) {
+        console.log("Failed to resend token:", error);
+        // Continue anyway as user might still have a valid token
+    }
+}
+
+const hideVerification = () => {
+    showVerifyEmail.value = false;
+}
+
+const onVerificationSuccess = async () => {
+    showVerifyEmail.value = false;
+    userStore.isUserAuthenticated = true;
+    
+    await projectStore.loadStudios();
+    let projectDirectoryExists = await SettingsService.GetProjectDirectory();
+    if(projectDirectoryExists){
+      await projectStore.loadProjects();
+    } else {
+      setDirectories();
+    }
 }
 
 const setDirectories = async () => {
@@ -171,12 +217,15 @@ onBeforeUnmount(() => {
   text-align: left;
   color: var(--white);
   height: max-content;
+  min-width: 330px;
   width: 100%;
   text-wrap: wrap;
+  /* background-color: crimson; */
 }
 
 .auth-form-container {
   padding: 1rem;
+  box-sizing: border-box;
   width: 100%;
   max-width: 480px;
 }
@@ -200,6 +249,11 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 0px;
   width: 100%;
+  /* background-color: forestgreen; */
+  align-items: center;
+  /* padding: .2rem; */
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .toggle-button {
@@ -316,10 +370,6 @@ onBeforeUnmount(() => {
   height: 50px;
   border-radius: var(--normal-radius);
   padding: 0.75rem;
-}
-
-.input-short {
-  /* Retained because it's used in the template */
 }
 
 .submit-button {
