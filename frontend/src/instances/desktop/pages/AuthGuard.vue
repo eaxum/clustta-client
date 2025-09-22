@@ -9,8 +9,8 @@
 
     <div v-else class="auth-guard-root">
         <SignUp v-if="showSignUp" @toggle-login="toggleLogin" @signup-success="showVerification" />
-        <VerifyEmail v-else-if="showVerifyEmail" :user-email="userEmail" @toggle-login="hideVerification" @verification-success="onVerificationSuccess" />
-        <Login v-else @toggle-login="toggleLogin" />
+        <VerifyEmail v-else-if="showVerifyEmail" :user-email="userEmail" :user-password="userPassword" @toggle-login="hideVerification" @verification-success="onVerificationSuccess" />
+        <Login v-else @toggle-login="toggleLogin" @show-verification="showVerificationFromLogin" />
         <InfoBar />
     </div>
 </template>
@@ -43,6 +43,7 @@ const showSignUp = ref(false);
 const showVerifyEmail = ref(false);
 const isCheckingAuth = ref(true);
 const userEmail = ref('');
+const userPassword = ref('');
 
 // methods
 const toggleLogin = () => {
@@ -50,10 +51,27 @@ const toggleLogin = () => {
     showVerifyEmail.value = false; // Hide verify account when toggling
 }
 
-const showVerification = (email) => {
+const showVerification = (credentials) => {
     showSignUp.value = false;
     showVerifyEmail.value = true;
-    userEmail.value = email;
+    userEmail.value = credentials.email;
+    userPassword.value = credentials.password;
+}
+
+const showVerificationFromLogin = async (credentials) => {
+    showSignUp.value = false;
+    showVerifyEmail.value = true;
+    userEmail.value = credentials.email;
+    userPassword.value = credentials.password;
+    
+    // Automatically resend verification token for login attempts
+    try {
+        await AuthService.ResendToken(credentials.email);
+        // The notification will be handled by the VerifyEmail component
+    } catch (error) {
+        console.log("Failed to resend token:", error);
+        // Continue anyway as user might still have a valid token
+    }
 }
 
 const hideVerification = () => {
@@ -199,8 +217,10 @@ onBeforeUnmount(() => {
   text-align: left;
   color: var(--white);
   height: max-content;
+  min-width: 330px;
   width: 100%;
   text-wrap: wrap;
+  /* background-color: crimson; */
 }
 
 .auth-form-container {

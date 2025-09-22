@@ -45,14 +45,11 @@
             </div>
 
             <!-- submit button -->
-            <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isVerificationFormFilled }">
-              <div v-if="!isAwaitingResponse">
-                Verify Account
+              <div v-if="isAwaitingResponse" class="loading-section">
+                <div class="submit-button-icon loading-icon">
+                  <img src="/icons/loading.svg" />
+                </div>
               </div>
-              <div v-else class="submit-button-icon loading-icon">
-                <img src="/icons/loading.svg" />
-              </div>
-            </button>
 
           </form>
 
@@ -65,12 +62,7 @@
 
         <!-- toggle -->
         <div class="verification-actions">
-          <div @click="toggleLogin" class="toggle-container">
-              Back to login
-              <div class="bold">
-                Login 🔐
-              </div>
-          </div>
+          
           
           <div @click="handleResendToken" class="resend-container" :class="{ 'disabled': isResendDisabled }">
               <span v-if="!isResendingToken">Resend Code</span>
@@ -78,6 +70,12 @@
                 <img src="/icons/loading.svg" />
               </div>
           </div>
+          
+
+          <div @click="toggleLogin" class="toggle-container bold">
+              Back to Login 🔐
+          </div>
+
         </div>
 
       </div>
@@ -88,10 +86,20 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
-import { AuthService } from "@/../bindings/clustta/services";
+import { AuthService, SettingsService } from "@/../bindings/clustta/services";
 import { useNotificationStore } from '@/stores/notifications';
+import { useUserStore } from '@/stores/users';
+import { useProjectStore } from '@/stores/projects';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useThemeStore } from '@/stores/theme';
+import { useDesktopModalStore } from '@/stores/desktopModals';
 
 const notificationStore = useNotificationStore();
+const userStore = useUserStore();
+const projectStore = useProjectStore();
+const trayStates = useTrayStates();
+const themeStore = useThemeStore();
+const modals = useDesktopModalStore();
 
 // refs
 const error = ref('');
@@ -127,6 +135,10 @@ const props = defineProps({
   userEmail: {
     type: String,
     required: true
+  },
+  userPassword: {
+    type: String,
+    required: true
   }
 });
 
@@ -149,6 +161,14 @@ const handleDigitInput = (index, event) => {
     if (nextInput) {
       nextInput.focus();
     }
+  }
+  
+  // Auto-trigger verification if this is the last digit and form is complete
+  if (value && index === 5 && isVerificationFormFilled.value) {
+    // Small delay to ensure UI updates before verification
+    setTimeout(() => {
+      handleVerification();
+    }, 100);
   }
 };
 
@@ -212,7 +232,32 @@ const handleVerification = async () => {
     const token = fullToken.value;
     await AuthService.VerifyOTP(props.userEmail, token);
     notificationStore.addNotification("Account Verified", "Your account has been successfully verified!", "success");
-    emit('verification-success');
+    
+    // Auto-login the user after successful verification
+    try {
+      const loginData = await AuthService.Login(props.userEmail, props.userPassword);
+      userStore.user = loginData.user;
+      userStore.isUserAuthenticated = true;
+
+      await themeStore.initializeTheme();
+      await projectStore.loadStudios();
+
+      const projectDirectoryExists = await SettingsService.GetProjectDirectory();
+
+      if(projectDirectoryExists){
+        await projectStore.loadProjects();
+        trayStates.refreshData();
+      } else {
+        modals.setModalVisibility('dirOnboardModal', true);
+      }
+
+      emit('verification-success');
+      
+    } catch (loginError) {
+      console.log("Auto-login failed:", loginError);
+      notificationStore.errorNotification("Login Failed", "Verification successful but auto-login failed. Please try logging in manually.");
+      emit('verification-success');
+    }
     
   } catch (error) {
     console.log(error);
@@ -270,11 +315,24 @@ onMounted(async () => {
 <style scoped>
 @import "@/assets/desktop.css";
 
+.loading-section{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.loading-icon{
+  width: 30px;
+  height: 30px;
+}
+
 .auth-subheader {
   font-family: 'Inter', sans-serif;
   font-size: 1rem;
   font-weight: 300;
-  color: var(--light-gray);
+  color: var(--silver);
   margin-top: 0.5rem;
   text-align: left;
   width: 100%;

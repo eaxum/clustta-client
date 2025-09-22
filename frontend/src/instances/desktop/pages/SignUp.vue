@@ -346,7 +346,7 @@ const handleRegister = async () => {
     .then(async (data) => {
       // Registration successful, emit signup-success to trigger verification flow
       notificationStore.addNotification("Registration Successful", "Please check your email for a verification code.", "success");
-      emit('signup-success', registerForm.email);
+      emit('signup-success', { email: registerForm.email, password: registerForm.password });
       isAwaitingResponse.value = false;
     }).catch((error) => {
       console.log(error);
