@@ -105,6 +105,15 @@ export function Register(firstName, lastName, username, email, password, confirm
 
 /**
  * @param {string} email
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function ResendToken(email) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1440561671, email));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} email
  * @param {string} studioName
  * @param {string} projectName
  * @returns {Promise<void> & { cancel(): void }}
@@ -136,6 +145,16 @@ export function UpdateUser(firstName, lastName, username, email) {
  */
 export function UpdateUserPhoto(photo) {
     let $resultPromise = /** @type {any} */($Call.ByID(3282740197, photo));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} email
+ * @param {string} token
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function VerifyOTP(email, token) {
+    let $resultPromise = /** @type {any} */($Call.ByID(8704593, email, token));
     return $resultPromise;
 }
 
