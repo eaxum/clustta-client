@@ -331,7 +331,7 @@ func PullChunks(ctx context.Context, projectPath, remoteUrl string, chunkInfos [
 					return fmt.Errorf("error writing chunks: %s", err.Error())
 				}
 				processedChunks += chunkInfo.Size
-				message := fmt.Sprintf("Pulling data %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
+				message := fmt.Sprintf("Receiving %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
 				callback(processedChunks, totalChunksSize, message, "")
 			} else if responseCode == 400 {
 				body, err := io.ReadAll(response.Body)
@@ -369,7 +369,7 @@ func PullChunks(ctx context.Context, projectPath, remoteUrl string, chunkInfos [
 				return err
 			}
 			processedChunks += chunkInfo.Size
-			message := fmt.Sprintf("Pulling data %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
+			message := fmt.Sprintf("Receiving %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
 			callback(processedChunks, totalChunksSize, message, "")
 		}
 	}
@@ -475,7 +475,7 @@ func processTLVStream(ctx context.Context, projectPath string, r io.Reader, down
 		if chunksCountMap[hex.EncodeToString(tag)] > 1 {
 			savedSize += size * (chunksCountMap[hex.EncodeToString(tag)] - 1)
 		}
-		message := fmt.Sprintf("Pulling data %s/%s", utils.BytesToHumanReadable(downloadedSize), utils.BytesToHumanReadable(totalSize))
+		message := fmt.Sprintf("Receiving %s/%s", utils.BytesToHumanReadable(downloadedSize), utils.BytesToHumanReadable(totalSize))
 		extraMessage := ""
 
 		dataSavedPercentage := 0.0
@@ -531,7 +531,7 @@ func ProcessDownloadedChunksProgress(ctx context.Context, projectPath, remoteUrl
 		}
 		downloadedSize += size * count
 
-		message := fmt.Sprintf("Pulling data %s/%s", utils.BytesToHumanReadable(downloadedSize), utils.BytesToHumanReadable(totalSize))
+		message := fmt.Sprintf("Receiving %s/%s", utils.BytesToHumanReadable(downloadedSize), utils.BytesToHumanReadable(totalSize))
 		extraMessage := ""
 
 		// dataSavedPercentage := 0.0
@@ -646,7 +646,7 @@ func PushChunks(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []Chunk
 			responseCode := response.StatusCode
 			if responseCode == 200 {
 				processedChunks += chunkInfo.Size
-				message := fmt.Sprintf("Pushing Data %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
+				message := fmt.Sprintf("Sending %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
 				callback(processedChunks, totalChunksSize, message, "")
 			} else if responseCode == 400 {
 				body, err := io.ReadAll(response.Body)
@@ -655,7 +655,7 @@ func PushChunks(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []Chunk
 				}
 				return errors.New(string(body))
 			} else {
-				return errors.New("unknown error while pushing chunks")
+				return errors.New("unknown error while sending chunks")
 			}
 		}
 	} else if utils.FileExists(remoteUrl) {
@@ -684,7 +684,7 @@ func PushChunks(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []Chunk
 				return err
 			}
 			processedChunks += chunkInfo.Size
-			message := fmt.Sprintf("Pushing Data %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
+			message := fmt.Sprintf("Sending %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
 			callback(processedChunks, totalChunksSize, message, "")
 		}
 		err = remoteTx.Commit()
@@ -737,13 +737,13 @@ func PushChunksBatch(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []
 				for _, chunk := range batch {
 					processedChunks += chunk.Size
 				}
-				message := fmt.Sprintf("Pushing Data %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
+				message := fmt.Sprintf("Sending %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
 				callback(processedChunks, totalChunksSize, message, "")
 			} else if resp.StatusCode == 400 {
 				body, _ := io.ReadAll(resp.Body)
 				return errors.New(string(body))
 			} else {
-				return fmt.Errorf("unknown error while pushing chunks, status: %d", resp.StatusCode)
+				return fmt.Errorf("unknown error while sending chunks, status: %d", resp.StatusCode)
 			}
 			return nil
 		}
@@ -810,7 +810,7 @@ func PushChunksBatch(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []
 				return err
 			}
 			processedChunks += chunkInfo.Size
-			message := fmt.Sprintf("Pushing Data %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
+			message := fmt.Sprintf("Sending %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
 			callback(processedChunks, totalChunksSize, message, "")
 		}
 		if err = remoteTx.Commit(); err != nil {

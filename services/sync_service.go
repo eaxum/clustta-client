@@ -214,7 +214,7 @@ func (s *SyncService) SyncData(projectPath, remoteURL string, pullChunk bool, sy
 		return errors.New("operation cancelled")
 	case progressChan <- output.ProgressReport{
 		Title:      "Syncing",
-		Message:    "Pushing Data",
+		Message:    "Sending",
 		Percentage: 0,
 		Current:    1,
 		Total:      2,
@@ -268,7 +268,7 @@ func (s *SyncService) SyncData(projectPath, remoteURL string, pullChunk bool, sy
 		return errors.New("operation cancelled")
 	case progressChan <- output.ProgressReport{
 		Title:      "Syncing",
-		Message:    "Pulling Data",
+		Message:    "Receiving",
 		Percentage: 0,
 		Current:    2,
 		Total:      2,
@@ -300,7 +300,7 @@ func (s *SyncService) SyncData(projectPath, remoteURL string, pullChunk bool, sy
 		close(progressChan)
 		return errors.New("sync operation cancelled before pull")
 	case progressChan <- output.ProgressReport{
-		Message:    "Pulling Data",
+		Message:    "Receiving",
 		Current:    2,
 		Total:      2,
 		Percentage: 0,
@@ -384,7 +384,7 @@ func (s *SyncService) PullLatestCheckpoints(projectPath, remoteURL string) error
 		return errors.New("operation cancelled")
 	case progressChan <- output.ProgressReport{
 		Title:      "Syncing",
-		Message:    "Pushing Data",
+		Message:    "Sending",
 		Percentage: 0,
 		Current:    1,
 		Total:      1,
@@ -416,7 +416,7 @@ func (s *SyncService) PullLatestCheckpoints(projectPath, remoteURL string) error
 		close(progressChan)
 		return errors.New("sync operation cancelled before pull")
 	case progressChan <- output.ProgressReport{
-		Message:    "Pulling Data",
+		Message:    "Receiving",
 		Current:    1,
 		Total:      1,
 		Percentage: 0,
@@ -476,7 +476,7 @@ func (s *SyncService) PullData(projectPath string, remoteURL string, pullChunk b
 	}
 	progress := output.ProgressReport{
 		Title:      "Syncing",
-		Message:    "Pulling Data",
+		Message:    "Receiving",
 		Percentage: 0,
 		Current:    1,
 		Total:      1,
@@ -517,8 +517,8 @@ func (s *SyncService) PushCheckpoints(projectPath string, remoteURL string, pull
 		return err
 	}
 	progress := output.ProgressReport{
-		Title:      "Pushing",
-		Message:    "Pushing Data",
+		Title:      "Sending",
+		Message:    "Sending",
 		Percentage: 0,
 		Current:    1,
 		Total:      1,
@@ -627,7 +627,7 @@ func (s *SyncService) DownloadCheckpoint(projectPath, remoteURL, checkpointId st
 	close(progressChan)
 	progress := output.ProgressReport{
 		Title:      "Downloading Checkpoint",
-		Message:    "Pulling Data",
+		Message:    "Receiving",
 		Percentage: 100,
 		Current:    1,
 		Total:      1,
