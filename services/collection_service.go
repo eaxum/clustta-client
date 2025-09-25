@@ -634,7 +634,7 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 	close(progressChan)
 	progress := output.ProgressReport{
 		Title:      "Downloading Checkpoint",
-		Message:    "Pulling Data",
+		Message:    "Receiving",
 		Percentage: 100,
 		Current:    1,
 		Total:      1,

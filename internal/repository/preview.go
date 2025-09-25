@@ -216,7 +216,7 @@ func PullPreviews(tx *sqlx.Tx, remoteUrl string, previewHashes []string, callbac
 					return fmt.Errorf("error writing preview: %s", err.Error())
 				}
 				processedPreviews++
-				message := fmt.Sprintf("Pulling Preview %d/%d", processedPreviews, totalPreviews)
+				message := fmt.Sprintf("Receiving previews %d/%d", processedPreviews, totalPreviews)
 				callback(processedPreviews, totalPreviews, message, "")
 			} else if responseCode == 400 {
 				body, err := io.ReadAll(response.Body)
@@ -255,7 +255,7 @@ func PullPreviews(tx *sqlx.Tx, remoteUrl string, previewHashes []string, callbac
 				return err
 			}
 			processedPreviews++
-			message := fmt.Sprintf("Pulling Preview %d/%d", processedPreviews, totalPreviews)
+			message := fmt.Sprintf("Receiving previews %d/%d", processedPreviews, totalPreviews)
 			callback(processedPreviews, totalPreviews, message, "")
 		}
 	}
@@ -305,7 +305,7 @@ func PushPreviews(tx *sqlx.Tx, remoteUrl string, userId string, previewHashes []
 			responseCode := response.StatusCode
 			if responseCode == 200 {
 				processedPreviews++
-				message := fmt.Sprintf("Pushing Preview %d/%d", processedPreviews, totalPreviews)
+				message := fmt.Sprintf("Sending Preview %d/%d", processedPreviews, totalPreviews)
 				callback(processedPreviews, totalPreviews, message, "")
 			} else if responseCode == 400 {
 				body, err := io.ReadAll(response.Body)
@@ -314,7 +314,7 @@ func PushPreviews(tx *sqlx.Tx, remoteUrl string, userId string, previewHashes []
 				}
 				return errors.New(string(body))
 			} else {
-				return errors.New("unknown error while pushing previews")
+				return errors.New("unknown error while sending previews")
 			}
 		}
 	} else if utils.FileExists(remoteUrl) {
@@ -343,7 +343,7 @@ func PushPreviews(tx *sqlx.Tx, remoteUrl string, userId string, previewHashes []
 				return err
 			}
 			processedPreviews++
-			message := fmt.Sprintf("Pushing Preview %d/%d", processedPreviews, totalPreviews)
+			message := fmt.Sprintf("Sending Preview %d/%d", processedPreviews, totalPreviews)
 			callback(processedPreviews, totalPreviews, message, "")
 		}
 		err = remoteTx.Commit()

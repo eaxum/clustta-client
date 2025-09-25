@@ -135,7 +135,7 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, taskId, c
 				return
 			case progressChan <- output.ProgressReport{
 				Title:      "Downloading Checkpoint",
-				Message:    fmt.Sprintf("Pulling Data %s/%s", currentSize, totalSize),
+				Message:    fmt.Sprintf("Receiving %s/%s", currentSize, totalSize),
 				Percentage: (float64(current) / float64(total) * 99),
 				Current:    1,
 				Total:      1,
