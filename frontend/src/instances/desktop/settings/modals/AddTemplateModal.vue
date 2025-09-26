@@ -82,7 +82,7 @@ const handleEnterKey = (event) => {
 
 const selectFile = async () => {
   
-  const result = await DialogService.SelectFileDialog("Select Template File", "*.");
+  const result = await DialogService.SelectFileDialog("Select Template File", "");
   if (result) {
     let filePath = result.replace(/\\/g, '/');
     let fileName = filePath.split('/').pop();
