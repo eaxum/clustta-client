@@ -22,6 +22,7 @@ import { LogService } from '@/../bindings/clustta/services/index';
 import { useStageStore } from './stores/stages';
 import { useMenu } from '@/stores/menu';
 import { useAccountStore } from '@/stores/accounts';
+import { useThemeStore } from '@/stores/theme';
 
 
 const windowNameTop = ref();
@@ -30,6 +31,7 @@ const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const menu = useMenu();
+const themeStore = useThemeStore();
 
 const stageStore = useStageStore();
 const accountStore = useAccountStore();
@@ -171,7 +173,7 @@ onMounted(async () => {
     
     // Initialize account store early in app lifecycle
     await accountStore.initialize();
-    
+    await themeStore.initializeTheme();
     startCheckSycnTokenInterval()
 });
 </script>

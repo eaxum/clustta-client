@@ -13,7 +13,7 @@ await SettingsService.GetTheme()
 
 export const useThemeStore = defineStore("theme", {
   state: () => ({
-    isDarkMode: false,
+    isDarkMode: true,
     selectedTheme: defaultTheme,
     themes: [
       "light",
