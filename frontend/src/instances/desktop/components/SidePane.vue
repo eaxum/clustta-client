@@ -122,6 +122,13 @@ const doNothing = () => {
 
 const goToProjects = () => {
 	stage.setStageVisibility('projects', true);
+	stage.markedItems = [];
+	stage.selectedItems = [];
+	stage.markedEntities = [];
+	stage.firstSelectedItemId = '';
+	stage.lastSelectedItemId = '';
+	stage.selectedItem = null;
+	stage.cutItems = [];
 	panes.setPaneVisibility('projectDetails', true);
 };
 

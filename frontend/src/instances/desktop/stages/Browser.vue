@@ -5,8 +5,13 @@
 			<Breadcrumbs />
 			<div class="searchbar-container">
 				<input ref="searchBar" v-model="commonStore.viewSearchQuery" class="desktop-search-bar" type="text"
-					:placeholder="'Search'" @input="debouncedUpdateSearch" />
-				<ActionButton v-if="commonStore.viewSearchQuery.length" :icon="getAppIcon('close')"
+					:placeholder="'Search'" @input="debouncedUpdateSearch" spellcheck="false" />
+
+				<span v-if="commonStore.viewSearchQuery.length && !assetStore.assetsLoaded" class="single-action-button">
+					<img class="small-icons loading-children-icon" :src="getAppIcon('loading')">
+				</span>
+
+				<ActionButton v-else-if="commonStore.viewSearchQuery.length" :icon="getAppIcon('close')"
 					:allowDeactivate="true" v-tooltip="'Clear search'" :buttonFunction="clearSearch" />
 			</div>
 			<span class="single-action-button filter-button" @click="toggleShowFilters" v-tooltip="'Filters'">
@@ -15,32 +20,30 @@
 			</span>
 		</div>
 
-		<FilterBar v-if="showFilters && isDefaultWorkspace" 
-		:filtersActive="filtersActive" :kanbanView="kanbanView" 
-		:showTagsFilter="showTagsFilter" :viewTags="viewTags" 
-		:isFilterActive="isFilterActive" :clearFilters="clearFilters" />
-
-
-		<div class="menu-divider" v-if="showFilters && isDefaultWorkspace" ></div>
-
 		<div class="dash-board-header">
-				<div v-if="isDefaultWorkspace" class="create-menu">
-					<ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Refresh'" :buttonFunction="refresh" />
-					<ActionButton :icon="getAppIcon('brush-plus')"
-						v-if=" !kanbanView && templateStore.getTemplates.length && (userStore.canDo('create_task') || canModifyEntity)"
-						@click="createTask" v-tooltip="'Add Asset'" />
-					<ActionButton :icon="getAppIcon('folder-plus')"
-						v-if=" !kanbanView && userStore.canDo('create_entity') || canModifyEntity" @click="createEntity"
-						v-tooltip="'Add Collection'" />
-					<ActionButton :icon="getAppIcon('workflow-plus')"
-						v-if=" !kanbanView && workflowStore.workflows.length && userStore.canDo('create_entity')" @click="createWorkflow"
-						v-tooltip="'Add Workflow'" />
-					<ActionButton :icon="getAppIcon('arrow-down-ramp')"
-						v-if=" !kanbanView && userStore.canDo('create_entity')" @click="importItems"
-						v-tooltip="'Import Items'" />
+
+			<FilterBar v-if="showFilters && isDefaultWorkspace" 
+			:filtersActive="filtersActive" :kanbanView="kanbanView" 
+			:showTagsFilter="showTagsFilter" :viewTags="viewTags" 
+			:isFilterActive="isFilterActive" :clearFilters="clearFilters" />
+
+			<div v-else-if="isDefaultWorkspace" class="create-menu">
+				<ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Refresh'" :buttonFunction="refresh" />
+				<ActionButton :icon="getAppIcon('brush-plus')"
+					v-if=" !kanbanView && (userStore.canDo('create_task') || canModifyEntity)"
+					@click="createAsset" v-tooltip="'Add Asset'" />
+				<ActionButton :icon="getAppIcon('folder-plus')"
+					v-if=" !kanbanView && userStore.canDo('create_entity') || canModifyEntity" @click="createEntity"
+					v-tooltip="'Add Collection'" />
+				<ActionButton :icon="getAppIcon('workflow-plus')"
+					v-if=" !kanbanView && workflowStore.workflows.length && userStore.canDo('create_entity')" @click="createWorkflow"
+					v-tooltip="'Add Workflow'" />
+				<ActionButton :icon="getAppIcon('arrow-down-ramp')"
+					v-if=" !kanbanView && userStore.canDo('create_entity')" @click="importItems"
+					v-tooltip="'Import Items'" />
 			</div>
 
-			<div class="action-bar-container">
+			<div v-if="!showFilters" class="action-bar-container">
 				<div v-if="!kanbanView && assetStore.loadingAssetStates && rootData.length" class="action-bar">
 					<span class="single-action-button" v-tooltip="'Refreshing Asset states'">
 						<img class="small-icons loading-children-icon" :src="getAppIcon('loading')">
@@ -69,6 +72,8 @@
 				<ViewOptions v-if="!kanbanView" :kanbanView="kanbanView"  />
 				<ActionButton v-if="isDefaultWorkspace" :icon="kanbanView ? getAppIcon('list') : getAppIcon('kanban')"
 					v-tooltip="kanbanView ? 'List' : 'Kanban'" :buttonFunction="toggleViewMode" />
+				<ActionButton v-if="isDefaultWorkspace && !kanbanView" :icon="dndStore.lockUI ? getAppIcon('lock-closed') : getAppIcon('lock-open')"
+					v-tooltip="dndStore.lockUI ? 'Unlock UI' : 'Lock UI'" :buttonFunction="toggleLockUI" />
 				<ActionButton v-if="!kanbanView"
 					:icon="commonStore.hideExtensions ? getAppIcon('extension-cancel') : getAppIcon('extension')"
 					v-tooltip="commonStore.hideExtensions ? 'Show extensions' : 'Hide extensions'"
@@ -80,7 +85,7 @@
 				<ActionButton v-if="!kanbanView && commonStore.showEntities && entityExpanded"
 					:icon="entityExpanded ? getAppIcon('collapse-up') : getAppIcon('collapse-down')"
 					v-tooltip="entityExpanded ? 'Collapse all' : 'Expand all'" :buttonFunction="toggleExpandEntities" />
-				<ActionButton :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
+				<ActionButton v-if="!kanbanView" :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
 					v-tooltip="panes.showDetailsPane ? 'Close pane' : 'Open pane'"
 					:buttonFunction="toggleDetailsPane" />
 			</div>
@@ -102,13 +107,20 @@
 				<GhostItem v-bind="draggedCard" :data="draggedCard" />
 			</div>
 
-			<TaskListSkeleton v-if="!assetStore.assetsLoaded" />
-			<VirtuaScroll v-else-if="rootData.length && !commonStore.useGrid" :items="rootData" />
-			<GridView v-else-if="rootData.length" :rootItems="rootData" />
-			<PageState v-else :message="message()" :prompt="prompt()" :illustration="illustration()" />
+			<div class="browser-root-content">
+				<div class="left-column">
+					<ListSkeleton v-if="!assetStore.assetsLoaded" :itemHeight="commonStore.listItemHeight" />
+					<VirtuaScroll v-else-if="rootData.length && !commonStore.useGrid" :items="rootData" />
+					<GridView v-else-if="rootData.length" :rootItems="rootData" />
+					<PageState v-else :message="message()" :prompt="prompt()" :illustration="illustration()" />
+				</div>
+				<DetailsPane v-if="projectStore.getProjects.length" :isVisible="panes.showDetailsPane" />
+			</div>
+
+
 		</div>
 
-		<div v-else ref="taskListContainer" class="browser-root-container">
+		<div v-else ref="taskListContainer" class="browser-root-container kanban-container">
 			<Kanban :filtersActive="filtersActive" :tasks="rootData" />
 		</div>
 	</div>
@@ -173,11 +185,13 @@ import FilterBar from '@/instances/common/components/FilterBar.vue';
 import ViewOptions from '@/instances/common/components/ViewOptions.vue';
 import VirtuaScroll from '@/instances/common/components/VirtuaScroll.vue';
 import TaskListSkeleton from '@/instances/desktop/components/TaskListSkeleton.vue';
+import ListSkeleton from '@/instances/desktop/components/ListSkeleton.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GhostItem from '@/instances/desktop/blocks/GhostItem.vue';
 import GridView from '@/instances/desktop/components/GridView.vue';
 import Kanban from '@/instances/desktop/components/Kanban.vue';
 import PageState from '@/instances/common/components/PageState.vue';
+import DetailsPane from "@/instances/desktop/components/DetailsPane.vue";
 import utils from '@/services/utils';
 
 // refs
@@ -216,7 +230,7 @@ Events.On('new-collection', async () => {
 
 Events.On('new-task', async () => {
 	if (operationsActive.value) return
-	createTask();
+	createAsset();
 });
 
 Events.On('new-web-link', async () => {
@@ -225,6 +239,7 @@ Events.On('new-web-link', async () => {
 });
 
 Events.On('sync-project', async () => {
+	return 
 	if (operationsActive.value) return
 	//TODO prevent multiple syncs
 	stage.operationActive = true;
@@ -260,7 +275,6 @@ Events.On('cut-items', async () => {
 Events.On('paste-items', async () => {
 	if (operationsActive.value) return
 	if (!!stage.cutItems && userStore.canDo('update_entity')) {
-		console.log(stage.cutItems);
 		stage.cutItems = [];
 	}
 });
@@ -418,6 +432,9 @@ const getAppIcon = (iconName) => {
 };
 
 // computed properties
+const stageUsesPane = computed(() => { return panes.enabledPanes.includes(stage.selectedStage) && panes.showDetailsPane });
+const sidePaneActive = computed(() => { return stage.sidePaneActive });
+
 const isHovered = computed(() => { return dndStore.isDropHovering && dndStore.targetItemId === null });
 
 const isDefaultWorkspace = computed(() => {
@@ -1066,6 +1083,7 @@ const openMenu = (event) => {
 };
 
 const cancelOps = () => {
+	clearSearch();
 	stage.cutItems = [];
 	if (!dndStore.altKeyActive) {
 		dndStore.resetValues();
@@ -1086,7 +1104,7 @@ const createWorkflow = () => {
 	modals.setModalVisibility('selectWorkflowModal', true);
 };
 
-const createTask = () => {
+const createAsset = () => {
 	clearSelection();
 	modals.setModalVisibility('selectAppModal', true);
 };
@@ -1239,6 +1257,10 @@ const toggleViewMode = () => {
 	panes.showDetailsPane = !kanbanView.value;
 };
 
+const toggleLockUI = () => {
+	dndStore.lockUI = !dndStore.lockUI;
+};
+
 const toggleHideExtensions = () => {
 	commonStore.hideExtensions = !commonStore.hideExtensions;
 };
@@ -1257,7 +1279,7 @@ const toggleExpandEntities = () => {
 
 const collapseAll = () => {
 	stage.expandedEntities = {};
-	stage.markedEntities = [];
+	stage.markedItems = [];
 	stage.firstSelectedEntityId = '';
 	collectionStore.selectedCollection = null;
 };
@@ -1634,6 +1656,7 @@ const handleUpdateRootData = (eventData) => {
 
 onMounted(async () => {
 	commonStore.resetFilters();
+	dndStore.lockUI = true;
 	commonStore.activeWorkspace = 'Default';
 	panes.showDetailsPane = true;
 	observer.value = new ResizeObserver(trackWidthChange);
@@ -1643,7 +1666,6 @@ onMounted(async () => {
 	window.addEventListener('keyup', detectModifier);
 	emitter.on('refresh-browser', softRefresh);
 	emitter.on('update-root-data', handleUpdateRootData);
-	// emitter.on('reload-asset-states', reloadAssetStates);
 
 	await refresh();
 	dndStore.triggerDomUpdate()
@@ -1772,31 +1794,54 @@ onBeforeUnmount(() => {
 }
 
 .browser-root-container {
+	position: relative;
+	overflow: hidden;
+	height: 100%;
+	width: 100%;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: row;
+}
+
+.kanban-container {
 	z-index: 5;
 	position: relative;
 	flex-direction: column;
 	padding: .5rem;
 	overflow: hidden;
 	height: 100%;
-	background-color: tomato;
 	border-radius: var(--large-radius);
 	background-color: var(--black-steel);
 	width: 100%;
 	box-sizing: border-box;
-	min-width: 300px;
+	display: flex;
+	flex-direction: row;
 }
 
-.browser-root-container::-webkit-scrollbar {
-	width: 8px;
+.browser-root-content {
+	position: relative;
+	flex-direction: column;
+	overflow: hidden;
+	height: 100%;
+	width: 100%;
+	box-sizing: border-box;
+	display: flex;
+	gap: .5rem;
+	flex-direction: row;
 }
 
-.browser-root-container::-webkit-scrollbar-thumb {
-	border-radius: 10px;
-	background-color: var(--dark-steel);
-}
-
-.browser-root-container::-webkit-scrollbar-track {
-	border-radius: 10px;
+.left-column {
+	z-index: 5;
+	display: flex;
+	position: relative;
+	padding: .5rem;
+	overflow: hidden;
+	height: 100%;
+	border-radius: var(--large-radius);
+	background-color: var(--black-steel);
+	width: 100%;
+	min-width: 550px;
+	box-sizing: border-box;
 }
 
 .browser-root-container-hover-drop {
@@ -1830,7 +1875,7 @@ onBeforeUnmount(() => {
 	overflow: hidden;
 	padding: .4rem;
 	gap: .4rem;
-	padding-top: .8rem;
+	/* padding-top: .8rem; */
 }
 
 .dash-board-header {
@@ -1841,7 +1886,7 @@ onBeforeUnmount(() => {
 	height: max-content;
 	gap: 1rem;
 	justify-content: space-between;
-	padding: .2rem;
+	/* padding: .2rem; */
 	box-sizing: border-box;
 	min-width: max-content;
 }
@@ -1854,7 +1899,7 @@ onBeforeUnmount(() => {
 	gap: .4rem;
 	width: max-content;
 	height: max-content;
-	padding: .2rem;
+	/* padding: .2rem; */
 }
 
 @keyframes loadingRotate {
@@ -1886,7 +1931,7 @@ onBeforeUnmount(() => {
 	gap: .4rem;
 	width: max-content;
 	height: max-content;
-	padding: .2rem;
+	/* padding: .2rem; */
 }
 
 .action-bar-container{
@@ -1902,9 +1947,10 @@ onBeforeUnmount(() => {
 	display: flex;
 	gap: .4rem;
 	align-items: center;
-	padding: .2rem;
+	/* padding: .2rem; */
 	width: max-content;
 	height: max-content;
+	min-width: min-content;
 }
 
 .dash-board-filter {

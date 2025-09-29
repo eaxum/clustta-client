@@ -25,7 +25,7 @@ export const rightClick = {
 };
 
 const getHighestZIndexElement = () => {
-  const selector = '.checkpoint-item, .list-tags, .tag-parent, .tray-overlay-mask, .pop-up-container, .data-name-input, .dash-board-root, .tray-home, .combo-new-chip, .task-item-menu-container, .task-list-container, .task-list-root, .modal-mask';
+  const selector = '.searchbar-container, .checkpoint-item, .list-tags, .tag-parent, .tray-overlay-mask, .pop-up-container, .data-name-input, .dash-board-root, .tray-home, .combo-new-chip, .task-item-menu-container, .task-list-container, .task-list-root, .modal-mask';
   const elements = document.querySelectorAll(selector);
   let highestZElement = null;
   let highestZIndex = -Infinity;

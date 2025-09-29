@@ -14,6 +14,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick, reactive } from 'vue';
 import { useMenu } from '@/stores/menu';
 
 // components
+import DependencySearchFilterMenu from '@/instances/desktop/menus/DependencySearchFilterMenu.vue'
 import TypeFilterMenu from '@/instances/desktop/menus/TypeFilterMenu.vue'
 import AssetTypeFilterMenu from '@/instances/desktop/menus/AssetTypeFilterMenu.vue'
 import CollectionTypeFilterMenu from '@/instances/desktop/menus/CollectionTypeFilterMenu.vue'
@@ -32,6 +33,7 @@ import CollectionMenu from '@/instances/desktop/menus/CollectionMenu.vue'
 import AccountMenu from '@/instances/desktop/menus/AccountMenu.vue'
 
 const menuComponents = {
+  dependencySearchFilterMenu: DependencySearchFilterMenu,
   typeFilterMenu: TypeFilterMenu,
   assetTypeFilterMenu: AssetTypeFilterMenu,
   collectionTypeFilterMenu: CollectionTypeFilterMenu,
@@ -226,10 +228,13 @@ onUnmounted(() => {
   background-color: var(--light-steel);
   background-color: var(--dark-glass);
   backdrop-filter: blur(50px);
+  max-height: 70vh;
+  overflow-y: scroll;
 }
 
 .context-menu-container::-webkit-scrollbar {
   width: 8px;
+  display: none;
 }
 
 .context-menu-container::-webkit-scrollbar-thumb {

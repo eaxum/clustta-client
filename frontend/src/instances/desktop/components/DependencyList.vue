@@ -1,14 +1,10 @@
 <template>
-  <div ref="scrollContainer" class="virtual-scroll-container" @scroll="handleScroll"
-    :class="{ 'virtual-scroll-tray': isTray }">
-    <!-- {{  visibleItems.length }} -->
+  <div ref="scrollContainer" class="virtual-scroll-container" @scroll="handleScroll" >
     <div :style="{ height: totalHeight + 'px' }" class="scroll-height">
       <div :style="{ transform: `translateY(${startOffset}px)` }">
         <div v-for="(item, index) in visibleItems" :key="firstVisibleIndex + index"
-          :data-index="firstVisibleIndex + index" :ref="el => handleRef(item.id, el?.$el || el)"
-          @mousedown="onMouseDown($event, item, index)" class="dropper">
-          <component :is="itemComponent" :isDependency="isDependency" :forList="forList" :item="item" :data="item" :task="item" class="virtual-scroll-item"
-            :class="{ 'virtual-scroll-item-tray': isTray, 'darker': index % 2 === 1 }" />
+          :data-index="firstVisibleIndex + index">
+          <VirtualNode :isDependency="isDependency" :forList="forList" :showAdd="showAdd" :showRemove="showRemove" :data="item" class="virtual-scroll-item" />
         </div>
       </div>
     </div>
@@ -17,23 +13,25 @@
 
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue';
-import { useDndStore } from '@/stores/dnd';
-import { useStageStore } from '@/stores/stages';
+
+
+import VirtualNode from '@/instances/desktop/components/VirtualNode.vue'
+
 import { useMenu } from '@/stores/menu';
 
-const dndStore = useDndStore();
 const menu = useMenu();
-const stage = useStageStore();
 
 const props = defineProps({
   items: { type: Array, required: true },
-  itemComponent: { type: Object, required: true },
+
   defaultHeight: { type: Number, default: 50 },
   bufferSize: { type: Number, default: 20 },
-  isTray: { type: Boolean, default: false },
-  useRef: { type: Boolean, default: true },
+  
   isDependency: { type: Boolean, default: false },
+  
   forList: { type: Boolean, default: false },
+  showAdd: { type: Boolean, default: false },
+  showRemove: { type: Boolean, default: false },
 })
 
 const scrollContainer = ref(null)
@@ -44,44 +42,6 @@ const containerHeight = ref(0);
 // Map to store heights of all items
 const itemHeights = ref(new Map())
 const heightCache = ref(new Map())
-
-// drag and drop
-const handleRef = async (id, el) => {
-  if (!props.useRef) {
-    return
-  }
-
-  if (!el) {
-    dndStore.removeRef(id)
-    return
-  }
-
-  await nextTick()
-
-  // Get the actual DOM element
-  const domElement = el instanceof HTMLElement ? el : el.$el
-
-  if (domElement) {
-    dndStore.addRef(id, domElement)
-  }
-};
-
-const dragTimer = ref(null);
-
-const onMouseDown = (event, item, index) => {
-};
-
-const onMouseUp = () => {
-  clearTimeout(dragTimer.value);
-  document.removeEventListener('mouseup', onMouseUp);
-};
-
-const onDragStart = (e, id) => {
-  if (!id) {
-    return
-  }
-  dndStore.onDragStart(e, id);
-};
 
 // ResizeObserver instance
 let resizeObserver = null
@@ -117,7 +77,6 @@ const positionCache = ref(new Map())
 
 // Update position cache when heights change
 const updatePositionCache = () => {
-  console.log('heights changed outer')
   let accumHeight = 0
   positionCache.value.clear()
 
@@ -127,7 +86,6 @@ const updatePositionCache = () => {
   }
 
   totalHeight.value = accumHeight
-  // stage.checkIntersections();
 }
 
 // Calculate total height
@@ -190,9 +148,7 @@ const firstVisibleIndex = computed(() => visibleRange.value.start)
 
 // Handle scroll events
 const handleScroll = (event) => {
-  console.log('scroll')
   menu.disableAllMenus()
-  // stage.checkIntersections()
   scrollTop.value = event.target.scrollTop
 }
 
@@ -207,10 +163,6 @@ watch(() => visibleItems.value, async () => {
 
   // Observe new items
   if (itemRefs.value) {
-
-    // itemRefs.value.forEach(el => {
-    //   if (el) resizeObserver.observe(el)
-    // })
 
     Object.values(itemRefs.value).forEach(el => {
       if (el) resizeObserver.observe(el)
@@ -244,7 +196,6 @@ onMounted(() => {
 
 // Watch for changes in items array
 watch(() => props.items.length, () => {
-  // Reset heights for new items
   props.items.forEach((_, index) => {
     if (!itemHeights.value.has(index)) {
       itemHeights.value.set(index, props.defaultHeight)
@@ -294,35 +245,20 @@ watch(() => props.items.length, () => {
 .virtual-scroll-item {
   box-sizing: border-box;
   height: min-content;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   overflow: hidden;
   /* opacity: 0; */
   animation: fadeIn .3s ease-in-out forwards;
 }
 
-.virtual-scroll-item-tray {
-  margin-bottom: 10px;
-}
-
-.darker {
-  /* background-color: red; */
-}
-
 .column-card {
-  /* background: tomato; */
-  /* padding: 10px; */
-  /* margin: 10px 0; */
   border-radius: 8px;
   cursor: grab;
 }
 
-/* .column-card:active {
-} */
-
 .column-card.dragging {
   color: transparent;
   background: none;
-  /* border: 2px dashed rgba(0, 0, 0, 0.2); */
   box-shadow: none;
   user-select: none;
   -moz-user-select: none;

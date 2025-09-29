@@ -17,10 +17,6 @@
 					:buttonFunction="switchViewLayout" />
 				<ActionButton v-else-if="projects.length" :icon="getAppIcon('four-squares')" v-tooltip="'Cards'"
 					:buttonFunction="switchViewLayout" />
-				<ActionButton v-if="projects.length" :isDisabled="!projects.length"
-					:icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
-					v-tooltip="panes.showDetailsPane ? 'Close pane' : 'Open pane'"
-					:buttonFunction="toggleDetailsPane" />
 			</div>
 		</div>
 

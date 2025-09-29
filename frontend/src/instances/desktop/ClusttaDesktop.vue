@@ -12,7 +12,6 @@
 					<HeaderBar v-if="stage.activeStage !== 'projects'" />
 					<div ref="mainAreaContainer" class="main-area">
 						<CenterStage />
-						<DetailsPane v-if="projectStore.getProjects.length" :isVisible="stageUsesPane && !fullLayout" />
 					</div>
         			<InfoBar :bgColor="'var(--steel)'" />
 				</div>
@@ -32,7 +31,6 @@ import InfoBar from '@/instances/desktop/components/InfoBar.vue'
 import ModalView from '@/instances/desktop/components/ModalView.vue'
 import SidePane from "@/instances/desktop/components/SidePane.vue";
 import HeaderBar from "@/instances/desktop/components/HeaderBar.vue";
-import DetailsPane from "@/instances/desktop/components/DetailsPane.vue";
 import CenterStage from "@/instances/desktop/components/CenterStage.vue";
 import FlashMessage from '@/instances/common/components/FlashMessage.vue';
 
@@ -57,15 +55,11 @@ const panes = usePaneStore();
 const stage = useStageStore();
 const modals = useDesktopModalStore();
 const userStore = useUserStore();
-const projectStore = useProjectStore();
 const dndStore = useDndStore();
 
 // computed properties
 const isUserActivated = computed(() => userStore.user !== null);
 const isWideScreen = ref(false);
-const sidePaneActive = computed(() => { return stage.sidePaneActive });
-const stageUsesPane = computed(() => { return panes.enabledPanes.includes(stage.selectedStage) && panes.showDetailsPane });
-const fullLayout = computed(() => { return !isWideScreen.value && sidePaneActive.value });
 
 // methods
 

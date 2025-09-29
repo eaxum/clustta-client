@@ -28,9 +28,8 @@
             :no-drag-class-name="noDragClassName">
             <Background :size="1" :gap="20" pattern-color="#BDBDBD" />
             <!-- <MiniMap /> -->
-            <!-- <Controls />  -->
             <template #node-custom="props">
-              <VirtualNode :isNode="true" :id="props.id" :data="props.data" />
+              <VirtualNode :isNode="true" :showRemove="true" :id="props.id" :data="props.data" />
             </template>
           </VueFlow>
         </div>
@@ -50,10 +49,6 @@
             <FilterButton :icon="getAppIcon('brush')" v-tooltip="'Task Type'" :alert="isFilterActive('task-type')"
               @mouseenter="flashFilterMenu($event, 'assetTypeFilterMenu')"
               @click="showFilterMenu($event, 'assetTypeFilterMenu')" />
-            <!-- <FilterButton  icon="/types-icons/layout.svg"  v-tooltip="'Extension'" :alert="isFilterActive('extension')"
-                @mouseenter="flashFilterMenu($event, 'extensionFilterMenu')" @click="showFilterMenu($event, 'extensionFilterMenu')" /> -->
-            <!-- <FilterButton v-if="showTagsFilter" :icon="getAppIcon('tag')"  v-tooltip="'Tags'" :alert="isFilterActive('tags')"
-                @mouseenter="flashFilterMenu($event, 'tagsFilterMenu')" @click="showFilterMenu($event, 'tagsFilterMenu')" /> -->
             <FilterButton :icon="getAppIcon('filter')" v-tooltip="'Type'" :alert="isFilterActive('general')"
               @mouseenter="flashFilterMenu($event, 'typeFilterMenu')"
               @click="showFilterMenu($event, 'typeFilterMenu')" />
@@ -63,7 +58,7 @@
         </div>
 
         <div class="sidebar-scroll">
-          <DependencyVirtualScroll :forList="true" :itemComponent="VirtualNode" :items="projectData" :useRef="false" />
+          <DependencyList :forList="true" :items="projectData" :showAdd="true" />
         </div>
       </div>
     </div>
@@ -73,13 +68,6 @@
 
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
 // imports
 import { ref, computed, onMounted, watch, nextTick, markRaw, onUnmounted, reactive } from 'vue'
 import dagre from '@dagrejs/dagre'
@@ -105,33 +93,31 @@ import { useCollectionStore } from '@/stores/collections';
 import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDependencyStore } from '@/stores/dependency';
-import { useTagStore } from '@/stores/tags';
 import { useMenu } from '@/stores/menu';
+import { useIconStore } from '@/stores/icons';
+import { useProjectStore } from '@/stores/projects';
 
 // components
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import FilterButton from '@/instances/desktop/components/FilterButton.vue';
 import VirtualNode from '@/instances/desktop/components/VirtualNode.vue'
-import DependencyVirtualScroll from '@/instances/desktop/components/DependencyVirtualScroll.vue'
-import { useProjectStore } from '@/stores/projects';
+import DependencyList from '@/instances/desktop/components/DependencyList.vue'
 
 // states
 const notificationStore = useNotificationStore();
 const dependencyStore = useDependencyStore();
-const tagStore = useTagStore();
-const menu = useMenu();
 const commonStore = useCommonStore();
 const collectionStore = useCollectionStore();
 const assetStore = useAssetStore();
 const projectStore = useProjectStore();
+const iconStore = useIconStore();
+const menu = useMenu();
 
 // refs
 const useMaxDepth = ref(false);
 const graphElements = ref([]);
 const noDragClassName = 'no-drag';
-
-// New reactive data for refactored approach
 const sidebarTasks = ref([]);
 const sidebarEntities = ref([]);
 const filteredTasks = ref([]);
@@ -148,10 +134,15 @@ const nodeStyle = smoothNode ? 'smoothstep' : '';
 // computed props
 const maxDepth = computed(() => { return useMaxDepth.value ? 4 : 1 });
 
-// filter
 const filtersActive = computed(() => {
   return commonStore.entityFilters.length || commonStore.taskFilters.length || isFilterActive('general') || commonStore.resourceFilters.length;
 });
+
+// methods
+const getAppIcon = (iconName) => {
+  const icon = iconStore.getAppIcon(iconName);
+  return icon
+};
 
 const updateSearch = (event) => {
   const searchQuery = event.target.value;
@@ -287,13 +278,11 @@ const fitViewToAllNodes = (useDelay = false) => {
   }, timeOut);
 };
 
-// New async methods for refactored approach
 const fetchSidebarData = async () => {
   isLoadingSidebar.value = true;
   try {
     const projectPath = projectStore.activeProject.uri;
     
-    // Fetch all tasks and entities for the sidebar
     const [tasksResult, entitiesResult] = await Promise.all([
       AssetService.GetAssets(projectPath),
       CollectionService.GetCollections(projectPath)
@@ -302,7 +291,6 @@ const fetchSidebarData = async () => {
     sidebarTasks.value = tasksResult || [];
     sidebarEntities.value = entitiesResult || [];
     
-    // Update filtered tasks and entities after fetching
     await updateFilteredTasks();
     await updateFilteredEntities();
   } catch (error) {
@@ -580,7 +568,7 @@ const addDependency = async (dependencyId, itemType) => {
         const addedDependency = allDependencies.find((newDependency) => newDependency.id === dependencyId);
         if (addedDependency) {
           dependencies.value.push(addedDependency.id);
-          
+          assetStore.selectedAsset.dependencies = dependencies.value;
           await buildGraphFromDependencies();
           nextTick(() => {
             fitViewToAllNodes();
@@ -598,6 +586,7 @@ const addDependency = async (dependencyId, itemType) => {
         const addedDependency = allDependencies.find((newDependency) => newDependency.id === dependencyId);
         if (addedDependency) {
           dependencies.value.push(addedDependency.id);
+          assetStore.selectedAsset.entity_dependencies = dependencies.value;
           
           await buildGraphFromDependencies();
           nextTick(() => {
@@ -619,6 +608,7 @@ const removeDependency = async (dependencyId, itemType) => {
       .then(async(response) => {
         notificationStore.addNotification("Dependency Removed", "", "success");
         dependencies.value = dependencies.value.filter(id => id !== dependencyId);
+        assetStore.selectedAsset.dependencies = dependencies.value;
         await buildGraphFromDependencies();
         nextTick(() => {
           fitViewToAllNodes();
@@ -632,6 +622,7 @@ const removeDependency = async (dependencyId, itemType) => {
       .then(async(response) => {
         notificationStore.addNotification("Dependency Removed", "", "success");
         dependencies.value = dependencies.value.filter(id => id !== dependencyId);
+        assetStore.selectedAsset.entity_dependencies = dependencies.value;
         buildGraphFromDependencies();
         nextTick(() => {
           fitViewToAllNodes();
@@ -918,7 +909,6 @@ onUnmounted(() => {
   background-color: var(--steel);
   color: var(--white);
   transition: width 0.2s ease-out;
-  border-radius: var(--large-radius);
   width: 100%;
   max-width: 400px;
 }

@@ -1,6 +1,7 @@
 <template>
   <div class="header-tab-root"
     :class="{ 'fullwidth-header-tab-root': fullWidth, 'icon-header-tab-root': iconsOnly }">
+
     <div v-for="(dataType, index) in dataTypes" :key="dataType.name"
       v-tooltip="((filterIndex !== index || iconsOnly)) ? utils.capitalizeStr(dataType.name) : ''"
       @click="filterList(index, dataType.name)" class="tab-button"
@@ -11,6 +12,7 @@
           utils.capitalizeStr(dataType.name) }}</div>
       </div>
     </div>
+    
   </div>
 </template>
 
@@ -193,6 +195,8 @@ onMounted(() => {
 .tab-content {
   display: flex;
   gap: .5rem;
+  font-size: 14px;
+  align-items: center;
   /* background-color: rebeccapurple; */
 }
 
