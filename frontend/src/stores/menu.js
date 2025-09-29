@@ -5,6 +5,7 @@ export const useMenu = defineStore("useMenu", {
   state: () => ({
     menuStates: {
       typeFilterMenu: false,
+      dependencySearchFilterMenu: false,
       assetTypeFilterMenu: false,
       resourceTypeFilterMenu: false,
       collectionTypeFilterMenu: false,

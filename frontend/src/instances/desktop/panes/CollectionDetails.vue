@@ -1,12 +1,5 @@
 <template>
-  <div class="general-pane-header">
-    <HeaderArea v-if="collectionStore.selectedCollection" :title="utils.capitalizeStr(collectionStore.selectedCollection?.name)"
-      :icon="entityTypeIcon" />
-
-    <ActionButton v-if="userStore.canDo('update_entity')" :icon="getAppIcon('parameters')" v-tooltip="'Rename Entity'"
-      :buttonFunction="editEntity" />
-  </div>
-
+  
   <div class="general-pane-root">
     <div class="general-pane-container">
 

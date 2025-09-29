@@ -28,6 +28,11 @@ export const useCommonStore = defineStore("common", {
     gridSize: 100,
     listItemHeight: 60,
     listItemGap: 4,
+
+    filterDependencyAssets: true,
+    filterDependencyCollections: true,
+    filterDependencyResources: true,
+
     viewSearchQuery: "",
     workspaceSearchQuery: "",
     fileStates: [

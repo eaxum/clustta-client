@@ -1,8 +1,12 @@
 <template>
 
-  <div class="general-pane-header">
-    <HeaderArea :title="utils.capitalizeStr(itemName)" :icon="'layers'" :placeholder="placeholder" :showSearch="true"
-      @updateSearch="updateSearch" @clearSearch="clearSearch" />
+   <div class="general-pane-header">
+      <div class="searchbar-container" v-esc="clearSearch">
+      <input ref="searchBar"  v-model="searchQuery" class="pane-search-bar" type="text"
+        :placeholder="'Search by message or author'" @input="updateSearch" />
+      <ActionButton v-if="searchQuery" :icon="getAppIcon('close')"
+        :allowDeactivate="true" v-tooltip="'Clear search'" :buttonFunction="clearSearch" />
+      </div>
   </div>
 
   <div class="general-pane-root">
@@ -32,6 +36,7 @@ import CheckpointItem from '@/instances/desktop/components/CheckpointItem.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 import CheckpointListSkeleton from '@/instances/common/components/CheckpointListSkeleton.vue';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 // store/state imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -39,6 +44,7 @@ import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useUserStore } from '@/stores/users';
 import { useProjectStore } from '@/stores/projects';
+import { useIconStore } from '@/stores/icons';
 
 // stores/states
 const assetStore = useAssetStore();
@@ -46,6 +52,7 @@ const trayStates = useTrayStates();
 const userStore = useUserStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const iconStore = useIconStore();
 
 // vars
 let placeholder = 'Search Checkpoints...';
@@ -56,14 +63,20 @@ const checkpointItem = ref(null);
 const checkpoints = ref([]);
 const taskHash = ref('');
 const isExpanded = ref(-1);
+const searchQuery = ref('');
 
-const updateSearch = (searchQuery) => {
-  if (!searchQuery) {
+const getAppIcon = (iconName) => {
+	const icon = iconStore.getAppIcon(iconName);
+	return icon
+};
+
+const updateSearch = () => {
+  if (!searchQuery.value) {
     refreshCheckpoints(); 
     return;
   }
 
-  const query = searchQuery.toLowerCase();
+  const query = searchQuery.value?.toLowerCase();
   // Filter the existing checkpoints without needing a separate array
   checkpoints.value = checkpoints.value.filter(checkpoint => {
     return checkpoint.comment.toLowerCase().includes(query) ||
@@ -80,6 +93,7 @@ const illustration = () => {
 };
 
 const clearSearch = () => {
+  searchQuery.value = '';
   refreshCheckpoints();
 }
 
@@ -236,6 +250,49 @@ onBeforeUnmount(() => {
 <style scoped>
 /* @import "@/assets/tray.css"; */
 @import "@/assets/desktop.css";
+
+.pane-search-bar {
+	font-family: 'Inter', sans-serif;
+	box-sizing: border-box;
+  font-weight: 300;
+	font-size: 16px;
+	border-radius: 8px;
+	padding: 10px;
+	border: 0px;
+	border-style: solid;
+	outline: none;
+	background-color: var(--midnight-steel);
+	color: var(--white);
+	transition: width 0.2s ease-out;
+	border-radius: var(--large-radius);
+	width: 100%;
+}
+
+.searchbar-container {
+	display: flex;
+	align-items: center;
+	border: 0px;
+	border-style: solid;
+	outline: none;
+	background-color: var(--midnight-steel);
+	border-radius: var(--normal-radius);
+	width: 100%;
+  width: 98%;
+	padding-right: .4rem;
+	box-sizing: border-box;
+  z-index: 2;
+}
+
+.searchbar-container:hover {
+	outline: var(--transparent-line);
+	outline-offset: -1px;
+}
+
+.pane-search-bar:focus .searchbar-container {
+	background-color: red;
+	outline: var(--solid-line);
+	outline-offset: -1px;
+}
 
 .checkpoint-task-item {
   background-color: green;

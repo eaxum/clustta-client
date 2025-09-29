@@ -47,7 +47,7 @@ const menu = useMenu();
 // refs
 const filterBarRoot = ref(null);
 const filterOptions = ref(null);
-const barIsOverflowing = ref(false);
+const barIsOverflowing = ref(true);
 let resizeObserver = null;
 
 // computed properties
@@ -96,6 +96,7 @@ const flashFilterMenu = (event, menuName) => {
 };
 
 const checkOverflow = async() => {
+	return
 	await nextTick();
 	if (filterBarRoot.value && filterOptions.value) {
 		const filterBarWidth = filterBarRoot.value.getBoundingClientRect().width;
@@ -137,7 +138,7 @@ onBeforeUnmount(() => {
 .filter-bar-root {
 	display: flex;
 	align-items: center;
-	padding: .2rem;
+	/* padding: .2rem; */
 	height: max-content;
 	justify-content: flex-start;
 	box-sizing: border-box;

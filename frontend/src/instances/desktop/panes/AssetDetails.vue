@@ -1,10 +1,5 @@
 <template>
-  <div class="general-pane-header">
-    <HeaderArea :title="utils.capitalizeStr(selectedTaskName)" :icon="selectedTaskIcon" :useIconBlob="true" />
-    <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('parameters')" :showLabel="false"
-      v-tooltip="'Edit Task'" :buttonFunction="editTask" />
-  </div>
-
+  
   <div class="general-pane-root">
     <div class="general-pane-container">
 

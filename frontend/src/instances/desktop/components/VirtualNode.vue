@@ -1,35 +1,35 @@
 <template>
-  <div class="custom-node-root no-drag" :style="nodeStyle" @dblclick="selectItem" :class="{ 'not-node': !showAdd }">
+  <div class="custom-node-root no-drag" :style="nodeStyle" @dblclick="selectItem" :class="{ 'full-width': forList }">
     <Handle v-if="data.parentId" :style="nodeStyle" class="handle" type="target" :position="Position.Left" />
     <Handle v-if="data.nodeId" :style="nodeStyle" type="source" :position="Position.Right" />
-    <div class="task-item-root" v-tooltip="data.task_path">
-      <div class="task-item-container">
-        <div v-if="itemTypeIcon" class="task-item-icon-container">
+    <div class="virtual-node-root" >
+      <div class="virtual-node-container">
+        <div v-if="itemTypeIcon" class="virtual-node-icon-container">
           <img class="large-icons" :src="itemTypeIcon">
         </div>
-        <div v-if="commonStore.showThumbs" class="task-item-preview-container">
-          <div class="task-item-preview-image">
+        <div v-if="commonStore.showThumbs" class="virtual-node-preview-container">
+          <div class="virtual-node-preview-image">
             <img v-if="data.preview" class="screenshot-thumb" :src="data.preview">
           </div>
         </div>
-        <div class="task-item-icon-container">
+        <div class="virtual-node-icon-container">
           <img v-if="data.icon" class="large-icons no-filter" :src="data.icon">
         </div>
-        <div class="task-item-content">
-          <div class="task-item-details">
+        <div class="virtual-node-content" v-tooltip="data.task_path">
+          <div class="virtual-node-details">
             {{ utils.capitalizeStr(data.name) }}
           </div>
         </div>
         
-        <div v-if="forList && data.type === 'task'" class="task-item-count">
-          <div class="task-item-details">
+        <div v-if="forList && data.type === 'task'" class="virtual-node-count">
+          <div class="virtual-node-details">
             {{ dependenciesCount }}
           </div>
         </div>
-        <div class="task-item-actions" v-if="userStore.canDo('update_task')" >
-          <ActionButton v-if="data.depth === 1 || isDependency" :icon="getAppIcon('minus-circle')" v-tooltip="'Remove'"
+        <div class="virtual-node-actions" v-if="userStore.canDo('update_task')" >
+          <ActionButton v-if="(data.depth === 1 || isDependency) && showRemove" :icon="getAppIcon('minus-circle')" v-tooltip="'Remove'"
             @click="removeDependency" />
-          <ActionButton v-if="forList" :icon="getAppIcon('plus-circle')" v-tooltip="'Add dependency'"
+          <ActionButton v-if="forList && showAdd" :icon="getAppIcon('plus-circle')" v-tooltip="'Add dependency'"
             @click="addDependency" />
         </div>
       </div>
@@ -38,13 +38,8 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
 
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
+
 // imports
 import { computed, ref, onMounted } from 'vue';
 import { Handle } from '@vue-flow/core';
@@ -55,11 +50,13 @@ import emitter from '@/lib/mitt';
 // states/store imports
 import { useCommonStore } from '@/stores/common';
 import { useUserStore } from '@/stores/users';
+import { useIconStore } from '@/stores/icons';
 
 // components
-import ActionButton from '@/instances/desktop/components/ActionButton.vue'
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 // states/stores
+const iconStore = useIconStore();
 const userStore = useUserStore();
 const commonStore = useCommonStore();
 
@@ -67,11 +64,12 @@ const commonStore = useCommonStore();
 const props = defineProps({
   data: Object,
   showAdd: { type: Boolean, default: false },
+  showRemove: { type: Boolean, default: false },
   forList: { type: Boolean, default: false },
   isDependency: { type: Boolean, default: false },
 });
 
-
+// computed props
 const nodeStyle = computed(() => {
   const item = props.data;
   let itemType;
@@ -79,20 +77,23 @@ const nodeStyle = computed(() => {
     itemType = 'entity';
     return {
       background: 'var(--entity-item-color)',
-      border: '1px solid var(--entity-item-color)'
+      outline: '1px solid var(--entity-item-color)',
+      outlineOffset: '-1px'
     }
   } else if (item.task_type_id) {
     if (item.is_resource) {
       itemType = 'resource';
       return {
         background: 'var(--resource-item-color)',
-        border: '1px solid var(--resource-item-color)'
+        outline: '1px solid var(--resource-item-color)',
+        outlineOffset: '-1px'
       }
     } else {
       itemType = 'task';
       return {
         background: 'var(--task-item-color)',
-        border: '1px solid var(--task-item-color)'
+        outline: '1px solid var(--task-item-color)',
+        outlineOffset: '-1px'
       }
     }
   }
@@ -105,11 +106,17 @@ const itemTypeIcon = computed(() => {
 
 const dependenciesCount = computed(() => {
   const item = props.data;
+  if(!item.dependencies) return
   if(item?.type !== 'task' ) return 0
   return item.dependencies.length + item.entity_dependencies.length
 });
 
 // methods
+const getAppIcon = (iconName) => {
+  const icon = iconStore.getAppIcon(iconName);
+  return icon
+};
+
 const removeDependency = () => {
   let itemType = props.data.type
   emitter.emit('removeDependency', { id: props.data.id, itemType: itemType });
@@ -189,14 +196,13 @@ const selectItem = () => {
   opacity: .2;
 }
 
-.task-item-root {
-
+.virtual-node-root {
   display: flex;
   flex-direction: column;
   gap: .2rem;
   color: var(--white);
   align-items: center;
-  padding: .3rem;
+  /* padding: .3rem; */
   box-sizing: border-box;
   width: 100%;
   height: min-content;
@@ -209,12 +215,12 @@ const selectItem = () => {
 
 }
 
-.task-item-root:hover {
+.virtual-node-root:hover {
   outline: var(--transparent-line);
   outline-offset: -1.5px;
 }
 
-.task-item-container {
+.virtual-node-container {
   display: flex;
   color: var(--white);
   align-items: center;
@@ -226,55 +232,14 @@ const selectItem = () => {
   transition: all .3s ease-out;
 }
 
-.task-item-container-selected {
+.virtual-node-container-selected {
   outline: 1.5px solid rgb(255, 255, 255);
   outline-offset: -1.5px;
 }
 
-.task-item-container-selected:hover {
+.virtual-node-container-selected:hover {
   outline: 1.5px solid rgb(255, 255, 255);
   outline-offset: -1.5px;
-}
-
-.subtask-item-root {
-  display: flex;
-  flex-direction: column;
-  gap: .2rem;
-  color: var(--white);
-  align-items: center;
-  box-sizing: border-box;
-  width: 100%;
-  overflow: hidden;
-  padding-left: 50px;
-}
-
-
-.subtask-item-root-collapsed {
-  height: 0px;
-}
-
-.subtask-item-container {
-  display: flex;
-  gap: .5rem;
-  color: var(--white);
-  align-items: center;
-  padding: .4rem;
-  box-sizing: border-box;
-  width: 100%;
-  height: 50px;
-  background-color: var(--dark-steel);
-  border-bottom: var(--transparent-line);
-}
-
-.subtask-item-container:last-child {
-  border-bottom: 0px;
-}
-
-.subtask-item-container:hover {
-  border-radius: 10px;
-  background-color: var(--light-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
 }
 
 .task-spacer {
@@ -319,7 +284,7 @@ const selectItem = () => {
   height: 100%;
 }
 
-.task-item-preview-container {
+.virtual-node-preview-container {
 
   display: flex;
   box-sizing: border-box;
@@ -332,7 +297,7 @@ const selectItem = () => {
   aspect-ratio: 16 / 9;
 }
 
-.task-item-preview-image {
+.virtual-node-preview-image {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -344,7 +309,7 @@ const selectItem = () => {
   border-radius: 5px;
 }
 
-.task-item-icon-container {
+.virtual-node-icon-container {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -355,7 +320,7 @@ const selectItem = () => {
   height: 100%;
 }
 
-.task-item-content {
+.virtual-node-content {
   gap: .4rem;
   display: flex;
   box-sizing: border-box;
@@ -367,7 +332,7 @@ const selectItem = () => {
   overflow: hidden;
 }
 
-.task-item-count {
+.virtual-node-count {
   gap: .4rem;
   display: flex;
   box-sizing: border-box;
@@ -381,7 +346,7 @@ const selectItem = () => {
   overflow: hidden;
 }
 
-.task-item-details {
+.virtual-node-details {
   padding: .2rem;
   flex-wrap: nowrap;
   overflow: hidden;
@@ -395,7 +360,7 @@ const selectItem = () => {
   font-size: 14px;
 }
 
-.task-item-meta {
+.virtual-node-meta {
   display: flex;
   padding: .2rem;
   box-sizing: border-box;
@@ -406,7 +371,7 @@ const selectItem = () => {
   overflow: hidden;
 }
 
-.task-item-tag {
+.virtual-node-tag {
   display: flex;
   box-sizing: border-box;
   overflow: hidden;
@@ -417,7 +382,7 @@ const selectItem = () => {
 }
 
 
-.task-item-status-container {
+.virtual-node-status-container {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -427,7 +392,7 @@ const selectItem = () => {
   height: 100%;
 }
 
-.task-item-status {
+.virtual-node-status {
   display: flex;
   border-radius: var(--normal-radius);
   box-sizing: border-box;
@@ -444,7 +409,7 @@ const selectItem = () => {
   color: black;
 }
 
-.task-item-actions {
+.virtual-node-actions {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -455,7 +420,7 @@ const selectItem = () => {
   height: 100%;
 }
 
-.task-item-assignee {
+.virtual-node-assignee {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -466,7 +431,7 @@ const selectItem = () => {
   height: 100%;
 }
 
-.not-node {
+.full-width {
   width: 100%;
 }
 </style>

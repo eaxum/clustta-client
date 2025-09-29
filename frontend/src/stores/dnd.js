@@ -12,6 +12,7 @@ export const useDndStore = defineStore("dnd", {
     isDropHovering: false,
     userCanDrag: true,
     importEditMode: false,
+    lockUI: true,
     altKeyActive: false,
     itemOverlappedId: null,
     isOverlapping: false,
@@ -104,7 +105,7 @@ export const useDndStore = defineStore("dnd", {
     onDragStart(e, id) {
       const stage = useStageStore();
 
-      if (!this.userCanDrag || id in stage.expandedEntities) {
+      if (this.lockUI || !this.userCanDrag || id in stage.expandedEntities) {
         return;
       }
 
@@ -128,7 +129,7 @@ export const useDndStore = defineStore("dnd", {
       this.draggedItemId = id;
 
       this.ghostCardStyle.width =
-        selectedCard.clientWidth - paddingLeft - paddingRight;
+      selectedCard.clientWidth - paddingLeft - paddingRight;
       this.ghostCardStyle.cursorDistance.x = e.pageX - cardRect.x;
       this.ghostCardStyle.cursorDistance.y = e.pageY - cardRect.y;
 

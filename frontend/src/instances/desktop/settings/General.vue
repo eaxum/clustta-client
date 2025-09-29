@@ -35,7 +35,7 @@
             </div>
             <div class="settings-action fixed-width">
               <DropDownBox :items="themeStore.themes" :onSelect="selectTheme"
-                :selectedItem="themeStore.selectedTheme" :placeHolder="'None'" :fixedWidth="true" />
+                :selectedItem="themeStore.currentTheme" :placeHolder="'None'" :fixedWidth="true" />
             </div>
           </div>
 

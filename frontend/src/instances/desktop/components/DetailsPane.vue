@@ -1,6 +1,8 @@
 <template>
   <div ref="detailsPaneRoot" class="details-pane-root" v-stop-propagation
     :class="{ 'details-pane-collapsed': !isVisible }">
+
+
     <div class="details-pane-inner">
       <div v-if="isMultipleItems" class="details-pane-content">
 
@@ -99,6 +101,13 @@
 
       </div>
       <div v-else class="details-pane-container absolute-pane">
+
+        <!-- <div class="general-pane-header">
+          <HeaderArea :title="utils.capitalizeStr('selectedTaskName')" :icon="'selectedTaskIcon'" :useIconBlob="true" />
+          <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('parameters')" :showLabel="false"
+            v-tooltip="'Edit Task'" />
+        </div> -->
+
         <div v-if="!noHeaders.includes(panes.activeModal)" class="pane-header-tabs">
           <PaneHeaderTabs :iconsOnly="false" :useSelected="true" :selectedTab="selectedSettingsContext" :dataTypes="settingsItems" @filter="filterList" />
 					<div class="menu-divider"></div>
@@ -136,6 +145,8 @@ import { useIconStore } from '@/stores/icons';
 import { useSettingsStore } from '@/stores/settings';
 
 // components
+
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import PaneHeaderTabs from '@/instances/common/components/PaneHeaderTabs.vue';
 import ProjectDetails from "@/instances/desktop/panes/ProjectDetails.vue";
 import Dependencies from "@/instances/desktop/panes/Dependencies.vue";
@@ -145,6 +156,7 @@ import UntrackedItemDetails from "@/instances/desktop/panes/UntrackedItemDetails
 import AssetDetails from "@/instances/desktop/panes/AssetDetails.vue";
 import Checkpoints from "@/instances/desktop/panes/Checkpoints.vue";
 import ProjectCheckpoints from "@/instances/desktop/panes/ProjectCheckpoints.vue";
+import Console from "@/instances/desktop/panes/Console.vue";
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import CollaboratorSuggestions from '@/instances/common/components/CollaboratorSuggestions.vue';
@@ -175,7 +187,8 @@ const paneComponents = {
   assetDetails: AssetDetails,
   checkpoints: Checkpoints,
   projectCheckpoints: ProjectCheckpoints,
-  untrackedItemDetails: UntrackedItemDetails
+  untrackedItemDetails: UntrackedItemDetails,
+  console: Console
 };
 
 const props = defineProps({
@@ -230,7 +243,7 @@ const assignCollections = async (user) => {
   stage.operationActive = false;
 }
 
-const noHeaders = ['projectCheckpoints', 'projectDetails']
+const noHeaders = ['projectCheckpoints']
 
 const isMultipleItems = computed(() => {
   return stage.markedItems.length > 1
@@ -297,16 +310,23 @@ const itemsIsUntracked = computed(() => {
   return stage.selectedItems.some((item) => item.type === 'untracked_task' || item.type === 'untracked_entity')
 });
 
+const projectDetailPanes = ref([
+      { name: "Details", tab_name: "projectDetails", icon: "info" },
+      // { name: "Collaborators", tab_name: "collaborators", icon: "person" },
+      { name: "Console", tab_name: "console", icon: "console" }
+]);
 
 const assetDetailPanes = ref([
       { name: "Details", tab_name: "assetDetails", icon: "info" },
       { name: "Checkpoints", tab_name: "checkpoints", icon: "layers" },
       { name: "Dependencies", tab_name: "dependencies", icon: "dependency" },
+      { name: "Console", tab_name: "console", icon: "console" },
 ]);
 
 const collectionDetailPanes = ref([
       { name: "Details", tab_name: "collectionDetails", icon: "info" },
-      { name: "Collaborators", tab_name: "collaborators", icon: "person" }
+      // { name: "Collaborators", tab_name: "collaborators", icon: "person" },
+      { name: "Console", tab_name: "console", icon: "console" }
 ]);
 
 const untrackedDetailPanes = ref([
@@ -317,7 +337,9 @@ const settingsItems = computed(() => {
 
   const itemType = stage.selectedItem?.type;
   
-  if(itemType === 'task'){
+  if(!stage.markedItems.length){
+    return projectDetailPanes.value
+  } else if(itemType === 'task'){
     return assetDetailPanes.value
   }else if(itemType === 'entity'){
     return collectionDetailPanes.value;
@@ -355,14 +377,19 @@ const viewCheckpoints = () => {
   filterList('Checkpoints');
 }
 
-/////////////////////////////////////////////////
 
 const visiblePanes = computed(() => {
+  
   if (stage.activeStage === 'browser') {
     if (!collectionStore.selectedCollection && !assetStore.selectedAsset && !projectStore.selectedUntrackedItem) {
       if (!stage.markedItems.length) {
         if(panes.activeModal !== 'projectCheckpoints'){
-          panes.setPaneVisibility('projectDetails', true);
+          let index = activeTabIndex.value;
+          if(index < 0){
+            index = 0;
+          }
+          const activePane = settingsItems.value[index]?.tab_name || 'projectDetails';
+          panes.setPaneVisibility(activePane, true);
         }
       }
     } else if(stage.selectedItem && stage.markedItems.length === 1){
@@ -388,11 +415,8 @@ const visiblePanes = computed(() => {
 
 // refs
 const defaultStatus = ref('TODO');
-const multiStatusChange = ref(false);
-const multiTypeChange = ref(false);
 const itemTypes = ref(['task', 'resource']);
 const collectionMode = ref(['basic', 'library']);
-const itemType = ref(itemTypes.value[0]);
 const taskType = ref(assetStore.getAssetTypesNames[0]);
 const entityType = ref(collectionStore.getCollectionTypesNames[0]);
 const detailsPaneRoot = ref(null);
@@ -472,7 +496,7 @@ const getAppIcon = (iconName) => {
 };
 
 // Helper function to emit task data updates
-const emitTaskUpdates = (taskId, updates) => {
+const emitUpdates = (taskId, updates) => {
   // Update the corresponding item in stage.selectedItems
   const selectedItemIndex = stage.selectedItems.findIndex(item => item.id === taskId);
   if (selectedItemIndex !== -1) {
@@ -671,7 +695,7 @@ const freeUpSpace = async () => {
         assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => taskPath !== task.task_path);
         
         // Emit task updates to notify components of file state changes
-        emitTaskUpdates(task.id, { file_status: 'rebuildable' });
+        emitUpdates(task.id, { file_status: 'rebuildable' });
       })
       .catch((error) => {
         console.error(error); 
@@ -805,7 +829,7 @@ const makeDependenciesOfActive = async () => {
       }
     }
   }
-  emitTaskUpdates(task.id, {
+  emitUpdates(task.id, {
     dependencies: task.dependencies,
     entity_dependencies: task.entity_dependencies
   });
@@ -1006,7 +1030,7 @@ const revertAllChanges = async () => {
         task.file_status = 'normal';
         
         // Emit task updates to notify components of the state change
-        emitTaskUpdates(task.id, { file_status: 'normal' });
+        emitUpdates(task.id, { file_status: 'normal' });
       }
     })
     .catch((error) => {
@@ -1103,8 +1127,6 @@ onUnmounted(() => {
 }
 
 .details-pane-root {
-  padding: .5rem;
-  padding-top: .9rem;
   position: relative;
   height: 100%;
   max-width: 600px;
@@ -1115,8 +1137,6 @@ onUnmounted(() => {
   justify-content: center;
   overflow: hidden;
   flex: 1 1 50%;
-  background-color: var(--steel);
-  padding-bottom: 0;
 }
 
 .details-pane-inner {

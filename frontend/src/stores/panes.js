@@ -5,6 +5,7 @@ export const usePaneStore = defineStore("panes", {
     detailPanes: {
       dependencies: false,
       collaborators: false,
+      console: false,
       projectDetails: false,
       collectionDetails: false,
       assetDetails: false,
