@@ -37,7 +37,7 @@
     <ActionButton v-if="isAssetModified" :noFilter="true" :icon="getAppIcon('revert-alert')" :showLabel="true" :fullWidth="true"
       label="Revert File" :buttonFunction="revertAsset" />
 
-    <span v-if="userStore.canDo('update_task')" class="menu-divider"></span>
+    <span v-if="userStore.canDo('delete_task') || !isNotOnDisk" class="menu-divider"></span>
 
     <!-- Free space -->
     <ActionButton :icon="getAppIcon('broom')" v-if="!isNotOnDisk" :showLabel="true" :fullWidth="true"

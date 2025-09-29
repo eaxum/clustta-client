@@ -627,8 +627,6 @@ onBeforeUnmount(() => {
 }
 
 .single-action-button{
-  /* background-color: forestgreen; */
-  /* width: 100%; */
   align-content: center;
   justify-content: center;
 }

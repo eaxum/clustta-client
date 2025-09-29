@@ -56,7 +56,7 @@ export const useTemplateStore = defineStore("template", {
         this.templates.push(template);
       }
     },
-    getTaskTypeIcon(templateId) {
+    getAssetTypeIcon(templateId) {
       for (let i = 0; i < this.templates.length; i++) {
         if (this.templates[i].id === templateId) {
           return this.templates[i].icon;
