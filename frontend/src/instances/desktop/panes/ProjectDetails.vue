@@ -73,45 +73,56 @@
 
       </div>
 
-      <div class="project-stats">
+      <div v-if="!projectStore.isProjectStatsExpanded" class="project-stats project-stats-collapsed">
 
-        <div class="pane-parameter-detail">
-          <div class="simple-text-key">
-          Total Assets
-          </div>
-          <div class="simple-text-value">
-           {{  assetsOnDiskCount }} / {{  assetCount }}
-          </div>
-        </div>
-
-        <div class="pane-parameter-detail">
-          <div class="simple-text-key">
-          Total Collections
-          </div>
-          <div class="simple-text-value">
-           {{  collectionsOnDiskCount }} / {{  collectionCount }}
-          </div>
-        </div>
-
-        <div class="pane-parameter-detail">
-          <div class="simple-text-key">
-          Files on your computer 
-          </div>
-          <div class="simple-text-value">
-            {{  projectSize }}
-          </div>
-        </div>
-
-        <div class="pane-parameter-detail">
-          <div class="simple-text-key">
-          Clustta file size
-          </div>
-          <div class="simple-text-value">
-           {{  clusttaSize }}
-          </div>
-        </div>
+        <ActionButton :icon="getAppIcon('info')" :showLabel="true" :fullWidth="true"
+          label="Project stats" :buttonFunction="toggleProjectStats" />
 
       </div>
+      <div v-else class="project-stats project-stats-collapsed">
+
+        <ActionButton :icon="getAppIcon('chevron-down')" :showLabel="true" :fullWidth="true"
+          label="Project stats" :buttonFunction="toggleProjectStats" />
+
+          <div class="project-stats-content">
+            <div class="pane-parameter-detail">
+              <div class="simple-text-key">
+              Total Assets
+              </div>
+              <div class="simple-text-value">
+              {{  assetsOnDiskCount }} / {{  assetCount }}
+              </div>
+            </div>
+
+            <div class="pane-parameter-detail">
+              <div class="simple-text-key">
+              Total Collections
+              </div>
+              <div class="simple-text-value">
+              {{  collectionsOnDiskCount }} / {{  collectionCount }}
+              </div>
+            </div>
+
+            <div class="pane-parameter-detail">
+              <div class="simple-text-key">
+              Files on your computer 
+              </div>
+              <div class="simple-text-value">
+                {{  projectSize }}
+              </div>
+            </div>
+
+            <div class="pane-parameter-detail">
+              <div class="simple-text-key">
+              Clustta file size
+              </div>
+              <div class="simple-text-value">
+              {{  clusttaSize }}
+              </div>
+            </div>
+            </div>
+      </div>
+
       </div>
     </div>
 
@@ -279,6 +290,11 @@ const copyProjectPath = async () => {
 
 };
 
+const toggleProjectStats = () => {
+  projectStore.isProjectStatsExpanded = !projectStore.isProjectStatsExpanded;
+  if(projectStore.isProjectStatsExpanded) getProjectData()
+};
+
 const prepFreeUpSpacePopUpModal = () => {
   let project = projectStore.getActiveProject;
   trayStates.popUpModalTitle = `Delete \"${project.name}\" Working Data? `;
@@ -389,6 +405,7 @@ const getCollectionCount = async() => {
 }
 
 const getProjectData = async () => {
+  if(!projectStore.isProjectStatsExpanded) return 
   let project = projectStore.getActiveProject;
   if (!await FSService.Exists(project.uri)) return
   getItemsCount();
@@ -482,7 +499,6 @@ onBeforeUnmount(() => {
 
 .project-stats{
   font-size: 14px;
-  /* font-weight: 300; */
   display: flex;
   flex-direction: column;
   background-color: var(--steel);
@@ -490,13 +506,28 @@ onBeforeUnmount(() => {
   height: min-content;
   min-height: min-content;
   align-items: center;
-  padding: .5rem;
-  gap: 5px;
   box-sizing: border-box;
   border-radius: var(--small-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
+}
+
+.project-stats-content{
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: min-content;
+  min-height: min-content;
+  align-items: center;
+  padding: .5rem;
+  gap: 5px;
+  box-sizing: border-box;
   color: var(--white);
+}
+
+.project-stats-collapsed{
+  padding: 0px;
 }
 
 .pane-parameter-detail {

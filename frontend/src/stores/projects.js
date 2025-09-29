@@ -55,6 +55,8 @@ export const useProjectStore = defineStore("projects", {
     untrackedFolders: [],
     selectedUntrackedItem: null,
     untrackedFoldersIndex: {},
+    newUsers: {}, // Map of projectUri -> array of new user emails
+    isProjectStatsExpanded: false,
   }),
   getters: {
     getActiveProjectName: (state) => {
@@ -559,6 +561,32 @@ export const useProjectStore = defineStore("projects", {
     },
     selectUntrackedItem(item) {
       this.selectedUntrackedItem = item;
+    },
+    
+    // New user management methods
+    addNewUsersToProject(projectUri, userEmails) {
+      if (!this.newUsers[projectUri]) {
+        this.newUsers[projectUri] = [];
+      }
+      
+      // Add only unique emails that aren't already tracked
+      const uniqueEmails = userEmails.filter(email => 
+        !this.newUsers[projectUri].includes(email)
+      );
+      
+      this.newUsers[projectUri].push(...uniqueEmails);
+    },
+    
+    getNewUsersForProject(projectUri) {
+      return this.newUsers[projectUri] || [];
+    },
+    
+    clearNewUsersForProject(projectUri) {
+      delete this.newUsers[projectUri];
+    },
+    
+    hasNewUsersForProject(projectUri) {
+      return this.newUsers[projectUri] && this.newUsers[projectUri].length > 0;
     },
   },
 });
