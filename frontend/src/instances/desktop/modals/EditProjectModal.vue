@@ -12,7 +12,7 @@
         v-tooltip="'Revert Cover Image'" :buttonFunction="revertCoverImage" />
       <ActionButton v-if="projectPreview && !displayEmojiSelector" :icon="getAppIcon('trash')" :showLabel="false"
         v-tooltip="'Remove Cover Image'" :buttonFunction="removeCoverImage" />
-      <ActionButton v-else-if="projectPreview && !displayEmojiSelector" :icon="getAppIcon('image-plus')" :showLabel="false" v-tooltip="'Add Cover Image'"
+      <ActionButton v-if="!projectPreview" :icon="getAppIcon('image-plus')" :showLabel="false" v-tooltip="'Add Cover Image'"
         :buttonFunction="addCoverImage" />
     </div>
 
