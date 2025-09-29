@@ -14,7 +14,7 @@
         v-right-click="openUntrackedItemMenu" :isUntracked="true" :task="child" :index="index" />
     </div>
     <template v-if="isExpanded">
-      <VirtuaListSkeleton v-if="loadingChildren" :itemHeight="commonStore.listItemHeight" :height="virtuaIndentHeight" :depth="depth + 1" />
+      <ListSkeleton v-if="loadingChildren" :itemHeight="commonStore.listItemHeight" :height="virtuaIndentHeight" :depth="depth + 1" />
       <div ref="virtuaChildrenRef" v-else-if="entityChildren.length" class="virtua-item-children">
         <div class="indent-guide" :style="{ height: `${indentHeight}px` }"
           :class="{ 'indent-guide-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === child.id }">
@@ -71,7 +71,7 @@ const emit = defineEmits(['refreshData']);
 import VirtuaList from '@/instances/common/components/VirtuaList.vue';
 import Asset from '@/instances/desktop/blocks/Asset.vue'
 import Collection from '@/instances/desktop/blocks/Collection.vue';
-import VirtuaListSkeleton from '@/instances/desktop/components/VirtuaListSkeleton.vue';
+import ListSkeleton from '@/instances/desktop/components/ListSkeleton.vue';
 
 // props
 const props = defineProps({
