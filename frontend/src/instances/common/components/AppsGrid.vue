@@ -1,7 +1,15 @@
 <template>
   <div class="apps-container-full">
-    <div class="apps-container">
-      <div ref="scrollableElement" class="apps-grid">
+
+    
+      <div v-if="!templateStore.getTemplates.length" class="page-state-container">
+        <PageState 
+          :message="'This project has no templates'" 
+          :illustration="'/page-states/resources.png'" />
+      </div>
+
+    <div v-else class="apps-container">
+      <div  ref="scrollableElement" class="apps-grid">
         <div v-for="(template) in appsWithIcons" :key="template.id" class="apps-grid-item-container"
           @click="selectApp(template.name, template.icon)">
           <div class="apps-grid-item">
@@ -10,8 +18,11 @@
           </div>
         </div>
       </div>
+
+
     </div>
-    <ActionButton v-if="userStore.canDo('create_template')" :icon="getAppIcon('squares-plus')" :label="'Manage templates'"
+
+    <ActionButton v-if="userStore.canDo('create_template')" :icon="getAppIcon('squares-plus')" :label="label"
       :buttonFunction="manageTemplates" />
   </div>
 
@@ -23,6 +34,7 @@ import utils from '@/services/utils';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
+import PageState from '@/instances/common/components/PageState.vue'
 
 // states
 import { useTrayStates } from '@/stores/TrayStates';
@@ -47,6 +59,10 @@ const props = defineProps({
     type: Boolean,
     default: false
   }
+});
+
+const label = computed(() => {
+  return templateStore.getTemplates.length ? 'Manage templates' : 'Add templates';
 });
 
 const manageTemplates = () => {
@@ -131,6 +147,11 @@ onMounted(async () => {
   align-items: center;
   flex-direction: column;
   gap: 10px;
+}
+
+.page-state-container{
+  /* background-color: crimson; */
+  height: 300px;
 }
 
 .apps-container-full-desktop {
