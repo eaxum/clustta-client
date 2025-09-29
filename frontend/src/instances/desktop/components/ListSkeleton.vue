@@ -1,7 +1,7 @@
 <template>
-<div class="virtua-skeleton-container" :class="{ 'indent-style' : useIndent  }">
+<div class="virtua-skeleton-container" ref="containerRef" :class="{ 'indent-style' : useIndent  }">
 
-  <div v-if="useIndent" class="indent-guide-skeleton" :style="{ height: `${height}px`}" >
+  <div v-if="useIndent" class="indent-guide-skeleton" :style="{ height: `${indentHeight}px`}" >
   </div>
 
   <div v-for="(skeleton, index) in skeletonArray" :key="index" class="virtua-skeleton-wrapper" 
@@ -11,6 +11,12 @@
     animationDuration: `${animationDuration}s`
   }" >
     <div class="virtua-skeleton-item" >
+      <div class="icon-skeleton"></div>
+      <div class="virtua-skeleton-item-launcher"></div>
+      <div class="icon-skeleton"></div>
+      <div class="status-pill"></div>
+      <div class="icon-skeleton"></div>
+      <div class="icon-skeleton"></div>
     </div>
   </div>
 </div>
@@ -18,17 +24,21 @@
 
 <script setup>
 
-import { ref, onMounted, computed  } from 'vue';
+import { ref, onMounted, computed, nextTick } from 'vue';
 
 const props = defineProps({
   forModal: { type: Boolean, default: false },
-  height: { type: Number, default: 50 },
+  height: { type: Number, default: null },
   itemHeight: { type: Number, default: 50 },
   depth: { type: Number, default: 0 },
 })
 
+const containerRef = ref(null);
+const containerHeight = ref(500); // fallback value
+
 const skeletonArray = computed(() => {
-  const itemCount = Math.round(props.height / props.itemHeight);
+  const heightToUse = props.height ? props.height : containerHeight.value;
+  const itemCount = Math.round(heightToUse / props.itemHeight);
   return Array.from({ length: Math.max(1, itemCount) }, (_, i) => i + 1);
 });
 
@@ -37,22 +47,30 @@ const animationDuration = computed(() => {
   return Math.max(1, skeletonArray.value.length * 0.3);
 });
 
+const indentHeight = computed(() => {
+  return props.height ? props.height : containerHeight.value;
+});
+
 const useIndent = computed(() => {
   return props.depth > 0
 })
 
-
 onMounted(async () => {
-    console.log()
+  if (!props.height) {
+    await nextTick();
+    if (containerRef.value) {
+      containerHeight.value = containerRef.value.clientHeight;
+    }
+  }
 });
 
 </script>
   
 <style scoped>
+  @import "@/assets/tray.css";
 
 .indent-guide-skeleton {
   position: absolute;
-  /* height: 30px; */
   width: 100%;
   box-sizing: border-box;
   border-left: var(--transparent-line);
@@ -61,7 +79,6 @@ onMounted(async () => {
 
 .indent-style{
   padding-left: 30px;
-  /* background-color: crimson; */
 }
 
 .virtua-skeleton-container{
@@ -70,8 +87,6 @@ onMounted(async () => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0px;
-  padding-bottom: 5px;
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -85,18 +100,16 @@ onMounted(async () => {
   height: min-content;
   justify-content: space-between;
   align-items: center;
-  /* background-color: var(--dark-steel); */
-  /* background-color: crimson; */
   overflow: hidden;
   min-height: 50px;
   opacity: 0;
   animation: fadeInFadeOut infinite ease-in-out;
-  /* padding-right: 10px; */
 }
 
 .virtua-skeleton-item{
   display: flex;
-  color: white;
+  gap: .5rem;
+  color: var(--white);
   align-items: center;
   padding-left: .5rem;
   box-sizing: border-box;
@@ -104,48 +117,26 @@ onMounted(async () => {
   height: min-content;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--dark-steel);
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
   padding: .5rem;
   height: 90%;
-  /* min-height: 50px; */
-  /* height: 100%; */
+  outline: var(--transparent-line);
+  outline-offset: -1px;
 }
 
 .virtua-skeleton-item-launcher{
     box-sizing: border-box;
-    background-color: white;
-    opacity: .1;
+    background-color: var(--steel);
     width: 100%;
     height: 30px;
     height: 60%;
-    border-radius: 12px;
-}
-
-.virtua-skeleton-spacer{
-    box-sizing: border-box;
-    /* background-color: white; */
-    opacity: .1;
-    width: 50px;
-    height: 30px;
-    height: 60%;
-    border-radius: 12px;
-}
-
-.thumb-skeleton{
-    box-sizing: border-box;
-    background-color: white;
-    opacity: .1;
-    height: 80%;
-    aspect-ratio: 16/9;
     border-radius: 8px;
 }
 
 .status-pill{
     box-sizing: border-box;
-    background-color: white;
-    opacity: .1;
+    background-color: var(--steel);
     width: 5rem;
     height: 30px;
     height: 60%;
@@ -154,14 +145,11 @@ onMounted(async () => {
 
 .icon-skeleton{
     box-sizing: border-box;
-    background-color: white;
-    opacity: .1;
-    /* width: 5rem; */
-    height: 50%;
+    background-color: var(--steel);
+    height: 60%;
     aspect-ratio: 1/1;
-    border-radius: 12px;
+    border-radius: 50%;
 }
-
 
 @keyframes fadeInFadeOut {
   from {
@@ -181,7 +169,7 @@ onMounted(async () => {
   }
 }
 
-  </style>
+</style>
   
   
   
