@@ -88,6 +88,7 @@
   --white: hsl(0, 0%, 0%);
   --silver: hsl(0, 0%, 15%);
   --steel: hsl(254, 0%, 85%);
+  --bright-steel: hsl(0, 0%, 81%);
   --light-steel: hsl(0, 0%, 81%);
   --dark-steel: hsl(0, 0%, 89%);
   --black-steel: hsl(0, 0%, 93%);
@@ -98,6 +99,7 @@
 --white: oklch(from var(--steel) 0.0 c h);           /* Pure black */
 --silver: oklch(from var(--steel) 0.23 c h);         /* Dark gray */
 --steel: oklch(0.89 0 264);                          /* Base color - unchanged */
+--bright-steel: oklch(from var(--steel) 0.80 c h);    /* Slightly darker */
 --light-steel: oklch(from var(--steel) 0.85 c h);    /* Slightly darker */
 --dark-steel: oklch(from var(--steel) 0.93 c h);     /* Lighter */
 --black-steel: oklch(from var(--steel) 0.97 c h);    /* Even lighter */
@@ -133,6 +135,7 @@
 
   /* radius */
   --transparent-line: 1px solid var(--light-steel);
+  --medium-transparent-line: 1.5px solid var(--bright-steel);
   --thick-transparent-line: 2px solid rgba(255, 255, 255, 0.2);
   --solid-line: 1px solid var(--white);
   --small-radius: 8px;
@@ -180,7 +183,6 @@ img {
   user-select: none;
 }
   
-/* In your global CSS or component style */
 body {
   box-sizing: border-box;
   align-items: center;

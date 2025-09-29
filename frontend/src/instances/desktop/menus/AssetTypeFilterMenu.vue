@@ -43,7 +43,6 @@ const assetStore = useAssetStore();
 const collectionMenu = ref(null);
 
 const projectTaskTypes = computed(() => {
-  console.log(assetStore.getAssetTypes)
   return assetStore.getAssetTypes
 });
 
