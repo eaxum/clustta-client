@@ -325,7 +325,7 @@ onMounted(async () => {
   justify-content: space-between;
   justify-content: flex-start;
   gap: .4px;
-  color: white;
+  color: var(--white);
 }
 
 .general-container {

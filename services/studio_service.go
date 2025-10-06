@@ -54,8 +54,16 @@ func (s *StudioService) GetStudioStatus(studioUrl string) (string, error) {
 	return status, nil
 }
 
-func (s *StudioService) CreateStudio(name string) (interface{}, error) {
-	result, err := studio_service.CreateStudio(name)
+func (s *StudioService) CreateStudio(name, studioUrl string) (interface{}, error) {
+	result, err := studio_service.CreateStudio(name, studioUrl)
+	if err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
+func (s *StudioService) UpdateStudio(studioName, url, altUrl, port, key string) (interface{}, error) {
+	result, err := studio_service.UpdateStudio(studioName, url, altUrl, port, key)
 	if err != nil {
 		return result, err
 	}

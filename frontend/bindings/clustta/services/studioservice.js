@@ -34,10 +34,11 @@ export function ChangeCollaboratorRole(userId, studioId, roleName) {
 
 /**
  * @param {string} name
+ * @param {string} studioUrl
  * @returns {Promise<any> & { cancel(): void }}
  */
-export function CreateStudio(name) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3767455119, name));
+export function CreateStudio(name, studioUrl) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3767455119, name, studioUrl));
     return $resultPromise;
 }
 
@@ -70,6 +71,19 @@ export function GetStudioUsers(studioId) {
  */
 export function RemoveCollaborator(userId, studioId) {
     let $resultPromise = /** @type {any} */($Call.ByID(3776272057, userId, studioId));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} studioName
+ * @param {string} url
+ * @param {string} altUrl
+ * @param {string} port
+ * @param {string} key
+ * @returns {Promise<any> & { cancel(): void }}
+ */
+export function UpdateStudio(studioName, url, altUrl, port, key) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3870164438, studioName, url, altUrl, port, key));
     return $resultPromise;
 }
 

@@ -77,6 +77,11 @@ import EditUserAssetTypeModal from '@/instances/desktop/settings/modals/EditUser
 import AddUserCollectionTypeModal from '@/instances/desktop/settings/modals/AddUserCollectionTypeModal.vue';
 import EditUserCollectionTypeModal from '@/instances/desktop/settings/modals/EditUserCollectionTypeModal.vue';
 
+// studio
+import ConfigSelfManagedStudioModal from '@/instances/desktop/modals/ConfigSelfManagedStudioModal.vue';
+import SelectNewStudioTypeModal from '@/instances/desktop/modals/SelectNewStudioTypeModal.vue';
+import UpdateStudioModal from '@/instances/desktop/modals/UpdateStudioModal.vue';
+
 const props = defineProps({
   component: String,
   show: Boolean,
@@ -143,6 +148,10 @@ const modalComponents = {
   createAssetModal: CreateAssetModal,
   createCollectionModal: CreateCollectionModal,
   selectAppModal: SelectAppModal,
+
+  configSelfManagedStudioModal: ConfigSelfManagedStudioModal,
+  selectNewStudioTypeModal: SelectNewStudioTypeModal,
+  updateStudioModal: UpdateStudioModal,
 };
 
 const closeModals = () => {

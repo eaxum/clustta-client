@@ -133,9 +133,8 @@ const goToProjects = () => {
 };
 
 const showUserAccountMenu = (event) => {
+	menu.showContextMenu(event, 'accountMenu', true, { anchor: true, position: 'right' });
 	if(userStore.getUserAuthentication){
-		// Show the account menu anchored to the right of the button
-		menu.showContextMenu(event, 'accountMenu', true, { anchor: true, position: 'right' });
 	}
 };
 
