@@ -376,11 +376,12 @@ func GetStudioStatus(studioUrl string) (string, error) {
 	return "offline", nil
 }
 
-func CreateStudio(name string) (interface{}, error) {
+func CreateStudio(studioName, studioUrl string) (interface{}, error) {
 	url := constants.HOST + "/studio"
 
 	requestBody := map[string]string{
-		"name": name,
+		"name": studioName,
+		"url":  studioUrl,
 	}
 
 	jsonData, err := json.Marshal(requestBody)
@@ -432,4 +433,65 @@ func CreateStudio(name string) (interface{}, error) {
 	bodyData := string(body)
 
 	return nil, fmt.Errorf("error creating studio: code - %d: body - %s", response.StatusCode, bodyData)
+}
+
+func UpdateStudio(studioName, url, altUrl, port, key string) (interface{}, error) {
+	apiUrl := constants.HOST + "/studio/" + studioName + "/url"
+
+	requestBody := map[string]string{
+		"url":     url,
+		"alt_url": altUrl,
+		"port":    port,
+		"key":     key,
+	}
+
+	jsonData, err := json.Marshal(requestBody)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", apiUrl, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+
+	// Set custom headers
+	token, err := auth_service.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	responseCode := response.StatusCode
+	if responseCode == 201 || responseCode == 200 {
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			return nil, fmt.Errorf("error reading response body: %s", err)
+		}
+
+		var result interface{}
+		err = json.Unmarshal(body, &result)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal response body: %v", err)
+		}
+		return result, nil
+	}
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response body: %s", err.Error())
+	}
+
+	bodyData := string(body)
+
+	return nil, fmt.Errorf("error updating studio: code - %d: body - %s", response.StatusCode, bodyData)
 }

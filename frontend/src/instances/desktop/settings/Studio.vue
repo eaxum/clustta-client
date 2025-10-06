@@ -5,17 +5,16 @@
       <div class="settings-list">
 
         <div class="settings-section">
-          <div class="settings-item" @click="" v-stop-propagation>
+          <div class="settings-item" v-stop-propagation>
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('storefront')"></div>
             <div class="settings-content">
               <div class="settings-header">Studio Name</div>
               <div class="settings-body">{{ studioInfo.name }}</div>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
           </div>
 
 
-          <div class="settings-item" @click="">
+          <div class="settings-item"  @click="launchUpdateStudioModal()" v-stop-propagation>
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('website')"></div>
             <div class="settings-content">
               <div class="settings-header">IP Address/URL</div>
@@ -24,7 +23,7 @@
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
           </div>
 
-          <div v-if="studioInfo?.alt_url" class="settings-item" @click="">
+          <div v-if="studioInfo?.alt_url" class="settings-item"  @click="launchUpdateStudioModal()" v-stop-propagation>
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('website')"></div>
             <div class="settings-content">
               <div class="settings-header">Alternate URL</div>
@@ -53,11 +52,13 @@ import utils from '@/services/utils';
 import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useIconStore } from '@/stores/icons';
+import { useDesktopModalStore } from '@/stores/desktopModals';
 
 // refs
 const trayStates = useTrayStates();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
+const modals = useDesktopModalStore();
 
 // vars
 const autoStart = ref(trayStates.autoStart);
@@ -66,6 +67,10 @@ const clusttaVersion = ref("");
 const studioInfo = computed(() => {
   return projectStore.selectedStudio
 })
+
+const launchUpdateStudioModal = () => {
+  modals.setModalVisibility('updateStudioModal', true);
+};
 
 const getAppIcon = (iconName) => {
   const icon = iconStore.getAppIcon(iconName);

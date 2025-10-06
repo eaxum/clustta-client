@@ -68,6 +68,11 @@ export const useDesktopModalStore = defineStore("desktopModals", {
 
       addUserCollectionTypeModal: false,
       editUserCollectionTypeModal: false,
+
+      //studio
+      configSelfManagedStudioModal: false,
+      selectNewStudioTypeModal: false,
+      updateStudioModal: false,
     },
 
     activeModal: null,
