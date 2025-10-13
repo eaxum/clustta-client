@@ -376,7 +376,7 @@ func GetStudioStatus(studioUrl string) (string, error) {
 	return "offline", nil
 }
 
-func CreateStudio(studioName, studioUrl string) (interface{}, error) {
+func RegisterStudio(studioName, studioUrl string) (interface{}, error) {
 	url := constants.HOST + "/studio"
 
 	requestBody := map[string]string{
