@@ -2,7 +2,7 @@
   <div ref="modalContainer" class="modal-container">
 
     <div class="general-pane-header">
-      <HeaderArea :title="title" :icon="getAppIcon('stall')" :showSearch="false" />
+      <HeaderArea :title="title" :icon="getAppIcon('two-drives')" :showSearch="false" />
     </div>
 
     <div v-if="!isStudioCreated" class="general-container">
@@ -38,33 +38,6 @@
         <p>Congratulations, your studio <strong>{{ createdStudio?.name }}</strong> has been created.</p>
         <p>Copy the data below and paste it in your '.env' file to complete the setup on your server.</p>
       </div>
-
-      <!-- <div class="studio-details">
-        <div class="studio-info-section">
-          <div class="studio-info-label">Studio Name</div>
-          <div class="studio-info-value">{{ createdStudio?.name }}</div>
-        </div>
-
-        <div class="studio-info-section">
-          <div class="studio-info-label">Studio URL</div>
-          <div class="studio-info-value">{{ createdStudio?.url }}</div>
-        </div>
-
-        <div class="studio-info-section" v-if="createdStudio?.alt_url">
-          <div class="studio-info-label">Alternate URL</div>
-          <div class="studio-info-value">{{ createdStudio?.alt_url }}</div>
-        </div>
-
-        <div class="studio-info-section">
-          <div class="studio-info-label">Studio ID</div>
-          <div class="studio-info-value studio-id">{{ createdStudio?.id }}</div>
-        </div>
-
-        <div class="studio-info-section">
-          <div class="studio-info-label">Studio Key</div>
-          <div class="studio-info-value studio-key">{{ createdStudio?.secret_key }}</div>
-        </div>
-      </div> -->
 
       <div class="secret-key-container">
         <div class="secret-key-header">
@@ -161,7 +134,7 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 //header vars
-let title = 'New Studio';
+let title = 'New Self Managed Studio';
 
 // stores/states
 const modals = useDesktopModalStore();
@@ -232,7 +205,7 @@ const handleEnterKey = (event) => {
 
 const createStudio = async () => {
 
-  await StudioService.CreateStudio(studioName.value, studioUrl.value).then(async (result) => {
+  await StudioService.RegisterStudio(studioName.value, studioUrl.value).then(async (result) => {
 
     console.log(result);
     createdStudio.value = result;

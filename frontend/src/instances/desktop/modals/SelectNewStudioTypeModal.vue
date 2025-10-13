@@ -84,9 +84,8 @@ const handleNext = () => {
     // Trigger the config self-managed studio modal
     modals.setModalVisibility('configSelfManagedStudioModal', true);
   } else if (selectedStudioType.value === 'clustta-cloud') {
-    // TODO: Handle ClusttaCloud setup
-    console.log('ClusttaCloud setup - Coming soon');
-    closeModal();
+    // Trigger the config clustta-cloud studio modal
+    modals.setModalVisibility('configClusttaCloudStudioModal', true);
   }
 };
 
