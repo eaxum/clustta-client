@@ -79,6 +79,7 @@ import EditUserCollectionTypeModal from '@/instances/desktop/settings/modals/Edi
 
 // studio
 import ConfigSelfManagedStudioModal from '@/instances/desktop/modals/ConfigSelfManagedStudioModal.vue';
+import ConfigClusttaCloudStudioModal from '@/instances/desktop/modals/ConfigClusttaCloudStudioModal.vue';
 import SelectNewStudioTypeModal from '@/instances/desktop/modals/SelectNewStudioTypeModal.vue';
 import UpdateStudioModal from '@/instances/desktop/modals/UpdateStudioModal.vue';
 
@@ -150,6 +151,7 @@ const modalComponents = {
   selectAppModal: SelectAppModal,
 
   configSelfManagedStudioModal: ConfigSelfManagedStudioModal,
+  configClusttaCloudStudioModal: ConfigClusttaCloudStudioModal,
   selectNewStudioTypeModal: SelectNewStudioTypeModal,
   updateStudioModal: UpdateStudioModal,
 };
