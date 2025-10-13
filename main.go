@@ -88,6 +88,7 @@ func main() {
 			application.NewService(&services.ClipboardService{}),
 			application.NewService(&services.CollectionService{}),
 			application.NewService(&services.DependencyTypeService{}),
+			application.NewService(&services.DeploymentService{}),
 			application.NewService(&services.DialogService{}),
 			application.NewService(&services.FSService{}),
 			application.NewService(&services.ImportService{}),

@@ -10,6 +10,7 @@ import * as CheckpointService from "./checkpointservice.js";
 import * as ClipboardService from "./clipboardservice.js";
 import * as CollectionService from "./collectionservice.js";
 import * as DependencyTypeService from "./dependencytypeservice.js";
+import * as DeploymentService from "./deploymentservice.js";
 import * as DialogService from "./dialogservice.js";
 import * as FSService from "./fsservice.js";
 import * as ImportService from "./importservice.js";
@@ -33,6 +34,7 @@ export {
     ClipboardService,
     CollectionService,
     DependencyTypeService,
+    DeploymentService,
     DialogService,
     FSService,
     ImportService,
