@@ -71,6 +71,7 @@ export const useDesktopModalStore = defineStore("desktopModals", {
 
       //studio
       configSelfManagedStudioModal: false,
+      configClusttaCloudStudioModal: false,
       selectNewStudioTypeModal: false,
       updateStudioModal: false,
     },
