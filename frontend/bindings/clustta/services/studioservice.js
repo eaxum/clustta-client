@@ -33,16 +33,6 @@ export function ChangeCollaboratorRole(userId, studioId, roleName) {
 }
 
 /**
- * @param {string} name
- * @param {string} studioUrl
- * @returns {Promise<any> & { cancel(): void }}
- */
-export function CreateStudio(name, studioUrl) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3767455119, name, studioUrl));
-    return $resultPromise;
-}
-
-/**
  * @param {string} studioUrl
  * @returns {Promise<string> & { cancel(): void }}
  */
@@ -62,6 +52,16 @@ export function GetStudioUsers(studioId) {
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
+}
+
+/**
+ * @param {string} name
+ * @param {string} studioUrl
+ * @returns {Promise<any> & { cancel(): void }}
+ */
+export function RegisterStudio(name, studioUrl) {
+    let $resultPromise = /** @type {any} */($Call.ByID(4200145426, name, studioUrl));
+    return $resultPromise;
 }
 
 /**

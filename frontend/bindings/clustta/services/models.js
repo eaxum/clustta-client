@@ -9,6 +9,9 @@ import {Create as $Create} from "@wailsio/runtime";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as models$0 from "../internal/repository/models/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as time$0 from "../../time/models.js";
 
 export class AssetStateItem {
     /**
@@ -106,6 +109,258 @@ export class AssetsStates {
             $$parsedSource["outdated"] = $$createField2_0($$parsedSource["outdated"]);
         }
         return new AssetsStates(/** @type {Partial<AssetsStates>} */($$parsedSource));
+    }
+}
+
+export class DeploymentRequest {
+    /**
+     * Creates a new DeploymentRequest instance.
+     * @param {Partial<DeploymentRequest>} [$$source = {}] - The source object to create the DeploymentRequest.
+     */
+    constructor($$source = {}) {
+        if (!("studio_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["studio_name"] = "";
+        }
+        if (!("studio_url" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["studio_url"] = "";
+        }
+        if (!("studio_secret_key" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["studio_secret_key"] = "";
+        }
+        if (!("azure_region" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["azure_region"] = "";
+        }
+        if (!("vm_size" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["vm_size"] = "";
+        }
+        if (!("disk_size_gb" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["disk_size_gb"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DeploymentRequest instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DeploymentRequest}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new DeploymentRequest(/** @type {Partial<DeploymentRequest>} */($$parsedSource));
+    }
+}
+
+export class DeploymentResponse {
+    /**
+     * Creates a new DeploymentResponse instance.
+     * @param {Partial<DeploymentResponse>} [$$source = {}] - The source object to create the DeploymentResponse.
+     */
+    constructor($$source = {}) {
+        if (!("deployment_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["deployment_id"] = "";
+        }
+        if (!("status" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["status"] = "";
+        }
+        if (!("created_at" in $$source)) {
+            /**
+             * @member
+             * @type {time$0.Time}
+             */
+            this["created_at"] = null;
+        }
+        if (!("websocket_url" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["websocket_url"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DeploymentResponse instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DeploymentResponse}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new DeploymentResponse(/** @type {Partial<DeploymentResponse>} */($$parsedSource));
+    }
+}
+
+export class DeploymentStatus {
+    /**
+     * Creates a new DeploymentStatus instance.
+     * @param {Partial<DeploymentStatus>} [$$source = {}] - The source object to create the DeploymentStatus.
+     */
+    constructor($$source = {}) {
+        if (!("deployment_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["deployment_id"] = "";
+        }
+        if (!("studio_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["studio_name"] = "";
+        }
+        if (!("studio_url" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["studio_url"] = "";
+        }
+        if (!("studio_secret_key" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["studio_secret_key"] = "";
+        }
+        if (!("azure_region" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["azure_region"] = "";
+        }
+        if (!("vm_size" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["vm_size"] = "";
+        }
+        if (!("disk_size_gb" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["disk_size_gb"] = 0;
+        }
+        if (!("status" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["status"] = "";
+        }
+        if (!("progress" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["progress"] = 0;
+        }
+        if (!("current_step" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["current_step"] = "";
+        }
+        if (!("vm_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["vm_name"] = "";
+        }
+        if (!("resource_group" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["resource_group"] = "";
+        }
+        if (!("public_ip" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["public_ip"] = "";
+        }
+        if (!("created_at" in $$source)) {
+            /**
+             * @member
+             * @type {time$0.Time}
+             */
+            this["created_at"] = null;
+        }
+        if (!("started_at" in $$source)) {
+            /**
+             * @member
+             * @type {time$0.Time | null}
+             */
+            this["started_at"] = null;
+        }
+        if (!("completed_at" in $$source)) {
+            /**
+             * @member
+             * @type {time$0.Time | null}
+             */
+            this["completed_at"] = null;
+        }
+        if (!("error" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["error"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DeploymentStatus instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DeploymentStatus}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new DeploymentStatus(/** @type {Partial<DeploymentStatus>} */($$parsedSource));
     }
 }
 
