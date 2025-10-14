@@ -1,10 +1,16 @@
 <template>
     <div class="info-bar-root" :style="{ backgroundColor : bgColor }" >
 
+        <!-- <div v-if="currentPrompt" ref="promptItem" :class="['prompt-message', currentPrompt.type]">
+            <span class="text-container" >{{ currentPrompt.message }}</span>
+        </div> -->
+
+        <div class="spacer"></div>
+
         <div v-if="notification" ref="notificationItem" :class="['message', notification.type]" @mouseenter="stopTimer()"
             @mouseleave="showMessage(notification)">
             <span class="text-container" >{{ notification.message }}</span>
-      </div>
+        </div>
 
         <div class="version-info" :class="{ 'oudated' : isOutdated}" v-tooltip=" isOutdated ? 'Click to update' : '' ">
             <div v-if="isOutdated" class="outdated-icon-button">
@@ -22,8 +28,10 @@ import { Events } from "@wailsio/runtime";
 import utils from '@/services/utils';
 
 import { useIconStore } from '@/stores/icons';
+import { usePromptStore } from '@/stores/prompts';
 
 const iconStore = useIconStore();
+const promptStore = usePromptStore();
 
 const props = defineProps({
     bgColor : { type: String, default: ''},
@@ -32,6 +40,8 @@ const props = defineProps({
 // vars
 const notification = ref(false);
 const notificationItem = ref(null);
+const currentPrompt = ref(null);
+const promptItem = ref(null);
 const clusttaVersion = ref('');
 const timer = ref(null);
 
@@ -61,6 +71,36 @@ Events.On("add_message", async (message) => {
   showMessage(notificationData)
 });
 
+Events.On("add_prompt", async (prompt) => {
+  const payload = prompt.data;
+  let promptData
+  if (typeof payload === 'string' || payload instanceof String) {
+    promptData = JSON.parse(payload);
+  } else {
+    promptData = payload;
+  }
+  showPrompt(promptData)
+});
+
+Events.On("update_prompt", async (prompt) => {
+  const payload = prompt.data;
+  let promptData
+  if (typeof payload === 'string' || payload instanceof String) {
+    promptData = JSON.parse(payload);
+  } else {
+    promptData = payload;
+  }
+  showPrompt(promptData)
+});
+
+Events.On("clear_prompt", async (prompt) => {
+  currentPrompt.value = null;
+});
+
+Events.On("clear_all_prompts", async () => {
+  currentPrompt.value = null;
+});
+
 // methods
 const getAppIcon = (iconName) => {
   const icon = iconStore.getAppIcon(iconName);
@@ -76,9 +116,17 @@ const showMessage = async (data) => {
   }, 6000);
 }
 
+const showPrompt = async (data) => {
+  currentPrompt.value = data;
+}
+
 const clearNotification = () => {
   notification.value = null;
   timer.value = null
+}
+
+const clearPrompt = () => {
+  currentPrompt.value = null;
 }
 
 const stopTimer = () => {
@@ -103,10 +151,10 @@ onMounted(async () => {
     overflow: hidden;
     box-sizing: border-box;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
     color: var(--white);
     padding: 0 .8rem;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 300;
   }
   
@@ -172,6 +220,46 @@ onMounted(async () => {
 
 .success {
   background-color:  #20A41C;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.prompt-message {
+  width: max-content;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  gap: 1rem;
+  border-radius: 3px;
+  box-sizing: border-box;
+  height: 70%;
+  justify-content: flex-start;
+  /* background-color: var(--dark-steel); */
+  padding: .3rem .5rem;
+  z-index: 99999;
+}
+
+.prompt-message.info {
+  /* background-color: #4A90E2;
+  outline: solid 1px #4A90E2; */
+}
+
+.prompt-message.warning {
+  background-color: #F5A623;
+  outline: solid 1px #F5A623;
+}
+
+.prompt-message.error {
+  background-color: #FF3333;
+  outline: solid 1px #FF3333;
+}
+
+.prompt-message.success {
+  background-color: #20A41C;
+  outline: solid 1px #20A41C;
 }
 </style>
 

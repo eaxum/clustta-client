@@ -1,10 +1,10 @@
 <template>
     <div class="ghost-item-main">
-      <div v-if="dndStore.draggedItemId  && !commonStore.useGrid" class="drop-propmt-message">
+      <!-- <div v-if="dndStore.draggedItemId  && !commonStore.useGrid" class="drop-propmt-message">
         <div class="drop-propmt-message-content" :class="{ 'drop-propmt-message-error' : isErrMsg }" >
           {{ dropMessage }}
         </div>
-      </div>
+      </div> -->
       <div v-if="stage.markedItems.length === 1" class="ghost-item-wrapper">
         <Collection v-if="data.type === 'entity'" :isGhost="true" :entity="data" :index="index" />
         <Asset v-if="data.type === 'task'" :isGhost="true" :task="data" :index="index" />
@@ -25,19 +25,13 @@
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 
 import { useDndStore } from '@/stores/dnd';
-import { useAssetStore } from '@/stores/assets';
-import { useCollectionStore } from '@/stores/collections';
 import { useStageStore } from '@/stores/stages';
-import { useCommonStore } from '@/stores/common';
-import { useMenu } from '@/stores/menu';
+import { usePromptStore } from '@/stores/prompts';
 
 
 const dndStore = useDndStore();
-const collectionStore = useCollectionStore();
-const assetStore = useAssetStore();
 const stage = useStageStore();
-const menu = useMenu();
-const commonStore = useCommonStore();
+const promptStore = usePromptStore();
 
 import Asset from '@/instances/desktop/blocks/Asset.vue'
 import Collection from '@/instances/desktop/blocks/Collection.vue'
@@ -49,6 +43,7 @@ const props = defineProps({
 });
 
 const isErrMsg = ref('false');
+const currentPromptId = ref(null);
 
 // computed
 const dropMessage = computed(() => {
@@ -112,6 +107,38 @@ const dropMessage = computed(() => {
   }
   
   return 'Cannot drop here';
+});
+
+// Watch for changes in dropMessage and update prompts
+watch(dropMessage, (newMessage, oldMessage) => {
+  if (newMessage && newMessage !== oldMessage) {
+    // Clear any existing prompt for this ghost item
+    if (currentPromptId.value) {
+      promptStore.clearPrompt(currentPromptId.value);
+    }
+    
+    // Determine prompt type based on error state
+    const promptType = isErrMsg.value ? 'error' : 'info';
+    
+    // Add new prompt
+    currentPromptId.value = promptStore.addPrompt(newMessage, promptType);
+  }
+}, { immediate: true });
+
+// Clear prompt when component is unmounted or drag ends
+onBeforeUnmount(() => {
+  if (currentPromptId.value) {
+    promptStore.clearPrompt(currentPromptId.value);
+  }
+});
+
+// Also clear prompt when drag operation ends
+watch(() => dndStore.draggedItemId, (newValue) => {
+  if (!newValue && currentPromptId.value) {
+    // Drag ended, clear the prompt
+    promptStore.clearPrompt(currentPromptId.value);
+    currentPromptId.value = null;
+  }
 });
 
 </script>
