@@ -1,13 +1,23 @@
 <template>
-	<div ref="navigatorRoot" class="navigator-root" @scroll="disableMenu()">
-        <div  class="navigator-item-container"
-        :style="gridStyles">
+	<div  class="navigator-root-viewport" @scroll="disableMenu()">
 
-        <GridItem v-for="(child, index) in rootItems" :child="child" :key="child.index" :index="index" 
-         @mousedown="onMouseDown($event, child, index)"
-        @mouseup="onMouseUp($event, child, index)" :ref="el => handleRef(child.id, el?.$el || el)" />
+    <GridSkeleton v-if="!assetStore.assetsLoaded" :height="containerHeight" />
 
-	</div>
+    <div v-else ref="navigatorRoot" class="navigator-root">
+      
+      <div v-if="entityItems.length > 0" class="navigator-item-container" :style="gridStyles">
+          <GridItem v-for="(child, index) in entityItems" :child="child" :key="child.index" :index="index" 
+          @mousedown="onMouseDown($event, child, index)"
+          @mouseup="onMouseUp($event, child, index)" :ref="el => handleRef(child.id, el?.$el || el)" />
+      </div>
+      
+      <div v-if="taskItems.length > 0" class="navigator-item-container" :style="gridStyles">
+          <GridItem v-for="(child, index) in taskItems" :child="child" :key="child.index" :index="index" 
+          @mousedown="onMouseDown($event, child, index)"
+          @mouseup="onMouseUp($event, child, index)" :ref="el => handleRef(child.id, el?.$el || el)" />
+      </div>
+  </div>
+
 </div>
 </template>
 
@@ -16,6 +26,7 @@
 import { computed, ref, nextTick, onMounted, onUnmounted } from 'vue';
 
 import GridItem from '@/instances/common/components/GridItem.vue';
+import GridSkeleton from '@/instances/desktop/components/GridSkeleton.vue';
 
 // state imports
 import { useMenu } from '@/stores/menu';
@@ -49,7 +60,24 @@ const gridStyles = computed(() => ({
 //   backgroundColor: 'forestGreen'
 }));
 
+// Filter items by type
+const entityItems = computed(() => {
+  return props.rootItems.filter(item => 
+    item.type === 'entity' || item.type === 'untracked_entity'
+  );
+});
+
+const taskItems = computed(() => {
+  return props.rootItems.filter(item => 
+    item.type !== 'entity' && item.type !== 'untracked_entity'
+  );
+});
+
 const navigatorRoot = ref(null);
+
+const containerHeight = computed(() => {
+  return navigatorRoot.value?.getBoundingClientRect().height || 500;
+});
 
 const handleRef = async (id, el) => {
     if (!el) {
@@ -159,28 +187,22 @@ onUnmounted(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 
-.navigator-root {
-	/* padding: .4rem; */
+.navigator-root-viewport {
 	padding-right: .4rem;
 	position: relative;
 	height: 100%;
-    height: 100%;
 	width: 100%;
-	display: flex;
+  flex-direction: column;
 	box-sizing: border-box;
 	align-items: flex-start;
 	justify-content: center;
 	overflow: hidden;
-    overflow-y: scroll;
-	/* min-width: 550px; */
-	/* background-color: forestgreen; */
-    border-radius: var(--small-radius);
-	/* background-color: var(--steel); */
+  overflow-y: scroll;
+  gap: 10px;
+  border-radius: var(--small-radius);
 }
 
-
-
-.navigator-root::-webkit-scrollbar {
+.navigator-root-viewport::-webkit-scrollbar {
   width: 6px;
 }
 
@@ -188,15 +210,29 @@ onUnmounted(() => {
   width: 4px;
 }
 
-.navigator-root::-webkit-scrollbar-thumb {
+.navigator-root-viewport::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
-
+  background-color: var(--light-steel);
 }
 
-.navigator-root::-webkit-scrollbar-track {
+.navigator-root-viewport::-webkit-scrollbar-track {
   border-radius: 10px;
 }
+
+.navigator-root {
+	position: relative;
+  height: min-content;
+	width: 100%;
+	display: flex;
+  flex-direction: column;
+	box-sizing: border-box;
+	align-items: flex-start;
+	justify-content: center;
+	overflow: hidden;
+  gap: 10px;
+  border-radius: var(--small-radius);
+}
+
 
 .navigator-item-container {
   position: relative;
@@ -207,10 +243,8 @@ onUnmounted(() => {
   align-items: flex-start;
   justify-content: flex-start;
   overflow: hidden;
-  /* background-color: firebrick; */
   flex-direction: column;
   gap: .5rem;
-  padding: 1rem;
 }
 
 .navigator-item-container-grid {

@@ -109,8 +109,7 @@
 
 			<div class="browser-root-content">
 				<div class="left-column">
-					<ListSkeleton v-if="!assetStore.assetsLoaded" :itemHeight="commonStore.listItemHeight" />
-					<VirtuaScroll v-else-if="rootData.length && !commonStore.useGrid" :items="rootData" />
+					<VirtuaScroll v-if="rootData.length && !commonStore.useGrid" :items="rootData" />
 					<GridView v-else-if="rootData.length" :rootItems="rootData" />
 					<PageState v-else :message="message()" :prompt="prompt()" :illustration="illustration()" />
 				</div>
@@ -184,8 +183,6 @@ import Breadcrumbs from '@/instances/common/components/Breadcrumbs.vue';
 import FilterBar from '@/instances/common/components/FilterBar.vue';
 import ViewOptions from '@/instances/common/components/ViewOptions.vue';
 import VirtuaScroll from '@/instances/common/components/VirtuaScroll.vue';
-import TaskListSkeleton from '@/instances/desktop/components/TaskListSkeleton.vue';
-import ListSkeleton from '@/instances/desktop/components/ListSkeleton.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GhostItem from '@/instances/desktop/blocks/GhostItem.vue';
 import GridView from '@/instances/desktop/components/GridView.vue';
@@ -1622,8 +1619,6 @@ watch(() => collectionStore.navigatedCollection, async () => {
 const assigneeFilters = computed(() => {
 	return commonStore.hasAssignees || commonStore.noAssignees
 });
-
-const filterItems = ref([commonStore.taskFilters.length, assigneeFilters.value, commonStore.showTasks, commonStore.showEntities])
 
 watch(() => commonStore.showTasks, async () => {
 	stage.operationActive = true

@@ -11,7 +11,7 @@ export const useCommonStore = defineStore("common", {
     reloadFilters: false,
     showFullPath: false,
     hideExtensions: true,
-    showThumbs: false,
+    showThumbs: true,
     showUntracked: true,
     showEntities: true,
     showTasks: true,
@@ -25,7 +25,7 @@ export const useCommonStore = defineStore("common", {
     navigatorMode: false,
     useGrid: false,
     viewMode: 'compact',
-    gridSize: 100,
+    gridSize: 200,
     listItemHeight: 60,
     listItemGap: 4,
 

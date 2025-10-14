@@ -141,17 +141,13 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: max-content;
-  /* transition: all .1s ease-in-out; */
-  /* background-color: var(--black-steel); */
   opacity: .5;
   justify-content: flex-start;
   padding: 5px .5rem;
-  /* gap: .5rem; */
+  transition: all 0.2s ease-out;
 }
 
 .tab-button:hover {
-  background-color: #ffffff15;
-  /* border-bottom: solid 2px var(--white); */
   background-color: var(--light-steel);
   opacity: 1;
 }
@@ -181,6 +177,7 @@ onMounted(() => {
   background-color: var(--steel);
   /* color: black; */
   opacity: 1;
+  transition: all 0.2s ease-out;
 }
 
 .fullwidth-tab-button {

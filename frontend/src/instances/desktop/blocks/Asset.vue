@@ -1,36 +1,49 @@
 <template>
-  <div ref="taskItem" class="task-item-main" v-return="launchSelectedTask" v-esc="handleEscKey" v-stop-propagation
-    :style="commonStore.useGrid ? gridStyles : itemHeightStyles" :class="{
-      'task-item-grid': commonStore.useGrid,
-      'task-item-grid-selected': commonStore.useGrid && stage.markedItems.includes(task.id) && !isGhost,
-      'task-item-grid-cut': commonStore.useGrid && stage.cutItems.map((item) => item.id).includes(task.id) && !isGhost,
-      'task-item-grid-only-selected': commonStore.useGrid && stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
-      'task-item-grid-last-selected': commonStore.useGrid && stage.lastSelectedItemId === task.id && !isGhost,
-      
-      'task-item-selected': !commonStore.useGrid && stage.markedItems.includes(task.id) && !isGhost,
-      'task-item-cut': !commonStore.useGrid && stage.cutItems.map((item) => item.id).includes(task.id) && !isGhost,
-      'task-item-only-selected': !commonStore.useGrid && stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
-      'task-item-last-selected': !commonStore.useGrid && stage.lastSelectedItemId === task.id && !isGhost,
+  <!-- Grid View Task Item -->
+  <div v-if="commonStore.useGrid" 
+    ref="taskItem" 
+    class="task-item-main task-item-grid" 
+    v-return="launchSelectedTask" 
+    v-esc="handleEscKey" 
+    v-stop-propagation
+    :style="gridStyles" 
+    :class="{
+      'task-item-grid-selected': stage.markedItems.includes(task.id) && !isGhost,
+      'task-item-grid-cut': stage.cutItems.map((item) => item.id).includes(task.id) && !isGhost,
+      'task-item-grid-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
+      'task-item-grid-last-selected': stage.lastSelectedItemId === task.id && !isGhost,
       'task-item-child': task.parent_id,
       'drop-zone-hovered': isHovered
-    }" @dblclick="launchTaskCommand()">
+    }" 
+    @dblclick="launchTaskCommand()">
 
-    <div v-if="!commonStore.useGrid" class="task-spacer" v-tooltip="taskTypeName" @click="console.log(task)">
-      <span v-if="isUntracked" class="single-action-button single-action-button-disabled">
-        <img class="small-icons entity-collapsed" :src="getAppIcon('generic')">
-      </span>
-      <span v-else class="single-action-button single-action-button-disabled">
-        <img class="small-icons entity-collapsed" :src="getAppIcon(task.task_type_icon)">
-      </span>
-    </div>
-
-    <div v-if="commonStore.useGrid" class="main-task-item-grid">
+    <div class="main-task-item-grid">
+      
       <div class="main-task-item-grid-icon">
 
-        <div v-if="commonStore.showThumbs && task.preview" class="task-item-preview-container">
+        
+        <!-- Top left overlay section (shows on hover) -->
+        <div class="task-item-grid-left-section-overlay">
+          <div class="task-item-grid-type-icon">
+            <img v-if="isUntracked" class="small-icons" :src="getAppIcon('generic')">
+            <img v-else class="small-icons" :src="getAppIcon(task.task_type_icon)">
+          </div>
+          
+          <div class="main-task-item-grid-meta">
+            {{ taskName }}
+          </div>
+        </div>
+
+        <div v-if="task.preview" class="task-item-preview-container">
           <div class="task-item-preview-image">
-            <img v-if="task.preview" class="screenshot-thumb" :src="task.preview">
-            <img v-else class="screenshot-thumb" src='/page-states/no_image.png'>
+            <img  class="screenshot-thumb" :src="task.preview">
+          </div>
+          <!-- Icon container at bottom left when preview is present -->
+          <div class="task-item-icon-container task-item-icon-overlay">
+            <img v-if="task.icon && !isUntracked" class="small-icons no-filter " :src="task.icon">
+            <img v-else-if="isUntracked" class="small-icons " :src="getAppIcon(getFileTypeIcon(task))" @error="$event.target.src = getAppIcon('file')">
+            <span v-else class="app-ext">
+            </span>
           </div>
         </div>
 
@@ -41,22 +54,122 @@
           </span>
         </div>
 
+        <!-- Task assignee overlay in top right corner -->
+        <div v-if="!isUntracked && (!task.is_resource || isCurrentUser)" class="task-item-grid-assignee-overlay-top-right">
+          <!-- Show assignee profile picture if assigned -->
+          <div v-if="task.assignee_id" @click="prepAssignTask(index, task, $event)" v-stop-propagation class="task-item-assignee">
+            <span v-tooltip="userFullName" class="single-action-button">
+              <div class="profile-picture-grid" :style="{ backgroundColor: profileColor(task.assignee_id) }">
+                <img v-if="userPhoto" class="profile-img-grid" :src="userPhoto">
+                <img v-else class="profile-img-grid" :src="getAppIcon('person')">
+              </div>
+            </span>
+          </div>
+        </div>
+        
       </div>
-      <div class="main-task-item-grid-meta">
-        {{ taskName }}
+      
+      <!-- Bottom bar with task type icon, name, and file status -->
+      <div class="main-task-item-grid-bottom-bar">
+        
+        <div class="task-item-grid-left-section">
+          <div class="task-item-grid-type-icon">
+            <img v-if="isUntracked" class="small-icons" :src="getAppIcon('generic')">
+            <img v-else class="small-icons" :src="getAppIcon(task.task_type_icon)">
+          </div>
+          
+          <div class="main-task-item-grid-meta">
+            {{ taskName }}
+          </div>
+        </div>
+        
+        <div class="task-item-grid-status">
+          
+          <!-- Task Status (shows on hover) -->
+          <div v-if="!isUntracked && task.status" class="task-item-grid-status-display">
+            <div class="task-item-status-grid" :style="{ backgroundColor: task.status.color }">
+              {{ task.status.short_name }}
+            </div>
+          </div>
+          
+          <!-- View Checkpoints button (shows on hover) -->
+          <div v-if="!isUntracked && userStore.canDo('view_checkpoint')" class="task-item-grid-checkpoints-button">
+            <ActionButton :icon="getAppIcon('layers')" v-tooltip="'View Checkpoints'" @click="viewCheckpoints(index, task, $event)" />
+          </div>
+          
+          <!-- Assign Task button (shows on hover when no assignee) -->
+          <div v-if="!isUntracked && userStore.canDo('assign_task') && (!task.is_resource || isCurrentUser)" class="task-item-grid-assign-task-button">
+            <ActionButton :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
+          </div>
+          
+          <!-- File status -->
+          <div v-if="!isUntracked && userStore.canDo('pull_chunk')" class="file-state">
+            <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" 
+              v-tooltip="'No changes'" v-if="task.file_status == 'normal'" />
+            <ActionButton :icon="getAppIcon('circle-check-alert')" :noFilter="true" 
+              v-tooltip="'Outdated - Click to update'" v-else-if="task.file_status == 'outdated'" 
+              @click="revertTask(index, task, $event)" />
+            <ActionButton :icon="getAppIcon('layers-plus-alert')" :noFilter="true" 
+              v-tooltip="'Modified - Assigned to someone else'" 
+              v-else-if="task.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
+            <ActionButton :icon="getAppIcon('layers-plus-alert')" :noFilter="true" 
+              v-tooltip="'Modified - Click to add Checkpoint'" 
+              v-else-if="task.file_status == 'modified' && userStore.canDo('create_checkpoint')"
+              @click="prepCreateCheckpoint(index, task, $event)" />
+            <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="'File missing - Click to build'"
+              v-else-if="task.file_status == 'rebuildable'" @click="revertTask(index, task, $event)" />
+            <ActionButton :icon="getAppIcon('alert')" :noFilter="true" 
+              v-tooltip="'Task missing - Resync your project'" v-else-if="task.file_status == 'missing'" />
+          </div>
+          <div v-else-if="isUntracked">
+            <ActionButton v-if="userStore.canDo('create_task') || canImport" 
+              @click="prepCreateCheckpoint(index, task, $event)" :icon="getAppIcon('layers-plus-danger')" 
+              :noFilter="true" v-tooltip="'File untracked, click to add.'" />
+            <ActionButton v-else :icon="getAppIcon('dot-big-danger')" :noFilter="true" 
+              v-tooltip="'File untracked'" />
+          </div>
+        </div>
       </div>
     </div>
+  </div>
 
-    <div v-else class="main-task-item-root">
+  <!-- List View Task Item -->
+  <div v-else 
+    ref="taskItem" 
+    class="task-item-main" 
+    v-return="launchSelectedTask" 
+    v-esc="handleEscKey" 
+    v-stop-propagation
+    :style="itemHeightStyles" 
+    :class="{
+      'task-item-selected': stage.markedItems.includes(task.id) && !isGhost,
+      'task-item-cut': stage.cutItems.map((item) => item.id).includes(task.id) && !isGhost,
+      'task-item-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
+      'task-item-last-selected': stage.lastSelectedItemId === task.id && !isGhost,
+      'task-item-child': task.parent_id,
+      'drop-zone-hovered': isHovered
+    }" 
+    @dblclick="launchTaskCommand()">
+
+    <div class="task-spacer" v-tooltip="taskTypeName" @click="console.log(task)">
+      <span v-if="isUntracked" class="single-action-button single-action-button-disabled">
+        <img class="small-icons entity-collapsed" :src="getAppIcon('generic')">
+      </span>
+      <span v-else class="single-action-button single-action-button-disabled">
+        <img class="small-icons entity-collapsed" :src="getAppIcon(task.task_type_icon)">
+      </span>
+    </div>
+
+    <div class="main-task-item-root">
 
       <div class="task-item-container drop-zone">
 
-        <div v-if="commonStore.showThumbs && task.preview" class="task-item-preview-container">
+        <!-- <div v-if="commonStore.showThumbs && task.preview" class="task-item-preview-container">
           <div class="task-item-preview-image">
             <img v-if="task.preview" class="screenshot-thumb" :src="task.preview">
             <img v-else class="screenshot-thumb" src='/page-states/no_image.png'>
           </div>
-        </div>
+        </div> -->
 
         <div class="task-item-icon-container">
           <img v-if="task.icon &&!isUntracked" class="large-icons no-filter" :src="task.icon">
@@ -868,8 +981,8 @@ onBeforeUnmount(() => {
 }
 
 .task-item-grid:hover{
-  outline: 0px;
-  background-color: rgba(255, 255, 255, 0.05);
+  outline: 1px solid rgb(255, 255, 255);
+  outline-offset: -1.5px;
 } 
 
 .task-item-selected {
@@ -886,13 +999,15 @@ onBeforeUnmount(() => {
 .task-item-grid {
   align-items: flex-end;
   padding-left: 0px;
-  outline: none;
-  background-color: transparent;
+  padding: .5rem;
+  background-color: var(--dark-steel);
+  outline: var(--transparent-line);
+  outline-offset: -1.5px;
 }
 
 .task-item-grid-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
+  outline: var(--transparent-line);
+  outline-offset: -1px;
   background-color: var(--blue-steel);
 }
 
@@ -901,14 +1016,14 @@ onBeforeUnmount(() => {
 }
 
 .task-item-grid-last-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
+  outline: var(--transparent-line);
+  outline-offset: -1px;
   background-color: var(--solid-blue-steel);
 }
 
 .task-item-grid-only-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
+  outline: var(--transparent-line);
+  outline-offset: -1px;
   background-color: var(--solid-blue-steel);
 }
 
@@ -917,35 +1032,67 @@ onBeforeUnmount(() => {
   flex-direction: column;
   height: 100%;
   width: 100%;
-  /* background-color: hotpink; */
   overflow: hidden;
 }
 
-.main-task-item-grid-icon {
+.main-task-item-grid-bottom-bar {
   display: flex;
-  /* flex: 1; */
+  align-items: center;
+  justify-content: space-between;
+  gap: .2rem;
+  padding: .5rem 0rem;
+  padding-top: 1rem;
+  min-height: 32px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.task-item-grid-type-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.task-item-grid-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .3rem;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.task-item-grid:hover .task-item-grid-status {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.main-task-item-grid-icon {
+  position: relative;
+  display: flex;
   overflow: hidden;
   height: 100%;
   width: 100%;
-  /* background-color: forestgreen; */
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
   align-items: center;
   justify-content: center;
 }
 
 .main-task-item-grid-meta {
-  display: flex;
-  /* flex: 1; */
-  height: 40px;
-  min-height: 30px;
-  width: 100%;
-  /* background-color: royalblue; */
+  display: block;
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
   overflow: hidden;
-  align-items: center;
-  justify-content: center;
-  text-wrap: nowrap;
   text-overflow: ellipsis;
   font-size: 14px;
   font-weight: 300;
+  min-width: 0;
+  margin-left: .3rem;
+  line-height: 1.2;
 }
 
 .task-item-last-selected {
@@ -1053,17 +1200,19 @@ onBeforeUnmount(() => {
 }
 
 .task-item-preview-container {
-
+  position: relative;
   display: flex;
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
-  padding: .1rem;
+  /* padding: .1rem; */
   overflow: hidden;
   min-width: 60px;
   height: 100%;
-  aspect-ratio: 16 / 9;
-  /* background-color: firebrick; */
+  width: 100%;
+  /* aspect-ratio: 16 / 9; */
+  background-color: firebrick;
+  border-radius: 5px;
 }
 
 .task-item-preview-image {
@@ -1073,9 +1222,10 @@ onBeforeUnmount(() => {
   justify-content: center;
   overflow: hidden;
   height: 100%;
-  aspect-ratio: 16 / 9;
-  background-color: var(--light-steel);
-  border-radius: 5px;
+  width: 100%;
+  background-color: forestgreen;
+  /* aspect-ratio: 16 / 9; */
+  /* background-color: var(--light-steel); */
 }
 
 .task-item-icon-container {
@@ -1088,6 +1238,18 @@ onBeforeUnmount(() => {
   overflow: hidden;
   height: 100%;
   /* background-color: firebrick; */
+}
+
+.task-item-icon-overlay {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  width: 32px;
+  height: 32px;
+  /* background-color: rgba(0, 0, 0, 0.7); */
+  border-radius: 6px;
+  padding: 4px;
+  min-width: unset;
 }
 
 .task-item-content {
@@ -1185,8 +1347,6 @@ onBeforeUnmount(() => {
   width: min-content;
   padding: .4rem;
   height: 100%;
-  /* background-color: darkorange; */
-  /* flex: 1; */
 }
 
 .task-item-status {
@@ -1208,8 +1368,7 @@ onBeforeUnmount(() => {
 }
 
 .task-item-status:hover {
-  border-radius: 10px;
-  transform: scale(1.03);
+  border-radius: 6px;
 }
 
 .task-item-actions {
@@ -1275,6 +1434,151 @@ onBeforeUnmount(() => {
   height: 100%;
   /* background-color: darkcyan; */
   /* flex: 1; */
+}
+
+.task-item-grid-assignee {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.task-item-grid-checkpoints-button {
+  display: none;
+}
+
+.task-item-grid:hover .task-item-grid-checkpoints-button {
+  display: block;
+}
+
+.task-item-grid-assign-task-button {
+  display: none;
+}
+
+.task-item-grid:hover .task-item-grid-assign-task-button {
+  display: block;
+}
+
+.task-item-grid-status-display {
+  display: none;
+}
+
+.task-item-grid:hover .task-item-grid-status-display {
+  display: block;
+}
+
+.task-item-status-grid {
+  display: flex;
+  border-radius: var(--normal-radius);
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  width: min-content;
+  min-width: 60px;
+  padding: .4rem .4rem;
+  height: max-content;
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: black;
+  transition: all 0.2s ease-out;
+}
+
+.task-item-status-grid:hover {
+  border-radius: 6px;
+}
+
+.task-item-grid-left-section {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  /* flex-shrink: 0; */
+  width: 100%;
+  overflow: hidden;
+}
+
+.task-item-grid:hover .task-item-grid-left-section {
+  display: none;
+}
+
+.task-item-grid-left-section-overlay {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  display: none;
+  align-items: center;
+  gap: .3rem;
+  padding: .4rem .6rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  border-radius: 8px;
+  z-index: 10;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.task-item-main:hover .task-item-grid-left-section-overlay {
+  display: flex;
+}
+
+.task-item-grid-assignee-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.task-item-grid-assignee-overlay-top-right {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 10;
+}
+
+.task-item-grid-assign-button {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.task-item-grid:hover .task-item-grid-assign-button {
+  opacity: 1;
+}
+
+.profile-picture-grid {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.profile-img-grid {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profile-picture-grid-small {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.profile-img-grid-small {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 </style>
 
