@@ -316,7 +316,7 @@ onBeforeUnmount(() => {
 
 .project-item-root:hover {
   outline: var(--transparent-line);
-  outline: 1px solid rgb(255, 255, 255);
+  outline: var(--solid-line);
   outline-offset: -1.5px;
   /* background-color: var(--light-steel); */
 }

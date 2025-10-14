@@ -33,15 +33,6 @@ export function ChangeCollaboratorRole(userId, studioId, roleName) {
 }
 
 /**
- * @param {string} name
- * @returns {Promise<any> & { cancel(): void }}
- */
-export function CreateStudio(name) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3767455119, name));
-    return $resultPromise;
-}
-
-/**
  * @param {string} studioUrl
  * @returns {Promise<string> & { cancel(): void }}
  */
@@ -64,12 +55,35 @@ export function GetStudioUsers(studioId) {
 }
 
 /**
+ * @param {string} name
+ * @param {string} studioUrl
+ * @returns {Promise<any> & { cancel(): void }}
+ */
+export function RegisterStudio(name, studioUrl) {
+    let $resultPromise = /** @type {any} */($Call.ByID(4200145426, name, studioUrl));
+    return $resultPromise;
+}
+
+/**
  * @param {string} userId
  * @param {string} studioId
  * @returns {Promise<any> & { cancel(): void }}
  */
 export function RemoveCollaborator(userId, studioId) {
     let $resultPromise = /** @type {any} */($Call.ByID(3776272057, userId, studioId));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} studioName
+ * @param {string} url
+ * @param {string} altUrl
+ * @param {string} port
+ * @param {string} key
+ * @returns {Promise<any> & { cancel(): void }}
+ */
+export function UpdateStudio(studioName, url, altUrl, port, key) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3870164438, studioName, url, altUrl, port, key));
     return $resultPromise;
 }
 

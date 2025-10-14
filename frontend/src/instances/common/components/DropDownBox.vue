@@ -248,6 +248,7 @@ onUnmounted(() => {
   padding-left: .5rem;
   font-size: 14px;
   width: 100%;
+  font-weight: 400;
 }
 
 .list-box-parent-chevron {

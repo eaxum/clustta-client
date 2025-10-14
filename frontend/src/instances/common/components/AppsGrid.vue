@@ -237,9 +237,9 @@ onMounted(async () => {
 }
 
 .apps-grid-item:hover {
-  background-color: rgb(121, 121, 121);
   background-color: #ffffff15;
-  outline: var(--transparent-line);
+  background-color: var(--steel);
+  outline: var(--solid-line);
   outline-offset: -1px;
 }
 
