@@ -1,47 +1,105 @@
 <template>
-  <div class="entity-item-main" v-return="revealSelectedEntity" v-esc="cancelRename" v-stop-propagation
-    v-right-click="cacheEntityDataIds" @dblclick="exploreEntity(entity)"
-    :style="commonStore.useGrid ? gridStyles : itemHeightStyles"
+  <!-- Grid View Entity Item -->
+  <div v-if="commonStore.useGrid" 
+    class="entity-item-main entity-item-grid" 
+    v-return="revealSelectedEntity" 
+    v-esc="cancelRename" 
+    v-stop-propagation
+    v-right-click="cacheEntityDataIds" 
+    @dblclick="exploreEntity(entity)"
+    :style="gridStyles"
     :class="{
-      'entity-item-grid': commonStore.useGrid,
-      'entity-item-grid-selected': commonStore.useGrid && stage.markedItems.includes(entity.id) && !isGhost,
-      'entity-item-grid-cut': commonStore.useGrid && stage.cutItems.map((item) => item.id).includes(entity.id) && !isGhost,
-      'entity-item-grid-only-selected': commonStore.useGrid && stage.markedItems.length === 1 && stage.firstSelectedItemId === entity.id && !isGhost,
-      'entity-item-grid-last-selected': commonStore.useGrid && stage.lastSelectedItemId === entity.id && !isGhost,
-
-      
-      'entity-item-selected': !commonStore.useGrid && stage.markedItems.includes(entity.id) && !isGhost,
-      'entity-item-cut': !commonStore.useGrid && stage.cutItems.map((item) => item.id).includes(entity.id) && !isGhost,
-      'entity-item-only-selected': !commonStore.useGrid && stage.markedItems.length === 1 && stage.firstSelectedItemId === entity.id && !isGhost,
-      'entity-item-last-selected': !commonStore.useGrid && stage.lastSelectedItemId === entity.id && !isGhost,
+      'entity-item-grid-selected': stage.markedItems.includes(entity.id) && !isGhost,
+      'entity-item-grid-cut': stage.cutItems.map((item) => item.id).includes(entity.id) && !isGhost,
+      'entity-item-grid-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === entity.id && !isGhost,
+      'entity-item-grid-last-selected': stage.lastSelectedItemId === entity.id && !isGhost,
       'drop-zone-hovered': isHovered
-    }">    <div v-if="!commonStore.useGrid && props.loadingChildren" class="entity-spacer">
+    }">
+    
+    <div class="main-entity-item-grid">
+
+      <!-- <div class="main-entity-item-grid-icon">
+        <div class="entity-item-icon-container">
+          <img class="gigantic-icons" :src="getAppIcon('folder-grid')">
+        </div>
+      </div> -->
+      
+      <!-- Bottom bar with entity type icon, name, and status actions -->
+      <div class="main-entity-item-grid-bottom-bar">
+        <div class="entity-item-grid-type-icon">
+          <img class="small-icons" :src="getAppIcon(collectionTypeIcon)">
+        </div>
+        
+        <div class="main-entity-item-grid-meta">
+          {{entityName}}
+        </div>
+        
+        <div class="entity-item-grid-status">
+          <div v-if="!isEditing && itemsUntracked && !(entity.id in stage.expandedEntities)">
+            <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" 
+              v-if="userStore.canDo('create_entity') || canImport || isAssigned"
+              :icon="getAppIcon('layers-plus-danger')" :noFilter="true" 
+              v-tooltip="'Add checkpoints.'" />
+          </div>
+          <div v-else-if="!isEditing && itemsModified && !(entity.id in stage.expandedEntities)">
+            <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" 
+              :icon="getAppIcon('layers-plus-alert')" :noFilter="true"
+              v-tooltip="'Add checkpoints.'" />
+          </div>
+          <div v-else-if="!isEditing && itemsOutdated && !(entity.id in stage.expandedEntities)">
+            <ActionButton @click="updateEntityAssets" :icon="getAppIcon('circle-check-alert')" 
+              :noFilter="true" v-tooltip="'update to latest'" />
+          </div>
+          <div v-else-if="!isEditing && itemsRebuildable && !(entity.id in stage.expandedEntities)">
+            <ActionButton @click="rebuildEntity" :icon="getAppIcon('jigsaw')"
+              v-tooltip="'Rebuild'" />
+          </div>
+          <div v-else-if="!isEditing && entity.type === 'untracked_entity' && props.hasChildren">
+            <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" 
+              v-if="userStore.canDo('create_entity') || canImport || isAssigned"
+              :icon="getAppIcon('layers-plus-danger')" :noFilter="true" 
+              v-tooltip="'Add checkpoints.'" />
+          </div>
+          <div v-else-if="!isEditing && entity.type === 'untracked_entity' && !props.hasChildren">
+            <ActionButton @click="" :icon="getAppIcon('dot-big-danger')" :noFilter="true"
+              v-tooltip="'Untracked Collection'" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- List View Entity Item -->
+  <div v-else 
+    class="entity-item-main" 
+    v-return="revealSelectedEntity" 
+    v-esc="cancelRename" 
+    v-stop-propagation
+    v-right-click="cacheEntityDataIds" 
+    @dblclick="exploreEntity(entity)"
+    :style="itemHeightStyles"
+    :class="{
+      'entity-item-selected': stage.markedItems.includes(entity.id) && !isGhost,
+      'entity-item-cut': stage.cutItems.map((item) => item.id).includes(entity.id) && !isGhost,
+      'entity-item-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === entity.id && !isGhost,
+      'entity-item-last-selected': stage.lastSelectedItemId === entity.id && !isGhost,
+      'drop-zone-hovered': isHovered
+    }">
+
+    <div v-if="props.loadingChildren" class="entity-spacer">
       <span class="single-action-button">
         <img class="small-icons loading-children-icon" :src="getAppIcon('loading')">
       </span>
     </div>
 
-    <div v-else-if="!commonStore.useGrid" class="entity-spacer" :class="{ 'entity-spacer-inactive': !!!props.hasChildren }">
+    <div v-else class="entity-spacer" :class="{ 'entity-spacer-inactive': !!!props.hasChildren }">
       <span @click="expandEntity()" class="single-action-button">
         <img class="small-icons entity-collapsed" :class="{ 'entity-expanded': entity.id in stage.expandedEntities }"
           :src="getAppIcon('chevron-down')">
       </span>
     </div>
 
-    <div v-if="commonStore.useGrid" class="main-entity-item-grid">
-      <div class="main-entity-item-grid-icon">
-
-        <div class="entity-item-icon-container">
-          <img  class="gigantic-icons" :src="getAppIcon('folder-grid')">
-        </div>
-
-      </div>
-      <div class="main-entity-item-grid-meta">
-        {{entityName}}
-      </div>
-    </div>
-
-    <div v-else class="entity-item-root">
+    <div class="entity-item-root">
       <div class="entity-item-container ">
 
         <div v-if="commonStore.showThumbs && entity.preview" class="entity-item-preview-container">
@@ -52,8 +110,7 @@
         </div>
 
         <div class="entity-item-icon-container">
-          <img v-if="isUntracked" class="large-icons" :src="getAppIcon('folder')">
-          <img v-else class="large-icons" :src="getAppIcon(entity.entity_type_icon)">
+          <img class="large-icons" :src="getAppIcon(collectionTypeIcon)">
         </div>
 
         <div class="entity-item-content selection-area">
@@ -269,7 +326,7 @@ const editableEntityName = ref(entityName.value);
 
 const gridStyles = computed(() => ({
   minWidth: commonStore.gridSize + 'px',
-  height: commonStore.gridSize + 'px',
+  // height: commonStore.gridSize + 'px',
 }));
 
 const itemHeightStyles = computed(() => ({
@@ -327,6 +384,12 @@ const itemsOutdated = computed(() => {
 
 const itemsRebuildable = computed(() => {
   return assetStore.rebuildableAssetsPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
+});
+
+const collectionTypeIcon = computed(() => {
+  if (props.isUntracked) return 'folder';
+  if (props.entity.entity_type_icon === 'generic') return 'folder';
+  return props.entity.entity_type_icon;
 });
 
 //methods
@@ -681,8 +744,8 @@ onBeforeUnmount(() => {
 
 
 .entity-item-grid:hover{
-  outline: 0px;
-  background-color: rgba(255, 255, 255, 0.05);
+  outline: 1px solid rgb(255, 255, 255);
+  outline-offset: -1.5px;
 } 
 
 
@@ -708,13 +771,20 @@ onBeforeUnmount(() => {
 .entity-item-grid{
   align-items: flex-end;
   padding-left: 0px;
-  outline: none;
-  background-color: transparent;
+  padding-left: .5rem;
+  /* padding: .5rem; */
+  align-items: center;
+  justify-content: center;
+  background-color: var(--dark-steel);
+  outline: var(--transparent-line);
+  outline-offset: -1.5px;
+  height: min-content;
+  min-height: 50x;
 }
 
 .entity-item-grid-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
+  outline: var(--transparent-line);
+  outline-offset: -1px;
   background-color: var(--blue-steel);
 }
 
@@ -723,14 +793,14 @@ onBeforeUnmount(() => {
 }
 
 .entity-item-grid-last-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
+  outline: var(--transparent-line);
+  outline-offset: -1px;
   background-color: var(--solid-blue-steel);
 }
 
 .entity-item-grid-only-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
+  outline: var(--transparent-line);
+  outline-offset: -1px;
   background-color: var(--solid-blue-steel);
 }
 
@@ -742,27 +812,54 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
+.main-entity-item-grid-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .2rem;
+  padding: .5rem .5rem;
+  /* padding-top: 1rem; */
+  min-height: 50px;
+  box-sizing: border-box;
+}
+
+.entity-item-grid-type-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.entity-item-grid-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .main-entity-item-grid-icon{
   display: flex;
   overflow: hidden;
   height: 100%;
   width: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
   align-items: center;
   justify-content: center;
 }
 
 .main-entity-item-grid-meta{
-  display: flex;
-  height: 40px;
-  min-height: 30px;
-  width: 100%;
+  display: block;
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
   overflow: hidden;
-  align-items: center;
-  justify-content: center;
-  text-wrap: nowrap;
   text-overflow: ellipsis;
   font-size: 14px;
   font-weight: 300;
+  min-width: 0;
+  margin-left: .3rem;
+  line-height: 1.2;
 }
 
 .entity-item-last-selected {

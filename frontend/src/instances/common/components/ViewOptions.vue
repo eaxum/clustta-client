@@ -1,6 +1,6 @@
 <template>
   	<div class="view-options-root">
-        <ActionButton :icon="getAppIcon('list-compact')" v-tooltip="'Compact'" :buttonFunction="setCompactView" :color="isCompactActive ? 'var(--steel)' : undefined" />
+        <ActionButton :icon="getAppIcon('list-compact')" v-tooltip="'List'" :buttonFunction="setCompactView" :color="isCompactActive ? 'var(--steel)' : undefined" />
         <!-- <ActionButton :icon="getAppIcon('list')" v-tooltip="'Larger'" :buttonFunction="setLargerView" :color="isLargerActive ? 'var(--steel)' : undefined" /> -->
         <ActionButton :icon="getAppIcon('four-squares')" v-tooltip="'Grid'" :buttonFunction="setGridView" :color="isGridActive ? 'var(--steel)' : undefined" />
     </div>

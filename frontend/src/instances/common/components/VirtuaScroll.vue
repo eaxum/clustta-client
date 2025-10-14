@@ -1,6 +1,8 @@
 <template>
   <div class="virtua-scroll-container" ref="containerRef" >
+    <ListSkeleton v-if="!assetStore.assetsLoaded" :height="containerHeight" :itemHeight="commonStore.listItemHeight" />
     <VirtuaList
+      v-else
       :items="props.items"
       :isRoot="true"
       :containerHeight="containerHeight"
@@ -18,13 +20,16 @@ import { useScrollStore } from '@/stores/scroll';
 import { useStageStore } from '@/stores/stages';
 import { useMenu } from '@/stores/menu';
 import { useCommonStore } from '@/stores/common';
+import { useAssetStore } from '@/stores/assets';
 
 import VirtuaList from '@/instances/common/components/VirtuaList.vue';
+import ListSkeleton from '@/instances/desktop/components/ListSkeleton.vue';
 
 const scrollStore = useScrollStore();
 const stage = useStageStore();
 const menu = useMenu();
 const commonStore = useCommonStore();
+const assetStore = useAssetStore();
 
 // refs
 let animationFrame = null;
@@ -115,8 +120,7 @@ onUnmounted(() => {
 
 .virtua-scroll-container::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
-
+  background-color: var(--light-steel);
 }
 
 .virtua-scroll-container::-webkit-scrollbar-track {

@@ -523,8 +523,8 @@ animation: loadingRotate .5s linear infinite;
 .gigantic-icons{
   min-height: 64px;
   min-width: 64px;
-  height: 100%;
-  width: 100%;
+  height: 50%;
+  width: 50%;
   overflow: hidden;
   display: flex;
   align-items: center;
