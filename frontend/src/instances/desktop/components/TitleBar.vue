@@ -18,7 +18,7 @@
             <img v-else-if="projectStore.selectedStudio" class="large-icons"
               :src="projectStore.useAltUrl ? getAppIcon('two-drives') : getAppIcon('website')">
             <div>{{ utils.capitalizeStr(projectStore.getSelectedStudioName) }} </div>
-            <img v-if="studioList.length" class="small-icons chevron" :src="getAppIcon('chevron-down')">
+            <img  class="small-icons chevron" :src="getAppIcon('chevron-down')">
 
             <div v-if="displayStudioList" class="studio-list-container" :style="{ left: parentLocation?.left + 'px', top: parentLocation?.top + parentLocation?.height + 'px' }">
               <div class="studio-instance-container">
@@ -94,6 +94,16 @@
           <div>{{ studio.name }}</div>
         </div>
       </div>
+
+      <div v-if="studioList.length" class="menu-divider"></div>
+
+      <div class="studio-instance" @click="createStudio()" v-stop-propagation >
+        <div class="studio-instance-meta">
+          <img class="large-icons" :src="getAppIcon('stall')">
+          <div>New Studio</div>
+        </div>
+      </div>
+
     </div>
 
   </div>
@@ -211,7 +221,7 @@ const modalsActive = computed(() => {
 });
 
 const toggleStudioList = () => {
-  if (!studioList.value.length) return;
+  // if (!studioList.value.length) return;
   displayStudioList.value = !displayStudioList.value;
 };
 
@@ -287,6 +297,11 @@ const selectStudio = async (studio) => {
 
   userCanCreateProject();
 }
+
+const createStudio = () => {
+  displayStudioList.value = false;
+  modals.setModalVisibility('selectNewStudioTypeModal', true);
+};
 
 const handleClickOutside = (event) => {
   if (displayStudioList.value) {
@@ -455,6 +470,11 @@ onBeforeUnmount(() => {
 .divider {
   width: 96%;
   border-bottom: 1px solid rgba(255, 255, 255, 0.096);
+}
+
+.menu-divider{
+	height: 5px;
+	margin-top: 10px;
 }
 
 .studio-list-container {
