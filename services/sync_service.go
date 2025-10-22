@@ -87,11 +87,12 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 	case <-ctx.Done():
 		return errors.New("operation cancelled")
 	case progressChan <- output.ProgressReport{
-		Title:      fmt.Sprintf("Downloading %s  Project", projectName),
-		Message:    fmt.Sprintf("Downloading %s  Project", projectName),
-		Percentage: 0,
-		Current:    1,
-		Total:      1,
+		Title:         fmt.Sprintf("Downloading %s  Project", projectName),
+		Message:       fmt.Sprintf("Downloading %s  Project", projectName),
+		Percentage:    0,
+		Current:       1,
+		Total:         1,
+		OperationType: "write", // Sync operations modify database
 	}:
 	}
 
@@ -103,12 +104,13 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 		case <-ctx.Done():
 			return
 		case progressChan <- output.ProgressReport{
-			Title:        fmt.Sprintf("Downloading %s  Project", projectName),
-			Message:      message,
-			Percentage:   float64(current) / float64(total) * 98,
-			Current:      1,
-			Total:        1,
-			ExtraMessage: extraMessage,
+			Title:         fmt.Sprintf("Downloading %s  Project", projectName),
+			Message:       message,
+			Percentage:    float64(current) / float64(total) * 98,
+			Current:       1,
+			Total:         1,
+			ExtraMessage:  extraMessage,
+			OperationType: "write",
 		}:
 		default: // Skip progress update if channel is full
 		}
@@ -165,11 +167,12 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 
 	close(progressChan)
 	progress := output.ProgressReport{
-		Title:      fmt.Sprintf("Downloading %s  Project", projectName),
-		Message:    fmt.Sprintf("Downloading %s  Project", projectName),
-		Percentage: 100,
-		Current:    1,
-		Total:      1,
+		Title:         fmt.Sprintf("Downloading %s  Project", projectName),
+		Message:       fmt.Sprintf("Downloading %s  Project", projectName),
+		Percentage:    100,
+		Current:       1,
+		Total:         1,
+		OperationType: "write",
 	}
 	app.EmitEvent("progress-update", progress)
 	return nil

@@ -12,8 +12,10 @@
 <script setup>
 import { computed } from 'vue';
 import { useStageStore } from '@/stores/stages';
+import { useNotificationStore } from '@/stores/notifications';
 
 const stage = useStageStore();
+const notificationStore = useNotificationStore();
 
 
 const props = defineProps({
@@ -40,8 +42,19 @@ const props = defineProps({
 });
 
 const isDead = computed(() => {
-  const notEnabled = props.isDisabled || stage.operationActive
-  return notEnabled && !props.allowDeactivate
+  // Check if write operation is active
+  const writeOperationActive = notificationStore.progress.running && 
+                                notificationStore.progress.operationType === 'write';
+  
+  // Button is disabled if:
+  // 1. Explicitly disabled via prop, OR
+  // 2. Stage operation is active, OR  
+  // 3. Write operation is running (unless allowDeactivate is true)
+  const notEnabled = props.isDisabled || 
+                     stage.operationActive || 
+                     writeOperationActive;
+  
+  return notEnabled && !props.allowDeactivate;
 })
 
 </script>

@@ -14,13 +14,20 @@ export const useNotificationStore = defineStore("notifications", {
       current: 0,
       total: 0,
       extra_message: "",
+      isMinimized: false,
+      operationType: null, // 'read' or 'write'
     },
+    activeWriteOperation: null,
     cancleFunction: null,
     canCancel: false,
   }),
   getters: {
     getNotifications: (state) => state.notifications,
     getProgress: (state) => state.progress,
+    canStartWriteOperation: (state) => {
+      // Can start write operation if no write operation is currently active
+      return state.activeWriteOperation === null;
+    },
   },
   actions: {
     addNotification(message, longMessage, type, hasUndo = false) {
@@ -80,6 +87,7 @@ export const useNotificationStore = defineStore("notifications", {
       let message = progressData.message;
       let title = progressData.title;
       let extra_message = progressData.extra_message;
+      let operation_type = progressData.operation_type;
 
       let percentage = progressData.percentage;
       if (total === 0 || (current === total && percentage == 100)) {
@@ -92,7 +100,19 @@ export const useNotificationStore = defineStore("notifications", {
         this.progress.current = current;
         this.progress.total = total;
         this.progress.extra_message = extra_message;
+        this.progress.operationType = operation_type;
+        
+        // Track active write operations
+        if (operation_type === 'write') {
+          this.activeWriteOperation = title;
+        }
       }
+    },
+    minimizeProgress() {
+      this.progress.isMinimized = true;
+    },
+    restoreProgress() {
+      this.progress.isMinimized = false;
     },
     resetProgress() {
       this.progress = {
@@ -102,7 +122,11 @@ export const useNotificationStore = defineStore("notifications", {
         percentage: 0,
         current: 0,
         total: 0,
+        extra_message: "",
+        isMinimized: false,
+        operationType: null,
       };
+      this.activeWriteOperation = null;
 
       const projectStore = useProjectStore();
       projectStore.refreshActiveProject();

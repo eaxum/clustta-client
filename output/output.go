@@ -15,6 +15,7 @@ type ProgressReport struct {
 	EntityData        interface{} `json:"entity_data"`
 	ExtraMessage      string      `json:"extra_message"`
 	ExtraMessageColor string      `json:"extra_message_color"`
+	OperationType     string      `json:"operation_type"` // "read" or "write"
 }
 
 type ErrorReport struct {

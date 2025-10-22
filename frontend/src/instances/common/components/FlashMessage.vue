@@ -1,13 +1,25 @@
 <template>
-  <div v-if="progressRunning && !stageStore.operationActive" v-stop-propagation class="desktop-overlay-mask"></div>
+  <div v-if="progressRunning && 
+             !stageStore.operationActive && 
+             !notificationStore.progress.isMinimized" 
+       v-stop-propagation 
+       class="desktop-overlay-mask">
+  </div>
 
-  <div v-if="progressRunning && !stageStore.operationActive" class="flash-area" ref="flashArea"
-    :class="{ 'flash-area-desktop': isDesktop, 'flash-area-desktop-progress': progressRunning }">
+  <div v-if="progressRunning && !stageStore.operationActive && !notificationStore.progress.isMinimized" 
+       class="flash-area" 
+       ref="flashArea"
+       :class="{ 'flash-area-desktop': isDesktop, 'flash-area-desktop-progress': progressRunning }">
 
     <div class="progress-bar">
 
       <div class="progress-bar-header">
-        <HeaderArea :title="notificationStore.getProgress.title" :icon="'info'" :showSearch="showSearch" />
+        <div class="header-with-minimize">
+          <HeaderArea :title="notificationStore.getProgress.title" :icon="'info'" :showSearch="showSearch" />
+          <button @click="minimizeProgress" class="minimize-button single-action-button" v-tooltip="'Minimize'">
+            <img :src="getAppIcon('minimize')" class="minimize-icon small-icons" />
+          </button>
+        </div>
       </div>
 
       <div class="progress-bar-meta">
@@ -54,9 +66,17 @@ import { useNotificationStore } from '@/stores/notifications';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import { Events } from "@wailsio/runtime";
 import { useStageStore } from '@/stores/stages';
+import { useIconStore } from '@/stores/icons';
 
 // vars
 let showSearch = false;
+
+const iconStore = useIconStore();
+
+const getAppIcon = (iconName) => {
+  const icon = iconStore.getAppIcon(iconName);
+  return icon;
+};
 
 const props = defineProps({
   isDesktop: {
@@ -169,6 +189,10 @@ const cancelOperation = async () => {
   isAwaitingResponse.value = false;
 };
 
+const minimizeProgress = () => {
+  notificationStore.minimizeProgress();
+};
+
 onMounted(() => {
   // //console.log(listBoxParent.value.getBoundingClientRect().width);
   document.addEventListener('click', handleClickOutside);
@@ -218,8 +242,6 @@ onBeforeUnmount(() => {
   align-items: center;
   border-radius: 16px;
   padding: 10px 18px;
-  border-color: rgba(234, 236, 240, 1);
-  border-width: 1px;
   border-style: solid;
   font-size: 16px;
   cursor: pointer;
@@ -234,6 +256,9 @@ onBeforeUnmount(() => {
   padding: .2rem .8rem;
   gap: .2rem;
   height: 40px;
+  /* color: var(--black);
+  background-color: var(--bright-steel); */
+  outline: var(--transparent-line);
 }
 
 .flash-overlay-mask {
@@ -383,6 +408,36 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   /* background-color: #FF3333; */
   width: 100%;
+}
+
+.header-with-minimize {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+.minimize-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: .3rem;
+  border-radius: var(--small-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.minimize-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.minimize-icon {
+  width: 18px;
+  height: 18px;
+  /* filter: invert(100%); */
 }
 
 .progress-bar-loader {

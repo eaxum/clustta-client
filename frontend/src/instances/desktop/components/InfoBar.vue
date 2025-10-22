@@ -5,7 +5,22 @@
             <span class="text-container" >{{ currentPrompt.message }}</span>
         </div> -->
 
+        <div v-if="progressRunning && progressMinimized" 
+             @click="restoreProgress" 
+             class="mini-progress"
+             :class="{ 'write-operation': isWriteOperation }"
+             v-tooltip="progressTooltip">
+          <div class="mini-progress-content">
+            <span class="mini-progress-text">{{ progressTitle }} - {{ progressPercentage }}%</span>
+            <span class="mini-progress-count">({{ progressCurrent }}/{{ progressTotal }})</span>
+          </div>
+          <div class="mini-progress-bar">
+            <div class="mini-progress-fill" :style="{ width: progressPercentage + '%' }"></div>
+          </div>
+        </div>
+
         <div class="spacer"></div>
+
 
         <div v-if="notification" ref="notificationItem" :class="['message', notification.type]" @mouseenter="stopTimer()"
             @mouseleave="showMessage(notification)">
@@ -29,9 +44,11 @@ import utils from '@/services/utils';
 
 import { useIconStore } from '@/stores/icons';
 import { usePromptStore } from '@/stores/prompts';
+import { useNotificationStore } from '@/stores/notifications';
 
 const iconStore = useIconStore();
 const promptStore = usePromptStore();
+const notificationStore = useNotificationStore();
 
 const props = defineProps({
     bgColor : { type: String, default: ''},
@@ -57,6 +74,39 @@ const timer = ref(null);
 // computed props
 const isOutdated = computed(() => {
   return false
+});
+
+const progressRunning = computed(() => {
+  return notificationStore.progress.running;
+});
+
+const progressMinimized = computed(() => {
+  return notificationStore.progress.isMinimized;
+});
+
+const isWriteOperation = computed(() => {
+  return notificationStore.progress.operationType === 'write';
+});
+
+const progressTitle = computed(() => {
+  return notificationStore.progress.title || '';
+});
+
+const progressPercentage = computed(() => {
+  return Math.round(notificationStore.progress.percentage) || 0;
+});
+
+const progressCurrent = computed(() => {
+  return notificationStore.progress.current || 0;
+});
+
+const progressTotal = computed(() => {
+  return notificationStore.progress.total || 0;
+});
+
+const progressTooltip = computed(() => {
+  const type = isWriteOperation.value ? 'Write' : 'Read';
+  return `${progressTitle.value} - ${type} Operation (Click to restore)`;
 });
 
 // events
@@ -105,6 +155,17 @@ Events.On("clear_all_prompts", async () => {
 const getAppIcon = (iconName) => {
   const icon = iconStore.getAppIcon(iconName);
   return icon
+};
+
+const getProgressIcon = () => {
+  if (isWriteOperation.value) {
+    return getAppIcon('info-triangle'); // Orange warning for write operations
+  }
+  return getAppIcon('info'); // Blue info for read operations
+};
+
+const restoreProgress = () => {
+  notificationStore.restoreProgress();
 };
 
 const showMessage = async (data) => {
@@ -226,6 +287,85 @@ onMounted(async () => {
   flex: 1;
 }
 
+/* Mini Progress Indicator */
+.mini-progress {
+  display: flex;
+  /* flex-direction: column; */
+  gap: .5rem;
+  padding: .2rem .6rem;
+  border-radius: 4px;
+  /* background-color: rgba(44, 117, 226, 0.15); */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 200px;
+  /* max-width: 300px; */
+  align-items: center;
+  /* height: 10px; */
+  height: min-content;
+  overflow: hidden;
+}
+
+.mini-progress:hover {
+  background-color: rgba(44, 117, 226, 0.25);
+  background-color: var(--light-steel);
+}
+
+.mini-progress.write-operation {
+  background-color: rgba(238, 92, 8, 0.15);
+}
+
+.mini-progress.write-operation:hover {
+  background-color: rgba(238, 92, 8, 0.25);
+}
+
+.mini-progress-content {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  color: var(--white);
+}
+
+.mini-progress-icon {
+  width: 14px;
+  height: 14px;
+  filter: invert(100%);
+}
+
+.mini-progress-text {
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.mini-progress-count {
+  font-weight: 300;
+  opacity: 0.8;
+}
+
+.mini-progress-bar {
+  width: 100%;
+  min-width: 100px;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  overflow: hidden;
+  background-color: var(--light-steel);
+}
+
+.mini-progress-fill {
+  height: 100%;
+  background-color: rgb(44, 117, 226);
+  background-color: rgb(67, 210, 67);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.write-operation .mini-progress-fill {
+  background-color: rgb(238, 92, 8);
+}
+
 .prompt-message {
   width: max-content;
   display: flex;
@@ -243,6 +383,7 @@ onMounted(async () => {
 }
 
 .prompt-message.info {
+  background-color: transparent;
   /* background-color: #4A90E2;
   outline: solid 1px #4A90E2; */
 }
