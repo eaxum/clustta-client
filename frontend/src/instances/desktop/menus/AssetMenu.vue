@@ -33,6 +33,10 @@
         v-tooltip="'Copy Path'" />
     </span>
 
+    <!-- Extract Archive -->
+    <ActionButton v-if="isArchive" :icon="getAppIcon('unarchive')" :showLabel="true" :fullWidth="true" 
+      label="Extract" :buttonFunction="extractArchive" />
+
     <!-- Checkpoints -->
     <ActionButton v-if="isAssetModified" :noFilter="true" :icon="getAppIcon('revert-alert')" :showLabel="true" :fullWidth="true"
       label="Revert File" :buttonFunction="revertAsset" />
@@ -102,6 +106,13 @@ const popUpMenu = ref(null);
 const asset = computed(() => { return assetStore.selectedAsset });
 const isNotOnDisk = computed(() => { return asset.value?.file_status === 'rebuildable' });
 const isAssetModified = computed(() => { return assetStore.selectedAsset.file_status === 'modified' });
+
+// Check if the selected asset is an archive
+const isArchive = computed(() => {
+  const archiveFormats = ['.zip', '.rar', '.7z', '.tar', '.gz', '.bz2'];
+  const extension = asset.value?.extension?.toLowerCase() || '';
+  return archiveFormats.includes(extension);
+});
 
 const filtersActive = computed(() => {
 	const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
@@ -282,6 +293,46 @@ const revealInExplorer = async () => {
 
   } 
   AssetService.RevealAsset(projectStore.activeProject.uri, assetStore.selectedAsset.id);
+};
+
+const extractArchive = async () => {
+  menu.hideContextMenu();
+  
+  try {
+    const selectedAsset = assetStore.selectedAsset;
+    
+    // Check if file exists on disk
+    if (selectedAsset.file_status === 'rebuildable') {
+      notificationStore.errorNotification('Cannot Extract', 'File must be downloaded first');
+      return;
+    }
+    
+    // Get the file path
+    const filePath = selectedAsset.file_path;
+    
+    if (!await FSService.Exists(filePath)) {
+      notificationStore.errorNotification('Cannot Extract', 'Archive file not found');
+      return;
+    }
+    
+    // Call the extraction service
+    await FSService.ExtractAll(filePath)
+      .then((response) => {
+        notificationStore.addNotification(
+          'Archive Extracted', 
+          `Successfully extracted ${selectedAsset.name}`, 
+          'success'
+        );
+      })
+      .catch((error) => {
+        console.error('Error extracting archive:', error);
+        notificationStore.errorNotification('Failed to Extract Archive', error);
+      });
+      
+  } catch (error) {
+    console.error('Error extracting archive:', error);
+    notificationStore.errorNotification('Failed to Extract Archive', error);
+  }
 };
 
 const revertAsset = async () => {
