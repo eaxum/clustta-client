@@ -61,7 +61,8 @@ const props = defineProps({
 }
 
 .general-button:hover{
-  transform: scale(1.02);
+  /* transform: scale(1.02); */
+  border-radius: 10px ;
 }
 
 .general-button:active{

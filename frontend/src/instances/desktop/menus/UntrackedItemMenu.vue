@@ -29,6 +29,10 @@
         v-tooltip="'Copy Path'" />
     </span>
 
+    <!-- Extract Archive -->
+    <ActionButton v-if="isArchive" :icon="getAppIcon('unarchive')" :showLabel="true" :fullWidth="true" 
+      label="Extract" :buttonFunction="extractArchive" />
+
     <!-- Delete -->
     <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Delete "
       :buttonFunction="prepDeleteItemPopUpModal" />
@@ -93,6 +97,16 @@ const untrackedItemStore = useUntrackedItemStore();
 const popUpMenu = ref(null);
 
 // computed properties
+// Check if the selected untracked item is an archive
+const isArchive = computed(() => {
+  const archiveFormats = ['.zip', '.rar', '.7z', '.tar', '.gz', '.bz2'];
+  const item = untrackedItemStore.selectedUntrackedItem;
+  if (item?.type !== 'untracked_task') {
+    return false;
+  }
+  const extension = item?.extension?.toLowerCase() || '';
+  return archiveFormats.includes(extension);
+});
 
 // props
 const props = defineProps({
@@ -149,6 +163,48 @@ const revealInExplorer = () => {
   let item = untrackedItemStore.selectedUntrackedItem
   FSService.RevealInExplorer(item.file_path)
   menu.hideContextMenu();
+};
+
+const extractArchive = async () => {
+  menu.hideContextMenu();
+  
+  try {
+    const selectedItem = untrackedItemStore.selectedUntrackedItem;
+    
+    // Only extract files (untracked_task), not folders
+    if (selectedItem.type !== 'untracked_task') {
+      notificationStore.errorNotification('Cannot Extract', 'Only files can be extracted');
+      return;
+    }
+    
+    // Get the file path
+    const filePath = selectedItem.file_path;
+    
+    if (!await FSService.Exists(filePath)) {
+      notificationStore.errorNotification('Cannot Extract', 'Archive file not found');
+      return;
+    }
+    
+    // Call the extraction service
+    await FSService.ExtractAll(filePath)
+      .then((response) => {
+        notificationStore.addNotification(
+          'Archive Extracted', 
+          `Successfully extracted ${selectedItem.name || 'archive'}`, 
+          'success'
+        );
+        // Refresh the browser to show the extracted folder
+        emitter.emit('refresh-browser');
+      })
+      .catch((error) => {
+        console.error('Error extracting archive:', error);
+        notificationStore.errorNotification('Failed to Extract Archive', error);
+      });
+      
+  } catch (error) {
+    console.error('Error extracting archive:', error);
+    notificationStore.errorNotification('Failed to Extract Archive', error);
+  }
 };
 
 const copyItemPath = async (pathType) => {

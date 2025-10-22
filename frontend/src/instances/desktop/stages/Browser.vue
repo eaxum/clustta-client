@@ -1631,6 +1631,7 @@ watch(() => commonStore.navigatorMode, async () => {
 });
 
 const handleUpdateRootData = (eventData) => {
+	console.log(eventData)
 	const { itemId, property, value, updates } = eventData;
 	
 	// Find the item in rootData

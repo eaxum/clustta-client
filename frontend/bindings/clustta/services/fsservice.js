@@ -94,6 +94,18 @@ export function ExtName(path) {
 }
 
 /**
+ * ExtractAll extracts archive contents to a folder in the current location
+ * Supports .zip, .tar, .tar.gz, .gz formats
+ * Sends progress updates to the frontend using output.ProgressReport
+ * @param {string} archivePath
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function ExtractAll(archivePath) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1948384952, archivePath));
+    return $resultPromise;
+}
+
+/**
  * @param {string} folderPath
  * @returns {Promise<number> & { cancel(): void }}
  */
@@ -143,12 +155,55 @@ export function FolderSize(folderPath) {
 }
 
 /**
+ * GetCachedOSThumbnail attempts to get a cached thumbnail without generating a new one
+ * Always fetches full-resolution (512px) thumbnails for maximum quality
+ * Returns base64-encoded PNG thumbnail or empty string if not cached
+ * @param {string} filePath
+ * @param {number} size
+ * @returns {Promise<string> & { cancel(): void }}
+ */
+export function GetCachedOSThumbnail(filePath, size) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1238064932, filePath, size));
+    return $resultPromise;
+}
+
+/**
  * @param {string} ext
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetFileIcon(ext) {
     let $resultPromise = /** @type {any} */($Call.ByID(1842525431, ext));
     return $resultPromise;
+}
+
+/**
+ * GetOSThumbnail generates a thumbnail for the specified file using OS APIs
+ * Always fetches full-resolution (512px) thumbnails for maximum quality
+ * Returns base64-encoded PNG thumbnail or empty string on error
+ * @param {string} filePath
+ * @param {number} size
+ * @returns {Promise<string> & { cancel(): void }}
+ */
+export function GetOSThumbnail(filePath, size) {
+    let $resultPromise = /** @type {any} */($Call.ByID(947950710, filePath, size));
+    return $resultPromise;
+}
+
+/**
+ * GetOSThumbnails generates thumbnails for multiple files in batch
+ * Always fetches full-resolution (512px) thumbnails for maximum quality
+ * Returns a map of file paths to base64-encoded thumbnails
+ * @param {string[]} filePaths
+ * @param {number} size
+ * @returns {Promise<{ [_: string]: string }> & { cancel(): void }}
+ */
+export function GetOSThumbnails(filePaths, size) {
+    let $resultPromise = /** @type {any} */($Call.ByID(4150854623, filePaths, size));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType1($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -261,3 +316,4 @@ export function WriteFile(path, data) {
 
 // Private type creation functions
 const $$createType0 = $models.FileInfo.createFrom;
+const $$createType1 = $Create.Map($Create.Any, $Create.Any);

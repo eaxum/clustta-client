@@ -13,7 +13,8 @@
       'task-item-grid-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
       'task-item-grid-last-selected': stage.lastSelectedItemId === task.id && !isGhost,
       'task-item-child': task.parent_id,
-      'drop-zone-hovered': isHovered
+      'drop-zone-hovered': isHovered,
+      'task-item-untracked': isUntracked
     }" 
     @dblclick="launchTaskCommand()">
 
@@ -34,9 +35,9 @@
           </div>
         </div>
 
-        <div v-if="task.preview" class="task-item-preview-container">
+        <div v-if="task.preview || osThumbnail" class="task-item-preview-container">
           <div class="task-item-preview-image">
-            <img  class="screenshot-thumb" :src="task.preview">
+            <img class="screenshot-thumb" :src="displayThumbnail">
           </div>
           <!-- Icon container at bottom left when preview is present -->
           <div class="task-item-icon-container task-item-icon-overlay">
@@ -48,10 +49,7 @@
         </div>
 
         <div v-else class="task-item-icon-container">
-          <img v-if="task.icon && !isUntracked" class="gigantic-icons no-filter " :src="task.icon">
-          <img v-else-if="isUntracked" class="gigantic-icons " :src="getAppIcon(getFileTypeIcon(task))" @error="$event.target.src = getAppIcon('file')">
-          <span v-else class="app-ext">
-          </span>
+          <img class="gigantic-icons no-filter " :src="displayThumbnail" @error="$event.target.src = getAppIcon('file')">
         </div>
 
         <!-- Task assignee overlay in top right corner -->
@@ -164,18 +162,15 @@
 
       <div class="task-item-container drop-zone">
 
-        <!-- <div v-if="commonStore.showThumbs && task.preview" class="task-item-preview-container">
+        <!-- Thumbnail preview for list view (optional) -->
+        <!-- <div v-if="commonStore.showThumbs && (task.preview || osThumbnail)" class="task-item-preview-container">
           <div class="task-item-preview-image">
-            <img v-if="task.preview" class="screenshot-thumb" :src="task.preview">
-            <img v-else class="screenshot-thumb" src='/page-states/no_image.png'>
+            <img class="screenshot-thumb" :src="displayThumbnail">
           </div>
         </div> -->
 
         <div class="task-item-icon-container">
-          <img v-if="task.icon &&!isUntracked" class="large-icons no-filter" :src="task.icon">
-          <img v-else-if="isUntracked" class="large-icons " :src="getAppIcon(getFileTypeIcon(task))" @error="$event.target.src = getAppIcon('file')">
-          <span v-else class="app-ext">
-          </span>
+          <img class="large-icons no-filter" :src="displayThumbnail" @error="$event.target.src = getAppIcon('file')">
         </div>
 
         <div class="task-item-content selection-area">
@@ -347,6 +342,98 @@ const taskItem = ref(null);
 const isExpanded = ref(false);
 const displayStatusMenu = ref(false);
 const taskTypeName = ref('');
+
+// OS Thumbnail caching
+const osThumbnail = ref('');
+const thumbnailLoading = ref(false);
+const thumbnailCache = new Map();
+
+// Computed property for the display icon/thumbnail
+const displayThumbnail = computed(() => {
+  // Priority 1: User-provided preview (from checkpoints)
+  if (props.task.preview) {
+    return props.task.preview;
+  }
+  
+  // Priority 2: OS-generated thumbnail (cached)
+  if (osThumbnail.value) {
+    return `data:image/png;base64,${osThumbnail.value}`;
+  }
+  
+  // Priority 3: Task icon or file type icon
+  if (props.task.icon && !props.isUntracked) {
+    return props.task.icon;
+  }
+  
+  // Priority 4: Generic file type icon
+  if (props.isUntracked) {
+    return getAppIcon(getFileTypeIcon(props.task));
+  }
+  
+  return getAppIcon('file');
+});
+
+// Load OS thumbnail for the file
+const loadOSThumbnail = async () => {
+  // Don't load thumbnail if:
+  // - Already have a user preview
+  // - No file path
+  // - Already loading
+  // - Is a link
+  if (props.task.preview || !props.task.file_path || thumbnailLoading.value || props.task.is_link) {
+    return;
+  }
+
+  const filePath = props.task.file_path;
+  // Cache key now only uses file path - thumbnails are always full resolution
+  const cacheKey = filePath;
+  
+  // Check memory cache first
+  if (thumbnailCache.has(cacheKey)) {
+    osThumbnail.value = thumbnailCache.get(cacheKey);
+    return;
+  }
+  
+  thumbnailLoading.value = true;
+  
+  try {
+    // Size parameter is now ignored by backend (always returns 512px)
+    // Keeping it for API compatibility
+    const size = 512;
+    
+    // Try cached thumbnail first (non-blocking)
+    let thumbnail = await FSService.GetCachedOSThumbnail(filePath, size);
+    
+    if (thumbnail && thumbnail.length > 0) {
+      osThumbnail.value = thumbnail;
+      thumbnailCache.set(cacheKey, thumbnail);
+    } else {
+      // If no cached version, generate asynchronously
+      // Use setTimeout to avoid blocking the UI
+      setTimeout(async () => {
+        try {
+          thumbnail = await FSService.GetOSThumbnail(filePath, size);
+          if (thumbnail && thumbnail.length > 0) {
+            osThumbnail.value = thumbnail;
+            thumbnailCache.set(cacheKey, thumbnail);
+          }
+        } catch (error) {
+          // Silently fail - will use icon instead
+          console.debug('Thumbnail generation failed:', error);
+        } finally {
+          thumbnailLoading.value = false;
+        }
+      }, 0);
+    }
+  } catch (error) {
+    // Silently fail - will use icon instead
+    console.debug('Thumbnail loading failed:', error);
+  } finally {
+    if (!osThumbnail.value) {
+      thumbnailLoading.value = false;
+    }
+  }
+};
 
 
 const getFileTypeIcon = (task) => {
@@ -557,12 +644,18 @@ const updateTaskName = async () => {
     await AssetService.RenameAsset(projectStore.activeProject.uri, taskId, editableTaskName.value)
       .then((data) => {
         task.name = editableTaskName.value;
-        
+        console.log(props.task.file_status)
         emitTaskUpdates(taskId, [
-          { property: 'name', value: editableTaskName.value }
+          { property: 'name', value: editableTaskName.value },
+          { property: 'file_status', value: 'outdated' },
         ]);
+
+        // let fileStatus = await assetStore.getAssetFileStatus(task)
+        props.task.file_status = 'outdated'
         
         isAwaitingResponse.value = false;
+        
+        console.log(props.task.file_status)
       })
       .catch((error) => {
         isAwaitingResponse.value = false;
@@ -744,14 +837,10 @@ watch(() => isTaskInFocus.value, (newItems, oldItems) => {
   }
 }, { deep: true });
 
-const taskTypeIcon = computed(() => {
-  const icon = '/types-icons/' + props.task.task_type_icon + '.svg';
-  if (icon) {
-    return icon
-  } else {
-    return '/types-icons/other.svg';
-  }
-});
+// watch ( () => props.task, (newItems, oldItems) => {
+//   let fileStatus = await assetStore.getAssetFileStatus(task)
+// }, { deep: true });
+
 
 // methods
 const closeStatusMenu = () => {
@@ -926,11 +1015,22 @@ const handleClickOutside = (event) => {
 onMounted(async () => {
   emitter.on('renameAsset', menuRename);
   document.addEventListener('click', handleClickOutside);
+  
+  // Load OS thumbnail for this asset
+  await loadOSThumbnail();
 });
 
 onBeforeUnmount(() => {
   emitter.off('renameAsset', menuRename);
   document.removeEventListener('click', handleClickOutside);
+});
+
+// Watch for file path changes (e.g., after rename)
+watch(() => props.task.file_path, async (newPath, oldPath) => {
+  if (newPath && newPath !== oldPath) {
+    osThumbnail.value = '';
+    await loadOSThumbnail();
+  }
 });
 
 </script>
@@ -1067,6 +1167,10 @@ onBeforeUnmount(() => {
 .task-item-grid:hover .task-item-grid-status {
   width: 100%;
   justify-content: space-between;
+}
+
+.task-item-grid.task-item-untracked:hover .task-item-grid-status {
+  justify-content: flex-end;
 }
 
 .main-task-item-grid-icon {
@@ -1211,8 +1315,31 @@ onBeforeUnmount(() => {
   height: 100%;
   width: 100%;
   /* aspect-ratio: 16 / 9; */
-  background-color: firebrick;
+  /* background-color: firebrick; */
   border-radius: 5px;
+}
+
+.task-item-preview-image img,
+.task-item-icon-container img {
+  transition: opacity 0.2s ease-in-out;
+}
+
+.screenshot-thumb{
+  /* width: auto; */
+}
+
+.task-item-preview-image img[src*="data:image"],
+.task-item-icon-container img[src*="data:image"] {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .task-item-preview-image {
@@ -1223,7 +1350,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   height: 100%;
   width: 100%;
-  background-color: forestgreen;
+  /* background-color: forestgreen; */
   /* aspect-ratio: 16 / 9; */
   /* background-color: var(--light-steel); */
 }
