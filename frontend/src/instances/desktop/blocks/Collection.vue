@@ -102,12 +102,12 @@
     <div class="entity-item-root">
       <div class="entity-item-container ">
 
-        <div v-if="commonStore.showThumbs && entity.preview" class="entity-item-preview-container">
+        <!-- <div v-if="commonStore.showThumbs && entity.preview" class="entity-item-preview-container">
           <div class="entity-item-preview-image">
             <img v-if="entity.preview" class="screenshot-thumb" :src="entity.preview">
             <img v-else class="screenshot-thumb" src='/page-states/no_image.png'>
           </div>
-        </div>
+        </div> -->
 
         <div class="entity-item-icon-container">
           <img class="large-icons" :src="getAppIcon(collectionTypeIcon)">

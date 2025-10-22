@@ -470,11 +470,12 @@ func (f *FSService) ExtractAll(archivePath string) error {
 
 	// Send initial progress
 	progress := output.ProgressReport{
-		Title:      "Extracting Archive",
-		Message:    filepath.Base(archivePath),
-		Percentage: 0,
-		Current:    0,
-		Total:      100,
+		Title:         "Extracting Archive",
+		Message:       filepath.Base(archivePath),
+		Percentage:    0,
+		Current:       0,
+		Total:         100,
+		OperationType: "read", // Read operation - doesn't modify database
 	}
 	app.EmitEvent("progress-update", progress)
 
@@ -498,11 +499,12 @@ func (f *FSService) ExtractAll(archivePath string) error {
 
 	// Send completion progress
 	progress = output.ProgressReport{
-		Title:      "Extracting Archive",
-		Message:    "Complete",
-		Percentage: 100,
-		Current:    100,
-		Total:      100,
+		Title:         "Extracting Archive",
+		Message:       "Complete",
+		Percentage:    100,
+		Current:       100,
+		Total:         100,
+		OperationType: "read",
 	}
 	app.EmitEvent("progress-update", progress)
 
@@ -525,11 +527,12 @@ func (f *FSService) extractZip(archivePath, destDir string, app *application.App
 		processed++
 		percentage := float64(processed) / float64(totalFiles) * 100
 		progress := output.ProgressReport{
-			Title:      "Extracting Archive",
-			Message:    file.Name,
-			Percentage: percentage,
-			Current:    processed,
-			Total:      totalFiles,
+			Title:         "Extracting Archive",
+			Message:       file.Name,
+			Percentage:    percentage,
+			Current:       processed,
+			Total:         totalFiles,
+			OperationType: "read",
 		}
 		app.EmitEvent("progress-update", progress)
 
@@ -621,11 +624,12 @@ func (f *FSService) processTarReader(tarReader *tar.Reader, destDir string, app 
 
 		processed++
 		progress := output.ProgressReport{
-			Title:      "Extracting Archive",
-			Message:    header.Name,
-			Percentage: float64(processed) * 2, // Approximate progress
-			Current:    processed,
-			Total:      0,
+			Title:         "Extracting Archive",
+			Message:       header.Name,
+			Percentage:    float64(processed) * 2, // Approximate progress
+			Current:       processed,
+			Total:         0,
+			OperationType: "read",
 		}
 		app.EmitEvent("progress-update", progress)
 

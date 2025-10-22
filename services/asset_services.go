@@ -91,11 +91,12 @@ func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, e
 	}
 	callBack := func(current int, total int, message string, extraMessage string) {
 		progress := output.ProgressReport{
-			Title:      "Creating Tasks for Entity",
-			Message:    name,
-			Percentage: float64(current) / float64(total) * 99,
-			Current:    1,
-			Total:      2,
+			Title:         "Creating Tasks for Entity",
+			Message:       name,
+			Percentage:    float64(current) / float64(total) * 99,
+			Current:       1,
+			Total:         2,
+			OperationType: "write", // Write operation - creates database records
 		}
 		app.EmitEvent("progress-update", progress)
 	}
@@ -138,11 +139,12 @@ func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, e
 		return createdTask, nil
 	} else {
 		progress := output.ProgressReport{
-			Title:      "Creating Tasks for Entity",
-			Message:    "Task",
-			Percentage: 100,
-			Current:    1,
-			Total:      1,
+			Title:         "Creating Tasks for Entity",
+			Message:       "Task",
+			Percentage:    100,
+			Current:       1,
+			Total:         1,
+			OperationType: "write",
 		}
 		app.EmitEvent("progress-update", progress)
 	}
