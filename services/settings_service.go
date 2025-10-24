@@ -192,6 +192,22 @@ func (s *SettingsService) SetTheme(theme string) error {
 	return nil
 }
 
+func (s *SettingsService) GetUseGrid() (bool, error) {
+	useGrid, err := settings.GetUseGrid()
+	if err != nil {
+		return useGrid, err
+	}
+	return useGrid, nil
+}
+
+func (s *SettingsService) SetUseGrid(useGrid bool) error {
+	err := settings.SetUseGrid(useGrid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *SettingsService) GetProjectDirectory() (string, error) {
 	projectDir, err := settings.GetProjectDirectory()
 	if err != nil {

@@ -160,6 +160,14 @@ export function GetUseAltUrl() {
 }
 
 /**
+ * @returns {Promise<boolean> & { cancel(): void }}
+ */
+export function GetUseGrid() {
+    let $resultPromise = /** @type {any} */($Call.ByID(3478254425));
+    return $resultPromise;
+}
+
+/**
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetUserDirectory() {
@@ -284,6 +292,15 @@ export function SetTheme(theme) {
  */
 export function SetUseAltUrl(useAltUrl) {
     let $resultPromise = /** @type {any} */($Call.ByID(3141402273, useAltUrl));
+    return $resultPromise;
+}
+
+/**
+ * @param {boolean} useGrid
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function SetUseGrid(useGrid) {
+    let $resultPromise = /** @type {any} */($Call.ByID(733610941, useGrid));
     return $resultPromise;
 }
 

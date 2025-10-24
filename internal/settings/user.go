@@ -29,6 +29,7 @@ type Settings struct {
 	UseAltUrl       bool   `json:"use_alt_url"`
 	EulaAccepted    bool   `json:"eula_accepted"`
 	ProjectGridView bool   `json:"project_grid_view"`
+	UseGrid         bool   `json:"use_grid"`
 
 	ProjectsDir         string `json:"projects_dir"`
 	ProjectsDirBookmark []byte `json:"projects_dir_bookmark,omitempty"`
@@ -251,6 +252,48 @@ func SetTheme(theme string) error {
 	}
 	settings.Theme = theme
 	return saveSettings(settings)
+}
+
+func GetUseGrid() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return false, err
+	}
+	// Default to true (grid view)
+	if !settings.UseGrid {
+		// Check if this is first time (no setting saved yet)
+		// If UseGrid field doesn't exist in JSON, it defaults to false
+		// For new users, we want default to be true
+		settingsFile, _ := GetUserSettingsPath()
+		file, _ := os.ReadFile(settingsFile)
+		if !contains(string(file), "use_grid") {
+			settings.UseGrid = true
+			saveSettings(settings)
+		}
+	}
+	return settings.UseGrid, nil
+}
+
+func SetUseGrid(useGrid bool) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.UseGrid = useGrid
+	return saveSettings(settings)
+}
+
+func contains(s, substr string) bool {
+	return len(s) > 0 && len(substr) > 0 && (len(s) >= len(substr)) && (s == substr || len(s) > len(substr) && (s[0:len(substr)] == substr || s[len(s)-len(substr):] == substr || containsMiddle(s, substr)))
+}
+
+func containsMiddle(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }
 
 // InitializeBookmarks should be called at app startup to resolve all stored bookmarks
