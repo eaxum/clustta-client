@@ -120,9 +120,9 @@ const parentName = computed(() => {
 
 const itemIcon = computed(() => {
   const item = projectStore.selectedUntrackedItem;
-  if (item.type === 'untracked_task') {
+  if (item?.type === 'untracked_task') {
     return 'file'
-  } else if (item.type === 'untracked_entity') {
+  } else if (item?.type === 'untracked_entity') {
     return 'folder'
   }
 });

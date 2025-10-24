@@ -17,7 +17,7 @@
         <div class="header-with-minimize">
           <HeaderArea :title="notificationStore.getProgress.title" :icon="'info'" :showSearch="showSearch" />
           <button @click="minimizeProgress" class="minimize-button single-action-button" v-tooltip="'Minimize'">
-            <img :src="getAppIcon('minimize')" class="minimize-icon small-icons" />
+            <img :src="getAppIcon('chevron-down')" class="minimize-icon small-icons" />
           </button>
         </div>
       </div>

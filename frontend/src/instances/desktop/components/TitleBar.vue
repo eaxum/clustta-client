@@ -63,7 +63,7 @@
       </div>
 
     <div v-else class="titlebar-buttons">
-      <ToggleSwitch :switchValueProp="themeStore.isDarkMode" @click="toggleTheme()" />
+      <!-- <ToggleSwitch :switchValueProp="themeStore.isDarkMode" @click="toggleTheme()" /> -->
       <!-- {{  userStore.user?.id }} -->
 
       <div class="titlebar-button minimize" @click="minimizeWindow">

@@ -22,19 +22,6 @@
       
       <div class="main-task-item-grid-icon">
 
-        
-        <!-- Top left overlay section (shows on hover) -->
-        <div class="task-item-grid-left-section-overlay">
-          <div class="task-item-grid-type-icon">
-            <img v-if="isUntracked" class="small-icons" :src="getAppIcon('generic')">
-            <img v-else class="small-icons" :src="getAppIcon(task.task_type_icon)">
-          </div>
-          
-          <div class="main-task-item-grid-meta">
-            {{ taskName }}
-          </div>
-        </div>
-
         <div v-if="task.preview || osThumbnail" class="task-item-preview-container">
           <div class="task-item-preview-image">
             <img class="screenshot-thumb" :src="displayThumbnail">
@@ -53,7 +40,7 @@
         </div>
 
         <!-- Task assignee overlay in top right corner -->
-        <div v-if="!isUntracked && (!task.is_resource || isCurrentUser)" class="task-item-grid-assignee-overlay-top-right">
+        <div v-if="!isUntracked && (!task.is_resource || isCurrentUser) && !isEditing" class="task-item-grid-assignee-overlay-top-right">
           <!-- Show assignee profile picture if assigned -->
           <div v-if="task.assignee_id" @click="prepAssignTask(index, task, $event)" v-stop-propagation class="task-item-assignee">
             <span v-tooltip="userFullName" class="single-action-button">
@@ -70,62 +57,93 @@
       <!-- Bottom bar with task type icon, name, and file status -->
       <div class="main-task-item-grid-bottom-bar">
         
-        <div class="task-item-grid-left-section">
-          <div class="task-item-grid-type-icon">
-            <img v-if="isUntracked" class="small-icons" :src="getAppIcon('generic')">
-            <img v-else class="small-icons" :src="getAppIcon(task.task_type_icon)">
-          </div>
+        <!-- Outermost container with relative positioning -->
+        <div class="task-item-grid-bottom-bar-wrapper">
           
-          <div class="main-task-item-grid-meta">
-            {{ taskName }}
+          <!-- Middle container with slide-up transition and padding for file state -->
+          <div v-if="!isEditing" class="task-item-grid-slide-container">
+            
+            <!-- Row 1: Name/Meta (always visible) -->
+            <div class="task-item-grid-meta-row">
+              <div class="task-item-grid-type-icon">
+                <img v-if="isUntracked" class="small-icons" :src="getAppIcon('generic')">
+                <img v-else class="small-icons" :src="getAppIcon(task.task_type_icon)">
+              </div>
+              
+              <div class="main-task-item-grid-meta">
+                {{ taskName }}
+              </div>
+            </div>
+            
+            <!-- Row 2: Action Buttons (shows on hover) -->
+            <div class="task-item-grid-actions-row">
+              
+              <!-- Untracked label for untracked items -->
+              <div v-if="isUntracked" class="task-item-grid-untracked-label">
+                <span>Untracked</span>
+              </div>
+              
+              <!-- Task Status -->
+              <div v-if="!isUntracked && task.status" class="task-item-grid-status-display">
+                <div class="task-item-status-grid" :style="{ backgroundColor: task.status.color }">
+                  {{ task.status.short_name }}
+                </div>
+              </div>
+              
+              <!-- View Checkpoints button -->
+              <div v-if="!isUntracked && userStore.canDo('view_checkpoint')" class="task-item-grid-checkpoints-button">
+                <ActionButton :icon="getAppIcon('layers')" v-tooltip="'View Checkpoints'" @click="viewCheckpoints(index, task, $event)" />
+              </div>
+              
+              <!-- Assign Task button -->
+              <div v-if="!isUntracked && userStore.canDo('assign_task') && (!task.is_resource || isCurrentUser)" class="task-item-grid-assign-task-button">
+                <ActionButton :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
+              </div>
+              
+            </div>
+            
           </div>
-        </div>
-        
-        <div class="task-item-grid-status">
-          
-          <!-- Task Status (shows on hover) -->
-          <div v-if="!isUntracked && task.status" class="task-item-grid-status-display">
-            <div class="task-item-status-grid" :style="{ backgroundColor: task.status.color }">
-              {{ task.status.short_name }}
+
+          <!-- Editing mode -->
+          <div v-else class="task-item-grid-slide-container">
+            <div class="task-item-grid-meta-row rename-input-grid">
+              <input spellcheck="false" v-model="editableTaskName" class="input-short input-grid" type="text" placeholder="Task name"
+                v-focus @keydown.enter="handleEnterKey" @keydown.esc="handleEscKey" />
+              <ActionButton :isDisabled="!isNameChanged" :icon="getAppIcon('check')" v-tooltip="'Confirm'"
+                @click="confirmRename" />
+              <ActionButton :icon="getAppIcon('close')" v-tooltip="'Cancel'" @click="cancelRename" />
             </div>
           </div>
           
-          <!-- View Checkpoints button (shows on hover) -->
-          <div v-if="!isUntracked && userStore.canDo('view_checkpoint')" class="task-item-grid-checkpoints-button">
-            <ActionButton :icon="getAppIcon('layers')" v-tooltip="'View Checkpoints'" @click="viewCheckpoints(index, task, $event)" />
+          <!-- File state section (absolute positioned, always visible) -->
+          <div v-if="!isEditing" class="task-item-grid-file-state-absolute">
+            <div v-if="!isUntracked && userStore.canDo('pull_chunk')" class="file-state">
+              <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" 
+                v-tooltip="'No changes'" v-if="task.file_status == 'normal'" />
+              <ActionButton :icon="getAppIcon('circle-check-alert')" :noFilter="true" 
+                v-tooltip="'Outdated - Click to update'" v-else-if="task.file_status == 'outdated'" 
+                @click="revertTask(index, task, $event)" />
+              <ActionButton :icon="getAppIcon('layers-plus-alert')" :noFilter="true" 
+                v-tooltip="'Modified - Assigned to someone else'" 
+                v-else-if="task.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
+              <ActionButton :icon="getAppIcon('layers-plus-alert')" :noFilter="true" 
+                v-tooltip="'Modified - Click to add Checkpoint'" 
+                v-else-if="task.file_status == 'modified' && userStore.canDo('create_checkpoint')"
+                @click="prepCreateCheckpoint(index, task, $event)" />
+              <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="'File missing - Click to build'"
+                v-else-if="task.file_status == 'rebuildable'" @click="revertTask(index, task, $event)" />
+              <ActionButton :icon="getAppIcon('alert')" :noFilter="true" 
+                v-tooltip="'Task missing - Resync your project'" v-else-if="task.file_status == 'missing'" />
+            </div>
+            <div v-else-if="isUntracked">
+              <ActionButton v-if="userStore.canDo('create_task') || canImport" 
+                @click="prepCreateCheckpoint(index, task, $event)" :icon="getAppIcon('layers-plus-danger')" 
+                :noFilter="true" v-tooltip="'File untracked, click to add.'" />
+              <ActionButton v-else :icon="getAppIcon('dot-big-danger')" :noFilter="true" 
+                v-tooltip="'File untracked'" />
+            </div>
           </div>
           
-          <!-- Assign Task button (shows on hover when no assignee) -->
-          <div v-if="!isUntracked && userStore.canDo('assign_task') && (!task.is_resource || isCurrentUser)" class="task-item-grid-assign-task-button">
-            <ActionButton :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
-          </div>
-          
-          <!-- File status -->
-          <div v-if="!isUntracked && userStore.canDo('pull_chunk')" class="file-state">
-            <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" 
-              v-tooltip="'No changes'" v-if="task.file_status == 'normal'" />
-            <ActionButton :icon="getAppIcon('circle-check-alert')" :noFilter="true" 
-              v-tooltip="'Outdated - Click to update'" v-else-if="task.file_status == 'outdated'" 
-              @click="revertTask(index, task, $event)" />
-            <ActionButton :icon="getAppIcon('layers-plus-alert')" :noFilter="true" 
-              v-tooltip="'Modified - Assigned to someone else'" 
-              v-else-if="task.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
-            <ActionButton :icon="getAppIcon('layers-plus-alert')" :noFilter="true" 
-              v-tooltip="'Modified - Click to add Checkpoint'" 
-              v-else-if="task.file_status == 'modified' && userStore.canDo('create_checkpoint')"
-              @click="prepCreateCheckpoint(index, task, $event)" />
-            <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="'File missing - Click to build'"
-              v-else-if="task.file_status == 'rebuildable'" @click="revertTask(index, task, $event)" />
-            <ActionButton :icon="getAppIcon('alert')" :noFilter="true" 
-              v-tooltip="'Task missing - Resync your project'" v-else-if="task.file_status == 'missing'" />
-          </div>
-          <div v-else-if="isUntracked">
-            <ActionButton v-if="userStore.canDo('create_task') || canImport" 
-              @click="prepCreateCheckpoint(index, task, $event)" :icon="getAppIcon('layers-plus-danger')" 
-              :noFilter="true" v-tooltip="'File untracked, click to add.'" />
-            <ActionButton v-else :icon="getAppIcon('dot-big-danger')" :noFilter="true" 
-              v-tooltip="'File untracked'" />
-          </div>
         </div>
       </div>
     </div>
@@ -170,7 +188,10 @@
         </div> -->
 
         <div class="task-item-icon-container">
-          <img class="large-icons no-filter" :src="displayThumbnail" @error="$event.target.src = getAppIcon('file')">
+          <img v-if="task.icon &&!isUntracked" class="large-icons no-filter" :src="task.icon">
+          <img v-else-if="isUntracked" class="large-icons " :src="getAppIcon(getFileTypeIcon(task))" @error="$event.target.src = getAppIcon('file')">
+          <span v-else class="app-ext">
+          </span>
         </div>
 
         <div class="task-item-content selection-area">
@@ -204,7 +225,7 @@
           </div>
         </div>
 
-        <div v-else class="task-item-assignee-container">
+        <div v-else-if="!isEditing" class="task-item-assignee-container">
           <ActionButton v-if="userStore.canDo('assign_task') && !statusMenuDisplayed && !task.assignee_id && !isUntracked"
             :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
         </div>
@@ -1135,16 +1156,94 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   overflow: hidden;
 }
 
+.main-task-item-grid-icon {
+  flex: 1;
+}
+
 .main-task-item-grid-bottom-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: .2rem;
+  padding-top: .5rem;
+  box-sizing: border-box;
+  overflow: visible;
+  position: relative;
+  flex-shrink: 0;
+  transition: all 0.2s ease-out;
+  /* background-color: forestgreen; */
+}
+
+
+.task-item-grid-bottom-bar-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  gap: .3rem;
+  height: 32px;
+  transition: all 0.2s ease-out;
+  /* background-color: crimson; */
+}
+
+/* Expand height on hover, but not in edit mode */
+.task-item-grid:hover .task-item-grid-bottom-bar-wrapper:not(:has(.rename-input-grid)) {
+  height: 70px;
+  /* background-color: black; */
+}
+
+.task-item-grid-slide-container {
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+  box-sizing: border-box;
+  gap: .3rem;
+  flex: 1;
+  justify-content: space-between;
+  transition: all 0.2s ease-in-out;
+  /* background-color: royalblue; */
+}
+
+.task-item-grid-slide-container:has(.rename-input-grid) {
+  width: 100%;
+}
+
+.task-item-grid:hover .task-item-grid-slide-container {
+  width: 100%;
+  /* transition: all 0.2s ease-out; */
+}
+
+.task-item-grid-meta-row {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  width: 100%;
+  min-height: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  /* background-color: darkslateblue; */
+}
+
+.task-item-grid-actions-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: .2rem;
-  padding: .5rem 0rem;
-  padding-top: 1rem;
+  gap: .5rem;
+  width: 100%;
   min-height: 32px;
+  height: 32px;
+  flex-shrink: 0;
   box-sizing: border-box;
   overflow: hidden;
+  width: 80%;
+  /* background-color: hotpink; */
+}
+
+.task-item-grid:hover .task-item-grid-actions-row {
+  display: flex;
 }
 
 .task-item-grid-type-icon {
@@ -1154,23 +1253,15 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   flex-shrink: 0;
 }
 
-.task-item-grid-status {
+.task-item-grid-file-state-absolute {
+  position: absolute;
+  bottom: 0;
+  right: 0;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: .3rem;
-  flex-shrink: 0;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.task-item-grid:hover .task-item-grid-status {
-  width: 100%;
-  justify-content: space-between;
-}
-
-.task-item-grid.task-item-untracked:hover .task-item-grid-status {
-  justify-content: flex-end;
+  justify-content: center;
+  height: 32px;
+  z-index: 10;
 }
 
 .main-task-item-grid-icon {
@@ -1183,6 +1274,7 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   border-radius: 8px;
   align-items: center;
   justify-content: center;
+  transition: flex 0.2s ease-out;
 }
 
 .main-task-item-grid-meta {
@@ -1325,7 +1417,9 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
 }
 
 .screenshot-thumb{
-  /* width: auto; */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .task-item-preview-image img[src*="data:image"],
@@ -1511,8 +1605,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   /* background-color: darkcyan; */
   min-width: 150px;
   min-width: var(--actions-width);
-
-  /* flex: 1; */
 }
 
 .untracked-item-action {
@@ -1563,35 +1655,10 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   /* flex: 1; */
 }
 
-.task-item-grid-assignee {
+.task-item-grid-status-display {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-}
-
-.task-item-grid-checkpoints-button {
-  display: none;
-}
-
-.task-item-grid:hover .task-item-grid-checkpoints-button {
-  display: block;
-}
-
-.task-item-grid-assign-task-button {
-  display: none;
-}
-
-.task-item-grid:hover .task-item-grid-assign-task-button {
-  display: block;
-}
-
-.task-item-grid-status-display {
-  display: none;
-}
-
-.task-item-grid:hover .task-item-grid-status-display {
-  display: block;
 }
 
 .task-item-status-grid {
@@ -1615,44 +1682,37 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   border-radius: 6px;
 }
 
-.task-item-grid-left-section {
+.task-item-grid-untracked-label {
   display: flex;
   align-items: center;
-  gap: .3rem;
-  /* flex-shrink: 0; */
-  width: 100%;
-  overflow: hidden;
+  justify-content: flex-start;
+  flex: 1;
+  padding: 0 .5rem ;
+  /* background-color: forestgreen; */
 }
 
-.task-item-grid:hover .task-item-grid-left-section {
-  display: none;
+.task-item-grid-untracked-label span {
+  font-style: italic;
+  font-size: 14px;
+  color: var(--white);
+  opacity: 0.7;
 }
 
-.task-item-grid-left-section-overlay {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  display: none;
-  align-items: center;
-  gap: .3rem;
-  padding: .4rem .6rem;
-  background-color: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(4px);
-  border-radius: 8px;
-  z-index: 10;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-.task-item-main:hover .task-item-grid-left-section-overlay {
-  display: flex;
-}
-
-.task-item-grid-assignee-bottom {
+.task-item-grid-checkpoints-button,
+.task-item-grid-assign-task-button {
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
+.task-item-grid-assignee {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+
 
 .task-item-grid-assignee-overlay-top-right {
   position: absolute;
@@ -1707,6 +1767,25 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   object-fit: cover;
   border-radius: 50%;
 }
+
+.rename-input-grid {
+  display: flex !important;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.rename-input-grid .input-grid {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  border-radius: 12px;
+  height: 100%;
+  color: var(--white);
+}
+
 </style>
 
 
