@@ -39,6 +39,17 @@
             </div>
           </div>
 
+          <div class="settings-item" @click="toggleUseGrid">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon(commonStore.useGrid ? 'four-squares' : 'list-compact')"></div>
+            <div class="settings-content">
+              <div class="settings-header">Default View</div>
+              <div class="settings-body">Choose between grid or list view as default.</div>
+            </div>
+            <div class="settings-action fixed-width">
+              <ToggleSwitch :switchValueProp="commonStore.useGrid" />
+            </div>
+          </div>
+
 
           <div class="settings-item" @click="clearRecents">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('broom')"></div>
@@ -109,9 +120,11 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { Browser } from "@wailsio/runtime";
 import { useIconStore } from '@/stores/icons';
 import { useThemeStore } from '@/stores/theme';
+import { useCommonStore } from '@/stores/common';
 
 // components
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
+import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // refs
 const trayStates = useTrayStates();
@@ -121,6 +134,7 @@ const modals = useDesktopModalStore();
 const userStore = useUserStore();
 const iconStore = useIconStore();
 const themeStore = useThemeStore();
+const commonStore = useCommonStore();
 const autoStart = ref(trayStates.autoStart);
 const clusttaVersion = ref("");
 
@@ -137,6 +151,23 @@ const selectTheme = (theme) => {
     themeStore.isDarkMode = theme === 'dark'
     themeStore.applyTheme();
   })
+};
+
+const toggleUseGrid = () => {
+  const newUseGrid = !commonStore.useGrid;
+  SettingsService.SetUseGrid(newUseGrid).then(() => {
+    commonStore.useGrid = newUseGrid;
+    // Update viewMode to match
+    if (newUseGrid) {
+      commonStore.setGridView();
+    } else {
+      commonStore.setCompactView();
+    }
+    notificationStore.addNotification("Default View Updated", `Default view set to ${newUseGrid ? 'Grid' : 'List'}`, "success");
+  }).catch((error) => {
+    console.log(error);
+    notificationStore.addNotification("Error", "Failed to update default view", "error");
+  });
 };
 
 const getAppIcon = (iconName) => {
@@ -301,11 +332,11 @@ onMounted(async () => {
   width: max-content;
 }
 
-.fixed-width {
+/* .fixed-width {
   min-width: 200px;
   padding: .1rem;
   box-sizing: border-box;
-}
+} */
 
 .tray-page-content {
   position: relative;

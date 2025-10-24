@@ -1,4 +1,14 @@
 import { defineStore } from "pinia";
+import {
+  SettingsService,
+} from "@/../bindings/clustta/services/index";
+
+let defaultUseGrid = true;
+await SettingsService.GetUseGrid()
+  .then((response) => {
+    defaultUseGrid = response;
+  })
+  .catch((error) => console.log(error));
 
 export const useCommonStore = defineStore("common", {
   state: () => ({
@@ -23,8 +33,8 @@ export const useCommonStore = defineStore("common", {
     showDependencies: true,
     useDeep: false,
     navigatorMode: false,
-    useGrid: false,
-    viewMode: 'compact',
+    useGrid: defaultUseGrid,
+    viewMode: defaultUseGrid ? 'grid' : 'compact',
     gridSize: 200,
     listItemHeight: 60,
     listItemGap: 4,
