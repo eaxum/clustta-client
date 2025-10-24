@@ -11,11 +11,13 @@ import (
 	"clustta/output"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -26,6 +28,13 @@ type EntityItems struct {
 	Entities         []models.Entity          `json:"entities"`
 	UntrackedFiles   []models.UntrackedTask   `json:"untracked_tasks"`
 	UntrackedFolders []models.UntrackedEntity `json:"untracked_entities"`
+}
+
+type CollectionStateFlags struct {
+	HasUntracked   bool `json:"has_untracked"`
+	HasModified    bool `json:"has_modified"`
+	HasOutdated    bool `json:"has_outdated"`
+	HasRebuildable bool `json:"has_rebuildable"`
 }
 
 type CollectionService struct {
@@ -354,6 +363,352 @@ func (e *CollectionService) GetCollectionByID(projectPath, entityId string) (mod
 	}
 	defer tx.Rollback()
 	return repository.GetEntity(tx, entityId)
+}
+
+// GetCollectionStateFlags checks if a collection has any recursive children that are
+// rebuildable, outdated, modified, or untracked. Optimized for early termination.
+func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, projectWorkingDir string, ignoreList []string) (CollectionStateFlags, error) {
+	startTime := time.Now()
+	defer func() {
+		elapsed := time.Since(startTime)
+		fmt.Printf("GetCollectionStateFlags for entity '%s' took %s\n", entityId, elapsed)
+	}()
+
+	flags := CollectionStateFlags{
+		HasUntracked:   false,
+		HasModified:    false,
+		HasOutdated:    false,
+		HasRebuildable: false,
+	}
+
+	// Handle root entity
+	if entityId == "root" {
+		entityId = ""
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return flags, err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return flags, err
+	}
+	defer tx.Rollback()
+
+	// Get the entity path for the collection
+	var entityPath string
+	if entityId == "" {
+		entityPath = "/"
+	} else {
+		entity, err := repository.GetEntity(tx, entityId)
+		if err != nil {
+			return flags, err
+		}
+		entityPath = entity.EntityPath
+	}
+
+	// Get root folder for file path construction
+	rootFolder, err := utils.GetProjectWorkingDir(tx)
+	if err != nil {
+		return flags, err
+	}
+
+	// Phase 1: Check for rebuildable, modified, and outdated states
+	// Query tasks in batches with LIMIT for early termination
+	const batchSize = 100
+	offset := 0
+
+	// Prepare checkpoint data structure for efficient lookup
+	type taskCheckpointInfo struct {
+		taskId             string
+		latestChecksum     string
+		latestTimeModified int64
+		latestFileSize     int64
+		checkpointCount    int
+		allChecksums       []string // For outdated detection
+	}
+
+	// Track candidates that need hash verification
+	type modifiedCandidate struct {
+		taskId       string
+		taskFilePath string
+		checkpoints  []string // All checkpoint checksums for this task
+	}
+	var candidatesNeedingHashCheck []modifiedCandidate
+
+	for {
+		// Early exit if all DB-based flags are already true
+		if flags.HasRebuildable && flags.HasModified && flags.HasOutdated {
+			break
+		}
+
+		// Query tasks for this entity path
+		var tasks []models.Task
+		query := `
+			SELECT id, task_path, extension, entity_path, name
+			FROM full_task 
+			WHERE entity_path LIKE ? AND trashed = 0
+			ORDER BY entity_path, name
+			LIMIT ? OFFSET ?
+		`
+		err = tx.Select(&tasks, query, entityPath+"%", batchSize, offset)
+		if err != nil {
+			return flags, err
+		}
+
+		// No more tasks, exit loop
+		if len(tasks) == 0 {
+			break
+		}
+
+		// Get task IDs for checkpoint batch fetch
+		taskIds := make([]string, len(tasks))
+		for i, task := range tasks {
+			taskIds[i] = task.Id
+		}
+
+		// Batch fetch ALL checkpoint info for these tasks (not just latest)
+		checkpointMap := make(map[string]taskCheckpointInfo)
+		if len(taskIds) > 0 {
+			quotedTaskIds := make([]string, len(taskIds))
+			for i, id := range taskIds {
+				quotedTaskIds[i] = fmt.Sprintf("'%s'", id)
+			}
+
+			checkpointQuery := fmt.Sprintf(`
+				SELECT task_id, xxhash_checksum, time_modified, file_size
+				FROM task_checkpoint 
+				WHERE task_id IN (%s) AND trashed = 0
+				ORDER BY task_id, created_at DESC
+			`, strings.Join(quotedTaskIds, ","))
+
+			var checkpoints []struct {
+				TaskId         string `db:"task_id"`
+				XXHashChecksum string `db:"xxhash_checksum"`
+				TimeModified   int64  `db:"time_modified"`
+				FileSize       int64  `db:"file_size"`
+			}
+			tx.Select(&checkpoints, checkpointQuery)
+
+			// Build map with ALL checksums per task
+			for _, cp := range checkpoints {
+				if info, exists := checkpointMap[cp.TaskId]; exists {
+					info.checkpointCount++
+					info.allChecksums = append(info.allChecksums, cp.XXHashChecksum)
+					checkpointMap[cp.TaskId] = info
+				} else {
+					checkpointMap[cp.TaskId] = taskCheckpointInfo{
+						taskId:             cp.TaskId,
+						latestChecksum:     cp.XXHashChecksum,
+						latestTimeModified: cp.TimeModified,
+						latestFileSize:     cp.FileSize,
+						checkpointCount:    1,
+						allChecksums:       []string{cp.XXHashChecksum},
+					}
+				}
+			}
+		}
+
+		// Check each task's state
+		for _, task := range tasks {
+			// Build file path
+			taskFilePath, err := utils.BuildTaskPath(rootFolder, task.EntityPath, task.Name, task.Extension)
+			if err != nil {
+				continue // Skip on error
+			}
+
+			// Check if file exists
+			fileInfo, err := os.Stat(taskFilePath)
+			if os.IsNotExist(err) {
+				// File doesn't exist - it's rebuildable
+				if !flags.HasRebuildable {
+					flags.HasRebuildable = true
+				}
+				continue
+			}
+
+			if err != nil {
+				continue // Skip on error
+			}
+
+			// File exists - check if it's modified or outdated
+			if !flags.HasModified || !flags.HasOutdated {
+				checkpointInfo, hasCheckpoint := checkpointMap[task.Id]
+
+				if hasCheckpoint {
+					// Quick check: compare file size
+					fileSize := fileInfo.Size()
+
+					// If size differs from latest checkpoint, it's a candidate
+					if fileSize != checkpointInfo.latestFileSize {
+						// Add to candidates for hash verification
+						candidatesNeedingHashCheck = append(candidatesNeedingHashCheck, modifiedCandidate{
+							taskId:       task.Id,
+							taskFilePath: taskFilePath,
+							checkpoints:  checkpointInfo.allChecksums,
+						})
+					} else {
+						// Size matches - check mod time as heuristic
+						fileModTime := fileInfo.ModTime().Unix()
+
+						if fileModTime != checkpointInfo.latestTimeModified {
+							// Mod time differs - also needs hash check
+							candidatesNeedingHashCheck = append(candidatesNeedingHashCheck, modifiedCandidate{
+								taskId:       task.Id,
+								taskFilePath: taskFilePath,
+								checkpoints:  checkpointInfo.allChecksums,
+							})
+						}
+					}
+				}
+			}
+
+			// Early exit if all DB flags are set
+			if flags.HasRebuildable && flags.HasModified && flags.HasOutdated {
+				break
+			}
+		}
+
+		offset += batchSize
+	}
+
+	// Phase 1.5: Hash verification for candidates (only if needed)
+	if (!flags.HasModified || !flags.HasOutdated) && len(candidatesNeedingHashCheck) > 0 {
+		for _, candidate := range candidatesNeedingHashCheck {
+			// Early exit if both flags are now set
+			if flags.HasModified && flags.HasOutdated {
+				break
+			}
+
+			// Compute file hash
+			fileHash, err := utils.GenerateXXHashChecksum(candidate.taskFilePath)
+			if err != nil {
+				continue // Skip on error
+			}
+
+			// Check if hash matches any checkpoint
+			matchesLatest := (fileHash == candidate.checkpoints[0])
+			matchesOlderCheckpoint := false
+
+			if !matchesLatest && len(candidate.checkpoints) > 1 {
+				// Check against older checkpoints
+				for i := 1; i < len(candidate.checkpoints); i++ {
+					if fileHash == candidate.checkpoints[i] {
+						matchesOlderCheckpoint = true
+						break
+					}
+				}
+			}
+
+			if matchesOlderCheckpoint {
+				// File matches an older checkpoint = outdated
+				if !flags.HasOutdated {
+					flags.HasOutdated = true
+				}
+			} else if !matchesLatest {
+				// File doesn't match any checkpoint = modified
+				if !flags.HasModified {
+					flags.HasModified = true
+				}
+			}
+			// If matchesLatest, file is up-to-date, do nothing
+		}
+	}
+
+	// Phase 2: Check for untracked files (only if not already found)
+	if !flags.HasUntracked && utils.DirExists(projectWorkingDir) {
+		// Build tracked files map for quick lookup
+		trackedFiles := make(map[string]bool)
+
+		var allTasks []models.Task
+		query := `
+			SELECT task_path, extension
+			FROM full_task 
+			WHERE entity_path LIKE ? AND trashed = 0
+		`
+		err = tx.Select(&allTasks, query, entityPath+"%")
+		if err != nil {
+			return flags, err
+		}
+
+		for _, task := range allTasks {
+			taskFilePath, err := filepath.Abs(filepath.Join(projectWorkingDir, task.TaskPath+task.Extension))
+			if err == nil {
+				trackedFiles[taskFilePath] = true
+			}
+		}
+
+		// Determine the folder to scan
+		var folderToScan string
+		if entityId == "" {
+			folderToScan = projectWorkingDir
+		} else {
+			entity, err := repository.GetEntity(tx, entityId)
+			if err != nil {
+				return flags, err
+			}
+			folderToScan, err = utils.BuildEntityPath(rootFolder, entity.EntityPath)
+			if err != nil {
+				return flags, err
+			}
+		}
+
+		if utils.DirExists(folderToScan) {
+			clusttaIgnore := ignore.CompileIgnoreLines(ignoreList...)
+
+			// BFS scan with early termination
+			err = filepath.WalkDir(folderToScan, func(path string, d fs.DirEntry, err error) error {
+				if err != nil {
+					return err
+				}
+
+				// Skip hidden directories
+				if d.IsDir() {
+					if strings.HasPrefix(filepath.Base(path), ".") {
+						return filepath.SkipDir
+					}
+					return nil
+				}
+
+				// Skip hidden files
+				if strings.HasPrefix(filepath.Base(path), ".") {
+					return nil
+				}
+
+				// Check if file is tracked
+				absPath, err := filepath.Abs(path)
+				if err != nil {
+					return nil
+				}
+
+				if !trackedFiles[absPath] {
+					// Check against ignore patterns
+					relativePath, err := filepath.Rel(projectWorkingDir, path)
+					if err != nil {
+						return nil
+					}
+					relativePath = utils.NormalizePath(relativePath)
+
+					if !clusttaIgnore.MatchesPath(relativePath) {
+						// Found an untracked file
+						flags.HasUntracked = true
+						return filepath.SkipAll // Stop the walk immediately
+					}
+				}
+
+				return nil
+			})
+
+			if err != nil && err != filepath.SkipAll {
+				return flags, err
+			}
+		}
+	}
+
+	return flags, nil
 }
 
 func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId string) error {

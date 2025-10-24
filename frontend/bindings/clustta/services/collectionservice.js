@@ -165,6 +165,24 @@ export function GetCollectionCount(projectPath) {
 }
 
 /**
+ * GetCollectionStateFlags checks if a collection has any recursive children that are
+ * rebuildable, outdated, modified, or untracked. Optimized for early termination.
+ * @param {string} projectPath
+ * @param {string} entityId
+ * @param {string} projectWorkingDir
+ * @param {string[]} ignoreList
+ * @returns {Promise<$models.CollectionStateFlags> & { cancel(): void }}
+ */
+export function GetCollectionStateFlags(projectPath, entityId, projectWorkingDir, ignoreList) {
+    let $resultPromise = /** @type {any} */($Call.ByID(144595661, projectPath, entityId, projectWorkingDir, ignoreList));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType3($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
  * @param {string} projectPath
  * @param {string} entityId
  * @returns {Promise<models$0.Task[]> & { cancel(): void }}
@@ -172,7 +190,7 @@ export function GetCollectionCount(projectPath) {
 export function GetCollectionTasks(projectPath, entityId) {
     let $resultPromise = /** @type {any} */($Call.ByID(1367523417, projectPath, entityId));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType3($result);
+        return $$createType4($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -185,7 +203,7 @@ export function GetCollectionTasks(projectPath, entityId) {
 export function GetCollectionTypes(projectPath) {
     let $resultPromise = /** @type {any} */($Call.ByID(1279663726, projectPath));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType4($result);
+        return $$createType5($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -289,5 +307,6 @@ export function UpdatePreview(projectPath, entityId, previewPath) {
 const $$createType0 = models$0.EntityType.createFrom;
 const $$createType1 = $Create.Array($Create.Any);
 const $$createType2 = $models.EntityItems.createFrom;
-const $$createType3 = $Create.Array($Create.Any);
-const $$createType4 = $Create.Array($$createType0);
+const $$createType3 = $models.CollectionStateFlags.createFrom;
+const $$createType4 = $Create.Array($Create.Any);
+const $$createType5 = $Create.Array($$createType0);

@@ -112,6 +112,55 @@ export class AssetsStates {
     }
 }
 
+export class CollectionStateFlags {
+    /**
+     * Creates a new CollectionStateFlags instance.
+     * @param {Partial<CollectionStateFlags>} [$$source = {}] - The source object to create the CollectionStateFlags.
+     */
+    constructor($$source = {}) {
+        if (!("has_untracked" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["has_untracked"] = false;
+        }
+        if (!("has_modified" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["has_modified"] = false;
+        }
+        if (!("has_outdated" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["has_outdated"] = false;
+        }
+        if (!("has_rebuildable" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["has_rebuildable"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CollectionStateFlags instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CollectionStateFlags}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new CollectionStateFlags(/** @type {Partial<CollectionStateFlags>} */($$parsedSource));
+    }
+}
+
 export class DeploymentRequest {
     /**
      * Creates a new DeploymentRequest instance.
