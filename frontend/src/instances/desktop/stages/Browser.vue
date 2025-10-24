@@ -44,24 +44,24 @@
 			</div>
 
 			<div v-if="!showFilters" class="action-bar-container">
-				<div v-if="!kanbanView && assetStore.loadingAssetStates && rootData.length" class="action-bar">
-					<span class="single-action-button" v-tooltip="'Refreshing Asset states'">
+				<div v-if="!kanbanView && loadingCollectionStates && rootData.length" class="action-bar">
+					<span class="single-action-button" v-tooltip="'Loading Collection States (Optimized)'">
 						<img class="small-icons loading-children-icon" :src="getAppIcon('loading')">
 					</span>
 				</div>
 
 				<div v-else-if="!kanbanView && rootData.length" class="action-bar">
-					<ActionButton v-if="isTasksRebuildable" :icon="getAppIcon('jigsaw')" v-tooltip="'Rebuild All'"
+					<ActionButton v-if="collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" v-tooltip="'Rebuild All (Fast)'"
 						:buttonFunction="rebuildAll" />
-					<ActionButton v-if="isTasksUntracked && userStore.canDo('create_checkpoint')"
-						:icon="getAppIcon('layers-plus-danger')" :noFilter="true" v-tooltip="'Create Checkpoints'"
+					<ActionButton v-if="collectionStateFlags.has_untracked && userStore.canDo('create_checkpoint')"
+						:icon="getAppIcon('layers-plus-danger')" :noFilter="true" v-tooltip="'Create Checkpoints (Fast)'"
 						:buttonFunction="prepAllCheckpointModal" />
-					<ActionButton v-else-if="isTasksModified && userStore.canDo('create_checkpoint')"
-						:icon="getAppIcon('layers-plus-alert')" :noFilter="true" v-tooltip="'Create Checkpoints'"
+					<ActionButton v-else-if="collectionStateFlags.has_modified && userStore.canDo('create_checkpoint')"
+						:icon="getAppIcon('layers-plus-alert')" :noFilter="true" v-tooltip="'Create Checkpoints (Fast)'"
 						:buttonFunction="prepAllCheckpointModal" />
-					<ActionButton v-if="isTasksModified" :icon="getAppIcon('revert-alert')" :noFilter="true" v-tooltip="'Revert All'"
+					<ActionButton v-if="collectionStateFlags.has_modified" :icon="getAppIcon('revert-alert')" :noFilter="true" v-tooltip="'Revert All (Fast)'"
 						:buttonFunction="prepResetPopUpModal" />
-					<ActionButton v-if="isTasksOutdated" :icon="getAppIcon('circle-check-alert')" :noFilter="true" v-tooltip="'Update all'"
+					<ActionButton v-if="collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check-alert')" :noFilter="true" v-tooltip="'Update all (Fast)'"
 						:buttonFunction="updateAll" />
 				</div>
 			</div>
@@ -200,6 +200,15 @@ const browserFilters = ref(null);
 const searchBar = ref(null);
 const observer = ref(null);
 const rootData = ref([]);
+
+// New collection state flags (optimized)
+const collectionStateFlags = ref({
+	has_untracked: false,
+	has_modified: false,
+	has_outdated: false,
+	has_rebuildable: false
+});
+const loadingCollectionStates = ref(false);
 
 // events
 import { Events } from "@wailsio/runtime";
@@ -1500,6 +1509,41 @@ const detectModifier = (event) => {
 	}
 };
 
+// New optimized collection state check function
+const loadCollectionStateFlags = async () => {
+	loadingCollectionStates.value = true;
+	
+	try {
+		const project = projectStore.activeProject;
+		let entityId = "root";
+		
+		if (commonStore.navigatorMode && collectionStore.navigatedCollection) {
+			entityId = collectionStore.navigatedCollection.id || "root";
+		}
+		
+		const flags = await CollectionService.GetCollectionStateFlags(
+			project.uri,
+			entityId,
+			project.working_directory,
+			project.ignore_list
+		);
+		
+		collectionStateFlags.value = flags;
+		console.log('🚀 Collection State Flags:', flags);
+	} catch (error) {
+		console.error('Error loading collection state flags:', error);
+		// Reset flags on error
+		collectionStateFlags.value = {
+			has_untracked: false,
+			has_modified: false,
+			has_outdated: false,
+			has_rebuildable: false
+		};
+	} finally {
+		loadingCollectionStates.value = false;
+	}
+};
+
 const refresh = async () => {
 	if(kanbanView.value){
 		return
@@ -1530,6 +1574,9 @@ const refresh = async () => {
 	console.log(children);
 
 	assetStore.reloadAssetStates();
+	
+	// Load both old and new state checks for comparison
+	loadCollectionStateFlags(); // NEW: Optimized approach
 
 };
 
@@ -1608,6 +1655,9 @@ const softRefresh = async () => {
 
 	assetStore.assetsLoaded = true;
 	assetStore.reloadAssetStates();
+	
+	// Load both old and new state checks for comparison
+	loadCollectionStateFlags(); // NEW: Optimized approach
 };
 
 watch(() => assetStore.assetsLoaded, async () => {
