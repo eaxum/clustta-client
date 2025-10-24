@@ -26,15 +26,23 @@
       
       <!-- Bottom bar with entity type icon, name, and status actions -->
       <div class="main-entity-item-grid-bottom-bar">
-        <div class="entity-item-grid-type-icon">
+        <div v-if="!isEditing" class="entity-item-grid-type-icon">
           <img class="small-icons" :src="getAppIcon(collectionTypeIcon)">
         </div>
         
-        <div class="main-entity-item-grid-meta">
+        <div v-if="!isEditing" class="main-entity-item-grid-meta">
           {{entityName}}
         </div>
+
+        <div v-else class="entity-item-grid-left-section rename-input-grid">
+          <input spellcheck="false" v-model="editableEntityName" class="input-short input-grid" type="text" placeholder="Collection name"
+            v-focus @keydown.enter="handleEnterKey" @keydown.esc="handleEscKey" />
+          <ActionButton :isDisabled="!isNameChanged" :icon="getAppIcon('check')" v-tooltip="'Confirm'"
+            @click="confirmRename" />
+          <ActionButton :icon="getAppIcon('close')" v-tooltip="'Cancel'" @click="cancelRename" />
+        </div>
         
-        <div class="entity-item-grid-status">
+        <div v-if="!isEditing" class="entity-item-grid-status">
           <div v-if="!isEditing && itemsUntracked && !(entity.id in stage.expandedEntities)">
             <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" 
               v-if="userStore.canDo('create_entity') || canImport || isAssigned"
@@ -1197,5 +1205,31 @@ onBeforeUnmount(() => {
   height: 24px;
   width: 24px;
   /* padding: 5px; */
+}
+
+.rename-input-grid {
+  display: flex !important;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.rename-input-grid .input-grid {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  border-radius: 12px;
+  height: 100%;
+  color: var(--white);
+}
+
+.entity-item-grid-left-section {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  width: 100%;
+  overflow: hidden;
 }
 </style>

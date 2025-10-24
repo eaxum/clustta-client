@@ -269,10 +269,21 @@ Events.On('cut-items', async () => {
 	}
 });
 
+Events.On('copy-items', async () => {
+	if (operationsActive.value) return
+	if (!!stage.markedItems.length && userStore.canDo('update_entity')) {
+		const viewItems = dndStore.allViewItems;
+		stage.copiedItems = viewItems.filter((item) => stage.markedItems.includes(item.id));
+		stage.copiedItems = stage.copiedItems.filter((item) => !stage.markedItems.includes(item.parent_id || item.entity_id));
+		stage.markedItems = stage.copiedItems.map((item) => item.id)
+		// console.log(stage.copiedItems);
+	}
+});
+
 Events.On('paste-items', async () => {
 	if (operationsActive.value) return
-	if (!!stage.cutItems && userStore.canDo('update_entity')) {
-		stage.cutItems = [];
+	if (!!stage.copiedItems && userStore.canDo('update_entity')) {
+		stage.copiedItems = [];
 	}
 });
 
@@ -1080,7 +1091,9 @@ const openMenu = (event) => {
 };
 
 const cancelOps = () => {
-	clearSearch();
+	if (commonStore.viewSearchQuery){
+		clearSearch();
+	}
 	stage.cutItems = [];
 	if (!dndStore.altKeyActive) {
 		dndStore.resetValues();

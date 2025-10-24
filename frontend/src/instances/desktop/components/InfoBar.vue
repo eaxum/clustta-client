@@ -311,7 +311,7 @@ onMounted(async () => {
 }
 
 .mini-progress.write-operation {
-  background-color: rgba(238, 92, 8, 0.15);
+  /* background-color: rgba(238, 92, 8, 0.15); */
 }
 
 .mini-progress.write-operation:hover {
