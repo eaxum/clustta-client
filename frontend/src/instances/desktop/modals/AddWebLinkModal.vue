@@ -187,7 +187,7 @@ const closeModal = () => {
   trayStates.searchTags = false;
   modals.setModalVisibility("addWebLinkModal", false);
 };
-const createTask = async (launch = false, comment = "new file") => {
+const createTask = async (launch = false, comment = "Asset created") => {
   isAwaitingResponse.value = true;
   let selectedTaskType = assetStore.assetTypes.find(item => item.name === taskType.value);
   let entities = stageStore.markedEntities

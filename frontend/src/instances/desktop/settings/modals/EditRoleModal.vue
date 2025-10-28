@@ -156,6 +156,8 @@ const formatLabel = (key) => {
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
+    .replace(/Task/g, 'Asset')
+    .replace(/Entity/g, 'Collection')
 }
 
 const toggleField = (key) => {

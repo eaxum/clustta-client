@@ -17,7 +17,6 @@ import (
 	"slices"
 	"strings"
 	"syscall"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -366,14 +365,7 @@ func (e *CollectionService) GetCollectionByID(projectPath, entityId string) (mod
 }
 
 // GetCollectionStateFlags checks if a collection has any recursive children that are
-// rebuildable, outdated, modified, or untracked. Optimized for early termination.
 func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, projectWorkingDir string, ignoreList []string) (CollectionStateFlags, error) {
-	startTime := time.Now()
-	defer func() {
-		elapsed := time.Since(startTime)
-		fmt.Printf("GetCollectionStateFlags for entity '%s' took %s\n", entityId, elapsed)
-	}()
-
 	flags := CollectionStateFlags{
 		HasUntracked:   false,
 		HasModified:    false,
@@ -401,7 +393,7 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 	// Get the entity path for the collection
 	var entityPath string
 	if entityId == "" {
-		entityPath = "/"
+		entityPath = ""
 	} else {
 		entity, err := repository.GetEntity(tx, entityId)
 		if err != nil {

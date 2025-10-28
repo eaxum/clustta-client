@@ -124,6 +124,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
 import { useThemeStore } from '@/stores/theme';
+import { useCollectionStore } from '@/stores/collections';
 
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -138,6 +139,7 @@ const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
 const themeStore = useThemeStore();
+const collectionStore = useCollectionStore();
 
 const os = ref('');
 const studioTabsParent = ref(null);
@@ -213,7 +215,7 @@ watchEffect(() => {
 const studioList = computed(() => { return projectStore.studios.filter(item => item.id !== projectStore.selectedStudio.id && item.url ) });
 
 const operationMessage = computed(() => {
-  return ' - syncing';
+  return ' - working';
 });
 
 const modalsActive = computed(() => {
@@ -370,12 +372,10 @@ onBeforeUnmount(() => {
   right: 100%;
   bottom: 0;
   left: 0;
-  background: crimson;
+  background: linear-gradient(to right, transparent, rgb(31, 163, 60), transparent);
   width: 0;
-  animation: borealisBar 2s linear infinite;
+  animation: borealisBar 1.2s linear infinite;
   z-index: 1;
-  background-color: rgb(255, 229, 201);
-  background-color: rgb(31, 163, 60);
 }
 
 @keyframes borealisBar {
@@ -416,7 +416,7 @@ onBeforeUnmount(() => {
   left: 0;
   left: 0;
   width: 100%;
-  height: 3px;
+  height: 2px;
   overflow: hidden;
   cursor: not-allowed !important;
   box-sizing: border-box;

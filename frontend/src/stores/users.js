@@ -38,6 +38,19 @@ export const useUserStore = defineStore("users", {
       let user = this.users.find((user) => user.id === userId);
       return user;
     },
+     async fetchUserData(userId) {
+      let user
+        try {
+          user = await UserService.FetchUserById(userId);
+          if (user && user.photo) {
+            user.photo = "data:image/png;base64," + user.photo;
+          }
+        } catch (error) {
+          console.error("Failed to fetch user from global server:", error);
+          return null;
+        }
+      return user;
+    },
     selectUser(userId) {
       let user = this.users.find((user) => user.id === userId);
       this.selectedUser = user;

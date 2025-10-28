@@ -148,6 +148,7 @@ const refreshCheckpoints = async () => {
 
   trayStates.checkpointsLoaded = true;
   let userCache = {}
+  console.log(taskCheckpoints)
   for (let i = 0; i < taskCheckpoints.length; i++) {
     let checkpoint = taskCheckpoints[i];
     let authorId = checkpoint.author_id
@@ -156,7 +157,27 @@ const refreshCheckpoints = async () => {
     }
     let author = userCache[authorId];
     if (!author) {
-      continue; // Skip this item if author is not found
+      // Try fetching from global server before skipping
+      try {
+        author = await userStore.fetchUserData(authorId);
+        if (author) {
+          userCache[authorId] = author;
+        }
+      } catch (error) {
+        console.error(`Failed to fetch user data for ${authorId}:`, error);
+      }
+      
+      if (!author) {
+        // Generate a placeholder user for removed/deleted users
+        author = {
+          id: authorId,
+          first_name: 'Removed',
+          last_name: 'User',
+          photo: '',
+          email: ''
+        };
+        userCache[authorId] = author;
+      }
     }
     let author_fullname = `${author.first_name} ${author.last_name}`;
     let preview = null;

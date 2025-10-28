@@ -179,6 +179,7 @@ export function GetFileIcon(ext) {
 /**
  * GetOSThumbnail generates a thumbnail for the specified file using OS APIs
  * Always fetches full-resolution (512px) thumbnails for maximum quality
+ * Now with custom thumbnail extraction for Blender, Maya, and other 3D files
  * Returns base64-encoded PNG thumbnail or empty string on error
  * @param {string} filePath
  * @param {number} size

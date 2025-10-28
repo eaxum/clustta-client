@@ -56,6 +56,7 @@ const getRoleTypeIcon = (icon) => {
 const projectRoles = computed(() => {
 
   let projectRoles = userStore.getProjectRoles;
+  console.log(projectRoles)
   let projectUsers = userStore.getProjectCollaborators;
 
   let usedProjectRoleIds = [];

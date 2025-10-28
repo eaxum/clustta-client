@@ -195,6 +195,16 @@ export function DuplicateAsset(projectPath, sourceTaskId) {
 
 /**
  * @param {string} projectPath
+ * @param {string} assetId
+ * @returns {Promise<models$0.Task> & { cancel(): void }}
+ */
+export function GetAssetByID(projectPath, assetId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(467161039, projectPath, assetId));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} projectPath
  * @returns {Promise<number> & { cancel(): void }}
  */
 export function GetAssetCount(projectPath) {
@@ -409,6 +419,16 @@ export function ToggleIsTask(projectPath, taskId, isTask) {
  */
 export function UnassignAsset(projectPath, taskId) {
     let $resultPromise = /** @type {any} */($Call.ByID(2170415471, projectPath, taskId));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} projectPath
+ * @param {string[]} taskIds
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function UnassignAssets(projectPath, taskIds) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3268802324, projectPath, taskIds));
     return $resultPromise;
 }
 

@@ -18,19 +18,13 @@
 
       <!-- Notification section for new users -->
       <div v-if="newUsers.length > 0" class="horizontal-flex">
-        <div class="new-user-notification">
-          <div class="notification-icon">
-            <img class="small-icons no-filter" :src="getAppIcon('mail')" alt="Invitation" />
-          </div>
-          <div class="notification-content">
-            <div class="notification-title">Invitation Required</div>
-            <div class="notification-message">
-              {{ newUsers.length }} user{{ newUsers.length > 1 ? 's' : '' }} 
-              {{ newUsers.length > 1 ? 'are' : 'is' }}n't on Clustta yet. 
-              {{ newUsers.length > 1 ? 'They' : 'This user' }} will be sent an invite to signup.
-            </div>
-          </div>
-        </div>
+        <NotificationBox 
+          type="invitation"
+          :icon="getAppIcon('mail')"
+          iconAlt="Invitation"
+          title="Invitation Required"
+          :message="`${newUsers.length} user${newUsers.length > 1 ? 's' : ''} ${newUsers.length > 1 ? 'are' : 'is'}n't on Clustta yet. ${newUsers.length > 1 ? 'They' : 'This user'} will be sent an invite to signup.`"
+        />
       </div>
       </div>
 
@@ -66,6 +60,7 @@ import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import CollaboratorSuggestions from '@/instances/common/components/CollaboratorSuggestions.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import NotificationBox from '@/instances/common/components/NotificationBox.vue';
 
 // stores
 const trayStates = useTrayStates();
@@ -293,168 +288,6 @@ onMounted(() => {
   /* background-color: crimson; */
   overflow: hidden;
   gap: .5rem;
-}
-
-.add-category {
-
-  display: flex;
-  gap: .5rem;
-  flex-direction: row;
-  /* background-color: chocolate; */
-}
-
-.input-short {
-  flex: 1;
-  width: 100%;
-}
-
-.listbox-short {
-
-  flex: 1;
-  width: 130px;
-}
-
-.input-label {
-
-  font-family: Inter, sans-serif;
-  color: var(--white);
-  font-size: 16px;
-  white-space: nowrap;
-  flex: 1;
-
-}
-
-
-.category-area {
-  box-sizing: border-box;
-  /* margin-top: 1rem; */
-  display: flex;
-  /* align-items: center; */
-  flex-direction: column;
-  /* justify-content: space-between; */
-  gap: 1rem;
-  /* background-color: darkkhaki; */
-  color: var(--white);
-  width: 98%;
-}
-
-.category-list {
-  box-sizing: border-box;
-  /* margin-top: 1rem; */
-  display: flex;
-  padding: .5rem;
-  align-items: center;
-  flex-direction: column;
-  /* justify-content: space-between; */
-  gap: .2rem;
-  /* background-color: rgb(57, 122, 108); */
-
-  background-color: rgba(0, 0, 0, 0.144);
-  height: 290px;
-  /* height: 90%; */
-  overflow: hidden;
-  overflow-y: scroll;
-  width: 100%;
-  border-radius: 10px;
-}
-
-.category-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.category-list::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
-}
-
-.category-list::-webkit-scrollbar-track {
-  border-radius: 10px;
-  /* background-color: rgba(0, 0, 0, 0.295); */
-}
-
-.category-item {
-  color: var(--white);
-  /* margin-top: 1rem; */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-  width: 100%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.096);
-  height: max-content;
-  padding: .2rem;
-
-  /* background-color: greenyellow; */
-}
-
-.category-item-actions {
-
-  /* background-color: red; */
-  display: flex;
-
-}
-
-/* Studio notification styles */
-.studio-notification {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.75rem;
-  background-color: rgba(255, 165, 0, 0.1);
-  border: 1px solid #FFA500;
-  border-radius: var(--small-radius);
-  /* margin: 0.5rem 0; */
-}
-
-/* New user notification styles */
-.new-user-notification {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.75rem;
-  background-color: rgba(45, 156, 219, 0.1);
-  border: 1px solid #2D9CDB;
-  border-radius: var(--small-radius);
-  /* margin: 0.5rem 0; */
-}
-
-.notification-icon {
-  flex-shrink: 0;
-  margin-top: 0.1rem;
-}
-
-.notification-icon img {
-  width: 20px;
-  height: 20px;
-}
-
-.studio-notification .notification-icon img {
-  filter: brightness(0) saturate(100%) invert(69%) sepia(100%) saturate(2582%) hue-rotate(14deg) brightness(101%) contrast(101%);
-}
-
-.new-user-notification .notification-icon img {
-  filter: brightness(0) saturate(100%) invert(47%) sepia(74%) saturate(6614%) hue-rotate(201deg) brightness(95%) contrast(91%);
-}
-
-.notification-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  width: 100%;
-}
-
-.notification-title {
-  font-weight: 400;
-  color: var(--white);
-  font-size: 14px;
-}
-
-.notification-message {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
-  line-height: 1.4;
 }
 </style>
 

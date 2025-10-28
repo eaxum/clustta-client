@@ -126,7 +126,7 @@
   
   --online: hsl(133, 74%, 49%);
   
-  --attention: #E6CC49;
+  --attention: #EBBA16  ;
   --danger: crimson;
   --calm: blue;
 
@@ -740,5 +740,14 @@ img.no-filter {
   cursor: not-allowed;
   pointer-events: none;
   opacity: .5;
+}
+
+.input-label {
+  font-family: Inter, sans-serif;
+  color: var(--white);
+  font-size: 14px;
+  white-space: nowrap;
+  font-weight: 350;
+  /* flex: 1; */
 }
 

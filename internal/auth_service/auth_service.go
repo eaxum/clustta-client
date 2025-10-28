@@ -182,6 +182,55 @@ func FetchUserData(email string) (models.User, error) {
 	return models.User{}, fmt.Errorf("error loading user: code - %d: body - %s", response.StatusCode, bodyData)
 }
 
+func FetchUserDataById(userId string) (models.User, error) {
+	url := constants.HOST + "/persons/" + userId
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		return models.User{}, err
+	}
+	defer response.Body.Close()
+
+	responseCode := response.StatusCode
+	if responseCode == 200 {
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			return models.User{}, fmt.Errorf("error reading response body: %s", err)
+		}
+
+		var user models.User
+		err = json.Unmarshal(body, &user)
+		if err != nil {
+			return models.User{}, fmt.Errorf("Failed to unmarshal response body: %v", err)
+		}
+		userPhoto, err := FetchUserPhoto(user.Id)
+		if err != nil {
+			return models.User{}, err
+		}
+		user.Photo = userPhoto
+		return user, nil
+	}
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return models.User{}, fmt.Errorf("error reading response body: %s", err.Error())
+	}
+	bodyData := string(body)
+	if strings.Contains(bodyData, "Unauthorized") {
+		return models.User{}, error_service.ErrNotAutheticated
+	}
+
+	return models.User{}, fmt.Errorf("error loading user: code - %d: body - %s", response.StatusCode, bodyData)
+}
+
 func GetToken() (Token, error) {
 	// Get the active account from multi-account structure
 	activeToken, err := GetActiveAccount()

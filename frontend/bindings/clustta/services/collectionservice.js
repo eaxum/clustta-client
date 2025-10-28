@@ -166,7 +166,6 @@ export function GetCollectionCount(projectPath) {
 
 /**
  * GetCollectionStateFlags checks if a collection has any recursive children that are
- * rebuildable, outdated, modified, or untracked. Optimized for early termination.
  * @param {string} projectPath
  * @param {string} entityId
  * @param {string} projectWorkingDir

@@ -310,7 +310,6 @@ func GetEntity(tx *sqlx.Tx, id string) (models.Entity, error) {
 	} else {
 		entity.AssigneeIds = []string{} // Ensure it's initialized as an empty slice
 	}
-	fmt.Println("Final entity: ", entity.ParentId)
 	return entity, nil
 }
 

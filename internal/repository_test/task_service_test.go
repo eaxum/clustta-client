@@ -64,7 +64,7 @@ func TestCreateTask(t *testing.T) {
 	}
 	_, err = repository.CreateTask(
 		testutils.Tx, "", "task 2", testutils.TaskType.Id, testutils.Entity.Id, false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -84,7 +84,7 @@ func TestCreateRootTask(t *testing.T) {
 	}
 	_, err = repository.CreateTask(
 		testutils.Tx, "", "task 2", testutils.TaskType.Id, "", false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -104,7 +104,7 @@ func TestGetTask(t *testing.T) {
 	}
 	task, err := repository.CreateTask(
 		testutils.Tx, "", "task", testutils.TaskType.Id, testutils.Entity.Id, false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -136,7 +136,7 @@ func TestGetUserTasks(t *testing.T) {
 	}
 	task, err := repository.CreateTask(
 		testutils.Tx, "", "task", testutils.TaskType.Id, testutils.Entity.Id, false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -189,7 +189,7 @@ func TestGetTasks(t *testing.T) {
 
 	_, err = repository.CreateTask(
 		testutils.Tx, "", "task", testutils.TaskType.Id, testutils.Entity.Id, false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -219,7 +219,7 @@ func TestDeleteTask(t *testing.T) {
 
 	task, err := repository.CreateTask(
 		testutils.Tx, "", "task 2", testutils.TaskType.Id, testutils.Entity.Id, false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -244,7 +244,7 @@ func TestUpdateTask(t *testing.T) {
 
 	task, err := repository.CreateTask(
 		testutils.Tx, "", "task 2", testutils.TaskType.Id, testutils.Entity.Id, false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -274,7 +274,7 @@ func TestUpdateTaskStatus(t *testing.T) {
 
 	task, err := repository.CreateTask(
 		testutils.Tx, "", "task 2", testutils.TaskType.Id, testutils.Entity.Id, false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -302,14 +302,14 @@ func TestDeleteEntityTasks(t *testing.T) {
 	}
 	_, err = repository.CreateTask(
 		testutils.Tx, "", "task 2", testutils.TaskType.Id, testutils.Entity.Id, false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
 
 	_, err = repository.CreateTask(
 		testutils.Tx, "", "task 3", testutils.TaskType.Id, testutils.Entity.Id, false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -343,13 +343,13 @@ func TestAddTaskDependency(t *testing.T) {
 	}
 	taskA, err := repository.CreateTask(
 		testutils.Tx, "", "task A", testutils.TaskType.Id, testutils.Entity.Id, false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
 	taskB, err := repository.CreateTask(
 		testutils.Tx, "", "task B", testutils.TaskType.Id, testutils.Entity.Id, false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -375,13 +375,13 @@ func TestRemoveTaskDependency(t *testing.T) {
 	}
 	taskA, err := repository.CreateTask(
 		testutils.Tx, "", "task A", testutils.TaskType.Id, testutils.Entity.Id, false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
 	taskB, err := repository.CreateTask(
 		testutils.Tx, "", "task B", testutils.TaskType.Id, testutils.Entity.Id, false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -411,13 +411,13 @@ func TestReAddTaskDependency(t *testing.T) {
 	}
 	taskA, err := repository.CreateTask(
 		testutils.Tx, "", "task A", testutils.TaskType.Id, testutils.Entity.Id, false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
 	taskB, err := repository.CreateTask(
 		testutils.Tx, "", "task B", testutils.TaskType.Id, testutils.Entity.Id, false,
-		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}

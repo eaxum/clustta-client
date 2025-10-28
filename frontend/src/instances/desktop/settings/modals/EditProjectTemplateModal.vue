@@ -267,8 +267,8 @@ watchEffect(() => {
 
 .input-label {
   font-family: Inter, sans-serif;
-  color: white;
-  font-size: 16px;
+  color: var(--white);
+  font-size: 14px;
   white-space: nowrap;
   flex: 1;
 }

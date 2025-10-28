@@ -11,13 +11,45 @@
         <div class="input-label-row">
           <label class="input-label">Studio Name</label>
         </div>
+        <div class="compound-form-input studio-name-input">
+          <input v-model="studioName" @input="checkStudioName" class="form-input-mini" type="text" placeholder="Studio Name"  v-focus />
+          <div v-if="studioName" class="form-input-icon">
+            <img v-if="studioNameError" class="alert-icons small-icons" :src="getAppIcon('alert')" />
+            <img v-else-if="checkingStudioNameAvailability" class="alert-icons small-icons loading-icon" :src="getAppIcon('loading')" />
+            <img v-else class="alert-icons small-icons" :src="getAppIcon('circle-check')" />
+          </div>
+        </div>
+        <InputAlert :show="!!studioNameError" :message="studioNameError" />
+      </div>
+
+      <div class="input-section">
+        <div class="input-label-row">
+          <label class="input-label">Code</label>
+        </div>
         <div class="horizontal-flex">
-          <input v-model="studioName" class="input-short" type="text" placeholder="Studio Name"  v-focus />
+          <input v-model="deploymentCode" @input="deploymentCodeError = ''" class="input-short" type="text" placeholder="Code" />
+        </div>
+        <InputAlert :show="!!deploymentCodeError" :message="deploymentCodeError" />
+      </div>
+
+      <!-- Notification section for deployment code info -->
+      <div class="notification-area">
+        <div class="horizontal-flex">
+          <NotificationBox 
+            type="info"
+            :icon="getAppIcon('info')"
+            iconAlt="Info"
+            title="Get Your Code"
+            message="Join our Discord community to receive your deployment code. Visit the #beta-studio-codes channel."
+            :clickable="true"
+            @click="openDiscordLink"
+          />
         </div>
       </div>
 
 
-        <div class="input-section">
+      <!-- Temporarily disable ability to change studio type -->
+        <!-- <div class="input-section">
             <div class="input-label-row">
                 <label class="input-label">Location</label>
             </div>
@@ -33,7 +65,7 @@
             <div class="horizontal-flex">
                 <DropDownBox :items="vmSizeNames" :selectedItem="vmSizeName" :onSelect="changeVmSize" />
             </div>
-        </div>
+        </div> -->
 
 
       <div class="pop-up-actions">
@@ -107,6 +139,7 @@
 <script setup>
 // imports
 import { ref, onMounted, computed, watchEffect } from 'vue';
+import { Browser } from "@wailsio/runtime";
 
 // services
 import { StudioService, DeploymentService } from '@/../bindings/clustta/services/index';
@@ -124,7 +157,9 @@ import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
+import InputAlert from '@/instances/common/components/InputAlert.vue';
 import ProgressBar from '@/instances/common/components/ProgressBar.vue';
+import NotificationBox from '@/instances/common/components/NotificationBox.vue';
 
 //header vars
 let title = 'New ClusttaCloud Studio';
@@ -139,6 +174,7 @@ const stage = useStageStore();
 
 //refs
 const studioName = ref('');
+const deploymentCode = ref('');
 const vmSize = ref('Standard_B1s');
 const diskSizeGB = ref(30);
 const isStudioRegistered = ref(false);
@@ -147,6 +183,10 @@ const modalContainer = ref(null);
 const createdStudio = ref(null);
 const deploymentStatus = ref(null);
 const deploymentId = ref('');
+const checkingStudioNameAvailability = ref(false);
+const isStudioNameTaken = ref(false);
+const studioNameError = ref('');
+const deploymentCodeError = ref('');
 
 // Dummy deployment status for UI testing
 const dummyStatuses = [
@@ -272,15 +312,19 @@ const restrictedNames = computed(() => {
 });
 
 const studioNameInUse = computed(() => {
-  return restrictedNames.value.includes(studioName.value.toLowerCase());
+  return restrictedNames.value.includes(studioName.value.toLowerCase()) || isStudioNameTaken.value;
 });
 
 const studioNameEmpty = computed(() => {
   return studioName.value === ''
 });
 
+const deploymentCodeEmpty = computed(() => {
+  return deploymentCode.value === ''
+});
+
 const isValueChanged = computed(() => {
-  const baseValid = !studioNameEmpty.value && !studioNameInUse.value;
+  const baseValid = !studioNameEmpty.value && !studioNameInUse.value && !deploymentCodeEmpty.value && !studioNameError.value && !deploymentCodeError.value;
     return baseValid;
 });
 
@@ -303,13 +347,60 @@ const handleEnterKey = (event) => {
   }
 };
 
+const checkStudioName = async () => {
+  if (!studioName.value) {
+    studioNameError.value = '';
+    isStudioNameTaken.value = false;
+    return;
+  }
+  
+  // Check restricted names first
+  if (restrictedNames.value.includes(studioName.value.toLowerCase())) {
+    studioNameError.value = 'This studio name is reserved';
+    isStudioNameTaken.value = true;
+    return;
+  }
+  
+  checkingStudioNameAvailability.value = true;
+
+  try {
+    const nameExists = await StudioService.CheckStudioNameExists(studioName.value.toLowerCase());
+    console.log(nameExists)
+    if (nameExists) {
+      studioNameError.value = 'Studio name is already taken';
+      isStudioNameTaken.value = true;
+    } else {
+      studioNameError.value = '';
+      isStudioNameTaken.value = false;
+    }
+    checkingStudioNameAvailability.value = false;
+  } catch (error) {
+    studioNameError.value = '';
+    isStudioNameTaken.value = false;
+    console.error('Error checking studio name:', error);
+    checkingStudioNameAvailability.value = false;
+  }
+};
+
 
 
 const createStudio = async () => {
   isAwaitingResponse.value = true;
+  deploymentCodeError.value = ''; // Clear previous errors
   
   try {
-      // Deployment - first register studio, then deploy to Azure
+      // First, verify the deployment code
+      const [isValid, message] = await StudioService.VerifyDeploymentCode(deploymentCode.value);
+      deploymentCode.value = ''; // Clear deployment code after verification
+      
+      if (!isValid) {
+        deploymentCodeError.value = message || 'The deployment code you entered is not valid.';
+        notificationStore.errorNotification('Invalid Deployment Code', deploymentCodeError.value);
+        isAwaitingResponse.value = false;
+        return;
+      }
+      
+      // Deployment - first register studio, then deploy 
       const studioResult = await StudioService.RegisterStudio(studioName.value, 'pending');
       createdStudio.value = studioResult;
       
@@ -380,6 +471,10 @@ const toggleDeploymentStatus = () => {
   console.log('Deployment Status Updated:', deploymentStatus.value);
 };
 
+const openDiscordLink = () => {
+  Browser.OpenURL('https://discord.gg/NuR4uAuTZd');
+};
+
 const launchStudio = async () => {
   isAwaitingResponse.value = true;
   await projectStore.loadStudios();
@@ -415,14 +510,13 @@ onMounted(async () => {
 @import "@/assets/desktop.css";
 @import "@/assets/modals.css";
 
-.general-container {
-  /* gap: 1rem; */
-}
-
 .single-action{
   justify-content: flex-end;
 }
 
+.general-container{
+  gap: 1rem;
+}
 .success-message {
   font-size: 16px;
   /* font-weight: 300; */
@@ -485,6 +579,24 @@ onMounted(async () => {
   font-weight: 400;
   white-space: nowrap;
   opacity: 0.9;
+}
+
+.studio-name-input{
+  height: min-content;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-input-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+}
+
+.alert-icons {
+  width: 20px;
+  height: 20px;
 }
 
 
@@ -592,5 +704,14 @@ onMounted(async () => {
   font-size: 0.9rem;
   color: var(--white);
   text-align: center;
+}
+
+/* Notification area */
+.notification-area{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: .5rem;
 }
 </style>
