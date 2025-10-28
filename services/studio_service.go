@@ -69,3 +69,19 @@ func (s *StudioService) UpdateStudio(studioName, url, altUrl, port, key string) 
 	}
 	return result, nil
 }
+
+func (s *StudioService) VerifyDeploymentCode(code string) (bool, string, error) {
+	valid, message, err := studio_service.VerifyDeploymentCode(code)
+	if err != nil {
+		return false, "", err
+	}
+	return valid, message, nil
+}
+
+func (s *StudioService) CheckStudioNameExists(studioName string) (bool, error) {
+	exists, err := studio_service.CheckStudioNameExists(studioName)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}

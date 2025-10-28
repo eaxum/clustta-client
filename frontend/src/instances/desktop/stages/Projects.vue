@@ -9,13 +9,22 @@
 					v-tooltip="'Refresh'" :buttonFunction="refresh" />
 			</div>
 			<div class="action-bar" v-if="projects.length && projectStore.projectsLoaded || projectStore.projectSearchQuery">
-				<input ref="searchBar" v-model="projectStore.projectSearchQuery" class="desktop-search-bar" type="text"
-					:placeholder="'Search projects'" @input="updateSearch" />
+				<div class="searchbar-container">
+					<input ref="searchBar" v-model="projectStore.projectSearchQuery" class="desktop-search-bar" type="text"
+						:placeholder="'Search projects'" @input="updateSearch" spellcheck="false" />
+
+					<span v-if="projectStore.projectSearchQuery.length && !projectStore.projectsLoaded" class="single-action-button">
+						<img class="small-icons loading-children-icon" :src="getAppIcon('loading')">
+					</span>
+
+					<ActionButton v-else-if="projectStore.projectSearchQuery.length" :icon="getAppIcon('close')"
+						:allowDeactivate="true" v-tooltip="'Clear search'" :buttonFunction="clearSearch" />
+				</div>
 			</div>
 			<div class="view-options">
-				<ActionButton v-if="cardView && projects.length" :icon="getAppIcon('list')" v-tooltip="'List'"
+				<ActionButton v-if="cardView" :isDisabled="!projects.length" :icon="getAppIcon('list')" v-tooltip="'List'"
 					:buttonFunction="switchViewLayout" />
-				<ActionButton v-else-if="projects.length" :icon="getAppIcon('four-squares')" v-tooltip="'Cards'"
+				<ActionButton v-else :isDisabled="!projects.length" :icon="getAppIcon('four-squares')" v-tooltip="'Cards'"
 					:buttonFunction="switchViewLayout" />
 			</div>
 		</div>
@@ -229,9 +238,6 @@ const toggleExpandClosedProjects = () => {
 const resetAll = () => {
 	if (projectStore.projectSearchQuery) {
 		projectStore.projectSearchQuery = '';
-		// if (searchBar.value) {
-		// 	searchBar.value.focus();
-		// }
 	}
 };
 
@@ -256,6 +262,18 @@ const refresh = async () => {
 
 const updateSearch = (event) => {
 	projectStore.projectSearchQuery = event.target.value.toLowerCase();
+	
+	// Enable closedProjectsVisible when searching, disable when cleared
+	if (projectStore.projectSearchQuery.length > 0) {
+		closedProjectsVisible.value = true;
+	} else {
+		closedProjectsVisible.value = false;
+	}
+};
+
+const clearSearch = () => {
+	projectStore.projectSearchQuery = '';
+	closedProjectsVisible.value = false;
 };
 
 
@@ -538,6 +556,48 @@ onUnmounted(() => {
 	/* background-color: black; */
 }
 
+.searchbar-container {
+	display: flex;
+	align-items: center;
+	border: 0px;
+	border-style: solid;
+	outline: none;
+	background-color: var(--midnight-steel);
+	border-radius: var(--normal-radius);
+	width: 100%;
+	max-width: 500px;
+	width: 500px;
+	max-width: 400px;
+	padding-right: .2rem;
+	box-sizing: border-box;
+}
+
+.searchbar-container:hover {
+	outline: var(--transparent-line);
+	outline-offset: -1px;
+}
+
+.single-action-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: max-content;
+	height: max-content;
+}
+
+.loading-children-icon {
+	animation: loadingRotate 1s linear infinite;
+}
+
+@keyframes loadingRotate {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
 .desktop-search-bar {
 	font-family: 'Inter', sans-serif;
 	box-sizing: border-box;
@@ -547,30 +607,18 @@ onUnmounted(() => {
 	border: 0px;
 	border-style: solid;
 	outline: none;
-	background-color: var(--midnight-steel);
+	background-color: transparent;
 	color: var(--white);
 	transition: width 0.2s ease-out;
 	border-radius: var(--large-radius);
 	width: 100%;
-	width: 500px;
-	max-width: 400px;
 	color: var(--white);
+	width: 100%;
 }
 
 .desktop-search-bar::-ms-reveal {
 	filter: invert(100%);
 }
-
-.desktop-search-bar:hover {
-	outline: var(--transparent-line);
-	outline-offset: -1px;
-}
-
-.desktop-search-bar:focus {
-	outline: var(--transparent-line);
-	outline-offset: -1px;
-}
-
 .view-options {
 	display: flex;
 	gap: .4rem;

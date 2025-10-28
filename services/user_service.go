@@ -1,6 +1,7 @@
 package services
 
 import (
+	"clustta/internal/auth_service"
 	"clustta/internal/error_service"
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
@@ -162,4 +163,12 @@ func (u *UserService) DeleteRole(projectPath, id string) error {
 	}
 
 	return err
+}
+
+func (u *UserService) FetchUserById(userId string) (models.User, error) {
+	user, err := auth_service.FetchUserDataById(userId)
+	if err != nil {
+		return models.User{}, err
+	}
+	return user, nil
 }

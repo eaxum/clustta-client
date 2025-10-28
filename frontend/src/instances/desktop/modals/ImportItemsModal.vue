@@ -184,7 +184,7 @@ const previewImportItems = async () => {
     });
 };
 
-const importItems = async (comment = "new file") => {
+const importItems = async (comment = "Asset created") => {
   let entities = dndStore.previewData.entities.filter(entity => !entity.is_tracked_parent)
   let tasks = dndStore.previewData.tasks
   let success = false;

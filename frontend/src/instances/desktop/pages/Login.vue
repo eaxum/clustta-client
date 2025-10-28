@@ -172,10 +172,11 @@ const handleLogin = async () => {
       
       // Check if error indicates user needs verification
       const errorMessage = error.message || error.toString();
-      const isUnverifiedUser = errorMessage.toLowerCase().includes('please verify your email before logging in');
+      const isUnverifiedUser = errorMessage.toLowerCase().includes('please verify your email before logging in') || 
+                               errorMessage.toLowerCase().includes('account not verified');
       
       if (isUnverifiedUser) {
-        notificationStore.addNotification("Verification Required", "Please verify your account to continue.", "info");
+        notificationStore.addNotification("Verification Required", "Please check your email for a verification code.", "info");
         emit('show-verification', { email: loginForm.email, password: loginForm.password });
       } else {
         // Handle other login errors normally

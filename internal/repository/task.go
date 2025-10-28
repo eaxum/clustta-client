@@ -75,6 +75,12 @@ func CreateTaskFast(
 	timeModified := int(fileInfo.ModTime().Unix())
 	fileSize := int(fileInfo.Size())
 
+	// Skip 0KB files and log them
+	if fileSize == 0 {
+		fmt.Printf("Skipping 0KB file: %s\n", template_file_path)
+		return nil
+	}
+
 	params := map[string]any{
 		"id":           id,
 		"created_at":   utils.GetCurrentTime(),
@@ -102,17 +108,20 @@ func CreateTaskFast(
 
 	author_id := userId
 	if comment == "" {
-		comment = "new file"
+		comment = "Asset created"
 	}
 
 	rootFolder, err := utils.GetProjectWorkingDir(tx)
 	if err != nil {
 		return err
 	}
-	taskFilePath := filepath.Join(rootFolder, taskPath+extension)
+	taskFilePath := filepath.Join(rootFolder, taskPath)
 
+	// fmt.Printf("Before CreateNewTaskCheckpoint - extension: %s, template_file_path: %s, taskPath: %s\n, taskFilePath: %s\n", extension, template_file_path, taskPath, taskFilePath)
 	err = CreateNewTaskCheckpoint(tx, id, comment, chunkSequence, checksum, timeModified, fileSize, taskFilePath, author_id, "", checkpointGroupId, func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
+		// fmt.Printf("Error creating new task checkpoint for task %s: %v\n", id, err)
+		fmt.Printf("Error creating new task checkpoint for task %s: %v\n", taskFilePath, err)
 		return err
 	}
 	return nil
@@ -296,7 +305,7 @@ func CreateTask(
 	if !isLink {
 		author_id := userId
 		if comment == "" {
-			comment = "new file"
+			comment = "Asset created"
 		}
 		_, err = CreateCheckpoint(tx, task.Id, comment, chunkSequence, checksum, timeModified, fileSize, task.FilePath, author_id, "", checkpointGroupId, func(i1, i2 int, s1, s2 string) {})
 		if err != nil {
@@ -2004,6 +2013,29 @@ func UnAssignTask(tx *sqlx.Tx, taskId string) error {
 	err = base_service.UpdateMtime(tx, "task", taskId, utils.GetEpochTime())
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func UnAssignTasks(tx *sqlx.Tx, taskIds []string) error {
+	if len(taskIds) == 0 {
+		return nil
+	}
+
+	currentTime := utils.GetEpochTime()
+	params := map[string]interface{}{
+		"assignee_id": "",
+	}
+
+	for _, taskId := range taskIds {
+		err := base_service.Update(tx, "task", taskId, params)
+		if err != nil {
+			return err
+		}
+		err = base_service.UpdateMtime(tx, "task", taskId, currentTime)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

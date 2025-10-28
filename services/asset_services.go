@@ -62,6 +62,21 @@ func (t *AssetService) GetAssetCount(projectPath string) (int, error) {
 
 	return count, nil
 }
+
+func (t *AssetService) GetAssetByID(projectPath, assetId string) (models.Task, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return models.Task{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return models.Task{}, err
+	}
+	defer tx.Rollback()
+	return repository.GetTask(tx, assetId)
+}
+
 func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, entityId string, isResource bool, templateId, templateFilePath, pointer string, isLink bool, tags []string, previewPath, comment string) (models.Task, error) {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
@@ -502,6 +517,29 @@ func (t *AssetService) UnassignAsset(projectPath, taskId string) error {
 	defer tx.Rollback()
 
 	err = repository.UnAssignTask(tx, taskId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (t *AssetService) UnassignAssets(projectPath string, taskIds []string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	err = repository.UnAssignTasks(tx, taskIds)
 	if err != nil {
 		tx.Rollback()
 		return err

@@ -3,6 +3,7 @@ package services
 import (
 	"archive/tar"
 	"archive/zip"
+	"clustta/internal/custom_thumbnail"
 	"clustta/internal/settings"
 	"clustta/internal/system_icon"
 	"clustta/internal/system_thumbnail"
@@ -71,6 +72,7 @@ func (f *FSService) GetFileIcon(ext string) (string, error) {
 
 // GetOSThumbnail generates a thumbnail for the specified file using OS APIs
 // Always fetches full-resolution (512px) thumbnails for maximum quality
+// Now with custom thumbnail extraction for Blender, Maya, and other 3D files
 // Returns base64-encoded PNG thumbnail or empty string on error
 func (f *FSService) GetOSThumbnail(filePath string, size int) (string, error) {
 	// Check if file exists
@@ -78,6 +80,14 @@ func (f *FSService) GetOSThumbnail(filePath string, size int) (string, error) {
 		return "", fmt.Errorf("file does not exist: %s", filePath)
 	}
 
+	// Try custom thumbnail extraction first (Blender, Maya, etc.)
+	customThumbnail, err := custom_thumbnail.GetThumbnail(filePath)
+	if err == nil && customThumbnail != nil && len(customThumbnail) > 0 {
+		// Successfully extracted custom thumbnail
+		return base64.StdEncoding.EncodeToString(customThumbnail), nil
+	}
+
+	// Fall back to OS thumbnail generation
 	// Always use 512px for maximum quality - CSS handles sizing
 	// The size parameter is kept for API compatibility but not used
 	thumbnailBytes, err := system_thumbnail.GetOSThumbnail(

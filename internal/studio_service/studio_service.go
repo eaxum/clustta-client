@@ -495,3 +495,102 @@ func UpdateStudio(studioName, url, altUrl, port, key string) (interface{}, error
 
 	return nil, fmt.Errorf("error updating studio: code - %d: body - %s", response.StatusCode, bodyData)
 }
+
+func VerifyDeploymentCode(code string) (bool, string, error) {
+	url := constants.HOST + "/studio/verify-deployment-code"
+
+	requestBody := map[string]string{
+		"code": code,
+	}
+
+	jsonData, err := json.Marshal(requestBody)
+	if err != nil {
+		return false, "", err
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return false, "", err
+	}
+
+	// Set custom headers
+	token, err := auth_service.GetToken()
+	if err != nil {
+		return false, "", err
+	}
+	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		return false, "", err
+	}
+	defer response.Body.Close()
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return false, "", fmt.Errorf("error reading response body: %s", err)
+	}
+
+	responseCode := response.StatusCode
+	if responseCode == 200 || responseCode == 201 {
+		var result struct {
+			Valid   bool   `json:"valid"`
+			Message string `json:"message"`
+		}
+		err = json.Unmarshal(body, &result)
+		if err != nil {
+			return false, "", fmt.Errorf("failed to unmarshal response body: %v", err)
+		}
+		return result.Valid, result.Message, nil
+	}
+
+	bodyData := string(body)
+	return false, "", fmt.Errorf("error verifying deployment code: code - %d: body - %s", response.StatusCode, bodyData)
+}
+
+func CheckStudioNameExists(studioName string) (bool, error) {
+	url := constants.HOST + "/check-studio-availability/" + studioName
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return false, err
+	}
+
+	// Set custom headers
+	token, err := auth_service.GetToken()
+	if err != nil {
+		return false, err
+	}
+	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer response.Body.Close()
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return false, fmt.Errorf("error reading response body: %s", err)
+	}
+
+	responseCode := response.StatusCode
+	if responseCode == 200 || responseCode == 201 {
+		var result struct {
+			StudioNameExist bool `json:"studio_name_exist"`
+		}
+		err = json.Unmarshal(body, &result)
+		if err != nil {
+			return false, fmt.Errorf("failed to unmarshal response body: %v", err)
+		}
+		return result.StudioNameExist, nil
+	}
+
+	bodyData := string(body)
+	return false, fmt.Errorf("error checking studio name: code - %d: body - %s", response.StatusCode, bodyData)
+}

@@ -51,8 +51,8 @@
             <ActionButton :icon="getAppIcon('revert')" v-tooltip="'Revert to this Checkpoint'"
                 @click="revertToVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
             <ActionButton v-if="!checkpoint.is_downloaded" :icon="getAppIcon('cloud-down')"
-                v-tooltip="'Download Check Point'" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
-            <ActionButton v-if="checkpoint.is_downloaded" :icon="getAppIcon('launch')" v-tooltip="'Open Check Point'"
+                v-tooltip="'Download Checkpoint'" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
+            <ActionButton v-if="checkpoint.is_downloaded" :icon="getAppIcon('launch')" v-tooltip="'Open Checkpoint'"
                 @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
         </div>
 
@@ -60,9 +60,9 @@
             <ActionButton :label="'Revert'" :icon="getAppIcon('revert')" v-tooltip="'Revert to this Checkpoint'"
                 @click="revertToVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
             <ActionButton :label="'Download'" v-if="!checkpoint.is_downloaded" :icon="getAppIcon('cloud-down')"
-                v-tooltip="'Download Check Point'" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
+                v-tooltip="'Download Checkpoint'" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
             <ActionButton :label="'Open'" v-if="checkpoint.is_downloaded" :icon="getAppIcon('launch')"
-                v-tooltip="'Open Check Point'" @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
+                v-tooltip="'Open Checkpoint'" @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
             <ActionButton :label="'Delete'" :icon="getAppIcon('trash')" v-tooltip="'Delete Checkpoint'"
                 @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>

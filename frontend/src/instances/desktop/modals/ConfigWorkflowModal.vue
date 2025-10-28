@@ -2,7 +2,6 @@
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
 
     <HeaderArea :title="'Add Workflow'" :icon="'workflow-plus'" />
-
     <div class="general-container" :style="{ gap: showTaskOptions ? 10 + 'px' : 20 + 'px' }">
 
       <div v-if="!isMultiple" class="input-section">
@@ -142,22 +141,22 @@ const selectEntityType = (entityTypeName) => {
   entityType.value = entityTypeName;
 };
 
-const addSingleWorkflow = async () => {
-
-  let entityId = ""
+const entityId = computed(() => {
   if(stageStore.selectedItem && stageStore.selectedItem.type === 'entity'){
-    entityId = stageStore.markedItems[0]
+    return stageStore.selectedItem?.id
   } else if (collectionStore.navigatedCollection) {
-    entityId = collectionStore.navigatedCollection.id;
+    return collectionStore.navigatedCollection.id;
   } else {
-    entityId = '';
+    return '';
   }
-  
+});
+
+const addSingleWorkflow = async () => {
 
   let entityTypeData = collectionStore.collectionTypes.find((entityTypeData) => entityTypeData.name === entityType.value)
   await WorkflowService.AddWorkflow(
     projectStore.activeProject.uri, workflowStore.selectedWorkflow.id,
-    workflowName.value, entityTypeData.id, entityId
+    workflowName.value, entityTypeData.id, entityId.value
   ).then(async (data) => {
   })
     .catch((error) => {

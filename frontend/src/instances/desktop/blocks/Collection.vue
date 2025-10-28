@@ -787,7 +787,9 @@ onBeforeUnmount(() => {
   outline: var(--transparent-line);
   outline-offset: -1.5px;
   height: min-content;
-  min-height: 50x;
+  min-height: 50px;
+  max-height: 50px;
+  box-sizing: border-box;
 }
 
 .entity-item-grid-selected {

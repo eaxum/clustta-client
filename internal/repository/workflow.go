@@ -81,7 +81,7 @@ func AddWorkflow(tx *sqlx.Tx, workflowId, name, entityTypeId, parentId string, u
 		}
 	}
 	for _, workflowTask := range workflow.Tasks {
-		_, err := CreateTask(tx, "", workflowTask.Name, workflowTask.TaskTypeId, entity.Id, workflowTask.IsResource, workflowTask.TemplateId, "", "", []string{}, workflowTask.Pointer, workflowTask.IsLink, "", user.Id, "new file", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+		_, err := CreateTask(tx, "", workflowTask.Name, workflowTask.TaskTypeId, entity.Id, workflowTask.IsResource, workflowTask.TemplateId, "", "", []string{}, workflowTask.Pointer, workflowTask.IsLink, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 		if err != nil {
 			return err
 		}

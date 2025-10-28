@@ -959,7 +959,7 @@ const editParams = () => {
 const userFullName = computed(() => {
   let user = userStore.getUserData(props.task.assignee_id);
   if (!user) {
-    return 'No User'
+    return 'Removed User'
   } else {
     return `${user.first_name} ${user.last_name}`;
   }

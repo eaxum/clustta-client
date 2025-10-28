@@ -248,7 +248,7 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, taskPaths []string
 		}
 		callBack := func(current int, total int, message string, extraMessage string) {
 			progress := output.ProgressReport{
-				Title:      "Creating Check Point",
+				Title:      "Creating Checkpoint",
 				Message:    task.Name,
 				Percentage: float64(current) / float64(total) * 99,
 				Current:    i + 1,
@@ -290,7 +290,7 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, taskPaths []string
 	}
 
 	progress := output.ProgressReport{
-		Title:      "Creating Check Point",
+		Title:      "Creating Checkpoint",
 		Message:    "finishing up",
 		Percentage: 100,
 		Current:    totalTasks,
@@ -395,7 +395,7 @@ func (c *CheckpointService) AddUntrackedTask(projectPath, projectWorkingDir stri
 
 		callBack := func(current int, total int, message string, extraMessage string) {
 			progress := output.ProgressReport{
-				Title:      "Creating Check Point",
+				Title:      "Creating Checkpoint",
 				Message:    taskName,
 				Percentage: float64(current) / float64(total) * 99,
 				Current:    completed + (i + 1),
@@ -418,7 +418,7 @@ func (c *CheckpointService) AddUntrackedTask(projectPath, projectWorkingDir stri
 
 	if state == totalTasks {
 		progress := output.ProgressReport{
-			Title:      "Creating Check Point",
+			Title:      "Creating Checkpoint",
 			Message:    "finishing up",
 			Percentage: 100,
 			Current:    totalTasks,
@@ -453,7 +453,7 @@ func (c *CheckpointService) ViewCheckpoint(projectPath, checkpointId, entityName
 	tempFile := f.Name() + extension
 	callBack := func(current int, total int, message string, extraMessage string) {
 		progress := output.ProgressReport{
-			Title:      "Preparing Check Point",
+			Title:      "Preparing Checkpoint",
 			Message:    entityName,
 			Percentage: float64(current) / float64(total) * 100,
 			Current:    1,

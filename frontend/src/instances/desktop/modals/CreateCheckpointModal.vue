@@ -6,9 +6,7 @@
       <textarea v-model="message" class="desktop-input-long" type="text" placeholder="make a comment..." v-focus
         @keydown.enter="handleEnterKey" />
 
-      <div v-if="!isValueChanged" class="horizontal-flex input-alert">
-        Your message is too short.
-      </div>
+      <InputAlert :show="!isValueChanged" :message="validationMessage" />
 
       <div v-if="!statusMenuDisplayed" class="attachment-area">
         <div class="task-item-status-container" v-stop-propagation>
@@ -36,7 +34,7 @@
       </span>
 
       <div class="horizontal-flex">
-        <div class="input-label"> Use Image as Task Cover</div>
+        <div class="input-label"> Use Image as Asset thumbnail</div>
         <ToggleSwitch :switchValueProp="useImageAsCover" @click="useAsCover()" />
       </div>
 
@@ -72,6 +70,7 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import StatusMenu from '@/instances/desktop/menus/StatusMenu.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import InputAlert from '@/instances/common/components/InputAlert.vue';
 import { v4 as uuidv4 } from 'uuid';
 
 // state imports
@@ -99,18 +98,39 @@ const displayStatusMenu = ref(false);
 const modalContainer = ref(null);
 
 // computed
+const forbiddenComments = [
+  'wip',
+  'wfa',
+  'retake',
+  'retook',
+  'todo',
+  'fmf'
+];
+
 const isValueChanged = computed(() => {
-  const forbiddenComments = [
-    'wip',
-    'wfa',
-    'retake',
-    'retook',
-    'todo',
-    'fmf'
-  ]
-  return message.value.trim().length > 6 && !forbiddenComments.some(comment =>
-    message.value.toLowerCase().includes(comment.toLowerCase())
+  const messageWords = message.value.toLowerCase().split(/\s+/);
+  const hasForbiddenWord = forbiddenComments.some(comment =>
+    messageWords.includes(comment.toLowerCase())
   );
+  
+  return message.value.trim().length > 6 && !hasForbiddenWord;
+});
+
+const validationMessage = computed(() => {
+  if (message.value.trim().length <= 6) {
+    return 'Your message is too short.';
+  }
+  
+  const messageWords = message.value.toLowerCase().split(/\s+/);
+  const foundForbidden = forbiddenComments.find(comment =>
+    messageWords.includes(comment.toLowerCase())
+  );
+  
+  if (foundForbidden) {
+    return `Please avoid using "${foundForbidden.toUpperCase()}" in your message. Be more descriptive.`;
+  }
+  
+  return '';
 });
 
 const statusMenuDisplayed = computed(() => { return assetStore.selectedAsset.type !== "untracked_task" && displayStatusMenu.value });
@@ -327,7 +347,6 @@ onUnmounted(() => {
   gap: .5rem;
   align-items: center;
   justify-content: flex-start;
-  /* background-color: hotpink; */
 }
 
 .desktop-input-long {
@@ -336,8 +355,11 @@ onUnmounted(() => {
   color: var(--white);
 }
 
-.input-alert {
-  color: var(--attention);
+.input-label {
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  white-space: nowrap;
+  flex: 1;
 }
 </style>
 

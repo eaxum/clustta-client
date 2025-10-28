@@ -51,17 +51,17 @@
 				</div>
 
 				<div v-else-if="!kanbanView && rootData.length" class="action-bar">
-					<ActionButton v-if="collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" v-tooltip="'Rebuild All (Fast)'"
+					<ActionButton v-if="collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" v-tooltip="'Rebuild All'"
 						:buttonFunction="rebuildAll" />
 					<ActionButton v-if="collectionStateFlags.has_untracked && userStore.canDo('create_checkpoint')"
-						:icon="getAppIcon('layers-plus-danger')" :noFilter="true" v-tooltip="'Create Checkpoints (Fast)'"
+						:icon="getAppIcon('layers-plus-danger')" :noFilter="true" v-tooltip="'Create Checkpoints'"
 						:buttonFunction="prepAllCheckpointModal" />
 					<ActionButton v-else-if="collectionStateFlags.has_modified && userStore.canDo('create_checkpoint')"
-						:icon="getAppIcon('layers-plus-alert')" :noFilter="true" v-tooltip="'Create Checkpoints (Fast)'"
+						:icon="getAppIcon('layers-plus-alert')" :noFilter="true" v-tooltip="'Create Checkpoints'"
 						:buttonFunction="prepAllCheckpointModal" />
-					<ActionButton v-if="collectionStateFlags.has_modified" :icon="getAppIcon('revert-alert')" :noFilter="true" v-tooltip="'Revert All (Fast)'"
+					<ActionButton v-if="collectionStateFlags.has_modified" :icon="getAppIcon('revert-alert')" :noFilter="true" v-tooltip="'Revert All'"
 						:buttonFunction="prepResetPopUpModal" />
-					<ActionButton v-if="collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check-alert')" :noFilter="true" v-tooltip="'Update all (Fast)'"
+					<ActionButton v-if="collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check-alert')" :noFilter="true" v-tooltip="'Update all'"
 						:buttonFunction="updateAll" />
 				</div>
 			</div>
@@ -109,8 +109,8 @@
 
 			<div class="browser-root-content">
 				<div class="left-column">
-					<VirtuaScroll v-if="rootData.length && !commonStore.useGrid" :items="rootData" />
-					<GridView v-else-if="rootData.length" :rootItems="rootData" />
+					<VirtuaScroll v-if="(!assetStore.assetsLoaded || rootData.length) && !commonStore.useGrid" :items="rootData" />
+					<GridView v-else-if="!assetStore.assetsLoaded || rootData.length" :rootItems="rootData" />
 					<PageState v-else :message="message()" :prompt="prompt()" :illustration="illustration()" />
 				</div>
 				<DetailsPane v-if="projectStore.getProjects.length" :isVisible="panes.showDetailsPane" />
@@ -1114,7 +1114,9 @@ const disableMenus = () => {
 };
 
 const createEntity = () => {
-	clearSelection();
+	if(!stage.groupItems){
+		clearSelection();
+	}
 	modals.setModalVisibility('createCollectionModal', true);
 };
 
@@ -1529,7 +1531,6 @@ const loadCollectionStateFlags = async () => {
 		);
 		
 		collectionStateFlags.value = flags;
-		console.log('🚀 Collection State Flags:', flags);
 	} catch (error) {
 		console.error('Error loading collection state flags:', error);
 		// Reset flags on error
@@ -1571,7 +1572,6 @@ const refresh = async () => {
 
 	rootData.value = [...children.entities, ...children.untracked_entities, ...children.tasks, ...children.untracked_tasks];
 	assetStore.assetsLoaded = true;
-	console.log(children);
 
 	assetStore.reloadAssetStates();
 	
@@ -1735,6 +1735,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+	assetStore.assetsLoaded = false;
 	emitter.off('refresh-browser', refresh);
 	emitter.off('update-root-data', handleUpdateRootData);
 	// emitter.off('reload-asset-states', reloadAssetStates);

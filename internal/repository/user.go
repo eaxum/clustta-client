@@ -346,7 +346,15 @@ func RemoveUser(tx *sqlx.Tx, userId string) error {
 		return err
 	}
 	if len(tasks) != 0 {
-		return error_service.ErrUserHaveTaskAssigned
+		// Unassign all tasks from the user instead of returning an error
+		taskIds := make([]string, len(tasks))
+		for i, task := range tasks {
+			taskIds[i] = task.Id
+		}
+		err = UnAssignTasks(tx, taskIds)
+		if err != nil {
+			return err
+		}
 	}
 	activeUser, err := auth_service.GetActiveUser()
 	if err != nil {

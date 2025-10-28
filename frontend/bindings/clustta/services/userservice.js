@@ -36,13 +36,26 @@ export function DeleteRole(projectPath, id) {
 }
 
 /**
+ * @param {string} userId
+ * @returns {Promise<models$0.User> & { cancel(): void }}
+ */
+export function FetchUserById(userId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(2104969195, userId));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType1($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
  * @param {string} projectPath
  * @returns {Promise<models$0.Role[]> & { cancel(): void }}
  */
 export function GetRoles(projectPath) {
     let $resultPromise = /** @type {any} */($Call.ByID(1185149717, projectPath));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType1($result);
+        return $$createType2($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -56,7 +69,7 @@ export function GetRoles(projectPath) {
 export function GetUser(projectPath, userId) {
     let $resultPromise = /** @type {any} */($Call.ByID(2223938271, projectPath, userId));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType2($result);
+        return $$createType1($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -93,6 +106,6 @@ export function UpdateRole(projectPath, id, name, attributes) {
 
 // Private type creation functions
 const $$createType0 = models$0.Role.createFrom;
-const $$createType1 = $Create.Array($$createType0);
-const $$createType2 = models$0.User.createFrom;
-const $$createType3 = $Create.Array($$createType2);
+const $$createType1 = models$0.User.createFrom;
+const $$createType2 = $Create.Array($$createType0);
+const $$createType3 = $Create.Array($$createType1);

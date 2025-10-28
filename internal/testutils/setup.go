@@ -82,7 +82,7 @@ func GenerateFixtureTask() {
 	if err != nil {
 		panic(err)
 	}
-	task, err := repository.CreateTask(Tx, "", "Test Task", TaskType.Id, Entity.Id, false, Template.Id, "", "", []string{}, "", false, "", user.Id, "new file", uuid.New().String(), func(int, int, string, string) {})
+	task, err := repository.CreateTask(Tx, "", "Test Task", TaskType.Id, Entity.Id, false, Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(int, int, string, string) {})
 	if err != nil {
 		panic(err)
 	}

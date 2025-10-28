@@ -35,9 +35,10 @@
     <div v-else class="general-container">
 
       <div class="success-message">
-        <p>Congratulations, your studio <strong>{{ createdStudio?.name }}</strong> has been created.</p>
-        <p>Copy the data below and paste it in your '.env' file to complete the setup on your server.</p>
+        <div>Congratulations, your studio <strong>{{ createdStudio?.name }}</strong> has been created.</div>
       </div>
+
+      <div class="menu-divider"></div>
 
       <div class="secret-key-container">
         <div class="secret-key-header">
@@ -72,7 +73,12 @@
             disabled
           />
         </div>
+        <div class="warning-text">Copy and store your secret key somewhere safe - it will never be displayed again once you close this modal.</div>
       </div>
+
+      
+
+      <div class="menu-divider"></div>
 
       <div class="env-file-container">
         <div class="env-file-header">
@@ -102,7 +108,11 @@
           ></textarea>
         </div>
 
+        <div class="env-usage-text">Copy the data above and paste it in your '.env' file to complete the setup on your server.</div>
       </div>
+
+      
+
       
       <div class="pop-up-actions single-action">
         <GeneralButton :label="'Finish'" :fullWidth="true" @click="launchStudio" :isActive="isValueChanged"
@@ -308,7 +318,10 @@ onMounted(async () => {
   width: 100%;
   padding: 1rem;
   border-radius: 8px;
+  gap: .5rem;
   color: var(--white);
+  display: flex;
+  flex-direction: column;
   /* line-height: 1.6; */
 }
 
@@ -325,6 +338,19 @@ onMounted(async () => {
   font-weight: 600;
   color: rgba(34, 197, 94, 1);
 }
+
+.warning-text {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--danger);
+}
+
+.env-usage-text {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--white);
+}
+
 .input-section {
   width: 100%;
   overflow: hidden;

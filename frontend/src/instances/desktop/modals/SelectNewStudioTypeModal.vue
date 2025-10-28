@@ -239,7 +239,7 @@ onMounted(() => {
 .general-container{
   gap: 1rem;
   /* padding: 1rem 0; */
-  padding-bottom: 1rem;
+  /* padding-bottom: 1rem; */
 }
 
 .pop-up-actions {

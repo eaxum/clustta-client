@@ -33,6 +33,15 @@ export function ChangeCollaboratorRole(userId, studioId, roleName) {
 }
 
 /**
+ * @param {string} studioName
+ * @returns {Promise<boolean> & { cancel(): void }}
+ */
+export function CheckStudioNameExists(studioName) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3646898858, studioName));
+    return $resultPromise;
+}
+
+/**
  * @param {string} studioUrl
  * @returns {Promise<string> & { cancel(): void }}
  */
@@ -84,6 +93,15 @@ export function RemoveCollaborator(userId, studioId) {
  */
 export function UpdateStudio(studioName, url, altUrl, port, key) {
     let $resultPromise = /** @type {any} */($Call.ByID(3870164438, studioName, url, altUrl, port, key));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} code
+ * @returns {Promise<[boolean, string]> & { cancel(): void }}
+ */
+export function VerifyDeploymentCode(code) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1004322302, code));
     return $resultPromise;
 }
 

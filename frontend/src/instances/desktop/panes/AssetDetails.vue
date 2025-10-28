@@ -356,12 +356,15 @@ const setStatus = async (statusName) => {
 };
 
 const userFullName = computed(() => {
-  let user = userStore.getUserData(assetStore.selectedAsset.assignee_id);
-  if (assetStore.selectedAsset.assignee_id) {
+  let assigneeId = assetStore.selectedAsset.assignee_id
+  let user = userStore.getUserData(assigneeId);
+  if (assigneeId && user) {
     let fullname = `${user.first_name} ${user.last_name}`;
     return fullname
-  } else {
+  } else if(!assigneeId) {
     return 'Nobody'
+  } else {
+    return 'Removed User'
   }
 });
 

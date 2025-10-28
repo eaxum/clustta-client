@@ -45,6 +45,7 @@ func CreateNewTaskCheckpoint(
 		filePathParent := filepath.Dir(filePath)
 		err := os.MkdirAll(filePathParent, os.ModePerm)
 		if err != nil {
+			fmt.Printf("Error creating directory %s: %v\n", filePathParent, err)
 			return err
 		}
 	}
@@ -53,6 +54,7 @@ func CreateNewTaskCheckpoint(
 		if checksum == "" {
 			xXHashChecksum, err := utils.GenerateXXHashChecksum(filePath)
 			if err != nil {
+				fmt.Printf("Error generating XXHash checksum for %s: %v\n", filePath, err)
 				return err
 			}
 			checksum = xXHashChecksum
@@ -60,6 +62,7 @@ func CreateNewTaskCheckpoint(
 
 		Sequence, err := StoreFileChunks(tx, filePath, callback)
 		if err != nil {
+			fmt.Printf("Error storing file chunks for %s: %v\n", filePath, err)
 			return err
 		}
 		chunkSequence = Sequence
@@ -72,11 +75,13 @@ func CreateNewTaskCheckpoint(
 			if _, err := os.Stat(filePath); os.IsNotExist(err) {
 				err = RebuildFile(tx, chunkSequence, filePath, int64(0), func(i1, i2 int, s1, s2 string) {})
 				if err != nil {
+					fmt.Printf("Error rebuilding file %s: %v\n", filePath, err)
 					return err
 				}
 			}
 			xXHashChecksum, err := utils.GenerateXXHashChecksum(filePath)
 			if err != nil {
+				fmt.Printf("Error generating XXHash checksum for %s (from chunks): %v\n", filePath, err)
 				return err
 			}
 			checksum = xXHashChecksum
@@ -88,6 +93,7 @@ func CreateNewTaskCheckpoint(
 	if timeModified == 0 || fileSize == 0 {
 		fileInfo, err := os.Stat(filePath)
 		if err != nil {
+			fmt.Printf("Error getting file info for %s: %v\n", filePath, err)
 			return err
 		}
 		timeModified = int(fileInfo.ModTime().Unix())

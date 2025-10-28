@@ -15,13 +15,11 @@
           <input v-model="projectName" @input="updateWorkingDirectory" class="input-short" type="text" placeholder="Project Name" ref="projectNameInput"
             @keydown.enter="handleEnterKey" v-focus />
         </div>
-        <div v-if="!projectIsCreated && projectNameInUse" class="horizontal-flex input-alert">
-          A project with this name already exists.
-        </div>
+        <InputAlert :show="!projectIsCreated && projectNameInUse" message="A project with this name already exists." />
       </div>
 
       <div class="input-section">
-        <span class="regular">Project Folder</span>
+        <span class="input-label">Project Folder</span>
         <div class="horizontal-flex">
           <input v-model="workingDirectory" class="input-short" type="text"
             placeholder="Project Folder" ref="workingDirectoryInput" />
@@ -77,6 +75,7 @@ import { useMenu } from '@/stores/menu';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
+import InputAlert from '@/instances/common/components/InputAlert.vue';
 import { useProjectTemplateStore } from '@/stores/project_template';
 import { ClipboardService, SettingsService, DialogService } from '@/../bindings/clustta/services/index';
 
@@ -313,9 +312,6 @@ onMounted(async () => {
 @import "@/assets/desktop.css";
 @import "@/assets/modals.css";
 
-.regular{
-  color: var(--white);
-}
 
 .input-section {
   width: 100%;
@@ -455,14 +451,6 @@ onMounted(async () => {
 
   flex: 1;
   width: 130px;
-}
-
-.input-label {
-  font-family: Inter, sans-serif;
-  color: white;
-  font-size: 16px;
-  white-space: nowrap;
-  flex: 1;
 }
 
 .pop-up-prompt {
