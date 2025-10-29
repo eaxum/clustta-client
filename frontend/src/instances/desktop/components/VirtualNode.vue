@@ -7,11 +7,11 @@
         <div v-if="itemTypeIcon" class="virtual-node-icon-container">
           <img class="large-icons" :src="itemTypeIcon">
         </div>
-        <div v-if="commonStore.showThumbs" class="virtual-node-preview-container">
+        <!-- <div v-if="commonStore.showThumbs" class="virtual-node-preview-container">
           <div class="virtual-node-preview-image">
             <img v-if="data.preview" class="screenshot-thumb" :src="data.preview">
           </div>
-        </div>
+        </div> -->
         <div class="virtual-node-icon-container">
           <img v-if="data.icon" class="large-icons no-filter" :src="data.icon">
         </div>
