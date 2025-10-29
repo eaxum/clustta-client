@@ -153,8 +153,8 @@ const deleteWorkspace = async (workspaceName) => {
 const setDefaultWorkspace = () => {
   commonStore.activeWorkspace = 'Default';
   commonStore.resetFilters();
-  // Note: We don't exit navigator mode or clear navigatedCollection
-  // This allows Default workspace to work within collection views
+  commonStore.navigatorMode = false;
+  collectionStore.navigatedCollection = null;
 };
 
 // Cache initial tab positions

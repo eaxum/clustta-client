@@ -1575,8 +1575,9 @@ const refresh = async () => {
 
 	assetStore.reloadAssetStates();
 	
-	// Load both old and new state checks for comparison
-	loadCollectionStateFlags(); // NEW: Optimized approach
+	if(collectionStore.navigatedCollection?.type === 'entity'){
+		loadCollectionStateFlags(); 
+	}
 
 };
 
@@ -1656,8 +1657,9 @@ const softRefresh = async () => {
 	assetStore.assetsLoaded = true;
 	assetStore.reloadAssetStates();
 	
-	// Load both old and new state checks for comparison
-	loadCollectionStateFlags(); // NEW: Optimized approach
+	if(collectionStore.navigatedCollection?.type === 'entity'){
+		loadCollectionStateFlags(); 
+	}
 };
 
 watch(() => assetStore.assetsLoaded, async () => {

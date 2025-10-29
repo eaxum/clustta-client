@@ -380,20 +380,15 @@ export const useStageStore = defineStore("stages", {
       if (itemType === "entity") {
         collectionStore.selectCollection(item);
         this.selectedItem = item;
-        // panes.setPaneVisibility("collectionDetails", true);
       } else if (itemType === "task") {
         assetStore.selectAsset(item);
         this.selectedItem = item;
-        // panes.setPaneVisibility("assetDetails", true);
       } else if (itemType === "resource") {
         assetStore.selectAsset(item);
         this.selectedItem = item;
-        // panes.setPaneVisibility("assetDetails", true);
       } else {
         projectStore.selectUntrackedItem(item);
         this.selectedItem = item;
-        // console.log(item)
-        // panes.setPaneVisibility("untrackedItemDetails", true);
       }
     },
 
