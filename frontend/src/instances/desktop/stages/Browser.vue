@@ -43,7 +43,7 @@
 					v-tooltip="'Import Items'" />
 			</div>
 
-			<div v-if="!showFilters" class="action-bar-container">
+			<div v-if="!showFilters || !isDefaultWorkspace" class="action-bar-container">
 				<div v-if="!kanbanView && loadingCollectionStates && rootData.length" class="action-bar">
 					<span class="single-action-button" v-tooltip="'Loading Collection States (Optimized)'">
 						<img class="small-icons loading-children-icon" :src="getAppIcon('loading')">

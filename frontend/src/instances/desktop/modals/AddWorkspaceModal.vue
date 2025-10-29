@@ -28,6 +28,7 @@ import { SettingsService } from "@/../bindings/clustta/services";
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useCommonStore } from '@/stores/common';
 import { useProjectStore } from '@/stores/projects';
+import { useCollectionStore } from '@/stores/collections';
 
 //components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -42,10 +43,18 @@ let showSearch = false;
 const modals = useDesktopModalStore();
 const commonStore = useCommonStore();
 const projectStore = useProjectStore();
+const collectionStore = useCollectionStore();
 
 //refs
 const workspaceName = ref('');
 const isAwaitingResponse = ref(false);
+
+// Pre-fill workspace name with collection name if in collection view
+onMounted(() => {
+  if (collectionStore.navigatedCollection) {
+    workspaceName.value = collectionStore.navigatedCollection.name || '';
+  }
+});
 
 // computed props
 const isValueChanged = computed(() => {
@@ -90,6 +99,7 @@ const saveWorkspace = async () => {
       noAssignees: commonStore.noAssignees,
     },
     workspaceSearchQuery: commonStore.viewSearchQuery,
+    collection: collectionStore.navigatedCollection,
   };
   await SettingsService.AddProjectWorkspace(projectStore.getActiveProject.id, newWorkspace)
   commonStore.workspaces.push(newWorkspace);
