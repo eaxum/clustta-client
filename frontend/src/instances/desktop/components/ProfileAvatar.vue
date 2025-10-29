@@ -112,7 +112,8 @@ const getAppIcon = (iconName) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  /* border: 2px solid rgba(255, 255, 255, 0.1); */
+  outline: var(--transparent-line);
   box-sizing: border-box;
 }
 

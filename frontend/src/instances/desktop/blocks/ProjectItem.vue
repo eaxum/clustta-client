@@ -369,6 +369,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   min-width: 60px;
   height: 100%;
+  /* background-color: hotpink; */
   aspect-ratio: 16 / 9;
 }
 
@@ -388,9 +389,16 @@ onBeforeUnmount(() => {
   justify-content: center;
   overflow: hidden;
   height: 100%;
-  aspect-ratio: 16 / 9;
+  /* aspect-ratio: 16 / 9; */
   background-color: var(--black-steel);
   border-radius: 5px;
+  width: 100%;
+}
+
+.screenshot-thumb{
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
 }
 
 .project-item-content {
