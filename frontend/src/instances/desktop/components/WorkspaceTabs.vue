@@ -67,17 +67,24 @@ const activeWorkspaceIndex = computed(() => {
 });
 
 const addWorkspaceVisible = computed(() => {
+  // Only show save button when on "Default" workspace
+  const defaultWorkspace = commonStore.activeWorkspace === 'Default';
+  if (!defaultWorkspace) return false;
 
+  // Show if in collection view
+  const inCollectionView = collectionStore.navigatedCollection !== null;
+  if (inCollectionView) return true;
+
+  // Otherwise, show only with filters
   const taskFilters = commonStore.taskFilters.length;
   const entityFilters = commonStore.entityFilters.length;
   const resourceFilters = commonStore.resourceFilters.length;
   const isActive = commonStore.showEntities && commonStore.showTasks
     && commonStore.showResources && commonStore.showChildEntities
     && commonStore.showChildTasks && commonStore.showDependencies && !commonStore.onlyAssets;
-  const defaultWorkspace = commonStore.activeWorkspace === 'Default' ? true : false;
 
   const showButton = taskFilters || entityFilters || resourceFilters || !isActive;
-  return showButton && defaultWorkspace
+  return showButton;
 });
 
 const withinLimits = computed(() => {
@@ -115,8 +122,16 @@ const setWorkspace = (workspaceName) => {
     return
   }
   const workspace = commonStore.workspaces.find((item) => item.name === workspaceName);
-	commonStore.navigatorMode = false;
-	collectionStore.navigatedCollection = null;
+  
+  // Restore collection view if workspace has a saved collection
+  if (workspace.collection) {
+    commonStore.navigatorMode = true;
+    collectionStore.navigatedCollection = workspace.collection;
+  } else {
+    commonStore.navigatorMode = false;
+    collectionStore.navigatedCollection = null;
+  }
+  
   commonStore.setActiveWorkspace(workspace);
   console.log(commonStore.taskFilters)
   emitter.emit('refresh-browser');
@@ -138,6 +153,8 @@ const deleteWorkspace = async (workspaceName) => {
 const setDefaultWorkspace = () => {
   commonStore.activeWorkspace = 'Default';
   commonStore.resetFilters();
+  // Note: We don't exit navigator mode or clear navigatedCollection
+  // This allows Default workspace to work within collection views
 };
 
 // Cache initial tab positions

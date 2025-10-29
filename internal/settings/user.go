@@ -695,6 +695,7 @@ func GetProjectWorkspaces(projectId string) ([]interface{}, error) {
 		"name":                 "Default",
 		"filters":              map[string]interface{}{"taskFilters": []interface{}{}, "entityFilters": []interface{}{}, "resourceFilters": []interface{}{}},
 		"workspaceSearchQuery": "",
+		"collection":           nil,
 	}
 
 	taskFilter := map[string]interface{}{
@@ -709,6 +710,7 @@ func GetProjectWorkspaces(projectId string) ([]interface{}, error) {
 		"name":                 "My Tasks",
 		"filters":              map[string]interface{}{"taskFilters": []interface{}{taskFilter}, "entityFilters": []interface{}{}, "resourceFilters": []interface{}{}, "showTasks": true, "onlyAssets": true},
 		"workspaceSearchQuery": "",
+		"collection":           nil,
 	}
 
 	projectWorkspaces, exists := settings.WorkSpaces[projectId]
