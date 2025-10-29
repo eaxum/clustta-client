@@ -463,6 +463,7 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   justify-content: space-between;
   height: 100%;
+  /* min-height: 100%; */
   gap: .5rem;
   /* background-color: forestgreen; */
   /* padding-bottom: 1rem; */
@@ -470,7 +471,7 @@ onBeforeUnmount(() => {
 
 .action-bar {
   position: relative;
-  display: flex;
+  /* display: flex; */
   flex-direction: column;
   align-items: center;
   gap: .3rem;

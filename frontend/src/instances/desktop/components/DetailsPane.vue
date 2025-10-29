@@ -1129,7 +1129,7 @@ onUnmounted(() => {
 .details-pane-root {
   position: relative;
   height: 100%;
-  max-width: 600px;
+  max-width: 400px;
   min-width: 350px;
   display: flex;
   box-sizing: border-box;
