@@ -25,6 +25,7 @@ import Projects from '@/instances/desktop/stages/Projects.vue'
 import Dashboard from '@/instances/desktop/stages/Dashboard.vue'
 import TrashList from '@/instances/desktop/stages/TrashList.vue'
 import Account from '@/instances/desktop/stages/Account.vue'
+import UserProfile from '@/instances/desktop/stages/UserProfile.vue'
 import Settings from '@/instances/desktop/stages/Settings.vue'
 import ProjectSettings from '@/instances/desktop/stages/ProjectSettings.vue'
 import StudioSettings from '@/instances/desktop/stages/StudioSettings.vue'
@@ -36,7 +37,7 @@ const pageComponents = {
 	dashboard: Dashboard,
 	browser: Browser,
 	trash: TrashList,
-	account: Account,
+	account: UserProfile,
 	settings: Settings,
 	projectSettings: ProjectSettings,
 	studioSettings: StudioSettings,
