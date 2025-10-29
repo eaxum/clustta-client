@@ -1540,7 +1540,7 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   text-overflow: ellipsis;
   color: var(--white);
   justify-content: flex-end;
-  direction: rtl;
+  /* direction: rtl; */
   text-align: left;
 }
 

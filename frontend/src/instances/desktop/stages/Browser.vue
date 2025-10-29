@@ -2116,8 +2116,9 @@ onBeforeUnmount(() => {
 	width: 100%;
 	/* flex: 1 1 30%; */
 	max-width: 30%;
+	max-width: 350px;
 	/* min-width: 30%; */
-	padding-right: .4rem;
+	padding-right: .2rem;
 	box-sizing: border-box;
 }
 

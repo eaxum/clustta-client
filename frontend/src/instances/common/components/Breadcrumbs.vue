@@ -424,10 +424,12 @@ watch(() => projectStore.activeProject?.uri, async () => {
   /* flex: 0 1 auto; */
   max-width: 70%;
   min-width: 65%;
+	min-width: 590px;
   /* gap: .1rem; */
   padding: .2rem;
   overflow: hidden;
   width: 100%;
+  box-sizing: border-box;
   /* max-width: 100% */
 }
 
