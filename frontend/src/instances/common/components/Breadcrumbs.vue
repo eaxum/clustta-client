@@ -44,6 +44,7 @@
 <script setup>
 import { ref, computed, onUnmounted, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
 import { CollectionService, ClipboardService, FSService } from '@/../bindings/clustta/services';
+import utils from '@/services/utils';
 
 const emit = defineEmits(['filter']);
 
@@ -250,30 +251,31 @@ watch(() => path.value, () => {
 })
 
 const goToCollection = async (selectedPath) => {
-
   displayOverflowItems.value = false;
 
-  const clickedPath = `/${selectedPath}/`
+  const clickedPath = `/${selectedPath}/`;
 
-  displayOverflowItems.value = false;
+  if (clickedPath === path.value) return;
 
-  if(clickedPath === path.value) return 
-    
-    const allUntrackedFolders = projectStore.untrackedFolders;
-    
-    let currentEntity;
-    const navigatedEntity = collectionStore.navigatedCollection;
-    const navigatedEntityType = navigatedEntity.type;
-    if(navigatedEntityType === 'entity'){
-      currentEntity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, navigatedEntity.parent_id);
-    } else {
-      console.log(allUntrackedFolders)
-      currentEntity = allUntrackedFolders.find((collection) => collection.item_path === clickedPath)
-    }
-    console.log(currentEntity)
+  const navigatedEntity = collectionStore.navigatedCollection;
+  const navigatedEntityType = navigatedEntity?.type;
+  const projectPath = projectStore.activeProject.working_directory;
+  
+  let targetEntity = null;
 
-    collectionStore.navigatedCollection = currentEntity;
-    collectionStore.selectedCollection = currentEntity;
+  if (navigatedEntityType === 'entity') {
+    targetEntity = await CollectionService.GetCollectionByPath(projectStore.activeProject.uri, clickedPath);
+  } else {
+    targetEntity = generateUntrackedEntityFromPath(clickedPath, projectPath);
+  }
+
+  if (targetEntity) {
+    collectionStore.navigatedCollection = targetEntity;
+    collectionStore.selectedCollection = targetEntity;
+  } else {
+    console.error('Failed to navigate to:', clickedPath);
+    notificationStore.addNotification('Navigation failed', 'Could not find the selected path', 'error');
+  }
 };
 
 const getAppIcon = (iconName) => {
@@ -288,6 +290,7 @@ const goHome = () => {
 
 const goUpALevel = async () => {
 	const entity = collectionStore.navigatedCollection;
+  const entityType = entity.type;
   let parentEntityId = entity.parent_id;
 
   if(!parentEntityId){
@@ -295,7 +298,13 @@ const goUpALevel = async () => {
     return
   }
 
-  const parentEntity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, parentEntityId);
+  let parentEntity;
+
+  if (entityType === 'untracked_entity') {
+    parentEntity = getUntrackedEntityParent();
+  } else {
+    parentEntity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, parentEntityId);
+  }
 
 	if(parentEntity){
 		collectionStore.navigatedCollection = parentEntity;
@@ -303,6 +312,56 @@ const goUpALevel = async () => {
 	} else {
 		commonStore.navigatorMode = false;
 	}
+};
+
+
+const generateUntrackedEntityFromPath = (targetPath, projectPath) => {
+  const pathParts = targetPath.split('/').filter(part => part.trim() !== '');
+  
+  if (pathParts.length === 0) {
+    return null;
+  }
+
+  const entityName = pathParts[pathParts.length - 1];
+  const parentName = pathParts.length >= 2 ? pathParts[pathParts.length - 2] : null;
+
+  const normalizedProjectPath = projectPath.replace(/\\/g, '/').replace(/\/$/, '');
+  const absPath = normalizedProjectPath + targetPath.slice(0, -1);
+
+  let parentId = '';
+  
+  if (parentName) {
+    const parentPath = '/' + pathParts.slice(0, -1).join('/') + '/';
+    const parentAbsPath = normalizedProjectPath + parentPath.slice(0, -1);
+    parentId = utils.getMD5Hash(parentAbsPath);
+  } else {
+    parentId = '';
+  }
+
+  return {
+    id: utils.getMD5Hash(absPath),
+    name: entityName,
+    entity_path: targetPath,
+    item_path: targetPath,
+    file_path: absPath,
+    parent_id: parentId,
+    type: "untracked_entity"
+  };
+};
+
+const getUntrackedEntityParent = () => {
+  const currentPath = path.value; 
+  const projectPath = projectStore.activeProject.working_directory; 
+
+  const pathParts = currentPath.split('/').filter(part => part.trim() !== '');
+  
+  if (pathParts.length < 2) {
+    commonStore.navigatorMode = false;
+    return null;
+  }
+
+  const parentEntityPath = '/' + pathParts.slice(0, -1).join('/') + '/';
+  return generateUntrackedEntityFromPath(parentEntityPath, projectPath);
 };
 
 watch(() => projectStore.activeProject?.uri, async () => {

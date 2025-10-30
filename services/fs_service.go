@@ -21,8 +21,6 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/skratchdot/open-golang/open"
 	"github.com/wailsapp/wails/v3/pkg/application"
-	// "syscall"
-	// "unsafe"
 )
 
 type FSService struct {
@@ -70,10 +68,6 @@ func (f *FSService) GetFileIcon(ext string) (string, error) {
 	return base64.StdEncoding.EncodeToString(img), nil
 }
 
-// GetOSThumbnail generates a thumbnail for the specified file using OS APIs
-// Always fetches full-resolution (512px) thumbnails for maximum quality
-// Now with custom thumbnail extraction for Blender, Maya, and other 3D files
-// Returns base64-encoded PNG thumbnail or empty string on error
 func (f *FSService) GetOSThumbnail(filePath string, size int) (string, error) {
 	// Check if file exists
 	if !utils.FileExists(filePath) {
@@ -83,20 +77,15 @@ func (f *FSService) GetOSThumbnail(filePath string, size int) (string, error) {
 	// Try custom thumbnail extraction first (Blender, Maya, etc.)
 	customThumbnail, err := custom_thumbnail.GetThumbnail(filePath)
 	if err == nil && customThumbnail != nil && len(customThumbnail) > 0 {
-		// Successfully extracted custom thumbnail
 		return base64.StdEncoding.EncodeToString(customThumbnail), nil
 	}
 
-	// Fall back to OS thumbnail generation
-	// Always use 512px for maximum quality - CSS handles sizing
-	// The size parameter is kept for API compatibility but not used
 	thumbnailBytes, err := system_thumbnail.GetOSThumbnail(
 		filePath,
 		512, // Fixed size for full-resolution thumbnails
 		system_thumbnail.ThumbnailUseCurrentScale,
 	)
 	if err != nil {
-		// Return empty string instead of error to allow graceful fallback
 		return "", nil
 	}
 
@@ -104,17 +93,12 @@ func (f *FSService) GetOSThumbnail(filePath string, size int) (string, error) {
 	return base64.StdEncoding.EncodeToString(thumbnailBytes), nil
 }
 
-// GetCachedOSThumbnail attempts to get a cached thumbnail without generating a new one
-// Always fetches full-resolution (512px) thumbnails for maximum quality
-// Returns base64-encoded PNG thumbnail or empty string if not cached
 func (f *FSService) GetCachedOSThumbnail(filePath string, size int) (string, error) {
 	// Check if file exists
 	if !utils.FileExists(filePath) {
 		return "", fmt.Errorf("file does not exist: %s", filePath)
 	}
 
-	// Always use 512px for maximum quality - CSS handles sizing
-	// The size parameter is kept for API compatibility but not used
 	thumbnailBytes, err := system_thumbnail.GetCachedThumbnail(filePath, 512)
 	if err != nil {
 		// Return empty string if not in cache
@@ -125,9 +109,6 @@ func (f *FSService) GetCachedOSThumbnail(filePath string, size int) (string, err
 	return base64.StdEncoding.EncodeToString(thumbnailBytes), nil
 }
 
-// GetOSThumbnails generates thumbnails for multiple files in batch
-// Always fetches full-resolution (512px) thumbnails for maximum quality
-// Returns a map of file paths to base64-encoded thumbnails
 func (f *FSService) GetOSThumbnails(filePaths []string, size int) (map[string]string, error) {
 	results := make(map[string]string)
 
@@ -159,40 +140,6 @@ func (f *FSService) GetOSThumbnails(filePaths []string, size int) (map[string]st
 
 func (f *FSService) LaunchFile(path string) error {
 	return open.Start(path)
-}
-
-func (f *FSService) LaunchFileWith(path string) error {
-	// filePath, err := filepath.Abs(path)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// h := syscall.MustLoadDLL("shell32.dll")
-	// c := h.MustFindProc("ShellExecuteW")
-
-	// openWithPtr, err := syscall.UTF16PtrFromString("rundll32.exe")
-	// if err != nil {
-	// 	return err
-	// }
-
-	// paramsPtr, err := syscall.UTF16PtrFromString("shell32.dll,OpenAs_RunDLL " + filePath)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// ret, _, err := c.Call(
-	// 	0,                                    // hwnd
-	// 	0,                                    // verb (NULL for default)
-	// 	uintptr(unsafe.Pointer(openWithPtr)), // file
-	// 	uintptr(unsafe.Pointer(paramsPtr)),   // params
-	// 	0,                                    // directory
-	// 	1,                                    // show
-	// )
-
-	// if ret <= 32 {
-	// 	return err
-	// }
-	return nil
 }
 
 func (f *FSService) ExtName(path string) string {

@@ -139,6 +139,16 @@ export function GetCollectionByID(projectPath, entityId) {
 
 /**
  * @param {string} projectPath
+ * @param {string} entityPath
+ * @returns {Promise<models$0.Entity> & { cancel(): void }}
+ */
+export function GetCollectionByPath(projectPath, entityPath) {
+    let $resultPromise = /** @type {any} */($Call.ByID(2488608455, projectPath, entityPath));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} projectPath
  * @param {string} entityId
  * @param {string} projectWorkingDir
  * @param {string} entityFolderPath

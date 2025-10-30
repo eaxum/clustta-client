@@ -1,7 +1,7 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
 
-    <HeaderArea :title="title" :icon="'folder-plus'" :showSearch="showSearch" />
+    <HeaderArea :title="title" :icon="headerIcon" :showSearch="showSearch" />
     <div class="general-container" :style="{ gap: showTaskOptions ? 10 + 'px' : 20 + 'px' }">
 
       <div v-if="!isMultiple" class="input-section">
@@ -104,6 +104,11 @@ const title = computed(() => {
   } else {
     return isMultiple.value ? 'Create Multiple Collections' : 'Create Collection'
   }
+})
+
+const headerIcon = computed(() => {
+  const selectedType = collectionStore.collectionTypes.find(item => item.name === entityType.value);
+  return selectedType?.icon || 'folder-plus';
 })
 
 const isValueChanged = computed(() => {
