@@ -63,7 +63,7 @@
                 v-tooltip="'Download Checkpoint'" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
             <ActionButton :label="'Open'" v-if="checkpoint.is_downloaded" :icon="getAppIcon('launch')"
                 v-tooltip="'Open Checkpoint'" @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
-            <ActionButton :label="'Delete'" :icon="getAppIcon('trash')" v-tooltip="'Delete Checkpoint'"
+            <ActionButton v-if="userStore.canDo('delete_checkpoint')" :label="'Delete'" :icon="getAppIcon('trash')" v-tooltip="'Delete Checkpoint'"
                 @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>
 

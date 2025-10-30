@@ -1,7 +1,7 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
 
-    <HeaderArea :title="'Add Workflow'" :icon="'workflow-plus'" />
+    <HeaderArea :title="'Add Workflow'" :icon="headerIcon" />
     <div class="general-container" :style="{ gap: showTaskOptions ? 10 + 'px' : 20 + 'px' }">
 
       <div v-if="!isMultiple" class="input-section">
@@ -95,6 +95,11 @@ const isMultiple = ref(false);
 const batchGen = ref(null);
 
 // computed props
+const headerIcon = computed(() => {
+  const selectedType = collectionStore.collectionTypes.find(item => item.name === entityType.value);
+  return selectedType?.icon || 'workflow-plus';
+});
+
 const isValueChanged = computed(() => {
   if(isMultiple.value){
     return !batchGen.value?.invalidPattern

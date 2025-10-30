@@ -364,6 +364,23 @@ func (e *CollectionService) GetCollectionByID(projectPath, entityId string) (mod
 	return repository.GetEntity(tx, entityId)
 }
 
+func (e *CollectionService) GetCollectionByPath(projectPath, entityPath string) (models.Entity, error) {
+	if entityPath == "/" {
+		entityPath = ""
+	}
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return models.Entity{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return models.Entity{}, err
+	}
+	defer tx.Rollback()
+	return repository.GetEntityByPath(tx, entityPath)
+}
+
 // GetCollectionStateFlags checks if a collection has any recursive children that are
 func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, projectWorkingDir string, ignoreList []string) (CollectionStateFlags, error) {
 	flags := CollectionStateFlags{

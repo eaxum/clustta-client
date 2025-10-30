@@ -155,9 +155,6 @@ export function FolderSize(folderPath) {
 }
 
 /**
- * GetCachedOSThumbnail attempts to get a cached thumbnail without generating a new one
- * Always fetches full-resolution (512px) thumbnails for maximum quality
- * Returns base64-encoded PNG thumbnail or empty string if not cached
  * @param {string} filePath
  * @param {number} size
  * @returns {Promise<string> & { cancel(): void }}
@@ -177,10 +174,6 @@ export function GetFileIcon(ext) {
 }
 
 /**
- * GetOSThumbnail generates a thumbnail for the specified file using OS APIs
- * Always fetches full-resolution (512px) thumbnails for maximum quality
- * Now with custom thumbnail extraction for Blender, Maya, and other 3D files
- * Returns base64-encoded PNG thumbnail or empty string on error
  * @param {string} filePath
  * @param {number} size
  * @returns {Promise<string> & { cancel(): void }}
@@ -191,9 +184,6 @@ export function GetOSThumbnail(filePath, size) {
 }
 
 /**
- * GetOSThumbnails generates thumbnails for multiple files in batch
- * Always fetches full-resolution (512px) thumbnails for maximum quality
- * Returns a map of file paths to base64-encoded thumbnails
  * @param {string[]} filePaths
  * @param {number} size
  * @returns {Promise<{ [_: string]: string }> & { cancel(): void }}

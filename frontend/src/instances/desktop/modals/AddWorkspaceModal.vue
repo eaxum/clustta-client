@@ -80,6 +80,13 @@ const handleEnterKey = (event) => {
 const saveWorkspace = async () => {
   isAwaitingResponse.value = true;
 
+  // Clone the collection and remove the preview field to reduce size
+  let collectionData = null;
+  if (collectionStore.navigatedCollection) {
+    collectionData = { ...collectionStore.navigatedCollection };
+    delete collectionData.preview;
+  }
+
   const newWorkspace = {
     name: workspaceName.value,
     filters: {
@@ -99,8 +106,9 @@ const saveWorkspace = async () => {
       noAssignees: commonStore.noAssignees,
     },
     workspaceSearchQuery: commonStore.viewSearchQuery,
-    collection: collectionStore.navigatedCollection,
+    collection: collectionData,
   };
+  
   await SettingsService.AddProjectWorkspace(projectStore.getActiveProject.id, newWorkspace)
   commonStore.workspaces.push(newWorkspace);
   commonStore.setActiveWorkspace(newWorkspace);

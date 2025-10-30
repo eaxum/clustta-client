@@ -9,7 +9,7 @@
         v-right-click="openAssetMenu" :task="child" :index="index" />
       <Collection ref="entityItemRef" v-if="child.type == 'untracked_entity'" @toggleEditMode="toggleEditMode"
         v-right-click="openUntrackedItemMenu" :hasChildren="hasChildren" :loadingChildren="loadingChildren" :isUntracked="true" :entity="child"
-        @toggle="handleToggle" :index="index" />
+        @toggle="handleToggle" :index="index" :entityChildren="entityChildren"/>
       <Asset v-if="child.type == 'untracked_task'" @toggleEditMode="toggleEditMode"
         v-right-click="openUntrackedItemMenu" :isUntracked="true" :task="child" :index="index" />
     </div>
