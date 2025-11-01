@@ -586,6 +586,26 @@ func (t *AssetService) AssetFilesStatus(projectPath string, taskIds []string) (m
 	}
 	return filesStatus, nil
 }
+
+func (t *AssetService) GetAssetState(projectPath string, taskId string) (string, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return "", err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+
+	assetState, err := repository.GetAssetState(tx, taskId)
+	if err != nil {
+		return "", err
+	}
+	return assetState, nil
+}
+
 func (t *AssetService) ToggleIsResource(projectPath string, taskIds []string, isResource bool) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {

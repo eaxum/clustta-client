@@ -6,7 +6,7 @@
         v-right-click="openCollectionMenu" :hasChildren="hasChildren" :loadingChildren="loadingChildren" :isGhost="isGhost" @toggle="handleToggle"
         :entity="child" :index="index" :entityChildren="entityChildren" />
       <Asset v-if="child.type == 'task'" @refreshData="emit('refreshData')" @toggleEditMode="toggleEditMode"
-        v-right-click="openAssetMenu" :task="child" :index="index" />
+        v-right-click="openAssetMenu" :task="child" :index="index" :loadingAssetState="loadingAssetState && child.type === 'task'" />
       <Collection ref="entityItemRef" v-if="child.type == 'untracked_entity'" @toggleEditMode="toggleEditMode"
         v-right-click="openUntrackedItemMenu" :hasChildren="hasChildren" :loadingChildren="loadingChildren" :isUntracked="true" :entity="child"
         @toggle="handleToggle" :index="index" :entityChildren="entityChildren"/>
@@ -41,7 +41,7 @@ import { useUntrackedItemStore } from '@/stores/untracked';
 import { useProjectStore } from '@/stores/projects';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useCommonStore } from '@/stores/common';
-import { CollectionService } from '@/../bindings/clustta/services';
+import { CollectionService, AssetService } from '@/../bindings/clustta/services';
 import { useIconStore } from '@/stores/icons';
 
 const menu = useMenu();
@@ -63,6 +63,7 @@ const entityItemRef = ref(null);
 const entityChildren = ref([]);
 const hasChildren = ref(false);
 const loadingChildren = ref(true);
+const loadingAssetState = ref(false);
 const indentPadding = ref(4);
 
 const emit = defineEmits(['refreshData']);
@@ -229,6 +230,31 @@ const handleKeyArrowKeys = async (event) => {
   }
 };
 
+const loadAssetState = async () => {
+
+  const task = props.child;
+  
+  if (task.type !== 'task') return;
+  
+  loadingAssetState.value = true;
+  
+  try {
+    const projectStore = useProjectStore();
+    const fileStatus = await AssetService.GetAssetState(
+      projectStore.activeProject.uri,
+      task.id
+    );
+
+    props.child.file_status = fileStatus;
+
+  } catch (error) {
+    console.error(`Error loading asset state for ${task.id}:`, error);
+    task.file_status = 'rebuildable';
+  } finally {
+    loadingAssetState.value = false;
+  }
+};
+
 const loadEntityChildren = async () => {
   if(stage.operationActive){
     loadingChildren.value = true;
@@ -282,7 +308,14 @@ watch(() => stage.operationActive, (newValue, oldValue) => {
 });
 
 onMounted(async () => {
-  await loadEntityChildren();
+  if (props.child.type === 'entity' || props.child.type === 'untracked_entity') {
+    await loadEntityChildren();
+  }
+  
+  if (props.child.type === 'task') {
+    await loadAssetState();
+  }
+  
   window.addEventListener('keydown', handleKeyArrowKeys);
   emitter.on('update-children', handleUpdateChildren);
 });

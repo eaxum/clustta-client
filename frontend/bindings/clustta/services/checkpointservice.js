@@ -86,6 +86,20 @@ export function GetCheckpoints(projectPath, taskId) {
 
 /**
  * @param {string} projectPath
+ * @param {string} taskId
+ * @returns {Promise<models$0.Checkpoint> & { cancel(): void }}
+ */
+export function GetLatestCheckpoint(projectPath, taskId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1994898182, projectPath, taskId));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType0($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
+ * @param {string} projectPath
  * @returns {Promise<repository$0.CompatTimeline[]> & { cancel(): void }}
  */
 export function GetTimeline(projectPath) {

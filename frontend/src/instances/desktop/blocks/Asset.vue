@@ -117,7 +117,14 @@
           
           <!-- File state section (absolute positioned, always visible) -->
           <div v-if="!isEditing" class="task-item-grid-file-state-absolute">
-            <div v-if="!isUntracked && userStore.canDo('pull_chunk')" class="file-state">
+
+            <div v-if="loadingAssetState" class="file-state">
+              <span class="single-action-button">
+                <img class="small-icons loading-asset-state-icon" :src="getAppIcon('loading')">
+              </span>
+            </div>
+
+            <div v-else-if="!isUntracked && userStore.canDo('pull_chunk')" class="file-state">
               <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" 
                 v-tooltip="'No changes'" v-if="task.file_status == 'normal'" />
               <ActionButton :icon="getAppIcon('circle-check-alert')" :noFilter="true" 
@@ -135,6 +142,7 @@
               <ActionButton :icon="getAppIcon('alert')" :noFilter="true" 
                 v-tooltip="'Task missing - Resync your project'" v-else-if="task.file_status == 'missing'" />
             </div>
+
             <div v-else-if="isUntracked">
               <ActionButton v-if="userStore.canDo('create_task') || canImport" 
                 @click="prepCreateCheckpoint(index, task, $event)" :icon="getAppIcon('layers-plus-danger')" 
@@ -254,7 +262,14 @@
         <div v-if="!isEditing && !isUntracked && !statusMenuDisplayed && !task.is_link" class="task-item-actions">
           <ActionButton v-if="userStore.canDo('view_checkpoint')" :icon="getAppIcon('layers')" v-tooltip="'Checkpoints'"
             v-stop-propagation @click="viewCheckpoints(index, task, $event)" />
-          <div v-if="userStore.canDo('pull_chunk')" class="file-state">
+
+          <div v-if="loadingAssetState" class="file-state">
+            <span class="single-action-button">
+              <img class="small-icons loading-asset-state-icon" :src="getAppIcon('loading')">
+            </span>
+          </div>
+
+          <div v-else-if="userStore.canDo('pull_chunk')" class="file-state">
             <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" @click="handleClick(index, task, $event)"
               v-tooltip="'No changes'" v-if="task.file_status == 'normal'" />
             <ActionButton :icon="getAppIcon('circle-check-alert')" :noFilter="true" v-tooltip="'Outdated - Click to update'"
@@ -347,6 +362,7 @@ const props = defineProps({
   isChild: { type: Boolean, default: false },
   isUntracked: { type: Boolean, default: false },
   isGhost: { type: Boolean, default: false },
+  loadingAssetState: { type: Boolean, default: false },
 });
 
 const gridStyles = computed(() => ({
@@ -942,8 +958,7 @@ const revertTask = async (index, task, event) => {
     .then(async (response) => {
       assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(taskPath => taskPath !== task.task_path)
       assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path)
-      let fileStatus = await assetStore.getAssetFileStatus(task)
-      props.task.file_status = fileStatus;
+      props.task.file_status = 'normal';
       emitter.emit('get-project-data')
     })
     .catch((error) => {
@@ -1642,6 +1657,11 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   height: 100%;
 }
 
+.single-action-button{
+  align-content: center;
+  justify-content: center;
+}
+
 .task-item-assignee {
   display: flex;
   box-sizing: border-box;
@@ -1784,6 +1804,24 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   border-radius: 12px;
   height: 100%;
   color: var(--white);
+}
+
+@keyframes loadingRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-asset-state-icon {
+  width: 20px;
+  height: 20px;
+  overflow: hidden;
+  /* padding: 0px; */
+  /* background-color: crimson; */
+  animation: loadingRotate .5s linear infinite;
 }
 
 </style>

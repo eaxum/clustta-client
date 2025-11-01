@@ -155,7 +155,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useCommonStore } from '@/stores/common';
 
 // services
-import { AssetService } from "@/../bindings/clustta/services";
+import { AssetService, CheckpointService } from "@/../bindings/clustta/services";
 
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -179,6 +179,7 @@ const commonStore = useCommonStore();
 // refs
 const numberOfSelectedTasks = ref(0);
 const multiStatusChange = ref(false);
+const latestCheckpoint = ref(null);
 
 // computed properties
 const projectStatuses = computed(() => {
@@ -370,10 +371,36 @@ const userFullName = computed(() => {
 
 const lastCheckpoint = computed(() => {
   let task = assetStore.selectedAsset;
-  if (task.is_link) return ''
-  let checkpoint = task.checkpoints[0];
-  return checkpoint ? { comment: checkpoint.comment, created_at: checkpoint.created_at } : { comment: 'No checkpoints', created_at: task.created_at };
+  if (task.is_link) return { comment: '', created_at: task.created_at };
+  
+  if (latestCheckpoint.value) {
+    return { 
+      comment: latestCheckpoint.value.comment, 
+      created_at: latestCheckpoint.value.created_at 
+    };
+  }
+  
+  return { comment: 'No checkpoints', created_at: task.created_at };
 });
+
+const loadLatestCheckpoint = async () => {
+  latestCheckpoint.value = null;
+  
+  if (!assetStore.selectedAsset || assetStore.selectedAsset.is_link) {
+    return;
+  }
+
+  try {
+    const checkpoint = await CheckpointService.GetLatestCheckpoint(
+      projectStore.activeProject.uri,
+      assetStore.selectedAsset.id
+    );
+    latestCheckpoint.value = checkpoint;
+  } catch (error) {
+    console.log('No checkpoint found or error:', error);
+    latestCheckpoint.value = null;
+  }
+};
 
 const formatMtime = (mtime) => {
   const date = new Date(mtime);
@@ -408,11 +435,13 @@ const getProjectData = async () => {
     return
   }
   getAssetSize();
+  loadLatestCheckpoint();
 }
 
 watch(() => assetStore.selectedAsset, () => {
   assetSize.value = 0;
   getProjectData();
+  loadLatestCheckpoint();
 });
 
 
@@ -421,6 +450,7 @@ onMounted(() => {
   stage.markedTasks = [];
   
   getProjectData();
+  loadLatestCheckpoint();
 	emitter.on('get-project-data', getProjectData);
 });
 
