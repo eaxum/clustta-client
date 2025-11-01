@@ -241,6 +241,16 @@ export function GetAssetDependencies2(projectPath, taskIds) {
 }
 
 /**
+ * @param {string} projectPath
+ * @param {string} taskId
+ * @returns {Promise<string> & { cancel(): void }}
+ */
+export function GetAssetState(projectPath, taskId) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1306124856, projectPath, taskId));
+    return $resultPromise;
+}
+
+/**
  * GetAssetTasks gets all tasks where is_resource is false with minimal fields for UI display
  * @param {string} projectPath
  * @returns {Promise<models$0.Task[]> & { cancel(): void }}

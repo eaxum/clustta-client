@@ -423,18 +423,18 @@ const containerVisibility = computed(() => {
 });
 
 const updateAssetState = async () => {
-  for (let i = 0; i < visibleChildren.value.length; i++) {
-    let visibleChild = visibleChildren.value[i];
-    if (visibleChild.type == "task") {
-      let fileStatus = await assetStore.getAssetFileStatus(visibleChild)
-      if (fileStatus === "modified") {
-        if (!assetStore.modifiedAssetsPath.includes(visibleChild.task_path)) {
-          assetStore.addModifiedAssetPath(visibleChild.task_path)
-        }
-      }
-      props.items[visibleChild.index].file_status = fileStatus;
-    }
-  }
+  // for (let i = 0; i < visibleChildren.value.length; i++) {
+  //   let visibleChild = visibleChildren.value[i];
+  //   if (visibleChild.type == "task") {
+  //     let fileStatus = await assetStore.getAssetFileStatus(visibleChild)
+  //     if (fileStatus === "modified") {
+  //       if (!assetStore.modifiedAssetsPath.includes(visibleChild.task_path)) {
+  //         assetStore.addModifiedAssetPath(visibleChild.task_path)
+  //       }
+  //     }
+  //     props.items[visibleChild.index].file_status = fileStatus;
+  //   }
+  // }
 };
 
 const onMouseLeave = () => {

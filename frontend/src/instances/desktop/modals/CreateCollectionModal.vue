@@ -224,6 +224,7 @@ const selectedEntityTypeId = computed(() => {
 })
 
 const parentId = computed(() => {
+  console.log(stage.selectedItem)
   if(stage.selectedItem && stage.selectedItem.type === 'entity'){
     return stage.selectedItem?.id
   } else if (collectionStore.navigatedCollection) {

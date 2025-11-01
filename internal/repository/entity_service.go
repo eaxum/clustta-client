@@ -374,16 +374,16 @@ func GetEntityTasks(tx *sqlx.Tx, id string) ([]models.Task, error) {
 	for i, task := range tasks {
 		qoutedTaskIds[i] = fmt.Sprintf("\"%s\"", task.Id)
 	}
-	tasksCheckpointQuery := fmt.Sprintf("SELECT * FROM task_checkpoint WHERE task_id IN (%s) AND trashed = 0 ORDER BY created_at DESC", strings.Join(qoutedTaskIds, ","))
+	// tasksCheckpointQuery := fmt.Sprintf("SELECT * FROM task_checkpoint WHERE task_id IN (%s) AND trashed = 0 ORDER BY created_at DESC", strings.Join(qoutedTaskIds, ","))
 
-	// checkpointQuery := "SELECT * FROM task_checkpoint WHERE trashed = 0 ORDER BY created_at DESC"
-	tasksCheckpoints := []models.Checkpoint{}
-	tx.Select(&tasksCheckpoints, tasksCheckpointQuery)
+	// // checkpointQuery := "SELECT * FROM task_checkpoint WHERE trashed = 0 ORDER BY created_at DESC"
+	// tasksCheckpoints := []models.Checkpoint{}
+	// tx.Select(&tasksCheckpoints, tasksCheckpointQuery)
 
-	taskCheckpoints := map[string][]models.Checkpoint{}
-	for _, taskCheckpoint := range tasksCheckpoints {
-		taskCheckpoints[taskCheckpoint.TaskId] = append(taskCheckpoints[taskCheckpoint.TaskId], taskCheckpoint)
-	}
+	// taskCheckpoints := map[string][]models.Checkpoint{}
+	// for _, taskCheckpoint := range tasksCheckpoints {
+	// 	taskCheckpoints[taskCheckpoint.TaskId] = append(taskCheckpoints[taskCheckpoint.TaskId], taskCheckpoint)
+	// }
 
 	rootFolder, err := utils.GetProjectWorkingDir(tx)
 	if err != nil {
@@ -438,13 +438,12 @@ func GetEntityTasks(tx *sqlx.Tx, id string) ([]models.Task, error) {
 			return tasks, err
 		}
 		tasks[i].FilePath = taskFilePath
-		tasks[i].Checkpoints = taskCheckpoints[task.Id]
-
-		fileStatus, err := GetTaskFileStatus(&tasks[i], taskCheckpoints[task.Id])
-		if err != nil {
-			return tasks, err
-		}
-		tasks[i].FileStatus = fileStatus
+		// tasks[i].Checkpoints = taskCheckpoints[task.Id]
+		// fileStatus, err := GetTaskFileStatus(&tasks[i], taskCheckpoints[task.Id])
+		// if err != nil {
+		// 	return tasks, err
+		// }
+		tasks[i].FileStatus = "rebuildable"
 	}
 
 	return tasks, nil

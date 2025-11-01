@@ -4,7 +4,7 @@
       :class="{ 'drop-zone-hovered': isHovered }">
       <Collection ref="entityItemRef" v-if="child.type == 'entity'" @toggleEditMode="toggleEditMode" v-right-click="openCollectionMenu"
         :isGhost="isGhost" :entity="child" :index="index" />
-      <Asset v-if="child.type == 'task'" @toggleEditMode="toggleEditMode" v-right-click="openAssetMenu" :task="child" :index="index" />
+      <Asset v-if="child.type == 'task'" @toggleEditMode="toggleEditMode" v-right-click="openAssetMenu" :task="child" :index="index" :loadingAssetState="loadingAssetState" />
       <Collection ref="entityItemRef" v-if="child.type == 'untracked_entity'" @toggleEditMode="toggleEditMode" v-right-click="openUntrackedItemMenu"
         :isUntracked="true" :entity="child" :index="index" />
       <Asset v-if="child.type == 'untracked_task'" @toggleEditMode="toggleEditMode" v-right-click="openUntrackedItemMenu" :isUntracked="true"
@@ -25,6 +25,8 @@ import { useScrollStore } from '@/stores/scroll';
 import { useUntrackedItemStore } from '@/stores/untracked';
 import { useProjectStore } from '@/stores/projects';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { AssetService } from '@/../bindings/clustta/services';
+import emitter from '@/lib/mitt';
 
 const menu = useMenu();
 const stage = useStageStore();
@@ -41,6 +43,7 @@ const virtuaItemRef = ref(null);
 const virtuaChildrenRef = ref(null);
 const entityItemRef = ref(null);
 const entityChildren = ref(null);
+const loadingAssetState = ref(false);
 
 // components
 import Asset from '@/instances/desktop/blocks/Asset.vue'
@@ -144,6 +147,31 @@ const toggleEditMode = (value) => {
   isEditing.value = value;
 };
 
+const loadAssetState = async () => {
+
+  const task = props.child;
+  
+  if (task.type !== 'task') return;
+  
+  loadingAssetState.value = true;
+  
+  try {
+    const projectStore = useProjectStore();
+    const fileStatus = await AssetService.GetAssetState(
+      projectStore.activeProject.uri,
+      task.id
+    );
+
+    props.child.file_status = fileStatus;
+
+  } catch (error) {
+    console.error(`Error loading asset state for ${task.id}:`, error);
+    task.file_status = 'rebuildable';
+  } finally {
+    loadingAssetState.value = false;
+  }
+};
+
 const isItemInFocus = computed(() => {
   return stage.markedItems.length === 1 && stage.firstSelectedItemId === props.child.id && !dndStore.draggedItem
 });
@@ -201,10 +229,15 @@ const handleKeyArrowKeys = (event) => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   if (props.child.entity_type_id) {
     entityChildren.value = entityItemRef.value.entityData
-  };
+  }
+  
+  if (props.child.type === 'task') {
+    await loadAssetState();
+  }
+  
   window.addEventListener('keydown', handleKeyArrowKeys);
 });
 

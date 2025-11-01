@@ -158,7 +158,6 @@ const onMouseUp = (event, item) => {
     stage.handleClick(event, item, itemType, allItems);
     }
 
-    console.log('mouse-up')
     clearTimeout(dragTimer.value);
 };
 

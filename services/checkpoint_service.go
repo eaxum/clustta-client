@@ -491,6 +491,26 @@ func (c *CheckpointService) GetCheckpoints(projectPath, taskId string) ([]models
 	}
 	return checkPoints, nil
 }
+
+func (c *CheckpointService) GetLatestCheckpoint(projectPath, taskId string) (models.Checkpoint, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return models.Checkpoint{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return models.Checkpoint{}, err
+	}
+	defer tx.Rollback()
+
+	checkpoint, err := repository.GetLatestCheckpoint(tx, taskId)
+	if err != nil {
+		return models.Checkpoint{}, err
+	}
+	return checkpoint, nil
+}
+
 func (c *CheckpointService) GetTimeline(projectPath string) ([]repository.CompatTimeline, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {

@@ -47,6 +47,45 @@ func GetTaskFileStatus(task *models.Task, checkpoints []models.Checkpoint) (stri
 	return "modified", nil
 }
 
+func GetAssetState(tx *sqlx.Tx, taskId string) (string, error) {
+	// Fetch checkpoints for this task
+	checkpointQuery := "SELECT * FROM task_checkpoint WHERE task_id = ? AND trashed = 0 ORDER BY created_at DESC"
+	checkpoints := []models.Checkpoint{}
+	err := tx.Select(&checkpoints, checkpointQuery, taskId)
+	if err != nil {
+		return "", err
+	}
+
+	// Fetch the task
+	taskQuery := "SELECT * FROM full_task WHERE id = ?"
+	task := models.Task{}
+	err = tx.Get(&task, taskQuery, taskId)
+	if err != nil {
+		return "", err
+	}
+
+	// Get root folder for building file path
+	rootFolder, err := utils.GetProjectWorkingDir(tx)
+	if err != nil {
+		return "", err
+	}
+
+	// Build file path
+	taskFilePath, err := utils.BuildTaskPath(rootFolder, task.EntityPath, task.Name, task.Extension)
+	if err != nil {
+		return "", err
+	}
+	task.FilePath = taskFilePath
+
+	// Compute status
+	status, err := GetTaskFileStatus(&task, checkpoints)
+	if err != nil {
+		return "", err
+	}
+
+	return status, nil
+}
+
 func GetFilesStatus(tx *sqlx.Tx, taskIds []string) (map[string]string, error) {
 	taskFilesStatus := map[string]string{}
 

@@ -1448,6 +1448,7 @@ const updateAll = () => {
 
 const clearSelection = () => {
 	stage.markedItems = [];
+	stage.selectedItem = [];
 	stage.selectedItems = [];
 	stage.firstSelectedItemId = '';
 	stage.lastSelectedItemId = '';
@@ -1522,7 +1523,13 @@ const loadCollectionStateFlags = async () => {
 		if (commonStore.navigatorMode && collectionStore.navigatedCollection) {
 			entityId = collectionStore.navigatedCollection.id || "root";
 		}
-		
+
+		if(collectionStore.navigatedCollection){
+			if(collectionStore.navigatedCollection?.type !== 'entity'){
+				return
+			}
+		}
+
 		const flags = await CollectionService.GetCollectionStateFlags(
 			project.uri,
 			entityId,
@@ -1574,10 +1581,7 @@ const refresh = async () => {
 	assetStore.assetsLoaded = true;
 
 	assetStore.reloadAssetStates();
-	
-	if(collectionStore.navigatedCollection?.type === 'entity'){
-		loadCollectionStateFlags(); 
-	}
+	loadCollectionStateFlags(); 
 
 };
 
@@ -1647,8 +1651,6 @@ const softRefresh = async () => {
 		await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
 	}
 
-
-
 	const allEntities = commonStore.showEntities ? children.entities?.filter((item) => !item.is_trashed) : [];
 	const allTasks = commonStore.showTasks ? children.tasks : [];
 
@@ -1656,10 +1658,7 @@ const softRefresh = async () => {
 
 	assetStore.assetsLoaded = true;
 	assetStore.reloadAssetStates();
-	
-	if(collectionStore.navigatedCollection?.type === 'entity'){
-		loadCollectionStateFlags(); 
-	}
+	loadCollectionStateFlags(); 
 };
 
 watch(() => assetStore.assetsLoaded, async () => {
@@ -1679,10 +1678,6 @@ watch(() => projectStore.activeProject, async () => {
 
 watch(() => collectionStore.navigatedCollection, async () => {
 	await softRefresh();
-});
-
-const assigneeFilters = computed(() => {
-	return commonStore.hasAssignees || commonStore.noAssignees
 });
 
 watch(() => commonStore.showTasks, async () => {
@@ -1729,7 +1724,7 @@ onMounted(async () => {
 	emitter.on('update-root-data', handleUpdateRootData);
 
 	await refresh();
-	dndStore.triggerDomUpdate()
+	dndStore.triggerDomUpdate();
 
 	trayStates.trashables = await TrashService.GetTrashs(projectStore.activeProject.uri);
 
@@ -1738,7 +1733,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
 	assetStore.assetsLoaded = false;
-	emitter.off('refresh-browser', refresh);
+	emitter.off('refresh-browser', softRefresh);
 	emitter.off('update-root-data', handleUpdateRootData);
 	// emitter.off('reload-asset-states', reloadAssetStates);
 	disableMenus();
