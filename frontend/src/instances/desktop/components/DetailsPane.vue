@@ -47,9 +47,9 @@
           
           <ActionButton v-if="tasksCanRebuild" :icon="getAppIcon('jigsaw')" :label="'Rebuild Assets'"
             :buttonFunction="revertAllChanges" />
-          <ActionButton v-if="tasksModified" :noFilter="true" :icon="getAppIcon('layers-plus-alert')" :label="'Create Checkpoints'"
+          <ActionButton v-if="tasksModified" :noFilter="true" :icon="getAppIcon('layers-plus')" :useAlert="true" :label="'Create Checkpoints'"
             :buttonFunction="prepAllCheckpointModal" />
-          <ActionButton v-if="tasksModified" :noFilter="true" :icon="getAppIcon('revert-alert')" :label="'Revert Tasks'"
+          <ActionButton v-if="tasksModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :label="'Revert Tasks'"
             :buttonFunction="prepResetPopUpModal" />
           <ActionButton :icon="getAppIcon('person-plus')" :label="'Assign assets'"
             @click="prepAssignTask($event)" />
@@ -90,7 +90,7 @@
 
         
         <div v-else-if="onlyUntrackedAssets || onlyUntrackedCollections" class="action-bar">
-          <ActionButton v-if="userStore.canDo('create_task') && onlyUntrackedAssets" :icon="getAppIcon('layers-plus-danger')" :noFilter="true" :label="'Create Checkpoints'" :buttonFunction="prepAllCheckpointModal" />
+          <ActionButton v-if="userStore.canDo('create_task') && onlyUntrackedAssets" :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" :label="'Create Checkpoints'" :buttonFunction="prepAllCheckpointModal" />
           <ActionButton :icon="getAppIcon('file-watch')" :label="'Ignore Items'" :buttonFunction="ignoreItems" />
           <ActionButton :icon="getAppIcon('trash')" :label="'Delete Items'" :buttonFunction="deleteMultipleUntrackedTasks" />
         </div>

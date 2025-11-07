@@ -26,7 +26,7 @@
         </div>
 
         <div v-if="!isEditing" class="project-item-actions">
-          <ActionButton v-if="project.has_remote && project.is_unsynced" :icon="getAppIcon('dot-big-alert')" :noFilter="true"
+          <ActionButton v-if="project.has_remote && project.is_unsynced" :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true"
             v-tooltip="'Project not synced'" />
           <ActionButton v-if="isProjectPinned && project.is_downloaded" :icon="getAppIcon('unpin')"
             v-tooltip="'Unpin Project'" @click="unpinProject" />

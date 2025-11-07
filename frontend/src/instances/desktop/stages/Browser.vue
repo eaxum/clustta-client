@@ -54,14 +54,14 @@
 					<ActionButton v-if="collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" v-tooltip="'Rebuild All'"
 						:buttonFunction="rebuildAll" />
 					<ActionButton v-if="collectionStateFlags.has_untracked && userStore.canDo('create_checkpoint')"
-						:icon="getAppIcon('layers-plus-danger')" :noFilter="true" v-tooltip="'Create Checkpoints'"
+						:icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Create Checkpoints'"
 						:buttonFunction="prepAllCheckpointModal" />
 					<ActionButton v-else-if="collectionStateFlags.has_modified && userStore.canDo('create_checkpoint')"
-						:icon="getAppIcon('layers-plus-alert')" :noFilter="true" v-tooltip="'Create Checkpoints'"
+						:icon="getAppIcon('layers-plus')" :useAlert="true"  :noFilter="true" v-tooltip="'Create Checkpoints'"
 						:buttonFunction="prepAllCheckpointModal" />
-					<ActionButton v-if="collectionStateFlags.has_modified" :icon="getAppIcon('revert-alert')" :noFilter="true" v-tooltip="'Revert All'"
+					<ActionButton v-if="collectionStateFlags.has_modified" :icon="getAppIcon('revert')" :useAlert="true" :noFilter="true" v-tooltip="'Revert All'"
 						:buttonFunction="prepResetPopUpModal" />
-					<ActionButton v-if="collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check-alert')" :noFilter="true" v-tooltip="'Update all'"
+					<ActionButton v-if="collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Update all'"
 						:buttonFunction="updateAll" />
 				</div>
 			</div>

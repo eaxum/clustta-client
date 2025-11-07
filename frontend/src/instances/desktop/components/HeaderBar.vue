@@ -70,15 +70,16 @@
 
 			</div>
 
-			<div class="remote-project-actions"
-				v-if="projectStore.getActiveProject?.has_remote && projectStore.getActiveProject.is_downloaded && enabledStages.includes(stage.selectedStage)">
+			<div class="remote-project-actions" v-if="projectStore.getActiveProject?.has_remote && projectStore.getActiveProject.is_downloaded && enabledStages.includes(stage.selectedStage)">
 
-				<ActionButton v-if="unSynced" @click="prepResetPopUpModal()" :icon="getAppIcon('undo')"
-					:iconAfter="true" v-tooltip="'Revert local changes'" :useBackground="true" label="Revert" />
+				<div class="actions-divider" ></div>
 
-				<ActionButton v-if="unSynced" :icon="getAppIcon('cloud-up')" :iconAfter="true" :isAlert="unSynced"
-					:useBackground="true" label="Sync" @click="syncData" v-tooltip="'Sync'" />
+				<ActionButton :isDisabled="!unSynced" @click="prepResetPopUpModal()" :icon="getAppIcon('revert')"
+				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="'Revert local changes'"  :useDanger="unSynced"/>
 
+				<ActionButton :isDisabled="!unSynced" @click="syncData" :icon="getAppIcon('cloud-up')"
+				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="'Sync'" :useAlert="unSynced" />
+				
 				<!-- <ActionButton :icon="getAppIcon('bell')" @click="panes.setPaneVisibility('notifications', true)" v-tooltip="'Notifications'"  /> -->
 			</div>
 
@@ -314,6 +315,10 @@ const goToSettings = () => {
 	/* background-color: ; */
 }
 
+.sync-button-alert :deep(img) {
+	filter: brightness(0) saturate(100%) invert(60%) sepia(72%) saturate(489%) hue-rotate(1deg) brightness(92%) contrast(90%);
+}
+
 .project-unsynced {
 	background-color: #bd2d2d;
 }
@@ -383,8 +388,6 @@ const goToSettings = () => {
 	background-color: var(--black);
 	/* background-color: rebeccapurple; */
 }
-
-.header-bar-overlay {}
 
 .header-bar-breadcrumbs-parent {
 	/* padding: .2rem; */
@@ -468,6 +471,14 @@ const goToSettings = () => {
 	min-width: max-content;
 	/* background-color: hotpink; */
 }
+
+.actions-divider {
+	display: flex;
+	background-color: var(--light-steel);
+	height: 16px;
+	width: 1.5px;
+}
+
 
 .local-project-actions {
 	align-items: center;

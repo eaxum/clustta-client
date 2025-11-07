@@ -11,8 +11,8 @@
              :class="{ 'write-operation': isWriteOperation }"
              v-tooltip="progressTooltip">
           <div class="mini-progress-content">
+            <span class="mini-progress-count">[{{ progressCurrent }}/{{ progressTotal }}]</span>
             <span class="mini-progress-text">{{ progressTitle }} - {{ progressPercentage }}%</span>
-            <span class="mini-progress-count">({{ progressCurrent }}/{{ progressTotal }})</span>
           </div>
           <div class="mini-progress-bar">
             <div class="mini-progress-fill" :style="{ width: progressPercentage + '%' }"></div>

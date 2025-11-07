@@ -38,7 +38,7 @@
       label="Extract" :buttonFunction="extractArchive" />
 
     <!-- Checkpoints -->
-    <ActionButton v-if="isAssetModified" :noFilter="true" :icon="getAppIcon('revert-alert')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="isAssetModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :showLabel="true" :fullWidth="true"
       label="Revert File" :buttonFunction="revertAsset" />
 
     <span v-if="userStore.canDo('delete_task') || !isNotOnDisk" class="menu-divider"></span>

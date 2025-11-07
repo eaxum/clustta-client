@@ -1,7 +1,7 @@
 <template>
   <span v-stop-propagation @click="buttonFunction" :style="{ backgroundColor: color }" :class="{
     'button-background': useBackground, 'alert-background': isAlert, 'full-width': fullWidth, 'outline': useOutline, 'icon-after': iconAfter, 'centered':
-      centered, 'button-active': isActive, 'is-inactive': isInactive, 'is-disabled': isDead, 'plain-background' : plainBackground,
+      centered, 'button-active': isActive, 'is-inactive': isInactive, 'is-disabled': isDead, 'plain-background' : plainBackground, 'use-alert': useAlert, 'use-danger': useDanger,
   }" class="action-button">
     <img v-if="showIcon && !iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter }" :src="icon">
     <div v-if="showLabel || label" class="small-icons button-label no-cursor">{{ label }}</div>
@@ -33,6 +33,8 @@ const props = defineProps({
   centered: { type: Boolean, default: false },
   useBackground: { type: Boolean, default: false },
   isAlert: { type: Boolean, default: false },
+  useAlert: { type: Boolean, default: false },
+  useDanger: { type: Boolean, default: false },
   isInactive: { type: Boolean, default: false },
   isDisabled: { type: Boolean, default: false },
   isActive: { type: Boolean, default: false },
@@ -123,7 +125,7 @@ const isDead = computed(() => {
   border-radius: var(--small-radius);
   background-color: rgb(44, 117, 226);
   /* padding: .3rem 1rem; */
-  outline: var(--solid-line);
+  outline: var(--transparent-line);
   outline-offset: -1px;
 }
 
@@ -190,6 +192,22 @@ const isDead = computed(() => {
 
 .is-disabled{
   opacity: .5;
+}
+
+[data-theme="dark"] .use-alert img {
+  filter: brightness(0) saturate(100%) invert(88%) sepia(45%) saturate(566%) hue-rotate(359deg) brightness(97%) contrast(92%);
+}
+
+.use-alert img {
+  filter: brightness(0) saturate(100%) invert(60%) sepia(72%) saturate(489%) hue-rotate(1deg) brightness(92%) contrast(90%);
+}
+
+[data-theme="dark"] .use-danger img {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(95%) saturate(7471%) hue-rotate(347deg) brightness(88%) contrast(93%);
+}
+
+.use-danger img {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(95%) saturate(7471%) hue-rotate(347deg) brightness(88%) contrast(93%);
 }
 
 </style>
