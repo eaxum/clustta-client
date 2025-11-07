@@ -46,16 +46,16 @@
           <div v-if="!isEditing && itemsUntracked && !(entity.id in stage.expandedEntities)">
             <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" 
               v-if="userStore.canDo('create_entity') || canImport || isAssigned"
-              :icon="getAppIcon('layers-plus-danger')" :noFilter="true" 
+              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" 
               v-tooltip="'Add checkpoints.'" />
           </div>
           <div v-else-if="!isEditing && itemsModified && !(entity.id in stage.expandedEntities)">
             <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" 
-              :icon="getAppIcon('layers-plus-alert')" :noFilter="true"
+              :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true"
               v-tooltip="'Add checkpoints.'" />
           </div>
           <div v-else-if="!isEditing && itemsOutdated && !(entity.id in stage.expandedEntities)">
-            <ActionButton @click="updateEntityAssets" :icon="getAppIcon('circle-check-alert')" 
+            <ActionButton @click="updateEntityAssets" :icon="getAppIcon('circle-check')" :useAlert="true" 
               :noFilter="true" v-tooltip="'update to latest'" />
           </div>
           <div v-else-if="!isEditing && itemsRebuildable && !(entity.id in stage.expandedEntities)">
@@ -65,11 +65,11 @@
           <div v-else-if="!isEditing && entity.type === 'untracked_entity' && props.hasChildren">
             <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" 
               v-if="userStore.canDo('create_entity') || canImport || isAssigned"
-              :icon="getAppIcon('layers-plus-danger')" :noFilter="true" 
+              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" 
               v-tooltip="'Add checkpoints.'" />
           </div>
           <div v-else-if="!isEditing && entity.type === 'untracked_entity' && !props.hasChildren">
-            <ActionButton @click="" :icon="getAppIcon('dot-big-danger')" :noFilter="true"
+            <ActionButton @click="" :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
               v-tooltip="'Untracked Collection'" />
           </div>
         </div>
@@ -167,18 +167,18 @@
 
         <div v-if="!isEditing && itemsUntracked && !(entity.id in stage.expandedEntities)"  class="entity-item-actions">
             <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" v-if="userStore.canDo('create_entity') || canImport || isAssigned"
-              :icon="getAppIcon('layers-plus-danger')" :noFilter="true" v-tooltip="'Add checkpoints.'" />
+              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Add checkpoints.'" />
         </div>
 
         <div v-else-if="!isEditing && itemsModified && !(entity.id in stage.expandedEntities)"
           class="entity-item-actions">
-            <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" :icon="getAppIcon('layers-plus-alert')" :noFilter="true"
+            <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true"
               v-tooltip="'Add checkpoints.'" />
         
         </div>
 
         <div v-else-if="!isEditing && itemsOutdated && !(entity.id in stage.expandedEntities)" class="entity-item-actions">
-            <ActionButton @click="updateEntityAssets" :icon="getAppIcon('circle-check-alert')" :noFilter="true"
+            <ActionButton @click="updateEntityAssets" :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true"
               v-tooltip="'update to latest'" />
         </div>
 
@@ -189,11 +189,11 @@
 
         <div v-else-if="!isEditing && entity.type === 'untracked_entity' && props.hasChildren" class="entity-item-actions">
             <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" v-if="userStore.canDo('create_entity') || canImport || isAssigned"
-              :icon="getAppIcon('layers-plus-danger')" :noFilter="true" v-tooltip="'Add checkpoints.'" />
+              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Add checkpoints.'" />
         </div>
 
         <div v-else-if="!isEditing && entity.type === 'untracked_entity' && !props.hasChildren" class="entity-item-actions">
-            <ActionButton @click="" :icon="getAppIcon('dot-big-danger')" :noFilter="true"
+            <ActionButton @click="" :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
               v-tooltip="'Untracked Collection'" />
         </div>
 
@@ -434,7 +434,7 @@ const startRename = () => {
 
 const confirmRename = async () => {
   isAwaitingResponse.value = true;
-  await updateEntityName();
+  await updateCollectionName();
   toggleEditMode();
 };
 
@@ -456,7 +456,7 @@ const handleEscKey = () => {
   cancelRename();
 };
 
-const updateEntityName = async () => {
+const updateCollectionName = async () => {
 
   if (props.entity.type === 'entity') {
     let entity = props.entity;
@@ -477,15 +477,14 @@ const updateEntityName = async () => {
   } else if (props.entity.type === 'untracked_entity') {
     let oldPath = props.entity.file_path
     let newPath = getParentPath(props.entity.file_path) + "/" + editableEntityName.value
+    let entityId = props.entity.id;
     await FSService.Rename(oldPath, newPath)
       .then((data) => {
-        // Update local entity data
-        let untrackedEntity = projectStore.findUntrackedEntity(props.entity.id);
-        untrackedEntity.name = editableEntityName.value;
-        untrackedEntity.file_path = newPath;
-        
-        // For untracked entities, emit 'refresh-browser' as they may not be in the same data structure
-        emitter.emit('refresh-browser');
+
+        emitEntityUpdates(entityId, [
+          { property: 'name', value: editableEntityName.value },
+          { property: 'file_path', value: newPath }
+        ]);
         
         isAwaitingResponse.value = false;
       })

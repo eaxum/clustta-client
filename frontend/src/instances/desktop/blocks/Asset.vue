@@ -127,13 +127,13 @@
             <div v-else-if="!isUntracked && userStore.canDo('pull_chunk')" class="file-state">
               <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" 
                 v-tooltip="'No changes'" v-if="task.file_status == 'normal'" />
-              <ActionButton :icon="getAppIcon('circle-check-alert')" :noFilter="true" 
+              <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" 
                 v-tooltip="'Outdated - Click to update'" v-else-if="task.file_status == 'outdated'" 
                 @click="revertTask(index, task, $event)" />
-              <ActionButton :icon="getAppIcon('layers-plus-alert')" :noFilter="true" 
+              <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" 
                 v-tooltip="'Modified - Assigned to someone else'" 
                 v-else-if="task.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
-              <ActionButton :icon="getAppIcon('layers-plus-alert')" :noFilter="true" 
+              <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" 
                 v-tooltip="'Modified - Click to add Checkpoint'" 
                 v-else-if="task.file_status == 'modified' && userStore.canDo('create_checkpoint')"
                 @click="prepCreateCheckpoint(index, task, $event)" />
@@ -145,9 +145,9 @@
 
             <div v-else-if="isUntracked">
               <ActionButton v-if="userStore.canDo('create_task') || canImport" 
-                @click="prepCreateCheckpoint(index, task, $event)" :icon="getAppIcon('layers-plus-danger')" 
+                @click="prepCreateCheckpoint(index, task, $event)" :icon="getAppIcon('layers-plus')" :useDanger="true" 
                 :noFilter="true" v-tooltip="'File untracked, click to add.'" />
-              <ActionButton v-else :icon="getAppIcon('dot-big-danger')" :noFilter="true" 
+              <ActionButton v-else :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" 
                 v-tooltip="'File untracked'" />
             </div>
           </div>
@@ -272,11 +272,11 @@
           <div v-else-if="userStore.canDo('pull_chunk')" class="file-state">
             <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" @click="handleClick(index, task, $event)"
               v-tooltip="'No changes'" v-if="task.file_status == 'normal'" />
-            <ActionButton :icon="getAppIcon('circle-check-alert')" :noFilter="true" v-tooltip="'Outdated - Click to update'"
+            <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Outdated - Click to update'"
               v-else-if="task.file_status == 'outdated'" @click="revertTask(index, task, $event)" />
-            <ActionButton :icon="getAppIcon('layers-plus-alert')" :noFilter="true" v-tooltip="'Modified - Assigned to someone else'"
+            <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="'Modified - Assigned to someone else'"
               v-else-if="task.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
-            <ActionButton :icon="getAppIcon('layers-plus-alert')" :noFilter="true" v-tooltip="'Modified - Click to add Checkpoint'"
+            <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="'Modified - Click to add Checkpoint'"
               v-else-if="task.file_status == 'modified' && userStore.canDo('create_checkpoint')"
               @click="prepCreateCheckpoint(index, task, $event)" />
             <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="'File missing - Click to build'"
@@ -293,8 +293,8 @@
 
         <div v-else-if="isUntracked" class="task-item-actions">
           <ActionButton v-if="userStore.canDo('create_task') || canImport" @click="prepCreateCheckpoint(index, task, $event)"
-            :icon="getAppIcon('layers-plus-danger')" :noFilter="true" v-tooltip="'File untracked, click to add.'" />
-          <ActionButton v-else :icon="getAppIcon('dot-big-danger')" :noFilter="true" v-tooltip="'File untracked'" />
+            :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'File untracked, click to add.'" />
+          <ActionButton v-else :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="'File untracked'" />
         </div>
 
 
@@ -641,7 +641,7 @@ const startRename = () => {
 
 const confirmRename = async () => {
   isAwaitingResponse.value = true;
-  await updateTaskName();
+  await updateAssetName();
   toggleEditMode();
 };
 
@@ -669,7 +669,7 @@ const handleEscKey = () => {
   }
 };
 
-const updateTaskName = async () => {
+const updateAssetName = async () => {
 
   isAwaitingResponse.value = true;
 
@@ -687,12 +687,9 @@ const updateTaskName = async () => {
           { property: 'file_status', value: 'outdated' },
         ]);
 
-        // let fileStatus = await assetStore.getAssetFileStatus(task)
         props.task.file_status = 'outdated'
         
         isAwaitingResponse.value = false;
-        
-        console.log(props.task.file_status)
       })
       .catch((error) => {
         isAwaitingResponse.value = false;
@@ -704,15 +701,11 @@ const updateTaskName = async () => {
     let task = projectStore.findUntrackedTask(props.task.id);
     await FSService.Rename(oldPath, newPath)
       .then((data) => {
-        // Update local task data
 
         emitTaskUpdates(taskId, [
           { property: 'name', value: editableTaskName.value },
           { property: 'file_path', value: newPath }
         ]);
-        
-        // For untracked tasks, emit 'refresh-browser' as they may not be in the same data structure
-        // emitter.emit('refresh-browser');
         
         isAwaitingResponse.value = false;
       })

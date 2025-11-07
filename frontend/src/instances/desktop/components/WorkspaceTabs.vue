@@ -83,7 +83,7 @@ const addWorkspaceVisible = computed(() => {
     && commonStore.showResources && commonStore.showChildEntities
     && commonStore.showChildTasks && commonStore.showDependencies && !commonStore.onlyAssets;
 
-  const showButton = taskFilters || entityFilters || resourceFilters || !isActive;
+  const showButton = taskFilters || entityFilters || resourceFilters || !isActive || commonStore.viewSearchQuery;
   return showButton;
 });
 
@@ -116,12 +116,19 @@ const tabRects = ref([]);
 
 
 const setWorkspace = (workspaceName) => {
+  // Do nothing if already on the workspace being set
+  if (commonStore.activeWorkspace === workspaceName) {
+    return;
+  }
+  
+  console.log(commonStore.viewSearchQuery)
   if (workspaceName === 'Default') {
     setDefaultWorkspace();
     emitter.emit('refresh-browser');
     return
   }
   const workspace = commonStore.workspaces.find((item) => item.name === workspaceName);
+  console.log(workspace)
   
   // Restore collection view if workspace has a saved collection
   if (workspace.collection) {
@@ -130,6 +137,17 @@ const setWorkspace = (workspaceName) => {
   } else {
     commonStore.navigatorMode = false;
     collectionStore.navigatedCollection = null;
+  }
+  
+  // Restore view mode if workspace has a saved viewMode
+  if (workspace.viewMode !== undefined) {
+    if (workspace.viewMode === 'compact') {
+      commonStore.setCompactView();
+    } else if (workspace.viewMode === 'larger') {
+      commonStore.setLargerView();
+    } else if (workspace.viewMode === 'grid') {
+      commonStore.setGridView();
+    }
   }
   
   commonStore.setActiveWorkspace(workspace);

@@ -208,20 +208,21 @@ const extractArchive = async () => {
 };
 
 const copyItemPath = async (pathType) => {
-  return
-  let task = assetStore.selectedAsset;
-  console.log(task)
-  let taskPath = task.file_path;
-  taskPath = taskPath.replace(/\\/g, '/');
-  let taskDir = taskPath.split('/').slice(0, -1).join('/');
-  let resourcesFolder = taskDir + '/resources';
-  let outputPath = taskDir + '/output';
+  let item = untrackedItemStore.selectedUntrackedItem;
+  console.log(item)
+  let itemPath = item.file_path;
+  itemPath = itemPath.replace(/\\/g, '/');
+  let itemDir = itemPath.split('/').slice(0, -1).join('/');
+  let resourcesFolder = itemDir + '/resources';
+  let outputPath = itemDir + '/output';
   if (pathType === 'resources') {
-    taskPath = resourcesFolder;
+    itemPath = resourcesFolder;
   } else if (pathType === 'output') {
-    taskPath = outputPath;
+    itemPath = outputPath;
   }
-  await ClipboardService.WriteText(taskPath);
+  await ClipboardService.WriteText(itemPath);
+  const message = 'Path copied to clipboard';
+  notificationStore.addNotification(message, "", "success");
   menu.hideContextMenu();
 };
 

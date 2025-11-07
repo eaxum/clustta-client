@@ -2,12 +2,10 @@
   <div class="modal-container" v-stop-propagation>
     <HeaderArea :title="'Create Checkpoints'" :icon="getAppIcon('layers-plus')" />
     <div class="general-container">
-      <textarea v-model="message" class="input-long" type="text" placeholder="write a comment..." v-focus
+      <textarea v-model="message" class="desktop-input-long" type="text" placeholder="write a comment..." v-focus
         @keydown.enter="handleEnterKey" />
 
-      <div v-if="!isValueChanged" class="horizontal-flex input-alert">
-        Your message is too short.
-      </div>
+      <InputAlert :show="!isValueChanged" :message="validationMessage" />
 
     </div>
 
@@ -19,10 +17,13 @@
       refreshing items
     </div>
 
-    <div v-else class="horizontal-flex input-alert modified-items-count">
+    <div v-else class="horizontal-flex input-alert modified-items-count" 
+      :class="{ 'modified-items-count-expanded' : showCheckpointItems}" 
+      @click="toggleShowCheckpointItems()">
+      
       {{ currentModifiedDisplayPaths.length + currentUntrackedPaths.length }} item(s) modified
 
-      <ActionButton @click="toggleShowCheckpointItems()" :label="showCheckpointItems ? 'Hide' : 'Show'"
+      <ActionButton :isInactive="true" :label="showCheckpointItems ? 'Hide' : 'Show'"
         :icon="getAppIcon(showCheckpointItems ? 'eye-cancel' : 'eye')" />
     </div>
 
@@ -30,7 +31,7 @@
     <div v-if="showCheckpointItems" class="modified-items">
 
       <div v-for="assetState in currentModifiedDisplayPaths" class="modified-item" :key="assetState.task_path">
-        <ActionButton :icon="getAppIcon('dot-big-alert')" :noFilter="true" v-tooltip="'Modified Asset'" />
+        <ActionButton :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="'Modified Asset'" />
         <div class="modified-item-name">
           {{ assetState.display_path }}
         </div>
@@ -40,7 +41,7 @@
       </div>
 
       <div v-for="taskPath in currentUntrackedPaths" class="modified-item">
-        <ActionButton :icon="getAppIcon('dot-big-danger')" :noFilter="true" v-tooltip="'Untracked Asset'" />
+        <ActionButton :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="'Untracked Asset'" />
         <div class="modified-item-name">
           {{ taskPath }}
         </div>
@@ -62,6 +63,7 @@
 <script setup>
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import InputAlert from '@/instances/common/components/InputAlert.vue';
 
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useCommonStore } from '@/stores/common';
@@ -105,18 +107,39 @@ const message = ref('');
 const isAwaitingResponse = ref(false);
 const removedPaths = ref([]);
 
+const forbiddenComments = [
+  'wip',
+  'wfa',
+  'retake',
+  'retook',
+  'todo',
+  'fmf'
+];
+
 const isValueChanged = computed(() => {
-  const forbiddenComments = [
-    'wip',
-    'wfa',
-    'retake',
-    'retook',
-    'todo',
-    'fmf'
-  ]
-  return !assetStore.loadingAssetStates && message.value.trim().length > 6 && !forbiddenComments.some(comment =>
-    message.value.toLowerCase().includes(comment.toLowerCase())
+  const messageWords = message.value.toLowerCase().split(/\s+/);
+  const hasForbiddenWord = forbiddenComments.some(comment =>
+    messageWords.includes(comment.toLowerCase())
   );
+  
+  return !assetStore.loadingAssetStates && message.value.trim().length > 6 && !hasForbiddenWord;
+});
+
+const validationMessage = computed(() => {
+  if (message.value.trim().length <= 6) {
+    return 'Your message is too short.';
+  }
+  
+  const messageWords = message.value.toLowerCase().split(/\s+/);
+  const foundForbidden = forbiddenComments.find(comment =>
+    messageWords.includes(comment.toLowerCase())
+  );
+  
+  if (foundForbidden) {
+    return `Please avoid using "${foundForbidden.toUpperCase()}" in your message. Be more descriptive.`;
+  }
+  
+  return '';
 });
 
 
@@ -339,6 +362,7 @@ onBeforeUnmount(() => {
   height: min-content;
   flex: 1 1 auto;
   display: flex;
+  font-size: 14px;
   align-items: center;
   text-wrap: nowrap;
   overflow: hidden;
@@ -355,13 +379,34 @@ onBeforeUnmount(() => {
   padding-bottom: 1rem;
 }
 
-.input-alert {
-  color: var(--attention);
+.desktop-input-long {
+  margin-top: 20px;
+  font-weight: 200;
+  color: var(--white);
 }
 
 .modified-items-count {
   padding-left: .5rem;
   color: var(--white);
+  /* background-color: forestgreen; */
+  font-weight: 200;
+  height: min-content;
+  overflow: hidden;
+  box-sizing: border-box;
+  height: 30px;
+  border-radius: var(--small-radius);
+}
+
+.modified-items-count-expanded {
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .modified-items-count:hover{
+  background-color: #ffffff15;
+}
+
+.modified-items-count:hover {
+  background-color: rgba(0, 0, 0, 0.11);
 }
 
 .loading-items-count {
@@ -386,6 +431,12 @@ onBeforeUnmount(() => {
 .single-action-button{
   align-content: center;
   justify-content: center;
+}
+
+.desktop-input-long {
+  margin-top: 20px;
+  font-weight: 200;
+  color: var(--white);
 }
 
 .loading-children-icon {

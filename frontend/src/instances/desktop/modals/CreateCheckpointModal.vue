@@ -351,7 +351,7 @@ onUnmounted(() => {
 
 .desktop-input-long {
   margin-top: 20px;
-  font-weight: 100;
+  font-weight: 200;
   color: var(--white);
 }
 

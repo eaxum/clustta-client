@@ -107,6 +107,7 @@ const saveWorkspace = async () => {
     },
     workspaceSearchQuery: commonStore.viewSearchQuery,
     collection: collectionData,
+    viewMode: commonStore.viewMode,
   };
   
   await SettingsService.AddProjectWorkspace(projectStore.getActiveProject.id, newWorkspace)

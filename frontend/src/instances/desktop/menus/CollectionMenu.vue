@@ -42,7 +42,7 @@
     </span>
 
     <!-- Revert Contents -->
-    <ActionButton v-if="hasModifiedContents" :noFilter="true" :icon="getAppIcon('revert-alert')" :showLabel="true" :fullWidth="true" 
+    <ActionButton v-if="hasModifiedContents" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :showLabel="true" :fullWidth="true" 
       label="Revert Contents" :buttonFunction="prepRevertContentsPopUpModal" />
 
     <!-- Rebuild -->
