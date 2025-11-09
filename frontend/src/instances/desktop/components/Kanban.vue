@@ -128,7 +128,30 @@ const loadAssetTasks = async () => {
   try {
     const projectPath = projectStore.activeProject?.uri;
     if (projectPath) {
-      const tasks = await AssetService.GetAssetTasks(projectPath);
+      let tasks;
+      
+      // If navigator mode is active and we have a navigated collection, filter tasks by entity_id
+      if (commonStore.navigatorMode && collectionStore.navigatedCollection) {
+        const navigatedEntityId = collectionStore.navigatedCollection.id;
+        const entity_file_path = collectionStore.navigatedCollection.file_path;
+        const project = projectStore.activeProject;
+        
+        // Get children of the navigated collection (similar to Browser.vue)
+        const children = await CollectionService.GetCollectionChildren(
+          project.uri,
+          navigatedEntityId,
+          project.working_directory,
+          entity_file_path,
+          project.ignore_list,
+          false
+        );
+        
+        tasks = children.tasks.filter((item) => !item.is_resource) || [];
+      } else {
+        // Get all tasks if not in navigator mode
+        tasks = await AssetService.GetAssetTasks(projectPath);
+      }
+      
       await assetStore.processAssetsIconsAndPreviews(tasks);
       cards.value = tasks; // Update cards ref with the fetched tasks
       await updateFilteredCards(); // Update filtered cards
@@ -546,6 +569,16 @@ watch(() => commonStore.hasAssignees, async () => {
 
 watch(() => commonStore.noAssignees, async () => {
   await updateFilteredCards();
+});
+
+// Watch for navigator mode changes to reload tasks
+watch(() => commonStore.navigatorMode, async () => {
+  await loadAssetTasks();
+});
+
+// Watch for navigated collection changes to reload tasks
+watch(() => collectionStore.navigatedCollection, async () => {
+  await loadAssetTasks();
 });
 
 onUnmounted(() => {
