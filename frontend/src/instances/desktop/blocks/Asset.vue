@@ -20,6 +20,13 @@
 
     <div class="main-task-item-grid">
       
+      <!-- Grid Status Menu Overlay -->
+      <GridStatusMenu 
+        v-if="gridStatusMenuVisible && !isUntracked && task.status" 
+        @statusSelected="handleGridStatusSelected"
+        @close="closeGridStatusMenu"
+      />
+      
       <div class="main-task-item-grid-icon">
 
         <div v-if="task.preview || osThumbnail" class="task-item-preview-container">
@@ -30,8 +37,8 @@
 
           <!-- Icon container at bottom left when preview is present -->
           <div class="task-item-icon-container task-item-icon-overlay">
-            <img v-if="task.icon" class="small-icons no-filter " :src="task.icon">
-            <img v-else-if="isUntracked" class="small-icons " :src="getAppIcon(getFileTypeIcon(task))" @error="$event.target.src = getAppIcon('file')">
+            <img v-if="task.icon" class="small-icons no-filter overlay-icons" :src="task.icon">
+            <img v-else-if="isUntracked" class="small-icons overlay-icons" :src="getAppIcon(getFileTypeIcon(task))" @error="$event.target.src = getAppIcon('file')">
             <span v-else class="app-ext">
             </span>
           </div>
@@ -86,10 +93,11 @@
               </div>
               
               <!-- Task Status -->
-              <div v-if="!isUntracked && task.status" class="task-item-grid-status-display">
+              <div v-if="!isUntracked && task.status" @click="openGridStatusMenu" class="task-item-grid-status-display">
                 <div class="task-item-status-grid" :style="{ backgroundColor: task.status.color }">
                   {{ task.status.short_name }}
                 </div>
+                
               </div>
               
               <!-- View Checkpoints button -->
@@ -335,6 +343,7 @@ import emitter from '@/lib/mitt';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
 import StatusMenu from '@/instances/desktop/menus/StatusMenu.vue'
+import GridStatusMenu from '@/instances/desktop/menus/GridStatusMenu.vue'
 import { Browser } from "@wailsio/runtime";
 import { getParentPath } from '@/lib/pathlib';
 
@@ -379,8 +388,8 @@ const itemHeightStyles = computed(() => ({
 // refs
 const taskItem = ref(null);
 const isExpanded = ref(false);
-const displayStatusMenu = ref(false);
 const taskTypeName = ref('');
+const gridStatusMenuVisible = ref(false);
 
 // OS Thumbnail caching
 const osThumbnail = ref('');
@@ -470,6 +479,27 @@ const loadOSThumbnail = async () => {
       thumbnailLoading.value = false;
     }
   }
+};
+
+const openGridStatusMenu = (event) => {
+  console.log('llllllll')
+  // event.stopPropagation();
+  const id = props.task.id;
+  const task = props.task;
+  assetStore.selectAsset(task);
+  stage.markedTasks = [id];
+  gridStatusMenuVisible.value = !gridStatusMenuVisible.value;
+};
+
+const closeGridStatusMenu = () => {
+  gridStatusMenuVisible.value = false;
+};
+
+const handleGridStatusSelected = () => {
+  props.task.status = assetStore.selectedAsset.status;
+  props.task.status_id = assetStore.selectedAsset.status_id;
+  props.task.status_short_name = assetStore.selectedAsset.status_short_name;
+  closeGridStatusMenu();
 };
 
 
@@ -666,6 +696,9 @@ const handleEscKey = () => {
   }
   if (statusMenuDisplayed.value) {
     statusMenuDisplayed.value = false;
+  }
+  if (gridStatusMenuVisible.value) {
+    gridStatusMenuVisible.value = false;
   }
 };
 
@@ -865,6 +898,9 @@ watch(() => isTaskInFocus.value, (newItems, oldItems) => {
   if (statusMenuDisplayed.value) {
     statusMenuDisplayed.value = false;
   }
+  if (gridStatusMenuVisible.value) {
+    gridStatusMenuVisible.value = false;
+  }
 }, { deep: true });
 
 // watch ( () => props.task, (newItems, oldItems) => {
@@ -1039,6 +1075,9 @@ const handleClickOutside = (event) => {
   if (statusMenuDisplayed.value) {
     statusMenuDisplayed.value = false;
   }
+  if (gridStatusMenuVisible.value) {
+    gridStatusMenuVisible.value = false;
+  }
 };
 
 onMounted(async () => {
@@ -1157,6 +1196,7 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
 }
 
 .main-task-item-grid {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -1471,14 +1511,20 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
 
 .task-item-icon-overlay {
   position: absolute;
-  bottom: 8px;
-  left: 8px;
+  /* background-color: forestgreen; */
+  bottom: 0;
+  left: 0;
   width: 32px;
   height: 32px;
   /* background-color: rgba(0, 0, 0, 0.7); */
   border-radius: 6px;
-  padding: 4px;
+  /* padding: 4px; */
   min-width: unset;
+}
+
+.overlay-icons{
+  width: 100%;
+  height: 100%;
 }
 
 .task-item-content {

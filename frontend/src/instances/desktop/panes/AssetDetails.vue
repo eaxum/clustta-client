@@ -526,7 +526,7 @@ onBeforeUnmount(() => {
 
   font-family: Inter, sans-serif;
   color: white;
-  font-size: 16px;
+  font-size: 14px;
   white-space: nowrap;
   flex: 1;
 
