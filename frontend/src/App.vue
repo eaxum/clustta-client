@@ -97,33 +97,36 @@ async function pullData() {
 }
 
 const operationsActive = computed(() => {
-    return stageStore.operationActive || !!modals.activeModal || !!menu.activeMenu || !assetStore.assetsLoaded || stageStore.activeStage !== 'browser'
+    return stageStore.operationActive 
+    || !!modals.activeModal || !!notificationStore.getProgress.running
+    || !!menu.activeMenu || !assetStore.assetsLoaded || stageStore.activeStage !== 'browser'
 });
 
 function startCheckSycnTokenInterval() {
     function run() {
         if (operationsActive.value) {
-            setTimeout(run, 1000); // Schedule the next run only after the current one completes
+            setTimeout(run, 1000);
             return
         }
         if (!projectStore.selectedStudio || projectStore.selectedStudio.name == "Personal") {
-            setTimeout(run, 1000); // Schedule the next run only after the current one completes
+            setTimeout(run, 1000);
             return
         }
         if (!projectStore.activeProject) {
-            setTimeout(run, 1000); // Schedule the next run only after the current one completes
+            setTimeout(run, 1000);
             return
         }
         if (!projectStore.getActiveProject.is_downloaded) {
-            setTimeout(run, 1000); // Schedule the next run only after the current one completes
+            setTimeout(run, 1000);
             return
         }
         if (projectStore.getActiveProject.is_unsynced) {
-            setTimeout(run, 1000); // Schedule the next run only after the current one completes
+            setTimeout(run, 1000);
             return
         }
         ProjectService.GetSyncToken(projectStore.getActiveProjectUrl)
             .then(async (token) => {
+                projectStore.serverActive = true;
                 if (token) {
                     let syncToken = projectStore.activeProject.sync_token
                     if (syncToken != token) {
@@ -147,9 +150,10 @@ function startCheckSycnTokenInterval() {
                     }
                 }
             }).catch((error) => {
+                projectStore.serverActive = false;
                 console.log(error)
             }).finally(() => {
-                setTimeout(run, 5000); // Schedule the next run only after the current one completes
+                setTimeout(run, 5000);
             });
 
     }
@@ -160,7 +164,7 @@ function startCheckSycnTokenInterval() {
 function startUpdateFileStatesInterval() {
     function run() {
         updateFileStates().finally(() => {
-            setTimeout(run, 1000); // Schedule the next run only after the current one completes
+            setTimeout(run, 1000);
         });
     }
 

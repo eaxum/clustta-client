@@ -23,12 +23,14 @@
       <div class="main-task-item-grid-icon">
 
         <div v-if="task.preview || osThumbnail" class="task-item-preview-container">
+
           <div class="task-item-preview-image">
             <img class="screenshot-thumb" :src="displayThumbnail">
           </div>
+
           <!-- Icon container at bottom left when preview is present -->
           <div class="task-item-icon-container task-item-icon-overlay">
-            <img v-if="task.icon && !isUntracked" class="small-icons no-filter " :src="task.icon">
+            <img v-if="task.icon" class="small-icons no-filter " :src="task.icon">
             <img v-else-if="isUntracked" class="small-icons " :src="getAppIcon(getFileTypeIcon(task))" @error="$event.target.src = getAppIcon('file')">
             <span v-else class="app-ext">
             </span>
@@ -36,7 +38,7 @@
         </div>
 
         <div v-else class="task-item-icon-container">
-          <img class="gigantic-icons no-filter " :src="displayThumbnail" @error="$event.target.src = getAppIcon('file')">
+          <img class="gigantic-icons no-filter " :src="displayThumbnail">
         </div>
 
         <!-- Task assignee overlay in top right corner -->
@@ -196,7 +198,7 @@
         </div> -->
 
         <div class="task-item-icon-container">
-          <img v-if="task.icon &&!isUntracked" class="large-icons no-filter" :src="task.icon">
+          <img v-if="task.icon" class="large-icons no-filter" :src="task.icon">
           <img v-else-if="isUntracked" class="large-icons " :src="getAppIcon(getFileTypeIcon(task))" @error="$event.target.src = getAppIcon('file')">
           <span v-else class="app-ext">
           </span>
@@ -387,6 +389,7 @@ const thumbnailCache = new Map();
 
 // Computed property for the display icon/thumbnail
 const displayThumbnail = computed(() => {
+
   // Priority 1: User-provided preview (from checkpoints)
   if (props.task.preview) {
     return props.task.preview;
@@ -398,16 +401,13 @@ const displayThumbnail = computed(() => {
   }
   
   // Priority 3: Task icon or file type icon
-  if (props.task.icon && !props.isUntracked) {
+  if (props.task.icon) {
     return props.task.icon;
   }
   
   // Priority 4: Generic file type icon
-  if (props.isUntracked) {
-    return getAppIcon(getFileTypeIcon(props.task));
-  }
+  return getAppIcon(getFileTypeIcon(props.task));
   
-  return getAppIcon('file');
 });
 
 // Load OS thumbnail for the file
