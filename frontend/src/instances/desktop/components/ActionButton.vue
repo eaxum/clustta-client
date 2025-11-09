@@ -97,16 +97,18 @@ const isDead = computed(() => {
 
 }
 
-[data-theme="dark"] .action-button:hover{
+/* [data-theme="dark"] .action-button:hover{
   background-color: #ffffff15;
-}
+  background-color: var(--hover);
+} */
 
 [data-theme="dark"] .action-button:active {
   background-color: #00000013;
 }
 
 .action-button:hover {
-  background-color: rgba(0, 0, 0, 0.11);
+  /* background-color: #09ff09bc; */
+  background-color: var(--hover);
 }
 
 .action-button:active {
