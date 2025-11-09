@@ -162,5 +162,9 @@ onBeforeUnmount(() => {
     width: 100%;
     height: 100%;
 }
+
+.filter-menu-item{
+  min-height: 35px;
+}
 </style>
 
