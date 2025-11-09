@@ -73,12 +73,12 @@
 			<div class="remote-project-actions" v-if="projectStore.getActiveProject?.has_remote && projectStore.getActiveProject.is_downloaded && enabledStages.includes(stage.selectedStage)">
 
 				<div class="actions-divider" ></div>
+				
+				<ActionButton :isDisabled="revertButtonDisabled" @click="prepResetPopUpModal()" :icon="getAppIcon('revert')"
+				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="revertButtonTooltip"  :useDanger="unSynced"/>
 
-				<ActionButton :isDisabled="!unSynced" @click="prepResetPopUpModal()" :icon="getAppIcon('revert')"
-				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="'Revert local changes'"  :useDanger="unSynced"/>
-
-				<ActionButton :isDisabled="!unSynced" @click="syncData" :icon="getAppIcon('cloud-up')"
-				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="'Sync'" :useAlert="unSynced" />
+				<ActionButton :isDisabled="syncButtonDisabled" @click="syncData" :icon="getAppIcon(getCloudIcon)"
+				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="syncButtonTooltip" :useAlert="unSynced" />
 				
 				<!-- <ActionButton :icon="getAppIcon('bell')" @click="panes.setPaneVisibility('notifications', true)" v-tooltip="'Notifications'"  /> -->
 			</div>
@@ -148,6 +148,20 @@ const getAppIcon = (iconName) => {
 	return icon
 };
 
+const getCloudIcon = computed(() => {
+
+	// Check if server is reachable
+	if (!projectStore.serverActive) {
+		return 'cloud-cancel';
+	}
+	// Check any operations are active
+	if (!!notificationStore.getProgress.running) {
+		return 'cloud-clock';
+	}
+	// Server is available
+	return 'cloud-up';
+});
+
 // computed properties
 const taskName = computed(() => {
 	const task = assetStore.selectedAsset;
@@ -167,6 +181,36 @@ const toggleFullTaskPath = () => {
 }
 
 const unSynced = computed(() => { return projectStore.getActiveProject.is_unsynced });
+
+const revertButtonDisabled = computed(() => {
+	return !!notificationStore.getProgress.running || 
+	       stage.operationActive || 
+	       !projectStore.getActiveProject?.is_downloaded ||
+	       !unSynced.value;
+});
+
+const revertButtonTooltip = computed(() => {
+	if (projectStore.serverIsBusy) return 'Server is busy...';
+	if (stage.operationActive) return 'Operation in progress...';
+	if (!projectStore.getActiveProject?.is_downloaded) return 'Project not downloaded';
+	if (!unSynced.value) return 'No changes to revert';
+	return 'Revert local changes';
+});
+
+const syncButtonDisabled = computed(() => {
+	return !!notificationStore.getProgress.running || 
+	       stage.operationActive || 
+	       !projectStore.getActiveProject?.is_downloaded ||
+	       !unSynced.value;
+});
+
+const syncButtonTooltip = computed(() => {
+	if (projectStore.serverIsBusy) return 'Server is busy...';
+	if (stage.operationActive) return 'Operation in progress...';
+	if (!projectStore.getActiveProject?.is_downloaded) return 'Project not downloaded';
+	if (!unSynced.value) return 'No changes to sync';
+	return 'Sync';
+});
 
 // methods
 

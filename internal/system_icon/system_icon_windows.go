@@ -47,7 +47,7 @@ var (
 	procCreateCompatibleDC     = gdi32.NewProc("CreateCompatibleDC")
 	procCreateCompatibleBitmap = gdi32.NewProc("CreateCompatibleBitmap")
 	procSelectObject           = gdi32.NewProc("SelectObject")
-	procDrawIcon               = user32.NewProc("DrawIcon")
+	procDrawIconEx             = user32.NewProc("DrawIconEx")
 	procGetDIBits              = gdi32.NewProc("GetDIBits")
 	procDeleteDC               = gdi32.NewProc("DeleteDC")
 	procReleaseDC              = user32.NewProc("ReleaseDC")
@@ -70,6 +70,9 @@ const (
 	FILE_ATTRIBUTE_NORMAL   = 0x00000080
 	DIB_RGB_COLORS          = 0
 	BI_RGB                  = 0
+
+	// DrawIconEx flags
+	DI_NORMAL = 0x0003
 
 	// DPI constants
 	MDT_EFFECTIVE_DPI = 0
@@ -164,8 +167,18 @@ func iconToPNG(hIcon uintptr, baseSize int) (*image.RGBA, error) {
 	prevObject, _, _ := procSelectObject.Call(hMemDC, hBitmap)
 	defer procSelectObject.Call(hMemDC, prevObject)
 
-	// Draw the icon onto the bitmap
-	procDrawIcon.Call(hMemDC, 0, 0, hIcon)
+	// Draw the icon onto the bitmap, scaling it to fill the entire canvas
+	procDrawIconEx.Call(
+		hMemDC,        // DC to draw to
+		0,             // x position
+		0,             // y position
+		hIcon,         // icon handle
+		uintptr(size), // width to draw
+		uintptr(size), // height to draw
+		0,             // animation step (0 for static)
+		0,             // brush for flicker-free drawing (0 for none)
+		DI_NORMAL,     // draw with transparency
+	)
 
 	// Prepare the bitmap info with scaled dimensions
 	bmi := BITMAPINFO{

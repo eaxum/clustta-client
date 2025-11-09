@@ -57,6 +57,7 @@ export const useProjectStore = defineStore("projects", {
     untrackedFoldersIndex: {},
     newUsers: {}, // Map of projectUri -> array of new user emails
     isProjectStatsExpanded: false,
+    serverActive: true,
   }),
   getters: {
     getActiveProjectName: (state) => {
@@ -118,6 +119,7 @@ export const useProjectStore = defineStore("projects", {
       }
       return "";
     },
+    getServerStatus: (state) => state.serverActive,
   },
   actions: {
     async setActiveProject(project) {

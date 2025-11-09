@@ -4,7 +4,7 @@
     <g transform="matrix(1,0,0,1,-27.6287,-0.241776)">
         <g id="cloud-up" transform="matrix(1,0,0,1,27.6287,0.241776)">
             <rect x="0" y="0" width="24" height="24" style="fill:none;"/>
-            <g>
+            <g transform="matrix(1,0,0,1,0,1.017344)">
                 <g transform="matrix(1.05547,0,0,1.05547,-2.92069,-1.97532)">
                     <path d="M6.64,11.566C6.477,11.046 6.388,10.492 6.388,9.918C6.388,6.879 8.856,4.412 11.894,4.412C13.858,4.412 15.584,5.443 16.558,6.992C17.293,8.16 17.424,9.313 17.424,9.313" style="fill:none;stroke:white;stroke-width:1.42px;"/>
                 </g>
