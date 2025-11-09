@@ -214,7 +214,6 @@ onUnmounted(() => {
   display: flex;
   position: fixed;
   flex-direction: column;
-  color: white;
   align-items: center;
   gap: .3rem;
   box-sizing: border-box;
@@ -225,9 +224,7 @@ onUnmounted(() => {
   border-radius: var(--normal-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--light-steel);
-  background-color: var(--dark-glass);
-  backdrop-filter: blur(50px);
+  backdrop-filter: blur(35px);
   max-height: 70vh;
   overflow-y: scroll;
 }

@@ -37,12 +37,65 @@ type BITMAPINFO struct {
 	Colors [1]uint32
 }
 
+// IImageList interface (simplified)
+type IImageList struct {
+	vtbl *IImageListVtbl
+}
+
+type IImageListVtbl struct {
+	QueryInterface  uintptr
+	AddRef          uintptr
+	Release         uintptr
+	Add             uintptr
+	ReplaceIcon     uintptr
+	SetOverlayImage uintptr
+	Replace         uintptr
+	AddMasked       uintptr
+	Draw            uintptr
+	Remove          uintptr
+	GetIcon         uintptr
+}
+
+func (il *IImageList) Release() {
+	if il.vtbl != nil {
+		syscall.Syscall(il.vtbl.Release, 1, uintptr(unsafe.Pointer(il)), 0, 0)
+	}
+}
+
+func (il *IImageList) GetIcon(index int) (uintptr, error) {
+	var hIcon uintptr
+	ret, _, _ := syscall.Syscall6(
+		il.vtbl.GetIcon,
+		4,
+		uintptr(unsafe.Pointer(il)),
+		uintptr(index),
+		1, // ILD_TRANSPARENT
+		uintptr(unsafe.Pointer(&hIcon)),
+		0,
+		0,
+	)
+	if ret != 0 {
+		return 0, fmt.Errorf("GetIcon failed with code %d", ret)
+	}
+	return hIcon, nil
+}
+
+// IID_IImageList GUID
+var IID_IImageList = syscall.GUID{
+	Data1: 0x46EB5926,
+	Data2: 0x582E,
+	Data3: 0x4017,
+	Data4: [8]byte{0x9F, 0xDF, 0xE8, 0x99, 0x8D, 0xAA, 0x09, 0x50},
+}
+
 var (
 	// Existing DLL and proc declarations...
 	shell32                    = syscall.NewLazyDLL("shell32.dll")
 	user32                     = syscall.NewLazyDLL("user32.dll")
 	gdi32                      = syscall.NewLazyDLL("gdi32.dll")
+	ole32                      = syscall.NewLazyDLL("ole32.dll")
 	procSHGetFileInfoW         = shell32.NewProc("SHGetFileInfoW")
+	procSHGetImageList         = shell32.NewProc("SHGetImageList")
 	procGetDC                  = user32.NewProc("GetDC")
 	procCreateCompatibleDC     = gdi32.NewProc("CreateCompatibleDC")
 	procCreateCompatibleBitmap = gdi32.NewProc("CreateCompatibleBitmap")
@@ -53,6 +106,8 @@ var (
 	procReleaseDC              = user32.NewProc("ReleaseDC")
 	procDeleteObject           = gdi32.NewProc("DeleteObject")
 	procDestroyIcon            = user32.NewProc("DestroyIcon")
+	procCoInitialize           = ole32.NewProc("CoInitialize")
+	procCoUninitialize         = ole32.NewProc("CoUninitialize")
 
 	// New procs for DPI awareness
 	procGetDpiForWindow         = user32.NewProc("GetDpiForWindow")
@@ -67,9 +122,15 @@ const (
 	SHGFI_SMALLICON         = 0x000000001
 	SHGFI_LARGEICON         = 0x000000000
 	SHGFI_USEFILEATTRIBUTES = 0x000000010
+	SHGFI_SYSICONINDEX      = 0x000004000
 	FILE_ATTRIBUTE_NORMAL   = 0x00000080
 	DIB_RGB_COLORS          = 0
 	BI_RGB                  = 0
+
+	// Image list size constants
+	SHIL_LARGE      = 0 // 32x32
+	SHIL_EXTRALARGE = 2 // 48x48
+	SHIL_JUMBO      = 4 // 256x256
 
 	// DrawIconEx flags
 	DI_NORMAL = 0x0003
@@ -105,7 +166,7 @@ func getScaledIconSize(baseSize int) int {
 	return int(float64(baseSize) * scale)
 }
 
-func GetFileExtensionIcon(extension string, large bool) (uintptr, error) {
+func GetFileExtensionIcon(extension string, size int) (uintptr, error) {
 	if extension[0] != '.' {
 		extension = "." + extension
 	}
@@ -115,15 +176,11 @@ func GetFileExtensionIcon(extension string, large bool) (uintptr, error) {
 		return 0, fmt.Errorf("failed to convert extension to UTF16: %v", err)
 	}
 
+	// First, get the icon index using SHGetFileInfo
 	fileInfo := SHFILEINFO{}
-	flags := SHGFI_ICON | SHGFI_USEFILEATTRIBUTES
-	if large {
-		flags |= SHGFI_LARGEICON
-	} else {
-		flags |= SHGFI_SMALLICON
-	}
+	flags := SHGFI_SYSICONINDEX | SHGFI_USEFILEATTRIBUTES
 
-	ret, _, err := procSHGetFileInfoW.Call(
+	ret, _, _ := procSHGetFileInfoW.Call(
 		uintptr(unsafe.Pointer(extensionPtr)),
 		FILE_ATTRIBUTE_NORMAL,
 		uintptr(unsafe.Pointer(&fileInfo)),
@@ -132,10 +189,40 @@ func GetFileExtensionIcon(extension string, large bool) (uintptr, error) {
 	)
 
 	if ret == 0 {
-		return 0, fmt.Errorf("failed to get file info: %v", err)
+		return 0, fmt.Errorf("failed to get file info")
 	}
 
-	return fileInfo.hIcon, nil
+	iconIndex := fileInfo.iIcon
+
+	// Initialize COM
+	procCoInitialize.Call(0)
+	defer procCoUninitialize.Call()
+
+	// Get the image list for the specified size
+	var imageList *IImageList
+	hr, _, _ := procSHGetImageList.Call(
+		uintptr(size),
+		uintptr(unsafe.Pointer(&IID_IImageList)),
+		uintptr(unsafe.Pointer(&imageList)),
+	)
+
+	if hr != 0 {
+		// Fallback to smaller size if JUMBO is not available
+		if size == SHIL_JUMBO {
+			return GetFileExtensionIcon(extension, SHIL_EXTRALARGE)
+		}
+		return 0, fmt.Errorf("failed to get image list, HRESULT: 0x%x", hr)
+	}
+
+	defer imageList.Release()
+
+	// Get the icon from the image list
+	hIcon, err := imageList.GetIcon(int(iconIndex))
+	if err != nil {
+		return 0, fmt.Errorf("failed to get icon from image list: %v", err)
+	}
+
+	return hIcon, nil
 }
 
 func iconToPNG(hIcon uintptr, baseSize int) (*image.RGBA, error) {
@@ -219,15 +306,15 @@ func iconToPNG(hIcon uintptr, baseSize int) (*image.RGBA, error) {
 }
 
 func GetExtensionIcon(extension string) ([]byte, error) {
-	hIcon, err := GetFileExtensionIcon(extension, true)
+	// Try to get jumbo (256x256) icon first, fallback to extra large (48x48) if not available
+	hIcon, err := GetFileExtensionIcon(extension, SHIL_JUMBO)
 	if err != nil {
 		return []byte{}, fmt.Errorf("failed to get icon: %v", err)
 	}
 	defer procDestroyIcon.Call(hIcon)
 
-	// Use base sizes that will be scaled according to DPI
-
-	baseSize := 32
+	// Use 256 as base size for jumbo icons
+	baseSize := 256
 
 	img, err := iconToPNG(hIcon, baseSize)
 	if err != nil {
