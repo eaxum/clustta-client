@@ -94,6 +94,7 @@
   --black-steel: hsl(0, 0%, 93%);
   --midnight-steel: hsl(0, 0%, 96%);
   --black: hsl(0, 0%, 93%);
+  --hover:  hsla(0, 0%, 0%, 0.15);
 
   /* Light mode (default) */
 --white: oklch(from var(--steel) 0.0 c h);           /* Pure black */
@@ -160,6 +161,7 @@
   --black: hsl(0, 0%, 7%);
 
   --solid-blue-steel: hsl(215, 81%, 29%);
+  --hover:  hsla(0, 0%, 100%, 0.05);
 }
 
 .root {

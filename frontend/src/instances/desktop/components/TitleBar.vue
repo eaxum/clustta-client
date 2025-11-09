@@ -64,7 +64,6 @@
 
     <div v-else class="titlebar-buttons">
       <!-- <ToggleSwitch :switchValueProp="themeStore.isDarkMode" @click="toggleTheme()" /> -->
-      <!-- {{  userStore.user?.id }} -->
 
       <div class="titlebar-button minimize" @click="minimizeWindow">
         <img class="small-icons" :src="getAppIcon('collapse-window')" alt="Minimize">
@@ -488,27 +487,30 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   justify-content: center;
   gap: 1rem;
-  background-color: royalblue;
-  /* left: 50px; */
   border-radius: var(--small-radius);
-  background-color: var(--black);
   color: var(--white);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+
   overflow: hidden;
   box-sizing: border-box;
   max-height: 500px;
   overflow-y: scroll;
+
+  /* background-color: hotpink; */
+  
+  border-radius: var(--normal-radius);
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+  backdrop-filter: blur(35px);
 }
 
 
 .studio-list-container::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
 }
 
 .studio-list-container::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--light-steel);
+  background-color: var(--silver);
 }
 
 .studio-list-container::-webkit-scrollbar-track {
@@ -570,7 +572,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   height: max-content;
-  gap: .2rem;
+  /* gap: .2rem; */
   display: flex;
   padding: .3rem;
   box-sizing: border-box;
@@ -587,7 +589,6 @@ onBeforeUnmount(() => {
   background-color: transparent;
   color: var(--white);
   position: relative;
-  border-radius: 8px;
   border-radius: var(--small-radius);
   box-sizing: border-box;
   cursor: pointer;
@@ -605,7 +606,7 @@ onBeforeUnmount(() => {
 }
 
 .studio-instance:hover {
-  background-color: var(--steel);
+  background-color: var(--hover);
 }
 
 .studio-instance:active {

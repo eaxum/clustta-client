@@ -87,8 +87,6 @@ const emitTaskUpdates = (taskId, updates) => {
   z-index: 1000;
   opacity: 0;
   animation: fadeInScale 0.15s ease-out forwards;
-  
-  
   border-radius: var(--normal-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
