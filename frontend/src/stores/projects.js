@@ -185,6 +185,7 @@ export const useProjectStore = defineStore("projects", {
       await ProjectService.GetStudioProjects(studioUrl, studio.name)
         .then(async (response) => {
           this.projects = response;
+          console.log(response)
         })
         .catch((error) => {
           console.error(error);
