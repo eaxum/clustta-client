@@ -138,14 +138,14 @@ func GetStudioUsers(studioId string) ([]models.StudioUserInfo, error) {
 		}
 
 		// Fetch photos for each user
-		for i := range users {
-			if users[i].Id != "" {
-				photoData, err := GetUserPhoto(users[i].Id)
-				if err == nil && photoData != nil {
-					users[i].Photo = photoData
-				}
-			}
-		}
+		// for i := range users {
+		// 	if users[i].Id != "" {
+		// 		photoData, err := GetUserPhoto(users[i].Id)
+		// 		if err == nil && photoData != nil {
+		// 			users[i].Photo = photoData
+		// 		}
+		// 	}
+		// }
 
 		return users, nil
 	}

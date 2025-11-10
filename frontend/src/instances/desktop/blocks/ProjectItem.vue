@@ -14,7 +14,8 @@
 
         <div v-if="!isEditing" class="project-item-content" :class="{ 'project-item-content-cards': cardView }">
           <div class="project-item-details">
-            {{ utils.capitalizeStr(project.name) }}
+            <span v-if="isCreatingProject">Adding {{ project.name }} to Clustta</span>
+            <span v-else>{{ utils.capitalizeStr(project.name) }}</span>
           </div>
         </div>
         <div v-else class="rename-input">
@@ -26,12 +27,17 @@
         </div>
 
         <div v-if="!isEditing" class="project-item-actions">
+          <ActionButton v-if="!project.is_tracked" :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
+            v-tooltip="'Project not Tracked'" />
           <ActionButton v-if="project.has_remote && project.is_unsynced" :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true"
             v-tooltip="'Project not synced'" />
           <ActionButton v-if="isProjectPinned && project.is_downloaded" :icon="getAppIcon('unpin')"
             v-tooltip="'Unpin Project'" @click="unpinProject" />
           <ActionButton v-if="project.is_downloaded" :icon="getAppIcon('launch')" v-tooltip="'Go to project'"
             @click="goToProject(project)" />
+          <div v-if="isCreatingProject" class="loading-spinner">
+            <img class="small-icons loading-project-icon" :src="getAppIcon('loading')">
+          </div>
           <ActionButton v-if="!project.has_remote" :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="'Open folder'"
             @click="revealInExplorer" />
           <ActionButton v-else-if="project.is_downloaded" :icon="getAppIcon('folder-arrow-up-right')"
@@ -93,6 +99,7 @@ const props = defineProps({
 });
 
 const renameInput = ref(null);
+const isCreatingProject = ref(false);
 const operationsActive = computed(() => {
   return stage.operationActive || !!modals.activeModal || !!menu.activeMenu || isEditing.value || stage.activeStage !== 'projects'
 });
@@ -236,11 +243,66 @@ const cloneProject = async (project) => {
   modals.setModalVisibility('cloneProjectModal', true);
 }
 
-const goToProject = (project) => {
-  projectStore.gotoProject(project);
+const goToProject = async (project) => {
+  // Check if this is an untracked project
+  if (!project.is_tracked) {
+    try {
+      // Set loading state
+      isCreatingProject.value = true;
+      
+      // Get the projects directory to construct the .clst file path
+      const projectsDir = await SettingsService.GetProjectDirectory();
+      const projectUri = `${projectsDir}/${project.name}.clst`;
+      const studioName = projectStore.selectedStudio.name;
+      const workingDir = project.working_directory;
+      const templateName = ""; // or "No Template"
+      
+      // Create the project
+      const createdProject = await ProjectService.CreateProject(
+        projectUri,
+        studioName,
+        workingDir,
+        templateName
+      );
+      
+      createdProject.is_tracked = true;
+      
+      // Update the project in the store
+      const projectIndex = projectStore.projects.findIndex(p => p.name === project.name);
+      if (projectIndex !== -1) {
+        projectStore.projects[projectIndex] = createdProject;
+      }
+            
+      // Launch the newly created project
+      projectStore.gotoProject(createdProject);
+      
+      // Clear loading state
+      isCreatingProject.value = false;
+    } catch (error) {
+      console.error('Error creating project from untracked directory:', error);
+      notificationStore.errorNotification('Error creating project', error);
+      // Clear loading state on error
+      isCreatingProject.value = false;
+    }
+  } else {
+    // Normal tracked project flow
+    projectStore.gotoProject(project);
+  }
 };
 
 const openMenu = (event) => {
+  if(!props.project.is_tracked){
+    // Show popup modal for untracked projects
+    trayStates.popUpModalTitle = `Add "${props.project.name}" to Clustta?`;
+    trayStates.popUpModalMessage = "This project is not yet in Clustta. Click CONFIRM to add it and start tracking your work.";
+    trayStates.popUpModalFunction = async () => {
+      modals.setModalVisibility('popUpModal', false);
+      await goToProject(props.project);
+    };
+    trayStates.popUpModalIcon = 'briefcase-plus';
+    modals.setModalVisibility('popUpModal', true);
+    return
+  }
   const project = props.project;
   projectStore.setActiveProject(project);
   menu.showContextMenu(event, 'projectItemMenu', true);
@@ -492,6 +554,30 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
   font-weight: 700;
   color: black;
+}
+
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  height: max-content;
+}
+
+.loading-project-icon {
+  width: 20px;
+  height: 20px;
+  overflow: hidden;
+  animation: loadingRotate .5s linear infinite;
+}
+
+@keyframes loadingRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
 

@@ -22,6 +22,9 @@
 				</div>
 			</div>
 			<div class="view-options">
+				<ActionButton :icon="getAppIcon(showUntrackedProjects ? 'eye' : 'eye-cancel')" 
+					v-tooltip="showUntrackedProjects ? 'Hide untracked projects' : 'Show untracked projects'"
+					:buttonFunction="toggleUntrackedProjects" />
 				<ActionButton v-if="cardView" :isDisabled="!projects.length" :icon="getAppIcon('list')" v-tooltip="'List'"
 					:buttonFunction="switchViewLayout" />
 				<ActionButton v-else :isDisabled="!projects.length" :icon="getAppIcon('four-squares')" v-tooltip="'Cards'"
@@ -111,6 +114,7 @@ const projectListDivider = ref(null);
 const openProjectsContainer = ref(null);
 const closedProjectsVisible = ref(false);
 const searchBar = ref(null);
+const showUntrackedProjects = ref(false);
 
 const getAppIcon = (iconName) => {
 	const icon = iconStore.getAppIcon(iconName);
@@ -195,7 +199,16 @@ const isHovered = computed(() => {
 	return dndStore.isDropHovering
 })
 const projects = computed(() => {
-	return projectStore.getProjects.filter((item) => item.name.toLowerCase().includes(projectStore.projectSearchQuery))
+	let filteredProjects = projectStore.getProjects.filter((item) => 
+		item.name.toLowerCase().includes(projectStore.projectSearchQuery)
+	);
+	
+	// Filter out untracked projects if toggle is off
+	if (!showUntrackedProjects.value) {
+		filteredProjects = filteredProjects.filter((project) => project.is_tracked !== false);
+	}
+	
+	return filteredProjects;
 });
 
 const openProjects = computed(() => {
@@ -334,6 +347,10 @@ const switchViewLayout = () => {
 	SettingsService.ToggleProjectGridView().then(() => {
 		projectStore.isProjectGridView = !projectStore.isProjectGridView
 	})
+};
+
+const toggleUntrackedProjects = () => {
+	showUntrackedProjects.value = !showUntrackedProjects.value;
 };
 
 // Handle escape key globally
