@@ -224,7 +224,7 @@ const prepFreeUpSpacePopUpModal = () => {
 const prepDeletePopUpModal = () => {
   let project = projectStore.getActiveProject;
   trayStates.popUpModalTitle = `Remove \"${project.name}\"`;
-  trayStates.popUpModalMessage = "This will irreversibly delete this project from your computer!";
+  trayStates.popUpModalMessage = "This will irreversibly remove this project from Clustta! You will lose all of your checkpoints and other metadata but your actual files will not be deleted. Ensure to 'Build' any missing assets before proceeding.";
   trayStates.popUpModalFunction = deleteProject;
   trayStates.popUpModalIcon = 'trash';
   modals.setModalVisibility('popUpModal', true);
