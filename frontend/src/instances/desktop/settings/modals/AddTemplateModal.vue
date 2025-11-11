@@ -215,6 +215,9 @@ const createTemplate = async () => {
   }
 };
 
+onMounted(() => {
+  selectFiles();
+})
 
 </script>
 
