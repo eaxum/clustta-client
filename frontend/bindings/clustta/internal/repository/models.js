@@ -195,6 +195,13 @@ export class ProjectInfo {
              */
             this["is_outdated"] = false;
         }
+        if (!("is_tracked" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["is_tracked"] = false;
+        }
         if (!("ignore_list" in $$source)) {
             /**
              * @member
@@ -212,10 +219,10 @@ export class ProjectInfo {
      * @returns {ProjectInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField16_0 = $$createType0;
+        const $$createField17_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("ignore_list" in $$parsedSource) {
-            $$parsedSource["ignore_list"] = $$createField16_0($$parsedSource["ignore_list"]);
+            $$parsedSource["ignore_list"] = $$createField17_0($$parsedSource["ignore_list"]);
         }
         return new ProjectInfo(/** @type {Partial<ProjectInfo>} */($$parsedSource));
     }

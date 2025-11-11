@@ -18,6 +18,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 func PullData(ctx context.Context, projectPath, remoteUrl string, userId string, pullChunk bool, syncOptions SyncOptions, callback func(int, int, string, string)) error {
@@ -343,11 +345,19 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 	}
 	os.MkdirAll(studioProjectsDir, os.ModePerm)
 	if isLocal {
+
+		//this finds all existing personal projects by checking in the projectsDir
+		//it also checks in the user working directories for folders without a
+		//corresponding clst file and appends them as untracked projects for the user to easily add later
+
 		extension := "clst"
 		entries, err := os.ReadDir(projectsDir)
 		if err != nil {
 			return studioProjects, err
 		}
+
+		// Track project names that have .clst files
+		trackedProjectNames := make(map[string]bool)
 
 		// Iterate over the directory entries
 		for _, entry := range entries {
@@ -385,11 +395,28 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 					projectInfo.Uri = projectPath
 					projectInfo.Remote = projectPath
 					projectInfo.IsDownloaded = true
+					projectInfo.IsTracked = true
 					studioProjects = append(studioProjects, projectInfo)
+
+					// Track this project name (without .clst extension)
+					projectName := strings.TrimSuffix(entry.Name(), "."+extension)
+					trackedProjectNames[projectName] = true
 				}
 
 			}
 		}
+		//TODO allow users have multiple working directories
+		workingDir, err := settings.GetWorkingDirectory()
+		if err != nil {
+			return studioProjects, err
+		}
+
+		untrackedProjects, err := GetUntrackedProjects(workingDir, trackedProjectNames)
+		if err != nil {
+			return studioProjects, err
+		}
+
+		studioProjects = append(studioProjects, untrackedProjects...)
 
 		return studioProjects, nil
 		// projects := []ProjectInfo{}
@@ -528,9 +555,65 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 			studioProjects[i].Remote = projectUrl
 			studioProjects[i].WorkingDirectory = workingDir
 			studioProjects[i].IsDownloaded = isDownloaded
+			studioProjects[i].IsTracked = true
 			studioProjects[i].SyncToken = syncToken
 		}
 
 		return studioProjects, nil
 	}
+}
+
+func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]bool) ([]repository.ProjectInfo, error) {
+	untrackedProjects := []repository.ProjectInfo{}
+
+	// Read all entries in the projects directory
+	entries, err := os.ReadDir(projectsDir)
+	if err != nil {
+		return untrackedProjects, err
+	}
+
+	fmt.Printf("Scanning for untracked projects in: %s\n", projectsDir)
+	fmt.Printf("Tracked project names: %v\n", trackedProjectNames)
+
+	// Iterate over directory entries
+	for _, entry := range entries {
+		// Only process directories, skip files
+		if !entry.IsDir() {
+			continue
+		}
+
+		// Skip hidden directories (starting with .)
+		if strings.HasPrefix(entry.Name(), ".") {
+			fmt.Printf("Skipping hidden directory: %s\n", entry.Name())
+			continue
+		}
+
+		// Check if this directory already has a corresponding .clst project
+		if trackedProjectNames[entry.Name()] {
+			fmt.Printf("Skipping tracked project directory: %s\n", entry.Name())
+			continue
+		}
+
+		// Create minimal ProjectInfo for untracked project
+		dirPath := filepath.Join(projectsDir, entry.Name())
+		projectId := uuid.New().String()
+		untrackedProject := repository.ProjectInfo{
+			Id:               projectId,
+			Name:             entry.Name(),
+			WorkingDirectory: dirPath,
+			IsTracked:        false,
+			IsDownloaded:     false,
+			Valid:            true,
+		}
+
+		fmt.Printf("Found untracked project: %s (ID: %s) at %s\n", entry.Name(), projectId, dirPath)
+		untrackedProjects = append(untrackedProjects, untrackedProject)
+	}
+
+	fmt.Printf("Total untracked projects found: %d\n", len(untrackedProjects))
+	for i, proj := range untrackedProjects {
+		fmt.Printf("  [%d] Name: %s, WorkingDir: %s, IsTracked: %v\n", i+1, proj.Name, proj.WorkingDirectory, proj.IsTracked)
+	}
+
+	return untrackedProjects, nil
 }
