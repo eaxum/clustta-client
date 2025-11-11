@@ -4,8 +4,8 @@
     
       <div v-if="!templateStore.getTemplates.length" class="page-state-container">
         <PageState 
-          :message="'This project has no templates'" 
-          :illustration="'/page-states/resources.png'" />
+          :message="'This project has no Asset templates'" 
+          :illustration="'/page-states/template.png'" />
       </div>
 
     <div v-else class="apps-container">
