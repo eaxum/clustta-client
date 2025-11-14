@@ -60,6 +60,30 @@ func (p *ProjectService) CreateProject(projectUri, studioName, workingDir, templ
 	return projectInfo, nil
 }
 
+func (p *ProjectService) ApplyTemplate(projectPath, templateName string) error {
+	if templateName == "" || templateName == "No Template" {
+		return nil
+	}
+
+	if !utils.FileExists(projectPath) {
+		return errors.New("project file not found")
+	}
+
+	templatesPath, err := settings.GetUserProjectTemplatesPath()
+	if err != nil {
+		return err
+	}
+
+	templatePath := filepath.Join(templatesPath, templateName+".clst")
+
+	err = repository.LoadProjectTemplateData(projectPath, templatePath)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (p *ProjectService) ToggleCloseProject(projectUri, studioName string) error {
 	user, err := auth_service.GetActiveUser()
 	if err != nil {

@@ -34,6 +34,16 @@ export function AddUser(projectPath, email, roleName) {
 
 /**
  * @param {string} projectPath
+ * @param {string} templateName
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function ApplyTemplate(projectPath, templateName) {
+    let $resultPromise = /** @type {any} */($Call.ByID(634171424, projectPath, templateName));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} projectPath
  * @param {string} userId
  * @param {string} roleName
  * @returns {Promise<void> & { cancel(): void }}
