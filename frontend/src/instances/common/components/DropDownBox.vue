@@ -6,7 +6,8 @@
     <div class="list-box-parent" :class="{ 'is-disabled': stage.operationActive}" ref="listBoxParent" @click="toggleList()">
       <div class="list-box-parent-content" @mouseenter="utils.handleHover($event)"
         @mouseleave="utils.resetScroll($event)">
-        <div class="list-box-parent-text" style="overflow: hidden; text-overflow: ellipsis;">
+        <div class="list-box-parent-text" style="overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.5rem;">
+          <img v-if="selectedItemIcon" :src="selectedItemIcon" class="listbox-icon" />
           {{ selectedListItem }}
         </div>
       </div>
@@ -16,12 +17,13 @@
       <div v-if="isExpanded" v-stop-propagation class="listbox-list-items-root"
         :style="{ top: listItemsAnchor + 'px', left: listItemsLeft + 'px', width: listItemsWidth + 'px', maxHeight: listItemMaxHeight + 'px' }">
         <div class="listbox-list-items">
-          <div v-for="(item, index) in filteredItems" :key="item" :value="item" @click="selectItem(item, items)"
-            class="listbox-item" :class="{ 'listbox-item-closed': isUnique(item) === true }">
+          <div v-for="(item, index) in filteredItems" :key="getItemKey(item, index)" :value="getItemValue(item)" @click="selectItem(item, items)"
+            class="listbox-item" :class="{ 'listbox-item-closed': isUnique(getItemValue(item)) === true }">
             <div class="listbox-item-text-mask" @mouseenter="startScrollText($event, index)"
               @mouseleave="stopScrollText($event)">
-              <div class="listbox-item-text" :class="{ 'overflow-text': isHoveringIndex === index }">
-                {{ utils.capitalizeStr(item) }}
+              <div class="listbox-item-text" :class="{ 'overflow-text': isHoveringIndex === index }" style="display: flex; align-items: center; gap: 0.5rem;">
+                <img v-if="getItemIcon(item)" :src="getItemIcon(item)" class="listbox-icon" />
+                {{ utils.capitalizeStr(getItemValue(item)) }}
               </div>
             </div>
           </div>
@@ -50,6 +52,32 @@ const listBoxParent = ref(null);
 const isHoveringIndex = ref(null);
 const isExpanded = ref(false);
 
+// Helper functions to handle both string arrays and object arrays
+const isObjectArray = computed(() => {
+  return props.items.length > 0 && typeof props.items[0] === 'object' && props.items[0] !== null;
+});
+
+const getItemValue = (item) => {
+  if (typeof item === 'string') {
+    return item;
+  }
+  return item.name || item.value || item.label || '';
+};
+
+const getItemIcon = (item) => {
+  if (typeof item === 'string') {
+    return null;
+  }
+  return item.icon || null;
+};
+
+const getItemKey = (item, index) => {
+  if (typeof item === 'string') {
+    return item;
+  }
+  return item.id || item.name || index;
+};
+
 // computed properties
 const listItemsBoundary = computed(() => menu.contextMenuBounds);
 const listItemsAnchor = ref(0);
@@ -58,12 +86,27 @@ const listItemsWidth = ref(0);
 const listItemMaxHeight = ref(0);
 const filteredItems = computed(() => {
   if (props.useFilter) {
-    return props.items.length ? props.items.filter(item => item !== props.selectedItem) : ''
+    return props.items.length ? props.items.filter(item => {
+      const itemValue = getItemValue(item);
+      return itemValue !== props.selectedItem;
+    }) : []
   } else {
-    return props.items.length ? props.items : ''
+    return props.items.length ? props.items : []
   }
 });
-const selectedListItem = computed(() => { return props.selectedItem ? utils.capitalizeStr(props.selectedItem) : 'Select' })
+
+const selectedListItem = computed(() => { 
+  return props.selectedItem ? utils.capitalizeStr(props.selectedItem) : 'Select' 
+});
+
+const selectedItemIcon = computed(() => {
+  if (!props.selectedItem || !isObjectArray.value) {
+    return null;
+  }
+  const selectedObj = props.items.find(item => getItemValue(item) === props.selectedItem);
+  return selectedObj ? getItemIcon(selectedObj) : null;
+});
+
 // props
 const props = defineProps({
   isUnique: {
@@ -124,7 +167,8 @@ const toggleList = () => {
 };
 
 const selectItem = (item, items) => {
-  props.onSelect(item, props.extraData);
+  const itemValue = getItemValue(item);
+  props.onSelect(itemValue, props.extraData);
   isExpanded.value = false;
 };
 
@@ -357,6 +401,14 @@ onUnmounted(() => {
 
 .overflow-text {
   overflow: unset;
+}
+
+.listbox-icon {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .list-box {

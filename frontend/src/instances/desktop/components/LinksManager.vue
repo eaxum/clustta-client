@@ -29,36 +29,36 @@
     
     <div v-else class="links-display-mode">
       <ActionButton
-        v-if="links.behance"
+        v-if="safeLinks.behance"
         :icon="getAppIcon('brand-behance')"
         label="Behance"
         :iconAfter="false"
         :useOutline="true"
-        @click="openLink(links.behance)"
+        @click="openLink(safeLinks.behance)"
       />
       <ActionButton
-        v-if="links.artstation"
+        v-if="safeLinks.artstation"
         :icon="getAppIcon('brand-artstation')"
         label="ArtStation"
         :iconAfter="false"
         :useOutline="true"
-        @click="openLink(links.artstation)"
+        @click="openLink(safeLinks.artstation)"
       />
       <ActionButton
-        v-if="links.portfolio"
+        v-if="safeLinks.portfolio"
         :icon="getAppIcon('link')"
         label="Portfolio"
         :iconAfter="false"
         :useOutline="true"
-        @click="openLink(links.portfolio)"
+        @click="openLink(safeLinks.portfolio)"
       />
       <ActionButton
-        v-if="links.linkedin"
+        v-if="safeLinks.linkedin"
         :icon="getAppIcon('brand-linkedin')"
         label="LinkedIn"
         :iconAfter="false"
         :useOutline="true"
-        @click="openLink(links.linkedin)"
+        @click="openLink(safeLinks.linkedin)"
       />
       <p v-if="!hasAnyLinks" class="no-links-message">
         No professional links added yet
@@ -94,23 +94,57 @@ const props = defineProps({
 
 const emit = defineEmits(['update:links']);
 
-const localLinks = ref({ ...props.links });
+// Ensure links is always an object, even if null/undefined is passed
+const safeLinks = computed(() => props.links || {
+  behance: '',
+  artstation: '',
+  portfolio: '',
+  linkedin: ''
+});
+
+const localLinks = ref({ ...safeLinks.value });
+const isInternalUpdate = ref(false);
 
 const hasAnyLinks = computed(() => {
+  if (!props.links) return false;
   return Object.values(props.links).some(link => link && link.trim());
 });
 
 // Watch for changes in edit mode and emit updates
 watch(localLinks, (newLinks) => {
-  if (props.isEditing) {
+  if (props.isEditing && !isInternalUpdate.value) {
     emit('update:links', { ...newLinks });
   }
 }, { deep: true });
 
-// Sync local links when props change (e.g., when canceling edit)
+// Sync local links when props change (e.g., when canceling edit or switching to edit mode)
 watch(() => props.links, (newLinks) => {
-  localLinks.value = { ...newLinks };
+  // Only sync if we're not editing or if the links are significantly different
+  if (!props.isEditing) {
+    isInternalUpdate.value = true;
+    localLinks.value = { ...(newLinks || {
+      behance: '',
+      artstation: '',
+      portfolio: '',
+      linkedin: ''
+    }) };
+    // Use nextTick to ensure the update completes before resetting the flag
+    setTimeout(() => {
+      isInternalUpdate.value = false;
+    }, 0);
+  }
 }, { deep: true });
+
+// Initialize localLinks when entering edit mode
+watch(() => props.isEditing, (isEditing) => {
+  if (isEditing) {
+    isInternalUpdate.value = true;
+    localLinks.value = { ...safeLinks.value };
+    setTimeout(() => {
+      isInternalUpdate.value = false;
+    }, 0);
+  }
+});
 
 const openLink = (url) => {
   if (url) {

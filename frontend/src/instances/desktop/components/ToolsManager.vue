@@ -7,18 +7,12 @@
         :key="tool.id"
         class="tool-item"
       >
+      
         <img 
-          v-if="tool.logo" 
-          :src="getAppIcon(tool.logo)" 
+          :src="getToolLogoPath(tool)" 
           :alt="tool.name" 
           class="small-icons"
           @error="handleImageError"
-        />
-        <img 
-          v-else 
-          :src="getAppIcon('file')" 
-          alt="Tool" 
-          class="small-icons"
         />
         <span class="tool-name">{{ tool.name }}</span>
         <button
@@ -33,23 +27,37 @@
     </div>
     
     <!-- ItemSelector for adding new tools -->
-    <ItemSelector
-      v-if="isEditing"
-      :selectedItems="tools"
-      :allItems="allTools"
-      :placeholder="'Search and add tools...'"
-      :itemType="'tool'"
-      @itemAdded="addTool"
-    />
+    <div v-if="isEditing">
+      <ItemSelector
+        v-if="tools.length < 5"
+        :selectedItems="tools"
+        :allItems="allTools"
+        :placeholder="'Search and add tools...'"
+        :itemType="'tool'"
+        @itemAdded="addTool"
+      />
+      <div v-else class="limit-message">
+        <img :src="getAppIcon('info-circle')" alt="Info" class="limit-icon" />
+        <span>Maximum of 5 tools reached. Remove a tool to add another.</span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useIconStore } from '@/stores/icons';
+import { useUserStore } from '@/stores/users';
+import { useProfileStore } from '@/stores/profile';
+import { useNotificationStore } from '@/stores/notifications';
+import { ProfileService } from "@/../bindings/clustta/services";
 import ItemSelector from './ItemSelector.vue';
+import { getToolLogo } from '@/utils/iconMappers';
 
 const iconStore = useIconStore();
+const userStore = useUserStore();
+const profileStore = useProfileStore();
+const notificationStore = useNotificationStore();
 
 const props = defineProps({
   tools: {
@@ -62,39 +70,45 @@ const props = defineProps({
   },
   allTools: {
     type: Array,
-    default: () => [
-      { id: '1', name: 'Blender', category: '3D', logo: 'box' },
-      { id: '2', name: 'Maya', category: '3D', logo: 'box' },
-      { id: '3', name: 'Cinema 4D', category: '3D', logo: 'box' },
-      { id: '4', name: '3ds Max', category: '3D', logo: 'box' },
-      { id: '5', name: 'Houdini', category: '3D', logo: 'box' },
-      { id: '6', name: 'ZBrush', category: '3D', logo: 'palette' },
-      { id: '7', name: 'Substance Painter', category: '2D', logo: 'palette' },
-      { id: '8', name: 'Photoshop', category: '2D', logo: 'palette' },
-      { id: '9', name: 'After Effects', category: 'Compositing', logo: 'layers' },
-      { id: '10', name: 'Nuke', category: 'Compositing', logo: 'layers' },
-      { id: '11', name: 'Unreal Engine', category: 'Game Engine', logo: 'gamepad' },
-      { id: '12', name: 'Unity', category: 'Game Engine', logo: 'gamepad' },
-      { id: '13', name: 'Marvelous Designer', category: '3D', logo: 'box' },
-      { id: '14', name: 'DaVinci Resolve', category: 'Video Editing', logo: 'film' },
-      { id: '15', name: 'Premiere Pro', category: 'Video Editing', logo: 'film' }
-    ]
+    default: () => []
   }
 });
 
-const emit = defineEmits(['toolAdded', 'toolRemoved']);
-
 const addTool = (tool) => {
-  emit('toolAdded', tool);
+  ProfileService.AddUserTool(userStore.user.id, {
+    tool_id: tool.id,
+    proficiency_level: tool.proficiency_level || 'intermediate'
+  })
+    .then(() => {
+      profileStore.addTool(tool);
+      notificationStore.addNotification("Tool added", "Tool added successfully.", "success", false);
+    })
+    .catch((err) => {
+      notificationStore.errorNotification("Failed to add tool", err?.message || err);
+    });
 };
 
 const removeTool = (tool) => {
-  emit('toolRemoved', tool.name);
+  ProfileService.RemoveUserTool(userStore.user.id, tool.tool_id)
+    .then(() => {
+      profileStore.removeTool(tool.id);
+      notificationStore.addNotification("Tool removed", "Tool removed successfully.", "success", false);
+    })
+    .catch((err) => {
+      notificationStore.errorNotification("Failed to remove tool", err?.message || err);
+    });
+};
+
+// Get tool logo path dynamically at render time
+const getToolLogoPath = (tool) => {
+  // Use the tool name to get the appropriate file icon
+  const toolName = tool.tool_name || tool.ToolName || tool.name || '';
+  return getToolLogo(toolName);
 };
 
 const handleImageError = (event) => {
   // If image fails to load, replace with default icon
-  event.target.src = iconStore.getAppIcon('box');
+  event.target.src = '/file-icons/default.svg';
   event.target.classList.add('tool-logo-default');
 };
 
@@ -161,6 +175,25 @@ const getAppIcon = (iconName) => {
   font-weight: 500;
   color: var(--white);
   user-select: none;
+}
+
+.limit-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background-color: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: var(--normal-radius);
+  color: rgba(255, 193, 7, 0.9);
+  font-size: 0.875rem;
+}
+
+.limit-icon {
+  width: 16px;
+  height: 16px;
+  filter: invert(82%) sepia(89%) saturate(548%) hue-rotate(359deg) brightness(103%) contrast(98%);
+  flex-shrink: 0;
 }
 
 .tool-logo-default {
