@@ -1,0 +1,191 @@
+{
+  "templates": [
+    {
+      "name": "3D Animation",
+      "icon": "cube",
+      "description": "Template for 3D animation projects including modeling, rigging, and animation workflows",
+      "assetTypes": [
+        {
+          "name": "Modeling",
+          "icon": "cube"
+        },
+        {
+          "name": "Sculpting",
+          "icon": "shapes"
+        },
+        {
+          "name": "Rigging",
+          "icon": "bone"
+        },
+        {
+          "name": "Animation",
+          "icon": "man-running"
+        },
+        {
+          "name": "Shading",
+          "icon": "palette"
+        },
+        {
+          "name": "Texturing",
+          "icon": "texture"
+        },
+        {
+          "name": "Lighting",
+          "icon": "lamp"
+        },
+        {
+          "name": "Rendering",
+          "icon": "camera-flash"
+        },
+        {
+          "name": "Compositing",
+          "icon": "film-strip"
+        },
+        {
+          "name": "FX",
+          "icon": "fire"
+        }
+      ],
+      "collectionTypes": [
+        {
+          "name": "Sequence",
+          "icon": "film-reel"
+        },
+        {
+          "name": "Shot",
+          "icon": "camera"
+        },
+        {
+          "name": "Asset",
+          "icon": "cube"
+        },
+        {
+          "name": "Character",
+          "icon": "masks"
+        },
+        {
+          "name": "Environment",
+          "icon": "tree"
+        },
+        {
+          "name": "Prop",
+          "icon": "package"
+        }
+      ],
+      "ignoreList": [
+        ".DS_Store",
+        "Thumbs.db",
+        "*.tmp",
+        "*.bak",
+        "*.autosave",
+        "*.blend1",
+        "*.blend2",
+        "*.ma.swatches",
+        "*.mb.swatches",
+        "*.max.bak",
+        "*.c4d~",
+        "incrementalSave",
+        "cache",
+        "*.exr",
+        "*.dpx",
+        "node_modules",
+        "__pycache__"
+      ]
+    },
+    {
+      "name": "Unreal Project",
+      "icon": "gamepad",
+      "description": "Template for Unreal Engine game development and real-time projects",
+      "assetTypes": [
+        {
+          "name": "Blueprint",
+          "icon": "flow-chart"
+        },
+        {
+          "name": "Level Design",
+          "icon": "home"
+        },
+        {
+          "name": "3D Model",
+          "icon": "cube"
+        },
+        {
+          "name": "Material",
+          "icon": "palette"
+        },
+        {
+          "name": "Texture",
+          "icon": "texture"
+        },
+        {
+          "name": "Animation",
+          "icon": "man-running"
+        },
+        {
+          "name": "VFX",
+          "icon": "fire"
+        },
+        {
+          "name": "Sound",
+          "icon": "music"
+        },
+        {
+          "name": "Lighting",
+          "icon": "lamp"
+        },
+        {
+          "name": "Cinematic",
+          "icon": "video-camera"
+        }
+      ],
+      "collectionTypes": [
+        {
+          "name": "Level",
+          "icon": "home"
+        },
+        {
+          "name": "Character",
+          "icon": "masks"
+        },
+        {
+          "name": "Environment",
+          "icon": "tree"
+        },
+        {
+          "name": "Prop",
+          "icon": "package"
+        },
+        {
+          "name": "System",
+          "icon": "flow-chart"
+        },
+        {
+          "name": "Asset Pack",
+          "icon": "boxes"
+        }
+      ],
+      "ignoreList": [
+        ".git",
+        ".DS_Store",
+        "Thumbs.db",
+        "*.tmp",
+        "*.bak",
+        "Binaries",
+        "Build",
+        "DerivedDataCache",
+        "Intermediate",
+        "Saved",
+        ".vs",
+        ".vscode",
+        "*.sln",
+        "*.suo",
+        "*.opensdf",
+        "*.sdf",
+        "*.VC.db",
+        "*.VC.opendb",
+        "node_modules",
+        "__pycache__"
+      ]
+    }
+  ]
+}
