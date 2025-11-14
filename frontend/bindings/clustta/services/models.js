@@ -161,6 +161,48 @@ export class CollectionStateFlags {
     }
 }
 
+export class Country {
+    /**
+     * Creates a new Country instance.
+     * @param {Partial<Country>} [$$source = {}] - The source object to create the Country.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("code" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["code"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Country instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Country}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Country(/** @type {Partial<Country>} */($$parsedSource));
+    }
+}
+
 export class DeploymentRequest {
     /**
      * Creates a new DeploymentRequest instance.
@@ -534,6 +576,41 @@ export class FileInfo {
     }
 }
 
+export class Gender {
+    /**
+     * Creates a new Gender instance.
+     * @param {Partial<Gender>} [$$source = {}] - The source object to create the Gender.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Gender instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Gender}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Gender(/** @type {Partial<Gender>} */($$parsedSource));
+    }
+}
+
 export class ImportItems {
     /**
      * Creates a new ImportItems instance.
@@ -574,6 +651,219 @@ export class ImportItems {
             $$parsedSource["entities"] = $$createField1_0($$parsedSource["entities"]);
         }
         return new ImportItems(/** @type {Partial<ImportItems>} */($$parsedSource));
+    }
+}
+
+/**
+ * NullString represents a nullable string from the database
+ */
+export class NullString {
+    /**
+     * Creates a new NullString instance.
+     * @param {Partial<NullString>} [$$source = {}] - The source object to create the NullString.
+     */
+    constructor($$source = {}) {
+        if (!("Valid" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["Valid"] = false;
+        }
+        if (!("String" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["String"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new NullString instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {NullString}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new NullString(/** @type {Partial<NullString>} */($$parsedSource));
+    }
+}
+
+export class ProfileUpdateData {
+    /**
+     * Creates a new ProfileUpdateData instance.
+     * @param {Partial<ProfileUpdateData>} [$$source = {}] - The source object to create the ProfileUpdateData.
+     */
+    constructor($$source = {}) {
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["first_name"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["last_name"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["username"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["email"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["bio"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["location"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | null | undefined}
+             */
+            this["country_id"] = null;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | null | undefined}
+             */
+            this["gender_id"] = null;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["artstation_link"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["behance_link"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["instagram_link"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["x_link"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["linkedin_link"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["github_link"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["portfolio_link"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["reel_url"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["job_title"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["company"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number | undefined}
+             */
+            this["years_experience"] = 0;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number | undefined}
+             */
+            this["hourly_rate"] = 0;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["availability"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["profile_visibility"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ProfileUpdateData instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ProfileUpdateData}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ProfileUpdateData(/** @type {Partial<ProfileUpdateData>} */($$parsedSource));
     }
 }
 
@@ -640,6 +930,174 @@ export class RecycleItem {
     }
 }
 
+export class Skill {
+    /**
+     * Creates a new Skill instance.
+     * @param {Partial<Skill>} [$$source = {}] - The source object to create the Skill.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("category" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["category"] = "";
+        }
+        if (!("icon" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["icon"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Skill instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Skill}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Skill(/** @type {Partial<Skill>} */($$parsedSource));
+    }
+}
+
+export class SkillData {
+    /**
+     * Creates a new SkillData instance.
+     * @param {Partial<SkillData>} [$$source = {}] - The source object to create the SkillData.
+     */
+    constructor($$source = {}) {
+        if (!("skill_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["skill_id"] = "";
+        }
+        if (!("proficiency_level" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["proficiency_level"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SkillData instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {SkillData}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new SkillData(/** @type {Partial<SkillData>} */($$parsedSource));
+    }
+}
+
+export class Tool {
+    /**
+     * Creates a new Tool instance.
+     * @param {Partial<Tool>} [$$source = {}] - The source object to create the Tool.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("category" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["category"] = "";
+        }
+        if (!("logo" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["logo"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Tool instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Tool}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Tool(/** @type {Partial<Tool>} */($$parsedSource));
+    }
+}
+
+export class ToolData {
+    /**
+     * Creates a new ToolData instance.
+     * @param {Partial<ToolData>} [$$source = {}] - The source object to create the ToolData.
+     */
+    constructor($$source = {}) {
+        if (!("tool_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["tool_id"] = "";
+        }
+        if (!("proficiency_level" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["proficiency_level"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ToolData instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ToolData}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ToolData(/** @type {Partial<ToolData>} */($$parsedSource));
+    }
+}
+
 export class UntrackedItems {
     /**
      * Creates a new UntrackedItems instance.
@@ -683,6 +1141,417 @@ export class UntrackedItems {
     }
 }
 
+/**
+ * Profile response types
+ */
+export class UserProfile {
+    /**
+     * Creates a new UserProfile instance.
+     * @param {Partial<UserProfile>} [$$source = {}] - The source object to create the UserProfile.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * Basic info
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("first_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["first_name"] = "";
+        }
+        if (!("last_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["last_name"] = "";
+        }
+        if (!("username" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["username"] = "";
+        }
+        if (!("email" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["email"] = "";
+        }
+        if (!("photo" in $$source)) {
+            /**
+             * Can be []byte or string
+             * @member
+             * @type {any}
+             */
+            this["photo"] = null;
+        }
+        if (!("bio" in $$source)) {
+            /**
+             * Extended profile
+             * @member
+             * @type {string}
+             */
+            this["bio"] = "";
+        }
+        if (!("location" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["location"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {NullString | null | undefined}
+             */
+            this["country_id"] = null;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {NullString | null | undefined}
+             */
+            this["gender_id"] = null;
+        }
+        if (!("date_of_birth" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["date_of_birth"] = "";
+        }
+        if (!("availability" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["availability"] = "";
+        }
+        if (!("profile_visibility" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["profile_visibility"] = "";
+        }
+        if (!("job_title" in $$source)) {
+            /**
+             * Professional info
+             * @member
+             * @type {string}
+             */
+            this["job_title"] = "";
+        }
+        if (!("company" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["company"] = "";
+        }
+        if (!("years_experience" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["years_experience"] = 0;
+        }
+        if (!("hourly_rate" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["hourly_rate"] = 0;
+        }
+        if (!("artstation_link" in $$source)) {
+            /**
+             * Individual link fields from backend
+             * @member
+             * @type {string}
+             */
+            this["artstation_link"] = "";
+        }
+        if (!("behance_link" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["behance_link"] = "";
+        }
+        if (!("instagram_link" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["instagram_link"] = "";
+        }
+        if (!("x_link" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["x_link"] = "";
+        }
+        if (!("linkedin_link" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["linkedin_link"] = "";
+        }
+        if (!("github_link" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["github_link"] = "";
+        }
+        if (!("portfolio_link" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["portfolio_link"] = "";
+        }
+        if (!("reel_url" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["reel_url"] = "";
+        }
+        if (!("tools" in $$source)) {
+            /**
+             * Collections
+             * @member
+             * @type {UserTool[]}
+             */
+            this["tools"] = [];
+        }
+        if (!("skills" in $$source)) {
+            /**
+             * @member
+             * @type {UserSkill[]}
+             */
+            this["skills"] = [];
+        }
+        if (!("studios" in $$source)) {
+            /**
+             * @member
+             * @type {UserStudio[]}
+             */
+            this["studios"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new UserProfile instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {UserProfile}
+     */
+    static createFrom($$source = {}) {
+        const $$createField8_0 = $$createType7;
+        const $$createField9_0 = $$createType7;
+        const $$createField25_0 = $$createType9;
+        const $$createField26_0 = $$createType11;
+        const $$createField27_0 = $$createType13;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("country_id" in $$parsedSource) {
+            $$parsedSource["country_id"] = $$createField8_0($$parsedSource["country_id"]);
+        }
+        if ("gender_id" in $$parsedSource) {
+            $$parsedSource["gender_id"] = $$createField9_0($$parsedSource["gender_id"]);
+        }
+        if ("tools" in $$parsedSource) {
+            $$parsedSource["tools"] = $$createField25_0($$parsedSource["tools"]);
+        }
+        if ("skills" in $$parsedSource) {
+            $$parsedSource["skills"] = $$createField26_0($$parsedSource["skills"]);
+        }
+        if ("studios" in $$parsedSource) {
+            $$parsedSource["studios"] = $$createField27_0($$parsedSource["studios"]);
+        }
+        return new UserProfile(/** @type {Partial<UserProfile>} */($$parsedSource));
+    }
+}
+
+export class UserSkill {
+    /**
+     * Creates a new UserSkill instance.
+     * @param {Partial<UserSkill>} [$$source = {}] - The source object to create the UserSkill.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("skill_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["skill_id"] = "";
+        }
+        if (!("skill_name" in $$source)) {
+            /**
+             * Backend returns skill_name
+             * @member
+             * @type {string}
+             */
+            this["skill_name"] = "";
+        }
+        if (!("skill_category" in $$source)) {
+            /**
+             * Backend returns skill_category
+             * @member
+             * @type {string}
+             */
+            this["skill_category"] = "";
+        }
+        if (!("proficiency_level" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["proficiency_level"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new UserSkill instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {UserSkill}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new UserSkill(/** @type {Partial<UserSkill>} */($$parsedSource));
+    }
+}
+
+export class UserStudio {
+    /**
+     * Creates a new UserStudio instance.
+     * @param {Partial<UserStudio>} [$$source = {}] - The source object to create the UserStudio.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("role" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["role"] = "";
+        }
+        if (!("logo" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["logo"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new UserStudio instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {UserStudio}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new UserStudio(/** @type {Partial<UserStudio>} */($$parsedSource));
+    }
+}
+
+export class UserTool {
+    /**
+     * Creates a new UserTool instance.
+     * @param {Partial<UserTool>} [$$source = {}] - The source object to create the UserTool.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("tool_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["tool_id"] = "";
+        }
+        if (!("tool_name" in $$source)) {
+            /**
+             * Backend returns tool_name
+             * @member
+             * @type {string}
+             */
+            this["tool_name"] = "";
+        }
+        if (!("tool_category" in $$source)) {
+            /**
+             * Backend returns tool_category
+             * @member
+             * @type {string}
+             */
+            this["tool_category"] = "";
+        }
+        if (!("proficiency_level" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["proficiency_level"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new UserTool instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {UserTool}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new UserTool(/** @type {Partial<UserTool>} */($$parsedSource));
+    }
+}
+
 // Private type creation functions
 const $$createType0 = AssetStateItem.createFrom;
 const $$createType1 = $Create.Array($$createType0);
@@ -690,3 +1559,11 @@ const $$createType2 = $Create.Array($Create.Any);
 const $$createType3 = $Create.Array($Create.Any);
 const $$createType4 = $Create.Array($Create.Any);
 const $$createType5 = $Create.Array($Create.Any);
+const $$createType6 = NullString.createFrom;
+const $$createType7 = $Create.Nullable($$createType6);
+const $$createType8 = UserTool.createFrom;
+const $$createType9 = $Create.Array($$createType8);
+const $$createType10 = UserSkill.createFrom;
+const $$createType11 = $Create.Array($$createType10);
+const $$createType12 = UserStudio.createFrom;
+const $$createType13 = $Create.Array($$createType12);
