@@ -84,6 +84,10 @@ func (p *ProjectService) ApplyTemplate(projectPath, templateName string) error {
 	return nil
 }
 
+func (p *ProjectService) ResetDefaultTemplates() error {
+	return repository.ResetDefaultTemplates()
+}
+
 func (p *ProjectService) ToggleCloseProject(projectUri, studioName string) error {
 	user, err := auth_service.GetActiveUser()
 	if err != nil {

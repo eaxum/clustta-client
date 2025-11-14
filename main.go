@@ -1,6 +1,7 @@
 package main
 
 import (
+	"clustta/internal/repository"
 	"clustta/internal/settings"
 	"clustta/services"
 	"embed"
@@ -288,6 +289,18 @@ func main() {
 				log.Printf("Failed to initialize bookmarks: %v", err)
 			}
 		}
+	}
+
+	// Initialize default project templates on startup
+	// This creates predefined templates if they don't exist yet
+	// Pass nil to attempt getting the active user (templates will be created when user logs in)
+	err = repository.InitializeDefaultTemplates(nil)
+	if err != nil {
+		log.Printf("Warning: Failed to initialize default templates: %v", err)
+		// Don't fail the app if templates can't be initialized
+		// User can still create projects without templates
+	} else {
+		log.Println("Default project templates initialized successfully")
 	}
 
 	// Run the application. This blocks until the application has been exited.

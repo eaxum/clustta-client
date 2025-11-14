@@ -227,6 +227,14 @@ export function Rename(projectUri, studioName, newName) {
 }
 
 /**
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function ResetDefaultTemplates() {
+    let $resultPromise = /** @type {any} */($Call.ByID(2733819533));
+    return $resultPromise;
+}
+
+/**
  * @param {string} projectUri
  * @param {string} studioName
  * @param {string[]} ignoreList

@@ -33,18 +33,18 @@
             <div v-if="projectTemplateStore.projectTemplates.length" class="settings-component-body">
 
                 <ScrollList v-if="projectTemplateStore.taskTemplates.length && activeTemplateContext === 'Templates'"
-                    :items="projectTemplateStore.taskTemplates" :customIcons="true" :useItemId="true" :wrapItems="true"
+                    :items="assetTemplates" :customIcons="true" :useItemId="true" :wrapItems="true"
                     :editItems="true" :editListItem="prepEditTemplate" :deleteItems="true"
                     :deleteListItem="deleteTaskTemplate" />
 
-                <ScrollList v-else-if="projectTemplateStore.assetTypes.length && activeTemplateContext === 'Task types'"
-                    :items="projectTemplateStore.assetTypes" :useIcons="true" :useItemId="true" :wrapItems="true"
+                <ScrollList v-else-if="projectTemplateStore.assetTypes.length && activeTemplateContext === 'Asset types'"
+                    :items="assetTypes" :useIcons="true" :useItemId="true" :wrapItems="true"
                     :editItems="true" :editListItem="prepEditTaskType" :deleteItems="true"
                     :deleteListItem="deleteTaskType" />
 
                 <ScrollList
                     v-else-if="projectTemplateStore.collectionTypes.length && activeTemplateContext === 'Collection types'"
-                    :items="projectTemplateStore.collectionTypes" :useIcons="true" :useItemId="true" :wrapItems="true"
+                    :items="collectionTypes" :useIcons="true" :useItemId="true" :wrapItems="true"
                     :editItems="true" :editListItem="prepEditEntityType" :deleteItems="true"
                     :deleteListItem="deleteEntityType" />
 
@@ -119,6 +119,42 @@ const ignoreList = ref([])
 const templateContexts = computed(() => {
     return settings.templateContexts
 });
+
+const assetTemplates = computed(() => {
+
+    let taskTemplates = projectTemplateStore.taskTemplates;
+    const allTypes =  taskTemplates.map(type => ({
+    ...type,
+    can_delete: true,
+    can_edit: true,
+  }));
+
+  return allTypes
+})
+
+const assetTypes = computed(() => {
+
+    let assetTypes = projectTemplateStore.assetTypes;
+    const allTypes =  assetTypes.map(type => ({
+    ...type,
+    can_delete: true,
+    can_edit: true,
+  }));
+
+  return allTypes
+})
+
+const collectionTypes = computed(() => {
+
+    let collectionTypes = projectTemplateStore.collectionTypes;
+    const allTypes =  collectionTypes.map(type => ({
+    ...type,
+    can_delete: true,
+    can_edit: true,
+  }));
+
+  return allTypes
+})
 
 const templateContextNames = computed(() => {
     return settings.templateContexts.map((context) => context.name)
