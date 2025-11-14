@@ -14,46 +14,32 @@
             </div>
             
             <ActionButton 
-              v-if="!isEditing" 
               :iconAfter="true" 
-              :icon="getAppIcon('edit')"
-              label="Edit Profile" 
-              @click="startEditing"
-                :useOutline="true"
+              :icon="getAppIcon('key')"
+              label="Change Password" 
+              @click="toggleSectionEdit('password')"
+              :useOutline="true"
             />
-            <div v-else class="button-group">
-              <ActionButton 
-                :color="'crimson'" 
-                :iconAfter="true" 
-                :icon="getAppIcon('close-circle')" 
-                label="Cancel"
-                @click="cancelEditing"
-                :useOutline="true"
-              />
-              <ActionButton 
-                :isDisabled="!isDataValid"  
-                :iconAfter="true" 
-                :icon="getAppIcon('check-circle')"
-                label="Save Changes" 
-                @click="handleUpdate"
-                :useOutline="true"
-              />
-            </div>
           </div>
 
           <!-- Header Card -->
-          <ProfileCard>
+          <ProfileCard 
+            title="Profile Information"
+            :showEditButton="true"
+            :isEditing="editingSections.header"
+            @toggleEdit="toggleSectionEdit('header')"
+          >
             <div class="header-layout">
               <ProfileAvatar
                 :userPhoto="userPhoto"
                 :avatarColor="profileColor"
-                :isEditing="isEditing"
+                :isEditing="editingSections.header"
                 @photoChanged="handlePhotoChange"
                 @photoRemoved="removePhoto"
               />
               
               <div class="header-info">
-                <div v-if="isEditing" class="edit-mode-fields">
+                <div v-if="editingSections.header" class="edit-mode-fields">
                   <div class="form-row">
                     <FormInput
                       v-model="formData.first_name"
@@ -71,7 +57,7 @@
                     v-model="formData.username"
                     @input="checkUsername"
                     label="Username"
-                    :disabled="!isEditing"
+                    :disabled="!editingSections.header"
                     :showValidation="!!formData.username"
                     :error="errors.username"
                     :loading="checkingUsernameAvailability"
@@ -83,7 +69,7 @@
                     @input="checkEmail"
                     label="Email"
                     type="email"
-                    :disabled="!isEditing"
+                    :disabled="!editingSections.header"
                     :showValidation="!!formData.email"
                     :error="errors.email"
                     :loading="checkingEmailAvailability"
@@ -92,8 +78,8 @@
                   
                   <!-- Professional Info in Edit Mode -->
                   <FormInput 
-                    v-model="formData.title"
-                    label="Professional Title"
+                    v-model="formData.bio"
+                    label="Bio"
                     placeholder="e.g., 3D Artist & Animator"
                   />
                   <FormInput
@@ -116,7 +102,7 @@
                   <div class="links-section">
                     <LinksManager
                       :links="formData.links"
-                      :isEditing="isEditing"
+                      :isEditing="editingSections.header"
                       @update:links="updateLinks"
                     />
                   </div>
@@ -124,7 +110,7 @@
                 
                 <div v-else class="display-mode-fields">
                   <div class="profile-name">{{ fullName }}</div>
-                  <div v-if="formData.title" class="profile-title">{{ formData.title }}</div>
+                  <div v-if="formData.bio" class="profile-title">{{ formData.bio }}</div>
                   
                   <div class="meta-info">
                     <div v-if="formData.country" class="info-item">
@@ -142,7 +128,7 @@
                   <div class="social-links">
                     <LinksManager
                       :links="formData.links"
-                      :isEditing="isEditing"
+                      :isEditing="editingSections.header"
                       @update:links="updateLinks"
                     />
                   </div>
@@ -182,27 +168,42 @@
           </ProfileCard>
 
           <!-- Skills Card -->
-          <ProfileCard title="Skills">
+          <ProfileCard 
+            title="Skills"
+            :showEditButton="true"
+            :isEditing="editingSections.skills"
+            @toggleEdit="toggleSectionEdit('skills')"
+          >
             <SkillsManager
               :skills="formData.skills"
-              :isEditing="isEditing"
-              @skillAdded="addSkill"
-              @skillRemoved="removeSkill"
+              :allSkills="allSkills"
+              :isEditing="editingSections.skills"
             />
           </ProfileCard>
 
           <!-- Tools & Software Card -->
-          <ProfileCard title="Tools & Software">
+          <ProfileCard 
+            title="Tools & Software"
+            :showEditButton="true"
+            :isEditing="editingSections.tools"
+            @toggleEdit="toggleSectionEdit('tools')"
+          >
             <ToolsManager
               :tools="formData.tools"
-              :isEditing="isEditing"
-              @toolAdded="addTool"
-              @toolRemoved="removeTool"
+              :allTools="allTools"
+              :isEditing="editingSections.tools"
             />
           </ProfileCard>
 
           <!-- Change Password Card -->
-          <ProfileCard v-if="isEditing" title="Change Password">
+          <ProfileCard 
+            ref="passwordCard"
+            v-if="editingSections.password"
+            title="Change Password"
+            :showEditButton="true"
+            :isEditing="editingSections.password"
+            @toggleEdit="toggleSectionEdit('password')"
+          >
             <div class="change-password-section">
               <FormInput
                 v-model="passwordData.currentPassword"
@@ -236,12 +237,12 @@
           </ProfileCard>
 
           <!-- Activity Card -->
-          <ProfileCard v-if="!isEditing" title="Activity">
+          <ProfileCard v-if="!isAnyEditMode" title="Activity">
             <ContributionGraph />
           </ProfileCard>
 
           <!-- Danger Zone -->
-          <ProfileCard v-if="!isEditing" title="Danger Zone">
+          <ProfileCard v-if="!isAnyEditMode" title="Danger Zone">
             <div class="danger-zone">
               <p class="danger-message">
                 Once you delete your account, there is no going back. Please be certain.
@@ -259,16 +260,39 @@
 
         </div>
       </div>
+      
+      <!-- Floating Action Buttons -->
+      <!-- Only show for sections that need explicit saving (header, password) -->
+      <!-- Skills and tools are saved immediately via API -->
+      <div v-if="needsSaveButton" class="floating-actions">
+        <ActionButton 
+          :color="'crimson'" 
+          :iconAfter="true" 
+          :icon="getAppIcon('close-circle')" 
+          label="Cancel"
+          @click="cancelAllEdits"
+          :useOutline="true"
+        />
+        <ActionButton 
+          :isDisabled="!isDataValid"  
+          :iconAfter="true" 
+          :icon="getAppIcon('check-circle')"
+          label="Save Changes" 
+          @click="saveAllChanges"
+          :useBackground="true"
+        />
+      </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onBeforeMount } from 'vue';
-import { AuthService } from "@/../bindings/clustta/services";
+import { ref, reactive, computed, onBeforeMount, nextTick } from 'vue';
+import { AuthService, ProfileService } from "@/../bindings/clustta/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useIconStore } from '@/stores/icons';
 import { useUserStore } from '@/stores/users';
+import { useProfileStore } from '@/stores/profile';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useTrayStates } from '@/stores/TrayStates';
 
@@ -287,6 +311,7 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const userStore = useUserStore();
+const profileStore = useProfileStore();
 const trayStates = useTrayStates();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
@@ -299,13 +324,26 @@ const isEditing = ref(false);
 const photoInput = ref(null);
 const photoPreview = ref(null);
 const currentPhoto = ref(null);
+const passwordCard = ref(null);
 const checkingEmailAvailability = ref(false);
 const checkingUsernameAvailability = ref(false);
-const profileVisibility = ref(true);
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const userNameRegex = /^[a-zA-Z0-9_]{3,}$/;
 const isEmailTaken = ref(false);
 const isUsernameTaken = ref(false);
+
+// Section-specific edit states
+const editingSections = reactive({
+  header: false,
+  studios: false,
+  skills: false,
+  tools: false,
+  password: false
+});
+
+// Reference data (for dropdowns/pickers)
+const allSkills = ref([]);
+const allTools = ref([]);
 
 // Password Change Data
 const passwordData = reactive({
@@ -319,35 +357,10 @@ const passwordErrors = reactive({
   confirmPassword: ''
 });
 
-// Form Data
-const formData = reactive({
-  first_name: '',
-  last_name: '',
-  username: '',
-  email: 'taiwofolu@eaxum.com',
-  title: 'Pixel Pusher',
-  country: 'Nigeria',
-  availability: 'Available for Freelance',
-  links: {
-    behance: 'https://behance.net',
-    artstation: 'https://artstation.com',
-    portfolio: '',
-    linkedin: ''
-  },
-  skills: [
-    { name: '3D Modeling', icon: 'box' },
-    { name: 'Character Animation', icon: 'man-running' },
-    { name: 'Texturing', icon: 'palette' }
-  ],
-  tools: [
-    { name: 'Blender', logo: '' },
-    { name: 'Maya', logo: '' }
-  ],
-  studios: [
-    { id: '1', name: 'Pixar Animation Studios', role: '3D Animator', logo: '' },
-    { id: '2', name: 'DreamWorks Animation', role: 'Character Artist', logo: '' },
-    { id: '3', name: 'Blue Sky Studios', role: 'Technical Artist', logo: '' }
-  ]
+// Form Data - Using computed properties that read/write to profileStore
+const formData = computed({
+  get: () => profileStore.profile,
+  set: (value) => profileStore.updateProfileFields(value)
 });
 
 const errors = reactive({
@@ -365,7 +378,7 @@ const editableUserPhoto = reactive({
 const userData = computed(() => userStore.user);
 
 const fullName = computed(() => {
-  return `${formData.first_name} ${formData.last_name}`.trim() || 'User';
+  return `${formData.value.first_name} ${formData.value.last_name}`.trim() || 'User';
 });
 
 const profileColor = computed(() => {
@@ -377,20 +390,29 @@ const profileColor = computed(() => {
 });
 
 const usernameValid = computed(() => {
-  if (formData.username === userData.value?.username) return true;
-  return userNameRegex.test(formData.username);
+  if (formData.value.username === userData.value?.username) return true;
+  return userNameRegex.test(formData.value.username);
 });
 
 const emailValid = computed(() => {
-  return emailRegex.test(formData.email);
+  return emailRegex.test(formData.value.email);
 });
 
 const detailsInputed = computed(() => {
-  return formData.first_name && formData.last_name && formData.username && formData.email;
+  return formData.value.first_name && formData.value.last_name && formData.value.username && formData.value.email;
 });
 
 const credentialsValid = computed(() => {
   return emailValid.value && !isEmailTaken.value && usernameValid.value && !isUsernameTaken.value;
+});
+
+// Profile visibility as computed property
+const profileVisibility = computed({
+  get: () => profileStore.profile.profile_visibility === 'public',
+  set: (value) => {
+    const visibility = value ? 'public' : 'private';
+    profileStore.setProfileVisibility(visibility);
+  }
 });
 
 const isPasswordValid = computed(() => {
@@ -420,7 +442,7 @@ const isPasswordValid = computed(() => {
 
 const isDataChanged = computed(() => {
   const basicFieldsChanged = ['first_name', 'last_name', 'username', 'email', 'title', 'country', 'availability']
-    .some(key => formData[key] !== (userData.value?.[key] || ''));
+    .some(key => formData.value[key] !== (userData.value?.[key] || ''));
   
   return basicFieldsChanged || photoPreview.value;
 });
@@ -431,8 +453,19 @@ const isDataValid = computed(() => {
 
 const userPhoto = computed(() => {
   if (photoPreview.value) return photoPreview.value;
-  if (!userStore.user?.photo) return '/icons/default_profile_picture.svg';
-  return userStore.user.photo;
+  if (!profileStore.profile.photo) return '/icons/default_profile_picture.svg';
+  return profileStore.profile.photo;
+});
+
+// Check if any section is being edited
+const isAnyEditMode = computed(() => {
+  return Object.values(editingSections).some(value => value === true);
+});
+
+// Check if sections that require "Save" button are being edited
+// Skills and Tools are saved immediately, so they don't need the save button
+const needsSaveButton = computed(() => {
+  return editingSections.header || editingSections.password;
 });
 
 // Methods
@@ -444,12 +477,51 @@ const startEditing = () => {
   isEditing.value = true;
 };
 
-const cancelEditing = () => {
+const cancelEditing = async () => {
   isEditing.value = false;
-  populateData();
+  // Reload profile from server to discard changes
+  await loadUserProfile();
   photoPreview.value = null;
   error.value = '';
   success.value = '';
+};
+
+// Toggle section-specific editing
+const toggleSectionEdit = async (section) => {
+  editingSections[section] = !editingSections[section];
+  
+  // If opening password section, scroll to it after Vue updates the DOM
+  if (section === 'password' && editingSections[section]) {
+    await nextTick();
+    if (passwordCard.value && passwordCard.value.$el) {
+      passwordCard.value.$el.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+      });
+    }
+  }
+};
+
+// Save all changes from all edited sections
+const saveAllChanges = async () => {
+  await handleUpdate();
+  // Reset all section edit states
+  Object.keys(editingSections).forEach(key => {
+    editingSections[key] = false;
+  });
+};
+
+// Cancel all edits and reset
+const cancelAllEdits = async () => {
+  // Reload profile from server to discard changes
+  await loadUserProfile();
+  photoPreview.value = null;
+  error.value = '';
+  success.value = '';
+  // Reset all section edit states
+  Object.keys(editingSections).forEach(key => {
+    editingSections[key] = false;
+  });
 };
 
 const handlePhotoChange = (file, preview) => {
@@ -472,44 +544,65 @@ const handleUpdate = async () => {
   try {
     error.value = '';
     
-    await AuthService.UpdateUser(
-      formData.first_name, 
-      formData.last_name, 
-      formData.username, 
-      formData.email
-    ).then(async (updatedUserData) => {
-      // Update local data
-      Object.keys(userStore.user).forEach(key => {
-        if (updatedUserData[key]) {
-          userStore.user[key] = updatedUserData[key];
-        }
-      });
+    // Prepare update data with all editable fields (including links)
+    const updateData = {
+      first_name: formData.value.first_name,
+      last_name: formData.value.last_name,
+      username: formData.value.username,
+      email: formData.value.email,
+      job_title: formData.value.title,
+      location: formData.value.country,
+      availability: formData.value.availability,
+      bio: formData.value.bio,
+      // Include link fields from the links object
+      artstation_link: formData.value.links?.artstation || '',
+      behance_link: formData.value.links?.behance || '',
+      linkedin_link: formData.value.links?.linkedin || '',
+      portfolio_link: formData.value.links?.portfolio || '',
+    };
 
-      let longMessage = `Profile updated successfully.`;
-      notificationStore.addNotification("Profile updated.", longMessage, "success", true);
-      isEditing.value = false;
-    }).catch((error) => {
-      notificationStore.errorNotification("Failed to update profile.", error);
-    });
+    console.log(updateData)
+    // Update profile via Wails ProfileService
+    await ProfileService.UpdateUserProfile(userStore.user.id, updateData)
+      .then(() => {
+        // Only update stores if API call succeeds
+        profileStore.updateProfileFields(updateData);
+        
+        // Also update userStore with basic user info for consistency
+        Object.keys(userStore.user).forEach(key => {
+          if (updateData[key] !== undefined) {
+            userStore.user[key] = updateData[key];
+          }
+        });
+
+        notificationStore.addNotification(
+          "Profile updated.", 
+          "Profile updated successfully.", 
+          "success", 
+          true
+        );
+        isEditing.value = false;
+      });
     
   } catch (err) {
     error.value = err?.message || 'Failed to update profile';
+    notificationStore.errorNotification("Failed to update profile.", err?.message || err);
   }
 };
 
 const checkUsername = async () => {
-  const sameUsername = formData.username === userData.value?.username;
+  const sameUsername = formData.value.username === userData.value?.username;
   
   if (sameUsername) {
     isUsernameTaken.value = false;
     return;
   }
   
-  if (!formData.username) return;
+  if (!formData.value.username) return;
   checkingUsernameAvailability.value = true;
   
   try {
-    const usernameExist = await AuthService.CheckUsernameExists(formData.username.toLowerCase());
+    const usernameExist = await AuthService.CheckUsernameExists(formData.value.username.toLowerCase());
     if (usernameExist) {
       errors.username = 'Username is already taken';
       isUsernameTaken.value = true;
@@ -526,18 +619,18 @@ const checkUsername = async () => {
 };
 
 const checkEmail = async () => {
-  const sameEmail = formData.email === userData.value?.email;
+  const sameEmail = formData.value.email === userData.value?.email;
   
   if (sameEmail) {
     isEmailTaken.value = false;
     return;
   }
   
-  if (!formData.email || !emailValid.value) return;
+  if (!formData.value.email || !emailValid.value) return;
   checkingEmailAvailability.value = true;
   
   try {
-    const emailExist = await AuthService.CheckEmailExists(formData.email);
+    const emailExist = await AuthService.CheckEmailExists(formData.value.email);
     if (emailExist) {
       isEmailTaken.value = true;
       errors.email = 'Email is already registered';
@@ -554,9 +647,11 @@ const checkEmail = async () => {
 };
 
 const toggleAvailability = () => {
-  formData.availability = formData.availability === "Available for Freelance" 
-    ? "Not Available" 
-    : "Available for Freelance";
+  const currentAvailability = formData.value.availability;
+  const newAvailability = currentAvailability === "available" 
+    ? "not_looking" 
+    : "available";
+  profileStore.setAvailability(newAvailability);
 };
 
 const handlePasswordUpdate = async () => {
@@ -588,36 +683,38 @@ const handlePasswordUpdate = async () => {
   }
 };
 
-const toggleProfileVisibility = () => {
-  profileVisibility.value = !profileVisibility.value;
-  // TODO: Implement API call to save profile visibility setting
-  console.log('Profile visibility:', profileVisibility.value ? 'Public' : 'Private');
+const toggleProfileVisibility = async () => {
+  try {
+    // Toggle the visibility value
+    const newVisibility = profileVisibility.value ? 'private' : 'public';
+    
+    // Update via Wails ProfileService
+    await ProfileService.UpdateUserProfile(userStore.user.id, {
+      profile_visibility: newVisibility
+    });
+    
+    // Update local store
+    profileStore.setProfileVisibility(newVisibility);
+    
+    notificationStore.addNotification(
+      "Profile visibility updated", 
+      `Your profile is now ${newVisibility}.`, 
+      "success", 
+      false
+    );
+    
+  } catch (err) {
+    // Revert on error
+    console.error('Failed to update profile visibility:', err);
+    notificationStore.errorNotification(
+      "Failed to update profile visibility", 
+      err?.message || err
+    );
+  }
 };
 
 const updateLinks = (newLinks) => {
-  formData.links = { ...newLinks };
-};
-
-const addSkill = (skill) => {
-  formData.skills.push(skill);
-};
-
-const removeSkill = (skillName) => {
-  const index = formData.skills.findIndex(s => s.name === skillName);
-  if (index > -1) {
-    formData.skills.splice(index, 1);
-  }
-};
-
-const addTool = (tool) => {
-  formData.tools.push(tool);
-};
-
-const removeTool = (toolName) => {
-  const index = formData.tools.findIndex(t => t.name === toolName);
-  if (index > -1) {
-    formData.tools.splice(index, 1);
-  }
+  profileStore.updateLinks(newLinks);
 };
 
 const prepDeleteAccountModal = () => {
@@ -646,23 +743,63 @@ const deactivateUserAccount = async () => {
   }
 };
 
-const populateData = () => {
-  currentPhoto.value = userPhoto.value;
+const loadUserProfile = async () => {
+  if (!userStore.user?.id) {
+    console.error('No user ID available');
+    return;
+  }
   
-  Object.keys(formData).forEach(key => {
-    if (key !== 'skills' && key !== 'tools' && key !== 'links') {
-      if (userData.value?.[key]) {
-        formData[key] = userData.value[key];
-      }
-    }
-  });
+  try {
+    loading.value = true;
+    profileStore.setFetching(true);
+    
+    // Fetch complete profile from server using Wails binding
+    const profileData = await ProfileService.GetUserProfile(userStore.user.id);
+    
+    // Store in profileStore
+    profileStore.setProfile(profileData);
+    
+    currentPhoto.value = profileData.photo || userPhoto.value;
+    
+  } catch (err) {
+    console.error('Failed to load user profile:', err);
+    notificationStore.errorNotification(
+      "Failed to load profile", 
+      err?.message || err
+    );
+  } finally {
+    loading.value = false;
+    profileStore.setFetching(false);
+  }
+};
+
+const loadReferenceData = async () => {
+  try {
+    // Load all available skills and tools for the dropdowns
+    const [skillsData, toolsData] = await Promise.all([
+      ProfileService.GetAllSkills(),
+      ProfileService.GetAllTools()
+    ]);
+    
+    allSkills.value = skillsData || [];
+    allTools.value = toolsData || [];
+    
+  } catch (err) {
+    console.error('Failed to load reference data:', err);
+    // Don't show error notification for reference data - it's not critical
+  }
 };
 
 onBeforeMount(async () => {
   if (userStore.user) {
-    await populateData();
+    // Load profile and reference data in parallel
+    await Promise.all([
+      loadUserProfile(),
+      loadReferenceData()
+    ]);
+  } else {
+    loading.value = false;
   }
-  loading.value = false;
 });
 </script>
 
@@ -946,6 +1083,41 @@ onBeforeMount(async () => {
   font-size: 0.875rem;
 }
 
+/* Floating Action Buttons */
+.floating-actions {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, var(--black-steel) 0%, var(--dark-steel) 100%);
+  border-radius: 50px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+  animation: slideUp 0.3s ease-out;
+  backdrop-filter: blur(10px);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.floating-actions:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .form-row {
@@ -954,6 +1126,15 @@ onBeforeMount(async () => {
   
   .user-profile-container {
     padding: 0.5rem;
+  }
+  
+  .floating-actions {
+    bottom: 1rem;
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: calc(100% - 2rem);
   }
 }
 </style>

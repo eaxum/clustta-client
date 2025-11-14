@@ -37,7 +37,7 @@
               class="item-suggestion" 
               @click="addItem(item)"
             >
-              <img v-if="item.icon" class="small-icons" :src="getAppIcon(item.icon)" alt="">
+              <img class="small-icons" :src="getItemIcon(item)" alt="">
               <div class="item-meta">
                 <div class="item-suggestion-name">{{ item.name }}</div>
                 <div v-if="item.category" class="item-suggestion-category">{{ item.category }}</div>
@@ -58,6 +58,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
+import { getToolLogo, getSkillIcon } from '@/utils/iconMappers';
 
 const iconStore = useIconStore();
 const menu = useMenu();
@@ -140,6 +141,23 @@ const filteredItems = computed(() => {
 // Methods
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
+};
+
+// Get icon/logo for an item based on itemType
+const getItemIcon = (item) => {
+  if (props.itemType === 'tool') {
+    // For tools, get the file icon logo
+    const toolName = item.tool_name || item.ToolName || item.name || '';
+    return getToolLogo(toolName);
+  } else if (props.itemType === 'skill') {
+    // For skills, get the thematic icon from iconStore
+    const skillName = item.skill_name || item.SkillName || item.name || '';
+    const category = item.skill_category || item.SkillCategory || item.category || '';
+    const iconName = getSkillIcon(skillName, category);
+    return iconStore.getAppIcon(iconName);
+  }
+  // Fallback for other item types
+  return item.icon ? iconStore.getAppIcon(item.icon) : null;
 };
 
 const addItem = (item) => {

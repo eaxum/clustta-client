@@ -7,8 +7,8 @@
         :key="skill.id"
         class="skill-badge"
       >
-        <img v-if="skill.icon" class="small-icons" :src="getAppIcon(skill.icon)" alt="">
-        <span class="skill-name">{{ skill.name }}</span>
+        <img class="small-icons" :src="getSkillIconPath(skill)" alt="">
+        <span class="skill-name">{{ skill.skill_name }}</span>
         <button
           v-if="isEditing"
           @click="removeSkill(skill)"
@@ -21,23 +21,37 @@
     </div>
     
     <!-- ItemSelector for adding new skills -->
-    <ItemSelector
-      v-if="isEditing"
-      :selectedItems="skills"
-      :allItems="allSkills"
-      :placeholder="'Search and add skills...'"
-      :itemType="'skill'"
-      @itemAdded="addSkill"
-    />
+    <div v-if="isEditing">
+      <ItemSelector
+        v-if="skills.length < 5"
+        :selectedItems="skills"
+        :allItems="allSkills"
+        :placeholder="'Search and add skills...'"
+        :itemType="'skill'"
+        @itemAdded="addSkill"
+      />
+      <div v-else class="limit-message">
+        <img :src="getAppIcon('info-circle')" alt="Info" class="limit-icon" />
+        <span>Maximum of 5 skills reached. Remove a skill to add another.</span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useIconStore } from '@/stores/icons';
+import { useUserStore } from '@/stores/users';
+import { useProfileStore } from '@/stores/profile';
+import { useNotificationStore } from '@/stores/notifications';
+import { ProfileService } from "@/../bindings/clustta/services";
 import ItemSelector from './ItemSelector.vue';
+import { getSkillIcon } from '@/utils/iconMappers';
 
 const iconStore = useIconStore();
+const userStore = useUserStore();
+const profileStore = useProfileStore();
+const notificationStore = useNotificationStore();
 
 const props = defineProps({
   skills: {
@@ -50,34 +64,43 @@ const props = defineProps({
   },
   allSkills: {
     type: Array,
-    default: () => [
-      { id: '1', name: '3D Modeling', category: 'Technical', icon: 'box' },
-      { id: '2', name: 'Character Animation', category: 'Artistic', icon: 'man-running' },
-      { id: '3', name: 'Texturing', category: 'Artistic', icon: 'palette' },
-      { id: '4', name: 'Rigging', category: 'Technical', icon: 'network' },
-      { id: '5', name: 'VFX', category: 'Artistic', icon: 'sparkles' },
-      { id: '6', name: 'Lighting', category: 'Technical', icon: 'bulb' },
-      { id: '7', name: 'Rendering', category: 'Technical', icon: 'bulb' },
-      { id: '8', name: 'Sculpting', category: 'Artistic', icon: 'palette' },
-      { id: '9', name: 'UV Mapping', category: 'Technical', icon: 'box' },
-      { id: '10', name: 'Motion Graphics', category: 'Artistic', icon: 'sparkles' },
-      { id: '11', name: 'Compositing', category: 'Technical', icon: 'layers' },
-      { id: '12', name: 'Concept Art', category: 'Artistic', icon: 'palette' },
-      { id: '13', name: 'Game Design', category: 'Management', icon: 'gamepad' },
-      { id: '14', name: 'Project Management', category: 'Management', icon: 'check-circle' },
-      { id: '15', name: 'Storyboarding', category: 'Artistic', icon: 'file' }
-    ]
+    default: () => []
   }
 });
 
-const emit = defineEmits(['skillAdded', 'skillRemoved']);
-
 const addSkill = (skill) => {
-  emit('skillAdded', skill);
+  ProfileService.AddUserSkill(userStore.user.id, {
+    skill_id: skill.id,
+    proficiency_level: skill.proficiency_level || 'intermediate'
+  })
+    .then(() => {
+      profileStore.addSkill(skill);
+      notificationStore.addNotification("Skill added", "Skill added successfully.", "success", false);
+    })
+    .catch((err) => {
+      notificationStore.errorNotification("Failed to add skill", err?.message || err);
+    });
 };
 
 const removeSkill = (skill) => {
-  emit('skillRemoved', skill.name);
+  console.log(skill)
+  ProfileService.RemoveUserSkill(userStore.user.id, skill.skill_id)
+    .then(() => {
+      profileStore.removeSkill(skill.id);
+      notificationStore.addNotification("Skill removed", "Skill removed successfully.", "success", false);
+    })
+    .catch((err) => {
+      notificationStore.errorNotification("Failed to remove skill", err?.message || err);
+    });
+};
+
+// Get skill icon path dynamically at render time
+const getSkillIconPath = (skill) => {
+  // Use the skill name and category to get the appropriate icon
+  const skillName = skill.skill_name;
+  const category = skill.skill_category;
+  const iconName = getSkillIcon(skillName, category);
+  return iconStore.getAppIcon(iconName);
 };
 
 const getAppIcon = (iconName) => {
@@ -148,5 +171,24 @@ const getAppIcon = (iconName) => {
 
 .skill-name {
   user-select: none;
+}
+
+.limit-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background-color: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: var(--normal-radius);
+  color: rgba(255, 193, 7, 0.9);
+  font-size: 0.875rem;
+}
+
+.limit-icon {
+  width: 16px;
+  height: 16px;
+  filter: invert(82%) sepia(89%) saturate(548%) hue-rotate(359deg) brightness(103%) contrast(98%);
+  flex-shrink: 0;
 }
 </style>

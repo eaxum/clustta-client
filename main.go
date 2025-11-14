@@ -93,6 +93,7 @@ func main() {
 			application.NewService(&services.FSService{}),
 			application.NewService(&services.ImportService{}),
 			application.NewService(&services.LogService{}),
+			application.NewService(&services.ProfileService{}),
 			application.NewService(&services.ProjectService{}),
 			application.NewService(&services.SettingsService{}),
 			application.NewService(&services.StatusService{}),
