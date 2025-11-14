@@ -1905,129 +1905,252 @@ func SetProjectPreviewSynced(tx *sqlx.Tx) error {
 	return nil
 }
 
+// TemplateData holds all data extracted from a project template
+type TemplateData struct {
+	TaskTypes      []models.TaskType
+	EntityTypes    []models.EntityType
+	IgnoreList     []string
+	TaskTemplates  []models.Template
+	ChunksInfo     []chunk_service.ChunkInfo
+	AllChunkHashes []string
+}
+
+// LoadProjectTemplateData loads template data into a newly created project.
+// It validates the template, extracts data, copies metadata, and transfers file chunks.
 func LoadProjectTemplateData(projectPath, templatePath string) error {
+	//Validate template exists
+	if !utils.FileExists(templatePath) {
+		return fmt.Errorf("template not found: %s", templatePath)
+	}
+
+	//Extract all template data (read-only operation)
+	templateData, err := extractTemplateData(templatePath)
+	if err != nil {
+		return fmt.Errorf("failed to extract template data: %w", err)
+	}
+
+	//Copy metadata to project and identify missing chunks
+	missingChunks, err := copyTemplateMetadata(projectPath, templateData)
+	if err != nil {
+		return fmt.Errorf("failed to copy template metadata: %w", err)
+	}
+
+	//Transfer file chunks from template to project
+	if len(missingChunks) > 0 {
+		err = transferTemplateChunks(projectPath, templatePath, templateData.ChunksInfo, missingChunks)
+		if err != nil {
+			return fmt.Errorf("failed to transfer chunks: %w", err)
+		}
+	}
+
+	//Add template definitions to project
+	err = addTemplateDefinitions(projectPath, templateData.TaskTemplates)
+	if err != nil {
+		return fmt.Errorf("failed to add template definitions: %w", err)
+	}
+
+	return nil
+}
+
+// extractTemplateData reads all necessary data from the template database.
+// This is a read-only operation that extracts types, ignore lists, and templates.
+func extractTemplateData(templatePath string) (*TemplateData, error) {
 	templateDbConn, err := utils.OpenDb(templatePath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer templateDbConn.Close()
+
 	templateTx, err := templateDbConn.Beginx()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer templateTx.Rollback()
 
-	templateTaskTypes, err := GetTaskTypes(templateTx)
+	// Extract task types (asset types)
+	taskTypes, err := GetTaskTypes(templateTx)
 	if err != nil {
-		return err
-	}
-	templateEntityTypes, err := GetEntityTypes(templateTx)
-	if err != nil {
-		return err
-	}
-	templateIgnoreList, err := GetIgnoreList(templateTx)
-	if err != nil {
-		return err
+		return nil, fmt.Errorf("failed to get task types: %w", err)
 	}
 
-	templateTaskTemplates, err := GetTemplates(templateTx, false)
+	// Extract entity types (collection types)
+	entityTypes, err := GetEntityTypes(templateTx)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("failed to get entity types: %w", err)
 	}
 
+	// Extract ignore list
+	ignoreList, err := GetIgnoreList(templateTx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ignore list: %w", err)
+	}
+
+	// Extract task templates
+	taskTemplates, err := GetTemplates(templateTx, false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get templates: %w", err)
+	}
+
+	// Collect all unique chunk hashes from templates
+	allChunkHashes := collectChunkHashes(taskTemplates)
+
+	// Get chunk info for all chunks
+	chunksInfo, err := chunk_service.GetChunksInfo(templateTx, allChunkHashes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get chunks info: %w", err)
+	}
+
+	return &TemplateData{
+		TaskTypes:      taskTypes,
+		EntityTypes:    entityTypes,
+		IgnoreList:     ignoreList,
+		TaskTemplates:  taskTemplates,
+		ChunksInfo:     chunksInfo,
+		AllChunkHashes: allChunkHashes,
+	}, nil
+}
+
+// copyTemplateMetadata copies metadata (types, ignore list) from template to project
+// and returns the list of chunks that need to be transferred.
+func copyTemplateMetadata(projectPath string, data *TemplateData) ([]string, error) {
+	projectDbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return nil, err
+	}
+	defer projectDbConn.Close()
+
+	projectTx, err := projectDbConn.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer projectTx.Rollback()
+
+	// Set ignore list
+	err = utils.SetProjectIgnoreList(projectTx, data.IgnoreList)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set ignore list: %w", err)
+	}
+
+	// Copy task types
+	for _, taskType := range data.TaskTypes {
+		_, err = GetOrCreateTaskType(projectTx, taskType.Name, taskType.Icon)
+		if err != nil {
+			if err.Error() == "UNIQUE constraint failed: task_type.icon" {
+				continue
+			}
+			return nil, fmt.Errorf("failed to create task type %s: %w", taskType.Name, err)
+		}
+	}
+
+	// Copy entity types
+	for _, entityType := range data.EntityTypes {
+		_, err = GetOrCreateEntityType(projectTx, entityType.Name, entityType.Icon)
+		if err != nil {
+			if err.Error() == "UNIQUE constraint failed: entity_type.icon" {
+				continue
+			}
+			return nil, fmt.Errorf("failed to create entity type %s: %w", entityType.Name, err)
+		}
+	}
+
+	// Identify missing chunks
+	missingChunks, err := chunk_service.GetNonExistingChunks(projectTx, data.AllChunkHashes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get non-existing chunks: %w", err)
+	}
+
+	// Commit all metadata changes
+	err = projectTx.Commit()
+	if err != nil {
+		return nil, fmt.Errorf("failed to commit metadata: %w", err)
+	}
+
+	return missingChunks, nil
+}
+
+// transferTemplateChunks copies file chunks from template to project.
+// Both databases are closed when this is called to avoid holding locks.
+func transferTemplateChunks(projectPath, templatePath string, chunksInfo []chunk_service.ChunkInfo, missingChunks []string) error {
+	err := chunk_service.PullChunks(
+		context.TODO(),
+		projectPath,
+		templatePath,
+		chunksInfo,
+		func(i1, i2 int, s1, s2 string) {
+			// Progress callback - currently unused
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("chunk transfer failed: %w", err)
+	}
+	return nil
+}
+
+// addTemplateDefinitions adds template metadata to the project database.
+func addTemplateDefinitions(projectPath string, taskTemplates []models.Template) error {
 	projectDbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
 	}
 	defer projectDbConn.Close()
+
 	projectTx, err := projectDbConn.Beginx()
 	if err != nil {
 		return err
 	}
 	defer projectTx.Rollback()
 
-	err = utils.SetProjectIgnoreList(projectTx, templateIgnoreList)
-	if err != nil {
-		return err
-	}
-
-	for _, templateTaskType := range templateTaskTypes {
-		_, err = GetOrCreateTaskType(projectTx, templateTaskType.Name, templateTaskType.Icon)
-		if err != nil {
-			if err.Error() == "UNIQUE constraint failed: task_type.icon" {
-				continue
-			}
-			return err
-		}
-	}
-	for _, templateEntityType := range templateEntityTypes {
-		_, err = GetOrCreateEntityType(projectTx, templateEntityType.Name, templateEntityType.Icon)
-		if err != nil {
-			if err.Error() == "UNIQUE constraint failed: entity_type.icon" {
-				continue
-			}
-			return err
-		}
-	}
-
-	chunks := []string{}
-	for _, taskTemplate := range templateTaskTemplates {
-		chunkHashes := strings.Split(taskTemplate.Chunks, ",")
-		for _, chunkHash := range chunkHashes {
-			if !utils.Contains(chunks, chunkHash) {
-				chunks = append(chunks, chunkHash)
-			}
-		}
-	}
-
-	missingChunks, err := chunk_service.GetNonExistingChunks(projectTx, chunks)
-	if err != nil {
-		return fmt.Errorf("failed to get missing chunks: %w", err)
-	}
-
-	ChunksInfo, err := chunk_service.GetChunksInfo(templateTx, chunks)
-	if err != nil {
-		return err
-	}
-
-	err = projectTx.Commit()
-	if err != nil {
-		return err
-	}
-	err = templateTx.Rollback()
-	if err != nil {
-		return err
-	}
-
-	if len(missingChunks) > 0 {
-		err = chunk_service.PullChunks(context.TODO(), projectPath, templatePath, ChunksInfo, func(i1, i2 int, s1, s2 string) {})
-		if err != nil {
-			return err
-		}
-	}
-
-	projectTx, err = projectDbConn.Beginx()
-	if err != nil {
-		return err
-	}
-	defer projectTx.Rollback()
-
-	for _, templateTaskTemplate := range templateTaskTemplates {
-		_, err := GetTemplateByName(projectTx, templateTaskTemplate.Name)
+	for _, template := range taskTemplates {
+		// Check if template already exists
+		_, err := GetTemplateByName(projectTx, template.Name)
 		if err == nil {
+			// Template already exists, skip
 			continue
 		}
-		_, err = AddTemplate(projectTx, templateTaskTemplate.Id, templateTaskTemplate.Name, templateTaskTemplate.Extension, templateTaskTemplate.Chunks, templateTaskTemplate.XxhashChecksum, templateTaskTemplate.FileSize)
-		if err != nil {
-			return err
-		}
 
+		// Add new template
+		_, err = AddTemplate(
+			projectTx,
+			template.Id,
+			template.Name,
+			template.Extension,
+			template.Chunks,
+			template.XxhashChecksum,
+			template.FileSize,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to add template %s: %w", template.Name, err)
+		}
 	}
 
 	err = projectTx.Commit()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to commit templates: %w", err)
 	}
 
 	return nil
+}
+
+// collectChunkHashes extracts all unique chunk hashes from a list of templates.
+func collectChunkHashes(templates []models.Template) []string {
+	chunkMap := make(map[string]bool)
+	for _, template := range templates {
+		if template.Chunks == "" {
+			continue
+		}
+		chunkHashes := strings.Split(template.Chunks, ",")
+		for _, hash := range chunkHashes {
+			trimmedHash := strings.TrimSpace(hash)
+			if trimmedHash != "" {
+				chunkMap[trimmedHash] = true
+			}
+		}
+	}
+
+	// Convert map to slice
+	chunks := make([]string, 0, len(chunkMap))
+	for hash := range chunkMap {
+		chunks = append(chunks, hash)
+	}
+	return chunks
 }

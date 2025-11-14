@@ -30,7 +30,7 @@
         </div>
       </div>
 
-      <div v-if="projectStore.selectedStudio.name === 'Personal' && projectTemplateStore.projectTemplates.length" class="input-section drop-down-box-section">
+      <div v-if="projectTemplateStore.projectTemplates.length" class="input-section drop-down-box-section">
         <DropDownBox :items="projectTemplateNames" :selectedItem="selectedProjectTemplate"
           :onSelect="selectProjectTemplate" />
       </div>
@@ -238,7 +238,47 @@ const cloneProject = async () => {
       projectStore.projects.find(p => p.name === projectName).working_directory = workingDirectory.value;
       projectStore.activeProject.working_directory = workingDirectory.value;
       console.log('Project cloned successfully')
+      
+      // Refresh project info to get local file path after cloning
       await projectStore.refreshProjects()
+      
+      // Get updated project info with local path
+      const updatedProject = projectStore.projects.find(p => p.name === projectName);
+      if (updatedProject) {
+        projectStore.activeProject = updatedProject;
+      }
+      
+      // Apply template if one was selected
+      if (selectedProjectTemplate.value && selectedProjectTemplate.value !== 'No Template') {
+        console.log('Applying template:', selectedProjectTemplate.value)
+        // Now use the updated project info which has the local .clst path
+        const localProjectPath = projectStore.activeProject.uri;
+        console.log('Local project path:', localProjectPath)
+        
+        await ProjectService.ApplyTemplate(localProjectPath, selectedProjectTemplate.value)
+          .then(async () => {
+
+            // Sync template changes back to server
+            const syncOptions = {
+              only_latest_checkpoints: false,
+              task_dependencies: false,
+              tasks: false,
+              templates: false,
+            };
+            await SyncService.SyncData(localProjectPath, projectUrl, false, syncOptions)
+              .then(() => {
+              })
+              .catch((error) => {
+                console.error('Failed to sync template changes:', error)
+                notificationStore.addNotification('Template applied locally but sync failed', 'warning')
+              })
+          })
+          .catch((error) => {
+            console.error('Failed to apply template:', error)
+            notificationStore.errorNotification('Failed to apply template', error)
+          })
+      }
+      
       await projectStore.refreshProjectsPreview()
     }).catch((error) => {
       console.error(error)
