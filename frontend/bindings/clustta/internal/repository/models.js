@@ -139,6 +139,13 @@ export class ProjectInfo {
              */
             this["working_directory"] = "";
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["location_id"] = "";
+        }
         if (!("remote" in $$source)) {
             /**
              * @member
@@ -219,10 +226,10 @@ export class ProjectInfo {
      * @returns {ProjectInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField17_0 = $$createType0;
+        const $$createField18_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("ignore_list" in $$parsedSource) {
-            $$parsedSource["ignore_list"] = $$createField17_0($$parsedSource["ignore_list"]);
+            $$parsedSource["ignore_list"] = $$createField18_0($$parsedSource["ignore_list"]);
         }
         return new ProjectInfo(/** @type {Partial<ProjectInfo>} */($$parsedSource));
     }

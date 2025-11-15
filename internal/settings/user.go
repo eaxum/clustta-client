@@ -23,6 +23,15 @@ type Studio struct {
 	Users  []models.StudioUserInfo
 }
 
+type ProjectLocation struct {
+	ID         string   `json:"id"`
+	Name       string   `json:"name"`
+	Path       string   `json:"path"`
+	Bookmark   []byte   `json:"bookmark,omitempty"`
+	IsDefault  bool     `json:"is_default"`
+	ProjectIDs []string `json:"project_ids"`
+}
+
 type Settings struct {
 	IconScheme      string `json:"icon_scheme"`
 	Theme           string `json:"theme"`
@@ -37,8 +46,11 @@ type Settings struct {
 	SharedProjectsDir         string `json:"shared_projects_dir"`
 	SharedProjectsDirBookmark []byte `json:"shared_projects_dir_bookmark,omitempty"`
 
-	WorkingDir         string `json:"working_dir"`
-	WorkingDirBookmark []byte `json:"working_dir_bookmark,omitempty"`
+	WorkingDir         string `json:"working_dir,omitempty"`          // Deprecated: Use ProjectLocations instead
+	WorkingDirBookmark []byte `json:"working_dir_bookmark,omitempty"` // Deprecated: Use ProjectLocations instead
+
+	ProjectLocations  []ProjectLocation `json:"project_locations"`
+	DefaultLocationID string            `json:"default_location_id"`
 
 	PinnedProjects map[string][]string      `json:"pinned_projects"`
 	RecentProjects map[string][]string      `json:"recent_projects"`
@@ -438,44 +450,55 @@ func SetSharedProjectDirectory(dir string) error {
 	return saveSettings(settings)
 }
 
+// GetWorkingDirectory returns the default location path (for backward compatibility)
+// Deprecated: Use GetDefaultLocation() instead
 func GetWorkingDirectory() (string, error) {
-	settings, err := loadUserSettings()
+	defaultLoc, err := GetDefaultLocation()
 	if err != nil {
-		return "", err
-	}
+		// Fallback to old behavior if no locations configured
+		settings, err := loadUserSettings()
+		if err != nil {
+			return "", err
+		}
 
-	if runtime.GOOS == "darwin" {
-		if len(settings.WorkingDirBookmark) > 0 && !IsBookmarkStale(settings.WorkingDirBookmark) {
-			resolvedPath, err := ResolveBookmark(settings.WorkingDirBookmark)
-			if err == nil {
-				// Verify the resolved path still exists
-				if _, err := os.Stat(resolvedPath); err == nil {
-					return resolvedPath, nil
+		if runtime.GOOS == "darwin" {
+			if len(settings.WorkingDirBookmark) > 0 && !IsBookmarkStale(settings.WorkingDirBookmark) {
+				resolvedPath, err := ResolveBookmark(settings.WorkingDirBookmark)
+				if err == nil {
+					if _, err := os.Stat(resolvedPath); err == nil {
+						return resolvedPath, nil
+					}
 				}
 			}
-			log.Printf("Failed to resolve working directory bookmark, falling back to stored path: %v", err)
 		}
-	}
 
-	return settings.WorkingDir, nil
+		return settings.WorkingDir, nil
+	}
+	return defaultLoc.Path, nil
 }
 
+// SetWorkingDirectory is deprecated but kept for compatibility during migration
+// Deprecated: Use AddProjectLocation() and SetDefaultLocation() instead
 func SetWorkingDirectory(dir string) error {
+	// This now adds/updates the default location
 	settings, err := loadUserSettings()
 	if err != nil {
 		return err
 	}
 
-	if runtime.GOOS == "darwin" {
-		bookmarkData, err := CreateBookmarkFromPath(dir)
-		if err != nil {
-			log.Printf("Failed to create bookmark for working directory %s: %v", dir, err)
-		}
-		settings.WorkingDirBookmark = bookmarkData
+	if len(settings.ProjectLocations) == 0 {
+		// No locations yet, create first one
+		_, err := AddProjectLocation("Default", dir)
+		return err
 	}
 
-	settings.WorkingDir = dir
-	return saveSettings(settings)
+	// Update default location
+	defaultLoc, err := GetDefaultLocation()
+	if err != nil {
+		return err
+	}
+
+	return UpdateProjectLocation(defaultLoc.ID, defaultLoc.Name, dir)
 }
 
 func ToggleProjectGridView() error {
@@ -758,4 +781,440 @@ func RemoveProjectWorkspace(projectId string, workspaceName string) error {
 	}
 	settings.WorkSpaces[projectId] = projectWorkspaces
 	return saveSettings(settings)
+}
+
+// ========== Project Location Management ==========
+
+// GetAllLocationPaths returns all configured project locations
+func GetAllLocationPaths() ([]ProjectLocation, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return []ProjectLocation{}, err
+	}
+
+	// Auto-migrate if needed
+	if len(settings.ProjectLocations) == 0 && settings.WorkingDir != "" {
+		err = migrateWorkingDirectory()
+		if err != nil {
+			return []ProjectLocation{}, err
+		}
+		// Reload settings after migration
+		settings, err = loadUserSettings()
+		if err != nil {
+			return []ProjectLocation{}, err
+		}
+	}
+
+	// Resolve bookmarks on macOS
+	if runtime.GOOS == "darwin" {
+		for i := range settings.ProjectLocations {
+			if len(settings.ProjectLocations[i].Bookmark) > 0 && !IsBookmarkStale(settings.ProjectLocations[i].Bookmark) {
+				resolvedPath, err := ResolveBookmark(settings.ProjectLocations[i].Bookmark)
+				if err == nil {
+					if _, err := os.Stat(resolvedPath); err == nil {
+						settings.ProjectLocations[i].Path = resolvedPath
+					}
+				}
+			}
+		}
+	}
+
+	return settings.ProjectLocations, nil
+}
+
+// GetDefaultLocation returns the default project location
+func GetDefaultLocation() (ProjectLocation, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return ProjectLocation{}, err
+	}
+
+	// Auto-migrate if needed
+	if len(settings.ProjectLocations) == 0 && settings.WorkingDir != "" {
+		err = migrateWorkingDirectory()
+		if err != nil {
+			return ProjectLocation{}, err
+		}
+		settings, err = loadUserSettings()
+		if err != nil {
+			return ProjectLocation{}, err
+		}
+	}
+
+	// Find default location
+	for _, loc := range settings.ProjectLocations {
+		if loc.IsDefault {
+			// Resolve bookmark on macOS
+			if runtime.GOOS == "darwin" {
+				if len(loc.Bookmark) > 0 && !IsBookmarkStale(loc.Bookmark) {
+					resolvedPath, err := ResolveBookmark(loc.Bookmark)
+					if err == nil {
+						if _, err := os.Stat(resolvedPath); err == nil {
+							loc.Path = resolvedPath
+						}
+					}
+				}
+			}
+			return loc, nil
+		}
+	}
+
+	// If no default found but locations exist, return first one
+	if len(settings.ProjectLocations) > 0 {
+		return settings.ProjectLocations[0], nil
+	}
+
+	return ProjectLocation{}, fmt.Errorf("no project locations configured")
+}
+
+// AddProjectLocation adds a new project location
+func AddProjectLocation(name, path string) (ProjectLocation, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return ProjectLocation{}, err
+	}
+
+	// Initialize if needed
+	if settings.ProjectLocations == nil {
+		settings.ProjectLocations = []ProjectLocation{}
+	}
+
+	// Check for duplicate paths
+	for _, loc := range settings.ProjectLocations {
+		if loc.Path == path {
+			return ProjectLocation{}, fmt.Errorf("location with path %s already exists", path)
+		}
+	}
+
+	// Create new location
+	newLocation := ProjectLocation{
+		ID:         fmt.Sprintf("%d", len(settings.ProjectLocations)+1), // Simple incremental ID
+		Name:       name,
+		Path:       path,
+		IsDefault:  len(settings.ProjectLocations) == 0, // First location is default
+		ProjectIDs: []string{},
+	}
+
+	// Create bookmark on macOS
+	if runtime.GOOS == "darwin" {
+		bookmarkData, err := CreateBookmarkFromPath(path)
+		if err != nil {
+			log.Printf("Failed to create bookmark for location %s: %v", name, err)
+		}
+		newLocation.Bookmark = bookmarkData
+	}
+
+	settings.ProjectLocations = append(settings.ProjectLocations, newLocation)
+
+	// Set as default if it's the first location
+	if newLocation.IsDefault {
+		settings.DefaultLocationID = newLocation.ID
+	}
+
+	err = saveSettings(settings)
+	if err != nil {
+		return ProjectLocation{}, err
+	}
+
+	return newLocation, nil
+}
+
+// RemoveProjectLocation removes a project location by ID
+func RemoveProjectLocation(locationID string) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+
+	// Can't remove if only one location
+	if len(settings.ProjectLocations) <= 1 {
+		return fmt.Errorf("cannot remove the last project location")
+	}
+
+	// Check if location has projects assigned
+	for i, loc := range settings.ProjectLocations {
+		if loc.ID == locationID {
+			if len(loc.ProjectIDs) > 0 {
+				return fmt.Errorf("cannot remove location: %d project(s) are using it", len(loc.ProjectIDs))
+			}
+
+			// Remove location
+			settings.ProjectLocations = append(settings.ProjectLocations[:i], settings.ProjectLocations[i+1:]...)
+
+			// If removing default, set first remaining location as default
+			if loc.IsDefault && len(settings.ProjectLocations) > 0 {
+				settings.ProjectLocations[0].IsDefault = true
+				settings.DefaultLocationID = settings.ProjectLocations[0].ID
+			}
+
+			return saveSettings(settings)
+		}
+	}
+
+	return fmt.Errorf("location with ID %s not found", locationID)
+}
+
+// UpdateProjectLocation updates an existing project location
+func UpdateProjectLocation(locationID, name, path string) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+
+	for i, loc := range settings.ProjectLocations {
+		if loc.ID == locationID {
+			// Update name
+			if name != "" {
+				settings.ProjectLocations[i].Name = name
+			}
+
+			// Update path and bookmark
+			if path != "" && path != loc.Path {
+				// Check for duplicate paths (excluding current location)
+				for j, otherLoc := range settings.ProjectLocations {
+					if j != i && otherLoc.Path == path {
+						return fmt.Errorf("location with path %s already exists", path)
+					}
+				}
+
+				settings.ProjectLocations[i].Path = path
+
+				// Update bookmark on macOS
+				if runtime.GOOS == "darwin" {
+					bookmarkData, err := CreateBookmarkFromPath(path)
+					if err != nil {
+						log.Printf("Failed to create bookmark for location %s: %v", name, err)
+					}
+					settings.ProjectLocations[i].Bookmark = bookmarkData
+				}
+			}
+
+			return saveSettings(settings)
+		}
+	}
+
+	return fmt.Errorf("location with ID %s not found", locationID)
+}
+
+// SetDefaultLocation sets a location as the default
+func SetDefaultLocation(locationID string) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+
+	found := false
+	for i := range settings.ProjectLocations {
+		if settings.ProjectLocations[i].ID == locationID {
+			settings.ProjectLocations[i].IsDefault = true
+			settings.DefaultLocationID = locationID
+			found = true
+		} else {
+			settings.ProjectLocations[i].IsDefault = false
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("location with ID %s not found", locationID)
+	}
+
+	return saveSettings(settings)
+}
+
+// AssignProjectToLocation assigns a project to a specific location
+func AssignProjectToLocation(projectID, locationID string) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+
+	// Remove project from all locations first
+	for i := range settings.ProjectLocations {
+		for j, pid := range settings.ProjectLocations[i].ProjectIDs {
+			if pid == projectID {
+				settings.ProjectLocations[i].ProjectIDs = append(
+					settings.ProjectLocations[i].ProjectIDs[:j],
+					settings.ProjectLocations[i].ProjectIDs[j+1:]...,
+				)
+				break
+			}
+		}
+	}
+
+	// Add project to specified location
+	for i := range settings.ProjectLocations {
+		if settings.ProjectLocations[i].ID == locationID {
+			// Check if already assigned
+			for _, pid := range settings.ProjectLocations[i].ProjectIDs {
+				if pid == projectID {
+					return nil // Already assigned
+				}
+			}
+			settings.ProjectLocations[i].ProjectIDs = append(settings.ProjectLocations[i].ProjectIDs, projectID)
+			return saveSettings(settings)
+		}
+	}
+
+	return fmt.Errorf("location with ID %s not found", locationID)
+}
+
+// GetProjectLocation returns the location ID for a project
+func GetProjectLocation(projectID string) (string, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return "", err
+	}
+
+	for _, loc := range settings.ProjectLocations {
+		for _, pid := range loc.ProjectIDs {
+			if pid == projectID {
+				return loc.ID, nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("project not assigned to any location")
+}
+
+// GetLocationUsage returns the count of projects using a location
+func GetLocationUsage(locationID string) (int, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return 0, err
+	}
+
+	for _, loc := range settings.ProjectLocations {
+		if loc.ID == locationID {
+			return len(loc.ProjectIDs), nil
+		}
+	}
+
+	return 0, fmt.Errorf("location with ID %s not found", locationID)
+}
+
+// CanDeleteLocation returns true if location can be safely deleted
+func CanDeleteLocation(locationID string) (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return false, err
+	}
+
+	// Can't remove if only one location
+	if len(settings.ProjectLocations) <= 1 {
+		return false, nil
+	}
+
+	for _, loc := range settings.ProjectLocations {
+		if loc.ID == locationID {
+			return len(loc.ProjectIDs) == 0, nil
+		}
+	}
+
+	return false, fmt.Errorf("location with ID %s not found", locationID)
+}
+
+// LocationHealth represents the health status of a location
+type LocationHealth struct {
+	ID        string `json:"id"`
+	Exists    bool   `json:"exists"`
+	Writable  bool   `json:"writable"`
+	FreeSpace int64  `json:"free_space"`
+}
+
+// CheckLocationHealth checks the health of a specific location
+func CheckLocationHealth(locationID string) (LocationHealth, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return LocationHealth{}, err
+	}
+
+	for _, loc := range settings.ProjectLocations {
+		if loc.ID == locationID {
+			health := LocationHealth{
+				ID:        locationID,
+				Exists:    false,
+				Writable:  false,
+				FreeSpace: 0,
+			}
+
+			// Check if path exists
+			if _, err := os.Stat(loc.Path); err == nil {
+				health.Exists = true
+
+				// Check if writable
+				testFile := filepath.Join(loc.Path, ".clustta_write_test")
+				if err := os.WriteFile(testFile, []byte("test"), 0644); err == nil {
+					health.Writable = true
+					os.Remove(testFile)
+				}
+
+				// TODO: Get free space if needed
+			}
+
+			return health, nil
+		}
+	}
+
+	return LocationHealth{}, fmt.Errorf("location with ID %s not found", locationID)
+}
+
+// CheckAllLocationsHealth checks the health of all locations
+func CheckAllLocationsHealth() ([]LocationHealth, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return []LocationHealth{}, err
+	}
+
+	healthStatuses := []LocationHealth{}
+	for _, loc := range settings.ProjectLocations {
+		health, err := CheckLocationHealth(loc.ID)
+		if err != nil {
+			log.Printf("Error checking health for location %s: %v", loc.Name, err)
+			continue
+		}
+		healthStatuses = append(healthStatuses, health)
+	}
+
+	return healthStatuses, nil
+}
+
+// migrateWorkingDirectory migrates old WorkingDirectory setting to ProjectLocations
+func migrateWorkingDirectory() error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+
+	// Check if migration needed
+	if len(settings.ProjectLocations) == 0 && settings.WorkingDir != "" {
+		log.Printf("Migrating WorkingDirectory to ProjectLocations: %s", settings.WorkingDir)
+
+		location := ProjectLocation{
+			ID:         "1",
+			Name:       "Default",
+			Path:       settings.WorkingDir,
+			IsDefault:  true,
+			ProjectIDs: []string{},
+		}
+
+		// Create bookmark if macOS
+		if runtime.GOOS == "darwin" {
+			bookmarkData, err := CreateBookmarkFromPath(settings.WorkingDir)
+			if err != nil {
+				log.Printf("Failed to create bookmark during migration: %v", err)
+			}
+			location.Bookmark = bookmarkData
+		}
+
+		settings.ProjectLocations = []ProjectLocation{location}
+		settings.DefaultLocationID = location.ID
+
+		// Clear old fields
+		settings.WorkingDir = ""
+		settings.WorkingDirBookmark = nil
+
+		return saveSettings(settings)
+	}
+
+	return nil
 }

@@ -43,6 +43,7 @@ type ProjectInfo struct {
 	Version          float64  `json:"version"`
 	Uri              string   `json:"uri"`
 	WorkingDirectory string   `json:"working_directory"`
+	LocationID       string   `json:"location_id,omitempty"`
 	Remote           string   `json:"remote"`
 	Valid            bool     `json:"valid"`
 	Status           string   `json:"status"`
@@ -76,12 +77,12 @@ func InitDB(projectPath string, studioName, workingDir string, user auth_service
 	}
 
 	if !settings.IsServer() && workingDir == "" {
-		defaultWorkingDirRoot, err := settings.GetWorkingDirectory()
+		defaultLocation, err := settings.GetDefaultLocation()
 		if err != nil {
 			return err
 		}
 		projectName := strings.TrimSuffix(filepath.Base(projectPath), filepath.Ext(projectPath))
-		workingDir = filepath.Join(defaultWorkingDirRoot, studioName, projectName)
+		workingDir = filepath.Join(defaultLocation.Path, studioName, projectName)
 	}
 
 	if !settings.IsServer() {

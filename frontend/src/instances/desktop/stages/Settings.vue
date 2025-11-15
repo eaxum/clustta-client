@@ -32,6 +32,7 @@ import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
 import General from '@/instances/desktop/settings/General.vue';
 import Collaborators from '@/instances/desktop/settings/Collaborators.vue';
 import ProjectTemplates from '@/instances/desktop/settings/ProjectTemplates.vue';
+import Directories from '@/instances/desktop/settings/Directories.vue';
 
 
 // refs
@@ -39,12 +40,13 @@ const settingsComponents = {
 	general: General,
 	collaborators: Collaborators,
 	projecttemplates: ProjectTemplates,
+	directories: Directories,
 };
 
 // computed props
 const settingsItems = computed(() => {
 	
-	const userSettingsItems = ['General', 'Project Templates'];
+	const userSettingsItems = ['General', 'Directories', 'Project Templates'];
 	const generalSettings = settings.settingsItems.filter((item) => userSettingsItems.includes(item.name));
 	return generalSettings
 });

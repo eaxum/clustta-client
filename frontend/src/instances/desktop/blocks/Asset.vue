@@ -117,11 +117,13 @@
           <!-- Editing mode -->
           <div v-else class="task-item-grid-slide-container">
             <div class="task-item-grid-meta-row rename-input-grid">
-              <input spellcheck="false" v-model="editableTaskName" class="input-short input-grid" type="text" placeholder="Task name"
-                v-focus @keydown.enter="handleEnterKey" @keydown.esc="handleEscKey" />
-              <ActionButton :isDisabled="!isNameChanged" :icon="getAppIcon('check')" v-tooltip="'Confirm'"
-                @click="confirmRename" />
-              <ActionButton :icon="getAppIcon('close')" v-tooltip="'Cancel'" @click="cancelRename" />
+              <RenameInput 
+                v-model="editableTaskName"
+                :originalValue="task.name || ''"
+                placeholder="Task name"
+                @confirm="confirmRename"
+                @cancel="cancelRename"
+              />
             </div>
           </div>
           
@@ -217,13 +219,14 @@
             {{ taskName }}
           </div>
 
-          <div v-else class="rename-input">
-            <input spellcheck="false" v-model="editableTaskName" class="input-short" type="text" placeholder="Task name"
-              v-focus @keydown.enter="handleEnterKey" @keydown.esc="handleEscKey" />
-            <ActionButton :isDisabled="!isNameChanged" :icon="getAppIcon('check')" v-tooltip="'Confirm'"
-              @click="confirmRename" />
-            <ActionButton :icon="getAppIcon('close')" v-tooltip="'Cancel'" @click="cancelRename" />
-          </div>
+          <RenameInput 
+            v-else
+            v-model="editableTaskName"
+            :originalValue="task.name || ''"
+            placeholder="Task name"
+            @confirm="confirmRename"
+            @cancel="cancelRename"
+          />
         </div>
 
         <!-- task assignation -->
@@ -342,6 +345,7 @@ import emitter from '@/lib/mitt';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
+import RenameInput from '@/instances/desktop/components/RenameInput.vue'
 import StatusMenu from '@/instances/desktop/menus/StatusMenu.vue'
 import GridStatusMenu from '@/instances/desktop/menus/GridStatusMenu.vue'
 import { Browser } from "@wailsio/runtime";
@@ -675,22 +679,7 @@ const confirmRename = async () => {
   toggleEditMode();
 };
 
-const handleEnterKey = () => {
-  const inputElement = document.querySelector('.input-short');
-  if (!isNameChanged.value) {
-    if (inputElement) {
-      inputElement.classList.add('shake');
-      setTimeout(() => {
-        inputElement.classList.remove('shake');
-      }, 300);
-    }
-  } else {
-    confirmRename();
-  }
-};
-
 const handleEscKey = () => {
-  console.log('canceled');
   if (isEditing.value) {
     cancelRename();
   }
@@ -1596,6 +1585,7 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   justify-content: flex-end;
   /* direction: rtl; */
   text-align: left;
+  font-size: 14px;
 }
 
 .input-short {

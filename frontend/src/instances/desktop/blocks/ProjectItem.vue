@@ -18,13 +18,15 @@
             <span v-else>{{ utils.capitalizeStr(project.name) }}</span>
           </div>
         </div>
-        <div v-else class="rename-input">
-          <input spellcheck="false" ref="renameInput" v-model="editableProjectName" class="input-short" type="text"
-            placeholder="Project name" v-focus @keydown.enter="handleEnterKey" @keydown.esc="handleEscKey" />
-          <ActionButton :isDisabled="!isNameChanged" :icon="getAppIcon('check')" v-tooltip="'Confirm'"
-            @click="confirmRename" />
-          <ActionButton :icon="getAppIcon('close')" v-tooltip="'Cancel'" @click="cancelRename" />
-        </div>
+
+        <RenameInput 
+          v-else
+          v-model="editableProjectName"
+          :originalValue="project.name"
+          placeholder="Project name"
+          @confirm="confirmRename"
+          @cancel="cancelRename"
+        />
 
         <div v-if="!isEditing" class="project-item-actions">
           <ActionButton v-if="!project.is_tracked" :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
@@ -75,6 +77,7 @@ import { useIconStore } from '@/stores/icons';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
+import RenameInput from '@/instances/desktop/components/RenameInput.vue'
 import { DialogService, FSService, SyncService, ProjectService } from '@/../bindings/clustta/services/index';
 
 // states/stores
@@ -149,27 +152,6 @@ const menuRename = () => {
     startRename();
   }
 }
-
-const handleEnterKey = () => {
-  const inputElement = document.querySelector('.input-short');
-  if (!isNameChanged.value) {
-    if (inputElement) {
-      inputElement.classList.add('shake');
-      setTimeout(() => {
-        inputElement.classList.remove('shake');
-      }, 300);
-    }
-  } else {
-    confirmRename();
-  }
-};
-
-const handleEscKey = () => {
-  console.log('canceled');
-  if (isEditing.value) {
-    cancelRename();
-  }
-};
 
 const updateProjectName = async () => {
 
@@ -496,6 +478,7 @@ onBeforeUnmount(() => {
   white-space: nowrap;
   text-overflow: ellipsis;
   font-weight: 350;
+  font-size: 14px;
 }
 
 [data-theme="dark"] .project-item-details{
@@ -507,13 +490,11 @@ onBeforeUnmount(() => {
   display: flex;
   width: min-content;
   box-sizing: border-box;
-  padding: .2rem;
+  /* padding: .2rem; */
   width: 100%;
-}
-
-.project-item-container-footer-cards {
-  /* justify-content: flex-end; */
-
+  height: 40px;
+  min-height: 40px;
+  /* background-color: crimson; */
 }
 
 .project-item-actions {

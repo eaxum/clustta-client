@@ -22,6 +22,11 @@
                 </div>
             </div>
 
+            <div v-if="selectedClusttaDirectory" class="location-section">
+              <div class="menu-divider"></div>
+              <ProjectLocationManager v-model="projectLocations" />
+            </div>
+
         </div>
 
       <div class="pop-up-actions" :class="{ 'spaced-out' : firstStage}" >
@@ -54,6 +59,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 
 //components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import ProjectLocationManager from '@/instances/common/components/ProjectLocationManager.vue';
 
 import { v4 as uuidv4 } from "uuid";
 import { ClipboardService, SettingsService, DialogService, FSService } from '@/../bindings/clustta/services/index';
@@ -73,6 +79,8 @@ const projectsDirectoryInput = ref(null);
 
 const defaultClusttaDirectory = ref('');
 const selectedClusttaDirectory = ref('');
+
+const projectLocations = ref([]);
 
 const userName = ref('');
 
@@ -120,20 +128,50 @@ const selectDirectory = async () => {
       let fileDir = result.replace(/\\/g, '/');
       selectedClusttaDirectory.value = fileDir.replace(/\/clustta/g, '') + '/clustta';
 
-      projectsDirectory.value = selectedClusttaDirectory.value + '/mnt';
       personalDataDirectory.value = selectedClusttaDirectory.value + '/projects';
       sharedDataDirectory.value = selectedClusttaDirectory.value + '/shared_projects';
+
+      // Initialize default location if not already present
+      if (projectLocations.value.length === 0) {
+        projectLocations.value = [{
+          id: '1',
+          name: 'Default',
+          path: selectedClusttaDirectory.value + '/mnt',
+          is_default: true,
+          project_ids: []
+        }];
+      }
 
   };
 
 };
 
 const saveChanges = async () => {
-    await SettingsService.SetWorkingDirectory(projectsDirectory.value)
-    await SettingsService.SetProjectDirectory(personalDataDirectory.value)
-    await SettingsService.SetSharedProjectDirectory(sharedDataDirectory.value)
-    await loadProjects();
-    closeModal();
+    try {
+      // Save data directories
+      await SettingsService.SetProjectDirectory(personalDataDirectory.value)
+      await SettingsService.SetSharedProjectDirectory(sharedDataDirectory.value)
+      
+      // Save all project locations
+      for (const location of projectLocations.value) {
+        try {
+          // Check if location already exists
+          const existingLocations = await SettingsService.GetAllLocationPaths();
+          const exists = existingLocations.some(loc => loc.id === location.id);
+          
+          if (!exists) {
+            await SettingsService.AddProjectLocation(location.name, location.path);
+          }
+        } catch (error) {
+          console.error('Error saving location:', error);
+        }
+      }
+      
+      await loadProjects();
+      closeModal();
+    } catch (error) {
+      notificationStore.errorNotification('Error saving settings', error);
+    }
 };
 
 const loadProjects = async () => {
@@ -229,7 +267,15 @@ onMounted(async () => {
 }
 
 .general-container {
-  /* gap: 1rem; */
+  gap: 1rem;
+}
+
+.location-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .onboard-image{

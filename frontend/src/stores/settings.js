@@ -14,6 +14,7 @@ export const useSettingsStore = defineStore("settings", {
       ignorelist: false,
       usertemplates: false,
       projecttemplates: false,
+      directories: false,
       
       studio: false,
       studiocollaborators: false,
@@ -38,6 +39,7 @@ export const useSettingsStore = defineStore("settings", {
 
     settingsItems: [
       { name: "General", icon: "monitor" },
+      { name: "Directories", icon: "explorer" },
       { name: "Templates", icon: "file" },
       { name: "Collaborators", icon: "person" },
       { name: "Roles", icon: "scale" },

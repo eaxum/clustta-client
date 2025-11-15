@@ -19,14 +19,21 @@
       </div>
 
       <div class="input-section">
-        <span class="input-label">Project Folder</span>
+        <span class="input-label">Working Location</span>
         <div class="horizontal-flex">
-          <input v-model="workingDirectory" class="input-short" type="text"
-            placeholder="Project Folder" ref="workingDirectoryInput" />
-          <span @click="resetDefaultPath()" class="single-action-button" v-tooltip="'Reset'"><img
-              class="small-icons" :src="getAppIcon('refresh')"></span>
-          <span @click="selectDirectoryPath('workingDir')" class="single-action-button" v-tooltip="'Browse Path'"><img
-              class="small-icons" :src="getAppIcon('explorer')"></span>
+          <div class="location-dropdown-wrapper">
+            <DropDownBox 
+              :items="locationDisplayNames" 
+              :selectedItem="selectedLocationDisplay"
+              :onSelect="selectLocation" 
+            />
+          </div>
+          <span @click="addNewLocation" class="single-action-button" v-tooltip="'Add New Location'">
+            <img class="small-icons" :src="getAppIcon('plus-circle')">
+          </span>
+        </div>
+        <div v-if="workingDirectory" class="computed-path-display">
+          Final path: {{ workingDirectory }}
         </div>
       </div>
 
@@ -100,37 +107,66 @@ const modalContainer = ref(null);
 
 const projectName = ref('');
 const projectNameInput = ref(null);
-const workingDirectory = ref('');
-const defaultWorkingDirectory = ref('');
-const selectedPath = ref('');
-const workingDirectoryInput = ref(null);
+const projectLocations = ref([]);
+const selectedLocation = ref(null);
+const isLoadingLocations = ref(false);
 
-const updateWorkingDirectory = () => {
-  if (projectName.value !== '') {
-    workingDirectory.value = selectedPath.value + '/' + projectName.value;
-  } else {
-    workingDirectory.value = selectedPath.value + '/';
-  }
-}
+const workingDirectory = computed(() => {
+  if (!selectedLocation.value || !projectName.value) return '';
+  const studioPath = projectStore.selectedStudio.name;
+  return `${selectedLocation.value.path}/${studioPath}/${projectName.value}`;
+});
 
-const selectDirectoryPath = async (context) => {
-  const result = await DialogService.SelectFolderDialog("Select Folder File");
-  if (result) {
-    let fileDir = result.replace(/\\/g, '/');
-    selectedPath.value = fileDir;
-    if(projectName.value){
-      workingDirectory.value = selectedPath.value + '/' + projectName.value;
-    } else {
-      workingDirectory.value = fileDir + '/';
-    }
+// Computed properties for DropDownBox
+const locationDisplayNames = computed(() => {
+  return projectLocations.value.map(loc => `${loc.name} - [${loc.path}]`);
+});
 
-    projectNameInput.value.focus();
+const selectedLocationDisplay = computed(() => {
+  if (!selectedLocation.value) return '';
+  return `${selectedLocation.value.name} - [${selectedLocation.value.path}]`;
+});
+
+const selectLocation = (displayName) => {
+  const location = projectLocations.value.find(loc => 
+    `${loc.name} - [${loc.path}]` === displayName
+  );
+  if (location) {
+    selectedLocation.value = location;
   }
 };
 
-const resetDefaultPath = () => {
-  workingDirectory.value = defaultWorkingDirectory.value + '/' + projectName.value;
-  selectedPath.value = defaultWorkingDirectory.value ;
+const loadProjectLocations = async () => {
+  isLoadingLocations.value = true;
+  try {
+    const locations = await SettingsService.GetAllLocationPaths();
+    projectLocations.value = locations;
+    
+    // Set default location as selected
+    const defaultLoc = locations.find(loc => loc.is_default);
+    selectedLocation.value = defaultLoc || locations[0];
+  } catch (error) {
+    notificationStore.errorNotification('Error loading locations', error);
+  } finally {
+    isLoadingLocations.value = false;
+  }
+};
+
+const addNewLocation = async () => {
+  const result = await DialogService.SelectFolderDialog("Select New Location Folder");
+  if (!result) return;
+  
+  const path = result.replace(/\\/g, '/');
+  const locationName = `Location ${projectLocations.value.length + 1}`;
+  
+  try {
+    const newLocation = await SettingsService.AddProjectLocation(locationName, path);
+    projectLocations.value.push(newLocation);
+    selectedLocation.value = newLocation;
+    notificationStore.addNotification('Location added successfully', '', 'success', false);
+  } catch (error) {
+    notificationStore.errorNotification('Error adding location', error);
+  }
 };
 
 const projectTemplateNames = computed(() => {
@@ -199,6 +235,15 @@ const createProject = async () => {
   ProjectService.CreateProject(path, studio.name, workingDirectory.value, selectedProjectTemplate.value).then(async (project) => {
 
     projectIsCreated.value = true;
+
+    // Assign project to selected location
+    if (selectedLocation.value) {
+      try {
+        await SettingsService.AssignProjectToLocation(project.id, selectedLocation.value.id);
+      } catch (error) {
+        console.error('Error assigning project to location:', error);
+      }
+    }
 
     resetProjectData();
     await projectStore.loadProjects();
@@ -312,38 +357,8 @@ watchEffect(() => {
 });
 
 onMounted(async () => {
-  await SettingsService.GetWorkingDirectory()
-    .then((response) => {
-      workingDirectory.value = response.replace(/\\/g, '/') + '/' + projectStore.selectedStudio.name + '/';
-      defaultWorkingDirectory.value = response.replace(/\\/g, '/') + '/' + projectStore.selectedStudio.name;
-      selectedPath.value = response.replace(/\\/g, '/') + '/' + projectStore.selectedStudio.name;
-    })
-    .catch((error) => {
-      notificationStore.addNotification(
-        "Error Loading Settings",
-        error.message,
-        "error",
-        false
-      )
-    });
-
-  await projectTemplateStore.loadProjectTemplates()
-});
-
-onMounted(async () => {
-  return
-  await SettingsService.GetWorkingDirectory()
-    .then((response) => {
-      workingDirectory.value = response.replace(/\\/g, '/') + '/' + projectStore.selectedStudio.name + '/' + projectStore.activeProject?.name;
-    })
-    .catch((error) => {
-      notificationStore.addNotification(
-        "Error Loading Settings",
-        error.message,
-        "error",
-        false
-      )
-    });
+  await loadProjectLocations();
+  await projectTemplateStore.loadProjectTemplates();
 });
 
 </script>
@@ -497,6 +512,21 @@ onMounted(async () => {
   gap: 10px;
   align-items: center;
   justify-content: center;
+}
+
+.location-dropdown-wrapper {
+  flex: 1;
+  width: 100%;
+}
+
+.computed-path-display {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 0.5rem;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  margin-top: 0.5rem;
+  word-break: break-all;
 }
 </style>
 
