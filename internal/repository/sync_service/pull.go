@@ -301,12 +301,13 @@ func CloneProject(ctx context.Context, remoteProjectUri string, projectUri strin
 	}
 
 	if workingDir == "" {
-		defaultWorkingDirRoot, err := settings.GetWorkingDirectory()
+		// Fallback to default location if no working directory specified
+		defaultLocation, err := settings.GetDefaultLocation()
 		if err != nil {
 			return err
 		}
 		projectName := strings.TrimSuffix(filepath.Base(projectUri), filepath.Ext(projectUri))
-		workingDir = filepath.Join(defaultWorkingDirRoot, studioDisplayName, projectName)
+		workingDir = filepath.Join(defaultLocation.Path, studioDisplayName, projectName)
 	}
 
 	err = utils.SetProjectWorkingDir(tx, workingDir)
@@ -405,18 +406,31 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 
 			}
 		}
-		//TODO allow users have multiple working directories
-		workingDir, err := settings.GetWorkingDirectory()
+		
+		// Scan all configured working locations for untracked projects
+		projectLocations, err := settings.GetAllLocationPaths()
 		if err != nil {
 			return studioProjects, err
 		}
 
-		untrackedProjects, err := GetUntrackedProjects(workingDir, trackedProjectNames)
-		if err != nil {
-			return studioProjects, err
-		}
+		for _, location := range projectLocations {
+			// Construct studio-specific path within this location
+			locationStudioPath := filepath.Join(location.Path, studioName)
 
-		studioProjects = append(studioProjects, untrackedProjects...)
+			// Skip if path doesn't exist yet
+			if _, err := os.Stat(locationStudioPath); os.IsNotExist(err) {
+				continue
+			}
+
+			untrackedInLocation, err := GetUntrackedProjects(locationStudioPath, trackedProjectNames, location.ID)
+			if err != nil {
+				// Log but don't fail entire operation
+				fmt.Printf("Warning: Failed to scan location %s: %v\n", location.Name, err)
+				continue
+			}
+
+			studioProjects = append(studioProjects, untrackedInLocation...)
+		}
 
 		return studioProjects, nil
 		// projects := []ProjectInfo{}
@@ -563,7 +577,7 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 	}
 }
 
-func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]bool) ([]repository.ProjectInfo, error) {
+func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]bool, locationID string) ([]repository.ProjectInfo, error) {
 	untrackedProjects := []repository.ProjectInfo{}
 
 	// Read all entries in the projects directory
@@ -572,7 +586,7 @@ func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]boo
 		return untrackedProjects, err
 	}
 
-	fmt.Printf("Scanning for untracked projects in: %s\n", projectsDir)
+	fmt.Printf("Scanning for untracked projects in: %s (location: %s)\n", projectsDir, locationID)
 	fmt.Printf("Tracked project names: %v\n", trackedProjectNames)
 
 	// Iterate over directory entries
@@ -601,6 +615,7 @@ func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]boo
 			Id:               projectId,
 			Name:             entry.Name(),
 			WorkingDirectory: dirPath,
+			LocationID:       locationID,
 			IsTracked:        false,
 			IsDownloaded:     false,
 			Valid:            true,
@@ -612,7 +627,7 @@ func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]boo
 
 	fmt.Printf("Total untracked projects found: %d\n", len(untrackedProjects))
 	for i, proj := range untrackedProjects {
-		fmt.Printf("  [%d] Name: %s, WorkingDir: %s, IsTracked: %v\n", i+1, proj.Name, proj.WorkingDirectory, proj.IsTracked)
+		fmt.Printf("  [%d] Name: %s, WorkingDir: %s, LocationID: %s, IsTracked: %v\n", i+1, proj.Name, proj.WorkingDirectory, proj.LocationID, proj.IsTracked)
 	}
 
 	return untrackedProjects, nil

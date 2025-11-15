@@ -22,7 +22,7 @@
 				</div>
 			</div>
 			<div class="view-options">
-				<ActionButton :icon="getAppIcon(showUntrackedProjects ? 'eye' : 'eye-cancel')" 
+				<ActionButton v-if="projectStore.selectedStudio.name === 'Personal'" :icon="getAppIcon(showUntrackedProjects ? 'eye' : 'eye-cancel')" 
 					v-tooltip="showUntrackedProjects ? 'Hide untracked projects' : 'Show untracked projects'"
 					:buttonFunction="toggleUntrackedProjects" />
 				<ActionButton v-if="cardView" :isDisabled="!projects.length" :icon="getAppIcon('list')" v-tooltip="'List'"

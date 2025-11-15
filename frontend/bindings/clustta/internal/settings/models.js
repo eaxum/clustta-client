@@ -10,6 +10,129 @@ import {Create as $Create} from "@wailsio/runtime";
 // @ts-ignore: Unused imports
 import * as models$0 from "../server/models/models.js";
 
+/**
+ * LocationHealth represents the health status of a location
+ */
+export class LocationHealth {
+    /**
+     * Creates a new LocationHealth instance.
+     * @param {Partial<LocationHealth>} [$$source = {}] - The source object to create the LocationHealth.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("exists" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["exists"] = false;
+        }
+        if (!("writable" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["writable"] = false;
+        }
+        if (!("free_space" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["free_space"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new LocationHealth instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {LocationHealth}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new LocationHealth(/** @type {Partial<LocationHealth>} */($$parsedSource));
+    }
+}
+
+export class ProjectLocation {
+    /**
+     * Creates a new ProjectLocation instance.
+     * @param {Partial<ProjectLocation>} [$$source = {}] - The source object to create the ProjectLocation.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("path" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["path"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["bookmark"] = "";
+        }
+        if (!("is_default" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["is_default"] = false;
+        }
+        if (!("project_ids" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["project_ids"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ProjectLocation instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ProjectLocation}
+     */
+    static createFrom($$source = {}) {
+        const $$createField3_0 = $Create.ByteSlice;
+        const $$createField5_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("bookmark" in $$parsedSource) {
+            $$parsedSource["bookmark"] = $$createField3_0($$parsedSource["bookmark"]);
+        }
+        if ("project_ids" in $$parsedSource) {
+            $$parsedSource["project_ids"] = $$createField5_0($$parsedSource["project_ids"]);
+        }
+        return new ProjectLocation(/** @type {Partial<ProjectLocation>} */($$parsedSource));
+    }
+}
+
 export class Studio {
     /**
      * Creates a new Studio instance.
@@ -75,7 +198,7 @@ export class Studio {
      * @returns {Studio}
      */
     static createFrom($$source = {}) {
-        const $$createField6_0 = $$createType1;
+        const $$createField6_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("Users" in $$parsedSource) {
             $$parsedSource["Users"] = $$createField6_0($$parsedSource["Users"]);
@@ -85,5 +208,6 @@ export class Studio {
 }
 
 // Private type creation functions
-const $$createType0 = models$0.StudioUserInfo.createFrom;
-const $$createType1 = $Create.Array($$createType0);
+const $$createType0 = $Create.Array($Create.Any);
+const $$createType1 = models$0.StudioUserInfo.createFrom;
+const $$createType2 = $Create.Array($$createType1);

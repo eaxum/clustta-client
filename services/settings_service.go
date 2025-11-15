@@ -255,3 +255,53 @@ func (s *SettingsService) SetWorkingDirectory(dir string) error {
 	}
 	return nil
 }
+
+// ========== Project Location Management ==========
+
+func (s *SettingsService) GetAllLocationPaths() ([]settings.ProjectLocation, error) {
+	return settings.GetAllLocationPaths()
+}
+
+func (s *SettingsService) GetDefaultLocation() (settings.ProjectLocation, error) {
+	return settings.GetDefaultLocation()
+}
+
+func (s *SettingsService) AddProjectLocation(name, path string) (settings.ProjectLocation, error) {
+	return settings.AddProjectLocation(name, path)
+}
+
+func (s *SettingsService) RemoveProjectLocation(locationID string) error {
+	return settings.RemoveProjectLocation(locationID)
+}
+
+func (s *SettingsService) UpdateProjectLocation(locationID, name, path string) error {
+	return settings.UpdateProjectLocation(locationID, name, path)
+}
+
+func (s *SettingsService) SetDefaultLocation(locationID string) error {
+	return settings.SetDefaultLocation(locationID)
+}
+
+func (s *SettingsService) AssignProjectToLocation(projectID, locationID string) error {
+	return settings.AssignProjectToLocation(projectID, locationID)
+}
+
+func (s *SettingsService) GetProjectLocation(projectID string) (string, error) {
+	return settings.GetProjectLocation(projectID)
+}
+
+func (s *SettingsService) GetLocationUsage(locationID string) (int, error) {
+	return settings.GetLocationUsage(locationID)
+}
+
+func (s *SettingsService) CanDeleteLocation(locationID string) (bool, error) {
+	return settings.CanDeleteLocation(locationID)
+}
+
+func (s *SettingsService) CheckLocationHealth(locationID string) (settings.LocationHealth, error) {
+	return settings.CheckLocationHealth(locationID)
+}
+
+func (s *SettingsService) CheckAllLocationsHealth() ([]settings.LocationHealth, error) {
+	return settings.CheckAllLocationsHealth()
+}

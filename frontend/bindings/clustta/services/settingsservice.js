@@ -11,6 +11,20 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 import * as settings$0 from "../internal/settings/models.js";
 
 /**
+ * @param {string} name
+ * @param {string} path
+ * @returns {Promise<settings$0.ProjectLocation> & { cancel(): void }}
+ */
+export function AddProjectLocation(name, path) {
+    let $resultPromise = /** @type {any} */($Call.ByID(576088381, name, path));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType0($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
  * @param {string} projectId
  * @param {any} workspaceData
  * @returns {Promise<void> & { cancel(): void }}
@@ -28,7 +42,51 @@ export function AddProjectWorkspace(projectId, workspaceData) {
 export function AddRecentProject(studioName, projectId) {
     let $resultPromise = /** @type {any} */($Call.ByID(762029095, studioName, projectId));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType0($result);
+        return $$createType1($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
+ * @param {string} projectID
+ * @param {string} locationID
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function AssignProjectToLocation(projectID, locationID) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3752105278, projectID, locationID));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} locationID
+ * @returns {Promise<boolean> & { cancel(): void }}
+ */
+export function CanDeleteLocation(locationID) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3404860008, locationID));
+    return $resultPromise;
+}
+
+/**
+ * @returns {Promise<settings$0.LocationHealth[]> & { cancel(): void }}
+ */
+export function CheckAllLocationsHealth() {
+    let $resultPromise = /** @type {any} */($Call.ByID(862862689));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType3($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
+ * @param {string} locationID
+ * @returns {Promise<settings$0.LocationHealth> & { cancel(): void }}
+ */
+export function CheckLocationHealth(locationID) {
+    let $resultPromise = /** @type {any} */($Call.ByID(2048849247, locationID));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType2($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -44,11 +102,35 @@ export function ClearRecentProject(studioName) {
 }
 
 /**
+ * @returns {Promise<settings$0.ProjectLocation[]> & { cancel(): void }}
+ */
+export function GetAllLocationPaths() {
+    let $resultPromise = /** @type {any} */($Call.ByID(1879856430));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType4($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetCurrentVersion() {
     let $resultPromise = /** @type {any} */($Call.ByID(2344331797));
     return $resultPromise;
+}
+
+/**
+ * @returns {Promise<settings$0.ProjectLocation> & { cancel(): void }}
+ */
+export function GetDefaultLocation() {
+    let $resultPromise = /** @type {any} */($Call.ByID(904599504));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType0($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -76,13 +158,22 @@ export function GetLastStudio() {
 }
 
 /**
+ * @param {string} locationID
+ * @returns {Promise<number> & { cancel(): void }}
+ */
+export function GetLocationUsage(locationID) {
+    let $resultPromise = /** @type {any} */($Call.ByID(435118172, locationID));
+    return $resultPromise;
+}
+
+/**
  * @param {string} studioName
  * @returns {Promise<string[]> & { cancel(): void }}
  */
 export function GetPinnedProjects(studioName) {
     let $resultPromise = /** @type {any} */($Call.ByID(13254414, studioName));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType0($result);
+        return $$createType1($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -97,13 +188,22 @@ export function GetProjectDirectory() {
 }
 
 /**
+ * @param {string} projectID
+ * @returns {Promise<string> & { cancel(): void }}
+ */
+export function GetProjectLocation(projectID) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3483756876, projectID));
+    return $resultPromise;
+}
+
+/**
  * @param {string} projectId
  * @returns {Promise<any[]> & { cancel(): void }}
  */
 export function GetProjectWorkspaces(projectId) {
     let $resultPromise = /** @type {any} */($Call.ByID(2164081225, projectId));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType1($result);
+        return $$createType5($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -116,7 +216,7 @@ export function GetProjectWorkspaces(projectId) {
 export function GetRecentProjects(studioName) {
     let $resultPromise = /** @type {any} */($Call.ByID(2190435435, studioName));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType0($result);
+        return $$createType1($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -137,7 +237,7 @@ export function GetSharedProjectDirectory() {
 export function GetStudios(path) {
     let $resultPromise = /** @type {any} */($Call.ByID(2852753313, path));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType3($result);
+        return $$createType7($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -207,10 +307,19 @@ export function IsProjectGridView() {
 export function PinProject(studioName, projectId) {
     let $resultPromise = /** @type {any} */($Call.ByID(2392329694, studioName, projectId));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType0($result);
+        return $$createType1($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
+}
+
+/**
+ * @param {string} locationID
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function RemoveProjectLocation(locationID) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3992887900, locationID));
+    return $resultPromise;
 }
 
 /**
@@ -229,6 +338,15 @@ export function RemoveProjectWorkspace(projectId, workspaceName) {
  */
 export function SetCurrentVersion(versionNumber) {
     let $resultPromise = /** @type {any} */($Call.ByID(3579646225, versionNumber));
+    return $resultPromise;
+}
+
+/**
+ * @param {string} locationID
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function SetDefaultLocation(locationID) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1651704380, locationID));
     return $resultPromise;
 }
 
@@ -329,14 +447,29 @@ export function ToggleProjectGridView() {
 export function UnpinProject(studioName, projectId) {
     let $resultPromise = /** @type {any} */($Call.ByID(3096272593, studioName, projectId));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType0($result);
+        return $$createType1($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
 }
 
+/**
+ * @param {string} locationID
+ * @param {string} name
+ * @param {string} path
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function UpdateProjectLocation(locationID, name, path) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1079821971, locationID, name, path));
+    return $resultPromise;
+}
+
 // Private type creation functions
-const $$createType0 = $Create.Array($Create.Any);
+const $$createType0 = settings$0.ProjectLocation.createFrom;
 const $$createType1 = $Create.Array($Create.Any);
-const $$createType2 = settings$0.Studio.createFrom;
+const $$createType2 = settings$0.LocationHealth.createFrom;
 const $$createType3 = $Create.Array($$createType2);
+const $$createType4 = $Create.Array($$createType0);
+const $$createType5 = $Create.Array($Create.Any);
+const $$createType6 = settings$0.Studio.createFrom;
+const $$createType7 = $Create.Array($$createType6);

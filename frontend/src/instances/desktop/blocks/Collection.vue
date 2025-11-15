@@ -35,11 +35,13 @@
         </div>
 
         <div v-else class="entity-item-grid-left-section rename-input-grid">
-          <input spellcheck="false" v-model="editableEntityName" class="input-short input-grid" type="text" placeholder="Collection name"
-            v-focus @keydown.enter="handleEnterKey" @keydown.esc="handleEscKey" />
-          <ActionButton :isDisabled="!isNameChanged" :icon="getAppIcon('check')" v-tooltip="'Confirm'"
-            @click="confirmRename" />
-          <ActionButton :icon="getAppIcon('close')" v-tooltip="'Cancel'" @click="cancelRename" />
+          <RenameInput 
+            v-model="editableEntityName"
+            :originalValue="entity.name"
+            placeholder="Collection name"
+            @confirm="confirmRename"
+            @cancel="cancelRename"
+          />
         </div>
         
         <div v-if="!isEditing" class="entity-item-grid-status">
@@ -126,13 +128,14 @@
             {{ entityName }}
           </div>
 
-          <div v-else ref="renameInput" class="rename-input">
-            <input spellcheck="false" v-model="editableEntityName" class="input-short" type="text"
-              placeholder="Collection name" v-focus @keydown.enter="handleEnterKey" @keydown.esc="handleEscKey" />
-            <ActionButton :isDisabled="!isNameChanged" :icon="getAppIcon('check')" v-tooltip="'Confirm'"
-              @click="confirmRename" />
-            <ActionButton :icon="getAppIcon('close')" v-tooltip="'Cancel'" @click="cancelRename" />
-          </div>
+          <RenameInput 
+            v-else
+            v-model="editableEntityName"
+            :originalValue="entity.name"
+            placeholder="Collection name"
+            @confirm="confirmRename"
+            @cancel="cancelRename"
+          />
 
         </div>
 
@@ -231,6 +234,7 @@ import { useMenu } from '@/stores/menu';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
+import RenameInput from '@/instances/desktop/components/RenameInput.vue'
 import ProfilePhoto from '@/instances/common/components/ProfilePhoto.vue'
 
 // states/stores
@@ -436,24 +440,6 @@ const confirmRename = async () => {
   isAwaitingResponse.value = true;
   await updateCollectionName();
   toggleEditMode();
-};
-
-const handleEnterKey = () => {
-  const inputElement = document.querySelector('.input-short');
-  if (!isNameChanged.value) {
-    if (inputElement) {
-      inputElement.classList.add('shake');
-      setTimeout(() => {
-        inputElement.classList.remove('shake');
-      }, 300);
-    }
-  } else {
-    confirmRename();
-  }
-};
-
-const handleEscKey = () => {
-  cancelRename();
 };
 
 const updateCollectionName = async () => {
@@ -1095,7 +1081,7 @@ onBeforeUnmount(() => {
   height: min-content;
   white-space: nowrap;
   text-overflow: ellipsis;
-
+  font-size: 14px;
 }
 
 .input-short {

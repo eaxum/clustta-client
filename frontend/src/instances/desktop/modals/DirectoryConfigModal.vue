@@ -3,29 +3,11 @@
     <HeaderArea :title="title" :icon="'explorer'" :showSearch="showSearch" />
     <div class="general-container">
 
-      
-
-      <div class="input-section">
-        <span class="regular">Projects Folder</span>
-        <div class="horizontal-flex">
-          <input v-model="workingDirectory" class="input-short" type="text"
-            placeholder="Working Directory" ref="sharedProjectsDirectoryInput" />
-          <span @click="pasteDirectoryPath('workingDir')" class="single-action-button" v-tooltip="'Paste link'"><img
-              class="small-icons" :src="getAppIcon('clipboard')"></span>
-          <span @click="selectDirectoryPath('workingDir')" class="single-action-button" v-tooltip="'Browse Path'"><img
-              class="small-icons" :src="getAppIcon('explorer')"></span>
-        </div>
-      </div>
-
-      <div class="menu-divider" ></div>
-
       <div class="input-section">
         <span class="regular">Clustta local projects data</span>
         <div class="horizontal-flex">
           <input v-model="projectsDirectory" class="input-short" type="text" placeholder="Projects Directory"
             ref="projectsDirectoryInput" />
-          <span @click="pasteDirectoryPath('personal')" class="single-action-button" v-tooltip="'Paste link'"><img
-              class="small-icons" :src="getAppIcon('clipboard')"></span>
           <span @click="selectDirectoryPath('personal')" class="single-action-button" v-tooltip="'Browse Path'"><img
               class="small-icons" :src="getAppIcon('explorer')"></span>
         </div>
@@ -36,12 +18,14 @@
         <div class="horizontal-flex">
           <input v-model="sharedProjectsDirectory" class="input-short" type="text"
             placeholder="Shared Projects Directory" ref="sharedProjectsDirectoryInput"  />
-          <span @click="pasteDirectoryPath('shared')" class="single-action-button" v-tooltip="'Paste link'"><img
-              class="small-icons" :src="getAppIcon('clipboard')"></span>
           <span @click="selectDirectoryPath('shared')" class="single-action-button" v-tooltip="'Browse Path'"><img
               class="small-icons" :src="getAppIcon('explorer')"></span>
         </div>
       </div>
+
+      <div class="menu-divider"></div>
+
+      <ProjectLocationManager v-model="projectLocations" @location-changed="() => {}" />
 
       <div class="pop-up-actions">
         <button class="button default" @click="closeModal()" v-stop-propagation>Cancel</button>
@@ -70,6 +54,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 
 //components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import ProjectLocationManager from '@/instances/common/components/ProjectLocationManager.vue';
 
 import { ClipboardService, SettingsService, DialogService } from '@/../bindings/clustta/services/index';
 
@@ -83,8 +68,7 @@ const sharedProjectsDirectory = ref('');
 const sharedProjectsDirectoryInput = ref(null);
 const projectsDirectory = ref('');
 const projectsDirectoryInput = ref(null);
-const workingDirectory = ref('');
-const workingDirectoryInput = ref(null);
+const projectLocations = ref([]);
 const modals = useDesktopModalStore();
 
 //methods
@@ -96,8 +80,6 @@ const pasteDirectoryPath = async (context) => {
         sharedProjectsDirectory.value = path;
       } else if (context === 'personal') {
         projectsDirectory.value = path;
-      }else if (context === 'workingDir') {
-        workingDirectory.value = path;
       }
     }).catch(err => {
       console.error("Failed to paste from clipboard:", err);
@@ -115,18 +97,19 @@ const selectDirectoryPath = async (context) => {
     } else if (context === 'personal') {
       projectsDirectory.value = fileDir;
       projectsDirectoryInput.value.focus();
-    } else if (context === 'workingDir') {
-      workingDirectory.value = fileDir;
-      workingDirectoryInput.value.focus();
     }
   }
 };
 
 const saveChanges = async () => {
-  await SettingsService.SetProjectDirectory(projectsDirectory.value)
-  await SettingsService.SetWorkingDirectory(workingDirectory.value)
-  await SettingsService.SetSharedProjectDirectory(sharedProjectsDirectory.value)
-  closeModal();
+  try {
+    await SettingsService.SetProjectDirectory(projectsDirectory.value);
+    await SettingsService.SetSharedProjectDirectory(sharedProjectsDirectory.value);
+    notificationStore.addNotification('Settings saved successfully', '', 'success', false);
+    closeModal();
+  } catch (error) {
+    notificationStore.errorNotification('Error saving settings', error);
+  }
 };
 
 
@@ -143,44 +126,18 @@ const handleEnterKey = (event) => {
 
 
 onMounted(async () => {
-  await SettingsService.GetProjectDirectory()
-    .then((response) => {
-      projectsDirectory.value = response
-    })
-    .catch((error) => {
-      notificationStore.addNotification(
-        "Error Loading Settings",
-        error.message,
-        "error",
-        false
-      )
-    });
-  await SettingsService.GetSharedProjectDirectory()
-    .then((response) => {
-      sharedProjectsDirectory.value = response
-    })
-    .catch((error) => {
-      notificationStore.addNotification(
-        "Error Loading Settings",
-        error.message,
-        "error",
-        false
-      )
-    });
-
-  await SettingsService.GetWorkingDirectory()
-    .then((response) => {
-      workingDirectory.value = response
-    })
-    .catch((error) => {
-      notificationStore.addNotification(
-        "Error Loading Settings",
-        error.message,
-        "error",
-        false
-      )
-    });
-
+  try {
+    projectsDirectory.value = await SettingsService.GetProjectDirectory();
+    sharedProjectsDirectory.value = await SettingsService.GetSharedProjectDirectory();
+    projectLocations.value = await SettingsService.GetAllLocationPaths();
+  } catch (error) {
+    notificationStore.addNotification(
+      "Error Loading Settings",
+      error.message,
+      "error",
+      false
+    );
+  }
 });
 
 </script>
