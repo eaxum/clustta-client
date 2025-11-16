@@ -3,20 +3,33 @@
     <div class="settings-component-container">
       
       <!-- Clustta Data Card -->
-      <div class="directory-card">
-        <div class="card-header">
-          <h2 class="card-title">Clustta Data</h2>
+      <div class="settings-section-card">
+        <div class="settings-section-card-header">
+          <h2 class="settings-section-card-title">Clustta Data</h2>
         </div>
-        <div class="card-content">
+        <div class="settings-section-card-content">
+          <!-- Local Projects -->
           <div class="location-item">
-            <div class="location-header">
-              <div class="location-name">Local projects</div>
+            <!-- Location Icon -->
+            <div class="location-icon">
+              <img class="small-icons" :src="getAppIcon('folder')">
             </div>
-
-            <div class="actions-divider" ></div>
             
-            <div class="horizontal-flex">
-              <div class="location-path">{{ projectsDirectory }}</div>
+            <!-- Location Content -->
+            <div class="location-content">
+              <!-- Header -->
+              <div class="location-header">
+                <div class="location-name">Local projects</div>
+              </div>
+              
+              <!-- Body (Path) -->
+              <div class="location-body">
+                {{ projectsDirectory }}
+              </div>
+            </div>
+            
+            <!-- Location Actions -->
+            <div class="location-actions">
               <ActionButton 
                 :icon="getAppIcon('explorer')" 
                 :buttonFunction="() => selectDirectoryPath('personal')"
@@ -25,15 +38,28 @@
             </div>
           </div>
 
+          <!-- Shared Projects -->
           <div class="location-item">
-            <div class="location-header">
-              <div class="location-name">Shared projects</div>
+            <!-- Location Icon -->
+            <div class="location-icon">
+              <img class="small-icons" :src="getAppIcon('folder')">
             </div>
-
-            <div class="actions-divider" ></div>
-
-            <div class="horizontal-flex">
-              <div class="location-path">{{ sharedProjectsDirectory }}</div>
+            
+            <!-- Location Content -->
+            <div class="location-content">
+              <!-- Header -->
+              <div class="location-header">
+                <div class="location-name">Shared projects</div>
+              </div>
+              
+              <!-- Body (Path) -->
+              <div class="location-body">
+                {{ sharedProjectsDirectory }}
+              </div>
+            </div>
+            
+            <!-- Location Actions -->
+            <div class="location-actions">
               <ActionButton 
                 :icon="getAppIcon('explorer')" 
                 :buttonFunction="() => selectDirectoryPath('shared')"
@@ -45,9 +71,9 @@
       </div>
 
       <!-- Working Folder Locations Card -->
-      <div class="directory-card">
-        <div class="card-header">
-          <h2 class="card-title">Project folders</h2>
+      <div class="settings-section-card">
+        <div class="settings-section-card-header">
+          <h2 class="settings-section-card-title">Project folders</h2>
           <ActionButton 
             :icon="getAppIcon('plus-circle')" 
             label="Add Location" 
@@ -55,43 +81,49 @@
             :showLabel="true"
           />
         </div>
-        <div class="card-content">
+        <div class="settings-section-card-content">
           <div class="locations-scroll-container">
             <div v-for="location in locations" :key="location.id" class="location-item">
-            
-            <!-- Editing Mode -->
-            <div v-if="editingLocationId === location.id" class="location-header">
-              <RenameInput 
-                v-model="editableLocationName"
-                :originalValue="location.name"
-                placeholder="Location name"
-                @confirm="confirmEditLocationName(location)"
-                @cancel="cancelEditingLocation"
-              />
-            </div>
-            
-            <!-- Normal Display Mode -->
-            <template v-else>
-              <div class="location-header">
-                <div class="location-name">
-                  {{ location.name }}
-                </div>
-                <ActionButton 
+              
+              <!-- Location Icon - shows alert if path doesn't exist -->
+              <div class="location-icon">
+                <!-- <ActionButton 
                   v-if="locationHealthMap[location.id] && !locationHealthMap[location.id].exists"
                   :icon="getAppIcon('alert')" 
                   :useAlert="true"
                   :isInactive="true"
                   v-tooltip="'Path does not exist'"
-                />
+                /> -->
+                <img v-if="locationHealthMap[location.id] && !locationHealthMap[location.id].exists" class="small-icons" :src="getAppIcon('alert')">
+                <img v-else class="small-icons" :src="getAppIcon('folder')">
               </div>
               
-              <div class="actions-divider" ></div>
-
-              <div class="horizontal-flex">
-                <div class="location-path">
-                  {{ location.path }}
+              <!-- Location Content -->
+              <div class="location-content">
+                <!-- Editing Mode - Header Only -->
+                <div v-if="editingLocationId === location.id" class="location-header">
+                  <RenameInput 
+                    v-model="editableLocationName"
+                    :originalValue="location.name"
+                    placeholder="Location name"
+                    @confirm="confirmEditLocationName(location)"
+                    @cancel="cancelEditingLocation"
+                  />
                 </div>
                 
+                <!-- Normal Display Mode - Header -->
+                <div v-else class="location-header">
+                  <div class="location-name">{{ location.name }}</div>
+                </div>
+                
+                <!-- Body (Path - always visible) -->
+                <div class="location-body">
+                  {{ location.path }}
+                </div>
+              </div>
+              
+              <!-- Location Actions -->
+              <div class="location-actions">
                 <!-- Star button - always visible for default location -->
                 <ActionButton 
                   v-if="location.is_default"
@@ -101,36 +133,39 @@
                   v-tooltip="'Default location'"
                 />
                 
-                <!-- Actions - visible on hover -->
-                <div class="location-actions">
+                <!-- Other actions - visible on hover -->
+                <template v-if="editingLocationId !== location.id">
                   <ActionButton 
                     :icon="getAppIcon('edit')" 
                     :buttonFunction="() => startEditingLocation(location)"
                     v-tooltip="'Edit name'"
+                    class="hover-action"
                   />
                   <ActionButton 
                     v-if="!location.is_default"
                     :icon="getAppIcon('star')" 
                     :buttonFunction="() => setDefaultLocation(location.id)"
                     v-tooltip="'Set as default'"
+                    class="hover-action"
                   />
                   <ActionButton 
                     :icon="getAppIcon('explorer')" 
                     :buttonFunction="() => selectPath(location)"
                     v-tooltip="'Change Location'"
+                    class="hover-action"
                   />
                   <ActionButton 
                     :icon="getAppIcon('trash')" 
                     :buttonFunction="() => removeLocation(location.id)"
                     :isDisabled="!canDeleteLocation(location.id)"
                     v-tooltip="canDeleteLocation(location.id) ? 'Remove Location' : 'Cannot remove: projects are using this location'"
+                    class="hover-action"
                   />
-                </div>
+                </template>
               </div>
-            </template>
-            
+              
+            </div>
           </div>
-        </div>
         </div>
       </div>
 
@@ -371,18 +406,17 @@ onMounted(async () => {
 }
 
 .settings-component-container {
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    width: 96%;
-    gap: 1.5rem;
-    color: white;
-    padding: 1rem;
-    /* background-color: var(--black-steel); */
-    border-radius: var(--large-radius);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 96%;
+  gap: 1.5rem;
+  color: white;
+  padding: 1rem;
+  border-radius: var(--large-radius);
 }
 
 .settings-component-container::-webkit-scrollbar {
@@ -399,139 +433,115 @@ onMounted(async () => {
   border-radius: 3px;
 }
 
-/* ProfileCard-style cards */
-.directory-card {
-  background-color: var(--black-steel);
-  border-radius: 24px;
-  padding: 1.5rem;
-  box-sizing: border-box;
-  width: 100%;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-}
-
-.card-header {
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: var(--transparent-line);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.card-title {
-  font-size: 1rem;
-  font-weight: 300;
-  color: var(--white);
-  margin: 0;
-  flex: 1;
-}
-
-.card-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.actions-divider {
-	display: flex;
-	background-color: var(--light-steel);
-	height: 16px;
-	width: 1.5px;
-}
-
-.location-path {
-  flex: 1;
-  padding: 0.5rem;
-  color: var(--text-secondary);
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border-radius: 4px;
-  /* background-color: crimson; */
-  box-sizing: border-box;
-}
-
 /* Working Locations Section */
 .locations-scroll-container {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  /* max-height: 150px; */
+  /* gap: 0.5rem; */
   overflow-y: auto;
-  padding-right: 0.25rem;
+  /* padding-right: 0.25rem; */
+  background-color: var(--dark-steel);
+  border-radius: var(--normal-radius);
 }
 
-
+/* Location item - styled like settings-item */
 .location-item {
   display: flex;
-  /* flex-direction: column; */
-  /* gap: 0.5rem; */
-  border-radius: 8px;
+  /* border-radius: 8px; */
   align-items: center;
-  background-color: hotpink;
-  background-color: var(--dark-steel);
-  /* border-radius: var(--normal-radius); */
+  /* background-color: var(--dark-steel); */
   overflow: hidden;
   box-sizing: border-box;
-  height: 45px;
-  min-height: 45px;
+  min-height: 50px;
+  height: max-content;
+  padding: .5rem 1rem;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom:  1px solid var(--light-steel);
+}
+
+.location-item:hover {
+  background-color: #ffffff15;
+}
+
+.location-item:active {
+  background-color: #00000013;
+}
+
+/* Location icon (optional) */
+.location-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: .3rem;
+  box-sizing: border-box;
+}
+
+/* Location content - like settings-content */
+.location-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  flex: 1;
+  overflow: hidden;
+  padding: .2rem;
+  box-sizing: border-box;
 }
 
 .location-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  /* background-color: forestgreen; */
-  text-wrap: nowrap;
-  max-width: 150px;
-  width: 150px;
-  text-overflow: ellipsis;
-}
-
-.location-item:has(.rename-input) .location-header {
-  flex: 1;
-  max-width: 100%;
   width: 100%;
+  padding: .1rem;
 }
 
 .location-name {
-  flex: 1;
-  margin: 0;
-  padding: 0.5rem;
-  color: var(--white);
   font-size: 14px;
   font-weight: 400;
-  font-family: Inter, sans-serif;
-  /* background-color: royalblue; */
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+.location-body {
+  color: var(--silver);
+  font-size: 12px;
+  opacity: .8;
+  padding: .1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+/* Edit mode styling */
 .rename-input {
   flex: 1;
   display: flex;
   align-items: center;
   width: 100%;
-  padding: 0.5rem;
   box-sizing: border-box;
 }
 
+/* Location actions - like settings-action */
 .location-actions {
-  display: none;
+  display: flex;
   align-items: center;
   gap: 0.5rem;
+  box-sizing: border-box;
 }
 
-.location-item:hover .location-actions {
+/* Hide hover actions by default, show on hover */
+.hover-action {
+  display: none;
+}
+
+.location-item:hover .hover-action {
   display: flex;
-}
-
-.location-info {
-  font-size: 12px;
-  color: var(--text-secondary);
-  padding: 0.5rem;
-  background-color: goldenrod;
 }
 
 .disabled {

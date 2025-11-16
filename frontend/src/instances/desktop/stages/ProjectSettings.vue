@@ -58,7 +58,7 @@ const settingsItems = computed(() => {
 	const canViewTemplate = userStore.canDo('view_template');
 	const isProjectRemote = projectStore.activeProject.has_remote;
 	
-	const userSettingsItems = ['General', 'Project Templates', 'Studio', 'Studio Collaborators'];
+	const userSettingsItems = ['General', 'Directories', 'Project Templates', 'Studio', 'Studio Collaborators'];
 	const remoteProjectItems = ['Collaborators', 'Roles'];
 
 	const projectSettings = settings.settingsItems.filter((item) => 

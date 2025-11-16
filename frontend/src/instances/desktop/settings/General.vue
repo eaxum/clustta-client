@@ -2,23 +2,17 @@
   <div class="settings-component-root">
     <div class="settings-component-container">
 
-      <div class="settings-list">
-
-        <div class="settings-section">
-
-          <div class="settings-item" @click="launchDirConfigModal()" v-stop-propagation>
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('explorer')"></div>
-            <div class="settings-content">
-              <div class="settings-header">Clustta Directories</div>
-              <div class="settings-body">Where Clustta stores data on your computer.</div>
-            </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
-          </div>
-
+      <!-- Appearance Card -->
+      <div class="settings-section-card">
+        <div class="settings-section-card-header">
+          <h2 class="settings-section-card-title">Appearance</h2>
+        </div>
+        <div class="settings-section-card-content">
+          
           <div class="settings-item">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('palette')"></div>
             <div class="settings-content">
-              <div class="settings-header"> Icon scheme</div>
+              <div class="settings-header">Icon scheme</div>
               <div class="settings-body">Toggle between different icon styles for the user interface.</div>
             </div>
             <div class="settings-action fixed-width">
@@ -30,7 +24,7 @@
           <div class="settings-item">
             <div class="settings-icon"><img class="small-icons" :src="themeStore.isDarkMode ? getAppIcon('moon') : getAppIcon('sun')"></div>
             <div class="settings-content">
-              <div class="settings-header"> Theme</div>
+              <div class="settings-header">Theme</div>
               <div class="settings-body">Light or Dark mode.</div>
             </div>
             <div class="settings-action fixed-width">
@@ -49,8 +43,15 @@
               <ToggleSwitch :switchValueProp="commonStore.useGrid" />
             </div>
           </div>
+        </div>
+      </div>
 
-
+      <!-- Data Management Card -->
+      <div class="settings-section-card">
+        <div class="settings-section-card-header">
+          <h2 class="settings-section-card-title">Data Management</h2>
+        </div>
+        <div class="settings-section-card-content">
           <div class="settings-item" @click="clearRecents">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('broom')"></div>
             <div class="settings-content">
@@ -59,7 +60,15 @@
             </div>
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
           </div>
+        </div>
+      </div>
 
+      <!-- Resources & Support Card -->
+      <div class="settings-section-card">
+        <div class="settings-section-card-header">
+          <h2 class="settings-section-card-title">Resources & Support</h2>
+        </div>
+        <div class="settings-section-card-content">
           <div class="settings-item" @click="Browser.OpenURL('https://docs.clustta.com')">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('help')"></div>
             <div class="settings-content">
@@ -77,16 +86,15 @@
             </div>
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
           </div>
+        </div>
+      </div>
 
-          <!-- <div class="settings-item" @click="Browser.OpenURL('https://app.clustta.com')">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('person')"></div>
-            <div class="settings-content">
-              <div class="settings-header">Account</div>
-              <div class="settings-body">Manage your account and data online.</div>
-            </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
-          </div> -->
-
+      <!-- About Card -->
+      <div class="settings-section-card">
+        <div class="settings-section-card-header">
+          <h2 class="settings-section-card-title">About</h2>
+        </div>
+        <div class="settings-section-card-content">
           <div class="settings-item" @click="displayAppInfo()" v-stop-propagation>
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('info')"></div>
             <div class="settings-content">
@@ -96,7 +104,6 @@
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
           </div>
         </div>
-
       </div>
 
     </div>
@@ -205,11 +212,6 @@ onMounted(async () => {
 <style scoped>
 @import "@/assets/desktop.css";
 
-.input-short {
-  flex: 1;
-  width: 100%;
-}
-
 .settings-component-root {
   width: 100%;
   height: 100%;
@@ -227,65 +229,53 @@ onMounted(async () => {
   flex-direction: column;
   box-sizing: border-box;
   height: 100%;
-  overflow: hidden;
-  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
   width: 96%;
-  gap: .5rem;
-  align-items: center;
-  color: var(--white);
-  justify-content: space-between;
-  border-radius: var(--large-radius);
+  gap: 1.5rem;
+  color: white;
   padding: 1rem;
+  border-radius: var(--large-radius);
 }
 
-.list-item {
-
-  border-radius: 8px;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: flex;
-  gap: 10px;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 5px 5px;
-  width: 100%;
-  color: #fff;
-  overflow: hidden;
-  text-wrap: nowrap;
+.settings-component-container::-webkit-scrollbar {
+  width: 6px;
 }
 
-.list-item:hover {
-  background-color: rgb(121, 121, 121);
-  background-color: #ffffff15;
+.settings-component-container::-webkit-scrollbar-thumb {
+  background-color: var(--midnight-steel);
+  border-radius: 3px;
 }
 
-.list-item:active {
-  background-color: rgb(70, 70, 70);
-  background-color: #00000013;
+.settings-component-container::-webkit-scrollbar-track {
+  background-color: var(--light-steel);
+  border-radius: 3px;
 }
 
+/* Settings item styling */
 .settings-item {
   color: var(--white);
   box-sizing: border-box;
   overflow: hidden;
-  min-height: 40px;
+  min-height: 50px;
   display: flex;
   padding: .5rem 1rem;
   align-items: center;
   justify-content: space-between;
   width: 100%;
   height: max-content;
-  border-bottom: 1px solid rgba(192,192,192,0.5); 
-  border-bottom: 1px solid color-mix(in srgb, var(--silver) 30%, transparent); 
+  /* border-radius: 8px; */
+  background-color: var(--dark-steel);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom:  1px solid var(--light-steel);
 }
 
 .settings-item:hover {
-  background-color: rgb(121, 121, 121);
   background-color: #ffffff15;
 }
 
 .settings-item:active {
-  background-color: rgb(70, 70, 70);
   background-color: #00000013;
 }
 
@@ -313,6 +303,8 @@ onMounted(async () => {
 
 .settings-header {
   padding: .1rem;
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .settings-body {
@@ -332,56 +324,8 @@ onMounted(async () => {
   width: max-content;
 }
 
-/* .fixed-width {
+.fixed-width {
   min-width: 200px;
-  padding: .1rem;
-  box-sizing: border-box;
-} */
-
-.tray-page-content {
-  position: relative;
-  flex-direction: column;
-  box-sizing: border-box;
-  align-items: center;
-}
-
-.settings-list {
-  position: relative;
-  width: 96%;
-  height: 100%;
-  overflow-y: scroll;
-  box-sizing: border-box;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.settings-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.settings-list::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
-}
-
-.settings-list::-webkit-scrollbar-track {
-  border-radius: 10px;
-}
-
-.settings-section {
-  box-sizing: border-box;
-  position: relative;
-  background-color: var(--light-steel);
-  overflow: hidden;
-  height: max-content;
-  border-radius: 8px;
-  flex-direction: column;
-  margin-bottom: 2rem;
-}
-
-.list-item {
-  height: 50px;
-  border-bottom: var(--transparent-line);
 }
 </style>
 
