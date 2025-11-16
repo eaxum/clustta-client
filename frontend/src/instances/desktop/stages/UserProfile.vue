@@ -812,7 +812,7 @@ onBeforeMount(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--black-steel);
+  /* background-color: var(--black-steel); */
   color: var(--white);
   /* border-radius: 12px; */
 }
