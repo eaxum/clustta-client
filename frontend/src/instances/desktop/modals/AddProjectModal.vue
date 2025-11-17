@@ -113,8 +113,15 @@ const isLoadingLocations = ref(false);
 
 const workingDirectory = computed(() => {
   if (!selectedLocation.value || !projectName.value) return '';
-  const studioPath = projectStore.selectedStudio.name;
-  return `${selectedLocation.value.path}/${studioPath}/${projectName.value}`;
+  const studioName = projectStore.selectedStudio.name;
+  
+  // For personal projects, don't include studio name in working directory
+  if (studioName === 'Personal') {
+    return `${selectedLocation.value.path}/${projectName.value}`;
+  }
+  
+  // For studio projects, include studio name
+  return `${selectedLocation.value.path}/${studioName}/${projectName.value}`;
 });
 
 // Computed properties for DropDownBox

@@ -216,6 +216,16 @@
 
 /* modals */
 
+.settings-section-card {
+  background-color: var(--black-steel);
+  border-radius: var(--very-large-radius);
+  padding: 1.5rem;
+  box-sizing: border-box;
+  width: 100%;
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+}
+
 .modal-container {
   /* z-index: 1; */
   display: flex;
@@ -235,7 +245,7 @@
   outline-offset: -1px;
   outline: var(--transparent-line);
   background-color: var(--black);
-  border-radius: var(--large-radius);
+  border-radius: var(--very-large-radius);
 }
 
 .general-container {

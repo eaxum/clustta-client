@@ -25,8 +25,6 @@
 
       <div class="menu-divider"></div>
 
-      <ProjectLocationManager v-model="projectLocations" @location-changed="() => {}" />
-
       <div class="pop-up-actions">
         <button class="button default" @click="closeModal()" v-stop-propagation>Cancel</button>
         <button class="button colored" @click="saveChanges()" v-stop-propagation>Save</button>
@@ -54,7 +52,6 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 
 //components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import ProjectLocationManager from '@/instances/common/components/ProjectLocationManager.vue';
 
 import { ClipboardService, SettingsService, DialogService } from '@/../bindings/clustta/services/index';
 
