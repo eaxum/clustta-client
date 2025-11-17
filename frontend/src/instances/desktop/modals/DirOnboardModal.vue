@@ -1,37 +1,125 @@
 <template>
   <div class="modal-container">
-    <HeaderArea :title="'Select Clustta directory'" :icon="'explorer'" :showSearch="showSearch" />
+    <HeaderArea :title="'Setup Clustta'" :icon="getAppIcon('clustta')" :showSearch="false" />
     <div class="general-container">
 
-        <div class="onboard-item-container">
-
-            <img class="onboard-image" src="/page-states/project_cropped.png">
-
-            <div class="pop-up-text-container">
-                <div class="pop-up-body">
-                Select the folder where Clustta will create and save your projects. You can change this later in the app settings.
-                </div>
+      <!-- Card 1: Select data storage location -->
+      <div class="settings-section-card">
+        <div class="settings-section-card-header">
+          <div class="header-content">
+            <h2 class="settings-section-card-title">Select Clustta data location</h2>
+            <div class="card-description">
+              This is where Clustta will store data for your project checkpoints as well as shared projects.
             </div>
-
-            <div v-if="selectedClusttaDirectory" class="input-section">
-                <div class="horizontal-flex">
-                <input v-model="selectedClusttaDirectory" class="input-short read-only-input" type="text"
-                    placeholder="Projects Directory" ref="projectsDirectoryInput" />
-                <span @click="selectDirectory()" class="single-action-button" v-tooltip="'Browse Path'"><img
-                    class="small-icons" :src="getAppIcon('explorer')"></span>
-                </div>
-            </div>
-
-            <div v-if="selectedClusttaDirectory" class="location-section">
-              <div class="menu-divider"></div>
-              <ProjectLocationManager v-model="projectLocations" />
-            </div>
-
+          </div>
+          <GeneralButton 
+            :label="selectedClusttaDirectory ? 'Change' : 'Select'" 
+            :buttonFunction="selectDirectory"
+            :fullWidth="false"
+          />
         </div>
+        <div class="settings-section-card-content">
+          
+          <!-- Selected Path Display -->
+          <div v-if="selectedClusttaDirectory" class="location-item location-item-single">
+            <div class="location-icon">
+              <img class="small-icons" :src="getAppIcon('folder')">
+            </div>
+            <div class="location-content">
+              <div class="location-header">
+                <div class="location-name">Clustta Data</div>
+              </div>
+              <div class="location-body">
+                {{ selectedClusttaDirectory }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <div class="pop-up-actions" :class="{ 'spaced-out' : firstStage}" >
-        <button v-if="!selectedClusttaDirectory" class="button colored" @click="selectDirectory()" v-stop-propagation>Select 'Clustta' Folder</button>
-        <button v-else class="button colored" @click="saveChanges()" v-stop-propagation>Save</button>
+      <!-- Card 2: Project folders (only visible after selecting storage location) -->
+      <div v-if="selectedClusttaDirectory" class="settings-section-card">
+        <div class="settings-section-card-header">
+          <div class="header-content">
+            <h2 class="settings-section-card-title">Project folders</h2>
+            <div class="card-description">
+              Add any folders where you currently save your project files. E.g 'Documents', 'Projects' or even an external drive likle E://Projects.
+            </div>
+          </div>
+          <GeneralButton 
+            label="Add" 
+            :buttonFunction="addLocation"
+            :fullWidth="false"
+          />
+        </div>
+        <div class="settings-section-card-content">
+          
+          <!-- Locations List -->
+          <div class="locations-scroll-container">
+            <div v-for="location in locations" :key="location.id" class="location-item">
+              <!-- Location Icon -->
+              <div class="location-icon">
+                <img v-if="locationHealthMap[location.id] && !locationHealthMap[location.id].exists" 
+                     class="small-icons" 
+                     :src="getAppIcon('alert')">
+                <img v-else class="small-icons" :src="getAppIcon('folder')">
+              </div>
+              
+              <!-- Location Content -->
+              <div class="location-content">
+                <div class="location-header">
+                  <div class="location-name">{{ location.name }}</div>
+                </div>
+                <div class="location-body">
+                  {{ location.path }}
+                </div>
+              </div>
+              
+              <!-- Location Actions -->
+              <div class="location-actions">
+                <ActionButton 
+                  v-if="location.is_default"
+                  :icon="getAppIcon('star')" 
+                  :buttonFunction="() => setDefaultLocation(location.id)"
+                  :disabled="true"
+                  v-tooltip="'Default location'"
+                />
+                
+                <template v-else>
+                  <ActionButton 
+                    :icon="getAppIcon('star')" 
+                    :buttonFunction="() => setDefaultLocation(location.id)"
+                    v-tooltip="'Set as default'"
+                    class="hover-action"
+                  />
+                  <ActionButton 
+                    :icon="getAppIcon('explorer')" 
+                    :buttonFunction="() => selectPath(location)"
+                    v-tooltip="'Change Location'"
+                    class="hover-action"
+                  />
+                  <ActionButton 
+                    :icon="getAppIcon('trash')" 
+                    :buttonFunction="() => removeLocation(location.id)"
+                    :isDisabled="!canDeleteLocation(location.id)"
+                    v-tooltip="canDeleteLocation(location.id) ? 'Remove Location' : 'Cannot remove: projects are using this location'"
+                    class="hover-action"
+                  />
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="pop-up-actions">
+        <GeneralButton 
+          v-if="selectedClusttaDirectory" 
+          label="Continue" 
+          :buttonFunction="saveChanges"
+          :fullWidth="false"
+        />
       </div>
 
     </div>
@@ -49,7 +137,7 @@ const getAppIcon = (iconName) => {
 
 
 // imports
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 
 //stores
 import { useNotificationStore } from '@/stores/notifications';
@@ -59,11 +147,10 @@ import { useTrayStates } from '@/stores/TrayStates';
 
 //components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import ProjectLocationManager from '@/instances/common/components/ProjectLocationManager.vue';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 
-import { v4 as uuidv4 } from "uuid";
-import { ClipboardService, SettingsService, DialogService, FSService } from '@/../bindings/clustta/services/index';
-
+import { SettingsService, DialogService, FSService } from '@/../bindings/clustta/services/index';
 
 //refs
 const trayStates = useTrayStates();
@@ -74,49 +161,28 @@ const modals = useDesktopModalStore();
 const personalDataDirectory = ref('');
 const sharedDataDirectory = ref('');
 
-const projectsDirectory = ref('');
-const projectsDirectoryInput = ref(null);
-
 const defaultClusttaDirectory = ref('');
 const selectedClusttaDirectory = ref('');
 
-const projectLocations = ref([]);
-
 const userName = ref('');
 
-const firstStage = ref(true);
-
-//header vars
-let showSearch = false;
+// Location management refs
+const locations = ref([]);
+const locationHealthMap = ref({});
+const locationUsageMap = ref({});
 
 
 //methods
 
-const pasteDirectoryPath = async (context) => {
-  ClipboardService.ReadText()
-    .then(path => {
-      if (context === 'dataDir') {
-        selectedClusttaDirectory.value = path;
-      }else if (context === 'projectsDir') {
-        projectsDirectory.value = path;
-      }
-    }).catch(err => {
-      console.error("Failed to paste from clipboard:", err);
-    });
-};
-
-
-
 const selectDirectory = async () => {
-
   let title = 'Clustta Directory';
   let directory;
   let pathExists = false;
 
   try {
-      pathExists = await FSService.DirExists(defaultClusttaDirectory.value);
+    pathExists = await FSService.DirExists(defaultClusttaDirectory.value);
   } catch (error) {
-      pathExists = false;
+    pathExists = false;
   }
   
   directory = pathExists && !selectedClusttaDirectory.value ? defaultClusttaDirectory.value : selectedClusttaDirectory.value;
@@ -124,54 +190,149 @@ const selectDirectory = async () => {
   const result = await DialogService.SelectSpecificFolderDialog(title, directory);
 
   if (result) {
+    let fileDir = result.replace(/\\/g, '/');
+    selectedClusttaDirectory.value = fileDir.replace(/\/clustta/g, '') + '/clustta';
 
-      let fileDir = result.replace(/\\/g, '/');
-      selectedClusttaDirectory.value = fileDir.replace(/\/clustta/g, '') + '/clustta';
+    personalDataDirectory.value = selectedClusttaDirectory.value + '/projects';
+    sharedDataDirectory.value = selectedClusttaDirectory.value + '/shared_projects';
 
-      personalDataDirectory.value = selectedClusttaDirectory.value + '/projects';
-      sharedDataDirectory.value = selectedClusttaDirectory.value + '/shared_projects';
+    // Initialize default location if not already present
+    if (locations.value.length === 0) {
+      locations.value = [{
+        id: '1',
+        name: 'Default',
+        path: selectedClusttaDirectory.value + '/mnt',
+        is_default: true,
+        project_ids: []
+      }];
+      await checkAllLocationHealth();
+    }
+  }
+};
 
-      // Initialize default location if not already present
-      if (projectLocations.value.length === 0) {
-        projectLocations.value = [{
-          id: '1',
-          name: 'Default',
-          path: selectedClusttaDirectory.value + '/mnt',
-          is_default: true,
-          project_ids: []
-        }];
-      }
+// Location management methods
+const checkAllLocationHealth = async () => {
+  try {
+    const healthStatuses = await SettingsService.CheckAllLocationsHealth();
+    healthStatuses.forEach(h => {
+      locationHealthMap.value[h.id] = h;
+    });
+  } catch (error) {
+    console.error('Error checking location health:', error);
+  }
+};
 
+const loadLocationUsage = async () => {
+  for (const location of locations.value) {
+    try {
+      const count = await SettingsService.GetLocationUsage(location.id);
+      locationUsageMap.value[location.id] = count;
+    } catch (error) {
+      locationUsageMap.value[location.id] = 0;
+    }
+  }
+};
+
+const getProjectCount = (locationId) => {
+  return locationUsageMap.value[locationId] || 0;
+};
+
+const canDeleteLocation = (locationId) => {
+  if (locations.value.length <= 1) return false;
+  return getProjectCount(locationId) === 0;
+};
+
+const addLocation = async () => {
+  const newLocationName = `Location ${locations.value.length + 1}`;
+  
+  const result = await DialogService.SelectFolderDialog("Select Location Folder");
+  if (!result) return;
+  
+  const path = result.replace(/\\/g, '/');
+  
+  // Add to local array (will be saved when user clicks Continue)
+  const newLocation = {
+    id: `${locations.value.length + 1}`,
+    name: newLocationName,
+    path: path,
+    is_default: false,
+    project_ids: []
   };
+  
+  locations.value.push(newLocation);
+  await checkAllLocationHealth();
+  
+  notificationStore.addNotification('Location added', '', 'success', false);
+};
 
+const selectPath = async (location) => {
+  const result = await DialogService.SelectFolderDialog("Select Location Folder");
+  if (!result) return;
+  
+  const path = result.replace(/\\/g, '/');
+  location.path = path;
+  
+  await checkAllLocationHealth();
+  
+  notificationStore.addNotification('Location updated', '', 'success', false);
+};
+
+const removeLocation = (locationId) => {
+  if (!canDeleteLocation(locationId)) {
+    notificationStore.addNotification(
+      'Cannot remove location',
+      'Projects are using this location or it is the last location',
+      'error',
+      false
+    );
+    return;
+  }
+  
+  const index = locations.value.findIndex(loc => loc.id === locationId);
+  if (index !== -1) {
+    locations.value.splice(index, 1);
+    notificationStore.addNotification('Location removed', '', 'success', false);
+  }
+};
+
+const setDefaultLocation = (locationId) => {
+  locations.value.forEach(loc => {
+    loc.is_default = loc.id === locationId;
+  });
+  
+  notificationStore.addNotification('Default location updated', '', 'success', false);
 };
 
 const saveChanges = async () => {
-    try {
-      // Save data directories
-      await SettingsService.SetProjectDirectory(personalDataDirectory.value)
-      await SettingsService.SetSharedProjectDirectory(sharedDataDirectory.value)
-      
-      // Save all project locations
-      for (const location of projectLocations.value) {
-        try {
-          // Check if location already exists
-          const existingLocations = await SettingsService.GetAllLocationPaths();
-          const exists = existingLocations.some(loc => loc.id === location.id);
-          
-          if (!exists) {
-            await SettingsService.AddProjectLocation(location.name, location.path);
+  try {
+    // Save data directories
+    await SettingsService.SetProjectDirectory(personalDataDirectory.value);
+    await SettingsService.SetSharedProjectDirectory(sharedDataDirectory.value);
+    
+    // Save all project locations
+    for (const location of locations.value) {
+      try {
+        // Check if location already exists
+        const existingLocations = await SettingsService.GetAllLocationPaths();
+        const exists = existingLocations.some(loc => loc.id === location.id);
+        
+        if (!exists) {
+          const savedLocation = await SettingsService.AddProjectLocation(location.name, location.path);
+          // Set as default if needed
+          if (location.is_default) {
+            await SettingsService.SetDefaultLocation(savedLocation.id);
           }
-        } catch (error) {
-          console.error('Error saving location:', error);
         }
+      } catch (error) {
+        console.error('Error saving location:', error);
       }
-      
-      await loadProjects();
-      closeModal();
-    } catch (error) {
-      notificationStore.errorNotification('Error saving settings', error);
     }
+    
+    await loadProjects();
+    closeModal();
+  } catch (error) {
+    notificationStore.errorNotification('Error saving settings', error);
+  }
 };
 
 const loadProjects = async () => {
@@ -225,218 +386,182 @@ onMounted(async () => {
 <style scoped>
 @import "@/assets/desktop.css";
 
-.pop-up-text-container {
-  /* background-color: crimson; */
-  display: flex;
-  flex-direction: column;
-  gap: .5rem;
-  padding: .5rem;
-}
-
-.pop-up-info {
-  padding: 0rem 1rem;
-  /* margin-bottom: .75rem; */
-}
-
-.pop-up-body {
-  font-size: 14px;
-  color: var(--white);
-}
-
-.tip{
-    font-style: italic;
-    font-weight: 600;
-}
-
-.regular{
-  color: var(--white);
-}
-.spaced-out{
-    justify-content: flex-end;
-}
-
-.input-section {
-  width: 100%;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  justify-content: flex-start;
-  gap: .4px;
-  color: var(--white);
-}
-
 .general-container {
-  gap: 1rem;
-}
-
-.location-section {
-  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-top: 1rem;
-}
-
-.onboard-image{
-    width: 100%;
-    width: 300px;
-    padding: .5rem;
-    /* aspect-ratio: 1/1; */
-    /* background-color: red; */
-}
-
-.onboard-item-container{
-    width: 100%;
-    /* background-color: hotpink; */
-    display: flex;
-    box-sizing: border-box;
-    height: 100%;
-    align-items: center;
-    flex-direction: column;
-    gap: .5rem;
-}
-.modal-info {
-  display: flex;
-  flex-direction: column;
-  max-width: 100%;
-  justify-content: flex-start;
-  align-self: stretch;
-  width: 464px;
-  align-items: flex-start;
-  box-sizing: border-box;
-
-}
-
-.modal-text-container {
-  display: flex;
-  flex-direction: column;
-  max-width: 100%;
-  justify-content: flex-start;
-  align-self: stretch;
-  width: 464px;
-  align-items: flex-start;
-  /* margin-top: 20px; */
-}
-
-.modal-title {
-  max-width: 100%;
-  align-self: stretch;
-  width: 464px;
-  color: rgba(16, 24, 40, 1);
+  width: 700px;
+  max-width: 700px;
+  /* padding: 1rem; */
   color: white;
-  font-size: 18px;
-  line-height: 28px;
-  letter-spacing: 0%;
-  text-align: left;
+  box-sizing: border-box;
 }
 
-.input-header {
-  /* background-color: lightblue; */
-  width: 100%;
+/* Settings Section Card Styles */
+.settings-section-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--dark-steel);
+  /* border-radius: var(--normal-radius); */
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.settings-section-card-header {
   display: flex;
   align-items: center;
-  margin: 10px 0px;
-}
-
-.input-count {
-  background-color: none;
-  font-size: 14px;
-  color: white;
-}
-
-.modal-subtitle {
-  /* background-color: beige; */
-  /* max-width: 100%; */
-  align-self: stretch;
-  width: 464px;
-  color: rgba(16, 24, 40, 1);
-  color: white;
-  font-size: 14px;
-  /* line-height: 28px; */
-  letter-spacing: 0%;
-  text-align: left;
-}
-
-
-
-.modal-body {
-  box-sizing: border-box;
-  max-width: 100%;
-  align-self: stretch;
-  width: 464px;
-  margin: 8px 0px;
-  font-size: 14px;
-  color: rgba(16, 24, 40, 1);
-  line-height: 20px;
-  letter-spacing: 0%;
-  text-align: left;
-}
-
-.modal-actions {
-  box-sizing: border-box;
-  padding: 1rem 2rem;
-  gap: 2rem;
-  display: flex;
-  flex-direction: row;
-  max-width: 100%;
-  align-self: stretch;
-  align-items: center;
-  justify-content: space-evenly;
-  width: 464px;
-  margin-top: 32px;
-}
-
-.div-10 {
-  display: flex;
-}
-
-.task-options-container {
-  position: relative;
-  box-sizing: border-box;
-  width: 100%;
-  height: max-content;
-  height: 40px;
-  transition: all .2s ease-in-out;
-  display: flex;
-  flex-direction: column;
   justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background-color: var(--midnight-steel);
+  border-radius: var(--normal-radius);
   margin: 0;
 }
 
-.task-options-container-closed {
-  height: 0px;
-  padding: 0;
-  margin-bottom: -1rem;
-}
-
-.input-short {
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
   flex: 1;
-  width: 100%;
-  font-size: 14px;
 }
 
-.read-only-input{
-    pointer-events: none;
-}
-
-.listbox-short {
-  flex: 1;
-  width: 130px;
-}
-
-.input-label {
-  font-family: Inter, sans-serif;
+.settings-section-card-title {
+  font-size: 16px;
+  font-weight: 400;
   color: var(--white);
-  font-size: 14px;
-  white-space: nowrap;
-  flex: 1;
+  margin: 0;
 }
 
-.pop-up-prompt {
-  gap: 10px;
+.settings-section-card-content {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.card-description {
+  font-size: 13px;
+  color: var(--silver);
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+/* Location Items */
+.locations-scroll-container {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background-color: var(--midnight-steel);
+  border-radius: var(--normal-radius);
+  background-color: var(--light-steel);
+  max-height: 300px;
+}
+
+.location-item {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  min-height: 60px;
+  height: max-content;
+  padding: 0.75rem 1rem;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid var(--dark-steel);
+  /* background-color: crimson; */
+  background-color: var(--light-steel);
+}
+
+.location-item-single{
+  border-radius: var(--normal-radius);
+}
+
+.location-item:last-child {
+  border-bottom: none;
+}
+
+.location-item:hover {
+  background-color: #ffffff15;
+}
+
+.location-icon {
+  display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0.3rem;
+  box-sizing: border-box;
+}
+
+.location-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  flex: 1;
+  overflow: hidden;
+  padding: 0.2rem;
+  box-sizing: border-box;
+}
+
+.location-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.1rem;
+}
+
+.location-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.location-body {
+  color: var(--silver);
+  font-size: 12px;
+  opacity: 0.8;
+  padding: 0.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.default-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  background-color: var(--accent-color);
+  color: white;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.location-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-sizing: border-box;
+}
+
+.hover-action {
+  display: none;
+}
+
+.location-item:hover .hover-action {
+  display: flex;
+}
+
+.pop-up-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  /* padding-top: 0.5rem; */
+  /* background-color: forestgreen; */
 }
 </style>
 

@@ -219,7 +219,6 @@ const selectDirectoryPath = async (context) => {
   }
 };
 
-// Methods for working locations (merged from ProjectLocationManager)
 const loadLocations = async () => {
   try {
     const fetchedLocations = await SettingsService.GetAllLocationPaths();

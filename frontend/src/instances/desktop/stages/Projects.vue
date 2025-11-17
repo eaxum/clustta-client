@@ -22,9 +22,6 @@
 				</div>
 			</div>
 			<div class="view-options">
-				<ActionButton v-if="projectStore.selectedStudio.name === 'Personal'" :icon="getAppIcon(showUntrackedProjects ? 'eye' : 'eye-cancel')" 
-					v-tooltip="showUntrackedProjects ? 'Hide untracked projects' : 'Show untracked projects'"
-					:buttonFunction="toggleUntrackedProjects" />
 				<ActionButton v-if="cardView" :isDisabled="!projects.length" :icon="getAppIcon('list')" v-tooltip="'List'"
 					:buttonFunction="switchViewLayout" />
 				<ActionButton v-else :isDisabled="!projects.length" :icon="getAppIcon('four-squares')" v-tooltip="'Cards'"
@@ -61,6 +58,21 @@
 				<div v-if="closedProjects.length && closedProjectsVisible" class="project-list"
 					:class="{ 'project-list-cards': cardView }">
 					<ProjectItem class="project-item" v-for="(project, index) in closedProjects" :key="project.id"
+						:project="project" :index="index" :cardView="cardView"
+						:style="{ animationDelay: index < 12 ? `${(index - 1) * 0.03}s` : '0s' }" />
+				</div>
+
+				<div v-if="untrackedProjects.length" class="project-list-divider" ref="untrackedProjectsDivider">
+					<TabButton
+						:icon="untrackedProjectsVisible ? '/icons/chevron_up_white_slim.svg' : '/icons/chevron_down_white_slim.svg'"
+						:label="untrackedProjectsVisible ? 'Hide untracked projects' : 'Show untracked projects'"
+						:showLabel="true" @click="toggleExpandUntrackedProjects" />
+					<div class="menu-divider"></div>
+				</div>
+
+				<div v-if="untrackedProjects.length && untrackedProjectsVisible" class="project-list"
+					:class="{ 'project-list-cards': cardView }">
+					<ProjectItem class="project-item" v-for="(project, index) in untrackedProjects" :key="project.id"
 						:project="project" :index="index" :cardView="cardView"
 						:style="{ animationDelay: index < 12 ? `${(index - 1) * 0.03}s` : '0s' }" />
 				</div>
@@ -111,10 +123,11 @@ const dndStore = useDndStore();
 const projectListContainer = ref(null);
 const projectListRoot = ref(null);
 const projectListDivider = ref(null);
+const untrackedProjectsDivider = ref(null);
 const openProjectsContainer = ref(null);
-const closedProjectsVisible = ref(false);
+const closedProjectsVisible = ref(true);
+const untrackedProjectsVisible = ref(true);
 const searchBar = ref(null);
-const showUntrackedProjects = ref(false);
 
 const getAppIcon = (iconName) => {
 	const icon = iconStore.getAppIcon(iconName);
@@ -203,16 +216,19 @@ const projects = computed(() => {
 		item.name.toLowerCase().includes(projectStore.projectSearchQuery)
 	);
 	
-	// Filter out untracked projects if toggle is off
-	if (!showUntrackedProjects.value) {
-		filteredProjects = filteredProjects.filter((project) => project.is_tracked !== false);
-	}
-	
 	return filteredProjects;
 });
 
+const trackedProjects = computed(() => {
+	return projects.value.filter((project) => project.is_tracked !== false);
+});
+
+const untrackedProjects = computed(() => {
+	return projects.value.filter((project) => project.is_tracked === false);
+});
+
 const openProjects = computed(() => {
-	return projects.value.filter((project) => !project.is_closed);
+	return trackedProjects.value.filter((project) => !project.is_closed);
 });
 
 const downloadedProjects = computed(() => {
@@ -234,7 +250,7 @@ const undownloadedProjects = computed(() => {
 });
 
 const closedProjects = computed(() => {
-	return projects.value.filter((project) => project.is_closed);
+	return trackedProjects.value.filter((project) => project.is_closed);
 });
 
 // methods
@@ -245,6 +261,16 @@ const toggleExpandClosedProjects = () => {
 	// return
 	nextTick(() => {
 		element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	});
+};
+
+const toggleExpandUntrackedProjects = () => {
+	const element = untrackedProjectsVisible.value ? openProjectsContainer.value : untrackedProjectsDivider.value;
+	untrackedProjectsVisible.value = !untrackedProjectsVisible.value;
+	nextTick(() => {
+		if (element) {
+			element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		}
 	});
 };
 
@@ -347,10 +373,6 @@ const switchViewLayout = () => {
 	SettingsService.ToggleProjectGridView().then(() => {
 		projectStore.isProjectGridView = !projectStore.isProjectGridView
 	})
-};
-
-const toggleUntrackedProjects = () => {
-	showUntrackedProjects.value = !showUntrackedProjects.value;
 };
 
 // Handle escape key globally

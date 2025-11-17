@@ -142,6 +142,7 @@
   --small-radius: 8px;
   --normal-radius: 12px;
   --large-radius: 16px;
+  --very-large-radius: 24px;
 
   /* width */
   --actions-width: 80px;
