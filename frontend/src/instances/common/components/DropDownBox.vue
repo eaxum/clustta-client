@@ -348,7 +348,7 @@ onUnmounted(() => {
   color: var(--white);
   box-sizing: border-box;
   border-radius: 8px;
-  min-height: 32px;
+  min-height: min-content;
   /* background-color: #2e2e2e; */
   overflow: hidden;
   overflow-y: auto;
