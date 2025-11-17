@@ -406,7 +406,22 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 
 			}
 		}
-		
+
+		// Get list of studio folders to exclude from untracked scanning
+		studioFolders := make(map[string]bool)
+		sharedProjectsDir, err := settings.GetSharedProjectDirectory()
+		if err == nil {
+			// Read all studio folders from shared_projects directory
+			if entries, err := os.ReadDir(sharedProjectsDir); err == nil {
+				for _, entry := range entries {
+					if entry.IsDir() {
+						studioFolders[entry.Name()] = true
+						fmt.Printf("Excluding studio folder from untracked scan: %s\n", entry.Name())
+					}
+				}
+			}
+		}
+
 		// Scan all configured working locations for untracked projects
 		projectLocations, err := settings.GetAllLocationPaths()
 		if err != nil {
@@ -414,15 +429,17 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 		}
 
 		for _, location := range projectLocations {
-			// Construct studio-specific path within this location
-			locationStudioPath := filepath.Join(location.Path, studioName)
+			// For Personal projects, scan directly in the location path
+			// No studio subdirectory needed
+			locationScanPath := location.Path
 
 			// Skip if path doesn't exist yet
-			if _, err := os.Stat(locationStudioPath); os.IsNotExist(err) {
+			if _, err := os.Stat(locationScanPath); os.IsNotExist(err) {
+				fmt.Printf("Location path does not exist: %s\n", locationScanPath)
 				continue
 			}
 
-			untrackedInLocation, err := GetUntrackedProjects(locationStudioPath, trackedProjectNames, location.ID)
+			untrackedInLocation, err := GetUntrackedProjects(locationScanPath, trackedProjectNames, studioFolders, location.ID)
 			if err != nil {
 				// Log but don't fail entire operation
 				fmt.Printf("Warning: Failed to scan location %s: %v\n", location.Name, err)
@@ -577,7 +594,7 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 	}
 }
 
-func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]bool, locationID string) ([]repository.ProjectInfo, error) {
+func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]bool, studioFolders map[string]bool, locationID string) ([]repository.ProjectInfo, error) {
 	untrackedProjects := []repository.ProjectInfo{}
 
 	// Read all entries in the projects directory
@@ -588,6 +605,7 @@ func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]boo
 
 	fmt.Printf("Scanning for untracked projects in: %s (location: %s)\n", projectsDir, locationID)
 	fmt.Printf("Tracked project names: %v\n", trackedProjectNames)
+	fmt.Printf("Studio folders to exclude: %v\n", studioFolders)
 
 	// Iterate over directory entries
 	for _, entry := range entries {
@@ -599,6 +617,12 @@ func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]boo
 		// Skip hidden directories (starting with .)
 		if strings.HasPrefix(entry.Name(), ".") {
 			fmt.Printf("Skipping hidden directory: %s\n", entry.Name())
+			continue
+		}
+
+		// Skip studio folders (these are for non-Personal projects)
+		if studioFolders[entry.Name()] {
+			fmt.Printf("Skipping studio folder: %s\n", entry.Name())
 			continue
 		}
 

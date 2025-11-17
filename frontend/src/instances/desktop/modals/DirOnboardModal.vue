@@ -7,8 +7,9 @@
       <div class="settings-section-card">
         <div class="settings-section-card-header">
           <div class="header-content">
-            <h2 class="settings-section-card-title">Select data location</h2>
+            <h2 class="settings-section-card-title">Grant permission</h2>
             <div class="card-description">
+              Grant clustta permission to save data to your computer.
               This is where Clustta will store data for your project checkpoints as well as shared projects.
             </div>
           </div>
@@ -113,12 +114,12 @@
       </div>
 
       <!-- Action Buttons -->
-      <div class="pop-up-actions">
+      <div v-if="selectedClusttaDirectory" class="pop-up-actions">
         <GeneralButton 
-          v-if="selectedClusttaDirectory" 
           label="Continue" 
           :buttonFunction="saveChanges"
           :fullWidth="false"
+          :isActive="hasDefaultLocation"
         />
       </div>
 
@@ -137,7 +138,7 @@ const getAppIcon = (iconName) => {
 
 
 // imports
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 
 //stores
 import { useNotificationStore } from '@/stores/notifications';
@@ -161,6 +162,7 @@ const modals = useDesktopModalStore();
 const personalDataDirectory = ref('');
 const sharedDataDirectory = ref('');
 
+const userBaseDirectory = ref('');
 const defaultClusttaDirectory = ref('');
 const selectedClusttaDirectory = ref('');
 
@@ -171,21 +173,17 @@ const locations = ref([]);
 const locationHealthMap = ref({});
 const locationUsageMap = ref({});
 
+// Computed properties
+const hasDefaultLocation = computed(() => {
+  return locations.value.some(loc => loc.is_default === true);
+});
+
 
 //methods
 
 const selectDirectory = async () => {
   let title = 'Clustta Directory';
-  let directory;
-  let pathExists = false;
-
-  try {
-    pathExists = await FSService.DirExists(defaultClusttaDirectory.value);
-  } catch (error) {
-    pathExists = false;
-  }
-  
-  directory = pathExists && !selectedClusttaDirectory.value ? defaultClusttaDirectory.value : selectedClusttaDirectory.value;
+  let directory = userBaseDirectory.value;
 
   const result = await DialogService.SelectSpecificFolderDialog(title, directory);
 
@@ -196,16 +194,25 @@ const selectDirectory = async () => {
     personalDataDirectory.value = selectedClusttaDirectory.value + '/projects';
     sharedDataDirectory.value = selectedClusttaDirectory.value + '/shared_projects';
 
-    // Initialize default location if not already present
+    // Check if /mnt folder exists and auto-add it as default location
     if (locations.value.length === 0) {
-      locations.value = [{
-        id: '1',
-        name: 'Default',
-        path: selectedClusttaDirectory.value + '/mnt',
-        is_default: true,
-        project_ids: []
-      }];
-      await checkAllLocationHealth();
+      const mntPath = selectedClusttaDirectory.value + '/mnt';
+      try {
+        const mntExists = await FSService.DirExists(mntPath);
+        if (mntExists) {
+          locations.value = [{
+            id: '1',
+            name: 'mnt',
+            path: mntPath,
+            is_default: true,
+            project_ids: []
+          }];
+          await checkAllLocationHealth();
+        }
+      } catch (error) {
+        console.error('Error checking /mnt folder:', error);
+        // If error checking, leave locations empty - user will add manually
+      }
     }
   }
 };
@@ -243,19 +250,23 @@ const canDeleteLocation = (locationId) => {
 };
 
 const addLocation = async () => {
-  const newLocationName = `Location ${locations.value.length + 1}`;
-  
-  const result = await DialogService.SelectFolderDialog("Select Location Folder");
+  // Open dialog at user's Documents folder
+  const documentsPath = userBaseDirectory.value + 'Documents';
+  const result = await DialogService.SelectSpecificFolderDialog("Select Location Folder", documentsPath);
   if (!result) return;
   
   const path = result.replace(/\\/g, '/');
   
+  // Extract folder name from path
+  const pathParts = path.split('/');
+  const folderName = pathParts[pathParts.length - 1] || `Location ${locations.value.length + 1}`;
+  
   // Add to local array (will be saved when user clicks Continue)
   const newLocation = {
     id: `${locations.value.length + 1}`,
-    name: newLocationName,
+    name: folderName,
     path: path,
-    is_default: false,
+    is_default: locations.value.length === 0, // First location is default
     project_ids: []
   };
   
@@ -355,6 +366,7 @@ const handleEnterKey = (event) => {
 onMounted(async () => {
   await SettingsService.GetUserDirectory()
     .then((response) => {
+      userBaseDirectory.value = response;
       defaultClusttaDirectory.value = `${response}clustta`;
       console.log(defaultClusttaDirectory.value)
     })
