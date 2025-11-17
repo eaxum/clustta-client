@@ -160,14 +160,21 @@ const loadProjectLocations = async () => {
 };
 
 const addNewLocation = async () => {
-  const result = await DialogService.SelectFolderDialog("Select New Location Folder");
+  // Get user's Documents folder as default starting point
+  const userDirectory = await SettingsService.GetUserDirectory();
+  const documentsPath = userDirectory + 'Documents';
+  
+  const result = await DialogService.SelectSpecificFolderDialog("Select New Location Folder", documentsPath);
   if (!result) return;
   
   const path = result.replace(/\\/g, '/');
-  const locationName = `Location ${projectLocations.value.length + 1}`;
+  
+  // Extract folder name from path
+  const pathParts = path.split('/');
+  const folderName = pathParts[pathParts.length - 1] || `Location ${projectLocations.value.length + 1}`;
   
   try {
-    const newLocation = await SettingsService.AddProjectLocation(locationName, path);
+    const newLocation = await SettingsService.AddProjectLocation(folderName, path);
     projectLocations.value.push(newLocation);
     selectedLocation.value = newLocation;
     notificationStore.addNotification('Location added successfully', '', 'success', false);
@@ -226,6 +233,28 @@ const handleEnterKey = (event) => {
 };
 
 const createProject = async () => {
+
+  // Validate that a location is selected
+  if (!selectedLocation.value) {
+    notificationStore.addNotification(
+      'No location selected',
+      'Please select or add a project location',
+      'error',
+      false
+    );
+    return;
+  }
+
+  // Validate working directory is not empty
+  if (!workingDirectory.value) {
+    notificationStore.addNotification(
+      'Invalid working directory',
+      'Working directory cannot be empty',
+      'error',
+      false
+    );
+    return;
+  }
 
   isAwaitingResponse.value = true;
 
