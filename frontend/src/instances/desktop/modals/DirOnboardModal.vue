@@ -7,7 +7,7 @@
       <div class="settings-section-card">
         <div class="settings-section-card-header">
           <div class="header-content">
-            <h2 class="settings-section-card-title">Select Clustta data location</h2>
+            <h2 class="settings-section-card-title">Select data location</h2>
             <div class="card-description">
               This is where Clustta will store data for your project checkpoints as well as shared projects.
             </div>
@@ -18,7 +18,7 @@
             :fullWidth="false"
           />
         </div>
-        <div class="settings-section-card-content">
+        <div class="settings-section-card-content" :class="{ 'no-padding': !selectedClusttaDirectory }">
           
           <!-- Selected Path Display -->
           <div v-if="selectedClusttaDirectory" class="location-item location-item-single">
@@ -389,12 +389,14 @@ onMounted(async () => {
 .general-container {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  /* gap: 1rem; */
   width: 700px;
   max-width: 700px;
   /* padding: 1rem; */
   color: white;
   box-sizing: border-box;
+  /* background-color: crimson; */
+  padding: 0;
 }
 
 /* Settings Section Card Styles */
@@ -406,6 +408,7 @@ onMounted(async () => {
   overflow: hidden;
   box-sizing: border-box;
   padding: 0;
+  /* background-color: forestgreen; */
 }
 
 .settings-section-card-header {
@@ -437,6 +440,10 @@ onMounted(async () => {
   flex-direction: column;
   padding: 1rem;
   gap: 1rem;
+}
+
+.settings-section-card-content.no-padding {
+  padding: 0;
 }
 
 .card-description {
