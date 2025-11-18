@@ -32,6 +32,7 @@
 		<div ref="projectListContainer" class="project-list-root" 
 		:class="{ 'project-list-root-hover-drop': isHovered }">
 
+		<!-- <TabbedFolder /> -->
 			<ProjectListSkeleton :cardView="cardView" v-if="!projectStore.projectsLoaded" />
 
 			<div v-else-if="projects.length" class="project-list-container" ref="openProjectsContainer" @scroll="disableAllMenus">
@@ -106,6 +107,7 @@ import ProjectItem from '@/instances/desktop/blocks/ProjectItem.vue'
 import PageState from '@/instances/common/components/PageState.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
 import TabButton from '@/instances/desktop/components/TabButton.vue'
+import TabbedFolder from '@/instances/desktop/components/TabbedFolder.vue'
 import ProjectListSkeleton from '@/instances/desktop/components/ProjectListSkeleton.vue'
 import { FSService, SettingsService } from '@/../bindings/clustta/services/index';
 import { Events } from "@wailsio/runtime";
@@ -484,7 +486,7 @@ onUnmounted(() => {
 	/* overflow-y: scroll; */
 	height: 100%;
 	background-color: tomato;
-	border-radius: var(--large-radius);
+	border-radius: var(--very-large-radius);
 	background-color: var(--black-steel);
 	width: 100%;
 	box-sizing: border-box;
@@ -609,6 +611,7 @@ onUnmounted(() => {
 	max-width: 400px;
 	padding-right: .2rem;
 	box-sizing: border-box;
+	border-radius: var(--large-radius);
 }
 
 .searchbar-container:hover {
