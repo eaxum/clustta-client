@@ -87,7 +87,8 @@ const handlePaste = (event) => {
 
 const processInputEntries = (input) => {
 
-  const entries = input.split('\n').filter(entry => {
+  // Split by both newlines and commas
+  const entries = input.split(/[\n,]/).filter(entry => {
     const trimmed = entry.trim();
 
     return trimmed !== '' && 
@@ -120,9 +121,12 @@ const escape = () => {
   
 const handleKeyDown = (event) => {
   if (event) {
-      if (event.keyCode === 13) {
+      // Enter (13), Space (32), or Comma (188)
+      if (event.keyCode === 13 || event.keyCode === 32 || event.keyCode === 188) {
         if (event.target.value.trim() !== "") {
+            event.preventDefault(); 
             addItem(event);
+            console.log(event)
         }
     }
   }
