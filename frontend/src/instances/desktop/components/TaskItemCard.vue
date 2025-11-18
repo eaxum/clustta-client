@@ -124,6 +124,7 @@ const profileColor = (uuid) => {
   background-color: var(--dark-steel);
   /* background-color: darkorange; */
   padding: .2rem;
+  border-radius: var(--large-radius);
 }
 
 
@@ -200,6 +201,7 @@ const profileColor = (uuid) => {
   /* width: 100%; */
   height: 100%;
   aspect-ratio: 4 / 3;
+  border-radius: var(--large-radius);
 }
 
 .entity-item-preview-image {

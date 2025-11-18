@@ -742,6 +742,8 @@ onUnmounted(() => {
   display: flex;
   width: 100%;
   height: 100%;
+  border-radius: var(--very-large-radius);
+  overflow: hidden;
 }
 
 .temp-dependencies {
@@ -834,6 +836,7 @@ onUnmounted(() => {
   background-color: tomato;
   background-color: var(--black-steel);
   border-radius: var(--large-radius);
+  border-radius: var(--very-large-radius);
 }
 
 .sidebar-scroll {
@@ -911,6 +914,7 @@ onUnmounted(() => {
   transition: width 0.2s ease-out;
   width: 100%;
   max-width: 400px;
+  border-radius: var(--very-large-radius);
 }
 
 .desktop-search-bar::-ms-reveal {

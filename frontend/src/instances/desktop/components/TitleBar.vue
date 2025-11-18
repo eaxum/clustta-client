@@ -63,7 +63,7 @@
       </div>
 
     <div v-else class="titlebar-buttons">
-      <ToggleSwitch :switchValueProp="themeStore.isDarkMode" @click="toggleTheme()" />
+      <!-- <ToggleSwitch :switchValueProp="themeStore.isDarkMode" @click="toggleTheme()" /> -->
 
       <div class="titlebar-button minimize" @click="minimizeWindow">
         <img class="small-icons" :src="getAppIcon('collapse-window')" alt="Minimize">
@@ -534,6 +534,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   border-radius: var(--small-radius);
   background-color: var(--steel);
+  border-radius: var(--large-radius);
 }
 
 .studio-tabs-container:hover {

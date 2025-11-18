@@ -413,7 +413,7 @@ const getTabStyle = (index) => {
 .tab.active {
   color: var(--white);
   border-bottom: none;
-  border-radius: 12px 12px 0px 0px;
+  border-radius: 16px 16px 0px 0px;
   height: 100%;
   position: relative;
   background-color: var(--steel);

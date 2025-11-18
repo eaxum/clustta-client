@@ -1128,7 +1128,8 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
 
   background-color: var(--dark-steel);
   outline: var(--transparent-line);
-  outline-offset: -1.5px;
+  outline-offset: -1px;
+  border-radius: var(--large-radius);
 }
 
 .task-item-main:hover {
@@ -1308,7 +1309,7 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   height: 100%;
   width: 100%;
   background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
+  border-radius: 12px;
   align-items: center;
   justify-content: center;
   transition: flex 0.2s ease-out;

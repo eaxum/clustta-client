@@ -511,6 +511,7 @@ onBeforeUnmount(() => {
   border-radius: var(--small-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
+  border-radius: var(--large-radius);
 }
 
 .project-stats-content{

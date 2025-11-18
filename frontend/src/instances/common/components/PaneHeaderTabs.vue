@@ -92,7 +92,7 @@ onMounted(() => {
   overflow: hidden;
   height: max-content;
   gap: .5rem;
-  padding: .3rem .3rem;
+  padding: .3rem 0;
   color: var(--white);
   /* background-color: firebrick; */
 }
@@ -145,6 +145,7 @@ onMounted(() => {
   justify-content: flex-start;
   padding: 5px .5rem;
   transition: all 0.2s ease-out;
+  border-radius: var(--large-radius);
 }
 
 .tab-button:hover {

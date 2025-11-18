@@ -156,6 +156,7 @@ onMounted(() => {
   justify-content: center;
   padding: 5px .5rem;
   /* gap: .5rem; */
+  border-radius: var(--large-radius);
 }
 
 .tab-button:hover {

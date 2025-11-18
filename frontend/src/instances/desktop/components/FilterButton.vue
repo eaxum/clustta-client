@@ -85,7 +85,7 @@ color: var(--white);
   color: var(--white);
   position: relative;
   border-radius: 8px;
-  border-radius: var(--normal-radius);
+  border-radius: var(--large-radius);
   box-sizing: border-box;
   cursor: pointer;
   display: flex;

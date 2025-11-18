@@ -227,6 +227,7 @@ onUnmounted(() => {
   backdrop-filter: blur(35px);
   max-height: 70vh;
   overflow-y: scroll;
+  border-radius: var(--large-radius);
 }
 
 .context-menu-container::-webkit-scrollbar {

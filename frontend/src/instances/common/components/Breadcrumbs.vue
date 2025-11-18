@@ -490,6 +490,7 @@ watch(() => projectStore.activeProject?.uri, async () => {
   width: 100%;
   box-sizing: border-box;
   /* max-width: 100% */
+  border-radius: var(--large-radius);
 }
 
 .breadcrumb-root::-webkit-scrollbar {

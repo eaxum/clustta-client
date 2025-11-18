@@ -23,6 +23,8 @@
     /* aspect-ratio: 1/1; */
     transition: all 0.3s ease;
     /* background-color: rebeccapurple; */
+    
+  border-radius: var(--normal-radius);
 }
 
 .filter-menu-item:hover {

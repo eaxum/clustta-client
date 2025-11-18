@@ -72,7 +72,7 @@ onBeforeUnmount(() => {
 	display: flex;
 	gap: .1rem;
 	align-items: center;
-	padding: .1rem;
+	padding: .2rem;
 	justify-content: flex-end;
 	box-sizing: border-box;
 	width: min-content;
@@ -80,6 +80,7 @@ onBeforeUnmount(() => {
     background-color: var(--black-steel);
     border-radius: 10px;
     overflow: hidden;
+  border-radius: var(--large-radius);
 }
 </style>
 

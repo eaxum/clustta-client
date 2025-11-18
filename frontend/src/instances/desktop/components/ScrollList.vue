@@ -371,6 +371,7 @@ const props = defineProps({
   outline-offset: -1px;
   /* background-color: crimson; */
   justify-content: space-between;
+  border-radius: var(--large-radius);
 
 }
 

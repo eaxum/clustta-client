@@ -155,15 +155,16 @@
   outline: none;
   background-color: var(--midnight-steel);
   color: var(--black);
+  border-radius: var(--normal-radius);
 }
 
 .desktop-input-long:hover{
-  outline: 1px solid white;
+  outline: var(--transparent-line);
   outline-offset: -1px;
 }
 
 .desktop-input-long:focus{
-  outline: 1px solid white;
+  outline: var(--transparent-line);
   outline-offset: -1px;
 }
 

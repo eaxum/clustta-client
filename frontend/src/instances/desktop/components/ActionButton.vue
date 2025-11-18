@@ -94,6 +94,7 @@ const isDead = computed(() => {
   min-height: max-content;
   transition: all 0.3s ease;
   opacity: 1;
+  border-radius: var(--normal-radius);
 
 }
 
