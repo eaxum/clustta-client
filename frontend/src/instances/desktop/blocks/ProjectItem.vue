@@ -2,7 +2,52 @@
   <div class="project-item-root" v-right-click="openMenu" v-stop-propagation
     :class="{ 'project-item-container-selected': projectStore.activeProject.id === project.id, 'project-item-root-cards': cardView }"
     @click="selectProject(project, $event)" @dblclick="goToProject(project)">
-    <div class="project-item-container" :class="{ 'project-item-container-cards': cardView }">
+    
+    <!-- Show TabbedFolder for untracked projects in card view -->
+    <!-- <div v-if="cardView && !project.is_tracked" class="project-item-container" :class="{ 'project-item-container-cards': cardView }"> -->
+      <TabbedFolder v-if="cardView && !project.is_tracked">
+        <div class="project-item-container-footer" :class="{ 'project-item-container-footer-cards': cardView }">
+
+          <div v-if="!isEditing" class="project-item-content" :class="{ 'project-item-content-cards': cardView }">
+            <div class="project-item-details">
+              <span v-if="isCreatingProject">Adding {{ project.name }} to Clustta</span>
+              <span v-else>{{ utils.capitalizeStr(project.name) }}</span>
+            </div>
+          </div>
+
+          <RenameInput 
+            v-else
+            v-model="editableProjectName"
+            :originalValue="project.name"
+            placeholder="Project name"
+            @confirm="confirmRename"
+            @cancel="cancelRename"
+          />
+
+          <div v-if="!isEditing" class="project-item-actions">
+            <!-- <ActionButton v-if="!project.is_tracked" :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
+              v-tooltip="'Project not Tracked'" /> -->
+            <ActionButton v-if="project.has_remote && project.is_unsynced" :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true"
+              v-tooltip="'Project not synced'" />
+            <ActionButton v-if="isProjectPinned && project.is_downloaded" :icon="getAppIcon('unpin')"
+              v-tooltip="'Unpin Project'" @click="unpinProject" />
+            <ActionButton v-if="project.is_downloaded" :icon="getAppIcon('launch')" v-tooltip="'Go to project'"
+              @click="goToProject(project)" />
+            <div v-if="isCreatingProject" class="loading-spinner">
+              <img class="small-icons loading-project-icon" :src="getAppIcon('loading')">
+            </div>
+            <ActionButton v-if="!project.has_remote" :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="'Open folder'"
+              @click="revealInExplorer" />
+            <ActionButton v-else-if="project.is_downloaded" :icon="getAppIcon('folder-arrow-up-right')"
+              v-tooltip="project.is_downloaded ? 'Open folder' : 'Download Project'" @click="revealInExplorer" />
+            <ActionButton v-else :icon="getAppIcon('cloud-down')" v-tooltip="'Download Project'"
+              @click="cloneProject(project)" />
+          </div>
+        </div>
+      </TabbedFolder>
+    <!-- </div> -->
+    
+    <div v-else class="project-item-container" :class="{ 'project-item-container-cards': cardView }">
 
       <div class="project-item-preview-container" :class="{ 'project-item-preview-container-cards': cardView }">
         <div class="project-item-preview-image">
@@ -29,8 +74,8 @@
         />
 
         <div v-if="!isEditing" class="project-item-actions">
-          <ActionButton v-if="!project.is_tracked" :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
-            v-tooltip="'Project not Tracked'" />
+          <!-- <ActionButton v-if="!project.is_tracked" :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
+            v-tooltip="'Project not Tracked'" /> -->
           <ActionButton v-if="project.has_remote && project.is_unsynced" :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true"
             v-tooltip="'Project not synced'" />
           <ActionButton v-if="isProjectPinned && project.is_downloaded" :icon="getAppIcon('unpin')"
@@ -78,6 +123,7 @@ import { useIconStore } from '@/stores/icons';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
 import RenameInput from '@/instances/desktop/components/RenameInput.vue'
+import TabbedFolder from '@/instances/desktop/components/TabbedFolder.vue'
 import { DialogService, FSService, SyncService, ProjectService } from '@/../bindings/clustta/services/index';
 
 // states/stores
@@ -339,13 +385,13 @@ onBeforeUnmount(() => {
   gap: .2rem;
   color: var(--white);
   align-items: center;
-  padding: .3rem;
+  /* padding: .3rem; */
   box-sizing: border-box;
   width: 100%;
   height: min-content;
   justify-content: flex-start;
   background-color: var(--dark-steel);
-  border-radius: var(--normal-radius);
+  border-radius: var(--large-radius);
   overflow: hidden;
   min-width: 500px;
 
@@ -355,7 +401,8 @@ onBeforeUnmount(() => {
 
 .project-item-root-cards {
   min-width: 300px;
-  height: 300px;
+  height: 200px;
+  border-radius: var(--large-radius);
 }
 
 .project-item-root:hover {
@@ -409,16 +456,19 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
-  padding: .1rem;
+  /* padding: .1rem; */
   overflow: hidden;
   min-width: 60px;
   height: 100%;
   /* background-color: hotpink; */
   aspect-ratio: 16 / 9;
+  border-radius: 12px;
 }
 
 .project-item-preview-container-cards {
   /* background-color: firebrick; */
+  border-radius: var(--very-large-radius);
+  border-radius: 12px;
   width: 100%;
   /* height: 60%; */
   aspect-ratio: 16 / 9;
@@ -435,7 +485,7 @@ onBeforeUnmount(() => {
   height: 100%;
   /* aspect-ratio: 16 / 9; */
   background-color: var(--black-steel);
-  border-radius: 5px;
+  /* border-radius: 5px; */
   width: 100%;
 }
 
