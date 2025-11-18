@@ -727,6 +727,7 @@ onBeforeUnmount(() => {
   background-color: var(--dark-steel);
   outline: var(--transparent-line);
   outline-offset: -1px;
+  border-radius: var(--large-radius);
 }
 
 .entity-item-main:hover {

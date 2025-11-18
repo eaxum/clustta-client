@@ -181,7 +181,7 @@ const message = () => {
 };
 
 const illustration = () => {
-    return '/page-states/resources.png';
+    return '/page-states/template.png';
 };
 
 const contextPropmtMessage = () => {
@@ -367,10 +367,10 @@ onMounted(async () => {
     /* align-items: center; */
     color: white;
     /* justify-content: space-between; */
-    border-radius: var(--large-radius);
     padding: 1rem;
     background-color: crimson;
     background-color: var(--black-steel);
+    border-radius: var(--very-large-radius);
 }
 
 .settings-component-header {

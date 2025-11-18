@@ -454,6 +454,7 @@ onUnmounted(() => {
 	padding-right: .2rem;
 	box-sizing: border-box;
   z-index: 2;
+  border-radius: var(--very-large-radius);
 }
 
 .searchbar-container:hover {

@@ -788,6 +788,7 @@ onUnmounted(() => {
   transform: scale(1) rotate(0);
   box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
   transition: transform 0.04s ease-in-out;
+  border-radius: var(--large-radius);
 }
 #ghost-card.animate {
   transition: box-shadow 0.1s ease-in-out;

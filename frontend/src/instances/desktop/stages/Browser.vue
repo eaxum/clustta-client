@@ -1899,6 +1899,7 @@ onBeforeUnmount(() => {
 	width: 100%;
 	min-width: 550px;
 	box-sizing: border-box;
+  border-radius: var(--very-large-radius);
 }
 
 .browser-root-container-hover-drop {
@@ -2115,6 +2116,7 @@ onBeforeUnmount(() => {
 	/* min-width: 30%; */
 	padding-right: .2rem;
 	box-sizing: border-box;
+  border-radius: var(--large-radius);
 }
 
 .searchbar-container:hover {

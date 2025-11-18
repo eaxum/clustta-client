@@ -281,6 +281,7 @@ onMounted(() => {
     outline: var(--transparent-line);
     outline-offset: -1px;
     background-color: var(--dark-steel);
+    border-radius: var(--large-radius);
 }
 
 
@@ -327,7 +328,7 @@ onMounted(() => {
 }
 
 .trash-checkpoints{
-    border-radius: var(--small-radius);
+    border-radius: var(--normal-radius);
     background-color: var(--light-steel);
     padding: .5rem 0;
     padding-right: 1rem;

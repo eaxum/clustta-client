@@ -127,6 +127,7 @@ onMounted(async () => {
   padding: 1rem;
   background-color: crimson;
   background-color: var(--black-steel);
+  border-radius: var(--very-large-radius);
 }
 
 .workflow-items-container {

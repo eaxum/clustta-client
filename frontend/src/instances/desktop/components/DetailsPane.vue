@@ -1137,6 +1137,7 @@ onUnmounted(() => {
   justify-content: center;
   overflow: hidden;
   flex: 1 1 50%;
+  border-radius: var(--very-large-radius);
 }
 
 .details-pane-inner {

@@ -125,6 +125,7 @@ const props = defineProps({
   overflow-y: scroll;
   width: 100%;
   border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .scroll-list-container::-webkit-scrollbar {
@@ -152,6 +153,7 @@ const props = defineProps({
   height: 40px;
   overflow: hidden;
   padding: .2rem;
+  border-radius: var(--large-radius);
 }
 .scroll-list-item:last-child{
   border-bottom: 0px;

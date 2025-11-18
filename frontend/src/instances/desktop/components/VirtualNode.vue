@@ -162,6 +162,7 @@ const selectItem = () => {
   cursor: pointer;
   text-align: center;
   background-color: transparent;
+  border-radius: var(--large-radius);
 }
 
 .custom-node {
@@ -209,9 +210,10 @@ const selectItem = () => {
   justify-content: flex-end;
   background-color: darkblue;
   background-color: var(--dark-steel);
-  border-radius: 10px;
+  border-radius: 14px;
   overflow: hidden;
   background-color: var(--steel);
+  /* border-radius: var(--very-large-radius); */
 
 }
 

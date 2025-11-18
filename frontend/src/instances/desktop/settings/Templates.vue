@@ -161,7 +161,7 @@ onMounted(async () => {
   align-items: center;
   color: white;
   justify-content: space-between;
-  border-radius: var(--large-radius);
+  border-radius: var(--very-large-radius);
   padding: 1rem;
   background-color: crimson;
   background-color: var(--black-steel);

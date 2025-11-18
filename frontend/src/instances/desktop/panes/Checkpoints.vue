@@ -302,6 +302,7 @@ onBeforeUnmount(() => {
 	padding-right: .4rem;
 	box-sizing: border-box;
   z-index: 2;
+  border-radius: var(--large-radius);
 }
 
 .searchbar-container:hover {

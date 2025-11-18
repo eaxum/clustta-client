@@ -276,6 +276,7 @@ onBeforeUnmount(() => {
     outline: var(--transparent-line);
     outline-offset: -1px;
     background-color: var(--dark-steel);
+  border-radius: var(--large-radius);
 }
 
 @keyframes fadeIn {
