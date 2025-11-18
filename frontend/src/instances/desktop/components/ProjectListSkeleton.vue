@@ -4,14 +4,27 @@
     <div v-for="(skeleton, index) in skeletonArray" :key="index" class="task-skeleton-item" 
     :class="{ 'task-skeleton-item-cards': cardView }"
     :style="{ animationDelay : `${(skeleton - 1) * 0.2}s` }">
-        <!-- <div class="task-skeleton-spacer"> </div>
-        <div class="thumb-skeleton"> </div>
-        <div class="icon-skeleton" ></div>
-        <div class="task-skeleton-item-launcher"> </div>
-        <div class="status-pill"></div>
-        <div class="icon-skeleton" ></div>
-        <div class="icon-skeleton" ></div>
-        <div class="icon-skeleton" ></div> -->
+        
+        <!-- Preview image skeleton (only in card view) -->
+        <div v-if="cardView" class="preview-skeleton-container">
+          <div class="preview-skeleton"></div>
+        </div>
+        
+        <!-- Footer section -->
+        <div class="footer-skeleton">
+          <!-- Thumbnail for list view -->
+          <div v-if="!cardView" class="thumb-skeleton"></div>
+          
+          <!-- Project name skeleton -->
+          <div class="name-skeleton"></div>
+          
+          <!-- Action buttons skeleton -->
+          <div class="actions-skeleton">
+            <div class="icon-skeleton"></div>
+            <div class="icon-skeleton"></div>
+            <div class="icon-skeleton"></div>
+          </div>
+        </div>
     </div>
     
     </div>
@@ -42,6 +55,7 @@ onMounted(async () => {
 <style scoped>
 
 .task-skeleton-container{
+  padding: .5rem;
 	box-sizing: border-box;
 	height: max-content;
 	display: grid;
@@ -58,75 +72,98 @@ onMounted(async () => {
 
 .task-skeleton-item{
     display: flex;
+    flex-direction: column;
     gap: .2rem;
     color: white;
     align-items: center;
-    padding: .3rem;
     box-sizing: border-box;
     width: 100%;
     height: min-content;
     justify-content: flex-start;
-    background-color: var(--dark-steel);
-    border-radius: var(--normal-radius);
+    /* background-color: var(--dark-steel); */
+    border-radius: var(--large-radius);
     overflow: hidden;
     min-width: 500px;
-    min-height: 60px;
+    min-height: 50px;
     opacity: 0;
     animation: fadeInFadeOut infinite  3s ease-in-out;
+    box-sizing: border-box;
+    outline: var(--transparent-line);
+    outline-offset: -1px;
 }
 
 .task-skeleton-item-cards{
     min-width: 300px;
-    height: 300px;
+    height: 200px;
+    gap: 0;
 }
 
-.task-skeleton-item-launcher{
+.preview-skeleton-container{
     box-sizing: border-box;
-    background-color: white;
-    opacity: .1;
     width: 100%;
-    height: 30px;
-    height: 60%;
-    border-radius: 12px;
+    aspect-ratio: 16/9;
+    padding: .3rem;
+    height: 50%;
+    height: 150px;
 }
 
-.task-skeleton-spacer{
+.preview-skeleton{
     box-sizing: border-box;
-    /* background-color: white; */
-    opacity: .1;
-    width: 50px;
-    height: 30px;
-    height: 60%;
+    outline: var(--transparent-line);
+    outline-offset: -1px;
+    width: 100%;
+    aspect-ratio: 16/9;
     border-radius: 12px;
+    height: 100%;
+}
+
+.footer-skeleton{
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+    padding: .4rem;
+    box-sizing: border-box;
+    width: 100%;
+    height: 50px;
+    justify-content: space-between;
 }
 
 .thumb-skeleton{
     box-sizing: border-box;
     background-color: white;
     opacity: .1;
-    height: 80%;
+    height: 100%;
     aspect-ratio: 16/9;
-    border-radius: 8px;
+    border-radius: 12px;
+    min-width: 60px;
 }
 
-.status-pill{
+/* Project name skeleton */
+.name-skeleton{
     box-sizing: border-box;
     background-color: white;
     opacity: .1;
-    width: 5rem;
+    width: 100%;
     height: 30px;
-    height: 60%;
     border-radius: 12px;
+}
+
+/* Action buttons container */
+.actions-skeleton{
+    display: flex;
+    gap: .7rem;
+    align-items: center;
+    justify-content: space-between;
+    min-width: max-content;
 }
 
 .icon-skeleton{
     box-sizing: border-box;
     background-color: white;
     opacity: .1;
-    /* width: 5rem; */
-    height: 50%;
-    aspect-ratio: 1/1;
-    border-radius: 12px;
+    width: 20px;
+    height: 20px;
+    border-radius: 8px;
 }
 
 

@@ -35,7 +35,7 @@
 		<!-- <TabbedFolder /> -->
 			<ProjectListSkeleton :cardView="cardView" v-if="!projectStore.projectsLoaded" />
 
-			<div v-else-if="projects.length" class="project-list-container" ref="openProjectsContainer" @scroll="disableAllMenus">
+			<div v-if="projects.length" class="project-list-container" ref="openProjectsContainer" @scroll="disableAllMenus">
 				<div v-if="openProjects.length" class="project-list" :class="{ 'project-list-cards': cardView }">
 					<ProjectItem class="project-item" v-for="(project, index) in pinnedProjects" :key="project.id"
 						:project="project" :index="index" :cardView="cardView"
