@@ -19,7 +19,7 @@
       </div>
 
       <div class="input-section">
-        <span class="input-label">Working Location</span>
+        <span class="input-label">Location</span>
         <div class="horizontal-flex">
           <div class="location-dropdown-wrapper">
             <DropDownBox 
