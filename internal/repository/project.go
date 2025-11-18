@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -1724,6 +1725,84 @@ func ToggleCloseProject(projectUri, studioName string, user auth_service.User) e
 		}
 		return nil
 	}
+}
+
+// UpdateProjectWorkingDirectory updates the working directory path for a project.
+// It validates the new path, ensures it's added to ProjectLocations for MacOS bookmark handling,
+// creates the directory if needed, and updates the local project database.
+func UpdateProjectWorkingDirectory(projectUri, studioName, newWorkingDir string, user auth_service.User) error {
+	if newWorkingDir == "" {
+		return errors.New("working directory cannot be empty")
+	}
+
+	newWorkingDir = filepath.ToSlash(newWorkingDir)
+
+	locations, err := settings.GetAllLocationPaths()
+	if err != nil {
+		return err
+	}
+
+	pathExists := false
+	for _, loc := range locations {
+		if strings.HasPrefix(newWorkingDir, loc.Path) {
+			pathExists = true
+			break
+		}
+	}
+
+	if !pathExists {
+		parentPath := filepath.Dir(newWorkingDir)
+		locationName := filepath.Base(parentPath)
+		if locationName == "." || locationName == "/" {
+			locationName = "Custom Location"
+		}
+
+		_, err := settings.AddProjectLocation(locationName, parentPath)
+		if err != nil {
+			log.Printf("Warning: Could not add location to project locations: %v", err)
+		}
+	}
+
+	if err := os.MkdirAll(newWorkingDir, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create working directory: %w", err)
+	}
+
+	var projectPath string
+	if utils.IsValidURL(projectUri) {
+		sharedProjectsDir, err := settings.GetSharedProjectDirectory()
+		if err != nil {
+			return err
+		}
+		studioProjectsDir := filepath.Join(sharedProjectsDir, studioName)
+		paths := strings.Split(projectUri, "/")
+		projectName := paths[len(paths)-1]
+		projectPath = filepath.Join(studioProjectsDir, projectName+".clst")
+
+		if !utils.FileExists(projectPath) {
+			return fmt.Errorf("local project file not found: %s", projectPath)
+		}
+	} else {
+		projectPath = projectUri
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	err = utils.SetProjectWorkingDir(tx, newWorkingDir)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func SetProjectPreview(tx *sqlx.Tx, previewPath string) error {

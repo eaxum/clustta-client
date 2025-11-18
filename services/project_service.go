@@ -446,6 +446,14 @@ func (p *ProjectService) GetPreview(projectPath string) (string, error) {
 	return base64Str, nil
 }
 
+func (p *ProjectService) UpdateWorkingDirectory(projectUri, studioName, newWorkingDir string) error {
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+	return repository.UpdateProjectWorkingDirectory(projectUri, studioName, newWorkingDir, user)
+}
+
 func (p *ProjectService) Rename(projectUri, studioName, newName string) error {
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
