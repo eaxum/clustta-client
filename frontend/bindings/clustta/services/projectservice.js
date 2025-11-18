@@ -277,6 +277,17 @@ export function UpdatePreview(projectPath, previewPath) {
 }
 
 /**
+ * @param {string} projectUri
+ * @param {string} studioName
+ * @param {string} newWorkingDir
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function UpdateWorkingDirectory(projectUri, studioName, newWorkingDir) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3745129021, projectUri, studioName, newWorkingDir));
+    return $resultPromise;
+}
+
+/**
  * @param {string} projectPath
  * @param {string} userId
  * @returns {Promise<boolean> & { cancel(): void }}

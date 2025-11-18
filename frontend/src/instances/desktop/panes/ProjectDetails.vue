@@ -49,6 +49,10 @@
         <ActionButton v-if="projectStore.getActiveProject.is_downloaded" :icon="getAppIcon('clustta')" :showLabel="true"
           :fullWidth="true" label="Locate Clustta File" :buttonFunction="locateClusttaFile" />
 
+        <!-- Relocate Working Directory -->
+        <ActionButton :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
+          :buttonFunction="relocateWorkingDirectory" />
+
         <!-- Archive -->
         <ActionButton v-if="!projectStore.getActiveProject.is_closed && userStore.userCanCreateProject"
           :icon="getAppIcon('archive')" :showLabel="true" :fullWidth="true" label="Archive Project"
@@ -134,7 +138,7 @@
 // imports
 import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { SettingsService, ProjectService, SyncService, AssetService } from "@/../bindings/clustta/services";
-import { ClipboardService, FSService } from '@/../bindings/clustta/services/index';
+import { ClipboardService, FSService, DialogService } from '@/../bindings/clustta/services/index';
 import emitter from '@/lib/mitt';
 
 // services
@@ -237,6 +241,59 @@ const locateClusttaFile = () => {
   let project = projectStore.getActiveProject;
   FSService.RevealInExplorer(project.uri)
   menu.hideContextMenu();
+};
+
+const relocateWorkingDirectory = async () => {
+  const project = projectStore.getActiveProject;
+  const currentWorkingDir = project.working_directory;
+  
+  try {
+    const result = await DialogService.SelectFolderDialog("Select New Working Directory");
+    
+    if (!result) {
+      return;
+    }
+    
+    let newWorkingDir = result.replace(/\\/g, '/');
+    
+    trayStates.popUpModalTitle = 'Relocate Working Directory?';
+    trayStates.popUpModalMessage = `Change working directory from:\n${currentWorkingDir}\n\nTo:\n${newWorkingDir}\n\nNote: Files will NOT be moved. Only the path will be updated.`;
+    trayStates.popUpModalIcon = 'folder';
+    trayStates.popUpModalFunction = async () => {
+      try {
+        stage.operationActive = true;
+        
+        await ProjectService.UpdateWorkingDirectory(
+          project.has_remote ? projectStore.getActiveProjectUrl : project.uri,
+          projectStore.selectedStudio.name,
+          newWorkingDir
+        );
+        
+        project.working_directory = newWorkingDir;
+        
+        await projectStore.refreshProjects();
+        
+        notificationStore.addNotification(
+          'Working directory updated',
+          `New location: ${newWorkingDir}`,
+          'success',
+          false
+        );
+        
+      } catch (error) {
+        notificationStore.errorNotification('Error updating working directory', error);
+      } finally {
+        stage.operationActive = false;
+        modals.setModalVisibility('popUpModal', false);
+        emitter.emit('refresh-browser');
+      }
+    };
+    
+    modals.setModalVisibility('popUpModal', true);
+    
+  } catch (error) {
+    notificationStore.errorNotification('Error selecting directory', error);
+  }
 };
 
 const deleteProjectWorkData = async () => {
@@ -440,6 +497,10 @@ onBeforeUnmount(() => {
 </script>
 <style scoped>
 @import "@/assets/desktop.css";
+
+.horizontal-flex{
+  padding: 0;
+}
 
 .general-pane-root{
   padding-bottom: 1rem;

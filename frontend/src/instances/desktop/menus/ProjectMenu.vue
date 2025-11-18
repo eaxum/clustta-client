@@ -24,6 +24,10 @@
         v-tooltip="'Copy Path'" />
     </span>
 
+    <!-- Relocate Working Directory -->
+    <ActionButton :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
+      :buttonFunction="relocateWorkingDirectory" />
+
     <!-- Rebuild -->
     <ActionButton :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" label="Build Project"
       :buttonFunction="rebuildAll" />
@@ -155,6 +159,66 @@ const copyDirectoryPath = async () => {
   const message = 'Path copied to clipboard';
   notificationStore.addNotification(message, "", "success");
   menu.hideContextMenu();
+};
+
+const relocateWorkingDirectory = async () => {
+  menu.hideContextMenu();
+  
+  const project = projectStore.getActiveProject;
+  const currentWorkingDir = project.working_directory;
+  
+  try {
+    // Open folder dialog to select new working directory
+    const result = await DialogService.SelectFolderDialog("Select New Working Directory");
+    
+    if (!result) {
+      return; // User cancelled
+    }
+    
+    let newWorkingDir = result.replace(/\\/g, '/');
+    
+    // Confirm with user
+    trayStates.popUpModalTitle = 'Relocate Working Directory?';
+    trayStates.popUpModalMessage = `Change working directory from:\n${currentWorkingDir}\n\nTo:\n${newWorkingDir}\n\nNote: Files will NOT be moved. Only the path will be updated.`;
+    trayStates.popUpModalIcon = 'folder';
+    trayStates.popUpModalFunction = async () => {
+      try {
+        stage.operationActive = true;
+        
+        // Update working directory
+        await ProjectService.UpdateWorkingDirectory(
+          project.has_remote ? projectStore.getActiveProjectUrl : project.uri,
+          projectStore.selectedStudio.name,
+          newWorkingDir
+        );
+        
+        // Update the project in memory
+        project.working_directory = newWorkingDir;
+        
+        // Refresh project list
+        await projectStore.refreshProjects();
+        
+        notificationStore.addNotification(
+          'Working directory updated',
+          `New location: ${newWorkingDir}`,
+          'success',
+          false
+        );
+        
+      } catch (error) {
+        notificationStore.errorNotification('Error updating working directory', error);
+      } finally {
+        stage.operationActive = false;
+        modals.setModalVisibility('popUpModal', false);
+        emitter.emit('refresh-browser');
+      }
+    };
+    
+    modals.setModalVisibility('popUpModal', true);
+    
+  } catch (error) {
+    notificationStore.errorNotification('Error selecting directory', error);
+  }
 };
 
 const createEntity = () => {
@@ -435,7 +499,9 @@ onBeforeUnmount(() => {
 @import "@/assets/desktop.css";
 @import "@/assets/menu.css";
 
-
+.horizontal-flex{
+  padding: 0;
+}
 
 .entity-item-menu-container {
   z-index: 10;
