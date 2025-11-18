@@ -745,6 +745,7 @@ img.no-filter {
 }
 
 .input-label {
+  padding-left: .5rem;
   font-family: Inter, sans-serif;
   color: var(--white);
   font-size: 14px;

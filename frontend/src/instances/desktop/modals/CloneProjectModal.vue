@@ -10,15 +10,23 @@
       <span v-if="projectStore.activeProjectCover" class="screenshot-preview">
         <img class="screenshot-thumb" :src="projectStore.activeProjectCover">
       </span>
+      
       <div class="input-section">
-        <span class="regular">Working Folder</span>
+        <span class="input-label">Location</span>
         <div class="horizontal-flex">
-          <input v-model="workingDirectory" class="input-short" type="text"
-            placeholder="Working Directory" ref="workingDirectoryInput" v-focus />
-          <span @click="pasteDirectoryPath('workingDir')" class="single-action-button" v-tooltip="'Paste link'"><img
-              class="small-icons" :src="getAppIcon('clipboard')"></span>
-          <span @click="selectDirectoryPath('workingDir')" class="single-action-button" v-tooltip="'Browse Path'"><img
-              class="small-icons" :src="getAppIcon('explorer')"></span>
+          <div class="location-dropdown-wrapper">
+            <DropDownBox 
+              :items="locationDisplayNames" 
+              :selectedItem="selectedLocationDisplay"
+              :onSelect="selectLocation" 
+            />
+          </div>
+          <span @click="addNewLocation" class="single-action-button" v-tooltip="'Add New Location'">
+            <img class="small-icons" :src="getAppIcon('plus-circle')">
+          </span>
+        </div>
+        <div v-if="workingDirectory" class="computed-path-display">
+          Final path: {{ workingDirectory }}
         </div>
       </div>
 
@@ -81,37 +89,110 @@ const menu = useMenu();
 const isAwaitingResponse = ref(false);
 const modalContainer = ref(null);
 
-const workingDirectory = ref('');
-const workingDirectoryInput = ref(null);
+const projectLocations = ref([]);
+const selectedLocation = ref(null);
+const isLoadingLocations = ref(false);
 
 let title = `Download "${projectStore.activeProject.name}"`;
 
-const pasteDirectoryPath = async (context) => {
-  ClipboardService.ReadText()
-    .then(path => {
-      if (context === 'shared') {
-        sharedProjectsDirectory.value = path;
-      } else if (context === 'personal') {
-        projectsDirectory.value = path;
-      }else if (context === 'workingDir') {
-        workingDirectory.value = path;
-      }
-    }).catch(err => {
-      console.error("Failed to paste from clipboard:", err);
-    });
+const workingDirectory = computed(() => {
+  if (!selectedLocation.value) return '';
+  const studioName = projectStore.selectedStudio.name;
+  const projectName = projectStore.activeProject.name;
+  
+  // For personal projects, don't include studio name in working directory
+  if (studioName === 'Personal') {
+    return `${selectedLocation.value.path}/${projectName}`;
+  }
+  
+  // For studio projects, include studio name
+  return `${selectedLocation.value.path}/${studioName}/${projectName}`;
+});
+
+// Computed properties for DropDownBox
+const locationDisplayNames = computed(() => {
+  return projectLocations.value.map(loc => `${loc.name} - [${loc.path}]`);
+});
+
+const selectedLocationDisplay = computed(() => {
+  if (!selectedLocation.value) return '';
+  return `${selectedLocation.value.name} - [${selectedLocation.value.path}]`;
+});
+
+const selectLocation = (displayName) => {
+  const location = projectLocations.value.find(loc => 
+    `${loc.name} - [${loc.path}]` === displayName
+  );
+  if (location) {
+    selectedLocation.value = location;
+  }
 };
 
-const selectDirectoryPath = async (context) => {
-  const result = await DialogService.SelectFolderDialog("Select Folder File");
-  if (result) {
-    let fileDir = result.replace(/\\/g, '/');
-    workingDirectory.value = fileDir;
-    workingDirectoryInput.value.focus();
+const loadProjectLocations = async () => {
+  isLoadingLocations.value = true;
+  try {
+    const locations = await SettingsService.GetAllLocationPaths();
+    projectLocations.value = locations;
     
+    // Set default location as selected
+    const defaultLoc = locations.find(loc => loc.is_default);
+    selectedLocation.value = defaultLoc || locations[0];
+  } catch (error) {
+    notificationStore.errorNotification('Error loading locations', error);
+  } finally {
+    isLoadingLocations.value = false;
+  }
+};
+
+const addNewLocation = async () => {
+  // Get user's Documents folder as default starting point
+  const userDirectory = await SettingsService.GetUserDirectory();
+  const documentsPath = userDirectory + 'Documents';
+  
+  const result = await DialogService.SelectSpecificFolderDialog("Select New Location Folder", documentsPath);
+  if (!result) return;
+  
+  const path = result.replace(/\\/g, '/');
+  
+  // Extract folder name from path
+  const pathParts = path.split('/');
+  const folderName = pathParts[pathParts.length - 1] || `Location ${projectLocations.value.length + 1}`;
+  
+  try {
+    const newLocation = await SettingsService.AddProjectLocation(folderName, path);
+    projectLocations.value.push(newLocation);
+    selectedLocation.value = newLocation;
+    notificationStore.addNotification('Location added successfully', '', 'success', false);
+  } catch (error) {
+    notificationStore.errorNotification('Error adding location', error);
   }
 };
 
 const cloneProject = async () => {
+  // Validate that a location is selected
+  if (!selectedLocation.value) {
+    notificationStore.addNotification(
+      'No location selected',
+      'Please select or add a project location',
+      'error',
+      false
+    );
+    return;
+  }
+
+  // Validate working directory is not empty
+  if (!workingDirectory.value) {
+    notificationStore.addNotification(
+      'Invalid working directory',
+      'Working directory cannot be empty',
+      'error',
+      false
+    );
+    return;
+  }
+
+  isAwaitingResponse.value = true;
+
   let project = projectStore.activeProject;
   let studioDisplayName = projectStore.selectedStudio.name;
   const projectName = project.name;
@@ -128,22 +209,33 @@ const cloneProject = async () => {
     .then(async () => {
       projectStore.projects.find(p => p.name === projectName).working_directory = workingDirectory.value;
       projectStore.activeProject.working_directory = workingDirectory.value;
+      
+      // Assign project to selected location
+      if (selectedLocation.value) {
+        try {
+          await SettingsService.AssignProjectToLocation(project.id, selectedLocation.value.id);
+        } catch (error) {
+          console.error('Error assigning project to location:', error);
+        }
+      }
+      
       console.log('Project cloned successfully')
-      closeModal()
       await projectStore.refreshProjects()
       await projectStore.refreshProjectsPreview()
+      isAwaitingResponse.value = false;
+      closeModal()
     }).catch((error) => {
+      isAwaitingResponse.value = false;
       console.error(error)
       notificationStore.errorNotification(
         "Error Cloning Project",
         error
       )
     })
-  closeModal()
 }
 
 const isValueChanged = computed(() => {
-  return workingDirectory .value !== ''
+  return selectedLocation.value !== null && workingDirectory.value !== '';
 });
 
 const closeModal = () => {
@@ -157,18 +249,7 @@ watchEffect(() => {
 });
 
 onMounted(async () => {
-  await SettingsService.GetWorkingDirectory()
-    .then((response) => {
-      workingDirectory.value = response.replace(/\\/g, '/') + '/' + projectStore.selectedStudio.name + '/' + projectStore.activeProject.name;
-    })
-    .catch((error) => {
-      notificationStore.addNotification(
-        "Error Loading Settings",
-        error.message,
-        "error",
-        false
-      )
-    });
+  await loadProjectLocations();
 });
 
 </script>
@@ -185,10 +266,6 @@ onMounted(async () => {
   justify-content: space-between;
   justify-content: flex-start;
   gap: .4px;
-  color: white;
-}
-
-.regular{
   color: var(--white);
 }
 .general-container {
@@ -323,7 +400,6 @@ onMounted(async () => {
 .input-label {
   font-family: Inter, sans-serif;
   color: var(--white);
-  font-size: 16px;
   white-space: nowrap;
   flex: 1;
 }
@@ -332,6 +408,21 @@ onMounted(async () => {
   gap: 10px;
   align-items: center;
   justify-content: center;
+}
+
+.location-dropdown-wrapper {
+  flex: 1;
+  width: 100%;
+}
+
+.computed-path-display {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 0.5rem;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  margin-top: 0.5rem;
+  word-break: break-all;
 }
 </style>
 
