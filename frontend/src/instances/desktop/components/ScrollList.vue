@@ -372,7 +372,7 @@ const props = defineProps({
   /* background-color: crimson; */
   justify-content: space-between;
   border-radius: var(--large-radius);
-
+  transition: all .2s ease-out;
 }
 
 .scroll-list-item-wrap {
@@ -381,8 +381,8 @@ const props = defineProps({
 
 
 .scroll-list-item:hover {
-  outline: var(--solid-line);
-  outline-offset: -1px;
+  background-color: var(--steel);
+  border-radius: var(--small-radius);
 }
 
 .task-item-container {

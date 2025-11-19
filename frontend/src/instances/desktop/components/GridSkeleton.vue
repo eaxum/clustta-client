@@ -109,7 +109,7 @@ onMounted(async () => {
   overflow: hidden;
   padding: .5rem;
   box-sizing: border-box;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   background-color: var(--dark-steel);
   outline: var(--transparent-line);
   outline-offset: -1.5px;

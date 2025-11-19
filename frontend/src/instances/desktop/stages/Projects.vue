@@ -22,7 +22,7 @@
 				</div>
 		</div>
 		<div class="view-options">
-			<ActionButton :isDisabled="!untrackedProjects.length" :icon="getAppIcon(projectStore.showUntrackedProjects ? 'eye-cancel' : 'eye')" v-tooltip="'Hide untracked projects'"
+			<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="!untrackedProjects.length" :icon="getAppIcon(projectStore.showUntrackedProjects ? 'eye-cancel' : 'eye')" v-tooltip="projectStore.showUntrackedProjects ? 'Hide untracked projects' : 'Show untracked projects'"
 				:buttonFunction="toggleShowUntrackedProjects" />
 			<ActionButton :isDisabled="!projects.length" :icon="getAppIcon(cardView ? 'list' : 'four-squares')" :v-tooltip="cardView ? 'List' : 'Cards'"
 				:buttonFunction="switchViewLayout" />
@@ -64,8 +64,8 @@
 				<div v-if="untrackedProjects.length && projectStore.showUntrackedProjects" class="project-list-divider" ref="untrackedProjectsDivider">
 					<TabButton
 						:icon="untrackedProjectsVisible ? '/icons/chevron_up_white_slim.svg' : '/icons/chevron_down_white_slim.svg'"
-						:label="untrackedProjectsVisible ? 'Hide untracked projects' : 'Show untracked projects'"
-						:showLabel="true" @click="toggleExpandUntrackedProjects" />
+						:label="untrackedProjectsVisible ? 'Collapse untracked projects' : 'Expand untracked projects'"
+						:smallIcons="true" :showLabel="true" @click="toggleExpandUntrackedProjects" />
 					<div class="menu-divider"></div>
 				</div>
 
@@ -296,7 +296,8 @@ const doNothing = () => {
 };
 
 const refresh = async () => {
-	await projectStore.refreshProjects();
+	await projectStore.loadProjects();
+	// await projectStore.refreshProjects();
 };
 
 const updateSearch = (event) => {
@@ -471,7 +472,7 @@ onUnmounted(() => {
 	align-items: center;
 	justify-content: space-between;
 	gap: 1rem;
-	padding: 1rem;
+	padding: 1rem 0rem;
 	box-sizing: border-box;
 }
 

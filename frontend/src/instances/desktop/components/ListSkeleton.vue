@@ -122,7 +122,9 @@ onMounted(async () => {
   padding: .5rem;
   height: 90%;
   outline: var(--transparent-line);
+  
   outline-offset: -1px;
+  border-radius: var(--large-radius);
 }
 
 .virtua-skeleton-item-launcher{

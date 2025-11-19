@@ -327,6 +327,10 @@ func CloneProject(ctx context.Context, remoteProjectUri string, projectUri strin
 	return nil
 }
 
+// GetStudioProjects retrieves all projects for a given studio, including both tracked (.clst) projects
+// and untracked project folders. For Personal studios, it scans the projects directory and all configured
+// working locations. For remote studios, it fetches the project list from the server.
+// These .clst files are located in the projects/shared projects directory
 func GetStudioProjects(user auth_service.User, url string, studioName string) ([]repository.ProjectInfo, error) {
 	isLocal := studioName == "Personal"
 	studioProjects := []repository.ProjectInfo{}
@@ -345,24 +349,19 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 		studioProjectsDir = filepath.Join(sharedProjectsDir, studioName)
 	}
 	os.MkdirAll(studioProjectsDir, os.ModePerm)
+
 	if isLocal {
-
-		//this finds all existing personal projects by checking in the projectsDir
-		//it also checks in the user working directories for folders without a
-		//corresponding clst file and appends them as untracked projects for the user to easily add later
-
+		// Process Personal studio projects
 		extension := "clst"
 		entries, err := os.ReadDir(projectsDir)
 		if err != nil {
 			return studioProjects, err
 		}
 
-		// Track project names that have .clst files
 		trackedProjectNames := make(map[string]bool)
 
-		// Iterate over the directory entries
+		// Scan for tracked .clst project files
 		for _, entry := range entries {
-			// Check if the entry is a file and has the specified extension
 			if !entry.IsDir() && strings.HasSuffix(entry.Name(), extension) {
 				projectPath := filepath.Join(projectsDir, entry.Name())
 
@@ -399,26 +398,21 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 					projectInfo.IsTracked = true
 					studioProjects = append(studioProjects, projectInfo)
 
-					// Track this project name (without .clst extension)
 					projectName := strings.TrimSuffix(entry.Name(), "."+extension)
 					trackedProjectNames[projectName] = true
 				}
-
 			}
 		}
 
-		// Scan all configured working locations for untracked projects
+		// Scan all configured working locations for untracked project folders
 		projectLocations, err := settings.GetAllLocationPaths()
 		if err != nil {
 			return studioProjects, err
 		}
 
 		for _, location := range projectLocations {
-			// For Personal projects, scan directly in the location path
-			// No studio subdirectory needed
 			locationScanPath := location.Path
 
-			// Skip if path doesn't exist yet
 			if _, err := os.Stat(locationScanPath); os.IsNotExist(err) {
 				fmt.Printf("Location path does not exist: %s\n", locationScanPath)
 				continue
@@ -426,7 +420,6 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 
 			untrackedInLocation, err := GetUntrackedProjects(locationScanPath, trackedProjectNames, location.ID)
 			if err != nil {
-				// Log but don't fail entire operation
 				fmt.Printf("Warning: Failed to scan location %s: %v\n", location.Name, err)
 				continue
 			}
@@ -435,27 +428,8 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 		}
 
 		return studioProjects, nil
-		// projects := []ProjectInfo{}
-		// totalProjects := len(studioProjects)
-		// for i, project := range studioProjects {
-		// 	innerCallBack := func(current int, total int, message string, extraMessage string) {
-		// 		callback(project.Name, current, total, i+1, totalProjects)
-		// 	}
-		// 	projectPath := filepath.Join(studioProjectsDir, project.Name) + ".clst"
-		// 	projectUri := project.Uri
-		// 	err = CreateProject(projectPath, project.Name, projectUrl, innerCallBack)
-		// 	if err != nil {
-		// 		return projects, err
-		// 	}
-		// 	projectInfo, err := GetProjectInfo(projectPath)
-		// 	if err != nil {
-		// 		return projects, err
-		// 	}
-		// 	projects = append(projects, projectInfo)
-		// }
-
-		// return projects, nil
 	} else {
+		// Fetch remote studio projects from server
 		studioProjectUrl := url + "/projects"
 		req, err := http.NewRequest("GET", studioProjectUrl, nil)
 		if err != nil {
@@ -494,12 +468,14 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 			return studioProjects, err
 		}
 
+		// Process each remote project and check local status
 		for i, studioProject := range studioProjects {
 			workingDir := ""
 			projectPath := filepath.Join(studioProjectsDir, studioProject.Name) + ".clst"
 			isDownloaded := utils.FileExists(projectPath)
 			projectUrl := url + "/" + studioProject.Name
 			syncToken := ""
+
 			if isDownloaded {
 				valid, err := repository.VerifyProjectIntegrity(projectPath)
 				if !valid || err != nil {
@@ -520,6 +496,8 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 						return studioProjects, err
 					}
 					defer tx.Rollback()
+
+					// Sync project preview if needed
 					isSynced, err := repository.IsProjectPreviewSynced(tx)
 					if err != nil {
 						return studioProjects, err
@@ -546,7 +524,6 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 						if err != nil {
 							return studioProjects, err
 						}
-
 					}
 
 					workingDir, err = utils.GetProjectWorkingDir(tx)
@@ -564,8 +541,8 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 						return studioProjects, err
 					}
 				}
-
 			}
+
 			studioProjects[i].HasRemote = true
 			studioProjects[i].Uri = projectPath
 			studioProjects[i].Remote = projectUrl
@@ -588,9 +565,6 @@ func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]boo
 		return untrackedProjects, err
 	}
 
-	fmt.Printf("Scanning for untracked projects in: %s (location: %s)\n", projectsDir, locationID)
-	fmt.Printf("Tracked project names: %v\n", trackedProjectNames)
-
 	// Iterate over directory entries
 	for _, entry := range entries {
 		// Only process directories, skip files
@@ -600,13 +574,11 @@ func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]boo
 
 		// Skip hidden directories (starting with .)
 		if strings.HasPrefix(entry.Name(), ".") {
-			fmt.Printf("Skipping hidden directory: %s\n", entry.Name())
 			continue
 		}
 
 		// Check if this directory already has a corresponding .clst project
 		if trackedProjectNames[entry.Name()] {
-			fmt.Printf("Skipping tracked project directory: %s\n", entry.Name())
 			continue
 		}
 
@@ -623,13 +595,7 @@ func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]boo
 			Valid:            true,
 		}
 
-		fmt.Printf("Found untracked project: %s (ID: %s) at %s\n", entry.Name(), projectId, dirPath)
 		untrackedProjects = append(untrackedProjects, untrackedProject)
-	}
-
-	fmt.Printf("Total untracked projects found: %d\n", len(untrackedProjects))
-	for i, proj := range untrackedProjects {
-		fmt.Printf("  [%d] Name: %s, WorkingDir: %s, LocationID: %s, IsTracked: %v\n", i+1, proj.Name, proj.WorkingDirectory, proj.LocationID, proj.IsTracked)
 	}
 
 	return untrackedProjects, nil

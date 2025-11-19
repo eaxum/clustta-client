@@ -139,6 +139,7 @@
   --medium-transparent-line: 1.5px solid var(--bright-steel);
   --thick-transparent-line: 2px solid rgba(255, 255, 255, 0.2);
   --solid-line: 1px solid var(--white);
+  --tiny-radius: 4px;
   --small-radius: 8px;
   --normal-radius: 12px;
   --large-radius: 16px;

@@ -27,7 +27,7 @@
         @close="closeGridStatusMenu"
       />
       
-      <div class="main-task-item-grid-icon">
+      <div class="main-task-item-grid-thumb-container">
 
         <div v-if="task.preview || osThumbnail" class="task-item-preview-container">
 
@@ -1130,18 +1130,23 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   outline: var(--transparent-line);
   outline-offset: -1px;
   border-radius: var(--large-radius);
+  transition: all .2s ease-out;
 }
 
 .task-item-main:hover {
-  outline: var(--transparent-line);
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
+  background-color: var(--blue-steel);
+  border-radius: var(--small-radius);
 }
 
-.task-item-grid:hover{
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
-} 
+.task-item-main:hover {
+  background-color: var(--steel);
+  border-radius: var(--small-radius);
+  outline: 1px solid var(--light-steel);
+}
+
+.task-item-main:hover  .main-task-item-grid-thumb-container{
+  border-radius: var(--tiny-radius);
+}
 
 .task-item-selected {
   outline: 1px solid rgb(255, 255, 255);
@@ -1185,6 +1190,12 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   background-color: var(--solid-blue-steel);
 }
 
+.task-item-grid-only-selected:hover {
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+  background-color: var(--solid-blue-steel);
+}
+
 .main-task-item-grid {
   position: relative;
   display: flex;
@@ -1192,10 +1203,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   height: 100%;
   width: 100%;
   overflow: hidden;
-}
-
-.main-task-item-grid-icon {
-  flex: 1;
 }
 
 .main-task-item-grid-bottom-bar {
@@ -1302,17 +1309,18 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   z-index: 10;
 }
 
-.main-task-item-grid-icon {
+.main-task-item-grid-thumb-container {
   position: relative;
   display: flex;
   overflow: hidden;
   height: 100%;
   width: 100%;
   background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
+  border-radius: var(--normal-radius);
   align-items: center;
   justify-content: center;
-  transition: flex 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  flex: 1; 
 }
 
 .main-task-item-grid-meta {
@@ -1337,15 +1345,15 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
 }
 
 .task-item-only-selected {
-  outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--solid-blue-steel);
 }
 
-.task-item-selected:hover {
-  outline: 1px solid rgb(255, 255, 255);
+.task-item-only-selected:hover {
+  outline: var(--transparent-line);
   outline-offset: -1px;
+  background-color: var(--solid-blue-steel);
 }
 
 .task-item-child {
@@ -1444,9 +1452,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   min-width: 60px;
   height: 100%;
   width: 100%;
-  /* aspect-ratio: 16 / 9; */
-  /* background-color: firebrick; */
-  border-radius: 5px;
 }
 
 .task-item-preview-image img,

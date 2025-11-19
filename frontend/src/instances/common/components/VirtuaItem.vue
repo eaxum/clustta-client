@@ -342,14 +342,15 @@ onBeforeUnmount(() => {
   overflow: hidden;
   margin: 0 auto;
   cursor: pointer;
-  border-radius: 8px;
   box-sizing: border-box;
-  /* background-color: forestgreen; */
+  /* background-color: crimson; */
 }
 
 .indent-guide {
   position: absolute;
   width: 100%;
+  height: 300px;
+  /* background-color: forestgreen; */
   box-sizing: border-box;
   border-left: var(--transparent-line);
   left: 15px;
@@ -388,6 +389,11 @@ onBeforeUnmount(() => {
   padding-left: 30px;
   box-sizing: border-box;
   overflow: hidden;
+  /* padding-right: 1px; */
+  width: 100%;
+  /* width: min-content; */
+  /* background-color: royalblue; */
+  /* padding: .5rem; */
 }
 
 .debugger{
