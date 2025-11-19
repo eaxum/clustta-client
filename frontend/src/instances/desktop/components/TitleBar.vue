@@ -528,13 +528,13 @@ onBeforeUnmount(() => {
   height: 80%;
   gap: .5rem;
   display: flex;
-  padding: .3rem;
+  /* padding: .3rem; */
   box-sizing: border-box;
   overflow: hidden;
   flex-direction: column;
   border-radius: var(--small-radius);
   background-color: var(--steel);
-  border-radius: var(--large-radius);
+  border-radius: var(--normal-radius);
 }
 
 .studio-tabs-container:hover {

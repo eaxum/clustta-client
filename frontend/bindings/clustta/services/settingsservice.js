@@ -300,6 +300,14 @@ export function IsProjectGridView() {
 }
 
 /**
+ * @returns {Promise<boolean> & { cancel(): void }}
+ */
+export function IsShowUntrackedProjects() {
+    let $resultPromise = /** @type {any} */($Call.ByID(2237864900));
+    return $resultPromise;
+}
+
+/**
  * @param {string} studioName
  * @param {string} projectId
  * @returns {Promise<string[]> & { cancel(): void }}
@@ -436,6 +444,14 @@ export function SetWorkingDirectory(dir) {
  */
 export function ToggleProjectGridView() {
     let $resultPromise = /** @type {any} */($Call.ByID(1335955422));
+    return $resultPromise;
+}
+
+/**
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function ToggleShowUntrackedProjects() {
+    let $resultPromise = /** @type {any} */($Call.ByID(389465744));
     return $resultPromise;
 }
 

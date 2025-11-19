@@ -33,12 +33,13 @@ type ProjectLocation struct {
 }
 
 type Settings struct {
-	IconScheme      string `json:"icon_scheme"`
-	Theme           string `json:"theme"`
-	UseAltUrl       bool   `json:"use_alt_url"`
-	EulaAccepted    bool   `json:"eula_accepted"`
-	ProjectGridView bool   `json:"project_grid_view"`
-	UseGrid         bool   `json:"use_grid"`
+	IconScheme             string `json:"icon_scheme"`
+	Theme                  string `json:"theme"`
+	UseAltUrl              bool   `json:"use_alt_url"`
+	EulaAccepted           bool   `json:"eula_accepted"`
+	ProjectGridView        bool   `json:"project_grid_view"`
+	UseGrid                bool   `json:"use_grid"`
+	ShowUntrackedProjects  bool   `json:"show_untracked_projects"`
 
 	ProjectsDir         string `json:"projects_dir"`
 	ProjectsDirBookmark []byte `json:"projects_dir_bookmark,omitempty"`
@@ -516,6 +517,23 @@ func IsProjectGridView() (bool, error) {
 		return true, err
 	}
 	return settings.ProjectGridView, nil
+}
+
+func ToggleShowUntrackedProjects() error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.ShowUntrackedProjects = !settings.ShowUntrackedProjects
+	return saveSettings(settings)
+}
+
+func IsShowUntrackedProjects() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return true, err
+	}
+	return settings.ShowUntrackedProjects, nil
 }
 
 func GetPinnedProjects(studioName string) ([]string, error) {
