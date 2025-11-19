@@ -443,11 +443,6 @@ const onMouseLeave = () => {
 </script>
 
 <style scoped>
-.selected {
-  outline: 1px solid red;
-  outline-offset: -1px;
-}
-
 .virtua-scroll-viewport {
   /* margin-top: 1px; */
   position: relative;

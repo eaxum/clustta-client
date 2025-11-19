@@ -193,7 +193,6 @@ export const useProjectStore = defineStore("projects", {
       await ProjectService.GetStudioProjects(studioUrl, studio.name)
         .then(async (response) => {
           this.projects = response;
-          console.log(response)
         })
         .catch((error) => {
           console.error(error);
@@ -245,7 +244,6 @@ export const useProjectStore = defineStore("projects", {
           this.projects[i].is_unsynced = false;
         }
       }
-        console.log(this.activeProject)
       if (this.activeProject && stage.activeStage !== 'projects') {
         console.log('reloading')
         await this.refreshActiveProject();

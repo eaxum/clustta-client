@@ -2,7 +2,8 @@
   <span v-stop-propagation @click="buttonFunction" 
   :class="{'button-background': useBackground, 'full-width' : fullWidth, 'active-button' : isActive, 
   'icon-after' : iconAfter, 'centered' : centered, 'is-disabled': stage.operationActive }" class="action-button">
-    <img v-if="!iconAfter" class="extra-large-icons" :src="icon">
+    <img v-if="!iconAfter && smallIcons" class="small-icons" :src="icon">
+    <img v-else-if="!smallIcons" class="extra-large-icons" :src="icon">
     <div v-if="showLabel">{{ label }}</div>
     <img v-if="iconAfter" class="extra-large-icons" :src="icon">
   </span>
@@ -31,6 +32,7 @@ const props = defineProps({
   useBackground: { type: Boolean, default: false},
   fullWidth: { type: Boolean, default: false},
   isActive: { type: Boolean, default: false},
+  smallIcons: { type: Boolean, default: false},
 
 });
  

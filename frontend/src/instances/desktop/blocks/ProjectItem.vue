@@ -397,6 +397,7 @@ onBeforeUnmount(() => {
 
   outline: var(--transparent-line);
   outline-offset: -1px;
+  transition: all .2s ease-out;
 }
 
 .project-item-root-cards {
@@ -406,10 +407,26 @@ onBeforeUnmount(() => {
 }
 
 .project-item-root:hover {
-  outline: var(--transparent-line);
-  outline: var(--solid-line);
-  outline-offset: -1.5px;
-  /* background-color: var(--light-steel); */
+  background-color: var(--steel);
+  border-radius: var(--small-radius);
+}
+
+.project-item-root:hover :deep(.folder) {
+  background-color: var(--light-steel);
+  border-radius: 0px;
+}
+
+.project-item-root:hover :deep(.tab) {
+  background-color: var(--light-steel);
+  border-radius: 24px 16px 0 0;
+}
+
+.project-item-root:hover :deep(.tab::after) {
+  box-shadow: -25px 0 0 0 var(--light-steel);
+}
+
+.project-item-root:hover  .project-item-preview-container{
+  border-radius: var(--tiny-radius);
 }
 
 .project-item-container {
@@ -443,8 +460,17 @@ onBeforeUnmount(() => {
   background-color: var(--project-item-selected);
 }
 
+.project-item-container-selected :deep(.folder) {
+  background-color: var(--blue-steel);
+}
+
+.project-item-container-selected:hover :deep(.folder) {
+  background-color: var(--blue-steel);
+}
+
 .project-item-container-selected:hover {
   outline: 1px solid rgb(255, 255, 255);
+  outline: var(--transparent-line);
   background-color: var(--black-steel);
   outline-offset: -1px;
   background-color: var(--project-item-selected);
@@ -463,6 +489,7 @@ onBeforeUnmount(() => {
   /* background-color: hotpink; */
   aspect-ratio: 16 / 9;
   border-radius: 12px;
+  transition: all .2s ease-out;
 }
 
 .project-item-preview-container-cards {
@@ -540,7 +567,6 @@ onBeforeUnmount(() => {
   display: flex;
   width: min-content;
   box-sizing: border-box;
-  /* padding: .2rem; */
   width: 100%;
   height: 40px;
   min-height: 40px;
