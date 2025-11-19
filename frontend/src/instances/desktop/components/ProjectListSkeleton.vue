@@ -130,8 +130,7 @@ onMounted(async () => {
 
 .thumb-skeleton{
     box-sizing: border-box;
-    background-color: white;
-    opacity: .1;
+    background-color: var(--steel);
     height: 100%;
     aspect-ratio: 16/9;
     border-radius: 12px;
@@ -141,8 +140,7 @@ onMounted(async () => {
 /* Project name skeleton */
 .name-skeleton{
     box-sizing: border-box;
-    background-color: white;
-    opacity: .1;
+    background-color: var(--steel);
     width: 100%;
     height: 30px;
     border-radius: 12px;
@@ -159,8 +157,7 @@ onMounted(async () => {
 
 .icon-skeleton{
     box-sizing: border-box;
-    background-color: white;
-    opacity: .1;
+    background-color: var(--steel);
     width: 20px;
     height: 20px;
     border-radius: 8px;

@@ -85,14 +85,14 @@
                   <FormInput
                     v-model="formData.country"
                     label="Location"
-                    placeholder="e.g., United States"
+                    placeholder="e.g., Portugal"
                   />
                   <div class="availability-field">
                     <label class="form-label">Availability</label>
                     <ActionButton
                       @click="toggleAvailability"
                       :icon="getAppIcon('check-circle')"
-                      :label="formData.availability"
+                      :label="utils.capitalizeStr(formData.availability)"
                       :iconAfter="false"
                       :useBackground="true"
                     />
@@ -120,7 +120,7 @@
                     
                     <div v-if="formData.availability" class="availability-badge">
                       <img class="info-icon small-icons" :src="getAppIcon('check-circle')" alt="">
-                      <span>{{ formData.availability }}</span>
+                      <span>{{ utils.capitalizeStr(formData.availability) }}</span>
                     </div>
                   </div>
                   
@@ -138,7 +138,7 @@
           </ProfileCard>
 
           <!-- Studios Card -->
-          <ProfileCard title="Studios">
+          <ProfileCard v-if="formData.studios.length" title="Studios">
             <div class="studios-container">
               <div
                 v-for="studio in formData.studios"
@@ -160,9 +160,6 @@
                   class="studio-logo studio-icon-default"
                 />
                 <span class="studio-name">{{ studio.name }}</span>
-              </div>
-              <div v-if="!formData.studios || formData.studios.length === 0" class="no-studios">
-                No studios to display
               </div>
             </div>
           </ProfileCard>
@@ -237,9 +234,9 @@
           </ProfileCard>
 
           <!-- Activity Card -->
-          <ProfileCard v-if="!isAnyEditMode" title="Activity">
+          <!-- <ProfileCard v-if="!isAnyEditMode" title="Activity">
             <ContributionGraph />
-          </ProfileCard>
+          </ProfileCard> -->
 
           <!-- Danger Zone -->
           <ProfileCard v-if="!isAnyEditMode" title="Danger Zone">
@@ -271,7 +268,6 @@
           :icon="getAppIcon('close-circle')" 
           label="Cancel"
           @click="cancelAllEdits"
-          :useOutline="true"
         />
         <ActionButton 
           :isDisabled="!isDataValid"  
@@ -306,6 +302,7 @@ import ToolsManager from '@/instances/desktop/components/ToolsManager.vue';
 import LinksManager from '@/instances/desktop/components/LinksManager.vue';
 import ContributionGraph from '@/instances/desktop/components/ContributionGraph.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+import utils from '@/services/utils';
 
 // Stores
 const iconStore = useIconStore();
@@ -375,6 +372,10 @@ const editableUserPhoto = reactive({
 });
 
 // Computed Properties
+const launchDirConfigModal = () => {
+  modals.setModalVisibility('directoryConfigModal', true);
+};
+
 const userData = computed(() => userStore.user);
 
 const fullName = computed(() => {
@@ -453,8 +454,8 @@ const isDataValid = computed(() => {
 
 const userPhoto = computed(() => {
   if (photoPreview.value) return photoPreview.value;
-  if (!profileStore.profile.photo) return '/icons/default_profile_picture.svg';
-  return profileStore.profile.photo;
+  if (!userStore.user.photo) return '/icons/default_profile_picture.svg';
+  return userStore.user.photo;
 });
 
 // Check if any section is being edited

@@ -143,13 +143,16 @@ onUnmounted(() => {
 
 /* Shared Card Styles for all settings components */
 .settings-section-card {
-  background-color: var(--black-steel);
-  border-radius: 24px;
-  padding: 1.5rem;
-  box-sizing: border-box;
-  width: 100%;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+	display: flex;
+	flex-direction: column;
+	background-color: var(--black-steel);
+	border-radius: var(--very-large-radius);
+	overflow: hidden;
+	box-sizing: border-box;
+	width: 100%;
+	outline: var(--transparent-line);
+	outline-offset: -1px;
+	height: min-content;
 }
 
 .settings-section-card-header {
@@ -174,10 +177,10 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   /* gap: 0.5rem; */
-  
   background-color: var(--dark-steel);
   border-radius: var(--normal-radius);
   overflow: hidden;
+  height: min-content;
 }
 
 /* Shared action divider */

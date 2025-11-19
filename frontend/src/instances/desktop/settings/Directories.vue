@@ -1,5 +1,6 @@
 <template>
   <div class="settings-component-root">
+    <div class="settings-component-scroll">
     <div class="settings-component-container">
       
       <!-- Clustta Data Card -->
@@ -170,6 +171,7 @@
       </div>
 
     </div>
+  </div>
   </div>
 </template>
 
@@ -396,10 +398,34 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  display: flex;
   flex-direction: column;
   gap: 5px;
   box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  display: block;
+  overflow-y: auto;
+}
+
+
+.settings-component-root::-webkit-scrollbar {
+  width: 6px;
+}
+
+.settings-component-root::-webkit-scrollbar-thumb {
+  background-color: var(--midnight-steel);
+  border-radius: 3px;
+}
+
+.settings-component-root::-webkit-scrollbar-track {
+  background-color: var(--light-steel);
+  border-radius: 3px;
+}
+
+.settings-component-scroll {
+  overflow: hidden;
+  display: flex;
   align-items: center;
   justify-content: center;
 }
@@ -409,28 +435,12 @@ onMounted(async () => {
   flex-direction: column;
   box-sizing: border-box;
   height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  width: 96%;
+  width: 100%;
   gap: 1.5rem;
-  color: white;
-  padding: 1rem;
+  padding-right: .2rem;
   border-radius: var(--large-radius);
 }
 
-.settings-component-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.settings-component-container::-webkit-scrollbar-thumb {
-  background-color: var(--midnight-steel);
-  border-radius: 3px;
-}
-
-.settings-component-container::-webkit-scrollbar-track {
-  background-color: var(--light-steel);
-  border-radius: 3px;
-}
 
 /* Working Locations Section */
 .locations-scroll-container {

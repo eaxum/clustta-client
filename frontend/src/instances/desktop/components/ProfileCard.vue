@@ -2,18 +2,12 @@
   <div class="profile-card">
     <div v-if="title" class="profile-card-header">
       <h2 class="profile-card-title">{{ title }}</h2>
-      <button 
-        v-if="showEditButton" 
-        @click="$emit('toggleEdit')"
-        class="card-edit-button"
-        :title="isEditing ? 'Cancel editing' : 'Edit section'"
-      >
-        <img 
-          :src="isEditing ? '/icons/close.svg' : '/icons/edit.svg'" 
-          alt="Edit" 
-          class="edit-icon"
-        />
-      </button>
+      <ActionButton 
+        v-if="showEditButton"
+        :icon="isEditing ? '/icons/close.svg' : '/icons/edit.svg'"
+        :buttonFunction="() => $emit('toggleEdit')"
+        v-tooltip="isEditing ? 'Cancel editing' : 'Edit section'"
+      />
     </div>
     <div class="profile-card-content">
       <slot></slot>
@@ -22,6 +16,8 @@
 </template>
 
 <script setup>
+import ActionButton from './ActionButton.vue';
+
 const props = defineProps({
   title: {
     type: String,
@@ -43,9 +39,9 @@ defineEmits(['toggleEdit']);
 <style scoped>
 .profile-card {
   background-color: var(--black-steel);
-  border-radius: var(--large-radius);
-  border-radius: 24px;
-  padding: 1.5rem;
+  overflow: hidden;
+  background-color: var(--black-steel);
+  border-radius: var(--very-large-radius);
   box-sizing: border-box;
   width: 100%;
   outline: var(--transparent-line);
@@ -53,14 +49,16 @@ defineEmits(['toggleEdit']);
 }
 
 .profile-card-header {
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  border-bottom: var(--transparent-line);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-sizing: border-box;
   gap: 1rem;
+  padding: 1rem 1.5rem;
+  background-color: var(--midnight-steel);
+  border-radius: var(--normal-radius);
+  outline: var(--transparent-line);
+  outline-offset: -1px;
 }
 
 .profile-card-title {
@@ -71,36 +69,8 @@ defineEmits(['toggleEdit']);
   flex: 1;
 }
 
-.card-edit-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background-color: var(--steel);
-  border-radius: var(--small-radius);
-  cursor: pointer;
-  transition: all 0.2s;
-  padding: 0;
-}
-
-.card-edit-button:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-  transform: scale(1.05);
-}
-
-.card-edit-button:active {
-  transform: scale(0.95);
-}
-
-.edit-icon {
-  width: 16px;
-  height: 16px;
-  filter: brightness(0) invert(1);
-}
-
 .profile-card-content {
+  padding: 1.5rem;
   color: var(--white);
 }
 </style>
