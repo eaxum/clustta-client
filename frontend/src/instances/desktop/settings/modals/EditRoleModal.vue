@@ -158,6 +158,7 @@ const formatLabel = (key) => {
     .join(' ')
     .replace(/Task/g, 'Asset')
     .replace(/Entity/g, 'Collection')
+    .replace(/Entities/g, 'Collections')
 }
 
 const toggleField = (key) => {

@@ -18,16 +18,9 @@
     
     <div class="main-entity-item-grid">
 
-      <!-- <div class="main-entity-item-grid-icon">
-        <div class="entity-item-icon-container">
-          <img class="gigantic-icons" :src="getAppIcon('folder-grid')">
-        </div>
-      </div> -->
-      
-      <!-- Bottom bar with entity type icon, name, and status actions -->
       <div class="main-entity-item-grid-bottom-bar">
         <div v-if="!isEditing" class="entity-item-grid-type-icon">
-          <img class="small-icons" :src="getAppIcon(collectionTypeIcon)">
+          <img class="small-icons" :src="getAppIcon(collectionTypeIcon)" v-tooltip="collectionTypeName">
         </div>
         
         <div v-if="!isEditing" class="main-entity-item-grid-meta">
@@ -97,9 +90,8 @@
     }">
 
     <div v-if="props.loadingChildren" class="entity-spacer">
-      <span class="single-action-button">
-        <img class="small-icons loading-children-icon" :src="getAppIcon('loading')">
-      </span>
+      <ActionButton :isLoading="true" :icon="getAppIcon('loading')" 
+        v-tooltip="'Loading...'" />
     </div>
 
     <div v-else class="entity-spacer" :class="{ 'entity-spacer-inactive': !!!props.hasChildren }">
@@ -120,7 +112,7 @@
         </div> -->
 
         <div class="entity-item-icon-container">
-          <img class="large-icons" :src="getAppIcon(collectionTypeIcon)">
+          <img class="large-icons" :src="getAppIcon(collectionTypeIcon)" v-tooltip="collectionTypeName">
         </div>
 
         <div class="entity-item-content selection-area">
@@ -307,6 +299,10 @@ Events.On('free-item-space', async () => {
 
 // computed props
 const isHovered = computed(() => { return dndStore.targetItemId === props.entity.id });
+
+const collectionTypeName = computed(() => {
+  return utils.capitalizeStr(props.entity?.entity_type_name);
+});
 
 const entityName = computed(() => {
   const isUntracked = props.isUntracked;

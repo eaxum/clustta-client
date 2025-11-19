@@ -147,6 +147,7 @@ const deleteCollaborator = (userId) => {
   padding: 1rem;
   background-color: crimson;
   background-color: var(--black-steel);
+  border-radius: var(--very-large-radius);
 }
 </style>
 

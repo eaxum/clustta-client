@@ -6,10 +6,9 @@
 			<div class="searchbar-container">
 				<input ref="searchBar" v-model="commonStore.viewSearchQuery" class="desktop-search-bar" type="text"
 					:placeholder="'Search'" @input="debouncedUpdateSearch" spellcheck="false" />
-
-				<span v-if="commonStore.viewSearchQuery.length && !assetStore.assetsLoaded" class="single-action-button">
-					<img class="small-icons loading-children-icon" :src="getAppIcon('loading')">
-				</span>
+				
+				<ActionButton v-if="commonStore.viewSearchQuery.length && !assetStore.assetsLoaded" :isLoading="true" :icon="getAppIcon('loading')"  
+					v-tooltip="'Loading...'" />
 
 				<ActionButton v-else-if="commonStore.viewSearchQuery.length" :icon="getAppIcon('close')"
 					:allowDeactivate="true" v-tooltip="'Clear search'" :buttonFunction="clearSearch" />

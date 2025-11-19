@@ -12,10 +12,9 @@
 				<div class="searchbar-container">
 					<input ref="searchBar" v-model="projectStore.projectSearchQuery" class="desktop-search-bar" type="text"
 						:placeholder="'Search projects'" @input="updateSearch" spellcheck="false" />
-
-					<span v-if="projectStore.projectSearchQuery.length && !projectStore.projectsLoaded" class="single-action-button">
-						<img class="small-icons loading-children-icon" :src="getAppIcon('loading')">
-					</span>
+					
+					<ActionButton v-if="projectStore.projectSearchQuery.length && !projectStore.projectsLoaded" :isLoading="true" :icon="getAppIcon('loading')" :noFilter="true" 
+						v-tooltip="'Loading...'" />
 
 					<ActionButton v-else-if="projectStore.projectSearchQuery.length" :icon="getAppIcon('close')"
 						:allowDeactivate="true" v-tooltip="'Clear search'" :buttonFunction="clearSearch" />

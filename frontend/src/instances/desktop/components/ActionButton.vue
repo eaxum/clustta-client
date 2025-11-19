@@ -3,7 +3,7 @@
     'button-background': useBackground, 'alert-background': isAlert, 'full-width': fullWidth, 'outline': useOutline, 'icon-after': iconAfter, 'centered':
       centered, 'button-active': isActive, 'is-inactive': isInactive, 'is-disabled': isDead, 'plain-background' : plainBackground, 'use-alert': useAlert, 'use-danger': useDanger,
   }" class="action-button">
-    <img v-if="showIcon && !iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter }" :src="icon">
+    <img v-if="showIcon && !iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter, 'loading-icon' : isLoading }" :src="icon">
     <div v-if="showLabel || label" class="small-icons button-label no-cursor">{{ label }}</div>
     <img v-if="showIcon && iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter }" :src="icon">
   </span>
@@ -33,6 +33,7 @@ const props = defineProps({
   centered: { type: Boolean, default: false },
   useBackground: { type: Boolean, default: false },
   isAlert: { type: Boolean, default: false },
+  isLoading: { type: Boolean, default: false },
   useAlert: { type: Boolean, default: false },
   useDanger: { type: Boolean, default: false },
   isInactive: { type: Boolean, default: false },
@@ -64,6 +65,22 @@ const isDead = computed(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 
+@keyframes loadingRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-icon {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  overflow: hidden;
+  animation: loadingRotate .5s linear infinite;
+}
 
 .chevron {
   pointer-events: none;
@@ -95,7 +112,7 @@ const isDead = computed(() => {
   transition: all 0.3s ease;
   opacity: 1;
   border-radius: var(--normal-radius);
-
+  /* background-color: crimson; */
 }
 
 /* [data-theme="dark"] .action-button:hover{

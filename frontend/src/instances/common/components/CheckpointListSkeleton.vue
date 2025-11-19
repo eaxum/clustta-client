@@ -49,6 +49,7 @@ gap: .5rem;
 animation: fadeInFadeOut infinite  4s ease-in-out;
 outline: var(--transparent-line);
 border-radius: 12px;
+border-radius: var(--large-radius);
 }
 
 .checkpoint-item-thumb-skeleton{

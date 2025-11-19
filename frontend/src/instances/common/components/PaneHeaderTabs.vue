@@ -187,7 +187,7 @@ onMounted(() => {
 
 .selected-tab-button:hover {
   background-color: var(--light-steel);
-
+  border-radius: var(--normal-radius);
 }
 
 .tab-content {

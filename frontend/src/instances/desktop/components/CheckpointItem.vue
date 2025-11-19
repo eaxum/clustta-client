@@ -276,7 +276,8 @@ onBeforeUnmount(() => {
     outline: var(--transparent-line);
     outline-offset: -1px;
     background-color: var(--dark-steel);
-  border-radius: var(--large-radius);
+    border-radius: var(--large-radius);
+    transition: all .2s ease-in-out;
 }
 
 @keyframes fadeIn {
@@ -484,7 +485,9 @@ onBeforeUnmount(() => {
 
 
 .checkpoint-item:hover {
-    outline: var(--solid-line);
+    /* outline: var(--solid-line); */
+    border-radius: var(--normal-radius);
+    background-color: var(--steel);
 }
 
 .checkpoint-item:hover .checkpoint-item-actions {
