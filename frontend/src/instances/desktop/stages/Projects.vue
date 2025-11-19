@@ -20,16 +20,14 @@
 					<ActionButton v-else-if="projectStore.projectSearchQuery.length" :icon="getAppIcon('close')"
 						:allowDeactivate="true" v-tooltip="'Clear search'" :buttonFunction="clearSearch" />
 				</div>
-			</div>
-			<div class="view-options">
-				<ActionButton v-if="cardView" :isDisabled="!projects.length" :icon="getAppIcon('list')" v-tooltip="'List'"
-					:buttonFunction="switchViewLayout" />
-				<ActionButton v-else :isDisabled="!projects.length" :icon="getAppIcon('four-squares')" v-tooltip="'Cards'"
-					:buttonFunction="switchViewLayout" />
-			</div>
 		</div>
-
-		<div ref="projectListContainer" class="project-list-root" 
+		<div class="view-options">
+			<ActionButton :isDisabled="!untrackedProjects.length" :icon="getAppIcon(projectStore.showUntrackedProjects ? 'eye-cancel' : 'eye')" v-tooltip="'Hide untracked projects'"
+				:buttonFunction="toggleShowUntrackedProjects" />
+			<ActionButton :isDisabled="!projects.length" :icon="getAppIcon(cardView ? 'list' : 'four-squares')" :v-tooltip="cardView ? 'List' : 'Cards'"
+				:buttonFunction="switchViewLayout" />
+		</div>
+	</div>		<div ref="projectListContainer" class="project-list-root" 
 		:class="{ 'project-list-root-hover-drop': isHovered }">
 
 		<!-- <TabbedFolder /> -->
@@ -63,7 +61,7 @@
 						:style="{ animationDelay: index < 12 ? `${(index - 1) * 0.03}s` : '0s' }" />
 				</div>
 
-				<div v-if="untrackedProjects.length" class="project-list-divider" ref="untrackedProjectsDivider">
+				<div v-if="untrackedProjects.length && projectStore.showUntrackedProjects" class="project-list-divider" ref="untrackedProjectsDivider">
 					<TabButton
 						:icon="untrackedProjectsVisible ? '/icons/chevron_up_white_slim.svg' : '/icons/chevron_down_white_slim.svg'"
 						:label="untrackedProjectsVisible ? 'Hide untracked projects' : 'Show untracked projects'"
@@ -71,7 +69,7 @@
 					<div class="menu-divider"></div>
 				</div>
 
-				<div v-if="untrackedProjects.length && untrackedProjectsVisible" class="project-list"
+				<div v-if="untrackedProjects.length && untrackedProjectsVisible && projectStore.showUntrackedProjects" class="project-list"
 					:class="{ 'project-list-cards': cardView }">
 					<ProjectItem class="project-item" v-for="(project, index) in untrackedProjects" :key="project.id"
 						:project="project" :index="index" :cardView="cardView"
@@ -374,6 +372,12 @@ const createProject = () => {
 const switchViewLayout = () => {
 	SettingsService.ToggleProjectGridView().then(() => {
 		projectStore.isProjectGridView = !projectStore.isProjectGridView
+	})
+};
+
+const toggleShowUntrackedProjects = () => {
+	SettingsService.ToggleShowUntrackedProjects().then(() => {
+		projectStore.showUntrackedProjects = !projectStore.showUntrackedProjects
 	})
 };
 

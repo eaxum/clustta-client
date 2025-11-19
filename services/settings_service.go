@@ -160,6 +160,14 @@ func (s *SettingsService) ToggleProjectGridView() error {
 	return settings.ToggleProjectGridView()
 }
 
+func (s *SettingsService) ToggleShowUntrackedProjects() error {
+	return settings.ToggleShowUntrackedProjects()
+}
+
+func (s *SettingsService) IsShowUntrackedProjects() (bool, error) {
+	return settings.IsShowUntrackedProjects()
+}
+
 func (s *SettingsService) GetIconScheme() (string, error) {
 	iconScheme, err := settings.GetIconScheme()
 	if err != nil {

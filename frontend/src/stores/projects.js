@@ -28,6 +28,13 @@ await SettingsService.IsProjectGridView()
   })
   .catch((error) => console.log(error));
 
+let showUntrackedProjects = true;
+await SettingsService.IsShowUntrackedProjects()
+  .then((response) => {
+    showUntrackedProjects = response;
+  })
+  .catch((error) => console.log(error));
+
 let lastStudio = "";
 await SettingsService.GetLastStudio()
   .then((response) => {
@@ -45,6 +52,7 @@ export const useProjectStore = defineStore("projects", {
     studioUrl: "",
     useAltUrl: useAltUrl,
     isProjectGridView: isProjectGridView,
+    showUntrackedProjects: showUntrackedProjects,
     lastStudio: lastStudio,
     projects: [],
     projectsLoaded: false,
