@@ -11,7 +11,7 @@
         <img 
           :src="getToolLogoPath(tool)" 
           :alt="tool.name" 
-          class="small-icons"
+          class="small-icons no-filter"
           @error="handleImageError"
         />
         <span class="tool-name">{{ tool.name }}</span>

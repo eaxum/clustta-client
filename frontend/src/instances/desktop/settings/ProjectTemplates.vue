@@ -362,13 +362,12 @@ onMounted(async () => {
     height: 100%;
     overflow: hidden;
     box-sizing: border-box;
-    width: 96%;
+    width: 100%;
     gap: .5rem;
     /* align-items: center; */
     color: white;
     /* justify-content: space-between; */
     padding: 1rem;
-    background-color: crimson;
     background-color: var(--black-steel);
     border-radius: var(--very-large-radius);
 }

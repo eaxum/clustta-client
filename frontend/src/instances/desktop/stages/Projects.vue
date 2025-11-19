@@ -124,7 +124,7 @@ const projectListRoot = ref(null);
 const projectListDivider = ref(null);
 const untrackedProjectsDivider = ref(null);
 const openProjectsContainer = ref(null);
-const closedProjectsVisible = ref(true);
+const closedProjectsVisible = ref(false);
 const untrackedProjectsVisible = ref(true);
 const searchBar = ref(null);
 

@@ -141,8 +141,6 @@ const isDead = computed(() => {
 }
 
 .button-background {
-  background-color: rgba(0, 0, 0, 0.216);
-  border-radius: var(--small-radius);
   background-color: rgb(44, 117, 226);
   /* padding: .3rem 1rem; */
   outline: var(--transparent-line);
@@ -157,6 +155,7 @@ const isDead = computed(() => {
 
 .button-background:hover {
   background-color: rgb(78, 137, 226);
+  border-radius: var(--small-radius);
 }
 
 .alert-background {
