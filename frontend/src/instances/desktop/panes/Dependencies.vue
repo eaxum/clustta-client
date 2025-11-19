@@ -5,10 +5,9 @@
         <input ref="searchBar"  v-model="searchQuery" class="pane-search-bar" type="text" spellcheck="false"
           :placeholder="'Search for dependencies to add'" @input="debouncedUpdateSearch" />
 
-        
-        <span v-if="searchQuery && isLoadingData" class="single-action-button">
-          <img class="small-icons loading-children-icon" :src="getAppIcon('loading')">
-        </span>
+        <ActionButton v-if="searchQuery && isLoadingData" :isLoading="true" :icon="getAppIcon('loading')" 
+					v-tooltip="'Loading...'" />
+
         <ActionButton v-else-if="searchQuery" :icon="getAppIcon('close')"
           :allowDeactivate="true" v-tooltip="'Clear search'" :buttonFunction="clearSearch" />
       </div>

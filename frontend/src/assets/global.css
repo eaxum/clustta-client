@@ -265,7 +265,7 @@ animation: loadingRotate .5s linear infinite;
   width: max-content;
   height: 30px;
   padding: .4rem;
-  border-radius: 5px;
+  border-radius: var(--small-radius);
   font-size: 12px;
   overflow: hidden;
   box-shadow: 0 0 5px rgba(56, 54, 54, 0.5);

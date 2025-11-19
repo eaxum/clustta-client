@@ -150,17 +150,14 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: max-content;
-  /* transition: all .1s ease-in-out; */
-  /* background-color: var(--black-steel); */
   opacity: .5;
   justify-content: center;
   padding: 5px .5rem;
-  /* gap: .5rem; */
   border-radius: var(--large-radius);
+  transition: all .2s ease-in-out;
 }
 
 .tab-button:hover {
-  background-color: #ffffff15;
   /* border-bottom: solid 2px var(--white); */
   background-color: var(--light-steel);
   opacity: 1;

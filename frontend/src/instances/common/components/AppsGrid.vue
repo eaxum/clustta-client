@@ -228,19 +228,17 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  border-radius: 8px;
   gap: .5rem;
   padding: .3rem .8rem;
   outline: var(--transparent-line);
   outline-offset: -1px;
-
+  border-radius: var(--large-radius);
+	transition: all 0.2s ease-in-out;
 }
 
 .apps-grid-item:hover {
-  background-color: #ffffff15;
   background-color: var(--steel);
-  outline: var(--solid-line);
-  outline-offset: -1px;
+  border-radius: var(--small-radius);
 }
 
 .apps-grid-item:active {

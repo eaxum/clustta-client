@@ -74,9 +74,9 @@
             
             <!-- Row 1: Name/Meta (always visible) -->
             <div class="task-item-grid-meta-row">
-              <div class="task-item-grid-type-icon">
+              <div class="task-item-grid-type-icon" >
                 <img v-if="isUntracked" class="small-icons" :src="getAppIcon('generic')">
-                <img v-else class="small-icons" :src="getAppIcon(task.task_type_icon)">
+                <img v-else class="small-icons" :src="getAppIcon(task.task_type_icon)" v-tooltip="assetTypeName">
               </div>
               
               <div class="main-task-item-grid-meta">
@@ -131,9 +131,8 @@
           <div v-if="!isEditing" class="task-item-grid-file-state-absolute">
 
             <div v-if="loadingAssetState" class="file-state">
-              <span class="single-action-button">
-                <img class="small-icons loading-asset-state-icon" :src="getAppIcon('loading')">
-              </span>
+              <ActionButton :isLoading="true" :icon="getAppIcon('loading')"  
+                v-tooltip="'Loading...'" />
             </div>
 
             <div v-else-if="!isUntracked && userStore.canDo('pull_chunk')" class="file-state">
@@ -187,7 +186,7 @@
     }" 
     @dblclick="launchTaskCommand()">
 
-    <div class="task-spacer" v-tooltip="taskTypeName" @click="console.log(task)">
+    <div class="task-spacer" v-tooltip="assetTypeName" @click="console.log(task)">
       <span v-if="isUntracked" class="single-action-button single-action-button-disabled">
         <img class="small-icons entity-collapsed" :src="getAppIcon('generic')">
       </span>
@@ -277,9 +276,8 @@
             v-stop-propagation @click="viewCheckpoints(index, task, $event)" />
 
           <div v-if="loadingAssetState" class="file-state">
-            <span class="single-action-button">
-              <img class="small-icons loading-asset-state-icon" :src="getAppIcon('loading')">
-            </span>
+              <ActionButton :isLoading="true" :icon="getAppIcon('loading')" 
+                v-tooltip="'Loading...'" />
           </div>
 
           <div v-else-if="userStore.canDo('pull_chunk')" class="file-state">
@@ -392,7 +390,6 @@ const itemHeightStyles = computed(() => ({
 // refs
 const taskItem = ref(null);
 const isExpanded = ref(false);
-const taskTypeName = ref('');
 const gridStatusMenuVisible = ref(false);
 
 // OS Thumbnail caching
@@ -639,6 +636,10 @@ const taskName = computed(() => {
       return taskName + extension
     }
   }
+});
+
+const assetTypeName = computed(() => {
+  return utils.capitalizeStr(props.task?.task_type_name);
 });
 
 const isEditing = ref(false);
@@ -1854,8 +1855,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   width: 20px;
   height: 20px;
   overflow: hidden;
-  /* padding: 0px; */
-  /* background-color: crimson; */
   animation: loadingRotate .5s linear infinite;
 }
 
