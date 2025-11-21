@@ -397,45 +397,34 @@ const osThumbnail = ref('');
 const thumbnailLoading = ref(false);
 const thumbnailCache = new Map();
 
-// Computed property for the display icon/thumbnail
+// Determines the thumbnail to display with priority: user preview > OS thumbnail > task icon > file type icon
 const displayThumbnail = computed(() => {
-
-  // Priority 1: User-provided preview (from checkpoints)
   if (props.task.preview) {
     return props.task.preview;
   }
   
-  // Priority 2: OS-generated thumbnail (cached)
   if (osThumbnail.value) {
     return `data:image/png;base64,${osThumbnail.value}`;
   }
   
-  // Priority 3: Task icon or file type icon
   if (props.task.icon) {
     return props.task.icon;
   }
   
-  // Priority 4: Generic file type icon
   return getAppIcon(getFileTypeIcon(props.task));
-  
 });
 
-// Load OS thumbnail for the file
+// Load OS-generated thumbnail for the file with memory caching and async generation fallback
 const loadOSThumbnail = async () => {
-  // Don't load thumbnail if:
-  // - Already have a user preview
-  // - No file path
-  // - Already loading
-  // - Is a link
-  if (props.task.preview || !props.task.file_path || thumbnailLoading.value || props.task.is_link) {
+  const filePath = props.task.file_path;
+
+  const fileExists = await FSService.Exists(filePath)
+  if ( !commonStore.useGrid || props.task.preview || !props.task.file_path || !fileExists || thumbnailLoading.value || props.task.is_link) {
     return;
   }
 
-  const filePath = props.task.file_path;
-  // Cache key now only uses file path - thumbnails are always full resolution
   const cacheKey = filePath;
   
-  // Check memory cache first
   if (thumbnailCache.has(cacheKey)) {
     osThumbnail.value = thumbnailCache.get(cacheKey);
     return;
@@ -444,19 +433,15 @@ const loadOSThumbnail = async () => {
   thumbnailLoading.value = true;
   
   try {
-    // Size parameter is now ignored by backend (always returns 512px)
-    // Keeping it for API compatibility
     const size = 512;
     
-    // Try cached thumbnail first (non-blocking)
     let thumbnail = await FSService.GetCachedOSThumbnail(filePath, size);
     
     if (thumbnail && thumbnail.length > 0) {
       osThumbnail.value = thumbnail;
       thumbnailCache.set(cacheKey, thumbnail);
     } else {
-      // If no cached version, generate asynchronously
-      // Use setTimeout to avoid blocking the UI
+      // Asynchronously generate thumbnail if not cached
       setTimeout(async () => {
         try {
           thumbnail = await FSService.GetOSThumbnail(filePath, size);
@@ -465,7 +450,6 @@ const loadOSThumbnail = async () => {
             thumbnailCache.set(cacheKey, thumbnail);
           }
         } catch (error) {
-          // Silently fail - will use icon instead
           console.debug('Thumbnail generation failed:', error);
         } finally {
           thumbnailLoading.value = false;
@@ -473,7 +457,6 @@ const loadOSThumbnail = async () => {
       }, 0);
     }
   } catch (error) {
-    // Silently fail - will use icon instead
     console.debug('Thumbnail loading failed:', error);
   } finally {
     if (!osThumbnail.value) {
@@ -542,11 +525,6 @@ const getFileTypeIcon = (task) => {
   }
 };
 
-const untrackedItemIcon = computed(() => {
-  return getFileTypeIcon(props.task);
-});
-
-
 const isHovered = computed(() => { return dndStore.targetItemId === props.task.id });
 const canModify = computed(() => {
   let assigneeId = props.task.assignee_id
@@ -580,37 +558,6 @@ const emitTaskUpdates = (taskId, updates) => {
   emitter.emit('update-root-data', updateData);
   emitter.emit('update-children', updateData);
 };
-
-
-const importItem = (index, task, event) => {
-  handleClick(index, task, event);
-  const inRoot = props.task.entity_path === ""
-  const taskPath = props.task.file_path;
-  let parentId = ""
-  let untrackedParents = []
-  let parentPaths = utils.getParentPaths(props.task.entity_path)
-  if (!inRoot) {
-    for (let parent of parentPaths) {
-      parentId = collectionStore.collections.find((item) => item.entity_path === parent)?.id;
-      if (parentId !== undefined) {
-        break
-      }
-      untrackedParents.unshift(parent)
-    }
-  }
-  dndStore.untrackedParents = untrackedParents
-  dndStore.targetItemId = parentId;
-  dndStore.droppedFiles.push(taskPath);
-  modals.setModalVisibility('importItemsModal', true);
-};
-
-
-// Toggle the accordion expansion
-const toggle = () => {
-  isExpanded.value = !isExpanded.value
-  emit('expand', props.item)
-  updateHeight()
-}
 
 // computed properties
 const taskName = computed(() => {
@@ -740,17 +687,6 @@ const updateAssetName = async () => {
   }
 }
 
-const isNameChanged = computed(() => {
-  const restrictedEntries = [taskName.value, ''];
-
-  const lowerCaseEditableName = editableTaskName.value.toLowerCase();
-  const lowerCaseRestrictedEntries = restrictedEntries.map(entry =>
-    typeof entry === 'string' ? entry.toLowerCase() : entry
-  );
-
-  return !lowerCaseRestrictedEntries.includes(lowerCaseEditableName);
-});
-
 const isTaskInFocus = computed(() => {
   return stage.markedItems.length === 1 && stage.firstSelectedItemId === props.task.id && !dndStore.draggedItem
 });
@@ -818,8 +754,6 @@ const launchSelectedTask = () => {
     launchTaskCommand();
   }
 }
-
-const isOnDisk = computed(() => { return props.task.file_status === 'rebuildable' });
 
 const prepFreeUpSpacePopUpModal = () => {
   trayStates.popUpModalTitle = "Free Up Task Space";
