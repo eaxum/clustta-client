@@ -43,10 +43,10 @@
 			</div>
 
 			<div v-if="!showFilters || !isDefaultWorkspace" class="action-bar-container">
+				
 				<div v-if="!kanbanView && loadingCollectionStates && rootData.length" class="action-bar">
-					<span class="single-action-button" v-tooltip="'Loading Collection States (Optimized)'">
-						<img class="small-icons loading-children-icon" :src="getAppIcon('loading')">
-					</span>
+					<ActionButton :isLoading="true" :icon="getAppIcon('loading')"  
+					v-tooltip="'Loading collection states'" />
 				</div>
 
 				<div v-else-if="!kanbanView && rootData.length" class="action-bar">
@@ -71,7 +71,7 @@
 				<ViewOptions v-if="!kanbanView" :kanbanView="kanbanView"  />
 				<ActionButton v-if="isDefaultWorkspace" :icon="kanbanView ? getAppIcon('list') : getAppIcon('kanban')"
 					v-tooltip="kanbanView ? 'List' : 'Kanban'" :buttonFunction="toggleViewMode" />
-				<ActionButton v-if="isDefaultWorkspace && !kanbanView" :icon="dndStore.lockUI ? getAppIcon('lock-closed') : getAppIcon('lock-open')"
+				<ActionButton v-if="isDefaultWorkspace && !kanbanView && userStore.canDo('update_entity')" :icon="dndStore.lockUI ? getAppIcon('lock-closed') : getAppIcon('lock-open')"
 					v-tooltip="dndStore.lockUI ? 'Unlock UI' : 'Lock UI'" :buttonFunction="toggleLockUI" />
 				<ActionButton v-if="!kanbanView"
 					:icon="commonStore.hideExtensions ? getAppIcon('extension-cancel') : getAppIcon('extension')"
