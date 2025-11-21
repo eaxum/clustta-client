@@ -29,10 +29,13 @@
 	</div>		<div ref="projectListContainer" class="project-list-root" 
 		:class="{ 'project-list-root-hover-drop': isHovered }">
 
-		<!-- <TabbedFolder /> -->
 			<ProjectListSkeleton :cardView="cardView" v-if="!projectStore.projectsLoaded" />
+			
+			<PageState v-if="!projects.length || (untrackedProjects.length && !projectStore.showUntrackedProjects)" :message="message()" :illustration="illustration()"
+				:secondaryIcon="secondaryActionIcon()" :secondaryActionMessage="secondaryActionMessage()"
+				:secondaryActionFunction="secondaryActionFunction" />
 
-			<div v-if="projects.length" class="project-list-container" ref="openProjectsContainer" @scroll="disableAllMenus">
+			<div v-else class="project-list-container" ref="openProjectsContainer" @scroll="disableAllMenus">
 				<div v-if="openProjects.length" class="project-list" :class="{ 'project-list-cards': cardView }">
 					<ProjectItem class="project-item" v-for="(project, index) in pinnedProjects" :key="project.id"
 						:project="project" :index="index" :cardView="cardView"
@@ -76,9 +79,7 @@
 				</div>
 			</div>
 
-			<PageState v-else :message="message()" :illustration="illustration()"
-				:secondaryIcon="getAppIcon('plus-circle')" :secondaryActionMessage="secondaryActionMessage()"
-				:secondaryActionFunction="secondaryActionFunction" />
+			
 
 		</div>
 	</div>
@@ -345,9 +346,13 @@ const illustration = () => {
 
 const secondaryActionMessage = () => {
 	const searching = !!projectStore.projectSearchQuery.length;
+	const hasUntrackedProjects = untrackedProjects.value.length > 0;
+	const hasTrackedProjects = trackedProjects.value.length > 0;
 
 	if (searching) {
 		return ''
+	} else if (!hasTrackedProjects && hasUntrackedProjects) {
+		return 'Display untracked projects'
 	} else if (userStore.userCanCreateProject) {
 		return 'Create New Project.'
 	} else {
@@ -355,14 +360,28 @@ const secondaryActionMessage = () => {
 	}
 };
 
+const secondaryActionIcon = () => {
+	const hasUntrackedProjects = untrackedProjects.value.length > 0;
+	const hasTrackedProjects = trackedProjects.value.length > 0;
+
+	if (!hasTrackedProjects && hasUntrackedProjects) {
+		return getAppIcon('eye');
+	} else {
+		return getAppIcon('plus-circle');
+	}
+};
+
 const secondaryActionFunction = () => {
+	const hasUntrackedProjects = untrackedProjects.value.length > 0;
+	const hasTrackedProjects = trackedProjects.value.length > 0;
 	
-	
-	if (userStore.userCanCreateProject) {
-			return createProject();
-		} else {
-			return 
-		}
+	if (!hasTrackedProjects && hasUntrackedProjects) {
+		return toggleShowUntrackedProjects();
+	} else if (userStore.userCanCreateProject) {
+		return createProject();
+	} else {
+		return 
+	}
 };
 
 const createProject = () => {
