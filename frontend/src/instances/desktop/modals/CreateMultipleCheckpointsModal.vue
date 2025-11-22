@@ -10,11 +10,12 @@
     </div>
 
     <div v-if="assetStore.loadingAssetStates" class="horizontal-flex input-alert loading-items-count">
-      <span class="single-action-button" v-tooltip="'Refreshing Asset states'">
-        <img class="small-icons loading-children-icon" :src="getAppIcon('loading')">
-      </span>
+      <ActionButton :isLoading="true" :icon="getAppIcon('loading')"  
+					v-tooltip="'Loading collection states'" />
 
-      refreshing items
+      <div class="refresh-label">
+        refreshing modified items...
+      </div>
     </div>
 
     <div v-else class="horizontal-flex input-alert modified-items-count" 
@@ -162,22 +163,9 @@ const removeItem = (itemPath) => {
 }
 
 const currentModifiedDisplayPaths = computed(() => {
-  // Get the display paths for UI
-  const modifiedAssetsState = assetStore.getModifiedDisplayPaths;
+  // Get modified assets from new structure
+  let filteredAssets = assetStore.modifiedAssets.modified || [];
   
-  // Filter by navigation context
-  let path;
-  path = collectionStore.navigatedCollection?.type === 'entity'
-    ? collectionStore.navigatedCollection?.entity_path
-    : collectionStore.navigatedCollection?.item_path;
-
-  let filteredAssets;
-  if (path) {
-    filteredAssets = modifiedAssetsState.filter(item => item.task_path.startsWith(path));
-  } else {
-    filteredAssets = modifiedAssetsState;
-  }
-
   // Filter out removed items
   filteredAssets = filteredAssets.filter((assetState) => !removedPaths.value.includes(assetState.task_path));
   
@@ -194,43 +182,20 @@ const currentModifiedDisplayPaths = computed(() => {
   return filteredAssets;
 });
 
-const allUntrackedPaths = computed(() => {
-  let path;
-  path = collectionStore.navigatedCollection?.type === 'entity'
-    ? collectionStore.navigatedCollection?.entity_path
-    : collectionStore.navigatedCollection?.item_path;
-
-
-  const untrackedTasksPath = assetStore.untrackedAssetsPath;
-  let filteredPaths;
-
-  filteredPaths = untrackedTasksPath.filter(item => item.startsWith(path));
-
-  if (path && commonStore.navigatorMode) {
-    filteredPaths = untrackedTasksPath.filter(item => item.startsWith(path));
-  } else {
-    filteredPaths = untrackedTasksPath;
-  }
-
-  return filteredPaths;
-
-});
-
 const currentUntrackedPaths = computed(() => {
-
-  let filteredTasks
-  const allUntrackedTaskPaths = allUntrackedPaths.value?.filter((untrackedTaskPath) => !removedPaths.value.includes(untrackedTaskPath));
+  // Get untracked files from new structure
+  let filteredTasks = assetStore.modifiedAssets.untracked || [];
+  
+  // Filter out removed items
+  filteredTasks = filteredTasks.filter((untrackedTaskPath) => !removedPaths.value.includes(untrackedTaskPath));
 
   if (trayStates.createMultipleCheckpointsEntityPath) {
-    filteredTasks = allUntrackedTaskPaths.filter((untrackedTaskPath) => untrackedTaskPath.startsWith(trayStates.createMultipleCheckpointsEntityPath));
-  } else {
-    filteredTasks = allUntrackedTaskPaths
+    filteredTasks = filteredTasks.filter((untrackedTaskPath) => untrackedTaskPath.startsWith(trayStates.createMultipleCheckpointsEntityPath));
   }
 
   if (trayStates.createMultipleCheckpoints) {
     return filteredTasks;
   } else {
-
     // Use selectedItems to get the paths of selected untracked items
     const selectedUntrackedTasks = stage.selectedItems
       .filter(item => item.type === 'untracked_task')
@@ -239,7 +204,6 @@ const currentUntrackedPaths = computed(() => {
     
     return selectedUntrackedTasks;
   }
-
 });
 
 const createCheckPoints = async () => {
@@ -254,7 +218,10 @@ const createCheckPoints = async () => {
   
   await CheckpointService.AddCheckpoint(projectStore.activeProject.uri, taskPathsForCheckpoints, comment, previewPath, groupId, useImageAsCover.value)
     .then((response) => {
-      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter((modifiedTaskPath) => !taskPathsForCheckpoints.includes(modifiedTaskPath))
+      // Remove created checkpoints from modifiedAssets
+      assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter(
+        (item) => !taskPathsForCheckpoints.includes(item.task_path)
+      );
     })
     .catch((error) => {
       console.error(error);
@@ -275,7 +242,10 @@ const createCheckPoints = async () => {
     isAwaitingResponse.value = false;
     notificationStore.errorNotification("Error Creating Checkpoint", error)
   }
-  assetStore.untrackedAssetsPath = assetStore.untrackedAssetsPath.filter((untrackedTaskPath) => !currentUntrackedPaths.value.includes(untrackedTaskPath))
+  // Remove created untracked items from modifiedAssets
+  assetStore.modifiedAssets.untracked = assetStore.modifiedAssets.untracked.filter(
+    (untrackedTaskPath) => !currentUntrackedPaths.value.includes(untrackedTaskPath)
+  );
 
 
   emitter.emit('refresh-browser');
@@ -293,7 +263,18 @@ const createCheckPoints = async () => {
 onMounted(
   async () => {
     if(trayStates.createMultipleCheckpoints){
-      await assetStore.reloadAssetStates();
+      let targetPath = null;
+      
+      // selectedCollection takes priority over navigatedCollection
+      if (stage.selectedItem?.file_path) {
+        targetPath = stage.selectedItem.file_path;
+      } else if (collectionStore.navigatedCollection?.file_path) {
+        targetPath = collectionStore.navigatedCollection.file_path;
+      }
+      console.log(stage.selectedItem)
+      
+      await assetStore.reloadModifiedAssets(targetPath);
+      // await assetStore.reloadAssetStates(targetPath);
     }
     trayStates.screenshot = null
     trayStates.previewFile = ""
@@ -445,6 +426,13 @@ onBeforeUnmount(() => {
   overflow: hidden;
   padding: 0px;
   animation: loadingRotate .5s linear infinite;
+}
+
+.refresh-label{
+  font-style: italic;
+  font-size: 14px;
+  color: var(--white);
+  opacity: 0.7;
 }
 </style>
 

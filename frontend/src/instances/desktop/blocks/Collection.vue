@@ -160,31 +160,28 @@
           </div>
         </div> -->
 
-        <div v-if="!isEditing && itemsUntracked && !(entity.id in stage.expandedEntities)"  class="entity-item-actions">
-            <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" v-if="userStore.canDo('create_entity') || canImport || isAssigned"
-              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Add checkpoints.'" />
-        </div>
-
-        <div v-else-if="!isEditing && itemsModified && !(entity.id in stage.expandedEntities)"
-          class="entity-item-actions">
-            <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true"
-              v-tooltip="'Add checkpoints.'" />
-        
-        </div>
-
-        <div v-else-if="!isEditing && itemsOutdated && !(entity.id in stage.expandedEntities)" class="entity-item-actions">
-            <ActionButton @click="updateEntityAssets" :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true"
-              v-tooltip="'update to latest'" />
-        </div>
-
-        <div v-else-if="!isEditing && itemsRebuildable && !(entity.id in stage.expandedEntities)" class="entity-item-actions">
-            <ActionButton @click="rebuildEntity" :icon="getAppIcon('jigsaw')"
-              v-tooltip="'Rebuild'" />
+        <!-- Optimized entity-item-actions using GetCollectionStateFlags -->
+        <div v-if="!isEditing && !isUntracked" class="entity-item-actions">
+          <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="'Loading state'" />
+          <template v-else>
+            <ActionButton v-if="collectionStateFlags.has_untracked && !(entity.id in stage.expandedEntities)" 
+              @click="prepAllCheckpointModal(props.entity.entity_path)" 
+              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Add checkpoints'" />
+            <ActionButton v-else-if="collectionStateFlags.has_modified && !(entity.id in stage.expandedEntities)" 
+              @click="prepAllCheckpointModal(props.entity.entity_path)" 
+              :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="'Add checkpoints'" />
+            <ActionButton v-if="collectionStateFlags.has_outdated && !(entity.id in stage.expandedEntities)" 
+              @click="updateEntityAssets" 
+              :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Update to latest'" />
+            <ActionButton v-if="collectionStateFlags.has_rebuildable && !(entity.id in stage.expandedEntities)" 
+              @click="rebuildEntity" 
+              :icon="getAppIcon('jigsaw')" v-tooltip="'Rebuild'" />
+          </template>
         </div>
 
         <div v-else-if="!isEditing && entity.type === 'untracked_entity' && props.hasChildren" class="entity-item-actions">
             <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" v-if="userStore.canDo('create_entity') || canImport || isAssigned"
-              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Add checkpoints.'" />
+              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Add checkpoints'" />
         </div>
 
         <div v-else-if="!isEditing && entity.type === 'untracked_entity' && !props.hasChildren" class="entity-item-actions">
@@ -256,6 +253,7 @@ const props = defineProps({
   hasChildren: { type: Boolean, default: false },
   isUntracked: { type: Boolean, default: false },
   loadingChildren: { type: Boolean, default: true },
+  loadingCollectionState: { type: Boolean, default: false },
 });
 
 // refs
@@ -392,6 +390,16 @@ const itemsOutdated = computed(() => {
 
 const itemsRebuildable = computed(() => {
   return assetStore.rebuildableAssetsPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
+});
+
+// New optimized collection state flags from GetCollectionStateFlags
+const collectionStateFlags = computed(() => {
+  return props.entity.collectionStateFlags || {
+    has_untracked: false,
+    has_modified: false,
+    has_outdated: false,
+    has_rebuildable: false
+  };
 });
 
 const collectionTypeIcon = computed(() => {
@@ -1042,7 +1050,7 @@ onBeforeUnmount(() => {
   width: min-content;
   
   color: var(--white);
-  padding: .4rem .6rem;
+  padding: .2rem .6rem;
   border-radius: var(--tiny-radius);
   font-size: 12px;
   overflow: hidden;
@@ -1053,10 +1061,12 @@ onBeforeUnmount(() => {
   justify-content: center;
   height: max-content;
   box-sizing: border-box;
+  /* overflow: hidden; */
 }
 
 .entity-item-meta {
   display: flex;
+  padding: 0 .4rem;
   box-sizing: border-box;
   align-items: center;
   height: 100%;

@@ -45,6 +45,11 @@ type AssetsStates struct {
 	Outdated    []AssetStateItem `json:"outdated"`
 }
 
+type ModifiedAssets struct {
+	Modified  []AssetStateItem `json:"modified"`
+	Untracked []string         `json:"untracked"`
+}
+
 func (t *AssetService) GetAssetCount(projectPath string) (int, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -1482,4 +1487,159 @@ func (t *AssetService) GetUntrackedFiles(projectPath, projectWorkingDir string, 
 	}
 
 	return untrackedFiles, nil
+}
+
+func (t *AssetService) GetModifiedAssets(projectPath, targetPath string, ignoreList []string) (ModifiedAssets, error) {
+	modifiedAssets := ModifiedAssets{
+		Modified:  []AssetStateItem{},
+		Untracked: []string{},
+	}
+
+	dbConn, err := sqlx.Connect("sqlite3", projectPath)
+	if err != nil {
+		return modifiedAssets, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return modifiedAssets, err
+	}
+	defer tx.Rollback()
+
+	// Get project working directory from database
+	rootFolder, err := utils.GetProjectWorkingDir(tx)
+	if err != nil {
+		return modifiedAssets, err
+	}
+
+	// Use provided targetPath or fallback to project working directory
+	scanPath := targetPath
+	if scanPath == "" {
+		scanPath = rootFolder
+	}
+
+	// Check if scan path exists
+	if !utils.DirExists(scanPath) {
+		return modifiedAssets, nil
+	}
+
+	// Convert targetPath to relative path for database filtering
+	var relativePathPrefix string
+	if scanPath != rootFolder {
+		relativePathPrefix, err = filepath.Rel(rootFolder, scanPath)
+		if err != nil {
+			return modifiedAssets, err
+		}
+		relativePathPrefix = utils.NormalizePath(relativePathPrefix)
+		// Add trailing slash for LIKE query
+		if relativePathPrefix != "" && relativePathPrefix != "." {
+			relativePathPrefix = "/" + relativePathPrefix + "/"
+		} else {
+			relativePathPrefix = ""
+		}
+	}
+
+	// Query tasks - filter by path if scanning a subdirectory
+	tasks := []models.Task{}
+	var query string
+	if relativePathPrefix != "" {
+		query = fmt.Sprintf("SELECT * FROM full_task WHERE trashed = 0 AND task_path LIKE '%s%%' ORDER BY task_path", relativePathPrefix)
+	} else {
+		query = "SELECT * FROM full_task WHERE trashed = 0 ORDER BY task_path"
+	}
+
+	err = tx.Select(&tasks, query)
+	if err != nil {
+		return modifiedAssets, err
+	}
+
+	// Load checkpoints only for filtered tasks
+	if len(tasks) > 0 {
+		taskIds := make([]string, len(tasks))
+		for i, task := range tasks {
+			taskIds[i] = fmt.Sprintf("'%s'", task.Id)
+		}
+
+		checkpointQuery := fmt.Sprintf("SELECT * FROM task_checkpoint WHERE trashed = 0 AND task_id IN (%s) ORDER BY created_at DESC", strings.Join(taskIds, ","))
+		tasksCheckpoints := []models.Checkpoint{}
+		tx.Select(&tasksCheckpoints, checkpointQuery)
+
+		taskCheckpoints := map[string][]models.Checkpoint{}
+		for _, taskCheckpoint := range tasksCheckpoints {
+			taskCheckpoints[taskCheckpoint.TaskId] = append(taskCheckpoints[taskCheckpoint.TaskId], taskCheckpoint)
+		}
+
+		// Check file status for each task
+		for i, task := range tasks {
+			taskFilePath, err := utils.BuildTaskPath(rootFolder, task.EntityPath, task.Name, task.Extension)
+			if err != nil {
+				return modifiedAssets, err
+			}
+			tasks[i].FilePath = taskFilePath
+			tasks[i].Checkpoints = taskCheckpoints[task.Id]
+
+			fileStatus, err := repository.GetTaskFileStatus(&tasks[i], taskCheckpoints[task.Id])
+			if err != nil {
+				return modifiedAssets, err
+			}
+
+			// Only add if modified
+			if fileStatus == "modified" {
+				displayPath := task.TaskPath
+				if task.Extension != "" {
+					displayPath = task.TaskPath + task.Extension
+				}
+				modifiedAssets.Modified = append(modifiedAssets.Modified, AssetStateItem{
+					TaskId:      task.Id,
+					TaskPath:    task.TaskPath,
+					DisplayPath: displayPath,
+				})
+			}
+		}
+	}
+
+	// Get untracked files - walk only the scanPath directory
+	clusttaIgnore := ignore.CompileIgnoreLines(ignoreList...)
+	absoluteTrackedFiles := make(map[string]bool)
+
+	// Build map of tracked files
+	for _, task := range tasks {
+		absoluteTaskFilePath, err := filepath.Abs(filepath.Join(rootFolder, task.TaskPath+task.Extension))
+		if err != nil {
+			return modifiedAssets, err
+		}
+		absoluteTrackedFiles[absoluteTaskFilePath] = true
+	}
+
+	// Walk filesystem under scanPath only
+	err = filepath.WalkDir(scanPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() {
+			if strings.HasPrefix(filepath.Base(path), ".") {
+				return filepath.SkipDir
+			}
+		} else {
+			if strings.HasPrefix(filepath.Base(path), ".") {
+				return nil
+			}
+			relativePath, err := filepath.Rel(rootFolder, path)
+			if err != nil {
+				return err
+			}
+			relativePath = utils.NormalizePath(relativePath)
+			if !absoluteTrackedFiles[path] && !clusttaIgnore.MatchesPath(relativePath) {
+				modifiedAssets.Untracked = append(modifiedAssets.Untracked, "/"+relativePath)
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return modifiedAssets, err
+	}
+
+	return modifiedAssets, nil
 }

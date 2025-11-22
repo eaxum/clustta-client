@@ -4,12 +4,12 @@
       :style="{ height: `${itemHeight}px` }" :class="{ 'drop-zone-hovered': isHovered }">
       <Collection ref="entityItemRef" v-if="child.type == 'entity'" @toggleEditMode="toggleEditMode"
         v-right-click="openCollectionMenu" :hasChildren="hasChildren" :loadingChildren="loadingChildren" :isGhost="isGhost" @toggle="handleToggle"
-        :entity="child" :index="index" :entityChildren="entityChildren" />
+        :entity="child" :index="index" :entityChildren="entityChildren" :loadingCollectionState="loadingCollectionState && child.type === 'entity'" />
       <Asset v-if="child.type == 'task'" @refreshData="emit('refreshData')" @toggleEditMode="toggleEditMode"
         v-right-click="openAssetMenu" :task="child" :index="index" :loadingAssetState="loadingAssetState && child.type === 'task'" />
       <Collection ref="entityItemRef" v-if="child.type == 'untracked_entity'" @toggleEditMode="toggleEditMode"
         v-right-click="openUntrackedItemMenu" :hasChildren="hasChildren" :loadingChildren="loadingChildren" :isUntracked="true" :entity="child"
-        @toggle="handleToggle" :index="index" :entityChildren="entityChildren"/>
+        @toggle="handleToggle" :index="index" :entityChildren="entityChildren" :loadingCollectionState="loadingCollectionState && child.type === 'entity'"/>
       <Asset v-if="child.type == 'untracked_task'" @toggleEditMode="toggleEditMode"
         v-right-click="openUntrackedItemMenu" :isUntracked="true" :task="child" :index="index" />
     </div>
@@ -64,6 +64,7 @@ const entityChildren = ref([]);
 const hasChildren = ref(false);
 const loadingChildren = ref(true);
 const loadingAssetState = ref(false);
+const loadingCollectionState = ref(false);
 const indentPadding = ref(4);
 
 const emit = defineEmits(['refreshData']);
@@ -255,6 +256,40 @@ const loadAssetState = async () => {
   }
 };
 
+const loadCollectionState = async () => {
+
+  const entity = props.child;
+  
+  if (entity.type !== 'entity') return;
+  
+  loadingCollectionState.value = true;
+  
+  try {
+    const projectStore = useProjectStore();
+    const flags = await CollectionService.GetCollectionStateFlags(
+      projectStore.activeProject.uri,
+      entity.id,
+      projectStore.activeProject.working_directory,
+      projectStore.activeProject.ignore_list
+    );
+
+    // Store the flags on the entity object
+    props.child.collectionStateFlags = flags;
+
+  } catch (error) {
+    console.error(`Error loading collection state for ${entity.id}:`, error);
+    // Reset flags on error
+    props.child.collectionStateFlags = {
+      has_untracked: false,
+      has_modified: false,
+      has_outdated: false,
+      has_rebuildable: false
+    };
+  } finally {
+    loadingCollectionState.value = false;
+  }
+};
+
 const loadEntityChildren = async () => {
   if(stage.operationActive){
     loadingChildren.value = true;
@@ -310,6 +345,10 @@ watch(() => stage.operationActive, (newValue, oldValue) => {
 onMounted(async () => {
   if (props.child.type === 'entity' || props.child.type === 'untracked_entity') {
     await loadEntityChildren();
+  }
+  
+  if (props.child.type === 'entity') {
+    await loadCollectionState();
   }
   
   if (props.child.type === 'task') {

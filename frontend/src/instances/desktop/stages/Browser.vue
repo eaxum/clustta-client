@@ -44,7 +44,7 @@
 
 			<div v-if="!showFilters || !isDefaultWorkspace" class="action-bar-container">
 				
-				<div v-if="!kanbanView && loadingCollectionStates && rootData.length" class="action-bar">
+				<div v-if="!kanbanView && (loadingCollectionStates || assetStore.loadingAssetStates) && rootData.length" class="action-bar">
 					<ActionButton :isLoading="true" :icon="getAppIcon('loading')"  
 					v-tooltip="'Loading collection states'" />
 				</div>
@@ -1336,9 +1336,9 @@ const rebuildAll = async () => {
 		await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, userTaskIds)
 		.then(() => {
 			
-			assetStore.rebuildableAssetsPath = rebuildableTasksPath.filter(taskPath => 
-				!userTaskPaths.some(userTaskPath => taskPath.startsWith(userTaskPath))
-			);
+			// assetStore.rebuildableAssetsPath = rebuildableTasksPath.filter(taskPath => 
+			// 	!userTaskPaths.some(userTaskPath => taskPath.startsWith(userTaskPath))
+			// );
 			softRefresh();
 			return;
 		})
@@ -1352,7 +1352,7 @@ const rebuildAll = async () => {
 			.then((data) => {
 
 				if(path){
-					assetStore.rebuildableAssetsPath = rebuildableTasksPath.filter(item => !item.startsWith(path))
+					// assetStore.rebuildableAssetsPath = rebuildableTasksPath.filter(item => !item.startsWith(path))
 				} else {
 					assetStore.rebuildableAssetsPath = [];
 				}
@@ -1456,7 +1456,6 @@ const clearSelection = () => {
 }
 
 const handleClickOutside = (event, rightClick = false) => {
-	// return
 	if (!rightClick) {
 	}
 	if (event) {
@@ -1511,11 +1510,12 @@ const detectModifier = (event) => {
 	}
 };
 
-// New optimized collection state check function
+// Loads optimized state flags (untracked/modified/outdated/rebuildable) for current collection context
 const loadCollectionStateFlags = async () => {
 	loadingCollectionStates.value = true;
 	
 	try {
+		// Determine entity context (root or navigated collection)
 		const project = projectStore.activeProject;
 		let entityId = "root";
 		
@@ -1529,6 +1529,7 @@ const loadCollectionStateFlags = async () => {
 			}
 		}
 
+		// Fetch state flags from service
 		const flags = await CollectionService.GetCollectionStateFlags(
 			project.uri,
 			entityId,
@@ -1551,16 +1552,20 @@ const loadCollectionStateFlags = async () => {
 	}
 };
 
+// Full refresh: reloads project data, fetches all children, processes icons/previews, and updates state flags
 const refresh = async () => {
 	if(kanbanView.value){
 		return
 	}
+	// Reset state
 	assetStore.assetsLoaded = false;
 	assetStore.modifiedAssetsPath = []
 	assetStore.untrackedAssetsPath = [];
 	stage.cutItems = [];
 	await projectStore.refreshActiveProject();
 	await trayStates.refreshData();
+
+	// Fetch children based on navigation context
 	let children;
 	let project = projectStore.activeProject
 
@@ -1572,19 +1577,22 @@ const refresh = async () => {
 		children = await CollectionService.GetCollectionChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false)
 	}
 
+	// Process assets and icons
 	await assetStore.processAssetsIconsAndPreviews(children.tasks);
-
 	await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
 
+	// Update root data and state
 	rootData.value = [...children.entities, ...children.untracked_entities, ...children.tasks, ...children.untracked_tasks];
 	assetStore.assetsLoaded = true;
 
-	assetStore.reloadAssetStates();
+	// assetStore.reloadAssetStates();
 	loadCollectionStateFlags(); 
 
 };
 
+// Lightweight refresh: fetches children with search/filter support, processes icons, updates root data and state flags
 const softRefresh = async () => {
+	// Reset state
 	assetStore.assetsLoaded = false;
 	stage.cutItems = [];
 
@@ -1593,6 +1601,7 @@ const softRefresh = async () => {
 
 	const searching = commonStore.viewSearchQuery.toLowerCase();
 
+	// Handle search or filter mode
 	if (searching || filtersActive.value) {
 
 		let entities;
@@ -1600,16 +1609,14 @@ const softRefresh = async () => {
 
 		if (!commonStore.navigatorMode) {
 			if(!searching){
-
-				// fetch only root items
+				// Fetch only root items when filtering without search
 				const rootItems = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
 
 				entities = rootItems['entities'];
 				tasks = commonStore.onlyAssets ? await AssetService.GetAssets(project.uri) : rootItems['tasks'];
 
 			} else {
-
-				// fetch everything
+				// Fetch all items when searching
 				entities = await CollectionService.GetCollections(project.uri);
 				tasks = await AssetService.GetAssets(project.uri);
 			}
@@ -1617,7 +1624,7 @@ const softRefresh = async () => {
 			entities = commonStore.onlyAssets ? [] : entities;
 
 		} else {
-
+			// Navigator mode: fetch from navigated collection
 			const navigatedEntityId = collectionStore.navigatedCollection?.id;
 			const entity_file_path = collectionStore.navigatedCollection?.file_path;
 			
@@ -1627,10 +1634,12 @@ const softRefresh = async () => {
 			tasks = entityItems['tasks'];
 		}	
 		
+			// Apply filters
 			children['entities'] = await collectionStore.filterCollections(entities);
 			children['tasks'] = await assetStore.filterAssets(tasks);
 
 	} else {
+		// Normal mode: fetch children based on context
 		if (!commonStore.navigatorMode) {
 
 			children = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false)
@@ -1642,6 +1651,7 @@ const softRefresh = async () => {
 		}
 	}
 
+	// Process assets and icons
 	if (children.tasks) {
 		await assetStore.processAssetsIconsAndPreviews(children.tasks);
 	}
@@ -1650,13 +1660,15 @@ const softRefresh = async () => {
 		await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
 	}
 
+	// Combine and update root data
 	const allEntities = commonStore.showEntities ? children.entities?.filter((item) => !item.is_trashed) : [];
 	const allTasks = commonStore.showTasks ? children.tasks : [];
 
 	rootData.value = [...(allEntities ?? []), ...(allTasks ?? []), ...(children.untracked_entities ?? []), ...(children.untracked_tasks ?? [])];
 
+	// Update state
 	assetStore.assetsLoaded = true;
-	assetStore.reloadAssetStates();
+	// assetStore.reloadAssetStates();
 	loadCollectionStateFlags(); 
 };
 
