@@ -654,6 +654,49 @@ export class ImportItems {
     }
 }
 
+export class ModifiedAssets {
+    /**
+     * Creates a new ModifiedAssets instance.
+     * @param {Partial<ModifiedAssets>} [$$source = {}] - The source object to create the ModifiedAssets.
+     */
+    constructor($$source = {}) {
+        if (!("modified" in $$source)) {
+            /**
+             * @member
+             * @type {AssetStateItem[]}
+             */
+            this["modified"] = [];
+        }
+        if (!("untracked" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["untracked"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ModifiedAssets instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ModifiedAssets}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType1;
+        const $$createField1_0 = $$createType6;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("modified" in $$parsedSource) {
+            $$parsedSource["modified"] = $$createField0_0($$parsedSource["modified"]);
+        }
+        if ("untracked" in $$parsedSource) {
+            $$parsedSource["untracked"] = $$createField1_0($$parsedSource["untracked"]);
+        }
+        return new ModifiedAssets(/** @type {Partial<ModifiedAssets>} */($$parsedSource));
+    }
+}
+
 /**
  * NullString represents a nullable string from the database
  */
@@ -1362,11 +1405,11 @@ export class UserProfile {
      * @returns {UserProfile}
      */
     static createFrom($$source = {}) {
-        const $$createField8_0 = $$createType7;
-        const $$createField9_0 = $$createType7;
-        const $$createField25_0 = $$createType9;
-        const $$createField26_0 = $$createType11;
-        const $$createField27_0 = $$createType13;
+        const $$createField8_0 = $$createType8;
+        const $$createField9_0 = $$createType8;
+        const $$createField25_0 = $$createType10;
+        const $$createField26_0 = $$createType12;
+        const $$createField27_0 = $$createType14;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("country_id" in $$parsedSource) {
             $$parsedSource["country_id"] = $$createField8_0($$parsedSource["country_id"]);
@@ -1559,11 +1602,12 @@ const $$createType2 = $Create.Array($Create.Any);
 const $$createType3 = $Create.Array($Create.Any);
 const $$createType4 = $Create.Array($Create.Any);
 const $$createType5 = $Create.Array($Create.Any);
-const $$createType6 = NullString.createFrom;
-const $$createType7 = $Create.Nullable($$createType6);
-const $$createType8 = UserTool.createFrom;
-const $$createType9 = $Create.Array($$createType8);
-const $$createType10 = UserSkill.createFrom;
-const $$createType11 = $Create.Array($$createType10);
-const $$createType12 = UserStudio.createFrom;
-const $$createType13 = $Create.Array($$createType12);
+const $$createType6 = $Create.Array($Create.Any);
+const $$createType7 = NullString.createFrom;
+const $$createType8 = $Create.Nullable($$createType7);
+const $$createType9 = UserTool.createFrom;
+const $$createType10 = $Create.Array($$createType9);
+const $$createType11 = UserSkill.createFrom;
+const $$createType12 = $Create.Array($$createType11);
+const $$createType13 = UserStudio.createFrom;
+const $$createType14 = $Create.Array($$createType13);

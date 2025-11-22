@@ -36,6 +36,11 @@ export const useAssetStore = defineStore("asset", {
     modifiedAssetsState: [],
     outdatedAssetsState: [],
     rebuildableAssetsState: [],
+    // New combined modified assets data
+    modifiedAssets: {
+      modified: [],
+      untracked: []
+    },
   }),
   getters: {
     getAssetTypes: (state) => {
@@ -818,11 +823,18 @@ export const useAssetStore = defineStore("asset", {
       return untrackedAssets;
     },
 
-    async reloadAssetStates(){
+    async reloadAssetStates(path = null){
+      console.log('started')
+      const startTime = performance.now();
       this.loadingAssetStates = true;
       const projectStore = useProjectStore();
       let project = projectStore.activeProject
-      await AssetService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates) => {
+      
+      // Use provided path or fallback to project working directory
+      const targetPath = path || project.working_directory;
+      
+      console.log(targetPath)
+      await AssetService.GetAssetsStates(project.uri, targetPath, project.ignore_list).then((assetsStates) => {
         this.modifiedAssetsPath = assetsStates.modified.map(item => item.task_path)
         this.outdatedAssetsPath = assetsStates.outdated.map(item => item.task_path)
         this.rebuildableAssetsPath = assetsStates.rebuildable.map(item => item.task_path)
@@ -832,12 +844,40 @@ export const useAssetStore = defineStore("asset", {
         this.outdatedAssetsState = assetsStates.outdated
         this.rebuildableAssetsState = assetsStates.rebuildable
       })
-      await AssetService.GetUntrackedFiles(project.uri, project.working_directory, project.ignore_list).then((untrackedFiles) => {
+      await AssetService.GetUntrackedFiles(project.uri, targetPath, project.ignore_list).then((untrackedFiles) => {
         this.untrackedAssetsPath = untrackedFiles
       })
       // stage.operationActive = false
       this.loadingAssetStates = false;
-  }
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+      const timeStr = duration >= 1000 
+        ? `${(duration / 1000).toFixed(2)}s` 
+        : `${duration.toFixed(2)}ms`;
+      console.log(`reloadAssetStates took ${timeStr}`);
+    },
+
+    async reloadModifiedAssets(path = null){
+      const startTime = performance.now();
+      this.loadingAssetStates = true;
+      const projectStore = useProjectStore();
+      let project = projectStore.activeProject
+      
+      // Use provided path or fallback to empty string (backend will use working directory)
+      const targetPath = path || "";
+      
+      await AssetService.GetModifiedAssets(project.uri, targetPath, project.ignore_list).then((modifiedAssets) => {
+        this.modifiedAssets = modifiedAssets;
+      })
+      
+      this.loadingAssetStates = false;
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+      const timeStr = duration >= 1000 
+        ? `${(duration / 1000).toFixed(2)}s` 
+        : `${duration.toFixed(2)}ms`;
+      console.log(`reloadModifiedAssets took ${timeStr}`);
+    }
 
   },
 });

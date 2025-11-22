@@ -30,6 +30,24 @@
     <ActionButton :icon="getAppIcon('arrow-down-ramp')" :showLabel="true" :fullWidth="true" label="Import Items"
       v-if="userStore.canDo('create_task')" :buttonFunction="importItems" />
 
+    
+    <!-- Collection State Actions -->
+    <span v-if="collectionStateFlags.has_untracked || collectionStateFlags.has_modified || collectionStateFlags.has_outdated || collectionStateFlags.has_rebuildable" class="menu-divider"></span>
+
+    <ActionButton v-if="collectionStateFlags.has_untracked || collectionStateFlags.has_modified" :icon="getAppIcon('layers-plus')" :useAlert="collectionStateFlags.has_modified" :useDanger="collectionStateFlags.has_untracked" :showLabel="true" :fullWidth="true" label="Create Checkpoints"
+      :buttonFunction="prepCreateCheckpointsModal" />
+
+    <ActionButton v-if="collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" label="Rebuild Contents"
+      :buttonFunction="rebuildCollection" />
+
+    <ActionButton v-if="collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" :showLabel="true" :fullWidth="true" label="Update Contents"
+      :buttonFunction="updateContents" />
+
+    <!-- Revert Contents -->
+    <ActionButton v-if="collectionStateFlags.has_modified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :showLabel="true" :fullWidth="true" 
+      label="Revert Contents" :buttonFunction="prepRevertContentsPopUpModal" />
+
+
 
     <span v-if="userStore.canDo('update_entity') || collectionStore.selectedCollection.can_modify" class="menu-divider"></span>
 
@@ -40,14 +58,6 @@
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyEntityPath('entity')"
         v-tooltip="'Copy Path'" />
     </span>
-
-    <!-- Revert Contents -->
-    <ActionButton v-if="hasModifiedContents" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :showLabel="true" :fullWidth="true" 
-      label="Revert Contents" :buttonFunction="prepRevertContentsPopUpModal" />
-
-    <!-- Rebuild -->
-    <ActionButton :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" label="Rebuild Collection"
-      :buttonFunction="rebuildCollection" />
 
     <!-- Free space -->
     <ActionButton :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" label="Free Up space"
@@ -131,6 +141,23 @@ const hasModifiedContents = computed(() => {
   const filteredPaths = modifiedTasksPath.filter(taskPath => taskPath.startsWith(entityPath));
   
   return filteredPaths.length > 0;
+})
+
+const collectionStateFlags = computed(() => {
+  const entity = collectionStore.selectedCollection;
+  if (!entity) return {
+    has_untracked: false,
+    has_modified: false,
+    has_outdated: false,
+    has_rebuildable: false
+  };
+  
+  return entity.collectionStateFlags || {
+    has_untracked: false,
+    has_modified: false,
+    has_outdated: false,
+    has_rebuildable: false
+  };
 })
 
 // refs
@@ -427,6 +454,60 @@ const prepFreeUpSpacePopUpModal = () => {
   trayStates.popUpModalFunction = freeUpSpace;
   modals.setModalVisibility('popUpModal', true);
   menu.hideContextMenu();
+};
+
+const prepCreateCheckpointsModal = () => {
+  const entity = collectionStore.selectedCollection;
+  trayStates.createMultipleCheckpointsEntityPath = entity.entity_path;
+  modals.setModalVisibility('createMultipleCheckpointsModal', true);
+  menu.hideContextMenu();
+};
+
+const updateContents = async () => {
+  menu.hideContextMenu();
+  
+  const entity = collectionStore.selectedCollection;
+  if (!entity) return;
+  
+  const entityPath = entity.entity_path;
+  const outdatedTasksPath = assetStore.outdatedAssetsPath;
+  
+  // Filter only the outdated tasks within this entity's path recursively
+  const entityOutdatedPaths = outdatedTasksPath.filter(taskPath => taskPath.startsWith(entityPath));
+  
+  if (entityOutdatedPaths.length === 0) {
+    notificationStore.addNotification("No outdated contents found in this collection", "", "info");
+    return;
+  }
+  
+  try {
+    notificationStore.cancleFunction = SyncService.CancelSync;
+    notificationStore.canCancel = true;
+    
+    await CheckpointService.RevertTaskPaths(
+      projectStore.activeProject.uri, 
+      projectStore.getActiveProjectUrl, 
+      entityOutdatedPaths
+    );
+    
+    // Update the global outdated tasks list by removing the updated paths
+    assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(
+      taskPath => !entityOutdatedPaths.includes(taskPath)
+    );
+    
+    emitter.emit('refresh-browser');
+    
+    const message = entityOutdatedPaths.length === 1 
+      ? "1 item updated successfully" 
+      : `${entityOutdatedPaths.length} items updated successfully`;
+    notificationStore.addNotification(message, "", "success");
+    
+  } catch (error) {
+    notificationStore.errorNotification("Failed to update contents", error);
+    console.error(error);
+  } finally {
+    notificationStore.canCancel = false;
+  }
 };
 
 const viewCheckPoints = () => {
