@@ -7,6 +7,8 @@ import (
 
 type AuthService struct{}
 
+// Login authenticates a user with username and password.
+// Returns the authentication token or an error if login fails.
 func (a *AuthService) Login(username, password string) (auth_service.Token, error) {
 	token, err := auth_service.Login(username, password)
 	if err != nil {
@@ -15,6 +17,8 @@ func (a *AuthService) Login(username, password string) (auth_service.Token, erro
 	return token, nil
 }
 
+// Register creates a new user account.
+// Returns the created user or an error if registration fails.
 func (a *AuthService) Register(firstName, lastName, username, email, password, confirmPassword string) (auth_service.User, error) {
 	user, err := auth_service.Register(firstName, lastName, username, email, password, confirmPassword)
 	if err != nil {
@@ -23,6 +27,8 @@ func (a *AuthService) Register(firstName, lastName, username, email, password, c
 	return user, nil
 }
 
+// UpdateUser updates the current user's profile information.
+// Returns the updated user or an error if the update fails.
 func (a *AuthService) UpdateUser(firstName, lastName, username, email string) (auth_service.User, error) {
 	user, err := auth_service.UpdateUser(firstName, lastName, username, email)
 	if err != nil {
@@ -31,10 +37,14 @@ func (a *AuthService) UpdateUser(firstName, lastName, username, email string) (a
 	return user, nil
 }
 
+// UpdateUserPhoto updates the current user's profile photo.
+// Returns an error if the upload fails.
 func (a *AuthService) UpdateUserPhoto(photo []byte) error {
 	return auth_service.UpdateUserPhoto(photo)
 }
 
+// Logout ends the current user session.
+// Returns an error if logout fails.
 func (a *AuthService) Logout(username, password string) error {
 	err := auth_service.Logout()
 	if err != nil {
@@ -43,6 +53,8 @@ func (a *AuthService) Logout(username, password string) error {
 	return nil
 }
 
+// AuthUser retrieves the currently authenticated user.
+// Returns an error if no user is found or the token is invalid.
 func (a *AuthService) AuthUser() (auth_service.User, error) {
 	saveToken, err := auth_service.GetToken()
 	if err != nil {
@@ -55,6 +67,8 @@ func (a *AuthService) AuthUser() (auth_service.User, error) {
 	return user, nil
 }
 
+// IsAuthenticated checks if a user is currently authenticated.
+// Returns authentication status, user data, and any error encountered.
 func (a *AuthService) IsAuthenticated() (bool, auth_service.User, error) {
 	isAuthenticated, err := auth_service.IsAuthenticated()
 	if err != nil {
@@ -75,35 +89,43 @@ func (a *AuthService) IsAuthenticated() (bool, auth_service.User, error) {
 		if user.Username == "" {
 			return false, auth_service.User{}, nil
 		}
-		// data := map[string]interface{}{
-		// 	"message": true,
-		// 	"user":    user,
-		// }
 		return true, user, nil
 	}
 	return false, auth_service.User{}, nil
 }
 
+// CheckUsernameExists checks if a username is already registered.
+// Returns true if the username exists, false otherwise.
 func (a *AuthService) CheckUsernameExists(username string) (bool, error) {
 	return auth_service.CheckUsernameExists(username)
 }
 
+// CheckEmailExists checks if an email address is already registered.
+// Returns true if the email exists, false otherwise.
 func (a *AuthService) CheckEmailExists(email string) (bool, error) {
 	return auth_service.CheckEmailExists(email)
 }
 
+// DeactivateUserAccount deactivates the current user's account.
+// Returns an error if the deactivation fails.
 func (a *AuthService) DeactivateUserAccount() error {
 	return auth_service.DeactivateUserAccount()
 }
 
+// SendInvitationEmail sends a project invitation to an email address.
+// Returns an error if the email send fails.
 func (a *AuthService) SendInvitationEmail(email, studioName, projectName string) error {
 	return auth_service.SendInvitationEmail(email, studioName, projectName)
 }
 
+// VerifyOTP verifies a one-time password token.
+// Returns an error if verification fails.
 func (a *AuthService) VerifyOTP(email, token string) error {
 	return auth_service.VerifyOTP(email, token)
 }
 
+// ResendToken resends the verification token to an email address.
+// Returns an error if the send fails.
 func (a *AuthService) ResendToken(email string) error {
 	return auth_service.ResendToken(email)
 }

@@ -57,6 +57,8 @@ const (
 	DeployDeleteEndpoint = "/api/deploy"
 )
 
+//DeployStudio initiates a new studio deployment on Azure.
+//Returns the deployment response with ID and WebSocket URL, or an error if deployment fails.
 func (d *DeploymentService) DeployStudio(request DeploymentRequest) (*DeploymentResponse, error) {
 	token, err := auth_service.GetToken()
 	if err != nil {
@@ -101,6 +103,8 @@ func (d *DeploymentService) DeployStudio(request DeploymentRequest) (*Deployment
 	return &deploymentResponse, nil
 }
 
+//GetDeploymentStatus retrieves the current status of a deployment.
+//Returns the deployment status details or an error if the request fails.
 func (d *DeploymentService) GetDeploymentStatus(deploymentID string) (*DeploymentStatus, error) {
 	token, err := auth_service.GetToken()
 	if err != nil {
@@ -139,6 +143,8 @@ func (d *DeploymentService) GetDeploymentStatus(deploymentID string) (*Deploymen
 	return &status, nil
 }
 
+//DestroyDeployment tears down a studio deployment and releases Azure resources.
+//Returns an error if the destruction fails.
 func (d *DeploymentService) DestroyDeployment(deploymentID string) error {
 	token, err := auth_service.GetToken()
 	if err != nil {

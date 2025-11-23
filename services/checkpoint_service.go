@@ -21,6 +21,8 @@ import (
 
 type CheckpointService struct{}
 
+//DeleteCheckpoint removes a checkpoint from the project.
+//Returns an error if the deletion fails.
 func (c *CheckpointService) DeleteCheckpoint(projectPath, checkpointId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -47,8 +49,10 @@ func (c *CheckpointService) DeleteCheckpoint(projectPath, checkpointId string) e
 	return nil
 }
 
+//RevertToCheckpoint reverts a task to a specific checkpoint state.
+//Downloads missing chunks if needed and supports cancellation.
 func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, taskId, checkpointId string) error {
-	defer reset() // Ensure context is reset when we're done
+	defer reset()
 
 	ctx := getContext()
 	if ctx.Err() != nil {
@@ -202,6 +206,8 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, taskId, c
 	return nil
 }
 
+//AddCheckpoint creates new checkpoints for multiple tasks.
+//Returns the created checkpoints or an error if the operation fails.
 func (c *CheckpointService) AddCheckpoint(projectPath string, taskPaths []string, message, previewPath, groupId string, useAsThumbnail bool) ([]models.Checkpoint, error) {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
@@ -301,6 +307,8 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, taskPaths []string
 	return checkpoints, nil
 }
 
+//AddUntrackedTask tracks previously untracked files and creates checkpoints for them.
+//Returns the newly tracked tasks or an error if the operation fails.
 func (c *CheckpointService) AddUntrackedTask(projectPath, projectWorkingDir string, taskPaths []string, completed, totalTasks int, message, previewPath, groupId string) ([]models.Task, error) {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
@@ -429,6 +437,8 @@ func (c *CheckpointService) AddUntrackedTask(projectPath, projectWorkingDir stri
 	return tasks, nil
 }
 
+//ViewCheckpoint creates a temporary file from a checkpoint and opens it.
+//Returns an error if the operation fails.
 func (c *CheckpointService) ViewCheckpoint(projectPath, checkpointId, entityName, extension string) error {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
@@ -443,7 +453,6 @@ func (c *CheckpointService) ViewCheckpoint(projectPath, checkpointId, entityName
 	defer tx.Rollback()
 
 	f, err := os.CreateTemp("", "ClusttaTmpFile-")
-	// For older Go checkpoints, you can use ioutil.TempFile
 	if err != nil {
 		output.Error(err.Error())
 	}
@@ -473,6 +482,8 @@ func (c *CheckpointService) ViewCheckpoint(projectPath, checkpointId, entityName
 	return nil
 }
 
+//GetCheckpoints retrieves all checkpoints for a specific task.
+//Returns the list of checkpoints or an error if the operation fails.
 func (c *CheckpointService) GetCheckpoints(projectPath, taskId string) ([]models.Checkpoint, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -492,6 +503,8 @@ func (c *CheckpointService) GetCheckpoints(projectPath, taskId string) ([]models
 	return checkPoints, nil
 }
 
+//GetLatestCheckpoint retrieves the most recent checkpoint for a task.
+//Returns the latest checkpoint or an error if not found.
 func (c *CheckpointService) GetLatestCheckpoint(projectPath, taskId string) (models.Checkpoint, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -511,6 +524,8 @@ func (c *CheckpointService) GetLatestCheckpoint(projectPath, taskId string) (mod
 	return checkpoint, nil
 }
 
+//GetTimeline retrieves the project timeline showing checkpoint history.
+//Returns the timeline data or an error if the operation fails.
 func (c *CheckpointService) GetTimeline(projectPath string) ([]repository.CompatTimeline, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -530,8 +545,10 @@ func (c *CheckpointService) GetTimeline(projectPath string) ([]repository.Compat
 	return timeline, nil
 }
 
+//Revert reverts multiple tasks to their latest checkpoints.
+//Downloads missing chunks if needed and supports cancellation.
 func (c *CheckpointService) Revert(projectPath, remoteUrl string, taskIds []string) error {
-	defer reset() // Ensure context is reset when we're done
+	defer reset()
 
 	ctx := getContext()
 	if ctx.Err() != nil {
@@ -544,16 +561,14 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, taskIds []stri
 		return err
 	}
 
-	// Create buffered channels to prevent blocking
 	errChan := make(chan error, 1)
 	progressChan := make(chan output.ProgressReport, 10)
 
-	// Start progress update goroutine
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
-				return // Exit immediately on cancellation
+				return
 			case progress, ok := <-progressChan:
 				if !ok {
 					return
@@ -574,7 +589,6 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, taskIds []stri
 	}
 	defer tx.Rollback()
 
-	// Initial progress
 	select {
 	case <-ctx.Done():
 		return errors.New("operation cancelled")
@@ -703,8 +717,11 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, taskIds []stri
 	app.EmitEvent("progress-update", progress)
 	return nil
 }
+
+//RevertTaskPaths reverts tasks by their file paths to latest checkpoints.
+//Downloads missing chunks if needed and supports cancellation.
 func (c *CheckpointService) RevertTaskPaths(projectPath, remoteUrl string, taskPaths []string) error {
-	defer reset() // Ensure context is reset when we're done
+	defer reset()
 
 	ctx := getContext()
 	if ctx.Err() != nil {
@@ -717,16 +734,14 @@ func (c *CheckpointService) RevertTaskPaths(projectPath, remoteUrl string, taskP
 		return err
 	}
 
-	// Create buffered channels to prevent blocking
 	errChan := make(chan error, 1)
 	progressChan := make(chan output.ProgressReport, 10)
 
-	// Start progress update goroutine
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
-				return // Exit immediately on cancellation
+				return
 			case progress, ok := <-progressChan:
 				if !ok {
 					return
@@ -758,7 +773,6 @@ func (c *CheckpointService) RevertTaskPaths(projectPath, remoteUrl string, taskP
 		return err
 	}
 
-	// Initial progress
 	select {
 	case <-ctx.Done():
 		return errors.New("operation cancelled")

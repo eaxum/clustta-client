@@ -52,6 +52,8 @@ type ItemsForCheckpoint struct {
 type CollectionService struct {
 }
 
+//GetCollectionCount returns the total number of collections in the project.
+//Returns the count or an error if the operation fails.
 func (t *CollectionService) GetCollectionCount(projectPath string) (int, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -69,6 +71,9 @@ func (t *CollectionService) GetCollectionCount(projectPath string) (int, error) 
 
 	return count, nil
 }
+
+//CreateCollection creates a new collection in the project.
+//Returns the created entity or an error if the operation fails.
 func (e *CollectionService) CreateCollection(projectPath, name, description, entityTypeId, parentId, previewPath string, isLibrary bool) (models.Entity, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -112,6 +117,8 @@ func (e *CollectionService) CreateCollection(projectPath, name, description, ent
 	return createdEntity, nil
 }
 
+//RenameCollection renames an existing collection.
+//Returns the updated entity or an error if the operation fails.
 func (e *CollectionService) RenameCollection(projectPath, entityId, newName string) (models.Entity, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -137,8 +144,9 @@ func (e *CollectionService) RenameCollection(projectPath, entityId, newName stri
 	return updatedEntity, nil
 }
 
+//CreateCollections creates multiple collection entities in bulk.
+//Currently a stub implementation for future batch creation functionality.
 func (e *CollectionService) CreateCollections(projectPath, name, description, entityTypeId, parentId string) ([]models.Entity, error) {
-	//TODO implement CreateCollections
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return []models.Entity{}, err
@@ -153,8 +161,9 @@ func (e *CollectionService) CreateCollections(projectPath, name, description, en
 	return []models.Entity{}, nil
 }
 
+//DeleteCollection removes a collection from the project.
+//Optionally removes associated files if removeFiles is true.
 func (e *CollectionService) DeleteCollection(projectPath, entityId string, removeFiles bool) error {
-
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -175,6 +184,8 @@ func (e *CollectionService) DeleteCollection(projectPath, entityId string, remov
 	return nil
 }
 
+//GetCollections retrieves collections based on user permissions.
+//Returns all entities or only user-accessible entities based on role.
 func (e *CollectionService) GetCollections(projectPath string) ([]models.Entity, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -220,6 +231,8 @@ func (e *CollectionService) GetCollections(projectPath string) ([]models.Entity,
 	}
 }
 
+//GetCollectionChildren retrieves all children of a collection including tracked and untracked items.
+//Returns separate lists for tasks, entities, and untracked items.
 func (e *CollectionService) GetCollectionChildren(projectPath, entityId, projectWorkingDir, entityFolderPath string, ignoreList []string, isUntracked bool) (EntityItems, error) {
 	children := EntityItems{
 		Tasks:            make([]models.Task, 0),
@@ -338,6 +351,8 @@ func (e *CollectionService) GetCollectionChildren(projectPath, entityId, project
 	return children, nil
 }
 
+//GetCollectionTasks retrieves all tasks belonging to a specific collection.
+//Returns the list of tasks or an error if the operation fails.
 func (e *CollectionService) GetCollectionTasks(projectPath, entityId string) ([]models.Task, error) {
 	if entityId == "root" {
 		entityId = ""
@@ -355,6 +370,8 @@ func (e *CollectionService) GetCollectionTasks(projectPath, entityId string) ([]
 	return repository.GetEntityTasks(tx, entityId)
 }
 
+//GetCollectionByID retrieves a collection by its ID.
+//Returns the entity or an error if not found.
 func (e *CollectionService) GetCollectionByID(projectPath, entityId string) (models.Entity, error) {
 	if entityId == "root" {
 		entityId = ""
@@ -372,6 +389,8 @@ func (e *CollectionService) GetCollectionByID(projectPath, entityId string) (mod
 	return repository.GetEntity(tx, entityId)
 }
 
+//GetCollectionByPath retrieves a collection by its filesystem path.
+//Returns the entity or an error if not found.
 func (e *CollectionService) GetCollectionByPath(projectPath, entityPath string) (models.Entity, error) {
 	if entityPath == "/" {
 		entityPath = ""
@@ -389,17 +408,8 @@ func (e *CollectionService) GetCollectionByPath(projectPath, entityPath string) 
 	return repository.GetEntityByPath(tx, entityPath)
 }
 
-/*
-GetCollectionStateFlags checks if a collection has any recursive children with specific states.
-
-Performs optimized scanning with early termination:
-1. Batch queries tasks with pagination for rebuildable/modified/outdated detection
-2. Uses heuristic comparison (file size, mod time) before expensive hash operations
-3. Performs selective hash verification only when needed
-4. Scans filesystem for untracked files with early exit on first match
-
-Returns flags indicating presence of untracked, modified, outdated, or rebuildable items.
-*/
+//GetCollectionStateFlags checks if a collection has any recursive children with specific states.
+//Returns flags indicating presence of untracked, modified, outdated, or rebuildable items.
 func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, projectWorkingDir string, ignoreList []string) (CollectionStateFlags, error) {
 	flags := CollectionStateFlags{
 		HasUntracked:   false,
@@ -697,19 +707,8 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 	return flags, nil
 }
 
-/*
-GetCollectionChildrenState analyzes the immediate children of a collection to determine their state.
-
-This function performs several optimized phases:
-1. Query immediate children tasks from database
-2. Check file existence and categorize tasks
-3. Fetch checkpoints only for relevant tasks (rebuildable or existing files)
-4. Use heuristic comparison (size/modtime) to minimize hash operations
-5. Perform selective hash verification only when heuristics differ
-6. Detect untracked files and folders in the filesystem
-
-Returns state containing modified, outdated, rebuildable tasks and untracked items.
-*/
+//GetCollectionChildrenState analyzes the immediate children of a collection to determine their state.
+//Returns state containing modified, outdated, rebuildable tasks and untracked items.
 func (e *CollectionService) GetCollectionChildrenState(projectPath, entityId, projectWorkingDir string, ignoreList []string) (CollectionChildrenState, error) {
 	state := CollectionChildrenState{
 		ModifiedTasks:    make([]models.Task, 0),
@@ -908,13 +907,8 @@ func (e *CollectionService) GetCollectionChildrenState(projectPath, entityId, pr
 	return e.detectUntrackedItems(tx, state, entityId, projectWorkingDir, rootFolder, ignoreList)
 }
 
-/*
-detectUntrackedItems scans the filesystem for untracked files and folders.
-
-Builds maps of tracked task and entity names from the database, then compares
-against filesystem entries to identify untracked items. Skips hidden files/folders
-and respects ignore patterns.
-*/
+//detectUntrackedItems scans the filesystem for untracked files and folders.
+//Builds maps of tracked names and compares against filesystem entries.
 func (e *CollectionService) detectUntrackedItems(tx *sqlx.Tx, state CollectionChildrenState, entityId, projectWorkingDir, rootFolder string, ignoreList []string) (CollectionChildrenState, error) {
 	trackedTaskNames := make(map[string]bool)
 	trackedEntityNames := make(map[string]bool)
@@ -1034,16 +1028,8 @@ func (e *CollectionService) detectUntrackedItems(tx *sqlx.Tx, state CollectionCh
 	return state, nil
 }
 
-/*
-GetItemsForCheckpoint efficiently collects all modified and untracked items in a collection hierarchy.
-
-Supports three modes:
-- Tracked collection: Use entityId to recursively scan tracked collections and their untracked subdirectories
-- Untracked path: Use targetPath to scan a filesystem location
-- Root: Scan everything from project root
-
-Returns deduplicated modified tasks and untracked files.
-*/
+//GetItemsForCheckpoint efficiently collects all modified and untracked items in a collection hierarchy.
+//Returns deduplicated modified tasks and untracked files.
 func (e *CollectionService) GetItemsForCheckpoint(projectPath, entityId, targetPath, projectWorkingDir string, ignoreList []string) (ItemsForCheckpoint, error) {
 	result := ItemsForCheckpoint{
 		ModifiedTasks:  make([]models.Task, 0),
@@ -1100,19 +1086,8 @@ func (e *CollectionService) GetItemsForCheckpoint(projectPath, entityId, targetP
 	return result, nil
 }
 
-/*
-processTrackedCollection recursively scans tracked collections for modified tasks and untracked files.
-
-Performs optimized recursive traversal:
-1. Get immediate children state (modified tasks, untracked files, untracked folders)
-2. Add items to deduplication maps
-3. Query child collections from database
-4. Check flags for each child collection to skip clean branches
-5. Recurse into child collections with issues
-6. Process untracked folders found within tracked collections
-
-Uses flag-based optimization to avoid scanning clean collection branches.
-*/
+//processTrackedCollection recursively scans tracked collections for modified tasks and untracked files.
+//Uses flag-based optimization to avoid scanning clean collection branches.
 func (e *CollectionService) processTrackedCollection(tx *sqlx.Tx, entityId, projectPath, projectWorkingDir string, ignoreList []string, modifiedTasksMap map[string]models.Task, untrackedFilesMap map[string]models.UntrackedTask) error {
 	var processCollection func(string) error
 	processCollection = func(currentEntityId string) error {
@@ -1168,19 +1143,8 @@ func (e *CollectionService) processTrackedCollection(tx *sqlx.Tx, entityId, proj
 	return processCollection(entityId)
 }
 
-/*
-processUntrackedPath recursively scans an untracked filesystem location for files.
-
-Performs pure filesystem scanning without database queries:
-1. Validates target path exists
-2. Compiles ignore patterns
-3. Recursively scans directories
-4. Skips hidden files/folders and ignored patterns
-5. Adds all files to untracked files map
-
-Since untracked paths cannot contain tracked children by definition, no database
-queries are needed.
-*/
+//processUntrackedPath recursively scans an untracked filesystem location for files.
+//Performs pure filesystem scanning without database queries.
 func (e *CollectionService) processUntrackedPath(targetPath, projectWorkingDir string, ignoreList []string, untrackedFilesMap map[string]models.UntrackedTask) error {
 	absolutePath, err := filepath.Abs(targetPath)
 	if err != nil {
@@ -1250,8 +1214,10 @@ func (e *CollectionService) processUntrackedPath(targetPath, projectWorkingDir s
 	return scanDirectory(absolutePath)
 }
 
+//Rebuild downloads missing checkpoints and rebuilds files for specified collections.
+//Supports cancellation and sends progress updates via application events.
 func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId string) error {
-	defer reset() // Ensure context is reset when we're done
+	defer reset()
 
 	ctx := getContext()
 	if ctx.Err() != nil {
@@ -1264,16 +1230,14 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 		return err
 	}
 
-	// Create buffered channels to prevent blocking
 	errChan := make(chan error, 1)
 	progressChan := make(chan output.ProgressReport, 10)
 
-	// Start progress update goroutine
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
-				return // Exit immediately on cancellation
+				return
 			case progress, ok := <-progressChan:
 				if !ok {
 					return
@@ -1294,7 +1258,6 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 	}
 	defer tx.Rollback()
 
-	// Initial progress
 	select {
 	case <-ctx.Done():
 		return errors.New("operation cancelled")
@@ -1307,13 +1270,11 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 	}:
 	}
 
-	// Parse entityIds - could be single ID, comma-separated IDs, or empty string for all
 	var entityIdList []string
 	if entityIds == "" {
 		entityIdList = []string{""}
 	} else {
 		entityIdList = strings.Split(entityIds, ",")
-		// Trim whitespace from each ID
 		for i, id := range entityIdList {
 			entityIdList[i] = strings.TrimSpace(id)
 		}
@@ -1328,10 +1289,8 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 	entities := []models.Entity{}
 	allTasks := []models.Task{}
 
-	// Process each entity ID
 	for _, entityId := range entityIdList {
 		if entityId == "" {
-			// Get all entities and tasks for root rebuild
 			rootEntities, err := repository.GetEntities(tx, false)
 			if err != nil {
 				return err
@@ -1344,7 +1303,6 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 			}
 			allTasks = append(allTasks, rootTasks...)
 		} else {
-			// Get specific entity and its children
 			parentEntity, err := repository.GetEntity(tx, entityId)
 			if err != nil {
 				return err
@@ -1361,7 +1319,6 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 			}
 			entities = append(entities, entityChildren...)
 
-			// Get tasks for this entity
 			entityTasksQuery := `
 			SELECT full_task.*
 			FROM full_task
@@ -1382,7 +1339,6 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 		return err
 	}
 
-	// Create entity directories
 	for _, entity := range entities {
 		entityPath, err := utils.BuildEntityPath(rootFolder, entity.EntityPath)
 		if err != nil {
@@ -1394,13 +1350,11 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 		}
 	}
 
-	// Get all task IDs for batch checkpoint retrieval
 	taskIds := []string{}
 	for _, task := range allTasks {
 		taskIds = append(taskIds, task.Id)
 	}
 
-	// Batch fetch checkpoints for all tasks
 	if len(taskIds) > 0 {
 		quotedTaskIds := make([]string, len(taskIds))
 		for i, id := range taskIds {
@@ -1468,13 +1422,13 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 				Total:        1,
 				ExtraMessage: extraMessage,
 			}:
-			default: // Skip progress update if channel is full
+			default:
 			}
 		}
 
 		go func() {
 			err := sync_service.DownloadCheckpoints(ctx, projectPath, remoteUrl, checkpointIdsToDownload, user.Id, callBack)
-			if ctx.Err() == nil { // Only send error if not cancelled
+			if ctx.Err() == nil {
 				errChan <- err
 			}
 		}()
@@ -1537,6 +1491,8 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 	return nil
 }
 
+//RevealCollection opens the file explorer to show a collection's folder.
+//Returns an error if the entity is not found or the operation fails.
 func (e *CollectionService) RevealCollection(projectPath, entityId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -1557,6 +1513,8 @@ func (e *CollectionService) RevealCollection(projectPath, entityId string) error
 	return nil
 }
 
+//RevertCollections reverts multiple collections to their latest checkpoints.
+//Sends progress updates for each entity processed.
 func (e *CollectionService) RevertCollections(projectPath string, entityIds []string) error {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
@@ -1601,6 +1559,8 @@ func (e *CollectionService) RevertCollections(projectPath string, entityIds []st
 	return nil
 }
 
+//ChangeCollectionParent moves a collection to a different parent collection.
+//Returns an error if the operation fails.
 func (e *CollectionService) ChangeCollectionParent(projectPath, entityId, parentId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -1624,6 +1584,8 @@ func (e *CollectionService) ChangeCollectionParent(projectPath, entityId, parent
 	return nil
 }
 
+//ChangeType changes the type of a collection.
+//Returns an error if the operation fails.
 func (e *CollectionService) ChangeType(projectPath, entityId, entityTypeId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -1647,6 +1609,8 @@ func (e *CollectionService) ChangeType(projectPath, entityId, entityTypeId strin
 	return nil
 }
 
+//ChangeIsLibrary toggles the library flag on a collection.
+//Returns an error if the operation fails.
 func (e *CollectionService) ChangeIsLibrary(projectPath, entityId string, isLibrary bool) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -1670,6 +1634,8 @@ func (e *CollectionService) ChangeIsLibrary(projectPath, entityId string, isLibr
 	return nil
 }
 
+//Assign assigns a user to a collection.
+//Returns an error if the operation fails.
 func (e *CollectionService) Assign(projectPath, entityId, userId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -1693,6 +1659,9 @@ func (e *CollectionService) Assign(projectPath, entityId, userId string) error {
 	}
 	return nil
 }
+
+//Unassign removes a user assignment from a collection.
+//Returns an error if the operation fails.
 func (e *CollectionService) Unassign(projectPath, entityId, userId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -1717,7 +1686,8 @@ func (e *CollectionService) Unassign(projectPath, entityId, userId string) error
 	return nil
 }
 
-// collection types
+//CreateCollectionType creates a new collection type in the project.
+//Returns an error if a type with the same name already exists.
 func (e *CollectionService) CreateCollectionType(projectPath, entityTypeName, entityTypeIcon string) (models.EntityType, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -1742,6 +1712,9 @@ func (e *CollectionService) CreateCollectionType(projectPath, entityTypeName, en
 	tx.Commit()
 	return entityType, nil
 }
+
+//UpdateCollectionType updates an existing collection type.
+//Returns an error if a type with the new name already exists.
 func (e *CollectionService) UpdateCollectionType(projectPath, id, entityTypeName, entityTypeIcon string) (models.EntityType, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -1770,6 +1743,8 @@ func (e *CollectionService) UpdateCollectionType(projectPath, id, entityTypeName
 	return entityType, nil
 }
 
+//DeleteCollectionType removes a collection type from the project.
+//Returns an error if the operation fails.
 func (e *CollectionService) DeleteCollectionType(projectPath, id string) error {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
@@ -1794,6 +1769,8 @@ func (e *CollectionService) DeleteCollectionType(projectPath, id string) error {
 	return nil
 }
 
+//GetCollectionTypes retrieves all collection types in the project.
+//Returns the list of entity types or an error if the operation fails.
 func (e *CollectionService) GetCollectionTypes(projectPath string) ([]models.EntityType, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -1813,6 +1790,8 @@ func (e *CollectionService) GetCollectionTypes(projectPath string) ([]models.Ent
 	return entityTypes, nil
 }
 
+//UpdatePreview updates the preview image for a collection.
+//Returns an error if the project is not found or the operation fails.
 func (p *CollectionService) UpdatePreview(projectPath, entityId, previewPath string) error {
 	if !utils.FileExists(projectPath) {
 		return error_service.ErrProjectNotFound

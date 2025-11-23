@@ -11,6 +11,8 @@ import (
 
 type DialogService struct{}
 
+//SelectIconDialog opens a file dialog to select an icon image.
+//Returns the base64-encoded resized icon or an error.
 func (f *DialogService) SelectIconDialog() (string, error) {
 	dialog := application.OpenFileDialog().
 		CanChooseFiles(true).
@@ -41,6 +43,8 @@ func (f *DialogService) SelectIconDialog() (string, error) {
 	return base64.StdEncoding.EncodeToString(resizedImageBytes), nil
 }
 
+//SelectFileDialog opens a file dialog with custom title and filters.
+//Returns the selected file path or an empty string if cancelled.
 func (f *DialogService) SelectFileDialog(title, filters string) (string, error) {
 	dialog := application.OpenFileDialog().
 		CanChooseFiles(true).
@@ -57,6 +61,8 @@ func (f *DialogService) SelectFileDialog(title, filters string) (string, error) 
 	return result, nil
 }
 
+//SelectFilesDialog opens a file dialog to select multiple files.
+//Returns the selected file paths or an empty list if cancelled.
 func (f *DialogService) SelectFilesDialog() ([]string, error) {
 	result, _ := application.OpenFileDialog().
 		CanChooseFiles(true).
@@ -67,6 +73,8 @@ func (f *DialogService) SelectFilesDialog() ([]string, error) {
 	return result, nil
 }
 
+//SelectItemsDialog opens a dialog to select multiple files or directories.
+//Returns the selected paths or an empty list if cancelled.
 func (f *DialogService) SelectItemsDialog() ([]string, error) {
 	dialog := application.OpenFileDialog().
 		CanChooseDirectories(true).
@@ -84,6 +92,8 @@ func (f *DialogService) SelectItemsDialog() ([]string, error) {
 	return results, nil
 }
 
+//SelectFolderDialog opens a folder selection dialog with a custom title.
+//Returns the selected folder path or an empty string if cancelled.
 func (f *DialogService) SelectFolderDialog(title string) (string, error) {
 	dialog := application.OpenFileDialog().
 		CanChooseDirectories(true).
@@ -100,6 +110,8 @@ func (f *DialogService) SelectFolderDialog(title string) (string, error) {
 	return result, nil
 }
 
+//SelectSpecificFolderDialog opens a folder dialog with a default starting path.
+//Returns the selected folder path or an error.
 func (f *DialogService) SelectSpecificFolderDialog(title string, defaultPath string) (string, error) {
 	dialog := application.OpenFileDialog().
 		CanChooseDirectories(true).
