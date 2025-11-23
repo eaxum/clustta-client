@@ -295,6 +295,7 @@ const goUpALevel = async () => {
 
   if(!parentEntityId){
     commonStore.navigatorMode = false;
+	  collectionStore.navigatedCollection = null;
     return
   }
 
