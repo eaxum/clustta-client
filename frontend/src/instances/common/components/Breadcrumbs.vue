@@ -53,12 +53,16 @@ import { useCommonStore } from '@/stores/common';
 import { useCollectionStore } from '@/stores/collections';
 import { useProjectStore } from '@/stores/projects';
 import { useNotificationStore } from '@/stores/notifications';
+import { useStageStore } from '@/stores/stages';
+import { useAssetStore } from '@/stores/assets';
 
+const stage = useStageStore();
 const iconStore = useIconStore();
 const commonStore = useCommonStore();
 const collectionStore = useCollectionStore();
 const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
+const assetStore = useAssetStore();
 
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
 
@@ -283,9 +287,23 @@ const getAppIcon = (iconName) => {
   return icon
 };
 
+const clearAllSelections = () => {
+  stage.markedItems = [];
+  stage.selectedItems = [];
+  stage.markedItems = [];
+  stage.firstSelectedItemId = '';
+  stage.lastSelectedItemId = '';
+  stage.selectedItem = null;
+  assetStore.selectedAsset = null;
+  collectionStore.selectedCollection = null;
+  stage.cutItems = [];
+  projectStore.selectedUntrackedItem = null;
+};
+
 const goHome = () => {
 	commonStore.navigatorMode = false;
 	collectionStore.navigatedCollection = null;
+  clearAllSelections();
 };
 
 const goUpALevel = async () => {
@@ -296,6 +314,7 @@ const goUpALevel = async () => {
   if(!parentEntityId){
     commonStore.navigatorMode = false;
 	  collectionStore.navigatedCollection = null;
+    clearAllSelections();
     return
   }
 
@@ -303,13 +322,31 @@ const goUpALevel = async () => {
 
   if (entityType === 'untracked_entity') {
     parentEntity = getUntrackedEntityParent();
+    
+    if (parentEntity && parentEntity.entity_path) {
+      try {
+        const trackedParent = await CollectionService.GetCollectionByPath(projectStore.activeProject.uri, parentEntity.entity_path);
+        if (trackedParent) {
+          parentEntity = trackedParent;
+        }
+      } catch (error) {
+        console.log('Parent entity not found in DB, using untracked entity');
+      }
+    }
   } else {
     parentEntity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, parentEntityId);
   }
 
 	if(parentEntity){
+    console.log(parentEntity)
 		collectionStore.navigatedCollection = parentEntity;
-		collectionStore.selectedCollection = parentEntity;
+
+    stage.lastSelectedItemId = "";
+    stage.firstSelectedItemId = parentEntity.id;
+    stage.markedItems = [parentEntity.id];
+    stage.selectedItems = [parentEntity];
+    stage.selectItem(parentEntity, parentEntity.type, true);
+    
 	} else {
 		commonStore.navigatorMode = false;
 	}
