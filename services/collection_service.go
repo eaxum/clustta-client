@@ -36,6 +36,19 @@ type CollectionStateFlags struct {
 	HasRebuildable bool `json:"has_rebuildable"`
 }
 
+type CollectionChildrenState struct {
+	ModifiedTasks    []models.Task            `json:"modified_tasks"`
+	OutdatedTasks    []models.Task            `json:"outdated_tasks"`
+	RebuildableTasks []models.Task            `json:"rebuildable_tasks"`
+	UntrackedFiles   []models.UntrackedTask   `json:"untracked_files"`
+	UntrackedFolders []models.UntrackedEntity `json:"untracked_folders"`
+}
+
+type ItemsForCheckpoint struct {
+	ModifiedTasks  []models.Task          `json:"modified_tasks"`
+	UntrackedFiles []models.UntrackedTask `json:"untracked_files"`
+}
+
 type CollectionService struct {
 }
 
@@ -258,29 +271,27 @@ func (e *CollectionService) GetCollectionChildren(projectPath, entityId, project
 	}
 
 	if !utils.DirExists(entityFolderPath) {
-		return children, nil // No untracked items if the entity folder does not exist
+		return children, nil
 	}
 
-	// Get the absolute path of the entity folder
 	absoluteEntityFolderPath, err := filepath.Abs(entityFolderPath)
 	if err != nil {
 		return children, err
 	}
-	// Get the relative path of the entity folder
+
 	relativeEntityFolderPath, err := filepath.Rel(projectWorkingDir, absoluteEntityFolderPath)
 	if err != nil {
 		return children, err
 	}
 	relativeEntityFolderPath = utils.NormalizePath(relativeEntityFolderPath)
-	// Compile the ignore patterns
+
 	clusttaIgnore := ignore.CompileIgnoreLines(ignoreList...)
-	// Read the directory entries
+
 	entries, err := os.ReadDir(absoluteEntityFolderPath)
 	if err != nil {
 		return children, err
 	}
 
-	// Iterate over the entries in the entity folder
 	for _, entry := range entries {
 		entryPath := filepath.Join(absoluteEntityFolderPath, entry.Name())
 		relativePath := utils.NormalizePath(filepath.Join(relativeEntityFolderPath, entry.Name()))
@@ -289,7 +300,6 @@ func (e *CollectionService) GetCollectionChildren(projectPath, entityId, project
 			parentId = ""
 		}
 		if entry.IsDir() {
-			//check if it is tracked
 			if slices.Contains(entityTrackFolders, entry.Name()) {
 				continue
 			}
@@ -304,12 +314,10 @@ func (e *CollectionService) GetCollectionChildren(projectPath, entityId, project
 				})
 			}
 		} else {
-			//check if it is tracked
 			if slices.Contains(entityTrackFiles, entry.Name()) {
 				continue
 			}
 
-			// If the entry is a file, check if it is tracked
 			if !clusttaIgnore.MatchesPath(relativePath) {
 				taskName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
 				children.UntrackedFiles = append(children.UntrackedFiles, models.UntrackedTask{
@@ -381,7 +389,17 @@ func (e *CollectionService) GetCollectionByPath(projectPath, entityPath string) 
 	return repository.GetEntityByPath(tx, entityPath)
 }
 
-// GetCollectionStateFlags checks if a collection has any recursive children that are
+/*
+GetCollectionStateFlags checks if a collection has any recursive children with specific states.
+
+Performs optimized scanning with early termination:
+1. Batch queries tasks with pagination for rebuildable/modified/outdated detection
+2. Uses heuristic comparison (file size, mod time) before expensive hash operations
+3. Performs selective hash verification only when needed
+4. Scans filesystem for untracked files with early exit on first match
+
+Returns flags indicating presence of untracked, modified, outdated, or rebuildable items.
+*/
 func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, projectWorkingDir string, ignoreList []string) (CollectionStateFlags, error) {
 	flags := CollectionStateFlags{
 		HasUntracked:   false,
@@ -390,7 +408,6 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 		HasRebuildable: false,
 	}
 
-	// Handle root entity
 	if entityId == "root" {
 		entityId = ""
 	}
@@ -407,7 +424,6 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 	}
 	defer tx.Rollback()
 
-	// Get the entity path for the collection
 	var entityPath string
 	if entityId == "" {
 		entityPath = ""
@@ -419,42 +435,35 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 		entityPath = entity.EntityPath
 	}
 
-	// Get root folder for file path construction
 	rootFolder, err := utils.GetProjectWorkingDir(tx)
 	if err != nil {
 		return flags, err
 	}
 
-	// Phase 1: Check for rebuildable, modified, and outdated states
-	// Query tasks in batches with LIMIT for early termination
 	const batchSize = 100
 	offset := 0
 
-	// Prepare checkpoint data structure for efficient lookup
 	type taskCheckpointInfo struct {
 		taskId             string
 		latestChecksum     string
 		latestTimeModified int64
 		latestFileSize     int64
 		checkpointCount    int
-		allChecksums       []string // For outdated detection
+		allChecksums       []string
 	}
 
-	// Track candidates that need hash verification
 	type modifiedCandidate struct {
 		taskId       string
 		taskFilePath string
-		checkpoints  []string // All checkpoint checksums for this task
+		checkpoints  []string
 	}
 	var candidatesNeedingHashCheck []modifiedCandidate
 
 	for {
-		// Early exit if all DB-based flags are already true
 		if flags.HasRebuildable && flags.HasModified && flags.HasOutdated {
 			break
 		}
 
-		// Query tasks for this entity path
 		var tasks []models.Task
 		query := `
 			SELECT id, task_path, extension, entity_path, name
@@ -468,18 +477,15 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 			return flags, err
 		}
 
-		// No more tasks, exit loop
 		if len(tasks) == 0 {
 			break
 		}
 
-		// Get task IDs for checkpoint batch fetch
 		taskIds := make([]string, len(tasks))
 		for i, task := range tasks {
 			taskIds[i] = task.Id
 		}
 
-		// Batch fetch ALL checkpoint info for these tasks (not just latest)
 		checkpointMap := make(map[string]taskCheckpointInfo)
 		if len(taskIds) > 0 {
 			quotedTaskIds := make([]string, len(taskIds))
@@ -502,7 +508,6 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 			}
 			tx.Select(&checkpoints, checkpointQuery)
 
-			// Build map with ALL checksums per task
 			for _, cp := range checkpoints {
 				if info, exists := checkpointMap[cp.TaskId]; exists {
 					info.checkpointCount++
@@ -521,18 +526,14 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 			}
 		}
 
-		// Check each task's state
 		for _, task := range tasks {
-			// Build file path
 			taskFilePath, err := utils.BuildTaskPath(rootFolder, task.EntityPath, task.Name, task.Extension)
 			if err != nil {
-				continue // Skip on error
+				continue
 			}
 
-			// Check if file exists
 			fileInfo, err := os.Stat(taskFilePath)
 			if os.IsNotExist(err) {
-				// File doesn't exist - it's rebuildable
 				if !flags.HasRebuildable {
 					flags.HasRebuildable = true
 				}
@@ -540,31 +541,25 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 			}
 
 			if err != nil {
-				continue // Skip on error
+				continue
 			}
 
-			// File exists - check if it's modified or outdated
 			if !flags.HasModified || !flags.HasOutdated {
 				checkpointInfo, hasCheckpoint := checkpointMap[task.Id]
 
 				if hasCheckpoint {
-					// Quick check: compare file size
 					fileSize := fileInfo.Size()
 
-					// If size differs from latest checkpoint, it's a candidate
 					if fileSize != checkpointInfo.latestFileSize {
-						// Add to candidates for hash verification
 						candidatesNeedingHashCheck = append(candidatesNeedingHashCheck, modifiedCandidate{
 							taskId:       task.Id,
 							taskFilePath: taskFilePath,
 							checkpoints:  checkpointInfo.allChecksums,
 						})
 					} else {
-						// Size matches - check mod time as heuristic
 						fileModTime := fileInfo.ModTime().Unix()
 
 						if fileModTime != checkpointInfo.latestTimeModified {
-							// Mod time differs - also needs hash check
 							candidatesNeedingHashCheck = append(candidatesNeedingHashCheck, modifiedCandidate{
 								taskId:       task.Id,
 								taskFilePath: taskFilePath,
@@ -575,7 +570,6 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 				}
 			}
 
-			// Early exit if all DB flags are set
 			if flags.HasRebuildable && flags.HasModified && flags.HasOutdated {
 				break
 			}
@@ -584,26 +578,21 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 		offset += batchSize
 	}
 
-	// Phase 1.5: Hash verification for candidates (only if needed)
 	if (!flags.HasModified || !flags.HasOutdated) && len(candidatesNeedingHashCheck) > 0 {
 		for _, candidate := range candidatesNeedingHashCheck {
-			// Early exit if both flags are now set
 			if flags.HasModified && flags.HasOutdated {
 				break
 			}
 
-			// Compute file hash
 			fileHash, err := utils.GenerateXXHashChecksum(candidate.taskFilePath)
 			if err != nil {
-				continue // Skip on error
+				continue
 			}
 
-			// Check if hash matches any checkpoint
 			matchesLatest := (fileHash == candidate.checkpoints[0])
 			matchesOlderCheckpoint := false
 
 			if !matchesLatest && len(candidate.checkpoints) > 1 {
-				// Check against older checkpoints
 				for i := 1; i < len(candidate.checkpoints); i++ {
 					if fileHash == candidate.checkpoints[i] {
 						matchesOlderCheckpoint = true
@@ -613,23 +602,18 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 			}
 
 			if matchesOlderCheckpoint {
-				// File matches an older checkpoint = outdated
 				if !flags.HasOutdated {
 					flags.HasOutdated = true
 				}
 			} else if !matchesLatest {
-				// File doesn't match any checkpoint = modified
 				if !flags.HasModified {
 					flags.HasModified = true
 				}
 			}
-			// If matchesLatest, file is up-to-date, do nothing
 		}
 	}
 
-	// Phase 2: Check for untracked files (only if not already found)
 	if !flags.HasUntracked && utils.DirExists(projectWorkingDir) {
-		// Build tracked files map for quick lookup
 		trackedFiles := make(map[string]bool)
 
 		var allTasks []models.Task
@@ -650,7 +634,6 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 			}
 		}
 
-		// Determine the folder to scan
 		var folderToScan string
 		if entityId == "" {
 			folderToScan = projectWorkingDir
@@ -668,13 +651,11 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 		if utils.DirExists(folderToScan) {
 			clusttaIgnore := ignore.CompileIgnoreLines(ignoreList...)
 
-			// BFS scan with early termination
 			err = filepath.WalkDir(folderToScan, func(path string, d fs.DirEntry, err error) error {
 				if err != nil {
 					return err
 				}
 
-				// Skip hidden directories
 				if d.IsDir() {
 					if strings.HasPrefix(filepath.Base(path), ".") {
 						return filepath.SkipDir
@@ -682,19 +663,16 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 					return nil
 				}
 
-				// Skip hidden files
 				if strings.HasPrefix(filepath.Base(path), ".") {
 					return nil
 				}
 
-				// Check if file is tracked
 				absPath, err := filepath.Abs(path)
 				if err != nil {
 					return nil
 				}
 
 				if !trackedFiles[absPath] {
-					// Check against ignore patterns
 					relativePath, err := filepath.Rel(projectWorkingDir, path)
 					if err != nil {
 						return nil
@@ -702,9 +680,8 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 					relativePath = utils.NormalizePath(relativePath)
 
 					if !clusttaIgnore.MatchesPath(relativePath) {
-						// Found an untracked file
 						flags.HasUntracked = true
-						return filepath.SkipAll // Stop the walk immediately
+						return filepath.SkipAll
 					}
 				}
 
@@ -718,6 +695,559 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 	}
 
 	return flags, nil
+}
+
+/*
+GetCollectionChildrenState analyzes the immediate children of a collection to determine their state.
+
+This function performs several optimized phases:
+1. Query immediate children tasks from database
+2. Check file existence and categorize tasks
+3. Fetch checkpoints only for relevant tasks (rebuildable or existing files)
+4. Use heuristic comparison (size/modtime) to minimize hash operations
+5. Perform selective hash verification only when heuristics differ
+6. Detect untracked files and folders in the filesystem
+
+Returns state containing modified, outdated, rebuildable tasks and untracked items.
+*/
+func (e *CollectionService) GetCollectionChildrenState(projectPath, entityId, projectWorkingDir string, ignoreList []string) (CollectionChildrenState, error) {
+	state := CollectionChildrenState{
+		ModifiedTasks:    make([]models.Task, 0),
+		OutdatedTasks:    make([]models.Task, 0),
+		RebuildableTasks: make([]models.Task, 0),
+		UntrackedFiles:   make([]models.UntrackedTask, 0),
+		UntrackedFolders: make([]models.UntrackedEntity, 0),
+	}
+
+	if entityId == "root" {
+		entityId = ""
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return state, err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return state, err
+	}
+	defer tx.Rollback()
+
+	rootFolder, err := utils.GetProjectWorkingDir(tx)
+	if err != nil {
+		return state, err
+	}
+
+	var tasks []models.Task
+	query := `
+		SELECT id, task_path, extension, entity_path, name, entity_id
+		FROM full_task 
+		WHERE entity_id = ? AND trashed = 0
+		ORDER BY name
+	`
+	err = tx.Select(&tasks, query, entityId)
+	if err != nil {
+		return state, err
+	}
+
+	if len(tasks) == 0 {
+		return e.detectUntrackedItems(tx, state, entityId, projectWorkingDir, rootFolder, ignoreList)
+	}
+
+	type fileMetadata struct {
+		size    int64
+		modTime int64
+	}
+
+	tasksMissingFiles := make([]string, 0)
+	tasksWithFiles := make([]string, 0)
+	taskFileMetadata := make(map[string]fileMetadata)
+	taskMap := make(map[string]models.Task)
+
+	for _, task := range tasks {
+		taskMap[task.Id] = task
+
+		taskFilePath, err := utils.BuildTaskPath(rootFolder, task.EntityPath, task.Name, task.Extension)
+		if err != nil {
+			continue
+		}
+
+		fileInfo, err := os.Stat(taskFilePath)
+		if os.IsNotExist(err) {
+			tasksMissingFiles = append(tasksMissingFiles, task.Id)
+		} else if err == nil {
+			tasksWithFiles = append(tasksWithFiles, task.Id)
+			taskFileMetadata[task.Id] = fileMetadata{
+				size:    fileInfo.Size(),
+				modTime: fileInfo.ModTime().Unix(),
+			}
+			task.FilePath = taskFilePath
+			taskMap[task.Id] = task
+		}
+	}
+
+	if len(tasksMissingFiles) > 0 {
+		quotedIds := make([]string, len(tasksMissingFiles))
+		for i, id := range tasksMissingFiles {
+			quotedIds[i] = fmt.Sprintf("'%s'", id)
+		}
+
+		rebuildableQuery := fmt.Sprintf(`
+			SELECT DISTINCT task_id
+			FROM task_checkpoint 
+			WHERE task_id IN (%s) AND trashed = 0
+		`, strings.Join(quotedIds, ","))
+
+		var rebuildableTaskIds []struct {
+			TaskId string `db:"task_id"`
+		}
+		err = tx.Select(&rebuildableTaskIds, rebuildableQuery)
+		if err != nil {
+			return state, err
+		}
+
+		for _, row := range rebuildableTaskIds {
+			if task, exists := taskMap[row.TaskId]; exists {
+				state.RebuildableTasks = append(state.RebuildableTasks, task)
+			}
+		}
+	}
+
+	type checkpointInfo struct {
+		TaskId         string `db:"task_id"`
+		XXHashChecksum string `db:"xxhash_checksum"`
+		TimeModified   int64  `db:"time_modified"`
+		FileSize       int64  `db:"file_size"`
+	}
+
+	taskCheckpoints := make(map[string][]checkpointInfo)
+
+	if len(tasksWithFiles) > 0 {
+		quotedIds := make([]string, len(tasksWithFiles))
+		for i, id := range tasksWithFiles {
+			quotedIds[i] = fmt.Sprintf("'%s'", id)
+		}
+
+		checkpointQuery := fmt.Sprintf(`
+			SELECT task_id, xxhash_checksum, time_modified, file_size
+			FROM task_checkpoint 
+			WHERE task_id IN (%s) AND trashed = 0
+			ORDER BY task_id, created_at DESC
+		`, strings.Join(quotedIds, ","))
+
+		var checkpoints []checkpointInfo
+		err = tx.Select(&checkpoints, checkpointQuery)
+		if err != nil {
+			return state, err
+		}
+
+		for _, cp := range checkpoints {
+			taskCheckpoints[cp.TaskId] = append(taskCheckpoints[cp.TaskId], cp)
+		}
+	}
+
+	type hashCandidate struct {
+		taskId       string
+		taskFilePath string
+		checkpoints  []checkpointInfo
+	}
+	candidatesNeedingHash := make([]hashCandidate, 0)
+
+	for taskId, metadata := range taskFileMetadata {
+		checkpoints, hasCheckpoints := taskCheckpoints[taskId]
+		if !hasCheckpoints || len(checkpoints) == 0 {
+			continue
+		}
+
+		latestCheckpoint := checkpoints[0]
+
+		if metadata.size == latestCheckpoint.FileSize &&
+			metadata.modTime == latestCheckpoint.TimeModified {
+			continue
+		}
+
+		task := taskMap[taskId]
+		candidatesNeedingHash = append(candidatesNeedingHash, hashCandidate{
+			taskId:       taskId,
+			taskFilePath: task.FilePath,
+			checkpoints:  checkpoints,
+		})
+	}
+
+	for _, candidate := range candidatesNeedingHash {
+		fileHash, err := utils.GenerateXXHashChecksum(candidate.taskFilePath)
+		if err != nil {
+			continue
+		}
+
+		matchesLatest := (fileHash == candidate.checkpoints[0].XXHashChecksum)
+
+		if matchesLatest {
+			continue
+		}
+
+		matchesOlderCheckpoint := false
+		for i := 1; i < len(candidate.checkpoints); i++ {
+			if fileHash == candidate.checkpoints[i].XXHashChecksum {
+				matchesOlderCheckpoint = true
+				break
+			}
+		}
+
+		task := taskMap[candidate.taskId]
+
+		if matchesOlderCheckpoint {
+			state.OutdatedTasks = append(state.OutdatedTasks, task)
+		} else {
+			state.ModifiedTasks = append(state.ModifiedTasks, task)
+		}
+	}
+
+	return e.detectUntrackedItems(tx, state, entityId, projectWorkingDir, rootFolder, ignoreList)
+}
+
+/*
+detectUntrackedItems scans the filesystem for untracked files and folders.
+
+Builds maps of tracked task and entity names from the database, then compares
+against filesystem entries to identify untracked items. Skips hidden files/folders
+and respects ignore patterns.
+*/
+func (e *CollectionService) detectUntrackedItems(tx *sqlx.Tx, state CollectionChildrenState, entityId, projectWorkingDir, rootFolder string, ignoreList []string) (CollectionChildrenState, error) {
+	trackedTaskNames := make(map[string]bool)
+	trackedEntityNames := make(map[string]bool)
+
+	var trackedTasks []models.Task
+	taskQuery := `
+		SELECT name, extension
+		FROM full_task 
+		WHERE entity_id = ? AND trashed = 0
+	`
+	err := tx.Select(&trackedTasks, taskQuery, entityId)
+	if err != nil {
+		return state, err
+	}
+
+	for _, task := range trackedTasks {
+		trackedTaskNames[task.Name+task.Extension] = true
+	}
+
+	var trackedEntities []models.Entity
+	entityQuery := `
+		SELECT name
+		FROM full_entity 
+		WHERE parent_id = ? AND trashed = 0
+	`
+	err = tx.Select(&trackedEntities, entityQuery, entityId)
+	if err != nil {
+		return state, err
+	}
+
+	for _, entity := range trackedEntities {
+		trackedEntityNames[entity.Name] = true
+	}
+
+	var folderToScan string
+
+	if entityId == "" {
+		folderToScan = projectWorkingDir
+	} else {
+		entity, err := repository.GetEntity(tx, entityId)
+		if err != nil {
+			return state, err
+		}
+		folderToScan, err = utils.BuildEntityPath(rootFolder, entity.EntityPath)
+		if err != nil {
+			return state, err
+		}
+	}
+
+	if !utils.DirExists(folderToScan) {
+		return state, nil
+	}
+
+	absoluteEntityFolderPath, err := filepath.Abs(folderToScan)
+	if err != nil {
+		return state, err
+	}
+
+	relativeEntityFolderPath, err := filepath.Rel(projectWorkingDir, absoluteEntityFolderPath)
+	if err != nil {
+		return state, err
+	}
+	relativeEntityFolderPath = utils.NormalizePath(relativeEntityFolderPath)
+
+	clusttaIgnore := ignore.CompileIgnoreLines(ignoreList...)
+
+	entries, err := os.ReadDir(absoluteEntityFolderPath)
+	if err != nil {
+		return state, err
+	}
+
+	for _, entry := range entries {
+		if strings.HasPrefix(entry.Name(), ".") {
+			continue
+		}
+
+		entryPath := filepath.Join(absoluteEntityFolderPath, entry.Name())
+		relativePath := utils.NormalizePath(filepath.Join(relativeEntityFolderPath, entry.Name()))
+
+		if entry.IsDir() {
+			if trackedEntityNames[entry.Name()] {
+				continue
+			}
+
+			if !clusttaIgnore.MatchesPath(relativePath) {
+				state.UntrackedFolders = append(state.UntrackedFolders, models.UntrackedEntity{
+					Id:         utils.GetMD5Hash(entryPath),
+					Name:       entry.Name(),
+					FilePath:   entryPath,
+					EntityPath: "/" + relativePath + "/",
+					ItemPath:   "/" + relativePath + "/",
+					ParentId:   entityId,
+				})
+			}
+		} else {
+			if trackedTaskNames[entry.Name()] {
+				continue
+			}
+
+			if !clusttaIgnore.MatchesPath(relativePath) {
+				taskName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
+				state.UntrackedFiles = append(state.UntrackedFiles, models.UntrackedTask{
+					Id:           utils.GetMD5Hash(entryPath),
+					Name:         taskName,
+					FilePath:     entryPath,
+					TaskPath:     "/" + relativePath,
+					EntityId:     entityId,
+					EntityPath:   "/" + relativeEntityFolderPath + "/",
+					Extension:    filepath.Ext(entry.Name()),
+					ItemPath:     "/" + relativePath + "/",
+					TaskTypeIcon: "generic",
+				})
+			}
+		}
+	}
+
+	return state, nil
+}
+
+/*
+GetItemsForCheckpoint efficiently collects all modified and untracked items in a collection hierarchy.
+
+Supports three modes:
+- Tracked collection: Use entityId to recursively scan tracked collections and their untracked subdirectories
+- Untracked path: Use targetPath to scan a filesystem location
+- Root: Scan everything from project root
+
+Returns deduplicated modified tasks and untracked files.
+*/
+func (e *CollectionService) GetItemsForCheckpoint(projectPath, entityId, targetPath, projectWorkingDir string, ignoreList []string) (ItemsForCheckpoint, error) {
+	result := ItemsForCheckpoint{
+		ModifiedTasks:  make([]models.Task, 0),
+		UntrackedFiles: make([]models.UntrackedTask, 0),
+	}
+
+	if entityId == "root" {
+		entityId = ""
+	}
+
+	isTrackedCollection := entityId != ""
+	isUntrackedPath := targetPath != "" && !isTrackedCollection
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return result, err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return result, err
+	}
+	defer tx.Rollback()
+
+	modifiedTasksMap := make(map[string]models.Task)
+	untrackedFilesMap := make(map[string]models.UntrackedTask)
+
+	if isTrackedCollection {
+		err = e.processTrackedCollection(tx, entityId, projectPath, projectWorkingDir, ignoreList, modifiedTasksMap, untrackedFilesMap)
+		if err != nil {
+			return result, err
+		}
+	} else if isUntrackedPath {
+		err = e.processUntrackedPath(targetPath, projectWorkingDir, ignoreList, untrackedFilesMap)
+		if err != nil {
+			return result, err
+		}
+	} else {
+		err = e.processTrackedCollection(tx, "", projectPath, projectWorkingDir, ignoreList, modifiedTasksMap, untrackedFilesMap)
+		if err != nil {
+			return result, err
+		}
+	}
+
+	for _, task := range modifiedTasksMap {
+		result.ModifiedTasks = append(result.ModifiedTasks, task)
+	}
+
+	for _, file := range untrackedFilesMap {
+		result.UntrackedFiles = append(result.UntrackedFiles, file)
+	}
+
+	return result, nil
+}
+
+/*
+processTrackedCollection recursively scans tracked collections for modified tasks and untracked files.
+
+Performs optimized recursive traversal:
+1. Get immediate children state (modified tasks, untracked files, untracked folders)
+2. Add items to deduplication maps
+3. Query child collections from database
+4. Check flags for each child collection to skip clean branches
+5. Recurse into child collections with issues
+6. Process untracked folders found within tracked collections
+
+Uses flag-based optimization to avoid scanning clean collection branches.
+*/
+func (e *CollectionService) processTrackedCollection(tx *sqlx.Tx, entityId, projectPath, projectWorkingDir string, ignoreList []string, modifiedTasksMap map[string]models.Task, untrackedFilesMap map[string]models.UntrackedTask) error {
+	var processCollection func(string) error
+	processCollection = func(currentEntityId string) error {
+		childrenState, err := e.GetCollectionChildrenState(projectPath, currentEntityId, projectWorkingDir, ignoreList)
+		if err != nil {
+			return err
+		}
+
+		for _, task := range childrenState.ModifiedTasks {
+			modifiedTasksMap[task.Id] = task
+		}
+
+		for _, file := range childrenState.UntrackedFiles {
+			untrackedFilesMap[file.Id] = file
+		}
+
+		var childCollections []models.Entity
+		childQuery := `
+			SELECT id, name, entity_path
+			FROM full_entity 
+			WHERE parent_id = ? AND trashed = 0
+			ORDER BY name
+		`
+		err = tx.Select(&childCollections, childQuery, currentEntityId)
+		if err != nil {
+			return err
+		}
+
+		for _, childCollection := range childCollections {
+			flags, err := e.GetCollectionStateFlags(projectPath, childCollection.Id, projectWorkingDir, ignoreList)
+			if err != nil {
+				continue
+			}
+
+			if flags.HasModified || flags.HasUntracked {
+				err = processCollection(childCollection.Id)
+				if err != nil {
+					continue
+				}
+			}
+		}
+
+		for _, untrackedFolder := range childrenState.UntrackedFolders {
+			err = e.processUntrackedPath(untrackedFolder.FilePath, projectWorkingDir, ignoreList, untrackedFilesMap)
+			if err != nil {
+				continue
+			}
+		}
+
+		return nil
+	}
+
+	return processCollection(entityId)
+}
+
+/*
+processUntrackedPath recursively scans an untracked filesystem location for files.
+
+Performs pure filesystem scanning without database queries:
+1. Validates target path exists
+2. Compiles ignore patterns
+3. Recursively scans directories
+4. Skips hidden files/folders and ignored patterns
+5. Adds all files to untracked files map
+
+Since untracked paths cannot contain tracked children by definition, no database
+queries are needed.
+*/
+func (e *CollectionService) processUntrackedPath(targetPath, projectWorkingDir string, ignoreList []string, untrackedFilesMap map[string]models.UntrackedTask) error {
+	absolutePath, err := filepath.Abs(targetPath)
+	if err != nil {
+		return err
+	}
+
+	if !utils.DirExists(absolutePath) {
+		return fmt.Errorf("target path does not exist: %s", targetPath)
+	}
+
+	clusttaIgnore := ignore.CompileIgnoreLines(ignoreList...)
+
+	var scanDirectory func(string) error
+	scanDirectory = func(currentPath string) error {
+		relativePath, err := filepath.Rel(projectWorkingDir, currentPath)
+		if err != nil {
+			return err
+		}
+		relativePath = utils.NormalizePath(relativePath)
+
+		entries, err := os.ReadDir(currentPath)
+		if err != nil {
+			return err
+		}
+
+		for _, entry := range entries {
+			if strings.HasPrefix(entry.Name(), ".") {
+				continue
+			}
+
+			entryPath := filepath.Join(currentPath, entry.Name())
+			relPath, err := filepath.Rel(projectWorkingDir, entryPath)
+			if err != nil {
+				continue
+			}
+			relPath = utils.NormalizePath(relPath)
+
+			if clusttaIgnore.MatchesPath(relPath) {
+				continue
+			}
+
+			if entry.IsDir() {
+				err = scanDirectory(entryPath)
+				if err != nil {
+					continue
+				}
+			} else {
+				taskName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
+				untrackedFile := models.UntrackedTask{
+					Id:           utils.GetMD5Hash(entryPath),
+					Name:         taskName,
+					FilePath:     entryPath,
+					TaskPath:     "/" + relPath,
+					EntityId:     "",
+					EntityPath:   "/" + relativePath + "/",
+					Extension:    filepath.Ext(entry.Name()),
+					ItemPath:     "/" + relPath,
+					TaskTypeIcon: "generic",
+				}
+				untrackedFilesMap[untrackedFile.Id] = untrackedFile
+			}
+		}
+
+		return nil
+	}
+
+	return scanDirectory(absolutePath)
 }
 
 func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId string) error {

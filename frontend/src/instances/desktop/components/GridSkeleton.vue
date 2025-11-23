@@ -110,7 +110,7 @@ onMounted(async () => {
   padding: .5rem;
   box-sizing: border-box;
   border-radius: var(--large-radius);
-  background-color: var(--dark-steel);
+  /* background-color: var(--dark-steel); */
   outline: var(--transparent-line);
   outline-offset: -1.5px;
 }
@@ -121,11 +121,12 @@ onMounted(async () => {
   overflow: hidden;
   height: 100%;
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.2);
+  /* background-color: rgba(0, 0, 0, 0.2); */
   border-radius: 8px;
   align-items: center;
   justify-content: center;
   margin-bottom: 1rem;
+  outline: var(--transparent-line);
 }
 
 .grid-skeleton-main-icon {

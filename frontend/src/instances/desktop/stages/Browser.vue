@@ -1585,7 +1585,6 @@ const refresh = async () => {
 	rootData.value = [...children.entities, ...children.untracked_entities, ...children.tasks, ...children.untracked_tasks];
 	assetStore.assetsLoaded = true;
 
-	// assetStore.reloadAssetStates();
 	loadCollectionStateFlags(); 
 
 };
@@ -1668,7 +1667,6 @@ const softRefresh = async () => {
 
 	// Update state
 	assetStore.assetsLoaded = true;
-	// assetStore.reloadAssetStates();
 	loadCollectionStateFlags(); 
 };
 

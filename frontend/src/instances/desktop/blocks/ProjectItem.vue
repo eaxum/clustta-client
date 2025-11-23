@@ -1,6 +1,6 @@
 <template>
   <div class="project-item-root" v-right-click="openMenu" v-stop-propagation
-    :class="{ 'project-item-container-selected': projectStore.activeProject.id === project.id, 'project-item-root-cards': cardView }"
+    :class="{ 'project-item-container-selected': projectStore.activeProject?.id === project.id, 'project-item-root-cards': cardView }"
     @click="selectProject(project, $event)" @dblclick="goToProject(project)">
     
     <!-- Show TabbedFolder for untracked projects in card view -->
@@ -157,7 +157,7 @@ const isEditing = ref(false);
 const editableProjectName = ref(props.project.name);
 
 const isProjectInFocus = computed(() => {
-  return projectStore.activeProject.id === props.project.id
+  return projectStore.activeProject?.id === props.project.id
 });
 
 Events.On('edit-item', async () => {

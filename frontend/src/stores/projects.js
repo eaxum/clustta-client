@@ -69,11 +69,7 @@ export const useProjectStore = defineStore("projects", {
   }),
   getters: {
     getActiveProjectName: (state) => {
-      //get base name of the project
-      if (state.projects.length) {
-        if (!state.activeProject) {
-          state.activeProject = state.projects[0];
-        }
+      if (state.projects.length && state.activeProject) {
         let project = state.activeProject;
         return project.name;
       }
@@ -96,20 +92,20 @@ export const useProjectStore = defineStore("projects", {
       return [];
     },
     getActiveProject: (state) => {
-      if (!state.activeProject) {
-        state.activeProject = state.projects[0];
-        if (state.activeProject) {
-          const commonStore = useCommonStore();
+      // if (!state.activeProject) {
+      //   state.activeProject = state.projects[0];
+      //   if (state.activeProject) {
+      //     const commonStore = useCommonStore();
 
-          SettingsService.GetProjectWorkspaces(state.activeProject.id).then(
-            (response) => {
-              commonStore.workspaces = response;
-            }
-          );
-        }
+      //     SettingsService.GetProjectWorkspaces(state.activeProject.id).then(
+      //       (response) => {
+      //         commonStore.workspaces = response;
+      //       }
+      //     );
+      //   }
 
-        return state.activeProject;
-      }
+      //   return state.activeProject;
+      // }
       return state.activeProject;
     },
     getActiveProjectUrl: (state) => {
@@ -325,98 +321,6 @@ export const useProjectStore = defineStore("projects", {
       await this.loadProjects();
       SettingsService.SetLastStudio(studio.name)
     },
-    // async reloadUntrackedItems() {
-    //   const stage = useStageStore();
-    //   // if (stage.activeStage !== "browser") {
-    //   //   return;
-    //   // }
-    //   const userStore = useUserStore();
-    //   const collectionStore = useCollectionStore();
-    //   const assetStore = useAssetStore();
-    //   let project = this.activeProject;
-    //   if (project) {
-    //     let untrackedItems = await ProjectService.GetUntrackedItems(
-    //       project.working_directory,
-    //       project.uri,
-    //       project.ignore_list
-    //     );
-
-    //     console.log(untrackedItems);
-
-    //     let untrackedFiles = [];
-    //     let untrackedFolders = [];
-    //     let projectWorkingDir = project.working_directory;
-    //     let tasks = untrackedItems.tasks;
-    //     let entities = untrackedItems.entities;
-    //     for (let task of tasks) {
-    //       const itemPath = task.task_path
-    //         .replace(/^\/+|\/+$/g, "")
-    //         .replace(/\\/g, "/");
-    //       let entityPath = "";
-    //       const itemPathEntities = itemPath.split("/");
-
-    //       if (itemPathEntities.length > 1) {
-    //         // Take all elements except the last one
-    //         const pathWithoutLast = itemPathEntities.slice(0, -1);
-    //         entityPath = pathWithoutLast.join("/");
-    //       }
-    //       let untrackedFile = {
-    //         ...task,
-    //         task_type_icon: "generic",
-    //         item_path: itemPath,
-    //         entity_path: entityPath,
-    //         item_type: "file",
-    //         type: "untracked_task",
-    //       };
-    //       untrackedFiles.push(untrackedFile);
-    //     }
-    //     for (let entity of entities) {
-    //       if (entity.file_path == "") {
-    //         continue;
-    //       }
-    //       const itemPath = entity.entity_path
-    //         .replace(/^\/+|\/+$/g, "")
-    //         .replace(/\\/g, "/");
-    //       // Handle entity path calculation
-    //       let entityPath = "";
-    //       const itemPathEntities = itemPath.split("/");
-
-    //       if (itemPathEntities.length > 1) {
-    //         // Take all elements except the last one
-    //         const pathWithoutLast = itemPathEntities.slice(0, -1);
-    //         entityPath = pathWithoutLast.join("/");
-    //       }
-    //       let untrackedFolder = {
-    //         ...entity,
-    //         entity_type_icon: "folder",
-    //         item_path: itemPath,
-    //         entity_path: entityPath,
-    //         item_type: "folder",
-    //         type: "untracked_entity",
-    //       };
-    //       untrackedFolders.push(untrackedFolder);
-    //     }
-
-    //     // Sort function for both files and folders
-    //     const sortByPathAndName = (a, b) => {
-    //       // First compare by entity_path
-    //       if (a.entity_path !== b.entity_path) {
-    //         return a.entity_path.localeCompare(b.entity_path);
-    //       }
-    //       // Then compare by name
-    //       return a.name.localeCompare(b.name);
-    //     };
-
-    //     // Sort both arrays
-    //     untrackedFiles.sort(sortByPathAndName);
-    //     untrackedFolders.sort(sortByPathAndName);
-
-    //     this.untrackedFiles = untrackedFiles;
-    //     this.untrackedFolders = untrackedFolders;
-    //     await this.rebuildUntrackedTaskIndex();
-    //     await this.rebuildUntrackedEntityIndex();
-    //   }
-    // },
     async refreshUntrackedItems() {
       let untrackedFiles = [];
       let untrackedFolders = [];

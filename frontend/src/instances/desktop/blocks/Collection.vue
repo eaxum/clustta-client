@@ -38,35 +38,30 @@
         </div>
         
         <div v-if="!isEditing" class="entity-item-grid-status">
-          <div v-if="!isEditing && itemsUntracked && !(entity.id in stage.expandedEntities)">
+          <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="'Loading state'" />
+          <template v-else-if="!isUntracked">
+            <ActionButton v-if="collectionStateFlags.has_modified" 
+              @click="prepAllCheckpointModal(props.entity.entity_path)" 
+              :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="'Untracked/Modified Items. Click to add checkpoints'" />
+            <ActionButton v-else-if="collectionStateFlags.has_untracked" 
+              @click="prepAllCheckpointModal(props.entity.entity_path)" 
+              :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="'Untracked Items. Click to add checkpoints'" />
+            <!-- <ActionButton v-if="collectionStateFlags.has_outdated" 
+              @click="updateEntityAssets" 
+              :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Outdated Items. Click to update'" /> -->
+            <ActionButton v-if="collectionStateFlags.has_rebuildable" 
+              @click="rebuildEntity" 
+              :icon="getAppIcon('dot-big')" v-tooltip="'Items missing. Click to rebuild'" />
+          </template>
+          <template v-else-if="entity.type === 'untracked_entity' && props.hasChildren">
             <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" 
               v-if="userStore.canDo('create_entity') || canImport || isAssigned"
-              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" 
-              v-tooltip="'Add checkpoints.'" />
-          </div>
-          <div v-else-if="!isEditing && itemsModified && !(entity.id in stage.expandedEntities)">
-            <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" 
-              :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true"
-              v-tooltip="'Add checkpoints.'" />
-          </div>
-          <div v-else-if="!isEditing && itemsOutdated && !(entity.id in stage.expandedEntities)">
-            <ActionButton @click="updateEntityAssets" :icon="getAppIcon('circle-check')" :useAlert="true" 
-              :noFilter="true" v-tooltip="'update to latest'" />
-          </div>
-          <div v-else-if="!isEditing && itemsRebuildable && !(entity.id in stage.expandedEntities)">
-            <ActionButton @click="rebuildEntity" :icon="getAppIcon('jigsaw')"
-              v-tooltip="'Rebuild'" />
-          </div>
-          <div v-else-if="!isEditing && entity.type === 'untracked_entity' && props.hasChildren">
-            <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" 
-              v-if="userStore.canDo('create_entity') || canImport || isAssigned"
-              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" 
-              v-tooltip="'Add checkpoints.'" />
-          </div>
-          <div v-else-if="!isEditing && entity.type === 'untracked_entity' && !props.hasChildren">
+              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Add checkpoints'" />
+          </template>
+          <template v-else-if="entity.type === 'untracked_entity' && !props.hasChildren">
             <ActionButton @click="" :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
               v-tooltip="'Untracked Collection'" />
-          </div>
+          </template>
         </div>
       </div>
     </div>
@@ -164,18 +159,18 @@
         <div v-if="!isEditing && !isUntracked" class="entity-item-actions">
           <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="'Loading state'" />
           <template v-else>
-            <ActionButton v-if="collectionStateFlags.has_untracked && !(entity.id in stage.expandedEntities)" 
+            <ActionButton v-if="collectionStateFlags.has_modified && !(entity.id in stage.expandedEntities)" 
               @click="prepAllCheckpointModal(props.entity.entity_path)" 
-              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Add checkpoints'" />
-            <ActionButton v-else-if="collectionStateFlags.has_modified && !(entity.id in stage.expandedEntities)" 
+              :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="'Untracked/Modified Items. Click to add checkpoints'" />
+            <ActionButton v-else-if="collectionStateFlags.has_untracked && !(entity.id in stage.expandedEntities)" 
               @click="prepAllCheckpointModal(props.entity.entity_path)" 
-              :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="'Add checkpoints'" />
+              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Untracked Items. Click to add checkpoints'" />
             <ActionButton v-if="collectionStateFlags.has_outdated && !(entity.id in stage.expandedEntities)" 
               @click="updateEntityAssets" 
-              :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Update to latest'" />
+              :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Outdated Items. Click to update'" />
             <ActionButton v-if="collectionStateFlags.has_rebuildable && !(entity.id in stage.expandedEntities)" 
               @click="rebuildEntity" 
-              :icon="getAppIcon('jigsaw')" v-tooltip="'Rebuild'" />
+              :icon="getAppIcon('jigsaw')" v-tooltip="'Items missing. Click to rebuild'" />
           </template>
         </div>
 
@@ -374,22 +369,6 @@ const isEntityInFocus = computed(() => {
 
 const operationsActive = computed(() => {
   return stage.operationActive || !!modals.activeModal || !!menu.activeMenu || isEditing.value || stage.activeStage !== 'browser'
-});
-
-const itemsModified = computed(() => {
-  return assetStore.modifiedAssetsPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
-});
-
-const itemsUntracked = computed(() => {
-  return assetStore.untrackedAssetsPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
-});
-
-const itemsOutdated = computed(() => {
-  return assetStore.outdatedAssetsPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
-});
-
-const itemsRebuildable = computed(() => {
-  return assetStore.rebuildableAssetsPath.some(taskPath => taskPath.startsWith(props.entity.entity_path));
 });
 
 // New optimized collection state flags from GetCollectionStateFlags

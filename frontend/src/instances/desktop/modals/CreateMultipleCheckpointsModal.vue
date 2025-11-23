@@ -67,9 +67,8 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import InputAlert from '@/instances/common/components/InputAlert.vue';
 
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useCommonStore } from '@/stores/common';
 import { useTrayStates } from '@/stores/TrayStates';
-import { CheckpointService, AssetService } from "@/../bindings/clustta/services";
+import { CheckpointService } from "@/../bindings/clustta/services";
 import { onMounted, ref, computed, onBeforeUnmount } from 'vue';
 import { useNotificationStore } from '@/stores/notifications';
 import { useAssetStore } from '@/stores/assets';
@@ -91,7 +90,6 @@ const stage = useStageStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 const collectionStore = useCollectionStore();
-const commonStore = useCommonStore();
 
 const showCheckpointItems = ref(false);
 
@@ -262,19 +260,28 @@ const createCheckPoints = async () => {
 
 onMounted(
   async () => {
+
     if(trayStates.createMultipleCheckpoints){
+      let collectionId = null;
       let targetPath = null;
       
-      // selectedCollection takes priority over navigatedCollection
-      if (stage.selectedItem?.file_path) {
-        targetPath = stage.selectedItem.file_path;
-      } else if (collectionStore.navigatedCollection?.file_path) {
-        targetPath = collectionStore.navigatedCollection.file_path;
+      let selectedItem = stage.selectedItem;
+      let selectedCollection;
+      if (selectedItem?.type?.includes('entity')){
+        selectedCollection = selectedItem;
+      } else {
+        selectedCollection = collectionStore.navigatedCollection;
       }
-      console.log(stage.selectedItem)
       
-      await assetStore.reloadModifiedAssets(targetPath);
-      // await assetStore.reloadAssetStates(targetPath);
+      if (selectedCollection) {
+        if (selectedCollection.type === 'entity') {
+          collectionId = selectedCollection.id;
+        } else if (selectedCollection.type === 'untracked_entity') {
+          targetPath = selectedCollection.file_path;
+        }
+      }
+      
+      await collectionStore.reloadItemsForCheckpoint(collectionId, targetPath);
     }
     trayStates.screenshot = null
     trayStates.previewFile = ""

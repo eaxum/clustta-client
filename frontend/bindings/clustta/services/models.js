@@ -112,6 +112,82 @@ export class AssetsStates {
     }
 }
 
+export class CollectionChildrenState {
+    /**
+     * Creates a new CollectionChildrenState instance.
+     * @param {Partial<CollectionChildrenState>} [$$source = {}] - The source object to create the CollectionChildrenState.
+     */
+    constructor($$source = {}) {
+        if (!("modified_tasks" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.Task[]}
+             */
+            this["modified_tasks"] = [];
+        }
+        if (!("outdated_tasks" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.Task[]}
+             */
+            this["outdated_tasks"] = [];
+        }
+        if (!("rebuildable_tasks" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.Task[]}
+             */
+            this["rebuildable_tasks"] = [];
+        }
+        if (!("untracked_files" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.UntrackedTask[]}
+             */
+            this["untracked_files"] = [];
+        }
+        if (!("untracked_folders" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.UntrackedEntity[]}
+             */
+            this["untracked_folders"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CollectionChildrenState instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CollectionChildrenState}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType2;
+        const $$createField1_0 = $$createType2;
+        const $$createField2_0 = $$createType2;
+        const $$createField3_0 = $$createType3;
+        const $$createField4_0 = $$createType4;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("modified_tasks" in $$parsedSource) {
+            $$parsedSource["modified_tasks"] = $$createField0_0($$parsedSource["modified_tasks"]);
+        }
+        if ("outdated_tasks" in $$parsedSource) {
+            $$parsedSource["outdated_tasks"] = $$createField1_0($$parsedSource["outdated_tasks"]);
+        }
+        if ("rebuildable_tasks" in $$parsedSource) {
+            $$parsedSource["rebuildable_tasks"] = $$createField2_0($$parsedSource["rebuildable_tasks"]);
+        }
+        if ("untracked_files" in $$parsedSource) {
+            $$parsedSource["untracked_files"] = $$createField3_0($$parsedSource["untracked_files"]);
+        }
+        if ("untracked_folders" in $$parsedSource) {
+            $$parsedSource["untracked_folders"] = $$createField4_0($$parsedSource["untracked_folders"]);
+        }
+        return new CollectionChildrenState(/** @type {Partial<CollectionChildrenState>} */($$parsedSource));
+    }
+}
+
 export class CollectionStateFlags {
     /**
      * Creates a new CollectionStateFlags instance.
@@ -500,9 +576,9 @@ export class EntityItems {
      */
     static createFrom($$source = {}) {
         const $$createField0_0 = $$createType2;
-        const $$createField1_0 = $$createType3;
-        const $$createField2_0 = $$createType4;
-        const $$createField3_0 = $$createType5;
+        const $$createField1_0 = $$createType5;
+        const $$createField2_0 = $$createType3;
+        const $$createField3_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("tasks" in $$parsedSource) {
             $$parsedSource["tasks"] = $$createField0_0($$parsedSource["tasks"]);
@@ -642,7 +718,7 @@ export class ImportItems {
      */
     static createFrom($$source = {}) {
         const $$createField0_0 = $$createType2;
-        const $$createField1_0 = $$createType3;
+        const $$createField1_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("tasks" in $$parsedSource) {
             $$parsedSource["tasks"] = $$createField0_0($$parsedSource["tasks"]);
@@ -654,46 +730,46 @@ export class ImportItems {
     }
 }
 
-export class ModifiedAssets {
+export class ItemsForCheckpoint {
     /**
-     * Creates a new ModifiedAssets instance.
-     * @param {Partial<ModifiedAssets>} [$$source = {}] - The source object to create the ModifiedAssets.
+     * Creates a new ItemsForCheckpoint instance.
+     * @param {Partial<ItemsForCheckpoint>} [$$source = {}] - The source object to create the ItemsForCheckpoint.
      */
     constructor($$source = {}) {
-        if (!("modified" in $$source)) {
+        if (!("modified_tasks" in $$source)) {
             /**
              * @member
-             * @type {AssetStateItem[]}
+             * @type {models$0.Task[]}
              */
-            this["modified"] = [];
+            this["modified_tasks"] = [];
         }
-        if (!("untracked" in $$source)) {
+        if (!("untracked_files" in $$source)) {
             /**
              * @member
-             * @type {string[]}
+             * @type {models$0.UntrackedTask[]}
              */
-            this["untracked"] = [];
+            this["untracked_files"] = [];
         }
 
         Object.assign(this, $$source);
     }
 
     /**
-     * Creates a new ModifiedAssets instance from a string or object.
+     * Creates a new ItemsForCheckpoint instance from a string or object.
      * @param {any} [$$source = {}]
-     * @returns {ModifiedAssets}
+     * @returns {ItemsForCheckpoint}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType1;
-        const $$createField1_0 = $$createType6;
+        const $$createField0_0 = $$createType2;
+        const $$createField1_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("modified" in $$parsedSource) {
-            $$parsedSource["modified"] = $$createField0_0($$parsedSource["modified"]);
+        if ("modified_tasks" in $$parsedSource) {
+            $$parsedSource["modified_tasks"] = $$createField0_0($$parsedSource["modified_tasks"]);
         }
-        if ("untracked" in $$parsedSource) {
-            $$parsedSource["untracked"] = $$createField1_0($$parsedSource["untracked"]);
+        if ("untracked_files" in $$parsedSource) {
+            $$parsedSource["untracked_files"] = $$createField1_0($$parsedSource["untracked_files"]);
         }
-        return new ModifiedAssets(/** @type {Partial<ModifiedAssets>} */($$parsedSource));
+        return new ItemsForCheckpoint(/** @type {Partial<ItemsForCheckpoint>} */($$parsedSource));
     }
 }
 
@@ -1171,8 +1247,8 @@ export class UntrackedItems {
      * @returns {UntrackedItems}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType4;
-        const $$createField1_0 = $$createType5;
+        const $$createField0_0 = $$createType3;
+        const $$createField1_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("tasks" in $$parsedSource) {
             $$parsedSource["tasks"] = $$createField0_0($$parsedSource["tasks"]);
@@ -1405,11 +1481,11 @@ export class UserProfile {
      * @returns {UserProfile}
      */
     static createFrom($$source = {}) {
-        const $$createField8_0 = $$createType8;
-        const $$createField9_0 = $$createType8;
-        const $$createField25_0 = $$createType10;
-        const $$createField26_0 = $$createType12;
-        const $$createField27_0 = $$createType14;
+        const $$createField8_0 = $$createType7;
+        const $$createField9_0 = $$createType7;
+        const $$createField25_0 = $$createType9;
+        const $$createField26_0 = $$createType11;
+        const $$createField27_0 = $$createType13;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("country_id" in $$parsedSource) {
             $$parsedSource["country_id"] = $$createField8_0($$parsedSource["country_id"]);
@@ -1602,12 +1678,11 @@ const $$createType2 = $Create.Array($Create.Any);
 const $$createType3 = $Create.Array($Create.Any);
 const $$createType4 = $Create.Array($Create.Any);
 const $$createType5 = $Create.Array($Create.Any);
-const $$createType6 = $Create.Array($Create.Any);
-const $$createType7 = NullString.createFrom;
-const $$createType8 = $Create.Nullable($$createType7);
-const $$createType9 = UserTool.createFrom;
-const $$createType10 = $Create.Array($$createType9);
-const $$createType11 = UserSkill.createFrom;
-const $$createType12 = $Create.Array($$createType11);
-const $$createType13 = UserStudio.createFrom;
-const $$createType14 = $Create.Array($$createType13);
+const $$createType6 = NullString.createFrom;
+const $$createType7 = $Create.Nullable($$createType6);
+const $$createType8 = UserTool.createFrom;
+const $$createType9 = $Create.Array($$createType8);
+const $$createType10 = UserSkill.createFrom;
+const $$createType11 = $Create.Array($$createType10);
+const $$createType12 = UserStudio.createFrom;
+const $$createType13 = $Create.Array($$createType12);

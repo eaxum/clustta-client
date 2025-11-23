@@ -321,21 +321,6 @@ export function GetAssetsStates(projectPath, projectWorkingDir, ignoreList) {
 
 /**
  * @param {string} projectPath
- * @param {string} targetPath
- * @param {string[]} ignoreList
- * @returns {Promise<$models.ModifiedAssets> & { cancel(): void }}
- */
-export function GetModifiedAssets(projectPath, targetPath, ignoreList) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2716509219, projectPath, targetPath, ignoreList));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType7($result);
-    }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
-}
-
-/**
- * @param {string} projectPath
  * @param {string} taskId
  * @param {number} maxDepth
  * @returns {Promise<any[]> & { cancel(): void }}
@@ -358,7 +343,7 @@ export function GetRecursiveDependencies(projectPath, taskId, maxDepth) {
 export function GetUntrackedFiles(projectPath, projectWorkingDir, ignoreList) {
     let $resultPromise = /** @type {any} */($Call.ByID(1088682931, projectPath, projectWorkingDir, ignoreList));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType8($result);
+        return $$createType7($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -496,5 +481,4 @@ const $$createType3 = $Create.Array($Create.Any);
 const $$createType4 = $Create.Array($Create.Any);
 const $$createType5 = $Create.Array($$createType2);
 const $$createType6 = $models.AssetsStates.createFrom;
-const $$createType7 = $models.ModifiedAssets.createFrom;
-const $$createType8 = $Create.Array($Create.Any);
+const $$createType7 = $Create.Array($Create.Any);
