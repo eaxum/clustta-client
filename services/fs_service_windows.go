@@ -8,6 +8,8 @@ import (
 	"unsafe"
 )
 
+//LaunchFileWith opens the Windows "Open With" dialog for a file.
+//Returns an error if the operation fails.
 func (f *FSService) LaunchFileWith(path string) error {
 	filePath, err := filepath.Abs(path)
 	if err != nil {

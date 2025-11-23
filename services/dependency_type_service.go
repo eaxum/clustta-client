@@ -8,6 +8,8 @@ import (
 
 type DependencyTypeService struct{}
 
+//GetDependencyTypes retrieves all dependency types in the project.
+//Returns the list of dependency types or an error if the operation fails.
 func (d *DependencyTypeService) GetDependencyTypes(projectPath string) ([]models.DependencyType, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
