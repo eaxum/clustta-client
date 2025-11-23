@@ -457,11 +457,6 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
 }
 
-
-.simple-text-value {
-
-}
-
 .action-bar {
   position: relative;
   display: flex;

@@ -166,6 +166,33 @@ export function GetCollectionChildren(projectPath, entityId, projectWorkingDir, 
 }
 
 /**
+ * GetCollectionChildrenState analyzes the immediate children of a collection to determine their state.
+ * 
+ * This function performs several optimized phases:
+ * 1. Query immediate children tasks from database
+ * 2. Check file existence and categorize tasks
+ * 3. Fetch checkpoints only for relevant tasks (rebuildable or existing files)
+ * 4. Use heuristic comparison (size/modtime) to minimize hash operations
+ * 5. Perform selective hash verification only when heuristics differ
+ * 6. Detect untracked files and folders in the filesystem
+ * 
+ * Returns state containing modified, outdated, rebuildable tasks and untracked items.
+ * @param {string} projectPath
+ * @param {string} entityId
+ * @param {string} projectWorkingDir
+ * @param {string[]} ignoreList
+ * @returns {Promise<$models.CollectionChildrenState> & { cancel(): void }}
+ */
+export function GetCollectionChildrenState(projectPath, entityId, projectWorkingDir, ignoreList) {
+    let $resultPromise = /** @type {any} */($Call.ByID(1931303187, projectPath, entityId, projectWorkingDir, ignoreList));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType3($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
  * @param {string} projectPath
  * @returns {Promise<number> & { cancel(): void }}
  */
@@ -175,7 +202,15 @@ export function GetCollectionCount(projectPath) {
 }
 
 /**
- * GetCollectionStateFlags checks if a collection has any recursive children that are
+ * GetCollectionStateFlags checks if a collection has any recursive children with specific states.
+ * 
+ * Performs optimized scanning with early termination:
+ * 1. Batch queries tasks with pagination for rebuildable/modified/outdated detection
+ * 2. Uses heuristic comparison (file size, mod time) before expensive hash operations
+ * 3. Performs selective hash verification only when needed
+ * 4. Scans filesystem for untracked files with early exit on first match
+ * 
+ * Returns flags indicating presence of untracked, modified, outdated, or rebuildable items.
  * @param {string} projectPath
  * @param {string} entityId
  * @param {string} projectWorkingDir
@@ -185,7 +220,7 @@ export function GetCollectionCount(projectPath) {
 export function GetCollectionStateFlags(projectPath, entityId, projectWorkingDir, ignoreList) {
     let $resultPromise = /** @type {any} */($Call.ByID(144595661, projectPath, entityId, projectWorkingDir, ignoreList));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType3($result);
+        return $$createType4($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -199,7 +234,7 @@ export function GetCollectionStateFlags(projectPath, entityId, projectWorkingDir
 export function GetCollectionTasks(projectPath, entityId) {
     let $resultPromise = /** @type {any} */($Call.ByID(1367523417, projectPath, entityId));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType4($result);
+        return $$createType5($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -212,7 +247,7 @@ export function GetCollectionTasks(projectPath, entityId) {
 export function GetCollectionTypes(projectPath) {
     let $resultPromise = /** @type {any} */($Call.ByID(1279663726, projectPath));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
-        return $$createType5($result);
+        return $$createType6($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -226,6 +261,31 @@ export function GetCollections(projectPath) {
     let $resultPromise = /** @type {any} */($Call.ByID(1787506934, projectPath));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
+ * GetItemsForCheckpoint efficiently collects all modified and untracked items in a collection hierarchy.
+ * 
+ * Supports three modes:
+ * - Tracked collection: Use entityId to recursively scan tracked collections and their untracked subdirectories
+ * - Untracked path: Use targetPath to scan a filesystem location
+ * - Root: Scan everything from project root
+ * 
+ * Returns deduplicated modified tasks and untracked files.
+ * @param {string} projectPath
+ * @param {string} entityId
+ * @param {string} targetPath
+ * @param {string} projectWorkingDir
+ * @param {string[]} ignoreList
+ * @returns {Promise<$models.ItemsForCheckpoint> & { cancel(): void }}
+ */
+export function GetItemsForCheckpoint(projectPath, entityId, targetPath, projectWorkingDir, ignoreList) {
+    let $resultPromise = /** @type {any} */($Call.ByID(621025292, projectPath, entityId, targetPath, projectWorkingDir, ignoreList));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType7($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -316,6 +376,8 @@ export function UpdatePreview(projectPath, entityId, previewPath) {
 const $$createType0 = models$0.EntityType.createFrom;
 const $$createType1 = $Create.Array($Create.Any);
 const $$createType2 = $models.EntityItems.createFrom;
-const $$createType3 = $models.CollectionStateFlags.createFrom;
-const $$createType4 = $Create.Array($Create.Any);
-const $$createType5 = $Create.Array($$createType0);
+const $$createType3 = $models.CollectionChildrenState.createFrom;
+const $$createType4 = $models.CollectionStateFlags.createFrom;
+const $$createType5 = $Create.Array($Create.Any);
+const $$createType6 = $Create.Array($$createType0);
+const $$createType7 = $models.ItemsForCheckpoint.createFrom;

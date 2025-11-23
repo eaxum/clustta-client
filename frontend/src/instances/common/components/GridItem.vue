@@ -3,7 +3,7 @@
     <div class="virtua-item-header drop-zone" :data-id="child.id" :data-other="JSON.stringify(child)" :id="child.id"
       :class="{ 'drop-zone-hovered': isHovered }">
       <Collection ref="entityItemRef" v-if="child.type == 'entity'" @toggleEditMode="toggleEditMode" v-right-click="openCollectionMenu"
-        :isGhost="isGhost" :entity="child" :index="index" />
+        :isGhost="isGhost" :entity="child" :index="index" :loadingCollectionState="loadingCollectionState" />
       <Asset v-if="child.type == 'task'" @toggleEditMode="toggleEditMode" v-right-click="openAssetMenu" :task="child" :index="index" :loadingAssetState="loadingAssetState" />
       <Collection ref="entityItemRef" v-if="child.type == 'untracked_entity'" @toggleEditMode="toggleEditMode" v-right-click="openUntrackedItemMenu"
         :isUntracked="true" :entity="child" :index="index" />
@@ -25,7 +25,7 @@ import { useScrollStore } from '@/stores/scroll';
 import { useUntrackedItemStore } from '@/stores/untracked';
 import { useProjectStore } from '@/stores/projects';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { AssetService } from '@/../bindings/clustta/services';
+import { AssetService, CollectionService } from '@/../bindings/clustta/services';
 import emitter from '@/lib/mitt';
 
 const menu = useMenu();
@@ -44,6 +44,7 @@ const virtuaChildrenRef = ref(null);
 const entityItemRef = ref(null);
 const entityChildren = ref(null);
 const loadingAssetState = ref(false);
+const loadingCollectionState = ref(false);
 
 // components
 import Asset from '@/instances/desktop/blocks/Asset.vue'
@@ -98,16 +99,6 @@ const updateItemHeight = async () => {
   props.onHeightChange(props.index, height);
 };
 
-const handleScrollPosition = () => {
-  if (!isExpanded.value) return;
-
-  // Get full position including parent offsets
-  const relativePosition = calculateRelativePosition();
-
-  // Request scroll with calculated position
-  scrollStore.requestScroll(relativePosition);
-};
-
 const handleToggle = async () => {
   await props.onToggle(props.index);
   if (stage.firstSelectedItemId === props.child.id) {
@@ -115,24 +106,6 @@ const handleToggle = async () => {
   }
   await updateItemHeight();
 };
-
-// Compute if current item has children
-const hasChildren = computed(() => {
-  return entityChildren.value?.length > 0;
-});
-
-const indentHeight = computed(() => {
-  const itemHeight = stage.expandedEntities[props.child.id]
-  entityChildren.value;
-  const height = virtuaChildrenRef.value?.getBoundingClientRect().height;
-  return height - 10
-});
-
-// Calculate the total offset for nested scroll
-const totalOffset = computed(() => {
-  const itemPosition = props.getItemPosition(props.index);
-  return props.offsetY + itemPosition;
-});
 
 const isHovered = computed(() => { return dndStore.targetItemId === props.child.id })
 
@@ -169,6 +142,40 @@ const loadAssetState = async () => {
     task.file_status = 'rebuildable';
   } finally {
     loadingAssetState.value = false;
+  }
+};
+
+const loadCollectionState = async () => {
+
+  const entity = props.child;
+  
+  if (entity.type !== 'entity') return;
+  
+  loadingCollectionState.value = true;
+  
+  try {
+    const projectStore = useProjectStore();
+    const flags = await CollectionService.GetCollectionStateFlags(
+      projectStore.activeProject.uri,
+      entity.id,
+      projectStore.activeProject.working_directory,
+      projectStore.activeProject.ignore_list
+    );
+
+    // Store the flags on the entity object
+    props.child.collectionStateFlags = flags;
+
+  } catch (error) {
+    console.error(`Error loading collection state for ${entity.id}:`, error);
+    // Reset flags on error
+    props.child.collectionStateFlags = {
+      has_untracked: false,
+      has_modified: false,
+      has_outdated: false,
+      has_rebuildable: false
+    };
+  } finally {
+    loadingCollectionState.value = false;
   }
 };
 
@@ -232,6 +239,10 @@ const handleKeyArrowKeys = (event) => {
 onMounted(async () => {
   if (props.child.entity_type_id) {
     entityChildren.value = entityItemRef.value.entityData
+  }
+  
+  if (props.child.type === 'entity') {
+    await loadCollectionState();
   }
   
   if (props.child.type === 'task') {

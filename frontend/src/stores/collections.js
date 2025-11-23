@@ -176,26 +176,6 @@ export const useCollectionStore = defineStore("collection", {
       this.collections[collectionIndex].trashed = false;
     },
 
-    // @deprecated - This method is not currently used
-    async markMultipleCollectionsAsDeleted(collectionIds) {
-      for (const collectionId of collectionIds) {
-        let collectionIndex = this.collections_index[collectionId];
-        if (collectionIndex !== undefined) {
-          this.collections[collectionIndex].trashed = true;
-        }
-      }
-    },
-
-    // @deprecated - This method is not currently used
-    async unmarkMultipleCollectionsAsDeleted(collectionIds) {
-      for (const collectionId of collectionIds) {
-        let collectionIndex = this.collections_index[collectionId];
-        if (collectionIndex !== undefined) {
-          this.collections[collectionIndex].trashed = false;
-        }
-      }
-    },
-
     async reloadCollectionTypes() {
       const projectStore = useProjectStore();
       let collectionTypes = await CollectionService.GetCollectionTypes(
@@ -262,18 +242,6 @@ export const useCollectionStore = defineStore("collection", {
       return collections;
     },
 
-    // @deprecated - This method is not currently used
-    getAllCollectionChildren(collectionId) {
-      let allChildren = {};
-      let directChildren = this.collection_children_index[collectionId] || [];
-      
-      for (let childId of directChildren) {
-        allChildren[childId] = this.getAllCollectionChildren(childId);
-      }
-      
-      return allChildren;
-    },
-
     getCollectionTypeIcon(collectionTypeId) {
       let collectionTypeIcon = "";
       for (let i = 0; i < this.collectionTypes.length; i++) {
@@ -287,6 +255,58 @@ export const useCollectionStore = defineStore("collection", {
     },
     navigateToCollection(collection) {
       this.navigatedCollection = collection;
+    },
+
+    /**
+     * Loads modified and untracked items for checkpoint creation.
+     * 
+     * Supports three modes:
+     * - Tracked collection: Pass collectionId to scan tracked collection and its hierarchy
+     * - Untracked path: Pass targetPath to scan a filesystem location
+     * - Root: Pass neither to scan entire project
+     * 
+     * Updates assetStore.modifiedAssets with structure:
+     * { modified: [{ task_id, task_path, display_path }], untracked: [task_paths] }
+     */
+    async reloadItemsForCheckpoint(collectionId = null, targetPath = null) {
+      const assetStore = useAssetStore();
+      assetStore.loadingAssetStates = true;
+      const projectStore = useProjectStore();
+      let project = projectStore.activeProject;
+      
+      let entityId = collectionId || "";
+      let scanPath = targetPath || "";
+      
+      try {
+        const items = await CollectionService.GetItemsForCheckpoint(
+          project.uri,
+          entityId,
+          scanPath,
+          project.working_directory,
+          project.ignore_list
+        );
+
+        const modifiedAssets = items.modified_tasks.map(task => ({
+          task_id: task.id,
+          task_path: task.task_path,
+          display_path: task.task_path + task.extension
+        }));
+
+        const untrackedPaths = items.untracked_files.map(file => file.task_path);
+
+        assetStore.modifiedAssets = {
+          modified: modifiedAssets,
+          untracked: untrackedPaths
+        };
+      } catch (error) {
+        console.error('Error loading items for checkpoint:', error);
+        assetStore.modifiedAssets = {
+          modified: [],
+          untracked: []
+        };
+      } finally {
+        assetStore.loadingAssetStates = false;
+      }
     },
   },
 });
