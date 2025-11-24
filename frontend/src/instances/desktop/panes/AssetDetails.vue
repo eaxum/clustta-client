@@ -14,7 +14,7 @@
         <div class="action-bar" v-if="userStore.canDo('update_task')">
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('brush-plus')" :label="'Type'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('file-plus')" :label="'Type'" />
             <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="assetStore.selectedAsset.task_type_name"
               :onSelect="changeTaskType" :fixedWidth="true" />
           </div>
@@ -85,7 +85,7 @@
           </div>
           
 
-          <div class="pane-parameter-detail">
+          <div v-if="!assetStore.selectedAsset.is_link" class="pane-parameter-detail">
             <div class="simple-text-key">
               Location
             </div>
@@ -107,7 +107,7 @@
             </div>
           </div>
 
-          <div class="pane-parameter-detail">
+          <div v-if="!assetStore.selectedAsset.is_link" class="pane-parameter-detail">
           <div class="simple-text-key">
           Size 
           </div>

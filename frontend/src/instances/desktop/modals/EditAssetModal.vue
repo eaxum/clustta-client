@@ -16,19 +16,20 @@
         </div>
       </div>
 
-      <div class="input-section drop-down-box-section">
+      <div v-if="!task.is_link" class="input-section drop-down-box-section">
         <DropDownBox :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" />
         <DropDownBox :items="taskTypeNames" :selectedItem="taskType" :onSelect="selectTaskType" />
       </div>
 
-      <div class="input-section">
+      <!-- <div class="input-section">
         <div v-if="!userStore.canDo('update_task')" class="input-label">Tags</div>
 
         <SearchSuggestions v-if="userStore.canDo('update_task')" :placeholder="placeholder" :tags="tags"
           :projectTags="projectTags" :showTags="true" :forSearch="false" @tagAdded="addTag" @tagRemoved="removeTag" />
 
         <TagContainer v-else :tags="tags" />
-      </div>
+      </div> -->
+      
       <div class="pop-up-actions">
         <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
         <GeneralButton :label="'Confirm'" :fullWidth="true" @click="updateTask()" :isActive="isValueChanged"
@@ -107,7 +108,7 @@ const title = computed(() => {
 })
 
 const icon = computed(() => {
-  return task.value.is_link ? 'website-link' : task.value.icon;
+  return task.value.icon;
 })
 
 const taskTypeNames = computed(() => {
@@ -236,6 +237,7 @@ const updateTask = async () => {
     return;
   }
 
+  console.log(newTaskTags)
   await AssetService.UpdateAsset(projectStore.activeProject.uri, taskId, taskName.value, taskTypeId.value, isResource.value, taskWebLink.value, newTaskTags)
     .then((data) => {
       task.name = taskName.value;

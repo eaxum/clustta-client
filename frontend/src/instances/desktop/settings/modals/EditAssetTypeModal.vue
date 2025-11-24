@@ -81,7 +81,7 @@ const isValueChanged = computed(() => {
 });
 
 const closeModal = () => {
-  modals.setModalVisibility("editTaskTypeModal", false);
+  modals.disableAllModals();
 };
 
 const handleEnterKey = (event) => {

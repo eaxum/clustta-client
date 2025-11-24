@@ -86,19 +86,22 @@ const props = defineProps({
   flex-direction: column;
   color: var(--white);
   overflow: hidden;
+  /* max-height: 80%; */
+  /* padding: .5rem 0; */
   border-radius: 10px;
   /* background-color: royalblue; */
   gap: .5rem;
-  /* max-width: 400px; */
 }
 
 .page-state-illustration{
   /* background-color: forestgreen; */
   box-sizing: border-box;
   padding: 2px;
+  height: 100%;
   overflow: hidden;
+  display: flex;
   align-items: center;
-  aspect-ratio: 1/1;
+  max-width: 400px;
   }
 
   .page-state-messages{

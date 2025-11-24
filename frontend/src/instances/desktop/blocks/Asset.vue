@@ -101,7 +101,7 @@
               </div>
               
               <!-- View Checkpoints button -->
-              <div v-if="!isUntracked && userStore.canDo('view_checkpoint')" class="task-item-grid-checkpoints-button">
+              <div v-if="!task.is_link && !isUntracked && userStore.canDo('view_checkpoint')" class="task-item-grid-checkpoints-button">
                 <ActionButton :icon="getAppIcon('layers')" v-tooltip="'View Checkpoints'" @click="viewCheckpoints(index, task, $event)" />
               </div>
               
@@ -136,8 +136,10 @@
             </div>
 
             <div v-else-if="!isUntracked && userStore.canDo('pull_chunk')" class="file-state">
-              <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" 
-                v-tooltip="'No changes'" v-if="task.file_status == 'normal'" />
+              <ActionButton v-if="task.is_link" :icon="getAppIcon('launch-box')" 
+                v-tooltip="'Visit link'" @click="openLink()" />
+              <ActionButton v-else-if="task.file_status == 'normal'" :icon="getAppIcon('circle-check-go')" :noFilter="true" 
+                v-tooltip="'No changes'"  />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" 
                 v-tooltip="'Outdated - Click to update'" v-else-if="task.file_status == 'outdated'" 
                 @click="revertTask(index, task, $event)" />
@@ -226,81 +228,91 @@
             @confirm="confirmRename"
             @cancel="cancelRename"
           />
-        </div>
 
-        <!-- task assignation -->
-        <div v-if="!isEditing && !isUntracked && (!task.is_resource || isCurrentUser)"
-          class="task-item-assignee-container">
-          <ActionButton v-if="userStore.canDo('assign_task') && !statusMenuDisplayed && !task.assignee_id"
-            :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
+          
 
-          <div v-else-if="task.assignee_id" @click="prepAssignTask(index, task, $event)" v-stop-propagation
-            class="task-item-assignee">
-            <span v-tooltip="userFullName" class="single-action-button">
-              <div class="profile-picture" :style="{ backgroundColor: profileColor(task.assignee_id) }">
-                <img v-if="userPhoto" class="profile-img" :src="userPhoto">
-                <img v-else class="profile-img" :src="getAppIcon('person')">
+          <div v-if="!isEditing && task.is_link" class="weblink-pointer-container">
+              <div class="weblink-pointer">
+                {{ task.pointer }}  
               </div>
-            </span>
           </div>
+
         </div>
 
-        <div v-else-if="!isEditing" class="task-item-assignee-container">
-          <ActionButton v-if="userStore.canDo('assign_task') && !statusMenuDisplayed && !task.assignee_id && !isUntracked"
-            :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
-        </div>
+        <template v-if="!isEditing && !task.is_link">
+          <!-- task assignation -->
+          <div v-if="!isUntracked && (!task.is_resource || isCurrentUser)" class="task-item-assignee-container">
+            <ActionButton class="task-item-assignee-button" v-if="userStore.canDo('assign_task') && !statusMenuDisplayed && !task.assignee_id"
+              :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
 
-        <!-- task status -->
-        <div v-if="!isEditing && !isUntracked && (!task.is_resource || isCurrentUser)" class="task-item-status-root">
-          <StatusMenu @statusSelected="closeStatusMenu" v-if="statusMenuDisplayed" />
+            <div v-else-if="task.assignee_id" @click="prepAssignTask(index, task, $event)" v-stop-propagation
+              class="task-item-assignee">
+              <span v-tooltip="userFullName" class="single-action-button">
+                <div class="profile-picture" :style="{ backgroundColor: profileColor(task.assignee_id) }">
+                  <img v-if="userPhoto" class="profile-img" :src="userPhoto">
+                  <img v-else class="profile-img" :src="getAppIcon('person')">
+                </div>
+              </span>
+            </div>
+            
+          </div>
 
-          <div :class="{ 'is-disabled': stage.operationActive }" v-else class="task-item-status-container"
-            v-stop-propagation @click="toggleDisplayStatusMenu(index, task, $event)">
-            <div class="task-item-status" :style="{ backgroundColor: task.status.color }">
-              {{ task.status.short_name }}
+          <div v-else-if="!isEditing" class="task-item-assignee-container">
+            <ActionButton class="task-item-assignee-button" v-if="userStore.canDo('assign_task') && !statusMenuDisplayed && !task.assignee_id && !isUntracked"
+              :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
+          </div>
+
+          <!-- task status -->
+          <div v-if="!isEditing && !isUntracked && (!task.is_resource || isCurrentUser)" class="task-item-status-root">
+            <StatusMenu @statusSelected="closeStatusMenu" v-if="statusMenuDisplayed" />
+
+            <div :class="{ 'is-disabled': stage.operationActive }" v-else class="task-item-status-container"
+              v-stop-propagation @click="toggleDisplayStatusMenu(index, task, $event)">
+              <div class="task-item-status" :style="{ backgroundColor: task.status.color }">
+                {{ task.status.short_name }}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div v-else-if="!isEditing && !isUntracked" class="task-item-status-root">
+          <div v-else-if="!isEditing && !isUntracked" class="task-item-status-root">
 
-          <div class="task-item-status-container" v-stop-propagation>
-            <div class="task-item-status" :style="{ backgroundColor: task.status.color, padding: 3 + 'px' }">
+            <div class="task-item-status-container" v-stop-propagation>
+              <div class="task-item-status" :style="{ backgroundColor: task.status.color, padding: 3 + 'px' }">
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- task actions -->
-        <div v-if="!isEditing && !isUntracked && !statusMenuDisplayed && !task.is_link" class="task-item-actions">
-          <ActionButton v-if="userStore.canDo('view_checkpoint')" :icon="getAppIcon('layers')" v-tooltip="'Checkpoints'"
-            v-stop-propagation @click="viewCheckpoints(index, task, $event)" />
+          <!-- task actions -->
+          <div v-if="!isEditing && !isUntracked && !statusMenuDisplayed" class="task-item-actions">
+            <ActionButton v-if="userStore.canDo('view_checkpoint')" :icon="getAppIcon('layers')" v-tooltip="'Checkpoints'"
+              v-stop-propagation @click="viewCheckpoints(index, task, $event)" />
 
-          <div v-if="loadingAssetState" class="file-state">
-              <ActionButton :isLoading="true" :icon="getAppIcon('loading')" 
-                v-tooltip="'Loading...'" />
+            <div v-if="loadingAssetState" class="file-state">
+                <ActionButton :isLoading="true" :icon="getAppIcon('loading')" 
+                  v-tooltip="'Loading...'" />
+            </div>
+
+            <div v-else-if="userStore.canDo('pull_chunk')" class="file-state">
+              <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" @click="handleClick(index, task, $event)"
+                v-tooltip="'No changes'" v-if="task.file_status == 'normal'" />
+              <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Outdated - Click to update'"
+                v-else-if="task.file_status == 'outdated'" @click="revertTask(index, task, $event)" />
+              <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="'Modified - Assigned to someone else'"
+                v-else-if="task.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
+              <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="'Modified - Click to add Checkpoint'"
+                v-else-if="task.file_status == 'modified' && userStore.canDo('create_checkpoint')"
+                @click="prepCreateCheckpoint(index, task, $event)" />
+              <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="'File missing - Click to build'"
+                v-else-if="task.file_status == 'rebuildable'" @click="revertTask(index, task, $event)" />
+              <ActionButton :icon="getAppIcon('alert')" :noFilter="true" v-tooltip="'Task missing - Resync your project'"
+                v-else-if="task.file_status == 'missing'" />
+            </div>
           </div>
+        </template>
 
-          <div v-else-if="userStore.canDo('pull_chunk')" class="file-state">
-            <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" @click="handleClick(index, task, $event)"
-              v-tooltip="'No changes'" v-if="task.file_status == 'normal'" />
-            <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Outdated - Click to update'"
-              v-else-if="task.file_status == 'outdated'" @click="revertTask(index, task, $event)" />
-            <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="'Modified - Assigned to someone else'"
-              v-else-if="task.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
-            <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="'Modified - Click to add Checkpoint'"
-              v-else-if="task.file_status == 'modified' && userStore.canDo('create_checkpoint')"
-              @click="prepCreateCheckpoint(index, task, $event)" />
-            <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="'File missing - Click to build'"
-              v-else-if="task.file_status == 'rebuildable'" @click="revertTask(index, task, $event)" />
-            <ActionButton :icon="getAppIcon('alert')" :noFilter="true" v-tooltip="'Task missing - Resync your project'"
-              v-else-if="task.file_status == 'missing'" />
-          </div>
+        <div v-if="task.is_link" class="task-item-actions link-item-actions" >
+          <ActionButton :icon="getAppIcon('launch-box')" v-tooltip="'Visit link'" v-stop-propagation @click="openLink()" />
         </div>
-
-        <div v-if="task.is_link" class="task-item-actions">
-          <ActionButton :icon="getAppIcon('website')" v-tooltip="'Visit link'" v-stop-propagation @click="openLink()" />
-        </div>
-
 
         <div v-else-if="isUntracked" class="task-item-actions">
           <ActionButton v-if="userStore.canDo('create_task') || canImport" @click="prepCreateCheckpoint(index, task, $event)"
@@ -1529,6 +1541,59 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   font-size: 14px;
 }
 
+.weblink-pointer-container {
+  /* width: 100%; */
+  /* width: max-content; */
+  display: none;
+  flex-wrap: nowrap;
+  text-wrap: nowrap;
+  justify-content: flex-end;
+  /* background-color: crimson; */
+  /* width: min-content; */
+  flex: 1;
+  color: var(--white);
+  padding: .2rem .2rem;
+  border-radius: var(--tiny-radius);
+  font-size: 12px;
+  overflow: hidden;
+  /* outline: var(--transparent-line); */
+  /* background-color: var(--black-steel); */
+  /* display: flex; */
+  align-items: center;
+  justify-content: flex-start;
+  height: max-content;
+  box-sizing: border-box;
+  overflow: hidden;
+  opacity: .5;
+}
+
+.weblink-pointer {
+  /* display: flex; */
+  width: 100%;
+  overflow: hidden;
+  /* padding: 0 .4rem; */
+  box-sizing: border-box;
+  align-items: flex-start;
+  height: 100%;
+  font-weight: 300;
+  text-overflow: ellipsis;
+  /* background-color: forestgreen; */
+}
+
+.task-item-main:hover .weblink-pointer-container {
+  /* text-decoration: underline; */
+  display: flex;
+}
+
+.task-item-assignee-button {
+  display: none;
+}
+
+.task-item-main:hover .task-item-assignee-button {
+  /* text-decoration: underline; */
+  display: flex;
+}
+
 .input-short {
   width: 100%;
   height: 100%;
@@ -1588,8 +1653,12 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   gap: .7rem;
   height: 100%;
   /* background-color: darkcyan; */
-  min-width: 150px;
+  /* min-width: 150px; */
   min-width: var(--actions-width);
+}
+
+.link-item-actions{
+  min-width: max-content;
 }
 
 .untracked-item-action {

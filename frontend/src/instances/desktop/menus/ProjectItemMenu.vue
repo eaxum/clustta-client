@@ -5,7 +5,7 @@
       :buttonFunction="renameProject" />
 
     <!-- Create -->
-    <ActionButton :icon="getAppIcon('parameters')" v-if="userStore.userCanCreateProject" :showLabel="true" :fullWidth="true"
+    <ActionButton :icon="getAppIcon('switches')" v-if="userStore.userCanCreateProject" :showLabel="true" :fullWidth="true"
       label="Edit Project" :buttonFunction="editProject" />
 
     <!-- {{  isPinExceeded  }} -->

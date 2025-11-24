@@ -49,9 +49,9 @@
             <!-- <ActionButton v-if="collectionStateFlags.has_outdated" 
               @click="updateEntityAssets" 
               :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Outdated Items. Click to update'" /> -->
-            <ActionButton v-if="collectionStateFlags.has_rebuildable" 
+            <!-- <ActionButton v-if="collectionStateFlags.has_rebuildable" 
               @click="rebuildEntity" 
-              :icon="getAppIcon('dot-big')" v-tooltip="'Items missing. Click to rebuild'" />
+              :icon="getAppIcon('dot-big')" v-tooltip="'Items missing. Click to rebuild'" /> -->
           </template>
           <template v-else-if="entity.type === 'untracked_entity' && props.hasChildren">
             <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" 

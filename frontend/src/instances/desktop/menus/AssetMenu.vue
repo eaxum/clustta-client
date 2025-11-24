@@ -9,7 +9,7 @@
     <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
       label="Rename Asset" :buttonFunction="renameAsset" />
 
-    <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('parameters')" :showLabel="true"
+    <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('switches')" :showLabel="true"
       :fullWidth="true" label="Edit Asset" :buttonFunction="editAsset" />
 
     <ActionButton v-if="userStore.canDo('create_task')" :icon="getAppIcon('copy')" :showLabel="true"

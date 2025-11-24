@@ -8,7 +8,7 @@
     <ActionButton :icon="getAppIcon('workflow-plus')" :showLabel="true" :fullWidth="true" label="Add Workflow"
       v-if="workflowStore.workflows.length && userStore.canDo('create_task')" :buttonFunction="addWorkflow" />
 
-    <ActionButton :icon="getAppIcon('brush-plus')" :showLabel="true" :fullWidth="true" label="New Task"
+    <ActionButton :icon="getAppIcon('file-plus')" :showLabel="true" :fullWidth="true" label="New Task"
       v-if="templateStore.getTemplates.length && userStore.canDo('create_task')" :buttonFunction="createTask" />
 
     <ActionButton :icon="getAppIcon('arrow-down-ramp')" :showLabel="true" :fullWidth="true" label="Import Items"

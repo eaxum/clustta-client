@@ -4,7 +4,7 @@
     <ActionButton :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true" label="Rename Collection"
       v-if="userStore.canDo('update_entity')" :buttonFunction="renameEntity" />
 
-    <ActionButton :icon="getAppIcon('parameters')" :showLabel="true" :fullWidth="true" label="Edit Collection"
+    <ActionButton :icon="getAppIcon('switches')" :showLabel="true" :fullWidth="true" label="Edit Collection"
       v-if="userStore.canDo('update_entity')" :buttonFunction="editEntity" />
 
     <ActionButton v-if="canSelectContent" :icon="getAppIcon('checkbox-selected')" :showLabel="true" :fullWidth="true"
@@ -13,7 +13,7 @@
     <span v-if="userStore.canDo('update_entity')" class="menu-divider"></span>
 
     <!-- Create -->
-    <ActionButton :icon="getAppIcon('brush-plus')" :showLabel="true" :fullWidth="true" label="Add Asset"
+    <ActionButton :icon="getAppIcon('file-plus')" :showLabel="true" :fullWidth="true" label="Add Asset"
       v-if="templateStore.getTemplates.length && (userStore.canDo('create_task') || collectionStore.selectedCollection.can_modify)" :buttonFunction="createTask" />
 
     <ActionButton :icon="getAppIcon('folder-plus')" :showLabel="true" :fullWidth="true" label="Add Collection"
@@ -24,8 +24,8 @@
 
     
 
-    <!-- <ActionButton :icon="getAppIcon('website-link')" :showLabel="true" :fullWidth="true" label="New Link"
-      v-if="userStore.canDo('create_task') || collectionStore.selectedCollection.can_modify" :buttonFunction="createLink" /> -->
+    <ActionButton :icon="getAppIcon('website')" :showLabel="true" :fullWidth="true" label="New Link"
+      v-if="userStore.canDo('create_task') || collectionStore.selectedCollection.can_modify" :buttonFunction="createLink" />
 
     <ActionButton :icon="getAppIcon('arrow-down-ramp')" :showLabel="true" :fullWidth="true" label="Import Items"
       v-if="userStore.canDo('create_task')" :buttonFunction="importItems" />

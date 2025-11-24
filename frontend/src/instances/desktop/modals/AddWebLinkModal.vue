@@ -1,6 +1,6 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
-    <HeaderArea :title="title" :icon="getAppIcon('website-link')" :showSearch="showSearch" :showPin="true" />
+    <HeaderArea :title="title" :icon="getAppIcon('website')" :showSearch="showSearch" />
     <div class="general-container">
 
       <div class="input-section">
@@ -12,23 +12,18 @@
 
       <div class="input-section">
         <div class="horizontal-flex">
-          <input v-model="taskWebLink" class="input-short" type="text" placeholder="Web link" ref="taskWebLinkInput" />
+          <input v-model="taskWebLink" class="input-short" type="text" placeholder="Web link" ref="taskWebLinkInput" @keydown.enter="handleEnterKey"/>
           <span @click="pasteWebLink" class="single-action-button" v-tooltip="'Paste link'"><img class="small-icons"
               :src="getAppIcon('clipboard')"></span>
         </div>
+        <InputAlert :show="!isValidWeblink(taskWebLink) && taskWebLink !== 'https://'" message="Invalid web link. Must start with 'http://' or 'https://'" />
       </div>
 
-      <div class="input-section drop-down-box-section">
-        <DropDownBox :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" />
-        <DropDownBox :items="taskTypeNames" :selectedItem="taskType" :onSelect="selectTaskType" />
-      </div>
-      <div class="input-section">
-        <SearchSuggestions :placeholder="placeholder" :showTags="true" :tags="tags" :projectTags="projectTags"
-          :forSearch="false" @tagAdded="addTag" @tagRemoved="removeTag" />
-      </div>
+
+
       <div class="pop-up-actions">
         <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Create'" :fullWidth="true" @click="createTask(false)" :isActive="isValueChanged"
+        <GeneralButton :label="'Create'" :fullWidth="true" @click="createWebLink(false)" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
     </div>
@@ -53,6 +48,8 @@ import { useStageStore } from '@/stores/stages';
 import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from '@/stores/projects';
 import { useIconStore } from '@/stores/icons';
+import { useCollectionStore } from '@/stores/collections';
+import { useCommonStore } from '@/stores/common';
 
 // components
 import Apps from '@/instances/common/components/Apps.vue';
@@ -60,6 +57,7 @@ import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import SearchSuggestions from '@/instances/common/components/SearchSuggestions.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
+import InputAlert from '@/instances/common/components/InputAlert.vue';
 
 // vars
 let placeholder = 'Add Tags, use commas to confirm'
@@ -69,6 +67,8 @@ const iconStore = useIconStore();
 const trayStates = useTrayStates();
 const assetStore = useAssetStore();
 const projectStore = useProjectStore();
+const commonStore = useCommonStore();
+const collectionStore = useCollectionStore();
 
 // stores
 const notificationStore = useNotificationStore();
@@ -79,7 +79,7 @@ const menu = useMenu();
 // refs
 const tags = ref([]);
 const taskName = ref('');
-const taskWebLink = ref('');
+const taskWebLink = ref('https://');
 const taskWebLinkInput = ref(null);
 const showSearch = false;
 const exposeParams = ref(false);
@@ -87,7 +87,7 @@ const modalContainer = ref(null);
 const showTaskOptions = ref(true);
 const isAwaitingResponse = ref(false);
 const isResource = ref(false);
-const taskType = ref(assetStore.getAssetTypesNames[0]);
+const taskType = ref('weblink');
 
 // computed properties
 const title = 'Add web link';
@@ -168,7 +168,7 @@ const toggleOptions = () => {
 
 const handleEnterKey = (event) => {
   if (event.key === 'Enter' && isValueChanged.value) {
-    createTask(false);
+    createWebLink(false);
   }
 };
 
@@ -187,15 +187,49 @@ const closeModal = () => {
   trayStates.searchTags = false;
   modals.setModalVisibility("addWebLinkModal", false);
 };
-const createTask = async (launch = false, comment = "Asset created") => {
-  isAwaitingResponse.value = true;
-  let selectedTaskType = assetStore.assetTypes.find(item => item.name === taskType.value);
-  let entities = stageStore.markedEntities
-  if (entities.length <= 1) {
-    let entityId = ""
-    if (entities.length > 0) {
-      entityId = entities[0]
+
+const ensureWeblinkAssetType = async () => {
+  let weblinkType = assetStore.assetTypes.find(item => item.name === 'weblink');
+  
+  if (!weblinkType) {
+    try {
+      weblinkType = await AssetService.CreateAssetType(
+        projectStore.activeProject.uri,
+        'weblink',
+        'website'
+      );
+      assetStore.assetTypes.push(weblinkType);
+    } catch (error) {
+      notificationStore.errorNotification("Error creating weblink asset type", error);
+      throw error;
     }
+  }
+  
+  return weblinkType;
+};
+
+const createWebLink = async (launch = false, comment = "Asset created") => {
+  isAwaitingResponse.value = true;
+  console.log(assetStore.assetTypes)
+  let selectedTaskType;
+  try {
+    selectedTaskType = await ensureWeblinkAssetType();
+  } catch (error) {
+    isAwaitingResponse.value = false;
+    return;
+  }
+  let entities = stageStore.markedEntities
+  const isNested = commonStore.navigatorMode && !!collectionStore.navigatedCollection;
+  if (entities.length <= 1) {
+
+    let entityId = "";
+    
+    if (isNested) {
+      entityId = collectionStore.navigatedCollection.id;
+    } else if (entities.length > 0){
+      entityId = entities[0];
+    }
+
     await AssetService.CreateAsset(
       projectStore.activeProject.uri,
       taskName.value,
@@ -248,11 +282,9 @@ watchEffect(() => {
 // onMounted hook
 onMounted(() => {
   menu.clickOutsideMask = null;
-  taskName.value = utils.capitalizeStr(assetStore.getAssetTypesNames[0]);
   trayStates.listItemsBoundary = modalContainer.value;
   trayStates.tagSearchQuery = '';
   trayStates.itemTags = [];
-
 });
 
 
