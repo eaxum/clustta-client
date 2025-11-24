@@ -15,6 +15,8 @@ import * as models$0 from "../internal/repository/models/models.js";
 import * as $models from "./models.js";
 
 /**
+ * Assign assigns a user to a collection.
+ * Returns an error if the operation fails.
  * @param {string} projectPath
  * @param {string} entityId
  * @param {string} userId
@@ -26,6 +28,8 @@ export function Assign(projectPath, entityId, userId) {
 }
 
 /**
+ * ChangeCollectionParent moves a collection to a different parent collection.
+ * Returns an error if the operation fails.
  * @param {string} projectPath
  * @param {string} entityId
  * @param {string} parentId
@@ -37,6 +41,8 @@ export function ChangeCollectionParent(projectPath, entityId, parentId) {
 }
 
 /**
+ * ChangeIsLibrary toggles the library flag on a collection.
+ * Returns an error if the operation fails.
  * @param {string} projectPath
  * @param {string} entityId
  * @param {boolean} isLibrary
@@ -48,6 +54,8 @@ export function ChangeIsLibrary(projectPath, entityId, isLibrary) {
 }
 
 /**
+ * ChangeType changes the type of a collection.
+ * Returns an error if the operation fails.
  * @param {string} projectPath
  * @param {string} entityId
  * @param {string} entityTypeId
@@ -59,6 +67,8 @@ export function ChangeType(projectPath, entityId, entityTypeId) {
 }
 
 /**
+ * CreateCollection creates a new collection in the project.
+ * Returns the created entity or an error if the operation fails.
  * @param {string} projectPath
  * @param {string} name
  * @param {string} description
@@ -74,7 +84,8 @@ export function CreateCollection(projectPath, name, description, entityTypeId, p
 }
 
 /**
- * collection types
+ * CreateCollectionType creates a new collection type in the project.
+ * Returns an error if a type with the same name already exists.
  * @param {string} projectPath
  * @param {string} entityTypeName
  * @param {string} entityTypeIcon
@@ -90,6 +101,8 @@ export function CreateCollectionType(projectPath, entityTypeName, entityTypeIcon
 }
 
 /**
+ * CreateCollections creates multiple collection entities in bulk.
+ * Currently a stub implementation for future batch creation functionality.
  * @param {string} projectPath
  * @param {string} name
  * @param {string} description
@@ -107,6 +120,8 @@ export function CreateCollections(projectPath, name, description, entityTypeId, 
 }
 
 /**
+ * DeleteCollection removes a collection from the project.
+ * Optionally removes associated files if removeFiles is true.
  * @param {string} projectPath
  * @param {string} entityId
  * @param {boolean} removeFiles
@@ -118,6 +133,8 @@ export function DeleteCollection(projectPath, entityId, removeFiles) {
 }
 
 /**
+ * DeleteCollectionType removes a collection type from the project.
+ * Returns an error if the operation fails.
  * @param {string} projectPath
  * @param {string} id
  * @returns {Promise<void> & { cancel(): void }}
@@ -128,6 +145,8 @@ export function DeleteCollectionType(projectPath, id) {
 }
 
 /**
+ * GetCollectionByID retrieves a collection by its ID.
+ * Returns the entity or an error if not found.
  * @param {string} projectPath
  * @param {string} entityId
  * @returns {Promise<models$0.Entity> & { cancel(): void }}
@@ -138,6 +157,8 @@ export function GetCollectionByID(projectPath, entityId) {
 }
 
 /**
+ * GetCollectionByPath retrieves a collection by its filesystem path.
+ * Returns the entity or an error if not found.
  * @param {string} projectPath
  * @param {string} entityPath
  * @returns {Promise<models$0.Entity> & { cancel(): void }}
@@ -148,6 +169,8 @@ export function GetCollectionByPath(projectPath, entityPath) {
 }
 
 /**
+ * GetCollectionChildren retrieves all children of a collection including tracked and untracked items.
+ * Returns separate lists for tasks, entities, and untracked items.
  * @param {string} projectPath
  * @param {string} entityId
  * @param {string} projectWorkingDir
@@ -167,15 +190,6 @@ export function GetCollectionChildren(projectPath, entityId, projectWorkingDir, 
 
 /**
  * GetCollectionChildrenState analyzes the immediate children of a collection to determine their state.
- * 
- * This function performs several optimized phases:
- * 1. Query immediate children tasks from database
- * 2. Check file existence and categorize tasks
- * 3. Fetch checkpoints only for relevant tasks (rebuildable or existing files)
- * 4. Use heuristic comparison (size/modtime) to minimize hash operations
- * 5. Perform selective hash verification only when heuristics differ
- * 6. Detect untracked files and folders in the filesystem
- * 
  * Returns state containing modified, outdated, rebuildable tasks and untracked items.
  * @param {string} projectPath
  * @param {string} entityId
@@ -193,6 +207,8 @@ export function GetCollectionChildrenState(projectPath, entityId, projectWorking
 }
 
 /**
+ * GetCollectionCount returns the total number of collections in the project.
+ * Returns the count or an error if the operation fails.
  * @param {string} projectPath
  * @returns {Promise<number> & { cancel(): void }}
  */
@@ -203,13 +219,6 @@ export function GetCollectionCount(projectPath) {
 
 /**
  * GetCollectionStateFlags checks if a collection has any recursive children with specific states.
- * 
- * Performs optimized scanning with early termination:
- * 1. Batch queries tasks with pagination for rebuildable/modified/outdated detection
- * 2. Uses heuristic comparison (file size, mod time) before expensive hash operations
- * 3. Performs selective hash verification only when needed
- * 4. Scans filesystem for untracked files with early exit on first match
- * 
  * Returns flags indicating presence of untracked, modified, outdated, or rebuildable items.
  * @param {string} projectPath
  * @param {string} entityId
@@ -227,6 +236,8 @@ export function GetCollectionStateFlags(projectPath, entityId, projectWorkingDir
 }
 
 /**
+ * GetCollectionTasks retrieves all tasks belonging to a specific collection.
+ * Returns the list of tasks or an error if the operation fails.
  * @param {string} projectPath
  * @param {string} entityId
  * @returns {Promise<models$0.Task[]> & { cancel(): void }}
@@ -241,6 +252,8 @@ export function GetCollectionTasks(projectPath, entityId) {
 }
 
 /**
+ * GetCollectionTypes retrieves all collection types in the project.
+ * Returns the list of entity types or an error if the operation fails.
  * @param {string} projectPath
  * @returns {Promise<models$0.EntityType[]> & { cancel(): void }}
  */
@@ -254,6 +267,8 @@ export function GetCollectionTypes(projectPath) {
 }
 
 /**
+ * GetCollections retrieves collections based on user permissions.
+ * Returns all entities or only user-accessible entities based on role.
  * @param {string} projectPath
  * @returns {Promise<models$0.Entity[]> & { cancel(): void }}
  */
@@ -268,12 +283,6 @@ export function GetCollections(projectPath) {
 
 /**
  * GetItemsForCheckpoint efficiently collects all modified and untracked items in a collection hierarchy.
- * 
- * Supports three modes:
- * - Tracked collection: Use entityId to recursively scan tracked collections and their untracked subdirectories
- * - Untracked path: Use targetPath to scan a filesystem location
- * - Root: Scan everything from project root
- * 
  * Returns deduplicated modified tasks and untracked files.
  * @param {string} projectPath
  * @param {string} entityId
@@ -292,6 +301,8 @@ export function GetItemsForCheckpoint(projectPath, entityId, targetPath, project
 }
 
 /**
+ * Rebuild downloads missing checkpoints and rebuilds files for specified collections.
+ * Supports cancellation and sends progress updates via application events.
  * @param {string} projectPath
  * @param {string} remoteUrl
  * @param {string} entityIds
@@ -304,6 +315,8 @@ export function Rebuild(projectPath, remoteUrl, entityIds, userId) {
 }
 
 /**
+ * RenameCollection renames an existing collection.
+ * Returns the updated entity or an error if the operation fails.
  * @param {string} projectPath
  * @param {string} entityId
  * @param {string} newName
@@ -315,6 +328,8 @@ export function RenameCollection(projectPath, entityId, newName) {
 }
 
 /**
+ * RevealCollection opens the file explorer to show a collection's folder.
+ * Returns an error if the entity is not found or the operation fails.
  * @param {string} projectPath
  * @param {string} entityId
  * @returns {Promise<void> & { cancel(): void }}
@@ -325,6 +340,8 @@ export function RevealCollection(projectPath, entityId) {
 }
 
 /**
+ * RevertCollections reverts multiple collections to their latest checkpoints.
+ * Sends progress updates for each entity processed.
  * @param {string} projectPath
  * @param {string[]} entityIds
  * @returns {Promise<void> & { cancel(): void }}
@@ -335,6 +352,8 @@ export function RevertCollections(projectPath, entityIds) {
 }
 
 /**
+ * Unassign removes a user assignment from a collection.
+ * Returns an error if the operation fails.
  * @param {string} projectPath
  * @param {string} entityId
  * @param {string} userId
@@ -346,6 +365,8 @@ export function Unassign(projectPath, entityId, userId) {
 }
 
 /**
+ * UpdateCollectionType updates an existing collection type.
+ * Returns an error if a type with the new name already exists.
  * @param {string} projectPath
  * @param {string} id
  * @param {string} entityTypeName
@@ -362,6 +383,8 @@ export function UpdateCollectionType(projectPath, id, entityTypeName, entityType
 }
 
 /**
+ * UpdatePreview updates the preview image for a collection.
+ * Returns an error if the project is not found or the operation fails.
  * @param {string} projectPath
  * @param {string} entityId
  * @param {string} previewPath

@@ -11,6 +11,8 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 import * as $models from "./models.js";
 
 /**
+ * DeployStudio initiates a new studio deployment on Azure.
+ * Returns the deployment response with ID and WebSocket URL, or an error if deployment fails.
  * @param {$models.DeploymentRequest} request
  * @returns {Promise<$models.DeploymentResponse | null> & { cancel(): void }}
  */
@@ -24,6 +26,8 @@ export function DeployStudio(request) {
 }
 
 /**
+ * DestroyDeployment tears down a studio deployment and releases Azure resources.
+ * Returns an error if the destruction fails.
  * @param {string} deploymentID
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -33,6 +37,8 @@ export function DestroyDeployment(deploymentID) {
 }
 
 /**
+ * GetDeploymentStatus retrieves the current status of a deployment.
+ * Returns the deployment status details or an error if the request fails.
  * @param {string} deploymentID
  * @returns {Promise<$models.DeploymentStatus | null> & { cancel(): void }}
  */

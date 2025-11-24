@@ -11,6 +11,8 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 import * as models$0 from "../internal/repository/models/models.js";
 
 /**
+ * GetDependencyTypes retrieves all dependency types in the project.
+ * Returns the list of dependency types or an error if the operation fails.
  * @param {string} projectPath
  * @returns {Promise<models$0.DependencyType[]> & { cancel(): void }}
  */

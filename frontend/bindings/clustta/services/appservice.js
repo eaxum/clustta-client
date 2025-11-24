@@ -7,6 +7,8 @@
 import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 /**
+ * GetOS returns the operating system name.
+ * Detects the current OS and returns "windows", "darwin", "linux", or "unknown".
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetOS() {
@@ -15,6 +17,8 @@ export function GetOS() {
 }
 
 /**
+ * Hide hides the main application window.
+ * Gets the main window instance and hides it from view.
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function Hide() {
@@ -23,6 +27,8 @@ export function Hide() {
 }
 
 /**
+ * Minimize minimizes the main application window.
+ * Gets the main window instance and minimizes it to the taskbar.
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function Minimize() {
@@ -31,6 +37,8 @@ export function Minimize() {
 }
 
 /**
+ * Quit terminates the application.
+ * Gets the application instance and calls Quit to exit gracefully.
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function Quit() {
@@ -39,6 +47,8 @@ export function Quit() {
 }
 
 /**
+ * Show displays and focuses the main application window.
+ * Gets the main window instance, shows it, and brings it to focus.
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function Show() {
