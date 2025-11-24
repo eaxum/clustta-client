@@ -33,6 +33,7 @@
         "stall" , 
         "texture" , 
         "tree" , 
-        "video-camera" 
+        "video-camera", 
+        "website" 
     ] 
 } 

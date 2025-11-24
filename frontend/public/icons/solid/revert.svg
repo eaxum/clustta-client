@@ -1,1 +1,22 @@
-<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" clip-rule="evenodd" viewBox="0 0 24 24"><title>revert</title><g class="nc-icon-wrapper" fill-rule="evenodd" fill="#ffffff" stroke-linecap="round" stroke-linejoin="round"><path d="M11.839,11.843L8.997,9M8.997,9L15,9" fill="none" fill-rule="nonzero" stroke="#ffffff" stroke-width="1" transform="translate(-10.487 -10.492) scale(1.49913)"></path><path d="M12,6L12,12L16.5,12" fill="none" stroke="#ffffff" stroke-width="1.5" transform="translate(-.992 1.116)"></path><path d="M12,3C16.937,3 21,7.063 21,12C21,16.937 16.937,21 12,21C7.063,21 3,16.937 3,12C3,10.513 3.368,9.106 4.018,7.865" fill="none" stroke="#ffffff" stroke-width="1.5"></path></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;">
+    <rect id="revert" x="0" y="0" width="24" height="24" style="fill:none;"/>
+    <g id="revert1" serif:id="revert">
+        <g>
+            <g id="old">
+                <g transform="matrix(1.49913,0,0,1.49913,-10.487,-10.492)">
+                    <path d="M11.839,11.843L8.997,9M8.997,9L15,9" style="fill:none;fill-rule:nonzero;stroke:white;stroke-width:1px;"/>
+                </g>
+                <g transform="matrix(1.49913,0,0,1.49913,-10.487,-10.492)">
+                    <path d="M11.839,9L11.839,11.843L8.997,9M8.997,9L11.839,9" style="fill:white;fill-rule:nonzero;stroke:white;stroke-width:1px;"/>
+                </g>
+                <g transform="matrix(0.917264,0,0,0.917264,-1.038219,1.94764)">
+                    <path d="M14.214,5.635C17.153,5.635 19.539,8.02 19.539,10.959C19.539,13.898 17.153,16.284 14.214,16.284C11.276,16.284 8.89,13.898 8.89,10.959C8.89,8.02 11.276,5.635 14.214,5.635ZM13.124,8.121L13.124,11.308C13.124,11.911 13.612,12.399 14.214,12.399L17.171,12.399C17.773,12.399 18.261,11.91 18.261,11.308C18.261,10.707 17.773,10.218 17.171,10.218L15.304,10.218L15.304,8.121C15.304,7.519 14.816,7.031 14.214,7.031C13.612,7.031 13.124,7.519 13.124,8.121Z" style="fill:white;"/>
+                    <path d="M14.214,5.635C17.153,5.635 19.539,8.02 19.539,10.959C19.539,13.898 17.153,16.284 14.214,16.284C11.276,16.284 8.89,13.898 8.89,10.959C8.89,8.02 11.276,5.635 14.214,5.635ZM16.94,8.474L16.94,8.583L17.036,8.583L16.94,8.474ZM13.124,8.121L13.124,11.308C13.124,11.911 13.612,12.399 14.214,12.399L17.171,12.399C17.773,12.399 18.261,11.91 18.261,11.308C18.261,10.707 17.773,10.218 17.171,10.218L15.304,10.218L15.304,8.121C15.304,7.519 14.816,7.031 14.214,7.031C13.612,7.031 13.124,7.519 13.124,8.121ZM16.252,14.034L14.214,14.034L13.667,13.979L13.153,13.819L12.689,13.568L12.287,13.236L11.955,12.833L11.704,12.37L11.544,11.856L11.489,11.308L11.489,8.474C10.89,9.13 10.525,10.002 10.525,10.959C10.525,12.995 12.178,14.648 14.214,14.648C14.967,14.648 15.668,14.422 16.252,14.034Z" style="fill:white;"/>
+                </g>
+                <path d="M12,3C16.937,3 21,7.063 21,12C21,16.937 16.937,21 12,21C7.063,21 3,16.937 3,12C3,10.513 3.368,9.106 4.018,7.865" style="fill:none;stroke:white;stroke-width:1.5px;"/>
+            </g>
+        </g>
+    </g>
+</svg>
