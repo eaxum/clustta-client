@@ -7,6 +7,8 @@
 import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 /**
+ * ReadImageBase64 reads an image from the clipboard and returns it as a base64 string.
+ * Returns the base64 string or an error if the operation fails.
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function ReadImageBase64() {
@@ -15,6 +17,8 @@ export function ReadImageBase64() {
 }
 
 /**
+ * ReadText reads a text string from the system clipboard.
+ * Returns the text string or an error if the operation fails.
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function ReadText() {
@@ -23,6 +27,8 @@ export function ReadText() {
 }
 
 /**
+ * WriteText writes a text string to the system clipboard.
+ * Returns an error if the operation fails.
  * @param {string} text
  * @returns {Promise<void> & { cancel(): void }}
  */

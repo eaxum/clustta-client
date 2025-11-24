@@ -7,6 +7,8 @@
 import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 /**
+ * SelectFileDialog opens a file dialog with custom title and filters.
+ * Returns the selected file path or an empty string if cancelled.
  * @param {string} title
  * @param {string} filters
  * @returns {Promise<string> & { cancel(): void }}
@@ -17,6 +19,8 @@ export function SelectFileDialog(title, filters) {
 }
 
 /**
+ * SelectFilesDialog opens a file dialog to select multiple files.
+ * Returns the selected file paths or an empty list if cancelled.
  * @returns {Promise<string[]> & { cancel(): void }}
  */
 export function SelectFilesDialog() {
@@ -29,6 +33,8 @@ export function SelectFilesDialog() {
 }
 
 /**
+ * SelectFolderDialog opens a folder selection dialog with a custom title.
+ * Returns the selected folder path or an empty string if cancelled.
  * @param {string} title
  * @returns {Promise<string> & { cancel(): void }}
  */
@@ -38,6 +44,8 @@ export function SelectFolderDialog(title) {
 }
 
 /**
+ * SelectIconDialog opens a file dialog to select an icon image.
+ * Returns the base64-encoded resized icon or an error.
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function SelectIconDialog() {
@@ -46,6 +54,8 @@ export function SelectIconDialog() {
 }
 
 /**
+ * SelectItemsDialog opens a dialog to select multiple files or directories.
+ * Returns the selected paths or an empty list if cancelled.
  * @returns {Promise<string[]> & { cancel(): void }}
  */
 export function SelectItemsDialog() {
@@ -58,6 +68,8 @@ export function SelectItemsDialog() {
 }
 
 /**
+ * SelectSpecificFolderDialog opens a folder dialog with a default starting path.
+ * Returns the selected folder path or an error.
  * @param {string} title
  * @param {string} defaultPath
  * @returns {Promise<string> & { cancel(): void }}

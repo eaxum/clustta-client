@@ -14,6 +14,8 @@ import * as repository$0 from "../internal/repository/models.js";
 import * as models$0 from "../internal/repository/models/models.js";
 
 /**
+ * AddCheckpoint creates new checkpoints for multiple tasks.
+ * Returns the created checkpoints or an error if the operation fails.
  * @param {string} projectPath
  * @param {string[]} taskPaths
  * @param {string} message
@@ -41,6 +43,8 @@ export function AddMissingGroupIds(projectPath) {
 }
 
 /**
+ * AddUntrackedTask tracks previously untracked files and creates checkpoints for them.
+ * Returns the newly tracked tasks or an error if the operation fails.
  * @param {string} projectPath
  * @param {string} projectWorkingDir
  * @param {string[]} taskPaths
@@ -61,6 +65,8 @@ export function AddUntrackedTask(projectPath, projectWorkingDir, taskPaths, comp
 }
 
 /**
+ * DeleteCheckpoint removes a checkpoint from the project.
+ * Returns an error if the deletion fails.
  * @param {string} projectPath
  * @param {string} checkpointId
  * @returns {Promise<void> & { cancel(): void }}
@@ -71,6 +77,8 @@ export function DeleteCheckpoint(projectPath, checkpointId) {
 }
 
 /**
+ * GetCheckpoints retrieves all checkpoints for a specific task.
+ * Returns the list of checkpoints or an error if the operation fails.
  * @param {string} projectPath
  * @param {string} taskId
  * @returns {Promise<models$0.Checkpoint[]> & { cancel(): void }}
@@ -85,6 +93,8 @@ export function GetCheckpoints(projectPath, taskId) {
 }
 
 /**
+ * GetLatestCheckpoint retrieves the most recent checkpoint for a task.
+ * Returns the latest checkpoint or an error if not found.
  * @param {string} projectPath
  * @param {string} taskId
  * @returns {Promise<models$0.Checkpoint> & { cancel(): void }}
@@ -99,6 +109,8 @@ export function GetLatestCheckpoint(projectPath, taskId) {
 }
 
 /**
+ * GetTimeline retrieves the project timeline showing checkpoint history.
+ * Returns the timeline data or an error if the operation fails.
  * @param {string} projectPath
  * @returns {Promise<repository$0.CompatTimeline[]> & { cancel(): void }}
  */
@@ -112,6 +124,8 @@ export function GetTimeline(projectPath) {
 }
 
 /**
+ * Revert reverts multiple tasks to their latest checkpoints.
+ * Downloads missing chunks if needed and supports cancellation.
  * @param {string} projectPath
  * @param {string} remoteUrl
  * @param {string[]} taskIds
@@ -134,6 +148,8 @@ export function RevertProject(projectPath, remoteUrl, checkpointTime) {
 }
 
 /**
+ * RevertTaskPaths reverts tasks by their file paths to latest checkpoints.
+ * Downloads missing chunks if needed and supports cancellation.
  * @param {string} projectPath
  * @param {string} remoteUrl
  * @param {string[]} taskPaths
@@ -145,6 +161,8 @@ export function RevertTaskPaths(projectPath, remoteUrl, taskPaths) {
 }
 
 /**
+ * RevertToCheckpoint reverts a task to a specific checkpoint state.
+ * Downloads missing chunks if needed and supports cancellation.
  * @param {string} projectPath
  * @param {string} remoteUrl
  * @param {string} taskId
@@ -157,6 +175,8 @@ export function RevertToCheckpoint(projectPath, remoteUrl, taskId, checkpointId)
 }
 
 /**
+ * ViewCheckpoint creates a temporary file from a checkpoint and opens it.
+ * Returns an error if the operation fails.
  * @param {string} projectPath
  * @param {string} checkpointId
  * @param {string} entityName

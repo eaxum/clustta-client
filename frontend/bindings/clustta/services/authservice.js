@@ -11,6 +11,8 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 import * as auth_service$0 from "../internal/auth_service/models.js";
 
 /**
+ * AuthUser retrieves the currently authenticated user.
+ * Returns an error if no user is found or the token is invalid.
  * @returns {Promise<auth_service$0.User> & { cancel(): void }}
  */
 export function AuthUser() {
@@ -23,6 +25,8 @@ export function AuthUser() {
 }
 
 /**
+ * CheckEmailExists checks if an email address is already registered.
+ * Returns true if the email exists, false otherwise.
  * @param {string} email
  * @returns {Promise<boolean> & { cancel(): void }}
  */
@@ -32,6 +36,8 @@ export function CheckEmailExists(email) {
 }
 
 /**
+ * CheckUsernameExists checks if a username is already registered.
+ * Returns true if the username exists, false otherwise.
  * @param {string} username
  * @returns {Promise<boolean> & { cancel(): void }}
  */
@@ -41,6 +47,8 @@ export function CheckUsernameExists(username) {
 }
 
 /**
+ * DeactivateUserAccount deactivates the current user's account.
+ * Returns an error if the deactivation fails.
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function DeactivateUserAccount() {
@@ -49,6 +57,8 @@ export function DeactivateUserAccount() {
 }
 
 /**
+ * IsAuthenticated checks if a user is currently authenticated.
+ * Returns authentication status, user data, and any error encountered.
  * @returns {Promise<[boolean, auth_service$0.User]> & { cancel(): void }}
  */
 export function IsAuthenticated() {
@@ -62,6 +72,8 @@ export function IsAuthenticated() {
 }
 
 /**
+ * Login authenticates a user with username and password.
+ * Returns the authentication token or an error if login fails.
  * @param {string} username
  * @param {string} password
  * @returns {Promise<auth_service$0.Token> & { cancel(): void }}
@@ -76,6 +88,8 @@ export function Login(username, password) {
 }
 
 /**
+ * Logout ends the current user session.
+ * Returns an error if logout fails.
  * @param {string} username
  * @param {string} password
  * @returns {Promise<void> & { cancel(): void }}
@@ -86,6 +100,8 @@ export function Logout(username, password) {
 }
 
 /**
+ * Register creates a new user account.
+ * Returns the created user or an error if registration fails.
  * @param {string} firstName
  * @param {string} lastName
  * @param {string} username
@@ -104,6 +120,8 @@ export function Register(firstName, lastName, username, email, password, confirm
 }
 
 /**
+ * ResendToken resends the verification token to an email address.
+ * Returns an error if the send fails.
  * @param {string} email
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -113,6 +131,8 @@ export function ResendToken(email) {
 }
 
 /**
+ * SendInvitationEmail sends a project invitation to an email address.
+ * Returns an error if the email send fails.
  * @param {string} email
  * @param {string} studioName
  * @param {string} projectName
@@ -124,6 +144,8 @@ export function SendInvitationEmail(email, studioName, projectName) {
 }
 
 /**
+ * UpdateUser updates the current user's profile information.
+ * Returns the updated user or an error if the update fails.
  * @param {string} firstName
  * @param {string} lastName
  * @param {string} username
@@ -140,6 +162,8 @@ export function UpdateUser(firstName, lastName, username, email) {
 }
 
 /**
+ * UpdateUserPhoto updates the current user's profile photo.
+ * Returns an error if the upload fails.
  * @param {string} photo
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -149,6 +173,8 @@ export function UpdateUserPhoto(photo) {
 }
 
 /**
+ * VerifyOTP verifies a one-time password token.
+ * Returns an error if verification fails.
  * @param {string} email
  * @param {string} token
  * @returns {Promise<void> & { cancel(): void }}
