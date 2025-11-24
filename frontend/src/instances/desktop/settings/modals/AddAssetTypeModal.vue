@@ -36,7 +36,6 @@ const getAppIcon = (iconName) => {
 
 import { ref, onMounted, computed } from 'vue';
 import { useProjectStore } from '@/stores/projects';
-import { TemplateService } from "@/../bindings/clustta/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { AssetService } from "@/../bindings/clustta/services";
@@ -53,7 +52,7 @@ let title = 'Add Asset type';
 const isAwaitingResponse = ref(false);
 
 const icons = computed(() => {
-  const allIcons = iconData.icons;
+  const allIcons = iconData.icons.filter((item) => item !== 'weblink');
   const allTaskTypeIcons  = assetStore.assetTypes.map((item) => item.icon);
   return allIcons.filter((icon) => !allTaskTypeIcons.includes(icon))
 })

@@ -62,14 +62,13 @@ const projectTaskTypes = computed(() => {
       viewTaskTypeIds.push(taskTypeId)
     }
   }
-
+  const restrictedNames = ['generic', 'weblink']
   const allTypes =  taskTypes.map(type => ({
     ...type,
-    can_delete: !viewTaskTypeIds.includes(type.id),
-    can_edit: type.name !== 'generic',
+    can_delete: !restrictedNames.includes(type.name),
+    can_edit: !restrictedNames.includes(type.name),
   }))
 
-  console.log(allTypes)
 
 return allTypes
 

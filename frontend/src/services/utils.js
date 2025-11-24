@@ -83,13 +83,17 @@ const utils = {
   },
   getDomainName(link) {
     try {
-      // Use the URL constructor to parse the link
       const url = new URL(link);
 
-      // Return the hostname part of the URL
-      return url.hostname;
+      const hostname = url.hostname;
+      const parts = hostname.split('.');
+      
+      if (parts.length >= 2) {
+        return parts.slice(-2).join('.');
+      }
+      
+      return hostname;
     } catch (e) {
-      // If the URL constructor throws an error, return an empty string or handle the error as needed
       return "";
     }
   },

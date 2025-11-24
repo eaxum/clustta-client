@@ -16,10 +16,12 @@
         <DropDownBox :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" />
         <DropDownBox :items="taskTypeNames" :selectedItem="taskType" :onSelect="selectTaskType" />
       </div>
-      <div class="input-section">
+
+      <!-- <div class="input-section">
         <SearchSuggestions :placeholder="placeholder" :showTags="true" :tags="tags" :projectTags="projectTags"
           :forSearch="false" @tagAdded="addTag" @tagRemoved="removeTag" />
-      </div>
+      </div> -->
+
       <div class="task-options-container" :class="{ 'task-options-container-closed': showTaskOptions === true }">
         <div class="input-section">
           <Apps />

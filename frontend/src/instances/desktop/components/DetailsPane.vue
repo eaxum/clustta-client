@@ -34,7 +34,7 @@
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('brush-plus')" :label="'Asset type'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('file-plus')" :label="'Asset type'" />
             <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="taskType" :onSelect="changeTaskType"
               :fixedWidth="true" />
           </div>
@@ -104,7 +104,7 @@
 
         <!-- <div class="general-pane-header">
           <HeaderArea :title="utils.capitalizeStr('selectedTaskName')" :icon="'selectedTaskIcon'" :useIconBlob="true" />
-          <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('parameters')" :showLabel="false"
+          <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('switches')" :showLabel="false"
             v-tooltip="'Edit Task'" />
         </div> -->
 
@@ -323,6 +323,11 @@ const assetDetailPanes = ref([
       { name: "Console", tab_name: "console", icon: "console" },
 ]);
 
+const linkDetailPanes = ref([
+      { name: "Details", tab_name: "assetDetails", icon: "info" },
+      { name: "Dependencies", tab_name: "dependencies", icon: "dependency" },
+]);
+
 const collectionDetailPanes = ref([
       { name: "Details", tab_name: "collectionDetails", icon: "info" },
       // { name: "Collaborators", tab_name: "collaborators", icon: "person" },
@@ -335,12 +340,13 @@ const untrackedDetailPanes = ref([
 
 const settingsItems = computed(() => {
 
+  const item = stage.selectedItem;
   const itemType = stage.selectedItem?.type;
   
   if(!stage.markedItems.length){
     return projectDetailPanes.value
   } else if(itemType === 'task'){
-    return assetDetailPanes.value
+    return item?.is_link ? linkDetailPanes.value : assetDetailPanes.value
   }else if(itemType === 'entity'){
     return collectionDetailPanes.value;
   } 
