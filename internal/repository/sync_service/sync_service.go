@@ -1177,25 +1177,41 @@ func CalculateMissingChunks(tx *sqlx.Tx, data ProjectData, userId string, syncOp
 		}
 	}
 
-	// Maps to keep track of the latest checkpoint for each entity
-	latestTaskCheckpoints := make(map[string]models.Checkpoint)
-	// Iterate over task checkpoints to find the latest for each entity
-	for _, taskCheckpoint := range data.TasksCheckpoints {
-		if utils.Contains(tasksIds, taskCheckpoint.TaskId) {
-			existingCheckpoint, found := latestTaskCheckpoints[taskCheckpoint.TaskId]
-			if !found || taskCheckpoint.CreatedAt > existingCheckpoint.CreatedAt {
-				latestTaskCheckpoints[taskCheckpoint.TaskId] = taskCheckpoint
+	// Collect checkpoints based on OnlyLatestCheckpoints option
+	var checkpointsToProcess []models.Checkpoint
+
+	if syncOptions.OnlyLatestCheckpoints {
+		// Maps to keep track of the latest checkpoint for each entity
+		latestTaskCheckpoints := make(map[string]models.Checkpoint)
+		// Iterate over task checkpoints to find the latest for each entity
+		for _, taskCheckpoint := range data.TasksCheckpoints {
+			if utils.Contains(tasksIds, taskCheckpoint.TaskId) {
+				existingCheckpoint, found := latestTaskCheckpoints[taskCheckpoint.TaskId]
+				if !found || taskCheckpoint.CreatedAt > existingCheckpoint.CreatedAt {
+					latestTaskCheckpoints[taskCheckpoint.TaskId] = taskCheckpoint
+				}
+			}
+		}
+		// Convert map to slice
+		for _, checkpoint := range latestTaskCheckpoints {
+			checkpointsToProcess = append(checkpointsToProcess, checkpoint)
+		}
+	} else {
+		// Include ALL checkpoints for selected tasks
+		for _, taskCheckpoint := range data.TasksCheckpoints {
+			if utils.Contains(tasksIds, taskCheckpoint.TaskId) {
+				checkpointsToProcess = append(checkpointsToProcess, taskCheckpoint)
 			}
 		}
 	}
 
-	// Now gather all the chunks from the latest checkpoints
+	// Now gather all the chunks from the checkpoints
 	// chunks := []string{}
 	seenChunks := make(map[string]bool)
 	missingChunks := []string{}
 	allChunks := []string{}
 	totalSize := 0
-	for _, checkpoint := range latestTaskCheckpoints {
+	for _, checkpoint := range checkpointsToProcess {
 		chunkHashes := strings.Split(checkpoint.Chunks, ",")
 		checkpointFullyDownloaded := true
 		for _, chunkHash := range chunkHashes {

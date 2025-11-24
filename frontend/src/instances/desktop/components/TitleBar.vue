@@ -63,7 +63,8 @@
       </div>
 
     <div v-else class="titlebar-buttons">
-      <!-- <ToggleSwitch :switchValueProp="themeStore.isDarkMode" @click="toggleTheme()" /> -->
+      <!-- <ToggleSwitch :switchValueProp="themeStore.isDarkMode" @click="toggleTheme()" />
+      <CheckBox v-model="themeStore.isDarkMode" @change="toggleTheme()" /> -->
 
       <div class="titlebar-button minimize" @click="minimizeWindow">
         <img class="small-icons" :src="getAppIcon('collapse-window')" alt="Minimize">
@@ -126,6 +127,7 @@ import { useThemeStore } from '@/stores/theme';
 import { useCollectionStore } from '@/stores/collections';
 
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+import CheckBox from '@/instances/common/components/CheckBox.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { useStudioStore } from '@/stores/studio';
 

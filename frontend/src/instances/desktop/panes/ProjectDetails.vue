@@ -7,7 +7,7 @@
     <HeaderArea v-if="isCustomIcon" :title="projectStore.getActiveProjectName"
       :customIcon="projectStore.activeProject.icon" />
     <HeaderArea v-else :title="projectStore.getActiveProjectName" :emoji="projectStore.activeProject.icon" />
-    <ActionButton :icon="getAppIcon('parameters')" v-if="userStore.canDo('update_task')" :showLabel="false"
+    <ActionButton :icon="getAppIcon('switches')" v-if="userStore.canDo('update_task')" :showLabel="false"
       v-tooltip="'Edit Project'" :buttonFunction="editProject" />
   </div>
 
@@ -52,6 +52,10 @@
         <!-- Relocate Working Directory -->
         <ActionButton :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
           :buttonFunction="relocateWorkingDirectory" />
+
+        <!-- Backup Project -->
+        <ActionButton :icon="getAppIcon('floppy-disk')" :showLabel="true" :fullWidth="true" label="Backup"
+          :buttonFunction="backupProject" />
 
         <!-- Archive -->
         <ActionButton v-if="!projectStore.getActiveProject.is_closed && userStore.userCanCreateProject"
@@ -294,6 +298,10 @@ const relocateWorkingDirectory = async () => {
   } catch (error) {
     notificationStore.errorNotification('Error selecting directory', error);
   }
+};
+
+const backupProject = () => {
+  modals.setModalVisibility('backUpProjectModal', true);
 };
 
 const deleteProjectWorkData = async () => {

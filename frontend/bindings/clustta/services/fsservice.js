@@ -20,6 +20,16 @@ export function AddWatcherFolder(dir) {
 }
 
 /**
+ * @param {string} sourcePath
+ * @param {string} destinationPath
+ * @returns {Promise<string> & { cancel(): void }}
+ */
+export function BackupFile(sourcePath, destinationPath) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3955862424, sourcePath, destinationPath));
+    return $resultPromise;
+}
+
+/**
  * @param {string} path
  * @returns {Promise<string> & { cancel(): void }}
  */
@@ -225,6 +235,8 @@ export function LaunchFile(path) {
 }
 
 /**
+ * LaunchFileWith opens the Windows "Open With" dialog for a file.
+ * Returns an error if the operation fails.
  * @param {string} path
  * @returns {Promise<void> & { cancel(): void }}
  */

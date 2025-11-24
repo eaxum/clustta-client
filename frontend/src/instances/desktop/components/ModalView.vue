@@ -18,6 +18,7 @@ import DirectoryConfigModal from '@/instances/desktop/modals/DirectoryConfigModa
 import AppInfoModal from '@/instances/desktop/modals/AppInfoModal.vue';
 import EulaModal from '@/instances/desktop/modals/EulaModal.vue';
 import DirOnboardModal from '@/instances/desktop/modals/DirOnboardModal.vue';
+import BackUpProjectModal from '@/instances/desktop/modals/BackUpProjectModal.vue';
 
 // Browser
 import AddProjectModal from '@/instances/desktop/modals/AddProjectModal.vue';
@@ -127,6 +128,7 @@ const modalComponents = {
   appInfoModal: AppInfoModal,
   eulaModal: EulaModal,
   dirOnboardModal: DirOnboardModal,
+  backUpProjectModal: BackUpProjectModal,
   
   editProjectModal: EditProjectModal,
   editAssetModal: EditAssetModal,

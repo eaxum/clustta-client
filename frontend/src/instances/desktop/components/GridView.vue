@@ -1,5 +1,5 @@
 <template>
-	<div  class="navigator-root-viewport" @scroll="disableMenu()">
+	<div @mouseenter="refreshView"  class="navigator-root-viewport" @scroll="disableMenu()">
 
     <GridSkeleton v-if="!assetStore.assetsLoaded" :height="containerHeight" />
 
@@ -36,6 +36,8 @@ import { useCommonStore } from '@/stores/common';
 import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
+import { CollectionService } from '@/../bindings/clustta/services';
+import emitter from '@/lib/mitt';
 
 // states/stores
 const menu = useMenu();
@@ -94,6 +96,74 @@ const handleRef = async (id, el) => {
     dndStore.addRef(id, domElement);
     }
 };
+
+// Helper function to emit item data updates
+const emitItemUpdates = (itemId, updates) => {
+  const updateData = { itemId, updates };
+  
+  // Emit to both Browser and VirtuaItem components
+  emitter.emit('update-root-data', updateData);
+  emitter.emit('update-children', updateData);
+};
+
+const previousUntrackedCount = ref(0);
+
+const refreshView = async () => {
+  const project = projectStore.activeProject;
+  const entityId = collectionStore.navigatedCollection?.id;
+  
+  try {
+    const state = await CollectionService.GetCollectionChildrenState(
+      project.uri,
+      entityId,
+      project.working_directory,
+      project.ignore_list
+    );
+    
+    // Update modified tasks with file_status
+    if (state.modified_tasks && state.modified_tasks.length > 0) {
+      state.modified_tasks.forEach(task => {
+        emitItemUpdates(task.id, [
+          { property: 'file_status', value: 'modified' }
+        ]);
+      });
+    }
+    
+    // Update outdated tasks with file_status
+    if (state.outdated_tasks && state.outdated_tasks.length > 0) {
+      state.outdated_tasks.forEach(task => {
+        emitItemUpdates(task.id, [
+          { property: 'file_status', value: 'outdated' }
+        ]);
+      });
+    }
+    
+    // Update rebuildable tasks with file_status
+    if (state.rebuildable_tasks && state.rebuildable_tasks.length > 0) {
+      state.rebuildable_tasks.forEach(task => {
+        emitItemUpdates(task.id, [
+          { property: 'file_status', value: 'rebuildable' }
+        ]);
+      });
+    }
+    
+    // Check if untracked items count has changed
+    const currentUntrackedCount = 
+      (state.untracked_files?.length || 0) + 
+      (state.untracked_folders?.length || 0);
+    
+    if (previousUntrackedCount.value !== currentUntrackedCount) {
+      previousUntrackedCount.value = currentUntrackedCount;
+      emitter.emit('refresh-browser');
+    }
+    
+    // Update collection state flags
+   collectionStore.loadCollectionStateFlags();
+    
+  } catch (error) {
+    console.error('Error getting collection children state:', error);
+  }
+}
 
 const dragTimer = ref(null);
 

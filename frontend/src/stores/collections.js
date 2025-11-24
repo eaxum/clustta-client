@@ -18,6 +18,13 @@ export const useCollectionStore = defineStore("collection", {
     selectedCollection: null,
     selectedCollectionType: null,
     navigatedCollection: null,
+    collectionStateFlags: {
+      has_untracked: false,
+      has_modified: false,
+      has_outdated: false,
+      has_rebuildable: false
+    },
+    loadingCollectionStates: false,
   }),
   getters: {
     getCollectionTypes: (state) => {
@@ -306,6 +313,52 @@ export const useCollectionStore = defineStore("collection", {
         };
       } finally {
         assetStore.loadingAssetStates = false;
+      }
+    },
+
+    /**
+     * Loads optimized state flags (untracked/modified/outdated/rebuildable) for current collection context.
+     * Updates collectionStateFlags with boolean flags indicating presence of items in each state.
+     */
+    async loadCollectionStateFlags() {
+      this.loadingCollectionStates = true;
+      const projectStore = useProjectStore();
+      const commonStore = useCommonStore();
+      
+      try {
+        const project = projectStore.activeProject;
+        if (!project) return;
+
+        let entityId = "root";
+        
+        if (commonStore.navigatorMode && this.navigatedCollection) {
+          entityId = this.navigatedCollection.id || "root";
+        }
+
+        if (this.navigatedCollection) {
+          if (this.navigatedCollection?.type !== 'entity') {
+            return;
+          }
+        }
+
+        const flags = await CollectionService.GetCollectionStateFlags(
+          project.uri,
+          entityId,
+          project.working_directory,
+          project.ignore_list
+        );
+        
+        this.collectionStateFlags = flags;
+      } catch (error) {
+        console.error('Error loading collection state flags:', error);
+        this.collectionStateFlags = {
+          has_untracked: false,
+          has_modified: false,
+          has_outdated: false,
+          has_rebuildable: false
+        };
+      } finally {
+        this.loadingCollectionStates = false;
       }
     },
   },

@@ -1795,16 +1795,16 @@ func UpdateTask(tx *sqlx.Tx, taskId string, name, taskTypeId string, isResource 
 	if err != nil {
 		return models.Task{}, err
 	}
-	if task.IsLink {
-		if !utils.NonCaseSensitiveContains(tags, "link") {
-			tags = append(tags, "link")
-		}
-	}
-	if !task.IsLink && task.Pointer != "" {
-		if !utils.NonCaseSensitiveContains(tags, "tracked") {
-			tags = append(tags, "tracked")
-		}
-	}
+	// if task.IsLink {
+	// 	if !utils.NonCaseSensitiveContains(tags, "link") {
+	// 		tags = append(tags, "link")
+	// 	}
+	// }
+	// if !task.IsLink && task.Pointer != "" {
+	// 	if !utils.NonCaseSensitiveContains(tags, "tracked") {
+	// 		tags = append(tags, "tracked")
+	// 	}
+	// }
 
 	task.Tags = []string{}
 	if len(tags) > 0 {

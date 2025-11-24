@@ -467,6 +467,12 @@ func initData(tx *sqlx.Tx) error {
 	if err != nil {
 		return err
 	}
+
+	_, err = GetOrCreateTaskType(tx, "weblink", "website")
+	if err != nil {
+		return err
+	}
+
 	_, err = GetOrCreateEntityType(tx, "generic", "folder")
 	if err != nil {
 		return err
