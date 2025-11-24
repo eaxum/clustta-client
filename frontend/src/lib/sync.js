@@ -35,9 +35,9 @@ export async function syncFullData() {
   const notificationStore = useNotificationStore();
   let syncOptions = {
     only_latest_checkpoints: false,
-    task_dependencies: false,
-    tasks: false,
-    templates: false,
+    task_dependencies: true,
+    tasks: true,
+    templates: true,
   };
   await SyncService.SyncData(
     projectStore.activeProject.uri,

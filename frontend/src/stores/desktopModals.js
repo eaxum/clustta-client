@@ -11,6 +11,7 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       appInfoModal: false,
       eulaModal: false,
       dirOnboardModal: false,
+      backUpProjectModal: false,
 
       // browser
       addProjectModal: false,

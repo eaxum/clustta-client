@@ -28,7 +28,7 @@
 
 			<div v-else-if="isDefaultWorkspace" class="create-menu">
 				<ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Refresh'" :buttonFunction="refresh" />
-				<ActionButton :icon="getAppIcon('brush-plus')"
+				<ActionButton :icon="getAppIcon('file-plus')"
 					v-if=" !kanbanView && (userStore.canDo('create_task') || canModifyEntity)"
 					@click="createAsset" v-tooltip="'Add Asset'" />
 				<ActionButton :icon="getAppIcon('folder-plus')"
@@ -37,6 +37,9 @@
 				<ActionButton :icon="getAppIcon('workflow-plus')"
 					v-if=" !kanbanView && workflowStore.workflows.length && userStore.canDo('create_entity')" @click="createWorkflow"
 					v-tooltip="'Add Workflow'" />
+				<ActionButton :icon="getAppIcon('website')"
+					v-if=" !kanbanView && userStore.canDo('create_task')" @click="createWebLink"
+					v-tooltip="'Add Weblink'" />
 				<ActionButton :icon="getAppIcon('arrow-down-ramp')"
 					v-if=" !kanbanView && userStore.canDo('create_entity')" @click="importItems"
 					v-tooltip="'Import Items'" />
@@ -44,23 +47,23 @@
 
 			<div v-if="!showFilters || !isDefaultWorkspace" class="action-bar-container">
 				
-				<div v-if="!kanbanView && (loadingCollectionStates || assetStore.loadingAssetStates) && rootData.length" class="action-bar">
+				<div v-if="!kanbanView && (collectionStore.loadingCollectionStates || assetStore.loadingAssetStates) && rootData.length" class="action-bar">
 					<ActionButton :isLoading="true" :icon="getAppIcon('loading')"  
 					v-tooltip="'Loading collection states'" />
 				</div>
 
 				<div v-else-if="!kanbanView && rootData.length" class="action-bar">
-					<ActionButton v-if="collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" v-tooltip="'Rebuild All'"
+					<ActionButton v-if="collectionStore.collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" v-tooltip="'Rebuild All'"
 						:buttonFunction="rebuildAll" />
-					<ActionButton v-if="collectionStateFlags.has_untracked && userStore.canDo('create_checkpoint')"
+					<ActionButton v-if="collectionStore.collectionStateFlags.has_untracked && userStore.canDo('create_checkpoint')"
 						:icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Create Checkpoints'"
 						:buttonFunction="prepAllCheckpointModal" />
-					<ActionButton v-else-if="collectionStateFlags.has_modified && userStore.canDo('create_checkpoint')"
+					<ActionButton v-else-if="collectionStore.collectionStateFlags.has_modified && userStore.canDo('create_checkpoint')"
 						:icon="getAppIcon('layers-plus')" :useAlert="true"  :noFilter="true" v-tooltip="'Create Checkpoints'"
 						:buttonFunction="prepAllCheckpointModal" />
-					<ActionButton v-if="collectionStateFlags.has_modified" :icon="getAppIcon('revert')" :useAlert="true" :noFilter="true" v-tooltip="'Revert All'"
+					<ActionButton v-if="collectionStore.collectionStateFlags.has_modified" :icon="getAppIcon('revert')" :useAlert="true" :noFilter="true" v-tooltip="'Revert All'"
 						:buttonFunction="prepResetPopUpModal" />
-					<ActionButton v-if="collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Update all'"
+					<ActionButton v-if="collectionStore.collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Update all'"
 						:buttonFunction="updateAll" />
 				</div>
 			</div>
@@ -199,15 +202,6 @@ const browserFilters = ref(null);
 const searchBar = ref(null);
 const observer = ref(null);
 const rootData = ref([]);
-
-// New collection state flags (optimized)
-const collectionStateFlags = ref({
-	has_untracked: false,
-	has_modified: false,
-	has_outdated: false,
-	has_rebuildable: false
-});
-const loadingCollectionStates = ref(false);
 
 // events
 import { Events } from "@wailsio/runtime";
@@ -1510,47 +1504,7 @@ const detectModifier = (event) => {
 	}
 };
 
-// Loads optimized state flags (untracked/modified/outdated/rebuildable) for current collection context
-const loadCollectionStateFlags = async () => {
-	loadingCollectionStates.value = true;
-	
-	try {
-		// Determine entity context (root or navigated collection)
-		const project = projectStore.activeProject;
-		let entityId = "root";
-		
-		if (commonStore.navigatorMode && collectionStore.navigatedCollection) {
-			entityId = collectionStore.navigatedCollection.id || "root";
-		}
 
-		if(collectionStore.navigatedCollection){
-			if(collectionStore.navigatedCollection?.type !== 'entity'){
-				return
-			}
-		}
-
-		// Fetch state flags from service
-		const flags = await CollectionService.GetCollectionStateFlags(
-			project.uri,
-			entityId,
-			project.working_directory,
-			project.ignore_list
-		);
-		
-		collectionStateFlags.value = flags;
-	} catch (error) {
-		console.error('Error loading collection state flags:', error);
-		// Reset flags on error
-		collectionStateFlags.value = {
-			has_untracked: false,
-			has_modified: false,
-			has_outdated: false,
-			has_rebuildable: false
-		};
-	} finally {
-		loadingCollectionStates.value = false;
-	}
-};
 
 // Full refresh: reloads project data, fetches all children, processes icons/previews, and updates state flags
 const refresh = async () => {
@@ -1585,7 +1539,7 @@ const refresh = async () => {
 	rootData.value = [...children.entities, ...children.untracked_entities, ...children.tasks, ...children.untracked_tasks];
 	assetStore.assetsLoaded = true;
 
-	loadCollectionStateFlags(); 
+	collectionStore.loadCollectionStateFlags(); 
 
 };
 
@@ -1667,7 +1621,7 @@ const softRefresh = async () => {
 
 	// Update state
 	assetStore.assetsLoaded = true;
-	loadCollectionStateFlags(); 
+	collectionStore.loadCollectionStateFlags(); 
 };
 
 watch(() => assetStore.assetsLoaded, async () => {

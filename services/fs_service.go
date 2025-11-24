@@ -279,6 +279,109 @@ func (f *FSService) Rename(oldPath, newPath string) error {
 	return os.Rename(oldPath, newPath)
 }
 
+func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, error) {
+	app := application.Get()
+
+	// Send initial progress
+	progress := output.ProgressReport{
+		Title:         "Backing Up Project",
+		Message:       "Preparing backup...",
+		Percentage:    0,
+		Current:       0,
+		Total:         100,
+		OperationType: "read",
+	}
+	app.EmitEvent("progress-update", progress)
+
+	// Open the source file
+	sourceFile, err := os.Open(sourcePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open source file: %w", err)
+	}
+	defer sourceFile.Close()
+
+	// Get file info
+	sourceInfo, err := sourceFile.Stat()
+	if err != nil {
+		return "", fmt.Errorf("failed to get source file info: %w", err)
+	}
+
+	// Check if destination is a directory
+	destInfo, err := os.Stat(destinationPath)
+	if err == nil && destInfo.IsDir() {
+		// If destination is a directory, use the source filename
+		destinationPath = filepath.Join(destinationPath, filepath.Base(sourcePath))
+	}
+
+	// Create the destination file
+	destFile, err := os.Create(destinationPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to create destination file: %w", err)
+	}
+	defer destFile.Close()
+
+	// Copy the contents with progress tracking
+	totalSize := sourceInfo.Size()
+	buffer := make([]byte, 1024*1024) // 1MB buffer for faster copying
+	var copiedBytes int64
+	lastProgressUpdate := int64(0)
+	updateInterval := totalSize / 20 // Update every 5% of file size
+
+	for {
+		nr, err := sourceFile.Read(buffer)
+		if nr > 0 {
+			nw, err := destFile.Write(buffer[0:nr])
+			if err != nil {
+				return "", fmt.Errorf("failed to write to destination: %w", err)
+			}
+			if nr != nw {
+				return "", fmt.Errorf("short write")
+			}
+			copiedBytes += int64(nw)
+
+			// Only send progress update if we've crossed the threshold
+			if copiedBytes-lastProgressUpdate >= updateInterval || copiedBytes == totalSize {
+				percentage := (float64(copiedBytes) / float64(totalSize)) * 100
+				progress = output.ProgressReport{
+					Title:         "Backing Up Project",
+					Message:       filepath.Base(sourcePath),
+					Percentage:    percentage,
+					Current:       1,
+					Total:         1,
+					OperationType: "read",
+				}
+				app.EmitEvent("progress-update", progress)
+				lastProgressUpdate = copiedBytes
+			}
+		}
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return "", fmt.Errorf("failed to copy file contents: %w", err)
+		}
+	}
+
+	// Preserve file mode/permissions
+	err = os.Chmod(destinationPath, sourceInfo.Mode())
+	if err != nil {
+		return "", fmt.Errorf("failed to set file permissions: %w", err)
+	}
+
+	// Send completion progress
+	progress = output.ProgressReport{
+		Title:         "Backing Up Project",
+		Message:       "Backup complete",
+		Percentage:    100,
+		Current:       1,
+		Total:         1,
+		OperationType: "read",
+	}
+	app.EmitEvent("progress-update", progress)
+
+	return destinationPath, nil
+}
+
 func (f *FSService) DuplicateFile(sourcePath, destinationPath string) (string, error) {
 	// Open the source file
 	sourceFile, err := os.Open(sourcePath)
