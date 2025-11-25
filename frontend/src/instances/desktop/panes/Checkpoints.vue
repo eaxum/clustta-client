@@ -148,7 +148,6 @@ const refreshCheckpoints = async () => {
 
   trayStates.checkpointsLoaded = true;
   let userCache = {}
-  console.log(taskCheckpoints)
   for (let i = 0; i < taskCheckpoints.length; i++) {
     let checkpoint = taskCheckpoints[i];
     let authorId = checkpoint.author_id
