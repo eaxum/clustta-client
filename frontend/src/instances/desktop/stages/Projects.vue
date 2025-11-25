@@ -31,7 +31,7 @@
 
 			<ProjectListSkeleton :cardView="cardView" v-if="!projectStore.projectsLoaded" />
 			
-			<PageState v-else-if="!projects.length || (untrackedProjects.length && !projectStore.showUntrackedProjects)" :message="message()" :illustration="illustration()"
+			<PageState v-else-if="!trackedProjects.length" :message="message()" :illustration="illustration()"
 				:secondaryIcon="secondaryActionIcon()" :secondaryActionMessage="secondaryActionMessage()"
 				:secondaryActionFunction="secondaryActionFunction" />
 
