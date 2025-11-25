@@ -1356,24 +1356,30 @@ const revertAllChanges = async () => {
 	modals.setModalVisibility('popUpModal', false);
 	
 	// Get current navigation context
-	let path;
-	path = collectionStore.navigatedCollection?.type === 'entity'
-		? collectionStore.navigatedCollection?.entity_path
-		: collectionStore.navigatedCollection?.item_path;
-
-	const modifiedTasksPath = assetStore.modifiedAssetsPath;
-	let filteredPaths;
-
-	// Filter paths based on current context
-	if (path) {
-		filteredPaths = modifiedTasksPath.filter(item => item.startsWith(path));
-	} else {
-		filteredPaths = modifiedTasksPath;
+	const navigated = collectionStore.navigatedCollection;
+	let collectionId = null;
+	let targetPath = null;
+	
+	if (navigated?.type === 'entity') {
+		collectionId = navigated.id;
+	} else if (navigated?.type === 'untracked_entity') {
+		targetPath = navigated.file_path;
 	}
-
+	
+	// Fetch modified items recursively for the current collection context
+	await collectionStore.reloadItemsForCheckpoint(collectionId, targetPath);
+	const filteredPaths = assetStore.modifiedAssets.modified.map(asset => asset.task_path);
+	
+	if (filteredPaths.length === 0) {
+		return;
+	}
+	
 	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
 		.then((response) => {
-			assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(item => !filteredPaths.includes(item));
+			// Remove reverted items from modifiedAssets
+			assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter(
+				(item) => !filteredPaths.includes(item.task_path)
+			);
 			softRefresh();
 		})
 		.catch((error) => {
@@ -1507,8 +1513,6 @@ const refresh = async () => {
 	}
 	// Reset state
 	assetStore.assetsLoaded = false;
-	assetStore.modifiedAssetsPath = []
-	assetStore.untrackedAssetsPath = [];
 	stage.cutItems = [];
 	await projectStore.refreshActiveProject();
 	await trayStates.refreshData();
