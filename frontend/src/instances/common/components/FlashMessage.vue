@@ -10,12 +10,12 @@
        class="flash-area" 
        ref="flashArea"
        :class="{ 'flash-area-desktop': isDesktop, 'flash-area-desktop-progress': progressRunning }">
-
+    
     <div class="progress-bar">
 
       <div class="progress-bar-header">
         <div class="header-with-minimize">
-          <HeaderArea :title="notificationStore.getProgress.title" :icon="'info'" :showSearch="showSearch" />
+          <HeaderArea :title="notificationStore.getProgress.title" :icon="progressIcon" :showSearch="showSearch" />
           <button @click="minimizeProgress" class="minimize-button single-action-button" v-tooltip="'Minimize'">
             <img :src="getAppIcon('chevron-down')" class="minimize-icon small-icons" />
           </button>
@@ -39,14 +39,12 @@
             {{ throttledExtraMessage }}
           </div>
         </div>
-        <button v-if="notificationStore.canCancel" class="button" @click="cancelOperation" v-stop-propagation>
-          <div class="login-button-text">
-            {{ isAwaitingResponse ? 'Cancelling...' : 'Cancel' }}
-          </div>
-          <div v-if="isAwaitingResponse" class="login-button-icon loading-icon">
-            <img src="/icons/loading.svg" />
-          </div>
-        </button>
+        <GeneralButton v-if="notificationStore.canCancel" 
+          :label="isAwaitingResponse ? 'Cancelling...' : 'Cancel'" 
+          :buttonFunction="cancelOperation" 
+          :loading="isAwaitingResponse"
+          :colored="false"
+          :fullWidth="false" />
       </div>
 
 
@@ -64,6 +62,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 import ProgressBar from '@/instances/common/components/ProgressBar.vue';
 import { useNotificationStore } from '@/stores/notifications';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import { Events } from "@wailsio/runtime";
 import { useStageStore } from '@/stores/stages';
 import { useIconStore } from '@/stores/icons';
@@ -97,6 +96,28 @@ const notificationItem = ref(null);
 const progressRunning = computed(() => { return notificationStore.getProgress.running })
 const files = ref(214);
 
+const progressIcon = computed(() => {
+  const message = notificationStore.getProgress.message?.toLowerCase() || '';
+  
+  if (message.includes('download') || message.includes('receiving')) {
+    return 'download';
+  } else if (message.includes('revert')) {
+    return 'revert';
+  } else if (message.includes('rebuild')) {
+    return 'jigsaw';
+  } else if (message.includes('upload') || message.includes('sending')) {
+    return 'cloud-up';
+  } else if (message.includes('sync')) {
+    return 'cloud-up';
+  } else if (message.includes('checkpoint')) {
+    return 'layers';
+  } else if (message.includes('delete') || message.includes('trash')) {
+    return 'trash';
+  }
+  
+  return 'download';
+});
+
 const throttledExtraMessage = ref(notificationStore.getProgress.extra_message);
 let extraMessageTimeout = null;
 let lastExtraMessage = notificationStore.getProgress.extra_message;
@@ -115,14 +136,6 @@ watch(
   }
 );
 
-const convertCount = (value) => {
-  if (value < 0 || value > 100) {
-    throw new Error("Value must be between 0 and 100");
-  }
-  const newValue = (value / 100) * files.value;
-  return Math.round(newValue);
-};
-
 Events.On("add_message", async (message) => {
   const payload = message.data;
   let notificationData
@@ -134,16 +147,7 @@ Events.On("add_message", async (message) => {
   showMessage(notificationData)
 });
 
-// const notification = ref(null);
 const notification = ref(false);
-// const notification = ref({
-//     "hasUndo": false,
-//     "longMessage": "",
-//     "message": "Item Restored",
-//     "read": false,
-//     "type": "success"
-// });
-
 
 const timer = ref(null);
 
@@ -159,20 +163,6 @@ async function showMessage(data) {
     notification.value = null;
   }, 3000);
 }
-async function clearNotification() {
-  notification.value = null;
-  timer.value = null
-}
-async function undo() {
-  trayStates.undoFunction()
-  notification.value = null;
-  timer.value = null
-}
-
-function stopTimer() {
-  clearTimeout(timer.value);
-}
-
 const handleClickOutside = (event) => {
   if (notification.value && (event.target !== notificationItem.value)) {
     // //console.log('outside');
@@ -225,42 +215,6 @@ onBeforeUnmount(() => {
   font-weight: 500;
 }
 
-.login-button-text {
-  font-size: 14px;
-}
-
-.login-button-icon {
-  filter: invert(100%);
-  width: 20px;
-  height: 20px;
-}
-
-.button {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  border-radius: 16px;
-  padding: 10px 18px;
-  border-style: solid;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  height: 35px;
-  overflow: hidden;
-  width: max-content;
-  min-width: 100px;
-
-  width: max-content;
-  min-width: 80px;
-  padding: .2rem .8rem;
-  gap: .2rem;
-  height: 40px;
-  /* color: var(--black);
-  background-color: var(--bright-steel); */
-  outline: var(--transparent-line);
-}
-
 .flash-overlay-mask {
   z-index: 9998;
   cursor: not-allowed;
@@ -272,12 +226,9 @@ onBeforeUnmount(() => {
   z-index: 3;
   width: 100%;
   height: 100%;
-  /* margin: auto; */
   display: flex;
   transition: opacity 0.3s ease;
   background-color: rgba(0, 0, 0, 0.5);
-  /* background-color: var(--dark-steel); */
-  /* background-color: red; */
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(3px);
@@ -312,10 +263,10 @@ onBeforeUnmount(() => {
 
 .flash-area-desktop {
   position: fixed;
-  top: 110px;
-  right: 30px;
-  width: 40%;
-  max-width: 400px;
+  /* top: 110px; */
+  /* right: 30px; */
+  width: 50%;
+  max-width: 500px;
   /* min-width: 250px; */
   /* width: 1000px; */
   /* background-color: red; */
@@ -362,7 +313,7 @@ onBeforeUnmount(() => {
   outline-offset: -1px;
   outline: var(--transparent-line);
   background-color: var(--black);
-  border-radius: var(--large-radius);
+  border-radius: var(--very-large-radius);
 
 }
 

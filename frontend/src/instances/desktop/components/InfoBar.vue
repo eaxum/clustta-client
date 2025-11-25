@@ -106,7 +106,7 @@ const progressTotal = computed(() => {
 
 const progressTooltip = computed(() => {
   const type = isWriteOperation.value ? 'Write' : 'Read';
-  return `${progressTitle.value} - ${type} Operation (Click to restore)`;
+  return `${progressTitle.value} (Click to restore)`;
 });
 
 // events

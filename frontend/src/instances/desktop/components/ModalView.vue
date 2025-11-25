@@ -1,5 +1,6 @@
 <template>
-  <div class="modal-mask" v-esc="closeModals">
+  <div class="modal-mask" :class="{ 'modal-mask-progress': progressRunning }" 
+    v-stop-propagation v-esc="closeModals" @click="closeModals">
     <component v-for="modal in visibleModals" :key="modal.name" :is="modal.component" />
   </div>
 </template>
@@ -8,6 +9,7 @@
 import { computed, onMounted, onBeforeUnmount } from 'vue';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useDndStore } from '@/stores/dnd';
+import { useNotificationStore } from '@/stores/notifications';
 
 // General
 import PopUpModal from '@/instances/desktop/modals/PopUpModal.vue';
@@ -91,6 +93,9 @@ const props = defineProps({
 
 const modals = useDesktopModalStore();
 const dndStore = useDndStore();
+const notificationStore = useNotificationStore();
+
+const progressRunning = computed(() => notificationStore.getProgress.running);
 
 const modalComponents = {
 
@@ -161,6 +166,7 @@ const modalComponents = {
 const closeModals = () => {
   const restrictedModals = ['dirOnboardModal', 'eulaModal']
   if(restrictedModals.includes(modals.activeModal)) return
+  // if(progressRunning.value) return
   modals.disableAllModals();
 };
 
@@ -242,10 +248,8 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
 }
 
-
-.modal-header h3 {
-  margin-top: 0;
-  color: #42b983;
+.modal-mask-progress{
+  cursor: wait;
 }
 
 .modal-body {
