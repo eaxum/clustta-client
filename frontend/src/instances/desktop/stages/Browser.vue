@@ -1316,7 +1316,6 @@ const rebuildAll = async () => {
 
 	const path = collectionStore.navigatedCollection?.entity_path;
 	const navigatedEntityId = collectionStore.navigatedCollection?.id;
-	const rebuildableTasksPath = assetStore.rebuildableAssetsPath;
 
 	notificationStore.cancleFunction = SyncService.CancelSync;
 	notificationStore.canCancel = true;
@@ -1325,14 +1324,9 @@ const rebuildAll = async () => {
 
 		const userTasks = rootData.value;
 		const userTaskIds = userTasks.map((task) => task.id)
-		const userTaskPaths = userTasks.map(task => task.file_path);
 
 		await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, userTaskIds)
 		.then(() => {
-			
-			// assetStore.rebuildableAssetsPath = rebuildableTasksPath.filter(taskPath => 
-			// 	!userTaskPaths.some(userTaskPath => taskPath.startsWith(userTaskPath))
-			// );
 			softRefresh();
 			return;
 		})
@@ -1388,28 +1382,28 @@ const revertAllChanges = async () => {
 		});
 };
 
-const updateAllModified = async () => {
+const updateAllOutdated = async () => {
 	modals.setModalVisibility('popUpModal', false);
 	
 	// Get current navigation context
-	let path;
-	path = collectionStore.navigatedCollection?.type === 'entity'
-		? collectionStore.navigatedCollection?.entity_path
-		: collectionStore.navigatedCollection?.item_path;
-
-	const outdatedTasksPath = assetStore.outdatedAssetsPath;
-	let filteredPaths;
-
-	// Filter paths based on current context
-	if (path) {
-		filteredPaths = outdatedTasksPath.filter(item => item.startsWith(path));
-	} else {
-		filteredPaths = outdatedTasksPath;
+	const navigated = collectionStore.navigatedCollection;
+	let collectionId = null;
+	
+	if (navigated?.type === 'entity') {
+		collectionId = navigated.id;
 	}
-
+	
+	// Fetch outdated items recursively for the current collection context
+	const outdatedTasks = await collectionStore.getOutdatedItems(collectionId);
+	const filteredPaths = outdatedTasks.map(task => task.task_path);
+	
+	if (filteredPaths.length === 0) {
+		return;
+	}
+	
+	console.log(filteredPaths)
 	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
 		.then((response) => {
-			assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(item => !filteredPaths.includes(item));
 			softRefresh();
 		})
 		.catch((error) => {
@@ -1436,7 +1430,7 @@ const prepAllCheckpointModal = () => {
 
 const updateAll = () => {
 	clearSelection();
-	updateAllModified();
+	updateAllOutdated();
 };
 
 const clearSelection = () => {

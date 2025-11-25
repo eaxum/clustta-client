@@ -501,8 +501,8 @@ const getAppIcon = (iconName) => {
   return icon
 };
 
-// Helper function to emit task data updates
-const emitUpdates = (taskId, updates) => {
+// Helper function to emit item data updates
+const emitItemUpdates = (taskId, updates) => {
   // Update the corresponding item in stage.selectedItems
   const selectedItemIndex = stage.selectedItems.findIndex(item => item.id === taskId);
   if (selectedItemIndex !== -1) {
@@ -701,7 +701,9 @@ const freeUpSpace = async () => {
         assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => taskPath !== task.task_path);
         
         // Emit task updates to notify components of file state changes
-        emitUpdates(task.id, { file_status: 'rebuildable' });
+        emitItemUpdates(task.id, [
+          { property: 'file_status', value: 'rebuildable' }
+        ]);
       })
       .catch((error) => {
         console.error(error); 
@@ -835,10 +837,10 @@ const makeDependenciesOfActive = async () => {
       }
     }
   }
-  emitUpdates(task.id, {
-    dependencies: task.dependencies,
-    entity_dependencies: task.entity_dependencies
-  });
+  emitItemUpdates(task.id, [
+    { property: 'dependencies', value: task.dependencies },
+    { property: 'entity_dependencies', value: task.entity_dependencies }
+  ]);
 
   stage.operationActive = false;
 };
@@ -881,29 +883,6 @@ const addEntityDependency = async (task, dependencyId) => {
     });
 
 };
-
-const isAllResource = ref('false')
-
-const isAssetTypeSimilar = computed(() => {
-
-  if(!onlyTasks.value) return false
-
-  const selectedTasks = stage.selectedItems;
-
-  const firstValue = selectedTasks[0].is_resource;
-  return selectedTasks.every( task => task.is_resource === firstValue);
-
-})
-
-const allAssetTypes = computed(() => {
-
-  if(!onlyTasks.value) return false
-
-  const selectedTasks = stage.selectedItems;
-
-  return !selectedTasks[0].is_resource
-
-})
 
 const toggleIsTask = async (newAssetType) => {
 
@@ -1027,6 +1006,10 @@ const unassignCollections = async () => {
 
 const revertAllChanges = async () => {
   modals.setModalVisibility('popUpModal', false);
+
+  notificationStore.cancleFunction = SyncService.CancelSync
+  notificationStore.canCancel = true
+
   await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, stage.markedItems)
     .then((response) => {
       // Update each reverted task in stage.selectedItems and emit updates
@@ -1036,7 +1019,9 @@ const revertAllChanges = async () => {
         task.file_status = 'normal';
         
         // Emit task updates to notify components of the state change
-        emitUpdates(task.id, { file_status: 'normal' });
+        emitItemUpdates(task.id, [
+          { property: 'file_status', value: 'normal' }
+        ]);
       }
     })
     .catch((error) => {

@@ -49,6 +49,10 @@ type ItemsForCheckpoint struct {
 	UntrackedFiles []models.UntrackedTask `json:"untracked_files"`
 }
 
+type ItemsForUpdate struct {
+	OutdatedTasks []models.Task `json:"outdated_tasks"`
+}
+
 type CollectionService struct {
 }
 
@@ -1212,6 +1216,89 @@ func (e *CollectionService) processUntrackedPath(targetPath, projectWorkingDir s
 	}
 
 	return scanDirectory(absolutePath)
+}
+
+//GetOutdatedItemsInCollection efficiently collects all outdated items in a collection hierarchy.
+//Returns deduplicated outdated tasks.
+func (e *CollectionService) GetOutdatedItemsInCollection(projectPath, entityId, projectWorkingDir string, ignoreList []string) (ItemsForUpdate, error) {
+	result := ItemsForUpdate{
+		OutdatedTasks: make([]models.Task, 0),
+	}
+
+	if entityId == "root" {
+		entityId = ""
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return result, err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return result, err
+	}
+	defer tx.Rollback()
+
+	outdatedTasksMap := make(map[string]models.Task)
+
+	err = e.processTrackedCollectionForOutdated(tx, entityId, projectPath, projectWorkingDir, ignoreList, outdatedTasksMap)
+	if err != nil {
+		return result, err
+	}
+
+	for _, task := range outdatedTasksMap {
+		result.OutdatedTasks = append(result.OutdatedTasks, task)
+	}
+
+	return result, nil
+}
+
+//processTrackedCollectionForOutdated recursively scans tracked collections for outdated tasks.
+//Uses flag-based optimization to avoid scanning clean collection branches.
+func (e *CollectionService) processTrackedCollectionForOutdated(tx *sqlx.Tx, entityId, projectPath, projectWorkingDir string, ignoreList []string, outdatedTasksMap map[string]models.Task) error {
+	var processCollection func(string) error
+	processCollection = func(currentEntityId string) error {
+		childrenState, err := e.GetCollectionChildrenState(projectPath, currentEntityId, projectWorkingDir, ignoreList)
+		if err != nil {
+			return err
+		}
+
+		for _, task := range childrenState.OutdatedTasks {
+			outdatedTasksMap[task.Id] = task
+		}
+
+		var childCollections []models.Entity
+		childQuery := `
+			SELECT id, name, entity_path
+			FROM full_entity 
+			WHERE parent_id = ? AND trashed = 0
+			ORDER BY name
+		`
+		err = tx.Select(&childCollections, childQuery, currentEntityId)
+		if err != nil {
+			return err
+		}
+
+		for _, childCollection := range childCollections {
+			flags, err := e.GetCollectionStateFlags(projectPath, childCollection.Id, projectWorkingDir, ignoreList)
+			if err != nil {
+				return err
+			}
+
+			if flags.HasOutdated {
+				err = processCollection(childCollection.Id)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	}
+
+	return processCollection(entityId)
 }
 
 //Rebuild downloads missing checkpoints and rebuilds files for specified collections.
