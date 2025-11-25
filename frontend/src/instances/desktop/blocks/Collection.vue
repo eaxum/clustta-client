@@ -475,13 +475,20 @@ const triggerRename = () => {
 const updateEntityAssets = async () => {
 	notificationStore.cancleFunction = SyncService.CancelSync
 	notificationStore.canCancel = true
-  let entityOutdatedAssets = assetStore.outdatedAssetsPath.filter(taskPath => taskPath.startsWith(props.entity.entity_path))
+	
+	// Fetch outdated items for this entity recursively
+	const outdatedTasks = await collectionStore.getOutdatedItems(props.entity.id);
+	const entityOutdatedAssets = outdatedTasks.map(task => task.task_path);
+	
+	if (entityOutdatedAssets.length === 0) {
+		return;
+	}
+	
 	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entityOutdatedAssets)
 		.then((data) => {
-			assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path))
 			emitter.emit('refresh-browser');
 		}).catch(async (error) => {
-			notificationStore.errorNotification("Error Rebuilding All", error)
+			notificationStore.errorNotification("Error Updating Items", error)
 		})
 };
 

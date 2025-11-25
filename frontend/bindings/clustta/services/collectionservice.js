@@ -301,6 +301,24 @@ export function GetItemsForCheckpoint(projectPath, entityId, targetPath, project
 }
 
 /**
+ * GetOutdatedItemsInCollection efficiently collects all outdated items in a collection hierarchy.
+ * Returns deduplicated outdated tasks.
+ * @param {string} projectPath
+ * @param {string} entityId
+ * @param {string} projectWorkingDir
+ * @param {string[]} ignoreList
+ * @returns {Promise<$models.ItemsForUpdate> & { cancel(): void }}
+ */
+export function GetOutdatedItemsInCollection(projectPath, entityId, projectWorkingDir, ignoreList) {
+    let $resultPromise = /** @type {any} */($Call.ByID(86452480, projectPath, entityId, projectWorkingDir, ignoreList));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType8($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
  * Rebuild downloads missing checkpoints and rebuilds files for specified collections.
  * Supports cancellation and sends progress updates via application events.
  * @param {string} projectPath
@@ -404,3 +422,4 @@ const $$createType4 = $models.CollectionStateFlags.createFrom;
 const $$createType5 = $Create.Array($Create.Any);
 const $$createType6 = $Create.Array($$createType0);
 const $$createType7 = $models.ItemsForCheckpoint.createFrom;
+const $$createType8 = $models.ItemsForUpdate.createFrom;

@@ -317,6 +317,36 @@ export const useCollectionStore = defineStore("collection", {
     },
 
     /**
+     * Fetches outdated tasks recursively for a collection.
+     * @param {string|null} collectionId - Collection ID to scan (null for root)
+     * @returns {Promise<Array>} Array of outdated task objects
+     */
+    async getOutdatedItems(collectionId = null) {
+      const assetStore = useAssetStore();
+      assetStore.loadingAssetStates = true;
+      const projectStore = useProjectStore();
+      let project = projectStore.activeProject;
+      
+      let entityId = collectionId || "";
+      
+      try {
+        const result = await CollectionService.GetOutdatedItemsInCollection(
+          project.uri,
+          entityId,
+          project.working_directory,
+          project.ignore_list
+        );
+
+        return result.outdated_tasks || [];
+      } catch (error) {
+        console.error('Error loading outdated items:', error);
+        return [];
+      } finally {
+        assetStore.loadingAssetStates = false;
+      }
+    },
+
+    /**
      * Loads optimized state flags (untracked/modified/outdated/rebuildable) for current collection context.
      * Updates collectionStateFlags with boolean flags indicating presence of items in each state.
      */
