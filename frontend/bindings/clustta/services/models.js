@@ -773,6 +773,38 @@ export class ItemsForCheckpoint {
     }
 }
 
+export class ItemsForUpdate {
+    /**
+     * Creates a new ItemsForUpdate instance.
+     * @param {Partial<ItemsForUpdate>} [$$source = {}] - The source object to create the ItemsForUpdate.
+     */
+    constructor($$source = {}) {
+        if (!("outdated_tasks" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.Task[]}
+             */
+            this["outdated_tasks"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ItemsForUpdate instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ItemsForUpdate}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType2;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("outdated_tasks" in $$parsedSource) {
+            $$parsedSource["outdated_tasks"] = $$createField0_0($$parsedSource["outdated_tasks"]);
+        }
+        return new ItemsForUpdate(/** @type {Partial<ItemsForUpdate>} */($$parsedSource));
+    }
+}
+
 /**
  * NullString represents a nullable string from the database
  */

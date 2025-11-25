@@ -7,6 +7,11 @@ import emitter from '@/lib/mitt';
 export async function syncData() {
   const projectStore = useProjectStore();
   const notificationStore = useNotificationStore();
+
+  
+  notificationStore.cancleFunction = SyncService.CancelSync;
+  notificationStore.canCancel = true;
+  
   let syncOptions = {
     only_latest_checkpoints: false,
     task_dependencies: false,

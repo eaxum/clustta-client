@@ -25,13 +25,15 @@
             <img class="small-icons" :src="getAppIcon('plus-circle')">
           </span>
         </div>
-        <div v-if="workingDirectory" class="computed-path-display">
-          Final path: {{ workingDirectory }}
-        </div>
+
+        <!-- <div v-if="workingDirectory" class="computed-path-display">
+          {{ workingDirectory }}
+        </div> -->
+
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="'Cancel'" :isActive="!isAwaitingResponse" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
         <GeneralButton :label="'Download'" :fullWidth="true" @click="cloneProject" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>

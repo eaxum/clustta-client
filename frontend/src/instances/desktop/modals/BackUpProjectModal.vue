@@ -4,7 +4,7 @@
     <div class="general-container">
 
       <!-- Project Info Display -->
-      <div v-if="!isBackingUp && !isSyncing" class="settings-section-card">
+      <div v-if="!isBackingUp && !isSyncing && !backupComplete" class="settings-section-card">
         <div class="settings-section-card-header">
           <div class="header-content">
             <h2 class="settings-section-card-title">Project to backup</h2>
@@ -32,7 +32,7 @@
       </div>
 
       <!-- Backup Destination Card -->
-      <div v-if="!isBackingUp && !isSyncing" class="settings-section-card">
+      <div v-if="!isBackingUp && !isSyncing && !backupComplete" class="settings-section-card">
         <div class="settings-section-card-header">
           <div class="header-content">
             <h2 class="settings-section-card-title">Backup destination</h2>
@@ -66,7 +66,7 @@
       </div>
 
       <!-- Full Sync Option Card -->
-      <div v-if="!isBackingUp && !isSyncing && projectStore.activeProject.has_remote" class="settings-section-card">
+      <div v-if="!isBackingUp && !isSyncing && projectStore.activeProject.has_remote && !backupComplete" class="settings-section-card">
         <div class="settings-section-card-header">
           <div class="header-content">
             <h2 class="settings-section-card-title">Sync before backup</h2>
@@ -110,18 +110,47 @@
             </div>
           </div>
         </div>
+        <div class="settings-section-card-content">
+          <div class="location-item location-item-single">
+            <div class="location-icon">
+              <img class="small-icons" :src="getAppIcon('folder')">
+            </div>
+            <div class="location-content">
+              <div class="location-header">
+                <div class="location-name">Backup File</div>
+              </div>
+              <div class="location-body">
+                {{ backupDestinationPath }}
+              </div>
+            </div>
+            <div class="location-actions">
+              <ActionButton 
+                :icon="getAppIcon('folder-arrow-up-right')" 
+                :buttonFunction="() => locateBackupFile()"
+                v-tooltip="'Locate in Explorer'"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Action Buttons -->
-      <div v-if="!isBackingUp && !isSyncing" class="pop-up-actions">
+      <div v-if="!isBackingUp" class="pop-up-actions" :class="{ 'pop-up-actions-syncing' : isSyncing || backupComplete }" >
         <GeneralButton 
-          v-if="!backupComplete"
+          v-if="!backupComplete && !isSyncing"
           label="Cancel" 
           :buttonFunction="closeModal"
           :fullWidth="false"
         />
         <GeneralButton 
-          v-if="!backupComplete"
+          v-if="!backupComplete && isSyncing"
+          label="Cancel Sync"
+          :colored="false" 
+          :buttonFunction="cancelOperation"
+          :fullWidth="false"
+        />
+        <GeneralButton 
+          v-else-if="!backupComplete"
           label="Backup" 
           :buttonFunction="backupProject"
           :fullWidth="false"
@@ -162,8 +191,9 @@ import { useStageStore } from '@/stores/stages';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import ProgressBar from '@/instances/common/components/ProgressBar.vue';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
-import { DialogService, FSService } from '@/../bindings/clustta/services/index';
+import { DialogService, FSService, SyncService } from '@/../bindings/clustta/services/index';
 
 //refs
 const projectStore = useProjectStore();
@@ -173,6 +203,7 @@ const stage = useStageStore();
 
 const selectedBackupDirectory = ref('');
 const isBackingUp = ref(false);
+const isAwaitingResponse = ref(false);
 const isSyncing = ref(false);
 const backupComplete = ref(false);
 const backupDestinationPath = ref('');
@@ -182,6 +213,10 @@ const performFullSync = async () => {
   try {
     isSyncing.value = true;
     stage.operationActive = true;
+    
+    notificationStore.cancleFunction = SyncService.CancelSync
+    notificationStore.canCancel = true
+
     await syncFullData();
     notificationStore.addNotification(
       'Sync complete',
@@ -246,6 +281,21 @@ const backupProject = async () => {
   } finally {
     stage.operationActive = false;
     isBackingUp.value = false;
+  }
+};
+
+const cancelOperation = async () => {
+  isAwaitingResponse.value = true;
+  await notificationStore.cancleFunction()
+  notificationStore.resetProgress()
+  notificationStore.cancleFunction = null
+  notificationStore.canCancel = false
+  isAwaitingResponse.value = false;
+};
+
+const locateBackupFile = () => {
+  if (backupDestinationPath.value) {
+    FSService.RevealInExplorer(backupDestinationPath.value);
   }
 };
 
@@ -388,10 +438,21 @@ const closeModal = () => {
   width: 100%;
 }
 
+.location-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-sizing: border-box;
+}
+
 .pop-up-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 0.5rem;
+}
+
+.pop-up-actions-syncing {
+  justify-content: flex-end;
 }
 
 /* Progress Section */
