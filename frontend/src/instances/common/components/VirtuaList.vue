@@ -1,6 +1,6 @@
 <template>
   <div class="virtua-scroll-viewport" ref="scrollContainerRef" :style="{ height: `${totalHeight}px` }"
-    @mouseenter="updateAssetState" @mouseleave="onMouseLeave" :data-visibility="containerVisibility">
+    @mouseenter="refreshView" :data-visibility="containerVisibility">
     <div class="virtua-scroll-conveyor" :style="{ transform: `translateY(${offsetY}px)` }">
       <VirtuaItem @refreshData="emit('refreshData')" v-for="child in visibleChildren" :child="items[child.index]" :key="child.index" :index="child.index"
         :itemHeight="itemHeight" :isExpanded="child.isExpanded" :onHeightChange="onHeightChange"
@@ -23,8 +23,10 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useCommonStore } from '@/stores/common';
 
 import VirtuaItem from '@/instances/common/components/VirtuaItem.vue';
-import { AssetService } from '@/../bindings/clustta/services';
+import { AssetService, CollectionService } from "@/../bindings/clustta/services";
 import { useProjectStore } from '@/stores/projects';
+import { useCollectionStore } from '@/stores/collections';
+import emitter from '@/lib/mitt';
 
 const stage = useStageStore();
 const menu = useMenu();
@@ -34,6 +36,7 @@ const projectStore = useProjectStore();
 const scrollStore = useScrollStore();
 const modals = useDesktopModalStore();
 const commonStore = useCommonStore();
+const collectionStore = useCollectionStore();
 
 const scrollContainerRef = ref(null);
 const intersectionObserver = ref(null);
@@ -422,25 +425,73 @@ const containerVisibility = computed(() => {
   return 'partially-visible';
 });
 
-const updateAssetState = async () => {
-  // for (let i = 0; i < visibleChildren.value.length; i++) {
-  //   let visibleChild = visibleChildren.value[i];
-  //   if (visibleChild.type == "task") {
-  //     let fileStatus = await assetStore.getAssetFileStatus(visibleChild)
-  //     if (fileStatus === "modified") {
-  //       if (!assetStore.modifiedAssetsPath.includes(visibleChild.task_path)) {
-  //         assetStore.addModifiedAssetPath(visibleChild.task_path)
-  //       }
-  //     }
-  //     props.items[visibleChild.index].file_status = fileStatus;
-  //   }
-  // }
+// Helper function to emit item data updates
+const emitItemUpdates = (itemId, updates) => {
+  const updateData = { itemId, updates };
+  
+  // Emit to both Browser and VirtuaItem components
+  emitter.emit('update-root-data', updateData);
+  emitter.emit('update-children', updateData);
 };
 
-const onMouseLeave = () => {
-};
+const previousUntrackedCount = ref(0);
 
-</script>
+const refreshView = async () => {
+  const project = projectStore.activeProject;
+  const entityId = collectionStore.navigatedCollection?.id;
+  
+  try {
+    const state = await CollectionService.GetCollectionChildrenState(
+      project.uri,
+      entityId,
+      project.working_directory,
+      project.ignore_list
+    );
+    
+    // Update modified tasks with file_status
+    if (state.modified_tasks && state.modified_tasks.length > 0) {
+      state.modified_tasks.forEach(task => {
+        emitItemUpdates(task.id, [
+          { property: 'file_status', value: 'modified' }
+        ]);
+      });
+    }
+    
+    // Update outdated tasks with file_status
+    if (state.outdated_tasks && state.outdated_tasks.length > 0) {
+      state.outdated_tasks.forEach(task => {
+        emitItemUpdates(task.id, [
+          { property: 'file_status', value: 'outdated' }
+        ]);
+      });
+    }
+    
+    // Update rebuildable tasks with file_status
+    if (state.rebuildable_tasks && state.rebuildable_tasks.length > 0) {
+      state.rebuildable_tasks.forEach(task => {
+        emitItemUpdates(task.id, [
+          { property: 'file_status', value: 'rebuildable' }
+        ]);
+      });
+    }
+    
+    // Check if untracked items count has changed
+    const currentUntrackedCount = 
+      (state.untracked_files?.length || 0) + 
+      (state.untracked_folders?.length || 0);
+    
+    if (previousUntrackedCount.value !== currentUntrackedCount) {
+      previousUntrackedCount.value = currentUntrackedCount;
+      emitter.emit('refresh-browser');
+    }
+    
+    // Update collection state flags
+    // collectionStore.loadCollectionStateFlags();
+    
+  } catch (error) {
+    console.error('Error getting collection children state:', error);
+  }
+};</script>
 
 <style scoped>
 .virtua-scroll-viewport {
