@@ -139,6 +139,13 @@ export class CollectionChildrenState {
              */
             this["rebuildable_tasks"] = [];
         }
+        if (!("normal_tasks" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.Task[]}
+             */
+            this["normal_tasks"] = [];
+        }
         if (!("untracked_files" in $$source)) {
             /**
              * @member
@@ -166,8 +173,9 @@ export class CollectionChildrenState {
         const $$createField0_0 = $$createType2;
         const $$createField1_0 = $$createType2;
         const $$createField2_0 = $$createType2;
-        const $$createField3_0 = $$createType3;
-        const $$createField4_0 = $$createType4;
+        const $$createField3_0 = $$createType2;
+        const $$createField4_0 = $$createType3;
+        const $$createField5_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("modified_tasks" in $$parsedSource) {
             $$parsedSource["modified_tasks"] = $$createField0_0($$parsedSource["modified_tasks"]);
@@ -178,11 +186,14 @@ export class CollectionChildrenState {
         if ("rebuildable_tasks" in $$parsedSource) {
             $$parsedSource["rebuildable_tasks"] = $$createField2_0($$parsedSource["rebuildable_tasks"]);
         }
+        if ("normal_tasks" in $$parsedSource) {
+            $$parsedSource["normal_tasks"] = $$createField3_0($$parsedSource["normal_tasks"]);
+        }
         if ("untracked_files" in $$parsedSource) {
-            $$parsedSource["untracked_files"] = $$createField3_0($$parsedSource["untracked_files"]);
+            $$parsedSource["untracked_files"] = $$createField4_0($$parsedSource["untracked_files"]);
         }
         if ("untracked_folders" in $$parsedSource) {
-            $$parsedSource["untracked_folders"] = $$createField4_0($$parsedSource["untracked_folders"]);
+            $$parsedSource["untracked_folders"] = $$createField5_0($$parsedSource["untracked_folders"]);
         }
         return new CollectionChildrenState(/** @type {Partial<CollectionChildrenState>} */($$parsedSource));
     }
