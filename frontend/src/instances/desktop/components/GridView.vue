@@ -190,6 +190,7 @@ const refreshView = async () => {
     
     if (currentUntracked !== previousUntracked.value) {
       const allUntrackedItems = [...currentUntrackedFolders, ...currentUntrackedFiles];
+      await assetStore.processUntrackedAssetsIcons(allUntrackedItems);
       emitter.emit('update-untracked-items', allUntrackedItems);
     }
     
