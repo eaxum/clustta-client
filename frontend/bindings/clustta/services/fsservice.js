@@ -8,9 +8,15 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as application$0 from "../../github.com/wailsapp/wails/v3/pkg/application/models.js";
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
 /**
+ * AddWatcherFolder registers a directory with the file system watcher.
+ * Enables monitoring of file system events within the specified directory.
  * @param {string} dir
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -20,6 +26,8 @@ export function AddWatcherFolder(dir) {
 }
 
 /**
+ * BackupFile creates a backup copy of a file with progress reporting.
+ * Sends progress updates to the frontend during the copy operation.
  * @param {string} sourcePath
  * @param {string} destinationPath
  * @returns {Promise<string> & { cancel(): void }}
@@ -30,6 +38,7 @@ export function BackupFile(sourcePath, destinationPath) {
 }
 
 /**
+ * BaseName returns the last element of the path.
  * @param {string} path
  * @returns {Promise<string> & { cancel(): void }}
  */
@@ -39,6 +48,7 @@ export function BaseName(path) {
 }
 
 /**
+ * DeleteFile removes a single file from the file system.
  * @param {string} path
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -48,6 +58,7 @@ export function DeleteFile(path) {
 }
 
 /**
+ * DeleteFolder removes a folder and all its contents recursively.
  * @param {string} path
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -57,6 +68,7 @@ export function DeleteFolder(path) {
 }
 
 /**
+ * DirExists checks if a directory exists at the specified path.
  * @param {string} path
  * @returns {Promise<boolean> & { cancel(): void }}
  */
@@ -66,6 +78,8 @@ export function DirExists(path) {
 }
 
 /**
+ * DuplicateFile creates a copy of a file to the specified destination.
+ * Preserves file permissions and automatically handles directory destinations.
  * @param {string} sourcePath
  * @param {string} destinationPath
  * @returns {Promise<string> & { cancel(): void }}
@@ -76,6 +90,8 @@ export function DuplicateFile(sourcePath, destinationPath) {
 }
 
 /**
+ * DuplicateFolder recursively copies a folder and all its contents to the destination.
+ * Preserves directory structure and file permissions.
  * @param {string} sourcePath
  * @param {string} destinationPath
  * @returns {Promise<void> & { cancel(): void }}
@@ -86,6 +102,7 @@ export function DuplicateFolder(sourcePath, destinationPath) {
 }
 
 /**
+ * Exists checks if a file or directory exists at the specified path.
  * @param {string} path
  * @returns {Promise<boolean> & { cancel(): void }}
  */
@@ -95,6 +112,7 @@ export function Exists(path) {
 }
 
 /**
+ * ExtName returns the file extension of the specified path.
  * @param {string} path
  * @returns {Promise<string> & { cancel(): void }}
  */
@@ -104,9 +122,8 @@ export function ExtName(path) {
 }
 
 /**
- * ExtractAll extracts archive contents to a folder in the current location
- * Supports .zip, .tar, .tar.gz, .gz formats
- * Sends progress updates to the frontend using output.ProgressReport
+ * ExtractAll extracts archive contents to a folder in the current location.
+ * Supports .zip, .tar, .tar.gz, .gz formats with progress reporting to the frontend.
  * @param {string} archivePath
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -116,6 +133,7 @@ export function ExtractAll(archivePath) {
 }
 
 /**
+ * FileCount counts the total number of files in a folder recursively.
  * @param {string} folderPath
  * @returns {Promise<number> & { cancel(): void }}
  */
@@ -125,6 +143,7 @@ export function FileCount(folderPath) {
 }
 
 /**
+ * FileHash generates an XXHash checksum for the specified file.
  * @param {string} path
  * @returns {Promise<string> & { cancel(): void }}
  */
@@ -134,6 +153,8 @@ export function FileHash(path) {
 }
 
 /**
+ * FileStat retrieves file information including name, size, and modification time.
+ * Returns a FileInfo struct with formatted size.
  * @param {string} path
  * @returns {Promise<$models.FileInfo> & { cancel(): void }}
  */
@@ -147,6 +168,7 @@ export function FileStat(path) {
 }
 
 /**
+ * FolderCount counts the total number of subdirectories in a folder recursively.
  * @param {string} folderPath
  * @returns {Promise<number> & { cancel(): void }}
  */
@@ -156,6 +178,8 @@ export function FolderCount(folderPath) {
 }
 
 /**
+ * FolderSize calculates the total size of a folder and its contents.
+ * Returns a formatted string (B, KB, MB, GB).
  * @param {string} folderPath
  * @returns {Promise<string> & { cancel(): void }}
  */
@@ -165,6 +189,8 @@ export function FolderSize(folderPath) {
 }
 
 /**
+ * GetCachedOSThumbnail retrieves a cached thumbnail for the specified file.
+ * Returns base64-encoded image if cached, empty string if not in cache.
  * @param {string} filePath
  * @param {number} size
  * @returns {Promise<string> & { cancel(): void }}
@@ -175,6 +201,8 @@ export function GetCachedOSThumbnail(filePath, size) {
 }
 
 /**
+ * GetFileIcon retrieves the system icon for a file extension.
+ * Returns the icon as a base64-encoded string.
  * @param {string} ext
  * @returns {Promise<string> & { cancel(): void }}
  */
@@ -184,6 +212,8 @@ export function GetFileIcon(ext) {
 }
 
 /**
+ * GetOSThumbnail generates a thumbnail for the specified file.
+ * Attempts custom extraction first (Blender, Maya), falls back to OS thumbnail. Returns base64-encoded image.
  * @param {string} filePath
  * @param {number} size
  * @returns {Promise<string> & { cancel(): void }}
@@ -194,6 +224,8 @@ export function GetOSThumbnail(filePath, size) {
 }
 
 /**
+ * GetOSThumbnails generates thumbnails for multiple files in batch.
+ * Returns a map of file paths to base64-encoded thumbnails. Empty strings for failures.
  * @param {string[]} filePaths
  * @param {number} size
  * @returns {Promise<{ [_: string]: string }> & { cancel(): void }}
@@ -208,6 +240,8 @@ export function GetOSThumbnails(filePaths, size) {
 }
 
 /**
+ * IsFile checks if the specified path is a file (not a directory).
+ * Returns an error if the path does not exist.
  * @param {string} path
  * @returns {Promise<boolean> & { cancel(): void }}
  */
@@ -217,6 +251,7 @@ export function IsFile(path) {
 }
 
 /**
+ * JoinPath joins multiple path elements into a single path.
  * @param {string[]} elem
  * @returns {Promise<string> & { cancel(): void }}
  */
@@ -226,6 +261,7 @@ export function JoinPath(...elem) {
 }
 
 /**
+ * LaunchFile opens a file with its default system application.
  * @param {string} path
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -246,6 +282,7 @@ export function LaunchFileWith(path) {
 }
 
 /**
+ * MakeDirs creates a directory and all necessary parent directories.
  * @param {string} path
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -255,6 +292,7 @@ export function MakeDirs(path) {
 }
 
 /**
+ * ReadFile reads a file and returns its contents as base64-encoded string.
  * @param {string} path
  * @returns {Promise<string> & { cancel(): void }}
  */
@@ -264,6 +302,8 @@ export function ReadFile(path) {
 }
 
 /**
+ * RemoveWatcherFolder unregisters a directory from the file system watcher.
+ * Stops monitoring file system events for the specified directory.
  * @param {string} dir
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -273,6 +313,7 @@ export function RemoveWatcherFolder(dir) {
 }
 
 /**
+ * Rename moves or renames a file or directory from oldPath to newPath.
  * @param {string} oldPath
  * @param {string} newPath
  * @returns {Promise<void> & { cancel(): void }}
@@ -283,6 +324,7 @@ export function Rename(oldPath, newPath) {
 }
 
 /**
+ * RevealInExplorer opens the system file explorer and highlights the specified path.
  * @param {string} path
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -292,6 +334,28 @@ export function RevealInExplorer(path) {
 }
 
 /**
+ * SetApp sets the application instance for the FSService.
+ * Required for emitting events to the frontend application.
+ * @param {application$0.App | null} app
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function SetApp(app) {
+    let $resultPromise = /** @type {any} */($Call.ByID(4086601803, app));
+    return $resultPromise;
+}
+
+/**
+ * StartWatching initializes the file system watcher and handles events.
+ * Runs a goroutine that monitors file changes and emits debounced events to the frontend.
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function StartWatching() {
+    let $resultPromise = /** @type {any} */($Call.ByID(617009305));
+    return $resultPromise;
+}
+
+/**
+ * TempDir returns the system's temporary directory path.
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function TempDir() {
@@ -300,6 +364,7 @@ export function TempDir() {
 }
 
 /**
+ * UserProjectTemplatesPath retrieves the user's project templates directory path.
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function UserProjectTemplatesPath() {
@@ -308,6 +373,8 @@ export function UserProjectTemplatesPath() {
 }
 
 /**
+ * WriteFile writes base64-encoded data to a file.
+ * Decodes the data before writing to disk.
  * @param {string} path
  * @param {string} data
  * @returns {Promise<void> & { cancel(): void }}

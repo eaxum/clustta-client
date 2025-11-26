@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
 )
@@ -21,7 +22,8 @@ var assets embed.FS
 
 var app *application.App
 
-// InitializeFullscreenMonitoring
+//InitializeFullscreenMonitoring starts fullscreen state monitoring for the application window.
+//Logs warnings if monitoring cannot be started.
 func InitializeFullscreenMonitoring() {
 	err := StartFullscreenMonitoring("Clustta")
 	if err != nil {
@@ -36,6 +38,27 @@ var encryptionKey = [32]byte{
 	0x16, 0x17, 0x14, 0x15, 0x12, 0x13, 0x10, 0x11,
 	0x0e, 0x0f, 0x0c, 0x0d, 0x0a, 0x0b, 0x08, 0x09,
 	0x06, 0x07, 0x04, 0x05, 0x02, 0x03, 0x00, 0x01,
+}
+
+var fsServiceInstance *services.FSService
+
+//createFSService initializes FSService with a file system watcher.
+//Stores reference globally and starts watching for file system events.
+func createFSService() *services.FSService {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Printf("Failed to create file watcher: %v", err)
+		return &services.FSService{}
+	}
+
+	fsService := &services.FSService{
+		Watcher: watcher,
+	}
+
+	fsServiceInstance = fsService
+	fsService.StartWatching()
+
+	return fsService
 }
 
 func main() {
@@ -91,7 +114,7 @@ func main() {
 			application.NewService(&services.DependencyTypeService{}),
 			application.NewService(&services.DeploymentService{}),
 			application.NewService(&services.DialogService{}),
-			application.NewService(&services.FSService{}),
+			application.NewService(createFSService()),
 			application.NewService(&services.ImportService{}),
 			application.NewService(&services.LogService{}),
 			application.NewService(&services.ProfileService{}),
@@ -113,6 +136,10 @@ func main() {
 			ApplicationShouldTerminateAfterLastWindowClosed: true,
 		},
 	})
+
+	if fsServiceInstance != nil {
+		fsServiceInstance.SetApp(app)
+	}
 
 	menu := application.NewMenu()
 
@@ -149,7 +176,6 @@ func main() {
 
 	frameless := runtime.GOOS != "darwin"
 
-	// Determine the modifier key based on the operating system
 	var modifier string
 	switch runtime.GOOS {
 	case "darwin":
@@ -158,7 +184,6 @@ func main() {
 		modifier = "ctrl"
 	}
 
-	// Build the key bindings map dynamically
 	keyBindings := map[string]func(window *application.WebviewWindow){
 		"F2": func(window *application.WebviewWindow) {
 			app.EmitEvent("rename-item")
@@ -180,7 +205,6 @@ func main() {
 		},
 	}
 
-	// Add modifier-based key bindings
 	keyBindings[modifier+"+F2"] = func(window *application.WebviewWindow) {
 		app.EmitEvent("edit-item")
 	}
@@ -261,7 +285,6 @@ func main() {
 		//TODO
 	})
 
-	// Register a hook to hide the window when the window is closing
 	window.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
 		window.Hide()
 		e.Cancel()
@@ -269,15 +292,10 @@ func main() {
 
 	if runtime.GOOS == "darwin" {
 
-		//InitializeFullscreenMonitoring for detecting fullscreen events
 		app.OnEvent("frontend-ready", func(event *application.CustomEvent) {
 			InitializeFullscreenMonitoring()
 		})
 
-		//Check if the user settings file exists and initialize bookmarks
-		// This is done to ensure that bookmarks are available when the app starts
-		// This is especially useful for macOS where the app may not have been run before
-		// and the user settings file may not have been created yet.
 		settingsFile, err := settings.GetUserSettingsPath()
 		if err != nil {
 			log.Printf("Failed to get user settings path: %v", err)
@@ -291,22 +309,16 @@ func main() {
 		}
 	}
 
-	// Initialize default project templates on startup
-	// This creates predefined templates if they don't exist yet
-	// Pass nil to attempt getting the active user (templates will be created when user logs in)
 	err = repository.InitializeDefaultTemplates(nil)
 	if err != nil {
 		log.Printf("Warning: Failed to initialize default templates: %v", err)
-		// Don't fail the app if templates can't be initialized
-		// User can still create projects without templates
 	} else {
 		log.Println("Default project templates initialized successfully")
 	}
 
-	// Run the application. This blocks until the application has been exited.
 	err = app.Run()
 
-	// If an error occurred while running the application, log it and exit.
+
 	if err != nil {
 		log.Fatal(err)
 	}

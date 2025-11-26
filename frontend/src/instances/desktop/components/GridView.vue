@@ -1,5 +1,5 @@
 <template>
-	<div @mouseenter="refreshView"  class="navigator-root-viewport" @scroll="disableMenu()">
+	<div class="navigator-root-viewport" @scroll="disableMenu()">
 
     <GridSkeleton v-if="!assetStore.assetsLoaded" :height="containerHeight" />
 
@@ -23,8 +23,10 @@
 
 <script setup>
 // imports
-import { computed, ref, nextTick, onMounted, onUnmounted } from 'vue';
+import { computed, ref, nextTick, onUnmounted, watch } from 'vue';
+import { Events } from '@wailsio/runtime';
 
+// components
 import GridItem from '@/instances/common/components/GridItem.vue';
 import GridSkeleton from '@/instances/desktop/components/GridSkeleton.vue';
 
@@ -36,7 +38,7 @@ import { useCommonStore } from '@/stores/common';
 import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
-import { CollectionService } from '@/../bindings/clustta/services';
+import { CollectionService, FSService } from '@/../bindings/clustta/services';
 import emitter from '@/lib/mitt';
 
 // states/stores
@@ -48,66 +50,96 @@ const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const dndStore = useDndStore();
 
+// props
 const props = defineProps({
   rootItems: { type: Array, default: [] }
 });
 
+// refs
+const navigatorRoot = ref(null);
+const refreshDebounceTimer = ref(null);
+const currentWatchedPath = ref(null);
+const dragTimer = ref(null);
 
+// computed props
+// Grid styling based on commonStore grid size
 const gridStyles = computed(() => ({
   display: 'grid',
   boxSizing: 'border-box',
   gridTemplateColumns: `repeat(auto-fill, minmax(${commonStore.gridSize}px, 1fr))`,
   gap: '10px',
-  width: '100%',
-//   backgroundColor: 'forestGreen'
+  width: '100%'
 }));
 
-// Filter items by type
+// Filter root items to get only entity type items
 const entityItems = computed(() => {
   return props.rootItems.filter(item => 
     item.type === 'entity' || item.type === 'untracked_entity'
   );
 });
 
+// Filter root items to get only task type items
 const taskItems = computed(() => {
   return props.rootItems.filter(item => 
     item.type !== 'entity' && item.type !== 'untracked_entity'
   );
 });
 
-const navigatorRoot = ref(null);
-
+// Get container height from navigator root element
 const containerHeight = computed(() => {
   return navigatorRoot.value?.getBoundingClientRect().height || 500;
 });
 
+// Get all untracked items from root items
+const previousUntracked = computed(() => {
+  const allUntracked = props.rootItems.filter((item) => item.type === 'untracked_task' || item.type === 'untracked_entity');
+  return allUntracked;
+});
+
+// Get current file path location for watching
+const location = computed(() => {
+  return collectionStore.navigatedCollection ? collectionStore.navigatedCollection.file_path : projectStore.activeProject.working_directory;
+});
+
+// functions
+// Add or remove element reference to dnd store
 const handleRef = async (id, el) => {
-    if (!el) {
+  if (!el) {
     dndStore.removeRef(id);
     dndStore.removeVisibleItemsRef(id);
-    return
-    }
+    return;
+  }
 
-    await nextTick()
+  await nextTick();
 
-    const domElement = el instanceof HTMLElement ? el : el.$el
+  const domElement = el instanceof HTMLElement ? el : el.$el;
 
-    if (domElement) {
+  if (domElement) {
     dndStore.addRef(id, domElement);
-    }
+  }
 };
 
-// Helper function to emit item data updates
-const emitItemUpdates = (itemId, updates) => {
-  const updateData = { itemId, updates };
-  
-  // Emit to both Browser and VirtuaItem components
-  emitter.emit('update-root-data', updateData);
-  emitter.emit('update-children', updateData);
+// Disable all context menus
+const disableMenu = () => {
+  menu.disableAllMenus();
 };
 
-const previousUntrackedCount = ref(0);
+// Handle file system change events by refreshing view
+const handleFSChange = (event) => {
+  debouncedRefreshView();
+};
 
+// Debounce refresh view to prevent rapid consecutive calls
+const debouncedRefreshView = () => {
+  if (refreshDebounceTimer.value) {
+    clearTimeout(refreshDebounceTimer.value);
+  }
+  refreshDebounceTimer.value = setTimeout(() => {
+    refreshView();
+  }, 200);
+};
+
+// Fetch and update collection children state from backend
 const refreshView = async () => {
   const project = projectStore.activeProject;
   const entityId = collectionStore.navigatedCollection?.id;
@@ -120,7 +152,14 @@ const refreshView = async () => {
       project.ignore_list
     );
     
-    // Update modified tasks with file_status
+    if (state.normal_tasks && state.normal_tasks.length > 0) {
+      state.normal_tasks.forEach(task => {
+        emitItemUpdates(task.id, [
+          { property: 'file_status', value: 'normal' }
+        ]);
+      });
+    }
+
     if (state.modified_tasks && state.modified_tasks.length > 0) {
       state.modified_tasks.forEach(task => {
         emitItemUpdates(task.id, [
@@ -129,7 +168,6 @@ const refreshView = async () => {
       });
     }
     
-    // Update outdated tasks with file_status
     if (state.outdated_tasks && state.outdated_tasks.length > 0) {
       state.outdated_tasks.forEach(task => {
         emitItemUpdates(task.id, [
@@ -138,7 +176,6 @@ const refreshView = async () => {
       });
     }
     
-    // Update rebuildable tasks with file_status
     if (state.rebuildable_tasks && state.rebuildable_tasks.length > 0) {
       state.rebuildable_tasks.forEach(task => {
         emitItemUpdates(task.id, [
@@ -147,110 +184,133 @@ const refreshView = async () => {
       });
     }
     
-    // Check if untracked items count has changed
-    const currentUntrackedCount = 
-      (state.untracked_files?.length || 0) + 
-      (state.untracked_folders?.length || 0);
+    const currentUntrackedFolders = state.untracked_folders || [];
+    const currentUntrackedFiles = state.untracked_files || [];
+    const currentUntracked = [...currentUntrackedFolders, ...currentUntrackedFiles];
     
-    if (previousUntrackedCount.value !== currentUntrackedCount) {
-      previousUntrackedCount.value = currentUntrackedCount;
-      emitter.emit('refresh-browser');
+    if (currentUntracked !== previousUntracked.value) {
+      const allUntrackedItems = [...currentUntrackedFolders, ...currentUntrackedFiles];
+      emitter.emit('update-untracked-items', allUntrackedItems);
     }
     
-    // Update collection state flags
-   collectionStore.loadCollectionStateFlags();
+    collectionStore.loadCollectionStateFlags();
     
   } catch (error) {
     console.error('Error getting collection children state:', error);
   }
-}
+};
 
-const dragTimer = ref(null);
+// Emit updates to item data across components
+const emitItemUpdates = (itemId, updates) => {
+  const updateData = { itemId, updates };
+  emitter.emit('update-root-data', updateData);
+  emitter.emit('update-children', updateData);
+};
 
+// Handle mouse down event for item selection and drag initiation
 const onMouseDown = (event, item, index) => {
-    const id = item.id;
+  const id = item.id;
+  const allItems = props.rootItems;
+  let itemType;
 
-    const allItems = props.rootItems;
-
-    let itemType;
-
-    if (item.entity_type_id) {
+  if (item.entity_type_id) {
     itemType = 'entity';
-    } else if (item.task_type_id) {
+  } else if (item.task_type_id) {
     if (item.is_resource) {
-        itemType = 'resource';
+      itemType = 'resource';
     } else {
-        itemType = 'task';
+      itemType = 'task';
     }
-    } else if (item.item_type) {
+  } else if (item.item_type) {
     itemType = item.item_type;
-    }
+  }
 
-    if(!stage.markedItems.includes(id) || stage.cmdOrCtrlKey(event)){
+  if (!stage.markedItems.includes(id) || stage.cmdOrCtrlKey(event)) {
     stage.handleClick(event, item, itemType, allItems);
-    }
+  }
 
-    menu.disableAllMenus();
-    event.stopPropagation();
-    dragItem(event, id);
+  menu.disableAllMenus();
+  event.stopPropagation();
+  dragItem(event, id);
 };
 
-const dragItem = (event, id) => {
-    if(stage.operationActive) return
-    dragTimer.value = setTimeout(() => {
-    onDragStart(event, id);
-    }, dndStore.dragDelay);
-}
-
-const onMouseUp = (event, item) => {
-
-    if(dndStore.draggedItemId) return 
-
-    const id = item.id;
-
-    const allItems = props.rootItems;
-
-    let itemType;
-
-    if (item.entity_type_id) {
-    itemType = 'entity';
-    } else if (item.task_type_id) {
-    if (item.is_resource) {
-        itemType = 'resource';
-    } else {
-        itemType = 'task';
-    }
-    } else if (item.item_type) {
-    itemType = item.item_type;
-    }
-
-    if (stage.markedItems.includes(id) && !stage.cmdOrCtrlKey(event)) {
-    stage.handleClick(event, item, itemType, allItems);
-    }
-
-    clearTimeout(dragTimer.value);
-};
-
+// Initialize drag operation through dnd store
 const onDragStart = (e, id) => {
-    stage.firstSelectedItemId = '';
+  stage.firstSelectedItemId = '';
 
-    if (!id) {
-    return
+  if (!id) {
+    return;
+  }
+  dndStore.onDragStart(e, id);
+};
+
+// Start drag timer for delayed drag operation
+const dragItem = (event, id) => {
+  if (stage.operationActive) return;
+  dragTimer.value = setTimeout(() => {
+    onDragStart(event, id);
+  }, dndStore.dragDelay);
+};
+
+// Handle mouse up event for item selection
+const onMouseUp = (event, item) => {
+  if (dndStore.draggedItemId) return;
+
+  const id = item.id;
+  const allItems = props.rootItems;
+  let itemType;
+
+  if (item.entity_type_id) {
+    itemType = 'entity';
+  } else if (item.task_type_id) {
+    if (item.is_resource) {
+      itemType = 'resource';
+    } else {
+      itemType = 'task';
     }
-    dndStore.onDragStart(e, id);
+  } else if (item.item_type) {
+    itemType = item.item_type;
+  }
+
+  if (stage.markedItems.includes(id) && !stage.cmdOrCtrlKey(event)) {
+    stage.handleClick(event, item, itemType, allItems);
+  }
+
+  clearTimeout(dragTimer.value);
 };
 
-// methods
-const disableMenu = () => {
-	menu.disableAllMenus();
-};
+// watchers
+// Watch location changes and update file system watcher
+watch(() => location.value, async (newPath, oldPath) => {
+  if (oldPath && currentWatchedPath.value) {
+    try {
+      await FSService.RemoveWatcherFolder(oldPath);
+    } catch (error) {
+      console.error('Error removing watcher:', error);
+    }
+  }
+  
+  if (newPath) {
+    console.log(newPath);
+    try {
+      await FSService.AddWatcherFolder(newPath);
+      currentWatchedPath.value = newPath;
+    } catch (error) {
+      console.error('Error adding watcher:', error);
+    }
+  }
+}, { immediate: true });
 
-onMounted(() => {
+// lifecycle hooks
+Events.On('fs-change', handleFSChange);
+
+onUnmounted(async () => {
+  Events.Off('fs-change', handleFSChange);
+  
+  if (refreshDebounceTimer.value) {
+    clearTimeout(refreshDebounceTimer.value);
+  }
 });
-
-onUnmounted(() => {
-});
-
 </script>
 
 <style scoped>
@@ -314,14 +374,6 @@ onUnmounted(() => {
   overflow: hidden;
   flex-direction: column;
   gap: .5rem;
-}
-
-.navigator-item-container-grid {
-	display: grid;
-	box-sizing: border-box;
-	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-	gap: 10px;
-	width: 100%;
 }
 </style>
 

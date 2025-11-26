@@ -17,6 +17,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/skratchdot/open-golang/open"
@@ -24,7 +26,11 @@ import (
 )
 
 type FSService struct {
-	Watcher *fsnotify.Watcher
+	Watcher          *fsnotify.Watcher
+	debounceTimers   map[string]*time.Timer
+	debounceMutex    sync.Mutex
+	debounceDuration time.Duration
+	app              *application.App
 }
 
 type FileInfo struct {
@@ -35,31 +41,104 @@ type FileInfo struct {
 	ModTime       int64  `json:"modTime"`
 }
 
+// AddWatcherFolder registers a directory with the file system watcher.
+// Enables monitoring of file system events within the specified directory.
 func (f *FSService) AddWatcherFolder(dir string) error {
 	return f.Watcher.Add(dir)
 }
 
+// RemoveWatcherFolder unregisters a directory from the file system watcher.
+// Stops monitoring file system events for the specified directory.
 func (f *FSService) RemoveWatcherFolder(dir string) error {
 	return f.Watcher.Remove(dir)
 }
 
+// SetApp sets the application instance for the FSService.
+// Required for emitting events to the frontend application.
+func (f *FSService) SetApp(app *application.App) {
+	f.app = app
+}
+
+// StartWatching initializes the file system watcher and handles events.
+// Runs a goroutine that monitors file changes and emits debounced events to the frontend.
+func (f *FSService) StartWatching() {
+	f.debounceTimers = make(map[string]*time.Timer)
+	f.debounceDuration = 500 * time.Millisecond
+
+	go func() {
+		for {
+			select {
+			case event, ok := <-f.Watcher.Events:
+				if !ok {
+					return
+				}
+
+				if event.Op&fsnotify.Write == fsnotify.Write ||
+					event.Op&fsnotify.Create == fsnotify.Create ||
+					event.Op&fsnotify.Remove == fsnotify.Remove ||
+					event.Op&fsnotify.Rename == fsnotify.Rename {
+
+					f.debounceEvent(event.Name, func() {
+						if f.app != nil {
+							f.app.EmitEvent("fs-change", event.Name)
+						}
+					})
+				}
+
+			case err, ok := <-f.Watcher.Errors:
+				if !ok {
+					return
+				}
+				fmt.Printf("watcher error: %v\n", err)
+			}
+		}
+	}()
+}
+
+// debounceEvent debounces file system events to prevent flooding.
+// Delays the callback execution and cancels any pending timers for the same path.
+func (f *FSService) debounceEvent(path string, callback func()) {
+	f.debounceMutex.Lock()
+	defer f.debounceMutex.Unlock()
+
+	if timer, exists := f.debounceTimers[path]; exists {
+		timer.Stop()
+	}
+
+	f.debounceTimers[path] = time.AfterFunc(f.debounceDuration, func() {
+		callback()
+
+		f.debounceMutex.Lock()
+		delete(f.debounceTimers, path)
+		f.debounceMutex.Unlock()
+	})
+}
+
+// Exists checks if a file or directory exists at the specified path.
 func (f *FSService) Exists(path string) bool {
 	return utils.FileExists(path)
 }
+
+// DirExists checks if a directory exists at the specified path.
 func (f *FSService) DirExists(path string) bool {
 	return utils.DirExists(path)
 }
+
+// IsFile checks if the specified path is a file (not a directory).
+// Returns an error if the path does not exist.
 func (f *FSService) IsFile(path string) (bool, error) {
 	info, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		return false, err
 	}
 	if err != nil {
-		// panic(err)
 		return false, err
 	}
 	return !info.IsDir(), nil
 }
+
+// GetFileIcon retrieves the system icon for a file extension.
+// Returns the icon as a base64-encoded string.
 func (f *FSService) GetFileIcon(ext string) (string, error) {
 	img, err := system_icon.GetExtensionIcon(ext)
 	if err != nil {
@@ -68,13 +147,13 @@ func (f *FSService) GetFileIcon(ext string) (string, error) {
 	return base64.StdEncoding.EncodeToString(img), nil
 }
 
+// GetOSThumbnail generates a thumbnail for the specified file.
+// Attempts custom extraction first (Blender, Maya), falls back to OS thumbnail. Returns base64-encoded image.
 func (f *FSService) GetOSThumbnail(filePath string, size int) (string, error) {
-	// Check if file exists
 	if !utils.FileExists(filePath) {
 		return "", fmt.Errorf("file does not exist: %s", filePath)
 	}
 
-	// Try custom thumbnail extraction first (Blender, Maya, etc.)
 	customThumbnail, err := custom_thumbnail.GetThumbnail(filePath)
 	if err == nil && customThumbnail != nil && len(customThumbnail) > 0 {
 		return base64.StdEncoding.EncodeToString(customThumbnail), nil
@@ -82,75 +161,79 @@ func (f *FSService) GetOSThumbnail(filePath string, size int) (string, error) {
 
 	thumbnailBytes, err := system_thumbnail.GetOSThumbnail(
 		filePath,
-		512, // Fixed size for full-resolution thumbnails
+		512,
 		system_thumbnail.ThumbnailUseCurrentScale,
 	)
 	if err != nil {
 		return "", nil
 	}
 
-	// Encode to base64
 	return base64.StdEncoding.EncodeToString(thumbnailBytes), nil
 }
 
+// GetCachedOSThumbnail retrieves a cached thumbnail for the specified file.
+// Returns base64-encoded image if cached, empty string if not in cache.
 func (f *FSService) GetCachedOSThumbnail(filePath string, size int) (string, error) {
-	// Check if file exists
 	if !utils.FileExists(filePath) {
 		return "", fmt.Errorf("file does not exist: %s", filePath)
 	}
 
 	thumbnailBytes, err := system_thumbnail.GetCachedThumbnail(filePath, 512)
 	if err != nil {
-		// Return empty string if not in cache
 		return "", nil
 	}
 
-	// Encode to base64
 	return base64.StdEncoding.EncodeToString(thumbnailBytes), nil
 }
 
+// GetOSThumbnails generates thumbnails for multiple files in batch.
+// Returns a map of file paths to base64-encoded thumbnails. Empty strings for failures.
 func (f *FSService) GetOSThumbnails(filePaths []string, size int) (map[string]string, error) {
 	results := make(map[string]string)
 
 	for _, path := range filePaths {
-		// Skip non-existent files
 		if !utils.FileExists(path) {
 			continue
 		}
 
-		// Always use 512px for maximum quality - CSS handles sizing
-		// The size parameter is kept for API compatibility but not used
 		thumbnailBytes, err := system_thumbnail.GetOSThumbnail(
 			path,
-			512, // Fixed size for full-resolution thumbnails
+			512,
 			system_thumbnail.ThumbnailUseCurrentScale,
 		)
 		if err != nil {
-			// Store empty string for failed thumbnails
 			results[path] = ""
 			continue
 		}
 
-		// Store base64-encoded thumbnail
 		results[path] = base64.StdEncoding.EncodeToString(thumbnailBytes)
 	}
 
 	return results, nil
 }
 
+// LaunchFile opens a file with its default system application.
 func (f *FSService) LaunchFile(path string) error {
 	return open.Start(path)
 }
 
+// ExtName returns the file extension of the specified path.
 func (f *FSService) ExtName(path string) string {
 	return filepath.Ext(path)
 }
+
+// BaseName returns the last element of the path.
 func (f *FSService) BaseName(path string) string {
 	return filepath.Base(path)
 }
+
+// JoinPath joins multiple path elements into a single path.
 func (f *FSService) JoinPath(elem ...string) string {
 	return filepath.Join(elem...)
 }
+
+// FolderSize calculates the total size of a folder and its contents.
+// Returns a formatted string (B, KB, MB, GB).
 func (f *FSService) FolderSize(folderPath string) (string, error) {
 	var size int64
 	err := filepath.WalkDir(folderPath, func(path string, d fs.DirEntry, err error) error {
@@ -168,6 +251,7 @@ func (f *FSService) FolderSize(folderPath string) (string, error) {
 
 	return formatSize(size), nil
 }
+
 func formatSize(size int64) string {
 	const (
 		KB = 1024
@@ -186,6 +270,9 @@ func formatSize(size int64) string {
 		return fmt.Sprintf("%d B", size)
 	}
 }
+
+// FileStat retrieves file information including name, size, and modification time.
+// Returns a FileInfo struct with formatted size.
 func (f *FSService) FileStat(path string) (FileInfo, error) {
 	info, err := os.Stat(path)
 	if err != nil {
@@ -199,6 +286,8 @@ func (f *FSService) FileStat(path string) (FileInfo, error) {
 		ModTime:       info.ModTime().Unix(),
 	}, nil
 }
+
+// FileCount counts the total number of files in a folder recursively.
 func (f *FSService) FileCount(folderPath string) (int, error) {
 	var count int
 	err := filepath.WalkDir(folderPath, func(path string, d fs.DirEntry, err error) error {
@@ -212,6 +301,8 @@ func (f *FSService) FileCount(folderPath string) (int, error) {
 	})
 	return count, err
 }
+
+// FolderCount counts the total number of subdirectories in a folder recursively.
 func (f *FSService) FolderCount(folderPath string) (int, error) {
 	var count int
 	err := filepath.WalkDir(folderPath, func(path string, d fs.DirEntry, err error) error {
@@ -225,6 +316,8 @@ func (f *FSService) FolderCount(folderPath string) (int, error) {
 	})
 	return count, err
 }
+
+// FileHash generates an XXHash checksum for the specified file.
 func (f *FSService) FileHash(path string) (string, error) {
 	hash, err := utils.GenerateXXHashChecksum(path)
 	if err != nil {
@@ -233,24 +326,29 @@ func (f *FSService) FileHash(path string) (string, error) {
 	return hash, nil
 }
 
+// DeleteFolder removes a folder and all its contents recursively.
 func (f *FSService) DeleteFolder(path string) error {
 	return os.RemoveAll(path)
 }
 
+// DeleteFile removes a single file from the file system.
 func (f *FSService) DeleteFile(path string) error {
 	return os.Remove(path)
 }
 
+// TempDir returns the system's temporary directory path.
 func (f *FSService) TempDir() string {
 	return os.TempDir()
 }
+
+// UserProjectTemplatesPath retrieves the user's project templates directory path.
 func (f *FSService) UserProjectTemplatesPath() (string, error) {
 	return settings.GetUserProjectTemplatesPath()
 }
 
+// WriteFile writes base64-encoded data to a file.
+// Decodes the data before writing to disk.
 func (f *FSService) WriteFile(path string, data string) error {
-	// base64 decode
-
 	decoded, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
 		return err
@@ -258,31 +356,35 @@ func (f *FSService) WriteFile(path string, data string) error {
 	return os.WriteFile(path, decoded, 0644)
 }
 
+// ReadFile reads a file and returns its contents as base64-encoded string.
 func (f *FSService) ReadFile(path string) (string, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
-	// base64 encode
 	return base64.StdEncoding.EncodeToString(data), nil
 }
 
+// RevealInExplorer opens the system file explorer and highlights the specified path.
 func (f *FSService) RevealInExplorer(path string) {
 	utils.RevealInExplorer(path)
 }
 
+// MakeDirs creates a directory and all necessary parent directories.
 func (f *FSService) MakeDirs(path string) {
 	os.MkdirAll(path, os.ModePerm)
 }
 
+// Rename moves or renames a file or directory from oldPath to newPath.
 func (f *FSService) Rename(oldPath, newPath string) error {
 	return os.Rename(oldPath, newPath)
 }
 
+// BackupFile creates a backup copy of a file with progress reporting.
+// Sends progress updates to the frontend during the copy operation.
 func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, error) {
 	app := application.Get()
 
-	// Send initial progress
 	progress := output.ProgressReport{
 		Title:         "Backing Up Project",
 		Message:       "Preparing backup...",
@@ -293,39 +395,33 @@ func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, erro
 	}
 	app.EmitEvent("progress-update", progress)
 
-	// Open the source file
 	sourceFile, err := os.Open(sourcePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to open source file: %w", err)
 	}
 	defer sourceFile.Close()
 
-	// Get file info
 	sourceInfo, err := sourceFile.Stat()
 	if err != nil {
 		return "", fmt.Errorf("failed to get source file info: %w", err)
 	}
 
-	// Check if destination is a directory
 	destInfo, err := os.Stat(destinationPath)
 	if err == nil && destInfo.IsDir() {
-		// If destination is a directory, use the source filename
 		destinationPath = filepath.Join(destinationPath, filepath.Base(sourcePath))
 	}
 
-	// Create the destination file
 	destFile, err := os.Create(destinationPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to create destination file: %w", err)
 	}
 	defer destFile.Close()
 
-	// Copy the contents with progress tracking
 	totalSize := sourceInfo.Size()
-	buffer := make([]byte, 1024*1024) // 1MB buffer for faster copying
+	buffer := make([]byte, 1024*1024)
 	var copiedBytes int64
 	lastProgressUpdate := int64(0)
-	updateInterval := totalSize / 20 // Update every 5% of file size
+	updateInterval := totalSize / 20
 
 	for {
 		nr, err := sourceFile.Read(buffer)
@@ -339,7 +435,6 @@ func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, erro
 			}
 			copiedBytes += int64(nw)
 
-			// Only send progress update if we've crossed the threshold
 			if copiedBytes-lastProgressUpdate >= updateInterval || copiedBytes == totalSize {
 				percentage := (float64(copiedBytes) / float64(totalSize)) * 100
 				progress = output.ProgressReport{
@@ -362,13 +457,11 @@ func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, erro
 		}
 	}
 
-	// Preserve file mode/permissions
 	err = os.Chmod(destinationPath, sourceInfo.Mode())
 	if err != nil {
 		return "", fmt.Errorf("failed to set file permissions: %w", err)
 	}
 
-	// Send completion progress
 	progress = output.ProgressReport{
 		Title:         "Backing Up Project",
 		Message:       "Backup complete",
@@ -382,41 +475,36 @@ func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, erro
 	return destinationPath, nil
 }
 
+// DuplicateFile creates a copy of a file to the specified destination.
+// Preserves file permissions and automatically handles directory destinations.
 func (f *FSService) DuplicateFile(sourcePath, destinationPath string) (string, error) {
-	// Open the source file
 	sourceFile, err := os.Open(sourcePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to open source file: %w", err)
 	}
 	defer sourceFile.Close()
 
-	// Get file info to check if destination is a directory
 	sourceInfo, err := sourceFile.Stat()
 	if err != nil {
 		return "", fmt.Errorf("failed to get source file info: %w", err)
 	}
 
-	// Check if destination is a directory
 	destInfo, err := os.Stat(destinationPath)
 	if err == nil && destInfo.IsDir() {
-		// If destination is a directory, use the source filename
 		destinationPath = filepath.Join(destinationPath, filepath.Base(sourcePath))
 	}
 
-	// Create the destination file
 	destFile, err := os.Create(destinationPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to create destination file: %w", err)
 	}
 	defer destFile.Close()
 
-	// Copy the contents
 	_, err = io.Copy(destFile, sourceFile)
 	if err != nil {
 		return "", fmt.Errorf("failed to copy file contents: %w", err)
 	}
 
-	// Preserve file mode/permissions
 	err = os.Chmod(destinationPath, sourceInfo.Mode())
 	if err != nil {
 		return "", fmt.Errorf("failed to set file permissions: %w", err)
@@ -424,8 +512,9 @@ func (f *FSService) DuplicateFile(sourcePath, destinationPath string) (string, e
 	return destinationPath, nil
 }
 
+// DuplicateFolder recursively copies a folder and all its contents to the destination.
+// Preserves directory structure and file permissions.
 func (f *FSService) DuplicateFolder(sourcePath, destinationPath string) error {
-	// Get source folder info
 	sourceInfo, err := os.Stat(sourcePath)
 	if err != nil {
 		return fmt.Errorf("failed to stat source folder: %w", err)
@@ -435,47 +524,39 @@ func (f *FSService) DuplicateFolder(sourcePath, destinationPath string) error {
 		return fmt.Errorf("source path is not a directory")
 	}
 
-	// Check if destination exists and is a directory
 	destInfo, err := os.Stat(destinationPath)
 	if err == nil {
 		if destInfo.IsDir() {
-			// If destination is a directory, create subfolder with source name
 			destinationPath = filepath.Join(destinationPath, filepath.Base(sourcePath))
 		} else {
 			return fmt.Errorf("destination exists and is not a directory")
 		}
 	}
 
-	// Create the destination directory
 	err = os.MkdirAll(destinationPath, sourceInfo.Mode())
 	if err != nil {
 		return fmt.Errorf("failed to create destination directory: %w", err)
 	}
 
-	// Walk through source directory and copy all contents
 	err = filepath.WalkDir(sourcePath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
-		// Calculate relative path from source root
 		relPath, err := filepath.Rel(sourcePath, path)
 		if err != nil {
 			return err
 		}
 
-		// Calculate destination path
 		destPath := filepath.Join(destinationPath, relPath)
 
 		if d.IsDir() {
-			// Create directory
 			info, err := d.Info()
 			if err != nil {
 				return err
 			}
 			return os.MkdirAll(destPath, info.Mode())
 		} else {
-			// Copy file
 			_, err := f.DuplicateFile(path, destPath)
 			return err
 		}
@@ -488,29 +569,23 @@ func (f *FSService) DuplicateFolder(sourcePath, destinationPath string) error {
 	return nil
 }
 
-// ExtractAll extracts archive contents to a folder in the current location
-// Supports .zip, .tar, .tar.gz, .gz formats
-// Sends progress updates to the frontend using output.ProgressReport
+// ExtractAll extracts archive contents to a folder in the current location.
+// Supports .zip, .tar, .tar.gz, .gz formats with progress reporting to the frontend.
 func (f *FSService) ExtractAll(archivePath string) error {
 	app := application.Get()
 
-	// Get file extension to determine archive type
 	ext := strings.ToLower(filepath.Ext(archivePath))
 	baseNameWithoutExt := strings.TrimSuffix(filepath.Base(archivePath), ext)
 
-	// Check for .tar.gz or .tar.bz2
 	if strings.HasSuffix(strings.ToLower(archivePath), ".tar.gz") || strings.HasSuffix(strings.ToLower(archivePath), ".tar.bz2") {
 		ext = ".tar.gz"
 		baseNameWithoutExt = strings.TrimSuffix(baseNameWithoutExt, ".tar")
 	}
 
-	// Create extraction folder in the same directory as the archive
 	archiveDir := filepath.Dir(archivePath)
 	extractionDir := filepath.Join(archiveDir, baseNameWithoutExt)
 
-	// Check if extraction directory already exists
 	if _, err := os.Stat(extractionDir); err == nil {
-		// Directory exists, append a number
 		counter := 1
 		for {
 			testDir := fmt.Sprintf("%s_%d", extractionDir, counter)
@@ -522,24 +597,21 @@ func (f *FSService) ExtractAll(archivePath string) error {
 		}
 	}
 
-	// Create the extraction directory
 	err := os.MkdirAll(extractionDir, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("failed to create extraction directory: %w", err)
 	}
 
-	// Send initial progress
 	progress := output.ProgressReport{
 		Title:         "Extracting Archive",
 		Message:       filepath.Base(archivePath),
 		Percentage:    0,
 		Current:       0,
 		Total:         100,
-		OperationType: "read", // Read operation - doesn't modify database
+		OperationType: "read",
 	}
 	app.EmitEvent("progress-update", progress)
 
-	// Extract based on file type
 	switch ext {
 	case ".zip":
 		err = f.extractZip(archivePath, extractionDir, app)
@@ -552,12 +624,10 @@ func (f *FSService) ExtractAll(archivePath string) error {
 	}
 
 	if err != nil {
-		// Clean up partial extraction on error
 		os.RemoveAll(extractionDir)
 		return fmt.Errorf("extraction failed: %w", err)
 	}
 
-	// Send completion progress
 	progress = output.ProgressReport{
 		Title:         "Extracting Archive",
 		Message:       "Complete",
@@ -571,7 +641,7 @@ func (f *FSService) ExtractAll(archivePath string) error {
 	return nil
 }
 
-// extractZip extracts a zip archive
+// extractZip extracts a zip archive with progress tracking.
 func (f *FSService) extractZip(archivePath, destDir string, app *application.App) error {
 	reader, err := zip.OpenReader(archivePath)
 	if err != nil {
@@ -583,7 +653,6 @@ func (f *FSService) extractZip(archivePath, destDir string, app *application.App
 	processed := 0
 
 	for _, file := range reader.File {
-		// Update progress
 		processed++
 		percentage := float64(processed) / float64(totalFiles) * 100
 		progress := output.ProgressReport{
@@ -596,26 +665,21 @@ func (f *FSService) extractZip(archivePath, destDir string, app *application.App
 		}
 		app.EmitEvent("progress-update", progress)
 
-		// Construct target path
 		targetPath := filepath.Join(destDir, file.Name)
 
-		// Security check: ensure the path doesn't escape the destination directory
 		if !strings.HasPrefix(targetPath, filepath.Clean(destDir)+string(os.PathSeparator)) {
 			return fmt.Errorf("illegal file path: %s", file.Name)
 		}
 
 		if file.FileInfo().IsDir() {
-			// Create directory
 			os.MkdirAll(targetPath, os.ModePerm)
 			continue
 		}
 
-		// Create parent directories
 		if err := os.MkdirAll(filepath.Dir(targetPath), os.ModePerm); err != nil {
 			return err
 		}
 
-		// Extract file
 		srcFile, err := file.Open()
 		if err != nil {
 			return err
@@ -639,7 +703,7 @@ func (f *FSService) extractZip(archivePath, destDir string, app *application.App
 	return nil
 }
 
-// extractTar extracts a tar archive
+// extractTar extracts a tar archive with progress tracking.
 func (f *FSService) extractTar(archivePath, destDir string, app *application.App) error {
 	file, err := os.Open(archivePath)
 	if err != nil {
@@ -651,7 +715,7 @@ func (f *FSService) extractTar(archivePath, destDir string, app *application.App
 	return f.processTarReader(tarReader, destDir, app)
 }
 
-// extractTarGz extracts a tar.gz archive
+// extractTarGz extracts a tar.gz archive with progress tracking.
 func (f *FSService) extractTarGz(archivePath, destDir string, app *application.App) error {
 	file, err := os.Open(archivePath)
 	if err != nil {
@@ -669,7 +733,7 @@ func (f *FSService) extractTarGz(archivePath, destDir string, app *application.A
 	return f.processTarReader(tarReader, destDir, app)
 }
 
-// processTarReader processes a tar reader and extracts files
+// processTarReader processes a tar reader and extracts files with progress tracking.
 func (f *FSService) processTarReader(tarReader *tar.Reader, destDir string, app *application.App) error {
 	processed := 0
 
@@ -686,35 +750,30 @@ func (f *FSService) processTarReader(tarReader *tar.Reader, destDir string, app 
 		progress := output.ProgressReport{
 			Title:         "Extracting Archive",
 			Message:       header.Name,
-			Percentage:    float64(processed) * 2, // Approximate progress
+			Percentage:    float64(processed) * 2,
 			Current:       processed,
 			Total:         0,
 			OperationType: "read",
 		}
 		app.EmitEvent("progress-update", progress)
 
-		// Construct target path
 		targetPath := filepath.Join(destDir, header.Name)
 
-		// Security check: ensure the path doesn't escape the destination directory
 		if !strings.HasPrefix(targetPath, filepath.Clean(destDir)+string(os.PathSeparator)) {
 			return fmt.Errorf("illegal file path: %s", header.Name)
 		}
 
 		switch header.Typeflag {
 		case tar.TypeDir:
-			// Create directory
 			if err := os.MkdirAll(targetPath, os.FileMode(header.Mode)); err != nil {
 				return err
 			}
 
 		case tar.TypeReg:
-			// Create parent directories
 			if err := os.MkdirAll(filepath.Dir(targetPath), os.ModePerm); err != nil {
 				return err
 			}
 
-			// Extract file
 			destFile, err := os.OpenFile(targetPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(header.Mode))
 			if err != nil {
 				return err

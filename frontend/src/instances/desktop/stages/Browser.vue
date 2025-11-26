@@ -1671,6 +1671,18 @@ const handleUpdateRootData = (eventData) => {
 	}
 };
 
+const handleUpdateUntrackedItems = (untrackedItems) => {
+	if (!untrackedItems) return;
+	
+	// Remove all existing untracked items from rootData
+	rootData.value = rootData.value.filter(
+		item => item.type !== 'untracked_entity' && item.type !== 'untracked_task'
+	);
+	
+	// Add all new untracked items
+	rootData.value.push(...untrackedItems);
+};
+
 onMounted(async () => {
 	commonStore.resetFilters();
 	dndStore.lockUI = true;
@@ -1683,6 +1695,7 @@ onMounted(async () => {
 	window.addEventListener('keyup', detectModifier);
 	emitter.on('refresh-browser', softRefresh);
 	emitter.on('update-root-data', handleUpdateRootData);
+	emitter.on('update-untracked-items', handleUpdateUntrackedItems);
 
 	await refresh();
 	dndStore.triggerDomUpdate();
@@ -1696,6 +1709,7 @@ onUnmounted(() => {
 	assetStore.assetsLoaded = false;
 	emitter.off('refresh-browser', softRefresh);
 	emitter.off('update-root-data', handleUpdateRootData);
+	emitter.off('update-untracked-items', handleUpdateUntrackedItems);
 	// emitter.off('reload-asset-states', reloadAssetStates);
 	disableMenus();
 });
