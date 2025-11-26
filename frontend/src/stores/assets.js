@@ -802,7 +802,7 @@ export const useAssetStore = defineStore("asset", {
 
       for (let i = 0; i < untrackedAssets.length; i++) {
         let extension = "";
-        extension = untrackedAssets[i].extension.toLowerCase().substring(1);
+        extension = untrackedAssets[i].extension?.toLowerCase().substring(1);
         
         // Add to project extensions if not already present
         if (!this.projectExtensionsFlat.includes(extension)) {
