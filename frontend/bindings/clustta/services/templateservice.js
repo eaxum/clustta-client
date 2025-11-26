@@ -11,6 +11,7 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 import * as models$0 from "../internal/repository/models/models.js";
 
 /**
+ * Changes the file path associated with an existing template
  * @param {string} projectPath
  * @param {string} templateName
  * @param {string} filePath
@@ -22,6 +23,7 @@ export function ChangeTemplateFile(projectPath, templateName, filePath) {
 }
 
 /**
+ * Creates a new template with name and file path
  * @param {string} projectPath
  * @param {string} templateName
  * @param {string} filePath
@@ -37,6 +39,7 @@ export function CreateTemplate(projectPath, templateName, filePath) {
 }
 
 /**
+ * Deletes a template by name from the project database
  * @param {string} projectPath
  * @param {string} templateName
  * @returns {Promise<void> & { cancel(): void }}
@@ -47,6 +50,7 @@ export function DeleteTemplate(projectPath, templateName) {
 }
 
 /**
+ * Retrieves a single template by ID from the project database
  * @param {string} projectPath
  * @param {string} templateId
  * @returns {Promise<models$0.Template> & { cancel(): void }}
@@ -61,6 +65,7 @@ export function GetTemplate(projectPath, templateId) {
 }
 
 /**
+ * Retrieves all templates from the project database
  * @param {string} projectPath
  * @returns {Promise<models$0.Template[]> & { cancel(): void }}
  */
@@ -74,6 +79,7 @@ export function GetTemplates(projectPath) {
 }
 
 /**
+ * Renames an existing template in the project database
  * @param {string} projectPath
  * @param {string} templateName
  * @param {string} newName

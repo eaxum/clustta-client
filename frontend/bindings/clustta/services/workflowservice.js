@@ -11,6 +11,7 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 import * as models$0 from "../internal/repository/models/models.js";
 
 /**
+ * Adds a workflow to an entity with specified parent and type
  * @param {string} projectPath
  * @param {string} workflow_id
  * @param {string} name
@@ -24,6 +25,7 @@ export function AddWorkflow(projectPath, workflow_id, name, entityTypeId, parent
 }
 
 /**
+ * Creates a new workflow with tasks, entities, and links
  * @param {string} projectPath
  * @param {string} name
  * @param {models$0.WorkflowTask[]} workflowTasks
@@ -41,6 +43,7 @@ export function CreateWorkflow(projectPath, name, workflowTasks, workflowEntitie
 }
 
 /**
+ * Retrieves all workflows from the project database
  * @param {string} projectPath
  * @returns {Promise<models$0.Workflow[]> & { cancel(): void }}
  */
@@ -54,6 +57,7 @@ export function GetWorkflows(projectPath) {
 }
 
 /**
+ * Updates an existing workflow including tasks, entities, and links
  * @param {string} projectPath
  * @param {string} workflowId
  * @param {string} name

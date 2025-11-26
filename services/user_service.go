@@ -10,6 +10,7 @@ import (
 
 type UserService struct{}
 
+// Retrieves all users from the project database
 func (u *UserService) GetUsers(projectPath string) ([]models.User, error) {
 	if !utils.FileExists(projectPath) {
 		return []models.User{}, error_service.ErrProjectNotFound
@@ -34,6 +35,7 @@ func (u *UserService) GetUsers(projectPath string) ([]models.User, error) {
 	return users, nil
 }
 
+// Retrieves a single user by ID from the project database
 func (u *UserService) GetUser(projectPath, userId string) (models.User, error) {
 	if !utils.FileExists(projectPath) {
 		return models.User{}, error_service.ErrProjectNotFound
@@ -59,6 +61,7 @@ func (u *UserService) GetUser(projectPath, userId string) (models.User, error) {
 	return user, nil
 }
 
+// Retrieves all roles from the project database
 func (u *UserService) GetRoles(projectPath string) ([]models.Role, error) {
 	if !utils.FileExists(projectPath) {
 		return []models.Role{}, error_service.ErrProjectNotFound
@@ -83,6 +86,7 @@ func (u *UserService) GetRoles(projectPath string) ([]models.Role, error) {
 	return roles, nil
 }
 
+// Creates a new role with name and permission attributes
 func (u *UserService) AddRole(projectPath, name string, attributes models.RoleAttributes) (models.Role, error) {
 	if !utils.FileExists(projectPath) {
 		return models.Role{}, error_service.ErrProjectNotFound
@@ -110,6 +114,7 @@ func (u *UserService) AddRole(projectPath, name string, attributes models.RoleAt
 	return role, err
 }
 
+// Updates an existing role's name and permission attributes
 func (u *UserService) UpdateRole(projectPath, id, name string, attributes models.RoleAttributes) (models.Role, error) {
 	if !utils.FileExists(projectPath) {
 		return models.Role{}, error_service.ErrProjectNotFound
@@ -137,6 +142,7 @@ func (u *UserService) UpdateRole(projectPath, id, name string, attributes models
 	return role, err
 }
 
+// Deletes a role by ID from the project database
 func (u *UserService) DeleteRole(projectPath, id string) error {
 	if !utils.FileExists(projectPath) {
 		return error_service.ErrProjectNotFound
@@ -165,6 +171,7 @@ func (u *UserService) DeleteRole(projectPath, id string) error {
 	return err
 }
 
+// Fetches user data from remote authentication service by ID
 func (u *UserService) FetchUserById(userId string) (models.User, error) {
 	user, err := auth_service.FetchUserDataById(userId)
 	if err != nil {

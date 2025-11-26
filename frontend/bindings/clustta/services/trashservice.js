@@ -11,6 +11,7 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 import * as $models from "./models.js";
 
 /**
+ * Retrieves all deleted items from project database including entities, templates, tasks, and checkpoints
  * @param {string} projectPath
  * @returns {Promise<$models.RecycleItem[]> & { cancel(): void }}
  */
@@ -24,6 +25,7 @@ export function GetTrashs(projectPath) {
 }
 
 /**
+ * Restores a deleted item by ID and type from the recycle bin
  * @param {string} projectPath
  * @param {string} id
  * @param {string} itemType

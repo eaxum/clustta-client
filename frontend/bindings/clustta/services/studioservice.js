@@ -11,6 +11,7 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 import * as models$0 from "../internal/server/models/models.js";
 
 /**
+ * Adds a new collaborator to a studio with specified role
  * @param {string} email
  * @param {string} studioId
  * @param {string} roleName
@@ -22,6 +23,7 @@ export function AddCollaborator(email, studioId, roleName) {
 }
 
 /**
+ * Changes the role of an existing collaborator in a studio
  * @param {string} userId
  * @param {string} studioId
  * @param {string} roleName
@@ -33,6 +35,7 @@ export function ChangeCollaboratorRole(userId, studioId, roleName) {
 }
 
 /**
+ * Checks if a studio name is already registered
  * @param {string} studioName
  * @returns {Promise<boolean> & { cancel(): void }}
  */
@@ -42,6 +45,7 @@ export function CheckStudioNameExists(studioName) {
 }
 
 /**
+ * Checks if a studio server is online or offline by URL
  * @param {string} studioUrl
  * @returns {Promise<string> & { cancel(): void }}
  */
@@ -51,6 +55,7 @@ export function GetStudioStatus(studioUrl) {
 }
 
 /**
+ * Fetches all users associated with a studio by studio ID
  * @param {string} studioId
  * @returns {Promise<models$0.StudioUserInfo[]> & { cancel(): void }}
  */
@@ -64,6 +69,7 @@ export function GetStudioUsers(studioId) {
 }
 
 /**
+ * Registers a new studio with name and URL
  * @param {string} name
  * @param {string} studioUrl
  * @returns {Promise<any> & { cancel(): void }}
@@ -74,6 +80,7 @@ export function RegisterStudio(name, studioUrl) {
 }
 
 /**
+ * Removes a collaborator from a studio by user ID
  * @param {string} userId
  * @param {string} studioId
  * @returns {Promise<any> & { cancel(): void }}
@@ -84,6 +91,7 @@ export function RemoveCollaborator(userId, studioId) {
 }
 
 /**
+ * Updates studio configuration including URLs, port, and key
  * @param {string} studioName
  * @param {string} url
  * @param {string} altUrl
@@ -97,6 +105,7 @@ export function UpdateStudio(studioName, url, altUrl, port, key) {
 }
 
 /**
+ * Verifies a deployment code for studio access
  * @param {string} code
  * @returns {Promise<[boolean, string]> & { cancel(): void }}
  */

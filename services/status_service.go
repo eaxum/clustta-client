@@ -8,6 +8,7 @@ import (
 
 type StatusService struct{}
 
+// Retrieves all status records from the project database
 func (s *StatusService) GetStatuses(projectPath string) ([]models.Status, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {

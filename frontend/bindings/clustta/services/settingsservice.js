@@ -11,6 +11,7 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 import * as settings$0 from "../internal/settings/models.js";
 
 /**
+ * AddProjectLocation adds a new project location with name and path.
  * @param {string} name
  * @param {string} path
  * @returns {Promise<settings$0.ProjectLocation> & { cancel(): void }}
@@ -25,6 +26,7 @@ export function AddProjectLocation(name, path) {
 }
 
 /**
+ * AddProjectWorkspace adds a workspace configuration to a project.
  * @param {string} projectId
  * @param {any} workspaceData
  * @returns {Promise<void> & { cancel(): void }}
@@ -35,6 +37,7 @@ export function AddProjectWorkspace(projectId, workspaceData) {
 }
 
 /**
+ * AddRecentProject adds a project to the recent projects list.
  * @param {string} studioName
  * @param {string} projectId
  * @returns {Promise<string[]> & { cancel(): void }}
@@ -49,6 +52,7 @@ export function AddRecentProject(studioName, projectId) {
 }
 
 /**
+ * AssignProjectToLocation assigns a project to a specific location.
  * @param {string} projectID
  * @param {string} locationID
  * @returns {Promise<void> & { cancel(): void }}
@@ -59,6 +63,7 @@ export function AssignProjectToLocation(projectID, locationID) {
 }
 
 /**
+ * CanDeleteLocation checks if a location can be safely deleted.
  * @param {string} locationID
  * @returns {Promise<boolean> & { cancel(): void }}
  */
@@ -68,6 +73,7 @@ export function CanDeleteLocation(locationID) {
 }
 
 /**
+ * CheckAllLocationsHealth verifies the health status of all project locations.
  * @returns {Promise<settings$0.LocationHealth[]> & { cancel(): void }}
  */
 export function CheckAllLocationsHealth() {
@@ -80,6 +86,7 @@ export function CheckAllLocationsHealth() {
 }
 
 /**
+ * CheckLocationHealth verifies the health status of a specific location.
  * @param {string} locationID
  * @returns {Promise<settings$0.LocationHealth> & { cancel(): void }}
  */
@@ -93,6 +100,7 @@ export function CheckLocationHealth(locationID) {
 }
 
 /**
+ * ClearRecentProject clears the recent projects list for the specified studio.
  * @param {string} studioName
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -102,6 +110,7 @@ export function ClearRecentProject(studioName) {
 }
 
 /**
+ * GetAllLocationPaths retrieves all configured project locations.
  * @returns {Promise<settings$0.ProjectLocation[]> & { cancel(): void }}
  */
 export function GetAllLocationPaths() {
@@ -114,6 +123,7 @@ export function GetAllLocationPaths() {
 }
 
 /**
+ * GetCurrentVersion retrieves the current application version number.
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetCurrentVersion() {
@@ -122,6 +132,7 @@ export function GetCurrentVersion() {
 }
 
 /**
+ * GetDefaultLocation retrieves the default project location.
  * @returns {Promise<settings$0.ProjectLocation> & { cancel(): void }}
  */
 export function GetDefaultLocation() {
@@ -134,6 +145,7 @@ export function GetDefaultLocation() {
 }
 
 /**
+ * GetEulaAccepted retrieves whether the user has accepted the EULA.
  * @returns {Promise<boolean> & { cancel(): void }}
  */
 export function GetEulaAccepted() {
@@ -142,6 +154,7 @@ export function GetEulaAccepted() {
 }
 
 /**
+ * GetIconScheme retrieves the current icon scheme name.
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetIconScheme() {
@@ -150,6 +163,7 @@ export function GetIconScheme() {
 }
 
 /**
+ * GetLastStudio retrieves the last active studio name.
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetLastStudio() {
@@ -158,6 +172,7 @@ export function GetLastStudio() {
 }
 
 /**
+ * GetLocationUsage returns the number of projects using a location.
  * @param {string} locationID
  * @returns {Promise<number> & { cancel(): void }}
  */
@@ -167,6 +182,7 @@ export function GetLocationUsage(locationID) {
 }
 
 /**
+ * GetPinnedProjects retrieves all pinned projects for the specified studio.
  * @param {string} studioName
  * @returns {Promise<string[]> & { cancel(): void }}
  */
@@ -180,6 +196,7 @@ export function GetPinnedProjects(studioName) {
 }
 
 /**
+ * GetProjectDirectory retrieves the default project directory path.
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetProjectDirectory() {
@@ -188,6 +205,7 @@ export function GetProjectDirectory() {
 }
 
 /**
+ * GetProjectLocation retrieves the location ID for a specific project.
  * @param {string} projectID
  * @returns {Promise<string> & { cancel(): void }}
  */
@@ -197,6 +215,7 @@ export function GetProjectLocation(projectID) {
 }
 
 /**
+ * GetProjectWorkspaces retrieves all workspace configurations for a project.
  * @param {string} projectId
  * @returns {Promise<any[]> & { cancel(): void }}
  */
@@ -210,6 +229,7 @@ export function GetProjectWorkspaces(projectId) {
 }
 
 /**
+ * GetRecentProjects retrieves recently accessed projects for the specified studio.
  * @param {string} studioName
  * @returns {Promise<string[]> & { cancel(): void }}
  */
@@ -223,6 +243,7 @@ export function GetRecentProjects(studioName) {
 }
 
 /**
+ * GetSharedProjectDirectory retrieves the shared project directory path.
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetSharedProjectDirectory() {
@@ -231,6 +252,7 @@ export function GetSharedProjectDirectory() {
 }
 
 /**
+ * GetStudios retrieves all configured studios from user settings.
  * @param {string} path
  * @returns {Promise<settings$0.Studio[]> & { cancel(): void }}
  */
@@ -244,6 +266,7 @@ export function GetStudios(path) {
 }
 
 /**
+ * GetTheme retrieves the current theme name.
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetTheme() {
@@ -252,6 +275,7 @@ export function GetTheme() {
 }
 
 /**
+ * GetUseAltUrl retrieves whether alternative URL is enabled.
  * @returns {Promise<boolean> & { cancel(): void }}
  */
 export function GetUseAltUrl() {
@@ -260,6 +284,7 @@ export function GetUseAltUrl() {
 }
 
 /**
+ * GetUseGrid retrieves whether grid view is enabled.
  * @returns {Promise<boolean> & { cancel(): void }}
  */
 export function GetUseGrid() {
@@ -268,6 +293,7 @@ export function GetUseGrid() {
 }
 
 /**
+ * GetUserDirectory returns the current user's home directory path.
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetUserDirectory() {
@@ -276,6 +302,7 @@ export function GetUserDirectory() {
 }
 
 /**
+ * GetUsername returns the current system username.
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetUsername() {
@@ -284,6 +311,7 @@ export function GetUsername() {
 }
 
 /**
+ * GetWorkingDirectory retrieves the working directory path.
  * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetWorkingDirectory() {
@@ -292,6 +320,7 @@ export function GetWorkingDirectory() {
 }
 
 /**
+ * IsProjectGridView returns whether project grid view is enabled.
  * @returns {Promise<boolean> & { cancel(): void }}
  */
 export function IsProjectGridView() {
@@ -300,6 +329,7 @@ export function IsProjectGridView() {
 }
 
 /**
+ * IsShowUntrackedProjects returns whether untracked projects are visible.
  * @returns {Promise<boolean> & { cancel(): void }}
  */
 export function IsShowUntrackedProjects() {
@@ -308,6 +338,7 @@ export function IsShowUntrackedProjects() {
 }
 
 /**
+ * PinProject pins a project to the studio's favorites list.
  * @param {string} studioName
  * @param {string} projectId
  * @returns {Promise<string[]> & { cancel(): void }}
@@ -322,6 +353,7 @@ export function PinProject(studioName, projectId) {
 }
 
 /**
+ * RemoveProjectLocation removes a project location by ID.
  * @param {string} locationID
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -331,6 +363,7 @@ export function RemoveProjectLocation(locationID) {
 }
 
 /**
+ * RemoveProjectWorkspace removes a workspace configuration from a project.
  * @param {string} projectId
  * @param {string} workspaceName
  * @returns {Promise<void> & { cancel(): void }}
@@ -341,6 +374,7 @@ export function RemoveProjectWorkspace(projectId, workspaceName) {
 }
 
 /**
+ * SetCurrentVersion sets the current application version number.
  * @param {string} versionNumber
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -350,6 +384,7 @@ export function SetCurrentVersion(versionNumber) {
 }
 
 /**
+ * SetDefaultLocation sets the default project location by ID.
  * @param {string} locationID
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -359,6 +394,7 @@ export function SetDefaultLocation(locationID) {
 }
 
 /**
+ * SetEulaAccepted sets the EULA acceptance status.
  * @param {boolean} eulaAccepted
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -368,6 +404,7 @@ export function SetEulaAccepted(eulaAccepted) {
 }
 
 /**
+ * SetIconScheme sets the icon scheme for the application.
  * @param {string} iconScheme
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -377,6 +414,7 @@ export function SetIconScheme(iconScheme) {
 }
 
 /**
+ * SetLastStudio sets the last active studio name.
  * @param {string} lastStudioName
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -386,6 +424,7 @@ export function SetLastStudio(lastStudioName) {
 }
 
 /**
+ * SetProjectDirectory sets the default project directory path.
  * @param {string} dir
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -395,6 +434,7 @@ export function SetProjectDirectory(dir) {
 }
 
 /**
+ * SetSharedProjectDirectory sets the shared project directory path.
  * @param {string} dir
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -404,6 +444,7 @@ export function SetSharedProjectDirectory(dir) {
 }
 
 /**
+ * SetTheme sets the application theme.
  * @param {string} theme
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -413,6 +454,7 @@ export function SetTheme(theme) {
 }
 
 /**
+ * SetUseAltUrl sets whether to use alternative URL.
  * @param {boolean} useAltUrl
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -422,6 +464,7 @@ export function SetUseAltUrl(useAltUrl) {
 }
 
 /**
+ * SetUseGrid sets whether to use grid view.
  * @param {boolean} useGrid
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -431,6 +474,7 @@ export function SetUseGrid(useGrid) {
 }
 
 /**
+ * SetWorkingDirectory sets the working directory path.
  * @param {string} dir
  * @returns {Promise<void> & { cancel(): void }}
  */
@@ -440,6 +484,7 @@ export function SetWorkingDirectory(dir) {
 }
 
 /**
+ * ToggleProjectGridView toggles between grid and list view for projects.
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function ToggleProjectGridView() {
@@ -448,6 +493,7 @@ export function ToggleProjectGridView() {
 }
 
 /**
+ * ToggleShowUntrackedProjects toggles visibility of untracked projects.
  * @returns {Promise<void> & { cancel(): void }}
  */
 export function ToggleShowUntrackedProjects() {
@@ -456,6 +502,7 @@ export function ToggleShowUntrackedProjects() {
 }
 
 /**
+ * UnpinProject removes a project from the studio's favorites list.
  * @param {string} studioName
  * @param {string} projectId
  * @returns {Promise<string[]> & { cancel(): void }}
@@ -470,6 +517,7 @@ export function UnpinProject(studioName, projectId) {
 }
 
 /**
+ * UpdateProjectLocation updates a project location's name and path.
  * @param {string} locationID
  * @param {string} name
  * @param {string} path

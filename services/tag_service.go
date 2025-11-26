@@ -8,6 +8,7 @@ import (
 
 type TagService struct{}
 
+// Retrieves all tags from the project database
 func (t *TagService) GetTags(projectPath string) ([]models.Tag, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {

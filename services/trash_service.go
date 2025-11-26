@@ -20,6 +20,7 @@ type RecycleItem struct {
 
 type TrashService struct{}
 
+// Retrieves all deleted items from project database including entities, templates, tasks, and checkpoints
 func (t *TrashService) GetTrashs(projectPath string) ([]RecycleItem, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
@@ -108,6 +109,7 @@ func (t *TrashService) GetTrashs(projectPath string) ([]RecycleItem, error) {
 	return recycleItems, nil
 }
 
+// Restores a deleted item by ID and type from the recycle bin
 func (t *TrashService) Restore(projectPath, id, itemType string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 
 type WorkflowService struct{}
 
+// Retrieves all workflows from the project database
 func (t *WorkflowService) GetWorkflows(projectPath string) ([]models.Workflow, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
@@ -30,6 +31,7 @@ func (t *WorkflowService) GetWorkflows(projectPath string) ([]models.Workflow, e
 	return workflows, nil
 }
 
+// Creates a new workflow with tasks, entities, and links
 func (t *WorkflowService) CreateWorkflow(projectPath, name string, workflowTasks []models.WorkflowTask, workflowEntities []models.WorkflowEntity, workflowLinks []models.WorkflowLink) (models.Workflow, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -52,6 +54,7 @@ func (t *WorkflowService) CreateWorkflow(projectPath, name string, workflowTasks
 	return workflow, nil
 }
 
+// Adds a workflow to an entity with specified parent and type
 func (t *WorkflowService) AddWorkflow(projectPath, workflow_id, name, entityTypeId, parentId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -79,6 +82,7 @@ func (t *WorkflowService) AddWorkflow(projectPath, workflow_id, name, entityType
 	return nil
 }
 
+// Updates an existing workflow including tasks, entities, and links
 func (t *WorkflowService) UpdateWorkflow(projectPath, workflowId, name string, workflowTasks []models.WorkflowTask, workflowEntities []models.WorkflowEntity, workflowLinks []models.WorkflowLink) (models.Workflow, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {

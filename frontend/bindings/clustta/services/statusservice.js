@@ -11,6 +11,7 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 import * as models$0 from "../internal/repository/models/models.js";
 
 /**
+ * Retrieves all status records from the project database
  * @param {string} projectPath
  * @returns {Promise<models$0.Status[]> & { cancel(): void }}
  */
