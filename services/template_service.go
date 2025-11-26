@@ -12,6 +12,7 @@ import (
 
 type TemplateService struct{}
 
+// Retrieves all templates from the project database
 func (t *TemplateService) GetTemplates(projectPath string) ([]models.Template, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
@@ -31,6 +32,7 @@ func (t *TemplateService) GetTemplates(projectPath string) ([]models.Template, e
 	return templates, nil
 }
 
+// Changes the file path associated with an existing template
 func (t *TemplateService) ChangeTemplateFile(projectPath, templateName, filePath string) error {
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return errors.New("file does not exist")
@@ -65,6 +67,7 @@ func (t *TemplateService) ChangeTemplateFile(projectPath, templateName, filePath
 	return nil
 }
 
+// Creates a new template with name and file path
 func (t *TemplateService) CreateTemplate(projectPath, templateName, filePath string) (models.Template, error) {
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return models.Template{}, errors.New("file does not exist")
@@ -91,6 +94,7 @@ func (t *TemplateService) CreateTemplate(projectPath, templateName, filePath str
 	return template, nil
 }
 
+// Deletes a template by name from the project database
 func (t *TemplateService) DeleteTemplate(projectPath, templateName string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -116,6 +120,8 @@ func (t *TemplateService) DeleteTemplate(projectPath, templateName string) error
 
 	return nil
 }
+
+// Renames an existing template in the project database
 func (t *TemplateService) RenameTemplate(projectPath, templateName, newName string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -146,6 +152,7 @@ func (t *TemplateService) RenameTemplate(projectPath, templateName, newName stri
 	return nil
 }
 
+// Retrieves a single template by ID from the project database
 func (t *TemplateService) GetTemplate(projectPath, templateId string) (models.Template, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {

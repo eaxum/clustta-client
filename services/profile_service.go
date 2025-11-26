@@ -142,7 +142,8 @@ type SkillData struct {
 	ProficiencyLevel string `json:"proficiency_level"`
 }
 
-// Helper function to make authenticated HTTP requests
+//makeRequest executes authenticated HTTP requests to the profile API.
+//Handles request construction, authentication headers, and response validation.
 func (p *ProfileService) makeRequest(method, url string, body interface{}) ([]byte, error) {
 	var reqBody io.Reader
 	if body != nil {
@@ -186,7 +187,7 @@ func (p *ProfileService) makeRequest(method, url string, body interface{}) ([]by
 	return responseBody, nil
 }
 
-// GetUserProfile fetches the complete user profile
+//GetUserProfile fetches the complete user profile including bio, location, and professional info.
 func (p *ProfileService) GetUserProfile(userId string) (UserProfile, error) {
 	url := constants.HOST + "/api/users/" + userId + "/profile"
 
@@ -204,7 +205,7 @@ func (p *ProfileService) GetUserProfile(userId string) (UserProfile, error) {
 	return profile, nil
 }
 
-// UpdateUserProfile updates user profile fields
+//UpdateUserProfile updates user profile fields with the provided data.
 func (p *ProfileService) UpdateUserProfile(userId string, updateData ProfileUpdateData) error {
 	url := constants.HOST + "/api/users/" + userId + "/profile"
 
@@ -216,7 +217,7 @@ func (p *ProfileService) UpdateUserProfile(userId string, updateData ProfileUpda
 	return nil
 }
 
-// GetUserTools fetches user's tools
+//GetUserTools fetches all tools associated with the user's profile.
 func (p *ProfileService) GetUserTools(userId string) ([]UserTool, error) {
 	url := constants.HOST + "/api/users/" + userId + "/tools"
 
@@ -234,7 +235,7 @@ func (p *ProfileService) GetUserTools(userId string) ([]UserTool, error) {
 	return tools, nil
 }
 
-// AddUserTool adds a tool to user profile
+//AddUserTool adds a new tool with proficiency level to the user's profile.
 func (p *ProfileService) AddUserTool(userId string, toolData ToolData) error {
 	url := constants.HOST + "/api/users/" + userId + "/tools"
 
@@ -246,7 +247,7 @@ func (p *ProfileService) AddUserTool(userId string, toolData ToolData) error {
 	return nil
 }
 
-// UpdateUserTool updates user tool proficiency
+//UpdateUserTool updates the proficiency level for an existing tool.
 func (p *ProfileService) UpdateUserTool(userId, toolId, proficiencyLevel string) error {
 	url := constants.HOST + "/api/users/" + userId + "/tools/" + toolId
 
@@ -262,7 +263,7 @@ func (p *ProfileService) UpdateUserTool(userId, toolId, proficiencyLevel string)
 	return nil
 }
 
-// RemoveUserTool removes a tool from user profile
+//RemoveUserTool removes a tool from the user's profile.
 func (p *ProfileService) RemoveUserTool(userId, toolId string) error {
 	url := constants.HOST + "/api/users/" + userId + "/tools/" + toolId
 
@@ -274,7 +275,7 @@ func (p *ProfileService) RemoveUserTool(userId, toolId string) error {
 	return nil
 }
 
-// GetUserSkills fetches user's skills
+//GetUserSkills fetches all skills associated with the user's profile.
 func (p *ProfileService) GetUserSkills(userId string) ([]UserSkill, error) {
 	url := constants.HOST + "/api/users/" + userId + "/skills"
 
@@ -292,7 +293,7 @@ func (p *ProfileService) GetUserSkills(userId string) ([]UserSkill, error) {
 	return skills, nil
 }
 
-// AddUserSkill adds a skill to user profile
+//AddUserSkill adds a new skill with proficiency level to the user's profile.
 func (p *ProfileService) AddUserSkill(userId string, skillData SkillData) error {
 	url := constants.HOST + "/api/users/" + userId + "/skills"
 
@@ -304,7 +305,7 @@ func (p *ProfileService) AddUserSkill(userId string, skillData SkillData) error 
 	return nil
 }
 
-// UpdateUserSkill updates user skill proficiency
+//UpdateUserSkill updates the proficiency level for an existing skill.
 func (p *ProfileService) UpdateUserSkill(userId, skillId, proficiencyLevel string) error {
 	url := constants.HOST + "/api/users/" + userId + "/skills/" + skillId
 
@@ -320,7 +321,7 @@ func (p *ProfileService) UpdateUserSkill(userId, skillId, proficiencyLevel strin
 	return nil
 }
 
-// RemoveUserSkill removes a skill from user profile
+//RemoveUserSkill removes a skill from the user's profile.
 func (p *ProfileService) RemoveUserSkill(userId, skillId string) error {
 	url := constants.HOST + "/api/users/" + userId + "/skills/" + skillId
 
@@ -332,7 +333,7 @@ func (p *ProfileService) RemoveUserSkill(userId, skillId string) error {
 	return nil
 }
 
-// GetAllTools fetches all available tools
+//GetAllTools fetches all available tools from the system.
 func (p *ProfileService) GetAllTools() ([]Tool, error) {
 	url := constants.HOST + "/api/tools"
 
@@ -350,7 +351,7 @@ func (p *ProfileService) GetAllTools() ([]Tool, error) {
 	return tools, nil
 }
 
-// GetToolsByCategory fetches tools by category
+//GetToolsByCategory fetches tools filtered by the specified category.
 func (p *ProfileService) GetToolsByCategory(category string) ([]Tool, error) {
 	url := constants.HOST + "/api/tools/category/" + category
 
@@ -368,7 +369,7 @@ func (p *ProfileService) GetToolsByCategory(category string) ([]Tool, error) {
 	return tools, nil
 }
 
-// GetAllSkills fetches all available skills
+//GetAllSkills fetches all available skills from the system.
 func (p *ProfileService) GetAllSkills() ([]Skill, error) {
 	url := constants.HOST + "/api/skills"
 
@@ -386,7 +387,7 @@ func (p *ProfileService) GetAllSkills() ([]Skill, error) {
 	return skills, nil
 }
 
-// GetSkillsByCategory fetches skills by category
+//GetSkillsByCategory fetches skills filtered by the specified category.
 func (p *ProfileService) GetSkillsByCategory(category string) ([]Skill, error) {
 	url := constants.HOST + "/api/skills/category/" + category
 
@@ -404,7 +405,7 @@ func (p *ProfileService) GetSkillsByCategory(category string) ([]Skill, error) {
 	return skills, nil
 }
 
-// GetAllCountries fetches all countries
+//GetAllCountries fetches all available countries for profile location selection.
 func (p *ProfileService) GetAllCountries() ([]Country, error) {
 	url := constants.HOST + "/api/countries"
 
@@ -422,7 +423,7 @@ func (p *ProfileService) GetAllCountries() ([]Country, error) {
 	return countries, nil
 }
 
-// GetAllGenders fetches all genders
+//GetAllGenders fetches all available gender options for profile selection.
 func (p *ProfileService) GetAllGenders() ([]Gender, error) {
 	url := constants.HOST + "/api/genders"
 

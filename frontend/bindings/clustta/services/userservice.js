@@ -11,6 +11,7 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 import * as models$0 from "../internal/repository/models/models.js";
 
 /**
+ * Creates a new role with name and permission attributes
  * @param {string} projectPath
  * @param {string} name
  * @param {models$0.RoleAttributes} attributes
@@ -26,6 +27,7 @@ export function AddRole(projectPath, name, attributes) {
 }
 
 /**
+ * Deletes a role by ID from the project database
  * @param {string} projectPath
  * @param {string} id
  * @returns {Promise<void> & { cancel(): void }}
@@ -36,6 +38,7 @@ export function DeleteRole(projectPath, id) {
 }
 
 /**
+ * Fetches user data from remote authentication service by ID
  * @param {string} userId
  * @returns {Promise<models$0.User> & { cancel(): void }}
  */
@@ -49,6 +52,7 @@ export function FetchUserById(userId) {
 }
 
 /**
+ * Retrieves all roles from the project database
  * @param {string} projectPath
  * @returns {Promise<models$0.Role[]> & { cancel(): void }}
  */
@@ -62,6 +66,7 @@ export function GetRoles(projectPath) {
 }
 
 /**
+ * Retrieves a single user by ID from the project database
  * @param {string} projectPath
  * @param {string} userId
  * @returns {Promise<models$0.User> & { cancel(): void }}
@@ -76,6 +81,7 @@ export function GetUser(projectPath, userId) {
 }
 
 /**
+ * Retrieves all users from the project database
  * @param {string} projectPath
  * @returns {Promise<models$0.User[]> & { cancel(): void }}
  */
@@ -89,6 +95,7 @@ export function GetUsers(projectPath) {
 }
 
 /**
+ * Updates an existing role's name and permission attributes
  * @param {string} projectPath
  * @param {string} id
  * @param {string} name

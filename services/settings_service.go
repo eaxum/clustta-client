@@ -6,6 +6,7 @@ import (
 
 type SettingsService struct{}
 
+//GetStudios retrieves all configured studios from user settings.
 func (s *SettingsService) GetStudios(path string) ([]settings.Studio, error) {
 	studios, err := settings.GetStudios()
 	if err != nil {
@@ -14,6 +15,7 @@ func (s *SettingsService) GetStudios(path string) ([]settings.Studio, error) {
 	return studios, nil
 }
 
+//PinProject pins a project to the studio's favorites list.
 func (s *SettingsService) PinProject(studioName, projectId string) ([]string, error) {
 	projectsId, err := settings.PinProject(studioName, projectId)
 	if err != nil {
@@ -22,14 +24,17 @@ func (s *SettingsService) PinProject(studioName, projectId string) ([]string, er
 	return projectsId, nil
 }
 
+//GetUserDirectory returns the current user's home directory path.
 func (s *SettingsService) GetUserDirectory() (string, error) {
 	return settings.GetUserDirectory()
 }
 
+//GetUsername returns the current system username.
 func (s *SettingsService) GetUsername() (string, error) {
 	return settings.GetUsername()
 }
 
+//UnpinProject removes a project from the studio's favorites list.
 func (s *SettingsService) UnpinProject(studioName, projectId string) ([]string, error) {
 	projectsId, err := settings.UnpinProject(studioName, projectId)
 	if err != nil {
@@ -38,6 +43,7 @@ func (s *SettingsService) UnpinProject(studioName, projectId string) ([]string, 
 	return projectsId, nil
 }
 
+//GetPinnedProjects retrieves all pinned projects for the specified studio.
 func (s *SettingsService) GetPinnedProjects(studioName string) ([]string, error) {
 	projectsId, err := settings.GetPinnedProjects(studioName)
 	if err != nil {
@@ -46,6 +52,7 @@ func (s *SettingsService) GetPinnedProjects(studioName string) ([]string, error)
 	return projectsId, nil
 }
 
+//GetRecentProjects retrieves recently accessed projects for the specified studio.
 func (s *SettingsService) GetRecentProjects(studioName string) ([]string, error) {
 	projectsId, err := settings.GetRecentProjects(studioName)
 	if err != nil {
@@ -54,6 +61,7 @@ func (s *SettingsService) GetRecentProjects(studioName string) ([]string, error)
 	return projectsId, nil
 }
 
+//AddRecentProject adds a project to the recent projects list.
 func (s *SettingsService) AddRecentProject(studioName, projectId string) ([]string, error) {
 	projectsId, err := settings.AddRecentProject(studioName, projectId)
 	if err != nil {
@@ -61,10 +69,13 @@ func (s *SettingsService) AddRecentProject(studioName, projectId string) ([]stri
 	}
 	return projectsId, nil
 }
+
+//ClearRecentProject clears the recent projects list for the specified studio.
 func (s *SettingsService) ClearRecentProject(studioName string) error {
 	return settings.ClearRecentProject()
 }
 
+//AddProjectWorkspace adds a workspace configuration to a project.
 func (s *SettingsService) AddProjectWorkspace(projectId string, workspaceData interface{}) error {
 	err := settings.AddProjectWorkspace(projectId, workspaceData)
 	if err != nil {
@@ -72,6 +83,8 @@ func (s *SettingsService) AddProjectWorkspace(projectId string, workspaceData in
 	}
 	return nil
 }
+
+//RemoveProjectWorkspace removes a workspace configuration from a project.
 func (s *SettingsService) RemoveProjectWorkspace(projectId string, workspaceName string) error {
 	err := settings.RemoveProjectWorkspace(projectId, workspaceName)
 	if err != nil {
@@ -80,6 +93,7 @@ func (s *SettingsService) RemoveProjectWorkspace(projectId string, workspaceName
 	return nil
 }
 
+//GetProjectWorkspaces retrieves all workspace configurations for a project.
 func (s *SettingsService) GetProjectWorkspaces(projectId string) ([]interface{}, error) {
 	projectWorkspaces, err := settings.GetProjectWorkspaces(projectId)
 	if err != nil {
@@ -88,6 +102,7 @@ func (s *SettingsService) GetProjectWorkspaces(projectId string) ([]interface{},
 	return projectWorkspaces, nil
 }
 
+//GetUseAltUrl retrieves whether alternative URL is enabled.
 func (s *SettingsService) GetUseAltUrl() (bool, error) {
 	useAltUrl, err := settings.GetUseAltUrl()
 	if err != nil {
@@ -96,6 +111,7 @@ func (s *SettingsService) GetUseAltUrl() (bool, error) {
 	return useAltUrl, nil
 }
 
+//SetUseAltUrl sets whether to use alternative URL.
 func (s *SettingsService) SetUseAltUrl(useAltUrl bool) error {
 	err := settings.SetUseAltUrl(useAltUrl)
 	if err != nil {
@@ -104,6 +120,7 @@ func (s *SettingsService) SetUseAltUrl(useAltUrl bool) error {
 	return nil
 }
 
+//GetEulaAccepted retrieves whether the user has accepted the EULA.
 func (s *SettingsService) GetEulaAccepted() (bool, error) {
 	eulaAccepted, err := settings.GetEulaAccepted()
 	if err != nil {
@@ -112,6 +129,7 @@ func (s *SettingsService) GetEulaAccepted() (bool, error) {
 	return eulaAccepted, nil
 }
 
+//SetEulaAccepted sets the EULA acceptance status.
 func (s *SettingsService) SetEulaAccepted(eulaAccepted bool) error {
 	err := settings.SetEulaAccepted(eulaAccepted)
 	if err != nil {
@@ -120,6 +138,7 @@ func (s *SettingsService) SetEulaAccepted(eulaAccepted bool) error {
 	return nil
 }
 
+//GetLastStudio retrieves the last active studio name.
 func (s *SettingsService) GetLastStudio() (string, error) {
 	lastStudioName, err := settings.GetLastStudio()
 	if err != nil {
@@ -128,6 +147,7 @@ func (s *SettingsService) GetLastStudio() (string, error) {
 	return lastStudioName, nil
 }
 
+//SetLastStudio sets the last active studio name.
 func (s *SettingsService) SetLastStudio(lastStudioName string) error {
 	err := settings.SetLastStudio(lastStudioName)
 	if err != nil {
@@ -136,6 +156,7 @@ func (s *SettingsService) SetLastStudio(lastStudioName string) error {
 	return nil
 }
 
+//GetCurrentVersion retrieves the current application version number.
 func (s *SettingsService) GetCurrentVersion() (string, error) {
 	versionNumber, err := settings.GetCurrentVersion()
 	if err != nil {
@@ -144,6 +165,7 @@ func (s *SettingsService) GetCurrentVersion() (string, error) {
 	return versionNumber, nil
 }
 
+//SetCurrentVersion sets the current application version number.
 func (s *SettingsService) SetCurrentVersion(versionNumber string) error {
 	err := settings.SetCurrentVersion(versionNumber)
 	if err != nil {
@@ -152,22 +174,27 @@ func (s *SettingsService) SetCurrentVersion(versionNumber string) error {
 	return nil
 }
 
+//IsProjectGridView returns whether project grid view is enabled.
 func (s *SettingsService) IsProjectGridView() (bool, error) {
 	return settings.IsProjectGridView()
 }
 
+//ToggleProjectGridView toggles between grid and list view for projects.
 func (s *SettingsService) ToggleProjectGridView() error {
 	return settings.ToggleProjectGridView()
 }
 
+//ToggleShowUntrackedProjects toggles visibility of untracked projects.
 func (s *SettingsService) ToggleShowUntrackedProjects() error {
 	return settings.ToggleShowUntrackedProjects()
 }
 
+//IsShowUntrackedProjects returns whether untracked projects are visible.
 func (s *SettingsService) IsShowUntrackedProjects() (bool, error) {
 	return settings.IsShowUntrackedProjects()
 }
 
+//GetIconScheme retrieves the current icon scheme name.
 func (s *SettingsService) GetIconScheme() (string, error) {
 	iconScheme, err := settings.GetIconScheme()
 	if err != nil {
@@ -176,6 +203,7 @@ func (s *SettingsService) GetIconScheme() (string, error) {
 	return iconScheme, nil
 }
 
+//SetIconScheme sets the icon scheme for the application.
 func (s *SettingsService) SetIconScheme(iconScheme string) error {
 	err := settings.SetIconScheme(iconScheme)
 	if err != nil {
@@ -184,6 +212,7 @@ func (s *SettingsService) SetIconScheme(iconScheme string) error {
 	return nil
 }
 
+//GetTheme retrieves the current theme name.
 func (s *SettingsService) GetTheme() (string, error) {
 	theme, err := settings.GetTheme()
 	if err != nil {
@@ -192,6 +221,7 @@ func (s *SettingsService) GetTheme() (string, error) {
 	return theme, nil
 }
 
+//SetTheme sets the application theme.
 func (s *SettingsService) SetTheme(theme string) error {
 	err := settings.SetTheme(theme)
 	if err != nil {
@@ -200,6 +230,7 @@ func (s *SettingsService) SetTheme(theme string) error {
 	return nil
 }
 
+//GetUseGrid retrieves whether grid view is enabled.
 func (s *SettingsService) GetUseGrid() (bool, error) {
 	useGrid, err := settings.GetUseGrid()
 	if err != nil {
@@ -208,6 +239,7 @@ func (s *SettingsService) GetUseGrid() (bool, error) {
 	return useGrid, nil
 }
 
+//SetUseGrid sets whether to use grid view.
 func (s *SettingsService) SetUseGrid(useGrid bool) error {
 	err := settings.SetUseGrid(useGrid)
 	if err != nil {
@@ -216,6 +248,7 @@ func (s *SettingsService) SetUseGrid(useGrid bool) error {
 	return nil
 }
 
+//GetProjectDirectory retrieves the default project directory path.
 func (s *SettingsService) GetProjectDirectory() (string, error) {
 	projectDir, err := settings.GetProjectDirectory()
 	if err != nil {
@@ -224,6 +257,7 @@ func (s *SettingsService) GetProjectDirectory() (string, error) {
 	return projectDir, nil
 }
 
+//SetProjectDirectory sets the default project directory path.
 func (s *SettingsService) SetProjectDirectory(dir string) error {
 	err := settings.SetProjectDirectory(dir)
 	if err != nil {
@@ -232,6 +266,7 @@ func (s *SettingsService) SetProjectDirectory(dir string) error {
 	return nil
 }
 
+//GetSharedProjectDirectory retrieves the shared project directory path.
 func (s *SettingsService) GetSharedProjectDirectory() (string, error) {
 	projectDir, err := settings.GetSharedProjectDirectory()
 	if err != nil {
@@ -240,6 +275,7 @@ func (s *SettingsService) GetSharedProjectDirectory() (string, error) {
 	return projectDir, nil
 }
 
+//SetSharedProjectDirectory sets the shared project directory path.
 func (s *SettingsService) SetSharedProjectDirectory(dir string) error {
 	err := settings.SetSharedProjectDirectory(dir)
 	if err != nil {
@@ -248,6 +284,7 @@ func (s *SettingsService) SetSharedProjectDirectory(dir string) error {
 	return nil
 }
 
+//GetWorkingDirectory retrieves the working directory path.
 func (s *SettingsService) GetWorkingDirectory() (string, error) {
 	projectDir, err := settings.GetWorkingDirectory()
 	if err != nil {
@@ -256,6 +293,7 @@ func (s *SettingsService) GetWorkingDirectory() (string, error) {
 	return projectDir, nil
 }
 
+//SetWorkingDirectory sets the working directory path.
 func (s *SettingsService) SetWorkingDirectory(dir string) error {
 	err := settings.SetWorkingDirectory(dir)
 	if err != nil {
@@ -264,52 +302,62 @@ func (s *SettingsService) SetWorkingDirectory(dir string) error {
 	return nil
 }
 
-// ========== Project Location Management ==========
-
+//GetAllLocationPaths retrieves all configured project locations.
 func (s *SettingsService) GetAllLocationPaths() ([]settings.ProjectLocation, error) {
 	return settings.GetAllLocationPaths()
 }
 
+//GetDefaultLocation retrieves the default project location.
 func (s *SettingsService) GetDefaultLocation() (settings.ProjectLocation, error) {
 	return settings.GetDefaultLocation()
 }
 
+//AddProjectLocation adds a new project location with name and path.
 func (s *SettingsService) AddProjectLocation(name, path string) (settings.ProjectLocation, error) {
 	return settings.AddProjectLocation(name, path)
 }
 
+//RemoveProjectLocation removes a project location by ID.
 func (s *SettingsService) RemoveProjectLocation(locationID string) error {
 	return settings.RemoveProjectLocation(locationID)
 }
 
+//UpdateProjectLocation updates a project location's name and path.
 func (s *SettingsService) UpdateProjectLocation(locationID, name, path string) error {
 	return settings.UpdateProjectLocation(locationID, name, path)
 }
 
+//SetDefaultLocation sets the default project location by ID.
 func (s *SettingsService) SetDefaultLocation(locationID string) error {
 	return settings.SetDefaultLocation(locationID)
 }
 
+//AssignProjectToLocation assigns a project to a specific location.
 func (s *SettingsService) AssignProjectToLocation(projectID, locationID string) error {
 	return settings.AssignProjectToLocation(projectID, locationID)
 }
 
+//GetProjectLocation retrieves the location ID for a specific project.
 func (s *SettingsService) GetProjectLocation(projectID string) (string, error) {
 	return settings.GetProjectLocation(projectID)
 }
 
+//GetLocationUsage returns the number of projects using a location.
 func (s *SettingsService) GetLocationUsage(locationID string) (int, error) {
 	return settings.GetLocationUsage(locationID)
 }
 
+//CanDeleteLocation checks if a location can be safely deleted.
 func (s *SettingsService) CanDeleteLocation(locationID string) (bool, error) {
 	return settings.CanDeleteLocation(locationID)
 }
 
+//CheckLocationHealth verifies the health status of a specific location.
 func (s *SettingsService) CheckLocationHealth(locationID string) (settings.LocationHealth, error) {
 	return settings.CheckLocationHealth(locationID)
 }
 
+//CheckAllLocationsHealth verifies the health status of all project locations.
 func (s *SettingsService) CheckAllLocationsHealth() ([]settings.LocationHealth, error) {
 	return settings.CheckAllLocationsHealth()
 }

@@ -11,7 +11,7 @@ import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 import * as $models from "./models.js";
 
 /**
- * AddUserSkill adds a skill to user profile
+ * AddUserSkill adds a new skill with proficiency level to the user's profile.
  * @param {string} userId
  * @param {$models.SkillData} skillData
  * @returns {Promise<void> & { cancel(): void }}
@@ -22,7 +22,7 @@ export function AddUserSkill(userId, skillData) {
 }
 
 /**
- * AddUserTool adds a tool to user profile
+ * AddUserTool adds a new tool with proficiency level to the user's profile.
  * @param {string} userId
  * @param {$models.ToolData} toolData
  * @returns {Promise<void> & { cancel(): void }}
@@ -33,7 +33,7 @@ export function AddUserTool(userId, toolData) {
 }
 
 /**
- * GetAllCountries fetches all countries
+ * GetAllCountries fetches all available countries for profile location selection.
  * @returns {Promise<$models.Country[]> & { cancel(): void }}
  */
 export function GetAllCountries() {
@@ -46,7 +46,7 @@ export function GetAllCountries() {
 }
 
 /**
- * GetAllGenders fetches all genders
+ * GetAllGenders fetches all available gender options for profile selection.
  * @returns {Promise<$models.Gender[]> & { cancel(): void }}
  */
 export function GetAllGenders() {
@@ -59,7 +59,7 @@ export function GetAllGenders() {
 }
 
 /**
- * GetAllSkills fetches all available skills
+ * GetAllSkills fetches all available skills from the system.
  * @returns {Promise<$models.Skill[]> & { cancel(): void }}
  */
 export function GetAllSkills() {
@@ -72,7 +72,7 @@ export function GetAllSkills() {
 }
 
 /**
- * GetAllTools fetches all available tools
+ * GetAllTools fetches all available tools from the system.
  * @returns {Promise<$models.Tool[]> & { cancel(): void }}
  */
 export function GetAllTools() {
@@ -85,7 +85,7 @@ export function GetAllTools() {
 }
 
 /**
- * GetSkillsByCategory fetches skills by category
+ * GetSkillsByCategory fetches skills filtered by the specified category.
  * @param {string} category
  * @returns {Promise<$models.Skill[]> & { cancel(): void }}
  */
@@ -99,7 +99,7 @@ export function GetSkillsByCategory(category) {
 }
 
 /**
- * GetToolsByCategory fetches tools by category
+ * GetToolsByCategory fetches tools filtered by the specified category.
  * @param {string} category
  * @returns {Promise<$models.Tool[]> & { cancel(): void }}
  */
@@ -113,7 +113,7 @@ export function GetToolsByCategory(category) {
 }
 
 /**
- * GetUserProfile fetches the complete user profile
+ * GetUserProfile fetches the complete user profile including bio, location, and professional info.
  * @param {string} userId
  * @returns {Promise<$models.UserProfile> & { cancel(): void }}
  */
@@ -127,7 +127,7 @@ export function GetUserProfile(userId) {
 }
 
 /**
- * GetUserSkills fetches user's skills
+ * GetUserSkills fetches all skills associated with the user's profile.
  * @param {string} userId
  * @returns {Promise<$models.UserSkill[]> & { cancel(): void }}
  */
@@ -141,7 +141,7 @@ export function GetUserSkills(userId) {
 }
 
 /**
- * GetUserTools fetches user's tools
+ * GetUserTools fetches all tools associated with the user's profile.
  * @param {string} userId
  * @returns {Promise<$models.UserTool[]> & { cancel(): void }}
  */
@@ -155,7 +155,7 @@ export function GetUserTools(userId) {
 }
 
 /**
- * RemoveUserSkill removes a skill from user profile
+ * RemoveUserSkill removes a skill from the user's profile.
  * @param {string} userId
  * @param {string} skillId
  * @returns {Promise<void> & { cancel(): void }}
@@ -166,7 +166,7 @@ export function RemoveUserSkill(userId, skillId) {
 }
 
 /**
- * RemoveUserTool removes a tool from user profile
+ * RemoveUserTool removes a tool from the user's profile.
  * @param {string} userId
  * @param {string} toolId
  * @returns {Promise<void> & { cancel(): void }}
@@ -177,7 +177,7 @@ export function RemoveUserTool(userId, toolId) {
 }
 
 /**
- * UpdateUserProfile updates user profile fields
+ * UpdateUserProfile updates user profile fields with the provided data.
  * @param {string} userId
  * @param {$models.ProfileUpdateData} updateData
  * @returns {Promise<void> & { cancel(): void }}
@@ -188,7 +188,7 @@ export function UpdateUserProfile(userId, updateData) {
 }
 
 /**
- * UpdateUserSkill updates user skill proficiency
+ * UpdateUserSkill updates the proficiency level for an existing skill.
  * @param {string} userId
  * @param {string} skillId
  * @param {string} proficiencyLevel
@@ -200,7 +200,7 @@ export function UpdateUserSkill(userId, skillId, proficiencyLevel) {
 }
 
 /**
- * UpdateUserTool updates user tool proficiency
+ * UpdateUserTool updates the proficiency level for an existing tool.
  * @param {string} userId
  * @param {string} toolId
  * @param {string} proficiencyLevel

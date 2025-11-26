@@ -8,6 +8,7 @@ import (
 
 type StudioService struct{}
 
+// Fetches all users associated with a studio by studio ID
 func (s *StudioService) GetStudioUsers(studioId string) ([]models.StudioUserInfo, error) {
 	users, err := studio_service.GetStudioUsers(studioId)
 	if err != nil {
@@ -16,6 +17,7 @@ func (s *StudioService) GetStudioUsers(studioId string) ([]models.StudioUserInfo
 	return users, nil
 }
 
+// Adds a new collaborator to a studio with specified role
 func (s *StudioService) AddCollaborator(email, studioId, roleName string) (interface{}, error) {
 	// Convert role name to lowercase to match JS version
 	roleName = strings.ToLower(roleName)
@@ -27,6 +29,7 @@ func (s *StudioService) AddCollaborator(email, studioId, roleName string) (inter
 	return result, nil
 }
 
+// Changes the role of an existing collaborator in a studio
 func (s *StudioService) ChangeCollaboratorRole(userId, studioId, roleName string) (interface{}, error) {
 	// Convert role name to lowercase to match JS version
 	roleName = strings.ToLower(roleName)
@@ -38,6 +41,7 @@ func (s *StudioService) ChangeCollaboratorRole(userId, studioId, roleName string
 	return result, nil
 }
 
+// Removes a collaborator from a studio by user ID
 func (s *StudioService) RemoveCollaborator(userId, studioId string) (interface{}, error) {
 	result, err := studio_service.RemoveCollaborator(userId, studioId)
 	if err != nil {
@@ -46,6 +50,7 @@ func (s *StudioService) RemoveCollaborator(userId, studioId string) (interface{}
 	return result, nil
 }
 
+// Checks if a studio server is online or offline by URL
 func (s *StudioService) GetStudioStatus(studioUrl string) (string, error) {
 	status, err := studio_service.GetStudioStatus(studioUrl)
 	if err != nil {
@@ -54,6 +59,7 @@ func (s *StudioService) GetStudioStatus(studioUrl string) (string, error) {
 	return status, nil
 }
 
+// Registers a new studio with name and URL
 func (s *StudioService) RegisterStudio(name, studioUrl string) (interface{}, error) {
 	result, err := studio_service.RegisterStudio(name, studioUrl)
 	if err != nil {
@@ -62,6 +68,7 @@ func (s *StudioService) RegisterStudio(name, studioUrl string) (interface{}, err
 	return result, nil
 }
 
+// Updates studio configuration including URLs, port, and key
 func (s *StudioService) UpdateStudio(studioName, url, altUrl, port, key string) (interface{}, error) {
 	result, err := studio_service.UpdateStudio(studioName, url, altUrl, port, key)
 	if err != nil {
@@ -70,6 +77,7 @@ func (s *StudioService) UpdateStudio(studioName, url, altUrl, port, key string) 
 	return result, nil
 }
 
+// Verifies a deployment code for studio access
 func (s *StudioService) VerifyDeploymentCode(code string) (bool, string, error) {
 	valid, message, err := studio_service.VerifyDeploymentCode(code)
 	if err != nil {
@@ -78,6 +86,7 @@ func (s *StudioService) VerifyDeploymentCode(code string) (bool, string, error) 
 	return valid, message, nil
 }
 
+// Checks if a studio name is already registered
 func (s *StudioService) CheckStudioNameExists(studioName string) (bool, error) {
 	exists, err := studio_service.CheckStudioNameExists(studioName)
 	if err != nil {
