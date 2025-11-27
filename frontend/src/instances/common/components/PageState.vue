@@ -97,7 +97,7 @@ const props = defineProps({
   /* background-color: forestgreen; */
   box-sizing: border-box;
   padding: 2px;
-  height: 100%;
+  /* height: 100%; */
   overflow: hidden;
   display: flex;
   align-items: center;
