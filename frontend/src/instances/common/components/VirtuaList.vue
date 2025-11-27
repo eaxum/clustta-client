@@ -467,8 +467,6 @@ const refreshView = async () => {
       emitter.emit('update-untracked-items', allUntrackedItems);
     }
     
-    collectionStore.loadCollectionStateFlags();
-    
   } catch (error) {
     console.error('Error getting collection children state:', error);
   }
