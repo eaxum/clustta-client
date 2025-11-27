@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-container">
+  <div class="modal-container" v-stop-propagation>
     <HeaderArea :title="'Setup Clustta'" :icon="getAppIcon('clustta')" :showSearch="false" />
     <div class="general-container">
 
@@ -401,13 +401,10 @@ onMounted(async () => {
 .general-container {
   display: flex;
   flex-direction: column;
-  /* gap: 1rem; */
-  width: 700px;
-  max-width: 700px;
-  /* padding: 1rem; */
+  width: 600px;
+  max-width: 600px;
   color: white;
   box-sizing: border-box;
-  /* background-color: crimson; */
   padding: 0;
 }
 
@@ -416,11 +413,9 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   background-color: var(--dark-steel);
-  /* border-radius: var(--normal-radius); */
   overflow: hidden;
   box-sizing: border-box;
   padding: 0;
-  /* background-color: forestgreen; */
 }
 
 .settings-section-card-header {

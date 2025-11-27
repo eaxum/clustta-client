@@ -3,9 +3,11 @@
 
 		<div class="task-header">
 			<div class="create-menu" >
-				<ActionButton v-if="userStore.userCanCreateProject" :icon="getAppIcon('briefcase-plus')" :label="!panes.showDetailsPane ? 'New Project' : ''"
+				<ActionButton v-if="userStore.userCanCreateProject" :icon="getAppIcon('briefcase-plus')" 
 					@click="createProject" v-tooltip="'New Project'" :buttonFunction="doNothing" />
-				<ActionButton v-if="projectStore.projectsLoaded" :icon="getAppIcon('refresh')" :label="!panes.showDetailsPane ? 'Refresh' : ''"
+				<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :icon="getAppIcon('arrow-down-ramp')" 
+					v-tooltip="'Import Project'" :buttonFunction="importProject" />
+				<ActionButton v-if="projectStore.projectsLoaded" :icon="getAppIcon('refresh')" 
 					v-tooltip="'Refresh'" :buttonFunction="refresh" />
 			</div>
 			<div class="action-bar" v-if="projects.length && projectStore.projectsLoaded || projectStore.projectSearchQuery">
@@ -388,6 +390,10 @@ const createProject = () => {
 	modals.setModalVisibility('addProjectModal', true)
 };
 
+const importProject = () => {
+	modals.setModalVisibility('importProjectModal', true)
+};
+
 const switchViewLayout = () => {
 	SettingsService.ToggleProjectGridView().then(() => {
 		projectStore.isProjectGridView = !projectStore.isProjectGridView
@@ -445,10 +451,6 @@ onUnmounted(() => {
     background-color: firebrick; */
 	color: var(--white);
 	flex-direction: column;
-}
-
-.absolute-pane {
-	/* padding: 0px; */
 }
 
 .project-item {
@@ -692,10 +694,6 @@ onUnmounted(() => {
 	width: max-content;
 	height: max-content;
 	/* background-color: darkorange; */
-}
-
-.compound-list-item {
-	/* background-color: blue; */
 }
 </style>
 
