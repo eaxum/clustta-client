@@ -3,6 +3,7 @@ package services
 import (
 	"archive/tar"
 	"archive/zip"
+	"clustta/internal/auth_service"
 	"clustta/internal/custom_thumbnail"
 	"clustta/internal/settings"
 	"clustta/internal/system_icon"
@@ -114,7 +115,7 @@ func (f *FSService) debounceEvent(path string, callback func()) {
 	})
 }
 
-// Exists checks if a file or directory exists at the specified path.
+// Exists checks if a file exists at the specified path.
 func (f *FSService) Exists(path string) bool {
 	return utils.FileExists(path)
 }
@@ -789,4 +790,186 @@ func (f *FSService) processTarReader(tarReader *tar.Reader, destDir string, app 
 	}
 
 	return nil
+}
+
+// ImportClusttaFiles imports multiple .clst files to the destination directory with progress reporting.
+// Validates file extensions, checks for existing files, and copies each file with progress updates.
+// Returns an array of destination file paths and any error encountered.
+func (f *FSService) ImportClusttaFiles(sourcePaths []string, destinationDirectory string) ([]string, error) {
+	app := application.Get()
+
+	// Validate that destination exists and is a directory
+	destInfo, err := os.Stat(destinationDirectory)
+	if err != nil {
+		return nil, fmt.Errorf("destination directory not accessible: %w", err)
+	}
+	if !destInfo.IsDir() {
+		return nil, fmt.Errorf("destination path is not a directory")
+	}
+
+	// Validate all source files
+	validFiles := []string{}
+	for _, sourcePath := range sourcePaths {
+		// Check if file exists
+		if _, err := os.Stat(sourcePath); err != nil {
+			return nil, fmt.Errorf("source file not found: %s", sourcePath)
+		}
+
+		// Validate .clst extension
+		if filepath.Ext(sourcePath) != ".clst" {
+			return nil, fmt.Errorf("invalid file type: %s (only .clst files allowed)", filepath.Base(sourcePath))
+		}
+
+		validFiles = append(validFiles, sourcePath)
+	}
+
+	if len(validFiles) == 0 {
+		return nil, fmt.Errorf("no valid .clst files to import")
+	}
+
+	// Check for existing files in destination
+	existingFiles := []string{}
+	for _, sourcePath := range validFiles {
+		destPath := filepath.Join(destinationDirectory, filepath.Base(sourcePath))
+		if _, err := os.Stat(destPath); err == nil {
+			existingFiles = append(existingFiles, filepath.Base(sourcePath))
+		}
+	}
+
+	if len(existingFiles) > 0 {
+		return nil, fmt.Errorf("files already exist in destination: %v", existingFiles)
+	}
+
+	// Import files with progress tracking
+	destinationPaths := []string{}
+	totalFiles := len(validFiles)
+
+	for i, sourcePath := range validFiles {
+		fileName := filepath.Base(sourcePath)
+		destPath := filepath.Join(destinationDirectory, fileName)
+
+		// Send progress update
+		progress := output.ProgressReport{
+			Title:         "Importing Projects",
+			Message:       fileName,
+			Percentage:    (float64(i) / float64(totalFiles)) * 100,
+			Current:       i,
+			Total:         totalFiles,
+			OperationType: "write",
+		}
+		app.EmitEvent("progress-update", progress)
+
+		// Open source file
+		sourceFile, err := os.Open(sourcePath)
+		if err != nil {
+			return destinationPaths, fmt.Errorf("failed to open source file %s: %w", fileName, err)
+		}
+
+		// Get source file info
+		sourceInfo, err := sourceFile.Stat()
+		if err != nil {
+			sourceFile.Close()
+			return destinationPaths, fmt.Errorf("failed to get source file info for %s: %w", fileName, err)
+		}
+
+		// Create destination file
+		destFile, err := os.Create(destPath)
+		if err != nil {
+			sourceFile.Close()
+			return destinationPaths, fmt.Errorf("failed to create destination file %s: %w", fileName, err)
+		}
+
+		// Copy file contents
+		totalSize := sourceInfo.Size()
+		buffer := make([]byte, 1024*1024) // 1MB buffer
+		var copiedBytes int64
+
+		for {
+			nr, err := sourceFile.Read(buffer)
+			if nr > 0 {
+				nw, err := destFile.Write(buffer[0:nr])
+				if err != nil {
+					sourceFile.Close()
+					destFile.Close()
+					return destinationPaths, fmt.Errorf("failed to write to destination %s: %w", fileName, err)
+				}
+				if nr != nw {
+					sourceFile.Close()
+					destFile.Close()
+					return destinationPaths, fmt.Errorf("short write for file %s", fileName)
+				}
+				copiedBytes += int64(nw)
+
+				// Update progress within file
+				fileProgress := (float64(copiedBytes) / float64(totalSize)) * 100
+				overallProgress := ((float64(i) + (fileProgress / 100)) / float64(totalFiles)) * 100
+				progress = output.ProgressReport{
+					Title:         "Importing Projects",
+					Message:       fileName,
+					Percentage:    overallProgress,
+					Current:       i + 1,
+					Total:         totalFiles,
+					OperationType: "write",
+				}
+				app.EmitEvent("progress-update", progress)
+			}
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+				sourceFile.Close()
+				destFile.Close()
+				return destinationPaths, fmt.Errorf("failed to copy file contents for %s: %w", fileName, err)
+			}
+		}
+
+		// Set file permissions
+		err = os.Chmod(destPath, sourceInfo.Mode())
+		if err != nil {
+			sourceFile.Close()
+			destFile.Close()
+			return destinationPaths, fmt.Errorf("failed to set file permissions for %s: %w", fileName, err)
+		}
+
+		sourceFile.Close()
+		destFile.Close()
+
+		destinationPaths = append(destinationPaths, destPath)
+	}
+
+	// Send completion progress
+	progress := output.ProgressReport{
+		Title:         "Importing Projects",
+		Message:       "Import complete",
+		Percentage:    100,
+		Current:       totalFiles,
+		Total:         totalFiles,
+		OperationType: "write",
+	}
+	app.EmitEvent("progress-update", progress)
+
+	return destinationPaths, nil
+}
+
+// GetPersonalProjectsDirectory returns the path to the user's personal projects directory.
+// Creates the directory if it doesn't exist.
+func (f *FSService) GetPersonalProjectsDirectory() (string, error) {
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return "", fmt.Errorf("failed to get active user: %w", err)
+	}
+
+	userDataFolder, err := settings.GetUserDataFolder(user)
+	if err != nil {
+		return "", fmt.Errorf("failed to get user data folder: %w", err)
+	}
+
+	projectsDir := filepath.Join(userDataFolder, "Personal")
+
+	// Create directory if it doesn't exist
+	if err := os.MkdirAll(projectsDir, os.ModePerm); err != nil {
+		return "", fmt.Errorf("failed to create projects directory: %w", err)
+	}
+
+	return projectsDir, nil
 }

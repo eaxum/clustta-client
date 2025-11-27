@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-container">
+  <div class="modal-container" v-stop-propagation>
     <HeaderArea :title="'Backup Project'" :icon="getAppIcon('clustta')" :showSearch="false" />
     <div class="general-container">
 
@@ -315,8 +315,8 @@ const closeModal = () => {
 .general-container {
   display: flex;
   flex-direction: column;
-  width: 700px;
-  max-width: 700px;
+  width: 600px;
+  max-width: 600px;
   color: white;
   box-sizing: border-box;
   padding: 0;

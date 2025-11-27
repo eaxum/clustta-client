@@ -102,7 +102,7 @@ export function DuplicateFolder(sourcePath, destinationPath) {
 }
 
 /**
- * Exists checks if a file or directory exists at the specified path.
+ * Exists checks if a file exists at the specified path.
  * @param {string} path
  * @returns {Promise<boolean> & { cancel(): void }}
  */
@@ -234,6 +234,33 @@ export function GetOSThumbnails(filePaths, size) {
     let $resultPromise = /** @type {any} */($Call.ByID(4150854623, filePaths, size));
     let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
+    }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
+}
+
+/**
+ * GetPersonalProjectsDirectory returns the path to the user's personal projects directory.
+ * Creates the directory if it doesn't exist.
+ * @returns {Promise<string> & { cancel(): void }}
+ */
+export function GetPersonalProjectsDirectory() {
+    let $resultPromise = /** @type {any} */($Call.ByID(3859761309));
+    return $resultPromise;
+}
+
+/**
+ * ImportClusttaFiles imports multiple .clst files to the destination directory with progress reporting.
+ * Validates file extensions, checks for existing files, and copies each file with progress updates.
+ * Returns an array of destination file paths and any error encountered.
+ * @param {string[]} sourcePaths
+ * @param {string} destinationDirectory
+ * @returns {Promise<string[]> & { cancel(): void }}
+ */
+export function ImportClusttaFiles(sourcePaths, destinationDirectory) {
+    let $resultPromise = /** @type {any} */($Call.ByID(2186594820, sourcePaths, destinationDirectory));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+        return $$createType2($result);
     }));
     $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
     return $typingPromise;
@@ -387,3 +414,4 @@ export function WriteFile(path, data) {
 // Private type creation functions
 const $$createType0 = $models.FileInfo.createFrom;
 const $$createType1 = $Create.Map($Create.Any, $Create.Any);
+const $$createType2 = $Create.Array($Create.Any);

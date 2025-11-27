@@ -1,5 +1,5 @@
 <template>
-  <div ref="modalContainer" class="modal-container">
+  <div ref="modalContainer" class="modal-container" v-stop-propagation>
 
     <div class="general-pane-header">
       <HeaderArea :title="title" :icon="getAppIcon('briefcase-plus')" :showSearch="false" />
