@@ -508,8 +508,11 @@ watch(() => location.value, async (newPath, oldPath) => {
   
   if (newPath) {
     try {
-      await FSService.AddWatcherFolder(newPath);
-      currentWatchedPath.value = newPath;
+      const exists = await FSService.DirExists(newPath);
+      if (exists) {
+        await FSService.AddWatcherFolder(newPath);
+        currentWatchedPath.value = newPath;
+      }
     } catch (error) {
       console.error('Error adding watcher:', error);
     }
