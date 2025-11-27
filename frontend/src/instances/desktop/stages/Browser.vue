@@ -1669,6 +1669,7 @@ const handleUpdateRootData = (eventData) => {
 			});
 		}
 	}
+	collectionStore.loadCollectionStateFlags();
 };
 
 const handleUpdateUntrackedItems = (untrackedItems) => {
@@ -1681,6 +1682,7 @@ const handleUpdateUntrackedItems = (untrackedItems) => {
 	
 	// Add all new untracked items
 	rootData.value.push(...untrackedItems);
+	collectionStore.loadCollectionStateFlags();
 };
 
 onMounted(async () => {

@@ -333,6 +333,7 @@ const handleUpdateChildren = (eventData) => {
       });
     }
   }
+  collectionStore.loadCollectionStateFlags();
 };
 
 // Watch for stage.operationActive changes

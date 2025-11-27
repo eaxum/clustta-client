@@ -126,6 +126,7 @@ const disableMenu = () => {
 
 // Handle file system change events by refreshing view
 const handleFSChange = (event) => {
+  console.log(event)
   debouncedRefreshView();
 };
 
@@ -193,8 +194,6 @@ const refreshView = async () => {
       await assetStore.processUntrackedAssetsIcons(allUntrackedItems);
       emitter.emit('update-untracked-items', allUntrackedItems);
     }
-    
-    collectionStore.loadCollectionStateFlags();
     
   } catch (error) {
     console.error('Error getting collection children state:', error);
