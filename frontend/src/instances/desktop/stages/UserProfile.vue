@@ -263,28 +263,38 @@
       <!-- Only show for sections that need explicit saving (header, password) -->
       <!-- Skills and tools are saved immediately via API -->
       <div v-if="needsSaveButton" class="floating-actions">
-        <ActionButton 
-          :color="'crimson'" 
-          :iconAfter="true" 
-          :icon="getAppIcon('close-circle')" 
-          label="Cancel"
-          @click="cancelAllEdits"
-        />
-        <ActionButton 
-          :isDisabled="!isDataValid"  
-          :iconAfter="true" 
-          :icon="getAppIcon('check-circle')"
-          label="Save Changes" 
-          @click="saveAllChanges"
-          :useBackground="true"
-        />
+        <template v-if="isSavingChanges">
+          <ActionButton 
+            :isLoading="true"
+            :icon="getAppIcon('loading')"
+            label="Saving changes..."
+            :useBackground="true"
+          />
+        </template>
+        <template v-else>
+          <ActionButton 
+            :color="'crimson'" 
+            :iconAfter="true" 
+            :icon="getAppIcon('close-circle')" 
+            label="Cancel"
+            @click="cancelAllEdits"
+          />
+          <ActionButton 
+            :isDisabled="!isDataValid"  
+            :iconAfter="true" 
+            :icon="getAppIcon('check-circle')"
+            label="Save Changes" 
+            @click="saveAllChanges"
+            :useBackground="true"
+          />
+        </template>
       </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onBeforeMount, nextTick } from 'vue';
-import { AuthService, ProfileService } from "@/../bindings/clustta/services";
+import { AuthService, ProfileService, FSService } from "@/../bindings/clustta/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useIconStore } from '@/stores/icons';
@@ -292,6 +302,7 @@ import { useUserStore } from '@/stores/users';
 import { useProfileStore } from '@/stores/profile';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useTrayStates } from '@/stores/TrayStates';
+import { useStageStore } from '@/stores/stages';
 
 // Components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -313,6 +324,7 @@ const profileStore = useProfileStore();
 const trayStates = useTrayStates();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const stage = useStageStore();
 
 // State
 const loading = ref(true);
@@ -329,6 +341,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const userNameRegex = /^[a-zA-Z0-9_]{3,}$/;
 const isEmailTaken = ref(false);
 const isUsernameTaken = ref(false);
+const isSavingChanges = ref(false);
 
 // Section-specific edit states
 const editingSections = reactive({
@@ -522,14 +535,16 @@ const cancelAllEdits = async () => {
   });
 };
 
-const handlePhotoChange = (file, preview) => {
-  editableUserPhoto.photo = file;
+const handlePhotoChange = (filePath, preview) => {
+  editableUserPhoto.photo = filePath;
   photoPreview.value = preview;
 };
 
 const removePhoto = () => {
+  console.log('removed')
   editableUserPhoto.photo = null;
   photoPreview.value = null;
+  userStore.user.photo = null;
 };
 
 const handleStudioLogoError = (event) => {
@@ -538,9 +553,38 @@ const handleStudioLogoError = (event) => {
   event.target.classList.add('studio-icon-default');
 };
 
+const handleUpdatePhoto = async () => {
+  try {
+    if (!editableUserPhoto.photo) return;
+    
+    // Set saving state
+    isSavingChanges.value = true;
+    stage.operationActive = true;
+    
+    // Upload photo via ProfileService (passing the file path)
+    await ProfileService.UpdateUserPhoto(editableUserPhoto.photo);
+    
+    // Update local stores with the preview
+    userStore.user.photo = photoPreview.value;
+    profileStore.profile.photo = photoPreview.value;
+    
+    // Clear photo state
+    editableUserPhoto.photo = null;
+    photoPreview.value = null;
+    
+  } catch (err) {
+    throw new Error(err?.message || 'Failed to update profile photo');
+  } finally {
+    isSavingChanges.value = false;
+    stage.operationActive = false;
+  }
+};
+
 const handleUpdate = async () => {
   try {
     error.value = '';
+    isSavingChanges.value = true;
+    stage.operationActive = true;
     
     // Prepare update data with all editable fields (including links)
     const updateData = {
@@ -562,7 +606,7 @@ const handleUpdate = async () => {
     console.log(updateData)
     // Update profile via Wails ProfileService
     await ProfileService.UpdateUserProfile(userStore.user.id, updateData)
-      .then(() => {
+      .then(async () => {
         // Only update stores if API call succeeds
         profileStore.updateProfileFields(updateData);
         
@@ -572,6 +616,11 @@ const handleUpdate = async () => {
             userStore.user[key] = updateData[key];
           }
         });
+
+        // Handle photo upload separately if there's a photo to upload
+        if (photoPreview.value) {
+          await handleUpdatePhoto();
+        }
 
         notificationStore.addNotification(
           "Profile updated.", 
@@ -585,6 +634,9 @@ const handleUpdate = async () => {
   } catch (err) {
     error.value = err?.message || 'Failed to update profile';
     notificationStore.errorNotification("Failed to update profile.", err?.message || err);
+  } finally {
+    isSavingChanges.value = false;
+    stage.operationActive = false;
   }
 };
 

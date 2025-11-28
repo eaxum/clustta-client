@@ -8,21 +8,18 @@
       
       <div v-if="isEditing" class="avatar-overlay">
         <div class="avatar-actions">
-          <label class="avatar-action-button" title="Change Photo">
+          <button 
+            class="avatar-action-button" 
+            @click="selectPhoto"
+            v-tooltip="'Change Photo'"
+          >
             <img class="action-icon" :src="getAppIcon('camera')" alt="Change">
-            <input 
-              type="file" 
-              @change="handlePhotoChange" 
-              accept="image/*" 
-              ref="photoInput" 
-              class="photo-input"
-            />
-          </label>
+          </button>
           <button 
             v-if="photoPreview || userPhoto" 
             class="avatar-action-button" 
             @click="removePhoto"
-            title="Remove Photo"
+            v-tooltip="'Remove Photo'"
           >
             <img class="action-icon" :src="getAppIcon('close')" alt="Remove">
           </button>
@@ -35,6 +32,8 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useIconStore } from '@/stores/icons';
+import { DialogService, FSService } from '@/../bindings/clustta/services';
+import utils from '@/services/utils';
 
 const iconStore = useIconStore();
 
@@ -59,30 +58,34 @@ const props = defineProps({
 
 const emit = defineEmits(['photoChanged', 'photoRemoved']);
 
-const photoInput = ref(null);
 const photoPreview = ref(null);
 
 const displayPhoto = computed(() => {
   return photoPreview.value || props.userPhoto;
 });
 
-const handlePhotoChange = (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      photoPreview.value = e.target.result;
-      emit('photoChanged', file, e.target.result);
-    };
-    reader.readAsDataURL(file);
+const selectPhoto = async () => {
+  try {
+    const result = await DialogService.SelectFileDialog(
+      "Select Profile Picture", 
+      "*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp"
+    );
+    
+    if (result) {
+      // Convert file path to base64 for preview
+      const base64String = await utils.base64FromFile(result);
+      photoPreview.value = base64String;
+      
+      // Emit the file path and preview
+      emit('photoChanged', result, base64String);
+    }
+  } catch (error) {
+    console.error('Error selecting photo:', error);
   }
 };
 
 const removePhoto = () => {
   photoPreview.value = null;
-  if (photoInput.value) {
-    photoInput.value.value = '';
-  }
   emit('photoRemoved');
 };
 
@@ -169,10 +172,6 @@ const getAppIcon = (iconName) => {
   width: 20px;
   height: 20px;
   filter: brightness(0);
-}
-
-.photo-input {
-  display: none;
 }
 
 /* Size variants */

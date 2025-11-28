@@ -177,6 +177,16 @@ export function RemoveUserTool(userId, toolId) {
 }
 
 /**
+ * UpdateUserPhoto uploads a new profile photo for the user.
+ * @param {string} photoPath
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function UpdateUserPhoto(photoPath) {
+    let $resultPromise = /** @type {any} */($Call.ByID(4265485040, photoPath));
+    return $resultPromise;
+}
+
+/**
  * UpdateUserProfile updates user profile fields with the provided data.
  * @param {string} userId
  * @param {$models.ProfileUpdateData} updateData
