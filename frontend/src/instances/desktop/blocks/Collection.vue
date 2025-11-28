@@ -131,11 +131,7 @@
             {{ entityMeta }}
           </div>
         </div>
-
-        <div v-if="entity.is_library && !isEditing && !isGhost" class="entity-item-actions">
-          <ActionButton v-if="entity.is_library" :icon="getAppIcon('bookmark')" v-tooltip="'This is a Library'" />
-        </div>
-
+        
         <div v-if="collaboratorsList.length && entity.is_library && !isEditing && !isGhost" class="horizontal-divider">
         </div>
 
@@ -171,6 +167,7 @@
             <ActionButton v-if="collectionStateFlags.has_rebuildable && !(entity.id in stage.expandedEntities)" 
               @click="rebuildEntity" 
               :icon="getAppIcon('jigsaw')" v-tooltip="'Items missing. Click to rebuild'" />
+              <ActionButton v-if="entity.is_library" :icon="getAppIcon('bookmark')" v-tooltip="'This is a Library'" />
           </template>
         </div>
 

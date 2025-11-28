@@ -9,7 +9,7 @@
       label="Edit Project" :buttonFunction="editProject" />
 
     <!-- {{  isPinExceeded  }} -->
-    <ActionButton v-if="isProjectPinned" :icon="getAppIcon('unpin')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded && isProjectPinned" :icon="getAppIcon('unpin')" :showLabel="true" :fullWidth="true"
       label="Unpin Project" :buttonFunction="unpinProject" />
 
     <ActionButton v-else-if="!isPinExceeded" :icon="getAppIcon('pin')" :showLabel="true" :fullWidth="true"
@@ -18,7 +18,7 @@
     <span v-if="userStore.canDo('create_entity')" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
-    <span class="horizontal-flex">
+    <span v-if="projectStore.getActiveProject?.is_downloaded" class="horizontal-flex">
       <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" label="Show in Explorer"
         :buttonFunction="revealInExplorer" />
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyProjectPath()"
@@ -30,13 +30,13 @@
       :fullWidth="true" label="Locate Clustta File" :buttonFunction="locateClusttaFile" />
 
     <!-- Relocate Working Directory -->
-    <ActionButton :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
+    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
       :buttonFunction="relocateWorkingDirectory" />
 
-    <span class="menu-divider"></span>
+    <span v-if="projectStore.getActiveProject?.is_downloaded" class="menu-divider"></span>
 
     <!-- Archive -->
-    <ActionButton v-if="!projectStore.getActiveProject.is_closed && userStore.userCanCreateProject"
+    <ActionButton v-if="!projectStore.getActiveProject?.is_closed && userStore.userCanCreateProject"
       :icon="getAppIcon('archive')" :showLabel="true" :fullWidth="true" label="Archive Project"
       :buttonFunction="prepCloseProjectPopUpModal" />
 
@@ -50,7 +50,7 @@
       :buttonFunction="rebuildAll" />
 
     <!-- Delete project -->
-    <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Remove Project"
+    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Remove Project"
       :buttonFunction="prepDeletePopUpModal" />
 
 
