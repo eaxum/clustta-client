@@ -136,7 +136,7 @@
             </div>
 
             <div v-else-if="!isUntracked && userStore.canDo('pull_chunk')" class="file-state">
-              <ActionButton v-if="task.is_link" :icon="getAppIcon('launch-box')" 
+              <ActionButton v-if="task.is_link" :icon="getAppIcon('square-arrow-right-up')" 
                 v-tooltip="'Visit link'" @click="openLink()" />
               <ActionButton v-else-if="task.file_status == 'normal'" :icon="getAppIcon('circle-check-go')" :noFilter="true" 
                 v-tooltip="'No changes'"  />
@@ -311,7 +311,7 @@
         </template>
 
         <div v-if="task.is_link" class="task-item-actions link-item-actions" >
-          <ActionButton :icon="getAppIcon('launch-box')" v-tooltip="'Visit link'" v-stop-propagation @click="openLink()" />
+          <ActionButton :icon="getAppIcon('square-arrow-right-up')" v-tooltip="'Visit link'" v-stop-propagation @click="openLink()" />
         </div>
 
         <div v-else-if="isUntracked" class="task-item-actions">
