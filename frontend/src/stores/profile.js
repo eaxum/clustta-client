@@ -78,12 +78,13 @@ export const useProfileStore = defineStore("profile", {
         artstation: profileData.artstation_link || profileData.ArtstationLink || '',
         portfolio: profileData.portfolio_link || profileData.PortfolioLink || '',
         linkedin: profileData.linkedin_link || profileData.LinkedInLink || '',
+        instagram: profileData.instagram_link || profileData.InstagramLink || '',
       };
       
       const tools = profileData.tools;
 
       const skills = profileData.skills;
-    console.log(skills)
+    console.log(profileData)
       this.profile = {
         ...this.profile,
         ...profileData,
