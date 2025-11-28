@@ -483,7 +483,7 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 		query := `
 			SELECT id, task_path, extension, entity_path, name
 			FROM full_task 
-			WHERE entity_path LIKE ? AND trashed = 0
+			WHERE entity_path LIKE ? AND trashed = 0 AND is_link = 0
 			ORDER BY entity_path, name
 			LIMIT ? OFFSET ?
 		`
@@ -635,7 +635,7 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, entityId, proje
 		query := `
 			SELECT task_path, extension
 			FROM full_task 
-			WHERE entity_path LIKE ? AND trashed = 0
+			WHERE entity_path LIKE ? AND trashed = 0 AND is_link = 0
 		`
 		err = tx.Select(&allTasks, query, entityPath+"%")
 		if err != nil {
