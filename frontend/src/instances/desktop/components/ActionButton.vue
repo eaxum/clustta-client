@@ -1,7 +1,7 @@
 <template>
   <span v-stop-propagation @click="buttonFunction" :style="{ backgroundColor: color }" :class="{
     'button-background': useBackground, 'alert-background': isAlert, 'full-width': fullWidth, 'outline': useOutline, 'icon-after': iconAfter, 'centered':
-      centered, 'button-active': isActive, 'is-inactive': isInactive, 'is-disabled': isDead, 'plain-background' : plainBackground, 'use-alert': useAlert, 'use-danger': useDanger,
+      centered, 'button-active': isActive, 'is-inactive': isInactive, 'is-disabled': isDead, 'plain-background' : plainBackground, 'use-alert': useAlert, 'use-danger': useDanger, 'use-go': useGo,
   }" class="action-button">
     <img v-if="showIcon && !iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter, 'loading-icon' : isLoading }" :src="icon">
     <div v-if="showLabel || label" class="small-icons button-label no-cursor">{{ label }}</div>
@@ -36,6 +36,7 @@ const props = defineProps({
   isLoading: { type: Boolean, default: false },
   useAlert: { type: Boolean, default: false },
   useDanger: { type: Boolean, default: false },
+  useGo: { type: Boolean, default: false },
   isInactive: { type: Boolean, default: false },
   isDisabled: { type: Boolean, default: false },
   isActive: { type: Boolean, default: false },
@@ -227,6 +228,14 @@ const isDead = computed(() => {
 
 .use-danger img {
   filter: brightness(0) saturate(100%) invert(18%) sepia(95%) saturate(7471%) hue-rotate(347deg) brightness(88%) contrast(93%);
+}
+
+[data-theme="dark"] .use-go img {
+  filter: brightness(0) saturate(100%) invert(50%) sepia(74%) saturate(486%) hue-rotate(75deg) brightness(96%) contrast(87%);
+}
+
+.use-go img {
+  filter: brightness(0) saturate(100%) invert(50%) sepia(74%) saturate(486%) hue-rotate(75deg) brightness(96%) contrast(87%);
 }
 
 </style>

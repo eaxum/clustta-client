@@ -24,7 +24,7 @@
 
         <div v-if="notification" ref="notificationItem" :class="['message', notification.type]" @mouseenter="stopTimer()"
             @mouseleave="showMessage(notification)">
-            <span class="text-container" >{{ notification.message }}</span>
+            <span class="text-container" >{{ utils.capitalizeStr(notification.message) }}</span>
         </div>
 
         <div class="version-info" :class="{ 'oudated' : isOutdated}" v-tooltip=" isOutdated ? 'Click to update' : '' ">
@@ -61,6 +61,12 @@ const currentPrompt = ref(null);
 const promptItem = ref(null);
 const clusttaVersion = ref('');
 const timer = ref(null);
+
+// Restricted messages that should not trigger notifications
+const restrictedMessages = [
+  'no active account set',
+  'no active account',
+];
 
 // const notification = ref({
 //     "hasUndo": false,
@@ -169,7 +175,19 @@ const restoreProgress = () => {
 };
 
 const showMessage = async (data) => {
-  // console.log(data)
+  console.log(data)
+  
+  // Check if message is restricted
+  const messageText = data.message?.toLowerCase() || '';
+  const isRestricted = restrictedMessages.some(restricted => 
+    messageText.includes(restricted.toLowerCase())
+  );
+  
+  if (isRestricted) {
+    console.log('Message blocked: restricted message', data.message);
+    return;
+  }
+  
   notification.value = data
   clearTimeout(timer.value);
   timer.value = setTimeout(() => {
