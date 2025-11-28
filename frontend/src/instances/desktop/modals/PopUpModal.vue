@@ -90,7 +90,7 @@ onBeforeUnmount(() => {
 }
 
 .pop-up-body {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--white);
 }
 
