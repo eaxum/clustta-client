@@ -1,7 +1,7 @@
 <template>
   <div class="contribution-graph">
     <div class="graph-header">
-      <span class="activity-count">{{ totalActivity }} contributions in the last year</span>
+      <span class="activity-count">{{ totalActivity }} contributions in the last year accross 6 projects and 2 studios</span>
     </div>
     
     <div class="graph-container">

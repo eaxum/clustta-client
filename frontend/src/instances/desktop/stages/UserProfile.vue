@@ -235,9 +235,9 @@
           </ProfileCard>
 
           <!-- Activity Card -->
-          <!-- <ProfileCard v-if="!isAnyEditMode" title="Activity">
+          <ProfileCard  title="Activity [Coming soon]">
             <ContributionGraph />
-          </ProfileCard> -->
+          </ProfileCard>
 
           <!-- Danger Zone -->
           <ProfileCard title="Danger Zone">
@@ -656,8 +656,8 @@ const handlePasswordUpdate = async () => {
   try {
     if (!isPasswordValid.value) return;
     
-    // TODO: Implement API call to update password
-    // await AuthService.UpdatePassword(passwordData.currentPassword, passwordData.newPassword);
+    // Call the API to update password
+    await AuthService.ChangePassword(passwordData.currentPassword, passwordData.newPassword, passwordData.confirmPassword);
     
     notificationStore.addNotification(
       "Password updated successfully", 
@@ -672,6 +672,9 @@ const handlePasswordUpdate = async () => {
     passwordData.confirmPassword = '';
     passwordErrors.newPassword = '';
     passwordErrors.confirmPassword = '';
+    
+    // Close the password editing section
+    editingSections.password = false;
     
   } catch (err) {
     notificationStore.errorNotification(
