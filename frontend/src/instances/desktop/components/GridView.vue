@@ -126,7 +126,6 @@ const disableMenu = () => {
 
 // Handle file system change events by refreshing view
 const handleFSChange = (event) => {
-  console.log(event)
   debouncedRefreshView();
 };
 
@@ -284,17 +283,18 @@ const onMouseUp = (event, item) => {
 watch(() => location.value, async (newPath, oldPath) => {
   if (oldPath && currentWatchedPath.value) {
     try {
-      await FSService.RemoveWatcherFolder(oldPath);
+      const exists = await FSService.DirExists(oldPath);
+      if (exists) {
+        await FSService.RemoveWatcherFolder(oldPath);
+      }
     } catch (error) {
       console.error('Error removing watcher:', error);
     }
   }
   
   if (newPath) {
-    console.log(newPath);
     try {
       const exists = await FSService.DirExists(newPath);
-      console.log(exists)
       if (exists) {
         await FSService.AddWatcherFolder(newPath);
         currentWatchedPath.value = newPath;

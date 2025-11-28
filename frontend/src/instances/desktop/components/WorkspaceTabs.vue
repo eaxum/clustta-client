@@ -128,7 +128,6 @@ const setWorkspace = (workspaceName) => {
     return
   }
   const workspace = commonStore.workspaces.find((item) => item.name === workspaceName);
-  console.log(workspace)
   
   // Restore collection view if workspace has a saved collection
   if (workspace.collection) {
@@ -151,7 +150,6 @@ const setWorkspace = (workspaceName) => {
   }
   
   commonStore.setActiveWorkspace(workspace);
-  console.log(commonStore.taskFilters)
   emitter.emit('refresh-browser');
 };
 

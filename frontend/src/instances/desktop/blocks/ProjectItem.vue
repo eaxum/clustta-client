@@ -315,7 +315,6 @@ const openMenu = (event) => {
 
 // Select project and update active state
 const selectProject = (project, event) => {
-  console.log(project);
   handleClickOutside(event);
   menu.disableAllMenus();
   projectStore.setActiveProject(project);
