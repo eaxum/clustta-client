@@ -1,6 +1,6 @@
 <template>
   <div class="modal-mask" :class="{ 'modal-mask-progress': progressRunning }" 
-    v-stop-propagation v-esc="closeModals" @click="closeModals">
+     v-esc="closeModals">
     <component v-for="modal in visibleModals" :key="modal.name" :is="modal.component" />
   </div>
 </template>
