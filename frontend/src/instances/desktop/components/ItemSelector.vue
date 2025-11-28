@@ -16,52 +16,45 @@
             class="input-field" 
           />
         </div>
-        
-        <Teleport to="#app">
+      </div>
+      
+      <Teleport to="#app">
+        <div 
+          v-if="showSuggestions" 
+          ref="suggestionsParent" 
+          class="suggestions-parent" 
+          v-esc="hideSuggestions" 
+          v-stop-propagation
+          :style="dropdownStyles"
+        >
           <div 
-            v-if="showSuggestions" 
-            ref="suggestionsParent" 
-            class="suggestions-parent" 
-            v-esc="hideSuggestions" 
-            v-stop-propagation
-            :style="{ 
-              top: dropdownTop + 'px', 
-              width: dropdownWidth + 'px', 
-              maxHeight: dropdownMaxHeight + 'px', 
-              left: dropdownLeft + 'px' 
-            }"
+            v-for="item in filteredItems" 
+            :key="item.id"
+            class="item-suggestion" 
+            @click="addItem(item)"
           >
-            <div 
-              v-for="item in filteredItems" 
-              :key="item.id"
-              class="item-suggestion" 
-              @click="addItem(item)"
-            >
-              <img class="small-icons" :src="getItemIcon(item)" alt="">
-              <div class="item-meta">
-                <div class="item-suggestion-name">{{ item.name }}</div>
-                <div v-if="item.category" class="item-suggestion-category">{{ item.category }}</div>
-              </div>
-            </div>
-            
-            <div v-if="filteredItems.length === 0 && searchQuery" class="no-results">
-              No matching {{ itemType }}s found
+              <img class="large-icons no-filter" :src="getItemIcon(item)">
+            <div class="item-meta">
+              <div class="item-suggestion-name">{{ item.name }}</div>
+              <div v-if="item.category" class="item-suggestion-category">{{ item.category }}</div>
             </div>
           </div>
-        </Teleport>
-      </div>
+          
+          <div v-if="filteredItems.length === 0 && searchQuery" class="no-results">
+            No matching {{ itemType }}s found
+          </div>
+        </div>
+      </Teleport>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useIconStore } from '@/stores/icons';
-import { useMenu } from '@/stores/menu';
 import { getToolLogo, getSkillIcon } from '@/utils/iconMappers';
 
 const iconStore = useIconStore();
-const menu = useMenu();
 
 // Emits
 const emit = defineEmits([
@@ -96,12 +89,10 @@ const props = defineProps({
 });
 
 // Element refs
-const observer = ref(null);
 const selectorRoot = ref(null);
 const comboBoxRoot = ref(null);
 const inputField = ref(null);
 const suggestionsParent = ref(null);
-const searchInputContainer = ref(null);
 
 // Refs
 const searchQuery = ref('');
@@ -112,10 +103,18 @@ const isInputActive = ref(false);
 const dropdownTop = ref(0);
 const dropdownLeft = ref(0);
 const dropdownWidth = ref(0);
-const dropdownMaxHeight = ref(0);
+const dropdownMaxHeight = ref(300);
+
+// Computed styles for dropdown
+const dropdownStyles = computed(() => ({
+  position: 'fixed',
+  top: `${dropdownTop.value}px`,
+  left: `${dropdownLeft.value}px`,
+  width: `${dropdownWidth.value}px`,
+  maxHeight: `${dropdownMaxHeight.value}px`
+}));
 
 // Computed
-const listItemsBoundary = computed(() => menu.contextMenuBounds);
 
 const showSuggestions = computed(() => {
   return showDropdown.value && filteredItems.value.length > 0;
@@ -169,7 +168,6 @@ const addItem = (item) => {
 const hideSuggestions = () => {
   showDropdown.value = false;
   searchQuery.value = '';
-  updateDropdownPosition();
 };
 
 const escape = () => {
@@ -189,32 +187,34 @@ const handleInput = (event) => {
   emit('input', event.target.value);
   if (!showDropdown.value && event.target.value) {
     showDropdown.value = true;
+    updateDropdownPosition();
   }
-  updateDropdownPosition();
 };
 
 const focusInput = () => {
   inputField.value?.focus();
-  updateDropdownPosition();
 };
 
 const updateDropdownPosition = () => {
-  if (!selectorRoot.value) return;
+  if (!comboBoxRoot.value) return;
   
-  const trayRootHeight = listItemsBoundary.value?.getBoundingClientRect().height || window.innerHeight;
-  const rootRect = selectorRoot.value.getBoundingClientRect();
-  const rootHeight = rootRect.height;
-  const rootGlobalY = rootRect.top;
-  const rootLeft = rootRect.left;
-
-  dropdownTop.value = rootGlobalY + rootHeight + 10;
-  dropdownWidth.value = rootRect.width;
-  dropdownLeft.value = rootLeft;
-  dropdownMaxHeight.value = trayRootHeight - rootHeight - rootGlobalY - 20;
-};
-
-const trackHeightChange = () => {
-  updateDropdownPosition();
+  const rect = comboBoxRoot.value.getBoundingClientRect();
+  const viewportHeight = window.innerHeight;
+  const spaceBelow = viewportHeight - rect.bottom;
+  const spaceAbove = rect.top;
+  
+  dropdownTop.value = rect.bottom + 8;
+  dropdownLeft.value = rect.left;
+  dropdownWidth.value = rect.width;
+  
+  // Calculate max height based on available space
+  // Prefer showing below, but if not enough space, check above
+  if (spaceBelow < 200 && spaceAbove > spaceBelow) {
+    dropdownTop.value = rect.top - Math.min(300, spaceAbove - 8);
+    dropdownMaxHeight.value = Math.min(300, spaceAbove - 16);
+  } else {
+    dropdownMaxHeight.value = Math.min(300, spaceBelow - 16);
+  }
 };
 
 const handleInputFocus = (event) => {
@@ -243,28 +243,22 @@ const handleClickOutside = (event) => {
   }
 };
 
-watchEffect(() => {
-  if (showDropdown.value) {
-    updateDropdownPosition();
-  }
-});
-
 onMounted(() => {
-  observer.value = new ResizeObserver(trackHeightChange);
-  observer.value.observe(selectorRoot.value);
   document.addEventListener('click', handleClickOutside);
+  window.addEventListener('scroll', updateDropdownPosition, true);
+  window.addEventListener('resize', updateDropdownPosition);
 });
 
 onBeforeUnmount(() => {
-  if (observer.value) {
-    observer.value.disconnect();
-  }
   document.removeEventListener('click', handleClickOutside);
+  window.removeEventListener('scroll', updateDropdownPosition, true);
+  window.removeEventListener('resize', updateDropdownPosition);
 });
 </script>
 
 <style scoped>
 .item-selector {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -287,7 +281,7 @@ onBeforeUnmount(() => {
   min-height: 40px;
   display: flex;
   padding: 0.3rem;
-  border-radius: var(--normal-radius);
+  border-radius: var(--large-radius);
   background-color: var(--steel);
   cursor: text;
 }
@@ -330,7 +324,6 @@ onBeforeUnmount(() => {
 
 /* Suggestions Dropdown */
 .suggestions-parent {
-  position: absolute;
   z-index: 10000;
   min-height: 32px;
   display: flex;
@@ -339,10 +332,11 @@ onBeforeUnmount(() => {
   padding: 0.5rem;
   box-sizing: border-box;
   background-color: var(--black);
-  border-radius: var(--small-radius);
+  border-radius: var(--large-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
   overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .suggestions-parent::-webkit-scrollbar {
@@ -370,7 +364,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: min-content;
   padding: 0.5rem 0.75rem;
-  border-radius: var(--small-radius);
+  border-radius: var(--normal-radius);
   cursor: pointer;
   transition: background-color 0.2s;
 }

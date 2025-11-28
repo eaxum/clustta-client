@@ -53,11 +53,12 @@
                     />
                   </div>
                   
+                  <!-- :disabled="!editingSections.header" -->
                   <FormInput
                     v-model="formData.username"
                     @input="checkUsername"
                     label="Username"
-                    :disabled="!editingSections.header"
+                    :disabled="!isEditing"
                     :showValidation="!!formData.username"
                     :error="errors.username"
                     :loading="checkingUsernameAvailability"
@@ -69,7 +70,7 @@
                     @input="checkEmail"
                     label="Email"
                     type="email"
-                    :disabled="!editingSections.header"
+                    :disabled="!isEditing"
                     :showValidation="!!formData.email"
                     :error="errors.email"
                     :loading="checkingEmailAvailability"
@@ -239,7 +240,7 @@
           </ProfileCard> -->
 
           <!-- Danger Zone -->
-          <ProfileCard v-if="!isAnyEditMode" title="Danger Zone">
+          <ProfileCard title="Danger Zone">
             <div class="danger-zone">
               <p class="danger-message">
                 Once you delete your account, there is no going back. Please be certain.
@@ -372,10 +373,6 @@ const editableUserPhoto = reactive({
 });
 
 // Computed Properties
-const launchDirConfigModal = () => {
-  modals.setModalVisibility('directoryConfigModal', true);
-};
-
 const userData = computed(() => userStore.user);
 
 const fullName = computed(() => {
@@ -838,6 +835,7 @@ onBeforeMount(async () => {
   overflow-y: auto;
   padding: 0.5rem;
   /* background-color: royalblue; */
+  /* padding-bottom: 200px; */
 }
 
 .user-profile-body::-webkit-scrollbar {

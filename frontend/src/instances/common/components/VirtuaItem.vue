@@ -332,7 +332,9 @@ const handleUpdateChildren = (eventData) => {
         entityChildren.value[itemIndex][update.property] = update.value;
       });
     }
-  }
+  };
+  
+  emitter.emit('get-project-data');
   collectionStore.loadCollectionStateFlags();
 };
 

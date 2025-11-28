@@ -332,8 +332,7 @@
 // imports
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { isValidWeblink } from '@/lib/pointer';
-import { AssetService, CheckpointService, FSService } from "@/../bindings/clustta/services";
-import { SyncService } from "@/../bindings/clustta/services";
+import { AssetService, CheckpointService, FSService, SyncService } from "@/../bindings/clustta/services";
 import utils from '@/services/utils';
 import { Events } from "@wailsio/runtime";
 
@@ -919,12 +918,14 @@ const revertTask = async (index, task, event) => {
   handleClick(index, task, event);
   const taskId = task.id;
 
+  notificationStore.cancleFunction = SyncService.CancelSync
+  notificationStore.canCancel = true
+
   CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [taskId])
     .then(async (response) => {
-      assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(taskPath => taskPath !== task.task_path)
-      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path)
-      props.task.file_status = 'normal';
-      emitter.emit('get-project-data')
+      emitTaskUpdates(taskId, [
+        { property: 'file_status', value: 'normal' }
+      ]);
     })
     .catch((error) => {
       console.log(error)
@@ -1096,10 +1097,13 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
 }
 
 .task-item-selected {
-  outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--blue-steel);
+}
+
+.task-item-selected:hover {
+  background-color: var(--solid-blue-steel);
 }
 
 .task-item-cut{

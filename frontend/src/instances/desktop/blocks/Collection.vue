@@ -734,26 +734,23 @@ onBeforeUnmount(() => {
 
 
 .entity-item-main-selected {
-  outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--black-steel);
   background-color: var(--entity-item-selected);
+  background-color: crimson;
 }
 
-.entity-item-main-selected:hover {
-  outline: 1px solid rgb(255, 255, 255);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--black-steel);
-  background-color: var(--entity-item-selected);
-}
 
 .entity-item-selected {
   outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--blue-steel);
+}
+
+.entity-item-selected:hover {
+  background-color: var(--solid-blue-steel);
 }
 
 .entity-item-cut{
