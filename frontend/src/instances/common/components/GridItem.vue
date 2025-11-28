@@ -124,7 +124,7 @@ const loadAssetState = async () => {
 
   const task = props.child;
   
-  if (task.type !== 'task') return;
+  if (task.type !== 'task' || task.is_link) return;
   
   loadingAssetState.value = true;
   
