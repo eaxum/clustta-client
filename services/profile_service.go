@@ -7,7 +7,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path/filepath"
 )
 
 type ProfileService struct{}
@@ -142,8 +145,8 @@ type SkillData struct {
 	ProficiencyLevel string `json:"proficiency_level"`
 }
 
-//makeRequest executes authenticated HTTP requests to the profile API.
-//Handles request construction, authentication headers, and response validation.
+// makeRequest executes authenticated HTTP requests to the profile API.
+// Handles request construction, authentication headers, and response validation.
 func (p *ProfileService) makeRequest(method, url string, body interface{}) ([]byte, error) {
 	var reqBody io.Reader
 	if body != nil {
@@ -187,7 +190,7 @@ func (p *ProfileService) makeRequest(method, url string, body interface{}) ([]by
 	return responseBody, nil
 }
 
-//GetUserProfile fetches the complete user profile including bio, location, and professional info.
+// GetUserProfile fetches the complete user profile including bio, location, and professional info.
 func (p *ProfileService) GetUserProfile(userId string) (UserProfile, error) {
 	url := constants.HOST + "/api/users/" + userId + "/profile"
 
@@ -205,7 +208,7 @@ func (p *ProfileService) GetUserProfile(userId string) (UserProfile, error) {
 	return profile, nil
 }
 
-//UpdateUserProfile updates user profile fields with the provided data.
+// UpdateUserProfile updates user profile fields with the provided data.
 func (p *ProfileService) UpdateUserProfile(userId string, updateData ProfileUpdateData) error {
 	url := constants.HOST + "/api/users/" + userId + "/profile"
 
@@ -217,7 +220,7 @@ func (p *ProfileService) UpdateUserProfile(userId string, updateData ProfileUpda
 	return nil
 }
 
-//GetUserTools fetches all tools associated with the user's profile.
+// GetUserTools fetches all tools associated with the user's profile.
 func (p *ProfileService) GetUserTools(userId string) ([]UserTool, error) {
 	url := constants.HOST + "/api/users/" + userId + "/tools"
 
@@ -235,7 +238,7 @@ func (p *ProfileService) GetUserTools(userId string) ([]UserTool, error) {
 	return tools, nil
 }
 
-//AddUserTool adds a new tool with proficiency level to the user's profile.
+// AddUserTool adds a new tool with proficiency level to the user's profile.
 func (p *ProfileService) AddUserTool(userId string, toolData ToolData) error {
 	url := constants.HOST + "/api/users/" + userId + "/tools"
 
@@ -247,7 +250,7 @@ func (p *ProfileService) AddUserTool(userId string, toolData ToolData) error {
 	return nil
 }
 
-//UpdateUserTool updates the proficiency level for an existing tool.
+// UpdateUserTool updates the proficiency level for an existing tool.
 func (p *ProfileService) UpdateUserTool(userId, toolId, proficiencyLevel string) error {
 	url := constants.HOST + "/api/users/" + userId + "/tools/" + toolId
 
@@ -263,7 +266,7 @@ func (p *ProfileService) UpdateUserTool(userId, toolId, proficiencyLevel string)
 	return nil
 }
 
-//RemoveUserTool removes a tool from the user's profile.
+// RemoveUserTool removes a tool from the user's profile.
 func (p *ProfileService) RemoveUserTool(userId, toolId string) error {
 	url := constants.HOST + "/api/users/" + userId + "/tools/" + toolId
 
@@ -275,7 +278,7 @@ func (p *ProfileService) RemoveUserTool(userId, toolId string) error {
 	return nil
 }
 
-//GetUserSkills fetches all skills associated with the user's profile.
+// GetUserSkills fetches all skills associated with the user's profile.
 func (p *ProfileService) GetUserSkills(userId string) ([]UserSkill, error) {
 	url := constants.HOST + "/api/users/" + userId + "/skills"
 
@@ -293,7 +296,7 @@ func (p *ProfileService) GetUserSkills(userId string) ([]UserSkill, error) {
 	return skills, nil
 }
 
-//AddUserSkill adds a new skill with proficiency level to the user's profile.
+// AddUserSkill adds a new skill with proficiency level to the user's profile.
 func (p *ProfileService) AddUserSkill(userId string, skillData SkillData) error {
 	url := constants.HOST + "/api/users/" + userId + "/skills"
 
@@ -305,7 +308,7 @@ func (p *ProfileService) AddUserSkill(userId string, skillData SkillData) error 
 	return nil
 }
 
-//UpdateUserSkill updates the proficiency level for an existing skill.
+// UpdateUserSkill updates the proficiency level for an existing skill.
 func (p *ProfileService) UpdateUserSkill(userId, skillId, proficiencyLevel string) error {
 	url := constants.HOST + "/api/users/" + userId + "/skills/" + skillId
 
@@ -321,7 +324,7 @@ func (p *ProfileService) UpdateUserSkill(userId, skillId, proficiencyLevel strin
 	return nil
 }
 
-//RemoveUserSkill removes a skill from the user's profile.
+// RemoveUserSkill removes a skill from the user's profile.
 func (p *ProfileService) RemoveUserSkill(userId, skillId string) error {
 	url := constants.HOST + "/api/users/" + userId + "/skills/" + skillId
 
@@ -333,7 +336,7 @@ func (p *ProfileService) RemoveUserSkill(userId, skillId string) error {
 	return nil
 }
 
-//GetAllTools fetches all available tools from the system.
+// GetAllTools fetches all available tools from the system.
 func (p *ProfileService) GetAllTools() ([]Tool, error) {
 	url := constants.HOST + "/api/tools"
 
@@ -351,7 +354,7 @@ func (p *ProfileService) GetAllTools() ([]Tool, error) {
 	return tools, nil
 }
 
-//GetToolsByCategory fetches tools filtered by the specified category.
+// GetToolsByCategory fetches tools filtered by the specified category.
 func (p *ProfileService) GetToolsByCategory(category string) ([]Tool, error) {
 	url := constants.HOST + "/api/tools/category/" + category
 
@@ -369,7 +372,7 @@ func (p *ProfileService) GetToolsByCategory(category string) ([]Tool, error) {
 	return tools, nil
 }
 
-//GetAllSkills fetches all available skills from the system.
+// GetAllSkills fetches all available skills from the system.
 func (p *ProfileService) GetAllSkills() ([]Skill, error) {
 	url := constants.HOST + "/api/skills"
 
@@ -387,7 +390,7 @@ func (p *ProfileService) GetAllSkills() ([]Skill, error) {
 	return skills, nil
 }
 
-//GetSkillsByCategory fetches skills filtered by the specified category.
+// GetSkillsByCategory fetches skills filtered by the specified category.
 func (p *ProfileService) GetSkillsByCategory(category string) ([]Skill, error) {
 	url := constants.HOST + "/api/skills/category/" + category
 
@@ -405,7 +408,7 @@ func (p *ProfileService) GetSkillsByCategory(category string) ([]Skill, error) {
 	return skills, nil
 }
 
-//GetAllCountries fetches all available countries for profile location selection.
+// GetAllCountries fetches all available countries for profile location selection.
 func (p *ProfileService) GetAllCountries() ([]Country, error) {
 	url := constants.HOST + "/api/countries"
 
@@ -423,7 +426,7 @@ func (p *ProfileService) GetAllCountries() ([]Country, error) {
 	return countries, nil
 }
 
-//GetAllGenders fetches all available gender options for profile selection.
+// GetAllGenders fetches all available gender options for profile selection.
 func (p *ProfileService) GetAllGenders() ([]Gender, error) {
 	url := constants.HOST + "/api/genders"
 
@@ -439,4 +442,70 @@ func (p *ProfileService) GetAllGenders() ([]Gender, error) {
 	}
 
 	return genders, nil
+}
+
+// UpdateUserPhoto uploads a new profile photo for the user.
+func (p *ProfileService) UpdateUserPhoto(photoPath string) error {
+	url := constants.HOST + "/person/photo"
+
+	// Read the file
+	fileData, err := os.ReadFile(photoPath)
+	if err != nil {
+		return fmt.Errorf("error reading photo file: %w", err)
+	}
+
+	// Create multipart form data
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// Create form file field
+	part, err := writer.CreateFormFile("photo", filepath.Base(photoPath))
+	if err != nil {
+		return fmt.Errorf("error creating form file: %w", err)
+	}
+
+	// Write file data
+	_, err = io.Copy(part, bytes.NewReader(fileData))
+	if err != nil {
+		return fmt.Errorf("error writing file data: %w", err)
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return fmt.Errorf("error closing multipart writer: %w", err)
+	}
+
+	// Create request
+	req, err := http.NewRequest("POST", url, body)
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
+	}
+
+	// Set headers
+	token, err := auth_service.GetToken()
+	if err != nil {
+		return fmt.Errorf("error getting auth token: %w", err)
+	}
+	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	// Send request
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("error making request: %w", err)
+	}
+	defer response.Body.Close()
+
+	responseBody, err := io.ReadAll(response.Body)
+	if err != nil {
+		return fmt.Errorf("error reading response body: %w", err)
+	}
+
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		return fmt.Errorf("request failed with status %d: %s", response.StatusCode, string(responseBody))
+	}
+
+	return nil
 }
