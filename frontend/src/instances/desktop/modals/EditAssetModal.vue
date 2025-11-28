@@ -1,7 +1,7 @@
 <template>
 
   <div ref="modalContainer" class="modal-container" v-esc="closeModal" v-stop-propagation>
-    <HeaderArea :title="title" :icon="icon" />
+    <HeaderArea :title="title" :customIcon="icon" />
 
     <div class="general-container">
       <div class="input-section">

@@ -37,7 +37,7 @@
           <div class="settings-item" @click="toggleUseGrid">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon(commonStore.useGrid ? 'four-squares' : 'list-compact')"></div>
             <div class="settings-content">
-              <div class="settings-header">Default View</div>
+              <div class="settings-header">Default View:  {{ commonStore.useGrid ? 'Grid' : 'List' }}</div>
               <div class="settings-body">Choose between grid or list view as default.</div>
             </div>
             <div class="settings-action fixed-width">
