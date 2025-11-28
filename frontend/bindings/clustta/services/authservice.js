@@ -25,6 +25,19 @@ export function AuthUser() {
 }
 
 /**
+ * ChangePassword changes the current user's password.
+ * Returns an error if the password change fails.
+ * @param {string} currentPassword
+ * @param {string} newPassword
+ * @param {string} confirmPassword
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function ChangePassword(currentPassword, newPassword, confirmPassword) {
+    let $resultPromise = /** @type {any} */($Call.ByID(2199672148, currentPassword, newPassword, confirmPassword));
+    return $resultPromise;
+}
+
+/**
  * CheckEmailExists checks if an email address is already registered.
  * Returns true if the email exists, false otherwise.
  * @param {string} email
@@ -127,6 +140,17 @@ export function Register(firstName, lastName, username, email, password, confirm
  */
 export function ResendToken(email) {
     let $resultPromise = /** @type {any} */($Call.ByID(1440561671, email));
+    return $resultPromise;
+}
+
+/**
+ * ResetPassword sends a password reset email to the specified email address.
+ * Returns an error if the reset request fails.
+ * @param {string} email
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function ResetPassword(email) {
+    let $resultPromise = /** @type {any} */($Call.ByID(3411060901, email));
     return $resultPromise;
 }
 

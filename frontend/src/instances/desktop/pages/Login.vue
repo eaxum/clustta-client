@@ -31,12 +31,15 @@
             <!-- password -->
             <div class="form-group">
               <div class="compound-form-input">
-                <input autocomplete="off" class="form-input-mini" placeholder="Password" v-model="loginForm.password"
+                <input autocomplete="new-password" class="form-input-mini" placeholder="Password" v-model="loginForm.password"
                   :type="isPasswordVisible ? 'text' : 'password'" required  @keydown.enter="handleEnterKey">
-                <div v-if="loginForm.password" class="form-input-icon" @mousedown="showPassword"
-                  @mouseup="hidePassword" @mouseleave="hidePassword">
-                  <img class="alert-icons" :src="isPasswordVisible ? getAppIcon('eye-cancel') : getAppIcon('eye')" />
-                </div>
+                <ActionButton 
+                  v-if="loginForm.password"
+                  v-tooltip="isPasswordVisible ? 'Hide Password' : 'Show Password'"
+                  :icon="isPasswordVisible ? getAppIcon('eye-cancel') : getAppIcon('eye')"
+                  @click="togglePasswordVisibility"
+                  :showLabel="false"
+                />
               </div>
             </div>
 
@@ -45,9 +48,13 @@
               <div v-if="!isAwaitingResponse">
                 Login
               </div>
-              <div v-else class="submit-button-icon loading-icon">
-                <img src="/icons/loading.svg" />
-              </div>
+              <ActionButton
+                v-else
+                :icon="getAppIcon('loading')"
+                :isLoading="true"
+                :showLabel="false"
+                :noFilter="true"
+              />
             </button>
 
           </form>
@@ -63,7 +70,14 @@
         <div @click="toggleLogin" class=" toggle-container">
             No account?
             <div class="bold" >
-              SignUp 🚀
+              SignUp
+            </div>
+        </div>
+
+        <!-- forgot password -->
+        <div @click="showResetPassword" class="toggle-container">
+            <div class="bold" >
+              Forgot password?
             </div>
         </div>
 
@@ -104,6 +118,7 @@ const isPasswordVisible = ref(false)
 
 // components
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 // vars
 const loginForm = reactive({
@@ -122,7 +137,7 @@ const isLoginFormFilled = computed(() => {
 });
 
 // emits
-const emit = defineEmits(['toggle-login', 'show-verification']);
+const emit = defineEmits(['toggle-login', 'show-verification', 'show-reset-password']);
 
 // methods
 const getAppIcon = (iconName) => {
@@ -138,10 +153,18 @@ const hidePassword = () => {
   isPasswordVisible.value = false
 };
 
+const togglePasswordVisibility = () => {
+  isPasswordVisible.value = !isPasswordVisible.value;
+};
+
 const projectDirectoryExists = ref(false);
 
 const toggleLogin = () => {
   emit('toggle-login')
+};
+
+const showResetPassword = () => {
+  emit('show-reset-password')
 };
 
 const handleLogin = async () => {
@@ -180,8 +203,9 @@ const handleLogin = async () => {
         emit('show-verification', { email: loginForm.email, password: loginForm.password });
       } else {
         // Handle other login errors normally
-        error.value = errorMessage;
-        notificationStore.errorNotification("Error Logging In", errorMessage);
+        // console.log(error)
+        // error.message = errorMessage;
+        notificationStore.errorNotification("Error Logging In", 'Please check your credentials and try again');
       }
     });
 };

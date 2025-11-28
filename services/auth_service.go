@@ -129,3 +129,15 @@ func (a *AuthService) VerifyOTP(email, token string) error {
 func (a *AuthService) ResendToken(email string) error {
 	return auth_service.ResendToken(email)
 }
+
+// ChangePassword changes the current user's password.
+// Returns an error if the password change fails.
+func (a *AuthService) ChangePassword(currentPassword, newPassword, confirmPassword string) error {
+	return auth_service.ChangePassword(currentPassword, newPassword, confirmPassword)
+}
+
+// ResetPassword sends a password reset email to the specified email address.
+// Returns an error if the reset request fails.
+func (a *AuthService) ResetPassword(email string) error {
+	return auth_service.ResetPassword(email)
+}

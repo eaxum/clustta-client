@@ -38,12 +38,27 @@
               <div class="compound-form-input">
                 <input class="form-input-mini" placeholder="Username" v-model="registerForm.username" type="text"
                   required @input="checkUsername" autocomplete="off" name="new-username" />
-                <div v-if="registerForm.username" class="form-input-icon">
-                  <img v-if="errors.username || !usernameValid" class="alert-icons" :src="getAppIcon('alert')" />
-                  <img v-else-if="checkingUsernameAvailability" class="alert-icons" src="/icons/loading.svg"
-                    :class="{ 'loading-icon': checkingUsernameAvailability }" />
-                  <img v-else class="alert-icons" :src="getAppIcon('circle-check')" />
-                </div>
+                <ActionButton 
+                  v-if="registerForm.username && (errors.username || !usernameValid)"
+                  :icon="getAppIcon('alert')"
+                  :showLabel="false"
+                  :useAlert="true"
+                  :isInactive="true"
+                />
+                <ActionButton 
+                  v-else-if="registerForm.username && checkingUsernameAvailability"
+                  :icon="getAppIcon('loading')"
+                  :isLoading="true"
+                  :showLabel="false"
+                  :isInactive="true"
+                />
+                <ActionButton 
+                  v-else-if="registerForm.username"
+                  :icon="getAppIcon('circle-check')"
+                  :showLabel="false"
+                  :useGo="true"
+                  :isInactive="true"
+                />
               </div>
               <span v-if="errors.username" class="error-message">{{ errors.username }}</span>
               <span v-if="registerForm.username && !usernameValid" class="error-message"> Username must be at least 3
@@ -55,12 +70,29 @@
               <div class="compound-form-input">
                 <input class="form-input-mini" placeholder="Email address" v-model="registerForm.email" type="text"
                   required @input="checkEmail" autocomplete="off" name="new-email" />
-                <div v-if="registerForm.email" class="form-input-icon">
-                  <img v-if="errors.email || !emailValid" class="alert-icons" :src="getAppIcon('alert')" />
-                  <img v-else-if="checkingEmailAvailability" class="alert-icons" src="/icons/loading.svg"
-                    :class="{ 'loading-icon': checkingEmailAvailability }" />
-                  <img v-else class="alert-icons" :src="getAppIcon('circle-check')" />
-                </div>
+                <ActionButton 
+                  v-if="registerForm.email && (errors.email || !emailValid)"
+                  :icon="getAppIcon('alert')"
+                  :showLabel="false"
+                  :useAlert="true"
+                  :isInactive="true"
+                  :noFilter="true"
+                />
+                <ActionButton 
+                  v-else-if="registerForm.email && checkingEmailAvailability"
+                  :icon="getAppIcon('loading')"
+                  :isLoading="true"
+                  :showLabel="false"
+                  :isInactive="true"
+                />
+                <ActionButton 
+                  v-else-if="registerForm.email"
+                  :icon="getAppIcon('circle-check')"
+                  :showLabel="false"
+                  :useGo="true"
+                  :noFilter="true"
+                  :isInactive="true"
+                />
               </div>
               <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
             </div>
@@ -70,10 +102,13 @@
               <div class="compound-form-input">
                 <input class="form-input-mini" placeholder="Password" v-model="registerForm.password"
                   :type="isPasswordVisible ? 'text' : 'password'" required :class="{ 'error': errors.password }" autocomplete="new-password" name="new-password">
-                <div v-if="registerForm.password" class="form-input-icon" @mousedown="showPassword"
-                  @mouseup="hidePassword" @mouseleave="hidePassword">
-                  <img class="alert-icons" :src="isPasswordVisible ? getAppIcon('eye-cancel') : getAppIcon('eye')" />
-                </div>
+                <ActionButton 
+                  v-if="registerForm.password"
+                  v-tooltip="isPasswordVisible ? 'Hide Password' : 'Show Password'"
+                  :icon="isPasswordVisible ? getAppIcon('eye-cancel') : getAppIcon('eye')"
+                  @click="togglePasswordVisibility"
+                  :showLabel="false"
+                />
               </div>
               <span v-if="passwordValidation" class="error-message">{{ passwordValidation }}</span>
             </div>
@@ -92,9 +127,12 @@
               <div v-if="!isAwaitingResponse">
                 Sign Up
               </div>
-              <div v-else class="submit-button-icon loading-icon">
-                <img src="/icons/loading.svg" />
-              </div>
+              <ActionButton
+                v-else
+                :icon="getAppIcon('loading')"
+                :isLoading="true"
+                :showLabel="false"
+              />
             </button>
 
           </form>
@@ -136,6 +174,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 
 // components
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 const isAwaitingResponse = ref(false);
 const trayStates = useTrayStates();
@@ -280,6 +319,10 @@ const getAppIcon = (iconName) => {
 
 const hidePassword = () => {
   isPasswordVisible.value = false
+};
+
+const togglePasswordVisibility = () => {
+  isPasswordVisible.value = !isPasswordVisible.value;
 };
 
 const escapeRegexChars = (string) => {

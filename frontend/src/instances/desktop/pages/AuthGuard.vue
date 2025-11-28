@@ -10,7 +10,8 @@
     <div v-else class="auth-guard-root">
         <SignUp v-if="showSignUp" @toggle-login="toggleLogin" @signup-success="showVerification" />
         <VerifyEmail v-else-if="showVerifyEmail" :user-email="userEmail" :user-password="userPassword" @toggle-login="hideVerification" @verification-success="onVerificationSuccess" />
-        <Login v-else @toggle-login="toggleLogin" @show-verification="showVerificationFromLogin" />
+        <ResetPassword v-else-if="showResetPassword" @back-to-login="hideResetPassword" />
+        <Login v-else @toggle-login="toggleLogin" @show-verification="showVerificationFromLogin" @show-reset-password="showResetPasswordPage" />
         <InfoBar />
     </div>
 </template>
@@ -23,6 +24,7 @@ import { ref, onBeforeMount, onBeforeUnmount } from 'vue';
 import Login from '@/instances/desktop/pages/Login.vue'
 import SignUp from '@/instances/desktop/pages/SignUp.vue'
 import VerifyEmail from '@/instances/desktop/pages/VerifyEmail.vue'
+import ResetPassword from '@/instances/desktop/pages/ResetPassword.vue'
 import InfoBar from '@/instances/desktop/components/InfoBar.vue'
 
 // services
@@ -41,6 +43,7 @@ const modals = useDesktopModalStore();
 // refs
 const showSignUp = ref(false);
 const showVerifyEmail = ref(false);
+const showResetPassword = ref(false);
 const isCheckingAuth = ref(true);
 const userEmail = ref('');
 const userPassword = ref('');
@@ -49,6 +52,17 @@ const userPassword = ref('');
 const toggleLogin = () => {
     showSignUp.value = !showSignUp.value;
     showVerifyEmail.value = false; // Hide verify account when toggling
+    showResetPassword.value = false; // Hide reset password when toggling
+}
+
+const showResetPasswordPage = () => {
+    showSignUp.value = false;
+    showVerifyEmail.value = false;
+    showResetPassword.value = true;
+}
+
+const hideResetPassword = () => {
+    showResetPassword.value = false;
 }
 
 const showVerification = (credentials) => {
@@ -282,8 +296,11 @@ onBeforeUnmount(() => {
 }
 
 .submit-button-icon {
-  width: 30px;
-  height: 30px;
+  box-sizing: border-box;
+  display: flex;
+  /* background-color: crimson; */
+  max-width: 30px;
+  max-height: 30px;
 }
 
 .compound-form-input{
@@ -299,6 +316,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   gap: .2rem;
   background-color: var(--midnight-steel);
+  align-items: center;
 }
 
 .form-input-mini {
@@ -376,6 +394,7 @@ onBeforeUnmount(() => {
   font-size: x-large;
   background-color: var(--grape);
   color: var(--white);
+  color: white;
   padding: 0.75rem;
   height: 50px;
   display: flex;
@@ -383,11 +402,11 @@ onBeforeUnmount(() => {
   justify-content: center;
   box-sizing: border-box;
   border: none;
-  border-radius: var(--normal-radius);
+  border-radius: var(--large-radius);
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
-  color: var(--black);
+  /* color: var(--black); */
 }
 
 .submit-button:hover {
