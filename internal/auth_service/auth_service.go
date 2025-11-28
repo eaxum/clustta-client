@@ -680,3 +680,66 @@ func ResendToken(email string) error {
 
 	return nil
 }
+
+func ChangePassword(currentPassword, newPassword, confirmPassword string) error {
+	data := map[string]interface{}{
+		"password":         currentPassword,
+		"new_password":     newPassword,
+		"confirm_password": confirmPassword,
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request data: %v", err)
+	}
+
+	url := constants.HOST + "/auth/change-password"
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	// Attach session cookie
+	token, err := GetToken()
+	if err != nil {
+		return fmt.Errorf("failed to get token: %v", err)
+	}
+	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to change password: %s", string(body))
+	}
+
+	return nil
+}
+
+func ResetPassword(email string) error {
+	url := constants.HOST + "/auth/reset-password"
+	jsonBody := fmt.Sprintf("{\"email\": \"%s\"}", email)
+	response, err := http.Post(url, "application/json", strings.NewReader(jsonBody))
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+	
+	if response.StatusCode != 200 {
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			return err
+		}
+		return errors.New(string(body))
+	}
+
+	return nil
+}

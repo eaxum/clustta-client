@@ -125,7 +125,7 @@
   --task-item-color: hsl(130, 57%, 42%);
   --resource-item-color: hsl(49, 93%, 63%);
   
-  --online: hsl(133, 74%, 49%);
+  --online: #20d949;
   
   --attention: #EBBA16  ;
   --danger: crimson;
@@ -753,5 +753,19 @@ img.no-filter {
   white-space: nowrap;
   font-weight: 350;
   /* flex: 1; */
+}
+
+/* Hide browser default password reveal button */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-contacts-auto-fill-button {
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
 }
 
