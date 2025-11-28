@@ -73,10 +73,28 @@
         </div>
         <div class="settings-section-card-content">
           <div class="settings-item" @click="Browser.OpenURL('https://docs.clustta.com')">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('book')"></div>
+            <div class="settings-content">
+              <div class="settings-header">Documentation</div>
+              <div class="settings-body">Full Documentation and API reference.</div>
+            </div>
+            <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
+          </div>
+
+          <div class="settings-item" @click="Browser.OpenURL('https://youtube.com/playlist?list=PLy9tuKQd1hzzuUktc6UVFUhhQxNQtkDqR&si=f2TQRtOYSHeqXma9')">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('youtube')"></div>
+            <div class="settings-content">
+              <div class="settings-header">Video Guides</div>
+              <div class="settings-body">Watch video tutorials and walkthroughs.</div>
+            </div>
+            <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
+          </div>
+
+          <div class="settings-item" @click="Browser.OpenURL('https://discord.gg/NuR4uAuTZd')">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('help')"></div>
             <div class="settings-content">
-              <div class="settings-header">Help</div>
-              <div class="settings-body">Access the community and help docs.</div>
+              <div class="settings-header">Community and Support</div>
+              <div class="settings-body">Join our Discord community for support and discussions.</div>
             </div>
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
           </div>
