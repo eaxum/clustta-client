@@ -322,7 +322,7 @@ Events.On('duplicate-task', async () => {
 	if (operationsActive.value) return
 	if (stage.markedItems.length !== 1) return
 	if (!userStore.canDo('create_task')) return
-	duplicateTask();
+	await duplicateTask();
 });
 
 const duplicateTask = async () => {
@@ -339,8 +339,8 @@ const duplicateTask = async () => {
 		assetStore.selectedAsset = null;
 
 		await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedItemId)
-		.then((duplicatedTask) => {
-			softRefresh();
+		.then( async (duplicatedTask) => {
+			await refresh();
 			assetStore.selectAsset(duplicatedTask);
 			stage.selectedItem = duplicatedTask;
 			stage.markedItems = [duplicatedTask.id];
@@ -1669,6 +1669,7 @@ const handleUpdateRootData = (eventData) => {
 			});
 		}
 	}
+	emitter.emit('get-project-data');
 	collectionStore.loadCollectionStateFlags();
 };
 
@@ -1682,6 +1683,8 @@ const handleUpdateUntrackedItems = (untrackedItems) => {
 	
 	// Add all new untracked items
 	rootData.value.push(...untrackedItems);
+	
+	emitter.emit('get-project-data');
 	collectionStore.loadCollectionStateFlags();
 };
 

@@ -7,17 +7,26 @@
         :key="skill.id"
         class="skill-badge"
       >
-        <img class="small-icons" :src="getSkillIconPath(skill)" alt="">
+        <ActionButton
+          :icon="getSkillIconPath(skill)"
+          :isInactive="true"
+          :showIcon="true"
+          :showLabel="false"
+        />
         <span class="skill-name">{{ skill.skill_name }}</span>
-        <button
-          v-if="isEditing"
-          @click="removeSkill(skill)"
-          class="skill-remove-button"
-          title="Remove"
-        >
-          <img class="remove-icon" :src="getAppIcon('close')" alt="Remove">
-        </button>
+        <ActionButton
+          :icon="getAppIcon('close')"
+          :buttonFunction="() => removeSkill(skill)"
+          :showIcon="true"
+          :showLabel="false"
+          :noFilter="false"
+        />
       </span>
+    </div>
+    
+    <!-- Empty state -->
+    <div v-else-if="!isEditing" class="empty-state">
+      No skills to display
     </div>
     
     <!-- ItemSelector for adding new skills -->
@@ -25,13 +34,13 @@
       <ItemSelector
         v-if="skills.length < 5"
         :selectedItems="skills"
-        :allItems="allSkills"
+        :allItems="normalizedAllSkills"
         :placeholder="'Search and add skills...'"
         :itemType="'skill'"
         @itemAdded="addSkill"
       />
       <div v-else class="limit-message">
-        <img :src="getAppIcon('info-circle')" alt="Info" class="limit-icon" />
+        <img :src="getAppIcon('info')" alt="Info" class="limit-icon" />
         <span>Maximum of 5 skills reached. Remove a skill to add another.</span>
       </div>
     </div>
@@ -46,6 +55,7 @@ import { useProfileStore } from '@/stores/profile';
 import { useNotificationStore } from '@/stores/notifications';
 import { ProfileService } from "@/../bindings/clustta/services";
 import ItemSelector from './ItemSelector.vue';
+import ActionButton from './ActionButton.vue';
 import { getSkillIcon } from '@/utils/iconMappers';
 
 const iconStore = useIconStore();
@@ -68,13 +78,33 @@ const props = defineProps({
   }
 });
 
+// Normalize allSkills to have consistent 'name' field for ItemSelector
+const normalizedAllSkills = computed(() => {
+  // Filter out skills that are already selected
+  const selectedSkillIds = props.skills.map(s => s.id);
+  return props.allSkills
+    .filter(skill => !selectedSkillIds.includes(skill.id))
+    .map(skill => ({
+      ...skill,
+      name: skill.skill_name || skill.name,
+      category: skill.skill_category || skill.category
+    }));
+});
+
 const addSkill = (skill) => {
   ProfileService.AddUserSkill(userStore.user.id, {
     skill_id: skill.id,
     proficiency_level: skill.proficiency_level || 'intermediate'
   })
     .then(() => {
-      profileStore.addSkill(skill);
+      // Transform the skill to match the expected structure
+      const transformedSkill = {
+        ...skill,
+        skill_id: skill.id,
+        skill_name: skill.skill_name || skill.name,
+        skill_category: skill.skill_category || skill.category
+      };
+      profileStore.addSkill(transformedSkill);
       notificationStore.addNotification("Skill added", "Skill added successfully.", "success", false);
     })
     .catch((err) => {
@@ -126,9 +156,9 @@ const getAppIcon = (iconName) => {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.3rem;
   background-color: var(--steel);
-  border-radius: var(--normal-radius);
+  border-radius: var(--large-radius);
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--white);
@@ -138,29 +168,6 @@ const getAppIcon = (iconName) => {
 
 .skill-badge:hover {
   background-color: rgba(255, 255, 255, 0.1);
-}
-
-.skill-remove-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  margin-left: 0.25rem;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-}
-
-.skill-remove-button:hover {
-  opacity: 1;
-}
-
-.remove-icon {
-  width: 12px;
-  height: 12px;
-  filter: brightness(0) invert(1);
 }
 
 .skill-icon {
@@ -190,5 +197,14 @@ const getAppIcon = (iconName) => {
   height: 16px;
   filter: invert(82%) sepia(89%) saturate(548%) hue-rotate(359deg) brightness(103%) contrast(98%);
   flex-shrink: 0;
+}
+
+.empty-state {
+  padding: .5rem;
+  text-align: center;
+  color: var(--white);
+  opacity: .5;
+  font-style: italic;
+  font-size: 0.875rem;
 }
 </style>

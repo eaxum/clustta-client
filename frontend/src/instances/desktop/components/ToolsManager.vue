@@ -7,23 +7,24 @@
         :key="tool.id"
         class="tool-item"
       >
-      
-        <img 
-          :src="getToolLogoPath(tool)" 
-          :alt="tool.name" 
-          class="small-icons no-filter"
-          @error="handleImageError"
+        <div class="tool-icon-container">
+          <img class="large-icons no-filter" :src="getToolLogoPath(tool)">
+        </div>
+
+        <span class="tool-name">{{ tool.tool_name }}</span>
+        <ActionButton
+          :icon="getAppIcon('close')"
+          :buttonFunction="() => removeTool(tool)"
+          :showIcon="true"
+          :showLabel="false"
+          :noFilter="false"
         />
-        <span class="tool-name">{{ tool.name }}</span>
-        <button
-          v-if="isEditing"
-          @click="removeTool(tool)"
-          class="tool-remove-button"
-          title="Remove"
-        >
-          <img class="remove-icon" :src="getAppIcon('close')" alt="Remove">
-        </button>
       </div>
+    </div>
+    
+    <!-- Empty state -->
+    <div v-else-if="!isEditing" class="empty-state">
+      No tools to display
     </div>
     
     <!-- ItemSelector for adding new tools -->
@@ -31,13 +32,13 @@
       <ItemSelector
         v-if="tools.length < 5"
         :selectedItems="tools"
-        :allItems="allTools"
+        :allItems="normalizedAllTools"
         :placeholder="'Search and add tools...'"
         :itemType="'tool'"
         @itemAdded="addTool"
       />
       <div v-else class="limit-message">
-        <img :src="getAppIcon('info-circle')" alt="Info" class="limit-icon" />
+        <img :src="getAppIcon('info')" alt="Info" class="limit-icon" />
         <span>Maximum of 5 tools reached. Remove a tool to add another.</span>
       </div>
     </div>
@@ -52,6 +53,7 @@ import { useProfileStore } from '@/stores/profile';
 import { useNotificationStore } from '@/stores/notifications';
 import { ProfileService } from "@/../bindings/clustta/services";
 import ItemSelector from './ItemSelector.vue';
+import ActionButton from './ActionButton.vue';
 import { getToolLogo } from '@/utils/iconMappers';
 
 const iconStore = useIconStore();
@@ -74,13 +76,33 @@ const props = defineProps({
   }
 });
 
+// Normalize allTools to have consistent 'name' field for ItemSelector
+const normalizedAllTools = computed(() => {
+  // Filter out tools that are already selected
+  const selectedToolIds = props.tools.map(t => t.id);
+  return props.allTools
+    .filter(tool => !selectedToolIds.includes(tool.id))
+    .map(tool => ({
+      ...tool,
+      name: tool.tool_name || tool.name,
+      category: tool.tool_category || tool.category
+    }));
+});
+
 const addTool = (tool) => {
   ProfileService.AddUserTool(userStore.user.id, {
     tool_id: tool.id,
     proficiency_level: tool.proficiency_level || 'intermediate'
   })
     .then(() => {
-      profileStore.addTool(tool);
+      // Transform the tool to match the expected structure
+      const transformedTool = {
+        ...tool,
+        tool_id: tool.id,
+        tool_name: tool.tool_name || tool.name,
+        tool_category: tool.tool_category || tool.category
+      };
+      profileStore.addTool(transformedTool);
       notificationStore.addNotification("Tool added", "Tool added successfully.", "success", false);
     })
     .catch((err) => {
@@ -137,37 +159,18 @@ const getAppIcon = (iconName) => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.3rem;
   background-color: var(--steel);
-  border-radius: var(--normal-radius);
+  border-radius: var(--large-radius);
   transition: background-color 0.2s;
+}
+
+.tool-icon-container{
+  padding: .3rem;
 }
 
 .tool-item:hover {
   background-color: rgba(255, 255, 255, 0.1);
-}
-
-.tool-remove-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  margin-left: 0.25rem;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-}
-
-.tool-remove-button:hover {
-  opacity: 1;
-}
-
-.remove-icon {
-  width: 12px;
-  height: 12px;
-  filter: brightness(0) invert(1);
 }
 
 .tool-name {
@@ -199,5 +202,14 @@ const getAppIcon = (iconName) => {
 .tool-logo-default {
   filter: brightness(0) invert(1);
   opacity: 0.7;
+}
+
+.empty-state {
+  padding: .5rem;
+  text-align: center;
+  color: var(--white);
+  opacity: .5;
+  font-style: italic;
+  font-size: 0.875rem;
 }
 </style>

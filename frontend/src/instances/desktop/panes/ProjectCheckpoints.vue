@@ -5,8 +5,7 @@
   </div>
 
   <div class="general-pane-root">
-
-    <TaskListSkeleton v-if="projectCheckpointsLoading" :forModal="true" />
+    <CheckpointListSkeleton v-if="projectCheckpointsLoading" />
 
     <div v-else-if="filteredCheckpoints.length" ref="checkpointList" id="checkpointList" class="checkpoint-list-container"
       v-stop-propagation>
@@ -15,7 +14,7 @@
         :style="{ animationDelay: index < 10 ? `${(index - 1) * 0.05}s` : '0s' }" />
     </div>
 
-    <PageState v-else-if="searchQuery" :message="message()" :illustration="illustration()" />
+    <PageState v-else :message="message()" :illustration="illustration()" />
 
   </div>
 </template>
@@ -54,7 +53,7 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import TimelineItem from '@/instances/desktop/components/TimelineItem.vue';
 import PageState from '@/instances/common/components/PageState.vue';
-import TaskListSkeleton from '@/instances/desktop/components/TaskListSkeleton.vue'
+import CheckpointListSkeleton from '@/instances/common/components/CheckpointListSkeleton.vue'
 
 // states
 const menu = useMenu();
@@ -127,7 +126,11 @@ onUnmounted(() => {
 
 
 const message = () => {
-  return 'No checkpoints match your search';
+  if(searchQuery.value){
+    return 'No checkpoints match your search';
+  } else {
+    return 'No Project checkpoints'
+  }
 };
 
 const illustration = () => {

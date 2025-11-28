@@ -60,64 +60,29 @@ export const getSkillIcon = (skillName, category) => {
   
   // Map skills to appropriate icons
   const skillToIcon = {
-    // 3D/Modeling
+    // Technical
     '3d modeling': 'cube',
-    'sculpting': 'palette',
     'rigging': 'bone',
-    'uv mapping': 'texture',
-    'retopology': 'shapes',
-    
-    // Animation
-    'character animation': 'man-running',
-    'motion graphics': 'video-camera',
-    'keyframe animation': 'film-strip',
-    'procedural animation': 'flow-chart',
-    
-    // Texturing/Materials
-    'texturing': 'palette',
-    'material creation': 'palette',
-    'pbr texturing': 'texture',
-    'procedural texturing': 'mystery-ball',
-    
-    // Lighting/Rendering
-    'lighting': 'bulb',
     'rendering': 'lamp',
-    'shading': 'lamp',
-    'compositing': 'four-squares',
-    
-    // Effects
     'vfx': 'fire',
-    'particle effects': 'fire',
-    'simulation': 'flow-chart',
-    'dynamics': 'shapes',
-    
-    // 2D/Concept
-    'concept art': 'palette',
-    'illustration': 'palette',
-    'digital painting': 'palette',
-    'photo editing': 'image',
-    'graphic design': 'shapes',
-    
-    // Video/Film
-    'video editing': 'film-reel',
-    'color grading': 'film-strip',
-    'cinematography': 'camera',
-    'storyboarding': 'open-book',
-    
-    // Audio
-    'sound design': 'drum',
-    'music composition': 'music',
-    'audio editing': 'music',
-    
-    // Game Development
-    'game design': 'mystery-ball',
-    'level design': 'compass',
-    'game programming': 'flow-chart',
-    
-    // Project Management
-    'project management': 'boxes',
+    'compositing': 'flow-chart',
+    'game development': 'gamepad',
+    'scripting': 'console',
+    'technical art': 'shapes',
     'pipeline development': 'flow-chart',
-    'technical direction': 'compass',
+    
+    // Artistic
+    'animation': 'man-running',
+    'texturing': 'texture',
+    'lighting': 'bulb',
+    'motion graphics': 'video-camera',
+    'character design': 'masks',
+    'environment design': 'stall',
+    'concept art': 'palette',
+    'ui/ux design': 'bezier',
+    
+    // Management
+    'project management': 'boxes',
     'art direction': 'palette'
   };
   
