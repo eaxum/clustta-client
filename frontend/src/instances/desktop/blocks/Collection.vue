@@ -40,15 +40,15 @@
         <div v-if="!isEditing" class="entity-item-grid-status">
           <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="'Loading state'" />
           <template v-else-if="!isUntracked">
-            <ActionButton v-if="collectionStateFlags.has_modified" 
+            <ActionButton v-if="collectionStateFlags.has_outdated" 
+              @click="updateEntityAssets" 
+              :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="'Outdated Items. Click to update'" />
+            <ActionButton v-else-if="collectionStateFlags.has_modified" 
               @click="prepAllCheckpointModal(props.entity.entity_path)" 
               :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="'Untracked/Modified Items. Click to add checkpoints'" />
             <ActionButton v-else-if="collectionStateFlags.has_untracked" 
               @click="prepAllCheckpointModal(props.entity.entity_path)" 
               :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="'Untracked Items. Click to add checkpoints'" />
-            <!-- <ActionButton v-if="collectionStateFlags.has_outdated" 
-              @click="updateEntityAssets" 
-              :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Outdated Items. Click to update'" /> -->
             <!-- <ActionButton v-if="collectionStateFlags.has_rebuildable" 
               @click="rebuildEntity" 
               :icon="getAppIcon('dot-big')" v-tooltip="'Items missing. Click to rebuild'" /> -->
