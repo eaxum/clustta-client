@@ -1,6 +1,6 @@
 <template>
   <div class="user-profile-root absolute-pane">
-      <div class="user-profile-body">
+      <div ref="userProfileBody" class="user-profile-body">
         <div class="user-profile-container">
           
           <!-- Edit Controls -->
@@ -105,6 +105,7 @@
                       :links="formData.links"
                       :isEditing="editingSections.header"
                       @update:links="updateLinks"
+                      @update:linksValid="handleLinksValidUpdate"
                     />
                   </div>
                 </div>
@@ -119,7 +120,11 @@
                       <span>{{ formData.country }}</span>
                     </div>
                     
-                    <div v-if="formData.availability" class="availability-badge">
+                    <div 
+                      v-if="formData.availability" 
+                      class="availability-badge"
+                      :style="{ backgroundColor: formData.availability === 'available' ? '#35a32e' : 'rgba(255, 255, 255, 0.1)' }"
+                    >
                       <img class="info-icon small-icons" :src="getAppIcon('check-circle')" alt="">
                       <span>{{ utils.capitalizeStr(formData.availability) }}</span>
                     </div>
@@ -335,6 +340,7 @@ const photoInput = ref(null);
 const photoPreview = ref(null);
 const currentPhoto = ref(null);
 const passwordCard = ref(null);
+const userProfileBody = ref(null);
 const checkingEmailAvailability = ref(false);
 const checkingUsernameAvailability = ref(false);
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -342,6 +348,7 @@ const userNameRegex = /^[a-zA-Z0-9_]{3,}$/;
 const isEmailTaken = ref(false);
 const isUsernameTaken = ref(false);
 const isSavingChanges = ref(false);
+const areLinksValid = ref(true);
 
 // Section-specific edit states
 const editingSections = reactive({
@@ -459,7 +466,7 @@ const isDataChanged = computed(() => {
 });
 
 const isDataValid = computed(() => {
-  return detailsInputed.value && credentialsValid.value && isDataChanged.value;
+  return detailsInputed.value && credentialsValid.value && isDataChanged.value && areLinksValid.value;
 });
 
 const userPhoto = computed(() => {
@@ -480,6 +487,12 @@ const needsSaveButton = computed(() => {
 });
 
 // Methods
+const scrollToTop = () => {
+  if (userProfileBody.value) {
+    userProfileBody.value.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+};
+
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
@@ -533,6 +546,9 @@ const cancelAllEdits = async () => {
   Object.keys(editingSections).forEach(key => {
     editingSections[key] = false;
   });
+  
+  // Scroll to top after canceling
+  scrollToTop();
 };
 
 const handlePhotoChange = (filePath, preview) => {
@@ -601,6 +617,7 @@ const handleUpdate = async () => {
       behance_link: formData.value.links?.behance || '',
       linkedin_link: formData.value.links?.linkedin || '',
       portfolio_link: formData.value.links?.portfolio || '',
+      instagram_link: formData.value.links?.instagram || '',
     };
 
     console.log(updateData)
@@ -629,6 +646,9 @@ const handleUpdate = async () => {
           true
         );
         isEditing.value = false;
+        
+        // Scroll to top after successful save
+        scrollToTop();
       });
     
   } catch (err) {
@@ -768,6 +788,10 @@ const toggleProfileVisibility = async () => {
 
 const updateLinks = (newLinks) => {
   profileStore.updateLinks(newLinks);
+};
+
+const handleLinksValidUpdate = (isValid) => {
+  areLinksValid.value = isValid;
 };
 
 const prepDeleteAccountModal = () => {
