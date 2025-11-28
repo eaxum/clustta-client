@@ -501,6 +501,40 @@ export const useProjectStore = defineStore("projects", {
     hasNewUsersForProject(projectUri) {
       return this.newUsers[projectUri] && this.newUsers[projectUri].length > 0;
     },
+    
+    updateProjectName(projectId, newName, oldName) {
+      // Find and update the project in the projects array
+      const projectIndex = this.projects.findIndex(p => p.id === projectId);
+      if (projectIndex !== -1) {
+        const project = this.projects[projectIndex];
+        project.name = newName;
+        
+        // Update URI: replace old name with new name in the path
+        if (project.uri) {
+          project.uri = project.uri.replace(`${oldName}.clst`, `${newName}.clst`);
+        }
+        
+        // Update remote URL if it exists
+        if (project.remote) {
+          project.remote = project.remote.replace(`${oldName}`, `${newName}`);
+        }
+      }
+      
+      // Update activeProject if it's the one being renamed
+      if (this.activeProject && this.activeProject.id === projectId) {
+        this.activeProject.name = newName;
+        
+        // Update URI for active project
+        if (this.activeProject.uri) {
+          this.activeProject.uri = this.activeProject.uri.replace(`${oldName}.clst`, `${newName}.clst`);
+        }
+        
+        // Update remote URL for active project
+        if (this.activeProject.remote) {
+          this.activeProject.remote = this.activeProject.remote.replace(`${oldName}`, `${newName}`);
+        }
+      }
+    },
   },
 });
 

@@ -1,10 +1,8 @@
 <template>
   <div class="project-item-root" v-right-click="openMenu" v-stop-propagation
     :class="{ 'project-item-container-selected': projectStore.activeProject?.id === project.id, 'project-item-root-cards': cardView }"
-    @click="selectProject(project, $event)" @dblclick="goToProject(project)">
+    @click="selectProject(project, $event)" @dblclick="launchProject(project)">
     
-    <!-- Show TabbedFolder for untracked projects in card view -->
-    <!-- <div v-if="cardView && !project.is_tracked" class="project-item-container" :class="{ 'project-item-container-cards': cardView }"> -->
       <TabbedFolder v-if="cardView && !project.is_tracked">
         <div class="project-item-container-footer" :class="{ 'project-item-container-footer-cards': cardView }">
 
@@ -25,8 +23,6 @@
           />
 
           <div v-if="!isEditing" class="project-item-actions">
-            <!-- <ActionButton v-if="!project.is_tracked" :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
-              v-tooltip="'Project not Tracked'" /> -->
             <ActionButton v-if="project.has_remote && project.is_unsynced" :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true"
               v-tooltip="'Project not synced'" />
             <ActionButton v-if="isProjectPinned && project.is_downloaded" :icon="getAppIcon('unpin')"
@@ -45,7 +41,6 @@
           </div>
         </div>
       </TabbedFolder>
-    <!-- </div> -->
     
     <div v-else class="project-item-container" :class="{ 'project-item-container-cards': cardView }">
 
@@ -74,8 +69,6 @@
         />
 
         <div v-if="!isEditing" class="project-item-actions">
-          <!-- <ActionButton v-if="!project.is_tracked" :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
-            v-tooltip="'Project not Tracked'" /> -->
           <ActionButton v-if="project.has_remote && project.is_unsynced" :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true"
             v-tooltip="'Project not synced'" />
           <ActionButton v-if="isProjectPinned && project.is_downloaded" :icon="getAppIcon('unpin')"
@@ -101,191 +94,179 @@
 <script setup>
 // imports
 import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue';
-import utils from '@/services/utils';
-import { SettingsService } from "@/../bindings/clustta/services";
 import { Events } from "@wailsio/runtime";
+import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
-// states/store imports
+// components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import RenameInput from '@/instances/desktop/components/RenameInput.vue';
+import TabbedFolder from '@/instances/desktop/components/TabbedFolder.vue';
+
+// state imports
 import { useTrayStates } from '@/stores/TrayStates';
 import { useMenu } from '@/stores/menu';
-import { usePaneStore } from '@/stores/panes';
 import { useStageStore } from '@/stores/stages';
 import { useUserStore } from '@/stores/users';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
-import { useCollectionStore } from '@/stores/collections';
-import { useCommonStore } from '@/stores/common';
 import { useProjectStore } from '@/stores/projects';
-import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
-
-// components
-import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import RenameInput from '@/instances/desktop/components/RenameInput.vue'
-import TabbedFolder from '@/instances/desktop/components/TabbedFolder.vue'
-import { DialogService, FSService, SyncService, ProjectService } from '@/../bindings/clustta/services/index';
+import { FSService, ProjectService, SettingsService } from '@/../bindings/clustta/services';
 
 // states/stores
 const userStore = useUserStore();
 const trayStates = useTrayStates();
 const menu = useMenu();
-const panes = usePaneStore();
 const stage = useStageStore();
 const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
-const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
-const commonStore = useCommonStore();
-const collectionStore = useCollectionStore();
 const iconStore = useIconStore();
 
 // props
 const props = defineProps({
   project: Object,
   index: Number,
-  cardView: { type: Boolean, default: true },
+  cardView: { type: Boolean, default: true }
 });
 
-const renameInput = ref(null);
+// refs
 const isCreatingProject = ref(false);
-const operationsActive = computed(() => {
-  return stage.operationActive || !!modals.activeModal || !!menu.activeMenu || isEditing.value || stage.activeStage !== 'projects'
-});
-
 const isEditing = ref(false);
 const editableProjectName = ref(props.project.name);
 
+// computed props
+// Check if any operations are currently active
+const operationsActive = computed(() => {
+  return stage.operationActive || !!modals.activeModal || !!menu.activeMenu || isEditing.value || stage.activeStage !== 'projects';
+});
+
+// Check if current project is the active one
 const isProjectInFocus = computed(() => {
-  return projectStore.activeProject?.id === props.project.id
+  return projectStore.activeProject?.id === props.project.id;
 });
 
-Events.On('edit-item', async () => {
-  if (operationsActive.value) return
-  if (isProjectInFocus.value && userStore.userCanCreateProject) {
-    modals.setModalVisibility('editProjectModal', true);
-  }
-});
-
-Events.On('rename-item', async () => {
-  if (operationsActive.value) return
-  if (isProjectInFocus.value && userStore.userCanCreateProject) {
-    startRename();
-  }
-});
-
-const toggleEditMode = (event) => {
-  isEditing.value = !isEditing.value;
-};
-
-const cancelRename = () => {
-  editableProjectName.value = props.project.name;
-  toggleEditMode();
-};
-
-const startRename = () => {
-  toggleEditMode();
-};
-
-const confirmRename = async () => {
-  // isAwaitingResponse.value = true;
-  await updateProjectName();
-  toggleEditMode();
-};
-
-const menuRename = () => {
-  if (isProjectInFocus.value && userStore.userCanCreateProject) {
-    startRename();
-  }
-}
-
-const updateProjectName = async () => {
-
-  if (projectStore.activeProject.has_remote) {
-    ProjectService.Rename(projectStore.getActiveProjectUrl, projectStore.selectedStudio.name, editableProjectName.value)
-      .then((data) => {
-        projectStore.activeProject.name = editableProjectName.value
-      }).catch(error => {
-        console.log(error)
-      })
-  } else {
-    ProjectService.Rename(projectStore.activeProject.uri, projectStore.selectedStudio.name, editableProjectName.value)
-      .then((data) => {
-        projectStore.activeProject.name = editableProjectName.value
-      }).catch(error => {
-        console.log(error)
-      })
-  }
-
-};
-
-const isNameChanged = computed(() => {
-  const restrictedEntries = [props.project.name, ''];
-
-  const lowerCaseEditableName = editableProjectName.value.toLowerCase();
-  const lowerCaseRestrictedEntries = restrictedEntries.map(entry =>
-    typeof entry === 'string' ? entry.toLowerCase() : entry
-  );
-
-  return !lowerCaseRestrictedEntries.includes(lowerCaseEditableName);
-});
-
-
-// computed properties
-const projectUrl = computed(() => {
-  return stage.showProjectCheckboxes || !stage.allProjectsMarked
-});
+// Check if project is pinned
 const isProjectPinned = computed(() => {
   const projectId = props.project.id;
   const pinnedProjects = projectStore.pinnedProjects;
   return pinnedProjects?.includes(projectId);
 });
 
-// methods
+
+// functions
+// Get icon from icon store
 const getAppIcon = (iconName) => {
   const icon = iconStore.getAppIcon(iconName);
-  return icon
+  return icon;
 };
 
+// Toggle edit mode for renaming
+const toggleEditMode = (event) => {
+  isEditing.value = !isEditing.value;
+};
+
+// Start rename operation
+const startRename = () => {
+  toggleEditMode();
+};
+
+// Cancel rename and restore original name
+const cancelRename = () => {
+  editableProjectName.value = props.project.name;
+  toggleEditMode();
+};
+
+// Confirm rename and update project name
+const confirmRename = async () => {
+  await updateProjectName();
+  toggleEditMode();
+};
+
+// Initiate rename from menu if project is in focus
+const menuRename = () => {
+  if (isProjectInFocus.value && userStore.userCanCreateProject) {
+    startRename();
+  }
+};
+
+// Update project name in backend and store
+const updateProjectName = async () => {
+  let project = projectStore.activeProject;
+  const oldUri = project.uri;
+  const oldUrl = projectStore.getActiveProjectUrl;
+  const projectId = project.id;
+  const oldName = project.name; 
+  
+  if (project.has_remote) {
+    ProjectService.Rename(oldUrl, projectStore.selectedStudio.name, editableProjectName.value)
+      .then((data) => {
+        projectStore.updateProjectName(projectId, editableProjectName.value, oldName);
+        selectProject(project);
+      }).catch(error => {
+        console.log(error);
+        notificationStore.addNotification("Error", "Failed to rename project", "error");
+      });
+  } else {
+    ProjectService.Rename(oldUri, projectStore.selectedStudio.name, editableProjectName.value)
+      .then((data) => {
+        projectStore.updateProjectName(projectId, editableProjectName.value, oldName);
+        selectProject(project);
+      }).catch(error => {
+        console.log(error);
+        notificationStore.addNotification("Error", "Failed to rename project", "error");
+      });
+  }
+};
+
+// Unpin project from pinned list
 const unpinProject = async () => {
   const studioName = projectStore.getSelectedStudioName;
   const projectId = props.project.id;
 
   await SettingsService.UnpinProject(studioName, projectId).then((response) => {
-    projectStore.pinnedProjects = projectStore.pinnedProjects.filter((item) => item !== projectId)
+    projectStore.pinnedProjects = projectStore.pinnedProjects.filter((item) => item !== projectId);
   }).catch((error) => {
-    console.log(error)
-  })
-
+    console.log(error);
+  });
 };
 
+// Reveal project directory in file explorer
 const revealInExplorer = async () => {
   let project = projectStore.getActiveProject;
-  await FSService.MakeDirs(project.working_directory)
-  FSService.RevealInExplorer(project.working_directory)
+  await FSService.MakeDirs(project.working_directory);
+  FSService.RevealInExplorer(project.working_directory);
   menu.hideContextMenu();
 };
 
+// Launch project - clone if not downloaded, otherwise navigate to it
+const launchProject = async (project) => {
+  if (!project.is_downloaded) {
+    cloneProject(project);
+  } else {
+    goToProject(project);
+  }
+};
+
+// Show clone project modal
 const cloneProject = async (project) => {
   await projectStore.setActiveProject(project);
   modals.setModalVisibility('cloneProjectModal', true);
-}
+};
 
+// Navigate to project or create if untracked
 const goToProject = async (project) => {
-  // Check if this is an untracked project
   if (!project.is_tracked) {
     try {
-      // Set loading state
       isCreatingProject.value = true;
       
-      // Get the projects directory to construct the .clst file path
       const projectsDir = await SettingsService.GetProjectDirectory();
       const projectUri = `${projectsDir}/${project.name}.clst`;
       const studioName = projectStore.selectedStudio.name;
       const workingDir = project.working_directory;
-      const templateName = ""; // or "No Template"
+      const templateName = "";
       
-      // Create the project
       const createdProject = await ProjectService.CreateProject(
         projectUri,
         studioName,
@@ -295,32 +276,28 @@ const goToProject = async (project) => {
       
       createdProject.is_tracked = true;
       
-      // Update the project in the store
       const projectIndex = projectStore.projects.findIndex(p => p.name === project.name);
       if (projectIndex !== -1) {
         projectStore.projects[projectIndex] = createdProject;
       }
             
-      // Launch the newly created project
       projectStore.gotoProject(createdProject);
       
-      // Clear loading state
       isCreatingProject.value = false;
     } catch (error) {
       console.error('Error creating project from untracked directory:', error);
       notificationStore.errorNotification('Error creating project', error);
-      // Clear loading state on error
       isCreatingProject.value = false;
     }
   } else {
-    // Normal tracked project flow
     projectStore.gotoProject(project);
   }
 };
 
+// Open context menu for project
 const openMenu = (event) => {
-  if(!props.project.is_tracked){
-    // Show popup modal for untracked projects
+  if (!props.project.is_downloaded) return;
+  if (!props.project.is_tracked) {
     trayStates.popUpModalTitle = `Add "${props.project.name}" to Clustta?`;
     trayStates.popUpModalMessage = "This project is not yet in Clustta. Click CONFIRM to add it and start tracking your work.";
     trayStates.popUpModalFunction = async () => {
@@ -329,15 +306,16 @@ const openMenu = (event) => {
     };
     trayStates.popUpModalIcon = 'briefcase-plus';
     modals.setModalVisibility('popUpModal', true);
-    return
+    return;
   }
   const project = props.project;
   projectStore.setActiveProject(project);
   menu.showContextMenu(event, 'projectItemMenu', true);
-  // prepProjectMenu(index, project, event);
 };
 
+// Select project and update active state
 const selectProject = (project, event) => {
+  console.log(project);
   handleClickOutside(event);
   menu.disableAllMenus();
   projectStore.setActiveProject(project);
@@ -345,6 +323,15 @@ const selectProject = (project, event) => {
   stage.selectdProject = id;
 };
 
+// Handle clicks outside rename input
+const handleClickOutside = (event) => {
+  if (isEditing.value) {
+    cancelRename();
+  }
+};
+
+// watchers
+// Reset editing state when project focus changes
 watch(() => isProjectInFocus.value, (newItems, oldItems) => {
   if (isEditing.value) {
     isEditing.value = false;
@@ -352,12 +339,20 @@ watch(() => isProjectInFocus.value, (newItems, oldItems) => {
   }
 }, { deep: true });
 
-const handleClickOutside = (event) => {
-  if (renameInput.value && !renameInput.value.contains(event.target)) {
-    cancelRename();
+// lifecycle hooks
+Events.On('edit-item', async () => {
+  if (operationsActive.value) return;
+  if (isProjectInFocus.value && userStore.userCanCreateProject) {
+    modals.setModalVisibility('editProjectModal', true);
   }
+});
 
-};
+Events.On('rename-item', async () => {
+  if (operationsActive.value) return;
+  if (isProjectInFocus.value && userStore.userCanCreateProject) {
+    startRename();
+  }
+});
 
 onMounted(() => {
   emitter.on('renameProject', menuRename);
@@ -375,17 +370,12 @@ onBeforeUnmount(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 
-.single-action-button-disabled {
-  pointer-events: none;
-}
-
 .project-item-root {
   display: flex;
   flex-direction: column;
   gap: .2rem;
   color: var(--white);
   align-items: center;
-  /* padding: .3rem; */
   box-sizing: border-box;
   width: 100%;
   height: min-content;
@@ -394,7 +384,6 @@ onBeforeUnmount(() => {
   border-radius: var(--large-radius);
   overflow: hidden;
   min-width: 500px;
-
   outline: var(--transparent-line);
   outline-offset: -1px;
   transition: all .2s ease-out;
@@ -439,17 +428,11 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 50px;
   justify-content: space-between;
-  /* background-color: crimson; */
-  /* border-bottom: var(--transparent-line); */
-
-  /* transition: all .3s ease-out; */
 }
 
 .project-item-container-cards {
-  /* justify-content: space-around; */
   height: 100%;
   flex-direction: column;
-  /* background-color: goldenrod; */
 }
 
 .project-item-container-selected {
@@ -482,24 +465,19 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
-  /* padding: .1rem; */
   overflow: hidden;
   min-width: 60px;
   height: 100%;
-  /* background-color: hotpink; */
   aspect-ratio: 16 / 9;
   border-radius: 12px;
   transition: all .2s ease-out;
 }
 
 .project-item-preview-container-cards {
-  /* background-color: firebrick; */
   border-radius: var(--very-large-radius);
   border-radius: 12px;
   width: 100%;
-  /* height: 60%; */
   aspect-ratio: 16 / 9;
-  /* height: 100%; */
 
 }
 
@@ -510,9 +488,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   overflow: hidden;
   height: 100%;
-  /* aspect-ratio: 16 / 9; */
   background-color: var(--black-steel);
-  /* border-radius: 5px; */
   width: 100%;
 }
 
@@ -529,7 +505,6 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   height: 100%;
-  /* background-color: indigo; */
   width: 100%;
   overflow: hidden;
 }
@@ -570,7 +545,6 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 40px;
   min-height: 40px;
-  /* background-color: crimson; */
 }
 
 .project-item-actions {
@@ -592,8 +566,6 @@ onBeforeUnmount(() => {
   width: min-content;
   padding: .2rem;
   height: 100%;
-  /* background-color: darkorange; */
-  /* flex: 1; */
 }
 
 .project-item-status {
@@ -606,7 +578,6 @@ onBeforeUnmount(() => {
   width: 80px;
   padding: .4rem .4rem;
   height: max-content;
-  /* background-color: firebrick; */
   font-size: 12px;
   text-transform: uppercase;
   font-weight: 700;
