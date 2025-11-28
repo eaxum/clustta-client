@@ -224,10 +224,11 @@ onUnmounted(() => {
   border-radius: var(--normal-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
-  backdrop-filter: blur(35px);
+  backdrop-filter: blur(55px);
   max-height: 70vh;
   overflow-y: scroll;
   border-radius: var(--large-radius);
+  /* background-color: var(--black-steel); */
 }
 
 .context-menu-container::-webkit-scrollbar {
