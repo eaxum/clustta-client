@@ -21,11 +21,11 @@
           </div>
         </div>
         
-        <div v-if="forList && data.type === 'task'" class="virtual-node-count">
+        <!-- <div v-if="forList && data.type === 'task'" class="virtual-node-count">
           <div class="virtual-node-details">
             {{ dependenciesCount }}
           </div>
-        </div>
+        </div> -->
         <div class="virtual-node-actions" v-if="userStore.canDo('manage_dependencies')" >
           <ActionButton v-if="(data.depth === 1 || isDependency) && showRemove" :icon="getAppIcon('minus-circle')" v-tooltip="'Remove'"
             @click="removeDependency" />

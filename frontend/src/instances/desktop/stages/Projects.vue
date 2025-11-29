@@ -2,12 +2,12 @@
 	<div ref="projectListRoot" class="project-stage-root absolute-pane">
 
 		<div class="task-header">
-			<div class="create-menu" >
+			<div class="create-menu" v-if="projectStore.projectsLoaded" >
 				<ActionButton v-if="userStore.userCanCreateProject" :icon="getAppIcon('briefcase-plus')" 
 					@click="createProject" v-tooltip="'New Project'" :buttonFunction="doNothing" />
 				<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :icon="getAppIcon('arrow-down-ramp')" 
 					v-tooltip="'Import Project'" :buttonFunction="importProject" />
-				<ActionButton v-if="projectStore.projectsLoaded" :icon="getAppIcon('refresh')" 
+				<ActionButton :icon="getAppIcon('refresh')" 
 					v-tooltip="'Refresh'" :buttonFunction="refresh" />
 			</div>
 			<div class="action-bar" v-if="projects.length && projectStore.projectsLoaded || projectStore.projectSearchQuery">
@@ -22,7 +22,7 @@
 						:allowDeactivate="true" v-tooltip="'Clear search'" :buttonFunction="clearSearch" />
 				</div>
 		</div>
-		<div class="view-options">
+		<div class="view-options" v-if="projectStore.projectsLoaded" >
 			<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="!untrackedProjects.length" :icon="getAppIcon(projectStore.showUntrackedProjects ? 'eye-cancel' : 'eye')" v-tooltip="projectStore.showUntrackedProjects ? 'Hide untracked projects' : 'Show untracked projects'"
 				:buttonFunction="toggleShowUntrackedProjects" />
 			<ActionButton :isDisabled="!projects.length" :icon="getAppIcon(cardView ? 'list' : 'four-squares')" :v-tooltip="cardView ? 'List' : 'Cards'"

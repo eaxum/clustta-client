@@ -159,6 +159,8 @@ const downloadCheckpoint = (checkpointId) => {
 };
 
 const revertToVersion = (id, checkpointId) => {
+    notificationStore.cancleFunction = SyncService.CancelSync
+    notificationStore.canCancel = true
     CheckpointService.RevertToCheckpoint(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, id, checkpointId)
         .then((response) => {
             emit('update-task-hash');

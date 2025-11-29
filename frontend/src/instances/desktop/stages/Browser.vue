@@ -13,10 +13,7 @@
 				<ActionButton v-else-if="commonStore.viewSearchQuery.length" :icon="getAppIcon('close')"
 					:allowDeactivate="true" v-tooltip="'Clear search'" :buttonFunction="clearSearch" />
 			</div>
-			<span class="single-action-button filter-button" @click="toggleShowFilters" v-tooltip="'Filters'">
-				<div v-if="filtersActive" class="filter-button-indicator"></div>
-				<img class="small-icons" :src="getAppIcon('filter')">
-			</span>
+			<ActionButton :icon="getAppIcon('filter')" :buttonFunction="toggleShowFilters" :isActive="showFilters" :showIndicator="filtersActive" v-tooltip="'Filters'" />
 		</div>
 
 		<div class="dash-board-header">

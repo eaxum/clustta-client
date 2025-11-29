@@ -123,7 +123,7 @@
                     <div 
                       v-if="formData.availability" 
                       class="availability-badge"
-                      :style="{ backgroundColor: formData.availability === 'available' ? '#35a32e' : 'rgba(255, 255, 255, 0.1)' }"
+                      :style="{ backgroundColor: formData.availability === 'available' ? '#24811E' : 'rgba(255, 255, 255, 0.1)' }"
                     >
                       <img class="info-icon small-icons" :src="getAppIcon('check-circle')" alt="">
                       <span>{{ utils.capitalizeStr(formData.availability) }}</span>

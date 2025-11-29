@@ -2,7 +2,10 @@
   <span v-stop-propagation @click="buttonFunction" :style="{ backgroundColor: color }" :class="{
     'button-background': useBackground, 'alert-background': isAlert, 'full-width': fullWidth, 'outline': useOutline, 'icon-after': iconAfter, 'centered':
       centered, 'button-active': isActive, 'is-inactive': isInactive, 'is-disabled': isDead, 'plain-background' : plainBackground, 'use-alert': useAlert, 'use-danger': useDanger, 'use-go': useGo,
-  }" class="action-button">
+  }" class="action-button" ref="buttonRef">
+    <Teleport to="#app">
+      <div v-if="showIndicator && buttonPosition" class="filter-button-indicator" :style="indicatorStyle"></div>
+    </Teleport>
     <img v-if="showIcon && !iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter, 'loading-icon' : isLoading }" :src="icon">
     <div v-if="showLabel || label" class="small-icons button-label no-cursor">{{ label }}</div>
     <img v-if="showIcon && iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter }" :src="icon">
@@ -10,7 +13,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useStageStore } from '@/stores/stages';
 import { useNotificationStore } from '@/stores/notifications';
 
@@ -42,6 +45,7 @@ const props = defineProps({
   isActive: { type: Boolean, default: false },
   fullWidth: { type: Boolean, default: false },
   allowDeactivate: { type: Boolean, default: false },
+  showIndicator: { type: Boolean, default: false },
 
 });
 
@@ -60,6 +64,46 @@ const isDead = computed(() => {
   
   return notEnabled && !props.allowDeactivate;
 })
+
+const buttonRef = ref(null);
+const buttonPosition = ref(null);
+
+const updatePosition = () => {
+  if (buttonRef.value && props.showIndicator) {
+    const rect = buttonRef.value.getBoundingClientRect();
+    buttonPosition.value = {
+      top: rect.top,
+      right: window.innerWidth - rect.right + 1
+    };
+  }
+};
+
+const indicatorStyle = computed(() => {
+  if (!buttonPosition.value) return {};
+  return {
+    top: `${buttonPosition.value.top}px`,
+    right: `${buttonPosition.value.right}px`
+  };
+});
+
+watch(() => props.showIndicator, (newVal) => {
+  if (newVal) {
+    updatePosition();
+  }
+});
+
+onMounted(() => {
+  if (props.showIndicator) {
+    updatePosition();
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+  }
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', updatePosition, true);
+  window.removeEventListener('resize', updatePosition);
+});
 
 </script>
 
@@ -238,5 +282,19 @@ const isDead = computed(() => {
   filter: brightness(0) saturate(100%) invert(50%) sepia(74%) saturate(486%) hue-rotate(75deg) brightness(96%) contrast(87%);
 }
 
+</style>
+
+<style>
+.filter-button-indicator {
+  overflow: hidden;
+  width: 7px;
+  height: 7px;
+  position: fixed;
+  border-radius: 10px;
+  outline: solid 1px var(--attention);
+  background-color: var(--attention);
+  z-index: 1;
+  pointer-events: none;
+}
 </style>
 
