@@ -6,10 +6,7 @@
         <div class="compound-input-section">
           <input v-model="taskName" class="input-short" type="text" placeholder="Task Name" v-focus
             @keydown.enter="handleEnterKey" />
-          <span class="single-action-button" :class="{ 'single-action-button-pressed': exposeParams === true }"
-            @click="toggleOptions()" v-tooltip="'Show Options'">
-            <img class="small-icons" src="/icons/parameters.svg">
-          </span>
+          <ActionButton :icon="getAppIcon('switches')" :buttonFunction="toggleOptions" :isActive="exposeParams" v-tooltip="'Show Options'" />
         </div>
       </div>
       <div class="input-section drop-down-box-section">
@@ -58,6 +55,7 @@ import { useStageStore } from '@/stores/stages';
 import { useAssetStore } from '@/stores/assets';
 import { useTemplateStore } from '@/stores/template';
 import { useProjectStore } from '@/stores/projects';
+import { useIconStore } from '@/stores/icons';
 
 // components
 import Apps from '@/instances/common/components/Apps.vue';
@@ -65,6 +63,7 @@ import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import SearchSuggestions from '@/instances/common/components/SearchSuggestions.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 // vars
 let placeholder = 'Add Tags, use commas to confirm'
@@ -82,6 +81,12 @@ const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const stageStore = useStageStore();
 const menu = useMenu();
+const iconStore = useIconStore();
+
+const getAppIcon = (iconName) => {
+    const icon = iconStore.getAppIcon(iconName);
+    return icon
+};
 
 // refs
 const tags = ref([]);

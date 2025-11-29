@@ -242,7 +242,7 @@ const revealInExplorer = async () => {
 
 // Launch project - clone if not downloaded, otherwise navigate to it
 const launchProject = async (project) => {
-  if (!project.is_downloaded) {
+  if (!project.is_downloaded && project.is_tracked) {
     cloneProject(project);
   } else {
     goToProject(project);

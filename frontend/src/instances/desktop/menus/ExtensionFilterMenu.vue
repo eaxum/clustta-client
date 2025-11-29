@@ -4,7 +4,7 @@
     <span v-for="extension in allExtensions" class="filter-menu-item" @click="toggleFilter(extension)">
       <img class="small-icons no-filter" :src="extension.icon">
       <div class="horizontal-flex">
-        <div class="menu-item-text" > {{ extension.name.toUpperCase()}} </div>
+        <div class="menu-item-text" > {{ extension?.name?.toUpperCase()}} </div>
         <ToggleSwitch :switchValueProp="isFilterActive(extension)" />
       </div>
     </span>
