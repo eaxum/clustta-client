@@ -1388,6 +1388,9 @@ const revertAllChanges = async () => {
 const updateAllOutdated = async () => {
 	modals.setModalVisibility('popUpModal', false);
 	
+	notificationStore.cancleFunction = SyncService.CancelSync;
+	notificationStore.canCancel = true;
+	
 	// Get current navigation context
 	const navigated = collectionStore.navigatedCollection;
 	let collectionId = null;
