@@ -33,11 +33,11 @@
 
 			<ProjectListSkeleton :cardView="cardView" v-if="!projectStore.projectsLoaded" />
 			
-			<PageState v-else-if="!trackedProjects.length" :message="message()" :illustration="illustration()"
+			<!-- <PageState v-else-if="!trackedProjects.length" :message="message()" :illustration="illustration()"
 				:secondaryIcon="secondaryActionIcon()" :secondaryActionMessage="secondaryActionMessage()"
-				:secondaryActionFunction="secondaryActionFunction" />
+				:secondaryActionFunction="secondaryActionFunction" /> -->
 
-			<div v-else class="project-list-container" ref="openProjectsContainer" @scroll="disableAllMenus">
+			<div v-else-if="(openProjects.length || closedProjects.length) || (projectStore.showUntrackedProjects && untrackedProjects.length)" class="project-list-container" ref="openProjectsContainer" @scroll="disableAllMenus">
 				<div v-if="openProjects.length" class="project-list" :class="{ 'project-list-cards': cardView }">
 					<ProjectItem class="project-item" v-for="(project, index) in pinnedProjects" :key="project.id"
 						:project="project" :index="index" :cardView="cardView"
@@ -80,6 +80,10 @@
 						:style="{ animationDelay: index < 12 ? `${(index - 1) * 0.03}s` : '0s' }" />
 				</div>
 			</div>
+
+			<PageState v-else :message="message()" :illustration="illustration()"
+				:secondaryIcon="secondaryActionIcon()" :secondaryActionMessage="secondaryActionMessage()"
+				:secondaryActionFunction="secondaryActionFunction" />
 
 			
 
