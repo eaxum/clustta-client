@@ -77,7 +77,7 @@
 				<ActionButton :isDisabled="revertButtonDisabled" @click="prepResetPopUpModal()" :icon="getAppIcon('revert')"
 				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="revertButtonTooltip"  :useDanger="unSynced"/>
 
-				<ActionButton :isDisabled="syncButtonDisabled" @click="syncData" :icon="getAppIcon(getCloudIcon)"
+				<ActionButton :isDisabled="syncButtonDisabled" @click="unSynced ? syncData() : pullData()" :icon="getAppIcon(getCloudIcon)"
 				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="syncButtonTooltip" :useAlert="unSynced" />
 				
 				<!-- <ActionButton :icon="getAppIcon('bell')" @click="panes.setPaneVisibility('notifications', true)" v-tooltip="'Notifications'"  /> -->
@@ -100,7 +100,7 @@
 import { computed, ref, onMounted, toRaw } from 'vue';
 import { SyncService } from "@/../bindings/clustta/services";
 import { ProjectService } from '@/../bindings/clustta/services/index';
-import { syncData } from '@/lib/sync';
+import { syncData, pullData } from '@/lib/sync';
 import utils from '@/services/utils';
 
 import emitter from '@/lib/mitt';
@@ -159,6 +159,9 @@ const getCloudIcon = computed(() => {
 		return 'cloud-clock';
 	}
 	// Server is available
+	if(!unSynced.value){
+		return 'cloud-down';
+	}
 	return 'cloud-up';
 });
 
@@ -200,16 +203,16 @@ const revertButtonTooltip = computed(() => {
 const syncButtonDisabled = computed(() => {
 	return !!notificationStore.getProgress.running || 
 	       stage.operationActive || 
-	       !projectStore.getActiveProject?.is_downloaded ||
-	       !unSynced.value;
+	       !projectStore.getActiveProject?.is_downloaded 
+	    //    !unSynced.value;
 });
 
 const syncButtonTooltip = computed(() => {
 	if (projectStore.serverIsBusy) return 'Server is busy...';
 	if (stage.operationActive) return 'Operation in progress...';
 	if (!projectStore.getActiveProject?.is_downloaded) return 'Project not downloaded';
-	if (!unSynced.value) return 'No changes to sync';
-	return 'Sync';
+	if (!unSynced.value) return 'Sync';
+	return 'Send';
 });
 
 // methods
