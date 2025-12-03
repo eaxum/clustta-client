@@ -187,31 +187,40 @@ const duplicateAsset = async () => {
   menu.hideContextMenu();
   
   try {
-
     stage.operationActive = true;
     let selectedAsset = assetStore.selectedAsset;
     
-		await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedAsset.id)
-		.then((duplicatedAsset) => {
-			emitter.emit('refresh-browser')
-			assetStore.selectAsset(duplicatedAsset);
-			stage.selectedItem = duplicatedAsset;
-			stage.markedItems = [duplicatedAsset.id];
-			stage.lastSelectedItemId = "";
-			stage.firstSelectedItemId = duplicatedAsset.id;
-      
-      stage.operationActive = false;
-
-      notificationStore.addNotification(
-        'Asset Duplicated', 
-        `Asset duplicated`, 
-        'success'
-      );
-		})
+    await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedAsset.id)
+      .then(async (duplicatedAsset) => {
+        // Duplicate the physical file
+        if (selectedAsset.file_path && duplicatedAsset.file_path) {
+          try {
+            await FSService.DuplicateFile(selectedAsset.file_path, duplicatedAsset.file_path);
+          } catch (fileError) {
+            console.error('Error duplicating physical file:', fileError);
+            // Continue even if file duplication fails (e.g., for rebuildable assets)
+          }
+        }
+        
+        emitter.emit('refresh-browser');
+        assetStore.selectAsset(duplicatedAsset);
+        stage.selectedItem = duplicatedAsset;
+        stage.markedItems = [duplicatedAsset.id];
+        stage.lastSelectedItemId = "";
+        stage.firstSelectedItemId = duplicatedAsset.id;
+        
+        notificationStore.addNotification(
+          'Asset Duplicated', 
+          `Asset duplicated`, 
+          'success'
+        );
+      });
     
   } catch (error) {
     console.error('Error duplicating asset:', error);
     notificationStore.errorNotification('Failed to Duplicate Asset', error);
+  } finally {
+    stage.operationActive = false;
   }
 };
 
