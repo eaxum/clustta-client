@@ -337,6 +337,13 @@ const duplicateTask = async () => {
 
 		await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedItemId)
 		.then( async (duplicatedTask) => {
+			// Duplicate the physical file after DB duplication
+			try {
+				await FSService.DuplicateFile(selectedItem.file_path, duplicatedTask.file_path);
+			} catch (fileError) {
+				console.warn('Physical file duplication failed (asset may be rebuildable):', fileError);
+			}
+			
 			await refresh();
 			assetStore.selectAsset(duplicatedTask);
 			stage.selectedItem = duplicatedTask;
