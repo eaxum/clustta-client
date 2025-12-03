@@ -34,7 +34,7 @@
 				<ActionButton :icon="getAppIcon('workflow-plus')"
 					v-if=" !kanbanView && workflowStore.workflows.length && userStore.canDo('create_entity')" @click="createWorkflow"
 					v-tooltip="'Add Workflow'" />
-				<ActionButton :icon="getAppIcon('website')"
+				<ActionButton :icon="getAppIcon('web-plus')"
 					v-if=" !kanbanView && userStore.canDo('create_task')" @click="createWebLink"
 					v-tooltip="'Add Weblink'" />
 				<ActionButton :icon="getAppIcon('arrow-down-ramp')"
