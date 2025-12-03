@@ -24,7 +24,7 @@
 
     
 
-    <ActionButton :icon="getAppIcon('website')" :showLabel="true" :fullWidth="true" label="New Link"
+    <ActionButton :icon="getAppIcon('web-plus')" :showLabel="true" :fullWidth="true" label="New Link"
       v-if="userStore.canDo('create_task') || collectionStore.selectedCollection.can_modify" :buttonFunction="createLink" />
 
     <ActionButton :icon="getAppIcon('arrow-down-ramp')" :showLabel="true" :fullWidth="true" label="Import Items"

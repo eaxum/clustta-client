@@ -1,6 +1,6 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
-    <HeaderArea :title="title" :icon="getAppIcon('website')" :showSearch="showSearch" />
+    <HeaderArea :title="title" :icon="getAppIcon('web-plus')" :showSearch="showSearch" />
     <div class="general-container">
 
       <div class="input-section">
