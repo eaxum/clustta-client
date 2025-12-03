@@ -411,13 +411,13 @@ const revertContents = async () => {
   const entity = collectionStore.selectedCollection;
   if (!entity) return;
   
-  const entityPath = entity.entity_path;
-  const modifiedTasksPath = assetStore.modifiedAssetsPath;
+  const collectionId = entity.id;
   
-  // Filter only the modified tasks within this entity's path recursively
-  const entityModifiedPaths = modifiedTasksPath.filter(taskPath => taskPath.startsWith(entityPath));
+  // Fetch modified items recursively for the current collection context
+  await collectionStore.reloadItemsForCheckpoint(collectionId, null);
+  const filteredPaths = assetStore.modifiedAssets.modified.map(asset => asset.task_path);
   
-  if (entityModifiedPaths.length === 0) {
+  if (filteredPaths.length === 0) {
     notificationStore.addNotification("No modified contents found in this collection", "", "info");
     return;
   }
@@ -426,19 +426,19 @@ const revertContents = async () => {
     await CheckpointService.RevertTaskPaths(
       projectStore.activeProject.uri, 
       projectStore.getActiveProjectUrl, 
-      entityModifiedPaths
+      filteredPaths
     );
     
-    // Update the global modified tasks list by removing the reverted paths
-    assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(
-      taskPath => !entityModifiedPaths.includes(taskPath)
+    // Remove reverted items from modifiedAssets
+    assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter(
+      (item) => !filteredPaths.includes(item.task_path)
     );
     
     emitter.emit('refresh-browser');
     
-    const message = entityModifiedPaths.length === 1 
+    const message = filteredPaths.length === 1 
       ? "1 item reverted successfully" 
-      : `${entityModifiedPaths.length} items reverted successfully`;
+      : `${filteredPaths.length} items reverted successfully`;
     notificationStore.addNotification(message, "", "success");
     
   } catch (error) {
