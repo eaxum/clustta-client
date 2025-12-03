@@ -259,7 +259,7 @@ func (e *ImportService) CreateItems(projectPath string, entities []models.Entity
 		Current:    1,
 		Total:      3,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	totalTasks := len(tasks)
 	totalEntities := len(entities)
@@ -279,7 +279,7 @@ func (e *ImportService) CreateItems(projectPath string, entities []models.Entity
 			Current:    i + 1,
 			Total:      totalEntities,
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 	}
 
 	for i, task := range tasks {
@@ -291,7 +291,7 @@ func (e *ImportService) CreateItems(projectPath string, entities []models.Entity
 				Current:    i + 1,
 				Total:      totalTasks,
 			}
-			app.EmitEvent("progress-update", progress)
+			app.Event.Emit("progress-update", progress)
 		}
 		_, err = repository.CreateTask(
 			tx, task.Id, task.Name, task.TaskTypeId, task.EntityId, task.IsResource,
@@ -313,7 +313,7 @@ func (e *ImportService) CreateItems(projectPath string, entities []models.Entity
 		Current:    2,
 		Total:      2,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	return nil
 }
@@ -342,7 +342,7 @@ func (e *ImportService) CreateEntities(projectPath string, entities []models.Ent
 		Current:    1,
 		Total:      2,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	state := completed
 	for i, entity := range entities {
@@ -359,7 +359,7 @@ func (e *ImportService) CreateEntities(projectPath string, entities []models.Ent
 			Current:    completed + (i + 1),
 			Total:      totalEntities,
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 		state = completed + (i + 1)
 	}
 
@@ -375,7 +375,7 @@ func (e *ImportService) CreateEntities(projectPath string, entities []models.Ent
 			Current:    2,
 			Total:      2,
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 	}
 
 	return nil
@@ -410,7 +410,7 @@ func (e *ImportService) CreateTasks(projectPath string, tasks []models.Task, com
 		Current:    1,
 		Total:      3,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 	state := completed
 	for i, task := range tasks {
 		callBack := func(current int, total int, message string, extraMessage string) {
@@ -421,7 +421,7 @@ func (e *ImportService) CreateTasks(projectPath string, tasks []models.Task, com
 				Current:    completed + (i + 1),
 				Total:      totalTasks,
 			}
-			app.EmitEvent("progress-update", progress)
+			app.Event.Emit("progress-update", progress)
 		}
 		_, err = repository.CreateTask(
 			tx, task.Id, task.Name, task.TaskTypeId, task.EntityId, task.IsResource,
@@ -445,7 +445,7 @@ func (e *ImportService) CreateTasks(projectPath string, tasks []models.Task, com
 			Current:    2,
 			Total:      2,
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 	}
 
 	return nil

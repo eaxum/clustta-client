@@ -77,7 +77,7 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 				if !ok {
 					return
 				}
-				app.EmitEvent("progress-update", progress)
+				app.Event.Emit("progress-update", progress)
 			}
 		}
 	}()
@@ -174,7 +174,7 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 		Total:         1,
 		OperationType: "write",
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 	return nil
 }
 
@@ -206,7 +206,7 @@ func (s *SyncService) SyncData(projectPath, remoteURL string, pullChunk bool, sy
 				if !ok {
 					return
 				}
-				app.EmitEvent("progress-update", progress)
+				app.Event.Emit("progress-update", progress)
 			}
 		}
 	}()
@@ -376,7 +376,7 @@ func (s *SyncService) PullLatestCheckpoints(projectPath, remoteURL string) error
 				if !ok {
 					return
 				}
-				app.EmitEvent("progress-update", progress)
+				app.Event.Emit("progress-update", progress)
 			}
 		}
 	}()
@@ -484,7 +484,7 @@ func (s *SyncService) PullData(projectPath string, remoteURL string, pullChunk b
 		Current:    1,
 		Total:      1,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	pullCallBack := func(current int, total int, message string, extraMessage string) {
 		progress := output.ProgressReport{
@@ -495,7 +495,7 @@ func (s *SyncService) PullData(projectPath string, remoteURL string, pullChunk b
 			Total:        1,
 			ExtraMessage: extraMessage,
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 	}
 	err = sync_service.PullData(ctx, projectPath, remoteURL, activeUser.Id, pullChunk, syncOptions, pullCallBack)
 	if err != nil {
@@ -508,7 +508,7 @@ func (s *SyncService) PullData(projectPath string, remoteURL string, pullChunk b
 	progress.Message = "Completing Sync"
 	progress.Current = 1
 	progress.Percentage = 100
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 	return nil
 }
 
@@ -526,7 +526,7 @@ func (s *SyncService) PushCheckpoints(projectPath string, remoteURL string, pull
 		Current:    1,
 		Total:      1,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	pushCallBack := func(current int, total int, message string, extraMessage string) {
 
@@ -538,7 +538,7 @@ func (s *SyncService) PushCheckpoints(projectPath string, remoteURL string, pull
 			Total:        1,
 			ExtraMessage: extraMessage,
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 	}
 	err = sync_service.PushData(projectPath, remoteURL, activeUser.Id, pushCallBack)
 	if err != nil {
@@ -551,7 +551,7 @@ func (s *SyncService) PushCheckpoints(projectPath string, remoteURL string, pull
 	progress.Message = "Completing Sync"
 	progress.Current = 1
 	progress.Percentage = 100
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 	return nil
 }
 
@@ -583,7 +583,7 @@ func (s *SyncService) DownloadCheckpoint(projectPath, remoteURL, checkpointId st
 				if !ok {
 					return
 				}
-				app.EmitEvent("progress-update", progress)
+				app.Event.Emit("progress-update", progress)
 			}
 		}
 	}()
@@ -635,7 +635,7 @@ func (s *SyncService) DownloadCheckpoint(projectPath, remoteURL, checkpointId st
 		Current:    1,
 		Total:      1,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 	return nil
 }
 

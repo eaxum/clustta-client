@@ -83,7 +83,8 @@ import emitter from '@/lib/mitt';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import { ClipboardService, FSService } from '@/../bindings/clustta/services/index';
+import { FSService } from '@/../bindings/clustta/services';
+import { Clipboard } from '@wailsio/runtime';
 
 // states/stores
 const trayStates = useTrayStates();
@@ -370,7 +371,7 @@ const copyAssetPath = async (pathType) => {
   } else if (pathType === 'output') {
     assetPath = outputPath;
   }
-  await ClipboardService.WriteText(assetPath);
+  await Clipboard.SetText(assetPath);
   const message = 'Path copied to clipboard';
   notificationStore.addNotification(message, "", "success");
   menu.hideContextMenu();
@@ -472,6 +473,7 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
+
 
 
 

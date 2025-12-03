@@ -104,7 +104,8 @@ import { useTemplateStore } from '@/stores/template';
 import emitter from '@/lib/mitt';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import { ClipboardService, FSService, DialogService } from '@/../bindings/clustta/services/index';
+import { FSService, DialogService } from '@/../bindings/clustta/services';
+import { Clipboard } from '@wailsio/runtime';
 
 // states/stores
 const trayStates = useTrayStates();
@@ -390,7 +391,7 @@ const copyEntityPath = async () => {
   let entity = collectionStore.selectedCollection;
   let entityDir = entity.file_path;
   entityDir = entityDir.replace(/\\/g, '/');
-  await ClipboardService.WriteText(entityDir);
+  await Clipboard.SetText(entityDir);
   const message = 'Path copied to clipboard';
   notificationStore.addNotification(message, "", "success");
   menu.hideContextMenu();
@@ -563,6 +564,7 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
+
 
 
 

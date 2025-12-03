@@ -81,7 +81,7 @@ func (f *FSService) StartWatching() {
 
 					f.debounceEvent(event.Name, func() {
 						if f.app != nil {
-							f.app.EmitEvent("fs-change", event.Name)
+							f.app.Event.Emit("fs-change", event.Name)
 						}
 					})
 				}
@@ -394,7 +394,7 @@ func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, erro
 		Total:         100,
 		OperationType: "read",
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	sourceFile, err := os.Open(sourcePath)
 	if err != nil {
@@ -446,7 +446,7 @@ func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, erro
 					Total:         1,
 					OperationType: "read",
 				}
-				app.EmitEvent("progress-update", progress)
+				app.Event.Emit("progress-update", progress)
 				lastProgressUpdate = copiedBytes
 			}
 		}
@@ -471,7 +471,7 @@ func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, erro
 		Total:         1,
 		OperationType: "read",
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	return destinationPath, nil
 }
@@ -611,7 +611,7 @@ func (f *FSService) ExtractAll(archivePath string) error {
 		Total:         100,
 		OperationType: "read",
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	switch ext {
 	case ".zip":
@@ -637,7 +637,7 @@ func (f *FSService) ExtractAll(archivePath string) error {
 		Total:         100,
 		OperationType: "read",
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	return nil
 }
@@ -664,7 +664,7 @@ func (f *FSService) extractZip(archivePath, destDir string, app *application.App
 			Total:         totalFiles,
 			OperationType: "read",
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 
 		targetPath := filepath.Join(destDir, file.Name)
 
@@ -756,7 +756,7 @@ func (f *FSService) processTarReader(tarReader *tar.Reader, destDir string, app 
 			Total:         0,
 			OperationType: "read",
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 
 		targetPath := filepath.Join(destDir, header.Name)
 
@@ -857,7 +857,7 @@ func (f *FSService) ImportClusttaFiles(sourcePaths []string, destinationDirector
 			Total:         totalFiles,
 			OperationType: "write",
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 
 		// Open source file
 		sourceFile, err := os.Open(sourcePath)
@@ -911,7 +911,7 @@ func (f *FSService) ImportClusttaFiles(sourcePaths []string, destinationDirector
 					Total:         totalFiles,
 					OperationType: "write",
 				}
-				app.EmitEvent("progress-update", progress)
+				app.Event.Emit("progress-update", progress)
 			}
 			if err != nil {
 				if err == io.EOF {
@@ -946,7 +946,7 @@ func (f *FSService) ImportClusttaFiles(sourcePaths []string, destinationDirector
 		Total:         totalFiles,
 		OperationType: "write",
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	return destinationPaths, nil
 }

@@ -56,8 +56,8 @@ const disableMenu = () => {
 }
 
 Events.On('progress-update', async (message) => {
-    // let progressData = JSON.parse(message.payload);
-    let progressData = message.data[0];
+    // In Wails v3 alpha.39+, single data arguments are not wrapped in an array
+    let progressData = message.data;
     notificationStore.updateProgress(progressData);
 });
 

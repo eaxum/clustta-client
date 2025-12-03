@@ -75,7 +75,8 @@ import emitter from '@/lib/mitt';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import { ClipboardService, FSService, ProjectService } from '@/../bindings/clustta/services/index';
+import { FSService, ProjectService } from '@/../bindings/clustta/services';
+import { Clipboard } from '@wailsio/runtime';
 import { addIgnoredItem } from '@/lib/untracked';
 
 // states/stores
@@ -220,7 +221,7 @@ const copyItemPath = async (pathType) => {
   } else if (pathType === 'output') {
     itemPath = outputPath;
   }
-  await ClipboardService.WriteText(itemPath);
+  await Clipboard.SetText(itemPath);
   const message = 'Path copied to clipboard';
   notificationStore.addNotification(message, "", "success");
   menu.hideContextMenu();
@@ -299,6 +300,7 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
+
 
 
 
