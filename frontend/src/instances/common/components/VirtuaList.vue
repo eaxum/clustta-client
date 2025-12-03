@@ -1,8 +1,8 @@
 <template>
-  <div class="virtua-scroll-viewport" ref="scrollContainerRef" :style="{ height: `${totalHeight}px` }"
+  <div @mouseenter="refreshVirtuaItems" class="virtua-scroll-viewport" ref="scrollContainerRef" :style="{ height: `${totalHeight}px` }"
     :data-visibility="containerVisibility">
     <div class="virtua-scroll-conveyor" :style="{ transform: `translateY(${offsetY}px)` }">
-      <VirtuaItem v-for="child in visibleChildren" :child="items[child.index]" :key="child.index" :index="child.index"
+      <VirtuaItem v-for="child in visibleChildren" @refreshData="emit('refreshData')" :child="items[child.index]" :key="child.index" :index="child.index"
         :itemHeight="itemHeight" :isExpanded="child.isExpanded" :onHeightChange="onHeightChange"
         :depth="depth" :getItemPosition="getItemPosition" :parentOffset="props.parentOffset" :offsetY="offsetY"
         :totalHeight="totalHeight" @mousedown="onMouseDown($event, child, index)"
@@ -44,6 +44,7 @@ const collectionStore = useCollectionStore();
 // props
 const props = defineProps({
   items: { type: Array, default: [] },
+  collectionId: { type: String, default: '' },
   isRoot: { type: Boolean, default: false },
   containerHeight: { type: Number, required: true },
   renderAhead: { type: Number, default: 10 },
@@ -53,7 +54,7 @@ const props = defineProps({
 });
 
 // emits
-const emit = defineEmits(['shift-parents', 'refreshData']);
+const emit = defineEmits(['shift-parents', 'refreshData', 'update-children', 'update-children-untracked-items']);
 
 // refs
 const scrollContainerRef = ref(null);
@@ -63,6 +64,7 @@ const intersectionRatio = ref(0);
 const intersectionRect = ref(null);
 const refreshDebounceTimer = ref(null);
 const currentWatchedPath = ref(null);
+const currentState = ref(null);
 const dragTimer = ref(null);
 const childPositions = ref([0]);
 const pixelsAboveRoot = ref(0);
@@ -404,18 +406,46 @@ const selectItem = (index) => {
 };
 
 // Emit updates to item data across components
-const emitItemUpdates = (itemId, updates) => {
-  const updateData = { itemId, updates };
-  
-  // Emit to both Browser and VirtuaItem components
-  emitter.emit('update-root-data', updateData);
-  emitter.emit('update-children', updateData);
+const emitItemUpdates = (updates) => {
+  if (Array.isArray(updates) && updates.length > 0) {
+    if(props.isRoot){
+      emitter.emit('update-root-data', updates);
+    } else {
+      emit('update-children', updates);
+    }
+  }
 };
 
+const emitUntrackedUpdates = (allUntrackedItems) => {
+    if(props.isRoot){
+      emitter.emit('update-untracked-items', allUntrackedItems);
+    } else {
+      emit('update-children-untracked-items', allUntrackedItems);
+    }
+};
+
+// Parse collection state into simpler structure with just IDs
+const parseCollectionState = (state) => {
+  return {
+    modified: state.modified_tasks?.map(t => t.id).sort() || [],
+    normal: state.normal_tasks?.map(t => t.id).sort() || [],
+    outdated: state.outdated_tasks?.map(t => t.id).sort() || [],
+    rebuildable: state.rebuildable_tasks?.map(t => t.id).sort() || [],
+    untracked_files: state.untracked_files?.map(f => f.id).sort() || [],
+    untracked_folders: state.untracked_folders?.map(f => f.id).sort() || []
+  };
+};
+
+//Refresh state of virtuaList
+const refreshVirtuaItems = () => {
+  if(props.isRoot) return
+  refreshView()
+}
+
 // Fetch and update collection children state from backend
-const refreshView = async () => {
+const refreshView = async (isRoot = false) => {
   const project = projectStore.activeProject;
-  const entityId = collectionStore.navigatedCollection?.id;
+  const entityId = isRoot ? collectionStore.navigatedCollection?.id : props.collectionId;
   
   try {
     const state = await CollectionService.GetCollectionChildrenState(
@@ -425,38 +455,25 @@ const refreshView = async () => {
       project.ignore_list
     );
     
-    if (state.normal_tasks && state.normal_tasks.length > 0) {
-      state.normal_tasks.forEach(task => {
-        emitItemUpdates(task.id, [
-          { property: 'file_status', value: 'normal' }
-        ]);
-      });
+    const parsedState = parseCollectionState(state);
+    const dataIsUnchanged = JSON.stringify(currentState.value) === JSON.stringify(parsedState); 
+    
+    if(dataIsUnchanged) return
+    currentState.value = parsedState;
+    
+    // Batch all file status updates into a single array
+    const statusUpdates = [
+      ...(state.normal_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'normal' }] })),
+      ...(state.modified_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'modified' }] })),
+      ...(state.outdated_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'outdated' }] })),
+      ...(state.rebuildable_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'rebuildable' }] }))
+    ];
+    
+    // Emit all updates at once as a single array
+    if (statusUpdates.length > 0) {
+      emitItemUpdates(statusUpdates);
     }
 
-    if (state.modified_tasks && state.modified_tasks.length > 0) {
-      state.modified_tasks.forEach(task => {
-        emitItemUpdates(task.id, [
-          { property: 'file_status', value: 'modified' }
-        ]);
-      });
-    }
-    
-    if (state.outdated_tasks && state.outdated_tasks.length > 0) {
-      state.outdated_tasks.forEach(task => {
-        emitItemUpdates(task.id, [
-          { property: 'file_status', value: 'outdated' }
-        ]);
-      });
-    }
-    
-    if (state.rebuildable_tasks && state.rebuildable_tasks.length > 0) {
-      state.rebuildable_tasks.forEach(task => {
-        emitItemUpdates(task.id, [
-          { property: 'file_status', value: 'rebuildable' }
-        ]);
-      });
-    }
-    
     const currentUntrackedFolders = state.untracked_folders || [];
     const currentUntrackedFiles = state.untracked_files || [];
     const currentUntracked = [...currentUntrackedFolders, ...currentUntrackedFiles];
@@ -464,7 +481,7 @@ const refreshView = async () => {
     if (currentUntracked !== previousUntracked.value) {
       const allUntrackedItems = [...currentUntrackedFolders, ...currentUntrackedFiles];
       await assetStore.processUntrackedAssetsIcons(allUntrackedItems);
-      emitter.emit('update-untracked-items', allUntrackedItems);
+      emitUntrackedUpdates(allUntrackedItems)
     }
     
   } catch (error) {
@@ -478,7 +495,7 @@ const debouncedRefreshView = () => {
     clearTimeout(refreshDebounceTimer.value);
   }
   refreshDebounceTimer.value = setTimeout(() => {
-    refreshView();
+    refreshView(true);
   }, 200);
 };
 
