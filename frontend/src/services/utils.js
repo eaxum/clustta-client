@@ -14,10 +14,10 @@ const utils = {
     return hash;
   },
   async getClusttaVersion() {
-    return `v0.4.20-beta`;
+    return `v0.4.21-beta`;
   },
    async getRawClusttaVersion() {
-    return `0.4.20`;
+    return `0.4.21`;
   },
   base64ToUint8Array(base64) {
     const binary = atob(base64);
