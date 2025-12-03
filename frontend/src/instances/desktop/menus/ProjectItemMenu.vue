@@ -62,7 +62,8 @@
 // imports
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import { SettingsService, ProjectService, SyncService } from "@/../bindings/clustta/services";
-import { ClipboardService, FSService, DialogService } from '@/../bindings/clustta/services/index';
+import { FSService, DialogService } from '@/../bindings/clustta/services';
+import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
 
 // services
@@ -271,7 +272,7 @@ const copyProjectPath = async () => {
   let project = projectStore.getActiveProject;
   let projectDir = project.working_directory;
   projectDir = projectDir.replace(/\\/g, '/');
-  await ClipboardService.WriteText(projectDir);
+  await Clipboard.SetText(projectDir);
   menu.hideContextMenu();
 
 };
@@ -383,6 +384,7 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
+
 
 
 

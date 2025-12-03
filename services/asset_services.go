@@ -118,7 +118,7 @@ func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, e
 			Total:         2,
 			OperationType: "write", // Write operation - creates database records
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 	}
 
 	createdTask, err := repository.CreateTask(
@@ -166,7 +166,7 @@ func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, e
 			Total:         1,
 			OperationType: "write",
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 	}
 	return createdTask, nil
 }

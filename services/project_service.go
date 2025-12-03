@@ -211,7 +211,7 @@ func (p *ProjectService) Purge(projectPath string) error {
 		Current:    1,
 		Total:      2,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	err := repository.Purge(projectPath)
 	if err != nil {
@@ -225,7 +225,7 @@ func (p *ProjectService) Purge(projectPath string) error {
 		Current:    2,
 		Total:      2,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 	err = repository.Vacuum(projectPath)
 	if err != nil {
 		return err
@@ -237,7 +237,7 @@ func (p *ProjectService) Purge(projectPath string) error {
 		Current:    2,
 		Total:      2,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 	return nil
 }
 

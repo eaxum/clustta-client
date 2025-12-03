@@ -6,6 +6,10 @@
 // @ts-ignore: Unused imports
 import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as application$0 from "../../github.com/wailsapp/wails/v3/pkg/application/models.js";
+
 /**
  * GetOS returns the operating system name.
  * Detects the current OS and returns "windows", "darwin", "linux", or "unknown".
@@ -43,6 +47,17 @@ export function Minimize() {
  */
 export function Quit() {
     let $resultPromise = /** @type {any} */($Call.ByID(4224805671));
+    return $resultPromise;
+}
+
+/**
+ * ServiceStartup is called when the application starts.
+ * Currently a no-op placeholder for initialization logic.
+ * @param {application$0.ServiceOptions} options
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function ServiceStartup(options) {
+    let $resultPromise = /** @type {any} */($Call.ByID(40987436, options));
     return $resultPromise;
 }
 

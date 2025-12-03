@@ -80,8 +80,9 @@ import { useWorkflowStore } from '@/stores/workflow';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import { ClipboardService, FSService, DialogService, ProjectService } from '@/../bindings/clustta/services/index';
+import { FSService, DialogService, ProjectService } from '@/../bindings/clustta/services';
 import { SyncService } from '@/../bindings/clustta/services';
+import { Clipboard } from '@wailsio/runtime';
 
 // states/stores
 const workflowStore = useWorkflowStore();
@@ -144,7 +145,7 @@ const copyDirectoryPath = async () => {
   if(!isNavigated){
     let projectDir = project.working_directory;
     projectDir = projectDir.replace(/\\/g, '/');
-    await ClipboardService.WriteText(projectDir);
+    await Clipboard.SetText(projectDir);
   } else {
 
     let path = collectionStore.navigatedCollection?.type === 'entity' 
@@ -153,7 +154,7 @@ const copyDirectoryPath = async () => {
 
     let explorerPath = `${project.working_directory}${path}`
     explorerPath = explorerPath.replace(/\\/g, '/');
-    await ClipboardService.WriteText(explorerPath);
+    await Clipboard.SetText(explorerPath);
   }
 
   const message = 'Path copied to clipboard';
@@ -533,3 +534,4 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 </style>
+

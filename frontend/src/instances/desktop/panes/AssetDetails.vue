@@ -139,7 +139,8 @@
 <script setup>
 // imports
 import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue';
-import { ClipboardService, FSService } from '@/../bindings/clustta/services/index';
+import { FSService } from '@/../bindings/clustta/services';
+import { Clipboard } from '@wailsio/runtime';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
@@ -235,7 +236,7 @@ const copyTaskPath = async (pathType) => {
   } else if (pathType === 'output') {
     taskPath = outputPath;
   }
-  await ClipboardService.WriteText(taskPath);
+  await Clipboard.SetText(taskPath);
   const message = 'Path copied to clipboard';
   notificationStore.addNotification(message, "", "success");
 };
@@ -574,6 +575,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
 }
 </style>
+
 
 
 

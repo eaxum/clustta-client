@@ -1341,7 +1341,7 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 				if !ok {
 					return
 				}
-				app.EmitEvent("progress-update", progress)
+				app.Event.Emit("progress-update", progress)
 			}
 		}
 	}()
@@ -1570,7 +1570,7 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 				Current:    i + 1,
 				Total:      totalItems,
 			}
-			app.EmitEvent("progress-update", progress)
+			app.Event.Emit("progress-update", progress)
 		}
 		err = repository.RevertToLatestCheckpoint(tx, task.Id, task.FilePath, callBack)
 		if err != nil {
@@ -1586,7 +1586,7 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 		Current:    1,
 		Total:      1,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 	return nil
 }
 
@@ -1645,7 +1645,7 @@ func (e *CollectionService) RevertCollections(projectPath string, entityIds []st
 				Current:    i + 1,
 				Total:      totalEntities,
 			}
-			app.EmitEvent("progress-update", progress)
+			app.Event.Emit("progress-update", progress)
 		}
 
 		err = repository.RevertToLatestCheckpoint(tx, entityId, entity.FilePath, callBack)

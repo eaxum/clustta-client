@@ -10,8 +10,8 @@ import (
 type AppService struct {
 }
 
-//GetOS returns the operating system name.
-//Detects the current OS and returns "windows", "darwin", "linux", or "unknown".
+// GetOS returns the operating system name.
+// Detects the current OS and returns "windows", "darwin", "linux", or "unknown".
 func (s *AppService) GetOS() string {
 	switch runtime.GOOS {
 	case "windows":
@@ -25,14 +25,14 @@ func (s *AppService) GetOS() string {
 	}
 }
 
-//OnStartup is called when the application starts.
-//Currently a no-op placeholder for initialization logic.
-func (s *AppService) OnStartup(ctx context.Context, options application.ServiceOptions) error {
+// ServiceStartup is called when the application starts.
+// Currently a no-op placeholder for initialization logic.
+func (s *AppService) ServiceStartup(ctx context.Context, options application.ServiceOptions) error {
 	return nil
 }
 
-//Quit terminates the application.
-//Gets the application instance and calls Quit to exit gracefully.
+// Quit terminates the application.
+// Gets the application instance and calls Quit to exit gracefully.
 func (s *AppService) Quit() {
 	app := application.Get()
 	if app != nil {
@@ -40,24 +40,24 @@ func (s *AppService) Quit() {
 	}
 }
 
-//Hide hides the main application window.
-//Gets the main window instance and hides it from view.
+// Hide hides the main application window.
+// Gets the main window instance and hides it from view.
 func (s *AppService) Hide() {
 	app := application.Get()
 	if app != nil {
-		window := app.GetWindowByName("main")
+		window, _ := app.Window.GetByName("main")
 		if window != nil {
 			window.Hide()
 		}
 	}
 }
 
-//Show displays and focuses the main application window.
-//Gets the main window instance, shows it, and brings it to focus.
+// Show displays and focuses the main application window.
+// Gets the main window instance, shows it, and brings it to focus.
 func (s *AppService) Show() {
 	app := application.Get()
 	if app != nil {
-		window := app.GetWindowByName("main")
+		window, _ := app.Window.GetByName("main")
 		if window != nil {
 			window.Show()
 			window.Focus()
@@ -65,12 +65,12 @@ func (s *AppService) Show() {
 	}
 }
 
-//Minimize minimizes the main application window.
-//Gets the main window instance and minimizes it to the taskbar.
+// Minimize minimizes the main application window.
+// Gets the main window instance and minimizes it to the taskbar.
 func (s *AppService) Minimize() {
 	app := application.Get()
 	if app != nil {
-		window := app.GetWindowByName("main")
+		window, _ := app.Window.GetByName("main")
 		if window != nil {
 			window.Minimise()
 		}

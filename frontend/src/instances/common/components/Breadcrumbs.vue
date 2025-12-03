@@ -43,7 +43,8 @@
 
 <script setup>
 import { ref, computed, onUnmounted, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
-import { CollectionService, ClipboardService, FSService } from '@/../bindings/clustta/services';
+import { CollectionService, FSService } from '@/../bindings/clustta/services';
+import { Clipboard } from '@wailsio/runtime';
 import utils from '@/services/utils';
 
 const emit = defineEmits(['filter']);
@@ -185,7 +186,7 @@ const copyDirectoryPath = async () => {
   if(!isNavigated){
     let projectDir = project.working_directory;
     projectDir = projectDir.replace(/\\/g, '/');
-    await ClipboardService.WriteText(projectDir);
+    await Clipboard.SetText(projectDir);
   } else {
 
     let path = collectionStore.navigatedCollection?.type === 'entity' 
@@ -194,7 +195,8 @@ const copyDirectoryPath = async () => {
 
     let explorerPath = `${project.working_directory}${path}`
     explorerPath = explorerPath.replace(/\\/g, '/');
-    await ClipboardService.WriteText(explorerPath);
+    console.log(explorerPath)
+    await Clipboard.SetText(explorerPath);
   }
 
   const message = 'Path copied to clipboard';
