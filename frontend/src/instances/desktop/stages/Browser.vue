@@ -1652,23 +1652,36 @@ watch(() => commonStore.navigatorMode, async () => {
 });
 
 const handleUpdateRootData = (eventData) => {
-	console.log(eventData)
-	const { itemId, property, value, updates } = eventData;
-	
-	// Find the item in rootData
-	const itemIndex = rootData.value.findIndex(item => item.id === itemId);
-	if (itemIndex !== -1) {
-		// Handle single property update (backward compatibility)
-		if (property && value !== undefined) {
-			rootData.value[itemIndex][property] = value;
-		}
-		// Handle multiple property updates
-		if (updates && Array.isArray(updates)) {
-			updates.forEach(update => {
-				rootData.value[itemIndex][update.property] = update.value;
-			});
+	// Handle batch updates (array of updates)
+	if (Array.isArray(eventData)) {
+		eventData.forEach(({ itemId, updates }) => {
+			const itemIndex = rootData.value.findIndex(item => item.id === itemId);
+			if (itemIndex !== -1 && updates && Array.isArray(updates)) {
+				updates.forEach(update => {
+					if (update.property && update.value !== undefined) {
+						rootData.value[itemIndex][update.property] = update.value;
+					}
+				});
+			}
+		});
+	} else {
+		// Handle single update (backward compatibility)
+		const { itemId, property, value, updates } = eventData;
+		const itemIndex = rootData.value.findIndex(item => item.id === itemId);
+		if (itemIndex !== -1) {
+			// Handle single property update
+			if (property && value !== undefined) {
+				rootData.value[itemIndex][property] = value;
+			}
+			// Handle multiple property updates
+			if (updates && Array.isArray(updates)) {
+				updates.forEach(update => {
+					rootData.value[itemIndex][update.property] = update.value;
+				});
+			}
 		}
 	}
+	
 	emitter.emit('get-project-data');
 	collectionStore.loadCollectionStateFlags();
 };

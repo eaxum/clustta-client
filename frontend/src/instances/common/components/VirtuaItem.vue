@@ -19,7 +19,8 @@
         <div class="indent-guide" :style="{ height: `${indentHeight}px` }"
           :class="{ 'indent-guide-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === child.id }">
         </div>
-        <VirtuaList @refreshData="loadEntityChildren" @shiftParents="handleToggle" :items="entityChildren"
+        <VirtuaList @refreshData="loadEntityChildren" @updateChildren="handleUpdateChildren" @updateChildrenUntrackedItems="handleUpdateUntrackedItems" 
+          :collectionId="child.id" @shiftParents="handleToggle" :items="entityChildren"
           :containerHeight="scrollStore.scrollRootHeight || 0" :depth="depth + 1" :parentOffset="totalOffset"
           :itemHeight="commonStore.listItemHeight" />
       </div>
@@ -317,25 +318,57 @@ const loadEntityChildren = async () => {
 };
 
 const handleUpdateChildren = (eventData) => {
-  const { itemId, property, value, updates } = eventData;
-  
-  // Find the item in entityChildren
-  const itemIndex = entityChildren.value.findIndex(item => item.id === itemId);
-  if (itemIndex !== -1) {
-    // Handle single property update (backward compatibility)
-    if (property && value !== undefined) {
-      entityChildren.value[itemIndex][property] = value;
+  if(!isExpanded.value) return;
+  let loadFlags = true;
+
+  // Batch updates
+  if (Array.isArray(eventData)) {
+    loadFlags = false;
+    eventData.forEach(({ itemId, updates }) => {
+      const itemIndex = entityChildren.value.findIndex(item => item.id === itemId);
+      if (itemIndex !== -1 && updates && Array.isArray(updates)) {
+        updates.forEach(update => {
+          if (update.property && update.value !== undefined) {
+            entityChildren.value[itemIndex][update.property] = update.value;
+          }
+        });
+      }
+    });
+  } else {
+    // Single update (backward compatibility)
+    const { itemId, property, value, updates } = eventData;
+    const itemIndex = entityChildren.value.findIndex(item => item.id === itemId);
+    if (itemIndex !== -1) {
+      if (property && value !== undefined) {
+        entityChildren.value[itemIndex][property] = value;
+      }
+      if (updates && Array.isArray(updates)) {
+        updates.forEach(update => {
+          entityChildren.value[itemIndex][update.property] = update.value;
+        });
+      }
     }
-    // Handle multiple property updates
-    if (updates && Array.isArray(updates)) {
-      updates.forEach(update => {
-        entityChildren.value[itemIndex][update.property] = update.value;
-      });
-    }
-  };
+  }
   
   emitter.emit('get-project-data');
-  collectionStore.loadCollectionStateFlags();
+  if(loadFlags){
+    collectionStore.loadCollectionStateFlags();
+  }
+};
+
+const handleUpdateUntrackedItems = (untrackedItems) => {
+	if (!untrackedItems) return;
+	
+	// Remove all existing untracked items from entityChildren
+	entityChildren.value = entityChildren.value.filter(
+		item => item.type !== 'untracked_entity' && item.type !== 'untracked_task'
+	);
+	
+	// Add all new untracked items
+	entityChildren.value.push(...untrackedItems);
+	
+	emitter.emit('get-project-data');
+	collectionStore.loadCollectionStateFlags();
 };
 
 // Watch for stage.operationActive changes
