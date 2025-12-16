@@ -3,7 +3,7 @@
 </a>
 
 
-# Clustta - version control, collaboration and file management for creative workflows
+# Clustta - version control, collaboration and asset management for creative work
 
 Clustta is a simple and efficient way to manage and collaborate on creative projects. It's a distributed version control system that simplifies file management and collaboration for creative workflows. In a sense, like GitHub, but for creative work.
 
