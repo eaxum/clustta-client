@@ -32,10 +32,6 @@
 		:class="{ 'project-list-root-hover-drop': isHovered }">
 
 			<ProjectListSkeleton :cardView="cardView" v-if="!projectStore.projectsLoaded" />
-			
-			<!-- <PageState v-else-if="!trackedProjects.length" :message="message()" :illustration="illustration()"
-				:secondaryIcon="secondaryActionIcon()" :secondaryActionMessage="secondaryActionMessage()"
-				:secondaryActionFunction="secondaryActionFunction" /> -->
 
 			<div v-else-if="(openProjects.length || closedProjects.length) || (projectStore.showUntrackedProjects && untrackedProjects.length)" class="project-list-container" ref="openProjectsContainer" @scroll="disableAllMenus">
 				<div v-if="openProjects.length" class="project-list" :class="{ 'project-list-cards': cardView }">
@@ -54,7 +50,7 @@
 					<TabButton
 						:icon="closedProjectsVisible ? '/icons/chevron_up_white_slim.svg' : '/icons/chevron_down_white_slim.svg'"
 						:label="closedProjectsVisible ? 'Hide archived projects' : 'Show archived projects'"
-						:showLabel="true" @click="toggleExpandClosedProjects" />
+						:smallIcons="true" :showLabel="true" @click="toggleExpandClosedProjects" />
 					<div class="menu-divider"></div>
 				</div>
 

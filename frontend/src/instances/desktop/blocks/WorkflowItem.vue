@@ -87,18 +87,6 @@ const props = defineProps({
 const emit = defineEmits(['expand', 'edit', 'delete', 'select'])
 
 // refs
-const taskItem = ref(null);
-
-const workflowItemType = computed(() => {
-  const workflow = props.entity;
-  if (workflow.task_type_id) {
-    return 'Task'
-  } else if (workflow.entity_type_id) {
-    return 'Entity'
-  } else {
-    return 'Root'
-  }
-});
 
 const workflowItemIcon = computed(() => {
   const workflow = props.entity;
@@ -188,15 +176,15 @@ onBeforeUnmount(() => {
 
   outline: var(--transparent-line);
   outline-offset: -1px;
-  /* margin-bottom: 5px; */
+  border-radius: var(--large-radius);
+  transition: all .2s ease-out;
 
 }
 
 .entity-item-main:hover {
-  outline: var(--transparent-line);
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
-  /* background-color: var(--steel); */
+  background-color: var(--steel);
+  border-radius: var(--small-radius);
+  outline: 1px solid var(--light-steel);
 }
 
 .entity-item-main-selected {

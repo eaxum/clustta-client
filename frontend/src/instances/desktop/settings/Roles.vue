@@ -70,6 +70,7 @@ const projectRoles = computed(() => {
   const roles = projectRoles.map(type => (
     {
       ...type,
+      name: utils.capitalizeStr(type.name),
       icon: getRoleTypeIcon(type.name),
       can_delete: !usedProjectRoleIds.includes(type.id),
       can_edit: type.name !== 'admin',
