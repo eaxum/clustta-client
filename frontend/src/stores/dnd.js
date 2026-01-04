@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { useStageStore } from "@/stores/stages";
+import { useCommonStore } from '@/stores/common';
 import { useAssetStore } from "@/stores/assets";
 import { useCollectionStore } from "@/stores/collections";
 import { useProjectStore } from '@/stores/projects';
@@ -104,8 +105,9 @@ export const useDndStore = defineStore("dnd", {
 
     onDragStart(e, id) {
       const stage = useStageStore();
+      const commonStore = useCommonStore();
 
-      if (this.lockUI || !this.userCanDrag || id in stage.expandedEntities) {
+      if (this.lockUI || !this.userCanDrag || (!commonStore.useGrid && id in stage.expandedEntities)) {
         return;
       }
 
