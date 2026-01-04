@@ -99,7 +99,7 @@ func main() {
 
 	app = application.New(application.Options{
 		Name:           "clustta",
-		Description:    "File management and Collaboration tool",
+		Description:    "Version control, Asset management and Collaboration",
 		LogLevel:       slog.LevelError,
 		Logger:         logger,
 		SingleInstance: singleInstanceOpt,
@@ -274,7 +274,19 @@ func main() {
 	})
 
 	window.OnWindowEvent(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
-		//TODO
+		files := event.Context().DroppedFiles()
+		details := event.Context().DropTargetDetails()
+
+		log.Printf("Files dropped: %v", event)
+		if details != nil {
+			log.Printf("Drop target: id=%s, classes=%v, x=%d, y=%d",
+				details.ElementID, details.ClassList, details.X, details.Y)
+		}
+
+		app.Event.Emit("files-dropped", map[string]any{
+			"files":   files,
+			"details": details,
+		})
 	})
 
 	window.OnWindowEvent(events.Common.WindowFocus, func(event *application.WindowEvent) {

@@ -43,12 +43,13 @@ const disableMenu = () => {
         return
     }
 
-
+    // prevent context menu
     document.addEventListener('contextmenu', e => {
         e.preventDefault();
         return false;
     }, { capture: true })
 
+    // prevent drag click selection
     document.addEventListener('selectstart', e => {
         e.preventDefault();
         return false;
