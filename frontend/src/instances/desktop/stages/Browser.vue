@@ -294,8 +294,8 @@ Events.On('free-item-space', async () => {
 });
 
 Events.On('window-focused', async () => {
+	console.log('focused')
 	if (operationsActive.value) return
-	// console.log('focused')
 	// await refresh();
 });
 
@@ -361,83 +361,6 @@ const duplicateTask = async () => {
 		stage.operationActive = false
 	}
 
-}
-
-Events.On("clustta-drag-over", (event) => {
-	return
-	console.log('dragged')
-	if (stage.selectedStage !== 'browser') {
-		dndStore.isDragging = false;
-		dndStore.isDropHovering = false;
-		return
-	}
-	dndStore.dragPosition = {
-		x: event.data[0].position.x,
-		y: event.data[0].position.y,
-	}
-	dndStore.isDragging = true;
-	dndStore.isDropHovering = true;
-	nextTick(checkHoverState)
-});
-
-Events.On('clustta-drag-drop', async (event) => {
-	return
-	if (stage.selectedStage !== 'browser') {
-		dndStore.isDragging = false;
-		dndStore.isDropHovering = false;
-		return
-	}
-	const paths = event.data[0].paths;
-	const droppedItems = await categorizePaths(paths);
-	dndStore.droppedFolders = droppedItems.folders;
-	dndStore.droppedFiles = droppedItems.files;
-	modals.setModalVisibility('importItemsModal', true);
-
-	// reset
-	dndStore.isDragging = false;
-	dndStore.isDropHovering = false;
-});
-
-const checkHoverState = () => {
-
-	if (!dndStore.isDragging) return
-	dndStore.targetItemId = null;
-
-	const allTargets = collectionStore.getCollections;
-	for (let target of allTargets) {
-		let targetEl = dndStore.itemRefs[target.id];
-		if (!targetEl) {
-			continue;
-		}
-
-		let dropZone = targetEl.querySelector('.drop-zone');
-		const dropZoneRect = dropZone.getBoundingClientRect();
-
-		dndStore.isOverlapping = dndStore.checkOverlap(dndStore.dragPosition, dropZoneRect);
-
-		if (dndStore.isOverlapping && dndStore.targetItemId === target.id) {
-			return requestAnimationFrame(checkHoverState);
-		}
-		else if (dndStore.isOverlapping) {
-			dndStore.targetItemId = target.id;
-			dndStore.targetItem = target;
-			break;
-		}
-	}
-}
-
-const categorizePaths = async (paths) => {
-	let files = []
-	let folders = []
-	for (let fullPath of paths) {
-		let isFile = await FSService.IsFile(fullPath)
-		if (isFile) {
-			files.push(fullPath)
-		} else {
-			folders.push(fullPath)
-		}
-	}
-	return { folders: folders, files: files }
 }
 
 const getAppIcon = (iconName) => {

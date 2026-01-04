@@ -1,6 +1,7 @@
 <template>
   <!-- Grid View Entity Item -->
   <div v-if="commonStore.useGrid" 
+    data-file-drop-target
     class="entity-item-main entity-item-grid" 
     v-return="revealSelectedEntity" 
     v-esc="cancelRename" 
@@ -68,7 +69,8 @@
   </div>
 
   <!-- List View Entity Item -->
-  <div v-else 
+  <div v-else
+    data-file-drop-target 
     class="entity-item-main" 
     v-return="revealSelectedEntity" 
     v-esc="cancelRename" 
@@ -254,6 +256,11 @@ const isEditing = ref(false);
 const isAwaitingResponse = ref(false);
 
 //events
+Events.On('files-dropped', (event) => {
+  console.log('event')
+  if (operationsActive.value) return
+});
+
 Events.On('rename-item', async () => {
   if (operationsActive.value) return
   if (isEntityInFocus.value && userStore.canDo('update_entity')) {

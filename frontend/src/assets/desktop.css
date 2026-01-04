@@ -61,6 +61,7 @@
   }
 
 
+
 /* panes */
 
 .absolute-pane{
@@ -500,4 +501,10 @@
 /* Apply the shake animation class */
 .shake {
   animation: shake 0.3s; /* Animation name and duration */
+}
+
+/* wails3 */
+.file-drop-target-active {
+  outline: 1px solid #4a9eff !important;
+  background-color: rgba(74, 158, 255, 0.1) !important;
 }
