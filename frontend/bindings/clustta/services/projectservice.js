@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import {Call as $Call, Create as $Create} from "@wailsio/runtime";
+import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -21,45 +21,39 @@ import * as $models from "./models.js";
  * @param {string} projectPath
  * @param {string} email
  * @param {string} roleName
- * @returns {Promise<models$0.User> & { cancel(): void }}
+ * @returns {$CancellablePromise<models$0.User>}
  */
 export function AddUser(projectPath, email, roleName) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3138298450, projectPath, email, roleName));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(3138298450, projectPath, email, roleName).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * @param {string} projectPath
  * @param {string} templateName
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function ApplyTemplate(projectPath, templateName) {
-    let $resultPromise = /** @type {any} */($Call.ByID(634171424, projectPath, templateName));
-    return $resultPromise;
+    return $Call.ByID(634171424, projectPath, templateName);
 }
 
 /**
  * @param {string} projectPath
  * @param {string} userId
  * @param {string} roleName
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function ChangeRole(projectPath, userId, roleName) {
-    let $resultPromise = /** @type {any} */($Call.ByID(810773794, projectPath, userId, roleName));
-    return $resultPromise;
+    return $Call.ByID(810773794, projectPath, userId, roleName);
 }
 
 /**
  * @param {string} projectPath
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function CloseProject(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(114032371, projectPath));
-    return $resultPromise;
+    return $Call.ByID(114032371, projectPath);
 }
 
 /**
@@ -67,15 +61,12 @@ export function CloseProject(projectPath) {
  * @param {string} studioName
  * @param {string} workingDir
  * @param {string} templateName
- * @returns {Promise<repository$0.ProjectInfo> & { cancel(): void }}
+ * @returns {$CancellablePromise<repository$0.ProjectInfo>}
  */
 export function CreateProject(projectUri, studioName, workingDir, templateName) {
-    let $resultPromise = /** @type {any} */($Call.ByID(914775891, projectUri, studioName, workingDir, templateName));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(914775891, projectUri, studioName, workingDir, templateName).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
@@ -83,218 +74,186 @@ export function CreateProject(projectUri, studioName, workingDir, templateName) 
  * @param {string} directory
  * @param {string[]} ignoreList
  * @param {string[]} tracked
- * @returns {Promise<$models.UntrackedItems> & { cancel(): void }}
+ * @returns {$CancellablePromise<$models.UntrackedItems>}
  */
 export function GetFolderUntrackedItems(projectWorkingDir, directory, ignoreList, tracked) {
-    let $resultPromise = /** @type {any} */($Call.ByID(83768171, projectWorkingDir, directory, ignoreList, tracked));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(83768171, projectWorkingDir, directory, ignoreList, tracked).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType2($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * @param {string} projectPath
- * @returns {Promise<string[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<string[]>}
  */
 export function GetIgnoreList(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(880721004, projectPath));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(880721004, projectPath).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType3($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * @param {string} projectPath
- * @returns {Promise<boolean> & { cancel(): void }}
+ * @returns {$CancellablePromise<boolean>}
  */
 export function GetIsClose(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1046148786, projectPath));
-    return $resultPromise;
+    return $Call.ByID(1046148786, projectPath);
 }
 
 /**
  * @param {string} projectPath
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function GetPreview(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(4275126350, projectPath));
-    return $resultPromise;
+    return $Call.ByID(4275126350, projectPath);
 }
 
 /**
  * @param {string} url
  * @param {string} name
- * @returns {Promise<repository$0.ProjectInfo[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<repository$0.ProjectInfo[]>}
  */
 export function GetStudioProjects(url, name) {
-    let $resultPromise = /** @type {any} */($Call.ByID(155248386, url, name));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(155248386, url, name).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType4($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * @param {string} projectUri
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function GetSyncToken(projectUri) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2014393022, projectUri));
-    return $resultPromise;
+    return $Call.ByID(2014393022, projectUri);
 }
 
 /**
- * @returns {Promise<repository$0.ProjectInfo[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<repository$0.ProjectInfo[]>}
  */
 export function GetTemplates() {
-    let $resultPromise = /** @type {any} */($Call.ByID(2590730853));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(2590730853).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType4($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * @param {string} itemPath
  * @param {string[]} ignoreList
- * @returns {Promise<boolean> & { cancel(): void }}
+ * @returns {$CancellablePromise<boolean>}
  */
 export function IsIgnored(itemPath, ignoreList) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2693616968, itemPath, ignoreList));
-    return $resultPromise;
+    return $Call.ByID(2693616968, itemPath, ignoreList);
 }
 
 /**
  * @param {string} projectPath
- * @returns {Promise<repository$0.ProjectInfo> & { cancel(): void }}
+ * @returns {$CancellablePromise<repository$0.ProjectInfo>}
  */
 export function ProjectInfo(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1383457795, projectPath));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(1383457795, projectPath).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * @param {string[]} projectPaths
- * @returns {Promise<repository$0.ProjectInfo[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<repository$0.ProjectInfo[]>}
  */
 export function ProjectsInfo(projectPaths) {
-    let $resultPromise = /** @type {any} */($Call.ByID(686940384, projectPaths));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(686940384, projectPaths).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType4($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * @param {string} projectPath
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function Purge(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2913987721, projectPath));
-    return $resultPromise;
+    return $Call.ByID(2913987721, projectPath);
 }
 
 /**
  * @param {string} projectPath
  * @param {string} userId
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function RemoveUser(projectPath, userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(4241326069, projectPath, userId));
-    return $resultPromise;
+    return $Call.ByID(4241326069, projectPath, userId);
 }
 
 /**
  * @param {string} projectUri
  * @param {string} studioName
  * @param {string} newName
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function Rename(projectUri, studioName, newName) {
-    let $resultPromise = /** @type {any} */($Call.ByID(4132178576, projectUri, studioName, newName));
-    return $resultPromise;
+    return $Call.ByID(4132178576, projectUri, studioName, newName);
 }
 
 /**
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function ResetDefaultTemplates() {
-    let $resultPromise = /** @type {any} */($Call.ByID(2733819533));
-    return $resultPromise;
+    return $Call.ByID(2733819533);
 }
 
 /**
  * @param {string} projectUri
  * @param {string} studioName
  * @param {string[]} ignoreList
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function SetIgnoreList(projectUri, studioName, ignoreList) {
-    let $resultPromise = /** @type {any} */($Call.ByID(610021480, projectUri, studioName, ignoreList));
-    return $resultPromise;
+    return $Call.ByID(610021480, projectUri, studioName, ignoreList);
 }
 
 /**
  * @param {string} projectUri
  * @param {string} studioName
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function ToggleCloseProject(projectUri, studioName) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2004355099, projectUri, studioName));
-    return $resultPromise;
+    return $Call.ByID(2004355099, projectUri, studioName);
 }
 
 /**
  * @param {string} projectUri
  * @param {string} studioName
  * @param {string} iconValue
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function UpdateIcon(projectUri, studioName, iconValue) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3756813102, projectUri, studioName, iconValue));
-    return $resultPromise;
+    return $Call.ByID(3756813102, projectUri, studioName, iconValue);
 }
 
 /**
  * @param {string} projectPath
  * @param {string} previewPath
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function UpdatePreview(projectPath, previewPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1284912265, projectPath, previewPath));
-    return $resultPromise;
+    return $Call.ByID(1284912265, projectPath, previewPath);
 }
 
 /**
  * @param {string} projectUri
  * @param {string} studioName
  * @param {string} newWorkingDir
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function UpdateWorkingDirectory(projectUri, studioName, newWorkingDir) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3745129021, projectUri, studioName, newWorkingDir));
-    return $resultPromise;
+    return $Call.ByID(3745129021, projectUri, studioName, newWorkingDir);
 }
 
 /**
  * @param {string} projectPath
  * @param {string} userId
- * @returns {Promise<boolean> & { cancel(): void }}
+ * @returns {$CancellablePromise<boolean>}
  */
 export function UserInProject(projectPath, userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3209082523, projectPath, userId));
-    return $resultPromise;
+    return $Call.ByID(3209082523, projectPath, userId);
 }
 
 // Private type creation functions

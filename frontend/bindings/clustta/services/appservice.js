@@ -4,69 +4,49 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import {Call as $Call, Create as $Create} from "@wailsio/runtime";
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: Unused imports
-import * as application$0 from "../../github.com/wailsapp/wails/v3/pkg/application/models.js";
+import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 /**
  * GetOS returns the operating system name.
  * Detects the current OS and returns "windows", "darwin", "linux", or "unknown".
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function GetOS() {
-    let $resultPromise = /** @type {any} */($Call.ByID(3716419014));
-    return $resultPromise;
+    return $Call.ByID(3716419014);
 }
 
 /**
  * Hide hides the main application window.
  * Gets the main window instance and hides it from view.
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function Hide() {
-    let $resultPromise = /** @type {any} */($Call.ByID(3271232920));
-    return $resultPromise;
+    return $Call.ByID(3271232920);
 }
 
 /**
  * Minimize minimizes the main application window.
  * Gets the main window instance and minimizes it to the taskbar.
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function Minimize() {
-    let $resultPromise = /** @type {any} */($Call.ByID(547872872));
-    return $resultPromise;
+    return $Call.ByID(547872872);
 }
 
 /**
  * Quit terminates the application.
  * Gets the application instance and calls Quit to exit gracefully.
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function Quit() {
-    let $resultPromise = /** @type {any} */($Call.ByID(4224805671));
-    return $resultPromise;
-}
-
-/**
- * ServiceStartup is called when the application starts.
- * Currently a no-op placeholder for initialization logic.
- * @param {application$0.ServiceOptions} options
- * @returns {Promise<void> & { cancel(): void }}
- */
-export function ServiceStartup(options) {
-    let $resultPromise = /** @type {any} */($Call.ByID(40987436, options));
-    return $resultPromise;
+    return $Call.ByID(4224805671);
 }
 
 /**
  * Show displays and focuses the main application window.
  * Gets the main window instance, shows it, and brings it to focus.
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function Show() {
-    let $resultPromise = /** @type {any} */($Call.ByID(2328962577));
-    return $resultPromise;
+    return $Call.ByID(2328962577);
 }

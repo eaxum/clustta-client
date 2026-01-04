@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import {Call as $Call, Create as $Create} from "@wailsio/runtime";
+import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -14,187 +14,154 @@ import * as $models from "./models.js";
  * AddUserSkill adds a new skill with proficiency level to the user's profile.
  * @param {string} userId
  * @param {$models.SkillData} skillData
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function AddUserSkill(userId, skillData) {
-    let $resultPromise = /** @type {any} */($Call.ByID(4196262723, userId, skillData));
-    return $resultPromise;
+    return $Call.ByID(4196262723, userId, skillData);
 }
 
 /**
  * AddUserTool adds a new tool with proficiency level to the user's profile.
  * @param {string} userId
  * @param {$models.ToolData} toolData
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function AddUserTool(userId, toolData) {
-    let $resultPromise = /** @type {any} */($Call.ByID(562978796, userId, toolData));
-    return $resultPromise;
+    return $Call.ByID(562978796, userId, toolData);
 }
 
 /**
  * GetAllCountries fetches all available countries for profile location selection.
- * @returns {Promise<$models.Country[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<$models.Country[]>}
  */
 export function GetAllCountries() {
-    let $resultPromise = /** @type {any} */($Call.ByID(3523493233));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(3523493233).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * GetAllGenders fetches all available gender options for profile selection.
- * @returns {Promise<$models.Gender[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<$models.Gender[]>}
  */
 export function GetAllGenders() {
-    let $resultPromise = /** @type {any} */($Call.ByID(1256528221));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(1256528221).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType3($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * GetAllSkills fetches all available skills from the system.
- * @returns {Promise<$models.Skill[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<$models.Skill[]>}
  */
 export function GetAllSkills() {
-    let $resultPromise = /** @type {any} */($Call.ByID(3653607683));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(3653607683).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType5($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * GetAllTools fetches all available tools from the system.
- * @returns {Promise<$models.Tool[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<$models.Tool[]>}
  */
 export function GetAllTools() {
-    let $resultPromise = /** @type {any} */($Call.ByID(223773672));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(223773672).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType7($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * GetSkillsByCategory fetches skills filtered by the specified category.
  * @param {string} category
- * @returns {Promise<$models.Skill[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<$models.Skill[]>}
  */
 export function GetSkillsByCategory(category) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2963735337, category));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(2963735337, category).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType5($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * GetToolsByCategory fetches tools filtered by the specified category.
  * @param {string} category
- * @returns {Promise<$models.Tool[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<$models.Tool[]>}
  */
 export function GetToolsByCategory(category) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3966669732, category));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(3966669732, category).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType7($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * GetUserProfile fetches the complete user profile including bio, location, and professional info.
  * @param {string} userId
- * @returns {Promise<$models.UserProfile> & { cancel(): void }}
+ * @returns {$CancellablePromise<$models.UserProfile>}
  */
 export function GetUserProfile(userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2674961134, userId));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(2674961134, userId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType8($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * GetUserSkills fetches all skills associated with the user's profile.
  * @param {string} userId
- * @returns {Promise<$models.UserSkill[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<$models.UserSkill[]>}
  */
 export function GetUserSkills(userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2908191903, userId));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(2908191903, userId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType10($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * GetUserTools fetches all tools associated with the user's profile.
  * @param {string} userId
- * @returns {Promise<$models.UserTool[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<$models.UserTool[]>}
  */
 export function GetUserTools(userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(841418076, userId));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(841418076, userId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType12($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * RemoveUserSkill removes a skill from the user's profile.
  * @param {string} userId
  * @param {string} skillId
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function RemoveUserSkill(userId, skillId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2177639446, userId, skillId));
-    return $resultPromise;
+    return $Call.ByID(2177639446, userId, skillId);
 }
 
 /**
  * RemoveUserTool removes a tool from the user's profile.
  * @param {string} userId
  * @param {string} toolId
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function RemoveUserTool(userId, toolId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1582604839, userId, toolId));
-    return $resultPromise;
+    return $Call.ByID(1582604839, userId, toolId);
 }
 
 /**
  * UpdateUserPhoto uploads a new profile photo for the user.
  * @param {string} photoPath
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function UpdateUserPhoto(photoPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(4265485040, photoPath));
-    return $resultPromise;
+    return $Call.ByID(4265485040, photoPath);
 }
 
 /**
  * UpdateUserProfile updates user profile fields with the provided data.
  * @param {string} userId
  * @param {$models.ProfileUpdateData} updateData
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function UpdateUserProfile(userId, updateData) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3050045993, userId, updateData));
-    return $resultPromise;
+    return $Call.ByID(3050045993, userId, updateData);
 }
 
 /**
@@ -202,11 +169,10 @@ export function UpdateUserProfile(userId, updateData) {
  * @param {string} userId
  * @param {string} skillId
  * @param {string} proficiencyLevel
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function UpdateUserSkill(userId, skillId, proficiencyLevel) {
-    let $resultPromise = /** @type {any} */($Call.ByID(471807697, userId, skillId, proficiencyLevel));
-    return $resultPromise;
+    return $Call.ByID(471807697, userId, skillId, proficiencyLevel);
 }
 
 /**
@@ -214,11 +180,10 @@ export function UpdateUserSkill(userId, skillId, proficiencyLevel) {
  * @param {string} userId
  * @param {string} toolId
  * @param {string} proficiencyLevel
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function UpdateUserTool(userId, toolId, proficiencyLevel) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1442429702, userId, toolId, proficiencyLevel));
-    return $resultPromise;
+    return $Call.ByID(1442429702, userId, toolId, proficiencyLevel);
 }
 
 // Private type creation functions

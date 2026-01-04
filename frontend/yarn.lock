@@ -464,12 +464,10 @@
   dependencies:
     vue-demi ">=0.14.8"
 
-"@wailsio/runtime@latest":
-  version "3.0.0-alpha.36"
-  resolved "https://registry.yarnpkg.com/@wailsio/runtime/-/runtime-3.0.0-alpha.36.tgz#8582cd63c414387204c313206e0046baa6ebe14f"
-  integrity sha512-IPxzYLxgX8tOWcB1x2RHzx3VwRFTLAUrdeMQL2wZyaV7Xvtybt1h1WYaEp0iZiiNB/KCuCKIrnhnrN5sNDoDYg==
-  dependencies:
-    nanoid "^5.0.7"
+"@wailsio/runtime@^3.0.0-alpha.78":
+  version "3.0.0-alpha.78"
+  resolved "https://registry.yarnpkg.com/@wailsio/runtime/-/runtime-3.0.0-alpha.78.tgz#76a36da4dc8cc27aed9566db539dff7f2dee971e"
+  integrity sha512-OwupMaPV20+9rMJdPTSqlmmu3BaMUEZOdngFK2cAjW228ecO5mg5vq1VPx9op1dftbpKJCKqsVhOpxa0EEQnRA==
 
 base64-js@^1.3.1:
   version "1.5.1"
@@ -641,11 +639,6 @@ nanoid@^3.3.8:
   version "3.3.8"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.8.tgz#b1be3030bee36aaff18bacb375e5cce521684baf"
   integrity sha512-WNLf5Sd8oZxOm+TzppcYk8gVOgP+l58xNy58D0nbUnOxOWRWvlcCV4kUF7ltmI6PsrLl/BgKEyS4mqsGChFN0w==
-
-nanoid@^5.0.7:
-  version "5.0.9"
-  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-5.0.9.tgz#977dcbaac055430ce7b1e19cf0130cea91a20e50"
-  integrity sha512-Aooyr6MXU6HpvvWXKoVoXwKMs/KyVakWwg7xQfv5/S/RIgJMy0Ifa45H9qqYy7pTCszrHzP21Uk4PZq2HpEM8Q==
 
 pako@^2.1.0:
   version "2.1.0"

@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import {Call as $Call, Create as $Create} from "@wailsio/runtime";
+import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -13,15 +13,12 @@ import * as auth_service$0 from "../internal/auth_service/models.js";
 /**
  * AuthUser retrieves the currently authenticated user.
  * Returns an error if no user is found or the token is invalid.
- * @returns {Promise<auth_service$0.User> & { cancel(): void }}
+ * @returns {$CancellablePromise<auth_service$0.User>}
  */
 export function AuthUser() {
-    let $resultPromise = /** @type {any} */($Call.ByID(1418375968));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(1418375968).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
@@ -30,58 +27,51 @@ export function AuthUser() {
  * @param {string} currentPassword
  * @param {string} newPassword
  * @param {string} confirmPassword
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function ChangePassword(currentPassword, newPassword, confirmPassword) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2199672148, currentPassword, newPassword, confirmPassword));
-    return $resultPromise;
+    return $Call.ByID(2199672148, currentPassword, newPassword, confirmPassword);
 }
 
 /**
  * CheckEmailExists checks if an email address is already registered.
  * Returns true if the email exists, false otherwise.
  * @param {string} email
- * @returns {Promise<boolean> & { cancel(): void }}
+ * @returns {$CancellablePromise<boolean>}
  */
 export function CheckEmailExists(email) {
-    let $resultPromise = /** @type {any} */($Call.ByID(388241825, email));
-    return $resultPromise;
+    return $Call.ByID(388241825, email);
 }
 
 /**
  * CheckUsernameExists checks if a username is already registered.
  * Returns true if the username exists, false otherwise.
  * @param {string} username
- * @returns {Promise<boolean> & { cancel(): void }}
+ * @returns {$CancellablePromise<boolean>}
  */
 export function CheckUsernameExists(username) {
-    let $resultPromise = /** @type {any} */($Call.ByID(397037963, username));
-    return $resultPromise;
+    return $Call.ByID(397037963, username);
 }
 
 /**
  * DeactivateUserAccount deactivates the current user's account.
  * Returns an error if the deactivation fails.
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function DeactivateUserAccount() {
-    let $resultPromise = /** @type {any} */($Call.ByID(103841291));
-    return $resultPromise;
+    return $Call.ByID(103841291);
 }
 
 /**
  * IsAuthenticated checks if a user is currently authenticated.
  * Returns authentication status, user data, and any error encountered.
- * @returns {Promise<[boolean, auth_service$0.User]> & { cancel(): void }}
+ * @returns {$CancellablePromise<[boolean, auth_service$0.User]>}
  */
 export function IsAuthenticated() {
-    let $resultPromise = /** @type {any} */($Call.ByID(517673028));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(517673028).then(/** @type {($result: any) => any} */(($result) => {
         $result[1] = $$createType0($result[1]);
         return $result;
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
@@ -89,15 +79,12 @@ export function IsAuthenticated() {
  * Returns the authentication token or an error if login fails.
  * @param {string} username
  * @param {string} password
- * @returns {Promise<auth_service$0.Token> & { cancel(): void }}
+ * @returns {$CancellablePromise<auth_service$0.Token>}
  */
 export function Login(username, password) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3065492878, username, password));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(3065492878, username, password).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
@@ -105,11 +92,10 @@ export function Login(username, password) {
  * Returns an error if logout fails.
  * @param {string} username
  * @param {string} password
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function Logout(username, password) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2946214063, username, password));
-    return $resultPromise;
+    return $Call.ByID(2946214063, username, password);
 }
 
 /**
@@ -121,37 +107,32 @@ export function Logout(username, password) {
  * @param {string} email
  * @param {string} password
  * @param {string} confirmPassword
- * @returns {Promise<auth_service$0.User> & { cancel(): void }}
+ * @returns {$CancellablePromise<auth_service$0.User>}
  */
 export function Register(firstName, lastName, username, email, password, confirmPassword) {
-    let $resultPromise = /** @type {any} */($Call.ByID(800559812, firstName, lastName, username, email, password, confirmPassword));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(800559812, firstName, lastName, username, email, password, confirmPassword).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * ResendToken resends the verification token to an email address.
  * Returns an error if the send fails.
  * @param {string} email
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function ResendToken(email) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1440561671, email));
-    return $resultPromise;
+    return $Call.ByID(1440561671, email);
 }
 
 /**
  * ResetPassword sends a password reset email to the specified email address.
  * Returns an error if the reset request fails.
  * @param {string} email
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function ResetPassword(email) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3411060901, email));
-    return $resultPromise;
+    return $Call.ByID(3411060901, email);
 }
 
 /**
@@ -160,11 +141,10 @@ export function ResetPassword(email) {
  * @param {string} email
  * @param {string} studioName
  * @param {string} projectName
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function SendInvitationEmail(email, studioName, projectName) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2323642100, email, studioName, projectName));
-    return $resultPromise;
+    return $Call.ByID(2323642100, email, studioName, projectName);
 }
 
 /**
@@ -174,26 +154,22 @@ export function SendInvitationEmail(email, studioName, projectName) {
  * @param {string} lastName
  * @param {string} username
  * @param {string} email
- * @returns {Promise<auth_service$0.User> & { cancel(): void }}
+ * @returns {$CancellablePromise<auth_service$0.User>}
  */
 export function UpdateUser(firstName, lastName, username, email) {
-    let $resultPromise = /** @type {any} */($Call.ByID(747950475, firstName, lastName, username, email));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(747950475, firstName, lastName, username, email).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * UpdateUserPhoto updates the current user's profile photo.
  * Returns an error if the upload fails.
  * @param {string} photo
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function UpdateUserPhoto(photo) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3282740197, photo));
-    return $resultPromise;
+    return $Call.ByID(3282740197, photo);
 }
 
 /**
@@ -201,11 +177,10 @@ export function UpdateUserPhoto(photo) {
  * Returns an error if verification fails.
  * @param {string} email
  * @param {string} token
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function VerifyOTP(email, token) {
-    let $resultPromise = /** @type {any} */($Call.ByID(8704593, email, token));
-    return $resultPromise;
+    return $Call.ByID(8704593, email, token);
 }
 
 // Private type creation functions

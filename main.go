@@ -243,15 +243,15 @@ func main() {
 	}
 
 	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Name:              "main",
-		Title:             "Clustta",
-		Frameless:         frameless,
-		Height:            734,
-		Width:             1020,
-		MinHeight:         734,
-		MinWidth:          1020,
-		EnableDragAndDrop: true,
-		BackgroundColour:  application.NewRGB(0, 0, 0),
+		Name:             "main",
+		Title:            "Clustta",
+		Frameless:        frameless,
+		Height:           734,
+		Width:            1020,
+		MinHeight:        734,
+		MinWidth:         1020,
+		EnableFileDrop:   true,
+		BackgroundColour: application.NewRGB(0, 0, 0),
 
 		Mac: application.MacWindow{
 			Backdrop: application.MacBackdropTranslucent,
