@@ -343,8 +343,7 @@ function toggleMaximize() {
 }
 
 const frontendReady = async () => {
-  let eventData = new Events.WailsEvent("frontend-ready", true);
-  Events.Emit(eventData);
+  Events.Emit("frontend-ready", true);
 };
 
 onMounted( async () => {
