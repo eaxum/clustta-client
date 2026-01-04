@@ -38,7 +38,7 @@
 
 <script setup>
 // imports
-import { onMounted, watchEffect, ref, computed, onUnmounted  } from 'vue';
+import { onMounted, watchEffect, ref, computed, onUnmounted, onBeforeUnmount  } from 'vue';
 
 // services
 import { CollectionService } from "@/../bindings/clustta/services";
@@ -214,6 +214,9 @@ onUnmounted(() => {
   stageStore.selectedItem = null
 })
 
+onBeforeUnmount(() => {
+  workflowStore.selectedWorkflow = null;
+});
 
 </script>
 
