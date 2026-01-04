@@ -43,8 +43,7 @@ export const useNotificationStore = defineStore("notifications", {
         this.resetProgress();
         LogService.LogError(longMessage);
       }
-      let eventData = new Events.WailsEvent("add_message", notification);
-      Events.Emit(eventData);
+      Events.Emit("add_message", notification);
 
       const projectStore = useProjectStore();
       projectStore.refreshActiveProject();
