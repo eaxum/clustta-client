@@ -51,10 +51,12 @@ export const useNotificationStore = defineStore("notifications", {
     errorNotification(defaultMessage, error) {
       // remove "Error calling method:" from beginning of error message if present
       let errorMesage;
-      if (typeof error === "string" || error instanceof String) {
+      if (!error) {
+        errorMesage = defaultMessage || 'An unknown error occurred';
+      } else if (typeof error === "string" || error instanceof String) {
         errorMesage = error;
       } else {
-        errorMesage = error.message;
+        errorMesage = error.message || error.toString() || defaultMessage || 'An unknown error occurred';
       }
 
       if (errorMesage.startsWith("Error calling method:")) {
