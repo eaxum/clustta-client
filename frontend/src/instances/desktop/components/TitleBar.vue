@@ -62,7 +62,7 @@
           v-tooltip="'About Clustta'">
       </div>
 
-    <div v-else class="titlebar-buttons">
+    <div v-else-if="!isWebMode" class="titlebar-buttons">
       <!-- <ToggleSwitch :switchValueProp="themeStore.isDarkMode" @click="toggleTheme()" />
       <CheckBox v-model="themeStore.isDarkMode" @change="toggleTheme()" /> -->
 
@@ -142,6 +142,7 @@ const notificationStore = useNotificationStore();
 const themeStore = useThemeStore();
 const collectionStore = useCollectionStore();
 
+const isWebMode = import.meta.env.VITE_PLATFORM === 'web';
 const os = ref('');
 const studioTabsParent = ref(null);
 

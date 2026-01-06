@@ -175,6 +175,12 @@ const restoreProgress = () => {
 };
 
 const showMessage = async (data) => {
+  // Guard against null/undefined data
+  if (!data) {
+    console.log('showMessage: received null/undefined data');
+    return;
+  }
+  
   console.log(data)
   
   // Check if message is restricted
@@ -185,6 +191,12 @@ const showMessage = async (data) => {
   
   if (isRestricted) {
     console.log('Message blocked: restricted message', data.message);
+    return;
+  }
+  
+  // Ensure data has a message property
+  if (!data.message) {
+    console.log('showMessage: data has no message property', data);
     return;
   }
   

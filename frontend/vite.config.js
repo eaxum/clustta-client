@@ -12,18 +12,18 @@ const isWebMode = process.env.VITE_PLATFORM === 'web';
 
 export default defineConfig(async () => {
   // Build aliases based on platform
-  const aliases = {
-    "@": join(PACKAGE_ROOT, "src") + "/",
-  };
+  // Using array format to guarantee order - more specific aliases must come first
+  const aliases = [];
 
-  // In web mode, redirect @/services to HTTP adapter and mock @wailsio/runtime
+  // In web mode, redirect services to HTTP adapter and mock @wailsio/runtime
   if (isWebMode) {
-    aliases["@/services"] = join(PACKAGE_ROOT, "src/services/adapters/http.js");
-    aliases["@wailsio/runtime"] = join(PACKAGE_ROOT, "src/services/runtime/index.js");
-  } else {
-    // Desktop mode uses Wails adapter (default)
-    aliases["@/services"] = join(PACKAGE_ROOT, "src/services/adapters/wails.js");
+    // Use regex with $ to match exact import (not @/services/utils etc)
+    aliases.push({ find: /^@\/services$/, replacement: join(PACKAGE_ROOT, "src/services/adapters/http.js") });
+    aliases.push({ find: '@wailsio/runtime', replacement: join(PACKAGE_ROOT, "src/services/runtime/index.js") });
   }
+
+  // The @ alias should come after more specific aliases
+  aliases.push({ find: '@', replacement: join(PACKAGE_ROOT, "src") });
 
   return {
     plugins: [vue()],
@@ -48,6 +48,47 @@ export default defineConfig(async () => {
         // 3. tell vite to ignore watching `src-tauri`
         ignored: ["**/src-tauri/**"],
       },
+      // Proxy API requests in web mode to bypass CORS
+      proxy: isWebMode ? {
+        '/api': {
+          target: 'https://api.clustta.com',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ''),
+          secure: true,
+          // Cookie handling - rewrite domain so browser accepts cookies from proxy
+          cookieDomainRewrite: {
+            'api.clustta.com': 'localhost',
+            '.clustta.com': 'localhost',
+          },
+          // Configure the proxy to pass through Set-Cookie headers
+          configure: (proxy, options) => {
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              // Log the response for debugging
+              console.log(`[Proxy] ${req.method} ${req.url} -> ${proxyRes.statusCode}`);
+              
+              // Log incoming cookies from request
+              if (req.headers.cookie) {
+                console.log(`[Proxy] Request Cookies: ${req.headers.cookie}`);
+              }
+              
+              // Rewrite Set-Cookie headers to work with localhost
+              const cookies = proxyRes.headers['set-cookie'];
+              if (cookies) {
+                console.log(`[Proxy] Original Set-Cookie: ${JSON.stringify(cookies)}`);
+                proxyRes.headers['set-cookie'] = cookies.map(cookie => {
+                  // Remove Domain attribute or rewrite it
+                  let newCookie = cookie
+                    .replace(/Domain=[^;]+;?/gi, '')
+                    .replace(/Secure;?/gi, '')  // Remove Secure for localhost (http)
+                    .replace(/SameSite=\w+;?/gi, 'SameSite=Lax;');  // Use Lax for localhost
+                  console.log(`[Proxy] Rewritten Set-Cookie: ${newCookie}`);
+                  return newCookie;
+                });
+              }
+            });
+          },
+        },
+      } : undefined,
     },
     envPrefix: ["VITE_", "TAURI_"],
     build: {
