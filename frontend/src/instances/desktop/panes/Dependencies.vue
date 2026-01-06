@@ -49,7 +49,7 @@ import utils from '@/services/utils';
 import { isValidWeblink } from '@/lib/pointer';
 
 // services
-import { AssetService, CollectionService } from "@/../bindings/clustta/services";
+import { AssetService, CollectionService } from "@/services";
 
 // states/store imports
 import { useCommonStore } from '@/stores/common';

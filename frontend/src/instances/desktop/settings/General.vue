@@ -135,7 +135,7 @@
 <script setup>
 // imports
 import { ref, computed, onMounted } from "vue";
-import { SettingsService } from "@/../bindings/clustta/services/index";
+import { SettingsService } from "@/services";
 
 // services
 import utils from '@/services/utils';

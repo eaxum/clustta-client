@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { Events } from "@wailsio/runtime";
-import { LogService } from "@/../bindings/clustta/services/index";
+import { LogService } from "@/services";
 import { useProjectStore } from "./projects";
 
 export const useNotificationStore = defineStore("notifications", {

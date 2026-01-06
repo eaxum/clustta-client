@@ -142,7 +142,7 @@ import { ref, onMounted, computed, watchEffect } from 'vue';
 import { Browser } from "@wailsio/runtime";
 
 // services
-import { StudioService, DeploymentService } from '@/../bindings/clustta/services/index';
+import { StudioService, DeploymentService } from '@/services';
 
 //stores
 import { useDesktopModalStore } from '@/stores/desktopModals';

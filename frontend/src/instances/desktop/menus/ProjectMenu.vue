@@ -59,8 +59,8 @@ import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
 // services
-import { CollectionService, AssetService } from "@/../bindings/clustta/services";
-import { TrashService } from "@/../bindings/clustta/services";
+import { CollectionService, AssetService } from "@/services";
+import { TrashService } from "@/services";
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -80,8 +80,8 @@ import { useWorkflowStore } from '@/stores/workflow';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import { FSService, DialogService, ProjectService } from '@/../bindings/clustta/services';
-import { SyncService } from '@/../bindings/clustta/services';
+import { FSService, DialogService, ProjectService } from '@/services';
+import { SyncService } from '@/services';
 import { Clipboard } from '@wailsio/runtime';
 
 // states/stores

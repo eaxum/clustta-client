@@ -40,7 +40,7 @@ import { ref, computed, watchEffect, onMounted, onUnmounted } from 'vue';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
-import { AssetService, FSService } from "@/../bindings/clustta/services";
+import { AssetService, FSService } from "@/services";
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';

@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { useIconStore } from "./icons";
-import { WorkflowService } from "@/../bindings/clustta/services";
+import { WorkflowService } from "@/services";
 import { useProjectStore } from "./projects";
 
 export const useWorkflowStore = defineStore("workflow", {

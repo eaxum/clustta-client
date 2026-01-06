@@ -53,8 +53,8 @@ import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
 // services
-import { DialogService } from '@/../bindings/clustta/services/index';
-import { CollectionService } from "@/../bindings/clustta/services";
+import { DialogService } from '@/services';
+import { CollectionService } from "@/services";
 
 // state imports
 import { useNotificationStore } from '@/stores/notifications';

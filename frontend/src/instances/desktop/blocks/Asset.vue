@@ -332,7 +332,7 @@
 // imports
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { isValidWeblink } from '@/lib/pointer';
-import { AssetService, CheckpointService, FSService, SyncService } from "@/../bindings/clustta/services";
+import { AssetService, CheckpointService, FSService, SyncService } from "@/services";
 import utils from '@/services/utils';
 import { Events } from "@wailsio/runtime";
 

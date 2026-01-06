@@ -43,7 +43,7 @@
 
 <script setup>
 import { ref, computed, onUnmounted, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
-import { CollectionService, FSService } from '@/../bindings/clustta/services';
+import { CollectionService, FSService } from '@/services';
 import { Clipboard } from '@wailsio/runtime';
 import utils from '@/services/utils';
 

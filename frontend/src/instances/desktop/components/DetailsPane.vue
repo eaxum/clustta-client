@@ -120,9 +120,9 @@
 
 <script setup>
 // services
-import { CheckpointService, AssetService, CollectionService, SyncService } from "@/../bindings/clustta/services";
-import { TrashService } from "@/../bindings/clustta/services";
-import { FSService } from '@/../bindings/clustta/services/index';
+import { CheckpointService, AssetService, CollectionService, SyncService } from "@/services";
+import { TrashService } from "@/services";
+import { FSService } from '@/services';
 import emitter from '@/lib/mitt';
 
 // imports

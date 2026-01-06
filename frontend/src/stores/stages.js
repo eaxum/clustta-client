@@ -5,7 +5,7 @@ import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from "@/stores/collections";
 import { useDndStore } from "@/stores/dnd";
 import { useProjectStore } from "@/stores/projects";
-import { AppService } from '@/../bindings/clustta/services/index';
+import { AppService } from '@/services';
 
 export const useStageStore = defineStore("stages", {
   state: () => ({

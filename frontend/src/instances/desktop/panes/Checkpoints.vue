@@ -28,7 +28,7 @@
 <script setup>
 // imports
 import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue';
-import { FSService, CheckpointService } from '@/../bindings/clustta/services/index';
+import { FSService, CheckpointService } from '@/services';
 import utils from '@/services/utils';
 
 // components

@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { StudioService } from "@/../bindings/clustta/services";
+import { StudioService } from "@/services";
 import { useProjectStore } from '@/stores/projects';
 // import axios from "axios";
 // import studio_service from "@/services/studio_service";

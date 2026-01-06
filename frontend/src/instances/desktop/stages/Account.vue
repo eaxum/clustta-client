@@ -102,7 +102,7 @@
 // imports
 import { ref, reactive, computed, onMounted, onBeforeMount } from 'vue'
 import { useRouter } from 'vue-router'
-import { AuthService } from "@/../bindings/clustta/services";
+import { AuthService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 

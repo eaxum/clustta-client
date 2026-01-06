@@ -10,7 +10,7 @@ import {
   CollectionService,
   SyncService,
   FSService,
-} from "@/../bindings/clustta/services";
+} from "@/services";
 
 export const useProjectTemplateStore = defineStore("project_template", {
   state: () => ({

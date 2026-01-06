@@ -98,8 +98,8 @@
 
 // imports
 import { computed, ref, onMounted, toRaw } from 'vue';
-import { SyncService } from "@/../bindings/clustta/services";
-import { ProjectService } from '@/../bindings/clustta/services/index';
+import { SyncService } from "@/services";
+import { ProjectService } from '@/services';
 import { syncData, pullData } from '@/lib/sync';
 import utils from '@/services/utils';
 

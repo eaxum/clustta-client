@@ -43,7 +43,7 @@
 import { ref, onMounted, computed, watchEffect } from 'vue';
 
 // services
-import { StudioService, AuthService } from "@/../bindings/clustta/services";
+import { StudioService, AuthService } from "@/services";
 
 // store/state imports
 import { useTrayStates } from '@/stores/TrayStates';

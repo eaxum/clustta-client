@@ -44,8 +44,8 @@ import { onMounted, watchEffect, ref, computed, onUnmounted } from 'vue';
 import emitter from '@/lib/mitt';
 
 // services
-import { CheckpointService, AssetService, CollectionService } from "@/../bindings/clustta/services";
-import { FSService } from '@/../bindings/clustta/services/index';
+import { CheckpointService, AssetService, CollectionService } from "@/services";
+import { FSService } from '@/services';
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';

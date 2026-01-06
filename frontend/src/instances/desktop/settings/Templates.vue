@@ -32,8 +32,8 @@ import { onMounted, computed, ref } from 'vue';
 import utils from '@/services/utils';
 
 // services
-import { TemplateService } from "@/../bindings/clustta/services";
-import { TrashService } from "@/../bindings/clustta/services";
+import { TemplateService } from "@/services";
+import { TrashService } from "@/services";
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';

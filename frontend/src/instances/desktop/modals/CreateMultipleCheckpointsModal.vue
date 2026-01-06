@@ -68,7 +68,7 @@ import InputAlert from '@/instances/common/components/InputAlert.vue';
 
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useTrayStates } from '@/stores/TrayStates';
-import { CheckpointService } from "@/../bindings/clustta/services";
+import { CheckpointService } from "@/services";
 import { onMounted, ref, computed, onBeforeUnmount } from 'vue';
 import { useNotificationStore } from '@/stores/notifications';
 import { useAssetStore } from '@/stores/assets';

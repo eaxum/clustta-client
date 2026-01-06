@@ -50,7 +50,7 @@ import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
 // services
-import { AssetService, ClipboardService } from "@/../bindings/clustta/services";
+import { AssetService, ClipboardService } from "@/services";
 
 // state imports
 import { useUserStore } from '@/stores/users';

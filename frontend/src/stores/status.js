@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { StatusService } from "@/../bindings/clustta/services";
+import { StatusService } from "@/services";
 import { useProjectStore } from "./projects";
 
 export const useStatusStore = defineStore("status", {

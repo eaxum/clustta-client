@@ -37,12 +37,12 @@
 import { useTrayStates } from '@/stores/TrayStates';
 import { ref, onMounted } from 'vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import { TemplateService } from "@/../bindings/clustta/services";
+import { TemplateService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useTemplateStore } from '@/stores/template';
 import { useProjectStore } from '@/stores/projects';
-import { DialogService } from '@/../bindings/clustta/services/index';
+import { DialogService } from '@/services';
 
 let title = 'Edit Template';
 let showSearch = false;

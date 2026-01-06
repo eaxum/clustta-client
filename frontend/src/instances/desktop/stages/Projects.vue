@@ -109,7 +109,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue'
 import TabButton from '@/instances/desktop/components/TabButton.vue'
 import TabbedFolder from '@/instances/desktop/components/TabbedFolder.vue'
 import ProjectListSkeleton from '@/instances/desktop/components/ProjectListSkeleton.vue'
-import { FSService, SettingsService } from '@/../bindings/clustta/services/index';
+import { FSService, SettingsService } from '@/services';
 import { Events } from "@wailsio/runtime";
 
 // refs

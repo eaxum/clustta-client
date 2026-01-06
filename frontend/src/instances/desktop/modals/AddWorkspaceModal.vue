@@ -22,7 +22,7 @@
 
 // imports
 import { ref, onMounted, computed } from 'vue';
-import { SettingsService } from "@/../bindings/clustta/services";
+import { SettingsService } from "@/services";
 
 //stores
 import { useDesktopModalStore } from '@/stores/desktopModals';

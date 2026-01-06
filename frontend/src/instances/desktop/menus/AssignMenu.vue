@@ -48,7 +48,7 @@ import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
 // services
-import { AssetService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/services";
 
 // states/store imports
 import { useMenu } from '@/stores/menu';

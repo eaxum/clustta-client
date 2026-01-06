@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { DependencyTypeService } from "@/../bindings/clustta/services";
+import { DependencyTypeService } from "@/services";
 import { useProjectStore } from "./projects";
 
 export const useDependencyStore = defineStore("dependency", {

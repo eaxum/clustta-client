@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { AccountService, SettingsService } from "@/../bindings/clustta/services";
+import { AccountService, SettingsService } from "@/services";
 import { useUserStore } from '@/stores/users';
 import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';

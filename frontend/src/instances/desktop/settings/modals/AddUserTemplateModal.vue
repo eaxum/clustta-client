@@ -38,11 +38,11 @@
 import { ref, onMounted, computed } from 'vue';
 
 import { useTrayStates } from '@/stores/TrayStates';
-import { TemplateService } from "@/../bindings/clustta/services";
+import { TemplateService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useProjectStore } from '@/stores/projects';
-import { DialogService } from '@/../bindings/clustta/services/index';
+import { DialogService } from '@/services';
 
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';

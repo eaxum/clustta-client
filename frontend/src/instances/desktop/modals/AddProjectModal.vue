@@ -66,7 +66,7 @@ const getAppIcon = (iconName) => {
 import { ref, onMounted, computed, watchEffect } from 'vue';
 
 // services
-import { ProjectService, SyncService } from "@/../bindings/clustta/services";
+import { ProjectService, SyncService } from "@/services";
 
 //stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
@@ -84,7 +84,7 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import InputAlert from '@/instances/common/components/InputAlert.vue';
 import { useProjectTemplateStore } from '@/stores/project_template';
-import { ClipboardService, SettingsService, DialogService } from '@/../bindings/clustta/services/index';
+import { ClipboardService, SettingsService, DialogService } from '@/services';
 
 //header vars
 let title = 'Add Project';

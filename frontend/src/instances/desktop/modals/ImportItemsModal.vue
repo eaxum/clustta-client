@@ -39,7 +39,7 @@ const getAppIcon = (iconName) => {
 import { onMounted, watchEffect, onUnmounted, ref, computed } from 'vue';
 
 // services
-import { ImportService } from "@/../bindings/clustta/services";
+import { ImportService } from "@/services";
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';

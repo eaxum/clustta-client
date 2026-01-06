@@ -86,7 +86,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
-import { AuthService, SettingsService } from "@/../bindings/clustta/services";
+import { AuthService, SettingsService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useUserStore } from '@/stores/users';
 import { useProjectStore } from '@/stores/projects';

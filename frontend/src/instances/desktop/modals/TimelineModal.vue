@@ -52,7 +52,7 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import TaskListSkeleton from '@/instances/desktop/components/TaskListSkeleton.vue'
 import TimelineItem from '@/instances/desktop/components/TimelineItem.vue';
-import { CheckpointService } from '@/../bindings/clustta/services';
+import { CheckpointService } from '@/services';
 import { useUserStore } from '@/stores/users';
 
 // states

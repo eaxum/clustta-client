@@ -55,7 +55,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 import { ref, onMounted, computed, watchEffect } from 'vue';
 
 // services
-import { SyncService } from "@/../bindings/clustta/services";
+import { SyncService } from "@/services";
 
 //stores
 import { useModalStore } from '@/stores/modals';
@@ -76,7 +76,7 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import { useProjectTemplateStore } from '@/stores/project_template';
-import { ClipboardService, SettingsService, DialogService } from '@/../bindings/clustta/services/index';
+import { ClipboardService, SettingsService, DialogService } from '@/services';
 
 //header vars
 

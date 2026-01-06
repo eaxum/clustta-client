@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 
-import { CollectionService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/services";
 
 import { useCommonStore } from "@/stores/common";
 import { useAssetStore } from "@/stores/assets";

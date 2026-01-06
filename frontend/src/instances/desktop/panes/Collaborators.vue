@@ -8,11 +8,11 @@
 <script setup>
 // imports
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
-import { SettingsService, ProjectService, SyncService } from "@/../bindings/clustta/services";
-import { ClipboardService, FSService } from '@/../bindings/clustta/services/index';
+import { SettingsService, ProjectService, SyncService } from "@/services";
+import { ClipboardService, FSService } from '@/services';
 
 // services
-import { CollectionService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/services";
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';

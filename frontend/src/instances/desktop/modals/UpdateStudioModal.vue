@@ -67,7 +67,7 @@
 import { ref, onMounted, computed, watchEffect } from 'vue';
 
 // services
-import { StudioService } from '@/../bindings/clustta/services/index';
+import { StudioService } from '@/services';
 
 //stores
 import { useDesktopModalStore } from '@/stores/desktopModals';

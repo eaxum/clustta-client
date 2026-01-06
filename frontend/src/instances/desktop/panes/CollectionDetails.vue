@@ -116,8 +116,8 @@ const getAppIcon = (iconName) => {
   return icon
 };
 
-import { ClipboardService, CollectionService } from "@/../bindings/clustta/services";
-import { FSService } from '@/../bindings/clustta/services/index';
+import { ClipboardService, CollectionService } from "@/services";
+import { FSService } from '@/services';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import AssigneeItem from '@/instances/common/components/AssigneeItem.vue'
 

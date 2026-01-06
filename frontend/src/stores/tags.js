@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { TagService } from "@/../bindings/clustta/services";
+import { TagService } from "@/services";
 import { useProjectStore } from "./projects";
 
 export const useTagStore = defineStore("tags", {

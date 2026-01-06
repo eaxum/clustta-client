@@ -38,7 +38,7 @@ import { useCommonStore } from '@/stores/common';
 import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
-import { CollectionService, FSService } from '@/../bindings/clustta/services';
+import { CollectionService, FSService } from '@/services';
 import emitter from '@/lib/mitt';
 
 // states/stores

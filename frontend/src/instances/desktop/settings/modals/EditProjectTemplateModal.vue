@@ -42,7 +42,7 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { useProjectTemplateStore } from '@/stores/project_template';
 
-import { ProjectService, FSService } from "@/../bindings/clustta/services";
+import { ProjectService, FSService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 
 //header vars

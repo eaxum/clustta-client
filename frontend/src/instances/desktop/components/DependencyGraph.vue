@@ -71,7 +71,7 @@
 // imports
 import { ref, computed, onMounted, watch, nextTick, markRaw, onUnmounted, reactive } from 'vue'
 import dagre from '@dagrejs/dagre'
-import { AssetService, CollectionService } from "@/../bindings/clustta/services";
+import { AssetService, CollectionService } from "@/services";
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 

@@ -40,7 +40,7 @@ import { useProjectStore } from '@/stores/projects';
 import ScrollList from '@/instances/desktop/components/ScrollList.vue';
 import ActionBar from '@/instances/desktop/components/ActionBar.vue';
 import PageState from '@/instances/common/components/PageState.vue';
-import { UserService } from '@/../bindings/clustta/services/index';
+import { UserService } from '@/services';
 
 // states
 const userStore = useUserStore();

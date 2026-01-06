@@ -28,7 +28,7 @@ import ResetPassword from '@/instances/desktop/pages/ResetPassword.vue'
 import InfoBar from '@/instances/desktop/components/InfoBar.vue'
 
 // services
-import { AuthService, SettingsService } from '@/../bindings/clustta/services';
+import { AuthService, SettingsService } from '@/services';
 
 // stores
 import { useUserStore } from '@/stores/users';

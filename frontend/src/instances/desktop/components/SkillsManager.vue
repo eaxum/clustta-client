@@ -53,7 +53,7 @@ import { useIconStore } from '@/stores/icons';
 import { useUserStore } from '@/stores/users';
 import { useProfileStore } from '@/stores/profile';
 import { useNotificationStore } from '@/stores/notifications';
-import { ProfileService } from "@/../bindings/clustta/services";
+import { ProfileService } from "@/services";
 import ItemSelector from './ItemSelector.vue';
 import ActionButton from './ActionButton.vue';
 import { getSkillIcon } from '@/utils/iconMappers';

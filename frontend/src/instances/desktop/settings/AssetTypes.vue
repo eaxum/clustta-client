@@ -29,7 +29,7 @@ import { onMounted, computed, ref } from 'vue';
 import utils from '@/services/utils';
 
 // services
-import { AssetService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/services";
 
 // store imports
 import { useAssetStore } from '@/stores/assets';

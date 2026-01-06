@@ -83,8 +83,8 @@ import { ref, onMounted, onBeforeUnmount, computed, nextTick, watch } from 'vue'
 import utils from '@/services/utils';
 
 // services
-import { SyncService } from "@/../bindings/clustta/services";
-import { CheckpointService } from "@/../bindings/clustta/services";
+import { SyncService } from "@/services";
+import { CheckpointService } from "@/services";
 
 // stores/state imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -97,7 +97,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import CheckpointListSkeleton from '@/instances/common/components/CheckpointListSkeleton.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { useProjectStore } from '@/stores/projects';
-import { FSService, AssetService } from '@/../bindings/clustta/services/index';
+import { FSService, AssetService } from '@/services';
 
 // props
 const props = defineProps({

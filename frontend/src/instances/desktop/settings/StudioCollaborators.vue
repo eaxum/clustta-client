@@ -43,7 +43,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue'
 import TaskListSkeleton from '@/instances/desktop/components/TaskListSkeleton.vue'
 import { useUserStore } from '@/stores/users';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { StudioService } from "@/../bindings/clustta/services";
+import { StudioService } from "@/services";
 
 
 // states

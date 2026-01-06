@@ -66,7 +66,7 @@ const getAppIcon = (iconName) => {
 
 // imports
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { DialogService, ProjectService } from '@/../bindings/clustta/services/index';
+import { DialogService, ProjectService } from '@/services';
 import utils from '@/services/utils';
 
 // store imports

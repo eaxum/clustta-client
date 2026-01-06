@@ -31,7 +31,7 @@
 import { ref, onMounted, computed } from 'vue';
 
 // services
-import { ProjectService } from "@/../bindings/clustta/services";
+import { ProjectService } from "@/services";
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';
