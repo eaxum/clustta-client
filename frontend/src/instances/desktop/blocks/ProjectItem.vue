@@ -112,7 +112,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useIconStore } from '@/stores/icons';
-import { FSService, ProjectService, SettingsService } from '@/../bindings/clustta/services';
+import { FSService, ProjectService, SettingsService } from '@/services';
 
 // states/stores
 const userStore = useUserStore();

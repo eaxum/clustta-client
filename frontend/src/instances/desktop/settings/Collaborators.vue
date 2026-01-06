@@ -15,7 +15,7 @@
 
 // imports
 import { computed } from 'vue';
-import { ProjectService } from "@/../bindings/clustta/services";
+import { ProjectService } from "@/services";
 import utils from '@/services/utils';
 
 // store imports

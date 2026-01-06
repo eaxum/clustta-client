@@ -41,7 +41,7 @@
 import { onMounted, watchEffect, ref, computed, onUnmounted, onBeforeUnmount  } from 'vue';
 
 // services
-import { CollectionService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/services";
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -64,7 +64,7 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import { WorkflowService } from '@/../bindings/clustta/services/index';
+import { WorkflowService } from '@/services';
 
 // states
 const trayStates = useTrayStates();

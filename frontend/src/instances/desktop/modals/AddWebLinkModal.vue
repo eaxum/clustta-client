@@ -37,7 +37,7 @@ import { isValidWeblink } from '@/lib/pointer';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
-import { ClipboardService, AssetService, FSService } from "@/../bindings/clustta/services";
+import { ClipboardService, AssetService, FSService } from "@/services";
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';

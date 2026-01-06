@@ -45,7 +45,7 @@ import { useUserStore } from '@/stores/users';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import ProfilePhoto from '@/instances/common/components/ProfilePhoto.vue'
-import { StudioService } from "@/../bindings/clustta/services";
+import { StudioService } from "@/services";
 
 // states/stores
 const iconStore = useIconStore();

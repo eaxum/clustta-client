@@ -1,4 +1,4 @@
-import { SyncService } from "@/../bindings/clustta/services";
+import { SyncService } from "@/services";
 import { useNotificationStore } from "@/stores/notifications";
 import { useProjectStore } from "@/stores/projects";
 import { useTrayStates } from "@/stores/TrayStates";

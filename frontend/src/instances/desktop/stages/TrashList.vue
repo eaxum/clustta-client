@@ -26,7 +26,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 
 // services
-import { TrashService } from "@/../bindings/clustta/services";
+import { TrashService } from "@/services";
 
 // state and store imports
 import { useModalStore } from '@/stores/modals';

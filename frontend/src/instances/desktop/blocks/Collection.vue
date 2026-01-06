@@ -194,7 +194,7 @@
 <script setup>
 // imports
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch, watchEffect } from 'vue';
-import { CheckpointService, CollectionService, FSService, SyncService, AssetService } from "@/../bindings/clustta/services";
+import { CheckpointService, CollectionService, FSService, SyncService, AssetService } from "@/services";
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 import { Events } from "@wailsio/runtime";

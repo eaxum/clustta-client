@@ -53,7 +53,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 //components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
-import { ClipboardService, SettingsService, DialogService } from '@/../bindings/clustta/services/index';
+import { ClipboardService, SettingsService, DialogService } from '@/services';
 
 //header vars
 let title = 'Configure Directories';

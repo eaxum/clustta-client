@@ -179,7 +179,7 @@
 import { ref, onMounted, nextTick } from 'vue';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
-import { SettingsService, DialogService } from '@/../bindings/clustta/services';
+import { SettingsService, DialogService } from '@/services';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import RenameInput from '@/instances/desktop/components/RenameInput.vue';
 

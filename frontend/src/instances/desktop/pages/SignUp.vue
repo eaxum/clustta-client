@@ -166,7 +166,7 @@
 import { ref, reactive, computed, onMounted, onBeforeMount } from 'vue'
 import { useTrayStates } from '@/stores/TrayStates';
 import { useProjectStore } from '@/stores/projects';
-import { AuthService } from "@/../bindings/clustta/services";
+import { AuthService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useUserStore } from '@/stores/users';
 import { useIconStore } from '@/stores/icons';

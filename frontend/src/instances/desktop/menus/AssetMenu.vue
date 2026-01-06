@@ -63,8 +63,8 @@ const iconStore = useIconStore();
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 
 // services
-import { AssetService, CheckpointService, CollectionService } from "@/../bindings/clustta/services";
-import { TrashService } from "@/../bindings/clustta/services";
+import { AssetService, CheckpointService, CollectionService } from "@/services";
+import { TrashService } from "@/services";
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -83,7 +83,7 @@ import emitter from '@/lib/mitt';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import { FSService } from '@/../bindings/clustta/services';
+import { FSService } from '@/services';
 import { Clipboard } from '@wailsio/runtime';
 
 // states/stores

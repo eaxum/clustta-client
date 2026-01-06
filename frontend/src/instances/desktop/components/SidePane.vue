@@ -37,7 +37,7 @@
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 
 // services
-import { AuthService } from "@/../bindings/clustta/services";
+import { AuthService } from "@/services";
 
 // stores
 import { useProjectStore } from '@/stores/projects';

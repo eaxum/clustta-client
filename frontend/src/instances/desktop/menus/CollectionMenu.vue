@@ -84,7 +84,7 @@ import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import utils from '@/services/utils';
 
 // services
-import { CollectionService, SyncService, AssetService, TrashService, CheckpointService } from "@/../bindings/clustta/services";
+import { CollectionService, SyncService, AssetService, TrashService, CheckpointService } from "@/services";
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -104,7 +104,7 @@ import { useTemplateStore } from '@/stores/template';
 import emitter from '@/lib/mitt';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import { FSService, DialogService } from '@/../bindings/clustta/services';
+import { FSService, DialogService } from '@/services';
 import { Clipboard } from '@wailsio/runtime';
 
 // states/stores

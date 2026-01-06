@@ -88,7 +88,7 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue';
-import { AuthService } from "@/../bindings/clustta/services";
+import { AuthService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useIconStore } from '@/stores/icons';
 

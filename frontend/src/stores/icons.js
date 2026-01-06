@@ -6,7 +6,7 @@ import { useTemplateStore } from "./template";
 import {
   FSService,
   SettingsService,
-} from "@/../bindings/clustta/services/index";
+} from "@/services";
 
 let defaultIconScheme = "solid";
 await SettingsService.GetIconScheme()

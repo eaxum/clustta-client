@@ -62,7 +62,7 @@ const getAppIcon = (iconName) => {
 import { onMounted, watchEffect, onUnmounted, ref, computed } from 'vue';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
-import { CheckpointService, ClipboardService } from "@/../bindings/clustta/services";
+import { CheckpointService, ClipboardService } from "@/services";
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
@@ -80,7 +80,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 import { useNotificationStore } from '@/stores/notifications';
 import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from '@/stores/projects';
-import { DialogService } from '@/../bindings/clustta/services/index';
+import { DialogService } from '@/services';
 import { useStatusStore } from '@/stores/status';
 
 // refs

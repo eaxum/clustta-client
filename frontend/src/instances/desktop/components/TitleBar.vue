@@ -111,7 +111,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue';
-import { AppService, SettingsService } from '@/../bindings/clustta/services/index';
+import { AppService, SettingsService } from '@/services';
 import { Window, Events } from "@wailsio/runtime";
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';

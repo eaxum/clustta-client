@@ -29,7 +29,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { CollectionService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/services";
 import { useCollectionStore } from '@/stores/collections';
 import { useProjectStore } from '@/stores/projects';
 import { useProjectTemplateStore } from '@/stores/project_template';

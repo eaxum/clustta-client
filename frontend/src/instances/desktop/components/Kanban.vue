@@ -63,7 +63,7 @@
 
 <script setup>
 // imports
-import { ProjectService, CollectionService, AssetService, CheckpointService, TrashService } from "@/../bindings/clustta/services";
+import { ProjectService, CollectionService, AssetService, CheckpointService, TrashService } from "@/services";
 
 import { reactive, computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import utils from '@/services/utils';

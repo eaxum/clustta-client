@@ -32,7 +32,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useIconStore } from '@/stores/icons';
-import { DialogService, FSService } from '@/../bindings/clustta/services';
+import { DialogService, FSService } from '@/services';
 import utils from '@/services/utils';
 
 const iconStore = useIconStore();

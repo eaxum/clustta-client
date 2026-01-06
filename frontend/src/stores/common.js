@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import {
   SettingsService,
-} from "@/../bindings/clustta/services/index";
+} from "@/services";
 
 let defaultUseGrid = true;
 await SettingsService.GetUseGrid()

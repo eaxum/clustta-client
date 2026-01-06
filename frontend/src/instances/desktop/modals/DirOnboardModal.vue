@@ -151,7 +151,7 @@ import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 
-import { SettingsService, DialogService, FSService } from '@/../bindings/clustta/services/index';
+import { SettingsService, DialogService, FSService } from '@/services';
 
 //refs
 const trayStates = useTrayStates();

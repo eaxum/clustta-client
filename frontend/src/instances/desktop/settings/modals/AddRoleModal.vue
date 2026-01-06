@@ -58,7 +58,7 @@ import { useUserStore } from '@/stores/users';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
-import { UserService } from '@/../bindings/clustta/services/index';
+import { UserService } from '@/services';
 import { useProjectStore } from '@/stores/projects';
 
 // header

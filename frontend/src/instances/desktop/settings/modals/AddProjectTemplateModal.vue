@@ -41,7 +41,7 @@ import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
-import { ProjectService, FSService } from "@/../bindings/clustta/services";
+import { ProjectService, FSService } from "@/services";
 import { useProjectTemplateStore } from '@/stores/project_template';
 import { useNotificationStore } from '@/stores/notifications';
 

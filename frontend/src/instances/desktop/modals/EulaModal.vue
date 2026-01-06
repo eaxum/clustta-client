@@ -22,7 +22,7 @@ import { ref, computed, onMounted } from 'vue';
 import utils from "@/services/utils";
 
 import textContent from '@/../../EULA.txt?raw'
-import { AuthService, SettingsService } from '@/../bindings/clustta/services/index';
+import { AuthService, SettingsService } from '@/services';
 
 // stores
 import { useProjectStore } from '@/stores/projects';

@@ -139,7 +139,7 @@
 <script setup>
 // imports
 import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue';
-import { FSService } from '@/../bindings/clustta/services';
+import { FSService } from '@/services';
 import { Clipboard } from '@wailsio/runtime';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
@@ -156,7 +156,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useCommonStore } from '@/stores/common';
 
 // services
-import { AssetService, CheckpointService } from "@/../bindings/clustta/services";
+import { AssetService, CheckpointService } from "@/services";
 
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';

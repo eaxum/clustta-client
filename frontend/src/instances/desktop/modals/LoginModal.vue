@@ -23,7 +23,7 @@
 
 <script setup>
 import { ref, computed, onBeforeMount } from 'vue';
-import { AuthService, SettingsService } from "@/../bindings/clustta/services";
+import { AuthService, SettingsService } from "@/services";
 
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';

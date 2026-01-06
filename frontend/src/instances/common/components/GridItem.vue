@@ -25,7 +25,7 @@ import { useScrollStore } from '@/stores/scroll';
 import { useUntrackedItemStore } from '@/stores/untracked';
 import { useProjectStore } from '@/stores/projects';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { AssetService, CollectionService } from '@/../bindings/clustta/services';
+import { AssetService, CollectionService } from '@/services';
 import emitter from '@/lib/mitt';
 
 const menu = useMenu();

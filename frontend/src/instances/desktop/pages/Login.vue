@@ -93,7 +93,7 @@
 import { ref, reactive, computed, onMounted, onBeforeMount } from 'vue';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useProjectStore } from '@/stores/projects';
-import { AuthService } from "@/../bindings/clustta/services";
+import { AuthService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useUserStore } from '@/stores/users';
 import { useIconStore } from '@/stores/icons';
@@ -101,7 +101,7 @@ import { useThemeStore } from '@/stores/theme';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import utils from "@/services/utils";
 
-import { SettingsService } from '@/../bindings/clustta/services/index';
+import { SettingsService } from '@/services';
 
 const trayStates = useTrayStates();
 const projectStore = useProjectStore();

@@ -132,7 +132,7 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import ProgressBar from '@/instances/common/components/ProgressBar.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
-import { DialogService, FSService, SettingsService } from '@/../bindings/clustta/services/index';
+import { DialogService, FSService, SettingsService } from '@/services';
 
 // Stores
 const iconStore = useIconStore();

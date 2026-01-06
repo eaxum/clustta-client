@@ -299,7 +299,7 @@
 
 <script setup>
 import { ref, reactive, computed, onBeforeMount, nextTick } from 'vue';
-import { AuthService, ProfileService, FSService } from "@/../bindings/clustta/services";
+import { AuthService, ProfileService, FSService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useIconStore } from '@/stores/icons';

@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { useIconStore } from "./icons";
-import { TemplateService } from "@/../bindings/clustta/services";
+import { TemplateService } from "@/services";
 import { useProjectStore } from "./projects";
 
 export const useTemplateStore = defineStore("template", {

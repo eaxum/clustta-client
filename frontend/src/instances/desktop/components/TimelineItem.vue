@@ -72,7 +72,7 @@
 
 <script setup>
 import { computed, onMounted, ref, nextTick } from 'vue';
-import { CheckpointService, CollectionService, AssetService, TrashService } from "@/../bindings/clustta/services";
+import { CheckpointService, CollectionService, AssetService, TrashService } from "@/services";
 import utils from '@/services/utils';
 import { useCollectionStore } from '@/stores/collections';
 

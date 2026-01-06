@@ -28,7 +28,7 @@ import { useDndStore } from '@/stores/dnd';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useProjectStore } from '@/stores/projects';
 import { useCollectionStore } from '@/stores/collections';
-import { CollectionService, FSService } from "@/../bindings/clustta/services";
+import { CollectionService, FSService } from "@/services";
 import emitter from '@/lib/mitt';
 
 // states/stores

@@ -37,7 +37,7 @@ const getAppIcon = (iconName) => {
 import { ref, onMounted, computed } from 'vue';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { AssetService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/services";
 import { useAssetStore } from '@/stores/assets';
 import iconData from "@/data/iconData.json";
 

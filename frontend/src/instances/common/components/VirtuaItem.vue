@@ -42,7 +42,7 @@ import { useUntrackedItemStore } from '@/stores/untracked';
 import { useProjectStore } from '@/stores/projects';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useCommonStore } from '@/stores/common';
-import { CollectionService, AssetService } from '@/../bindings/clustta/services';
+import { CollectionService, AssetService } from '@/services';
 import { useIconStore } from '@/stores/icons';
 
 const menu = useMenu();

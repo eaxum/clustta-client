@@ -131,8 +131,8 @@ import { useDebounce } from '@/lib/debounce';
 import emitter from '@/lib/mitt';
 
 // services
-import { CollectionService, AssetService, CheckpointService, TrashService } from "@/../bindings/clustta/services";
-import { FSService, SyncService, DialogService } from '@/../bindings/clustta/services/index';
+import { CollectionService, AssetService, CheckpointService, TrashService } from "@/services";
+import { FSService, SyncService, DialogService } from '@/services';
 
 
 // state imports

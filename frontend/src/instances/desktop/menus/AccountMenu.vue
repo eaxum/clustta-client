@@ -101,7 +101,7 @@ import { useIconStore } from '@/stores/icons';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
 import { useAccountStore } from '@/stores/accounts';
-import { AccountService, AuthService } from "@/../bindings/clustta/services";
+import { AccountService, AuthService } from "@/services";
 
 // Components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';

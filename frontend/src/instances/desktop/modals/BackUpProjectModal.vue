@@ -193,7 +193,7 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import ProgressBar from '@/instances/common/components/ProgressBar.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
-import { DialogService, FSService, SyncService } from '@/../bindings/clustta/services/index';
+import { DialogService, FSService, SyncService } from '@/services';
 
 //refs
 const projectStore = useProjectStore();

@@ -1,5 +1,5 @@
 import { Buffer } from "buffer";
-import { FSService } from "@/../bindings/clustta/services/index";
+import { FSService } from "@/services";
 import { nextTick } from "vue";
 import { useCollectionStore } from "@/stores/collections";
 import { md5 } from "./crypto.js";

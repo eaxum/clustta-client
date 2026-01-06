@@ -1,4 +1,4 @@
-import { FSService } from "@/../bindings/clustta/services";
+import { FSService } from "@/services";
 
 export function isValidWeblink(link) {
   try {

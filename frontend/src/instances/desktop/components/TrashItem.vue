@@ -64,7 +64,7 @@ const getAppIcon = (iconName) => {
 
 import { computed, onMounted, ref, nextTick } from 'vue';
 import { useTrayStates } from '@/stores/TrayStates';
-import { TrashService } from "@/../bindings/clustta/services";
+import { TrashService } from "@/services";
 import utils from '@/services/utils';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';

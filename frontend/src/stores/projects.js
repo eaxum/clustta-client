@@ -4,7 +4,7 @@ import {
   ProjectService,
   SyncService,
   FSService,
-} from "@/../bindings/clustta/services";
+} from "@/services";
 import { useNotificationStore } from "./notifications";
 import { useCommonStore } from "./common";
 import { useUserStore } from "./users";
