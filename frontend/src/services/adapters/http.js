@@ -262,6 +262,8 @@ async function globalApiCall(endpoint, method = 'GET', body = null, options = {}
 
 /**
  * Makes an API call to a studio server
+ * In development, uses Vite proxy to bypass CORS
+ * In production, calls the studio server directly (requires CORS to be configured)
  */
 async function studioApiCall(studioUrl, endpoint, method = 'GET', body = null, options = {}) {
   const user = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER) || '{}');
@@ -274,7 +276,18 @@ async function studioApiCall(studioUrl, endpoint, method = 'GET', body = null, o
     ...options.headers,
   };
 
-  const response = await fetch(`${studioUrl}${endpoint}`, {
+  // In development, use the Vite proxy to bypass CORS
+  // The proxy reads X-Studio-URL header to know where to forward the request
+  let fetchUrl;
+  if (isDev) {
+    fetchUrl = `/studio-proxy${endpoint}`;
+    headers['X-Studio-URL'] = studioUrl;
+  } else {
+    // In production, call studio directly (assumes CORS is configured on studio servers)
+    fetchUrl = `${studioUrl}${endpoint}`;
+  }
+
+  const response = await fetch(fetchUrl, {
     method,
     headers,
     body: body ? JSON.stringify(body) : null,

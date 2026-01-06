@@ -50,6 +50,79 @@ export default defineConfig(async () => {
       },
       // Proxy API requests in web mode to bypass CORS
       proxy: isWebMode ? {
+        // Dynamic proxy for studio servers - reads target URL from X-Studio-URL header
+        // Using bypass function to handle dynamic target since router doesn't work as expected
+        '/studio-proxy': {
+          target: 'https://placeholder.invalid', // Placeholder - will be overridden
+          changeOrigin: true,
+          secure: false,
+          configure: (proxy, options) => {
+            // Store original createProxyReq to intercept target
+            const originalWeb = proxy.web.bind(proxy);
+            
+            // Override the web method to change target per-request
+            proxy.web = function(req, res, opts) {
+              const studioUrl = req.headers['x-studio-url'];
+              if (studioUrl) {
+                try {
+                  const url = new URL(studioUrl);
+                  opts = { ...opts, target: url.origin };
+                  console.log(`[Studio Proxy] Routing to: ${url.origin}`);
+                } catch (e) {
+                  console.error(`[Studio Proxy] URL parse error: ${e.message}`);
+                }
+              }
+              return originalWeb(req, res, opts);
+            };
+            
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              const studioUrl = req.headers['x-studio-url'];
+              if (studioUrl) {
+                try {
+                  const url = new URL(studioUrl);
+                  const basePath = url.pathname.replace(/\/$/, ''); // Remove trailing slash
+                  const endpoint = req.url.replace(/^\/studio-proxy/, '');
+                  const newPath = basePath + endpoint;
+                  proxyReq.path = newPath;
+                  
+                  // Set host header to match target
+                  proxyReq.setHeader('Host', url.host);
+                  
+                  // Ensure custom headers are forwarded
+                  if (req.headers['userid']) {
+                    proxyReq.setHeader('UserId', req.headers['userid']);
+                  }
+                  if (req.headers['userdata']) {
+                    proxyReq.setHeader('UserData', req.headers['userdata']);
+                  }
+                  if (req.headers['clustta-agent']) {
+                    proxyReq.setHeader('Clustta-Agent', req.headers['clustta-agent']);
+                  }
+                  
+                  console.log(`[Studio Proxy] ${req.method} -> ${url.origin}${newPath}`);
+                } catch (e) {
+                  console.error(`[Studio Proxy] URL parse error: ${e.message}`);
+                }
+              } else {
+                console.error('[Studio Proxy] Missing X-Studio-URL header');
+              }
+            });
+            
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              console.log(`[Studio Proxy] Response: ${proxyRes.statusCode}`);
+            });
+            
+            proxy.on('error', (err, req, res) => {
+              console.error('[Studio Proxy] Error:', err.message);
+              // Send error response to client
+              if (!res.headersSent) {
+                res.writeHead(502, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Proxy error', message: err.message }));
+              }
+            });
+          },
+        },
+        // Global API proxy
         '/api': {
           target: 'https://api.clustta.com',
           changeOrigin: true,
@@ -63,25 +136,15 @@ export default defineConfig(async () => {
           // Configure the proxy to pass through Set-Cookie headers
           configure: (proxy, options) => {
             proxy.on('proxyRes', (proxyRes, req, res) => {
-              // Log the response for debugging
-              console.log(`[Proxy] ${req.method} ${req.url} -> ${proxyRes.statusCode}`);
-              
-              // Log incoming cookies from request
-              if (req.headers.cookie) {
-                console.log(`[Proxy] Request Cookies: ${req.headers.cookie}`);
-              }
-              
               // Rewrite Set-Cookie headers to work with localhost
               const cookies = proxyRes.headers['set-cookie'];
               if (cookies) {
-                console.log(`[Proxy] Original Set-Cookie: ${JSON.stringify(cookies)}`);
                 proxyRes.headers['set-cookie'] = cookies.map(cookie => {
                   // Remove Domain attribute or rewrite it
                   let newCookie = cookie
                     .replace(/Domain=[^;]+;?/gi, '')
                     .replace(/Secure;?/gi, '')  // Remove Secure for localhost (http)
                     .replace(/SameSite=\w+;?/gi, 'SameSite=Lax;');  // Use Lax for localhost
-                  console.log(`[Proxy] Rewritten Set-Cookie: ${newCookie}`);
                   return newCookie;
                 });
               }
