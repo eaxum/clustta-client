@@ -207,6 +207,10 @@ const operationsActive = computed(() => {
 	return stage.operationActive || !!modals.activeModal || !!menu.activeMenu || !assetStore.assetsLoaded || stage.activeStage !== 'browser'
 });
 
+Events.On('clustta-drag-drop', async () => {
+	console.log('clustta-drag-drop')
+});
+
 Events.On('reload-view', async () => {
 	if (operationsActive.value) return
 	refresh();
