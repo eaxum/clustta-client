@@ -1,7 +1,3 @@
-// =============================================================================
-// CONFIGURATION
-// =============================================================================
-
 // In development, use the Vite proxy to bypass CORS
 // In production, use the actual API URL
 export const isDev = import.meta.env.DEV;
