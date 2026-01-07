@@ -343,7 +343,7 @@ const collaboratorsList = computed(() => {
     return []
   }
   const entity = props.entity;
-  if (!entity.assignee_ids.length) {
+  if (!entity.assignee_ids?.length) {
     return []
   }
   const projectCollaborators = userStore.getProjectCollaborators

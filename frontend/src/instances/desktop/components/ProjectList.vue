@@ -77,10 +77,12 @@ import { computed, ref, onMounted } from 'vue';
 // stores/state imports
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
+import { usePlatformStore } from '@/stores/platform';
 
 // refs
 const stage = useStageStore();
 const projectStore = useProjectStore();
+const platformStore = usePlatformStore();
 const listItem = ref(null);
 
 const props = defineProps({
@@ -96,13 +98,13 @@ const activeProjectIndex = computed(() => {
 
 const projects = computed(() => {
 	const pinnedProjects = projectStore.pinnedProjects;
-	return projectStore.projects.filter((project) => project.is_downloaded && pinnedProjects?.includes(project.id));
+	return projectStore.projects.filter((project) => (project.is_downloaded || platformStore.isWeb) && pinnedProjects?.includes(project.id));
 });
 
 const recents = computed(() => {
 	const pinnedProjects = projectStore.pinnedProjects;
 	const recentProjects = projectStore.recentProjects;
-	let recentProjectsAvailable = projectStore.projects.filter((project) => project.is_downloaded && recentProjects?.includes(project.id) && !pinnedProjects?.includes(project.id));
+	let recentProjectsAvailable = projectStore.projects.filter((project) => (project.is_downloaded || platformStore.isWeb) && recentProjects?.includes(project.id) && !pinnedProjects?.includes(project.id));
 
 	// sort recent projects by most recent
 	recentProjectsAvailable.sort((a, b) => {

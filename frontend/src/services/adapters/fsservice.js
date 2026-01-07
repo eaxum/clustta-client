@@ -27,7 +27,15 @@ export const FSService = {
   },
 
   // Checks if path exists
-  Exists: async (path) => false,
+  // In web mode, all project database paths (.clst files) are considered to exist
+  // since we access them through the API/SQLite adapter
+  Exists: async (path) => {
+    // Project database files (.clst) are always available in web mode
+    if (path && path.endsWith('.clst')) {
+      return true;
+    }
+    return false;
+  },
 
   // Checks if path is a directory
   IsDirectory: async (path) => false,

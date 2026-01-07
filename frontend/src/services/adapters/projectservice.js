@@ -42,13 +42,14 @@ export const ProjectService = {
     }
 
     // Parse projects for web mode with empty preview initially
+    // In web mode, is_downloaded is always true since we access data directly from server
     const parsedProjects = projects.map(project => ({
       ...project,
       has_remote: true,
       uri: `${url}/${project.name}`,
       remote: `${url}/${project.name}`,
       working_directory: '',
-      is_downloaded: false,
+      is_downloaded: true,  // Web mode: always true since we pull data on-demand
       is_tracked: true,
       sync_token: project.sync_token || '',
       preview: '',
@@ -56,7 +57,7 @@ export const ProjectService = {
 
     // Fire-and-forget: fetch previews async without blocking
     parsedProjects.forEach(project => {
-      fetchProjectPreview(project, url);
+      // fetchProjectPreview(project, url);
     });
 
     return parsedProjects;

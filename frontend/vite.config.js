@@ -1,6 +1,8 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { join } from "path";
+import http from "http";
+import https from "https";
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -48,8 +50,96 @@ export default defineConfig(async () => {
         // 3. tell vite to ignore watching `src-tauri`
         ignored: ["**/src-tauri/**"],
       },
+      // Custom middleware to handle special proxy cases (like GET-with-body)
+      // This runs before the proxy middleware
+      ...(isWebMode ? {
+        // Use configureServer hook via plugins instead - but we can use middleware option
+      } : {}),
       // Proxy API requests in web mode to bypass CORS
       proxy: isWebMode ? {
+        // Special proxy for /data endpoint that requires GET with body
+        // Browser can't send body with GET, so we receive POST and forward as GET with body
+        '/studio-data': {
+          target: 'https://placeholder.invalid',
+          changeOrigin: true,
+          secure: false,
+          configure: (proxy, options) => {
+            // We'll completely bypass the proxy and use custom Node.js http(s) request
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              // Abort the proxy request - we'll handle it ourselves
+              proxyReq.destroy();
+            });
+            
+            // Override to handle it manually
+            const originalWeb = proxy.web.bind(proxy);
+            proxy.web = async function(req, res, opts) {
+              const studioUrl = req.headers['x-studio-url'];
+              if (!studioUrl) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Missing X-Studio-URL header' }));
+                return;
+              }
+              
+              try {
+                const targetUrl = new URL(studioUrl);
+                const endpoint = req.url.replace(/^\/studio-data/, '');
+                const fullPath = targetUrl.pathname.replace(/\/$/, '') + endpoint;
+                
+                console.log(`[Studio Data Proxy] Converting POST → GET with body`);
+                console.log(`[Studio Data Proxy] Target: ${targetUrl.origin}${fullPath}`);
+                
+                // Collect request body
+                const chunks = [];
+                req.on('data', chunk => chunks.push(chunk));
+                req.on('end', () => {
+                  const body = Buffer.concat(chunks);
+                  console.log(`[Studio Data Proxy] Body: ${body.toString()}`);
+                  
+                  // Use correct protocol module
+                  const httpModule = targetUrl.protocol === 'https:' ? https : http;
+                  
+                  const proxyOptions = {
+                    hostname: targetUrl.hostname,
+                    port: targetUrl.port || (targetUrl.protocol === 'https:' ? 443 : 80),
+                    path: fullPath,
+                    method: 'GET', // Force GET even though browser sent POST
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Content-Length': body.length,
+                      'Clustta-Agent': req.headers['clustta-agent'] || 'Clustta/Web',
+                    },
+                  };
+                  
+                  const proxyRequest = httpModule.request(proxyOptions, (proxyResponse) => {
+                    console.log(`[Studio Data Proxy] Response: ${proxyResponse.statusCode}`);
+                    
+                    // Forward status and headers
+                    res.writeHead(proxyResponse.statusCode, proxyResponse.headers);
+                    
+                    // Pipe response body
+                    proxyResponse.pipe(res);
+                  });
+                  
+                  proxyRequest.on('error', (err) => {
+                    console.error(`[Studio Data Proxy] Error: ${err.message}`);
+                    if (!res.headersSent) {
+                      res.writeHead(502, { 'Content-Type': 'application/json' });
+                      res.end(JSON.stringify({ error: 'Proxy error', message: err.message }));
+                    }
+                  });
+                  
+                  // Write the body to the GET request (Node.js allows this)
+                  proxyRequest.write(body);
+                  proxyRequest.end();
+                });
+              } catch (e) {
+                console.error(`[Studio Data Proxy] Error: ${e.message}`);
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Proxy error', message: e.message }));
+              }
+            };
+          },
+        },
         // Dynamic proxy for studio servers - reads target URL from X-Studio-URL header
         // Using bypass function to handle dynamic target since router doesn't work as expected
         '/studio-proxy': {

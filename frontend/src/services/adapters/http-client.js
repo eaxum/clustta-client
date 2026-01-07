@@ -105,3 +105,50 @@ export function setActiveStudioUrl(url) {
 export function getSessionId() {
   return localStorage.getItem(STORAGE_KEYS.SESSION_ID) || '';
 }
+
+/**
+ * Fetch binary data from studio server (for protobuf endpoints like /data)
+ * Uses special /studio-data proxy that converts POST → GET-with-body
+ * Returns ArrayBuffer instead of JSON
+ */
+export async function studioDataFetch(studioUrl, endpoint, method = 'POST', body = null, options = {}) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Clustta-Agent': CLUSTTA_AGENT,
+    ...options.headers,
+  };
+
+  // In development, use the special /studio-data proxy
+  // This proxy converts browser POST → server GET with body (Node.js can do this)
+  let fetchUrl;
+  if (isDev) {
+    // Use /studio-data proxy for data endpoints (handles GET-with-body limitation)
+    fetchUrl = `/studio-data${endpoint}`;
+    headers['X-Studio-URL'] = studioUrl;
+  } else {
+    // In production, we'd need a similar proxy or backend service
+    fetchUrl = `${studioUrl}${endpoint}`;
+  }
+
+  console.log('[studioDataFetch] Request:', { fetchUrl, method, body });
+
+  const response = await fetch(fetchUrl, {
+    method: 'POST', // Always POST to proxy - proxy converts to GET with body
+    headers,
+    body: body ? JSON.stringify(body) : null,
+  });
+
+  if (!response.ok) {
+    let errorMessage;
+    try {
+      errorMessage = await response.text();
+      console.error('[studioDataFetch] Server error:', response.status, errorMessage);
+    } catch {
+      errorMessage = response.statusText;
+    }
+    throw new Error(errorMessage);
+  }
+
+  // Return as ArrayBuffer for binary data
+  return response.arrayBuffer();
+}

@@ -11,6 +11,12 @@ export const SettingsService = {
   IsProjectGridView: async () => getSetting('projectGridView', true),
   // Sets project view to grid or list mode
   SetProjectGridView: async (value) => setSetting('projectGridView', value),
+  // Toggles between grid and list view for projects
+  ToggleProjectGridView: async () => {
+    const current = getSetting('projectGridView', true);
+    setSetting('projectGridView', !current);
+    return !current;
+  },
   // Returns whether to use grid layout
   GetUseGrid: async () => getSetting('useGrid', true),
   // Sets grid layout preference
@@ -106,6 +112,21 @@ export const SettingsService = {
   GetPinnedProjects: async (studioName) => getSetting(`pinnedProjects_${studioName}`, []),
   // Sets pinned projects for a studio
   SetPinnedProjects: async (studioName, projects) => setSetting(`pinnedProjects_${studioName}`, projects),
+  // Pins a project to favorites (returns updated list)
+  PinProject: async (studioName, projectId) => {
+    const pinned = getSetting(`pinnedProjects_${studioName}`, []);
+    if (!pinned.includes(projectId)) {
+      pinned.push(projectId);
+      setSetting(`pinnedProjects_${studioName}`, pinned);
+    }
+    return pinned;
+  },
+  // Unpins a project from favorites (returns updated list)
+  UnpinProject: async (studioName, projectId) => {
+    const pinned = getSetting(`pinnedProjects_${studioName}`, []).filter(id => id !== projectId);
+    setSetting(`pinnedProjects_${studioName}`, pinned);
+    return pinned;
+  },
   // Adds a project to pinned list
   AddPinnedProject: async (studioName, projectId) => {
     const pinned = getSetting(`pinnedProjects_${studioName}`, []);
@@ -123,6 +144,8 @@ export const SettingsService = {
   },
   // Returns recent projects for a studio
   GetRecentProjects: async (studioName) => getSetting(`recentProjects_${studioName}`, []),
+  // Sets recent projects for a studio
+  SetRecentProjects: async (studioName, projects) => setSetting(`recentProjects_${studioName}`, projects),
   // Adds a project to recent list
   AddRecentProject: async (studioName, projectId) => {
     let recent = getSetting(`recentProjects_${studioName}`, []);
@@ -159,7 +182,64 @@ export const SettingsService = {
   CheckAllLocationsHealth: async () => [{ healthy: true, locationId: 'web' }],
 
   // Returns workspaces for a project
-  GetProjectWorkspaces: async (projectId) => getSetting(`workspaces_${projectId}`, []),
+  GetProjectWorkspaces: async (projectId) => {
+    // Get the active user from localStorage
+    let user = null;
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        user = JSON.parse(userStr);
+      }
+    } catch (error) {
+      console.warn('Failed to get active user:', error);
+    }
+    
+    const defaultWorkspace = {
+      name: 'Default',
+      filters: {
+        taskFilters: [],
+        entityFilters: [],
+        resourceFilters: [],
+        showEntities: true,
+        showTasks: true,
+        showResources: true,
+        showChildEntities: true,
+        showChildTasks: true,
+        showDependencies: true,
+        onlyAssets: false,
+      },
+      workspaceSearchQuery: '',
+      collection: null,
+    };
+    
+    const assignedTasksWorkspace = {
+      name: 'My Tasks',
+      filters: {
+        taskFilters: user ? [{
+          email: user.email,
+          first_name: user.first_name,
+          id: user.id,
+          last_name: user.last_name,
+          type: 'assignation',
+          username: user.username,
+        }] : [],
+        entityFilters: [],
+        resourceFilters: [],
+        showTasks: true,
+        onlyAssets: true,
+        showEntities: true,
+        showResources: true,
+        showChildEntities: true,
+        showChildTasks: true,
+        showDependencies: true,
+      },
+      workspaceSearchQuery: '',
+      collection: null,
+    };
+    
+    const customWorkspaces = getSetting(`workspaces_${projectId}`, []);
+    return [defaultWorkspace, assignedTasksWorkspace, ...customWorkspaces];
+  },
   // Adds a workspace to a project
   AddProjectWorkspace: async (projectId, workspace) => {
     const workspaces = getSetting(`workspaces_${projectId}`, []);
@@ -167,8 +247,8 @@ export const SettingsService = {
     setSetting(`workspaces_${projectId}`, workspaces);
   },
   // Removes a workspace from a project
-  RemoveProjectWorkspace: async (projectId, workspaceId) => {
-    const workspaces = getSetting(`workspaces_${projectId}`, []).filter(w => w.id !== workspaceId);
+  RemoveProjectWorkspace: async (projectId, workspaceName) => {
+    const workspaces = getSetting(`workspaces_${projectId}`, []).filter(w => w.name !== workspaceName);
     setSetting(`workspaces_${projectId}`, workspaces);
   },
 

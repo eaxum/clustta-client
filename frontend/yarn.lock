@@ -635,6 +635,11 @@ fsevents@~2.3.2, fsevents@~2.3.3:
   resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.3.3.tgz#cac6407785d03675a2a5e1a5305c697b347d90d6"
   integrity sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==
 
+fzstd@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/fzstd/-/fzstd-0.1.1.tgz#a3da29f2fff45070ca90073f866d97e0c56a4a52"
+  integrity sha512-dkuVSOKKwh3eas5VkJy1AW1vFpet8TA/fGmVA5krThl8YcOVE/8ZIoEA1+U1vEn5ckxxhLirSdY837azmbaNHA==
+
 ieee754@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/ieee754/-/ieee754-1.2.1.tgz#8eb7a10a63fff25d15a57b001586d177d1b0d352"
@@ -761,6 +766,11 @@ source-map-js@^1.2.0, source-map-js@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/source-map-js/-/source-map-js-1.2.1.tgz#1ce5650fddd87abc099eda37dcff024c2667ae46"
   integrity sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==
+
+sql.js@^1.13.0:
+  version "1.13.0"
+  resolved "https://registry.yarnpkg.com/sql.js/-/sql.js-1.13.0.tgz#f73cba7eaba0bc881f466c9149e00cf598fb01e0"
+  integrity sha512-RJbVP1HRDlUUXahJ7VMTcu9Rm1Nzw+EBpoPr94vnbD4LwR715F3CcxE2G2k45PewcaZ57pjetYa+LoSJLAASgA==
 
 undici-types@~6.21.0:
   version "6.21.0"

@@ -54,7 +54,7 @@
 
         <div v-if="!isEditing" class="project-item-content" :class="{ 'project-item-content-cards': cardView }">
           <div class="project-item-details">
-            <span v-if="isCreatingProject">Adding {{ project.name }} to Clustta</span>
+            <span v-if="isCreatingProject">Launching {{ project.name }}</span>
             <span v-else>{{ utils.capitalizeStr(project.name) }}</span>
           </div>
         </div>
@@ -73,11 +73,10 @@
             v-tooltip="'Project not synced'" />
           <ActionButton v-if="!platformStore.isWeb && isProjectPinned && project.is_downloaded" :icon="getAppIcon('unpin')"
             v-tooltip="'Unpin Project'" @click="unpinProject" />
-          <ActionButton v-if="project.is_downloaded || platformStore.isWeb" :icon="getAppIcon('launch')" v-tooltip="'Go to project'"
+          <ActionButton v-if="project.is_downloaded || platformStore.isWeb && !isCreatingProject" :icon="getAppIcon('launch')" v-tooltip="'Go to project'"
             @click="goToProject(project)" />
-          <div v-if="isCreatingProject" class="loading-spinner">
-            <img class="small-icons loading-project-icon" :src="getAppIcon('loading')">
-          </div>
+          <ActionButton v-else :isLoading="true" :icon="getAppIcon('loading')"  
+					v-tooltip="'Fetching data'" />
           <ActionButton v-if="!platformStore.isWeb && !project.has_remote" :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="'Open folder'"
             @click="revealInExplorer" />
           <ActionButton v-else-if="!platformStore.isWeb && project.is_downloaded" :icon="getAppIcon('folder-arrow-up-right')"
@@ -113,7 +112,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useIconStore } from '@/stores/icons';
 import { usePlatformStore } from '@/stores/platform';
-import { FSService, ProjectService, SettingsService } from '@/services';
+import { FSService, ProjectService, SettingsService, SyncService } from '@/services';
 
 // states/stores
 const userStore = useUserStore();
@@ -245,7 +244,7 @@ const revealInExplorer = async () => {
 
 // Launch project - clone if not downloaded, otherwise navigate to it
 const launchProject = async (project) => {
-  if (!project.is_downloaded && project.is_tracked) {
+  if (!platformStore.isWeb && !project.is_downloaded && project.is_tracked) {
     cloneProject(project);
   } else {
     goToProject(project);
@@ -260,6 +259,7 @@ const cloneProject = async (project) => {
 
 // Navigate to project or create if untracked
 const goToProject = async (project) => {
+  console.log(project)
   if (!project.is_tracked) {
     try {
       isCreatingProject.value = true;
@@ -293,6 +293,25 @@ const goToProject = async (project) => {
       isCreatingProject.value = false;
     }
   } else {
+    if (!platformStore.isWeb && !project.is_downloaded) {
+      return;
+    }
+    
+    // In web mode, sync project data before navigating
+    if (platformStore.isWeb) {
+      try {
+        isCreatingProject.value = true;
+        const studioUrl = projectStore.studioUrl;
+        await SyncService.SyncData(project.name, studioUrl, false, {});
+        isCreatingProject.value = false;
+      } catch (error) {
+        console.error('Error syncing project data:', error);
+        notificationStore.errorNotification('Error loading project', error);
+        isCreatingProject.value = false;
+        return;
+      }
+    }
+    
     projectStore.gotoProject(project);
   }
 };

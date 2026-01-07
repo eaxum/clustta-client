@@ -54,6 +54,7 @@ const settingsComponents = {
 
 // computed props
 const settingsItems = computed(() => {
+	console.log(userStore.user)
 	const canChangeRole = userStore.canDo('change_role');
 	const canViewTemplate = userStore.canDo('view_template');
 	const isProjectRemote = projectStore.activeProject.has_remote;
