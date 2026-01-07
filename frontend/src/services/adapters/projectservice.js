@@ -1,4 +1,35 @@
 import { studioApiCall, getActiveStudioUrl, setActiveStudioUrl } from './http-client.js';
+import { CLUSTTA_AGENT, STORAGE_KEYS, isDev } from './config.js';
+
+// Fetches preview for a single project and updates it in place
+const fetchProjectPreview = async (project, studioUrl) => {
+  try {
+    const user = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER) || '{}');
+    const headers = {
+      'Clustta-Agent': CLUSTTA_AGENT,
+      'UserId': user.id || '',
+      'UserData': JSON.stringify(user),
+    };
+
+    let fetchUrl;
+    if (isDev) {
+      fetchUrl = `/studio-proxy/${project.name}/preview`;
+      headers['X-Studio-URL'] = studioUrl;
+    } else {
+      fetchUrl = `${studioUrl}/${project.name}/preview`;
+    }
+
+    const response = await fetch(fetchUrl, { headers });
+    if (response.ok) {
+      const blob = await response.blob();
+      if (blob.size > 0) {
+        project.preview = URL.createObjectURL(blob);
+      }
+    }
+  } catch {
+    // Silently fail - preview is optional
+  }
+};
 
 export const ProjectService = {
   // Returns all projects for a studio
@@ -10,8 +41,8 @@ export const ProjectService = {
       return [];
     }
 
-    // Parse projects for web mode
-    return projects.map(project => ({
+    // Parse projects for web mode with empty preview initially
+    const parsedProjects = projects.map(project => ({
       ...project,
       has_remote: true,
       uri: `${url}/${project.name}`,
@@ -20,7 +51,15 @@ export const ProjectService = {
       is_downloaded: false,
       is_tracked: true,
       sync_token: project.sync_token || '',
+      preview: '',
     }));
+
+    // Fire-and-forget: fetch previews async without blocking
+    parsedProjects.forEach(project => {
+      fetchProjectPreview(project, url);
+    });
+
+    return parsedProjects;
   },
 
   // Creates a new project in the studio

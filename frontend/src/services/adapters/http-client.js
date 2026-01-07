@@ -100,3 +100,8 @@ export function getActiveStudioUrl() {
 export function setActiveStudioUrl(url) {
   localStorage.setItem(STORAGE_KEYS.STUDIO_URL, url);
 }
+
+// Returns the session ID from storage
+export function getSessionId() {
+  return localStorage.getItem(STORAGE_KEYS.SESSION_ID) || '';
+}
