@@ -25,18 +25,18 @@
           <div v-if="!isEditing" class="project-item-actions">
             <ActionButton v-if="project.has_remote && project.is_unsynced" :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true"
               v-tooltip="'Project not synced'" />
-            <ActionButton v-if="isProjectPinned && project.is_downloaded" :icon="getAppIcon('unpin')"
+            <ActionButton v-if="!platformStore.isWeb && isProjectPinned && project.is_downloaded" :icon="getAppIcon('unpin')"
               v-tooltip="'Unpin Project'" @click="unpinProject" />
-            <ActionButton v-if="project.is_downloaded" :icon="getAppIcon('launch')" v-tooltip="'Go to project'"
+            <ActionButton v-if="project.is_downloaded || platformStore.isWeb" :icon="getAppIcon('launch')" v-tooltip="'Go to project'"
               @click="goToProject(project)" />
             <div v-if="isCreatingProject" class="loading-spinner">
               <img class="small-icons loading-project-icon" :src="getAppIcon('loading')">
             </div>
-            <ActionButton v-if="!project.has_remote" :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="'Open folder'"
+            <ActionButton v-if="!platformStore.isWeb && !project.has_remote" :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="'Open folder'"
               @click="revealInExplorer" />
-            <ActionButton v-else-if="project.is_downloaded" :icon="getAppIcon('folder-arrow-up-right')"
+            <ActionButton v-else-if="!platformStore.isWeb && project.is_downloaded" :icon="getAppIcon('folder-arrow-up-right')"
               v-tooltip="project.is_downloaded ? 'Open folder' : 'Download Project'" @click="revealInExplorer" />
-            <ActionButton v-else :icon="getAppIcon('cloud-down')" v-tooltip="'Download Project'"
+            <ActionButton v-else-if="!platformStore.isWeb" :icon="getAppIcon('cloud-down')" v-tooltip="'Download Project'"
               @click="cloneProject(project)" />
           </div>
         </div>
@@ -71,18 +71,18 @@
         <div v-if="!isEditing" class="project-item-actions">
           <ActionButton v-if="project.has_remote && project.is_unsynced" :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true"
             v-tooltip="'Project not synced'" />
-          <ActionButton v-if="isProjectPinned && project.is_downloaded" :icon="getAppIcon('unpin')"
+          <ActionButton v-if="!platformStore.isWeb && isProjectPinned && project.is_downloaded" :icon="getAppIcon('unpin')"
             v-tooltip="'Unpin Project'" @click="unpinProject" />
-          <ActionButton v-if="project.is_downloaded" :icon="getAppIcon('launch')" v-tooltip="'Go to project'"
+          <ActionButton v-if="project.is_downloaded || platformStore.isWeb" :icon="getAppIcon('launch')" v-tooltip="'Go to project'"
             @click="goToProject(project)" />
           <div v-if="isCreatingProject" class="loading-spinner">
             <img class="small-icons loading-project-icon" :src="getAppIcon('loading')">
           </div>
-          <ActionButton v-if="!project.has_remote" :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="'Open folder'"
+          <ActionButton v-if="!platformStore.isWeb && !project.has_remote" :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="'Open folder'"
             @click="revealInExplorer" />
-          <ActionButton v-else-if="project.is_downloaded" :icon="getAppIcon('folder-arrow-up-right')"
+          <ActionButton v-else-if="!platformStore.isWeb && project.is_downloaded" :icon="getAppIcon('folder-arrow-up-right')"
             v-tooltip="project.is_downloaded ? 'Open folder' : 'Download Project'" @click="revealInExplorer" />
-          <ActionButton v-else :icon="getAppIcon('cloud-down')" v-tooltip="'Download Project'"
+          <ActionButton v-else-if="!platformStore.isWeb" :icon="getAppIcon('cloud-down')" v-tooltip="'Download Project'"
             @click="cloneProject(project)" />
         </div>
       </div>
@@ -112,6 +112,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useIconStore } from '@/stores/icons';
+import { usePlatformStore } from '@/stores/platform';
 import { FSService, ProjectService, SettingsService } from '@/services';
 
 // states/stores
@@ -123,6 +124,7 @@ const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
 const iconStore = useIconStore();
+const platformStore = usePlatformStore();
 
 // props
 const props = defineProps({
@@ -147,8 +149,9 @@ const isProjectInFocus = computed(() => {
   return projectStore.activeProject?.id === props.project.id;
 });
 
-// Check if project is pinned
+// Check if project is pinned (not applicable in web mode)
 const isProjectPinned = computed(() => {
+  if (platformStore.isWeb) return false;
   const projectId = props.project.id;
   const pinnedProjects = projectStore.pinnedProjects;
   return pinnedProjects?.includes(projectId);
@@ -296,7 +299,7 @@ const goToProject = async (project) => {
 
 // Open context menu for project
 const openMenu = (event) => {
-  if (!props.project.is_downloaded) return;
+  if (!props.project.is_downloaded && !platformStore.isWeb) return;
   if (!props.project.is_tracked) {
     trayStates.popUpModalTitle = `Add "${props.project.name}" to Clustta?`;
     trayStates.popUpModalMessage = "This project is not yet in Clustta. Click CONFIRM to add it and start tracking your work.";

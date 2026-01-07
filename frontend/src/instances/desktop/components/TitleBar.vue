@@ -62,7 +62,7 @@
           v-tooltip="'About Clustta'">
       </div>
 
-    <div v-else-if="!isWebMode" class="titlebar-buttons">
+    <div v-else-if="!platformStore.isWeb" class="titlebar-buttons">
       <!-- <ToggleSwitch :switchValueProp="themeStore.isDarkMode" @click="toggleTheme()" />
       <CheckBox v-model="themeStore.isDarkMode" @change="toggleTheme()" /> -->
 
@@ -130,6 +130,7 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import CheckBox from '@/instances/common/components/CheckBox.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { useStudioStore } from '@/stores/studio';
+import { usePlatformStore } from '@/stores/platform';
 
 const stage = useStageStore();
 const userStore = useUserStore();
@@ -141,8 +142,8 @@ const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
 const themeStore = useThemeStore();
 const collectionStore = useCollectionStore();
+const platformStore = usePlatformStore();
 
-const isWebMode = import.meta.env.VITE_PLATFORM === 'web';
 const os = ref('');
 const studioTabsParent = ref(null);
 

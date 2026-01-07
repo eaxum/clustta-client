@@ -1,5 +1,6 @@
 import { globalApiCall } from './http-client.js';
 import { setSetting, getSetting } from './storage.js';
+import { StudioService } from './studioservice.js';
 
 export const SettingsService = {
   // Returns whether to use alternate URL for studio connections
@@ -51,7 +52,7 @@ export const SettingsService = {
         name: 'Personal',
         url: '/web/projects',
         alt_url: '',
-        users: [],
+        Users: [],
       };
 
       const studios = [personal];
@@ -60,12 +61,23 @@ export const SettingsService = {
 
       for (const userStudio of studioArray) {
         if (userStudio && userStudio.name) {
+          // Fetch users for each studio (matching Go behavior)
+          let studioUsers = [];
+          try {
+            const studioId = userStudio.id || '';
+            if (studioId) {
+              studioUsers = await StudioService.GetStudioUsers(studioId);
+            }
+          } catch (err) {
+            console.warn(`Failed to fetch users for studio ${userStudio.name}:`, err);
+          }
+
           studios.push({
             id: userStudio.id || '',
             name: userStudio.name || '',
             url: userStudio.url || userStudio.URL || '',
             alt_url: userStudio.alt_url || userStudio.AltURL || '',
-            users: userStudio.users || userStudio.Users || [],
+            Users: studioUsers,
           });
         }
       }
@@ -85,7 +97,7 @@ export const SettingsService = {
         name: 'Personal',
         url: '/web/projects',
         alt_url: '',
-        users: [],
+        Users: [],
       }];
     }
   },
