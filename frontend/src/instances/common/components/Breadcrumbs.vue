@@ -19,9 +19,9 @@
         </div>
 
         
-      <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyDirectoryPath()"
+      <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyDirectoryPath()"
         v-tooltip="'Copy Path'" />
-      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="false" :fullWidth="false" @click="revealInExplorer()"
+      <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-up-right')" :showLabel="false" :fullWidth="false" @click="revealInExplorer()"
         v-tooltip="'Show in Explorer'" />
 
 
@@ -56,6 +56,7 @@ import { useProjectStore } from '@/stores/projects';
 import { useNotificationStore } from '@/stores/notifications';
 import { useStageStore } from '@/stores/stages';
 import { useAssetStore } from '@/stores/assets';
+import { usePlatformStore } from '@/stores/platform';
 
 const stage = useStageStore();
 const iconStore = useIconStore();
@@ -64,6 +65,7 @@ const collectionStore = useCollectionStore();
 const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
 const assetStore = useAssetStore();
+const platformStore = usePlatformStore();
 
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
 

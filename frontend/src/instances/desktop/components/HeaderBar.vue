@@ -70,7 +70,7 @@
 
 			</div>
 
-			<div class="remote-project-actions" v-if="projectStore.getActiveProject?.has_remote && projectStore.getActiveProject.is_downloaded && enabledStages.includes(stage.selectedStage)">
+			<div class="remote-project-actions" v-if="projectStore.getActiveProject?.has_remote && (projectStore.getActiveProject.is_downloaded || platformStore.isWeb) && enabledStages.includes(stage.selectedStage)">
 
 				<div class="actions-divider" ></div>
 				
@@ -116,6 +116,7 @@ import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
+import { usePlatformStore } from '@/stores/platform';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
@@ -133,12 +134,13 @@ const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const userStore = useUserStore();
+const platformStore = usePlatformStore();
 
 const emits = defineEmits(["update-search", "toggle-search"]);
 const enabledStages = ref(['browser', 'projectSettings']);
 
 // computed props
-const projectIsActive = computed(() => { return projectStore.getActiveProject && projectStore.getActiveProject.is_downloaded });
+const projectIsActive = computed(() => { return projectStore.getActiveProject && (platformStore.isWeb || projectStore.getActiveProject.is_downloaded) });
 
 // refs
 const fullTaskPath = ref(true);

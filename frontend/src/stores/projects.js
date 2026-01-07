@@ -132,6 +132,7 @@ export const useProjectStore = defineStore("projects", {
       commonStore.workspaces = await SettingsService.GetProjectWorkspaces(
         project.id
       );
+      console.log(commonStore.workspaces)
     },
     async gotoProject(project) {
       const commonStore = useCommonStore();
@@ -144,11 +145,7 @@ export const useProjectStore = defineStore("projects", {
       
  
       await this.setActiveProject(project);
-
-      if (!project.is_downloaded) {
-        return;
-      }
-
+      console.log('[Active project]', project?.name)
       commonStore.activeWorkspace = "Default";
       commonStore.resetFilters();
 

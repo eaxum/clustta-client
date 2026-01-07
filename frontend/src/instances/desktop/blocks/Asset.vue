@@ -576,7 +576,7 @@ const taskName = computed(() => {
   const extension = commonStore.hideExtensions ? '' : task.name ? task.extension : '';
   const taskName = task.name ? task.name : task.extension;
   const isDirectParent = props.task.id === task.entity_id;
-  const taskPath = task.task_path.replace(/\//g, ' / ').replace(/^( \/ )?/, '');
+  const taskPath = task.task_path?.replace(/\//g, ' / ').replace(/^( \/ )?/, '');
 
   if (commonStore.showFullPath) {
     return taskPath + extension

@@ -1472,7 +1472,6 @@ const refresh = async () => {
 	assetStore.assetsLoaded = true;
 
 	collectionStore.loadCollectionStateFlags(); 
-
 };
 
 // Lightweight refresh: fetches children with search/filter support, processes icons, updates root data and state flags
@@ -1554,6 +1553,7 @@ const softRefresh = async () => {
 	// Update state
 	assetStore.assetsLoaded = true;
 	collectionStore.loadCollectionStateFlags(); 
+	console.log(children)
 };
 
 watch(() => assetStore.assetsLoaded, async () => {

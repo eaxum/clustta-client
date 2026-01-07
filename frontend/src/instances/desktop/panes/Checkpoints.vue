@@ -158,6 +158,7 @@ const refreshCheckpoints = async () => {
     if (!author) {
       // Try fetching from global server before skipping
       try {
+        console.log(taskCheckpoints)
         author = await userStore.fetchUserData(authorId);
         if (author) {
           userCache[authorId] = author;

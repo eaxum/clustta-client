@@ -56,6 +56,7 @@ export const useUserStore = defineStore("users", {
       this.selectedUser = user;
     },
     userProfileColor(uuid) {
+      if (!uuid) return '#cccccc'; // Default gray color for undefined/null
       const parts = uuid.split("-");
       const hexCode = parts[0];
       const rgbHex = hexCode.length > 6 ? hexCode.substring(0, 6) : hexCode;
