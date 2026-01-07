@@ -82,7 +82,13 @@ export async function studioApiCall(studioUrl, endpoint, method = 'GET', body = 
   if (contentType && contentType.includes('application/json')) {
     return response.json();
   }
-  return response.text();
+
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
 }
 
 // Returns the active studio URL from storage
