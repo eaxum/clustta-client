@@ -5,7 +5,22 @@ export const ProjectService = {
   GetStudioProjects: async (url, studioName) => {
     setActiveStudioUrl(url);
     const projects = await studioApiCall(url, '/projects', 'GET');
-    return Array.isArray(projects) ? projects : [];
+    
+    if (!Array.isArray(projects)) {
+      return [];
+    }
+
+    // Parse projects for web mode
+    return projects.map(project => ({
+      ...project,
+      has_remote: true,
+      uri: `${url}/${project.name}`,
+      remote: `${url}/${project.name}`,
+      working_directory: '',
+      is_downloaded: false,
+      is_tracked: true,
+      sync_token: project.sync_token || '',
+    }));
   },
 
   // Creates a new project in the studio
