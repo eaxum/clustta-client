@@ -1,14 +1,6 @@
-// =============================================================================
-// STORAGE UTILITIES
-// =============================================================================
-// localStorage helpers, multi-account management, and migration logic
-
 import { STORAGE_KEYS } from './config.js';
 
-// =============================================================================
-// SETTINGS HELPERS
-// =============================================================================
-
+// Returns all settings from localStorage
 export function getSettings() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}');
@@ -17,25 +9,20 @@ export function getSettings() {
   }
 }
 
+// Sets a single setting value
 export function setSetting(key, value) {
   const settings = getSettings();
   settings[key] = value;
   localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
 }
 
+// Returns a setting value with optional default
 export function getSetting(key, defaultValue) {
   const settings = getSettings();
   return settings[key] !== undefined ? settings[key] : defaultValue;
 }
 
-// =============================================================================
-// MULTI-ACCOUNT HELPERS
-// =============================================================================
-
-/**
- * Get the multi-account token structure from localStorage
- * Mirrors Go's MultiAccountToken structure
- */
+// Returns the multi-account token structure from localStorage
 export function getMultiAccountToken() {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.ACCOUNTS);
@@ -54,9 +41,7 @@ export function getMultiAccountToken() {
   }
 }
 
-/**
- * Save the multi-account token structure to localStorage
- */
+// Saves the multi-account token structure to localStorage
 export function setMultiAccountToken(multiToken) {
   localStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(multiToken));
   
@@ -70,16 +55,12 @@ export function setMultiAccountToken(multiToken) {
   }
 }
 
-/**
- * Add an account to the multi-account structure
- */
+// Adds an account to the multi-account structure
 export function addAccountToStorage(token) {
   const multiToken = getMultiAccountToken();
   
-  // Add the new account
   multiToken.accounts[token.user.id] = token;
   
-  // If this is the first account or no active account is set, make it active
   if (!multiToken.active_account_id || Object.keys(multiToken.accounts).length === 1) {
     multiToken.active_account_id = token.user.id;
   }
@@ -87,16 +68,12 @@ export function addAccountToStorage(token) {
   setMultiAccountToken(multiToken);
 }
 
-/**
- * Remove an account from storage
- */
+// Removes an account from storage
 export function removeAccountFromStorage(userId) {
   const multiToken = getMultiAccountToken();
   
-  // Remove the account
   delete multiToken.accounts[userId];
   
-  // If we removed the active account, set a new active account
   if (multiToken.active_account_id === userId) {
     const remainingIds = Object.keys(multiToken.accounts);
     multiToken.active_account_id = remainingIds.length > 0 ? remainingIds[0] : '';
@@ -104,16 +81,13 @@ export function removeAccountFromStorage(userId) {
   
   setMultiAccountToken(multiToken);
   
-  // If no accounts left, clear legacy storage too
   if (Object.keys(multiToken.accounts).length === 0) {
     localStorage.removeItem(STORAGE_KEYS.USER);
     localStorage.removeItem(STORAGE_KEYS.SESSION_ID);
   }
 }
 
-/**
- * Switch the active account
- */
+// Switches the active account
 export function switchActiveAccount(userId) {
   const multiToken = getMultiAccountToken();
   
@@ -127,15 +101,10 @@ export function switchActiveAccount(userId) {
   return multiToken.accounts[userId];
 }
 
-/**
- * Clear user-specific cached data (when switching accounts)
- * Keeps some settings but clears account-specific caches
- */
+// Clears user-specific cached data when switching accounts
 export function clearUserSpecificData() {
-  // Get current settings to preserve non-user-specific ones
   const settings = getSettings();
   
-  // Keep only UI preferences, clear everything else
   const preservedSettings = {
     theme: settings.theme,
     iconScheme: settings.iconScheme,
@@ -149,26 +118,20 @@ export function clearUserSpecificData() {
   
   localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(preservedSettings));
   
-  // Clear studio URL
   localStorage.removeItem(STORAGE_KEYS.STUDIO_URL);
   localStorage.removeItem(STORAGE_KEYS.ACTIVE_STUDIO);
 }
 
-/**
- * Clear ALL user data (when fully logging out)
- */
+// Clears all user data when fully logging out
 export function clearAllUserData() {
-  // Get current settings to preserve only non-user settings BEFORE clearing
   const settings = getSettings();
   
-  // Keep only app-level preferences (theme, icon scheme, EULA)
   const preservedSettings = {
     theme: settings.theme,
     iconScheme: settings.iconScheme,
     eulaAccepted: settings.eulaAccepted,
   };
   
-  // Clear ALL clustta-prefixed keys from localStorage
   const keysToRemove = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
@@ -177,35 +140,20 @@ export function clearAllUserData() {
     }
   }
   keysToRemove.forEach(key => localStorage.removeItem(key));
-  
-  // Only restore settings if we have something to preserve
-  // if (preservedSettings.theme || preservedSettings.iconScheme || preservedSettings.eulaAccepted) {
-  //   localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(preservedSettings));
-  // }
 }
 
-// =============================================================================
-// MIGRATION
-// =============================================================================
-
-/**
- * Migrate from old single-account storage to multi-account
- * Call this on app startup to ensure backward compatibility
- */
+// Migrates from old single-account storage to multi-account
 export function migrateToMultiAccount() {
   const multiToken = getMultiAccountToken();
   
-  // If we already have accounts in multi-account storage, no migration needed
   if (Object.keys(multiToken.accounts).length > 0) {
     return;
   }
   
-  // Check if we have old single-account data
   const oldUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER) || 'null');
   const oldSessionId = localStorage.getItem(STORAGE_KEYS.SESSION_ID);
   
   if (oldUser && oldUser.id) {
-    // Migrate to multi-account structure
     const token = {
       user: oldUser,
       session_id: oldSessionId || '',

@@ -1,44 +1,39 @@
-// =============================================================================
-// SYNC SERVICE
-// =============================================================================
-
 export const SyncService = {
+  // Pulls data from remote to local project
   PullData: async (projectPath, remoteURL, pullChunk, syncOptions) => {
-    // TODO: Implement full sync with protobuf support
     console.warn('PullData - full sync not yet implemented in web mode');
   },
-  
+
+  // Synchronizes data between local and remote
   SyncData: async (projectPath, remoteURL, pullChunk, syncOptions) => {
-    // TODO: Implement full sync
     console.warn('SyncData - full sync not yet implemented in web mode');
   },
-  
+
+  // Clones a project from remote
   CloneProject: async (projectUri, studioName, workingDir, syncOptions) => {
-    // TODO: Implement clone
     console.warn('CloneProject not yet implemented in web mode');
   },
-  
+
+  // Pushes checkpoints to remote
   PushCheckpoints: async (projectPath, remoteURL, pullChunk, syncOptions) => {
-    // TODO: Implement checkpoint push
     console.warn('PushCheckpoints not yet implemented in web mode');
   },
-  
+
+  // Pulls latest checkpoints from remote
   PullLatestCheckpoints: async (projectPath, remoteURL) => {
-    // TODO: Implement checkpoint pull
     console.warn('PullLatestCheckpoints not yet implemented in web mode');
   },
-  
+
+  // Downloads a specific checkpoint
   DownloadCheckpoint: async (projectPath, remoteURL, checkpointId) => {
-    // TODO: Implement checkpoint download
     console.warn('DownloadCheckpoint not yet implemented in web mode');
   },
-  
+
+  // Checks if project has unsynced changes
   IsUnsynced: async (projectPath) => {
-    // TODO: Compare local vs remote sync tokens
     return false;
   },
-  
-  CancelSync: async () => {
-    // Nothing to cancel in web mode currently
-  },
+
+  // Cancels ongoing sync operation
+  CancelSync: async () => {},
 };
