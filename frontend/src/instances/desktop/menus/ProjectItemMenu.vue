@@ -9,16 +9,16 @@
       label="Edit Project" :buttonFunction="editProject" />
 
     <!-- {{  isPinExceeded  }} -->
-    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded && isProjectPinned" :icon="getAppIcon('unpin')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="!platformStore.isWeb && (projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && isProjectPinned" :icon="getAppIcon('unpin')" :showLabel="true" :fullWidth="true"
       label="Unpin Project" :buttonFunction="unpinProject" />
 
-    <ActionButton v-else-if="!isPinExceeded" :icon="getAppIcon('pin')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-else-if="!platformStore.isWeb && !isPinExceeded" :icon="getAppIcon('pin')" :showLabel="true" :fullWidth="true"
       label="Pin Project" :buttonFunction="pinProject" />
 
     <span v-if="userStore.canDo('create_entity')" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
-    <span v-if="projectStore.getActiveProject?.is_downloaded" class="horizontal-flex">
+    <span v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded" class="horizontal-flex">
       <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" label="Show in Explorer"
         :buttonFunction="revealInExplorer" />
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyProjectPath()"
@@ -26,14 +26,14 @@
     </span>
 
     <!-- Locate Clustta file -->
-    <ActionButton v-if="projectStore.getActiveProject.is_downloaded" :icon="getAppIcon('clustta')" :showLabel="true"
+    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded" :icon="getAppIcon('clustta')" :showLabel="true"
       :fullWidth="true" label="Locate Clustta File" :buttonFunction="locateClusttaFile" />
 
     <!-- Relocate Working Directory -->
-    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
+    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
       :buttonFunction="relocateWorkingDirectory" />
 
-    <span v-if="projectStore.getActiveProject?.is_downloaded" class="menu-divider"></span>
+    <span v-if="projectStore.getActiveProject?.is_downloaded || platformStore.isWeb" class="menu-divider"></span>
 
     <!-- Archive -->
     <ActionButton v-if="!projectStore.getActiveProject?.is_closed && userStore.userCanCreateProject"
@@ -45,12 +45,12 @@
       :fullWidth="true" label="Unarchive Project" :buttonFunction="toggleCloseProject" />
 
     <!-- Rebuild -->
-    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded && !projectStore.getActiveProject?.is_closed"
+    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded && !projectStore.getActiveProject?.is_closed"
       :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" label="Rebuild Project"
       :buttonFunction="rebuildAll" />
 
     <!-- Delete project -->
-    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Remove Project"
+    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded || platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Remove Project"
       :buttonFunction="prepDeletePopUpModal" />
 
 
@@ -79,6 +79,7 @@ import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
+import { usePlatformStore } from '@/stores/platform';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
@@ -94,6 +95,7 @@ const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 const stage = useStageStore();
+const platformStore = usePlatformStore();
 
 // computed
 
@@ -103,6 +105,7 @@ const getAppIcon = (iconName) => {
 };
 
 const isProjectPinned = computed(() => {
+  if (platformStore.isWeb) return false;
   const projectId = projectStore.getActiveProject.id;
   const pinnedProjects = projectStore.pinnedProjects;
   return pinnedProjects?.includes(projectId);
