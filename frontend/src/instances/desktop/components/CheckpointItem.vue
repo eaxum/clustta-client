@@ -48,20 +48,24 @@
         <div v-if="isExpanded === index" class="menu-divider"></div>
 
         <div v-if="isExpanded !== index" class="checkpoint-item-actions">
-            <ActionButton :icon="getAppIcon('revert')" v-tooltip="'Revert to this Checkpoint'"
+            <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('revert')" v-tooltip="'Revert to this Checkpoint'"
                 @click="revertToVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
-            <ActionButton v-if="!checkpoint.is_downloaded" :icon="getAppIcon('cloud-down')"
-                v-tooltip="'Download Checkpoint'" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
-            <ActionButton v-if="checkpoint.is_downloaded" :icon="getAppIcon('launch')" v-tooltip="'Open Checkpoint'"
-                @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
+            <template v-if="!platformStore.isWeb" >
+                <ActionButton v-if="!checkpoint.is_downloaded" :icon="getAppIcon('cloud-down')"
+                    v-tooltip="'Download Checkpoint'" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
+                <ActionButton v-else :icon="getAppIcon('launch')" v-tooltip="'Open Checkpoint'"
+                    @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
+            </template>
+            <ActionButton v-else-if="userStore.canDo('delete_checkpoint')" :icon="getAppIcon('trash')" v-tooltip="'Delete Checkpoint'"
+                @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>
 
         <div v-else class="full-checkpoint-item-actions">
-            <ActionButton :label="'Revert'" :icon="getAppIcon('revert')" v-tooltip="'Revert to this Checkpoint'"
+            <ActionButton v-if="!platformStore.isWeb" :label="'Revert'" :icon="getAppIcon('revert')" v-tooltip="'Revert to this Checkpoint'"
                 @click="revertToVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
-            <ActionButton :label="'Download'" v-if="!checkpoint.is_downloaded" :icon="getAppIcon('cloud-down')"
+            <ActionButton v-if="!platformStore.isWeb && !checkpoint.is_downloaded" :label="'Download'" :icon="getAppIcon('cloud-down')"
                 v-tooltip="'Download Checkpoint'" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
-            <ActionButton :label="'Open'" v-if="checkpoint.is_downloaded" :icon="getAppIcon('launch')"
+            <ActionButton v-if="!platformStore.isWeb && checkpoint.is_downloaded" :label="'Open'" :icon="getAppIcon('launch')"
                 v-tooltip="'Open Checkpoint'" @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
             <ActionButton v-if="userStore.canDo('delete_checkpoint')" :label="'Delete'" :icon="getAppIcon('trash')" v-tooltip="'Delete Checkpoint'"
                 @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
@@ -92,6 +96,7 @@ import { useUserStore } from '@/stores/users';
 import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { usePlatformStore } from '@/stores/platform';
 
 // components
 import CheckpointListSkeleton from '@/instances/common/components/CheckpointListSkeleton.vue';
@@ -129,6 +134,7 @@ const trayStates = useTrayStates();
 const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const platformStore = usePlatformStore();
 
 // refs
 const itemVersionId = ref(null);

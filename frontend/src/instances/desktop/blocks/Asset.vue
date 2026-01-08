@@ -138,6 +138,8 @@
             <div v-else-if="!isUntracked && userStore.canDo('pull_chunk')" class="file-state">
               <ActionButton v-if="task.is_link" :icon="getAppIcon('square-arrow-right-up')" 
                 v-tooltip="'Visit link'" @click="openLink()" />
+              <ActionButton v-else-if="platformStore.isWeb" :icon="getAppIcon('download')" 
+                v-tooltip="'Download'" @click="" />
               <ActionButton v-else-if="task.file_status == 'normal'" :icon="getAppIcon('circle-check-go')" :noFilter="true" 
                 v-tooltip="'No changes'"  />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" 
@@ -293,8 +295,11 @@
             </div>
 
             <div v-else-if="userStore.canDo('pull_chunk')" class="file-state">
+              
+              <ActionButton v-if="platformStore.isWeb" :icon="getAppIcon('download')" 
+                v-tooltip="'Download'" @click="" />
               <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" @click="handleClick(index, task, $event)"
-                v-tooltip="'No changes'" v-if="task.file_status == 'normal'" />
+                v-tooltip="'No changes'" v-else-if="task.file_status == 'normal'" />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Outdated - Click to update'"
                 v-else-if="task.file_status == 'outdated'" @click="revertTask(index, task, $event)" />
               <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="'Modified - Assigned to someone else'"
@@ -350,6 +355,7 @@ import { useCommonStore } from '@/stores/common';
 import { useCollectionStore } from '@/stores/collections';
 import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
+import { usePlatformStore } from '@/stores/platform';
 import emitter from '@/lib/mitt';
 
 // components
@@ -374,6 +380,7 @@ const commonStore = useCommonStore();
 const collectionStore = useCollectionStore();
 const projectStore = useProjectStore();
 const dndStore = useDndStore();
+const platformStore = usePlatformStore();
 
 // emits
 const emit = defineEmits(['toggle-edit-mode', 'expand', 'refreshData']);

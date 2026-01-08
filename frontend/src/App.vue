@@ -23,7 +23,6 @@ import { useStageStore } from './stores/stages';
 import { useMenu } from '@/stores/menu';
 import { useAccountStore } from '@/stores/accounts';
 import { useThemeStore } from '@/stores/theme';
-import { usePlatformStore } from '@/stores/platform';
 
 
 const windowNameTop = ref();
@@ -33,7 +32,6 @@ const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const menu = useMenu();
 const themeStore = useThemeStore();
-const platformStore = usePlatformStore();
 
 const stageStore = useStageStore();
 const accountStore = useAccountStore();
@@ -177,9 +175,6 @@ function startUpdateFileStatesInterval() {
 
 onMounted(async () => {
     windowNameTop.value = await Window.Name()
-    
-    // Initialize platform store early in app lifecycle
-    await platformStore.initialize();
     
     // Initialize account store early in app lifecycle
     await accountStore.initialize();
