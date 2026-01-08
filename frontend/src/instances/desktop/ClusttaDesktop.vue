@@ -1,7 +1,7 @@
 <template>
 	<div style="--wails-drop-target-active" id="clustta-desktop"
 		:class="['desktop-root', { 'no-radius': isMaximized }]">
-		<TitleBar />
+		<TitleBar v-if="titleBarVisible" />
 		<FlashMessage :isDesktop="true" />
 		<ModalView v-if="modals.activeModal" />
 		<AuthGuard v-if="userStore.user == null" />
@@ -42,13 +42,13 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
 import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
+import { usePlatformStore } from '@/stores/platform';
 import { Events } from "@wailsio/runtime";
 
 // refs
 const desktopBody = ref(null);
 const isMaximized = ref(false);
 const mainAreaContainer = ref(null);
-
 // states/stores
 const menu = useMenu();
 const panes = usePaneStore();
@@ -56,10 +56,17 @@ const stage = useStageStore();
 const modals = useDesktopModalStore();
 const userStore = useUserStore();
 const dndStore = useDndStore();
+const platformStore = usePlatformStore();
 
 // computed properties
 const isUserActivated = computed(() => userStore.user !== null);
 const isWideScreen = ref(false);
+const titleBarVisible = computed(() => {
+	if (platformStore.isWeb) {
+		return stage.activeStage === 'projects';
+	}
+	return true;
+});(() => userStore.user !== null);
 
 // methods
 
