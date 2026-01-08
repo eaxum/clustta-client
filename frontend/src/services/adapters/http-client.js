@@ -41,6 +41,7 @@ export async function globalApiCall(endpoint, method = 'GET', body = null, optio
 }
 
 // Makes an API call to a studio server
+// In production, routes through the global API proxy to handle HTTP studios from HTTPS app
 export async function studioApiCall(studioUrl, endpoint, method = 'GET', body = null, options = {}) {
   const user = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER) || '{}');
   
@@ -52,19 +53,30 @@ export async function studioApiCall(studioUrl, endpoint, method = 'GET', body = 
     ...options.headers,
   };
 
-  // In development, use the Vite proxy to bypass CORS
   let fetchUrl;
+  
+  // Check if studio URL is already HTTPS (can call directly)
+  const isStudioHttps = studioUrl.startsWith('https://');
+  
   if (isDev) {
+    // In development, use the Vite proxy
     fetchUrl = `/studio-proxy${endpoint}`;
     headers['X-Studio-URL'] = studioUrl;
-  } else {
+  } else if (isStudioHttps) {
+    // Studio has HTTPS, call directly
     fetchUrl = `${studioUrl}${endpoint}`;
+  } else {
+    // Studio is HTTP, proxy through global API to avoid mixed content
+    fetchUrl = `${GLOBAL_API}/v1/studio-proxy`;
+    headers['X-Studio-URL'] = `${studioUrl}${endpoint}`;
+    headers['X-Studio-Method'] = method;
   }
 
   const response = await fetch(fetchUrl, {
-    method,
+    method: (!isDev && !isStudioHttps) ? 'POST' : method, // Proxy always uses POST
     headers,
     body: body ? JSON.stringify(body) : null,
+    credentials: isDev ? 'omit' : 'include',
   });
 
   if (!response.ok) {
@@ -125,8 +137,13 @@ export async function studioDataFetch(studioUrl, endpoint, method = 'POST', body
     // Use /studio-data proxy for data endpoints (handles GET-with-body limitation)
     fetchUrl = `/studio-data${endpoint}`;
     headers['X-Studio-URL'] = studioUrl;
+  } else if (studioUrl.startsWith('http://')) {
+    // For HTTP URLs in production, route through our API proxy to avoid mixed content
+    fetchUrl = `${GLOBAL_API}/v1/studio-proxy`;
+    headers['X-Studio-URL'] = `${studioUrl}${endpoint}`;
+    headers['X-Studio-Method'] = 'GET'; // Studio server expects GET with body
   } else {
-    // In production, we'd need a similar proxy or backend service
+    // HTTPS URLs can be called directly
     fetchUrl = `${studioUrl}${endpoint}`;
   }
 
