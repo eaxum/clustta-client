@@ -17,6 +17,12 @@ const routes = isWebMode ? [
     meta: { requiresAuth: false, isPublic: true }
   },
   {
+    path: '/reset-change-password',
+    name: 'reset-change-password',
+    component: () => import('@/instances/web/ResetChangePassword.vue'),
+    meta: { requiresAuth: false, isPublic: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     redirect: '/'

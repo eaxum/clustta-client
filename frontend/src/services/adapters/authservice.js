@@ -151,6 +151,16 @@ export const AuthService = {
     await globalApiCall('/auth/reset-password', 'POST', { email });
   },
 
+  // Changes password using reset token (from email link)
+  ResetChangePassword: async (email, token, newPassword, confirmPassword) => {
+    await globalApiCall('/auth/reset-password', 'PUT', {
+      email,
+      token,
+      new_password: newPassword,
+      confirm_password: confirmPassword,
+    });
+  },
+
   // Changes user password
   ChangePassword: async (currentPassword, newPassword, confirmPassword) => {
     await globalApiCall('/auth/change-password', 'POST', {
