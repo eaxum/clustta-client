@@ -6,7 +6,7 @@
 
       <!-- header -->
       <div class="header-container">
-        <ClusttaLogo :colored="true" :inverted="true" :boldText="true" />
+        <ClusttaLogo :colored="true" :inverted="true" />
         <div class="auth-header">
           Reset Password
         </div>
@@ -88,10 +88,12 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { AuthService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useIconStore } from '@/stores/icons';
 
+const router = useRouter();
 const notificationStore = useNotificationStore();
 const iconStore = useIconStore();
 
@@ -118,9 +120,6 @@ const isResetFormFilled = computed(() => {
   return resetForm.email && emailValid.value && !errors.email
 });
 
-// emits
-const emit = defineEmits(['back-to-login']);
-
 // methods
 const getAppIcon = (iconName) => {
 	const icon = iconStore.getAppIcon(iconName);
@@ -139,7 +138,7 @@ const validateEmail = () => {
 };
 
 const backToLogin = () => {
-  emit('back-to-login')
+  router.push('/auth/login');
 };
 
 const handleResetPassword = async () => {

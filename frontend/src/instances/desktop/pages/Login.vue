@@ -6,7 +6,7 @@
 
       <!-- header -->
       <div class="header-container">
-        <ClusttaLogo :colored="true" :inverted="true" :boldText="true" />
+        <ClusttaLogo :colored="true" :inverted="true" />
         <div class="auth-header">
           Login to Clustta
         </div>
@@ -91,6 +91,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeMount } from 'vue';
+import { useRouter } from 'vue-router';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useProjectStore } from '@/stores/projects';
 import { AuthService } from "@/services";
@@ -99,10 +100,13 @@ import { useUserStore } from '@/stores/users';
 import { useIconStore } from '@/stores/icons';
 import { useThemeStore } from '@/stores/theme';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useAccountStore } from '@/stores/accounts';
+import { markStoresInitialized } from '@/router';
 import utils from "@/services/utils";
 
 import { SettingsService } from '@/services';
 
+const router = useRouter();
 const trayStates = useTrayStates();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
@@ -110,6 +114,7 @@ const notificationStore = useNotificationStore();
 const iconStore = useIconStore();
 const themeStore = useThemeStore();
 const modals = useDesktopModalStore();
+const accountStore = useAccountStore();
 
 // refs
 const error = ref('');
@@ -136,9 +141,6 @@ const isLoginFormFilled = computed(() => {
   return loginForm.email && loginForm.password
 });
 
-// emits
-const emit = defineEmits(['toggle-login', 'show-verification', 'show-reset-password']);
-
 // methods
 const getAppIcon = (iconName) => {
 	const icon = iconStore.getAppIcon(iconName);
@@ -160,11 +162,11 @@ const togglePasswordVisibility = () => {
 const projectDirectoryExists = ref(false);
 
 const toggleLogin = () => {
-  emit('toggle-login')
+  router.push('/auth/signup')
 };
 
 const showResetPassword = () => {
-  emit('show-reset-password')
+  router.push('/auth/forgot-password')
 };
 
 const handleLogin = async () => {
@@ -176,6 +178,8 @@ const handleLogin = async () => {
       userStore.user = data.user;
       userStore.isUserAuthenticated = true;
 
+      // Initialize stores that require authentication
+      await accountStore.initialize();
       await themeStore.initializeTheme();
       await projectStore.loadStudios();
 
@@ -188,23 +192,30 @@ const handleLogin = async () => {
         setDirectories();
       }
 
+      // Mark stores as initialized so router doesn't re-init
+      markStoresInitialized();
+      
+      // Navigate to home after successful login
+      router.push('/');
     })
-    .catch((error) => {
-      console.log(error);
+    .catch((err) => {
+      console.log(err);
       isAwaitingResponse.value = false;
       
       // Check if error indicates user needs verification
-      const errorMessage = error.message || error.toString();
+      const errorMessage = err.message || err.toString();
       const isUnverifiedUser = errorMessage.toLowerCase().includes('please verify your email before logging in') || 
                                errorMessage.toLowerCase().includes('account not verified');
       
       if (isUnverifiedUser) {
         notificationStore.addNotification("Verification Required", "Please check your email for a verification code.", "info");
-        emit('show-verification', { email: loginForm.email, password: loginForm.password });
+        // Store credentials for verification page and navigate
+        userStore.setPendingVerification(loginForm.email, loginForm.password);
+        // Resend verification token
+        AuthService.ResendToken(loginForm.email).catch(() => {});
+        router.push('/verify-email');
       } else {
         // Handle other login errors normally
-        // console.log(error)
-        // error.message = errorMessage;
         notificationStore.errorNotification("Error Logging In", 'Please check your credentials and try again');
       }
     });

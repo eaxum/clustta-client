@@ -1,159 +1,36 @@
 <template>
-
-  <!-- check auth -->
-    <div v-if="isCheckingAuth" class="login-area-container">
-      <div class="loading-icon">
-        <img src="/icons/loading.svg" />
-      </div>
+  <div class="auth-guard-wrapper">
+    <TitleBar v-if="!platformStore.isWeb" :titleOnly="true" />
+    <div class="auth-guard-root">
+      <router-view />
     </div>
-
-    <div v-else class="auth-guard-root">
-        <SignUp v-if="showSignUp" @toggle-login="toggleLogin" @signup-success="showVerification" />
-        <VerifyEmail v-else-if="showVerifyEmail" :user-email="userEmail" :user-password="userPassword" @toggle-login="hideVerification" @verification-success="onVerificationSuccess" />
-        <ResetPassword v-else-if="showResetPassword" @back-to-login="hideResetPassword" />
-        <Login v-else @toggle-login="toggleLogin" @show-verification="showVerificationFromLogin" @show-reset-password="showResetPasswordPage" />
-        <InfoBar />
-    </div>
+    <InfoBar v-if="!platformStore.isWeb" />
+  </div>
 </template>
 
 <script setup>
-// imports
-import { ref, onBeforeMount, onBeforeUnmount } from 'vue';
-
-// components
-import Login from '@/instances/desktop/pages/Login.vue'
-import SignUp from '@/instances/desktop/pages/SignUp.vue'
-import VerifyEmail from '@/instances/desktop/pages/VerifyEmail.vue'
-import ResetPassword from '@/instances/desktop/pages/ResetPassword.vue'
+import TitleBar from '@/instances/desktop/components/TitleBar.vue'
 import InfoBar from '@/instances/desktop/components/InfoBar.vue'
+import { usePlatformStore } from '@/stores/platform'
 
-// services
-import { AuthService, SettingsService } from '@/services';
-
-// stores
-import { useUserStore } from '@/stores/users';
-import { useProjectStore } from '@/stores/projects';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-
-// store instances
-const userStore = useUserStore();
-const projectStore = useProjectStore();
-const modals = useDesktopModalStore();
-
-// refs
-const showSignUp = ref(false);
-const showVerifyEmail = ref(false);
-const showResetPassword = ref(false);
-const isCheckingAuth = ref(true);
-const userEmail = ref('');
-const userPassword = ref('');
-
-// methods
-const toggleLogin = () => {
-    showSignUp.value = !showSignUp.value;
-    showVerifyEmail.value = false; // Hide verify account when toggling
-    showResetPassword.value = false; // Hide reset password when toggling
-}
-
-const showResetPasswordPage = () => {
-    showSignUp.value = false;
-    showVerifyEmail.value = false;
-    showResetPassword.value = true;
-}
-
-const hideResetPassword = () => {
-    showResetPassword.value = false;
-}
-
-const showVerification = (credentials) => {
-    showSignUp.value = false;
-    showVerifyEmail.value = true;
-    userEmail.value = credentials.email;
-    userPassword.value = credentials.password;
-}
-
-const showVerificationFromLogin = async (credentials) => {
-    showSignUp.value = false;
-    showVerifyEmail.value = true;
-    userEmail.value = credentials.email;
-    userPassword.value = credentials.password;
-    
-    // Automatically resend verification token for login attempts
-    try {
-        await AuthService.ResendToken(credentials.email);
-        // The notification will be handled by the VerifyEmail component
-    } catch (error) {
-        console.log("Failed to resend token:", error);
-        // Continue anyway as user might still have a valid token
-    }
-}
-
-const hideVerification = () => {
-    showVerifyEmail.value = false;
-}
-
-const onVerificationSuccess = async () => {
-    showVerifyEmail.value = false;
-    userStore.isUserAuthenticated = true;
-    
-    await projectStore.loadStudios();
-    let projectDirectoryExists = await SettingsService.GetProjectDirectory();
-    if(projectDirectoryExists){
-      await projectStore.loadProjects();
-    } else {
-      setDirectories();
-    }
-}
-
-const setDirectories = async () => {
-	  modals.setModalVisibility('dirOnboardModal', true);
-};
-
-
-onBeforeMount(async () => {
-
-  await AuthService.AuthUser()
-    .then(async (user) => {
-      userStore.user = user;
-      isCheckingAuth.value = false;
-    })
-    .catch((error) => {
-      isCheckingAuth.value = false;
-    })
-
-  await AuthService.IsAuthenticated()
-    .then(async (data) => {
-      if (data[0] === true) {
-        userStore.user = data[1];
-        userStore.isUserAuthenticated = true;
-      };
-      isCheckingAuth.value = false;
-    })
-    .catch((error) => {
-      isCheckingAuth.value = false;
-    });
-
-    await projectStore.loadStudios();
-    let projectDirectoryExists = await SettingsService.GetProjectDirectory();
-    if(projectDirectoryExists){
-      await projectStore.loadProjects();
-    } else {
-      setDirectories();
-    }
-})
-
-onBeforeUnmount(() => {
-    showSignUp.value = false;
-});
-
+const platformStore = usePlatformStore()
 </script>
 
 <style >
 @import "@/assets/desktop.css";
 
+.auth-guard-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
 .auth-guard-root{
     width: 100%;
     height: 100%;
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
