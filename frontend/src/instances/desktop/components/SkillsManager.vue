@@ -6,6 +6,7 @@
         v-for="skill in skills"
         :key="skill.id"
         class="skill-badge"
+        :class="{ 'readonly': readonly }"
       >
         <ActionButton
           :icon="getSkillIconPath(skill)"
@@ -15,6 +16,7 @@
         />
         <span class="skill-name">{{ skill.skill_name }}</span>
         <ActionButton
+          v-if="!readonly"
           :icon="getAppIcon('close')"
           :buttonFunction="() => removeSkill(skill)"
           :showIcon="true"
@@ -75,6 +77,10 @@ const props = defineProps({
   allSkills: {
     type: Array,
     default: () => []
+  },
+  readonly: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -178,6 +184,10 @@ const getAppIcon = (iconName) => {
 
 .skill-name {
   user-select: none;
+}
+
+.skill-badge.readonly {
+  padding-right: 0.75rem;
 }
 
 .limit-message {

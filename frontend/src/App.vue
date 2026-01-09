@@ -1,6 +1,9 @@
 <template>
-    <div>
-        <ClusttaDesktop v-if="windowName === 'main'" />
+    <div class="app-root" :class="{ 'web-mode': isWebMode }">
+        <!-- Web mode: Use Vue Router -->
+        <router-view v-if="isWebMode" />
+        <!-- Desktop mode: Direct component rendering based on window name -->
+        <ClusttaDesktop v-else-if="windowName === 'main'" />
     </div>
 </template>
 
@@ -24,6 +27,8 @@ import { useMenu } from '@/stores/menu';
 import { useAccountStore } from '@/stores/accounts';
 import { useThemeStore } from '@/stores/theme';
 
+// Platform detection
+const isWebMode = import.meta.env.VITE_PLATFORM === 'web';
 
 const windowNameTop = ref();
 const projectStore = useProjectStore();
@@ -186,6 +191,15 @@ onMounted(async () => {
 
 <style scoped>
 @import "@/assets/tray.css";
+
+.app-root.web-mode {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
 </style>
 
 
