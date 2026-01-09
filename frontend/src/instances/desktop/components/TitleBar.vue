@@ -4,10 +4,7 @@
 
     <div v-if="!titleOnly" class="titlebar-left" :class="{ 'titlebar-left-inactive': modalsActive }">
 
-      <div v-if="os !== 'darwin'" class="titlebar-icon" :class="{ 'is-disabled': progressRunning }">
-        <img src="/icons/clustta.png" alt="Clustta Icon" @click="displayAppInfo()" v-stop-propagation
-          v-tooltip="'About Clustta'">
-      </div>
+      <ClusttaLogo v-if="os !== 'darwin'" :boldText="true" :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="'About Clustta'" :class="{ 'is-disabled': progressRunning }" />
 
       <div ref="studioTabsParent" class="studio-tabs-parent" v-if="userStore.user && projectStore.selectedStudio" 
       :class="{ 'is-disabled': progressRunning, 'mac-os': !isMacFullscreen && os === 'darwin' }">
@@ -57,10 +54,13 @@
     </div>
 
 
-    <div v-if="os === 'darwin'" class="titlebar-icon" :class="{ 'is-disabled': progressRunning }">
-        <img src="/icons/clustta.png" alt="Clustta Icon" @click="displayAppInfo()" v-stop-propagation
-          v-tooltip="'About Clustta'">
-      </div>
+    <ClusttaLogo v-if="os === 'darwin'" :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="'About Clustta'" :class="{ 'is-disabled': progressRunning }" />
+
+    <!-- Web mode auth buttons (only when not logged in) -->
+    <div v-else-if="platformStore.isWeb && !userStore.isUserAuthenticated" class="titlebar-auth-buttons">
+      <ActionButton :icon="getAppIcon('launch')" :label="'Sign Up'" color="var(--grape)" forceIconColor="light" :buttonFunction="goToSignUp" v-tooltip="isWideScreen ? '' : 'Sign Up'" />
+      <ActionButton :icon="getAppIcon('login')" :label="isWideScreen ? 'Login' : ''" :useOutline="true" :buttonFunction="goToLogin" v-tooltip="isWideScreen ? '' : 'Login'" />
+    </div>
 
     <div v-else-if="!platformStore.isWeb" class="titlebar-buttons">
       <!-- <ToggleSwitch :switchValueProp="themeStore.isDarkMode" @click="toggleTheme()" />
@@ -111,6 +111,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue';
+import { useRouter } from 'vue-router';
 import { AppService, SettingsService } from '@/services';
 import { Window, Events } from "@wailsio/runtime";
 import utils from '@/services/utils';
@@ -129,6 +130,7 @@ import { useCollectionStore } from '@/stores/collections';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import CheckBox from '@/instances/common/components/CheckBox.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import { useStudioStore } from '@/stores/studio';
 import { usePlatformStore } from '@/stores/platform';
 
@@ -143,9 +145,26 @@ const notificationStore = useNotificationStore();
 const themeStore = useThemeStore();
 const collectionStore = useCollectionStore();
 const platformStore = usePlatformStore();
+const router = useRouter();
+
+const goToLogin = () => {
+  router.push('/auth/login');
+};
+
+const goToSignUp = () => {
+  router.push('/auth/signup');
+};
 
 const os = ref('');
 const studioTabsParent = ref(null);
+const screenWidth = ref(window.innerWidth);
+
+// Responsive breakpoints
+const isWideScreen = computed(() => screenWidth.value >= 400);
+
+const updateScreenWidth = () => {
+  screenWidth.value = window.innerWidth;
+};
 
 const parentLocation = computed(() => {
   if(!studioTabsParent.value) return
@@ -352,12 +371,14 @@ onMounted( async () => {
   os.value = await AppService.GetOS();
   frontendReady();
   document.addEventListener('click', handleClickOutside);
+  window.addEventListener('resize', updateScreenWidth);
 
 	emitter.on('window-fullscreen', toggleFullscreen);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside);
+  window.removeEventListener('resize', updateScreenWidth);
 	emitter.off('window-unfullscreen', toggleFullscreen);
 
 });
@@ -662,7 +683,7 @@ onBeforeUnmount(() => {
   width: 100%;
   justify-content: space-between;
   align-items: center;
-  height: 46px;
+  min-height: 46px;
   color: var(--white);
   overflow: hidden;
   border-bottom: var(--transparent-line);
@@ -786,5 +807,15 @@ onBeforeUnmount(() => {
   width: 18px;
   height: 18px;
 }
+
+/* Web mode auth buttons */
+.titlebar-auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-right: 1rem;
+  height: 100%;
+}
 </style>
+
 

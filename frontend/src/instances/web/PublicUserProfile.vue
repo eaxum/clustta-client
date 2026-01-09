@@ -1,5 +1,10 @@
 <template>
   <div class="public-profile-root">
+    <div class="public-profile-header">
+      <!-- <ClusttaLogo :boldText="true" :showText="true" :colored="true" size="small" @click="goHome" class="header-logo" /> -->
+      <TitleBar />
+    </div>
+
     <!-- Loading State -->
     <div v-if="loading" class="loading-container">
       <div class="loading-spinner"></div>
@@ -132,6 +137,8 @@ import { useIconStore } from '@/stores/icons';
 import { ProfileService } from '@/services';
 
 // Components
+import TitleBar from '@/instances/desktop/components/TitleBar.vue';
+import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import ProfileCard from '@/instances/desktop/components/ProfileCard.vue';
 import ProfileAvatar from '@/instances/desktop/components/ProfileAvatar.vue';
@@ -305,6 +312,19 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   overflow-y: auto;
+}
+
+.public-profile-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background-color: var(--black);
+  border-bottom: var(--transparent-line);
+}
+
+.header-logo {
+  padding-left: 0.5rem;
+  flex: unset !important;
 }
 
 .public-profile-root::-webkit-scrollbar {

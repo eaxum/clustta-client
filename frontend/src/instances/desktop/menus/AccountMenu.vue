@@ -91,6 +91,7 @@
 
 <script setup>
 import { computed, ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/users';
 import { useProjectStore } from '@/stores/projects';
 import { useThemeStore } from '@/stores/theme';
@@ -101,6 +102,8 @@ import { useIconStore } from '@/stores/icons';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
 import { useAccountStore } from '@/stores/accounts';
+import { usePlatformStore } from '@/stores/platform';
+import { resetStoreInitialization } from '@/router';
 import { AccountService, AuthService } from "@/services";
 
 // Components
@@ -117,6 +120,8 @@ const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const accountStore = useAccountStore();
+const platformStore = usePlatformStore();
+const router = useRouter();
 
 // Refs
 const accountMenu = ref(null);
@@ -239,8 +244,13 @@ const signOutCurrentAccount = async () => {
       // No accounts left, reset to unauthenticated state
       userStore.user = null;
       userStore.isUserAuthenticated = false;
-      // modals.setModalVisibility('loginModal', true);
       notificationStore.addNotification("Signed Out", "All accounts signed out");
+      
+      // Reset store initialization flag so stores can be re-initialized on next login
+      resetStoreInitialization();
+      
+      // Redirect to login page
+      router.push('/auth/login');
     }
     
     console.log('Signed out current account');

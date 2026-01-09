@@ -75,7 +75,7 @@
             v-tooltip="'Unpin Project'" @click="unpinProject" />
           <ActionButton v-if="project.is_downloaded || platformStore.isWeb && !isCreatingProject" :icon="getAppIcon('launch')" v-tooltip="'Go to project'"
             @click="goToProject(project)" />
-          <ActionButton v-else :isLoading="true" :icon="getAppIcon('loading')"  
+          <ActionButton v-else-if="isCreatingProject" :isLoading="true" :icon="getAppIcon('loading')"  
 					v-tooltip="'Fetching data'" />
           <ActionButton v-if="!platformStore.isWeb && !project.has_remote" :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="'Open folder'"
             @click="revealInExplorer" />

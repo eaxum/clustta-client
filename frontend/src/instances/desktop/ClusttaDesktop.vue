@@ -4,8 +4,7 @@
 		<TitleBar v-if="titleBarVisible" />
 		<FlashMessage :isDesktop="true" />
 		<ModalView v-if="modals.activeModal" />
-		<AuthGuard v-if="userStore.user == null" />
-		<div v-else class="desktop-container">
+		<div class="desktop-container">
 			<div ref="desktopBody" id="desktop-body" class="desktop-body tray-root">
 				<SidePane v-if="panes.enabledPanes.includes(stage.selectedStage)" :isWideScreen="isWideScreen" />
 				<div class="active-project">
@@ -25,7 +24,6 @@ import { computed, watchEffect, ref, onMounted, onBeforeUnmount } from 'vue';
 
 
 // components
-import AuthGuard from '@/instances/desktop/pages/AuthGuard.vue'
 import TitleBar from '@/instances/desktop/components/TitleBar.vue'
 import InfoBar from '@/instances/desktop/components/InfoBar.vue'
 import ModalView from '@/instances/desktop/components/ModalView.vue'

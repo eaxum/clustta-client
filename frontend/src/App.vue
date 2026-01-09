@@ -1,9 +1,7 @@
 <template>
-    <div class="app-root" :class="{ 'web-mode': isWebMode }">
-        <!-- Web mode: Use Vue Router -->
-        <router-view v-if="isWebMode" />
-        <!-- Desktop mode: Direct component rendering based on window name -->
-        <ClusttaDesktop v-else-if="windowName === 'main'" />
+    <div class="app-root">
+        <!-- Unified router for both desktop and web -->
+        <router-view />
     </div>
 </template>
 
@@ -15,22 +13,20 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 
-// components
-import ClusttaDesktop from '@/instances/desktop/ClusttaDesktop.vue';
 import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from './stores/projects';
 import { SyncService, ProjectService } from "@/services";
-import { System, Window } from "@wailsio/runtime";
+import { System } from "@wailsio/runtime";
 import { LogService } from '@/services';
 import { useStageStore } from './stores/stages';
 import { useMenu } from '@/stores/menu';
 import { useAccountStore } from '@/stores/accounts';
 import { useThemeStore } from '@/stores/theme';
+import { usePlatformStore } from '@/stores/platform';
 
 // Platform detection
-const isWebMode = import.meta.env.VITE_PLATFORM === 'web';
+const platformStore = usePlatformStore();
 
-const windowNameTop = ref();
 const projectStore = useProjectStore();
 const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
@@ -44,7 +40,8 @@ const accountStore = useAccountStore();
 
 
 const disableMenu = () => {
-    if (System.IsDebug) {
+    // Only disable context menu on desktop
+    if (platformStore.isWeb || System.IsDebug) {
         return
     }
 
@@ -66,9 +63,6 @@ Events.On('progress-update', async (message) => {
     let progressData = message.data;
     notificationStore.updateProgress(progressData);
 });
-
-
-const windowName = ref(windowNameTop);
 
 disableMenu();
 
@@ -179,12 +173,14 @@ function startUpdateFileStatesInterval() {
 
 
 onMounted(async () => {
-    windowNameTop.value = await Window.Name()
+    // Note: accountStore.initialize() and themeStore.initializeTheme() 
+    // are called AFTER successful login in Login.vue and VerifyEmail.vue
+    // Do NOT call them here as they require an authenticated user
     
-    // Initialize account store early in app lifecycle
-    await accountStore.initialize();
-    await themeStore.initializeTheme();
-    startCheckSycnTokenInterval()
+    // Only run sync intervals on desktop (and they have their own auth checks)
+    if (!platformStore.isWeb) {
+        startCheckSycnTokenInterval();
+    }
 });
 </script>
 
@@ -192,7 +188,7 @@ onMounted(async () => {
 <style scoped>
 @import "@/assets/tray.css";
 
-.app-root.web-mode {
+.app-root {
   width: 100vw;
   height: 100vh;
   overflow: hidden;

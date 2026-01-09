@@ -12,6 +12,10 @@ export const useUserStore = defineStore("users", {
     userCanCreateProject: false,
     selectedUser: null,
     selectedRole: null,
+    pendingVerification: {
+      email: '',
+      password: ''
+    },
   }),
   getters: {
     getProjectCollaborators: (state) => {
@@ -98,6 +102,14 @@ export const useUserStore = defineStore("users", {
         userIndex[this.users[i].id] = i;
       }
       this.users_index = userIndex;
+    },
+    // Set pending verification data
+    setPendingVerification(email, password) {
+      this.pendingVerification = { email, password };
+    },
+    // Clear pending verification data
+    clearPendingVerification() {
+      this.pendingVerification = { email: '', password: '' };
     },
   },
 });

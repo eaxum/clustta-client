@@ -19,11 +19,8 @@ import "./assets/global.css";
 const app = createApp(App);
 app.use(createPinia());
 
-// Only use router in web mode
-const isWebMode = import.meta.env.VITE_PLATFORM === 'web';
-if (isWebMode) {
-  app.use(router);
-}
+// Always use router for both desktop and web mode
+app.use(router);
 
 // app.use(VueCropper);
 app.directive("stop-propagation", stopPropagation);

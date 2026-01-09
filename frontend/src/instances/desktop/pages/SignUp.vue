@@ -6,7 +6,7 @@
 
       <!-- header -->
       <div class="header-container">
-        <ClusttaLogo :colored="true" :inverted="true" :boldText="true" />
+        <ClusttaLogo :colored="true" :inverted="true" />
         <div class="auth-header">
           Sign up for Clustta
         </div>
@@ -164,6 +164,7 @@
 
 // imports
 import { ref, reactive, computed, onMounted, onBeforeMount } from 'vue'
+import { useRouter } from 'vue-router'
 import { useTrayStates } from '@/stores/TrayStates';
 import { useProjectStore } from '@/stores/projects';
 import { AuthService } from "@/services";
@@ -176,6 +177,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
+const router = useRouter();
 const isAwaitingResponse = ref(false);
 const trayStates = useTrayStates();
 const projectStore = useProjectStore();
@@ -183,8 +185,6 @@ const userStore = useUserStore();
 const notificationStore = useNotificationStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
-
-const emit = defineEmits(['toggle-login', 'signup-success']);
 
 // refs
 const isPasswordVisible = ref(false);
@@ -305,7 +305,7 @@ const isRegisterFormFilled = computed(() => {
 
 // methods
 const toggleLogin = () => {
-  emit('toggle-login')
+  router.push('/auth/login')
 };
 
 const showPassword = () => {
@@ -387,9 +387,10 @@ const handleRegister = async () => {
 
     await AuthService.Register(registerForm.first_name, registerForm.last_name, registerForm.username, registerForm.email, registerForm.password, registerForm.confirm_password)
     .then(async (data) => {
-      // Registration successful, emit signup-success to trigger verification flow
+      // Registration successful, store credentials for verification and navigate
       notificationStore.addNotification("Registration Successful", "Please check your email for a verification code.", "success");
-      emit('signup-success', { email: registerForm.email, password: registerForm.password });
+      userStore.setPendingVerification(registerForm.email, registerForm.password);
+      router.push('/auth/verify-email');
       isAwaitingResponse.value = false;
     }).catch((error) => {
       console.log(error);

@@ -2,12 +2,13 @@
   <span v-stop-propagation @click="buttonFunction" :style="{ backgroundColor: color }" :class="{
     'button-background': useBackground, 'alert-background': isAlert, 'full-width': fullWidth, 'outline': useOutline, 'icon-after': iconAfter, 'centered':
       centered, 'button-active': isActive, 'is-inactive': isInactive, 'is-disabled': isDead, 'plain-background' : plainBackground, 'use-alert': useAlert, 'use-danger': useDanger, 'use-go': useGo,
+    'force-light': forceIconColor === 'light', 'force-dark': forceIconColor === 'dark',
   }" class="action-button" ref="buttonRef">
     <Teleport to="#app">
       <div v-if="showIndicator && buttonPosition" class="filter-button-indicator" :style="indicatorStyle"></div>
     </Teleport>
     <img v-if="showIcon && !iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter, 'loading-icon' : isLoading }" :src="icon">
-    <div v-if="showLabel || label" class="small-icons button-label no-cursor">{{ label }}</div>
+    <div v-if="showLabel || label" class="small-icons button-label no-cursor" :class="{ 'label-force-light': forceIconColor === 'light', 'label-force-dark': forceIconColor === 'dark' }">{{ label }}</div>
     <img v-if="showIcon && iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter }" :src="icon">
   </span>
 </template>
@@ -46,6 +47,7 @@ const props = defineProps({
   fullWidth: { type: Boolean, default: false },
   allowDeactivate: { type: Boolean, default: false },
   showIndicator: { type: Boolean, default: false },
+  forceIconColor: { type: String, default: '', validator: (value) => ['', 'light', 'dark'].includes(value) },
 
 });
 
@@ -280,6 +282,23 @@ onBeforeUnmount(() => {
 
 .use-go img {
   filter: brightness(0) saturate(100%) invert(50%) sepia(74%) saturate(486%) hue-rotate(75deg) brightness(96%) contrast(87%);
+}
+
+/* Force icon/label color regardless of theme */
+.force-light img {
+  filter: brightness(0) invert(1) !important;
+}
+
+.label-force-light {
+  color: white !important;
+}
+
+.force-dark img {
+  filter: brightness(0) !important;
+}
+
+.label-force-dark {
+  color: var(--black) !important;
 }
 
 </style>
