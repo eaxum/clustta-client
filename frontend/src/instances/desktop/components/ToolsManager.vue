@@ -6,6 +6,7 @@
         v-for="tool in tools"
         :key="tool.id"
         class="tool-item"
+        :class="{ 'readonly': readonly }"
       >
         <div class="tool-icon-container">
           <img class="large-icons no-filter" :src="getToolLogoPath(tool)">
@@ -13,6 +14,7 @@
 
         <span class="tool-name">{{ tool.tool_name }}</span>
         <ActionButton
+          v-if="!readonly"
           :icon="getAppIcon('close')"
           :buttonFunction="() => removeTool(tool)"
           :showIcon="true"
@@ -73,6 +75,10 @@ const props = defineProps({
   allTools: {
     type: Array,
     default: () => []
+  },
+  readonly: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -178,6 +184,10 @@ const getAppIcon = (iconName) => {
   font-weight: 500;
   color: var(--white);
   user-select: none;
+}
+
+.tool-item.readonly {
+  padding-right: 1rem;
 }
 
 .limit-message {

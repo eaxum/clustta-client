@@ -7,6 +7,12 @@ export const ProfileService = {
     return response || {};
   },
 
+  // Returns public profile by username or user ID (for public profile pages)
+  GetPublicProfile: async (identifier) => {
+    const response = await globalApiCall(`/api/profiles/public/${encodeURIComponent(identifier)}`, 'GET');
+    return response || null;
+  },
+
   // Updates user profile fields
   UpdateUserProfile: async (userId, profileData) => {
     return await globalApiCall(`/api/users/${userId}/profile`, 'PUT', profileData);
