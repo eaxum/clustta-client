@@ -93,11 +93,15 @@ function createSchema(db) {
   db.run(`
     CREATE TABLE IF NOT EXISTS entity (
       id TEXT PRIMARY KEY,
+      created_at TEXT,
       mtime INTEGER,
       name TEXT,
-      parent_id TEXT,
+      description TEXT,
       entity_type_id TEXT,
+      parent_id TEXT,
       entity_path TEXT,
+      preview_id TEXT DEFAULT '',
+      is_library INTEGER DEFAULT 0,
       trashed INTEGER DEFAULT 0,
       synced INTEGER DEFAULT 1
     )
@@ -294,7 +298,8 @@ function createSchema(db) {
       id TEXT PRIMARY KEY,
       mtime INTEGER,
       entity_id TEXT,
-      user_id TEXT,
+      assignee_id TEXT DEFAULT '',
+      assigner_id TEXT DEFAULT '',
       synced INTEGER DEFAULT 1
     )
   `);
