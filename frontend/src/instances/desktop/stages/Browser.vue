@@ -38,8 +38,11 @@
 					v-if=" !kanbanView && userStore.canDo('create_task')" @click="createWebLink"
 					v-tooltip="'Add Weblink'" />
 				<ActionButton :icon="getAppIcon('arrow-down-ramp')"
-					v-if=" !kanbanView && userStore.canDo('create_entity')" @click="importItems"
+					v-if="!platformStore.isWeb && !kanbanView && userStore.canDo('create_entity')" @click="importItems"
 					v-tooltip="'Import Items'" />
+				<ActionButton :icon="getAppIcon('arrow-up-ramp')"
+					v-if="platformStore.isWeb && !kanbanView && userStore.canDo('create_entity')" @click="uploadItems"
+					v-tooltip="'Upload Items'" />
 			</div>
 
 			<div v-if="!showFilters || !isDefaultWorkspace" class="action-bar-container">
@@ -155,6 +158,7 @@ import { useScrollStore } from '@/stores/scroll';
 import { getRelativePath } from '@/lib/pathlib';
 import { useWorkflowStore } from '@/stores/workflow';
 import { useTemplateStore } from '@/stores/template';
+import { usePlatformStore } from '@/stores/platform';
 import { syncData } from '@/lib/sync';
 
 // states/stores
@@ -176,6 +180,7 @@ const scrollStore = useScrollStore();
 const workflowStore = useWorkflowStore();
 const templateStore = useTemplateStore();
 const dndStore = useDndStore();
+const platformStore = usePlatformStore();
 
 // components
 import Breadcrumbs from '@/instances/common/components/Breadcrumbs.vue';
@@ -1057,6 +1062,12 @@ const createAsset = () => {
 const createWebLink = () => {
 	clearSelection();
 	modals.setModalVisibility('addWebLinkModal', true);
+};
+
+const uploadItems = () => {
+	// TODO: Implement web upload functionality
+	clearSelection();
+	modals.setModalVisibility('uploadItemsModal', true);
 };
 
 const importItems = async () => {

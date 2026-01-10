@@ -1,10 +1,10 @@
 <template>
   <div ref="popUpMenu" class="filter-menu-container">
 
-    <ActionButton v-if="userStore.canDo('pull_chunk')" :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="!platformStore.isWeb && userStore.canDo('pull_chunk')" :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true"
       label="Open With" :buttonFunction="launchAssetWithCommand" />
 
-    <span v-if="userStore.canDo('pull_chunk')" class="menu-divider"></span>
+    <span v-if="!platformStore.isWeb && userStore.canDo('pull_chunk')" class="menu-divider"></span>
 
     <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
       label="Rename Asset" :buttonFunction="renameAsset" />
@@ -15,7 +15,7 @@
     <ActionButton v-if="userStore.canDo('create_task')" :icon="getAppIcon('copy')" :showLabel="true"
       :fullWidth="true" label="Duplicate Asset" :buttonFunction="duplicateAsset" />
 
-    <ActionButton v-if="asset.dependencies.length || asset.entity_dependencies.length" :icon="getAppIcon('jigsaw')" :showLabel="true"
+    <ActionButton v-if="!platformStore.isWeb && (asset.dependencies.length || asset.entity_dependencies.length)" :icon="getAppIcon('jigsaw')" :showLabel="true"
       :fullWidth="true" label="Build with dependencies" :buttonFunction="buildWithDependencies" />
 
     <ActionButton v-if="userStore.canDo('manage_dependencies')" :icon="getAppIcon('dependency')" :showLabel="true"
@@ -26,7 +26,7 @@
       label="Go to Asset" :buttonFunction="goToLocation" />
 
     <!-- Reveal in Explorer -->
-    <span class="horizontal-flex">
+    <span v-if="!platformStore.isWeb" class="horizontal-flex">
       <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" label="Show in Explorer"
         :buttonFunction="revealInExplorer" />
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyAssetPath('asset')"
@@ -34,17 +34,17 @@
     </span>
 
     <!-- Extract Archive -->
-    <ActionButton v-if="isArchive" :icon="getAppIcon('unarchive')" :showLabel="true" :fullWidth="true" 
+    <ActionButton v-if="!platformStore.isWeb && isArchive" :icon="getAppIcon('unarchive')" :showLabel="true" :fullWidth="true" 
       label="Extract" :buttonFunction="extractArchive" />
 
     <!-- Checkpoints -->
-    <ActionButton v-if="isAssetModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="!platformStore.isWeb && isAssetModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :showLabel="true" :fullWidth="true"
       label="Revert File" :buttonFunction="revertAsset" />
 
     <span v-if="userStore.canDo('delete_task') || !isNotOnDisk" class="menu-divider"></span>
 
     <!-- Free space -->
-    <ActionButton :icon="getAppIcon('broom')" v-if="!isNotOnDisk" :showLabel="true" :fullWidth="true"
+    <ActionButton :icon="getAppIcon('broom')" v-if="!platformStore.isWeb && !isNotOnDisk" :showLabel="true" :fullWidth="true"
       label="Free Up space" :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Delete Task -->
@@ -79,6 +79,7 @@ import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from '@/stores/projects';
 import { useCommonStore } from '@/stores/common';
 import { useCollectionStore } from '@/stores/collections';
+import { usePlatformStore } from '@/stores/platform';
 import emitter from '@/lib/mitt';
 
 // components
@@ -99,6 +100,7 @@ const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const commonStore = useCommonStore();
 const collectionStore = useCollectionStore();
+const platformStore = usePlatformStore();
 
 // refs
 const popUpMenu = ref(null);

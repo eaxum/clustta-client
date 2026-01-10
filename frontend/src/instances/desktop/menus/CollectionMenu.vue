@@ -28,7 +28,10 @@
       v-if="userStore.canDo('create_task') || collectionStore.selectedCollection.can_modify" :buttonFunction="createLink" />
 
     <ActionButton :icon="getAppIcon('arrow-down-ramp')" :showLabel="true" :fullWidth="true" label="Import Items"
-      v-if="userStore.canDo('create_task')" :buttonFunction="importItems" />
+      v-if="!platformStore.isWeb && userStore.canDo('create_task')" :buttonFunction="importItems" />
+
+    <ActionButton :icon="getAppIcon('arrow-up-ramp')" :showLabel="true" :fullWidth="true" label="Upload Items"
+      v-if="platformStore.isWeb && userStore.canDo('create_task')" :buttonFunction="uploadItems" />
 
     
     <!-- Collection State Actions -->
@@ -37,14 +40,14 @@
     <ActionButton v-if="collectionStateFlags.has_untracked || collectionStateFlags.has_modified" :icon="getAppIcon('layers-plus')" :useAlert="collectionStateFlags.has_modified" :useDanger="collectionStateFlags.has_untracked" :showLabel="true" :fullWidth="true" label="Create Checkpoints"
       :buttonFunction="prepCreateCheckpointsModal" />
 
-    <ActionButton v-if="collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" label="Rebuild Contents"
+    <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" label="Rebuild Contents"
       :buttonFunction="rebuildCollection" />
 
-    <ActionButton v-if="collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" :showLabel="true" :fullWidth="true" label="Update Contents"
+    <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" :showLabel="true" :fullWidth="true" label="Update Contents"
       :buttonFunction="updateContents" />
 
     <!-- Revert Contents -->
-    <ActionButton v-if="collectionStateFlags.has_modified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :showLabel="true" :fullWidth="true" 
+    <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_modified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :showLabel="true" :fullWidth="true" 
       label="Revert Contents" :buttonFunction="prepRevertContentsPopUpModal" />
 
 
@@ -52,7 +55,7 @@
     <span v-if="userStore.canDo('update_entity') || collectionStore.selectedCollection.can_modify" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
-    <span class="horizontal-flex">
+    <span v-if="!platformStore.isWeb" class="horizontal-flex">
       <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" label="Show in Explorer"
         :buttonFunction="revealInExplorer" />
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyEntityPath('entity')"
@@ -60,7 +63,7 @@
     </span>
 
     <!-- Free space -->
-    <ActionButton :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" label="Free Up space"
+    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" label="Free Up space"
       :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Delete Task -->
@@ -101,6 +104,7 @@ import { useCommonStore } from '@/stores/common';
 import { useProjectStore } from '@/stores/projects';
 import { useWorkflowStore } from '@/stores/workflow';
 import { useTemplateStore } from '@/stores/template';
+import { usePlatformStore } from '@/stores/platform';
 import emitter from '@/lib/mitt';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
@@ -122,6 +126,7 @@ const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const workflowStore = useWorkflowStore();
 const commonStore = useCommonStore();
+const platformStore = usePlatformStore();
 
 // computed
 const canSelectContent = computed(() => {
@@ -205,6 +210,13 @@ const createLink = () => {
 
 const addWorkflow = () => {
   modals.setModalVisibility('selectWorkflowModal', true);
+  menu.hideContextMenu();
+};
+
+const uploadItems = () => {
+  // TODO: Implement web upload functionality
+  stage.expandEntity(collectionStore.selectedCollection);
+  modals.setModalVisibility('uploadItemsModal', true);
   menu.hideContextMenu();
 };
 
