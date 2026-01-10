@@ -14,6 +14,7 @@ export const useTagStore = defineStore("tags", {
   actions: {
     async reloadTags() {
       const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri) return;
       this.tags = await TagService.GetTags(projectStore.activeProject.uri);
     },
   },

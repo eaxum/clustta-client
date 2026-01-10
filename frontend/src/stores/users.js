@@ -84,6 +84,8 @@ export const useUserStore = defineStore("users", {
     },
     async reloadUsers() {
       const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri) return;
+      
       let user = this.user;
       this.users = await UserService.GetUsers(projectStore.activeProject?.uri);
       for (let i = 0; i < this.users.length; i++) {
@@ -91,7 +93,9 @@ export const useUserStore = defineStore("users", {
           this.users[i].photo = "data:image/png;base64," + this.users[i].photo;
         }
       }
-      this.user = this.getUserData(user.id);
+      if (user?.id) {
+        this.user = this.getUserData(user.id);
+      }
       let roles = await UserService.GetRoles(projectStore.activeProject.uri);
       this.roles = roles;
       this.rebuildUsersIndex();

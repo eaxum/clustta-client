@@ -40,6 +40,7 @@ export const useTemplateStore = defineStore("template", {
     },
     async reloadTemplates() {
       const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri) return;
       const iconStore = useIconStore();
       let templates = await TemplateService.GetTemplates(
         projectStore.activeProject.uri

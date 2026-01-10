@@ -5,6 +5,7 @@ import { getDatabase, query, queryOne, execute, persistDatabase } from './projec
  * Extract project name from project path/uri
  */
 function getProjectName(projectPath) {
+  if (!projectPath) return '';
   return projectPath.split('/').pop()?.replace('.clst', '') || projectPath;
 }
 
@@ -51,6 +52,7 @@ function rowToRole(row) {
 export const UserService = {
   // Returns all users in a project with their roles attached
   GetUsers: async (projectPath) => {
+    if (!projectPath) return [];
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
