@@ -205,7 +205,7 @@ body {
   
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--steel);
+  background-color: var(--dark-steel);
 }
 
 [data-theme="dark"] body{

@@ -87,13 +87,13 @@
 				<ActionButton v-if="!kanbanView && commonStore.showEntities && entityExpanded"
 					:icon="entityExpanded ? getAppIcon('collapse-up') : getAppIcon('collapse-down')"
 					v-tooltip="entityExpanded ? 'Collapse all' : 'Expand all'" :buttonFunction="toggleExpandEntities" />
-				<ActionButton v-if="!kanbanView" :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
+				<ActionButton v-if="!kanbanView && isWideScreen" :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
 					v-tooltip="panes.showDetailsPane ? 'Close pane' : 'Open pane'"
 					:buttonFunction="toggleDetailsPane" />
 			</div>
 
 			<div v-else class="view-options">
-				<ActionButton :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
+				<ActionButton v-if="isWideScreen" :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
 					v-tooltip="panes.showDetailsPane ? 'Close pane' : 'Open pane'"
 					:buttonFunction="toggleDetailsPane" />
 			</div>
@@ -115,7 +115,7 @@
 					<GridView v-else-if="!assetStore.assetsLoaded || rootData.length" :rootItems="rootData" />
 					<PageState v-else :message="message()" :prompt="prompt()" :illustration="illustration()" />
 				</div>
-				<DetailsPane v-if="projectStore.getProjects.length" :isVisible="panes.showDetailsPane" />
+				<DetailsPane v-if="projectStore.getProjects.length && isWideScreen" :isVisible="panes.showDetailsPane" />
 			</div>
 
 
@@ -204,6 +204,17 @@ const browserFilters = ref(null);
 const searchBar = ref(null);
 const observer = ref(null);
 const rootData = ref([]);
+const screenWidth = ref(window.innerWidth);
+
+// Computed for responsive layout
+const isWideScreen = computed(() => screenWidth.value >= 1000);
+
+const updateScreenWidth = () => {
+	screenWidth.value = window.innerWidth;
+	if (screenWidth.value < 1000) {
+		panes.showDetailsPane = false;
+	}
+};
 
 // events
 import { Events } from "@wailsio/runtime";
@@ -1650,7 +1661,8 @@ onMounted(async () => {
 	commonStore.resetFilters();
 	dndStore.lockUI = true;
 	commonStore.activeWorkspace = 'Default';
-	panes.showDetailsPane = true;
+	panes.showDetailsPane = screenWidth.value >= 1000;
+	window.addEventListener('resize', updateScreenWidth);
 	observer.value = new ResizeObserver(trackWidthChange);
 	observer.value.observe(browserRoot.value);
 	document.addEventListener('click', handleClickOutside);
@@ -1686,6 +1698,7 @@ onBeforeUnmount(() => {
 	document.removeEventListener('click', handleClickOutside);
 	window.removeEventListener('keydown', detectModifier);
 	window.removeEventListener('keyup', detectModifier);
+	window.removeEventListener('resize', updateScreenWidth);
 });
 </script>
 

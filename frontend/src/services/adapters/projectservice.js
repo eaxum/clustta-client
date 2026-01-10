@@ -55,10 +55,8 @@ export const ProjectService = {
       preview: '',
     }));
 
-    // Fire-and-forget: fetch previews async without blocking
-    parsedProjects.forEach(project => {
-      // fetchProjectPreview(project, url);
-    });
+    // Fire-and-forget: fetch all previews in parallel without blocking
+    // Promise.all(parsedProjects.map(project => fetchProjectPreview(project, url)));
 
     return parsedProjects;
   },

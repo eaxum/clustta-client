@@ -220,23 +220,25 @@ export const useProjectStore = defineStore("projects", {
       const stage = useStageStore();
 
       this.projectsLoaded = false;
-      for (let i = 0; i < this.projects.length; i++) {
+      
+      // Parallelize project status checks
+      await Promise.all(this.projects.map(async (project, i) => {
         //TODO check the importance if exist for projects
-        if (await FSService.Exists(this.projects[i].uri)) {
+        if (await FSService.Exists(project.uri)) {
           this.projects[i].is_downloaded = true;
-          await SyncService.IsUnsynced(this.projects[i].uri)
-            .then(async (isUnsynced) => {
-              this.projects[i].is_unsynced = isUnsynced;
-            })
-            .catch((error) => {
-              console.log(error);
-              // notificationStore.errorNotification("Error Loading Data", error)
-            });
+          try {
+            const isUnsynced = await SyncService.IsUnsynced(project.uri);
+            this.projects[i].is_unsynced = isUnsynced;
+          } catch (error) {
+            console.log(error);
+            // notificationStore.errorNotification("Error Loading Data", error)
+          }
         } else {
           this.projects[i].is_downloaded = false;
           this.projects[i].is_unsynced = false;
         }
-      }
+      }));
+      
       if (this.activeProject && stage.activeStage !== 'projects') {
         console.log('reloading')
         await this.refreshActiveProject();
@@ -245,20 +247,20 @@ export const useProjectStore = defineStore("projects", {
       this.projectsLoaded = true;
     },
     async refreshProjectsPreview() {
-      for (let i = 0; i < this.projects.length; i++) {
-        if (await FSService.Exists(this.projects[i].uri)) {
-          await ProjectService.GetPreview(this.projects[i].uri)
-            .then(async (preview) => {
-              if (preview) {
-                this.projects[i].preview = "data:image/png;base64," + preview;
-              }
-            })
-            .catch((error) => {
-              console.log(error);
-              // notificationStore.errorNotification("Error Loading Data", error)
-            });
+      // Parallelize preview fetching
+      await Promise.all(this.projects.map(async (project, i) => {
+        if (await FSService.Exists(project.uri)) {
+          try {
+            const preview = await ProjectService.GetPreview(project.uri);
+            if (preview) {
+              this.projects[i].preview = "data:image/png;base64," + preview;
+            }
+          } catch (error) {
+            console.log(error);
+            // notificationStore.errorNotification("Error Loading Data", error)
+          }
         }
-      }
+      }));
     },
     async refreshProjectPreview(projectId) {
       let projectIndex = this.projects.findIndex((project) => {

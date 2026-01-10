@@ -395,7 +395,7 @@ onBeforeUnmount(() => {
   right: 100%;
   bottom: 0;
   left: 0;
-  background: linear-gradient(to right, transparent, rgb(31, 163, 60), transparent);
+  background: linear-gradient(to right, transparent, #643193, transparent);
   width: 0;
   animation: borealisBar 1.2s linear infinite;
   z-index: 1;

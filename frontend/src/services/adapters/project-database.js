@@ -618,9 +618,9 @@ function populateFromProjectData(db, projectData) {
 
   // Insert entity assignees
   if (projectData.entity_assignees?.length) {
-    const stmt = db.prepare('INSERT INTO entity_assignee (id, mtime, entity_id, user_id, synced) VALUES (?, ?, ?, ?, ?)');
+    const stmt = db.prepare('INSERT INTO entity_assignee (id, mtime, entity_id, assignee_id, assigner_id, synced) VALUES (?, ?, ?, ?, ?, ?)');
     for (const ea of projectData.entity_assignees) {
-      stmt.run([n(ea.id), num(ea.mtime), n(ea.entity_id), n(ea.user_id), 1]);
+      stmt.run([n(ea.id), num(ea.mtime), n(ea.entity_id), n(ea.assignee_id), n(ea.assigner_id), 1]);
     }
     stmt.free();
   }
