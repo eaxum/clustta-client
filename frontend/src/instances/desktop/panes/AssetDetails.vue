@@ -92,7 +92,7 @@
               <div class="simple-text-value">
                 {{ assetStore.selectedAsset.file_path }}
               </div>
-              <div class="pane-parameter-actions">
+              <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
                 <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy Path'" @click="copyTaskPath('task')"/>
                 <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="'Reveal in Explorer'" :buttonFunction="revealInExplorer"/>
               </div>
@@ -154,6 +154,7 @@ import { useStatusStore } from '@/stores/status';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useCommonStore } from '@/stores/common';
+import { usePlatformStore } from '@/stores/platform';
 
 // services
 import { AssetService, CheckpointService } from "@/services";
@@ -176,6 +177,7 @@ const projectStore = useProjectStore();
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const commonStore = useCommonStore();
+const platformStore = usePlatformStore();
 
 // refs
 const numberOfSelectedTasks = ref(0);

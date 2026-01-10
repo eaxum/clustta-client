@@ -65,7 +65,7 @@
             <div class="simple-text-value" >
               {{ collectionStore.selectedCollection.file_path }}
             </div>
-            <div class="pane-parameter-actions">
+            <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
               <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy Path'" @click="copyEntityPath('entity')"/>
               <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="'Reveal in Explorer'" :buttonFunction="revealInExplorer"/>
             </div>
@@ -132,6 +132,7 @@ import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
+import { usePlatformStore } from '@/stores/platform';
 
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -147,6 +148,7 @@ const modals = useDesktopModalStore();
 const stage = useStageStore();
 const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
+const platformStore = usePlatformStore();
 
 // vars
 let placeholder = 'Search collaborators';

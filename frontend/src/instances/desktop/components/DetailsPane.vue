@@ -45,17 +45,17 @@
               :fixedWidth="true" />
           </div>
           
-          <ActionButton v-if="tasksCanRebuild" :icon="getAppIcon('jigsaw')" :label="'Rebuild Assets'"
+          <ActionButton v-if="!platformStore.isWeb && tasksCanRebuild" :icon="getAppIcon('jigsaw')" :label="'Rebuild Assets'"
             :buttonFunction="revertAllChanges" />
           <ActionButton v-if="tasksModified" :noFilter="true" :icon="getAppIcon('layers-plus')" :useAlert="true" :label="'Create Checkpoints'"
             :buttonFunction="prepAllCheckpointModal" />
-          <ActionButton v-if="tasksModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :label="'Revert Tasks'"
+          <ActionButton v-if="!platformStore.isWeb && tasksModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :label="'Revert Tasks'"
             :buttonFunction="prepResetPopUpModal" />
           <ActionButton :icon="getAppIcon('person-plus')" :label="'Assign assets'"
             @click="prepAssignTask($event)" />
           <ActionButton :icon="getAppIcon('person-minus')" :label="'Unassign assets'"
             :buttonFunction="unassignTasks" />
-          <ActionButton v-if="tasksOnDisk" :icon="getAppIcon('broom')" :label="'Free up space'"
+          <ActionButton v-if="!platformStore.isWeb && tasksOnDisk" :icon="getAppIcon('broom')" :label="'Free up space'"
             :buttonFunction="prepFreeUpSpacePopUpModal" />
           <ActionButton :icon="getAppIcon('trash')" :label="'Delete Selected assets'"
             :buttonFunction="deleteMultipleTasks" />
@@ -81,8 +81,8 @@
           
           <ActionButton :icon="getAppIcon('person-minus')" :label="'Unassign collections'"
             :buttonFunction="unassignCollections" />
-          <ActionButton :icon="getAppIcon('jigsaw')" :label="'Rebuild collections'" :buttonFunction="rebuildCollections" />
-          <ActionButton :icon="getAppIcon('broom')" :label="'Free up space'"
+          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('jigsaw')" :label="'Rebuild collections'" :buttonFunction="rebuildCollections" />
+          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :label="'Free up space'"
             :buttonFunction="freeUpCollectionSpacePopUpModal" />
           <ActionButton :icon="getAppIcon('trash')" :label="'Delete collections'"
             :buttonFunction="deleteMultipleEntities" />
@@ -143,6 +143,7 @@ import { useCommonStore } from '@/stores/common';
 import { getRelativePath } from '@/lib/pathlib';
 import { useIconStore } from '@/stores/icons';
 import { useSettingsStore } from '@/stores/settings';
+import { usePlatformStore } from '@/stores/platform';
 
 // components
 
@@ -178,6 +179,7 @@ const notificationStore = useNotificationStore();
 const dependencyStore = useDependencyStore();
 const commonStore = useCommonStore();
 const settings = useSettingsStore();
+const platformStore = usePlatformStore();
 
 const paneComponents = {
   projectDetails: ProjectDetails,

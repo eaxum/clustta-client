@@ -38,7 +38,7 @@
           label="Pin Project" :buttonFunction="pinProject" />
 
         <!-- Reveal in Explorer -->
-        <span class="horizontal-flex">
+        <span v-if="!platformStore.isWeb" class="horizontal-flex">
           <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" label="Show in Explorer"
             :buttonFunction="revealInExplorer" />
           <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyProjectPath()"
@@ -46,15 +46,15 @@
         </span>
 
         <!-- Locate Clustta file -->
-        <ActionButton v-if="projectStore.getActiveProject.is_downloaded" :icon="getAppIcon('clustta')" :showLabel="true"
+        <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded" :icon="getAppIcon('clustta')" :showLabel="true"
           :fullWidth="true" label="Locate Clustta File" :buttonFunction="locateClusttaFile" />
 
         <!-- Relocate Working Directory -->
-        <ActionButton :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
+        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
           :buttonFunction="relocateWorkingDirectory" />
 
         <!-- Backup Project -->
-        <ActionButton :icon="getAppIcon('floppy-disk')" :showLabel="true" :fullWidth="true" label="Backup"
+        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('floppy-disk')" :showLabel="true" :fullWidth="true" label="Backup"
           :buttonFunction="backupProject" />
 
         <!-- Archive -->
@@ -67,16 +67,16 @@
           :fullWidth="true" label="Unarchive Project" :buttonFunction="toggleCloseProject" />
 
         <!-- Rebuild -->
-        <ActionButton v-if="projectStore.getActiveProject.is_downloaded && !projectStore.getActiveProject.is_closed"
+        <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded && !projectStore.getActiveProject.is_closed"
           :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" label="Rebuild Project"
           :buttonFunction="rebuildAll" />
 
         <!-- Free space -->
-        <ActionButton :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" label="Free Up space"
+        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" label="Free Up space"
           :buttonFunction="prepFreeUpSpacePopUpModal" />
 
         <!-- Delete project -->
-        <ActionButton v-if="userStore.userCanCreateProject" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
+        <ActionButton v-if="!platformStore.isWeb && userStore.userCanCreateProject" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
           label="Empty trash" :buttonFunction="prepEmptyTrashPopUpModal" />
 
       </div>
@@ -163,6 +163,7 @@ import { useAssetStore } from '@/stores/assets';
 import { useCommonStore } from '@/stores/common';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
+import { usePlatformStore } from '@/stores/platform';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
@@ -181,6 +182,7 @@ const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const commonStore = useCommonStore();
 const iconStore = useIconStore();
+const platformStore = usePlatformStore();
 
 
 

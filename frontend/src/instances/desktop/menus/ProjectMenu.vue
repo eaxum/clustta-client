@@ -2,22 +2,25 @@
   <div ref="collectionMenu" class="filter-menu-container">
 
     <!-- Create -->
-    <ActionButton :icon="getAppIcon('folder-plus')" :showLabel="true" :fullWidth="true" label="New Collection"
+     <ActionButton :icon="getAppIcon('file-plus')" :showLabel="true" :fullWidth="true" label="Add Asset"
+      v-if="templateStore.getTemplates.length && userStore.canDo('create_task')" :buttonFunction="createTask" />
+
+    <ActionButton :icon="getAppIcon('folder-plus')" :showLabel="true" :fullWidth="true" label="Add Collection"
       v-if="userStore.canDo('create_entity')" :buttonFunction="createEntity" />
 
     <ActionButton :icon="getAppIcon('workflow-plus')" :showLabel="true" :fullWidth="true" label="Add Workflow"
       v-if="workflowStore.workflows.length && userStore.canDo('create_task')" :buttonFunction="addWorkflow" />
 
-    <ActionButton :icon="getAppIcon('file-plus')" :showLabel="true" :fullWidth="true" label="New Task"
-      v-if="templateStore.getTemplates.length && userStore.canDo('create_task')" :buttonFunction="createTask" />
-
     <ActionButton :icon="getAppIcon('arrow-down-ramp')" :showLabel="true" :fullWidth="true" label="Import Items"
-      v-if="userStore.canDo('create_task')" :buttonFunction="importItems" />
+      v-if="!platformStore.isWeb && userStore.canDo('create_task')" :buttonFunction="importItems" />
 
-    <span v-if="userStore.canDo('create_entity')" class="menu-divider"></span>
+    <ActionButton :icon="getAppIcon('arrow-up-ramp')" :showLabel="true" :fullWidth="true" label="Upload Items"
+      v-if="platformStore.isWeb && userStore.canDo('create_task')" :buttonFunction="uploadItems" />
+
+    <span v-if="userStore.canDo('create_entity') && !platformStore.isWeb" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
-    <span class="horizontal-flex">
+    <span v-if="!platformStore.isWeb" class="horizontal-flex">
       <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" label="Show in Explorer"
         :buttonFunction="revealInExplorer" />
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyDirectoryPath()"
@@ -25,19 +28,19 @@
     </span>
 
     <!-- Relocate Working Directory -->
-    <ActionButton :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
+    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
       :buttonFunction="relocateWorkingDirectory" />
 
     <!-- Rebuild -->
-    <ActionButton :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" label="Build Project"
+    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" label="Build Project"
       :buttonFunction="rebuildAll" />
 
     <!-- Free space -->
-    <ActionButton :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" label="Free Up space"
+    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" label="Free Up space"
       :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Clear Trash -->
-    <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Empty Trash"
+    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Empty Trash"
       :buttonFunction="prepEmptyTrashPopUpModal" />
 
 
@@ -77,6 +80,7 @@ import { useCommonStore } from '@/stores/common';
 import { useProjectStore } from '@/stores/projects';
 import { useTemplateStore } from '@/stores/template';
 import { useWorkflowStore } from '@/stores/workflow';
+import { usePlatformStore } from '@/stores/platform';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
@@ -99,6 +103,7 @@ const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const commonStore = useCommonStore();
 const templateStore = useTemplateStore();
+const platformStore = usePlatformStore();
 
 // refs
 const collectionMenu = ref(null);
@@ -239,6 +244,12 @@ const createTask = () => {
 
 const createResources = () => {
   modals.setModalVisibility('addResourcesModal', true);
+  menu.hideContextMenu();
+};
+
+const uploadItems = () => {
+  // TODO: Implement web upload functionality
+  modals.setModalVisibility('uploadItemsModal', true);
   menu.hideContextMenu();
 };
 

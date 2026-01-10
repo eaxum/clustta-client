@@ -9,13 +9,13 @@
       label="Edit Project" :buttonFunction="editProject" />
 
     <!-- {{  isPinExceeded  }} -->
-    <ActionButton v-if="!platformStore.isWeb && (projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && isProjectPinned" :icon="getAppIcon('unpin')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="(projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && isProjectPinned" :icon="getAppIcon('unpin')" :showLabel="true" :fullWidth="true"
       label="Unpin Project" :buttonFunction="unpinProject" />
 
-    <ActionButton v-else-if="!platformStore.isWeb && !isPinExceeded" :icon="getAppIcon('pin')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-else-if="!isPinExceeded" :icon="getAppIcon('pin')" :showLabel="true" :fullWidth="true"
       label="Pin Project" :buttonFunction="pinProject" />
 
-    <span v-if="userStore.canDo('create_entity')" class="menu-divider"></span>
+    <span v-if="userStore.canDo('create_entity') && !platformStore.isWeb" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
     <span v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded" class="horizontal-flex">
@@ -105,7 +105,6 @@ const getAppIcon = (iconName) => {
 };
 
 const isProjectPinned = computed(() => {
-  if (platformStore.isWeb) return false;
   const projectId = projectStore.getActiveProject.id;
   const pinnedProjects = projectStore.pinnedProjects;
   return pinnedProjects?.includes(projectId);
