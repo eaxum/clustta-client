@@ -185,6 +185,7 @@ export const useCollectionStore = defineStore("collection", {
 
     async reloadCollectionTypes() {
       const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri) return;
       let collectionTypes = await CollectionService.GetCollectionTypes(
         projectStore.activeProject.uri
       );

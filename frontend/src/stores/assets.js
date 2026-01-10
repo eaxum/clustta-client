@@ -547,6 +547,7 @@ export const useAssetStore = defineStore("asset", {
 
     async reloadAssetTypes() {
       const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri) return;
       let assetTypes = await AssetService.GetAssetTypes(
         projectStore.activeProject.uri
       );

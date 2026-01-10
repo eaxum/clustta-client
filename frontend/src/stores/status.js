@@ -14,6 +14,7 @@ export const useStatusStore = defineStore("status", {
   actions: {
     async reloadStatuses() {
       const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri) return;
       this.statuses = await StatusService.GetStatuses(
         projectStore.activeProject.uri
       );
