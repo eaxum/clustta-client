@@ -112,4 +112,61 @@ export const CheckpointService = {
       return {};
     }
   },
+
+  // Returns the project timeline showing checkpoint history
+  GetTimeline: async (projectPath) => {
+    const projectName = getProjectName(projectPath);
+    try {
+      const db = await getDatabase(projectName);
+      
+      // Get all checkpoints with task info, grouped by date
+      const checkpointRows = query(db, `
+        SELECT tc.*, t.name as task_name, t.entity_id
+        FROM task_checkpoint tc
+        LEFT JOIN task t ON tc.task_id = t.id
+        WHERE tc.trashed = 0
+        ORDER BY tc.created_at DESC
+      `);
+      
+      // Build task type map
+      const taskTypeRows = query(db, 'SELECT * FROM task_type');
+      const taskTypeMap = {};
+      for (const tt of taskTypeRows) {
+        taskTypeMap[tt.id] = tt;
+      }
+      
+      // Build entity map for path info
+      const entityRows = query(db, 'SELECT * FROM entity');
+      const entityMap = {};
+      for (const e of entityRows) {
+        entityMap[e.id] = e;
+      }
+      
+      // Transform checkpoints to timeline format
+      const timeline = checkpointRows.map(row => {
+        const entity = entityMap[row.entity_id] || {};
+        return {
+          id: row.id,
+          task_id: row.task_id,
+          task_name: row.task_name || '',
+          entity_id: row.entity_id || '',
+          entity_name: entity.name || '',
+          entity_path: entity.entity_path || '',
+          created_at: row.created_at,
+          time_modified: Number(row.time_modified || 0),
+          file_size: Number(row.file_size || 0),
+          comment: row.comment || '',
+          author_uid: row.author_uid || '',
+          preview_id: row.preview_id || '',
+          group_id: row.group_id || '',
+          xxhash_checksum: row.xxhash_checksum || '',
+        };
+      });
+      
+      return timeline;
+    } catch (error) {
+      console.error('GetTimeline error:', error);
+      return [];
+    }
+  },
 };

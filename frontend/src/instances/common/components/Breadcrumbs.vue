@@ -2,7 +2,7 @@
     <div ref="breadcrumbRoot" class="breadcrumb-root">
         <ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon('arrow-back-ramp')"
             :allowDeactivate="true" v-tooltip="'Up a level'" :buttonFunction="goUpALevel" />
-        <ActionButton :icon="getAppIcon( commonStore.navigatorMode ? 'forward-slash':'home')"
+        <ActionButton :icon="getAppIcon( commonStore.navigatorMode ? 'forward-slash':'briefcase')"
             :allowDeactivate="true" v-tooltip="commonStore.navigatorMode ? 'Home' : ''" :label=" projectStore.activeProject?.name" :buttonFunction="goHome" />
         
 
