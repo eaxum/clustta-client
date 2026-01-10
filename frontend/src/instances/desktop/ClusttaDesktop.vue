@@ -150,6 +150,7 @@ onBeforeUnmount(async () => {
 	overflow: hidden;
 	display: flex;
 	box-sizing: border-box;
+	min-width: 1000px;
 }
 
 .no-radius {

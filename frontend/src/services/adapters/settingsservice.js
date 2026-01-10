@@ -65,9 +65,10 @@ export const SettingsService = {
       const studioArray = Array.isArray(userStudios) ? userStudios :
                           (userStudios && typeof userStudios === 'object') ? Object.values(userStudios) : [];
 
-      for (const userStudio of studioArray) {
-        if (userStudio && userStudio.name) {
-          // Fetch users for each studio (matching Go behavior)
+      // Fetch users for all studios in parallel
+      const studioPromises = studioArray
+        .filter(userStudio => userStudio && userStudio.name)
+        .map(async (userStudio) => {
           let studioUsers = [];
           try {
             const studioId = userStudio.id || '';
@@ -78,15 +79,17 @@ export const SettingsService = {
             console.warn(`Failed to fetch users for studio ${userStudio.name}:`, err);
           }
 
-          studios.push({
+          return {
             id: userStudio.id || '',
             name: userStudio.name || '',
             url: userStudio.url || userStudio.URL || '',
             alt_url: userStudio.alt_url || userStudio.AltURL || '',
             Users: studioUsers,
-          });
-        }
-      }
+          };
+        });
+
+      const fetchedStudios = await Promise.all(studioPromises);
+      studios.push(...fetchedStudios);
 
       setSetting('studios', studios);
       return studios;
