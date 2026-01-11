@@ -198,7 +198,6 @@ const copyDirectoryPath = async () => {
 
     let explorerPath = `${project.working_directory}${path}`
     explorerPath = explorerPath.replace(/\\/g, '/');
-    console.log(explorerPath)
     await Clipboard.SetText(explorerPath);
   }
 
@@ -343,7 +342,6 @@ const goUpALevel = async () => {
   }
 
 	if(parentEntity){
-    console.log(parentEntity)
 		collectionStore.navigatedCollection = parentEntity;
 
     stage.lastSelectedItemId = "";
@@ -517,22 +515,15 @@ watch(() => projectStore.activeProject?.uri, async () => {
   font-size: 0.875rem;
   font-weight: 500;
   background-color: var(--black-steel);
-  /* background-color: forestgreen; */
   border-radius: var(--normal-radius);
-  /* width: 100%; */
-  /* width: max-content; */
   overflow: hidden;
-  /* flex: 1 1 50%; */
-  /* flex: 0 1 auto; */
   max-width: 70%;
   min-width: 65%;
-	min-width: 590px;
-  /* gap: .1rem; */
+	/* min-width: 590px; */
   padding: .2rem;
   overflow: hidden;
   width: 100%;
   box-sizing: border-box;
-  /* max-width: 100% */
   border-radius: var(--large-radius);
 }
 

@@ -1575,7 +1575,6 @@ const softRefresh = async () => {
 	// Update state
 	assetStore.assetsLoaded = true;
 	collectionStore.loadCollectionStateFlags(); 
-	console.log(children)
 };
 
 watch(() => assetStore.assetsLoaded, async () => {

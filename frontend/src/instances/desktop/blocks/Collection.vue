@@ -625,7 +625,7 @@ const cacheEntityDataIds = () => {
 // methods
 const expandEntity = () => {
   const entity = props.entity;
-  console.log(entity);
+  // console.log(entity);
   stage.expandEntity(entity, props.isUntracked);
   cancelRename();
   emit('toggle', entity.name);

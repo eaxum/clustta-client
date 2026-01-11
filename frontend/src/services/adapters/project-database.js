@@ -435,14 +435,6 @@ function bool(value) {
  * Populate database from decoded ProjectData protobuf
  */
 function populateFromProjectData(db, projectData) {
-    console.log(projectData)
-  console.log('[populateFromProjectData] Starting population with data:', {
-    entities: projectData.entities?.length || 0,
-    tasks: projectData.tasks?.length || 0,
-    checkpoints: projectData.tasks_checkpoints?.length || 0,
-    users: projectData.users?.length || 0,
-  });
-
   // Clear existing data
   const tables = [
     'entity', 'task', 'task_checkpoint', 'user', 'role', 'status',

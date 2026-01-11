@@ -15,42 +15,42 @@
 			</div>
 
 			<div v-if="stage.activeStage === 'dependencies'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('arrow-left')" @click="goToList()" v-tooltip="'Back'" />
+				<ActionButton :icon="getAppIcon('chevron-left')" @click="goToList()" v-tooltip="'Back'" />
 				<div class="header-area-container" @click="toggleFullTaskPath()">
 					<HeaderArea :title="taskName" :miniDisplay="true" :customIcon="assetStore.selectedAsset.icon" />
 				</div>
 			</div>
 
 			<div v-if="stage.activeStage === 'trash'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('arrow-left')" @click="goToList()" v-tooltip="'Back'" />
+				<ActionButton :icon="getAppIcon('chevron-left')" @click="goToList()" v-tooltip="'Back'" />
 				<div class="header-area-container">
 					<HeaderArea :title="'Trash'" :miniDisplay="true" />
 				</div>
 			</div>
 
 			<div v-if="stage.activeStage === 'projectSettings'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('arrow-left')" @click="goToList()" v-tooltip="'Back'" />
+				<ActionButton :icon="getAppIcon('chevron-left')" @click="goToList()" v-tooltip="'Back'" />
 				<div class="header-area-container">
 					<HeaderArea :title="'Project Settings'" :miniDisplay="true" />
 				</div>
 			</div>
 
 			<div v-if="stage.activeStage === 'studioSettings'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('arrow-left')" @click="goToProjects()" v-tooltip="'Back'" />
+				<ActionButton :icon="getAppIcon('chevron-left')" @click="goToProjects()" v-tooltip="'Back'" />
 				<div class="header-area-container">
 					<HeaderArea :title="'Studio Settings'" :miniDisplay="true" />
 				</div>
 			</div>
 
 			<div v-if="stage.activeStage === 'settings'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('arrow-left')" @click="goToProjects()" v-tooltip="'Back'" />
+				<ActionButton :icon="getAppIcon('chevron-left')" @click="goToProjects()" v-tooltip="'Back'" />
 				<div class="header-area-container">
 					<HeaderArea :title="'Clustta Settings'" :miniDisplay="true" />
 				</div>
 			</div>
 
 			<div v-if="stage.activeStage === 'account'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('arrow-left')" @click="goToProjects()" v-tooltip="'Back'" />
+				<ActionButton :icon="getAppIcon('chevron-left')" @click="goToProjects()" v-tooltip="'Back'" />
 				<div class="header-area-container">
 					<HeaderArea :title="'Account Settings'" :miniDisplay="true" />
 				</div>
