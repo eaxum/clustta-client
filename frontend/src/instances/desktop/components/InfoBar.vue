@@ -40,11 +40,15 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue';
 import { Events } from "@wailsio/runtime";
+import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
 import { useIconStore } from '@/stores/icons';
 import { usePromptStore } from '@/stores/prompts';
 import { useNotificationStore } from '@/stores/notifications';
+import { usePlatformStore } from '@/stores/platform';
+
+const platformStore = usePlatformStore();
 
 const iconStore = useIconStore();
 const promptStore = usePromptStore();
@@ -116,46 +120,74 @@ const progressTooltip = computed(() => {
 });
 
 // events
-Events.On("add_message", async (message) => {
-  const payload = message.data;
-  let notificationData
+const handleAddMessage = (payload) => {
+  let notificationData;
   if (typeof payload === 'string' || payload instanceof String) {
     notificationData = JSON.parse(payload);
   } else {
     notificationData = payload;
   }
-  showMessage(notificationData)
-});
+  showMessage(notificationData);
+};
 
-Events.On("add_prompt", async (prompt) => {
-  const payload = prompt.data;
-  let promptData
+const handleAddPrompt = (payload) => {
+  let promptData;
   if (typeof payload === 'string' || payload instanceof String) {
     promptData = JSON.parse(payload);
   } else {
     promptData = payload;
   }
-  showPrompt(promptData)
-});
+  showPrompt(promptData);
+};
 
-Events.On("update_prompt", async (prompt) => {
-  const payload = prompt.data;
-  let promptData
+const handleUpdatePrompt = (payload) => {
+  let promptData;
   if (typeof payload === 'string' || payload instanceof String) {
     promptData = JSON.parse(payload);
   } else {
     promptData = payload;
   }
-  showPrompt(promptData)
-});
+  showPrompt(promptData);
+};
 
-Events.On("clear_prompt", async (prompt) => {
+const handleClearPrompt = () => {
   currentPrompt.value = null;
-});
+};
 
-Events.On("clear_all_prompts", async () => {
+const handleClearAllPrompts = () => {
   currentPrompt.value = null;
-});
+};
+
+// Register event listeners based on platform
+if (platformStore.isWeb) {
+  // Web mode: use mitt emitter (payload comes directly)
+  emitter.on('add_message', handleAddMessage);
+  emitter.on('add_prompt', handleAddPrompt);
+  emitter.on('update_prompt', handleUpdatePrompt);
+  emitter.on('clear_prompt', handleClearPrompt);
+  emitter.on('clear_all_prompts', handleClearAllPrompts);
+} else {
+  // Desktop mode: use Wails Events (payload is in message.data)
+  Events.On("add_message", async (message) => {
+    handleAddMessage(message.data);
+  });
+  
+  Events.On("add_prompt", async (prompt) => {
+    handleAddPrompt(prompt.data);
+  });
+  
+  Events.On("update_prompt", async (prompt) => {
+    handleUpdatePrompt(prompt.data);
+  });
+  
+  Events.On("clear_prompt", async () => {
+    handleClearPrompt();
+  });
+  
+  Events.On("clear_all_prompts", async () => {
+    handleClearAllPrompts();
+  });
+}
 
 // methods
 const getAppIcon = (iconName) => {
@@ -175,14 +207,7 @@ const restoreProgress = () => {
 };
 
 const showMessage = async (data) => {
-  // Guard against null/undefined data
-  if (!data) {
-    console.log('showMessage: received null/undefined data');
-    return;
-  }
-  
-  console.log(data)
-  
+
   // Check if message is restricted
   const messageText = data.message?.toLowerCase() || '';
   const isRestricted = restrictedMessages.some(restricted => 
@@ -190,13 +215,6 @@ const showMessage = async (data) => {
   );
   
   if (isRestricted) {
-    console.log('Message blocked: restricted message', data.message);
-    return;
-  }
-  
-  // Ensure data has a message property
-  if (!data.message) {
-    console.log('showMessage: data has no message property', data);
     return;
   }
   

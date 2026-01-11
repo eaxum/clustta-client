@@ -64,8 +64,12 @@ import { useNotificationStore } from '@/stores/notifications';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import { Events } from "@wailsio/runtime";
+import emitter from '@/lib/mitt';
 import { useStageStore } from '@/stores/stages';
 import { useIconStore } from '@/stores/icons';
+import { usePlatformStore } from '@/stores/platform';
+
+const platformStore = usePlatformStore();
 
 // vars
 let showSearch = false;
@@ -136,16 +140,32 @@ watch(
   }
 );
 
-Events.On("add_message", async (message) => {
-  const payload = message.data;
-  let notificationData
+const handleAddMessage = (payload) => {
+  let notificationData;
   if (typeof payload === 'string' || payload instanceof String) {
     notificationData = JSON.parse(payload);
   } else {
     notificationData = payload;
   }
-  showMessage(notificationData)
-});
+  showMessage(notificationData);
+};
+
+const handleProgressUpdate = (progressData) => {
+  notificationStore.updateProgress(progressData);
+};
+
+// Register event listeners based on platform
+if (platformStore.isWeb) {
+  emitter.on('add_message', handleAddMessage);
+  emitter.on('progress-update', handleProgressUpdate);
+} else {
+  Events.On("add_message", async (message) => {
+    handleAddMessage(message.data);
+  });
+  Events.On("progress-update", async (message) => {
+    handleProgressUpdate(message.data);
+  });
+}
 
 const notification = ref(false);
 
@@ -165,7 +185,6 @@ async function showMessage(data) {
 }
 const handleClickOutside = (event) => {
   if (notification.value && (event.target !== notificationItem.value)) {
-    // //console.log('outside');
     notification.value = null;
   }
 };
@@ -184,7 +203,6 @@ const minimizeProgress = () => {
 };
 
 onMounted(() => {
-  // //console.log(listBoxParent.value.getBoundingClientRect().width);
   document.addEventListener('click', handleClickOutside);
 
 });

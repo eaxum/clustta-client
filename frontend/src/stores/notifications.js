@@ -2,6 +2,8 @@ import { defineStore } from "pinia";
 import { Events } from "@wailsio/runtime";
 import { LogService } from "@/services";
 import { useProjectStore } from "./projects";
+import { usePlatformStore } from "./platform";
+import emitter from "@/lib/mitt";
 
 export const useNotificationStore = defineStore("notifications", {
   state: () => ({
@@ -43,7 +45,14 @@ export const useNotificationStore = defineStore("notifications", {
         this.resetProgress();
         LogService.LogError(longMessage);
       }
-      Events.Emit("add_message", notification);
+      
+      // Use mitt for web mode, Wails Events for desktop
+      const platformStore = usePlatformStore();
+      if (platformStore.isWeb) {
+        emitter.emit("add_message", notification);
+      } else {
+        Events.Emit("add_message", notification);
+      }
 
       const projectStore = useProjectStore();
       projectStore.refreshActiveProject();

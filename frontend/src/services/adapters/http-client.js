@@ -122,8 +122,9 @@ export function getSessionId() {
  * Fetch binary data from studio server (for protobuf endpoints like /data)
  * Uses special /studio-data proxy that converts POST → GET-with-body
  * Returns ArrayBuffer instead of JSON
+ * @param {function} [onProgress] - Optional callback for download progress (receivedBytes, totalBytes)
  */
-export async function studioDataFetch(studioUrl, endpoint, method = 'POST', body = null, options = {}) {
+export async function studioDataFetch(studioUrl, endpoint, method = 'POST', body = null, options = {}, onProgress = null) {
   const headers = {
     'Content-Type': 'application/json',
     'Clustta-Agent': CLUSTTA_AGENT,
@@ -147,8 +148,6 @@ export async function studioDataFetch(studioUrl, endpoint, method = 'POST', body
     fetchUrl = `${studioUrl}${endpoint}`;
   }
 
-  console.log('[studioDataFetch] Request:', { fetchUrl, method, body });
-
   const response = await fetch(fetchUrl, {
     method: 'POST', // Always POST to proxy - proxy converts to GET with body
     headers,
@@ -166,6 +165,40 @@ export async function studioDataFetch(studioUrl, endpoint, method = 'POST', body
     throw new Error(errorMessage);
   }
 
-  // Return as ArrayBuffer for binary data
-  return response.arrayBuffer();
+  // If no progress callback, just return the arraybuffer directly
+  if (!onProgress) {
+    return response.arrayBuffer();
+  }
+
+  // Stream the response to track download progress
+  const contentLength = response.headers.get('content-length');
+  const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
+  
+  const reader = response.body.getReader();
+  const chunks = [];
+  let receivedBytes = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    
+    if (done) {
+      break;
+    }
+    
+    chunks.push(value);
+    receivedBytes += value.length;
+    
+    // Call progress callback
+    onProgress(receivedBytes, totalBytes);
+  }
+
+  // Combine all chunks into a single ArrayBuffer
+  const allChunks = new Uint8Array(receivedBytes);
+  let position = 0;
+  for (const chunk of chunks) {
+    allChunks.set(chunk, position);
+    position += chunk.length;
+  }
+
+  return allChunks.buffer;
 }
