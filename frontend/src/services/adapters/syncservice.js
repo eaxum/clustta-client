@@ -20,8 +20,6 @@ function getProjectName(projectPath) {
 async function fetchAndPopulateProjectData(projectName, studioUrl) {
   const user = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER) || '{}');
   
-  console.log('[SyncData] Fetching project data:', { projectName, studioUrl, userId: user.id });
-  
   // Fetch compressed protobuf data from /{project}/data
   // The endpoint expects POST with user_id in body
   const compressedData = await studioDataFetch(
@@ -30,8 +28,6 @@ async function fetchAndPopulateProjectData(projectName, studioUrl) {
     'POST',
     { user_id: user.id }
   );
-  
-  console.log('[SyncData] Received data, size:', compressedData.byteLength);
   
   // Decompress zstd data
   const compressedBytes = new Uint8Array(compressedData);
@@ -67,7 +63,6 @@ export const SyncService = {
     
     try {
       await fetchAndPopulateProjectData(projectName, studioUrl);
-      console.log(`PullData completed for ${projectName}`);
     } catch (error) {
       console.error('PullData error:', error);
       throw error;
@@ -86,7 +81,6 @@ export const SyncService = {
       // In web mode, we only pull data (read-only for now)
       // pullChunk is ignored - we never pull chunks in web mode
       await fetchAndPopulateProjectData(projectName, studioUrl);
-      console.log(`SyncData completed for ${projectName}`);
     } catch (error) {
       console.error('SyncData error:', error);
       throw error;
@@ -103,7 +97,6 @@ export const SyncService = {
     
     try {
       await fetchAndPopulateProjectData(projectName, studioUrl);
-      console.log(`CloneProject completed for ${projectName}`);
     } catch (error) {
       console.error('CloneProject error:', error);
       throw error;
@@ -128,7 +121,6 @@ export const SyncService = {
     
     try {
       await fetchAndPopulateProjectData(projectName, studioUrl);
-      console.log(`PullLatestCheckpoints completed for ${projectName}`);
     } catch (error) {
       console.error('PullLatestCheckpoints error:', error);
       throw error;

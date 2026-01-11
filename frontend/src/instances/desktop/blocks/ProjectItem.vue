@@ -207,7 +207,6 @@ const updateProjectName = async () => {
         projectStore.updateProjectName(projectId, editableProjectName.value, oldName);
         selectProject(project);
       }).catch(error => {
-        console.log(error);
         notificationStore.addNotification("Error", "Failed to rename project", "error");
       });
   } else {
@@ -216,7 +215,6 @@ const updateProjectName = async () => {
         projectStore.updateProjectName(projectId, editableProjectName.value, oldName);
         selectProject(project);
       }).catch(error => {
-        console.log(error);
         notificationStore.addNotification("Error", "Failed to rename project", "error");
       });
   }
@@ -259,7 +257,6 @@ const cloneProject = async (project) => {
 
 // Navigate to project or create if untracked
 const goToProject = async (project) => {
-  console.log(project)
   if (!project.is_tracked) {
     try {
       isCreatingProject.value = true;

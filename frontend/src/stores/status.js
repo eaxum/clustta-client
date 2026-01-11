@@ -18,7 +18,6 @@ export const useStatusStore = defineStore("status", {
       this.statuses = await StatusService.GetStatuses(
         projectStore.activeProject.uri
       );
-      console.log(this.statuses)
     },
   },
 });

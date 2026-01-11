@@ -148,7 +148,6 @@ const collections = ref([]);
 
 const onUpdateCollections = (allCollections) => {
   collections.value = allCollections;
-  console.log(allCollections);
 }
 
 const createCollections = async () => {
@@ -159,7 +158,6 @@ const createCollections = async () => {
   } else if (isMultiple.value) {
     await createMultipleEntities();
     const successMessage = collections.value.length + ' collections created';
-    console.log('created multiple entities');
     notificationStore.addNotification(successMessage, "", "success");
   } else {
     await createSingleEntity();
@@ -173,7 +171,6 @@ const createEntityAndMove = async () => {
 
   const referenceItem = stage.selectedItems.at(-1);
   const type = referenceItem.type;
-  console.log(type)
 	let project = projectStore.activeProject;
 
   let parent;
@@ -184,7 +181,6 @@ const createEntityAndMove = async () => {
     parent = await CollectionService.GetCollectionByID(project.uri, referenceItem.parent_id)
   }
 
-  console.log(parent)
   if(!parent) return 
 
   let parentId = parent?.id
@@ -224,7 +220,6 @@ const selectedEntityTypeId = computed(() => {
 })
 
 const parentId = computed(() => {
-  console.log(stage.selectedItem)
   if(stage.selectedItem && stage.selectedItem.type === 'entity'){
     return stage.selectedItem?.id
   } else if (collectionStore.navigatedCollection) {
@@ -295,7 +290,6 @@ const moveIntoFolder = async (activeItemId) => {
       let newPath = await FSService.JoinPath(entity.file_path, item.name)
       const untrackedPath = newPath.replace(/^\/+|\/+$/g, "").replace(/\\/g, "/");
       const workingDir = projectStore.activeProject.working_directory.replace(/^\/+|\/+$/g, "").replace(/\\/g, "/");
-      console.log(item)
       const itemPath = getRelativePath(workingDir, untrackedPath)
 
       let entityPath = "";
@@ -352,7 +346,6 @@ onMounted(() => {
 
   if (stage.groupItems) {
     itemsToGroup.value = stage.markedItems;
-    console.log(itemsToGroup.value)
   };
 
   trayStates.listItemsBoundary = modalContainer.value;

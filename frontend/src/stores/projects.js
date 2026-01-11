@@ -85,27 +85,12 @@ export const useProjectStore = defineStore("projects", {
       return state.projects;
     },
     getStudiosNames: (state) => {
-      console.log(state.studios);
       if (state.studios) {
         return state.studios.map((studio) => studio.name);
       }
       return [];
     },
     getActiveProject: (state) => {
-      // if (!state.activeProject) {
-      //   state.activeProject = state.projects[0];
-      //   if (state.activeProject) {
-      //     const commonStore = useCommonStore();
-
-      //     SettingsService.GetProjectWorkspaces(state.activeProject.id).then(
-      //       (response) => {
-      //         commonStore.workspaces = response;
-      //       }
-      //     );
-      //   }
-
-      //   return state.activeProject;
-      // }
       return state.activeProject;
     },
     getActiveProjectUrl: (state) => {
@@ -132,7 +117,6 @@ export const useProjectStore = defineStore("projects", {
       commonStore.workspaces = await SettingsService.GetProjectWorkspaces(
         project.id
       );
-      console.log(commonStore.workspaces)
     },
     async gotoProject(project) {
       const commonStore = useCommonStore();
@@ -145,7 +129,6 @@ export const useProjectStore = defineStore("projects", {
       
  
       await this.setActiveProject(project);
-      console.log('[Active project]', project?.name)
       commonStore.activeWorkspace = "Default";
       commonStore.resetFilters();
 
@@ -240,7 +223,6 @@ export const useProjectStore = defineStore("projects", {
       }));
       
       if (this.activeProject && stage.activeStage !== 'projects') {
-        console.log('reloading')
         await this.refreshActiveProject();
       }
 
