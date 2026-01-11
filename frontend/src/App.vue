@@ -1,6 +1,5 @@
 <template>
     <div class="app-root">
-        <!-- Unified router for both desktop and web -->
         <router-view />
     </div>
 </template>
@@ -25,15 +24,13 @@ import { useThemeStore } from '@/stores/theme';
 import { usePlatformStore } from '@/stores/platform';
 
 // Platform detection
+const menu = useMenu();
 const platformStore = usePlatformStore();
-
 const projectStore = useProjectStore();
 const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
-const menu = useMenu();
 const themeStore = useThemeStore();
-
 const stageStore = useStageStore();
 const accountStore = useAccountStore();
 
@@ -58,11 +55,17 @@ const disableMenu = () => {
     }, { capture: true })
 }
 
-Events.On('progress-update', async (message) => {
-    // In Wails v3 alpha.39+, single data arguments are not wrapped in an array
-    let progressData = message.data;
+const handleProgressUpdate = (progressData) => {
     notificationStore.updateProgress(progressData);
-});
+};
+
+if (platformStore.isWeb) {
+    emitter.on('progress-update', handleProgressUpdate);
+} else {
+    Events.On('progress-update', async (message) => {
+        handleProgressUpdate(message.data);
+    });
+}
 
 disableMenu();
 
@@ -173,11 +176,6 @@ function startUpdateFileStatesInterval() {
 
 
 onMounted(async () => {
-    // Note: accountStore.initialize() and themeStore.initializeTheme() 
-    // are called AFTER successful login in Login.vue and VerifyEmail.vue
-    // Do NOT call them here as they require an authenticated user
-    
-    // Only run sync intervals on desktop (and they have their own auth checks)
     if (!platformStore.isWeb) {
         startCheckSycnTokenInterval();
     }

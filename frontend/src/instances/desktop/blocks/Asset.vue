@@ -138,8 +138,10 @@
             <div v-else-if="!isUntracked && userStore.canDo('pull_chunk')" class="file-state">
               <ActionButton v-if="task.is_link" :icon="getAppIcon('square-arrow-right-up')" 
                 v-tooltip="'Visit link'" @click="openLink()" />
-              <ActionButton v-else-if="platformStore.isWeb" :icon="getAppIcon('download')" 
-                v-tooltip="'Download'" @click="" />
+              <ActionButton v-else-if="platformStore.isWeb" :icon="getAppIcon(isDownloading ? 'loading' : 'arrow-down-ramp')" 
+                v-tooltip="isDownloading ? 'Downloading...' : 'Download'" 
+                :isLoading="isDownloading"
+                @click="downloadAsset(index, task, $event)" />
               <ActionButton v-else-if="task.file_status == 'normal'" :icon="getAppIcon('circle-check-go')" :noFilter="true" 
                 v-tooltip="'No changes'"  />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" 
@@ -190,7 +192,7 @@
     }" 
     @dblclick="launchTaskCommand()">
 
-    <div class="task-spacer" v-tooltip="assetTypeName" @click="console.log(task)">
+    <div class="task-spacer" v-tooltip="assetTypeName" @click="console.log()">
       <span v-if="isUntracked" class="single-action-button single-action-button-disabled">
         <img class="small-icons entity-collapsed" :src="getAppIcon('generic')">
       </span>
@@ -296,8 +298,10 @@
 
             <div v-else-if="userStore.canDo('pull_chunk')" class="file-state">
               
-              <ActionButton v-if="platformStore.isWeb" :icon="getAppIcon('download')" 
-                v-tooltip="'Download'" @click="" />
+              <ActionButton v-if="platformStore.isWeb" :icon="getAppIcon(isDownloading ? 'loading' : 'arrow-down-ramp')" 
+                v-tooltip="isDownloading ? 'Downloading...' : 'Download'" 
+                :isLoading="isDownloading"
+                @click="downloadAsset(index, task, $event)" />
               <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" @click="handleClick(index, task, $event)"
                 v-tooltip="'No changes'" v-else-if="task.file_status == 'normal'" />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Outdated - Click to update'"
@@ -409,6 +413,7 @@ const itemHeightStyles = computed(() => ({
 const taskItem = ref(null);
 const isExpanded = ref(false);
 const gridStatusMenuVisible = ref(false);
+const isDownloading = ref(false);
 
 // OS Thumbnail caching
 const osThumbnail = ref('');
@@ -484,8 +489,6 @@ const loadOSThumbnail = async () => {
 };
 
 const openGridStatusMenu = (event) => {
-  console.log('llllllll')
-  // event.stopPropagation();
   const id = props.task.id;
   const task = props.task;
   assetStore.selectAsset(task);
@@ -669,7 +672,6 @@ const updateAssetName = async () => {
     await AssetService.RenameAsset(projectStore.activeProject.uri, taskId, editableTaskName.value)
       .then((data) => {
         task.name = editableTaskName.value;
-        console.log(props.task.file_status)
         emitTaskUpdates(taskId, [
           { property: 'name', value: editableTaskName.value },
           { property: 'file_status', value: 'outdated' },
@@ -895,7 +897,6 @@ const launchTaskCommand = async () => {
 const prepCreateCheckpoint = (index, mask, event) => {
   const task = props.task
   assetStore.selectedAsset = task;
-  console.log(assetStore.selectedAsset)
   handleClick(index, task, event);
   modals.setModalVisibility('createCheckpointModal', true);
 };
@@ -938,6 +939,37 @@ const revertTask = async (index, task, event) => {
       console.log(error)
       notificationStore.errorNotification("Error Reverting Task", error)
     });
+};
+
+const downloadAsset = async (index, task, event) => {
+  if (isDownloading.value) return;
+  
+  handleClick(index, task, event);
+  const taskId = task.id;
+  const fileName = `${task.name}${task.extension}`;
+  
+  isDownloading.value = true;
+  
+  try {
+    // Progress updates are now handled internally by CheckpointService
+    await CheckpointService.DownloadAsset(
+      projectStore.activeProject.uri,
+      taskId,
+      null // Use latest checkpoint
+    );
+    
+    notificationStore.addNotification(
+      "Download Complete",
+      `${fileName} downloaded successfully`,
+      "success",
+      true
+    );
+  } catch (error) {
+    console.error('Download error:', error);
+    notificationStore.errorNotification("Download Failed", error.message || error);
+  } finally {
+    isDownloading.value = false;
+  }
 };
 
 const editParams = () => {
