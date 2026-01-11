@@ -192,7 +192,6 @@ const emitUpdates = (assetId, updates) => {
 const getAssetDependencies = async() => {
 	let project = projectStore.activeProject
   let allDependencies;
-  console.log(assetStore.selectedAsset);
   const selectedAssetDependencies = assetStore.selectedAsset?.dependencies;
   const selectedAssetCollectionDependencies = assetStore.selectedAsset?.entity_dependencies;
   allDependencies = [ ...selectedAssetDependencies, ...selectedAssetCollectionDependencies];
@@ -237,10 +236,7 @@ const getAssetDependencies = async() => {
       children[i].preview = preview;
     }
 
-    // await assetStore.processAssetsIconsAndPreviews(children.tasks);
-    
     assetDependencies.value = children;
-    // console.log(children);
 }
 
 const handleRemoveDependency = (payload) => {
@@ -387,7 +383,6 @@ onMounted( async () => {
 });
 
 onUnmounted(() => {
-  console.log('unmounted')
   emitter.off('addDependency', handleAddDependency);
   emitter.off('removeDependency', handleRemoveDependency);
 });

@@ -40,9 +40,9 @@
 				<ActionButton :icon="getAppIcon('arrow-down-ramp')"
 					v-if="!platformStore.isWeb && !kanbanView && userStore.canDo('create_entity')" @click="importItems"
 					v-tooltip="'Import Items'" />
-				<ActionButton :icon="getAppIcon('arrow-up-ramp')"
+				<!-- <ActionButton :icon="getAppIcon('arrow-up-ramp')"
 					v-if="platformStore.isWeb && !kanbanView && userStore.canDo('create_entity')" @click="uploadItems"
-					v-tooltip="'Upload Items'" />
+					v-tooltip="'Upload Items'" /> -->
 			</div>
 
 			<div v-if="!showFilters || !isDefaultWorkspace" class="action-bar-container">
