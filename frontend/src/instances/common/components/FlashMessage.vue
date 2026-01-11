@@ -281,19 +281,14 @@ onBeforeUnmount(() => {
 
 .flash-area-desktop {
   position: fixed;
-  /* top: 110px; */
-  /* right: 30px; */
   width: 50%;
   max-width: 500px;
-  /* min-width: 250px; */
-  /* width: 1000px; */
-  /* background-color: red; */
+  min-width: 350px;
 }
 
 .flash-area-desktop-progress {
   top: 0px;
   right: 0px;
-  /* background-color: red; */
   right: 50%;
   top: 45%;
   transform: translateX(50%);
