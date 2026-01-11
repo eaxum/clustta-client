@@ -210,7 +210,6 @@ const ensureWeblinkAssetType = async () => {
 
 const createWebLink = async (launch = false, comment = "Asset created") => {
   isAwaitingResponse.value = true;
-  console.log(assetStore.assetTypes)
   let selectedTaskType;
   try {
     selectedTaskType = await ensureWeblinkAssetType();
