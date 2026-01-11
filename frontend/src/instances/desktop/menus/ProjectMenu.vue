@@ -150,6 +150,7 @@ const copyDirectoryPath = async () => {
   if(!isNavigated){
     let projectDir = project.working_directory;
     projectDir = projectDir.replace(/\\/g, '/');
+    FSService.MakeDirs(projectDir);
     await Clipboard.SetText(projectDir);
   } else {
 

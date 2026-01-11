@@ -192,6 +192,7 @@ const copyEntityPath = async () => {
   let entity = collectionStore.selectedCollection;
   let entityDir = entity.file_path;
   entityDir = entityDir.replace(/\\/g, '/');
+  FSService.MakeDirs(entityDir);
   await Clipboard.SetText(entityDir);
   const message = 'Path copied to clipboard';
   notificationStore.addNotification(message, "", "success");
