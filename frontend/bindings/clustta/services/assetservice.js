@@ -112,6 +112,21 @@ export function ChangeStatus(projectPath, taskId, statusId) {
 }
 
 /**
+ * CopyAssetToProject copies an asset from one project to another, including metadata, checkpoints, chunks, and previews.
+ * If targetEntityId is empty, the asset is copied to the root of the target project.
+ * If copyAllCheckpoints is false, only the latest checkpoint is copied.
+ * @param {string} sourceProjectPath
+ * @param {string} sourceTaskId
+ * @param {string} targetProjectPath
+ * @param {string} targetEntityId
+ * @param {boolean} copyAllCheckpoints
+ * @returns {$CancellablePromise<models$0.Task>}
+ */
+export function CopyAssetToProject(sourceProjectPath, sourceTaskId, targetProjectPath, targetEntityId, copyAllCheckpoints) {
+    return $Call.ByID(1609902140, sourceProjectPath, sourceTaskId, targetProjectPath, targetEntityId, copyAllCheckpoints);
+}
+
+/**
  * @param {string} projectPath
  * @param {string} name
  * @param {string} description
