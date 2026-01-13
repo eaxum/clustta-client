@@ -15,6 +15,11 @@
     <ActionButton v-if="userStore.canDo('create_task')" :icon="getAppIcon('copy')" :showLabel="true"
       :fullWidth="true" label="Duplicate Asset" :buttonFunction="duplicateAsset" />
 
+    <!-- Copy to Project -->
+    <ActionButton v-if="!platformStore.isWeb && userStore.canDo('create_task') && canCopyToOtherProject" 
+      :icon="getAppIcon('folder-arrow-in')" :showLabel="true"
+      :fullWidth="true" label="Copy to Project" :buttonFunction="copyToProject" />
+
     <ActionButton v-if="!platformStore.isWeb && (asset.dependencies.length || asset.entity_dependencies.length)" :icon="getAppIcon('jigsaw')" :showLabel="true"
       :fullWidth="true" label="Build with dependencies" :buttonFunction="buildWithDependencies" />
 
@@ -109,6 +114,18 @@ const popUpMenu = ref(null);
 const asset = computed(() => { return assetStore.selectedAsset });
 const isNotOnDisk = computed(() => { return asset.value?.file_status === 'rebuildable' });
 const isAssetModified = computed(() => { return assetStore.selectedAsset.file_status === 'modified' });
+
+// Check if asset can be copied to other projects (has other downloaded projects and asset is normal)
+const canCopyToOtherProject = computed(() => {
+  const hasOtherDownloadedProjects = projectStore.projects.filter(project => 
+    project.is_downloaded && 
+    project.uri !== projectStore.activeProject?.uri
+  ).length > 0;
+  
+  const assetIsNormal = asset.value?.file_status === 'normal';
+  
+  return hasOtherDownloadedProjects && assetIsNormal && userStore.userCanCreateProject;
+});
 
 // Check if the selected asset is an archive
 const isArchive = computed(() => {
@@ -225,6 +242,14 @@ const duplicateAsset = async () => {
   } finally {
     stage.operationActive = false;
   }
+};
+
+const copyToProject = () => {
+  // Show the sub-menu with initial navigation state (projects list)
+  menu.showSubMenu('assetMenu', {
+    type: 'projects',
+    title: 'Select Project'
+  });
 };
 
 const renameAsset = () => {

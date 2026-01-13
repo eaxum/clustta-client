@@ -23,6 +23,16 @@ export const useMenu = defineStore("useMenu", {
       resourceItemMenu: false,
       assignMenu: false,
       accountMenu: false,
+      copyToProjectSubMenu: false,
+    },
+
+    // Sub-menu navigation state
+    subMenuState: {
+      active: false,
+      sourceMenu: null, // The menu that triggered the sub-menu
+      navigationStack: [], // Stack of { type: 'projects' | 'entities', projectUri?: string, parentId?: string, title: string }
+      selectedProject: null, // The project being navigated into
+      slideDirection: 'left', // 'left' for entering deeper, 'right' for going back
     },
 
     activeMenu: null,
@@ -147,6 +157,7 @@ export const useMenu = defineStore("useMenu", {
       if (this.contextMenuVisible) {
         this.contextMenuVisible = false;
         this.disableAllMenus();
+        this.resetSubMenu();
       }
     },
 
@@ -220,6 +231,58 @@ export const useMenu = defineStore("useMenu", {
           this.contextMenuVisible = true;
         });
       }
+    },
+
+    // Sub-menu navigation actions
+    showSubMenu(sourceMenu, initialNavItem) {
+      this.subMenuState.active = true;
+      this.subMenuState.sourceMenu = sourceMenu;
+      this.subMenuState.navigationStack = [initialNavItem];
+      this.subMenuState.slideDirection = 'left';
+      
+      // Hide the source menu and show the sub-menu
+      this.setMenuVisibility(sourceMenu, false);
+      this.setMenuVisibility('copyToProjectSubMenu', true);
+    },
+
+    navigateSubMenuForward(navItem) {
+      this.subMenuState.slideDirection = 'left';
+      this.subMenuState.navigationStack.push(navItem);
+    },
+
+    navigateSubMenuBack() {
+      if (this.subMenuState.navigationStack.length > 1) {
+        this.subMenuState.slideDirection = 'right';
+        this.subMenuState.navigationStack.pop();
+      } else {
+        // At root level, go back to source menu
+        this.hideSubMenu();
+      }
+    },
+
+    hideSubMenu() {
+      const sourceMenu = this.subMenuState.sourceMenu;
+      
+      // Reset sub-menu state
+      this.subMenuState.active = false;
+      this.subMenuState.navigationStack = [];
+      this.subMenuState.selectedProject = null;
+      this.subMenuState.slideDirection = 'left';
+      
+      // Hide sub-menu and show source menu
+      this.setMenuVisibility('copyToProjectSubMenu', false);
+      if (sourceMenu) {
+        this.setMenuVisibility(sourceMenu, true);
+        this.subMenuState.sourceMenu = null;
+      }
+    },
+
+    resetSubMenu() {
+      this.subMenuState.active = false;
+      this.subMenuState.sourceMenu = null;
+      this.subMenuState.navigationStack = [];
+      this.subMenuState.selectedProject = null;
+      this.subMenuState.slideDirection = 'left';
     },
   },
 });

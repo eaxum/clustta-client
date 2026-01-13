@@ -291,6 +291,278 @@ func (t *AssetService) DuplicateAsset(projectPath, sourceTaskId string) (models.
 	return duplicatedTask, nil
 }
 
+// CopyAssetToProject copies an asset from one project to another, including metadata, checkpoints, chunks, and previews.
+// If targetEntityId is empty, the asset is copied to the root of the target project.
+// If copyAllCheckpoints is false, only the latest checkpoint is copied.
+func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceTaskId, targetProjectPath, targetEntityId string, copyAllCheckpoints bool) (models.Task, error) {
+	app := application.Get()
+
+	// Open source database
+	sourceDbConn, err := utils.OpenDb(sourceProjectPath)
+	if err != nil {
+		return models.Task{}, fmt.Errorf("failed to open source project: %w", err)
+	}
+	defer sourceDbConn.Close()
+
+	sourceTx, err := sourceDbConn.Beginx()
+	if err != nil {
+		return models.Task{}, err
+	}
+	defer sourceTx.Rollback()
+
+	// Open target database
+	targetDbConn, err := utils.OpenDb(targetProjectPath)
+	if err != nil {
+		return models.Task{}, fmt.Errorf("failed to open target project: %w", err)
+	}
+	defer targetDbConn.Close()
+
+	targetTx, err := targetDbConn.Beginx()
+	if err != nil {
+		return models.Task{}, err
+	}
+	defer targetTx.Rollback()
+
+	// Get the source task
+	sourceTask, err := repository.GetTask(sourceTx, sourceTaskId)
+	if err != nil {
+		return models.Task{}, fmt.Errorf("failed to get source task: %w", err)
+	}
+
+	// Emit progress
+	progress := output.ProgressReport{
+		Title:         "Copying Asset",
+		Message:       sourceTask.Name,
+		Percentage:    10,
+		OperationType: "write",
+	}
+	app.Event.Emit("progress-update", progress)
+
+	// Map task type - find equivalent in target project by name, or use "Generic"
+	var targetTaskTypeId string
+	if sourceTask.TaskTypeName != "" {
+		targetTaskType, err := repository.GetTaskTypeByName(targetTx, sourceTask.TaskTypeName)
+		if err == nil {
+			targetTaskTypeId = targetTaskType.Id
+		}
+	}
+	if targetTaskTypeId == "" {
+		// Fall back to Generic
+		genericTaskType, err := repository.GetTaskTypeByName(targetTx, "Generic")
+		if err == nil {
+			targetTaskTypeId = genericTaskType.Id
+		} else {
+			// Create Generic if it doesn't exist
+			genericTaskType, err = repository.GetOrCreateTaskType(targetTx, "Generic", "")
+			if err != nil {
+				return models.Task{}, fmt.Errorf("failed to get or create Generic task type: %w", err)
+			}
+			targetTaskTypeId = genericTaskType.Id
+		}
+	}
+
+	// Map status - find equivalent in target project or use first available
+	var targetStatusId string
+	if sourceTask.StatusShortName != "" {
+		targetStatus, err := repository.GetStatusByShortName(targetTx, sourceTask.StatusShortName)
+		if err == nil {
+			targetStatusId = targetStatus.Id
+		}
+	}
+	if targetStatusId == "" {
+		// Get first available status
+		statuses, err := repository.GetStatuses(targetTx)
+		if err == nil && len(statuses) > 0 {
+			targetStatusId = statuses[0].Id
+		}
+	}
+
+	// Generate unique name by checking for conflicts in target project
+	baseName := sourceTask.Name
+	newName := baseName
+	counter := 1
+
+	for {
+		_, err := repository.GetTaskByName(targetTx, newName, targetEntityId, sourceTask.Extension)
+		if err != nil {
+			// Task with this name doesn't exist, we can use it
+			break
+		}
+		// Task exists, try with number suffix
+		newName = fmt.Sprintf("%s-%d", baseName, counter)
+		counter++
+	}
+
+	progress.Percentage = 20
+	progress.Message = "Creating asset in target project"
+	app.Event.Emit("progress-update", progress)
+
+	// Generate new task ID
+	newTaskId := uuid.New().String()
+
+	// Copy preview if exists
+	var newPreviewId string
+	if sourceTask.PreviewId != "" {
+		sourcePreview, err := repository.GetPreview(sourceTx, sourceTask.PreviewId)
+		if err == nil {
+			// Add preview to target project if it doesn't exist
+			err = repository.AddPreview(targetTx, sourcePreview.Hash, sourcePreview.Preview, sourcePreview.Extension)
+			if err == nil {
+				newPreviewId = sourcePreview.Hash
+			}
+		}
+	}
+
+	// Create the task in target project
+	err = repository.AddTask(
+		targetTx,
+		newTaskId,
+		utils.GetCurrentTime(),
+		newName,
+		targetTaskTypeId,
+		targetEntityId,
+		targetStatusId,
+		sourceTask.Extension,
+		sourceTask.Description,
+		[]string{}, // Don't copy tags (they may not exist in target project)
+		"",         // No pointer (file path will be different in target project)
+		false,      // Not a link
+		"",         // No assignee
+		newPreviewId,
+	)
+	if err != nil {
+		return models.Task{}, fmt.Errorf("failed to create task in target project: %w", err)
+	}
+
+	progress.Percentage = 30
+	progress.Message = "Copying checkpoints"
+	app.Event.Emit("progress-update", progress)
+
+	// Get checkpoints to copy
+	var checkpointsToCopy []models.Checkpoint
+	if copyAllCheckpoints {
+		checkpointsToCopy, err = repository.GetCheckpoints(sourceTx, sourceTaskId, false)
+		if err != nil && err.Error() != "no checkpoints" {
+			return models.Task{}, fmt.Errorf("failed to get checkpoints: %w", err)
+		}
+	} else {
+		latestCheckpoint, err := repository.GetLatestCheckpoint(sourceTx, sourceTaskId)
+		if err != nil && err.Error() != "no checkpoints" {
+			return models.Task{}, fmt.Errorf("failed to get latest checkpoint: %w", err)
+		}
+		if latestCheckpoint.Id != "" {
+			checkpointsToCopy = []models.Checkpoint{latestCheckpoint}
+		}
+	}
+
+	// Copy each checkpoint
+	totalCheckpoints := len(checkpointsToCopy)
+	for i, checkpoint := range checkpointsToCopy {
+		progressPercent := 30 + (50 * (i + 1) / max(totalCheckpoints, 1))
+		progress.Percentage = float64(progressPercent)
+		progress.Message = fmt.Sprintf("Copying checkpoint %d of %d", i+1, totalCheckpoints)
+		app.Event.Emit("progress-update", progress)
+
+		// Copy checkpoint preview if exists
+		var checkpointPreviewId string
+		if checkpoint.PreviewId != "" {
+			checkpointPreview, err := repository.GetPreview(sourceTx, checkpoint.PreviewId)
+			if err == nil {
+				err = repository.AddPreview(targetTx, checkpointPreview.Hash, checkpointPreview.Preview, checkpointPreview.Extension)
+				if err == nil {
+					checkpointPreviewId = checkpointPreview.Hash
+				}
+			}
+		}
+
+		// Copy chunks for this checkpoint
+		if checkpoint.Chunks != "" {
+			chunkHashes := strings.Split(checkpoint.Chunks, ",")
+			for _, chunkHash := range chunkHashes {
+				if chunkHash == "" {
+					continue
+				}
+				// Check if chunk already exists in target
+				var existingHash string
+				targetTx.Get(&existingHash, "SELECT hash FROM chunk WHERE hash = ?", chunkHash)
+				if existingHash != "" {
+					continue // Chunk already exists
+				}
+
+				// Get chunk from source
+				var chunk struct {
+					Hash string `db:"hash"`
+					Data []byte `db:"data"`
+					Size int    `db:"size"`
+				}
+				err := sourceTx.Get(&chunk, "SELECT hash, data, size FROM chunk WHERE hash = ?", chunkHash)
+				if err != nil {
+					continue // Skip if chunk not found
+				}
+
+				// Insert chunk into target
+				_, err = targetTx.Exec("INSERT INTO chunk (hash, data, size) VALUES (?, ?, ?)",
+					chunk.Hash, chunk.Data, chunk.Size)
+				if err != nil {
+					// Ignore duplicate errors
+					continue
+				}
+			}
+		}
+
+		// Generate new checkpoint ID and group ID
+		newCheckpointId := uuid.New().String()
+		newGroupId := uuid.New().String()
+
+		// Add checkpoint to target project
+		err = repository.AddCheckpoint(
+			targetTx,
+			newCheckpointId,
+			utils.GetEpochTime(),
+			newTaskId,
+			checkpoint.XXHashChecksum,
+			checkpoint.TimeModified,
+			checkpoint.FileSize,
+			checkpoint.Comment,
+			checkpoint.Chunks,
+			checkpoint.AuthorUID,
+			checkpointPreviewId,
+			false, // Not synced
+		)
+		if err != nil {
+			return models.Task{}, fmt.Errorf("failed to add checkpoint: %w", err)
+		}
+
+		// Update the checkpoint with the group ID
+		_, err = targetTx.Exec("UPDATE task_checkpoint SET group_id = ? WHERE id = ?", newGroupId, newCheckpointId)
+		if err != nil {
+			return models.Task{}, fmt.Errorf("failed to update checkpoint group: %w", err)
+		}
+	}
+
+	progress.Percentage = 90
+	progress.Message = "Finalizing"
+	app.Event.Emit("progress-update", progress)
+
+	// Get the newly created task
+	newTask, err := repository.GetTask(targetTx, newTaskId)
+	if err != nil {
+		return models.Task{}, fmt.Errorf("failed to get created task: %w", err)
+	}
+
+	// Commit target transaction
+	err = targetTx.Commit()
+	if err != nil {
+		return models.Task{}, fmt.Errorf("failed to commit changes: %w", err)
+	}
+
+	progress.Percentage = 100
+	progress.Message = "Complete"
+	app.Event.Emit("progress-update", progress)
+
+	return newTask, nil
+}
+
 func (t *AssetService) ChangeStatus(projectPath, taskId, statusId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {

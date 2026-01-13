@@ -31,6 +31,7 @@ import AssetMenu from '@/instances/desktop/menus/AssetMenu.vue'
 import UntrackedItemMenu from '@/instances/desktop/menus/UntrackedItemMenu.vue'
 import CollectionMenu from '@/instances/desktop/menus/CollectionMenu.vue'
 import AccountMenu from '@/instances/desktop/menus/AccountMenu.vue'
+import CopyToProjectSubMenu from '@/instances/desktop/menus/CopyToProjectSubMenu.vue'
 
 const menuComponents = {
   dependencySearchFilterMenu: DependencySearchFilterMenu,
@@ -50,6 +51,7 @@ const menuComponents = {
   untrackedItemMenu: UntrackedItemMenu,
   assignMenu: AssignMenu,
   accountMenu: AccountMenu,
+  copyToProjectSubMenu: CopyToProjectSubMenu,
 };
 
 const visibleMenus = computed(() => {
