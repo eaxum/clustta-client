@@ -241,6 +241,55 @@ func (p *ProjectService) Purge(projectPath string) error {
 	return nil
 }
 
+// TrimProject removes all chunks and previews from the project database to reduce file size.
+// The data can be re-fetched from the remote when needed.
+func (p *ProjectService) TrimProject(projectPath string) error {
+	app := application.Get()
+
+	if !utils.FileExists(projectPath) {
+		return error_service.ErrProjectNotFound
+	}
+
+	progress := output.ProgressReport{
+		Title:      "Trimming Project",
+		Message:    filepath.Base(projectPath),
+		Percentage: 0,
+		Current:    1,
+		Total:      2,
+	}
+	app.Event.Emit("progress-update", progress)
+
+	err := repository.TrimProject(projectPath)
+	if err != nil {
+		return err
+	}
+
+	progress = output.ProgressReport{
+		Title:      "Compacting Database",
+		Message:    filepath.Base(projectPath),
+		Percentage: 50,
+		Current:    2,
+		Total:      2,
+	}
+	app.Event.Emit("progress-update", progress)
+
+	err = repository.Vacuum(projectPath)
+	if err != nil {
+		return err
+	}
+
+	progress = output.ProgressReport{
+		Title:      "Project Trimmed",
+		Message:    filepath.Base(projectPath),
+		Percentage: 100,
+		Current:    2,
+		Total:      2,
+	}
+	app.Event.Emit("progress-update", progress)
+
+	return nil
+}
+
 func (p *ProjectService) AddUser(projectPath, email, roleName string) (models.User, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
