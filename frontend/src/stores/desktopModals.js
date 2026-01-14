@@ -18,6 +18,7 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       addProjectModal: false,
       cloneProjectModal: false,
       editProjectModal: false,
+      projectDetailsModal: false,
 
       configWorkflowModal: false,
       selectWorkflowModal: false,

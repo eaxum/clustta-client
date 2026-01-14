@@ -672,10 +672,7 @@ img.no-filter {
   height: max-content;
   max-height: 200px;
   overflow: hidden;
-  /* background-color: red; */
-  /* overflow-y: scroll; */
-  border-radius: 8px;
-  /* margin-right: 10px; */
+  border-radius: var(--large-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
 }
