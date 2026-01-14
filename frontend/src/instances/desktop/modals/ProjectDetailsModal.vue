@@ -19,12 +19,46 @@
 
     <div class="general-container">
 
-      <span @click="addCoverImage" v-if="projectPreview && !displayEmojiSelector" class="screenshot-preview">
+      <span @click="addCoverImage" v-if="projectPreview && !displayEmojiSelector" v-tooltip="'Click to change'" class="screenshot-preview">
         <img class="screenshot-thumb" :src="projectPreview">
       </span>
 
       <div class="input-section">
-        <input v-model="projectName" class="input-short" type="text" placeholder="Project Name" v-focus />
+        <div v-if="!isEditingName" class="project-name-display">
+          <span class="project-name-text">{{ projectName }}</span>
+          <ActionButton :icon="getAppIcon('edit')" v-tooltip="'Rename Project'" :buttonFunction="toggleEditName" />
+        </div>
+        <RenameInput 
+          v-else
+          v-model="projectName" 
+          :originalValue="oldProjectName" 
+          placeholder="Project Name"
+          @confirm="confirmRename"
+          @cancel="cancelRename"
+        />
+      </div>
+
+      <div v-if="!displayEmojiSelector" class="project-stats-section">
+        <div class="pane-parameter-detail">
+          <div class="simple-text-key">Total Assets</div>
+          <div class="simple-text-value">{{ assetsOnDiskCount }} / {{ assetCount }}</div>
+        </div>
+        <div class="pane-parameter-detail">
+          <div class="simple-text-key">Total Collections</div>
+          <div class="simple-text-value">{{ collectionsOnDiskCount }} / {{ collectionCount }}</div>
+        </div>
+        <div class="pane-parameter-detail">
+          <div class="simple-text-key">Collaborators</div>
+          <div class="simple-text-value">{{ collaboratorCount }}</div>
+        </div>
+        <div class="pane-parameter-detail">
+          <div class="simple-text-key">Files on disk</div>
+          <div class="simple-text-value">{{ projectSize }}</div>
+        </div>
+        <div class="pane-parameter-detail">
+          <div class="simple-text-key">Clustta file size</div>
+          <div class="simple-text-value">{{ clusttaSize }}</div>
+        </div>
       </div>
 
       <div v-if="displayEmojiSelector" class="header-tab-container">
@@ -66,7 +100,7 @@ const getAppIcon = (iconName) => {
 
 // imports
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { DialogService, ProjectService } from '@/services';
+import { DialogService, ProjectService, FSService, AssetService, CollectionService, UserService } from '@/services';
 import utils from '@/services/utils';
 
 // store imports
@@ -80,6 +114,7 @@ import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import EmojiPicker from '@/instances/desktop/components/EmojiPicker.vue'
+import RenameInput from '@/instances/desktop/components/RenameInput.vue'
 
 // states
 const projectStore = useProjectStore();
@@ -105,10 +140,33 @@ const coverImageName = ref('');
 const coverImageFullName = ref('');
 const coverImagePath = ref("");
 
+// Project stats refs
+const projectSize = ref(0);
+const clusttaSize = ref(0);
+const assetCount = ref(0);
+const assetsOnDiskCount = ref(0);
+const collectionCount = ref(0);
+const collectionsOnDiskCount = ref(0);
+const collaboratorCount = ref(0);
+
 const displayEmojiSelector = ref(false);
+const isEditingName = ref(false);
 
 const toggleEmojiSelector = () => {
   displayEmojiSelector.value = !displayEmojiSelector.value
+};
+
+const toggleEditName = () => {
+  isEditingName.value = !isEditingName.value;
+};
+
+const confirmRename = () => {
+  isEditingName.value = false;
+};
+
+const cancelRename = () => {
+  projectName.value = oldProjectName.value;
+  isEditingName.value = false;
 };
 
 const selectedEmoji = ref('');
@@ -303,7 +361,51 @@ const updateProjectIcon = async () => {
   }
 }
 
+// Project stats functions
+const getProjectSize = async () => {
+  let project = projectStore.activeProject;
+  const size = await FSService.FolderSize(project.working_directory);
+  projectSize.value = size;
+};
 
+const getItemsCount = async () => {
+  let project = projectStore.activeProject;
+  assetsOnDiskCount.value = await FSService.FileCount(project.working_directory);
+  collectionsOnDiskCount.value = await FSService.FolderCount(project.working_directory);
+};
+
+const getClusttaSize = async () => {
+  let project = projectStore.activeProject;
+  const size = await FSService.FileStat(project.uri);
+  clusttaSize.value = size.formattedSize;
+};
+
+const getAssetCount = async () => {
+  let project = projectStore.activeProject;
+  assetCount.value = await AssetService.GetAssetCount(project.uri);
+};
+
+const getCollectionCount = async () => {
+  let project = projectStore.activeProject;
+  collectionCount.value = await CollectionService.GetCollectionCount(project.uri);
+};
+
+const getCollaboratorCount = async () => {
+  let project = projectStore.activeProject;
+  const users = await UserService.GetUsers(project.uri);
+  collaboratorCount.value = users?.length || 0;
+};
+
+const getProjectData = async () => {
+  let project = projectStore.activeProject;
+  if (!project?.uri) return;
+  getItemsCount();
+  getProjectSize();
+  getClusttaSize();
+  getAssetCount();
+  getCollectionCount();
+  getCollaboratorCount();
+};
 
 // onMounted
 onMounted(() => {
@@ -318,6 +420,9 @@ onMounted(() => {
 
   projectPreview.value = project.preview;
   oldProjectPreview.value = project.preview;
+
+  // Fetch project stats
+  getProjectData();
 });
 
 onUnmounted(() => {
@@ -333,6 +438,64 @@ onUnmounted(() => {
 
 .general-container {
   gap: 1rem;
+}
+
+.input-section {
+  width: 100%;
+}
+
+.project-name-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding-left: .8rem;
+  box-sizing: border-box;
+}
+
+.project-name-text {
+  flex: 1;
+  color: var(--white);
+}
+
+.project-stats-section {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 5px;
+  padding: 0.5rem 0.8rem;
+  box-sizing: border-box;
+  background: var(--midnight-steel);
+  border-radius: var(--large-radius);
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+}
+
+.pane-parameter-detail {
+  display: flex;
+  font-size: 14px;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--white);
+}
+
+.simple-text-key {
+  white-space: nowrap;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.simple-text-value {
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-size: 14px;
+  font-family: Inter, sans-serif;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .input-short {
@@ -444,4 +607,3 @@ onUnmounted(() => {
   transform: scale(1.02);
 }
 </style>
-

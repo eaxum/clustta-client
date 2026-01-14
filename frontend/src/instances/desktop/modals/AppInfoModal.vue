@@ -14,23 +14,6 @@
         <div> Clustta<sup>&reg;</sup> is a registered trademark of Eaxum LLC. </div>
       </div>
 
-      <!-- <div class="pop-up-actions">
-        <button class="button" @click="checkForUpdates()" v-stop-propagation>
-
-          <div class="login-button-text">
-            {{ isAwaitingResponse ? 'Checking for Updates' : 'Check for Updates' }}
-          </div>
-
-          <div v-if="isAwaitingResponse" class="login-button-icon loading-icon">
-            <img src="/icons/loading.svg" />
-          </div>
-
-        </button>
-      </div> -->
-
-
-
-
     </div>
   </div>
 </template>
