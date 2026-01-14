@@ -219,6 +219,16 @@ export function ToggleCloseProject(projectUri, studioName) {
 }
 
 /**
+ * TrimProject removes all chunks and previews from the project database to reduce file size.
+ * The data can be re-fetched from the remote when needed.
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<void>}
+ */
+export function TrimProject(projectPath) {
+    return $Call.ByID(2900900023, projectPath);
+}
+
+/**
  * @param {string} projectUri
  * @param {string} studioName
  * @param {string} iconValue

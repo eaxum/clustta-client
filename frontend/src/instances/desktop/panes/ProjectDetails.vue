@@ -75,8 +75,13 @@
         <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" label="Free Up space"
           :buttonFunction="prepFreeUpSpacePopUpModal" />
 
+        <!-- Trim Project - only for remote projects that are synced -->
+        <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.has_remote && !projectStore.getActiveProject.is_unsynced"
+          :icon="getAppIcon('scissors')" :showLabel="true" :fullWidth="true" label="Trim Project"
+          :buttonFunction="prepTrimProjectPopUpModal" />
+
         <!-- Delete project -->
-        <ActionButton v-if="!platformStore.isWeb && userStore.userCanCreateProject" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
+        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
           label="Empty trash" :buttonFunction="prepEmptyTrashPopUpModal" />
 
       </div>
@@ -397,6 +402,52 @@ const emptyTrash = async () => {
 			)
 			modals.disableAllModals();
 		})
+};
+
+const prepTrimProjectPopUpModal = () => {
+  menu.hideContextMenu();
+  let project = projectStore.getActiveProject;
+  trayStates.popUpModalIcon = 'scissors';
+  trayStates.popUpModalTitle = `Trim \"${project.name}\"`;
+  trayStates.popUpModalMessage = "This will remove cached file data from the project database and delete the working directory to reduce disk usage. The data can be re-downloaded from the remote when needed. Continue?";
+  trayStates.popUpModalFunction = trimProject;
+  modals.setModalVisibility('popUpModal', true);
+};
+
+const trimProject = async () => {
+  let project = projectStore.getActiveProject;
+  
+  try {
+    // First, trim the project database (clear chunks and previews)
+    await ProjectService.TrimProject(project.uri);
+    
+    // Then, delete the working directory (like "Free Up Space")
+    await FSService.DeleteFolder(project.working_directory);
+    
+    projectStore.refreshProjects();
+    getProjectData();
+    
+    if (projectStore.activeProject.id == project.id) {
+      trayStates.$reset();
+    }
+    
+    notificationStore.addNotification(
+      "Project Trimmed",
+      "Cached data and working files have been cleared.",
+      "success",
+      false
+    );
+  } catch (error) {
+    console.error(error.message || error);
+    notificationStore.addNotification(
+      "Error Trimming Project",
+      error.message || "An error occurred",
+      "error",
+      false
+    );
+  } finally {
+    modals.disableAllModals();
+  }
 };
 
 

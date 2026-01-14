@@ -636,6 +636,41 @@ func Purge(projectPath string) error {
 	return nil
 }
 
+// TrimProject clears all chunks from the database while retaining metadata.
+// This is useful to free up space on remote projects that can re-fetch chunks when needed.
+func TrimProject(projectPath string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Delete all chunks from the database
+	_, err = tx.Exec("DELETE FROM chunk")
+	if err != nil {
+		return err
+	}
+
+	// Also clear previews to further reduce size (optional, can be re-fetched)
+	_, err = tx.Exec("DELETE FROM preview")
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func Vacuum(projectPath string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {

@@ -115,6 +115,8 @@ const progressIcon = computed(() => {
     return 'cloud-up';
   } else if (message.includes('checkpoint')) {
     return 'layers';
+  } else if (message.includes('trim') || message.includes('compact')) {
+    return 'scissors';
   } else if (message.includes('delete') || message.includes('trash')) {
     return 'trash';
   }
