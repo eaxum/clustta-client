@@ -42,6 +42,15 @@ export function CheckStudioNameExists(studioName) {
 }
 
 /**
+ * Gets the version of a studio server
+ * @param {string} studioUrl
+ * @returns {$CancellablePromise<string>}
+ */
+export function GetServerVersion(studioUrl) {
+    return $Call.ByID(938039404, studioUrl);
+}
+
+/**
  * Checks if a studio server is online or offline by URL
  * @param {string} studioUrl
  * @returns {$CancellablePromise<string>}

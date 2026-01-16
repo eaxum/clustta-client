@@ -328,6 +328,48 @@ func RemoveCollaborator(userId, studioId string) (interface{}, error) {
 	return nil, fmt.Errorf("error removing collaborator: code - %d: body - %s", response.StatusCode, bodyData)
 }
 
+func GetServerVersion(studioUrl string) (string, error) {
+	if studioUrl == "" {
+		return "", fmt.Errorf("no studio URL provided")
+	}
+
+	url := studioUrl + "/version"
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode == 200 || response.StatusCode == 201 {
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			return "", err
+		}
+
+		var result map[string]interface{}
+		err = json.Unmarshal(body, &result)
+		if err != nil {
+			return "", err
+		}
+
+		if version, ok := result["version"].(string); ok {
+			return version, nil
+		}
+		return "", fmt.Errorf("version not found in response")
+	}
+
+	return "", fmt.Errorf("failed to get server version: status code %d", response.StatusCode)
+}
+
 func GetStudioStatus(studioUrl string) (string, error) {
 	if studioUrl == "" {
 		return "offline", nil

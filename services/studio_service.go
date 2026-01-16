@@ -59,6 +59,15 @@ func (s *StudioService) GetStudioStatus(studioUrl string) (string, error) {
 	return status, nil
 }
 
+// Gets the version of a studio server
+func (s *StudioService) GetServerVersion(studioUrl string) (string, error) {
+	version, err := studio_service.GetServerVersion(studioUrl)
+	if err != nil {
+		return "", err
+	}
+	return version, nil
+}
+
 // Registers a new studio with name and URL
 func (s *StudioService) RegisterStudio(name, studioUrl string) (interface{}, error) {
 	result, err := studio_service.RegisterStudio(name, studioUrl)
