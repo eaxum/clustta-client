@@ -58,6 +58,20 @@ export const StudioService = {
     }
   },
 
+  // Returns the version of a studio server
+  GetServerVersion: async (studioUrl) => {
+    try {
+      const response = await fetch(`${studioUrl}/version`, { method: 'GET' });
+      if (response.ok) {
+        const data = await response.json();
+        return data.version || '';
+      }
+      return '';
+    } catch {
+      return '';
+    }
+  },
+
   // Updates studio connection details
   UpdateStudio: async (studioName, url, altUrl, port, key) => {
     return await globalApiCall(`/studio/${studioName}/url`, 'PUT', {
