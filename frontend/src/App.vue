@@ -9,6 +9,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useNotificationStore } from './stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useSyncConflictStore } from '@/stores/syncConflict';
 import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 
@@ -30,6 +31,7 @@ const projectStore = useProjectStore();
 const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
+const syncConflictStore = useSyncConflictStore();
 const themeStore = useThemeStore();
 const stageStore = useStageStore();
 const accountStore = useAccountStore();
@@ -59,11 +61,25 @@ const handleProgressUpdate = (progressData) => {
     notificationStore.updateProgress(progressData);
 };
 
+const handleSyncConflict = (conflictData) => {
+    console.log('Sync conflict detected:', conflictData);
+    syncConflictStore.setConflicts(
+        conflictData.projectPath,
+        conflictData.remoteURL,
+        conflictData.conflicts
+    );
+    modals.setModalVisibility('syncConflictModal', true);
+};
+
 if (platformStore.isWeb) {
     emitter.on('progress-update', handleProgressUpdate);
+    emitter.on('sync-conflict', handleSyncConflict);
 } else {
     Events.On('progress-update', async (message) => {
         handleProgressUpdate(message.data);
+    });
+    Events.On('sync-conflict', async (message) => {
+        handleSyncConflict(message.data);
     });
 }
 
