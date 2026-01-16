@@ -7,6 +7,7 @@ import (
 	"clustta/internal/repository"
 	"clustta/internal/repository/repositorypb"
 	"clustta/internal/utils"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -178,7 +179,8 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 		defer response.Body.Close()
 
 		responseCode := response.StatusCode
-		if responseCode == 200 {
+		switch responseCode {
+		case 200:
 			err = utils.SetTablesToSynced(tx, ProjectTables)
 			if err != nil {
 				return err
@@ -188,7 +190,25 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 				return err
 			}
 			return nil
-		} else {
+		case 409:
+			body, err := io.ReadAll(response.Body)
+			if err != nil {
+				return fmt.Errorf("failed to read conflict response: %w", err)
+			}
+
+			var result WriteResult
+			if err := json.Unmarshal(body, &result); err != nil {
+				return fmt.Errorf("failed to parse conflict response: %w", err)
+			}
+
+			fmt.Printf("[DEBUG push.go] Received %d conflicts from server\n", len(result.Conflicts))
+			for i, c := range result.Conflicts {
+				fmt.Printf("[DEBUG push.go] Conflict[%d]: type=%s, name=%s, local_id=%s, server_id=%s\n",
+					i, c.Type, c.Name, c.LocalId, c.ExistingId)
+			}
+
+			return &SyncConflictError{Conflicts: result.Conflicts}
+		default:
 			body, err := io.ReadAll(response.Body)
 			if err != nil {
 				return err

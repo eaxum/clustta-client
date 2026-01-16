@@ -88,6 +88,9 @@ import ConfigClusttaCloudStudioModal from '@/instances/desktop/modals/ConfigClus
 import SelectNewStudioTypeModal from '@/instances/desktop/modals/SelectNewStudioTypeModal.vue';
 import UpdateStudioModal from '@/instances/desktop/modals/UpdateStudioModal.vue';
 
+// sync
+import SyncConflictModal from '@/instances/desktop/modals/SyncConflictModal.vue';
+
 const props = defineProps({
   component: String,
   show: Boolean,
@@ -165,6 +168,9 @@ const modalComponents = {
   configClusttaCloudStudioModal: ConfigClusttaCloudStudioModal,
   selectNewStudioTypeModal: SelectNewStudioTypeModal,
   updateStudioModal: UpdateStudioModal,
+
+  // sync
+  syncConflictModal: SyncConflictModal,
 };
 
 const closeModals = () => {

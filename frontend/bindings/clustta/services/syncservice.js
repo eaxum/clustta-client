@@ -78,6 +78,18 @@ export function PushCheckpoints(projectPath, remoteURL, pullChunk, syncOptions) 
 }
 
 /**
+ * ResolveConflicts resolves sync conflicts by remapping local IDs to match server IDs.
+ * This should be called after the user accepts the conflict resolution in the UI.
+ * Accepts conflicts as a JSON string since Wails binding may have issues with complex slice types.
+ * @param {string} projectPath
+ * @param {string} conflictsJSON
+ * @returns {$CancellablePromise<void>}
+ */
+export function ResolveConflicts(projectPath, conflictsJSON) {
+    return $Call.ByID(2712524183, projectPath, conflictsJSON);
+}
+
+/**
  * @param {string} projectPath
  * @param {string} remoteURL
  * @param {boolean} pullChunk
