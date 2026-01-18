@@ -10,19 +10,20 @@
 
         <div class="task-item-content selection-area">
           <div class="task-item-details">
-            {{ userFullName }}
+            <div class="task-item-name">{{ userFullName }}</div>
+            <div class="task-item-email">{{ collaborator.email }}</div>
           </div>
         </div>
 
         <!-- task status -->
-        <div v-if="!isCurrentUser" class="task-item-status-root ">
-          <DropDownBox :selectedItem="collaborator.role_name" :items="collaboratorRoles" :onSelect="selectRole" />
+        <div v-if="canEditRole" class="task-item-status-root ">
+          <DropDownBox :selectedItem="collaborator.role_name || collaborator.role?.name" :items="collaboratorRoles" :onSelect="selectRole" />
         </div>
 
         <!-- task actions -->
-        <div class="task-item-actions">
+        <div v-if="canDeleteUser" class="task-item-actions">
           <div class="file-state">
-            <ActionButton :isDisabled="isCurrentUser" :icon="getAppIcon('trash')" @click="deleteCollaborator(collaborator.id)" v-tooltip="'Remove'" />
+            <ActionButton :icon="getAppIcon('person-minus')" @click="deleteCollaborator(collaborator.id)" v-tooltip="'Remove'" />
           </div>
         </div>
       </div>
@@ -60,20 +61,34 @@ const props = defineProps({
   index: Number,
   entityId: { type: String, default: '' },
   isChild: { type: Boolean, default: false },
+  roles: { type: Array, default: () => ['Admin', 'User'] },
+  onRoleChange: { type: Function, default: null },
+  onDelete: { type: Function, default: null },
+  canEdit: { type: Boolean, default: true },
+  canDelete: { type: Boolean, default: true },
 });
 
 // refs
 const taskItem = ref(null);
-const collaboratorRoles = ref([
-  'Admin',
-  'User'
-]);
+const collaboratorRoles = computed(() => props.roles);
 
 const isCurrentUser = computed(() => {
   return userStore.user?.id === props.collaborator.id
 })
 
+const canEditRole = computed(() => {
+  return !isCurrentUser.value && props.canEdit
+})
+
+const canDeleteUser = computed(() => {
+  return !isCurrentUser.value && props.canDelete
+})
+
 const selectRole = (role) => {
+  if (props.onRoleChange) {
+    props.onRoleChange(props.collaborator.id, role);
+    return;
+  }
 
   let userId = props.collaborator.id
   let selectedUser = studioStore.studioUsers.find((user) => user.id === userId);
@@ -88,6 +103,10 @@ const selectRole = (role) => {
 }
 
 const deleteCollaborator = (collaboratorId) => {
+  if (props.onDelete) {
+    props.onDelete(collaboratorId);
+    return;
+  }
 
   let userId = props.collaborator.id
 
@@ -138,7 +157,6 @@ onBeforeUnmount(() => {
 }
 
 .task-item-main {
-  z-index: 100000;
   display: flex;
   gap: .2rem;
   color: var(--white);
@@ -150,18 +168,19 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
   align-items: flex-start;
   background-color: var(--dark-steel);
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   overflow: hidden;
   padding-right: 0px;
 
   outline: var(--transparent-line);
   outline-offset: -1px;
+  transition: all .2s ease-out;
 }
 
 .task-item-main:hover {
-  outline: var(--transparent-line);
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
+  background-color: var(--steel);
+  border-radius: var(--small-radius);
+  outline: 1px solid var(--light-steel);
 }
 
 .task-item-selected {
@@ -293,7 +312,22 @@ onBeforeUnmount(() => {
   height: min-content;
   white-space: nowrap;
   text-overflow: ellipsis;
-  /* font-weight: 200; */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .1rem;
+}
+
+.task-item-name {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.task-item-email {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--white);
+  opacity: 0.5;
 }
 
 .task-item-status-container {
@@ -307,7 +341,12 @@ onBeforeUnmount(() => {
 }
 
 .task-item-status-root {
-  /* Empty rule kept because it's used in the template */
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  width: 200px;
+  min-width: 200px;
+  overflow: hidden;
 }
 
 .task-item-status {

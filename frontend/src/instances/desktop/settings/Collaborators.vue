@@ -3,9 +3,19 @@
     <div class="settings-component-container">
       <ActionBar v-if="userStore.canDo('add_user')" :itemType="'Add collaborator'" :addFunction="addCollaborator" />
 
-      <ScrollList v-if="projectCollaborators.length" :items="projectCollaborators" :useAvatar="true" :useItemId="true"
-        :useMeta="true" :editItems="true" :editListItem="prepEditCollaborator" :deleteItems="true"
-        :deleteListItem="deleteCollaborator" :forCollab="true" />
+      <div v-if="projectCollaborators.length" class="collaborators-list">
+        <CollaboratorItem 
+          v-for="(collaborator, index) in projectCollaborators" 
+          :key="collaborator.id"
+          :collaborator="collaborator"
+          :index="index"
+          :roles="availableRoles"
+          :onRoleChange="changeCollaboratorRole"
+          :onDelete="deleteCollaborator"
+          :canEdit="collaborator.can_edit"
+          :canDelete="collaborator.can_delete"
+        />
+      </div>
 
     </div>
   </div>
@@ -22,9 +32,10 @@ import utils from '@/services/utils';
 import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
+import { useTrayStates } from '@/stores/TrayStates';
 
 // components
-import ScrollList from '@/instances/desktop/components/ScrollList.vue';
+import CollaboratorItem from '@/instances/desktop/components/CollaboratorItem.vue';
 import ActionBar from '@/instances/desktop/components/ActionBar.vue'
 import { useUserStore } from '@/stores/users';
 import { useDesktopModalStore } from '@/stores/desktopModals';
@@ -34,6 +45,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 const assetStore = useAssetStore();
 const userStore = useUserStore();
 const projectStore = useProjectStore();
+const trayStates = useTrayStates();
 
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
@@ -58,6 +70,10 @@ const activeUserId = computed(() => {
 const canRemoveUser = computed(() => { return userStore.canDo('remove_user') });
 const canChangeRole = computed(() => { return userStore.canDo('change_role') });
 
+const availableRoles = computed(() => {
+  return userStore.getRolesNames;
+});
+
 const projectCollaborators = computed(() => {
 
   let projectUsers = userStore.getProjectCollaborators;
@@ -71,27 +87,36 @@ const projectCollaborators = computed(() => {
     }
   }
 
-  const users = projectUsers.map(user => (
-    {
+  const users = projectUsers.map(user => {
+    // Find the matching role name from availableRoles (case-insensitive match)
+    const userRoleName = user.role?.name || "";
+    const matchedRole = userStore.getRolesNames.find(
+      role => role.toLowerCase() === userRoleName.toLowerCase()
+    ) || userRoleName;
+
+    return {
+      ...user,
       name: `${user.first_name} ${user.last_name}` || user,
       profile: user.photo || "",
-      meta: user.role.name || "",
+      role_name: matchedRole,
       id: user.id,
       avatarColor: userStore.userProfileColor(user.id),
       can_edit: user.id !== activeUserId.value && canChangeRole.value,
-      can_delete: !assignedUserIds.includes(user.id) && user.id !== activeUserId.value && (user.role.name !== 'admin' || !isLastAdmin.value) && canRemoveUser.value,
-    }
-  ));
+      can_delete: !assignedUserIds.includes(user.id) && user.id !== activeUserId.value && (user.role?.name !== 'admin' || !isLastAdmin.value) && canRemoveUser.value,
+    };
+  });
   return utils.sortAlphabetically(users);
 });
 
-
-// computed props
-const prepEditCollaborator = (userId) => {
-  let allCollaborators = userStore.getProjectCollaborators;
-  let collaborator = allCollaborators.find(item => item.id === userId);
-  userStore.selectedUser = collaborator
-  modals.setModalVisibility('editCollaboratorModal', true);
+const changeCollaboratorRole = async (userId, newRole) => {
+  await ProjectService.ChangeRole(projectStore.activeProject.uri, userId, newRole)
+    .then(async () => {
+      notificationStore.addNotification("User updated Successfully.", "", "success");
+      await trayStates.refreshData();
+    })
+    .catch((error) => {
+      notificationStore.errorNotification("Error updating User", error);
+    });
 };
 
 
@@ -117,6 +142,16 @@ const deleteCollaborator = (userId) => {
 .input-short {
   flex: 1;
   width: 100%;
+}
+
+.collaborators-list {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .settings-component-root {

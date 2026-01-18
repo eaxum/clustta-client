@@ -55,7 +55,6 @@ export const useDesktopModalStore = defineStore("desktopModals", {
 
       manageCollaboratorModal: false,
       addCollaboratorModal: false,
-      editCollaboratorModal: false,
 
       addRoleModal: false,
       editRoleModal: false,

@@ -58,7 +58,6 @@ import EditAssetTypeModal from '@/instances/desktop/settings/modals/EditAssetTyp
 import AddCollectionTypeModal from '@/instances/desktop/settings/modals/AddCollectionTypeModal.vue';
 import EditCollectionTypeModal from '@/instances/desktop/settings/modals/EditCollectionTypeModal.vue';
 
-import EditCollaboratorModal from '@/instances/desktop/settings/modals/EditCollaboratorModal.vue';
 import ManageCollaboratorModal from '@/instances/desktop/settings/modals/ManageCollaboratorModal.vue';
 import AddCollaboratorModal from '@/instances/desktop/settings/modals/AddCollaboratorModal.vue';
 
@@ -146,7 +145,6 @@ const modalComponents = {
   editAssetModal: EditAssetModal,
   editCollectionModal: EditCollectionModal,
   createMultipleCheckpointsModal: CreateMultipleCheckpointsModal,
-  editCollaboratorModal: EditCollaboratorModal,
   editTemplateModal: EditTemplateModal,
   addTemplateModal: AddTemplateModal,
   manageCollaboratorModal: ManageCollaboratorModal,
