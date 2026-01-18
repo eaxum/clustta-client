@@ -1,6 +1,6 @@
 <template>
   <div class="modal-container" ref="modalContainer" v-stop-propagation>
-    <HeaderArea title="Sync Conflict Detected" icon="alert-triangle" :showSearch="false" />
+    <HeaderArea title="Sync Conflict Detected" :icon="getAppIcon('cloud-error')" :showSearch="false" />
     <div class="general-container">
       
       <div class="conflict-message">
@@ -8,43 +8,68 @@
         <p>Your local versions will be merged with the server versions.</p>
       </div>
 
-      <div class="conflict-list" v-if="conflicts.length > 0">
-        <div class="conflict-section" v-if="entityConflicts.length > 0">
-          <div class="section-header">
-            <img :src="getAppIcon('folder')" alt="entity" class="section-icon" />
-            <span>Entities ({{ entityConflicts.length }})</span>
-          </div>
-          <div class="conflict-item" v-for="conflict in entityConflicts" :key="conflict.local_id">
-            <span class="conflict-name">{{ conflict.name }}</span>
-            <span class="conflict-arrow">→</span>
-            <span class="conflict-action">will merge with server version</span>
-          </div>
+      <div class="conflict-tabs-header">
+        <div class="conflict-tabs">
+          <PaneHeaderTabs 
+            :dataTypes="filterTabs" 
+            :selectedTab="selectedFilter"
+            @filter="handleFilterChange"
+          />
         </div>
-
-        <div class="conflict-section" v-if="taskConflicts.length > 0">
-          <div class="section-header">
-            <img :src="getAppIcon('file')" alt="task" class="section-icon" />
-            <span>Tasks ({{ taskConflicts.length }})</span>
-          </div>
-          <div class="conflict-item" v-for="conflict in taskConflicts" :key="conflict.local_id">
-            <span class="conflict-name">{{ conflict.name }}{{ conflict.extension ? '.' + conflict.extension : '' }}</span>
-            <span class="conflict-arrow">→</span>
-            <span class="conflict-action">checkpoints will be added to existing task</span>
-          </div>
+        <div class="conflict-tabs-options">
+          <ActionButton 
+            :icon="hideExtensions ? getAppIcon('extension-cancel') : getAppIcon('extension')"
+            v-tooltip="hideExtensions ? 'Show extensions' : 'Hide extensions'"
+            :buttonFunction="toggleHideExtensions" 
+          />
+          <ActionButton 
+            :icon="showFullPath ? getAppIcon('file-name') : getAppIcon('file-path')"
+            v-tooltip="showFullPath ? 'Name' : 'Path'"
+            :buttonFunction="toggleShowFullPath" 
+          />
         </div>
       </div>
 
-      <div class="conflict-actions">
+      <div class="conflict-list-container conflict-list-empty" v-if="isEnriching">
+        <div class="conflict-loading">
+          <img :src="getAppIcon('loading')" alt="loading" class="loading-icon" />
+          <span>Loading conflict details...</span>
+        </div>
+      </div>
+
+      <div class="conflict-list-container conflict-list-empty" v-else-if="!filteredConflicts.length">
+        <PageState 
+          :message="'No conflicts to resolve'" 
+          :illustration="'/page-states/resources.png'" 
+        />
+      </div>
+
+      <div class="conflict-list-container" v-else-if="filteredConflicts.length > 0">
+      <div class="conflict-list">
+        <ConflictItem 
+          v-for="conflict in filteredConflicts" 
+          :key="conflict.local_id"
+          :conflict="conflict"
+          :hideExtensions="hideExtensions"
+          :showFullPath="showFullPath"
+          @resolved="handleConflictResolved"
+          @merge="handleSingleMerge"
+        />
+      </div>
+      </div>
+
+      <div class="pop-up-actions" :class="{ 'pop-up-actions-end': !hasConflicts }">
         <GeneralButton 
+          v-if="hasConflicts"
           label="Cancel" 
           :fullWidth="true" 
           :buttonFunction="handleCancel" 
           :colored="false" 
         />
         <GeneralButton 
-          label="Merge & Sync" 
+          :label="hasConflicts ? 'Merge All' : 'Done'" 
           :fullWidth="true" 
-          :buttonFunction="handleMerge" 
+          :buttonFunction="hasConflicts ? handleMerge : handleDone" 
           :isActive="true" 
           :loading="isLoading" 
         />
@@ -60,20 +85,38 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
 import { useSyncConflictStore } from '@/stores/syncConflict';
 import { useIconStore } from '@/stores/icons';
+import { useProjectStore } from '@/stores/projects';
 
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import ConflictItem from '@/instances/desktop/components/ConflictItem.vue';
+import PaneHeaderTabs from '@/instances/common/components/PaneHeaderTabs.vue';
+import PageState from '@/instances/common/components/PageState.vue';
 
-import { SyncService } from '@/services';
+import { SyncService, CollectionService, AssetService } from '@/services';
+import emitter from '@/lib/mitt';
 
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const syncConflictStore = useSyncConflictStore();
 const iconStore = useIconStore();
+const projectStore = useProjectStore();
 
 const isLoading = ref(false);
+const isEnriching = ref(false);
+const selectedFilter = ref('all');
+const hideExtensions = ref(true);
+const showFullPath = ref(false);
+const enrichedConflicts = ref([]);
 
-const conflicts = computed(() => syncConflictStore.conflicts || []);
+const filterTabs = [
+  { name: 'all', icon: 'list' },
+  { name: 'assets', icon: 'file' },
+  { name: 'collections', icon: 'folder' },
+];
+
+const conflicts = computed(() => enrichedConflicts.value.length > 0 ? enrichedConflicts.value : syncConflictStore.conflicts || []);
 const projectPath = computed(() => syncConflictStore.projectPath);
 const remoteURL = computed(() => syncConflictStore.remoteURL);
 
@@ -85,6 +128,150 @@ const taskConflicts = computed(() =>
   conflicts.value.filter(c => c.type === 'task')
 );
 
+const filteredConflicts = computed(() => {
+  if (selectedFilter.value === 'all') {
+    return conflicts.value;
+  } else if (selectedFilter.value === 'assets') {
+    return taskConflicts.value;
+  } else if (selectedFilter.value === 'collections') {
+    return entityConflicts.value;
+  }
+  return conflicts.value;
+});
+
+const hasConflicts = computed(() => {
+  return enrichedConflicts.value.length > 0;
+});
+
+// Enrich conflicts with full data from DB using parallel fetching
+const enrichConflicts = async () => {
+  const rawConflicts = syncConflictStore.conflicts || [];
+  if (rawConflicts.length === 0) return;
+
+  isEnriching.value = true;
+  const projectUri = projectStore.activeProject?.uri || projectPath.value;
+
+  try {
+    // Separate conflicts by type for batch processing
+    const entityIds = rawConflicts.filter(c => c.type === 'entity').map(c => c.local_id);
+    const taskIds = rawConflicts.filter(c => c.type === 'task').map(c => c.local_id);
+
+    // Fetch all entities and tasks in parallel
+    const [entityResults, taskResults] = await Promise.all([
+      // Fetch all entities in parallel
+      Promise.all(entityIds.map(id => 
+        CollectionService.GetCollectionByID(projectUri, id).catch(err => {
+          console.warn(`Failed to fetch entity ${id}:`, err);
+          return null;
+        })
+      )),
+      // Fetch all tasks in parallel
+      Promise.all(taskIds.map(id => 
+        AssetService.GetAssetByID(projectUri, id).catch(err => {
+          console.warn(`Failed to fetch task ${id}:`, err);
+          return null;
+        })
+      ))
+    ]);
+
+    // Create lookup maps for quick access
+    const entityMap = new Map();
+    entityResults.forEach((entity, idx) => {
+      if (entity && entity.id) {
+        entityMap.set(entityIds[idx], entity);
+      }
+    });
+
+    const taskMap = new Map();
+    taskResults.forEach((task, idx) => {
+      if (task && task.id) {
+        taskMap.set(taskIds[idx], task);
+      }
+    });
+
+    // Merge enriched data with original conflicts
+    enrichedConflicts.value = rawConflicts.map(conflict => {
+      if (conflict.type === 'entity') {
+        const entityData = entityMap.get(conflict.local_id);
+        if (entityData) {
+          return {
+            ...conflict,
+            ...entityData,
+            // Preserve original conflict fields
+            local_id: conflict.local_id,
+            server_id: conflict.server_id,
+            type: conflict.type,
+          };
+        }
+      } else if (conflict.type === 'task') {
+        const taskData = taskMap.get(conflict.local_id);
+        if (taskData) {
+          return {
+            ...conflict,
+            ...taskData,
+            // Preserve original conflict fields
+            local_id: conflict.local_id,
+            server_id: conflict.server_id,
+            type: conflict.type,
+          };
+        }
+      }
+      return conflict;
+    });
+
+    console.log('Enriched conflicts:', enrichedConflicts.value);
+  } catch (error) {
+    console.error('Failed to enrich conflicts:', error);
+    // Fall back to original conflicts
+    enrichedConflicts.value = rawConflicts;
+  } finally {
+    isEnriching.value = false;
+  }
+};
+
+const handleFilterChange = (filter) => {
+  selectedFilter.value = filter;
+};
+
+const handleConflictResolved = (resolvedConflict) => {
+  // Remove the resolved conflict from enrichedConflicts
+  enrichedConflicts.value = enrichedConflicts.value.filter(c => c.local_id !== resolvedConflict.local_id);
+  
+  // If this is an entity, also remove any child conflicts from enrichedConflicts
+  if (resolvedConflict.type === 'entity' && resolvedConflict.entity_path) {
+    const parentPath = resolvedConflict.entity_path;
+    enrichedConflicts.value = enrichedConflicts.value.filter(c => !c.entity_path?.startsWith(parentPath));
+  }
+};
+
+const handleSingleMerge = async (conflict) => {
+  // Handle merging a single conflict item
+  try {
+    const conflictsJSON = JSON.stringify([conflict]);
+    await SyncService.ResolveConflicts(projectPath.value, conflictsJSON);
+    
+    // Remove from enrichedConflicts
+    enrichedConflicts.value = enrichedConflicts.value.filter(c => c.local_id !== conflict.local_id);
+    
+    notificationStore.addNotification(
+      'Merged Successfully',
+      `${conflict.type === 'entity' ? 'Collection' : 'Asset'} "${conflict.name}" merged`,
+      'success'
+    );
+  } catch (error) {
+    console.error('Failed to merge conflict:', error);
+    notificationStore.errorNotification('Merge Failed', error.message || 'Failed to merge item');
+  }
+};
+
+const toggleHideExtensions = () => {
+  hideExtensions.value = !hideExtensions.value;
+};
+
+const toggleShowFullPath = () => {
+  showFullPath.value = !showFullPath.value;
+};
+
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
@@ -92,6 +279,12 @@ const getAppIcon = (iconName) => {
 const handleCancel = () => {
   syncConflictStore.clearConflicts();
   modals.disableAllModals();
+};
+
+const handleDone = () => {
+  syncConflictStore.clearConflicts();
+  modals.disableAllModals();
+  emitter.emit('refresh-browser');
 };
 
 const handleMerge = async () => {
@@ -106,24 +299,13 @@ const handleMerge = async () => {
     
     notificationStore.addNotification(
       'Conflicts Resolved', 
-      `${conflicts.value.length} item(s) merged successfully. Retrying sync...`
+      `${conflicts.value.length} item(s) merged successfully.`,
+      'success'
     );
     
-    // Close modal and clear conflicts
+    // Clear conflicts but keep modal open
+    enrichedConflicts.value = [];
     syncConflictStore.clearConflicts();
-    modals.disableAllModals();
-    
-    // Retry sync
-    let syncOptions = {
-      only_latest_checkpoints: false,
-      task_dependencies: false,
-      tasks: false,
-      templates: false,
-    };
-    
-    // await SyncService.SyncData(projectPath.value, remoteURL.value, false, syncOptions);
-    
-    // notificationStore.successNotification('Sync Complete', 'Data synced successfully');
     
   } catch (error) {
     console.error('Failed to resolve conflicts:', error);
@@ -133,12 +315,14 @@ const handleMerge = async () => {
   }
 };
 
-onMounted(() => {
-  console.log('SyncConflictModal mounted with conflicts:', conflicts.value);
+onMounted(async () => {
+  console.log('SyncConflictModal mounted with conflicts:', syncConflictStore.conflicts);
+  await enrichConflicts();
 });
 
 onBeforeUnmount(() => {
   // Don't clear conflicts here in case user wants to retry
+  enrichedConflicts.value = [];
 });
 </script>
 
@@ -156,65 +340,107 @@ onBeforeUnmount(() => {
   margin: 0.25rem 0;
 }
 
-.conflict-list {
+
+.conflict-list-container {
   max-height: 300px;
+  min-height: 300px;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
   overflow-y: auto;
+  /* padding-right: 0.5rem; */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  /* background-color: crimson; */
+  background-color: var(--midnight-steel);
+  border-radius: var(--very-large-radius);
+}
+
+.conflict-list-empty{
+  /* background-color: goldenrod; */
+  align-items: center;
+  justify-content: center;
+}
+.conflict-list-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.conflict-list-container::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background-color: var(--light-steel);
+}
+
+.conflict-list-container::-webkit-scrollbar-track {
+  margin-top: 5px;
+  border-radius: 10px;
+}
+
+.conflict-list {
+  width: 100%;
+  box-sizing: border-box;
   padding: 0 0.5rem;
-  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  padding: .5rem;
 }
 
-.conflict-section {
-  margin-bottom: 1rem;
-}
-
-.section-header {
+.conflict-tabs-header {
+  /* padding: 0.3rem 0.5rem; */
+  margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background-color: var(--charcoal);
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--white);
+  justify-content: space-between;
+  /* background-color: var(--midnight-steel); */
+  width: 100%;
+  border-radius: var(--very-large-radius);
 }
 
-.section-icon {
+.conflict-tabs {
+  padding: 0.3rem 0.5rem;
+  display: flex;
+  background-color: var(--midnight-steel);
+  width: 100%;
+  max-width: 250px;
+  border-radius: var(--very-large-radius);
+}
+
+.conflict-tabs-options {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.5rem;
+}
+
+.conflict-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  color: var(--gray);
+  font-size: 13px;
+}
+
+.loading-icon {
   width: 16px;
   height: 16px;
+  animation: spin 1s linear infinite;
 }
 
-.conflict-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background-color: var(--charcoal-light);
-  border-radius: 4px;
-  margin-bottom: 0.25rem;
-  font-size: 12px;
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-.conflict-name {
-  color: var(--amber);
-  font-weight: 500;
-  flex-shrink: 0;
+.pop-up-actions {
+  padding: 0px;
+  margin-top: 0;
 }
 
-.conflict-arrow {
-  color: var(--gray);
-  flex-shrink: 0;
-}
-
-.conflict-action {
-  color: var(--gray);
-  font-size: 11px;
-}
-
-.conflict-actions {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.5rem;
+.pop-up-actions-end {
+  justify-content: flex-end;
 }
 </style>
