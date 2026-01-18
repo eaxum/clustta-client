@@ -18,6 +18,10 @@
             <div class="project-list" >
                 <CollaboratorItem v-for="collaborator, index in studioStore.studioUsers" :key="collaborator.id"
                     :collaborator="collaborator"
+                    :index="index"
+                    :roles="studioRoles"
+                    :canEdit="canEditCollaborator(collaborator)"
+                    :canDelete="canDeleteCollaborator(collaborator)"
                     :style="{ animationDelay: index < 12 ? `${(index - 1) * 0.03}s` : '0s' }" />
             </div>
         </div>
@@ -33,6 +37,8 @@
 import { ref, computed, onMounted } from 'vue';
 import { useStudioStore } from '@/stores/studio';
 import { useIconStore } from '@/stores/icons';
+import { useUserStore } from '@/stores/users';
+import { useDesktopModalStore } from '@/stores/desktopModals';
 
 // store imports
 import { useProjectStore } from '@/stores/projects';
@@ -41,16 +47,29 @@ import { useProjectStore } from '@/stores/projects';
 import CollaboratorItem from '@/instances/desktop/components/CollaboratorItem.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
 import TaskListSkeleton from '@/instances/desktop/components/TaskListSkeleton.vue'
-import { useUserStore } from '@/stores/users';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { StudioService } from "@/services";
 
 
 // states
 const studioStore = useStudioStore();
 const iconStore = useIconStore();
-
+const userStore = useUserStore();
 const modals = useDesktopModalStore();
+
+// Studio roles
+const studioRoles = computed(() => ['Admin', 'User']);
+
+// Check if current user can edit/delete collaborators
+const canEditCollaborator = (collaborator) => {
+  // Can't edit your own role
+  if (collaborator.id === userStore.user?.id) return false;
+  return true;
+};
+
+const canDeleteCollaborator = (collaborator) => {
+  // Can't delete yourself
+  if (collaborator.id === userStore.user?.id) return false;
+  return true;
+};
 
 const addCollaborator = () => {
   modals.setModalVisibility('addCollaboratorModal', true);
