@@ -6,9 +6,24 @@
     <div class="general-container">
 
       <div class="login-form">
-        <input v-model="username" class="input-short" type="text" placeholder="Email address" autocomplete="off"/>
-        <input v-model="password" class="input-short" type="password" placeholder="Password"
-          @keydown.enter="handleEnterKey" />
+        <div class="form-group">
+          <div class="compound-form-input">
+            <input v-model="username" class="form-input-mini" type="text" placeholder="Username or Email address" autocomplete="off"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="compound-form-input">
+            <input v-model="password" class="form-input-mini" :type="isPasswordVisible ? 'text' : 'password'" placeholder="Password"
+              autocomplete="new-password" @keydown.enter="handleEnterKey" />
+            <ActionButton 
+              v-if="password"
+              v-tooltip="isPasswordVisible ? 'Hide Password' : 'Show Password'"
+              :icon="isPasswordVisible ? getAppIcon('eye-cancel') : getAppIcon('eye')"
+              @click="togglePasswordVisibility"
+              :showLabel="false"
+            />
+          </div>
+        </div>
       </div>
 
       <div class="pop-up-actions">
@@ -28,6 +43,7 @@ import { AuthService, SettingsService } from "@/services";
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -38,6 +54,7 @@ import { useUserStore } from '@/stores/users';
 import { useThemeStore } from '@/stores/theme';
 import { useAccountStore } from '@/stores/accounts';
 import { useStageStore } from '@/stores/stages';
+import { useIconStore } from '@/stores/icons';
 
 let username = ref('');
 let password = ref('');
@@ -45,6 +62,7 @@ const isAwaitingResponse = ref(false);
 const isCheckingAuth = ref(true);
 const eulaAccepted = ref(false);
 const projectDirectoryExists = ref(false);
+const isPasswordVisible = ref(false);
 
 // stores/states
 const modals = useDesktopModalStore();
@@ -55,6 +73,7 @@ const notificationStore = useNotificationStore();
 const themeStore = useThemeStore();
 const accountStore = useAccountStore();
 const stageStore = useStageStore();
+const iconStore = useIconStore();
 
 // computed props
 const isValueChanged = computed(() => {
@@ -66,6 +85,15 @@ const isValueChanged = computed(() => {
 // methods
 const closeModal = () => {
   modals.disableAllModals();
+};
+
+const getAppIcon = (iconName) => {
+  const icon = iconStore.getAppIcon(iconName);
+  return icon;
+};
+
+const togglePasswordVisibility = () => {
+  isPasswordVisible.value = !isPasswordVisible.value;
 };
 
 const showEula = async () => {
@@ -264,16 +292,12 @@ let title = 'Login';
   box-sizing: border-box;
   height: max-content;
   gap: 1rem;
-  width: 50%;
-  width: 500px;
-  padding: 1rem 2rem;
-  /* width: max-content; */
+  width: 100%;
   flex-direction: column;
   align-items: center;
   justify-content: space-around;
   overflow: hidden;
   box-sizing: border-box;
-  /* background-color: firebrick; */
 }
 
 .input-short {
@@ -284,6 +308,44 @@ let title = 'Login';
 .login-button {
   margin-top: 1rem;
   height: 50px;
+}
+
+.form-group {
+  width: 100%;
+}
+
+.compound-form-input {
+  box-sizing: border-box;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  width: 100%;
+  height: 50px;
+  border-radius: var(--normal-radius);
+  padding-right: .5rem;
+  display: flex;
+  overflow: hidden;
+  gap: .2rem;
+  background-color: var(--midnight-steel);
+  align-items: center;
+}
+
+.form-input-mini {
+  color: var(--white);
+  box-sizing: border-box;
+  border: 0px;
+  border-radius: 4px;
+  font-size: 1rem;
+  width: 100%;
+  height: 100%;
+  padding: 0.75rem;
+  background-color: var(--midnight-steel);
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  border-radius: 12px;
+  padding: 10px;
+  border-style: solid;
+  outline: none;
 }
 </style>
 
