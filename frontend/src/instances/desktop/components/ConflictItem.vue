@@ -1,16 +1,20 @@
 <template>
   <div class="conflict-item-main" :class="{ 'conflict-item-resolved': isResolved }" @mouseenter="isHovered = true" @mouseleave="isHovered = false">
-    <div class="conflict-item-icon-container">
+    <div class="conflict-item-icon-container" @click="console.log(conflict)" >
       <img :src="itemIcon" :alt="conflict.name" class="conflict-item-icon" />
     </div>
+
     <div class="conflict-item-content">
       <RenameInput v-if="isRenaming" v-model="newName" :originalValue="conflict.name" placeholder="Enter new name" @confirm="handleRenameConfirm" @cancel="handleRenameCancel" />
-      <span v-else class="conflict-item-name">{{ displayName }}</span>
+      <!-- <span v-else class="conflict-item-name">{{ displayName }}</span> -->
+      <span v-else class="conflict-item-name">{{ conflict.entity_path }}</span>
     </div>
+
     <div v-if="!isResolved && !isRenaming" class="conflict-item-actions">
       <ActionButton :icon="getAppIcon('edit')" v-tooltip="'Rename'" :buttonFunction="startRename" />
       <ActionButton :icon="getAppIcon('merge')" v-tooltip="'Merge'" :buttonFunction="handleMerge" />
     </div>
+
     <ActionButton v-if="isResolved && !isRenaming" :icon="getAppIcon('circle-check')" :isDisabled="true" :useGo="true" :allowDeactivate="true" />
   </div>
 </template>
@@ -27,15 +31,13 @@ import RenameInput from '@/instances/desktop/components/RenameInput.vue';
 import { AssetService, CollectionService } from '@/services';
 
 // stores
-const iconStore = useIconStore();
-const notificationStore = useNotificationStore();
-const projectStore = useProjectStore();
-const syncConflictStore = useSyncConflictStore();
-
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
-import { useSyncConflictStore } from '@/stores/syncConflict';
+
+const iconStore = useIconStore();
+const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
 
 // props
 const props = defineProps({
@@ -82,13 +84,13 @@ const displayName = computed(() => {
 });
 
 // methods
+// Returns icon path from icon store.
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
-// Emits merge event and removes conflict from store.
+// Emits merge event to parent for handling.
 const handleMerge = () => {
-  syncConflictStore.removeConflict(props.conflict.local_id);
   emit('merge', props.conflict);
 };
 
@@ -99,7 +101,7 @@ const handleRenameCancel = () => {
 };
 
 // Renames the conflict item via appropriate service.
-// Updates local state and removes from conflict store on success.
+// On success, emits resolved event for parent to handle cleanup.
 const handleRenameConfirm = async (confirmedName) => {
   const projectUri = projectStore.activeProject?.uri;
   if (!projectUri) {
@@ -118,25 +120,11 @@ const handleRenameConfirm = async (confirmedName) => {
     isResolved.value = true;
     isRenaming.value = false;
     
-    notificationStore.addNotification(
-      'Renamed Successfully',
-      `${props.conflict.type === 'entity' ? 'Collection' : 'Asset'} renamed to "${confirmedName}"`,
-      'success'
-    );
-
-    syncConflictStore.removeConflict(props.conflict.local_id);
-
-    // If entity, also remove child conflicts
-    if (props.conflict.type === 'entity' && props.conflict.entity_path) {
-      syncConflictStore.removeChildConflicts(props.conflict.entity_path);
-    }
-
     emit('resolved', {
       ...props.conflict,
       name: confirmedName,
       resolved: true
     });
-
   } catch (error) {
     console.error('Failed to rename:', error);
     notificationStore.errorNotification('Rename Failed', error.message || 'Failed to rename item');
