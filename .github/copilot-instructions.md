@@ -125,10 +125,13 @@ const browserRoot = ref(null);
 const isLoading = ref(false);
 const searchQuery = ref('');
 
-// computed properties (alphabetically)
+// computed properties (alphabetically, but dependencies first)
 const canModifyEntity = computed(() => { ... });
 const filteredAssets = computed(() => { ... });
 const isTasksModified = computed(() => { ... });
+
+// Note: If a computed depends on another computed, the dependency must come first.
+// Example: filteredConflicts depends on taskConflicts, so taskConflicts must be defined before filteredConflicts.
 
 // methods/functions (alphabetically)
 const clearSearch = async () => { ... };
@@ -146,13 +149,22 @@ onUnmounted(() => { ... });
 ```
 
 ### Component Template Style
-- **Inline props**: Keep component usage to 2-3 lines max, don't break every prop onto new lines
+- **Inline elements**: Keep component and element tags to 2-3 lines max, don't break every prop/attribute onto new lines
+- **Spacing**: One blank line between elements in `<template>` section
+- **No comments**: Avoid comments in templates except for temporarily disabled elements
 - **Icons**: Always use `getAppIcon('icon-name')` helper, never direct paths
 ```vue
 <!-- Good -->
+<div class="container" :class="{ 'active': isActive }" @click="handleClick">
+
 <ActionButton :icon="getAppIcon('edit')" v-tooltip="'Rename'" :buttonFunction="startRename" />
 
 <!-- Avoid -->
+<div 
+  class="container" 
+  :class="{ 'active': isActive }" 
+  @click="handleClick"
+>
 <ActionButton 
   :icon="getAppIcon('edit')" 
   v-tooltip="'Rename'" 
@@ -162,11 +174,15 @@ onUnmounted(() => { ... });
 
 ### Refactoring Checklist
 When cleaning up components:
-- [ ] Remove unused imports, functions, and computed properties
+- [ ] Remove unused imports, functions, computed properties, and CSS classes
 - [ ] Alphabetize all imports, stores, refs, computed props, and methods
+- [ ] For computed props: dependencies must come before dependents (then alphabetize within same level)
 - [ ] Add section comment headers per boilerplate
 - [ ] Ensure functions have 1-2 line preceding comments (no inline comments)
-- [ ] Consolidate component props to inline format
+- [ ] Consolidate component and element tags to inline format
+- [ ] No lines between template elements except major blocks
+- [ ] Remove template comments (except temporarily disabled elements)
+- [ ] Remove commented-out CSS and unused CSS classes
 
 ## Key Patterns
 
