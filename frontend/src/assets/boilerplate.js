@@ -16,4 +16,8 @@
 
 // computed properties
 
-// methods
+// methods/functions
+
+// watchers
+
+//life cycle hooks
