@@ -35,14 +35,14 @@
 
       <div class="conflict-list-container" v-else-if="filteredConflicts.length > 0">
         <div class="conflict-list">
-          <ConflictItem v-for="conflict in filteredConflicts" :key="conflict.local_id" :conflict="conflict" :hideExtensions="hideExtensions" :showFullPath="showFullPath" @resolved="handleConflictResolved" @merge="handleSingleMerge" />
+          <ConflictItem v-for="conflict in filteredConflicts" :key="conflict.local_id" :conflict="conflict" :hideExtensions="hideExtensions" :showFullPath="showFullPath" @resolved="handleRenameResolved" @merge="handleSingleMerge" />
         </div>
       </div>
 
       <div class="pop-up-actions" :class="{ 'pop-up-actions-end': !hasConflicts }">
         <GeneralButton v-if="hasConflicts" label="Cancel" :fullWidth="true" :buttonFunction="handleCancel" :colored="false" />
 
-        <GeneralButton :label="hasConflicts ? 'Merge All' : 'Done'" :fullWidth="true" :buttonFunction="hasConflicts ? handleMerge : handleDone" :isActive="true" :loading="isLoading" />
+        <GeneralButton :label="hasConflicts ? 'Merge All' : 'Done'" :fullWidth="true" :buttonFunction="hasConflicts ? handleMergeAll : handleDone" :isActive="true" :loading="isLoading" />
       </div>
     </div>
   </div>
@@ -52,6 +52,11 @@
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
+import {
+  filterTopLevelConflicts,
+  getResolutionSummary,
+  prepareRecursiveMergeConflicts,
+} from '@/lib/conflictUtils';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -93,31 +98,35 @@ const filterTabs = [
 ];
 
 // computed properties (dependencies first, then alphabetically)
-const conflicts = computed(() => enrichedConflicts.value.length > 0 ? enrichedConflicts.value : syncConflictStore.conflicts || []);
+const allEnrichedConflicts = computed(() => 
+  enrichedConflicts.value.length > 0 ? enrichedConflicts.value : syncConflictStore.allConflicts || []
+);
 
-const entityConflicts = computed(() => conflicts.value.filter(c => c.type === 'entity'));
+const topLevelConflicts = computed(() => filterTopLevelConflicts(allEnrichedConflicts.value));
 
-const taskConflicts = computed(() => conflicts.value.filter(c => c.type === 'task'));
+const entityConflicts = computed(() => topLevelConflicts.value.filter(c => c.type === 'entity'));
 
 const filteredConflicts = computed(() => {
   if (selectedFilter.value === 'all') {
-    return conflicts.value;
+    return topLevelConflicts.value;
   } else if (selectedFilter.value === 'assets') {
     return taskConflicts.value;
   } else if (selectedFilter.value === 'collections') {
     return entityConflicts.value;
   }
-  return conflicts.value;
+  return topLevelConflicts.value;
 });
 
 const hasConflicts = computed(() => enrichedConflicts.value.length > 0);
 
 const projectPath = computed(() => syncConflictStore.projectPath);
 
+const taskConflicts = computed(() => topLevelConflicts.value.filter(c => c.type === 'task'));
+
 // methods
 // Fetches full data for conflicts from DB using parallel requests.
 const enrichConflicts = async () => {
-  const rawConflicts = syncConflictStore.conflicts || [];
+  const rawConflicts = syncConflictStore.allConflicts || [];
   if (rawConflicts.length === 0) return;
 
   isEnriching.value = true;
@@ -201,16 +210,6 @@ const handleCancel = () => {
   modals.disableAllModals();
 };
 
-// Removes resolved conflict and any child conflicts from list.
-const handleConflictResolved = (resolvedConflict) => {
-  enrichedConflicts.value = enrichedConflicts.value.filter(c => c.local_id !== resolvedConflict.local_id);
-  
-  if (resolvedConflict.type === 'entity' && resolvedConflict.entity_path) {
-    const parentPath = resolvedConflict.entity_path;
-    enrichedConflicts.value = enrichedConflicts.value.filter(c => !c.entity_path?.startsWith(parentPath));
-  }
-};
-
 // Closes modal and refreshes browser view.
 const handleDone = () => {
   syncConflictStore.clearConflicts();
@@ -224,18 +223,18 @@ const handleFilterChange = (filter) => {
 };
 
 // Merges all remaining conflicts with server versions.
-const handleMerge = async () => {
+const handleMergeAll = async () => {
   if (isLoading.value) return;
   
   isLoading.value = true;
   
   try {
-    const conflictsJSON = JSON.stringify(conflicts.value);
+    const conflictsJSON = JSON.stringify(allEnrichedConflicts.value);
     await SyncService.ResolveConflicts(projectPath.value, conflictsJSON);
     
     notificationStore.addNotification(
       'Conflicts Resolved', 
-      `${conflicts.value.length} item(s) merged successfully.`,
+      `${allEnrichedConflicts.value.length} item(s) merged successfully.`,
       'success'
     );
     
@@ -249,19 +248,36 @@ const handleMerge = async () => {
   }
 };
 
-// Merges a single conflict item with server version.
+// Handles rename resolution for a conflict (including recursive child resolution).
+const handleRenameResolved = (conflict) => {
+  const summary = getResolutionSummary(conflict, allEnrichedConflicts.value, 'rename');
+  
+  // Remove the resolved conflict and all its children from enriched list
+  const conflictsToRemove = prepareRecursiveMergeConflicts(conflict, allEnrichedConflicts.value);
+  const idsToRemove = conflictsToRemove.map(c => c.local_id);
+  
+  enrichedConflicts.value = enrichedConflicts.value.filter(c => !idsToRemove.includes(c.local_id));
+  syncConflictStore.removeConflicts(idsToRemove);
+  
+  notificationStore.addNotification('Renamed Successfully', summary, 'success');
+};
+
+// Merges a single conflict item with server version (including children recursively).
 const handleSingleMerge = async (conflict) => {
   try {
-    const conflictsJSON = JSON.stringify([conflict]);
+    // Get parent + all children for recursive merge
+    const conflictsToMerge = prepareRecursiveMergeConflicts(conflict, allEnrichedConflicts.value);
+    const conflictsJSON = JSON.stringify(conflictsToMerge);
+    
     await SyncService.ResolveConflicts(projectPath.value, conflictsJSON);
     
-    enrichedConflicts.value = enrichedConflicts.value.filter(c => c.local_id !== conflict.local_id);
+    // Remove merged conflicts from local state
+    const idsToRemove = conflictsToMerge.map(c => c.local_id);
+    enrichedConflicts.value = enrichedConflicts.value.filter(c => !idsToRemove.includes(c.local_id));
+    syncConflictStore.removeConflicts(idsToRemove);
     
-    notificationStore.addNotification(
-      'Merged Successfully',
-      `${conflict.type === 'entity' ? 'Collection' : 'Asset'} "${conflict.name}" merged`,
-      'success'
-    );
+    const summary = getResolutionSummary(conflict, allEnrichedConflicts.value, 'merge');
+    notificationStore.addNotification('Merged Successfully', summary, 'success');
   } catch (error) {
     console.error('Failed to merge conflict:', error);
     notificationStore.errorNotification('Merge Failed', error.message || 'Failed to merge item');
