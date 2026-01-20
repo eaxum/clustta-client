@@ -21,9 +21,10 @@
         </div>
 
         <!-- task actions -->
-        <div v-if="canDeleteUser" class="task-item-actions">
+        <div class="task-item-actions">
           <div class="file-state">
-            <ActionButton :icon="getAppIcon('person-minus')" @click="deleteCollaborator(collaborator.id)" v-tooltip="'Remove'" />
+            <ActionButton v-if="canDeleteUser" :icon="getAppIcon('person-minus')" @click="deleteCollaborator(collaborator.id)" v-tooltip="'Remove'" />
+            <ActionButton :icon="getAppIcon('person-search')" @click="openUserProfile" v-tooltip="'View profile'" />
           </div>
         </div>
       </div>
@@ -47,6 +48,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import ProfilePhoto from '@/instances/common/components/ProfilePhoto.vue'
 import { StudioService } from "@/services";
+import { Browser } from "@wailsio/runtime";
 
 // states/stores
 const iconStore = useIconStore();
@@ -124,6 +126,11 @@ const userFullName = computed(() => {
 })
 
 // methods
+
+const openUserProfile = () => {
+  const profileUrl = `https://app.clustta.com/user/${props.collaborator.username}`;
+  Browser.OpenURL(profileUrl);
+};
 
 const handleEnterKey = () => {
 };
