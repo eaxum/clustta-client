@@ -21,7 +21,7 @@
               :fixedWidth="true" />
           </div>
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('bookmark')" :label="'Library'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="'Library'" />
 
             <ToggleSwitch v-tooltip="collectionStore.selectedCollection.is_library ? 'Unmark as library' : 'Mark as a library'"
               @click="changeIsLibrary" :switchValueProp="collectionStore.selectedCollection.is_library" />
