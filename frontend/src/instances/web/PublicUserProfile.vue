@@ -41,7 +41,10 @@
             
             <div class="header-info">
               <div class="display-mode-fields">
-                <div class="profile-name">{{ fullName }}</div>
+                <div class="profile-name-row">
+                  <div class="profile-name">{{ fullName }}</div>
+                  <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy profile link'" @click="copyProfileLink" />
+                </div>
                 <div v-if="profileData.bio" class="profile-title">{{ profileData.bio }}</div>
                 
                 <div class="meta-info">
@@ -134,7 +137,8 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useIconStore } from '@/stores/icons';
-import { ProfileService } from '@/services';
+import { useNotificationStore } from '@/stores/notifications';
+import { ProfileService, ClipboardService } from '@/services';
 
 // Components
 import TitleBar from '@/instances/desktop/components/TitleBar.vue';
@@ -150,6 +154,7 @@ import ContributionGraph from '@/instances/desktop/components/ContributionGraph.
 const route = useRoute();
 const router = useRouter();
 const iconStore = useIconStore();
+const notificationStore = useNotificationStore();
 
 // State
 const loading = ref(true);
@@ -232,19 +237,30 @@ const goHome = () => {
   router.push('/');
 };
 
+const copyProfileLink = async () => {
+  const profileUrl = `https://app.clustta.com/user/${profileData.value.username}`;
+  try {
+    await ClipboardService.WriteText(profileUrl);
+    notificationStore.addNotification('Profile Link Copied', 'Profile link copied to clipboard', 'success');
+  } catch (err) {
+    console.error('Failed to copy profile link:', err);
+    notificationStore.errorNotification('Copy Failed', 'Failed to copy profile link to clipboard');
+  }
+};
+
 const loadPublicProfile = async () => {
-  const identifier = route.params.identifier;
+  const username = route.params.username;
   
-  if (!identifier) {
+  if (!username) {
     error.value = true;
     errorTitle.value = 'Invalid Profile';
-    errorMessage.value = 'No user identifier provided.';
+    errorMessage.value = 'No username provided.';
     loading.value = false;
     return;
   }
 
   try {
-    const profile = await ProfileService.GetPublicProfile(identifier);
+    const profile = await ProfileService.GetPublicProfile(username);
     
     if (!profile) {
       error.value = true;
@@ -422,6 +438,12 @@ onMounted(() => {
 .display-mode-fields {
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-name-row {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
 }
 
