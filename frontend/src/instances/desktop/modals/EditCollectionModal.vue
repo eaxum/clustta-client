@@ -28,7 +28,7 @@
 
       <div class="horizontal-flex is-library-prompt">
         
-      <ActionButton :isInactive="true" :icon="getAppIcon('bookmark')" :label="'Library'" />
+      <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="'Library'" />
       <ToggleSwitch v-tooltip="isLibrary? 'Unmark as library' : 'Mark as a library'" @click="toggleIsLibrary" :switchValueProp="isLibrary" />
 
     </div>

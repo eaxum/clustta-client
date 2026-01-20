@@ -169,7 +169,7 @@
             <ActionButton v-if="collectionStateFlags.has_rebuildable && !(entity.id in stage.expandedEntities)" 
               @click="rebuildEntity" 
               :icon="getAppIcon('jigsaw')" v-tooltip="'Items missing. Click to rebuild'" />
-              <ActionButton v-if="entity.is_library" :icon="getAppIcon('bookmark')" v-tooltip="'This is a Library'" />
+              <ActionButton v-if="entity.is_library" :icon="getAppIcon('library')" v-tooltip="'This is a Library'" />
           </template>
         </div>
 

@@ -69,7 +69,7 @@
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('bookmark')" :label="'Library'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="'Library'" />
             <DropDownBox :items="collectionMode" :selectedItem="''" :onSelect="changeIsLibrary" :fixedWidth="true" />
           </div>
 
