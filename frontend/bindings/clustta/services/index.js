@@ -54,6 +54,7 @@ export {
 };
 
 export {
+    AccountInfo,
     AssetStateItem,
     AssetsStates,
     CollectionChildrenState,

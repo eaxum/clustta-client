@@ -7,13 +7,20 @@ import (
 	"github.com/zalando/go-keyring"
 )
 
-// MultiAccountToken represents a collection of user accounts
+// MultiAccountToken represents a collection of user accounts with enhanced auth context
 type MultiAccountToken struct {
+	ActiveAccountId string                  `json:"active_account_id"`
+	Accounts        map[string]AccountToken `json:"accounts"` // key: user.id, value: AccountToken
+}
+
+// LegacyMultiAccountToken is the old structure for migration purposes
+type LegacyMultiAccountToken struct {
 	ActiveAccountId string           `json:"active_account_id"`
-	Accounts        map[string]Token `json:"accounts"` // key: user.id, value: Token
+	Accounts        map[string]Token `json:"accounts"`
 }
 
 // GetMultiAccountToken retrieves the multi-account token structure from keyring
+// It handles migration from legacy Token format to AccountToken format
 func GetMultiAccountToken() (MultiAccountToken, error) {
 	service := "clustta"
 	key := "clustta-accounts"
@@ -23,14 +30,39 @@ func GetMultiAccountToken() (MultiAccountToken, error) {
 		// If multi-account structure doesn't exist, return empty structure
 		return MultiAccountToken{
 			ActiveAccountId: "",
-			Accounts:        make(map[string]Token),
+			Accounts:        make(map[string]AccountToken),
 		}, nil
 	}
 
+	// First try to unmarshal as new AccountToken format
 	var multiToken MultiAccountToken
 	err = json.Unmarshal([]byte(tokenData), &multiToken)
 	if err != nil {
 		return MultiAccountToken{}, err
+	}
+
+	// Check if migration is needed (accounts exist but have no AuthMode set)
+	needsMigration := false
+	for _, account := range multiToken.Accounts {
+		if account.AuthMode == "" {
+			needsMigration = true
+			break
+		}
+	}
+
+	if needsMigration {
+		// Migrate legacy accounts to new format with default global auth mode
+		migratedAccounts := make(map[string]AccountToken)
+		for id, account := range multiToken.Accounts {
+			if account.AuthMode == "" {
+				account.AuthMode = AuthModeGlobal
+				account.AuthHost = DefaultAuthHost
+			}
+			migratedAccounts[id] = account
+		}
+		multiToken.Accounts = migratedAccounts
+		// Save migrated data
+		SetMultiAccountToken(multiToken)
 	}
 
 	return multiToken, nil
@@ -55,22 +87,29 @@ func SetMultiAccountToken(multiToken MultiAccountToken) error {
 }
 
 // AddAccount adds a new account to the multi-account structure
+// This is a convenience function that creates an AccountToken with global auth mode
 func AddAccount(token Token) error {
+	accountToken := FromToken(token, AuthModeGlobal, DefaultAuthHost, "")
+	return AddAccountToken(accountToken)
+}
+
+// AddAccountToken adds a new account with full auth context to the multi-account structure
+func AddAccountToken(accountToken AccountToken) error {
 	multiToken, err := GetMultiAccountToken()
 	if err != nil {
 		// If no multi-account structure exists, create a new one
 		multiToken = MultiAccountToken{
-			ActiveAccountId: token.User.Id,
-			Accounts:        make(map[string]Token),
+			ActiveAccountId: accountToken.User.Id,
+			Accounts:        make(map[string]AccountToken),
 		}
 	}
 
 	// Add the new account
-	multiToken.Accounts[token.User.Id] = token
+	multiToken.Accounts[accountToken.User.Id] = accountToken
 
 	// If this is the first account or no active account is set, make it active
 	if multiToken.ActiveAccountId == "" || len(multiToken.Accounts) == 1 {
-		multiToken.ActiveAccountId = token.User.Id
+		multiToken.ActiveAccountId = accountToken.User.Id
 	}
 
 	return SetMultiAccountToken(multiToken)
@@ -119,33 +158,90 @@ func RemoveAccount(userId string) error {
 	return SetMultiAccountToken(multiToken)
 }
 
-// GetActiveAccount returns the currently active account token
+// GetActiveAccount returns the currently active account token (basic Token for backward compatibility)
 func GetActiveAccount() (Token, error) {
-	multiToken, err := GetMultiAccountToken()
+	accountToken, err := GetActiveAccountToken()
 	if err != nil {
 		return Token{}, err
 	}
-
-	if multiToken.ActiveAccountId == "" {
-		return Token{}, fmt.Errorf("no active account set")
-	}
-
-	token, exists := multiToken.Accounts[multiToken.ActiveAccountId]
-	if !exists {
-		return Token{}, fmt.Errorf("active account not found in accounts list")
-	}
-
-	return token, nil
+	return accountToken.ToToken(), nil
 }
 
-// GetAllAccounts returns all stored accounts
-func GetAllAccounts() (map[string]Token, error) {
+// GetActiveAccountToken returns the currently active account with full auth context
+func GetActiveAccountToken() (AccountToken, error) {
 	multiToken, err := GetMultiAccountToken()
+	if err != nil {
+		return AccountToken{}, err
+	}
+
+	if multiToken.ActiveAccountId == "" {
+		return AccountToken{}, fmt.Errorf("no active account set")
+	}
+
+	accountToken, exists := multiToken.Accounts[multiToken.ActiveAccountId]
+	if !exists {
+		return AccountToken{}, fmt.Errorf("active account not found in accounts list")
+	}
+
+	return accountToken, nil
+}
+
+// GetAllAccounts returns all stored accounts (basic Token map for backward compatibility)
+func GetAllAccounts() (map[string]Token, error) {
+	accountTokens, err := GetAllAccountTokens()
 	if err != nil {
 		return make(map[string]Token), err
 	}
 
+	tokens := make(map[string]Token)
+	for id, accountToken := range accountTokens {
+		tokens[id] = accountToken.ToToken()
+	}
+	return tokens, nil
+}
+
+// GetAllAccountTokens returns all stored accounts with full auth context
+func GetAllAccountTokens() (map[string]AccountToken, error) {
+	multiToken, err := GetMultiAccountToken()
+	if err != nil {
+		return make(map[string]AccountToken), err
+	}
+
 	return multiToken.Accounts, nil
+}
+
+// EnableOfflineMode sets up an offline mode account
+func EnableOfflineMode() error {
+	offlineAccount := NewOfflineAccountToken()
+	return AddAccountToken(offlineAccount)
+}
+
+// IsOfflineMode checks if the current active account is in offline mode
+func IsOfflineMode() bool {
+	accountToken, err := GetActiveAccountToken()
+	if err != nil {
+		return false
+	}
+	return accountToken.IsOffline()
+}
+
+// GetAuthHost returns the authentication host for the active account
+// Returns empty string if in offline mode
+func GetAuthHost() string {
+	accountToken, err := GetActiveAccountToken()
+	if err != nil {
+		return DefaultAuthHost
+	}
+	return accountToken.GetEffectiveHost()
+}
+
+// GetActiveAuthMode returns the auth mode of the active account
+func GetActiveAuthMode() AuthMode {
+	accountToken, err := GetActiveAccountToken()
+	if err != nil {
+		return AuthModeGlobal
+	}
+	return accountToken.AuthMode
 }
 
 // migrateFromSingleToken migrates from the old single token structure to multi-account
@@ -156,15 +252,16 @@ func migrateFromSingleToken() (MultiAccountToken, error) {
 		// No old token exists, return empty multi-account structure
 		return MultiAccountToken{
 			ActiveAccountId: "",
-			Accounts:        make(map[string]Token),
+			Accounts:        make(map[string]AccountToken),
 		}, nil
 	}
 
-	// Create new multi-account structure with the old token
+	// Create new multi-account structure with the old token (default to global auth)
+	accountToken := FromToken(oldToken, AuthModeGlobal, DefaultAuthHost, "")
 	multiToken := MultiAccountToken{
 		ActiveAccountId: oldToken.User.Id,
-		Accounts: map[string]Token{
-			oldToken.User.Id: oldToken,
+		Accounts: map[string]AccountToken{
+			oldToken.User.Id: accountToken,
 		},
 	}
 

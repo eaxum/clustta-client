@@ -320,6 +320,9 @@ const saveChanges = async () => {
     await SettingsService.SetProjectDirectory(personalDataDirectory.value);
     await SettingsService.SetSharedProjectDirectory(sharedDataDirectory.value);
     
+    // Reload studios to update Personal studio URL with the new project directory
+    await projectStore.loadStudios();
+    
     // Save all project locations
     for (const location of locations.value) {
       try {

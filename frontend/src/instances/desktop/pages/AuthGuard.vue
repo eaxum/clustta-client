@@ -119,12 +119,15 @@ const platformStore = usePlatformStore()
   box-sizing: border-box;
   width: 100%;
   max-width: 480px;
+  gap: .5rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .form-row {

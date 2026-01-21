@@ -6,11 +6,19 @@
     <div class="general-container">
 
       <div class="login-form">
+
+        <div v-if="showStudioLogin" class="form-group studio-url-group">
+          <div class="compound-form-input">
+            <input autocomplete="off" class="form-input-mini" placeholder="Studio URL (e.g., https://studio.mycompany.com)" v-model="studioUrl" type="text" />
+          </div>
+        </div>
+
         <div class="form-group">
           <div class="compound-form-input">
             <input v-model="username" class="form-input-mini" type="text" placeholder="Username or Email address" autocomplete="off"/>
           </div>
         </div>
+        
         <div class="form-group">
           <div class="compound-form-input">
             <input v-model="password" class="form-input-mini" :type="isPasswordVisible ? 'text' : 'password'" placeholder="Password"
@@ -24,6 +32,14 @@
             />
           </div>
         </div>
+
+        
+
+        <div class="horizontal-flex">
+          <ActionButton :isInactive="true" :icon="getAppIcon('two-drives')" :label="'Private Server'" />
+          <ToggleSwitch  @click="toggleStudioLogin" :switchValueProp="showStudioLogin" />
+        </div>
+
       </div>
 
       <div class="pop-up-actions">
@@ -44,6 +60,7 @@ import { AuthService, SettingsService } from "@/services";
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -63,6 +80,8 @@ const isCheckingAuth = ref(true);
 const eulaAccepted = ref(false);
 const projectDirectoryExists = ref(false);
 const isPasswordVisible = ref(false);
+const showStudioLogin = ref(false);
+const studioUrl = ref('');
 
 // stores/states
 const modals = useDesktopModalStore();
@@ -79,6 +98,10 @@ const iconStore = useIconStore();
 const isValueChanged = computed(() => {
   const usernameValid = username.value !== '';
   const passwordValid = password.value !== '';
+  // If studio login is enabled, also require studio URL
+  if (showStudioLogin.value) {
+    return usernameValid && passwordValid && studioUrl.value.trim() !== '';
+  }
   return usernameValid && passwordValid;
 });
 
@@ -94,6 +117,27 @@ const getAppIcon = (iconName) => {
 
 const togglePasswordVisibility = () => {
   isPasswordVisible.value = !isPasswordVisible.value;
+};
+
+// Toggles studio login mode on/off.
+const toggleStudioLogin = () => {
+  showStudioLogin.value = !showStudioLogin.value;
+  if (!showStudioLogin.value) {
+    studioUrl.value = '';
+  }
+};
+
+// Normalizes studio URL to ensure proper format.
+const normalizeStudioUrl = (url) => {
+  if (!url) return '';
+  let normalized = url.trim();
+  // Remove trailing slash
+  normalized = normalized.replace(/\/+$/, '');
+  // Ensure https:// prefix if no protocol
+  if (!normalized.startsWith('http://') && !normalized.startsWith('https://')) {
+    normalized = 'https://' + normalized;
+  }
+  return normalized;
 };
 
 const showEula = async () => {
@@ -115,9 +159,18 @@ const loadProjects = async () => {
 };
 
 const logUserIn = async (username, password) => {
-
   isAwaitingResponse.value = true;
-  await AuthService.Login(username, password)
+  
+  // Determine if this is a studio login
+  const isStudioLogin = showStudioLogin.value && studioUrl.value.trim();
+  const normalizedStudioUrl = isStudioLogin ? normalizeStudioUrl(studioUrl.value) : '';
+  
+  // Use appropriate login method based on mode
+  const loginPromise = isStudioLogin 
+    ? AuthService.LoginWithHost(username, password, normalizedStudioUrl, 'studio', '')
+    : AuthService.Login(username, password);
+    
+  await loginPromise
     .then(async (data) => {
       // Store user in userStore (existing behavior)
       userStore.user = data.user
@@ -346,6 +399,40 @@ let title = 'Login';
   padding: 10px;
   border-style: solid;
   outline: none;
+}
+
+.toggle-icon {
+  width: 18px;
+  height: 18px;
+  filter: var(--icon-filter);
+}
+
+.toggle-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.toggle-label .bold {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--white);
+}
+
+.toggle-hint {
+  font-size: 0.75rem;
+  color: var(--light-grey);
+}
+
+.studio-url-group {
+  margin-top: 0.5rem;
+}
+
+.studio-url-hint {
+  font-size: 0.75rem;
+  color: var(--light-grey);
+  margin-top: 0.25rem;
+  padding-left: 0.5rem;
 }
 </style>
 

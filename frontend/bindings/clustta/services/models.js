@@ -13,6 +13,93 @@ import * as models$0 from "../internal/repository/models/models.js";
 // @ts-ignore: Unused imports
 import * as time$0 from "../../time/models.js";
 
+/**
+ * AccountInfo represents account data with auth context for frontend binding
+ */
+export class AccountInfo {
+    /**
+     * Creates a new AccountInfo instance.
+     * @param {Partial<AccountInfo>} [$$source = {}] - The source object to create the AccountInfo.
+     */
+    constructor($$source = {}) {
+        if (!("user_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["user_id"] = "";
+        }
+        if (!("username" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["username"] = "";
+        }
+        if (!("email" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["email"] = "";
+        }
+        if (!("first_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["first_name"] = "";
+        }
+        if (!("last_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["last_name"] = "";
+        }
+        if (!("auth_mode" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["auth_mode"] = "";
+        }
+        if (!("auth_host" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["auth_host"] = "";
+        }
+        if (!("studio_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["studio_id"] = "";
+        }
+        if (!("session_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["session_id"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AccountInfo instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AccountInfo}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new AccountInfo(/** @type {Partial<AccountInfo>} */($$parsedSource));
+    }
+}
+
 export class AssetStateItem {
     /**
      * Creates a new AssetStateItem instance.

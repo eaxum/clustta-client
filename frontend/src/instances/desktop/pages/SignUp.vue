@@ -145,6 +145,24 @@
 
         </div>
 
+        <!-- studio server toggle -->
+        <div class="horizontal-flex studio-toggle-row">
+          <ActionButton :isInactive="true" :icon="getAppIcon('two-drives')" :label="'Private Server'" />
+          <ToggleSwitch @click="toggleStudioSignup" :switchValueProp="showStudioSignup" />
+        </div>
+
+        <!-- studio URL input (shown when toggled) -->
+        <div v-if="showStudioSignup" class="studio-url-container">
+          <div class="form-group">
+            <div class="compound-form-input">
+              <input autocomplete="off" class="form-input-mini" placeholder="Studio URL (e.g., https://studio.mycompany.com)" v-model="studioUrl" type="text" />
+            </div>
+          </div>
+          <div class="studio-url-hint">
+            Enter the URL of your studio server to create an account there.
+          </div>
+        </div>
+
         <!-- toggle -->
         <div @click="toggleLogin" class="toggle-container">
             Have an account?
@@ -176,6 +194,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 // components
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 const router = useRouter();
 const isAwaitingResponse = ref(false);
@@ -196,6 +215,8 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const userNameRegex = /^[a-zA-Z0-9_]{3,}$/
 const isEmailTaken = ref(false);
 const isUsernameTaken = ref(false);
+const showStudioSignup = ref(false);
+const studioUrl = ref('');
 
 const registerForm = reactive({
   first_name: '',
@@ -329,8 +350,40 @@ const escapeRegexChars = (string) => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 };
 
+const normalizeStudioUrl = (url) => {
+  if (!url) return '';
+  let normalized = url.trim();
+  // Remove trailing slash
+  normalized = normalized.replace(/\/+$/, '');
+  // Ensure https:// prefix if no protocol
+  if (!normalized.startsWith('http://') && !normalized.startsWith('https://')) {
+    normalized = 'https://' + normalized;
+  }
+  return normalized;
+};
+
+const toggleStudioSignup = () => {
+  showStudioSignup.value = !showStudioSignup.value;
+  if (!showStudioSignup.value) {
+    studioUrl.value = '';
+  }
+  // Reset email/username validation when switching modes
+  isEmailTaken.value = false;
+  isUsernameTaken.value = false;
+  errors.email = '';
+  errors.username = '';
+};
+
 const checkUsername = async () => {
   if (!registerForm.username) return
+  
+  // For studio signup, skip live availability check (validated on submit)
+  if (showStudioSignup.value) {
+    isUsernameTaken.value = false;
+    errors.username = '';
+    return;
+  }
+  
   checkingUsernameAvailability.value = true;
 
   try {
@@ -352,6 +405,14 @@ const checkUsername = async () => {
 
 const checkEmail = async () => {
   if (!registerForm.email || !emailValid.value) return
+  
+  // For studio signup, skip live availability check (validated on submit)
+  if (showStudioSignup.value) {
+    isEmailTaken.value = false;
+    errors.email = '';
+    return;
+  }
+  
   checkingEmailAvailability.value = true;
 
   try {
@@ -376,31 +437,64 @@ const showEula = async () => {
 };
 
 const handleRegister = async () => {
-
   isAwaitingResponse.value = true;
+  error.value = '';
+  
   try {
     if (registerForm.password !== registerForm.confirm_password) {
-      error.value = 'Passwords do not match'
+      error.value = 'Passwords do not match';
       isAwaitingResponse.value = false;
-      return
+      return;
     }
 
-    await AuthService.Register(registerForm.first_name, registerForm.last_name, registerForm.username, registerForm.email, registerForm.password, registerForm.confirm_password)
-    .then(async (data) => {
-      // Registration successful, store credentials for verification and navigate
-      notificationStore.addNotification("Registration Successful", "Please check your email for a verification code.", "success");
+    // Determine if this is a studio registration
+    const isStudioSignup = showStudioSignup.value && studioUrl.value.trim();
+    const normalizedStudioUrl = isStudioSignup ? normalizeStudioUrl(studioUrl.value) : '';
+
+    if (isStudioSignup) {
+      // Register against studio server
+      await AuthService.RegisterWithHost(
+        registerForm.first_name,
+        registerForm.last_name,
+        registerForm.username,
+        registerForm.email,
+        registerForm.password,
+        registerForm.confirm_password,
+        normalizedStudioUrl
+      );
+      
+      // Studio registration is auto-activated, go directly to login
+      notificationStore.addNotification(
+        "Registration Successful",
+        `Account created on ${normalizedStudioUrl}. You can now login.`,
+        "success"
+      );
+      router.push('/auth/login');
+    } else {
+      // Register against Clustta Cloud (requires email verification)
+      await AuthService.Register(
+        registerForm.first_name,
+        registerForm.last_name,
+        registerForm.username,
+        registerForm.email,
+        registerForm.password,
+        registerForm.confirm_password
+      );
+      
+      notificationStore.addNotification(
+        "Registration Successful",
+        "Please check your email for a verification code.",
+        "success"
+      );
       userStore.setPendingVerification(registerForm.email, registerForm.password);
       router.push('/auth/verify-email');
-      isAwaitingResponse.value = false;
-    }).catch((error) => {
-      console.log(error);
-      isAwaitingResponse.value = false;
-      notificationStore.errorNotification("Registration Failed", error.message || "Registration failed. Please try again.");
-      return
-    })
-
+    }
   } catch (err) {
-    error.value = err.response?.data?.message || 'Registration failed'
+    console.log(err);
+    const errorMessage = err.message || err.response?.data?.message || 'Registration failed';
+    error.value = errorMessage;
+    notificationStore.errorNotification("Registration Failed", errorMessage);
+  } finally {
     isAwaitingResponse.value = false;
   }
 };
@@ -416,6 +510,50 @@ onBeforeMount(async () => {
 
 <style scoped>
 @import "@/assets/desktop.css";
+
+.divider-container {
+  width: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0.5rem 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--white-20);
+}
+
+.divider-text {
+  color: var(--white-60);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.studio-toggle-row {
+  width: 90%;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+}
+
+.studio-url-container {
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--white-05);
+  border-radius: 8px;
+  border: 1px solid var(--accent-color-30);
+}
+
+.studio-url-hint {
+  font-size: 0.75rem;
+  color: var(--white-60);
+  text-align: center;
+}
 
 </style>
 
