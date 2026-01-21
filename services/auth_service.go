@@ -7,7 +7,17 @@ import (
 
 type AuthService struct{}
 
-// Login authenticates a user with username and password.
+// AuthMode type alias for frontend binding
+type AuthMode = auth_service.AuthMode
+
+// Auth mode constants
+const (
+	AuthModeGlobal  = auth_service.AuthModeGlobal
+	AuthModeStudio  = auth_service.AuthModeStudio
+	AuthModeOffline = auth_service.AuthModeOffline
+)
+
+// Login authenticates a user with username and password against Clustta Cloud.
 // Returns the authentication token or an error if login fails.
 func (a *AuthService) Login(username, password string) (auth_service.Token, error) {
 	token, err := auth_service.Login(username, password)
@@ -17,10 +27,58 @@ func (a *AuthService) Login(username, password string) (auth_service.Token, erro
 	return token, nil
 }
 
-// Register creates a new user account.
+// LoginWithHost authenticates a user against a specified authentication host.
+// authMode should be "global", "studio", or "offline".
+// Returns the authentication token or an error if login fails.
+func (a *AuthService) LoginWithHost(username, password, authHost string, authMode string, studioId string) (auth_service.Token, error) {
+	mode := auth_service.AuthMode(authMode)
+	if !auth_service.IsValidAuthMode(mode) {
+		mode = auth_service.AuthModeGlobal
+	}
+	token, err := auth_service.LoginWithHost(username, password, authHost, mode, studioId)
+	if err != nil {
+		return token, err
+	}
+	return token, nil
+}
+
+// EnableOfflineMode sets up offline mode without authentication.
+// Creates a local-only pseudo-account.
+func (a *AuthService) EnableOfflineMode() error {
+	return auth_service.EnableOfflineMode()
+}
+
+// IsOfflineMode checks if the current session is in offline mode.
+func (a *AuthService) IsOfflineMode() bool {
+	return auth_service.IsOfflineMode()
+}
+
+// GetAuthMode returns the current authentication mode.
+// Returns "global", "studio", or "offline".
+func (a *AuthService) GetAuthMode() string {
+	return string(auth_service.GetActiveAuthMode())
+}
+
+// GetAuthHost returns the current authentication host URL.
+// Returns empty string if in offline mode.
+func (a *AuthService) GetAuthHost() string {
+	return auth_service.GetAuthHost()
+}
+
+// Register creates a new user account on Clustta Cloud.
 // Returns the created user or an error if registration fails.
 func (a *AuthService) Register(firstName, lastName, username, email, password, confirmPassword string) (auth_service.User, error) {
 	user, err := auth_service.Register(firstName, lastName, username, email, password, confirmPassword)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
+// RegisterWithHost creates a new user account on a specified authentication host.
+// Returns the created user or an error if registration fails.
+func (a *AuthService) RegisterWithHost(firstName, lastName, username, email, password, confirmPassword, authHost string) (auth_service.User, error) {
+	user, err := auth_service.RegisterWithHost(firstName, lastName, username, email, password, confirmPassword, authHost)
 	if err != nil {
 		return user, err
 	}

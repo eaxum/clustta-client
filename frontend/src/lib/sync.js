@@ -2,9 +2,28 @@ import { SyncService } from "@/services";
 import { useNotificationStore } from "@/stores/notifications";
 import { useProjectStore } from "@/stores/projects";
 import { useTrayStates } from "@/stores/TrayStates";
+import { useAccountStore } from "@/stores/accounts";
 import emitter from '@/lib/mitt';
 
+// Guard function to check if remote features are available
+function checkRemoteAccess() {
+  const accountStore = useAccountStore();
+  const notificationStore = useNotificationStore();
+  
+  if (accountStore.isOfflineMode) {
+    notificationStore.addNotification(
+      "Offline Mode",
+      "Sync features are not available in offline mode. Sign in to enable sync.",
+      "warning"
+    );
+    return false;
+  }
+  return true;
+}
+
 export async function syncData() {
+  if (!checkRemoteAccess()) return;
+  
   const projectStore = useProjectStore();
   const notificationStore = useNotificationStore();
 
@@ -36,6 +55,8 @@ export async function syncData() {
 }
 
 export async function pullData() {
+  if (!checkRemoteAccess()) return;
+  
   const projectStore = useProjectStore();
   const notificationStore = useNotificationStore();
   
@@ -64,6 +85,8 @@ export async function pullData() {
 }
 
 export async function syncFullData() {
+  if (!checkRemoteAccess()) return;
+  
   const projectStore = useProjectStore();
   const notificationStore = useNotificationStore();
   let syncOptions = {

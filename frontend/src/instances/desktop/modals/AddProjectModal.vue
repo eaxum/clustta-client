@@ -267,6 +267,11 @@ const createProject = async () => {
   if (studio.name === 'Personal') {
     path = path + ".clst"
   }
+  
+  console.log(path)
+  console.log(studio.name)
+  console.log(workingDirectory.value)
+  console.log(selectedProjectTemplate.value)
 
   ProjectService.CreateProject(path, studio.name, workingDirectory.value, selectedProjectTemplate.value).then(async (project) => {
 

@@ -7,14 +7,71 @@ import (
 
 type AccountService struct{}
 
-// GetAllAccounts returns all stored user accounts
+// AccountInfo represents account data with auth context for frontend binding
+type AccountInfo struct {
+	UserId    string `json:"user_id"`
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	AuthMode  string `json:"auth_mode"`
+	AuthHost  string `json:"auth_host"`
+	StudioId  string `json:"studio_id"`
+	SessionId string `json:"session_id"`
+}
+
+// GetAllAccounts returns all stored user accounts (basic Token for backward compatibility)
 func (a *AccountService) GetAllAccounts() (map[string]auth_service.Token, error) {
 	return auth_service.GetAllAccounts()
 }
 
-// GetActiveAccount returns the currently active account
+// GetAllAccountsWithContext returns all stored accounts with full auth context
+func (a *AccountService) GetAllAccountsWithContext() (map[string]AccountInfo, error) {
+	accountTokens, err := auth_service.GetAllAccountTokens()
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]AccountInfo)
+	for id, token := range accountTokens {
+		result[id] = AccountInfo{
+			UserId:    token.User.Id,
+			Username:  token.User.Username,
+			Email:     token.User.Email,
+			FirstName: token.User.FirstName,
+			LastName:  token.User.LastName,
+			AuthMode:  string(token.AuthMode),
+			AuthHost:  token.AuthHost,
+			StudioId:  token.StudioId,
+			SessionId: token.SessionId,
+		}
+	}
+	return result, nil
+}
+
+// GetActiveAccount returns the currently active account (basic Token for backward compatibility)
 func (a *AccountService) GetActiveAccount() (auth_service.Token, error) {
 	return auth_service.GetActiveAccount()
+}
+
+// GetActiveAccountWithContext returns the currently active account with full auth context
+func (a *AccountService) GetActiveAccountWithContext() (AccountInfo, error) {
+	accountToken, err := auth_service.GetActiveAccountToken()
+	if err != nil {
+		return AccountInfo{}, err
+	}
+
+	return AccountInfo{
+		UserId:    accountToken.User.Id,
+		Username:  accountToken.User.Username,
+		Email:     accountToken.User.Email,
+		FirstName: accountToken.User.FirstName,
+		LastName:  accountToken.User.LastName,
+		AuthMode:  string(accountToken.AuthMode),
+		AuthHost:  accountToken.AuthHost,
+		StudioId:  accountToken.StudioId,
+		SessionId: accountToken.SessionId,
+	}, nil
 }
 
 // SwitchAccount changes the active account

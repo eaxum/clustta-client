@@ -63,6 +63,33 @@ export function DeactivateUserAccount() {
 }
 
 /**
+ * EnableOfflineMode sets up offline mode without authentication.
+ * Creates a local-only pseudo-account.
+ * @returns {$CancellablePromise<void>}
+ */
+export function EnableOfflineMode() {
+    return $Call.ByID(2400050042);
+}
+
+/**
+ * GetAuthHost returns the current authentication host URL.
+ * Returns empty string if in offline mode.
+ * @returns {$CancellablePromise<string>}
+ */
+export function GetAuthHost() {
+    return $Call.ByID(1193291007);
+}
+
+/**
+ * GetAuthMode returns the current authentication mode.
+ * Returns "global", "studio", or "offline".
+ * @returns {$CancellablePromise<string>}
+ */
+export function GetAuthMode() {
+    return $Call.ByID(2738836770);
+}
+
+/**
  * IsAuthenticated checks if a user is currently authenticated.
  * Returns authentication status, user data, and any error encountered.
  * @returns {$CancellablePromise<[boolean, auth_service$0.User]>}
@@ -75,7 +102,15 @@ export function IsAuthenticated() {
 }
 
 /**
- * Login authenticates a user with username and password.
+ * IsOfflineMode checks if the current session is in offline mode.
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function IsOfflineMode() {
+    return $Call.ByID(341813575);
+}
+
+/**
+ * Login authenticates a user with username and password against Clustta Cloud.
  * Returns the authentication token or an error if login fails.
  * @param {string} username
  * @param {string} password
@@ -83,6 +118,23 @@ export function IsAuthenticated() {
  */
 export function Login(username, password) {
     return $Call.ByID(3065492878, username, password).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
+ * LoginWithHost authenticates a user against a specified authentication host.
+ * authMode should be "global", "studio", or "offline".
+ * Returns the authentication token or an error if login fails.
+ * @param {string} username
+ * @param {string} password
+ * @param {string} authHost
+ * @param {string} authMode
+ * @param {string} studioId
+ * @returns {$CancellablePromise<auth_service$0.Token>}
+ */
+export function LoginWithHost(username, password, authHost, authMode, studioId) {
+    return $Call.ByID(2698997364, username, password, authHost, authMode, studioId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
 }
@@ -99,7 +151,7 @@ export function Logout(username, password) {
 }
 
 /**
- * Register creates a new user account.
+ * Register creates a new user account on Clustta Cloud.
  * Returns the created user or an error if registration fails.
  * @param {string} firstName
  * @param {string} lastName
@@ -111,6 +163,24 @@ export function Logout(username, password) {
  */
 export function Register(firstName, lastName, username, email, password, confirmPassword) {
     return $Call.ByID(800559812, firstName, lastName, username, email, password, confirmPassword).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
+ * RegisterWithHost creates a new user account on a specified authentication host.
+ * Returns the created user or an error if registration fails.
+ * @param {string} firstName
+ * @param {string} lastName
+ * @param {string} username
+ * @param {string} email
+ * @param {string} password
+ * @param {string} confirmPassword
+ * @param {string} authHost
+ * @returns {$CancellablePromise<auth_service$0.User>}
+ */
+export function RegisterWithHost(firstName, lastName, username, email, password, confirmPassword, authHost) {
+    return $Call.ByID(51704238, firstName, lastName, username, email, password, confirmPassword, authHost).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
 }

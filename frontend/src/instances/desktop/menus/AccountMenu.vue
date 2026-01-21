@@ -11,11 +11,18 @@
         </div>
         <div class="account-info">
           <div class="account-name">{{ currentAccount?.first_name }} {{ currentAccount?.last_name }}</div>
-          <div class="account-email">{{ currentAccount?.email }}</div>
+          <div class="account-email">{{ currentAccount?.email || (isOfflineMode ? 'Offline Mode' : '') }}</div>
         </div>
         <div class="account-status">
-          <span class="status-indicator active">●</span>
+          <span v-if="isOfflineMode" class="status-indicator offline" v-tooltip="'Offline Mode - Sign in to sync'">○</span>
+          <span v-else class="status-indicator active">●</span>
         </div>
+      </div>
+      
+      <!-- Offline Mode Banner -->
+      <div v-if="isOfflineMode" class="offline-banner">
+        <img class="small-icons" :src="getAppIcon('info')">
+        <span>Sync features unavailable</span>
       </div>
     </div>
 
@@ -63,6 +70,16 @@
     <!-- Actions -->
     <div class="account-actions">
       <ActionButton 
+        v-if="isOfflineMode"
+        :icon="getAppIcon('login')" 
+        :showLabel="true" 
+        :fullWidth="true" 
+        label="Sign In"
+        :buttonFunction="signInFromOffline" 
+      />
+      
+      <ActionButton 
+        v-if="!isOfflineMode"
         :icon="getAppIcon('person-plus')" 
         :showLabel="true" 
         :fullWidth="true" 
@@ -71,6 +88,7 @@
       />
       
       <ActionButton 
+        v-if="!isOfflineMode"
         :icon="getAppIcon('cog')" 
         :showLabel="true" 
         :fullWidth="true" 
@@ -79,6 +97,7 @@
       />
       
       <ActionButton 
+        v-if="!isOfflineMode"
         :icon="getAppIcon('logout')" 
         :showLabel="true" 
         :fullWidth="true" 
@@ -129,6 +148,9 @@ const accountMenu = ref(null);
 // Computed
 const currentAccount = computed(() => accountStore.currentAccount?.user || userStore.user);
 
+// Check if in offline mode
+const isOfflineMode = computed(() => accountStore.isOfflineMode);
+
 // Use account store data for additional accounts
 const additionalAccounts = computed(() => accountStore.additionalAccounts);
 
@@ -177,6 +199,31 @@ const addAccount = () => {
     menu.hideContextMenu();
   } catch (error) {
     notificationStore.errorNotification("Add Account Failed", error);
+  }
+};
+
+const signInFromOffline = async () => {
+  try {
+    // Remove the offline account first
+    const offlineUserId = 'offline-user';
+    await accountStore.removeAccount(offlineUserId);
+    
+    // Reset stores
+    userStore.$reset();
+    projectStore.$reset();
+    trayStates.$reset();
+    
+    // Reset store initialization flag so stores can be re-initialized on next login
+    resetStoreInitialization();
+    
+    // Navigate to login page
+    menu.hideContextMenu();
+    router.push('/auth/login');
+  } catch (error) {
+    console.error('Sign in from offline error:', error);
+    // Even if removal fails, navigate to login
+    menu.hideContextMenu();
+    router.push('/auth/login');
   }
 };
 
@@ -395,6 +442,30 @@ onMounted(() => {
 
 .status-indicator.inactive {
   color: var(--light-grey); /* Grey for inactive */
+}
+
+.status-indicator.offline {
+  color: #f59e0b; /* Amber/orange for offline */
+}
+
+.offline-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-top: 0.5rem;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #fbbf24;
+}
+
+.offline-banner .small-icons {
+  width: 14px;
+  height: 14px;
+  filter: none;
+  opacity: 0.9;
 }
 
 .menu-divider {

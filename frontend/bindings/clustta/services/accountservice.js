@@ -10,6 +10,10 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 // @ts-ignore: Unused imports
 import * as auth_service$0 from "../internal/auth_service/models.js";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as $models from "./models.js";
+
 /**
  * AddAccount adds a new account (used after login)
  * @param {auth_service$0.Token} token
@@ -28,7 +32,7 @@ export function GetAccountCount() {
 }
 
 /**
- * GetActiveAccount returns the currently active account
+ * GetActiveAccount returns the currently active account (basic Token for backward compatibility)
  * @returns {$CancellablePromise<auth_service$0.Token>}
  */
 export function GetActiveAccount() {
@@ -38,12 +42,32 @@ export function GetActiveAccount() {
 }
 
 /**
- * GetAllAccounts returns all stored user accounts
+ * GetActiveAccountWithContext returns the currently active account with full auth context
+ * @returns {$CancellablePromise<$models.AccountInfo>}
+ */
+export function GetActiveAccountWithContext() {
+    return $Call.ByID(3378394040).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
+ * GetAllAccounts returns all stored user accounts (basic Token for backward compatibility)
  * @returns {$CancellablePromise<{ [_: string]: auth_service$0.Token }>}
  */
 export function GetAllAccounts() {
     return $Call.ByID(3398964055).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType1($result);
+        return $$createType2($result);
+    }));
+}
+
+/**
+ * GetAllAccountsWithContext returns all stored accounts with full auth context
+ * @returns {$CancellablePromise<{ [_: string]: $models.AccountInfo }>}
+ */
+export function GetAllAccountsWithContext() {
+    return $Call.ByID(2841620102).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType3($result);
     }));
 }
 
@@ -67,4 +91,6 @@ export function SwitchAccount(userId) {
 
 // Private type creation functions
 const $$createType0 = auth_service$0.Token.createFrom;
-const $$createType1 = $Create.Map($Create.Any, $$createType0);
+const $$createType1 = $models.AccountInfo.createFrom;
+const $$createType2 = $Create.Map($Create.Any, $$createType0);
+const $$createType3 = $Create.Map($Create.Any, $$createType1);

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { AccountService, SettingsService } from "@/services";
+import { AccountService, AuthService, SettingsService } from "@/services";
 import { useUserStore } from '@/stores/users';
 import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';
@@ -15,7 +15,9 @@ export const useAccountStore = defineStore('accounts', {
     isLoaded: false,       // Whether accounts have been initially loaded
     isLoading: false,      // Loading state for operations
     lastUpdated: null,     // Timestamp for cache invalidation
-    isAdditionalAccount: false // Flag to indicate when adding additional account vs first login
+    isAdditionalAccount: false, // Flag to indicate when adding additional account vs first login
+    authMode: 'global',    // Current auth mode: 'global', 'studio', or 'offline'
+    authHost: ''           // Current auth host URL
   }),
 
   getters: {
@@ -39,16 +41,55 @@ export const useAccountStore = defineStore('accounts', {
     // Check if we have multiple accounts
     hasMultipleAccounts: (state) => {
       return state.accounts.length > 1;
+    },
+
+    // Check if currently in offline mode
+    isOfflineMode: (state) => {
+      return state.authMode === 'offline';
+    },
+
+    // Check if currently using studio authentication
+    isStudioAuth: (state) => {
+      return state.authMode === 'studio';
+    },
+
+    // Check if currently using global (Clustta Cloud) authentication
+    isGlobalAuth: (state) => {
+      return state.authMode === 'global';
+    },
+
+    // Check if remote features should be available
+    canUseRemoteFeatures: (state) => {
+      return state.authMode !== 'offline';
     }
   },
 
   actions: {
+    // Load auth mode and host from backend
+    async loadAuthContext() {
+      try {
+        const [authMode, authHost] = await Promise.all([
+          AuthService.GetAuthMode(),
+          AuthService.GetAuthHost()
+        ]);
+        this.authMode = authMode || 'global';
+        this.authHost = authHost || '';
+      } catch (error) {
+        console.error('Failed to load auth context:', error);
+        this.authMode = 'global';
+        this.authHost = '';
+      }
+    },
+
     // Initial load of all accounts on app startup
     async loadAccounts() {
       if (this.isLoading) return; // Prevent multiple simultaneous loads
       
       this.isLoading = true;
       try {
+        
+        // Load auth context first
+        await this.loadAuthContext();
         
         // Get all stored accounts and active account
         const [accountsData, activeAccountData] = await Promise.all([
