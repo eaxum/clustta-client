@@ -28,6 +28,7 @@ import AddProjectModal from '@/instances/desktop/modals/AddProjectModal.vue';
 import CloneProjectModal from '@/instances/desktop/modals/CloneProjectModal.vue';
 import EditProjectModal from '@/instances/desktop/modals/EditProjectModal.vue';
 import ProjectDetailsModal from '@/instances/desktop/modals/ProjectDetailsModal.vue';
+import UploadProjectModal from '@/instances/desktop/modals/UploadProjectModal.vue';
 
 import CreateCollectionModal from '@/instances/desktop/modals/CreateCollectionModal.vue';
 import EditCollectionModal from '@/instances/desktop/modals/EditCollectionModal.vue';
@@ -152,6 +153,7 @@ const modalComponents = {
   createCheckpointModal: CreateCheckpointModal,
   addProjectModal: AddProjectModal,
   cloneProjectModal: CloneProjectModal,
+  uploadProjectModal: UploadProjectModal,
   popUpModal: PopUpModal,
   loginModal: LoginModal,
 

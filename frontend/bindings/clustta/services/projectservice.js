@@ -258,12 +258,38 @@ export function UpdateWorkingDirectory(projectUri, studioName, newWorkingDir) {
 }
 
 /**
+ * UploadProject uploads a local .clst project to a remote studio.
+ * It creates the project on the remote, copies the file, remaps IDs, and prepares for sync.
+ * @param {string} sourceClstPath
+ * @param {string} studioName
+ * @param {string} workingDir
+ * @param {string} projectName
+ * @param {string} remoteProjectUrl
+ * @returns {$CancellablePromise<repository$0.ProjectInfo>}
+ */
+export function UploadProject(sourceClstPath, studioName, workingDir, projectName, remoteProjectUrl) {
+    return $Call.ByID(3550877976, sourceClstPath, studioName, workingDir, projectName, remoteProjectUrl).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
  * @param {string} projectPath
  * @param {string} userId
  * @returns {$CancellablePromise<boolean>}
  */
 export function UserInProject(projectPath, userId) {
     return $Call.ByID(3209082523, projectPath, userId);
+}
+
+/**
+ * ValidateProjectFile checks if a .clst file is a valid Clustta project.
+ * Returns true if the file is valid, false otherwise.
+ * @param {string} filePath
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function ValidateProjectFile(filePath) {
+    return $Call.ByID(4035322203, filePath);
 }
 
 // Private type creation functions
