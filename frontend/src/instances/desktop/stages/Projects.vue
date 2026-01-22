@@ -7,6 +7,8 @@
 					@click="createProject" v-tooltip="'New Project'" :buttonFunction="doNothing" />
 				<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :icon="getAppIcon('arrow-down-ramp')" 
 					v-tooltip="'Import Project'" :buttonFunction="importProject" />
+				<ActionButton v-if="projectStore.selectedStudio?.name !== 'Personal' && userStore.userCanCreateProject" :icon="getAppIcon('arrow-up-ramp')" 
+					v-tooltip="'Upload Project'" :buttonFunction="uploadProject" />
 				<ActionButton :icon="getAppIcon('refresh')" 
 					v-tooltip="'Refresh'" :buttonFunction="refresh" />
 			</div>
@@ -392,6 +394,10 @@ const createProject = () => {
 
 const importProject = () => {
 	modals.setModalVisibility('importProjectModal', true)
+};
+
+const uploadProject = () => {
+	modals.setModalVisibility('uploadProjectModal', true)
 };
 
 const switchViewLayout = () => {
