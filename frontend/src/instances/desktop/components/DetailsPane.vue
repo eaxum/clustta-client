@@ -21,9 +21,9 @@
 
         <div v-if="showTaskEntityActions || showEntityTaskActions" class="action-bar">
           <ActionButton v-if="activeIsTask" :icon="getAppIcon('dependency')" :label="'Make dependencies of active task'"
-            :buttonFunction="makeDependenciesOfActive" />
+            :buttonFunction="makeDependenciesOfActive" v-tooltip="'Add selected items as dependencies of the active task'" />
           <ActionButton v-if="activeIsEntity" :icon="getAppIcon('folder-arrow-in')"
-            :label="'Move into active collection'" :buttonFunction="moveIntoFolder" />
+            :label="'Move into active collection'" :buttonFunction="moveIntoFolder" v-tooltip="'Move selected items into the active collection'" />
         </div>
 
 
@@ -46,19 +46,19 @@
           </div>
           
           <ActionButton v-if="!platformStore.isWeb && tasksCanRebuild" :icon="getAppIcon('jigsaw')" :label="'Rebuild Assets'"
-            :buttonFunction="revertAllChanges" />
+            :buttonFunction="revertAllChanges" v-tooltip="'Download and restore selected assets'" />
           <ActionButton v-if="tasksModified" :noFilter="true" :icon="getAppIcon('layers-plus')" :useAlert="true" :label="'Create Checkpoints'"
-            :buttonFunction="prepAllCheckpointModal" />
+            :buttonFunction="prepAllCheckpointModal" v-tooltip="'Save current state of selected assets'" />
           <ActionButton v-if="!platformStore.isWeb && tasksModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :label="'Revert Tasks'"
-            :buttonFunction="prepResetPopUpModal" />
+            :buttonFunction="prepResetPopUpModal" v-tooltip="'Revert selected assets to their last checkpoint'" />
           <ActionButton :icon="getAppIcon('person-plus')" :label="'Assign assets'"
-            @click="prepAssignTask($event)" />
+            @click="prepAssignTask($event)" v-tooltip="'Assign a collaborator to selected assets'" />
           <ActionButton :icon="getAppIcon('person-minus')" :label="'Unassign assets'"
-            :buttonFunction="unassignTasks" />
+            :buttonFunction="unassignTasks" v-tooltip="'Remove all assignees from selected assets'" />
           <ActionButton v-if="!platformStore.isWeb && tasksOnDisk" :icon="getAppIcon('broom')" :label="'Free up space'"
-            :buttonFunction="prepFreeUpSpacePopUpModal" />
+            :buttonFunction="prepFreeUpSpacePopUpModal" v-tooltip="'Delete working files to free disk space'" />
           <ActionButton :icon="getAppIcon('trash')" :label="'Delete Selected assets'"
-            :buttonFunction="deleteMultipleTasks" />
+            :buttonFunction="deleteMultipleTasks" v-tooltip="'Move selected assets to trash'" />
         </div>
 
         <div v-else-if="onlyEntities" class="action-bar">
@@ -80,23 +80,23 @@
           </div>
           
           <ActionButton :icon="getAppIcon('person-minus')" :label="'Unassign collections'"
-            :buttonFunction="unassignCollections" />
-          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('jigsaw')" :label="'Rebuild collections'" :buttonFunction="rebuildCollections" />
+            :buttonFunction="unassignCollections" v-tooltip="'Remove all assignees from selected collections'" />
+          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('jigsaw')" :label="'Rebuild collections'" :buttonFunction="rebuildCollections" v-tooltip="'Download and restore all assets in selected collections'" />
           <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :label="'Free up space'"
-            :buttonFunction="freeUpCollectionSpacePopUpModal" />
+            :buttonFunction="freeUpCollectionSpacePopUpModal" v-tooltip="'Delete collection contents to free disk space'" />
           <ActionButton :icon="getAppIcon('trash')" :label="'Delete collections'"
-            :buttonFunction="deleteMultipleEntities" />
+            :buttonFunction="deleteMultipleEntities" v-tooltip="'Move selected collections to trash'" />
         </div>
 
         
         <div v-else-if="onlyUntrackedAssets || onlyUntrackedCollections" class="action-bar">
-          <ActionButton v-if="userStore.canDo('create_task') && onlyUntrackedAssets" :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" :label="'Create Checkpoints'" :buttonFunction="prepAllCheckpointModal" />
-          <ActionButton :icon="getAppIcon('file-watch')" :label="'Ignore Items'" :buttonFunction="ignoreItems" />
-          <ActionButton :icon="getAppIcon('trash')" :label="'Delete Items'" :buttonFunction="deleteMultipleUntrackedTasks" />
+          <ActionButton v-if="userStore.canDo('create_task') && onlyUntrackedAssets" :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" :label="'Create Checkpoints'" :buttonFunction="prepAllCheckpointModal" v-tooltip="'Track and create checkpoints for selected items'" />
+          <ActionButton :icon="getAppIcon('file-watch')" :label="'Ignore Items'" :buttonFunction="ignoreItems" v-tooltip="'Add items to the ignore list'" />
+          <ActionButton :icon="getAppIcon('trash')" :label="'Delete Items'" :buttonFunction="deleteMultipleUntrackedTasks" v-tooltip="'Permanently delete selected untracked items'" />
         </div>
 
         <div v-else class="action-bar">
-          <ActionButton :icon="getAppIcon('trash')" :label="'Delete Items'" :buttonFunction="deleteMultipleItems" />
+          <ActionButton :icon="getAppIcon('trash')" :label="'Delete Items'" :buttonFunction="deleteMultipleItems" v-tooltip="'Delete all selected items'" />
         </div>
 
       </div>
@@ -245,7 +245,7 @@ const assignCollections = async (user) => {
   stage.operationActive = false;
 }
 
-const noHeaders = ['projectCheckpoints']
+const noHeaders = []
 
 const isMultipleItems = computed(() => {
   return stage.markedItems.length > 1
@@ -314,6 +314,7 @@ const itemsIsUntracked = computed(() => {
 
 const projectDetailPanes = ref([
       { name: "Details", tab_name: "projectDetails", icon: "info" },
+      { name: "Checkpoints", tab_name: "projectCheckpoints", icon: "layers" },
       // { name: "Collaborators", tab_name: "collaborators", icon: "person" },
       { name: "Console", tab_name: "console", icon: "console" }
 ]);
@@ -391,14 +392,12 @@ const visiblePanes = computed(() => {
   if (stage.activeStage === 'browser') {
     if (!collectionStore.selectedCollection && !assetStore.selectedAsset && !projectStore.selectedUntrackedItem) {
       if (!stage.markedItems.length) {
-        if(panes.activeModal !== 'projectCheckpoints'){
-          let index = activeTabIndex.value;
-          if(index < 0){
-            index = 0;
-          }
-          const activePane = settingsItems.value[index]?.tab_name || 'projectDetails';
-          panes.setPaneVisibility(activePane, true);
+        let index = activeTabIndex.value;
+        if(index < 0){
+          index = 0;
         }
+        const activePane = settingsItems.value[index]?.tab_name || 'projectDetails';
+        panes.setPaneVisibility(activePane, true);
       }
     } else if(stage.selectedItem && stage.markedItems.length === 1){
       

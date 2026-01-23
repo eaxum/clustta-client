@@ -61,8 +61,6 @@
 		<div class="header-bar-actions">
 
 			<div class="local-project-actions" v-if="stage.selectedStage === 'browser'">
-				<ActionButton v-if="userStore.canDo('view_checkpoint')" :icon="getAppIcon('layers')"
-					@click="showProjectCheckpoints()" v-tooltip="'Project Checkpoints'" />
 				<ActionButton v-if="userStore.canDo('delete_task')" :icon="getAppIcon('trash')" @click="goToTrash()"
 					v-tooltip="'Trash'" />
 				<ActionButton v-if="userStore.canDo('create_task')" :icon="getAppIcon('briefcase-cog')"
@@ -299,19 +297,7 @@ const goToProjects = () => {
 	}
 };
 
-const showProjectCheckpoints = () => {
-	
-	collectionStore.selectedCollection  = null ;
-	assetStore.selectedAsset = null ;
-	projectStore.selectedUntrackedItem = null;
 
-	if (panes.activeModal !== 'projectCheckpoints' || !panes.showDetailsPane) {
-		panes.setPaneVisibility('projectCheckpoints', true);
-		panes.showDetailsPane = true;
-	} else {
-		panes.setPaneVisibility('projectDetails', true);
-	}
-};
 
 const goToTrash = () => {
 	stage.setStageVisibility('trash', true);

@@ -1,7 +1,11 @@
 <template>
   <div class="general-pane-header">
-    <HeaderArea :title="title" :icon="'layers'" :placeholder="'Search'" :showSearch="true" @updateSearch="updateSearch"
-      @clearSearch="clearSearch" />
+    <div class="searchbar-container" v-esc="clearSearch">
+      <input ref="searchBar" v-model="searchQuery" class="pane-search-bar" type="text"
+        :placeholder="'Search by message or author'" @input="updateSearch" />
+      <ActionButton v-if="searchQuery" :icon="getAppIcon('close')"
+        :allowDeactivate="true" v-tooltip="'Clear search'" :buttonFunction="clearSearch" />
+    </div>
   </div>
 
   <div class="general-pane-root">
@@ -61,8 +65,8 @@ const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
 
-// vars
-let title = 'Project checkpoints';
+// refs
+const searchBar = ref(null);
 const checkpointList = ref(null);
 const projectCheckpoints = ref([
 ]);
@@ -139,8 +143,8 @@ const illustration = () => {
 
 const searchQuery = ref('');
 
-const updateSearch = (query) => {
-  searchQuery.value = query;
+const updateSearch = () => {
+  // Search is handled reactively via v-model and filteredCheckpoints computed
 }
 
 const filteredCheckpoints = computed(() => {
@@ -152,7 +156,7 @@ const filteredCheckpoints = computed(() => {
 })
 
 const clearSearch = () => {
-  //   refreshCheckpoints();
+  searchQuery.value = '';
 }
 
 const updateExpanded = (index) => {
@@ -166,8 +170,49 @@ const updateExpanded = (index) => {
 /* @import "@/assets/tray.css"; */
 @import "@/assets/desktop.css";
 
+.pane-search-bar {
+	font-family: 'Inter', sans-serif;
+	box-sizing: border-box;
+  font-weight: 300;
+	font-size: 16px;
+	border-radius: 8px;
+	padding: 10px;
+	border: 0px;
+	border-style: solid;
+	outline: none;
+	background-color: var(--midnight-steel);
+	color: var(--white);
+	transition: width 0.2s ease-out;
+	border-radius: var(--large-radius);
+	width: 100%;
+}
 
-@import "@/assets/desktop.css";
+.searchbar-container {
+	display: flex;
+	align-items: center;
+	border: 0px;
+	border-style: solid;
+	outline: none;
+	background-color: var(--midnight-steel);
+	border-radius: var(--normal-radius);
+	width: 100%;
+  width: 98%;
+	padding-right: .4rem;
+	box-sizing: border-box;
+  z-index: 2;
+  border-radius: var(--large-radius);
+}
+
+.searchbar-container:hover {
+	outline: var(--transparent-line);
+	outline-offset: -1px;
+}
+
+.pane-search-bar:focus .searchbar-container {
+	background-color: red;
+	outline: var(--solid-line);
+	outline-offset: -1px;
+}
 
 .pop-up-actions {
   /* width: min-content; */
