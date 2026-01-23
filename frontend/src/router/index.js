@@ -1,5 +1,11 @@
 import { createRouter, createWebHistory, createMemoryHistory } from "vue-router";
-import { AuthService } from "@/services";
+import { AuthService, SettingsService } from "@/services";
+import { useUserStore } from '@/stores/users';
+import { useAccountStore } from '@/stores/accounts';
+import { useThemeStore } from '@/stores/theme';
+import { useProjectStore } from '@/stores/projects';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useDesktopModalStore } from '@/stores/desktopModals';
 
 const isWebMode = import.meta.env.VITE_PLATFORM === 'web';
 
@@ -114,15 +120,6 @@ router.beforeEach(async (to, from, next) => {
   // Initialize stores if user is authenticated and stores haven't been initialized yet
   if (isAuthenticated && !storesInitialized && to.meta.requiresAuth) {
     try {
-      // Dynamic imports to avoid circular dependencies
-      const { useUserStore } = await import('@/stores/users');
-      const { useAccountStore } = await import('@/stores/accounts');
-      const { useThemeStore } = await import('@/stores/theme');
-      const { useProjectStore } = await import('@/stores/projects');
-      const { useTrayStates } = await import('@/stores/TrayStates');
-      const { useDesktopModalStore } = await import('@/stores/desktopModals');
-      const { SettingsService } = await import('@/services');
-      
       const userStore = useUserStore();
       const accountStore = useAccountStore();
       const themeStore = useThemeStore();
