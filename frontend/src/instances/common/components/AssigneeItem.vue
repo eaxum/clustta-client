@@ -1,9 +1,12 @@
 <template>
-  <div class="assignee-list-item" @click="triggerAction">
+  <div class="assignee-list-item" :class="{ 'is-loading': isLoading }" @click="triggerAction">
     <ProfilePhoto :assigneeId="assigneeId" :userPhoto="userPhoto" :avatarColor="avatarColor" />
     <div class="assignee-list-item-name">{{ name }}</div>
     <div class="assignee-list-item-actions">
       <slot name="actions"></slot>
+    </div>
+    <div v-if="isLoading" class="assignee-loading-indicator">
+      <img class="small-icons loading-icon" :src="loadingIcon" />
     </div>
   </div>
 </template>
@@ -11,6 +14,9 @@
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import ProfilePhoto from '@/instances/common/components/ProfilePhoto.vue'
+import { useIconStore } from '@/stores/icons';
+
+const iconStore = useIconStore();
 
 const props = defineProps({
   name: {
@@ -28,12 +34,19 @@ const props = defineProps({
   avatarColor: {
     type: String,
     required: true
+  },
+  isLoading: {
+    type: Boolean,
+    default: false
   }
 });
 
 const emit = defineEmits(['click']);
 
+const loadingIcon = computed(() => iconStore.getAppIcon('loading'));
+
 const triggerAction = () => {
+  if (props.isLoading) return;
   emit('click');
 }
 </script>
@@ -97,6 +110,30 @@ const triggerAction = () => {
   display: none;
   opacity: 0;
   visibility: hidden;
+}
+
+.assignee-list-item.is-loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.assignee-loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-icon {
+  animation: loadingRotate 0.8s linear infinite;
+}
+
+@keyframes loadingRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
 
