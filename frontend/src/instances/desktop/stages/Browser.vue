@@ -155,6 +155,7 @@ import { useTagStore } from '@/stores/tags';
 import { useDndStore } from '@/stores/dnd';
 import { useDependencyStore } from '@/stores/dependency';
 import { useScrollStore } from '@/stores/scroll';
+import { useStudioStore } from '@/stores/studio';
 import { getRelativePath } from '@/lib/pathlib';
 import { useWorkflowStore } from '@/stores/workflow';
 import { useTemplateStore } from '@/stores/template';
@@ -177,6 +178,7 @@ const tagStore = useTagStore();
 const dependencyStore = useDependencyStore();
 const iconStore = useIconStore();
 const scrollStore = useScrollStore();
+const studioStore = useStudioStore();
 const workflowStore = useWorkflowStore();
 const templateStore = useTemplateStore();
 const dndStore = useDndStore();
@@ -1670,6 +1672,10 @@ onMounted(async () => {
 	emitter.on('refresh-browser', softRefresh);
 	emitter.on('update-root-data', handleUpdateRootData);
 	emitter.on('update-untracked-items', handleUpdateUntrackedItems);
+
+	if (!studioStore.studioUsers.length) {
+		await studioStore.getStudioUsers();
+	}
 
 	await refresh();
 	dndStore.triggerDomUpdate();

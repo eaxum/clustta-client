@@ -7,36 +7,65 @@
       </div>
     </div>
 
-    <!-- Users -->
-    <div v-if="assignee && !multipleTasks" class="assignee-list-container current-assignee">
-      <AssigneeItem 
-        :name="assignee.name" 
-        :assigneeId="assignee.id"
-        :photo="assignee.photo" 
-        :avatarColor="assignee.avatarColor"
-      >
-        <template #actions>
-          <span v-stop-propagation class="single-action-button" @click="unassignTask()" v-tooltip="'Unassign'">
-            <img class="small-icons" :src="getAppIcon('person-minus')">
-          </span>
-        </template>
-      </AssigneeItem>
-    </div>
-    
-    <span v-if="assignee && collaboratorsList.length && !multipleTasks" class="menu-divider"></span>
+    <div class="assignee-scroll-container">
+      <!-- Current Assignee -->
+      <div v-if="assignee && !multipleTasks" class="current-assignee-section">
+        <div class="section-label">Assigned</div>
+        <div class="assignee-list-container current-assignee">
+          <AssigneeItem 
+            :name="assignee.name" 
+            :assigneeId="assignee.id"
+            :photo="assignee.photo" 
+            :avatarColor="assignee.avatarColor"
+          >
+            <template #actions>
+              <span v-stop-propagation class="single-action-button" @click="unassignTask()" v-tooltip="'Unassign'">
+                <img class="small-icons" :src="getAppIcon('person-minus')">
+              </span>
+            </template>
+          </AssigneeItem>
+        </div>
+      </div>
 
-    <!-- collaborators -->
-    <div v-if="collaboratorsList && collaboratorsList.length" class="assignee-list-container">
-      <AssigneeItem 
-        v-stop-propagation
-        v-for="(collaborator, index) in collaboratorsList" 
-        :key="index" 
-        :assigneeId="collaborator.id"
-        :name="collaborator.name" 
-        :userPhoto="collaborator.photo" 
-        :avatarColor="collaborator.avatarColor"
-        @click="assignTask(collaborator.id)"
-      />
+      <!-- Project Collaborators -->
+      <div v-if="collaboratorsList && collaboratorsList.length" class="assignee-list-container">
+        <AssigneeItem 
+          v-stop-propagation
+          v-for="(collaborator, index) in collaboratorsList" 
+          :key="index" 
+          :assigneeId="collaborator.id"
+          :name="collaborator.name" 
+          :userPhoto="collaborator.photo" 
+          :avatarColor="collaborator.avatarColor"
+          :isLoading="loadingUserIds.includes(collaborator.id)"
+          @click="assignTask(collaborator.id)"
+        />
+      </div>
+
+      <!-- Studio Users Divider -->
+      <div v-if="searchUserTerm && filteredStudioUsers.length && collaboratorsList.length" class="studio-users-divider">
+        <span class="divider-text">Studio Members</span>
+      </div>
+
+      <!-- Studio Users (not in project) -->
+      <div v-if="searchUserTerm && filteredStudioUsers.length" class="assignee-list-container">
+        <AssigneeItem 
+          v-stop-propagation
+          v-for="(user, index) in filteredStudioUsers" 
+          :key="'studio-' + index" 
+          :assigneeId="user.id"
+          :name="user.name" 
+          :userPhoto="user.photo" 
+          :avatarColor="user.avatarColor"
+          :isLoading="loadingUserIds.includes(user.id)"
+          @click="assignStudioUser(user)"
+        />
+      </div>
+
+      <!-- No Results -->
+      <div v-if="searchUserTerm && !collaboratorsList.length && !filteredStudioUsers.length" class="no-results">
+        No results
+      </div>
     </div>
   </div>
 </template>
@@ -48,7 +77,7 @@ import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
 // services
-import { AssetService } from "@/services";
+import { AssetService, ProjectService } from "@/services";
 
 // states/store imports
 import { useMenu } from '@/stores/menu';
@@ -57,6 +86,7 @@ import { useUserStore } from '@/stores/users';
 import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
+import { useStudioStore } from '@/stores/studio';
 
 // components
 import AssigneeItem from '@/instances/common/components/AssigneeItem.vue'
@@ -70,9 +100,11 @@ const notificationStore = useNotificationStore();
 const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
+const studioStore = useStudioStore();
 
 // refs
 const collectionMenu = ref(null);
+const loadingUserIds = ref([]);
 const searchUserInput = ref(null);
 const searchUserTerm = ref('');
 
@@ -118,6 +150,35 @@ const collaboratorsList = computed(() => {
   const filteredCollaborators = allCollaborators.filter((item) => item.id !== assignee.value.id && item.username.toLowerCase().includes(searchUserTerm.value));
   const result = formatCollaborators(filteredCollaborators);
   return utils.sortAlphabetically(result);
+});
+
+// Returns studio users who are not in the current project, filtered by search term.
+const filteredStudioUsers = computed(() => {
+  if (!searchUserTerm.value) {
+    return [];
+  }
+  
+  const projectUserIds = projectCollaborators.value.map(user => user.id);
+  const studioUsers = studioStore.studioUsers || [];
+  const query = searchUserTerm.value.toLowerCase();
+  
+  const users = studioUsers
+    .filter(user => !projectUserIds.includes(user.id))
+    .filter(user => {
+      const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
+      return fullName.includes(query) || 
+             user.email?.toLowerCase().includes(query) ||
+             user.username?.toLowerCase().includes(query);
+    })
+    .map(user => ({
+      name: `${user.first_name} ${user.last_name}` || user,
+      photo: user.photo || "",
+      email: user.email,
+      avatarColor: userStore.userProfileColor(user.id),
+      id: user.id,
+    }));
+  
+  return utils.sortAlphabetically(users);
 });
 
 const getAppIcon = (iconName) => {
@@ -252,6 +313,45 @@ const unassignMultipleTasks = async () => {
   notificationStore.addNotification("Tasks Unssigned Successfully.", "", "success");
 };
 
+// Adds a studio user to the project and then assigns the task to them.
+const assignStudioUser = async (user) => {
+  if (loadingUserIds.value.includes(user.id)) return;
+  
+  loadingUserIds.value.push(user.id);
+  
+  try {
+    // Get the default role (Artist or first available)
+    const roles = userStore.getRolesNames || [];
+    const defaultRole = roles.find(role => role.toLowerCase() === 'artist') || roles[0];
+    
+    if (!defaultRole) {
+      notificationStore.errorNotification("Error", "No roles available");
+      return;
+    }
+    
+    // First, add the user to the project
+    await ProjectService.AddUser(projectStore.activeProject.uri, user.email, defaultRole);
+    
+    // Refresh to get updated user list
+    await userStore.reloadUsers();
+    console.log(user.id)
+    
+    // Now assign the task to this user
+    if (!multipleTasks.value) {
+      await assignSingleTask(user.id);
+    } else {
+      await assignMultipleTasks(user.id);
+    }
+    
+    notificationStore.addNotification("User added to project and task assigned.", "", "success");
+  } catch (error) {
+    console.error(error);
+    notificationStore.errorNotification("Error adding user to project", error);
+  } finally {
+    loadingUserIds.value = loadingUserIds.value.filter(id => id !== user.id);
+  }
+};
+
 // onMounted hook
 onMounted(() => {
   searchUserInput.value.focus();
@@ -304,36 +404,92 @@ onBeforeUnmount(() => {
   visibility: visible;
 }
 
+.assignee-scroll-container {
+  /* display: flex; */
+  flex-direction: column;
+  gap: .3rem;
+  max-height: 50vh;
+  overflow: hidden;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.assignee-scroll-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.assignee-scroll-container::-webkit-scrollbar-thumb {
+  border-radius: var(--small-radius);
+  background-color: var(--light-steel);
+}
+
+.assignee-scroll-container::-webkit-scrollbar-track {
+  border-radius: var(--small-radius);
+}
+
 .assignee-list-container {
   box-sizing: border-box;
-  /* padding: .5rem; */
   align-items: center;
   flex-direction: column;
   gap: .2rem;
   overflow: hidden;
-  overflow-y: scroll;
   width: 100%;
-  border-radius: 10px;
-}
-
-.assignee-list-container::-webkit-scrollbar {
-  width: 4px;
-}
-
-.assignee-list-container::-webkit-scrollbar-thumb {
-  border-radius: 8px;
-  background-color: var(--midnight-steel);
-  background-color: var(--white);
-}
-
-.assignee-list-container::-webkit-scrollbar-track {
-  margin-top: 5px;
   border-radius: 10px;
 }
 
 .current-assignee {
   overflow: hidden;
   min-height: min-content;
+}
+
+.current-assignee-section {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  padding-bottom: .4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: .2rem;
+}
+
+.section-label {
+  font-size: 11px;
+  color: var(--white);
+  opacity: 0.5;
+  padding-left: .2rem;
+}
+
+.no-results {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  font-size: 12px;
+  color: var(--white);
+  opacity: 0.5;
+}
+
+.studio-users-divider {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: .3rem 0;
+  gap: .5rem;
+}
+
+.studio-users-divider::before,
+.studio-users-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--white);
+  opacity: 0.2;
+}
+
+.divider-text {
+  font-size: 11px;
+  color: var(--white);
+  opacity: 0.5;
+  white-space: nowrap;
 }
 </style>
 
