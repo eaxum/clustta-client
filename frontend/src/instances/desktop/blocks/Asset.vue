@@ -951,8 +951,9 @@ const downloadAsset = async (index, task, event) => {
   isDownloading.value = true;
   
   try {
-    // Progress updates are now handled internally by CheckpointService
-    await CheckpointService.DownloadAsset(
+    // DownloadAsset is only available in web mode via HTTP adapter
+    const { CheckpointService: WebCheckpointService } = await import('@/services/adapters/checkpointservice.js');
+    await WebCheckpointService.DownloadAsset(
       projectStore.activeProject.uri,
       taskId,
       null // Use latest checkpoint

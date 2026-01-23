@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { AppService } from "@/services";
+import utils from "@/services/utils";
 
 export const usePlatformStore = defineStore("platform", {
   state: () => ({
@@ -33,7 +34,7 @@ export const usePlatformStore = defineStore("platform", {
 
       try {
         this.os = await AppService.GetOS();
-        this.version = await AppService.GetVersion();
+        this.version = await utils.getClusttaVersion();
       } catch (error) {
         console.warn('Failed to get platform info:', error);
       }

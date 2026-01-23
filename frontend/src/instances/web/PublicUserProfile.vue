@@ -138,7 +138,8 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
-import { ProfileService, ClipboardService } from '@/services';
+import { ProfileService } from '@/services/adapters/profileservice.js';
+import { ClipboardService } from '@/services';
 
 // Components
 import TitleBar from '@/instances/desktop/components/TitleBar.vue';

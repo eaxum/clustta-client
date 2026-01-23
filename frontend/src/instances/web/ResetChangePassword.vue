@@ -118,7 +118,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { AuthService } from "@/services";
+import { AuthService } from "@/services/adapters/authservice.js";
 import { useNotificationStore } from '@/stores/notifications';
 import { useIconStore } from '@/stores/icons';
 
