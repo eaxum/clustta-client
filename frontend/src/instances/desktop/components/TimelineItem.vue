@@ -277,11 +277,11 @@ onMounted(() => {
     overflow: hidden;
     height: 60px;
     min-height: max-content;
-    border-radius: 12px;
+    border-radius: var(--large-radius);
     outline: var(--transparent-line);
     outline-offset: -1px;
     background-color: var(--dark-steel);
-    border-radius: var(--large-radius);
+    transition: all .2s ease-in-out;
 }
 
 
@@ -312,9 +312,8 @@ onMounted(() => {
 }
 
 .trash-item-container:hover {
-    outline: var(--solid-line);
-    outline-offset: -1.5px;
-
+    border-radius: var(--normal-radius);
+    background-color: var(--steel);
 }
 
 .trash-checkpoints-root {

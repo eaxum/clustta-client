@@ -17,72 +17,63 @@
 
     <div class="general-pane-container">
 
-      <div v-if="projectStore.activeProject.preview" class="entity-thumb-container">
-        <div class="entity-thumb">
-          <img v-if="projectStore.activeProject.preview" class="screenshot-thumb"
-            :src="projectStore.activeProject.preview">
-          <img v-else class="screenshot-thumb" src="/page-states/no_image.png">
-        </div>
-      </div>
-
-
     <div class="general-pane-content">
 
       <div class="action-bar">
 
         <!-- {{  isPinExceeded  }} -->
         <ActionButton v-if="isProjectPinned" :icon="getAppIcon('unpin')" :showLabel="true" :fullWidth="true"
-          label="Unpin Project" :buttonFunction="unpinProject" />
+          label="Unpin Project" :buttonFunction="unpinProject" v-tooltip="'Remove project from pinned list'" />
 
         <ActionButton v-else-if="!isPinExceeded" :icon="getAppIcon('pin')" :showLabel="true" :fullWidth="true"
-          label="Pin Project" :buttonFunction="pinProject" />
+          label="Pin Project" :buttonFunction="pinProject" v-tooltip="'Pin project for quick access'"/>
 
         <!-- Reveal in Explorer -->
         <span v-if="!platformStore.isWeb" class="horizontal-flex">
           <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" label="Show in Explorer"
-            :buttonFunction="revealInExplorer" />
+            :buttonFunction="revealInExplorer" v-tooltip="'Open project folder in file explorer'" />
           <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyProjectPath()"
             v-tooltip="'Copy Path'" />
         </span>
 
         <!-- Locate Clustta file -->
         <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded" :icon="getAppIcon('clustta')" :showLabel="true"
-          :fullWidth="true" label="Locate Clustta File" :buttonFunction="locateClusttaFile" />
+          :fullWidth="true" label="Locate Clustta File" :buttonFunction="locateClusttaFile" v-tooltip="'Show the .clst archive in explorer'" />
 
         <!-- Relocate Working Directory -->
         <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
-          :buttonFunction="relocateWorkingDirectory" />
+          :buttonFunction="relocateWorkingDirectory" v-tooltip="'Change the working directory path'" />
 
         <!-- Backup Project -->
         <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('floppy-disk')" :showLabel="true" :fullWidth="true" label="Backup"
-          :buttonFunction="backupProject" />
+          :buttonFunction="backupProject" v-tooltip="'Create a backup of this project'" />
 
         <!-- Archive -->
         <ActionButton v-if="!projectStore.getActiveProject.is_closed && userStore.userCanCreateProject"
           :icon="getAppIcon('archive')" :showLabel="true" :fullWidth="true" label="Archive Project"
-          :buttonFunction="prepCloseProjectPopUpModal" />
+          :buttonFunction="prepCloseProjectPopUpModal" v-tooltip="'Archive project and free up space'" />
 
 
         <ActionButton v-else-if="userStore.userCanCreateProject" :icon="getAppIcon('unarchive')" :showLabel="true"
-          :fullWidth="true" label="Unarchive Project" :buttonFunction="toggleCloseProject" />
+          :fullWidth="true" label="Unarchive Project" :buttonFunction="toggleCloseProject" v-tooltip="'Restore archived project'" />
 
         <!-- Rebuild -->
         <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded && !projectStore.getActiveProject.is_closed"
           :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" label="Rebuild Project"
-          :buttonFunction="rebuildAll" />
+          :buttonFunction="rebuildAll" v-tooltip="'Download and restore all project files'" />
 
         <!-- Free space -->
         <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" label="Free Up space"
-          :buttonFunction="prepFreeUpSpacePopUpModal" />
+          :buttonFunction="prepFreeUpSpacePopUpModal" v-tooltip="'Delete working files to free disk space'" />
 
         <!-- Trim Project - only for remote projects that are synced -->
         <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.has_remote && !projectStore.getActiveProject.is_unsynced"
           :icon="getAppIcon('scissors')" :showLabel="true" :fullWidth="true" label="Trim Project"
-          :buttonFunction="prepTrimProjectPopUpModal" />
+          :buttonFunction="prepTrimProjectPopUpModal" v-tooltip="'Reduce project to contain only metadata'" />
 
         <!-- Delete project -->
         <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
-          label="Empty trash" :buttonFunction="prepEmptyTrashPopUpModal" />
+          label="Empty trash" :buttonFunction="prepEmptyTrashPopUpModal" v-tooltip="'Permanently delete all items in trash'" />
 
       </div>
 
@@ -409,7 +400,7 @@ const prepTrimProjectPopUpModal = () => {
   let project = projectStore.getActiveProject;
   trayStates.popUpModalIcon = 'scissors';
   trayStates.popUpModalTitle = `Trim \"${project.name}\"`;
-  trayStates.popUpModalMessage = "This will remove cached file data from the project database and delete the working directory to reduce disk usage. The data can be re-downloaded from the remote when needed. Continue?";
+  trayStates.popUpModalMessage = "This will remove cached file data from the project archive and delete the working directory to reduce disk usage. The data can be re-downloaded from the remote when needed. Continue?";
   trayStates.popUpModalFunction = trimProject;
   modals.setModalVisibility('popUpModal', true);
 };
