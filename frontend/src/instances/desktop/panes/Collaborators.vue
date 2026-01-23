@@ -1,90 +1,367 @@
 <template>
   <div class="general-pane-header">
-
+    <div class="searchbar-container" v-esc="clearSearch">
+      <input ref="searchBar" v-model="searchQuery" class="pane-search-bar" type="text"
+        :placeholder="'Search by name or email'" @input="updateSearch" />
+      <ActionButton v-if="searchQuery" :icon="getAppIcon('close')" :allowDeactivate="true"
+        v-tooltip="'Clear search'" :buttonFunction="clearSearch" />
+    </div>
   </div>
 
+  <div class="general-pane-root">
+    <div v-if="hasResults" class="collaborators-scroll-container">
+      <div class="collaborators-list">
+        <CollaboratorItem v-for="(collaborator, index) in filteredProjectCollaborators" :key="collaborator.id"
+          :collaborator="collaborator" :index="index" :compact="true" :roles="availableRoles"
+          :onRoleChange="changeCollaboratorRole" :onDelete="deleteCollaborator"
+          :canEdit="collaborator.can_edit" :canDelete="collaborator.can_delete"
+          :isLoading="loadingCollaboratorIds.includes(collaborator.id)" />
+
+        <div v-if="searchQuery && filteredStudioCollaborators.length && filteredProjectCollaborators.length" class="collaborators-divider">
+          <span class="divider-text">Studio Members</span>
+        </div>
+
+        <CollaboratorItem v-for="(collaborator, index) in filteredStudioCollaborators" :key="'studio-' + collaborator.id"
+          :collaborator="collaborator" :index="index" :compact="true"
+          :onAdd="addCollaboratorToProject" :canEdit="canAddUser" :canDelete="false" :isProjectMember="false"
+          :isLoading="loadingCollaboratorIds.includes(collaborator.id)" />
+      </div>
+    </div>
+
+    <PageState v-else :message="message()" :illustration="illustration()" />
+  </div>
 </template>
 
 <script setup>
 // imports
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
-import { SettingsService, ProjectService, SyncService } from "@/services";
-import { ClipboardService, FSService } from '@/services';
-
-// services
-import { CollectionService } from "@/services";
-
-// states/store imports
-import { useTrayStates } from '@/stores/TrayStates';
-import { useMenu } from '@/stores/menu';
-import { usePaneStore } from '@/stores/panes';
-import { useStageStore } from '@/stores/stages';
-import { useNotificationStore } from '@/stores/notifications';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useUserStore } from '@/stores/users';
-import { useModalStore } from '@/stores/modals';
-import { useCollectionStore } from '@/stores/collections';
-import { useAssetStore } from '@/stores/assets';
-import { useCommonStore } from '@/stores/common';
-import { useIconStore } from '@/stores/icons';
-import { useProjectStore } from '@/stores/projects';
+import { computed, ref } from 'vue';
+import utils from '@/services/utils';
 
 // components
-import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import CollaboratorItem from '@/instances/desktop/components/CollaboratorItem.vue';
+import PageState from '@/instances/common/components/PageState.vue';
 
-// states/stores
+// services
+import { ProjectService } from "@/services";
+
+// stores
+import { useAssetStore } from '@/stores/assets';
+import { useIconStore } from '@/stores/icons';
+import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
+import { useStudioStore } from '@/stores/studio';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useUserStore } from '@/stores/users';
+
+const assetStore = useAssetStore();
+const iconStore = useIconStore();
+const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
+const studioStore = useStudioStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
-const menu = useMenu();
-const panes = usePaneStore();
-const stage = useStageStore();
-const modals = useDesktopModalStore();
-const notificationStore = useNotificationStore();
-const collectionStore = useCollectionStore();
-const assetStore = useAssetStore();
-const projectStore = useProjectStore();
-const commonStore = useCommonStore();
-const iconStore = useIconStore();
 
+// refs
+const loadingCollaboratorIds = ref([]);
+const searchBar = ref(null);
+const searchQuery = ref('');
 
+// computed props
+const activeUserId = computed(() => {
+  return userStore.user?.id;
+});
 
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
+const availableRoles = computed(() => {
+  return userStore.getRolesNames;
+});
+
+const canAddUser = computed(() => {
+  return userStore.canDo('add_user');
+});
+
+const canChangeRole = computed(() => {
+  return userStore.canDo('change_role');
+});
+
+const canRemoveUser = computed(() => {
+  return userStore.canDo('remove_user');
+});
+
+// Returns filtered project collaborators based on search query.
+const filteredProjectCollaborators = computed(() => {
+  if (!searchQuery.value) {
+    return projectCollaborators.value;
+  }
+  const query = searchQuery.value.toLowerCase();
+  return projectCollaborators.value.filter(collaborator => {
+    return collaborator.name.toLowerCase().includes(query) ||
+      collaborator.email?.toLowerCase().includes(query);
+  });
+});
+
+// Returns filtered studio collaborators (not in project) based on search query.
+const filteredStudioCollaborators = computed(() => {
+  if (!searchQuery.value) {
+    return [];
+  }
+  const query = searchQuery.value.toLowerCase();
+  return studioCollaborators.value.filter(collaborator => {
+    return collaborator.name.toLowerCase().includes(query) ||
+      collaborator.email?.toLowerCase().includes(query);
+  });
+});
+
+// Returns true if there are any results to display.
+const hasResults = computed(() => {
+  return filteredProjectCollaborators.value.length > 0 || filteredStudioCollaborators.value.length > 0;
+});
+
+const isLastAdmin = computed(() => {
+  const projectUsers = userStore.getProjectCollaborators;
+  const projectRoles = projectUsers.map((user) => user.role.name);
+  return projectRoles.filter(roleName => roleName === 'admin').length < 2;
+});
+
+// Returns the list of project collaborators with computed permissions.
+const projectCollaborators = computed(() => {
+  const projectUsers = userStore.getProjectCollaborators;
+  const assignedUserIds = [];
+  const tasks = assetStore.assets;
+
+  for (const task of tasks) {
+    const taskAssigneeId = task.assignee_id;
+    if (!assignedUserIds.includes(taskAssigneeId)) {
+      assignedUserIds.push(taskAssigneeId);
+    }
+  }
+
+  const users = projectUsers.map(user => {
+    const userRoleName = user.role?.name || "";
+    const matchedRole = userStore.getRolesNames.find(
+      role => role.toLowerCase() === userRoleName.toLowerCase()
+    ) || userRoleName;
+
+    return {
+      ...user,
+      name: `${user.first_name} ${user.last_name}` || user,
+      profile: user.photo || "",
+      role_name: matchedRole,
+      id: user.id,
+      avatarColor: userStore.userProfileColor(user.id),
+      can_edit: user.id !== activeUserId.value && canChangeRole.value,
+      can_delete: !assignedUserIds.includes(user.id) && user.id !== activeUserId.value && (user.role?.name !== 'admin' || !isLastAdmin.value) && canRemoveUser.value,
+    };
+  });
+  return utils.sortAlphabetically(users);
+});
+
+// Returns studio users who are not in the current project.
+const studioCollaborators = computed(() => {
+  const projectUserIds = userStore.getProjectCollaborators.map(user => user.id);
+  const studioUsers = studioStore.studioUsers || [];
+
+  const users = studioUsers
+    .filter(user => !projectUserIds.includes(user.id))
+    .map(user => {
+      return {
+        ...user,
+        name: `${user.first_name} ${user.last_name}` || user,
+        profile: user.photo || "",
+        role_name: user.role_name || 'user',
+        id: user.id,
+        avatarColor: userStore.userProfileColor(user.id),
+        can_edit: true,
+        can_delete: false,
+      };
+    });
+  return utils.sortAlphabetically(users);
+});
+
+// methods
+// Adds a studio collaborator to the project with 'Artist' role (or first available).
+const addCollaboratorToProject = async (userId) => {
+  const collaborator = studioCollaborators.value.find(user => user.id === userId);
+  if (!collaborator) {
+    notificationStore.errorNotification("Error adding user", "User not found");
+    return;
+  }
+
+  // Use 'Artist' role if available, otherwise fall back to first available role
+  const roles = availableRoles.value || [];
+  const defaultRole = roles.find(role => role.toLowerCase() === 'artist') || roles[0];
+  
+  if (!defaultRole) {
+    notificationStore.errorNotification("Error adding user", "No roles available");
+    return;
+  }
+
+  loadingCollaboratorIds.value.push(userId);
+
+  await ProjectService.AddUser(projectStore.activeProject.uri, collaborator.email, defaultRole)
+    .then(async () => {
+      notificationStore.addNotification("User added to project successfully.", "", "success");
+      await trayStates.refreshData();
+    })
+    .catch((error) => {
+      notificationStore.errorNotification("Error adding user to project", error);
+    })
+    .finally(() => {
+      loadingCollaboratorIds.value = loadingCollaboratorIds.value.filter(id => id !== userId);
+    });
 };
 
+// Updates the collaborator's role in the project.
+const changeCollaboratorRole = async (userId, newRole) => {
+  await ProjectService.ChangeRole(projectStore.activeProject.uri, userId, newRole)
+    .then(async () => {
+      notificationStore.addNotification("User updated Successfully.", "", "success");
+      await trayStates.refreshData();
+    })
+    .catch((error) => {
+      notificationStore.errorNotification("Error updating User", error);
+    });
+};
 
-// onMounted hook
-onMounted(() => {
-});
+// Clears the search query.
+const clearSearch = () => {
+  searchQuery.value = '';
+};
 
-onBeforeUnmount(() => {
+// Removes a collaborator from the project.
+const deleteCollaborator = async (userId) => {
+  const allCollaborators = userStore.getProjectCollaborators;
+  const collaborator = allCollaborators.find(item => item.id === userId);
+  
+  loadingCollaboratorIds.value.push(userId);
+  
+  await ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id)
+    .then(() => {
+      const users = userStore.users;
+      const userIndex = users.indexOf(collaborator);
+      userStore.users.splice(userIndex, 1);
+      notificationStore.addNotification("User Removed Successfully.", "", "success");
+    })
+    .catch((error) => {
+      notificationStore.errorNotification("Error Removing User", error);
+    })
+    .finally(() => {
+      loadingCollaboratorIds.value = loadingCollaboratorIds.value.filter(id => id !== userId);
+    });
+};
 
-});
+// Returns the icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
 
+// Returns the illustration path for the empty state.
+const illustration = () => {
+  return '/page-states/resources.png';
+};
 
+// Returns the message for the empty state.
+const message = () => {
+  if (searchQuery.value) {
+    return 'No collaborators match your search';
+  }
+  return 'No collaborators on this project';
+};
+
+// Handles search input updates.
+const updateSearch = () => {
+  // Search is handled reactively via filteredCollaborators computed
+};
 
 </script>
+
 <style scoped>
 @import "@/assets/desktop.css";
 
-.action-bar {
-  position: relative;
+.pane-search-bar {
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
+  font-weight: 300;
+  font-size: 16px;
+  border-radius: var(--large-radius);
+  padding: 10px;
+  border: 0px;
+  outline: none;
+  background-color: var(--midnight-steel);
+  color: var(--white);
+  transition: width 0.2s ease-out;
+  width: 100%;
+}
+
+.searchbar-container {
+  display: flex;
+  align-items: center;
+  outline: none;
+  background-color: var(--midnight-steel);
+  border-radius: var(--large-radius);
+  width: 98%;
+  padding-right: .4rem;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+.searchbar-container:hover {
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+}
+
+.collaborators-scroll-container {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding-right: 5px;
+  padding-bottom: 1rem;
+}
+
+.collaborators-scroll-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.collaborators-scroll-container::-webkit-scrollbar-thumb {
+  border-radius: var(--small-radius);
+  background-color: var(--light-steel);
+}
+
+.collaborators-scroll-container::-webkit-scrollbar-track {
+  border-radius: var(--small-radius);
+}
+
+.collaborators-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: .6rem;
-  width: max-content;
+  gap: .5rem;
   width: 100%;
-  /* justify-content: space-around; */
-  height: max-content;
-  padding: .2rem;
-  /* background-color: black; */
-  /* background-color: tomato; */
-  align-items: flex-start;
+  box-sizing: border-box;
+}
+
+.collaborators-divider {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: .5rem 0;
+  gap: .5rem;
+}
+
+.collaborators-divider::before,
+.collaborators-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--light-steel);
+  opacity: 0.3;
+}
+
+.divider-text {
+  font-size: 12px;
+  color: var(--white);
+  opacity: 0.5;
+  white-space: nowrap;
 }
 </style>
-
-
-

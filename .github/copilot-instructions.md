@@ -172,6 +172,23 @@ onUnmounted(() => { ... });
 />
 ```
 
+### Scrollbar Styling
+Use consistent scrollbar styling across all scrollable containers:
+```css
+.scroll-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  border-radius: var(--small-radius);
+  background-color: var(--light-steel);
+}
+
+.scroll-container::-webkit-scrollbar-track {
+  border-radius: var(--small-radius);
+}
+```
+
 ### Refactoring Checklist
 When cleaning up components:
 - [ ] Remove unused imports, functions, computed properties, and CSS classes
@@ -183,6 +200,7 @@ When cleaning up components:
 - [ ] No lines between template elements except major blocks
 - [ ] Remove template comments (except temporarily disabled elements)
 - [ ] Remove commented-out CSS and unused CSS classes
+- [ ] Apply standard scrollbar styling to all scrollable containers
 
 ## Key Patterns
 

@@ -315,7 +315,7 @@ const itemsIsUntracked = computed(() => {
 const projectDetailPanes = ref([
       { name: "Details", tab_name: "projectDetails", icon: "info" },
       { name: "Checkpoints", tab_name: "projectCheckpoints", icon: "layers" },
-      // { name: "Collaborators", tab_name: "collaborators", icon: "person" },
+      { name: "Collaborators", tab_name: "collaborators", icon: "person" },
       { name: "Console", tab_name: "console", icon: "console" }
 ]);
 
