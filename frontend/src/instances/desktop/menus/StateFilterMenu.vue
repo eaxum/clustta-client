@@ -14,44 +14,62 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-    const icon = iconStore.getAppIcon(iconName);
-    return icon
-};
-
 // imports
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
-import utils from '@/services/utils';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
-
-// states/store imports
-import { useMenu } from '@/stores/menu';
-import { useCommonStore } from '@/stores/common';
+import utils from '@/services/utils';
 
 // components
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
-// states/stores
-const menu = useMenu();
+// stores
+import { useCommonStore } from '@/stores/common';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+
 const commonStore = useCommonStore();
+const iconStore = useIconStore();
+const menu = useMenu();
 
 // refs
 const collectionMenu = ref(null);
 
+// computed properties
+// Returns list of file states available for filtering.
 const allStates = computed(() => {
-  let fileStates = commonStore.fileStates;
-  return fileStates;
+  return commonStore.fileStates;
 });
 
 // methods
-const isFilterActive = (filter) => {
-  const isActive = commonStore.taskFilters.includes(filter) || commonStore.resourceFilters.includes(filter)
-  return isActive;
+// Adds a filter to both task and resource filters lists.
+const addFilter = (filter) => {
+  commonStore.taskFilters.push(filter);
+  commonStore.resourceFilters.push(filter);
 };
 
+// Returns the icon path for a given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Checks if a state should display in color.
+const isColored = (stateName) => {
+  const coloredItems = ['modified', 'outdated'];
+  return coloredItems.includes(stateName);
+};
+
+// Checks if a filter is currently active in task or resource filters.
+const isFilterActive = (filter) => {
+  return commonStore.taskFilters.includes(filter) || commonStore.resourceFilters.includes(filter);
+};
+
+// Removes a filter from both task and resource filters lists.
+const removeFilter = (filter) => {
+  commonStore.taskFilters = commonStore.taskFilters.filter((item) => item !== filter);
+  commonStore.resourceFilters = commonStore.resourceFilters.filter((item) => item !== filter);
+};
+
+// Toggles a filter on or off and refreshes browser.
 const toggleFilter = (filter) => {
   if (isFilterActive(filter)) {
     removeFilter(filter);
@@ -61,26 +79,7 @@ const toggleFilter = (filter) => {
   emitter.emit('refresh-browser');
 };
 
-const isColored = (stateName) => {
-  const coloredItems = ['modified', 'outdated']
-  return coloredItems.includes(stateName) 
-};
-
-const addFilter = (filter) => {
-  commonStore.taskFilters.push(filter);
-  commonStore.resourceFilters.push(filter);
-};
-
-const removeFilter = (filter) => {
-  commonStore.taskFilters = commonStore.taskFilters.filter((item) => item !== filter)
-  commonStore.resourceFilters = commonStore.resourceFilters.filter((item) => item !== filter)
-};
-
-
-
-// methods
-
-// onMounted hook
+// lifecycle hooks
 onMounted(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.collectionMenu = collectionMenu.value;
@@ -89,7 +88,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.assetMenuHeight = collectionMenu.value.getBoundingClientRect().height;
-
 });
 </script>
 

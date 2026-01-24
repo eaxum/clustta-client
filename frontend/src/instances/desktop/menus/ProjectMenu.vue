@@ -49,312 +49,153 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
 // imports
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
-import utils from '@/services/utils';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
 
-// services
-import { CollectionService, AssetService } from "@/services";
-import { TrashService } from "@/services";
-
-// states/store imports
-import { useTrayStates } from '@/stores/TrayStates';
-import { useMenu } from '@/stores/menu';
-import { usePaneStore } from '@/stores/panes';
-import { useStageStore } from '@/stores/stages';
-import { useNotificationStore } from '@/stores/notifications';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useUserStore } from '@/stores/users';
-import { useModalStore } from '@/stores/modals';
-import { useCollectionStore } from '@/stores/collections';
-import { useAssetStore } from '@/stores/assets';
-import { useCommonStore } from '@/stores/common';
-import { useProjectStore } from '@/stores/projects';
-import { useTemplateStore } from '@/stores/template';
-import { useWorkflowStore } from '@/stores/workflow';
-import { usePlatformStore } from '@/stores/platform';
-
 // components
-import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import { FSService, DialogService, ProjectService } from '@/services';
-import { SyncService } from '@/services';
-import { Clipboard } from '@wailsio/runtime';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
-// states/stores
-const workflowStore = useWorkflowStore();
+// services
+import { AssetService, CollectionService, DialogService, FSService, ProjectService, SyncService } from "@/services";
+
+// stores
+import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
+import { useCommonStore } from '@/stores/common';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useNotificationStore } from '@/stores/notifications';
+import { usePlatformStore } from '@/stores/platform';
+import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
+import { useTemplateStore } from '@/stores/template';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useUserStore } from '@/stores/users';
+import { useWorkflowStore } from '@/stores/workflow';
+
+const assetStore = useAssetStore();
+const collectionStore = useCollectionStore();
+const commonStore = useCommonStore();
+const iconStore = useIconStore();
+const menu = useMenu();
+const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
+const platformStore = usePlatformStore();
+const projectStore = useProjectStore();
+const stage = useStageStore();
+const templateStore = useTemplateStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
-const menu = useMenu();
-const panes = usePaneStore();
-const stage = useStageStore();
-const modals = useDesktopModalStore();
-const modalStore = useModalStore();
-const notificationStore = useNotificationStore();
-const collectionStore = useCollectionStore();
-const assetStore = useAssetStore();
-const projectStore = useProjectStore();
-const commonStore = useCommonStore();
-const templateStore = useTemplateStore();
-const platformStore = usePlatformStore();
+const workflowStore = useWorkflowStore();
 
 // refs
 const collectionMenu = ref(null);
 
-const renameEntity = () => {
-  modals.setModalVisibility('renameEntityModal', true);
-  menu.hideContextMenu();
-};
-
-const viewCollectionDetails = () => {
-  panes.setPaneVisibility('collectionDetails', true)
-  menu.hideContextMenu();
-};
-
-const revealInExplorer = async () => {
-
-  menu.hideContextMenu();
-  const isNavigated = commonStore.navigatorMode;
-  let project = projectStore.getActiveProject;
-
-  if(!isNavigated){
-    await FSService.MakeDirs(project.working_directory)
-    FSService.RevealInExplorer(project.working_directory)
-  } else {
-    let path = collectionStore.navigatedCollection?.type === 'entity' 
-      ? collectionStore.navigatedCollection.entity_path
-      : collectionStore.navigatedCollection.item_path;
-
-    const trimmedPath = path.endsWith('/') ? path.slice(0, -1) : path;
-    let explorerPath = `${project.working_directory}${trimmedPath}`
-    explorerPath = explorerPath.replace(/\\/g, '/');
-
-    await FSService.MakeDirs(explorerPath)
-    FSService.RevealInExplorer(explorerPath)
-  }
-};
-
-const copyDirectoryPath = async () => {
-
-  const isNavigated = commonStore.navigatorMode;
-  let project = projectStore.getActiveProject;
-
-
-  if(!isNavigated){
-    let projectDir = project.working_directory;
-    projectDir = projectDir.replace(/\\/g, '/');
-    FSService.MakeDirs(projectDir);
-    await Clipboard.SetText(projectDir);
-  } else {
-
-    let path = collectionStore.navigatedCollection?.type === 'entity' 
-      ? collectionStore.navigatedCollection.entity_path
-      : collectionStore.navigatedCollection.item_path;
-
-    let explorerPath = `${project.working_directory}${path}`
-    explorerPath = explorerPath.replace(/\\/g, '/');
-    await Clipboard.SetText(explorerPath);
-  }
-
-  const message = 'Path copied to clipboard';
-  notificationStore.addNotification(message, "", "success");
-  menu.hideContextMenu();
-};
-
-const relocateWorkingDirectory = async () => {
-  menu.hideContextMenu();
-  
-  const project = projectStore.getActiveProject;
-  const currentWorkingDir = project.working_directory;
-  
-  try {
-    // Open folder dialog to select new working directory
-    const result = await DialogService.SelectFolderDialog("Select New Working Directory");
-    
-    if (!result) {
-      return; // User cancelled
-    }
-    
-    let newWorkingDir = result.replace(/\\/g, '/');
-    
-    // Confirm with user
-    trayStates.popUpModalTitle = 'Relocate Working Directory?';
-    trayStates.popUpModalMessage = `Change working directory from:\n${currentWorkingDir}\n\nTo:\n${newWorkingDir}\n\nNote: Files will NOT be moved. Only the path will be updated.`;
-    trayStates.popUpModalIcon = 'folder';
-    trayStates.popUpModalFunction = async () => {
-      try {
-        stage.operationActive = true;
-        
-        // Update working directory
-        await ProjectService.UpdateWorkingDirectory(
-          project.has_remote ? projectStore.getActiveProjectUrl : project.uri,
-          projectStore.selectedStudio.name,
-          newWorkingDir
-        );
-        
-        // Update the project in memory
-        project.working_directory = newWorkingDir;
-        
-        // Refresh project list
-        await projectStore.refreshProjects();
-        
-        notificationStore.addNotification(
-          'Working directory updated',
-          `New location: ${newWorkingDir}`,
-          'success',
-          false
-        );
-        
-      } catch (error) {
-        notificationStore.errorNotification('Error updating working directory', error);
-      } finally {
-        stage.operationActive = false;
-        modals.setModalVisibility('popUpModal', false);
-        emitter.emit('refresh-browser');
-      }
-    };
-    
-    modals.setModalVisibility('popUpModal', true);
-    
-  } catch (error) {
-    notificationStore.errorNotification('Error selecting directory', error);
-  }
-};
-
-const createEntity = () => {
-  modals.setModalVisibility('createCollectionModal', true);
-  menu.hideContextMenu();
-};
-
+// methods
+// Opens the workflow selection modal.
 const addWorkflow = () => {
   modals.setModalVisibility('selectWorkflowModal', true);
   menu.hideContextMenu();
 };
 
+// Copies the current directory path to clipboard.
+const copyDirectoryPath = async () => {
+  const isNavigated = commonStore.navigatorMode;
+  let project = projectStore.getActiveProject;
+
+  if (!isNavigated) {
+    let projectDir = project.working_directory;
+    projectDir = projectDir.replace(/\\/g, '/');
+    FSService.MakeDirs(projectDir);
+    await Clipboard.SetText(projectDir);
+  } else {
+    let path = collectionStore.navigatedCollection?.type === 'entity' 
+      ? collectionStore.navigatedCollection.entity_path
+      : collectionStore.navigatedCollection.item_path;
+
+    let explorerPath = `${project.working_directory}${path}`;
+    explorerPath = explorerPath.replace(/\\/g, '/');
+    await Clipboard.SetText(explorerPath);
+  }
+
+  notificationStore.addNotification('Path copied to clipboard', "", "success");
+  menu.hideContextMenu();
+};
+
+// Opens the create collection modal.
+const createEntity = () => {
+  modals.setModalVisibility('createCollectionModal', true);
+  menu.hideContextMenu();
+};
+
+// Opens the create asset modal.
 const createTask = () => {
   modals.setModalVisibility('selectAppModal', true);
   menu.hideContextMenu();
 };
 
-const createResources = () => {
-  modals.setModalVisibility('addResourcesModal', true);
-  menu.hideContextMenu();
+// Empties the project trash.
+const emptyTrash = async () => {
+  await ProjectService.Purge(projectStore.activeProject.uri)
+    .then(() => {
+      trayStates.trashables = [];
+      modals.disableAllModals();
+    })
+    .catch((error) => {
+      console.error(error.message);
+      notificationStore.addNotification("Error Syncing Data", error.message, "error", false);
+      modals.disableAllModals();
+    });
 };
 
-const uploadItems = () => {
-  // TODO: Implement web upload functionality
-  modals.setModalVisibility('uploadItemsModal', true);
-  menu.hideContextMenu();
-};
-
-const importItems = async () => {
-  try {
-    // Show items picker dialog (files and folders)
-    const selectedPaths = await DialogService.SelectFilesDialog();
-    if (!selectedPaths || selectedPaths.length === 0) {
-      menu.hideContextMenu();
-      return; // User cancelled or no items selected
-    }
-
-    // Get current directory for copying
-    const currentDirectory = getCurrentDirectory();
-    if (!currentDirectory) {
-      notificationStore.errorNotification("Could not determine current directory", "");
-      menu.hideContextMenu();
-      return;
-    }
-
-    await FSService.MakeDirs(currentDirectory);
-
-    // Show operation in progress
-    stage.operationActive = true;
-    
-    let successCount = 0;
-    let failureCount = 0;
-    const errors = [];
-
-    // Process each selected path
-    for (const sourcePath of selectedPaths) {
-      try {
-        const isFile = await FSService.IsFile(sourcePath);
-        const itemName = await FSService.BaseName(sourcePath);
-        
-        // Generate unique destination path
-        const destinationPath = await generateUniqueDestinationPath(currentDirectory, itemName);
-        
-        if (isFile) {
-          // Copy file
-          await FSService.DuplicateFile(sourcePath, destinationPath);
-        } else {
-          // Copy folder
-          await FSService.DuplicateFolder(sourcePath, destinationPath);
-        }
-        
-        successCount++;
-      } catch (error) {
-        failureCount++;
-        const itemName = await FSService.BaseName(sourcePath).catch(() => sourcePath);
-        errors.push(`${itemName}: ${error.message || error}`);
-      }
-    }
-
-    // Show results
-    if (successCount > 0) {
-      const message = successCount === 1 
-        ? "1 item imported successfully" 
-        : `${successCount} items imported successfully`;
-      notificationStore.addNotification(message, "", "success");
-    }
-
-    if (failureCount > 0) {
-      const message = failureCount === 1 
-        ? "1 item failed to import" 
-        : `${failureCount} items failed to import`;
-      notificationStore.errorNotification(message, errors.join("\n"));
-    }
-
-    // Refresh the view to show imported items
-    if (successCount > 0) {
+// Frees up space by deleting the navigated entity's files.
+const freeUpEntitySpace = async () => {
+  let entity = collectionStore.navigatedCollection;
+  let entityDir = entity.file_path.replace(/\\/g, '/');
+  await FSService.DeleteFolder(entityDir)
+    .then(() => {
       emitter.emit('refresh-browser');
-    }
-
-  } catch (error) {
-    notificationStore.errorNotification("Error importing items", error.message || error);
-  } finally {
-    stage.operationActive = false;
-    menu.hideContextMenu();
-  }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  modals.disableAllModals();
 };
 
-const getCurrentDirectory = () => {
-  // Check if we're in navigator mode (inside an entity/folder)
-  if (commonStore.navigatorMode && collectionStore.navigatedCollection) {
-    const navigated = collectionStore.navigatedCollection;
-    // Return the file path of the current entity or folder
-    return navigated.file_path;
-  }
-  
-  // If at project root
-  return projectStore.activeProject?.working_directory;
+// Frees up space by deleting the project's working directory.
+const freeUpProjectSpace = async () => {
+  let project = projectStore.getActiveProject;
+  await FSService.DeleteFolder(project.working_directory)
+    .then(() => {
+      projectStore.refreshProjects();
+      
+      AssetService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates) => {
+        assetStore.modifiedAssetsPath = assetsStates.modified;
+        assetStore.outdatedAssetsPath = assetsStates.outdated;
+        assetStore.rebuildableAssetsPath = assetsStates.rebuildable;
+      });
+
+      if (projectStore.activeProject.id == project.id) {
+        trayStates.$reset();
+      }
+
+      emitter.emit('refresh-browser');
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  modals.disableAllModals();
 };
 
+// Generates a unique destination path for imports.
 const generateUniqueDestinationPath = async (directory, fileName) => {
   const originalPath = await FSService.JoinPath(directory, fileName);
-  
-  // Check if file/folder already exists
   const exists = await FSService.Exists(originalPath);
-  if (!exists) {
-    return originalPath;
-  }
+  if (!exists) return originalPath;
   
-  // Generate unique name with counter
   const baseName = fileName.includes('.') 
     ? fileName.substring(0, fileName.lastIndexOf('.'))
     : fileName;
@@ -369,87 +210,106 @@ const generateUniqueDestinationPath = async (directory, fileName) => {
     const newFileName = `${baseName} (${counter})${extension}`;
     newPath = await FSService.JoinPath(directory, newFileName);
     const pathExists = await FSService.Exists(newPath);
-    if (!pathExists) {
-      return newPath;
-    }
+    if (!pathExists) return newPath;
     counter++;
-  } while (counter < 100); // Safety limit
+  } while (counter < 100);
   
-  // Fallback with timestamp if we hit the limit
   const timestamp = Date.now();
   const timestampFileName = `${baseName}_${timestamp}${extension}`;
   return await FSService.JoinPath(directory, timestampFileName);
 };
 
-const freeUpProjectSpace = async () => {
-  let project = projectStore.getActiveProject;
-  console.log(project.working_directory)
-  await FSService.DeleteFolder(project.working_directory)
-    .then((response) => {
-      projectStore.refreshProjects()
-      
-      AssetService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates)=>{
-        console.log(assetsStates)
-        assetStore.modifiedAssetsPath = assetsStates.modified
-        assetStore.outdatedAssetsPath = assetsStates.outdated
-        assetStore.rebuildableAssetsPath = assetsStates.rebuildable
-      })
+// Returns the icon path for a given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
 
-      if (projectStore.activeProject.id == project.id) {
-        trayStates.$reset();
+// Returns the current directory path based on navigation state.
+const getCurrentDirectory = () => {
+  if (commonStore.navigatorMode && collectionStore.navigatedCollection) {
+    return collectionStore.navigatedCollection.file_path;
+  }
+  return projectStore.activeProject?.working_directory;
+};
+
+// Imports files and folders from the file system.
+const importItems = async () => {
+  try {
+    const selectedPaths = await DialogService.SelectFilesDialog();
+    if (!selectedPaths || selectedPaths.length === 0) {
+      menu.hideContextMenu();
+      return;
+    }
+
+    const currentDirectory = getCurrentDirectory();
+    if (!currentDirectory) {
+      notificationStore.errorNotification("Could not determine current directory", "");
+      menu.hideContextMenu();
+      return;
+    }
+
+    await FSService.MakeDirs(currentDirectory);
+    stage.operationActive = true;
+    
+    let successCount = 0;
+    let failureCount = 0;
+    const errors = [];
+
+    for (const sourcePath of selectedPaths) {
+      try {
+        const isFile = await FSService.IsFile(sourcePath);
+        const itemName = await FSService.BaseName(sourcePath);
+        const destinationPath = await generateUniqueDestinationPath(currentDirectory, itemName);
+        
+        if (isFile) {
+          await FSService.DuplicateFile(sourcePath, destinationPath);
+        } else {
+          await FSService.DuplicateFolder(sourcePath, destinationPath);
+        }
+        successCount++;
+      } catch (error) {
+        failureCount++;
+        const itemName = await FSService.BaseName(sourcePath).catch(() => sourcePath);
+        errors.push(`${itemName}: ${error.message || error}`);
       }
+    }
 
+    if (successCount > 0) {
+      const message = successCount === 1 ? "1 item imported successfully" : `${successCount} items imported successfully`;
+      notificationStore.addNotification(message, "", "success");
+    }
+
+    if (failureCount > 0) {
+      const message = failureCount === 1 ? "1 item failed to import" : `${failureCount} items failed to import`;
+      notificationStore.errorNotification(message, errors.join("\n"));
+    }
+
+    if (successCount > 0) {
       emitter.emit('refresh-browser');
-
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-  modals.disableAllModals();
+    }
+  } catch (error) {
+    notificationStore.errorNotification("Error importing items", error.message || error);
+  } finally {
+    stage.operationActive = false;
+    menu.hideContextMenu();
+  }
 };
 
-const freeUpEntitySpace = async () => {
-  let entity = collectionStore.navigatedCollection;
-  let entityDir = entity.file_path.replace(/\\/g, '/');
-  await FSService.DeleteFolder(entityDir)
-    .then((response) => {
-      emitter.emit('refresh-browser');
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-  modals.disableAllModals();
-};
-
-const rebuildAll = async () => { 
+// Prepares and shows the empty trash confirmation modal.
+const prepEmptyTrashPopUpModal = () => {
   menu.hideContextMenu();
-
-	const path = collectionStore.navigatedCollection?.entity_path;
-	const navigatedEntityId = collectionStore.navigatedCollection?.id;
-	const rebuildableTasksPath = assetStore.rebuildableAssetsPath;
-
-	notificationStore.cancleFunction = SyncService.CancelSync;
-	notificationStore.canCancel = true;
-
-	await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedEntityId)
-		.then((data) => {
-
-			if(path){
-				assetStore.rebuildableAssetsPath = rebuildableTasksPath.filter(item => !item.startsWith(path))
-			} else {
-				assetStore.rebuildableAssetsPath = [];
-			}
-
-			softRefresh();
-		}).catch(async (error) => {
-			notificationStore.errorNotification("Error Rebuilding All", error)
-		})
+  trayStates.popUpModalIcon = 'trash';
+  trayStates.popUpModalTitle = "Empty Trash";
+  trayStates.popUpModalMessage = "This will irreversibly delete all items in trash. Continue?";
+  trayStates.popUpModalFunction = emptyTrash;
+  modals.setModalVisibility('popUpModal', true);
 };
 
+// Prepares and shows the free up space confirmation modal.
 const prepFreeUpSpacePopUpModal = () => {
   menu.hideContextMenu();
   let project = projectStore.getActiveProject;
-  if(commonStore.navigatorMode){
+  if (commonStore.navigatorMode) {
     const navigatedEntity = collectionStore.navigatedCollection;
     trayStates.popUpModalTitle = `Delete the files in \"${navigatedEntity.name}\"? `;
     trayStates.popUpModalMessage = `This will clear the contents of \"${navigatedEntity.name}\". Please save your checkpoints before proceeding to avoid losing your work`;
@@ -463,39 +323,102 @@ const prepFreeUpSpacePopUpModal = () => {
   modals.setModalVisibility('popUpModal', true);
 };
 
-const prepEmptyTrashPopUpModal = () => {
+// Rebuilds all assets in the current context.
+const rebuildAll = async () => { 
   menu.hideContextMenu();
-	trayStates.popUpModalIcon = 'trash'
-	trayStates.popUpModalTitle = "Empty Trash";
-	trayStates.popUpModalMessage = "This will irreversibly delete all items in trash. Continue?";
-	trayStates.popUpModalFunction = emptyTrash;
-	modals.setModalVisibility('popUpModal', true);
+  const path = collectionStore.navigatedCollection?.entity_path;
+  const navigatedEntityId = collectionStore.navigatedCollection?.id;
+  const rebuildableTasksPath = assetStore.rebuildableAssetsPath;
+
+  notificationStore.cancleFunction = SyncService.CancelSync;
+  notificationStore.canCancel = true;
+
+  await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedEntityId)
+    .then(() => {
+      if (path) {
+        assetStore.rebuildableAssetsPath = rebuildableTasksPath.filter(item => !item.startsWith(path));
+      } else {
+        assetStore.rebuildableAssetsPath = [];
+      }
+      emitter.emit('refresh-browser');
+    })
+    .catch(async (error) => {
+      notificationStore.errorNotification("Error Rebuilding All", error);
+    });
 };
 
-const emptyTrash = async () => {
-	await ProjectService.Purge(projectStore.activeProject.uri)
-		.then(() => {
-			trayStates.trashables = [];
-			modals.disableAllModals();
-		}).catch((error) => {
-			console.error(error.message)
-			notificationStore.addNotification(
-				"Error Syncing Data",
-				error.message,
-				"error",
-				false
-			)
-			modals.disableAllModals();
-		})
+// Opens the relocate working directory dialog.
+const relocateWorkingDirectory = async () => {
+  menu.hideContextMenu();
+  
+  const project = projectStore.getActiveProject;
+  const currentWorkingDir = project.working_directory;
+  
+  try {
+    const result = await DialogService.SelectFolderDialog("Select New Working Directory");
+    if (!result) return;
+    
+    let newWorkingDir = result.replace(/\\/g, '/');
+    
+    trayStates.popUpModalTitle = 'Relocate Working Directory?';
+    trayStates.popUpModalMessage = `Change working directory from:\n${currentWorkingDir}\n\nTo:\n${newWorkingDir}\n\nNote: Files will NOT be moved. Only the path will be updated.`;
+    trayStates.popUpModalIcon = 'folder';
+    trayStates.popUpModalFunction = async () => {
+      try {
+        stage.operationActive = true;
+        await ProjectService.UpdateWorkingDirectory(
+          project.has_remote ? projectStore.getActiveProjectUrl : project.uri,
+          projectStore.selectedStudio.name,
+          newWorkingDir
+        );
+        project.working_directory = newWorkingDir;
+        await projectStore.refreshProjects();
+        notificationStore.addNotification('Working directory updated', `New location: ${newWorkingDir}`, 'success', false);
+      } catch (error) {
+        notificationStore.errorNotification('Error updating working directory', error);
+      } finally {
+        stage.operationActive = false;
+        modals.setModalVisibility('popUpModal', false);
+        emitter.emit('refresh-browser');
+      }
+    };
+    
+    modals.setModalVisibility('popUpModal', true);
+  } catch (error) {
+    notificationStore.errorNotification('Error selecting directory', error);
+  }
 };
 
-const viewCheckPoints = () => {
-  modalStore.triggerMenuItem('collectionMenu', 'CheckPoints');
+// Reveals the current directory in the file explorer.
+const revealInExplorer = async () => {
+  menu.hideContextMenu();
+  const isNavigated = commonStore.navigatorMode;
+  let project = projectStore.getActiveProject;
+
+  if (!isNavigated) {
+    await FSService.MakeDirs(project.working_directory);
+    FSService.RevealInExplorer(project.working_directory);
+  } else {
+    let path = collectionStore.navigatedCollection?.type === 'entity' 
+      ? collectionStore.navigatedCollection.entity_path
+      : collectionStore.navigatedCollection.item_path;
+
+    const trimmedPath = path.endsWith('/') ? path.slice(0, -1) : path;
+    let explorerPath = `${project.working_directory}${trimmedPath}`;
+    explorerPath = explorerPath.replace(/\\/g, '/');
+
+    await FSService.MakeDirs(explorerPath);
+    FSService.RevealInExplorer(explorerPath);
+  }
 };
 
+// Opens the upload items modal for web platform.
+const uploadItems = () => {
+  modals.setModalVisibility('uploadItemsModal', true);
+  menu.hideContextMenu();
+};
 
-
-// onMounted hook
+// lifecycle hooks
 onMounted(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.collectionMenu = collectionMenu.value;
@@ -504,7 +427,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.assetMenuHeight = collectionMenu.value.getBoundingClientRect().height;
-
 });
 </script>
 
@@ -512,38 +434,8 @@ onBeforeUnmount(() => {
 @import "@/assets/desktop.css";
 @import "@/assets/menu.css";
 
-.horizontal-flex{
+.horizontal-flex {
   padding: 0;
-}
-
-.entity-item-menu-container {
-  z-index: 10;
-  display: flex;
-  /* opacity: 0;
-  visibility : hidden;
-  position: absolute; */
-  top: 0;
-  left: 0;
-  flex-direction: column;
-  color: white;
-  align-items: center;
-  gap: .3rem;
-  padding: .6rem;
-  box-sizing: border-box;
-  width: max-content;
-  width: 250px;
-  height: max-content;
-  border-radius: 16px;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--light-steel);
-
-}
-
-.entity-item-menu-visible {
-  /* display: flex; */
-  opacity: 1;
-  visibility: visible;
 }
 </style>
 

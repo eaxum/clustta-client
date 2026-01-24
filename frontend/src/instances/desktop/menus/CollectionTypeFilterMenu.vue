@@ -32,64 +32,58 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
-
 // imports
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import utils from '@/services/utils';
-
-// states/store imports
-import { useMenu } from '@/stores/menu';
-import { useCommonStore } from '@/stores/common';
-import { useStatusStore } from '@/stores/status';
-import { useCollectionStore } from '@/stores/collections';
-import { useStageStore } from '@/stores/stages';
 
 // components
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
-// states/stores
-const menu = useMenu();
-const commonStore = useCommonStore();
-const statusStore = useStatusStore();
+// stores
+import { useCollectionStore } from '@/stores/collections';
+import { useCommonStore } from '@/stores/common';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useStageStore } from '@/stores/stages';
+
 const collectionStore = useCollectionStore();
+const commonStore = useCommonStore();
+const iconStore = useIconStore();
+const menu = useMenu();
 const stage = useStageStore();
 
 // refs
 const collectionMenu = ref(null);
 const useExclusive = ref(false);
-const useDeep = ref(false);
 
-
+// computed properties
+// Returns list of collection/entity types available in the project.
 const entityTypes = computed(() => {
-  console.log(collectionStore.getCollectionTypes)
-  return collectionStore.getCollectionTypes
+  return collectionStore.getCollectionTypes;
 });
 
-
 // methods
+// Adds a filter to the entity filters list.
+const addFilter = (filter) => {
+  commonStore.entityFilters.push(filter);
+};
+
+// Returns the icon path for a given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Checks if a filter is currently active.
 const isFilterActive = (filter) => {
   return commonStore.entityFilters.includes(filter);
 };
 
-const toggleUseExclusive = () => {
-  useExclusive.value = !useExclusive.value;
-  if (useExclusive.value) {
-    commonStore.entityFilters = commonStore.entityFilters.filter((item) => item.type !== 'entity-type')
-  }
+// Removes a filter from the entity filters list.
+const removeFilter = (filter) => {
+  commonStore.entityFilters = commonStore.entityFilters.filter((item) => item !== filter);
 };
 
-const toggleUseDeep = () => {
-  commonStore.useDeep = !commonStore.useDeep;
-};
-
+// Toggles a filter on or off with exclusive mode support.
 const toggleFilter = (filter) => {
   const existingFilter = commonStore.entityFilters.find((item) => item.type = 'entity-type');
 
@@ -103,19 +97,20 @@ const toggleFilter = (filter) => {
   }
 };
 
-const addFilter = (filter) => {
-  commonStore.entityFilters.push(filter);
+// Toggles deep filtering mode.
+const toggleUseDeep = () => {
+  commonStore.useDeep = !commonStore.useDeep;
 };
 
-const removeFilter = (filter) => {
-  commonStore.entityFilters = commonStore.entityFilters.filter((item) => item !== filter)
+// Toggles exclusive filtering mode.
+const toggleUseExclusive = () => {
+  useExclusive.value = !useExclusive.value;
+  if (useExclusive.value) {
+    commonStore.entityFilters = commonStore.entityFilters.filter((item) => item.type !== 'entity-type');
+  }
 };
 
-
-
-// methods
-
-// onMounted hook
+// lifecycle hooks
 onMounted(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.collectionMenu = collectionMenu.value;
@@ -124,7 +119,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.assetMenuHeight = collectionMenu.value.getBoundingClientRect().height;
-
 });
 </script>
 
