@@ -20,77 +20,40 @@
 
 <script setup>
 // imports
-import { ref, onMounted } from 'vue';
-import utils from "@/services/utils";
-
-// store/state imports
-import { useCollectionStore } from '@/stores/collections';
-import { useDesktopModalStore } from '@/stores/desktopModals';
+import { onMounted, ref } from 'vue';
+import utils from '@/services/utils';
 
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
-// vars
-let title = 'Clustta';
-let showSearch = false;
+// stores
+import { useDesktopModalStore } from '@/stores/desktopModals';
 
-// refs
-const entityName = ref('');
-const clusttaVersion = ref("");
-const isAwaitingResponse = ref(false);
-
-// states/stores
-const collectionStore = useCollectionStore();
 const modals = useDesktopModalStore();
 
+// refs
+const clusttaVersion = ref('');
+
+// constants
+const showSearch = false;
+const title = 'Clustta';
+
 // methods
+// Closes the modal.
 const closeModal = () => {
   modals.disableAllModals();
 };
 
-const checkForUpdates = async () => {
-  isAwaitingResponse.value = true;
-  const update = await check();
-  if (update) {
-    console.log(
-      `found update ${update.version} from ${update.date} with notes ${update.body}`
-    );
-    let downloaded = 0;
-    let contentLength = 0;
-    // alternatively we could also call update.download() and update.install() separately
-    await update.download((event) => {
-      switch (event.event) {
-        case 'Started':
-          contentLength = event.data.contentLength;
-          console.log(`started downloading ${event.data.contentLength} bytes`);
-          break;
-        case 'Progress':
-          downloaded += event.data.chunkLength;
-          console.log(`downloaded ${downloaded} from ${contentLength}`);
-          break;
-        case 'Finished':
-          console.log('download finished');
-          break;
-      }
-    });
-
-    console.log('update installed');
-  }
-  isAwaitingResponse.value = false;
-};
-
+// lifecycle hooks
 onMounted(async () => {
   clusttaVersion.value = await utils.getRawClusttaVersion();
 });
-
-
 </script>
 
 <style scoped>
 @import "@/assets/desktop.css";
 
 .close {
-  /* background-color: tomato; */
   opacity: .5;
   border-radius: 60px;
   position: absolute;
@@ -102,31 +65,6 @@ onMounted(async () => {
   opacity: 1;
   background-color: crimson;
   transform: scale(1.02);
-
-}
-
-.login-button-icon {
-  filter: invert(100%);
-  width: 20px;
-  height: 20px;
-}
-
-.login-button-text {
-  font-size: 14px;
-}
-
-.pop-up-actions {
-  /* background-color: red; */
-  justify-content: flex-end;
-  gap: .5rem;
-}
-
-.button {
-  width: max-content;
-  min-width: 50px;
-  padding: .2rem .5rem;
-  gap: .2rem;
-  height: 40px;
 }
 
 .version-info {
@@ -140,32 +78,9 @@ onMounted(async () => {
 }
 
 .general-container {
-  gap: 0px;
   gap: .3rem;
   padding-top: .5rem;
   align-items: flex-start;
-  /* background-color: red; */
-}
-
-.input-short {
-  flex: 1;
-  width: 100%;
-}
-
-.listbox-short {
-
-  flex: 1;
-  width: 130px;
-}
-
-.input-label {
-
-  font-family: Inter, sans-serif;
-  color: white;
-  font-size: 16px;
-  white-space: nowrap;
-  flex: 1;
-
 }
 </style>
 

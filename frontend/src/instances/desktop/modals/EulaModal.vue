@@ -18,69 +18,56 @@
 
 <script setup>
 // imports
-import { ref, computed, onMounted } from 'vue';
-import utils from "@/services/utils";
+import { computed, onMounted, ref } from 'vue';
+import utils from '@/services/utils';
+import textContent from '@/data/EULA.txt?raw';
 
-import textContent from '@/data/EULA.txt?raw'
+// components
+import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+
+// services
 import { AuthService, SettingsService } from '@/services';
 
 // stores
+import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
 
-// store/state imports
-import { useDesktopModalStore } from '@/stores/desktopModals';
-
-// components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-
-// vars
-let title = 'Clustta End User License Agreement';
-let showSearch = false;
-
-
-const trayStates = useTrayStates();
+const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
+const trayStates = useTrayStates();
 const userStore = useUserStore();
 
 // refs
-const clusttaVersion = ref("");
-const eulaContent = ref(null)
-const scrollTop = ref(0)
-const clientHeight = ref(0)
-const scrollHeight = ref(0)
+const clientHeight = ref(0);
+const clusttaVersion = ref('');
+const eulaContent = ref(null);
 const hasReachedBottom = ref(false);
+const scrollHeight = ref(0);
+const scrollTop = ref(0);
 
+// constants
+const showSearch = false;
+const title = 'Clustta End User License Agreement';
+
+// computed
+// Returns whether the user has scrolled to the bottom of the EULA.
 const isAtBottom = computed(() => {
-    if (!eulaContent.value) return false
-    
-    const isScrollable = scrollHeight.value > clientHeight.value
-      if (!isScrollable) return false
-
-    const tolerance = 1
-    const currentlyAtBottom = scrollTop.value + clientHeight.value >= scrollHeight.value - tolerance
-    
-    if (currentlyAtBottom) {
-    hasReachedBottom.value = true
-    }
-    
-    return hasReachedBottom.value
-})
-
-const updateScrollPosition = () => {
-    if (eulaContent.value) {
-    scrollTop.value = eulaContent.value.scrollTop
-    clientHeight.value = eulaContent.value.clientHeight
-    scrollHeight.value = eulaContent.value.scrollHeight
-    }
-}
-
-// states/stores
-const modals = useDesktopModalStore();
+  if (!eulaContent.value) return false;
+  const isScrollable = scrollHeight.value > clientHeight.value;
+  if (!isScrollable) return false;
+  const tolerance = 1;
+  const currentlyAtBottom = scrollTop.value + clientHeight.value >= scrollHeight.value - tolerance;
+  if (currentlyAtBottom) {
+    hasReachedBottom.value = true;
+  }
+  return hasReachedBottom.value;
+});
 
 // methods
+// Accepts the EULA agreement and proceeds to setup.
 const acceptAgreement = async () => {
   await SettingsService.SetEulaAccepted(true);
   await SettingsService.SetCurrentVersion(clusttaVersion.value);
@@ -88,64 +75,44 @@ const acceptAgreement = async () => {
   setDirectories();
 };
 
-const setDirectories = async () => {
-    const projectDirectory = await SettingsService.GetProjectDirectory();
-    if(projectDirectory) return
-	  modals.setModalVisibility('dirOnboardModal', true);
+// Logs the user out after declining the EULA.
+const logUserOut = async () => {
+  await AuthService.Logout()
+    .then(() => {
+      modals.disableAllModals();
+      userStore.$reset();
+      projectStore.$reset();
+      trayStates.$reset();
+    })
+    .catch(() => {});
 };
 
-const logUserOut = async () => {
-	await AuthService.Logout()
-		.then((data) => {
-            modals.disableAllModals();
-			userStore.$reset()
-			projectStore.$reset();
-			trayStates.$reset();
-		}
-		)
-		.catch((error) => {
-			// notificationStore.errorNotification("Logout Failed", error)
-		});
-}
+// Opens the directory onboarding modal if project directory is not set.
+const setDirectories = async () => {
+  const projectDirectory = await SettingsService.GetProjectDirectory();
+  if (projectDirectory) return;
+  modals.setModalVisibility('dirOnboardModal', true);
+};
 
+// Updates the scroll position for tracking EULA read progress.
+const updateScrollPosition = () => {
+  if (eulaContent.value) {
+    scrollTop.value = eulaContent.value.scrollTop;
+    clientHeight.value = eulaContent.value.clientHeight;
+    scrollHeight.value = eulaContent.value.scrollHeight;
+  }
+};
+
+// lifecycle hooks
 onMounted(async () => {
   clusttaVersion.value = await utils.getRawClusttaVersion();
 });
-
-
 </script>
 
 <style scoped>
 @import "@/assets/desktop.css";
 
-.close {
-  /* background-color: tomato; */
-  opacity: .5;
-  border-radius: 60px;
-  position: absolute;
-  top: 8px;
-  right: 8px;
-}
-
-.close:hover {
-  opacity: 1;
-  background-color: crimson;
-  transform: scale(1.02);
-
-}
-
-.login-button-icon {
-  filter: invert(100%);
-  width: 20px;
-  height: 20px;
-}
-
-.login-button-text {
-  font-size: 14px;
-}
-
 .pop-up-actions {
-  /* background-color: red; */
   justify-content: space-between;
   align-items: center;
   gap: .5rem;
@@ -161,63 +128,36 @@ onMounted(async () => {
   overflow-y: scroll;
   background-color: var(--steel);
   border-radius: var(--small-radius);
-
-  
   margin: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
-  /* font-family: 'Courier New', monospace; */
   line-height: 1.5;
-
 }
 
 .eula-content::-webkit-scrollbar {
-	width: 6px;
+  width: 4px;
 }
 
 .eula-content::-webkit-scrollbar-thumb {
-	border-radius: 10px;
-	background-color: var(--silver);
+  border-radius: var(--small-radius);
+  background-color: var(--light-steel);
 }
 
 .eula-content::-webkit-scrollbar-track {
-	border-radius: 10px;
-}
-
-.consent-section{
-    width: 100%;
-    color: var(--white);
-    display: flex;
-    /* background-color: hotpink; */
-    padding: .2rem;
-    margin-top: 1rem;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 1rem;
-}
-
-.consent-text{
-    color: var(--white);
-    font-size: 14px;
+  border-radius: var(--small-radius);
 }
 
 .general-container {
   gap: .3rem;
   display: flex;
   padding: .5rem;
-  /* padding-top: .5rem; */
   align-items: center;
   justify-content: center;
   overflow: hidden;
   box-sizing: border-box;
-  /* background-color: red; */
 }
 
 .general-container-wide {
-  /* overflow: hidden;
-  width: 40vw;
-  max-width: 50vw;
-  max-height: 80vh; */
   min-width: 500px !important;
 }
 
@@ -225,27 +165,6 @@ onMounted(async () => {
   justify-content: flex-start;
   align-items: flex-start;
   max-height: 90vh;
-}
-
-.input-short {
-  flex: 1;
-  width: 100%;
-}
-
-.listbox-short {
-
-  flex: 1;
-  width: 130px;
-}
-
-.input-label {
-
-  font-family: Inter, sans-serif;
-  color: white;
-  font-size: 16px;
-  white-space: nowrap;
-  flex: 1;
-
 }
 </style>
 

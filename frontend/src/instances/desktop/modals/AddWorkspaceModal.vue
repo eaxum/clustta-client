@@ -19,74 +19,64 @@
 </template>
 
 <script setup>
-
 // imports
-import { ref, onMounted, computed } from 'vue';
-import { SettingsService } from "@/services";
+import { computed, onMounted, ref } from 'vue';
 
-//stores
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useCommonStore } from '@/stores/common';
-import { useProjectStore } from '@/stores/projects';
-import { useCollectionStore } from '@/stores/collections';
-
-//components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+// components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
+// services
+import { SettingsService } from '@/services';
 
-//header vars
-let title = 'Save Workspace';
-let showSearch = false;
+// stores
+import { useCollectionStore } from '@/stores/collections';
+import { useCommonStore } from '@/stores/common';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useProjectStore } from '@/stores/projects';
 
-// stores/states
-const modals = useDesktopModalStore();
-const commonStore = useCommonStore();
-const projectStore = useProjectStore();
 const collectionStore = useCollectionStore();
+const commonStore = useCommonStore();
+const modals = useDesktopModalStore();
+const projectStore = useProjectStore();
 
-//refs
-const workspaceName = ref('');
+// refs
 const isAwaitingResponse = ref(false);
+const workspaceName = ref('');
 
-// Pre-fill workspace name with collection name if in collection view
-onMounted(() => {
-  if (collectionStore.navigatedCollection) {
-    workspaceName.value = collectionStore.navigatedCollection.name || '';
-  }
-});
+// constants
+const showSearch = false;
+const title = 'Save Workspace';
 
-// computed props
+// computed
+// Returns whether the workspace name is valid and not already in use.
 const isValueChanged = computed(() => {
   const workspaceNames = commonStore.workspaces.map((workspace) => workspace.name);
-  let restrictedNames = ['']
-  for (let i = 0; i < workspaceNames.length; i++) {
-    restrictedNames.push(workspaceNames[i].toLowerCase())
-  }
+  const restrictedNames = ['', ...workspaceNames.map(name => name.toLowerCase())];
   return !restrictedNames.includes(workspaceName.value.toLowerCase());
 });
 
 // methods
+// Closes the modal.
 const closeModal = () => {
   modals.disableAllModals();
 };
 
+// Handles enter key press to submit form.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter' && isValueChanged.value) {
     saveWorkspace();
   }
 };
 
+// Saves the current workspace configuration.
 const saveWorkspace = async () => {
   isAwaitingResponse.value = true;
-
-  // Clone the collection and remove the preview field to reduce size
   let collectionData = null;
   if (collectionStore.navigatedCollection) {
     collectionData = { ...collectionStore.navigatedCollection };
     delete collectionData.preview;
   }
-
   const newWorkspace = {
     name: workspaceName.value,
     filters: {
@@ -109,15 +99,19 @@ const saveWorkspace = async () => {
     collection: collectionData,
     viewMode: commonStore.viewMode,
   };
-  
-  await SettingsService.AddProjectWorkspace(projectStore.getActiveProject.id, newWorkspace)
+  await SettingsService.AddProjectWorkspace(projectStore.getActiveProject.id, newWorkspace);
   commonStore.workspaces.push(newWorkspace);
   commonStore.setActiveWorkspace(newWorkspace);
   isAwaitingResponse.value = false;
   closeModal();
-
 };
 
+// lifecycle hooks
+onMounted(() => {
+  if (collectionStore.navigatedCollection) {
+    workspaceName.value = collectionStore.navigatedCollection.name || '';
+  }
+});
 </script>
 
 <style scoped>
@@ -125,146 +119,11 @@ const saveWorkspace = async () => {
 
 .general-container {
   gap: .5rem;
-  /* background-color: firebrick; */
-}
-
-.modal-info {
-  display: flex;
-  flex-direction: column;
-  max-width: 100%;
-  justify-content: flex-start;
-  align-self: stretch;
-  width: 464px;
-  align-items: flex-start;
-  box-sizing: border-box;
-
-}
-
-.modal-text-container {
-  display: flex;
-  flex-direction: column;
-  max-width: 100%;
-  justify-content: flex-start;
-  align-self: stretch;
-  width: 464px;
-  align-items: flex-start;
-  /* margin-top: 20px; */
-}
-
-.modal-title {
-  max-width: 100%;
-  align-self: stretch;
-  width: 464px;
-  color: rgba(16, 24, 40, 1);
-  color: white;
-  font-size: 18px;
-  line-height: 28px;
-  letter-spacing: 0%;
-  text-align: left;
-}
-
-.input-header {
-  /* background-color: lightblue; */
-  width: 100%;
-  display: flex;
-  align-items: center;
-  margin: 10px 0px;
-}
-
-.input-count {
-  background-color: none;
-  font-size: 14px;
-  color: white;
-}
-
-.modal-subtitle {
-  /* background-color: beige; */
-  /* max-width: 100%; */
-  align-self: stretch;
-  width: 464px;
-  color: rgba(16, 24, 40, 1);
-  color: white;
-  font-size: 14px;
-  /* line-height: 28px; */
-  letter-spacing: 0%;
-  text-align: left;
-}
-
-
-
-.modal-body {
-  box-sizing: border-box;
-  max-width: 100%;
-  align-self: stretch;
-  width: 464px;
-  margin: 8px 0px;
-  font-size: 14px;
-  color: rgba(16, 24, 40, 1);
-  line-height: 20px;
-  letter-spacing: 0%;
-  text-align: left;
-}
-
-.modal-actions {
-  box-sizing: border-box;
-  padding: 1rem 2rem;
-  gap: 2rem;
-  display: flex;
-  flex-direction: row;
-  max-width: 100%;
-  align-self: stretch;
-  align-items: center;
-  justify-content: space-evenly;
-  width: 464px;
-  margin-top: 32px;
-}
-
-.div-10 {
-  display: flex;
-}
-
-.task-options-container {
-  position: relative;
-  box-sizing: border-box;
-  width: 100%;
-  height: max-content;
-  height: 40px;
-  transition: all .2s ease-in-out;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  margin: 0;
-}
-
-.task-options-container-closed {
-  height: 0px;
-  padding: 0;
-  margin-bottom: -1rem;
 }
 
 .input-short {
   flex: 1;
   width: 100%;
-}
-
-.listbox-short {
-
-  flex: 1;
-  width: 130px;
-}
-
-.input-label {
-  font-family: Inter, sans-serif;
-  color: var(--white);
-  font-size: 14px;
-  white-space: nowrap;
-  flex: 1;
-}
-
-.pop-up-prompt {
-  gap: 10px;
-  align-items: center;
-  justify-content: center;
 }
 </style>
 

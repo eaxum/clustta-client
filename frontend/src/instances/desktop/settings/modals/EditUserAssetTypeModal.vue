@@ -25,78 +25,82 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
-
-import { ref, onMounted, computed } from 'vue';
-import { useProjectStore } from '@/stores/projects';
-import { useNotificationStore } from '@/stores/notifications';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { AssetService } from "@/services";
-import { useAssetStore } from '@/stores/assets';
+// imports
+import { computed, onMounted, ref } from 'vue';
 import iconData from "@/data/iconData.json";
 
 // components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import IconGrid from '@/instances/desktop/components/IconGrid.vue';
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
-// vars
-let title = 'Edit task type';
-const isAwaitingResponse = ref(false);
-
-const icons = computed(() => {
-  const allIcons = iconData.icons;
-  const allTaskTypeIcons = assetStore.assetTypes.map((item) => item.icon);
-  return allIcons.filter((icon) => !allTaskTypeIcons.includes(icon))
-})
+// services
+import { AssetService } from "@/services";
 
 // stores
+const assetStore = useAssetStore();
+const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
-const assetStore = useAssetStore();
 
-const taskTypeName = ref('');
-const taskTypeIcon = ref('generic');
+import { useAssetStore } from '@/stores/assets';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
 
+// constants
+const title = 'Edit task type';
+
+// refs
 const displayIconSelector = ref(true);
+const isAwaitingResponse = ref(false);
+const taskTypeIcon = ref('generic');
+const taskTypeName = ref('');
 
-const toggleIconSelector = () => {
-  displayIconSelector.value = !displayIconSelector.value
-};
-
-const setIcon = (icon) => {
-  taskTypeIcon.value = icon;
-};
-
-const isValueChanged = computed(() => {
-  return !!taskTypeName.value && taskTypeIcon.value !== 'generic'
+// computed
+const icons = computed(() => {
+  const allIcons = iconData.icons;
+  const allTaskTypeIcons = assetStore.assetTypes.map((item) => item.icon);
+  return allIcons.filter((icon) => !allTaskTypeIcons.includes(icon));
 });
 
+const isValueChanged = computed(() => {
+  return !!taskTypeName.value && taskTypeIcon.value !== 'generic';
+});
+
+// methods
+
+// Closes the modal.
 const closeModal = () => {
   modals.setModalVisibility("editUserAssetTypeModal", false);
 };
 
+// Returns the app icon for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Handles enter key press.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter') {
     // updateTaskType();
   }
 };
 
+// Sets the selected icon.
+const setIcon = (icon) => {
+  taskTypeIcon.value = icon;
+};
+
+// Updates the task type with the new values.
 const updateTaskType = () => {
   AssetService.UpdateAssetType(projectStore.activeProject.uri, assetStore.selectedAssetType.id, taskTypeName.value, taskTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification("Task Type Updated", "", "success");
       const index = assetStore.assetTypes.findIndex(taskType => taskType.id === assetStore.selectedAssetType.id);
-      assetStore.assetTypes[index] = response
+      assetStore.assetTypes[index] = response;
       closeModal();
     })
     .catch((error) => {
@@ -104,124 +108,19 @@ const updateTaskType = () => {
     });
 };
 
+// lifecycle
 onMounted(() => {
-//   taskTypeName.value = assetStore.selectedAssetType.name;
-//   taskTypeIcon.value = assetStore.selectedAssetType.icon;
-})
-
-
+  // taskTypeName.value = assetStore.selectedAssetType.name;
+  // taskTypeIcon.value = assetStore.selectedAssetType.icon;
+});
 </script>
 
 <style scoped>
 @import "@/assets/desktop.css";
 
-.add-category {
-
-  display: flex;
-  gap: .5rem;
-  flex-direction: row;
-  /* background-color: chocolate; */
-}
-
 .input-short {
   flex: 1;
   width: 100%;
-}
-
-.listbox-short {
-
-  flex: 1;
-  width: 130px;
-}
-
-.input-label {
-
-  font-family: Inter, sans-serif;
-  color: white;
-  font-size: 16px;
-  white-space: nowrap;
-  flex: 1;
-
-}
-
-/* .general-container {
-  gap: 10px;
-  box-sizing: border-box;
-  width: 300px;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  align-items: center;
-} */
-
-.category-area {
-  box-sizing: border-box;
-  /* margin-top: 1rem; */
-  display: flex;
-  /* align-items: center; */
-  flex-direction: column;
-  /* justify-content: space-between; */
-  gap: 1rem;
-  /* background-color: darkkhaki; */
-  color: white;
-  width: 98%;
-}
-
-.category-list {
-  box-sizing: border-box;
-  /* margin-top: 1rem; */
-  display: flex;
-  padding: .5rem;
-  align-items: center;
-  flex-direction: column;
-  /* justify-content: space-between; */
-  gap: .2rem;
-  /* background-color: rgb(57, 122, 108); */
-
-  background-color: rgba(0, 0, 0, 0.144);
-  height: 290px;
-  /* height: 90%; */
-  overflow: hidden;
-  overflow-y: scroll;
-  width: 100%;
-  border-radius: 10px;
-}
-
-.category-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.category-list::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
-}
-
-.category-list::-webkit-scrollbar-track {
-  border-radius: 10px;
-  /* background-color: rgba(0, 0, 0, 0.295); */
-}
-
-.category-item {
-  color: white;
-  /* margin-top: 1rem; */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-  width: 100%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.096);
-  height: max-content;
-  padding: .2rem;
-
-  /* background-color: greenyellow; */
-}
-
-.category-item-actions {
-
-  /* background-color: red; */
-  display: flex;
-
 }
 </style>
 

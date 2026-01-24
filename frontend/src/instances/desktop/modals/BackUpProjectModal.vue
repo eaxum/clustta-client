@@ -169,113 +169,58 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
 // imports
 import { ref } from 'vue';
 import { syncFullData } from '@/lib/sync';
 
-//stores
-import { useNotificationStore } from '@/stores/notifications';
+// components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import ProgressBar from '@/instances/common/components/ProgressBar.vue';
+
+// services
+import { DialogService, FSService, SyncService } from '@/services';
+
+// stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 
-//components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-import ProgressBar from '@/instances/common/components/ProgressBar.vue';
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-
-import { DialogService, FSService, SyncService } from '@/services';
-
-//refs
-const projectStore = useProjectStore();
-const notificationStore = useNotificationStore();
+const iconStore = useIconStore();
 const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
 const stage = useStageStore();
 
-const selectedBackupDirectory = ref('');
-const isBackingUp = ref(false);
-const isAwaitingResponse = ref(false);
-const isSyncing = ref(false);
+// refs
 const backupComplete = ref(false);
 const backupDestinationPath = ref('');
+const isAwaitingResponse = ref(false);
+const isBackingUp = ref(false);
+const isSyncing = ref(false);
+const selectedBackupDirectory = ref('');
 
-//methods
-const performFullSync = async () => {
-  try {
-    isSyncing.value = true;
-    stage.operationActive = true;
-    
-    notificationStore.cancleFunction = SyncService.CancelSync
-    notificationStore.canCancel = true
-
-    await syncFullData();
-    notificationStore.addNotification(
-      'Sync complete',
-      'All checkpoints have been synced successfully',
-      'success',
-      false
-    );
-  } catch (error) {
-    notificationStore.errorNotification('Sync failed', error);
-  } finally {
-    stage.operationActive = false;
-    isSyncing.value = false;
-  }
-};
-
-const selectBackupDirectory = async () => {
-  const result = await DialogService.SelectFolderDialog("Select Backup Location");
-
-  if (result) {
-    let fileDir = result.replace(/\\/g, '/');
-    selectedBackupDirectory.value = fileDir;
-  }
-};
-
+// methods
+// Creates a backup of the project to the selected directory.
 const backupProject = async () => {
   if (!selectedBackupDirectory.value) {
-    notificationStore.addNotification(
-      'No destination selected',
-      'Please select a backup location',
-      'error',
-      false
-    );
+    notificationStore.addNotification('No destination selected', 'Please select a backup location', 'error', false);
     return;
   }
 
   try {
     isBackingUp.value = true;
     stage.operationActive = true;
-    
     const project = projectStore.getActiveProject;
     const sourceFile = project.uri;
-    
-    // BackupFile handles appending the filename when destination is a directory
-    // and sends progress updates to the frontend
     const destinationDirectory = selectedBackupDirectory.value;
-    
-    // Copy the file with progress tracking
     const destinationPath = await FSService.BackupFile(sourceFile, destinationDirectory);
-    
     backupDestinationPath.value = destinationPath;
     backupComplete.value = true;
-    
-    notificationStore.addNotification(
-      'Backup successful',
-      `Project backed up to: ${destinationPath}`,
-      'success',
-      false
-    );
-    
+    notificationStore.addNotification('Backup successful', `Project backed up to: ${destinationPath}`, 'success', false);
   } catch (error) {
     notificationStore.errorNotification('Error backing up project', error);
   } finally {
@@ -284,21 +229,17 @@ const backupProject = async () => {
   }
 };
 
+// Cancels the current sync operation.
 const cancelOperation = async () => {
   isAwaitingResponse.value = true;
-  await notificationStore.cancleFunction()
-  notificationStore.resetProgress()
-  notificationStore.cancleFunction = null
-  notificationStore.canCancel = false
+  await notificationStore.cancleFunction();
+  notificationStore.resetProgress();
+  notificationStore.cancleFunction = null;
+  notificationStore.canCancel = false;
   isAwaitingResponse.value = false;
 };
 
-const locateBackupFile = () => {
-  if (backupDestinationPath.value) {
-    FSService.RevealInExplorer(backupDestinationPath.value);
-  }
-};
-
+// Closes the modal and resets state.
 const closeModal = () => {
   selectedBackupDirectory.value = '';
   isBackingUp.value = false;
@@ -307,6 +248,43 @@ const closeModal = () => {
   modals.setModalVisibility('backUpProjectModal', false);
 };
 
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Opens the backup file location in file explorer.
+const locateBackupFile = () => {
+  if (backupDestinationPath.value) {
+    FSService.RevealInExplorer(backupDestinationPath.value);
+  }
+};
+
+// Performs a full sync before backup.
+const performFullSync = async () => {
+  try {
+    isSyncing.value = true;
+    stage.operationActive = true;
+    notificationStore.cancleFunction = SyncService.CancelSync;
+    notificationStore.canCancel = true;
+    await syncFullData();
+    notificationStore.addNotification('Sync complete', 'All checkpoints have been synced successfully', 'success', false);
+  } catch (error) {
+    notificationStore.errorNotification('Sync failed', error);
+  } finally {
+    stage.operationActive = false;
+    isSyncing.value = false;
+  }
+};
+
+// Opens a dialog to select the backup destination directory.
+const selectBackupDirectory = async () => {
+  const result = await DialogService.SelectFolderDialog('Select Backup Location');
+  if (result) {
+    const fileDir = result.replace(/\\/g, '/');
+    selectedBackupDirectory.value = fileDir;
+  }
+};
 </script>
 
 <style scoped>

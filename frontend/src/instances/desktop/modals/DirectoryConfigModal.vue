@@ -34,70 +34,47 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
-
 // imports
-import { ref, onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 
-//stores
-import { useNotificationStore } from '@/stores/notifications';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-
-//components
+// components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
-import { ClipboardService, SettingsService, DialogService } from '@/services';
+// services
+import { DialogService, SettingsService } from '@/services';
 
-//header vars
-let title = 'Configure Directories';
-let showSearch = false;
+// stores
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useNotificationStore } from '@/stores/notifications';
 
-//refs
+const iconStore = useIconStore();
+const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const sharedProjectsDirectory = ref('');
-const sharedProjectsDirectoryInput = ref(null);
+
+// refs
+const projectLocations = ref([]);
 const projectsDirectory = ref('');
 const projectsDirectoryInput = ref(null);
-const projectLocations = ref([]);
-const modals = useDesktopModalStore();
+const sharedProjectsDirectory = ref('');
+const sharedProjectsDirectoryInput = ref(null);
 
-//methods
+// constants
+const showSearch = false;
+const title = 'Configure Directories';
 
-const pasteDirectoryPath = async (context) => {
-  ClipboardService.ReadText()
-    .then(path => {
-      if (context === 'shared') {
-        sharedProjectsDirectory.value = path;
-      } else if (context === 'personal') {
-        projectsDirectory.value = path;
-      }
-    }).catch(err => {
-      console.error("Failed to paste from clipboard:", err);
-    });
+// methods
+// Closes the modal.
+const closeModal = () => {
+  modals.disableAllModals();
 };
 
-const selectDirectoryPath = async (context) => {
-  const result = await DialogService.SelectFolderDialog("Select Folder File");
-  if (result) {
-    let fileDir = result.replace(/\\/g, '/');
-
-    if (context === 'shared') {
-      sharedProjectsDirectory.value = fileDir;
-      sharedProjectsDirectoryInput.value.focus();
-    } else if (context === 'personal') {
-      projectsDirectory.value = fileDir;
-      projectsDirectoryInput.value.focus();
-    }
-  }
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
 };
 
+// Saves the directory configuration changes.
 const saveChanges = async () => {
   try {
     await SettingsService.SetProjectDirectory(projectsDirectory.value);
@@ -109,40 +86,37 @@ const saveChanges = async () => {
   }
 };
 
-
-const closeModal = () => {
-  modals.disableAllModals();
-};
-
-const handleEnterKey = (event) => {
-  if (event.key === 'Enter') {
-    saveChanges();
+// Opens a dialog to select a directory path.
+const selectDirectoryPath = async (context) => {
+  const result = await DialogService.SelectFolderDialog('Select Folder File');
+  if (result) {
+    const fileDir = result.replace(/\\/g, '/');
+    if (context === 'shared') {
+      sharedProjectsDirectory.value = fileDir;
+      sharedProjectsDirectoryInput.value.focus();
+    } else if (context === 'personal') {
+      projectsDirectory.value = fileDir;
+      projectsDirectoryInput.value.focus();
+    }
   }
 };
 
-
-
+// lifecycle hooks
 onMounted(async () => {
   try {
     projectsDirectory.value = await SettingsService.GetProjectDirectory();
     sharedProjectsDirectory.value = await SettingsService.GetSharedProjectDirectory();
     projectLocations.value = await SettingsService.GetAllLocationPaths();
   } catch (error) {
-    notificationStore.addNotification(
-      "Error Loading Settings",
-      error.message,
-      "error",
-      false
-    );
+    notificationStore.addNotification('Error Loading Settings', error.message, 'error', false);
   }
 });
-
 </script>
 
 <style scoped>
 @import "@/assets/desktop.css";
 
-.regular{
+.regular {
   padding-left: .5rem;
   color: var(--white);
   font-size: 14px;
@@ -153,7 +127,6 @@ onMounted(async () => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   justify-content: flex-start;
   gap: .4px;
   color: white;
@@ -163,129 +136,9 @@ onMounted(async () => {
   gap: 1rem;
 }
 
-.modal-info {
-  display: flex;
-  flex-direction: column;
-  max-width: 100%;
-  justify-content: flex-start;
-  align-self: stretch;
-  width: 464px;
-  align-items: flex-start;
-  box-sizing: border-box;
-
-}
-
-.modal-text-container {
-  display: flex;
-  flex-direction: column;
-  max-width: 100%;
-  justify-content: flex-start;
-  align-self: stretch;
-  width: 464px;
-  align-items: flex-start;
-  /* margin-top: 20px; */
-}
-
-.modal-title {
-  max-width: 100%;
-  align-self: stretch;
-  width: 464px;
-  color: rgba(16, 24, 40, 1);
-  color: white;
-  font-size: 18px;
-  line-height: 28px;
-  letter-spacing: 0%;
-  text-align: left;
-}
-
-.input-header {
-  /* background-color: lightblue; */
-  width: 100%;
-  display: flex;
-  align-items: center;
-  margin: 10px 0px;
-}
-
-.input-count {
-  background-color: none;
-  font-size: 14px;
-  color: white;
-}
-
-.modal-subtitle {
-  /* background-color: beige; */
-  /* max-width: 100%; */
-  align-self: stretch;
-  width: 464px;
-  color: rgba(16, 24, 40, 1);
-  color: white;
-  font-size: 14px;
-  /* line-height: 28px; */
-  letter-spacing: 0%;
-  text-align: left;
-}
-
-
-
-.modal-body {
-  box-sizing: border-box;
-  max-width: 100%;
-  align-self: stretch;
-  width: 464px;
-  margin: 8px 0px;
-  font-size: 14px;
-  color: rgba(16, 24, 40, 1);
-  line-height: 20px;
-  letter-spacing: 0%;
-  text-align: left;
-}
-
-.modal-actions {
-  box-sizing: border-box;
-  padding: 1rem 2rem;
-  gap: 2rem;
-  display: flex;
-  flex-direction: row;
-  max-width: 100%;
-  align-self: stretch;
-  align-items: center;
-  justify-content: space-evenly;
-  width: 464px;
-  margin-top: 32px;
-}
-
-.div-10 {
-  display: flex;
-}
-
-.task-options-container {
-  position: relative;
-  box-sizing: border-box;
-  width: 100%;
-  height: max-content;
-  height: 40px;
-  transition: all .2s ease-in-out;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  margin: 0;
-}
-
-.task-options-container-closed {
-  height: 0px;
-  padding: 0;
-  margin-bottom: -1rem;
-}
-
 .input-short {
   flex: 1;
   width: 100%;
-}
-
-.listbox-short {
-
-  flex: 1;
-  width: 130px;
 }
 
 .input-label {
@@ -294,12 +147,6 @@ onMounted(async () => {
   font-size: 14px;
   white-space: nowrap;
   flex: 1;
-}
-
-.pop-up-prompt {
-  gap: 10px;
-  align-items: center;
-  justify-content: center;
 }
 </style>
 

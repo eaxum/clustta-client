@@ -138,59 +138,41 @@
 
 <script setup>
 // imports
-import { ref, onMounted, computed, watchEffect } from 'vue';
+import { computed, onMounted, ref, watchEffect } from 'vue';
 import { Browser } from "@wailsio/runtime";
 
-// services
-import { StudioService, DeploymentService } from '@/services';
-
-//stores
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useNotificationStore } from '@/stores/notifications';
-import { useMenu } from '@/stores/menu';
-import { useIconStore } from '@/stores/icons';
-import { useProjectStore } from '@/stores/projects';
-import { useStageStore } from '@/stores/stages';
-
-//components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+// components
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
+import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import InputAlert from '@/instances/common/components/InputAlert.vue';
-import ProgressBar from '@/instances/common/components/ProgressBar.vue';
 import NotificationBox from '@/instances/common/components/NotificationBox.vue';
+import ProgressBar from '@/instances/common/components/ProgressBar.vue';
 
-//header vars
-let title = 'New ClusttaCloud Studio';
+// services
+import { DeploymentService, StudioService } from '@/services';
 
-// stores/states
+// stores
+const iconStore = useIconStore();
+const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const menu = useMenu();
-const iconStore = useIconStore();
 const projectStore = useProjectStore();
 const stage = useStageStore();
 
-//refs
-const studioName = ref('');
-const deploymentCode = ref('');
-const vmSize = ref('Standard_B1s');
-const diskSizeGB = ref(30);
-const isStudioRegistered = ref(false);
-const isAwaitingResponse = ref(false);
-const modalContainer = ref(null);
-const createdStudio = ref(null);
-const deploymentStatus = ref(null);
-const deploymentId = ref('');
-const checkingStudioNameAvailability = ref(false);
-const isStudioNameTaken = ref(false);
-const studioNameError = ref('');
-const deploymentCodeError = ref('');
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
+
+// constants
+const title = 'New ClusttaCloud Studio';
 
 // Dummy deployment status for UI testing
 const dummyStatuses = [
-  null, // No deployment started
+  null,
   {
     deployment_id: 'dep_test_123',
     studio_name: 'Test Studio',
@@ -243,32 +225,65 @@ const dummyStatuses = [
   }
 ];
 
+// refs
+const checkingStudioNameAvailability = ref(false);
+const createdStudio = ref(null);
 const currentDummyIndex = ref(0);
-
+const deploymentCode = ref('');
+const deploymentCodeError = ref('');
+const deploymentId = ref('');
+const deploymentStatus = ref(null);
+const diskSizeGB = ref(30);
+const isAwaitingResponse = ref(false);
+const isStudioNameTaken = ref(false);
+const isStudioRegistered = ref(false);
+const modalContainer = ref(null);
 const serverLocation = ref('eastus');
 const serverLocationName = ref('East US');
+const studioName = ref('');
+const studioNameError = ref('');
+const vmSize = ref('Standard_B1s');
+const vmSizeName = ref('Indie');
 
-const serverLocations = computed(() => {
-  return  [
-    {name: 'East US', location: 'eastus'},
-    {name: 'West US 2', location: 'westus2'},
-    {name: 'Central US', location: 'centralus'},
-    {name: 'West Europe', location: 'westeurope'},
-    {name: 'North Europe', location: 'northeurope'},
-  ];
+// computed
+const deploymentCodeEmpty = computed(() => {
+  return deploymentCode.value === '';
+});
+
+const isValueChanged = computed(() => {
+  const baseValid = !studioNameEmpty.value && !studioNameInUse.value && !deploymentCodeEmpty.value && !studioNameError.value && !deploymentCodeError.value;
+  return baseValid;
+});
+
+const restrictedNames = computed(() => {
+  return ['clustta', 'eaxum', 'pixar', 'disney', 'dreamworks'];
 });
 
 const serverLocationNames = computed(() => {
-  return serverLocations.value.map((location) => location.name)
+  return serverLocations.value.map((location) => location.name);
 });
 
-const changeServerLocation = (selectedServerLocation) => {
-    const selectedServer = serverLocations.value.find((item) => item.name === selectedServerLocation );
-    serverLocationName.value = selectedServer.name;
-    serverLocation.value = selectedServer.location
-};
+const serverLocations = computed(() => {
+  return [
+    { name: 'East US', location: 'eastus' },
+    { name: 'West US 2', location: 'westus2' },
+    { name: 'Central US', location: 'centralus' },
+    { name: 'West Europe', location: 'westeurope' },
+    { name: 'North Europe', location: 'northeurope' },
+  ];
+});
 
-const vmSizeName = ref('Indie');
+const studioNameEmpty = computed(() => {
+  return studioName.value === '';
+});
+
+const studioNameInUse = computed(() => {
+  return restrictedNames.value.includes(studioName.value.toLowerCase()) || isStudioNameTaken.value;
+});
+
+const vmSizeNames = computed(() => {
+  return vmSizes.value.map((size) => size.name);
+});
 
 const vmSizes = computed(() => {
   return [
@@ -296,57 +311,23 @@ const vmSizes = computed(() => {
   ];
 });
 
-const vmSizeNames = computed(() => {
-  return vmSizes.value.map((size) => size.name)
-});
+// methods
 
+// Changes the server location setting.
+const changeServerLocation = (selectedServerLocation) => {
+  const selectedServer = serverLocations.value.find((item) => item.name === selectedServerLocation);
+  serverLocationName.value = selectedServer.name;
+  serverLocation.value = selectedServer.location;
+};
+
+// Changes the VM size setting.
 const changeVmSize = (selectedVmSize) => {
-    const selectedSize = vmSizes.value.find((item) => item.name === selectedVmSize );
-    vmSizeName.value = selectedSize.name;
-    vmSize.value = selectedSize.vmSize;
+  const selectedSize = vmSizes.value.find((item) => item.name === selectedVmSize);
+  vmSizeName.value = selectedSize.name;
+  vmSize.value = selectedSize.vmSize;
 };
 
-const restrictedNames = computed(() => {
-  let restrictedNames = ['clustta', 'eaxum', 'pixar', 'disney', 'dreamworks'];
-  return restrictedNames;
-});
-
-const studioNameInUse = computed(() => {
-  return restrictedNames.value.includes(studioName.value.toLowerCase()) || isStudioNameTaken.value;
-});
-
-const studioNameEmpty = computed(() => {
-  return studioName.value === ''
-});
-
-const deploymentCodeEmpty = computed(() => {
-  return deploymentCode.value === ''
-});
-
-const isValueChanged = computed(() => {
-  const baseValid = !studioNameEmpty.value && !studioNameInUse.value && !deploymentCodeEmpty.value && !studioNameError.value && !deploymentCodeError.value;
-    return baseValid;
-});
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
-const goBack = () => {
-  modals.setModalVisibility('selectNewStudioTypeModal', true);
-};
-
-const closeModal = () => {
-  modals.disableAllModals();
-};
-
-const handleEnterKey = (event) => {
-  if (event.key === 'Enter' && isValueChanged.value) {
-    createStudio();
-  }
-};
-
+// Checks if the studio name is available.
 const checkStudioName = async () => {
   if (!studioName.value) {
     studioNameError.value = '';
@@ -354,7 +335,6 @@ const checkStudioName = async () => {
     return;
   }
   
-  // Check restricted names first
   if (restrictedNames.value.includes(studioName.value.toLowerCase())) {
     studioNameError.value = 'This studio name is reserved';
     isStudioNameTaken.value = true;
@@ -365,7 +345,7 @@ const checkStudioName = async () => {
 
   try {
     const nameExists = await StudioService.CheckStudioNameExists(studioName.value.toLowerCase());
-    console.log(nameExists)
+    console.log(nameExists);
     if (nameExists) {
       studioNameError.value = 'Studio name is already taken';
       isStudioNameTaken.value = true;
@@ -382,46 +362,45 @@ const checkStudioName = async () => {
   }
 };
 
+// Closes the modal.
+const closeModal = () => {
+  modals.disableAllModals();
+};
 
-
+// Creates a new Clustta Cloud studio.
 const createStudio = async () => {
   isAwaitingResponse.value = true;
-  deploymentCodeError.value = ''; // Clear previous errors
+  deploymentCodeError.value = '';
   
   try {
-      // First, verify the deployment code
-      const [isValid, message] = await StudioService.VerifyDeploymentCode(deploymentCode.value);
-      deploymentCode.value = ''; // Clear deployment code after verification
-      
-      if (!isValid) {
-        deploymentCodeError.value = message || 'The deployment code you entered is not valid.';
-        notificationStore.errorNotification('Invalid Deployment Code', deploymentCodeError.value);
-        isAwaitingResponse.value = false;
-        return;
-      }
-      
-      // Deployment - first register studio, then deploy 
-      const studioResult = await StudioService.RegisterStudio(studioName.value, 'pending');
-      createdStudio.value = studioResult;
-      
-      // Prepare deployment request
-      const deploymentRequest = {
-        studio_name: studioName.value,
-        studio_url: 'pending', // Will be updated after deployment
-        studio_secret_key: studioResult.secret_key,
-        azure_region: serverLocation.value,
-        vm_size: vmSize.value,
-        disk_size_gb: diskSizeGB.value
-      };
-      
-      // Start deployment
-      const deploymentResult = await DeploymentService.DeployStudio(deploymentRequest);
-      deploymentId.value = deploymentResult.deployment_id;
-      
-      // Start monitoring deployment progress
-      monitorDeployment();
-      
-      isStudioRegistered.value = true;
+    const [isValid, message] = await StudioService.VerifyDeploymentCode(deploymentCode.value);
+    deploymentCode.value = '';
+    
+    if (!isValid) {
+      deploymentCodeError.value = message || 'The deployment code you entered is not valid.';
+      notificationStore.errorNotification('Invalid Deployment Code', deploymentCodeError.value);
+      isAwaitingResponse.value = false;
+      return;
+    }
+    
+    const studioResult = await StudioService.RegisterStudio(studioName.value, 'pending');
+    createdStudio.value = studioResult;
+    
+    const deploymentRequest = {
+      studio_name: studioName.value,
+      studio_url: 'pending',
+      studio_secret_key: studioResult.secret_key,
+      azure_region: serverLocation.value,
+      vm_size: vmSize.value,
+      disk_size_gb: diskSizeGB.value
+    };
+    
+    const deploymentResult = await DeploymentService.DeployStudio(deploymentRequest);
+    deploymentId.value = deploymentResult.deployment_id;
+    
+    monitorDeployment();
+    
+    isStudioRegistered.value = true;
 
   } catch (error) {
     console.error(error);
@@ -431,50 +410,24 @@ const createStudio = async () => {
   }
 };
 
-const monitorDeployment = async () => {
-  const checkDeployment = async () => {
-    try {
-      const status = await DeploymentService.GetDeploymentStatus(deploymentId.value);
-      deploymentStatus.value = status;
-      
-      if (status.status === 'completed') {
-        // Update studio URL with the deployed VM's public IP
-        createdStudio.value.url = `http://${status.public_ip}`;
-        notificationStore.addNotification('Deployment Complete', 'Your Azure VM is ready!');
-      } else if (status.status === 'failed') {
-        notificationStore.errorNotification('Deployment Failed', status.error || 'Unknown error');
-      } else {
-        // Continue monitoring
-        setTimeout(checkDeployment, 5000); // Check every 5 seconds
-      }
-    } catch (error) {
-      console.error('Error monitoring deployment:', error);
-      notificationStore.errorNotification('Monitoring Error', 'Failed to check deployment status');
-    }
-  };
-  
-  checkDeployment();
+// Returns the app icon for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
 };
 
-// Toggle through dummy deployment statuses for UI testing
-const toggleDeploymentStatus = () => {
-  currentDummyIndex.value = (currentDummyIndex.value + 1) % dummyStatuses.length;
-  deploymentStatus.value = dummyStatuses[currentDummyIndex.value];
-  
-  // If completed status, update the studio URL
-  if (deploymentStatus.value?.status === 'completed') {
-    if (createdStudio.value) {
-      createdStudio.value.url = `http://${deploymentStatus.value.public_ip}`;
-    }
+// Goes back to the studio type selection modal.
+const goBack = () => {
+  modals.setModalVisibility('selectNewStudioTypeModal', true);
+};
+
+// Handles enter key press.
+const handleEnterKey = (event) => {
+  if (event.key === 'Enter' && isValueChanged.value) {
+    createStudio();
   }
-  
-  console.log('Deployment Status Updated:', deploymentStatus.value);
 };
 
-const openDiscordLink = () => {
-  Browser.OpenURL('https://discord.gg/NuR4uAuTZd');
-};
-
+// Launches the studio after creation.
 const launchStudio = async () => {
   isAwaitingResponse.value = true;
   await projectStore.loadStudios();
@@ -486,7 +439,7 @@ const launchStudio = async () => {
   }
 
   await projectStore.loadProjects().then((result) => {
-    console.log(result)
+    console.log(result);
   }).catch((error) => {
     console.error('Error:', error);
   });
@@ -494,16 +447,60 @@ const launchStudio = async () => {
   closeModal();
 };
 
+// Monitors deployment progress.
+const monitorDeployment = async () => {
+  const checkDeployment = async () => {
+    try {
+      const status = await DeploymentService.GetDeploymentStatus(deploymentId.value);
+      deploymentStatus.value = status;
+      
+      if (status.status === 'completed') {
+        createdStudio.value.url = `http://${status.public_ip}`;
+        notificationStore.addNotification('Deployment Complete', 'Your Azure VM is ready!');
+      } else if (status.status === 'failed') {
+        notificationStore.errorNotification('Deployment Failed', status.error || 'Unknown error');
+      } else {
+        setTimeout(checkDeployment, 5000);
+      }
+    } catch (error) {
+      console.error('Error monitoring deployment:', error);
+      notificationStore.errorNotification('Monitoring Error', 'Failed to check deployment status');
+    }
+  };
+  
+  checkDeployment();
+};
+
+// Opens the Discord link for getting deployment codes.
+const openDiscordLink = () => {
+  Browser.OpenURL('https://discord.gg/NuR4uAuTZd');
+};
+
+// Toggle through dummy deployment statuses for UI testing.
+const toggleDeploymentStatus = () => {
+  currentDummyIndex.value = (currentDummyIndex.value + 1) % dummyStatuses.length;
+  deploymentStatus.value = dummyStatuses[currentDummyIndex.value];
+  
+  if (deploymentStatus.value?.status === 'completed') {
+    if (createdStudio.value) {
+      createdStudio.value.url = `http://${deploymentStatus.value.public_ip}`;
+    }
+  }
+  
+  console.log('Deployment Status Updated:', deploymentStatus.value);
+};
+
+// watchers
 watchEffect(() => {
   if (modalContainer.value) {
     menu.clickOutsideMask = modalContainer.value;
   }
 });
 
+// lifecycle
 onMounted(async () => {
   // await projectTemplateStore.loadProjectTemplates();
 });
-
 </script>
 
 <style scoped>
