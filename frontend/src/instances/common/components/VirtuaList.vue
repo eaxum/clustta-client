@@ -13,112 +13,138 @@
 
 <script setup>
 // imports
-import { ref, computed, watchEffect, watch, onUpdated, inject, nextTick, onMounted, onBeforeUnmount } from 'vue';
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, onUpdated, ref, watch, watchEffect } from 'vue';
 import { Events } from '@wailsio/runtime';
+import emitter from '@/lib/mitt';
 
 // components
 import VirtuaItem from '@/instances/common/components/VirtuaItem.vue';
 
-// state imports
+// services
+import { CollectionService, FSService } from "@/services";
+
+// stores
+import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useDndStore } from '@/stores/dnd';
+import { useMenu } from '@/stores/menu';
+import { useProjectStore } from '@/stores/projects';
 import { useScrollStore } from '@/stores/scroll';
 import { useStageStore } from '@/stores/stages';
-import { useAssetStore } from '@/stores/assets';
-import { useMenu } from '@/stores/menu';
-import { useDndStore } from '@/stores/dnd';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useProjectStore } from '@/stores/projects';
-import { useCollectionStore } from '@/stores/collections';
-import { CollectionService, FSService } from "@/services";
-import emitter from '@/lib/mitt';
 
-// states/stores
-const stage = useStageStore();
-const menu = useMenu();
-const dndStore = useDndStore();
-const projectStore = useProjectStore();
-const scrollStore = useScrollStore();
-const modals = useDesktopModalStore();
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
+const dndStore = useDndStore();
+const menu = useMenu();
+const modals = useDesktopModalStore();
+const projectStore = useProjectStore();
+const scrollStore = useScrollStore();
+const stage = useStageStore();
 
 // props
 const props = defineProps({
-  items: { type: Array, default: [] },
   collectionId: { type: String, default: '' },
-  isRoot: { type: Boolean, default: false },
   containerHeight: { type: Number, required: true },
-  renderAhead: { type: Number, default: 10 },
   depth: { type: Number, default: 0 },
+  isRoot: { type: Boolean, default: false },
+  itemHeight: { type: Number, default: 60 },
+  items: { type: Array, default: [] },
   parentOffset: { type: Number, default: 0 },
-  itemHeight: { type: Number, default: 60 }
+  renderAhead: { type: Number, default: 10 }
 });
 
 // emits
 const emit = defineEmits(['shift-parents', 'refreshData', 'update-children', 'update-children-untracked-items']);
 
 // refs
-const scrollContainerRef = ref(null);
+const childPositions = ref([0]);
+const currentState = ref(null);
+const currentWatchedPath = ref(null);
+const dragTimer = ref(null);
 const intersectionObserver = ref(null);
-const isVisible = ref(false);
 const intersectionRatio = ref(0);
 const intersectionRect = ref(null);
-const refreshDebounceTimer = ref(null);
-const currentWatchedPath = ref(null);
-const currentState = ref(null);
-const dragTimer = ref(null);
-const childPositions = ref([0]);
+const isVisible = ref(false);
 const pixelsAboveRoot = ref(0);
+const refreshDebounceTimer = ref(null);
+const scrollContainerRef = ref(null);
 
+// injects
 const rootScrollContainer = inject('rootScrollContainer', null);
 
-// computed props
-// Total number of items in the list
+// computed
+// Returns all item IDs from the dnd store.
+const allItemsIds = computed(() => {
+  const allItemsIds = dndStore.allElements.map((item) => item.id);
+  return allItemsIds;
+});
+
+// Determines container visibility state based on intersection.
+const containerVisibility = computed(() => {
+  if (!isVisible.value) return 'hidden';
+  if (intersectionRatio.value === 1) return 'fully-visible';
+  return 'partially-visible';
+});
+
+// Calculates end node index with render ahead buffer.
+const endNode = computed(() =>
+  Math.min(itemCount.value - 1, lastVisibleNode.value + props.renderAhead)
+);
+
+// Finds the first visible node index using binary search.
+const firstVisibleNode = computed(() => {
+  return findStartNode(relativeScrollTop.value, childPositions.value, itemCount.value);
+});
+
+// Returns the total number of items in the list.
 const itemCount = computed(() => {
   return props.items.length;
 });
 
-// Calculate total height of all items
-const totalHeight = computed(() =>
-  childPositions.value[itemCount.value - 1] + getChildHeight(itemCount.value - 1)
+// Finds the last visible node index within container height.
+const lastVisibleNode = computed(() =>
+  findEndNode(childPositions.value, firstVisibleNode.value, itemCount.value, props.containerHeight)
 );
 
-// Calculate relative scroll position based on root or nested context
+// Gets the current file path location for watching.
+const location = computed(() => {
+  return collectionStore.navigatedCollection ? collectionStore.navigatedCollection.file_path : projectStore.activeProject.working_directory;
+});
+
+// Calculates vertical offset for scroll positioning.
+const offsetY = computed(() => {
+  return childPositions.value[startNode.value];
+});
+
+// Gets all untracked items from root items.
+const previousUntracked = computed(() => {
+  const allUntracked = props.items.filter((item) => item.type === 'untracked_task' || item.type === 'untracked_entity');
+  return allUntracked;
+});
+
+// Calculates relative scroll position based on root or nested context.
 const relativeScrollTop = computed(() => {
   if (props.isRoot) return scrollStore.scrollTop;
   return pixelsAboveRoot.value;
 });
 
-// Find first visible node using binary search
-const firstVisibleNode = computed(() => {
-  return findStartNode(relativeScrollTop.value, childPositions.value, itemCount.value);
+// Gets the currently selected item ID.
+const selectedId = computed(() => {
+  return stage.firstSelectedItemId;
 });
 
-// Calculate start node with render ahead buffer
+// Calculates start node index with render ahead buffer.
 const startNode = computed(() =>
   Math.max(0, firstVisibleNode.value - props.renderAhead)
 );
 
-// Find last visible node within container height
-const lastVisibleNode = computed(() =>
-  findEndNode(childPositions.value, firstVisibleNode.value, itemCount.value, props.containerHeight)
+// Calculates total height of all items.
+const totalHeight = computed(() =>
+  childPositions.value[itemCount.value - 1] + getChildHeight(itemCount.value - 1)
 );
 
-// Calculate end node with render ahead buffer
-const endNode = computed(() =>
-  Math.min(itemCount.value - 1, lastVisibleNode.value + props.renderAhead)
-);
-
-// Calculate number of visible nodes
-const visibleNodeCount = computed(() =>
-  endNode.value - startNode.value + 1
-);
-
-// Calculate vertical offset for scroll position
-const offsetY = computed(() => {
-  return childPositions.value[startNode.value];
-});
-
-// Get visible children based on scroll position
+// Gets visible children based on scroll position.
 const visibleChildren = computed(() =>
   Array(visibleNodeCount.value)
     .fill(null)
@@ -135,37 +161,132 @@ const visibleChildren = computed(() =>
     .filter(Boolean)
 );
 
-// Get currently selected item id
-const selectedId = computed(() => {
-  return stage.firstSelectedItemId;
-});
+// Calculates number of visible nodes.
+const visibleNodeCount = computed(() =>
+  endNode.value - startNode.value + 1
+);
 
-// Get all item ids from dnd store
-const allItemsIds = computed(() => {
-  const allItemsIds = dndStore.allElements.map((item) => item.id);
-  return allItemsIds;
-});
+// methods
+// Calculates cumulative positions of all child items.
+const calculateChildPositions = () => {
+  emit('shift-parents');
+  const positions = [0];
+  for (let i = 1; i < itemCount.value; i++) {
+    positions.push(positions[i - 1] + getChildHeight(i - 1));
+  }
+  childPositions.value = positions;
+};
 
-// Determine container visibility state
-const containerVisibility = computed(() => {
-  if (!isVisible.value) return 'hidden';
-  if (intersectionRatio.value === 1) return 'fully-visible';
-  return 'partially-visible';
-});
+// Debounces refresh view to prevent rapid consecutive calls.
+const debouncedRefreshView = () => {
+  if (refreshDebounceTimer.value) {
+    clearTimeout(refreshDebounceTimer.value);
+  }
+  refreshDebounceTimer.value = setTimeout(() => {
+    refreshView(true);
+  }, 200);
+};
 
-// Get all untracked items from root items
-const previousUntracked = computed(() => {
-  const allUntracked = props.items.filter((item) => item.type === 'untracked_task' || item.type === 'untracked_entity');
-  return allUntracked;
-});
+// Starts drag timer for delayed drag operation.
+const dragItem = (event, id) => {
+  if (stage.operationActive) return;
+  dragTimer.value = setTimeout(() => {
+    onDragStart(event, id);
+  }, dndStore.dragDelay);
+};
 
-// Get current file path location for watching
-const location = computed(() => {
-  return collectionStore.navigatedCollection ? collectionStore.navigatedCollection.file_path : projectStore.activeProject.working_directory;
-});
+// Emits updates to item data across components.
+const emitItemUpdates = (updates) => {
+  if (Array.isArray(updates) && updates.length > 0) {
+    if (props.isRoot) {
+      emitter.emit('update-root-data', updates);
+    } else {
+      emit('update-children', updates);
+    }
+  }
+};
 
-// functions
-// Add or remove element reference to dnd store
+// Emits untracked items updates.
+const emitUntrackedUpdates = (allUntrackedItems) => {
+  if (props.isRoot) {
+    emitter.emit('update-untracked-items', allUntrackedItems);
+  } else {
+    emit('update-children-untracked-items', allUntrackedItems);
+  }
+};
+
+// Finds end node based on container height.
+const findEndNode = (nodePositions, startNode, itemCount, height) => {
+  let endNode;
+  for (endNode = startNode; endNode < itemCount; endNode++) {
+    if (nodePositions[endNode] > nodePositions[startNode] + height) {
+      return endNode;
+    }
+  }
+  return endNode;
+};
+
+// Binary search to find start node based on scroll position.
+const findStartNode = (scrollTop, nodePositions, itemCount) => {
+  let startRange = 0;
+  let endRange = itemCount - 1;
+  while (endRange !== startRange) {
+    const middle = Math.floor((endRange - startRange) / 2 + startRange);
+    if (nodePositions[middle] <= scrollTop && nodePositions[middle + 1] > scrollTop) {
+      return middle;
+    }
+    if (middle === startRange) {
+      return endRange;
+    } else {
+      if (nodePositions[middle] <= scrollTop) {
+        startRange = middle;
+      } else {
+        endRange = middle;
+      }
+    }
+  }
+  return itemCount;
+};
+
+// Gets height of child item considering expanded state.
+const getChildHeight = (index) => {
+  const item = props.items[index];
+  return item && item.id in stage.expandedEntities ?
+    stage.expandedEntities[item.id]["height"] || props.itemHeight : props.itemHeight;
+};
+
+// Gets position of item by index.
+const getItemPosition = (index) => {
+  return childPositions.value[index] || 0;
+};
+
+// Handles file system change events by refreshing view.
+const handleFSChange = (event) => {
+  console.log(event);
+  debouncedRefreshView();
+};
+
+// Handles keyboard navigation with arrow keys.
+const handleKeyDown = (event) => {
+  if (modals.activeModal) {
+    return;
+  }
+  if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+    event.preventDefault();
+    const currentIndex = allItemsIds.value.indexOf(selectedId.value);
+    if (currentIndex !== undefined) {
+      let newIndex;
+      if (event.key === 'ArrowUp') {
+        newIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex;
+      } else {
+        newIndex = currentIndex < allItemsIds.value.length - 1 ? currentIndex + 1 : currentIndex;
+      }
+      selectItem(newIndex);
+    }
+  }
+};
+
+// Adds or removes element reference to dnd store.
 const handleRef = async (id, el) => {
   if (!el) {
     dndStore.removeRef(id);
@@ -182,7 +303,28 @@ const handleRef = async (id, el) => {
   }
 };
 
-// Handle mouse down event for item selection and drag initiation
+// Initializes drag operation through dnd store.
+const onDragStart = (e, id) => {
+  stage.firstSelectedItemId = '';
+
+  if (!id) {
+    return;
+  }
+  dndStore.onDragStart(e, id);
+};
+
+// Handles height change of expanded items.
+const onHeightChange = (index, height) => {
+  if (height > props.itemHeight) {
+    const item = props.items[index];
+    if (item && item.id) {
+      stage.expandedEntities[item.id]["height"] = height;
+    }
+  }
+  calculateChildPositions();
+};
+
+// Handles mouse down event for item selection and drag initiation.
 const onMouseDown = (event, item, index) => {
   const id = item.id;
   const allItems = props.items;
@@ -209,25 +351,7 @@ const onMouseDown = (event, item, index) => {
   dragItem(event, id);
 };
 
-// Initialize drag operation through dnd store
-const onDragStart = (e, id) => {
-  stage.firstSelectedItemId = '';
-
-  if (!id) {
-    return;
-  }
-  dndStore.onDragStart(e, id);
-};
-
-// Start drag timer for delayed drag operation
-const dragItem = (event, id) => {
-  if (stage.operationActive) return;
-  dragTimer.value = setTimeout(() => {
-    onDragStart(event, id);
-  }, dndStore.dragDelay);
-};
-
-// Handle mouse up event for item selection
+// Handles mouse up event for item selection.
 const onMouseUp = (event, item) => {
   if (dndStore.draggedItemId) return;
   
@@ -254,73 +378,96 @@ const onMouseUp = (event, item) => {
   clearTimeout(dragTimer.value);
 };
 
-// Get height of child item considering expanded state
-const getChildHeight = (index) => {
-  const item = props.items[index];
-  return item && item.id in stage.expandedEntities ?
-    stage.expandedEntities[item.id]["height"] || props.itemHeight : props.itemHeight;
+// Handles root container scroll events.
+const onRootScroll = () => {
+  updatePixelsAbove();
 };
 
-// Handle height change of expanded items
-const onHeightChange = (index, height) => {
-  if (height > props.itemHeight) {
-    const item = props.items[index];
-    if (item && item.id) {
-      stage.expandedEntities[item.id]["height"] = height;
+// Parses collection state into simpler structure with just IDs.
+const parseCollectionState = (state) => {
+  return {
+    modified: state.modified_tasks?.map(t => t.id).sort() || [],
+    normal: state.normal_tasks?.map(t => t.id).sort() || [],
+    outdated: state.outdated_tasks?.map(t => t.id).sort() || [],
+    rebuildable: state.rebuildable_tasks?.map(t => t.id).sort() || [],
+    untracked_files: state.untracked_files?.map(f => f.id).sort() || [],
+    untracked_folders: state.untracked_folders?.map(f => f.id).sort() || []
+  };
+};
+
+// Fetches and updates collection children state from backend.
+const refreshView = async (isRoot = false) => {
+  const project = projectStore.activeProject;
+  const entityId = isRoot ? collectionStore.navigatedCollection?.id : props.collectionId;
+  
+  try {
+    const state = await CollectionService.GetCollectionChildrenState(
+      project.uri,
+      entityId,
+      project.working_directory,
+      project.ignore_list
+    );
+    
+    const parsedState = parseCollectionState(state);
+    const dataIsUnchanged = JSON.stringify(currentState.value) === JSON.stringify(parsedState); 
+    
+    if (dataIsUnchanged) return;
+    currentState.value = parsedState;
+    
+    // Batch all file status updates into a single array
+    const statusUpdates = [
+      ...(state.normal_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'normal' }] })),
+      ...(state.modified_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'modified' }] })),
+      ...(state.outdated_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'outdated' }] })),
+      ...(state.rebuildable_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'rebuildable' }] }))
+    ];
+    
+    // Emit all updates at once as a single array
+    if (statusUpdates.length > 0) {
+      emitItemUpdates(statusUpdates);
     }
-  }
-  calculateChildPositions();
-};
 
-// Calculate cumulative positions of all child items
-const calculateChildPositions = () => {
-  emit('shift-parents');
-  const positions = [0];
-  for (let i = 1; i < itemCount.value; i++) {
-    positions.push(positions[i - 1] + getChildHeight(i - 1));
-  }
-  childPositions.value = positions;
-};
-
-// Get position of item by index
-const getItemPosition = (index) => {
-  return childPositions.value[index] || 0;
-};
-
-// Binary search to find start node based on scroll position
-const findStartNode = (scrollTop, nodePositions, itemCount) => {
-  let startRange = 0;
-  let endRange = itemCount - 1;
-  while (endRange !== startRange) {
-    const middle = Math.floor((endRange - startRange) / 2 + startRange);
-    if (nodePositions[middle] <= scrollTop && nodePositions[middle + 1] > scrollTop) {
-      return middle;
+    const currentUntrackedFolders = state.untracked_folders || [];
+    const currentUntrackedFiles = state.untracked_files || [];
+    const currentUntracked = [...currentUntrackedFolders, ...currentUntrackedFiles];
+    
+    if (currentUntracked !== previousUntracked.value) {
+      const allUntrackedItems = [...currentUntrackedFolders, ...currentUntrackedFiles];
+      await assetStore.processUntrackedAssetsIcons(allUntrackedItems);
+      emitUntrackedUpdates(allUntrackedItems);
     }
-    if (middle === startRange) {
-      return endRange;
-    } else {
-      if (nodePositions[middle] <= scrollTop) {
-        startRange = middle;
-      } else {
-        endRange = middle;
-      }
-    }
+    
+  } catch (error) {
+    console.error('Error getting collection children state:', error);
   }
-  return itemCount;
 };
 
-// Find end node based on container height
-const findEndNode = (nodePositions, startNode, itemCount, height) => {
-  let endNode;
-  for (endNode = startNode; endNode < itemCount; endNode++) {
-    if (nodePositions[endNode] > nodePositions[startNode] + height) {
-      return endNode;
-    }
-  }
-  return endNode;
+// Refreshes state of virtuaList on mouse enter.
+const refreshVirtuaItems = () => {
+  if (props.isRoot) return;
+  refreshView();
 };
 
-// Setup intersection observer to track visibility and position
+// Selects item by index and scrolls into view.
+const selectItem = (index) => {
+  const allItems = allItemsIds.value;
+  const newSelectedId = allItems[index];
+
+  stage.firstSelectedItemId = newSelectedId;
+  stage.markedItems = [newSelectedId];
+
+  const viewItems = dndStore.allViewItems;
+  const selectedItem = viewItems.find((item) => item.id === newSelectedId);
+
+  stage.selectItem(selectedItem, selectedItem.type, true);
+
+  dndStore.allElements[index].scrollIntoView({
+    behavior: 'smooth',
+    block: 'nearest'
+  });
+};
+
+// Sets up intersection observer to track visibility and position.
 const setupIntersectionObserver = () => {
   if (!scrollContainerRef.value || !rootScrollContainer.value) return;
 
@@ -350,7 +497,7 @@ const setupIntersectionObserver = () => {
   intersectionObserver.value.observe(scrollContainerRef.value);
 };
 
-// Update pixels above during scroll for accurate positioning
+// Updates pixels above during scroll for accurate positioning.
 const updatePixelsAbove = () => {
   if (!scrollContainerRef.value || !rootScrollContainer.value) return;
 
@@ -361,157 +508,11 @@ const updatePixelsAbove = () => {
     Math.round(rootRect.top - targetRect.top) : 0;
 };
 
-// Handle root container scroll events
-const onRootScroll = () => {
-  updatePixelsAbove();
-};
-
-// Handle keyboard navigation with arrow keys
-const handleKeyDown = (event) => {
-  if (modals.activeModal) {
-    return
-  }
-  if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-    event.preventDefault();
-    const currentIndex = allItemsIds.value.indexOf(selectedId.value);
-    if (currentIndex !== undefined) {
-      let newIndex;
-      if (event.key === 'ArrowUp') {
-        newIndex = currentIndex > 0 ? currentIndex - 1 : currentIndex;
-      } else {
-        newIndex = currentIndex < allItemsIds.value.length - 1 ? currentIndex + 1 : currentIndex;
-      }
-      selectItem(newIndex);
-    }
-  }
-};
-
-// Select item by index and scroll into view
-const selectItem = (index) => {
-  const allItems = allItemsIds.value;
-  const newSelectedId = allItems[index];
-
-  stage.firstSelectedItemId = newSelectedId;
-  stage.markedItems = [newSelectedId];
-
-  const viewItems = dndStore.allViewItems;
-  const selectedItem = viewItems.find((item) => item.id === newSelectedId);
-
-  stage.selectItem(selectedItem, selectedItem.type, true);
-
-  dndStore.allElements[index].scrollIntoView({
-    behavior: 'smooth',
-    block: 'nearest'
-  });
-};
-
-// Emit updates to item data across components
-const emitItemUpdates = (updates) => {
-  if (Array.isArray(updates) && updates.length > 0) {
-    if(props.isRoot){
-      emitter.emit('update-root-data', updates);
-    } else {
-      emit('update-children', updates);
-    }
-  }
-};
-
-const emitUntrackedUpdates = (allUntrackedItems) => {
-    if(props.isRoot){
-      emitter.emit('update-untracked-items', allUntrackedItems);
-    } else {
-      emit('update-children-untracked-items', allUntrackedItems);
-    }
-};
-
-// Parse collection state into simpler structure with just IDs
-const parseCollectionState = (state) => {
-  return {
-    modified: state.modified_tasks?.map(t => t.id).sort() || [],
-    normal: state.normal_tasks?.map(t => t.id).sort() || [],
-    outdated: state.outdated_tasks?.map(t => t.id).sort() || [],
-    rebuildable: state.rebuildable_tasks?.map(t => t.id).sort() || [],
-    untracked_files: state.untracked_files?.map(f => f.id).sort() || [],
-    untracked_folders: state.untracked_folders?.map(f => f.id).sort() || []
-  };
-};
-
-//Refresh state of virtuaList
-const refreshVirtuaItems = () => {
-  if(props.isRoot) return
-  refreshView()
-}
-
-// Fetch and update collection children state from backend
-const refreshView = async (isRoot = false) => {
-  const project = projectStore.activeProject;
-  const entityId = isRoot ? collectionStore.navigatedCollection?.id : props.collectionId;
-  
-  try {
-    const state = await CollectionService.GetCollectionChildrenState(
-      project.uri,
-      entityId,
-      project.working_directory,
-      project.ignore_list
-    );
-    
-    const parsedState = parseCollectionState(state);
-    const dataIsUnchanged = JSON.stringify(currentState.value) === JSON.stringify(parsedState); 
-    
-    if(dataIsUnchanged) return
-    currentState.value = parsedState;
-    
-    // Batch all file status updates into a single array
-    const statusUpdates = [
-      ...(state.normal_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'normal' }] })),
-      ...(state.modified_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'modified' }] })),
-      ...(state.outdated_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'outdated' }] })),
-      ...(state.rebuildable_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'rebuildable' }] }))
-    ];
-    
-    // Emit all updates at once as a single array
-    if (statusUpdates.length > 0) {
-      emitItemUpdates(statusUpdates);
-    }
-
-    const currentUntrackedFolders = state.untracked_folders || [];
-    const currentUntrackedFiles = state.untracked_files || [];
-    const currentUntracked = [...currentUntrackedFolders, ...currentUntrackedFiles];
-    
-    if (currentUntracked !== previousUntracked.value) {
-      const allUntrackedItems = [...currentUntrackedFolders, ...currentUntrackedFiles];
-      await assetStore.processUntrackedAssetsIcons(allUntrackedItems);
-      emitUntrackedUpdates(allUntrackedItems)
-    }
-    
-  } catch (error) {
-    console.error('Error getting collection children state:', error);
-  }
-};
-
-// Debounce refresh view to prevent rapid consecutive calls
-const debouncedRefreshView = () => {
-  if (refreshDebounceTimer.value) {
-    clearTimeout(refreshDebounceTimer.value);
-  }
-  refreshDebounceTimer.value = setTimeout(() => {
-    refreshView(true);
-  }, 200);
-};
-
-// Handle file system change events by refreshing view
-const handleFSChange = (event) => {
-  console.log(event);
-  debouncedRefreshView();
-};
-
 // watchers
-// Recalculate child positions when items change
 watch(() => props.items, (newItems, oldItems) => {
   calculateChildPositions();
 }, { deep: true });
 
-// Watch location changes and update file system watcher
 watch(() => location.value, async (newPath, oldPath) => {
   if (oldPath && currentWatchedPath.value) {
     try {
@@ -580,19 +581,14 @@ onBeforeUnmount(async () => {
 </script>
 
 <style scoped>
-.virtua-scroll-viewport {
-  /* margin-top: 1px; */
-  position: relative;
-  overflow: hidden;
-  will-change: transform;
-  box-sizing: border-box;
-}
-
 .virtua-scroll-conveyor {
   will-change: transform;
 }
+
+.virtua-scroll-viewport {
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+  will-change: transform;
+}
 </style>
-
-
-
-

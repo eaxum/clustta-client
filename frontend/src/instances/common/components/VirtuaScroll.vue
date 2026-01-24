@@ -1,6 +1,8 @@
 <template>
   <div class="virtua-scroll-container" ref="containerRef" >
-    <ListSkeleton v-if="!assetStore.assetsLoaded" :height="containerHeight" :itemHeight="commonStore.listItemHeight" />
+    <ListSkeleton v-if="!assetStore.assetsLoaded" 
+      :height="containerHeight" 
+      :itemHeight="commonStore.listItemHeight" />
     <VirtuaList
       v-else
       :items="props.items"
@@ -12,48 +14,46 @@
 </template>
 
 <script setup>
-
 // imports
-import { ref, onMounted, onUnmounted, watchEffect, provide, computed } from 'vue';
+import { computed, onMounted, onUnmounted, provide, ref } from 'vue';
 
-import { useScrollStore } from '@/stores/scroll';
-import { useStageStore } from '@/stores/stages';
-import { useMenu } from '@/stores/menu';
-import { useCommonStore } from '@/stores/common';
-import { useAssetStore } from '@/stores/assets';
-
-import VirtuaList from '@/instances/common/components/VirtuaList.vue';
+// components
 import ListSkeleton from '@/instances/desktop/components/ListSkeleton.vue';
+import VirtuaList from '@/instances/common/components/VirtuaList.vue';
 
-const scrollStore = useScrollStore();
-const stage = useStageStore();
-const menu = useMenu();
-const commonStore = useCommonStore();
+// stores
+import { useAssetStore } from '@/stores/assets';
+import { useCommonStore } from '@/stores/common';
+import { useMenu } from '@/stores/menu';
+import { useScrollStore } from '@/stores/scroll';
+
 const assetStore = useAssetStore();
+const commonStore = useCommonStore();
+const menu = useMenu();
+const scrollStore = useScrollStore();
+
+// props
+const props = defineProps({
+  items: { type: Array, default: [] }
+});
 
 // refs
 let animationFrame = null;
 const containerRef = ref(null);
 
+// provides
 provide('parentScrollContainer', containerRef);
 provide('rootScrollContainer', containerRef);
 
-// props
-const props = defineProps({
-  items: {
-    type: Array,
-    default: []
-  }
-});
-
-// computed props
+// computed
 const containerHeight = computed(() => {
   const height = containerRef.value?.getBoundingClientRect().height;
   scrollStore.scrollRootHeight = height;
-  return height ? height : 500
+  return height ? height : 500;
 });
 
 // methods
+// Handles scroll events with debouncing via requestAnimationFrame.
 const onScroll = (e) => {
   menu.disableAllMenus();
   if (animationFrame) {
@@ -64,15 +64,17 @@ const onScroll = (e) => {
   });
 };
 
+// Scrolls the container to a specified position.
 const scrollToPosition = (position, smooth = false) => {
   if (containerRef.value) {
     containerRef.value.scrollTo({
       top: position,
-      behavior: smooth ? 'smooth' : 'auto'  
+      behavior: smooth ? 'smooth' : 'auto'
     });
   }
 };
 
+// subscriptions
 scrollStore.$subscribe((mutation, state) => {
   if (state.requestedScrollPosition !== null) {
     scrollToPosition(state.requestedScrollPosition, scrollStore.smoothScroll);
@@ -81,6 +83,7 @@ scrollStore.$subscribe((mutation, state) => {
   }
 });
 
+// lifecycle hooks
 onMounted(() => {
   const scrollContainer = containerRef.value;
   scrollStore.scrollRoot = containerRef.value;
@@ -99,28 +102,21 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.virtua-scroll-container{
+.virtua-scroll-container {
   box-sizing: border-box;
-  height: 600px; 
-  width: 100%;
   height: 100%;
   overflow: auto;
   padding-right: 5px;
-  /* background-color: crimson; */
-  /* border-top: 1px solid royalblue; */
+  width: 100%;
 }
 
 .virtua-scroll-container::-webkit-scrollbar {
   width: 6px;
 }
 
-.virtua-scroll-tray::-webkit-scrollbar {
-  width: 4px;
-}
-
 .virtua-scroll-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
   background-color: var(--light-steel);
+  border-radius: 10px;
 }
 
 .virtua-scroll-container::-webkit-scrollbar-track {

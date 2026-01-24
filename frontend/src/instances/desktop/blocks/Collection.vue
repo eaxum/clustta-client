@@ -193,90 +193,91 @@
 
 <script setup>
 // imports
-import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch, watchEffect } from 'vue';
-import { CheckpointService, CollectionService, FSService, SyncService, AssetService } from "@/services";
-import utils from '@/services/utils';
-import emitter from '@/lib/mitt';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'vue';
 import { Events } from "@wailsio/runtime";
-
-// states/store imports
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useNotificationStore } from '@/stores/notifications';
-import { useAssetStore } from '@/stores/assets';
-import { usePaneStore } from '@/stores/panes';
-import { useStageStore } from '@/stores/stages';
-import { useCommonStore } from '@/stores/common';
-import { useCollectionStore } from '@/stores/collections';
-import { useUserStore } from '@/stores/users';
-import { useDndStore } from '@/stores/dnd';
-import { useProjectStore } from '@/stores/projects';
-import { useTrayStates } from '@/stores/TrayStates';
-import { useIconStore } from '@/stores/icons';
+import emitter from '@/lib/mitt';
 import { getParentPath } from '@/lib/pathlib';
-import { useMenu } from '@/stores/menu';
+import utils from '@/services/utils';
 
 // components
-import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import RenameInput from '@/instances/desktop/components/RenameInput.vue'
-import ProfilePhoto from '@/instances/common/components/ProfilePhoto.vue'
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import ProfilePhoto from '@/instances/common/components/ProfilePhoto.vue';
+import RenameInput from '@/instances/desktop/components/RenameInput.vue';
 
-// states/stores
-const userStore = useUserStore();
-const iconStore = useIconStore();
-const menu = useMenu();
-const panes = usePaneStore();
-const stage = useStageStore();
-const projectStore = useProjectStore();
-const collectionStore = useCollectionStore();
+// services
+import { CheckpointService, CollectionService, FSService, SyncService, AssetService } from "@/services";
+
+// stores
+import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
+import { useCommonStore } from '@/stores/common';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useDndStore } from '@/stores/dnd';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useNotificationStore } from '@/stores/notifications';
+import { usePaneStore } from '@/stores/panes';
+import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useUserStore } from '@/stores/users';
+
 const assetStore = useAssetStore();
+const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const dndStore = useDndStore();
+const iconStore = useIconStore();
+const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
+const panes = usePaneStore();
+const projectStore = useProjectStore();
+const stage = useStageStore();
 const trayStates = useTrayStates();
-
-// emits
-const emit = defineEmits(['toggle', 'toggle-edit-mode']);
+const userStore = useUserStore();
 
 // props
 const props = defineProps({
   entity: Object,
+  entityChildren: { type: Array, default: [] },
+  hasChildren: { type: Boolean, default: false },
   index: Number,
   isGhost: { type: Boolean, default: false },
-  entityChildren: { type: Array, default: []},
-  hasChildren: { type: Boolean, default: false },
   isUntracked: { type: Boolean, default: false },
   loadingChildren: { type: Boolean, default: true },
   loadingCollectionState: { type: Boolean, default: false },
 });
 
-// refs
-const renameInput = ref(null);
-const isEditing = ref(false);
-const isAwaitingResponse = ref(false);
+// emits
+const emit = defineEmits(['toggle', 'toggle-edit-mode']);
 
-//events
+// refs
+const isAwaitingResponse = ref(false);
+const isEditing = ref(false);
+const renameInput = ref(null);
+
+// events
 Events.On('files-dropped', (event) => {
-  console.log('event')
-  if (operationsActive.value) return
+  console.log('event');
+  if (operationsActive.value) return;
 });
 
 Events.On('rename-item', async () => {
-  if (operationsActive.value) return
+  if (operationsActive.value) return;
   if (isEntityInFocus.value && userStore.canDo('update_entity')) {
     startRename();
   }
 });
 
 Events.On('edit-item', async () => {
-  if (operationsActive.value) return
+  if (operationsActive.value) return;
   if (isEntityInFocus.value && userStore.canDo('update_entity')) {
     modals.setModalVisibility('editCollectionModal', true);
   }
 });
 
 Events.On('delete-item', async () => {
-  if (operationsActive.value) return
+  if (operationsActive.value) return;
   if (isEntityInFocus.value && userStore.canDo('delete_entity')) {
     panes.setPaneVisibility('projectDetails', true);
     deleteEntity();
@@ -284,7 +285,7 @@ Events.On('delete-item', async () => {
 });
 
 Events.On('free-item-space', async () => {
-  if (operationsActive.value) return
+  if (operationsActive.value) return;
   if (isEntityInFocus.value) {
     if (props.entity.type === 'entity') {
       prepFreeUpSpacePopUpModal();
@@ -294,57 +295,24 @@ Events.On('free-item-space', async () => {
   }
 });
 
-// computed props
-const isHovered = computed(() => { return dndStore.targetItemId === props.entity.id });
-
-const collectionTypeName = computed(() => {
-  return utils.capitalizeStr(props.entity?.entity_type_name);
+// computed
+// Checks if the user can import into this untracked entity.
+const canImport = computed(() => {
+  let trackedParent = utils.getUntrackedEntityparent(props.entity);
+  if (props.entity.entity_path === "") {
+    return false;
+  }
+  return trackedParent && trackedParent.can_modify;
 });
 
-const entityName = computed(() => {
-  const isUntracked = props.isUntracked;
-  const entity = props.entity;
-  const entityName = entity.name;
-  const isDirectParent = props.entity.id === entity.entity_id;
-  const itemPath = isUntracked ? entity.item_path : entity.entity_path;
-  const entityPath = itemPath.replace(/\//g, ' / ');
-
-  if (commonStore.showFullPath) {
-    return entityPath
-  }
-  if (props.isChild) {
-    if (commonStore.showChildEntities) {
-      return entityName
-    } else {
-      return isDirectParent ? (entityName) : entityPath
-    }
-  } else {
-    if (commonStore.viewSearchQuery) {
-      return entityPath
-    } else {
-      return entityName
-    }
-  }
-});
-
-const editableEntityName = ref(entityName.value);
-
-const gridStyles = computed(() => ({
-  minWidth: commonStore.gridSize + 'px',
-  // height: commonStore.gridSize + 'px',
-}));
-
-const itemHeightStyles = computed(() => ({
-  height: `calc(100% - ${commonStore.listItemGap}px)`,
-}));
-
+// Returns list of collaborators assigned to this entity.
 const collaboratorsList = computed(() => {
   if (props.isUntracked) {
-    return []
+    return [];
   }
   const entity = props.entity;
   if (!entity.assignee_ids?.length) {
-    return []
+    return [];
   }
   const projectCollaborators = userStore.getProjectCollaborators
     .map(user => ({
@@ -356,6 +324,89 @@ const collaboratorsList = computed(() => {
   return projectCollaborators.filter((user) => entity.assignee_ids.includes(user.id));
 });
 
+// Returns the state flags for this collection.
+const collectionStateFlags = computed(() => {
+  return props.entity.collectionStateFlags || {
+    has_untracked: false,
+    has_modified: false,
+    has_outdated: false,
+    has_rebuildable: false
+  };
+});
+
+// Returns the icon name for the collection type.
+const collectionTypeIcon = computed(() => {
+  if (props.isUntracked) return 'folder';
+  if (props.entity.entity_type_icon === 'generic') return 'folder';
+  return props.entity.entity_type_icon;
+});
+
+// Returns the capitalized collection type name.
+const collectionTypeName = computed(() => {
+  return utils.capitalizeStr(props.entity?.entity_type_name);
+});
+
+// Returns the editable entity name for renaming.
+const editableEntityName = ref('');
+
+// Returns the display name for the entity.
+const entityName = computed(() => {
+  const isUntracked = props.isUntracked;
+  const entity = props.entity;
+  const entityName = entity.name;
+  const isDirectParent = props.entity.id === entity.entity_id;
+  const itemPath = isUntracked ? entity.item_path : entity.entity_path;
+  const entityPath = itemPath.replace(/\//g, ' / ');
+
+  if (commonStore.showFullPath) {
+    return entityPath;
+  }
+  if (props.isChild) {
+    if (commonStore.showChildEntities) {
+      return entityName;
+    } else {
+      return isDirectParent ? (entityName) : entityPath;
+    }
+  } else {
+    if (commonStore.viewSearchQuery) {
+      return entityPath;
+    } else {
+      return entityName;
+    }
+  }
+});
+
+// Returns the meta information for the entity (item count).
+const entityMeta = computed(() => {
+  const noOfItems = props.entityChildren?.length;
+  const message = noOfItems === 1 ? ' item' : ' items';
+  return noOfItems + message;
+});
+
+// Returns the grid styles for the entity item.
+const gridStyles = computed(() => ({
+  minWidth: commonStore.gridSize + 'px',
+}));
+
+// Checks if the user is assigned to this entity.
+const isAssigned = computed(() => {
+  const user = userStore.user;
+  if (!user) {
+    return false;
+  }
+  let currentUserId = user.id;
+  return props.entity.assignee_ids?.includes(currentUserId);
+});
+
+// Checks if the entity is currently focused for selection.
+const isEntityInFocus = computed(() => {
+  return stage.markedItems.length === 1 && stage.firstSelectedItemId === props.entity.id && !dndStore.draggedItem;
+});
+
+// Checks if the entity is hovered for drag and drop.
+const isHovered = computed(() => { return dndStore.targetItemId === props.entity.id; });
+
+// Checks if the entity name has been changed.
 const isNameChanged = computed(() => {
   const restrictedEntries = [entityName.value, ''];
 
@@ -367,36 +418,160 @@ const isNameChanged = computed(() => {
   return !lowerCaseRestrictedEntries.includes(lowerCaseEditableName);
 });
 
-const isEntityInFocus = computed(() => {
-  return stage.markedItems.length === 1 && stage.firstSelectedItemId === props.entity.id && !dndStore.draggedItem
-});
+// Returns the height styles for the item in list view.
+const itemHeightStyles = computed(() => ({
+  height: `calc(100% - ${commonStore.listItemGap}px)`,
+}));
 
+// Checks if any operations are currently active.
 const operationsActive = computed(() => {
-  return stage.operationActive || !!modals.activeModal || !!menu.activeMenu || isEditing.value || stage.activeStage !== 'browser'
+  return stage.operationActive || !!modals.activeModal || !!menu.activeMenu || isEditing.value || stage.activeStage !== 'browser';
 });
 
-// New optimized collection state flags from GetCollectionStateFlags
-const collectionStateFlags = computed(() => {
-  return props.entity.collectionStateFlags || {
-    has_untracked: false,
-    has_modified: false,
-    has_outdated: false,
-    has_rebuildable: false
-  };
-});
-
-const collectionTypeIcon = computed(() => {
-  if (props.isUntracked) return 'folder';
-  if (props.entity.entity_type_icon === 'generic') return 'folder';
-  return props.entity.entity_type_icon;
-});
-
-//methods
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
+// methods
+// Caches entity data IDs (currently placeholder).
+const cacheEntityDataIds = () => {
+  // stage.entityDataIds = entityDataIds.value;
 };
 
+// Cancels the current rename operation.
+const cancelRename = () => {
+  editableEntityName.value = props.entity.name;
+  if (isEditing.value) {
+    toggleEditMode();
+  }
+};
+
+// Confirms and applies the rename.
+const confirmRename = async () => {
+  isAwaitingResponse.value = true;
+  await updateCollectionName();
+  toggleEditMode();
+};
+
+// Deletes the entity or prepares to delete untracked entity.
+const deleteEntity = async () => {
+  if (props.entity.type === 'entity') {
+    let entity = collectionStore.selectedCollection;
+    CollectionService.DeleteCollection(projectStore.activeProject.uri, entity.id, true)
+      .then(async (response) => {
+        emitter.emit('refresh-browser');
+        collectionStore.selectedCollection = null;
+        stage.markedItems = [];
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+    let longMessage = `Collection of name: ${entity.name} was moved to Trash.`;
+    notificationStore.addNotification("Collection moved to Trash.", longMessage, "success", true);
+
+  } else if (props.entity.type === 'untracked_entity') {
+    prepDeleteUntrackedEntityPopUpModal();
+  }
+};
+
+// Deletes an untracked item from the file system.
+const deleteUntrackedItem = () => {
+  FSService.DeleteFolder(props.entity.file_path);
+  projectStore.removeUntrackedEntity(props.entity.id);
+  emitter.emit('refresh-browser');
+  modals.disableAllModals();
+};
+
+// Emits entity data updates to related components.
+const emitEntityUpdates = (entityId, updates) => {
+  const updateData = { itemId: entityId, updates };
+  
+  emitter.emit('update-root-data', updateData);
+  emitter.emit('update-children', updateData);
+};
+
+// Expands or collapses the entity in the tree view.
+const expandEntity = () => {
+  const entity = props.entity;
+  stage.expandEntity(entity, props.isUntracked);
+  cancelRename();
+  emit('toggle', entity.name);
+};
+
+// Navigates into the entity to explore its contents.
+const exploreEntity = (entity) => {
+  collectionStore.navigateToCollection(entity);
+  commonStore.navigatorMode = true;
+};
+
+// Frees up disk space by deleting working files.
+const freeUpSpace = async () => {
+  let entity = collectionStore.selectedCollection;
+  let entityDir = entity.file_path.replace(/\\/g, '/');
+  await FSService.DeleteFolder(entityDir)
+    .then((response) => {
+      emitter.emit('refresh-browser');
+      assetStore.refreshEntityFilesStatus(entity.id);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  modals.disableAllModals();
+};
+
+// Returns the icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  const icon = iconStore.getAppIcon(iconName);
+  return icon;
+};
+
+// Prepares the modal for adding checkpoints to all items.
+const prepAllCheckpointModal = (entityPath) => {
+  trayStates.createMultipleCheckpointsEntityPath = entityPath;
+  modals.setModalVisibility('createMultipleCheckpointsModal', true);
+};
+
+// Prepares the delete untracked entity popup modal.
+const prepDeleteUntrackedEntityPopUpModal = () => {
+  trayStates.popUpModalTitle = "Delete";
+  trayStates.popUpModalMessage = "Are you sure you want to delete this item? This will permanently remove this item. Please confirm if you wish to proceed.";
+  trayStates.popUpModalIcon = 'trash';
+  trayStates.popUpModalFunction = deleteUntrackedItem;
+  modals.setModalVisibility('popUpModal', true);
+};
+
+// Prepares the free up space popup modal.
+const prepFreeUpSpacePopUpModal = () => {
+  trayStates.popUpModalTitle = "Free Up Entity Space";
+  trayStates.popUpModalMessage = "Are you sure you want to delete this entity working files? This will permanently remove all uncheckpointed resources and all entity outputs. Please confirm if you wish to proceed.";
+  trayStates.popUpModalIcon = 'broom';
+  trayStates.popUpModalFunction = freeUpSpace;
+  modals.setModalVisibility('popUpModal', true);
+};
+
+// Rebuilds all rebuildable items in the entity.
+const rebuildEntity = async () => {
+  notificationStore.cancleFunction = SyncService.CancelSync;
+  notificationStore.canCancel = true;
+  await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, props.entity.id)
+    .then((data) => {
+      assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path));
+      emitter.emit('refresh-browser');
+    }).catch(async (error) => {
+      notificationStore.errorNotification("Error Rebuilding All", error);
+    });
+};
+
+// Reveals the selected entity in the explorer.
+const revealSelectedEntity = () => {
+  if (isEditing.value) return;
+  if (isEntityInFocus.value && !modals.activeModal) {
+    exploreEntity(props.entity);
+  }
+};
+
+// Starts the rename operation.
+const startRename = () => {
+  toggleEditMode();
+};
+
+// Toggles the edit mode for renaming.
 const toggleEditMode = (event) => {
   isEditing.value = !isEditing.value;
   emit('toggle-edit-mode', isEditing.value);
@@ -412,25 +587,15 @@ const toggleEditMode = (event) => {
   }
 };
 
-const cancelRename = () => {
-  editableEntityName.value = props.entity.name;
-  if (isEditing.value) {
-    toggleEditMode();
+// Triggers the rename operation if conditions are met.
+const triggerRename = () => {
+  if (isEntityInFocus.value && userStore.canDo('update_entity')) {
+    startRename();
   }
 };
 
-const startRename = () => {
-  toggleEditMode();
-};
-
-const confirmRename = async () => {
-  isAwaitingResponse.value = true;
-  await updateCollectionName();
-  toggleEditMode();
-};
-
+// Updates the collection name in the backend.
 const updateCollectionName = async () => {
-
   if (props.entity.type === 'entity') {
     let entity = props.entity;
     let entityId = entity.id;
@@ -441,19 +606,17 @@ const updateCollectionName = async () => {
         emitEntityUpdates(entityId, [
           { property: 'name', value: editableEntityName.value }
         ]);
-        
       })
       .catch((error) => {
         isAwaitingResponse.value = false;
         console.error('Error:', error);
       });
   } else if (props.entity.type === 'untracked_entity') {
-    let oldPath = props.entity.file_path
-    let newPath = getParentPath(props.entity.file_path) + "/" + editableEntityName.value
+    let oldPath = props.entity.file_path;
+    let newPath = getParentPath(props.entity.file_path) + "/" + editableEntityName.value;
     let entityId = props.entity.id;
     await FSService.Rename(oldPath, newPath)
       .then((data) => {
-
         emitEntityUpdates(entityId, [
           { property: 'name', value: editableEntityName.value },
           { property: 'file_path', value: newPath }
@@ -465,119 +628,30 @@ const updateCollectionName = async () => {
         isAwaitingResponse.value = false;
         console.error('Error:', error);
       });
-
-  }
-
-};
-
-const triggerRename = () => {
-  if (isEntityInFocus.value && userStore.canDo('update_entity')) {
-    startRename();
   }
 };
 
+// Updates all outdated assets in this entity.
 const updateEntityAssets = async () => {
-	notificationStore.cancleFunction = SyncService.CancelSync
-	notificationStore.canCancel = true
-	
-	// Fetch outdated items for this entity recursively
-	const outdatedTasks = await collectionStore.getOutdatedItems(props.entity.id);
-	const entityOutdatedAssets = outdatedTasks.map(task => task.task_path);
-	
-	if (entityOutdatedAssets.length === 0) {
-		return;
-	}
-	
-	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entityOutdatedAssets)
-		.then((data) => {
-			emitter.emit('refresh-browser');
-		}).catch(async (error) => {
-			notificationStore.errorNotification("Error Updating Items", error)
-		})
-};
-
-const rebuildEntity = async () => {
-	notificationStore.cancleFunction = SyncService.CancelSync
-	notificationStore.canCancel = true
-	await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, props.entity.id)
-		.then((data) => {
-			assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path))
-			emitter.emit('refresh-browser');
-		}).catch(async (error) => {
-			notificationStore.errorNotification("Error Rebuilding All", error)
-		})
-};
-
-const revealSelectedEntity = () => {
-  if (isEditing.value) return
-  if (isEntityInFocus.value && !modals.activeModal) {
-    exploreEntity(props.entity);
+  notificationStore.cancleFunction = SyncService.CancelSync;
+  notificationStore.canCancel = true;
+  
+  const outdatedTasks = await collectionStore.getOutdatedItems(props.entity.id);
+  const entityOutdatedAssets = outdatedTasks.map(task => task.task_path);
+  
+  if (entityOutdatedAssets.length === 0) {
+    return;
   }
-}
-
-const prepFreeUpSpacePopUpModal = () => {
-  trayStates.popUpModalTitle = "Free Up Entity Space";
-  trayStates.popUpModalMessage = "Are you sure you want to delete this entity working files? This will permanently remove all uncheckpointed resources and all entity outputs. Please confirm if you wish to proceed.";
-  trayStates.popUpModalIcon = 'broom';
-  trayStates.popUpModalFunction = freeUpSpace;
-  modals.setModalVisibility('popUpModal', true);
-};
-
-const freeUpSpace = async () => {
-  let entity = collectionStore.selectedCollection;
-  let entityDir = entity.file_path.replace(/\\/g, '/');
-  await FSService.DeleteFolder(entityDir)
-    .then((response) => {
+  
+  await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entityOutdatedAssets)
+    .then((data) => {
       emitter.emit('refresh-browser');
-      assetStore.refreshEntityFilesStatus(entity.id)
-    })
-    .catch((error) => {
-      console.error(error);
+    }).catch(async (error) => {
+      notificationStore.errorNotification("Error Updating Items", error);
     });
-  modals.disableAllModals();
 };
 
-const deleteEntity = async () => {
-  if (props.entity.type === 'entity') {
-    let entity = collectionStore.selectedCollection;
-      CollectionService.DeleteCollection(projectStore.activeProject.uri, entity.id, true)
-      .then(async (response) => {
-        emitter.emit('refresh-browser');
-        collectionStore.selectedCollection = null;
-        stage.markedItems = [];
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-    let longMessage = `Collection of name: ${entity.name} was moved to Trash.`
-    notificationStore.addNotification("Collection moved to Trash.", longMessage, "success", true);
-
-  } else if (props.entity.type === 'untracked_entity') {
-    prepDeleteUntrackedEntityPopUpModal();
-  }
-};
-
-const deleteUntrackedItem = () => {
-  FSService.DeleteFolder(props.entity.file_path);
-  projectStore.removeUntrackedEntity(props.entity.id);
-  emitter.emit('refresh-browser');
-  modals.disableAllModals();
-};
-
-const prepDeleteUntrackedEntityPopUpModal = () => {
-  trayStates.popUpModalTitle = "Delete";
-  trayStates.popUpModalMessage = "Are you sure you want to delete this item? This will permanently remove this item. Please confirm if you wish to proceed.";
-  trayStates.popUpModalIcon = 'trash';
-  trayStates.popUpModalFunction = deleteUntrackedItem;
-  modals.setModalVisibility('popUpModal', true);
-};
-
-
-const prepAllCheckpointModal = (entityPath) => {
-	trayStates.createMultipleCheckpointsEntityPath = entityPath;
-	modals.setModalVisibility('createMultipleCheckpointsModal', true);
-};
-
+// watchers
 watch(() => isEntityInFocus.value, (newItems, oldItems) => {
   if (isEditing.value) {
     isEditing.value = false;
@@ -585,83 +659,31 @@ watch(() => isEntityInFocus.value, (newItems, oldItems) => {
   }
 }, { deep: true });
 
-const canImport = computed(() => {
-  let trackedParent = utils.getUntrackedEntityparent(props.entity)
-  if (props.entity.entity_path === "") {
-    return false
-  }
-  return trackedParent && trackedParent.can_modify
-});
-
-// Helper function to emit entity data updates
-const emitEntityUpdates = (entityId, updates) => {
-  const updateData = { itemId: entityId, updates };
-  
-  // Emit to both Browser and VirtuaItem components
-  emitter.emit('update-root-data', updateData);
-  emitter.emit('update-children', updateData);
-};
-
-const isAssigned = computed(() => {
-  const user = userStore.user;
-  if (!user) {
-    return false
-  }
-  let currentUserId = user.id;
-  return props.entity.assignee_ids?.includes(currentUserId)
-})
-
-const entityMeta = computed(() => {
-  const noOfItems = props.entityChildren?.length;
-  const message = noOfItems === 1 ? ' item' : ' items'
-  return noOfItems + message
-});
-
-const cacheEntityDataIds = () => {
-  // stage.entityDataIds = entityDataIds.value;
-};
-
-
-// methods
-const expandEntity = () => {
-  const entity = props.entity;
-  // console.log(entity);
-  stage.expandEntity(entity, props.isUntracked);
-  cancelRename();
-  emit('toggle', entity.name);
-};
-
-watchEffect(() => {
-  if(!props.hasChildren){
-    if(props.entity.id in stage.expandedEntities){
+watch(() => props.entityChildren, () => {
+  if (props.entityChildren.length === 0) {
+    const entity = props.entity;
+    if (entity.id in stage.expandedEntities) {
       // expandEntity()
     }
   }
 });
 
-const exploreEntity = (entity) => {
-  collectionStore.navigateToCollection(entity);
-  commonStore.navigatorMode = true;
-};
-
-
-
-watch(() => props.entityChildren, () => {
-  if (props.entityChildren.length === 0) {
-    const entity = props.entity;
-    if (entity.id in stage.expandedEntities) {
+watchEffect(() => {
+  if (!props.hasChildren) {
+    if (props.entity.id in stage.expandedEntities) {
+      // expandEntity()
     }
   }
 });
 
+// lifecycle hooks
 onMounted(async () => {
   emitter.on('renameEntity', triggerRename);
 });
 
 onBeforeUnmount(() => {
-  emitter.off('renameEntity', triggerRename)
+  emitter.off('renameEntity', triggerRename);
 });
-
 </script>
 
 <style scoped>
