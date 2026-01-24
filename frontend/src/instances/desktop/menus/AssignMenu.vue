@@ -72,35 +72,34 @@
 
 <script setup>
 // imports
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
-import utils from '@/services/utils';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
+import utils from '@/services/utils';
+
+// components
+import AssigneeItem from '@/instances/common/components/AssigneeItem.vue';
 
 // services
 import { AssetService, ProjectService } from "@/services";
 
-// states/store imports
-import { useMenu } from '@/stores/menu';
-import { useStageStore } from '@/stores/stages';
-import { useUserStore } from '@/stores/users';
+// stores
 import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
-import { useStudioStore } from '@/stores/studio';
-
-// components
-import AssigneeItem from '@/instances/common/components/AssigneeItem.vue'
 import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
+import { useStudioStore } from '@/stores/studio';
+import { useUserStore } from '@/stores/users';
 
-// states/stores
-const userStore = useUserStore();
-const menu = useMenu();
-const stage = useStageStore();
-const notificationStore = useNotificationStore();
 const assetStore = useAssetStore();
-const projectStore = useProjectStore();
 const iconStore = useIconStore();
+const menu = useMenu();
+const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
+const stage = useStageStore();
 const studioStore = useStudioStore();
+const userStore = useUserStore();
 
 // refs
 const collectionMenu = ref(null);
@@ -109,54 +108,37 @@ const searchUserInput = ref(null);
 const searchUserTerm = ref('');
 
 // computed properties
-const task = computed(() => { return assetStore.selectedAsset });
-const multipleTasks = computed(() => { return stage.markedItems.length > 1 });
-
-const projectCollaborators = computed(() => {
-  return userStore.getProjectCollaborators;
-});
-
+// Returns the current assignee data formatted for display.
 const assignee = computed(() => {
-  if (!task.value) {
-    return
-  }
-
-  if (!task.value.assignee_id) {
-    return
-  };
+  if (!task.value || !task.value.assignee_id) return;
 
   const user = userStore.getUserData(task.value.assignee_id);
-  const userData = {
+  return {
     name: `${user.first_name} ${user.last_name}` || user,
     photo: user.photo || "",
     avatarColor: userStore.userProfileColor(user.id),
     id: user.id,
-  }
-
-  return userData;
+  };
 });
 
+// Returns formatted list of project collaborators, excluding current assignee.
 const collaboratorsList = computed(() => {
-
   const allCollaborators = projectCollaborators.value;
   if (multipleTasks.value) {
-    const availableCollaborators = allCollaborators.filter((item) => item.username.toLowerCase().includes(searchUserTerm.value))
-    return utils.sortAlphabetically(formatCollaborators(availableCollaborators))
+    const availableCollaborators = allCollaborators.filter((item) => item.username.toLowerCase().includes(searchUserTerm.value));
+    return utils.sortAlphabetically(formatCollaborators(availableCollaborators));
   } else if (!task.value.assignee_id) {
-    const availableCollaborators = allCollaborators.filter((item) => item.username.toLowerCase().includes(searchUserTerm.value))
-    return utils.sortAlphabetically(formatCollaborators(availableCollaborators))
-  };
+    const availableCollaborators = allCollaborators.filter((item) => item.username.toLowerCase().includes(searchUserTerm.value));
+    return utils.sortAlphabetically(formatCollaborators(availableCollaborators));
+  }
 
   const filteredCollaborators = allCollaborators.filter((item) => item.id !== assignee.value.id && item.username.toLowerCase().includes(searchUserTerm.value));
-  const result = formatCollaborators(filteredCollaborators);
-  return utils.sortAlphabetically(result);
+  return utils.sortAlphabetically(formatCollaborators(filteredCollaborators));
 });
 
 // Returns studio users who are not in the current project, filtered by search term.
 const filteredStudioUsers = computed(() => {
-  if (!searchUserTerm.value) {
-    return [];
-  }
+  if (!searchUserTerm.value) return [];
   
   const projectUserIds = projectCollaborators.value.map(user => user.id);
   const studioUsers = studioStore.studioUsers || [];
@@ -181,146 +163,70 @@ const filteredStudioUsers = computed(() => {
   return utils.sortAlphabetically(users);
 });
 
-const getAppIcon = (iconName) => {
-	const icon = iconStore.getAppIcon(iconName);
-	return icon
-};
+// Checks if multiple tasks are selected.
+const multipleTasks = computed(() => stage.markedItems.length > 1);
 
-const emitTaskUpdates = (taskId, updates) => {
-  const updateData = { itemId: taskId, updates };
-  
-  // Emit to both Browser and VirtuaItem components
-  emitter.emit('update-root-data', updateData);
-  emitter.emit('update-children', updateData);
-};
+// Returns the list of project collaborators.
+const projectCollaborators = computed(() => userStore.getProjectCollaborators);
+
+// Returns the currently selected task.
+const task = computed(() => assetStore.selectedAsset);
 
 // methods
-const formatCollaborators = (arr) => {
-  return arr.map((user, index) => ({
-    name: `${user.first_name} ${user.last_name}` || user,
-    photo: user.photo || "",
-    avatarColor: userStore.userProfileColor(user.id),
-    id: user.id,
-    index: index.toString(),
-  }));
-};
-
+// Assigns a task to a user, handling single or multiple selection.
 const assignTask = (assigneeId) => {
   if (!multipleTasks.value) {
     assignSingleTask(assigneeId);
   } else {
-    assignMultipleTasks(assigneeId)
+    assignMultipleTasks(assigneeId);
   }
 };
 
-const unassignTask = () => {
-  if (!multipleTasks.value) {
-    unassignSingleTask();
-  } else {
-    unassignMultipleTasks()
+// Assigns multiple tasks to a user.
+const assignMultipleTasks = async (assigneeId) => {
+  let taskIds = stage.markedItems;
+
+  for (const taskId of taskIds) {
+    await AssetService.AssignAsset(projectStore.activeProject.uri, taskId, assigneeId)
+      .then(async () => {
+        emitTaskUpdates(taskId, [{ property: 'assignee_id', value: assigneeId }]);
+        menu.disableAllMenus();
+      })
+      .catch((error) => {
+        console.log(error);
+        notificationStore.errorNotification("Error Assigning Task", error);
+      });
   }
+  notificationStore.addNotification("Tasks Assigned Successfully.", "", "success");
 };
 
+// Assigns a single task to a user.
 const assignSingleTask = async (assigneeId) => {
   let selectedTask = task.value;
   let taskId = selectedTask.id;
   let user = collaboratorsList.value.find((item) => item.id === assigneeId);
   let userId = user ? user.id : "";
+  
   await AssetService.AssignAsset(projectStore.activeProject.uri, taskId, userId)
-    .then(async (data) => {
-      // Update local task data
+    .then(async () => {
       selectedTask.assignee_id = userId;
-      
-      // Emit updates using helper function
-      emitTaskUpdates(taskId, [
-        { property: 'assignee_id', value: userId }
-      ]);
-      
+      emitTaskUpdates(taskId, [{ property: 'assignee_id', value: userId }]);
       menu.disableAllMenus();
       notificationStore.addNotification("Task Assigned Successfully.", "", "success");
     })
     .catch((error) => {
-      console.log(error)
-      notificationStore.errorNotification("Error Assigning Task", error)
+      console.log(error);
+      notificationStore.errorNotification("Error Assigning Task", error);
     });
 };
 
-const unassignSingleTask = async () => {
-  let selectedTask = task.value;
-  let taskId = selectedTask.id;
-  await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId)
-    .then(async (data) => {
-      selectedTask.assignee_id = null;
-      
-      emitTaskUpdates(taskId, [
-        { property: 'assignee_id', value: null }
-      ]);
-      
-      notificationStore.addNotification("Task Unassigned Successfully.", "", "success");
-      menu.disableAllMenus();
-    })
-    .catch((error) => {
-      console.log(error)
-      notificationStore.errorNotification("Error Unassigning Task", error)
-    });
-};
-
-const assignMultipleTasks = async (assigneeId) => {
-  let taskIds = stage.markedItems;
-
-  for (const taskId of taskIds) {
-    let userId = assigneeId;
-    await AssetService.AssignAsset(projectStore.activeProject.uri, taskId, userId)
-      .then(async (data) => {
-        
-        emitTaskUpdates(taskId, [
-          { property: 'assignee_id', value: userId }
-        ]);
-        
-        menu.disableAllMenus();
-      })
-      .catch((error) => {
-        console.log(error)
-        notificationStore.errorNotification("Error Assigning Task", error)
-      });
-
-  }
-  notificationStore.addNotification("Tasks Assigned Successfully.", "", "success");
-};
-
-const unassignMultipleTasks = async () => {
-  let taskIds = stage.markedItems;
-
-  for (const taskId of taskIds) {
-    await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId)
-      .then(async (data) => {
-        // Update local task data
-        let task = assetStore.findAsset(taskId);
-        task.assignee_id = null;
-        
-        // Emit updates using helper function
-        emitTaskUpdates(taskId, [
-          { property: 'assignee_id', value: null }
-        ]);
-        
-        menu.disableAllMenus();
-      })
-      .catch((error) => {
-        console.log(error)
-        notificationStore.errorNotification("Error Assigning Task", error)
-      });
-  }
-  notificationStore.addNotification("Tasks Unssigned Successfully.", "", "success");
-};
-
-// Adds a studio user to the project and then assigns the task to them.
+// Adds a studio user to the project and assigns the task to them.
 const assignStudioUser = async (user) => {
   if (loadingUserIds.value.includes(user.id)) return;
   
   loadingUserIds.value.push(user.id);
   
   try {
-    // Get the default role (Artist or first available)
     const roles = userStore.getRolesNames || [];
     const defaultRole = roles.find(role => role.toLowerCase() === 'artist') || roles[0];
     
@@ -329,14 +235,9 @@ const assignStudioUser = async (user) => {
       return;
     }
     
-    // First, add the user to the project
     await ProjectService.AddUser(projectStore.activeProject.uri, user.email, defaultRole);
-    
-    // Refresh to get updated user list
     await userStore.reloadUsers();
-    console.log(user.id)
     
-    // Now assign the task to this user
     if (!multipleTasks.value) {
       await assignSingleTask(user.id);
     } else {
@@ -352,7 +253,77 @@ const assignStudioUser = async (user) => {
   }
 };
 
-// onMounted hook
+// Emits task update events to Browser and VirtualItem components.
+const emitTaskUpdates = (taskId, updates) => {
+  const updateData = { itemId: taskId, updates };
+  emitter.emit('update-root-data', updateData);
+  emitter.emit('update-children', updateData);
+};
+
+// Formats collaborator data for display.
+const formatCollaborators = (arr) => {
+  return arr.map((user, index) => ({
+    name: `${user.first_name} ${user.last_name}` || user,
+    photo: user.photo || "",
+    avatarColor: userStore.userProfileColor(user.id),
+    id: user.id,
+    index: index.toString(),
+  }));
+};
+
+// Returns the icon path for a given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Unassigns a task, handling single or multiple selection.
+const unassignTask = () => {
+  if (!multipleTasks.value) {
+    unassignSingleTask();
+  } else {
+    unassignMultipleTasks();
+  }
+};
+
+// Unassigns multiple tasks.
+const unassignMultipleTasks = async () => {
+  let taskIds = stage.markedItems;
+
+  for (const taskId of taskIds) {
+    await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId)
+      .then(async () => {
+        let task = assetStore.findAsset(taskId);
+        task.assignee_id = null;
+        emitTaskUpdates(taskId, [{ property: 'assignee_id', value: null }]);
+        menu.disableAllMenus();
+      })
+      .catch((error) => {
+        console.log(error);
+        notificationStore.errorNotification("Error Assigning Task", error);
+      });
+  }
+  notificationStore.addNotification("Tasks Unassigned Successfully.", "", "success");
+};
+
+// Unassigns a single task.
+const unassignSingleTask = async () => {
+  let selectedTask = task.value;
+  let taskId = selectedTask.id;
+  
+  await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId)
+    .then(async () => {
+      selectedTask.assignee_id = null;
+      emitTaskUpdates(taskId, [{ property: 'assignee_id', value: null }]);
+      notificationStore.addNotification("Task Unassigned Successfully.", "", "success");
+      menu.disableAllMenus();
+    })
+    .catch((error) => {
+      console.log(error);
+      notificationStore.errorNotification("Error Unassigning Task", error);
+    });
+};
+
+// lifecycle hooks
 onMounted(() => {
   searchUserInput.value.focus();
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
@@ -379,33 +350,7 @@ onBeforeUnmount(() => {
   font-size: 14px;
 }
 
-.entity-item-menu-container {
-  z-index: 10;
-  display: flex;
-  top: 0;
-  left: 0;
-  flex-direction: column;
-  color: var(--white);
-  align-items: center;
-  gap: .3rem;
-  padding: .6rem;
-  box-sizing: border-box;
-  width: max-content;
-  width: 250px;
-  height: max-content;
-  border-radius: 16px;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--light-steel);
-}
-
-.entity-item-menu-visible {
-  opacity: 1;
-  visibility: visible;
-}
-
 .assignee-scroll-container {
-  /* display: flex; */
   flex-direction: column;
   gap: .3rem;
   max-height: 50vh;

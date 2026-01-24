@@ -10,108 +10,85 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick, reactive } from 'vue';
-import { useMenu } from '@/stores/menu';
+// imports
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
 
 // components
-import DependencySearchFilterMenu from '@/instances/desktop/menus/DependencySearchFilterMenu.vue'
-import TypeFilterMenu from '@/instances/desktop/menus/TypeFilterMenu.vue'
-import AssetTypeFilterMenu from '@/instances/desktop/menus/AssetTypeFilterMenu.vue'
-import CollectionTypeFilterMenu from '@/instances/desktop/menus/CollectionTypeFilterMenu.vue'
-import StatusFilterMenu from '@/instances/desktop/menus/StatusFilterMenu.vue'
-import ExtensionFilterMenu from '@/instances/desktop/menus/ExtensionFilterMenu.vue'
-import TagsFilterMenu from '@/instances/desktop/menus/TagsFilterMenu.vue'
-import AssigneeFilterMenu from '@/instances/desktop/menus/AssigneeFilterMenu.vue'
-import StateFilterMenu from '@/instances/desktop/menus/StateFilterMenu.vue'
+import AccountMenu from '@/instances/desktop/menus/AccountMenu.vue';
+import AssetMenu from '@/instances/desktop/menus/AssetMenu.vue';
+import AssetTypeFilterMenu from '@/instances/desktop/menus/AssetTypeFilterMenu.vue';
+import AssigneeFilterMenu from '@/instances/desktop/menus/AssigneeFilterMenu.vue';
+import AssignMenu from '@/instances/desktop/menus/AssignMenu.vue';
+import CollectionMenu from '@/instances/desktop/menus/CollectionMenu.vue';
+import CollectionTypeFilterMenu from '@/instances/desktop/menus/CollectionTypeFilterMenu.vue';
+import CopyToProjectSubMenu from '@/instances/desktop/menus/CopyToProjectSubMenu.vue';
+import DependencySearchFilterMenu from '@/instances/desktop/menus/DependencySearchFilterMenu.vue';
+import ExtensionFilterMenu from '@/instances/desktop/menus/ExtensionFilterMenu.vue';
+import ProjectItemMenu from '@/instances/desktop/menus/ProjectItemMenu.vue';
+import ProjectMenu from '@/instances/desktop/menus/ProjectMenu.vue';
+import StateFilterMenu from '@/instances/desktop/menus/StateFilterMenu.vue';
+import StatusFilterMenu from '@/instances/desktop/menus/StatusFilterMenu.vue';
+import TagsFilterMenu from '@/instances/desktop/menus/TagsFilterMenu.vue';
+import TypeFilterMenu from '@/instances/desktop/menus/TypeFilterMenu.vue';
+import UntrackedItemMenu from '@/instances/desktop/menus/UntrackedItemMenu.vue';
 
-import AssignMenu from '@/instances/desktop/menus/AssignMenu.vue'
-import ProjectMenu from '@/instances/desktop/menus/ProjectMenu.vue'
-import ProjectItemMenu from '@/instances/desktop/menus/ProjectItemMenu.vue'
-import AssetMenu from '@/instances/desktop/menus/AssetMenu.vue'
-import UntrackedItemMenu from '@/instances/desktop/menus/UntrackedItemMenu.vue'
-import CollectionMenu from '@/instances/desktop/menus/CollectionMenu.vue'
-import AccountMenu from '@/instances/desktop/menus/AccountMenu.vue'
-import CopyToProjectSubMenu from '@/instances/desktop/menus/CopyToProjectSubMenu.vue'
-
-const menuComponents = {
-  dependencySearchFilterMenu: DependencySearchFilterMenu,
-  typeFilterMenu: TypeFilterMenu,
-  assetTypeFilterMenu: AssetTypeFilterMenu,
-  collectionTypeFilterMenu: CollectionTypeFilterMenu,
-  statusFilterMenu: StatusFilterMenu,
-  stateFilterMenu: StateFilterMenu,
-  extensionFilterMenu: ExtensionFilterMenu,
-  tagsFilterMenu: TagsFilterMenu,
-  assigneeFilterMenu: AssigneeFilterMenu,
-
-  projectMenu: ProjectMenu,
-  projectItemMenu: ProjectItemMenu,
-  collectionMenu: CollectionMenu,
-  assetMenu: AssetMenu,
-  untrackedItemMenu: UntrackedItemMenu,
-  assignMenu: AssignMenu,
-  accountMenu: AccountMenu,
-  copyToProjectSubMenu: CopyToProjectSubMenu,
-};
-
-const visibleMenus = computed(() => {
-  return Object.entries(menu.menuStates)
-    .filter(([name, isVisible]) => isVisible)
-    .map(([name]) => ({
-      name,
-      component: menuComponents[name],
-    }));
-});
+// stores
+import { useMenu } from '@/stores/menu';
 
 const menu = useMenu();
-const menuDimensions = reactive({
-  height: 0,
-  width: 0
-});
 
-const hideMenu = () => {
-  menu.disableAllMenus();
-};
-
+// refs
+const menuDimensions = reactive({ height: 0, width: 0 });
 const menuEl = ref(null);
 
+// menu components mapping
+const menuComponents = {
+  accountMenu: AccountMenu,
+  assetMenu: AssetMenu,
+  assetTypeFilterMenu: AssetTypeFilterMenu,
+  assigneeFilterMenu: AssigneeFilterMenu,
+  assignMenu: AssignMenu,
+  collectionMenu: CollectionMenu,
+  collectionTypeFilterMenu: CollectionTypeFilterMenu,
+  copyToProjectSubMenu: CopyToProjectSubMenu,
+  dependencySearchFilterMenu: DependencySearchFilterMenu,
+  extensionFilterMenu: ExtensionFilterMenu,
+  projectItemMenu: ProjectItemMenu,
+  projectMenu: ProjectMenu,
+  stateFilterMenu: StateFilterMenu,
+  statusFilterMenu: StatusFilterMenu,
+  tagsFilterMenu: TagsFilterMenu,
+  typeFilterMenu: TypeFilterMenu,
+  untrackedItemMenu: UntrackedItemMenu,
+};
+
+// computed properties
+// Calculates menu position to keep it within viewport bounds.
 const menuStyle = computed(() => {
   if (!menuEl.value) return {};
   
-  const viewport = {
-    width: window.innerWidth,
-    height: window.innerHeight
-  };
-  
+  const viewport = { width: window.innerWidth, height: window.innerHeight };
   const menuRect = menuEl.value.getBoundingClientRect();
   const activeMenuWidth = menuRect.width;
   const activeMenuHeight = menuDimensions.height || menuRect.height;
+  const margin = 15;
 
   let left = menu.position.x;
   let top = menu.position.y;
-  const margin = 15; // Safety margin from viewport edges
 
-  // Handle horizontal clipping - ensure menu stays within viewport
   if (left + activeMenuWidth > viewport.width - margin) {
     left = viewport.width - activeMenuWidth - margin;
   }
-  
-  // Ensure menu doesn't go off the left edge
   if (left < margin) {
     left = margin;
   }
 
-  // Handle vertical clipping - smarter positioning to avoid bottom clipping
   if (top + activeMenuHeight > viewport.height - margin) {
-    // Try to position above the cursor/trigger if there's space
     const spaceAbove = menu.position.y - margin;
     if (spaceAbove >= activeMenuHeight) {
-      top = menu.position.y - activeMenuHeight; // Small gap above trigger
+      top = menu.position.y - activeMenuHeight;
     } else {
-      // Position at the bottom of viewport with scrolling if needed
       top = viewport.height - activeMenuHeight - margin;
-      
-      // If menu is still too tall, set max height and enable scrolling
       if (top < margin) {
         top = margin;
         const maxHeight = viewport.height - (2 * margin);
@@ -122,18 +99,35 @@ const menuStyle = computed(() => {
       }
     }
   }
-  
-  // Ensure menu doesn't go off the top edge
   if (top < margin) {
     top = margin;
   }
 
-  return {
-    left: `${left}px`,
-    top: `${top}px`,
-  };
+  return { left: `${left}px`, top: `${top}px` };
 });
 
+// Returns list of currently visible menu components.
+const visibleMenus = computed(() => {
+  return Object.entries(menu.menuStates)
+    .filter(([name, isVisible]) => isVisible)
+    .map(([name]) => ({ name, component: menuComponents[name] }));
+});
+
+// methods
+// Handles the end of the enter animation.
+const endAnimation = (el) => {
+  el.style.height = '';
+  menu.isAnimating = false;
+};
+
+// Hides the context menu on document click.
+const hideContextMenu = (event) => {
+  if (menuEl.value) {
+    menu.hideContextMenu();
+  }
+};
+
+// Starts the enter animation for the menu.
 const startAnimation = (el) => {
   menu.isAnimating = true;
   el.style.height = '0px';
@@ -144,11 +138,7 @@ const startAnimation = (el) => {
   el.style.opacity = '1';
 };
 
-const endAnimation = (el) => {
-  el.style.height = '';
-  menu.isAnimating = false;
-};
-
+// Starts the leave animation for the menu.
 const startLeaveAnimation = (el) => {
   menu.isAnimating = true;
   el.style.height = el.scrollHeight + 'px';
@@ -157,13 +147,7 @@ const startLeaveAnimation = (el) => {
   el.style.opacity = '0';
 };
 
-
-const hideContextMenu = (event) => {
-  if (menuEl.value) {
-    menu.hideContextMenu();
-  }
-};
-
+// lifecycle hooks
 onMounted(() => {
   menu.menuEl = menuEl.value;
   document.addEventListener('click', hideContextMenu);
@@ -176,39 +160,12 @@ onUnmounted(() => {
 </script>
 
 <style>
-
-.menu-item-text{
+.menu-item-text {
   font-weight: 400;
 }
 
-[data-theme="dark"] .menu-item-text{
+[data-theme="dark"] .menu-item-text {
   font-weight: 200;
-}
-
-.menu-overlay-mask {
-  top: 0;
-  left: 0;
-  position: absolute;
-  z-index: 3;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  transition: opacity 0.3s ease;
-  background-color: rgba(0, 0, 0, 0.5);
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(3px);
-  box-sizing: border-box;
-}
-
-.context-menu {
-  position: fixed;
-  background-color: white;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-  overflow: hidden;
-  z-index: 1000;
 }
 
 .context-menu-container {
@@ -221,16 +178,13 @@ onUnmounted(() => {
   box-sizing: border-box;
   width: max-content;
   height: max-content;
-  max-height: 90vh;
+  max-height: 70vh;
   overflow: hidden;
-  border-radius: var(--normal-radius);
+  overflow-y: scroll;
+  border-radius: var(--large-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
   backdrop-filter: blur(55px);
-  max-height: 70vh;
-  overflow-y: scroll;
-  border-radius: var(--large-radius);
-  /* background-color: var(--black-steel); */
 }
 
 .context-menu-container::-webkit-scrollbar {
@@ -246,15 +200,6 @@ onUnmounted(() => {
 .context-menu-container::-webkit-scrollbar-track {
   margin: 10px;
   border-radius: 10px;
-}
-
-.menu-item {
-  padding: 8px 16px;
-  cursor: pointer;
-}
-
-.menu-item:hover {
-  background-color: #f0f0f0;
 }
 
 .menu-fade-enter-active,

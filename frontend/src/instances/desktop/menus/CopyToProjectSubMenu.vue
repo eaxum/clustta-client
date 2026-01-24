@@ -76,45 +76,40 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
-
-// Stores
-import { useMenu } from '@/stores/menu';
-import { useProjectStore } from '@/stores/projects';
-import { useAssetStore } from '@/stores/assets';
-import { useNotificationStore } from '@/stores/notifications';
-import { useStageStore } from '@/stores/stages';
-import { useIconStore } from '@/stores/icons';
-
-// Services
-import { AssetService, CollectionService } from '@/services';
-
-// Components
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-
+// imports
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import emitter from '@/lib/mitt';
 
-// Store instances
-const menu = useMenu();
-const projectStore = useProjectStore();
+// components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+
+// services
+import { AssetService, CollectionService } from '@/services';
+
+// stores
+import { useAssetStore } from '@/stores/assets';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
+
 const assetStore = useAssetStore();
-const notificationStore = useNotificationStore();
-const stage = useStageStore();
 const iconStore = useIconStore();
+const menu = useMenu();
+const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
+const stage = useStageStore();
 
-// Refs
-const subMenu = ref(null);
-const searchInput = ref(null);
-const isLoading = ref(false);
+// refs
 const childEntities = ref([]);
+const isLoading = ref(false);
+const searchInput = ref(null);
 const searchTerm = ref('');
+const subMenu = ref(null);
 
-// Icon helper
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
-};
-
-// Computed: Available projects (downloaded, not current)
+// computed
+// Returns projects that are downloaded and not the current project.
 const availableProjects = computed(() => {
   return projectStore.projects.filter(project => 
     project.is_downloaded && 
@@ -122,18 +117,23 @@ const availableProjects = computed(() => {
   );
 });
 
-// Computed: Filtered projects based on search
-const filteredProjects = computed(() => {
-  if (!searchTerm.value) {
-    return availableProjects.value;
-  }
-  const term = searchTerm.value.toLowerCase();
-  return availableProjects.value.filter(project => 
-    project.name.toLowerCase().includes(term)
-  );
+// Returns the current navigation item from the stack.
+const currentNavItem = computed(() => {
+  const stack = menu.subMenuState.navigationStack;
+  return stack.length > 0 ? stack[stack.length - 1] : null;
 });
 
-// Computed: Filtered entities based on search
+// Returns the current parent entity ID.
+const currentParentId = computed(() => {
+  return currentNavItem.value?.parentId || null;
+});
+
+// Returns the current view type.
+const currentView = computed(() => {
+  return currentNavItem.value?.type || 'projects';
+});
+
+// Returns entities filtered by search term.
 const filteredEntities = computed(() => {
   if (!searchTerm.value) {
     return childEntities.value;
@@ -144,29 +144,18 @@ const filteredEntities = computed(() => {
   );
 });
 
-// Computed: Current navigation state
-const currentNavItem = computed(() => {
-  const stack = menu.subMenuState.navigationStack;
-  return stack.length > 0 ? stack[stack.length - 1] : null;
+// Returns projects filtered by search term.
+const filteredProjects = computed(() => {
+  if (!searchTerm.value) {
+    return availableProjects.value;
+  }
+  const term = searchTerm.value.toLowerCase();
+  return availableProjects.value.filter(project => 
+    project.name.toLowerCase().includes(term)
+  );
 });
 
-const navigationDepth = computed(() => {
-  return menu.subMenuState.navigationStack.length;
-});
-
-const currentView = computed(() => {
-  return currentNavItem.value?.type || 'projects';
-});
-
-const currentParentId = computed(() => {
-  return currentNavItem.value?.parentId || null;
-});
-
-const selectedProject = computed(() => {
-  return menu.subMenuState.selectedProject;
-});
-
-// Computed: Header title
+// Returns the header title based on navigation depth.
 const headerTitle = computed(() => {
   if (navigationDepth.value <= 1) {
     return 'Select Project';
@@ -174,78 +163,18 @@ const headerTitle = computed(() => {
   return currentNavItem.value?.title || 'Select Location';
 });
 
-// Navigation methods
-const goBack = () => {
-  searchTerm.value = '';
-  menu.navigateSubMenuBack();
-};
+// Returns the current navigation depth.
+const navigationDepth = computed(() => {
+  return menu.subMenuState.navigationStack.length;
+});
 
-const navigateIntoProject = async (project) => {
-  searchTerm.value = '';
-  menu.subMenuState.selectedProject = project;
-  
-  // Navigate into project root
-  menu.navigateSubMenuForward({
-    type: 'entities',
-    projectUri: project.uri,
-    parentId: null,
-    entityFilePath: project.working_directory,
-    title: project.name
-  });
-  
-  // Load root entities
-  await loadEntities(project, null, null);
-};
+// Returns the currently selected project.
+const selectedProject = computed(() => {
+  return menu.subMenuState.selectedProject;
+});
 
-const navigateIntoEntity = async (entity) => {
-  const project = selectedProject.value;
-  searchTerm.value = '';
-  
-  menu.navigateSubMenuForward({
-    type: 'entities',
-    projectUri: project.uri,
-    parentId: entity.id,
-    entityFilePath: entity.file_path,
-    title: entity.name
-  });
-  
-  // Load child entities
-  await loadEntities(project, entity.id, entity.file_path);
-};
-
-// Load entities for a given project and parent
-const loadEntities = async (project, parentId, entityFilePath = null) => {
-  isLoading.value = true;
-  childEntities.value = [];
-  
-  try {
-    // Use GetCollectionChildren with proper project parameters
-    const entityId = parentId || 'root';
-    const folderPath = entityFilePath || project.working_directory;
-    
-    const children = await CollectionService.GetCollectionChildren(
-      project.uri,
-      entityId,
-      project.working_directory,
-      folderPath,
-      project.ignore_list || [],
-      false
-    );
-    
-    // Extract only entities (collections) from the result
-    childEntities.value = (children.entities || []).sort((a, b) => 
-      a.name.localeCompare(b.name)
-    );
-    
-  } catch (error) {
-    console.error('Error loading entities:', error);
-    notificationStore.errorNotification('Failed to load collections', error);
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-// Copy action
+// methods
+// Copies the asset to the specified location.
 const copyToLocation = async (targetEntityId, projectOverride = null) => {
   const targetProject = projectOverride || selectedProject.value;
   
@@ -263,25 +192,17 @@ const copyToLocation = async (targetEntityId, projectOverride = null) => {
   try {
     stage.operationActive = true;
     
-    // Call the CopyAssetToProject service
     await AssetService.CopyAssetToProject(
-      projectStore.activeProject.uri,  // sourceProjectPath
-      asset.id,                          // assetId
-      targetProject.uri,                 // targetProjectPath
-      targetEntityId || '',              // targetEntityId (empty string for root)
-      false                              // copyAllCheckpoints - set to false as requested
+      projectStore.activeProject.uri,
+      asset.id,
+      targetProject.uri,
+      targetEntityId || '',
+      false
     );
     
-    notificationStore.addNotification(
-      'Asset Copied',
-      `${asset.name} copied to ${targetProject.name}`,
-      'success'
-    );
-    
-    // Close the menu
+    notificationStore.addNotification('Asset Copied', `${asset.name} copied to ${targetProject.name}`, 'success');
     menu.hideContextMenu();
     menu.resetSubMenu();
-    
   } catch (error) {
     console.error('Error copying asset:', error);
     notificationStore.errorNotification('Failed to Copy Asset', error);
@@ -290,10 +211,82 @@ const copyToLocation = async (targetEntityId, projectOverride = null) => {
   }
 };
 
-// Watch for navigation changes to reload entities
+// Returns the icon path for a given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Navigates back in the sub-menu.
+const goBack = () => {
+  searchTerm.value = '';
+  menu.navigateSubMenuBack();
+};
+
+// Loads child entities for a project and parent.
+const loadEntities = async (project, parentId, entityFilePath = null) => {
+  isLoading.value = true;
+  childEntities.value = [];
+  
+  try {
+    const entityId = parentId || 'root';
+    const folderPath = entityFilePath || project.working_directory;
+    
+    const children = await CollectionService.GetCollectionChildren(
+      project.uri,
+      entityId,
+      project.working_directory,
+      folderPath,
+      project.ignore_list || [],
+      false
+    );
+    
+    childEntities.value = (children.entities || []).sort((a, b) => 
+      a.name.localeCompare(b.name)
+    );
+  } catch (error) {
+    console.error('Error loading entities:', error);
+    notificationStore.errorNotification('Failed to load collections', error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Navigates into an entity to show its children.
+const navigateIntoEntity = async (entity) => {
+  const project = selectedProject.value;
+  searchTerm.value = '';
+  
+  menu.navigateSubMenuForward({
+    type: 'entities',
+    projectUri: project.uri,
+    parentId: entity.id,
+    entityFilePath: entity.file_path,
+    title: entity.name
+  });
+  
+  await loadEntities(project, entity.id, entity.file_path);
+};
+
+// Navigates into a project to show its root entities.
+const navigateIntoProject = async (project) => {
+  searchTerm.value = '';
+  menu.subMenuState.selectedProject = project;
+  
+  menu.navigateSubMenuForward({
+    type: 'entities',
+    projectUri: project.uri,
+    parentId: null,
+    entityFilePath: project.working_directory,
+    title: project.name
+  });
+  
+  await loadEntities(project, null, null);
+};
+
+// watchers
 watch(
   () => menu.subMenuState.navigationStack.length,
-  async (newLength, oldLength) => {
+  async (newLength) => {
     if (newLength > 0) {
       const navItem = currentNavItem.value;
       const project = selectedProject.value;
@@ -304,13 +297,12 @@ watch(
   }
 );
 
-// Lifecycle
+// lifecycle hooks
 onMounted(() => {
   if (subMenu.value) {
     menu.popUpMenuWidth = subMenu.value.getBoundingClientRect().width;
     menu.popUpMenu = subMenu.value;
   }
-  // Focus search input
   if (searchInput.value) {
     searchInput.value.focus();
   }

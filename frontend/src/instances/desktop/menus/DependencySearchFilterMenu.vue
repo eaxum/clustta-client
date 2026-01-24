@@ -31,51 +31,46 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
 // imports
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 
-// states/store imports
-import { useMenu } from '@/stores/menu';
-import { useCommonStore } from '@/stores/common';
-import { useStageStore } from '@/stores/stages';
-import emitter from '@/lib/mitt';
 // components
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
-// states/stores
-const menu = useMenu();
+// stores
+import { useCommonStore } from '@/stores/common';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+
 const commonStore = useCommonStore();
-const stage = useStageStore();
+const iconStore = useIconStore();
+const menu = useMenu();
 
 // refs
 const collectionMenu = ref(null);
 
-// computed properties
+// methods
+// Returns the icon path for a given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Toggles the filter for showing collections in dependency search.
 const toggleShowEntities = () => {
   commonStore.filterDependencyCollections = !commonStore.filterDependencyCollections;
 };
 
-const toggleShowTasks = () => {
-  commonStore.filterDependencyAssets = !commonStore.filterDependencyAssets;
-};
-
+// Toggles the filter for showing resources in dependency search.
 const toggleShowResources = () => {
   commonStore.filterDependencyResources = !commonStore.filterDependencyResources;
 };
 
-const toggleOnlyAssets = () => {
-  commonStore.onlyAssets = !commonStore.onlyAssets;
+// Toggles the filter for showing assets in dependency search.
+const toggleShowTasks = () => {
+  commonStore.filterDependencyAssets = !commonStore.filterDependencyAssets;
 };
 
-// onMounted hook
+// lifecycle hooks
 onMounted(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.collectionMenu = collectionMenu.value;
@@ -84,7 +79,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.assetMenuHeight = collectionMenu.value.getBoundingClientRect().height;
-
 });
 </script>
 
