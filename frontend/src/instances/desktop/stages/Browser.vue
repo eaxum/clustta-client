@@ -1065,7 +1065,7 @@ onMounted(async () => {
 	emitter.on('update-root-data', handleUpdateRootData);
 	emitter.on('update-untracked-items', handleUpdateUntrackedItems);
 
-	if (!studioStore.studioUsers.length) {
+	if (!studioStore.studioUsers.length && projectStore.activeProject.is_remote) {
 		await studioStore.getStudioUsers();
 	}
 

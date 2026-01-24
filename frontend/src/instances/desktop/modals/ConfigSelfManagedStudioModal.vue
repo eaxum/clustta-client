@@ -125,65 +125,48 @@
 
 <script setup>
 // imports
-import { ref, onMounted, computed, watchEffect } from 'vue';
+import { computed, onMounted, ref, watchEffect } from 'vue';
+
+// components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
 // services
 import { StudioService } from '@/services';
 
-//stores
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useNotificationStore } from '@/stores/notifications';
-import { useMenu } from '@/stores/menu';
-import { useIconStore } from '@/stores/icons';
-import { useProjectStore } from '@/stores/projects';
-import { useStageStore } from '@/stores/stages';
-
-//components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-
-//header vars
-let title = 'New Self Managed Studio';
-
-// stores/states
+// stores
+const iconStore = useIconStore();
+const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const menu = useMenu();
-const iconStore = useIconStore();
 const projectStore = useProjectStore();
 const stage = useStageStore();
 
-//refs
-const studioName = ref('');
-const studioUrl = ref('');
-const isStudioCreated = ref(false);
-const isAwaitingResponse = ref(false);
-const modalContainer = ref(null);
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
+
+// constants
+const title = 'New Self Managed Studio';
+
+// refs
 const createdStudio = ref(null);
-const envTextarea = ref(null);
 const envCopied = ref(false);
+const envTextarea = ref(null);
+const isAwaitingResponse = ref(false);
+const isStudioCreated = ref(false);
+const modalContainer = ref(null);
+const secretKeyCopied = ref(false);
 const showEnvFile = ref(false);
 const showSecretKey = ref(false);
-const secretKeyCopied = ref(false);
+const studioName = ref('');
+const studioUrl = ref('');
 
-const restrictedNames = computed(() => {
-  let restrictedNames = ['clustta', 'eaxum', 'pixar', 'disney', 'dreamworks'];
-  return restrictedNames;
-});
-
-const studioNameInUse = computed(() => {
-  return restrictedNames.value.includes(studioName.value.toLowerCase());
-});
-
-const studioNameEmpty = computed(() => {
-  return studioName.value === ''
-});
-
-const isValueChanged = computed(() => {
-  return !studioNameEmpty.value && !studioNameInUse.value
-});
-
+// computed
 const envFileContent = computed(() => {
   if (!createdStudio.value) return '';
   
@@ -194,41 +177,30 @@ CLUSTTA_SERVER_NAME=${createdStudio.value.name || ''}
 CLUSTTA_SERVER_URL=${createdStudio.value.url || ''}`;
 });
 
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
+const isValueChanged = computed(() => {
+  return !studioNameEmpty.value && !studioNameInUse.value;
+});
 
-const goBack = () => {
-  modals.setModalVisibility('selectNewStudioTypeModal', true);
-};
+const restrictedNames = computed(() => {
+  return ['clustta', 'eaxum', 'pixar', 'disney', 'dreamworks'];
+});
 
+const studioNameEmpty = computed(() => {
+  return studioName.value === '';
+});
+
+const studioNameInUse = computed(() => {
+  return restrictedNames.value.includes(studioName.value.toLowerCase());
+});
+
+// methods
+
+// Closes the modal.
 const closeModal = () => {
   modals.disableAllModals();
 };
 
-const handleEnterKey = (event) => {
-  if (event.key === 'Enter' && isValueChanged.value) {
-    createStudio();
-  }
-};
-
-const createStudio = async () => {
-
-  await StudioService.RegisterStudio(studioName.value, studioUrl.value).then(async (result) => {
-
-    console.log(result);
-    createdStudio.value = result;
-    isAwaitingResponse.value = false;
-    isStudioCreated.value = true;
-
-  }).catch((error) => {
-    isAwaitingResponse.value = false
-    console.log(error)
-    notificationStore.errorNotification('Error creating project', error);
-  });
-};
-
+// Copies the environment file content to clipboard.
 const copyEnvFile = async () => {
   try {
     await navigator.clipboard.writeText(envFileContent.value);
@@ -242,14 +214,7 @@ const copyEnvFile = async () => {
   }
 };
 
-const toggleEnvFile = () => {
-  showEnvFile.value = !showEnvFile.value;
-};
-
-const toggleSecretKey = () => {
-  showSecretKey.value = !showSecretKey.value;
-};
-
+// Copies the secret key to clipboard.
 const copySecretKey = async () => {
   try {
     if (createdStudio.value?.secret_key) {
@@ -265,10 +230,38 @@ const copySecretKey = async () => {
   }
 };
 
-const selectSecretKey = (event) => {
-  event.target.select();
+// Creates a new self-managed studio.
+const createStudio = async () => {
+  await StudioService.RegisterStudio(studioName.value, studioUrl.value).then(async (result) => {
+    console.log(result);
+    createdStudio.value = result;
+    isAwaitingResponse.value = false;
+    isStudioCreated.value = true;
+  }).catch((error) => {
+    isAwaitingResponse.value = false;
+    console.log(error);
+    notificationStore.errorNotification('Error creating project', error);
+  });
 };
 
+// Returns the app icon for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Goes back to the studio type selection modal.
+const goBack = () => {
+  modals.setModalVisibility('selectNewStudioTypeModal', true);
+};
+
+// Handles enter key press.
+const handleEnterKey = (event) => {
+  if (event.key === 'Enter' && isValueChanged.value) {
+    createStudio();
+  }
+};
+
+// Launches the studio after creation.
 const launchStudio = async () => {
   isAwaitingResponse.value = true;
   await projectStore.loadStudios();
@@ -280,7 +273,7 @@ const launchStudio = async () => {
   }
 
   await projectStore.loadProjects().then((result) => {
-    console.log(result)
+    console.log(result);
   }).catch((error) => {
     console.error('Error:', error);
   });
@@ -288,16 +281,32 @@ const launchStudio = async () => {
   closeModal();
 };
 
+// Selects the secret key input text.
+const selectSecretKey = (event) => {
+  event.target.select();
+};
+
+// Toggles the environment file visibility.
+const toggleEnvFile = () => {
+  showEnvFile.value = !showEnvFile.value;
+};
+
+// Toggles the secret key visibility.
+const toggleSecretKey = () => {
+  showSecretKey.value = !showSecretKey.value;
+};
+
+// watchers
 watchEffect(() => {
   if (modalContainer.value) {
     menu.clickOutsideMask = modalContainer.value;
   }
 });
 
+// lifecycle
 onMounted(async () => {
   // await projectTemplateStore.loadProjectTemplates();
 });
-
 </script>
 
 <style scoped>

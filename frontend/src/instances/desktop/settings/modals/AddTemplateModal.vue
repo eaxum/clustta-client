@@ -40,44 +40,44 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-
-import { useTrayStates } from '@/stores/TrayStates';
-import { TemplateService } from "@/services";
-import { useNotificationStore } from '@/stores/notifications';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useProjectStore } from '@/stores/projects';
-import { useStageStore } from '@/stores/stages';
-import { useIconStore } from '@/stores/icons';
-import { DialogService } from '@/services';
+// imports
+import { computed, onMounted, ref } from 'vue';
 
 // components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import InputAlert from '@/instances/common/components/InputAlert.vue';
 
-// stores
-const modals = useDesktopModalStore();
-const projectStore = useProjectStore();
-const trayStates = useTrayStates();
-const notificationStore = useNotificationStore();
-const stage = useStageStore();
-const iconStore = useIconStore();
+// services
+import { DialogService, TemplateService } from "@/services";
 
-// header
-let title = 'Add Templates';
-let showSearch = false;
+// stores
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
+import { useTrayStates } from '@/stores/TrayStates';
+
+const iconStore = useIconStore();
+const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
+const stage = useStageStore();
+const trayStates = useTrayStates();
 
 // refs
-const selectedFiles = ref([]);
 const isAwaitingResponse = ref(false);
+const modalContainer = ref(null);
+const selectedFiles = ref([]);
 
-const hasDuplicateNames = computed(() => {
-  const names = selectedFiles.value.map(file => file.name.trim().toLowerCase());
-  return names.some((name, index) => names.indexOf(name) !== index);
-});
+// constants
+const showSearch = false;
+const title = 'Add Templates';
 
+// computed
+// Returns indices of files with duplicate names.
 const duplicateNameIndices = computed(() => {
   const names = selectedFiles.value.map(file => file.name.trim().toLowerCase());
   const indices = [];
@@ -88,7 +88,6 @@ const duplicateNameIndices = computed(() => {
     }
   });
   
-  // Also add the first occurrence of duplicates
   names.forEach((name, index) => {
     if (name && names.lastIndexOf(name) !== index && !indices.includes(index)) {
       indices.push(index);
@@ -98,108 +97,47 @@ const duplicateNameIndices = computed(() => {
   return indices;
 });
 
+// Checks if there are duplicate template names.
+const hasDuplicateNames = computed(() => {
+  const names = selectedFiles.value.map(file => file.name.trim().toLowerCase());
+  return names.some((name, index) => names.indexOf(name) !== index);
+});
+
+// Checks if form is valid for submission.
 const isValueChanged = computed(() => {
   return selectedFiles.value.length > 0 && 
          selectedFiles.value.every(file => file.name.trim() !== '') &&
          !hasDuplicateNames.value;
 });
 
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
 // methods
+// Closes the modal.
 const closeModal = () => {
   modals.setModalVisibility("addTemplateModal", false);
 };
 
-const handleEnterKey = (event) => {
-  if (event.key === 'Enter') {
-    createTemplate();
-  }
-};
-
-const processTemplateFileIcons = async (files) => {
-  if (!files || !Array.isArray(files)) {
-    return files;
-  }
-
-  for (let i = 0; i < files.length; i++) {
-    let file = files[i];
-    let extension = "";
-    
-    // Get extension from file name
-    const extensionMatch = file.fullName.match(/\.([^.]+)$/);
-    if (extensionMatch) {
-      extension = extensionMatch[1].toLowerCase();
-    }
-    
-    // Get icon from icon store
-    let iconPath = (await iconStore.getIcon(extension)) || "";
-    file.icon = iconPath;
-    file.extension = extension ? `.${extension}` : '';
-  }
-  
-  return files;
-};
-
-const selectFiles = async () => {
-  const result = await DialogService.SelectFilesDialog("Select Template Files", "");
-  if (result && result.length > 0) {
-    const newFiles = [];
-    
-    result.forEach(filePath => {
-      let normalizedPath = filePath.replace(/\\/g, '/');
-      let fileName = normalizedPath.split('/').pop();
-      let templateName = fileName.split('.').slice(0, -1).join('.');
-      
-      newFiles.push({
-        path: normalizedPath,
-        fullName: fileName,
-        name: templateName,
-        icon: '', // Will be set by processTemplateFileIcons
-        extension: '' // Will be set by processTemplateFileIcons
-      });
-    });
-    
-    // Process icons for the new files
-    await processTemplateFileIcons(newFiles);
-    
-    // Add to selected files
-    selectedFiles.value.push(...newFiles);
-  }
-};
-
-const removeFile = (index) => {
-  selectedFiles.value.splice(index, 1);
-};
-
+// Creates templates from selected files.
 const createTemplate = async () => {
   if (selectedFiles.value.length === 0) {
     notificationStore.addNotification('No Files Selected', 'Please select at least one template file', "error");
     return;
   }
 
-  // Check if all files have names
   const filesWithoutNames = selectedFiles.value.filter(file => !file.name.trim());
   if (filesWithoutNames.length > 0) {
     notificationStore.addNotification('Template Names Required', 'All templates must have a name', "error");
     return;
   }
 
-  // Check for duplicate names
   if (hasDuplicateNames.value) {
     notificationStore.addNotification('Duplicate Names Found', 'All templates must have unique names', "error");
     return;
   }
 
   try {
-    // Show operation in progress
     stage.operationActive = true;
     isAwaitingResponse.value = true;
 
-    // Create all templates
     for (const file of selectedFiles.value) {
       await TemplateService.CreateTemplate(projectStore.activeProject.uri, file.name, file.path);
     }
@@ -215,44 +153,72 @@ const createTemplate = async () => {
   }
 };
 
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Processes icons for template files.
+const processTemplateFileIcons = async (files) => {
+  if (!files || !Array.isArray(files)) {
+    return files;
+  }
+
+  for (let i = 0; i < files.length; i++) {
+    let file = files[i];
+    let extension = "";
+    
+    const extensionMatch = file.fullName.match(/\.([^.]+)$/);
+    if (extensionMatch) {
+      extension = extensionMatch[1].toLowerCase();
+    }
+    
+    let iconPath = (await iconStore.getIcon(extension)) || "";
+    file.icon = iconPath;
+    file.extension = extension ? `.${extension}` : '';
+  }
+  
+  return files;
+};
+
+// Removes a file from the selected files list.
+const removeFile = (index) => {
+  selectedFiles.value.splice(index, 1);
+};
+
+// Opens dialog to select template files.
+const selectFiles = async () => {
+  const result = await DialogService.SelectFilesDialog("Select Template Files", "");
+  if (result && result.length > 0) {
+    const newFiles = [];
+    
+    result.forEach(filePath => {
+      let normalizedPath = filePath.replace(/\\/g, '/');
+      let fileName = normalizedPath.split('/').pop();
+      let templateName = fileName.split('.').slice(0, -1).join('.');
+      
+      newFiles.push({
+        path: normalizedPath,
+        fullName: fileName,
+        name: templateName,
+        icon: '',
+        extension: ''
+      });
+    });
+    
+    await processTemplateFileIcons(newFiles);
+    selectedFiles.value.push(...newFiles);
+  }
+};
+
+// lifecycle
 onMounted(() => {
   selectFiles();
-})
-
+});
 </script>
 
 <style scoped>
 @import "@/assets/desktop.css";
-
-.add-category {
-
-  display: flex;
-  gap: .5rem;
-  flex-direction: row;
-  /* background-color: chocolate; */
-}
-
-.input-short {
-  flex: 1;
-  width: 100%;
-  font-size: 14px;
-}
-
-.listbox-short {
-
-  flex: 1;
-  width: 130px;
-}
-
-.input-label {
-
-  font-family: Inter, sans-serif;
-  color: var(--white);
-  /* font-size: 16px; */
-  white-space: nowrap;
-  flex: 1;
-
-}
 
 .category-area {
   box-sizing: border-box;
@@ -261,41 +227,6 @@ onMounted(() => {
   gap: 1rem;
   color: var(--white);
   width: 98%;
-}
-
-.category-list {
-  box-sizing: border-box;
-  display: flex;
-  padding: .5rem;
-  align-items: center;
-  flex-direction: column;
-  gap: .2rem;
-  background-color: var(--dark-steel);
-  height: 290px;
-  overflow: hidden;
-  overflow-y: scroll;
-  width: 100%;
-  border-radius: 10px;
-}
-
-.category-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.category-list::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
-}
-
-.category-list::-webkit-scrollbar-track {
-  border-radius: 10px;
-}
-
-.file-item-wrapper {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.096);
 }
 
 .category-item {
@@ -313,12 +244,32 @@ onMounted(() => {
   display: flex;
 }
 
-.file-icon {
-  flex-shrink: 0;
-  min-width: 24px;
-  max-width: 24px;
-  height: 24px;
-  object-fit: contain;
+.category-list {
+  box-sizing: border-box;
+  display: flex;
+  padding: .5rem;
+  align-items: center;
+  flex-direction: column;
+  gap: .2rem;
+  background-color: var(--dark-steel);
+  height: 290px;
+  overflow: hidden;
+  overflow-y: scroll;
+  width: 100%;
+  border-radius: var(--normal-radius);
+}
+
+.category-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.category-list::-webkit-scrollbar-thumb {
+  border-radius: var(--small-radius);
+  background-color: var(--light-steel);
+}
+
+.category-list::-webkit-scrollbar-track {
+  border-radius: var(--small-radius);
 }
 
 .extension-badge {
@@ -331,6 +282,27 @@ onMounted(() => {
   border-radius: 6px;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.file-icon {
+  flex-shrink: 0;
+  min-width: 24px;
+  max-width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.file-item-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.096);
+}
+
+.input-short {
+  flex: 1;
+  width: 100%;
+  font-size: 14px;
 }
 </style>
 

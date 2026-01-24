@@ -38,74 +38,72 @@
 
 <script setup>
 // imports
-import { onMounted, watchEffect, ref, computed, onUnmounted, onBeforeUnmount  } from 'vue';
-
-// services
-import { CollectionService } from "@/services";
-
-// state imports
-import { useTrayStates } from '@/stores/TrayStates';
+import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watchEffect } from 'vue';
 import emitter from '@/lib/mitt';
 
-// store imports
-import { useNotificationStore } from '@/stores/notifications';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useCollectionStore } from '@/stores/collections';
-import { useProjectStore } from '@/stores/projects';
-import { useMenu } from '@/stores/menu';
-import { useWorkflowStore } from '@/stores/workflow';
-import { useStageStore } from '@/stores/stages';
-import { useIconStore } from '@/stores/icons';
-
 // components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import BatchGenerator from '@/instances/desktop/components/BatchGenerator.vue';
-import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
+import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import { WorkflowService } from '@/services';
 
-// states
-const trayStates = useTrayStates();
+// services
+import { CollectionService, WorkflowService } from "@/services";
 
 // stores
-const projectStore = useProjectStore();
-const workflowStore = useWorkflowStore();
-const iconStore = useIconStore();
-const notificationStore = useNotificationStore();
-const modals = useDesktopModalStore();
 const collectionStore = useCollectionStore();
+const iconStore = useIconStore();
 const menu = useMenu();
+const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
+const stageStore = useStageStore();
+const trayStates = useTrayStates();
+const workflowStore = useWorkflowStore();
 
-// vars
-let showSearch = false;
+import { useCollectionStore } from '@/stores/collections';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useWorkflowStore } from '@/stores/workflow';
 
 // refs
-const modalContainer = ref(null);
-const showTaskOptions = ref(true);
-const popUpActions = ref(null);
-const isAwaitingResponse = ref(false);
-const entityType = ref(collectionStore.getCollectionTypesNames[0]);
-const selectedWorkflowName = ref(workflowStore.selectedWorkflow.name);
-const workflowName = ref(workflowStore.selectedWorkflow.name);
-const stageStore = useStageStore();
-
-const isMultiple = ref(false);
 const batchGen = ref(null);
+const entityType = ref(collectionStore.getCollectionTypesNames[0]);
+const isAwaitingResponse = ref(false);
+const isMultiple = ref(false);
+const modalContainer = ref(null);
+const popUpActions = ref(null);
+const selectedWorkflowName = ref(workflowStore.selectedWorkflow.name);
+const showTaskOptions = ref(true);
+const workflowName = ref(workflowStore.selectedWorkflow.name);
+const workflows = ref([]);
 
-// computed props
+// computed
+const entityId = computed(() => {
+  if (stageStore.selectedItem && stageStore.selectedItem.type === 'entity') {
+    return stageStore.selectedItem?.id;
+  } else if (collectionStore.navigatedCollection) {
+    return collectionStore.navigatedCollection.id;
+  }
+  return '';
+});
+
 const headerIcon = computed(() => {
   const selectedType = collectionStore.collectionTypes.find(item => item.name === entityType.value);
   return selectedType?.icon || 'workflow-plus';
 });
 
 const isValueChanged = computed(() => {
-  if(isMultiple.value){
-    return !batchGen.value?.invalidPattern
-  } else {
-    return workflowName.value !== '';
+  if (isMultiple.value) {
+    return !batchGen.value?.invalidPattern;
   }
+  return workflowName.value !== '';
 });
 
 const projectWorkflows = computed(() => {
@@ -114,88 +112,80 @@ const projectWorkflows = computed(() => {
 
 const projectWorkflowNames = computed(() => {
   return projectWorkflows.value?.map(workflow => workflow.name);
-})
+});
 
-const toggleIsMultiple = () => {
-  isMultiple.value = !isMultiple.value;
-}
-
-const handleEnterKey = (event) => {
-  addWorkflows();
+// methods
+// Adds multiple workflows using batch generation.
+const addMultipleWorkflows = async () => {
+  const sequenceNames = workflows.value;
+  for (let sequenceName of sequenceNames) {
+    workflowName.value = sequenceName;
+    await addSingleWorkflow();
+  }
 };
 
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
+// Adds a single workflow instance.
+const addSingleWorkflow = async () => {
+  let entityTypeData = collectionStore.collectionTypes.find((entityTypeData) => entityTypeData.name === entityType.value);
+  await WorkflowService.AddWorkflow(
+    projectStore.activeProject.uri, workflowStore.selectedWorkflow.id,
+    workflowName.value, entityTypeData.id, entityId.value
+  ).then(async (data) => {
+  }).catch((error) => {
+    console.log(error);
+    notificationStore.errorNotification("Error adding workflow", error);
+  });
 };
 
-const escape = () => {
-  modals.setModalVisibility('configWorkflowModal', false);
+// Adds workflows (single or multiple based on mode).
+const addWorkflows = async () => {
+  isAwaitingResponse.value = true;
+  if (isMultiple.value) {
+    await addMultipleWorkflows();
+  } else {
+    await addSingleWorkflow();
+  }
+  isAwaitingResponse.value = false;
+  emitter.emit('refresh-browser');
+  closeModal();
 };
 
-const closeModal = () => {
-  modals.setModalVisibility("configWorkflowModal", false);
-};
-
+// Changes the selected workflow template.
 const changeSelectedWorkflow = (workflowName) => {
   selectedWorkflowName.value = workflowName;
   workflowStore.selectedWorkflow = projectWorkflows.value?.find((workflow) => workflow.name === workflowName);
 };
 
+// Closes the modal.
+const closeModal = () => {
+  modals.setModalVisibility("configWorkflowModal", false);
+};
+
+// Returns icon path from icon store.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Handles enter key press to trigger workflow addition.
+const handleEnterKey = (event) => {
+  addWorkflows();
+};
+
+// Updates workflows from batch generator.
+const onUpdateWorkflows = (allWorkflows) => {
+  workflows.value = allWorkflows;
+  console.log(allWorkflows);
+};
+
+// Selects an entity type.
 const selectEntityType = (entityTypeName) => {
   entityType.value = entityTypeName;
 };
 
-const entityId = computed(() => {
-  if(stageStore.selectedItem && stageStore.selectedItem.type === 'entity'){
-    return stageStore.selectedItem?.id
-  } else if (collectionStore.navigatedCollection) {
-    return collectionStore.navigatedCollection.id;
-  } else {
-    return '';
-  }
-});
-
-const addSingleWorkflow = async () => {
-
-  let entityTypeData = collectionStore.collectionTypes.find((entityTypeData) => entityTypeData.name === entityType.value)
-  await WorkflowService.AddWorkflow(
-    projectStore.activeProject.uri, workflowStore.selectedWorkflow.id,
-    workflowName.value, entityTypeData.id, entityId.value
-  ).then(async (data) => {
-  })
-    .catch((error) => {
-      console.log(error)
-      notificationStore.errorNotification("Error adding workflow", error)
-    });
+// Toggles multiple workflow mode.
+const toggleIsMultiple = () => {
+  isMultiple.value = !isMultiple.value;
 };
-
-const workflows = ref([]);
-
-const onUpdateWorkflows = (allWorkflows) => {
-  workflows.value = allWorkflows;
-  console.log(allWorkflows);
-}
-
-const addMultipleWorkflows = async () => {
-  const sequenceNames = workflows.value;
-  for (let sequenceName of sequenceNames) {
-    workflowName.value = sequenceName;
-    await addSingleWorkflow()
-  }
-}
-
-const addWorkflows = async () => {
-  isAwaitingResponse.value = true;
-  if(isMultiple.value){
-    await addMultipleWorkflows();
-  } else {
-    await addSingleWorkflow();
-  }
-  isAwaitingResponse.value = false
-  emitter.emit('refresh-browser');
-  closeModal();
-}
 
 // watchers
 watchEffect(() => {
@@ -204,6 +194,7 @@ watchEffect(() => {
   }
 });
 
+// lifecycle
 onMounted(() => {
   trayStates.listItemsBoundary = modalContainer.value;
   trayStates.tagSearchQuery = '';
@@ -211,13 +202,12 @@ onMounted(() => {
 
 onUnmounted(() => {
   stageStore.markedEntities = [];
-  stageStore.selectedItem = null
-})
+  stageStore.selectedItem = null;
+});
 
 onBeforeUnmount(() => {
   workflowStore.selectedWorkflow = null;
 });
-
 </script>
 
 <style scoped>
@@ -230,62 +220,8 @@ onBeforeUnmount(() => {
   gap: .4rem;
 }
 
-.task-options-container {
-  position: relative;
-  box-sizing: border-box;
-
-  width: 100%;
-  height: 0px;
-  /* height: 80px; */
-  overflow: hidden;
-  transition-property: height;
-  transition-duration: 0.2s;
-  transition-timing-function: ease-in-out;
-  transition: opacity .5s ease-in-out;
-  /* transition: all .1s ease-in-out; */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  margin: 0;
-  opacity: 1;
-}
-
-.task-options-container-closed {
-  transition: all .2s ease-in-out;
-  opacity: 0;
-  height: 0px;
-  padding: 0;
-  overflow: hidden;
-  /* margin-bottom: -1.5rem; */
-}
-
-
 .input-short {
   flex: 1;
   width: 100%;
-}
-
-.listbox-short {
-
-  flex: 1;
-  width: 130px;
-}
-
-.input-label {
-
-  font-family: Inter, sans-serif;
-  color: white;
-  font-size: 16px;
-  white-space: nowrap;
-  flex: 1;
-
-}
-
-.pop-up-prompt {
-  gap: 10px;
-  /* background-color: bisque; */
-  align-items: center;
-  /* justify-content: center; */
-  max-height: 400px;
 }
 </style>

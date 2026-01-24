@@ -47,98 +47,89 @@
 </template>
 
 <script setup>
-
 // imports
-import { ref, computed, watchEffect, onMounted, onBeforeUnmount } from 'vue';
-import utils from '@/services/utils';
+import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 
-import { AssetService, FSService, WorkflowService } from "@/services";
-
-// state imports
-import { useTrayStates } from '@/stores/TrayStates';
-import { useMenu } from '@/stores/menu';
-import { useIconStore } from '@/stores/icons';
-import { useNotificationStore } from '@/stores/notifications';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useCollectionStore } from '@/stores/collections';
-import { useWorkflowStore } from '@/stores/workflow';
-import { useProjectStore } from '@/stores/projects';
-
 // components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-import WorkflowItem from '@/instances/desktop/blocks/WorkflowItem.vue';
 import EditWorkflowItem from '@/instances/desktop/blocks/EditWorkflowItem.vue';
+import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import WorkflowItem from '@/instances/desktop/blocks/WorkflowItem.vue';
 
-// states
-const trayStates = useTrayStates();
-const iconStore = useIconStore();
-const collectionStore = useCollectionStore();
-const workflowStore = useWorkflowStore();
-const projectStore = useProjectStore();
+// services
+import { WorkflowService } from "@/services";
 
 // stores
-const notificationStore = useNotificationStore();
-const modals = useDesktopModalStore();
+const collectionStore = useCollectionStore();
+const iconStore = useIconStore();
 const menu = useMenu();
+const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
+const trayStates = useTrayStates();
+const workflowStore = useWorkflowStore();
+
+import { useCollectionStore } from '@/stores/collections';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useWorkflowStore } from '@/stores/workflow';
 
 // refs
-const workflowName = ref('');
-const workflowId = ref('');
-const workflowIcon = ref('');
-const isUpdate = ref(false);
-
-const modalContainer = ref(null);
-const isAwaitingResponse = ref(false);
-const isResource = ref(false);
 const editableWorkflowId = ref('');
-const isAdding = ref(false);
 const entityType = ref('folder type');
-
-const workflowTasks = ref([]);
+const isAdding = ref(false);
+const isAwaitingResponse = ref(false);
+const isUpdate = ref(false);
+const modalContainer = ref(null);
 const workflowEntities = ref([]);
+const workflowIcon = ref('');
+const workflowId = ref('');
 const workflowLinks = ref([]);
+const workflowName = ref('');
+const workflowTasks = ref([]);
 
-// computed properties
-
-// const isDataUnmodified = computed(() => {
-//     const current = JSON.stringify(newWorkflowItemData.value);
-//     const original = JSON.stringify(props.workflowItemData);
-//     return current === original;
-// });
-
-const isEditing = (id) => {
-  return editableWorkflowId.value === id
-};
-
-const editWorkflow = (workflowId) => {
-  isAdding.value = false;
-  if (editableWorkflowId.value === workflowId) {
-    editableWorkflowId.value = ''
-  } else {
-    editableWorkflowId.value = workflowId;
+// computed
+const entityTypeIcon = computed(() => {
+  const selectedEntityType = collectionStore.getCollectionTypes.find((item) => item.name === entityType.value);
+  if (!selectedEntityType) {
+    return 'folder';
   }
+  return selectedEntityType.icon;
+});
+
+const isValueChanged = computed(() => {
+  return workflowName.value !== ''
+    && workflowId.value !== ''
+    && editableWorkflowId.value === ''
+    && !isAdding.value
+    && !!(workflowTasks.value.length || workflowEntities.value.length || workflowLinks.value.length);
+});
+
+// methods
+// Opens the add workflow item form.
+const addItem = () => {
+  isAdding.value = true;
+  editableWorkflowId.value = '';
 };
 
-const deleteWorkflowItem = (workflowId) => {
+// Cancels the current add/edit operation.
+const cancel = () => {
   isAdding.value = false;
-  editableWorkflowId.value = ''
-
-  // let type = workflowData.type;
-  // if (type === 'Task') {
-  //   workflowTasks.value = workflowTasks.value.filter((item) => item.id !== workflowId)
-  // } else if (type === 'Entity') {
-  //   workflowEntities.value = workflowEntities.value.filter((item) => item.id !== workflowId)
-  // } else if (type === 'Workflow') {
-  //   workflowLinks.value = workflowLinks.value.filter((item) => item.id !== workflowId)
-  // }
-  workflowTasks.value = workflowTasks.value.filter((item) => item.id !== workflowId)
-  workflowEntities.value = workflowEntities.value.filter((item) => item.id !== workflowId)
-  workflowLinks.value = workflowLinks.value.filter((item) => item.id !== workflowId)
+  editableWorkflowId.value = '';
 };
 
+// Closes the compose workflow modal.
+const closeModal = () => {
+  modals.setModalVisibility("composeWorkflowModal", false);
+};
+
+// Adds a new workflow item to the appropriate list.
 const confirm = (workflowData) => {
   isAdding.value = false;
   editableWorkflowId.value = '';
@@ -153,70 +144,7 @@ const confirm = (workflowData) => {
   }
 };
 
-const update = (workflowData) => {
-
-  isAdding.value = false;
-  editableWorkflowId.value = '';
-
-  let type = workflowData.type;
-  if (type === 'Task') {
-    workflowTasks.value = workflowTasks.value.filter((workflowItem) => workflowItem.id !== workflowData.id)
-    workflowTasks.value.push(workflowData);
-  } else if (type === 'Entity') {
-    workflowEntities.value = workflowEntities.value.filter((workflowItem) => workflowItem.id !== workflowData.id)
-    workflowEntities.value.push(workflowData);
-  } else if (type === 'Workflow') {
-    workflowLinks.value = workflowLinks.value.filter((workflowItem) => workflowItem.id !== workflowData.id)
-    workflowLinks.value.push(workflowData);
-  }
-};
-
-const cancel = () => {
-  isAdding.value = false;
-  editableWorkflowId.value = '';
-};
-
-const isValueChanged = computed(() => {
-  return workflowName.value !== ''
-    && workflowId.value !== ''
-    && editableWorkflowId.value === ''
-    && !isAdding.value
-    //   && entityType.value !== 'folder type'
-    && !!(workflowTasks.value.length || workflowEntities.value.length || workflowLinks.value.length)
-});
-
-const entityTypeIcon = computed(() => {
-  const selectedEntityType = collectionStore.getCollectionTypes.find((item) => item.name === entityType.value);
-  if (!selectedEntityType) {
-    return 'folder'
-  } else {
-    return selectedEntityType.icon;
-  }
-});
-
-
-// methods
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
-
-const addItem = () => {
-  isAdding.value = true;
-  editableWorkflowId.value = ''
-};
-
-const handleEnterKey = (event) => {
-  if (event.key === 'Enter' && isValueChanged.value) {
-    createWorkflow(false);
-  }
-};
-
-const closeModal = () => {
-  modals.setModalVisibility("composeWorkflowModal", false);
-};
-
+// Creates or updates a workflow.
 const createWorkflow = async () => {
   isAwaitingResponse.value = true;
   let workflow = {
@@ -226,11 +154,11 @@ const createWorkflow = async () => {
     tasks: workflowTasks.value,
     entities: workflowEntities.value,
     links: workflowLinks.value
-  }
+  };
   if (isUpdate.value) {
     WorkflowService.UpdateWorkflow(projectStore.activeProject.uri, workflowId.value, workflowName.value, workflowTasks.value, workflowEntities.value, workflowLinks.value)
       .then((response) => {
-        workflowStore.workflows = workflowStore.workflows.filter((workflowItem) => workflowItem.id !== workflow.id)
+        workflowStore.workflows = workflowStore.workflows.filter((workflowItem) => workflowItem.id !== workflow.id);
         workflowStore.workflows.push(response);
       })
       .catch((error) => {
@@ -251,6 +179,60 @@ const createWorkflow = async () => {
   closeModal();
 };
 
+// Removes a workflow item from all lists.
+const deleteWorkflowItem = (workflowId) => {
+  isAdding.value = false;
+  editableWorkflowId.value = '';
+  workflowTasks.value = workflowTasks.value.filter((item) => item.id !== workflowId);
+  workflowEntities.value = workflowEntities.value.filter((item) => item.id !== workflowId);
+  workflowLinks.value = workflowLinks.value.filter((item) => item.id !== workflowId);
+};
+
+// Toggles edit mode for a workflow item.
+const editWorkflow = (workflowId) => {
+  isAdding.value = false;
+  if (editableWorkflowId.value === workflowId) {
+    editableWorkflowId.value = '';
+  } else {
+    editableWorkflowId.value = workflowId;
+  }
+};
+
+// Returns icon path from icon store.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Handles enter key press to trigger workflow creation.
+const handleEnterKey = (event) => {
+  if (event.key === 'Enter' && isValueChanged.value) {
+    createWorkflow(false);
+  }
+};
+
+// Checks if a workflow item is being edited.
+const isEditing = (id) => {
+  return editableWorkflowId.value === id;
+};
+
+// Updates an existing workflow item.
+const update = (workflowData) => {
+  isAdding.value = false;
+  editableWorkflowId.value = '';
+
+  let type = workflowData.type;
+  if (type === 'Task') {
+    workflowTasks.value = workflowTasks.value.filter((workflowItem) => workflowItem.id !== workflowData.id);
+    workflowTasks.value.push(workflowData);
+  } else if (type === 'Entity') {
+    workflowEntities.value = workflowEntities.value.filter((workflowItem) => workflowItem.id !== workflowData.id);
+    workflowEntities.value.push(workflowData);
+  } else if (type === 'Workflow') {
+    workflowLinks.value = workflowLinks.value.filter((workflowItem) => workflowItem.id !== workflowData.id);
+    workflowLinks.value.push(workflowData);
+  }
+};
+
 // watchers
 watchEffect(() => {
   if (modalContainer.value) {
@@ -258,7 +240,7 @@ watchEffect(() => {
   }
 });
 
-// onMounted hook
+// lifecycle
 onMounted(() => {
   menu.clickOutsideMask = null;
   trayStates.listItemsBoundary = modalContainer.value;
@@ -276,16 +258,11 @@ onMounted(() => {
   } else {
     workflowId.value = uuidv4();
   }
-
 });
 
 onBeforeUnmount(() => {
   workflowStore.selectedWorkflow = null;
 });
-
-
-
-
 </script>
 
 
@@ -307,14 +284,6 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
 }
 
-.workflow-item-edit {
-  background-color: var(--dark-steel);
-  border-radius: var(--normal-radius);
-  padding: .5rem;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-}
-
 .general-container {
   gap: 20px;
 }
@@ -326,51 +295,11 @@ onBeforeUnmount(() => {
 }
 
 .general-container-wide {
-  /* overflow: hidden;
-  width: 40vw;
-  max-width: 50vw;
-  max-height: 80vh; */
   min-width: 500px !important;
-}
-
-.task-options-container {
-  position: relative;
-  box-sizing: border-box;
-  width: 100%;
-  height: max-content;
-  height: 60px;
-  transition: all .2s ease-in-out;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  margin: 0;
-  /* background-color: chocolate; */
-}
-
-.task-options-container-closed {
-  height: 0px;
-  padding: 0;
-  margin-bottom: -1.5rem;
 }
 
 .input-short {
   width: 100%;
-}
-
-.listbox-short {
-  width: 130px;
-}
-
-.input-label {
-  font-family: Inter, sans-serif;
-  color: white;
-  font-size: 16px;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 1rem;
-
 }
 
 .compound-input-section {
@@ -379,13 +308,6 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: .4rem;
 }
-
-.pop-up-prompt {
-  gap: 10px;
-  align-items: center;
-  justify-content: space-between;
-}
-
 
 .pop-up-actions {
   padding: 0px;

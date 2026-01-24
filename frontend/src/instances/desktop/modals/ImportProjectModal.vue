@@ -119,112 +119,78 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+// imports
+import { onMounted, ref } from 'vue';
+
+// components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import ProgressBar from '@/instances/common/components/ProgressBar.vue';
+
+// services
+import { DialogService, FSService, SettingsService } from '@/services';
+
+// stores
+import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
-import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 
-// Components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-import ProgressBar from '@/instances/common/components/ProgressBar.vue';
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-
-import { DialogService, FSService, SettingsService } from '@/services';
-
-// Stores
 const iconStore = useIconStore();
-const projectStore = useProjectStore();
-const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
 const stage = useStageStore();
 
-// Refs
-const selectedFiles = ref([]);
+// refs
 const destinationDirectory = ref('');
-const isImporting = ref(false);
 const importComplete = ref(false);
 const importedFiles = ref([]);
+const isImporting = ref(false);
+const selectedFiles = ref([]);
 
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon;
+// methods
+// Closes the modal and optionally reloads projects.
+const closeModal = async () => {
+  if (importComplete.value) {
+    projectStore.loadProjects();
+  }
+  modals.setModalVisibility('importProjectModal', false);
 };
 
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Extracts the filename from a path.
 const getFileName = (path) => {
   return path.split('/').pop().split('\\').pop();
 };
 
-// Methods
-const selectFiles = async () => {
-  const result = await DialogService.SelectFilesDialog("Select .clst Files to Import", ".clst");
-  
-  if (result && result.length > 0) {
-    const newFiles = [];
-    
-    result.forEach(filePath => {
-      let normalizedPath = filePath.replace(/\\/g, '/');
-      let fileName = normalizedPath.split('/').pop();
-      
-      // Check if file is already in the list
-      const alreadySelected = selectedFiles.value.some(f => f.path === normalizedPath);
-      if (!alreadySelected) {
-        newFiles.push({
-          path: normalizedPath,
-          name: fileName
-        });
-      }
-    });
-    
-    selectedFiles.value.push(...newFiles);
-  }
-};
-
-const removeFile = (index) => {
-  selectedFiles.value.splice(index, 1);
-};
-
-const selectDestination = async () => {
-  const result = await DialogService.SelectFolderDialog("Select Import Destination");
-
-  if (result) {
-    let fileDir = result.replace(/\\/g, '/');
-    destinationDirectory.value = fileDir;
-  }
-};
-
+// Imports the selected project files.
 const importProjects = async () => {
   if (selectedFiles.value.length === 0) {
-    notificationStore.addNotification(
-      'No files selected',
-      'Please select at least one .clst file to import',
-      'error',
-      false
-    );
+    notificationStore.addNotification('No files selected', 'Please select at least one .clst file to import', 'error', false);
     return;
   }
 
   try {
     isImporting.value = true;
     stage.operationActive = true;
-    
     const sourcePaths = selectedFiles.value.map(file => file.path);
     const destination = destinationDirectory.value;
-    
     const importedPaths = await FSService.ImportClusttaFiles(sourcePaths, destination);
-    
     importedFiles.value = importedPaths;
     importComplete.value = true;
-    
     notificationStore.addNotification(
       'Import successful',
       `${importedPaths.length} project${importedPaths.length > 1 ? 's' : ''} imported successfully`,
       'success',
       false
     );
-    
   } catch (error) {
     notificationStore.errorNotification('Error importing projects', error);
   } finally {
@@ -233,31 +199,48 @@ const importProjects = async () => {
   }
 };
 
+// Opens the file location in file explorer.
 const locateFile = (filePath) => {
   if (filePath) {
     FSService.RevealInExplorer(filePath);
   }
 };
 
-const closeModal = async () => {
-    if (importComplete.value){
-        projectStore.loadProjects();
-    }
-    modals.setModalVisibility('importProjectModal', false);
+// Removes a file from the selection.
+const removeFile = (index) => {
+  selectedFiles.value.splice(index, 1);
 };
 
-// Load default destination on mount
+// Opens a dialog to select project files to import.
+const selectFiles = async () => {
+  const result = await DialogService.SelectFilesDialog('Select .clst Files to Import', '.clst');
+  if (result && result.length > 0) {
+    const newFiles = [];
+    result.forEach(filePath => {
+      const normalizedPath = filePath.replace(/\\/g, '/');
+      const fileName = normalizedPath.split('/').pop();
+      const alreadySelected = selectedFiles.value.some(f => f.path === normalizedPath);
+      if (!alreadySelected) {
+        newFiles.push({
+          path: normalizedPath,
+          name: fileName
+        });
+      }
+    });
+    selectedFiles.value.push(...newFiles);
+  }
+};
+
+// lifecycle hooks
 onMounted(async () => {
   try {
     const personalProjectsDir = await SettingsService.GetProjectDirectory();
-    console.log(personalProjectsDir)
     destinationDirectory.value = personalProjectsDir.replace(/\\/g, '/');
   } catch (error) {
     console.error('Failed to get project directory:', error);
     notificationStore.errorNotification('Error loading destination', error);
   }
 });
-
 </script>
 
 <style scoped>

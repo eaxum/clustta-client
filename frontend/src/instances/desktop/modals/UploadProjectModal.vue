@@ -57,7 +57,7 @@
 
 <script setup>
 // imports
-import { ref, onMounted, computed, watchEffect } from 'vue';
+import { computed, onMounted, ref, watchEffect } from 'vue';
 
 // components
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
@@ -101,44 +101,46 @@ const projectName = ref('');
 const selectedFilePath = ref('');
 const selectedLocation = ref(null);
 
-// header vars
+// constants
 const title = 'Upload Project';
 
-// methods
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
-};
+// computed
+// Checks if form values are valid for upload.
+const isValueChanged = computed(() => {
+  return !projectNameEmpty.value && !projectNameInUse.value && selectedFilePath.value !== '' && !fileError.value;
+});
 
-// computed properties
+// Returns display names for location dropdown.
 const locationDisplayNames = computed(() => {
   return projectLocations.value.map(loc => `${loc.name} - [${loc.path}]`);
 });
 
+// Checks if project name field is empty.
 const projectNameEmpty = computed(() => {
   return projectName.value === '';
 });
 
+// Checks if project name is already in use.
 const projectNameInUse = computed(() => {
   const projectNames = projectStore.projects.map((project) => project.name.toLowerCase());
   return projectNames.includes(projectName.value.toLowerCase());
 });
 
+// Returns display string for selected location.
 const selectedLocationDisplay = computed(() => {
   if (!selectedLocation.value) return '';
   return `${selectedLocation.value.name} - [${selectedLocation.value.path}]`;
 });
 
+// Computes the working directory path.
 const workingDirectory = computed(() => {
   if (!selectedLocation.value || !projectName.value) return '';
   const studioName = projectStore.selectedStudio.name;
   return `${selectedLocation.value.path}/${studioName}/${projectName.value}`;
 });
 
-const isValueChanged = computed(() => {
-  return !projectNameEmpty.value && !projectNameInUse.value && selectedFilePath.value !== '' && !fileError.value;
-});
-
 // methods
+// Adds a new project location via folder dialog.
 const addNewLocation = async () => {
   const userDirectory = await SettingsService.GetUserDirectory();
   const documentsPath = userDirectory + 'Documents';
@@ -160,16 +162,24 @@ const addNewLocation = async () => {
   }
 };
 
+// Closes the modal.
 const closeModal = () => {
   modals.disableAllModals();
 };
 
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Handles enter key press to trigger upload.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter' && isValueChanged.value) {
     uploadProject();
   }
 };
 
+// Loads available project locations from settings.
 const loadProjectLocations = async () => {
   isLoadingLocations.value = true;
   try {
@@ -185,6 +195,7 @@ const loadProjectLocations = async () => {
   }
 };
 
+// Resets project data stores to initial state.
 const resetProjectData = () => {
   commonStore.activeWorkspace = 'Default';
   commonStore.resetFilters();
@@ -195,6 +206,7 @@ const resetProjectData = () => {
   stage.expandedEntities = {};
 };
 
+// Selects a location from the dropdown.
 const selectLocation = (displayName) => {
   const location = projectLocations.value.find(loc => 
     `${loc.name} - [${loc.path}]` === displayName
@@ -204,6 +216,7 @@ const selectLocation = (displayName) => {
   }
 };
 
+// Opens dialog to select project file.
 const selectProjectFile = async () => {
   try {
     const result = await DialogService.SelectFileDialog("Select Project File", "*.clst");
@@ -213,12 +226,10 @@ const selectProjectFile = async () => {
     fileError.value = false;
     fileErrorMessage.value = '';
     
-    // Extract project name from file path
     const fileName = selectedFilePath.value.split('/').pop();
     const extractedName = fileName.replace('.clst', '');
     projectName.value = extractedName;
     
-    // Validate the file
     const isValid = await ProjectService.ValidateProjectFile(selectedFilePath.value);
     if (!isValid) {
       fileError.value = true;
@@ -230,6 +241,7 @@ const selectProjectFile = async () => {
   }
 };
 
+// Uploads the project to the selected location.
 const uploadProject = async () => {
   if (!selectedLocation.value) {
     notificationStore.addNotification(
@@ -278,7 +290,6 @@ const uploadProject = async () => {
 
     projectIsUploaded.value = true;
 
-    // Assign project to selected location
     if (selectedLocation.value) {
       try {
         await SettingsService.AssignProjectToLocation(project.id, selectedLocation.value.id);
@@ -314,7 +325,7 @@ watchEffect(() => {
   }
 });
 
-// lifecycle hooks
+// lifecycle
 onMounted(async () => {
   await loadProjectLocations();
 });

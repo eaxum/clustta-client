@@ -34,144 +34,165 @@
 </template>
 
 <script setup>
-
 // imports
-import { ref, computed, watchEffect, onMounted, onUnmounted } from 'vue';
-import utils from '@/services/utils';
+import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue';
 import emitter from '@/lib/mitt';
+import utils from '@/services/utils';
 
-import { AssetService, FSService } from "@/services";
+// components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import Apps from '@/instances/common/components/Apps.vue';
+import DropDownBox from '@/instances/common/components/DropDownBox.vue';
+import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
-// state imports
-import { useTrayStates } from '@/stores/TrayStates';
-import { useMenu } from '@/stores/menu';
+// services
+import { AssetService, FSService } from '@/services';
 
-// store imports
-import { useNotificationStore } from '@/stores/notifications';
+// stores
+import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useStageStore } from '@/stores/stages';
-import { useAssetStore } from '@/stores/assets';
-import { useTemplateStore } from '@/stores/template';
-import { useProjectStore } from '@/stores/projects';
 import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
+import { useTemplateStore } from '@/stores/template';
+import { useTrayStates } from '@/stores/TrayStates';
 
-// components
-import Apps from '@/instances/common/components/Apps.vue';
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import SearchSuggestions from '@/instances/common/components/SearchSuggestions.vue';
-import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-import DropDownBox from '@/instances/common/components/DropDownBox.vue';
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-
-// vars
-let placeholder = 'Add Tags, use commas to confirm'
-
-// states
-const trayStates = useTrayStates();
 const assetStore = useAssetStore();
-const templateStore = useTemplateStore();
-const projectStore = useProjectStore();
-const commonStore = useCommonStore();
 const collectionStore = useCollectionStore();
-
-// stores
-const notificationStore = useNotificationStore();
-const modals = useDesktopModalStore();
-const stageStore = useStageStore();
-const menu = useMenu();
+const commonStore = useCommonStore();
 const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-    const icon = iconStore.getAppIcon(iconName);
-    return icon
-};
+const menu = useMenu();
+const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
+const stageStore = useStageStore();
+const templateStore = useTemplateStore();
+const trayStates = useTrayStates();
 
 // refs
-const tags = ref([]);
-const taskName = ref('');
-const showSearch = false;
-const selectedTemplate = ref('');
 const exposeParams = ref(false);
-const modalContainer = ref(null);
-const showTaskOptions = ref(true);
 const isAwaitingResponse = ref(false);
 const isResource = ref(false);
+const itemType = ref('Task');
+const modalContainer = ref(null);
+const selectedTemplate = ref('');
+const showTaskOptions = ref(true);
+const tags = ref([]);
+const taskName = ref('');
 const taskType = ref(assetStore.getAssetTypesNames[0]);
 
-// computed properties
-const title = computed(() => trayStates.popUpModalTitle);
+// constants
+const showSearch = false;
+
+// computed
+// Returns the modal icon from tray states.
 const icon = computed(() => trayStates.popUpModalIcon);
-console.log(icon.value)
+
+// Returns whether the task name is not empty.
 const isValueChanged = computed(() => {
   return taskName.value !== '';
 });
-const projectTags = computed(() => {
-  const allTags = assetStore.projectTags;
-  return allTags.filter(item => !tags.value.includes(item));
-});
 
-const taskTypeNames = computed(() => {
-  return assetStore.getAssetTypesNames;
-});
-
-const itemType = ref('Task');
-
+// Returns available item types excluding the current selection.
 const itemTypes = computed(() => {
   const allItemTypes = ['Task', 'Resource'];
   return allItemTypes.filter((item) => item !== itemType.value?.toLowerCase());
 });
 
+// Returns the list of asset type names.
+const taskTypeNames = computed(() => {
+  return assetStore.getAssetTypesNames;
+});
+
+// Returns the modal title from tray states.
+const title = computed(() => trayStates.popUpModalTitle);
+
 // methods
-const removeTag = (tag) => {
-  tags.value = tags.value.filter(t => t !== tag);
-};
-
-const addTag = (tag) => {
-  if (tags.value.includes(tag)) {
-    return
-  }
-  else {
-    tags.value.push(tag);
-  }
-};
-
-const selectTaskType = (taskTypeName) => {
-  taskType.value = taskTypeName;
-
-  const allTaskTypeNames = taskTypeNames.value;
-  const currentTaskName = taskName.value.toLowerCase();
-
-  if (allTaskTypeNames.includes(currentTaskName)) {
-    taskName.value = utils.capitalizeStr(taskTypeName);
-  }
-
-};
-
+// Changes the item type between Task and Resource.
 const changeItemType = (newItemTypeName) => {
-
   const itemTypeName = newItemTypeName.toLowerCase() + 's';
   isResource.value = itemTypeName !== 'tasks';
   itemType.value = newItemTypeName;
-  // console.log(isResource.value);
-
 };
 
-const toggleOptions = () => {
-  showTaskOptions.value = !showTaskOptions.value;
-  exposeParams.value = !exposeParams.value;
-  scrollAppIntoView();
-}
+// Closes the modal.
+const closeModal = () => {
+  trayStates.searchTags = false;
+  modals.setModalVisibility('createAssetModal', false);
+};
 
+// Creates a new task/asset in the project.
+const createTask = async (launch = false, comment = 'Asset created') => {
+  isAwaitingResponse.value = true;
+  const selectedTaskType = assetStore.assetTypes.find(item => item.name === taskType.value);
+  const entities = stageStore.markedEntities;
+  const template = templateStore.templates.find(template => template.name === templateStore.selectedTemplateName);
+  templateStore.lastUsedTemplate = template.name;
+  const isNested = commonStore.navigatorMode && !!collectionStore.navigatedCollection;
+  if (entities.length <= 1) {
+    let entityId = '';
+    if (isNested) {
+      entityId = collectionStore.navigatedCollection.id;
+    } else if (entities.length > 0) {
+      entityId = entities[0];
+    }
+    await AssetService.CreateAsset(
+      projectStore.activeProject.uri,
+      taskName.value,
+      '',
+      selectedTaskType.id,
+      entityId,
+      isResource.value,
+      template.id,
+      '',
+      '',
+      false,
+      tags.value,
+      '',
+      comment
+    )
+      .then(async (data) => {
+        notificationStore.addNotification('Creating ' + taskName.value + '...', '', 'success');
+        if (!trayStates.keepModalOpen) {
+          closeModal();
+        } else {
+          taskName.value = '';
+          tags.value = [];
+        }
+        isAwaitingResponse.value = false;
+        notificationStore.addNotification('Created ' + taskName.value + ' successfully.', '', 'success');
+        emitter.emit('refresh-browser');
+        if (launch) {
+          FSService.LaunchFile(data.file_path);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        notificationStore.errorNotification('Error creating task', error);
+      });
+  }
+};
+
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Handles enter key press to submit form.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter' && isValueChanged.value) {
     createTask(false);
   }
 };
 
+// Scrolls the selected app icon into view.
 const scrollAppIntoView = () => {
-  const selectedIcon = document.querySelector(`.apps-flex-item-selected`);
+  const selectedIcon = document.querySelector('.apps-flex-item-selected');
   const appsCenter = trayStates.appsContainer.offsetWidth / 2;
   const iconCenter = selectedIcon.offsetWidth / 2;
   const scrollPosition = selectedIcon.offsetLeft - (appsCenter - iconCenter);
@@ -181,69 +202,21 @@ const scrollAppIntoView = () => {
   });
 };
 
-const closeModal = () => {
-  trayStates.searchTags = false;
-  modals.setModalVisibility("createAssetModal", false);
+// Selects a task type from the dropdown.
+const selectTaskType = (taskTypeName) => {
+  taskType.value = taskTypeName;
+  const allTaskTypeNames = taskTypeNames.value;
+  const currentTaskName = taskName.value.toLowerCase();
+  if (allTaskTypeNames.includes(currentTaskName)) {
+    taskName.value = utils.capitalizeStr(taskTypeName);
+  }
 };
 
-const createTask = async (launch = false, comment = "Asset created") => {
-  isAwaitingResponse.value = true;
-  let selectedTaskType = assetStore.assetTypes.find(item => item.name === taskType.value);
-  let entities = stageStore.markedEntities
-  let template = templateStore.templates.find(template => template.name === templateStore.selectedTemplateName);
-  templateStore.lastUsedTemplate = template.name;
-  const isNested = commonStore.navigatorMode && !!collectionStore.navigatedCollection;
-  if (entities.length <= 1) {
-
-    let entityId = "";
-    
-    if (isNested) {
-      entityId = collectionStore.navigatedCollection.id;
-    } else if (entities.length > 0){
-      entityId = entities[0];
-    }
-
-    await AssetService.CreateAsset(
-      projectStore.activeProject.uri,
-      taskName.value,
-      "",
-      selectedTaskType.id,
-      entityId,
-      isResource.value,
-      template.id,
-      "",
-      "",
-      false,
-      tags.value,
-      "",
-      comment,
-    )
-      .then(async (data) => {
-        let app = { name: template.name, extension: template.extension }
-        let successMessage = 'Creating ' + taskName.value + '...'
-        notificationStore.addNotification(successMessage, "", "success");
-        if (!trayStates.keepModalOpen) {
-          closeModal();
-        } else {
-          taskName.value = "";
-          tags.value = [];
-        }
-        isAwaitingResponse.value = false;
-        successMessage = 'Created ' + taskName.value + ' successfully.'
-        notificationStore.addNotification(successMessage, "", "success")
-        emitter.emit('refresh-browser');
-        if (launch) {
-          FSService.LaunchFile(data.file_path)
-        }
-      })
-      .catch((error) => {
-        console.log(error)
-        notificationStore.errorNotification("Error creating task", error)
-      });
-  } else {
-    // create same asset in multiple entities
-  }
-
+// Toggles the visibility of task options.
+const toggleOptions = () => {
+  showTaskOptions.value = !showTaskOptions.value;
+  exposeParams.value = !exposeParams.value;
+  scrollAppIntoView();
 };
 
 // watchers
@@ -253,80 +226,28 @@ watchEffect(() => {
   }
 });
 
-// onMounted hook
+// lifecycle hooks
 onMounted(() => {
   menu.clickOutsideMask = null;
   taskName.value = utils.capitalizeStr(assetStore.getAssetTypesNames[0]);
   trayStates.listItemsBoundary = modalContainer.value;
   trayStates.tagSearchQuery = '';
   trayStates.itemTags = [];
-
   if (templateStore.lastUsedTemplate) {
     selectedTemplate.value = templateStore.lastUsedTemplate;
   } else {
     selectedTemplate.value = templateStore.templates[0].name;
-  };
-
+  }
 });
 
 onUnmounted(() => {
   stageStore.markedEntities = [];
-})
-
-
+});
 </script>
 
 
 <style scoped>
 @import "@/assets/desktop.css";
-
-.general-container {
-  gap: 20px;
-}
-
-.modal-container {
-  background-color: red;
-}
-
-.task-options-container {
-  position: relative;
-  box-sizing: border-box;
-  width: 100%;
-  height: max-content;
-  height: 60px;
-  transition: all .2s ease-in-out;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  margin: 0;
-  /* background-color: chocolate; */
-}
-
-.task-options-container-closed {
-  height: 0px;
-  padding: 0;
-  margin-bottom: -1.5rem;
-}
-
-.input-short {
-  width: 100%;
-}
-
-.listbox-short {
-  width: 130px;
-}
-
-.input-label {
-  font-family: Inter, sans-serif;
-  color: white;
-  font-size: 16px;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 1rem;
-
-}
 
 .compound-input-section {
   display: flex;
@@ -335,16 +256,35 @@ onUnmounted(() => {
   gap: .4rem;
 }
 
-.pop-up-prompt {
-  gap: 10px;
-  align-items: center;
-  justify-content: space-between;
+.general-container {
+  gap: 20px;
 }
 
+.input-short {
+  width: 100%;
+}
 
 .pop-up-actions {
   padding: 0px;
   margin-top: 0;
+}
+
+.task-options-container {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 60px;
+  transition: all .2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin: 0;
+}
+
+.task-options-container-closed {
+  height: 0px;
+  padding: 0;
+  margin-bottom: -1.5rem;
 }
 </style>
 

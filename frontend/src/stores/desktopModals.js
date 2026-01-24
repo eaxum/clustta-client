@@ -37,7 +37,6 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       createMultipleCheckpointsModal: false,
 
       importItemsModal: false,
-      timelineModal: false,
       addWorkspaceModal: false,
 
       // settings
