@@ -192,6 +192,7 @@ Use consistent scrollbar styling across all scrollable containers:
 ### Refactoring Checklist
 When cleaning up components:
 - [ ] Remove unused imports, functions, computed properties, and CSS classes
+- [ ] Remove unused variables within methods
 - [ ] Alphabetize all imports, stores, refs, computed props, and methods
 - [ ] For computed props: dependencies must come before dependents (then alphabetize within same level)
 - [ ] Add section comment headers per boilerplate
