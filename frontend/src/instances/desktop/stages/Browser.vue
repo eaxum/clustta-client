@@ -129,101 +129,772 @@
 
 <script setup>
 // imports
-import { computed, ref, onMounted, onUpdated, watch, nextTick, onUnmounted, onBeforeUnmount } from 'vue';
-import { useDebounce } from '@/lib/debounce';
+import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
+import { Events } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
-
-// services
-import { CollectionService, AssetService, CheckpointService, TrashService } from "@/services";
-import { FSService, SyncService, DialogService } from '@/services';
-
-
-// state imports
-import { useCommonStore } from '@/stores/common';
-import { useCollectionStore } from '@/stores/collections';
-import { useAssetStore } from '@/stores/assets';
-import { useTrayStates } from '@/stores/TrayStates';
-import { useStageStore } from '@/stores/stages';
-import { useUserStore } from '@/stores/users';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useIconStore } from '@/stores/icons';
-import { usePaneStore } from '@/stores/panes';
-import { useProjectStore } from '@/stores/projects';
-import { useNotificationStore } from '@/stores/notifications';
-import { useMenu } from '@/stores/menu';
-import { useTagStore } from '@/stores/tags';
-import { useDndStore } from '@/stores/dnd';
-import { useDependencyStore } from '@/stores/dependency';
-import { useScrollStore } from '@/stores/scroll';
-import { useStudioStore } from '@/stores/studio';
 import { getRelativePath } from '@/lib/pathlib';
-import { useWorkflowStore } from '@/stores/workflow';
-import { useTemplateStore } from '@/stores/template';
-import { usePlatformStore } from '@/stores/platform';
-import { syncData } from '@/lib/sync';
-
-// states/stores
-const trayStates = useTrayStates();
-const stage = useStageStore();
-const userStore = useUserStore();
-const projectStore = useProjectStore();
-const modals = useDesktopModalStore();
-const notificationStore = useNotificationStore();
-const panes = usePaneStore();
-const commonStore = useCommonStore();
-const collectionStore = useCollectionStore();
-const assetStore = useAssetStore();
-const menu = useMenu();
-const tagStore = useTagStore();
-const dependencyStore = useDependencyStore();
-const iconStore = useIconStore();
-const scrollStore = useScrollStore();
-const studioStore = useStudioStore();
-const workflowStore = useWorkflowStore();
-const templateStore = useTemplateStore();
-const dndStore = useDndStore();
-const platformStore = usePlatformStore();
+import { useDebounce } from '@/lib/debounce';
 
 // components
-import Breadcrumbs from '@/instances/common/components/Breadcrumbs.vue';
-import FilterBar from '@/instances/common/components/FilterBar.vue';
-import ViewOptions from '@/instances/common/components/ViewOptions.vue';
-import VirtuaScroll from '@/instances/common/components/VirtuaScroll.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import Breadcrumbs from '@/instances/common/components/Breadcrumbs.vue';
+import DetailsPane from '@/instances/desktop/components/DetailsPane.vue';
+import FilterBar from '@/instances/common/components/FilterBar.vue';
 import GhostItem from '@/instances/desktop/blocks/GhostItem.vue';
 import GridView from '@/instances/desktop/components/GridView.vue';
 import Kanban from '@/instances/desktop/components/Kanban.vue';
 import PageState from '@/instances/common/components/PageState.vue';
-import DetailsPane from "@/instances/desktop/components/DetailsPane.vue";
-import utils from '@/services/utils';
+import ViewOptions from '@/instances/common/components/ViewOptions.vue';
+import VirtuaScroll from '@/instances/common/components/VirtuaScroll.vue';
+
+// services
+import { AssetService, CheckpointService, CollectionService, DialogService, FSService, SyncService, TrashService } from '@/services';
+
+// store imports
+import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
+import { useCommonStore } from '@/stores/common';
+import { useDependencyStore } from '@/stores/dependency';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useDndStore } from '@/stores/dnd';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useNotificationStore } from '@/stores/notifications';
+import { usePaneStore } from '@/stores/panes';
+import { usePlatformStore } from '@/stores/platform';
+import { useProjectStore } from '@/stores/projects';
+import { useScrollStore } from '@/stores/scroll';
+import { useStageStore } from '@/stores/stages';
+import { useStudioStore } from '@/stores/studio';
+import { useTagStore } from '@/stores/tags';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useUserStore } from '@/stores/users';
+import { useWorkflowStore } from '@/stores/workflow';
+
+// stores
+const assetStore = useAssetStore();
+const collectionStore = useCollectionStore();
+const commonStore = useCommonStore();
+const dependencyStore = useDependencyStore();
+const dndStore = useDndStore();
+const iconStore = useIconStore();
+const menu = useMenu();
+const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
+const panes = usePaneStore();
+const platformStore = usePlatformStore();
+const projectStore = useProjectStore();
+const scrollStore = useScrollStore();
+const stage = useStageStore();
+const studioStore = useStudioStore();
+const tagStore = useTagStore();
+const trayStates = useTrayStates();
+const userStore = useUserStore();
+const workflowStore = useWorkflowStore();
 
 // refs
-const taskListContainer = ref(null);
+const browserFilters = ref(null);
 const browserRoot = ref(null);
 const kanbanView = ref(false);
-const showFilters = ref(false);
-const browserFilters = ref(null);
-const searchBar = ref(null);
 const observer = ref(null);
 const rootData = ref([]);
 const screenWidth = ref(window.innerWidth);
+const searchBar = ref(null);
+const showFilters = ref(false);
+const taskListContainer = ref(null);
 
-// Computed for responsive layout
+// computed properties
+const canModifyEntity = computed(() => {
+	if (!collectionStore.selectedCollection) return false
+	let selectedIsMarked = stage.markedItems.includes(collectionStore.selectedCollection.id)
+	if (selectedIsMarked && stage.markedItems.length === 1) return collectionStore.selectedCollection.can_modify
+	return false
+});
+
+const draggedCard = computed(() => dndStore.allViewItems?.find(card => card.id === dndStore.draggedItemId));
+
+const entityExpanded = computed(() => Object.keys(stage.expandedEntities).length);
+
+const filtersActive = computed(() => {
+	const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
+	const entityFilters = commonStore.entityFilters.length > 0;
+	const taskFilters = commonStore.taskFilters.length > 0;
+	const resourceFilters = commonStore.resourceFilters.length > 0;
+	const generalFilter = isFilterActive('general');
+	return assigneeFilters || entityFilters || taskFilters || resourceFilters || generalFilter
+});
+
+const ghostCardStyles = computed(() => ({
+	width: `${dndStore.ghostCardStyle.width}px`,
+	left: `${dndStore.ghostCardStyle.pos.x}px`,
+	top: `${dndStore.ghostCardStyle.pos.y}px`,
+	transform: dndStore.ghostCardStyle.transform,
+}));
+
+const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
+
+const isHovered = computed(() => dndStore.isDropHovering && dndStore.targetItemId === null);
+
 const isWideScreen = computed(() => screenWidth.value >= 1000);
-
-const updateScreenWidth = () => {
-	screenWidth.value = window.innerWidth;
-	if (screenWidth.value < 1000) {
-		panes.showDetailsPane = false;
-	}
-};
-
-// events
-import { Events } from "@wailsio/runtime";
 
 const operationsActive = computed(() => {
 	return stage.operationActive || !!modals.activeModal || !!menu.activeMenu || !assetStore.assetsLoaded || stage.activeStage !== 'browser'
 });
+
+const showTagsFilter = computed(() => !!tagStore.tags.length && (commonStore.showTasks || commonStore.showResources));
+
+const viewTags = computed(() => {
+	let tags = tagStore.tags;
+	let viewTags = [];
+	let filteredTaskResults = assetStore.getFilteredAssets;
+	for (const task of filteredTaskResults) {
+		let taskTags = task.tags;
+		for (let t = 0; t < taskTags.length; t++) {
+			if (!viewTags.includes(taskTags[t])) viewTags.push(taskTags[t])
+		}
+	}
+	for (let i = 0; i < tags.length; i++) {
+		tags[i].name = tags[i].name;
+		tags[i].type = 'tags'
+	}
+	return tags.filter((item) => viewTags.includes(item.name));
+});
+
+// methods
+
+// Adds an entity dependency to a task.
+const addEntityDependency = async (taskId, dependencyId, dependencyTypeId) => {
+	await AssetService.AddEntityDependency(projectStore.activeProject.uri, taskId, dependencyId, dependencyTypeId)
+		.then(() => notificationStore.addNotification('Dependency Added.', "", "success"))
+		.catch((error) => { console.log(error); notificationStore.errorNotification("Error adding dependencies", error); });
+};
+
+// Adds a task dependency between two assets.
+const addDependency = async (taskId, dependencyId, dependencyTypeId) => {
+	await AssetService.AddAssetDependency(projectStore.activeProject.uri, taskId, dependencyId, dependencyTypeId)
+		.then(() => notificationStore.addNotification('Dependency Added.', "", "success"))
+		.catch((error) => { console.log(error); notificationStore.errorNotification("Error adding dependencies", error); });
+};
+
+// Cancels active operations like search or drag-and-drop.
+const cancelOps = () => {
+	if (commonStore.viewSearchQuery) clearSearch();
+	stage.cutItems = [];
+	if (!dndStore.altKeyActive) dndStore.resetValues();
+};
+
+// Changes the parent collection of an entity.
+const changeEntityParent = async (entityId, parentId) => {
+	await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityId, parentId)
+		.then(() => notificationStore.addNotification('Moved successfully.', "", "success"))
+		.catch((error) => { console.error(error); notificationStore.errorNotification("Error changing entity parent", error); });
+};
+
+// Moves a task to a different collection.
+const changeTaskEntity = async (taskId, entityId) => {
+	await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskId, entityId)
+		.then(() => notificationStore.addNotification('Moved successfully.', "", "success"))
+		.catch((error) => notificationStore.errorNotification("Error changing task entity", error));
+};
+
+// Clears all filters and refreshes the view.
+const clearFilters = () => { commonStore.resetFilters(); softRefresh(); };
+
+// Clears the search query and refreshes the view.
+const clearSearch = async () => { commonStore.viewSearchQuery = ""; await softRefresh(); };
+
+// Clears all item selections and resets selection state.
+const clearSelection = () => {
+	stage.markedItems = [];
+	stage.selectedItem = [];
+	stage.selectedItems = [];
+	stage.firstSelectedItemId = '';
+	stage.lastSelectedItemId = '';
+	assetStore.selectedAsset = null;
+	collectionStore.selectedCollection = null;
+};
+
+// Collapses all expanded entities and clears selection.
+const collapseAll = () => {
+	stage.expandedEntities = {};
+	stage.markedItems = [];
+	stage.firstSelectedEntityId = '';
+	collectionStore.selectedCollection = null;
+};
+
+// Opens the application selection modal to create a new asset.
+const createAsset = () => { clearSelection(); modals.setModalVisibility('selectAppModal', true); };
+
+// Opens the create collection modal.
+const createEntity = () => { if (!stage.groupItems) clearSelection(); modals.setModalVisibility('createCollectionModal', true); };
+
+// Opens the add web link modal.
+const createWebLink = () => { clearSelection(); modals.setModalVisibility('addWebLinkModal', true); };
+
+// Opens the workflow selection modal.
+const createWorkflow = () => { clearSelection(); modals.setModalVisibility('selectWorkflowModal', true); };
+
+// Deletes all selected items including tasks, entities, and untracked files.
+const deleteMultipleItems = async () => {
+	panes.setPaneVisibility('projectDetails', true);
+	stage.operationActive = true;
+	stage.firstSelectedItemId = '';
+	stage.lastSelectedItemId = '';
+	assetStore.selectedAsset = null;
+	collectionStore.selectedCollection = null;
+	const allItemsToDelete = dndStore.allViewItems.filter((item) => stage.markedItems.includes(item.id));
+	const tasksToDelete = allItemsToDelete.filter((item) => item.type === 'task');
+	const entitiesToDelete = allItemsToDelete.filter((item) => item.type === 'entity');
+	const untrackedTasksToDelete = allItemsToDelete.filter((item) => item.type === 'untracked_task');
+	const untrackedEntitiesToDelete = allItemsToDelete.filter((item) => item.type === 'untracked_entity');
+	await deleteMultipleTasks(tasksToDelete.map((item) => item.id));
+	await deleteMultipleEntities(entitiesToDelete.map((item) => item.id));
+	await deleteMultipleUntrackedTasks(untrackedTasksToDelete);
+	await deleteMultipleUntrackedEntities(untrackedEntitiesToDelete);
+	stage.markedItems = [];
+	stage.selectedItems = [];
+	stage.markedTasks = [];
+	stage.markedEntities = [];
+	stage.operationActive = false;
+	modals.setModalVisibility('popUpModal', false);
+};
+
+// Moves multiple entities to trash.
+const deleteMultipleEntities = async (entityIds) => {
+	for (let entityId of entityIds) {
+		await CollectionService.DeleteCollection(projectStore.activeProject.uri, entityId, true)
+			.then(async () => { await collectionStore.markCollectionAsDeleted(entityId); notificationStore.addNotification("Entity moved to Trash.", '', "success", false); })
+			.catch((error) => { console.log(error); notificationStore.errorNotification("Entities failed to delete.", error); });
+	}
+};
+
+// Moves multiple tasks to trash.
+const deleteMultipleTasks = async (taskIds) => {
+	for (let taskId of taskIds) {
+		await AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
+			.then(async () => { softRefresh(); notificationStore.addNotification("Tasks moved to Trash.", '', "success", false); })
+			.catch((error) => { console.log(error); notificationStore.errorNotification("Tasks failed to delete.", error); });
+	}
+};
+
+// Permanently deletes multiple untracked entity folders.
+const deleteMultipleUntrackedEntities = async (untrackedEntities) => {
+	for (let untrackedEntity of untrackedEntities) {
+		FSService.DeleteFolder(untrackedEntity.file_path);
+		projectStore.removeUntrackedEntity(untrackedEntity.id);
+	}
+};
+
+// Permanently deletes multiple untracked task files.
+const deleteMultipleUntrackedTasks = async (untrackedTasks) => {
+	for (let untrackedTask of untrackedTasks) {
+		await FSService.DeleteFile(untrackedTask.file_path);
+		projectStore.removeUntrackedTask(untrackedTask.id);
+	}
+};
+
+// Detects Alt key state for drag-and-drop modifier behavior.
+const detectModifier = (event) => { dndStore.altKeyActive = event.getModifierState('Alt'); };
+
+// Hides all context menus.
+const disableMenus = () => { menu.disableAllMenus(); };
+
+// Duplicates the selected task in the database and copies the physical file.
+const duplicateTask = async () => {
+	const selectedItemId = stage.markedItems[0];
+	const selectedItem = dndStore.allViewItems.find(item => item.id === selectedItemId);
+	if (!selectedItem || selectedItem.type !== 'task') return;
+	try {
+		stage.operationActive = true;
+		stage.markedItems = [];
+		assetStore.selectedAsset = null;
+		await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedItemId)
+			.then(async (duplicatedTask) => {
+				try { await FSService.DuplicateFile(selectedItem.file_path, duplicatedTask.file_path); }
+				catch (fileError) { console.warn('Physical file duplication failed (asset may be rebuildable):', fileError); }
+				await refresh();
+				assetStore.selectAsset(duplicatedTask);
+				stage.selectedItem = duplicatedTask;
+				stage.markedItems = [duplicatedTask.id];
+				stage.lastSelectedItemId = "";
+				stage.firstSelectedItemId = duplicatedTask.id;
+				notificationStore.addNotification(`Asset duplicated`, '', "success", false);
+			});
+	} catch (error) {
+		console.error('Error duplicating task:', error);
+		notificationStore.errorNotification("Failed to duplicate task", error.message || error);
+	} finally { stage.operationActive = false; }
+};
+
+// Expands all entities in the view.
+const expandAll = () => {
+	const entities = collectionStore.getCollections;
+	const expandedEntities = {};
+	for (let i = 0; i < entities.length; i++) {
+		expandedEntities[entities[i].id] = { "height": 0, "entity_path": entities[i].entity_path };
+	}
+	stage.expandedEntities = expandedEntities;
+};
+
+// Frees up disk space by removing files for selected tasks and entities.
+const freeUpSpace = async () => {
+	panes.setPaneVisibility('projectDetails', true);
+	stage.operationActive = true;
+	stage.firstSelectedItemId = '';
+	stage.lastSelectedItemId = '';
+	assetStore.selectedAsset = null;
+	collectionStore.selectedCollection = null;
+	const allItemsToDelete = dndStore.allViewItems.filter((item) => stage.markedItems.includes(item.id));
+	await freeUpMultipleTaskSpace(allItemsToDelete.filter((item) => item.type === 'task'));
+	await freeUpMultipleEntitySpace(allItemsToDelete.filter((item) => item.type === 'entity'));
+	await deleteMultipleUntrackedTasks(allItemsToDelete.filter((item) => item.type === 'untracked_task'));
+	await deleteMultipleUntrackedEntities(allItemsToDelete.filter((item) => item.type === 'untracked_entity'));
+	stage.markedItems = [];
+	stage.selectedItems = [];
+	stage.markedTasks = [];
+	stage.markedEntities = [];
+	stage.operationActive = false;
+	modals.setModalVisibility('popUpModal', false);
+};
+
+// Deletes entity folders to free up disk space.
+const freeUpMultipleEntitySpace = async (entities) => {
+	for (const entity of entities) {
+		let entityDir = entity.file_path.replace(/\\/g, '/');
+		await FSService.DeleteFolder(entityDir)
+			.then(() => assetStore.refreshEntityFilesStatus(entity.id))
+			.catch((error) => console.error(error));
+	}
+};
+
+// Deletes physical files for tasks to free up disk space.
+const freeUpMultipleTaskSpace = async (selectedTasks) => {
+	const fileStatus = ['missing', 'rebuildable'];
+	let taskIds = [];
+	for (let task of selectedTasks) { if (!fileStatus.includes(task.file_status)) taskIds.push(task.id); }
+	for (const taskId of taskIds) {
+		let task = assetStore.getAssets.find((item) => item.id === taskId);
+		let taskPath = task.file_path.replace(/\\/g, '/');
+		await FSService.DeleteFile(taskPath)
+			.then(() => { task.file_status = 'rebuildable'; })
+			.catch((error) => console.error(error));
+	}
+};
+
+// Generates a unique file path by appending a counter if the file already exists.
+const generateUniqueDestinationPath = async (directory, fileName) => {
+	const originalPath = await FSService.JoinPath(directory, fileName);
+	const exists = await FSService.Exists(originalPath);
+	if (!exists) return originalPath;
+	const baseName = fileName.includes('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+	const extension = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')) : '';
+	let counter = 1;
+	let newPath;
+	do {
+		const newFileName = `${baseName} (${counter})${extension}`;
+		newPath = await FSService.JoinPath(directory, newFileName);
+		const pathExists = await FSService.Exists(newPath);
+		if (!pathExists) return newPath;
+		counter++;
+	} while (counter < 100);
+	const timestamp = Date.now();
+	return await FSService.JoinPath(directory, `${baseName}_${timestamp}${extension}`);
+};
+
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
+// Returns the current directory path based on navigation context.
+const getCurrentDirectory = () => {
+	if (commonStore.navigatorMode && collectionStore.navigatedCollection) return collectionStore.navigatedCollection.file_path;
+	return projectStore.activeProject?.working_directory;
+};
+
+// Handles clicks outside of items to clear selection.
+const handleClickOutside = (event, rightClick = false) => {
+	if (event) {
+		if (!event.shiftKey || !event.ctrlKey) {
+			if (!event.target.closest('.entity-item-main')) {
+				stage.markedItems = []; stage.selectedItems = []; stage.markedEntities = []; stage.firstSelectedItemId = ''; stage.lastSelectedItemId = '';
+				stage.selectedItem = null; assetStore.selectedAsset = null; collectionStore.selectedCollection = null; stage.cutItems = []; projectStore.selectedUntrackedItem = null;
+			}
+			if (!event.target.closest('.task-item-main')) {
+				stage.markedItems = []; stage.selectedItems = []; stage.markedEntities = []; stage.firstSelectedItemId = ''; stage.lastSelectedItemId = '';
+				stage.selectedItem = null; assetStore.selectedAsset = null; stage.cutItems = []; projectStore.selectedUntrackedItem = null;
+			}
+		}
+	}
+};
+
+// Handles root data updates from emitter events for individual item property changes.
+const handleUpdateRootData = (eventData) => {
+	if (Array.isArray(eventData)) {
+		eventData.forEach(({ itemId, updates }) => {
+			const itemIndex = rootData.value.findIndex(item => item.id === itemId);
+			if (itemIndex !== -1 && updates && Array.isArray(updates)) {
+				updates.forEach(update => { if (update.property && update.value !== undefined) rootData.value[itemIndex][update.property] = update.value; });
+			}
+		});
+	} else {
+		const { itemId, property, value, updates } = eventData;
+		const itemIndex = rootData.value.findIndex(item => item.id === itemId);
+		if (itemIndex !== -1) {
+			if (property && value !== undefined) rootData.value[itemIndex][property] = value;
+			if (updates && Array.isArray(updates)) updates.forEach(update => { rootData.value[itemIndex][update.property] = update.value; });
+		}
+	}
+	emitter.emit('get-project-data');
+	collectionStore.loadCollectionStateFlags();
+};
+
+// Replaces untracked items in root data with updated list from emitter events.
+const handleUpdateUntrackedItems = (untrackedItems) => {
+	if (!untrackedItems) return;
+	rootData.value = rootData.value.filter(item => item.type !== 'untracked_entity' && item.type !== 'untracked_task');
+	rootData.value.push(...untrackedItems);
+	emitter.emit('get-project-data');
+	collectionStore.loadCollectionStateFlags();
+};
+
+// Returns the empty state illustration path.
+const illustration = () => commonStore.viewSearchQuery ? '/page-states/resources.png' : '/page-states/tasks.png';
+
+// Imports files or folders from the file system into the current directory.
+const importItems = async () => {
+	try {
+		let selectedPaths;
+		try { selectedPaths = await DialogService.SelectFilesDialog(); } catch (error) { return; }
+		if (!selectedPaths || selectedPaths.length === 0) return;
+		const currentDirectory = getCurrentDirectory();
+		if (!currentDirectory) { notificationStore.errorNotification("Could not determine current directory", ""); return; }
+		stage.operationActive = true;
+		await FSService.MakeDirs(currentDirectory);
+		let successCount = 0, failureCount = 0;
+		const errors = [];
+		for (const sourcePath of selectedPaths) {
+			try {
+				const isFile = await FSService.IsFile(sourcePath);
+				const itemName = await FSService.BaseName(sourcePath);
+				const destinationPath = await generateUniqueDestinationPath(currentDirectory, itemName);
+				if (isFile) await FSService.DuplicateFile(sourcePath, destinationPath);
+				else await FSService.DuplicateFolder(sourcePath, destinationPath);
+				successCount++;
+			} catch (error) {
+				failureCount++;
+				const itemName = await FSService.BaseName(sourcePath).catch(() => sourcePath);
+				errors.push(`${itemName}: ${error.message || error}`);
+			}
+		}
+		if (successCount > 0) notificationStore.addNotification(successCount === 1 ? "1 item imported successfully" : `${successCount} items imported successfully`, "", "success");
+		if (failureCount > 0) notificationStore.errorNotification(failureCount === 1 ? "1 item failed to import" : `${failureCount} items failed to import`, errors.join("\n"));
+		if (successCount > 0) await softRefresh();
+	} catch (error) { notificationStore.errorNotification("Error importing items", error.message || error); }
+	finally { stage.operationActive = false; }
+};
+
+// Checks if a specific filter type is currently active.
+const isFilterActive = (filter) => {
+	if (filter.includes('general')) {
+		const isActive = commonStore.showEntities && commonStore.showTasks && commonStore.showResources && commonStore.showChildEntities && commonStore.showChildTasks && commonStore.showDependencies && !commonStore.onlyAssets;
+		return !isActive;
+	} else if (filter.includes('entity')) return commonStore.entityFilters.some((item) => item.type === filter);
+	else if (filter.includes('assignation')) {
+		const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
+		return assigneeFilters || commonStore.taskFilters.some((item) => item.type === filter);
+	} else return commonStore.taskFilters.some((item) => item.type === filter);
+};
+
+// Returns the empty state message based on current view context.
+const message = () => {
+	const searching = commonStore.viewSearchQuery;
+	const myTasksWorkspace = commonStore.activeWorkspace === 'My Tasks';
+	if (searching) return 'No results found.';
+	if (isDefaultWorkspace.value && filtersActive.value) return 'No results match your filters.';
+	if (myTasksWorkspace) return 'You have no assets assigned to you.';
+	if (!isDefaultWorkspace.value) return 'Nothing in this workspace.';
+	return 'Nothing to see here.';
+};
+
+// Handles drag movement events.
+const onDrag = (e) => dndStore.onDrag(e);
+
+// Handles drag stop events and processes item moves, parent changes, or dependency additions.
+const onDragStop = async (event) => {
+	let doRefresh = true;
+	if (kanbanView.value) return;
+	if (dndStore.draggedItemId === null) return;
+	document.documentElement.style.cursor = 'default';
+	const dropTarget = dndStore.itemRefs[dndStore.targetItemId];
+	const draggedItem = dndStore.itemRefs[dndStore.draggedItemId];
+	let cardRect;
+	const targetEntity = dndStore.allViewItems.find((item) => item.id === dndStore.targetItemId);
+	stage.operationActive = true;
+	let draggedEntity;
+	const draggedItemIds = stage.markedItems;
+	for (const draggedItemId of draggedItemIds) {
+		draggedEntity = dndStore.allViewItems.find((item) => item.id === draggedItemId);
+		if (!draggedEntity) return;
+		if (event.altKey) {
+			cardRect = draggedItem.getBoundingClientRect();
+			if (draggedEntity.entity_type_id) await changeEntityParent(draggedItemId, '');
+			else if (draggedEntity.task_type_id) await changeTaskEntity(draggedItemId, '');
+			else {
+				let extension = draggedEntity.type === 'untracked_task' ? draggedEntity.extension : '';
+				let fullName = draggedEntity.name + extension;
+				await FSService.MakeDirs(projectStore.activeProject.working_directory);
+				let newPath = await FSService.JoinPath(projectStore.activeProject.working_directory, fullName);
+				await FSService.Rename(draggedEntity.file_path, newPath);
+			}
+		} else if (dndStore.isOverlapping && dropTarget) {
+			cardRect = dropTarget.getBoundingClientRect();
+			if (draggedItemId !== dndStore.targetItemId) {
+				if (targetEntity.type === 'entity') {
+					if (draggedEntity.type === 'entity') await changeEntityParent(draggedItemId, dndStore.targetItemId);
+					else if (draggedEntity.type === 'task') await changeTaskEntity(draggedItemId, dndStore.targetItemId);
+					else {
+						let entity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, dndStore.targetItemId);
+						await FSService.MakeDirs(entity.file_path);
+						let extension = draggedEntity.type === 'untracked_task' ? draggedEntity.extension : '';
+						let fullName = draggedEntity.name + extension;
+						let newPath = await FSService.JoinPath(entity.file_path, fullName);
+						await FSService.Rename(draggedEntity.file_path, newPath);
+					}
+				} else if (targetEntity.task_type_id) {
+					let dependencyTypeId = dependencyStore.dependency_types.find(item => item.name === "linked").id;
+					if (draggedEntity.entity_type_id) await addEntityDependency(dndStore.targetItemId, draggedItemId, dependencyTypeId);
+					else if (draggedEntity.task_type_id) await addDependency(dndStore.targetItemId, draggedItemId, dependencyTypeId);
+					else if (!draggedEntity.item_type) await addDependency(dndStore.targetItemId, draggedItemId, dependencyTypeId);
+				} else if (targetEntity.type === 'untracked_entity') {
+					if (!draggedEntity.entity_type_id && !draggedEntity.task_type_id && (draggedEntity.type === 'untracked_task' || draggedEntity.type === 'untracked_entity')) {
+						let extension = draggedEntity.type === 'untracked_task' ? draggedEntity.extension : '';
+						let fullName = draggedEntity.name + extension;
+						let newPath = await FSService.JoinPath(targetEntity.file_path, fullName);
+						await FSService.Rename(draggedEntity.file_path, newPath);
+					}
+				}
+			} else cardRect = draggedItem.getBoundingClientRect();
+		} else cardRect = draggedItem.getBoundingClientRect();
+	}
+	setTimeout(() => dndStore.resetValues(), 100);
+	dndStore.ghostCardStyle.leaving = true;
+	let xOffset = cardRect.x - dndStore.ghostCardStyle.pos.x;
+	let yOffset = cardRect.y - dndStore.ghostCardStyle.pos.y;
+	dndStore.ghostCardStyle.transform = `scale(1) translate(${xOffset}px, ${yOffset}px)`;
+	if (doRefresh) softRefresh();
+	stage.operationActive = false;
+};
+
+// Opens the project context menu on right-click.
+const openMenu = (event) => {
+	assetStore.selectedAsset = null;
+	collectionStore.selectedCollection = null;
+	projectStore.selectedUntrackedItem = null;
+	handleClickOutside(event, true);
+	if (kanbanView.value) return;
+	menu.showContextMenu(event, 'projectMenu', true);
+};
+
+// Prepares and shows the create multiple checkpoints modal.
+const prepAllCheckpointModal = () => {
+	clearSelection();
+	trayStates.createMultipleCheckpoints = true;
+	trayStates.createMultipleCheckpointsEntityPath = "";
+	modals.setModalVisibility('createMultipleCheckpointsModal', true);
+};
+
+// Prepares and shows the delete multiple items confirmation modal.
+const prepDeleteMultipleItemsPopUpModal = () => {
+	const numberOfItems = stage.markedItems.length;
+	trayStates.popUpModalTitle = "Delete " + numberOfItems + " items";
+	trayStates.popUpModalMessage = "You have selected some untracked/modified items and they will be permanently deleted. Continue?";
+	trayStates.popUpModalIcon = 'trash';
+	trayStates.popUpModalFunction = deleteMultipleItems;
+	modals.setModalVisibility('popUpModal', true);
+};
+
+// Prepares and shows the free up space confirmation modal.
+const prepFreeUpSpacePopUpModal = () => {
+	trayStates.popUpModalTitle = "Free up Space";
+	trayStates.popUpModalMessage = "Are you sure you want to delete these items? This will permanently remove all uncheckpointed resources and all task outputs. Please confirm if you wish to proceed.";
+	trayStates.popUpModalIcon = 'broom';
+	trayStates.popUpModalFunction = freeUpSpace;
+	modals.setModalVisibility('popUpModal', true);
+};
+
+// Prepares and shows the revert all changes confirmation modal.
+const prepResetPopUpModal = () => {
+	clearSelection();
+	trayStates.popUpModalIcon = 'revert';
+	trayStates.popUpModalTitle = "Revert All Changes";
+	trayStates.popUpModalMessage = "All Modified tasks will be reverted to their last saved state. Are you sure you want to continue?";
+	trayStates.popUpModalFunction = revertAllChanges;
+	modals.setModalVisibility('popUpModal', true);
+};
+
+// Returns the empty state prompt text.
+const prompt = () => {
+	if (commonStore.viewSearchQuery) return '';
+	if (!isDefaultWorkspace.value || filtersActive.value) return '';
+	return 'Right click to create a new Collection or Asset.';
+};
+
+// Rebuilds all rebuildable assets in the current view.
+const rebuildAll = async () => {
+	const path = collectionStore.navigatedCollection?.entity_path;
+	const navigatedEntityId = collectionStore.navigatedCollection?.id;
+	notificationStore.cancleFunction = SyncService.CancelSync;
+	notificationStore.canCancel = true;
+	if (commonStore.activeWorkspace === 'My Tasks' && rootData.value.length) {
+		const userTaskIds = rootData.value.map((task) => task.id);
+		await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, userTaskIds)
+			.then(() => softRefresh())
+			.catch((error) => console.error(`Error rebuilding tasks:`, error));
+	} else {
+		await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedEntityId)
+			.then(() => { if (!path) assetStore.rebuildableAssetsPath = []; softRefresh(); })
+			.catch((error) => notificationStore.errorNotification("Error Rebuilding All", error));
+	}
+};
+
+// Full refresh: reloads project data, fetches all children, processes icons/previews, and updates state flags.
+const refresh = async () => {
+	if (kanbanView.value) return;
+	assetStore.assetsLoaded = false;
+	stage.cutItems = [];
+	await projectStore.refreshActiveProject();
+	await trayStates.refreshData();
+	let children;
+	let project = projectStore.activeProject;
+	if (!commonStore.navigatorMode) children = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
+	else {
+		const navigatedEntityId = collectionStore.navigatedCollection?.id;
+		const entity_file_path = collectionStore.navigatedCollection?.file_path;
+		children = await CollectionService.GetCollectionChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false);
+	}
+	await assetStore.processAssetsIconsAndPreviews(children.tasks);
+	await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
+	rootData.value = [...children.entities, ...children.untracked_entities, ...children.tasks, ...children.untracked_tasks];
+	assetStore.assetsLoaded = true;
+	collectionStore.loadCollectionStateFlags();
+};
+
+// Reverts all modified tasks to their last checkpointed state.
+const revertAllChanges = async () => {
+	modals.setModalVisibility('popUpModal', false);
+	const navigated = collectionStore.navigatedCollection;
+	let collectionId = null, targetPath = null;
+	if (navigated?.type === 'entity') collectionId = navigated.id;
+	else if (navigated?.type === 'untracked_entity') targetPath = navigated.file_path;
+	await collectionStore.reloadItemsForCheckpoint(collectionId, targetPath);
+	const filteredPaths = assetStore.modifiedAssets.modified.map(asset => asset.task_path);
+	if (filteredPaths.length === 0) return;
+	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
+		.then(() => { assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter((item) => !filteredPaths.includes(item.task_path)); softRefresh(); })
+		.catch((error) => { notificationStore.errorNotification("Failed to Revert Tasks", error); console.error(error); });
+};
+
+// Lightweight refresh: fetches children with search/filter support, processes icons, updates root data and state flags.
+const softRefresh = async () => {
+	assetStore.assetsLoaded = false;
+	stage.cutItems = [];
+	let children = {};
+	let project = projectStore.activeProject;
+	const searching = commonStore.viewSearchQuery.toLowerCase();
+	if (searching || filtersActive.value) {
+		let entities, tasks;
+		if (!commonStore.navigatorMode) {
+			if (!searching) {
+				const rootItems = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
+				entities = rootItems['entities'];
+				tasks = commonStore.onlyAssets ? await AssetService.GetAssets(project.uri) : rootItems['tasks'];
+			} else {
+				entities = await CollectionService.GetCollections(project.uri);
+				tasks = await AssetService.GetAssets(project.uri);
+			}
+			entities = commonStore.onlyAssets ? [] : entities;
+		} else {
+			const navigatedEntityId = collectionStore.navigatedCollection?.id;
+			const entity_file_path = collectionStore.navigatedCollection?.file_path;
+			const entityItems = await CollectionService.GetCollectionChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false);
+			entities = entityItems['entities'];
+			tasks = entityItems['tasks'];
+		}
+		children['entities'] = await collectionStore.filterCollections(entities);
+		children['tasks'] = await assetStore.filterAssets(tasks);
+	} else {
+		if (!commonStore.navigatorMode) children = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
+		else {
+			const navigatedEntityId = collectionStore.navigatedCollection?.id;
+			const entity_file_path = collectionStore.navigatedCollection?.file_path;
+			children = await CollectionService.GetCollectionChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false);
+		}
+	}
+	if (children.tasks) await assetStore.processAssetsIconsAndPreviews(children.tasks);
+	if (children.untracked_tasks) await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
+	const allEntities = commonStore.showEntities ? children.entities?.filter((item) => !item.is_trashed) : [];
+	const allTasks = commonStore.showTasks ? children.tasks : [];
+	rootData.value = [...(allEntities ?? []), ...(allTasks ?? []), ...(children.untracked_entities ?? []), ...(children.untracked_tasks ?? [])];
+	assetStore.assetsLoaded = true;
+	collectionStore.loadCollectionStateFlags();
+};
+
+// Toggles the details pane visibility.
+const toggleDetailsPane = () => { panes.showDetailsPane = !panes.showDetailsPane; };
+
+// Toggles between expanding and collapsing all entities.
+const toggleExpandEntities = () => { if (entityExpanded.value) collapseAll(); else expandAll(); };
+
+// Toggles file extension visibility in the browser.
+const toggleHideExtensions = () => { commonStore.hideExtensions = !commonStore.hideExtensions; };
+
+// Toggles the UI lock state for drag-and-drop.
+const toggleLockUI = () => { dndStore.lockUI = !dndStore.lockUI; };
+
+// Toggles between showing file name or full path.
+const toggleShowFilters = () => { showFilters.value = !showFilters.value; };
+
+// Toggles between showing file name or full path.
+const toggleShowFullPath = () => { commonStore.showFullPath = !commonStore.showFullPath; };
+
+// Toggles between list and kanban view modes.
+const toggleViewMode = () => { kanbanView.value = !kanbanView.value; softRefresh(); panes.showDetailsPane = !kanbanView.value; };
+
+// Callback for ResizeObserver to track container width changes.
+const trackWidthChange = (entries) => { /* Reserved for future responsive layout calculations */ };
+
+// Updates all outdated tasks to their latest server version.
+const updateAllOutdated = async () => {
+	modals.setModalVisibility('popUpModal', false);
+	notificationStore.cancleFunction = SyncService.CancelSync;
+	notificationStore.canCancel = true;
+	const navigated = collectionStore.navigatedCollection;
+	let collectionId = null;
+	if (navigated?.type === 'entity') collectionId = navigated.id;
+	const outdatedTasks = await collectionStore.getOutdatedItems(collectionId);
+	const filteredPaths = outdatedTasks.map(task => task.task_path);
+	if (filteredPaths.length === 0) return;
+	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
+		.then(() => softRefresh())
+		.catch((error) => { notificationStore.errorNotification("Failed to Revert Tasks", error); console.error(error); });
+};
+
+// Updates all outdated tasks after clearing selection.
+const updateAll = () => { clearSelection(); updateAllOutdated(); };
+
+// Updates the search query, resets scroll position, and refreshes results.
+const updateSearch = async (event) => {
+	if (scrollStore.scrollTop > 0) scrollStore.requestScroll(0);
+	if (entityExpanded.value) collapseAll();
+	commonStore.viewSearchQuery = event.target.value.toLowerCase();
+	await softRefresh();
+};
+
+// Updates the screen width and hides details pane on smaller screens.
+const updateScreenWidth = () => { screenWidth.value = window.innerWidth; if (screenWidth.value < 1000) panes.showDetailsPane = false; };
+
+const debouncedUpdateSearch = useDebounce(updateSearch, 300);
+
+// events
 
 Events.On('clustta-drag-drop', async () => {
 	console.log('clustta-drag-drop')
@@ -344,1240 +1015,7 @@ Events.On('duplicate-task', async () => {
 	await duplicateTask();
 });
 
-const duplicateTask = async () => {
-
-	const selectedItemId = stage.markedItems[0]
-	const selectedItem = dndStore.allViewItems.find(item => item.id === selectedItemId)
-	
-	if (!selectedItem || selectedItem.type !== 'task') return
-	
-	try {
-		stage.operationActive = true
-		
-		stage.markedItems = [];
-		assetStore.selectedAsset = null;
-
-		await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedItemId)
-		.then( async (duplicatedTask) => {
-			// Duplicate the physical file after DB duplication
-			try {
-				await FSService.DuplicateFile(selectedItem.file_path, duplicatedTask.file_path);
-			} catch (fileError) {
-				console.warn('Physical file duplication failed (asset may be rebuildable):', fileError);
-			}
-			
-			await refresh();
-			assetStore.selectAsset(duplicatedTask);
-			stage.selectedItem = duplicatedTask;
-			stage.markedItems = [duplicatedTask.id];
-			stage.lastSelectedItemId = "";
-			stage.firstSelectedItemId = duplicatedTask.id;
-			notificationStore.addNotification(`Asset duplicated`, '', "success", false)
-		})
-		
-		
-	} catch (error) {
-		console.error('Error duplicating task:', error)
-		notificationStore.errorNotification("Failed to duplicate task", error.message || error)
-	} finally {
-		stage.operationActive = false
-	}
-
-}
-
-const getAppIcon = (iconName) => {
-	const icon = iconStore.getAppIcon(iconName);
-	return icon
-};
-
-// computed properties
-const stageUsesPane = computed(() => { return panes.enabledPanes.includes(stage.selectedStage) && panes.showDetailsPane });
-const sidePaneActive = computed(() => { return stage.sidePaneActive });
-
-const isHovered = computed(() => { return dndStore.isDropHovering && dndStore.targetItemId === null });
-
-const isDefaultWorkspace = computed(() => {
-	return commonStore.activeWorkspace === 'Default';
-});
-
-const filtersActive = computed(() => {
-	const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
-	const entityFilters = commonStore.entityFilters.length > 0;
-	const taskFilters = commonStore.taskFilters.length > 0;
-	const resourceFilters = commonStore.resourceFilters.length > 0;
-	const generalFilter = isFilterActive('general');
-	return assigneeFilters || entityFilters || taskFilters || resourceFilters || generalFilter
-});
-
-const viewTags = computed(() => {
-	let tags = tagStore.tags;
-	let viewTags = [];
-	let filteredTaskResults = assetStore.getFilteredAssets;
-
-	for (const task of filteredTaskResults) {
-		let taskTags = task.tags;
-		for (let t = 0; t < taskTags.length; t++) {
-			if (!viewTags.includes(taskTags[t])) {
-				viewTags.push(taskTags[t])
-			}
-		}
-	}
-
-	for (let i = 0; i < tags.length; i++) {
-		tags[i].name = tags[i].name;
-		tags[i].type = 'tags'
-	}
-	const availableTags = tags;
-	const filteredTags = availableTags.filter((item) => viewTags.includes(item.name));
-	return filteredTags
-});
-
-const hideExtensionsFilter = computed(() => {
-	let viewExtensions = [];
-	let filteredTaskResults = assetStore.getFilteredAssets;
-
-	for (const task of filteredTaskResults) {
-		let taskExtension = task.extension;
-		if (!viewExtensions.includes(taskExtension)) {
-			viewExtensions.push(taskExtension)
-		}
-	}
-	return viewExtensions.length && (commonStore.showTasks || commonStore.showResources)
-});
-
-const canModifyEntity = computed(() => {
-	if (!collectionStore.selectedCollection) {
-		return false
-	}
-	let selectedIsMarked = stage.markedItems.includes(collectionStore.selectedCollection.id)
-	if (selectedIsMarked && stage.markedItems.length === 1) {
-		return collectionStore.selectedCollection.can_modify
-	} else {
-		return false
-	}
-});
-
-const showTagsFilter = computed(() => {
-	return !!tagStore.tags.length && (commonStore.showTasks || commonStore.showResources)
-});
-
-const entityExpanded = computed(() => {
-	return Object.keys(stage.expandedEntities).length;
-});
-
-
-// computed getters
-const isTasksModified = computed(() => {
-	let path;
-	path = collectionStore.navigatedCollection?.type === 'entity'
-		? collectionStore.navigatedCollection?.entity_path
-		: collectionStore.navigatedCollection?.item_path;
-
-
-	const modifiedTasksPath = assetStore.modifiedAssetsPath;
-	let filteredPaths;
-
-	filteredPaths = modifiedTasksPath.filter(item => item.startsWith(path));
-
-	if (path) {
-		filteredPaths = modifiedTasksPath.filter(item => item.startsWith(path));
-	} else {
-		filteredPaths = modifiedTasksPath;
-	}
-
-	return filteredPaths.length > 0;
-});
-
-const isTasksOutdated = computed(() => {
-
-	let path = collectionStore.navigatedCollection?.entity_path;
-	const outdatedTasksPath = assetStore.outdatedAssetsPath;
-
-	let filteredPaths;
-
-	if (path) {
-		filteredPaths = outdatedTasksPath.filter(item => item.startsWith(path));
-	} else {
-		filteredPaths = outdatedTasksPath;
-	}
-
-	return filteredPaths.length > 0;
-});
-
-const isTasksRebuildable = computed(() => {
-
-	let path = collectionStore.navigatedCollection?.entity_path;
-	const rebuildableTasksPath = assetStore.rebuildableAssetsPath;
-
-	let filteredPaths;
-
-	if (path) {
-		filteredPaths = rebuildableTasksPath.filter(item => item.startsWith(path));
-	} else {
-		filteredPaths = rebuildableTasksPath;
-	}
-
-	return filteredPaths.length > 0;
-});
-
-const isTasksUntracked = computed(() => {
-	let path;
-	path = collectionStore.navigatedCollection?.type === 'entity'
-		? collectionStore.navigatedCollection?.entity_path
-		: collectionStore.navigatedCollection?.item_path;
-
-
-	const untrackedTasksPath = assetStore.untrackedAssetsPath;
-	let filteredPaths;
-
-	filteredPaths = untrackedTasksPath.filter(item => item.startsWith(path));
-
-	if (path) {
-		filteredPaths = untrackedTasksPath.filter(item => item.startsWith(path));
-	} else {
-		filteredPaths = untrackedTasksPath;
-	}
-
-	return filteredPaths.length > 0;
-
-});
-
-// drag and drop
-const draggedCard = computed(() => {
-	return dndStore.allViewItems?.find(card => card.id === dndStore.draggedItemId);
-});
-
-const ghostCardStyles = computed(() => {
-	return {
-		width: `${dndStore.ghostCardStyle.width}px`,
-		left: `${dndStore.ghostCardStyle.pos.x}px`,
-		top: `${dndStore.ghostCardStyle.pos.y}px`,
-		transform: dndStore.ghostCardStyle.transform,
-	};
-});
-
-// methods
-const onDrag = (e) => {
-	dndStore.onDrag(e)
-};
-
-const onDragStop = async (event) => {
-	let refresh = true;
-	if (kanbanView.value) { return };
-	if (dndStore.draggedItemId === null) return;
-
-	document.documentElement.style.cursor = 'default';
-	const dropTarget = dndStore.itemRefs[dndStore.targetItemId];
-	const draggedItem = dndStore.itemRefs[dndStore.draggedItemId];
-	let cardRect
-	const targetEntity = dndStore.allViewItems.find((item) => item.id === dndStore.targetItemId);
-
-	stage.operationActive = true;
-
-	let draggedEntity;
-	const draggedItemIds = stage.markedItems;
-	// const draggedEntity = dndStore.allViewItems.find((item) => item.id === dndStore.draggedItemId);
-
-	for (const draggedItemId of draggedItemIds) {
-
-		draggedEntity = dndStore.allViewItems.find((item) => item.id === draggedItemId);
-
-		if(!draggedEntity) return
-
-		// if alt is pressed, to move the item to root
-		if (event.altKey) {
-			cardRect = draggedItem.getBoundingClientRect();
-			if (draggedEntity.entity_type_id) {
-				const entityId = draggedItemId;
-				const parentId = '';
-				await changeEntityParent(entityId, parentId);
-			} else if (draggedEntity.task_type_id) {
-				const taskId = draggedItemId;
-				const entityId = '';
-				await changeTaskEntity(taskId, entityId);
-
-			} else {
-
-				let extension = draggedEntity.type === 'untracked_task' ? draggedEntity.extension : '';
-				let fullName = draggedEntity.name + extension
-				
-				await FSService.MakeDirs(projectStore.activeProject.working_directory)
-				let newPath = await FSService.JoinPath(projectStore.activeProject.working_directory, fullName)
-				await FSService.Rename(draggedEntity.file_path, newPath);
-			}
-		}
-
-		// if it overlaps another item
-		else if (dndStore.isOverlapping && dropTarget) {
-
-			cardRect = dropTarget.getBoundingClientRect();
-
-			// if target item is not the same as dragged
-			if (draggedItemId !== dndStore.targetItemId) {
-
-				// if this is an entity make the selected items children
-				if (targetEntity.type === 'entity') {
-					if (draggedEntity.type === 'entity') {
-						const entityId = draggedItemId;
-						const parentId = dndStore.targetItemId;
-						await changeEntityParent(entityId, parentId);
-					} else if (draggedEntity.type === 'task') {
-						const taskId = draggedItemId;
-						const entityId = dndStore.targetItemId;
-						await changeTaskEntity(taskId, entityId);
-					} else {
-
-  						let entity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, dndStore.targetItemId)
-						await FSService.MakeDirs(entity.file_path)
-						let extension = draggedEntity.type === 'untracked_task' ? draggedEntity.extension : '';
-						let fullName = draggedEntity.name + extension
-						let newPath = await FSService.JoinPath(entity.file_path, fullName)
-						const untrackedPath = newPath.replace(/^\/+|\/+$/g, "").replace(/\\/g, "/");
-						const workingDir = projectStore.activeProject.working_directory.replace(/^\/+|\/+$/g, "").replace(/\\/g, "/");
-
-						const itemPath = getRelativePath(workingDir, untrackedPath)
-
-						let entityPath = "";
-						const itemPathEntities = itemPath.split("/");
-						if (itemPathEntities.length > 1) {
-							// Take all elements except the last one
-							const pathWithoutLast = itemPathEntities.slice(0, -1);
-							entityPath = pathWithoutLast.join("/");
-						}
-						await FSService.Rename(draggedEntity.file_path, newPath);
-					}
-				}
-				// if this is a task make the selected items dependencies
-				else if (targetEntity.task_type_id) {
-					// refresh = false;
-					let dependencyTypeId = dependencyStore.dependency_types.find(item => item.name === "linked").id;
-					if (draggedEntity.entity_type_id) {
-						const taskId = dndStore.targetItemId;
-						const dependencyId = draggedItemId;
-						await addEntityDependency(taskId, dependencyId, dependencyTypeId);
-					} else if (draggedEntity.task_type_id) {
-						const taskId = dndStore.targetItemId;
-						const dependencyId = draggedItemId;
-						await addDependency(taskId, dependencyId, dependencyTypeId);
-					} else if (draggedEntity.item_type) {
-						console.log('cant drop here')
-					} else {
-						const taskId = dndStore.targetItemId;
-						const dependencyId = draggedItemId;
-						await addDependency(taskId, dependencyId, dependencyTypeId);
-					}
-				}
-				// if this is an untracked folder
-				else if (targetEntity.type === 'untracked_entity') {
-					if (draggedEntity.entity_type_id || draggedEntity.task_type_id) {
-						console.log('cant drop here')
-					} else if (draggedEntity.type === 'untracked_task' || draggedEntity.type === 'untracked_entity') {
-						console.log('untracked')
-
-						let entity = targetEntity;
-						// await FSService.MakeDirs(entity.file_path)
-						let extension = draggedEntity.type === 'untracked_task' ? draggedEntity.extension : '';
-						let fullName = draggedEntity.name + extension
-						
-						let newPath = await FSService.JoinPath(entity.file_path, fullName)
-
-						console.log(draggedEntity)
-
-						await FSService.Rename(draggedEntity.file_path, newPath)
-
-						console.log('moved untracked file into untracked Collection')
-					}
-				}
-				// if this is an untracked file
-				else if (targetEntity.item_type === 'file') {
-					console.log('cant drop here');
-				}
-			} else {
-				// target is the same
-				console.log('same item - reset');
-				cardRect = draggedItem.getBoundingClientRect();
-
-			}
-
-		} else {
-			// if no target, go on to reset
-			console.log('no target')
-			cardRect = draggedItem.getBoundingClientRect();
-		}
-	}
-
-	setTimeout(() => {
-		dndStore.resetValues();
-	}, 100);
-
-	dndStore.ghostCardStyle.leaving = true;
-	let xOffset = cardRect.x - dndStore.ghostCardStyle.pos.x;
-	let yOffset = cardRect.y - dndStore.ghostCardStyle.pos.y;
-	dndStore.ghostCardStyle.transform = `scale(1) translate(${xOffset}px, ${yOffset}px)`;
-
-	if(refresh) softRefresh();
-	
-	stage.operationActive = false;
-
-};
-
-const changeEntityParent = async (entityId, parentId) => {
-
-	await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityId, parentId)
-		.then((response) => {
-			const successMessage = 'Moved successfully.'
-			notificationStore.addNotification(successMessage, "", "success")
-		})
-		.catch((error) => {
-			console.error(error);
-			notificationStore.errorNotification("Error changing entity parent", error)
-		});
-};
-
-const changeTaskEntity = async (taskId, entityId) => {
-	await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskId, entityId)
-		.then((response) => {
-			const successMessage = 'Moved successfully.'
-			notificationStore.addNotification(successMessage, "", "success")
-		})
-		.catch((error) => {
-			notificationStore.errorNotification("Error changing task entity", error)
-		});
-};
-
-const addDependency = async (taskId, dependencyId, dependencyTypeId) => {
-	await AssetService.AddAssetDependency(projectStore.activeProject.uri, taskId, dependencyId, dependencyTypeId)
-		.then((response) => {
-			// assetStore.addDependency(taskId, dependencyId, "task");
-			const successMessage = 'Dependency Added.'
-			notificationStore.addNotification(successMessage, "", "success")
-		})
-		.catch((error) => {
-			console.log(error)
-			notificationStore.errorNotification("Error adding dependencies", error);
-		});
-};
-
-const addEntityDependency = async (taskId, dependencyId, dependencyTypeId) => {
-	await AssetService.AddEntityDependency(projectStore.activeProject.uri, taskId, dependencyId, dependencyTypeId)
-		.then((response) => {
-			// assetStore.addDependency(taskId, dependencyId, "entity");
-			const successMessage = 'Dependency Added.'
-			notificationStore.addNotification(successMessage, "", "success")
-		})
-		.catch((error) => {
-			console.log(error)
-			notificationStore.errorNotification("Error adding dependencies", error);
-		});
-};
-
-const clearSearch = async () => {
-	commonStore.viewSearchQuery = "";
-	await softRefresh();
-};
-
-const toggleShowFilters = () => {
-	showFilters.value = !showFilters.value;
-};
-
-const clearFilters = () => {
-	commonStore.resetFilters();
-	softRefresh();
-};
-
-const isFilterActive = (filter) => {
-	if (filter.includes('general')) {
-		const isActive = commonStore.showEntities && commonStore.showTasks
-			&& commonStore.showResources && commonStore.showChildEntities
-			&& commonStore.showChildTasks && commonStore.showDependencies && !commonStore.onlyAssets;
-		return !isActive;
-	} else
-		if (filter.includes('entity')) {
-			return commonStore.entityFilters.some((item) => item.type === filter);
-		} else if (filter.includes('assignation')) {
-			const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
-			const assignationFilters = commonStore.taskFilters.some((item) => item.type === filter);
-			return assigneeFilters || assignationFilters;
-		} else {
-			return commonStore.taskFilters.some((item) => item.type === filter);
-		}
-};
-
-const updateSearch = async (event) => {
-
-	if (scrollStore.scrollTop > 0) {
-		scrollStore.requestScroll(0);
-	}
-	if (entityExpanded.value) {
-		collapseAll();
-	}
-
-	const searchQuery = event.target.value;
-	commonStore.viewSearchQuery = searchQuery.toLowerCase();
-
-	await softRefresh();
-
-	const searchContext = commonStore.navigatorMode;
-
-};
-
-const debouncedUpdateSearch = useDebounce(updateSearch, 300);
-
-const prepFreeUpSpacePopUpModal = () => {
-	trayStates.popUpModalTitle = "Free up Space";
-	trayStates.popUpModalMessage = "Are you sure you want to delete these items? This will permanently remove all uncheckpointed resources and all task outputs. Please confirm if you wish to proceed.";
-	trayStates.popUpModalIcon = 'broom';
-	trayStates.popUpModalFunction = freeUpSpace;
-	modals.setModalVisibility('popUpModal', true);
-};
-
-const freeUpSpace = async () => {
-	panes.setPaneVisibility('projectDetails', true);
-	stage.operationActive = true;
-
-	stage.firstSelectedItemId = '';
-	stage.lastSelectedItemId = '';
-	assetStore.selectedAsset = null;
-	collectionStore.selectedCollection = null;
-
-	const allItemsToDelete = dndStore.allViewItems.filter((item) => stage.markedItems.includes(item.id))
-
-	const tasksToFreeUp = allItemsToDelete.filter((item) => item.type === 'task');
-
-	const entitiesToFreeUp = allItemsToDelete.filter((item) => item.type === 'entity');
-
-	const untrackedTasksToDelete = allItemsToDelete.filter((item) => item.type === 'untracked_task');
-
-	const untrackedEntitiesToDelete = allItemsToDelete.filter((item) => item.type === 'untracked_entity');
-
-	await freeUpMultipleTaskSpace(tasksToFreeUp);
-	await freeUpMultipleEntitySpace(entitiesToFreeUp);
-	await deleteMultipleUntrackedTasks(untrackedTasksToDelete);
-	await deleteMultipleUntrackedEntities(untrackedEntitiesToDelete);
-
-	stage.markedItems = [];
-	stage.selectedItems = [];
-	stage.markedTasks = [];
-	stage.markedEntities = [];
-	stage.operationActive = false;
-	modals.setModalVisibility('popUpModal', false);
-};
-
-const freeUpMultipleTaskSpace = async (selectedTasks) => {
-	const fileStatus = ['missing', 'rebuildable'];
-	let taskIds = [];
-	for (let task of selectedTasks) {
-		if (!fileStatus.includes(task.file_status)) {
-			let taskId = task.id
-			taskIds.push(taskId)
-		}
-	};
-	for (const taskId of taskIds) {
-		let task = assetStore.getAssets.find((item) => item.id === taskId);
-		let taskPath = task.file_path.replace(/\\/g, '/')
-		await FSService.DeleteFile(taskPath)
-			.then((response) => {
-				task.file_status = 'rebuildable';
-			})
-			.catch((error) => {
-				console.error(error);
-			});
-	}
-};
-
-const freeUpMultipleEntitySpace = async (entities) => {
-	for (const entity of entities) {
-		let entityDir = entity.file_path.replace(/\\/g, '/');
-		await FSService.DeleteFolder(entityDir)
-			.then((response) => {
-				assetStore.refreshEntityFilesStatus(entity.id)
-			})
-			.catch((error) => {
-				console.error(error);
-			});
-	}
-
-};
-
-const prepDeleteMultipleItemsPopUpModal = () => {
-	const numberOfItems = stage.markedItems.length;
-	trayStates.popUpModalTitle = "Delete " + numberOfItems + " items";
-	trayStates.popUpModalMessage = "You have selected some untracked/modified items and they will be permanently deleted. Continue?";
-	trayStates.popUpModalIcon = 'trash';
-	trayStates.popUpModalFunction = deleteMultipleItems;
-	modals.setModalVisibility('popUpModal', true);
-};
-
-const deleteMultipleItems = async () => {
-	panes.setPaneVisibility('projectDetails', true);
-	stage.operationActive = true;
-
-	stage.firstSelectedItemId = '';
-	stage.lastSelectedItemId = '';
-	assetStore.selectedAsset = null;
-	collectionStore.selectedCollection = null;
-
-	const allItemsToDelete = dndStore.allViewItems.filter((item) => stage.markedItems.includes(item.id))
-
-	const tasksToDelete = allItemsToDelete.filter((item) => item.type === 'task');
-	const taskIds = tasksToDelete.map((item) => item.id)
-
-	const entitiesToDelete = allItemsToDelete.filter((item) => item.type === 'entity');
-	const entityIds = entitiesToDelete.map((item) => item.id);
-
-	const untrackedTasksToDelete = allItemsToDelete.filter((item) => item.type === 'untracked_task');
-
-	const untrackedEntitiesToDelete = allItemsToDelete.filter((item) => item.type === 'untracked_entity');
-
-	await deleteMultipleTasks(taskIds);
-	await deleteMultipleEntities(entityIds);
-	await deleteMultipleUntrackedTasks(untrackedTasksToDelete);
-	await deleteMultipleUntrackedEntities(untrackedEntitiesToDelete);
-
-	stage.markedItems = [];
-	stage.selectedItems = [];
-	stage.markedTasks = [];
-	stage.markedEntities = [];
-	stage.operationActive = false;
-	modals.setModalVisibility('popUpModal', false);
-};
-
-const deleteMultipleTasks = async (taskIds) => {
-	for (let taskId of taskIds) {
-		await AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
-			.then(async (response) => {
-				softRefresh()
-				notificationStore.addNotification("Tasks moved to Trash.", '', "success", false);
-			})
-			.catch((error) => {
-				console.log(error)
-				notificationStore.errorNotification("Tasks failed to delete.", error)
-			});
-	}
-};
-
-const deleteMultipleEntities = async (entityIds) => {
-	for (let entityId of entityIds) {
-		await CollectionService.DeleteCollection(projectStore.activeProject.uri, entityId, true)
-			.then(async (response) => {
-				await collectionStore.markCollectionAsDeleted(entityId);
-				notificationStore.addNotification("Entity moved to Trash.", '', "success", false);
-			})
-			.catch((error) => {
-				console.log(error)
-				notificationStore.errorNotification("Entities failed to delete.", error)
-			});
-	}
-};
-
-const deleteMultipleUntrackedTasks = async (untrackedTasks) => {
-	for (let untrackedTask of untrackedTasks) {
-		await FSService.DeleteFile(untrackedTask.file_path);
-		projectStore.removeUntrackedTask(untrackedTask.id);
-	}
-};
-
-const deleteMultipleUntrackedEntities = async (untrackedEntities) => {
-	for (let untrackedEntity of untrackedEntities) {
-		FSService.DeleteFolder(untrackedEntity.file_path);
-		projectStore.removeUntrackedEntity(untrackedEntity.id);
-	}
-};
-
-// page state fns
-const message = () => {
-
-	const searching = commonStore.viewSearchQuery;
-	// const filtersActive = commonStore.activeFilters.length;
-	const myTasksWorkspace = commonStore.activeWorkspace === 'My Tasks';
-
-	if (searching) {
-		return 'No results found.'
-	} else if (isDefaultWorkspace.value && filtersActive.value) {
-		return 'No results match your filters.'
-	} else if (myTasksWorkspace) {
-		return 'You have no assets assigned to you.'
-	} else if (!isDefaultWorkspace.value) {
-		return 'Nothing in this workspace.'
-	} else {
-		return 'Nothing to see here.'
-	}
-
-};
-
-const prompt = () => {
-
-	const searching = commonStore.viewSearchQuery;
-
-	if (searching) {
-		return ''
-	} else if (!isDefaultWorkspace.value || filtersActive.value) {
-		return ''
-	} else {
-		return 'Right click to create a new Collection or Asset.'
-	}
-
-};
-
-const illustration = () => {
-
-	const searching = commonStore.viewSearchQuery;
-
-	if (searching) {
-		return '/page-states/resources.png'
-	} else {
-		return '/page-states/tasks.png'
-	}
-};
-
-const openMenu = (event) => {
-	assetStore.selectedAsset = null;
-	collectionStore.selectedCollection = null;
-	projectStore.selectedUntrackedItem = null;
-	handleClickOutside(event, true)
-	if (kanbanView.value) {
-		return
-	}
-	menu.showContextMenu(event, 'projectMenu', true);
-};
-
-const cancelOps = () => {
-	if (commonStore.viewSearchQuery){
-		clearSearch();
-	}
-	stage.cutItems = [];
-	if (!dndStore.altKeyActive) {
-		dndStore.resetValues();
-	}
-}
-
-const disableMenus = () => {
-	menu.disableAllMenus();
-};
-
-const createEntity = () => {
-	if(!stage.groupItems){
-		clearSelection();
-	}
-	modals.setModalVisibility('createCollectionModal', true);
-};
-
-const createWorkflow = () => {
-	clearSelection();
-	modals.setModalVisibility('selectWorkflowModal', true);
-};
-
-const createAsset = () => {
-	clearSelection();
-	modals.setModalVisibility('selectAppModal', true);
-};
-
-const createWebLink = () => {
-	clearSelection();
-	modals.setModalVisibility('addWebLinkModal', true);
-};
-
-const uploadItems = () => {
-	// TODO: Implement web upload functionality
-	clearSelection();
-	modals.setModalVisibility('uploadItemsModal', true);
-};
-
-const importItems = async () => {
-
-	try {
-
-		let selectedPaths;
-		try {
-			selectedPaths = await DialogService.SelectFilesDialog();
-		} catch (error) {
-			// User cancelled the dialog
-			return;
-		}
-
-		if (!selectedPaths || selectedPaths.length === 0) {
-			// No files selected (but dialog wasn't cancelled)
-			return;
-		}
-
-		// Get current directory for copying
-		const currentDirectory = getCurrentDirectory();
-		if (!currentDirectory) {
-			notificationStore.errorNotification("Could not determine current directory", "");
-			return;
-		}
-
-		
-		// Show operation in progress
-		stage.operationActive = true;
-		await FSService.MakeDirs(currentDirectory);
-		
-		let successCount = 0;
-		let failureCount = 0;
-		const errors = [];
-
-		// Process each selected path
-		for (const sourcePath of selectedPaths) {
-			try {
-				const isFile = await FSService.IsFile(sourcePath);
-				const itemName = await FSService.BaseName(sourcePath);
-				
-				// Generate unique destination path
-				const destinationPath = await generateUniqueDestinationPath(currentDirectory, itemName);
-				
-				if (isFile) {
-					// Copy file
-					await FSService.DuplicateFile(sourcePath, destinationPath);
-				} else {
-					// Copy folder
-					await FSService.DuplicateFolder(sourcePath, destinationPath);
-				}
-				
-				successCount++;
-			} catch (error) {
-				failureCount++;
-				const itemName = await FSService.BaseName(sourcePath).catch(() => sourcePath);
-				errors.push(`${itemName}: ${error.message || error}`);
-			}
-		}
-
-		// Show results
-		if (successCount > 0) {
-			const message = successCount === 1 
-				? "1 item imported successfully" 
-				: `${successCount} items imported successfully`;
-			notificationStore.addNotification(message, "", "success");
-		}
-
-		if (failureCount > 0) {
-			const message = failureCount === 1 
-				? "1 item failed to import" 
-				: `${failureCount} items failed to import`;
-			notificationStore.errorNotification(message, errors.join("\n"));
-		}
-
-		// Refresh the view to show imported items
-		if (successCount > 0) {
-			await softRefresh();
-		}
-
-	} catch (error) {
-		notificationStore.errorNotification("Error importing items", error.message || error);
-	} finally {
-		stage.operationActive = false;
-	}
-};
-
-const getCurrentDirectory = () => {
-	// If in navigator mode (viewing inside an entity/folder)
-	if (commonStore.navigatorMode && collectionStore.navigatedCollection) {
-		const navigated = collectionStore.navigatedCollection;
-		// Return the file path of the current entity or folder
-		return navigated.file_path;
-	}
-	
-	// If at project root
-	return projectStore.activeProject?.working_directory;
-};
-
-const generateUniqueDestinationPath = async (directory, fileName) => {
-	const originalPath = await FSService.JoinPath(directory, fileName);
-	
-	// Check if file/folder already exists
-	const exists = await FSService.Exists(originalPath);
-	if (!exists) {
-		return originalPath;
-	}
-	
-	// Generate unique name with counter
-	const baseName = fileName.includes('.') 
-		? fileName.substring(0, fileName.lastIndexOf('.'))
-		: fileName;
-	const extension = fileName.includes('.') 
-		? fileName.substring(fileName.lastIndexOf('.'))
-		: '';
-	
-	let counter = 1;
-	let newPath;
-	
-	do {
-		const newFileName = `${baseName} (${counter})${extension}`;
-		newPath = await FSService.JoinPath(directory, newFileName);
-		const pathExists = await FSService.Exists(newPath);
-		if (!pathExists) {
-			return newPath;
-		}
-		counter++;
-	} while (counter < 100); // Safety limit
-	
-	// Fallback with timestamp if we hit the limit
-	const timestamp = Date.now();
-	const timestampFileName = `${baseName}_${timestamp}${extension}`;
-	return await FSService.JoinPath(directory, timestampFileName);
-};
-
-const toggleDetailsPane = () => {
-	panes.showDetailsPane = !panes.showDetailsPane;
-};
-
-const toggleViewMode = () => {
-	kanbanView.value = !kanbanView.value;
-	softRefresh();
-	panes.showDetailsPane = !kanbanView.value;
-};
-
-const toggleLockUI = () => {
-	dndStore.lockUI = !dndStore.lockUI;
-};
-
-const toggleHideExtensions = () => {
-	commonStore.hideExtensions = !commonStore.hideExtensions;
-};
-
-const toggleShowFullPath = () => {
-	commonStore.showFullPath = !commonStore.showFullPath;
-};
-
-const toggleExpandEntities = () => {
-	if (entityExpanded.value) {
-		collapseAll()
-	} else {
-		expandAll()
-	}
-};
-
-const collapseAll = () => {
-	stage.expandedEntities = {};
-	stage.markedItems = [];
-	stage.firstSelectedEntityId = '';
-	collectionStore.selectedCollection = null;
-};
-
-const expandAll = () => {
-	const entities = collectionStore.getCollections;
-	const expandedEntities = {};
-
-	for (let i = 0; i < entities.length; i++) {
-		expandedEntities[entities[i].id] = {
-			"height": 0,
-			"entity_path": entities[i].entity_path
-		};
-	}
-
-	stage.expandedEntities = expandedEntities;
-};
-
-const rebuildAll = async () => { 
-
-	const path = collectionStore.navigatedCollection?.entity_path;
-	const navigatedEntityId = collectionStore.navigatedCollection?.id;
-
-	notificationStore.cancleFunction = SyncService.CancelSync;
-	notificationStore.canCancel = true;
-
-	if (commonStore.activeWorkspace === 'My Tasks' && rootData.value.length) {
-
-		const userTasks = rootData.value;
-		const userTaskIds = userTasks.map((task) => task.id)
-
-		await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, userTaskIds)
-		.then(() => {
-			softRefresh();
-			return;
-		})
-		.catch((error) => {
-			console.error(`Error rebuilding task ${task.id}:`, error);
-		});
-
-	} else {
-
-		await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedEntityId)
-			.then((data) => {
-
-				if(path){
-					// assetStore.rebuildableAssetsPath = rebuildableTasksPath.filter(item => !item.startsWith(path))
-				} else {
-					assetStore.rebuildableAssetsPath = [];
-				}
-
-				softRefresh();
-			}).catch(async (error) => {
-				notificationStore.errorNotification("Error Rebuilding All", error)
-			})
-	}
-};
-
-const revertAllChanges = async () => {
-	modals.setModalVisibility('popUpModal', false);
-	
-	// Get current navigation context
-	const navigated = collectionStore.navigatedCollection;
-	let collectionId = null;
-	let targetPath = null;
-	
-	if (navigated?.type === 'entity') {
-		collectionId = navigated.id;
-	} else if (navigated?.type === 'untracked_entity') {
-		targetPath = navigated.file_path;
-	}
-	
-	// Fetch modified items recursively for the current collection context
-	await collectionStore.reloadItemsForCheckpoint(collectionId, targetPath);
-	const filteredPaths = assetStore.modifiedAssets.modified.map(asset => asset.task_path);
-	
-	if (filteredPaths.length === 0) {
-		return;
-	}
-	
-	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
-		.then((response) => {
-			// Remove reverted items from modifiedAssets
-			assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter(
-				(item) => !filteredPaths.includes(item.task_path)
-			);
-			softRefresh();
-		})
-		.catch((error) => {
-			notificationStore.errorNotification("Failed to Revert Tasks", error)
-			console.error(error);
-		});
-};
-
-const updateAllOutdated = async () => {
-	modals.setModalVisibility('popUpModal', false);
-	
-	notificationStore.cancleFunction = SyncService.CancelSync;
-	notificationStore.canCancel = true;
-	
-	// Get current navigation context
-	const navigated = collectionStore.navigatedCollection;
-	let collectionId = null;
-	
-	if (navigated?.type === 'entity') {
-		collectionId = navigated.id;
-	}
-	
-	// Fetch outdated items recursively for the current collection context
-	const outdatedTasks = await collectionStore.getOutdatedItems(collectionId);
-	const filteredPaths = outdatedTasks.map(task => task.task_path);
-	
-	if (filteredPaths.length === 0) {
-		return;
-	}
-	
-	console.log(filteredPaths)
-	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
-		.then((response) => {
-			softRefresh();
-		})
-		.catch((error) => {
-			notificationStore.errorNotification("Failed to Revert Tasks", error)
-			console.error(error);
-		});
-};
-
-const prepResetPopUpModal = () => {
-	clearSelection();
-	trayStates.popUpModalIcon = 'revert'
-	trayStates.popUpModalTitle = "Revert All Changes";
-	trayStates.popUpModalMessage = "All Modified tasks will be reverted to their last saved state. Are you sure you want to continue?";
-	trayStates.popUpModalFunction = revertAllChanges;
-	modals.setModalVisibility('popUpModal', true);
-};
-
-const prepAllCheckpointModal = () => {
-	clearSelection();
-	trayStates.createMultipleCheckpoints = true;
-	trayStates.createMultipleCheckpointsEntityPath = ""
-	modals.setModalVisibility('createMultipleCheckpointsModal', true);
-};
-
-const updateAll = () => {
-	clearSelection();
-	updateAllOutdated();
-};
-
-const clearSelection = () => {
-	stage.markedItems = [];
-	stage.selectedItem = [];
-	stage.selectedItems = [];
-	stage.firstSelectedItemId = '';
-	stage.lastSelectedItemId = '';
-	assetStore.selectedAsset = null;
-	collectionStore.selectedCollection = null;
-}
-
-const handleClickOutside = (event, rightClick = false) => {
-	if (!rightClick) {
-	}
-	if (event) {
-		if (!event.shiftKey || !event.ctrlKey) {
-			if (!event.target.closest('.entity-item-main')) {
-				stage.markedItems = [];
-				stage.selectedItems = [];
-				stage.markedEntities = [];
-				stage.firstSelectedItemId = '';
-				stage.lastSelectedItemId = '';
-				stage.selectedItem = null;
-				assetStore.selectedAsset = null;
-				collectionStore.selectedCollection = null;
-				stage.cutItems = [];
-				projectStore.selectedUntrackedItem = null;
-			}
-			if (!event.target.closest('.task-item-main')) {
-				stage.markedItems = [];
-				stage.selectedItems = [];
-				stage.markedEntities = [];
-				stage.firstSelectedItemId = '';
-				stage.lastSelectedItemId = '';
-				stage.selectedItem = null;
-				assetStore.selectedAsset = null;
-				stage.cutItems = [];
-				projectStore.selectedUntrackedItem = null;
-			}
-		}
-	}
-};
-
-const trackWidthChange = (entries) => {
-	calculateSpace();
-};
-
-const calculateSpace = () => {
-	let filterWidth;
-	let rootWidth;
-	if (browserFilters.value) {
-		filterWidth = browserFilters.value.getBoundingClientRect().width;
-	}
-	if (browserRoot.value) {
-		rootWidth = browserRoot.value.getBoundingClientRect().width;
-	}
-};
-
-const detectModifier = (event) => {
-	if (event.getModifierState('Alt')) {
-		dndStore.altKeyActive = true;
-	} else {
-		dndStore.altKeyActive = false;
-	}
-};
-
-
-
-// Full refresh: reloads project data, fetches all children, processes icons/previews, and updates state flags
-const refresh = async () => {
-	if(kanbanView.value){
-		return
-	}
-	// Reset state
-	assetStore.assetsLoaded = false;
-	stage.cutItems = [];
-	await projectStore.refreshActiveProject();
-	await trayStates.refreshData();
-
-	// Fetch children based on navigation context
-	let children;
-	let project = projectStore.activeProject
-
-	if (!commonStore.navigatorMode) {
-		children = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false)
-	} else {
-		const navigatedEntityId = collectionStore.navigatedCollection?.id;
-		const entity_file_path = collectionStore.navigatedCollection?.file_path;
-		children = await CollectionService.GetCollectionChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false)
-	}
-
-	// Process assets and icons
-	await assetStore.processAssetsIconsAndPreviews(children.tasks);
-	await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
-
-	// Update root data and state
-	rootData.value = [...children.entities, ...children.untracked_entities, ...children.tasks, ...children.untracked_tasks];
-	assetStore.assetsLoaded = true;
-
-	collectionStore.loadCollectionStateFlags(); 
-};
-
-// Lightweight refresh: fetches children with search/filter support, processes icons, updates root data and state flags
-const softRefresh = async () => {
-	// Reset state
-	assetStore.assetsLoaded = false;
-	stage.cutItems = [];
-
-	let children = {};
-	let project = projectStore.activeProject
-
-	const searching = commonStore.viewSearchQuery.toLowerCase();
-
-	// Handle search or filter mode
-	if (searching || filtersActive.value) {
-
-		let entities;
-		let tasks;
-
-		if (!commonStore.navigatorMode) {
-			if(!searching){
-				// Fetch only root items when filtering without search
-				const rootItems = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
-
-				entities = rootItems['entities'];
-				tasks = commonStore.onlyAssets ? await AssetService.GetAssets(project.uri) : rootItems['tasks'];
-
-			} else {
-				// Fetch all items when searching
-				entities = await CollectionService.GetCollections(project.uri);
-				tasks = await AssetService.GetAssets(project.uri);
-			}
-
-			entities = commonStore.onlyAssets ? [] : entities;
-
-		} else {
-			// Navigator mode: fetch from navigated collection
-			const navigatedEntityId = collectionStore.navigatedCollection?.id;
-			const entity_file_path = collectionStore.navigatedCollection?.file_path;
-			
-			const entityItems = await CollectionService.GetCollectionChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false)
-
-			entities = entityItems['entities'];
-			tasks = entityItems['tasks'];
-		}	
-		
-			// Apply filters
-			children['entities'] = await collectionStore.filterCollections(entities);
-			children['tasks'] = await assetStore.filterAssets(tasks);
-
-	} else {
-		// Normal mode: fetch children based on context
-		if (!commonStore.navigatorMode) {
-
-			children = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false)
-
-		} else {
-			const navigatedEntityId = collectionStore.navigatedCollection?.id;
-			const entity_file_path = collectionStore.navigatedCollection?.file_path;
-			children = await CollectionService.GetCollectionChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false);
-		}
-	}
-
-	// Process assets and icons
-	if (children.tasks) {
-		await assetStore.processAssetsIconsAndPreviews(children.tasks);
-	}
-
-	if (children.untracked_tasks) {
-		await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
-	}
-
-	// Combine and update root data
-	const allEntities = commonStore.showEntities ? children.entities?.filter((item) => !item.is_trashed) : [];
-	const allTasks = commonStore.showTasks ? children.tasks : [];
-
-	rootData.value = [...(allEntities ?? []), ...(allTasks ?? []), ...(children.untracked_entities ?? []), ...(children.untracked_tasks ?? [])];
-
-	// Update state
-	assetStore.assetsLoaded = true;
-	collectionStore.loadCollectionStateFlags(); 
-};
+// watchers
 
 watch(() => assetStore.assetsLoaded, async () => {
 	if (assetStore.assetsLoaded) {
@@ -1605,58 +1043,12 @@ watch(() => commonStore.showTasks, async () => {
 });
 
 watch(() => commonStore.navigatorMode, async () => {
+	stage.operationActive = true
 	await softRefresh();
+	stage.operationActive = false
 });
 
-const handleUpdateRootData = (eventData) => {
-	// Handle batch updates (array of updates)
-	if (Array.isArray(eventData)) {
-		eventData.forEach(({ itemId, updates }) => {
-			const itemIndex = rootData.value.findIndex(item => item.id === itemId);
-			if (itemIndex !== -1 && updates && Array.isArray(updates)) {
-				updates.forEach(update => {
-					if (update.property && update.value !== undefined) {
-						rootData.value[itemIndex][update.property] = update.value;
-					}
-				});
-			}
-		});
-	} else {
-		// Handle single update (backward compatibility)
-		const { itemId, property, value, updates } = eventData;
-		const itemIndex = rootData.value.findIndex(item => item.id === itemId);
-		if (itemIndex !== -1) {
-			// Handle single property update
-			if (property && value !== undefined) {
-				rootData.value[itemIndex][property] = value;
-			}
-			// Handle multiple property updates
-			if (updates && Array.isArray(updates)) {
-				updates.forEach(update => {
-					rootData.value[itemIndex][update.property] = update.value;
-				});
-			}
-		}
-	}
-	
-	emitter.emit('get-project-data');
-	collectionStore.loadCollectionStateFlags();
-};
-
-const handleUpdateUntrackedItems = (untrackedItems) => {
-	if (!untrackedItems) return;
-	
-	// Remove all existing untracked items from rootData
-	rootData.value = rootData.value.filter(
-		item => item.type !== 'untracked_entity' && item.type !== 'untracked_task'
-	);
-	
-	// Add all new untracked items
-	rootData.value.push(...untrackedItems);
-	
-	emitter.emit('get-project-data');
-	collectionStore.loadCollectionStateFlags();
-};
+// lifecycle hooks
 
 onMounted(async () => {
 	commonStore.resetFilters();
@@ -1681,8 +1073,6 @@ onMounted(async () => {
 	dndStore.triggerDomUpdate();
 
 	trayStates.trashables = await TrashService.GetTrashs(projectStore.activeProject.uri);
-
-
 });
 
 onUnmounted(() => {
@@ -1690,11 +1080,8 @@ onUnmounted(() => {
 	emitter.off('refresh-browser', softRefresh);
 	emitter.off('update-root-data', handleUpdateRootData);
 	emitter.off('update-untracked-items', handleUpdateUntrackedItems);
-	// emitter.off('reload-asset-states', reloadAssetStates);
 	disableMenus();
 });
-
-
 
 onBeforeUnmount(() => {
 	stage.expandedEntities = {};
@@ -1710,21 +1097,7 @@ onBeforeUnmount(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 
-.intersector {
-	z-index: 1000;
-	position: fixed;
-	left: 0;
-	top: 0;
-	top: 40vh;
-	width: 100vw;
-	height: 40vh;
-	/* height: 90vh; */
-	background: rgba(255, 0, 0, 0.1);
-	pointer-events: none;
-	/* border: 1px solid rgba(255, 0, 0, 0.3); */
-}
-
-.dash-board {
+.dash-board-root {
 	padding: .4rem;
 	display: flex;
 	gap: .4rem;
@@ -1733,77 +1106,6 @@ onBeforeUnmount(() => {
 	height: 100%;
 	width: 100%;
 	height: max-content;
-}
-
-.filter-root {
-	width: 100%;
-	display: flex;
-	/* background-color: firebrick; */
-	background-color: var(--black-steel);
-	border-radius: var(--normal-radius);
-	align-items: center;
-	box-sizing: border-box;
-	padding: .2rem;
-	flex-direction: column;
-}
-
-.filter-header {
-	width: 100%;
-	display: flex;
-	background-color: var(--steel);
-	border-radius: var(--small-radius);
-	/* background-color: green; */
-	align-items: center;
-	box-sizing: border-box;
-	padding: 0rem .2rem;
-}
-
-.filter-header-tabs {
-	box-sizing: border-box;
-	width: 100%;
-	width: min-content;
-	/* flex: 1; */
-	height: 100%;
-	height: min-content;
-	display: flex;
-	/* background-color: purple; */
-	align-items: center;
-}
-
-.selected-filters {
-	box-sizing: border-box;
-	width: 100%;
-	overflow: hidden;
-	/* flex: 1; */
-	height: 100%;
-	display: flex;
-	/* background-color: goldenrod; */
-	align-items: center;
-}
-
-.dash-board-container {
-	z-index: 5;
-	position: relative;
-	display: flex;
-	padding-right: .4rem;
-	overflow: hidden;
-	height: 100%;
-	width: 100%;
-	box-sizing: border-box;
-	min-width: 300px;
-}
-
-.dash-board-container::-webkit-scrollbar {
-	width: 8px;
-}
-
-.dash-board-container::-webkit-scrollbar-thumb {
-	border-radius: 10px;
-	background-color: var(--dark-steel);
-}
-
-.dash-board-container::-webkit-scrollbar-track {
-	border-radius: 10px;
 }
 
 .browser-root-container {
@@ -1844,52 +1146,22 @@ onBeforeUnmount(() => {
 }
 
 .left-column {
-	z-index: 5;
 	display: flex;
 	position: relative;
 	padding: .5rem;
 	overflow: hidden;
 	height: 100%;
-	border-radius: var(--large-radius);
+	border-radius: var(--very-large-radius);
 	background-color: var(--black-steel);
 	width: 100%;
 	min-width: 550px;
 	box-sizing: border-box;
-  border-radius: var(--very-large-radius);
 }
 
 .browser-root-container-hover-drop {
 	background-color: #1e7fee6c;
 	outline: 1px solid rgb(255, 255, 255);
 	outline-offset: -1px;
-}
-
-.entity-list-scroll {
-	z-index: 5;
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	gap: .5rem;
-	overflow: hidden;
-	height: min-content;
-	/* background-color: green; */
-	width: 100%;
-	box-sizing: border-box;
-}
-
-.dash-board-root {
-	z-index: 1;
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	color: var(--white);
-	width: 100%;
-	height: 100%;
-	box-sizing: border-box;
-	overflow: hidden;
-	padding: .4rem;
-	gap: .4rem;
-	/* padding-top: .8rem; */
 }
 
 .dash-board-header {
@@ -1900,7 +1172,6 @@ onBeforeUnmount(() => {
 	height: max-content;
 	gap: 1rem;
 	justify-content: space-between;
-	/* padding: .2rem; */
 	box-sizing: border-box;
 	min-width: max-content;
 }
@@ -1913,29 +1184,6 @@ onBeforeUnmount(() => {
 	gap: .4rem;
 	width: max-content;
 	height: max-content;
-	/* padding: .2rem; */
-}
-
-@keyframes loadingRotate {
-  from {
-      transform: rotate(0deg);
-  }
-  to {
-      transform: rotate(360deg);
-  }
-}
-
-.single-action-button{
-  align-content: center;
-  justify-content: center;
-}
-
-.loading-children-icon {
-  width: 20px;
-  height: 20px;
-  overflow: hidden;
-  padding: 0px;
-  animation: loadingRotate .5s linear infinite;
 }
 
 .action-bar {
@@ -1945,7 +1193,6 @@ onBeforeUnmount(() => {
 	gap: .4rem;
 	width: max-content;
 	height: max-content;
-	/* padding: .2rem; */
 }
 
 .action-bar-container{
@@ -1961,7 +1208,6 @@ onBeforeUnmount(() => {
 	display: flex;
 	gap: .4rem;
 	align-items: center;
-	/* padding: .2rem; */
 	width: max-content;
 	height: max-content;
 	min-width: min-content;
@@ -1976,44 +1222,9 @@ onBeforeUnmount(() => {
 	gap: .5rem;
 	justify-content: space-between;
 	padding: .5rem 0;
-	padding-top: .5rem;
 	box-sizing: border-box;
 	overflow: hidden;
 	min-height: 50px;
-}
-
-.navigator-mode-header {
-	position: relative;
-	display: flex;
-	width: 100%;
-	align-items: center;
-	height: max-content;
-	gap: 1rem;
-	justify-content: flex-start;
-	padding: .5rem;
-	box-sizing: border-box;
-	border-radius: var(--normal-radius);
-	overflow: hidden;
-}
-
-.filter-options {
-	display: flex;
-	gap: .4rem;
-	align-items: center;
-	padding: .2rem 0;
-	height: max-content;
-	justify-content: flex-end;
-	box-sizing: border-box;
-	width: max-content;
-	width: 100%;
-	min-height: 35px;
-	min-width: min-content;
-	flex: 0 0 auto;
-}
-
-.menu-divider {
-	width: 100%;
-	margin-top: .5rem;
 }
 
 .desktop-search-bar {
@@ -2021,7 +1232,6 @@ onBeforeUnmount(() => {
 	font-weight: 200;
 	box-sizing: border-box;
 	font-size: 16px;
-	border-radius: 8px;
 	padding: 10px;
 	border: 0px;
 	border-style: solid;
@@ -2038,24 +1248,6 @@ onBeforeUnmount(() => {
 	filter: invert(100%);
 }
 
-.filter-button{
-	position: relative;
-	overflow: visible;
-}
-
-.filter-button-indicator {
-	overflow: hidden;
-	width: 7px;
-	height: 7px;
-	border-radius: 5px;
-	position: absolute;
-	border-radius: 10px;
-	outline: solid 1px var(--attention);
-	background-color: var(--attention);
-	top: 0;
-	right: 1px;
-}
-
 .searchbar-container {
 	display: flex;
 	align-items: center;
@@ -2063,26 +1255,15 @@ onBeforeUnmount(() => {
 	border-style: solid;
 	outline: none;
 	background-color: var(--midnight-steel);
-	/* background-color: indigo; */
-	border-radius: var(--normal-radius);
 	width: 100%;
-	/* flex: 1 1 30%; */
-	max-width: 30%;
 	max-width: 350px;
-	/* min-width: 30%; */
 	padding-right: .2rem;
 	box-sizing: border-box;
-  border-radius: var(--large-radius);
+	border-radius: var(--large-radius);
 }
 
 .searchbar-container:hover {
 	outline: var(--transparent-line);
-	outline-offset: -1px;
-}
-
-.desktop-search-bar:focus .searchbar-container {
-	background-color: red;
-	outline: var(--solid-line);
 	outline-offset: -1px;
 }
 
