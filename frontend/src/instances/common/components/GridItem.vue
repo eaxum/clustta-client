@@ -299,23 +299,10 @@ onBeforeUnmount(() => {
   background-color: var(--drop-hover);
 }
 
-.drop-zone-hovered {
-  /* background-color: crimson; */
-}
 
 .virtua-item-header {
   overflow: hidden;
   box-sizing: border-box;
-  /* background-color: hsl(330, 100%, var(--lightness)); */
-  /* padding: 0 10px; */
-  /* display: flex; */
-  /* justify-content: space-between; */
-  /* align-items: center; */
-  /* height: 60px; */
-  /* border-radius: 8px; */
-  /* outline: 1px solid black; */
-  /* outline-offset: -1px; */
-  /* padding-bottom: 5px; */
 }
 
 .virtua-item-children {

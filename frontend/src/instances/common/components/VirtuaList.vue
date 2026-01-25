@@ -44,6 +44,7 @@ const stage = useStageStore();
 
 // props
 const props = defineProps({
+  collectionType: { type: String, default: ''},
   collectionId: { type: String, default: '' },
   containerHeight: { type: Number, required: true },
   depth: { type: Number, default: 0 },
@@ -398,12 +399,21 @@ const parseCollectionState = (state) => {
 // Fetches and updates collection children state from backend.
 const refreshView = async (isRoot = false) => {
   const project = projectStore.activeProject;
-  const entityId = isRoot ? collectionStore.navigatedCollection?.id : props.collectionId;
+  const collectionType = isRoot ? collectionStore.navigatedCollection?.type : props.collectionType;
+  const collectionId = isRoot ? collectionStore.navigatedCollection?.id : props.collectionId;
+  
+  // For untracked entities, emit refresh-browser to reload the view with new untracked items
+  if (collectionType === 'untracked_entity') {
+    if (isRoot) {
+      emitter.emit('refresh-browser');
+    }
+    return;
+  }
   
   try {
     const state = await CollectionService.GetCollectionChildrenState(
       project.uri,
-      entityId,
+      collectionId,
       project.working_directory,
       project.ignore_list
     );
@@ -444,7 +454,8 @@ const refreshView = async (isRoot = false) => {
 
 // Refreshes state of virtuaList on mouse enter.
 const refreshVirtuaItems = () => {
-  if (props.isRoot) return;
+  if (props.isRoot || props.collectionType == 'untracked_entity' ) return;
+  console.log(props.collectionType)
   refreshView();
 };
 
@@ -514,7 +525,8 @@ watch(() => props.items, (newItems, oldItems) => {
 }, { deep: true });
 
 watch(() => location.value, async (newPath, oldPath) => {
-  if (oldPath && currentWatchedPath.value) {
+  const pathExists = await FSService.Exists(oldPath)
+  if (oldPath && currentWatchedPath.value && pathExists) {
     try {
       await FSService.RemoveWatcherFolder(oldPath);
     } catch (error) {
@@ -546,7 +558,7 @@ onUpdated(() => {
 
 onMounted(() => {
   nextTick(() => {
-    setupIntersectionObserver();
+    // setupIntersectionObserver();
     updatePixelsAbove();
 
     if (rootScrollContainer.value) {

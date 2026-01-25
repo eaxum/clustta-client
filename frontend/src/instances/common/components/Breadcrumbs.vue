@@ -1,12 +1,12 @@
 <template>
 	<div ref="breadcrumbRoot" class="breadcrumb-root">
+		<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon(commonStore.navigatorMode ? 'home' : 'forward-slash')" v-tooltip="'Home'" :buttonFunction="goHome" />
 		<ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Refresh'" :buttonFunction="refresh" />
-		<!-- <ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon('home')" v-tooltip="'Home'" :buttonFunction="goHome" /> -->
 
 		<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon('arrow-back-ramp')"
 			:allowDeactivate="true" v-tooltip="'Up a level'" :buttonFunction="goUpALevel" />
 
-		<ActionButton :icon="getAppIcon('forward-slash')" v-tooltip="commonStore.navigatorMode ? 'Home' : ''" 
+		<ActionButton v-if="!commonStore.navigatorMode" :icon="getAppIcon('forward-slash')" v-tooltip="commonStore.navigatorMode ? 'Home' : ''" 
 			:label="projectStore.activeProject?.name" :buttonFunction="goHome" />
 
 		<div ref="breadcrumbWrapper" class="breadcrumb-wrapper">
@@ -177,6 +177,7 @@ const copyDirectoryPath = async () => {
 			? collectionStore.navigatedCollection.entity_path
 			: collectionStore.navigatedCollection.item_path;
 		explorerPath = `${project.working_directory}${navPath}`.replace(/\\/g, '/');
+		await FSService.MakeDirs(explorerPath);
 	}
 
 	await Clipboard.SetText(explorerPath);
