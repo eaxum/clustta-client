@@ -1,114 +1,31 @@
 <template>
 	<div ref="browserRoot" v-esc="cancelOps" v-right-click="openMenu" class="dash-board-root absolute-pane">
-		
 		<div v-if="isDefaultWorkspace" ref="browserFilters" class="dash-board-filter">
 			<Breadcrumbs />
-			<div class="searchbar-container">
-				<input ref="searchBar" v-model="commonStore.viewSearchQuery" class="desktop-search-bar" type="text"
-					:placeholder="'Search'" @input="debouncedUpdateSearch" spellcheck="false" />
-				
-				<ActionButton v-if="commonStore.viewSearchQuery.length && !assetStore.assetsLoaded" :isLoading="true" :icon="getAppIcon('loading')"  
-					v-tooltip="'Loading...'" />
-
-				<ActionButton v-else-if="commonStore.viewSearchQuery.length" :icon="getAppIcon('close')"
-					:allowDeactivate="true" v-tooltip="'Clear search'" :buttonFunction="clearSearch" />
-			</div>
+			<SearchBar ref="searchBar" v-model="commonStore.viewSearchQuery" placeholder="Search" :isLoading="!assetStore.assetsLoaded"
+				@input="debouncedUpdateSearch" @clear="clearSearch" />
 			<ActionButton :icon="getAppIcon('filter')" :buttonFunction="toggleShowFilters" :isActive="showFilters" :showIndicator="filtersActive" v-tooltip="'Filters'" />
 		</div>
 
 		<div class="dash-board-header">
-
-			<FilterBar v-if="showFilters && isDefaultWorkspace" 
-			:filtersActive="filtersActive" :kanbanView="kanbanView" 
-			:showTagsFilter="showTagsFilter" :viewTags="viewTags" 
-			:isFilterActive="isFilterActive" :clearFilters="clearFilters" />
-
-			<div v-else-if="isDefaultWorkspace" class="create-menu">
-				<ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Refresh'" :buttonFunction="refresh" />
-				<ActionButton :icon="getAppIcon('file-plus')"
-					v-if=" !kanbanView && (userStore.canDo('create_task') || canModifyEntity)"
-					@click="createAsset" v-tooltip="'Add Asset'" />
-				<ActionButton :icon="getAppIcon('folder-plus')"
-					v-if=" !kanbanView && userStore.canDo('create_entity') || canModifyEntity" @click="createEntity"
-					v-tooltip="'Add Collection'" />
-				<ActionButton :icon="getAppIcon('workflow-plus')"
-					v-if=" !kanbanView && workflowStore.workflows.length && userStore.canDo('create_entity')" @click="createWorkflow"
-					v-tooltip="'Add Workflow'" />
-				<ActionButton :icon="getAppIcon('web-plus')"
-					v-if=" !kanbanView && userStore.canDo('create_task')" @click="createWebLink"
-					v-tooltip="'Add Weblink'" />
-				<ActionButton :icon="getAppIcon('arrow-down-ramp')"
-					v-if="!platformStore.isWeb && !kanbanView && userStore.canDo('create_entity')" @click="importItems"
-					v-tooltip="'Import Items'" />
-				<!-- <ActionButton :icon="getAppIcon('arrow-up-ramp')"
-					v-if="platformStore.isWeb && !kanbanView && userStore.canDo('create_entity')" @click="uploadItems"
-					v-tooltip="'Upload Items'" /> -->
-			</div>
-
-			<div v-if="!showFilters || !isDefaultWorkspace" class="action-bar-container">
-				
-				<div v-if="!kanbanView && (collectionStore.loadingCollectionStates || assetStore.loadingAssetStates) && rootData.length" class="action-bar">
-					<ActionButton :isLoading="true" :icon="getAppIcon('loading')"  
-					v-tooltip="'Loading collection states'" />
-				</div>
-
-				<div v-else-if="!kanbanView && rootData.length" class="action-bar">
-					<ActionButton v-if="collectionStore.collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" v-tooltip="'Rebuild All'"
-						:buttonFunction="rebuildAll" />
-					<ActionButton v-if="collectionStore.collectionStateFlags.has_untracked && userStore.canDo('create_checkpoint')"
-						:icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Create Checkpoints'"
-						:buttonFunction="prepAllCheckpointModal" />
-					<ActionButton v-else-if="collectionStore.collectionStateFlags.has_modified && userStore.canDo('create_checkpoint')"
-						:icon="getAppIcon('layers-plus')" :useAlert="true"  :noFilter="true" v-tooltip="'Create Checkpoints'"
-						:buttonFunction="prepAllCheckpointModal" />
-					<ActionButton v-if="collectionStore.collectionStateFlags.has_modified" :icon="getAppIcon('revert')" :useAlert="true" :noFilter="true" v-tooltip="'Revert All'"
-						:buttonFunction="prepResetPopUpModal" />
-					<ActionButton v-if="collectionStore.collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Update all'"
-						:buttonFunction="updateAll" />
-				</div>
-			</div>
-
-
+			<FilterBar v-if="showFilters && isDefaultWorkspace" :kanbanView="kanbanView" />
+			<CreateMenu v-else-if="isDefaultWorkspace" :kanbanView="kanbanView" :importItems="importItems" />
+			<StateBar v-if="(!showFilters || !isDefaultWorkspace) && !kanbanView" :hasData="!!rootData.length" />
 			<div v-if="rootData.length || commonStore.viewSearchQuery.length || commonStore.showUntracked"
 				class="view-options">
-				<ViewOptions v-if="!kanbanView" :kanbanView="kanbanView"  />
-				<ActionButton v-if="isDefaultWorkspace" :icon="kanbanView ? getAppIcon('list') : getAppIcon('kanban')"
-					v-tooltip="kanbanView ? 'List' : 'Kanban'" :buttonFunction="toggleViewMode" />
-				<ActionButton v-if="isDefaultWorkspace && !kanbanView && userStore.canDo('update_entity')" :icon="dndStore.lockUI ? getAppIcon('lock-closed') : getAppIcon('lock-open')"
-					v-tooltip="dndStore.lockUI ? 'Unlock UI' : 'Lock UI'" :buttonFunction="toggleLockUI" />
-				<ActionButton v-if="!kanbanView"
-					:icon="commonStore.hideExtensions ? getAppIcon('extension-cancel') : getAppIcon('extension')"
-					v-tooltip="commonStore.hideExtensions ? 'Show extensions' : 'Hide extensions'"
-					:buttonFunction="toggleHideExtensions" />
-				<ActionButton v-if="!kanbanView"
-					:icon="commonStore.showFullPath ? getAppIcon('file-name') : getAppIcon('file-path')"
-					v-tooltip="commonStore.showFullPath ? 'Name' : 'Path'"
-					:buttonFunction="toggleShowFullPath" />
-				<ActionButton v-if="!kanbanView && commonStore.showEntities && entityExpanded"
-					:icon="entityExpanded ? getAppIcon('collapse-up') : getAppIcon('collapse-down')"
-					v-tooltip="entityExpanded ? 'Collapse all' : 'Expand all'" :buttonFunction="toggleExpandEntities" />
+				<ActionButton :icon="getAppIcon('eye-cog')" v-tooltip="'View Options'" :buttonFunction="openViewMenu" />
 				<ActionButton v-if="!kanbanView && isWideScreen" :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
-					v-tooltip="panes.showDetailsPane ? 'Close pane' : 'Open pane'"
-					:buttonFunction="toggleDetailsPane" />
+					v-tooltip="panes.showDetailsPane ? 'Close pane' : 'Open pane'" :buttonFunction="toggleDetailsPane" />
 			</div>
-
-			<div v-else class="view-options">
-				<ActionButton v-if="isWideScreen" :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
-					v-tooltip="panes.showDetailsPane ? 'Close pane' : 'Open pane'"
-					:buttonFunction="toggleDetailsPane" />
-			</div>
-			
 		</div>
 
 		<div v-if="!kanbanView" ref="taskListContainer" class="browser-root-container" @mousemove="onDrag($event)"
 			:class="{ 'browser-root-container-hover-drop': isHovered }" @mouseup="onDragStop($event)"
 			@scroll="disableMenus">
-
 			<div v-if="draggedCard" id="ghost-card" ref="ghostCard" :style="ghostCardStyles"
 				:class="{ 'active': dndStore.draggedItemId !== null, 'single-ghost': !commonStore.useGrid && stage.markedItems.length === 1, 'leaving': dndStore.ghostCardStyle.leaving }">
 				<GhostItem v-bind="draggedCard" :data="draggedCard" />
 			</div>
-
 			<div class="browser-root-content">
 				<div class="left-column">
 					<VirtuaScroll v-if="(!assetStore.assetsLoaded || rootData.length) && !commonStore.useGrid" :items="rootData" />
@@ -117,10 +34,7 @@
 				</div>
 				<DetailsPane v-if="projectStore.getProjects.length && isWideScreen" :isVisible="panes.showDetailsPane" />
 			</div>
-
-
 		</div>
-
 		<div v-else ref="taskListContainer" class="browser-root-container kanban-container">
 			<Kanban :filtersActive="filtersActive" :tasks="rootData" />
 		</div>
@@ -138,17 +52,19 @@ import { useDebounce } from '@/lib/debounce';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import Breadcrumbs from '@/instances/common/components/Breadcrumbs.vue';
+import CreateMenu from '@/instances/desktop/components/CreateMenu.vue';
 import DetailsPane from '@/instances/desktop/components/DetailsPane.vue';
 import FilterBar from '@/instances/common/components/FilterBar.vue';
 import GhostItem from '@/instances/desktop/blocks/GhostItem.vue';
 import GridView from '@/instances/desktop/components/GridView.vue';
 import Kanban from '@/instances/desktop/components/Kanban.vue';
 import PageState from '@/instances/common/components/PageState.vue';
-import ViewOptions from '@/instances/common/components/ViewOptions.vue';
+import SearchBar from '@/instances/desktop/components/SearchBar.vue';
+import StateBar from '@/instances/common/components/StateBar.vue';
 import VirtuaScroll from '@/instances/common/components/VirtuaScroll.vue';
 
 // services
-import { AssetService, CheckpointService, CollectionService, DialogService, FSService, SyncService, TrashService } from '@/services';
+import { AssetService, CollectionService, DialogService, FSService, TrashService } from '@/services';
 
 // store imports
 import { useAssetStore } from '@/stores/assets';
@@ -166,7 +82,6 @@ import { useProjectStore } from '@/stores/projects';
 import { useScrollStore } from '@/stores/scroll';
 import { useStageStore } from '@/stores/stages';
 import { useStudioStore } from '@/stores/studio';
-import { useTagStore } from '@/stores/tags';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
 import { useWorkflowStore } from '@/stores/workflow';
@@ -187,7 +102,6 @@ const projectStore = useProjectStore();
 const scrollStore = useScrollStore();
 const stage = useStageStore();
 const studioStore = useStudioStore();
-const tagStore = useTagStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
 const workflowStore = useWorkflowStore();
@@ -195,7 +109,6 @@ const workflowStore = useWorkflowStore();
 // refs
 const browserFilters = ref(null);
 const browserRoot = ref(null);
-const kanbanView = ref(false);
 const observer = ref(null);
 const rootData = ref([]);
 const screenWidth = ref(window.innerWidth);
@@ -204,13 +117,6 @@ const showFilters = ref(false);
 const taskListContainer = ref(null);
 
 // computed properties
-const canModifyEntity = computed(() => {
-	if (!collectionStore.selectedCollection) return false
-	let selectedIsMarked = stage.markedItems.includes(collectionStore.selectedCollection.id)
-	if (selectedIsMarked && stage.markedItems.length === 1) return collectionStore.selectedCollection.can_modify
-	return false
-});
-
 const draggedCard = computed(() => dndStore.allViewItems?.find(card => card.id === dndStore.draggedItemId));
 
 const entityExpanded = computed(() => Object.keys(stage.expandedEntities).length);
@@ -220,8 +126,8 @@ const filtersActive = computed(() => {
 	const entityFilters = commonStore.entityFilters.length > 0;
 	const taskFilters = commonStore.taskFilters.length > 0;
 	const resourceFilters = commonStore.resourceFilters.length > 0;
-	const generalFilter = isFilterActive('general');
-	return assigneeFilters || entityFilters || taskFilters || resourceFilters || generalFilter
+	const generalFilterActive = !(commonStore.showEntities && commonStore.showTasks && commonStore.showResources && commonStore.showChildEntities && commonStore.showChildTasks && commonStore.showDependencies && !commonStore.onlyAssets);
+	return assigneeFilters || entityFilters || taskFilters || resourceFilters || generalFilterActive;
 });
 
 const ghostCardStyles = computed(() => ({
@@ -235,29 +141,12 @@ const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Defau
 
 const isHovered = computed(() => dndStore.isDropHovering && dndStore.targetItemId === null);
 
+const kanbanView = computed(() => commonStore.viewMode === 'kanban');
+
 const isWideScreen = computed(() => screenWidth.value >= 1000);
 
 const operationsActive = computed(() => {
 	return stage.operationActive || !!modals.activeModal || !!menu.activeMenu || !assetStore.assetsLoaded || stage.activeStage !== 'browser'
-});
-
-const showTagsFilter = computed(() => !!tagStore.tags.length && (commonStore.showTasks || commonStore.showResources));
-
-const viewTags = computed(() => {
-	let tags = tagStore.tags;
-	let viewTags = [];
-	let filteredTaskResults = assetStore.getFilteredAssets;
-	for (const task of filteredTaskResults) {
-		let taskTags = task.tags;
-		for (let t = 0; t < taskTags.length; t++) {
-			if (!viewTags.includes(taskTags[t])) viewTags.push(taskTags[t])
-		}
-	}
-	for (let i = 0; i < tags.length; i++) {
-		tags[i].name = tags[i].name;
-		tags[i].type = 'tags'
-	}
-	return tags.filter((item) => viewTags.includes(item.name));
 });
 
 // methods
@@ -297,9 +186,6 @@ const changeTaskEntity = async (taskId, entityId) => {
 		.catch((error) => notificationStore.errorNotification("Error changing task entity", error));
 };
 
-// Clears all filters and refreshes the view.
-const clearFilters = () => { commonStore.resetFilters(); softRefresh(); };
-
 // Clears the search query and refreshes the view.
 const clearSearch = async () => { commonStore.viewSearchQuery = ""; await softRefresh(); };
 
@@ -330,9 +216,6 @@ const createEntity = () => { if (!stage.groupItems) clearSelection(); modals.set
 
 // Opens the add web link modal.
 const createWebLink = () => { clearSelection(); modals.setModalVisibility('addWebLinkModal', true); };
-
-// Opens the workflow selection modal.
-const createWorkflow = () => { clearSelection(); modals.setModalVisibility('selectWorkflowModal', true); };
 
 // Deletes all selected items including tasks, entities, and untracked files.
 const deleteMultipleItems = async () => {
@@ -592,18 +475,6 @@ const importItems = async () => {
 	finally { stage.operationActive = false; }
 };
 
-// Checks if a specific filter type is currently active.
-const isFilterActive = (filter) => {
-	if (filter.includes('general')) {
-		const isActive = commonStore.showEntities && commonStore.showTasks && commonStore.showResources && commonStore.showChildEntities && commonStore.showChildTasks && commonStore.showDependencies && !commonStore.onlyAssets;
-		return !isActive;
-	} else if (filter.includes('entity')) return commonStore.entityFilters.some((item) => item.type === filter);
-	else if (filter.includes('assignation')) {
-		const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
-		return assigneeFilters || commonStore.taskFilters.some((item) => item.type === filter);
-	} else return commonStore.taskFilters.some((item) => item.type === filter);
-};
-
 // Returns the empty state message based on current view context.
 const message = () => {
 	const searching = commonStore.viewSearchQuery;
@@ -694,6 +565,11 @@ const openMenu = (event) => {
 	menu.showContextMenu(event, 'projectMenu', true);
 };
 
+// Opens the view options menu.
+const openViewMenu = (event) => {
+	menu.showContextMenu(event, 'viewMenu', true, true);
+};
+
 // Prepares and shows the create multiple checkpoints modal.
 const prepAllCheckpointModal = () => {
 	clearSelection();
@@ -721,39 +597,11 @@ const prepFreeUpSpacePopUpModal = () => {
 	modals.setModalVisibility('popUpModal', true);
 };
 
-// Prepares and shows the revert all changes confirmation modal.
-const prepResetPopUpModal = () => {
-	clearSelection();
-	trayStates.popUpModalIcon = 'revert';
-	trayStates.popUpModalTitle = "Revert All Changes";
-	trayStates.popUpModalMessage = "All Modified tasks will be reverted to their last saved state. Are you sure you want to continue?";
-	trayStates.popUpModalFunction = revertAllChanges;
-	modals.setModalVisibility('popUpModal', true);
-};
-
 // Returns the empty state prompt text.
 const prompt = () => {
 	if (commonStore.viewSearchQuery) return '';
 	if (!isDefaultWorkspace.value || filtersActive.value) return '';
 	return 'Right click to create a new Collection or Asset.';
-};
-
-// Rebuilds all rebuildable assets in the current view.
-const rebuildAll = async () => {
-	const path = collectionStore.navigatedCollection?.entity_path;
-	const navigatedEntityId = collectionStore.navigatedCollection?.id;
-	notificationStore.cancleFunction = SyncService.CancelSync;
-	notificationStore.canCancel = true;
-	if (commonStore.activeWorkspace === 'My Tasks' && rootData.value.length) {
-		const userTaskIds = rootData.value.map((task) => task.id);
-		await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, userTaskIds)
-			.then(() => softRefresh())
-			.catch((error) => console.error(`Error rebuilding tasks:`, error));
-	} else {
-		await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedEntityId)
-			.then(() => { if (!path) assetStore.rebuildableAssetsPath = []; softRefresh(); })
-			.catch((error) => notificationStore.errorNotification("Error Rebuilding All", error));
-	}
 };
 
 // Full refresh: reloads project data, fetches all children, processes icons/previews, and updates state flags.
@@ -776,21 +624,6 @@ const refresh = async () => {
 	rootData.value = [...children.entities, ...children.untracked_entities, ...children.tasks, ...children.untracked_tasks];
 	assetStore.assetsLoaded = true;
 	collectionStore.loadCollectionStateFlags();
-};
-
-// Reverts all modified tasks to their last checkpointed state.
-const revertAllChanges = async () => {
-	modals.setModalVisibility('popUpModal', false);
-	const navigated = collectionStore.navigatedCollection;
-	let collectionId = null, targetPath = null;
-	if (navigated?.type === 'entity') collectionId = navigated.id;
-	else if (navigated?.type === 'untracked_entity') targetPath = navigated.file_path;
-	await collectionStore.reloadItemsForCheckpoint(collectionId, targetPath);
-	const filteredPaths = assetStore.modifiedAssets.modified.map(asset => asset.task_path);
-	if (filteredPaths.length === 0) return;
-	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
-		.then(() => { assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter((item) => !filteredPaths.includes(item.task_path)); softRefresh(); })
-		.catch((error) => { notificationStore.errorNotification("Failed to Revert Tasks", error); console.error(error); });
 };
 
 // Lightweight refresh: fetches children with search/filter support, processes icons, updates root data and state flags.
@@ -841,45 +674,11 @@ const softRefresh = async () => {
 // Toggles the details pane visibility.
 const toggleDetailsPane = () => { panes.showDetailsPane = !panes.showDetailsPane; };
 
-// Toggles between expanding and collapsing all entities.
-const toggleExpandEntities = () => { if (entityExpanded.value) collapseAll(); else expandAll(); };
-
-// Toggles file extension visibility in the browser.
-const toggleHideExtensions = () => { commonStore.hideExtensions = !commonStore.hideExtensions; };
-
-// Toggles the UI lock state for drag-and-drop.
-const toggleLockUI = () => { dndStore.lockUI = !dndStore.lockUI; };
-
 // Toggles between showing file name or full path.
 const toggleShowFilters = () => { showFilters.value = !showFilters.value; };
 
-// Toggles between showing file name or full path.
-const toggleShowFullPath = () => { commonStore.showFullPath = !commonStore.showFullPath; };
-
-// Toggles between list and kanban view modes.
-const toggleViewMode = () => { kanbanView.value = !kanbanView.value; softRefresh(); panes.showDetailsPane = !kanbanView.value; };
-
 // Callback for ResizeObserver to track container width changes.
 const trackWidthChange = (entries) => { /* Reserved for future responsive layout calculations */ };
-
-// Updates all outdated tasks to their latest server version.
-const updateAllOutdated = async () => {
-	modals.setModalVisibility('popUpModal', false);
-	notificationStore.cancleFunction = SyncService.CancelSync;
-	notificationStore.canCancel = true;
-	const navigated = collectionStore.navigatedCollection;
-	let collectionId = null;
-	if (navigated?.type === 'entity') collectionId = navigated.id;
-	const outdatedTasks = await collectionStore.getOutdatedItems(collectionId);
-	const filteredPaths = outdatedTasks.map(task => task.task_path);
-	if (filteredPaths.length === 0) return;
-	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
-		.then(() => softRefresh())
-		.catch((error) => { notificationStore.errorNotification("Failed to Revert Tasks", error); console.error(error); });
-};
-
-// Updates all outdated tasks after clearing selection.
-const updateAll = () => { clearSelection(); updateAllOutdated(); };
 
 // Updates the search query, resets scroll position, and refreshes results.
 const updateSearch = async (event) => {
@@ -986,11 +785,10 @@ Events.On('free-item-space', async () => {
 	}
 });
 
-Events.On('window-focused', async () => {
-	console.log('focused')
-	if (operationsActive.value) return
-	// await refresh();
-});
+// Events.On('window-focused', async () => {
+// 	if (operationsActive.value) return
+// 	// await refresh();
+// });
 
 Events.On('delete-item', async () => {
 	if (operationsActive.value) return
@@ -1027,7 +825,7 @@ watch(() => assetStore.assetsLoaded, async () => {
 
 watch(() => projectStore.activeProject, async () => {
 	if (projectStore.activeProject) {
-		kanbanView.value = false;
+		commonStore.setListView();
 		await refresh();
 	}
 });
@@ -1064,8 +862,10 @@ onMounted(async () => {
 	emitter.on('refresh-browser', softRefresh);
 	emitter.on('update-root-data', handleUpdateRootData);
 	emitter.on('update-untracked-items', handleUpdateUntrackedItems);
+	emitter.on('expand-all', expandAll);
+	emitter.on('collapse-all', collapseAll);
 
-	if (!studioStore.studioUsers.length && projectStore.activeProject.is_remote) {
+	if (projectStore.activeProject.is_remote) {
 		await studioStore.getStudioUsers();
 	}
 
@@ -1080,6 +880,8 @@ onUnmounted(() => {
 	emitter.off('refresh-browser', softRefresh);
 	emitter.off('update-root-data', handleUpdateRootData);
 	emitter.off('update-untracked-items', handleUpdateUntrackedItems);
+	emitter.off('expand-all', expandAll);
+	emitter.off('collapse-all', collapseAll);
 	disableMenus();
 });
 
@@ -1176,34 +978,6 @@ onBeforeUnmount(() => {
 	min-width: max-content;
 }
 
-
-.create-menu {
-	position: relative;
-	display: flex;
-	align-items: center;
-	gap: .4rem;
-	width: max-content;
-	height: max-content;
-}
-
-.action-bar {
-	position: relative;
-	display: flex;
-	align-items: center;
-	gap: .4rem;
-	width: max-content;
-	height: max-content;
-}
-
-.action-bar-container{
-	position: relative;
-	display: flex;
-	align-items: center;
-	gap: .4rem;
-	width: max-content;
-	height: max-content;
-}
-
 .view-options {
 	display: flex;
 	gap: .4rem;
@@ -1225,46 +999,6 @@ onBeforeUnmount(() => {
 	box-sizing: border-box;
 	overflow: hidden;
 	min-height: 50px;
-}
-
-.desktop-search-bar {
-	font-family: 'Inter', sans-serif;
-	font-weight: 200;
-	box-sizing: border-box;
-	font-size: 16px;
-	padding: 10px;
-	border: 0px;
-	border-style: solid;
-	outline: none;
-	background-color: var(--midnight-steel);
-	color: var(--white);
-	transition: width 0.2s ease-out;
-	border-radius: var(--large-radius);
-	width: 100%;
-	max-width: 400px;
-}
-
-.desktop-search-bar::-ms-reveal {
-	filter: invert(100%);
-}
-
-.searchbar-container {
-	display: flex;
-	align-items: center;
-	border: 0px;
-	border-style: solid;
-	outline: none;
-	background-color: var(--midnight-steel);
-	width: 100%;
-	max-width: 350px;
-	padding-right: .2rem;
-	box-sizing: border-box;
-	border-radius: var(--large-radius);
-}
-
-.searchbar-container:hover {
-	outline: var(--transparent-line);
-	outline-offset: -1px;
 }
 
 #ghost-card {

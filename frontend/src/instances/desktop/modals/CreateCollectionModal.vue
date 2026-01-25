@@ -1,7 +1,7 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
 
-    <HeaderArea :title="title" :icon="headerIcon" :showSearch="showSearch" />
+    <HeaderArea :title="title" :icon="headerIcon"/>
     <div class="general-container" :style="{ gap: showTaskOptions ? 10 + 'px' : 20 + 'px' }">
 
       <div v-if="!isMultiple" class="input-section">

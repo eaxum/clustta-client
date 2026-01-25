@@ -24,6 +24,7 @@ export const useMenu = defineStore("useMenu", {
       assignMenu: false,
       accountMenu: false,
       copyToProjectSubMenu: false,
+      viewMenu: false,
     },
 
     // Sub-menu navigation state
@@ -44,7 +45,8 @@ export const useMenu = defineStore("useMenu", {
       'untrackedItemMenu',
       'resourceItemMenu', 
       'assignMenu',
-      'accountMenu'
+      'accountMenu',
+      'viewMenu'
     ],
 
     menuEl: null,

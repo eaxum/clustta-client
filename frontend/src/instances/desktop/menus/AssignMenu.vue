@@ -189,7 +189,10 @@ const assignMultipleTasks = async (assigneeId) => {
   for (const taskId of taskIds) {
     await AssetService.AssignAsset(projectStore.activeProject.uri, taskId, assigneeId)
       .then(async () => {
-        emitTaskUpdates(taskId, [{ property: 'assignee_id', value: assigneeId }]);
+        emitTaskUpdates(taskId, [
+          { property: 'assignee_id', value: assigneeId },
+          { property: 'is_resource', value: false }
+        ]);
         menu.disableAllMenus();
       })
       .catch((error) => {
@@ -210,7 +213,11 @@ const assignSingleTask = async (assigneeId) => {
   await AssetService.AssignAsset(projectStore.activeProject.uri, taskId, userId)
     .then(async () => {
       selectedTask.assignee_id = userId;
-      emitTaskUpdates(taskId, [{ property: 'assignee_id', value: userId }]);
+      selectedTask.is_resource = false;
+      emitTaskUpdates(taskId, [
+        { property: 'assignee_id', value: userId },
+        { property: 'is_resource', value: false }
+      ]);
       menu.disableAllMenus();
       notificationStore.addNotification("Task Assigned Successfully.", "", "success");
     })

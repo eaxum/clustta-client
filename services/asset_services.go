@@ -758,6 +758,8 @@ func (t *AssetService) AddPreview(projectPath, taskId, previewPath string) (mode
 	return updatedTask, nil
 }
 
+// AssignAsset assigns a task to a user.
+// If the task is a resource (is_resource == true), it will be converted to a task first.
 func (t *AssetService) AssignAsset(projectPath, taskId, userId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -770,9 +772,20 @@ func (t *AssetService) AssignAsset(projectPath, taskId, userId string) error {
 	}
 	defer tx.Rollback()
 
+	task, err := repository.GetTask(tx, taskId)
+	if err != nil {
+		return err
+	}
+
+	if task.IsResource {
+		err = repository.ToggleIsTask(tx, taskId, true)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = repository.AssignTask(tx, taskId, userId)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 	err = tx.Commit()

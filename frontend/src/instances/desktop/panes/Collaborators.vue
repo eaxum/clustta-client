@@ -1,11 +1,6 @@
 <template>
   <div class="general-pane-header">
-    <div class="searchbar-container" v-esc="clearSearch">
-      <input ref="searchBar" v-model="searchQuery" class="pane-search-bar" type="text"
-        :placeholder="'Search by name or email'" @input="updateSearch" />
-      <ActionButton v-if="searchQuery" :icon="getAppIcon('close')" :allowDeactivate="true"
-        v-tooltip="'Clear search'" :buttonFunction="clearSearch" />
-    </div>
+    <SearchBar v-model="searchQuery" placeholder="Search by name or email" @clear="clearSearch" />
   </div>
 
   <div class="general-pane-root">
@@ -38,9 +33,9 @@ import { computed, ref } from 'vue';
 import utils from '@/services/utils';
 
 // components
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import CollaboratorItem from '@/instances/desktop/components/CollaboratorItem.vue';
 import PageState from '@/instances/common/components/PageState.vue';
+import SearchBar from '@/instances/desktop/components/SearchBar.vue';
 
 // services
 import { ProjectService } from "@/services";
@@ -277,38 +272,6 @@ const updateSearch = () => {
 
 <style scoped>
 @import "@/assets/desktop.css";
-
-.pane-search-bar {
-  font-family: 'Inter', sans-serif;
-  box-sizing: border-box;
-  font-weight: 300;
-  font-size: 16px;
-  border-radius: var(--large-radius);
-  padding: 10px;
-  border: 0px;
-  outline: none;
-  background-color: var(--midnight-steel);
-  color: var(--white);
-  transition: width 0.2s ease-out;
-  width: 100%;
-}
-
-.searchbar-container {
-  display: flex;
-  align-items: center;
-  outline: none;
-  background-color: var(--midnight-steel);
-  border-radius: var(--large-radius);
-  width: 98%;
-  padding-right: .4rem;
-  box-sizing: border-box;
-  z-index: 2;
-}
-
-.searchbar-container:hover {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-}
 
 .collaborators-scroll-container {
   width: 100%;

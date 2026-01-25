@@ -3,7 +3,7 @@
 		<div class="side-pane-content">
 			<div class="project-section">
 				<div class="project-list-items">
-					<TabButton :icon="getAppIcon('home')" v-tooltip="'All Projects'" @click="goToProjects"
+					<TabButton :icon="getAppIcon('four-squares')" v-tooltip="'All Projects'" @click="goToProjects"
 						:showLabel="sidePaneActive" :fullWidth="sidePaneActive" label="All Projects"
 						:buttonFunction="doNothing" />
 					<ProjectList />

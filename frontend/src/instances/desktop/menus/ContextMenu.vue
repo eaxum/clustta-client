@@ -31,6 +31,7 @@ import StatusFilterMenu from '@/instances/desktop/menus/StatusFilterMenu.vue';
 import TagsFilterMenu from '@/instances/desktop/menus/TagsFilterMenu.vue';
 import TypeFilterMenu from '@/instances/desktop/menus/TypeFilterMenu.vue';
 import UntrackedItemMenu from '@/instances/desktop/menus/UntrackedItemMenu.vue';
+import ViewMenu from '@/instances/desktop/menus/ViewMenu.vue';
 
 // stores
 import { useMenu } from '@/stores/menu';
@@ -60,6 +61,7 @@ const menuComponents = {
   tagsFilterMenu: TagsFilterMenu,
   typeFilterMenu: TypeFilterMenu,
   untrackedItemMenu: UntrackedItemMenu,
+  viewMenu: ViewMenu,
 };
 
 // computed properties

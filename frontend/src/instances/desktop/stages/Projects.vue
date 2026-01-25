@@ -13,17 +13,8 @@
 					v-tooltip="'Refresh'" :buttonFunction="refresh" />
 			</div>
 			<div class="action-bar" v-if="projects.length && projectStore.projectsLoaded || projectStore.projectSearchQuery">
-				<div class="searchbar-container">
-					<input ref="searchBar" v-model="projectStore.projectSearchQuery" class="desktop-search-bar" type="text"
-						:placeholder="'Search projects'" @input="updateSearch" spellcheck="false" />
-					
-					<ActionButton v-if="projectStore.projectSearchQuery.length && !projectStore.projectsLoaded" :isLoading="true" :icon="getAppIcon('loading')" :noFilter="true" 
-						v-tooltip="'Loading...'" />
-
-					<ActionButton v-else-if="projectStore.projectSearchQuery.length" :icon="getAppIcon('close')"
-						:allowDeactivate="true" v-tooltip="'Clear search'" :buttonFunction="clearSearch" />
-				</div>
-		</div>
+				<SearchBar ref="searchBar" v-model="projectStore.projectSearchQuery" placeholder="Search projects" :isLoading="!projectStore.projectsLoaded" @input="updateSearch" @clear="clearSearch" />
+			</div>
 		<div class="view-options" v-if="projectStore.projectsLoaded" >
 			<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="!untrackedProjects.length" :icon="getAppIcon(projectStore.showUntrackedProjects ? 'eye-cancel' : 'eye')" v-tooltip="projectStore.showUntrackedProjects ? 'Hide untracked projects' : 'Show untracked projects'"
 				:buttonFunction="toggleShowUntrackedProjects" />
@@ -108,9 +99,9 @@ import { useDndStore } from '@/stores/dnd';
 import ProjectItem from '@/instances/desktop/blocks/ProjectItem.vue'
 import PageState from '@/instances/common/components/PageState.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import TabButton from '@/instances/desktop/components/TabButton.vue'
-import TabbedFolder from '@/instances/desktop/components/TabbedFolder.vue'
 import ProjectListSkeleton from '@/instances/desktop/components/ProjectListSkeleton.vue'
+import SearchBar from '@/instances/desktop/components/SearchBar.vue'
+import TabButton from '@/instances/desktop/components/TabButton.vue'
 import { FSService, SettingsService } from '@/services';
 import { Events } from "@wailsio/runtime";
 
@@ -148,9 +139,7 @@ const operationsActive = computed(() => {
 
 Events.On('search', async () => {
 	if (operationsActive.value) return
-	if (searchBar.value) {
-		searchBar.value.focus();
-	}
+	searchBar.value?.focus();
 });
 
 Events.On('reload-view', async () => {
@@ -306,13 +295,7 @@ const refresh = async () => {
 
 const updateSearch = (event) => {
 	projectStore.projectSearchQuery = event.target.value.toLowerCase();
-	
-	// Enable closedProjectsVisible when searching, disable when cleared
-	if (projectStore.projectSearchQuery.length > 0) {
-		closedProjectsVisible.value = true;
-	} else {
-		closedProjectsVisible.value = false;
-	}
+	closedProjectsVisible.value = projectStore.projectSearchQuery.length > 0;
 };
 
 const clearSearch = () => {
@@ -600,7 +583,6 @@ onUnmounted(() => {
 	min-height: 50px;
 	gap: 1rem;
 	justify-content: space-between;
-	/* background-color: khaki; */
 	padding: .2rem;
 	box-sizing: border-box;
 	min-width: max-content;
@@ -614,7 +596,6 @@ onUnmounted(() => {
 	width: max-content;
 	height: max-content;
 	padding: .2rem;
-	/* background-color: black; */
 }
 
 .action-bar {
@@ -625,73 +606,11 @@ onUnmounted(() => {
 	width: max-content;
 	height: max-content;
 	padding: .2rem;
-	/* background-color: black; */
-}
-
-.searchbar-container {
-	display: flex;
-	align-items: center;
-	border: 0px;
-	border-style: solid;
-	outline: none;
-	background-color: var(--midnight-steel);
-	border-radius: var(--normal-radius);
-	width: 100%;
-	max-width: 500px;
 	width: 500px;
 	max-width: 400px;
-	padding-right: .2rem;
-	box-sizing: border-box;
-	border-radius: var(--large-radius);
 }
 
-.searchbar-container:hover {
-	outline: var(--transparent-line);
-	outline-offset: -1px;
-}
 
-.single-action-button {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: max-content;
-	height: max-content;
-}
-
-.loading-children-icon {
-	animation: loadingRotate 1s linear infinite;
-}
-
-@keyframes loadingRotate {
-	0% {
-		transform: rotate(0deg);
-	}
-	100% {
-		transform: rotate(360deg);
-	}
-}
-
-.desktop-search-bar {
-	font-family: 'Inter', sans-serif;
-	box-sizing: border-box;
-	font-size: 16px;
-	border-radius: 8px;
-	padding: 10px;
-	border: 0px;
-	border-style: solid;
-	outline: none;
-	background-color: transparent;
-	color: var(--white);
-	transition: width 0.2s ease-out;
-	border-radius: var(--large-radius);
-	width: 100%;
-	color: var(--white);
-	width: 100%;
-}
-
-.desktop-search-bar::-ms-reveal {
-	filter: invert(100%);
-}
 .view-options {
 	display: flex;
 	gap: .4rem;
@@ -699,7 +618,6 @@ onUnmounted(() => {
 	padding: .2rem;
 	width: max-content;
 	height: max-content;
-	/* background-color: darkorange; */
 }
 </style>
 
