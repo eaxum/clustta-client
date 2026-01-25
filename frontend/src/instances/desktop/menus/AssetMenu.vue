@@ -27,7 +27,7 @@
       :fullWidth="true" label="Dependency Graph" :buttonFunction="goToDependencyGraph" />
 
     <!-- Go to Location -->
-    <ActionButton v-if="commonStore.viewSearchQuery || filtersActive" :icon="getAppIcon('magnifying-glass')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="commonStore.viewSearchQuery || filtersActive" :icon="getAppIcon('file-search')" :showLabel="true" :fullWidth="true"
       label="Go to Asset" :buttonFunction="goToLocation" />
 
     <!-- Reveal in Explorer -->

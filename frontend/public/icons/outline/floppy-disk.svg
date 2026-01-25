@@ -1,1 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><title>floppy disk</title><g stroke-linejoin="miter" fill="#ffffff" stroke-linecap="butt" class="nc-icon-wrapper"><polyline data-color="color-2" points="6 18 6 12 18 12 18 18" fill="none" stroke="#ffffff" stroke-linecap="square" stroke-miterlimit="10" stroke-width="1.5"></polyline> <path d="M20,22H4a2,2,0,0,1-2-2V4A2,2,0,0,1,4,2H17l5,5V20A2,2,0,0,1,20,22Z" fill="none" stroke="#ffffff" stroke-linecap="square" stroke-miterlimit="10" stroke-width="1.5"></path> <line data-color="color-2" x1="15" y1="6" x2="15" y2="8" fill="none" stroke="#ffffff" stroke-linecap="square" stroke-miterlimit="10" stroke-width="1.5"></line></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:square;stroke-miterlimit:10;">
+    <g>
+        <path d="M6,18L6,13.458C6,13.071 6.154,12.701 6.427,12.427C6.701,12.154 7.071,12 7.458,12C9.766,12 14.234,12 16.542,12C16.929,12 17.299,12.154 17.573,12.427C17.846,12.701 18,13.071 18,13.458C18,15.234 18,18 18,18" style="fill:none;fill-rule:nonzero;stroke:white;stroke-width:1.5px;"/>
+        <path d="M20,22L4,22C2.903,22 2,21.097 2,20L2,4C2,2.903 2.903,2 4,2L16.058,2C16.661,2 17.239,2.239 17.666,2.666C18.623,3.623 20.377,5.377 21.334,6.334C21.761,6.761 22,7.339 22,7.942C22,10.929 22,20 22,20C22,21.097 21.097,22 20,22Z" style="fill:none;fill-rule:nonzero;stroke:white;stroke-width:1.5px;"/>
+        <g transform="matrix(1,0,0,1,4.839167,0.607709)">
+            <circle cx="11.246" cy="6.632" r="0.754" style="fill:white;"/>
+        </g>
+    </g>
+</svg>

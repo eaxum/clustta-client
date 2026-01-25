@@ -1,21 +1,10 @@
 <template>
   <div v-if="debugging" class="general-pane-header">
     <HeaderArea :title="utils.capitalizeStr(projectStore.selectedUntrackedItem?.name)" :icon="getAppIcon(itemIcon)" />
-    <!-- <ActionButton v-if="userStore.canDo('update_entity')" :icon="getAppIcon('edit')" 
-        v-tooltip="'Rename Entity'" :buttonFunction="editEntity" /> -->
   </div>
 
   <div v-if="debugging" class="general-pane-root">
     <div class="general-pane-container">
-
-      <div v-if="projectStore.selectedUntrackedItem.preview" class="entity-thumb-container">
-        <div class="entity-thumb">
-          <img v-if="projectStore.selectedUntrackedItem.preview" class="screenshot-thumb"
-            :src="projectStore.selectedUntrackedItem.preview">
-          <img v-else class="screenshot-thumb" src="/page-states/no_image.png">
-        </div>
-      </div>
-
       <div class="pane-parameter-section">
         <div class="action-bar">
 

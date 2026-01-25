@@ -1,20 +1,11 @@
 <template>
 
   <div class="general-pane-header">
-      <div class="searchbar-container" v-esc="clearSearch">
-        <input ref="searchBar"  v-model="searchQuery" class="pane-search-bar" type="text" spellcheck="false"
-          :placeholder="'Search for dependencies to add'" @input="debouncedUpdateSearch" />
+    <SearchBar v-model="searchQuery" placeholder="Search for dependencies to add" :isLoading="isLoadingData"
+      @input="debouncedUpdateSearch" @clear="clearSearch" />
 
-        <ActionButton v-if="searchQuery && isLoadingData" :isLoading="true" :icon="getAppIcon('loading')" 
-					v-tooltip="'Loading...'" />
-
-        <ActionButton v-else-if="searchQuery" :icon="getAppIcon('close')"
-          :allowDeactivate="true" v-tooltip="'Clear search'" :buttonFunction="clearSearch" />
-      </div>
-      
-			<FilterButton v-if="searchQuery" :icon="getAppIcon('filter')" v-tooltip="'Filter'"
-			 :showLabel="false" :alert="isFilterActive"	 @click="showFilterMenu($event, 'dependencySearchFilterMenu')" />
-
+    <FilterButton v-if="searchQuery" :icon="getAppIcon('filter')" v-tooltip="'Filter'"
+      :showLabel="false" :alert="isFilterActive" @click="showFilterMenu($event, 'dependencySearchFilterMenu')" />
   </div>
 
   <div class="general-pane-root">
@@ -64,8 +55,9 @@ import { useDependencyStore } from '@/stores/dependency';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import DependencyList from '@/instances/desktop/components/DependencyList.vue';
-import PageState from '@/instances/common/components/PageState.vue';
 import FilterButton from '@/instances/desktop/components/FilterButton.vue';
+import PageState from '@/instances/common/components/PageState.vue';
+import SearchBar from '@/instances/desktop/components/SearchBar.vue';
 
 // states/stores
 const stage = useStageStore();
@@ -413,53 +405,6 @@ onUnmounted(() => {
   overflow: hidden;
   padding: 0px;
   animation: loadingRotate .5s linear infinite;
-}
-
-.pane-search-bar {
-	font-family: 'Inter', sans-serif;
-	box-sizing: border-box;
-	font-size: 16px;
-  font-weight: 300;
-	border-radius: 8px;
-	padding: 10px;
-	border: 0px;
-	border-style: solid;
-	outline: none;
-	background-color: var(--midnight-steel);
-	color: var(--white);
-	transition: width 0.2s ease-out;
-	border-radius: var(--large-radius);
-	width: 100%;
-}
-.general-pane-header{
-  gap: .5rem;
-}
-
-.searchbar-container {
-	display: flex;
-	align-items: center;
-	border: 0px;
-	border-style: solid;
-	outline: none;
-	background-color: var(--midnight-steel);
-	border-radius: var(--normal-radius);
-	width: 100%;
-  width: 98%;
-	padding-right: .2rem;
-	box-sizing: border-box;
-  z-index: 2;
-  border-radius: var(--very-large-radius);
-}
-
-.searchbar-container:hover {
-	outline: var(--transparent-line);
-	outline-offset: -1px;
-}
-
-.pane-search-bar:focus .searchbar-container {
-	background-color: red;
-	outline: var(--solid-line);
-	outline-offset: -1px;
 }
 
 .bottom-bar{

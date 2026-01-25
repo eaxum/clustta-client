@@ -281,9 +281,6 @@
 
           <!-- task actions -->
           <div v-if="!isEditing && !isUntracked && !statusMenuDisplayed" class="task-item-actions">
-            <ActionButton v-if="userStore.canDo('view_checkpoint')" :icon="getAppIcon('layers')" v-tooltip="'Checkpoints'"
-              v-stop-propagation @click="viewCheckpoints(index, task, $event)" />
-
             <div v-if="loadingAssetState" class="file-state">
                 <ActionButton :isLoading="true" :icon="getAppIcon('loading')" 
                   v-tooltip="'Loading...'" />
@@ -1136,11 +1133,6 @@ onBeforeUnmount(() => {
   outline-offset: -1px;
   border-radius: var(--large-radius);
   transition: all .2s ease-out;
-}
-
-.task-item-main:hover {
-  background-color: var(--blue-steel);
-  border-radius: var(--small-radius);
 }
 
 .task-item-main:hover {

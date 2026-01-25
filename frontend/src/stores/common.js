@@ -131,16 +131,19 @@ export const useCommonStore = defineStore("common", {
       this.listItemGap = 4;
       this.listItemHeight = 60;
     },
-    setLargerView() {
-      this.viewMode = 'larger';
-      this.useGrid = false;
-      this.listItemGap = 10;
-      this.listItemHeight = 70;
-    },
     setGridView() {
       this.viewMode = 'grid';
       this.useGrid = true;
-      // Keep existing grid settings
+    },
+    setKanbanView() {
+      this.viewMode = 'kanban';
+      this.useGrid = false;
+    },
+    setListView() {
+      this.viewMode = 'compact';
+      this.useGrid = false;
+      this.listItemGap = 4;
+      this.listItemHeight = 60;
     },
   },
 });

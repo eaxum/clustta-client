@@ -72,6 +72,8 @@ export function AssetFilesStatus(projectPath, taskIds) {
 }
 
 /**
+ * AssignAsset assigns a task to a user.
+ * If the task is a resource (is_resource == true), it will be converted to a task first.
  * @param {string} projectPath
  * @param {string} taskId
  * @param {string} userId
