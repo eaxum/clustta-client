@@ -1,5 +1,5 @@
 <template>
-  <div v-if="data || dndStore.ghostCardStyle.leaving" class="ghost-card" :class="ghostCardClasses" :style="ghostCardStyles">
+  <div v-if="data" class="ghost-card" :class="ghostCardClasses" :style="ghostCardStyles">
     <div class="ghost-item-main">
       <div v-if="stage.markedItems.length === 1" class="ghost-item-wrapper">
         <Collection v-if="data.type === 'entity'" :loadingChildren="false" :isGhost="true" :entity="data" :index="index" />

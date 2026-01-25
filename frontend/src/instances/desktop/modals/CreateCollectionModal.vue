@@ -230,6 +230,7 @@ const createSingleEntity = async () => {
       if (!isMultiple.value) {
         const newEntity = data;
         collectionStore.selectedCollection = newEntity;
+        stage.selectedItem = newEntity;
         notificationStore.addNotification(entityName.value + ' collection created', '', 'success');
         stage.firstSelectedItemId = newEntity.id;
         stage.markedItems = [newEntity.id];

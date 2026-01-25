@@ -157,6 +157,7 @@ const createTask = async (launch = false, comment = 'Asset created') => {
       comment
     )
       .then(async (data) => {
+        const newAsset = data;
         notificationStore.addNotification('Creating ' + taskName.value + '...', '', 'success');
         if (!trayStates.keepModalOpen) {
           closeModal();
@@ -165,10 +166,13 @@ const createTask = async (launch = false, comment = 'Asset created') => {
           tags.value = [];
         }
         isAwaitingResponse.value = false;
+        stageStore.selectedItem = newAsset;
+        stageStore.firstSelectedItemId = newAsset.id;
+        stageStore.markedItems = [newAsset.id];
         notificationStore.addNotification('Created ' + taskName.value + ' successfully.', '', 'success');
         emitter.emit('refresh-browser');
         if (launch) {
-          FSService.LaunchFile(data.file_path);
+          FSService.LaunchFile(newAsset.file_path);
         }
       })
       .catch((error) => {
