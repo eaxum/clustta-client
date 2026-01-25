@@ -13,7 +13,7 @@
       'task-item-grid-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
       'task-item-grid-last-selected': stage.lastSelectedItemId === task.id && !isGhost,
       'task-item-child': task.parent_id,
-      'drop-zone-hovered': isHovered,
+      'file-drop-target-active': isHovered,
       'task-item-untracked': isUntracked
     }" 
     @dblclick="launchTaskCommand()">
@@ -188,11 +188,11 @@
       'task-item-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
       'task-item-last-selected': stage.lastSelectedItemId === task.id && !isGhost,
       'task-item-child': task.parent_id,
-      'drop-zone-hovered': isHovered
+      'file-drop-target-active': isHovered
     }" 
     @dblclick="launchTaskCommand()">
 
-    <div class="task-spacer" v-tooltip="assetTypeName" @click="console.log()">
+    <div class="task-spacer" v-tooltip="assetTypeName" @click="console.log(task)">
       <span v-if="isUntracked" class="single-action-button single-action-button-disabled">
         <img class="small-icons entity-collapsed" :src="getAppIcon('generic')">
       </span>
@@ -1350,10 +1350,6 @@ onBeforeUnmount(() => {
 
 .task-item-child {
   padding-left: 0px;
-}
-
-.drop-zone-hovered {
-  background-color: var(--drop-hover);
 }
 
 .main-task-item-root {

@@ -360,7 +360,7 @@ const onDragStart = (e, id, isMinimized) => {
   dndStore.ghostCardStyle.cursorDistance.x = e.pageX - cardRect.x;
   dndStore.ghostCardStyle.cursorDistance.y = e.pageY - cardRect.y;
   
-  dndStore.setGhostCardStyle(e, true)
+  dndStore.setGhostCardStyle(e, true, false)
   updateUI();
 };
 
@@ -380,7 +380,7 @@ const updateUI = () => {
     return requestAnimationFrame(updateUI);
   }
 
-  dndStore.setGhostCardStyle(true, true)
+  dndStore.setGhostCardStyle(true, true, false)
 
   let isOverlapping;
   let newHoveredColumnId = null;

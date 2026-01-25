@@ -135,6 +135,7 @@
   --mild-blur: blur(20px);
 
   /* radius */
+  --faint-line: 1px solid var(--dark-steel);
   --transparent-line: 1px solid var(--light-steel);
   --medium-transparent-line: 1.5px solid var(--bright-steel);
   --thick-transparent-line: 2px solid rgba(255, 255, 255, 0.2);

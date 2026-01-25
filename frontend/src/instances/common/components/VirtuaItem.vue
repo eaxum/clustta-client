@@ -20,7 +20,7 @@
           :class="{ 'indent-guide-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === child.id }">
         </div>
         <VirtuaList @refreshData="loadEntityChildren" @updateChildren="handleUpdateChildren" @updateChildrenUntrackedItems="handleUpdateUntrackedItems" 
-          :collectionId="child.id" @shiftParents="handleToggle" :items="entityChildren"
+          :collectionId="child.id" :collectionType="child.type" @shiftParents="handleToggle" :items="entityChildren"
           :containerHeight="scrollStore.scrollRootHeight || 0" :depth="depth + 1" :parentOffset="totalOffset"
           :itemHeight="commonStore.listItemHeight" />
       </div>
@@ -32,6 +32,7 @@
 // imports
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import emitter from '@/lib/mitt';
+import utils from '@/services/utils';
 
 // components
 import Asset from '@/instances/desktop/blocks/Asset.vue';
@@ -160,37 +161,49 @@ const handleKeyArrowKeys = async (event) => {
           } else {
             stage.expandEntity(item);
           }
-          const firstChildId = entityChildren.value[0].id;
+          const firstChild = entityChildren.value[0];
+          const firstChildId = firstChild.id;
           handleToggle();
           stage.markedItems = [firstChildId];
           stage.firstSelectedItemId = firstChildId;
+          stage.selectItem(firstChild, firstChild.type, true);
         }
       } else {
         let parent;
-        const allEntities = await CollectionService.GetCollections(projectStore.activeProject.uri);
-        const alluntrackedFolders = projectStore.untrackedFolders;
         const allItems = dndStore.allViewItems;
 
         if (type === 'entity') {
           parent = allItems.find((entity) => entity.id === item.parent_id);
-        } else if (type === 'task') {
+        } else if (type === 'task' || type === 'untracked_task') {
+          // Both tracked and untracked tasks have entity_id pointing to parent
           parent = allItems.find((entity) => entity.id === item.entity_id);
-        } else {
-          const entityPath = item.entity_path;
-          const parentEntity = allItems.find((entity) => entity.entity_path === entityPath);
-          const parentUntrackedEntity = alluntrackedFolders.find((entity) => entity.item_path === entityPath);
-          parent = parentEntity ? parentEntity : parentUntrackedEntity;
+        } else if (type === 'untracked_entity') {
+          // For untracked entities, derive parent from path
+          const currentPath = item.entity_path || item.item_path;
+          const pathParts = currentPath.split('/').filter(part => part.trim() !== '');
+          
+          if (pathParts.length >= 2) {
+            const parentPath = '/' + pathParts.slice(0, -1).join('/') + '/';
+            // First try to find a tracked entity with this path
+            parent = allItems.find((entity) => entity.entity_path === parentPath);
+            
+            // If not found, generate an untracked entity reference
+            if (!parent) {
+              const projectPath = projectStore.activeProject.working_directory.replace(/\\/g, '/').replace(/\/$/, '');
+              const parentAbsPath = projectPath + parentPath.slice(0, -1);
+              const parentId = utils.getMD5Hash(parentAbsPath);
+              parent = allItems.find((entity) => entity.id === parentId);
+            }
+          }
         }
 
         if (parent) {
-          if (type === 'untracked_entity') {
-            stage.expandEntity(parent, true);
-          } else {
-            stage.expandEntity(parent);
-          }
+          const isParentUntracked = parent.type === 'untracked_entity';
+          stage.expandEntity(parent, isParentUntracked);
           handleToggle();
           stage.markedItems = [parent.id];
           stage.firstSelectedItemId = parent.id;
+          stage.selectItem(parent, parent.type, true);
         }
       }
     }
@@ -259,7 +272,6 @@ const loadAssetState = async () => {
   const task = props.child;
   
   if (task.type !== 'task' || task.is_link) return;
-
   loadingAssetState.value = true;
   
   try {
@@ -282,9 +294,7 @@ const loadCollectionState = async () => {
   const entity = props.child;
   
   if (entity.type !== 'entity') return;
-  
-  loadingCollectionState.value = true;
-  
+    loadingCollectionState.value = true;
   try {
     const flags = await CollectionService.GetCollectionStateFlags(
       projectStore.activeProject.uri,
@@ -414,7 +424,7 @@ onBeforeUnmount(() => {
 }
 
 .indent-guide-selected {
-  border-left: var(--solid-line);
+  border-left: var(--medium-transparent-line);
 }
 
 .virtua-item {
@@ -438,6 +448,6 @@ onBeforeUnmount(() => {
 }
 
 .virtua-item-header:hover + .virtua-item-children > .indent-guide {
-  border-left: var(--solid-line);
+  border-left: var(--medium-transparent-line);
 }
 </style>

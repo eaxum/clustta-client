@@ -22,10 +22,7 @@
 		<div v-if="!kanbanView" ref="taskListContainer" class="browser-root-container" @mousemove="onDrag($event)"
 			:class="{ 'browser-root-container-hover-drop': isHovered }" @mouseup="onDragStop($event)"
 			@scroll="disableMenus">
-			<div v-if="draggedCard" id="ghost-card" ref="ghostCard" :style="ghostCardStyles"
-				:class="{ 'active': dndStore.draggedItemId !== null, 'single-ghost': !commonStore.useGrid && stage.markedItems.length === 1, 'leaving': dndStore.ghostCardStyle.leaving }">
-				<GhostItem v-bind="draggedCard" :data="draggedCard" />
-			</div>
+			<GhostItem :data="draggedCard" :index="0" />
 			<div class="browser-root-content">
 				<div class="left-column">
 					<VirtuaScroll v-if="(!assetStore.assetsLoaded || rootData.length) && !commonStore.useGrid" :items="rootData" />
@@ -129,13 +126,6 @@ const filtersActive = computed(() => {
 	const generalFilterActive = !(commonStore.showEntities && commonStore.showTasks && commonStore.showResources && commonStore.showChildEntities && commonStore.showChildTasks && commonStore.showDependencies && !commonStore.onlyAssets);
 	return assigneeFilters || entityFilters || taskFilters || resourceFilters || generalFilterActive;
 });
-
-const ghostCardStyles = computed(() => ({
-	width: `${dndStore.ghostCardStyle.width}px`,
-	left: `${dndStore.ghostCardStyle.pos.x}px`,
-	top: `${dndStore.ghostCardStyle.pos.y}px`,
-	transform: dndStore.ghostCardStyle.transform,
-}));
 
 const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
 
@@ -999,36 +989,5 @@ onBeforeUnmount(() => {
 	box-sizing: border-box;
 	overflow: hidden;
 	min-height: 50px;
-}
-
-#ghost-card {
-	position: fixed;
-	z-index: 100;
-	user-select: none;
-	pointer-events: none;
-	opacity: 0;
-	transform-origin: center;
-	transform: scale(1) rotate(0);
-	box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
-	transition: transform 0.04s ease-in-out;
-	border-radius: 10px;
-}
-
-#ghost-card.animate {
-	transition: box-shadow 0.1s ease-in-out;
-	transition: transform 0.05s ease-in-out;
-}
-
-#ghost-card.active {
-	opacity: 1;
-}
-
-#ghost-card.single-ghost {
-	outline: 1.5px solid rgb(255, 255, 255);
-}
-
-#ghost-card.leaving {
-	transition: all 0.1s ease;
-	box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
 }
 </style>

@@ -14,7 +14,7 @@
       'entity-item-grid-cut': stage.cutItems.map((item) => item.id).includes(entity.id) && !isGhost,
       'entity-item-grid-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === entity.id && !isGhost,
       'entity-item-grid-last-selected': stage.lastSelectedItemId === entity.id && !isGhost,
-      'drop-zone-hovered': isHovered
+      'file-drop-target-active': isHovered
     }">
     
     <div class="main-entity-item-grid">
@@ -50,9 +50,6 @@
             <ActionButton v-else-if="collectionStateFlags.has_untracked" 
               @click="prepAllCheckpointModal(props.entity.entity_path)" 
               :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="'Untracked Items. Click to add checkpoints'" />
-            <!-- <ActionButton v-if="collectionStateFlags.has_rebuildable" 
-              @click="rebuildEntity" 
-              :icon="getAppIcon('dot-big')" v-tooltip="'Items missing. Click to rebuild'" /> -->
           </template>
           <template v-else-if="entity.type === 'untracked_entity' && props.hasChildren">
             <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" 
@@ -83,10 +80,10 @@
       'entity-item-cut': stage.cutItems.map((item) => item.id).includes(entity.id) && !isGhost,
       'entity-item-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === entity.id && !isGhost,
       'entity-item-last-selected': stage.lastSelectedItemId === entity.id && !isGhost,
-      'drop-zone-hovered': isHovered
+      'file-drop-target-active': isHovered
     }">
 
-    <div v-if="props.loadingChildren" class="entity-spacer">
+    <div v-if="loadingChildren && !isGhost" class="entity-spacer">
       <ActionButton :isLoading="true" :icon="getAppIcon('loading')" 
         v-tooltip="'Loading...'" />
     </div>
@@ -146,12 +143,6 @@
               :avatarColor="collaborator.avatarColor" />
           </div>
         </div>
-
-        <!-- <div class="entity-item-status-container" v-stop-propagation>
-          <div class="entity-item-status" :style="{ backgroundColor: 'transparent' }">
-            STATUS
-          </div>
-        </div> -->
 
         <!-- Optimized entity-item-actions using GetCollectionStateFlags -->
         <div v-if="!isEditing && !isUntracked" class="entity-item-actions">
@@ -244,7 +235,7 @@ const props = defineProps({
   index: Number,
   isGhost: { type: Boolean, default: false },
   isUntracked: { type: Boolean, default: false },
-  loadingChildren: { type: Boolean, default: true },
+  loadingChildren: { type: Boolean, default: false },
   loadingCollectionState: { type: Boolean, default: false },
 });
 
@@ -901,19 +892,6 @@ onBeforeUnmount(() => {
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--solid-blue-steel);
-}
-
-
-.entity-drop-zone-hovered {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  opacity: .3;
-  background-color: var(--drop-hover);
-}
-
-.drop-zone-hovered {
-  background-color: var(--drop-hover);
 }
 
 .entity-item-root {
