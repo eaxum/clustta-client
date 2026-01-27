@@ -33,8 +33,8 @@ Clustta will also track the dependencies/resources you have used during your pro
 
 Clustta Studio is part of a comprehensive ecosystem:
 
-1. **[Clustta Server](https://github.com/eaxum/clustta-server)** - The global/private authentication server
-2. **[Clustta Studio](https://github.com/eaxum/clustta-studio)** - The studio management server
+1. **Clustta Server** - The global authentication server
+2. **[Clustta Studio](https://github.com/eaxum/clustta-studio)** - The studio management server. Optional private authentication server for air-gapped installations.
 3. **Clustta Client** (this repository) - The client application
 
 
