@@ -269,7 +269,7 @@ func main() {
 			DisableFramelessWindowDecorations: false,
 		},
 		KeyBindings:    keyBindings,
-		BackgroundType: application.BackgroundTypeTransparent,
+		BackgroundType: application.BackgroundTypeSolid,
 		URL:            "/",
 	})
 

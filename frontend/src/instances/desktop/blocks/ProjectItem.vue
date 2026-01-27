@@ -341,23 +341,6 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
 }
 
-.project-item-container-selected {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--project-item-selected);
-}
-
-.project-item-container-selected :deep(.folder),
-.project-item-container-selected:hover :deep(.folder) {
-  background-color: var(--blue-steel);
-}
-
-.project-item-container-selected:hover {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--project-item-selected);
-}
-
 .project-item-content {
   display: flex;
   align-items: center;
@@ -458,6 +441,24 @@ onBeforeUnmount(() => {
 
 .project-item-root:hover .project-item-preview-container {
   border-radius: var(--tiny-radius);
+}
+
+
+.project-item-container-selected {
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+  background-color: var(--project-item-selected);
+}
+
+.project-item-container-selected :deep(.folder),
+.project-item-container-selected:hover :deep(.folder) {
+  background-color: var(--blue-steel);
+}
+
+.project-item-container-selected:hover {
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+  background-color: var(--project-item-selected);
 }
 
 .project-item-root-cards {
