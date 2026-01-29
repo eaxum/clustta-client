@@ -14,7 +14,7 @@
     !define INFO_PRODUCTNAME "Clustta"
 !endif
 !ifndef INFO_PRODUCTVERSION
-    !define INFO_PRODUCTVERSION "0.4.21"
+    !define INFO_PRODUCTVERSION "0.4.30"
 !endif
 !ifndef INFO_COPYRIGHT
     !define INFO_COPYRIGHT "© 2025, Eaxum LLC"
