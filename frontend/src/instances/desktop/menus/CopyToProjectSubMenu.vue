@@ -16,18 +16,12 @@
     <!-- <span v-if="filteredEntities.length > 0" class="menu-divider"></span> -->
 
     <!-- Search input -->
-    <div class="input-section">
-      <input 
-        ref="searchInput" 
-        v-stop-propagation 
-        v-model="searchTerm" 
-        class="input-short" 
-        type="text"
-        :placeholder="currentView === 'projects' ? 'Search projects' : 'Search collections'" 
-      />
+    <div v-if="showSearch" class="input-section">
+      <input ref="searchInput" v-stop-propagation v-model="searchTerm" class="input-short" type="text"
+        :placeholder="currentView === 'projects' ? 'Search projects' : 'Search collections'" />
     </div>
 
-    <span class="menu-divider"></span>
+    <span v-if="showSearch" class="menu-divider"></span>
 
     <!-- Loading state -->
     <div v-if="isLoading" class="sub-menu-loading">
@@ -171,6 +165,12 @@ const navigationDepth = computed(() => {
 // Returns the currently selected project.
 const selectedProject = computed(() => {
   return menu.subMenuState.selectedProject;
+});
+
+// Determines whether to show the search input (more than 10 items).
+const showSearch = computed(() => {
+  if (currentView.value === 'projects') return availableProjects.value.length > 10;
+  return childEntities.value.length > 10;
 });
 
 // methods

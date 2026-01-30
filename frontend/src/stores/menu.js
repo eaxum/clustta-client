@@ -24,6 +24,7 @@ export const useMenu = defineStore("useMenu", {
       assignMenu: false,
       accountMenu: false,
       copyToProjectSubMenu: false,
+      moveToCollectionSubMenu: false,
       viewMenu: false,
     },
 
@@ -33,6 +34,8 @@ export const useMenu = defineStore("useMenu", {
       sourceMenu: null, // The menu that triggered the sub-menu
       navigationStack: [], // Stack of { type: 'projects' | 'entities', projectUri?: string, parentId?: string, title: string }
       selectedProject: null, // The project being navigated into
+      selectedAssetIds: [], // Assets being moved (for move-to-collection)
+      startingEntityId: '', // Starting collection for navigation (for move-to-collection)
       slideDirection: 'left', // 'left' for entering deeper, 'right' for going back
     },
 
@@ -236,15 +239,36 @@ export const useMenu = defineStore("useMenu", {
     },
 
     // Sub-menu navigation actions
-    showSubMenu(sourceMenu, initialNavItem) {
+    showSubMenu(sourceMenuOrType, initialNavItem = null) {
       this.subMenuState.active = true;
-      this.subMenuState.sourceMenu = sourceMenu;
-      this.subMenuState.navigationStack = [initialNavItem];
       this.subMenuState.slideDirection = 'left';
       
-      // Hide the source menu and show the sub-menu
-      this.setMenuVisibility(sourceMenu, false);
-      this.setMenuVisibility('copyToProjectSubMenu', true);
+      // Check if this is a move-to-collection request
+      const isMoveToCollection = sourceMenuOrType === 'move-to-collection' || 
+                                  initialNavItem?.type === 'move-to-collection';
+      
+      if (isMoveToCollection) {
+        // For move-to-collection, navigation stack is set up in the component's onMounted
+        // sourceMenuOrType might be 'assetMenu' (from context menu) or 'move-to-collection' (from DetailsPane)
+        if (sourceMenuOrType !== 'move-to-collection') {
+          this.subMenuState.sourceMenu = sourceMenuOrType;
+          this.setMenuVisibility(sourceMenuOrType, false);
+        } else {
+          // Called from DetailsPane without a context menu - need to show the context menu container
+          this.subMenuState.sourceMenu = null;
+          this.contextMenuVisible = true;
+        }
+        this.subMenuState.navigationStack = []; // Will be initialized in onMounted
+        this.setMenuVisibility('moveToCollectionSubMenu', true);
+      } else {
+        // For copyToProject and others, use the provided initialNavItem
+        this.subMenuState.sourceMenu = sourceMenuOrType;
+        if (initialNavItem) {
+          this.subMenuState.navigationStack = [initialNavItem];
+        }
+        this.setMenuVisibility(sourceMenuOrType, false);
+        this.setMenuVisibility('copyToProjectSubMenu', true);
+      }
     },
 
     navigateSubMenuForward(navItem) {
@@ -269,10 +293,13 @@ export const useMenu = defineStore("useMenu", {
       this.subMenuState.active = false;
       this.subMenuState.navigationStack = [];
       this.subMenuState.selectedProject = null;
+      this.subMenuState.selectedAssetIds = [];
+      this.subMenuState.startingEntityId = '';
       this.subMenuState.slideDirection = 'left';
       
-      // Hide sub-menu and show source menu
+      // Hide sub-menus and show source menu
       this.setMenuVisibility('copyToProjectSubMenu', false);
+      this.setMenuVisibility('moveToCollectionSubMenu', false);
       if (sourceMenu) {
         this.setMenuVisibility(sourceMenu, true);
         this.subMenuState.sourceMenu = null;
@@ -284,6 +311,8 @@ export const useMenu = defineStore("useMenu", {
       this.subMenuState.sourceMenu = null;
       this.subMenuState.navigationStack = [];
       this.subMenuState.selectedProject = null;
+      this.subMenuState.selectedAssetIds = [];
+      this.subMenuState.startingEntityId = '';
       this.subMenuState.slideDirection = 'left';
     },
   },

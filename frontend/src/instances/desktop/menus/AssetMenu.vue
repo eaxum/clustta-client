@@ -7,18 +7,23 @@
     <span v-if="!platformStore.isWeb && userStore.canDo('pull_chunk')" class="menu-divider"></span>
 
     <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
-      label="Rename Asset" :buttonFunction="renameAsset" />
+      label="Rename" :buttonFunction="renameAsset" />
 
     <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('switches')" :showLabel="true"
-      :fullWidth="true" label="Edit Asset" :buttonFunction="editAsset" />
+      :fullWidth="true" label="Edit" :buttonFunction="editAsset" />
 
-    <ActionButton v-if="userStore.canDo('create_task')" :icon="getAppIcon('copy')" :showLabel="true"
-      :fullWidth="true" label="Duplicate Asset" :buttonFunction="duplicateAsset" />
+    <ActionButton v-if="userStore.canDo('create_task')" :icon="getAppIcon('duplicate')" :showLabel="true"
+      :fullWidth="true" label="Duplicate" :buttonFunction="duplicateAsset" />
 
     <!-- Copy to Project -->
     <ActionButton v-if="!platformStore.isWeb && userStore.canDo('create_task') && canCopyToOtherProject" 
-      :icon="getAppIcon('folder-arrow-in')" :showLabel="true"
+      :icon="getAppIcon('briefcase')" :showLabel="true"
       :fullWidth="true" label="Copy to Project" :buttonFunction="copyToProject" />
+
+    <!-- Move to Collection -->
+    <ActionButton v-if="!platformStore.isWeb && userStore.canDo('update_task')" 
+      :icon="getAppIcon('folder-arrow-in')" :showLabel="true"
+      :fullWidth="true" label="Move" :buttonFunction="moveToCollection" />
 
     <ActionButton v-if="!platformStore.isWeb && (asset.dependencies.length || asset.entity_dependencies.length)" :icon="getAppIcon('jigsaw')" :showLabel="true"
       :fullWidth="true" label="Build with dependencies" :buttonFunction="buildWithDependencies" />
@@ -53,7 +58,7 @@
       label="Free Up space" :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Delete Task -->
-    <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Delete Asset"
+    <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Delete"
       v-if="userStore.canDo('delete_task')" :buttonFunction="deleteAsset" />
 
   </div>
@@ -137,6 +142,13 @@ const filtersActive = computed(() => {
   const resourceFilters = commonStore.resourceFilters.length > 0;
   const generalFilter = isFilterActive('general');
   return assigneeFilters || entityFilters || taskFilters || resourceFilters || generalFilter;
+});
+
+// Checks if there are collections to move to or the asset is in a collection (can move to root).
+const hasCollections = computed(() => {
+  const collectionsExist = collectionStore.getCollections.length > 0;
+  const assetHasParent = !!asset.value?.parent_id;
+  return collectionsExist || assetHasParent;
 });
 
 // Checks if the selected asset is an archive.
@@ -328,7 +340,7 @@ const goToDependencyGraph = () => {
   menu.hideContextMenu();
 };
 
-// Navigates to the asset's location in the browser.
+// Navigates to the asset's location in the browser.// Navigates to the asset's location in the browser.
 const goToLocation = async () => {
   commonStore.activeWorkspace = 'Default';
   menu.hideContextMenu();
@@ -392,6 +404,16 @@ const launchAssetWithCommand = async () => {
     }
   }
   menu.hideContextMenu();
+};
+
+// Shows the move to collection sub-menu.
+const moveToCollection = () => {
+  menu.subMenuState.selectedAssetIds = [assetStore.selectedAsset.id];
+  menu.subMenuState.startingEntityId = assetStore.selectedAsset.entity_id || '';
+  menu.showSubMenu('assetMenu', {
+    type: 'move-to-collection',
+    title: 'Select Collection'
+  });
 };
 
 // Prepares and shows the free up space confirmation modal.

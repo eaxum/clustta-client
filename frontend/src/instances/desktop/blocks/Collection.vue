@@ -796,6 +796,10 @@ onBeforeUnmount(() => {
   background-color: var(--blue-steel);
 }
 
+.entity-item-grid-selected:hover {
+  background-color: var(--solid-blue-steel);
+}
+
 .entity-item-grid-cut {
   opacity: .5;
 }

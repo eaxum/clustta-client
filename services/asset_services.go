@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"clustta/internal/auth_service"
+	"clustta/internal/error_service"
 	"clustta/internal/ignore"
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
@@ -13,6 +14,7 @@ import (
 	"fmt"
 	"io/fs"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -586,7 +588,10 @@ func (t *AssetService) ChangeStatus(projectPath, taskId, statusId string) error 
 	return nil
 }
 
-func (t *AssetService) ChangeAssetCollection(projectPath, taskId, entityId string) error {
+// ChangeAssetCollection moves one or more assets to a different collection.
+// Checks for name+extension conflicts in the target collection before moving.
+// Returns an error if any asset would conflict or if the operation fails.
+func (t *AssetService) ChangeAssetCollection(projectPath string, assetIds []string, entityId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -598,13 +603,129 @@ func (t *AssetService) ChangeAssetCollection(projectPath, taskId, entityId strin
 	}
 	defer tx.Rollback()
 
-	repository.ChangeEntity(tx, taskId, entityId)
+	var conflicts []string
+	for _, assetId := range assetIds {
+		asset, err := repository.GetTask(tx, assetId)
+		if err != nil {
+			return err
+		}
+		if asset.EntityId == entityId {
+			continue
+		}
+		_, err = repository.GetTaskByName(tx, asset.Name, entityId, asset.Extension)
+		if err == nil {
+			conflicts = append(conflicts, asset.Name+asset.Extension)
+		} else if err != error_service.ErrTaskNotFound {
+			return err
+		}
+	}
+
+	if len(conflicts) > 0 {
+		return fmt.Errorf("assets with the same name and extension already exist in the target collection: %s", strings.Join(conflicts, ", "))
+	}
+
+	for _, assetId := range assetIds {
+		repository.ChangeEntity(tx, assetId, entityId)
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
+// MoveAssetsToCollection moves one or more assets to a different collection.
+// Updates the database and moves the physical files if they exist on disk.
+// Checks for name+extension conflicts in the target collection before moving.
+// Returns an error if any asset would conflict or if the operation fails.
+func (t *AssetService) MoveAssetsToCollection(projectPath string, assetIds []string, targetEntityId string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Get target directory path
+	var targetDir string
+	if targetEntityId == "" {
+		// Moving to root - use project's working directory
+		targetDir, err = utils.GetProjectWorkingDir(tx)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Moving to a collection - get its file path
+		targetEntity, err := repository.GetEntity(tx, targetEntityId)
+		if err != nil {
+			return err
+		}
+		targetDir = targetEntity.FilePath
+	}
+
+	// Check for name+extension conflicts in target collection
+	var conflicts []string
+	var assetsToMove []models.Task
+	for _, assetId := range assetIds {
+		asset, err := repository.GetTask(tx, assetId)
+		if err != nil {
+			return err
+		}
+		// Skip if already in target collection
+		if asset.EntityId == targetEntityId {
+			continue
+		}
+		// Check if a task with same name+extension exists in target collection
+		_, err = repository.GetTaskByName(tx, asset.Name, targetEntityId, asset.Extension)
+		if err == nil {
+			// Task exists - this is a conflict
+			conflicts = append(conflicts, asset.Name+asset.Extension)
+		} else if err != error_service.ErrTaskNotFound {
+			// Some other error occurred
+			return err
+		}
+		assetsToMove = append(assetsToMove, asset)
+	}
+
+	if len(conflicts) > 0 {
+		return fmt.Errorf("assets with the same name and extension already exist in the target collection: %s", strings.Join(conflicts, ", "))
+	}
+
+	// No conflicts - proceed with move
+	// Ensure target directory exists
+	os.MkdirAll(targetDir, os.ModePerm)
+
+	// Move files and update database
+	for _, asset := range assetsToMove {
+		// Calculate new file path
+		fileName := asset.Name + asset.Extension
+		newFilePath := filepath.Join(targetDir, fileName)
+
+		// Move file if it exists on disk
+		if asset.FilePath != "" {
+			if _, err := os.Stat(asset.FilePath); err == nil {
+				err = os.Rename(asset.FilePath, newFilePath)
+				if err != nil {
+					return fmt.Errorf("failed to move file %s: %w", asset.Name, err)
+				}
+			}
+		}
+
+		// Update database
+		repository.ChangeEntity(tx, asset.Id, targetEntityId)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (t *AssetService) DeleteAsset(projectPath, taskId string, removeFiles bool) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {

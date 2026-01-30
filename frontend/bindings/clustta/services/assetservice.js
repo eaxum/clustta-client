@@ -84,13 +84,16 @@ export function AssignAsset(projectPath, taskId, userId) {
 }
 
 /**
+ * ChangeAssetCollection moves one or more assets to a different collection.
+ * Checks for name+extension conflicts in the target collection before moving.
+ * Returns an error if any asset would conflict or if the operation fails.
  * @param {string} projectPath
- * @param {string} taskId
+ * @param {string[]} assetIds
  * @param {string} entityId
  * @returns {$CancellablePromise<void>}
  */
-export function ChangeAssetCollection(projectPath, taskId, entityId) {
-    return $Call.ByID(1344461689, projectPath, taskId, entityId);
+export function ChangeAssetCollection(projectPath, assetIds, entityId) {
+    return $Call.ByID(1344461689, projectPath, assetIds, entityId);
 }
 
 /**
@@ -312,6 +315,20 @@ export function GetUntrackedFiles(projectPath, projectWorkingDir, ignoreList) {
     return $Call.ByID(1088682931, projectPath, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType7($result);
     }));
+}
+
+/**
+ * MoveAssetsToCollection moves one or more assets to a different collection.
+ * Updates the database and moves the physical files if they exist on disk.
+ * Checks for name+extension conflicts in the target collection before moving.
+ * Returns an error if any asset would conflict or if the operation fails.
+ * @param {string} projectPath
+ * @param {string[]} assetIds
+ * @param {string} targetEntityId
+ * @returns {$CancellablePromise<void>}
+ */
+export function MoveAssetsToCollection(projectPath, assetIds, targetEntityId) {
+    return $Call.ByID(623994934, projectPath, assetIds, targetEntityId);
 }
 
 /**

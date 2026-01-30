@@ -381,6 +381,24 @@ func (f *FSService) Rename(oldPath, newPath string) error {
 	return os.Rename(oldPath, newPath)
 }
 
+// RenameOperation represents a single rename operation with old and new paths.
+type RenameOperation struct {
+	OldPath string `json:"oldPath"`
+	NewPath string `json:"newPath"`
+}
+
+// RenameBatch moves or renames multiple files or directories.
+// Returns an error if any operation fails.
+func (f *FSService) RenameBatch(operations []RenameOperation) error {
+	for _, op := range operations {
+		err := os.Rename(op.OldPath, op.NewPath)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // BackupFile creates a backup copy of a file with progress reporting.
 // Sends progress updates to the frontend during the copy operation.
 func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, error) {

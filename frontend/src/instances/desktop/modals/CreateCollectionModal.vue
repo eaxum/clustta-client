@@ -132,9 +132,9 @@ const title = computed(() => {
 });
 
 // methods
-// Changes the parent of an entity.
-const changeEntityParent = async (entityId, parentId) => {
-  await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityId, parentId)
+// Changes the parent of one or more entities.
+const changeEntityParent = async (entityIds, parentId) => {
+  await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityIds, parentId)
     .then(() => {
       notificationStore.addNotification('Moved successfully.', '', 'success');
     })
@@ -144,9 +144,9 @@ const changeEntityParent = async (entityId, parentId) => {
     });
 };
 
-// Changes the entity of a task.
-const changeTaskEntity = async (taskId, entityId) => {
-  await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskId, entityId)
+// Moves one or more tasks to a different collection.
+const changeTaskEntity = async (taskIds, entityId) => {
+  await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskIds, entityId)
     .then(() => {
       notificationStore.addNotification('Moved successfully.', '', 'success');
     })
@@ -255,17 +255,32 @@ const handleEnterKey = () => {
 // Moves selected items into the specified folder.
 const moveIntoFolder = async (activeItemId) => {
   const selectedItems = stage.selectedItems;
+
+  // Collect items by type for batch operations
+  const entityIds = [];
+  const taskIds = [];
+  const untrackedItems = [];
+
   for (const item of selectedItems) {
-    if (item.type === 'entity') {
-      await changeEntityParent(item.id, activeItemId);
-    } else if (item.type === 'task') {
-      await changeTaskEntity(item.id, activeItemId);
-    } else {
-      const entity = collectionStore.selectedCollection;
-      await FSService.MakeDirs(entity.file_path);
+    if (item.type === 'entity') entityIds.push(item.id);
+    else if (item.type === 'task') taskIds.push(item.id);
+    else untrackedItems.push(item);
+  }
+
+  // Execute batch operations for tracked items
+  if (entityIds.length) await changeEntityParent(entityIds, activeItemId);
+  if (taskIds.length) await changeTaskEntity(taskIds, activeItemId);
+
+  // Handle untracked items
+  if (untrackedItems.length) {
+    const entity = collectionStore.selectedCollection;
+    await FSService.MakeDirs(entity.file_path);
+    const renameOperations = [];
+    for (const item of untrackedItems) {
       const newPath = await FSService.JoinPath(entity.file_path, item.name);
-      FSService.Rename(item.file_path, newPath).then(() => {});
+      renameOperations.push({ oldPath: item.file_path, newPath });
     }
+    await FSService.RenameBatch(renameOperations);
   }
 };
 

@@ -315,6 +315,16 @@ export function Rename(oldPath, newPath) {
 }
 
 /**
+ * RenameBatch moves or renames multiple files or directories.
+ * Returns an error if any operation fails.
+ * @param {$models.RenameOperation[]} operations
+ * @returns {$CancellablePromise<void>}
+ */
+export function RenameBatch(operations) {
+    return $Call.ByID(361330558, operations);
+}
+
+/**
  * RevealInExplorer opens the system file explorer and highlights the specified path.
  * @param {string} path
  * @returns {$CancellablePromise<void>}

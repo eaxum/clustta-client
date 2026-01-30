@@ -18,10 +18,9 @@
 					v-tooltip="panes.showDetailsPane ? 'Close pane' : 'Open pane'" :buttonFunction="toggleDetailsPane" />
 			</div>
 		</div>
-
+		
 		<div v-if="!kanbanView" ref="taskListContainer" class="browser-root-container" @mousemove="onDrag($event)"
-			:class="{ 'browser-root-container-hover-drop': isHovered }" @mouseup="onDragStop($event)"
-			@scroll="disableMenus">
+			:class="{ 'browser-root-container-hover-drop': isHovered }" @mouseup="onDragStop($event)" @scroll="disableMenus">
 			<GhostItem :data="draggedCard" :index="0" />
 			<div class="browser-root-content">
 				<div class="left-column">
@@ -141,18 +140,30 @@ const operationsActive = computed(() => {
 
 // methods
 
-// Adds an entity dependency to a task.
+// Adds an entity dependency to a task. Returns true on success.
 const addEntityDependency = async (taskId, dependencyId, dependencyTypeId) => {
-	await AssetService.AddEntityDependency(projectStore.activeProject.uri, taskId, dependencyId, dependencyTypeId)
-		.then(() => notificationStore.addNotification('Dependency Added.', "", "success"))
-		.catch((error) => { console.log(error); notificationStore.errorNotification("Error adding dependencies", error); });
+	try {
+		await AssetService.AddEntityDependency(projectStore.activeProject.uri, taskId, dependencyId, dependencyTypeId);
+		notificationStore.addNotification('Dependency Added.', "", "success");
+		return true;
+	} catch (error) {
+		console.log(error);
+		notificationStore.errorNotification("Error adding dependencies", error);
+		return false;
+	}
 };
 
-// Adds a task dependency between two assets.
+// Adds a task dependency between two assets. Returns true on success.
 const addDependency = async (taskId, dependencyId, dependencyTypeId) => {
-	await AssetService.AddAssetDependency(projectStore.activeProject.uri, taskId, dependencyId, dependencyTypeId)
-		.then(() => notificationStore.addNotification('Dependency Added.', "", "success"))
-		.catch((error) => { console.log(error); notificationStore.errorNotification("Error adding dependencies", error); });
+	try {
+		await AssetService.AddAssetDependency(projectStore.activeProject.uri, taskId, dependencyId, dependencyTypeId);
+		notificationStore.addNotification('Dependency Added.', "", "success");
+		return true;
+	} catch (error) {
+		console.log(error);
+		notificationStore.errorNotification("Error adding dependencies", error);
+		return false;
+	}
 };
 
 // Cancels active operations like search or drag-and-drop.
@@ -162,18 +173,30 @@ const cancelOps = () => {
 	if (!dndStore.altKeyActive) dndStore.resetValues();
 };
 
-// Changes the parent collection of an entity.
-const changeEntityParent = async (entityId, parentId) => {
-	await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityId, parentId)
-		.then(() => notificationStore.addNotification('Moved successfully.', "", "success"))
-		.catch((error) => { console.error(error); notificationStore.errorNotification("Error changing entity parent", error); });
+// Changes the parent collection of one or more entities. Returns true on success.
+const changeEntityParent = async (entityIds, parentId) => {
+	try {
+		await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityIds, parentId);
+		notificationStore.addNotification('Moved successfully.', "", "success");
+		return true;
+	} catch (error) {
+		console.error(error);
+		notificationStore.errorNotification("Error changing entity parent", error);
+		return false;
+	}
 };
 
-// Moves a task to a different collection.
-const changeTaskEntity = async (taskId, entityId) => {
-	await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskId, entityId)
-		.then(() => notificationStore.addNotification('Moved successfully.', "", "success"))
-		.catch((error) => notificationStore.errorNotification("Error changing task entity", error));
+// Moves one or more tasks to a different collection. Returns true on success.
+// Duplicate name+extension validation is handled at the service layer.
+const changeTaskEntity = async (taskIds, entityId) => {
+	try {
+		await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskIds, entityId);
+		notificationStore.addNotification('Moved successfully.', "", "success");
+		return true;
+	} catch (error) {
+		notificationStore.errorNotification("Error moving assets", error);
+		return false;
+	}
 };
 
 // Clears the search query and refreshes the view.
@@ -481,67 +504,117 @@ const onDrag = (e) => dndStore.onDrag(e);
 
 // Handles drag stop events and processes item moves, parent changes, or dependency additions.
 const onDragStop = async (event) => {
-	let doRefresh = true;
 	if (kanbanView.value) return;
 	if (dndStore.draggedItemId === null) return;
 	document.documentElement.style.cursor = 'default';
 	const dropTarget = dndStore.itemRefs[dndStore.targetItemId];
 	const draggedItem = dndStore.itemRefs[dndStore.draggedItemId];
-	let cardRect;
 	const targetEntity = dndStore.allViewItems.find((item) => item.id === dndStore.targetItemId);
 	stage.operationActive = true;
-	let draggedEntity;
+
+	// Initialize cardRect with fallback to ghost position
+	let cardRect = draggedItem?.getBoundingClientRect() ?? { x: dndStore.ghostCardStyle.pos.x, y: dndStore.ghostCardStyle.pos.y };
+
 	const draggedItemIds = stage.markedItems;
-	for (const draggedItemId of draggedItemIds) {
-		draggedEntity = dndStore.allViewItems.find((item) => item.id === draggedItemId);
-		if (!draggedEntity) return;
+	const draggedItems = draggedItemIds.map(id => dndStore.allViewItems.find(item => item.id === id)).filter(Boolean);
+
+	// Collect items by type for batch operations
+	const entityIdsToMove = [];
+	const taskIdsToMove = [];
+	const renameOperations = [];
+	const dependencyUpdates = { taskId: null, dependencies: [], entityDependencies: [] };
+	let needsRefresh = false;
+
+	for (const draggedEntity of draggedItems) {
 		if (event.altKey) {
-			cardRect = draggedItem.getBoundingClientRect();
-			if (draggedEntity.entity_type_id) await changeEntityParent(draggedItemId, '');
-			else if (draggedEntity.task_type_id) await changeTaskEntity(draggedItemId, '');
+			if (draggedItem) cardRect = draggedItem.getBoundingClientRect();
+			if (draggedEntity.entity_type_id) entityIdsToMove.push(draggedEntity.id);
+			else if (draggedEntity.task_type_id) taskIdsToMove.push(draggedEntity.id);
 			else {
 				let extension = draggedEntity.type === 'untracked_task' ? draggedEntity.extension : '';
 				let fullName = draggedEntity.name + extension;
 				await FSService.MakeDirs(projectStore.activeProject.working_directory);
 				let newPath = await FSService.JoinPath(projectStore.activeProject.working_directory, fullName);
-				await FSService.Rename(draggedEntity.file_path, newPath);
+				renameOperations.push({ oldPath: draggedEntity.file_path, newPath });
 			}
 		} else if (dndStore.isOverlapping && dropTarget) {
 			cardRect = dropTarget.getBoundingClientRect();
-			if (draggedItemId !== dndStore.targetItemId) {
+			if (draggedEntity.id !== dndStore.targetItemId) {
 				if (targetEntity.type === 'entity') {
-					if (draggedEntity.type === 'entity') await changeEntityParent(draggedItemId, dndStore.targetItemId);
-					else if (draggedEntity.type === 'task') await changeTaskEntity(draggedItemId, dndStore.targetItemId);
+					if (draggedEntity.type === 'entity') entityIdsToMove.push(draggedEntity.id);
+					else if (draggedEntity.type === 'task') taskIdsToMove.push(draggedEntity.id);
 					else {
 						let entity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, dndStore.targetItemId);
 						await FSService.MakeDirs(entity.file_path);
 						let extension = draggedEntity.type === 'untracked_task' ? draggedEntity.extension : '';
 						let fullName = draggedEntity.name + extension;
 						let newPath = await FSService.JoinPath(entity.file_path, fullName);
-						await FSService.Rename(draggedEntity.file_path, newPath);
+						renameOperations.push({ oldPath: draggedEntity.file_path, newPath });
 					}
-				} else if (targetEntity.task_type_id) {
+				} else if (targetEntity?.task_type_id) {
 					let dependencyTypeId = dependencyStore.dependency_types.find(item => item.name === "linked").id;
-					if (draggedEntity.entity_type_id) await addEntityDependency(dndStore.targetItemId, draggedItemId, dependencyTypeId);
-					else if (draggedEntity.task_type_id) await addDependency(dndStore.targetItemId, draggedItemId, dependencyTypeId);
-					else if (!draggedEntity.item_type) await addDependency(dndStore.targetItemId, draggedItemId, dependencyTypeId);
-				} else if (targetEntity.type === 'untracked_entity') {
+					dependencyUpdates.taskId = dndStore.targetItemId;
+					if (draggedEntity.entity_type_id) {
+						const success = await addEntityDependency(dndStore.targetItemId, draggedEntity.id, dependencyTypeId);
+						if (success) dependencyUpdates.entityDependencies.push(draggedEntity.id);
+					} else if (draggedEntity.task_type_id) {
+						const success = await addDependency(dndStore.targetItemId, draggedEntity.id, dependencyTypeId);
+						if (success) dependencyUpdates.dependencies.push(draggedEntity.id);
+					} else if (!draggedEntity.item_type) {
+						const success = await addDependency(dndStore.targetItemId, draggedEntity.id, dependencyTypeId);
+						if (success) dependencyUpdates.dependencies.push(draggedEntity.id);
+					}
+				} else if (targetEntity?.type === 'untracked_entity') {
 					if (!draggedEntity.entity_type_id && !draggedEntity.task_type_id && (draggedEntity.type === 'untracked_task' || draggedEntity.type === 'untracked_entity')) {
 						let extension = draggedEntity.type === 'untracked_task' ? draggedEntity.extension : '';
 						let fullName = draggedEntity.name + extension;
 						let newPath = await FSService.JoinPath(targetEntity.file_path, fullName);
-						await FSService.Rename(draggedEntity.file_path, newPath);
+						renameOperations.push({ oldPath: draggedEntity.file_path, newPath });
 					}
 				}
-			} else cardRect = draggedItem.getBoundingClientRect();
-		} else cardRect = draggedItem.getBoundingClientRect();
+			} else if (draggedItem) cardRect = draggedItem.getBoundingClientRect();
+		} else if (draggedItem) cardRect = draggedItem.getBoundingClientRect();
 	}
+
+	// Execute batch operations for file moves (requires refresh)
+	const targetParentId = event.altKey ? '' : dndStore.targetItemId;
+	if (entityIdsToMove.length) {
+		const success = await changeEntityParent(entityIdsToMove, targetParentId);
+		if (success) needsRefresh = true;
+	}
+	if (taskIdsToMove.length) {
+		const success = await changeTaskEntity(taskIdsToMove, targetParentId);
+		if (success) needsRefresh = true;
+	}
+	if (renameOperations.length) {
+		try {
+			await FSService.RenameBatch(renameOperations);
+			needsRefresh = true;
+		} catch (error) {
+			notificationStore.errorNotification("Error moving files", error);
+		}
+	}
+
+	// Emit dependency updates (no refresh needed, just update item data)
+	if (dependencyUpdates.taskId && (dependencyUpdates.dependencies.length || dependencyUpdates.entityDependencies.length)) {
+		const targetTask = dndStore.allViewItems.find(item => item.id === dependencyUpdates.taskId);
+		if (targetTask) {
+			const currentDeps = targetTask.dependencies || [];
+			const currentEntityDeps = targetTask.entity_dependencies || [];
+			const updates = [
+				{ property: 'dependencies', value: [...currentDeps, ...dependencyUpdates.dependencies] },
+				{ property: 'entity_dependencies', value: [...currentEntityDeps, ...dependencyUpdates.entityDependencies] }
+			];
+			emitter.emit('update-root-data', { itemId: dependencyUpdates.taskId, updates });
+		}
+	}
+
 	setTimeout(() => dndStore.resetValues(), 100);
 	dndStore.ghostCardStyle.leaving = true;
 	let xOffset = cardRect.x - dndStore.ghostCardStyle.pos.x;
 	let yOffset = cardRect.y - dndStore.ghostCardStyle.pos.y;
 	dndStore.ghostCardStyle.transform = `scale(1) translate(${xOffset}px, ${yOffset}px)`;
-	if (doRefresh) softRefresh();
+	if (needsRefresh) softRefresh();
 	stage.operationActive = false;
 };
 
@@ -614,6 +687,8 @@ const refresh = async () => {
 	rootData.value = [...children.entities, ...children.untracked_entities, ...children.tasks, ...children.untracked_tasks];
 	assetStore.assetsLoaded = true;
 	collectionStore.loadCollectionStateFlags();
+	await nextTick();
+	dndStore.triggerDomUpdate();
 };
 
 // Lightweight refresh: fetches children with search/filter support, processes icons, updates root data and state flags.
@@ -659,6 +734,8 @@ const softRefresh = async () => {
 	rootData.value = [...(allEntities ?? []), ...(allTasks ?? []), ...(children.untracked_entities ?? []), ...(children.untracked_tasks ?? [])];
 	assetStore.assetsLoaded = true;
 	collectionStore.loadCollectionStateFlags();
+	await nextTick();
+	dndStore.triggerDomUpdate();
 };
 
 // Toggles the details pane visibility.

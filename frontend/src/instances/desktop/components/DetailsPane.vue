@@ -45,6 +45,8 @@
               :fixedWidth="true" />
           </div>
           
+          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :label="'Move to Collection'"
+            @click="prepMoveToCollection($event)" v-tooltip="'Move selected assets to a different collection'" />
           <ActionButton v-if="!platformStore.isWeb && tasksCanRebuild" :icon="getAppIcon('jigsaw')" :label="'Rebuild Assets'"
             :buttonFunction="revertAllChanges" v-tooltip="'Download and restore selected assets'" />
           <ActionButton v-if="tasksModified" :noFilter="true" :icon="getAppIcon('layers-plus')" :useAlert="true" :label="'Create Checkpoints'"
@@ -263,6 +265,13 @@ const onlyTasks = computed(() => stage.selectedItems.every((item) => item.type =
 
 const onlyUntracked = computed(() => onlyUntrackedAssets.value || onlyUntrackedCollections.value);
 
+// Determines whether the "Move to Collection" button should be shown.
+const hasCollections = computed(() => {
+  const collectionsExist = collectionStore.collections.length > 0;
+  const selectedTasksHaveParent = stage.selectedItems.some(item => item.type === 'task' && item.parent_id);
+  return collectionsExist || selectedTasksHaveParent;
+});
+
 const onlyUntrackedAssets = computed(() => stage.selectedItems.every((item) => item.type === 'untracked_task'));
 
 const onlyUntrackedCollections = computed(() => stage.selectedItems.every((item) => item.type === 'untracked_entity'));
@@ -383,9 +392,9 @@ const assignCollections = async (user) => {
   stage.operationActive = false;
 };
 
-// Changes the parent collection of an entity.
-const changeEntityParent = async (entityId, parentId) => {
-  await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityId, parentId)
+// Changes the parent collection of one or more entities.
+const changeEntityParent = async (entityIds, parentId) => {
+  await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityIds, parentId)
     .then(() => notificationStore.addNotification('Moved successfully.', "", "success"))
     .catch((error) => { console.error(error); notificationStore.errorNotification("Error changing entity parent", error); });
 };
@@ -413,9 +422,9 @@ const changeIsLibrary = async (mode) => {
   stage.operationActive = false;
 };
 
-// Changes the entity of a task.
-const changeTaskEntity = async (taskId, entityId) => {
-  await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskId, entityId)
+// Moves one or more tasks to a different collection.
+const changeTaskEntity = async (taskIds, entityId) => {
+  await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskIds, entityId)
     .then(() => notificationStore.addNotification('Moved successfully.', "", "success"))
     .catch((error) => { console.error(error); notificationStore.errorNotification("Error changing task entity", error); });
 };
@@ -614,14 +623,30 @@ const moveIntoFolder = async () => {
   stage.operationActive = true;
   const activeItemId = stage.lastSelectedItemId;
   const selectedItems = stage.selectedItems.filter((item) => item.id !== activeItemId);
+
+  // Collect items by type for batch operations
+  const entityIds = [];
+  const taskIds = [];
+  const untrackedItems = [];
+
   for (const item of selectedItems) {
-    if (item.type === 'entity') {
-      await changeEntityParent(item.id, activeItemId);
-    } else if (item.type === 'task') {
-      await changeTaskEntity(item.id, activeItemId);
-    } else {
-      let entity = collectionStore.findCollection(activeItemId);
-      await FSService.MakeDirs(entity.file_path);
+    if (item.type === 'entity') entityIds.push(item.id);
+    else if (item.type === 'task') taskIds.push(item.id);
+    else untrackedItems.push(item);
+  }
+
+  // Execute batch operations for tracked items
+  if (entityIds.length) await changeEntityParent(entityIds, activeItemId);
+  if (taskIds.length) await changeTaskEntity(taskIds, activeItemId);
+
+  // Handle untracked items (need path computation for each)
+  if (untrackedItems.length) {
+    let entity = collectionStore.findCollection(activeItemId);
+    await FSService.MakeDirs(entity.file_path);
+    const renameOperations = [];
+    const itemUpdates = [];
+
+    for (const item of untrackedItems) {
       let newPath = await FSService.JoinPath(entity.file_path, item.name);
       const untrackedPath = newPath.replace(/^\/+|\/+$/g, "").replace(/\\/g, "/");
       const workingDir = projectStore.activeProject.working_directory.replace(/^\/+|\/+$/g, "").replace(/\\/g, "/");
@@ -629,21 +654,28 @@ const moveIntoFolder = async () => {
       let entityPath = "";
       const itemPathEntities = itemPath.split("/");
       if (itemPathEntities.length > 1) entityPath = itemPathEntities.slice(0, -1).join("/");
-      FSService.Rename(item.file_path, newPath).then(() => {
-        if (item.type == "untracked_task") {
-          let untrackedTaskIndex = projectStore.untrackedFilesIndex[item.id];
-          projectStore.untrackedFiles[untrackedTaskIndex].item_path = itemPath;
-          projectStore.untrackedFiles[untrackedTaskIndex].file_path = newPath;
-          projectStore.untrackedFiles[untrackedTaskIndex].entity_path = entityPath;
-        } else if (item.type == "untracked_entity") {
-          let untrackedFolderIndex = projectStore.untrackedFoldersIndex[item.id];
-          projectStore.untrackedFolders[untrackedFolderIndex].item_path = itemPath;
-          projectStore.untrackedFolders[untrackedFolderIndex].file_path = newPath;
-          projectStore.untrackedFolders[untrackedFolderIndex].entity_path = entityPath;
-        }
-      });
+      renameOperations.push({ oldPath: item.file_path, newPath });
+      itemUpdates.push({ item, itemPath, newPath, entityPath });
+    }
+
+    await FSService.RenameBatch(renameOperations);
+
+    // Update local state after successful rename
+    for (const { item, itemPath, newPath, entityPath } of itemUpdates) {
+      if (item.type == "untracked_task") {
+        let untrackedTaskIndex = projectStore.untrackedFilesIndex[item.id];
+        projectStore.untrackedFiles[untrackedTaskIndex].item_path = itemPath;
+        projectStore.untrackedFiles[untrackedTaskIndex].file_path = newPath;
+        projectStore.untrackedFiles[untrackedTaskIndex].entity_path = entityPath;
+      } else if (item.type == "untracked_entity") {
+        let untrackedFolderIndex = projectStore.untrackedFoldersIndex[item.id];
+        projectStore.untrackedFolders[untrackedFolderIndex].item_path = itemPath;
+        projectStore.untrackedFolders[untrackedFolderIndex].file_path = newPath;
+        projectStore.untrackedFolders[untrackedFolderIndex].entity_path = entityPath;
+      }
     }
   }
+
   emitter.emit('refresh-browser');
   stage.operationActive = false;
 };
@@ -698,6 +730,17 @@ const rebuildCollections = async () => {
 
 // Removes the trailing slash from a path.
 const removeLastSlash = (path) => path.replace(/\/+$/, '');
+
+// Prepares and opens the Move to Collection sub-menu for multi-selection.
+const prepMoveToCollection = (event) => {
+  const selectedTaskIds = stage.markedItems.filter(id => stage.selectedItems.find(item => item.id === id && item.type === 'task'));
+  if (selectedTaskIds.length === 0) return;
+  const firstTask = stage.selectedItems.find(item => item.id === selectedTaskIds[0] && item.type === 'task');
+  menu.subMenuState.selectedAssetIds = selectedTaskIds;
+  menu.subMenuState.startingEntityId = firstTask?.parent_id || '';
+  menu.position = { x: event.clientX, y: event.clientY };
+  menu.showSubMenu('move-to-collection');
+};
 
 // Reverts all selected tasks to their last checkpoint.
 const revertAllChanges = async () => {

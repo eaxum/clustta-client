@@ -1658,9 +1658,10 @@ func (e *CollectionService) RevertCollections(projectPath string, entityIds []st
 	return nil
 }
 
-// ChangeCollectionParent moves a collection to a different parent collection.
-// Returns an error if the operation fails.
-func (e *CollectionService) ChangeCollectionParent(projectPath, entityId, parentId string) error {
+// ChangeCollectionParent moves one or more collections to a different parent collection.
+// Checks for name conflicts in the target parent before moving.
+// Returns an error if any collection would conflict or if the operation fails.
+func (e *CollectionService) ChangeCollectionParent(projectPath string, entityIds []string, parentId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -1672,9 +1673,33 @@ func (e *CollectionService) ChangeCollectionParent(projectPath, entityId, parent
 	}
 	defer tx.Rollback()
 
-	err = repository.ChangeParent(tx, entityId, parentId)
-	if err != nil {
-		return err
+	var conflicts []string
+	for _, entityId := range entityIds {
+		entity, err := repository.GetEntity(tx, entityId)
+		if err != nil {
+			return err
+		}
+		if entity.ParentId == parentId {
+			continue
+		}
+		_, err = repository.GetEntityByName(tx, entity.Name, parentId)
+		if err == nil {
+			conflicts = append(conflicts, entity.Name)
+		} else if err != error_service.ErrEntityNotFound {
+			// Some other error occurred
+			return err
+		}
+	}
+
+	if len(conflicts) > 0 {
+		return fmt.Errorf("collections with the same name already exist in the target location: %s", strings.Join(conflicts, ", "))
+	}
+
+	for _, entityId := range entityIds {
+		err = repository.ChangeParent(tx, entityId, parentId)
+		if err != nil {
+			return err
+		}
 	}
 	err = tx.Commit()
 	if err != nil {
