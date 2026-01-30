@@ -72,6 +72,7 @@ export {
     NullString,
     ProfileUpdateData,
     RecycleItem,
+    RenameOperation,
     Skill,
     SkillData,
     Tool,

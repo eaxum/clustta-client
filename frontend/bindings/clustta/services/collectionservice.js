@@ -27,15 +27,16 @@ export function Assign(projectPath, entityId, userId) {
 }
 
 /**
- * ChangeCollectionParent moves a collection to a different parent collection.
- * Returns an error if the operation fails.
+ * ChangeCollectionParent moves one or more collections to a different parent collection.
+ * Checks for name conflicts in the target parent before moving.
+ * Returns an error if any collection would conflict or if the operation fails.
  * @param {string} projectPath
- * @param {string} entityId
+ * @param {string[]} entityIds
  * @param {string} parentId
  * @returns {$CancellablePromise<void>}
  */
-export function ChangeCollectionParent(projectPath, entityId, parentId) {
-    return $Call.ByID(2168719759, projectPath, entityId, parentId);
+export function ChangeCollectionParent(projectPath, entityIds, parentId) {
+    return $Call.ByID(2168719759, projectPath, entityIds, parentId);
 }
 
 /**

@@ -167,6 +167,7 @@ const createTask = async (launch = false, comment = 'Asset created') => {
         }
         isAwaitingResponse.value = false;
         stageStore.selectedItem = newAsset;
+        assetStore.selectedAsset = newAsset;
         stageStore.firstSelectedItemId = newAsset.id;
         stageStore.markedItems = [newAsset.id];
         notificationStore.addNotification('Created ' + taskName.value + ' successfully.', '', 'success');

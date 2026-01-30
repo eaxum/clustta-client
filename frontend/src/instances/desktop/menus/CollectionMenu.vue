@@ -1,10 +1,10 @@
 <template>
   <div ref="collectionMenu" class="filter-menu-container">
 
-    <ActionButton :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true" label="Rename Collection"
+    <ActionButton :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true" label="Rename"
       v-if="userStore.canDo('update_entity')" :buttonFunction="renameEntity" />
 
-    <ActionButton :icon="getAppIcon('switches')" :showLabel="true" :fullWidth="true" label="Edit Collection"
+    <ActionButton :icon="getAppIcon('switches')" :showLabel="true" :fullWidth="true" label="Edit"
       v-if="userStore.canDo('update_entity')" :buttonFunction="editEntity" />
 
     <ActionButton v-if="canSelectContent" :icon="getAppIcon('checkbox-selected')" :showLabel="true" :fullWidth="true"
@@ -67,7 +67,7 @@
       :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Delete Task -->
-    <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Delete Collection"
+    <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Delete"
       v-if="userStore.canDo('delete_entity')" :buttonFunction="deleteEntity" />
 
   </div>
