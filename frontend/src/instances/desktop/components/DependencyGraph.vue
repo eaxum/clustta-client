@@ -58,7 +58,7 @@
         </div>
 
         <div class="sidebar-scroll">
-          <DependencyList :forList="true" :items="projectData" :showAdd="true" />
+          <ItemsList :forList="true" :items="projectData" :showAdd="true" />
         </div>
       </div>
     </div>
@@ -101,8 +101,8 @@ import { useProjectStore } from '@/stores/projects';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import FilterButton from '@/instances/desktop/components/FilterButton.vue';
+import ItemsList from '@/instances/desktop/components/ItemsList.vue';
 import VirtualNode from '@/instances/desktop/components/VirtualNode.vue'
-import DependencyList from '@/instances/desktop/components/DependencyList.vue'
 
 // states
 const notificationStore = useNotificationStore();

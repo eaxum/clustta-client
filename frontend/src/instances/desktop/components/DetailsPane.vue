@@ -103,13 +103,14 @@
 
       </div>
       <div v-else class="details-pane-container absolute-pane">
-
         <div v-if="!noHeaders.includes(panes.activeModal)" class="pane-header-tabs">
           <PaneHeaderTabs :iconsOnly="false" :useSelected="true" :selectedTab="selectedSettingsContext" :dataTypes="settingsItems" @filter="filterList" />
 					<div class="menu-divider"></div>
         </div>
         <component v-for="pane in visiblePanes" :key="pane.name" :is="pane.component" />
       </div>
+
+      <Clipboard />
     </div>
   </div>
 </template>
@@ -126,6 +127,7 @@ import utils from "@/services/utils";
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import AssetDetails from "@/instances/desktop/panes/AssetDetails.vue";
 import Checkpoints from "@/instances/desktop/panes/Checkpoints.vue";
+import Clipboard from '@/instances/desktop/components/Clipboard.vue';
 import CollaboratorSuggestions from '@/instances/common/components/CollaboratorSuggestions.vue';
 import Collaborators from "@/instances/desktop/panes/Collaborators.vue";
 import CollectionDetails from "@/instances/desktop/panes/CollectionDetails.vue";
@@ -333,7 +335,7 @@ const visiblePanes = computed(() => {
         let index = activeTabIndex.value < 0 ? 0 : activeTabIndex.value;
         const activePane = settingsItems.value[index]?.tab_name || 'projectDetails';
         panes.setPaneVisibility(activePane, true);
-      }
+      } 
     } else if (stage.selectedItem && stage.markedItems.length === 1) {
       let index = activeTabIndex.value < 0 ? 0 : activeTabIndex.value;
       panes.setPaneVisibility(settingsItems.value[index]?.tab_name, true);
@@ -527,6 +529,7 @@ const emitItemUpdates = (taskId, updates) => {
 const filterList = (selectedTab) => {
   const activePaneContext = settingsItems.value.find((item) => item.name === selectedTab);
   activeTabIndex.value = settingsItems.value.indexOf(activePaneContext);
+  console.log(activeTabIndex.value)  
 };
 
 // Frees up collection space by deleting contents.
@@ -869,9 +872,8 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  background-color: var(--black);
   flex-direction: column;
-  padding: 1rem;
+  /* padding: 1rem; */
 }
 
 .details-pane-inner {

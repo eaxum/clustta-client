@@ -33,6 +33,9 @@
     <ActionButton :icon="getAppIcon('arrow-up-ramp')" :showLabel="true" :fullWidth="true" label="Upload Items"
       v-if="platformStore.isWeb && userStore.canDo('create_task')" :buttonFunction="uploadItems" />
 
+    <ActionButton :icon="getAppIcon('clipboard')" :showLabel="true" :fullWidth="true" label="Paste"
+      v-if="hasClipboardItems && userStore.canDo('update_entity')" :buttonFunction="pasteItems" />
+
     
     <!-- Collection State Actions -->
     <span v-if="collectionStateFlags.has_untracked || collectionStateFlags.has_modified || collectionStateFlags.has_outdated || collectionStateFlags.has_rebuildable" class="menu-divider"></span>
@@ -143,6 +146,11 @@ const collectionStateFlags = computed(() => {
     has_outdated: false,
     has_rebuildable: false
   };
+});
+
+// Checks if there are items in the clipboard.
+const hasClipboardItems = computed(() => {
+  return stage.cutItems.length > 0 || stage.copiedItems.length > 0;
 });
 
 // methods
@@ -323,6 +331,20 @@ const importItems = async () => {
   } finally {
     stage.operationActive = false;
     menu.hideContextMenu();
+  }
+};
+
+// Pastes clipboard items into the selected collection.
+const pasteItems = async () => {
+  const entity = collectionStore.selectedCollection;
+  if (!entity) return;
+  
+  menu.hideContextMenu();
+  
+  const result = await stage.pasteItems(entity.id, entity.file_path);
+  if (result.needsRefresh) {
+    stage.expandEntity(entity);
+    emitter.emit('refresh-browser');
   }
 };
 

@@ -169,7 +169,6 @@ const addDependency = async (taskId, dependencyId, dependencyTypeId) => {
 // Cancels active operations like search or drag-and-drop.
 const cancelOps = () => {
 	if (commonStore.viewSearchQuery) clearSearch();
-	stage.cutItems = [];
 	if (!dndStore.altKeyActive) dndStore.resetValues();
 };
 
@@ -304,7 +303,7 @@ const duplicateTask = async () => {
 		stage.operationActive = true;
 		stage.markedItems = [];
 		assetStore.selectedAsset = null;
-		await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedItemId)
+		await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedItemId, '')
 			.then(async (duplicatedTask) => {
 				try { await FSService.DuplicateFile(selectedItem.file_path, duplicatedTask.file_path); }
 				catch (fileError) { console.warn('Physical file duplication failed (asset may be rebuildable):', fileError); }
@@ -412,11 +411,11 @@ const handleClickOutside = (event, rightClick = false) => {
 		if (!event.shiftKey || !event.ctrlKey) {
 			if (!event.target.closest('.entity-item-main')) {
 				stage.markedItems = []; stage.selectedItems = []; stage.markedEntities = []; stage.firstSelectedItemId = ''; stage.lastSelectedItemId = '';
-				stage.selectedItem = null; assetStore.selectedAsset = null; collectionStore.selectedCollection = null; stage.cutItems = []; projectStore.selectedUntrackedItem = null;
+				stage.selectedItem = null; assetStore.selectedAsset = null; collectionStore.selectedCollection = null; projectStore.selectedUntrackedItem = null;
 			}
 			if (!event.target.closest('.task-item-main')) {
 				stage.markedItems = []; stage.selectedItems = []; stage.markedEntities = []; stage.firstSelectedItemId = ''; stage.lastSelectedItemId = '';
-				stage.selectedItem = null; assetStore.selectedAsset = null; stage.cutItems = []; projectStore.selectedUntrackedItem = null;
+				stage.selectedItem = null; assetStore.selectedAsset = null; projectStore.selectedUntrackedItem = null;
 			}
 		}
 	}
@@ -454,6 +453,16 @@ const handleUpdateUntrackedItems = (untrackedItems) => {
 
 // Returns the empty state illustration path.
 const illustration = () => commonStore.viewSearchQuery ? '/page-states/resources.png' : '/page-states/tasks.png';
+
+// Checks if an editable element (input, textarea, contenteditable) is currently focused.
+const isEditableElementFocused = () => {
+	const activeElement = document.activeElement;
+	if (!activeElement) return false;
+	const tagName = activeElement.tagName;
+	if (tagName === 'INPUT' || tagName === 'TEXTAREA') return true;
+	if (activeElement.isContentEditable) return true;
+	return false;
+};
 
 // Imports files or folders from the file system into the current directory.
 const importItems = async () => {
@@ -671,7 +680,6 @@ const prompt = () => {
 const refresh = async () => {
 	if (kanbanView.value) return;
 	assetStore.assetsLoaded = false;
-	stage.cutItems = [];
 	await projectStore.refreshActiveProject();
 	await trayStates.refreshData();
 	let children;
@@ -694,7 +702,6 @@ const refresh = async () => {
 // Lightweight refresh: fetches children with search/filter support, processes icons, updates root data and state flags.
 const softRefresh = async () => {
 	assetStore.assetsLoaded = false;
-	stage.cutItems = [];
 	let children = {};
 	let project = projectStore.activeProject;
 	const searching = commonStore.viewSearchQuery.toLowerCase();
@@ -817,32 +824,40 @@ Events.On('group-items', async () => {
 });
 
 Events.On('cut-items', async () => {
-	if (operationsActive.value) return
+	if (operationsActive.value) return;
+	if (isEditableElementFocused()) return;
 	if (!!stage.markedItems.length && userStore.canDo('update_entity')) {
+		stage.copiedItems = [];
 		const viewItems = dndStore.allViewItems;
 		stage.cutItems = viewItems.filter((item) => stage.markedItems.includes(item.id));
 		stage.cutItems = stage.cutItems.filter((item) => !stage.markedItems.includes(item.parent_id || item.entity_id));
-		stage.markedItems = stage.cutItems.map((item) => item.id)
-		// console.log(stage.cutItems);
+		clearSelection();
 	}
 });
 
 Events.On('copy-items', async () => {
-	if (operationsActive.value) return
+	if (operationsActive.value) return;
+	if (isEditableElementFocused()) return;
 	if (!!stage.markedItems.length && userStore.canDo('update_entity')) {
+		stage.cutItems = [];
 		const viewItems = dndStore.allViewItems;
-		stage.copiedItems = viewItems.filter((item) => stage.markedItems.includes(item.id));
-		stage.copiedItems = stage.copiedItems.filter((item) => !stage.markedItems.includes(item.parent_id || item.entity_id));
-		stage.markedItems = stage.copiedItems.map((item) => item.id)
-		// console.log(stage.copiedItems);
+		let copiedItems = viewItems.filter((item) => stage.markedItems.includes(item.id));
+		copiedItems = copiedItems.filter((item) => !stage.markedItems.includes(item.parent_id || item.entity_id));
+		// Filter out tracked entities - copying collections is not yet supported
+		stage.copiedItems = copiedItems.filter((item) => item.type !== 'entity');
+		if (copiedItems.length > stage.copiedItems.length) {
+			notificationStore.addNotification('Collections cannot be copied', 'Only assets and untracked items were added to clipboard', 'info');
+		}
+		clearSelection();
 	}
 });
 
 Events.On('paste-items', async () => {
-	if (operationsActive.value) return
-	if (!!stage.copiedItems && userStore.canDo('update_entity')) {
-		stage.copiedItems = [];
-	}
+	if (operationsActive.value) return;
+	if (isEditableElementFocused()) return;
+	if (!userStore.canDo('update_entity')) return;
+	const result = await stage.pasteItems();
+	if (result.needsRefresh) await softRefresh();
 });
 
 Events.On('free-item-space', async () => {
@@ -894,6 +909,8 @@ watch(() => projectStore.activeProject, async () => {
 	if (projectStore.activeProject) {
 		commonStore.setListView();
 		await refresh();
+		stage.copiedItems = [];
+		stage.cutItems = [];
 	}
 });
 

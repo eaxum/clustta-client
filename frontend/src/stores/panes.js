@@ -13,6 +13,7 @@ export const usePaneStore = defineStore("panes", {
       resourceDetails: false,
       checkpoints: false,
       projectCheckpoints: false,
+      clipboard: false,
     },
 
     activeModal: null,

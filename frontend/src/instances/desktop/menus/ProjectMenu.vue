@@ -17,6 +17,9 @@
     <ActionButton :icon="getAppIcon('arrow-up-ramp')" :showLabel="true" :fullWidth="true" label="Upload Items"
       v-if="platformStore.isWeb && userStore.canDo('create_task')" :buttonFunction="uploadItems" />
 
+    <ActionButton :icon="getAppIcon('clipboard')" :showLabel="true" :fullWidth="true" label="Paste"
+      v-if="hasClipboardItems && userStore.canDo('update_entity')" :buttonFunction="pasteItems" />
+
     <span v-if="userStore.canDo('create_entity') && !platformStore.isWeb" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
@@ -50,7 +53,7 @@
 
 <script setup>
 // imports
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref, computed } from 'vue';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
 
@@ -93,6 +96,10 @@ const workflowStore = useWorkflowStore();
 
 // refs
 const collectionMenu = ref(null);
+
+// computed properties
+// Returns true if there are items in the clipboard.
+const hasClipboardItems = computed(() => stage.cutItems.length > 0 || stage.copiedItems.length > 0);
 
 // methods
 // Opens the workflow selection modal.
@@ -321,6 +328,15 @@ const prepFreeUpSpacePopUpModal = () => {
   }
   trayStates.popUpModalIcon = 'broom';
   modals.setModalVisibility('popUpModal', true);
+};
+
+// Pastes clipboard items to the current location.
+const pasteItems = async () => {
+  menu.hideContextMenu();
+  const result = await stage.pasteItems();
+  if (result.needsRefresh) {
+    emitter.emit('refresh-browser');
+  }
 };
 
 // Rebuilds all assets in the current context.
