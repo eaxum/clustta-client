@@ -173,7 +173,9 @@ func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, e
 	return createdTask, nil
 }
 
-func (t *AssetService) DuplicateAsset(projectPath, sourceTaskId string) (models.Task, error) {
+// DuplicateAsset duplicates a task to the same or a different collection.
+// If targetEntityId is empty, the task is duplicated in the same collection as the source.
+func (t *AssetService) DuplicateAsset(projectPath, sourceTaskId, targetEntityId string) (models.Task, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.Task{}, err
@@ -191,20 +193,33 @@ func (t *AssetService) DuplicateAsset(projectPath, sourceTaskId string) (models.
 		return models.Task{}, err
 	}
 
-	// Generate unique name by checking for conflicts
-	baseName := sourceTask.Name + "-duplicate"
+	// Determine target entity: use provided targetEntityId or fall back to source's entity
+	destinationEntityId := targetEntityId
+	if destinationEntityId == "" {
+		destinationEntityId = sourceTask.EntityId
+	}
+
+	// Generate unique name by checking for conflicts in the destination entity
+	baseName := sourceTask.Name
+	if destinationEntityId == sourceTask.EntityId {
+		baseName = sourceTask.Name + "-duplicate"
+	}
 	newName := baseName
 	counter := 1
 
-	// Check for name conflicts in the same entity
+	// Check for name conflicts in the destination entity
 	for {
-		_, err := repository.GetTaskByName(tx, newName, sourceTask.EntityId, sourceTask.Extension)
+		_, err := repository.GetTaskByName(tx, newName, destinationEntityId, sourceTask.Extension)
 		if err != nil {
 			// Task with this name doesn't exist, so we can use it
 			break
 		}
 		// Task exists, try with number suffix
-		newName = fmt.Sprintf("%s-%d", baseName, counter)
+		if destinationEntityId == sourceTask.EntityId {
+			newName = fmt.Sprintf("%s-%d", baseName, counter)
+		} else {
+			newName = fmt.Sprintf("%s (%d)", baseName, counter)
+		}
 		counter++
 	}
 
@@ -218,7 +233,7 @@ func (t *AssetService) DuplicateAsset(projectPath, sourceTaskId string) (models.
 		utils.GetCurrentTime(),
 		newName,
 		sourceTask.TaskTypeId,
-		sourceTask.EntityId,
+		destinationEntityId,
 		sourceTask.StatusId,
 		sourceTask.Extension,
 		sourceTask.Description,

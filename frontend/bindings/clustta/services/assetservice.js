@@ -183,12 +183,15 @@ export function DeleteAssetType(projectPath, id) {
 }
 
 /**
+ * DuplicateAsset duplicates a task to the same or a different collection.
+ * If targetEntityId is empty, the task is duplicated in the same collection as the source.
  * @param {string} projectPath
  * @param {string} sourceTaskId
+ * @param {string} targetEntityId
  * @returns {$CancellablePromise<models$0.Task>}
  */
-export function DuplicateAsset(projectPath, sourceTaskId) {
-    return $Call.ByID(301515392, projectPath, sourceTaskId);
+export function DuplicateAsset(projectPath, sourceTaskId, targetEntityId) {
+    return $Call.ByID(301515392, projectPath, sourceTaskId, targetEntityId);
 }
 
 /**

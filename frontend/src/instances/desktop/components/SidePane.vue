@@ -129,6 +129,7 @@ const goToProjects = () => {
 	stage.lastSelectedItemId = '';
 	stage.selectedItem = null;
 	stage.cutItems = [];
+	stage.copiedItems = [];
 	panes.setPaneVisibility('projectDetails', true);
 };
 

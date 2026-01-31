@@ -245,7 +245,7 @@ const duplicateAsset = async () => {
     stage.operationActive = true;
     let selectedAsset = assetStore.selectedAsset;
     
-    await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedAsset.id)
+    await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedAsset.id, '')
       .then(async (duplicatedAsset) => {
         if (selectedAsset.file_path && duplicatedAsset.file_path) {
           try {

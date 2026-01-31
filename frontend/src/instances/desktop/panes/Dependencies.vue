@@ -13,11 +13,11 @@
     <div v-if="isSearching" class="sidebar-scroll" >
 
       <PageState v-if="!availableDependencies.length && !isLoadingData" :message="message()" :illustration="illustration()" />
-      <DependencyList v-else :items="availableDependencies" :isDependency="true" :showAdd="true" :forList="true" />
+      <ItemsList v-else :items="availableDependencies" :isDependency="true" :showAdd="true" :forList="true" />
     </div>
     
     <div v-else-if="assetDependencies.length" class="sidebar-scroll">
-      <DependencyList :items="assetDependencies" :isDependency="true" :showRemove="true" :forList="true"/>
+      <ItemsList :items="assetDependencies" :isDependency="true" :showRemove="true" :forList="true"/>
       
       <div class="bottom-bar">
         <ActionButton :icon="getAppIcon('square-arrow-right-up')" :showLabel="true" :iconAfter="true" :fullWidth="false" label="View in Graph"
@@ -54,8 +54,8 @@ import { useDependencyStore } from '@/stores/dependency';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import DependencyList from '@/instances/desktop/components/DependencyList.vue';
 import FilterButton from '@/instances/desktop/components/FilterButton.vue';
+import ItemsList from '@/instances/desktop/components/ItemsList.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 import SearchBar from '@/instances/desktop/components/SearchBar.vue';
 

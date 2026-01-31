@@ -160,7 +160,6 @@ const clearAllSelections = () => {
 	stage.selectedItem = null;
 	assetStore.selectedAsset = null;
 	collectionStore.selectedCollection = null;
-	stage.cutItems = [];
 	projectStore.selectedUntrackedItem = null;
 };
 
