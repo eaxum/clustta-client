@@ -40,7 +40,7 @@
           </div>
 
           <!-- Shared Projects -->
-          <div class="location-item">
+          <div class="location-item" v-if="!accountStore.isOfflineMode">
             <!-- Location Icon -->
             <div class="location-icon">
               <img class="small-icons" :src="getAppIcon('folder')">
@@ -179,12 +179,14 @@
 import { ref, onMounted, nextTick } from 'vue';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
+import { useAccountStore } from '@/stores/accounts';
 import { SettingsService, DialogService } from '@/services';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import RenameInput from '@/instances/desktop/components/RenameInput.vue';
 
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
+const accountStore = useAccountStore();
 
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);

@@ -12,13 +12,32 @@
           </div>
         </div>
         <div v-if="!isEditing" class="project-item-actions">
-          <ActionButton :isLoading="isCreatingProject" :icon="getAppIcon(isCreatingProject ? 'loading' : 'plus-circle')"
+          <ActionButton class="hover-action" :isLoading="isCreatingProject" :icon="getAppIcon(isCreatingProject ? 'loading' : 'plus-circle')"
             v-tooltip="'Start tracking with Clustta'" @click="goToProject(project)" />
-          <ActionButton :icon="getAppIcon('folder-arrow-up-right')"
+          <ActionButton class="hover-action" :icon="getAppIcon('folder-arrow-up-right')"
             v-tooltip="'Open folder'" @click="revealInExplorer" />
         </div>
       </div>
     </TabbedFolder>
+
+    <div v-else-if="!cardView && !project.is_tracked" class="project-item-container untracked-list-item">
+      <div class="project-item-icon">
+        <img class="large-icons" :src="getAppIcon('folder')">
+      </div>
+      <div class="project-item-content">
+        <div class="project-item-details">
+          <span v-if="isCreatingProject">Adding {{ project.name }} to Clustta</span>
+          <span v-else>{{ utils.capitalizeStr(project.name) }}</span>
+        </div>
+        <div class="project-item-path">{{ project.working_directory }}</div>
+      </div>
+      <div class="project-item-actions">
+        <ActionButton class="hover-action" :isLoading="isCreatingProject" :icon="getAppIcon(isCreatingProject ? 'loading' : 'plus-circle')"
+          v-tooltip="'Start tracking with Clustta'" @click="goToProject(project)" />
+        <ActionButton class="hover-action" :icon="getAppIcon('folder-arrow-up-right')"
+          v-tooltip="'Open folder'" @click="revealInExplorer" />
+      </div>
+    </div>
 
     <div v-else class="project-item-container" :class="{ 'project-item-container-cards': cardView }">
       <div class="project-item-preview-container" :class="{ 'project-item-preview-container-cards': cardView }">
@@ -311,8 +330,14 @@ onBeforeUnmount(() => {
   gap: .4rem;
 }
 
-.project-item-root:hover .project-item-actions-hover {
+.project-item-root:hover .project-item-actions-hover,
+.project-item-root:hover .hover-action {
   opacity: 1;
+}
+
+.hover-action {
+  opacity: 0;
+  transition: opacity .15s ease-out;
 }
 
 .project-item-container {
@@ -471,6 +496,41 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Untracked list item styles */
+.untracked-list-item {
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.project-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  box-sizing: border-box;
+}
+
+.untracked-list-item .project-item-content {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.1rem;
+}
+
+.project-item-path {
+  font-size: 12px;
+  color: var(--silver);
+  opacity: 0.8;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 100%;
+  padding: 0 0.2rem;
+  box-sizing: border-box;
 }
 </style>
 
