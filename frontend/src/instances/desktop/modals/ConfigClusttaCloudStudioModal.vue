@@ -7,30 +7,22 @@
 
     <div v-if="!isStudioRegistered" class="general-container">
 
-      <div class="input-section">
-        <div class="input-label-row">
-          <label class="input-label">Studio Name</label>
-        </div>
-        <div class="compound-form-input studio-name-input">
-          <input v-model="studioName" @input="checkStudioName" class="form-input-mini" type="text" placeholder="Studio Name"  v-focus />
-          <div v-if="studioName" class="form-input-icon">
-            <img v-if="studioNameError" class="alert-icons small-icons" :src="getAppIcon('alert')" />
-            <img v-else-if="checkingStudioNameAvailability" class="alert-icons small-icons loading-icon" :src="getAppIcon('loading')" />
-            <img v-else class="alert-icons small-icons" :src="getAppIcon('circle-check')" />
-          </div>
-        </div>
-        <InputAlert :show="!!studioNameError" :message="studioNameError" />
-      </div>
+      <FormInput
+        v-model="studioName"
+        placeholder="Studio Name"
+        :error="studioNameError"
+        :loading="checkingStudioNameAvailability"
+        :valid="!!studioName && !studioNameError && !checkingStudioNameAvailability"
+        :showValidation="!!studioName"
+        @input="checkStudioName"
+      />
 
-      <div class="input-section">
-        <div class="input-label-row">
-          <label class="input-label">Code</label>
-        </div>
-        <div class="horizontal-flex">
-          <input v-model="deploymentCode" @input="deploymentCodeError = ''" class="input-short" type="text" placeholder="Code" />
-        </div>
-        <InputAlert :show="!!deploymentCodeError" :message="deploymentCodeError" />
-      </div>
+      <FormInput
+        v-model="deploymentCode"
+        placeholder="Code"
+        :error="deploymentCodeError"
+        @input="deploymentCodeError = ''"
+      />
 
       <!-- Notification section for deployment code info -->
       <div class="notification-area">
@@ -143,6 +135,7 @@ import { Browser } from "@wailsio/runtime";
 
 // components
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
+import FormInput from '@/instances/desktop/components/FormInput.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import InputAlert from '@/instances/common/components/InputAlert.vue';
@@ -512,7 +505,7 @@ onMounted(async () => {
 }
 
 .general-container{
-  gap: 1rem;
+  padding-top: 1rem;
 }
 .success-message {
   font-size: 16px;

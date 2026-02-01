@@ -6,10 +6,6 @@
     </div>
 
     <div class="general-container">
-
-      <span v-if="projectStore.activeProjectCover" class="screenshot-preview">
-        <img class="screenshot-thumb" :src="projectStore.activeProjectCover">
-      </span>
       <div class="input-section">
         <div class="horizontal-flex">
           <input v-model="projectName" @input="updateWorkingDirectory" class="input-short" type="text" placeholder="Project Name" ref="projectNameInput"
