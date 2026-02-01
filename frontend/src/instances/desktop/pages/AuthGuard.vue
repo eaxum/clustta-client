@@ -91,12 +91,11 @@ const platformStore = usePlatformStore()
   justify-content: center;
   align-items: center;
   width: min-content;
+  min-width: 350px;
   min-width: 400px;
   box-sizing: border-box;
   overflow: hidden;
-  /* background-color: springgreen; */
   overflow: hidden;
-  /* overflow-y: auto; */
 }
 
 .auth-header {
@@ -127,7 +126,6 @@ const platformStore = usePlatformStore()
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
 }
 
 .form-row {
@@ -189,9 +187,9 @@ const platformStore = usePlatformStore()
   font-size: 1rem;
   transition: border-color 0.2s;
   width: 100%;
-  height: 50px;
+  height: 40px;
   border-radius: var(--normal-radius);
-  padding-right: .5rem;
+  padding-right: .2rem;
   display: flex;
   overflow: hidden;
   gap: .2rem;
@@ -276,17 +274,19 @@ const platformStore = usePlatformStore()
   color: var(--white);
   color: white;
   padding: 0.75rem;
-  height: 50px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   border: none;
   border-radius: var(--large-radius);
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;
-  /* color: var(--black); */
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 600;
+  line-height: 90%;
 }
 
 .submit-button:hover {

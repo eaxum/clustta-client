@@ -24,59 +24,23 @@
           <form @submit.prevent="handleResetPassword" class="auth-form">
 
             <!-- new password -->
-            <div class="form-group">
-              <div class="compound-form-input">
-                <input 
-                  autocomplete="new-password" 
-                  class="form-input-mini" 
-                  placeholder="New Password" 
-                  v-model="resetForm.new_password"
-                  :type="isNewPasswordVisible ? 'text' : 'password'" 
-                  required 
-                  :class="{ 'error': passwordValidation }"
-                >
-                <ActionButton 
-                  v-if="resetForm.new_password"
-                  v-tooltip="isNewPasswordVisible ? 'Hide Password' : 'Show Password'"
-                  :icon="isNewPasswordVisible ? getAppIcon('eye-cancel') : getAppIcon('eye')"
-                  @click="toggleNewPasswordVisibility"
-                  :showLabel="false"
-                />
-              </div>
-              <span v-if="passwordValidation" class="error-message">{{ passwordValidation }}</span>
-            </div>
+            <FormInput
+              v-model="resetForm.new_password"
+              placeholder="New Password"
+              isSecret
+              :error="passwordValidation"
+            />
 
             <!-- confirm password -->
-            <div class="form-group">
-              <div class="compound-form-input">
-                <input 
-                  autocomplete="new-password" 
-                  class="form-input-mini" 
-                  placeholder="Confirm New Password" 
-                  v-model="resetForm.confirm_password"
-                  type="password" 
-                  required 
-                  :class="{ 'error': !passwordsMatch && resetForm.confirm_password }"
-                >
-                <ActionButton 
-                  v-if="resetForm.confirm_password && passwordsMatch"
-                  :icon="getAppIcon('circle-check')"
-                  :showLabel="false"
-                  :useGo="true"
-                  :noFilter="true"
-                  :isInactive="true"
-                />
-                <ActionButton 
-                  v-else-if="resetForm.confirm_password && !passwordsMatch"
-                  :icon="getAppIcon('alert')"
-                  :showLabel="false"
-                  :useAlert="true"
-                  :isInactive="true"
-                  :noFilter="true"
-                />
-              </div>
-              <span v-if="!passwordsMatch && resetForm.confirm_password" class="error-message">Passwords do not match</span>
-            </div>
+            <FormInput
+              v-model="resetForm.confirm_password"
+              placeholder="Confirm New Password"
+              isSecret
+              needsValidation
+              :error="!passwordsMatch && resetForm.confirm_password ? 'Passwords do not match' : ''"
+              :valid="passwordsMatch && !!resetForm.confirm_password"
+              :showValidation="!!resetForm.confirm_password"
+            />
 
             <!-- submit button -->
             <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isFormValid }">
@@ -130,11 +94,11 @@ const iconStore = useIconStore();
 // refs
 const error = ref('');
 const isAwaitingResponse = ref(false);
-const isNewPasswordVisible = ref(false);
 
 // components
-import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
+import FormInput from '@/instances/desktop/components/FormInput.vue';
 
 // vars
 const resetForm = reactive({
@@ -194,14 +158,13 @@ const isFormValid = computed(() => {
 });
 
 // methods
+
+// Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
-const toggleNewPasswordVisibility = () => {
-  isNewPasswordVisible.value = !isNewPasswordVisible.value;
-};
-
+// Navigates back to the login page.
 const backToLogin = () => {
   router.push('/');
 };

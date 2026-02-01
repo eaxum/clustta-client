@@ -1,53 +1,38 @@
 <template>
-
   <div class="modal-container" v-esc="closeModal" v-return="handleEnterKey">
     <HeaderArea :title="title" :icon="'login'" />
-
     <div class="general-container">
-
       <div class="login-form">
-
-        <div v-if="showStudioLogin" class="form-group studio-url-group">
-          <div class="compound-form-input">
-            <input autocomplete="off" class="form-input-mini" placeholder="Studio URL (e.g., https://studio.mycompany.com)" v-model="studioUrl" type="text" />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div class="compound-form-input">
-            <input v-model="username" class="form-input-mini" type="text" placeholder="Username or Email address" autocomplete="off"/>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <div class="compound-form-input">
-            <input v-model="password" class="form-input-mini" :type="isPasswordVisible ? 'text' : 'password'" placeholder="Password"
-              autocomplete="new-password" @keydown.enter="handleEnterKey" />
-            <ActionButton 
-              v-if="password"
-              v-tooltip="isPasswordVisible ? 'Hide Password' : 'Show Password'"
-              :icon="isPasswordVisible ? getAppIcon('eye-cancel') : getAppIcon('eye')"
-              @click="togglePasswordVisibility"
-              :showLabel="false"
-            />
-          </div>
-        </div>
-
-        
-
+        <FormInput
+          v-if="showStudioLogin"
+          v-model="studioUrl"
+          placeholder="Studio URL"
+          needsValidation
+          :error="studioUrlError"
+          :valid="isStudioUrlValid"
+          :showValidation="!!studioUrl"
+          @input="validateStudioUrl"
+        />
+        <FormInput
+          v-model="username"
+          placeholder="Email address"
+          needsValidation
+          :error="emailError"
+          :valid="isEmailValid"
+          :showValidation="!!username"
+          @input="validateEmail"
+        />
+        <FormInput v-model="password" placeholder="Password" isSecret />
         <div class="horizontal-flex">
           <ActionButton :isInactive="true" :icon="getAppIcon('two-drives')" :label="'Private Server'" />
           <ToggleSwitch  @click="toggleStudioLogin" :switchValueProp="showStudioLogin" />
         </div>
-
       </div>
-
       <div class="pop-up-actions">
         <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
         <GeneralButton :label="'Log in'" :fullWidth="true" @click="logUserIn(username, password)"
           :isActive="isValueChanged" :loading="isAwaitingResponse" />
       </div>
-
     </div>
   </div>
 </template>
@@ -58,6 +43,7 @@ import { computed, ref } from 'vue';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import FormInput from '@/instances/desktop/components/FormInput.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
@@ -87,26 +73,40 @@ const trayStates = useTrayStates();
 const userStore = useUserStore();
 
 // refs
+const emailError = ref('');
 const isAwaitingResponse = ref(false);
-const isPasswordVisible = ref(false);
 const password = ref('');
 const projectDirectoryExists = ref(false);
 const showStudioLogin = ref(false);
 const studioUrl = ref('');
+const studioUrlError = ref('');
 const username = ref('');
 
 // constants
 const title = 'Login';
 
 // computed
+// Returns whether the email is valid.
+const isEmailValid = computed(() => {
+  if (!username.value) return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(username.value);
+});
+
+// Returns whether the studio URL is valid.
+const isStudioUrlValid = computed(() => {
+  if (!studioUrl.value) return false;
+  const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/;
+  return urlRegex.test(studioUrl.value.trim());
+});
+
 // Returns whether the form has valid values.
 const isValueChanged = computed(() => {
-  const usernameValid = username.value !== '';
   const passwordValid = password.value !== '';
   if (showStudioLogin.value) {
-    return usernameValid && passwordValid && studioUrl.value.trim() !== '';
+    return isEmailValid.value && passwordValid && isStudioUrlValid.value;
   }
-  return usernameValid && passwordValid;
+  return isEmailValid.value && passwordValid;
 });
 
 // methods
@@ -202,17 +202,31 @@ const setDirectories = async () => {
   modals.setModalVisibility('dirOnboardModal', true);
 };
 
-// Toggles password visibility.
-const togglePasswordVisibility = () => {
-  isPasswordVisible.value = !isPasswordVisible.value;
-};
-
 // Toggles studio login mode on/off.
 const toggleStudioLogin = () => {
   showStudioLogin.value = !showStudioLogin.value;
   if (!showStudioLogin.value) {
     studioUrl.value = '';
+    studioUrlError.value = '';
   }
+};
+
+// Validates the email format.
+const validateEmail = () => {
+  if (!username.value) {
+    emailError.value = '';
+    return;
+  }
+  emailError.value = isEmailValid.value ? '' : 'Please enter a valid email address';
+};
+
+// Validates the studio URL format.
+const validateStudioUrl = () => {
+  if (!studioUrl.value) {
+    studioUrlError.value = '';
+    return;
+  }
+  studioUrlError.value = isStudioUrlValid.value ? '' : 'Please enter a valid URL';
 };
 </script>
 
@@ -234,7 +248,6 @@ const toggleStudioLogin = () => {
   display: flex;
   box-sizing: border-box;
   height: max-content;
-  gap: 1rem;
   width: 100%;
   flex-direction: column;
   align-items: center;
@@ -242,42 +255,5 @@ const toggleStudioLogin = () => {
   overflow: hidden;
 }
 
-.form-group {
-  width: 100%;
-}
-
-.compound-form-input {
-  box-sizing: border-box;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-  width: 100%;
-  height: 50px;
-  border-radius: var(--normal-radius);
-  padding-right: .5rem;
-  display: flex;
-  overflow: hidden;
-  gap: .2rem;
-  background-color: var(--midnight-steel);
-  align-items: center;
-}
-
-.form-input-mini {
-  color: var(--white);
-  box-sizing: border-box;
-  border: 0px;
-  border-radius: 4px;
-  font-size: 1rem;
-  width: 100%;
-  height: 100%;
-  padding: 0.75rem;
-  background-color: var(--midnight-steel);
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
-  border-radius: 12px;
-  padding: 10px;
-  border-style: solid;
-  outline: none;
-}
 </style>
 

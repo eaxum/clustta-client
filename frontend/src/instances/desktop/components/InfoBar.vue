@@ -265,6 +265,7 @@ onMounted(async () => {
     padding: 0 .8rem;
     font-size: 13px;
     font-weight: 300;
+    background-color: var(--dark-steel);
   }
   
 .solid-background{

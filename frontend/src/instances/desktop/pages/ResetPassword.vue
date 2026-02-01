@@ -24,29 +24,15 @@
           <form @submit.prevent="handleResetPassword" class="auth-form">
 
             <!-- email -->
-            <div class="form-group">
-              <div class="compound-form-input">
-                <input autocomplete="off" class="form-input-mini" placeholder="Email address" v-model="resetForm.email" type="email"
-                  required @input="validateEmail" :class="{ 'error': errors.email && resetForm.email }" />
-                <ActionButton 
-                  v-if="resetForm.email && !emailValid"
-                  :icon="getAppIcon('alert')"
-                  :showLabel="false"
-                  :useAlert="true"
-                  :isInactive="true"
-                  :noFilter="true"
-                />
-                <ActionButton 
-                  v-else-if="resetForm.email && emailValid"
-                  :icon="getAppIcon('circle-check')"
-                  :showLabel="false"
-                  :useGo="true"
-                  :noFilter="true"
-                  :isInactive="true"
-                />
-              </div>
-              <span v-if="errors.email && resetForm.email" class="error-message">{{ errors.email }}</span>
-            </div>
+            <FormInput
+              v-model="resetForm.email"
+              placeholder="Email address"
+              needsValidation
+              :error="errors.email"
+              :valid="emailValid"
+              :showValidation="!!resetForm.email"
+              @input="validateEmail"
+            />
 
             <!-- submit button -->
             <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isResetFormFilled }">
@@ -103,8 +89,9 @@ const isAwaitingResponse = ref(false);
 const emailValid = ref(false);
 
 // components
-import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
+import FormInput from '@/instances/desktop/components/FormInput.vue';
 
 // vars
 const resetForm = reactive({
