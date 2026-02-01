@@ -6,7 +6,7 @@
 
       <ClusttaLogo v-if="os !== 'darwin'" :boldText="true" :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="'About Clustta'" :class="{ 'is-disabled': progressRunning }" />
 
-      <div ref="studioTabsParent" class="studio-tabs-parent" v-if="userStore.user && projectStore.selectedStudio" 
+      <div ref="studioTabsParent" class="studio-tabs-parent" v-if="userStore.user && projectStore.selectedStudio && !accountStore.isOfflineMode" 
       :class="{ 'is-disabled': progressRunning, 'mac-os': !isMacFullscreen && os === 'darwin' }">
         <div class="studio-tabs-container" @click="toggleStudioList()" v-stop-propagation>
           <span class="studio-tabs">
@@ -133,6 +133,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import { useStudioStore } from '@/stores/studio';
 import { usePlatformStore } from '@/stores/platform';
+import { useAccountStore } from '@/stores/accounts';
 
 const stage = useStageStore();
 const userStore = useUserStore();
@@ -145,6 +146,7 @@ const notificationStore = useNotificationStore();
 const themeStore = useThemeStore();
 const collectionStore = useCollectionStore();
 const platformStore = usePlatformStore();
+const accountStore = useAccountStore();
 const router = useRouter();
 
 const goToLogin = () => {
