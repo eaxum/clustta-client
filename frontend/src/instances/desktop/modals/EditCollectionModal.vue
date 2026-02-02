@@ -3,42 +3,53 @@
   <div ref="modalContainer" class="modal-container" v-esc="closeModal" v-return="handleEnterKey" v-stop-propagation>
 
     <div class="general-pane-header">
-      <HeaderArea :title="title" :icon="getAppIcon(entityTypeIcon)" :showSearch="false" />
-      <ActionButton v-if="isPreviewChanged" :icon="getAppIcon('revert')" :showLabel="false"
+      <HeaderArea :title="title" :icon="getAppIcon(displayTypeCreator ? newTypeIcon : entityTypeIcon)" :showSearch="false" />
+      <ActionButton v-if="isPreviewChanged && !displayTypeCreator" :icon="getAppIcon('revert')" :showLabel="false"
         v-tooltip="'Revert Cover Image'" :buttonFunction="revertCoverImage" />
-      <ActionButton v-if="entityPreview" :icon="getAppIcon('trash')" :showLabel="false" v-tooltip="'Remove Cover Image'"
+      <ActionButton v-if="entityPreview && !displayTypeCreator" :icon="getAppIcon('trash')" :showLabel="false" v-tooltip="'Remove Cover Image'"
         :buttonFunction="removeCoverImage" />
-      <ActionButton v-else :icon="getAppIcon('image-plus')" :showLabel="false" v-tooltip="'Add Cover Image'"
+      <ActionButton v-if="!entityPreview && !displayTypeCreator" :icon="getAppIcon('image-plus')" :showLabel="false" v-tooltip="'Add Cover Image'"
         :buttonFunction="addCoverImage" />
     </div>
 
     <div class="general-container">
 
-      <span @click="addCoverImage" v-if="entityPreview" class="screenshot-preview">
-        <img class="screenshot-thumb" :src="entityPreview">
-      </span>
+      <!-- Collection Edit Context -->
+      <template v-if="!displayTypeCreator">
+        <span @click="addCoverImage" v-if="entityPreview" class="screenshot-preview">
+          <img class="screenshot-thumb" :src="entityPreview">
+        </span>
 
-      <div class="input-section">
-        <input v-model="entityName" class="input-short" type="text" placeholder="Collection Name" v-focus />
-      </div>
+        <div class="input-section">
+          <input v-model="entityName" class="input-short" type="text" placeholder="Collection Name" v-focus />
+        </div>
 
-      <div class="input-section">
-        <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="changeEntityType" />
-      </div>
+        <div class="input-section">
+          <div class="horizontal-flex">
+            <div class="dropdown-wrapper">
+              <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="changeEntityType" />
+            </div>
+            <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="'Add New Collection Type'">
+              <img class="small-icons" :src="getAppIcon('plus-circle')">
+            </span>
+          </div>
+        </div>
 
-      <div class="horizontal-flex is-library-prompt">
-        
-      <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="'Library'" />
-      <ToggleSwitch v-tooltip="isLibrary? 'Unmark as library' : 'Mark as a library'" @click="toggleIsLibrary" :switchValueProp="isLibrary" />
+        <div class="horizontal-flex is-library-prompt">
+          <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="'Library'" />
+          <ToggleSwitch v-tooltip="isLibrary? 'Unmark as library' : 'Mark as a library'" @click="toggleIsLibrary" :switchValueProp="isLibrary" />
+        </div>
 
-    </div>
+        <div class="pop-up-actions">
+          <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+          <GeneralButton :label="'Update'" :fullWidth="true" @click="updateEntity()" :isActive="isValueChanged" :loading="isAwaitingResponse" />
+        </div>
+      </template>
 
-      <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Update'" :fullWidth="true" @click="updateEntity()" :isActive="isValueChanged"
-          :loading="isAwaitingResponse" />
-      </div>
-
+      <!-- Collection Type Creation Context -->
+      <template v-else>
+        <CollectionTypeForm ref="typeFormRef" mode="create" @created="handleTypeCreated" @cancel="toggleTypeCreator" @iconChange="handleTypeIconChange" />
+      </template>
 
     </div>
   </div>
@@ -52,6 +63,7 @@ import utils from '@/services/utils';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import CollectionTypeForm from '@/instances/common/components/CollectionTypeForm.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -77,6 +89,7 @@ const projectStore = useProjectStore();
 
 // refs
 const coverImagePath = ref('');
+const displayTypeCreator = ref(false);
 const entityName = ref('');
 const entityPreview = ref(null);
 const entityType = ref('');
@@ -86,14 +99,21 @@ const entityTypeName = ref('');
 const isAwaitingResponse = ref(false);
 const isLibrary = ref(null);
 const modalContainer = ref(null);
+const newTypeIcon = ref('generic');
 const oldEntityName = ref('');
 const oldEntityPreview = ref(null);
 const oldEntityType = ref('');
 const OldisLibrary = ref(null);
 const selectedEntity = ref(null);
+const typeFormRef = ref(null);
 
 // constants
-const title = 'Collection Details';
+const title = computed(() => {
+  if (displayTypeCreator.value) {
+    return 'Add Collection Type';
+  }
+  return 'Collection Details';
+});
 
 // computed
 // Returns the currently selected entity.
@@ -165,6 +185,19 @@ const handleEnterKey = (event) => {
   }
 };
 
+// Handles successful type creation from the form.
+const handleTypeCreated = (response) => {
+  entityType.value = response.name;
+  entityTypeIcon.value = response.icon;
+  entityTypeId.value = response.id;
+  displayTypeCreator.value = false;
+};
+
+// Handles icon change from the type form.
+const handleTypeIconChange = (icon) => {
+  newTypeIcon.value = icon;
+};
+
 // Removes the current cover image.
 const removeCoverImage = () => {
   entityPreview.value = null;
@@ -178,6 +211,14 @@ const revertCoverImage = () => {
 // Toggles the library flag.
 const toggleIsLibrary = () => {
   isLibrary.value = !isLibrary.value;
+};
+
+// Toggles the type creator context.
+const toggleTypeCreator = () => {
+  displayTypeCreator.value = !displayTypeCreator.value;
+  if (!displayTypeCreator.value) {
+    newTypeIcon.value = 'generic';
+  }
 };
 
 // Updates the entity with all changed values.
@@ -276,6 +317,11 @@ onMounted(() => {
 
 <style scoped>
 @import "@/assets/desktop.css";
+
+.dropdown-wrapper {
+  flex: 1;
+  width: 100%;
+}
 
 .input-short {
   flex: 1;

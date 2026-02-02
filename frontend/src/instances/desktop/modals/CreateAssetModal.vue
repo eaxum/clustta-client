@@ -1,34 +1,45 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
-    <HeaderArea :title="title" :customIcon="icon" :showSearch="showSearch" :showPin="true" />
+    <HeaderArea :title="title" :icon="icon" :customIcon="customIcon" :showSearch="showSearch" :showPin="true" />
     <div class="general-container">
-      <div class="input-section">
-        <div class="compound-input-section">
-          <input v-model="taskName" class="input-short" type="text" placeholder="Task Name" v-focus
-            @keydown.enter="handleEnterKey" />
-          <ActionButton :icon="getAppIcon('switches')" :buttonFunction="toggleOptions" :isActive="exposeParams" v-tooltip="'Show Options'" />
-        </div>
-      </div>
-      <div class="input-section drop-down-box-section">
-        <DropDownBox :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" />
-        <DropDownBox :items="taskTypeNames" :selectedItem="taskType" :onSelect="selectTaskType" />
-      </div>
 
-      <!-- <div class="input-section">
-        <SearchSuggestions :placeholder="placeholder" :showTags="true" :tags="tags" :projectTags="projectTags"
-          :forSearch="false" @tagAdded="addTag" @tagRemoved="removeTag" />
-      </div> -->
-
-      <div class="task-options-container" :class="{ 'task-options-container-closed': showTaskOptions === true }">
+      <!-- Asset Creation Context -->
+      <template v-if="!displayTypeCreator">
         <div class="input-section">
-          <Apps />
+          <div class="compound-input-section">
+            <input v-model="taskName" class="input-short" type="text" placeholder="Task Name" v-focus @keydown.enter="handleEnterKey" />
+            <ActionButton :icon="getAppIcon('switches')" :buttonFunction="toggleOptions" :isActive="exposeParams" v-tooltip="'Show Options'" />
+          </div>
         </div>
-      </div>
-      <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Create'" :fullWidth="true" @click="createTask(false)" :isActive="isValueChanged"
-          :loading="isAwaitingResponse" />
-      </div>
+
+        <div class="input-section drop-down-box-section">
+          <div class="horizontal-flex">
+            <div class="dropdown-wrapper">
+              <DropDownBox :items="taskTypeNames" :selectedItem="taskType" :onSelect="selectTaskType" />
+            </div>
+            <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="'Add New Asset Type'">
+              <img class="small-icons" :src="getAppIcon('plus-circle')">
+            </span>
+          </div>
+        </div>
+
+        <div class="task-options-container" :class="{ 'task-options-container-closed': showTaskOptions === true }">
+          <div class="input-section">
+            <Apps />
+          </div>
+        </div>
+
+        <div class="pop-up-actions">
+          <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+          <GeneralButton :label="'Create'" :fullWidth="true" @click="createTask(false)" :isActive="isValueChanged" :loading="isAwaitingResponse" />
+        </div>
+      </template>
+
+      <!-- Asset Type Creation Context -->
+      <template v-else>
+        <AssetTypeForm ref="typeFormRef" mode="create" @created="handleTypeCreated" @cancel="toggleTypeCreator" @iconChange="handleTypeIconChange" />
+      </template>
+
     </div>
   </div>
 </template>
@@ -42,6 +53,7 @@ import utils from '@/services/utils';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import Apps from '@/instances/common/components/Apps.vue';
+import AssetTypeForm from '@/instances/common/components/AssetTypeForm.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -75,33 +87,42 @@ const templateStore = useTemplateStore();
 const trayStates = useTrayStates();
 
 // refs
+const displayTypeCreator = ref(false);
 const exposeParams = ref(false);
 const isAwaitingResponse = ref(false);
-const isResource = ref(false);
-const itemType = ref('Task');
+const isResource = ref(true);
 const modalContainer = ref(null);
+const newTypeIcon = ref('generic');
 const selectedTemplate = ref('');
 const showTaskOptions = ref(true);
 const tags = ref([]);
 const taskName = ref('');
 const taskType = ref(assetStore.getAssetTypesNames[0]);
+const typeFormRef = ref(null);
 
 // constants
 const showSearch = false;
 
 // computed
-// Returns the modal icon from tray states.
-const icon = computed(() => trayStates.popUpModalIcon);
+// Returns the custom icon path from tray states (used in asset creation context).
+const customIcon = computed(() => {
+  if (displayTypeCreator.value) {
+    return null;
+  }
+  return trayStates.popUpModalIcon;
+});
+
+// Returns the type icon name (used in type creation context).
+const icon = computed(() => {
+  if (displayTypeCreator.value) {
+    return newTypeIcon.value || 'generic';
+  }
+  return null;
+});
 
 // Returns whether the task name is not empty.
 const isValueChanged = computed(() => {
   return taskName.value !== '';
-});
-
-// Returns available item types excluding the current selection.
-const itemTypes = computed(() => {
-  const allItemTypes = ['Task', 'Resource'];
-  return allItemTypes.filter((item) => item !== itemType.value?.toLowerCase());
 });
 
 // Returns the list of asset type names.
@@ -109,17 +130,15 @@ const taskTypeNames = computed(() => {
   return assetStore.getAssetTypesNames;
 });
 
-// Returns the modal title from tray states.
-const title = computed(() => trayStates.popUpModalTitle);
+// Returns the modal title from tray states or type creator title.
+const title = computed(() => {
+  if (displayTypeCreator.value) {
+    return 'Add Asset Type';
+  }
+  return trayStates.popUpModalTitle;
+});
 
 // methods
-// Changes the item type between Task and Resource.
-const changeItemType = (newItemTypeName) => {
-  const itemTypeName = newItemTypeName.toLowerCase() + 's';
-  isResource.value = itemTypeName !== 'tasks';
-  itemType.value = newItemTypeName;
-};
-
 // Closes the modal.
 const closeModal = () => {
   trayStates.searchTags = false;
@@ -195,6 +214,17 @@ const handleEnterKey = (event) => {
   }
 };
 
+// Handles successful type creation from the form.
+const handleTypeCreated = (response) => {
+  taskType.value = response.name;
+  displayTypeCreator.value = false;
+};
+
+// Handles icon change from the type form.
+const handleTypeIconChange = (icon) => {
+  newTypeIcon.value = icon;
+};
+
 // Scrolls the selected app icon into view.
 const scrollAppIntoView = () => {
   const selectedIcon = document.querySelector('.apps-flex-item-selected');
@@ -222,6 +252,14 @@ const toggleOptions = () => {
   showTaskOptions.value = !showTaskOptions.value;
   exposeParams.value = !exposeParams.value;
   scrollAppIntoView();
+};
+
+// Toggles the type creator context.
+const toggleTypeCreator = () => {
+  displayTypeCreator.value = !displayTypeCreator.value;
+  if (!displayTypeCreator.value) {
+    newTypeIcon.value = 'generic';
+  }
 };
 
 // watchers
@@ -259,6 +297,11 @@ onUnmounted(() => {
   flex-direction: row;
   align-items: center;
   gap: .4rem;
+}
+
+.dropdown-wrapper {
+  flex: 1;
+  width: 100%;
 }
 
 .general-container {

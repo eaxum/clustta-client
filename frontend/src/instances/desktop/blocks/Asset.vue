@@ -106,7 +106,7 @@
               </div>
               
               <!-- Assign Task button -->
-              <div v-if="!isUntracked && userStore.canDo('assign_task') && (!task.is_resource || isCurrentUser)" class="task-item-grid-assign-task-button">
+              <div v-if="!isUntracked && userStore.canDo('assign_task')" class="task-item-grid-assign-task-button">
                 <ActionButton :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
               </div>
               
