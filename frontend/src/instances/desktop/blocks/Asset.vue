@@ -237,8 +237,12 @@
         </div>
 
         <template v-if="!isEditing && !task.is_link">
+          
           <!-- task assignation -->
           <div v-if="!isUntracked && (!task.is_resource || isCurrentUser)" class="task-item-assignee-container">
+            <ActionButton class="task-item-assignee-button" v-if="!task.is_link && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
+              :icon="getAppIcon('layers')" v-tooltip="'View Checkpoints'" @click="viewCheckpoints(index, task, $event)" />
+
             <ActionButton class="task-item-assignee-button" v-if="userStore.canDo('assign_task') && !statusMenuDisplayed && !task.assignee_id"
               :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
 
@@ -255,6 +259,9 @@
           </div>
 
           <div v-else-if="!isEditing" class="task-item-assignee-container">
+            <ActionButton class="task-item-assignee-button" v-if="!task.is_link && !isUntracked && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
+              :icon="getAppIcon('layers')" v-tooltip="'View Checkpoints'" @click="viewCheckpoints(index, task, $event)" />
+
             <ActionButton class="task-item-assignee-button" v-if="userStore.canDo('assign_task') && !statusMenuDisplayed && !task.assignee_id && !isUntracked"
               :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
           </div>
@@ -1601,6 +1608,12 @@ onBeforeUnmount(() => {
 .task-item-main:hover .weblink-pointer-container {
   /* text-decoration: underline; */
   display: flex;
+}
+
+.task-item-assignee-container{
+  display: flex;
+  gap: .5rem;
+  min-width: min-content;
 }
 
 .task-item-assignee-button {
