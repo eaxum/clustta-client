@@ -2,36 +2,50 @@
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
 
     <HeaderArea :title="title" :icon="headerIcon"/>
+
     <div class="general-container" :style="{ gap: showTaskOptions ? 10 + 'px' : 20 + 'px' }">
 
-      <div v-if="!isMultiple" class="input-section">
-        <div class="compound-input-section">
-          <input v-model="entityName" class="input-short" type="text" placeholder="Collection Name" v-focus
-            v-return="handleEnterKey" />
+      <!-- Collection Creation Context -->
+      <template v-if="!displayTypeCreator">
+        <div v-if="!isMultiple" class="input-section">
+          <div class="compound-input-section">
+            <input v-model="entityName" class="input-short" type="text" placeholder="Collection Name" v-focus v-return="handleEnterKey" />
+          </div>
         </div>
-      </div>
 
-      <BatchGenerator v-else ref="batchGen" @updateData="onUpdateCollections" />
+        <BatchGenerator v-else ref="batchGen" @updateData="onUpdateCollections" />
 
-      <div class="input-section">
-        <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="selectEntityType" />
-      </div>
+        <div class="input-section">
+          <div class="horizontal-flex">
+            <div class="dropdown-wrapper">
+              <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="selectEntityType" />
+            </div>
+            <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="'Add New Collection Type'">
+              <img class="small-icons" :src="getAppIcon('plus-circle')">
+            </span>
+          </div>
+        </div>
 
-      <div v-if="!stage.groupItems" class="horizontal-flex">
-        Generate Multiple Items
-        <ToggleSwitch v-tooltip="isMultiple? 'Unmark as library' : 'Mark as a library'" @click="toggleIsMultiple" :switchValueProp="isMultiple" />
-      </div>
+        <div v-if="!stage.groupItems" class="horizontal-flex">
+          Generate Multiple Items
+          <ToggleSwitch v-tooltip="isMultiple? 'Unmark as library' : 'Mark as a library'" @click="toggleIsMultiple" :switchValueProp="isMultiple" />
+        </div>
 
-      <div class="horizontal-flex">
-        <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="'Library'" />
-        <ToggleSwitch v-tooltip="isLibrary? 'Unmark as library' : 'Mark as a library'" @click="toggleIsLibrary" :switchValueProp="isLibrary" />
-      </div>
+        <div class="horizontal-flex">
+          <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="'Library'" />
+          <ToggleSwitch v-tooltip="isLibrary? 'Unmark as library' : 'Mark as a library'" @click="toggleIsLibrary" :switchValueProp="isLibrary" />
+        </div>
 
-      <div class="pop-up-actions" ref="popUpActions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Confirm'" :fullWidth="true" :buttonFunction="createCollections" :isActive="isValueChanged"
-          :loading="isAwaitingResponse" />
-      </div>
+        <div class="pop-up-actions" ref="popUpActions">
+          <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+          <GeneralButton :label="'Confirm'" :fullWidth="true" :buttonFunction="createCollections" :isActive="isValueChanged" :loading="isAwaitingResponse" />
+        </div>
+      </template>
+
+      <!-- Collection Type Creation Context -->
+      <template v-else>
+        <CollectionTypeForm ref="typeFormRef" mode="create" @created="handleTypeCreated" @cancel="toggleTypeCreator" @iconChange="handleTypeIconChange" />
+      </template>
 
     </div>
   </div>
@@ -47,6 +61,7 @@ import emitter from '@/lib/mitt';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import BatchGenerator from '@/instances/desktop/components/BatchGenerator.vue';
+import CollectionTypeForm from '@/instances/common/components/CollectionTypeForm.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -79,6 +94,7 @@ const trayStates = useTrayStates();
 // refs
 const batchGen = ref(null);
 const collections = ref([]);
+const displayTypeCreator = ref(false);
 const entityName = ref('');
 const entityType = ref(collectionStore.getCollectionTypesNames[0]);
 const isAwaitingResponse = ref(false);
@@ -86,12 +102,17 @@ const isLibrary = ref(false);
 const isMultiple = ref(false);
 const itemsToGroup = ref([]);
 const modalContainer = ref(null);
+const newTypeIcon = ref('generic');
 const popUpActions = ref(null);
 const showTaskOptions = ref(true);
+const typeFormRef = ref(null);
 
 // computed
-// Returns the header icon based on selected entity type.
+// Returns the header icon based on selected entity type or new type icon.
 const headerIcon = computed(() => {
+  if (displayTypeCreator.value) {
+    return newTypeIcon.value || 'folder-plus';
+  }
   const selectedType = collectionStore.collectionTypes.find(item => item.name === entityType.value);
   return selectedType?.icon || 'folder-plus';
 });
@@ -124,7 +145,9 @@ const selectedEntityTypeId = computed(() => {
 
 // Returns the modal title based on current mode.
 const title = computed(() => {
-  if (stage.groupItems) {
+  if (displayTypeCreator.value) {
+    return 'Add new Collection Type';
+  } else if (stage.groupItems) {
     return 'Move into new Collection';
   } else {
     return isMultiple.value ? 'Create Multiple Collections' : 'Create Collection';
@@ -252,6 +275,17 @@ const handleEnterKey = () => {
   createCollections();
 };
 
+// Handles successful type creation from the form.
+const handleTypeCreated = (response) => {
+  entityType.value = response.name;
+  displayTypeCreator.value = false;
+};
+
+// Handles icon change from the type form.
+const handleTypeIconChange = (icon) => {
+  newTypeIcon.value = icon;
+};
+
 // Moves selected items into the specified folder.
 const moveIntoFolder = async (activeItemId) => {
   const selectedItems = stage.selectedItems;
@@ -303,6 +337,14 @@ const toggleIsLibrary = () => {
 const toggleIsMultiple = () => {
   isMultiple.value = !isMultiple.value;
 };
+
+// Toggles the type creator context.
+const toggleTypeCreator = () => {
+  displayTypeCreator.value = !displayTypeCreator.value;
+  if (!displayTypeCreator.value) {
+    newTypeIcon.value = 'generic';
+  }
+};
 // watchers
 watchEffect(() => {
   if (modalContainer.value) {
@@ -336,6 +378,11 @@ onUnmounted(() => {
   flex-direction: row;
   align-items: center;
   gap: .4rem;
+}
+
+.dropdown-wrapper {
+  flex: 1;
+  width: 100%;
 }
 
 .input-short {

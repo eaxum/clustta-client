@@ -1,41 +1,46 @@
 <template>
 
   <div ref="modalContainer" class="modal-container" v-esc="closeModal" v-stop-propagation>
-    <HeaderArea :title="title" :customIcon="icon" />
+    <HeaderArea :title="title" :icon="typeIcon" :customIcon="customIcon" />
 
     <div class="general-container">
-      <div class="input-section">
-        <input v-model="taskName" class="input-short" type="text" placeholder="Task Name" v-focus />
-      </div>
 
-      <div v-if="task.is_link" class="input-section">
-        <div class="horizontal-flex">
-          <input v-model="taskWebLink" class="input-short" type="text" placeholder="Web link" ref="taskWebLinkInput" />
-          <span @click="pasteWebLink" class="single-action-button" v-tooltip="'Paste link'"><img class="small-icons"
-              :src="getAppIcon('clipboard')"></span>
+      <!-- Asset Edit Context -->
+      <template v-if="!displayTypeCreator">
+        <div class="input-section">
+          <input v-model="taskName" class="input-short" type="text" placeholder="Task Name" v-focus />
         </div>
-      </div>
 
-      <div v-if="!task.is_link" class="input-section drop-down-box-section">
-        <DropDownBox :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" />
-        <DropDownBox :items="taskTypeNames" :selectedItem="taskType" :onSelect="selectTaskType" />
-      </div>
+        <div v-if="task.is_link" class="input-section">
+          <div class="horizontal-flex">
+            <input v-model="taskWebLink" class="input-short" type="text" placeholder="Web link" ref="taskWebLinkInput" />
+            <span @click="pasteWebLink" class="single-action-button" v-tooltip="'Paste link'">
+              <img class="small-icons" :src="getAppIcon('clipboard')">
+            </span>
+          </div>
+        </div>
 
-      <!-- <div class="input-section">
-        <div v-if="!userStore.canDo('update_task')" class="input-label">Tags</div>
+        <div v-if="!task.is_link" class="input-section drop-down-box-section">
+          <div class="horizontal-flex">
+            <div class="dropdown-wrapper">
+              <DropDownBox :items="taskTypeNames" :selectedItem="taskType" :onSelect="selectTaskType" />
+            </div>
+            <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="'Add New Asset Type'">
+              <img class="small-icons" :src="getAppIcon('plus-circle')">
+            </span>
+          </div>
+        </div>
 
-        <SearchSuggestions v-if="userStore.canDo('update_task')" :placeholder="placeholder" :tags="tags"
-          :projectTags="projectTags" :showTags="true" :forSearch="false" @tagAdded="addTag" @tagRemoved="removeTag" />
+        <div class="pop-up-actions">
+          <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+          <GeneralButton :label="'Confirm'" :fullWidth="true" @click="updateTask()" :isActive="isValueChanged" :loading="isAwaitingResponse" />
+        </div>
+      </template>
 
-        <TagContainer v-else :tags="tags" />
-      </div> -->
-      
-      <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Confirm'" :fullWidth="true" @click="updateTask()" :isActive="isValueChanged"
-          :loading="isAwaitingResponse" />
-      </div>
-
+      <!-- Asset Type Creation Context -->
+      <template v-else>
+        <AssetTypeForm ref="typeFormRef" mode="create" @created="handleTypeCreated" @cancel="toggleTypeCreator" @iconChange="handleTypeIconChange" />
+      </template>
 
     </div>
   </div>
@@ -49,6 +54,7 @@ import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
 // components
+import AssetTypeForm from '@/instances/common/components/AssetTypeForm.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -76,10 +82,11 @@ const trayStates = useTrayStates();
 const userStore = useUserStore();
 
 // refs
+const displayTypeCreator = ref(false);
 const isAwaitingResponse = ref(false);
 const isResource = ref(false);
-const itemType = ref('');
 const modalContainer = ref(null);
+const newTypeIcon = ref('generic');
 const oldTags = ref([]);
 const oldTaskName = ref('');
 const oldTaskWebLink = ref('');
@@ -88,10 +95,14 @@ const taskName = ref('');
 const taskType = ref('');
 const taskTypeId = ref('');
 const taskWebLink = ref('');
+const typeFormRef = ref(null);
 
 // computed
-// Returns the modal icon from the task.
-const icon = computed(() => {
+// Returns the custom icon path from the task (used in edit context).
+const customIcon = computed(() => {
+  if (displayTypeCreator.value) {
+    return null;
+  }
   return task.value.icon;
 });
 
@@ -104,17 +115,10 @@ const isValueChanged = computed(() => {
   const restrictedEntries = [oldTaskName.value, ''];
   const isNameChanged = !restrictedEntries.includes(taskName.value);
   const isPointerChanged = isValidWeblink(taskWebLink.value) && (taskWebLink.value !== oldTaskWebLink.value) && !!taskWebLink.value.length;
-  const isTypeChanged = currentTask.is_resource !== isResource.value;
   const isTaskTypeChanged = currentTask.task_type_id !== taskTypeId.value;
   const isTagsUpdated = tags.value.length === oldTags.value.length &&
     tags.value.every(tag => oldTags.value.includes(tag));
-  return isNameChanged || isTypeChanged || isTaskTypeChanged || !isTagsUpdated || isPointerChanged;
-});
-
-// Returns available item types excluding the current selection.
-const itemTypes = computed(() => {
-  const allItemTypes = ['Task', 'Resource'];
-  return allItemTypes.filter((item) => item !== itemType.value?.toLowerCase());
+  return isNameChanged || isTaskTypeChanged || !isTagsUpdated || isPointerChanged;
 });
 
 // Returns the currently selected task.
@@ -127,19 +131,23 @@ const taskTypeNames = computed(() => {
   return assetStore.getAssetTypesNames;
 });
 
-// Returns the modal title based on task type.
+// Returns the modal title based on task type or type creator.
 const title = computed(() => {
+  if (displayTypeCreator.value) {
+    return 'Add Asset Type';
+  }
   return task.value.is_link ? 'Edit link' : 'Edit task';
 });
 
-// methods
-// Changes the item type between Task and Resource.
-const changeItemType = (newItemTypeName) => {
-  const itemTypeName = newItemTypeName.toLowerCase() + 's';
-  isResource.value = itemTypeName !== 'tasks';
-  itemType.value = newItemTypeName;
-};
+// Returns the type icon name (used in type creation context).
+const typeIcon = computed(() => {
+  if (displayTypeCreator.value) {
+    return newTypeIcon.value || 'generic';
+  }
+  return null;
+});
 
+// methods
 // Closes the modal.
 const closeModal = () => {
   modals.disableAllModals();
@@ -148,6 +156,18 @@ const closeModal = () => {
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
+};
+
+// Handles successful type creation from the form.
+const handleTypeCreated = (response) => {
+  taskType.value = response.name;
+  taskTypeId.value = response.id;
+  displayTypeCreator.value = false;
+};
+
+// Handles icon change from the type form.
+const handleTypeIconChange = (icon) => {
+  newTypeIcon.value = icon;
 };
 
 // Pastes a web link from clipboard if valid.
@@ -173,6 +193,14 @@ const selectTaskType = (taskTypeName) => {
   const currentTaskName = taskName.value.toLowerCase();
   if (allTaskTypeNames.includes(currentTaskName)) {
     taskName.value = utils.capitalizeStr(taskTypeName);
+  }
+};
+
+// Toggles the type creator context.
+const toggleTypeCreator = () => {
+  displayTypeCreator.value = !displayTypeCreator.value;
+  if (!displayTypeCreator.value) {
+    newTypeIcon.value = 'generic';
   }
 };
 
@@ -220,7 +248,7 @@ onMounted(() => {
   const currentTask = assetStore.selectedAsset;
   taskName.value = currentTask.name;
   taskWebLink.value = currentTask.pointer;
-  itemType.value = !currentTask.is_resource ? 'Task' : 'Resource';
+  isResource.value = currentTask.is_resource;
   taskType.value = currentTask.task_type_name;
   taskTypeId.value = currentTask.task_type_id;
   oldTaskName.value = currentTask.name;
@@ -233,6 +261,11 @@ onMounted(() => {
 
 <style scoped>
 @import "@/assets/desktop.css";
+
+.dropdown-wrapper {
+  flex: 1;
+  width: 100%;
+}
 
 .input-short {
   flex: 1;
