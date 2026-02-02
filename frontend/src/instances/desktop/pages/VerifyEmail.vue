@@ -49,6 +49,9 @@
                 <div class="submit-button-icon loading-icon">
                   <img src="/icons/loading.svg" />
                 </div>
+                <div v-if="loadingStatus" class="loading-status">
+                  {{ loadingStatus }}
+                </div>
               </div>
 
           </form>
@@ -114,6 +117,7 @@ const userPassword = computed(() => userStore.pendingVerification?.password || '
 const error = ref('');
 const isAwaitingResponse = ref(false);
 const isResendingToken = ref(false);
+const loadingStatus = ref('');
 const resendCooldown = ref(0);
 const tokenDigits = ref(['', '', '', '', '', '']);
 const tokenInputs = ref([]);
@@ -223,6 +227,7 @@ const handleVerification = async () => {
 
   isAwaitingResponse.value = true;
   error.value = '';
+  loadingStatus.value = 'Verifying code...';
 
   try {
     
@@ -232,18 +237,25 @@ const handleVerification = async () => {
     
     // Auto-login the user after successful verification
     try {
+      loadingStatus.value = 'Logging in...';
       const loginData = await AuthService.Login(userEmail.value, userPassword.value);
       userStore.user = loginData.user;
       userStore.isUserAuthenticated = true;
 
       // Initialize stores that require authentication
+      loadingStatus.value = 'Loading account...';
       await accountStore.initialize();
+      
+      loadingStatus.value = 'Applying theme...';
       await themeStore.initializeTheme();
+      
+      loadingStatus.value = 'Loading studios...';
       await projectStore.loadStudios();
 
       const projectDirectoryExists = await SettingsService.GetProjectDirectory();
 
       if(projectDirectoryExists){
+        loadingStatus.value = 'Loading projects...';
         await projectStore.loadProjects();
         trayStates.refreshData();
       } else {
@@ -266,6 +278,7 @@ const handleVerification = async () => {
   } catch (error) {
     console.log(error);
     isAwaitingResponse.value = false;
+    loadingStatus.value = '';
     notificationStore.errorNotification("Verification Failed", error.message || "Invalid verification code. Please try again.");
     error.value = error.message || "Invalid verification code. Please try again.";
     clearTokenInputs();
@@ -418,6 +431,20 @@ onMounted(async () => {
   opacity: 0.5;
   cursor: not-allowed;
   color: var(--light-gray);
+}
+
+.loading-status {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--white);
+  opacity: 0.7;
+  margin-top: 0.5rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
 }
 
 @media (max-width: 768px) {

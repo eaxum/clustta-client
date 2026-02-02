@@ -55,6 +55,9 @@
                 :noFilter="true"
               />
             </button>
+            <div v-if="loadingStatus" class="loading-status">
+              {{ loadingStatus }}
+            </div>
           </form>
           <!-- form error -->
           <div v-if="error" class="error-message">
@@ -116,6 +119,7 @@ const accountStore = useAccountStore();
 // refs
 const error = ref('');
 const isAwaitingResponse = ref(false);
+const loadingStatus = ref('');
 const showStudioLogin = ref(false);
 const studioUrl = ref('');
 const studioUrlError = ref('');
@@ -201,6 +205,7 @@ const normalizeStudioUrl = (url) => {
 const handleLogin = async () => {
   isAwaitingResponse.value = true;
   error.value = '';
+  loadingStatus.value = 'Authenticating...';
 
   // Determine if this is a studio login
   const isStudioLogin = showStudioLogin.value && studioUrl.value.trim();
@@ -220,13 +225,19 @@ const handleLogin = async () => {
     userStore.isUserAuthenticated = true;
 
     // Initialize stores that require authentication
+    loadingStatus.value = 'Loading account...';
     await accountStore.initialize();
+    
+    loadingStatus.value = 'Applying theme...';
     await themeStore.initializeTheme();
+    
+    loadingStatus.value = 'Loading studios...';
     await projectStore.loadStudios();
 
     projectDirectoryExists.value = await SettingsService.GetProjectDirectory();
 
     if(projectDirectoryExists.value){
+      loadingStatus.value = 'Loading projects...';
       await projectStore.loadProjects();
       trayStates.refreshData();
     } else {
@@ -244,6 +255,7 @@ const handleLogin = async () => {
   } catch (err) {
     console.log(err);
     isAwaitingResponse.value = false;
+    loadingStatus.value = '';
     
     // Check if error indicates user needs verification
     const errorMessage = err.message || err.toString();
@@ -288,6 +300,7 @@ const enableOfflineMode = async () => {
   
   isAwaitingResponse.value = true;
   error.value = '';
+  loadingStatus.value = 'Enabling offline mode...';
 
   try {
     await AuthService.EnableOfflineMode();
@@ -304,13 +317,19 @@ const enableOfflineMode = async () => {
     userStore.isUserAuthenticated = true;
     
     // Initialize stores
+    loadingStatus.value = 'Loading account...';
     await accountStore.initialize();
+    
+    loadingStatus.value = 'Applying theme...';
     await themeStore.initializeTheme();
+    
+    loadingStatus.value = 'Loading studios...';
     await projectStore.loadStudios();
     
     projectDirectoryExists.value = await SettingsService.GetProjectDirectory();
 
     if (projectDirectoryExists.value) {
+      loadingStatus.value = 'Loading projects...';
       await projectStore.loadProjects();
       trayStates.refreshData();
     } else {
@@ -326,6 +345,7 @@ const enableOfflineMode = async () => {
   } catch (err) {
     console.error('Failed to enable offline mode:', err);
     error.value = 'Failed to enable offline mode. Please try again.';
+    loadingStatus.value = '';
     notificationStore.errorNotification("Offline Mode Error", 'Failed to enable offline mode');
   } finally {
     isAwaitingResponse.value = false;
@@ -447,6 +467,20 @@ onMounted( async () => {
 
 .forgot-password-link:hover {
   opacity: 1;
+}
+
+.loading-status {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--white);
+  opacity: 0.7;
+  margin-top: 0.5rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
 }
 
 </style>

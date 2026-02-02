@@ -88,6 +88,14 @@ const router = createRouter({
   routes,
 });
 
+// Updates the loading status text in the initial app loader (index.html).
+const setLoaderStatus = (message) => {
+  const statusEl = document.getElementById('loader-status');
+  if (statusEl) {
+    statusEl.textContent = message;
+  }
+};
+
 // Navigation guard for auth
 router.beforeEach(async (to, from, next) => {
   // Public routes that don't need any auth check
@@ -97,6 +105,7 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // Check authentication status
+  setLoaderStatus('Checking authentication...');
   let isAuthenticated = false;
   let userData = null;
   try {
@@ -132,13 +141,19 @@ router.beforeEach(async (to, from, next) => {
       userStore.isUserAuthenticated = true;
       
       // Initialize stores
+      setLoaderStatus('Loading account...');
       await accountStore.initialize();
+      
+      setLoaderStatus('Applying theme...');
       await themeStore.initializeTheme();
+      
+      setLoaderStatus('Loading studios...');
       await projectStore.loadStudios();
       
       // Load projects if directory exists
       const projectDirectoryExists = await SettingsService.GetProjectDirectory();
       if (projectDirectoryExists) {
+        setLoaderStatus('Loading projects...');
         await projectStore.loadProjects();
         trayStates.refreshData();
       } else if (!isWebMode) {
