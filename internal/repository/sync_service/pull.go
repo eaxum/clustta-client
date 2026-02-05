@@ -433,7 +433,8 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 		studioProjectUrl := url + "/projects"
 		req, err := http.NewRequest("GET", studioProjectUrl, nil)
 		if err != nil {
-			return studioProjects, err
+			// Fallback to local projects when request creation fails
+			return GetLocalStudioProjects(studioProjectsDir, url, user)
 		}
 		userJson, err := json.Marshal(user)
 		if err != nil {
@@ -446,7 +447,9 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 		client := &http.Client{}
 		response, err := client.Do(req)
 		if err != nil {
-			return studioProjects, err
+			// Fallback to local projects when offline
+			fmt.Printf("Server unreachable, loading local projects: %v\n", err)
+			return GetLocalStudioProjects(studioProjectsDir, url, user)
 		}
 		defer response.Body.Close()
 
@@ -599,4 +602,89 @@ func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]boo
 	}
 
 	return untrackedProjects, nil
+}
+
+// GetLocalStudioProjects scans the local studio projects directory for downloaded .clst files.
+// This is used as a fallback when the remote server is unreachable (offline mode).
+func GetLocalStudioProjects(studioProjectsDir, studioUrl string, user auth_service.User) ([]repository.ProjectInfo, error) {
+	localProjects := []repository.ProjectInfo{}
+
+	// Check if directory exists
+	if _, err := os.Stat(studioProjectsDir); os.IsNotExist(err) {
+		return localProjects, nil
+	}
+
+	entries, err := os.ReadDir(studioProjectsDir)
+	if err != nil {
+		return localProjects, err
+	}
+
+	extension := "clst"
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), extension) {
+			continue
+		}
+
+		projectPath := filepath.Join(studioProjectsDir, entry.Name())
+
+		// Skip empty files
+		fileInfo, err := entry.Info()
+		if err != nil || fileInfo.Size() == 0 {
+			continue
+		}
+
+		// Verify project integrity
+		valid, err := repository.VerifyProjectIntegrity(projectPath)
+		if !valid || err != nil {
+			continue
+		}
+
+		// Check if user has access to this project
+		userInProject, err := repository.UserInProject(projectPath, user.Id)
+		if err != nil || !userInProject {
+			continue
+		}
+
+		// Get project info from local database
+		projectInfo, err := repository.GetProjectInfo(projectPath, user)
+		if err != nil {
+			fmt.Printf("Warning: Failed to get project info for %s: %v\n", entry.Name(), err)
+			continue
+		}
+
+		// Read additional info from local database
+		dbConn, err := utils.OpenDb(projectPath)
+		if err != nil {
+			continue
+		}
+
+		tx, err := dbConn.Beginx()
+		if err != nil {
+			dbConn.Close()
+			continue
+		}
+
+		workingDir, _ := utils.GetProjectWorkingDir(tx)
+		syncToken, _ := utils.GetProjectSyncToken(tx)
+
+		tx.Rollback()
+		dbConn.Close()
+
+		// Build project URL from studio URL and project name
+		projectName := strings.TrimSuffix(entry.Name(), "."+extension)
+		projectUrl := studioUrl + "/" + projectName
+
+		projectInfo.Uri = projectPath
+		projectInfo.Remote = projectUrl
+		projectInfo.WorkingDirectory = workingDir
+		projectInfo.SyncToken = syncToken
+		projectInfo.HasRemote = true
+		projectInfo.IsDownloaded = true
+		projectInfo.IsTracked = true
+		projectInfo.IsOffline = true
+
+		localProjects = append(localProjects, projectInfo)
+	}
+
+	return localProjects, nil
 }

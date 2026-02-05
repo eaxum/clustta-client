@@ -211,7 +211,10 @@ export const useStudioStore = defineStore("studio", {
               }
             })
         this.studioUsers = this.sortAlphabetically(users);
-      }) 
+      }).catch((error) => {
+        // Handle offline or server errors gracefully
+        console.log("Failed to fetch studio users:");
+      });
     },
 
     sortAlphabetically(data){
