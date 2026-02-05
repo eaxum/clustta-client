@@ -324,7 +324,7 @@ onMounted(() => {
   width: 100%;
   min-height: 100vh;
   max-height: 100vh;
-  background-color: var(--night);
+  background-color: var(--midnight-steel);
   display: flex;
   flex-direction: column;
   align-items: center;
