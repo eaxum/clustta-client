@@ -25,6 +25,7 @@ export const useMenu = defineStore("useMenu", {
       accountMenu: false,
       copyToProjectSubMenu: false,
       moveToCollectionSubMenu: false,
+      sortMenu: false,
       viewMenu: false,
     },
 
@@ -49,6 +50,7 @@ export const useMenu = defineStore("useMenu", {
       'resourceItemMenu', 
       'assignMenu',
       'accountMenu',
+      'sortMenu',
       'viewMenu'
     ],
 

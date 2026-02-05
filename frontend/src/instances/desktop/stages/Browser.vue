@@ -13,6 +13,7 @@
 			<StateBar v-if="(!showFilters || !isDefaultWorkspace) && !kanbanView" :hasData="!!rootData.length" />
 			<div v-if="rootData.length || commonStore.viewSearchQuery.length || commonStore.showUntracked"
 				class="view-options">
+				<ActionButton v-if="!kanbanView" :icon="getAppIcon('arrows-sort')" v-tooltip="'Sort'" :buttonFunction="openSortMenu" />
 				<ActionButton :icon="getAppIcon('eye-cog')" v-tooltip="'View Options'" :buttonFunction="openViewMenu" />
 				<ActionButton v-if="!kanbanView && isWideScreen" :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
 					v-tooltip="panes.showDetailsPane ? 'Close pane' : 'Open pane'" :buttonFunction="toggleDetailsPane" />
@@ -637,6 +638,11 @@ const openMenu = (event) => {
 	menu.showContextMenu(event, 'projectMenu', true);
 };
 
+// Opens the sort options menu.
+const openSortMenu = (event) => {
+	menu.showContextMenu(event, 'sortMenu', true, true);
+};
+
 // Opens the view options menu.
 const openViewMenu = (event) => {
 	menu.showContextMenu(event, 'viewMenu', true, true);
@@ -676,6 +682,41 @@ const prompt = () => {
 	return 'Right click to create a new Collection or Asset.';
 };
 
+// Status priority map for sorting (lower number = higher priority).
+const statusPriority = { 'retake': 1, 'wip': 2, 'wfa': 3, 'ready': 4, 'todo': 5, 'done': 6 };
+
+// Sorts items based on the current sort settings in commonStore.
+// Entities and tasks are sorted separately to maintain grouping.
+const sortItems = (entities, tasks, untrackedEntities, untrackedTasks) => {
+	const sortBy = commonStore.sortBy;
+	const sortOrder = commonStore.sortOrder;
+	const multiplier = sortOrder === 'asc' ? 1 : -1;
+
+	const sortByName = (a, b) => {
+		const nameA = (a.name || '').toLowerCase();
+		const nameB = (b.name || '').toLowerCase();
+		return multiplier * nameA.localeCompare(nameB);
+	};
+
+	const sortByStatus = (a, b) => {
+		const statusA = (a.status_short_name || '').toLowerCase();
+		const statusB = (b.status_short_name || '').toLowerCase();
+		const priorityA = statusPriority[statusA] ?? 99;
+		const priorityB = statusPriority[statusB] ?? 99;
+		if (priorityA !== priorityB) return multiplier * (priorityA - priorityB);
+		return sortByName(a, b);
+	};
+
+	const sortFn = sortBy === 'status' ? sortByStatus : sortByName;
+
+	return [
+		...(entities ? [...entities].sort(sortByName) : []),
+		...(untrackedEntities ? [...untrackedEntities].sort(sortByName) : []),
+		...(tasks ? [...tasks].sort(sortFn) : []),
+		...(untrackedTasks ? [...untrackedTasks].sort(sortByName) : [])
+	];
+};
+
 // Full refresh: reloads project data, fetches all children, processes icons/previews, and updates state flags.
 const refresh = async () => {
 	if (kanbanView.value) return;
@@ -692,7 +733,7 @@ const refresh = async () => {
 	}
 	await assetStore.processAssetsIconsAndPreviews(children.tasks);
 	await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
-	rootData.value = [...children.entities, ...children.untracked_entities, ...children.tasks, ...children.untracked_tasks];
+	rootData.value = sortItems(children.entities, children.tasks, children.untracked_entities, children.untracked_tasks);
 	assetStore.assetsLoaded = true;
 	collectionStore.loadCollectionStateFlags();
 	await nextTick();
@@ -738,7 +779,7 @@ const softRefresh = async () => {
 	if (children.untracked_tasks) await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
 	const allEntities = commonStore.showEntities ? children.entities?.filter((item) => !item.is_trashed) : [];
 	const allTasks = commonStore.showTasks ? children.tasks : [];
-	rootData.value = [...(allEntities ?? []), ...(allTasks ?? []), ...(children.untracked_entities ?? []), ...(children.untracked_tasks ?? [])];
+	rootData.value = sortItems(allEntities, allTasks, children.untracked_entities, children.untracked_tasks);
 	assetStore.assetsLoaded = true;
 	collectionStore.loadCollectionStateFlags();
 	await nextTick();

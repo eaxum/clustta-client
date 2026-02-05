@@ -525,7 +525,7 @@ const getProjectData = async () => {
   getCollectionCount();
 }
 
-watch(() => projectStore.getActiveProject.uri, () => {
+watch(() => projectStore.getActiveProject?.uri, () => {
   projectSize.value = 0;
   clusttaSize.value = 0;
   assetCount.value = 0;
