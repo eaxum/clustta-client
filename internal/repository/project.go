@@ -54,6 +54,7 @@ type ProjectInfo struct {
 	IsClosed         bool     `json:"is_closed"`
 	IsOutdated       bool     `json:"is_outdated"`
 	IsTracked        bool     `json:"is_tracked"`
+	IsOffline        bool     `json:"is_offline"`
 	IgnoreList       []string `json:"ignore_list"`
 }
 

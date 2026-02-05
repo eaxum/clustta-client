@@ -143,6 +143,8 @@ function startCheckSycnTokenInterval() {
             setTimeout(run, 1000);
             return
         }
+        // When offline, still check periodically but at a longer interval to detect reconnection
+        const checkInterval = projectStore.serverActive ? 5000 : 60000;
         ProjectService.GetSyncToken(projectStore.getActiveProjectUrl)
             .then(async (token) => {
                 projectStore.serverActive = true;
@@ -170,9 +172,8 @@ function startCheckSycnTokenInterval() {
                 }
             }).catch((error) => {
                 projectStore.serverActive = false;
-                console.log(error)
             }).finally(() => {
-                setTimeout(run, 5000);
+                setTimeout(run, checkInterval);
             });
 
     }

@@ -169,9 +169,13 @@ export const useProjectStore = defineStore("projects", {
       await ProjectService.GetStudioProjects(studioUrl, studio.name)
         .then(async (response) => {
           this.projects = response;
+          // Check if any projects are in offline mode
+          const hasOfflineProjects = response.some(p => p.is_offline);
+          this.serverActive = !hasOfflineProjects;
         })
         .catch((error) => {
           console.error(error);
+          this.serverActive = false;
           notificationStore.errorNotification("Error loading projects", error);
         });
 
