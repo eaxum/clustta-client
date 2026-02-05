@@ -30,6 +30,7 @@ import ProjectMenu from '@/instances/desktop/menus/ProjectMenu.vue';
 import StateFilterMenu from '@/instances/desktop/menus/StateFilterMenu.vue';
 import StatusFilterMenu from '@/instances/desktop/menus/StatusFilterMenu.vue';
 import TagsFilterMenu from '@/instances/desktop/menus/TagsFilterMenu.vue';
+import SortMenu from '@/instances/desktop/menus/SortMenu.vue';
 import TypeFilterMenu from '@/instances/desktop/menus/TypeFilterMenu.vue';
 import UntrackedItemMenu from '@/instances/desktop/menus/UntrackedItemMenu.vue';
 import ViewMenu from '@/instances/desktop/menus/ViewMenu.vue';
@@ -58,6 +59,7 @@ const menuComponents = {
   moveToCollectionSubMenu: MoveToCollectionSubMenu,
   projectItemMenu: ProjectItemMenu,
   projectMenu: ProjectMenu,
+  sortMenu: SortMenu,
   stateFilterMenu: StateFilterMenu,
   statusFilterMenu: StatusFilterMenu,
   tagsFilterMenu: TagsFilterMenu,

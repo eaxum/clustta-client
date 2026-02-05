@@ -65,7 +65,7 @@
           </div>
         </div>
         <!-- toggle -->
-        <div class="additional-actions">
+        <div v-if="!isAwaitingResponse" class="additional-actions">
 
           <div @click="toggleLogin" class="signup-toggle">
             Don't have an account?&nbsp;<span class="bold">Sign Up</span>

@@ -35,6 +35,8 @@ export const useCommonStore = defineStore("common", {
     navigatorMode: false,
     useGrid: defaultUseGrid,
     viewMode: defaultUseGrid ? 'grid' : 'compact',
+    sortBy: 'name',
+    sortOrder: 'asc',
     gridSize: 200,
     listItemHeight: 60,
     listItemGap: 4,

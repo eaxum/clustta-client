@@ -3,18 +3,20 @@
     <div class="settings-component-container">
       <ActionBar v-if="userStore.canDo('add_user')" :itemType="'Add collaborator'" :addFunction="addCollaborator" />
 
-      <div v-if="projectCollaborators.length" class="collaborators-list">
-        <CollaboratorItem 
-          v-for="(collaborator, index) in projectCollaborators" 
-          :key="collaborator.id"
-          :collaborator="collaborator"
-          :index="index"
-          :roles="availableRoles"
-          :onRoleChange="changeCollaboratorRole"
-          :onDelete="deleteCollaborator"
-          :canEdit="collaborator.can_edit"
-          :canDelete="collaborator.can_delete"
-        />
+      <div v-if="projectCollaborators.length" class="collaborators-list-wrapper">
+        <div class="collaborators-list">
+          <CollaboratorItem 
+            v-for="(collaborator, index) in projectCollaborators" 
+            :key="collaborator.id"
+            :collaborator="collaborator"
+            :index="index"
+            :roles="availableRoles"
+            :onRoleChange="changeCollaboratorRole"
+            :onDelete="deleteCollaborator"
+            :canEdit="collaborator.can_edit"
+            :canDelete="collaborator.can_delete"
+          />
+        </div>
       </div>
 
     </div>
@@ -144,13 +146,31 @@ const deleteCollaborator = (userId) => {
   width: 100%;
 }
 
+.collaborators-list-wrapper {
+  width: 100%;
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.collaborators-list-wrapper::-webkit-scrollbar {
+  width: 4px;
+}
+
+.collaborators-list-wrapper::-webkit-scrollbar-thumb {
+  border-radius: var(--small-radius);
+  background-color: var(--light-steel);
+}
+
+.collaborators-list-wrapper::-webkit-scrollbar-track {
+  border-radius: var(--small-radius);
+}
+
 .collaborators-list {
   display: flex;
   flex-direction: column;
   gap: .5rem;
   width: 100%;
-  height: 100%;
-  overflow-y: auto;
   box-sizing: border-box;
 }
 
