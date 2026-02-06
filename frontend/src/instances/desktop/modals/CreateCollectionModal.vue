@@ -314,7 +314,7 @@ const moveIntoFolder = async (activeItemId) => {
       const newPath = await FSService.JoinPath(entity.file_path, item.name);
       renameOperations.push({ oldPath: item.file_path, newPath });
     }
-    await FSService.RenameBatch(renameOperations);
+    await FSService.RenameBatch(JSON.stringify(renameOperations));
   }
 };
 

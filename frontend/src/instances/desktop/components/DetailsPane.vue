@@ -661,7 +661,7 @@ const moveIntoFolder = async () => {
       itemUpdates.push({ item, itemPath, newPath, entityPath });
     }
 
-    await FSService.RenameBatch(renameOperations);
+    await FSService.RenameBatch(JSON.stringify(renameOperations));
 
     // Update local state after successful rename
     for (const { item, itemPath, newPath, entityPath } of itemUpdates) {

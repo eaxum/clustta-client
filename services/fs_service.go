@@ -12,6 +12,7 @@ import (
 	"clustta/output"
 	"compress/gzip"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -388,8 +389,14 @@ type RenameOperation struct {
 }
 
 // RenameBatch moves or renames multiple files or directories.
+// Accepts a JSON string containing an array of RenameOperation objects.
 // Returns an error if any operation fails.
-func (f *FSService) RenameBatch(operations []RenameOperation) error {
+func (f *FSService) RenameBatch(operationsJSON string) error {
+	var operations []RenameOperation
+	if err := json.Unmarshal([]byte(operationsJSON), &operations); err != nil {
+		return fmt.Errorf("failed to parse rename operations: %w", err)
+	}
+
 	for _, op := range operations {
 		err := os.Rename(op.OldPath, op.NewPath)
 		if err != nil {

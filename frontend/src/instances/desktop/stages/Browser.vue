@@ -598,7 +598,7 @@ const onDragStop = async (event) => {
 	}
 	if (renameOperations.length) {
 		try {
-			await FSService.RenameBatch(renameOperations);
+			await FSService.RenameBatch(JSON.stringify(renameOperations));
 			needsRefresh = true;
 		} catch (error) {
 			notificationStore.errorNotification("Error moving files", error);
