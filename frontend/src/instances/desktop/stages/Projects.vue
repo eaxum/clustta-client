@@ -508,16 +508,16 @@ onUnmounted(() => {
 }
 
 .project-list-root::-webkit-scrollbar {
-	width: 8px;
+	width: 4px;
 }
 
 .project-list-root::-webkit-scrollbar-thumb {
-	border-radius: 10px;
+	border-radius: 4px;
 	background-color: var(--dark-steel);
 }
 
 .project-list-root::-webkit-scrollbar-track {
-	border-radius: 10px;
+	border-radius: 4px;
 }
 
 .project-list-root {
@@ -562,16 +562,17 @@ onUnmounted(() => {
 }
 
 .project-list-container::-webkit-scrollbar {
-	width: 8px;
+	width: 6px;
 }
 
 .project-list-container::-webkit-scrollbar-thumb {
-	border-radius: 10px;
+	border-radius: 8px;
 	background-color: var(--dark-steel);
 }
 
 .project-list-container::-webkit-scrollbar-track {
-	border-radius: 10px;
+	border-radius: 8px;
+	margin: 10px;
 }
 
 .task-header {
