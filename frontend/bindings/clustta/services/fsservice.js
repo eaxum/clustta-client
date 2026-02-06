@@ -316,12 +316,13 @@ export function Rename(oldPath, newPath) {
 
 /**
  * RenameBatch moves or renames multiple files or directories.
+ * Accepts a JSON string containing an array of RenameOperation objects.
  * Returns an error if any operation fails.
- * @param {$models.RenameOperation[]} operations
+ * @param {string} operationsJSON
  * @returns {$CancellablePromise<void>}
  */
-export function RenameBatch(operations) {
-    return $Call.ByID(361330558, operations);
+export function RenameBatch(operationsJSON) {
+    return $Call.ByID(361330558, operationsJSON);
 }
 
 /**

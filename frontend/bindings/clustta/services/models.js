@@ -1179,44 +1179,6 @@ export class RecycleItem {
     }
 }
 
-/**
- * RenameOperation represents a single rename operation with old and new paths.
- */
-export class RenameOperation {
-    /**
-     * Creates a new RenameOperation instance.
-     * @param {Partial<RenameOperation>} [$$source = {}] - The source object to create the RenameOperation.
-     */
-    constructor($$source = {}) {
-        if (!("oldPath" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["oldPath"] = "";
-        }
-        if (!("newPath" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["newPath"] = "";
-        }
-
-        Object.assign(this, $$source);
-    }
-
-    /**
-     * Creates a new RenameOperation instance from a string or object.
-     * @param {any} [$$source = {}]
-     * @returns {RenameOperation}
-     */
-    static createFrom($$source = {}) {
-        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        return new RenameOperation(/** @type {Partial<RenameOperation>} */($$parsedSource));
-    }
-}
-
 export class Skill {
     /**
      * Creates a new Skill instance.
