@@ -2,7 +2,7 @@
   <span v-stop-propagation @click="buttonFunction" :style="{ backgroundColor: color }" :class="{
     'button-background': useBackground, 'alert-background': isAlert, 'full-width': fullWidth, 'outline': useOutline, 'icon-after': iconAfter, 'centered':
       centered, 'button-active': isActive, 'is-inactive': isInactive, 'is-disabled': isDead, 'plain-background' : plainBackground, 'use-alert': useAlert, 'use-danger': useDanger, 'use-go': useGo,
-    'force-light': forceIconColor === 'light', 'force-dark': forceIconColor === 'dark', 'has-custom-icon': (emoji || customIconUrl) && iconAfter,
+    'force-light': forceIconColor === 'light', 'force-dark': forceIconColor === 'dark', 'has-custom-icon': (emoji || customIconUrl) && iconAfter, 'is-mini': isMini,
   }" class="action-button" ref="buttonRef">
     <Teleport to="#app">
       <div v-if="showIndicator && buttonPosition" class="filter-button-indicator" :style="indicatorStyle"></div>
@@ -48,6 +48,7 @@ const props = defineProps({
   isInactive: { type: Boolean, default: false },
   isDisabled: { type: Boolean, default: false },
   isActive: { type: Boolean, default: false },
+  isMini: { type: Boolean, default: false },
   fullWidth: { type: Boolean, default: false },
   allowDeactivate: { type: Boolean, default: false },
   showIndicator: { type: Boolean, default: false },
@@ -270,6 +271,17 @@ onBeforeUnmount(() => {
 
 .is-disabled{
   opacity: .5;
+}
+
+.is-mini {
+  padding: 0;
+}
+
+.is-mini img {
+  width: 12px;
+  height: 12px;
+  min-width: 12px;
+  min-height: 12px;
 }
 
 .button-emoji {

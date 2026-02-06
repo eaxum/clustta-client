@@ -1,13 +1,13 @@
 <template>
   <div class="conflict-item-main" :class="{ 'conflict-item-resolved': isResolved }" @mouseenter="isHovered = true" @mouseleave="isHovered = false">
-    <div class="conflict-item-icon-container" @click="console.log(conflict)" >
-      <img :src="itemIcon" :alt="conflict.name" class="conflict-item-icon" />
+    <div class="conflict-item-icon-container">
+      <img :src="itemIcon" :alt="conflict.name" class="conflict-item-icon small-icons" :class="{ 'no-filter': isCustomIcon }" />
     </div>
 
     <div class="conflict-item-content">
       <RenameInput v-if="isRenaming" v-model="newName" :originalValue="conflict.name" placeholder="Enter new name" @confirm="handleRenameConfirm" @cancel="handleRenameCancel" />
-      <!-- <span v-else class="conflict-item-name">{{ displayName }}</span> -->
-      <span v-else class="conflict-item-name">{{ conflict.entity_path }}</span>
+      <span v-else class="conflict-item-name">{{ displayName }}</span>
+      <!-- <span v-else class="conflict-item-name">{{ conflict.entity_path }}</span> -->
     </div>
 
     <div v-if="!isResolved && !isRenaming" class="conflict-item-actions">
@@ -60,6 +60,7 @@ const emit = defineEmits(['resolved', 'merge']);
 
 // refs
 const currentName = ref('');
+const isCustomIcon = ref(false);
 const isHovered = ref(false);
 const isRenaming = ref(false);
 const isResolved = ref(false);
@@ -71,6 +72,9 @@ const displayName = computed(() => {
   const name = currentName.value || props.conflict.name;
   
   if (props.showFullPath && props.conflict.entity_path) {
+    if (props.conflict.type === 'entity') {
+      return `${props.conflict.entity_path}`;
+    }
     if (props.conflict.type === 'task' && props.conflict.extension && !props.hideExtensions) {
       return `${props.conflict.entity_path}${name}${props.conflict.extension}`;
     }
@@ -133,13 +137,20 @@ const handleRenameConfirm = async (confirmedName) => {
 
 // Loads the appropriate icon based on conflict type.
 const loadIcon = async () => {
+  isCustomIcon.value = false;
+  
   if (props.conflict.type === 'entity') {
     itemIcon.value = getAppIcon(props.conflict.entity_type_icon || 'folder');
   } else {
     if (props.conflict.extension) {
       const ext = props.conflict.extension.toLowerCase().replace(/^\./, '');
       const iconPath = await iconStore.getIcon(ext);
-      itemIcon.value = iconPath || getAppIcon('file');
+      if (iconPath) {
+        itemIcon.value = iconPath;
+        isCustomIcon.value = true;
+      } else {
+        itemIcon.value = getAppIcon(props.conflict.task_type_icon || 'file');
+      }
     } else {
       itemIcon.value = getAppIcon(props.conflict.task_type_icon || 'file');
     }

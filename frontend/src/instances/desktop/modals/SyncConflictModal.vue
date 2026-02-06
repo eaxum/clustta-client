@@ -1,12 +1,13 @@
 <template>
   <div class="modal-container" ref="modalContainer" v-stop-propagation>
-    <HeaderArea title="Sync Conflict Detected" :icon="getAppIcon('cloud-error')" :showSearch="false" />
+    <HeaderArea title="Cornflakes!" :icon="getAppIcon('cloud-error')" :showSearch="false" />
+    <!-- <HeaderArea title="Resolve Conflicts" :icon="getAppIcon('cloud-error')" :showSearch="false" /> -->
 
     <div class="general-container">
       <div class="conflict-message">
-        <p>The following items already exist on the server (created by another user).</p>
+        <p>Some items may have been created by another user and already exist on the server.</p>
 
-        <p>Your local versions will be merged with the server versions.</p>
+        <p>Either rename yours or merge them and retry the sync after. <span class="learn-more-link" @click="openLearnMore">Learn more <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span></p>
       </div>
 
       <div class="conflict-tabs-header">
@@ -57,6 +58,7 @@ import {
   getResolutionSummary,
   prepareRecursiveMergeConflicts,
 } from '@/lib/conflictUtils';
+import { Browser } from "@wailsio/runtime";
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -222,6 +224,11 @@ const handleFilterChange = (filter) => {
   selectedFilter.value = filter;
 };
 
+// Opens the sync documentation page.
+const openLearnMore = () => {
+  Browser.OpenURL('https://docs.clustta.com/guide/assignations-dependencies-and-syncing.html#sync-conflicts');
+};
+
 // Merges all remaining conflicts with server versions.
 const handleMergeAll = async () => {
   if (isLoading.value) return;
@@ -308,8 +315,11 @@ onBeforeUnmount(() => {
 @import "@/assets/desktop.css";
 
 .conflict-message {
-  padding: 0.5rem 1rem;
-  margin-bottom: 1rem;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  font-weight: 300;
 }
 
 .conflict-message p {
@@ -414,5 +424,16 @@ onBeforeUnmount(() => {
 
 .pop-up-actions-end {
   justify-content: flex-end;
+}
+
+.learn-more-link {
+  color: var(--blue);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.learn-more-link:hover {
+  text-decoration: underline;
 }
 </style>
