@@ -6,7 +6,7 @@
 
         <div class="settings-section">
           <div class="settings-item" v-stop-propagation>
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('storefront')"></div>
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('stall')"></div>
             <div class="settings-content">
               <div class="settings-header">Studio Name</div>
               <div class="settings-body">{{ studioInfo.name }}</div>

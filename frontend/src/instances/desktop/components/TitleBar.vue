@@ -10,10 +10,6 @@
       :class="{ 'is-disabled': progressRunning, 'mac-os': !isMacFullscreen && os === 'darwin' }">
         <div class="studio-tabs-container" @click="toggleStudioList()" v-stop-propagation>
           <span class="studio-tabs">
-            <img v-if="projectStore.selectedStudio?.name == 'Personal'" class="large-icons"
-              :src="getAppIcon('two-drives')">
-            <img v-else-if="projectStore.selectedStudio" class="large-icons"
-              :src="projectStore.useAltUrl ? getAppIcon('two-drives') : getAppIcon('website')">
             <div>{{ utils.capitalizeStr(projectStore.getSelectedStudioName) }} </div>
             <img  class="small-icons chevron" :src="getAppIcon('chevron-down')">
 
@@ -37,7 +33,7 @@
           v-tooltip="projectStore.useAltUrl ? 'On Prem' : 'Remote'" :switchValueProp="!projectStore.useAltUrl"
           @click="toggleStudioRoute()" />
 
-          <ActionButton v-if="userStore.userCanCreateProject && projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('cog')" v-tooltip="'Studio Settings'" :buttonFunction="studioSettings" />
+          <ActionButton v-if="userStore.userCanCreateProject && projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('stall-cog')" v-tooltip="'Studio Settings'" :buttonFunction="studioSettings" />
           <ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Reload Studio'" :buttonFunction="reloadStudio" />
       </div>
 
@@ -90,7 +86,6 @@
 
       <div v-for="(studio, index) in studioList" :key="index" class="studio-instance" @click="selectStudio(studio)">
         <div class="studio-instance-meta">
-          <img class="large-icons" :src="studio.name === 'Personal' ? getAppIcon('two-drives') : getAppIcon('website')">
           <div>{{ studio.name }}</div>
         </div>
       </div>
@@ -499,7 +494,8 @@ onBeforeUnmount(() => {
 
 .menu-divider{
 	height: 5px;
-	margin-top: 10px;
+	margin-top: 5px;
+	margin-bottom: 5px;
 }
 
 .studio-list-container {
@@ -513,7 +509,7 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   justify-content: center;
   gap: 1rem;
-  border-radius: var(--small-radius);
+  border-radius: var(--large-radius);
   color: var(--white);
 
   overflow: hidden;
@@ -523,7 +519,7 @@ onBeforeUnmount(() => {
 
   /* background-color: hotpink; */
   
-  border-radius: var(--normal-radius);
+  border-radius: var(--very-large-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
   backdrop-filter: blur(35px);
@@ -540,7 +536,7 @@ onBeforeUnmount(() => {
 }
 
 .studio-list-container::-webkit-scrollbar-track {
-  margin: 10px;
+  margin: 20px;
   border-radius: 10px;
 }
 
@@ -616,17 +612,17 @@ onBeforeUnmount(() => {
   background-color: transparent;
   color: var(--white);
   position: relative;
-  border-radius: var(--small-radius);
+  border-radius: var(--large-radius);
   box-sizing: border-box;
   cursor: pointer;
   display: flex;
   gap: 5px;
   align-items: center;
   padding: .1rem;
-  height: max-content;
+  height: 20px;
   width: max-content;
   min-width: max-content;
-  min-height: max-content;
+  min-height: 35px;
   transition: all 0..1s ease;
   justify-content: space-between;
   width: 100%;
@@ -661,7 +657,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100px;
   height: 40px;
-  padding: .2rem 1rem;
+  padding: .2rem .5rem;
   gap: 10px;
 }
 
