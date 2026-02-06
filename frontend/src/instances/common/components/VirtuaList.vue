@@ -263,7 +263,6 @@ const getItemPosition = (index) => {
 
 // Handles file system change events by refreshing view.
 const handleFSChange = (event) => {
-  console.log(event);
   debouncedRefreshView();
 };
 
