@@ -102,6 +102,10 @@
           </div>
         </div>
 
+        <!-- legal agreement -->
+        <div class="legal-agreement">
+          <p>By continuing, I acknowledge the <span class="legal-link" @click="openPrivacyPolicy">Privacy Policy <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span> and agree to the <span class="legal-link" @click="openTermsOfService">Terms of Service <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span>.</p>
+        </div>
 
       </div>
       
@@ -114,6 +118,7 @@
 // imports
 import { ref, reactive, computed, onMounted, onBeforeMount } from 'vue'
 import { useRouter } from 'vue-router'
+import { Browser } from "@wailsio/runtime";
 import { useTrayStates } from '@/stores/TrayStates';
 import { useProjectStore } from '@/stores/projects';
 import { AuthService } from "@/services";
@@ -403,6 +408,16 @@ const normalizeStudioUrl = (url) => {
   return normalized;
 };
 
+// Opens the privacy policy page in the browser.
+const openPrivacyPolicy = () => {
+  Browser.OpenURL('https://clustta.com/privacy-policy');
+};
+
+// Opens the terms of service page in the browser.
+const openTermsOfService = () => {
+  Browser.OpenURL('https://clustta.com/terms-of-service');
+};
+
 // Navigates to the login page.
 const toggleLogin = () => {
   router.push('/auth/login')
@@ -515,6 +530,34 @@ onBeforeMount(async () => {
 
 .login-toggle:hover {
   opacity: 1;
+}
+
+.legal-agreement {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1rem 0.5rem;
+  font-size: 12px;
+  color: var(--white-60);
+  font-weight: 300;
+  gap: 0.25rem;
+}
+
+.legal-agreement p {
+  margin: 0;
+}
+
+.legal-link {
+  color: var(--white);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: underline;
+}
+
+.legal-link:hover {
+  color: var(--blue);
 }
 
 </style>

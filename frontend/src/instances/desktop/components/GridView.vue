@@ -98,7 +98,7 @@ const previousUntracked = computed(() => {
 
 // Get current file path location for watching
 const location = computed(() => {
-  return collectionStore.navigatedCollection ? collectionStore.navigatedCollection.file_path : projectStore.activeProject.working_directory;
+  return collectionStore.navigatedCollection ? collectionStore.navigatedCollection?.file_path : projectStore.activeProject?.working_directory;
 });
 
 // functions
