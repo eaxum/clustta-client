@@ -1421,7 +1421,7 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 			entityTasksQuery := `
 			SELECT full_task.*
 			FROM full_task
-			WHERE full_task.entity_path LIKE ? OR full_task.entity_path LIKE ?;
+			WHERE (full_task.entity_path LIKE ? OR full_task.entity_path LIKE ?) AND full_task.trashed = 0;
 			`
 
 			var entityTasks []models.Task

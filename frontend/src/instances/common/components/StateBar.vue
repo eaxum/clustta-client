@@ -108,7 +108,7 @@ const rebuildAll = async () => {
 	notificationStore.cancleFunction = SyncService.CancelSync;
 	notificationStore.canCancel = true;
 	if (commonStore.activeWorkspace === 'My Tasks') {
-		const userTaskIds = assetStore.getAssets.filter(task => task.assignee_id === userStore.user?.id).map(task => task.id);
+		const userTaskIds = assetStore.getAssets.filter(task => task.assignee_id === userStore.user?.id && !task.trashed).map(task => task.id);
 		if (userTaskIds.length) {
 			await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, userTaskIds)
 				.then(() => emitter.emit('refresh-browser'))
