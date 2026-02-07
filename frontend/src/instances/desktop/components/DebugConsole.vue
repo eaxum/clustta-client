@@ -4,52 +4,90 @@
       <div class="debug-console-title">
         <img class="small-icons" :src="getAppIcon('bug')">
         <span>Debug Console</span>
-        <span class="log-count">({{ logs.length }})</span>
+        <span class="log-count">({{ searchQuery ? `${filteredLogs.length}/${logs.length}` : logs.length }})</span>
       </div>
       <div class="debug-console-actions">
-        <ActionButton :icon="getAppIcon('code-bracket')" :isActive="showSource" v-tooltip="'Show source location'" :buttonFunction="toggleShowSource" />
+        <SearchBar v-model="searchQuery" placeholder="Filter logs..." />
+        <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy logs'" :buttonFunction="copyLogs" />
+        <ActionButton :icon="getAppIcon('file')" v-tooltip="'Open logs folder'" :buttonFunction="openLogsFolder" />
         <ActionButton :icon="getAppIcon('broom')" v-tooltip="'Clear'" :buttonFunction="clearLogs" />
       </div>
     </div>
 
     <div ref="logsContainer" class="debug-console-logs">
-      <div v-for="(log, index) in logs" :key="index" class="log-entry" :class="'log-' + log.type">
+      <div v-for="(log, index) in filteredLogs" :key="index" class="log-entry" :class="'log-' + log.type">
         <span class="log-time">{{ log.time }}</span>
         <span class="log-type">{{ log.type.toUpperCase() }}</span>
         <div class="log-content">
           <span class="log-message">{{ formatMessage(log.args) }}</span>
-          <span v-if="showSource && log.source" class="log-source">{{ log.source }}</span>
         </div>
       </div>
-      <div v-if="logs.length === 0" class="no-logs">No logs to display</div>
+      <div v-if="filteredLogs.length === 0" class="no-logs">{{ logs.length === 0 ? 'No logs to display' : 'No matching logs' }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
 // imports
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { Events } from "@wailsio/runtime";
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import SearchBar from '@/instances/desktop/components/SearchBar.vue';
 
 // stores
 import { useIconStore } from '@/stores/icons';
+import { useNotificationStore } from '@/stores/notifications';
+
+// services
+import { FSService, SettingsService } from '@/services';
 
 const iconStore = useIconStore();
+const notificationStore = useNotificationStore();
 
 // refs
 const logs = ref([]);
 const logsContainer = ref(null);
-const maxLogs = ref(500);
+const maxLogs = ref(100);
 const originalConsole = ref({});
-const showSource = ref(false);
+const searchQuery = ref('');
+
+// computed
+
+// Returns logs filtered by search query.
+const filteredLogs = computed(() => {
+  if (!searchQuery.value.trim()) return logs.value;
+  const query = searchQuery.value.toLowerCase();
+  return logs.value.filter(log => {
+    const message = formatMessage(log.args).toLowerCase();
+    const type = log.type.toLowerCase();
+    return message.includes(query) || type.includes(query);
+  });
+});
 
 // methods
 
 // Clears all captured logs.
 const clearLogs = () => {
   logs.value = [];
+};
+
+// Copies the filtered logs to clipboard in a formatted text format.
+const copyLogs = async () => {
+  const logsToExport = filteredLogs.value;
+  if (logsToExport.length === 0) return;
+  
+  const formattedLogs = logsToExport.map(log => {
+    return `[${log.time}] [${log.type.toUpperCase()}] ${formatMessage(log.args)}`;
+  }).join('\n');
+  
+  try {
+    await navigator.clipboard.writeText(formattedLogs);
+    notificationStore.addNotification(`Copied ${logsToExport.length} log entries`, `Copied ${logsToExport.length} log entries to clipboard`, 'success');
+  } catch (e) {
+    console.error('Failed to copy logs:', e);
+  }
 };
 
 // Formats log arguments into a displayable string.
@@ -71,41 +109,147 @@ const formatMessage = (args) => {
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
-// Extracts source location from stack trace.
-const getSourceLocation = () => {
-  try {
-    const stack = new Error().stack;
-    if (!stack) return null;
+// Parses Go slog format logs: time=2026-02-07T17:59:31.150+01:00 level=ERROR msg="..."
+const parseGoLog = (message) => {
+  // Try to parse slog format
+  const timeMatch = message.match(/time=(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:[+-]\d{2}:\d{2})?)/);
+  const levelMatch = message.match(/level=(\w+)/);
+  const msgMatch = message.match(/msg="([^"]*(?:\\.[^"]*)*)"/);
+  
+  if (timeMatch && levelMatch) {
+    // Parse the ISO timestamp
+    const isoTime = timeMatch[1];
+    const date = new Date(isoTime);
+    const time = date.toLocaleTimeString('en-US', { hour12: false }) + '.' + String(date.getMilliseconds()).padStart(3, '0');
     
-    const lines = stack.split('\n');
-    // Find the first line that's not from this file or console internals
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (line.includes('DebugConsole.vue')) continue;
-      if (line.includes('getSourceLocation')) continue;
-      if (line.includes('interceptConsole')) continue;
-      if (line.includes('at console.')) continue;
-      if (line.includes('at Object.')) continue;
+    // Get level
+    const level = levelMatch[1].toLowerCase();
+    
+    // Get message or use remaining text
+    let msg = msgMatch ? msgMatch[1] : message.replace(/time=[^\s]+\s*/, '').replace(/level=\w+\s*/, '').replace(/msg=/, '');
+    
+    // Unescape the message
+    msg = msg.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+    
+    return { time, level, message: msg, parsed: true };
+  }
+  
+  return { time: null, level: null, message, parsed: false };
+};
+
+// Loads previous logs from the log file.
+const loadLogsFromFile = async () => {
+  try {
+    const logLines = await SettingsService.GetLogContents(maxLogs.value);
+    if (!logLines || logLines.length === 0) return;
+    
+    for (const line of logLines) {
+      if (!line.trim()) continue;
       
-      // Extract file:line:column from the stack trace
-      const match = line.match(/(?:at\s+)?(?:.*?\s+\()?(.+?):(\d+):(\d+)\)?$/);
-      if (match) {
-        let filePath = match[1];
-        const lineNum = match[2];
-        const colNum = match[3];
+      // Try to parse slog format first
+      const parsed = parseGoLog(line);
+      
+      if (parsed.parsed) {
+        logs.value.push({
+          type: parsed.level === 'error' ? 'error' : parsed.level === 'warn' ? 'warn' : parsed.level === 'info' ? 'info' : 'log',
+          time: parsed.time,
+          args: [`[Go] ${parsed.message}`],
+          source: 'backend',
+          timestamp: 0
+        });
+      } else {
+        // Try old format: [timestamp] message
+        const match = line.match(/^\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\]\s*(.*)$/);
         
-        // Clean up the file path - extract just the filename
-        const fileMatch = filePath.match(/([^/\\]+\.(?:vue|js|ts|jsx|tsx))(?:\?.*)?$/);
-        if (fileMatch) {
-          return `${fileMatch[1]}:${lineNum}:${colNum}`;
+        let time = '';
+        let message = line;
+        
+        if (match) {
+          const datePart = match[1];
+          time = datePart.split(' ')[1] || datePart;
+          message = match[2];
         }
-        return `${filePath.split('/').pop()}:${lineNum}`;
+        
+        // Determine log level from message content
+        let level = 'log';
+        const lowerMsg = message.toLowerCase();
+        if (lowerMsg.includes('error') || lowerMsg.includes('fatal')) {
+          level = 'error';
+        } else if (lowerMsg.includes('warn')) {
+          level = 'warn';
+        } else if (lowerMsg.includes('info')) {
+          level = 'info';
+        }
+        
+        logs.value.push({
+          type: level,
+          time: time,
+          args: [`[Go] ${message}`],
+          source: 'backend',
+          timestamp: 0
+        });
       }
     }
-    return null;
+    
+    // Scroll to bottom after loading
+    nextTick(() => {
+      if (logsContainer.value) {
+        logsContainer.value.scrollTop = logsContainer.value.scrollHeight;
+      }
+    });
   } catch (e) {
-    return null;
+    console.error('Failed to load logs from file:', e);
   }
+};
+
+// Opens the folder containing Clustta logs in the system file explorer.
+const openLogsFolder = async () => {
+  try {
+    const logPath = await SettingsService.GetLogPath();
+    if (logPath) {
+      FSService.RevealInExplorer(logPath);
+    }
+  } catch (e) {
+    console.error('Failed to open logs folder:', e);
+  }
+};
+
+// Handles backend log events from Go.
+const handleBackendLog = (event) => {
+  const data = event.data;
+  if (!data) return;
+  
+  // Try to parse slog format from the message
+  const parsed = parseGoLog(data.message);
+  
+  let time, level, message;
+  if (parsed.parsed) {
+    time = parsed.time;
+    level = parsed.level === 'error' ? 'error' : parsed.level === 'warn' ? 'warn' : parsed.level === 'info' ? 'info' : 'log';
+    message = parsed.message;
+  } else {
+    const now = new Date();
+    time = now.toLocaleTimeString('en-US', { hour12: false }) + '.' + String(now.getMilliseconds()).padStart(3, '0');
+    level = data.level || 'log';
+    message = data.message;
+  }
+  
+  logs.value.push({
+    type: level,
+    time: time,
+    args: [`[Go] ${message}`],
+    timestamp: Date.now()
+  });
+  
+  if (logs.value.length > maxLogs.value) {
+    logs.value = logs.value.slice(-maxLogs.value);
+  }
+  
+  nextTick(() => {
+    if (logsContainer.value) {
+      logsContainer.value.scrollTop = logsContainer.value.scrollHeight;
+    }
+  });
 };
 
 // Intercepts console methods and captures logs.
@@ -116,9 +260,6 @@ const interceptConsole = () => {
     originalConsole.value[method] = console[method];
     
     console[method] = (...args) => {
-      // Get source location before calling original (to get correct stack)
-      const source = getSourceLocation();
-      
       // Call original console method
       originalConsole.value[method].apply(console, args);
       
@@ -130,7 +271,6 @@ const interceptConsole = () => {
         type: method,
         time: time,
         args: args,
-        source: source,
         timestamp: now.getTime()
       });
       
@@ -159,19 +299,22 @@ const restoreConsole = () => {
   });
 };
 
-// Toggles source location display.
-const toggleShowSource = () => {
-  showSource.value = !showSource.value;
-};
-
 // lifecycle hooks
-onMounted(() => {
+onMounted(async () => {
+  // Load previous logs from file first
+  await loadLogsFromFile();
+  
   interceptConsole();
+  Events.On("backend-log", handleBackendLog);  
+  // Signal to backend that debug console is ready to receive logs
+  Events.Emit("debug-console-ready");
 });
 
 onBeforeUnmount(() => {
   restoreConsole();
+  Events.Off("backend-log");
 });
+
 </script>
 
 <style scoped>
@@ -215,7 +358,19 @@ onBeforeUnmount(() => {
 
 .debug-console-actions {
   display: flex;
+  align-items: center;
   gap: 0.25rem;
+}
+
+.debug-console-actions :deep(.searchbar-container) {
+  height: 28px;
+  min-height: 28px;
+  width: 180px;
+}
+
+.debug-console-actions :deep(.searchbar-input) {
+  font-size: 12px;
+  padding: 6px 8px;
 }
 
 .debug-console-logs {
@@ -243,7 +398,7 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 0.5rem;
   padding: 0.3rem 0.5rem;
-  border-radius: var(--small-radius);
+  border-radius: 3px;
   margin-bottom: 2px;
   word-break: break-word;
 }
@@ -252,6 +407,7 @@ onBeforeUnmount(() => {
   background-color: var(--hover);
 }
 
+.log-log { border-left: 2px solid var(--silver); }
 .log-info { border-left: 2px solid var(--info); }
 .log-warn { border-left: 2px solid var(--alert); background-color: rgba(255, 193, 7, 0.1); }
 .log-error { border-left: 2px solid var(--red); background-color: rgba(220, 53, 69, 0.1); }
@@ -268,6 +424,7 @@ onBeforeUnmount(() => {
   min-width: 45px;
 }
 
+.log-log .log-type { color: var(--silver); }
 .log-info .log-type { color: var(--info); }
 .log-warn .log-type { color: var(--alert); }
 .log-error .log-type { color: var(--red); }
@@ -282,13 +439,6 @@ onBeforeUnmount(() => {
 .log-message {
   flex: 1;
   white-space: pre-wrap;
-}
-
-.log-source {
-  color: var(--silver);
-  font-size: 10px;
-  font-style: italic;
-  white-space: nowrap;
 }
 
 .no-logs {

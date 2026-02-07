@@ -7,9 +7,56 @@
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 /**
+ * Error logs an error message to the frontend debug console.
+ * @param {string} message
+ * @returns {$CancellablePromise<void>}
+ */
+export function Error(message) {
+    return $Call.ByID(2332005001, message);
+}
+
+/**
+ * Info logs an info message to the frontend debug console.
+ * @param {string} message
+ * @returns {$CancellablePromise<void>}
+ */
+export function Info(message) {
+    return $Call.ByID(2824625133, message);
+}
+
+/**
+ * Log logs a general message to the frontend debug console.
+ * @param {string} message
+ * @returns {$CancellablePromise<void>}
+ */
+export function Log(message) {
+    return $Call.ByID(685521433, message);
+}
+
+/**
+ * LogError logs an error message to the application logger.
  * @param {string} message
  * @returns {$CancellablePromise<void>}
  */
 export function LogError(message) {
     return $Call.ByID(136930365, message);
+}
+
+/**
+ * LogToConsole emits a log message to the frontend debug console.
+ * @param {string} level
+ * @param {string} message
+ * @returns {$CancellablePromise<void>}
+ */
+export function LogToConsole(level, message) {
+    return $Call.ByID(1235090737, level, message);
+}
+
+/**
+ * Warn logs a warning message to the frontend debug console.
+ * @param {string} message
+ * @returns {$CancellablePromise<void>}
+ */
+export function Warn(message) {
+    return $Call.ByID(1717344185, message);
 }

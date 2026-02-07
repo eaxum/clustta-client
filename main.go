@@ -68,6 +68,19 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Create console writer to capture logs for frontend debug console
+	consoleWriter, err := NewConsoleWriter(logFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Redirect Go's standard log package to console writer
+	log.SetOutput(consoleWriter)
+	log.SetFlags(0) // Remove default timestamp since we add our own
+
+	// Capture stdout (fmt.Printf etc.) and send to debug console
+	consoleWriter.CaptureStdout()
+
 	logger, err := NewFileLogger(logFile)
 	if err != nil {
 		log.Fatal(err)
@@ -336,6 +349,13 @@ func main() {
 	} else {
 		log.Println("Default project templates initialized successfully")
 	}
+
+	// Listen for frontend ready signal to flush buffered logs
+	app.Event.On("debug-console-ready", func(event *application.CustomEvent) {
+		if cw := GetConsoleWriter(); cw != nil {
+			cw.SetFrontendReady()
+		}
+	})
 
 	err = app.Run()
 
