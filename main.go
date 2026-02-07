@@ -98,11 +98,12 @@ func main() {
 	}
 
 	app = application.New(application.Options{
-		Name:           "clustta",
-		Description:    "Version control, Asset management and Collaboration",
-		LogLevel:       slog.LevelError,
-		Logger:         logger,
-		SingleInstance: singleInstanceOpt,
+		Name:             "clustta",
+		Description:      "Version control, Asset management and Collaboration",
+		LogLevel:         slog.LevelError,
+		Logger:           logger,
+		SingleInstance:   singleInstanceOpt,
+		FileAssociations: []string{".clst"},
 		Services: []application.Service{
 			application.NewService(&services.AccountService{}),
 			application.NewService(&services.AppService{}),

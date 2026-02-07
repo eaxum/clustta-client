@@ -1,31 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-    <dict>
-        <key>CFBundlePackageType</key>
-        <string>APPL</string>
-        <key>CFBundleName</key>
-        <string>Clustta</string>
-        <key>CFBundleExecutable</key>
-        <string>clustta</string>
-        <key>CFBundleIdentifier</key>
-        <string>com.clustta.clustta</string>
-        <key>CFBundleVersion</key>
-        <string>0.4.300</string>
-        <key>ITSAppUsesNonExemptEncryption</key>
-        <false/>
-        <key>CFBundleGetInfoString</key>
-        <string>This is a comment</string>
-        <key>CFBundleShortVersionString</key>
-        <string>0.4.300</string>
-        <key>CFBundleIconFile</key>
-        <string>icons</string>
-        <key>LSMinimumSystemVersion</key>
-        <string>10.13.0</string>
-        <key>LSApplicationCategoryType</key>
-        <string>public.app-category.productivity</string>
-        <key>NSHighResolutionCapable</key>
-        <string>true</string>
-        <key>NSHumanReadableCopyright</key>
-        <string>© now, Eaxum Creative LTD</string>
-    </dict>
+	<dict>
+		<key>CFBundleDocumentTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeExtensions</key>
+				<array>
+					<string>clst</string>
+				</array>
+				<key>CFBundleTypeIconFile</key>
+				<string>appicon</string>
+				<key>CFBundleTypeName</key>
+				<string>Clustta</string>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+			</dict>
+		</array>
+		<key>CFBundleExecutable</key>
+		<string>clustta</string>
+		<key>CFBundleGetInfoString</key>
+		<string>Clustta simplifies file management, collaboration and version control for creative workflows.</string>
+		<key>CFBundleIconFile</key>
+		<string>icons</string>
+		<key>CFBundleIdentifier</key>
+		<string>com.clustta.clustta</string>
+		<key>CFBundleName</key>
+		<string>Clustta</string>
+		<key>CFBundlePackageType</key>
+		<string>APPL</string>
+		<key>CFBundleShortVersionString</key>
+		<string>0.4.30</string>
+		<key>CFBundleVersion</key>
+		<string>0.4.30</string>
+		<key>ITSAppUsesNonExemptEncryption</key>
+		<false/>
+		<key>LSApplicationCategoryType</key>
+		<string>public.app-category.productivity</string>
+		<key>LSMinimumSystemVersion</key>
+		<string>10.15.0</string>
+		<key>NSHighResolutionCapable</key>
+		<string>true</string>
+		<key>NSHumanReadableCopyright</key>
+		<string>(c) 2025, Eaxum</string>
+	</dict>
 </plist>

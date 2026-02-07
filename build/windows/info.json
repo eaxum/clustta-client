@@ -5,11 +5,11 @@
 	"info": {
 		"0000": {
 			"ProductVersion": "0.4.30",
-			"CompanyName": "Eaxum LLC",
-			"FileDescription": "Clustta",
-			"LegalCopyright": "© 2025, Eaxum LLC",
+			"CompanyName": "Eaxum",
+			"FileDescription": "Clustta simplifies file management, collaboration and version control for creative workflows.",
+			"LegalCopyright": "(c) 2025, Eaxum",
 			"ProductName": "Clustta",
-			"Comments": ""
+			"Comments": "Clustta simplifies file management, collaboration and version control for creative workflows."
 		}
 	}
 }
