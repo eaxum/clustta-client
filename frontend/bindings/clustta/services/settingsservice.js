@@ -155,6 +155,25 @@ export function GetLocationUsage(locationID) {
 }
 
 /**
+ * GetLogContents reads and returns the last N lines from the log file.
+ * @param {number} maxLines
+ * @returns {$CancellablePromise<string[]>}
+ */
+export function GetLogContents(maxLines) {
+    return $Call.ByID(244600402, maxLines).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
+ * GetLogPath returns the path to the Clustta log file.
+ * @returns {$CancellablePromise<string>}
+ */
+export function GetLogPath() {
+    return $Call.ByID(1658969463);
+}
+
+/**
  * GetPinnedProjects retrieves all pinned projects for the specified studio.
  * @param {string} studioName
  * @returns {$CancellablePromise<string[]>}

@@ -1025,7 +1025,7 @@ onBeforeUnmount(() => {
 @import "@/assets/desktop.css";
 
 .dash-board-root {
-	padding: .4rem;
+	/* padding: .4rem; */
 	display: flex;
 	gap: .4rem;
 	flex-direction: column;

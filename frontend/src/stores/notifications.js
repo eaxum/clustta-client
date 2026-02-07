@@ -72,14 +72,16 @@ export const useNotificationStore = defineStore("notifications", {
         errorMesage = errorMesage.replace("Error calling method: ", "");
       }
       this.resetProgress();
-      console.log(errorMesage);
-      console.log(errorMesage === "cancelled");
+      
       if (errorMesage === "cancelled") {
         return;
       }
       if (errorMesage === "database is locked") {
         errorMesage = "project is busy"
       }
+
+      // Log to debug console
+      console.error(errorMesage, error);
 
       if (errorMesage.length < 100) {
         this.addNotification(errorMesage, errorMesage, "error");

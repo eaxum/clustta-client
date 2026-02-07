@@ -253,7 +253,7 @@ onBeforeUnmount(() => {
 }
 
 .debug-console-container {
-  padding: .5rem 1rem ;
+  padding: .4rem ;
   padding-bottom: 0;
 }
 
