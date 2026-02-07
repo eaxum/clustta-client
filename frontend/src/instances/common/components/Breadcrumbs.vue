@@ -281,7 +281,7 @@ const goUpALevel = async () => {
 				const trackedParent = await CollectionService.GetCollectionByPath(projectStore.activeProject.uri, parentEntity.entity_path);
 				if (trackedParent) parentEntity = trackedParent;
 			} catch (error) {
-				console.log('Parent entity not found in DB, using untracked entity');
+				// console.log('Parent entity not found in DB, using untracked entity');
 			}
 		}
 	} else {

@@ -338,7 +338,7 @@ const collectionTypeName = computed(() => {
 });
 
 // Returns the editable entity name for renaming.
-const editableEntityName = ref('');
+const editableEntityName = ref(props.entity.name || '')
 
 // Returns the display name for the entity.
 const entityName = computed(() => {
@@ -590,21 +590,37 @@ const updateCollectionName = async () => {
   if (props.entity.type === 'entity') {
     let entity = props.entity;
     let entityId = entity.id;
-    
     await CollectionService.RenameCollection(projectStore.activeProject.uri, entityId, editableEntityName.value)
       .then((data) => {
+        const newEntityPath = getParentPath(entity.entity_path) 
+          ? getParentPath(entity.entity_path) + "/" + editableEntityName.value 
+          : editableEntityName.value;
+        const newFilePath = getParentPath(entity.file_path.replace(/\\/g, '/')) + "/" + editableEntityName.value;
+        
         entity.name = editableEntityName.value;
+        entity.entity_path = newEntityPath;
+        entity.file_path = newFilePath;
+        
         emitEntityUpdates(entityId, [
-          { property: 'name', value: editableEntityName.value }
+          { property: 'name', value: editableEntityName.value },
+          { property: 'entity_path', value: newEntityPath },
+          { property: 'file_path', value: newFilePath }
         ]);
+        
+        if (collectionStore.selectedCollection?.id === entityId) {
+          collectionStore.selectedCollection.name = editableEntityName.value;
+          collectionStore.selectedCollection.entity_path = newEntityPath;
+          collectionStore.selectedCollection.file_path = newFilePath;
+        }
       })
       .catch((error) => {
         isAwaitingResponse.value = false;
+        notificationStore.errorNotification('Rename Failed', error.message || 'Failed to rename collection');
         console.error('Error:', error);
       });
-  } else if (props.entity.type === 'untracked_entity') {
-    let oldPath = props.entity.file_path;
-    let newPath = getParentPath(props.entity.file_path) + "/" + editableEntityName.value;
+    } else if (props.entity.type === 'untracked_entity') {
+    let oldPath = props.entity.file_path.replace(/\\/g, '/');
+    let newPath = getParentPath(oldPath) + "/" + editableEntityName.value;
     let entityId = props.entity.id;
     await FSService.Rename(oldPath, newPath)
       .then((data) => {
@@ -613,10 +629,16 @@ const updateCollectionName = async () => {
           { property: 'file_path', value: newPath }
         ]);
         
+        if (projectStore.selectedUntrackedItem?.id === entityId) {
+          projectStore.selectedUntrackedItem.name = editableEntityName.value;
+          projectStore.selectedUntrackedItem.file_path = newPath;
+        }
+        
         isAwaitingResponse.value = false;
       })
       .catch((error) => {
         isAwaitingResponse.value = false;
+        notificationStore.errorNotification('Rename Failed, Collection is in use', error.message || 'Failed to rename item');
         console.error('Error:', error);
       });
   }
