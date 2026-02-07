@@ -413,6 +413,7 @@ const goToSettings = () => {
 	padding-top: .3rem;
 	width: 100%;
 	height: 50px;
+	min-height: 50px;
 	display: flex;
 	overflow: hidden;
 	box-sizing: border-box;
