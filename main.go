@@ -138,6 +138,13 @@ func main() {
 		},
 	})
 
+	// Listen for file open events (when user double-clicks a .clst file)
+	app.Event.OnApplicationEvent(events.Common.ApplicationOpenedWithFile, func(event *application.ApplicationEvent) {
+		filePath := event.Context().Filename()
+		log.Printf("Application opened with file: %s", filePath)
+		app.Event.Emit("open-project-file", filePath)
+	})
+
 	if fsServiceInstance != nil {
 		fsServiceInstance.SetApp(app)
 	}
