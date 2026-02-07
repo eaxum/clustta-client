@@ -215,28 +215,42 @@ const itemType = computed(() => {
 
 const itemPath = computed(() => {
   const path = projectStore.selectedUntrackedItem?.file_path;
+  if (!path) return '';
   return path.replace(/\\/g, '/')
 });
 
 const getItemSize = async() => {
-  const size = await FSService.FileStat(itemPath.value);
-  itemSize.value = size.formattedSize;
+  if (!itemPath.value) return;
+  try {
+    const size = await FSService.FileStat(itemPath.value);
+    itemSize.value = size.formattedSize;
+  } catch (error) {
+    itemSize.value = 'Not on disk';
+  }
 }
 
 const getCollectionSize = async() => {
-  const size = await FSService.FolderSize(itemPath.value);
-  collectionSize.value = size;
+  if (!itemPath.value) return;
+  try {
+    const size = await FSService.FolderSize(itemPath.value);
+    collectionSize.value = size;
+  } catch (error) {
+    collectionSize.value = 'Not on disk';
+  }
 }
 
 const getProjectData = async () => {
+  if (!itemPath.value) return;
+  
   if(itemType.value === 'untracked_task'){
     if (!await FSService.Exists(itemPath.value)){
       itemSize.value = 'Not on disk'
       return
     }
+    getItemSize();
+  } else if (itemType.value === 'untracked_entity') {
+    getCollectionSize();
   }
-  getItemSize();
-  getCollectionSize();
 }
 
 watch(() => projectStore.selectedUntrackedItem, () => {

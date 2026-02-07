@@ -116,8 +116,9 @@ const getAppIcon = (iconName) => {
   return icon
 };
 
-import { ClipboardService, CollectionService } from "@/services";
+import { CollectionService } from "@/services";
 import { FSService } from '@/services';
+import { Clipboard } from '@wailsio/runtime';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import AssigneeItem from '@/instances/common/components/AssigneeItem.vue'
 
