@@ -71,6 +71,10 @@ const handleSyncConflict = (conflictData) => {
     modals.setModalVisibility('syncConflictModal', true);
 };
 
+const handleOpenProjectFile = async (filePath) => {
+//  TODO implement reading clustta files
+};
+
 if (platformStore.isWeb) {
     emitter.on('progress-update', handleProgressUpdate);
     emitter.on('sync-conflict', handleSyncConflict);
@@ -80,6 +84,11 @@ if (platformStore.isWeb) {
     });
     Events.On('sync-conflict', async (message) => {
         handleSyncConflict(message.data);
+    });
+    Events.On('open-project-file', async (message) => {
+        const filePath = message.data;
+        console.log('Opening project file:', filePath);
+        await handleOpenProjectFile(filePath);
     });
 }
 
