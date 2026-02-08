@@ -142,24 +142,6 @@ func (s *SettingsService) GetProjectWorkspaces(projectId string) ([]interface{},
 	return projectWorkspaces, nil
 }
 
-// GetUseAltUrl retrieves whether alternative URL is enabled.
-func (s *SettingsService) GetUseAltUrl() (bool, error) {
-	useAltUrl, err := settings.GetUseAltUrl()
-	if err != nil {
-		return useAltUrl, err
-	}
-	return useAltUrl, nil
-}
-
-// SetUseAltUrl sets whether to use alternative URL.
-func (s *SettingsService) SetUseAltUrl(useAltUrl bool) error {
-	err := settings.SetUseAltUrl(useAltUrl)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // GetEulaAccepted retrieves whether the user has accepted the EULA.
 func (s *SettingsService) GetEulaAccepted() (bool, error) {
 	eulaAccepted, err := settings.GetEulaAccepted()

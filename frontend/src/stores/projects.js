@@ -4,6 +4,7 @@ import {
   ProjectService,
   SyncService,
   FSService,
+  StudioService,
 } from "@/services";
 import { useNotificationStore } from "./notifications";
 import { useCommonStore } from "./common";
@@ -13,13 +14,6 @@ import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from "./stages";
 import { usePaneStore } from "./panes";
 import { useTrayStates } from "./TrayStates";
-
-let useAltUrl = false;
-await SettingsService.GetUseAltUrl()
-  .then((response) => {
-    useAltUrl = response;
-  })
-  .catch((error) => console.log(error));
 
 let isProjectGridView = true;
 await SettingsService.IsProjectGridView()
@@ -50,7 +44,6 @@ export const useProjectStore = defineStore("projects", {
     pinnedProjects: [],
     recentProjects: [],
     studioUrl: "",
-    useAltUrl: useAltUrl,
     isProjectGridView: isProjectGridView,
     showUntrackedProjects: showUntrackedProjects,
     lastStudio: lastStudio,
@@ -99,14 +92,7 @@ export const useProjectStore = defineStore("projects", {
       return projectUrl;
     },
     getStudioUrl: (state) => {
-      let studio = state.selectedStudio;
-      if (studio) {
-        if (studio.alt_url == "") {
-          return studio.url;
-        }
-        return !state.useAltUrl ? studio.url : studio.alt_url;
-      }
-      return "";
+      return state.studioUrl;
     },
     getServerStatus: (state) => state.serverActive,
   },
@@ -155,9 +141,12 @@ export const useProjectStore = defineStore("projects", {
       this.projectsLoaded = false;
 
       let studio = this.selectedStudio;
-      const studioUrl = !(studio.alt_url && this.useAltUrl)
-        ? studio.url
-        : studio.alt_url;
+      let studioUrl;
+      try {
+        studioUrl = await StudioService.ResolveStudioUrl(studio.url, studio.alt_url || "");
+      } catch {
+        studioUrl = studio.url;
+      }
       this.studioUrl = studioUrl;
 
       SettingsService.GetPinnedProjects(studio.name).then((response) => {

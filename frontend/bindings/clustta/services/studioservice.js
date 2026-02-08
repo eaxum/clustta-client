@@ -91,6 +91,17 @@ export function RemoveCollaborator(userId, studioId) {
 }
 
 /**
+ * Races the primary and alternative studio URLs, returning whichever responds first.
+ * Falls back to the primary URL if no alternative is set.
+ * @param {string} url
+ * @param {string} altUrl
+ * @returns {$CancellablePromise<string>}
+ */
+export function ResolveStudioUrl(url, altUrl) {
+    return $Call.ByID(1512636046, url, altUrl);
+}
+
+/**
  * Updates studio configuration including URLs, port, and key
  * @param {string} studioName
  * @param {string} url

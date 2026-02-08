@@ -36,7 +36,6 @@ type ProjectLocation struct {
 type Settings struct {
 	IconScheme            string `json:"icon_scheme"`
 	Theme                 string `json:"theme"`
-	UseAltUrl             bool   `json:"use_alt_url"`
 	EulaAccepted          bool   `json:"eula_accepted"`
 	ProjectGridView       bool   `json:"project_grid_view"`
 	UseGrid               bool   `json:"use_grid"`
@@ -144,23 +143,6 @@ func GetUsername() (string, error) {
 	}
 
 	return extractUsername(currentUser.Username), nil
-}
-
-func GetUseAltUrl() (bool, error) {
-	settings, err := loadUserSettings()
-	if err != nil {
-		return false, err
-	}
-	return settings.UseAltUrl, nil
-}
-
-func SetUseAltUrl(useAltUrl bool) error {
-	settings, err := loadUserSettings()
-	if err != nil {
-		return err
-	}
-	settings.UseAltUrl = useAltUrl
-	return saveSettings(settings)
 }
 
 func GetEulaAccepted() (bool, error) {
