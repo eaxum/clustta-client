@@ -10,7 +10,6 @@ import (
 	"clustta/internal/utils"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -454,11 +453,9 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 		defer response.Body.Close()
 
 		if response.StatusCode != 200 {
-			body, err := io.ReadAll(response.Body)
-			if err != nil {
-				return studioProjects, err
-			}
-			return studioProjects, errors.New(string(body))
+			// Fallback to local projects when server returns an error
+			fmt.Printf("Server returned status %d, loading local projects\n", response.StatusCode)
+			return GetLocalStudioProjects(studioProjectsDir, url, user)
 		}
 
 		body, err := io.ReadAll(response.Body)
