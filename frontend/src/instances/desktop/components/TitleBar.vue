@@ -10,7 +10,10 @@
       :class="{ 'is-disabled': progressRunning, 'mac-os': !isMacFullscreen && os === 'darwin' }">
         <div class="studio-tabs-container" @click="toggleStudioList()" v-stop-propagation>
           <span class="studio-tabs">
-            <div>{{ utils.capitalizeStr(projectStore.getSelectedStudioName) }} </div>
+            <div class="studio-name-with-status">
+              <span class="online-indicator" :class="studioStore.appOnline ? 'online' : 'offline'" v-tooltip="studioStore.appOnline ? 'Connected' : 'Offline'"></span>
+              {{ utils.capitalizeStr(projectStore.getSelectedStudioName) }}
+            </div>
             <img  class="small-icons chevron" :src="getAppIcon('chevron-down')">
 
             <div v-if="displayStudioList" class="studio-list-container" :style="{ left: parentLocation?.left + 'px', top: parentLocation?.top + parentLocation?.height + 'px' }">
@@ -811,6 +814,28 @@ onBeforeUnmount(() => {
   gap: 0.75rem;
   padding-right: 1rem;
   height: 100%;
+}
+
+.studio-name-with-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.online-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background-color 0.3s ease;
+}
+
+.online-indicator.online {
+  background-color: #22c55e;
+}
+
+.online-indicator.offline {
+  background-color: #f59e0b;
 }
 </style>
 

@@ -34,7 +34,7 @@
 				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="revertButtonTooltip"  :useDanger="unSynced"/>
 
 				<ActionButton :isDisabled="syncButtonDisabled" @click="unSynced ? syncData() : pullData()" :icon="getAppIcon(getCloudIcon)"
-				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="syncButtonTooltip" :useAlert="unSynced" :useDanger="offline" />
+				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="cloudIconTooltip" :useAlert="unSynced" :useDanger="offline || !studioStore.appOnline" />
 				
 				<!-- <ActionButton :icon="getAppIcon('bell')" @click="panes.setPaneVisibility('notifications', true)" v-tooltip="'Notifications'"  /> -->
 			</div>
@@ -73,6 +73,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
 import { usePlatformStore } from '@/stores/platform';
+import { useStudioStore } from '@/stores/studio';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
@@ -89,6 +90,7 @@ const collectionStore = useCollectionStore();
 const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
+const studioStore = useStudioStore();
 const userStore = useUserStore();
 const platformStore = usePlatformStore();
 
@@ -107,24 +109,28 @@ const getAppIcon = (iconName) => {
 };
 
 const getCloudIcon = computed(() => {
-
 	// Check if server is reachable
-	if (projectStore.getActiveProject?.is_offline) {
+	if (!studioStore.appOnline || projectStore.getActiveProject?.is_offline) {
 		return 'cloud-cancel';
 	}
-
-	if (!projectStore.serverActive) {
-		return 'cloud-cancel';
-	}
-	// Check any operations are active
+	// Check if any operations are active
 	if (!!notificationStore.getProgress.running) {
 		return 'cloud-clock';
 	}
 	// Server is available
-	if(!unSynced.value){
+	if (!unSynced.value) {
 		return 'cloud-down';
 	}
 	return 'cloud-up';
+});
+
+// Returns the tooltip text for the cloud/sync icon.
+const cloudIconTooltip = computed(() => {
+	if (!studioStore.appOnline) return 'Server unreachable';
+	if (projectStore.getActiveProject?.is_offline) return 'Project offline';
+	if (!!notificationStore.getProgress.running) return 'Syncing...';
+	if (!unSynced.value) return 'Up to date';
+	return 'Unsynced changes';
 });
 
 // computed properties
