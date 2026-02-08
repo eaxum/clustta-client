@@ -179,49 +179,21 @@ const selectedTaskId = ref('');
 
 const selectItem = async (taskPath) => {
     await findItem(taskPath);
-    // scrollIntoView();
-
 }
 
-// collectionStore.navigateToCollection(entity);
-//   commonStore.navigatorMode = true;
-
 const findItem = async (taskPath) => {
-    const allEntities = await CollectionService.GetCollections(projectStore.activeProject.uri)
-    const allTasks = await AssetService.GetAssets(projectStore.activeProject.uri)
-    const task = allTasks.find((item) => item.task_path === taskPath);
-    const taskId = task?.id;
-    const taskParent = allEntities.find((item) => item.id === task.entity_id );
-    
+    const task = await AssetService.GetAssetByPath(projectStore.activeProject.uri, taskPath);
+    if (!task?.id) return;
+    const taskParent = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, task.entity_id);
     if(taskParent){
         collectionStore.navigateToCollection(taskParent);
         commonStore.navigatorMode = true;
     } 
-    
     stage.deselectAllItems();
-    assetStore.selectAsset(taskId)
-    stage.firstSelectedItemId = taskId;
-    stage.markedItems = [taskId];
-    selectedTaskId.value = taskId;
-
-    return
-    const taskParents = assetStore.getAssetEntity(taskId, true);
-    const taskParentIds = taskParents.map((item) => item.id)
-
-    for(const parentId of taskParentIds){
-        if(parentId in stage.expandedEntities){
-            
-        } else {
-            stage.expandEntity(parentId)
-        }
-    }
-    
-    stage.deselectAllItems();
-    assetStore.selectAsset(taskId)
-    stage.firstSelectedItemId = taskId;
-    stage.markedItems = [taskId];
-    selectedTaskId.value = taskId;
-    
+    assetStore.selectAsset(task.id)
+    stage.firstSelectedItemId = task.id;
+    stage.markedItems = [task.id];
+    selectedTaskId.value = task.id; 
 };
 
 const scrollIntoView = () => {

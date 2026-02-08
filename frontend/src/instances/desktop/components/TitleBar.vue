@@ -49,7 +49,7 @@
       </div>
     </div>
 
-    <div v-else style="--wails-draggable:drag"
+    <div v-else-if="!isAuthPage" style="--wails-draggable:drag"
       class="project-name-container">
       <div class="project-name-text">
         Clustta
@@ -113,7 +113,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { AppService, SettingsService } from '@/services';
 import { Window, Events } from "@wailsio/runtime";
 import utils from '@/services/utils';
@@ -149,6 +149,7 @@ const themeStore = useThemeStore();
 const collectionStore = useCollectionStore();
 const platformStore = usePlatformStore();
 const accountStore = useAccountStore();
+const route = useRoute();
 const router = useRouter();
 
 const goToLogin = () => {
@@ -175,6 +176,7 @@ const parentLocation = computed(() => {
   return studioTabsParent.value.getBoundingClientRect()
 });
 
+const isAuthPage = computed(() => route.path.startsWith('/auth'));
 const restrictedTitles = ref(['projects', 'settings' ])
 
 const isMacFullscreen = ref(false);

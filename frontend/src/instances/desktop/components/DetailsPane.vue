@@ -529,7 +529,6 @@ const emitItemUpdates = (taskId, updates) => {
 const filterList = (selectedTab) => {
   const activePaneContext = settingsItems.value.find((item) => item.name === selectedTab);
   activeTabIndex.value = settingsItems.value.indexOf(activePaneContext);
-  console.log(activeTabIndex.value)  
 };
 
 // Frees up collection space by deleting contents.

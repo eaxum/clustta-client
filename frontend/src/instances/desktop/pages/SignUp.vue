@@ -539,7 +539,7 @@ onBeforeMount(async () => {
   text-align: center;
   padding: 1rem 0.5rem;
   font-size: 12px;
-  color: var(--white-60);
+  color: var(--white);
   font-weight: 300;
   gap: 0.25rem;
 }

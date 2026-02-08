@@ -796,6 +796,27 @@ export const AssetService = {
     }
   },
 
+  // Returns asset by its task_path.
+  GetAssetByPath: async (projectPath, taskPath) => {
+    const projectName = getProjectName(projectPath);
+    try {
+      const db = await getDatabase(projectName);
+      const { statusMap, taskTypeMap, tagMap, taskTagsMap, taskDependenciesMap, entityDependenciesMap, entityMap } = buildLookupMaps(db);
+
+      const rows = query(db, 'SELECT * FROM task WHERE trashed = 0');
+      for (const row of rows) {
+        const task = rowToTask(row, statusMap, taskTypeMap, taskTagsMap, tagMap, taskDependenciesMap, entityDependenciesMap, entityMap);
+        if (task && task.task_path === taskPath) {
+          return task;
+        }
+      }
+      return {};
+    } catch (error) {
+      console.error('GetAssetByPath error:', error);
+      return {};
+    }
+  },
+
   // Returns asset count
   GetAssetCount: async (projectPath) => {
     const projectName = getProjectName(projectPath);

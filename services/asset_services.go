@@ -84,6 +84,22 @@ func (t *AssetService) GetAssetByID(projectPath, assetId string) (models.Task, e
 	return repository.GetTask(tx, assetId)
 }
 
+// GetAssetByPath retrieves an asset by its task_path.
+// Returns the asset or an error if not found.
+func (t *AssetService) GetAssetByPath(projectPath, taskPath string) (models.Task, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return models.Task{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return models.Task{}, err
+	}
+	defer tx.Rollback()
+	return repository.GetTaskByPath(tx, taskPath)
+}
+
 func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, entityId string, isResource bool, templateId, templateFilePath, pointer string, isLink bool, tags []string, previewPath, comment string) (models.Task, error) {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
