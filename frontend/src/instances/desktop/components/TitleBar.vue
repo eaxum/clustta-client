@@ -29,9 +29,6 @@
 
           </span>
         </div>
-        <ToggleSwitch :online="true" v-if="projectStore.selectedStudio?.alt_url"
-          v-tooltip="projectStore.useAltUrl ? 'On Prem' : 'Remote'" :switchValueProp="!projectStore.useAltUrl"
-          @click="toggleStudioRoute()" />
 
           <ActionButton v-if="userStore.userCanCreateProject && projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('stall-cog')" v-tooltip="'Studio Settings'" :buttonFunction="studioSettings" />
           <ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Reload Studio'" :buttonFunction="reloadStudio" />
@@ -251,12 +248,6 @@ const modalsActive = computed(() => {
 const toggleStudioList = () => {
   // if (!studioList.value.length) return;
   displayStudioList.value = !displayStudioList.value;
-};
-
-const toggleStudioRoute = () => {
-  SettingsService.SetUseAltUrl(!projectStore.useAltUrl).then(() => {
-    projectStore.useAltUrl = !projectStore.useAltUrl;
-  })
 };
 
 const toggleTheme = () => {

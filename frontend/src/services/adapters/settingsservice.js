@@ -3,10 +3,6 @@ import { setSetting, getSetting } from './storage.js';
 import { StudioService } from './studioservice.js';
 
 export const SettingsService = {
-  // Returns whether to use alternate URL for studio connections
-  GetUseAltUrl: async () => getSetting('useAltUrl', false),
-  // Sets whether to use alternate URL for studio connections
-  SetUseAltUrl: async (value) => setSetting('useAltUrl', value),
   // Returns whether project view is in grid mode
   IsProjectGridView: async () => getSetting('projectGridView', true),
   // Sets project view to grid or list mode

@@ -95,6 +95,16 @@ func (s *StudioService) VerifyDeploymentCode(code string) (bool, string, error) 
 	return valid, message, nil
 }
 
+// Races the primary and alternative studio URLs, returning whichever responds first.
+// Falls back to the primary URL if no alternative is set.
+func (s *StudioService) ResolveStudioUrl(url, altUrl string) (string, error) {
+	resolvedUrl, err := studio_service.ResolveStudioUrl(url, altUrl)
+	if err != nil {
+		return resolvedUrl, err
+	}
+	return resolvedUrl, nil
+}
+
 // Checks if a studio name is already registered
 func (s *StudioService) CheckStudioNameExists(studioName string) (bool, error) {
 	exists, err := studio_service.CheckStudioNameExists(studioName)

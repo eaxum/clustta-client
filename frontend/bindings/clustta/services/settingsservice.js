@@ -251,14 +251,6 @@ export function GetTheme() {
 }
 
 /**
- * GetUseAltUrl retrieves whether alternative URL is enabled.
- * @returns {$CancellablePromise<boolean>}
- */
-export function GetUseAltUrl() {
-    return $Call.ByID(4254852621);
-}
-
-/**
  * GetUseGrid retrieves whether grid view is enabled.
  * @returns {$CancellablePromise<boolean>}
  */
@@ -407,15 +399,6 @@ export function SetSharedProjectDirectory(dir) {
  */
 export function SetTheme(theme) {
     return $Call.ByID(694474447, theme);
-}
-
-/**
- * SetUseAltUrl sets whether to use alternative URL.
- * @param {boolean} useAltUrl
- * @returns {$CancellablePromise<void>}
- */
-export function SetUseAltUrl(useAltUrl) {
-    return $Call.ByID(3141402273, useAltUrl);
 }
 
 /**

@@ -87,4 +87,23 @@ export const StudioService = {
     const response = await globalApiCall('/studio/verify-deployment-code', 'POST', { code });
     return [response.valid === true, response.studio_url || ''];
   },
+
+  // Races primary and alternative studio URLs, returning whichever responds first.
+  // Falls back to the primary URL if no alternative is set.
+  ResolveStudioUrl: async (url, altUrl) => {
+    if (!altUrl) return url;
+
+    const ping = (studioUrl) =>
+      fetch(`${studioUrl}/ping`, { method: 'GET', signal: AbortSignal.timeout(5000) })
+        .then((res) => {
+          if (res.ok) return studioUrl;
+          throw new Error('not ok');
+        });
+
+    try {
+      return await Promise.any([ping(url), ping(altUrl)]);
+    } catch {
+      return url;
+    }
+  },
 };
