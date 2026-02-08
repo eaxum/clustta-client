@@ -120,6 +120,7 @@
           :buttonFunction="saveChanges"
           :fullWidth="false"
           :isActive="hasDefaultLocation"
+          :loading="isAwaitingResponse"
         />
       </div>
 
@@ -154,6 +155,7 @@ const trayStates = useTrayStates();
 
 // refs
 const defaultClusttaDirectory = ref('');
+const isAwaitingResponse = ref(false);
 const locationHealthMap = ref({});
 const locations = ref([]);
 const locationUsageMap = ref({});
@@ -266,6 +268,7 @@ const removeLocation = (locationId) => {
 
 // Saves all changes and closes the modal.
 const saveChanges = async () => {
+  isAwaitingResponse.value = true;
   try {
     await SettingsService.SetProjectDirectory(personalDataDirectory.value);
     await SettingsService.SetSharedProjectDirectory(sharedDataDirectory.value);
@@ -292,6 +295,8 @@ const saveChanges = async () => {
     closeModal();
   } catch (error) {
     notificationStore.errorNotification('Error saving settings', error);
+  } finally {
+    isAwaitingResponse.value = false;
   }
 };
 

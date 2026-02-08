@@ -11,19 +11,14 @@
         </div>
         <div class="account-info">
           <div class="account-name">{{ currentAccount?.first_name }} {{ currentAccount?.last_name }}</div>
-          <div class="account-email">{{ currentAccount?.email || (isOfflineMode ? 'Offline Mode' : '') }}</div>
+          <div v-if="!isOfflineMode" class="account-email">{{ currentAccount?.email }}</div>
         </div>
         <div class="account-status">
-          <span v-if="isOfflineMode" class="status-indicator offline" v-tooltip="'Offline Mode - Sign in to sync'">○</span>
+          <span v-if="isOfflineMode" class="status-indicator offline" v-tooltip="'Offline Mode - Sign in to sync'">●</span>
           <span v-else class="status-indicator active">●</span>
         </div>
       </div>
       
-      <!-- Offline Mode Banner -->
-      <div v-if="isOfflineMode" class="offline-banner">
-        <img class="small-icons" :src="getAppIcon('info')">
-        <span>Sync features unavailable</span>
-      </div>
     </div>
 
     <span class="menu-divider"></span>

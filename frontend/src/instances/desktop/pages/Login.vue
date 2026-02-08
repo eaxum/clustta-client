@@ -249,7 +249,7 @@ const handleLogin = async () => {
     
     // Navigate to home after successful login
     if (isStudioLogin) {
-      notificationStore.addNotification("Studio Login", `Successfully logged in to ${normalizedStudioUrl}`, "success");
+      notificationStore.addNotification("Studio Login", `Successfully logged in to ${normalizedStudioUrl}`, "●");
     }
     router.push('/');
   } catch (err) {
@@ -340,7 +340,7 @@ const enableOfflineMode = async () => {
     markStoresInitialized();
     
     // Navigate to home after successful offline setup
-    notificationStore.addNotification("Offline Mode", "You're now using Clustta in offline mode. Some features will be limited.", "info");
+    notificationStore.addNotification("Offline Mode", "You're now using Clustta in offline mode. Some features will be limited.", "success");
     router.push('/');
   } catch (err) {
     console.error('Failed to enable offline mode:', err);
