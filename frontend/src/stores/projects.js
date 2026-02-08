@@ -58,7 +58,6 @@ export const useProjectStore = defineStore("projects", {
     untrackedFoldersIndex: {},
     newUsers: {}, // Map of projectUri -> array of new user emails
     isProjectStatsExpanded: false,
-    serverActive: true,
   }),
   getters: {
     getActiveProjectName: (state) => {
@@ -94,7 +93,7 @@ export const useProjectStore = defineStore("projects", {
     getStudioUrl: (state) => {
       return state.studioUrl;
     },
-    getServerStatus: (state) => state.serverActive,
+
   },
   actions: {
     async setActiveProject(project) {
@@ -149,6 +148,13 @@ export const useProjectStore = defineStore("projects", {
       }
       this.studioUrl = studioUrl;
 
+      // Update studio reachability after URL resolution
+      const { useStudioStore } = await import('./studio');
+      const studioStore = useStudioStore();
+      if (studio.name !== 'Personal') {
+        studioStore.checkStudioReachability();
+      }
+
       SettingsService.GetPinnedProjects(studio.name).then((response) => {
         this.pinnedProjects = response;
       });
@@ -158,13 +164,9 @@ export const useProjectStore = defineStore("projects", {
       await ProjectService.GetStudioProjects(studioUrl, studio.name)
         .then(async (response) => {
           this.projects = response;
-          // Check if any projects are in offline mode
-          const hasOfflineProjects = response.some(p => p.is_offline);
-          this.serverActive = !hasOfflineProjects;
         })
         .catch((error) => {
           console.error(error);
-          this.serverActive = false;
           notificationStore.errorNotification("Error loading projects", error);
         });
 

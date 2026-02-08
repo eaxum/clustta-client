@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { StudioService } from "@/services";
 import { useProjectStore } from '@/stores/projects';
+import { useNotificationStore } from './notifications';
 // import axios from "axios";
 // import studio_service from "@/services/studio_service";
 // import { useNotificationStore } from "./notifications";
@@ -16,7 +17,8 @@ export const useStudioStore = defineStore("studio", {
     projectsLoaded: false,
     selectedStudio: null,
     selectedStudioUsers: [],
-    studioUsers: []
+    studioUsers: [],
+    appOnline: true,
   }),
   getters: {
     getStudiosNames: (state) => {
@@ -219,6 +221,22 @@ export const useStudioStore = defineStore("studio", {
 
     sortAlphabetically(data){
       return data.sort((a, b) => a.first_name.localeCompare(b.first_name));
+    },
+
+    // Checks if the current studio server is reachable and updates appOnline.
+    async checkStudioReachability() {
+      const projectStore = useProjectStore();
+      const studio = projectStore.selectedStudio;
+      if (!studio || studio.name === 'Personal') {
+        this.appOnline = true;
+        return;
+      }
+      try {
+        const status = await StudioService.GetStudioStatus(projectStore.studioUrl);
+        this.appOnline = status === 'active';
+      } catch {
+        this.appOnline = false;
+      }
     },
 
     async loadStudioProjects(studioUrl) {

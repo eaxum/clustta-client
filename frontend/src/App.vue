@@ -15,6 +15,7 @@ import emitter from '@/lib/mitt';
 
 import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from './stores/projects';
+import { useStudioStore } from './stores/studio';
 import { SyncService, ProjectService } from "@/services";
 import { System } from "@wailsio/runtime";
 import { LogService } from '@/services';
@@ -34,6 +35,7 @@ const modals = useDesktopModalStore();
 const syncConflictStore = useSyncConflictStore();
 const themeStore = useThemeStore();
 const stageStore = useStageStore();
+const studioStore = useStudioStore();
 const accountStore = useAccountStore();
 
 
@@ -130,8 +132,32 @@ const operationsActive = computed(() => {
     || !!menu.activeMenu || !assetStore.assetsLoaded || stageStore.activeStage !== 'browser'
 });
 
+// Periodically checks studio reachability when offline.
+// Retries every 5 minutes until the server is reachable again.
+function startConnectivityCheckInterval() {
+    const RETRY_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+    function run() {
+        if (studioStore.appOnline) {
+            setTimeout(run, RETRY_INTERVAL);
+            return;
+        }
+        studioStore.checkStudioReachability().finally(() => {
+            setTimeout(run, RETRY_INTERVAL);
+        });
+    }
+
+    run();
+}
+
+// Polls for sync token changes when online.
+// Only runs when a non-Personal studio is selected and the app is online.
 function startCheckSycnTokenInterval() {
     function run() {
+        if (!studioStore.appOnline) {
+            setTimeout(run, 5000);
+            return
+        }
         if (operationsActive.value) {
             setTimeout(run, 1000);
             return
@@ -152,11 +178,9 @@ function startCheckSycnTokenInterval() {
             setTimeout(run, 1000);
             return
         }
-        // When offline, still check periodically but at a longer interval to detect reconnection
-        const checkInterval = projectStore.serverActive ? 5000 : 60000;
         ProjectService.GetSyncToken(projectStore.getActiveProjectUrl)
             .then(async (token) => {
-                projectStore.serverActive = true;
+                studioStore.appOnline = true;
                 if (token) {
                     let syncToken = projectStore.activeProject.sync_token
                     if (syncToken != token) {
@@ -175,14 +199,12 @@ function startCheckSycnTokenInterval() {
                             console.log(error)
                         })
                         stageStore.operationActive = false;
-                    } else {
-                        // console.log("sync token is the same")
                     }
                 }
             }).catch((error) => {
-                projectStore.serverActive = false;
+                studioStore.appOnline = false;
             }).finally(() => {
-                setTimeout(run, checkInterval);
+                setTimeout(run, 5000);
             });
 
     }
@@ -204,6 +226,7 @@ function startUpdateFileStatesInterval() {
 onMounted(async () => {
     if (!platformStore.isWeb) {
         startCheckSycnTokenInterval();
+        startConnectivityCheckInterval();
     }
 });
 </script>
