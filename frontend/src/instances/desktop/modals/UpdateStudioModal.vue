@@ -1,9 +1,7 @@
 <template>
   <div ref="modalContainer" class="modal-container">
 
-    <div class="general-pane-header">
-      <HeaderArea :title="title" :icon="getAppIcon('stall')" :showSearch="false" />
-    </div>
+    <HeaderArea :title="title" :icon="getAppIcon('stall')" :showSearch="false" />
 
     <div class="general-container">
 

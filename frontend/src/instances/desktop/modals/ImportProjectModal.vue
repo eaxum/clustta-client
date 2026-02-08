@@ -252,9 +252,7 @@ onMounted(async () => {
   width: 600px;
   max-width: 600px;
   max-height: 70vh;
-  color: white;
   box-sizing: border-box;
-  padding: 0;
   overflow-y: auto;
 }
 

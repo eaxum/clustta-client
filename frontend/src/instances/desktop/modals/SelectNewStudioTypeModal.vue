@@ -107,6 +107,7 @@ const handleNext = () => {
 // Selects a studio type.
 const selectStudioType = (type) => {
   selectedStudioType.value = type;
+  handleNext();
 };
 
 // lifecycle

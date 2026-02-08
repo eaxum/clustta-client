@@ -12,6 +12,7 @@
         <ActionButton :icon="getAppIcon('file')" v-tooltip="'Open logs folder'" :buttonFunction="openLogsFolder" />
         <ActionButton :icon="getAppIcon('megaphone')" v-tooltip="'Submit Diagnostics'" :buttonFunction="openDiagnosticsModal" />
         <ActionButton :icon="getAppIcon('broom')" v-tooltip="'Clear'" :buttonFunction="clearLogs" />
+        <ActionButton :icon="getAppIcon('close')" v-tooltip="'Close'" :buttonFunction="closeConsole" />
       </div>
     </div>
 
@@ -49,6 +50,8 @@ const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 
+const emit = defineEmits(['close']);
+
 // refs
 const logs = ref([]);
 const logsContainer = ref(null);
@@ -74,6 +77,11 @@ const filteredLogs = computed(() => {
 // Clears all captured logs.
 const clearLogs = () => {
   logs.value = [];
+};
+
+// Emits close event to hide the debug console.
+const closeConsole = () => {
+  emit('close');
 };
 
 // Copies the filtered logs to clipboard in a formatted text format.

@@ -1,14 +1,14 @@
 <template>
   <div class="modal-container" v-stop-propagation>
     <HeaderArea :title="'Create Checkpoints'" :icon="getAppIcon('layers-plus')" />
+    
     <div class="general-container">
       <textarea v-model="message" class="desktop-input-long" type="text" placeholder="write a comment..." v-focus
         @keydown.enter="handleEnterKey" />
 
       <InputAlert :show="!isValueChanged" :message="validationMessage" />
 
-    </div>
-
+      
     <div v-if="assetStore.loadingAssetStates" class="horizontal-flex input-alert loading-items-count">
       <ActionButton :isLoading="true" :icon="getAppIcon('loading')"  
 					v-tooltip="'Loading collection states'" />
@@ -58,6 +58,10 @@
       <GeneralButton :label="'Confirm'" :fullWidth="true" @click="createCheckPoints" :isActive="isValueChanged"
         :loading="isAwaitingResponse" />
     </div>
+    
+    </div>
+
+
   </div>
 </template>
 
@@ -339,7 +343,7 @@ onBeforeUnmount(() => {
 }
 
 .desktop-input-long {
-  margin-top: 20px;
+  margin-top: 0px;
   font-weight: 200;
   color: var(--white);
 }
@@ -393,7 +397,7 @@ onBeforeUnmount(() => {
 }
 
 .desktop-input-long {
-  margin-top: 20px;
+  /* margin-top: 20px; */
   font-weight: 200;
   color: var(--white);
 }

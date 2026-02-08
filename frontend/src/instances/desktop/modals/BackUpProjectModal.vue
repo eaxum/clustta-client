@@ -295,9 +295,7 @@ const selectBackupDirectory = async () => {
   flex-direction: column;
   width: 600px;
   max-width: 600px;
-  color: white;
   box-sizing: border-box;
-  padding: 0;
 }
 
 /* Settings Section Card Styles */

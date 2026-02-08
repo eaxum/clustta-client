@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!displaySearchBar" class="page-header-area-container">
+  <div v-if="!displaySearchBar" class="page-header-area-container" :class="{ 'not-modal' : notModal}">
     <div class="page-header-area-container-title">
 
       <span v-if="emoji" class="project-icon" v-html="emoji"></span>
@@ -55,6 +55,7 @@ const props = defineProps({
   showMeta: Boolean,
   showPin: Boolean,
   miniDisplay: { type: Boolean, default: false },
+  notModal: { type: Boolean, default: false },
   useIconBlob: { type: Boolean, default: false },
   searchQuery: {
     type: String,
@@ -141,11 +142,23 @@ onMounted(() => {
   align-items: center;
   flex-direction: row;
   box-sizing: border-box;
-  width: 98%;
+  width: 100%;
   height: 60px;
   gap: .5rem;
   overflow: hidden;
   justify-content: space-between;
+  /* background-color: crimson; */
+  padding: 1rem 1.5rem;
+  background-color: var(--midnight-steel);
+  border-radius: var(--small-radius);
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+}
+
+.not-modal{
+  background-color: transparent;
+  border-radius: 0px;
+  outline: 0px;
 }
 
 .page-header-title {

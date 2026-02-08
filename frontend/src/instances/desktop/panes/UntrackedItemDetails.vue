@@ -1,6 +1,6 @@
 <template>
   <div v-if="debugging" class="general-pane-header">
-    <HeaderArea :title="utils.capitalizeStr(projectStore.selectedUntrackedItem?.name)" :icon="getAppIcon(itemIcon)" />
+    <HeaderArea :title="utils.capitalizeStr(projectStore.selectedUntrackedItem?.name)" :notModal="true" :icon="getAppIcon(itemIcon)" />
   </div>
 
   <div v-if="debugging" class="general-pane-root">
