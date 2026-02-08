@@ -143,7 +143,7 @@ const taskName = computed(() => {
 		return utils.capitalizeStr(task.name)
 	} else {
 		const fullPath = task.task_path;
-		return fullPath.replace(/\//g, ' / ');
+		return fullPath?.replace(/\//g, ' / ');
 	}
 });
 

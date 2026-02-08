@@ -204,6 +204,17 @@ export function GetAssetByID(projectPath, assetId) {
 }
 
 /**
+ * GetAssetByPath retrieves an asset by its task_path.
+ * Returns the asset or an error if not found.
+ * @param {string} projectPath
+ * @param {string} taskPath
+ * @returns {$CancellablePromise<models$0.Task>}
+ */
+export function GetAssetByPath(projectPath, taskPath) {
+    return $Call.ByID(473301761, projectPath, taskPath);
+}
+
+/**
  * @param {string} projectPath
  * @returns {$CancellablePromise<number>}
  */

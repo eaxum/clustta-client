@@ -119,7 +119,6 @@ onMounted(async () => {
       }
       projectCheckpoints.value = timelineData;
       projectCheckpointsLoading.value = false;
-      console.log(timelineData)
     })
     .catch((error) => {
       notificationStore.errorNotification(
