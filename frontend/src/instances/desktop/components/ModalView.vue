@@ -69,6 +69,9 @@ import UpdateStudioModal from '@/instances/desktop/modals/UpdateStudioModal.vue'
 // components - sync
 import SyncConflictModal from '@/instances/desktop/modals/SyncConflictModal.vue';
 
+// components - diagnostics
+import SubmitDiagnosticsModal from '@/instances/desktop/modals/SubmitDiagnosticsModal.vue';
+
 // components - workflow
 import ComposeWorkflowModal from '@/instances/desktop/modals/ComposeWorkflowModal.vue';
 import ConfigWorkflowModal from '@/instances/desktop/modals/ConfigWorkflowModal.vue';
@@ -150,6 +153,9 @@ const modalComponents = {
 
   // sync
   syncConflictModal: SyncConflictModal,
+
+  // diagnostics
+  submitDiagnosticsModal: SubmitDiagnosticsModal,
 
   // workflow
   composeWorkflowModal: ComposeWorkflowModal,

@@ -218,6 +218,20 @@ export function SendInvitationEmail(email, studioName, projectName) {
 }
 
 /**
+ * SubmitDiagnostics sends diagnostic information to the support team.
+ * Returns an error if the submission fails.
+ * @param {string} email
+ * @param {string} description
+ * @param {string} os
+ * @param {string} arch
+ * @param {string} clusttaVersion
+ * @returns {$CancellablePromise<void>}
+ */
+export function SubmitDiagnostics(email, description, os, arch, clusttaVersion) {
+    return $Call.ByID(1571031795, email, description, os, arch, clusttaVersion);
+}
+
+/**
  * UpdateUser updates the current user's profile information.
  * Returns the updated user or an error if the update fails.
  * @param {string} firstName

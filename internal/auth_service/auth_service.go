@@ -854,3 +854,56 @@ func ResetPassword(email string) error {
 
 	return nil
 }
+
+func SubmitDiagnostics(email, description, os, arch, clusttaVersion, logContents string) error {
+	type requestData struct {
+		Email           string `json:"email"`
+		Description     string `json:"description"`
+		OS              string `json:"os"`
+		Arch            string `json:"arch"`
+		ClusttaVersion  string `json:"clustta_version"`
+		LogContents     string `json:"log_contents"`
+	}
+
+	data := requestData{
+		Email:           email,
+		Description:     description,
+		OS:              os,
+		Arch:            arch,
+		ClusttaVersion:  clusttaVersion,
+		LogContents:     logContents,
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request data: %v", err)
+	}
+
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return fmt.Errorf("cannot submit diagnostics in offline mode")
+	}
+
+	url := authHost + "/auth/submit-diagnostics"
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to submit diagnostics: %s", string(body))
+	}
+
+	return nil
+}

@@ -6,6 +6,10 @@
 // @ts-ignore: Unused imports
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as $models from "./models.js";
+
 /**
  * GetOS returns the operating system name.
  * Detects the current OS and returns "windows", "darwin", "linux", or "unknown".
@@ -13,6 +17,16 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
  */
 export function GetOS() {
     return $Call.ByID(3716419014);
+}
+
+/**
+ * GetSystemInfo returns detailed system information including OS version.
+ * @returns {$CancellablePromise<$models.SystemInfo>}
+ */
+export function GetSystemInfo() {
+    return $Call.ByID(3227745773).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
 }
 
 /**
@@ -50,3 +64,6 @@ export function Quit() {
 export function Show() {
     return $Call.ByID(2328962577);
 }
+
+// Private type creation functions
+const $$createType0 = $models.SystemInfo.createFrom;
