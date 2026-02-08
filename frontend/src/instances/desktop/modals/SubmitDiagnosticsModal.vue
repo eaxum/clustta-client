@@ -34,12 +34,12 @@
         <span class="attachment-label">{{ logFileName || 'No log file attached' }}</span>
       </div>
 
-    </div>
+      <div class="pop-up-actions">
+        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="'Send'" :fullWidth="true" @click="submitDiagnostics" :isActive="isFormValid"
+          :loading="isAwaitingResponse" />
+      </div>
 
-    <div class="pop-up-actions">
-      <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-      <GeneralButton :label="'Send'" :fullWidth="true" @click="submitDiagnostics" :isActive="isFormValid"
-        :loading="isAwaitingResponse" />
     </div>
   </div>
 </template>
