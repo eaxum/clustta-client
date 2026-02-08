@@ -1,30 +1,13 @@
 <template>
   <div ref="modalContainer" class="modal-container">
-
-    <div class="general-pane-header">
       <HeaderArea :title="title" :icon="getAppIcon('two-drives')" :showSearch="false" />
-    </div>
 
     <div v-if="!isStudioCreated" class="general-container">
-
-      <div class="input-section">
-        <div class="input-label-row">
-          <label class="input-label">Studio Name</label>
-        </div>
-        <div class="horizontal-flex">
-          <input v-model="studioName" class="input-short" type="text" placeholder="Studio Name"  v-focus />
-        </div>
+      <div class="studio-info-text">
+        <p>Host and manage your own Clustta studio instance with full control over data, security, and customization.</p>
       </div>
-
-      <div class="input-section">
-        <div class="input-label-row">
-          <label class="input-label">Studio URL</label>
-        </div>
-        <div class="horizontal-flex">
-          <input v-model="studioUrl" class="input-short" type="text" placeholder="Studio URL"  />
-        </div>
-      </div>
-
+      <FormInput v-model="studioName" placeholder="Studio Name" />
+      <FormInput v-model="studioUrl" placeholder="Studio URL" />
       <div class="pop-up-actions">
         <GeneralButton :label="'Back'" :fullWidth="true" :buttonFunction="goBack" :colored="false" />
         <GeneralButton :label="'Create'" :fullWidth="true" @click="createStudio" :isActive="isValueChanged"
@@ -129,6 +112,7 @@ import { computed, onMounted, ref, watchEffect } from 'vue';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import FormInput from '@/instances/desktop/components/FormInput.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
@@ -314,7 +298,7 @@ onMounted(async () => {
 @import "@/assets/modals.css";
 
 .general-container {
-  gap: 1rem;
+  /* gap: 1rem; */
 }
 
 .single-action{
@@ -702,5 +686,20 @@ onMounted(async () => {
 .env-file-textarea::-webkit-scrollbar-thumb {
   border-radius: 10px;
   background-color: var(--steel);
+}
+
+.studio-info-text {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--white);
+  font-size: 14px;
+  padding: .5rem 0;
+  box-sizing: border-box;
+}
+
+.studio-info-text p {
+  margin: 0;
 }
 </style>

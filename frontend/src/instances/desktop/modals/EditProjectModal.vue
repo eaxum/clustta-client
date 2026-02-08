@@ -2,8 +2,8 @@
 
   <div class="modal-container" v-esc="closeModal" v-return="handleEnterKey">
     <div class="general-pane-header">
-      <HeaderArea v-if="isCustomIcon" :title="title" :customIcon="projectIcon" />
-      <HeaderArea v-else :title="title" :emoji="projectIcon" />
+      <HeaderArea :notModal="true" v-if="isCustomIcon" :title="title" :customIcon="projectIcon" />
+      <HeaderArea :notModal="true" v-else :title="title" :emoji="projectIcon" />
       <ActionButton v-if="displayEmojiSelector"  :icon="getAppIcon('arrow-left')" :showLabel="false" v-tooltip="'Back to details'"
         :buttonFunction="toggleEmojiSelector" />
       <ActionButton v-else  :icon="getAppIcon('face-plus')" :showLabel="false" v-tooltip="'Set project Icon'"
@@ -289,6 +289,17 @@ onUnmounted(() => {
 
 .general-container {
   gap: 1rem;
+}
+
+.general-pane-header{
+  box-sizing: border-box;
+  background-color: var(--midnight-steel);
+  border-radius: var(--small-radius);
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+  gap: .5rem;
+  padding: 0 1rem;
+  padding-left: 0px;
 }
 
 .input-short {

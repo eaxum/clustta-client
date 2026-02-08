@@ -1,9 +1,7 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
 
-    <div class="general-pane-header">
-      <HeaderArea :title="title" :icon="getAppIcon('arrow-up-ramp')" :showSearch="false" />
-    </div>
+    <HeaderArea :title="title" :icon="getAppIcon('arrow-up-ramp')" :showSearch="false" />
 
     <div class="general-container">
 

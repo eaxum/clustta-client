@@ -1,7 +1,7 @@
 <template>
     <div class="info-bar-wrapper" v-stop-propagation>
         <div v-if="debugModeEnabled" class="debug-console-container">
-            <DebugConsole />
+            <DebugConsole @close="toggleDebugConsole" />
         </div>
         
         <div class="info-bar-root" :style="{ backgroundColor : bgColor }" @mouseenter="isHoveringInfobar = true" @mouseleave="isHoveringInfobar = false">

@@ -1,8 +1,6 @@
 <template>
   <div class="modal-container" ref="modalContainer" v-stop-propagation v-esc="closeModal">
-    <div class="general-pane-header">
-      <HeaderArea :title="title" :icon="typeIcon" />
-    </div>
+    <HeaderArea :title="title" :icon="typeIcon" />
 
     <div class="general-container">
       <AssetTypeForm ref="typeFormRef" mode="create" @created="handleCreated" @cancel="closeModal" @iconChange="handleIconChange" />

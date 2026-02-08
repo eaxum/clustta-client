@@ -221,7 +221,6 @@
 .settings-section-card {
   background-color: var(--black-steel);
   border-radius: var(--very-large-radius);
-  /* padding: 1.5rem; */
   box-sizing: border-box;
   width: 100%;
   outline: var(--transparent-line);
@@ -236,7 +235,8 @@
   gap: 1rem;
   padding: 1rem 1.5rem;
   background-color: var(--midnight-steel);
-  border-radius: var(--normal-radius);
+  border-radius: var(--small-radius);
+  /* border-radius: var(--very-large-radius); */
   outline: var(--transparent-line);
   outline-offset: -1px;
 }
@@ -252,12 +252,11 @@
 .modal-container {
   /* z-index: 1; */
   display: flex;
-  color: white;
   box-sizing: border-box;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
+  /* padding: 1rem; */
   /* padding: 24px; */
   position: relative;
   overflow: hidden;
@@ -284,6 +283,7 @@
   flex-direction: column;
   align-items: center;
   /* background-color: red; */
+  padding: 1rem;
 }
 
 

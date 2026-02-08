@@ -403,7 +403,6 @@ onMounted(async () => {
   max-width: 600px;
   color: white;
   box-sizing: border-box;
-  padding: 0;
 }
 
 .header-content {

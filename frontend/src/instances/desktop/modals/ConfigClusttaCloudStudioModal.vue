@@ -1,11 +1,13 @@
 <template>
   <div ref="modalContainer" class="modal-container">
 
-    <div class="general-pane-header">
       <HeaderArea :title="title" :icon="getAppIcon('clustta')" :showSearch="false" />
-    </div>
 
     <div v-if="!isStudioRegistered" class="general-container">
+
+      <div class="studio-info-text">
+        <p>Get started instantly with our managed cloud service. No setup required, automatic updates and enterprise-grade security.</p>
+      </div>
 
       <FormInput
         v-model="studioName"
@@ -703,5 +705,20 @@ onMounted(async () => {
   flex-direction: column;
   overflow: hidden;
   gap: .5rem;
+}
+
+.studio-info-text {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--white);
+  font-size: 14px;
+  padding: .5rem 0;
+  box-sizing: border-box;
+}
+
+.studio-info-text p {
+  margin: 0;
 }
 </style>

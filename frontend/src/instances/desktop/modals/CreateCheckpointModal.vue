@@ -33,17 +33,17 @@
         <img class="screenshot-thumb" :src="trayStates.screenshot">
       </span>
 
-      <div class="horizontal-flex">
+      <div v-if="trayStates.screenshot" class="horizontal-flex">
         <div class="input-label"> Use Image as Asset thumbnail</div>
         <ToggleSwitch :switchValueProp="useImageAsCover" @click="useAsCover()" />
       </div>
 
-    </div>
+      <div class="pop-up-actions">
+        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="'Create'" :fullWidth="true" @click="createCheckPoint" :isActive="isValueChanged"
+          :loading="isAwaitingResponse" />
+      </div>
 
-    <div class="pop-up-actions">
-      <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-      <GeneralButton :label="'Create'" :fullWidth="true" @click="createCheckPoint" :isActive="isValueChanged"
-        :loading="isAwaitingResponse" />
     </div>
 
 
@@ -338,7 +338,7 @@ onUnmounted(() => {
 }
 
 .desktop-input-long {
-  margin-top: 20px;
+  margin-top: 0px;
   font-weight: 200;
   color: var(--white);
 }

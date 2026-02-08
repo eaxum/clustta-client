@@ -7,52 +7,10 @@
 				<WorkspaceTabs />
 			</div>
 
-			<div v-if="stage.activeStage === 'projects'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('home')" :isInactive="true" />
-				<div class="header-area-container">
-					<HeaderArea :title="'Projects'" :miniDisplay="true" />
-				</div>
-			</div>
-
-			<div v-if="stage.activeStage === 'dependencies'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('chevron-left')" @click="goToList()" v-tooltip="'Back'" />
-				<div class="header-area-container" @click="toggleFullTaskPath()">
-					<HeaderArea :title="taskName" :miniDisplay="true" :customIcon="assetStore.selectedAsset.icon" />
-				</div>
-			</div>
-
-			<div v-if="stage.activeStage === 'trash'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('chevron-left')" @click="goToList()" v-tooltip="'Back'" />
-				<div class="header-area-container">
-					<HeaderArea :title="'Trash'" :miniDisplay="true" />
-				</div>
-			</div>
-
-			<div v-if="stage.activeStage === 'projectSettings'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('chevron-left')" @click="goToList()" v-tooltip="'Back'" />
-				<div class="header-area-container">
-					<HeaderArea :title="'Project Settings'" :miniDisplay="true" />
-				</div>
-			</div>
-
-			<div v-if="stage.activeStage === 'studioSettings'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('chevron-left')" @click="goToProjects()" v-tooltip="'Back'" />
-				<div class="header-area-container">
-					<HeaderArea :title="'Studio Settings'" :miniDisplay="true" />
-				</div>
-			</div>
-
-			<div v-if="stage.activeStage === 'settings'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('chevron-left')" @click="goToProjects()" v-tooltip="'Back'" />
-				<div class="header-area-container">
-					<HeaderArea :title="'Clustta Settings'" :miniDisplay="true" />
-				</div>
-			</div>
-
-			<div v-if="stage.activeStage === 'account'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('chevron-left')" @click="goToProjects()" v-tooltip="'Back'" />
-				<div class="header-area-container">
-					<HeaderArea :title="'Account Settings'" :miniDisplay="true" />
+			<div v-if="activeHeaderConfig" class="header-bar-dependencies">
+				<ActionButton :icon="getAppIcon(activeHeaderConfig.icon)" :isInactive="activeHeaderConfig.isInactive" @click="activeHeaderConfig.action?.()" v-tooltip="activeHeaderConfig.tooltip" />
+				<div class="header-area-container" @click="activeHeaderConfig.containerClick?.()">
+					<HeaderArea :notModal="true" :title="activeHeaderConfig.title" :miniDisplay="true" :customIcon="activeHeaderConfig.customIcon" />
 				</div>
 			</div>
 
@@ -182,6 +140,20 @@ const taskName = computed(() => {
 const toggleFullTaskPath = () => {
 	fullTaskPath.value = !fullTaskPath.value;
 }
+
+// Returns the header configuration for the active stage.
+const activeHeaderConfig = computed(() => {
+	const configs = {
+		projects: { icon: 'home', isInactive: true, title: 'Projects' },
+		dependencies: { icon: 'chevron-left', action: goToList, title: taskName.value, customIcon: assetStore.selectedAsset?.icon, containerClick: toggleFullTaskPath, tooltip: 'Back' },
+		trash: { icon: 'chevron-left', action: goToList, title: 'Trash', tooltip: 'Back' },
+		projectSettings: { icon: 'chevron-left', action: goToList, title: 'Project Settings', tooltip: 'Back' },
+		studioSettings: { icon: 'chevron-left', action: goToProjects, title: 'Studio Settings', tooltip: 'Back' },
+		settings: { icon: 'chevron-left', action: goToProjects, title: 'Clustta Settings', tooltip: 'Back' },
+		account: { icon: 'chevron-left', action: goToProjects, title: 'Account Settings', tooltip: 'Back' },
+	};
+	return configs[stage.activeStage] || null;
+});
 
 const unSynced = computed(() => { return projectStore.getActiveProject.is_unsynced });
 

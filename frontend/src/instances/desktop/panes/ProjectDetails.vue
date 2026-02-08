@@ -5,8 +5,9 @@
 
   <div v-else class="general-pane-header">
     <HeaderArea v-if="isCustomIcon" :title="projectStore.getActiveProjectName"
-      :customIcon="projectStore.activeProject.icon" />
-    <HeaderArea v-else :title="projectStore.getActiveProjectName" :emoji="projectStore.activeProject.icon" />
+      :customIcon="projectStore.activeProject.icon" :notModal="true" />
+    <HeaderArea v-else :title="projectStore.getActiveProjectName" :notModal="true" 
+      :emoji="projectStore.activeProject.icon" />
     <ActionButton :icon="getAppIcon('switches')" v-if="userStore.canDo('update_task')" :showLabel="false"
       v-tooltip="'Edit Project'" :buttonFunction="editProject" />
   </div>
