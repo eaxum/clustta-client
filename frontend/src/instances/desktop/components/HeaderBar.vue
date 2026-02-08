@@ -34,7 +34,7 @@
 				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="revertButtonTooltip"  :useDanger="unSynced"/>
 
 				<ActionButton :isDisabled="syncButtonDisabled" @click="unSynced ? syncData() : pullData()" :icon="getAppIcon(getCloudIcon)"
-				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="syncButtonTooltip" :useAlert="unSynced" />
+				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="syncButtonTooltip" :useAlert="unSynced" :useDanger="offline" />
 				
 				<!-- <ActionButton :icon="getAppIcon('bell')" @click="panes.setPaneVisibility('notifications', true)" v-tooltip="'Notifications'"  /> -->
 			</div>
@@ -109,6 +109,10 @@ const getAppIcon = (iconName) => {
 const getCloudIcon = computed(() => {
 
 	// Check if server is reachable
+	if (projectStore.getActiveProject?.is_offline) {
+		return 'cloud-cancel';
+	}
+
 	if (!projectStore.serverActive) {
 		return 'cloud-cancel';
 	}
@@ -156,6 +160,7 @@ const activeHeaderConfig = computed(() => {
 });
 
 const unSynced = computed(() => { return projectStore.getActiveProject.is_unsynced });
+const offline = computed(() => { return projectStore.getActiveProject?.is_offline });
 
 const revertButtonDisabled = computed(() => {
 	return !!notificationStore.getProgress.running || 
@@ -182,9 +187,10 @@ const syncButtonDisabled = computed(() => {
 const syncButtonTooltip = computed(() => {
 	if (projectStore.serverIsBusy) return 'Server is busy...';
 	if (stage.operationActive) return 'Operation in progress...';
+	if (projectStore.getActiveProject?.is_offline) return 'Server Unreachable';
 	if (!projectStore.getActiveProject?.is_downloaded) return 'Project not downloaded';
 	if (!unSynced.value) return 'Sync';
-	return 'Send';
+	return 'Sync';
 });
 
 // methods
