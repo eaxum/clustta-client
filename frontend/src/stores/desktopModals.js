@@ -79,6 +79,9 @@ export const useDesktopModalStore = defineStore("desktopModals", {
 
       // sync
       syncConflictModal: false,
+
+      // diagnostics
+      submitDiagnosticsModal: false,
     },
 
     activeModal: null,

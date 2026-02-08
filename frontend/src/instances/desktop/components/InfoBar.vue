@@ -1,5 +1,5 @@
 <template>
-    <div class="info-bar-wrapper">
+    <div class="info-bar-wrapper" v-stop-propagation>
         <div v-if="debugModeEnabled" class="debug-console-container">
             <DebugConsole />
         </div>
@@ -250,6 +250,7 @@ onBeforeUnmount(() => {
   width: 100%;
   background-color: var(--steel);
   box-sizing: border-box;
+  z-index: 99999;
 }
 
 .debug-console-container {

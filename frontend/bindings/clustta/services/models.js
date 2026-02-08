@@ -1263,6 +1263,51 @@ export class SkillData {
     }
 }
 
+/**
+ * SystemInfo contains detailed system information.
+ */
+export class SystemInfo {
+    /**
+     * Creates a new SystemInfo instance.
+     * @param {Partial<SystemInfo>} [$$source = {}] - The source object to create the SystemInfo.
+     */
+    constructor($$source = {}) {
+        if (!("os" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["os"] = "";
+        }
+        if (!("os_version" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["os_version"] = "";
+        }
+        if (!("arch" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["arch"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SystemInfo instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {SystemInfo}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new SystemInfo(/** @type {Partial<SystemInfo>} */($$parsedSource));
+    }
+}
+
 export class Tool {
     /**
      * Creates a new Tool instance.

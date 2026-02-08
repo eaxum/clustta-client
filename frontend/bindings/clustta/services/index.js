@@ -74,6 +74,7 @@ export {
     RecycleItem,
     Skill,
     SkillData,
+    SystemInfo,
     Tool,
     ToolData,
     UntrackedItems,

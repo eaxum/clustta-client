@@ -10,6 +10,7 @@
         <SearchBar v-model="searchQuery" placeholder="Filter logs..." />
         <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy logs'" :buttonFunction="copyLogs" />
         <ActionButton :icon="getAppIcon('file')" v-tooltip="'Open logs folder'" :buttonFunction="openLogsFolder" />
+        <ActionButton :icon="getAppIcon('megaphone')" v-tooltip="'Submit Diagnostics'" :buttonFunction="openDiagnosticsModal" />
         <ActionButton :icon="getAppIcon('broom')" v-tooltip="'Clear'" :buttonFunction="clearLogs" />
       </div>
     </div>
@@ -36,14 +37,16 @@ import { Events } from "@wailsio/runtime";
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import SearchBar from '@/instances/desktop/components/SearchBar.vue';
 
-// stores
-import { useIconStore } from '@/stores/icons';
-import { useNotificationStore } from '@/stores/notifications';
-
 // services
 import { FSService, SettingsService } from '@/services';
 
+// stores
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useNotificationStore } from '@/stores/notifications';
+
 const iconStore = useIconStore();
+const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 
 // refs
@@ -108,6 +111,11 @@ const formatMessage = (args) => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
+// Opens the diagnostics modal for submitting logs via email.
+const openDiagnosticsModal = () => {
+  modals.setModalVisibility('submitDiagnosticsModal', true);
+};
 
 // Parses Go slog format logs: time=2026-02-07T17:59:31.150+01:00 level=ERROR msg="..."
 const parseGoLog = (message) => {

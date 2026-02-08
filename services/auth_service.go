@@ -1,8 +1,11 @@
 package services
 
 import (
+	osLib "os"
+
 	"clustta/internal/auth_service"
 	"clustta/internal/error_service"
+	"clustta/internal/settings"
 )
 
 type AuthService struct{}
@@ -198,4 +201,20 @@ func (a *AuthService) ChangePassword(currentPassword, newPassword, confirmPasswo
 // Returns an error if the reset request fails.
 func (a *AuthService) ResetPassword(email string) error {
 	return auth_service.ResetPassword(email)
+}
+
+// SubmitDiagnostics sends diagnostic information to the support team.
+// Returns an error if the submission fails.
+func (a *AuthService) SubmitDiagnostics(email, description, os, arch, clusttaVersion string) error {
+	// Read log contents from the log file
+	logContents := ""
+	logPath, err := settings.GetLogPath()
+	if err == nil {
+		content, err := osLib.ReadFile(logPath)
+		if err == nil {
+			logContents = string(content)
+		}
+	}
+
+	return auth_service.SubmitDiagnostics(email, description, os, arch, clusttaVersion, logContents)
 }
