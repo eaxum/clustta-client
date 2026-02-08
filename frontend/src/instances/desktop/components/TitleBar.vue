@@ -49,6 +49,13 @@
       </div>
     </div>
 
+    <div v-else style="--wails-draggable:drag"
+      class="project-name-container">
+      <div class="project-name-text">
+        Clustta
+      </div>
+    </div>
+
 
     <ClusttaLogo v-if="os === 'darwin'" :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="'About Clustta'" :class="{ 'is-disabled': progressRunning }" />
 
@@ -168,7 +175,7 @@ const parentLocation = computed(() => {
   return studioTabsParent.value.getBoundingClientRect()
 });
 
-const restrictedTitles = ref(['projects', 'studioSettings' ])
+const restrictedTitles = ref(['projects', 'settings' ])
 
 const isMacFullscreen = ref(false);
 
