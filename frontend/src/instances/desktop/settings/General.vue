@@ -259,6 +259,7 @@ onMounted(async () => {
   overflow: hidden;
   display: block;
   overflow-y: scroll;
+  border-radius: var(--very-large-radius);
 }
 
 
