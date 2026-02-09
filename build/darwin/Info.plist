@@ -15,6 +15,8 @@
 				<string>Clustta</string>
 				<key>CFBundleTypeRole</key>
 				<string>Editor</string>
+				<key>LSHandlerRank</key>
+				<string>Owner</string>
 			</dict>
 		</array>
 		<key>CFBundleExecutable</key>
@@ -30,9 +32,9 @@
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
-		<string>0.4.30</string>
+		<string>0.4.300</string>
 		<key>CFBundleVersion</key>
-		<string>0.4.30</string>
+		<string>0.4.300</string>
 		<key>ITSAppUsesNonExemptEncryption</key>
 		<false/>
 		<key>LSApplicationCategoryType</key>
