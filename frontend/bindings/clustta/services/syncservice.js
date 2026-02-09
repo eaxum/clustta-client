@@ -4,17 +4,18 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
+import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as sync_service$0 from "../internal/repository/sync_service/models.js";
 
 /**
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function CancelSync() {
-    return $Call.ByID(3809534217);
+    let $resultPromise = /** @type {any} */($Call.ByID(3809534217));
+    return $resultPromise;
 }
 
 /**
@@ -22,28 +23,31 @@ export function CancelSync() {
  * @param {string} studioName
  * @param {string} workingDir
  * @param {sync_service$0.SyncOptions} syncOptions
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function CloneProject(projectUri, studioName, workingDir, syncOptions) {
-    return $Call.ByID(2124243758, projectUri, studioName, workingDir, syncOptions);
+    let $resultPromise = /** @type {any} */($Call.ByID(2124243758, projectUri, studioName, workingDir, syncOptions));
+    return $resultPromise;
 }
 
 /**
  * @param {string} projectPath
  * @param {string} remoteURL
  * @param {string} checkpointId
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function DownloadCheckpoint(projectPath, remoteURL, checkpointId) {
-    return $Call.ByID(1678911334, projectPath, remoteURL, checkpointId);
+    let $resultPromise = /** @type {any} */($Call.ByID(1678911334, projectPath, remoteURL, checkpointId));
+    return $resultPromise;
 }
 
 /**
  * @param {string} projectPath
- * @returns {$CancellablePromise<boolean>}
+ * @returns {Promise<boolean> & { cancel(): void }}
  */
 export function IsUnsynced(projectPath) {
-    return $Call.ByID(3101278405, projectPath);
+    let $resultPromise = /** @type {any} */($Call.ByID(3101278405, projectPath));
+    return $resultPromise;
 }
 
 /**
@@ -51,19 +55,21 @@ export function IsUnsynced(projectPath) {
  * @param {string} remoteURL
  * @param {boolean} pullChunk
  * @param {sync_service$0.SyncOptions} syncOptions
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function PullData(projectPath, remoteURL, pullChunk, syncOptions) {
-    return $Call.ByID(1246471551, projectPath, remoteURL, pullChunk, syncOptions);
+    let $resultPromise = /** @type {any} */($Call.ByID(1246471551, projectPath, remoteURL, pullChunk, syncOptions));
+    return $resultPromise;
 }
 
 /**
  * @param {string} projectPath
  * @param {string} remoteURL
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function PullLatestCheckpoints(projectPath, remoteURL) {
-    return $Call.ByID(2298592963, projectPath, remoteURL);
+    let $resultPromise = /** @type {any} */($Call.ByID(2298592963, projectPath, remoteURL));
+    return $resultPromise;
 }
 
 /**
@@ -71,10 +77,11 @@ export function PullLatestCheckpoints(projectPath, remoteURL) {
  * @param {string} remoteURL
  * @param {boolean} pullChunk
  * @param {sync_service$0.SyncOptions} syncOptions
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function PushCheckpoints(projectPath, remoteURL, pullChunk, syncOptions) {
-    return $Call.ByID(2506387659, projectPath, remoteURL, pullChunk, syncOptions);
+    let $resultPromise = /** @type {any} */($Call.ByID(2506387659, projectPath, remoteURL, pullChunk, syncOptions));
+    return $resultPromise;
 }
 
 /**
@@ -83,10 +90,11 @@ export function PushCheckpoints(projectPath, remoteURL, pullChunk, syncOptions) 
  * Accepts conflicts as a JSON string since Wails binding may have issues with complex slice types.
  * @param {string} projectPath
  * @param {string} conflictsJSON
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function ResolveConflicts(projectPath, conflictsJSON) {
-    return $Call.ByID(2712524183, projectPath, conflictsJSON);
+    let $resultPromise = /** @type {any} */($Call.ByID(2712524183, projectPath, conflictsJSON));
+    return $resultPromise;
 }
 
 /**
@@ -94,8 +102,9 @@ export function ResolveConflicts(projectPath, conflictsJSON) {
  * @param {string} remoteURL
  * @param {boolean} pullChunk
  * @param {sync_service$0.SyncOptions} syncOptions
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function SyncData(projectPath, remoteURL, pullChunk, syncOptions) {
-    return $Call.ByID(1941684635, projectPath, remoteURL, pullChunk, syncOptions);
+    let $resultPromise = /** @type {any} */($Call.ByID(1941684635, projectPath, remoteURL, pullChunk, syncOptions));
+    return $resultPromise;
 }

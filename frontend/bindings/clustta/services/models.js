@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Create as $Create } from "@wailsio/runtime";
+import {Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -952,154 +952,154 @@ export class ProfileUpdateData {
              * @member
              * @type {string | undefined}
              */
-            this["first_name"] = undefined;
+            this["first_name"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["last_name"] = undefined;
+            this["last_name"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["username"] = undefined;
+            this["username"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["email"] = undefined;
+            this["email"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["bio"] = undefined;
+            this["bio"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["location"] = undefined;
+            this["location"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | null | undefined}
              */
-            this["country_id"] = undefined;
+            this["country_id"] = null;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | null | undefined}
              */
-            this["gender_id"] = undefined;
+            this["gender_id"] = null;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["artstation_link"] = undefined;
+            this["artstation_link"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["behance_link"] = undefined;
+            this["behance_link"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["instagram_link"] = undefined;
+            this["instagram_link"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["x_link"] = undefined;
+            this["x_link"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["linkedin_link"] = undefined;
+            this["linkedin_link"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["github_link"] = undefined;
+            this["github_link"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["portfolio_link"] = undefined;
+            this["portfolio_link"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["reel_url"] = undefined;
+            this["reel_url"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["job_title"] = undefined;
+            this["job_title"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["company"] = undefined;
+            this["company"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {number | undefined}
              */
-            this["years_experience"] = undefined;
+            this["years_experience"] = 0;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {number | undefined}
              */
-            this["hourly_rate"] = undefined;
+            this["hourly_rate"] = 0;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["availability"] = undefined;
+            this["availability"] = "";
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["profile_visibility"] = undefined;
+            this["profile_visibility"] = "";
         }
 
         Object.assign(this, $$source);
@@ -1508,14 +1508,14 @@ export class UserProfile {
              * @member
              * @type {NullString | null | undefined}
              */
-            this["country_id"] = undefined;
+            this["country_id"] = null;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {NullString | null | undefined}
              */
-            this["gender_id"] = undefined;
+            this["gender_id"] = null;
         }
         if (!("date_of_birth" in $$source)) {
             /**

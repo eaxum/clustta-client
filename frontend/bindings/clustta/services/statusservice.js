@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
+import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -13,12 +13,15 @@ import * as models$0 from "../internal/repository/models/models.js";
 /**
  * Retrieves all status records from the project database
  * @param {string} projectPath
- * @returns {$CancellablePromise<models$0.Status[]>}
+ * @returns {Promise<models$0.Status[]> & { cancel(): void }}
  */
 export function GetStatuses(projectPath) {
-    return $Call.ByID(2547556965, projectPath).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(2547556965, projectPath));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 // Private type creation functions

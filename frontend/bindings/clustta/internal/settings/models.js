@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Create as $Create } from "@wailsio/runtime";
+import {Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -94,7 +94,7 @@ export class ProjectLocation {
              * @member
              * @type {string | undefined}
              */
-            this["bookmark"] = undefined;
+            this["bookmark"] = "";
         }
         if (!("is_default" in $$source)) {
             /**

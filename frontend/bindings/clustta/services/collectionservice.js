@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
+import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -20,10 +20,11 @@ import * as $models from "./models.js";
  * @param {string} projectPath
  * @param {string} entityId
  * @param {string} userId
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function Assign(projectPath, entityId, userId) {
-    return $Call.ByID(2838915874, projectPath, entityId, userId);
+    let $resultPromise = /** @type {any} */($Call.ByID(2838915874, projectPath, entityId, userId));
+    return $resultPromise;
 }
 
 /**
@@ -33,10 +34,11 @@ export function Assign(projectPath, entityId, userId) {
  * @param {string} projectPath
  * @param {string[]} entityIds
  * @param {string} parentId
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function ChangeCollectionParent(projectPath, entityIds, parentId) {
-    return $Call.ByID(2168719759, projectPath, entityIds, parentId);
+    let $resultPromise = /** @type {any} */($Call.ByID(2168719759, projectPath, entityIds, parentId));
+    return $resultPromise;
 }
 
 /**
@@ -45,10 +47,11 @@ export function ChangeCollectionParent(projectPath, entityIds, parentId) {
  * @param {string} projectPath
  * @param {string} entityId
  * @param {boolean} isLibrary
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function ChangeIsLibrary(projectPath, entityId, isLibrary) {
-    return $Call.ByID(2948869046, projectPath, entityId, isLibrary);
+    let $resultPromise = /** @type {any} */($Call.ByID(2948869046, projectPath, entityId, isLibrary));
+    return $resultPromise;
 }
 
 /**
@@ -57,10 +60,11 @@ export function ChangeIsLibrary(projectPath, entityId, isLibrary) {
  * @param {string} projectPath
  * @param {string} entityId
  * @param {string} entityTypeId
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function ChangeType(projectPath, entityId, entityTypeId) {
-    return $Call.ByID(489875783, projectPath, entityId, entityTypeId);
+    let $resultPromise = /** @type {any} */($Call.ByID(489875783, projectPath, entityId, entityTypeId));
+    return $resultPromise;
 }
 
 /**
@@ -73,10 +77,11 @@ export function ChangeType(projectPath, entityId, entityTypeId) {
  * @param {string} parentId
  * @param {string} previewPath
  * @param {boolean} isLibrary
- * @returns {$CancellablePromise<models$0.Entity>}
+ * @returns {Promise<models$0.Entity> & { cancel(): void }}
  */
 export function CreateCollection(projectPath, name, description, entityTypeId, parentId, previewPath, isLibrary) {
-    return $Call.ByID(1857306755, projectPath, name, description, entityTypeId, parentId, previewPath, isLibrary);
+    let $resultPromise = /** @type {any} */($Call.ByID(1857306755, projectPath, name, description, entityTypeId, parentId, previewPath, isLibrary));
+    return $resultPromise;
 }
 
 /**
@@ -85,12 +90,15 @@ export function CreateCollection(projectPath, name, description, entityTypeId, p
  * @param {string} projectPath
  * @param {string} entityTypeName
  * @param {string} entityTypeIcon
- * @returns {$CancellablePromise<models$0.EntityType>}
+ * @returns {Promise<models$0.EntityType> & { cancel(): void }}
  */
 export function CreateCollectionType(projectPath, entityTypeName, entityTypeIcon) {
-    return $Call.ByID(4202352859, projectPath, entityTypeName, entityTypeIcon).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(4202352859, projectPath, entityTypeName, entityTypeIcon));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType0($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -101,12 +109,15 @@ export function CreateCollectionType(projectPath, entityTypeName, entityTypeIcon
  * @param {string} description
  * @param {string} entityTypeId
  * @param {string} parentId
- * @returns {$CancellablePromise<models$0.Entity[]>}
+ * @returns {Promise<models$0.Entity[]> & { cancel(): void }}
  */
 export function CreateCollections(projectPath, name, description, entityTypeId, parentId) {
-    return $Call.ByID(901921232, projectPath, name, description, entityTypeId, parentId).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(901921232, projectPath, name, description, entityTypeId, parentId));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -115,10 +126,11 @@ export function CreateCollections(projectPath, name, description, entityTypeId, 
  * @param {string} projectPath
  * @param {string} entityId
  * @param {boolean} removeFiles
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function DeleteCollection(projectPath, entityId, removeFiles) {
-    return $Call.ByID(3363308644, projectPath, entityId, removeFiles);
+    let $resultPromise = /** @type {any} */($Call.ByID(3363308644, projectPath, entityId, removeFiles));
+    return $resultPromise;
 }
 
 /**
@@ -126,10 +138,11 @@ export function DeleteCollection(projectPath, entityId, removeFiles) {
  * Returns an error if the operation fails.
  * @param {string} projectPath
  * @param {string} id
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function DeleteCollectionType(projectPath, id) {
-    return $Call.ByID(2991338316, projectPath, id);
+    let $resultPromise = /** @type {any} */($Call.ByID(2991338316, projectPath, id));
+    return $resultPromise;
 }
 
 /**
@@ -137,10 +150,11 @@ export function DeleteCollectionType(projectPath, id) {
  * Returns the entity or an error if not found.
  * @param {string} projectPath
  * @param {string} entityId
- * @returns {$CancellablePromise<models$0.Entity>}
+ * @returns {Promise<models$0.Entity> & { cancel(): void }}
  */
 export function GetCollectionByID(projectPath, entityId) {
-    return $Call.ByID(1116836093, projectPath, entityId);
+    let $resultPromise = /** @type {any} */($Call.ByID(1116836093, projectPath, entityId));
+    return $resultPromise;
 }
 
 /**
@@ -148,10 +162,11 @@ export function GetCollectionByID(projectPath, entityId) {
  * Returns the entity or an error if not found.
  * @param {string} projectPath
  * @param {string} entityPath
- * @returns {$CancellablePromise<models$0.Entity>}
+ * @returns {Promise<models$0.Entity> & { cancel(): void }}
  */
 export function GetCollectionByPath(projectPath, entityPath) {
-    return $Call.ByID(2488608455, projectPath, entityPath);
+    let $resultPromise = /** @type {any} */($Call.ByID(2488608455, projectPath, entityPath));
+    return $resultPromise;
 }
 
 /**
@@ -163,12 +178,15 @@ export function GetCollectionByPath(projectPath, entityPath) {
  * @param {string} entityFolderPath
  * @param {string[]} ignoreList
  * @param {boolean} isUntracked
- * @returns {$CancellablePromise<$models.EntityItems>}
+ * @returns {Promise<$models.EntityItems> & { cancel(): void }}
  */
 export function GetCollectionChildren(projectPath, entityId, projectWorkingDir, entityFolderPath, ignoreList, isUntracked) {
-    return $Call.ByID(985363246, projectPath, entityId, projectWorkingDir, entityFolderPath, ignoreList, isUntracked).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(985363246, projectPath, entityId, projectWorkingDir, entityFolderPath, ignoreList, isUntracked));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType2($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -178,22 +196,26 @@ export function GetCollectionChildren(projectPath, entityId, projectWorkingDir, 
  * @param {string} entityId
  * @param {string} projectWorkingDir
  * @param {string[]} ignoreList
- * @returns {$CancellablePromise<$models.CollectionChildrenState>}
+ * @returns {Promise<$models.CollectionChildrenState> & { cancel(): void }}
  */
 export function GetCollectionChildrenState(projectPath, entityId, projectWorkingDir, ignoreList) {
-    return $Call.ByID(1931303187, projectPath, entityId, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(1931303187, projectPath, entityId, projectWorkingDir, ignoreList));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType3($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * GetCollectionCount returns the total number of collections in the project.
  * Returns the count or an error if the operation fails.
  * @param {string} projectPath
- * @returns {$CancellablePromise<number>}
+ * @returns {Promise<number> & { cancel(): void }}
  */
 export function GetCollectionCount(projectPath) {
-    return $Call.ByID(773498904, projectPath);
+    let $resultPromise = /** @type {any} */($Call.ByID(773498904, projectPath));
+    return $resultPromise;
 }
 
 /**
@@ -203,12 +225,15 @@ export function GetCollectionCount(projectPath) {
  * @param {string} entityId
  * @param {string} projectWorkingDir
  * @param {string[]} ignoreList
- * @returns {$CancellablePromise<$models.CollectionStateFlags>}
+ * @returns {Promise<$models.CollectionStateFlags> & { cancel(): void }}
  */
 export function GetCollectionStateFlags(projectPath, entityId, projectWorkingDir, ignoreList) {
-    return $Call.ByID(144595661, projectPath, entityId, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(144595661, projectPath, entityId, projectWorkingDir, ignoreList));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType4($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -216,36 +241,45 @@ export function GetCollectionStateFlags(projectPath, entityId, projectWorkingDir
  * Returns the list of tasks or an error if the operation fails.
  * @param {string} projectPath
  * @param {string} entityId
- * @returns {$CancellablePromise<models$0.Task[]>}
+ * @returns {Promise<models$0.Task[]> & { cancel(): void }}
  */
 export function GetCollectionTasks(projectPath, entityId) {
-    return $Call.ByID(1367523417, projectPath, entityId).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(1367523417, projectPath, entityId));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType5($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * GetCollectionTypes retrieves all collection types in the project.
  * Returns the list of entity types or an error if the operation fails.
  * @param {string} projectPath
- * @returns {$CancellablePromise<models$0.EntityType[]>}
+ * @returns {Promise<models$0.EntityType[]> & { cancel(): void }}
  */
 export function GetCollectionTypes(projectPath) {
-    return $Call.ByID(1279663726, projectPath).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(1279663726, projectPath));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType6($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * GetCollections retrieves collections based on user permissions.
  * Returns all entities or only user-accessible entities based on role.
  * @param {string} projectPath
- * @returns {$CancellablePromise<models$0.Entity[]>}
+ * @returns {Promise<models$0.Entity[]> & { cancel(): void }}
  */
 export function GetCollections(projectPath) {
-    return $Call.ByID(1787506934, projectPath).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(1787506934, projectPath));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -256,12 +290,15 @@ export function GetCollections(projectPath) {
  * @param {string} targetPath
  * @param {string} projectWorkingDir
  * @param {string[]} ignoreList
- * @returns {$CancellablePromise<$models.ItemsForCheckpoint>}
+ * @returns {Promise<$models.ItemsForCheckpoint> & { cancel(): void }}
  */
 export function GetItemsForCheckpoint(projectPath, entityId, targetPath, projectWorkingDir, ignoreList) {
-    return $Call.ByID(621025292, projectPath, entityId, targetPath, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(621025292, projectPath, entityId, targetPath, projectWorkingDir, ignoreList));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType7($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -271,12 +308,15 @@ export function GetItemsForCheckpoint(projectPath, entityId, targetPath, project
  * @param {string} entityId
  * @param {string} projectWorkingDir
  * @param {string[]} ignoreList
- * @returns {$CancellablePromise<$models.ItemsForUpdate>}
+ * @returns {Promise<$models.ItemsForUpdate> & { cancel(): void }}
  */
 export function GetOutdatedItemsInCollection(projectPath, entityId, projectWorkingDir, ignoreList) {
-    return $Call.ByID(86452480, projectPath, entityId, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(86452480, projectPath, entityId, projectWorkingDir, ignoreList));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType8($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -286,10 +326,11 @@ export function GetOutdatedItemsInCollection(projectPath, entityId, projectWorki
  * @param {string} remoteUrl
  * @param {string} entityIds
  * @param {string} userId
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function Rebuild(projectPath, remoteUrl, entityIds, userId) {
-    return $Call.ByID(1269618418, projectPath, remoteUrl, entityIds, userId);
+    let $resultPromise = /** @type {any} */($Call.ByID(1269618418, projectPath, remoteUrl, entityIds, userId));
+    return $resultPromise;
 }
 
 /**
@@ -298,10 +339,11 @@ export function Rebuild(projectPath, remoteUrl, entityIds, userId) {
  * @param {string} projectPath
  * @param {string} entityId
  * @param {string} newName
- * @returns {$CancellablePromise<models$0.Entity>}
+ * @returns {Promise<models$0.Entity> & { cancel(): void }}
  */
 export function RenameCollection(projectPath, entityId, newName) {
-    return $Call.ByID(3064640869, projectPath, entityId, newName);
+    let $resultPromise = /** @type {any} */($Call.ByID(3064640869, projectPath, entityId, newName));
+    return $resultPromise;
 }
 
 /**
@@ -309,10 +351,11 @@ export function RenameCollection(projectPath, entityId, newName) {
  * Returns an error if the entity is not found or the operation fails.
  * @param {string} projectPath
  * @param {string} entityId
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function RevealCollection(projectPath, entityId) {
-    return $Call.ByID(1753210934, projectPath, entityId);
+    let $resultPromise = /** @type {any} */($Call.ByID(1753210934, projectPath, entityId));
+    return $resultPromise;
 }
 
 /**
@@ -320,10 +363,11 @@ export function RevealCollection(projectPath, entityId) {
  * Sends progress updates for each entity processed.
  * @param {string} projectPath
  * @param {string[]} entityIds
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function RevertCollections(projectPath, entityIds) {
-    return $Call.ByID(1570908726, projectPath, entityIds);
+    let $resultPromise = /** @type {any} */($Call.ByID(1570908726, projectPath, entityIds));
+    return $resultPromise;
 }
 
 /**
@@ -332,10 +376,11 @@ export function RevertCollections(projectPath, entityIds) {
  * @param {string} projectPath
  * @param {string} entityId
  * @param {string} userId
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function Unassign(projectPath, entityId, userId) {
-    return $Call.ByID(3540910669, projectPath, entityId, userId);
+    let $resultPromise = /** @type {any} */($Call.ByID(3540910669, projectPath, entityId, userId));
+    return $resultPromise;
 }
 
 /**
@@ -345,12 +390,15 @@ export function Unassign(projectPath, entityId, userId) {
  * @param {string} id
  * @param {string} entityTypeName
  * @param {string} entityTypeIcon
- * @returns {$CancellablePromise<models$0.EntityType>}
+ * @returns {Promise<models$0.EntityType> & { cancel(): void }}
  */
 export function UpdateCollectionType(projectPath, id, entityTypeName, entityTypeIcon) {
-    return $Call.ByID(4261460618, projectPath, id, entityTypeName, entityTypeIcon).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(4261460618, projectPath, id, entityTypeName, entityTypeIcon));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType0($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -359,10 +407,11 @@ export function UpdateCollectionType(projectPath, id, entityTypeName, entityType
  * @param {string} projectPath
  * @param {string} entityId
  * @param {string} previewPath
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function UpdatePreview(projectPath, entityId, previewPath) {
-    return $Call.ByID(406683254, projectPath, entityId, previewPath);
+    let $resultPromise = /** @type {any} */($Call.ByID(406683254, projectPath, entityId, previewPath));
+    return $resultPromise;
 }
 
 // Private type creation functions

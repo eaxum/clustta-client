@@ -4,32 +4,35 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
+import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 /**
  * ReadImageBase64 reads an image from the clipboard and returns it as a base64 string.
  * Returns the base64 string or an error if the operation fails.
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function ReadImageBase64() {
-    return $Call.ByID(2808291601);
+    let $resultPromise = /** @type {any} */($Call.ByID(2808291601));
+    return $resultPromise;
 }
 
 /**
  * ReadText reads a text string from the system clipboard.
  * Returns the text string or an error if the operation fails.
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function ReadText() {
-    return $Call.ByID(657902730);
+    let $resultPromise = /** @type {any} */($Call.ByID(657902730));
+    return $resultPromise;
 }
 
 /**
  * WriteText writes a text string to the system clipboard.
  * Returns an error if the operation fails.
  * @param {string} text
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function WriteText(text) {
-    return $Call.ByID(2535309767, text);
+    let $resultPromise = /** @type {any} */($Call.ByID(2535309767, text));
+    return $resultPromise;
 }

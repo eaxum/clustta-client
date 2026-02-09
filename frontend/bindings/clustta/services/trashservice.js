@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
+import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -13,12 +13,15 @@ import * as $models from "./models.js";
 /**
  * Retrieves all deleted items from project database including entities, templates, tasks, and checkpoints
  * @param {string} projectPath
- * @returns {$CancellablePromise<$models.RecycleItem[]>}
+ * @returns {Promise<$models.RecycleItem[]> & { cancel(): void }}
  */
 export function GetTrashs(projectPath) {
-    return $Call.ByID(2486332128, projectPath).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(2486332128, projectPath));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -26,10 +29,11 @@ export function GetTrashs(projectPath) {
  * @param {string} projectPath
  * @param {string} id
  * @param {string} itemType
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function Restore(projectPath, id, itemType) {
-    return $Call.ByID(2353219489, projectPath, id, itemType);
+    let $resultPromise = /** @type {any} */($Call.ByID(2353219489, projectPath, id, itemType));
+    return $resultPromise;
 }
 
 // Private type creation functions

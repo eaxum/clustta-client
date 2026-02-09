@@ -439,7 +439,7 @@ const goToSettings = () => {
 
 .header-bar-dependencies {
 	width: 100%;
-	gap: .5rem;
+	/* gap: .5rem; */
 	overflow: hidden;
 	display: flex;
 	height: 100%;

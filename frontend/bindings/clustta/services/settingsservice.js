@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
+import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -14,437 +14,510 @@ import * as settings$0 from "../internal/settings/models.js";
  * AddProjectLocation adds a new project location with name and path.
  * @param {string} name
  * @param {string} path
- * @returns {$CancellablePromise<settings$0.ProjectLocation>}
+ * @returns {Promise<settings$0.ProjectLocation> & { cancel(): void }}
  */
 export function AddProjectLocation(name, path) {
-    return $Call.ByID(576088381, name, path).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(576088381, name, path));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType0($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * AddProjectWorkspace adds a workspace configuration to a project.
  * @param {string} projectId
  * @param {any} workspaceData
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function AddProjectWorkspace(projectId, workspaceData) {
-    return $Call.ByID(4073366007, projectId, workspaceData);
+    let $resultPromise = /** @type {any} */($Call.ByID(4073366007, projectId, workspaceData));
+    return $resultPromise;
 }
 
 /**
  * AddRecentProject adds a project to the recent projects list.
  * @param {string} studioName
  * @param {string} projectId
- * @returns {$CancellablePromise<string[]>}
+ * @returns {Promise<string[]> & { cancel(): void }}
  */
 export function AddRecentProject(studioName, projectId) {
-    return $Call.ByID(762029095, studioName, projectId).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(762029095, studioName, projectId));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * AssignProjectToLocation assigns a project to a specific location.
  * @param {string} projectID
  * @param {string} locationID
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function AssignProjectToLocation(projectID, locationID) {
-    return $Call.ByID(3752105278, projectID, locationID);
+    let $resultPromise = /** @type {any} */($Call.ByID(3752105278, projectID, locationID));
+    return $resultPromise;
 }
 
 /**
  * CanDeleteLocation checks if a location can be safely deleted.
  * @param {string} locationID
- * @returns {$CancellablePromise<boolean>}
+ * @returns {Promise<boolean> & { cancel(): void }}
  */
 export function CanDeleteLocation(locationID) {
-    return $Call.ByID(3404860008, locationID);
+    let $resultPromise = /** @type {any} */($Call.ByID(3404860008, locationID));
+    return $resultPromise;
 }
 
 /**
  * CheckAllLocationsHealth verifies the health status of all project locations.
- * @returns {$CancellablePromise<settings$0.LocationHealth[]>}
+ * @returns {Promise<settings$0.LocationHealth[]> & { cancel(): void }}
  */
 export function CheckAllLocationsHealth() {
-    return $Call.ByID(862862689).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(862862689));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType3($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * CheckLocationHealth verifies the health status of a specific location.
  * @param {string} locationID
- * @returns {$CancellablePromise<settings$0.LocationHealth>}
+ * @returns {Promise<settings$0.LocationHealth> & { cancel(): void }}
  */
 export function CheckLocationHealth(locationID) {
-    return $Call.ByID(2048849247, locationID).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(2048849247, locationID));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType2($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * ClearRecentProject clears the recent projects list for the specified studio.
  * @param {string} studioName
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function ClearRecentProject(studioName) {
-    return $Call.ByID(2255147105, studioName);
+    let $resultPromise = /** @type {any} */($Call.ByID(2255147105, studioName));
+    return $resultPromise;
 }
 
 /**
  * GetAllLocationPaths retrieves all configured project locations.
- * @returns {$CancellablePromise<settings$0.ProjectLocation[]>}
+ * @returns {Promise<settings$0.ProjectLocation[]> & { cancel(): void }}
  */
 export function GetAllLocationPaths() {
-    return $Call.ByID(1879856430).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(1879856430));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType4($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * GetCurrentVersion retrieves the current application version number.
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetCurrentVersion() {
-    return $Call.ByID(2344331797);
+    let $resultPromise = /** @type {any} */($Call.ByID(2344331797));
+    return $resultPromise;
 }
 
 /**
  * GetDefaultLocation retrieves the default project location.
- * @returns {$CancellablePromise<settings$0.ProjectLocation>}
+ * @returns {Promise<settings$0.ProjectLocation> & { cancel(): void }}
  */
 export function GetDefaultLocation() {
-    return $Call.ByID(904599504).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(904599504));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType0($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * GetEulaAccepted retrieves whether the user has accepted the EULA.
- * @returns {$CancellablePromise<boolean>}
+ * @returns {Promise<boolean> & { cancel(): void }}
  */
 export function GetEulaAccepted() {
-    return $Call.ByID(3424798202);
+    let $resultPromise = /** @type {any} */($Call.ByID(3424798202));
+    return $resultPromise;
 }
 
 /**
  * GetIconScheme retrieves the current icon scheme name.
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetIconScheme() {
-    return $Call.ByID(636356804);
+    let $resultPromise = /** @type {any} */($Call.ByID(636356804));
+    return $resultPromise;
 }
 
 /**
  * GetLastStudio retrieves the last active studio name.
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetLastStudio() {
-    return $Call.ByID(1532016140);
+    let $resultPromise = /** @type {any} */($Call.ByID(1532016140));
+    return $resultPromise;
 }
 
 /**
  * GetLocationUsage returns the number of projects using a location.
  * @param {string} locationID
- * @returns {$CancellablePromise<number>}
+ * @returns {Promise<number> & { cancel(): void }}
  */
 export function GetLocationUsage(locationID) {
-    return $Call.ByID(435118172, locationID);
+    let $resultPromise = /** @type {any} */($Call.ByID(435118172, locationID));
+    return $resultPromise;
 }
 
 /**
  * GetLogContents reads and returns the last N lines from the log file.
  * @param {number} maxLines
- * @returns {$CancellablePromise<string[]>}
+ * @returns {Promise<string[]> & { cancel(): void }}
  */
 export function GetLogContents(maxLines) {
-    return $Call.ByID(244600402, maxLines).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(244600402, maxLines));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * GetLogPath returns the path to the Clustta log file.
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetLogPath() {
-    return $Call.ByID(1658969463);
+    let $resultPromise = /** @type {any} */($Call.ByID(1658969463));
+    return $resultPromise;
 }
 
 /**
  * GetPinnedProjects retrieves all pinned projects for the specified studio.
  * @param {string} studioName
- * @returns {$CancellablePromise<string[]>}
+ * @returns {Promise<string[]> & { cancel(): void }}
  */
 export function GetPinnedProjects(studioName) {
-    return $Call.ByID(13254414, studioName).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(13254414, studioName));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * GetProjectDirectory retrieves the default project directory path.
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetProjectDirectory() {
-    return $Call.ByID(119555146);
+    let $resultPromise = /** @type {any} */($Call.ByID(119555146));
+    return $resultPromise;
 }
 
 /**
  * GetProjectLocation retrieves the location ID for a specific project.
  * @param {string} projectID
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetProjectLocation(projectID) {
-    return $Call.ByID(3483756876, projectID);
+    let $resultPromise = /** @type {any} */($Call.ByID(3483756876, projectID));
+    return $resultPromise;
 }
 
 /**
  * GetProjectWorkspaces retrieves all workspace configurations for a project.
  * @param {string} projectId
- * @returns {$CancellablePromise<any[]>}
+ * @returns {Promise<any[]> & { cancel(): void }}
  */
 export function GetProjectWorkspaces(projectId) {
-    return $Call.ByID(2164081225, projectId).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(2164081225, projectId));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType5($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * GetRecentProjects retrieves recently accessed projects for the specified studio.
  * @param {string} studioName
- * @returns {$CancellablePromise<string[]>}
+ * @returns {Promise<string[]> & { cancel(): void }}
  */
 export function GetRecentProjects(studioName) {
-    return $Call.ByID(2190435435, studioName).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(2190435435, studioName));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * GetSharedProjectDirectory retrieves the shared project directory path.
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetSharedProjectDirectory() {
-    return $Call.ByID(952704375);
+    let $resultPromise = /** @type {any} */($Call.ByID(952704375));
+    return $resultPromise;
 }
 
 /**
  * GetStudios retrieves all configured studios from user settings.
  * @param {string} path
- * @returns {$CancellablePromise<settings$0.Studio[]>}
+ * @returns {Promise<settings$0.Studio[]> & { cancel(): void }}
  */
 export function GetStudios(path) {
-    return $Call.ByID(2852753313, path).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(2852753313, path));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType7($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * GetTheme retrieves the current theme name.
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetTheme() {
-    return $Call.ByID(3632431035);
+    let $resultPromise = /** @type {any} */($Call.ByID(3632431035));
+    return $resultPromise;
 }
 
 /**
  * GetUseGrid retrieves whether grid view is enabled.
- * @returns {$CancellablePromise<boolean>}
+ * @returns {Promise<boolean> & { cancel(): void }}
  */
 export function GetUseGrid() {
-    return $Call.ByID(3478254425);
+    let $resultPromise = /** @type {any} */($Call.ByID(3478254425));
+    return $resultPromise;
 }
 
 /**
  * GetUserDirectory returns the current user's home directory path.
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetUserDirectory() {
-    return $Call.ByID(3623047360);
+    let $resultPromise = /** @type {any} */($Call.ByID(3623047360));
+    return $resultPromise;
 }
 
 /**
  * GetUsername returns the current system username.
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetUsername() {
-    return $Call.ByID(50562878);
+    let $resultPromise = /** @type {any} */($Call.ByID(50562878));
+    return $resultPromise;
 }
 
 /**
  * GetWorkingDirectory retrieves the working directory path.
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetWorkingDirectory() {
-    return $Call.ByID(1696233652);
+    let $resultPromise = /** @type {any} */($Call.ByID(1696233652));
+    return $resultPromise;
 }
 
 /**
  * IsProjectGridView returns whether project grid view is enabled.
- * @returns {$CancellablePromise<boolean>}
+ * @returns {Promise<boolean> & { cancel(): void }}
  */
 export function IsProjectGridView() {
-    return $Call.ByID(809995474);
+    let $resultPromise = /** @type {any} */($Call.ByID(809995474));
+    return $resultPromise;
 }
 
 /**
  * IsShowUntrackedProjects returns whether untracked projects are visible.
- * @returns {$CancellablePromise<boolean>}
+ * @returns {Promise<boolean> & { cancel(): void }}
  */
 export function IsShowUntrackedProjects() {
-    return $Call.ByID(2237864900);
+    let $resultPromise = /** @type {any} */($Call.ByID(2237864900));
+    return $resultPromise;
 }
 
 /**
  * PinProject pins a project to the studio's favorites list.
  * @param {string} studioName
  * @param {string} projectId
- * @returns {$CancellablePromise<string[]>}
+ * @returns {Promise<string[]> & { cancel(): void }}
  */
 export function PinProject(studioName, projectId) {
-    return $Call.ByID(2392329694, studioName, projectId).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(2392329694, studioName, projectId));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * RemoveProjectLocation removes a project location by ID.
  * @param {string} locationID
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function RemoveProjectLocation(locationID) {
-    return $Call.ByID(3992887900, locationID);
+    let $resultPromise = /** @type {any} */($Call.ByID(3992887900, locationID));
+    return $resultPromise;
 }
 
 /**
  * RemoveProjectWorkspace removes a workspace configuration from a project.
  * @param {string} projectId
  * @param {string} workspaceName
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function RemoveProjectWorkspace(projectId, workspaceName) {
-    return $Call.ByID(2360960656, projectId, workspaceName);
+    let $resultPromise = /** @type {any} */($Call.ByID(2360960656, projectId, workspaceName));
+    return $resultPromise;
 }
 
 /**
  * SetCurrentVersion sets the current application version number.
  * @param {string} versionNumber
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function SetCurrentVersion(versionNumber) {
-    return $Call.ByID(3579646225, versionNumber);
+    let $resultPromise = /** @type {any} */($Call.ByID(3579646225, versionNumber));
+    return $resultPromise;
 }
 
 /**
  * SetDefaultLocation sets the default project location by ID.
  * @param {string} locationID
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function SetDefaultLocation(locationID) {
-    return $Call.ByID(1651704380, locationID);
+    let $resultPromise = /** @type {any} */($Call.ByID(1651704380, locationID));
+    return $resultPromise;
 }
 
 /**
  * SetEulaAccepted sets the EULA acceptance status.
  * @param {boolean} eulaAccepted
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function SetEulaAccepted(eulaAccepted) {
-    return $Call.ByID(3565249198, eulaAccepted);
+    let $resultPromise = /** @type {any} */($Call.ByID(3565249198, eulaAccepted));
+    return $resultPromise;
 }
 
 /**
  * SetIconScheme sets the icon scheme for the application.
  * @param {string} iconScheme
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function SetIconScheme(iconScheme) {
-    return $Call.ByID(2125293608, iconScheme);
+    let $resultPromise = /** @type {any} */($Call.ByID(2125293608, iconScheme));
+    return $resultPromise;
 }
 
 /**
  * SetLastStudio sets the last active studio name.
  * @param {string} lastStudioName
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function SetLastStudio(lastStudioName) {
-    return $Call.ByID(4086447016, lastStudioName);
+    let $resultPromise = /** @type {any} */($Call.ByID(4086447016, lastStudioName));
+    return $resultPromise;
 }
 
 /**
  * SetProjectDirectory sets the default project directory path.
  * @param {string} dir
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function SetProjectDirectory(dir) {
-    return $Call.ByID(3694495326, dir);
+    let $resultPromise = /** @type {any} */($Call.ByID(3694495326, dir));
+    return $resultPromise;
 }
 
 /**
  * SetSharedProjectDirectory sets the shared project directory path.
  * @param {string} dir
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function SetSharedProjectDirectory(dir) {
-    return $Call.ByID(2608064267, dir);
+    let $resultPromise = /** @type {any} */($Call.ByID(2608064267, dir));
+    return $resultPromise;
 }
 
 /**
  * SetTheme sets the application theme.
  * @param {string} theme
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function SetTheme(theme) {
-    return $Call.ByID(694474447, theme);
+    let $resultPromise = /** @type {any} */($Call.ByID(694474447, theme));
+    return $resultPromise;
 }
 
 /**
  * SetUseGrid sets whether to use grid view.
  * @param {boolean} useGrid
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function SetUseGrid(useGrid) {
-    return $Call.ByID(733610941, useGrid);
+    let $resultPromise = /** @type {any} */($Call.ByID(733610941, useGrid));
+    return $resultPromise;
 }
 
 /**
  * SetWorkingDirectory sets the working directory path.
  * @param {string} dir
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function SetWorkingDirectory(dir) {
-    return $Call.ByID(2466292864, dir);
+    let $resultPromise = /** @type {any} */($Call.ByID(2466292864, dir));
+    return $resultPromise;
 }
 
 /**
  * ToggleProjectGridView toggles between grid and list view for projects.
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function ToggleProjectGridView() {
-    return $Call.ByID(1335955422);
+    let $resultPromise = /** @type {any} */($Call.ByID(1335955422));
+    return $resultPromise;
 }
 
 /**
  * ToggleShowUntrackedProjects toggles visibility of untracked projects.
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function ToggleShowUntrackedProjects() {
-    return $Call.ByID(389465744);
+    let $resultPromise = /** @type {any} */($Call.ByID(389465744));
+    return $resultPromise;
 }
 
 /**
  * UnpinProject removes a project from the studio's favorites list.
  * @param {string} studioName
  * @param {string} projectId
- * @returns {$CancellablePromise<string[]>}
+ * @returns {Promise<string[]> & { cancel(): void }}
  */
 export function UnpinProject(studioName, projectId) {
-    return $Call.ByID(3096272593, studioName, projectId).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(3096272593, studioName, projectId));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -452,10 +525,11 @@ export function UnpinProject(studioName, projectId) {
  * @param {string} locationID
  * @param {string} name
  * @param {string} path
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function UpdateProjectLocation(locationID, name, path) {
-    return $Call.ByID(1079821971, locationID, name, path);
+    let $resultPromise = /** @type {any} */($Call.ByID(1079821971, locationID, name, path));
+    return $resultPromise;
 }
 
 // Private type creation functions

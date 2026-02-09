@@ -4,7 +4,11 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
+import {Call as $Call, Create as $Create} from "@wailsio/runtime";
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as application$0 from "../../github.com/wailsapp/wails/v3/pkg/application/models.js";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -13,56 +17,75 @@ import * as $models from "./models.js";
 /**
  * GetOS returns the operating system name.
  * Detects the current OS and returns "windows", "darwin", "linux", or "unknown".
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetOS() {
-    return $Call.ByID(3716419014);
+    let $resultPromise = /** @type {any} */($Call.ByID(3716419014));
+    return $resultPromise;
 }
 
 /**
  * GetSystemInfo returns detailed system information including OS version.
- * @returns {$CancellablePromise<$models.SystemInfo>}
+ * @returns {Promise<$models.SystemInfo> & { cancel(): void }}
  */
 export function GetSystemInfo() {
-    return $Call.ByID(3227745773).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(3227745773));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType0($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * Hide hides the main application window.
  * Gets the main window instance and hides it from view.
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function Hide() {
-    return $Call.ByID(3271232920);
+    let $resultPromise = /** @type {any} */($Call.ByID(3271232920));
+    return $resultPromise;
 }
 
 /**
  * Minimize minimizes the main application window.
  * Gets the main window instance and minimizes it to the taskbar.
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function Minimize() {
-    return $Call.ByID(547872872);
+    let $resultPromise = /** @type {any} */($Call.ByID(547872872));
+    return $resultPromise;
 }
 
 /**
  * Quit terminates the application.
  * Gets the application instance and calls Quit to exit gracefully.
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function Quit() {
-    return $Call.ByID(4224805671);
+    let $resultPromise = /** @type {any} */($Call.ByID(4224805671));
+    return $resultPromise;
+}
+
+/**
+ * ServiceStartup is called when the application starts.
+ * Currently a no-op placeholder for initialization logic.
+ * @param {application$0.ServiceOptions} options
+ * @returns {Promise<void> & { cancel(): void }}
+ */
+export function ServiceStartup(options) {
+    let $resultPromise = /** @type {any} */($Call.ByID(40987436, options));
+    return $resultPromise;
 }
 
 /**
  * Show displays and focuses the main application window.
  * Gets the main window instance, shows it, and brings it to focus.
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function Show() {
-    return $Call.ByID(2328962577);
+    let $resultPromise = /** @type {any} */($Call.ByID(2328962577));
+    return $resultPromise;
 }
 
 // Private type creation functions
