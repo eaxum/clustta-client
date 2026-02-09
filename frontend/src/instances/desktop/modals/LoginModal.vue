@@ -1,125 +1,161 @@
 <template>
-
   <div class="modal-container" v-esc="closeModal" v-return="handleEnterKey">
     <HeaderArea :title="title" :icon="'login'" />
-
     <div class="general-container">
-
       <div class="login-form">
-        <input v-model="username" class="input-short" type="text" placeholder="Email address" autocomplete="off"/>
-        <input v-model="password" class="input-short" type="password" placeholder="Password"
-          @keydown.enter="handleEnterKey" />
+        <FormInput
+          v-if="showStudioLogin"
+          v-model="studioUrl"
+          placeholder="Studio URL"
+          needsValidation
+          :error="studioUrlError"
+          :valid="isStudioUrlValid"
+          :showValidation="!!studioUrl"
+          @input="validateStudioUrl"
+        />
+        <FormInput
+          v-model="username"
+          placeholder="Email address"
+          needsValidation
+          :error="emailError"
+          :valid="isEmailValid"
+          :showValidation="!!username"
+          @input="validateEmail"
+        />
+        <FormInput v-model="password" placeholder="Password" isSecret />
+        <div class="horizontal-flex">
+          <ActionButton :isInactive="true" :icon="getAppIcon('two-drives')" :label="'Private Server'" />
+          <ToggleSwitch  @click="toggleStudioLogin" :switchValueProp="showStudioLogin" />
+        </div>
       </div>
-
       <div class="pop-up-actions">
         <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
         <GeneralButton :label="'Log in'" :fullWidth="true" @click="logUserIn(username, password)"
           :isActive="isValueChanged" :loading="isAwaitingResponse" />
       </div>
-
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount } from 'vue';
-import { AuthService, SettingsService } from "@/../bindings/clustta/services";
+// imports
+import { computed, ref } from 'vue';
 
 // components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import FormInput from '@/instances/desktop/components/FormInput.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
-// state imports
-import { useTrayStates } from '@/stores/TrayStates';
-import { useProjectStore } from '@/stores/projects';
-import { useNotificationStore } from '@/stores/notifications';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useUserStore } from '@/stores/users';
-import { useThemeStore } from '@/stores/theme';
+// services
+import { AuthService, SettingsService } from '@/services';
+
+// stores
 import { useAccountStore } from '@/stores/accounts';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
+import { useThemeStore } from '@/stores/theme';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useUserStore } from '@/stores/users';
 
-let username = ref('');
-let password = ref('');
-const isAwaitingResponse = ref(false);
-const isCheckingAuth = ref(true);
-const eulaAccepted = ref(false);
-const projectDirectoryExists = ref(false);
-
-// stores/states
-const modals = useDesktopModalStore();
-const trayStates = useTrayStates();
-const projectStore = useProjectStore();
-const userStore = useUserStore();
-const notificationStore = useNotificationStore();
-const themeStore = useThemeStore();
 const accountStore = useAccountStore();
+const iconStore = useIconStore();
+const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
 const stageStore = useStageStore();
+const themeStore = useThemeStore();
+const trayStates = useTrayStates();
+const userStore = useUserStore();
 
-// computed props
+// refs
+const emailError = ref('');
+const isAwaitingResponse = ref(false);
+const password = ref('');
+const projectDirectoryExists = ref(false);
+const showStudioLogin = ref(false);
+const studioUrl = ref('');
+const studioUrlError = ref('');
+const username = ref('');
+
+// constants
+const title = 'Login';
+
+// computed
+// Returns whether the email is valid.
+const isEmailValid = computed(() => {
+  if (!username.value) return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(username.value);
+});
+
+// Returns whether the studio URL is valid.
+const isStudioUrlValid = computed(() => {
+  if (!studioUrl.value) return false;
+  const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/;
+  return urlRegex.test(studioUrl.value.trim());
+});
+
+// Returns whether the form has valid values.
 const isValueChanged = computed(() => {
-  const usernameValid = username.value !== '';
   const passwordValid = password.value !== '';
-  return usernameValid && passwordValid;
+  if (showStudioLogin.value) {
+    return isEmailValid.value && passwordValid && isStudioUrlValid.value;
+  }
+  return isEmailValid.value && passwordValid;
 });
 
 // methods
+// Closes the modal.
 const closeModal = () => {
   modals.disableAllModals();
 };
 
-const showEula = async () => {
-  projectDirectoryExists.value = await SettingsService.GetProjectDirectory();
-  projectStore.projectsLoaded = !projectDirectoryExists.value;
-  eulaAccepted.value = await SettingsService.GetEulaAccepted();
-
-  if(eulaAccepted.value) return
-  modals.setModalVisibility('eulaModal', true);
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
 };
 
-const setDirectories = async () => {
-  modals.setModalVisibility('dirOnboardModal', true);
+// Handles enter key press to submit login.
+const handleEnterKey = (event) => {
+  if (event.key === 'Enter') {
+    logUserIn(username.value, password.value);
+  }
 };
 
+// Loads projects for the user.
 const loadProjects = async () => {
   await projectStore.loadProjects();
   trayStates.refreshData();
 };
 
-const logUserIn = async (username, password) => {
-
+// Logs the user in with provided credentials.
+const logUserIn = async (usernameValue, passwordValue) => {
   isAwaitingResponse.value = true;
-  await AuthService.Login(username, password)
+  const isStudioLogin = showStudioLogin.value && studioUrl.value.trim();
+  const normalizedStudioUrl = isStudioLogin ? normalizeStudioUrl(studioUrl.value) : '';
+  const loginPromise = isStudioLogin
+    ? AuthService.LoginWithHost(usernameValue, passwordValue, normalizedStudioUrl, 'studio', '')
+    : AuthService.Login(usernameValue, passwordValue);
+
+  await loginPromise
     .then(async (data) => {
-      // Store user in userStore (existing behavior)
-      userStore.user = data.user
-      userStore.isUserAuthenticated = true
-      
-      // Add account to multi-account system  
-      // Note: data already contains the token structure with session_id and user
-      // The AuthService.Login automatically adds it via SetToken -> AddAccount
-      
-      // Reset stores after successful login
+      userStore.user = data.user;
+      userStore.isUserAuthenticated = true;
       userStore.$reset();
       projectStore.$reset();
       trayStates.$reset();
-      
-      // Close the modal after successful account switch
-      modals.setModalVisibility("loginModal", false);
-      
-      // Set the user data again after reset
+      modals.setModalVisibility('loginModal', false);
       userStore.user = data.user;
       userStore.isUserAuthenticated = true;
-      
-      // Refresh account store to pick up the newly added account
       await accountStore.refreshAccounts();
       projectDirectoryExists.value = await SettingsService.GetProjectDirectory();
 
-      console.log(accountStore.accounts)
-      
-      // Check if this is an additional account login
       if (accountStore.isAdditionalAccount) {
-        // For additional accounts, switch to the newly added account
         await accountStore.switchToAccount(data.user.id, {
           userStore,
           projectStore,
@@ -128,40 +164,70 @@ const logUserIn = async (username, password) => {
           notificationStore,
           stageStore
         });
-        
-        if(!projectDirectoryExists.value){
-            setDirectories();
+        if (!projectDirectoryExists.value) {
+          setDirectories();
         }
-
       } else {
-        
         await themeStore.initializeTheme();
         await projectStore.loadStudios();
-        
-        // Conditionally load projects based on directory setup
-        if(projectDirectoryExists.value){
+        if (projectDirectoryExists.value) {
           await loadProjects();
           trayStates.refreshData();
-          modals.setModalVisibility("loginModal", false);
+          modals.setModalVisibility('loginModal', false);
         } else {
           setDirectories();
         }
       }
     })
     .catch((error) => {
-      console.log(error)
+      console.log(error);
       isAwaitingResponse.value = false;
-      notificationStore.errorNotification("Error Loggin In", error)
+      notificationStore.errorNotification('Error Loggin In', error);
     });
-}
-const handleEnterKey = (event) => {
-  if (event.key === 'Enter') {
-    logUserIn(username.value, password.value);
+};
+
+// Normalizes studio URL to ensure proper format.
+const normalizeStudioUrl = (url) => {
+  if (!url) return '';
+  let normalized = url.trim();
+  normalized = normalized.replace(/\/+$/, '');
+  if (!normalized.startsWith('http://') && !normalized.startsWith('https://')) {
+    normalized = 'https://' + normalized;
+  }
+  return normalized;
+};
+
+// Opens the directory onboarding modal.
+const setDirectories = async () => {
+  modals.setModalVisibility('dirOnboardModal', true);
+};
+
+// Toggles studio login mode on/off.
+const toggleStudioLogin = () => {
+  showStudioLogin.value = !showStudioLogin.value;
+  if (!showStudioLogin.value) {
+    studioUrl.value = '';
+    studioUrlError.value = '';
   }
 };
-let title = 'Login';
 
+// Validates the email format.
+const validateEmail = () => {
+  if (!username.value) {
+    emailError.value = '';
+    return;
+  }
+  emailError.value = isEmailValid.value ? '' : 'Please enter a valid email address';
+};
 
+// Validates the studio URL format.
+const validateStudioUrl = () => {
+  if (!studioUrl.value) {
+    studioUrlError.value = '';
+    return;
+  }
+  studioUrlError.value = isStudioUrlValid.value ? '' : 'Please enter a valid URL';
+};
 </script>
 
 
@@ -176,114 +242,18 @@ let title = 'Login';
 
 .general-container {
   padding-top: 1rem;
-
-}
-
-.login-button-icon {
-  width: 30px;
-  height: 30px;
-}
-
-.login-button-text {
-  font-size: 18px;
-}
-
-.login-page-root {
-  background-color: var(--black);
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-}
-
-.clustta-logo {
-  width: 80px;
-  aspect-ratio: 1/1;
-}
-
-.logo-container {
-  display: flex;
-  width: 40%;
-  width: min-content;
-  align-items: center;
-  justify-content: center;
-  /* background-color: red; */
-  box-sizing: border-box;
-  overflow: hidden;
-  padding: 1rem;
-}
-
-.login-large-text-container {
-  color: white;
-  width: min-content;
-  display: flex;
-  width: max-content;
-  align-items: center;
-  justify-content: center;
-  /* background-color: red; */
-  font-size: 32px;
-  font-weight: 400;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.login-small-text-container {
-  color: white;
-  width: min-content;
-  display: flex;
-  width: max-content;
-  align-items: center;
-  justify-content: center;
-  /* background-color: red; */
-  font-size: 14px;
-  font-weight: 100;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.login-form-container {
-  flex-direction: column;
-  box-sizing: border-box;
-  overflow: hidden;
-  /* background-color: royalblue; */
-  /* padding-bottom: 5rem; */
-  display: flex;
-  height: 100%;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
 }
 
 .login-form {
   display: flex;
   box-sizing: border-box;
   height: max-content;
-  gap: 1rem;
-  width: 50%;
-  width: 500px;
-  padding: 1rem 2rem;
-  /* width: max-content; */
+  width: 100%;
   flex-direction: column;
   align-items: center;
   justify-content: space-around;
   overflow: hidden;
-  box-sizing: border-box;
-  /* background-color: firebrick; */
 }
 
-.input-short {
-  width: 90%;
-  height: 50px;
-}
-
-.login-button {
-  margin-top: 1rem;
-  height: 50px;
-}
 </style>
 

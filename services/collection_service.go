@@ -1341,7 +1341,7 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 				if !ok {
 					return
 				}
-				app.EmitEvent("progress-update", progress)
+				app.Event.Emit("progress-update", progress)
 			}
 		}
 	}()
@@ -1421,7 +1421,7 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 			entityTasksQuery := `
 			SELECT full_task.*
 			FROM full_task
-			WHERE full_task.entity_path LIKE ? OR full_task.entity_path LIKE ?;
+			WHERE (full_task.entity_path LIKE ? OR full_task.entity_path LIKE ?) AND full_task.trashed = 0;
 			`
 
 			var entityTasks []models.Task
@@ -1570,7 +1570,7 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 				Current:    i + 1,
 				Total:      totalItems,
 			}
-			app.EmitEvent("progress-update", progress)
+			app.Event.Emit("progress-update", progress)
 		}
 		err = repository.RevertToLatestCheckpoint(tx, task.Id, task.FilePath, callBack)
 		if err != nil {
@@ -1586,7 +1586,7 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, entityIds, userId st
 		Current:    1,
 		Total:      1,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 	return nil
 }
 
@@ -1645,7 +1645,7 @@ func (e *CollectionService) RevertCollections(projectPath string, entityIds []st
 				Current:    i + 1,
 				Total:      totalEntities,
 			}
-			app.EmitEvent("progress-update", progress)
+			app.Event.Emit("progress-update", progress)
 		}
 
 		err = repository.RevertToLatestCheckpoint(tx, entityId, entity.FilePath, callBack)
@@ -1658,9 +1658,10 @@ func (e *CollectionService) RevertCollections(projectPath string, entityIds []st
 	return nil
 }
 
-// ChangeCollectionParent moves a collection to a different parent collection.
-// Returns an error if the operation fails.
-func (e *CollectionService) ChangeCollectionParent(projectPath, entityId, parentId string) error {
+// ChangeCollectionParent moves one or more collections to a different parent collection.
+// Checks for name conflicts in the target parent before moving.
+// Returns an error if any collection would conflict or if the operation fails.
+func (e *CollectionService) ChangeCollectionParent(projectPath string, entityIds []string, parentId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -1672,9 +1673,33 @@ func (e *CollectionService) ChangeCollectionParent(projectPath, entityId, parent
 	}
 	defer tx.Rollback()
 
-	err = repository.ChangeParent(tx, entityId, parentId)
-	if err != nil {
-		return err
+	var conflicts []string
+	for _, entityId := range entityIds {
+		entity, err := repository.GetEntity(tx, entityId)
+		if err != nil {
+			return err
+		}
+		if entity.ParentId == parentId {
+			continue
+		}
+		_, err = repository.GetEntityByName(tx, entity.Name, parentId)
+		if err == nil {
+			conflicts = append(conflicts, entity.Name)
+		} else if err != error_service.ErrEntityNotFound {
+			// Some other error occurred
+			return err
+		}
+	}
+
+	if len(conflicts) > 0 {
+		return fmt.Errorf("collections with the same name already exist in the target location: %s", strings.Join(conflicts, ", "))
+	}
+
+	for _, entityId := range entityIds {
+		err = repository.ChangeParent(tx, entityId, parentId)
+		if err != nil {
+			return err
+		}
 	}
 	err = tx.Commit()
 	if err != nil {

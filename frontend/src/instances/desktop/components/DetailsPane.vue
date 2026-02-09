@@ -21,9 +21,9 @@
 
         <div v-if="showTaskEntityActions || showEntityTaskActions" class="action-bar">
           <ActionButton v-if="activeIsTask" :icon="getAppIcon('dependency')" :label="'Make dependencies of active task'"
-            :buttonFunction="makeDependenciesOfActive" />
+            :buttonFunction="makeDependenciesOfActive" v-tooltip="'Add selected items as dependencies of the active task'" />
           <ActionButton v-if="activeIsEntity" :icon="getAppIcon('folder-arrow-in')"
-            :label="'Move into active collection'" :buttonFunction="moveIntoFolder" />
+            :label="'Move into active collection'" :buttonFunction="moveIntoFolder" v-tooltip="'Move selected items into the active collection'" />
         </div>
 
 
@@ -45,20 +45,22 @@
               :fixedWidth="true" />
           </div>
           
-          <ActionButton v-if="tasksCanRebuild" :icon="getAppIcon('jigsaw')" :label="'Rebuild Assets'"
-            :buttonFunction="revertAllChanges" />
+          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :label="'Move to Collection'"
+            @click="prepMoveToCollection($event)" v-tooltip="'Move selected assets to a different collection'" />
+          <ActionButton v-if="!platformStore.isWeb && tasksCanRebuild" :icon="getAppIcon('jigsaw')" :label="'Rebuild Assets'"
+            :buttonFunction="revertAllChanges" v-tooltip="'Download and restore selected assets'" />
           <ActionButton v-if="tasksModified" :noFilter="true" :icon="getAppIcon('layers-plus')" :useAlert="true" :label="'Create Checkpoints'"
-            :buttonFunction="prepAllCheckpointModal" />
-          <ActionButton v-if="tasksModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :label="'Revert Tasks'"
-            :buttonFunction="prepResetPopUpModal" />
+            :buttonFunction="prepAllCheckpointModal" v-tooltip="'Save current state of selected assets'" />
+          <ActionButton v-if="!platformStore.isWeb && tasksModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :label="'Revert Tasks'"
+            :buttonFunction="prepResetPopUpModal" v-tooltip="'Revert selected assets to their last checkpoint'" />
           <ActionButton :icon="getAppIcon('person-plus')" :label="'Assign assets'"
-            @click="prepAssignTask($event)" />
+            @click="prepAssignTask($event)" v-tooltip="'Assign a collaborator to selected assets'" />
           <ActionButton :icon="getAppIcon('person-minus')" :label="'Unassign assets'"
-            :buttonFunction="unassignTasks" />
-          <ActionButton v-if="tasksOnDisk" :icon="getAppIcon('broom')" :label="'Free up space'"
-            :buttonFunction="prepFreeUpSpacePopUpModal" />
+            :buttonFunction="unassignTasks" v-tooltip="'Remove all assignees from selected assets'" />
+          <ActionButton v-if="!platformStore.isWeb && tasksOnDisk" :icon="getAppIcon('broom')" :label="'Free up space'"
+            :buttonFunction="prepFreeUpSpacePopUpModal" v-tooltip="'Delete working files to free disk space'" />
           <ActionButton :icon="getAppIcon('trash')" :label="'Delete Selected assets'"
-            :buttonFunction="deleteMultipleTasks" />
+            :buttonFunction="deleteMultipleTasks" v-tooltip="'Move selected assets to trash'" />
         </div>
 
         <div v-else-if="onlyEntities" class="action-bar">
@@ -69,7 +71,7 @@
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('bookmark')" :label="'Library'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="'Library'" />
             <DropDownBox :items="collectionMode" :selectedItem="''" :onSelect="changeIsLibrary" :fixedWidth="true" />
           </div>
 
@@ -80,483 +82,395 @@
           </div>
           
           <ActionButton :icon="getAppIcon('person-minus')" :label="'Unassign collections'"
-            :buttonFunction="unassignCollections" />
-          <ActionButton :icon="getAppIcon('jigsaw')" :label="'Rebuild collections'" :buttonFunction="rebuildCollections" />
-          <ActionButton :icon="getAppIcon('broom')" :label="'Free up space'"
-            :buttonFunction="freeUpCollectionSpacePopUpModal" />
+            :buttonFunction="unassignCollections" v-tooltip="'Remove all assignees from selected collections'" />
+          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('jigsaw')" :label="'Rebuild collections'" :buttonFunction="rebuildCollections" v-tooltip="'Download and restore all assets in selected collections'" />
+          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :label="'Free up space'"
+            :buttonFunction="freeUpCollectionSpacePopUpModal" v-tooltip="'Delete collection contents to free disk space'" />
           <ActionButton :icon="getAppIcon('trash')" :label="'Delete collections'"
-            :buttonFunction="deleteMultipleEntities" />
+            :buttonFunction="deleteMultipleEntities" v-tooltip="'Move selected collections to trash'" />
         </div>
 
         
         <div v-else-if="onlyUntrackedAssets || onlyUntrackedCollections" class="action-bar">
-          <ActionButton v-if="userStore.canDo('create_task') && onlyUntrackedAssets" :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" :label="'Create Checkpoints'" :buttonFunction="prepAllCheckpointModal" />
-          <ActionButton :icon="getAppIcon('file-watch')" :label="'Ignore Items'" :buttonFunction="ignoreItems" />
-          <ActionButton :icon="getAppIcon('trash')" :label="'Delete Items'" :buttonFunction="deleteMultipleUntrackedTasks" />
+          <ActionButton v-if="userStore.canDo('create_task') && onlyUntrackedAssets" :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" :label="'Create Checkpoints'" :buttonFunction="prepAllCheckpointModal" v-tooltip="'Track and create checkpoints for selected items'" />
+          <ActionButton :icon="getAppIcon('file-watch')" :label="'Ignore Items'" :buttonFunction="ignoreItems" v-tooltip="'Add items to the ignore list'" />
+          <ActionButton :icon="getAppIcon('trash')" :label="'Delete Items'" :buttonFunction="deleteMultipleUntrackedTasks" v-tooltip="'Permanently delete selected untracked items'" />
         </div>
 
         <div v-else class="action-bar">
-          <ActionButton :icon="getAppIcon('trash')" :label="'Delete Items'" :buttonFunction="deleteMultipleItems" />
+          <ActionButton :icon="getAppIcon('trash')" :label="'Delete Items'" :buttonFunction="deleteMultipleItems" v-tooltip="'Delete all selected items'" />
         </div>
 
       </div>
       <div v-else class="details-pane-container absolute-pane">
-
-        <!-- <div class="general-pane-header">
-          <HeaderArea :title="utils.capitalizeStr('selectedTaskName')" :icon="'selectedTaskIcon'" :useIconBlob="true" />
-          <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('switches')" :showLabel="false"
-            v-tooltip="'Edit Task'" />
-        </div> -->
-
         <div v-if="!noHeaders.includes(panes.activeModal)" class="pane-header-tabs">
           <PaneHeaderTabs :iconsOnly="false" :useSelected="true" :selectedTab="selectedSettingsContext" :dataTypes="settingsItems" @filter="filterList" />
 					<div class="menu-divider"></div>
         </div>
         <component v-for="pane in visiblePanes" :key="pane.name" :is="pane.component" />
       </div>
+
+      <Clipboard />
     </div>
   </div>
 </template>
 
 <script setup>
-// services
-import { CheckpointService, AssetService, CollectionService, SyncService } from "@/../bindings/clustta/services";
-import { TrashService } from "@/../bindings/clustta/services";
-import { FSService } from '@/../bindings/clustta/services/index';
-import emitter from '@/lib/mitt';
-
 // imports
-import { computed, ref, onMounted, onUnmounted, watchEffect, watch, nextTick } from 'vue';
-import { usePaneStore } from '@/stores/panes';
-import { useStageStore } from '@/stores/stages';
-import { useAssetStore } from '@/stores/assets';
-import { useCollectionStore } from '@/stores/collections';
-import { useProjectStore } from '@/stores/projects';
-import { useStatusStore } from '@/stores/status';
-import { useUserStore } from '@/stores/users';
-import { useTrayStates } from '@/stores/TrayStates';
-import { useMenu } from '@/stores/menu';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useNotificationStore } from '@/stores/notifications';
-import { useDependencyStore } from '@/stores/dependency';
-import { useCommonStore } from '@/stores/common';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
+import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
-import { useIconStore } from '@/stores/icons';
-import { useSettingsStore } from '@/stores/settings';
+import { addIgnoredItem } from '@/lib/untracked';
+import utils from "@/services/utils";
 
 // components
-
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import PaneHeaderTabs from '@/instances/common/components/PaneHeaderTabs.vue';
-import ProjectDetails from "@/instances/desktop/panes/ProjectDetails.vue";
-import Dependencies from "@/instances/desktop/panes/Dependencies.vue";
-import Collaborators from "@/instances/desktop/panes/Collaborators.vue";
-import CollectionDetails from "@/instances/desktop/panes/CollectionDetails.vue";
-import UntrackedItemDetails from "@/instances/desktop/panes/UntrackedItemDetails.vue";
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import AssetDetails from "@/instances/desktop/panes/AssetDetails.vue";
 import Checkpoints from "@/instances/desktop/panes/Checkpoints.vue";
-import ProjectCheckpoints from "@/instances/desktop/panes/ProjectCheckpoints.vue";
-import Console from "@/instances/desktop/panes/Console.vue";
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import DropDownBox from '@/instances/common/components/DropDownBox.vue';
+import Clipboard from '@/instances/desktop/components/Clipboard.vue';
 import CollaboratorSuggestions from '@/instances/common/components/CollaboratorSuggestions.vue';
-import utils from "@/services/utils";
-import { addIgnoredItem } from '@/lib/untracked';
+import Collaborators from "@/instances/desktop/panes/Collaborators.vue";
+import CollectionDetails from "@/instances/desktop/panes/CollectionDetails.vue";
+import Console from "@/instances/desktop/panes/Console.vue";
+import Dependencies from "@/instances/desktop/panes/Dependencies.vue";
+import DropDownBox from '@/instances/common/components/DropDownBox.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import PaneHeaderTabs from '@/instances/common/components/PaneHeaderTabs.vue';
+import ProjectCheckpoints from "@/instances/desktop/panes/ProjectCheckpoints.vue";
+import ProjectDetails from "@/instances/desktop/panes/ProjectDetails.vue";
+import UntrackedItemDetails from "@/instances/desktop/panes/UntrackedItemDetails.vue";
 
-const panes = usePaneStore();
-const iconStore = useIconStore();
-const stage = useStageStore();
+// services
+import { AssetService, CheckpointService, CollectionService, FSService, SyncService, TrashService } from "@/services";
+
+// stores
+import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
+import { useCommonStore } from '@/stores/common';
+import { useDependencyStore } from '@/stores/dependency';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useNotificationStore } from '@/stores/notifications';
+import { usePaneStore } from '@/stores/panes';
+import { usePlatformStore } from '@/stores/platform';
+import { useProjectStore } from '@/stores/projects';
+import { useSettingsStore } from '@/stores/settings';
+import { useStageStore } from '@/stores/stages';
+import { useStatusStore } from '@/stores/status';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useUserStore } from '@/stores/users';
+
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
-const statusStore = useStatusStore();
-const projectStore = useProjectStore();
-const userStore = useUserStore();
-const trayStates = useTrayStates();
+const commonStore = useCommonStore();
+const dependencyStore = useDependencyStore();
+const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const dependencyStore = useDependencyStore();
-const commonStore = useCommonStore();
+const panes = usePaneStore();
+const platformStore = usePlatformStore();
+const projectStore = useProjectStore();
 const settings = useSettingsStore();
+const stage = useStageStore();
+const statusStore = useStatusStore();
+const trayStates = useTrayStates();
+const userStore = useUserStore();
 
-const paneComponents = {
-  projectDetails: ProjectDetails,
-  dependencies: Dependencies,
-  collaborators: Collaborators,
-  collectionDetails: CollectionDetails,
-  assetDetails: AssetDetails,
-  checkpoints: Checkpoints,
-  projectCheckpoints: ProjectCheckpoints,
-  untrackedItemDetails: UntrackedItemDetails,
-  console: Console
-};
-
+// props
 const props = defineProps({
   isVisible: Boolean
 });
 
+// constants
+const collectionMode = ['basic', 'library'];
+const itemTypes = ['task', 'resource'];
+const noHeaders = [];
+const placeholder = 'Search collaborators';
 
-let placeholder = 'Search collaborators';
+const assetDetailPanes = [
+  { name: "Details", tab_name: "assetDetails", icon: "info" },
+  { name: "Checkpoints", tab_name: "checkpoints", icon: "layers" },
+  { name: "Dependencies", tab_name: "dependencies", icon: "dependency" },
+  { name: "Console", tab_name: "console", icon: "console" },
+];
 
-const projectUsers = computed(() => {
-  const availableUsers = userStore.getProjectCollaborators
-    .map(user => ({
-      ...user,
-      full_name: `${user.first_name} ${user.last_name}`,
-      avatarColor: userStore.userProfileColor(user.id)
-    }))
-    console.log(availableUsers)
-  return availableUsers;
+const collectionDetailPanes = [
+  { name: "Details", tab_name: "collectionDetails", icon: "info" },
+  { name: "Console", tab_name: "console", icon: "console" }
+];
+
+const linkDetailPanes = [
+  { name: "Details", tab_name: "assetDetails", icon: "info" },
+  { name: "Dependencies", tab_name: "dependencies", icon: "dependency" },
+];
+
+const paneComponents = {
+  assetDetails: AssetDetails,
+  checkpoints: Checkpoints,
+  collaborators: Collaborators,
+  collectionDetails: CollectionDetails,
+  console: Console,
+  dependencies: Dependencies,
+  projectCheckpoints: ProjectCheckpoints,
+  projectDetails: ProjectDetails,
+  untrackedItemDetails: UntrackedItemDetails
+};
+
+const projectDetailPanes = [
+  { name: "Details", tab_name: "projectDetails", icon: "info" },
+  { name: "Checkpoints", tab_name: "projectCheckpoints", icon: "layers" },
+  { name: "Collaborators", tab_name: "collaborators", icon: "person" },
+  { name: "Console", tab_name: "console", icon: "console" }
+];
+
+const untrackedDetailPanes = [
+  { name: "Details", tab_name: "untrackedItemDetails", icon: "info" },
+];
+
+// refs
+const activeTabIndex = ref(0);
+const defaultStatus = ref('TODO');
+const detailsPaneRoot = ref(null);
+const entityType = ref(collectionStore.getCollectionTypesNames[0]);
+const taskType = ref(assetStore.getAssetTypesNames[0]);
+
+// computed properties
+const activeIsEntity = computed(() => {
+  const activeEntity = stage.selectedItems.find((item) => item.id === stage.lastSelectedItemId);
+  return activeEntity?.type === 'entity';
 });
 
+const activeIsTask = computed(() => {
+  const activeTask = stage.selectedItems.find((item) => item.id === stage.lastSelectedItemId);
+  return activeTask?.type === 'task';
+});
 
+const isMultipleItems = computed(() => stage.markedItems.length > 1);
+
+const itemCounts = computed(() => {
+  const counts = { entity: 0, task: 0, untracked_task: 0, untracked_entity: 0, resource: 0 };
+  stage.selectedItems.forEach(item => { if (item.type in counts) counts[item.type]++; });
+  return counts;
+});
+
+const itemsIsEntity = computed(() => itemCounts.value.entity > 0);
+
+const itemsIsTask = computed(() => itemCounts.value.task > 0);
+
+const itemsIsUntracked = computed(() => stage.selectedItems.some((item) => item.type === 'untracked_task' || item.type === 'untracked_entity'));
+
+const onlyEntities = computed(() => stage.selectedItems.every((item) => item.type === 'entity'));
+
+const onlyTasks = computed(() => stage.selectedItems.every((item) => item.type === 'task'));
+
+const onlyUntracked = computed(() => onlyUntrackedAssets.value || onlyUntrackedCollections.value);
+
+// Determines whether the "Move to Collection" button should be shown.
+const hasCollections = computed(() => {
+  const collectionsExist = collectionStore.collections.length > 0;
+  const selectedTasksHaveParent = stage.selectedItems.some(item => item.type === 'task' && item.parent_id);
+  return collectionsExist || selectedTasksHaveParent;
+});
+
+const onlyUntrackedAssets = computed(() => stage.selectedItems.every((item) => item.type === 'untracked_task'));
+
+const onlyUntrackedCollections = computed(() => stage.selectedItems.every((item) => item.type === 'untracked_entity'));
+
+const projectStatuses = computed(() => {
+  const allStatuses = statusStore.statuses;
+  if (!userStore.canDo('set_done_task')) {
+    const limitedStatus = ['done', 'retake'];
+    return allStatuses.filter((item) => !limitedStatus.includes(item.short_name)).map((status) => toSentenceCase(status.short_name));
+  }
+  return allStatuses.map((status) => toSentenceCase(status.short_name));
+});
+
+const projectUsers = computed(() => {
+  return userStore.getProjectCollaborators.map(user => ({
+    ...user,
+    full_name: `${user.first_name} ${user.last_name}`,
+    avatarColor: userStore.userProfileColor(user.id)
+  }));
+});
+
+const selectedSettingsContext = computed(() => {
+  let index = activeTabIndex.value < 0 ? 0 : activeTabIndex.value;
+  const activePaneContext = settingsItems.value?.find((item) => item.tab_name === panes.activeModal);
+  return activePaneContext?.name;
+});
+
+const settingsItems = computed(() => {
+  const itemType = stage.selectedItem?.type;
+  if (!stage.markedItems.length) return projectDetailPanes;
+  if (itemType === 'task') return stage.selectedItem?.is_link ? linkDetailPanes : assetDetailPanes;
+  if (itemType === 'entity') return collectionDetailPanes;
+  return untrackedDetailPanes;
+});
+
+const showEntityTaskActions = computed(() => {
+  const hasTasksOrEntities = stage.selectedItems.some(item => item.type === 'task' || item.type === 'entity');
+  return hasTasksOrEntities && activeIsEntity.value;
+});
+
+const showTaskEntityActions = computed(() => {
+  const hasTasksOrEntities = stage.selectedItems.some(item => item.type === 'task' || item.type === 'entity');
+  return hasTasksOrEntities && activeIsTask.value;
+});
+
+const tasksCanRebuild = computed(() => stage.selectedItems.filter((item) => item.type === 'task').some((item) => item.file_status === 'rebuildable'));
+
+const tasksModified = computed(() => {
+  const modifiedAssetsState = assetStore.getModifiedDisplayPaths;
+  return modifiedAssetsState.some((assetState) => stage.markedItems.includes(assetState.task_id));
+});
+
+const tasksOnDisk = computed(() => stage.selectedItems.filter((item) => item.type === 'task').some((item) => item.file_status !== 'rebuildable'));
+
+const visiblePanes = computed(() => {
+  if (stage.activeStage === 'browser') {
+    if (!collectionStore.selectedCollection && !assetStore.selectedAsset && !projectStore.selectedUntrackedItem) {
+      if (!stage.markedItems.length) {
+        let index = activeTabIndex.value < 0 ? 0 : activeTabIndex.value;
+        const activePane = settingsItems.value[index]?.tab_name || 'projectDetails';
+        panes.setPaneVisibility(activePane, true);
+      } 
+    } else if (stage.selectedItem && stage.markedItems.length === 1) {
+      let index = activeTabIndex.value < 0 ? 0 : activeTabIndex.value;
+      panes.setPaneVisibility(settingsItems.value[index]?.tab_name, true);
+    }
+  }
+  return Object.entries(panes.detailPanes)
+    .filter(([name, isVisible]) => isVisible)
+    .map(([name]) => ({ name, component: paneComponents[name] }));
+});
+
+// methods
+
+// Adds an entity dependency to a task.
+const addEntityDependency = async (task, dependencyId) => {
+  let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
+  await AssetService.AddEntityDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+    .then(() => {
+      if (!task.entity_dependencies) task.entity_dependencies = [];
+      task.entity_dependencies.push(dependencyId);
+      notificationStore.addNotification("Dependency Added", "", "success");
+    })
+    .catch((error) => { console.log(error); notificationStore.errorNotification("Error adding dependencies", error); });
+};
+
+// Adds a task dependency to a task.
+const addTaskDependency = async (task, dependencyId) => {
+  let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
+  await AssetService.AddAssetDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+    .then(() => {
+      if (!task.dependencies) task.dependencies = [];
+      task.dependencies.push(dependencyId);
+      notificationStore.addNotification("Dependency Added", "", "success");
+    })
+    .catch((error) => { console.log(error); notificationStore.errorNotification("Error adding dependencies", error); });
+};
+
+// Assigns collections to a user.
 const assignCollections = async (user) => {
   stage.operationActive = true;
   const entityIds = stage.markedItems;
   const userId = user.id;
-
   for (let entityId of entityIds) {
-    // Check if the user is already assigned to this entity
     const item = stage.selectedItems.find(item => item.id === entityId);
-    if (item && item.assignee_ids && item.assignee_ids.includes(userId)) {
-      continue;
-    }
-
+    if (item && item.assignee_ids && item.assignee_ids.includes(userId)) continue;
     await CollectionService.Assign(projectStore.activeProject.uri, entityId, userId)
-      .then((data) => {
-        // Update the specific item in stage.selectedItems to reflect the assignment
+      .then(() => {
         const itemIndex = stage.selectedItems.findIndex(item => item.id === entityId);
-        if (itemIndex !== -1) {
-          // Add the user ID to assignee_ids if it's not already there
-          if (!stage.selectedItems[itemIndex].assignee_ids.includes(userId)) {
-            stage.selectedItems[itemIndex].assignee_ids.push(userId);
-          }
+        if (itemIndex !== -1 && !stage.selectedItems[itemIndex].assignee_ids.includes(userId)) {
+          stage.selectedItems[itemIndex].assignee_ids.push(userId);
         }
         projectStore.refreshActiveProject();
       })
-      .catch((error) => {
-        notificationStore.errorNotification('Error adding user', error);
-        console.error('Error adding user:', error);
-      });
+      .catch((error) => { notificationStore.errorNotification('Error adding user', error); console.error('Error adding user:', error); });
   }
   emitter.emit('refresh-browser');
   stage.operationActive = false;
-}
-
-const noHeaders = ['projectCheckpoints']
-
-const isMultipleItems = computed(() => {
-  return stage.markedItems.length > 1
-});
-
-const numberOfSelectedTasks = computed(() => {
-  return stage.markedItems.length;
-});
-
-const singleTask = computed(() => {
-  numberOfSelectedTasks.value = stage.markedItems.length;
-  const isSingleTask = stage.markedItems.length <= 1 && assetStore.selectedAsset;
-  return isSingleTask
-});
-
-// Helper computed properties to count items by type
-const itemCounts = computed(() => {
-  const counts = {
-    entity: 0,
-    task: 0,
-    untracked_task: 0,
-    untracked_entity: 0,
-    resource: 0
-  };
-  
-  stage.selectedItems.forEach(item => {
-    if (item.type in counts) {
-      counts[item.type]++;
-    }
-  });
-  
-  return counts;
-});
-
-const itemsIsEntity = computed(() => {
-  return itemCounts.value.entity > 0
-});
-
-const itemsIsTask = computed(() => {
-  return itemCounts.value.task > 0
-});
-
-const onlyEntities = computed(() => {
-  return stage.selectedItems.every((item) => item.type === 'entity')
-});
-
-const onlyTasks = computed(() => {
-  return stage.selectedItems.every((item) => item.type === 'task')
-});
-
-const onlyUntrackedAssets = computed(() => {
-  return stage.selectedItems.every((item) => item.type === 'untracked_task')
-});
-
-const onlyUntrackedCollections = computed(() => {
-  return stage.selectedItems.every((item) => item.type === 'untracked_entity')
-});
-
-const onlyUntracked = computed(() => {
-  return onlyUntrackedAssets.value || onlyUntrackedCollections.value
-});
-
-const itemsIsUntracked = computed(() => {
-  return stage.selectedItems.some((item) => item.type === 'untracked_task' || item.type === 'untracked_entity')
-});
-
-const projectDetailPanes = ref([
-      { name: "Details", tab_name: "projectDetails", icon: "info" },
-      // { name: "Collaborators", tab_name: "collaborators", icon: "person" },
-      { name: "Console", tab_name: "console", icon: "console" }
-]);
-
-const assetDetailPanes = ref([
-      { name: "Details", tab_name: "assetDetails", icon: "info" },
-      { name: "Checkpoints", tab_name: "checkpoints", icon: "layers" },
-      { name: "Dependencies", tab_name: "dependencies", icon: "dependency" },
-      { name: "Console", tab_name: "console", icon: "console" },
-]);
-
-const linkDetailPanes = ref([
-      { name: "Details", tab_name: "assetDetails", icon: "info" },
-      { name: "Dependencies", tab_name: "dependencies", icon: "dependency" },
-]);
-
-const collectionDetailPanes = ref([
-      { name: "Details", tab_name: "collectionDetails", icon: "info" },
-      // { name: "Collaborators", tab_name: "collaborators", icon: "person" },
-      { name: "Console", tab_name: "console", icon: "console" }
-]);
-
-const untrackedDetailPanes = ref([
-      { name: "Details", tab_name: "untrackedItemDetails", icon: "info" },
-]);
-
-const settingsItems = computed(() => {
-
-  const item = stage.selectedItem;
-  const itemType = stage.selectedItem?.type;
-  
-  if(!stage.markedItems.length){
-    return projectDetailPanes.value
-  } else if(itemType === 'task'){
-    return item?.is_link ? linkDetailPanes.value : assetDetailPanes.value
-  }else if(itemType === 'entity'){
-    return collectionDetailPanes.value;
-  } 
-  else return untrackedDetailPanes.value; 
-
-});
-
-const selectedSettingsContext = computed(() => {
-
-  let index = activeTabIndex.value;
-    if(index < 0){
-      index = 0;
-    }
-
-	const activePaneContext = settingsItems.value?.find((item) => item.tab_name === panes.activeModal)
-  settingsItems.value[index]?.tab_name
-	return activePaneContext?.name;
-
-})
-
-const activeTabIndex = ref(0);
-
-const filterList = (selectedTab) => {
-	const activePaneContext = settingsItems.value.find((item) => item.name === selectedTab)
-  const currentIndex = settingsItems.value.indexOf(activePaneContext);
-  activeTabIndex.value = currentIndex;
 };
 
-watch(() => settingsItems.value, async () => {
-  activeTabIndex.value = 0;
-});
-
-const viewCheckpoints = () => {
-  filterList('Checkpoints');
-}
-
-
-const visiblePanes = computed(() => {
-  
-  if (stage.activeStage === 'browser') {
-    if (!collectionStore.selectedCollection && !assetStore.selectedAsset && !projectStore.selectedUntrackedItem) {
-      if (!stage.markedItems.length) {
-        if(panes.activeModal !== 'projectCheckpoints'){
-          let index = activeTabIndex.value;
-          if(index < 0){
-            index = 0;
-          }
-          const activePane = settingsItems.value[index]?.tab_name || 'projectDetails';
-          panes.setPaneVisibility(activePane, true);
-        }
-      }
-    } else if(stage.selectedItem && stage.markedItems.length === 1){
-      
-      let index = activeTabIndex.value;
-      if(index < 0){
-        index = 0;
-      }
-
-      panes.setPaneVisibility(settingsItems.value[index]?.tab_name, true);
-
-    }
-  }
-
-  return Object.entries(panes.detailPanes)
-    .filter(([name, isVisible]) => isVisible)
-    .map(([name]) => ({
-      name,
-      component: paneComponents[name],
-    }));
-});
-
-
-// refs
-const defaultStatus = ref('TODO');
-const itemTypes = ref(['task', 'resource']);
-const collectionMode = ref(['basic', 'library']);
-const taskType = ref(assetStore.getAssetTypesNames[0]);
-const entityType = ref(collectionStore.getCollectionTypesNames[0]);
-const detailsPaneRoot = ref(null);
-
-
-watchEffect(() => {
-  if (detailsPaneRoot.value) {
-    menu.clickOutsideMask = detailsPaneRoot.value;
-  }
-});
-
-// computed properties
-const projectStatuses = computed(() => {
-  
-  const allStatuses = statusStore.statuses;
-
-  if (!userStore.canDo('set_done_task')) {
-    const limitedStatus = ['done', 'retake']
-    const availableStatus = allStatuses.filter((item) => !limitedStatus.includes(item.short_name))
-    return availableStatus.map((status) => toSentenceCase(status.short_name))
-  } else {
-    return allStatuses.map((status) => toSentenceCase(status.short_name))
-  }
-});
-
-const tasksModified = computed(() => {
-  const markedItems = stage.markedItems;
-  const modifiedAssetsState = assetStore.getModifiedDisplayPaths;
-  
-  // Check if any of the marked items exist in the modified assets state
-  return modifiedAssetsState.some((assetState) => markedItems.includes(assetState.task_id));
-});
-
-const tasksOnDisk = computed(() => {
-  const displayedTasks = stage.selectedItems.filter((item) => item.type === 'task');
-  return displayedTasks.some((item) => item.file_status !== 'rebuildable')
-});
-
-const tasksCanRebuild = computed(() => {
-  const displayedTasks = stage.selectedItems.filter((item) => item.type === 'task');
-  return displayedTasks.some((item) => item.file_status === 'rebuildable')
-});
-
-const activeIsTask = computed(() => {
-  const activeTaskId = stage.lastSelectedItemId;
-  const activeTask = stage.selectedItems.find((item) => item.id === activeTaskId);
-  return activeTask?.type === 'task';
-});
-
-const activeIsEntity = computed(() => {
-  const activeEntityId = stage.lastSelectedItemId;
-  const activeEntity = stage.selectedItems.find((item) => item.id === activeEntityId);
-  return activeEntity?.type === 'entity';
-});
-
-const showTaskEntityActions = computed(() => {
-  const hasTasksOrEntities = stage.selectedItems.some(item => 
-    item.type === 'task' || item.type === 'entity'
-  );
-  const lastSelectedIsTask = activeIsTask.value;
-  return hasTasksOrEntities && lastSelectedIsTask;
-});
-
-const showEntityTaskActions = computed(() => {
-  const hasTasksOrEntities = stage.selectedItems.some(item => 
-    item.type === 'task' || item.type === 'entity'
-  );
-  const lastSelectedIsEntity = activeIsEntity.value;
-  return hasTasksOrEntities && lastSelectedIsEntity;
-});
-
-
-// methods
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
+// Changes the parent collection of one or more entities.
+const changeEntityParent = async (entityIds, parentId) => {
+  await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityIds, parentId)
+    .then(() => notificationStore.addNotification('Moved successfully.', "", "success"))
+    .catch((error) => { console.error(error); notificationStore.errorNotification("Error changing entity parent", error); });
 };
 
-// Helper function to emit item data updates
-const emitItemUpdates = (taskId, updates) => {
-  // Update the corresponding item in stage.selectedItems
-  const selectedItemIndex = stage.selectedItems.findIndex(item => item.id === taskId);
-  if (selectedItemIndex !== -1) {
-    // Apply each update to the selected item
-    if (typeof updates === 'object' && !Array.isArray(updates)) {
-      // Single update object
-      Object.assign(stage.selectedItems[selectedItemIndex], updates);
-    } else if (Array.isArray(updates)) {
-      // Array of updates
-      updates.forEach(update => {
-        if (update.property && update.value !== undefined) {
-          stage.selectedItems[selectedItemIndex][update.property] = update.value;
-        }
-      });
-    }
-  }
-  
-  const updateData = { itemId: taskId, updates };
-  
-  // Emit to both Browser and VirtuaItem components
-  emitter.emit('update-root-data', updateData);
-  emitter.emit('update-children', updateData);
-};
-
-const closeModals = () => {
-  modals.disableAllModals();
-};
-
-const prepAssignTask = (event) => {
-  menu.showContextMenu(event, 'assignMenu', true);
-};
-
-const setMultipleStatus = async (statusName) => {
+// Changes the type of multiple entities.
+const changeEntityType = async (entityTypeName) => {
   stage.operationActive = true;
-
-  const status = statusStore.statuses.find(item => item.short_name === statusName.toLowerCase())
-  // return
-  const taskIds = stage.markedItems;
-  await assetStore.setMultipleStatus(status, taskIds);
-  defaultStatus.value = statusName.toUpperCase();
+  const newEntityType = collectionStore.getCollectionTypes.find((item) => item.name === entityTypeName);
+  entityType.value = entityTypeName;
+  for (const entityId of stage.markedItems) {
+    await CollectionService.ChangeType(projectStore.activeProject.uri, entityId, newEntityType.id).catch((error) => console.error('Error:', error));
+  }
+  emitter.emit('refresh-browser');
   stage.operationActive = false;
 };
 
-const toSentenceCase = (str) => {
-  // Handle empty string
-  if (!str) return str;
+// Changes the library mode of multiple collections.
+const changeIsLibrary = async (mode) => {
+  stage.operationActive = true;
+  let isLibrary = mode === 'library';
+  for (const collectionId of stage.markedItems) {
+    await CollectionService.ChangeIsLibrary(projectStore.activeProject.uri, collectionId, isLibrary).catch((error) => console.error('Error:', error));
+  }
+  emitter.emit('refresh-browser');
+  stage.operationActive = false;
+};
 
-  // Convert entire string to lowercase first
-  const lowercase = str.toLowerCase();
+// Moves one or more tasks to a different collection.
+const changeTaskEntity = async (taskIds, entityId) => {
+  await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskIds, entityId)
+    .then(() => notificationStore.addNotification('Moved successfully.', "", "success"))
+    .catch((error) => { console.error(error); notificationStore.errorNotification("Error changing task entity", error); });
+};
 
-  // Capitalize first letter
-  return lowercase.charAt(0).toUpperCase() + lowercase.slice(1);
-}
+// Changes the type of multiple tasks.
+const changeTaskType = async (taskTypeName) => {
+  stage.operationActive = true;
+  const newTaskType = assetStore.getAssetTypes.find((item) => item.name === taskTypeName);
+  taskType.value = taskTypeName;
+  for (const taskId of stage.markedItems) {
+    await AssetService.ChangeAssetType(projectStore.activeProject.uri, taskId, newTaskType.id).catch((error) => console.error('Error:', error));
+  }
+  emitter.emit('refresh-browser');
+  stage.operationActive = false;
+};
 
+// Clears all item selections.
+const clearSelection = () => {
+  stage.markedItems = [];
+  stage.selectedItems = [];
+  stage.firstSelectedItemId = '';
+  stage.lastSelectedItemId = '';
+  assetStore.selectedAsset = null;
+  collectionStore.selectedCollection = null;
+};
+
+// Closes all modals.
+const closeModals = () => modals.disableAllModals();
+
+// Deletes multiple entities.
+const deleteMultipleEntities = async () => {
+  stage.operationActive = true;
+  for (let entityId of stage.markedItems) {
+    await CollectionService.DeleteCollection(projectStore.activeProject.uri, entityId, true)
+      .then(() => { if (onlyEntities.value) { stage.markedItems = []; collectionStore.selectedCollection = null; } })
+      .catch((error) => { console.log(error); notificationStore.errorNotification("Entities failed to delete.", error); });
+  }
+  clearSelection();
+  notificationStore.addNotification("Collections moved to trash.", '', "success", false);
+  emitter.emit('refresh-browser');
+  stage.operationActive = false;
+};
+
+// Deletes multiple items (tasks and entities).
 const deleteMultipleItems = async () => {
   panes.setPaneVisibility('projectDetails', true);
   await deleteMultipleEntities();
@@ -565,32 +479,20 @@ const deleteMultipleItems = async () => {
   collectionStore.selectedCollection = null;
 };
 
-const deleteMultipleEntities = async () => {
+// Deletes multiple tasks.
+const deleteMultipleTasks = async () => {
   stage.operationActive = true;
-  const entityIds = stage.markedItems;
-
-  for (let entityId of entityIds) {
-    await CollectionService.DeleteCollection(projectStore.activeProject.uri, entityId, true)
-      .then(async (response) => {
-        if(onlyEntities.value){
-          stage.markedItems = [];
-          collectionStore.selectedCollection = null;
-        }
-      })
-      .catch((error) => {
-        console.log(error)
-        notificationStore.errorNotification("Entities failed to delete.", error)
-      });
-  };
-  clearSelection();
-  notificationStore.addNotification("Collections moved to trash.", '', "success", false);
-  emitter.emit('refresh-browser')
+  for (let taskId of stage.markedItems) {
+    await AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
+      .then(() => { emitter.emit('refresh-browser'); notificationStore.addNotification("Assets moved to Trash.", '', "success", false); })
+      .catch((error) => { if (onlyTasks.value) { console.log(error); notificationStore.errorNotification("Assets failed to delete.", error); } });
+  }
   stage.operationActive = false;
 };
 
+// Deletes multiple untracked items.
 const deleteMultipleUntrackedTasks = async () => {
   stage.operationActive = true;
-  
   try {
     for (let untrackedItem of stage.selectedItems) {
       if (untrackedItem.type === 'untracked_task') {
@@ -601,239 +503,113 @@ const deleteMultipleUntrackedTasks = async () => {
         projectStore.removeUntrackedEntity(untrackedItem.id);
       }
     }
-    
-    if (onlyUntracked.value) {
-      stage.markedItems = [];
-      projectStore.selectedUntrackedItem = null;
-    }
-    
+    if (onlyUntracked.value) { stage.markedItems = []; projectStore.selectedUntrackedItem = null; }
     emitter.emit('refresh-browser');
     notificationStore.addNotification("Untracked items deleted.", '', "success", false);
-  } catch (error) {
-    console.error(error);
-    notificationStore.errorNotification("Failed to delete untracked items.", error);
-  }
-  
+  } catch (error) { console.error(error); notificationStore.errorNotification("Failed to delete untracked items.", error); }
   stage.operationActive = false;
 };
 
+// Emits item data updates to notify components.
+const emitItemUpdates = (taskId, updates) => {
+  const selectedItemIndex = stage.selectedItems.findIndex(item => item.id === taskId);
+  if (selectedItemIndex !== -1) {
+    if (typeof updates === 'object' && !Array.isArray(updates)) {
+      Object.assign(stage.selectedItems[selectedItemIndex], updates);
+    } else if (Array.isArray(updates)) {
+      updates.forEach(update => { if (update.property && update.value !== undefined) stage.selectedItems[selectedItemIndex][update.property] = update.value; });
+    }
+  }
+  const updateData = { itemId: taskId, updates };
+  emitter.emit('update-root-data', updateData);
+  emitter.emit('update-children', updateData);
+};
+
+// Filters the detail pane tabs.
+const filterList = (selectedTab) => {
+  const activePaneContext = settingsItems.value.find((item) => item.name === selectedTab);
+  activeTabIndex.value = settingsItems.value.indexOf(activePaneContext);
+};
+
+// Frees up collection space by deleting contents.
+const freeUpCollectionSpace = async () => {
+  const selectedCollections = stage.selectedItems.filter(item => item.type === 'entity');
+  for (const collection of selectedCollections) {
+    let collectionPath = collection.file_path.replace(/\\/g, '/');
+    await FSService.DeleteFolder(collectionPath).catch((error) => { console.error(error); notificationStore.errorNotification('Error freeing collection space', error); });
+  }
+  closeModals();
+  emitter.emit('refresh-browser');
+};
+
+// Shows the free up collection space confirmation modal.
+const freeUpCollectionSpacePopUpModal = () => {
+  trayStates.popUpModalTitle = "Free Up Collection Space";
+  trayStates.popUpModalMessage = "Are you sure you want to delete these Collections? This will permanently remove all untracked files and contents. Please confirm if you wish to proceed.";
+  trayStates.popUpModalIcon = 'broom';
+  trayStates.popUpModalFunction = freeUpCollectionSpace;
+  modals.setModalVisibility('popUpModal', true);
+};
+
+// Frees up task space by deleting working files.
+const freeUpSpace = async () => {
+  const selectedTasks = stage.selectedItems.filter(item => item.type === 'task');
+  const fileStatus = ['missing', 'rebuildable'];
+  const tasksToProcess = selectedTasks.filter(task => !fileStatus.includes(task.file_status));
+  for (const task of tasksToProcess) {
+    let taskPath = task.file_path.replace(/\\/g, '/');
+    await FSService.DeleteFile(taskPath)
+      .then(() => {
+        task.file_status = 'rebuildable';
+        assetStore.rebuildableAssetsPath.push(task.task_path);
+        assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path);
+        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => taskPath !== task.task_path);
+        emitItemUpdates(task.id, [{ property: 'file_status', value: 'rebuildable' }]);
+      })
+      .catch((error) => console.error(error));
+  }
+  closeModals();
+};
+
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
+// Adds items to the ignore list.
 const ignoreItems = async () => {
   stage.operationActive = true;
   try {
     for (let untrackedItem of stage.selectedItems) {
       if (untrackedItem.type == "untracked_task") {
-        await addIgnoredItem(untrackedItem.task_path)
+        await addIgnoredItem(untrackedItem.task_path);
       } else {
-        const untrackedEntity = removeLastSlash(untrackedItem.item_path)
-        await addIgnoredItem(untrackedEntity)
+        const untrackedEntity = removeLastSlash(untrackedItem.item_path);
+        await addIgnoredItem(untrackedEntity);
       }
     }
-    panes.setPaneVisibility('projectDetails', true)
-	  clearSelection();
+    panes.setPaneVisibility('projectDetails', true);
+    clearSelection();
     emitter.emit('refresh-browser');
-    notificationStore.addNotification( "Updated ignore list", '', "success", false );
+    notificationStore.addNotification("Updated ignore list", '', "success", false);
   } catch (error) {
-    stage.operationActive = false;
-    notificationStore.addNotification(
-            "Failed to update ignore list",
-            "error"
-        );
+    notificationStore.addNotification("Failed to update ignore list", "error");
   }
   stage.operationActive = false;
 };
 
-const clearSelection = () => {
-	stage.markedItems = [];
-	stage.selectedItems = [];
-	stage.firstSelectedItemId = '';
-	stage.lastSelectedItemId = '';
-	assetStore.selectedAsset = null;
-	collectionStore.selectedCollection = null;
-}
-
-const deleteMultipleTasks = async () => {
-  stage.operationActive = true;
-  const taskIds = stage.markedItems;
-  for (let taskId of taskIds) {
-    await AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
-      .then(async (response) => {
-        emitter.emit('refresh-browser');
-        notificationStore.addNotification("Assets moved to Trash.", '', "success", false);
-      })
-      .catch((error) => {
-        if(onlyTasks.value){
-          console.log(error)
-          notificationStore.errorNotification("Assets failed to delete.", error)
-        }
-      });
-  }
-  stage.operationActive = false;
-};
-
-const unassignTasks = async () => {
-  let taskIds = stage.markedItems;
-  for (const taskId of taskIds) {
-    await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId)
-      .then(async (data) => {
-      })
-      .catch((error) => {
-        console.log(error)
-        notificationStore.errorNotification("Error Assigning Task", error)
-      });
-  }
-  emitter.emit('refresh-browser');
-  notificationStore.addNotification("Tasks Unssigned Successfully.", "", "success");
-
-};
-
-const freeUpSpace = async () => {
-  const selectedTasks = stage.selectedItems.filter(item => item.type === 'task');
-  const fileStatus = ['missing', 'rebuildable'];
-  const tasksToProcess = selectedTasks.filter(task => !fileStatus.includes(task.file_status));
-  
-  for (const task of tasksToProcess) {
-    let taskPath = task.file_path.replace(/\\/g, '/')
-    await FSService.DeleteFile(taskPath)
-      .then((response) => {
-        task.file_status = 'rebuildable'; 
-        assetStore.rebuildableAssetsPath.push(task.task_path)
-        assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path)
-        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => taskPath !== task.task_path);
-        
-        // Emit task updates to notify components of file state changes
-        emitItemUpdates(task.id, [
-          { property: 'file_status', value: 'rebuildable' }
-        ]);
-      })
-      .catch((error) => {
-        console.error(error); 
-      });
-  }
-  closeModals();
-};
-
-const freeUpCollectionSpace = async () => {
-  const selectedCollections = stage.selectedItems.filter(item => item.type === 'entity');
-  
-  for (const collection of selectedCollections) {
-    let collectionPath = collection.file_path.replace(/\\/g, '/')
-    await FSService.DeleteFolder(collectionPath)
-      .then((response) => {
-      })
-      .catch((error) => {
-        console.error(error);
-        notificationStore.errorNotification('Error freeing collection space', error);
-      });
-  }
-  closeModals();
-  emitter.emit('refresh-browser');
-};
-
-const moveIntoFolder = async () => {
-
-  stage.operationActive = true;
-
-  const activeItemId = stage.lastSelectedItemId;
-  const selectedItems = stage.selectedItems.filter((item) => item.id !== activeItemId);
-
-  for (const item of selectedItems) {
-
-    if (item.type === 'entity') {
-      const entityId = item.id;
-      const parentId = activeItemId;
-      await changeEntityParent(entityId, parentId);
-    } else if (item.type === 'task') {
-      const taskId = item.id;
-      const entityId = activeItemId;
-      await changeTaskEntity(taskId, entityId);
-    } else {
-
-      let entity = collectionStore.findCollection(activeItemId)
-
-      await FSService.MakeDirs(entity.file_path)
-      let newPath = await FSService.JoinPath(entity.file_path, item.name)
-      const untrackedPath = newPath.replace(/^\/+|\/+$/g, "").replace(/\\/g, "/");
-      const workingDir = projectStore.activeProject.working_directory.replace(/^\/+|\/+$/g, "").replace(/\\/g, "/");
-      console.log(item)
-      const itemPath = getRelativePath(workingDir, untrackedPath)
-
-      let entityPath = "";
-      const itemPathEntities = itemPath.split("/");
-      if (itemPathEntities.length > 1) {
-        // Take all elements except the last one
-        const pathWithoutLast = itemPathEntities.slice(0, -1);
-        entityPath = pathWithoutLast.join("/");
-      }
-
-      FSService.Rename(item.file_path, newPath)
-        .then(() => {
-          if (item.type == "untracked_task") {
-            let untrackedTaskIndex = projectStore.untrackedFilesIndex[item.id];
-            projectStore.untrackedFiles[untrackedTaskIndex].item_path = itemPath;
-            projectStore.untrackedFiles[untrackedTaskIndex].file_path = newPath;
-            projectStore.untrackedFiles[untrackedTaskIndex].entity_path = entityPath;
-          } else if (item.type == "untracked_entity") {
-            let untrackedFolderIndex = projectStore.untrackedFoldersIndex[item.id];
-            projectStore.untrackedFolders[untrackedFolderIndex].item_path = itemPath;
-            projectStore.untrackedFolders[untrackedFolderIndex].file_path = newPath;
-            projectStore.untrackedFolders[untrackedFolderIndex].entity_path = entityPath;
-          }
-        })
-
-    }
-  }
-  emitter.emit('refresh-browser');
-  stage.operationActive = false;
-};
-
-const changeEntityParent = async (entityId, parentId) => {
-
-  await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityId, parentId)
-    .then((response) => {
-      const successMessage = 'Moved successfully.'
-      notificationStore.addNotification(successMessage, "", "success")
-    })
-    .catch((error) => {
-      console.error(error);
-      notificationStore.errorNotification("Error changing entity parent", error)
-    });
-};
-
-const changeTaskEntity = async (taskId, entityId) => {
-  await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskId, entityId)
-    .then((response) => {
-      const successMessage = 'Moved successfully.'
-      notificationStore.addNotification(successMessage, "", "success")
-    })
-    .catch((error) => {
-      console.error(error);
-      notificationStore.errorNotification("Error changing task entity", error)
-    });
-};
-
+// Makes selected items dependencies of the active task.
 const makeDependenciesOfActive = async () => {
-
   stage.operationActive = true;
   const activeItemId = stage.lastSelectedItemId;
   const selectedItems = stage.selectedItems.filter((item) => item.id !== activeItemId);
-
   const task = stage.selectedItems.find((item) => item.id === activeItemId);
-
   for (const item of selectedItems) {
-    const itemType = item.type;
-    if (itemType === 'entity') {
-      const entityId = item.id;
-      if (entityId !== task.entity_id) {
-        const entityDependencyExists = task.entity_dependencies?.includes(entityId);
-        if (!entityDependencyExists) {
-          await addEntityDependency(task, entityId);
-        }
+    if (item.type === 'entity') {
+      if (item.id !== task.entity_id && !task.entity_dependencies?.includes(item.id)) {
+        await addEntityDependency(task, item.id);
       }
     } else {
-      const dependencyId = item.id;
-      const taskDependencyExists = task.dependencies?.includes(dependencyId);
-      if (!taskDependencyExists) {
-        await addTaskDependency(task, dependencyId);
+      if (!task.dependencies?.includes(item.id)) {
+        await addTaskDependency(task, item.id);
       }
     }
   }
@@ -841,213 +617,110 @@ const makeDependenciesOfActive = async () => {
     { property: 'dependencies', value: task.dependencies },
     { property: 'entity_dependencies', value: task.entity_dependencies }
   ]);
-
   stage.operationActive = false;
 };
 
-const addTaskDependency = async (task, dependencyId) => {
+// Moves selected items into the active collection.
+const moveIntoFolder = async () => {
+  stage.operationActive = true;
+  const activeItemId = stage.lastSelectedItemId;
+  const selectedItems = stage.selectedItems.filter((item) => item.id !== activeItemId);
 
-  let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
+  // Collect items by type for batch operations
+  const entityIds = [];
+  const taskIds = [];
+  const untrackedItems = [];
 
-  await AssetService.AddAssetDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
-    .then((response) => {
-      if (!task.dependencies) {
-        task.dependencies = [];
+  for (const item of selectedItems) {
+    if (item.type === 'entity') entityIds.push(item.id);
+    else if (item.type === 'task') taskIds.push(item.id);
+    else untrackedItems.push(item);
+  }
+
+  // Execute batch operations for tracked items
+  if (entityIds.length) await changeEntityParent(entityIds, activeItemId);
+  if (taskIds.length) await changeTaskEntity(taskIds, activeItemId);
+
+  // Handle untracked items (need path computation for each)
+  if (untrackedItems.length) {
+    let entity = collectionStore.findCollection(activeItemId);
+    await FSService.MakeDirs(entity.file_path);
+    const renameOperations = [];
+    const itemUpdates = [];
+
+    for (const item of untrackedItems) {
+      let newPath = await FSService.JoinPath(entity.file_path, item.name);
+      const untrackedPath = newPath.replace(/^\/+|\/+$/g, "").replace(/\\/g, "/");
+      const workingDir = projectStore.activeProject.working_directory.replace(/^\/+|\/+$/g, "").replace(/\\/g, "/");
+      const itemPath = getRelativePath(workingDir, untrackedPath);
+      let entityPath = "";
+      const itemPathEntities = itemPath.split("/");
+      if (itemPathEntities.length > 1) entityPath = itemPathEntities.slice(0, -1).join("/");
+      renameOperations.push({ oldPath: item.file_path, newPath });
+      itemUpdates.push({ item, itemPath, newPath, entityPath });
+    }
+
+    await FSService.RenameBatch(JSON.stringify(renameOperations));
+
+    // Update local state after successful rename
+    for (const { item, itemPath, newPath, entityPath } of itemUpdates) {
+      if (item.type == "untracked_task") {
+        let untrackedTaskIndex = projectStore.untrackedFilesIndex[item.id];
+        projectStore.untrackedFiles[untrackedTaskIndex].item_path = itemPath;
+        projectStore.untrackedFiles[untrackedTaskIndex].file_path = newPath;
+        projectStore.untrackedFiles[untrackedTaskIndex].entity_path = entityPath;
+      } else if (item.type == "untracked_entity") {
+        let untrackedFolderIndex = projectStore.untrackedFoldersIndex[item.id];
+        projectStore.untrackedFolders[untrackedFolderIndex].item_path = itemPath;
+        projectStore.untrackedFolders[untrackedFolderIndex].file_path = newPath;
+        projectStore.untrackedFolders[untrackedFolderIndex].entity_path = entityPath;
       }
-      task.dependencies.push(dependencyId);
-      notificationStore.addNotification("Dependency Added", "", "success");
-    })
-    .catch((error) => {
-      console.log(error)
-      notificationStore.errorNotification("Error adding dependencies", error);
-    });
-
-};
-
-const addEntityDependency = async (task, dependencyId) => {
-
-  let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
-
-  await AssetService.AddEntityDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
-    .then((response) => {
-      // Update the local task object with the new entity dependency
-      if (!task.entity_dependencies) {
-        task.entity_dependencies = [];
-      }
-      task.entity_dependencies.push(dependencyId);
-      notificationStore.addNotification("Dependency Added", "", "success");
-    })
-    .catch((error) => {
-      console.log(error)
-      notificationStore.errorNotification("Error adding dependencies", error);
-    });
-
-};
-
-const toggleIsTask = async (newAssetType) => {
-
-  stage.operationActive = true;
-  
-  let isResource = newAssetType === 'task';
-  const projectPath = projectStore.activeProject.uri;
-  const selectedTaskIds = stage.markedItems;
-
-  for (const taskId of selectedTaskIds) {
-    await AssetService.ToggleIsTask(projectPath, taskId, isResource)
-      .then((data) => {
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-      });
-  }
-  emitter.emit('refresh-browser');
-  stage.operationActive = false;
-
-
-};
-
-const changeTaskType = async (taskTypeName) => {
-  stage.operationActive = true;
-
-  let newTaskType;
-  const taskTypes = assetStore.getAssetTypes;
-  newTaskType = taskTypes.find((item) => item.name === taskTypeName);
-  taskType.value = taskTypeName;
-
-  const projectPath = projectStore.activeProject.uri;
-  const selectedTasksIds = stage.markedItems;
-
-  for (const taskId of selectedTasksIds) {
-    await AssetService.ChangeAssetType(projectPath, taskId, newTaskType.id)
-      .then((data) => {
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-      });
-  }
-  emitter.emit('refresh-browser');
-  stage.operationActive = false;
-
-};
-
-const changeEntityType = async (entityTypeName) => {
-  stage.operationActive = true;
-
-  let newEntityType;
-  const entityTypes = collectionStore.getCollectionTypes;
-  newEntityType = entityTypes.find((item) => item.name === entityTypeName);
-  entityType.value = entityTypeName;
-
-  const projectPath = projectStore.activeProject.uri;
-  const selectedEntitiesId = stage.markedItems
-
-  for (const entityId of selectedEntitiesId) {
-    await CollectionService.ChangeType(projectPath, entityId, newEntityType.id)
-      .then((data) => {
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-      });
-  }
-  emitter.emit('refresh-browser');
-  stage.operationActive = false;
-
-};
-
-const changeIsLibrary = async (collectionMode) => {
-
-  stage.operationActive = true;
-  
-  let isLibrary = collectionMode === 'library';
-  const projectPath = projectStore.activeProject.uri;
-  const selectedCollectionIds = stage.markedItems;
-
-  for (const collectionId of selectedCollectionIds) {
-    await CollectionService.ChangeIsLibrary(projectPath, collectionId, isLibrary)
-      .then((data) => {
-
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-      });
-  }
-  emitter.emit('refresh-browser');
-  stage.operationActive = false;
-
-};
-
-const unassignCollections = async () => {
-
-  stage.operationActive = true;
-
-  for (const collection of stage.selectedItems) {
-    const currentAssigneeIds = collection.assignee_ids || [];
-    
-    for (const assigneeId of currentAssigneeIds) {
-      
-        await CollectionService.Unassign(projectStore.activeProject.uri, collection.id, assigneeId)
-          .then((data) => {
-            const itemIndex = stage.selectedItems.findIndex(item => item.id === collection.id);
-            if (itemIndex !== -1) {
-              stage.selectedItems[itemIndex].assignee_ids = stage.selectedItems[itemIndex].assignee_ids.filter(id => id !== assigneeId);
-            }
-          })
-          .catch((error) => {
-            notificationStore.errorNotification('Error removing user', error);
-            console.error('Error removing user:', error);
-          });
     }
   }
 
   emitter.emit('refresh-browser');
   stage.operationActive = false;
-
 };
 
-const revertAllChanges = async () => {
-  modals.setModalVisibility('popUpModal', false);
-
-  notificationStore.cancleFunction = SyncService.CancelSync
-  notificationStore.canCancel = true
-
-  await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, stage.markedItems)
-    .then((response) => {
-      // Update each reverted task in stage.selectedItems and emit updates
-      const revertedTasks = stage.selectedItems.filter(item => item.type === 'task');
-      for (const task of revertedTasks) {
-        // Update the task's file status to reflect the revert
-        task.file_status = 'normal';
-        
-        // Emit task updates to notify components of the state change
-        emitItemUpdates(task.id, [
-          { property: 'file_status', value: 'normal' }
-        ]);
-      }
-    })
-    .catch((error) => {
-      notificationStore.errorNotification("Error Revering Tasks", error)
-      console.error(error);
-    });
+// Shows the create checkpoints modal.
+const prepAllCheckpointModal = () => {
+  trayStates.createMultipleCheckpoints = false;
+  modals.setModalVisibility('createMultipleCheckpointsModal', true);
 };
 
+// Opens the assign menu.
+const prepAssignTask = (event) => menu.showContextMenu(event, 'assignMenu', true);
+
+// Shows the free up task space confirmation modal.
+const prepFreeUpSpacePopUpModal = () => {
+  trayStates.popUpModalTitle = "Free Up Task Space";
+  trayStates.popUpModalMessage = "Are you sure you want to delete these task working files? This will permanently remove all uncheckpointed resources and all task outputs. Please confirm if you wish to proceed.";
+  trayStates.popUpModalIcon = 'broom';
+  trayStates.popUpModalFunction = freeUpSpace;
+  modals.setModalVisibility('popUpModal', true);
+};
+
+// Shows the revert tasks confirmation modal.
+const prepResetPopUpModal = () => {
+  trayStates.popUpModalIcon = 'revert';
+  trayStates.popUpModalTitle = "Revert Selected tasks";
+  trayStates.popUpModalMessage = "Modified tasks will be reverted to their last saved state. Are you sure you want to continue?";
+  trayStates.popUpModalFunction = revertAllChanges;
+  modals.setModalVisibility('popUpModal', true);
+};
+
+// Rebuilds multiple collections.
 const rebuildCollections = async () => {
   notificationStore.cancleFunction = SyncService.CancelSync;
   notificationStore.canCancel = true;
-  
   try {
-    // Get all selected collection entity IDs and join them with commas for batch processing
-    const entityIds = stage.markedItems;
-    const entityIdsString = entityIds.join(',');
-    
+    const entityIdsString = stage.markedItems.join(',');
     await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entityIdsString)
-      .then((data) => {
+      .then(() => {
         assetStore.refreshEntityFilesStatus();
-        notificationStore.addNotification(`${entityIds.length} collection(s) rebuilt successfully`, '', "success", false);
+        notificationStore.addNotification(`${stage.markedItems.length} collection(s) rebuilt successfully`, '', "success", false);
       })
-      .catch((error) => {
-        console.error('Error rebuilding collections:', error);
-        notificationStore.errorNotification('Error rebuilding collections', error);
-      });
+      .catch((error) => { console.error('Error rebuilding collections:', error); notificationStore.errorNotification('Error rebuilding collections', error); });
   } catch (error) {
     console.error('Error rebuilding collections:', error);
     notificationStore.errorNotification('Error rebuilding collections', error);
@@ -1057,36 +730,99 @@ const rebuildCollections = async () => {
   }
 };
 
-const prepAllCheckpointModal = () => {
-  trayStates.createMultipleCheckpoints = false;
-  modals.setModalVisibility('createMultipleCheckpointsModal', true);
+// Removes the trailing slash from a path.
+const removeLastSlash = (path) => path.replace(/\/+$/, '');
+
+// Prepares and opens the Move to Collection sub-menu for multi-selection.
+const prepMoveToCollection = (event) => {
+  const selectedTaskIds = stage.markedItems.filter(id => stage.selectedItems.find(item => item.id === id && item.type === 'task'));
+  if (selectedTaskIds.length === 0) return;
+  const firstTask = stage.selectedItems.find(item => item.id === selectedTaskIds[0] && item.type === 'task');
+  menu.subMenuState.selectedAssetIds = selectedTaskIds;
+  menu.subMenuState.startingEntityId = firstTask?.parent_id || '';
+  menu.position = { x: event.clientX, y: event.clientY };
+  menu.showSubMenu('move-to-collection');
 };
 
-const prepFreeUpSpacePopUpModal = () => {
-  trayStates.popUpModalTitle = "Free Up Task Space";
-  trayStates.popUpModalMessage = "Are you sure you want to delete these task working files? This will permanently remove all uncheckpointed resources and all task outputs. Please confirm if you wish to proceed.";
-  trayStates.popUpModalIcon = 'broom';
-  trayStates.popUpModalFunction = freeUpSpace;
-  modals.setModalVisibility('popUpModal', true);
+// Reverts all selected tasks to their last checkpoint.
+const revertAllChanges = async () => {
+  modals.setModalVisibility('popUpModal', false);
+  notificationStore.cancleFunction = SyncService.CancelSync;
+  notificationStore.canCancel = true;
+  await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, stage.markedItems)
+    .then(() => {
+      const revertedTasks = stage.selectedItems.filter(item => item.type === 'task');
+      for (const task of revertedTasks) {
+        task.file_status = 'normal';
+        emitItemUpdates(task.id, [{ property: 'file_status', value: 'normal' }]);
+      }
+    })
+    .catch((error) => { notificationStore.errorNotification("Error Revering Tasks", error); console.error(error); });
 };
 
-const freeUpCollectionSpacePopUpModal = () => {
-  trayStates.popUpModalTitle = "Free Up Collection Space";
-  trayStates.popUpModalMessage = "Are you sure you want to delete these Collections? This will permanently remove all untracked files and contents. Please confirm if you wish to proceed.";
-  trayStates.popUpModalIcon = 'broom';
-  trayStates.popUpModalFunction = freeUpCollectionSpace;
-  modals.setModalVisibility('popUpModal', true);
+// Sets the status of multiple tasks.
+const setMultipleStatus = async (statusName) => {
+  stage.operationActive = true;
+  const status = statusStore.statuses.find(item => item.short_name === statusName.toLowerCase());
+  await assetStore.setMultipleStatus(status, stage.markedItems);
+  defaultStatus.value = statusName.toUpperCase();
+  stage.operationActive = false;
 };
 
-const prepResetPopUpModal = () => {
-  trayStates.popUpModalIcon = 'revert'
-  trayStates.popUpModalTitle = "Revert Selected tasks";
-  trayStates.popUpModalMessage = "Modified tasks will be reverted to their last saved state. Are you sure you want to continue?";
-  trayStates.popUpModalFunction = revertAllChanges;
-  modals.setModalVisibility('popUpModal', true);
+// Toggles between task and resource type.
+const toggleIsTask = async (newAssetType) => {
+  stage.operationActive = true;
+  let isResource = newAssetType === 'task';
+  for (const taskId of stage.markedItems) {
+    await AssetService.ToggleIsTask(projectStore.activeProject.uri, taskId, isResource).catch((error) => console.error('Error:', error));
+  }
+  emitter.emit('refresh-browser');
+  stage.operationActive = false;
 };
 
+// Converts a string to sentence case.
+const toSentenceCase = (str) => {
+  if (!str) return str;
+  const lowercase = str.toLowerCase();
+  return lowercase.charAt(0).toUpperCase() + lowercase.slice(1);
+};
 
+// Unassigns all collaborators from collections.
+const unassignCollections = async () => {
+  stage.operationActive = true;
+  for (const collection of stage.selectedItems) {
+    const currentAssigneeIds = collection.assignee_ids || [];
+    for (const assigneeId of currentAssigneeIds) {
+      await CollectionService.Unassign(projectStore.activeProject.uri, collection.id, assigneeId)
+        .then(() => {
+          const itemIndex = stage.selectedItems.findIndex(item => item.id === collection.id);
+          if (itemIndex !== -1) stage.selectedItems[itemIndex].assignee_ids = stage.selectedItems[itemIndex].assignee_ids.filter(id => id !== assigneeId);
+        })
+        .catch((error) => { notificationStore.errorNotification('Error removing user', error); console.error('Error removing user:', error); });
+    }
+  }
+  emitter.emit('refresh-browser');
+  stage.operationActive = false;
+};
+
+// Unassigns all collaborators from tasks.
+const unassignTasks = async () => {
+  for (const taskId of stage.markedItems) {
+    await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId).catch((error) => { console.log(error); notificationStore.errorNotification("Error Assigning Task", error); });
+  }
+  emitter.emit('refresh-browser');
+  notificationStore.addNotification("Tasks Unssigned Successfully.", "", "success");
+};
+
+// Switches to the checkpoints tab.
+const viewCheckpoints = () => filterList('Checkpoints');
+
+// watchers
+watch(() => settingsItems.value, () => { activeTabIndex.value = 0; });
+
+watchEffect(() => { if (detailsPaneRoot.value) menu.clickOutsideMask = detailsPaneRoot.value; });
+
+// lifecycle hooks
 onMounted(() => {
   panes.setPaneVisibility('projectDetails', true);
   emitter.on('view-checkpoints', viewCheckpoints);
@@ -1101,82 +837,15 @@ onUnmounted(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 
-.pane-header-tabs{
-  padding: .5rem 0;
-  padding-bottom: 0;
-  width: 100%;
-  /* background-color: crimson; */
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-direction: column;
-  gap: .5rem;
-}
-
-.debugger {
-  color: var(--white);
-}
-
-.details-pane-root {
-  position: relative;
-  height: 100%;
-  max-width: 400px;
-  min-width: 350px;
-  display: flex;
-  box-sizing: border-box;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  flex: 1 1 50%;
-  border-radius: var(--very-large-radius);
-}
-
-.details-pane-inner {
-  padding: 1rem;
-  color: var(--white);
-  position: relative;
-  height: 100%;
-  max-width: 600px;
-  min-width: 250px;
-  display: flex;
-  box-sizing: border-box;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  flex: 1 1 50%;
-  background-color: var(--black);
-	background-color: var(--black-steel);
-  border-radius: var(--large-radius)
-}
-
-.details-pane-content {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  background-color: var(--black);
-  flex-direction: column;
-  padding: 1rem;
-}
-
-.details-pane-collapsed {
-  padding: 0px;
-  min-width: 0px;
-  width: 0px;
-  flex: 0 0 0%;
-}
-
 .action-bar {
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: .6rem;
-  width: max-content;
   width: 100%;
   height: max-content;
   padding: .2rem;
-  align-items: flex-start;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -1197,11 +866,61 @@ onUnmounted(() => {
   justify-content: flex-start;
 }
 
-.multi-assign {
-  /* background-color: tomato; */
+.details-pane-content {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  flex-direction: column;
+  /* padding: 1rem; */
+}
+
+.details-pane-inner {
+  padding: 1rem;
+  color: var(--white);
+  position: relative;
+  height: 100%;
+  max-width: 600px;
+  min-width: 250px;
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex: 1 1 50%;
+  background-color: var(--black-steel);
+  border-radius: var(--large-radius);
+}
+
+.details-pane-root {
+  position: relative;
+  height: 100%;
+  max-width: 400px;
+  min-width: 350px;
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex: 1 1 50%;
+  border-radius: var(--very-large-radius);
+}
+
+.details-pane-collapsed {
+  padding: 0px;
+  min-width: 0px;
+  width: 0px;
+  flex: 0 0 0%;
+}
+
+.pane-header-tabs {
+  padding: .5rem 0;
+  padding-bottom: 0;
   width: 100%;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: flex-end;
   flex-direction: column;
+  gap: .5rem;
 }
 </style>

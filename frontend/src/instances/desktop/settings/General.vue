@@ -107,6 +107,15 @@
             </div>
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
           </div>
+
+          <div class="settings-item" @click="openDiagnosticsModal" v-stop-propagation>
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('megaphone')"></div>
+            <div class="settings-content">
+              <div class="settings-header">Submit Feedback</div>
+              <div class="settings-body">Report issues or send diagnostic data to our support team.</div>
+            </div>
+            <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
+          </div>
         </div>
       </div>
 
@@ -135,7 +144,7 @@
 <script setup>
 // imports
 import { ref, computed, onMounted } from "vue";
-import { SettingsService } from "@/../bindings/clustta/services/index";
+import { SettingsService } from "@/services";
 
 // services
 import utils from '@/services/utils';
@@ -208,6 +217,10 @@ const displayAppInfo = () => {
   modals.setModalVisibility('appInfoModal', true);
 };
 
+const openDiagnosticsModal = () => {
+  modals.setModalVisibility('submitDiagnosticsModal', true);
+};
+
 const launchDirConfigModal = () => {
   // modals.setModalVisibility('dirOnboardModal', true);
   modals.setModalVisibility('directoryConfigModal', true);
@@ -246,6 +259,7 @@ onMounted(async () => {
   overflow: hidden;
   display: block;
   overflow-y: scroll;
+  border-radius: var(--very-large-radius);
 }
 
 

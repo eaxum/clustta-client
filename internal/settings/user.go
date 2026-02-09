@@ -11,6 +11,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 type Studio struct {
@@ -33,13 +34,12 @@ type ProjectLocation struct {
 }
 
 type Settings struct {
-	IconScheme             string `json:"icon_scheme"`
-	Theme                  string `json:"theme"`
-	UseAltUrl              bool   `json:"use_alt_url"`
-	EulaAccepted           bool   `json:"eula_accepted"`
-	ProjectGridView        bool   `json:"project_grid_view"`
-	UseGrid                bool   `json:"use_grid"`
-	ShowUntrackedProjects  bool   `json:"show_untracked_projects"`
+	IconScheme            string `json:"icon_scheme"`
+	Theme                 string `json:"theme"`
+	EulaAccepted          bool   `json:"eula_accepted"`
+	ProjectGridView       bool   `json:"project_grid_view"`
+	UseGrid               bool   `json:"use_grid"`
+	ShowUntrackedProjects bool   `json:"show_untracked_projects"`
 
 	ProjectsDir         string `json:"projects_dir"`
 	ProjectsDirBookmark []byte `json:"projects_dir_bookmark,omitempty"`
@@ -105,28 +105,23 @@ func saveSettings(settings Settings) error {
 }
 
 func GetUserDirectory() (string, error) {
-
 	currentUser, err := user.Current()
 	if err != nil {
 		return "", fmt.Errorf("failed to get current user: %w", err)
 	}
 
-	username := extractUsername(currentUser.Username)
-
-	switch runtime.GOOS {
-	case "windows":
-		return fmt.Sprintf("C:/Users/%s/", username), nil
-
-	case "darwin":
-
-		return fmt.Sprintf("/Users/%s/", username), nil
-
-	case "linux":
-		return fmt.Sprintf("/home/%s/", username), nil
-
-	default:
-		return "", fmt.Errorf("unsupported operating system: %s", runtime.GOOS)
+	homeDir := currentUser.HomeDir
+	if homeDir == "" {
+		return "", fmt.Errorf("user home directory is empty")
 	}
+
+	// Normalize path separators and ensure trailing slash
+	homeDir = strings.ReplaceAll(homeDir, "\\", "/")
+	if !strings.HasSuffix(homeDir, "/") {
+		homeDir += "/"
+	}
+
+	return homeDir, nil
 }
 
 func extractUsername(rawUsername string) string {
@@ -148,23 +143,6 @@ func GetUsername() (string, error) {
 	}
 
 	return extractUsername(currentUser.Username), nil
-}
-
-func GetUseAltUrl() (bool, error) {
-	settings, err := loadUserSettings()
-	if err != nil {
-		return false, err
-	}
-	return settings.UseAltUrl, nil
-}
-
-func SetUseAltUrl(useAltUrl bool) error {
-	settings, err := loadUserSettings()
-	if err != nil {
-		return err
-	}
-	settings.UseAltUrl = useAltUrl
-	return saveSettings(settings)
 }
 
 func GetEulaAccepted() (bool, error) {

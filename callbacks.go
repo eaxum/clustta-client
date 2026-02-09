@@ -9,7 +9,7 @@ import "C"
 func goFullscreenWillEnter() {
 	println("[Go] Fullscreen will enter")
 	if app != nil {
-		app.EmitEvent("fullscreen-enter")
+		app.Event.Emit("fullscreen-enter")
 	}
 }
 
@@ -17,6 +17,6 @@ func goFullscreenWillEnter() {
 func goFullscreenDidExit() {
 	println("[Go] Fullscreen did exit")
 	if app != nil {
-		app.EmitEvent("fullscreen-exit")
+		app.Event.Emit("fullscreen-exit")
 	}
 }

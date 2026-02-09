@@ -4,7 +4,8 @@ import {
   ProjectService,
   SyncService,
   FSService,
-} from "@/../bindings/clustta/services";
+  StudioService,
+} from "@/services";
 import { useNotificationStore } from "./notifications";
 import { useCommonStore } from "./common";
 import { useUserStore } from "./users";
@@ -13,13 +14,6 @@ import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from "./stages";
 import { usePaneStore } from "./panes";
 import { useTrayStates } from "./TrayStates";
-
-let useAltUrl = false;
-await SettingsService.GetUseAltUrl()
-  .then((response) => {
-    useAltUrl = response;
-  })
-  .catch((error) => console.log(error));
 
 let isProjectGridView = true;
 await SettingsService.IsProjectGridView()
@@ -50,7 +44,6 @@ export const useProjectStore = defineStore("projects", {
     pinnedProjects: [],
     recentProjects: [],
     studioUrl: "",
-    useAltUrl: useAltUrl,
     isProjectGridView: isProjectGridView,
     showUntrackedProjects: showUntrackedProjects,
     lastStudio: lastStudio,
@@ -65,7 +58,6 @@ export const useProjectStore = defineStore("projects", {
     untrackedFoldersIndex: {},
     newUsers: {}, // Map of projectUri -> array of new user emails
     isProjectStatsExpanded: false,
-    serverActive: true,
   }),
   getters: {
     getActiveProjectName: (state) => {
@@ -85,27 +77,12 @@ export const useProjectStore = defineStore("projects", {
       return state.projects;
     },
     getStudiosNames: (state) => {
-      console.log(state.studios);
       if (state.studios) {
         return state.studios.map((studio) => studio.name);
       }
       return [];
     },
     getActiveProject: (state) => {
-      // if (!state.activeProject) {
-      //   state.activeProject = state.projects[0];
-      //   if (state.activeProject) {
-      //     const commonStore = useCommonStore();
-
-      //     SettingsService.GetProjectWorkspaces(state.activeProject.id).then(
-      //       (response) => {
-      //         commonStore.workspaces = response;
-      //       }
-      //     );
-      //   }
-
-      //   return state.activeProject;
-      // }
       return state.activeProject;
     },
     getActiveProjectUrl: (state) => {
@@ -114,16 +91,9 @@ export const useProjectStore = defineStore("projects", {
       return projectUrl;
     },
     getStudioUrl: (state) => {
-      let studio = state.selectedStudio;
-      if (studio) {
-        if (studio.alt_url == "") {
-          return studio.url;
-        }
-        return !state.useAltUrl ? studio.url : studio.alt_url;
-      }
-      return "";
+      return state.studioUrl;
     },
-    getServerStatus: (state) => state.serverActive,
+
   },
   actions: {
     async setActiveProject(project) {
@@ -144,11 +114,6 @@ export const useProjectStore = defineStore("projects", {
       
  
       await this.setActiveProject(project);
-
-      if (!project.is_downloaded) {
-        return;
-      }
-
       commonStore.activeWorkspace = "Default";
       commonStore.resetFilters();
 
@@ -175,10 +140,20 @@ export const useProjectStore = defineStore("projects", {
       this.projectsLoaded = false;
 
       let studio = this.selectedStudio;
-      const studioUrl = !(studio.alt_url && this.useAltUrl)
-        ? studio.url
-        : studio.alt_url;
+      let studioUrl;
+      try {
+        studioUrl = await StudioService.ResolveStudioUrl(studio.url, studio.alt_url || "");
+      } catch {
+        studioUrl = studio.url;
+      }
       this.studioUrl = studioUrl;
+
+      // Update studio reachability after URL resolution
+      const { useStudioStore } = await import('./studio');
+      const studioStore = useStudioStore();
+      if (studio.name !== 'Personal') {
+        studioStore.checkStudioReachability();
+      }
 
       SettingsService.GetPinnedProjects(studio.name).then((response) => {
         this.pinnedProjects = response;
@@ -223,45 +198,46 @@ export const useProjectStore = defineStore("projects", {
       const stage = useStageStore();
 
       this.projectsLoaded = false;
-      for (let i = 0; i < this.projects.length; i++) {
+      
+      // Parallelize project status checks
+      await Promise.all(this.projects.map(async (project, i) => {
         //TODO check the importance if exist for projects
-        if (await FSService.Exists(this.projects[i].uri)) {
+        if (await FSService.Exists(project.uri)) {
           this.projects[i].is_downloaded = true;
-          await SyncService.IsUnsynced(this.projects[i].uri)
-            .then(async (isUnsynced) => {
-              this.projects[i].is_unsynced = isUnsynced;
-            })
-            .catch((error) => {
-              console.log(error);
-              // notificationStore.errorNotification("Error Loading Data", error)
-            });
+          try {
+            const isUnsynced = await SyncService.IsUnsynced(project.uri);
+            this.projects[i].is_unsynced = isUnsynced;
+          } catch (error) {
+            console.log(error);
+            // notificationStore.errorNotification("Error Loading Data", error)
+          }
         } else {
           this.projects[i].is_downloaded = false;
           this.projects[i].is_unsynced = false;
         }
-      }
+      }));
+      
       if (this.activeProject && stage.activeStage !== 'projects') {
-        console.log('reloading')
         await this.refreshActiveProject();
       }
 
       this.projectsLoaded = true;
     },
     async refreshProjectsPreview() {
-      for (let i = 0; i < this.projects.length; i++) {
-        if (await FSService.Exists(this.projects[i].uri)) {
-          await ProjectService.GetPreview(this.projects[i].uri)
-            .then(async (preview) => {
-              if (preview) {
-                this.projects[i].preview = "data:image/png;base64," + preview;
-              }
-            })
-            .catch((error) => {
-              console.log(error);
-              // notificationStore.errorNotification("Error Loading Data", error)
-            });
+      // Parallelize preview fetching
+      await Promise.all(this.projects.map(async (project, i) => {
+        if (await FSService.Exists(project.uri)) {
+          try {
+            const preview = await ProjectService.GetPreview(project.uri);
+            if (preview) {
+              this.projects[i].preview = "data:image/png;base64," + preview;
+            }
+          } catch (error) {
+            console.log(error);
+            // notificationStore.errorNotification("Error Loading Data", error)
+          }
         }
-      }
+      }));
     },
     async refreshProjectPreview(projectId) {
       let projectIndex = this.projects.findIndex((project) => {

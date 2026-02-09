@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { useIconStore } from "./icons";
-import { WorkflowService } from "@/../bindings/clustta/services";
+import { WorkflowService } from "@/services";
 import { useProjectStore } from "./projects";
 
 export const useWorkflowStore = defineStore("workflow", {
@@ -21,6 +21,7 @@ export const useWorkflowStore = defineStore("workflow", {
   actions: {
     async reloadWorkflows() {
       const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri) return;
       let workflows = await WorkflowService.GetWorkflows(
         projectStore.activeProject.uri
       );

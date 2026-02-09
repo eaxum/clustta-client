@@ -31,18 +31,25 @@
 <script setup>
 // imports
 import { computed, onMounted, ref, nextTick, onBeforeUnmount } from 'vue';
+import emitter from '@/lib/mitt';
 
 //components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
 import FilterButton from '@/instances/desktop/components/FilterButton.vue'
 
 //stores
+import { useAssetStore } from '@/stores/assets';
+import { useCommonStore } from '@/stores/common';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
+import { useTagStore } from '@/stores/tags';
 
 // states
+const assetStore = useAssetStore();
+const commonStore = useCommonStore();
 const iconStore = useIconStore();
 const menu = useMenu();
+const tagStore = useTagStore();
 
 // refs
 const filterBarRoot = ref(null);
@@ -50,36 +57,70 @@ const filterOptions = ref(null);
 const barIsOverflowing = ref(true);
 let resizeObserver = null;
 
-// computed properties
-
 // props
 const props = defineProps({
-  filtersActive: { type: Boolean, default: true },
-  kanbanView: { type: Boolean, default: false },
-  showTagsFilter: { type: Boolean, default: true },
-  viewTags: { type: Array, default: () => [] },
-  isFilterActive: {
-	type: Function,
-	default: () => {
-	  return () => false;
-	}
-  },
-  clearFilters: {
-	type: Function,
-	default: () => {
-	  return () => {};
-	}
-  },
+	kanbanView: { type: Boolean, default: false },
 });
 
-const emit = defineEmits([ 'selectCrumb'])
+// computed properties
+const filtersActive = computed(() => {
+	const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
+	const entityFilters = commonStore.entityFilters.length > 0;
+	const taskFilters = commonStore.taskFilters.length > 0;
+	const resourceFilters = commonStore.resourceFilters.length > 0;
+	const generalFilter = isFilterActive('general');
+	return assigneeFilters || entityFilters || taskFilters || resourceFilters || generalFilter;
+});
+
+const showTagsFilter = computed(() => !!tagStore.tags.length && (commonStore.showTasks || commonStore.showResources));
+
+const viewTags = computed(() => {
+	let tags = tagStore.tags;
+	let viewTagNames = [];
+	let filteredTaskResults = assetStore.getFilteredAssets;
+	for (const task of filteredTaskResults) {
+		let taskTags = task.tags;
+		for (let t = 0; t < taskTags.length; t++) {
+			if (!viewTagNames.includes(taskTags[t])) viewTagNames.push(taskTags[t]);
+		}
+	}
+	for (let i = 0; i < tags.length; i++) {
+		tags[i].name = tags[i].name;
+		tags[i].type = 'tags';
+	}
+	return tags.filter((item) => viewTagNames.includes(item.name));
+});
+
+const emit = defineEmits(['selectCrumb']);
+
 // methods
 
-const getAppIcon = (iconName) => {
-	const icon = iconStore.getAppIcon(iconName);
-	return icon
+// Clears all filters and triggers a browser refresh.
+const clearFilters = () => { commonStore.resetFilters(); emitter.emit('refresh-browser'); };
+
+// Checks if a specific filter type is currently active.
+const isFilterActive = (filter) => {
+	if (filter.includes('general')) {
+		const isActive = commonStore.showEntities && commonStore.showTasks && commonStore.showResources && commonStore.showChildEntities && commonStore.showChildTasks && commonStore.showDependencies && !commonStore.onlyAssets;
+		return !isActive;
+	} else if (filter.includes('entity')) return commonStore.entityFilters.some((item) => item.type === filter);
+	else if (filter.includes('assignation')) {
+		const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
+		return assigneeFilters || commonStore.taskFilters.some((item) => item.type === filter);
+	} else return commonStore.taskFilters.some((item) => item.type === filter);
 };
 
+// Shows a filter menu for the selected filter button.
+const flashFilterMenu = (event, menuName) => {
+	if (menu.contextMenuVisible && !menu.nonFilterMenus.includes(menu.activeMenu)) {
+		menu.showContextMenu(event, menuName, true, true);
+	}
+};
+
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
+// Toggles or shows a filter menu on click.
 const showFilterMenu = (event, menuName) => {
 	if (menu.activeMenu === menuName && menu.contextMenuVisible) {
 		menu.disableAllMenus();
@@ -89,12 +130,7 @@ const showFilterMenu = (event, menuName) => {
 	}
 };
 
-const flashFilterMenu = (event, menuName) => {
-	if (menu.contextMenuVisible && !menu.nonFilterMenus.includes(menu.activeMenu)) {
-		menu.showContextMenu(event, menuName, true, true);
-	}
-};
-
+// Checks if the filter bar is overflowing.
 const checkOverflow = async() => {
 	return
 	await nextTick();
@@ -109,27 +145,24 @@ const checkOverflow = async() => {
 			// filterOptions.value.style.overflowX = 'hidden';
 		}
 	}
-	// console.log(filterBarRoot.value.getBoundingClientRect().width)
-	// console.log(filterOptions.value.clientWidth)
 };
 
+// lifecycle hooks
 
-// onMounted hook
 onMounted(() => {
 	if (filterBarRoot.value) {
-    resizeObserver = new ResizeObserver(() => {
-      checkOverflow()
-    })
-    resizeObserver.observe(filterBarRoot.value)
-  }
+		resizeObserver = new ResizeObserver(() => {
+			checkOverflow()
+		})
+		resizeObserver.observe(filterBarRoot.value)
+	}
 });
 
 onBeforeUnmount(() => {
-  if (resizeObserver) {
-    resizeObserver.disconnect()
-  }
+	if (resizeObserver) {
+		resizeObserver.disconnect()
+	}
 });
-
 </script>
 
 <style scoped>

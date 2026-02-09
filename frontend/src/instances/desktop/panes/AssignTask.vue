@@ -30,7 +30,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useAssetStore } from '@/stores/assets';
 
 // services
-import { AssetService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/services";
 
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';

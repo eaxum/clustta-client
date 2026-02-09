@@ -211,7 +211,7 @@ func (p *ProjectService) Purge(projectPath string) error {
 		Current:    1,
 		Total:      2,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	err := repository.Purge(projectPath)
 	if err != nil {
@@ -225,7 +225,7 @@ func (p *ProjectService) Purge(projectPath string) error {
 		Current:    2,
 		Total:      2,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 	err = repository.Vacuum(projectPath)
 	if err != nil {
 		return err
@@ -237,7 +237,56 @@ func (p *ProjectService) Purge(projectPath string) error {
 		Current:    2,
 		Total:      2,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
+	return nil
+}
+
+// TrimProject removes all chunks and previews from the project database to reduce file size.
+// The data can be re-fetched from the remote when needed.
+func (p *ProjectService) TrimProject(projectPath string) error {
+	app := application.Get()
+
+	if !utils.FileExists(projectPath) {
+		return error_service.ErrProjectNotFound
+	}
+
+	progress := output.ProgressReport{
+		Title:      "Trimming Project",
+		Message:    filepath.Base(projectPath),
+		Percentage: 0,
+		Current:    1,
+		Total:      2,
+	}
+	app.Event.Emit("progress-update", progress)
+
+	err := repository.TrimProject(projectPath)
+	if err != nil {
+		return err
+	}
+
+	progress = output.ProgressReport{
+		Title:      "Compacting Database",
+		Message:    filepath.Base(projectPath),
+		Percentage: 50,
+		Current:    2,
+		Total:      2,
+	}
+	app.Event.Emit("progress-update", progress)
+
+	err = repository.Vacuum(projectPath)
+	if err != nil {
+		return err
+	}
+
+	progress = output.ProgressReport{
+		Title:      "Project Trimmed",
+		Message:    filepath.Base(projectPath),
+		Percentage: 100,
+		Current:    2,
+		Total:      2,
+	}
+	app.Event.Emit("progress-update", progress)
+
 	return nil
 }
 
@@ -611,4 +660,77 @@ func (p *ProjectService) IsIgnored(
 	ignoreList []string) bool {
 	ignoreObject := ignore.CompileIgnoreLines(ignoreList...)
 	return ignoreObject.MatchesPath(itemPath)
+}
+
+// ValidateProjectFile checks if a .clst file is a valid Clustta project.
+// Returns true if the file is valid, false otherwise.
+func (p *ProjectService) ValidateProjectFile(filePath string) (bool, error) {
+	if !utils.FileExists(filePath) {
+		return false, errors.New("file not found")
+	}
+	return repository.VerifyProjectIntegrity(filePath)
+}
+
+// UploadProject uploads a local .clst project to a remote studio.
+// It creates the project on the remote, copies the file, remaps IDs, and prepares for sync.
+func (p *ProjectService) UploadProject(sourceClstPath, studioName, workingDir, projectName, remoteProjectUrl string) (repository.ProjectInfo, error) {
+	if studioName == "" {
+		return repository.ProjectInfo{}, errors.New("studio name can't be empty")
+	}
+	if studioName == "Personal" {
+		return repository.ProjectInfo{}, errors.New("cannot upload to Personal studio")
+	}
+
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return repository.ProjectInfo{}, err
+	}
+
+	// Validate source file
+	valid, err := repository.VerifyProjectIntegrity(sourceClstPath)
+	if err != nil || !valid {
+		return repository.ProjectInfo{}, errors.New("invalid project file")
+	}
+
+	// Create empty project on remote
+	remoteProjectInfo, err := repository.CreateProject(remoteProjectUrl, studioName, workingDir, "", user)
+	if err != nil {
+		return repository.ProjectInfo{}, err
+	}
+
+	// Determine destination path for the .clst file
+	sharedProjectsDir, err := settings.GetSharedProjectDirectory()
+	if err != nil {
+		return repository.ProjectInfo{}, err
+	}
+	studioProjectsDir := filepath.Join(sharedProjectsDir, studioName)
+	os.MkdirAll(studioProjectsDir, os.ModePerm)
+	destClstPath := filepath.Join(studioProjectsDir, projectName+".clst")
+
+	// Copy the .clst file
+	err = utils.CopyFile(sourceClstPath, destClstPath)
+	if err != nil {
+		return repository.ProjectInfo{}, errors.New("failed to copy project file: " + err.Error())
+	}
+
+	// Prepare the project for upload (remap IDs, update config)
+	err = sync_service.PrepareProjectForUpload(destClstPath, remoteProjectInfo, remoteProjectUrl, workingDir, user.Id)
+	if err != nil {
+		// Clean up copied file on error
+		os.Remove(destClstPath)
+		return repository.ProjectInfo{}, errors.New("failed to prepare project for upload: " + err.Error())
+	}
+
+	// Get updated project info
+	projectInfo, err := repository.GetProjectInfo(destClstPath, user)
+	if err != nil {
+		return repository.ProjectInfo{}, err
+	}
+
+	projectInfo.Uri = destClstPath
+	projectInfo.Remote = remoteProjectUrl
+	projectInfo.IsDownloaded = true
+	projectInfo.WorkingDirectory = workingDir
+
+	return projectInfo, nil
 }

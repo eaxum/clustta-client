@@ -2,12 +2,15 @@
   <span v-stop-propagation @click="buttonFunction" :style="{ backgroundColor: color }" :class="{
     'button-background': useBackground, 'alert-background': isAlert, 'full-width': fullWidth, 'outline': useOutline, 'icon-after': iconAfter, 'centered':
       centered, 'button-active': isActive, 'is-inactive': isInactive, 'is-disabled': isDead, 'plain-background' : plainBackground, 'use-alert': useAlert, 'use-danger': useDanger, 'use-go': useGo,
+    'force-light': forceIconColor === 'light', 'force-dark': forceIconColor === 'dark', 'has-custom-icon': (emoji || customIconUrl) && iconAfter, 'is-mini': isMini,
   }" class="action-button" ref="buttonRef">
     <Teleport to="#app">
       <div v-if="showIndicator && buttonPosition" class="filter-button-indicator" :style="indicatorStyle"></div>
     </Teleport>
-    <img v-if="showIcon && !iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter, 'loading-icon' : isLoading }" :src="icon">
-    <div v-if="showLabel || label" class="small-icons button-label no-cursor">{{ label }}</div>
+    <span v-if="emoji" class="button-emoji no-cursor no-filter" v-html="emoji"></span>
+    <img v-else-if="customIconUrl" class="small-icons no-cursor"  :class="{ 'no-filter' : noFilter}" :src="customIconUrl">
+    <img v-else-if="showIcon && !iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter, 'loading-icon' : isLoading }" :src="icon">
+    <div v-if="showLabel || label" class="small-icons button-label no-cursor" :class="{ 'label-force-light': forceIconColor === 'light', 'label-force-dark': forceIconColor === 'dark' }">{{ label }}</div>
     <img v-if="showIcon && iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter }" :src="icon">
   </span>
 </template>
@@ -25,6 +28,8 @@ const props = defineProps({
   icon: String,
   label: String,
   color: String,
+  emoji: { type: String, default: '' },
+  customIconUrl: { type: String, default: '' },
   buttonFunction: Function,
   noFilter: { type: Boolean, default: false },
   showIcon: { type: Boolean, default: true },
@@ -43,9 +48,11 @@ const props = defineProps({
   isInactive: { type: Boolean, default: false },
   isDisabled: { type: Boolean, default: false },
   isActive: { type: Boolean, default: false },
+  isMini: { type: Boolean, default: false },
   fullWidth: { type: Boolean, default: false },
   allowDeactivate: { type: Boolean, default: false },
   showIndicator: { type: Boolean, default: false },
+  forceIconColor: { type: String, default: '', validator: (value) => ['', 'light', 'dark'].includes(value) },
 
 });
 
@@ -229,6 +236,14 @@ onBeforeUnmount(() => {
   justify-content: space-between;
 }
 
+.has-custom-icon .button-label {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .centered {
   justify-content: space-around;
 }
@@ -258,6 +273,32 @@ onBeforeUnmount(() => {
   opacity: .5;
 }
 
+.is-mini {
+  padding: 0;
+}
+
+.is-mini img {
+  width: 12px;
+  height: 12px;
+  min-width: 12px;
+  min-height: 12px;
+}
+
+.button-emoji {
+  font-size: 18px;
+  line-height: 1;
+  min-width: 20px;
+  text-align: center;
+}
+
+.button-custom-icon {
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
 [data-theme="dark"] .use-alert img {
   filter: brightness(0) saturate(100%) invert(88%) sepia(45%) saturate(566%) hue-rotate(359deg) brightness(97%) contrast(92%);
 }
@@ -280,6 +321,23 @@ onBeforeUnmount(() => {
 
 .use-go img {
   filter: brightness(0) saturate(100%) invert(50%) sepia(74%) saturate(486%) hue-rotate(75deg) brightness(96%) contrast(87%);
+}
+
+/* Force icon/label color regardless of theme */
+.force-light img {
+  filter: brightness(0) invert(1) !important;
+}
+
+.label-force-light {
+  color: white !important;
+}
+
+.force-dark img {
+  filter: brightness(0) !important;
+}
+
+.label-force-dark {
+  color: var(--black) !important;
 }
 
 </style>

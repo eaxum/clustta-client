@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { useStageStore } from "@/stores/stages";
+import { useCommonStore } from '@/stores/common';
 import { useAssetStore } from "@/stores/assets";
 import { useCollectionStore } from "@/stores/collections";
 import { useProjectStore } from '@/stores/projects';
@@ -104,8 +105,9 @@ export const useDndStore = defineStore("dnd", {
 
     onDragStart(e, id) {
       const stage = useStageStore();
+      const commonStore = useCommonStore();
 
-      if (this.lockUI || !this.userCanDrag || id in stage.expandedEntities) {
+      if (this.lockUI || !this.userCanDrag || (!commonStore.useGrid && id in stage.expandedEntities)) {
         return;
       }
 
@@ -283,7 +285,7 @@ export const useDndStore = defineStore("dnd", {
       }
     },
 
-    setGhostCardStyle(isDragstart, rotate=false) {
+    setGhostCardStyle(isDragstart, rotate=false, centerOnCursor=true) {
       let dragX = this.mousePos.x,
         dragY = this.mousePos.y;
       let transform = [];
@@ -293,8 +295,14 @@ export const useDndStore = defineStore("dnd", {
 
       transform.push(`rotate(${angle}deg)`);
       this.ghostCardStyle.transform = transform.join(" ");
-      this.ghostCardStyle.pos.x = dragX - this.ghostCardStyle.cursorDistance.x;
-      this.ghostCardStyle.pos.y = dragY - this.ghostCardStyle.cursorDistance.y;
+      
+      if (centerOnCursor) {
+        this.ghostCardStyle.pos.x = dragX;
+        this.ghostCardStyle.pos.y = dragY;
+      } else {
+        this.ghostCardStyle.pos.x = dragX - this.ghostCardStyle.cursorDistance.x;
+        this.ghostCardStyle.pos.y = dragY - this.ghostCardStyle.cursorDistance.y;
+      }
     },
   },
 });

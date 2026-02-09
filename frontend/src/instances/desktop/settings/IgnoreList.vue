@@ -17,8 +17,8 @@ const iconStore = useIconStore();
 // imports
 import { onMounted, computed, ref } from 'vue';
 import utils from '@/services/utils';
-import { UserService } from '@/../bindings/clustta/services/index';
-import { ProjectService } from "@/../bindings/clustta/services";
+import { UserService } from '@/services';
+import { ProjectService } from "@/services";
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';

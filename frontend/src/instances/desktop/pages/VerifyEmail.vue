@@ -6,7 +6,7 @@
 
       <!-- header -->
       <div class="header-container">
-        <ClusttaLogo :colored="true" :inverted="true" :boldText="true" />
+        <ClusttaLogo :colored="true" :inverted="true" />
         <div class="auth-header">
           Verify Your Account
         </div>
@@ -49,6 +49,9 @@
                 <div class="submit-button-icon loading-icon">
                   <img src="/icons/loading.svg" />
                 </div>
+                <div v-if="loadingStatus" class="loading-status">
+                  {{ loadingStatus }}
+                </div>
               </div>
 
           </form>
@@ -86,25 +89,35 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
-import { AuthService, SettingsService } from "@/../bindings/clustta/services";
+import { useRouter } from 'vue-router';
+import { AuthService, SettingsService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useUserStore } from '@/stores/users';
 import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useThemeStore } from '@/stores/theme';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useAccountStore } from '@/stores/accounts';
+import { markStoresInitialized } from '@/router';
 
+const router = useRouter();
 const notificationStore = useNotificationStore();
 const userStore = useUserStore();
 const projectStore = useProjectStore();
 const trayStates = useTrayStates();
 const themeStore = useThemeStore();
 const modals = useDesktopModalStore();
+const accountStore = useAccountStore();
+
+// Get pending verification data from store
+const userEmail = computed(() => userStore.pendingVerification?.email || '');
+const userPassword = computed(() => userStore.pendingVerification?.password || '');
 
 // refs
 const error = ref('');
 const isAwaitingResponse = ref(false);
 const isResendingToken = ref(false);
+const loadingStatus = ref('');
 const resendCooldown = ref(0);
 const tokenDigits = ref(['', '', '', '', '', '']);
 const tokenInputs = ref([]);
@@ -127,20 +140,7 @@ const fullToken = computed(() => {
   return tokenDigits.value.join('');
 });
 
-// emits
-const emit = defineEmits(['toggle-login', 'verification-success']);
 
-// props
-const props = defineProps({
-  userEmail: {
-    type: String,
-    required: true
-  },
-  userPassword: {
-    type: String,
-    required: true
-  }
-});
 
 // methods
 const handleDigitInput = (index, event) => {
@@ -215,7 +215,8 @@ const clearTokenInputs = () => {
 };
 
 const toggleLogin = () => {
-  emit('toggle-login')
+  userStore.clearPendingVerification();
+  router.push('/auth/login');
 };
 
 const handleVerification = async () => {
@@ -226,42 +227,58 @@ const handleVerification = async () => {
 
   isAwaitingResponse.value = true;
   error.value = '';
+  loadingStatus.value = 'Verifying code...';
 
   try {
     
     const token = fullToken.value;
-    await AuthService.VerifyOTP(props.userEmail, token);
+    await AuthService.VerifyOTP(userEmail.value, token);
     notificationStore.addNotification("Account Verified", "Your account has been successfully verified!", "success");
     
     // Auto-login the user after successful verification
     try {
-      const loginData = await AuthService.Login(props.userEmail, props.userPassword);
+      loadingStatus.value = 'Logging in...';
+      const loginData = await AuthService.Login(userEmail.value, userPassword.value);
       userStore.user = loginData.user;
       userStore.isUserAuthenticated = true;
 
+      // Initialize stores that require authentication
+      loadingStatus.value = 'Loading account...';
+      await accountStore.initialize();
+      
+      loadingStatus.value = 'Applying theme...';
       await themeStore.initializeTheme();
+      
+      loadingStatus.value = 'Loading studios...';
       await projectStore.loadStudios();
 
       const projectDirectoryExists = await SettingsService.GetProjectDirectory();
 
       if(projectDirectoryExists){
+        loadingStatus.value = 'Loading projects...';
         await projectStore.loadProjects();
         trayStates.refreshData();
       } else {
         modals.setModalVisibility('dirOnboardModal', true);
       }
 
-      emit('verification-success');
+      // Mark stores as initialized so router doesn't re-init
+      markStoresInitialized();
+      
+      userStore.clearPendingVerification();
+      router.push('/');
       
     } catch (loginError) {
       console.log("Auto-login failed:", loginError);
       notificationStore.errorNotification("Login Failed", "Verification successful but auto-login failed. Please try logging in manually.");
-      emit('verification-success');
+      userStore.clearPendingVerification();
+      router.push('/auth/login');
     }
     
   } catch (error) {
     console.log(error);
     isAwaitingResponse.value = false;
+    loadingStatus.value = '';
     notificationStore.errorNotification("Verification Failed", error.message || "Invalid verification code. Please try again.");
     error.value = error.message || "Invalid verification code. Please try again.";
     clearTokenInputs();
@@ -276,7 +293,7 @@ const handleResendToken = async () => {
   
   try {
     // TODO: Replace with actual service call once bindings are regenerated
-    await AuthService.ResendToken(props.userEmail);
+    await AuthService.ResendToken(userEmail.value);
     
     // Simulate API call
     // await new Promise(resolve => setTimeout(resolve, 1000));
@@ -414,6 +431,20 @@ onMounted(async () => {
   opacity: 0.5;
   cursor: not-allowed;
   color: var(--light-gray);
+}
+
+.loading-status {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--white);
+  opacity: 0.7;
+  margin-top: 0.5rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
 }
 
 @media (max-width: 768px) {

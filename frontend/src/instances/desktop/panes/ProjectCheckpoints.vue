@@ -1,7 +1,6 @@
 <template>
   <div class="general-pane-header">
-    <HeaderArea :title="title" :icon="'layers'" :placeholder="'Search'" :showSearch="true" @updateSearch="updateSearch"
-      @clearSearch="clearSearch" />
+    <SearchBar v-model="searchQuery" placeholder="Search by message or author" @clear="clearSearch" />
   </div>
 
   <div class="general-pane-root">
@@ -20,56 +19,66 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-import { v4 as uuidv4 } from 'uuid'
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
 // imports
-import { onMounted, watchEffect, onUnmounted, ref, computed } from 'vue';
-import { CheckpointService } from '@/../bindings/clustta/services';
+import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 
-// state imports
-import { useTrayStates } from '@/stores/TrayStates';
+// services
+import { CheckpointService } from '@/services';
+
+// components
+import CheckpointListSkeleton from '@/instances/common/components/CheckpointListSkeleton.vue';
+import PageState from '@/instances/common/components/PageState.vue';
+import SearchBar from '@/instances/desktop/components/SearchBar.vue';
+import TimelineItem from '@/instances/desktop/components/TimelineItem.vue';
 
 // store imports
 import { useNotificationStore } from '@/stores/notifications';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useStageStore } from '@/stores/stages';
-import { useAssetStore } from '@/stores/assets';
-import { useCollectionStore } from '@/stores/collections';
-import { useStatusStore } from '@/stores/status';
 import { useProjectStore } from '@/stores/projects';
-import { useDndStore } from '@/stores/dnd';
-import { useMenu } from '@/stores/menu';
 import { useUserStore } from '@/stores/users';
 
-// components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import TimelineItem from '@/instances/desktop/components/TimelineItem.vue';
-import PageState from '@/instances/common/components/PageState.vue';
-import CheckpointListSkeleton from '@/instances/common/components/CheckpointListSkeleton.vue'
-
-// states
-const menu = useMenu();
+// stores
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
 
-// vars
-let title = 'Project checkpoints';
+// refs
 const checkpointList = ref(null);
-const projectCheckpoints = ref([
-]);
-const projectCheckpointsLoading = ref(true);
-const modalContainer = ref(null);
 const isExpanded = ref(-1);
+const modalContainer = ref(null);
+const projectCheckpoints = ref([]);
+const projectCheckpointsLoading = ref(true);
+const searchQuery = ref('');
 
+// computed properties
+const filteredCheckpoints = computed(() => {
+  const query = searchQuery.value.toLowerCase();
+  return projectCheckpoints.value.filter((checkpoint) =>
+    checkpoint.comment?.toLowerCase().includes(query) ||
+    checkpoint.author?.toLowerCase().includes(query)
+  );
+});
+
+// methods
+
+// Clears the search query.
+const clearSearch = () => {
+  searchQuery.value = '';
+};
+
+// Returns the illustration path for the empty state.
+const illustration = () => '/page-states/resources.png';
+
+// Returns the message for the empty state.
+const message = () => {
+  if (searchQuery.value) return 'No checkpoints match your search';
+  return 'No checkpoints in this project';
+};
+
+// Updates the expanded checkpoint index.
+const updateExpanded = (index) => {
+  isExpanded.value = index;
+};
 
 // watchers
 watchEffect(() => {
@@ -110,7 +119,6 @@ onMounted(async () => {
       }
       projectCheckpoints.value = timelineData;
       projectCheckpointsLoading.value = false;
-      console.log(timelineData)
     })
     .catch((error) => {
       notificationStore.errorNotification(
@@ -122,345 +130,12 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-})
-
-
-const message = () => {
-  if(searchQuery.value){
-    return 'No checkpoints match your search';
-  } else {
-    return 'No Project checkpoints'
-  }
-};
-
-const illustration = () => {
-  return '/page-states/resources.png';
-};
-
-const searchQuery = ref('');
-
-const updateSearch = (query) => {
-  searchQuery.value = query;
-}
-
-const filteredCheckpoints = computed(() => {
-  const query = searchQuery.value.toLowerCase();
-  return projectCheckpoints.value.filter((checkpoint) =>
-    checkpoint.comment?.toLowerCase().includes(query) ||
-    checkpoint?.author_name?.toLowerCase().includes(query)
-  );
-})
-
-const clearSearch = () => {
-  //   refreshCheckpoints();
-}
-
-const updateExpanded = (index) => {
-  // console.log(index)
-  isExpanded.value = index;
-}
+});
 
 </script>
 
 <style scoped>
-/* @import "@/assets/tray.css"; */
 @import "@/assets/desktop.css";
-
-
-@import "@/assets/desktop.css";
-
-.pop-up-actions {
-  /* width: min-content; */
-  align-items: center;
-  /* background-color: forestgreen; */
-  /* justify-content: space-around; */
-  box-sizing: border-box;
-}
-
-.modal-container {
-  justify-content: flex-start;
-  align-items: flex-start;
-  max-height: 90vh;
-}
-
-.general-container-wide {
-  display: flex;
-  flex-direction: column;
-  /* background-color: firebrick; */
-  overflow: hidden;
-  width: 50vw;
-  min-width: 600px !important;
-  max-width: 1000px;
-  max-height: 80vh;
-
-  box-sizing: border-box;
-  align-items: center;
-  justify-content: center;
-}
-
-.folder-path {
-  width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.rules-toggle {
-  display: flex;
-  /* background-color: red; */
-  gap: .5rem;
-  align-items: center;
-  min-width: max-content
-}
-
-.selected-folder {
-  /* background-color: darkblue; */
-  width: 100%;
-  padding: .2rem;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 10px 20px;
-  box-sizing: border-box;
-}
-
-.selected-folder-container {
-  display: flex;
-  /* background-color: firebrick; */
-  width: 100%;
-  gap: .2rem;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-}
-
-.regex-instances {
-  width: 100%;
-  display: flex;
-  max-height: 50vh;
-  flex-direction: column;
-  gap: 10px;
-  /* background-color: green; */
-  /* padding-right: 5px; */
-  overflow: hidden;
-  /* overflow-y: scroll; */
-  box-sizing: border-box;
-}
-
-.regex-instances-scroll {
-  box-sizing: border-box;
-  width: 100%;
-  display: flex;
-  height: min-content;
-  flex-direction: column;
-  gap: 10px;
-  /* background-color: green; */
-}
-
-.regex-instances::-webkit-scrollbar {
-  width: 8px;
-}
-
-.regex-instances::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--light-steel);
-}
-
-.regex-instances::-webkit-scrollbar-track {
-  border-radius: 10px;
-}
-
-.attachment-area {
-  box-sizing: border-box;
-  /* margin-top: 1rem; */
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  /* justify-content: space-between; */
-  gap: 1rem;
-  /* background-color: darkkhaki; */
-  width: 98%;
-}
-
-.attachment-list {
-  box-sizing: border-box;
-  /* margin-top: 1rem; */
-  display: flex;
-  padding: .5rem;
-  align-items: center;
-  flex-direction: column;
-  /* justify-content: space-between; */
-  gap: .2rem;
-  /* background-color: rgb(57, 122, 108); */
-
-  background-color: rgba(0, 0, 0, 0.144);
-  max-height: 150px;
-  overflow: hidden;
-  overflow-y: scroll;
-  width: 100%;
-  border-radius: 10px;
-}
-
-.attachment-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.attachment-list::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
-}
-
-.attachment-list::-webkit-scrollbar-track {
-  border-radius: 10px;
-  /* background-color: rgba(0, 0, 0, 0.295); */
-}
-
-.attachment {
-  /* margin-top: 1rem; */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-  width: 100%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.096);
-  height: max-content;
-  padding: .2rem;
-
-  /* background-color: greenyellow; */
-}
-
-.compound-input-section {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: .4rem;
-}
-
-.task-options-container {
-  position: relative;
-  box-sizing: border-box;
-
-  width: 100%;
-  height: 0px;
-  /* height: 80px; */
-  overflow: hidden;
-  transition-property: height;
-  transition-duration: 0.2s;
-  transition-timing-function: ease-in-out;
-  transition: opacity .5s ease-in-out;
-  /* transition: all .1s ease-in-out; */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  margin: 0;
-  opacity: 1;
-}
-
-.task-options-container-closed {
-  transition: all .2s ease-in-out;
-  opacity: 0;
-  height: 0px;
-  padding: 0;
-  overflow: hidden;
-  /* margin-bottom: -1.5rem; */
-}
-
-
-.input-short {
-  flex: 1;
-  width: 100%;
-}
-
-.listbox-short {
-
-  flex: 1;
-  width: 130px;
-}
-
-.input-label {
-
-  font-family: Inter, sans-serif;
-  color: white;
-  font-size: 16px;
-  white-space: nowrap;
-  flex: 1;
-
-}
-
-.pop-up-prompt {
-  gap: 10px;
-  /* background-color: bisque; */
-  align-items: center;
-  /* justify-content: center; */
-  max-height: 400px;
-}
-
-.trash-list-stage-body {
-  width: 100%;
-  /* max-width: 1200px; */
-  height: 100%;
-  display: flex;
-  box-sizing: border-box;
-  /* background-color: teal; */
-  align-items: flex-start;
-  justify-content: flex-start;
-  justify-content: center;
-  overflow: hidden;
-  overflow-y: scroll;
-  padding: .5rem;
-}
-
-.trash-list-stage-body::-webkit-scrollbar {
-  width: 8px;
-}
-
-.trash-list-stage-body::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--dark-steel);
-}
-
-.trash-list-stage-body::-webkit-scrollbar-track {
-  border-radius: 10px;
-}
-
-.trash-list-stage-body-container {
-  width: 100%;
-  gap: .5rem;
-  max-width: 960px;
-
-  /* height: 100%; */
-  height: max-content;
-  display: flex;
-  box-sizing: border-box;
-  flex-direction: column;
-  /* background-color: tomato; */
-  align-items: flex-start;
-  justify-content: flex-start;
-  overflow: hidden;
-  padding: .5rem;
-}
-
-.checkpoint-task-item {
-  background-color: green;
-  background-color: transparent;
-  height: 40px;
-  width: 100%;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 0px 12px;
-  color: white;
-}
-
-.checkpoint-task-item-text {
-  font-family: 'Inter', sans-serif;
-  box-sizing: border-box;
-  font-size: 20px;
-
-}
 
 .checkpoint-list-container {
   width: 100%;

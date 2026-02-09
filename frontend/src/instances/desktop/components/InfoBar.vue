@@ -1,5 +1,10 @@
 <template>
-    <div class="info-bar-root" :style="{ backgroundColor : bgColor }" >
+    <div class="info-bar-wrapper" v-stop-propagation>
+        <div v-if="debugModeEnabled" class="debug-console-container">
+            <DebugConsole @close="toggleDebugConsole" />
+        </div>
+        
+        <div class="info-bar-root" :style="{ backgroundColor : bgColor }" @mouseenter="isHoveringInfobar = true" @mouseleave="isHoveringInfobar = false">
 
         <!-- <div v-if="currentPrompt" ref="promptItem" :class="['prompt-message', currentPrompt.type]">
             <span class="text-container" >{{ currentPrompt.message }}</span>
@@ -27,39 +32,52 @@
             <span class="text-container" >{{ utils.capitalizeStr(notification.message) }}</span>
         </div>
 
-        <div class="version-info" :class="{ 'oudated' : isOutdated}" v-tooltip=" isOutdated ? 'Click to update' : '' ">
+        <div class="version-info" :class="{ 'oudated' : isOutdated}" v-tooltip="isOutdated ? 'Click to update' : ''">
             <div v-if="isOutdated" class="outdated-icon-button">
-            <img :src="getAppIcon('info-triangle')" alt="Maximize">
+                <img :src="getAppIcon('info-triangle')" alt="Maximize">
             </div>
-            <div> {{ clusttaVersion }} </div>
+            <div>{{ clusttaVersion }}</div>
+        </div>
+
+        <ActionButton v-if="debugModeEnabled || (isHoveringInfobar && altKeyActive)" :icon="getAppIcon('bug')" v-tooltip="debugModeEnabled ? 'Close Console' : 'Open Console'" :buttonFunction="toggleDebugConsole" />
         </div>
     </div>
 
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue';
+// imports
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Events } from "@wailsio/runtime";
+import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
+// components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import DebugConsole from '@/instances/desktop/components/DebugConsole.vue';
+
+// stores
 import { useIconStore } from '@/stores/icons';
-import { usePromptStore } from '@/stores/prompts';
 import { useNotificationStore } from '@/stores/notifications';
+import { usePlatformStore } from '@/stores/platform';
 
 const iconStore = useIconStore();
-const promptStore = usePromptStore();
 const notificationStore = useNotificationStore();
+const platformStore = usePlatformStore();
 
+// props
 const props = defineProps({
-    bgColor : { type: String, default: ''},
+    bgColor: { type: String, default: '' },
 });
 
-// vars
+// refs
+const altKeyActive = ref(false);
+const clusttaVersion = ref('');
+const currentPrompt = ref(null);
+const debugModeEnabled = ref(false);
+const isHoveringInfobar = ref(false);
 const notification = ref(false);
 const notificationItem = ref(null);
-const currentPrompt = ref(null);
-const promptItem = ref(null);
-const clusttaVersion = ref('');
 const timer = ref(null);
 
 // Restricted messages that should not trigger notifications
@@ -68,152 +86,156 @@ const restrictedMessages = [
   'no active account',
 ];
 
-// const notification = ref({
-//     "hasUndo": false,
-//     "longMessage": "",
-//     // "message": "Item Restored",
-//     "message": "this is a very very very long message that has problems wrapping around itself this is a very very very long message that has problems wrapping around itself",
-//     "read": false,
-//     "type": "success"
-// });
-
-// computed props
+// computed properties
 const isOutdated = computed(() => {
-  return false
-});
-
-const progressRunning = computed(() => {
-  return notificationStore.progress.running;
-});
-
-const progressMinimized = computed(() => {
-  return notificationStore.progress.isMinimized;
+  return false;
 });
 
 const isWriteOperation = computed(() => {
   return notificationStore.progress.operationType === 'write';
 });
 
-const progressTitle = computed(() => {
-  return notificationStore.progress.title || '';
+const progressCurrent = computed(() => {
+  return notificationStore.progress.current || 0;
+});
+
+const progressMinimized = computed(() => {
+  return notificationStore.progress.isMinimized;
 });
 
 const progressPercentage = computed(() => {
   return Math.round(notificationStore.progress.percentage) || 0;
 });
 
-const progressCurrent = computed(() => {
-  return notificationStore.progress.current || 0;
+const progressRunning = computed(() => {
+  return notificationStore.progress.running;
+});
+
+const progressTitle = computed(() => {
+  return notificationStore.progress.title || '';
+});
+
+const progressTooltip = computed(() => {
+  return `${progressTitle.value} (Click to restore)`;
 });
 
 const progressTotal = computed(() => {
   return notificationStore.progress.total || 0;
 });
 
-const progressTooltip = computed(() => {
-  const type = isWriteOperation.value ? 'Write' : 'Read';
-  return `${progressTitle.value} (Click to restore)`;
-});
-
-// events
-Events.On("add_message", async (message) => {
-  const payload = message.data;
-  let notificationData
+// event handlers
+const handleAddMessage = (payload) => {
+  let notificationData;
   if (typeof payload === 'string' || payload instanceof String) {
     notificationData = JSON.parse(payload);
   } else {
     notificationData = payload;
   }
-  showMessage(notificationData)
-});
+  showMessage(notificationData);
+};
 
-Events.On("add_prompt", async (prompt) => {
-  const payload = prompt.data;
-  let promptData
+const handleAddPrompt = (payload) => {
+  let promptData;
   if (typeof payload === 'string' || payload instanceof String) {
     promptData = JSON.parse(payload);
   } else {
     promptData = payload;
   }
-  showPrompt(promptData)
-});
+  showPrompt(promptData);
+};
 
-Events.On("update_prompt", async (prompt) => {
-  const payload = prompt.data;
-  let promptData
-  if (typeof payload === 'string' || payload instanceof String) {
-    promptData = JSON.parse(payload);
-  } else {
-    promptData = payload;
-  }
-  showPrompt(promptData)
-});
-
-Events.On("clear_prompt", async (prompt) => {
+const handleClearPrompt = () => {
   currentPrompt.value = null;
-});
+};
 
-Events.On("clear_all_prompts", async () => {
-  currentPrompt.value = null;
-});
+// Register event listeners based on platform
+if (platformStore.isWeb) {
+  emitter.on('add_message', handleAddMessage);
+  emitter.on('add_prompt', handleAddPrompt);
+  emitter.on('clear_prompt', handleClearPrompt);
+} else {
+  Events.On("add_message", async (message) => {
+    handleAddMessage(message.data);
+  });
+  
+  Events.On("add_prompt", async (prompt) => {
+    handleAddPrompt(prompt.data);
+  });
+  
+  Events.On("clear_prompt", async () => {
+    handleClearPrompt();
+  });
+}
 
 // methods
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
+
+// Clears the current notification.
+const clearNotification = () => {
+  notification.value = null;
+  timer.value = null;
 };
 
-const getProgressIcon = () => {
-  if (isWriteOperation.value) {
-    return getAppIcon('info-triangle'); // Orange warning for write operations
-  }
-  return getAppIcon('info'); // Blue info for read operations
+// Clears the current prompt.
+const clearPrompt = () => {
+  currentPrompt.value = null;
 };
 
+// Detects if the Alt modifier key is pressed.
+const detectModifier = (event) => {
+  altKeyActive.value = event.getModifierState('Alt');
+};
+
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
+// Restores the progress indicator from minimized state.
 const restoreProgress = () => {
   notificationStore.restoreProgress();
 };
 
+// Displays a notification message with auto-dismiss timer.
 const showMessage = async (data) => {
-  console.log(data)
-  
-  // Check if message is restricted
   const messageText = data.message?.toLowerCase() || '';
   const isRestricted = restrictedMessages.some(restricted => 
     messageText.includes(restricted.toLowerCase())
   );
   
   if (isRestricted) {
-    console.log('Message blocked: restricted message', data.message);
     return;
   }
   
-  notification.value = data
+  notification.value = data;
   clearTimeout(timer.value);
   timer.value = setTimeout(() => {
     notification.value = null;
   }, 6000);
-}
+};
 
+// Displays a prompt message.
 const showPrompt = async (data) => {
   currentPrompt.value = data;
-}
+};
 
-const clearNotification = () => {
-  notification.value = null;
-  timer.value = null
-}
-
-const clearPrompt = () => {
-  currentPrompt.value = null;
-}
-
+// Stops the notification auto-dismiss timer.
 const stopTimer = () => {
   clearTimeout(timer.value);
-}
+};
 
+// Toggles the debug console visibility.
+const toggleDebugConsole = () => {
+  debugModeEnabled.value = !debugModeEnabled.value;
+};
+
+// lifecycle hooks
 onMounted(async () => {
   clusttaVersion.value = await utils.getRawClusttaVersion();
+  window.addEventListener('keydown', detectModifier);
+  window.addEventListener('keyup', detectModifier);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', detectModifier);
+  window.removeEventListener('keyup', detectModifier);
 });
 
 
@@ -221,6 +243,20 @@ onMounted(async () => {
 
 <style scoped>
 @import "@/assets/desktop.css";
+
+.info-bar-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: var(--steel);
+  box-sizing: border-box;
+  z-index: 99999;
+}
+
+.debug-console-container {
+  padding: .4rem ;
+  padding-bottom: 0;
+}
 
 .info-bar-root{
     width: 100%;
@@ -235,10 +271,11 @@ onMounted(async () => {
     padding: 0 .8rem;
     font-size: 13px;
     font-weight: 300;
+    /* background-color: var(--dark-steel);uy7 */
   }
   
 .solid-background{
-  background-color: var(--steel);
+  /* background-color: var(--steel); */
 }
 
 .version-info {

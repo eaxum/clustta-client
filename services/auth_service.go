@@ -1,13 +1,26 @@
 package services
 
 import (
+	osLib "os"
+
 	"clustta/internal/auth_service"
 	"clustta/internal/error_service"
+	"clustta/internal/settings"
 )
 
 type AuthService struct{}
 
-// Login authenticates a user with username and password.
+// AuthMode type alias for frontend binding
+type AuthMode = auth_service.AuthMode
+
+// Auth mode constants
+const (
+	AuthModeGlobal  = auth_service.AuthModeGlobal
+	AuthModeStudio  = auth_service.AuthModeStudio
+	AuthModeOffline = auth_service.AuthModeOffline
+)
+
+// Login authenticates a user with username and password against Clustta Cloud.
 // Returns the authentication token or an error if login fails.
 func (a *AuthService) Login(username, password string) (auth_service.Token, error) {
 	token, err := auth_service.Login(username, password)
@@ -17,10 +30,58 @@ func (a *AuthService) Login(username, password string) (auth_service.Token, erro
 	return token, nil
 }
 
-// Register creates a new user account.
+// LoginWithHost authenticates a user against a specified authentication host.
+// authMode should be "global", "studio", or "offline".
+// Returns the authentication token or an error if login fails.
+func (a *AuthService) LoginWithHost(username, password, authHost string, authMode string, studioId string) (auth_service.Token, error) {
+	mode := auth_service.AuthMode(authMode)
+	if !auth_service.IsValidAuthMode(mode) {
+		mode = auth_service.AuthModeGlobal
+	}
+	token, err := auth_service.LoginWithHost(username, password, authHost, mode, studioId)
+	if err != nil {
+		return token, err
+	}
+	return token, nil
+}
+
+// EnableOfflineMode sets up offline mode without authentication.
+// Creates a local-only pseudo-account.
+func (a *AuthService) EnableOfflineMode() error {
+	return auth_service.EnableOfflineMode()
+}
+
+// IsOfflineMode checks if the current session is in offline mode.
+func (a *AuthService) IsOfflineMode() bool {
+	return auth_service.IsOfflineMode()
+}
+
+// GetAuthMode returns the current authentication mode.
+// Returns "global", "studio", or "offline".
+func (a *AuthService) GetAuthMode() string {
+	return string(auth_service.GetActiveAuthMode())
+}
+
+// GetAuthHost returns the current authentication host URL.
+// Returns empty string if in offline mode.
+func (a *AuthService) GetAuthHost() string {
+	return auth_service.GetAuthHost()
+}
+
+// Register creates a new user account on Clustta Cloud.
 // Returns the created user or an error if registration fails.
 func (a *AuthService) Register(firstName, lastName, username, email, password, confirmPassword string) (auth_service.User, error) {
 	user, err := auth_service.Register(firstName, lastName, username, email, password, confirmPassword)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
+// RegisterWithHost creates a new user account on a specified authentication host.
+// Returns the created user or an error if registration fails.
+func (a *AuthService) RegisterWithHost(firstName, lastName, username, email, password, confirmPassword, authHost string) (auth_service.User, error) {
+	user, err := auth_service.RegisterWithHost(firstName, lastName, username, email, password, confirmPassword, authHost)
 	if err != nil {
 		return user, err
 	}
@@ -140,4 +201,20 @@ func (a *AuthService) ChangePassword(currentPassword, newPassword, confirmPasswo
 // Returns an error if the reset request fails.
 func (a *AuthService) ResetPassword(email string) error {
 	return auth_service.ResetPassword(email)
+}
+
+// SubmitDiagnostics sends diagnostic information to the support team.
+// Returns an error if the submission fails.
+func (a *AuthService) SubmitDiagnostics(email, description, os, arch, clusttaVersion string) error {
+	// Read log contents from the log file
+	logContents := ""
+	logPath, err := settings.GetLogPath()
+	if err == nil {
+		content, err := osLib.ReadFile(logPath)
+		if err == nil {
+			logContents = string(content)
+		}
+	}
+
+	return auth_service.SubmitDiagnostics(email, description, os, arch, clusttaVersion, logContents)
 }

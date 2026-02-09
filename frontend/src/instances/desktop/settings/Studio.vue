@@ -6,7 +6,7 @@
 
         <div class="settings-section">
           <div class="settings-item" v-stop-propagation>
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('storefront')"></div>
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('stall')"></div>
             <div class="settings-content">
               <div class="settings-header">Studio Name</div>
               <div class="settings-body">{{ studioInfo.name }}</div>
@@ -32,6 +32,14 @@
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
           </div>
 
+          <div class="settings-item" v-stop-propagation>
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('clustta')"></div>
+            <div class="settings-content">
+              <div class="settings-header">Clustta server Version</div>
+              <div class="settings-body">{{ serverVersion || 'Loading...' }}</div>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -43,7 +51,7 @@
 <script setup>
 // imports
 import { ref, computed, onMounted } from "vue";
-import { SettingsService } from "@/../bindings/clustta/services/index";
+import { SettingsService, StudioService } from "@/services";
 
 // services
 import utils from '@/services/utils';
@@ -63,10 +71,25 @@ const modals = useDesktopModalStore();
 // vars
 const autoStart = ref(trayStates.autoStart);
 const clusttaVersion = ref("");
+const serverVersion = ref("");
 
 const studioInfo = computed(() => {
   return projectStore.selectedStudio
 })
+
+const fetchServerVersion = async () => {
+  try {
+    const studioUrl = studioInfo.value?.url;
+    if (!studioUrl) {
+      serverVersion.value = 'No studio connected';
+      return;
+    }
+    const version = await StudioService.GetServerVersion(studioUrl);
+    serverVersion.value = version || 'Unknown';
+  } catch (error) {
+    serverVersion.value = 'Unavailable';
+  }
+};
 
 const launchUpdateStudioModal = () => {
   modals.setModalVisibility('updateStudioModal', true);
@@ -80,6 +103,7 @@ const getAppIcon = (iconName) => {
 onMounted(async () => {
   autoStart.value = trayStates.autoStart;
   clusttaVersion.value = await utils.getRawClusttaVersion();
+  await fetchServerVersion();
 });
 
 </script>

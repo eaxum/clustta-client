@@ -58,7 +58,7 @@ import { ref, computed, onMounted, onBeforeUnmount, onUnmounted, watchEffect } f
 import { useMenu } from '@/stores/menu';
 
 // services (for email validation and API calls)
-import { AuthService } from "@/../bindings/clustta/services";
+import { AuthService } from "@/services";
 
 // states
 const menu = useMenu();

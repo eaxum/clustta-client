@@ -29,7 +29,7 @@ Install the Wails CLI using Go Modules, run the following command:
 Clustta currently uses v3.0.0-alpha.9
 
 ```bash
-go install -v github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha.9
+go install -v github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha.56
 ```
 
 ## Air

@@ -1,6 +1,7 @@
 import { createPinia } from "pinia";
 import { createApp } from "vue";
 import App from "./App.vue";
+import router from "./router";
 import { stopPropagation } from "./directives.js";
 import { rightClick } from "./directives.js";
 import { escDirective } from "./directives.js";
@@ -17,6 +18,10 @@ import "./assets/global.css";
 
 const app = createApp(App);
 app.use(createPinia());
+
+// Always use router for both desktop and web mode
+app.use(router);
+
 // app.use(VueCropper);
 app.directive("stop-propagation", stopPropagation);
 app.directive("right-click", rightClick);

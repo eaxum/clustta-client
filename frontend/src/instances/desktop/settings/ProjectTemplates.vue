@@ -74,7 +74,7 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue';
 import utils from '@/services/utils';
-import { AssetService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/services";
 
 // store imports
 import { useIconStore } from '@/stores/icons';
@@ -97,7 +97,7 @@ import {
     ProjectService,
     SyncService,
     FSService,
-} from "@/../bindings/clustta/services";
+} from "@/services";
 import { useProjectTemplateStore } from '@/stores/project_template';
 
 // states

@@ -1,20 +1,34 @@
 <template>
-  <div v-if="show" class="horizontal-flex input-alert">
+  <div v-if="show" class="horizontal-flex input-alert" :class="alertClass">
     {{ message }}
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue';
 
 const props = defineProps({
+  message: {
+    type: String,
+    required: true
+  },
   show: {
     type: Boolean,
     default: false
   },
-  message: {
+  type: {
     type: String,
-    required: true
+    default: 'error',
+    validator: (value) => ['error', 'info'].includes(value)
   }
+});
+
+// computed
+const alertClass = computed(() => {
+  return {
+    'input-alert-error': props.type === 'error',
+    'input-alert-info': props.type === 'info'
+  };
 });
 </script>
 
@@ -27,9 +41,18 @@ const props = defineProps({
 }
 
 .input-alert {
-  color: var(--attention);
+  margin-top: .5rem;
   font-weight: 400;
-  font-size: 14px;
+  font-size: .8rem;
   padding: 0.25rem .5rem;
+}
+
+.input-alert-error {
+  color: var(--attention);
+}
+
+.input-alert-info {
+  color: var(--white);
+  opacity: 0.6;
 }
 </style>

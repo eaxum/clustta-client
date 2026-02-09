@@ -31,7 +31,7 @@ import { useIconStore } from '@/stores/icons';
 import ScrollList from '@/instances/desktop/components/ScrollList.vue';
 import ActionBar from '@/instances/desktop/components/ActionBar.vue';
 import PageState from '@/instances/common/components/PageState.vue';
-import { CollectionService } from '@/../bindings/clustta/services/index';
+import { CollectionService } from '@/services';
 
 // states
 const collectionStore = useCollectionStore();

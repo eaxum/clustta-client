@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import {Create as $Create} from "@wailsio/runtime";
+import { Create as $Create } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -12,6 +12,93 @@ import * as models$0 from "../internal/repository/models/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as time$0 from "../../time/models.js";
+
+/**
+ * AccountInfo represents account data with auth context for frontend binding
+ */
+export class AccountInfo {
+    /**
+     * Creates a new AccountInfo instance.
+     * @param {Partial<AccountInfo>} [$$source = {}] - The source object to create the AccountInfo.
+     */
+    constructor($$source = {}) {
+        if (!("user_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["user_id"] = "";
+        }
+        if (!("username" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["username"] = "";
+        }
+        if (!("email" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["email"] = "";
+        }
+        if (!("first_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["first_name"] = "";
+        }
+        if (!("last_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["last_name"] = "";
+        }
+        if (!("auth_mode" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["auth_mode"] = "";
+        }
+        if (!("auth_host" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["auth_host"] = "";
+        }
+        if (!("studio_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["studio_id"] = "";
+        }
+        if (!("session_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["session_id"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AccountInfo instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AccountInfo}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new AccountInfo(/** @type {Partial<AccountInfo>} */($$parsedSource));
+    }
+}
 
 export class AssetStateItem {
     /**
@@ -865,154 +952,154 @@ export class ProfileUpdateData {
              * @member
              * @type {string | undefined}
              */
-            this["first_name"] = "";
+            this["first_name"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["last_name"] = "";
+            this["last_name"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["username"] = "";
+            this["username"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["email"] = "";
+            this["email"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["bio"] = "";
+            this["bio"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["location"] = "";
+            this["location"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | null | undefined}
              */
-            this["country_id"] = null;
+            this["country_id"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | null | undefined}
              */
-            this["gender_id"] = null;
+            this["gender_id"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["artstation_link"] = "";
+            this["artstation_link"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["behance_link"] = "";
+            this["behance_link"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["instagram_link"] = "";
+            this["instagram_link"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["x_link"] = "";
+            this["x_link"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["linkedin_link"] = "";
+            this["linkedin_link"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["github_link"] = "";
+            this["github_link"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["portfolio_link"] = "";
+            this["portfolio_link"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["reel_url"] = "";
+            this["reel_url"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["job_title"] = "";
+            this["job_title"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["company"] = "";
+            this["company"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {number | undefined}
              */
-            this["years_experience"] = 0;
+            this["years_experience"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {number | undefined}
              */
-            this["hourly_rate"] = 0;
+            this["hourly_rate"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["availability"] = "";
+            this["availability"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {string | undefined}
              */
-            this["profile_visibility"] = "";
+            this["profile_visibility"] = undefined;
         }
 
         Object.assign(this, $$source);
@@ -1173,6 +1260,51 @@ export class SkillData {
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new SkillData(/** @type {Partial<SkillData>} */($$parsedSource));
+    }
+}
+
+/**
+ * SystemInfo contains detailed system information.
+ */
+export class SystemInfo {
+    /**
+     * Creates a new SystemInfo instance.
+     * @param {Partial<SystemInfo>} [$$source = {}] - The source object to create the SystemInfo.
+     */
+    constructor($$source = {}) {
+        if (!("os" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["os"] = "";
+        }
+        if (!("os_version" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["os_version"] = "";
+        }
+        if (!("arch" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["arch"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SystemInfo instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {SystemInfo}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new SystemInfo(/** @type {Partial<SystemInfo>} */($$parsedSource));
     }
 }
 
@@ -1376,14 +1508,14 @@ export class UserProfile {
              * @member
              * @type {NullString | null | undefined}
              */
-            this["country_id"] = null;
+            this["country_id"] = undefined;
         }
         if (/** @type {any} */(false)) {
             /**
              * @member
              * @type {NullString | null | undefined}
              */
-            this["gender_id"] = null;
+            this["gender_id"] = undefined;
         }
         if (!("date_of_birth" in $$source)) {
             /**

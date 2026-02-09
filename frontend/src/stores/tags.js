@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { TagService } from "@/../bindings/clustta/services";
+import { TagService } from "@/services";
 import { useProjectStore } from "./projects";
 
 export const useTagStore = defineStore("tags", {
@@ -14,6 +14,7 @@ export const useTagStore = defineStore("tags", {
   actions: {
     async reloadTags() {
       const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri) return;
       this.tags = await TagService.GetTags(projectStore.activeProject.uri);
     },
   },

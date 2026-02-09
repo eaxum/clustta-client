@@ -108,8 +108,7 @@ export const useTrayStates = defineStore("useTrayStates", {
   },
   actions: {
     async togglePin(user = false) {
-      let eventData = new Events.WailsEvent("pin-tray-window", !this.pin);
-      Events.Emit(eventData);
+      Events.Emit("pin-tray-window", !this.pin);
       this.pin = !this.pin;
       if (user) {
         this.userPin = !this.userPin;

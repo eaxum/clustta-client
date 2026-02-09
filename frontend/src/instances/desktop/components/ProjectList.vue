@@ -30,9 +30,11 @@
 
 		</span>
 
-		<div v-if="recents.length" v-tooltip="'Recent projects'" class="pinned-indicator">
+		<div v-if="recents.length" v-tooltip="isHoveringRecents ? 'Clear recent projects' : 'Recent projects'" 
+			 class="pinned-indicator" :class="{ 'clickable': isHoveringRecents }"
+			 @mouseenter="isHoveringRecents = true" @mouseleave="isHoveringRecents = false" @click="clearRecents">
 			<div class="menu-divider"></div>
-			<img class="tiny-icons" :src="getAppIcon('clock')">
+			<img class="tiny-icons" :src="getAppIcon(isHoveringRecents ? 'broom' : 'clock')">
 			<div class="menu-divider"></div>
 		</div>
 
@@ -74,14 +76,22 @@ const getAppIcon = (iconName) => {
 // imports
 import { computed, ref, onMounted } from 'vue';
 
+// services
+import { SettingsService } from '@/services';
+
 // stores/state imports
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
+import { usePlatformStore } from '@/stores/platform';
+import { useNotificationStore } from '@/stores/notifications';
 
 // refs
 const stage = useStageStore();
 const projectStore = useProjectStore();
+const platformStore = usePlatformStore();
+const notificationStore = useNotificationStore();
 const listItem = ref(null);
+const isHoveringRecents = ref(false);
 
 const props = defineProps({
 	sidePaneActive: Boolean,
@@ -96,13 +106,13 @@ const activeProjectIndex = computed(() => {
 
 const projects = computed(() => {
 	const pinnedProjects = projectStore.pinnedProjects;
-	return projectStore.projects.filter((project) => project.is_downloaded && pinnedProjects?.includes(project.id));
+	return projectStore.projects.filter((project) => (project.is_downloaded || platformStore.isWeb) && pinnedProjects?.includes(project.id));
 });
 
 const recents = computed(() => {
 	const pinnedProjects = projectStore.pinnedProjects;
 	const recentProjects = projectStore.recentProjects;
-	let recentProjectsAvailable = projectStore.projects.filter((project) => project.is_downloaded && recentProjects?.includes(project.id) && !pinnedProjects?.includes(project.id));
+	let recentProjectsAvailable = projectStore.projects.filter((project) => (project.is_downloaded || platformStore.isWeb) && recentProjects?.includes(project.id) && !pinnedProjects?.includes(project.id));
 
 	// sort recent projects by most recent
 	recentProjectsAvailable.sort((a, b) => {
@@ -142,6 +152,13 @@ const dynamicName = (string) => {
 	return props.sidePaneActive ? string : string[0].toUpperCase();
 };
 
+const clearRecents = () => {
+	SettingsService.ClearRecentProject().then(() => {
+		projectStore.recentProjects = [];
+		notificationStore.addNotification("Recent Projects Cleared", "Recent Projects Cleared", "success");
+	});
+};
+
 
 const projectListRef = ref(null);
 const showTopGradient = ref(false);
@@ -175,6 +192,14 @@ const handleScroll = () => {
 	display: flex;
 	align-items: center;
 	/* background-color: hotpink; */
+}
+
+.pinned-indicator.clickable {
+	cursor: pointer;
+}
+
+.pinned-indicator.clickable .tiny-icons {
+	opacity: .7;
 }
 
 .tiny-icons{

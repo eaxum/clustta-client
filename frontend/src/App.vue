@@ -1,6 +1,6 @@
 <template>
-    <div>
-        <ClusttaDesktop v-if="windowName === 'main'" />
+    <div class="app-root">
+        <router-view />
     </div>
 </template>
 
@@ -9,60 +9,90 @@
 import { ref, onMounted, computed } from 'vue';
 import { useNotificationStore } from './stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useSyncConflictStore } from '@/stores/syncConflict';
 import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 
-// components
-import ClusttaDesktop from '@/instances/desktop/ClusttaDesktop.vue';
 import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from './stores/projects';
-import { SyncService, ProjectService } from "@/../bindings/clustta/services";
-import { System, Window } from "@wailsio/runtime";
-import { LogService } from '@/../bindings/clustta/services/index';
+import { useStudioStore } from './stores/studio';
+import { SyncService, ProjectService } from "@/services";
+import { System } from "@wailsio/runtime";
+import { LogService } from '@/services';
 import { useStageStore } from './stores/stages';
 import { useMenu } from '@/stores/menu';
 import { useAccountStore } from '@/stores/accounts';
 import { useThemeStore } from '@/stores/theme';
+import { usePlatformStore } from '@/stores/platform';
 
-
-const windowNameTop = ref();
+// Platform detection
+const menu = useMenu();
+const platformStore = usePlatformStore();
 const projectStore = useProjectStore();
 const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
-const menu = useMenu();
+const syncConflictStore = useSyncConflictStore();
 const themeStore = useThemeStore();
-
 const stageStore = useStageStore();
+const studioStore = useStudioStore();
 const accountStore = useAccountStore();
 
 
 
 const disableMenu = () => {
-    if (System.IsDebug) {
+    // Only disable context menu on desktop
+    if (platformStore.isWeb || System.IsDebug) {
         return
     }
 
-
+    // prevent context menu
     document.addEventListener('contextmenu', e => {
         e.preventDefault();
         return false;
     }, { capture: true })
 
+    // prevent drag click selection
     document.addEventListener('selectstart', e => {
         e.preventDefault();
         return false;
     }, { capture: true })
 }
 
-Events.On('progress-update', async (message) => {
-    // let progressData = JSON.parse(message.payload);
-    let progressData = message.data[0];
+const handleProgressUpdate = (progressData) => {
     notificationStore.updateProgress(progressData);
-});
+};
 
+const handleSyncConflict = (conflictData) => {
+    console.log('Sync conflict detected:', conflictData);
+    syncConflictStore.setConflicts(
+        conflictData.projectPath,
+        conflictData.remoteURL,
+        conflictData.conflicts
+    );
+    modals.setModalVisibility('syncConflictModal', true);
+};
 
-const windowName = ref(windowNameTop);
+const handleOpenProjectFile = async (filePath) => {
+//  TODO implement reading clustta files
+};
+
+if (platformStore.isWeb) {
+    emitter.on('progress-update', handleProgressUpdate);
+    emitter.on('sync-conflict', handleSyncConflict);
+} else {
+    Events.On('progress-update', async (message) => {
+        handleProgressUpdate(message.data);
+    });
+    Events.On('sync-conflict', async (message) => {
+        handleSyncConflict(message.data);
+    });
+    Events.On('open-project-file', async (message) => {
+        const filePath = message.data;
+        console.log('Opening project file:', filePath);
+        await handleOpenProjectFile(filePath);
+    });
+}
 
 disableMenu();
 
@@ -102,8 +132,32 @@ const operationsActive = computed(() => {
     || !!menu.activeMenu || !assetStore.assetsLoaded || stageStore.activeStage !== 'browser'
 });
 
+// Periodically checks studio reachability when offline.
+// Retries every 5 minutes until the server is reachable again.
+function startConnectivityCheckInterval() {
+    const RETRY_INTERVAL = 5 * 1000 * 60
+
+    function run() {
+        if (studioStore.appOnline) {
+            setTimeout(run, RETRY_INTERVAL);
+            return;
+        }
+        studioStore.checkStudioReachability().finally(() => {
+            setTimeout(run, RETRY_INTERVAL);
+        });
+    }
+
+    run();
+}
+
+// Polls for sync token changes when online.
+// Only runs when a non-Personal studio is selected and the app is online.
 function startCheckSycnTokenInterval() {
     function run() {
+        if (!studioStore.appOnline) {
+            setTimeout(run, 5000);
+            return
+        }
         if (operationsActive.value) {
             setTimeout(run, 1000);
             return
@@ -126,7 +180,7 @@ function startCheckSycnTokenInterval() {
         }
         ProjectService.GetSyncToken(projectStore.getActiveProjectUrl)
             .then(async (token) => {
-                projectStore.serverActive = true;
+                studioStore.appOnline = true;
                 if (token) {
                     let syncToken = projectStore.activeProject.sync_token
                     if (syncToken != token) {
@@ -145,46 +199,41 @@ function startCheckSycnTokenInterval() {
                             console.log(error)
                         })
                         stageStore.operationActive = false;
-                    } else {
-                        // console.log("sync token is the same")
                     }
                 }
             }).catch((error) => {
-                projectStore.serverActive = false;
-                console.log(error)
+                studioStore.appOnline = false;
             }).finally(() => {
                 setTimeout(run, 5000);
             });
 
     }
 
-    run(); // Start the loop
+    run();
 }
 
-function startUpdateFileStatesInterval() {
-    function run() {
-        updateFileStates().finally(() => {
-            setTimeout(run, 1000);
-        });
-    }
-
-    run(); // Start the loop
-}
 
 
 onMounted(async () => {
-    windowNameTop.value = await Window.Name()
-    
-    // Initialize account store early in app lifecycle
-    await accountStore.initialize();
-    await themeStore.initializeTheme();
-    startCheckSycnTokenInterval()
+    if (!platformStore.isWeb) {
+        startCheckSycnTokenInterval();
+        startConnectivityCheckInterval();
+    }
 });
 </script>
 
 
 <style scoped>
 @import "@/assets/tray.css";
+
+.app-root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
 </style>
 
 

@@ -92,7 +92,7 @@
               <div class="simple-text-value">
                 {{ assetStore.selectedAsset.file_path }}
               </div>
-              <div class="pane-parameter-actions">
+              <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
                 <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy Path'" @click="copyTaskPath('task')"/>
                 <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="'Reveal in Explorer'" :buttonFunction="revealInExplorer"/>
               </div>
@@ -139,7 +139,8 @@
 <script setup>
 // imports
 import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue';
-import { ClipboardService, FSService } from '@/../bindings/clustta/services/index';
+import { FSService } from '@/services';
+import { Clipboard } from '@wailsio/runtime';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
@@ -153,9 +154,10 @@ import { useStatusStore } from '@/stores/status';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useCommonStore } from '@/stores/common';
+import { usePlatformStore } from '@/stores/platform';
 
 // services
-import { AssetService, CheckpointService } from "@/../bindings/clustta/services";
+import { AssetService, CheckpointService } from "@/services";
 
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -175,6 +177,7 @@ const projectStore = useProjectStore();
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const commonStore = useCommonStore();
+const platformStore = usePlatformStore();
 
 // refs
 const numberOfSelectedTasks = ref(0);
@@ -235,7 +238,7 @@ const copyTaskPath = async (pathType) => {
   } else if (pathType === 'output') {
     taskPath = outputPath;
   }
-  await ClipboardService.WriteText(taskPath);
+  await Clipboard.SetText(taskPath);
   const message = 'Path copied to clipboard';
   notificationStore.addNotification(message, "", "success");
 };
@@ -574,6 +577,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
 }
 </style>
+
 
 
 

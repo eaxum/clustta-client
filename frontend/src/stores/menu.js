@@ -23,6 +23,21 @@ export const useMenu = defineStore("useMenu", {
       resourceItemMenu: false,
       assignMenu: false,
       accountMenu: false,
+      copyToProjectSubMenu: false,
+      moveToCollectionSubMenu: false,
+      sortMenu: false,
+      viewMenu: false,
+    },
+
+    // Sub-menu navigation state
+    subMenuState: {
+      active: false,
+      sourceMenu: null, // The menu that triggered the sub-menu
+      navigationStack: [], // Stack of { type: 'projects' | 'entities', projectUri?: string, parentId?: string, title: string }
+      selectedProject: null, // The project being navigated into
+      selectedAssetIds: [], // Assets being moved (for move-to-collection)
+      startingEntityId: '', // Starting collection for navigation (for move-to-collection)
+      slideDirection: 'left', // 'left' for entering deeper, 'right' for going back
     },
 
     activeMenu: null,
@@ -34,7 +49,9 @@ export const useMenu = defineStore("useMenu", {
       'untrackedItemMenu',
       'resourceItemMenu', 
       'assignMenu',
-      'accountMenu'
+      'accountMenu',
+      'sortMenu',
+      'viewMenu'
     ],
 
     menuEl: null,
@@ -147,6 +164,7 @@ export const useMenu = defineStore("useMenu", {
       if (this.contextMenuVisible) {
         this.contextMenuVisible = false;
         this.disableAllMenus();
+        this.resetSubMenu();
       }
     },
 
@@ -220,6 +238,84 @@ export const useMenu = defineStore("useMenu", {
           this.contextMenuVisible = true;
         });
       }
+    },
+
+    // Sub-menu navigation actions
+    showSubMenu(sourceMenuOrType, initialNavItem = null) {
+      this.subMenuState.active = true;
+      this.subMenuState.slideDirection = 'left';
+      
+      // Check if this is a move-to-collection request
+      const isMoveToCollection = sourceMenuOrType === 'move-to-collection' || 
+                                  initialNavItem?.type === 'move-to-collection';
+      
+      if (isMoveToCollection) {
+        // For move-to-collection, navigation stack is set up in the component's onMounted
+        // sourceMenuOrType might be 'assetMenu' (from context menu) or 'move-to-collection' (from DetailsPane)
+        if (sourceMenuOrType !== 'move-to-collection') {
+          this.subMenuState.sourceMenu = sourceMenuOrType;
+          this.setMenuVisibility(sourceMenuOrType, false);
+        } else {
+          // Called from DetailsPane without a context menu - need to show the context menu container
+          this.subMenuState.sourceMenu = null;
+          this.contextMenuVisible = true;
+        }
+        this.subMenuState.navigationStack = []; // Will be initialized in onMounted
+        this.setMenuVisibility('moveToCollectionSubMenu', true);
+      } else {
+        // For copyToProject and others, use the provided initialNavItem
+        this.subMenuState.sourceMenu = sourceMenuOrType;
+        if (initialNavItem) {
+          this.subMenuState.navigationStack = [initialNavItem];
+        }
+        this.setMenuVisibility(sourceMenuOrType, false);
+        this.setMenuVisibility('copyToProjectSubMenu', true);
+      }
+    },
+
+    navigateSubMenuForward(navItem) {
+      this.subMenuState.slideDirection = 'left';
+      this.subMenuState.navigationStack.push(navItem);
+    },
+
+    navigateSubMenuBack() {
+      if (this.subMenuState.navigationStack.length > 1) {
+        this.subMenuState.slideDirection = 'right';
+        this.subMenuState.navigationStack.pop();
+      } else {
+        // At root level, go back to source menu
+        this.hideSubMenu();
+      }
+    },
+
+    hideSubMenu() {
+      const sourceMenu = this.subMenuState.sourceMenu;
+      
+      // Reset sub-menu state
+      this.subMenuState.active = false;
+      this.subMenuState.navigationStack = [];
+      this.subMenuState.selectedProject = null;
+      this.subMenuState.selectedAssetIds = [];
+      this.subMenuState.startingEntityId = '';
+      this.subMenuState.slideDirection = 'left';
+      
+      // Hide sub-menus and show source menu
+      this.setMenuVisibility('copyToProjectSubMenu', false);
+      this.setMenuVisibility('moveToCollectionSubMenu', false);
+      if (sourceMenu) {
+        this.setMenuVisibility(sourceMenu, true);
+        this.subMenuState.sourceMenu = null;
+      }
+    },
+
+    resetSubMenu() {
+      this.subMenuState.active = false;
+      this.subMenuState.sourceMenu = null;
+      this.subMenuState.navigationStack = [];
+      this.subMenuState.selectedProject = null;
+      this.subMenuState.selectedAssetIds = [];
+      this.subMenuState.startingEntityId = '';
+      this.subMenuState.slideDirection = 'left';
     },
   },
 });

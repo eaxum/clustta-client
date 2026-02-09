@@ -111,7 +111,11 @@
                 </div>
                 
                 <div v-else class="display-mode-fields">
-                  <div class="profile-name">{{ fullName }}</div>
+                  <div class="profile-name-row">
+                    <div class="profile-name">{{ fullName }}</div>
+                    <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy profile link'" @click="copyProfileLink" />
+                    <ActionButton :icon="getAppIcon('person-search')" v-tooltip="'Open profile in browser'" @click="openProfileInBrowser" />
+                  </div>
                   <div v-if="formData.bio" class="profile-title">{{ formData.bio }}</div>
                   
                   <div class="meta-info">
@@ -299,7 +303,8 @@
 
 <script setup>
 import { ref, reactive, computed, onBeforeMount, nextTick } from 'vue';
-import { AuthService, ProfileService, FSService } from "@/../bindings/clustta/services";
+import { AuthService, ProfileService, FSService, ClipboardService } from "@/services";
+import { Browser } from "@wailsio/runtime";
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useIconStore } from '@/stores/icons';
@@ -786,6 +791,22 @@ const toggleProfileVisibility = async () => {
   }
 };
 
+const copyProfileLink = async () => {
+  const profileUrl = `https://app.clustta.com/user/${formData.value.username}`;
+  try {
+    await ClipboardService.WriteText(profileUrl);
+    notificationStore.addNotification('Profile Link Copied', 'Profile link copied to clipboard', 'success');
+  } catch (err) {
+    console.error('Failed to copy profile link:', err);
+    notificationStore.errorNotification('Copy Failed', 'Failed to copy profile link to clipboard');
+  }
+};
+
+const openProfileInBrowser = () => {
+  const profileUrl = `https://app.clustta.com/user/${formData.value.username}`;
+  Browser.OpenURL(profileUrl);
+};
+
 const updateLinks = (newLinks) => {
   profileStore.updateLinks(newLinks);
 };
@@ -1007,6 +1028,12 @@ onBeforeMount(async () => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+}
+
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .profile-name {

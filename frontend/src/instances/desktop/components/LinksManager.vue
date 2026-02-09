@@ -119,6 +119,10 @@ const props = defineProps({
   isEditing: {
     type: Boolean,
     default: false
+  },
+  readonly: {
+    type: Boolean,
+    default: false
   }
 });
 

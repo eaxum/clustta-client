@@ -24,8 +24,7 @@ export const usePromptStore = defineStore("prompts", {
       this.currentPrompt = prompt;
       
       // Emit event for InfoBar to listen to
-      let eventData = new Events.WailsEvent("add_prompt", prompt);
-      Events.Emit(eventData);
+      Events.Emit("add_prompt", prompt);
 
       // Auto-clear prompt after timeout if specified
       if (timeout > 0) {
@@ -49,8 +48,7 @@ export const usePromptStore = defineStore("prompts", {
         }
         
         // Emit update event
-        let eventData = new Events.WailsEvent("update_prompt", prompt);
-        Events.Emit(eventData);
+        Events.Emit("update_prompt", prompt);
       }
     },
     
@@ -66,8 +64,7 @@ export const usePromptStore = defineStore("prompts", {
         }
         
         // Emit clear event
-        let eventData = new Events.WailsEvent("clear_prompt", prompt);
-        Events.Emit(eventData);
+        Events.Emit("clear_prompt", prompt);
         
         // Remove from array after a short delay to allow for animations
         setTimeout(() => {
@@ -86,8 +83,7 @@ export const usePromptStore = defineStore("prompts", {
       this.currentPrompt = null;
       
       // Emit clear all event
-      let eventData = new Events.WailsEvent("clear_all_prompts", {});
-      Events.Emit(eventData);
+      Events.Emit("clear_all_prompts", {});
       
       // Clear array after delay
       setTimeout(() => {

@@ -58,7 +58,7 @@
         </div>
 
         <div class="sidebar-scroll">
-          <DependencyList :forList="true" :items="projectData" :showAdd="true" />
+          <ItemsList :forList="true" :items="projectData" :showAdd="true" />
         </div>
       </div>
     </div>
@@ -71,7 +71,7 @@
 // imports
 import { ref, computed, onMounted, watch, nextTick, markRaw, onUnmounted, reactive } from 'vue'
 import dagre from '@dagrejs/dagre'
-import { AssetService, CollectionService } from "@/../bindings/clustta/services";
+import { AssetService, CollectionService } from "@/services";
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
@@ -101,8 +101,8 @@ import { useProjectStore } from '@/stores/projects';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import FilterButton from '@/instances/desktop/components/FilterButton.vue';
+import ItemsList from '@/instances/desktop/components/ItemsList.vue';
 import VirtualNode from '@/instances/desktop/components/VirtualNode.vue'
-import DependencyList from '@/instances/desktop/components/DependencyList.vue'
 
 // states
 const notificationStore = useNotificationStore();

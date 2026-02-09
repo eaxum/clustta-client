@@ -15,7 +15,7 @@
 
       <div class="progress-bar-header">
         <div class="header-with-minimize">
-          <HeaderArea :title="notificationStore.getProgress.title" :icon="progressIcon" :showSearch="showSearch" />
+          <HeaderArea :title="notificationStore.getProgress.title" :icon="progressIcon" :showSearch="showSearch" :notModal="true" />
           <button @click="minimizeProgress" class="minimize-button single-action-button" v-tooltip="'Minimize'">
             <img :src="getAppIcon('chevron-down')" class="minimize-icon small-icons" />
           </button>
@@ -64,8 +64,12 @@ import { useNotificationStore } from '@/stores/notifications';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import { Events } from "@wailsio/runtime";
+import emitter from '@/lib/mitt';
 import { useStageStore } from '@/stores/stages';
 import { useIconStore } from '@/stores/icons';
+import { usePlatformStore } from '@/stores/platform';
+
+const platformStore = usePlatformStore();
 
 // vars
 let showSearch = false;
@@ -111,6 +115,8 @@ const progressIcon = computed(() => {
     return 'cloud-up';
   } else if (message.includes('checkpoint')) {
     return 'layers';
+  } else if (message.includes('trim') || message.includes('compact')) {
+    return 'scissors';
   } else if (message.includes('delete') || message.includes('trash')) {
     return 'trash';
   }
@@ -136,16 +142,32 @@ watch(
   }
 );
 
-Events.On("add_message", async (message) => {
-  const payload = message.data;
-  let notificationData
+const handleAddMessage = (payload) => {
+  let notificationData;
   if (typeof payload === 'string' || payload instanceof String) {
     notificationData = JSON.parse(payload);
   } else {
     notificationData = payload;
   }
-  showMessage(notificationData)
-});
+  showMessage(notificationData);
+};
+
+const handleProgressUpdate = (progressData) => {
+  notificationStore.updateProgress(progressData);
+};
+
+// Register event listeners based on platform
+if (platformStore.isWeb) {
+  emitter.on('add_message', handleAddMessage);
+  emitter.on('progress-update', handleProgressUpdate);
+} else {
+  Events.On("add_message", async (message) => {
+    handleAddMessage(message.data);
+  });
+  Events.On("progress-update", async (message) => {
+    handleProgressUpdate(message.data);
+  });
+}
 
 const notification = ref(false);
 
@@ -165,7 +187,6 @@ async function showMessage(data) {
 }
 const handleClickOutside = (event) => {
   if (notification.value && (event.target !== notificationItem.value)) {
-    // //console.log('outside');
     notification.value = null;
   }
 };
@@ -184,7 +205,6 @@ const minimizeProgress = () => {
 };
 
 onMounted(() => {
-  // //console.log(listBoxParent.value.getBoundingClientRect().width);
   document.addEventListener('click', handleClickOutside);
 
 });
@@ -263,19 +283,14 @@ onBeforeUnmount(() => {
 
 .flash-area-desktop {
   position: fixed;
-  /* top: 110px; */
-  /* right: 30px; */
   width: 50%;
   max-width: 500px;
-  /* min-width: 250px; */
-  /* width: 1000px; */
-  /* background-color: red; */
+  min-width: 350px;
 }
 
 .flash-area-desktop-progress {
   top: 0px;
   right: 0px;
-  /* background-color: red; */
   right: 50%;
   top: 45%;
   transform: translateX(50%);

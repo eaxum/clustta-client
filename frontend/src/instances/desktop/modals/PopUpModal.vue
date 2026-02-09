@@ -31,49 +31,57 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, onBeforeUnmount } from 'vue';
-import { useTrayStates } from '@/stores/TrayStates';
-import { useDesktopModalStore } from '@/stores/desktopModals';
+// imports
+import { computed, onBeforeUnmount, ref } from 'vue';
 
-import HeaderArea from '@/instances/common/components/HeaderArea.vue'
+// components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
-const trayStates = useTrayStates();
+// stores
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useTrayStates } from '@/stores/TrayStates';
+
 const modals = useDesktopModalStore();
+const trayStates = useTrayStates();
 
-let title = trayStates.popUpModalTitle;
-let icon = trayStates.popUpModalIcon;
-let showSearch = false;
-
+// refs
 const popUpInput = ref(null);
 
+// constants
+const icon = trayStates.popUpModalIcon;
+const showSearch = false;
+const title = trayStates.popUpModalTitle;
+
+// computed
+// Returns the left button label.
 const leftButton = computed(() => {
-  return trayStates.popUpModalButtons[0]
+  return trayStates.popUpModalButtons[0];
 });
 
+// Returns the right button label.
 const rightButton = computed(() => {
-  return trayStates.popUpModalButtons[1]
+  return trayStates.popUpModalButtons[1];
 });
 
+// methods
+// Closes the modal and resets input value.
+const closeModal = () => {
+  modals.disableAllModals();
+  trayStates.popUpModalInputValue = '';
+};
+
+// Handles enter key press to execute modal function.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter') {
     trayStates.popUpModalFunction();
   }
 };
 
-const closeModal = (modalName) => {
-  modals.disableAllModals();
-  trayStates.popUpModalInputValue = '';
-};
-
-onMounted(() => {
-
-});
-
+// lifecycle hooks
 onBeforeUnmount(() => {
   trayStates.usePopUpModalInput = false;
 });
-
 </script>
 
 <style scoped>

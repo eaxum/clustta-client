@@ -22,8 +22,8 @@ var assets embed.FS
 
 var app *application.App
 
-//InitializeFullscreenMonitoring starts fullscreen state monitoring for the application window.
-//Logs warnings if monitoring cannot be started.
+// InitializeFullscreenMonitoring starts fullscreen state monitoring for the application window.
+// Logs warnings if monitoring cannot be started.
 func InitializeFullscreenMonitoring() {
 	err := StartFullscreenMonitoring("Clustta")
 	if err != nil {
@@ -42,8 +42,8 @@ var encryptionKey = [32]byte{
 
 var fsServiceInstance *services.FSService
 
-//createFSService initializes FSService with a file system watcher.
-//Stores reference globally and starts watching for file system events.
+// createFSService initializes FSService with a file system watcher.
+// Stores reference globally and starts watching for file system events.
 func createFSService() *services.FSService {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -68,6 +68,19 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Create console writer to capture logs for frontend debug console
+	consoleWriter, err := NewConsoleWriter(logFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Redirect Go's standard log package to console writer
+	log.SetOutput(consoleWriter)
+	log.SetFlags(0) // Remove default timestamp since we add our own
+
+	// Capture stdout (fmt.Printf etc.) and send to debug console
+	consoleWriter.CaptureStdout()
+
 	logger, err := NewFileLogger(logFile)
 	if err != nil {
 		log.Fatal(err)
@@ -80,7 +93,7 @@ func main() {
 			UniqueID:      "com.clustta.clustta.single-instance",
 			EncryptionKey: encryptionKey,
 			OnSecondInstanceLaunch: func(data application.SecondInstanceData) {
-				window := application.Get().GetWindowByName("main")
+				window, _ := application.Get().Window.GetByName("main")
 				if window != nil {
 					window.Show()
 					window.Focus()
@@ -98,11 +111,12 @@ func main() {
 	}
 
 	app = application.New(application.Options{
-		Name:           "clustta",
-		Description:    "File management and Collaboration tool",
-		LogLevel:       slog.LevelError,
-		Logger:         logger,
-		SingleInstance: singleInstanceOpt,
+		Name:             "clustta",
+		Description:      "Version control, Asset management and Collaboration",
+		LogLevel:         slog.LevelError,
+		Logger:           logger,
+		SingleInstance:   singleInstanceOpt,
+		FileAssociations: []string{".clst"},
 		Services: []application.Service{
 			application.NewService(&services.AccountService{}),
 			application.NewService(&services.AppService{}),
@@ -135,6 +149,13 @@ func main() {
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: true,
 		},
+	})
+
+	// Listen for file open events (when user double-clicks a .clst file)
+	app.Event.OnApplicationEvent(events.Common.ApplicationOpenedWithFile, func(event *application.ApplicationEvent) {
+		filePath := event.Context().Filename()
+		log.Printf("Application opened with file: %s", filePath)
+		app.Event.Emit("open-project-file", filePath)
 	})
 
 	if fsServiceInstance != nil {
@@ -172,7 +193,7 @@ func main() {
 		openURLDefault("https://docs.clustta.com")
 	})
 
-	app.SetMenu(menu)
+	app.Menu.SetApplicationMenu(menu)
 
 	frameless := runtime.GOOS != "darwin"
 
@@ -184,74 +205,74 @@ func main() {
 		modifier = "ctrl"
 	}
 
-	keyBindings := map[string]func(window *application.WebviewWindow){
-		"F2": func(window *application.WebviewWindow) {
-			app.EmitEvent("rename-item")
+	keyBindings := map[string]func(window application.Window){
+		"F2": func(window application.Window) {
+			app.Event.Emit("rename-item")
 		},
-		"F3": func(window *application.WebviewWindow) {
-			app.EmitEvent("search")
+		"F3": func(window application.Window) {
+			app.Event.Emit("search")
 		},
-		"F5": func(window *application.WebviewWindow) {
-			app.EmitEvent("reload-view")
+		"F5": func(window application.Window) {
+			app.Event.Emit("reload-view")
 		},
-		"return": func(window *application.WebviewWindow) {
-			app.EmitEvent("enter-item")
+		"return": func(window application.Window) {
+			app.Event.Emit("enter-item")
 		},
-		"shift+delete": func(window *application.WebviewWindow) {
-			app.EmitEvent("delete-item")
+		"shift+delete": func(window application.Window) {
+			app.Event.Emit("delete-item")
 		},
-		"delete": func(window *application.WebviewWindow) {
-			app.EmitEvent("free-item-space")
+		"delete": func(window application.Window) {
+			app.Event.Emit("free-item-space")
 		},
 	}
 
-	keyBindings[modifier+"+F2"] = func(window *application.WebviewWindow) {
-		app.EmitEvent("edit-item")
+	keyBindings[modifier+"+F2"] = func(window application.Window) {
+		app.Event.Emit("edit-item")
 	}
-	keyBindings[modifier+"+n"] = func(window *application.WebviewWindow) {
-		app.EmitEvent("new-project")
+	keyBindings[modifier+"+n"] = func(window application.Window) {
+		app.Event.Emit("new-project")
 	}
-	keyBindings[modifier+"+s"] = func(window *application.WebviewWindow) {
-		app.EmitEvent("sync-project")
+	keyBindings[modifier+"+s"] = func(window application.Window) {
+		app.Event.Emit("sync-project")
 	}
-	keyBindings[modifier+"+shift+c"] = func(window *application.WebviewWindow) {
-		app.EmitEvent("add-checkpoint")
+	keyBindings[modifier+"+shift+c"] = func(window application.Window) {
+		app.Event.Emit("add-checkpoint")
 	}
-	keyBindings[modifier+"+k"] = func(window *application.WebviewWindow) {
-		app.EmitEvent("new-collection")
+	keyBindings[modifier+"+k"] = func(window application.Window) {
+		app.Event.Emit("new-collection")
 	}
-	keyBindings[modifier+"+t"] = func(window *application.WebviewWindow) {
-		app.EmitEvent("new-task")
+	keyBindings[modifier+"+t"] = func(window application.Window) {
+		app.Event.Emit("new-task")
 	}
-	keyBindings[modifier+"+l"] = func(window *application.WebviewWindow) {
-		app.EmitEvent("new-web-link")
+	keyBindings[modifier+"+l"] = func(window application.Window) {
+		app.Event.Emit("new-web-link")
 	}
-	keyBindings[modifier+"+g"] = func(window *application.WebviewWindow) {
-		app.EmitEvent("group-items")
+	keyBindings[modifier+"+g"] = func(window application.Window) {
+		app.Event.Emit("group-items")
 	}
-	keyBindings[modifier+"+c"] = func(window *application.WebviewWindow) {
-		app.EmitEvent("copy-items")
+	keyBindings[modifier+"+c"] = func(window application.Window) {
+		app.Event.Emit("copy-items")
 	}
-	keyBindings[modifier+"+x"] = func(window *application.WebviewWindow) {
-		app.EmitEvent("cut-items")
+	keyBindings[modifier+"+x"] = func(window application.Window) {
+		app.Event.Emit("cut-items")
 	}
-	keyBindings[modifier+"+v"] = func(window *application.WebviewWindow) {
-		app.EmitEvent("paste-items")
+	keyBindings[modifier+"+v"] = func(window application.Window) {
+		app.Event.Emit("paste-items")
 	}
-	keyBindings[modifier+"+d"] = func(window *application.WebviewWindow) {
-		app.EmitEvent("duplicate-task")
+	keyBindings[modifier+"+d"] = func(window application.Window) {
+		app.Event.Emit("duplicate-task")
 	}
 
-	window := app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
-		Name:              "main",
-		Title:             "Clustta",
-		Frameless:         frameless,
-		Height:            734,
-		Width:             1020,
-		MinHeight:         734,
-		MinWidth:          1020,
-		EnableDragAndDrop: true,
-		BackgroundColour:  application.NewRGB(0, 0, 0),
+	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
+		Name:             "main",
+		Title:            "Clustta",
+		Frameless:        frameless,
+		Height:           734,
+		Width:            1020,
+		MinHeight:        734,
+		MinWidth:         1020,
+		EnableFileDrop:   true,
+		BackgroundColour: application.NewRGB(0, 0, 0),
 
 		Mac: application.MacWindow{
 			Backdrop: application.MacBackdropTranslucent,
@@ -269,16 +290,29 @@ func main() {
 			DisableFramelessWindowDecorations: false,
 		},
 		KeyBindings:    keyBindings,
-		BackgroundType: application.BackgroundTypeTransparent,
+		BackgroundType: application.BackgroundTypeSolid,
 		URL:            "/",
 	})
 
 	window.OnWindowEvent(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
-		//TODO
+		app.Event.Emit("clustta-drag-drop", nil)
+		// files := event.Context().DroppedFiles()
+		// details := event.Context().DropTargetDetails()
+
+		// log.Printf("Files dropped: %v", event)
+		// if details != nil {
+		// 	log.Printf("Drop target: id=%s, classes=%v, x=%d, y=%d",
+		// 		details.ElementID, details.ClassList, details.X, details.Y)
+		// }
+
+		// app.Event.Emit("files-dropped", map[string]any{
+		// 	"files":   files,
+		// 	"details": details,
+		// })
 	})
 
 	window.OnWindowEvent(events.Common.WindowFocus, func(event *application.WindowEvent) {
-		app.EmitEvent("window-focused", nil)
+		app.Event.Emit("window-focused", nil)
 	})
 
 	window.OnWindowEvent(events.Windows.WindowDragOver, func(event *application.WindowEvent) {
@@ -292,7 +326,7 @@ func main() {
 
 	if runtime.GOOS == "darwin" {
 
-		app.OnEvent("frontend-ready", func(event *application.CustomEvent) {
+		app.Event.On("frontend-ready", func(event *application.CustomEvent) {
 			InitializeFullscreenMonitoring()
 		})
 
@@ -316,8 +350,14 @@ func main() {
 		log.Println("Default project templates initialized successfully")
 	}
 
-	err = app.Run()
+	// Listen for frontend ready signal to flush buffered logs
+	app.Event.On("debug-console-ready", func(event *application.CustomEvent) {
+		if cw := GetConsoleWriter(); cw != nil {
+			cw.SetFrontendReady()
+		}
+	})
 
+	err = app.Run()
 
 	if err != nil {
 		log.Fatal(err)

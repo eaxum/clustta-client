@@ -30,6 +30,11 @@ type User struct {
 }
 
 func GetActiveUser() (User, error) {
+	// In offline mode, always return the canonical offline user
+	if IsOfflineMode() {
+		return OfflineUser(), nil
+	}
+
 	token, err := GetToken()
 	if err != nil {
 		return User{}, err
@@ -38,10 +43,21 @@ func GetActiveUser() (User, error) {
 }
 
 func IsAuthenticated() (bool, error) {
+	// Check if in offline mode first
+	if IsOfflineMode() {
+		return true, nil
+	}
+
 	type responseMessage struct {
 		Message string `json: "message" `
 	}
-	url := constants.HOST + "/auth/authenticated"
+
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return false, fmt.Errorf("no auth host configured")
+	}
+
+	url := authHost + "/auth/authenticated"
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -86,7 +102,11 @@ func IsAuthenticated() (bool, error) {
 }
 
 func FetchUserPhoto(userId string) ([]byte, error) {
-	url := constants.HOST + "/person/" + userId + "/photo"
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return []byte{}, nil // No photo in offline mode
+	}
+	url := authHost + "/person/" + userId + "/photo"
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -126,7 +146,11 @@ func FetchUserPhoto(userId string) ([]byte, error) {
 }
 
 func FetchUserData(email string) (models.User, error) {
-	url := constants.HOST + "/person/" + email
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return models.User{}, fmt.Errorf("cannot fetch user data in offline mode")
+	}
+	url := authHost + "/person/" + email
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -183,7 +207,11 @@ func FetchUserData(email string) (models.User, error) {
 }
 
 func FetchUserDataById(userId string) (models.User, error) {
-	url := constants.HOST + "/persons/" + userId
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return models.User{}, fmt.Errorf("cannot fetch user data in offline mode")
+	}
+	url := authHost + "/persons/" + userId
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -270,8 +298,18 @@ func DeleteToken() error {
 	return nil
 }
 
+// Login authenticates a user against Clustta Cloud (api.clustta.com)
 func Login(username string, password string) (Token, error) {
-	url := constants.HOST + "/auth/login"
+	return LoginWithHost(username, password, DefaultAuthHost, AuthModeGlobal, "")
+}
+
+// LoginWithHost authenticates a user against a specified authentication host
+func LoginWithHost(username string, password string, authHost string, authMode AuthMode, studioId string) (Token, error) {
+	if authHost == "" {
+		authHost = DefaultAuthHost
+	}
+
+	url := authHost + "/auth/login"
 	jsonBody := fmt.Sprintf("{\"email\": \"%s\", \"password\": \"%s\"}", username, password)
 	response, err := http.Post(url, "application/json", strings.NewReader(jsonBody))
 	if err != nil {
@@ -303,15 +341,28 @@ func Login(username string, password string) (Token, error) {
 			token.SessionId = c.Value
 		}
 	}
-	err = SetToken(token)
+
+	// Create AccountToken with full auth context and store it
+	accountToken := FromToken(token, authMode, authHost, studioId)
+	err = AddAccountToken(accountToken)
 	if err != nil {
 		return Token{}, err
 	}
 	return token, nil
 }
 
+// Register creates a new user account on Clustta Cloud
 func Register(firstName, lastName, username, email, password, confirmPassword string) (User, error) {
-	url := constants.HOST + "/auth/register"
+	return RegisterWithHost(firstName, lastName, username, email, password, confirmPassword, DefaultAuthHost)
+}
+
+// RegisterWithHost creates a new user account on a specified authentication host
+func RegisterWithHost(firstName, lastName, username, email, password, confirmPassword, authHost string) (User, error) {
+	if authHost == "" {
+		authHost = DefaultAuthHost
+	}
+
+	url := authHost + "/auth/register"
 	jsonBody := fmt.Sprintf("{\"first_name\": \"%s\", \"last_name\": \"%s\", \"username\": \"%s\", \"email\": \"%s\", \"password\": \"%s\", \"confirm_password\": \"%s\"}",
 		firstName, lastName, username, email, password, confirmPassword)
 	response, err := http.Post(url, "application/json", strings.NewReader(jsonBody))
@@ -344,7 +395,12 @@ func Register(firstName, lastName, username, email, password, confirmPassword st
 }
 
 func UpdateUser(firstName, lastName, username, email string) (User, error) {
-	url := constants.HOST + "/person/update"
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return User{}, fmt.Errorf("cannot update user in offline mode")
+	}
+
+	url := authHost + "/person/update"
 	jsonBody := fmt.Sprintf("{\"first_name\": \"%s\", \"last_name\": \"%s\", \"username\": \"%s\", \"email\": \"%s\"}",
 		firstName, lastName, username, email)
 
@@ -390,7 +446,17 @@ func UpdateUser(firstName, lastName, username, email string) (User, error) {
 }
 
 func Logout() error {
-	url := constants.HOST + "/auth/logout"
+	// If in offline mode, just remove the offline account
+	if IsOfflineMode() {
+		return DeleteToken()
+	}
+
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return DeleteToken()
+	}
+
+	url := authHost + "/auth/logout"
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -433,7 +499,12 @@ func Logout() error {
 }
 
 func CheckUsernameExists(username string) (bool, error) {
-	url := constants.HOST + "/auth/username-exists/" + username
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return false, fmt.Errorf("cannot check username in offline mode")
+	}
+
+	url := authHost + "/auth/username-exists/" + username
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return false, err
@@ -463,7 +534,12 @@ func CheckUsernameExists(username string) (bool, error) {
 }
 
 func CheckEmailExists(email string) (bool, error) {
-	url := constants.HOST + "/auth/email-exists/" + email
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return false, fmt.Errorf("cannot check email in offline mode")
+	}
+
+	url := authHost + "/auth/email-exists/" + email
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return false, err
@@ -493,7 +569,12 @@ func CheckEmailExists(email string) (bool, error) {
 }
 
 func UpdateUserPhoto(photo []byte) error {
-	url := constants.HOST + "/person/photo"
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return fmt.Errorf("cannot update photo in offline mode")
+	}
+
+	url := authHost + "/person/photo"
 	fmt.Println(url)
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
@@ -536,7 +617,12 @@ func UpdateUserPhoto(photo []byte) error {
 }
 
 func DeactivateUserAccount() error {
-	url := constants.HOST + "/person/deactivate-account"
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return fmt.Errorf("cannot deactivate account in offline mode")
+	}
+
+	url := authHost + "/person/deactivate-account"
 	req, err := http.NewRequest("POST", url, nil)
 	if err != nil {
 		return err
@@ -581,7 +667,12 @@ func SendInvitationEmail(email, studioName, projectName string) error {
 		return fmt.Errorf("failed to marshal request data: %v", err)
 	}
 
-	url := constants.HOST + "/auth/send-invitation"
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return fmt.Errorf("cannot send invitation in offline mode")
+	}
+
+	url := authHost + "/auth/send-invitation"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %v", err)
@@ -613,6 +704,11 @@ func SendInvitationEmail(email, studioName, projectName string) error {
 }
 
 func VerifyOTP(email, token string) error {
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return fmt.Errorf("cannot verify OTP in offline mode")
+	}
+
 	data := map[string]interface{}{
 		"email": email,
 		"otp":   token,
@@ -623,7 +719,7 @@ func VerifyOTP(email, token string) error {
 		return fmt.Errorf("failed to marshal request data: %v", err)
 	}
 
-	url := constants.HOST + "/auth/verify-otp"
+	url := authHost + "/auth/verify-otp"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %v", err)
@@ -648,6 +744,11 @@ func VerifyOTP(email, token string) error {
 }
 
 func ResendToken(email string) error {
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return fmt.Errorf("cannot resend token in offline mode")
+	}
+
 	data := map[string]interface{}{
 		"email": email,
 	}
@@ -657,7 +758,7 @@ func ResendToken(email string) error {
 		return fmt.Errorf("failed to marshal request data: %v", err)
 	}
 
-	url := constants.HOST + "/auth/token/resend"
+	url := authHost + "/auth/token/resend"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %v", err)
@@ -682,6 +783,11 @@ func ResendToken(email string) error {
 }
 
 func ChangePassword(currentPassword, newPassword, confirmPassword string) error {
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return fmt.Errorf("cannot change password in offline mode")
+	}
+
 	data := map[string]interface{}{
 		"password":         currentPassword,
 		"new_password":     newPassword,
@@ -693,7 +799,7 @@ func ChangePassword(currentPassword, newPassword, confirmPassword string) error 
 		return fmt.Errorf("failed to marshal request data: %v", err)
 	}
 
-	url := constants.HOST + "/auth/change-password"
+	url := authHost + "/auth/change-password"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %v", err)
@@ -725,20 +831,78 @@ func ChangePassword(currentPassword, newPassword, confirmPassword string) error 
 }
 
 func ResetPassword(email string) error {
-	url := constants.HOST + "/auth/reset-password"
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return fmt.Errorf("cannot reset password in offline mode")
+	}
+
+	url := authHost + "/auth/reset-password"
 	jsonBody := fmt.Sprintf("{\"email\": \"%s\"}", email)
 	response, err := http.Post(url, "application/json", strings.NewReader(jsonBody))
 	if err != nil {
 		return err
 	}
 	defer response.Body.Close()
-	
+
 	if response.StatusCode != 200 {
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
 			return err
 		}
 		return errors.New(string(body))
+	}
+
+	return nil
+}
+
+func SubmitDiagnostics(email, description, os, arch, clusttaVersion, logContents string) error {
+	type requestData struct {
+		Email           string `json:"email"`
+		Description     string `json:"description"`
+		OS              string `json:"os"`
+		Arch            string `json:"arch"`
+		ClusttaVersion  string `json:"clustta_version"`
+		LogContents     string `json:"log_contents"`
+	}
+
+	data := requestData{
+		Email:           email,
+		Description:     description,
+		OS:              os,
+		Arch:            arch,
+		ClusttaVersion:  clusttaVersion,
+		LogContents:     logContents,
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request data: %v", err)
+	}
+
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return fmt.Errorf("cannot submit diagnostics in offline mode")
+	}
+
+	url := authHost + "/auth/submit-diagnostics"
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to submit diagnostics: %s", string(body))
 	}
 
 	return nil

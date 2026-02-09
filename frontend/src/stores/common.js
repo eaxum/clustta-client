@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import {
   SettingsService,
-} from "@/../bindings/clustta/services/index";
+} from "@/services";
 
 let defaultUseGrid = true;
 await SettingsService.GetUseGrid()
@@ -35,6 +35,8 @@ export const useCommonStore = defineStore("common", {
     navigatorMode: false,
     useGrid: defaultUseGrid,
     viewMode: defaultUseGrid ? 'grid' : 'compact',
+    sortBy: 'name',
+    sortOrder: 'asc',
     gridSize: 200,
     listItemHeight: 60,
     listItemGap: 4,
@@ -131,16 +133,19 @@ export const useCommonStore = defineStore("common", {
       this.listItemGap = 4;
       this.listItemHeight = 60;
     },
-    setLargerView() {
-      this.viewMode = 'larger';
-      this.useGrid = false;
-      this.listItemGap = 10;
-      this.listItemHeight = 70;
-    },
     setGridView() {
       this.viewMode = 'grid';
       this.useGrid = true;
-      // Keep existing grid settings
+    },
+    setKanbanView() {
+      this.viewMode = 'kanban';
+      this.useGrid = false;
+    },
+    setListView() {
+      this.viewMode = 'compact';
+      this.useGrid = false;
+      this.listItemGap = 4;
+      this.listItemHeight = 60;
     },
   },
 });

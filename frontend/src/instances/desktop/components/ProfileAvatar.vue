@@ -6,7 +6,7 @@
         <img v-else class="avatar-img" :src="getAppIcon('person')" alt="Default Avatar">
       </div>
       
-      <div v-if="isEditing" class="avatar-overlay">
+      <div v-if="isEditing && !readonly" class="avatar-overlay">
         <div class="avatar-actions">
           <button 
             class="avatar-action-button" 
@@ -32,7 +32,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useIconStore } from '@/stores/icons';
-import { DialogService, FSService } from '@/../bindings/clustta/services';
+import { DialogService, FSService } from '@/services';
 import utils from '@/services/utils';
 
 const iconStore = useIconStore();
@@ -53,6 +53,10 @@ const props = defineProps({
   size: {
     type: String,
     default: 'large' // large, medium, small
+  },
+  readonly: {
+    type: Boolean,
+    default: false
   }
 });
 

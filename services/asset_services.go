@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"clustta/internal/auth_service"
+	"clustta/internal/error_service"
 	"clustta/internal/ignore"
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
@@ -13,6 +14,7 @@ import (
 	"fmt"
 	"io/fs"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -82,6 +84,22 @@ func (t *AssetService) GetAssetByID(projectPath, assetId string) (models.Task, e
 	return repository.GetTask(tx, assetId)
 }
 
+// GetAssetByPath retrieves an asset by its task_path.
+// Returns the asset or an error if not found.
+func (t *AssetService) GetAssetByPath(projectPath, taskPath string) (models.Task, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return models.Task{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return models.Task{}, err
+	}
+	defer tx.Rollback()
+	return repository.GetTaskByPath(tx, taskPath)
+}
+
 func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, entityId string, isResource bool, templateId, templateFilePath, pointer string, isLink bool, tags []string, previewPath, comment string) (models.Task, error) {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
@@ -118,7 +136,7 @@ func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, e
 			Total:         2,
 			OperationType: "write", // Write operation - creates database records
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 	}
 
 	createdTask, err := repository.CreateTask(
@@ -166,12 +184,14 @@ func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, e
 			Total:         1,
 			OperationType: "write",
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 	}
 	return createdTask, nil
 }
 
-func (t *AssetService) DuplicateAsset(projectPath, sourceTaskId string) (models.Task, error) {
+// DuplicateAsset duplicates a task to the same or a different collection.
+// If targetEntityId is empty, the task is duplicated in the same collection as the source.
+func (t *AssetService) DuplicateAsset(projectPath, sourceTaskId, targetEntityId string) (models.Task, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.Task{}, err
@@ -189,20 +209,33 @@ func (t *AssetService) DuplicateAsset(projectPath, sourceTaskId string) (models.
 		return models.Task{}, err
 	}
 
-	// Generate unique name by checking for conflicts
-	baseName := sourceTask.Name + "-duplicate"
+	// Determine target entity: use provided targetEntityId or fall back to source's entity
+	destinationEntityId := targetEntityId
+	if destinationEntityId == "" {
+		destinationEntityId = sourceTask.EntityId
+	}
+
+	// Generate unique name by checking for conflicts in the destination entity
+	baseName := sourceTask.Name
+	if destinationEntityId == sourceTask.EntityId {
+		baseName = sourceTask.Name + "-duplicate"
+	}
 	newName := baseName
 	counter := 1
 
-	// Check for name conflicts in the same entity
+	// Check for name conflicts in the destination entity
 	for {
-		_, err := repository.GetTaskByName(tx, newName, sourceTask.EntityId, sourceTask.Extension)
+		_, err := repository.GetTaskByName(tx, newName, destinationEntityId, sourceTask.Extension)
 		if err != nil {
 			// Task with this name doesn't exist, so we can use it
 			break
 		}
 		// Task exists, try with number suffix
-		newName = fmt.Sprintf("%s-%d", baseName, counter)
+		if destinationEntityId == sourceTask.EntityId {
+			newName = fmt.Sprintf("%s-%d", baseName, counter)
+		} else {
+			newName = fmt.Sprintf("%s (%d)", baseName, counter)
+		}
 		counter++
 	}
 
@@ -216,7 +249,7 @@ func (t *AssetService) DuplicateAsset(projectPath, sourceTaskId string) (models.
 		utils.GetCurrentTime(),
 		newName,
 		sourceTask.TaskTypeId,
-		sourceTask.EntityId,
+		destinationEntityId,
 		sourceTask.StatusId,
 		sourceTask.Extension,
 		sourceTask.Description,
@@ -291,6 +324,278 @@ func (t *AssetService) DuplicateAsset(projectPath, sourceTaskId string) (models.
 	return duplicatedTask, nil
 }
 
+// CopyAssetToProject copies an asset from one project to another, including metadata, checkpoints, chunks, and previews.
+// If targetEntityId is empty, the asset is copied to the root of the target project.
+// If copyAllCheckpoints is false, only the latest checkpoint is copied.
+func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceTaskId, targetProjectPath, targetEntityId string, copyAllCheckpoints bool) (models.Task, error) {
+	app := application.Get()
+
+	// Open source database
+	sourceDbConn, err := utils.OpenDb(sourceProjectPath)
+	if err != nil {
+		return models.Task{}, fmt.Errorf("failed to open source project: %w", err)
+	}
+	defer sourceDbConn.Close()
+
+	sourceTx, err := sourceDbConn.Beginx()
+	if err != nil {
+		return models.Task{}, err
+	}
+	defer sourceTx.Rollback()
+
+	// Open target database
+	targetDbConn, err := utils.OpenDb(targetProjectPath)
+	if err != nil {
+		return models.Task{}, fmt.Errorf("failed to open target project: %w", err)
+	}
+	defer targetDbConn.Close()
+
+	targetTx, err := targetDbConn.Beginx()
+	if err != nil {
+		return models.Task{}, err
+	}
+	defer targetTx.Rollback()
+
+	// Get the source task
+	sourceTask, err := repository.GetTask(sourceTx, sourceTaskId)
+	if err != nil {
+		return models.Task{}, fmt.Errorf("failed to get source task: %w", err)
+	}
+
+	// Emit progress
+	progress := output.ProgressReport{
+		Title:         "Copying Asset",
+		Message:       sourceTask.Name,
+		Percentage:    10,
+		OperationType: "write",
+	}
+	app.Event.Emit("progress-update", progress)
+
+	// Map task type - find equivalent in target project by name, or use "Generic"
+	var targetTaskTypeId string
+	if sourceTask.TaskTypeName != "" {
+		targetTaskType, err := repository.GetTaskTypeByName(targetTx, sourceTask.TaskTypeName)
+		if err == nil {
+			targetTaskTypeId = targetTaskType.Id
+		}
+	}
+	if targetTaskTypeId == "" {
+		// Fall back to Generic
+		genericTaskType, err := repository.GetTaskTypeByName(targetTx, "Generic")
+		if err == nil {
+			targetTaskTypeId = genericTaskType.Id
+		} else {
+			// Create Generic if it doesn't exist
+			genericTaskType, err = repository.GetOrCreateTaskType(targetTx, "Generic", "")
+			if err != nil {
+				return models.Task{}, fmt.Errorf("failed to get or create Generic task type: %w", err)
+			}
+			targetTaskTypeId = genericTaskType.Id
+		}
+	}
+
+	// Map status - find equivalent in target project or use first available
+	var targetStatusId string
+	if sourceTask.StatusShortName != "" {
+		targetStatus, err := repository.GetStatusByShortName(targetTx, sourceTask.StatusShortName)
+		if err == nil {
+			targetStatusId = targetStatus.Id
+		}
+	}
+	if targetStatusId == "" {
+		// Get first available status
+		statuses, err := repository.GetStatuses(targetTx)
+		if err == nil && len(statuses) > 0 {
+			targetStatusId = statuses[0].Id
+		}
+	}
+
+	// Generate unique name by checking for conflicts in target project
+	baseName := sourceTask.Name
+	newName := baseName
+	counter := 1
+
+	for {
+		_, err := repository.GetTaskByName(targetTx, newName, targetEntityId, sourceTask.Extension)
+		if err != nil {
+			// Task with this name doesn't exist, we can use it
+			break
+		}
+		// Task exists, try with number suffix
+		newName = fmt.Sprintf("%s-%d", baseName, counter)
+		counter++
+	}
+
+	progress.Percentage = 20
+	progress.Message = "Creating asset in target project"
+	app.Event.Emit("progress-update", progress)
+
+	// Generate new task ID
+	newTaskId := uuid.New().String()
+
+	// Copy preview if exists
+	var newPreviewId string
+	if sourceTask.PreviewId != "" {
+		sourcePreview, err := repository.GetPreview(sourceTx, sourceTask.PreviewId)
+		if err == nil {
+			// Add preview to target project if it doesn't exist
+			err = repository.AddPreview(targetTx, sourcePreview.Hash, sourcePreview.Preview, sourcePreview.Extension)
+			if err == nil {
+				newPreviewId = sourcePreview.Hash
+			}
+		}
+	}
+
+	// Create the task in target project
+	err = repository.AddTask(
+		targetTx,
+		newTaskId,
+		utils.GetCurrentTime(),
+		newName,
+		targetTaskTypeId,
+		targetEntityId,
+		targetStatusId,
+		sourceTask.Extension,
+		sourceTask.Description,
+		[]string{}, // Don't copy tags (they may not exist in target project)
+		"",         // No pointer (file path will be different in target project)
+		false,      // Not a link
+		"",         // No assignee
+		newPreviewId,
+	)
+	if err != nil {
+		return models.Task{}, fmt.Errorf("failed to create task in target project: %w", err)
+	}
+
+	progress.Percentage = 30
+	progress.Message = "Copying checkpoints"
+	app.Event.Emit("progress-update", progress)
+
+	// Get checkpoints to copy
+	var checkpointsToCopy []models.Checkpoint
+	if copyAllCheckpoints {
+		checkpointsToCopy, err = repository.GetCheckpoints(sourceTx, sourceTaskId, false)
+		if err != nil && err.Error() != "no checkpoints" {
+			return models.Task{}, fmt.Errorf("failed to get checkpoints: %w", err)
+		}
+	} else {
+		latestCheckpoint, err := repository.GetLatestCheckpoint(sourceTx, sourceTaskId)
+		if err != nil && err.Error() != "no checkpoints" {
+			return models.Task{}, fmt.Errorf("failed to get latest checkpoint: %w", err)
+		}
+		if latestCheckpoint.Id != "" {
+			checkpointsToCopy = []models.Checkpoint{latestCheckpoint}
+		}
+	}
+
+	// Copy each checkpoint
+	totalCheckpoints := len(checkpointsToCopy)
+	for i, checkpoint := range checkpointsToCopy {
+		progressPercent := 30 + (50 * (i + 1) / max(totalCheckpoints, 1))
+		progress.Percentage = float64(progressPercent)
+		progress.Message = fmt.Sprintf("Copying checkpoint %d of %d", i+1, totalCheckpoints)
+		app.Event.Emit("progress-update", progress)
+
+		// Copy checkpoint preview if exists
+		var checkpointPreviewId string
+		if checkpoint.PreviewId != "" {
+			checkpointPreview, err := repository.GetPreview(sourceTx, checkpoint.PreviewId)
+			if err == nil {
+				err = repository.AddPreview(targetTx, checkpointPreview.Hash, checkpointPreview.Preview, checkpointPreview.Extension)
+				if err == nil {
+					checkpointPreviewId = checkpointPreview.Hash
+				}
+			}
+		}
+
+		// Copy chunks for this checkpoint
+		if checkpoint.Chunks != "" {
+			chunkHashes := strings.Split(checkpoint.Chunks, ",")
+			for _, chunkHash := range chunkHashes {
+				if chunkHash == "" {
+					continue
+				}
+				// Check if chunk already exists in target
+				var existingHash string
+				targetTx.Get(&existingHash, "SELECT hash FROM chunk WHERE hash = ?", chunkHash)
+				if existingHash != "" {
+					continue // Chunk already exists
+				}
+
+				// Get chunk from source
+				var chunk struct {
+					Hash string `db:"hash"`
+					Data []byte `db:"data"`
+					Size int    `db:"size"`
+				}
+				err := sourceTx.Get(&chunk, "SELECT hash, data, size FROM chunk WHERE hash = ?", chunkHash)
+				if err != nil {
+					continue // Skip if chunk not found
+				}
+
+				// Insert chunk into target
+				_, err = targetTx.Exec("INSERT INTO chunk (hash, data, size) VALUES (?, ?, ?)",
+					chunk.Hash, chunk.Data, chunk.Size)
+				if err != nil {
+					// Ignore duplicate errors
+					continue
+				}
+			}
+		}
+
+		// Generate new checkpoint ID and group ID
+		newCheckpointId := uuid.New().String()
+		newGroupId := uuid.New().String()
+
+		// Add checkpoint to target project
+		err = repository.AddCheckpoint(
+			targetTx,
+			newCheckpointId,
+			utils.GetEpochTime(),
+			newTaskId,
+			checkpoint.XXHashChecksum,
+			checkpoint.TimeModified,
+			checkpoint.FileSize,
+			checkpoint.Comment,
+			checkpoint.Chunks,
+			checkpoint.AuthorUID,
+			checkpointPreviewId,
+			false, // Not synced
+		)
+		if err != nil {
+			return models.Task{}, fmt.Errorf("failed to add checkpoint: %w", err)
+		}
+
+		// Update the checkpoint with the group ID
+		_, err = targetTx.Exec("UPDATE task_checkpoint SET group_id = ? WHERE id = ?", newGroupId, newCheckpointId)
+		if err != nil {
+			return models.Task{}, fmt.Errorf("failed to update checkpoint group: %w", err)
+		}
+	}
+
+	progress.Percentage = 90
+	progress.Message = "Finalizing"
+	app.Event.Emit("progress-update", progress)
+
+	// Get the newly created task
+	newTask, err := repository.GetTask(targetTx, newTaskId)
+	if err != nil {
+		return models.Task{}, fmt.Errorf("failed to get created task: %w", err)
+	}
+
+	// Commit target transaction
+	err = targetTx.Commit()
+	if err != nil {
+		return models.Task{}, fmt.Errorf("failed to commit changes: %w", err)
+	}
+
+	progress.Percentage = 100
+	progress.Message = "Complete"
+	app.Event.Emit("progress-update", progress)
+
+	return newTask, nil
+}
+
 func (t *AssetService) ChangeStatus(projectPath, taskId, statusId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -314,7 +619,10 @@ func (t *AssetService) ChangeStatus(projectPath, taskId, statusId string) error 
 	return nil
 }
 
-func (t *AssetService) ChangeAssetCollection(projectPath, taskId, entityId string) error {
+// ChangeAssetCollection moves one or more assets to a different collection.
+// Checks for name+extension conflicts in the target collection before moving.
+// Returns an error if any asset would conflict or if the operation fails.
+func (t *AssetService) ChangeAssetCollection(projectPath string, assetIds []string, entityId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -326,13 +634,129 @@ func (t *AssetService) ChangeAssetCollection(projectPath, taskId, entityId strin
 	}
 	defer tx.Rollback()
 
-	repository.ChangeEntity(tx, taskId, entityId)
+	var conflicts []string
+	for _, assetId := range assetIds {
+		asset, err := repository.GetTask(tx, assetId)
+		if err != nil {
+			return err
+		}
+		if asset.EntityId == entityId {
+			continue
+		}
+		_, err = repository.GetTaskByName(tx, asset.Name, entityId, asset.Extension)
+		if err == nil {
+			conflicts = append(conflicts, asset.Name+asset.Extension)
+		} else if err != error_service.ErrTaskNotFound {
+			return err
+		}
+	}
+
+	if len(conflicts) > 0 {
+		return fmt.Errorf("assets with the same name and extension already exist in the target collection: %s", strings.Join(conflicts, ", "))
+	}
+
+	for _, assetId := range assetIds {
+		repository.ChangeEntity(tx, assetId, entityId)
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
+// MoveAssetsToCollection moves one or more assets to a different collection.
+// Updates the database and moves the physical files if they exist on disk.
+// Checks for name+extension conflicts in the target collection before moving.
+// Returns an error if any asset would conflict or if the operation fails.
+func (t *AssetService) MoveAssetsToCollection(projectPath string, assetIds []string, targetEntityId string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Get target directory path
+	var targetDir string
+	if targetEntityId == "" {
+		// Moving to root - use project's working directory
+		targetDir, err = utils.GetProjectWorkingDir(tx)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Moving to a collection - get its file path
+		targetEntity, err := repository.GetEntity(tx, targetEntityId)
+		if err != nil {
+			return err
+		}
+		targetDir = targetEntity.FilePath
+	}
+
+	// Check for name+extension conflicts in target collection
+	var conflicts []string
+	var assetsToMove []models.Task
+	for _, assetId := range assetIds {
+		asset, err := repository.GetTask(tx, assetId)
+		if err != nil {
+			return err
+		}
+		// Skip if already in target collection
+		if asset.EntityId == targetEntityId {
+			continue
+		}
+		// Check if a task with same name+extension exists in target collection
+		_, err = repository.GetTaskByName(tx, asset.Name, targetEntityId, asset.Extension)
+		if err == nil {
+			// Task exists - this is a conflict
+			conflicts = append(conflicts, asset.Name+asset.Extension)
+		} else if err != error_service.ErrTaskNotFound {
+			// Some other error occurred
+			return err
+		}
+		assetsToMove = append(assetsToMove, asset)
+	}
+
+	if len(conflicts) > 0 {
+		return fmt.Errorf("assets with the same name and extension already exist in the target collection: %s", strings.Join(conflicts, ", "))
+	}
+
+	// No conflicts - proceed with move
+	// Ensure target directory exists
+	os.MkdirAll(targetDir, os.ModePerm)
+
+	// Move files and update database
+	for _, asset := range assetsToMove {
+		// Calculate new file path
+		fileName := asset.Name + asset.Extension
+		newFilePath := filepath.Join(targetDir, fileName)
+
+		// Move file if it exists on disk
+		if asset.FilePath != "" {
+			if _, err := os.Stat(asset.FilePath); err == nil {
+				err = os.Rename(asset.FilePath, newFilePath)
+				if err != nil {
+					return fmt.Errorf("failed to move file %s: %w", asset.Name, err)
+				}
+			}
+		}
+
+		// Update database
+		repository.ChangeEntity(tx, asset.Id, targetEntityId)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (t *AssetService) DeleteAsset(projectPath, taskId string, removeFiles bool) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -486,6 +910,8 @@ func (t *AssetService) AddPreview(projectPath, taskId, previewPath string) (mode
 	return updatedTask, nil
 }
 
+// AssignAsset assigns a task to a user.
+// If the task is a resource (is_resource == true), it will be converted to a task first.
 func (t *AssetService) AssignAsset(projectPath, taskId, userId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -498,9 +924,20 @@ func (t *AssetService) AssignAsset(projectPath, taskId, userId string) error {
 	}
 	defer tx.Rollback()
 
+	task, err := repository.GetTask(tx, taskId)
+	if err != nil {
+		return err
+	}
+
+	if task.IsResource {
+		err = repository.ToggleIsTask(tx, taskId, true)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = repository.AssignTask(tx, taskId, userId)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 	err = tx.Commit()

@@ -4,77 +4,93 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import {Call as $Call, Create as $Create} from "@wailsio/runtime";
+import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as auth_service$0 from "../internal/auth_service/models.js";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as $models from "./models.js";
+
 /**
  * AddAccount adds a new account (used after login)
  * @param {auth_service$0.Token} token
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function AddAccount(token) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2147627074, token));
-    return $resultPromise;
+    return $Call.ByID(2147627074, token);
 }
 
 /**
  * GetAccountCount returns the number of stored accounts
- * @returns {Promise<number> & { cancel(): void }}
+ * @returns {$CancellablePromise<number>}
  */
 export function GetAccountCount() {
-    let $resultPromise = /** @type {any} */($Call.ByID(2478566958));
-    return $resultPromise;
+    return $Call.ByID(2478566958);
 }
 
 /**
- * GetActiveAccount returns the currently active account
- * @returns {Promise<auth_service$0.Token> & { cancel(): void }}
+ * GetActiveAccount returns the currently active account (basic Token for backward compatibility)
+ * @returns {$CancellablePromise<auth_service$0.Token>}
  */
 export function GetActiveAccount() {
-    let $resultPromise = /** @type {any} */($Call.ByID(2403916301));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(2403916301).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
- * GetAllAccounts returns all stored user accounts
- * @returns {Promise<{ [_: string]: auth_service$0.Token }> & { cancel(): void }}
+ * GetActiveAccountWithContext returns the currently active account with full auth context
+ * @returns {$CancellablePromise<$models.AccountInfo>}
  */
-export function GetAllAccounts() {
-    let $resultPromise = /** @type {any} */($Call.ByID(3398964055));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+export function GetActiveAccountWithContext() {
+    return $Call.ByID(3378394040).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
+}
+
+/**
+ * GetAllAccounts returns all stored user accounts (basic Token for backward compatibility)
+ * @returns {$CancellablePromise<{ [_: string]: auth_service$0.Token }>}
+ */
+export function GetAllAccounts() {
+    return $Call.ByID(3398964055).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType2($result);
+    }));
+}
+
+/**
+ * GetAllAccountsWithContext returns all stored accounts with full auth context
+ * @returns {$CancellablePromise<{ [_: string]: $models.AccountInfo }>}
+ */
+export function GetAllAccountsWithContext() {
+    return $Call.ByID(2841620102).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType3($result);
+    }));
 }
 
 /**
  * RemoveAccount removes an account from storage
  * @param {string} userId
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function RemoveAccount(userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(137549699, userId));
-    return $resultPromise;
+    return $Call.ByID(137549699, userId);
 }
 
 /**
  * SwitchAccount changes the active account
  * @param {string} userId
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function SwitchAccount(userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3685889719, userId));
-    return $resultPromise;
+    return $Call.ByID(3685889719, userId);
 }
 
 // Private type creation functions
 const $$createType0 = auth_service$0.Token.createFrom;
-const $$createType1 = $Create.Map($Create.Any, $$createType0);
+const $$createType1 = $models.AccountInfo.createFrom;
+const $$createType2 = $Create.Map($Create.Any, $$createType0);
+const $$createType3 = $Create.Map($Create.Any, $$createType1);

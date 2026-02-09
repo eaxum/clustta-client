@@ -21,7 +21,7 @@
               :fixedWidth="true" />
           </div>
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('bookmark')" :label="'Library'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="'Library'" />
 
             <ToggleSwitch v-tooltip="collectionStore.selectedCollection.is_library ? 'Unmark as library' : 'Mark as a library'"
               @click="changeIsLibrary" :switchValueProp="collectionStore.selectedCollection.is_library" />
@@ -65,7 +65,7 @@
             <div class="simple-text-value" >
               {{ collectionStore.selectedCollection.file_path }}
             </div>
-            <div class="pane-parameter-actions">
+            <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
               <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy Path'" @click="copyEntityPath('entity')"/>
               <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="'Reveal in Explorer'" :buttonFunction="revealInExplorer"/>
             </div>
@@ -116,8 +116,9 @@ const getAppIcon = (iconName) => {
   return icon
 };
 
-import { ClipboardService, CollectionService } from "@/../bindings/clustta/services";
-import { FSService } from '@/../bindings/clustta/services/index';
+import { CollectionService } from "@/services";
+import { FSService } from '@/services';
+import { Clipboard } from '@wailsio/runtime';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import AssigneeItem from '@/instances/common/components/AssigneeItem.vue'
 
@@ -132,6 +133,7 @@ import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
+import { usePlatformStore } from '@/stores/platform';
 
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -147,6 +149,7 @@ const modals = useDesktopModalStore();
 const stage = useStageStore();
 const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
+const platformStore = usePlatformStore();
 
 // vars
 let placeholder = 'Search collaborators';
@@ -190,7 +193,8 @@ const copyEntityPath = async () => {
   let entity = collectionStore.selectedCollection;
   let entityDir = entity.file_path;
   entityDir = entityDir.replace(/\\/g, '/');
-  await ClipboardService.WriteText(entityDir);
+  FSService.MakeDirs(entityDir);
+  await Clipboard.SetText(entityDir);
   const message = 'Path copied to clipboard';
   notificationStore.addNotification(message, "", "success");
 };

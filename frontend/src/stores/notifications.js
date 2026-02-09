@@ -1,7 +1,10 @@
 import { defineStore } from "pinia";
 import { Events } from "@wailsio/runtime";
-import { LogService } from "@/../bindings/clustta/services/index";
+import { LogService } from "@/services";
 import { useProjectStore } from "./projects";
+import { usePlatformStore } from "./platform";
+import emitter from "@/lib/mitt";
+import { friendlyErrorMessage } from "@/lib/errors";
 
 export const useNotificationStore = defineStore("notifications", {
   state: () => ({
@@ -43,8 +46,14 @@ export const useNotificationStore = defineStore("notifications", {
         this.resetProgress();
         LogService.LogError(longMessage);
       }
-      let eventData = new Events.WailsEvent("add_message", notification);
-      Events.Emit(eventData);
+      
+      // Use mitt for web mode, Wails Events for desktop
+      const platformStore = usePlatformStore();
+      if (platformStore.isWeb) {
+        emitter.emit("add_message", notification);
+      } else {
+        Events.Emit("add_message", notification);
+      }
 
       const projectStore = useProjectStore();
       projectStore.refreshActiveProject();
@@ -52,23 +61,47 @@ export const useNotificationStore = defineStore("notifications", {
     errorNotification(defaultMessage, error) {
       // remove "Error calling method:" from beginning of error message if present
       let errorMesage;
-      if (typeof error === "string" || error instanceof String) {
-        errorMesage = error;
+      if (!error) {
+        errorMesage = defaultMessage || 'An unknown error occurred';
+      } else if (typeof error === "string" || error instanceof String) {
+        try {
+          const parsed = JSON.parse(error);
+          errorMesage = parsed.message || error;
+        } catch {
+          errorMesage = error;
+        }
       } else {
-        errorMesage = error.message;
+        errorMesage = error.message || error.toString() || defaultMessage || 'An unknown error occurred';
+      }
+
+      // Extract message from JSON-encoded error strings (e.g. 'Error: {"message":"...","kind":"RuntimeError"}')
+      if (errorMesage) {
+        const jsonMatch = errorMesage.match(/\{.*"message"\s*:\s*".*".*\}/);
+        if (jsonMatch) {
+          try {
+            const parsed = JSON.parse(jsonMatch[0]);
+            errorMesage = parsed.message || errorMesage;
+          } catch {
+            // keep original errorMesage
+          }
+        }
       }
 
       if (errorMesage.startsWith("Error calling method:")) {
         errorMesage = errorMesage.replace("Error calling method: ", "");
       }
       this.resetProgress();
-      console.log(errorMesage);
-      console.log(errorMesage === "cancelled");
+      
       if (errorMesage === "cancelled") {
         return;
       }
-      if (errorMesage === "database is locked") {
-        errorMesage = "project is busy"
+
+      // Map known error codes and patterns to user-friendly messages
+      const friendly = friendlyErrorMessage(errorMesage);
+      if (friendly) {
+        errorMesage = friendly;
+      } else if (errorMesage === "database is locked") {
+        errorMesage = "project is busy";
       }
 
       if (errorMesage.length < 100) {

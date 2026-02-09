@@ -91,7 +91,7 @@ onMounted(() => {
   align-items: center;
   overflow: hidden;
   height: max-content;
-  gap: .5rem;
+  gap: .2rem;
   padding: .3rem 0;
   color: var(--white);
   /* background-color: firebrick; */

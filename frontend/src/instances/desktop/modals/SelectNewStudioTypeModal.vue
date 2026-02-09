@@ -39,55 +39,27 @@
 </template>
 
 <script setup>
-
 // imports
-import { ref, onMounted, computed } from 'vue';
-
-// state imports
-import { useTrayStates } from '@/stores/TrayStates';
-
-// store imports
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useIconStore } from '@/stores/icons';
+import { onMounted, ref } from 'vue';
 
 // components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import AppsGrid from '@/instances/common/components/AppsGrid.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-import { useTemplateStore } from '@/stores/template';
-
-// states
-const trayStates = useTrayStates();
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
 // stores
-const modals = useDesktopModalStore();
 const iconStore = useIconStore();
+const modals = useDesktopModalStore();
 const templateStore = useTemplateStore();
+const trayStates = useTrayStates();
 
-// refs
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useTemplateStore } from '@/stores/template';
+import { useTrayStates } from '@/stores/TrayStates';
+
+// constants
 const showSearch = false;
-const selectedTemplate = ref('');
-const modalContainer = ref(null);
-const selectedStudioType = ref('clustta-cloud'); // Default to first option
-
-// functions
-const selectStudioType = (type) => {
-  selectedStudioType.value = type;
-};
-
-const closeModal = () => {
-  modals.disableAllModals();
-};
-
-const handleNext = () => {
-  if (selectedStudioType.value === 'self-managed') {
-    // Trigger the config self-managed studio modal
-    modals.setModalVisibility('configSelfManagedStudioModal', true);
-  } else if (selectedStudioType.value === 'clustta-cloud') {
-    // Trigger the config clustta-cloud studio modal
-    modals.setModalVisibility('configClusttaCloudStudioModal', true);
-  }
-};
+const title = 'New Studio';
 
 // studio types data
 const studioTypes = ref([
@@ -106,16 +78,39 @@ const studioTypes = ref([
   }
 ]);
 
-// computed properties
-const title = 'New Studio';
-const icon = '/icons/new_task.svg';
+// refs
+const modalContainer = ref(null);
+const selectedStudioType = ref('clustta-cloud');
+const selectedTemplate = ref('');
 
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon;
+// methods
+
+// Closes the modal.
+const closeModal = () => {
+  modals.disableAllModals();
 };
 
-// onMounted hook
+// Returns the app icon for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Handles the next button click to open the appropriate config modal.
+const handleNext = () => {
+  if (selectedStudioType.value === 'self-managed') {
+    modals.setModalVisibility('configSelfManagedStudioModal', true);
+  } else if (selectedStudioType.value === 'clustta-cloud') {
+    modals.setModalVisibility('configClusttaCloudStudioModal', true);
+  }
+};
+
+// Selects a studio type.
+const selectStudioType = (type) => {
+  selectedStudioType.value = type;
+  handleNext();
+};
+
+// lifecycle
 onMounted(() => {
   trayStates.tagSearchQuery = '';
   trayStates.itemTags = [];
@@ -124,11 +119,8 @@ onMounted(() => {
     selectedTemplate.value = templateStore.lastUsedTemplate;
   } else {
     selectedTemplate.value = templateStore.templates[0]?.name;
-  };
-
+  }
 });
-
-
 </script>
 
 

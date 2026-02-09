@@ -40,7 +40,7 @@ import { useProjectStore } from '@/stores/projects';
 import ScrollList from '@/instances/desktop/components/ScrollList.vue';
 import ActionBar from '@/instances/desktop/components/ActionBar.vue';
 import PageState from '@/instances/common/components/PageState.vue';
-import { UserService } from '@/../bindings/clustta/services/index';
+import { UserService } from '@/services';
 
 // states
 const userStore = useUserStore();
@@ -70,6 +70,7 @@ const projectRoles = computed(() => {
   const roles = projectRoles.map(type => (
     {
       ...type,
+      name: utils.capitalizeStr(type.name),
       icon: getRoleTypeIcon(type.name),
       can_delete: !usedProjectRoleIds.includes(type.id),
       can_edit: type.name !== 'admin',

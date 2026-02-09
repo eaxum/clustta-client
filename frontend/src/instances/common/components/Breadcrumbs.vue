@@ -1,601 +1,482 @@
 <template>
-    <div ref="breadcrumbRoot" class="breadcrumb-root">
-        <ActionButton :icon="getAppIcon('home')"
-            :allowDeactivate="true" v-tooltip="commonStore.navigatorMode ? 'Home' : ''" :label=" commonStore.navigatorMode ? '' : 'Home'" :buttonFunction="goHome" />
-        <ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon('arrow-back-ramp')"
-            :allowDeactivate="true" v-tooltip="'Up a level'" :buttonFunction="goUpALevel" />
+	<div ref="breadcrumbRoot" class="breadcrumb-root">
+		<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon(commonStore.navigatorMode ? 'home' : 'forward-slash')" v-tooltip="'Home'" :buttonFunction="goHome" />
+		<ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Refresh'" :buttonFunction="refresh" />
 
-        <div ref="breadcrumbWrapper" class="breadcrumb-wrapper">
-          <div ref="breadcrumbContainer" class="breadcrumb-container">
+		<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon('arrow-back-ramp')"
+			:allowDeactivate="true" v-tooltip="'Up a level'" :buttonFunction="goUpALevel" />
 
-            <nav class="nav" v-if="path" ref="breadcrumbContent">
-              <ActionButton  @click="toggleOverflowListList()" v-if="showEllipsis" :icon="getAppIcon('dots')" :allowDeactivate="true" />
-              <div v-for="(segment, index) in visibleSegments" :key="`${segment}-${index}`" class="breadcrumb-segment">
-                <ActionButton v-if="path !== 'Home'" :icon="getAppIcon('forward-slash')" :allowDeactivate="true" :label="segment.split('/').pop()" @click="goToCollection(segment)" />
-              </div>
-            </nav>
+		<ActionButton v-if="!commonStore.navigatorMode" :icon="getAppIcon('forward-slash')" v-tooltip="commonStore.navigatorMode ? 'Home' : ''" 
+			:label="projectStore.activeProject?.name" :buttonFunction="goHome" />
 
-          </div>
-        </div>
+		<div ref="breadcrumbWrapper" class="breadcrumb-wrapper">
+			<div ref="breadcrumbContainer" class="breadcrumb-container">
+				<nav v-if="path" ref="breadcrumbContent" class="nav">
+					<ActionButton v-if="showEllipsis" :icon="getAppIcon('dots')" :allowDeactivate="true" @click="toggleOverflowList" />
+					<div v-for="(segment, index) in visibleSegments" :key="`${segment}-${index}`" class="breadcrumb-segment">
+						<ActionButton v-if="path !== 'Home'" :icon="getAppIcon('forward-slash')" :allowDeactivate="true" 
+							:label="segment.split('/').pop()" @click="goToCollection(segment)" />
+					</div>
+				</nav>
+			</div>
+		</div>
 
-        
-      <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyDirectoryPath()"
-        v-tooltip="'Copy Path'" />
-      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="false" :fullWidth="false" @click="revealInExplorer()"
-        v-tooltip="'Show in Explorer'" />
+		<ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" 
+			v-tooltip="'Copy Path'" @click="copyDirectoryPath" />
 
+		<ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-up-right')" :showLabel="false" :fullWidth="false" 
+			v-tooltip="'Show in Explorer'" @click="revealInExplorer" />
+	</div>
 
-    </div>
-
-    <Teleport to="#app">
-      <div v-if="displayOverflowItems" :style="{ top: listItemsAnchor + 'px', left: listItemsLeft + 'px' }"  class="breadcrumb-list-container">
-        <div class="breadcrumb-instance-container">
-          <div v-for="(path, index) in overflowPaths" :key="index" class="breadcrumb-instance" @click="goToCollection(path)">
-            <div class="breadcrumb-instance-meta">
-              <div>{{ path.split('/').pop() }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Teleport>
-
+	<Teleport to="#app">
+		<div v-if="displayOverflowItems" :style="{ top: listItemsAnchor + 'px', left: listItemsLeft + 'px' }" class="breadcrumb-list-container">
+			<div class="breadcrumb-instance-container">
+				<div v-for="(overflowPath, index) in overflowPaths" :key="index" class="breadcrumb-instance" @click="goToCollection(overflowPath)">
+					<div class="breadcrumb-instance-meta">
+						<div>{{ overflowPath.split('/').pop() }}</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</Teleport>
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
-import { CollectionService, ClipboardService, FSService } from '@/../bindings/clustta/services';
+// imports
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { Clipboard } from '@wailsio/runtime';
+import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
-const emit = defineEmits(['filter']);
+// components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
-import { useIconStore } from '@/stores/icons';
-import { useCommonStore } from '@/stores/common';
-import { useCollectionStore } from '@/stores/collections';
-import { useProjectStore } from '@/stores/projects';
-import { useNotificationStore } from '@/stores/notifications';
-import { useStageStore } from '@/stores/stages';
+// services
+import { CollectionService, FSService } from '@/services';
+
+// stores
 import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
+import { useCommonStore } from '@/stores/common';
+import { useIconStore } from '@/stores/icons';
+import { useNotificationStore } from '@/stores/notifications';
+import { usePlatformStore } from '@/stores/platform';
+import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
 
-const stage = useStageStore();
-const iconStore = useIconStore();
-const commonStore = useCommonStore();
-const collectionStore = useCollectionStore();
-const projectStore = useProjectStore();
-const notificationStore = useNotificationStore();
 const assetStore = useAssetStore();
+const collectionStore = useCollectionStore();
+const commonStore = useCommonStore();
+const iconStore = useIconStore();
+const notificationStore = useNotificationStore();
+const platformStore = usePlatformStore();
+const projectStore = useProjectStore();
+const stage = useStageStore();
 
-import ActionButton from '@/instances/desktop/components/ActionButton.vue'
+// refs
+const breadcrumbContainer = ref(null);
+const breadcrumbContent = ref(null);
+const breadcrumbRoot = ref(null);
+const displayOverflowItems = ref(false);
+const overflowPaths = ref([]);
+const resizeObserver = ref(null);
+const showEllipsis = ref(false);
+const visibleSegments = ref([]);
 
-const props = defineProps({
-  dataTypes: { type: Array, default: () => [] },
-  alertItems: { type: Function, default: () => {}},
-  useFunctions: { type: Boolean, default: false },
-  selectedTab: { type: String, default: '' },
+// computed properties
+const listItemsAnchor = computed(() => {
+	const rootHeight = breadcrumbRoot.value?.getBoundingClientRect().height || 0;
+	const rootTop = breadcrumbRoot.value?.getBoundingClientRect().top || 0;
+	return rootTop + rootHeight;
 });
 
-const navigatedEntity = computed(() => {
-  return collectionStore.navigatedCollection;
-});
+const listItemsLeft = computed(() => breadcrumbContent.value?.getBoundingClientRect().left || 0);
+
+const navigatedEntity = computed(() => collectionStore.navigatedCollection);
 
 const path = computed(() => {
-  if(commonStore.navigatorMode){
-    return navigatedEntity.value?.type === 'entity' 
-      ? navigatedEntity.value?.entity_path
-      : navigatedEntity.value?.item_path;
-  } else{
-    return 'Home'
-  }
+	if (commonStore.navigatorMode) {
+		return navigatedEntity.value?.type === 'entity'
+			? navigatedEntity.value?.entity_path
+			: navigatedEntity.value?.item_path;
+	}
+	return 'Home';
 });
 
 const segments = computed(() => {
-  const pathParts = path.value.split('/').filter(segment => segment.trim() !== '')
-  return pathParts.map((_, index) => pathParts.slice(0, index + 1).join('/'))
-})
-
-const breadcrumbRoot = ref(null)
-const showEllipsis = ref(false)
-const visibleSegments = ref([]);
-const overflowPaths = ref([]);
-const breadcrumbContent = ref(null);
-const breadcrumbContainer = ref(null);
-const displayOverflowItems = ref(false);
-
-const listItemsAnchor = computed(() => {
-
-  const breadCrumbsRootHeight = breadcrumbRoot.value.getBoundingClientRect().height;
-  const breadCrumbsRootGlobalY = breadcrumbRoot.value.getBoundingClientRect().top;
-  return breadCrumbsRootGlobalY + breadCrumbsRootHeight + 0;
-
-})
-
-const listItemsLeft = computed(() => {
-
-  const breadcrumbsRootLeft = breadcrumbContent.value?.getBoundingClientRect().left;
-  return breadcrumbsRootLeft;
-
+	const pathParts = path.value.split('/').filter(segment => segment.trim() !== '');
+	return pathParts.map((_, index) => pathParts.slice(0, index + 1).join('/'));
 });
 
-const handleClickOutside = () => {
-  if (displayOverflowItems.value) {
-    displayOverflowItems.value = false;
-  };
-};
+// methods
 
-const toggleOverflowListList = () => {
-  displayOverflowItems.value = !displayOverflowItems.value;
-};
-
+// Checks if the breadcrumb bar is overflowing and adjusts visible segments.
 const checkOverflow = async () => {
+	if (!path.value) return;
+	await nextTick();
+	if (!breadcrumbContainer.value || segments.value.length === 0) return;
 
-  if(!path.value) return
-  await nextTick()
-  
-  if (!breadcrumbContainer.value || segments.value.length === 0) return
+	const nav = breadcrumbContainer.value.querySelector('.nav');
+	const container = breadcrumbContainer.value;
 
-  const nav = breadcrumbContainer.value.querySelector('.nav')
-  const container = breadcrumbContainer.value
+	const testFit = async (numSegments) => {
+		const testSegments = segments.value.slice(-numSegments);
+		const hiddenSegments = segments.value.slice(0, segments.value.length - numSegments);
+		const needsEllipsis = numSegments < segments.value.length;
 
-  // Helper function to test if a number of segments fits
-  const testFit = async (numSegments) => {
-    const testSegments = segments.value.slice(-numSegments);
+		overflowPaths.value = hiddenSegments;
+		visibleSegments.value = testSegments;
+		showEllipsis.value = needsEllipsis;
 
-    const hiddenSegments = segments.value.slice(0, segments.value.length - numSegments)
-    const needsEllipsis = numSegments < segments.value.length
-    
-    overflowPaths.value = hiddenSegments
-    visibleSegments.value = testSegments
-    showEllipsis.value = needsEllipsis
-    
-    await nextTick()
-    return nav.scrollWidth <= container.clientWidth
-  }
+		await nextTick();
+		return nav.scrollWidth <= container.clientWidth;
+	};
 
-  // First, test if all segments fit (no ellipsis needed)
-  if (await testFit(segments.value.length)) {
-    // All segments fit, we're done
-    return
-  }
+	if (await testFit(segments.value.length)) return;
 
-  // Binary search to find the maximum that fits
-  let left = 1
-  let right = segments.value.length - 1 // We know all don't fit
-  let bestFit = 1
+	let left = 1;
+	let right = segments.value.length - 1;
+	let bestFit = 1;
 
-  while (left <= right) {
-    const mid = Math.floor((left + right) / 2)
-    
-    if (await testFit(mid)) {
-      bestFit = mid
-      left = mid + 1
-    } else {
-      right = mid - 1
-    }
-  }
+	while (left <= right) {
+		const mid = Math.floor((left + right) / 2);
+		if (await testFit(mid)) {
+			bestFit = mid;
+			left = mid + 1;
+		} else {
+			right = mid - 1;
+		}
+	}
 
-  // Apply the best fit we found
-  await testFit(bestFit)
-}
-
-const copyDirectoryPath = async () => {
-
-  const isNavigated = commonStore.navigatorMode;
-  let project = projectStore.getActiveProject;
-
-
-  if(!isNavigated){
-    let projectDir = project.working_directory;
-    projectDir = projectDir.replace(/\\/g, '/');
-    await ClipboardService.WriteText(projectDir);
-  } else {
-
-    let path = collectionStore.navigatedCollection?.type === 'entity' 
-      ? collectionStore.navigatedCollection.entity_path
-      : collectionStore.navigatedCollection.item_path;
-
-    let explorerPath = `${project.working_directory}${path}`
-    explorerPath = explorerPath.replace(/\\/g, '/');
-    await ClipboardService.WriteText(explorerPath);
-  }
-
-  const message = 'Path copied to clipboard';
-  notificationStore.addNotification(message, "", "success");
+	await testFit(bestFit);
 };
 
-const revealInExplorer = async () => {
-
-  const isNavigated = commonStore.navigatorMode;
-  let project = projectStore.getActiveProject;
-
-  if(!isNavigated){
-    await FSService.MakeDirs(project.working_directory)
-    FSService.RevealInExplorer(project.working_directory)
-  } else {
-    let path = collectionStore.navigatedCollection?.type === 'entity' 
-      ? collectionStore.navigatedCollection.entity_path
-      : collectionStore.navigatedCollection.item_path;
-
-    const trimmedPath = path.endsWith('/') ? path.slice(0, -1) : path;
-    let explorerPath = `${project.working_directory}${trimmedPath}`
-    explorerPath = explorerPath.replace(/\\/g, '/');
-
-    await FSService.MakeDirs(explorerPath)
-    FSService.RevealInExplorer(explorerPath)
-  }
-};
-
-
-let resizeObserver = null
-
-onMounted(() => {
-
-  checkOverflow()
-  
-  // Use ResizeObserver for better performance
-  if (breadcrumbRoot.value) {
-    resizeObserver = new ResizeObserver(() => {
-      checkOverflow()
-    })
-    resizeObserver.observe(breadcrumbRoot.value)
-  }
-  document.addEventListener('click', handleClickOutside);
-})
-
-onUnmounted(() => {
-  if (resizeObserver) {
-    resizeObserver.disconnect()
-  }
-  document.removeEventListener('click', handleClickOutside);
-})
-
-watch(() => path.value, () => {
-  if(path.value === 'Home'){
-    showEllipsis.value = false;
-  }
-  checkOverflow()
-})
-
-const goToCollection = async (selectedPath) => {
-  displayOverflowItems.value = false;
-
-  const clickedPath = `/${selectedPath}/`;
-
-  if (clickedPath === path.value) return;
-
-  const navigatedEntity = collectionStore.navigatedCollection;
-  const navigatedEntityType = navigatedEntity?.type;
-  const projectPath = projectStore.activeProject.working_directory;
-  
-  let targetEntity = null;
-
-  if (navigatedEntityType === 'entity') {
-    targetEntity = await CollectionService.GetCollectionByPath(projectStore.activeProject.uri, clickedPath);
-  } else {
-    targetEntity = generateUntrackedEntityFromPath(clickedPath, projectPath);
-  }
-
-  if (targetEntity) {
-    collectionStore.navigatedCollection = targetEntity;
-    collectionStore.selectedCollection = targetEntity;
-  } else {
-    console.error('Failed to navigate to:', clickedPath);
-    notificationStore.addNotification('Navigation failed', 'Could not find the selected path', 'error');
-  }
-};
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
+// Clears all item selections and resets selection state.
 const clearAllSelections = () => {
-  stage.markedItems = [];
-  stage.selectedItems = [];
-  stage.markedItems = [];
-  stage.firstSelectedItemId = '';
-  stage.lastSelectedItemId = '';
-  stage.selectedItem = null;
-  assetStore.selectedAsset = null;
-  collectionStore.selectedCollection = null;
-  stage.cutItems = [];
-  projectStore.selectedUntrackedItem = null;
+	stage.markedItems = [];
+	stage.selectedItems = [];
+	stage.firstSelectedItemId = '';
+	stage.lastSelectedItemId = '';
+	stage.selectedItem = null;
+	assetStore.selectedAsset = null;
+	collectionStore.selectedCollection = null;
+	projectStore.selectedUntrackedItem = null;
 };
 
+// Copies the current directory path to clipboard.
+const copyDirectoryPath = async () => {
+	const project = projectStore.getActiveProject;
+	let explorerPath;
+
+	if (!commonStore.navigatorMode) {
+		explorerPath = project.working_directory.replace(/\\/g, '/');
+		await FSService.MakeDirs(explorerPath);
+	} else {
+		const navPath = collectionStore.navigatedCollection?.type === 'entity'
+			? collectionStore.navigatedCollection.entity_path
+			: collectionStore.navigatedCollection.item_path;
+		explorerPath = `${project.working_directory}${navPath}`.replace(/\\/g, '/');
+		await FSService.MakeDirs(explorerPath);
+	}
+
+	await Clipboard.SetText(explorerPath);
+	notificationStore.addNotification('Path copied to clipboard', '', 'success');
+};
+
+// Generates an untracked entity object from a given path.
+const generateUntrackedEntityFromPath = (targetPath, projectPath) => {
+	const pathParts = targetPath.split('/').filter(part => part.trim() !== '');
+	if (pathParts.length === 0) return null;
+
+	const entityName = pathParts[pathParts.length - 1];
+	const normalizedProjectPath = projectPath.replace(/\\/g, '/').replace(/\/$/, '');
+	const absPath = normalizedProjectPath + targetPath.slice(0, -1);
+
+	let parentId = '';
+	if (pathParts.length >= 2) {
+		const parentPath = '/' + pathParts.slice(0, -1).join('/') + '/';
+		const parentAbsPath = normalizedProjectPath + parentPath.slice(0, -1);
+		parentId = utils.getMD5Hash(parentAbsPath);
+	}
+
+	return {
+		id: utils.getMD5Hash(absPath),
+		name: entityName,
+		entity_path: targetPath,
+		item_path: targetPath,
+		file_path: absPath,
+		parent_id: parentId,
+		type: 'untracked_entity'
+	};
+};
+
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
+// Returns the parent entity for an untracked entity.
+const getUntrackedEntityParent = () => {
+	const currentPath = path.value;
+	const projectPath = projectStore.activeProject.working_directory;
+	const pathParts = currentPath.split('/').filter(part => part.trim() !== '');
+
+	if (pathParts.length < 2) {
+		commonStore.navigatorMode = false;
+		return null;
+	}
+
+	const parentEntityPath = '/' + pathParts.slice(0, -1).join('/') + '/';
+	return generateUntrackedEntityFromPath(parentEntityPath, projectPath);
+};
+
+// Navigates to a specific collection by path.
+const goToCollection = async (selectedPath) => {
+	displayOverflowItems.value = false;
+	const clickedPath = `/${selectedPath}/`;
+
+	if (clickedPath === path.value) return;
+
+	const navigatedEntityType = collectionStore.navigatedCollection?.type;
+	const projectPath = projectStore.activeProject.working_directory;
+
+	let targetEntity = null;
+	if (navigatedEntityType === 'entity') {
+		targetEntity = await CollectionService.GetCollectionByPath(projectStore.activeProject.uri, clickedPath);
+	} else {
+		targetEntity = generateUntrackedEntityFromPath(clickedPath, projectPath);
+	}
+
+	if (targetEntity) {
+		collectionStore.navigatedCollection = targetEntity;
+		collectionStore.selectedCollection = targetEntity;
+	} else {
+		notificationStore.addNotification('Navigation failed', 'Could not find the selected path', 'error');
+	}
+};
+
+// Navigates to the home/root view.
 const goHome = () => {
 	commonStore.navigatorMode = false;
 	collectionStore.navigatedCollection = null;
-  clearAllSelections();
+	clearAllSelections();
 };
 
+// Navigates up one level in the breadcrumb hierarchy.
 const goUpALevel = async () => {
 	const entity = collectionStore.navigatedCollection;
-  const entityType = entity.type;
-  let parentEntityId = entity.parent_id;
+	const entityType = entity.type;
+	let parentEntityId = entity.parent_id;
 
-  if(!parentEntityId){
-    commonStore.navigatorMode = false;
-	  collectionStore.navigatedCollection = null;
-    clearAllSelections();
-    return
-  }
+	if (!parentEntityId) {
+		commonStore.navigatorMode = false;
+		collectionStore.navigatedCollection = null;
+		clearAllSelections();
+		return;
+	}
 
-  let parentEntity;
+	let parentEntity;
+	if (entityType === 'untracked_entity') {
+		parentEntity = getUntrackedEntityParent();
+		if (parentEntity?.entity_path) {
+			try {
+				const trackedParent = await CollectionService.GetCollectionByPath(projectStore.activeProject.uri, parentEntity.entity_path);
+				if (trackedParent) parentEntity = trackedParent;
+			} catch (error) {
+				// console.log('Parent entity not found in DB, using untracked entity');
+			}
+		}
+	} else {
+		parentEntity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, parentEntityId);
+	}
 
-  if (entityType === 'untracked_entity') {
-    parentEntity = getUntrackedEntityParent();
-    
-    if (parentEntity && parentEntity.entity_path) {
-      try {
-        const trackedParent = await CollectionService.GetCollectionByPath(projectStore.activeProject.uri, parentEntity.entity_path);
-        if (trackedParent) {
-          parentEntity = trackedParent;
-        }
-      } catch (error) {
-        console.log('Parent entity not found in DB, using untracked entity');
-      }
-    }
-  } else {
-    parentEntity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, parentEntityId);
-  }
-
-	if(parentEntity){
-    console.log(parentEntity)
+	if (parentEntity) {
 		collectionStore.navigatedCollection = parentEntity;
-
-    stage.lastSelectedItemId = "";
-    stage.firstSelectedItemId = parentEntity.id;
-    stage.markedItems = [parentEntity.id];
-    stage.selectedItems = [parentEntity];
-    stage.selectItem(parentEntity, parentEntity.type, true);
-    
+		stage.lastSelectedItemId = '';
+		stage.firstSelectedItemId = parentEntity.id;
+		stage.markedItems = [parentEntity.id];
+		stage.selectedItems = [parentEntity];
+		stage.selectItem(parentEntity, parentEntity.type, true);
 	} else {
 		commonStore.navigatorMode = false;
 	}
 };
 
+// Handles clicks outside to close overflow menu.
+const handleClickOutside = () => { if (displayOverflowItems.value) displayOverflowItems.value = false; };
 
-const generateUntrackedEntityFromPath = (targetPath, projectPath) => {
-  const pathParts = targetPath.split('/').filter(part => part.trim() !== '');
-  
-  if (pathParts.length === 0) {
-    return null;
-  }
+// Emits refresh event to reload the browser view.
+const refresh = () => emitter.emit('refresh-browser');
 
-  const entityName = pathParts[pathParts.length - 1];
-  const parentName = pathParts.length >= 2 ? pathParts[pathParts.length - 2] : null;
+// Opens the current directory in the system file explorer.
+const revealInExplorer = async () => {
+	const project = projectStore.getActiveProject;
 
-  const normalizedProjectPath = projectPath.replace(/\\/g, '/').replace(/\/$/, '');
-  const absPath = normalizedProjectPath + targetPath.slice(0, -1);
-
-  let parentId = '';
-  
-  if (parentName) {
-    const parentPath = '/' + pathParts.slice(0, -1).join('/') + '/';
-    const parentAbsPath = normalizedProjectPath + parentPath.slice(0, -1);
-    parentId = utils.getMD5Hash(parentAbsPath);
-  } else {
-    parentId = '';
-  }
-
-  return {
-    id: utils.getMD5Hash(absPath),
-    name: entityName,
-    entity_path: targetPath,
-    item_path: targetPath,
-    file_path: absPath,
-    parent_id: parentId,
-    type: "untracked_entity"
-  };
+	if (!commonStore.navigatorMode) {
+		await FSService.MakeDirs(project.working_directory);
+		FSService.RevealInExplorer(project.working_directory);
+	} else {
+		const navPath = collectionStore.navigatedCollection?.type === 'entity'
+			? collectionStore.navigatedCollection.entity_path
+			: collectionStore.navigatedCollection.item_path;
+		const trimmedPath = navPath.endsWith('/') ? navPath.slice(0, -1) : navPath;
+		let explorerPath = `${project.working_directory}${trimmedPath}`.replace(/\\/g, '/');
+		await FSService.MakeDirs(explorerPath);
+		FSService.RevealInExplorer(explorerPath);
+	}
 };
 
-const getUntrackedEntityParent = () => {
-  const currentPath = path.value; 
-  const projectPath = projectStore.activeProject.working_directory; 
+// Toggles the overflow items dropdown visibility.
+const toggleOverflowList = () => { displayOverflowItems.value = !displayOverflowItems.value; };
 
-  const pathParts = currentPath.split('/').filter(part => part.trim() !== '');
-  
-  if (pathParts.length < 2) {
-    commonStore.navigatorMode = false;
-    return null;
-  }
+// watchers
 
-  const parentEntityPath = '/' + pathParts.slice(0, -1).join('/') + '/';
-  return generateUntrackedEntityFromPath(parentEntityPath, projectPath);
-};
-
-watch(() => projectStore.activeProject?.uri, async () => {
-	commonStore.navigatorMode = false;
-  collectionStore.navigatedCollection = null;
-  collectionStore.selectedCollection = null;
-  
+watch(path, () => {
+	if (path.value === 'Home') showEllipsis.value = false;
+	checkOverflow();
 });
 
+watch(() => projectStore.activeProject?.uri, () => {
+	commonStore.navigatorMode = false;
+	collectionStore.navigatedCollection = null;
+	collectionStore.selectedCollection = null;
+});
+
+// lifecycle hooks
+
+onMounted(() => {
+	checkOverflow();
+	if (breadcrumbRoot.value) {
+		resizeObserver.value = new ResizeObserver(() => checkOverflow());
+		resizeObserver.value.observe(breadcrumbRoot.value);
+	}
+	document.addEventListener('click', handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+	if (resizeObserver.value) resizeObserver.value.disconnect();
+	document.removeEventListener('click', handleClickOutside);
+});
 </script>
 
 <style scoped>
-
-.breadcrumb-instance-meta {
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100px;
-  height: 30px;
-  padding: .2rem .5rem;
-  gap: 10px;
-  /* background-color: palevioletred; */
-}
-
-.breadcrumb-list-container {
-  position: absolute;
-  z-index: 10000;
-  top: 46px;
-  min-width: 160px;
-  width: max-content;
-  height: max-content;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  /* background-color: royalblue; */
-  /* right: 50%; */
-  left: 50px;
-  /* transform: translateX(50%); */
-  border-radius: var(--small-radius);
-  background-color: var(--black);
-  color: var(--white);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  overflow: hidden;
-  box-sizing: border-box;
-  /* padding: .1rem; */
-}
-
-.breadcrumb-instance-container {
-  width: 100%;
-  height: 100%;
-  height: max-content;
-  gap: .5rem;
-  display: flex;
-  padding: .3rem;
-  box-sizing: border-box;
-  overflow: hidden;
-  flex-direction: column;
-  /* background-color: rebeccapurple; */
-}
-
-.breadcrumb-instance {
-  overflow: hidden;
-  background-color: transparent;
-  text-align: center;
-  font-size: 14px;
-  line-height: 14px;
-  background-color: transparent;
-  color: var(--white);
-  position: relative;
-  border-radius: 8px;
-  border-radius: var(--small-radius);
-  box-sizing: border-box;
-  cursor: pointer;
-  display: flex;
-  gap: 5px;
-  align-items: center;
-  padding: .1rem;
-  height: max-content;
-  width: max-content;
-  min-width: max-content;
-  min-height: max-content;
-  transition: all 0.3s ease;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.breadcrumb-instance:hover {
-  background-color: rgb(121, 121, 121);
-  background-color: #ffffff15;
-}
-
-.breadcrumb-instance:active {
-  background-color: rgb(70, 70, 70);
-  background-color: #00000013;
-}
-
-.breadcrumb-instance-pressed {
-  box-sizing: border-box;
-  background-color: rgba(0, 0, 0, 0.216);
-  outline: solid 1px var(--white);
-  outline-offset: -1px;
-}
-
 .breadcrumb-root {
-  display: flex;
-  align-items: center;
-  font-size: 0.875rem;
-  font-weight: 500;
-  background-color: var(--black-steel);
-  /* background-color: forestgreen; */
-  border-radius: var(--normal-radius);
-  /* width: 100%; */
-  /* width: max-content; */
-  overflow: hidden;
-  /* flex: 1 1 50%; */
-  /* flex: 0 1 auto; */
-  max-width: 70%;
-  min-width: 65%;
-	min-width: 590px;
-  /* gap: .1rem; */
-  padding: .2rem;
-  overflow: hidden;
-  width: 100%;
-  box-sizing: border-box;
-  /* max-width: 100% */
-  border-radius: var(--large-radius);
+	display: flex;
+	align-items: center;
+	font-size: 0.875rem;
+	font-weight: 500;
+	background-color: var(--black-steel);
+	border-radius: var(--large-radius);
+	overflow: hidden;
+	max-width: 70%;
+	min-width: 65%;
+	padding: .2rem;
+	width: 100%;
+	box-sizing: border-box;
 }
 
 .breadcrumb-root::-webkit-scrollbar {
-    display: none;
+	display: none;
 }
 
 .breadcrumb-wrapper {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  overflow: hidden;
+	display: flex;
+	align-items: center;
+	width: 100%;
+	overflow: hidden;
 }
 
 .breadcrumb-container {
-  display: flex;
-  align-items: center;
-  width: min-content;
-  overflow-x: auto;
-  scrollbar-width: none;
-  border-radius: var(--small-radius);
-  justify-content: flex-end;
+	display: flex;
+	align-items: center;
+	width: min-content;
+	overflow-x: auto;
+	scrollbar-width: none;
+	border-radius: var(--small-radius);
+	justify-content: flex-end;
 }
 
 .nav {
-  display: flex;
-  align-items: center;
-  /* gap: 4px; */
-  font-size: 14px;
-  white-space: nowrap;
+	display: flex;
+	align-items: center;
+	font-size: 14px;
+	white-space: nowrap;
 }
 
 .breadcrumb-segment {
-  display: flex;
-  align-items: center;
-  width: min-content;
+	display: flex;
+	align-items: center;
+	width: min-content;
 }
 
-.breadcrumb-item {
-  padding: 0.25rem 0;
+.breadcrumb-list-container {
+	position: absolute;
+	z-index: 10000;
+	min-width: 160px;
+	width: max-content;
+	height: max-content;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 1rem;
+	border-radius: var(--small-radius);
+	background-color: var(--black);
+	color: var(--white);
+	outline: var(--transparent-line);
+	outline-offset: -1px;
+	overflow: hidden;
+	box-sizing: border-box;
 }
 
-.breadcrumb-link {
-  background: none;
-  border: none;
-  padding: 0;
-  color: #2563eb;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
+.breadcrumb-instance-container {
+	width: 100%;
+	height: max-content;
+	gap: .5rem;
+	display: flex;
+	padding: .3rem;
+	box-sizing: border-box;
+	overflow: hidden;
+	flex-direction: column;
 }
 
-.breadcrumb-link:hover {
-  color: #1d4ed8;
-  text-decoration: underline;
+.breadcrumb-instance {
+	overflow: hidden;
+	background-color: transparent;
+	text-align: center;
+	font-size: 14px;
+	line-height: 14px;
+	color: var(--white);
+	position: relative;
+	border-radius: var(--small-radius);
+	box-sizing: border-box;
+	cursor: pointer;
+	display: flex;
+	gap: 5px;
+	align-items: center;
+	padding: .1rem;
+	height: max-content;
+	width: 100%;
+	min-width: max-content;
+	min-height: max-content;
+	transition: all 0.3s ease;
+	justify-content: space-between;
 }
 
-.chevron {
-  display: flex;
-  align-items: center;
-  color: #9ca3af;
-  margin: 0 0.5rem;
+.breadcrumb-instance:hover {
+	background-color: #ffffff15;
 }
 
-.home {
-  color: #6b7280;
+.breadcrumb-instance:active {
+	background-color: #00000013;
 }
 
+.breadcrumb-instance-meta {
+	display: flex;
+	align-items: center;
+	box-sizing: border-box;
+	width: 100%;
+	height: 30px;
+	padding: .2rem .5rem;
+	gap: 10px;
+}
 </style>
 
 

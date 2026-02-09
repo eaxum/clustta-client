@@ -47,110 +47,91 @@
 
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+// imports
+import { computed, ref } from 'vue';
+
+// components
+import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+
+// services
+import { UserService } from '@/services';
 
 // stores
-import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
 import { useUserStore } from '@/stores/users';
 
-//   components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
-import { UserService } from '@/../bindings/clustta/services/index';
-import { useProjectStore } from '@/stores/projects';
-
-// header
-let title = 'Edit Role';
-let showSearch = false;
-
-// stores
-const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
-const userStore = useUserStore();
+const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const userStore = useUserStore();
 
 // refs
-const roleName = ref('');
+const collectionMenu = ref(null);
 const isAwaitingResponse = ref(false);
 
-const handleEnterKey = (event) => {
-  if (event.key === 'Enter') {
-    updateRole();
-  }
-};
-
-
-
-const escape = () => {
-  modals.setModalVisibility('editRoleModal', false);
-};
-
-const closeModal = () => {
-  modals.setModalVisibility("editRoleModal", false);
-};
-
-
-const updateRole = async () => {
-  let parameters = roleParameters.value
-  await UserService.UpdateRole(projectStore.activeProject.uri, parameters.id, parameters.name, parameters)
-    .then((response) => {
-      notificationStore.addNotification("Role Updated", "", "success");
-      const index = userStore.roles.findIndex(role => role.id === parameters.id);
-      userStore.roles[index] = response
-      closeModal()
-    })
-    .catch((error) => {
-      console.log(error)
-      notificationStore.errorNotification("Error Updating Role", error);
-    });
-};
-
-const roleParameters = ref({ ...userStore.selectedRole })
+// constants
 const initialSettings = ref({ ...userStore.selectedRole });
 
-
 const permissionGroups = {
-
-  // general: ['change_status'],
   tasks: ['view_task', 'create_task', 'update_task', 'delete_task', 'manage_dependencies'],
   assignation: ['assign_task', 'unassign_task'],
   entities: ['view_entity', 'create_entity', 'update_entity', 'delete_entity'],
   users: ['add_user', 'remove_user', 'change_role'],
-  status: ['view_done_task', 'change_status', 'set_done_task', 'set_retake_task',],
+  status: ['view_done_task', 'change_status', 'set_done_task', 'set_retake_task'],
   templates: ['view_template', 'create_template', 'update_template', 'delete_template'],
   checkpoints: ['view_checkpoint', 'create_checkpoint', 'delete_checkpoint', 'pull_chunk'],
-}
+};
 
+const roleParameters = ref({ ...userStore.selectedRole });
+const showSearch = false;
+const title = 'Edit Role';
+
+// computed
+// Computes active permissions count per group.
+const activePermissionsCount = computed(() => {
+  const counts = {};
+  Object.entries(permissionGroups).forEach(([groupName, permissions]) => {
+    counts[groupName] = permissions.reduce((count, permission) => {
+      return roleParameters.value[permission] === true ? count + 1 : count;
+    }, 0);
+  });
+  return counts;
+});
+
+// Groups permissions by category.
 const groupedPermissions = computed(() => {
-  const groups = {}
+  const groups = {};
   Object.entries(permissionGroups).forEach(([groupName, permissions]) => {
     groups[groupName] = permissions.filter(permission =>
       typeof roleParameters.value[permission] === 'boolean' && permission !== 'synced'
-    )
-  })
-  return groups
+    );
+  });
+  return groups;
 });
 
-// Compute if any changes have been made
+// Checks if any changes have been made.
 const isValueChanged = computed(() => {
   return Object.keys(roleParameters.value).some(key => {
-    return roleParameters.value[key] !== initialSettings.value[key]
-  })
-})
+    return roleParameters.value[key] !== initialSettings.value[key];
+  });
+});
 
-// Compute active permissions count per group
-const activePermissionsCount = computed(() => {
-  const counts = {}
-  Object.entries(permissionGroups).forEach(([groupName, permissions]) => {
-    counts[groupName] = permissions.reduce((count, permission) => {
-      return roleParameters.value[permission] === true ? count + 1 : count
-    }, 0)
-  })
-  return counts
-})
+// methods
+// Closes the modal.
+const closeModal = () => {
+  modals.setModalVisibility("editRoleModal", false);
+};
 
+// Closes the modal on escape key.
+const escape = () => {
+  modals.setModalVisibility('editRoleModal', false);
+};
+
+// Formats a permission key to display label.
 const formatLabel = (key) => {
   return key.replace(/_/g, ' ')
     .split(' ')
@@ -158,21 +139,49 @@ const formatLabel = (key) => {
     .join(' ')
     .replace(/Task/g, 'Asset')
     .replace(/Entity/g, 'Collection')
-    .replace(/Entities/g, 'Collections')
-}
+    .replace(/Entities/g, 'Collections');
+};
 
+// Handles enter key press to trigger update role.
+const handleEnterKey = (event) => {
+  if (event.key === 'Enter') {
+    updateRole();
+  }
+};
+
+// Toggles a permission field.
 const toggleField = (key) => {
-  roleParameters.value[key] = !roleParameters.value[key]
-}
+  roleParameters.value[key] = !roleParameters.value[key];
+};
 
-onMounted(() => {
-});
-
-
+// Updates the role with current parameters.
+const updateRole = async () => {
+  let parameters = roleParameters.value;
+  await UserService.UpdateRole(projectStore.activeProject.uri, parameters.id, parameters.name, parameters)
+    .then((response) => {
+      notificationStore.addNotification("Role Updated", "", "success");
+      const index = userStore.roles.findIndex(role => role.id === parameters.id);
+      userStore.roles[index] = response;
+      closeModal();
+    })
+    .catch((error) => {
+      console.log(error);
+      notificationStore.errorNotification("Error Updating Role", error);
+    });
+};
 </script>
 
 <style scoped>
 @import "@/assets/desktop.css";
+
+.horizontal-flex {
+  font-weight: 400;
+}
+
+.input-short {
+  flex: 1;
+  width: 100%;
+}
 
 .role-config {
   display: flex;
@@ -182,7 +191,6 @@ onMounted(() => {
   gap: .3rem;
   padding: .6rem;
   box-sizing: border-box;
-  width: max-content;
   width: 100%;
   height: max-content;
   max-height: 50vh;
@@ -196,12 +204,12 @@ onMounted(() => {
 }
 
 .role-config::-webkit-scrollbar-thumb {
-  border-radius: 10px;
+  border-radius: var(--small-radius);
   background-color: var(--light-steel);
 }
 
 .role-config::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--small-radius);
 }
 
 .role-config-group {
@@ -212,7 +220,6 @@ onMounted(() => {
   gap: .3rem;
   padding: .6rem;
   box-sizing: border-box;
-  width: max-content;
   width: 100%;
   height: min-content;
   border-radius: var(--normal-radius);
@@ -226,7 +233,6 @@ onMounted(() => {
   gap: .5rem;
   padding: .6rem;
   box-sizing: border-box;
-  width: max-content;
   width: 100%;
   height: min-content;
   justify-content: space-between;
@@ -250,10 +256,8 @@ onMounted(() => {
   text-align: center;
   font-size: 14px;
   line-height: 14px;
-  background-color: transparent;
   color: var(--white);
   position: relative;
-  border-radius: 8px;
   border-radius: var(--small-radius);
   box-sizing: border-box;
   cursor: pointer;
@@ -261,8 +265,6 @@ onMounted(() => {
   gap: 10px;
   align-items: center;
   padding-left: .3rem;
-  height: max-content;
-  width: max-content;
   min-width: max-content;
   min-height: max-content;
   width: 100%;
@@ -273,91 +275,7 @@ onMounted(() => {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-.entity-item-menu-visible {
-  opacity: 1;
-  visibility: visible;
-}
-
-.input-short {
-  flex: 1;
-  width: 100%;
-}
-
-.listbox-short {
-
-  flex: 1;
-  width: 130px;
-}
-
-.input-label {
-
-  font-family: Inter, sans-serif;
-  color: var(--white);
-  font-size: 16px;
-  white-space: nowrap;
-  flex: 1;
-
-}
-
-.category-area {
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  color: var(--white);
-  width: 98%;
-}
-
-.category-list {
-  box-sizing: border-box;
-  display: flex;
-  padding: .5rem;
-  align-items: center;
-  flex-direction: column;
-  gap: .2rem;
-  background-color: rgba(0, 0, 0, 0.144);
-  height: 290px;
-  overflow: hidden;
-  overflow-y: scroll;
-  width: 100%;
-  border-radius: 10px;
-}
-
-.category-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.category-list::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
-}
-
-.category-list::-webkit-scrollbar-track {
-  border-radius: 10px;
-}
-
-.category-item {
-  color: var(--white);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-  width: 100%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.096);
-  height: max-content;
-  padding: .2rem;
-}
-
-.category-item-actions {
-  display: flex;
-}
-
-
-.horizontal-flex{
-  font-weight: 400;
-}
-
-[data-theme="dark"] .horizontal-flex{
+[data-theme="dark"] .horizontal-flex {
   font-weight: 200;
 }
 </style>

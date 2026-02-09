@@ -56,7 +56,7 @@ import { ref, computed } from 'vue';
 import { useTrayStates } from '@/stores/TrayStates';
 
 // services
-import { AuthService } from "@/../bindings/clustta/services";
+import { AuthService } from "@/services";
 
 // store imports
 import { useUserStore } from '@/stores/users';

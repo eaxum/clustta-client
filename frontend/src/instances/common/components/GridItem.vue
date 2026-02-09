@@ -25,7 +25,7 @@ import { useScrollStore } from '@/stores/scroll';
 import { useUntrackedItemStore } from '@/stores/untracked';
 import { useProjectStore } from '@/stores/projects';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { AssetService, CollectionService } from '@/../bindings/clustta/services';
+import { AssetService, CollectionService } from '@/services';
 import emitter from '@/lib/mitt';
 
 const menu = useMenu();
@@ -299,23 +299,10 @@ onBeforeUnmount(() => {
   background-color: var(--drop-hover);
 }
 
-.drop-zone-hovered {
-  /* background-color: crimson; */
-}
 
 .virtua-item-header {
   overflow: hidden;
   box-sizing: border-box;
-  /* background-color: hsl(330, 100%, var(--lightness)); */
-  /* padding: 0 10px; */
-  /* display: flex; */
-  /* justify-content: space-between; */
-  /* align-items: center; */
-  /* height: 60px; */
-  /* border-radius: 8px; */
-  /* outline: 1px solid black; */
-  /* outline-offset: -1px; */
-  /* padding-bottom: 5px; */
 }
 
 .virtua-item-children {

@@ -1,21 +1,10 @@
 <template>
   <div v-if="debugging" class="general-pane-header">
-    <HeaderArea :title="utils.capitalizeStr(projectStore.selectedUntrackedItem?.name)" :icon="getAppIcon(itemIcon)" />
-    <!-- <ActionButton v-if="userStore.canDo('update_entity')" :icon="getAppIcon('edit')" 
-        v-tooltip="'Rename Entity'" :buttonFunction="editEntity" /> -->
+    <HeaderArea :title="utils.capitalizeStr(projectStore.selectedUntrackedItem?.name)" :notModal="true" :icon="getAppIcon(itemIcon)" />
   </div>
 
   <div v-if="debugging" class="general-pane-root">
     <div class="general-pane-container">
-
-      <div v-if="projectStore.selectedUntrackedItem.preview" class="entity-thumb-container">
-        <div class="entity-thumb">
-          <img v-if="projectStore.selectedUntrackedItem.preview" class="screenshot-thumb"
-            :src="projectStore.selectedUntrackedItem.preview">
-          <img v-else class="screenshot-thumb" src="/page-states/no_image.png">
-        </div>
-      </div>
-
       <div class="pane-parameter-section">
         <div class="action-bar">
 
@@ -63,7 +52,7 @@
 <script setup>
 
 
-import { FSService, AssetService, CollectionService } from "@/../bindings/clustta/services";
+import { FSService, AssetService, CollectionService } from "@/services";
 
 // imports
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
@@ -226,28 +215,42 @@ const itemType = computed(() => {
 
 const itemPath = computed(() => {
   const path = projectStore.selectedUntrackedItem?.file_path;
+  if (!path) return '';
   return path.replace(/\\/g, '/')
 });
 
 const getItemSize = async() => {
-  const size = await FSService.FileStat(itemPath.value);
-  itemSize.value = size.formattedSize;
+  if (!itemPath.value) return;
+  try {
+    const size = await FSService.FileStat(itemPath.value);
+    itemSize.value = size.formattedSize;
+  } catch (error) {
+    itemSize.value = 'Not on disk';
+  }
 }
 
 const getCollectionSize = async() => {
-  const size = await FSService.FolderSize(itemPath.value);
-  collectionSize.value = size;
+  if (!itemPath.value) return;
+  try {
+    const size = await FSService.FolderSize(itemPath.value);
+    collectionSize.value = size;
+  } catch (error) {
+    collectionSize.value = 'Not on disk';
+  }
 }
 
 const getProjectData = async () => {
+  if (!itemPath.value) return;
+  
   if(itemType.value === 'untracked_task'){
     if (!await FSService.Exists(itemPath.value)){
       itemSize.value = 'Not on disk'
       return
     }
+    getItemSize();
+  } else if (itemType.value === 'untracked_entity') {
+    getCollectionSize();
   }
-  getItemSize();
-  getCollectionSize();
 }
 
 watch(() => projectStore.selectedUntrackedItem, () => {

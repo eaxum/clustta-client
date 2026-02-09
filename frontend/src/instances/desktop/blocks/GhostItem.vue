@@ -1,40 +1,42 @@
 <template>
+  <div v-if="data" class="ghost-card" :class="ghostCardClasses" :style="ghostCardStyles">
     <div class="ghost-item-main">
-      <!-- <div v-if="dndStore.draggedItemId  && !commonStore.useGrid" class="drop-propmt-message">
-        <div class="drop-propmt-message-content" :class="{ 'drop-propmt-message-error' : isErrMsg }" >
-          {{ dropMessage }}
-        </div>
-      </div> -->
       <div v-if="stage.markedItems.length === 1" class="ghost-item-wrapper">
-        <Collection v-if="data.type === 'entity'" :isGhost="true" :entity="data" :index="index" />
-        <Asset v-if="data.type === 'task'" :isGhost="true" :task="data" :index="index" />
+        <Collection v-if="data.type === 'entity'" :loadingChildren="false" :isGhost="true" :entity="data" :index="index" />
+        <Asset v-if="data.type === 'task'" :loadingAssetState="false" :isGhost="true" :task="data" :index="index" />
         <Collection v-if="data.type === 'untracked_entity'" :isGhost="true" :isUntracked="true" :entity="data" :index="index" />
         <Asset v-if="data.type === 'untracked_task'" :isGhost="true" :isUntracked="true" :task="data" :index="index" />
       </div>
-      <div v-else class="single-ghost-item">
-        <div class="box depth-1"> {{ stage.markedItems.length + ' items -' }}  {{ dropMessage}}</div>
+      <div v-else-if="stage.markedItems.length" class="single-ghost-item">
+        <div class="box depth-1">{{ stage.markedItems.length + ' items -' }} {{ dropMessage }}</div>
         <div class="box depth-2"></div>
         <div class="box depth-3"></div>
         <div class="box depth-4"></div>
       </div>
+      <div v-else class="ghost-item-backdrop">
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 // imports
-import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
+// components
+import Asset from '@/instances/desktop/blocks/Asset.vue';
+import Collection from '@/instances/desktop/blocks/Collection.vue';
+
+// stores
+import { useCommonStore } from '@/stores/common';
 import { useDndStore } from '@/stores/dnd';
-import { useStageStore } from '@/stores/stages';
 import { usePromptStore } from '@/stores/prompts';
+import { useStageStore } from '@/stores/stages';
 
-
+const commonStore = useCommonStore();
 const dndStore = useDndStore();
-const stage = useStageStore();
 const promptStore = usePromptStore();
-
-import Asset from '@/instances/desktop/blocks/Asset.vue'
-import Collection from '@/instances/desktop/blocks/Collection.vue'
+const stage = useStageStore();
 
 // props
 const props = defineProps({
@@ -42,10 +44,13 @@ const props = defineProps({
   index: Number,
 });
 
-const isErrMsg = ref('false');
+// refs
 const currentPromptId = ref(null);
+const isErrMsg = ref(false);
 
-// computed
+// computed properties
+
+// Returns the drop message based on current drag state.
 const dropMessage = computed(() => {
   if (dndStore.isOverlapping) {
     const targetItem = dndStore.targetItem;
@@ -53,19 +58,16 @@ const dropMessage = computed(() => {
     const draggedItem = dndStore.draggedItem;
     const draggedItemType = draggedItem?.type;
 
-    // When ALT key is active, always move to project root
     if (dndStore.altKeyActive) {
       isErrMsg.value = false;
       return 'Release to move to project root. ESC key to cancel.';
     }
 
-    // Rule 1: You can't drag anything over an 'untracked_task'
     if (targetItemType === 'untracked_task') {
       isErrMsg.value = true;
       return 'Cannot drop here - ' + targetItem.name + ' is untracked';
     }
 
-    // Rule 2: You can only drag 'untracked_task' and 'untracked_entity' over an 'untracked_entity'
     if (targetItemType === 'untracked_entity') {
       if (draggedItemType === 'untracked_task' || draggedItemType === 'untracked_entity') {
         isErrMsg.value = false;
@@ -76,24 +78,21 @@ const dropMessage = computed(() => {
       }
     }
 
-    // Rule 3: You can drag anything over an 'entity'
     if (targetItemType === 'entity') {
       isErrMsg.value = false;
       return 'Release to move this item into ' + targetItem.name;
     }
 
-    // Rule 4: Only an 'entity' can be dragged over a 'task'
     if (targetItemType === 'task') {
       if (draggedItemType === 'entity' || draggedItemType === 'task') {
         isErrMsg.value = false;
         return 'Release to make this a dependency of ' + targetItem.name;
       } else {
         isErrMsg.value = true;
-        return 'Cannot drop here - ' + draggedItem.name + ' is untracked' ;
+        return 'Cannot drop here - ' + draggedItem.name + ' is untracked';
       }
     }
 
-    // Default fallback
     return 'Cannot drop here';
   }
 
@@ -105,156 +104,138 @@ const dropMessage = computed(() => {
       return 'Release to move to project root.';
     }
   }
-  
+
   return 'Cannot drop here';
 });
 
-// Watch for changes in dropMessage and update prompts
+// Returns dynamic classes for the ghost card wrapper.
+const ghostCardClasses = computed(() => ({
+  'active': dndStore.draggedItemId !== null || dndStore.ghostCardStyle.leaving,
+  'single-ghost': !commonStore.useGrid && stage.markedItems.length === 1,
+  'leaving': dndStore.ghostCardStyle.leaving,
+  'no-target': dndStore.ghostCardStyle.leaving && !dndStore.targetItem,
+}));
+
+// Returns inline styles for positioning the ghost card.
+// Centers the ghost card on the mouse cursor.
+const ghostCardStyles = computed(() => {
+  const width = 300;
+  const height = stage.markedItems.length === 1 ? 60 : 80;
+  return {
+    width: `${width}px`,
+    left: `${dndStore.ghostCardStyle.pos.x - width / 2}px`,
+    top: `${dndStore.ghostCardStyle.pos.y - height / 2}px`,
+    transform: dndStore.ghostCardStyle.transform,
+  };
+});
+
+// watchers
 watch(dropMessage, (newMessage, oldMessage) => {
   if (newMessage && newMessage !== oldMessage) {
-    // Clear any existing prompt for this ghost item
     if (currentPromptId.value) {
       promptStore.clearPrompt(currentPromptId.value);
     }
-    
-    // Determine prompt type based on error state
     const promptType = isErrMsg.value ? 'error' : 'info';
-    
-    // Add new prompt
     currentPromptId.value = promptStore.addPrompt(newMessage, promptType);
   }
 }, { immediate: true });
 
-// Clear prompt when component is unmounted or drag ends
-onBeforeUnmount(() => {
-  if (currentPromptId.value) {
-    promptStore.clearPrompt(currentPromptId.value);
-  }
-});
-
-// Also clear prompt when drag operation ends
 watch(() => dndStore.draggedItemId, (newValue) => {
   if (!newValue && currentPromptId.value) {
-    // Drag ended, clear the prompt
     promptStore.clearPrompt(currentPromptId.value);
     currentPromptId.value = null;
   }
 });
 
+// lifecycle hooks
+onBeforeUnmount(() => {
+  if (currentPromptId.value) {
+    promptStore.clearPrompt(currentPromptId.value);
+  }
+});
 </script>
 
 <style scoped>
 @import "@/assets/desktop.css";
 
-.root-content {
-  display: flex;
-  gap: .2rem;
-  color: white;
-  align-items: center;
-  padding-left: .5rem;
-  box-sizing: border-box;
-  width: 100%;
-  height: 60px;
-  /* justify-content: flex-end; */
-  align-items: center;
-  background-color: var(--dark-steel);
-  border-radius: 10px;
-  overflow: hidden;
-  padding-left: 10px;
+.ghost-card {
+  position: fixed;
+  z-index: 100;
+  user-select: none;
+  pointer-events: none;
+  opacity: 0;
+  transform-origin: center;
+  transform: scale(1) rotate(0);
+  transition: transform 0.04s ease-in-out;
+  border-radius: var(--large-radius);
+}
 
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+.ghost-card.active {
+  opacity: 1;
+}
 
+.ghost-card.single-ghost {
+  border-radius: var(--large-radius);
+}
+
+.ghost-card.leaving {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  opacity: 0 !important;
+  transform: scale(0.8) !important;
+}
+
+.ghost-card.leaving.no-target {
+  transform: scale(1.2) !important;
 }
 
 .ghost-item-main {
   width: 100%;
   height: min-content;
   position: relative;
-  border-radius: 10px;
   box-sizing: border-box;
   overflow: hidden;
   padding: 0px .1rem;
 }
 
-.ghost-outline {
-  /* border-radius: var(--large-radius); */
+.ghost-item-backdrop{
+  width: 300px;
+  height: 60px;
+  background-color: var(--dark-steel);
+  border-radius: var(--large-radius);
 }
 
-.is-overlapping {
-  background-color: #228b2266;
-}
-
-.drop-propmt-message {
-  z-index: 100;
-  display: flex;
-  width: 100%;
-  /* width: max-content; */
-  height: 100%;
-  /* background-color: firebrick; */
-  position: absolute;
-  right: 50%;
-  top: 0;
-  transform: translateX(50%);
-  justify-content: center;
-  align-items: center;
-  /* border-radius: var(--large-radius); */
-}
-
-.drop-propmt-message-content {
-  display: flex;
-  width: max-content;
-  height: max-content;
-  font-size: 14px;
-  padding: .2rem .5rem;
-  /* background-color: goldenrod; */
-  background-color: var(--black-steel);
-  font-weight: 100;
-  border-radius: 5px;
-  text-wrap: nowrap;
-}
-.drop-propmt-message-error{
-  background-color: crimson;
-}
-
-.ghost-item-wrapper {
-    /* opacity: 0.2; */
-  }
-
-  .single-ghost-item{
+.single-ghost-item {
   z-index: 10000000000;
   gap: .2rem;
   box-sizing: border-box;
   width: 100%;
   height: 80px;
   align-items: center;
-
-
   position: relative;
-
-  }
-
+}
 
 .box {
-  /* font-weight: bold; */
   position: absolute;
   width: 98%;
   height: 60px;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   background-color: var(--dark-steel);
   outline: var(--transparent-line);
   outline-offset: -1px;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--white);
 }
 
 .depth-1 {
+  font-size: 14px;
   top: 0;
   left: 0;
   z-index: 3;
-  outline: var(--solid-line);
   outline-offset: -1px;
+  padding: 1rem;
+  box-sizing: border-box;
 }
 
 .depth-2 {
