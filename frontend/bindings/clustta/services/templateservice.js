@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import {Call as $Call, Create as $Create} from "@wailsio/runtime";
+import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -15,11 +15,10 @@ import * as models$0 from "../internal/repository/models/models.js";
  * @param {string} projectPath
  * @param {string} templateName
  * @param {string} filePath
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function ChangeTemplateFile(projectPath, templateName, filePath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(391432429, projectPath, templateName, filePath));
-    return $resultPromise;
+    return $Call.ByID(391432429, projectPath, templateName, filePath);
 }
 
 /**
@@ -27,55 +26,45 @@ export function ChangeTemplateFile(projectPath, templateName, filePath) {
  * @param {string} projectPath
  * @param {string} templateName
  * @param {string} filePath
- * @returns {Promise<models$0.Template> & { cancel(): void }}
+ * @returns {$CancellablePromise<models$0.Template>}
  */
 export function CreateTemplate(projectPath, templateName, filePath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3156130547, projectPath, templateName, filePath));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(3156130547, projectPath, templateName, filePath).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * Deletes a template by name from the project database
  * @param {string} projectPath
  * @param {string} templateName
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function DeleteTemplate(projectPath, templateName) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1952849308, projectPath, templateName));
-    return $resultPromise;
+    return $Call.ByID(1952849308, projectPath, templateName);
 }
 
 /**
  * Retrieves a single template by ID from the project database
  * @param {string} projectPath
  * @param {string} templateId
- * @returns {Promise<models$0.Template> & { cancel(): void }}
+ * @returns {$CancellablePromise<models$0.Template>}
  */
 export function GetTemplate(projectPath, templateId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1175489573, projectPath, templateId));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(1175489573, projectPath, templateId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * Retrieves all templates from the project database
  * @param {string} projectPath
- * @returns {Promise<models$0.Template[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<models$0.Template[]>}
  */
 export function GetTemplates(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2718755682, projectPath));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(2718755682, projectPath).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
@@ -83,11 +72,10 @@ export function GetTemplates(projectPath) {
  * @param {string} projectPath
  * @param {string} templateName
  * @param {string} newName
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function RenameTemplate(projectPath, templateName, newName) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2409633105, projectPath, templateName, newName));
-    return $resultPromise;
+    return $Call.ByID(2409633105, projectPath, templateName, newName);
 }
 
 // Private type creation functions

@@ -5,11 +5,11 @@ import emitter from "@/lib/mitt";
 import { defineStore } from "pinia";
 import { isValidWeblink, isValidPointer } from "@/lib/pointer";
 import { useCollectionStore } from "./collections";
-import { AssetService, TagService } from "@/../bindings/clustta/services";
+import { AssetService, TagService } from "@/services";
 import { useIconStore } from "./icons";
 import { useCommonStore } from "@/stores/common";
 import { useUserStore } from "./users";
-import { FSService } from "@/../bindings/clustta/services";
+import { FSService } from "@/services";
 import { useProjectStore } from "./projects";
 import { useStageStore } from "./stages";
 
@@ -547,6 +547,7 @@ export const useAssetStore = defineStore("asset", {
 
     async reloadAssetTypes() {
       const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri) return;
       let assetTypes = await AssetService.GetAssetTypes(
         projectStore.activeProject.uri
       );

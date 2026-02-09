@@ -120,6 +120,7 @@
           :buttonFunction="saveChanges"
           :fullWidth="false"
           :isActive="hasDefaultLocation"
+          :loading="isAwaitingResponse"
         />
       </div>
 
@@ -128,96 +129,80 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
-
 // imports
-import { ref, onMounted, computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
-//stores
-import { useNotificationStore } from '@/stores/notifications';
+// components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+
+// services
+import { DialogService, FSService, SettingsService } from '@/services';
+
+// stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';
 
-//components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-
-import { SettingsService, DialogService, FSService } from '@/../bindings/clustta/services/index';
-
-//refs
-const trayStates = useTrayStates();
-const projectStore = useProjectStore();
-const notificationStore = useNotificationStore();
+const iconStore = useIconStore();
 const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
+const trayStates = useTrayStates();
 
-const personalDataDirectory = ref('');
-const sharedDataDirectory = ref('');
-
-const userBaseDirectory = ref('');
+// refs
 const defaultClusttaDirectory = ref('');
+const isAwaitingResponse = ref(false);
+const locationHealthMap = ref({});
+const locations = ref([]);
+const locationUsageMap = ref({});
+const personalDataDirectory = ref('');
 const selectedClusttaDirectory = ref('');
-
+const sharedDataDirectory = ref('');
+const userBaseDirectory = ref('');
 const userName = ref('');
 
-// Location management refs
-const locations = ref([]);
-const locationHealthMap = ref({});
-const locationUsageMap = ref({});
-
-// Computed properties
+// computed
+// Returns true if at least one location is set as default.
 const hasDefaultLocation = computed(() => {
   return locations.value.some(loc => loc.is_default === true);
 });
 
-
-//methods
-
-const selectDirectory = async () => {
-  let title = 'Clustta Directory';
-  let directory = userBaseDirectory.value;
-
-  const result = await DialogService.SelectSpecificFolderDialog(title, directory);
-
-  if (result) {
-    let fileDir = result.replace(/\\/g, '/');
-    selectedClusttaDirectory.value = fileDir.replace(/\/clustta/g, '') + '/clustta';
-
-    personalDataDirectory.value = selectedClusttaDirectory.value + '/projects';
-    sharedDataDirectory.value = selectedClusttaDirectory.value + '/shared_projects';
-
-    // Check if /mnt folder exists and auto-add it as default location
-    if (locations.value.length === 0) {
-      const mntPath = selectedClusttaDirectory.value + '/mnt';
-      try {
-        const mntExists = await FSService.DirExists(mntPath);
-        if (mntExists) {
-          locations.value = [{
-            id: '1',
-            name: 'mnt',
-            path: mntPath,
-            is_default: true,
-            project_ids: []
-          }];
-          await checkAllLocationHealth();
-        }
-      } catch (error) {
-        console.error('Error checking /mnt folder:', error);
-        // If error checking, leave locations empty - user will add manually
-      }
-    }
-  }
+// methods
+// Adds a new project location via folder dialog.
+const addLocation = async () => {
+  const documentsPath = userBaseDirectory.value + 'Documents';
+  const result = await DialogService.SelectSpecificFolderDialog("Select Location Folder", documentsPath);
+  if (!result) return;
+  
+  const path = result.replace(/\\/g, '/');
+  const pathParts = path.split('/');
+  const folderName = pathParts[pathParts.length - 1] || `Location ${locations.value.length + 1}`;
+  
+  const newLocation = {
+    id: `${locations.value.length + 1}`,
+    name: folderName,
+    path: path,
+    is_default: locations.value.length === 0,
+    project_ids: []
+  };
+  
+  locations.value.push(newLocation);
+  await checkAllLocationHealth();
+  
+  notificationStore.addNotification('Location added', '', 'success', false);
 };
 
-// Location management methods
+// Determines if a location can be deleted.
+const canDeleteLocation = (locationId) => {
+  if (locations.value.length <= 1) return false;
+  return getProjectCount(locationId) === 0;
+};
+
+// Checks health status of all locations.
 const checkAllLocationHealth = async () => {
   try {
     const healthStatuses = await SettingsService.CheckAllLocationsHealth();
@@ -229,6 +214,22 @@ const checkAllLocationHealth = async () => {
   }
 };
 
+// Closes the modal.
+const closeModal = () => {
+  modals.disableAllModals();
+};
+
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Returns the project count for a location.
+const getProjectCount = (locationId) => {
+  return locationUsageMap.value[locationId] || 0;
+};
+
+// Loads project usage for all locations.
 const loadLocationUsage = async () => {
   for (const location of locations.value) {
     try {
@@ -240,54 +241,13 @@ const loadLocationUsage = async () => {
   }
 };
 
-const getProjectCount = (locationId) => {
-  return locationUsageMap.value[locationId] || 0;
+// Loads projects and refreshes tray states.
+const loadProjects = async () => {
+  await projectStore.loadProjects();
+  trayStates.refreshData();
 };
 
-const canDeleteLocation = (locationId) => {
-  if (locations.value.length <= 1) return false;
-  return getProjectCount(locationId) === 0;
-};
-
-const addLocation = async () => {
-  // Open dialog at user's Documents folder
-  const documentsPath = userBaseDirectory.value + 'Documents';
-  const result = await DialogService.SelectSpecificFolderDialog("Select Location Folder", documentsPath);
-  if (!result) return;
-  
-  const path = result.replace(/\\/g, '/');
-  
-  // Extract folder name from path
-  const pathParts = path.split('/');
-  const folderName = pathParts[pathParts.length - 1] || `Location ${locations.value.length + 1}`;
-  
-  // Add to local array (will be saved when user clicks Continue)
-  const newLocation = {
-    id: `${locations.value.length + 1}`,
-    name: folderName,
-    path: path,
-    is_default: locations.value.length === 0, // First location is default
-    project_ids: []
-  };
-  
-  locations.value.push(newLocation);
-  await checkAllLocationHealth();
-  
-  notificationStore.addNotification('Location added', '', 'success', false);
-};
-
-const selectPath = async (location) => {
-  const result = await DialogService.SelectFolderDialog("Select Location Folder");
-  if (!result) return;
-  
-  const path = result.replace(/\\/g, '/');
-  location.path = path;
-  
-  await checkAllLocationHealth();
-  
-  notificationStore.addNotification('Location updated', '', 'success', false);
-};
-
+// Removes a location from the list.
 const removeLocation = (locationId) => {
   if (!canDeleteLocation(locationId)) {
     notificationStore.addNotification(
@@ -306,30 +266,22 @@ const removeLocation = (locationId) => {
   }
 };
 
-const setDefaultLocation = (locationId) => {
-  locations.value.forEach(loc => {
-    loc.is_default = loc.id === locationId;
-  });
-  
-  notificationStore.addNotification('Default location updated', '', 'success', false);
-};
-
+// Saves all changes and closes the modal.
 const saveChanges = async () => {
+  isAwaitingResponse.value = true;
   try {
-    // Save data directories
     await SettingsService.SetProjectDirectory(personalDataDirectory.value);
     await SettingsService.SetSharedProjectDirectory(sharedDataDirectory.value);
     
-    // Save all project locations
+    await projectStore.loadStudios();
+    
     for (const location of locations.value) {
       try {
-        // Check if location already exists
         const existingLocations = await SettingsService.GetAllLocationPaths();
         const exists = existingLocations.some(loc => loc.id === location.id);
         
         if (!exists) {
           const savedLocation = await SettingsService.AddProjectLocation(location.name, location.path);
-          // Set as default if needed
           if (location.is_default) {
             await SettingsService.SetDefaultLocation(savedLocation.id);
           }
@@ -343,60 +295,106 @@ const saveChanges = async () => {
     closeModal();
   } catch (error) {
     notificationStore.errorNotification('Error saving settings', error);
+  } finally {
+    isAwaitingResponse.value = false;
   }
 };
 
-const loadProjects = async () => {
-      await projectStore.loadProjects();
-      trayStates.refreshData();
-};
+// Opens dialog to select the Clustta directory.
+const selectDirectory = async () => {
+  let title = 'Clustta Directory';
+  let directory = userBaseDirectory.value;
 
-const closeModal = () => {
-  modals.disableAllModals();
-};
+  const result = await DialogService.SelectSpecificFolderDialog(title, directory);
 
-const handleEnterKey = (event) => {
-  if (event.key === 'Enter') {
-    saveChanges();
+  if (result) {
+    let fileDir = result.replace(/\\/g, '/');
+    selectedClusttaDirectory.value = fileDir.replace(/\/clustta/g, '') + '/clustta';
+
+    personalDataDirectory.value = selectedClusttaDirectory.value + '/projects';
+    sharedDataDirectory.value = selectedClusttaDirectory.value + '/shared_projects';
+
+    if (locations.value.length === 0) {
+      const mntPath = selectedClusttaDirectory.value + '/mnt';
+      try {
+        const mntExists = await FSService.DirExists(mntPath);
+        if (mntExists) {
+          locations.value = [{
+            id: '1',
+            name: 'mnt',
+            path: mntPath,
+            is_default: true,
+            project_ids: []
+          }];
+          await checkAllLocationHealth();
+        }
+      } catch (error) {
+        console.error('Error checking /mnt folder:', error);
+      }
+    }
   }
 };
 
+// Opens dialog to change the path of an existing location.
+const selectPath = async (location) => {
+  const result = await DialogService.SelectFolderDialog("Select Location Folder");
+  if (!result) return;
+  
+  const path = result.replace(/\\/g, '/');
+  location.path = path;
+  
+  await checkAllLocationHealth();
+  
+  notificationStore.addNotification('Location updated', '', 'success', false);
+};
 
+// Sets a location as the default.
+const setDefaultLocation = (locationId) => {
+  locations.value.forEach(loc => {
+    loc.is_default = loc.id === locationId;
+  });
+  
+  notificationStore.addNotification('Default location updated', '', 'success', false);
+};
 
+// lifecycle
 onMounted(async () => {
-  await SettingsService.GetUserDirectory()
-    .then((response) => {
-      userBaseDirectory.value = response;
-      defaultClusttaDirectory.value = `${response}clustta`;
-      console.log(defaultClusttaDirectory.value)
-    })
-    .catch((error) => {
-      notificationStore.addNotification(
-        "Error Loading Settings",
-        error.message,
-        "error",
-        false
-      )
-    });
-  await SettingsService.GetUsername()
-    .then((response) => {
-      userName.value = response
-    })
-    .catch((error) => {
-      notificationStore.addNotification(
-        "Error Loading Settings",
-        error.message,
-        "error",
-        false
-      )
-    });
-
+  try {
+    const response = await SettingsService.GetUserDirectory();
+    userBaseDirectory.value = response;
+    defaultClusttaDirectory.value = `${response}clustta`;
+  } catch (error) {
+    notificationStore.addNotification(
+      "Error Loading Settings",
+      error.message,
+      "error",
+      false
+    );
+  }
+  
+  try {
+    const response = await SettingsService.GetUsername();
+    userName.value = response;
+  } catch (error) {
+    notificationStore.addNotification(
+      "Error Loading Settings",
+      error.message,
+      "error",
+      false
+    );
+  }
 });
-
 </script>
 
 <style scoped>
 @import "@/assets/desktop.css";
+
+.card-description {
+  font-size: 13px;
+  color: var(--silver);
+  opacity: 0.9;
+  line-height: 1.5;
+}
 
 .general-container {
   display: flex;
@@ -405,27 +403,6 @@ onMounted(async () => {
   max-width: 600px;
   color: white;
   box-sizing: border-box;
-  padding: 0;
-}
-
-/* Settings Section Card Styles */
-.settings-section-card {
-  display: flex;
-  flex-direction: column;
-  background-color: var(--dark-steel);
-  overflow: hidden;
-  box-sizing: border-box;
-  padding: 0;
-}
-
-.settings-section-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.5rem;
-  background-color: var(--midnight-steel);
-  border-radius: var(--normal-radius);
-  margin: 0;
 }
 
 .header-content {
@@ -435,76 +412,26 @@ onMounted(async () => {
   flex: 1;
 }
 
-.settings-section-card-title {
-  font-size: 16px;
-  font-weight: 400;
-  color: var(--white);
-  margin: 0;
+.hover-action {
+  display: none;
 }
 
-.settings-section-card-content {
+.location-actions {
   display: flex;
-  flex-direction: column;
-  padding: 1rem;
-  gap: 1rem;
+  align-items: center;
+  gap: 0.5rem;
+  box-sizing: border-box;
 }
 
-.settings-section-card-content.no-padding {
-  padding: 0;
-}
-
-.card-description {
-  font-size: 13px;
+.location-body {
   color: var(--silver);
-  opacity: 0.9;
-  line-height: 1.5;
-}
-
-/* Location Items */
-.locations-scroll-container {
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  background-color: var(--midnight-steel);
-  border-radius: var(--normal-radius);
-  background-color: var(--light-steel);
-  max-height: 300px;
-}
-
-.location-item {
-  display: flex;
-  align-items: center;
+  font-size: 12px;
+  opacity: 0.8;
+  padding: 0.1rem;
+  white-space: nowrap;
   overflow: hidden;
-  box-sizing: border-box;
-  min-height: 60px;
-  height: max-content;
-  padding: 0.75rem 1rem;
-  gap: 0.75rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  border-bottom: 1px solid var(--dark-steel);
-  /* background-color: crimson; */
-  background-color: var(--light-steel);
-}
-
-.location-item-single{
-  border-radius: var(--normal-radius);
-}
-
-.location-item:last-child {
-  border-bottom: none;
-}
-
-.location-item:hover {
-  background-color: #ffffff15;
-}
-
-.location-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.3rem;
-  box-sizing: border-box;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .location-content {
@@ -526,6 +453,45 @@ onMounted(async () => {
   padding: 0.1rem;
 }
 
+.location-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem;
+  box-sizing: border-box;
+}
+
+.location-item {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  min-height: 60px;
+  height: max-content;
+  padding: 0.75rem 1rem;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid var(--dark-steel);
+  background-color: var(--light-steel);
+}
+
+.location-item:hover {
+  background-color: #ffffff15;
+}
+
+.location-item:hover .hover-action {
+  display: flex;
+}
+
+.location-item:last-child {
+  border-bottom: none;
+}
+
+.location-item-single {
+  border-radius: var(--normal-radius);
+}
+
 .location-name {
   font-size: 14px;
   font-weight: 500;
@@ -535,47 +501,56 @@ onMounted(async () => {
   text-overflow: ellipsis;
 }
 
-.location-body {
-  color: var(--silver);
-  font-size: 12px;
-  opacity: 0.8;
-  padding: 0.1rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-}
-
-.default-badge {
-  font-size: 11px;
-  padding: 2px 8px;
-  background-color: var(--accent-color);
-  color: white;
-  border-radius: 4px;
-  font-weight: 500;
-}
-
-.location-actions {
+.locations-scroll-container {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-sizing: border-box;
-}
-
-.hover-action {
-  display: none;
-}
-
-.location-item:hover .hover-action {
-  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  border-radius: var(--normal-radius);
+  background-color: var(--light-steel);
+  max-height: 300px;
 }
 
 .pop-up-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
-  /* padding-top: 0.5rem; */
-  /* background-color: forestgreen; */
+}
+
+.settings-section-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--dark-steel);
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.settings-section-card-content {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.settings-section-card-content.no-padding {
+  padding: 0;
+}
+
+.settings-section-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background-color: var(--midnight-steel);
+  border-radius: var(--normal-radius);
+  margin: 0;
+}
+
+.settings-section-card-title {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--white);
+  margin: 0;
 }
 </style>
 

@@ -75,60 +75,27 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-import { v4 as uuidv4 } from 'uuid'
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
 // imports
-import { onMounted, watchEffect, onUnmounted, ref, computed } from 'vue';
-
-// state imports
-import { useTrayStates } from '@/stores/TrayStates';
-
-// store imports
-import { useNotificationStore } from '@/stores/notifications';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useStageStore } from '@/stores/stages';
-import { useAssetStore } from '@/stores/assets';
-import { useCollectionStore } from '@/stores/collections';
-import { useStatusStore } from '@/stores/status';
-import { useProjectStore } from '@/stores/projects';
-import { useImportStore } from '@/stores/import';
-import { useDndStore } from '@/stores/dnd';
-import { useMenu } from '@/stores/menu';
+import { ref, watchEffect } from 'vue';
 
 // components
-import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
 import SearchSuggestions from '@/instances/common/components/SearchSuggestions.vue';
+import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
-// states
-const trayStates = useTrayStates();
-const stage = useStageStore();
+// stores
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+
+const iconStore = useIconStore();
 const menu = useMenu();
-const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
-const statusStore = useStatusStore();
-const projectStore = useProjectStore();
-const collectionStore = useCollectionStore();
-const assetStore = useAssetStore();
-const importStore = useImportStore();
-const dndStore = useDndStore();
-
-let title = 'Igore Configuration';
 
 // refs
-const modalContainer = ref(null);
-const popUpActions = ref(null);
-const isAwaitingResponse = ref(false);
-const selectedTabName = ref("File Types");
-
+const extensions = ref([]);
 const ignoreParameters = ref({
   tempFiles: true,
   logFiles: true,
@@ -137,71 +104,110 @@ const ignoreParameters = ref({
   imageFiles: false,
   videosFiles: false,
 });
+const isAwaitingResponse = ref(false);
+const modalContainer = ref(null);
+const popUpActions = ref(null);
+const selectedTabName = ref('File Types');
 
-const extensions = ref([]);
-
+// constants
+const projectTags = [];
 const settingsItems = [
-  { name: "File Types", icon: "file" },
-  { name: "Folders", icon: "folder" },
-  { name: "Common Presets", icon: "cog" },
-]
+  { name: 'File Types', icon: 'file' },
+  { name: 'Folders', icon: 'folder' },
+  { name: 'Common Presets', icon: 'cog' },
+];
+const title = 'Ignore Configuration';
 
-const toggleField = (key) => {
-  ignoreParameters.value[key] = !ignoreParameters.value[key]
-}
-
-const filterList = (selectedTab) => {
-  console.log(selectedTab);
-  // let modalName;
-  // if(selectedTab === 'Folder types'){
-  // 	modalName = 'EntityTypes'
-  // } else if(selectedTab === 'Task types'){
-  // 	modalName = 'TaskTypes'
-  // } else {
-  // 	modalName = selectedTab;
-  // }
-  // const selectedTabName = modalName.toLowerCase();
-  // settings.setModalVisibility(selectedTabName, true);
+// methods
+// Adds an extension to the ignore list.
+const addExtension = (extension) => {
+  if (!extensions.value.includes(extension)) {
+    extensions.value.push(extension);
+  }
 };
 
+// Closes the modal.
+const closeModal = () => {
+  modals.setModalVisibility('ignoreConfigModal', false);
+};
+
+// Filters the list based on selected tab.
+const filterList = (selectedTab) => {
+  console.log(selectedTab);
+};
+
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Removes an extension from the ignore list.
 const removeExtension = (extension) => {
   extensions.value = extensions.value.filter(t => t !== extension);
 };
 
-const addExtension = (extension) => {
-  if (extensions.value.includes(extension)) {
-    return
-  }
-  else {
-    extensions.value.push(extension);
-  }
-  console.log(extensions.value)
+// Toggles a field in the ignore parameters.
+const toggleField = (key) => {
+  ignoreParameters.value[key] = !ignoreParameters.value[key];
 };
 
-const closeModal = () => {
-  modals.setModalVisibility("ignoreConfigModal", false);
-};
-
-
-
-// onMounted(async () => {
-// });
-
-// onUnmounted(() => {
-// })
-
-
+// watchers
+watchEffect(() => {
+  if (modalContainer.value) {
+    menu.clickOutsideMask = modalContainer.value;
+  }
+});
 </script>
 
 <style scoped>
 @import "@/assets/desktop.css";
 
-.pop-up-actions {
-  /* width: min-content; */
+.config-group {
+  display: flex;
+  flex-direction: column;
+  color: white;
   align-items: center;
-  /* background-color: forestgreen; */
-  /* justify-content: space-around; */
+  gap: .3rem;
+  padding: .6rem;
   box-sizing: border-box;
+  width: 100%;
+  height: min-content;
+  border-radius: var(--normal-radius);
+  background-color: var(--dark-steel);
+}
+
+.config-item {
+  overflow: hidden;
+  background-color: transparent;
+  text-align: center;
+  font-size: 14px;
+  line-height: 14px;
+  color: white;
+  position: relative;
+  border-radius: var(--small-radius);
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding-left: .3rem;
+  width: 100%;
+  min-width: max-content;
+  min-height: max-content;
+  transition: all 0.3s ease;
+}
+
+.general-container-wide {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: 90vw;
+  min-width: 600px !important;
+  max-width: 1000px;
+  max-height: 80vh;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-container {
@@ -210,39 +216,26 @@ const closeModal = () => {
   max-height: 90vh;
 }
 
-.general-container-wide {
-  display: flex;
-  flex-direction: column;
-  /* background-color: firebrick; */
-  overflow: hidden;
-  width: 90vw;
-  min-width: 600px !important;
-  max-width: 1000px;
-  max-height: 80vh;
-
-  box-sizing: border-box;
+.pop-up-actions {
   align-items: center;
-  justify-content: center;
+  box-sizing: border-box;
 }
 
-.folder-path {
-  width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.pop-up-prompt {
+  gap: 10px;
+  align-items: center;
+  max-height: 400px;
 }
 
 .rules-toggle {
   display: flex;
-  /* background-color: red; */
   gap: .5rem;
   align-items: center;
-  min-width: max-content
+  min-width: max-content;
 }
 
 .selected-folder {
-  /* background-color: darkblue; */
   width: 100%;
-  padding: .2rem;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -254,123 +247,10 @@ const closeModal = () => {
 
 .selected-folder-container {
   display: flex;
-  /* background-color: firebrick; */
   width: 100%;
   gap: .2rem;
   overflow: hidden;
-  display: flex;
   align-items: center;
-}
-
-.compound-input-section {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: .4rem;
-}
-
-.task-options-container {
-  position: relative;
-  box-sizing: border-box;
-
-  width: 100%;
-  height: 0px;
-  /* height: 80px; */
-  overflow: hidden;
-  transition-property: height;
-  transition-duration: 0.2s;
-  transition-timing-function: ease-in-out;
-  transition: opacity .5s ease-in-out;
-  /* transition: all .1s ease-in-out; */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  margin: 0;
-  opacity: 1;
-}
-
-.task-options-container-closed {
-  transition: all .2s ease-in-out;
-  opacity: 0;
-  height: 0px;
-  padding: 0;
-  overflow: hidden;
-  /* margin-bottom: -1.5rem; */
-}
-
-
-.input-short {
-  flex: 1;
-  width: 100%;
-}
-
-.listbox-short {
-
-  flex: 1;
-  width: 130px;
-}
-
-.input-label {
-
-  font-family: Inter, sans-serif;
-  color: white;
-  font-size: 16px;
-  white-space: nowrap;
-  flex: 1;
-
-}
-
-.pop-up-prompt {
-  gap: 10px;
-  /* background-color: bisque; */
-  align-items: center;
-  /* justify-content: center; */
-  max-height: 400px;
-}
-
-.config-group {
-  display: flex;
-  flex-direction: column;
-  /* flex-wrap: wrap; */
-  color: white;
-  align-items: center;
-  gap: .3rem;
-  padding: .6rem;
-  box-sizing: border-box;
-  width: max-content;
-  width: 100%;
-  height: min-content;
-  border-radius: var(--normal-radius);
-  background-color: var(--dark-steel);
-  /* background-color: crimson; */
-  /* overflow: hidden; */
-}
-
-.config-item {
-  overflow: hidden;
-  background-color: transparent;
-  text-align: center;
-  font-size: 14px;
-  line-height: 14px;
-  background-color: transparent;
-  color: white;
-  position: relative;
-  border-radius: 8px;
-  border-radius: var(--small-radius);
-  box-sizing: border-box;
-  cursor: pointer;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding-left: .3rem;
-  height: max-content;
-  width: max-content;
-  min-width: max-content;
-  min-height: max-content;
-  width: 100%;
-  /* aspect-ratio: 1/1; */
-  transition: all 0.3s ease;
-  /* background-color: rebeccapurple; */
 }
 </style>
 

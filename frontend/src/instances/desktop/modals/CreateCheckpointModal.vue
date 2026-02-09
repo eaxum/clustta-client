@@ -33,17 +33,17 @@
         <img class="screenshot-thumb" :src="trayStates.screenshot">
       </span>
 
-      <div class="horizontal-flex">
+      <div v-if="trayStates.screenshot" class="horizontal-flex">
         <div class="input-label"> Use Image as Asset thumbnail</div>
         <ToggleSwitch :switchValueProp="useImageAsCover" @click="useAsCover()" />
       </div>
 
-    </div>
+      <div class="pop-up-actions">
+        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="'Create'" :fullWidth="true" @click="createCheckPoint" :isActive="isValueChanged"
+          :loading="isAwaitingResponse" />
+      </div>
 
-    <div class="pop-up-actions">
-      <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-      <GeneralButton :label="'Create'" :fullWidth="true" @click="createCheckPoint" :isActive="isValueChanged"
-        :loading="isAwaitingResponse" />
     </div>
 
 
@@ -51,226 +51,215 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-// utils/services
-import { onMounted, watchEffect, onUnmounted, ref, computed } from 'vue';
-import utils from '@/services/utils';
+// imports
+import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 import emitter from '@/lib/mitt';
-import { CheckpointService, ClipboardService } from "@/../bindings/clustta/services";
+import utils from '@/services/utils';
 
 // components
-import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import StatusMenu from '@/instances/desktop/menus/StatusMenu.vue';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import InputAlert from '@/instances/common/components/InputAlert.vue';
-import { v4 as uuidv4 } from 'uuid';
+import StatusMenu from '@/instances/desktop/menus/StatusMenu.vue';
+import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
-// state imports
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useUserStore } from '@/stores/users';
-import { useTrayStates } from '@/stores/TrayStates';
-import { useNotificationStore } from '@/stores/notifications';
+// services
+import { CheckpointService, ClipboardService, DialogService } from '@/services';
+
+// stores
 import { useAssetStore } from '@/stores/assets';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
-import { DialogService } from '@/../bindings/clustta/services/index';
 import { useStatusStore } from '@/stores/status';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useUserStore } from '@/stores/users';
 
-// refs
-const userStore = useUserStore();
-const trayStates = useTrayStates();
-const message = ref('');
 const assetStore = useAssetStore();
+const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const statusStore = useStatusStore();
 const projectStore = useProjectStore();
-const useImageAsCover = ref(true);
-const isAwaitingResponse = ref(false);
+const statusStore = useStatusStore();
+const trayStates = useTrayStates();
+const userStore = useUserStore();
+
+// refs
 const displayStatusMenu = ref(false);
+const isAwaitingResponse = ref(false);
+const message = ref('');
 const modalContainer = ref(null);
+const useImageAsCover = ref(true);
+
+// constants
+const forbiddenComments = ['wip', 'wfa', 'retake', 'retook', 'todo', 'fmf'];
 
 // computed
-const forbiddenComments = [
-  'wip',
-  'wfa',
-  'retake',
-  'retook',
-  'todo',
-  'fmf'
-];
-
+// Returns whether the message is valid for submission.
 const isValueChanged = computed(() => {
   const messageWords = message.value.toLowerCase().split(/\s+/);
   const hasForbiddenWord = forbiddenComments.some(comment =>
     messageWords.includes(comment.toLowerCase())
   );
-  
   return message.value.trim().length > 6 && !hasForbiddenWord;
 });
 
-const validationMessage = computed(() => {
-  if (message.value.trim().length <= 6) {
-    return 'Your message is too short.';
-  }
-  
-  const messageWords = message.value.toLowerCase().split(/\s+/);
-  const foundForbidden = forbiddenComments.find(comment =>
-    messageWords.includes(comment.toLowerCase())
-  );
-  
-  if (foundForbidden) {
-    return `Please avoid using "${foundForbidden.toUpperCase()}" in your message. Be more descriptive.`;
-  }
-  
-  return '';
+// Returns whether the status menu should be displayed.
+const statusMenuDisplayed = computed(() => {
+  return assetStore.selectedAsset.type !== 'untracked_task' && displayStatusMenu.value;
 });
 
-const statusMenuDisplayed = computed(() => { return assetStore.selectedAsset.type !== "untracked_task" && displayStatusMenu.value });
-
+// Returns the current task status.
 const taskStatus = computed(() => {
-  if (assetStore.selectedAsset.type === "untracked_task") {
-    return statusStore.statuses.find((item) => item.name === 'todo')
+  if (assetStore.selectedAsset.type === 'untracked_task') {
+    return statusStore.statuses.find((item) => item.name === 'todo');
   }
   return assetStore.selectedAsset.status;
 });
 
-// methods
-const closeStatusMenu = () => {
-  displayStatusMenu.value = false;
-};
-
-const toggleDisplayStatusMenu = () => {
-  if (!userStore.canDo('change_status')) {
-    return
+// Returns the validation message for the comment field.
+const validationMessage = computed(() => {
+  if (message.value.trim().length <= 6) {
+    return 'Your message is too short.';
   }
-  assetStore.isAssetTaskStatus = true;
-  displayStatusMenu.value = true;
+  const messageWords = message.value.toLowerCase().split(/\s+/);
+  const foundForbidden = forbiddenComments.find(comment =>
+    messageWords.includes(comment.toLowerCase())
+  );
+  if (foundForbidden) {
+    return `Please avoid using "${foundForbidden.toUpperCase()}" in your message. Be more descriptive.`;
+  }
+  return '';
+});
+
+// methods
+// Adds an image from clipboard as preview.
+const addImageFromClipBoard = () => {
+  ClipboardService.ReadImageBase64()
+    .then(async (base64Img) => {
+      const imageStr = `data:image/png;base64, ${base64Img}`;
+      trayStates.screenshot = imageStr;
+      trayStates.previewFullPath = await utils.base64ToFile(base64Img);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
 
-const useAsCover = () => {
-  useImageAsCover.value = !useImageAsCover.value;
-};
-
-const escape = () => {
-  closeModal('createCheckpointModal');
-};
-
+// Closes the modal.
 const closeModal = () => {
   modals.disableAllModals();
 };
 
+// Closes the status menu.
+const closeStatusMenu = () => {
+  displayStatusMenu.value = false;
+};
+
+// Creates a checkpoint for the selected asset.
+const createCheckPoint = async () => {
+  isAwaitingResponse.value = true;
+  const taskPath = assetStore.selectedAsset.task_path;
+  const comment = message.value;
+  const previewPath = trayStates.previewFullPath;
+  const groupId = uuidv4();
+  if (assetStore.selectedAsset.type === 'task') {
+    CheckpointService.AddCheckpoint(projectStore.activeProject.uri, [taskPath], comment, previewPath, groupId, useImageAsCover.value)
+      .then(() => {
+        emitter.emit('refresh-browser');
+        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter((modifiedTaskPath) => modifiedTaskPath !== taskPath);
+        assetStore.selectedAsset.file_status = 'normal';
+        projectStore.refreshProjects();
+        isAwaitingResponse.value = false;
+        closeModal();
+      })
+      .catch((error) => {
+        isAwaitingResponse.value = false;
+        notificationStore.errorNotification('Error Creating Checkpoint', error);
+      });
+  } else {
+    await CheckpointService.AddUntrackedTask(projectStore.activeProject.uri, projectStore.activeProject.working_directory, [taskPath], 0, 1, comment, previewPath, groupId)
+      .then(() => {
+        assetStore.untrackedAssetsPath = assetStore.untrackedAssetsPath.filter((path) => path !== taskPath);
+        emitter.emit('refresh-browser');
+        projectStore.refreshProjects();
+        isAwaitingResponse.value = false;
+        closeModal();
+      })
+      .catch((error) => {
+        isAwaitingResponse.value = false;
+        notificationStore.errorNotification('Error Creating Checkpoint', error);
+      });
+  }
+};
+
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Handles enter key press to submit form.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter' && isValueChanged.value) {
     createCheckPoint();
   }
 };
 
-const createCheckPoint = async () => {
-  isAwaitingResponse.value = true;
-  let taskPath = assetStore.selectedAsset.task_path
-  let comment = message.value
-  let previewPath = trayStates.previewFullPath;
-  let groupId = uuidv4()
-  if (assetStore.selectedAsset.type === "task") {
-    CheckpointService.AddCheckpoint(projectStore.activeProject.uri, [taskPath], comment, previewPath, groupId, useImageAsCover.value)
-      .then((response) => {
-        emitter.emit('refresh-browser');
-        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter((modifiedTaskPath) => modifiedTaskPath !== taskPath)
-        assetStore.selectedAsset.file_status = "normal"
-        projectStore.refreshProjects();
-        isAwaitingResponse.value = false;
-        closeModal();
-      })
-      .catch((error) => {
-        isAwaitingResponse.value = false;
-        notificationStore.errorNotification("Error Creating Checkpoint", error)
-      });
-  } else {
-    await CheckpointService.AddUntrackedTask(projectStore.activeProject.uri, projectStore.activeProject.working_directory, [taskPath], 0, 1, comment, previewPath, groupId)
-      .then((response) => {
-        assetStore.untrackedAssetsPath = assetStore.untrackedAssetsPath.filter((path) => path !== taskPath)
-        emitter.emit('refresh-browser');
-        projectStore.refreshProjects();
-        isAwaitingResponse.value = false;
-        closeModal();
-      })
-      .catch((error) => {
-        isAwaitingResponse.value = false;
-        notificationStore.errorNotification("Error Creating Checkpoint", error)
-      });
-  }
-
+// Removes the current preview image.
+const removePreveiw = () => {
+  trayStates.screenshot = '';
+  trayStates.previewFile = '';
+  trayStates.previewFullPath = '';
 };
 
+// Opens a dialog to select a preview file.
 const selectPreviewFile = async () => {
   if (!trayStates.userPin) {
-    await trayStates.togglePin()
+    await trayStates.togglePin();
   }
-  const result = await DialogService.SelectFileDialog("Select Image File", "*.png; *.jpg; *.jpeg; *.gif; *.bmp; *.tiff; *.webp");
+  const result = await DialogService.SelectFileDialog('Select Image File', '*.png; *.jpg; *.jpeg; *.gif; *.bmp; *.tiff; *.webp');
   if (result) {
-    //console.log(result);
-    let filePath = result.replace(/\\/g, '/');
-    let fileName = filePath.split('/').pop();
-    let base64Image = await utils.base64FromFile(filePath)
+    const filePath = result.replace(/\\/g, '/');
+    const fileName = filePath.split('/').pop();
+    const base64Image = await utils.base64FromFile(filePath);
     trayStates.previewFile = fileName;
     trayStates.previewFullPath = filePath;
-    // trayStates.screenshot = await utils.base64FromFile(filePath)
-    trayStates.screenshot = base64Image
+    trayStates.screenshot = base64Image;
   }
-
   if (!trayStates.userPin) {
-    await trayStates.togglePin()
+    await trayStates.togglePin();
   }
-}
+};
 
-const removePreveiw = () => {
-  trayStates.screenshot = ""
-  trayStates.previewFile = ""
-  trayStates.previewFullPath = ""
-}
-
-const addImageFromClipBoard = () => {
-  ClipboardService.ReadImageBase64()
-    .then(async (base64Img) => {
-      let imageStr = `data:image/png;base64, ${base64Img}`;
-      let width;
-      let height;
-
-      // getImageDimensions(imageStr, function(dimensions) {
-      //   console.log(`Width: ${dimensions.width}, Height: ${dimensions.height}`);
-      // });
-
-      // width = dimensions.width;
-      // console.log(getImageDimensions());
-      trayStates.screenshot = imageStr
-      trayStates.previewFullPath = await utils.base64ToFile(base64Img);
-    })
-    .catch((err) => {
-      console.log(err)
-      //pass
-    });
-}
-
-onMounted(
-  async () => {
-    trayStates.screenshot = null
-    trayStates.previewFile = ""
-    trayStates.previewFullPath = ""
+// Toggles the status menu visibility.
+const toggleDisplayStatusMenu = () => {
+  if (!userStore.canDo('change_status')) {
+    return;
   }
-);
+  assetStore.isAssetTaskStatus = true;
+  displayStatusMenu.value = true;
+};
 
+// Toggles whether to use the image as cover.
+const useAsCover = () => {
+  useImageAsCover.value = !useImageAsCover.value;
+};
+
+// watchers
 watchEffect(() => {
   if (modalContainer.value) {
     modalContainer.value.addEventListener('click', closeStatusMenu);
   }
+});
+
+// lifecycle hooks
+onMounted(async () => {
+  trayStates.screenshot = null;
+  trayStates.previewFile = '';
+  trayStates.previewFullPath = '';
 });
 
 onUnmounted(() => {
@@ -278,7 +267,6 @@ onUnmounted(() => {
     modalContainer.value.removeEventListener('click', closeStatusMenu);
   }
 });
-
 </script>
 
 <style scoped>
@@ -350,7 +338,7 @@ onUnmounted(() => {
 }
 
 .desktop-input-long {
-  margin-top: 20px;
+  margin-top: 0px;
   font-weight: 200;
   color: var(--white);
 }

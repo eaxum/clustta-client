@@ -32,7 +32,7 @@
 <script setup>
 // imports
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { SettingsService } from "@/../bindings/clustta/services";
+import { SettingsService } from "@/services";
 import emitter from '@/lib/mitt';
 
 // components

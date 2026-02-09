@@ -6,7 +6,7 @@
 
       <!-- header -->
       <div class="header-container">
-        <ClusttaLogo :colored="true" :inverted="true" :boldText="true" />
+        <ClusttaLogo :colored="true" :inverted="true" />
         <div class="auth-header">
           Reset Password
         </div>
@@ -24,29 +24,15 @@
           <form @submit.prevent="handleResetPassword" class="auth-form">
 
             <!-- email -->
-            <div class="form-group">
-              <div class="compound-form-input">
-                <input autocomplete="off" class="form-input-mini" placeholder="Email address" v-model="resetForm.email" type="email"
-                  required @input="validateEmail" :class="{ 'error': errors.email && resetForm.email }" />
-                <ActionButton 
-                  v-if="resetForm.email && !emailValid"
-                  :icon="getAppIcon('alert')"
-                  :showLabel="false"
-                  :useAlert="true"
-                  :isInactive="true"
-                  :noFilter="true"
-                />
-                <ActionButton 
-                  v-else-if="resetForm.email && emailValid"
-                  :icon="getAppIcon('circle-check')"
-                  :showLabel="false"
-                  :useGo="true"
-                  :noFilter="true"
-                  :isInactive="true"
-                />
-              </div>
-              <span v-if="errors.email && resetForm.email" class="error-message">{{ errors.email }}</span>
-            </div>
+            <FormInput
+              v-model="resetForm.email"
+              placeholder="Email address"
+              needsValidation
+              :error="errors.email"
+              :valid="emailValid"
+              :showValidation="!!resetForm.email"
+              @input="validateEmail"
+            />
 
             <!-- submit button -->
             <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isResetFormFilled }">
@@ -88,10 +74,12 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue';
-import { AuthService } from "@/../bindings/clustta/services";
+import { useRouter } from 'vue-router';
+import { AuthService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useIconStore } from '@/stores/icons';
 
+const router = useRouter();
 const notificationStore = useNotificationStore();
 const iconStore = useIconStore();
 
@@ -101,8 +89,9 @@ const isAwaitingResponse = ref(false);
 const emailValid = ref(false);
 
 // components
-import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
+import FormInput from '@/instances/desktop/components/FormInput.vue';
 
 // vars
 const resetForm = reactive({
@@ -117,9 +106,6 @@ const errors = reactive({
 const isResetFormFilled = computed(() => {
   return resetForm.email && emailValid.value && !errors.email
 });
-
-// emits
-const emit = defineEmits(['back-to-login']);
 
 // methods
 const getAppIcon = (iconName) => {
@@ -139,7 +125,7 @@ const validateEmail = () => {
 };
 
 const backToLogin = () => {
-  emit('back-to-login')
+  router.push('/auth/login');
 };
 
 const handleResetPassword = async () => {

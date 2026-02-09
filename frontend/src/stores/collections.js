@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 
-import { CollectionService } from "@/../bindings/clustta/services";
+import { CollectionService } from "@/services";
 
 import { useCommonStore } from "@/stores/common";
 import { useAssetStore } from "@/stores/assets";
@@ -185,6 +185,7 @@ export const useCollectionStore = defineStore("collection", {
 
     async reloadCollectionTypes() {
       const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri) return;
       let collectionTypes = await CollectionService.GetCollectionTypes(
         projectStore.activeProject.uri
       );

@@ -18,6 +18,8 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       addProjectModal: false,
       cloneProjectModal: false,
       editProjectModal: false,
+      projectDetailsModal: false,
+      uploadProjectModal: false,
 
       configWorkflowModal: false,
       selectWorkflowModal: false,
@@ -35,7 +37,6 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       createMultipleCheckpointsModal: false,
 
       importItemsModal: false,
-      timelineModal: false,
       addWorkspaceModal: false,
 
       // settings
@@ -54,7 +55,6 @@ export const useDesktopModalStore = defineStore("desktopModals", {
 
       manageCollaboratorModal: false,
       addCollaboratorModal: false,
-      editCollaboratorModal: false,
 
       addRoleModal: false,
       editRoleModal: false,
@@ -76,6 +76,12 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       configClusttaCloudStudioModal: false,
       selectNewStudioTypeModal: false,
       updateStudioModal: false,
+
+      // sync
+      syncConflictModal: false,
+
+      // diagnostics
+      submitDiagnosticsModal: false,
     },
 
     activeModal: null,

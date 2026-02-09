@@ -5,10 +5,12 @@ import (
 	"clustta/internal/auth_service"
 	"clustta/internal/constants"
 	"clustta/internal/server/models"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 func GetUserStudios() ([]models.MinimalStudio, error) {
@@ -328,6 +330,48 @@ func RemoveCollaborator(userId, studioId string) (interface{}, error) {
 	return nil, fmt.Errorf("error removing collaborator: code - %d: body - %s", response.StatusCode, bodyData)
 }
 
+func GetServerVersion(studioUrl string) (string, error) {
+	if studioUrl == "" {
+		return "", fmt.Errorf("no studio URL provided")
+	}
+
+	url := studioUrl + "/version"
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode == 200 || response.StatusCode == 201 {
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			return "", err
+		}
+
+		var result map[string]interface{}
+		err = json.Unmarshal(body, &result)
+		if err != nil {
+			return "", err
+		}
+
+		if version, ok := result["version"].(string); ok {
+			return version, nil
+		}
+		return "", fmt.Errorf("version not found in response")
+	}
+
+	return "", fmt.Errorf("failed to get server version: status code %d", response.StatusCode)
+}
+
 func GetStudioStatus(studioUrl string) (string, error) {
 	if studioUrl == "" {
 		return "offline", nil
@@ -593,4 +637,59 @@ func CheckStudioNameExists(studioName string) (bool, error) {
 
 	bodyData := string(body)
 	return false, fmt.Errorf("error checking studio name: code - %d: body - %s", response.StatusCode, bodyData)
+}
+
+// pingStudioUrl pings a studio URL and sends the URL back on the channel if reachable.
+// Uses a short timeout to fail fast for unreachable servers.
+func pingStudioUrl(ctx context.Context, studioUrl string, ch chan<- string) {
+	pingUrl := studioUrl + "/ping"
+
+	req, err := http.NewRequestWithContext(ctx, "GET", pingUrl, nil)
+	if err != nil {
+		return
+	}
+
+	token, err := auth_service.GetToken()
+	if err != nil {
+		return
+	}
+	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{Timeout: 5 * time.Second}
+	response, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode == http.StatusOK || response.StatusCode == http.StatusCreated {
+		select {
+		case ch <- studioUrl:
+		case <-ctx.Done():
+		}
+	}
+}
+
+// ResolveStudioUrl races the primary and alternative studio URLs.
+// Returns whichever responds successfully first. Falls back to url if altUrl is empty.
+func ResolveStudioUrl(url, altUrl string) (string, error) {
+	if altUrl == "" {
+		return url, nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 6*time.Second)
+	defer cancel()
+
+	ch := make(chan string, 2)
+
+	go pingStudioUrl(ctx, url, ch)
+	go pingStudioUrl(ctx, altUrl, ch)
+
+	select {
+	case winner := <-ch:
+		return winner, nil
+	case <-ctx.Done():
+		return url, fmt.Errorf("both studio URLs are unreachable")
+	}
 }

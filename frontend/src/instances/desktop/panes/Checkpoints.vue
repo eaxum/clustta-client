@@ -1,12 +1,7 @@
 <template>
 
-   <div class="general-pane-header">
-      <div class="searchbar-container" v-esc="clearSearch">
-      <input ref="searchBar"  v-model="searchQuery" class="pane-search-bar" type="text"
-        :placeholder="'Search by message or author'" @input="updateSearch" />
-      <ActionButton v-if="searchQuery" :icon="getAppIcon('close')"
-        :allowDeactivate="true" v-tooltip="'Clear search'" :buttonFunction="clearSearch" />
-      </div>
+  <div class="general-pane-header">
+    <SearchBar v-model="searchQuery" placeholder="Search by message or author" @input="updateSearch" @clear="clearSearch" />
   </div>
 
   <div class="general-pane-root">
@@ -28,95 +23,78 @@
 <script setup>
 // imports
 import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue';
-import { FSService, CheckpointService } from '@/../bindings/clustta/services/index';
+import { FSService, CheckpointService } from '@/services';
 import utils from '@/services/utils';
 
 // components
 import CheckpointItem from '@/instances/desktop/components/CheckpointItem.vue';
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import PageState from '@/instances/common/components/PageState.vue';
 import CheckpointListSkeleton from '@/instances/common/components/CheckpointListSkeleton.vue';
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import PageState from '@/instances/common/components/PageState.vue';
+import SearchBar from '@/instances/desktop/components/SearchBar.vue';
 
 // store/state imports
-import { useTrayStates } from '@/stores/TrayStates';
 import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
-import { useUserStore } from '@/stores/users';
 import { useProjectStore } from '@/stores/projects';
-import { useIconStore } from '@/stores/icons';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useUserStore } from '@/stores/users';
 
 // stores/states
 const assetStore = useAssetStore();
-const trayStates = useTrayStates();
-const userStore = useUserStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
-const iconStore = useIconStore();
-
-// vars
-let placeholder = 'Search Checkpoints...';
+const trayStates = useTrayStates();
+const userStore = useUserStore();
 
 // refs
-const checkpointList = ref(null);
 const checkpointItem = ref(null);
+const checkpointList = ref(null);
 const checkpoints = ref([]);
-const taskHash = ref('');
 const isExpanded = ref(-1);
 const searchQuery = ref('');
+const taskHash = ref('');
 
-const getAppIcon = (iconName) => {
-	const icon = iconStore.getAppIcon(iconName);
-	return icon
+// methods
+
+// Clears the search and refreshes checkpoints.
+const clearSearch = () => {
+  searchQuery.value = '';
+  refreshCheckpoints();
 };
 
+// Returns the illustration path for the empty state.
+const illustration = () => '/page-states/resources.png';
+
+// Returns the message for the empty state.
+const message = () => 'No checkpoints match your search';
+
+// Filters checkpoints based on the search query.
 const updateSearch = () => {
   if (!searchQuery.value) {
     refreshCheckpoints(); 
     return;
   }
-
   const query = searchQuery.value?.toLowerCase();
-  // Filter the existing checkpoints without needing a separate array
   checkpoints.value = checkpoints.value.filter(checkpoint => {
     return checkpoint.comment.toLowerCase().includes(query) ||
       checkpoint.author.toLowerCase().includes(query);
   });
-}
-
-const message = () => {
-  return 'No checkpoints match your search';
 };
 
-const illustration = () => {
-  return '/page-states/resources.png';
-};
-
-const clearSearch = () => {
-  searchQuery.value = '';
-  refreshCheckpoints();
-}
-
+// Updates the expanded checkpoint index.
 const updateExpanded = (index) => {
   isExpanded.value = index;
-}
+};
 
-// computed props
-const itemName = computed(() => {
-  if (!assetStore.selectedAsset) {
-    return 'No task Selected'
-  }
-  return assetStore.selectedAsset.name;
-});
+// computed properties
+const checkpointEntity = computed(() => assetStore.selectedAsset);
 
-const checkpointEntity = computed(() => {
-  return assetStore.selectedAsset;
-});
-
+// watchers
 watch(checkpointEntity, () => {
   refreshCheckpoints();
 });
 
+// Refreshes the checkpoints list from the server.
 const refreshCheckpoints = async () => {
 
   taskHash.value = "";
@@ -158,6 +136,7 @@ const refreshCheckpoints = async () => {
     if (!author) {
       // Try fetching from global server before skipping
       try {
+        console.log(taskCheckpoints)
         author = await userStore.fetchUserData(authorId);
         if (author) {
           userCache[authorId] = author;
@@ -268,73 +247,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* @import "@/assets/tray.css"; */
 @import "@/assets/desktop.css";
-
-.pane-search-bar {
-	font-family: 'Inter', sans-serif;
-	box-sizing: border-box;
-  font-weight: 300;
-	font-size: 16px;
-	border-radius: 8px;
-	padding: 10px;
-	border: 0px;
-	border-style: solid;
-	outline: none;
-	background-color: var(--midnight-steel);
-	color: var(--white);
-	transition: width 0.2s ease-out;
-	border-radius: var(--large-radius);
-	width: 100%;
-}
-
-.searchbar-container {
-	display: flex;
-	align-items: center;
-	border: 0px;
-	border-style: solid;
-	outline: none;
-	background-color: var(--midnight-steel);
-	border-radius: var(--normal-radius);
-	width: 100%;
-  width: 98%;
-	padding-right: .4rem;
-	box-sizing: border-box;
-  z-index: 2;
-  border-radius: var(--large-radius);
-}
-
-.searchbar-container:hover {
-	outline: var(--transparent-line);
-	outline-offset: -1px;
-}
-
-.pane-search-bar:focus .searchbar-container {
-	background-color: red;
-	outline: var(--solid-line);
-	outline-offset: -1px;
-}
-
-.checkpoint-task-item {
-  background-color: green;
-  background-color: transparent;
-  height: 40px;
-  width: 100%;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 0px 12px;
-  color: white;
-}
-
-.checkpoint-task-item-text {
-  font-family: 'Inter', sans-serif;
-  box-sizing: border-box;
-  font-size: 20px;
-
-}
 
 .checkpoint-list-container {
   width: 100%;

@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { DependencyTypeService } from "@/../bindings/clustta/services";
+import { DependencyTypeService } from "@/services";
 import { useProjectStore } from "./projects";
 
 export const useDependencyStore = defineStore("dependency", {
@@ -22,6 +22,7 @@ export const useDependencyStore = defineStore("dependency", {
   actions: {
     async reloadDependencyTypes() {
       const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri) return;
       this.dependency_types = await DependencyTypeService.GetDependencyTypes(
         projectStore.activeProject.uri
       );

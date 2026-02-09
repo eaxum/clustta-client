@@ -1,1 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24"><title>floppy disk</title><g fill="#ffffff" class="nc-icon-wrapper"><path d="M22.707,6.707,17.293,1.293A1,1,0,0,0,16.586,1H4A3,3,0,0,0,1,4V20a3,3,0,0,0,3,3H20a3,3,0,0,0,3-3V7.414A1,1,0,0,0,22.707,6.707ZM14.5,4h1a.5.5,0,0,1,.5.5v4a.5.5,0,0,1-.5.5h-1a.5.5,0,0,1-.5-.5v-4A.5.5,0,0,1,14.5,4ZM19,12.5v6a.5.5,0,0,1-.5.5H5.5a.5.5,0,0,1-.5-.5v-6a.5.5,0,0,1,.5-.5h13A.5.5,0,0,1,19,12.5Z" fill="#ffffff"></path></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g>
+        <path d="M22.707,6.707C22.894,6.894 23,7.149 23,7.414L23,20C23,21.646 21.646,23 20,23L4,23C2.354,23 1,21.646 1,20L1,4C1,2.354 2.354,1 4,1L16.586,1C16.851,1 17.106,1.106 17.293,1.293L22.707,6.707ZM15.521,5.277C14.917,5.277 14.426,5.768 14.426,6.372C14.426,6.977 14.917,7.468 15.521,7.468C16.126,7.468 16.617,6.977 16.617,6.372C16.617,5.768 16.126,5.277 15.521,5.277ZM19,12.5C19,12.226 18.774,12 18.5,12L5.5,12C5.226,12 5,12.226 5,12.5L5,18.5C5,18.774 5.226,19 5.5,19L18.5,19C18.774,19 19,18.774 19,18.5L19,12.5Z" style="fill:white;"/>
+    </g>
+</svg>

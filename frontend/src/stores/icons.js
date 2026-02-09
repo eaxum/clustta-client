@@ -3,10 +3,11 @@ import fileIconIndex from "@/data/fileIconIndex.json";
 import webIconIndex from "@/data/webIconIndex.json";
 import utils from "@/services/utils";
 import { useTemplateStore } from "./template";
+import { usePlatformStore } from "./platform";
 import {
   FSService,
   SettingsService,
-} from "@/../bindings/clustta/services/index";
+} from "@/services";
 
 let defaultIconScheme = "solid";
 await SettingsService.GetIconScheme()
@@ -48,14 +49,33 @@ export const useIconStore = defineStore("icons", {
     },
 
     async getIcon(ext) {
+      const platformStore = usePlatformStore();
       let iconPath = fileIconIndex[ext];
       if (!iconPath) {
         iconPath = this.icons[ext];
         if (!iconPath) {
-          let fileExt = "." + ext;
-          let iconStr = await FSService.GetFileIcon(fileExt);
-          iconPath = "data:image/png;base64," + iconStr;
-          this.icons[ext] = "data:image/png;base64," + iconStr;
+          // In web mode, FSService isn't available - use default icon
+          if (platformStore.isWeb) {
+            const videoExts = ['mp4', 'mov', 'avi', 'mkv', 'wmv', 'flv', 'webm', 'm4v'];
+            const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp', 'ico', 'tiff', 'tif'];
+            const audioExts = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma', 'm4a', 'aiff'];
+            
+            if (videoExts.includes(ext.toLowerCase())) {
+              iconPath = '/file-icons/video.svg';
+            } else if (imageExts.includes(ext.toLowerCase())) {
+              iconPath = '/file-icons/image.svg';
+            } else if (audioExts.includes(ext.toLowerCase())) {
+              iconPath = '/file-icons/music.svg';
+            } else {
+              iconPath = '/file-icons/default.svg';
+            }
+            this.icons[ext] = iconPath;
+          } else {
+            let fileExt = "." + ext;
+            let iconStr = await FSService.GetFileIcon(fileExt);
+            iconPath = "data:image/png;base64," + iconStr;
+            this.icons[ext] = "data:image/png;base64," + iconStr;
+          }
         }
       }
       return iconPath;
@@ -64,9 +84,8 @@ export const useIconStore = defineStore("icons", {
       let domainName = utils.getDomainName(link);
       let iconPath = webIconIndex[domainName];
       if (!iconPath) {
-        let iconStr = await FSService.GetFileIcon(".html");
-        iconPath = "data:image/png;base64," + iconStr;
-        this.icons["html"] = "data:image/png;base64," + iconStr;
+        iconPath = '/file-icons/default.svg';
+        this.icons["html"] = iconPath;
       }
       return iconPath;
     },

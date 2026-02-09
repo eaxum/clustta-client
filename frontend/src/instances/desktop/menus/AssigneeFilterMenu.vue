@@ -34,103 +34,98 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-    const icon = iconStore.getAppIcon(iconName);
-    return icon
-};
-
 // imports
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
-import utils from '@/services/utils';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
-
-// states/store imports
-import { useMenu } from '@/stores/menu';
-import { useCommonStore } from '@/stores/common';
-import { useUserStore } from '@/stores/users';
+import utils from '@/services/utils';
 
 // components
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
-// states/stores
-const menu = useMenu();
+// stores
+import { useCommonStore } from '@/stores/common';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useUserStore } from '@/stores/users';
+
 const commonStore = useCommonStore();
+const iconStore = useIconStore();
+const menu = useMenu();
 const userStore = useUserStore();
 
 // refs
 const collectionMenu = ref(null);
 
-
-
-const assigneeFilterActive = computed(() => {
-    return commonStore.hasAssignees || commonStore.noAssignees;
-});
-
+// computed properties
+// Returns list of collaborators with formatted properties.
 const allCollaborators = computed(() => {
-
   let collaborators = userStore.getProjectCollaborators;
 
-  for(let i = 0; i < collaborators.length; i++){
+  for (let i = 0; i < collaborators.length; i++) {
     collaborators[i].name = collaborators[i].first_name + ' ' + collaborators[i].last_name;
     collaborators[i].id = collaborators[i].id;
     collaborators[i].type = 'assignation';
-    collaborators[i].avatarColor = userStore.userProfileColor(collaborators[i].id)
+    collaborators[i].avatarColor = userStore.userProfileColor(collaborators[i].id);
   }
 
-  const availableCollaborators = collaborators;
-
-  return availableCollaborators
+  return collaborators;
 });
 
+// Checks if assignee filter is active (has or no assignees).
+const assigneeFilterActive = computed(() => {
+  return commonStore.hasAssignees || commonStore.noAssignees;
+});
 
 // methods
-const isFilterActive = (filter) => {
-    return commonStore.taskFilters.includes(filter);
+// Adds a filter to the task filters list.
+const addFilter = (filter) => {
+  commonStore.taskFilters.push(filter);
 };
 
-const toggleNoAssignees = () => {
-  commonStore.noAssignees = !commonStore.noAssignees;
-  if(commonStore.hasAssignees){
-    commonStore.hasAssignees = false;
+// Returns the icon path for a given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Checks if a filter is currently active.
+const isFilterActive = (filter) => {
+  return commonStore.taskFilters.includes(filter);
+};
+
+// Removes a filter from the task filters list.
+const removeFilter = (filter) => {
+  commonStore.taskFilters = commonStore.taskFilters.filter((item) => item !== filter);
+};
+
+// Toggles a filter on or off and refreshes browser.
+const toggleFilter = (filter) => {
+  if (commonStore.taskFilters.includes(filter)) {
+    removeFilter(filter);
+  } else {
+    addFilter(filter);
   }
   emitter.emit('refresh-browser');
 };
 
+// Toggles filter for items that have assignees.
 const toggleHasAssignees = () => {
   commonStore.hasAssignees = !commonStore.hasAssignees;
-  if(commonStore.noAssignees){
+  if (commonStore.noAssignees) {
     commonStore.noAssignees = false;
   }
   emitter.emit('refresh-browser');
 };
 
-const toggleFilter = (filter) => {
-    if(commonStore.taskFilters.includes(filter)){
-        removeFilter(filter);
-    } else {
-        addFilter(filter);
-    }
-    emitter.emit('refresh-browser');
-
+// Toggles filter for items without assignees.
+const toggleNoAssignees = () => {
+  commonStore.noAssignees = !commonStore.noAssignees;
+  if (commonStore.hasAssignees) {
+    commonStore.hasAssignees = false;
+  }
+  emitter.emit('refresh-browser');
 };
 
-const addFilter = (filter) => {
-  commonStore.taskFilters.push(filter);
-  console.log(commonStore.taskFilters)
-};
-
-const removeFilter = (filter) => {
-	commonStore.taskFilters = commonStore.taskFilters.filter((item) => item !== filter );
-};
-
-
-
-// methods
-
-// onMounted hook
+// lifecycle hooks
 onMounted(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.collectionMenu = collectionMenu.value;
@@ -139,7 +134,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.assetMenuHeight = collectionMenu.value.getBoundingClientRect().height;
-
 });
 </script>
 

@@ -33,77 +33,55 @@
 </template>
 
 <script setup>
+// imports
+import { onMounted, ref } from 'vue';
 
-import { useTrayStates } from '@/stores/TrayStates';
-import { ref, onMounted } from 'vue';
+// components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import { TemplateService } from "@/../bindings/clustta/services";
-import { useNotificationStore } from '@/stores/notifications';
+
+// services
+import { DialogService, TemplateService } from "@/services";
+
+// stores
+const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
+const templateStore = useTemplateStore();
+const trayStates = useTrayStates();
+
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useTemplateStore } from '@/stores/template';
+import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
-import { DialogService } from '@/../bindings/clustta/services/index';
+import { useTemplateStore } from '@/stores/template';
+import { useTrayStates } from '@/stores/TrayStates';
 
-let title = 'Edit Template';
-let showSearch = false;
+// constants
+const showSearch = false;
+const title = 'Edit Template';
 
+// refs
 const fileIsSelected = ref(false);
-const templateName = ref('');
 const templateFullName = ref('');
+const templateName = ref('');
 const templatePath = ref("");
 
-const trayStates = useTrayStates();
-const templateStore = useTemplateStore();
-const projectStore = useProjectStore();
+// methods
 
-const notificationStore = useNotificationStore();
-const modals = useDesktopModalStore();
-
-const handleEnterKey = (event) => {
-  if (event.key === 'Enter') {
-    editTemplate();
-  }
-};
-
-const escape = () => {
-  modals.setModalVisibility('editUserTemplateModal', false);
-};
-
-const closeModal = () => {
-  modals.setModalVisibility("editUserTemplateModal", false);
-};
-
-const selectFile = async () => {
-  if (!trayStates.userPin) {
-    await trayStates.togglePin()
-  }
-  let selectedTemplate = templateStore.selectedTemplate;
-  let extension = selectedTemplate.extension.replace('.', '');
-  const result = await DialogService.SelectFileDialog("Select Image File", "*." + extension);
-  if (result) {
-    let filePath = result.replace(/\\/g, '/');
-    let fileName = filePath.split('/').pop();
-    templatePath.value = filePath;
-    templateFullName.value = fileName
-    if (!templateName.value) {
-      templateName.value = fileName.split('.').slice(0, -1).join('.');
-    }
-    fileIsSelected.value = true;
-  }
-
-  if (!trayStates.userPin) {
-    await trayStates.togglePin()
-  }
-};
-
+// Clears the selected file.
 const clearSelectedFile = () => {
   fileIsSelected.value = false;
   templatePath.value = "";
   templateFullName.value = "";
 };
 
+// Closes the modal.
+const closeModal = () => {
+  modals.setModalVisibility("editUserTemplateModal", false);
+};
+
+// Edits the template with the new values.
 const editTemplate = async () => {
-    return
+  return;
   let selectedTemplate = templateStore.selectedTemplate;
   if (!templateName.value) {
     notificationStore.addNotification('Error editing template', 'Invalid template name', "error");
@@ -112,11 +90,11 @@ const editTemplate = async () => {
 
   try {
     if (templateName.value !== selectedTemplate.name) {
-      await TemplateService.RenameTemplate(projectStore.activeProject.uri, selectedTemplate.name, templateName.value)
+      await TemplateService.RenameTemplate(projectStore.activeProject.uri, selectedTemplate.name, templateName.value);
     }
 
     if (fileIsSelected.value) {
-      await TemplateService.ChangeTemplateFile(projectStore.activeProject.uri, selectedTemplate.name, templatePath.value)
+      await TemplateService.ChangeTemplateFile(projectStore.activeProject.uri, selectedTemplate.name, templatePath.value);
     }
   } catch (error) {
     notificationStore.errorNotification('Error editing template', error);
@@ -126,97 +104,55 @@ const editTemplate = async () => {
   closeModal();
 };
 
+// Handles escape key to close modal.
+const escape = () => {
+  modals.setModalVisibility('editUserTemplateModal', false);
+};
+
+// Handles enter key press.
+const handleEnterKey = (event) => {
+  if (event.key === 'Enter') {
+    editTemplate();
+  }
+};
+
+// Opens a file selection dialog and sets the selected file.
+const selectFile = async () => {
+  if (!trayStates.userPin) {
+    await trayStates.togglePin();
+  }
+  let selectedTemplate = templateStore.selectedTemplate;
+  let extension = selectedTemplate.extension.replace('.', '');
+  const result = await DialogService.SelectFileDialog("Select Image File", "*." + extension);
+  if (result) {
+    let filePath = result.replace(/\\/g, '/');
+    let fileName = filePath.split('/').pop();
+    templatePath.value = filePath;
+    templateFullName.value = fileName;
+    if (!templateName.value) {
+      templateName.value = fileName.split('.').slice(0, -1).join('.');
+    }
+    fileIsSelected.value = true;
+  }
+
+  if (!trayStates.userPin) {
+    await trayStates.togglePin();
+  }
+};
+
+// lifecycle
 onMounted(() => {
   if (templateStore.selectedTemplate) {
     templateName.value = templateStore.selectedTemplate.name;
   }
 });
-
-
 </script>
 
 <style scoped>
 @import "@/assets/desktop.css";
 
-.add-category {
-
-  display: flex;
-  gap: .5rem;
-  flex-direction: row;
-  /* background-color: chocolate; */
-}
-
-.input-short {
-  flex: 1;
-  width: 100%;
-}
-
-.listbox-short {
-
-  flex: 1;
-  width: 130px;
-}
-
-.input-label {
-
-  font-family: Inter, sans-serif;
-  color: white;
-  font-size: 16px;
-  white-space: nowrap;
-  flex: 1;
-
-}
-
-.category-area {
-  box-sizing: border-box;
-  /* margin-top: 1rem; */
-  display: flex;
-  /* align-items: center; */
-  flex-direction: column;
-  /* justify-content: space-between; */
-  gap: 1rem;
-  /* background-color: darkkhaki; */
-  color: white;
-  width: 98%;
-}
-
-.category-list {
-  box-sizing: border-box;
-  /* margin-top: 1rem; */
-  display: flex;
-  padding: .5rem;
-  align-items: center;
-  flex-direction: column;
-  /* justify-content: space-between; */
-  gap: .2rem;
-  /* background-color: rgb(57, 122, 108); */
-
-  background-color: rgba(0, 0, 0, 0.144);
-  height: 290px;
-  /* height: 90%; */
-  overflow: hidden;
-  overflow-y: scroll;
-  width: 100%;
-  border-radius: 10px;
-}
-
-.category-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.category-list::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
-}
-
-.category-list::-webkit-scrollbar-track {
-  border-radius: 10px;
-  /* background-color: rgba(0, 0, 0, 0.295); */
-}
-
 .category-item {
   color: white;
-  /* margin-top: 1rem; */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -225,15 +161,15 @@ onMounted(() => {
   border-bottom: 1px solid rgba(255, 255, 255, 0.096);
   height: max-content;
   padding: .2rem;
-
-  /* background-color: greenyellow; */
 }
 
 .category-item-actions {
-
-  /* background-color: red; */
   display: flex;
+}
 
+.input-short {
+  flex: 1;
+  width: 100%;
 }
 </style>
 

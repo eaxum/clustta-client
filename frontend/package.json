@@ -5,9 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:web": "cross-env VITE_PLATFORM=web vite",
+    "dev:dashboard": "cross-env VITE_PLATFORM=web vite",
     "build:dev": "vite build --minify false --mode development",
     "build": "vite build --mode production",
+    "build:web": "cross-env VITE_PLATFORM=web vite build --mode production",
+    "build:dashboard": "cross-env VITE_PLATFORM=web vite build --mode production",
     "preview": "vite preview",
+    "preview:web": "cross-env VITE_PLATFORM=web vite preview",
     "proto:generate": "pbjs -t static-module -w es6 -o src/protos/example.js src/protos/example.proto && pbts -o src/protos/example.d.ts src/protos/example.js"
   },
   "dependencies": {
@@ -18,10 +23,12 @@
     "@vue-flow/minimap": "^1.5.0",
     "buffer": "^6.0.3",
     "cropperjs": "^1.6.2",
+    "fzstd": "^0.1.1",
     "mitt": "^3.0.1",
     "pako": "^2.1.0",
     "pinia": "^2.1.7",
     "protobufjs": "^7.5.2",
+    "sql.js": "^1.13.0",
     "uuid": "^11.1.0",
     "vue": "^3.3.4",
     "vue-advanced-cropper": "^2.8.8",
@@ -30,7 +37,8 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.5",
-    "@wailsio/runtime": "latest",
+    "@wailsio/runtime": "^3.0.0-alpha.78",
+    "cross-env": "^10.1.0",
     "vite": "^5.4.20"
   }
 }

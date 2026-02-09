@@ -1,41 +1,29 @@
 <template>
 	<div ref="projectListRoot" class="project-stage-root absolute-pane">
-
 		<div class="task-header">
-			<div class="create-menu" v-if="projectStore.projectsLoaded" >
-				<ActionButton v-if="userStore.userCanCreateProject" :icon="getAppIcon('briefcase-plus')" 
+			<div class="create-menu" >
+				<ActionButton :isDisabled="operationsActive" v-if="userStore.userCanCreateProject" :icon="getAppIcon('briefcase-plus')" 
 					@click="createProject" v-tooltip="'New Project'" :buttonFunction="doNothing" />
-				<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :icon="getAppIcon('arrow-down-ramp')" 
+				<ActionButton :isDisabled="operationsActive" v-if="projectStore.selectedStudio?.name === 'Personal'" :icon="getAppIcon('arrow-down-ramp')" 
 					v-tooltip="'Import Project'" :buttonFunction="importProject" />
-				<ActionButton :icon="getAppIcon('refresh')" 
+				<ActionButton :isDisabled="operationsActive" v-if="projectStore.selectedStudio?.name !== 'Personal' && userStore.userCanCreateProject" :icon="getAppIcon('arrow-up-ramp')" 
+					v-tooltip="'Upload Project'" :buttonFunction="uploadProject" />
+				<ActionButton :isDisabled="operationsActive" :icon="getAppIcon('refresh')" 
 					v-tooltip="'Refresh'" :buttonFunction="refresh" />
 			</div>
 			<div class="action-bar" v-if="projects.length && projectStore.projectsLoaded || projectStore.projectSearchQuery">
-				<div class="searchbar-container">
-					<input ref="searchBar" v-model="projectStore.projectSearchQuery" class="desktop-search-bar" type="text"
-						:placeholder="'Search projects'" @input="updateSearch" spellcheck="false" />
-					
-					<ActionButton v-if="projectStore.projectSearchQuery.length && !projectStore.projectsLoaded" :isLoading="true" :icon="getAppIcon('loading')" :noFilter="true" 
-						v-tooltip="'Loading...'" />
-
-					<ActionButton v-else-if="projectStore.projectSearchQuery.length" :icon="getAppIcon('close')"
-						:allowDeactivate="true" v-tooltip="'Clear search'" :buttonFunction="clearSearch" />
-				</div>
-		</div>
-		<div class="view-options" v-if="projectStore.projectsLoaded" >
-			<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="!untrackedProjects.length" :icon="getAppIcon(projectStore.showUntrackedProjects ? 'eye-cancel' : 'eye')" v-tooltip="projectStore.showUntrackedProjects ? 'Hide untracked projects' : 'Show untracked projects'"
+				<SearchBar ref="searchBar" v-model="projectStore.projectSearchQuery" placeholder="Search projects" :isLoading="!projectStore.projectsLoaded" @input="updateSearch" @clear="clearSearch" />
+			</div>
+		<div class="view-options">
+			<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="!untrackedProjects.length || operationsActive" :icon="getAppIcon(projectStore.showUntrackedProjects ? 'eye-cancel' : 'eye')" v-tooltip="projectStore.showUntrackedProjects ? 'Hide untracked projects' : 'Show untracked projects'"
 				:buttonFunction="toggleShowUntrackedProjects" />
-			<ActionButton :isDisabled="!projects.length" :icon="getAppIcon(cardView ? 'list' : 'four-squares')" :v-tooltip="cardView ? 'List' : 'Cards'"
+			<ActionButton :isDisabled="!projects.length || operationsActive" :icon="getAppIcon(cardView ? 'list' : 'four-squares')" :v-tooltip="cardView ? 'List' : 'Cards'"
 				:buttonFunction="switchViewLayout" />
 		</div>
 	</div>		<div ref="projectListContainer" class="project-list-root" 
 		:class="{ 'project-list-root-hover-drop': isHovered }">
 
 			<ProjectListSkeleton :cardView="cardView" v-if="!projectStore.projectsLoaded" />
-			
-			<!-- <PageState v-else-if="!trackedProjects.length" :message="message()" :illustration="illustration()"
-				:secondaryIcon="secondaryActionIcon()" :secondaryActionMessage="secondaryActionMessage()"
-				:secondaryActionFunction="secondaryActionFunction" /> -->
 
 			<div v-else-if="(openProjects.length || closedProjects.length) || (projectStore.showUntrackedProjects && untrackedProjects.length)" class="project-list-container" ref="openProjectsContainer" @scroll="disableAllMenus">
 				<div v-if="openProjects.length" class="project-list" :class="{ 'project-list-cards': cardView }">
@@ -54,7 +42,7 @@
 					<TabButton
 						:icon="closedProjectsVisible ? '/icons/chevron_up_white_slim.svg' : '/icons/chevron_down_white_slim.svg'"
 						:label="closedProjectsVisible ? 'Hide archived projects' : 'Show archived projects'"
-						:showLabel="true" @click="toggleExpandClosedProjects" />
+						:smallIcons="true" :showLabel="true" @click="toggleExpandClosedProjects" />
 					<div class="menu-divider"></div>
 				</div>
 
@@ -110,10 +98,10 @@ import { useDndStore } from '@/stores/dnd';
 import ProjectItem from '@/instances/desktop/blocks/ProjectItem.vue'
 import PageState from '@/instances/common/components/PageState.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import TabButton from '@/instances/desktop/components/TabButton.vue'
-import TabbedFolder from '@/instances/desktop/components/TabbedFolder.vue'
 import ProjectListSkeleton from '@/instances/desktop/components/ProjectListSkeleton.vue'
-import { FSService, SettingsService } from '@/../bindings/clustta/services/index';
+import SearchBar from '@/instances/desktop/components/SearchBar.vue'
+import TabButton from '@/instances/desktop/components/TabButton.vue'
+import { FSService, SettingsService } from '@/services';
 import { Events } from "@wailsio/runtime";
 
 // refs
@@ -150,9 +138,7 @@ const operationsActive = computed(() => {
 
 Events.On('search', async () => {
 	if (operationsActive.value) return
-	if (searchBar.value) {
-		searchBar.value.focus();
-	}
+	searchBar.value?.focus();
 });
 
 Events.On('reload-view', async () => {
@@ -308,13 +294,7 @@ const refresh = async () => {
 
 const updateSearch = (event) => {
 	projectStore.projectSearchQuery = event.target.value.toLowerCase();
-	
-	// Enable closedProjectsVisible when searching, disable when cleared
-	if (projectStore.projectSearchQuery.length > 0) {
-		closedProjectsVisible.value = true;
-	} else {
-		closedProjectsVisible.value = false;
-	}
+	closedProjectsVisible.value = projectStore.projectSearchQuery.length > 0;
 };
 
 const clearSearch = () => {
@@ -396,6 +376,10 @@ const createProject = () => {
 
 const importProject = () => {
 	modals.setModalVisibility('importProjectModal', true)
+};
+
+const uploadProject = () => {
+	modals.setModalVisibility('uploadProjectModal', true)
 };
 
 const switchViewLayout = () => {
@@ -523,16 +507,16 @@ onUnmounted(() => {
 }
 
 .project-list-root::-webkit-scrollbar {
-	width: 8px;
+	width: 4px;
 }
 
 .project-list-root::-webkit-scrollbar-thumb {
-	border-radius: 10px;
+	border-radius: 4px;
 	background-color: var(--dark-steel);
 }
 
 .project-list-root::-webkit-scrollbar-track {
-	border-radius: 10px;
+	border-radius: 4px;
 }
 
 .project-list-root {
@@ -577,16 +561,17 @@ onUnmounted(() => {
 }
 
 .project-list-container::-webkit-scrollbar {
-	width: 8px;
+	width: 6px;
 }
 
 .project-list-container::-webkit-scrollbar-thumb {
-	border-radius: 10px;
+	border-radius: 8px;
 	background-color: var(--dark-steel);
 }
 
 .project-list-container::-webkit-scrollbar-track {
-	border-radius: 10px;
+	border-radius: 8px;
+	margin: 10px;
 }
 
 .task-header {
@@ -598,7 +583,6 @@ onUnmounted(() => {
 	min-height: 50px;
 	gap: 1rem;
 	justify-content: space-between;
-	/* background-color: khaki; */
 	padding: .2rem;
 	box-sizing: border-box;
 	min-width: max-content;
@@ -612,7 +596,6 @@ onUnmounted(() => {
 	width: max-content;
 	height: max-content;
 	padding: .2rem;
-	/* background-color: black; */
 }
 
 .action-bar {
@@ -623,73 +606,11 @@ onUnmounted(() => {
 	width: max-content;
 	height: max-content;
 	padding: .2rem;
-	/* background-color: black; */
-}
-
-.searchbar-container {
-	display: flex;
-	align-items: center;
-	border: 0px;
-	border-style: solid;
-	outline: none;
-	background-color: var(--midnight-steel);
-	border-radius: var(--normal-radius);
-	width: 100%;
-	max-width: 500px;
 	width: 500px;
 	max-width: 400px;
-	padding-right: .2rem;
-	box-sizing: border-box;
-	border-radius: var(--large-radius);
 }
 
-.searchbar-container:hover {
-	outline: var(--transparent-line);
-	outline-offset: -1px;
-}
 
-.single-action-button {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: max-content;
-	height: max-content;
-}
-
-.loading-children-icon {
-	animation: loadingRotate 1s linear infinite;
-}
-
-@keyframes loadingRotate {
-	0% {
-		transform: rotate(0deg);
-	}
-	100% {
-		transform: rotate(360deg);
-	}
-}
-
-.desktop-search-bar {
-	font-family: 'Inter', sans-serif;
-	box-sizing: border-box;
-	font-size: 16px;
-	border-radius: 8px;
-	padding: 10px;
-	border: 0px;
-	border-style: solid;
-	outline: none;
-	background-color: transparent;
-	color: var(--white);
-	transition: width 0.2s ease-out;
-	border-radius: var(--large-radius);
-	width: 100%;
-	color: var(--white);
-	width: 100%;
-}
-
-.desktop-search-bar::-ms-reveal {
-	filter: invert(100%);
-}
 .view-options {
 	display: flex;
 	gap: .4rem;
@@ -697,7 +618,6 @@ onUnmounted(() => {
 	padding: .2rem;
 	width: max-content;
 	height: max-content;
-	/* background-color: darkorange; */
 }
 </style>
 

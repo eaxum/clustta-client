@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
-import { StudioService } from "@/../bindings/clustta/services";
+import { StudioService } from "@/services";
 import { useProjectStore } from '@/stores/projects';
+import { useNotificationStore } from './notifications';
 // import axios from "axios";
 // import studio_service from "@/services/studio_service";
 // import { useNotificationStore } from "./notifications";
@@ -16,7 +17,8 @@ export const useStudioStore = defineStore("studio", {
     projectsLoaded: false,
     selectedStudio: null,
     selectedStudioUsers: [],
-    studioUsers: []
+    studioUsers: [],
+    appOnline: true,
   }),
   getters: {
     getStudiosNames: (state) => {
@@ -211,11 +213,38 @@ export const useStudioStore = defineStore("studio", {
               }
             })
         this.studioUsers = this.sortAlphabetically(users);
-      }) 
+      }).catch((error) => {
+        // Handle offline or server errors gracefully
+        console.log("Failed to fetch studio users:");
+      });
     },
 
     sortAlphabetically(data){
       return data.sort((a, b) => a.first_name.localeCompare(b.first_name));
+    },
+
+    // Checks if the current studio server is reachable and updates appOnline.
+    async checkStudioReachability() {
+      const projectStore = useProjectStore();
+      const notificationStore = useNotificationStore();
+      const studio = projectStore.selectedStudio;
+      if (!studio || studio.name === 'Personal') {
+        this.appOnline = true;
+        return;
+      }
+      try {
+        const status = await StudioService.GetStudioStatus(projectStore.studioUrl);
+        const wasOffline = !this.appOnline;
+        this.appOnline = status === 'active';
+        if (this.appOnline && wasOffline) {
+          notificationStore.addNotification("Back Online", "Studio server is reachable again.", "success");
+        } else if (!this.appOnline) {
+          // notificationStore.addNotification("Server Unreachable", "Unable to reach studio server. Working offline.", "error");
+        }
+      } catch {
+        this.appOnline = false;
+        notificationStore.addNotification("Server Unreachable", "Unable to reach studio server. Working offline.", "error");
+      }
     },
 
     async loadStudioProjects(studioUrl) {

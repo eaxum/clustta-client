@@ -1,8 +1,9 @@
 <template>
   <div class="apps-container-full" v-stop-propagation>
     
+  <SearchBar v-model="searchTerm" placeholder="Search emojis..." @clear="clearSearch" />
 
-  <div class="category-buttons">
+  <div class="category-buttons" v-show="!searchTerm">
     <button  v-for="(category, key) in emojiData"  :key="key"
       @click="selectCategory(key)" :class="{ active: selectedCategory === key }"
       class="category-button" >
@@ -10,13 +11,17 @@
     </button>
   </div>
   
-  <div class="menu-divider"></div>
+  <div class="menu-divider" v-show="!searchTerm"></div>
     <div class="apps-container">
 
       <div ref="scrollableElement" class="apps-grid">
-          <div v-for="emoji in filteredEmojis" @click="selectEmoji(emoji)" class="apps-grid-item" :class="{ 'apps-grid-item-selected' : selectedEmoji === emoji}" >
-            <span class="emoji">{{ emoji }}</span>
+        <template v-if="filteredEmojis.length > 0">
+          <div v-for="item in filteredEmojis" @click="selectEmoji(item.emoji)" class="apps-grid-item" :class="{ 'apps-grid-item-selected' : selectedEmoji === item.emoji}" >
+            <span class="emoji">{{ item.emoji }}</span>
           </div>
+        </template>
+
+        <div v-else class="no-results">No results to display</div>
       </div>
 
     </div>
@@ -29,12 +34,17 @@
 <script setup>
 import { ref, computed } from 'vue';
 import emojiData from "@/data/emojiData.json";
+import SearchBar from '@/instances/desktop/components/SearchBar.vue';
 
 const selectedCategory = ref(Object.keys(emojiData)[0]);
 const selectedEmoji = ref('');
 const selectedUnicode = ref('');
 const selectedEmojiEntity = ref('');
 const searchTerm = ref('');
+
+const clearSearch = () => {
+  searchTerm.value = '';
+};
 
 const selectCategory = (category) => {
 selectedCategory.value = category;
@@ -67,15 +77,23 @@ entity: unicodeToNumericEntity(selectedUnicode.value)
 };
 
 const filteredEmojis = computed(() => {
-if (searchTerm.value) {
-const allEmojis = Object.values(emojiData)
-.flatMap(category => category.emojis);
-return allEmojis.filter(emoji => 
-emoji.toLowerCase().includes(searchTerm.value.toLowerCase())
-);
-}
+  if (searchTerm.value) {
+    const search = searchTerm.value.toLowerCase();
+    const results = [];
+    
+    // Search by emoji name across all categories
+    for (const category of Object.values(emojiData)) {
+      for (const item of category.emojis) {
+        if (item.name.includes(search)) {
+          results.push(item);
+        }
+      }
+    }
+    
+    return results;
+  }
 
-return emojiData[selectedCategory.value].emojis;
+  return emojiData[selectedCategory.value].emojis;
 });
 
 const emit = defineEmits(['select']);
@@ -227,7 +245,7 @@ margin-top: 0.5rem;
   max-height: 260px;
   background-color: crimson;
   background-color: var(--black-steel);
-  border-radius: var(--large-radius);
+  border-radius: var(--very-large-radius);
   padding: .5rem;
   outline: var(--transparent-line);
   outline-offset: -1px;
@@ -252,6 +270,7 @@ margin-top: 0.5rem;
   align-items: baseline;
   overflow: hidden;
   overflow-y: scroll;
+  min-height: 100px;
   /* max-height: 400px; */
 }
 
@@ -270,7 +289,6 @@ margin-top: 0.5rem;
 }
 
 .apps-grid {
-  /* background-color: deeppink; */
   width: 100%;
   display: grid;
   gap: 10px;
@@ -331,6 +349,17 @@ margin-top: 0.5rem;
 .apps-grid-item-selected:hover {
   background-color: rgba(0, 0, 0, 0.216);
 
+}
+
+.no-results {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  min-height: 80px;
+  color: var(--white);
+  font-size: 0.85rem;
 }
 </style>
 

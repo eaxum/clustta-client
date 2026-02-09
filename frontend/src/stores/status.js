@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { StatusService } from "@/../bindings/clustta/services";
+import { StatusService } from "@/services";
 import { useProjectStore } from "./projects";
 
 export const useStatusStore = defineStore("status", {
@@ -14,6 +14,7 @@ export const useStatusStore = defineStore("status", {
   actions: {
     async reloadStatuses() {
       const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri) return;
       this.statuses = await StatusService.GetStatuses(
         projectStore.activeProject.uri
       );

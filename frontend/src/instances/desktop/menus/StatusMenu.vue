@@ -18,7 +18,7 @@ import { useProjectStore } from '@/stores/projects';
 
 
 // services
-import { AssetService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/services";
 import emitter from '@/lib/mitt';
 
 const menu = useMenu();

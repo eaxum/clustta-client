@@ -3,9 +3,11 @@ import { useMenu } from "@/stores/menu";
 import { usePaneStore } from "@/stores/panes";
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from "@/stores/collections";
+import { useCommonStore } from "@/stores/common";
 import { useDndStore } from "@/stores/dnd";
+import { useNotificationStore } from "@/stores/notifications";
 import { useProjectStore } from "@/stores/projects";
-import { AppService } from '@/../bindings/clustta/services/index';
+import { AppService, AssetService, CollectionService, FSService } from '@/services';
 
 export const useStageStore = defineStore("stages", {
   state: () => ({
@@ -437,6 +439,172 @@ export const useStageStore = defineStore("stages", {
           }
         }
       });
+    },
+
+    // Pastes cut or copied items to the specified target collection.
+    // If targetCollectionId is not provided, uses the current navigated collection or project root.
+    async pasteItems(targetCollectionId = null, targetDirectory = null) {
+      console.log('here')
+      const collectionStore = useCollectionStore();
+      const commonStore = useCommonStore();
+      const notificationStore = useNotificationStore();
+      const projectStore = useProjectStore();
+
+      const hasCutItems = this.cutItems.length > 0;
+      const hasCopiedItems = this.copiedItems.length > 0;
+      if (!(hasCutItems || hasCopiedItems)) return { success: false, needsRefresh: false };
+
+      this.operationActive = true;
+      let needsRefresh = false;
+
+      // Determine target location
+      const finalTargetCollectionId = targetCollectionId !== null
+        ? targetCollectionId
+        : (commonStore.navigatorMode && collectionStore.navigatedCollection
+          ? collectionStore.navigatedCollection.id
+          : '');
+          console.log(targetCollectionId)
+      const finalTargetDirectory = targetDirectory !== null
+        ? targetDirectory
+        : (commonStore.navigatorMode && collectionStore.navigatedCollection
+          ? collectionStore.navigatedCollection.file_path
+          : projectStore.activeProject.working_directory);
+
+      try {
+        await FSService.MakeDirs(finalTargetDirectory);
+
+        if (hasCutItems) {
+          // CUT: Move items to target location
+          const entityIdsToMove = [];
+          const taskIdsToMove = [];
+          const renameOperations = [];
+
+          for (const item of this.cutItems) {
+            if (item.type === 'entity') {
+              entityIdsToMove.push(item.id);
+            } else if (item.type === 'task') {
+              taskIdsToMove.push(item.id);
+            } else if (item.type === 'untracked_task' || item.type === 'untracked_entity') {
+              const extension = item.type === 'untracked_task' ? item.extension : '';
+              const fullName = item.name + extension;
+              const newPath = await FSService.JoinPath(finalTargetDirectory, fullName);
+              renameOperations.push({ oldPath: item.file_path, newPath });
+            }
+          }
+
+          if (entityIdsToMove.length) {
+            try {
+              await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityIdsToMove, finalTargetCollectionId);
+              notificationStore.addNotification('Moved successfully.', '', 'success');
+              needsRefresh = true;
+            } catch (error) {
+              notificationStore.errorNotification('Error changing entity parent', error);
+            }
+          }
+          if (taskIdsToMove.length) {
+            try {
+              await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskIdsToMove, finalTargetCollectionId);
+              notificationStore.addNotification('Moved successfully.', '', 'success');
+              needsRefresh = true;
+            } catch (error) {
+              notificationStore.errorNotification('Error moving assets', error);
+            }
+          }
+          if (renameOperations.length) {
+            try {
+              await FSService.RenameBatch(JSON.stringify(renameOperations));
+              needsRefresh = true;
+            } catch (error) {
+              notificationStore.errorNotification('Error moving files', error);
+            }
+          }
+
+          this.cutItems = [];
+        } else if (hasCopiedItems) {
+          // COPY: Duplicate items to target location
+          let successCount = 0;
+          let failureCount = 0;
+
+          for (const item of this.copiedItems) {
+            try {
+              if (item.type === 'task') {
+                // Duplicate tracked task to target collection
+                const duplicatedTask = await AssetService.DuplicateAsset(
+                  projectStore.activeProject.uri,
+                  item.id,
+                  finalTargetCollectionId
+                );
+                // Copy the physical file if it exists
+                if (item.file_path && duplicatedTask.file_path) {
+                  const sourceExists = await FSService.Exists(item.file_path);
+                  if (sourceExists) {
+                    await FSService.DuplicateFile(item.file_path, duplicatedTask.file_path);
+                  }
+                }
+                successCount++;
+              } else if (item.type === 'untracked_task') {
+                // Copy untracked file
+                const fullName = item.name + (item.extension || '');
+                const destinationPath = await this.generateUniqueDestinationPath(finalTargetDirectory, fullName);
+                await FSService.DuplicateFile(item.file_path, destinationPath);
+                successCount++;
+              } else if (item.type === 'untracked_entity') {
+                // Copy untracked folder
+                const destinationPath = await this.generateUniqueDestinationPath(finalTargetDirectory, item.name);
+                await FSService.DuplicateFolder(item.file_path, destinationPath);
+                successCount++;
+              }
+            } catch (error) {
+              console.error('Error copying item:', item.name, error);
+              failureCount++;
+            }
+          }
+
+          if (successCount > 0) {
+            needsRefresh = true;
+            notificationStore.addNotification(
+              successCount === 1 ? '1 item pasted' : `${successCount} items pasted`,
+              '',
+              'success'
+            );
+          }
+          if (failureCount > 0) {
+            notificationStore.errorNotification(
+              failureCount === 1 ? '1 item failed to paste' : `${failureCount} items failed to paste`,
+              ''
+            );
+          }
+
+          this.copiedItems = [];
+        }
+
+        return { success: true, needsRefresh };
+      } catch (error) {
+        notificationStore.errorNotification('Error pasting items', error.message || error);
+        return { success: false, needsRefresh };
+      } finally {
+        this.operationActive = false;
+      }
+    },
+
+    // Generates a unique file path by appending a counter if the file already exists.
+    async generateUniqueDestinationPath(directory, fileName) {
+      const originalPath = await FSService.JoinPath(directory, fileName);
+      const exists = await FSService.Exists(originalPath);
+      if (!exists) return originalPath;
+      const baseName = fileName.includes('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+      const extension = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')) : '';
+      let counter = 1;
+      let newPath;
+      do {
+        const newFileName = `${baseName} (${counter})${extension}`;
+        newPath = await FSService.JoinPath(directory, newFileName);
+        const pathExists = await FSService.Exists(newPath);
+        if (!pathExists) return newPath;
+        counter++;
+      } while (counter < 100);
+      const timestamp = Date.now();
+      return await FSService.JoinPath(directory, `${baseName}_${timestamp}${extension}`);
     },
 
     debounce(func, wait) {

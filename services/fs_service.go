@@ -12,6 +12,7 @@ import (
 	"clustta/output"
 	"compress/gzip"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -81,7 +82,7 @@ func (f *FSService) StartWatching() {
 
 					f.debounceEvent(event.Name, func() {
 						if f.app != nil {
-							f.app.EmitEvent("fs-change", event.Name)
+							f.app.Event.Emit("fs-change", event.Name)
 						}
 					})
 				}
@@ -381,6 +382,30 @@ func (f *FSService) Rename(oldPath, newPath string) error {
 	return os.Rename(oldPath, newPath)
 }
 
+// RenameOperation represents a single rename operation with old and new paths.
+type RenameOperation struct {
+	OldPath string `json:"oldPath"`
+	NewPath string `json:"newPath"`
+}
+
+// RenameBatch moves or renames multiple files or directories.
+// Accepts a JSON string containing an array of RenameOperation objects.
+// Returns an error if any operation fails.
+func (f *FSService) RenameBatch(operationsJSON string) error {
+	var operations []RenameOperation
+	if err := json.Unmarshal([]byte(operationsJSON), &operations); err != nil {
+		return fmt.Errorf("failed to parse rename operations: %w", err)
+	}
+
+	for _, op := range operations {
+		err := os.Rename(op.OldPath, op.NewPath)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // BackupFile creates a backup copy of a file with progress reporting.
 // Sends progress updates to the frontend during the copy operation.
 func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, error) {
@@ -394,7 +419,7 @@ func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, erro
 		Total:         100,
 		OperationType: "read",
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	sourceFile, err := os.Open(sourcePath)
 	if err != nil {
@@ -446,7 +471,7 @@ func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, erro
 					Total:         1,
 					OperationType: "read",
 				}
-				app.EmitEvent("progress-update", progress)
+				app.Event.Emit("progress-update", progress)
 				lastProgressUpdate = copiedBytes
 			}
 		}
@@ -471,7 +496,7 @@ func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, erro
 		Total:         1,
 		OperationType: "read",
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	return destinationPath, nil
 }
@@ -611,7 +636,7 @@ func (f *FSService) ExtractAll(archivePath string) error {
 		Total:         100,
 		OperationType: "read",
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	switch ext {
 	case ".zip":
@@ -637,7 +662,7 @@ func (f *FSService) ExtractAll(archivePath string) error {
 		Total:         100,
 		OperationType: "read",
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	return nil
 }
@@ -664,7 +689,7 @@ func (f *FSService) extractZip(archivePath, destDir string, app *application.App
 			Total:         totalFiles,
 			OperationType: "read",
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 
 		targetPath := filepath.Join(destDir, file.Name)
 
@@ -756,7 +781,7 @@ func (f *FSService) processTarReader(tarReader *tar.Reader, destDir string, app 
 			Total:         0,
 			OperationType: "read",
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 
 		targetPath := filepath.Join(destDir, header.Name)
 
@@ -857,7 +882,7 @@ func (f *FSService) ImportClusttaFiles(sourcePaths []string, destinationDirector
 			Total:         totalFiles,
 			OperationType: "write",
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 
 		// Open source file
 		sourceFile, err := os.Open(sourcePath)
@@ -911,7 +936,7 @@ func (f *FSService) ImportClusttaFiles(sourcePaths []string, destinationDirector
 					Total:         totalFiles,
 					OperationType: "write",
 				}
-				app.EmitEvent("progress-update", progress)
+				app.Event.Emit("progress-update", progress)
 			}
 			if err != nil {
 				if err == io.EOF {
@@ -946,7 +971,7 @@ func (f *FSService) ImportClusttaFiles(sourcePaths []string, destinationDirector
 		Total:         totalFiles,
 		OperationType: "write",
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 
 	return destinationPaths, nil
 }

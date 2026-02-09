@@ -54,6 +54,7 @@ type ProjectInfo struct {
 	IsClosed         bool     `json:"is_closed"`
 	IsOutdated       bool     `json:"is_outdated"`
 	IsTracked        bool     `json:"is_tracked"`
+	IsOffline        bool     `json:"is_offline"`
 	IgnoreList       []string `json:"ignore_list"`
 }
 
@@ -632,6 +633,41 @@ func Purge(projectPath string) error {
 	// if err != nil {
 	// 	return err
 	// }
+
+	return nil
+}
+
+// TrimProject clears all chunks from the database while retaining metadata.
+// This is useful to free up space on remote projects that can re-fetch chunks when needed.
+func TrimProject(projectPath string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Delete all chunks from the database
+	_, err = tx.Exec("DELETE FROM chunk")
+	if err != nil {
+		return err
+	}
+
+	// Also clear previews to further reduce size (optional, can be re-fetched)
+	_, err = tx.Exec("DELETE FROM preview")
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

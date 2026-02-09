@@ -40,55 +40,58 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
 // imports
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
-
-// states/store imports
-import { useMenu } from '@/stores/menu';
-import { useCommonStore } from '@/stores/common';
-import { useStageStore } from '@/stores/stages';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
+
 // components
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
-// states/stores
-const menu = useMenu();
+// stores
+import { useCommonStore } from '@/stores/common';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useStageStore } from '@/stores/stages';
+
 const commonStore = useCommonStore();
+const iconStore = useIconStore();
+const menu = useMenu();
 const stage = useStageStore();
 
 // refs
 const collectionMenu = ref(null);
 
-// computed properties
-const toggleShowEntities = () => {
-  commonStore.showEntities = !commonStore.showEntities;
-  emitter.emit('refresh-browser');
+// methods
+// Returns the icon path for a given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
 };
 
-const toggleShowTasks = () => {
-  commonStore.showTasks = !commonStore.showTasks;
-  emitter.emit('refresh-browser');
-};
-
-const toggleShowResources = () => {
-  commonStore.showResources = !commonStore.showResources;
-  emitter.emit('refresh-browser');
-};
-
+// Toggles only assets filter and refreshes browser.
 const toggleOnlyAssets = () => {
   commonStore.onlyAssets = !commonStore.onlyAssets;
   emitter.emit('refresh-browser');
 };
 
-// onMounted hook
+// Toggles show entities filter and refreshes browser.
+const toggleShowEntities = () => {
+  commonStore.showEntities = !commonStore.showEntities;
+  emitter.emit('refresh-browser');
+};
+
+// Toggles show resources filter and refreshes browser.
+const toggleShowResources = () => {
+  commonStore.showResources = !commonStore.showResources;
+  emitter.emit('refresh-browser');
+};
+
+// Toggles show tasks filter and refreshes browser.
+const toggleShowTasks = () => {
+  commonStore.showTasks = !commonStore.showTasks;
+  emitter.emit('refresh-browser');
+};
+
+// lifecycle hooks
 onMounted(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.collectionMenu = collectionMenu.value;
@@ -97,7 +100,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.assetMenuHeight = collectionMenu.value.getBoundingClientRect().height;
-
 });
 </script>
 

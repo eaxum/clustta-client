@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import {Create as $Create} from "@wailsio/runtime";
+import { Create as $Create } from "@wailsio/runtime";
 
 /**
  * A Time represents an instant in time with nanosecond precision.
@@ -30,9 +30,9 @@ import {Create as $Create} from "@wailsio/runtime";
  * these methods does not change the actual instant it represents, only the time
  * zone in which to interpret it.
  * 
- * Representations of a Time value saved by the [Time.GobEncode], [Time.MarshalBinary],
- * [Time.MarshalJSON], and [Time.MarshalText] methods store the [Time.Location]'s offset, but not
- * the location name. They therefore lose information about Daylight Saving Time.
+ * Representations of a Time value saved by the [Time.GobEncode], [Time.MarshalBinary], [Time.AppendBinary],
+ * [Time.MarshalJSON], [Time.MarshalText] and [Time.AppendText] methods store the [Time.Location]'s offset,
+ * but not the location name. They therefore lose information about Daylight Saving Time.
  * 
  * In addition to the required “wall clock” reading, a Time may contain an optional
  * reading of the current process's monotonic clock, to provide additional precision

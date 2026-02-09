@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import {Call as $Call, Create as $Create} from "@wailsio/runtime";
+import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -18,11 +18,10 @@ import * as $models from "./models.js";
  * AddWatcherFolder registers a directory with the file system watcher.
  * Enables monitoring of file system events within the specified directory.
  * @param {string} dir
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function AddWatcherFolder(dir) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3354857277, dir));
-    return $resultPromise;
+    return $Call.ByID(3354857277, dir);
 }
 
 /**
@@ -30,51 +29,46 @@ export function AddWatcherFolder(dir) {
  * Sends progress updates to the frontend during the copy operation.
  * @param {string} sourcePath
  * @param {string} destinationPath
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function BackupFile(sourcePath, destinationPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3955862424, sourcePath, destinationPath));
-    return $resultPromise;
+    return $Call.ByID(3955862424, sourcePath, destinationPath);
 }
 
 /**
  * BaseName returns the last element of the path.
  * @param {string} path
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function BaseName(path) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1325337206, path));
-    return $resultPromise;
+    return $Call.ByID(1325337206, path);
 }
 
 /**
  * DeleteFile removes a single file from the file system.
  * @param {string} path
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function DeleteFile(path) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3584094917, path));
-    return $resultPromise;
+    return $Call.ByID(3584094917, path);
 }
 
 /**
  * DeleteFolder removes a folder and all its contents recursively.
  * @param {string} path
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function DeleteFolder(path) {
-    let $resultPromise = /** @type {any} */($Call.ByID(856116975, path));
-    return $resultPromise;
+    return $Call.ByID(856116975, path);
 }
 
 /**
  * DirExists checks if a directory exists at the specified path.
  * @param {string} path
- * @returns {Promise<boolean> & { cancel(): void }}
+ * @returns {$CancellablePromise<boolean>}
  */
 export function DirExists(path) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3936509319, path));
-    return $resultPromise;
+    return $Call.ByID(3936509319, path);
 }
 
 /**
@@ -82,11 +76,10 @@ export function DirExists(path) {
  * Preserves file permissions and automatically handles directory destinations.
  * @param {string} sourcePath
  * @param {string} destinationPath
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function DuplicateFile(sourcePath, destinationPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(361196823, sourcePath, destinationPath));
-    return $resultPromise;
+    return $Call.ByID(361196823, sourcePath, destinationPath);
 }
 
 /**
@@ -94,98 +87,87 @@ export function DuplicateFile(sourcePath, destinationPath) {
  * Preserves directory structure and file permissions.
  * @param {string} sourcePath
  * @param {string} destinationPath
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function DuplicateFolder(sourcePath, destinationPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(354694321, sourcePath, destinationPath));
-    return $resultPromise;
+    return $Call.ByID(354694321, sourcePath, destinationPath);
 }
 
 /**
  * Exists checks if a file exists at the specified path.
  * @param {string} path
- * @returns {Promise<boolean> & { cancel(): void }}
+ * @returns {$CancellablePromise<boolean>}
  */
 export function Exists(path) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1669188816, path));
-    return $resultPromise;
+    return $Call.ByID(1669188816, path);
 }
 
 /**
  * ExtName returns the file extension of the specified path.
  * @param {string} path
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function ExtName(path) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3723090168, path));
-    return $resultPromise;
+    return $Call.ByID(3723090168, path);
 }
 
 /**
  * ExtractAll extracts archive contents to a folder in the current location.
  * Supports .zip, .tar, .tar.gz, .gz formats with progress reporting to the frontend.
  * @param {string} archivePath
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function ExtractAll(archivePath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1948384952, archivePath));
-    return $resultPromise;
+    return $Call.ByID(1948384952, archivePath);
 }
 
 /**
  * FileCount counts the total number of files in a folder recursively.
  * @param {string} folderPath
- * @returns {Promise<number> & { cancel(): void }}
+ * @returns {$CancellablePromise<number>}
  */
 export function FileCount(folderPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3656216629, folderPath));
-    return $resultPromise;
+    return $Call.ByID(3656216629, folderPath);
 }
 
 /**
  * FileHash generates an XXHash checksum for the specified file.
  * @param {string} path
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function FileHash(path) {
-    let $resultPromise = /** @type {any} */($Call.ByID(264511466, path));
-    return $resultPromise;
+    return $Call.ByID(264511466, path);
 }
 
 /**
  * FileStat retrieves file information including name, size, and modification time.
  * Returns a FileInfo struct with formatted size.
  * @param {string} path
- * @returns {Promise<$models.FileInfo> & { cancel(): void }}
+ * @returns {$CancellablePromise<$models.FileInfo>}
  */
 export function FileStat(path) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3553147132, path));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(3553147132, path).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * FolderCount counts the total number of subdirectories in a folder recursively.
  * @param {string} folderPath
- * @returns {Promise<number> & { cancel(): void }}
+ * @returns {$CancellablePromise<number>}
  */
 export function FolderCount(folderPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2248903691, folderPath));
-    return $resultPromise;
+    return $Call.ByID(2248903691, folderPath);
 }
 
 /**
  * FolderSize calculates the total size of a folder and its contents.
  * Returns a formatted string (B, KB, MB, GB).
  * @param {string} folderPath
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function FolderSize(folderPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2301365901, folderPath));
-    return $resultPromise;
+    return $Call.ByID(2301365901, folderPath);
 }
 
 /**
@@ -193,22 +175,20 @@ export function FolderSize(folderPath) {
  * Returns base64-encoded image if cached, empty string if not in cache.
  * @param {string} filePath
  * @param {number} size
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function GetCachedOSThumbnail(filePath, size) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1238064932, filePath, size));
-    return $resultPromise;
+    return $Call.ByID(1238064932, filePath, size);
 }
 
 /**
  * GetFileIcon retrieves the system icon for a file extension.
  * Returns the icon as a base64-encoded string.
  * @param {string} ext
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function GetFileIcon(ext) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1842525431, ext));
-    return $resultPromise;
+    return $Call.ByID(1842525431, ext);
 }
 
 /**
@@ -216,11 +196,10 @@ export function GetFileIcon(ext) {
  * Attempts custom extraction first (Blender, Maya), falls back to OS thumbnail. Returns base64-encoded image.
  * @param {string} filePath
  * @param {number} size
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function GetOSThumbnail(filePath, size) {
-    let $resultPromise = /** @type {any} */($Call.ByID(947950710, filePath, size));
-    return $resultPromise;
+    return $Call.ByID(947950710, filePath, size);
 }
 
 /**
@@ -228,25 +207,21 @@ export function GetOSThumbnail(filePath, size) {
  * Returns a map of file paths to base64-encoded thumbnails. Empty strings for failures.
  * @param {string[]} filePaths
  * @param {number} size
- * @returns {Promise<{ [_: string]: string }> & { cancel(): void }}
+ * @returns {$CancellablePromise<{ [_: string]: string }>}
  */
 export function GetOSThumbnails(filePaths, size) {
-    let $resultPromise = /** @type {any} */($Call.ByID(4150854623, filePaths, size));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(4150854623, filePaths, size).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * GetPersonalProjectsDirectory returns the path to the user's personal projects directory.
  * Creates the directory if it doesn't exist.
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function GetPersonalProjectsDirectory() {
-    let $resultPromise = /** @type {any} */($Call.ByID(3859761309));
-    return $resultPromise;
+    return $Call.ByID(3859761309);
 }
 
 /**
@@ -255,148 +230,143 @@ export function GetPersonalProjectsDirectory() {
  * Returns an array of destination file paths and any error encountered.
  * @param {string[]} sourcePaths
  * @param {string} destinationDirectory
- * @returns {Promise<string[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<string[]>}
  */
 export function ImportClusttaFiles(sourcePaths, destinationDirectory) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2186594820, sourcePaths, destinationDirectory));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(2186594820, sourcePaths, destinationDirectory).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType2($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * IsFile checks if the specified path is a file (not a directory).
  * Returns an error if the path does not exist.
  * @param {string} path
- * @returns {Promise<boolean> & { cancel(): void }}
+ * @returns {$CancellablePromise<boolean>}
  */
 export function IsFile(path) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2986631118, path));
-    return $resultPromise;
+    return $Call.ByID(2986631118, path);
 }
 
 /**
  * JoinPath joins multiple path elements into a single path.
  * @param {string[]} elem
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function JoinPath(...elem) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3092237447, elem));
-    return $resultPromise;
+    return $Call.ByID(3092237447, elem);
 }
 
 /**
  * LaunchFile opens a file with its default system application.
  * @param {string} path
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function LaunchFile(path) {
-    let $resultPromise = /** @type {any} */($Call.ByID(4012158109, path));
-    return $resultPromise;
+    return $Call.ByID(4012158109, path);
 }
 
 /**
  * LaunchFileWith opens the Windows "Open With" dialog for a file.
  * Returns an error if the operation fails.
  * @param {string} path
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function LaunchFileWith(path) {
-    let $resultPromise = /** @type {any} */($Call.ByID(469279585, path));
-    return $resultPromise;
+    return $Call.ByID(469279585, path);
 }
 
 /**
  * MakeDirs creates a directory and all necessary parent directories.
  * @param {string} path
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function MakeDirs(path) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2999144342, path));
-    return $resultPromise;
+    return $Call.ByID(2999144342, path);
 }
 
 /**
  * ReadFile reads a file and returns its contents as base64-encoded string.
  * @param {string} path
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function ReadFile(path) {
-    let $resultPromise = /** @type {any} */($Call.ByID(4137436818, path));
-    return $resultPromise;
+    return $Call.ByID(4137436818, path);
 }
 
 /**
  * RemoveWatcherFolder unregisters a directory from the file system watcher.
  * Stops monitoring file system events for the specified directory.
  * @param {string} dir
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function RemoveWatcherFolder(dir) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3791295844, dir));
-    return $resultPromise;
+    return $Call.ByID(3791295844, dir);
 }
 
 /**
  * Rename moves or renames a file or directory from oldPath to newPath.
  * @param {string} oldPath
  * @param {string} newPath
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function Rename(oldPath, newPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2421827634, oldPath, newPath));
-    return $resultPromise;
+    return $Call.ByID(2421827634, oldPath, newPath);
+}
+
+/**
+ * RenameBatch moves or renames multiple files or directories.
+ * Accepts a JSON string containing an array of RenameOperation objects.
+ * Returns an error if any operation fails.
+ * @param {string} operationsJSON
+ * @returns {$CancellablePromise<void>}
+ */
+export function RenameBatch(operationsJSON) {
+    return $Call.ByID(361330558, operationsJSON);
 }
 
 /**
  * RevealInExplorer opens the system file explorer and highlights the specified path.
  * @param {string} path
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function RevealInExplorer(path) {
-    let $resultPromise = /** @type {any} */($Call.ByID(84899017, path));
-    return $resultPromise;
+    return $Call.ByID(84899017, path);
 }
 
 /**
  * SetApp sets the application instance for the FSService.
  * Required for emitting events to the frontend application.
  * @param {application$0.App | null} app
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function SetApp(app) {
-    let $resultPromise = /** @type {any} */($Call.ByID(4086601803, app));
-    return $resultPromise;
+    return $Call.ByID(4086601803, app);
 }
 
 /**
  * StartWatching initializes the file system watcher and handles events.
  * Runs a goroutine that monitors file changes and emits debounced events to the frontend.
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function StartWatching() {
-    let $resultPromise = /** @type {any} */($Call.ByID(617009305));
-    return $resultPromise;
+    return $Call.ByID(617009305);
 }
 
 /**
  * TempDir returns the system's temporary directory path.
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function TempDir() {
-    let $resultPromise = /** @type {any} */($Call.ByID(4025507677));
-    return $resultPromise;
+    return $Call.ByID(4025507677);
 }
 
 /**
  * UserProjectTemplatesPath retrieves the user's project templates directory path.
- * @returns {Promise<string> & { cancel(): void }}
+ * @returns {$CancellablePromise<string>}
  */
 export function UserProjectTemplatesPath() {
-    let $resultPromise = /** @type {any} */($Call.ByID(2970095484));
-    return $resultPromise;
+    return $Call.ByID(2970095484);
 }
 
 /**
@@ -404,11 +374,10 @@ export function UserProjectTemplatesPath() {
  * Decodes the data before writing to disk.
  * @param {string} path
  * @param {string} data
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function WriteFile(path, data) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3649610065, path, data));
-    return $resultPromise;
+    return $Call.ByID(3649610065, path, data);
 }
 
 // Private type creation functions

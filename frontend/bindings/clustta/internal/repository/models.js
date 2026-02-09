@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import {Create as $Create} from "@wailsio/runtime";
+import { Create as $Create } from "@wailsio/runtime";
 
 export class CompatTimeline {
     /**
@@ -144,7 +144,7 @@ export class ProjectInfo {
              * @member
              * @type {string | undefined}
              */
-            this["location_id"] = "";
+            this["location_id"] = undefined;
         }
         if (!("remote" in $$source)) {
             /**
@@ -209,6 +209,13 @@ export class ProjectInfo {
              */
             this["is_tracked"] = false;
         }
+        if (!("is_offline" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["is_offline"] = false;
+        }
         if (!("ignore_list" in $$source)) {
             /**
              * @member
@@ -226,10 +233,10 @@ export class ProjectInfo {
      * @returns {ProjectInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField18_0 = $$createType0;
+        const $$createField19_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("ignore_list" in $$parsedSource) {
-            $$parsedSource["ignore_list"] = $$createField18_0($$parsedSource["ignore_list"]);
+            $$parsedSource["ignore_list"] = $$createField19_0($$parsedSource["ignore_list"]);
         }
         return new ProjectInfo(/** @type {Partial<ProjectInfo>} */($$parsedSource));
     }

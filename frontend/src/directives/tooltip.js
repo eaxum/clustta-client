@@ -1,15 +1,18 @@
 export default {
   updateTooltip(el, { value, modifiers }) {
     if (typeof value === "string") {
-      if (typeof value === "string") {
-        el._tooltipContent = value;
-      } else if (value && value.text) {
-        el._tooltipContent = value.text;
-      }
+      el._tooltipContent = value;
+    } else if (value && value.text) {
+      el._tooltipContent = value.text;
+    }
 
-      const tooltipElement = el._tooltipElement;
-      if (tooltipElement) {
-        tooltipElement.innerText = el._tooltipContent;
+    const tooltipElement = el._tooltipElement;
+    if (tooltipElement) {
+      tooltipElement.innerText = el._tooltipContent;
+      // Hide tooltip immediately if content becomes empty
+      if (!el._tooltipContent) {
+        tooltipElement.style.visibility = "hidden";
+        tooltipElement.style.opacity = 0;
       }
     }
   },

@@ -13,7 +13,7 @@
       'task-item-grid-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
       'task-item-grid-last-selected': stage.lastSelectedItemId === task.id && !isGhost,
       'task-item-child': task.parent_id,
-      'drop-zone-hovered': isHovered,
+      'file-drop-target-active': isHovered,
       'task-item-untracked': isUntracked
     }" 
     @dblclick="launchTaskCommand()">
@@ -106,7 +106,7 @@
               </div>
               
               <!-- Assign Task button -->
-              <div v-if="!isUntracked && userStore.canDo('assign_task') && (!task.is_resource || isCurrentUser)" class="task-item-grid-assign-task-button">
+              <div v-if="!isUntracked && userStore.canDo('assign_task')" class="task-item-grid-assign-task-button">
                 <ActionButton :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
               </div>
               
@@ -138,6 +138,10 @@
             <div v-else-if="!isUntracked && userStore.canDo('pull_chunk')" class="file-state">
               <ActionButton v-if="task.is_link" :icon="getAppIcon('square-arrow-right-up')" 
                 v-tooltip="'Visit link'" @click="openLink()" />
+              <ActionButton v-else-if="platformStore.isWeb" :icon="getAppIcon(isDownloading ? 'loading' : 'arrow-down-ramp')" 
+                v-tooltip="isDownloading ? 'Downloading...' : 'Download'" 
+                :isLoading="isDownloading"
+                @click="downloadAsset(index, task, $event)" />
               <ActionButton v-else-if="task.file_status == 'normal'" :icon="getAppIcon('circle-check-go')" :noFilter="true" 
                 v-tooltip="'No changes'"  />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" 
@@ -184,7 +188,7 @@
       'task-item-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
       'task-item-last-selected': stage.lastSelectedItemId === task.id && !isGhost,
       'task-item-child': task.parent_id,
-      'drop-zone-hovered': isHovered
+      'file-drop-target-active': isHovered
     }" 
     @dblclick="launchTaskCommand()">
 
@@ -200,13 +204,6 @@
     <div class="main-task-item-root">
 
       <div class="task-item-container drop-zone">
-
-        <!-- Thumbnail preview for list view (optional) -->
-        <!-- <div v-if="commonStore.showThumbs && (task.preview || osThumbnail)" class="task-item-preview-container">
-          <div class="task-item-preview-image">
-            <img class="screenshot-thumb" :src="displayThumbnail">
-          </div>
-        </div> -->
 
         <div class="task-item-icon-container">
           <img v-if="task.icon" class="large-icons no-filter" :src="task.icon">
@@ -240,8 +237,12 @@
         </div>
 
         <template v-if="!isEditing && !task.is_link">
+          
           <!-- task assignation -->
           <div v-if="!isUntracked && (!task.is_resource || isCurrentUser)" class="task-item-assignee-container">
+            <ActionButton class="task-item-assignee-button" v-if="!task.is_link && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
+              :icon="getAppIcon('layers')" v-tooltip="'View Checkpoints'" @click="viewCheckpoints(index, task, $event)" />
+
             <ActionButton class="task-item-assignee-button" v-if="userStore.canDo('assign_task') && !statusMenuDisplayed && !task.assignee_id"
               :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
 
@@ -258,6 +259,9 @@
           </div>
 
           <div v-else-if="!isEditing" class="task-item-assignee-container">
+            <ActionButton class="task-item-assignee-button" v-if="!task.is_link && !isUntracked && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
+              :icon="getAppIcon('layers')" v-tooltip="'View Checkpoints'" @click="viewCheckpoints(index, task, $event)" />
+
             <ActionButton class="task-item-assignee-button" v-if="userStore.canDo('assign_task') && !statusMenuDisplayed && !task.assignee_id && !isUntracked"
               :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
           </div>
@@ -284,17 +288,19 @@
 
           <!-- task actions -->
           <div v-if="!isEditing && !isUntracked && !statusMenuDisplayed" class="task-item-actions">
-            <ActionButton v-if="userStore.canDo('view_checkpoint')" :icon="getAppIcon('layers')" v-tooltip="'Checkpoints'"
-              v-stop-propagation @click="viewCheckpoints(index, task, $event)" />
-
             <div v-if="loadingAssetState" class="file-state">
                 <ActionButton :isLoading="true" :icon="getAppIcon('loading')" 
                   v-tooltip="'Loading...'" />
             </div>
 
             <div v-else-if="userStore.canDo('pull_chunk')" class="file-state">
+              
+              <ActionButton v-if="platformStore.isWeb" :icon="getAppIcon(isDownloading ? 'loading' : 'arrow-down-ramp')" 
+                v-tooltip="isDownloading ? 'Downloading...' : 'Download'" 
+                :isLoading="isDownloading"
+                @click="downloadAsset(index, task, $event)" />
               <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" @click="handleClick(index, task, $event)"
-                v-tooltip="'No changes'" v-if="task.file_status == 'normal'" />
+                v-tooltip="'No changes'" v-else-if="task.file_status == 'normal'" />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Outdated - Click to update'"
                 v-else-if="task.file_status == 'outdated'" @click="revertTask(index, task, $event)" />
               <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="'Modified - Assigned to someone else'"
@@ -328,87 +334,111 @@
 </template>
 
 <script setup>
-
 // imports
-import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
-import { isValidWeblink } from '@/lib/pointer';
-import { AssetService, CheckpointService, FSService, SyncService } from "@/../bindings/clustta/services";
-import utils from '@/services/utils';
-import { Events } from "@wailsio/runtime";
-
-// states/store imports
-import { useTrayStates } from '@/stores/TrayStates';
-import { useAssetStore } from '@/stores/assets';
-import { useMenu } from '@/stores/menu';
-import { useIconStore } from '@/stores/icons';
-import { usePaneStore } from '@/stores/panes';
-import { useStageStore } from '@/stores/stages';
-import { useUserStore } from '@/stores/users';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useNotificationStore } from '@/stores/notifications';
-import { useCommonStore } from '@/stores/common';
-import { useCollectionStore } from '@/stores/collections';
-import { useProjectStore } from '@/stores/projects';
-import { useDndStore } from '@/stores/dnd';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { Browser, Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
+import { getParentPath } from '@/lib/pathlib';
+import { isValidWeblink } from '@/lib/pointer';
+import utils from '@/services/utils';
 
 // components
-import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import RenameInput from '@/instances/desktop/components/RenameInput.vue'
-import StatusMenu from '@/instances/desktop/menus/StatusMenu.vue'
-import GridStatusMenu from '@/instances/desktop/menus/GridStatusMenu.vue'
-import { Browser } from "@wailsio/runtime";
-import { getParentPath } from '@/lib/pathlib';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import GridStatusMenu from '@/instances/desktop/menus/GridStatusMenu.vue';
+import RenameInput from '@/instances/desktop/components/RenameInput.vue';
+import StatusMenu from '@/instances/desktop/menus/StatusMenu.vue';
 
-// states/stores
-const userStore = useUserStore();
+// services
+import { AssetService, CheckpointService, FSService, SyncService } from "@/services";
+
+// stores
+import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
+import { useCommonStore } from '@/stores/common';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useDndStore } from '@/stores/dnd';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useNotificationStore } from '@/stores/notifications';
+import { usePaneStore } from '@/stores/panes';
+import { usePlatformStore } from '@/stores/platform';
+import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useUserStore } from '@/stores/users';
+
+const assetStore = useAssetStore();
+const collectionStore = useCollectionStore();
+const commonStore = useCommonStore();
+const dndStore = useDndStore();
 const iconStore = useIconStore();
-const trayStates = useTrayStates();
 const menu = useMenu();
-const panes = usePaneStore();
-const stage = useStageStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const assetStore = useAssetStore();
-const commonStore = useCommonStore();
-const collectionStore = useCollectionStore();
+const panes = usePaneStore();
+const platformStore = usePlatformStore();
 const projectStore = useProjectStore();
-const dndStore = useDndStore();
+const stage = useStageStore();
+const trayStates = useTrayStates();
+const userStore = useUserStore();
+
+// props
+const props = defineProps({
+  entityId: { type: String, default: '' },
+  index: Number,
+  isChild: { type: Boolean, default: false },
+  isGhost: { type: Boolean, default: false },
+  isUntracked: { type: Boolean, default: false },
+  loadingAssetState: { type: Boolean, default: false },
+  task: Object,
+});
 
 // emits
 const emit = defineEmits(['toggle-edit-mode', 'expand', 'refreshData']);
 
-// props
-const props = defineProps({
-  task: Object,
-  entityId: { type: String, default: '' },
-  index: Number,
-  isChild: { type: Boolean, default: false },
-  isUntracked: { type: Boolean, default: false },
-  isGhost: { type: Boolean, default: false },
-  loadingAssetState: { type: Boolean, default: false },
-});
-
-const gridStyles = computed(() => ({
-  minWidth: commonStore.gridSize + 'px',
-  height: commonStore.gridSize + 'px',
-}));
-
-const itemHeightStyles = computed(() => ({
-  height: `calc(100% - ${commonStore.listItemGap}px)`,
-}));
-
 // refs
-const taskItem = ref(null);
-const isExpanded = ref(false);
+const editableTaskName = ref(props.task.name || '');
 const gridStatusMenuVisible = ref(false);
-
-// OS Thumbnail caching
+const isAwaitingResponse = ref(false);
+const isDownloading = ref(false);
+const isEditing = ref(false);
+const isExpanded = ref(false);
 const osThumbnail = ref('');
+const statusMenuDisplayed = ref(false);
+const taskItem = ref(null);
 const thumbnailLoading = ref(false);
+
+// thumbnail cache
 const thumbnailCache = new Map();
 
-// Determines the thumbnail to display with priority: user preview > OS thumbnail > task icon > file type icon
+// computed
+// Returns the capitalized asset type name.
+const assetTypeName = computed(() => {
+  return utils.capitalizeStr(props.task?.task_type_name);
+});
+
+// Checks if the user can import into the untracked task's parent.
+const canImport = computed(() => {
+  let trackedParent = utils.getUntrackedEntityparent(props.task);
+  if (props.task.entity_path === "") {
+    return false;
+  }
+  return trackedParent && trackedParent.can_modify;
+});
+
+// Checks if the current user can modify this task.
+const canModify = computed(() => {
+  let assigneeId = props.task.assignee_id;
+  if (assigneeId == "") {
+    return true;
+  } else if (assigneeId == userStore.user.id) {
+    return true;
+  } else {
+    return false;
+  }
+});
+
+// Determines the thumbnail to display with priority order.
 const displayThumbnail = computed(() => {
   if (props.task.preview) {
     return props.task.preview;
@@ -425,12 +455,388 @@ const displayThumbnail = computed(() => {
   return getAppIcon(getFileTypeIcon(props.task));
 });
 
-// Load OS-generated thumbnail for the file with memory caching and async generation fallback
+// Returns the grid styles for the asset item.
+const gridStyles = computed(() => ({
+  minWidth: commonStore.gridSize + 'px',
+  height: commonStore.gridSize + 'px',
+}));
+
+// Checks if the current user is the assigned user.
+const isCurrentUser = computed(() => {
+  const user = userStore.user;
+  if (!user) {
+    return false;
+  }
+  let currentUserId = user.id;
+  return props.task.assignee_id === currentUserId;
+});
+
+// Checks if the item is hovered for drag and drop.
+const isHovered = computed(() => { return dndStore.targetItemId === props.task.id; });
+
+// Checks if the task is focused for selection.
+const isTaskInFocus = computed(() => {
+  return stage.markedItems.length === 1 && stage.firstSelectedItemId === props.task.id && !dndStore.draggedItem;
+});
+
+// Returns the height styles for the item in list view.
+const itemHeightStyles = computed(() => ({
+  height: `calc(100% - ${commonStore.listItemGap}px)`,
+}));
+
+// Checks if any operations are currently active.
+const operationsActive = computed(() => {
+  return stage.operationActive || !!modals.activeModal || !!menu.activeMenu || isEditing.value || stage.activeStage !== 'browser';
+});
+
+// Returns the display name for the task.
+const taskName = computed(() => {
+  const task = props.task;
+  const extension = commonStore.hideExtensions ? '' : task.name ? task.extension : '';
+  const taskName = task.name ? task.name : task.extension;
+  const isDirectParent = props.task.id === task.entity_id;
+  const taskPath = task.task_path?.replace(/\//g, ' / ').replace(/^( \/ )?/, '');
+
+  if (commonStore.showFullPath) {
+    return taskPath + extension;
+  }
+  if (props.isChild) {
+    if (commonStore.showChildEntities) {
+      return taskName + extension;
+    } else {
+      return isDirectParent ? (taskName + extension) : taskPath;
+    }
+  } else {
+    if (commonStore.viewSearchQuery) {
+      return taskPath + extension;
+    } else {
+      return taskName + extension;
+    }
+  }
+});
+
+// Returns the full name of the assigned user.
+const userFullName = computed(() => {
+  let user = userStore.getUserData(props.task.assignee_id);
+  if (!user) {
+    return 'Removed User';
+  } else {
+    return `${user.first_name} ${user.last_name}`;
+  }
+});
+
+// Returns the profile photo URL of the assigned user.
+const userPhoto = computed(() => {
+  return userStore.userProfilePhoto(props.task.assignee_id);
+});
+
+// events
+Events.On('rename-item', async () => {
+  if (operationsActive.value) return;
+  if (isTaskInFocus.value && userStore.canDo('update_task')) {
+    startRename();
+  }
+});
+
+Events.On('edit-item', async () => {
+  if (operationsActive.value) return;
+  if (isTaskInFocus.value && userStore.canDo('update_task')) {
+    modals.setModalVisibility('editAssetModal', true);
+  }
+});
+
+Events.On('add-checkpoint', async () => {
+  if (operationsActive.value) return;
+  if (isTaskInFocus.value && userStore.canDo('create_checkpoint')) {
+    prepCreateCheckpoint();
+  }
+});
+
+Events.On('free-item-space', async () => {
+  if (operationsActive.value) return;
+  if (isTaskInFocus.value) {
+    if (props.task.type === 'task') {
+      prepFreeUpSpacePopUpModal();
+    } else if (props.task.type === 'untracked_task') {
+      prepDeleteUntrackedTaskPopUpModal();
+    }
+  }
+});
+
+Events.On('delete-item', async () => {
+  if (operationsActive.value) return;
+  if (isTaskInFocus.value && userStore.canDo('delete_task')) {
+    panes.setPaneVisibility('projectDetails', true);
+    deleteTask();
+  }
+});
+
+// methods
+// Cancels the current rename operation.
+const cancelRename = () => {
+  editableTaskName.value = props.task.name || '';
+  toggleEditMode();
+};
+
+// Shows a popup modal when user cannot modify the task.
+const canModifyPopUpModal = () => {
+  trayStates.popUpModalTitle = "Warning";
+  trayStates.popUpModalMessage = "You cannot modify this task because it is assigned to another user.";
+  trayStates.popUpModalIcon = 'help';
+  trayStates.popUpModalFunction = null;
+  modals.setModalVisibility('popUpModal', true);
+};
+
+// Closes the grid status menu and updates task status.
+const closeGridStatusMenu = () => {
+  gridStatusMenuVisible.value = false;
+};
+
+// Closes the status menu and updates task status properties.
+const closeStatusMenu = () => {
+  props.task.status = assetStore.selectedAsset.status;
+  props.task.status_id = assetStore.selectedAsset.status_id;
+  props.task.status_short_name = assetStore.selectedAsset.status_short_name;
+  statusMenuDisplayed.value = false;
+};
+
+// Confirms and applies the rename operation.
+const confirmRename = async () => {
+  isAwaitingResponse.value = true;
+  await updateAssetName();
+  toggleEditMode();
+};
+
+// Deletes the task or prepares to delete untracked task.
+const deleteTask = async () => {
+  if (props.task.type === 'task') {
+    let taskId = assetStore.selectedAsset.id;
+    AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
+      .then(async (response) => {
+        assetStore.selectedAsset = null;
+        stage.markedItems = [];
+        emitter.emit('refresh-browser');
+      })
+      .catch((error) => {
+        notificationStore.errorNotification("Task failed to delete.", error);
+      });
+    let longMessage = `Task of name: ${assetStore.selectedAsset.name} was moved to Trash.`;
+    notificationStore.addNotification("Task moved to Trash.", longMessage, "success", true);
+  } else if (props.task.type === 'untracked_task') {
+    prepDeleteUntrackedTaskPopUpModal();
+  }
+};
+
+// Deletes an untracked item from the file system.
+const deleteUntrackedItem = () => {
+  FSService.DeleteFile(props.task.file_path);
+  projectStore.removeUntrackedTask(props.task.id);
+  emitter.emit('refresh-browser');
+  modals.disableAllModals();
+};
+
+// Downloads an asset in web mode.
+const downloadAsset = async (index, task, event) => {
+  if (isDownloading.value) return;
+  
+  handleClick(index, task, event);
+  const taskId = task.id;
+  const fileName = `${task.name}${task.extension}`;
+  
+  isDownloading.value = true;
+  
+  try {
+    const { CheckpointService: WebCheckpointService } = await import('@/services/adapters/checkpointservice.js');
+    await WebCheckpointService.DownloadAsset(
+      projectStore.activeProject.uri,
+      taskId,
+      null
+    );
+    
+    notificationStore.addNotification(
+      "Download Complete",
+      `${fileName} downloaded successfully`,
+      "success",
+      true
+    );
+  } catch (error) {
+    console.error('Download error:', error);
+    notificationStore.errorNotification("Download Failed", error.message || error);
+  } finally {
+    isDownloading.value = false;
+  }
+};
+
+// Downloads a checkpoint from the server.
+const downloadCheckpoint = (checkpointId) => {
+  notificationStore.cancleFunction = SyncService.CancelSync;
+  notificationStore.canCancel = true;
+  SyncService.DownloadCheckpoint(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, checkpointId)
+    .then((response) => {
+      emit('refreshCheckpoints');
+    })
+    .catch((error) => {
+      console.log(error);
+      notificationStore.errorNotification("Error Downloading Checkpoint", error);
+    });
+};
+
+// Emits task data updates to related components.
+const emitTaskUpdates = (taskId, updates) => {
+  const updateData = { itemId: taskId, updates };
+  
+  emitter.emit('update-root-data', updateData);
+  emitter.emit('update-children', updateData);
+};
+
+// Frees up disk space by deleting working files.
+const freeUpSpace = async () => {
+  let task = assetStore.selectedAsset;
+  let taskDir = task.file_path.replace(/\\/g, '/');
+  await FSService.DeleteFile(taskDir)
+    .then((response) => {
+      task.file_status = 'rebuildable';
+      assetStore.rebuildableAssetsPath.push(task.task_path);
+      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path);
+      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => taskPath !== task.task_path);
+      emitter.emit('refresh-browser');
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  modals.disableAllModals();
+};
+
+// Returns the icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  const icon = iconStore.getAppIcon(iconName);
+  return icon;
+};
+
+// Returns the appropriate icon based on file type.
+const getFileTypeIcon = (task) => {
+  const extension = task.extension?.toLowerCase() || '';
+
+  const imageFormats = ['.png', '.exr', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp', '.svg'];
+  const videoFormats = ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm'];
+  const audioFormats = ['.mp3', '.wav', '.flac', '.aac', '.ogg'];
+  const archiveFormats = ['.zip', '.rar', '.7z', '.tar', '.gz', '.bz2'];
+  const textFormats = ['.txt', '.md', '.rtf'];
+  const codeFormats = ['.js', '.ts', '.css', '.html', '.vue', '.py', '.java', '.cpp', '.c', '.go', '.rs'];
+  const spreadsheetFormats = ['.xls', '.xlsx', '.csv'];
+  const presentationFormats = ['.ppt', '.pptx'];
+  const wordFormats = ['.doc', '.docx'];
+
+  if (imageFormats.includes(extension)) {
+    return 'image';
+  } else if (videoFormats.includes(extension)) {
+    return 'video-camera';
+  } else if (audioFormats.includes(extension)) {
+    return 'music';
+  } else if (extension === '.pdf') {
+    return 'file-pdf';
+  } else if (archiveFormats.includes(extension)) {
+    return 'file-zip';
+  } else if (textFormats.includes(extension)) {
+    return 'file-text';
+  } else if (codeFormats.includes(extension)) {
+    return 'file-code';
+  } else if (spreadsheetFormats.includes(extension)) {
+    return 'file-excel';
+  } else if (presentationFormats.includes(extension)) {
+    return 'file-powerpoint';
+  } else if (wordFormats.includes(extension)) {
+    return 'file-word';
+  } else {
+    return 'file';
+  }
+};
+
+// Navigates to the task dependencies view.
+const goToDependencies = (index, task, event) => {
+  handleClick(index, task, event);
+  assetStore.selectAsset(task);
+  stage.setStageVisibility('dependencies', true);
+};
+
+// Handles task click event and closes status menu.
+const handleClick = (index, task, event) => {
+  closeStatusMenu();
+  const id = task.id;
+};
+
+// Handles clicks outside menus to close them.
+const handleClickOutside = (event) => {
+  if (statusMenuDisplayed.value) {
+    statusMenuDisplayed.value = false;
+  }
+  if (gridStatusMenuVisible.value) {
+    gridStatusMenuVisible.value = false;
+  }
+};
+
+// Handles escape key to cancel operations.
+const handleEscKey = () => {
+  if (isEditing.value) {
+    cancelRename();
+  }
+  if (statusMenuDisplayed.value) {
+    statusMenuDisplayed.value = false;
+  }
+  if (gridStatusMenuVisible.value) {
+    gridStatusMenuVisible.value = false;
+  }
+};
+
+// Handles grid status selection and updates task status.
+const handleGridStatusSelected = () => {
+  props.task.status = assetStore.selectedAsset.status;
+  props.task.status_id = assetStore.selectedAsset.status_id;
+  props.task.status_short_name = assetStore.selectedAsset.status_short_name;
+  closeGridStatusMenu();
+};
+
+// Launches the selected task if conditions are met.
+const launchSelectedTask = () => {
+  if (isEditing.value) return;
+  if (isTaskInFocus.value && !modals.activeModal) {
+    launchTaskCommand();
+  }
+};
+
+// Launches the task file or opens web link.
+const launchTaskCommand = async () => {
+  if (!userStore.canDo('pull_chunk')) {
+    return;
+  }
+  const task = props.task;
+  if (task.is_link && isValidWeblink(task.pointer)) {
+    Browser.OpenURL(task.pointer);
+  } else {
+    let file_path = task.pointer ? task.pointer : task.file_path;
+    if (await FSService.Exists(file_path)) {
+      FSService.LaunchFile(file_path);
+    } else {
+      CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [task.id])
+        .then(async (response) => {
+          let fileStatus = await assetStore.getAssetFileStatus(task);
+          props.task.file_status = fileStatus;
+          FSService.LaunchFile(file_path);
+        })
+        .catch((error) => {
+          console.log(error);
+          notificationStore.errorNotification("Error Rebuilding Task", error);
+        });
+    }
+  }
+};
+
+// Loads OS-generated thumbnail for the file.
 const loadOSThumbnail = async () => {
   const filePath = props.task.file_path;
 
-  const fileExists = await FSService.Exists(filePath)
-  if ( !commonStore.useGrid || props.task.preview || !props.task.file_path || !fileExists || thumbnailLoading.value || props.task.is_link) {
+  const fileExists = await FSService.Exists(filePath);
+  if (!commonStore.useGrid || props.task.preview || !props.task.file_path || !fileExists || thumbnailLoading.value || props.task.is_link) {
     return;
   }
 
@@ -452,7 +858,6 @@ const loadOSThumbnail = async () => {
       osThumbnail.value = thumbnail;
       thumbnailCache.set(cacheKey, thumbnail);
     } else {
-      // Asynchronously generate thumbnail if not cached
       setTimeout(async () => {
         try {
           thumbnail = await FSService.GetOSThumbnail(filePath, size);
@@ -476,9 +881,23 @@ const loadOSThumbnail = async () => {
   }
 };
 
+// Triggers rename from the menu.
+const menuRename = () => {
+  if (isTaskInFocus.value && userStore.canDo('update_task')) {
+    startRename();
+  }
+};
+
+// Opens a web link in the browser.
+const openLink = () => {
+  const task = props.task;
+  if (task.is_link && isValidWeblink(task.pointer)) {
+    Browser.OpenURL(task.pointer);
+  }
+};
+
+// Opens the grid status menu.
 const openGridStatusMenu = (event) => {
-  console.log('llllllll')
-  // event.stopPropagation();
   const id = props.task.id;
   const task = props.task;
   assetStore.selectAsset(task);
@@ -486,125 +905,77 @@ const openGridStatusMenu = (event) => {
   gridStatusMenuVisible.value = !gridStatusMenuVisible.value;
 };
 
-const closeGridStatusMenu = () => {
-  gridStatusMenuVisible.value = false;
-};
-
-const handleGridStatusSelected = () => {
-  props.task.status = assetStore.selectedAsset.status;
-  props.task.status_id = assetStore.selectedAsset.status_id;
-  props.task.status_short_name = assetStore.selectedAsset.status_short_name;
-  closeGridStatusMenu();
-};
-
-
-const getFileTypeIcon = (task) => {
-  const extension = task.extension?.toLowerCase() || '';
-
-  const imageFormats = ['.png', '.exr', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp', '.svg'];
-  const videoFormats = ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm'];
-  const audioFormats = ['.mp3', '.wav', '.flac', '.aac', '.ogg'];
-  const archiveFormats = ['.zip', '.rar', '.7z', '.tar', '.gz', '.bz2'];
-  const textFormats = ['.txt', '.md', '.rtf'];
-  const codeFormats = ['.js', '.ts', '.css', '.html', '.vue', '.py', '.java', '.cpp', '.c', '.go', '.rs'];
-  const spreadsheetFormats = ['.xls', '.xlsx', '.csv'];
-  const presentationFormats = ['.ppt', '.pptx'];
-  const wordFormats = ['.doc', '.docx'];
-
-  if (imageFormats.includes(extension)) {
-    return 'image'
-  } else if (videoFormats.includes(extension)) {
-    return 'video-camera'
-  } else if (audioFormats.includes(extension)) {
-    return 'music'
-  } else if (extension === '.pdf') {
-    return 'file-pdf'
-  } else if (archiveFormats.includes(extension)) {
-    return 'file-zip'
-  } else if (textFormats.includes(extension)) {
-    return 'file-text'
-  } else if (codeFormats.includes(extension)) {
-    return 'file-code'
-  } else if (spreadsheetFormats.includes(extension)) {
-    return 'file-excel'
-  } else if (presentationFormats.includes(extension)) {
-    return 'file-powerpoint'
-  } else if (wordFormats.includes(extension)) {
-    return 'file-word'
-  } else {
-    return 'file'
+// Prepares to assign the task to a user.
+const prepAssignTask = (index, task, event) => {
+  if (!userStore.canDo('assign_task')) {
+    return;
   }
+  handleClick(index, task, event);
+
+  const id = task.id;
+  assetStore.selectAsset(task);
+  stage.markedTasks = [id];
+  menu.showContextMenu(event, 'assignMenu', true);
 };
 
-const isHovered = computed(() => { return dndStore.targetItemId === props.task.id });
-const canModify = computed(() => {
-  let assigneeId = props.task.assignee_id
-  if (assigneeId == "") {
-    return true
-  } else if (assigneeId == userStore.user.id) {
-    return true
-  } else {
-    return false
-  }
-});
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
-const canImport = computed(() => {
-  let trackedParent = utils.getUntrackedEntityparent(props.task)
-  if (props.task.entity_path === "") {
-    return false
-  }
-  return trackedParent && trackedParent.can_modify
-});
-
-// Helper function to emit task data updates
-const emitTaskUpdates = (taskId, updates) => {
-  const updateData = { itemId: taskId, updates };
-  
-  // Emit to both Browser and VirtuaItem components
-  emitter.emit('update-root-data', updateData);
-  emitter.emit('update-children', updateData);
-};
-
-// computed properties
-const taskName = computed(() => {
+// Prepares the create checkpoint modal.
+const prepCreateCheckpoint = (index, mask, event) => {
   const task = props.task;
-  const extension = commonStore.hideExtensions ? '' : task.name ? task.extension : '';
-  const taskName = task.name ? task.name : task.extension;
-  const isDirectParent = props.task.id === task.entity_id;
-  const taskPath = task.task_path.replace(/\//g, ' / ').replace(/^( \/ )?/, '');
+  assetStore.selectedAsset = task;
+  handleClick(index, task, event);
+  modals.setModalVisibility('createCheckpointModal', true);
+};
 
-  if (commonStore.showFullPath) {
-    return taskPath + extension
-  }
-  if (props.isChild) {
-    if (commonStore.showChildEntities) {
-      return taskName + extension
-    } else {
-      return isDirectParent ? (taskName + extension) : taskPath
-    }
-  } else {
-    if (commonStore.viewSearchQuery) {
-      return taskPath + extension
-    } else {
-      return taskName + extension
-    }
-  }
-});
+// Prepares the delete untracked task popup modal.
+const prepDeleteUntrackedTaskPopUpModal = () => {
+  trayStates.popUpModalTitle = "Delete";
+  trayStates.popUpModalMessage = "Are you sure you want to delete this item? This will permanently remove this item. Please confirm if you wish to proceed.";
+  trayStates.popUpModalIcon = 'trash';
+  trayStates.popUpModalFunction = deleteUntrackedItem;
+  modals.setModalVisibility('popUpModal', true);
+};
 
-const assetTypeName = computed(() => {
-  return utils.capitalizeStr(props.task?.task_type_name);
-});
+// Prepares the free up space popup modal.
+const prepFreeUpSpacePopUpModal = () => {
+  trayStates.popUpModalTitle = "Free Up Task Space";
+  trayStates.popUpModalMessage = "Are you sure you want to delete this task working files? This will permanently remove all uncheckpointed resources and all task outputs. Please confirm if you wish to proceed.";
+  trayStates.popUpModalIcon = 'broom';
+  trayStates.popUpModalFunction = freeUpSpace;
+  modals.setModalVisibility('popUpModal', true);
+};
 
-const isEditing = ref(false);
-const isAwaitingResponse = ref(false);
-const editableTaskName = ref(props.task.name || '');
-const statusMenuDisplayed = ref(false);
+// Generates a color from a UUID.
+const profileColor = (uuid) => {
+  const parts = uuid.split('-');
+  return '#' + parts[0];
+};
 
+// Reverts a task to its last checkpoint.
+const revertTask = async (index, task, event) => {
+  handleClick(index, task, event);
+  const taskId = task.id;
+
+  notificationStore.cancleFunction = SyncService.CancelSync;
+  notificationStore.canCancel = true;
+
+  CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [taskId])
+    .then(async (response) => {
+      emitTaskUpdates(taskId, [
+        { property: 'file_status', value: 'normal' }
+      ]);
+    })
+    .catch((error) => {
+      console.log(error);
+      notificationStore.errorNotification("Error Reverting Task", error);
+    });
+};
+
+// Starts the rename operation.
+const startRename = () => {
+  toggleEditMode();
+};
+
+// Toggles the edit mode for renaming.
 const toggleEditMode = (event) => {
   if (statusMenuDisplayed.value) {
     statusMenuDisplayed.value = false;
@@ -623,52 +994,42 @@ const toggleEditMode = (event) => {
   }
 };
 
-const cancelRename = () => {
-  editableTaskName.value = props.task.name || '';
-  toggleEditMode();
-};
-
-const startRename = () => {
-  toggleEditMode();
-};
-
-const confirmRename = async () => {
-  isAwaitingResponse.value = true;
-  await updateAssetName();
-  toggleEditMode();
-};
-
-const handleEscKey = () => {
-  if (isEditing.value) {
-    cancelRename();
+// Opens the status menu for changing task status.
+const toggleDisplayStatusMenu = (index, task, event) => {
+  handleClick(index, task, event);
+  if (!userStore.canDo('change_status')) {
+    return;
   }
-  if (statusMenuDisplayed.value) {
-    statusMenuDisplayed.value = false;
-  }
-  if (gridStatusMenuVisible.value) {
-    gridStatusMenuVisible.value = false;
+  assetStore.isAssetTaskStatus = true;
+  assetStore.selectAsset(task);
+  statusMenuDisplayed.value = true;
+};
+
+// Triggers the rename operation if conditions are met.
+const triggerRename = () => {
+  if (operationsActive.value) return;
+  if (isTaskInFocus.value && userStore.canDo('update_task')) {
+    startRename();
   }
 };
 
+// Updates the asset name in the backend.
 const updateAssetName = async () => {
-
   isAwaitingResponse.value = true;
 
   let taskId = props.task.id;
   let task = props.task;
 
   if (props.task.type === 'task') {
-
     await AssetService.RenameAsset(projectStore.activeProject.uri, taskId, editableTaskName.value)
       .then((data) => {
         task.name = editableTaskName.value;
-        console.log(props.task.file_status)
         emitTaskUpdates(taskId, [
           { property: 'name', value: editableTaskName.value },
           { property: 'file_status', value: 'outdated' },
         ]);
 
-        props.task.file_status = 'outdated'
+        props.task.file_status = 'outdated';
         
         isAwaitingResponse.value = false;
       })
@@ -677,12 +1038,11 @@ const updateAssetName = async () => {
         console.error('Error:', error);
       });
   } else if (props.task.type === 'untracked_task') {
-    let oldPath = props.task.file_path
-    let newPath = getParentPath(props.task.file_path) + "/" + editableTaskName.value + props.task.extension
+    let oldPath = props.task.file_path;
+    let newPath = getParentPath(props.task.file_path) + "/" + editableTaskName.value + props.task.extension;
     let task = projectStore.findUntrackedTask(props.task.id);
     await FSService.Rename(oldPath, newPath)
       .then((data) => {
-
         emitTaskUpdates(taskId, [
           { property: 'name', value: editableTaskName.value },
           { property: 'file_path', value: newPath }
@@ -694,137 +1054,18 @@ const updateAssetName = async () => {
         isAwaitingResponse.value = false;
         console.error('Error:', error);
       });
-
-  }
-}
-
-const isTaskInFocus = computed(() => {
-  return stage.markedItems.length === 1 && stage.firstSelectedItemId === props.task.id && !dndStore.draggedItem
-});
-
-const operationsActive = computed(() => {
-  return stage.operationActive || !!modals.activeModal || !!menu.activeMenu || isEditing.value || stage.activeStage !== 'browser'
-});
-
-Events.On('rename-item', async () => {
-  if (operationsActive.value) return
-  if (isTaskInFocus.value && userStore.canDo('update_task')) {
-    startRename();
-  }
-});
-
-Events.On('edit-item', async () => {
-  if (operationsActive.value) return
-  if (isTaskInFocus.value && userStore.canDo('update_task')) {
-    modals.setModalVisibility('editAssetModal', true);
-  }
-});
-
-const triggerRename = () => {
-  if (operationsActive.value) return
-  if (isTaskInFocus.value && userStore.canDo('update_task')) {
-    startRename();
-  }
-}
-
-Events.On('add-checkpoint', async () => {
-  if (operationsActive.value) return
-  if (isTaskInFocus.value && userStore.canDo('create_checkpoint')) {
-    prepCreateCheckpoint();
-  }
-});
-
-Events.On('free-item-space', async () => {
-  if (operationsActive.value) return
-  if (isTaskInFocus.value) {
-    if (props.task.type === 'task') {
-      prepFreeUpSpacePopUpModal();
-    } else if (props.task.type === 'untracked_task') {
-      prepDeleteUntrackedTaskPopUpModal();
-    }
-  }
-});
-
-Events.On('delete-item', async () => {
-  if (operationsActive.value) return
-  if (isTaskInFocus.value && userStore.canDo('delete_task')) {
-    panes.setPaneVisibility('projectDetails', true);
-    deleteTask();
-  }
-});
-
-const menuRename = () => {
-  if (isTaskInFocus.value && userStore.canDo('update_task')) {
-    startRename();
-  }
-}
-
-const launchSelectedTask = () => {
-  if (isEditing.value) return
-  if (isTaskInFocus.value && !modals.activeModal) {
-    launchTaskCommand();
-  }
-}
-
-const prepFreeUpSpacePopUpModal = () => {
-  trayStates.popUpModalTitle = "Free Up Task Space";
-  trayStates.popUpModalMessage = "Are you sure you want to delete this task working files? This will permanently remove all uncheckpointed resources and all task outputs. Please confirm if you wish to proceed.";
-  trayStates.popUpModalIcon = 'broom';
-  trayStates.popUpModalFunction = freeUpSpace;
-  modals.setModalVisibility('popUpModal', true);
-};
-
-const freeUpSpace = async () => {
-  let task = assetStore.selectedAsset;
-  let taskDir = task.file_path.replace(/\\/g, '/');
-  await FSService.DeleteFile(taskDir)
-    .then((response) => {
-      task.file_status = 'rebuildable';
-      assetStore.rebuildableAssetsPath.push(task.task_path)
-      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path)
-      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => taskPath !== task.task_path);
-      emitter.emit('refresh-browser');
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-  modals.disableAllModals();
-};
-
-const deleteTask = async () => {
-  if (props.task.type === 'task') {
-    let taskId = assetStore.selectedAsset.id;
-    AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
-      .then(async (response) => {
-        assetStore.selectedAsset = null;
-        stage.markedItems = [];
-        emitter.emit('refresh-browser');
-      })
-      .catch((error) => {
-        notificationStore.errorNotification("Task failed to delete.", error)
-      });
-    let longMessage = `Task of name: ${assetStore.selectedAsset.name} was moved to Trash.`
-    notificationStore.addNotification("Task moved to Trash.", longMessage, "success", true);
-  } else if (props.task.type === 'untracked_task') {
-    prepDeleteUntrackedTaskPopUpModal();
   }
 };
 
-const deleteUntrackedItem = () => {
-  FSService.DeleteFile(props.task.file_path);
-  projectStore.removeUntrackedTask(props.task.id);
-  emitter.emit('refresh-browser');
-  modals.disableAllModals();
+// Opens the checkpoints view panel.
+const viewCheckpoints = (index, task, event) => {
+  stage.markedItems = [task.id];
+  assetStore.selectAsset(task);
+  emitter.emit('view-checkpoints');
+  panes.showDetailsPane = true;
 };
 
-const prepDeleteUntrackedTaskPopUpModal = () => {
-  trayStates.popUpModalTitle = "Delete";
-  trayStates.popUpModalMessage = "Are you sure you want to delete this item? This will permanently remove this item. Please confirm if you wish to proceed.";
-  trayStates.popUpModalIcon = 'trash';
-  trayStates.popUpModalFunction = deleteUntrackedItem;
-  modals.setModalVisibility('popUpModal', true);
-};
-
+// watchers
 watch(() => isTaskInFocus.value, (newItems, oldItems) => {
   if (isEditing.value) {
     isEditing.value = false;
@@ -838,204 +1079,24 @@ watch(() => isTaskInFocus.value, (newItems, oldItems) => {
   }
 }, { deep: true });
 
-// watch ( () => props.task, (newItems, oldItems) => {
-//   let fileStatus = await assetStore.getAssetFileStatus(task)
-// }, { deep: true });
-
-
-// methods
-const closeStatusMenu = () => {
-  props.task.status = assetStore.selectedAsset.status
-  props.task.status_id = assetStore.selectedAsset.status_id
-  props.task.status_short_name = assetStore.selectedAsset.status_short_name
-  statusMenuDisplayed.value = false;
-};
-
-const openLink = () => {
-  const task = props.task;
-  if (task.is_link && isValidWeblink(task.pointer)) {
-    Browser.OpenURL(task.pointer)
-  }
-};
-const launchTaskCommand = async () => {
-  if (!userStore.canDo('pull_chunk')) {
-    return
-  }
-  const task = props.task;
-  if (task.is_link && isValidWeblink(task.pointer)) {
-    Browser.OpenURL(task.pointer)
-  } else {
-
-    let file_path = task.pointer ? task.pointer : task.file_path
-    if (await FSService.Exists(file_path)) {
-      FSService.LaunchFile(file_path)
-    } else {
-      CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [task.id])
-        .then(async (response) => {
-          let fileStatus = await assetStore.getAssetFileStatus(task)
-          props.task.file_status = fileStatus
-          FSService.LaunchFile(file_path)
-        })
-        .catch((error) => {
-          console.log(error)
-          notificationStore.errorNotification("Error Rebuilding Task", error)
-        });
-    }
-
-  }
-};
-
-const prepCreateCheckpoint = (index, mask, event) => {
-  const task = props.task
-  assetStore.selectedAsset = task;
-  console.log(assetStore.selectedAsset)
-  handleClick(index, task, event);
-  modals.setModalVisibility('createCheckpointModal', true);
-};
-
-const canModifyPopUpModal = () => {
-  trayStates.popUpModalTitle = "Warning";
-  trayStates.popUpModalMessage = "You cannot modify this task because it is assigned to another user.";
-  trayStates.popUpModalIcon = 'help';
-  trayStates.popUpModalFunction = null;
-  modals.setModalVisibility('popUpModal', true);
-};
-
-const downloadCheckpoint = (checkpointId) => {
-  notificationStore.cancleFunction = SyncService.CancelSync
-  notificationStore.canCancel = true
-  SyncService.DownloadCheckpoint(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, checkpointId)
-    .then((response) => {
-      emit('refreshCheckpoints');
-    })
-    .catch((error) => {
-      console.log(error)
-      notificationStore.errorNotification("Error Downloading Checkpoint", error)
-    });
-};
-
-const revertTask = async (index, task, event) => {
-  handleClick(index, task, event);
-  const taskId = task.id;
-
-  notificationStore.cancleFunction = SyncService.CancelSync
-  notificationStore.canCancel = true
-
-  CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [taskId])
-    .then(async (response) => {
-      emitTaskUpdates(taskId, [
-        { property: 'file_status', value: 'normal' }
-      ]);
-    })
-    .catch((error) => {
-      console.log(error)
-      notificationStore.errorNotification("Error Reverting Task", error)
-    });
-};
-
-const editParams = () => {
-  console.log('escape')
-};
-
-const userFullName = computed(() => {
-  let user = userStore.getUserData(props.task.assignee_id);
-  if (!user) {
-    return 'Removed User'
-  } else {
-    return `${user.first_name} ${user.last_name}`;
+watch(() => props.task.file_path, async (newPath, oldPath) => {
+  if (newPath && newPath !== oldPath) {
+    osThumbnail.value = '';
+    await loadOSThumbnail();
   }
 });
 
-const userPhoto = computed(() => {
-  return userStore.userProfilePhoto(props.task.assignee_id);
-});
-
-const isCurrentUser = computed(() => {
-  const user = userStore.user;
-  if (!user) {
-    return false
-  }
-  let currentUserId = user.id;
-  return props.task.assignee_id === currentUserId
-});
-
-const profileColor = (uuid) => {
-  const parts = uuid.split('-');
-  return '#' + parts[0];
-};
-
-const handleClick = (index, task, event) => {
-  closeStatusMenu();
-  const id = task.id
-};
-
-const toggleDisplayStatusMenu = (index, task, event) => {
-  handleClick(index, task, event);
-  if (!userStore.canDo('change_status')) {
-    return
-  }
-  assetStore.isAssetTaskStatus = true;
-  assetStore.selectAsset(task);
-  statusMenuDisplayed.value = true;
-};
-
-const goToDependencies = (index, task, event) => {
-  handleClick(index, task, event);
-  assetStore.selectAsset(task);
-  stage.setStageVisibility('dependencies', true);
-};
-
-const viewCheckpoints = (index, task, event) => {
-  // stage.handleClick(event, task);
-  // handleClick(index, task, event);
-  stage.markedItems = [task.id];
-  assetStore.selectAsset(task);
-  emitter.emit('view-checkpoints');
-  // panes.setPaneVisibility('checkpoints', true);
-  panes.showDetailsPane = true;
-};
-
-const prepAssignTask = (index, task, event) => {
-  if (!userStore.canDo('assign_task')) {
-    return
-  }
-  handleClick(index, task, event);
-
-
-  const id = task.id;
-  assetStore.selectAsset(task);
-  stage.markedTasks = [id];
-  menu.showContextMenu(event, 'assignMenu', true);
-};
-
-const handleClickOutside = (event) => {
-  if (statusMenuDisplayed.value) {
-    statusMenuDisplayed.value = false;
-  }
-  if (gridStatusMenuVisible.value) {
-    gridStatusMenuVisible.value = false;
-  }
-};
-
+// lifecycle hooks
 onMounted(async () => {
   emitter.on('renameAsset', menuRename);
   document.addEventListener('click', handleClickOutside);
   
-  // Load OS thumbnail for this asset
   await loadOSThumbnail();
 });
 
 onBeforeUnmount(() => {
   emitter.off('renameAsset', menuRename);
   document.removeEventListener('click', handleClickOutside);
-});
-
-// Watch for file path changes (e.g., after rename)
-watch(() => props.task.file_path, async (newPath, oldPath) => {
-  if (newPath && newPath !== oldPath) {
-    osThumbnail.value = '';
-    await loadOSThumbnail();
-  }
 });
 
 </script>
@@ -1082,11 +1143,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
 }
 
 .task-item-main:hover {
-  background-color: var(--blue-steel);
-  border-radius: var(--small-radius);
-}
-
-.task-item-main:hover {
   background-color: var(--steel);
   border-radius: var(--small-radius);
   outline: 1px solid var(--light-steel);
@@ -1123,6 +1179,10 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--blue-steel);
+}
+
+.task-item-grid-selected:hover {
+  background-color: var(--solid-blue-steel);
 }
 
 .task-item-grid-cut {
@@ -1167,9 +1227,7 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   position: relative;
   flex-shrink: 0;
   transition: all 0.2s ease-out;
-  /* background-color: forestgreen; */
 }
-
 
 .task-item-grid-bottom-bar-wrapper {
   position: relative;
@@ -1180,13 +1238,10 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   gap: .3rem;
   height: 32px;
   transition: all 0.2s ease-out;
-  /* background-color: crimson; */
 }
 
-/* Expand height on hover, but not in edit mode */
 .task-item-grid:hover .task-item-grid-bottom-bar-wrapper:not(:has(.rename-input-grid)) {
   height: 70px;
-  /* background-color: black; */
 }
 
 .task-item-grid-slide-container {
@@ -1198,7 +1253,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   flex: 1;
   justify-content: space-between;
   transition: all 0.2s ease-in-out;
-  /* background-color: royalblue; */
 }
 
 .task-item-grid-slide-container:has(.rename-input-grid) {
@@ -1220,7 +1274,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   flex-shrink: 0;
   box-sizing: border-box;
   overflow: hidden;
-  /* background-color: darkslateblue; */
 }
 
 .task-item-grid-actions-row {
@@ -1235,7 +1288,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   box-sizing: border-box;
   overflow: hidden;
   width: 80%;
-  /* background-color: hotpink; */
 }
 
 .task-item-grid:hover .task-item-grid-actions-row {
@@ -1257,7 +1309,7 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   align-items: center;
   justify-content: center;
   height: 32px;
-  z-index: 10;
+  z-index: 1;
 }
 
 .main-task-item-grid-thumb-container {
@@ -1311,10 +1363,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   padding-left: 0px;
 }
 
-.drop-zone-hovered {
-  background-color: var(--drop-hover);
-}
-
 .main-task-item-root {
   display: flex;
   flex-direction: column;
@@ -1346,7 +1394,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
 }
 
 .task-spacer {
-
   position: relative;
   width: min-content;
   width: 36px;
@@ -1356,8 +1403,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   box-sizing: border-box;
   align-items: center;
   overflow: hidden;
-
-  /* background-color: royalblue; */
 }
 
 .task-spacer-empty {
@@ -1389,7 +1434,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   overflow: hidden;
   min-width: min-content;
   height: 100%;
-  /* background-color: royalblue; */
 }
 
 .task-item-preview-container {
@@ -1398,7 +1442,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
-  /* padding: .1rem; */
   overflow: hidden;
   min-width: 60px;
   height: 100%;
@@ -1438,9 +1481,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   overflow: hidden;
   height: 100%;
   width: 100%;
-  /* background-color: forestgreen; */
-  /* aspect-ratio: 16 / 9; */
-  /* background-color: var(--light-steel); */
 }
 
 .task-item-icon-container {
@@ -1452,19 +1492,15 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   padding: .1rem;
   overflow: hidden;
   height: 100%;
-  /* background-color: firebrick; */
 }
 
 .task-item-icon-overlay {
   position: absolute;
-  /* background-color: forestgreen; */
   bottom: 0;
   left: 0;
   width: 32px;
   height: 32px;
-  /* background-color: rgba(0, 0, 0, 0.7); */
   border-radius: 6px;
-  /* padding: 4px; */
   min-width: unset;
 }
 
@@ -1503,7 +1539,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   box-sizing: border-box;
   align-items: center;
   gap: .4rem;
-  /* width: 100%; */
   height: 100%;
   overflow: hidden;
   background-color: rosybrown;
@@ -1511,20 +1546,16 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
 }
 
 .task-item-details-old {
-  /* display: flex; */
   padding: .2rem;
   flex-wrap: nowrap;
   overflow: hidden;
   box-sizing: border-box;
   align-items: center;
   justify-content: space-between;
-  /* width: 50%; */
   height: 100%;
   height: min-content;
   white-space: nowrap;
   text-overflow: ellipsis;
-
-  /* background-color: forestgreen; */
 }
 
 .task-item-details {
@@ -1546,23 +1577,16 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
 }
 
 .weblink-pointer-container {
-  /* width: 100%; */
-  /* width: max-content; */
   display: none;
   flex-wrap: nowrap;
   text-wrap: nowrap;
   justify-content: flex-end;
-  /* background-color: crimson; */
-  /* width: min-content; */
   flex: 1;
   color: var(--white);
   padding: .2rem .2rem;
   border-radius: var(--tiny-radius);
   font-size: 12px;
   overflow: hidden;
-  /* outline: var(--transparent-line); */
-  /* background-color: var(--black-steel); */
-  /* display: flex; */
   align-items: center;
   justify-content: flex-start;
   height: max-content;
@@ -1572,21 +1596,24 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
 }
 
 .weblink-pointer {
-  /* display: flex; */
   width: 100%;
   overflow: hidden;
-  /* padding: 0 .4rem; */
   box-sizing: border-box;
   align-items: flex-start;
   height: 100%;
   font-weight: 300;
   text-overflow: ellipsis;
-  /* background-color: forestgreen; */
 }
 
 .task-item-main:hover .weblink-pointer-container {
   /* text-decoration: underline; */
   display: flex;
+}
+
+.task-item-assignee-container{
+  display: flex;
+  gap: .5rem;
+  min-width: min-content;
 }
 
 .task-item-assignee-button {
@@ -1650,14 +1677,11 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   display: flex;
   box-sizing: border-box;
   align-items: center;
-  justify-content: space-between;
   justify-content: flex-end;
   width: min-content;
   min-width: max-content;
   gap: .7rem;
   height: 100%;
-  /* background-color: darkcyan; */
-  /* min-width: 150px; */
   min-width: var(--actions-width);
 }
 
@@ -1714,8 +1738,6 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   min-width: max-content;
   gap: .7rem;
   height: 100%;
-  /* background-color: darkcyan; */
-  /* flex: 1; */
 }
 
 .task-item-grid-status-display {
@@ -1750,8 +1772,7 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   align-items: center;
   justify-content: flex-start;
   flex: 1;
-  padding: 0 .5rem ;
-  /* background-color: forestgreen; */
+  padding: 0 .5rem;
 }
 
 .task-item-grid-untracked-label span {
@@ -1775,13 +1796,11 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
   flex-shrink: 0;
 }
 
-
-
 .task-item-grid-assignee-overlay-top-right {
   position: absolute;
   bottom: 8px;
   right: 8px;
-  z-index: 10;
+  z-index: 1;
 }
 
 .task-item-grid-assign-button {
@@ -1866,10 +1885,3 @@ watch(() => props.task.file_path, async (newPath, oldPath) => {
 }
 
 </style>
-
-
-
-
-
-
-

@@ -11,7 +11,7 @@
             </div>
             <div class="input-section drop-down-box-section">
                 <DropDownBox :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" />
-                <DropDownBox v-if="itemType === 'Task'" :items="taskTypeNames" :selectedItem="taskType"
+                <DropDownBox v-if="itemType === 'Asset'" :items="taskTypeNames" :selectedItem="taskType"
                     :onSelect="selectTaskType" />
                 <DropDownBox v-else-if="itemType === 'Collection'" :items="entityTypeNames" :selectedItem="entityType"
                     :onSelect="selectEntityType" />
@@ -20,7 +20,7 @@
                 <DropDownBox v-if="itemType === 'Workflow'" :items="entityTypeNames" :selectedItem="entityType"
                     :onSelect="selectEntityType" />
             </div>
-            <div v-if="itemType === 'Task'" class="task-options-container">
+            <div v-if="itemType === 'Asset'" class="task-options-container">
                 <div class="input-section">
                     <Apps @templateSelected="selectTemplate" :selectedTemplateId="taskTemplateId" />
                 </div>
@@ -34,7 +34,7 @@
 
 
 // imports
-import { computed, ref, onMounted, onBeforeUnmount, reactive, watch } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import utils from '@/services/utils';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -135,9 +135,9 @@ const entityTypeNames = computed(() => {
 const itemTypes = computed(() => {
     let allItemTypes;
     if (projectWorkflows.value.length) {
-        allItemTypes = ['Task', 'Collection', 'Workflow'];
+        allItemTypes = ['Asset', 'Collection', 'Workflow'];
     } else {
-        allItemTypes = ['Task', 'Collection'];
+        allItemTypes = ['Asset', 'Collection'];
     }
     return allItemTypes.filter((item) => item !== itemType.value?.toLowerCase());
 });
@@ -145,7 +145,7 @@ const itemTypes = computed(() => {
 const newWorkflowItemData = computed(() => {
     const itemTypeName = itemType.value;
     let data = {};
-    if (itemTypeName === 'Task') {
+    if (itemTypeName === 'Asset') {
 
         const allTaskTypes = assetStore.getAssetTypes;
         const firstTaskType = allTaskTypes[0];
@@ -274,7 +274,7 @@ const selectWorkflow = (workflowName) => {
 
 const changeItemType = (newItemTypeName) => {
     itemType.value = newItemTypeName;
-    if (newItemTypeName === 'Task') {
+    if (newItemTypeName === 'Asset') {
         taskTemplateId.value = taskTemplates.value[0]?.id;
     }
 };
@@ -286,7 +286,7 @@ onMounted(() => {
         workflowName.value = props.workflowItemData.name || '';
 
         if (props.workflowItemData.task_type_id) {
-            itemType.value = 'Task';
+            itemType.value = 'Asset';
             taskTypeId.value = props.workflowItemData.task_type_id;
             taskTypeIcon.value = props.workflowItemData.task_type_icon || '';
             taskTemplateId.value = props.workflowItemData.template_id || '';

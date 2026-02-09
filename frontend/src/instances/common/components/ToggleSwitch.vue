@@ -97,7 +97,7 @@ const props = defineProps({
   position: relative;
   height: var(--switch-size);
   flex-basis: var(--switch-container-width);
-  border-radius: 8px;
+  border-radius: 12px;
   background-color: var(--primaryDarkestColor);
   flex-shrink: 0;
   transition: background-color 0.15s ease-in-out;
@@ -109,7 +109,7 @@ const props = defineProps({
   left: 4px;
   height: calc(var(--switch-size) - 8px);
   width: calc(var(--switch-size) - 8px);
-  border-radius: 5px;
+  border-radius: 12px;
   background-color: rgba(255, 255, 255, 0.274);
   transition: transform 0.15s ease-in-out;
 }

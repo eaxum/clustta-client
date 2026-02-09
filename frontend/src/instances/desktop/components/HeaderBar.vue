@@ -7,52 +7,10 @@
 				<WorkspaceTabs />
 			</div>
 
-			<div v-if="stage.activeStage === 'projects'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('home')" :isInactive="true" />
-				<div class="header-area-container">
-					<HeaderArea :title="'Projects'" :miniDisplay="true" />
-				</div>
-			</div>
-
-			<div v-if="stage.activeStage === 'dependencies'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('arrow-left')" @click="goToList()" v-tooltip="'Back'" />
-				<div class="header-area-container" @click="toggleFullTaskPath()">
-					<HeaderArea :title="taskName" :miniDisplay="true" :customIcon="assetStore.selectedAsset.icon" />
-				</div>
-			</div>
-
-			<div v-if="stage.activeStage === 'trash'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('arrow-left')" @click="goToList()" v-tooltip="'Back'" />
-				<div class="header-area-container">
-					<HeaderArea :title="'Trash'" :miniDisplay="true" />
-				</div>
-			</div>
-
-			<div v-if="stage.activeStage === 'projectSettings'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('arrow-left')" @click="goToList()" v-tooltip="'Back'" />
-				<div class="header-area-container">
-					<HeaderArea :title="'Project Settings'" :miniDisplay="true" />
-				</div>
-			</div>
-
-			<div v-if="stage.activeStage === 'studioSettings'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('arrow-left')" @click="goToProjects()" v-tooltip="'Back'" />
-				<div class="header-area-container">
-					<HeaderArea :title="'Studio Settings'" :miniDisplay="true" />
-				</div>
-			</div>
-
-			<div v-if="stage.activeStage === 'settings'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('arrow-left')" @click="goToProjects()" v-tooltip="'Back'" />
-				<div class="header-area-container">
-					<HeaderArea :title="'Clustta Settings'" :miniDisplay="true" />
-				</div>
-			</div>
-
-			<div v-if="stage.activeStage === 'account'" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon('arrow-left')" @click="goToProjects()" v-tooltip="'Back'" />
-				<div class="header-area-container">
-					<HeaderArea :title="'Account Settings'" :miniDisplay="true" />
+			<div v-if="activeHeaderConfig" class="header-bar-dependencies">
+				<ActionButton :icon="getAppIcon(activeHeaderConfig.icon)" :isInactive="activeHeaderConfig.isInactive" @click="activeHeaderConfig.action?.()" v-tooltip="activeHeaderConfig.tooltip" />
+				<div class="header-area-container" @click="activeHeaderConfig.containerClick?.()">
+					<HeaderArea :notModal="true" :title="activeHeaderConfig.title" :miniDisplay="true" :customIcon="activeHeaderConfig.customIcon" />
 				</div>
 			</div>
 
@@ -61,8 +19,6 @@
 		<div class="header-bar-actions">
 
 			<div class="local-project-actions" v-if="stage.selectedStage === 'browser'">
-				<ActionButton v-if="userStore.canDo('view_checkpoint')" :icon="getAppIcon('layers')"
-					@click="showProjectCheckpoints()" v-tooltip="'Project Checkpoints'" />
 				<ActionButton v-if="userStore.canDo('delete_task')" :icon="getAppIcon('trash')" @click="goToTrash()"
 					v-tooltip="'Trash'" />
 				<ActionButton v-if="userStore.canDo('create_task')" :icon="getAppIcon('briefcase-cog')"
@@ -70,7 +26,7 @@
 
 			</div>
 
-			<div class="remote-project-actions" v-if="projectStore.getActiveProject?.has_remote && projectStore.getActiveProject.is_downloaded && enabledStages.includes(stage.selectedStage)">
+			<div class="remote-project-actions" v-if="projectStore.getActiveProject?.has_remote && (projectStore.getActiveProject.is_downloaded || platformStore.isWeb) && enabledStages.includes(stage.selectedStage)">
 
 				<div class="actions-divider" ></div>
 				
@@ -78,7 +34,7 @@
 				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="revertButtonTooltip"  :useDanger="unSynced"/>
 
 				<ActionButton :isDisabled="syncButtonDisabled" @click="unSynced ? syncData() : pullData()" :icon="getAppIcon(getCloudIcon)"
-				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="syncButtonTooltip" :useAlert="unSynced" />
+				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="cloudIconTooltip" :useAlert="unSynced" :useDanger="offline || !studioStore.appOnline" />
 				
 				<!-- <ActionButton :icon="getAppIcon('bell')" @click="panes.setPaneVisibility('notifications', true)" v-tooltip="'Notifications'"  /> -->
 			</div>
@@ -98,8 +54,8 @@
 
 // imports
 import { computed, ref, onMounted, toRaw } from 'vue';
-import { SyncService } from "@/../bindings/clustta/services";
-import { ProjectService } from '@/../bindings/clustta/services/index';
+import { SyncService } from "@/services";
+import { ProjectService } from '@/services';
 import { syncData, pullData } from '@/lib/sync';
 import utils from '@/services/utils';
 
@@ -116,6 +72,8 @@ import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
+import { usePlatformStore } from '@/stores/platform';
+import { useStudioStore } from '@/stores/studio';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
@@ -132,13 +90,15 @@ const collectionStore = useCollectionStore();
 const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
+const studioStore = useStudioStore();
 const userStore = useUserStore();
+const platformStore = usePlatformStore();
 
 const emits = defineEmits(["update-search", "toggle-search"]);
 const enabledStages = ref(['browser', 'projectSettings']);
 
 // computed props
-const projectIsActive = computed(() => { return projectStore.getActiveProject && projectStore.getActiveProject.is_downloaded });
+const projectIsActive = computed(() => { return projectStore.getActiveProject && (platformStore.isWeb || projectStore.getActiveProject.is_downloaded) });
 
 // refs
 const fullTaskPath = ref(true);
@@ -149,20 +109,28 @@ const getAppIcon = (iconName) => {
 };
 
 const getCloudIcon = computed(() => {
-
 	// Check if server is reachable
-	if (!projectStore.serverActive) {
+	if (!studioStore.appOnline || projectStore.getActiveProject?.is_offline) {
 		return 'cloud-cancel';
 	}
-	// Check any operations are active
+	// Check if any operations are active
 	if (!!notificationStore.getProgress.running) {
 		return 'cloud-clock';
 	}
 	// Server is available
-	if(!unSynced.value){
+	if (!unSynced.value) {
 		return 'cloud-down';
 	}
 	return 'cloud-up';
+});
+
+// Returns the tooltip text for the cloud/sync icon.
+const cloudIconTooltip = computed(() => {
+	if (!studioStore.appOnline) return 'Server unreachable';
+	if (projectStore.getActiveProject?.is_offline) return 'Project offline';
+	if (!!notificationStore.getProgress.running) return 'Syncing...';
+	if (!unSynced.value) return 'Up to date';
+	return 'Unsynced changes';
 });
 
 // computed properties
@@ -175,7 +143,7 @@ const taskName = computed(() => {
 		return utils.capitalizeStr(task.name)
 	} else {
 		const fullPath = task.task_path;
-		return fullPath.replace(/\//g, ' / ');
+		return fullPath?.replace(/\//g, ' / ');
 	}
 });
 
@@ -183,7 +151,22 @@ const toggleFullTaskPath = () => {
 	fullTaskPath.value = !fullTaskPath.value;
 }
 
+// Returns the header configuration for the active stage.
+const activeHeaderConfig = computed(() => {
+	const configs = {
+		projects: { icon: 'home', isInactive: true, title: 'Projects' },
+		dependencies: { icon: 'chevron-left', action: goToList, title: taskName.value, customIcon: assetStore.selectedAsset?.icon, containerClick: toggleFullTaskPath, tooltip: 'Back' },
+		trash: { icon: 'chevron-left', action: goToList, title: 'Trash', tooltip: 'Back' },
+		projectSettings: { icon: 'chevron-left', action: goToList, title: 'Project Settings', tooltip: 'Back' },
+		studioSettings: { icon: 'chevron-left', action: goToProjects, title: 'Studio Settings', tooltip: 'Back' },
+		settings: { icon: 'chevron-left', action: goToProjects, title: 'Clustta Settings', tooltip: 'Back' },
+		account: { icon: 'chevron-left', action: goToProjects, title: 'Account Settings', tooltip: 'Back' },
+	};
+	return configs[stage.activeStage] || null;
+});
+
 const unSynced = computed(() => { return projectStore.getActiveProject.is_unsynced });
+const offline = computed(() => { return projectStore.getActiveProject?.is_offline });
 
 const revertButtonDisabled = computed(() => {
 	return !!notificationStore.getProgress.running || 
@@ -210,9 +193,10 @@ const syncButtonDisabled = computed(() => {
 const syncButtonTooltip = computed(() => {
 	if (projectStore.serverIsBusy) return 'Server is busy...';
 	if (stage.operationActive) return 'Operation in progress...';
+	if (projectStore.getActiveProject?.is_offline) return 'Server Unreachable';
 	if (!projectStore.getActiveProject?.is_downloaded) return 'Project not downloaded';
 	if (!unSynced.value) return 'Sync';
-	return 'Send';
+	return 'Sync';
 });
 
 // methods
@@ -297,19 +281,7 @@ const goToProjects = () => {
 	}
 };
 
-const showProjectCheckpoints = () => {
-	
-	collectionStore.selectedCollection  = null ;
-	assetStore.selectedAsset = null ;
-	projectStore.selectedUntrackedItem = null;
 
-	if (panes.activeModal !== 'projectCheckpoints' || !panes.showDetailsPane) {
-		panes.setPaneVisibility('projectCheckpoints', true);
-		panes.showDetailsPane = true;
-	} else {
-		panes.setPaneVisibility('projectDetails', true);
-	}
-};
 
 const goToTrash = () => {
 	stage.setStageVisibility('trash', true);
@@ -425,6 +397,7 @@ const goToSettings = () => {
 	padding-top: .3rem;
 	width: 100%;
 	height: 50px;
+	min-height: 50px;
 	display: flex;
 	overflow: hidden;
 	box-sizing: border-box;

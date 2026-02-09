@@ -1,9 +1,7 @@
 <template>
   <div ref="modalContainer" class="modal-container">
 
-    <div class="general-pane-header">
-      <HeaderArea :title="title" :icon="getAppIcon('stall')" :showSearch="false" />
-    </div>
+    <HeaderArea :title="title" :icon="getAppIcon('stall')" :showSearch="false" />
 
     <div class="general-container">
 
@@ -64,51 +62,44 @@
 
 <script setup>
 // imports
-import { ref, onMounted, computed, watchEffect } from 'vue';
+import { computed, onMounted, ref, watchEffect } from 'vue';
+
+// components
+import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
 // services
-import { StudioService } from '@/../bindings/clustta/services/index';
+import { StudioService } from '@/services';
 
-//stores
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useNotificationStore } from '@/stores/notifications';
-import { useMenu } from '@/stores/menu';
-import { useIconStore } from '@/stores/icons';
-import { useProjectStore } from '@/stores/projects';
-import { useStageStore } from '@/stores/stages';
-
-//components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-
-//header vars
-let title = 'Update Studio';
-
-// stores/states
+// stores
+const iconStore = useIconStore();
+const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const menu = useMenu();
-const iconStore = useIconStore();
 const projectStore = useProjectStore();
-const stage = useStageStore();
 
-//refs
-const studioName = ref('');
-const studioUrl = ref('');
-const studioAltUrl = ref('');
-const studioPort = ref('');
-const studioKey = ref('');
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
+
+// constants
+const title = 'Update Studio';
+
+// refs
 const isAwaitingResponse = ref(false);
 const modalContainer = ref(null);
 const originalStudio = ref(null);
+const studioAltUrl = ref('');
+const studioKey = ref('');
+const studioName = ref('');
+const studioPort = ref('');
+const studioUrl = ref('');
 
-const keyProvided = computed(() => {
-  return studioKey.value.trim() !== '';
-});
-
+// computed (dependencies first)
 const hasChanges = computed(() => {
   if (!originalStudio.value) return false;
-  
   return (
     studioUrl.value !== originalStudio.value.url ||
     studioAltUrl.value !== (originalStudio.value.alt_url || '') ||
@@ -116,25 +107,46 @@ const hasChanges = computed(() => {
   );
 });
 
+const keyProvided = computed(() => {
+  return studioKey.value.trim() !== '';
+});
+
 const isValueChanged = computed(() => {
   return keyProvided.value && hasChanges.value;
 });
 
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
+// methods
+// Closes the modal.
 const closeModal = () => {
   modals.disableAllModals();
 };
 
+// Returns icon path from icon store.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Handles enter key press to trigger update.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter' && isValueChanged.value) {
     updateStudio();
   }
 };
 
+// Loads current studio data into form fields.
+const loadStudioData = () => {
+  const currentStudio = projectStore.selectedStudio;
+  if (currentStudio) {
+    originalStudio.value = { ...currentStudio };
+    studioName.value = currentStudio.name || '';
+    studioUrl.value = currentStudio.url || '';
+    studioAltUrl.value = currentStudio.alt_url || '';
+    studioPort.value = currentStudio.port || '';
+    studioKey.value = '';
+  }
+};
+
+// Submits studio update to server.
 const updateStudio = async () => {
   if (!isValueChanged.value) return;
   
@@ -151,7 +163,6 @@ const updateStudio = async () => {
 
     notificationStore.addNotification("Studio updated successfully", "", "success");
     
-    // Reload studios to get updated data
     await projectStore.loadStudios();
     let studio = projectStore.studios.find((item) => item.name === studioName.value);
     if (studio) {
@@ -161,7 +172,6 @@ const updateStudio = async () => {
     
     isAwaitingResponse.value = false;
     closeModal();
-    
   } catch (error) {
     isAwaitingResponse.value = false;
     console.log(error);
@@ -169,30 +179,17 @@ const updateStudio = async () => {
   }
 };
 
-const loadStudioData = () => {
-  // Load the current studio data
-  const currentStudio = projectStore.selectedStudio;
-  if (currentStudio) {
-    originalStudio.value = { ...currentStudio };
-    studioName.value = currentStudio.name || '';
-    studioUrl.value = currentStudio.url || '';
-    studioAltUrl.value = currentStudio.alt_url || '';
-    studioPort.value = currentStudio.port || '';
-    // Don't load the key - user must provide it
-    studioKey.value = '';
-  }
-};
-
+// watchers
 watchEffect(() => {
   if (modalContainer.value) {
     menu.clickOutsideMask = modalContainer.value;
   }
 });
 
+// lifecycle
 onMounted(async () => {
   loadStudioData();
 });
-
 </script>
 
 <style scoped>
@@ -243,18 +240,7 @@ onMounted(async () => {
   font-size: 14px;
 }
 
-[data-theme="dark"] .input-short{
+[data-theme="dark"] .input-short {
   font-weight: 200;
-}
-
-.modal-info {
-  display: flex;
-  flex-direction: column;
-  max-width: 100%;
-  justify-content: flex-start;
-  align-self: stretch;
-  width: 464px;
-  align-items: flex-start;
-  box-sizing: border-box;
 }
 </style>

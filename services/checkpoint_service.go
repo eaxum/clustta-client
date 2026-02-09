@@ -79,7 +79,7 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, taskId, c
 				if !ok {
 					return
 				}
-				app.EmitEvent("progress-update", progress)
+				app.Event.Emit("progress-update", progress)
 			}
 		}
 	}()
@@ -187,7 +187,7 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, taskId, c
 			Current:    1,
 			Total:      1,
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 	}
 	err = repository.RevertToCheckpoint(tx, checkpointId, task.FilePath, callBack)
 	if err != nil {
@@ -202,7 +202,7 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, taskId, c
 		Current:    1,
 		Total:      1,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 	return nil
 }
 
@@ -260,7 +260,7 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, taskPaths []string
 				Current:    i + 1,
 				Total:      totalTasks,
 			}
-			app.EmitEvent("progress-update", progress)
+			app.Event.Emit("progress-update", progress)
 		}
 
 		checkpoint, err := repository.CreateCheckpoint(
@@ -303,7 +303,7 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, taskPaths []string
 		Total:      totalTasks,
 		EntityData: checkpoints,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 	return checkpoints, nil
 }
 
@@ -409,7 +409,7 @@ func (c *CheckpointService) AddUntrackedTask(projectPath, projectWorkingDir stri
 				Current:    completed + (i + 1),
 				Total:      totalTasks,
 			}
-			app.EmitEvent("progress-update", progress)
+			app.Event.Emit("progress-update", progress)
 		}
 		err = repository.CreateTaskFast(tx, "", taskName, taskType.Id, taskEntityId, true, "", taskFilePath, previewId, user.Id, message, groupId, taskPath, statusId, callBack)
 		if err != nil {
@@ -432,7 +432,7 @@ func (c *CheckpointService) AddUntrackedTask(projectPath, projectWorkingDir stri
 			Current:    totalTasks,
 			Total:      totalTasks,
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 	}
 	return tasks, nil
 }
@@ -468,7 +468,7 @@ func (c *CheckpointService) ViewCheckpoint(projectPath, checkpointId, entityName
 			Current:    1,
 			Total:      1,
 		}
-		app.EmitEvent("progress-update", progress)
+		app.Event.Emit("progress-update", progress)
 	}
 	err = repository.RevertToCheckpoint(tx, checkpointId, tempFile, callBack)
 	if err != nil {
@@ -573,7 +573,7 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, taskIds []stri
 				if !ok {
 					return
 				}
-				app.EmitEvent("progress-update", progress)
+				app.Event.Emit("progress-update", progress)
 			}
 		}
 	}()
@@ -695,7 +695,7 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, taskIds []stri
 				Current:    i + 1,
 				Total:      totalTasks,
 			}
-			app.EmitEvent("progress-update", progress)
+			app.Event.Emit("progress-update", progress)
 		}
 
 		err = repository.RevertToLatestCheckpoint(tx, taskId, task.FilePath, callBack)
@@ -714,7 +714,7 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, taskIds []stri
 		Current:    1,
 		Total:      1,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 	return nil
 }
 
@@ -746,7 +746,7 @@ func (c *CheckpointService) RevertTaskPaths(projectPath, remoteUrl string, taskP
 				if !ok {
 					return
 				}
-				app.EmitEvent("progress-update", progress)
+				app.Event.Emit("progress-update", progress)
 			}
 		}
 	}()
@@ -879,7 +879,7 @@ func (c *CheckpointService) RevertTaskPaths(projectPath, remoteUrl string, taskP
 				Current:    i + 1,
 				Total:      totalTasks,
 			}
-			app.EmitEvent("progress-update", progress)
+			app.Event.Emit("progress-update", progress)
 		}
 
 		err = repository.RevertToLatestCheckpoint(tx, taskId, task.FilePath, callBack)
@@ -898,7 +898,7 @@ func (c *CheckpointService) RevertTaskPaths(projectPath, remoteUrl string, taskP
 		Current:    1,
 		Total:      1,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 	return nil
 }
 
@@ -930,7 +930,7 @@ func (c *CheckpointService) RevertProject(projectPath, remoteUrl string, checkpo
 				if !ok {
 					return
 				}
-				app.EmitEvent("progress-update", progress)
+				app.Event.Emit("progress-update", progress)
 			}
 		}
 	}()
@@ -1049,7 +1049,7 @@ func (c *CheckpointService) RevertProject(projectPath, remoteUrl string, checkpo
 				Current:    i + 1,
 				Total:      totalTasks,
 			}
-			app.EmitEvent("progress-update", progress)
+			app.Event.Emit("progress-update", progress)
 		}
 		if utils.FileExists(task.FilePath) {
 			fileXXHash, err := utils.GenerateXXHashChecksum(task.FilePath)
@@ -1064,7 +1064,7 @@ func (c *CheckpointService) RevertProject(projectPath, remoteUrl string, checkpo
 					Current:    i + 1,
 					Total:      totalTasks,
 				}
-				app.EmitEvent("progress-update", progress)
+				app.Event.Emit("progress-update", progress)
 				tx.Rollback()
 				continue // Skip if the file is already in the correct state
 			}
@@ -1085,7 +1085,7 @@ func (c *CheckpointService) RevertProject(projectPath, remoteUrl string, checkpo
 		Current:    1,
 		Total:      1,
 	}
-	app.EmitEvent("progress-update", progress)
+	app.Event.Emit("progress-update", progress)
 	return nil
 }
 

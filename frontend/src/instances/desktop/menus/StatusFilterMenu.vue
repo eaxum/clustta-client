@@ -15,66 +15,69 @@
 
 <script setup>
 // imports
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
-import utils from '@/services/utils';
-
-// states/store imports
-import { useMenu } from '@/stores/menu';
-import { useCommonStore } from '@/stores/common';
-import { useStatusStore } from '@/stores/status';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
 
 // components
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
-// states/stores
-const menu = useMenu();
+// stores
+import { useCommonStore } from '@/stores/common';
+import { useMenu } from '@/stores/menu';
+import { useStatusStore } from '@/stores/status';
+
 const commonStore = useCommonStore();
+const menu = useMenu();
 const statusStore = useStatusStore();
 
 // refs
 const collectionMenu = ref(null);
 
+// computed properties
+// Returns list of statuses with formatted properties.
 const allStatuses = computed(() => {
   let statuses = statusStore.statuses;
-    for(let i = 0; i < statuses.length; i++){
-        statuses[i].name = statuses[i].short_name.toLowerCase();
-        statuses[i].backgroundColor = statuses[i].color
-        statuses[i].type = 'status'
-        statuses[i].textColor = 'black'
-    }
-    return statuses
+  for (let i = 0; i < statuses.length; i++) {
+    statuses[i].name = statuses[i].short_name.toLowerCase();
+    statuses[i].backgroundColor = statuses[i].color;
+    statuses[i].type = 'status';
+    statuses[i].textColor = 'black';
+  }
+  return statuses;
 });
 
 // methods
-const isFilterActive = (filter) => {
-    return commonStore.taskFilters.includes(filter);
-};
-
-const toggleFilter = (filter) => {
-    if(commonStore.taskFilters.includes(filter)){
-        removeFilter(filter);
-    } else {
-        addFilter(filter);
-    }
-    emitter.emit('refresh-browser');
-
-};
-
-const getStatusIcon = (status) => {
-  return '/status-icons/status_' + status.short_name + '.svg'; 
-}
-
+// Adds a filter to the task filters list.
 const addFilter = (filter) => {
-	commonStore.taskFilters.push(filter);
+  commonStore.taskFilters.push(filter);
 };
 
+// Returns the status icon path for a given status.
+const getStatusIcon = (status) => {
+  return '/status-icons/status_' + status.short_name + '.svg';
+};
+
+// Checks if a filter is currently active.
+const isFilterActive = (filter) => {
+  return commonStore.taskFilters.includes(filter);
+};
+
+// Removes a filter from the task filters list.
 const removeFilter = (filter) => {
-	commonStore.taskFilters = commonStore.taskFilters.filter((item) => item !== filter )
+  commonStore.taskFilters = commonStore.taskFilters.filter((item) => item !== filter);
 };
 
+// Toggles a filter on or off and refreshes browser.
+const toggleFilter = (filter) => {
+  if (commonStore.taskFilters.includes(filter)) {
+    removeFilter(filter);
+  } else {
+    addFilter(filter);
+  }
+  emitter.emit('refresh-browser');
+};
 
-// onMounted hook
+// lifecycle hooks
 onMounted(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.collectionMenu = collectionMenu.value;
@@ -83,7 +86,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.assetMenuHeight = collectionMenu.value.getBoundingClientRect().height;
-
 });
 </script>
 

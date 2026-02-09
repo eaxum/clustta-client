@@ -40,47 +40,55 @@
 
 <script setup>
 // imports
-import { ref, onMounted, computed, watchEffect } from 'vue';
-
-// services
-import { StudioService, AuthService } from "@/../bindings/clustta/services";
-
-// store/state imports
-import { useTrayStates } from '@/stores/TrayStates';
-import { useNotificationStore } from '@/stores/notifications';
-import { useProjectStore } from '@/stores/projects';
-import { useUserStore } from '@/stores/users';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useMenu } from '@/stores/menu';
-import { useStudioStore } from '@/stores/studio';
-import { useIconStore } from '@/stores/icons';
+import { computed, onMounted, ref, watchEffect } from 'vue';
 
 // components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import CollaboratorSuggestions from '@/instances/common/components/CollaboratorSuggestions.vue';
+import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import NotificationBox from '@/instances/common/components/NotificationBox.vue';
 
+// services
+import { AuthService, StudioService } from "@/services";
+
 // stores
-const trayStates = useTrayStates();
-const studioStore = useStudioStore();
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
+import { useStudioStore } from '@/stores/studio';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useUserStore } from '@/stores/users';
+
 const iconStore = useIconStore();
+const menu = useMenu();
 const modals = useDesktopModalStore();
-const userStore = useUserStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
-const menu = useMenu();
+const studioStore = useStudioStore();
+const trayStates = useTrayStates();
+const userStore = useUserStore();
 
-// vars
-let placeholder = 'Enter names or emails to add to studio';
-
-const selectedUserEmails = ref([]);
-const unregisteredUserEmails = ref([]);
+// refs
+const isAwaitingResponse = ref(false);
 const modalContainer = ref(null);
+const selectedUserEmails = ref([]);
+const studioCollaboratorRole = ref('admin');
 const studioRoles = ref(["admin", "user"]);
+const unregisteredUserEmails = ref([]);
 
+// constants
+const placeholder = 'Enter names or emails to add to studio';
 
+// computed
+// Tracks new users who need invitation emails.
+const newUsers = computed(() => {
+  return selectedUsers.value.filter(user => user.userType === 'new');
+});
+
+// Aggregates selected users from different sources.
 const selectedUsers = computed(() => {
   const studioUsers = studioStore.studioUsers
     .map(user => ({
@@ -103,7 +111,7 @@ const selectedUsers = computed(() => {
       };
     });
 
-    const unregisteredUsers = unregisteredUserEmails.value
+  const unregisteredUsers = unregisteredUserEmails.value
     .filter(id => !studioStore.studioUsers.some(user => (user.email) === id))
     .map(email => {
       return {
@@ -115,107 +123,36 @@ const selectedUsers = computed(() => {
       };
     });
 
-  // return studioUsers
   return [...studioUsers, ...registeredUsers, ...unregisteredUsers];
 });
 
-// Computed property to track completely new users who need invitations
-const newUsers = computed(() => {
-  return selectedUsers.value.filter(user => user.userType === 'new');
-});
-
-const removeUser = (user) => {
-    const userEmail = user.email;
-    if(user.userType !== 'new'){
-      selectedUserEmails.value = selectedUserEmails.value.filter(t => t !== userEmail);
-    } else {
-      unregisteredUserEmails.value = unregisteredUserEmails.value.filter(t => t !== userEmail);
-    }
-};
-
-const addUser = (user) => {
-  const userEmail = user.email.toLowerCase();
-  const studioUserEmails = studioStore.studioUsers.map((user) => user.email);
-  if (selectedUserEmails.value.includes(userEmail)) {
-    return
-  }
-  if (studioUserEmails.includes(userEmail)) {
-    notificationStore.addNotification(`User is already in the studio.`, "", "success");
-    return
-  }
-  else {
-    if(!user.userType){
-      selectedUserEmails.value.push(userEmail);
-    }
-    
-    if(!userStore.userCanCreateProject) return 
-
-    if(user.userType !== 'new'){
-      selectedUserEmails.value.push(userEmail);
-    } else {
-      unregisteredUserEmails.value.push(userEmail);
-    }
-  }
-};
-
-// Generate a color for avatar based on email
-const generateAvatarColor = (email) => {
-  const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
-  let hash = 0;
-  for (let i = 0; i < email.length; i++) {
-    hash = email.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return colors[Math.abs(hash) % colors.length];
-};
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon;
-};
-
-// refs
-const studioCollaboratorRole = ref(studioRoles.value[0]);
-const isAwaitingResponse = ref(false);
-
 // methods
-const closeModal = () => {
-  modals.setModalVisibility('addCollaboratorModal', false);
-};
-
-const selectRole = (role) => {
-  studioCollaboratorRole.value = role;
-};
-
+// Adds all selected collaborators to the studio.
 const addCollaborators = async () => {
   isAwaitingResponse.value = true;
 
   try {
-    // Categorize users by type
-    const existingUsers = [];
     const globalUsers = [];
-    const newUsers = [];
+    const newUsersList = [];
 
     for (const user of selectedUsers.value) {
       if (user.userType === 'studio') {
-        // User is already in studio, skip
         continue;
       } else {
-        // For email-based users, check if they exist globally
         try {
           const emailExists = await AuthService.CheckEmailExists(user.email);
           if (emailExists) {
             globalUsers.push(user);
           } else {
-            newUsers.push(user);
+            newUsersList.push(user);
           }
         } catch (error) {
           console.error('Error checking email:', error);
-          newUsers.push(user); // Treat as new user if API fails
+          newUsersList.push(user);
         }
       }
     }
 
-    // Process global users (add to studio only)
     for (const user of globalUsers) {
       try {
         await StudioService.AddCollaborator(user.email, projectStore.selectedStudio.id, studioCollaboratorRole.value);
@@ -225,13 +162,12 @@ const addCollaborators = async () => {
       }
     }
 
-    // Process new users (send invitation emails)
-    for (const user of newUsers) {
+    for (const user of newUsersList) {
       try {
         await AuthService.SendInvitationEmail(
           user.email, 
           projectStore.selectedStudio.name || 'Clustta Studio',
-          '' // No project name since we're only adding to studio
+          ''
         );
       } catch (error) {
         console.error('Error sending invitation:', error);
@@ -240,7 +176,7 @@ const addCollaborators = async () => {
     }
 
     const successCount = globalUsers.length;
-    const invitationCount = newUsers.length;
+    const invitationCount = newUsersList.length;
 
     if (successCount > 0) {
       notificationStore.addNotification(`${successCount} user(s) added to studio successfully.`, "", "success");
@@ -261,31 +197,90 @@ const addCollaborators = async () => {
   }
 };
 
+// Adds a user to the selected list.
+const addUser = (user) => {
+  const userEmail = user.email.toLowerCase();
+  const studioUserEmails = studioStore.studioUsers.map((user) => user.email);
+  if (selectedUserEmails.value.includes(userEmail)) {
+    return;
+  }
+  if (studioUserEmails.includes(userEmail)) {
+    notificationStore.addNotification(`User is already in the studio.`, "", "success");
+    return;
+  } else {
+    if (!user.userType) {
+      selectedUserEmails.value.push(userEmail);
+    }
+    
+    if (!userStore.userCanCreateProject) return;
+
+    if (user.userType !== 'new') {
+      selectedUserEmails.value.push(userEmail);
+    } else {
+      unregisteredUserEmails.value.push(userEmail);
+    }
+  }
+};
+
+// Closes the modal.
+const closeModal = () => {
+  modals.setModalVisibility('addCollaboratorModal', false);
+};
+
+// Generates a color for avatar based on email.
+const generateAvatarColor = (email) => {
+  const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) {
+    hash = email.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+};
+
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Removes a user from the selected list.
+const removeUser = (user) => {
+  const userEmail = user.email;
+  if (user.userType !== 'new') {
+    selectedUserEmails.value = selectedUserEmails.value.filter(t => t !== userEmail);
+  } else {
+    unregisteredUserEmails.value = unregisteredUserEmails.value.filter(t => t !== userEmail);
+  }
+};
+
+// Selects a role from dropdown.
+const selectRole = (role) => {
+  studioCollaboratorRole.value = role;
+};
+
+// watchers
 watchEffect(() => {
   if (modalContainer.value) {
     menu.clickOutsideMask = modalContainer.value;
   }
 });
 
+// lifecycle
 onMounted(() => {
   trayStates.tagSearchQuery = '';
-})
-
+});
 </script>
 
 <style scoped>
 @import "@/assets/desktop.css";
 
 .horizontal-flex {
-  /* background-color: goldenrod; */
   padding: 0 .4rem;
 }
 
-.notification-area{
+.notification-area {
   width: 100%;
   display: flex;
   flex-direction: column;
-  /* background-color: crimson; */
   overflow: hidden;
   gap: .5rem;
 }

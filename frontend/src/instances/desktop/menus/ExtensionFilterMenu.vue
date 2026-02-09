@@ -15,62 +15,57 @@
 
 <script setup>
 // imports
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
-import utils from '@/services/utils';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
-
-// states/store imports
-import { useMenu } from '@/stores/menu';
-import { useCommonStore } from '@/stores/common';
-import { useTemplateStore } from '@/stores/template';
-import { useAssetStore } from '@/stores/assets';
 
 // components
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
-// states/stores
-const menu = useMenu();
-const commonStore = useCommonStore();
-const templateStore = useTemplateStore();
+// stores
+import { useAssetStore } from '@/stores/assets';
+import { useCommonStore } from '@/stores/common';
+import { useMenu } from '@/stores/menu';
+
 const assetStore = useAssetStore();
+const commonStore = useCommonStore();
+const menu = useMenu();
 
 // refs
 const collectionMenu = ref(null);
 
+// computed properties
+// Returns list of file extensions used in the project.
 const allExtensions = computed(() => {
-  let templates = templateStore.getTemplates;
-  return assetStore.projectExtensions
-
+  return assetStore.projectExtensions;
 });
 
 // methods
-const isFilterActive = (filter) => {
-    return commonStore.taskFilters.includes(filter);
-};
-
-const toggleFilter = (filter) => {
-    if(commonStore.taskFilters.includes(filter)){
-        removeFilter(filter);
-    } else {
-        addFilter(filter);
-    }
-  emitter.emit('refresh-browser');
-
-};
-
+// Adds a filter to the task filters list.
 const addFilter = (filter) => {
-	commonStore.taskFilters.push(filter);
+  commonStore.taskFilters.push(filter);
 };
 
+// Checks if a filter is currently active.
+const isFilterActive = (filter) => {
+  return commonStore.taskFilters.includes(filter);
+};
+
+// Removes a filter from the task filters list.
 const removeFilter = (filter) => {
-  commonStore.taskFilters = commonStore.taskFilters.filter((item) => item !== filter )
+  commonStore.taskFilters = commonStore.taskFilters.filter((item) => item !== filter);
 };
 
+// Toggles a filter on or off and refreshes browser.
+const toggleFilter = (filter) => {
+  if (commonStore.taskFilters.includes(filter)) {
+    removeFilter(filter);
+  } else {
+    addFilter(filter);
+  }
+  emitter.emit('refresh-browser');
+};
 
-
-// methods
-
-// onMounted hook
+// lifecycle hooks
 onMounted(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.collectionMenu = collectionMenu.value;
@@ -79,7 +74,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.assetMenuHeight = collectionMenu.value.getBoundingClientRect().height;
-
 });
 </script>
 

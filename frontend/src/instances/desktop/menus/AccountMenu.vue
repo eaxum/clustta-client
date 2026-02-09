@@ -11,12 +11,14 @@
         </div>
         <div class="account-info">
           <div class="account-name">{{ currentAccount?.first_name }} {{ currentAccount?.last_name }}</div>
-          <div class="account-email">{{ currentAccount?.email }}</div>
+          <div v-if="!isOfflineMode" class="account-email">{{ currentAccount?.email }}</div>
         </div>
         <div class="account-status">
-          <span class="status-indicator active">●</span>
+          <span v-if="isOfflineMode" class="status-indicator offline" v-tooltip="'Offline Mode - Sign in to sync'">●</span>
+          <span v-else class="status-indicator active">●</span>
         </div>
       </div>
+      
     </div>
 
     <span class="menu-divider"></span>
@@ -63,6 +65,16 @@
     <!-- Actions -->
     <div class="account-actions">
       <ActionButton 
+        v-if="isOfflineMode"
+        :icon="getAppIcon('login')" 
+        :showLabel="true" 
+        :fullWidth="true" 
+        label="Sign In"
+        :buttonFunction="signInFromOffline" 
+      />
+      
+      <ActionButton 
+        v-if="!isOfflineMode"
         :icon="getAppIcon('person-plus')" 
         :showLabel="true" 
         :fullWidth="true" 
@@ -71,6 +83,7 @@
       />
       
       <ActionButton 
+        v-if="!isOfflineMode"
         :icon="getAppIcon('cog')" 
         :showLabel="true" 
         :fullWidth="true" 
@@ -79,6 +92,7 @@
       />
       
       <ActionButton 
+        v-if="!isOfflineMode"
         :icon="getAppIcon('logout')" 
         :showLabel="true" 
         :fullWidth="true" 
@@ -90,60 +104,170 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue';
-import { useUserStore } from '@/stores/users';
-import { useProjectStore } from '@/stores/projects';
-import { useThemeStore } from '@/stores/theme';
-import { useTrayStates } from '@/stores/TrayStates';
-import { useMenu } from '@/stores/menu';
-import { useStageStore } from '@/stores/stages';
-import { useIconStore } from '@/stores/icons';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useNotificationStore } from '@/stores/notifications';
-import { useAccountStore } from '@/stores/accounts';
-import { AccountService, AuthService } from "@/../bindings/clustta/services";
+// imports
+import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { resetStoreInitialization } from '@/router';
 
-// Components
+// components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
-// Stores
-const userStore = useUserStore();
-const projectStore = useProjectStore();
-const themeStore = useThemeStore();
-const trayStates = useTrayStates();
-const menu = useMenu();
-const stage = useStageStore();
+// services
+import { AccountService, AuthService } from "@/services";
+
+// stores
+import { useAccountStore } from '@/stores/accounts';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
+import { useThemeStore } from '@/stores/theme';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useUserStore } from '@/stores/users';
+
+const accountStore = useAccountStore();
 const iconStore = useIconStore();
+const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const accountStore = useAccountStore();
+const projectStore = useProjectStore();
+const router = useRouter();
+const stage = useStageStore();
+const themeStore = useThemeStore();
+const trayStates = useTrayStates();
+const userStore = useUserStore();
 
-// Refs
+// refs
 const accountMenu = ref(null);
 
-// Computed
-const currentAccount = computed(() => accountStore.currentAccount?.user || userStore.user);
-
-// Use account store data for additional accounts
+// computed
+// Returns the list of additional accounts.
 const additionalAccounts = computed(() => accountStore.additionalAccounts);
 
-// Methods
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon;
+// Returns the current active account.
+const currentAccount = computed(() => accountStore.currentAccount?.user || userStore.user);
+
+// Checks if the app is in offline mode.
+const isOfflineMode = computed(() => accountStore.isOfflineMode);
+
+// methods
+// Opens the add account modal.
+const addAccount = () => {
+  try {
+    accountStore.isAdditionalAccount = true;
+    modals.setModalVisibility('loginModal', true);
+    menu.hideContextMenu();
+  } catch (error) {
+    notificationStore.errorNotification("Add Account Failed", error);
+  }
 };
 
+// Returns the icon path for a given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Opens the account settings view.
+const openAccountSettings = () => {
+  try {
+    stage.setStageVisibility('account', true);
+    menu.hideContextMenu();
+  } catch (error) {
+    notificationStore.errorNotification("Settings Failed", error);
+  }
+};
+
+// Generates a profile color based on UUID.
 const profileColor = (uuid) => {
   if (!uuid) return '#000000';
   const parts = uuid.split('-');
   return '#' + (parts[0] || '000000').substring(0, 6);
 };
 
+// Removes an account from the list.
+const removeAccountFromList = async (accountId) => {
+  try {
+    await accountStore.removeAccount(accountId);
+    notificationStore.addNotification("Account Removed", "Account has been successfully removed", "success");
+  } catch (error) {
+    console.error('Remove account error:', error);
+    notificationStore.errorNotification("Remove Failed", error.message || 'Unable to remove account');
+  }
+};
+
+// Signs in from offline mode.
+const signInFromOffline = async () => {
+  try {
+    const offlineUserId = 'offline-user';
+    await accountStore.removeAccount(offlineUserId);
+    
+    userStore.$reset();
+    projectStore.$reset();
+    trayStates.$reset();
+    resetStoreInitialization();
+    
+    menu.hideContextMenu();
+    router.push('/auth/login');
+  } catch (error) {
+    console.error('Sign in from offline error:', error);
+    menu.hideContextMenu();
+    router.push('/auth/login');
+  }
+};
+
+// Signs out the current account.
+const signOutCurrentAccount = async () => {
+  try {
+    const currentUserId = userStore.user?.id;
+    menu.hideContextMenu();
+    
+    if (!currentUserId) {
+      throw new Error('No active user to sign out');
+    }
+
+    await accountStore.removeAccount(currentUserId);
+    
+    userStore.$reset();
+    projectStore.$reset();
+    trayStates.$reset();
+    
+    const accountCount = await accountStore.getAccountCount();
+    
+    if (accountCount > 0) {
+      const activeAccount = accountStore.activeAccount;
+      if (activeAccount && activeAccount.user) {
+        userStore.user = activeAccount.user;
+        userStore.isUserAuthenticated = true;
+        
+        await themeStore.initializeTheme();
+        await projectStore.loadStudios();
+        await projectStore.loadProjects();
+        trayStates.refreshData();
+        
+        notificationStore.addNotification("Account Switched", `Switched to ${activeAccount.user.first_name} ${activeAccount.user.last_name}`);
+      }
+    } else {
+      userStore.user = null;
+      userStore.isUserAuthenticated = false;
+      notificationStore.addNotification("Signed Out", "All accounts signed out");
+      resetStoreInitialization();
+      router.push('/auth/login');
+    }
+    
+    menu.hideContextMenu();
+  } catch (error) {
+    console.error('Sign out error:', error);
+    notificationStore.errorNotification("Sign Out Failed", error.message || 'Unable to sign out');
+  }
+};
+
+// Switches to a different account.
 const switchToAccount = async (accountId) => {
   try {
     stage.operationActive = true;
     
-    // Switch account using the store method with UI updates
     await accountStore.switchToAccount(accountId, {
       userStore,
       projectStore,
@@ -155,108 +279,17 @@ const switchToAccount = async (accountId) => {
     
     menu.hideContextMenu();
   } catch (error) {
-    // Error handling is done in the store method
+    console.error('Switch account error:', error);
   } finally {
     stage.operationActive = false;
   }
 };
 
-const addAccount = () => {
-  try {
-    console.log('Adding new account');
-    
-    // Set flag to indicate we're adding an additional account
-    accountStore.isAdditionalAccount = true;
-    
-    modals.setModalVisibility('loginModal', true);
-    menu.hideContextMenu();
-  } catch (error) {
-    notificationStore.errorNotification("Add Account Failed", error);
-  }
-};
-
-const removeAccountFromList = async (accountId) => {
-  try {
-    console.log('Removing account:', accountId);
-    
-    // Remove the account using the store
-    await accountStore.removeAccount(accountId);
-    
-    notificationStore.addNotification("Account Removed", "Account has been successfully removed", "success");
-  } catch (error) {
-    console.error('Remove account error:', error);
-    notificationStore.errorNotification("Remove Failed", error.message || 'Unable to remove account');
-  }
-};
-
-const openAccountSettings = () => {
-  try {
-    console.log('Opening account settings');
-    stage.setStageVisibility('account', true);
-    menu.hideContextMenu();
-  } catch (error) {
-    notificationStore.errorNotification("Settings Failed", error);
-  }
-};
-
-const signOutCurrentAccount = async () => {
-  try {
-    // Get current user ID before signing out
-    const currentUserId = userStore.user?.id;
-    menu.hideContextMenu();
-    
-    if (!currentUserId) {
-      throw new Error('No active user to sign out');
-    }
-
-    // Remove the current account using the store
-    await accountStore.removeAccount(currentUserId);
-    
-    // Reset stores after successful signout
-    userStore.$reset();
-    projectStore.$reset();
-    trayStates.$reset();
-    
-    // Check if there are other accounts available
-    const accountCount = await accountStore.getAccountCount();
-    
-    if (accountCount > 0) {
-      // The store will automatically update after removal, get the new active account
-      const activeAccount = accountStore.activeAccount;
-      if (activeAccount && activeAccount.user) {
-        userStore.user = activeAccount.user;
-        userStore.isUserAuthenticated = true;
-        
-        // Refresh application data for the new active user
-        await themeStore.initializeTheme();
-        await projectStore.loadStudios();
-        await projectStore.loadProjects();
-        trayStates.refreshData();
-        
-        notificationStore.addNotification("Account Switched", `Switched to ${activeAccount.user.first_name} ${activeAccount.user.last_name}`);
-      }
-    } else {
-      // No accounts left, reset to unauthenticated state
-      userStore.user = null;
-      userStore.isUserAuthenticated = false;
-      // modals.setModalVisibility('loginModal', true);
-      notificationStore.addNotification("Signed Out", "All accounts signed out");
-    }
-    
-    console.log('Signed out current account');
-    menu.hideContextMenu();
-  } catch (error) {
-    console.error('Sign out error:', error);
-    notificationStore.errorNotification("Sign Out Failed", error.message || 'Unable to sign out');
-  }
-};
-
+// lifecycle hooks
 onMounted(() => {
-  // Ensure accounts are loaded when component mounts
   if (!accountStore.isLoaded) {
     accountStore.initialize();
   }
-  console.log('Account menu mounted');
 });
 </script>
 
@@ -385,6 +418,30 @@ onMounted(() => {
 
 .status-indicator.inactive {
   color: var(--light-grey); /* Grey for inactive */
+}
+
+.status-indicator.offline {
+  color: #f59e0b; /* Amber/orange for offline */
+}
+
+.offline-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-top: 0.5rem;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #fbbf24;
+}
+
+.offline-banner .small-icons {
+  width: 14px;
+  height: 14px;
+  filter: none;
+  opacity: 0.9;
 }
 
 .menu-divider {

@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import {Call as $Call, Create as $Create} from "@wailsio/runtime";
+import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -19,11 +19,10 @@ import * as $models from "./models.js";
  * @param {models$0.Entity[]} entities
  * @param {number} completed
  * @param {number} totalEntities
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function CreateEntities(projectPath, entities, completed, totalEntities) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1462445845, projectPath, entities, completed, totalEntities));
-    return $resultPromise;
+    return $Call.ByID(1462445845, projectPath, entities, completed, totalEntities);
 }
 
 /**
@@ -32,11 +31,10 @@ export function CreateEntities(projectPath, entities, completed, totalEntities) 
  * @param {models$0.Task[]} tasks
  * @param {string} comment
  * @param {string} groupId
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function CreateItems(projectPath, entities, tasks, comment, groupId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1562194358, projectPath, entities, tasks, comment, groupId));
-    return $resultPromise;
+    return $Call.ByID(1562194358, projectPath, entities, tasks, comment, groupId);
 }
 
 /**
@@ -46,11 +44,10 @@ export function CreateItems(projectPath, entities, tasks, comment, groupId) {
  * @param {number} totalTasks
  * @param {string} comment
  * @param {string} groupId
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function CreateTasks(projectPath, tasks, completed, totalTasks, comment, groupId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(3633228444, projectPath, tasks, completed, totalTasks, comment, groupId));
-    return $resultPromise;
+    return $Call.ByID(3633228444, projectPath, tasks, completed, totalTasks, comment, groupId);
 }
 
 /**
@@ -60,15 +57,12 @@ export function CreateTasks(projectPath, tasks, completed, totalTasks, comment, 
  * @param {string[]} files
  * @param {string} projectWorkingDir
  * @param {string[]} ignoreList
- * @returns {Promise<$models.ImportItems> & { cancel(): void }}
+ * @returns {$CancellablePromise<$models.ImportItems>}
  */
 export function ImportFolder(projectPath, parentId, folders, files, projectWorkingDir, ignoreList) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2443458599, projectPath, parentId, folders, files, projectWorkingDir, ignoreList));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(2443458599, projectPath, parentId, folders, files, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 // Private type creation functions

@@ -1,30 +1,44 @@
 <template>
-  <div ref="taskItem" class="task-item-main" v-esc="handleEscKey" v-stop-propagation>
-    <div class="task-spacer">
+  <div ref="collaboratorItem" class="collaborator-item-main" :class="{ 'compact-mode': compact, 'compact-editing': compact && isEditing }" v-esc="handleEscKey" v-stop-propagation>
+    <div class="collaborator-item-spacer">
       <ProfilePhoto :assigneeId="collaborator.id" :userPhoto="collaborator.photo" />
     </div>
 
-    <div class="main-task-item-root">
+    <div class="collaborator-item-root">
+      <div class="collaborator-item-container">
 
-      <div class="task-item-container drop-zone">
-
-        <div class="task-item-content selection-area">
-          <div class="task-item-details">
-            {{ userFullName }}
+        <div v-if="!compact || !isEditing" class="collaborator-item-content">
+          <div class="collaborator-item-details">
+            <div class="collaborator-item-name">{{ userFullName }}</div>
+            <div class="collaborator-item-email">{{ collaborator.email }}</div>
           </div>
         </div>
 
-        <!-- task status -->
-        <div v-if="!isCurrentUser" class="task-item-status-root ">
-          <DropDownBox :selectedItem="collaborator.role_name" :items="collaboratorRoles" :onSelect="selectRole" />
+        <div v-if="!compact && canEditRole" class="collaborator-item-dropdown">
+          <DropDownBox :selectedItem="collaborator.role_name || collaborator.role?.name" :items="collaboratorRoles" :onSelect="selectRole" />
         </div>
 
-        <!-- task actions -->
-        <div class="task-item-actions">
-          <div class="file-state">
-            <ActionButton :isDisabled="isCurrentUser" :icon="getAppIcon('trash')" @click="deleteCollaborator(collaborator.id)" v-tooltip="'Remove'" />
+        <div v-if="compact && isEditing && canEditRole" class="collaborator-item-dropdown compact-dropdown">
+          <DropDownBox :selectedItem="collaborator.role_name || collaborator.role?.name" :items="collaboratorRoles" :onSelect="selectRole" />
+        </div>
+
+        <div v-if="!compact" class="collaborator-item-actions">
+          <ActionButton v-if="canDeleteUser" :icon="getAppIcon('person-minus')" @click="deleteCollaborator(collaborator.id)" v-tooltip="'Remove'" />
+          <ActionButton :icon="getAppIcon('person-search')" @click="openUserProfile" v-tooltip="'View profile'" />
+        </div>
+
+        <div v-if="compact && !isEditing && isProjectMember" class="collaborator-item-actions compact-actions-container">
+          <div class="compact-role-meta" v-tooltip="displayRole">{{ displayRole }}</div>
+          <div class="compact-hover-actions">
+            <ActionButton v-if="canEditRole" :icon="getAppIcon('edit')" @click="startEditing" v-tooltip="'Edit role'" />
+            <ActionButton v-if="canDeleteUser" :icon="getAppIcon(isLoading ? 'loading' : 'person-minus')" :isLoading="isLoading" @click="deleteCollaborator(collaborator.id)" v-tooltip="isLoading ? 'Removing...' : 'Remove'" />
           </div>
         </div>
+
+        <div v-if="compact && !isProjectMember" class="collaborator-item-actions compact-actions-container">
+          <ActionButton v-if="canEditRole" :icon="getAppIcon(isLoading ? 'loading' : 'person-plus')" :isLoading="isLoading" @click="addToProject" v-tooltip="isLoading ? 'Adding...' : 'Add to project'" />
+        </div>
+
       </div>
     </div>
   </div>
@@ -32,22 +46,24 @@
 
 <script setup>
 // imports
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
+import { computed, ref, watch, onBeforeUnmount } from 'vue';
+import { Browser } from "@wailsio/runtime";
 
-// states/store imports
+// components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import DropDownBox from '@/instances/common/components/DropDownBox.vue';
+import ProfilePhoto from '@/instances/common/components/ProfilePhoto.vue';
+
+// services
+import { StudioService } from "@/services";
+
+// stores
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useStudioStore } from '@/stores/studio';
 import { useUserStore } from '@/stores/users';
 
-// components
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import DropDownBox from '@/instances/common/components/DropDownBox.vue';
-import ProfilePhoto from '@/instances/common/components/ProfilePhoto.vue'
-import { StudioService } from "@/../bindings/clustta/services";
-
-// states/stores
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
@@ -56,76 +72,151 @@ const userStore = useUserStore();
 
 // props
 const props = defineProps({
+  canDelete: { type: Boolean, default: true },
+  canEdit: { type: Boolean, default: true },
   collaborator: Object,
+  compact: { type: Boolean, default: false },
   index: Number,
-  entityId: { type: String, default: '' },
-  isChild: { type: Boolean, default: false },
+  isLoading: { type: Boolean, default: false },
+  isProjectMember: { type: Boolean, default: true },
+  onAdd: { type: Function, default: null },
+  onDelete: { type: Function, default: null },
+  onRoleChange: { type: Function, default: null },
+  roles: { type: Array, default: () => ['Admin', 'User'] },
 });
 
 // refs
-const taskItem = ref(null);
-const collaboratorRoles = ref([
-  'Admin',
-  'User'
-]);
+const collaboratorItem = ref(null);
+const isEditing = ref(false);
 
-const isCurrentUser = computed(() => {
-  return userStore.user?.id === props.collaborator.id
-})
-
-const selectRole = (role) => {
-
-  let userId = props.collaborator.id
-  let selectedUser = studioStore.studioUsers.find((user) => user.id === userId);
-
-  StudioService.ChangeCollaboratorRole( props.collaborator.id, projectStore.selectedStudio.id, role,)
-  .then(() => {
-      selectedUser.role_name = role;
-    }).catch((error) => {
-      notificationStore.errorNotification("Error Changing Role", error.response.data)
-      console.log(error.response.data)
-    })
-}
-
-const deleteCollaborator = (collaboratorId) => {
-
-  let userId = props.collaborator.id
-
-  StudioService.RemoveCollaborator( collaboratorId, projectStore.selectedStudio.id)
-  .then(() => {
-    studioStore.studioUsers = studioStore.studioUsers.filter((user) => user.id !== userId )
-  }).catch((error) => {
-    notificationStore.errorNotification("Error Deleting User", error.response.data)
-    console.log(error)
-  })
-};
-
-const userFullName = computed(() => {
-  return `${props.collaborator.first_name} ${props.collaborator.last_name}`
-})
-
-// methods
-
-const handleEnterKey = () => {
-};
-
-const handleEscKey = () => {
-};
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
-const handleClickOutside = (event) => {
-};
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside);
+// computed props
+const canDeleteUser = computed(() => {
+  return !isCurrentUser.value && props.canDelete;
 });
 
+const canEditRole = computed(() => {
+  return !isCurrentUser.value && props.canEdit;
+});
+
+const collaboratorRoles = computed(() => props.roles);
+
+// Returns the formatted role name for display in compact mode.
+const displayRole = computed(() => {
+  const roleName = props.collaborator.role_name || props.collaborator.role?.name || '';
+  return roleName.charAt(0).toUpperCase() + roleName.slice(1).toLowerCase();
+});
+
+const isCurrentUser = computed(() => {
+  return userStore.user?.id === props.collaborator.id;
+});
+
+const userFullName = computed(() => {
+  return `${props.collaborator.first_name} ${props.collaborator.last_name}`;
+});
+
+// methods
+// Adds the collaborator to the project.
+const addToProject = () => {
+  if (props.onAdd) {
+    props.onAdd(props.collaborator.id);
+  }
+};
+
+// Deletes a collaborator from the project or studio.
+const deleteCollaborator = (collaboratorId) => {
+  if (props.onDelete) {
+    props.onDelete(collaboratorId);
+    return;
+  }
+
+  const userId = props.collaborator.id;
+
+  StudioService.RemoveCollaborator(collaboratorId, projectStore.selectedStudio.id)
+    .then(() => {
+      studioStore.studioUsers = studioStore.studioUsers.filter((user) => user.id !== userId);
+    })
+    .catch((error) => {
+      notificationStore.errorNotification("Error Deleting User", error.response.data);
+    });
+};
+
+// Returns the icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Handles the escape key press to exit editing mode.
+const handleEscKey = () => {
+  if (props.compact && isEditing.value) {
+    stopEditing();
+  }
+};
+
+// Opens the collaborator's profile in a browser.
+const openUserProfile = () => {
+  const profileUrl = `https://app.clustta.com/user/${props.collaborator.username}`;
+  Browser.OpenURL(profileUrl);
+};
+
+// Handles role selection and updates the collaborator's role.
+const selectRole = (role) => {
+  if (props.onRoleChange) {
+    props.onRoleChange(props.collaborator.id, role);
+    if (props.compact) {
+      stopEditing();
+    }
+    return;
+  }
+
+  const userId = props.collaborator.id;
+  const selectedUser = studioStore.studioUsers.find((user) => user.id === userId);
+
+  StudioService.ChangeCollaboratorRole(props.collaborator.id, projectStore.selectedStudio.id, role)
+    .then(() => {
+      selectedUser.role_name = role;
+      if (props.compact) {
+        stopEditing();
+      }
+    })
+    .catch((error) => {
+      notificationStore.errorNotification("Error Changing Role", error.response.data);
+    });
+};
+
+// Starts editing mode in compact view.
+const startEditing = () => {
+  isEditing.value = true;
+};
+
+// Stops editing mode in compact view.
+const stopEditing = () => {
+  isEditing.value = false;
+};
+
+// Handles clicks outside the component to exit editing mode.
+// Ignores clicks on teleported dropdown elements.
+const handleClickOutside = (event) => {
+  const isInsideComponent = collaboratorItem.value && collaboratorItem.value.contains(event.target);
+  const isInsideDropdown = event.target.closest('.listbox-list-items-root');
+  
+  if (!isInsideComponent && !isInsideDropdown) {
+    stopEditing();
+  }
+};
+
+// watchers
+// Manages document click listener based on editing state.
+watch(isEditing, (editing) => {
+  if (editing) {
+    document.addEventListener('mousedown', handleClickOutside, { capture: true });
+  } else {
+    document.removeEventListener('mousedown', handleClickOutside, { capture: true });
+  }
+});
+
+// lifecycle hooks
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside);
+  document.removeEventListener('mousedown', handleClickOutside, { capture: true });
 });
 
 </script>
@@ -133,12 +224,7 @@ onBeforeUnmount(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 
-.single-action-button-disabled {
-  pointer-events: none;
-}
-
-.task-item-main {
-  z-index: 100000;
+.collaborator-item-main {
   display: flex;
   gap: .2rem;
   color: var(--white);
@@ -150,51 +236,21 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
   align-items: flex-start;
   background-color: var(--dark-steel);
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   overflow: hidden;
   padding-right: 0px;
-
   outline: var(--transparent-line);
   outline-offset: -1px;
+  transition: all .2s ease-out;
 }
 
-.task-item-main:hover {
-  outline: var(--transparent-line);
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
+.collaborator-item-main:hover {
+  background-color: var(--steel);
+  border-radius: var(--small-radius);
+  outline: 1px solid var(--light-steel);
 }
 
-.task-item-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--blue-steel);
-}
-
-.task-item-last-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
-}
-
-.task-item-only-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
-}
-
-.task-item-selected:hover {
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1px;
-}
-
-.task-item-child {
-  padding-left: 0px;
-}
-
-.main-task-item-root {
+.collaborator-item-root {
   display: flex;
   flex-direction: column;
   gap: .2rem;
@@ -210,7 +266,7 @@ onBeforeUnmount(() => {
   padding-right: 0px;
 }
 
-.task-item-container {
+.collaborator-item-container {
   display: flex;
   gap: .5rem;
   color: var(--white);
@@ -223,9 +279,8 @@ onBeforeUnmount(() => {
   transition: all .3s ease-out;
 }
 
-.task-spacer {
+.collaborator-item-spacer {
   position: relative;
-  width: min-content;
   width: 36px;
   height: 60px;
   display: flex;
@@ -233,45 +288,9 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  /* background-color: forestgreen; */
 }
 
-.task-item-preview-container {
-  display: flex;
-  box-sizing: border-box;
-  align-items: center;
-  justify-content: center;
-  padding: .1rem;
-  overflow: hidden;
-  min-width: 60px;
-  height: 100%;
-  aspect-ratio: 16 / 9;
-}
-
-.task-item-preview-image {
-  display: flex;
-  box-sizing: border-box;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  height: 100%;
-  aspect-ratio: 16 / 9;
-  background-color: var(--light-steel);
-  border-radius: 5px;
-}
-
-.task-item-icon-container {
-  display: flex;
-  box-sizing: border-box;
-  align-items: center;
-  justify-content: center;
-  min-width: min-content;
-  padding: .1rem;
-  overflow: hidden;
-  height: 100%;
-}
-
-.task-item-content {
+.collaborator-item-content {
   gap: .4rem;
   display: flex;
   box-sizing: border-box;
@@ -282,78 +301,106 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
-.task-item-details {
+.collaborator-item-details {
   padding: .2rem;
   flex-wrap: nowrap;
   overflow: hidden;
   box-sizing: border-box;
   align-items: center;
   justify-content: space-between;
-  height: 100%;
   height: min-content;
   white-space: nowrap;
   text-overflow: ellipsis;
-  /* font-weight: 200; */
-}
-
-.task-item-status-container {
   display: flex;
-  box-sizing: border-box;
-  align-items: center;
-  justify-content: center;
-  width: min-content;
-  padding: .4rem;
-  height: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .1rem;
 }
 
-.task-item-status-root {
-  /* Empty rule kept because it's used in the template */
+.collaborator-item-name {
+  font-size: 14px;
+  font-weight: 400;
 }
 
-.task-item-status {
-  display: flex;
-  border-radius: var(--normal-radius);
-  box-sizing: border-box;
-  align-items: center;
-  justify-content: center;
-  width: min-content;
-  width: 60px;
-  padding: .4rem .4rem;
-  height: max-content;
-  background-color: firebrick;
+.collaborator-item-email {
   font-size: 12px;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: black;
-  transition: all 0.2s ease-out;
+  font-weight: 300;
+  color: var(--white);
+  opacity: 0.5;
 }
 
-.task-item-status:hover {
-  border-radius: 10px;
-  transform: scale(1.03);
-}
-
-.task-item-actions {
+.collaborator-item-dropdown {
   display: flex;
   box-sizing: border-box;
   align-items: center;
-  justify-content: space-between;
+  width: 200px;
+  min-width: 200px;
+  overflow: hidden;
+}
+
+.collaborator-item-actions {
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
   justify-content: flex-end;
   width: min-content;
   min-width: max-content;
-  gap: .7rem;
+  gap: .5rem;
   height: 100%;
 }
 
-.file-state {
+/* Compact mode styles */
+.compact-actions-container {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  height: 100%;
+}
+
+.compact-hover-actions {
+  display: none;
+  opacity: 0;
+  transition: all 0.2s ease-out;
+}
+
+.compact-mode:hover .compact-hover-actions {
   display: flex;
   box-sizing: border-box;
   align-items: center;
   justify-content: space-between;
   width: min-content;
   min-width: max-content;
-  gap: .7rem;
+  gap: .5rem;
   height: 100%;
+  opacity: 1;
+}
+
+.compact-role-meta {
+  color: var(--white);
+  background-color: rgba(0, 0, 0, 0.216);
+  padding: .3rem .5rem;
+  border-radius: 5px;
+  white-space: nowrap;
+  font-size: 12px;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compact-mode:hover .compact-role-meta {
+  opacity: 0;
+  width: 0;
+  max-width: 0;
+  padding: 0;
+  transition: all 0.2s ease-out;
+}
+
+.compact-dropdown {
+  width: 200px;
+  min-width: 200px;
+}
+
+.compact-editing .collaborator-item-container {
+  justify-content: flex-end;
 }
 </style>
-

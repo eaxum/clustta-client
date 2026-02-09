@@ -27,181 +27,103 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-import { v4 as uuidv4 } from 'uuid'
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
 // imports
-import { onMounted, watchEffect, onUnmounted, ref, computed } from 'vue';
-
-// services
-import { ImportService } from "@/../bindings/clustta/services";
-
-// state imports
-import { useTrayStates } from '@/stores/TrayStates';
-
-// store imports
-import { useNotificationStore } from '@/stores/notifications';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useStageStore } from '@/stores/stages';
-import { useAssetStore } from '@/stores/assets';
-import { useCollectionStore } from '@/stores/collections';
-import { useStatusStore } from '@/stores/status';
-import { useProjectStore } from '@/stores/projects';
-import { useImportStore } from '@/stores/import';
-import { useDndStore } from '@/stores/dnd';
-import { useMenu } from '@/stores/menu';
+import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 
 // components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import ImportPreview from '@/instances/desktop/components/ImportPreview.vue';
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
-// states
-const trayStates = useTrayStates();
-const stage = useStageStore();
-const menu = useMenu();
-const notificationStore = useNotificationStore();
-const modals = useDesktopModalStore();
-const statusStore = useStatusStore();
-const projectStore = useProjectStore();
-const collectionStore = useCollectionStore();
+// services
+import { ImportService } from '@/services';
+
+// stores
+import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useDndStore } from '@/stores/dnd';
+import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
+import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
+import { useStatusStore } from '@/stores/status';
+import { useTrayStates } from '@/stores/TrayStates';
+
 const assetStore = useAssetStore();
+const collectionStore = useCollectionStore();
 const dndStore = useDndStore();
-
-// vars
-let title = 'Import Items';
+const iconStore = useIconStore();
+const menu = useMenu();
+const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
+const stage = useStageStore();
+const statusStore = useStatusStore();
+const trayStates = useTrayStates();
 
 // refs
+const isAwaitingResponse = ref(false);
 const modalContainer = ref(null);
 const popUpActions = ref(null);
-const isAwaitingResponse = ref(false);
+
+// constants
+const title = 'Import Items';
 
 // computed
+// Returns whether the preview data store has any items.
 const storeHasData = computed(() => {
-  const rawData = dndStore.previewData
+  const rawData = dndStore.previewData;
   return Object.values(rawData).some(arr => arr.length > 0);
 });
 
-function getPathParent(path) {
-  // If there's no slash, it's a root item, return empty string
-  if (!path.includes('/')) {
-    return "";
-  }
-
-  // Find the last slash and return everything before it
-  const lastSlashIndex = path.lastIndexOf('/');
-  return path.substring(0, lastSlashIndex);
-}
-
 // methods
-const previewImportItems = async () => {
-
-  isAwaitingResponse.value = true;
-  let folders = dndStore.droppedFolders;
-  let files = dndStore.droppedFiles;
-  let parentId = dndStore.targetItemId;
-  let parentPath = dndStore.targetItemPath;
-  let entitiesId = {}
-  entitiesId[parentPath] = parentId
-
-  if (parentId === undefined) {
-    parentId = ""
-  }
-  let trackedParentData = []
-  let untrackedParentData = []
-  let workingDir = projectStore.activeProject.working_directory
-  await ImportService.ImportFolder(projectStore.activeProject.uri, parentId, folders, files, workingDir, projectStore.activeProject.ignore_list)
-    .then((response) => {
-      if (dndStore.trackedParents.length + dndStore.untrackedParents.length > 0) {
-        let entityTypeId = collectionStore.collectionTypes.find((item) => item.name === "generic")?.id;
-        for (let trackedParent of dndStore.trackedParents) {
-          let entityData = collectionStore.collections.find((item) => item.entity_path === trackedParent);
-          entityData.is_tracked_parent = true
-          entityData.is_expanded = true
-          trackedParentData.push(entityData)
-          entitiesId[trackedParent] = entityData.id
-        }
-        for (let untrackedParent of dndStore.untrackedParents) {
-          let untrackedParentPath = getPathParent(untrackedParent)
-          let untrackedParentId = entitiesId[untrackedParentPath]
-          let name = untrackedParent.split('/').pop();
-          let uid = uuidv4()
-          let data = {
-            id: uid,
-            created_at: "",
-            description: "",
-            entity_path: "",
-            entity_type_icon: "generic",
-            entity_type_id: entityTypeId,
-            entity_type_name: "generic",
-            file_path: workingDir + "/" + untrackedParent,
-            is_dependency: false,
-            mtime: 0,
-            name: name,
-            parent_id: untrackedParentId,
-            preview: "",
-            preview_extension: "",
-            preview_id: "",
-            synced: false,
-            trashed: false,
-            is_expanded: true,
-          }
-          untrackedParentData.push(data)
-          entitiesId[untrackedParent] = uid
-        }
-
-        response.entities.forEach(entity => {
-          let entityParentPath = getPathParent(entity.entity_path)
-          let entityParentId = entitiesId[entityParentPath]
-          if (entityParentId) {
-            entity.parent_id = entityParentId
-          }
-        });
-
-        response.tasks.forEach(task => {
-          let taskParentPath = getPathParent(task.task_path)
-          let taskParentId = entitiesId[taskParentPath]
-          if (taskParentId) {
-            task.entity_id = taskParentId
-          }
-        });
-
-        response.entities = [...trackedParentData, ...untrackedParentData, ...response.entities]
-      }
-      dndStore.previewData = response;
-      isAwaitingResponse.value = false;
-    })
-    .catch((error) => {
-      isAwaitingResponse.value = false;
-      console.log(error)
-      notificationStore.errorNotification("Error generating previews", error)
-    });
+// Closes the modal and resets drag and drop values.
+const closeModal = () => {
+  dndStore.targetItemId = '';
+  dndStore.trackedParents = [];
+  dndStore.untrackedParents = [];
+  dndStore.droppedFolders = [];
+  dndStore.droppedFiles = [];
+  modals.setModalVisibility('importItemsModal', false);
+  resetDndValues();
 };
 
-const importItems = async (comment = "Asset created") => {
-  let entities = dndStore.previewData.entities.filter(entity => !entity.is_tracked_parent)
-  let tasks = dndStore.previewData.tasks
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Returns the parent path from a given path.
+const getPathParent = (path) => {
+  if (!path.includes('/')) {
+    return '';
+  }
+  const lastSlashIndex = path.lastIndexOf('/');
+  return path.substring(0, lastSlashIndex);
+};
+
+// Imports the previewed items by creating entities and tasks.
+const importItems = async (comment = 'Asset created') => {
+  const entities = dndStore.previewData.entities.filter(entity => !entity.is_tracked_parent);
+  const tasks = dndStore.previewData.tasks;
   let success = false;
-  let errorMessage
+  let errorMessage;
   try {
     for (let i = 0; i < entities.length; i += 100) {
       const batch = entities.slice(i, i + 100);
-      await ImportService.CreateEntities(projectStore.activeProject.uri, batch, i, entities.length)
+      await ImportService.CreateEntities(projectStore.activeProject.uri, batch, i, entities.length);
     }
     for (let i = 0; i < tasks.length; i += 100) {
       const batch = tasks.slice(i, i + 100);
-      await ImportService.CreateTasks(projectStore.activeProject.uri, batch, i, tasks.length, comment)
+      await ImportService.CreateTasks(projectStore.activeProject.uri, batch, i, tasks.length, comment);
     }
     success = true;
   } catch (error) {
-    console.error("Error caught:", error);
-    errorMessage = error
+    console.error('Error caught:', error);
+    errorMessage = error;
   }
 
   if (success) {
@@ -211,65 +133,110 @@ const importItems = async (comment = "Asset created") => {
     closeModal();
   } else {
     isAwaitingResponse.value = false;
-    notificationStore.resetProgress()
-    notificationStore.errorNotification("Error creating items", errorMessage)
-    closeModal()
-  }
-  // await ImportService.CreateItems(
-  //   projectStore.activeProject.uri,
-  //   dndStore.previewData.entities,
-  //   dndStore.previewData.tasks).then((response) => {
-  //     dndStore.previewData = {};
-  //     isAwaitingResponse.value = false;
-  //     refresh();
-  //     closeModal();
-  //   }).catch((error) => {
-  //     isAwaitingResponse.value = false;
-  //     notificationStore.errorNotification("Error creating items", error)
-  //   }
-  //   );
-};
-
-const toggleEditItems = () => {
-  dndStore.importEditMode = !dndStore.importEditMode;
-  if (!dndStore.importEditMode) {
-    dndStore.previewDataActiveItem = null;
-    dndStore.previewDataSelectedItems = {};
-    stage.markedItems = [];
+    notificationStore.resetProgress();
+    notificationStore.errorNotification('Error creating items', errorMessage);
+    closeModal();
   }
 };
 
+// Generates preview data for items to be imported.
+const previewImportItems = async () => {
+  isAwaitingResponse.value = true;
+  const folders = dndStore.droppedFolders;
+  const files = dndStore.droppedFiles;
+  let parentId = dndStore.targetItemId;
+  const parentPath = dndStore.targetItemPath;
+  const entitiesId = {};
+  entitiesId[parentPath] = parentId;
+
+  if (parentId === undefined) {
+    parentId = '';
+  }
+  const trackedParentData = [];
+  const untrackedParentData = [];
+  const workingDir = projectStore.activeProject.working_directory;
+  await ImportService.ImportFolder(projectStore.activeProject.uri, parentId, folders, files, workingDir, projectStore.activeProject.ignore_list)
+    .then((response) => {
+      if (dndStore.trackedParents.length + dndStore.untrackedParents.length > 0) {
+        const entityTypeId = collectionStore.collectionTypes.find((item) => item.name === 'generic')?.id;
+        for (const trackedParent of dndStore.trackedParents) {
+          const entityData = collectionStore.collections.find((item) => item.entity_path === trackedParent);
+          entityData.is_tracked_parent = true;
+          entityData.is_expanded = true;
+          trackedParentData.push(entityData);
+          entitiesId[trackedParent] = entityData.id;
+        }
+        for (const untrackedParent of dndStore.untrackedParents) {
+          const untrackedParentPath = getPathParent(untrackedParent);
+          const untrackedParentId = entitiesId[untrackedParentPath];
+          const name = untrackedParent.split('/').pop();
+          const uid = uuidv4();
+          const data = {
+            id: uid,
+            created_at: '',
+            description: '',
+            entity_path: '',
+            entity_type_icon: 'generic',
+            entity_type_id: entityTypeId,
+            entity_type_name: 'generic',
+            file_path: workingDir + '/' + untrackedParent,
+            is_dependency: false,
+            mtime: 0,
+            name: name,
+            parent_id: untrackedParentId,
+            preview: '',
+            preview_extension: '',
+            preview_id: '',
+            synced: false,
+            trashed: false,
+            is_expanded: true,
+          };
+          untrackedParentData.push(data);
+          entitiesId[untrackedParent] = uid;
+        }
+
+        response.entities.forEach(entity => {
+          const entityParentPath = getPathParent(entity.entity_path);
+          const entityParentId = entitiesId[entityParentPath];
+          if (entityParentId) {
+            entity.parent_id = entityParentId;
+          }
+        });
+
+        response.tasks.forEach(task => {
+          const taskParentPath = getPathParent(task.task_path);
+          const taskParentId = entitiesId[taskParentPath];
+          if (taskParentId) {
+            task.entity_id = taskParentId;
+          }
+        });
+
+        response.entities = [...trackedParentData, ...untrackedParentData, ...response.entities];
+      }
+      dndStore.previewData = response;
+      isAwaitingResponse.value = false;
+    })
+    .catch((error) => {
+      isAwaitingResponse.value = false;
+      console.log(error);
+      notificationStore.errorNotification('Error generating previews', error);
+    });
+};
+
+// Refreshes the project data after import.
+const refresh = async () => {
+  assetStore.assetsLoaded = false;
+  await projectStore.refreshActiveProject();
+  await statusStore.reloadStatuses();
+  projectStore.getUntrackedItems();
+  assetStore.assetsLoaded = true;
+};
+
+// Resets drag and drop values after a delay.
 const resetDndValues = () => {
   setTimeout(() => {
     dndStore.resetValues();
   }, 100);
-};
-
-const refresh = async () => {
-  assetStore.assetsLoaded = false;
-  await projectStore.refreshActiveProject()
-  await statusStore.reloadStatuses();
-  projectStore.getUntrackedItems()
-  assetStore.assetsLoaded = true;
-};
-
-const handleEnterKey = (event) => {
-  importItems();
-};
-
-const escape = () => {
-  modals.setModalVisibility('importItemsModal', false);
-};
-
-const closeModal = () => {
-  dndStore.targetItemId = '';
-  dndStore.trackedParents = []
-  dndStore.untrackedParents = []
-  dndStore.droppedFolders = [];
-  dndStore.droppedFiles = [];
-
-  modals.setModalVisibility("importItemsModal", false);
-  resetDndValues();
 };
 
 // watchers
@@ -279,6 +246,7 @@ watchEffect(() => {
   }
 });
 
+// lifecycle hooks
 onMounted(async () => {
   await previewImportItems();
   trayStates.listItemsBoundary = modalContainer.value;
@@ -293,19 +261,14 @@ onUnmounted(() => {
   stage.firstSelectedItemId = '';
   stage.lastSelectedItemId = '';
   dndStore.importEditMode = false;
-})
-
-
+});
 </script>
 
 <style scoped>
 @import "@/assets/desktop.css";
 
 .pop-up-actions {
-  /* width: min-content; */
   align-items: center;
-  /* background-color: forestgreen; */
-  /* justify-content: space-around; */
   box-sizing: border-box;
 }
 
@@ -318,34 +281,17 @@ onUnmounted(() => {
 .general-container-wide {
   display: flex;
   flex-direction: column;
-  /* background-color: firebrick; */
   overflow: hidden;
   width: 50vw;
   min-width: 600px !important;
   max-width: 1000px;
   max-height: 80vh;
-
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
 }
 
-.folder-path {
-  width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.rules-toggle {
-  display: flex;
-  /* background-color: red; */
-  gap: .5rem;
-  align-items: center;
-  min-width: max-content
-}
-
 .selected-folder {
-  /* background-color: darkblue; */
   width: 100%;
   padding: .2rem;
   overflow: hidden;
@@ -355,176 +301,5 @@ onUnmounted(() => {
   flex-wrap: wrap;
   padding: 10px 20px;
   box-sizing: border-box;
-}
-
-.selected-folder-container {
-  display: flex;
-  /* background-color: firebrick; */
-  width: 100%;
-  gap: .2rem;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-}
-
-.regex-instances {
-  width: 100%;
-  display: flex;
-  max-height: 50vh;
-  flex-direction: column;
-  gap: 10px;
-  /* background-color: green; */
-  /* padding-right: 5px; */
-  overflow: hidden;
-  /* overflow-y: scroll; */
-  box-sizing: border-box;
-}
-
-.regex-instances-scroll {
-  box-sizing: border-box;
-  width: 100%;
-  display: flex;
-  height: min-content;
-  flex-direction: column;
-  gap: 10px;
-  /* background-color: green; */
-}
-
-.regex-instances::-webkit-scrollbar {
-  width: 8px;
-}
-
-.regex-instances::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--light-steel);
-}
-
-.regex-instances::-webkit-scrollbar-track {
-  border-radius: 10px;
-}
-
-.attachment-area {
-  box-sizing: border-box;
-  /* margin-top: 1rem; */
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  /* justify-content: space-between; */
-  gap: 1rem;
-  /* background-color: darkkhaki; */
-  width: 98%;
-}
-
-.attachment-list {
-  box-sizing: border-box;
-  /* margin-top: 1rem; */
-  display: flex;
-  padding: .5rem;
-  align-items: center;
-  flex-direction: column;
-  /* justify-content: space-between; */
-  gap: .2rem;
-  /* background-color: rgb(57, 122, 108); */
-
-  background-color: rgba(0, 0, 0, 0.144);
-  max-height: 150px;
-  overflow: hidden;
-  overflow-y: scroll;
-  width: 100%;
-  border-radius: 10px;
-}
-
-.attachment-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.attachment-list::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
-}
-
-.attachment-list::-webkit-scrollbar-track {
-  border-radius: 10px;
-  /* background-color: rgba(0, 0, 0, 0.295); */
-}
-
-.attachment {
-  /* margin-top: 1rem; */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-  width: 100%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.096);
-  height: max-content;
-  padding: .2rem;
-
-  /* background-color: greenyellow; */
-}
-
-.compound-input-section {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: .4rem;
-}
-
-.task-options-container {
-  position: relative;
-  box-sizing: border-box;
-
-  width: 100%;
-  height: 0px;
-  /* height: 80px; */
-  overflow: hidden;
-  transition-property: height;
-  transition-duration: 0.2s;
-  transition-timing-function: ease-in-out;
-  transition: opacity .5s ease-in-out;
-  /* transition: all .1s ease-in-out; */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  margin: 0;
-  opacity: 1;
-}
-
-.task-options-container-closed {
-  transition: all .2s ease-in-out;
-  opacity: 0;
-  height: 0px;
-  padding: 0;
-  overflow: hidden;
-  /* margin-bottom: -1.5rem; */
-}
-
-
-.input-short {
-  flex: 1;
-  width: 100%;
-}
-
-.listbox-short {
-
-  flex: 1;
-  width: 130px;
-}
-
-.input-label {
-
-  font-family: Inter, sans-serif;
-  color: white;
-  font-size: 16px;
-  white-space: nowrap;
-  flex: 1;
-
-}
-
-.pop-up-prompt {
-  gap: 10px;
-  /* background-color: bisque; */
-  align-items: center;
-  /* justify-content: center; */
-  max-height: 400px;
 }
 </style>

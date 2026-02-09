@@ -61,6 +61,7 @@
   }
 
 
+
 /* panes */
 
 .absolute-pane{
@@ -220,7 +221,6 @@
 .settings-section-card {
   background-color: var(--black-steel);
   border-radius: var(--very-large-radius);
-  /* padding: 1.5rem; */
   box-sizing: border-box;
   width: 100%;
   outline: var(--transparent-line);
@@ -235,7 +235,8 @@
   gap: 1rem;
   padding: 1rem 1.5rem;
   background-color: var(--midnight-steel);
-  border-radius: var(--normal-radius);
+  border-radius: var(--small-radius);
+  /* border-radius: var(--very-large-radius); */
   outline: var(--transparent-line);
   outline-offset: -1px;
 }
@@ -251,12 +252,11 @@
 .modal-container {
   /* z-index: 1; */
   display: flex;
-  color: white;
   box-sizing: border-box;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
+  /* padding: 1rem; */
   /* padding: 24px; */
   position: relative;
   overflow: hidden;
@@ -283,6 +283,7 @@
   flex-direction: column;
   align-items: center;
   /* background-color: red; */
+  padding: 1rem;
 }
 
 
@@ -500,4 +501,10 @@
 /* Apply the shake animation class */
 .shake {
   animation: shake 0.3s; /* Animation name and duration */
+}
+
+/* wails3 */
+.file-drop-target-active {
+  outline: 1px solid #4a9eff !important;
+  background-color: rgba(74, 158, 255, 0.1) !important;
 }

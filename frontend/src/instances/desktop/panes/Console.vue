@@ -1,15 +1,8 @@
 <template>
   <div class="general-pane-root">
     <div class="console-container">
-      <!-- Chat messages area -->
-
       <div class="console-messages" ref="messagesContainer">
-        
-        <div 
-          v-for="(message, index) in messages" 
-          :key="index"
-          :class="['console-message', message.type]" >
-
+        <div v-for="(message, index) in messages" :key="index" :class="['console-message', message.type]">
           <div class="message-content">
             <div class="message-header">
               <span class="message-sender">{{ message.sender }}</span>
@@ -18,42 +11,24 @@
             <div class="message-text">{{ message.content }}</div>
           </div>
         </div>
-        
-        <!-- Placeholder when no messages -->
+
         <div v-if="!messages.length" class="console-empty">
-          <div class="empty-icon">
-            <i :class="selectedConsoleTab === 'Bash' ? 'console-icon' : 'console-icon'"></i>
-          </div>
           <div class="empty-text">{{ emptyStateTitle }}</div>
           <div class="empty-subtext">{{ emptyStateSubtext }}</div>
         </div>
       </div>
 
-      <!-- Input area -->
       <div class="console-input-container">
         <div class="console-input-wrapper">
-            
-          <textarea ref="textareaRef" v-model="currentMessage" class="console-input" type="text" placeholder="..."
+          <textarea ref="textareaRef" v-model="currentMessage" class="console-input" type="text" placeholder="[Coming Soon]"
             spellcheck="false" @input="handleInput" @keydown.enter="sendMessage" />
-
-          <ActionButton 
-            :icon="getAppIcon('send')" 
-            :showLabel="false"
-            :isDisabled="!currentMessage.trim()"
-            v-tooltip="'Send message'"
-            :buttonFunction="sendMessage" 
-          />
+          <ActionButton :icon="getAppIcon('send')" :showLabel="false" :isDisabled="!currentMessage.trim()"
+            v-tooltip="'Send message'" :buttonFunction="sendMessage" />
         </div>
-        
-        <!-- Console mode tabs -->
+
         <div class="console-tabs-container">
-          <PaneHeaderTabs 
-            :iconsOnly="false" 
-            :useSelected="true" 
-            :selectedTab="selectedConsoleTab" 
-            :dataTypes="consoleTabs" 
-            @filter="handleConsoleTabClick" 
-          />
+          <PaneHeaderTabs :iconsOnly="false" :useSelected="true" :selectedTab="selectedConsoleTab"
+            :dataTypes="consoleTabs" @filter="handleConsoleTabClick" />
         </div>
       </div>
     </div>
@@ -62,8 +37,7 @@
 
 <script setup>
 // imports
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue';
-import emitter from '@/lib/mitt';
+import { computed, nextTick, onMounted, ref } from 'vue';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -73,104 +47,75 @@ import PaneHeaderTabs from '@/instances/common/components/PaneHeaderTabs.vue';
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useIconStore } from '@/stores/icons';
-import { useUserStore } from '@/stores/users';
 import { useStageStore } from '@/stores/stages';
 
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const iconStore = useIconStore();
-const userStore = useUserStore();
 const stage = useStageStore();
 
 // refs
-const messagesContainer = ref(null);
-const messageInput = ref(null);
-const textareaRef = ref(null);
-const currentMessage = ref('');
-const selectedConsoleTab = ref('Agent');
-const messages = ref([
-]);
-
-// console tabs data
 const consoleTabs = ref([
   { name: "Agent", icon: "brain" },
   { name: "Bash", icon: "console" }
 ]);
+const currentMessage = ref('');
+const messages = ref([]);
+const messagesContainer = ref(null);
+const selectedConsoleTab = ref('Agent');
+const textareaRef = ref(null);
 
 // computed properties
-const selectedItemName = computed(() => {
-  if (assetStore.selectedAsset) {
-    return assetStore.selectedAsset.name || 'this asset';
-  } else if (collectionStore.selectedCollection) {
-    return collectionStore.selectedCollection.name || 'this collection';
-  }
-  return 'this item';
-});
-
-const itemType = computed(() => {
-  if (assetStore.selectedAsset) {
-    return 'asset';
-  } else if (collectionStore.selectedCollection) {
-    return 'collection';
-  } else if(!stage.markedItems.length){
-    return 'project'
-  }
-  return 'item';
+const emptyStateSubtext = computed(() => {
+  if (selectedConsoleTab.value === 'Bash') return `Execute terminal commands on this ${itemType.value}`;
+  return `Perform an operation on this ${itemType.value} or get help with Clustta`;
 });
 
 const emptyStateTitle = computed(() => {
-  if (selectedConsoleTab.value === 'Bash') {
-    return 'Terminal ready...';
-  } else {
-    return 'Start a conversation...';
-  }
+  if (selectedConsoleTab.value === 'Bash') return 'Terminal ready...';
+  return 'Start a conversation...';
 });
 
-const emptyStateSubtext = computed(() => {
-  if (selectedConsoleTab.value === 'Bash') {
-    return `Execute terminal commands on this ${itemType.value}`;
-  } else {
-    return `Perform an operation on this ${itemType.value} or get help with Clustta`;
-  }
+const itemType = computed(() => {
+  if (assetStore.selectedAsset) return 'asset';
+  if (collectionStore.selectedCollection) return 'collection';
+  if (!stage.markedItems.length) return 'project';
+  return 'item';
 });
 
 // methods
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
-};
 
-const getMessageIcon = (messageType) => {
-  return messageType === 'user' ? 'person' : 'robot';
-};
-
+// Formats a timestamp into a readable time string.
 const formatTime = (timestamp) => {
   const date = new Date(timestamp);
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
-const handleInput = (event) => {
-  if (textareaRef.value) {
-    textareaRef.value.style.height = 'auto';
-    
-    const newHeight = textareaRef.value.scrollHeight;
-    textareaRef.value.style.height = newHeight + 'px';
-  }
-};
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
+// Switches the active console tab mode.
 const handleConsoleTabClick = (tabName) => {
   selectedConsoleTab.value = tabName;
-  // Handle different console modes
-  switch (tabName) {
-    case 'Agent':
-      break;
-    case 'Bash':
-      break;
-  }
 };
 
+// Auto-resizes the textarea based on content.
+const handleInput = () => {
+  if (!textareaRef.value) return;
+  textareaRef.value.style.height = 'auto';
+  textareaRef.value.style.height = textareaRef.value.scrollHeight + 'px';
+};
+
+// Scrolls the messages container to the bottom.
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (messagesContainer.value) messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+  });
+};
+
+// Sends the current message and simulates an AI response.
 const sendMessage = () => {
   if (!currentMessage.value.trim()) return;
-
   const userMessage = {
     id: messages.value.length + 1,
     type: 'user',
@@ -178,69 +123,27 @@ const sendMessage = () => {
     content: currentMessage.value.trim(),
     timestamp: Date.now()
   };
-
   messages.value.push(userMessage);
-  
-  // Simulate AI response (replace with actual API call)
+  const messageContent = currentMessage.value;
+  currentMessage.value = '';
+  if (textareaRef.value) textareaRef.value.style.height = 'auto';
+  scrollToBottom();
   setTimeout(() => {
     const aiResponse = {
       id: messages.value.length + 1,
       type: 'assistant',
       sender: 'Clustta',
-      content: `I understand you want to "${currentMessage.value}". Let me help you with that ...`,
+      content: `I understand you want to "${messageContent}". Let me help you with that ...`,
       timestamp: Date.now()
     };
     messages.value.push(aiResponse);
     scrollToBottom();
   }, 1000);
-
-  currentMessage.value = '';
-  
-  // Reset textarea height after sending message
-  if (textareaRef.value) {
-    textareaRef.value.style.height = 'auto';
-  }
-  
-  scrollToBottom();
 };
 
-const sendQuickMessage = (action) => {
-  let message = '';
-  switch (action) {
-    case 'explain':
-      message = `Explain what ${selectedItemName.value} does`;
-      break;
-    case 'suggestions':
-      message = `Give me suggestions for improving ${selectedItemName.value}`;
-      break;
-    case 'debug':
-      message = `Help me debug issues with ${selectedItemName.value}`;
-      break;
-  }
-  
-  currentMessage.value = message;
-  sendMessage();
-};
-
-const scrollToBottom = () => {
-  nextTick(() => {
-    if (messagesContainer.value) {
-      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
-    }
-  });
-};
-
-const clearMessages = () => {
-  messages.value = [];
-};
-
-// lifecycle
+// lifecycle hooks
 onMounted(() => {
   scrollToBottom();
-});
-
-onUnmounted(() => {
-  // Cleanup if needed
 });
 </script>
 
@@ -251,96 +154,10 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  /* background-color: var(--black); */
-  border-radius: var(--medium-radius);
-  overflow: hidden;
   width: 100%;
   box-sizing: border-box;
-  /* background-color: crimson; */
-}
-
-.console-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem .5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  min-height: 0;
-}
-
-.console-message {
-  display: flex;
-  gap: 0.75rem;
-  align-items: flex-start;
-  /* max-width: 90%; */
-  background-color: red;
-  border-radius: 8px;
-  background-color: var(--steel);
-  color: var(--white);
-  font-size: 14px;
-}
-
-.console-message.user {
-  margin-left: auto;
-  flex-direction: row-reverse;
-}
-
-.console-message.assistant {
-  margin-right: auto;
-  flex-direction: row;
-}
-
-.message-avatar {
-  flex-shrink: 0;
-}
-
-.message-content {
-  flex: 1;
-  min-width: 0;
-  background-color: var(--gray-800);
-  border-radius: var(--small-radius);
-  padding: 0.75rem;
-}
-
-.console-message.user .message-content {
-  background-color: var(--accent-color);
-}
-
-.console-message.assistant .message-content {
-  background-color: var(--gray-800);
-}
-
-.message-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-}
-
-.console-message.user .message-header {
-  justify-content: flex-end;
-}
-
-.console-message.assistant .message-header {
-  justify-content: flex-start;
-}
-
-.message-sender {
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: var(--white);
-}
-
-.message-time {
-  font-size: 0.75rem;
-  color: var(--gray-500);
-}
-
-.message-text {
-  color: var(--gray-200);
-  line-height: 1.5;
-  word-wrap: break-word;
+  border-radius: var(--medium-radius);
+  overflow: hidden;
 }
 
 .console-empty {
@@ -354,10 +171,121 @@ onUnmounted(() => {
   gap: 0.5rem;
 }
 
-.empty-icon {
-  font-size: 3rem;
-  color: var(--gray-600);
-  margin-bottom: 1rem;
+.console-input {
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 60px;
+  height: auto;
+  max-height: 30vh;
+  margin: auto;
+  border-width: 0px;
+  outline: none;
+  resize: none;
+  background-color: transparent;
+  color: var(--white);
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.console-input::-webkit-scrollbar {
+  display: none;
+}
+
+.console-input-container {
+  height: min-content;
+  border-top: 1px solid var(--gray-800);
+  background-color: var(--black-steel);
+}
+
+.console-input-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  height: min-content;
+  max-height: 30vh;
+  margin-bottom: 0.75rem;
+  padding: .5rem;
+  box-sizing: border-box;
+  background-color: var(--steel);
+  border-radius: 8px;
+}
+
+.console-input-wrapper:hover {
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+}
+
+.console-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 14px;
+  color: var(--white);
+  background-color: var(--steel);
+  border-radius: 8px;
+}
+
+.console-message.assistant {
+  flex-direction: row;
+  margin-right: auto;
+}
+
+.console-message.assistant .message-content {
+  background-color: var(--gray-800);
+}
+
+.console-message.assistant .message-header {
+  justify-content: flex-start;
+}
+
+.console-message.user {
+  flex-direction: row-reverse;
+  margin-left: auto;
+}
+
+.console-message.user .message-content {
+  background-color: var(--accent-color);
+}
+
+.console-message.user .message-header {
+  justify-content: flex-end;
+}
+
+.console-messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+  padding: 1rem .5rem;
+  overflow-y: auto;
+}
+
+.console-messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.console-messages::-webkit-scrollbar-thumb {
+  border-radius: var(--small-radius);
+  background-color: var(--light-steel);
+}
+
+.console-messages::-webkit-scrollbar-track {
+  border-radius: var(--small-radius);
+}
+
+.console-tabs-container {
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--gray-800);
+}
+
+.empty-subtext {
+  font-size: 0.875rem;
+  max-width: 250px;
 }
 
 .empty-text {
@@ -366,87 +294,40 @@ onUnmounted(() => {
   color: var(--gray-400);
 }
 
-.empty-subtext {
-  font-size: 0.875rem;
-  max-width: 250px;
-}
-
-.console-input-container {
-  border-top: 1px solid var(--gray-800);
-  /* padding: 1rem; */
-  background-color: var(--black-steel);
-  height: min-content;
-}
-
-.console-input-wrapper {
-  display: flex;
-  gap: 0.5rem;
-  align-items: flex-end;
-  margin-bottom: 0.75rem;
-  background-color: var(--steel);
-  border-radius: 8px;
-  padding: .5rem;
-  height: min-content;
-  max-height: 30vh;
-}
-
-.console-input-wrapper:hover {
-    outline: var(--transparent-line);
-    outline-offset: -1px;
-}
-
-.console-input{
-  font-family: 'Inter', sans-serif;
-  font-weight: 300;
+.general-pane-root {
+  padding: .5rem 0;
   box-sizing: border-box;
-  font-size: 14px;
-  border-width: 0px;
-  width: 100%;
-  min-height: 60px;
-  height: auto;
-  max-height: 30vh;
-  margin: auto;
-  outline: none;
-  resize: none;
-  background-color: transparent;
+}
+
+.message-content {
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem;
+  background-color: var(--gray-800);
+  border-radius: var(--small-radius);
+}
+
+.message-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.message-sender {
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--white);
-  overflow-y: auto;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
-  pointer-events: none;
 }
 
-/* Hide scrollbar for WebKit browsers */
-.console-input::-webkit-scrollbar {
-  display: none;
+.message-text {
+  line-height: 1.5;
+  color: var(--gray-200);
+  word-wrap: break-word;
 }
 
-.console-tabs-container {
-  padding: 0.5rem 0;
-  border-top: 1px solid var(--gray-800);
-}
-
-.general-pane-root{
-    padding: .5rem 0;
-    box-sizing: border-box;
-}
-
-/* Scrollbar styling */
-.console-messages::-webkit-scrollbar {
-  width: 6px;
-}
-
-.console-messages::-webkit-scrollbar-track {
-  background: var(--gray-800);
-  border-radius: 3px;
-}
-
-.console-messages::-webkit-scrollbar-thumb {
-  background: var(--gray-600);
-  border-radius: 3px;
-}
-
-.console-messages::-webkit-scrollbar-thumb:hover {
-  background: var(--gray-500);
+.message-time {
+  font-size: 0.75rem;
+  color: var(--gray-500);
 }
 </style>

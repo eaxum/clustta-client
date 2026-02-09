@@ -1,11 +1,10 @@
 <template>
 	<div style="--wails-drop-target-active" id="clustta-desktop"
 		:class="['desktop-root', { 'no-radius': isMaximized }]">
-		<TitleBar />
+		<TitleBar v-if="titleBarVisible" />
 		<FlashMessage :isDesktop="true" />
 		<ModalView v-if="modals.activeModal" />
-		<AuthGuard v-if="userStore.user == null" />
-		<div v-else class="desktop-container">
+		<div class="desktop-container">
 			<div ref="desktopBody" id="desktop-body" class="desktop-body tray-root">
 				<SidePane v-if="panes.enabledPanes.includes(stage.selectedStage)" :isWideScreen="isWideScreen" />
 				<div class="active-project">
@@ -25,7 +24,6 @@ import { computed, watchEffect, ref, onMounted, onBeforeUnmount } from 'vue';
 
 
 // components
-import AuthGuard from '@/instances/desktop/pages/AuthGuard.vue'
 import TitleBar from '@/instances/desktop/components/TitleBar.vue'
 import InfoBar from '@/instances/desktop/components/InfoBar.vue'
 import ModalView from '@/instances/desktop/components/ModalView.vue'
@@ -42,13 +40,13 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
 import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
+import { usePlatformStore } from '@/stores/platform';
 import { Events } from "@wailsio/runtime";
 
 // refs
 const desktopBody = ref(null);
 const isMaximized = ref(false);
 const mainAreaContainer = ref(null);
-
 // states/stores
 const menu = useMenu();
 const panes = usePaneStore();
@@ -56,10 +54,17 @@ const stage = useStageStore();
 const modals = useDesktopModalStore();
 const userStore = useUserStore();
 const dndStore = useDndStore();
+const platformStore = usePlatformStore();
 
 // computed properties
 const isUserActivated = computed(() => userStore.user !== null);
 const isWideScreen = ref(false);
+const titleBarVisible = computed(() => {
+	if (platformStore.isWeb) {
+		return stage.activeStage === 'projects';
+	}
+	return true;
+});(() => userStore.user !== null);
 
 // methods
 
@@ -145,6 +150,7 @@ onBeforeUnmount(async () => {
 	overflow: hidden;
 	display: flex;
 	box-sizing: border-box;
+	min-width: 1000px;
 }
 
 .no-radius {

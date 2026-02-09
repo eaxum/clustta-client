@@ -1,6 +1,9 @@
 <template>
   <div ref="collectionMenu" class="filter-menu-container">
 
+    <ActionButton :icon="getAppIcon('info')" :showLabel="true" :fullWidth="true"
+      label="Project Details" :buttonFunction="showProjectDetails" />
+
     <ActionButton :icon="getAppIcon('edit')" v-if="userStore.userCanCreateProject" :showLabel="true" :fullWidth="true" label="Rename Project"
       :buttonFunction="renameProject" />
 
@@ -9,16 +12,16 @@
       label="Edit Project" :buttonFunction="editProject" />
 
     <!-- {{  isPinExceeded  }} -->
-    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded && isProjectPinned" :icon="getAppIcon('unpin')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="(projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && isProjectPinned" :icon="getAppIcon('unpin')" :showLabel="true" :fullWidth="true"
       label="Unpin Project" :buttonFunction="unpinProject" />
 
     <ActionButton v-else-if="!isPinExceeded" :icon="getAppIcon('pin')" :showLabel="true" :fullWidth="true"
       label="Pin Project" :buttonFunction="pinProject" />
 
-    <span v-if="userStore.canDo('create_entity')" class="menu-divider"></span>
+    <span v-if="userStore.canDo('create_entity') && !platformStore.isWeb" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
-    <span v-if="projectStore.getActiveProject?.is_downloaded" class="horizontal-flex">
+    <span v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded" class="horizontal-flex">
       <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" label="Show in Explorer"
         :buttonFunction="revealInExplorer" />
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyProjectPath()"
@@ -26,14 +29,14 @@
     </span>
 
     <!-- Locate Clustta file -->
-    <ActionButton v-if="projectStore.getActiveProject.is_downloaded" :icon="getAppIcon('clustta')" :showLabel="true"
+    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded" :icon="getAppIcon('clustta')" :showLabel="true"
       :fullWidth="true" label="Locate Clustta File" :buttonFunction="locateClusttaFile" />
 
     <!-- Relocate Working Directory -->
-    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
+    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
       :buttonFunction="relocateWorkingDirectory" />
 
-    <span v-if="projectStore.getActiveProject?.is_downloaded" class="menu-divider"></span>
+    <span v-if="projectStore.getActiveProject?.is_downloaded || platformStore.isWeb" class="menu-divider"></span>
 
     <!-- Archive -->
     <ActionButton v-if="!projectStore.getActiveProject?.is_closed && userStore.userCanCreateProject"
@@ -45,12 +48,17 @@
       :fullWidth="true" label="Unarchive Project" :buttonFunction="toggleCloseProject" />
 
     <!-- Rebuild -->
-    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded && !projectStore.getActiveProject?.is_closed"
+    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded && !projectStore.getActiveProject?.is_closed"
       :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" label="Rebuild Project"
       :buttonFunction="rebuildAll" />
 
+    <!-- Trim Project - only for remote projects that are synced -->
+    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.has_remote && !projectStore.getActiveProject?.is_unsynced"
+      :icon="getAppIcon('scissors')" :showLabel="true" :fullWidth="true" label="Trim Project"
+      :buttonFunction="prepTrimProjectPopUpModal" />
+
     <!-- Delete project -->
-    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Remove Project"
+    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded || platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Remove Project"
       :buttonFunction="prepDeletePopUpModal" />
 
 
@@ -60,179 +68,83 @@
 
 <script setup>
 // imports
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
-import { SettingsService, ProjectService, SyncService } from "@/../bindings/clustta/services";
-import { ClipboardService, FSService, DialogService } from '@/../bindings/clustta/services/index';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
 
-// services
-import { CollectionService } from "@/../bindings/clustta/services";
+// components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
-// states/store imports
-import { useTrayStates } from '@/stores/TrayStates';
+// services
+import { CollectionService, DialogService, FSService, ProjectService, SettingsService, SyncService } from "@/services";
+
+// stores
+import { useAssetStore } from '@/stores/assets';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useUserStore } from '@/stores/users';
-import { useAssetStore } from '@/stores/assets';
-import { useIconStore } from '@/stores/icons';
+import { usePlatformStore } from '@/stores/platform';
 import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useUserStore } from '@/stores/users';
 
-// components
-import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import { syncData } from '@/lib/sync';
-
-// states/stores
-const trayStates = useTrayStates();
-const userStore = useUserStore();
+const assetStore = useAssetStore();
+const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const assetStore = useAssetStore();
+const platformStore = usePlatformStore();
 const projectStore = useProjectStore();
-const iconStore = useIconStore();
 const stage = useStageStore();
+const trayStates = useTrayStates();
+const userStore = useUserStore();
+
+// refs
+const collectionMenu = ref(null);
 
 // computed
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
+// Checks if the project is pinned.
 const isProjectPinned = computed(() => {
   const projectId = projectStore.getActiveProject.id;
   const pinnedProjects = projectStore.pinnedProjects;
   return pinnedProjects?.includes(projectId);
 });
 
+// Checks if the pin limit has been exceeded.
 const isPinExceeded = computed(() => {
-  return false
-  const pinnedProjects = projectStore.pinnedProjects;
-  return pinnedProjects.length > 10
-})
-
-// refs
-const collectionMenu = ref(null);
-
-const renameProject = () => {
-  emitter.emit('renameProject');
-  menu.hideContextMenu();
-};
-
-const editProject = () => {
-  modals.setModalVisibility('editProjectModal', true);
-  menu.hideContextMenu();
-};
-
-const pinProject = async () => {
-  menu.hideContextMenu();
-  const studioName = projectStore.getSelectedStudioName;
-  const projectId = projectStore.getActiveProject.id;
-  await SettingsService.PinProject(studioName, projectId).then((response) => {
-    console.log(response)
-    projectStore.pinnedProjects.push(projectId);
-  }).catch((error) => {
-    console.log(error)
-  })
-
-
-};
-
-const unpinProject = async () => {
-
-  menu.hideContextMenu();
-  const studioName = projectStore.getSelectedStudioName;
-  const projectId = projectStore.getActiveProject.id;
-  await SettingsService.UnpinProject(studioName, projectId);
-  projectStore.pinnedProjects = projectStore.pinnedProjects.filter((item) => item !== projectId)
-
-};
-
-const revealInExplorer = async () => {
-  let project = projectStore.getActiveProject;
-  await FSService.MakeDirs(project.working_directory)
-  FSService.RevealInExplorer(project.working_directory)
-  menu.hideContextMenu();
-};
-
-const locateClusttaFile = () => {
-  let project = projectStore.getActiveProject;
-  FSService.RevealInExplorer(project.uri)
-  menu.hideContextMenu();
-};
-
-const relocateWorkingDirectory = async () => {
-  menu.hideContextMenu();
-  
-  const project = projectStore.getActiveProject;
-  const currentWorkingDir = project.working_directory;
-  
-  try {
-    // Open folder dialog to select new working directory
-    const result = await DialogService.SelectFolderDialog("Select New Working Directory");
-    
-    if (!result) {
-      return; // User cancelled
-    }
-    
-    let newWorkingDir = result.replace(/\\/g, '/');
-    
-    // Confirm with user
-    trayStates.popUpModalTitle = 'Relocate Working Directory?';
-    trayStates.popUpModalMessage = `Change working directory from:\n${currentWorkingDir}\n\nTo:\n${newWorkingDir}\n\nNote: Files will NOT be moved. Only the path will be updated.`;
-    trayStates.popUpModalIcon = 'folder';
-    trayStates.popUpModalFunction = async () => {
-      try {
-        stage.operationActive = true;
-        
-        // Update working directory
-        await ProjectService.UpdateWorkingDirectory(
-          project.has_remote ? projectStore.getActiveProjectUrl : project.uri,
-          projectStore.selectedStudio.name,
-          newWorkingDir
-        );
-        
-        // Update the project in memory
-        project.working_directory = newWorkingDir;
-        
-        // Refresh project list
-        await projectStore.refreshProjects();
-        
-        notificationStore.addNotification(
-          'Working directory updated',
-          `New location: ${newWorkingDir}`,
-          'success',
-          false
-        );
-        
-      } catch (error) {
-        notificationStore.errorNotification('Error updating working directory', error);
-      } finally {
-        stage.operationActive = false;
-        modals.setModalVisibility('popUpModal', false);
-      }
-    };
-    
-    modals.setModalVisibility('popUpModal', true);
-    
-  } catch (error) {
-    notificationStore.errorNotification('Error selecting directory', error);
-  }
-};
+  return false;
+});
 
 // methods
-const syncDataFunc = async () => {
+// Copies the project working directory path to clipboard.
+const copyProjectPath = async () => {
+  let project = projectStore.getActiveProject;
+  let projectDir = project.working_directory;
+  projectDir = projectDir.replace(/\\/g, '/');
+  await Clipboard.SetText(projectDir);
   menu.hideContextMenu();
-  syncData()
 };
 
+// Deletes the project from the local database.
+const deleteProject = async () => {
+  await FSService.DeleteFile(projectStore.activeProject.uri)
+    .then(() => {
+      projectStore.loadProjects();
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  modals.setModalVisibility('popUpModal', false);
+};
+
+// Deletes the project working directory data.
 const deleteProjectWorkData = async () => {
   let project = projectStore.getActiveProject;
   await FSService.DeleteFolder(project.working_directory)
-    .then((response) => {
-      projectStore.refreshProjects()
+    .then(() => {
+      projectStore.refreshProjects();
       if (projectStore.activeProject.id == project.id) {
         trayStates.$reset();
       }
@@ -240,62 +152,42 @@ const deleteProjectWorkData = async () => {
     .catch((error) => {
       console.error(error);
     });
-
   modals.setModalVisibility('popUpModal', false);
 };
 
-const deleteProject = async () => {
-  await FSService.DeleteFile(projectStore.activeProject.uri).then((data) => {
-    projectStore.loadProjects()
-  }).catch(error => {
-    console.log(error)
-  })
-  modals.setModalVisibility('popUpModal', false);
-};
-
-const rebuildAll = async () => {
-  // let entity = collectionStore.selectedCollection;
+// Opens the edit project modal.
+const editProject = () => {
+  modals.setModalVisibility('editProjectModal', true);
   menu.hideContextMenu();
-  notificationStore.cancleFunction = SyncService.CancelSync
-  notificationStore.canCancel = true
-  await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
-    .then((data) => {
-      assetStore.refreshEntityFilesStatus("")
-    }).catch(error => {
-      console.log(error)
+};
+
+// Returns the icon path for a given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Opens the Clustta file location in the file explorer.
+const locateClusttaFile = () => {
+  let project = projectStore.getActiveProject;
+  FSService.RevealInExplorer(project.uri);
+  menu.hideContextMenu();
+};
+
+// Pins the current project.
+const pinProject = async () => {
+  menu.hideContextMenu();
+  const studioName = projectStore.getSelectedStudioName;
+  const projectId = projectStore.getActiveProject.id;
+  await SettingsService.PinProject(studioName, projectId)
+    .then(() => {
+      projectStore.pinnedProjects.push(projectId);
     })
-  menu.hideContextMenu();
+    .catch((error) => {
+      console.error(error);
+    });
 };
 
-const copyProjectPath = async () => {
-  let project = projectStore.getActiveProject;
-  let projectDir = project.working_directory;
-  projectDir = projectDir.replace(/\\/g, '/');
-  await ClipboardService.WriteText(projectDir);
-  menu.hideContextMenu();
-
-};
-
-const prepFreeUpSpacePopUpModal = () => {
-  let project = projectStore.getActiveProject;
-  trayStates.popUpModalTitle = `Delete \"${project.name}\" Working Data? `;
-  trayStates.popUpModalMessage = "This will irreversibly delete all unsynced data on this project.";
-  trayStates.popUpModalFunction = deleteProjectWorkData;
-  trayStates.popUpModalIcon = 'broom';
-  modals.setModalVisibility('popUpModal', true);
-  menu.hideContextMenu();
-};
-
-const prepDeletePopUpModal = () => {
-  let project = projectStore.getActiveProject;
-  trayStates.popUpModalTitle = `Remove \"${project.name}\"`;
-  trayStates.popUpModalMessage = "This will irreversibly remove this project from Clustta! You will lose all of your checkpoints and other metadata but your actual files will not be deleted. Ensure to 'Build' any missing assets before proceeding.";
-  trayStates.popUpModalFunction = deleteProject;
-  trayStates.popUpModalIcon = 'trash';
-  modals.setModalVisibility('popUpModal', true);
-  menu.hideContextMenu();
-};
-
+// Prepares and shows the archive project confirmation modal.
 const prepCloseProjectPopUpModal = () => {
   let project = projectStore.getActiveProject;
   trayStates.popUpModalTitle = `Archive \"${project.name}\"`;
@@ -306,33 +198,157 @@ const prepCloseProjectPopUpModal = () => {
   menu.hideContextMenu();
 };
 
+// Prepares and shows the delete project confirmation modal.
+const prepDeletePopUpModal = () => {
+  let project = projectStore.getActiveProject;
+  trayStates.popUpModalTitle = `Remove \"${project.name}\"`;
+  trayStates.popUpModalMessage = "This will irreversibly remove this project from Clustta! You will lose all of your checkpoints and other metadata but your actual files will not be deleted. Ensure to 'Build' any missing assets before proceeding.";
+  trayStates.popUpModalFunction = deleteProject;
+  trayStates.popUpModalIcon = 'trash';
+  modals.setModalVisibility('popUpModal', true);
+  menu.hideContextMenu();
+};
+
+// Prepares and shows the trim project confirmation modal.
+const prepTrimProjectPopUpModal = () => {
+  menu.hideContextMenu();
+  let project = projectStore.getActiveProject;
+  trayStates.popUpModalIcon = 'scissors';
+  trayStates.popUpModalTitle = `Trim \"${project.name}\"`;
+  trayStates.popUpModalMessage = "This will remove cached file data from the project database and delete the working directory to reduce disk usage. The data can be re-downloaded from the remote when needed. Continue?";
+  trayStates.popUpModalFunction = trimProject;
+  modals.setModalVisibility('popUpModal', true);
+};
+
+// Rebuilds all assets in the project.
+const rebuildAll = async () => {
+  menu.hideContextMenu();
+  notificationStore.cancleFunction = SyncService.CancelSync;
+  notificationStore.canCancel = true;
+  await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
+    .then(() => {
+      assetStore.refreshEntityFilesStatus("");
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  menu.hideContextMenu();
+};
+
+// Opens the relocate working directory dialog.
+const relocateWorkingDirectory = async () => {
+  menu.hideContextMenu();
+  
+  const project = projectStore.getActiveProject;
+  const currentWorkingDir = project.working_directory;
+  
+  try {
+    const result = await DialogService.SelectFolderDialog("Select New Working Directory");
+    if (!result) return;
+    
+    let newWorkingDir = result.replace(/\\/g, '/');
+    
+    trayStates.popUpModalTitle = 'Relocate Working Directory?';
+    trayStates.popUpModalMessage = `Change working directory from:\n${currentWorkingDir}\n\nTo:\n${newWorkingDir}\n\nNote: Files will NOT be moved. Only the path will be updated.`;
+    trayStates.popUpModalIcon = 'folder';
+    trayStates.popUpModalFunction = async () => {
+      try {
+        stage.operationActive = true;
+        await ProjectService.UpdateWorkingDirectory(
+          project.has_remote ? projectStore.getActiveProjectUrl : project.uri,
+          projectStore.selectedStudio.name,
+          newWorkingDir
+        );
+        project.working_directory = newWorkingDir;
+        await projectStore.refreshProjects();
+        notificationStore.addNotification('Working directory updated', `New location: ${newWorkingDir}`, 'success', false);
+      } catch (error) {
+        notificationStore.errorNotification('Error updating working directory', error);
+      } finally {
+        stage.operationActive = false;
+        modals.setModalVisibility('popUpModal', false);
+      }
+    };
+    
+    modals.setModalVisibility('popUpModal', true);
+  } catch (error) {
+    notificationStore.errorNotification('Error selecting directory', error);
+  }
+};
+
+// Emits event to rename the project.
+const renameProject = () => {
+  emitter.emit('renameProject');
+  menu.hideContextMenu();
+};
+
+// Reveals the project directory in the file explorer.
+const revealInExplorer = async () => {
+  let project = projectStore.getActiveProject;
+  await FSService.MakeDirs(project.working_directory);
+  FSService.RevealInExplorer(project.working_directory);
+  menu.hideContextMenu();
+};
+
+// Opens the project details modal.
+const showProjectDetails = () => {
+  modals.setModalVisibility('projectDetailsModal', true);
+  menu.hideContextMenu();
+};
+
+// Toggles the closed/archived state of the project.
 const toggleCloseProject = async () => {
-  let projectUri
+  let projectUri;
   if (projectStore.activeProject.has_remote) {
-    projectUri = projectStore.getActiveProjectUrl
+    projectUri = projectStore.getActiveProjectUrl;
   } else {
-    projectUri = projectStore.activeProject.uri
+    projectUri = projectStore.activeProject.uri;
   }
 
   await ProjectService.ToggleCloseProject(projectUri, projectStore.selectedStudio.name)
-    .then((result) => {
-      console.log(result)
-      projectStore.activeProject.is_closed = !projectStore.activeProject.is_closed
-    }).catch((error) => {
-      console.error(error)
-      notificationStore.addNotification(
-        "Error closing project",
-        error,
-        "error",
-        false
-      )
+    .then(() => {
+      projectStore.activeProject.is_closed = !projectStore.activeProject.is_closed;
+    })
+    .catch((error) => {
+      console.error(error);
+      notificationStore.addNotification("Error closing project", error, "error", false);
     });
   modals.setModalVisibility('popUpModal', false);
   menu.hideContextMenu();
-
 };
 
-// onMounted hook
+// Trims the project by clearing cached data and working files.
+const trimProject = async () => {
+  let project = projectStore.getActiveProject;
+  
+  try {
+    await ProjectService.TrimProject(project.uri);
+    await FSService.DeleteFolder(project.working_directory);
+    projectStore.refreshProjects();
+    
+    if (projectStore.activeProject.id == project.id) {
+      trayStates.$reset();
+    }
+    
+    notificationStore.addNotification("Project Trimmed", "Cached data and working files have been cleared.", "success", false);
+  } catch (error) {
+    console.error(error.message || error);
+    notificationStore.addNotification("Error Trimming Project", error.message || "An error occurred", "error", false);
+  } finally {
+    modals.disableAllModals();
+  }
+};
+
+// Unpins the current project.
+const unpinProject = async () => {
+  menu.hideContextMenu();
+  const studioName = projectStore.getSelectedStudioName;
+  const projectId = projectStore.getActiveProject.id;
+  await SettingsService.UnpinProject(studioName, projectId);
+  projectStore.pinnedProjects = projectStore.pinnedProjects.filter((item) => item !== projectId);
+};
+
+// lifecycle hooks
 onMounted(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.collectionMenu = collectionMenu.value;
@@ -341,7 +357,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.assetMenuHeight = collectionMenu.value.getBoundingClientRect().height;
-
 });
 </script>
 
@@ -349,40 +364,11 @@ onBeforeUnmount(() => {
 @import "@/assets/desktop.css";
 @import "@/assets/menu.css";
 
-.horizontal-flex{
+.horizontal-flex {
   padding: 0;
 }
-
-.entity-item-menu-container {
-  z-index: 10;
-  display: flex;
-  /* opacity: 0;
-  visibility : hidden;
-  position: absolute; */
-  top: 0;
-  left: 0;
-  flex-direction: column;
-  color: white;
-  align-items: center;
-  gap: .3rem;
-  padding: .6rem;
-  box-sizing: border-box;
-  width: max-content;
-  width: 250px;
-  height: max-content;
-  border-radius: 16px;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--light-steel);
-
-}
-
-.entity-item-menu-visible {
-  /* display: flex; */
-  opacity: 1;
-  visibility: visible;
-}
 </style>
+
 
 
 

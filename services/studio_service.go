@@ -59,6 +59,15 @@ func (s *StudioService) GetStudioStatus(studioUrl string) (string, error) {
 	return status, nil
 }
 
+// Gets the version of a studio server
+func (s *StudioService) GetServerVersion(studioUrl string) (string, error) {
+	version, err := studio_service.GetServerVersion(studioUrl)
+	if err != nil {
+		return "", err
+	}
+	return version, nil
+}
+
 // Registers a new studio with name and URL
 func (s *StudioService) RegisterStudio(name, studioUrl string) (interface{}, error) {
 	result, err := studio_service.RegisterStudio(name, studioUrl)
@@ -84,6 +93,16 @@ func (s *StudioService) VerifyDeploymentCode(code string) (bool, string, error) 
 		return false, "", err
 	}
 	return valid, message, nil
+}
+
+// Races the primary and alternative studio URLs, returning whichever responds first.
+// Falls back to the primary URL if no alternative is set.
+func (s *StudioService) ResolveStudioUrl(url, altUrl string) (string, error) {
+	resolvedUrl, err := studio_service.ResolveStudioUrl(url, altUrl)
+	if err != nil {
+		return resolvedUrl, err
+	}
+	return resolvedUrl, nil
 }
 
 // Checks if a studio name is already registered

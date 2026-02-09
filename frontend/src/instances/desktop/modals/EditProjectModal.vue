@@ -2,15 +2,15 @@
 
   <div class="modal-container" v-esc="closeModal" v-return="handleEnterKey">
     <div class="general-pane-header">
-      <HeaderArea v-if="isCustomIcon" :title="title" :customIcon="projectIcon" />
-      <HeaderArea v-else :title="title" :emoji="projectIcon" />
+      <HeaderArea :notModal="true" v-if="isCustomIcon" :title="title" :customIcon="projectIcon" />
+      <HeaderArea :notModal="true" v-else :title="title" :emoji="projectIcon" />
       <ActionButton v-if="displayEmojiSelector"  :icon="getAppIcon('arrow-left')" :showLabel="false" v-tooltip="'Back to details'"
         :buttonFunction="toggleEmojiSelector" />
       <ActionButton v-else  :icon="getAppIcon('face-plus')" :showLabel="false" v-tooltip="'Set project Icon'"
         :buttonFunction="toggleEmojiSelector" />
       <ActionButton v-if="isPreviewChanged" :icon="getAppIcon('revert')" :showLabel="false"
         v-tooltip="'Revert Cover Image'" :buttonFunction="revertCoverImage" />
-      <ActionButton v-if="projectPreview && !displayEmojiSelector" :icon="getAppIcon('trash')" :showLabel="false"
+      <ActionButton v-if="projectPreview && !displayEmojiSelector" :icon="getAppIcon('image-cancel')" :showLabel="false"
         v-tooltip="'Remove Cover Image'" :buttonFunction="removeCoverImage" />
       <ActionButton v-if="!projectPreview" :icon="getAppIcon('image-plus')" :showLabel="false" v-tooltip="'Add Cover Image'"
         :buttonFunction="addCoverImage" />
@@ -56,266 +56,224 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
 // imports
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { DialogService, ProjectService } from '@/../bindings/clustta/services/index';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import utils from '@/services/utils';
 
-// store imports
-import { useUserStore } from '@/stores/users';
+// components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import EmojiPicker from '@/instances/desktop/components/EmojiPicker.vue';
+import GeneralButton from '@/instances/common/components/GeneralButton.vue';
+import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+
+// services
+import { DialogService, ProjectService } from '@/services';
+
+// stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 
-// components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import EmojiPicker from '@/instances/desktop/components/EmojiPicker.vue'
-
-// states
-const projectStore = useProjectStore();
+const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-
-// vars
-let title = 'Project Details';
+const projectStore = useProjectStore();
 
 // refs
-const projectName = ref('');
-const oldProjectName = ref('');
-const projectIcon = ref('');
-const oldProjectIcon = ref('');
-const projectsDirectory = ref('');
-const projectsDirectoryInput = ref(null);
-const isAwaitingResponse = ref(false);
-
-const fileIsSelected = ref(false);
-const projectPreview = ref('');
-const oldProjectPreview = ref('');
-const coverImageName = ref('');
-const coverImageFullName = ref('');
-const coverImagePath = ref("");
-
+const coverImagePath = ref('');
 const displayEmojiSelector = ref(false);
-
-const toggleEmojiSelector = () => {
-  displayEmojiSelector.value = !displayEmojiSelector.value
-};
-
+const fileIsSelected = ref(false);
+const iconType = ref('emoji');
+const isAwaitingResponse = ref(false);
+const oldProjectIcon = ref('');
+const oldProjectName = ref('');
+const oldProjectPreview = ref('');
+const projectIcon = ref('');
+const projectName = ref('');
+const projectPreview = ref('');
+const projectsDirectory = ref('');
 const selectedEmoji = ref('');
 
+// constants
+const title = 'Project Details';
+
+// computed
+// Returns whether the project icon is a custom image.
+const isCustomIcon = computed(() => projectIcon.value.length > 10);
+
+// Returns whether the project name has changed.
+const isNameChanged = computed(() => {
+  const restrictedEntries = [oldProjectName.value, ''];
+  return !restrictedEntries.includes(projectName.value);
+});
+
+// Returns whether the preview image has changed.
+const isPreviewChanged = computed(() => {
+  return oldProjectPreview.value !== projectPreview.value;
+});
+
+// Returns whether the project icon has changed.
+const isProjectIconChanged = computed(() => {
+  return oldProjectIcon.value !== projectIcon.value;
+});
+
+// Returns whether any form values have changed.
+const isValueChanged = computed(() => {
+  const restrictedEntries = [oldProjectName.value, ''];
+  return !restrictedEntries.includes(projectName.value) || isPreviewChanged.value || isProjectIconChanged.value;
+});
+
+// methods
+// Opens a dialog to select a cover image.
+const addCoverImage = async () => {
+  const result = await DialogService.SelectFileDialog('Select Image File', '*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp');
+  if (result) {
+    const filePath = result.replace(/\\/g, '/');
+    const fileName = filePath.split('/').pop();
+    projectPreview.value = await utils.base64FromFile(filePath);
+    coverImagePath.value = filePath;
+    fileIsSelected.value = true;
+  }
+};
+
+// Changes the icon type between emoji and upload.
+const changeIconType = (type) => {
+  iconType.value = type;
+};
+
+// Closes the modal.
+const closeModal = () => {
+  modals.disableAllModals();
+};
+
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Handles emoji selection from picker.
 const handleEmojiSelect = (emojiData) => {
   selectedEmoji.value = emojiData;
   projectIcon.value = selectedEmoji.value.entity;
   displayEmojiSelector.value = false;
 };
 
-const iconType = ref("emoji")
-
-const changeIconType = (type) => {
-  iconType.value = type
-};
-
-// computed properties
-const isNameChanged = computed(() => {
-  const restrictedEntries = [oldProjectName.value, '']
-  return !restrictedEntries.includes(projectName.value);
-});
-const isPreviewChanged = computed(() => {
-  return oldProjectPreview.value !== projectPreview.value;
-});
-const isProjectIconChanged = computed(() => {
-  return oldProjectIcon.value !== projectIcon.value;
-});
-
-const isValueChanged = computed(() => {
-  const restrictedEntries = [oldProjectName.value, '']
-  return !restrictedEntries.includes(projectName.value) || isPreviewChanged.value || isProjectIconChanged.value
-});
-
-const selectDirectoryPath = async () => {
-
-  // if possible, this should open to the current project working directory
-
-  // const result = await open({
-  //   multiple: false,
-  //   directory: true
-  // });
-
-  if (result) {
-    let fileDir = result.replace(/\\/g, '/');
-    projectsDirectory.value = fileDir;
-    projectsDirectoryInput.value.focus();
-  }
-};
-
-const setCoverImage = () => {
-  coverImagePath.value = '';
-  coverImageFullName.value = '';
-  projectPreview.value = null;
-};
-
-const addCoverImage = async () => {
-  const result = await DialogService.SelectFileDialog("Select Image File", "*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp");
-  if (result) {
-    let filePath = result.replace(/\\/g, '/');
-    let fileName = filePath.split('/').pop();
-
-    projectPreview.value = await utils.base64FromFile(filePath);
-
-    coverImagePath.value = filePath;
-    coverImageFullName.value = fileName
-    if (!coverImageName.value) {
-      coverImageName.value = fileName.split('.').slice(0, -1).join('.');
-    }
-    fileIsSelected.value = true;
-  }
-};
-
-const removeCoverImage = () => {
-  projectPreview.value = '';
-};
-
-const revertCoverImage = () => {
-  projectPreview.value = oldProjectPreview.value;
-};
-
+// Handles enter key press to submit form.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter' && isValueChanged.value) {
     updateProject();
   }
 };
 
-const closeModal = (all) => {
-  modals.disableAllModals()
+// Removes the current cover image.
+const removeCoverImage = () => {
+  projectPreview.value = '';
 };
 
-
-const updateProject = async () => {
-
-  isAwaitingResponse.value = true;
-
-  if (isPreviewChanged.value) {
-    console.log('image changed');
-    await updateProjectCover();
-  }
-
-  if (isProjectIconChanged.value) {
-    console.log('icon changed');
-    await updateProjectIcon();
-  }
-
-  if (isNameChanged.value) {
-    console.log('meta changed');
-    await updateProjectMeta();
-  }
-
-  isAwaitingResponse.value = false;
-  closeModal();
-
-}
-
-// TODO rename project
-const updateProjectMeta = async () => {
-
-  if (projectStore.activeProject.has_remote) {
-    ProjectService.Rename(projectStore.getActiveProjectUrl, projectStore.selectedStudio.name, projectName.value)
-      .then((data) => {
-        projectStore.activeProject.name = projectName.value
-      }).catch(error => {
-        console.log(error)
-      })
-  } else {
-    ProjectService.Rename(projectStore.activeProject.uri, projectStore.selectedStudio.name, projectName.value)
-      .then((data) => {
-        projectStore.activeProject.name = projectName.value
-      }).catch(error => {
-        console.log(error)
-      })
-  }
-
-}
-
-const updateProjectCover = async () => {
-  await ProjectService.UpdatePreview(projectStore.activeProject.uri, coverImagePath.value).then(() => {
-    projectStore.refreshProjectPreview(projectStore.activeProject.id);
-  }).catch((error) => {
-    console.error(error)
-    notificationStore.addNotification(
-      "Error Updating Image",
-      error,
-      "error",
-      false
-    )
-  })
+// Reverts to the original cover image.
+const revertCoverImage = () => {
+  projectPreview.value = oldProjectPreview.value;
 };
 
-const isCustomIcon = computed(() => projectIcon.value.length > 10);
-
+// Opens a dialog to select a custom icon.
 const selectIcon = async () => {
-  // TODO this is broken
   const result = await DialogService.SelectIconDialog();
   if (result) {
-    const image = "data:image/png;base64," + result
-    projectIcon.value = image
+    const image = 'data:image/png;base64,' + result;
+    projectIcon.value = image;
   }
 };
 
-const updateProjectIcon = async () => {
+// Toggles the emoji selector visibility.
+const toggleEmojiSelector = () => {
+  displayEmojiSelector.value = !displayEmojiSelector.value;
+};
 
-  if (projectStore.activeProject.has_remote) {
-    await ProjectService.UpdateIcon(projectStore.getActiveProjectUrl, projectStore.selectedStudio.name, projectIcon.value).then(() => {
-      projectStore.activeProject.icon = projectIcon.value
-      const index = projectStore.projects.findIndex(project => project.id === projectStore.activeProject.id);
-      projectStore.projects[index].icon = projectIcon.value
-    }).catch((error) => {
-      console.error(error)
-      notificationStore.addNotification(
-        "Error Updating Icon",
-        error,
-        "error",
-        false
-      )
-    })
-  } else {
-    await ProjectService.UpdateIcon(projectStore.activeProject.uri, projectStore.selectedStudio.name, projectIcon.value).then(() => {
-      projectStore.activeProject.icon = projectIcon.value
-      const index = projectStore.projects.findIndex(project => project.id === projectStore.activeProject.id);
-      projectStore.projects[index].icon = projectIcon.value
-    }).catch((error) => {
-      console.error(error)
-      notificationStore.addNotification(
-        "Error Updating Icon",
-        error,
-        "error",
-        false
-      )
-    })
+// Updates the project with all changed values.
+const updateProject = async () => {
+  isAwaitingResponse.value = true;
+  if (isPreviewChanged.value) {
+    await updateProjectCover();
   }
-}
+  if (isProjectIconChanged.value) {
+    await updateProjectIcon();
+  }
+  if (isNameChanged.value) {
+    await updateProjectMeta();
+  }
+  isAwaitingResponse.value = false;
+  closeModal();
+};
 
+// Updates the project cover image.
+const updateProjectCover = async () => {
+  await ProjectService.UpdatePreview(projectStore.activeProject.uri, coverImagePath.value)
+    .then(() => {
+      projectStore.refreshProjectPreview(projectStore.activeProject.id);
+    })
+    .catch((error) => {
+      console.error(error);
+      notificationStore.addNotification('Error Updating Image', error, 'error', false);
+    });
+};
 
+// Updates the project icon.
+const updateProjectIcon = async () => {
+  if (projectStore.activeProject.has_remote) {
+    await ProjectService.UpdateIcon(projectStore.getActiveProjectUrl, projectStore.selectedStudio.name, projectIcon.value)
+      .then(() => {
+        projectStore.activeProject.icon = projectIcon.value;
+        const index = projectStore.projects.findIndex(project => project.id === projectStore.activeProject.id);
+        projectStore.projects[index].icon = projectIcon.value;
+      })
+      .catch((error) => {
+        console.error(error);
+        notificationStore.addNotification('Error Updating Icon', error, 'error', false);
+      });
+  } else {
+    await ProjectService.UpdateIcon(projectStore.activeProject.uri, projectStore.selectedStudio.name, projectIcon.value)
+      .then(() => {
+        projectStore.activeProject.icon = projectIcon.value;
+        const index = projectStore.projects.findIndex(project => project.id === projectStore.activeProject.id);
+        projectStore.projects[index].icon = projectIcon.value;
+      })
+      .catch((error) => {
+        console.error(error);
+        notificationStore.addNotification('Error Updating Icon', error, 'error', false);
+      });
+  }
+};
 
-// onMounted
+// Updates the project metadata (name).
+const updateProjectMeta = async () => {
+  if (projectStore.activeProject.has_remote) {
+    ProjectService.Rename(projectStore.getActiveProjectUrl, projectStore.selectedStudio.name, projectName.value)
+      .then(() => {
+        projectStore.activeProject.name = projectName.value;
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  } else {
+    ProjectService.Rename(projectStore.activeProject.uri, projectStore.selectedStudio.name, projectName.value)
+      .then(() => {
+        projectStore.activeProject.name = projectName.value;
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }
+};
+
+// lifecycle hooks
 onMounted(() => {
-  let project = projectStore.activeProject;
+  const project = projectStore.activeProject;
   projectsDirectory.value = project.working_directory;
-
   projectName.value = project.name;
   oldProjectName.value = project.name;
-
   projectIcon.value = project.icon;
   oldProjectIcon.value = project.icon;
-
   projectPreview.value = project.preview;
   oldProjectPreview.value = project.preview;
 });
@@ -323,8 +281,6 @@ onMounted(() => {
 onUnmounted(() => {
   projectPreview.value = null;
 });
-
-
 </script>
 
 
@@ -333,6 +289,17 @@ onUnmounted(() => {
 
 .general-container {
   gap: 1rem;
+}
+
+.general-pane-header{
+  box-sizing: border-box;
+  background-color: var(--midnight-steel);
+  border-radius: var(--small-radius);
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+  gap: .5rem;
+  padding: 0 1rem;
+  padding-left: 0px;
 }
 
 .input-short {

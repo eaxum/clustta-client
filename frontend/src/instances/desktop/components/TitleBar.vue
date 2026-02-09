@@ -4,20 +4,16 @@
 
     <div v-if="!titleOnly" class="titlebar-left" :class="{ 'titlebar-left-inactive': modalsActive }">
 
-      <div v-if="os !== 'darwin'" class="titlebar-icon" :class="{ 'is-disabled': progressRunning }">
-        <img src="/icons/clustta.png" alt="Clustta Icon" @click="displayAppInfo()" v-stop-propagation
-          v-tooltip="'About Clustta'">
-      </div>
+      <ClusttaLogo v-if="os !== 'darwin'" :boldText="true" :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="'About Clustta'" :class="{ 'is-disabled': progressRunning }" />
 
-      <div ref="studioTabsParent" class="studio-tabs-parent" v-if="userStore.user && projectStore.selectedStudio" 
+      <div ref="studioTabsParent" class="studio-tabs-parent" v-if="userStore.user && projectStore.selectedStudio && !accountStore.isOfflineMode" 
       :class="{ 'is-disabled': progressRunning, 'mac-os': !isMacFullscreen && os === 'darwin' }">
         <div class="studio-tabs-container" @click="toggleStudioList()" v-stop-propagation>
           <span class="studio-tabs">
-            <img v-if="projectStore.selectedStudio?.name == 'Personal'" class="large-icons"
-              :src="getAppIcon('two-drives')">
-            <img v-else-if="projectStore.selectedStudio" class="large-icons"
-              :src="projectStore.useAltUrl ? getAppIcon('two-drives') : getAppIcon('website')">
-            <div>{{ utils.capitalizeStr(projectStore.getSelectedStudioName) }} </div>
+            <div class="studio-name-with-status">
+              <span class="online-indicator" :class="studioStore.appOnline ? 'online' : 'offline'" v-tooltip="studioStore.appOnline ? 'Connected' : 'Offline'"></span>
+              {{ utils.capitalizeStr(projectStore.getSelectedStudioName) }}
+            </div>
             <img  class="small-icons chevron" :src="getAppIcon('chevron-down')">
 
             <div v-if="displayStudioList" class="studio-list-container" :style="{ left: parentLocation?.left + 'px', top: parentLocation?.top + parentLocation?.height + 'px' }">
@@ -36,11 +32,8 @@
 
           </span>
         </div>
-        <ToggleSwitch :online="true" v-if="projectStore.selectedStudio?.alt_url"
-          v-tooltip="projectStore.useAltUrl ? 'On Prem' : 'Remote'" :switchValueProp="!projectStore.useAltUrl"
-          @click="toggleStudioRoute()" />
 
-          <ActionButton v-if="userStore.userCanCreateProject && projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('cog')" v-tooltip="'Studio Settings'" :buttonFunction="studioSettings" />
+          <ActionButton v-if="userStore.userCanCreateProject && projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('stall-cog')" v-tooltip="'Studio Settings'" :buttonFunction="studioSettings" />
           <ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Reload Studio'" :buttonFunction="reloadStudio" />
       </div>
 
@@ -56,13 +49,23 @@
       </div>
     </div>
 
-
-    <div v-if="os === 'darwin'" class="titlebar-icon" :class="{ 'is-disabled': progressRunning }">
-        <img src="/icons/clustta.png" alt="Clustta Icon" @click="displayAppInfo()" v-stop-propagation
-          v-tooltip="'About Clustta'">
+    <div v-else-if="!isAuthPage" style="--wails-draggable:drag"
+      class="project-name-container">
+      <div class="project-name-text">
+        Clustta
       </div>
+    </div>
 
-    <div v-else class="titlebar-buttons">
+
+    <ClusttaLogo v-if="os === 'darwin'" :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="'About Clustta'" :class="{ 'is-disabled': progressRunning }" />
+
+    <!-- Web mode auth buttons (only when not logged in) -->
+    <div v-else-if="platformStore.isWeb && !userStore.isUserAuthenticated" class="titlebar-auth-buttons">
+      <ActionButton :icon="getAppIcon('launch')" :label="'Sign Up'" color="var(--grape)" forceIconColor="light" :buttonFunction="goToSignUp" v-tooltip="isWideScreen ? '' : 'Sign Up'" />
+      <ActionButton :icon="getAppIcon('login')" :label="isWideScreen ? 'Login' : ''" :useOutline="true" :buttonFunction="goToLogin" v-tooltip="isWideScreen ? '' : 'Login'" />
+    </div>
+
+    <div v-else-if="!platformStore.isWeb" class="titlebar-buttons">
       <!-- <ToggleSwitch :switchValueProp="themeStore.isDarkMode" @click="toggleTheme()" />
       <CheckBox v-model="themeStore.isDarkMode" @change="toggleTheme()" /> -->
 
@@ -90,7 +93,6 @@
 
       <div v-for="(studio, index) in studioList" :key="index" class="studio-instance" @click="selectStudio(studio)">
         <div class="studio-instance-meta">
-          <img class="large-icons" :src="studio.name === 'Personal' ? getAppIcon('two-drives') : getAppIcon('website')">
           <div>{{ studio.name }}</div>
         </div>
       </div>
@@ -111,7 +113,8 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue';
-import { AppService, SettingsService } from '@/../bindings/clustta/services/index';
+import { useRoute, useRouter } from 'vue-router';
+import { AppService, SettingsService } from '@/services';
 import { Window, Events } from "@wailsio/runtime";
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
@@ -129,7 +132,10 @@ import { useCollectionStore } from '@/stores/collections';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import CheckBox from '@/instances/common/components/CheckBox.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import { useStudioStore } from '@/stores/studio';
+import { usePlatformStore } from '@/stores/platform';
+import { useAccountStore } from '@/stores/accounts';
 
 const stage = useStageStore();
 const userStore = useUserStore();
@@ -141,16 +147,37 @@ const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
 const themeStore = useThemeStore();
 const collectionStore = useCollectionStore();
+const platformStore = usePlatformStore();
+const accountStore = useAccountStore();
+const route = useRoute();
+const router = useRouter();
+
+const goToLogin = () => {
+  router.push('/auth/login');
+};
+
+const goToSignUp = () => {
+  router.push('/auth/signup');
+};
 
 const os = ref('');
 const studioTabsParent = ref(null);
+const screenWidth = ref(window.innerWidth);
+
+// Responsive breakpoints
+const isWideScreen = computed(() => screenWidth.value >= 400);
+
+const updateScreenWidth = () => {
+  screenWidth.value = window.innerWidth;
+};
 
 const parentLocation = computed(() => {
   if(!studioTabsParent.value) return
   return studioTabsParent.value.getBoundingClientRect()
 });
 
-const restrictedTitles = ref(['projects', 'studioSettings' ])
+const isAuthPage = computed(() => route.path.startsWith('/auth'));
+const restrictedTitles = ref(['projects', 'settings' ])
 
 const isMacFullscreen = ref(false);
 
@@ -226,12 +253,6 @@ const modalsActive = computed(() => {
 const toggleStudioList = () => {
   // if (!studioList.value.length) return;
   displayStudioList.value = !displayStudioList.value;
-};
-
-const toggleStudioRoute = () => {
-  SettingsService.SetUseAltUrl(!projectStore.useAltUrl).then(() => {
-    projectStore.useAltUrl = !projectStore.useAltUrl;
-  })
 };
 
 const toggleTheme = () => {
@@ -343,20 +364,21 @@ function toggleMaximize() {
 }
 
 const frontendReady = async () => {
-  let eventData = new Events.WailsEvent("frontend-ready", true);
-  Events.Emit(eventData);
+  Events.Emit("frontend-ready", true);
 };
 
 onMounted( async () => {
   os.value = await AppService.GetOS();
   frontendReady();
   document.addEventListener('click', handleClickOutside);
+  window.addEventListener('resize', updateScreenWidth);
 
 	emitter.on('window-fullscreen', toggleFullscreen);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside);
+  window.removeEventListener('resize', updateScreenWidth);
 	emitter.off('window-unfullscreen', toggleFullscreen);
 
 });
@@ -373,7 +395,7 @@ onBeforeUnmount(() => {
   right: 100%;
   bottom: 0;
   left: 0;
-  background: linear-gradient(to right, transparent, rgb(31, 163, 60), transparent);
+  background: linear-gradient(to right, transparent, #643193, transparent);
   width: 0;
   animation: borealisBar 1.2s linear infinite;
   z-index: 1;
@@ -475,7 +497,8 @@ onBeforeUnmount(() => {
 
 .menu-divider{
 	height: 5px;
-	margin-top: 10px;
+	margin-top: 5px;
+	margin-bottom: 5px;
 }
 
 .studio-list-container {
@@ -489,7 +512,7 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   justify-content: center;
   gap: 1rem;
-  border-radius: var(--small-radius);
+  border-radius: var(--large-radius);
   color: var(--white);
 
   overflow: hidden;
@@ -499,7 +522,7 @@ onBeforeUnmount(() => {
 
   /* background-color: hotpink; */
   
-  border-radius: var(--normal-radius);
+  border-radius: var(--very-large-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
   backdrop-filter: blur(35px);
@@ -516,7 +539,7 @@ onBeforeUnmount(() => {
 }
 
 .studio-list-container::-webkit-scrollbar-track {
-  margin: 10px;
+  margin: 20px;
   border-radius: 10px;
 }
 
@@ -592,17 +615,17 @@ onBeforeUnmount(() => {
   background-color: transparent;
   color: var(--white);
   position: relative;
-  border-radius: var(--small-radius);
+  border-radius: var(--large-radius);
   box-sizing: border-box;
   cursor: pointer;
   display: flex;
   gap: 5px;
   align-items: center;
   padding: .1rem;
-  height: max-content;
+  height: 20px;
   width: max-content;
   min-width: max-content;
-  min-height: max-content;
+  min-height: 35px;
   transition: all 0..1s ease;
   justify-content: space-between;
   width: 100%;
@@ -637,7 +660,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100px;
   height: 40px;
-  padding: .2rem 1rem;
+  padding: .2rem .5rem;
   gap: 10px;
 }
 
@@ -661,7 +684,7 @@ onBeforeUnmount(() => {
   width: 100%;
   justify-content: space-between;
   align-items: center;
-  height: 46px;
+  min-height: 46px;
   color: var(--white);
   overflow: hidden;
   border-bottom: var(--transparent-line);
@@ -785,5 +808,37 @@ onBeforeUnmount(() => {
   width: 18px;
   height: 18px;
 }
+
+/* Web mode auth buttons */
+.titlebar-auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-right: 1rem;
+  height: 100%;
+}
+
+.studio-name-with-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.online-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background-color 0.3s ease;
+}
+
+.online-indicator.online {
+  background-color: #22c55e;
+}
+
+.online-indicator.offline {
+  background-color: #f59e0b;
+}
 </style>
+
 

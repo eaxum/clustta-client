@@ -19,7 +19,7 @@ import { useStatusStore } from '@/stores/status';
 import { useUserStore } from '@/stores/users';
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
-import { AssetService } from "@/../bindings/clustta/services";
+import { AssetService } from "@/services";
 import emitter from '@/lib/mitt';
 
 const stage = useStageStore();

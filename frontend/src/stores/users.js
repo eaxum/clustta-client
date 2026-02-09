@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { UserService } from "@/../bindings/clustta/services";
+import { UserService } from "@/services";
 import { useProjectStore } from "./projects";
 
 export const useUserStore = defineStore("users", {
@@ -12,6 +12,10 @@ export const useUserStore = defineStore("users", {
     userCanCreateProject: false,
     selectedUser: null,
     selectedRole: null,
+    pendingVerification: {
+      email: '',
+      password: ''
+    },
   }),
   getters: {
     getProjectCollaborators: (state) => {
@@ -56,6 +60,7 @@ export const useUserStore = defineStore("users", {
       this.selectedUser = user;
     },
     userProfileColor(uuid) {
+      if (!uuid) return '#cccccc'; // Default gray color for undefined/null
       const parts = uuid.split("-");
       const hexCode = parts[0];
       const rgbHex = hexCode.length > 6 ? hexCode.substring(0, 6) : hexCode;
@@ -79,6 +84,8 @@ export const useUserStore = defineStore("users", {
     },
     async reloadUsers() {
       const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri) return;
+      
       let user = this.user;
       this.users = await UserService.GetUsers(projectStore.activeProject?.uri);
       for (let i = 0; i < this.users.length; i++) {
@@ -86,7 +93,9 @@ export const useUserStore = defineStore("users", {
           this.users[i].photo = "data:image/png;base64," + this.users[i].photo;
         }
       }
-      this.user = this.getUserData(user.id);
+      if (user?.id) {
+        this.user = this.getUserData(user.id);
+      }
       let roles = await UserService.GetRoles(projectStore.activeProject.uri);
       this.roles = roles;
       this.rebuildUsersIndex();
@@ -97,6 +106,14 @@ export const useUserStore = defineStore("users", {
         userIndex[this.users[i].id] = i;
       }
       this.users_index = userIndex;
+    },
+    // Set pending verification data
+    setPendingVerification(email, password) {
+      this.pendingVerification = { email, password };
+    },
+    // Clear pending verification data
+    clearPendingVerification() {
+      this.pendingVerification = { email: '', password: '' };
     },
   },
 });
