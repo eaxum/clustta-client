@@ -4,58 +4,67 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
+import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 /**
  * SelectFileDialog opens a file dialog with custom title and filters.
  * Returns the selected file path or an empty string if cancelled.
  * @param {string} title
  * @param {string} filters
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function SelectFileDialog(title, filters) {
-    return $Call.ByID(3383516309, title, filters);
+    let $resultPromise = /** @type {any} */($Call.ByID(3383516309, title, filters));
+    return $resultPromise;
 }
 
 /**
  * SelectFilesDialog opens a file dialog to select multiple files.
  * Returns the selected file paths or an empty list if cancelled.
- * @returns {$CancellablePromise<string[]>}
+ * @returns {Promise<string[]> & { cancel(): void }}
  */
 export function SelectFilesDialog() {
-    return $Call.ByID(614873094).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(614873094));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType0($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * SelectFolderDialog opens a folder selection dialog with a custom title.
  * Returns the selected folder path or an empty string if cancelled.
  * @param {string} title
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function SelectFolderDialog(title) {
-    return $Call.ByID(1248956583, title);
+    let $resultPromise = /** @type {any} */($Call.ByID(1248956583, title));
+    return $resultPromise;
 }
 
 /**
  * SelectIconDialog opens a file dialog to select an icon image.
  * Returns the base64-encoded resized icon or an error.
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function SelectIconDialog() {
-    return $Call.ByID(1084525214);
+    let $resultPromise = /** @type {any} */($Call.ByID(1084525214));
+    return $resultPromise;
 }
 
 /**
  * SelectItemsDialog opens a dialog to select multiple files or directories.
  * Returns the selected paths or an empty list if cancelled.
- * @returns {$CancellablePromise<string[]>}
+ * @returns {Promise<string[]> & { cancel(): void }}
  */
 export function SelectItemsDialog() {
-    return $Call.ByID(2162344469).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(2162344469));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType0($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -63,10 +72,11 @@ export function SelectItemsDialog() {
  * Returns the selected folder path or an error.
  * @param {string} title
  * @param {string} defaultPath
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function SelectSpecificFolderDialog(title, defaultPath) {
-    return $Call.ByID(4244729795, title, defaultPath);
+    let $resultPromise = /** @type {any} */($Call.ByID(4244729795, title, defaultPath));
+    return $resultPromise;
 }
 
 // Private type creation functions

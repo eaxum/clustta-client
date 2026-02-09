@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
+import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -22,20 +22,24 @@ import * as models$0 from "../internal/repository/models/models.js";
  * @param {string} previewPath
  * @param {string} groupId
  * @param {boolean} useAsThumbnail
- * @returns {$CancellablePromise<models$0.Checkpoint[]>}
+ * @returns {Promise<models$0.Checkpoint[]> & { cancel(): void }}
  */
 export function AddCheckpoint(projectPath, taskPaths, message, previewPath, groupId, useAsThumbnail) {
-    return $Call.ByID(3142003966, projectPath, taskPaths, message, previewPath, groupId, useAsThumbnail).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(3142003966, projectPath, taskPaths, message, previewPath, groupId, useAsThumbnail));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * @param {string} projectPath
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function AddMissingGroupIds(projectPath) {
-    return $Call.ByID(2914642103, projectPath);
+    let $resultPromise = /** @type {any} */($Call.ByID(2914642103, projectPath));
+    return $resultPromise;
 }
 
 /**
@@ -49,12 +53,15 @@ export function AddMissingGroupIds(projectPath) {
  * @param {string} message
  * @param {string} previewPath
  * @param {string} groupId
- * @returns {$CancellablePromise<models$0.Task[]>}
+ * @returns {Promise<models$0.Task[]> & { cancel(): void }}
  */
 export function AddUntrackedTask(projectPath, projectWorkingDir, taskPaths, completed, totalTasks, message, previewPath, groupId) {
-    return $Call.ByID(2633046258, projectPath, projectWorkingDir, taskPaths, completed, totalTasks, message, previewPath, groupId).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(2633046258, projectPath, projectWorkingDir, taskPaths, completed, totalTasks, message, previewPath, groupId));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType2($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -62,10 +69,11 @@ export function AddUntrackedTask(projectPath, projectWorkingDir, taskPaths, comp
  * Returns an error if the deletion fails.
  * @param {string} projectPath
  * @param {string} checkpointId
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function DeleteCheckpoint(projectPath, checkpointId) {
-    return $Call.ByID(4189987792, projectPath, checkpointId);
+    let $resultPromise = /** @type {any} */($Call.ByID(4189987792, projectPath, checkpointId));
+    return $resultPromise;
 }
 
 /**
@@ -73,12 +81,15 @@ export function DeleteCheckpoint(projectPath, checkpointId) {
  * Returns the list of checkpoints or an error if the operation fails.
  * @param {string} projectPath
  * @param {string} taskId
- * @returns {$CancellablePromise<models$0.Checkpoint[]>}
+ * @returns {Promise<models$0.Checkpoint[]> & { cancel(): void }}
  */
 export function GetCheckpoints(projectPath, taskId) {
-    return $Call.ByID(4053110126, projectPath, taskId).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(4053110126, projectPath, taskId));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -86,24 +97,30 @@ export function GetCheckpoints(projectPath, taskId) {
  * Returns the latest checkpoint or an error if not found.
  * @param {string} projectPath
  * @param {string} taskId
- * @returns {$CancellablePromise<models$0.Checkpoint>}
+ * @returns {Promise<models$0.Checkpoint> & { cancel(): void }}
  */
 export function GetLatestCheckpoint(projectPath, taskId) {
-    return $Call.ByID(1994898182, projectPath, taskId).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(1994898182, projectPath, taskId));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType0($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * GetTimeline retrieves the project timeline showing checkpoint history.
  * Returns the timeline data or an error if the operation fails.
  * @param {string} projectPath
- * @returns {$CancellablePromise<repository$0.CompatTimeline[]>}
+ * @returns {Promise<repository$0.CompatTimeline[]> & { cancel(): void }}
  */
 export function GetTimeline(projectPath) {
-    return $Call.ByID(3258604816, projectPath).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(3258604816, projectPath));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType4($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -112,20 +129,22 @@ export function GetTimeline(projectPath) {
  * @param {string} projectPath
  * @param {string} remoteUrl
  * @param {string[]} taskIds
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function Revert(projectPath, remoteUrl, taskIds) {
-    return $Call.ByID(3999685591, projectPath, remoteUrl, taskIds);
+    let $resultPromise = /** @type {any} */($Call.ByID(3999685591, projectPath, remoteUrl, taskIds));
+    return $resultPromise;
 }
 
 /**
  * @param {string} projectPath
  * @param {string} remoteUrl
  * @param {string} checkpointTime
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function RevertProject(projectPath, remoteUrl, checkpointTime) {
-    return $Call.ByID(3684843780, projectPath, remoteUrl, checkpointTime);
+    let $resultPromise = /** @type {any} */($Call.ByID(3684843780, projectPath, remoteUrl, checkpointTime));
+    return $resultPromise;
 }
 
 /**
@@ -134,10 +153,11 @@ export function RevertProject(projectPath, remoteUrl, checkpointTime) {
  * @param {string} projectPath
  * @param {string} remoteUrl
  * @param {string[]} taskPaths
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function RevertTaskPaths(projectPath, remoteUrl, taskPaths) {
-    return $Call.ByID(1735214066, projectPath, remoteUrl, taskPaths);
+    let $resultPromise = /** @type {any} */($Call.ByID(1735214066, projectPath, remoteUrl, taskPaths));
+    return $resultPromise;
 }
 
 /**
@@ -147,10 +167,11 @@ export function RevertTaskPaths(projectPath, remoteUrl, taskPaths) {
  * @param {string} remoteUrl
  * @param {string} taskId
  * @param {string} checkpointId
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function RevertToCheckpoint(projectPath, remoteUrl, taskId, checkpointId) {
-    return $Call.ByID(1668596852, projectPath, remoteUrl, taskId, checkpointId);
+    let $resultPromise = /** @type {any} */($Call.ByID(1668596852, projectPath, remoteUrl, taskId, checkpointId));
+    return $resultPromise;
 }
 
 /**
@@ -160,10 +181,11 @@ export function RevertToCheckpoint(projectPath, remoteUrl, taskId, checkpointId)
  * @param {string} checkpointId
  * @param {string} entityName
  * @param {string} extension
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function ViewCheckpoint(projectPath, checkpointId, entityName, extension) {
-    return $Call.ByID(674726738, projectPath, checkpointId, entityName, extension);
+    let $resultPromise = /** @type {any} */($Call.ByID(674726738, projectPath, checkpointId, entityName, extension));
+    return $resultPromise;
 }
 
 // Private type creation functions

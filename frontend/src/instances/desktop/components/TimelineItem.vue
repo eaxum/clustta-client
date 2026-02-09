@@ -247,7 +247,7 @@ onMounted(() => {
     width: 100%;
     border-radius: 10px;
     overflow: hidden;
-    height: 60px;
+    min-height: 60px;
     min-height: max-content;
     border-radius: var(--large-radius);
     outline: var(--transparent-line);

@@ -34,7 +34,7 @@
         </div>
 
           <ActionButton v-if="userStore.userCanCreateProject && projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('stall-cog')" v-tooltip="'Studio Settings'" :buttonFunction="studioSettings" />
-          <ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Reload Studio'" :buttonFunction="reloadStudio" />
+          <ActionButton v-if="projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('refresh')" v-tooltip="'Reload Studio'" :buttonFunction="reloadStudio" />
       </div>
 
     </div>

@@ -283,7 +283,7 @@ func main() {
 				FullSizeContent:      true,
 				UseToolbar:           true,
 				HideToolbarSeparator: false,
-				ToolbarStyle:         application.MacToolbarStyleAutomatic,
+				ToolbarStyle:         application.MacToolbarStyleUnifiedCompact,
 			},
 		},
 		Windows: application.WindowsWindow{

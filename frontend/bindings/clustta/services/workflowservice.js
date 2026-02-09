@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
+import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -17,10 +17,11 @@ import * as models$0 from "../internal/repository/models/models.js";
  * @param {string} name
  * @param {string} entityTypeId
  * @param {string} parentId
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function AddWorkflow(projectPath, workflow_id, name, entityTypeId, parentId) {
-    return $Call.ByID(4015215456, projectPath, workflow_id, name, entityTypeId, parentId);
+    let $resultPromise = /** @type {any} */($Call.ByID(4015215456, projectPath, workflow_id, name, entityTypeId, parentId));
+    return $resultPromise;
 }
 
 /**
@@ -30,23 +31,29 @@ export function AddWorkflow(projectPath, workflow_id, name, entityTypeId, parent
  * @param {models$0.WorkflowTask[]} workflowTasks
  * @param {models$0.WorkflowEntity[]} workflowEntities
  * @param {models$0.WorkflowLink[]} workflowLinks
- * @returns {$CancellablePromise<models$0.Workflow>}
+ * @returns {Promise<models$0.Workflow> & { cancel(): void }}
  */
 export function CreateWorkflow(projectPath, name, workflowTasks, workflowEntities, workflowLinks) {
-    return $Call.ByID(4183453851, projectPath, name, workflowTasks, workflowEntities, workflowLinks).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(4183453851, projectPath, name, workflowTasks, workflowEntities, workflowLinks));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType0($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * Retrieves all workflows from the project database
  * @param {string} projectPath
- * @returns {$CancellablePromise<models$0.Workflow[]>}
+ * @returns {Promise<models$0.Workflow[]> & { cancel(): void }}
  */
 export function GetWorkflows(projectPath) {
-    return $Call.ByID(1218687912, projectPath).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(1218687912, projectPath));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
@@ -57,12 +64,15 @@ export function GetWorkflows(projectPath) {
  * @param {models$0.WorkflowTask[]} workflowTasks
  * @param {models$0.WorkflowEntity[]} workflowEntities
  * @param {models$0.WorkflowLink[]} workflowLinks
- * @returns {$CancellablePromise<models$0.Workflow>}
+ * @returns {Promise<models$0.Workflow> & { cancel(): void }}
  */
 export function UpdateWorkflow(projectPath, workflowId, name, workflowTasks, workflowEntities, workflowLinks) {
-    return $Call.ByID(871693934, projectPath, workflowId, name, workflowTasks, workflowEntities, workflowLinks).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(871693934, projectPath, workflowId, name, workflowTasks, workflowEntities, workflowLinks));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType0($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 // Private type creation functions

@@ -2,15 +2,7 @@
 
   <div ref="modalContainer" class="modal-container" v-esc="closeModal" v-return="handleEnterKey" v-stop-propagation>
 
-    <div class="general-pane-header">
       <HeaderArea :title="title" :icon="getAppIcon(displayTypeCreator ? newTypeIcon : entityTypeIcon)" :showSearch="false" />
-      <ActionButton v-if="isPreviewChanged && !displayTypeCreator" :icon="getAppIcon('revert')" :showLabel="false"
-        v-tooltip="'Revert Cover Image'" :buttonFunction="revertCoverImage" />
-      <ActionButton v-if="entityPreview && !displayTypeCreator" :icon="getAppIcon('trash')" :showLabel="false" v-tooltip="'Remove Cover Image'"
-        :buttonFunction="removeCoverImage" />
-      <ActionButton v-if="!entityPreview && !displayTypeCreator" :icon="getAppIcon('image-plus')" :showLabel="false" v-tooltip="'Add Cover Image'"
-        :buttonFunction="addCoverImage" />
-    </div>
 
     <div class="general-container">
 

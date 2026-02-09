@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
+import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -14,34 +14,41 @@ import * as $models from "./models.js";
  * DeployStudio initiates a new studio deployment on Azure.
  * Returns the deployment response with ID and WebSocket URL, or an error if deployment fails.
  * @param {$models.DeploymentRequest} request
- * @returns {$CancellablePromise<$models.DeploymentResponse | null>}
+ * @returns {Promise<$models.DeploymentResponse | null> & { cancel(): void }}
  */
 export function DeployStudio(request) {
-    return $Call.ByID(1278471293, request).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(1278471293, request));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * DestroyDeployment tears down a studio deployment and releases Azure resources.
  * Returns an error if the destruction fails.
  * @param {string} deploymentID
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function DestroyDeployment(deploymentID) {
-    return $Call.ByID(1013268829, deploymentID);
+    let $resultPromise = /** @type {any} */($Call.ByID(1013268829, deploymentID));
+    return $resultPromise;
 }
 
 /**
  * GetDeploymentStatus retrieves the current status of a deployment.
  * Returns the deployment status details or an error if the request fails.
  * @param {string} deploymentID
- * @returns {$CancellablePromise<$models.DeploymentStatus | null>}
+ * @returns {Promise<$models.DeploymentStatus | null> & { cancel(): void }}
  */
 export function GetDeploymentStatus(deploymentID) {
-    return $Call.ByID(3266850961, deploymentID).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(3266850961, deploymentID));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType3($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 // Private type creation functions

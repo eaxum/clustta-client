@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Create as $Create } from "@wailsio/runtime";
+import {Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -374,6 +374,68 @@ export class ScreenManager {
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new ScreenManager(/** @type {Partial<ScreenManager>} */($$parsedSource));
+    }
+}
+
+/**
+ * ServiceOptions provides optional parameters for calls to [NewService].
+ */
+export class ServiceOptions {
+    /**
+     * Creates a new ServiceOptions instance.
+     * @param {Partial<ServiceOptions>} [$$source = {}] - The source object to create the ServiceOptions.
+     */
+    constructor($$source = {}) {
+        if (!("Name" in $$source)) {
+            /**
+             * Name can be set to override the name of the service
+             * for logging and debugging purposes.
+             * 
+             * If empty, it will default
+             * either to the value obtained through the [ServiceName] interface,
+             * or to the type name.
+             * @member
+             * @type {string}
+             */
+            this["Name"] = "";
+        }
+        if (!("Route" in $$source)) {
+            /**
+             * If the service instance implements [http.Handler],
+             * it will be mounted on the internal asset server
+             * at the prefix specified by Route.
+             * @member
+             * @type {string}
+             */
+            this["Route"] = "";
+        }
+        if (!("MarshalError" in $$source)) {
+            /**
+             * MarshalError will be called if non-nil
+             * to marshal to JSON the error values returned by this service's methods.
+             * 
+             * MarshalError is not allowed to fail,
+             * but it may return a nil slice to fall back
+             * to the globally configured error handler.
+             * 
+             * If the returned slice is not nil, it must contain valid JSON.
+             * @member
+             * @type {any}
+             */
+            this["MarshalError"] = null;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ServiceOptions instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ServiceOptions}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ServiceOptions(/** @type {Partial<ServiceOptions>} */($$parsedSource));
     }
 }
 

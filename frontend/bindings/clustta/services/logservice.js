@@ -4,59 +4,65 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
+import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 /**
  * Error logs an error message to the frontend debug console.
  * @param {string} message
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function Error(message) {
-    return $Call.ByID(2332005001, message);
+    let $resultPromise = /** @type {any} */($Call.ByID(2332005001, message));
+    return $resultPromise;
 }
 
 /**
  * Info logs an info message to the frontend debug console.
  * @param {string} message
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function Info(message) {
-    return $Call.ByID(2824625133, message);
+    let $resultPromise = /** @type {any} */($Call.ByID(2824625133, message));
+    return $resultPromise;
 }
 
 /**
  * Log logs a general message to the frontend debug console.
  * @param {string} message
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function Log(message) {
-    return $Call.ByID(685521433, message);
+    let $resultPromise = /** @type {any} */($Call.ByID(685521433, message));
+    return $resultPromise;
 }
 
 /**
  * LogError logs an error message to the application logger.
  * @param {string} message
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function LogError(message) {
-    return $Call.ByID(136930365, message);
+    let $resultPromise = /** @type {any} */($Call.ByID(136930365, message));
+    return $resultPromise;
 }
 
 /**
  * LogToConsole emits a log message to the frontend debug console.
  * @param {string} level
  * @param {string} message
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function LogToConsole(level, message) {
-    return $Call.ByID(1235090737, level, message);
+    let $resultPromise = /** @type {any} */($Call.ByID(1235090737, level, message));
+    return $resultPromise;
 }
 
 /**
  * Warn logs a warning message to the frontend debug console.
  * @param {string} message
- * @returns {$CancellablePromise<void>}
+ * @returns {Promise<void> & { cancel(): void }}
  */
 export function Warn(message) {
-    return $Call.ByID(1717344185, message);
+    let $resultPromise = /** @type {any} */($Call.ByID(1717344185, message));
+    return $resultPromise;
 }

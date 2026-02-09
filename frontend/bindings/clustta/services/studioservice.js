@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
+import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -15,10 +15,11 @@ import * as models$0 from "../internal/server/models/models.js";
  * @param {string} email
  * @param {string} studioId
  * @param {string} roleName
- * @returns {$CancellablePromise<any>}
+ * @returns {Promise<any> & { cancel(): void }}
  */
 export function AddCollaborator(email, studioId, roleName) {
-    return $Call.ByID(4189063428, email, studioId, roleName);
+    let $resultPromise = /** @type {any} */($Call.ByID(4189063428, email, studioId, roleName));
+    return $resultPromise;
 }
 
 /**
@@ -26,68 +27,77 @@ export function AddCollaborator(email, studioId, roleName) {
  * @param {string} userId
  * @param {string} studioId
  * @param {string} roleName
- * @returns {$CancellablePromise<any>}
+ * @returns {Promise<any> & { cancel(): void }}
  */
 export function ChangeCollaboratorRole(userId, studioId, roleName) {
-    return $Call.ByID(3078107829, userId, studioId, roleName);
+    let $resultPromise = /** @type {any} */($Call.ByID(3078107829, userId, studioId, roleName));
+    return $resultPromise;
 }
 
 /**
  * Checks if a studio name is already registered
  * @param {string} studioName
- * @returns {$CancellablePromise<boolean>}
+ * @returns {Promise<boolean> & { cancel(): void }}
  */
 export function CheckStudioNameExists(studioName) {
-    return $Call.ByID(3646898858, studioName);
+    let $resultPromise = /** @type {any} */($Call.ByID(3646898858, studioName));
+    return $resultPromise;
 }
 
 /**
  * Gets the version of a studio server
  * @param {string} studioUrl
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetServerVersion(studioUrl) {
-    return $Call.ByID(938039404, studioUrl);
+    let $resultPromise = /** @type {any} */($Call.ByID(938039404, studioUrl));
+    return $resultPromise;
 }
 
 /**
  * Checks if a studio server is online or offline by URL
  * @param {string} studioUrl
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function GetStudioStatus(studioUrl) {
-    return $Call.ByID(2383284123, studioUrl);
+    let $resultPromise = /** @type {any} */($Call.ByID(2383284123, studioUrl));
+    return $resultPromise;
 }
 
 /**
  * Fetches all users associated with a studio by studio ID
  * @param {string} studioId
- * @returns {$CancellablePromise<models$0.StudioUserInfo[]>}
+ * @returns {Promise<models$0.StudioUserInfo[]> & { cancel(): void }}
  */
 export function GetStudioUsers(studioId) {
-    return $Call.ByID(3707174447, studioId).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(3707174447, studioId));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 /**
  * Registers a new studio with name and URL
  * @param {string} name
  * @param {string} studioUrl
- * @returns {$CancellablePromise<any>}
+ * @returns {Promise<any> & { cancel(): void }}
  */
 export function RegisterStudio(name, studioUrl) {
-    return $Call.ByID(4200145426, name, studioUrl);
+    let $resultPromise = /** @type {any} */($Call.ByID(4200145426, name, studioUrl));
+    return $resultPromise;
 }
 
 /**
  * Removes a collaborator from a studio by user ID
  * @param {string} userId
  * @param {string} studioId
- * @returns {$CancellablePromise<any>}
+ * @returns {Promise<any> & { cancel(): void }}
  */
 export function RemoveCollaborator(userId, studioId) {
-    return $Call.ByID(3776272057, userId, studioId);
+    let $resultPromise = /** @type {any} */($Call.ByID(3776272057, userId, studioId));
+    return $resultPromise;
 }
 
 /**
@@ -95,10 +105,11 @@ export function RemoveCollaborator(userId, studioId) {
  * Falls back to the primary URL if no alternative is set.
  * @param {string} url
  * @param {string} altUrl
- * @returns {$CancellablePromise<string>}
+ * @returns {Promise<string> & { cancel(): void }}
  */
 export function ResolveStudioUrl(url, altUrl) {
-    return $Call.ByID(1512636046, url, altUrl);
+    let $resultPromise = /** @type {any} */($Call.ByID(1512636046, url, altUrl));
+    return $resultPromise;
 }
 
 /**
@@ -108,19 +119,21 @@ export function ResolveStudioUrl(url, altUrl) {
  * @param {string} altUrl
  * @param {string} port
  * @param {string} key
- * @returns {$CancellablePromise<any>}
+ * @returns {Promise<any> & { cancel(): void }}
  */
 export function UpdateStudio(studioName, url, altUrl, port, key) {
-    return $Call.ByID(3870164438, studioName, url, altUrl, port, key);
+    let $resultPromise = /** @type {any} */($Call.ByID(3870164438, studioName, url, altUrl, port, key));
+    return $resultPromise;
 }
 
 /**
  * Verifies a deployment code for studio access
  * @param {string} code
- * @returns {$CancellablePromise<[boolean, string]>}
+ * @returns {Promise<[boolean, string]> & { cancel(): void }}
  */
 export function VerifyDeploymentCode(code) {
-    return $Call.ByID(1004322302, code);
+    let $resultPromise = /** @type {any} */($Call.ByID(1004322302, code));
+    return $resultPromise;
 }
 
 // Private type creation functions

@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
+import {Call as $Call, Create as $Create} from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -14,12 +14,15 @@ import * as models$0 from "../internal/repository/models/models.js";
  * GetDependencyTypes retrieves all dependency types in the project.
  * Returns the list of dependency types or an error if the operation fails.
  * @param {string} projectPath
- * @returns {$CancellablePromise<models$0.DependencyType[]>}
+ * @returns {Promise<models$0.DependencyType[]> & { cancel(): void }}
  */
 export function GetDependencyTypes(projectPath) {
-    return $Call.ByID(2647661960, projectPath).then(/** @type {($result: any) => any} */(($result) => {
+    let $resultPromise = /** @type {any} */($Call.ByID(2647661960, projectPath));
+    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
         return $$createType1($result);
     }));
+    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
+    return $typingPromise;
 }
 
 // Private type creation functions
