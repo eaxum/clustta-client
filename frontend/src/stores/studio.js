@@ -226,6 +226,7 @@ export const useStudioStore = defineStore("studio", {
     // Checks if the current studio server is reachable and updates appOnline.
     async checkStudioReachability() {
       const projectStore = useProjectStore();
+      const notificationStore = useNotificationStore();
       const studio = projectStore.selectedStudio;
       if (!studio || studio.name === 'Personal') {
         this.appOnline = true;
@@ -233,9 +234,16 @@ export const useStudioStore = defineStore("studio", {
       }
       try {
         const status = await StudioService.GetStudioStatus(projectStore.studioUrl);
+        const wasOffline = !this.appOnline;
         this.appOnline = status === 'active';
+        if (this.appOnline && wasOffline) {
+          notificationStore.addNotification("Back Online", "Studio server is reachable again.", "success");
+        } else if (!this.appOnline) {
+          // notificationStore.addNotification("Server Unreachable", "Unable to reach studio server. Working offline.", "error");
+        }
       } catch {
         this.appOnline = false;
+        notificationStore.addNotification("Server Unreachable", "Unable to reach studio server. Working offline.", "error");
       }
     },
 

@@ -135,7 +135,7 @@ const operationsActive = computed(() => {
 // Periodically checks studio reachability when offline.
 // Retries every 5 minutes until the server is reachable again.
 function startConnectivityCheckInterval() {
-    const RETRY_INTERVAL = 5 * 60 * 1000; // 5 minutes
+    const RETRY_INTERVAL = 5 * 1000 * 60
 
     function run() {
         if (studioStore.appOnline) {
@@ -209,18 +209,9 @@ function startCheckSycnTokenInterval() {
 
     }
 
-    run(); // Start the loop
+    run();
 }
 
-function startUpdateFileStatesInterval() {
-    function run() {
-        updateFileStates().finally(() => {
-            setTimeout(run, 1000);
-        });
-    }
-
-    run(); // Start the loop
-}
 
 
 onMounted(async () => {
