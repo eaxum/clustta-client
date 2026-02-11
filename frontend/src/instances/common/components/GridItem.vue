@@ -39,6 +39,7 @@ const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
 
 // refs
+const loadingDelay = 250;
 const virtuaItemRef = ref(null);
 const virtuaChildrenRef = ref(null);
 const entityItemRef = ref(null);
@@ -120,41 +121,43 @@ const toggleEditMode = (value) => {
   isEditing.value = value;
 };
 
+// Loads the file status state for an asset.
 const loadAssetState = async () => {
-
   const task = props.child;
   
   if (task.type !== 'task' || task.is_link) return;
-  
-  loadingAssetState.value = true;
+
+  const loadingTimer = setTimeout(() => {
+    loadingAssetState.value = true;
+  }, loadingDelay);
   
   try {
-    const projectStore = useProjectStore();
     const fileStatus = await AssetService.GetAssetState(
       projectStore.activeProject.uri,
       task.id
     );
 
     props.child.file_status = fileStatus;
-
   } catch (error) {
     console.error(`Error loading asset state for ${task.id}:`, error);
     task.file_status = 'rebuildable';
   } finally {
+    clearTimeout(loadingTimer);
     loadingAssetState.value = false;
   }
 };
 
+// Loads the state flags for a collection.
 const loadCollectionState = async () => {
-
   const entity = props.child;
   
   if (entity.type !== 'entity') return;
-  
-  loadingCollectionState.value = true;
-  
+
+  const loadingTimer = setTimeout(() => {
+    loadingCollectionState.value = true;
+  }, loadingDelay);
+
   try {
-    const projectStore = useProjectStore();
     const flags = await CollectionService.GetCollectionStateFlags(
       projectStore.activeProject.uri,
       entity.id,
@@ -162,12 +165,9 @@ const loadCollectionState = async () => {
       projectStore.activeProject.ignore_list
     );
 
-    // Store the flags on the entity object
     props.child.collectionStateFlags = flags;
-
   } catch (error) {
     console.error(`Error loading collection state for ${entity.id}:`, error);
-    // Reset flags on error
     props.child.collectionStateFlags = {
       has_untracked: false,
       has_modified: false,
@@ -175,6 +175,7 @@ const loadCollectionState = async () => {
       has_rebuildable: false
     };
   } finally {
+    clearTimeout(loadingTimer);
     loadingCollectionState.value = false;
   }
 };

@@ -14,7 +14,7 @@
         v-right-click="openUntrackedItemMenu" :isUntracked="true" :task="child" :index="index" />
     </div>
     <template v-if="isExpanded">
-      <ListSkeleton v-if="loadingChildren" :itemHeight="commonStore.listItemHeight" :height="virtuaIndentHeight" :depth="depth + 1" />
+      <ListSkeleton v-if="loadingChildrenSkeleton" :itemHeight="commonStore.listItemHeight" :height="virtuaIndentHeight" :depth="depth + 1" />
       <div ref="virtuaChildrenRef" v-else-if="entityChildren.length" class="virtua-item-children">
         <div class="indent-guide" :style="{ height: `${indentHeight}px` }"
           :class="{ 'indent-guide-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === child.id }">
@@ -93,8 +93,13 @@ const hasChildren = ref(false);
 const indentPadding = ref(4);
 const isEditing = ref(false);
 const loadingAssetState = ref(false);
-const loadingChildren = ref(true);
+const loadingChildren = ref(false);
+const loadingChildrenSkeleton = ref(true);
 const loadingCollectionState = ref(false);
+
+// timers
+const loadingDelay = 250;
+let loadingChildrenTimer = null;
 const virtuaChildrenRef = ref(null);
 const virtuaItemRef = ref(null);
 
@@ -272,7 +277,10 @@ const loadAssetState = async () => {
   const task = props.child;
   
   if (task.type !== 'task' || task.is_link) return;
-  loadingAssetState.value = true;
+
+  const loadingTimer = setTimeout(() => {
+    loadingAssetState.value = true;
+  }, loadingDelay);
   
   try {
     const fileStatus = await AssetService.GetAssetState(
@@ -285,6 +293,7 @@ const loadAssetState = async () => {
     console.error(`Error loading asset state for ${task.id}:`, error);
     task.file_status = 'rebuildable';
   } finally {
+    clearTimeout(loadingTimer);
     loadingAssetState.value = false;
   }
 };
@@ -294,7 +303,11 @@ const loadCollectionState = async () => {
   const entity = props.child;
   
   if (entity.type !== 'entity') return;
+
+  const loadingTimer = setTimeout(() => {
     loadingCollectionState.value = true;
+  }, loadingDelay);
+
   try {
     const flags = await CollectionService.GetCollectionStateFlags(
       projectStore.activeProject.uri,
@@ -313,6 +326,7 @@ const loadCollectionState = async () => {
       has_rebuildable: false
     };
   } finally {
+    clearTimeout(loadingTimer);
     loadingCollectionState.value = false;
   }
 };
@@ -320,9 +334,16 @@ const loadCollectionState = async () => {
 // Loads children for an entity or untracked entity.
 const loadEntityChildren = async () => {
   if (stage.operationActive) {
-    loadingChildren.value = true;
+    loadingChildrenSkeleton.value = true;
     return;
   }
+
+  loadingChildrenSkeleton.value = true;
+  clearTimeout(loadingChildrenTimer);
+  loadingChildrenTimer = setTimeout(() => {
+    loadingChildren.value = true;
+  }, loadingDelay);
+
   if (props.child.type == "entity" || props.child.type == 'untracked_entity') {
     let isUntracked = props.child.type == 'untracked_entity';
     let project = projectStore.activeProject;
@@ -340,7 +361,9 @@ const loadEntityChildren = async () => {
       stage.expandEntity(props.child, isUntracked);
     }
   }
+  clearTimeout(loadingChildrenTimer);
   loadingChildren.value = false;
+  loadingChildrenSkeleton.value = false;
 };
 
 // Opens the asset context menu.
@@ -384,7 +407,7 @@ const updateItemHeight = async () => {
 
 // watchers
 watch(() => stage.operationActive, (newValue, oldValue) => {
-  if (oldValue && !newValue && loadingChildren.value) {
+  if (oldValue && !newValue && loadingChildrenSkeleton.value) {
     loadEntityChildren();
   }
 });
@@ -408,6 +431,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  clearTimeout(loadingChildrenTimer);
   window.removeEventListener('keydown', handleKeyArrowKeys);
   emitter.off('update-children', handleUpdateChildren);
 });
