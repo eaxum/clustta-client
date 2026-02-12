@@ -8,9 +8,11 @@
        }" 
        @scroll="handleScroll">
 		
-	   <div v-if="projects.length" v-tooltip="'Pinned projects'" class="pinned-indicator">
+	   <div v-if="projects.length" v-tooltip="pinnedIndicatorTooltip" 
+			class="pinned-indicator" :class="{ 'clickable': isHoveringPinned }"
+			@mouseenter="isHoveringPinned = true" @mouseleave="isHoveringPinned = false" @click="togglePinProject">
 			<div class="menu-divider"></div>
-			<img class="tiny-icons" :src="getAppIcon('pin')">
+			<img class="tiny-icons" :src="getAppIcon(pinnedIndicatorIcon)">
 			<div class="menu-divider"></div>
 		</div>
 
@@ -91,6 +93,7 @@ const projectStore = useProjectStore();
 const platformStore = usePlatformStore();
 const notificationStore = useNotificationStore();
 const listItem = ref(null);
+const isHoveringPinned = ref(false);
 const isHoveringRecents = ref(false);
 
 const props = defineProps({
@@ -98,6 +101,12 @@ const props = defineProps({
 })
 
 // computed properties
+const activeProjectIsPinned = computed(() => {
+	const activeProject = projectStore.getActiveProject;
+	if (!activeProject) return false;
+	return projectStore.pinnedProjects?.includes(activeProject.id);
+});
+
 const activeProjectIndex = computed(() => {
 	const projects = projectStore.projects;
 	const activeProject = projectStore.getActiveProject;
@@ -126,6 +135,16 @@ const recents = computed(() => {
 	return recentProjectsAvailable.slice(0, Math.max(0, maxRecentCount));
 });
 
+const pinnedIndicatorIcon = computed(() => {
+	if (!isHoveringPinned.value) return 'pin';
+	return activeProjectIsPinned.value ? 'unpin' : 'new-pin';
+});
+
+const pinnedIndicatorTooltip = computed(() => {
+	if (!isHoveringPinned.value) return 'Pinned projects';
+	return activeProjectIsPinned.value ? 'Unpin project' : 'Pin project';
+});
+
 const criticalItemsDot = computed(() => {
 	return projectStore.getActiveProject.has_remote && projectStore.getActiveProject.is_unsynced && !props.sidePaneActive
 });
@@ -150,6 +169,21 @@ const isActiveProject = (project) => {
 
 const dynamicName = (string) => {
 	return props.sidePaneActive ? string : string[0].toUpperCase();
+};
+
+// Toggles pin state for the active project.
+const togglePinProject = async () => {
+	const activeProject = projectStore.getActiveProject;
+	if (!activeProject) return;
+	const studioName = projectStore.getSelectedStudioName;
+	const projectId = activeProject.id;
+	if (activeProjectIsPinned.value) {
+		await SettingsService.UnpinProject(studioName, projectId);
+		projectStore.pinnedProjects = projectStore.pinnedProjects.filter((item) => item !== projectId);
+	} else {
+		await SettingsService.PinProject(studioName, projectId);
+		projectStore.pinnedProjects.push(projectId);
+	}
 };
 
 const clearRecents = () => {
