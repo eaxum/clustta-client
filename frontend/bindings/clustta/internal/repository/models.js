@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import {Create as $Create} from "@wailsio/runtime";
+import { Create as $Create } from "@wailsio/runtime";
 
 export class CompatTimeline {
     /**
@@ -144,7 +144,7 @@ export class ProjectInfo {
              * @member
              * @type {string | undefined}
              */
-            this["location_id"] = "";
+            this["location_id"] = undefined;
         }
         if (!("remote" in $$source)) {
             /**

@@ -1142,3 +1142,40 @@ func UnAssignEntity(tx *sqlx.Tx, entityId, userId string) error {
 	}
 	return nil
 }
+
+// IsUserAssignedToEntityOrAncestor checks if a user is assigned to the given entity
+// or any of its parent entities recursively up to the root.
+func IsUserAssignedToEntityOrAncestor(tx *sqlx.Tx, entityId, userId string) (bool, error) {
+	// Check the entity itself first.
+	directQuery := `SELECT EXISTS(SELECT 1 FROM entity_assignee WHERE entity_id = ? AND assignee_id = ?)`
+	var directMatch bool
+	err := tx.Get(&directMatch, directQuery, entityId, userId)
+	if err != nil {
+		return false, err
+	}
+	if directMatch {
+		return true, nil
+	}
+
+	// Check ancestor entities recursively.
+	ancestorQuery := `
+		WITH RECURSIVE ancestors AS (
+			SELECT parent_id FROM entity WHERE id = ? AND parent_id != ''
+			UNION ALL
+			SELECT e.parent_id FROM entity e
+			JOIN ancestors a ON e.id = a.parent_id
+			WHERE a.parent_id != ''
+		)
+		SELECT EXISTS(
+			SELECT 1 FROM entity_assignee ea
+			JOIN ancestors a ON ea.entity_id = a.parent_id
+			WHERE ea.assignee_id = ?
+		)
+	`
+	var ancestorMatch bool
+	err = tx.Get(&ancestorMatch, ancestorQuery, entityId, userId)
+	if err != nil {
+		return false, err
+	}
+	return ancestorMatch, nil
+}

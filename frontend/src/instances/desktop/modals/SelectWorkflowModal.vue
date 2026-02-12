@@ -5,16 +5,18 @@
 
     <div class="general-container general-container-wide" :style="{ gap: showTaskOptions ? 10 + 'px' : 20 + 'px' }">
 
-      <div class="workflow-template-list">
-        <!-- <WorkflowTemplate v-for="workflowTemplate in workflowTemplates" :workflowTemplate="workflowTemplate" /> -->
-        
+      <div v-if="!workflowStore.workflows.length" class="page-state-container">
+        <PageState :message="'This project has no Workflow templates'" :illustration="'/page-states/workflow.png'" />
+      </div>
+
+      <div v-else class="workflow-template-list">
         <WorkflowItem v-for="workflow in workflowStore.workflows" @expand="expandWorkflowItem"
              :entity="workflow" @select="selectWorkflowTemplate" :selectable="true"
             :isExpanded="isExpanded(workflow.id)" :isParent="true" />
       </div>
 
       <div class="pop-up-actions" ref="popUpActions">
-        <ActionButton v-if="userStore.canDo('create_template')" :icon="getAppIcon('squares-plus')" :label="'Manage workflows'"
+        <ActionButton v-if="userStore.canDo('create_template')" :icon="getAppIcon('workflow-plus')" :label="'Manage workflows'"
           :buttonFunction="manageTemplates" />
         <!-- <GeneralButton :label="'Cancel'" :fullWidth="false" :buttonFunction="closeModal" :colored="false" /> -->
       </div>
@@ -32,6 +34,7 @@ import { onMounted, onUnmounted, ref } from 'vue';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import PageState from '@/instances/common/components/PageState.vue';
 import WorkflowItem from '@/instances/desktop/blocks/WorkflowItem.vue';
 
 // stores
@@ -126,6 +129,10 @@ onUnmounted(() => {
   overflow: hidden;
   max-width: 50vw;
   max-height: 80vh;
+}
+
+.page-state-container {
+  height: 300px;
 }
 
 .workflow-template-list {

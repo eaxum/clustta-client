@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import {Call as $Call, Create as $Create} from "@wailsio/runtime";
+import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -15,83 +15,67 @@ import * as models$0 from "../internal/repository/models/models.js";
  * @param {string} projectPath
  * @param {string} name
  * @param {models$0.RoleAttributes} attributes
- * @returns {Promise<models$0.Role> & { cancel(): void }}
+ * @returns {$CancellablePromise<models$0.Role>}
  */
 export function AddRole(projectPath, name, attributes) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1510146311, projectPath, name, attributes));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(1510146311, projectPath, name, attributes).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * Deletes a role by ID from the project database
  * @param {string} projectPath
  * @param {string} id
- * @returns {Promise<void> & { cancel(): void }}
+ * @returns {$CancellablePromise<void>}
  */
 export function DeleteRole(projectPath, id) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1732439423, projectPath, id));
-    return $resultPromise;
+    return $Call.ByID(1732439423, projectPath, id);
 }
 
 /**
  * Fetches user data from remote authentication service by ID
  * @param {string} userId
- * @returns {Promise<models$0.User> & { cancel(): void }}
+ * @returns {$CancellablePromise<models$0.User>}
  */
 export function FetchUserById(userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2104969195, userId));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(2104969195, userId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * Retrieves all roles from the project database
  * @param {string} projectPath
- * @returns {Promise<models$0.Role[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<models$0.Role[]>}
  */
 export function GetRoles(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1185149717, projectPath));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(1185149717, projectPath).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType2($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * Retrieves a single user by ID from the project database
  * @param {string} projectPath
  * @param {string} userId
- * @returns {Promise<models$0.User> & { cancel(): void }}
+ * @returns {$CancellablePromise<models$0.User>}
  */
 export function GetUser(projectPath, userId) {
-    let $resultPromise = /** @type {any} */($Call.ByID(2223938271, projectPath, userId));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(2223938271, projectPath, userId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
  * Retrieves all users from the project database
  * @param {string} projectPath
- * @returns {Promise<models$0.User[]> & { cancel(): void }}
+ * @returns {$CancellablePromise<models$0.User[]>}
  */
 export function GetUsers(projectPath) {
-    let $resultPromise = /** @type {any} */($Call.ByID(1484618948, projectPath));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(1484618948, projectPath).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType3($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 /**
@@ -100,15 +84,12 @@ export function GetUsers(projectPath) {
  * @param {string} id
  * @param {string} name
  * @param {models$0.RoleAttributes} attributes
- * @returns {Promise<models$0.Role> & { cancel(): void }}
+ * @returns {$CancellablePromise<models$0.Role>}
  */
 export function UpdateRole(projectPath, id, name, attributes) {
-    let $resultPromise = /** @type {any} */($Call.ByID(894761805, projectPath, id, name, attributes));
-    let $typingPromise = /** @type {any} */($resultPromise.then(($result) => {
+    return $Call.ByID(894761805, projectPath, id, name, attributes).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
-    $typingPromise.cancel = $resultPromise.cancel.bind($resultPromise);
-    return $typingPromise;
 }
 
 // Private type creation functions
