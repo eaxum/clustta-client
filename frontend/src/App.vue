@@ -16,6 +16,7 @@ import emitter from '@/lib/mitt';
 import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from './stores/projects';
 import { useStudioStore } from './stores/studio';
+import { useUserStore } from './stores/users';
 import { SyncService, ProjectService } from "@/services";
 import { System } from "@wailsio/runtime";
 import { LogService } from '@/services';
@@ -36,6 +37,7 @@ const syncConflictStore = useSyncConflictStore();
 const themeStore = useThemeStore();
 const stageStore = useStageStore();
 const studioStore = useStudioStore();
+const userStore = useUserStore();
 const accountStore = useAccountStore();
 
 
@@ -119,6 +121,7 @@ async function pullData() {
     )
         .then(async () => {
             await projectStore.reloadActiveProject()
+            await userStore.reloadUsers()
             emitter.emit('refresh-browser');
         }).catch((error) => {
             console.log("Error Syncing Data", error)

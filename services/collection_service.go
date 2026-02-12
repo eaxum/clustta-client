@@ -1914,6 +1914,22 @@ func (e *CollectionService) GetCollectionTypes(projectPath string) ([]models.Ent
 	return entityTypes, nil
 }
 
+// IsUserAssignedToCollectionOrAncestor checks if a user is assigned to a collection
+// or any of its parent collections recursively.
+func (e *CollectionService) IsUserAssignedToCollectionOrAncestor(projectPath, entityId, userId string) (bool, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return false, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+	return repository.IsUserAssignedToEntityOrAncestor(tx, entityId, userId)
+}
+
 // UpdatePreview updates the preview image for a collection.
 // Returns an error if the project is not found or the operation fails.
 func (p *CollectionService) UpdatePreview(projectPath, entityId, previewPath string) error {

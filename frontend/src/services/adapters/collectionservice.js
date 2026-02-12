@@ -789,4 +789,39 @@ export const CollectionService = {
       throw error;
     }
   },
+
+  // Checks if a user is assigned to a collection or any of its ancestor collections.
+  IsUserAssignedToCollectionOrAncestor: async (projectPath, entityId, userId) => {
+    const projectName = getProjectName(projectPath);
+    try {
+      const db = await getDatabase(projectName);
+
+      // Check the entity itself first.
+      const direct = queryOne(db,
+        `SELECT EXISTS(SELECT 1 FROM entity_assignee WHERE entity_id = ? AND assignee_id = ?) AS result`,
+        [entityId, userId]
+      );
+      if (direct?.result === 1) return true;
+
+      // Check ancestor entities recursively.
+      const ancestor = queryOne(db, `
+        WITH RECURSIVE ancestors AS (
+          SELECT parent_id FROM entity WHERE id = ? AND parent_id != ''
+          UNION ALL
+          SELECT e.parent_id FROM entity e
+          JOIN ancestors a ON e.id = a.parent_id
+          WHERE a.parent_id != ''
+        )
+        SELECT EXISTS(
+          SELECT 1 FROM entity_assignee ea
+          JOIN ancestors a ON ea.entity_id = a.parent_id
+          WHERE ea.assignee_id = ?
+        ) AS result
+      `, [entityId, userId]);
+      return ancestor?.result === 1;
+    } catch (error) {
+      console.error('IsUserAssignedToCollectionOrAncestor error:', error);
+      return false;
+    }
+  },
 };

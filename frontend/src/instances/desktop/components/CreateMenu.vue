@@ -1,38 +1,48 @@
 <template>
 	<div class="create-menu">
-		<ActionButton :icon="getAppIcon('file-plus')" v-if="!kanbanView && (canCreateTask || canModifyEntity)"
+		<ActionButton :icon="getAppIcon('file-plus')" :isDisabled="kanbanView || !(canCreateTask || canModifyEntity)"
 			@click="createAsset" v-tooltip="'Add Asset'" />
-		<ActionButton :icon="getAppIcon('folder-plus')" v-if="!kanbanView && canCreateEntity || canModifyEntity"
+		<ActionButton :icon="getAppIcon('folder-plus')" :isDisabled="kanbanView || !(canCreateEntity || canModifyEntity)"
 			@click="createEntity" v-tooltip="'Add Collection'" />
-		<ActionButton :icon="getAppIcon('workflow-plus')" v-if="!kanbanView && hasWorkflows && canCreateEntity"
+		<ActionButton :icon="getAppIcon('workflow-plus')" :isDisabled="kanbanView || !(canCreateEntity || canModifyEntity)"
 			@click="createWorkflow" v-tooltip="'Add Workflow'" />
-		<ActionButton :icon="getAppIcon('web-plus')" v-if="!kanbanView && canCreateTask"
+		<ActionButton :icon="getAppIcon('web-plus')" :isDisabled="kanbanView || !(canCreateTask || canModifyEntity)"
 			@click="createWebLink" v-tooltip="'Add Weblink'" />
-		<ActionButton :icon="getAppIcon('arrow-down-ramp')" v-if="!platformStore.isWeb && !kanbanView && canCreateEntity"
+		<ActionButton :icon="getAppIcon('arrow-down-ramp')" v-if="!(platformStore.isWeb || kanbanView)"  :isDisabled="!(canCreateEntity || canModifyEntity)"
 			@click="importItems" v-tooltip="'Import Items'" />
+		<!-- <ActionButton :icon="getAppIcon('arrow-down-ramp')" :isDisabled="platformStore.isWeb || kanbanView || !canCreateEntity"
+			@click="importItems" v-tooltip="'Import Items'" /> -->
 	</div>
 </template>
 
 <script setup>
 // imports
-import { computed } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import emitter from '@/lib/mitt';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
+// services
+import { CollectionService } from '@/services';
+
 // stores
 import { useCollectionStore } from '@/stores/collections';
+import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { usePlatformStore } from '@/stores/platform';
+import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 import { useUserStore } from '@/stores/users';
 import { useWorkflowStore } from '@/stores/workflow';
 
 const collectionStore = useCollectionStore();
+const commonStore = useCommonStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const platformStore = usePlatformStore();
+const projectStore = useProjectStore();
 const stage = useStageStore();
 const userStore = useUserStore();
 const workflowStore = useWorkflowStore();
@@ -48,14 +58,34 @@ const canCreateEntity = computed(() => userStore.canDo('create_entity'));
 
 const canCreateTask = computed(() => userStore.canDo('create_task'));
 
-const canModifyEntity = computed(() => {
-	if (!collectionStore.selectedCollection) return false;
-	let selectedIsMarked = stage.markedItems.includes(collectionStore.selectedCollection.id);
-	if (selectedIsMarked && stage.markedItems.length === 1) return collectionStore.selectedCollection.can_modify;
-	return false;
-});
+// refs
+const canModifyEntity = ref(false);
 
-const hasWorkflows = computed(() => !!workflowStore.workflows.length);
+// methods
+
+// Checks whether the current user is assigned to the navigated collection or any ancestor.
+const checkModifyPermission = async () => {
+	const collection = collectionStore.navigatedCollection;
+	if (!commonStore.navigatorMode || !collection) {
+		canModifyEntity.value = false;
+		return;
+	}
+	const userId = userStore.user?.id;
+	if (!userId || !projectStore.activeProject) {
+		canModifyEntity.value = false;
+		return;
+	}
+	try {
+		canModifyEntity.value = await CollectionService.IsUserAssignedToCollectionOrAncestor(
+			projectStore.activeProject.uri, collection.id, userId
+		);
+	} catch {
+		canModifyEntity.value = false;
+	}
+};
+
+// watchers
+watch(() => collectionStore.navigatedCollection, checkModifyPermission, { immediate: true });
 
 // methods
 
@@ -82,6 +112,11 @@ const createWorkflow = () => { clearSelection(); modals.setModalVisibility('sele
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
+// lifecycle hooks
+onMounted(() => { emitter.on('refresh-browser', checkModifyPermission); });
+
+onUnmounted(() => { emitter.off('refresh-browser', checkModifyPermission); });
 </script>
 
 <style scoped>
