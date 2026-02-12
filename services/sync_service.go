@@ -713,3 +713,120 @@ func (s *SyncService) ResolveConflicts(projectPath string, conflictsJSON string)
 
 	return nil
 }
+
+// GetPendingChanges returns a lightweight summary of all unsynced changes in the project.
+// Used by the ChangeLog pane to display pending changes without loading full row data.
+func (s *SyncService) GetPendingChanges(projectPath string) (sync_service.ChangeSummary, error) {
+	if !utils.FileExists(projectPath) {
+		return sync_service.ChangeSummary{}, error_service.ErrProjectNotFound
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return sync_service.ChangeSummary{}, err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return sync_service.ChangeSummary{}, err
+	}
+	defer tx.Rollback()
+
+	summary, err := sync_service.LoadChangeSummary(tx)
+	if err != nil {
+		return sync_service.ChangeSummary{}, err
+	}
+	return summary, nil
+}
+
+// DiscardChanges reverts specific items to their server state by fetching remote data
+// and selectively replacing local rows. itemType should be "task" or "entity".
+func (s *SyncService) DiscardChanges(projectPath, remoteURL string, itemIds []string, itemType string) error {
+	if !utils.FileExists(projectPath) {
+		return error_service.ErrProjectNotFound
+	}
+
+	activeUser, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+
+	serverData, err := sync_service.FetchData(remoteURL, activeUser.Id)
+	if err != nil {
+		return fmt.Errorf("failed to fetch server data: %w", err)
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	for _, itemId := range itemIds {
+		switch itemType {
+		case "task":
+			err = sync_service.DiscardTaskChanges(tx, serverData, itemId)
+		case "entity":
+			err = sync_service.DiscardEntityChanges(tx, serverData, itemId)
+		default:
+			return fmt.Errorf("unsupported item type: %s", itemType)
+		}
+		if err != nil {
+			return fmt.Errorf("failed to discard changes for %s %s: %w", itemType, itemId, err)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("failed to commit discard: %w", err)
+	}
+	return nil
+}
+
+// DiscardAllChanges reverts all unsynced changes to the server state.
+// This replaces the nuclear PullData(force=true) approach with selective replacement.
+func (s *SyncService) DiscardAllChanges(projectPath, remoteURL string) error {
+	if !utils.FileExists(projectPath) {
+		return error_service.ErrProjectNotFound
+	}
+
+	activeUser, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+
+	serverData, err := sync_service.FetchData(remoteURL, activeUser.Id)
+	if err != nil {
+		return fmt.Errorf("failed to fetch server data: %w", err)
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	err = sync_service.DiscardAllChanges(tx, serverData)
+	if err != nil {
+		return fmt.Errorf("failed to discard all changes: %w", err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("failed to commit discard all: %w", err)
+	}
+	return nil
+}

@@ -29,6 +29,30 @@ export function CloneProject(projectUri, studioName, workingDir, syncOptions) {
 }
 
 /**
+ * DiscardAllChanges reverts all unsynced changes to the server state.
+ * This replaces the nuclear PullData(force=true) approach with selective replacement.
+ * @param {string} projectPath
+ * @param {string} remoteURL
+ * @returns {$CancellablePromise<void>}
+ */
+export function DiscardAllChanges(projectPath, remoteURL) {
+    return $Call.ByID(2662797070, projectPath, remoteURL);
+}
+
+/**
+ * DiscardChanges reverts specific items to their server state by fetching remote data
+ * and selectively replacing local rows. itemType should be "task" or "entity".
+ * @param {string} projectPath
+ * @param {string} remoteURL
+ * @param {string[]} itemIds
+ * @param {string} itemType
+ * @returns {$CancellablePromise<void>}
+ */
+export function DiscardChanges(projectPath, remoteURL, itemIds, itemType) {
+    return $Call.ByID(337997455, projectPath, remoteURL, itemIds, itemType);
+}
+
+/**
  * @param {string} projectPath
  * @param {string} remoteURL
  * @param {string} checkpointId
@@ -36,6 +60,18 @@ export function CloneProject(projectUri, studioName, workingDir, syncOptions) {
  */
 export function DownloadCheckpoint(projectPath, remoteURL, checkpointId) {
     return $Call.ByID(1678911334, projectPath, remoteURL, checkpointId);
+}
+
+/**
+ * GetPendingChanges returns a lightweight summary of all unsynced changes in the project.
+ * Used by the ChangeLog pane to display pending changes without loading full row data.
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<sync_service$0.ChangeSummary>}
+ */
+export function GetPendingChanges(projectPath) {
+    return $Call.ByID(2064174952, projectPath).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
 }
 
 /**
@@ -99,3 +135,6 @@ export function ResolveConflicts(projectPath, conflictsJSON) {
 export function SyncData(projectPath, remoteURL, pullChunk, syncOptions) {
     return $Call.ByID(1941684635, projectPath, remoteURL, pullChunk, syncOptions);
 }
+
+// Private type creation functions
+const $$createType0 = sync_service$0.ChangeSummary.createFrom;

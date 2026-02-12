@@ -202,15 +202,8 @@ const syncButtonTooltip = computed(() => {
 // methods
 
 const revertChanges = async () => {
-	let syncOptions = {
-		only_latest_checkpoints: false,
-		task_dependencies: false,
-		tasks: false,
-		templates: false,
-		force: true,
-	};
-	await SyncService.PullData(
-		projectStore.activeProject.uri, projectStore.getActiveProjectUrl, false, syncOptions
+	await SyncService.DiscardAllChanges(
+		projectStore.activeProject.uri, projectStore.getActiveProjectUrl
 	)
 		.then(() => {
 			projectStore.activeProject.is_unsynced = false;
@@ -220,7 +213,7 @@ const revertChanges = async () => {
 		}).catch((error) => {
 			console.error(error.message)
 			notificationStore.addNotification(
-				"Error Syncing Data",
+				"Error Reverting Changes",
 				error.message,
 				"error",
 				false
