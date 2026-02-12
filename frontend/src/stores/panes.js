@@ -3,6 +3,7 @@ import { defineStore } from "pinia";
 export const usePaneStore = defineStore("panes", {
   state: () => ({
     detailPanes: {
+      changeLog: false,
       dependencies: false,
       collaborators: false,
       console: false,

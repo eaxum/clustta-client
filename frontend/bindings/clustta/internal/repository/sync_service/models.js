@@ -6,6 +6,129 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+/**
+ * ChangeSummary groups all pending changes by category for frontend display.
+ */
+export class ChangeSummary {
+    /**
+     * Creates a new ChangeSummary instance.
+     * @param {Partial<ChangeSummary>} [$$source = {}] - The source object to create the ChangeSummary.
+     */
+    constructor($$source = {}) {
+        if (!("tasks" in $$source)) {
+            /**
+             * @member
+             * @type {ChangeSummaryItem[]}
+             */
+            this["tasks"] = [];
+        }
+        if (!("entities" in $$source)) {
+            /**
+             * @member
+             * @type {ChangeSummaryItem[]}
+             */
+            this["entities"] = [];
+        }
+        if (!("other" in $$source)) {
+            /**
+             * @member
+             * @type {ChangeSummaryItem[]}
+             */
+            this["other"] = [];
+        }
+        if (!("total_count" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["total_count"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ChangeSummary instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ChangeSummary}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType1;
+        const $$createField1_0 = $$createType1;
+        const $$createField2_0 = $$createType1;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("tasks" in $$parsedSource) {
+            $$parsedSource["tasks"] = $$createField0_0($$parsedSource["tasks"]);
+        }
+        if ("entities" in $$parsedSource) {
+            $$parsedSource["entities"] = $$createField1_0($$parsedSource["entities"]);
+        }
+        if ("other" in $$parsedSource) {
+            $$parsedSource["other"] = $$createField2_0($$parsedSource["other"]);
+        }
+        return new ChangeSummary(/** @type {Partial<ChangeSummary>} */($$parsedSource));
+    }
+}
+
+/**
+ * ChangeSummaryItem represents a single unsynced change for the changelog UI.
+ */
+export class ChangeSummaryItem {
+    /**
+     * Creates a new ChangeSummaryItem instance.
+     * @param {Partial<ChangeSummaryItem>} [$$source = {}] - The source object to create the ChangeSummaryItem.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("source" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["source"] = "";
+        }
+        if (!("change_type" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["change_type"] = "";
+        }
+        if (!("mtime" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["mtime"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ChangeSummaryItem instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ChangeSummaryItem}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ChangeSummaryItem(/** @type {Partial<ChangeSummaryItem>} */($$parsedSource));
+    }
+}
+
 export class SyncOptions {
     /**
      * Creates a new SyncOptions instance.
@@ -68,3 +191,7 @@ export class SyncOptions {
         return new SyncOptions(/** @type {Partial<SyncOptions>} */($$parsedSource));
     }
 }
+
+// Private type creation functions
+const $$createType0 = ChangeSummaryItem.createFrom;
+const $$createType1 = $Create.Array($$createType0);

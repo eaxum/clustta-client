@@ -150,5 +150,29 @@ export const SyncService = {
     // In web mode, fetch operations can't be easily cancelled
     // This is a no-op for now
   },
+
+  /**
+   * Returns a summary of all unsynced changes in the project.
+   * In web mode, always returns empty (read-only).
+   */
+  GetPendingChanges: async (projectPath) => {
+    return { tasks: [], entities: [], other: [], total_count: 0 };
+  },
+
+  /**
+   * Discards specific item changes by reverting to server state.
+   * In web mode, this is a no-op (read-only).
+   */
+  DiscardChanges: async (projectPath, remoteURL, itemIds, itemType) => {
+    console.warn('DiscardChanges not available in web mode (read-only)');
+  },
+
+  /**
+   * Discards all unsynced changes by reverting to server state.
+   * In web mode, this is a no-op (read-only).
+   */
+  DiscardAllChanges: async (projectPath, remoteURL) => {
+    console.warn('DiscardAllChanges not available in web mode (read-only)');
+  },
 };
 

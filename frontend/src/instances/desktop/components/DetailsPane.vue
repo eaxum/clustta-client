@@ -126,6 +126,7 @@ import utils from "@/services/utils";
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import AssetDetails from "@/instances/desktop/panes/AssetDetails.vue";
+import ChangeLog from "@/instances/desktop/panes/ChangeLog.vue";
 import Checkpoints from "@/instances/desktop/panes/Checkpoints.vue";
 import Clipboard from '@/instances/desktop/components/Clipboard.vue';
 import CollaboratorSuggestions from '@/instances/common/components/CollaboratorSuggestions.vue';
@@ -208,6 +209,7 @@ const linkDetailPanes = [
 
 const paneComponents = {
   assetDetails: AssetDetails,
+  changeLog: ChangeLog,
   checkpoints: Checkpoints,
   collaborators: Collaborators,
   collectionDetails: CollectionDetails,
@@ -221,6 +223,7 @@ const paneComponents = {
 const projectDetailPanes = [
   { name: "Details", tab_name: "projectDetails", icon: "info" },
   { name: "Checkpoints", tab_name: "projectCheckpoints", icon: "layers" },
+  { name: "Change Log", tab_name: "changeLog", icon: "history" },
   { name: "Collaborators", tab_name: "collaborators", icon: "person" },
   { name: "Console", tab_name: "console", icon: "console" }
 ];
