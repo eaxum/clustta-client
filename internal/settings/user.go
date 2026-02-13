@@ -36,7 +36,7 @@ type ProjectLocation struct {
 type Settings struct {
 	IconScheme            string `json:"icon_scheme"`
 	Theme                 string `json:"theme"`
-	Language              string `json:"language"`
+	Language              string `json:"language"` // User's language preference (e.g., "en", "es", "fr")
 	EulaAccepted          bool   `json:"eula_accepted"`
 	ProjectGridView       bool   `json:"project_grid_view"`
 	UseGrid               bool   `json:"use_grid"`

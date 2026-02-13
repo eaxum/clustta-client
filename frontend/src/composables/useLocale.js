@@ -1,6 +1,12 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { setLocale as setI18nLocale, getLocale as getI18nLocale, getAvailableLocales } from '@/i18n';
+import { 
+  setLocale as setI18nLocale, 
+  getLocale as getI18nLocale, 
+  getAvailableLocales,
+  SUPPORTED_LANGUAGES,
+  VALID_LOCALES
+} from '@/i18n';
 import { SettingsService } from '@/services';
 
 /**
@@ -10,21 +16,14 @@ import { SettingsService } from '@/services';
 export function useLocale() {
   const { t, locale } = useI18n();
 
-  // Language code to name mapping
-  const languageNames = {
-    'en': 'English',
-    'es': 'Spanish',
-    'fr': 'French'
-  };
-
   // Get current locale
   const currentLocale = computed(() => locale.value);
 
   // Get current language name
-  const currentLanguage = computed(() => languageNames[locale.value] || 'English');
+  const currentLanguage = computed(() => SUPPORTED_LANGUAGES[locale.value] || 'English');
 
   // Get available locales
-  const availableLocales = computed(() => getAvailableLocales());
+  const availableLocales = computed(() => VALID_LOCALES);
 
   /**
    * Changes the current locale and persists it to backend settings
@@ -33,8 +32,17 @@ export function useLocale() {
    */
   async function setLocale(newLocale) {
     try {
+      // Validate locale before setting
+      if (!VALID_LOCALES.includes(newLocale)) {
+        console.error(`Invalid locale: ${newLocale}`);
+        return false;
+      }
+      
       // Update i18n locale
-      setI18nLocale(newLocale);
+      const success = setI18nLocale(newLocale);
+      if (!success) {
+        return false;
+      }
       
       // Persist to backend settings
       await SettingsService.SetLanguage(newLocale);
@@ -53,7 +61,7 @@ export function useLocale() {
   async function loadUserLocale() {
     try {
       const savedLocale = await SettingsService.GetLanguage();
-      if (savedLocale && availableLocales.value.includes(savedLocale)) {
+      if (savedLocale && VALID_LOCALES.includes(savedLocale)) {
         setI18nLocale(savedLocale);
         return savedLocale;
       }
@@ -70,7 +78,7 @@ export function useLocale() {
    * @returns {string} - The display name (e.g., 'English', 'Spanish', 'French')
    */
   function getLocaleName(localeCode) {
-    return languageNames[localeCode] || localeCode;
+    return SUPPORTED_LANGUAGES[localeCode] || localeCode;
   }
 
   /**
@@ -79,7 +87,7 @@ export function useLocale() {
    * @returns {string} - The locale code (e.g., 'en', 'es')
    */
   function getLocaleCode(languageName) {
-    const entry = Object.entries(languageNames).find(([_, name]) => name === languageName);
+    const entry = Object.entries(SUPPORTED_LANGUAGES).find(([_, name]) => name === languageName);
     return entry ? entry[0] : 'en';
   }
 
@@ -88,7 +96,7 @@ export function useLocale() {
     currentLocale,
     currentLanguage,
     availableLocales,
-    languageNames,
+    languageNames: SUPPORTED_LANGUAGES,
     setLocale,
     loadUserLocale,
     getLocaleName,

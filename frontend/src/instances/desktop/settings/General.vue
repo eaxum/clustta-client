@@ -38,7 +38,7 @@
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('globe')"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.language') }}</div>
-              <div class="settings-body">{{ $t('settings.language') }}</div>
+              <div class="settings-body">{{ $t('settings.languageDescription') }}</div>
             </div>
             <div class="settings-action fixed-width">
               <DropDownBox :items="availableLanguages" :onSelect="selectLanguage"
@@ -178,7 +178,7 @@ import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // refs
-const { t, currentLanguage, setLocale, getLocaleCode } = useLocale();
+const { t, currentLanguage, languageNames, setLocale, getLocaleCode } = useLocale();
 const trayStates = useTrayStates();
 const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
@@ -191,9 +191,9 @@ const autoStart = ref(trayStates.autoStart);
 const clusttaVersion = ref("");
 
 // computed
-// Returns available languages for the dropdown.
+// Returns available languages for the dropdown derived from supported languages.
 const availableLanguages = computed(() => {
-  return ['English', 'Spanish', 'French'];
+  return Object.values(languageNames);
 });
 
 // Returns the current language name for display.

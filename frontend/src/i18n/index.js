@@ -3,6 +3,16 @@ import en from './locales/en.json';
 import es from './locales/es.json';
 import fr from './locales/fr.json';
 
+// Supported languages configuration
+export const SUPPORTED_LANGUAGES = {
+  en: 'English',
+  es: 'Spanish',
+  fr: 'French'
+};
+
+// Get valid locale codes
+export const VALID_LOCALES = Object.keys(SUPPORTED_LANGUAGES);
+
 // Get the user's language preference from settings
 // This will be loaded from the backend settings service
 let defaultLocale = 'en';
@@ -11,7 +21,8 @@ let defaultLocale = 'en';
 // The actual value will be loaded from backend settings after app initialization
 try {
   const savedLocale = localStorage.getItem('clustta_language');
-  if (savedLocale) {
+  // Validate the saved locale is supported
+  if (savedLocale && VALID_LOCALES.includes(savedLocale)) {
     defaultLocale = savedLocale;
   }
 } catch (e) {
@@ -34,8 +45,9 @@ const i18n = createI18n({
 export default i18n;
 
 // Helper function to change locale dynamically
+// Returns true if successful, false if locale is invalid
 export function setLocale(locale) {
-  if (i18n.global.availableLocales.includes(locale)) {
+  if (VALID_LOCALES.includes(locale)) {
     i18n.global.locale.value = locale;
     // Save to localStorage for persistence across sessions
     try {
@@ -43,8 +55,10 @@ export function setLocale(locale) {
     } catch (e) {
       console.warn('Failed to save language preference to localStorage:', e);
     }
+    return true;
   } else {
-    console.warn(`Locale '${locale}' is not available. Available locales:`, i18n.global.availableLocales);
+    console.warn(`Locale '${locale}' is not supported. Available locales:`, VALID_LOCALES);
+    return false;
   }
 }
 

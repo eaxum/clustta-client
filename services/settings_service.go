@@ -256,7 +256,7 @@ func (s *SettingsService) SetTheme(theme string) error {
 func (s *SettingsService) GetLanguage() (string, error) {
 	language, err := settings.GetLanguage()
 	if err != nil {
-		return language, err
+		return "", err
 	}
 	return language, nil
 }

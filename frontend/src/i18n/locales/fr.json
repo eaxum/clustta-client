@@ -17,6 +17,7 @@
     "general": "Général",
     "theme": "Thème",
     "language": "Langue",
+    "languageDescription": "Sélectionnez votre langue préférée pour l'interface.",
     "defaultView": "Vue Par Défaut",
     "appearance": "Apparence",
     "iconScheme": "Schéma d'icônes",
