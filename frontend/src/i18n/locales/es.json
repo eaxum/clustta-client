@@ -1,0 +1,62 @@
+{
+  "common": {
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "error": "Error",
+    "success": "Éxito",
+    "warning": "Advertencia",
+    "loading": "Cargando"
+  },
+  "settings": {
+    "title": "Configuración",
+    "general": "General",
+    "theme": "Tema",
+    "language": "Idioma",
+    "defaultView": "Vista Predeterminada",
+    "appearance": "Apariencia",
+    "iconScheme": "Esquema de iconos",
+    "iconSchemeDescription": "Alterna entre diferentes estilos de iconos para la interfaz de usuario.",
+    "themeDescription": "Modo claro u oscuro.",
+    "defaultViewDescription": "Elige entre vista de cuadrícula o lista como predeterminada.",
+    "dataManagement": "Gestión de Datos",
+    "clearRecents": "Borrar recientes",
+    "clearRecentsDescription": "Borrar proyectos recientes del panel lateral.",
+    "resourcesSupport": "Recursos y Soporte",
+    "documentation": "Documentación",
+    "documentationDescription": "Documentación completa y referencia de API.",
+    "videoGuides": "Guías de Video",
+    "videoGuidesDescription": "Ver tutoriales y recorridos en video.",
+    "communitySupport": "Comunidad y Soporte",
+    "communitySupportDescription": "Únete a nuestra comunidad de Discord para soporte y discusiones.",
+    "visitWebsite": "Visitar Sitio Web",
+    "visitWebsiteDescription": "Ir al sitio web de Clustta",
+    "submitFeedback": "Enviar Comentarios",
+    "submitFeedbackDescription": "Reportar problemas o enviar datos de diagnóstico a nuestro equipo de soporte.",
+    "about": "Acerca de",
+    "aboutClustta": "Acerca de Clustta",
+    "grid": "Cuadrícula",
+    "list": "Lista"
+  },
+  "notifications": {
+    "defaultViewUpdated": "Vista Predeterminada Actualizada",
+    "defaultViewSet": "Vista predeterminada establecida en {viewType}",
+    "errorOccurred": "Ocurrió un error",
+    "failedToUpdate": "Error al actualizar la vista predeterminada",
+    "recentProjectsCleared": "Proyectos Recientes Borrados",
+    "languageUpdated": "Idioma Actualizado",
+    "languageChanged": "Idioma cambiado a {language}"
+  },
+  "eula": {
+    "title": "Acuerdo de Licencia de Usuario Final de Clustta"
+  },
+  "languages": {
+    "en": "Inglés",
+    "es": "Español",
+    "fr": "Francés"
+  }
+}

@@ -2,6 +2,7 @@ import { createPinia } from "pinia";
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
+import i18n from "./i18n";
 import { stopPropagation } from "./directives.js";
 import { rightClick } from "./directives.js";
 import { escDirective } from "./directives.js";
@@ -18,6 +19,7 @@ import "./assets/global.css";
 
 const app = createApp(App);
 app.use(createPinia());
+app.use(i18n);
 
 // Always use router for both desktop and web mode
 app.use(router);

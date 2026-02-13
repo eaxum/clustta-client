@@ -34,6 +34,10 @@ export const SettingsService = {
   GetTheme: async () => getSetting('theme', 'dark'),
   // Sets the application theme
   SetTheme: async (theme) => setSetting('theme', theme),
+  // Returns current language preference
+  GetLanguage: async () => getSetting('language', 'en'),
+  // Sets the language preference
+  SetLanguage: async (language) => setSetting('language', language),
   // Returns current icon scheme
   GetIconScheme: async () => getSetting('iconScheme', 'solid'),
   // Sets the icon scheme

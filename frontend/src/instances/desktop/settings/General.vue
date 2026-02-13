@@ -6,15 +6,15 @@
       <!-- Appearance Card -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">Appearance</h2>
+          <h2 class="settings-section-card-title">{{ $t('settings.appearance') }}</h2>
         </div>
         <div class="settings-section-card-content">
           
           <div class="settings-item">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('palette')"></div>
             <div class="settings-content">
-              <div class="settings-header">Icon scheme</div>
-              <div class="settings-body">Toggle between different icon styles for the user interface.</div>
+              <div class="settings-header">{{ $t('settings.iconScheme') }}</div>
+              <div class="settings-body">{{ $t('settings.iconSchemeDescription') }}</div>
             </div>
             <div class="settings-action fixed-width">
               <DropDownBox :items="iconStore.iconTypes" :onSelect="selectIconType"
@@ -25,8 +25,8 @@
           <div class="settings-item">
             <div class="settings-icon"><img class="small-icons" :src="themeStore.isDarkMode ? getAppIcon('moon') : getAppIcon('sun')"></div>
             <div class="settings-content">
-              <div class="settings-header">Theme</div>
-              <div class="settings-body">Light or Dark mode.</div>
+              <div class="settings-header">{{ $t('settings.theme') }}</div>
+              <div class="settings-body">{{ $t('settings.themeDescription') }}</div>
             </div>
             <div class="settings-action fixed-width">
               <DropDownBox :items="themeStore.themes" :onSelect="selectTheme"
@@ -34,11 +34,23 @@
             </div>
           </div>
 
+          <div class="settings-item">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('globe')"></div>
+            <div class="settings-content">
+              <div class="settings-header">{{ $t('settings.language') }}</div>
+              <div class="settings-body">{{ $t('settings.language') }}</div>
+            </div>
+            <div class="settings-action fixed-width">
+              <DropDownBox :items="availableLanguages" :onSelect="selectLanguage"
+                :selectedItem="currentLanguageName" :placeHolder="'None'" :fixedWidth="true" />
+            </div>
+          </div>
+
           <div class="settings-item" @click="toggleUseGrid">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon(commonStore.useGrid ? 'four-squares' : 'list-compact')"></div>
             <div class="settings-content">
-              <div class="settings-header">Default View:  {{ commonStore.useGrid ? 'Grid' : 'List' }}</div>
-              <div class="settings-body">Choose between grid or list view as default.</div>
+              <div class="settings-header">{{ $t('settings.defaultView') }}:  {{ commonStore.useGrid ? $t('settings.grid') : $t('settings.list') }}</div>
+              <div class="settings-body">{{ $t('settings.defaultViewDescription') }}</div>
             </div>
             <div class="settings-action fixed-width">
               <ToggleSwitch :switchValueProp="commonStore.useGrid" />
@@ -50,15 +62,15 @@
       <!-- Data Management Card -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">Data Management</h2>
+          <h2 class="settings-section-card-title">{{ $t('settings.dataManagement') }}</h2>
         </div>
         <div class="settings-section-card-content">
 
           <div class="settings-item" @click="clearRecents">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('broom')"></div>
             <div class="settings-content">
-              <div class="settings-header">Clear recents</div>
-              <div class="settings-body">Clear recent projects from the side pane.</div>
+              <div class="settings-header">{{ $t('settings.clearRecents') }}</div>
+              <div class="settings-body">{{ $t('settings.clearRecentsDescription') }}</div>
             </div>
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
           </div>
@@ -69,14 +81,14 @@
       <!-- Resources & Support Card -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">Resources & Support</h2>
+          <h2 class="settings-section-card-title">{{ $t('settings.resourcesSupport') }}</h2>
         </div>
         <div class="settings-section-card-content">
           <div class="settings-item" @click="Browser.OpenURL('https://docs.clustta.com')">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('book')"></div>
             <div class="settings-content">
-              <div class="settings-header">Documentation</div>
-              <div class="settings-body">Full Documentation and API reference.</div>
+              <div class="settings-header">{{ $t('settings.documentation') }}</div>
+              <div class="settings-body">{{ $t('settings.documentationDescription') }}</div>
             </div>
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
           </div>
@@ -84,8 +96,8 @@
           <div class="settings-item" @click="Browser.OpenURL('https://youtube.com/playlist?list=PLy9tuKQd1hzzuUktc6UVFUhhQxNQtkDqR&si=f2TQRtOYSHeqXma9')">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('youtube')"></div>
             <div class="settings-content">
-              <div class="settings-header">Video Guides</div>
-              <div class="settings-body">Watch video tutorials and walkthroughs.</div>
+              <div class="settings-header">{{ $t('settings.videoGuides') }}</div>
+              <div class="settings-body">{{ $t('settings.videoGuidesDescription') }}</div>
             </div>
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
           </div>
@@ -93,8 +105,8 @@
           <div class="settings-item" @click="Browser.OpenURL('https://discord.gg/NuR4uAuTZd')">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('help')"></div>
             <div class="settings-content">
-              <div class="settings-header">Community and Support</div>
-              <div class="settings-body">Join our Discord community for support and discussions.</div>
+              <div class="settings-header">{{ $t('settings.communitySupport') }}</div>
+              <div class="settings-body">{{ $t('settings.communitySupportDescription') }}</div>
             </div>
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
           </div>
@@ -102,8 +114,8 @@
           <div class="settings-item" @click="Browser.OpenURL('https://clustta.com/')">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('website')"></div>
             <div class="settings-content">
-              <div class="settings-header">Visit Website</div>
-              <div class="settings-body">Go to Clustta's website</div>
+              <div class="settings-header">{{ $t('settings.visitWebsite') }}</div>
+              <div class="settings-body">{{ $t('settings.visitWebsiteDescription') }}</div>
             </div>
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
           </div>
@@ -111,8 +123,8 @@
           <div class="settings-item" @click="openDiagnosticsModal" v-stop-propagation>
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('megaphone')"></div>
             <div class="settings-content">
-              <div class="settings-header">Submit Feedback</div>
-              <div class="settings-body">Report issues or send diagnostic data to our support team.</div>
+              <div class="settings-header">{{ $t('settings.submitFeedback') }}</div>
+              <div class="settings-body">{{ $t('settings.submitFeedbackDescription') }}</div>
             </div>
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
           </div>
@@ -122,13 +134,13 @@
       <!-- About Card -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">About</h2>
+          <h2 class="settings-section-card-title">{{ $t('settings.about') }}</h2>
         </div>
         <div class="settings-section-card-content">
           <div class="settings-item" @click="displayAppInfo()" v-stop-propagation>
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('info')"></div>
             <div class="settings-content">
-              <div class="settings-header">About Clustta</div>
+              <div class="settings-header">{{ $t('settings.aboutClustta') }}</div>
               <div class="settings-body">{{ clusttaVersion }}</div>
             </div>
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
@@ -145,6 +157,8 @@
 // imports
 import { ref, computed, onMounted } from "vue";
 import { SettingsService } from "@/services";
+import { useI18n } from 'vue-i18n';
+import { setLocale } from '@/i18n';
 
 // services
 import utils from '@/services/utils';
@@ -165,6 +179,7 @@ import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // refs
+const { t, locale } = useI18n();
 const trayStates = useTrayStates();
 const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
@@ -175,12 +190,56 @@ const themeStore = useThemeStore();
 const commonStore = useCommonStore();
 const autoStart = ref(trayStates.autoStart);
 const clusttaVersion = ref("");
+const currentLanguage = ref('en');
+
+// computed
+// Returns available languages for the dropdown.
+const availableLanguages = computed(() => {
+  return ['English', 'Spanish', 'French'];
+});
+
+// Returns the current language name for display.
+const currentLanguageName = computed(() => {
+  const languageMap = {
+    'en': 'English',
+    'es': 'Spanish',
+    'fr': 'French'
+  };
+  return languageMap[currentLanguage.value] || 'English';
+});
+
+// methods
 
 const selectIconType = (iconType) => {
   SettingsService.SetIconScheme(iconType).then(() => {
     iconStore.selectedIconType = iconType;
   })
 
+};
+
+// Selects and applies the language preference.
+const selectLanguage = (languageName) => {
+  const languageMap = {
+    'English': 'en',
+    'Spanish': 'es',
+    'French': 'fr'
+  };
+  const languageCode = languageMap[languageName];
+  
+  if (languageCode) {
+    SettingsService.SetLanguage(languageCode).then(() => {
+      currentLanguage.value = languageCode;
+      setLocale(languageCode);
+      notificationStore.addNotification(
+        t('notifications.languageUpdated'),
+        t('notifications.languageChanged', { language: languageName }),
+        "success"
+      );
+    }).catch((error) => {
+      console.log(error);
+      notificationStore.addNotification(t('common.error'), t('notifications.errorOccurred'), "error");
+    });
+  }
 };
 
 const selectTheme = (theme) => {
@@ -201,10 +260,15 @@ const toggleUseGrid = () => {
     } else {
       commonStore.setCompactView();
     }
-    notificationStore.addNotification("Default View Updated", `Default view set to ${newUseGrid ? 'Grid' : 'List'}`, "success");
+    const viewType = newUseGrid ? t('settings.grid') : t('settings.list');
+    notificationStore.addNotification(
+      t('notifications.defaultViewUpdated'),
+      t('notifications.defaultViewSet', { viewType }),
+      "success"
+    );
   }).catch((error) => {
     console.log(error);
-    notificationStore.addNotification("Error", "Failed to update default view", "error");
+    notificationStore.addNotification(t('common.error'), t('notifications.failedToUpdate'), "error");
   });
 };
 
@@ -229,16 +293,32 @@ const launchDirConfigModal = () => {
 const clearRecents = () => {
   SettingsService.ClearRecentProject().then(() => {
     projectStore.recentProjects = []
-    notificationStore.addNotification("Recent Projects Cleared", "Recent Projects Cleared", "success")
+    notificationStore.addNotification(
+      t('notifications.recentProjectsCleared'),
+      t('notifications.recentProjectsCleared'),
+      "success"
+    )
   })
 };
 
+// lifecycle hooks
 onMounted(async () => {
   let user = userStore.user
   // trayStates.autoStart = await clusttaSettings.isAutoStart(user.username);
   // console.log(user);
   autoStart.value = trayStates.autoStart;
   clusttaVersion.value = await utils.getRawClusttaVersion();
+  
+  // Load user's language preference
+  try {
+    const savedLanguage = await SettingsService.GetLanguage();
+    if (savedLanguage) {
+      currentLanguage.value = savedLanguage;
+      setLocale(savedLanguage);
+    }
+  } catch (error) {
+    console.log('Failed to load language preference:', error);
+  }
 });
 
 </script>

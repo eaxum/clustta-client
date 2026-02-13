@@ -1,0 +1,62 @@
+{
+  "common": {
+    "accept": "Accept",
+    "decline": "Decline",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "close": "Close",
+    "confirm": "Confirm",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "loading": "Loading"
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "theme": "Theme",
+    "language": "Language",
+    "defaultView": "Default View",
+    "appearance": "Appearance",
+    "iconScheme": "Icon scheme",
+    "iconSchemeDescription": "Toggle between different icon styles for the user interface.",
+    "themeDescription": "Light or Dark mode.",
+    "defaultViewDescription": "Choose between grid or list view as default.",
+    "dataManagement": "Data Management",
+    "clearRecents": "Clear recents",
+    "clearRecentsDescription": "Clear recent projects from the side pane.",
+    "resourcesSupport": "Resources & Support",
+    "documentation": "Documentation",
+    "documentationDescription": "Full Documentation and API reference.",
+    "videoGuides": "Video Guides",
+    "videoGuidesDescription": "Watch video tutorials and walkthroughs.",
+    "communitySupport": "Community and Support",
+    "communitySupportDescription": "Join our Discord community for support and discussions.",
+    "visitWebsite": "Visit Website",
+    "visitWebsiteDescription": "Go to Clustta's website",
+    "submitFeedback": "Submit Feedback",
+    "submitFeedbackDescription": "Report issues or send diagnostic data to our support team.",
+    "about": "About",
+    "aboutClustta": "About Clustta",
+    "grid": "Grid",
+    "list": "List"
+  },
+  "notifications": {
+    "defaultViewUpdated": "Default View Updated",
+    "defaultViewSet": "Default view set to {viewType}",
+    "errorOccurred": "An error occurred",
+    "failedToUpdate": "Failed to update default view",
+    "recentProjectsCleared": "Recent Projects Cleared",
+    "languageUpdated": "Language Updated",
+    "languageChanged": "Language changed to {language}"
+  },
+  "eula": {
+    "title": "Clustta End User License Agreement"
+  },
+  "languages": {
+    "en": "English",
+    "es": "Spanish",
+    "fr": "French"
+  }
+}

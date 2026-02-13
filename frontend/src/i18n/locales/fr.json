@@ -1,0 +1,62 @@
+{
+  "common": {
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "error": "Erreur",
+    "success": "Succès",
+    "warning": "Avertissement",
+    "loading": "Chargement"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "general": "Général",
+    "theme": "Thème",
+    "language": "Langue",
+    "defaultView": "Vue Par Défaut",
+    "appearance": "Apparence",
+    "iconScheme": "Schéma d'icônes",
+    "iconSchemeDescription": "Basculez entre différents styles d'icônes pour l'interface utilisateur.",
+    "themeDescription": "Mode clair ou sombre.",
+    "defaultViewDescription": "Choisissez entre la vue grille ou liste par défaut.",
+    "dataManagement": "Gestion des Données",
+    "clearRecents": "Effacer les récents",
+    "clearRecentsDescription": "Effacer les projets récents du panneau latéral.",
+    "resourcesSupport": "Ressources et Support",
+    "documentation": "Documentation",
+    "documentationDescription": "Documentation complète et référence API.",
+    "videoGuides": "Guides Vidéo",
+    "videoGuidesDescription": "Regarder des tutoriels et des procédures vidéo.",
+    "communitySupport": "Communauté et Support",
+    "communitySupportDescription": "Rejoignez notre communauté Discord pour le support et les discussions.",
+    "visitWebsite": "Visiter le Site Web",
+    "visitWebsiteDescription": "Aller sur le site web de Clustta",
+    "submitFeedback": "Soumettre des Commentaires",
+    "submitFeedbackDescription": "Signaler des problèmes ou envoyer des données de diagnostic à notre équipe de support.",
+    "about": "À Propos",
+    "aboutClustta": "À Propos de Clustta",
+    "grid": "Grille",
+    "list": "Liste"
+  },
+  "notifications": {
+    "defaultViewUpdated": "Vue Par Défaut Mise à Jour",
+    "defaultViewSet": "Vue par défaut définie sur {viewType}",
+    "errorOccurred": "Une erreur s'est produite",
+    "failedToUpdate": "Échec de la mise à jour de la vue par défaut",
+    "recentProjectsCleared": "Projets Récents Effacés",
+    "languageUpdated": "Langue Mise à Jour",
+    "languageChanged": "Langue changée en {language}"
+  },
+  "eula": {
+    "title": "Accord de Licence Utilisateur Final Clustta"
+  },
+  "languages": {
+    "en": "Anglais",
+    "es": "Espagnol",
+    "fr": "Français"
+  }
+}
