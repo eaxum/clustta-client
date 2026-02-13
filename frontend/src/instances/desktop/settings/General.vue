@@ -157,8 +157,7 @@
 // imports
 import { ref, computed, onMounted } from "vue";
 import { SettingsService } from "@/services";
-import { useI18n } from 'vue-i18n';
-import { setLocale } from '@/i18n';
+import { useLocale } from '@/composables/useLocale';
 
 // services
 import utils from '@/services/utils';
@@ -179,7 +178,7 @@ import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // refs
-const { t, locale } = useI18n();
+const { t, currentLanguage, setLocale, getLocaleCode } = useLocale();
 const trayStates = useTrayStates();
 const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
@@ -190,7 +189,6 @@ const themeStore = useThemeStore();
 const commonStore = useCommonStore();
 const autoStart = ref(trayStates.autoStart);
 const clusttaVersion = ref("");
-const currentLanguage = ref('en');
 
 // computed
 // Returns available languages for the dropdown.
@@ -200,12 +198,7 @@ const availableLanguages = computed(() => {
 
 // Returns the current language name for display.
 const currentLanguageName = computed(() => {
-  const languageMap = {
-    'en': 'English',
-    'es': 'Spanish',
-    'fr': 'French'
-  };
-  return languageMap[currentLanguage.value] || 'English';
+  return currentLanguage.value;
 });
 
 // methods
@@ -218,27 +211,22 @@ const selectIconType = (iconType) => {
 };
 
 // Selects and applies the language preference.
-const selectLanguage = (languageName) => {
-  const languageMap = {
-    'English': 'en',
-    'Spanish': 'es',
-    'French': 'fr'
-  };
-  const languageCode = languageMap[languageName];
+const selectLanguage = async (languageName) => {
+  const languageCode = getLocaleCode(languageName);
   
-  if (languageCode) {
-    SettingsService.SetLanguage(languageCode).then(() => {
-      currentLanguage.value = languageCode;
-      setLocale(languageCode);
-      notificationStore.addNotification(
-        t('notifications.languageUpdated'),
-        t('notifications.languageChanged', { language: languageName }),
-        "success"
-      );
-    }).catch((error) => {
-      console.log(error);
-      notificationStore.addNotification(t('common.error'), t('notifications.errorOccurred'), "error");
-    });
+  const success = await setLocale(languageCode);
+  if (success) {
+    notificationStore.addNotification(
+      t('notifications.languageUpdated'),
+      t('notifications.languageChanged', { language: languageName }),
+      "success"
+    );
+  } else {
+    notificationStore.addNotification(
+      t('common.error'),
+      t('notifications.errorOccurred'),
+      "error"
+    );
   }
 };
 
@@ -308,17 +296,6 @@ onMounted(async () => {
   // console.log(user);
   autoStart.value = trayStates.autoStart;
   clusttaVersion.value = await utils.getRawClusttaVersion();
-  
-  // Load user's language preference
-  try {
-    const savedLanguage = await SettingsService.GetLanguage();
-    if (savedLanguage) {
-      currentLanguage.value = savedLanguage;
-      setLocale(savedLanguage);
-    }
-  } catch (error) {
-    console.log('Failed to load language preference:', error);
-  }
 });
 
 </script>

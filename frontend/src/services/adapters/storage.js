@@ -107,6 +107,7 @@ export function clearUserSpecificData() {
   
   const preservedSettings = {
     theme: settings.theme,
+    language: settings.language,
     iconScheme: settings.iconScheme,
     useGrid: settings.useGrid,
     projectGridView: settings.projectGridView,
