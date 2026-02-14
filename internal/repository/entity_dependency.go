@@ -41,6 +41,17 @@ func GetEntityDependency(tx *sqlx.Tx, id string) (models.TaskDependency, error) 
 	return dependency, nil
 }
 
+// GetEntityDependencyByKeys looks up an entity dependency by its composite key.
+func GetEntityDependencyByKeys(tx *sqlx.Tx, taskId, dependencyId string) (models.TaskDependency, error) {
+	dep := models.TaskDependency{}
+	conditions := map[string]any{
+		"task_id":       taskId,
+		"dependency_id": dependencyId,
+	}
+	err := base_service.GetBy(tx, "entity_dependency", conditions, &dep)
+	return dep, err
+}
+
 func GetEntityDependencies(tx *sqlx.Tx, taskId string) ([]models.TaskDependency, error) {
 	taskDependencies := []models.TaskDependency{}
 	conditions := map[string]interface{}{

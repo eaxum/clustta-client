@@ -249,3 +249,93 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 		return fmt.Errorf("invalid url:%s", remoteUrl)
 	}
 }
+
+// PushPartialData pushes a pre-built ProjectData to the server without loading from the DB.
+// It marks only the specified row IDs as synced on success. On failure it returns silently
+// so the rows stay unsynced and get picked up by the next full sync.
+func PushPartialData(projectPath, remoteUrl, userId string, data ProjectData, syncTargets map[string][]string) error {
+	if data.IsEmpty() {
+		return nil
+	}
+	if !utils.IsValidURL(remoteUrl) {
+		return nil
+	}
+
+	pdData := repositorypb.ProjectData{
+		ProjectPreview:  data.ProjectPreview,
+		EntityTypes:     repository.ToPbEntityTypes(data.EntityTypes),
+		Entities:        repository.ToPbEntities(data.Entities),
+		EntityAssignees: repository.ToPbEntityAssignees(data.EntityAssignees),
+
+		TaskTypes:          repository.ToPbTaskTypes(data.TaskTypes),
+		Tasks:              repository.ToPbTasks(data.Tasks),
+		TasksCheckpoints:   repository.ToPbCheckpoints(data.TasksCheckpoints),
+		TaskDependencies:   repository.ToPbTaskDependencies(data.TaskDependencies),
+		EntityDependencies: repository.ToPbEntityDependencies(data.EntityDependencies),
+
+		Statuses:        repository.ToPbStatuses(data.Statuses),
+		DependencyTypes: repository.ToPbDependencyTypes(data.DependencyTypes),
+
+		Users: repository.ToPbUsers(data.Users),
+		Roles: repository.ToPbRoles(data.Roles),
+
+		Templates: repository.ToPbTemplates(data.Templates),
+
+		Workflows:        repository.ToPbWorkflows(data.Workflows),
+		WorkflowLinks:    repository.ToPbWorkflowLinks(data.WorkflowLinks),
+		WorkflowEntities: repository.ToPbWorkflowEntities(data.WorkflowEntities),
+		WorkflowTasks:    repository.ToPbWorkflowTasks(data.WorkflowTasks),
+
+		Tags:      repository.ToPbTags(data.Tags),
+		TasksTags: repository.ToPbTaskTags(data.TasksTags),
+
+		Tomb: repository.ToPbTombs(data.Tombs),
+	}
+
+	dataByte, err := proto.Marshal(&pdData)
+	if err != nil {
+		return err
+	}
+	compressedData, err := zstd.CompressLevel(nil, dataByte, 3)
+	if err != nil {
+		return err
+	}
+
+	dataUrl := remoteUrl + "/data"
+	req, err := http.NewRequest("POST", dataUrl, bytes.NewBuffer(compressedData))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	response, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != 200 {
+		return fmt.Errorf("write-through push returned %d", response.StatusCode)
+	}
+
+	// Mark only the specific rows as synced
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	for table, ids := range syncTargets {
+		err = utils.SetRowsSynced(tx, table, ids)
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}

@@ -137,6 +137,15 @@ export function GetTemplates() {
 }
 
 /**
+ * GetWriteThroughEnabled returns whether write-through sync is enabled for the project.
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function GetWriteThroughEnabled(projectPath) {
+    return $Call.ByID(433223359, projectPath);
+}
+
+/**
  * @param {string} itemPath
  * @param {string[]} ignoreList
  * @returns {$CancellablePromise<boolean>}
@@ -207,6 +216,16 @@ export function ResetDefaultTemplates() {
  */
 export function SetIgnoreList(projectUri, studioName, ignoreList) {
     return $Call.ByID(610021480, projectUri, studioName, ignoreList);
+}
+
+/**
+ * SetWriteThroughEnabled enables or disables write-through sync for the project.
+ * @param {string} projectPath
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetWriteThroughEnabled(projectPath, enabled) {
+    return $Call.ByID(132884547, projectPath, enabled);
 }
 
 /**

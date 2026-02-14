@@ -414,7 +414,7 @@ const getTabStyle = (index) => {
   border-radius: 16px 16px 0px 0px;
   height: 100%;
   position: relative;
-  background-color: var(--steel);
+  background-color: var(--shadow-steel);
 }
 
 .tab.active::before {
@@ -426,7 +426,7 @@ const getTabStyle = (index) => {
   height: 25px;
   width: 50px;
   border-bottom-right-radius: 16px;
-  box-shadow: 25px 0 0 0 var(--steel);
+  box-shadow: 25px 0 0 0 var(--shadow-steel);
 }
 
 .tab.active::after {
@@ -438,7 +438,7 @@ const getTabStyle = (index) => {
   height: 25px;
   width: 50px;
   border-bottom-left-radius: 16px;
-  box-shadow: -25px 0 0 0 var(--steel);
+  box-shadow: -25px 0 0 0 var(--shadow-steel);
 }
 
 .tab.dragging {

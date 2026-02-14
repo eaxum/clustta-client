@@ -168,9 +168,20 @@ func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, e
 		return models.Task{}, err
 	}
 
+	// Read simple task for write-through before commit (pointer/link assets only)
+	var simpleTask models.Task
+	if createdTask.Pointer != "" {
+		simpleTask, _ = repository.GetSimpleTask(tx, createdTask.Id)
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		return models.Task{}, err
+	}
+
+	// Write through pointer/link assets (no binary data)
+	if createdTask.Pointer != "" && simpleTask.Id != "" {
+		enqueueTaskWriteThrough(projectPath, simpleTask)
 	}
 
 	if templateFilePath == "" {
@@ -612,10 +623,15 @@ func (t *AssetService) ChangeStatus(projectPath, taskId, statusId string) error 
 	if err != nil {
 		return err
 	}
+	task, err := repository.GetSimpleTask(tx, taskId)
+	if err != nil {
+		return err
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
+	enqueueTaskWriteThrough(projectPath, task)
 	return nil
 }
 
@@ -655,12 +671,22 @@ func (t *AssetService) ChangeAssetCollection(projectPath string, assetIds []stri
 		return fmt.Errorf("assets with the same name and extension already exist in the target collection: %s", strings.Join(conflicts, ", "))
 	}
 
+	var movedTasks []models.Task
 	for _, assetId := range assetIds {
 		repository.ChangeEntity(tx, assetId, entityId)
+	}
+	for _, assetId := range assetIds {
+		task, err := repository.GetSimpleTask(tx, assetId)
+		if err == nil {
+			movedTasks = append(movedTasks, task)
+		}
 	}
 	err = tx.Commit()
 	if err != nil {
 		return err
+	}
+	for _, task := range movedTasks {
+		enqueueTaskWriteThrough(projectPath, task)
 	}
 	return nil
 }
@@ -750,9 +776,21 @@ func (t *AssetService) MoveAssetsToCollection(projectPath string, assetIds []str
 		repository.ChangeEntity(tx, asset.Id, targetEntityId)
 	}
 
+	// Read updated tasks for write-through before commit
+	var movedSimpleTasks []models.Task
+	for _, asset := range assetsToMove {
+		simpleTask, err := repository.GetSimpleTask(tx, asset.Id)
+		if err == nil {
+			movedSimpleTasks = append(movedSimpleTasks, simpleTask)
+		}
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		return err
+	}
+	for _, task := range movedSimpleTasks {
+		enqueueTaskWriteThrough(projectPath, task)
 	}
 	return nil
 }
@@ -821,10 +859,15 @@ func (t *AssetService) ChangeAssetType(projectPath, taskId, taskTypeId string) e
 	if err != nil {
 		return err
 	}
+	task, err := repository.GetSimpleTask(tx, taskId)
+	if err != nil {
+		return err
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
+	enqueueTaskWriteThrough(projectPath, task)
 	return nil
 }
 
@@ -844,10 +887,15 @@ func (t *AssetService) ToggleIsTask(projectPath, taskId string, isTask bool) err
 	if err != nil {
 		return err
 	}
+	task, err := repository.GetSimpleTask(tx, taskId)
+	if err != nil {
+		return err
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
+	enqueueTaskWriteThrough(projectPath, task)
 	return nil
 }
 
@@ -868,10 +916,15 @@ func (t *AssetService) RenameAsset(projectPath, taskId, name string) (models.Tas
 		tx.Rollback()
 		return models.Task{}, err
 	}
+	simpleTask, err := repository.GetSimpleTask(tx, taskId)
+	if err != nil {
+		return models.Task{}, err
+	}
 	err = tx.Commit()
 	if err != nil {
 		return models.Task{}, err
 	}
+	enqueueTaskWriteThrough(projectPath, simpleTask)
 	return updatedTask, nil
 }
 
@@ -940,10 +993,15 @@ func (t *AssetService) AssignAsset(projectPath, taskId, userId string) error {
 	if err != nil {
 		return err
 	}
+	task, err = repository.GetSimpleTask(tx, taskId)
+	if err != nil {
+		return err
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
+	enqueueTaskWriteThrough(projectPath, task)
 	return nil
 }
 func (t *AssetService) UnassignAsset(projectPath, taskId string) error {
@@ -963,10 +1021,15 @@ func (t *AssetService) UnassignAsset(projectPath, taskId string) error {
 		tx.Rollback()
 		return err
 	}
+	task, err := repository.GetSimpleTask(tx, taskId)
+	if err != nil {
+		return err
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
+	enqueueTaskWriteThrough(projectPath, task)
 	return nil
 }
 func (t *AssetService) UnassignAssets(projectPath string, taskIds []string) error {
@@ -986,9 +1049,19 @@ func (t *AssetService) UnassignAssets(projectPath string, taskIds []string) erro
 		tx.Rollback()
 		return err
 	}
+	var unassignedTasks []models.Task
+	for _, id := range taskIds {
+		task, err := repository.GetSimpleTask(tx, id)
+		if err == nil {
+			unassignedTasks = append(unassignedTasks, task)
+		}
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
+	}
+	for _, task := range unassignedTasks {
+		enqueueTaskWriteThrough(projectPath, task)
 	}
 	return nil
 }
@@ -1107,6 +1180,7 @@ func (t *AssetService) AddEntityDependency(projectPath, taskId, dependencyId, de
 	if err != nil {
 		return models.TaskDependency{}, err
 	}
+	enqueueEntityDependencyWriteThrough(projectPath, entityDependency)
 	return entityDependency, nil
 }
 func (t *AssetService) RemoveEntityDependency(projectPath, taskId, dependencyId string) error {
@@ -1120,7 +1194,16 @@ func (t *AssetService) RemoveEntityDependency(projectPath, taskId, dependencyId 
 		return err
 	}
 	defer tx.Rollback()
+	// Read the entity dependency row ID before deletion for tomb lookup
+	dep, err := repository.GetEntityDependencyByKeys(tx, taskId, dependencyId)
+	if err != nil {
+		return err
+	}
 	err = repository.RemoveEntityDependency(tx, taskId, dependencyId)
+	if err != nil {
+		return err
+	}
+	tomb, err := repository.GetTomb(tx, dep.Id)
 	if err != nil {
 		return err
 	}
@@ -1128,6 +1211,7 @@ func (t *AssetService) RemoveEntityDependency(projectPath, taskId, dependencyId 
 	if err != nil {
 		return err
 	}
+	enqueueTombWriteThrough(projectPath, tomb)
 	return nil
 }
 func (t *AssetService) AddAssetDependency(projectPath, taskId, dependencyId, dependencyTypeId string) (models.TaskDependency, error) {
@@ -1150,7 +1234,7 @@ func (t *AssetService) AddAssetDependency(projectPath, taskId, dependencyId, dep
 	if err != nil {
 		return models.TaskDependency{}, err
 	}
-
+	enqueueDependencyWriteThrough(projectPath, taskDependency)
 	return taskDependency, nil
 }
 func (t *AssetService) RemoveAssetDependency(projectPath, taskId, dependencyId string) error {
@@ -1168,10 +1252,15 @@ func (t *AssetService) RemoveAssetDependency(projectPath, taskId, dependencyId s
 	if err != nil {
 		return err
 	}
+	tomb, err := repository.GetTomb(tx, dependencyId)
+	if err != nil {
+		return err
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
+	enqueueTombWriteThrough(projectPath, tomb)
 	return nil
 }
 func (t *AssetService) GetAssetDependencies2(projectPath string, taskIds []string) ([]models.Task, error) {
@@ -1690,11 +1779,15 @@ func (t *AssetService) DeleteAssetType(projectPath, id string) error {
 	if err != nil {
 		return err
 	}
-
+	tomb, err := repository.GetTomb(tx, id)
+	if err != nil {
+		return err
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
+	enqueueTombWriteThrough(projectPath, tomb)
 	return nil
 }
 
@@ -1719,6 +1812,7 @@ func (t *AssetService) CreateAssetType(projectPath, name, icon string) (models.T
 	if err != nil {
 		return models.TaskType{}, err
 	}
+	enqueueTaskTypeWriteThrough(projectPath, taskTypes)
 	return taskTypes, nil
 }
 
@@ -1743,6 +1837,7 @@ func (t *AssetService) UpdateAssetType(projectPath, id, name, icon string) (mode
 	if err != nil {
 		return models.TaskType{}, err
 	}
+	enqueueTaskTypeWriteThrough(projectPath, taskType)
 	return taskType, nil
 }
 

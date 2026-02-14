@@ -24,6 +24,13 @@ func GetTombs(tx *sqlx.Tx) ([]Tomb, error) {
 	return tombs, nil
 }
 
+// GetTomb returns a single tomb entry by its ID.
+func GetTomb(tx *sqlx.Tx, id string) (Tomb, error) {
+	var tomb Tomb
+	err := tx.Get(&tomb, "SELECT id, mtime, table_name, synced FROM tomb WHERE id = ?", id)
+	return tomb, err
+}
+
 func AddItemsToTomb(tx *sqlx.Tx, tombs []Tomb) error {
 	for _, tomb := range tombs {
 		query := fmt.Sprintf("DELETE FROM %s WHERE id = '%s';", tomb.TableName, tomb.Id)

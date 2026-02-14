@@ -278,6 +278,17 @@ func GetSimpleEntities(tx *sqlx.Tx) ([]models.Entity, error) {
 	fmt.Println("SimpleEntities: ", entities)
 	return entities, nil
 }
+
+// GetSimpleEntity returns a single entity row without JOINs.
+func GetSimpleEntity(tx *sqlx.Tx, id string) (models.Entity, error) {
+	entity := models.Entity{}
+	err := tx.Get(&entity, "SELECT * FROM entity WHERE id = ?", id)
+	if err != nil {
+		return models.Entity{}, err
+	}
+	return entity, nil
+}
+
 func GetEntity(tx *sqlx.Tx, id string) (models.Entity, error) {
 	entity := models.Entity{}
 

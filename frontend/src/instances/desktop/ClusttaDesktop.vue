@@ -12,7 +12,7 @@
 					<div ref="mainAreaContainer" class="main-area">
 						<CenterStage />
 					</div>
-        			<InfoBar :bgColor="'var(--steel)'" />
+        			<InfoBar />
 				</div>
 			</div>
 		</div>
@@ -140,6 +140,7 @@ onBeforeUnmount(async () => {
 	display: flex;
 	box-sizing: border-box;
 	flex-direction: column;
+	background-color: crimson;
 }
 
 .desktop-container {
@@ -188,8 +189,9 @@ onBeforeUnmount(async () => {
 	overflow: hidden;
 	padding: .4rem;
 	padding-bottom: 0;
-	background-color: var(--steel);
 	padding-top: 0;
+	background-color: forestgreen;
+	background-color: var(--shadow-steel);
 }
 </style>
 

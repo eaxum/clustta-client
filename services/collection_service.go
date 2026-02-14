@@ -115,10 +115,15 @@ func (e *CollectionService) CreateCollection(projectPath, name, description, ent
 		tx.Rollback()
 		return models.Entity{}, err
 	}
+	simpleEntity, err := repository.GetSimpleEntity(tx, createdEntity.Id)
+	if err != nil {
+		return models.Entity{}, err
+	}
 	err = tx.Commit()
 	if err != nil {
 		return models.Entity{}, err
 	}
+	enqueueEntityWriteThrough(projectPath, simpleEntity)
 	return createdEntity, nil
 }
 
@@ -146,6 +151,7 @@ func (e *CollectionService) RenameCollection(projectPath, entityId, newName stri
 	if err != nil {
 		return models.Entity{}, err
 	}
+	enqueueEntityWriteThrough(projectPath, updatedEntity)
 	return updatedEntity, nil
 }
 
@@ -1695,15 +1701,25 @@ func (e *CollectionService) ChangeCollectionParent(projectPath string, entityIds
 		return fmt.Errorf("collections with the same name already exist in the target location: %s", strings.Join(conflicts, ", "))
 	}
 
+	var movedEntities []models.Entity
 	for _, entityId := range entityIds {
 		err = repository.ChangeParent(tx, entityId, parentId)
 		if err != nil {
 			return err
 		}
 	}
+	for _, entityId := range entityIds {
+		entity, err := repository.GetSimpleEntity(tx, entityId)
+		if err == nil {
+			movedEntities = append(movedEntities, entity)
+		}
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
+	}
+	for _, entity := range movedEntities {
+		enqueueEntityWriteThrough(projectPath, entity)
 	}
 	return nil
 }
@@ -1726,10 +1742,15 @@ func (e *CollectionService) ChangeType(projectPath, entityId, entityTypeId strin
 	if err != nil {
 		return err
 	}
+	entity, err := repository.GetSimpleEntity(tx, entityId)
+	if err != nil {
+		return err
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
+	enqueueEntityWriteThrough(projectPath, entity)
 	return nil
 }
 
@@ -1751,10 +1772,15 @@ func (e *CollectionService) ChangeIsLibrary(projectPath, entityId string, isLibr
 	if err != nil {
 		return err
 	}
+	entity, err := repository.GetSimpleEntity(tx, entityId)
+	if err != nil {
+		return err
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
+	enqueueEntityWriteThrough(projectPath, entity)
 	return nil
 }
 
@@ -1777,10 +1803,15 @@ func (e *CollectionService) Assign(projectPath, entityId, userId string) error {
 		tx.Rollback()
 		return err
 	}
+	entity, err := repository.GetSimpleEntity(tx, entityId)
+	if err != nil {
+		return err
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
+	enqueueEntityWriteThrough(projectPath, entity)
 	return nil
 }
 
@@ -1803,10 +1834,15 @@ func (e *CollectionService) Unassign(projectPath, entityId, userId string) error
 		tx.Rollback()
 		return err
 	}
+	entity, err := repository.GetSimpleEntity(tx, entityId)
+	if err != nil {
+		return err
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
+	enqueueEntityWriteThrough(projectPath, entity)
 	return nil
 }
 
@@ -1834,6 +1870,7 @@ func (e *CollectionService) CreateCollectionType(projectPath, entityTypeName, en
 		return models.EntityType{}, err
 	}
 	tx.Commit()
+	enqueueEntityTypeWriteThrough(projectPath, entityType)
 	return entityType, nil
 }
 
@@ -1864,6 +1901,7 @@ func (e *CollectionService) UpdateCollectionType(projectPath, id, entityTypeName
 	if err != nil {
 		return models.EntityType{}, err
 	}
+	enqueueEntityTypeWriteThrough(projectPath, entityType)
 	return entityType, nil
 }
 
@@ -1885,11 +1923,15 @@ func (e *CollectionService) DeleteCollectionType(projectPath, id string) error {
 	if err != nil {
 		return err
 	}
-
+	tomb, err := repository.GetTomb(tx, id)
+	if err != nil {
+		return err
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
+	enqueueTombWriteThrough(projectPath, tomb)
 	return nil
 }
 
