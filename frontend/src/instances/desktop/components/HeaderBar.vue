@@ -30,11 +30,11 @@
 
 				<div class="actions-divider" ></div>
 				
-				<ActionButton :isDisabled="revertButtonDisabled" @click="prepResetPopUpModal()" :icon="getAppIcon('revert')"
-				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="revertButtonTooltip"  :useDanger="unSynced"/>
+				<ActionButton :isDisabled="revertButtonDisabled" @click="openChangeLog()" :icon="getAppIcon('revert')"
+					:iconAfter="true" v-tooltip="revertButtonTooltip" />
 
 				<ActionButton :isDisabled="syncButtonDisabled" @click="unSynced ? syncData() : pullData()" :icon="getAppIcon(getCloudIcon)"
-				 :noFilter="unSynced"	:iconAfter="true" v-tooltip="cloudIconTooltip" :useAlert="unSynced" :useDanger="offline || !studioStore.appOnline" />
+					:iconAfter="true" v-tooltip="cloudIconTooltip" />
 				
 				<!-- <ActionButton :icon="getAppIcon('bell')" @click="panes.setPaneVisibility('notifications', true)" v-tooltip="'Notifications'"  /> -->
 			</div>
@@ -54,7 +54,6 @@
 
 // imports
 import { computed, ref, onMounted, toRaw } from 'vue';
-import { SyncService } from "@/services";
 import { ProjectService } from '@/services';
 import { syncData, pullData } from '@/lib/sync';
 import utils from '@/services/utils';
@@ -165,7 +164,7 @@ const activeHeaderConfig = computed(() => {
 	return configs[stage.activeStage] || null;
 });
 
-const unSynced = computed(() => { return projectStore.getActiveProject.is_unsynced });
+const unSynced = computed(() => { return projectStore.getActiveProject?.is_unsynced });
 const offline = computed(() => { return projectStore.getActiveProject?.is_offline });
 
 const revertButtonDisabled = computed(() => {
@@ -201,33 +200,10 @@ const syncButtonTooltip = computed(() => {
 
 // methods
 
-const revertChanges = async () => {
-	await SyncService.DiscardAllChanges(
-		projectStore.activeProject.uri, projectStore.getActiveProjectUrl
-	)
-		.then(() => {
-			projectStore.activeProject.is_unsynced = false;
-			trayStates.refreshData();
-			emitter.emit('refresh-browser');
-			modals.disableAllModals();
-		}).catch((error) => {
-			console.error(error.message)
-			notificationStore.addNotification(
-				"Error Reverting Changes",
-				error.message,
-				"error",
-				false
-			)
-			modals.disableAllModals();
-		})
-};
-
-const prepResetPopUpModal = () => {
-	trayStates.popUpModalIcon = 'revert'
-	trayStates.popUpModalTitle = "Revert project";
-	trayStates.popUpModalMessage = "Your project will be reverted to the remote version as of the last sync. Continue?";
-	trayStates.popUpModalFunction = revertChanges;
-	modals.setModalVisibility('popUpModal', true);
+// Opens the change log pane in the details panel.
+const openChangeLog = () => {
+	stage.deselectAllItems();
+	emitter.emit('view-changelog');
 };
 
 const prepEmptyTrashPopUpModal = () => {

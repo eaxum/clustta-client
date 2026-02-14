@@ -1,9 +1,4 @@
 <template>
-  <div class="general-pane-header">
-    <HeaderArea :notModal="true" title="Change Log" />
-    <ActionButton :icon="getAppIcon('refresh')" :showLabel="false" v-tooltip="'Refresh'" :buttonFunction="loadChanges" />
-  </div>
-
   <div class="general-pane-root">
     <div v-if="hasChanges" class="changelog-scroll-container">
       <div class="changelog-actions">
@@ -13,54 +8,37 @@
 
       <div v-if="summary.tasks.length" class="changelog-group">
         <div class="changelog-group-header" @click="toggleGroup('tasks')">
-          <img class="changelog-chevron" :class="{ 'chevron-expanded': expandedGroups.tasks }" :src="getAppIcon('chevron-right')" />
+          <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.tasks }" />
           <span class="changelog-group-title">Tasks</span>
           <span class="changelog-group-count">{{ summary.tasks.length }}</span>
         </div>
 
         <div v-if="expandedGroups.tasks" class="changelog-group-items">
-          <div v-for="item in summary.tasks" :key="item.id" class="changelog-item">
-            <div class="changelog-item-info">
-              <span class="changelog-change-type" :class="'change-' + item.change_type">{{ item.change_type }}</span>
-              <span class="changelog-item-name">{{ item.name || item.id }}</span>
-            </div>
-            <ActionButton :icon="getAppIcon('revert')" :showLabel="false" v-tooltip="'Discard'" :buttonFunction="() => discardItem(item.id, 'task')" :isDisabled="isLoading" />
-          </div>
+          <ChangeLogItem v-for="item in summary.tasks" :key="item.id" :item="item" itemType="task" :isLoading="isLoading" @find="(id) => findItem(id, 'task')" @discard="(id) => discardItem(id, 'task')" />
         </div>
       </div>
 
       <div v-if="summary.entities.length" class="changelog-group">
         <div class="changelog-group-header" @click="toggleGroup('entities')">
-          <img class="changelog-chevron" :class="{ 'chevron-expanded': expandedGroups.entities }" :src="getAppIcon('chevron-right')" />
+          <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.entities }" />
           <span class="changelog-group-title">Collections</span>
           <span class="changelog-group-count">{{ summary.entities.length }}</span>
         </div>
 
         <div v-if="expandedGroups.entities" class="changelog-group-items">
-          <div v-for="item in summary.entities" :key="item.id" class="changelog-item">
-            <div class="changelog-item-info">
-              <span class="changelog-change-type" :class="'change-' + item.change_type">{{ item.change_type }}</span>
-              <span class="changelog-item-name">{{ item.name || item.id }}</span>
-            </div>
-            <ActionButton :icon="getAppIcon('revert')" :showLabel="false" v-tooltip="'Discard'" :buttonFunction="() => discardItem(item.id, 'entity')" :isDisabled="isLoading" />
-          </div>
+          <ChangeLogItem v-for="item in summary.entities" :key="item.id" :item="item" itemType="entity" :isLoading="isLoading" @find="(id) => findItem(id, 'entity')" @discard="(id) => discardItem(id, 'entity')" />
         </div>
       </div>
 
       <div v-if="summary.other.length" class="changelog-group">
         <div class="changelog-group-header" @click="toggleGroup('other')">
-          <img class="changelog-chevron" :class="{ 'chevron-expanded': expandedGroups.other }" :src="getAppIcon('chevron-right')" />
+          <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.other }" />
           <span class="changelog-group-title">Other</span>
           <span class="changelog-group-count">{{ summary.other.length }}</span>
         </div>
 
         <div v-if="expandedGroups.other" class="changelog-group-items">
-          <div v-for="item in summary.other" :key="item.id + item.source" class="changelog-item">
-            <div class="changelog-item-info">
-              <span class="changelog-change-type" :class="'change-' + item.change_type">{{ item.change_type }}</span>
-              <span class="changelog-item-name">{{ item.source }}: {{ item.name || item.id }}</span>
-            </div>
-          </div>
+          <ChangeLogItem v-for="item in summary.other" :key="item.id + item.source" :item="item" itemType="other" :isLoading="isLoading" />
         </div>
       </div>
     </div>
@@ -77,24 +55,32 @@ import { syncData } from '@/lib/sync';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import ChangeLogItem from '@/instances/desktop/components/ChangeLogItem.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 
 // services
-import { SyncService } from '@/services';
+import { AssetService, CollectionService, SyncService } from '@/services';
 
 // stores
+import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
+import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
 import { useStudioStore } from '@/stores/studio';
 import { useTrayStates } from '@/stores/TrayStates';
 
+const assetStore = useAssetStore();
+const collectionStore = useCollectionStore();
+const commonStore = useCommonStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const stage = useStageStore();
 const studioStore = useStudioStore();
 const trayStates = useTrayStates();
 
@@ -147,6 +133,34 @@ const discardItem = async (itemId, itemType) => {
     notificationStore.errorNotification('Error discarding change', error);
   }
   isLoading.value = false;
+};
+
+// Navigates to the item in the browser view.
+const findItem = async (itemId, itemType) => {
+  try {
+    if (itemType === 'task') {
+      const task = await AssetService.GetAssetByID(projectStore.activeProject.uri, itemId);
+      if (!task?.id) return;
+      const taskParent = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, task.entity_id);
+      if (taskParent) {
+        collectionStore.navigateToCollection(taskParent);
+        commonStore.navigatorMode = true;
+      }
+      stage.deselectAllItems();
+      assetStore.selectAsset(task.id);
+      stage.firstSelectedItemId = task.id;
+      stage.markedItems = [task.id];
+    } else if (itemType === 'entity') {
+      const entity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, itemId);
+      if (entity) {
+        collectionStore.navigateToCollection(entity);
+        commonStore.navigatorMode = true;
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    notificationStore.errorNotification('Error navigating to item', error);
+  }
 };
 
 // Returns the app icon path for the given icon name.
@@ -205,23 +219,6 @@ onUnmounted(() => {
   padding: .5rem 0;
 }
 
-.changelog-chevron {
-  width: 12px;
-  height: 12px;
-  transition: transform 0.2s ease;
-  filter: brightness(0) invert(1);
-  opacity: .5;
-}
-
-.changelog-change-type {
-  font-size: 11px;
-  font-weight: 500;
-  padding: 1px 6px;
-  border-radius: 4px;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
 .changelog-group {
   display: flex;
   flex-direction: column;
@@ -249,7 +246,8 @@ onUnmounted(() => {
 .changelog-group-items {
   display: flex;
   flex-direction: column;
-  padding-left: .5rem;
+  gap: .2rem;
+  padding: .2rem 0;
 }
 
 .changelog-group-title {
@@ -257,30 +255,8 @@ onUnmounted(() => {
   font-weight: 500;
 }
 
-.changelog-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: .3rem .4rem;
-  border-radius: var(--small-radius);
-}
-
-.changelog-item:hover {
-  background-color: var(--light-steel);
-}
-
-.changelog-item-info {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  overflow: hidden;
-}
-
-.changelog-item-name {
-  font-size: 13px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.chevron-expanded {
+  transform: rotate(90deg);
 }
 
 .changelog-scroll-container {
@@ -289,6 +265,8 @@ onUnmounted(() => {
   gap: .3rem;
   overflow-y: auto;
   padding: 0 .5rem;
+  width: 100%;
+  color: var(--white);
 }
 
 .changelog-scroll-container::-webkit-scrollbar {
@@ -302,19 +280,5 @@ onUnmounted(() => {
 
 .changelog-scroll-container::-webkit-scrollbar-track {
   border-radius: var(--small-radius);
-}
-
-.change-deleted {
-  background-color: rgba(220, 50, 50, 0.2);
-  color: #f87171;
-}
-
-.change-modified {
-  background-color: rgba(59, 130, 246, 0.2);
-  color: #60a5fa;
-}
-
-.chevron-expanded {
-  transform: rotate(90deg);
 }
 </style>

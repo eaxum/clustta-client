@@ -223,7 +223,7 @@ const paneComponents = {
 const projectDetailPanes = [
   { name: "Details", tab_name: "projectDetails", icon: "info" },
   { name: "Checkpoints", tab_name: "projectCheckpoints", icon: "layers" },
-  { name: "Change Log", tab_name: "changeLog", icon: "history" },
+  { name: "Change Log", tab_name: "changeLog", icon: "revert" },
   { name: "Collaborators", tab_name: "collaborators", icon: "person" },
   { name: "Console", tab_name: "console", icon: "console" }
 ];
@@ -820,6 +820,9 @@ const unassignTasks = async () => {
 // Switches to the checkpoints tab.
 const viewCheckpoints = () => filterList('Checkpoints');
 
+// Switches to the change log tab.
+const viewChangeLog = () => filterList('Change Log');
+
 // watchers
 watch(() => settingsItems.value, () => { activeTabIndex.value = 0; });
 
@@ -829,11 +832,13 @@ watchEffect(() => { if (detailsPaneRoot.value) menu.clickOutsideMask = detailsPa
 onMounted(() => {
   panes.setPaneVisibility('projectDetails', true);
   emitter.on('view-checkpoints', viewCheckpoints);
+  emitter.on('view-changelog', viewChangeLog);
 });
 
 onUnmounted(() => {
   panes.setPaneVisibility('projectDetails', true);
   emitter.off('view-checkpoints', viewCheckpoints);
+  emitter.off('view-changelog', viewChangeLog);
 });
 </script>
 
