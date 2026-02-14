@@ -28,6 +28,21 @@ func SetTablesToSynced(tx *sqlx.Tx, tables []string) error {
 	return nil
 }
 
+// SetRowsSynced marks specific rows as synced in a given table by their IDs.
+// This prevents race conditions where unrelated unsynced rows get marked.
+func SetRowsSynced(tx *sqlx.Tx, table string, ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	query, args, err := sqlx.In(fmt.Sprintf("UPDATE %s SET synced = 1 WHERE id IN (?)", table), ids)
+	if err != nil {
+		return err
+	}
+	query = tx.Rebind(query)
+	_, err = tx.Exec(query, args...)
+	return err
+}
+
 func GetProjectVersion(tx *sqlx.Tx) (float64, error) {
 	var version string
 	err := tx.Get(&version, "SELECT value FROM config WHERE name = 'version'")
@@ -203,6 +218,44 @@ func SetProjectIcon(tx *sqlx.Tx, projectIcon string) error {
 		VALUES ('project_icon', $1, $2)
 		ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value, mtime = EXCLUDED.mtime
 	`, projectIcon, GetEpochTime())
+	return err
+}
+
+// GetRemoteUrl reads the remote project URL from the config table.
+func GetRemoteUrl(tx *sqlx.Tx) (string, error) {
+	var remoteUrl string
+	err := tx.Get(&remoteUrl, "SELECT value FROM config WHERE name='remote'")
+	if err != nil {
+		return "", err
+	}
+	return remoteUrl, nil
+}
+
+// GetWriteThroughEnabled reads the write_through_enabled config value for a project.
+// Returns false if the key is missing (default off).
+func GetWriteThroughEnabled(tx *sqlx.Tx) (bool, error) {
+	var value string
+	err := tx.Get(&value, "SELECT value FROM config WHERE name='write_through_enabled'")
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+	return value == "true", nil
+}
+
+// SetWriteThroughEnabled writes the write_through_enabled config value for a project.
+func SetWriteThroughEnabled(tx *sqlx.Tx, enabled bool) error {
+	val := "false"
+	if enabled {
+		val = "true"
+	}
+	_, err := tx.Exec(`
+		INSERT INTO config (name, value, mtime)
+		VALUES ('write_through_enabled', ?, ?)
+		ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value, mtime = EXCLUDED.mtime
+	`, val, GetEpochTime())
 	return err
 }
 

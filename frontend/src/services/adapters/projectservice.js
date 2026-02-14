@@ -1,5 +1,6 @@
 import { studioApiCall, getActiveStudioUrl, setActiveStudioUrl } from './http-client.js';
 import { CLUSTTA_AGENT, STORAGE_KEYS, isDev } from './config.js';
+import { setSetting, getSetting } from './storage.js';
 
 // Fetches preview for a single project and updates it in place
 const fetchProjectPreview = async (project, studioUrl) => {
@@ -211,4 +212,10 @@ export const ProjectService = {
   Purge: async (projectPath) => {
     console.warn('Purge not implemented in web mode');
   },
+
+  // Returns whether write-through sync is enabled for the project
+  GetWriteThroughEnabled: async (projectPath) => getSetting(`writeThrough_${projectPath}`, false),
+
+  // Sets write-through sync preference for the project
+  SetWriteThroughEnabled: async (projectPath, value) => setSetting(`writeThrough_${projectPath}`, value),
 };

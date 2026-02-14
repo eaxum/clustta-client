@@ -37,6 +37,7 @@ import AssetTypes from '@/instances/desktop/settings/AssetTypes.vue';
 import Roles from '@/instances/desktop/settings/Roles.vue';
 import CollectionTypes from '@/instances/desktop/settings/CollectionTypes.vue';
 import IgnoreList from '@/instances/desktop/settings/IgnoreList.vue';
+import Advanced from '@/instances/desktop/settings/Advanced.vue';
 
 const selectedSettingsContext = ref('');
 
@@ -50,6 +51,7 @@ const settingsComponents = {
 	roles: Roles,
 	collectiontypes: CollectionTypes,
 	ignorelist: IgnoreList,
+	advanced: Advanced,
 };
 
 // computed props
@@ -60,11 +62,12 @@ const settingsItems = computed(() => {
 	const isProjectRemote = projectStore.activeProject.has_remote;
 	
 	const userSettingsItems = ['General', 'Directories', 'Project Templates', 'Studio', 'Studio Collaborators'];
-	const remoteProjectItems = ['Collaborators', 'Roles'];
+	const remoteProjectItems = ['Collaborators', 'Roles', 'Advanced'];
 
 	const projectSettings = settings.settingsItems.filter((item) => 
 		!userSettingsItems.includes(item.name) &&
 		(canChangeRole || item.name !== 'Roles') &&
+		(canChangeRole || item.name !== 'Advanced') &&
 		(canViewTemplate || item.name !== 'Project Templates')
 	);
 	

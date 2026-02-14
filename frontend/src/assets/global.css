@@ -85,23 +85,25 @@
   --purple-glass: hsla(254, 15%, 45%, 0.2);
 
 
-  --white: hsl(0, 0%, 0%);
+  /* --white: hsl(0, 0%, 0%);
   --silver: hsl(0, 0%, 15%);
-  --steel: hsl(254, 0%, 85%);
   --bright-steel: hsl(0, 0%, 81%);
+  --steel: hsl(254, 0%, 85%);
   --light-steel: hsl(0, 0%, 81%);
   --dark-steel: hsl(0, 0%, 89%);
   --black-steel: hsl(0, 0%, 93%);
   --midnight-steel: hsl(0, 0%, 96%);
-  --black: hsl(0, 0%, 93%);
+  --black: hsl(0, 0%, 93%); */
+
   --hover:  hsla(0, 0%, 0%, 0.15);
 
   /* Light mode (default) */
 --white: oklch(from var(--steel) 0.0 c h);           /* Pure black */
 --silver: oklch(from var(--steel) 0.23 c h);         /* Dark gray */
---steel: oklch(0.89 0 264);                          /* Base color - unchanged */
 --bright-steel: oklch(from var(--steel) 0.80 c h);    /* Slightly darker */
 --light-steel: oklch(from var(--steel) 0.85 c h);    /* Slightly darker */
+--shadow-steel: oklch(from var(--steel) .87 c h);                 /* A bit darker*/
+--steel: oklch(0.89 0 264);                          /* Base color - unchanged */
 --dark-steel: oklch(from var(--steel) 0.93 c h);     /* Lighter */
 --black-steel: oklch(from var(--steel) 0.97 c h);    /* Even lighter */
 --midnight-steel: oklch(from var(--steel) 0.98 c h); /* Lightest */
@@ -156,8 +158,9 @@
   /* Dark mode */
   --white: hsl(0, 0%, 100%);
   --silver: hsl(0, 0%, 85%);
-  --steel: hsl(254, 0%, 15%);
   --light-steel: hsl(0, 0%, 19%);
+  --steel: hsl(0, 0%, 15%);
+  --shadow-steel: hsl(0, 0%, 13%);
   --dark-steel: hsl(0, 0%, 11%);
   --black-steel: hsl(0, 0%, 7%);
   --midnight-steel: hsl(0, 0%, 4%);

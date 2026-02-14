@@ -307,6 +307,7 @@ func (p *ProjectService) AddUser(projectPath, email, roleName string) (models.Us
 		return models.User{}, err
 	}
 	tx.Commit()
+	enqueueUserWriteThrough(projectPath, user)
 	return user, nil
 }
 
@@ -329,10 +330,15 @@ func (p *ProjectService) ChangeRole(projectPath, userId, roleName string) error 
 		}
 		return err
 	}
+	user, err := repository.GetUser(tx, userId)
+	if err != nil {
+		return err
+	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
+	enqueueUserWriteThrough(projectPath, user)
 	return nil
 }
 
@@ -355,7 +361,12 @@ func (p *ProjectService) RemoveUser(projectPath, userId string) error {
 		}
 		return err
 	}
+	tomb, err := repository.GetTomb(tx, userId)
+	if err != nil {
+		return err
+	}
 	tx.Commit()
+	enqueueTombWriteThrough(projectPath, tomb)
 	return nil
 }
 
@@ -733,4 +744,47 @@ func (p *ProjectService) UploadProject(sourceClstPath, studioName, workingDir, p
 	projectInfo.WorkingDirectory = workingDir
 
 	return projectInfo, nil
+}
+
+// GetWriteThroughEnabled returns whether write-through sync is enabled for the project.
+func (p *ProjectService) GetWriteThroughEnabled(projectPath string) (bool, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return false, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+
+	return utils.GetWriteThroughEnabled(tx)
+}
+
+// SetWriteThroughEnabled enables or disables write-through sync for the project.
+func (p *ProjectService) SetWriteThroughEnabled(projectPath string, enabled bool) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+
+	err = utils.SetWriteThroughEnabled(tx, enabled)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	InvalidateEnabledCache(projectPath)
+	return nil
 }

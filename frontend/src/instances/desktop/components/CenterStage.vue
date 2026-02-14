@@ -81,7 +81,8 @@ onMounted(() => {
 	overflow: hidden;
 	min-width: 550px;
 	background-color: firebrick;
-	background-color: var(--steel);
+	background-color: var(--shadow-steel);
+	/* background-color: forestgreen; */
 }
 
 .absolute-pane{

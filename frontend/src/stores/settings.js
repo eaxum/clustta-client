@@ -15,6 +15,8 @@ export const useSettingsStore = defineStore("settings", {
       usertemplates: false,
       projecttemplates: false,
       directories: false,
+      advanced: false,
+
       
       studio: false,
       studiocollaborators: false,
@@ -50,6 +52,8 @@ export const useSettingsStore = defineStore("settings", {
       { name: "Project Templates", icon: "briefcase" },
       { name: "Workflows", icon: "workflow-arrow" },
       
+      { name: "Advanced", icon: "skull" },
+
       { name: "Studio", icon: "stall" },
       { name: "Studio Collaborators", icon: "person" },
     ],

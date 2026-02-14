@@ -358,6 +358,7 @@ func (s *SyncService) SyncData(projectPath, remoteURL string, pullChunk bool, sy
 	}
 
 	close(progressChan)
+	InvalidateRemoteCache(projectPath)
 	return nil
 }
 
@@ -522,6 +523,7 @@ func (s *SyncService) PullData(projectPath string, remoteURL string, pullChunk b
 	progress.Current = 1
 	progress.Percentage = 100
 	app.Event.Emit("progress-update", progress)
+	InvalidateRemoteCache(projectPath)
 	return nil
 }
 

@@ -94,11 +94,13 @@ onUnmounted(() => {
 
 .page-list-root {
 	box-sizing: border-box;
-	padding: .4rem;
+	/* padding: .4rem; */
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	color: white;
+	background-color: var(--shadow-steel);
+	/* background-color: crimson; */
 }
 
 .settings-stage-root {

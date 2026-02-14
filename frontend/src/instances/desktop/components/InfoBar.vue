@@ -248,7 +248,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   width: 100%;
-  background-color: var(--steel);
+  background-color: var(--shadow-steel);
   box-sizing: border-box;
   z-index: 99999;
 }
