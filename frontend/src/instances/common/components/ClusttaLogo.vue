@@ -1,8 +1,8 @@
 <template>
     <div class="logo-container" :class="sizeClass">
         <div class="clustta-logo">
-            <img v-if="colored" src="/icons/clustta.png"  alt="Clustta Icon">
-            <img v-else :src="getAppIcon('clustta')"  alt="Clustta Icon">
+            <img v-if="colored" src="/icons/clustta.png"  :alt="$t('components.clusttaLogo.altText')">
+            <img v-else :src="getAppIcon('clustta')"  :alt="$t('components.clusttaLogo.altText')">
         </div>
         <div v-if="showText" class="clustta-logo-text" :class="{ 'inverted' : inverted,  'clustta-logo-bold' : boldText}" >
             Clustta

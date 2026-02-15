@@ -1351,7 +1351,130 @@
       "errorRebuildingCollections": "Erreur lors de la reconstruction des collections",
       "tasksUnassignedSuccessfully": "Tâches désassignées avec succès.",
       "errorAssigningTask": "Erreur lors de l'assignation de la tâche",
-      "errorRevertingTasks": "Erreur lors du rétablissement des tâches"
+      "errorRevertingTasks": "Erreur lors du rétablissement des tâches",
+      "errorRemovingUser": "Erreur lors de la suppression de l'utilisateur"
+    },
+    "assetTypeForm": {
+      "assetTypeNamePlaceholder": "Nom du type d'asset",
+      "nameAlreadyExists": "Un type d'asset avec ce nom existe déjà.",
+      "cancel": "Annuler",
+      "create": "Créer",
+      "update": "Mettre à jour",
+      "assetTypeCreated": "Type d'asset créé",
+      "errorCreatingAssetType": "Erreur lors de la création du type d'asset",
+      "assetTypeUpdated": "Type d'asset mis à jour",
+      "errorUpdatingAssetType": "Erreur lors de la mise à jour du type d'asset"
+    },
+    "collectionTypeForm": {
+      "collectionTypeNamePlaceholder": "Nom du type de collection",
+      "nameAlreadyExists": "Un type de collection avec ce nom existe déjà.",
+      "cancel": "Annuler",
+      "create": "Créer",
+      "update": "Mettre à jour",
+      "collectionTypeCreated": "Type de collection créé",
+      "errorCreatingCollectionType": "Erreur lors de la création du type de collection",
+      "collectionTypeUpdated": "Type de collection mis à jour",
+      "errorUpdatingCollectionType": "Erreur lors de la mise à jour du type de collection"
+    },
+    "filterBar": {
+      "status": "Statut",
+      "state": "État",
+      "extension": "Extension",
+      "assetType": "Type d'asset",
+      "tags": "Tags",
+      "assignees": "Assignés",
+      "assignation": "Assignation",
+      "type": "Type",
+      "resetFilters": "Réinitialiser les filtres"
+    },
+    "stateBar": {
+      "loadingCollectionStates": "Chargement des états de collection",
+      "rebuildAll": "Tout reconstruire",
+      "createCheckpoints": "Créer des checkpoints",
+      "revertAll": "Tout rétablir",
+      "updateAll": "Tout mettre à jour",
+      "revertAllChangesTitle": "Rétablir tous les changements",
+      "revertAllChangesMessage": "Toutes les tâches modifiées seront rétablies à leur dernier état sauvegardé. Êtes-vous sûr de vouloir continuer ?",
+      "errorRebuildingAll": "Erreur lors de la reconstruction",
+      "failedToRevertTasks": "Échec du rétablissement des tâches"
+    },
+    "breadcrumbs": {
+      "home": "Accueil",
+      "refresh": "Actualiser",
+      "upALevel": "Remonter d'un niveau",
+      "copyPath": "Copier le chemin",
+      "showInExplorer": "Afficher dans l'explorateur",
+      "pathCopiedToClipboard": "Chemin copié dans le presse-papiers",
+      "navigationFailed": "Échec de la navigation",
+      "couldNotFindSelectedPath": "Impossible de trouver le chemin sélectionné"
+    },
+    "footerArea": {
+      "logout": "Déconnexion",
+      "goBack": "Retour",
+      "unpin": "Désépingler",
+      "pin": "Épingler",
+      "logoutFailed": "Échec de la déconnexion"
+    },
+    "searchSuggestions": {
+      "hideSuggestion": "Masquer la suggestion",
+      "showSuggestions": "Afficher les suggestions",
+      "hideSearch": "Masquer la recherche",
+      "searchTags": "Rechercher des tags",
+      "searchTasks": "Rechercher des tâches"
+    },
+    "appsGrid": {
+      "noAssetTemplates": "Ce projet n'a pas de modèles d'assets",
+      "manageTemplates": "Gérer les modèles",
+      "addTemplates": "Ajouter des modèles",
+      "newAssetTitle": "Nouvel asset {name}"
+    },
+    "apps": {
+      "newAssetTitle": "Nouvel asset {name}"
+    },
+    "headerArea": {
+      "toggleMetadata": "Basculer les métadonnées",
+      "toggleSearch": "Basculer la recherche",
+      "unpin": "Désépingler",
+      "pin": "Épingler"
+    },
+    "collaboratorSuggestions": {
+      "remove": "Supprimer",
+      "userLabel": "Utilisateur",
+      "newLabel": "Nouveau"
+    },
+    "flashMessage": {
+      "minimize": "Réduire",
+      "cancelling": "Annulation...",
+      "cancel": "Annuler"
+    },
+    "desktopScrollList": {
+      "edit": "Modifier",
+      "delete": "Supprimer"
+    },
+    "dropDownBox": {
+      "select": "Sélectionner",
+      "noItem": "Aucun élément"
+    },
+    "listBox": {
+      "nothingSelected": "Rien de sélectionné",
+      "noItem": "Aucun élément"
+    },
+    "scrollList": {
+      "edit": "Modifier",
+      "delete": "Supprimer"
+    },
+    "singleListItem": {
+      "edit": "Modifier",
+      "delete": "Supprimer"
+    },
+    "clusttaLogo": {
+      "altText": "Icône Clustta"
+    },
+    "generalButton": {
+      "defaultLabel": "Bouton"
+    },
+    "ignoreListBox": {
+      "remove": "Supprimer"
     }
   },
   "errors": {

@@ -8,7 +8,7 @@
                         <div class="ignored-item-name">
                             {{item}}
                         </div>
-                        <span class="single-action-button"  @click="removeItem(item)"  v-tooltip="'Remove'">
+                        <span class="single-action-button"  @click="removeItem(item)"  v-tooltip="$t('components.ignoreListBox.remove')">
                           <img class="small-icons" src="/icons/close.svg">
                         </span>
                     </div>

@@ -1,29 +1,29 @@
 <template>
   <div ref="filterBarRoot" class="filter-bar-root">
   	<div ref="filterOptions" class="filter-options">
-			<FilterButton v-if="!kanbanView" :icon="getAppIcon('clock')" v-tooltip="barIsOverflowing ? 'Status' : ''" label='Status'
+			<FilterButton v-if="!kanbanView" :icon="getAppIcon('clock')" v-tooltip="barIsOverflowing ? $t('components.filterBar.status') : ''" :label="$t('components.filterBar.status')"
 				:alert="isFilterActive('status')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'statusFilterMenu')"
 				@click="showFilterMenu($event, 'statusFilterMenu')" />
-			<FilterButton v-if="!kanbanView" :icon="getAppIcon('circle-check')" v-tooltip="barIsOverflowing ? 'State' : ''" :alert="isFilterActive('state')"
-				label='State' :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'stateFilterMenu')"
+			<FilterButton v-if="!kanbanView" :icon="getAppIcon('circle-check')" v-tooltip="barIsOverflowing ? $t('components.filterBar.state') : ''" :alert="isFilterActive('state')"
+				:label="$t('components.filterBar.state')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'stateFilterMenu')"
 				@click="showFilterMenu($event, 'stateFilterMenu')" />
-			<FilterButton :icon="getAppIcon('extension')" v-tooltip="barIsOverflowing ? 'Extension' : ''" :alert="isFilterActive('extension')"
-				label='Extension' :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'extensionFilterMenu')"
+			<FilterButton :icon="getAppIcon('extension')" v-tooltip="barIsOverflowing ? $t('components.filterBar.extension') : ''" :alert="isFilterActive('extension')"
+				:label="$t('components.filterBar.extension')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'extensionFilterMenu')"
 				@click="showFilterMenu($event, 'extensionFilterMenu')" />
-			<FilterButton :icon="getAppIcon('man-running')" v-tooltip="barIsOverflowing ? 'Asset Type' : ''" :alert="isFilterActive('asset-type')"
-				label='Asset Type' :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'assetTypeFilterMenu')"
+			<FilterButton :icon="getAppIcon('man-running')" v-tooltip="barIsOverflowing ? $t('components.filterBar.assetType') : ''" :alert="isFilterActive('asset-type')"
+				:label="$t('components.filterBar.assetType')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'assetTypeFilterMenu')"
 				@click="showFilterMenu($event, 'assetTypeFilterMenu')" />
-			<FilterButton v-if="showTagsFilter && viewTags.length" :icon="getAppIcon('tag')" v-tooltip="barIsOverflowing ? 'Tags' : ''"
-				label='Tags' :alert="isFilterActive('tags')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'tagsFilterMenu')"
+			<FilterButton v-if="showTagsFilter && viewTags.length" :icon="getAppIcon('tag')" v-tooltip="barIsOverflowing ? $t('components.filterBar.tags') : ''"
+				:label="$t('components.filterBar.tags')" :alert="isFilterActive('tags')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'tagsFilterMenu')"
 				@click="showFilterMenu($event, 'tagsFilterMenu')" />
-			<FilterButton :icon="getAppIcon('person')" v-tooltip="barIsOverflowing ? 'Assignation' : ''" label='Assignees'
+			<FilterButton :icon="getAppIcon('person')" v-tooltip="barIsOverflowing ? $t('components.filterBar.assignation') : ''" :label="$t('components.filterBar.assignees')"
 				:alert="isFilterActive('assignation')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'assigneeFilterMenu')"
 				@click="showFilterMenu($event, 'assigneeFilterMenu')" />
-			<FilterButton v-if="!kanbanView" :icon="getAppIcon('shapes')" v-tooltip="barIsOverflowing ? 'Type' : ''" :alert="isFilterActive('general')"
+			<FilterButton v-if="!kanbanView" :icon="getAppIcon('shapes')" v-tooltip="barIsOverflowing ? $t('components.filterBar.type') : ''" :alert="isFilterActive('general')"
 			 :showLabel="!barIsOverflowing"	@mouseenter="flashFilterMenu($event, 'typeFilterMenu')"
 				@click="showFilterMenu($event, 'typeFilterMenu')" />
 			<ActionButton v-if="filtersActive" :icon="getAppIcon('close')" :allowDeactivate="true"
-				v-tooltip="'Reset Filters'" :buttonFunction="clearFilters" />
+				v-tooltip="$t('components.filterBar.resetFilters')" :buttonFunction="clearFilters" />
 		</div>
 	</div>
 </template>

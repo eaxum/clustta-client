@@ -33,10 +33,12 @@
 // imports
 import { useTrayStates } from '@/stores/TrayStates';
 import { computed, onMounted, ref, nextTick, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from "@/services/utils";
 
 // states
 const trayStates = useTrayStates();
+const { t } = useI18n();
 
 // refs
 const listBoxParent = ref(null);
@@ -56,7 +58,7 @@ const filteredItems = computed(() => {
     return props.items.length ? props.items : ''
   }
 });
-const selectedListItem = computed(() => { return props.selectedItem ? utils.capitalizeStr(props.selectedItem) : 'Nothing Selected' })
+const selectedListItem = computed(() => { return props.selectedItem ? utils.capitalizeStr(props.selectedItem) : t('components.listBox.nothingSelected') })
 // props
 const props = defineProps({
   isUnique: {

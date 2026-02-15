@@ -4,7 +4,7 @@
     
       <div v-if="!templateStore.getTemplates.length" class="page-state-container">
         <PageState 
-          :message="'This project has no Asset templates'" 
+          :message="$t('components.appsGrid.noAssetTemplates')" 
           :illustration="'/page-states/template.png'" />
       </div>
 
@@ -30,6 +30,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // components
@@ -53,6 +54,7 @@ const templateStore = useTemplateStore();
 const stage = useStageStore();
 const userStore = useUserStore();
 const settings = useSettingsStore();
+const { t } = useI18n();
 
 const props = defineProps({
   isDesktop: {
@@ -62,7 +64,7 @@ const props = defineProps({
 });
 
 const label = computed(() => {
-  return templateStore.getTemplates.length ? 'Manage templates' : 'Add templates';
+  return templateStore.getTemplates.length ? t('components.appsGrid.manageTemplates') : t('components.appsGrid.addTemplates');
 });
 
 const manageTemplates = () => {
@@ -80,7 +82,7 @@ const getAppIcon = (iconName) => {
 const selectApp = (name, icon) => {
   templateStore.selectedTemplateName = name;
   trayStates.popUpModalIcon = icon;
-  trayStates.popUpModalTitle = ('New ' + name.replace(/_/g, " ") + ' asset').toLowerCase().replace(/(^\w|\s\w)/g, match => match.toUpperCase());
+  trayStates.popUpModalTitle = t('components.appsGrid.newAssetTitle', { name: name.replace(/_/g, ' ') });
   trayStates.selectedApp = document.querySelector(`.apps-grid-item-selected`);
   modals.setModalVisibility('createAssetModal', true);
 };

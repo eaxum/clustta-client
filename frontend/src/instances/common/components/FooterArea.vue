@@ -1,7 +1,7 @@
 <template>
   <div class="page-footer-area-container">
     <span v-if="showLogout" class="footer-item" @click="logUserOut" v-stop-propagation><img class="small-icons"
-        :src="getAppIcon('logout')">Logout</span>
+        :src="getAppIcon('logout')">{{ $t('components.footerArea.logout') }}</span>
 
     <span v-if="showProject" class="footer-item" @click="modalStore.setModalVisibility('projectMenu', true)"
       v-stop-propagation>
@@ -26,11 +26,11 @@
       </span> -->
 
       <!-- :class="{ 'button-disabled': processRunning }" -->
-      <span v-if="showReturn" @click="goBack()" class="action-button" v-tooltip="'Go back'"><img class="small-icons"
+      <span v-if="showReturn" @click="goBack()" class="action-button" v-tooltip="$t('components.footerArea.goBack')"><img class="small-icons"
           :src="getAppIcon('arrow-left')">
       </span>
       <span v-if="showPin" @click="trayStates.togglePin(true)" class="action-button"
-        v-tooltip="trayStates.pin ? 'Unpin' : 'Pin'">
+        v-tooltip="trayStates.pin ? $t('components.footerArea.unpin') : $t('components.footerArea.pin')">
         <img v-if="trayStates.pin" class="small-icons" :src="getAppIcon('unpin')">
         <img v-else class="small-icons" :src="getAppIcon('pin')">
       </span>
@@ -51,6 +51,7 @@ const getAppIcon = (iconName) => {
 
 // imports
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -77,6 +78,7 @@ const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
 const modalStore = useModalStore();
 const collectionStore = useCollectionStore();
+const { t } = useI18n();
 
 // refs
 const searchQuery = ref('');
@@ -142,7 +144,7 @@ const logUserOut = async () => {
     }
     )
     .catch((error) => {
-      notificationStore.errorNotification("Logout Failed", error)
+      notificationStore.errorNotification(t('components.footerArea.logoutFailed'), error)
     });
 }
 

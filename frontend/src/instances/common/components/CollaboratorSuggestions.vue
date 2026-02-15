@@ -14,7 +14,7 @@
               <div v-if="item.userType !== 'studio'" class="user-type-indicator" :class="getUserTypeClass(item.userType)">
                 {{ getUserTypeLabel(item.userType) }}
               </div>
-              <span class="single-action-button" @click="removeItem(item)" v-tooltip="'Remove'">
+              <span class="single-action-button" @click="removeItem(item)" v-tooltip="$t('components.collaboratorSuggestions.remove')">
                 <img class="small-icons" src="/icons/close.svg">
               </span>
             </div>
@@ -53,6 +53,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, onUnmounted, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // stores
 import { useMenu } from '@/stores/menu';
@@ -62,6 +63,7 @@ import { AuthService } from "@/services";
 
 // states
 const menu = useMenu();
+const { t } = useI18n();
 
 // emits
 const emit = defineEmits([
@@ -245,8 +247,8 @@ const getUserTypeClass = (userType) => {
 // Get label for user type
 const getUserTypeLabel = (userType) => {
   switch (userType) {
-    case 'user': return 'User';
-    case 'new': return 'New';
+    case 'user': return t('components.collaboratorSuggestions.userLabel');
+    case 'new': return t('components.collaboratorSuggestions.newLabel');
     case 'studio': return ''; // Studio users don't need a label
     default: return '';
   }

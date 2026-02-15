@@ -20,6 +20,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useIconStore } from '@/stores/icons';
 import { useModalStore } from '@/stores/modals';
@@ -29,6 +30,7 @@ const trayStates = useTrayStates();
 const iconStore = useIconStore();
 const modalStore = useModalStore();
 const templateStore = useTemplateStore();
+const { t } = useI18n();
 const scrollableElement = ref(null);
 
 const emit = defineEmits([ 'template-selected'])
@@ -42,7 +44,7 @@ const selectApp = (event, template) => {
   const templateIcon = template.icon;
   templateStore.selectedTemplateName = templateName;
   trayStates.popUpModalIcon = templateIcon;
-  trayStates.popUpModalTitle = ('New ' + templateName.replace(/_/g, " ") + ' asset').toLowerCase().replace(/(^\w|\s\w)/g, match => match.toUpperCase());
+  trayStates.popUpModalTitle = t('components.apps.newAssetTitle', { name: templateName.replace(/_/g, ' ') });
 
   const selectedIcon = event.target;
   const appsCenter = scrollableElement.value.offsetWidth / 2;

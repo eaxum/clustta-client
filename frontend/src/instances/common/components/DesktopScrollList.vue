@@ -5,10 +5,10 @@
       <div class="scroll-list-item-name"> {{ item.name }}</div>
       <div v-if="useMeta" class="scroll-list-item-meta"> {{ item.meta }}</div>
       <div class="scroll-list-item-actions">
-          <span v-if="editItems" class="single-action-button" @click="editListItem(index)" v-tooltip="'Edit'">
+          <span v-if="editItems" class="single-action-button" @click="editListItem(index)" v-tooltip="$t('components.desktopScrollList.edit')">
             <img class="small-icons" src="/icons/edit.svg">
           </span>
-          <span v-if="deleteItems" class="single-action-button" :class="{'item-inactive' : buttonInactive}" @click="deleteListItem(index)"  v-tooltip="'Delete'">
+          <span v-if="deleteItems" class="single-action-button" :class="{'item-inactive' : buttonInactive}" @click="deleteListItem(index)"  v-tooltip="$t('components.desktopScrollList.delete')">
             <img class="small-icons" src="/icons/delete.svg">
           </span>
           

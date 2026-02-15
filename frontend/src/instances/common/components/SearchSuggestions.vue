@@ -35,10 +35,10 @@
       <div class="combo-actions">
         <span class="single-action-button" ref="suggestionsButton"
           :class="{ 'single-action-button-pressed': searchTags }" @click="toggleSearchTags"
-          v-tooltip="trayStates.pinSuggestions ? 'Hide Suggestion' : 'Show Suggestions'">
+          v-tooltip="trayStates.pinSuggestions ? $t('components.searchSuggestions.hideSuggestion') : $t('components.searchSuggestions.showSuggestions')">
           <img class="small-icons" src="/icons/suggestions.svg">
         </span>
-        <span v-if="showSearchToggle" class="single-action-button" @click="toggleSearch" v-tooltip="'Hide Search'"><img
+        <span v-if="showSearchToggle" class="single-action-button" @click="toggleSearch" v-tooltip="$t('components.searchSuggestions.hideSearch')"><img
             class="small-icons" src="/icons/search.svg">
         </span>
       </div>
@@ -58,6 +58,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useCommonStore } from '@/stores/common';
 import TagContainer from '@/instances/common/components/TagContainer.vue';
@@ -65,6 +66,7 @@ import TagContainer from '@/instances/common/components/TagContainer.vue';
 
 const trayStates = useTrayStates();
 const commonStore = useCommonStore();
+const { t } = useI18n();
 
 // const emptyTags = computed(() => {return props.tags.length === 0 ? true : false || !props.queryTag });
 const emptyTags = computed(() => { return props.tags.length !== 0 });
@@ -113,7 +115,7 @@ const props = defineProps({
 const listBoxParent = ref(null);
 const searchTagsRoot = ref(null);
 const searchTags = ref(false);
-const searchPlaceholder = ref('Search Tasks')
+const searchPlaceholder = ref(t('components.searchSuggestions.searchTasks'))
 const outerChipWrapper = ref(null);
 const comboBoxRoot = ref(null);
 const tagItem = ref(null);
@@ -204,10 +206,10 @@ const toggleSearchTags = () => {
   emit('suggestionsVisibility', searchTags.value);
 
   if (searchTags.value) {
-    searchPlaceholder.value = "Search Tags";
+    searchPlaceholder.value = t('components.searchSuggestions.searchTags');
     emit('changePlaceholder', searchPlaceholder.value);
   } else {
-    searchPlaceholder.value = "Search Tasks";
+    searchPlaceholder.value = t('components.searchSuggestions.searchTasks');
     emit('changePlaceholder', searchPlaceholder.value);
   }
 

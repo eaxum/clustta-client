@@ -9,18 +9,18 @@
       <div v-if="item.meta" class="scroll-list-item-meta"> {{ item.meta }}</div>
 
       <div v-if="useItemId" class="scroll-list-item-actions">
-          <span v-if="editItems" v-stop-propagation class="single-action-button" @click="editListItem(item.id)" v-tooltip="'Edit'">
+          <span v-if="editItems" v-stop-propagation class="single-action-button" @click="editListItem(item.id)" v-tooltip="$t('components.scrollList.edit')">
             <img class="small-icons" src="/icons/edit.svg">
           </span>
-          <span v-if="deleteItems" v-stop-propagation class="single-action-button" :class="{'item-inactive' : buttonInactive(item.id)}" @click="deleteListItem(item.id)"  v-tooltip="'Delete'">
+          <span v-if="deleteItems" v-stop-propagation class="single-action-button" :class="{'item-inactive' : buttonInactive(item.id)}" @click="deleteListItem(item.id)"  v-tooltip="$t('components.scrollList.delete')">
             <img class="small-icons" src="/icons/delete.svg">
           </span>
       </div>
       <div v-else class="scroll-list-item-actions">
-          <span v-if="editItems" v-stop-propagation class="single-action-button" @click="editListItem(index)" v-tooltip="'Edit'">
+          <span v-if="editItems" v-stop-propagation class="single-action-button" @click="editListItem(index)" v-tooltip="$t('components.scrollList.edit')">
             <img class="small-icons" src="/icons/edit.svg">
           </span>
-          <span v-if="deleteItems" v-stop-propagation class="single-action-button" :class="{'item-inactive' : buttonInactive(index)}" @click="deleteListItem(index)"  v-tooltip="'Delete'">
+          <span v-if="deleteItems" v-stop-propagation class="single-action-button" :class="{'item-inactive' : buttonInactive(index)}" @click="deleteListItem(index)"  v-tooltip="$t('components.scrollList.delete')">
             <img class="small-icons" src="/icons/delete.svg">
           </span>
       </div>
