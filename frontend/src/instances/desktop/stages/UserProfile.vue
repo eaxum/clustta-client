@@ -6,7 +6,7 @@
           <!-- Edit Controls -->
           <div class="edit-controls">
             <div class="profile-visibility-toggle">
-              <span class="visibility-label">Profile Visibility</span>
+              <span class="visibility-label">{{ $t('stages.profileVisibility') }}</span>
               <ToggleSwitch 
                 :switchValueProp="profileVisibility" 
                 @click="toggleProfileVisibility"
@@ -16,7 +16,7 @@
             <ActionButton 
               :iconAfter="true" 
               :icon="getAppIcon('key')"
-              label="Change Password" 
+              :label="$t('stages.changePassword')" 
               @click="toggleSectionEdit('password')"
               :useOutline="true"
             />
@@ -24,7 +24,7 @@
 
           <!-- Header Card -->
           <ProfileCard 
-            title="Profile Information"
+            :title="$t('stages.profileInformation')"
             :showEditButton="true"
             :isEditing="editingSections.header"
             @toggleEdit="toggleSectionEdit('header')"
@@ -43,12 +43,12 @@
                   <div class="form-row">
                     <FormInput
                       v-model="formData.first_name"
-                      label="First Name"
+                      :label="$t('stages.firstName')"
                       :disabled="!isEditing"
                     />
                     <FormInput
                       v-model="formData.last_name"
-                      label="Last Name"
+                      :label="$t('stages.lastName')"
                       :disabled="!isEditing"
                     />
                   </div>
@@ -57,7 +57,7 @@
                   <FormInput
                     v-model="formData.username"
                     @input="checkUsername"
-                    label="Username"
+                    :label="$t('stages.username')"
                     :disabled="!isEditing"
                     :showValidation="!!formData.username"
                     :error="errors.username"
@@ -68,7 +68,7 @@
                   <FormInput
                     v-model="formData.email"
                     @input="checkEmail"
-                    label="Email"
+                    :label="$t('stages.email')"
                     type="email"
                     :disabled="!isEditing"
                     :showValidation="!!formData.email"
@@ -80,16 +80,16 @@
                   <!-- Professional Info in Edit Mode -->
                   <FormInput 
                     v-model="formData.bio"
-                    label="Bio"
-                    placeholder="e.g., 3D Artist & Animator"
+                    :label="$t('stages.bio')"
+                    :placeholder="$t('stages.bioPlaceholder')"
                   />
                   <FormInput
                     v-model="formData.country"
-                    label="Location"
-                    placeholder="e.g., Portugal"
+                    :label="$t('stages.location')"
+                    :placeholder="$t('stages.locationPlaceholder')"
                   />
                   <div class="availability-field">
-                    <label class="form-label">Availability</label>
+                    <label class="form-label">{{ $t('stages.availability') }}</label>
                     <ActionButton
                       @click="toggleAvailability"
                       :icon="getAppIcon('check-circle')"
@@ -113,8 +113,8 @@
                 <div v-else class="display-mode-fields">
                   <div class="profile-name-row">
                     <div class="profile-name">{{ fullName }}</div>
-                    <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy profile link'" @click="copyProfileLink" />
-                    <ActionButton :icon="getAppIcon('person-search')" v-tooltip="'Open profile in browser'" @click="openProfileInBrowser" />
+                    <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('stages.copyProfileLink')" @click="copyProfileLink" />
+                    <ActionButton :icon="getAppIcon('person-search')" v-tooltip="$t('stages.openProfileInBrowser')" @click="openProfileInBrowser" />
                   </div>
                   <div v-if="formData.bio" class="profile-title">{{ formData.bio }}</div>
                   
@@ -148,7 +148,7 @@
           </ProfileCard>
 
           <!-- Studios Card -->
-          <ProfileCard v-if="formData.studios.length" title="Studios">
+          <ProfileCard v-if="formData.studios.length" :title="$t('stages.studios')">
             <div class="studios-container">
               <div
                 v-for="studio in formData.studios"
@@ -176,7 +176,7 @@
 
           <!-- Skills Card -->
           <ProfileCard 
-            title="Skills"
+            :title="$t('stages.skills')"
             :showEditButton="true"
             :isEditing="editingSections.skills"
             @toggleEdit="toggleSectionEdit('skills')"
@@ -190,7 +190,7 @@
 
           <!-- Tools & Software Card -->
           <ProfileCard 
-            title="Tools & Software"
+            :title="$t('stages.toolsAndSoftware')"
             :showEditButton="true"
             :isEditing="editingSections.tools"
             @toggleEdit="toggleSectionEdit('tools')"
@@ -206,7 +206,7 @@
           <ProfileCard 
             ref="passwordCard"
             v-if="editingSections.password"
-            title="Change Password"
+            :title="$t('stages.changePassword')"
             :showEditButton="true"
             :isEditing="editingSections.password"
             @toggleEdit="toggleSectionEdit('password')"
@@ -214,29 +214,29 @@
             <div class="change-password-section">
               <FormInput
                 v-model="passwordData.currentPassword"
-                label="Current Password"
+                :label="$t('stages.currentPassword')"
                 type="password"
-                placeholder="Enter current password"
+                :placeholder="$t('stages.enterCurrentPassword')"
               />
               <FormInput
                 v-model="passwordData.newPassword"
-                label="New Password"
+                :label="$t('stages.newPassword')"
                 type="password"
-                placeholder="Enter new password"
+                :placeholder="$t('stages.enterNewPassword')"
                 :error="passwordErrors.newPassword"
               />
               <FormInput
                 v-model="passwordData.confirmPassword"
-                label="Confirm Password"
+                :label="$t('stages.confirmPassword')"
                 type="password"
-                placeholder="Confirm new password"
+                :placeholder="$t('stages.confirmNewPassword')"
                 :error="passwordErrors.confirmPassword"
               />
               <ActionButton
                 :isDisabled="!isPasswordValid"
                 :iconAfter="true"
                 :icon="getAppIcon('check-circle')"
-                label="Update Password"
+                :label="$t('stages.updatePassword')"
                 @click="handlePasswordUpdate"
                 :useBackground="true"
               />
@@ -244,20 +244,20 @@
           </ProfileCard>
 
           <!-- Activity Card -->
-          <ProfileCard  title="Activity [Coming soon]">
+          <ProfileCard  :title="$t('stages.activityComingSoon')">
             <ContributionGraph />
           </ProfileCard>
 
           <!-- Danger Zone -->
-          <ProfileCard title="Danger Zone">
+          <ProfileCard :title="$t('stages.dangerZone')">
             <div class="danger-zone">
               <p class="danger-message">
-                Once you delete your account, there is no going back. Please be certain.
+                {{ $t('stages.deleteAccountWarning') }}
               </p>
               <ActionButton
                 :iconAfter="true"
                 :icon="getAppIcon('trash')"
-                label="Delete Account"
+                :label="$t('stages.deleteAccount')"
                 @click="prepDeleteAccountModal()"
                 :color="'crimson'"
                 :useBackground="true"
@@ -276,7 +276,7 @@
           <ActionButton 
             :isLoading="true"
             :icon="getAppIcon('loading')"
-            label="Saving changes..."
+            :label="$t('stages.savingChanges')"
             :useBackground="true"
           />
         </template>
@@ -285,14 +285,14 @@
             :color="'crimson'" 
             :iconAfter="true" 
             :icon="getAppIcon('close-circle')" 
-            label="Cancel"
+            :label="$t('common.cancel')"
             @click="cancelAllEdits"
           />
           <ActionButton 
             :isDisabled="!isDataValid"  
             :iconAfter="true" 
             :icon="getAppIcon('check-circle')"
-            label="Save Changes" 
+            :label="$t('stages.saveChanges')" 
             @click="saveAllChanges"
             :useBackground="true"
           />
@@ -303,6 +303,7 @@
 
 <script setup>
 import { ref, reactive, computed, onBeforeMount, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { AuthService, ProfileService, FSService, ClipboardService } from "@/services";
 import { Browser } from "@wailsio/runtime";
 import { useNotificationStore } from '@/stores/notifications';
@@ -335,6 +336,7 @@ const trayStates = useTrayStates();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const stage = useStageStore();
+const { t } = useI18n();
 
 // State
 const loading = ref(true);
@@ -446,7 +448,7 @@ const isPasswordValid = computed(() => {
   
   // Check minimum password length
   if (passwordData.newPassword.length < 8) {
-    passwordErrors.newPassword = 'Password must be at least 8 characters';
+    passwordErrors.newPassword = t('stages.passwordMinLength');
     return false;
   } else {
     passwordErrors.newPassword = '';
@@ -454,7 +456,7 @@ const isPasswordValid = computed(() => {
   
   // Check if passwords match
   if (passwordData.newPassword !== passwordData.confirmPassword) {
-    passwordErrors.confirmPassword = 'Passwords do not match';
+    passwordErrors.confirmPassword = t('stages.passwordsDoNotMatch');
     return false;
   } else {
     passwordErrors.confirmPassword = '';
@@ -645,8 +647,8 @@ const handleUpdate = async () => {
         }
 
         notificationStore.addNotification(
-          "Profile updated.", 
-          "Profile updated successfully.", 
+          t('stages.profileUpdated'), 
+          t('stages.profileUpdatedSuccessfully'), 
           "success", 
           true
         );
@@ -658,7 +660,7 @@ const handleUpdate = async () => {
     
   } catch (err) {
     error.value = err?.message || 'Failed to update profile';
-    notificationStore.errorNotification("Failed to update profile.", err?.message || err);
+    notificationStore.errorNotification(t('stages.failedToUpdateProfile'), err?.message || err);
   } finally {
     isSavingChanges.value = false;
     stage.operationActive = false;
@@ -679,7 +681,7 @@ const checkUsername = async () => {
   try {
     const usernameExist = await AuthService.CheckUsernameExists(formData.value.username.toLowerCase());
     if (usernameExist) {
-      errors.username = 'Username is already taken';
+      errors.username = t('stages.usernameAlreadyTaken');
       isUsernameTaken.value = true;
     } else {
       errors.username = '';
@@ -708,7 +710,7 @@ const checkEmail = async () => {
     const emailExist = await AuthService.CheckEmailExists(formData.value.email);
     if (emailExist) {
       isEmailTaken.value = true;
-      errors.email = 'Email is already registered';
+      errors.email = t('stages.emailAlreadyRegistered');
     } else {
       isEmailTaken.value = false;
       errors.email = '';
@@ -737,8 +739,8 @@ const handlePasswordUpdate = async () => {
     await AuthService.ChangePassword(passwordData.currentPassword, passwordData.newPassword, passwordData.confirmPassword);
     
     notificationStore.addNotification(
-      "Password updated successfully", 
-      "Your password has been changed.", 
+      t('stages.passwordUpdatedSuccessfully'), 
+      t('stages.passwordChangedMessage'), 
       "success", 
       true
     );
@@ -755,7 +757,7 @@ const handlePasswordUpdate = async () => {
     
   } catch (err) {
     notificationStore.errorNotification(
-      "Failed to update password", 
+      t('stages.failedToUpdatePassword'), 
       err?.message || err
     );
   }
@@ -775,8 +777,8 @@ const toggleProfileVisibility = async () => {
     profileStore.setProfileVisibility(newVisibility);
     
     notificationStore.addNotification(
-      "Profile visibility updated", 
-      `Your profile is now ${newVisibility}.`, 
+      t('stages.profileVisibilityUpdated'), 
+      t('stages.profileNowVisibility', { visibility: newVisibility }), 
       "success", 
       false
     );
@@ -785,7 +787,7 @@ const toggleProfileVisibility = async () => {
     // Revert on error
     console.error('Failed to update profile visibility:', err);
     notificationStore.errorNotification(
-      "Failed to update profile visibility", 
+      t('stages.failedToUpdateProfileVisibility'), 
       err?.message || err
     );
   }
@@ -795,7 +797,7 @@ const copyProfileLink = async () => {
   const profileUrl = `https://app.clustta.com/user/${formData.value.username}`;
   try {
     await ClipboardService.WriteText(profileUrl);
-    notificationStore.addNotification('Profile Link Copied', 'Profile link copied to clipboard', 'success');
+    notificationStore.addNotification(t('stages.profileLinkCopied'), t('stages.profileLinkCopiedMessage'), 'success');
   } catch (err) {
     console.error('Failed to copy profile link:', err);
     notificationStore.errorNotification('Copy Failed', 'Failed to copy profile link to clipboard');

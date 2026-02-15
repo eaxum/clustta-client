@@ -2,9 +2,9 @@
 	<div ref="browserRoot" v-esc="cancelOps" v-right-click="openMenu" class="dash-board-root absolute-pane">
 		<div v-if="isDefaultWorkspace" ref="browserFilters" class="dash-board-filter">
 			<Breadcrumbs />
-			<SearchBar ref="searchBar" v-model="commonStore.viewSearchQuery" placeholder="Search" :isLoading="!assetStore.assetsLoaded"
+			<SearchBar ref="searchBar" v-model="commonStore.viewSearchQuery" :placeholder="$t('common.search')" :isLoading="!assetStore.assetsLoaded"
 				@input="debouncedUpdateSearch" @clear="clearSearch" />
-			<ActionButton :icon="getAppIcon('filter')" :buttonFunction="toggleShowFilters" :isActive="showFilters" :showIndicator="filtersActive" v-tooltip="'Filters'" />
+			<ActionButton :icon="getAppIcon('filter')" :buttonFunction="toggleShowFilters" :isActive="showFilters" :showIndicator="filtersActive" v-tooltip="$t('stages.filters')" />
 		</div>
 
 		<div class="dash-board-header">
@@ -13,10 +13,10 @@
 			<StateBar v-if="(!showFilters || !isDefaultWorkspace) && !kanbanView" :hasData="!!rootData.length" />
 			<div v-if="rootData.length || commonStore.viewSearchQuery.length || commonStore.showUntracked"
 				class="view-options">
-				<ActionButton v-if="!kanbanView" :icon="getAppIcon('arrows-sort')" v-tooltip="'Sort'" :buttonFunction="openSortMenu" />
-				<ActionButton :icon="getAppIcon('eye-cog')" v-tooltip="'View Options'" :buttonFunction="openViewMenu" />
+				<ActionButton v-if="!kanbanView" :icon="getAppIcon('arrows-sort')" v-tooltip="$t('stages.sort')" :buttonFunction="openSortMenu" />
+				<ActionButton :icon="getAppIcon('eye-cog')" v-tooltip="$t('stages.viewOptions')" :buttonFunction="openViewMenu" />
 				<ActionButton v-if="!kanbanView && isWideScreen" :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
-					v-tooltip="panes.showDetailsPane ? 'Close pane' : 'Open pane'" :buttonFunction="toggleDetailsPane" />
+					v-tooltip="panes.showDetailsPane ? $t('stages.closePane') : $t('stages.openPane')" :buttonFunction="toggleDetailsPane" />
 			</div>
 		</div>
 		
@@ -42,6 +42,7 @@
 // imports
 import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
 import { Events } from '@wailsio/runtime';
+import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
 import { useDebounce } from '@/lib/debounce';
@@ -102,6 +103,7 @@ const studioStore = useStudioStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
 const workflowStore = useWorkflowStore();
+const { t } = useI18n();
 
 // refs
 const browserFilters = ref(null);
@@ -145,11 +147,11 @@ const operationsActive = computed(() => {
 const addEntityDependency = async (taskId, dependencyId, dependencyTypeId) => {
 	try {
 		await AssetService.AddEntityDependency(projectStore.activeProject.uri, taskId, dependencyId, dependencyTypeId);
-		notificationStore.addNotification('Dependency Added.', "", "success");
+		notificationStore.addNotification(t('stages.dependencyAdded'), "", "success");
 		return true;
 	} catch (error) {
 		console.log(error);
-		notificationStore.errorNotification("Error adding dependencies", error);
+		notificationStore.errorNotification(t('stages.errorAddingDependencies'), error);
 		return false;
 	}
 };
@@ -158,11 +160,11 @@ const addEntityDependency = async (taskId, dependencyId, dependencyTypeId) => {
 const addDependency = async (taskId, dependencyId, dependencyTypeId) => {
 	try {
 		await AssetService.AddAssetDependency(projectStore.activeProject.uri, taskId, dependencyId, dependencyTypeId);
-		notificationStore.addNotification('Dependency Added.', "", "success");
+		notificationStore.addNotification(t('stages.dependencyAdded'), "", "success");
 		return true;
 	} catch (error) {
 		console.log(error);
-		notificationStore.errorNotification("Error adding dependencies", error);
+		notificationStore.errorNotification(t('stages.errorAddingDependencies'), error);
 		return false;
 	}
 };
@@ -177,11 +179,11 @@ const cancelOps = () => {
 const changeEntityParent = async (entityIds, parentId) => {
 	try {
 		await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityIds, parentId);
-		notificationStore.addNotification('Moved successfully.', "", "success");
+		notificationStore.addNotification(t('stages.movedSuccessfully'), "", "success");
 		return true;
 	} catch (error) {
 		console.error(error);
-		notificationStore.errorNotification("Error changing entity parent", error);
+		notificationStore.errorNotification(t('stages.errorChangingEntityParent'), error);
 		return false;
 	}
 };
@@ -191,10 +193,10 @@ const changeEntityParent = async (entityIds, parentId) => {
 const changeTaskEntity = async (taskIds, entityId) => {
 	try {
 		await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskIds, entityId);
-		notificationStore.addNotification('Moved successfully.', "", "success");
+		notificationStore.addNotification(t('stages.movedSuccessfully'), "", "success");
 		return true;
 	} catch (error) {
-		notificationStore.errorNotification("Error moving assets", error);
+		notificationStore.errorNotification(t('stages.errorMovingAssets'), error);
 		return false;
 	}
 };
@@ -259,8 +261,8 @@ const deleteMultipleItems = async () => {
 const deleteMultipleEntities = async (entityIds) => {
 	for (let entityId of entityIds) {
 		await CollectionService.DeleteCollection(projectStore.activeProject.uri, entityId, true)
-			.then(async () => { await collectionStore.markCollectionAsDeleted(entityId); notificationStore.addNotification("Entity moved to Trash.", '', "success", false); })
-			.catch((error) => { console.log(error); notificationStore.errorNotification("Entities failed to delete.", error); });
+			.then(async () => { await collectionStore.markCollectionAsDeleted(entityId); notificationStore.addNotification(t('stages.entityMovedToTrash'), '', "success", false); })
+			.catch((error) => { console.log(error); notificationStore.errorNotification(t('stages.entitiesFailedToDelete'), error); });
 	}
 };
 
@@ -268,8 +270,8 @@ const deleteMultipleEntities = async (entityIds) => {
 const deleteMultipleTasks = async (taskIds) => {
 	for (let taskId of taskIds) {
 		await AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
-			.then(async () => { softRefresh(); notificationStore.addNotification("Tasks moved to Trash.", '', "success", false); })
-			.catch((error) => { console.log(error); notificationStore.errorNotification("Tasks failed to delete.", error); });
+			.then(async () => { softRefresh(); notificationStore.addNotification(t('stages.tasksMovedToTrash'), '', "success", false); })
+			.catch((error) => { console.log(error); notificationStore.errorNotification(t('stages.tasksFailedToDelete'), error); });
 	}
 };
 
@@ -314,11 +316,11 @@ const duplicateTask = async () => {
 				stage.markedItems = [duplicatedTask.id];
 				stage.lastSelectedItemId = "";
 				stage.firstSelectedItemId = duplicatedTask.id;
-				notificationStore.addNotification(`Asset duplicated`, '', "success", false);
+				notificationStore.addNotification(t('stages.assetDuplicated'), '', "success", false);
 			});
 	} catch (error) {
 		console.error('Error duplicating task:', error);
-		notificationStore.errorNotification("Failed to duplicate task", error.message || error);
+		notificationStore.errorNotification(t('stages.failedToDuplicateTask'), error.message || error);
 	} finally { stage.operationActive = false; }
 };
 
@@ -472,7 +474,7 @@ const importItems = async () => {
 		try { selectedPaths = await DialogService.SelectFilesDialog(); } catch (error) { return; }
 		if (!selectedPaths || selectedPaths.length === 0) return;
 		const currentDirectory = getCurrentDirectory();
-		if (!currentDirectory) { notificationStore.errorNotification("Could not determine current directory", ""); return; }
+		if (!currentDirectory) { notificationStore.errorNotification(t('stages.couldNotDetermineCurrentDirectory'), ""); return; }
 		stage.operationActive = true;
 		await FSService.MakeDirs(currentDirectory);
 		let successCount = 0, failureCount = 0;
@@ -491,10 +493,10 @@ const importItems = async () => {
 				errors.push(`${itemName}: ${error.message || error}`);
 			}
 		}
-		if (successCount > 0) notificationStore.addNotification(successCount === 1 ? "1 item imported successfully" : `${successCount} items imported successfully`, "", "success");
-		if (failureCount > 0) notificationStore.errorNotification(failureCount === 1 ? "1 item failed to import" : `${failureCount} items failed to import`, errors.join("\n"));
+		if (successCount > 0) notificationStore.addNotification(successCount === 1 ? t('stages.itemImportedSuccessfully') : t('stages.itemsImportedSuccessfully', { count: successCount }), "", "success");
+		if (failureCount > 0) notificationStore.errorNotification(failureCount === 1 ? t('stages.itemFailedToImport') : t('stages.itemsFailedToImport', { count: failureCount }), errors.join("\n"));
 		if (successCount > 0) await softRefresh();
-	} catch (error) { notificationStore.errorNotification("Error importing items", error.message || error); }
+	} catch (error) { notificationStore.errorNotification(t('stages.errorImportingItems'), error.message || error); }
 	finally { stage.operationActive = false; }
 };
 
@@ -502,11 +504,11 @@ const importItems = async () => {
 const message = () => {
 	const searching = commonStore.viewSearchQuery;
 	const myTasksWorkspace = commonStore.activeWorkspace === 'My Tasks';
-	if (searching) return 'No results found.';
-	if (isDefaultWorkspace.value && filtersActive.value) return 'No results match your filters.';
-	if (myTasksWorkspace) return 'You have no assets assigned to you.';
-	if (!isDefaultWorkspace.value) return 'Nothing in this workspace.';
-	return 'Nothing to see here.';
+	if (searching) return t('stages.noResultsFound');
+	if (isDefaultWorkspace.value && filtersActive.value) return t('stages.noResultsMatchFilters');
+	if (myTasksWorkspace) return t('stages.noAssetsAssigned');
+	if (!isDefaultWorkspace.value) return t('stages.nothingInWorkspace');
+	return t('stages.nothingToSeeHere');
 };
 
 // Handles drag movement events.
@@ -601,7 +603,7 @@ const onDragStop = async (event) => {
 			await FSService.RenameBatch(JSON.stringify(renameOperations));
 			needsRefresh = true;
 		} catch (error) {
-			notificationStore.errorNotification("Error moving files", error);
+			notificationStore.errorNotification(t('stages.errorMovingFiles'), error);
 		}
 	}
 
@@ -659,8 +661,8 @@ const prepAllCheckpointModal = () => {
 // Prepares and shows the delete multiple items confirmation modal.
 const prepDeleteMultipleItemsPopUpModal = () => {
 	const numberOfItems = stage.markedItems.length;
-	trayStates.popUpModalTitle = "Delete " + numberOfItems + " items";
-	trayStates.popUpModalMessage = "You have selected some untracked/modified items and they will be permanently deleted. Continue?";
+	trayStates.popUpModalTitle = t('stages.deleteNItems', { count: numberOfItems });
+	trayStates.popUpModalMessage = t('stages.deleteUntrackedItemsConfirmation');
 	trayStates.popUpModalIcon = 'trash';
 	trayStates.popUpModalFunction = deleteMultipleItems;
 	modals.setModalVisibility('popUpModal', true);
@@ -668,8 +670,8 @@ const prepDeleteMultipleItemsPopUpModal = () => {
 
 // Prepares and shows the free up space confirmation modal.
 const prepFreeUpSpacePopUpModal = () => {
-	trayStates.popUpModalTitle = "Free up Space";
-	trayStates.popUpModalMessage = "Are you sure you want to delete these items? This will permanently remove all uncheckpointed resources and all task outputs. Please confirm if you wish to proceed.";
+	trayStates.popUpModalTitle = t('stages.freeUpSpace');
+	trayStates.popUpModalMessage = t('stages.freeUpSpaceConfirmation');
 	trayStates.popUpModalIcon = 'broom';
 	trayStates.popUpModalFunction = freeUpSpace;
 	modals.setModalVisibility('popUpModal', true);
@@ -679,7 +681,7 @@ const prepFreeUpSpacePopUpModal = () => {
 const prompt = () => {
 	if (commonStore.viewSearchQuery) return '';
 	if (!isDefaultWorkspace.value || filtersActive.value) return '';
-	return 'Right click to create a new Collection or Asset.';
+	return t('stages.rightClickToCreate');
 };
 
 // Status priority map for sorting (lower number = higher priority).
@@ -887,7 +889,7 @@ Events.On('copy-items', async () => {
 		// Filter out tracked entities - copying collections is not yet supported
 		stage.copiedItems = copiedItems.filter((item) => item.type !== 'entity');
 		if (copiedItems.length > stage.copiedItems.length) {
-			notificationStore.addNotification('Collections cannot be copied', 'Only assets and untracked items were added to clipboard', 'info');
+			notificationStore.addNotification(t('stages.collectionsCannotBeCopied'), t('stages.onlyAssetsAddedToClipboard'), 'info');
 		}
 		clearSelection();
 	}
