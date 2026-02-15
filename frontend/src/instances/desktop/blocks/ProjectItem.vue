@@ -7,15 +7,15 @@
       <div class="project-item-container-footer" :class="{ 'project-item-container-footer-cards': cardView }">
         <div  class="project-item-content" :class="{ 'project-item-content-cards': cardView }">
           <div class="project-item-details">
-            <span v-if="isCreatingProject">Adding {{ project.name }} to Clustta</span>
+            <span v-if="isCreatingProject">{{ $t('notifications.addingToClustta', { name: project.name }) }}</span>
             <span v-else>{{ utils.capitalizeStr(project.name) }}</span>
           </div>
         </div>
         <div v-if="!isEditing" class="project-item-actions">
           <ActionButton class="hover-action" :isLoading="isCreatingProject" :icon="getAppIcon(isCreatingProject ? 'loading' : 'plus-circle')"
-            v-tooltip="'Start tracking with Clustta'" @click="goToProject(project)" />
+            v-tooltip="$t('notifications.startTrackingWithClustta')" @click="goToProject(project)" />
           <ActionButton class="hover-action" :icon="getAppIcon('folder-arrow-up-right')"
-            v-tooltip="'Open folder'" @click="revealInExplorer" />
+            v-tooltip="$t('notifications.openFolder')" @click="revealInExplorer" />
         </div>
       </div>
     </TabbedFolder>
@@ -26,16 +26,16 @@
       </div>
       <div class="project-item-content">
         <div class="project-item-details">
-          <span v-if="isCreatingProject">Adding {{ project.name }} to Clustta</span>
+          <span v-if="isCreatingProject">{{ $t('notifications.addingToClustta', { name: project.name }) }}</span>
           <span v-else>{{ utils.capitalizeStr(project.name) }}</span>
         </div>
         <div class="project-item-path">{{ project.working_directory }}</div>
       </div>
       <div class="project-item-actions">
         <ActionButton class="hover-action" :isLoading="isCreatingProject" :icon="getAppIcon(isCreatingProject ? 'loading' : 'plus-circle')"
-          v-tooltip="'Start tracking with Clustta'" @click="goToProject(project)" />
+          v-tooltip="$t('notifications.startTrackingWithClustta')" @click="goToProject(project)" />
         <ActionButton class="hover-action" :icon="getAppIcon('folder-arrow-up-right')"
-          v-tooltip="'Open folder'" @click="revealInExplorer" />
+          v-tooltip="$t('notifications.openFolder')" @click="revealInExplorer" />
       </div>
     </div>
 
@@ -49,27 +49,27 @@
       <div class="project-item-container-footer" :class="{ 'project-item-container-footer-cards': cardView }">
         <div v-if="!isEditing" class="project-item-content" :class="{ 'project-item-content-cards': cardView }">
           <div class="project-item-details">
-            <span v-if="isCreatingProject">Launching {{ project.name }}</span>
+            <span v-if="isCreatingProject">{{ $t('notifications.launchingProject', { name: project.name }) }}</span>
             <span v-else>{{ utils.capitalizeStr(project.name) }}</span>
           </div>
         </div>
 
-        <RenameInput v-else v-model="editableProjectName" :originalValue="project.name" placeholder="Project name"
+        <RenameInput v-else v-model="editableProjectName" :originalValue="project.name" :placeholder="$t('placeholders.projectName')"
           @confirm="confirmRename" @cancel="cancelRename" />
 
         <div v-if="!isEditing" class="project-item-actions">
           <div class="project-item-actions-hover">
             <ActionButton v-if="!platformStore.isWeb && !project.has_remote" :icon="getAppIcon('folder-arrow-up-right')"
-              v-tooltip="'Open folder'" @click="revealInExplorer" />
+              v-tooltip="$t('notifications.openFolder')" @click="revealInExplorer" />
             <ActionButton v-else-if="!platformStore.isWeb && project.is_downloaded" :icon="getAppIcon('folder-arrow-up-right')"
-              v-tooltip="'Open folder'" @click="revealInExplorer" />
+              v-tooltip="$t('notifications.openFolder')" @click="revealInExplorer" />
           </div>
           <div class="project-item-actions-persistent">
             <ActionButton v-if="!platformStore.isWeb && isProjectPinned && project.is_downloaded" :icon="getAppIcon('pin')"
-              v-tooltip="'Unpin Project'" @click="unpinProject" />
+              v-tooltip="$t('blocks.unpinProject')" @click="unpinProject" />
             <ActionButton v-if="project.has_remote && project.is_unsynced" :icon="getAppIcon('dot-big')" :useAlert="true"
-              :noFilter="true" v-tooltip="'Project not synced'" />
-            <ActionButton v-if="!platformStore.isWeb && !project.is_downloaded" :icon="getAppIcon('cloud-down')" v-tooltip="'Download Project'"
+              :noFilter="true" v-tooltip="$t('notifications.projectNotSynced')" />
+            <ActionButton v-if="!platformStore.isWeb && !project.is_downloaded" :icon="getAppIcon('cloud-down')" v-tooltip="$t('notifications.downloadProject')"
               @click="cloneProject(project)" />
           </div>
         </div>
@@ -83,6 +83,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // components
@@ -114,6 +115,8 @@ const projectStore = useProjectStore();
 const stage = useStageStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
+
+const { t } = useI18n();
 
 // props
 const props = defineProps({
@@ -176,7 +179,7 @@ const goToProject = async (project) => {
       projectStore.gotoProject(createdProject);
     } catch (error) {
       console.error('Error creating project from untracked directory:', error);
-      notificationStore.errorNotification('Error creating project', error);
+      notificationStore.errorNotification(t('notifications.errorCreatingProject'), error);
     } finally {
       isCreatingProject.value = false;
     }
@@ -189,7 +192,7 @@ const goToProject = async (project) => {
       await SyncService.SyncData(project.name, projectStore.studioUrl, false, {});
     } catch (error) {
       console.error('Error syncing project data:', error);
-      notificationStore.errorNotification('Error loading project', error);
+      notificationStore.errorNotification(t('notifications.errorLoadingProject'), error);
       return;
     } finally {
       isCreatingProject.value = false;
@@ -218,8 +221,8 @@ const menuRename = () => {
 const openMenu = (event) => {
   if (!props.project.is_downloaded && !platformStore.isWeb) return;
   if (!props.project.is_tracked) {
-    trayStates.popUpModalTitle = `Add "${props.project.name}" to Clustta?`;
-    trayStates.popUpModalMessage = "This project is not yet in Clustta. Click CONFIRM to add it and start tracking your work.";
+    trayStates.popUpModalTitle = t('notifications.addToClustta', { name: props.project.name });
+    trayStates.popUpModalMessage = t('notifications.addToClusttaMessage');
     trayStates.popUpModalIcon = 'briefcase-plus';
     trayStates.popUpModalFunction = async () => {
       modals.setModalVisibility('popUpModal', false);
@@ -267,7 +270,7 @@ const updateProjectName = async () => {
     projectStore.updateProjectName(project.id, editableProjectName.value, project.name);
     selectProject(project);
   } catch (error) {
-    notificationStore.addNotification("Error", "Failed to rename project", "error");
+    notificationStore.addNotification(t('common.error'), t('notifications.failedToRenameProject'), "error");
   }
 };
 

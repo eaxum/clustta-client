@@ -8,7 +8,7 @@
         <Asset v-if="data.type === 'untracked_task'" :isGhost="true" :isUntracked="true" :task="data" :index="index" />
       </div>
       <div v-else-if="stage.markedItems.length" class="single-ghost-item">
-        <div class="box depth-1">{{ stage.markedItems.length + ' items -' }} {{ dropMessage }}</div>
+        <div class="box depth-1">{{ $t('blocks.itemsSelected', { count: stage.markedItems.length }) }} {{ dropMessage }}</div>
         <div class="box depth-2"></div>
         <div class="box depth-3"></div>
         <div class="box depth-4"></div>
@@ -22,6 +22,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import Asset from '@/instances/desktop/blocks/Asset.vue';
@@ -37,6 +38,8 @@ const commonStore = useCommonStore();
 const dndStore = useDndStore();
 const promptStore = usePromptStore();
 const stage = useStageStore();
+
+const { t } = useI18n();
 
 // props
 const props = defineProps({
@@ -60,52 +63,52 @@ const dropMessage = computed(() => {
 
     if (dndStore.altKeyActive) {
       isErrMsg.value = false;
-      return 'Release to move to project root. ESC key to cancel.';
+      return t('blocks.releaseToMoveToRoot');
     }
 
     if (targetItemType === 'untracked_task') {
       isErrMsg.value = true;
-      return 'Cannot drop here - ' + targetItem.name + ' is untracked';
+      return t('blocks.cannotDropUntracked', { name: targetItem.name });
     }
 
     if (targetItemType === 'untracked_entity') {
       if (draggedItemType === 'untracked_task' || draggedItemType === 'untracked_entity') {
         isErrMsg.value = false;
-        return 'Release to move into this folder';
+        return t('blocks.releaseToMoveIntoFolder');
       } else {
         isErrMsg.value = true;
-        return 'Cannot drop here - You cant move a tracked item into an untracked one';
+        return t('blocks.cannotDropTrackedIntoUntracked');
       }
     }
 
     if (targetItemType === 'entity') {
       isErrMsg.value = false;
-      return 'Release to move this item into ' + targetItem.name;
+      return t('blocks.releaseToMoveInto', { name: targetItem.name });
     }
 
     if (targetItemType === 'task') {
       if (draggedItemType === 'entity' || draggedItemType === 'task') {
         isErrMsg.value = false;
-        return 'Release to make this a dependency of ' + targetItem.name;
+        return t('blocks.releaseToMakeDependency', { name: targetItem.name });
       } else {
         isErrMsg.value = true;
-        return 'Cannot drop here - ' + draggedItem.name + ' is untracked';
+        return t('blocks.cannotDropUntracked', { name: draggedItem.name });
       }
     }
 
-    return 'Cannot drop here';
+    return t('blocks.cannotDropHere');
   }
 
   if (!dndStore.targetItem) {
     if (!dndStore.altKeyActive) {
       isErrMsg.value = false;
-      return 'ALT key to move to project root. Release or ESC key to cancel.';
+      return t('blocks.altKeyMoveToRoot');
     } else {
-      return 'Release to move to project root.';
+      return t('blocks.releaseToMoveToRootShort');
     }
   }
 
-  return 'Cannot drop here';
+  return t('blocks.cannotDropHere');
 });
 
 // Returns dynamic classes for the ghost card wrapper.

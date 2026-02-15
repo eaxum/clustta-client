@@ -28,10 +28,10 @@
         </div>
 
         <ActionButton v-if="isParent && !selectable" @click="editWorkflowItem" :icon="getAppIcon('edit')"
-          v-tooltip="'Edit Workflow'" />
+          v-tooltip="$t('blocks.editWorkflow')" />
         <ActionButton v-if="isParent && !selectable" @click="deleteWorkflowItem" :icon="getAppIcon('trash')"
-          v-tooltip="'Delete Workflow'" />
-        <ActionButton v-if="selectable" :label="'Add workflow'" @click="selectWorkflowItem"
+          v-tooltip="$t('blocks.deleteWorkflow')" />
+        <ActionButton v-if="selectable" :label="$t('blocks.addWorkflow')" @click="selectWorkflowItem"
           :icon="getAppIcon('plus-circle')" />
 
       </div>
@@ -57,6 +57,7 @@
 
 // imports
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // states/store imports
@@ -74,6 +75,8 @@ const iconStore = useIconStore();
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const templateStore = useTemplateStore();
+
+const { t } = useI18n();
 
 // props
 const props = defineProps({

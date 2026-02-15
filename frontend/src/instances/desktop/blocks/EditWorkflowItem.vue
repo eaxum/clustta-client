@@ -3,11 +3,11 @@
         <div class="input-section">
 
             <div class="input-section drop-down-box-section">
-                <input v-model="workflowName" class="input-short" type="text" placeholder="Workflow item Name" v-focus
+                <input v-model="workflowName" class="input-short" type="text" :placeholder="$t('placeholders.workflowItemName')" v-focus
                     @keydown.enter="handleEnterKey" />
-                <ActionButton :isDisabled="isWorkflowItemModified" :icon="getAppIcon('check')" v-tooltip="'Confirm'"
+                <ActionButton :isDisabled="isWorkflowItemModified" :icon="getAppIcon('check')" v-tooltip="$t('common.confirm')"
                     @click="confirm()" />
-                <ActionButton :icon="getAppIcon('close')" v-tooltip="'Cancel'" @click="cancel()" />
+                <ActionButton :icon="getAppIcon('close')" v-tooltip="$t('common.cancel')" @click="cancel()" />
             </div>
             <div class="input-section drop-down-box-section">
                 <DropDownBox :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" />
@@ -37,6 +37,7 @@
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import utils from '@/services/utils';
 import { v4 as uuidv4 } from 'uuid';
+import { useI18n } from 'vue-i18n';
 
 // store imports
 import { useAssetStore } from '@/stores/assets';
@@ -51,6 +52,8 @@ const collectionStore = useCollectionStore();
 const templateStore = useTemplateStore();
 const workflowStore = useWorkflowStore();
 const iconStore = useIconStore();
+
+const { t } = useI18n();
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -68,7 +71,7 @@ const props = defineProps({
 });
 
 // refs
-const itemType = ref('select type');
+const itemType = ref(t('blocks.selectType'));
 
 const workflowId = ref('');
 const workflowName = ref('');
@@ -86,13 +89,13 @@ const workflowTemplateId = ref('');
 const taskType = computed(() => {
     const allTaskTypes = assetStore.getAssetTypes;
     const selectedTaskType = allTaskTypes.find((item) => item.id === taskTypeId.value);
-    return selectedTaskType ? selectedTaskType.name : 'Select task type'
+    return selectedTaskType ? selectedTaskType.name : t('blocks.selectTaskType')
 });
 
 const entityType = computed(() => {
     const allEntityTypes = collectionStore.getCollectionTypes;
     const selectedEntityType = allEntityTypes.find((item) => item.id === entityTypeId.value);
-    return selectedEntityType ? selectedEntityType.name : 'Select collection type'
+    return selectedEntityType ? selectedEntityType.name : t('blocks.selectCollectionType')
 });
 
 const projectWorkflows = computed(() => {
@@ -135,9 +138,9 @@ const entityTypeNames = computed(() => {
 const itemTypes = computed(() => {
     let allItemTypes;
     if (projectWorkflows.value.length) {
-        allItemTypes = ['Asset', 'Collection', 'Workflow'];
+        allItemTypes = [t('blocks.asset'), t('blocks.collection'), t('blocks.workflow')];
     } else {
-        allItemTypes = ['Asset', 'Collection'];
+        allItemTypes = [t('blocks.asset'), t('blocks.collection')];
     }
     return allItemTypes.filter((item) => item !== itemType.value?.toLowerCase());
 });
@@ -215,7 +218,7 @@ const isDataUnmodified = computed(() => {
 });
 
 const isWorkflowItemModified = computed(() => {
-    if (itemType.value === 'select type') {
+    if (itemType.value === t('blocks.selectType')) {
         return true
     }
 
