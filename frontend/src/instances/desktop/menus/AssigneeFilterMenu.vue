@@ -4,7 +4,7 @@
     <span class="filter-menu-item" @click="toggleHasAssignees()">
       <img class="small-icons" :src="getAppIcon('person-plus')">
       <div class="horizontal-flex">
-        <div class="menu-item-text" >Is assigned</div>
+        <div class="menu-item-text" >{{ $t('menus.isAssigned') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.hasAssignees" />
       </div>
     </span>
@@ -12,7 +12,7 @@
     <span class="filter-menu-item" @click="toggleNoAssignees()">
       <img class="small-icons" :src="getAppIcon('person-minus')">
       <div class="horizontal-flex">
-        <div class="menu-item-text" >Is not assigned</div>
+        <div class="menu-item-text" >{{ $t('menus.isNotAssigned') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.noAssignees" />
       </div>
     </span>
@@ -37,6 +37,7 @@
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // components
@@ -52,6 +53,8 @@ const commonStore = useCommonStore();
 const iconStore = useIconStore();
 const menu = useMenu();
 const userStore = useUserStore();
+
+const { t } = useI18n();
 
 // refs
 const collectionMenu = ref(null);

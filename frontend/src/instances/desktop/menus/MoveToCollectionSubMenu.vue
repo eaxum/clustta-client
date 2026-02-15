@@ -11,23 +11,23 @@
 
     <!-- Move here option -->
     <ActionButton v-if="canMoveHere" :icon="getAppIcon('arrow-down-ramp')" :showLabel="true"
-      :fullWidth="true" label="Move Here" :buttonFunction="() => moveToLocation(currentParentId)" />
+      :fullWidth="true" :label="$t('menus.moveHere')" :buttonFunction="() => moveToLocation(currentParentId)" />
 
     <!-- Move to root option (when not at root and didn't start at root) -->
     <ActionButton v-if="canMoveToRoot" :icon="getAppIcon('home')" :showLabel="true"
-      :fullWidth="true" label="Move to Root" :buttonFunction="() => moveToLocation('')" />
+      :fullWidth="true" :label="$t('menus.moveToRoot')" :buttonFunction="() => moveToLocation('')" />
 
     <!-- Search input -->
     <div v-if="childEntities.length > 10" class="input-section">
       <input ref="searchInput" v-stop-propagation v-model="searchTerm" class="input-short" type="text"
-        placeholder="Search collections" />
+        :placeholder="$t('placeholders.searchCollections')" />
     </div>
 
     <span v-if="childEntities.length > 10" class="menu-divider"></span>
 
     <!-- Loading state -->
     <div v-if="isLoading" class="sub-menu-loading">
-      <span class="menu-item-text">Loading...</span>
+      <span class="menu-item-text">{{ $t('common.loading') }}...</span>
     </div>
 
     <!-- Scrollable list container -->
@@ -41,11 +41,11 @@
       </template>
 
       <div v-if="filteredEntities.length === 0 && childEntities.length > 0" class="sub-menu-empty">
-        <span class="menu-item-text subtle">No matching collections</span>
+        <span class="menu-item-text subtle">{{ $t('menus.noMatchingCollections') }}</span>
       </div>
 
       <div v-if="childEntities.length === 0" class="sub-menu-empty">
-        <span class="menu-item-text subtle">No sub-collections</span>
+        <span class="menu-item-text subtle">{{ $t('menus.noSubCollections') }}</span>
       </div>
 
     </div>
@@ -56,6 +56,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 
 // components
@@ -73,6 +74,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 
+const { t } = useI18n();
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const iconStore = useIconStore();
@@ -123,8 +125,8 @@ const filteredEntities = computed(() => {
 
 // Returns the header title based on current location.
 const headerTitle = computed(() => {
-  if (isAtRoot.value) return projectStore.activeProject?.name || 'Project Root';
-  return currentNavItem.value?.title || 'Collection';
+  if (isAtRoot.value) return projectStore.activeProject?.name || t('menus.projectRoot');
+  return currentNavItem.value?.title || t('menus.collection');
 });
 
 // Checks if currently at project root.
@@ -153,10 +155,10 @@ const goBack = async () => {
     const parentId = currentCollection?.entity_id || '';
     
     // Get parent name for the header
-    let parentName = projectStore.activeProject?.name || 'Project Root';
+    let parentName = projectStore.activeProject?.name || t('menus.projectRoot');
     if (parentId) {
       const parentCollection = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, parentId);
-      parentName = parentCollection?.name || 'Collection';
+      parentName = parentCollection?.name || t('menus.collection');
     }
     
     // Update navigation stack to go to parent
@@ -204,7 +206,7 @@ const loadEntities = async (parentId) => {
       .sort((a, b) => a.name.localeCompare(b.name));
   } catch (error) {
     console.error('Error loading entities:', error);
-    notificationStore.errorNotification('Failed to load collections', error);
+    notificationStore.errorNotification(t('notifications.failedToLoadCollections'), error);
   } finally {
     isLoading.value = false;
   }
@@ -213,7 +215,7 @@ const loadEntities = async (parentId) => {
 // Moves the assets to the specified collection.
 const moveToLocation = async (targetEntityId) => {
   if (!assetIds.value.length) {
-    notificationStore.errorNotification('Error', 'No assets selected');
+    notificationStore.errorNotification(t('common.error'), t('notifications.noAssetsSelected'));
     return;
   }
   
@@ -228,8 +230,8 @@ const moveToLocation = async (targetEntityId) => {
     
     const count = assetIds.value.length;
     notificationStore.addNotification(
-      'Assets Moved',
-      `${count} asset${count > 1 ? 's' : ''} moved successfully`,
+      t('notifications.assetsMoved'),
+      t('notifications.assetsMovedDesc', { count }),
       'success'
     );
     
@@ -238,7 +240,7 @@ const moveToLocation = async (targetEntityId) => {
     emitter.emit('refresh-browser');
   } catch (error) {
     console.error('Error moving assets:', error);
-    notificationStore.errorNotification('Failed to Move Assets', error);
+    notificationStore.errorNotification(t('notifications.failedToMoveAssets'), error);
   } finally {
     stage.operationActive = false;
   }

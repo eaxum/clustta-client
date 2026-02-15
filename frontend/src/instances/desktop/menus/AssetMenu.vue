@@ -2,63 +2,63 @@
   <div ref="popUpMenu" class="filter-menu-container">
 
     <ActionButton v-if="!platformStore.isWeb && userStore.canDo('pull_chunk')" :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true"
-      label="Open With" :buttonFunction="launchAssetWithCommand" />
+      :label="$t('common.openWith')" :buttonFunction="launchAssetWithCommand" />
 
     <span v-if="!platformStore.isWeb && userStore.canDo('pull_chunk')" class="menu-divider"></span>
 
     <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
-      label="Rename" :buttonFunction="renameAsset" />
+      :label="$t('common.rename')" :buttonFunction="renameAsset" />
 
     <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('switches')" :showLabel="true"
-      :fullWidth="true" label="Edit" :buttonFunction="editAsset" />
+      :fullWidth="true" :label="$t('common.edit')" :buttonFunction="editAsset" />
 
     <ActionButton v-if="userStore.canDo('create_task')" :icon="getAppIcon('duplicate')" :showLabel="true"
-      :fullWidth="true" label="Duplicate" :buttonFunction="duplicateAsset" />
+      :fullWidth="true" :label="$t('common.duplicate')" :buttonFunction="duplicateAsset" />
 
     <!-- Copy to Project -->
     <ActionButton v-if="!platformStore.isWeb && userStore.canDo('create_task') && canCopyToOtherProject" 
       :icon="getAppIcon('briefcase')" :showLabel="true"
-      :fullWidth="true" label="Copy to Project" :buttonFunction="copyToProject" />
+      :fullWidth="true" :label="$t('menus.copyToProject')" :buttonFunction="copyToProject" />
 
     <!-- Move to Collection -->
     <ActionButton v-if="!platformStore.isWeb && userStore.canDo('update_task')" 
       :icon="getAppIcon('folder-arrow-in')" :showLabel="true"
-      :fullWidth="true" label="Move" :buttonFunction="moveToCollection" />
+      :fullWidth="true" :label="$t('common.move')" :buttonFunction="moveToCollection" />
 
     <ActionButton v-if="!platformStore.isWeb && (asset.dependencies.length || asset.entity_dependencies.length)" :icon="getAppIcon('jigsaw')" :showLabel="true"
-      :fullWidth="true" label="Build with dependencies" :buttonFunction="buildWithDependencies" />
+      :fullWidth="true" :label="$t('menus.buildWithDependencies')" :buttonFunction="buildWithDependencies" />
 
     <ActionButton v-if="userStore.canDo('manage_dependencies')" :icon="getAppIcon('dependency')" :showLabel="true"
-      :fullWidth="true" label="Dependency Graph" :buttonFunction="goToDependencyGraph" />
+      :fullWidth="true" :label="$t('menus.dependencyGraph')" :buttonFunction="goToDependencyGraph" />
 
     <!-- Go to Location -->
     <ActionButton v-if="commonStore.viewSearchQuery || filtersActive" :icon="getAppIcon('file-search')" :showLabel="true" :fullWidth="true"
-      label="Go to Asset" :buttonFunction="goToLocation" />
+      :label="$t('menus.goToAsset')" :buttonFunction="goToLocation" />
 
     <!-- Reveal in Explorer -->
     <span v-if="!platformStore.isWeb" class="horizontal-flex">
-      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" label="Show in Explorer"
+      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
         :buttonFunction="revealInExplorer" />
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyAssetPath('asset')"
-        v-tooltip="'Copy Path'" />
+        v-tooltip="$t('common.copyPath')" />
     </span>
 
     <!-- Extract Archive -->
     <ActionButton v-if="!platformStore.isWeb && isArchive" :icon="getAppIcon('unarchive')" :showLabel="true" :fullWidth="true" 
-      label="Extract" :buttonFunction="extractArchive" />
+      :label="$t('common.extract')" :buttonFunction="extractArchive" />
 
     <!-- Checkpoints -->
     <ActionButton v-if="!platformStore.isWeb && isAssetModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :showLabel="true" :fullWidth="true"
-      label="Revert File" :buttonFunction="revertAsset" />
+      :label="$t('menus.revertFile')" :buttonFunction="revertAsset" />
 
     <span v-if="userStore.canDo('delete_task') || !isNotOnDisk" class="menu-divider"></span>
 
     <!-- Free space -->
     <ActionButton :icon="getAppIcon('broom')" v-if="!platformStore.isWeb && !isNotOnDisk" :showLabel="true" :fullWidth="true"
-      label="Free Up space" :buttonFunction="prepFreeUpSpacePopUpModal" />
+      :label="$t('common.freeUpSpace')" :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Delete Task -->
-    <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Delete"
+    <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.delete')"
       v-if="userStore.canDo('delete_task')" :buttonFunction="deleteAsset" />
 
   </div>
@@ -71,6 +71,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
 import { isValidWeblink } from '@/lib/pointer';
+import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -106,6 +107,7 @@ const projectStore = useProjectStore();
 const stage = useStageStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
+const { t } = useI18n();
 
 // refs
 const popUpMenu = ref(null);
@@ -186,7 +188,7 @@ const buildWithDependencies = async () => {
       emitter.emit('refresh-browser');
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error Reverting Assets", error);
+      notificationStore.errorNotification(t('notifications.errorRevertingAssets'), error);
       console.error(error);
     });
 };
@@ -205,7 +207,7 @@ const copyAssetPath = async (pathType) => {
     assetPath = outputPath;
   }
   await Clipboard.SetText(assetPath);
-  notificationStore.addNotification('Path copied to clipboard', "", "success");
+  notificationStore.addNotification(t('notifications.pathCopied'), "", "success");
   menu.hideContextMenu();
 };
 
@@ -213,14 +215,14 @@ const copyAssetPath = async (pathType) => {
 const copyToProject = () => {
   menu.showSubMenu('assetMenu', {
     type: 'projects',
-    title: 'Select Project'
+    title: t('menus.selectProject')
   });
 };
 
 // Deletes the selected asset.
 const deleteAsset = async () => {
   let assetId = assetStore.selectedAsset.id;
-  let longMessage = `Asset of name: ${assetStore.selectedAsset.name} was moved to Trash.`;
+  let longMessage = t('notifications.movedToTrash', { item: assetStore.selectedAsset.name });
   panes.setPaneVisibility('projectDetails', true);
   menu.hideContextMenu();
   assetStore.selectedAsset = null;
@@ -232,9 +234,9 @@ const deleteAsset = async () => {
       emitter.emit('refresh-browser');
     })
     .catch((error) => {
-      notificationStore.errorNotification("Asset failed to delete.", error);
+      notificationStore.errorNotification(t('notifications.assetFailedToDelete'), error);
     });
-  notificationStore.addNotification("Asset moved to Trash.", longMessage, "success", true);
+  notificationStore.addNotification(t('notifications.movedToTrash', { item: 'Asset' }), longMessage, "success", true);
 };
 
 // Duplicates the selected asset.
@@ -262,11 +264,11 @@ const duplicateAsset = async () => {
         stage.lastSelectedItemId = "";
         stage.firstSelectedItemId = duplicatedAsset.id;
         
-        notificationStore.addNotification('Asset Duplicated', `Asset duplicated`, 'success');
+        notificationStore.addNotification(t('notifications.assetDuplicated'), t('notifications.assetDuplicated'), 'success');
       });
   } catch (error) {
     console.error('Error duplicating asset:', error);
-    notificationStore.errorNotification('Failed to Duplicate Asset', error);
+    notificationStore.errorNotification(t('notifications.failedToDuplicateAsset'), error);
   } finally {
     stage.operationActive = false;
   }
@@ -286,28 +288,28 @@ const extractArchive = async () => {
     const selectedAsset = assetStore.selectedAsset;
     
     if (selectedAsset.file_status === 'rebuildable') {
-      notificationStore.errorNotification('Cannot Extract', 'File must be downloaded first');
+      notificationStore.errorNotification(t('notifications.cannotExtract'), t('notifications.fileMustBeDownloaded'));
       return;
     }
     
     const filePath = selectedAsset.file_path;
     
     if (!await FSService.Exists(filePath)) {
-      notificationStore.errorNotification('Cannot Extract', 'Archive file not found');
+      notificationStore.errorNotification(t('notifications.cannotExtract'), t('notifications.archiveNotFound'));
       return;
     }
     
     await FSService.ExtractAll(filePath)
       .then(() => {
-        notificationStore.addNotification('Archive Extracted', `Successfully extracted ${selectedAsset.name}`, 'success');
+        notificationStore.addNotification(t('notifications.archiveExtracted'), t('notifications.archiveExtracted', { name: selectedAsset.name }), 'success');
       })
       .catch((error) => {
         console.error('Error extracting archive:', error);
-        notificationStore.errorNotification('Failed to Extract Archive', error);
+        notificationStore.errorNotification(t('notifications.failedToExtractArchive'), error);
       });
   } catch (error) {
     console.error('Error extracting archive:', error);
-    notificationStore.errorNotification('Failed to Extract Archive', error);
+    notificationStore.errorNotification(t('notifications.failedToExtractArchive'), error);
   }
 };
 
@@ -359,7 +361,7 @@ const goToLocation = async () => {
     }
   } catch (error) {
     console.error('Error navigating to location:', error);
-    notificationStore.errorNotification('Failed to navigate to location', error);
+    notificationStore.errorNotification(t('notifications.failedToNavigate'), error);
   }
 };
 
@@ -412,14 +414,14 @@ const moveToCollection = () => {
   menu.subMenuState.startingEntityId = assetStore.selectedAsset.entity_id || '';
   menu.showSubMenu('assetMenu', {
     type: 'move-to-collection',
-    title: 'Select Collection'
+    title: t('menus.selectCollection')
   });
 };
 
 // Prepares and shows the free up space confirmation modal.
 const prepFreeUpSpacePopUpModal = () => {
-  trayStates.popUpModalTitle = "Free Up Asset Space";
-  trayStates.popUpModalMessage = "Are you sure you want to delete this asset working files? This will permanently remove all uncheckpointed resources and all asset outputs. Please confirm if you wish to proceed.";
+  trayStates.popUpModalTitle = t('menus.freeUpAssetSpace');
+  trayStates.popUpModalMessage = t('confirmations.deleteWorkingFiles', { item: 'asset' });
   trayStates.popUpModalIcon = 'broom';
   trayStates.popUpModalFunction = freeUpSpace;
   modals.setModalVisibility('popUpModal', true);
@@ -440,7 +442,7 @@ const revertAsset = async () => {
       assetStore.selectedAsset.file_status = "normal";
     })
     .catch((error) => {
-      notificationStore.errorNotification("Failed to Revert Asset", error);
+      notificationStore.errorNotification(t('notifications.failedToRevertAsset'), error);
     });
   menu.hideContextMenu();
 };
@@ -458,7 +460,7 @@ const revealInExplorer = async () => {
         emitter.emit('get-project-data');
       })
       .catch((error) => {
-        notificationStore.errorNotification("Error downloading Asset", error);
+        notificationStore.errorNotification(t('notifications.errorDownloadingAsset'), error);
         console.error(error);
       });
   }

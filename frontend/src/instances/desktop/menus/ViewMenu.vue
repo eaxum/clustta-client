@@ -2,13 +2,13 @@
   <div ref="viewMenu" class="filter-menu-container" v-stop-propagation>
 
     <!-- View Mode Section -->
-    <ActionButton :icon="getAppIcon('list-compact')" :showLabel="true" :fullWidth="true" label="List View"
+    <ActionButton :icon="getAppIcon('list-compact')" :showLabel="true" :fullWidth="true" :label="$t('menus.listView')"
       :color="isListActive ? 'var(--steel)' : undefined" :buttonFunction="setListView" />
 
-    <ActionButton :icon="getAppIcon('four-squares')" :showLabel="true" :fullWidth="true" label="Grid View"
+    <ActionButton :icon="getAppIcon('four-squares')" :showLabel="true" :fullWidth="true" :label="$t('menus.gridView')"
       :color="isGridActive ? 'var(--steel)' : undefined" :buttonFunction="setGridView" />
 
-    <ActionButton v-if="isDefaultWorkspace" :icon="getAppIcon('kanban')" :showLabel="true" :fullWidth="true" label="Kanban View"
+    <ActionButton v-if="isDefaultWorkspace" :icon="getAppIcon('kanban')" :showLabel="true" :fullWidth="true" :label="$t('menus.kanbanView')"
       :color="isKanbanActive ? 'var(--steel)' : undefined" :buttonFunction="setKanbanView" />
 
     <span  v-if="isDefaultWorkspace && !isKanbanActive && userStore.canDo('update_entity')" class="menu-divider"></span>
@@ -16,21 +16,21 @@
     <!-- Display Options Section -->
     <ActionButton v-if="isDefaultWorkspace && !isKanbanActive && userStore.canDo('update_entity')"
       :icon="dndStore.lockUI ? getAppIcon('lock-closed') : getAppIcon('lock-open')" :showLabel="true" :fullWidth="true"
-      :label="dndStore.lockUI ? 'Unlock UI' : 'Lock UI'" :buttonFunction="toggleLockUI" />
+      :label="dndStore.lockUI ? $t('menus.unlockUI') : $t('menus.lockUI')" :buttonFunction="toggleLockUI" />
 
     <ActionButton v-if="!isKanbanActive"
       :icon="commonStore.hideExtensions ? getAppIcon('extension-cancel') : getAppIcon('extension')" :showLabel="true" :fullWidth="true"
-      :label="commonStore.hideExtensions ? 'Show Extensions' : 'Hide Extensions'" :buttonFunction="toggleHideExtensions" />
+      :label="commonStore.hideExtensions ? $t('modals.showExtensions') : $t('modals.hideExtensions')" :buttonFunction="toggleHideExtensions" />
 
     <ActionButton v-if="!isKanbanActive"
       :icon="commonStore.showFullPath ? getAppIcon('file-name') : getAppIcon('file-path')" :showLabel="true" :fullWidth="true"
-      :label="commonStore.showFullPath ? 'Show Name Only' : 'Show Full Path'" :buttonFunction="toggleShowFullPath" />
+      :label="commonStore.showFullPath ? $t('menus.showNameOnly') : $t('menus.showFullPath')" :buttonFunction="toggleShowFullPath" />
 
     <span v-if="!isKanbanActive && !commonStore.useGrid" class="menu-divider"></span>
 
     <!-- Collapse Section -->
     <ActionButton v-if="!isKanbanActive && !commonStore.useGrid"
-      :icon="getAppIcon('collapse-up')" :showLabel="true" :fullWidth="true" label="Collapse All"
+      :icon="getAppIcon('collapse-up')" :showLabel="true" :fullWidth="true" :label="$t('menus.collapseAll')"
       :buttonFunction="collapseAll" />
 
   </div>
@@ -40,6 +40,7 @@
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
+import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -56,6 +57,8 @@ const dndStore = useDndStore();
 const iconStore = useIconStore();
 const menu = useMenu();
 const userStore = useUserStore();
+
+const { t } = useI18n();
 
 // refs
 const viewMenu = ref(null);

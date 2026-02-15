@@ -3,14 +3,14 @@
     <div class="input-section">
       <div class="horizontal-flex">
         <input ref="searchUserInput" v-stop-propagation v-model="searchUserTerm" class="input-short" type="text"
-          placeholder="Search User" />
+          :placeholder="$t('placeholders.searchUser')" />
       </div>
     </div>
 
     <div class="assignee-scroll-container">
       <!-- Current Assignee -->
       <div v-if="assignee && !multipleTasks" class="current-assignee-section">
-        <div class="section-label">Assigned</div>
+        <div class="section-label">{{ $t('menus.assigned') }}</div>
         <div class="assignee-list-container current-assignee">
           <AssigneeItem 
             :name="assignee.name" 
@@ -19,7 +19,7 @@
             :avatarColor="assignee.avatarColor"
           >
             <template #actions>
-              <span v-stop-propagation class="single-action-button" @click="unassignTask()" v-tooltip="'Unassign'">
+              <span v-stop-propagation class="single-action-button" @click="unassignTask()" v-tooltip="$t('common.unassign')">
                 <img class="small-icons" :src="getAppIcon('person-minus')">
               </span>
             </template>
@@ -44,7 +44,7 @@
 
       <!-- Studio Users Divider -->
       <div v-if="searchUserTerm && filteredStudioUsers.length && collaboratorsList.length" class="studio-users-divider">
-        <span class="divider-text">Studio Members</span>
+        <span class="divider-text">{{ $t('menus.studioMembers') }}</span>
       </div>
 
       <!-- Studio Users (not in project) -->
@@ -64,7 +64,7 @@
 
       <!-- No Results -->
       <div v-if="searchUserTerm && !collaboratorsList.length && !filteredStudioUsers.length" class="no-results">
-        No results
+        {{ $t('menus.noResults') }}
       </div>
     </div>
   </div>
@@ -73,6 +73,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
@@ -92,6 +93,7 @@ import { useStageStore } from '@/stores/stages';
 import { useStudioStore } from '@/stores/studio';
 import { useUserStore } from '@/stores/users';
 
+const { t } = useI18n();
 const assetStore = useAssetStore();
 const iconStore = useIconStore();
 const menu = useMenu();
@@ -197,10 +199,10 @@ const assignMultipleTasks = async (assigneeId) => {
       })
       .catch((error) => {
         console.log(error);
-        notificationStore.errorNotification("Error Assigning Task", error);
+        notificationStore.errorNotification(t('notifications.errorAssigningTask'), error);
       });
   }
-  notificationStore.addNotification("Tasks Assigned Successfully.", "", "success");
+  notificationStore.addNotification(t('notifications.tasksAssigned'), "", "success");
 };
 
 // Assigns a single task to a user.
@@ -219,11 +221,11 @@ const assignSingleTask = async (assigneeId) => {
         { property: 'is_resource', value: false }
       ]);
       menu.disableAllMenus();
-      notificationStore.addNotification("Task Assigned Successfully.", "", "success");
+      notificationStore.addNotification(t('notifications.taskAssigned'), "", "success");
     })
     .catch((error) => {
       console.log(error);
-      notificationStore.errorNotification("Error Assigning Task", error);
+      notificationStore.errorNotification(t('notifications.errorAssigningTask'), error);
     });
 };
 
@@ -238,7 +240,7 @@ const assignStudioUser = async (user) => {
     const defaultRole = roles.find(role => role.toLowerCase() === 'artist') || roles[0];
     
     if (!defaultRole) {
-      notificationStore.errorNotification("Error", "No roles available");
+      notificationStore.errorNotification(t('common.error'), t('notifications.noRolesAvailable'));
       return;
     }
     
@@ -251,10 +253,10 @@ const assignStudioUser = async (user) => {
       await assignMultipleTasks(user.id);
     }
     
-    notificationStore.addNotification("User added to project and task assigned.", "", "success");
+    notificationStore.addNotification(t('notifications.userAddedAndAssigned'), "", "success");
   } catch (error) {
     console.error(error);
-    notificationStore.errorNotification("Error adding user to project", error);
+    notificationStore.errorNotification(t('notifications.errorAddingUserToProject'), error);
   } finally {
     loadingUserIds.value = loadingUserIds.value.filter(id => id !== user.id);
   }
@@ -306,10 +308,10 @@ const unassignMultipleTasks = async () => {
       })
       .catch((error) => {
         console.log(error);
-        notificationStore.errorNotification("Error Assigning Task", error);
+        notificationStore.errorNotification(t('notifications.errorUnassigningTask'), error);
       });
   }
-  notificationStore.addNotification("Tasks Unassigned Successfully.", "", "success");
+  notificationStore.addNotification(t('notifications.tasksUnassigned'), "", "success");
 };
 
 // Unassigns a single task.
@@ -321,12 +323,12 @@ const unassignSingleTask = async () => {
     .then(async () => {
       selectedTask.assignee_id = null;
       emitTaskUpdates(taskId, [{ property: 'assignee_id', value: null }]);
-      notificationStore.addNotification("Task Unassigned Successfully.", "", "success");
+      notificationStore.addNotification(t('notifications.taskUnassigned'), "", "success");
       menu.disableAllMenus();
     })
     .catch((error) => {
       console.log(error);
-      notificationStore.errorNotification("Error Unassigning Task", error);
+      notificationStore.errorNotification(t('notifications.errorUnassigningTask'), error);
     });
 };
 

@@ -4,37 +4,37 @@
     <!-- Launch -->
     <ActionButton
       v-if="userStore.canDo('pull_chunk') && untrackedItemStore.selectedUntrackedItem.type == 'untracked_task'"
-      :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true" label="Open With"
+      :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true" :label="$t('common.openWith')"
       :buttonFunction="launchTaskWithCommand" />
 
     <!-- <span v-if="userStore.canDo('pull_chunk')" class="menu-divider"></span> -->
 
     <!-- Rename -->
     <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
-      label="Rename" :buttonFunction="renameItem" />
+      :label="$t('common.rename')" :buttonFunction="renameItem" />
 
     <!-- Ignore -->
-    <ActionButton :icon="getAppIcon('file-watch')" :showLabel="true" :fullWidth="true" label="Ignore this file/folder"
+    <ActionButton :icon="getAppIcon('file-watch')" :showLabel="true" :fullWidth="true" :label="$t('menus.ignoreFileFolder')"
       :buttonFunction="ignoreItem" />
 
     <ActionButton v-if="untrackedItemStore.selectedUntrackedItem.type == 'untracked_task'"
-      :icon="getAppIcon('file-watch')" :showLabel="true" :fullWidth="true" label="Ignore extension type"
+      :icon="getAppIcon('file-watch')" :showLabel="true" :fullWidth="true" :label="$t('menus.ignoreExtensionType')"
       :buttonFunction="ignoreExtensionType" />
 
     <!-- Reveal in Explorer -->
     <span class="horizontal-flex">
-      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" label="Show in Explorer"
+      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
         :buttonFunction="revealInExplorer" />
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyItemPath('task')"
-        v-tooltip="'Copy Path'" />
+        v-tooltip="$t('common.copyPath')" />
     </span>
 
     <!-- Extract Archive -->
     <ActionButton v-if="isArchive" :icon="getAppIcon('unarchive')" :showLabel="true" :fullWidth="true" 
-      label="Extract" :buttonFunction="extractArchive" />
+      :label="$t('common.extract')" :buttonFunction="extractArchive" />
 
     <!-- Delete -->
-    <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Delete "
+    <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.delete')"
       :buttonFunction="prepDeleteItemPopUpModal" />
 
   </div>
@@ -44,6 +44,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
 import { addIgnoredItem } from '@/lib/untracked';
@@ -80,6 +81,8 @@ const stage = useStageStore();
 const trayStates = useTrayStates();
 const untrackedItemStore = useUntrackedItemStore();
 const userStore = useUserStore();
+
+const { t } = useI18n();
 
 // refs
 const popUpMenu = ref(null);
@@ -119,7 +122,7 @@ const copyItemPath = async (pathType) => {
     itemPath = outputPath;
   }
   await Clipboard.SetText(itemPath);
-  notificationStore.addNotification('Path copied to clipboard', "", "success");
+  notificationStore.addNotification(t('notifications.pathCopied'), "", "success");
   menu.hideContextMenu();
 };
 
@@ -150,29 +153,29 @@ const extractArchive = async () => {
     const selectedItem = untrackedItemStore.selectedUntrackedItem;
     
     if (selectedItem.type !== 'untracked_task') {
-      notificationStore.errorNotification('Cannot Extract', 'Only files can be extracted');
+      notificationStore.errorNotification(t('notifications.cannotExtract'), t('notifications.onlyFilesExtracted'));
       return;
     }
     
     const filePath = selectedItem.file_path;
     
     if (!await FSService.Exists(filePath)) {
-      notificationStore.errorNotification('Cannot Extract', 'Archive file not found');
+      notificationStore.errorNotification(t('notifications.cannotExtract'), t('notifications.archiveNotFound'));
       return;
     }
     
     await FSService.ExtractAll(filePath)
       .then(() => {
-        notificationStore.addNotification('Archive Extracted', `Successfully extracted ${selectedItem.name || 'archive'}`, 'success');
+        notificationStore.addNotification(t('notifications.archiveExtracted'), `Successfully extracted ${selectedItem.name || 'archive'}`, 'success');
         emitter.emit('refresh-browser');
       })
       .catch((error) => {
         console.error('Error extracting archive:', error);
-        notificationStore.errorNotification('Failed to Extract Archive', error);
+        notificationStore.errorNotification(t('notifications.failedToExtractArchive'), error);
       });
   } catch (error) {
     console.error('Error extracting archive:', error);
-    notificationStore.errorNotification('Failed to Extract Archive', error);
+    notificationStore.errorNotification(t('notifications.failedToExtractArchive'), error);
   }
 };
 
@@ -209,15 +212,15 @@ const launchTaskWithCommand = async () => {
   if (await FSService.Exists(file_path)) {
     FSService.LaunchFileWith(file_path);
   } else {
-    notificationStore.addNotification("File Not On Disk, Rebuild", "File not found on disk, rebuild task", "error");
+    notificationStore.addNotification(t('notifications.fileNotOnDisk'), t('notifications.fileNotOnDiskDesc'), "error");
   }
   menu.hideContextMenu();
 };
 
 // Prepares and shows the delete confirmation modal.
 const prepDeleteItemPopUpModal = () => {
-  trayStates.popUpModalTitle = "Delete";
-  trayStates.popUpModalMessage = "Are you sure you want to delete this item? This will permanently remove this item. Please confirm if you wish to proceed.";
+  trayStates.popUpModalTitle = t('common.delete');
+  trayStates.popUpModalMessage = t('confirmations.deleteItemPermanently');
   trayStates.popUpModalIcon = 'trash';
   trayStates.popUpModalFunction = deleteItem;
   modals.setModalVisibility('popUpModal', true);

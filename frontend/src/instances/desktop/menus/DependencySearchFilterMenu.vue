@@ -4,7 +4,7 @@
     <span class="filter-menu-item" @click="toggleShowEntities()">
       <img class="small-icons" :src="getAppIcon('folder')">
       <div class="horizontal-flex">
-        <div class="menu-item-text" >Collections</div>
+        <div class="menu-item-text" >{{ $t('menus.collections') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.filterDependencyCollections" />
       </div>
     </span>
@@ -12,7 +12,7 @@
     <span class="filter-menu-item" @click="toggleShowTasks()">
       <img class="small-icons" :src="getAppIcon('brush')">
       <div class="horizontal-flex">
-        <div class="menu-item-text">Assets </div>
+        <div class="menu-item-text">{{ $t('menus.assets') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.filterDependencyAssets" />
       </div>
     </span>
@@ -21,7 +21,7 @@
     <span class="filter-menu-item" @click="toggleShowResources()">
       <img class="small-icons" :src="getAppIcon('paperclip')">
       <div class="horizontal-flex">
-        <div class="menu-item-text">Resources</div>
+        <div class="menu-item-text">{{ $t('menus.resources') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.filterDependencyResources" />
       </div>
     </span>
@@ -33,6 +33,7 @@
 <script setup>
 // imports
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
@@ -45,6 +46,8 @@ import { useMenu } from '@/stores/menu';
 const commonStore = useCommonStore();
 const iconStore = useIconStore();
 const menu = useMenu();
+
+const { t } = useI18n();
 
 // refs
 const collectionMenu = ref(null);
