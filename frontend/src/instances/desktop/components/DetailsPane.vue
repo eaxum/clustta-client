@@ -191,20 +191,20 @@ const noHeaders = [];
 const placeholder = 'Search collaborators';
 
 const assetDetailPanes = [
-  { name: "Details", tab_name: "assetDetails", icon: "info" },
-  { name: "Checkpoints", tab_name: "checkpoints", icon: "layers" },
-  { name: "Dependencies", tab_name: "dependencies", icon: "dependency" },
-  { name: "Console", tab_name: "console", icon: "console" },
+  { name: "Details", nameKey: "panes.detailsTab", tab_name: "assetDetails", icon: "info" },
+  { name: "Checkpoints", nameKey: "panes.checkpointsTab", tab_name: "checkpoints", icon: "layers" },
+  { name: "Dependencies", nameKey: "panes.dependenciesTab", tab_name: "dependencies", icon: "dependency" },
+  { name: "Console", nameKey: "panes.consoleTab", tab_name: "console", icon: "console" },
 ];
 
 const collectionDetailPanes = [
-  { name: "Details", tab_name: "collectionDetails", icon: "info" },
-  { name: "Console", tab_name: "console", icon: "console" }
+  { name: "Details", nameKey: "panes.detailsTab", tab_name: "collectionDetails", icon: "info" },
+  { name: "Console", nameKey: "panes.consoleTab", tab_name: "console", icon: "console" }
 ];
 
 const linkDetailPanes = [
-  { name: "Details", tab_name: "assetDetails", icon: "info" },
-  { name: "Dependencies", tab_name: "dependencies", icon: "dependency" },
+  { name: "Details", nameKey: "panes.detailsTab", tab_name: "assetDetails", icon: "info" },
+  { name: "Dependencies", nameKey: "panes.dependenciesTab", tab_name: "dependencies", icon: "dependency" },
 ];
 
 const paneComponents = {
@@ -221,15 +221,15 @@ const paneComponents = {
 };
 
 const projectDetailPanes = [
-  { name: "Details", tab_name: "projectDetails", icon: "info" },
-  { name: "Checkpoints", tab_name: "projectCheckpoints", icon: "layers" },
-  { name: "Change Log", tab_name: "changeLog", icon: "revert" },
-  { name: "Collaborators", tab_name: "collaborators", icon: "person" },
-  { name: "Console", tab_name: "console", icon: "console" }
+  { name: "Details", nameKey: "panes.detailsTab", tab_name: "projectDetails", icon: "info" },
+  { name: "Checkpoints", nameKey: "panes.checkpointsTab", tab_name: "projectCheckpoints", icon: "layers" },
+  { name: "Change Log", nameKey: "panes.changeLogTab", tab_name: "changeLog", icon: "revert" },
+  { name: "Collaborators", nameKey: "panes.collaboratorsTab", tab_name: "collaborators", icon: "person" },
+  { name: "Console", nameKey: "panes.consoleTab", tab_name: "console", icon: "console" }
 ];
 
 const untrackedDetailPanes = [
-  { name: "Details", tab_name: "untrackedItemDetails", icon: "info" },
+  { name: "Details", nameKey: "panes.detailsTab", tab_name: "untrackedItemDetails", icon: "info" },
 ];
 
 // refs

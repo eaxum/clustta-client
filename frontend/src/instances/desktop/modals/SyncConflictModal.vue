@@ -95,9 +95,9 @@ const showFullPath = ref(false);
 
 // constants
 const filterTabs = [
-  { name: 'all', icon: 'list' },
-  { name: 'assets', icon: 'file' },
-  { name: 'collections', icon: 'folder' },
+  { name: 'all', nameKey: 'common.all', icon: 'list' },
+  { name: 'assets', nameKey: 'panes.assets', icon: 'file' },
+  { name: 'collections', nameKey: 'panes.collections', icon: 'folder' },
 ];
 
 // computed properties (dependencies first, then alphabetically)

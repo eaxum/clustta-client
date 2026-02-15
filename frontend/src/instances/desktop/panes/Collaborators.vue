@@ -1,6 +1,6 @@
 <template>
   <div class="general-pane-header">
-    <SearchBar v-model="searchQuery" placeholder="Search by name or email" @clear="clearSearch" />
+    <SearchBar v-model="searchQuery" :placeholder="$t('panes.searchByNameOrEmail')" @clear="clearSearch" />
   </div>
 
   <div class="general-pane-root">
@@ -13,7 +13,7 @@
           :isLoading="loadingCollaboratorIds.includes(collaborator.id)" />
 
         <div v-if="searchQuery && filteredStudioCollaborators.length && filteredProjectCollaborators.length" class="collaborators-divider">
-          <span class="divider-text">Studio Members</span>
+          <span class="divider-text">{{ $t('panes.studioMembers') }}</span>
         </div>
 
         <CollaboratorItem v-for="(collaborator, index) in filteredStudioCollaborators" :key="'studio-' + collaborator.id"
@@ -30,6 +30,7 @@
 <script setup>
 // imports
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // components
@@ -56,6 +57,8 @@ const projectStore = useProjectStore();
 const studioStore = useStudioStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
+
+const { t } = useI18n();
 
 // refs
 const loadingCollaboratorIds = ref([]);
@@ -178,7 +181,7 @@ const studioCollaborators = computed(() => {
 const addCollaboratorToProject = async (userId) => {
   const collaborator = studioCollaborators.value.find(user => user.id === userId);
   if (!collaborator) {
-    notificationStore.errorNotification("Error adding user", "User not found");
+    notificationStore.errorNotification(t('notifications.errorAddingUserToProject'), "User not found");
     return;
   }
 
@@ -187,7 +190,7 @@ const addCollaboratorToProject = async (userId) => {
   const defaultRole = roles.find(role => role.toLowerCase() === 'artist') || roles[0];
   
   if (!defaultRole) {
-    notificationStore.errorNotification("Error adding user", "No roles available");
+    notificationStore.errorNotification(t('notifications.errorAddingUserToProject'), t('notifications.noRolesAvailable'));
     return;
   }
 
@@ -195,11 +198,11 @@ const addCollaboratorToProject = async (userId) => {
 
   await ProjectService.AddUser(projectStore.activeProject.uri, collaborator.email, defaultRole)
     .then(async () => {
-      notificationStore.addNotification("User added to project successfully.", "", "success");
+      notificationStore.addNotification(t('notifications.userAddedToProject'), "", "success");
       await trayStates.refreshData();
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error adding user to project", error);
+      notificationStore.errorNotification(t('notifications.errorAddingUserToProject'), error);
     })
     .finally(() => {
       loadingCollaboratorIds.value = loadingCollaboratorIds.value.filter(id => id !== userId);
@@ -210,11 +213,11 @@ const addCollaboratorToProject = async (userId) => {
 const changeCollaboratorRole = async (userId, newRole) => {
   await ProjectService.ChangeRole(projectStore.activeProject.uri, userId, newRole)
     .then(async () => {
-      notificationStore.addNotification("User updated Successfully.", "", "success");
+      notificationStore.addNotification(t('notifications.userUpdated'), "", "success");
       await trayStates.refreshData();
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error updating User", error);
+      notificationStore.errorNotification(t('notifications.errorUpdatingUser'), error);
     });
 };
 
@@ -235,10 +238,10 @@ const deleteCollaborator = async (userId) => {
       const users = userStore.users;
       const userIndex = users.indexOf(collaborator);
       userStore.users.splice(userIndex, 1);
-      notificationStore.addNotification("User Removed Successfully.", "", "success");
+      notificationStore.addNotification(t('notifications.userRemoved'), "", "success");
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error Removing User", error);
+      notificationStore.errorNotification(t('notifications.errorRemovingUser'), error);
     })
     .finally(() => {
       loadingCollaboratorIds.value = loadingCollaboratorIds.value.filter(id => id !== userId);
@@ -258,9 +261,9 @@ const illustration = () => {
 // Returns the message for the empty state.
 const message = () => {
   if (searchQuery.value) {
-    return 'No collaborators match your search';
+    return t('notifications.noCollaboratorsMatch');
   }
-  return 'No collaborators on this project';
+  return t('notifications.noCollaboratorsOnProject');
 };
 
 // Handles search input updates.

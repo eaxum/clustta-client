@@ -1,10 +1,10 @@
 <template>
 
   <div class="general-pane-header">
-    <SearchBar v-model="searchQuery" placeholder="Search for dependencies to add" :isLoading="isLoadingData"
+    <SearchBar v-model="searchQuery" :placeholder="$t('panes.searchDependencies')" :isLoading="isLoadingData"
       @input="debouncedUpdateSearch" @clear="clearSearch" />
 
-    <FilterButton v-if="searchQuery" :icon="getAppIcon('filter')" v-tooltip="'Filter'"
+    <FilterButton v-if="searchQuery" :icon="getAppIcon('filter')" v-tooltip="$t('panes.filter')"
       :showLabel="false" :alert="isFilterActive" @click="showFilterMenu($event, 'dependencySearchFilterMenu')" />
   </div>
 
@@ -20,7 +20,7 @@
       <ItemsList :items="assetDependencies" :isDependency="true" :showRemove="true" :forList="true"/>
       
       <div class="bottom-bar">
-        <ActionButton :icon="getAppIcon('square-arrow-right-up')" :showLabel="true" :iconAfter="true" :fullWidth="false" label="View in Graph"
+        <ActionButton :icon="getAppIcon('square-arrow-right-up')" :showLabel="true" :iconAfter="true" :fullWidth="false" :label="$t('panes.viewInGraph')"
         :buttonFunction="goToDependencyGraph" />
       </div>
     </div>
@@ -34,6 +34,7 @@
 <script setup>
 // imports
 import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDebounce } from '@/lib/debounce';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
@@ -68,6 +69,9 @@ const iconStore = useIconStore();
 const menu = useMenu();
 const commonStore = useCommonStore();
 const dependencyStore = useDependencyStore();
+
+// i18n
+const { t } = useI18n();
 
 // refs
 const isLoadingData = ref(false);
@@ -144,7 +148,7 @@ const fetchProjectData = async () => {
     allDependencies.value = result.filter((item) => item. id !== assetId);
   } catch (error) {
     console.error("Error fetching sidebar data:", error);
-    notificationStore.errorNotification("Error loading project data", error);
+    notificationStore.errorNotification(t('notifications.errorLoadingProjectData'), error);
   } finally {
     isLoadingData.value = false;
   }
@@ -152,9 +156,9 @@ const fetchProjectData = async () => {
 
 const message = () => {
   if(isSearching.value){
-    return 'No items match your search';
+    return t('panes.noItemsMatchSearch');
   } else {
-    return 'This asset has no dependencies';
+    return t('panes.noDependencies');
   }
 };
 
@@ -247,27 +251,27 @@ const removeDependency = async (dependencyId, itemType) => {
     selectedAssetDependencies = asset.dependencies;
     await AssetService.RemoveAssetDependency(projectStore.activeProject.uri, asset.id, dependencyId)
       .then((response) => {
-        notificationStore.addNotification("Dependency Removed", "", "success");
+        notificationStore.addNotification(t('notifications.dependencyRemoved'), "", "success");
         assetDependencies.value = assetDependencies.value.filter((item) => item.id !== dependencyId)
         emitUpdates(asset.id, [
           { property: 'dependencies', value: selectedAssetDependencies.filter(dep => dep !== dependencyId) }
         ])
       })
       .catch((error) => {
-        notificationStore.errorNotification("Error removing dependencies", error);
+        notificationStore.errorNotification(t('notifications.errorRemovingDependency'), error);
       });
   } else {
     selectedAssetDependencies = asset.entity_dependencies;
     await AssetService.RemoveEntityDependency(projectStore.activeProject.uri, asset.id, dependencyId)
       .then((response) => {
-        notificationStore.addNotification("Dependency Removed", "", "success");
+        notificationStore.addNotification(t('notifications.dependencyRemoved'), "", "success");
         assetDependencies.value = assetDependencies.value.filter((item) => item.id !== dependencyId)
         emitUpdates(asset.id, [
           { property: 'entity_dependencies', value: selectedAssetDependencies.filter(dep => dep !== dependencyId) }
         ])
       })
       .catch((error) => {
-        notificationStore.errorNotification("Error removing dependencies", error);
+        notificationStore.errorNotification(t('notifications.errorRemovingDependency'), error);
       });
   }
   
@@ -279,7 +283,7 @@ const addDependency = async (dependencyId, itemType) => {
   let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked")?.id;
   
   if (!dependencyTypeID) {
-    notificationStore.errorNotification("Error adding dependency", "Default dependency type not found");
+    notificationStore.errorNotification(t('notifications.errorAddingDependency'), "Default dependency type not found");
     return;
   }
 
@@ -288,13 +292,13 @@ const addDependency = async (dependencyId, itemType) => {
     
     // Check if dependency already exists
     if (selectedAssetDependencies.includes(dependencyId)) {
-      notificationStore.addNotification("Dependency already exists", "", "info");
+      notificationStore.addNotification(t('notifications.dependencyAlreadyExists'), "", "info");
       return;
     }
     
     await AssetService.AddAssetDependency(projectStore.activeProject.uri, asset.id, dependencyId, dependencyTypeID)
       .then((response) => {
-        notificationStore.addNotification("Dependency Added", "", "success");
+        notificationStore.addNotification(t('notifications.dependencyAdded'), "", "success");
         
         // Update local asset dependencies
         if (!asset.dependencies) {
@@ -313,20 +317,20 @@ const addDependency = async (dependencyId, itemType) => {
         ]);
       })
       .catch((error) => {
-        notificationStore.errorNotification("Error adding dependencies", error);
+        notificationStore.errorNotification(t('notifications.errorAddingDependency'), error);
       });
   } else {
     selectedAssetDependencies = asset.entity_dependencies || [];
     
     // Check if dependency already exists
     if (selectedAssetDependencies.includes(dependencyId)) {
-      notificationStore.addNotification("Dependency already exists", "", "info");
+      notificationStore.addNotification(t('notifications.dependencyAlreadyExists'), "", "info");
       return;
     }
     
     await AssetService.AddEntityDependency(projectStore.activeProject.uri, asset.id, dependencyId, dependencyTypeID)
       .then((response) => {
-        notificationStore.addNotification("Dependency Added", "", "success");
+        notificationStore.addNotification(t('notifications.dependencyAdded'), "", "success");
         
         // Update local asset collection dependencies
         if (!asset.entity_dependencies) {
@@ -345,7 +349,7 @@ const addDependency = async (dependencyId, itemType) => {
         ]);
       })
       .catch((error) => {
-        notificationStore.errorNotification("Error adding dependencies", error);
+        notificationStore.errorNotification(t('notifications.errorAddingDependency'), error);
       });
   }
 };

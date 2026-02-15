@@ -1,7 +1,7 @@
 <template>
 
   <div class="general-pane-header">
-    <SearchBar v-model="searchQuery" placeholder="Search by message or author" @input="updateSearch" @clear="clearSearch" />
+    <SearchBar v-model="searchQuery" :placeholder="$t('placeholders.searchByMessageOrAuthor')" @input="updateSearch" @clear="clearSearch" />
   </div>
 
   <div class="general-pane-root">
@@ -23,6 +23,7 @@
 <script setup>
 // imports
 import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { FSService, CheckpointService } from '@/services';
 import utils from '@/services/utils';
 
@@ -46,6 +47,8 @@ const projectStore = useProjectStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
 
+const { t } = useI18n();
+
 // refs
 const checkpointItem = ref(null);
 const checkpointList = ref(null);
@@ -66,7 +69,7 @@ const clearSearch = () => {
 const illustration = () => '/page-states/resources.png';
 
 // Returns the message for the empty state.
-const message = () => 'No checkpoints match your search';
+const message = () => t('panes.noCheckpointsMatchSearch');
 
 // Filters checkpoints based on the search query.
 const updateSearch = () => {
@@ -117,7 +120,7 @@ const refreshCheckpoints = async () => {
     })
     .catch((error) => {
       notificationStore.addNotification(
-        "Error Loading Checkpoints",
+        t('notifications.errorLoadingCheckpoints'),
         error.message,
         "error",
         false

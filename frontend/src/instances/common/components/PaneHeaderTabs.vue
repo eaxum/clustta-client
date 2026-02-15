@@ -86,15 +86,13 @@ onMounted(() => {
   flex-direction: row;
   box-sizing: border-box;
   width: 100%;
-  height: 100%;
   justify-content: space-between;
   align-items: center;
   overflow: hidden;
-  height: max-content;
+  height: 34px;
   gap: .2rem;
   padding: .3rem 0;
   color: var(--white);
-  /* background-color: firebrick; */
 }
 
 .fullwidth-header-tab-root {
@@ -130,7 +128,9 @@ onMounted(() => {
 .selected-tab-button-text {
   padding: .2rem .1rem;
   font-weight: 250;
-  ;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tab-button {
@@ -144,8 +144,9 @@ onMounted(() => {
   opacity: .5;
   justify-content: flex-start;
   padding: 5px .5rem;
-  transition: all 0.2s ease-out;
+  transition: background-color 0.2s ease-out, opacity 0.2s ease-out;
   border-radius: var(--large-radius);
+  flex-shrink: 0;
 }
 
 .tab-button:hover {
@@ -166,19 +167,14 @@ onMounted(() => {
 }
 
 .selected-tab-button {
-  /* transition: all .2s ease-in-out; */
-  /* background-color: rgba(0, 0, 0, 0.216); */
-
-  /* border-bottom: solid 2px var(--white); */
-  
-  /* outline: var(--transparent-line); */
   outline-offset: -1px;
   width: 100%;
-  /* background-color: var(--white); */
   background-color: var(--steel);
-  /* color: black; */
   opacity: 1;
-  transition: all 0.2s ease-out;
+  transition: background-color 0.2s ease-out, opacity 0.2s ease-out;
+  min-width: 0;
+  flex-shrink: 1;
+  overflow: hidden;
 }
 
 .fullwidth-tab-button {
@@ -195,7 +191,7 @@ onMounted(() => {
   gap: .5rem;
   font-size: 14px;
   align-items: center;
-  /* background-color: rebeccapurple; */
+  overflow: hidden;
 }
 
 .alert-items {

@@ -1,6 +1,6 @@
 <template>
   <div v-if="!projectStore.getActiveProject" class="general-pane-header">
-    <HeaderArea :title="'No project selected'" />
+    <HeaderArea :title="$t('panes.noProjectSelected')" />
   </div>
 
   <div v-else class="general-pane-header">
@@ -9,7 +9,7 @@
     <HeaderArea v-else :title="projectStore.getActiveProjectName" :notModal="true" 
       :emoji="projectStore.activeProject.icon" />
     <ActionButton :icon="getAppIcon('switches')" v-if="userStore.canDo('update_task')" :showLabel="false"
-      v-tooltip="'Edit Project'" :buttonFunction="editProject" />
+      v-tooltip="$t('panes.editProject')" :buttonFunction="editProject" />
   </div>
 
 
@@ -24,75 +24,75 @@
 
         <!-- {{  isPinExceeded  }} -->
         <ActionButton v-if="isProjectPinned" :icon="getAppIcon('unpin')" :showLabel="true" :fullWidth="true"
-          label="Unpin Project" :buttonFunction="unpinProject" v-tooltip="'Remove project from pinned list'" />
+          :label="$t('panes.unpinProject')" :buttonFunction="unpinProject" v-tooltip="$t('panes.unpinProjectTooltip')" />
 
         <ActionButton v-else-if="!isPinExceeded" :icon="getAppIcon('pin')" :showLabel="true" :fullWidth="true"
-          label="Pin Project" :buttonFunction="pinProject" v-tooltip="'Pin project for quick access'"/>
+          :label="$t('panes.pinProject')" :buttonFunction="pinProject" v-tooltip="$t('panes.pinProjectTooltip')"/>
 
         <!-- Reveal in Explorer -->
         <span v-if="!platformStore.isWeb" class="horizontal-flex">
-          <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" label="Show in Explorer"
-            :buttonFunction="revealInExplorer" v-tooltip="'Open project folder in file explorer'" />
+          <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('panes.showInExplorer')"
+            :buttonFunction="revealInExplorer" v-tooltip="$t('panes.showInExplorerTooltip')" />
           <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyProjectPath()"
-            v-tooltip="'Copy Path'" />
+            v-tooltip="$t('common.copyPath')" />
         </span>
 
         <!-- Locate Clustta file -->
         <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded" :icon="getAppIcon('clustta')" :showLabel="true"
-          :fullWidth="true" label="Locate Clustta File" :buttonFunction="locateClusttaFile" v-tooltip="'Show the .clst archive in explorer'" />
+          :fullWidth="true" :label="$t('panes.locateClusttaFile')" :buttonFunction="locateClusttaFile" v-tooltip="$t('panes.locateClusttaFileTooltip')" />
 
         <!-- Relocate Working Directory -->
-        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
-          :buttonFunction="relocateWorkingDirectory" v-tooltip="'Change the working directory path'" />
+        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" :label="$t('panes.relocate')"
+          :buttonFunction="relocateWorkingDirectory" v-tooltip="$t('panes.relocateTooltip')" />
 
         <!-- Backup Project -->
-        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('floppy-disk')" :showLabel="true" :fullWidth="true" label="Backup"
-          :buttonFunction="backupProject" v-tooltip="'Create a backup of this project'" />
+        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('floppy-disk')" :showLabel="true" :fullWidth="true" :label="$t('panes.backup')"
+          :buttonFunction="backupProject" v-tooltip="$t('panes.backupTooltip')" />
 
         <!-- Archive -->
         <ActionButton v-if="!projectStore.getActiveProject.is_closed && userStore.userCanCreateProject"
-          :icon="getAppIcon('archive')" :showLabel="true" :fullWidth="true" label="Archive Project"
-          :buttonFunction="prepCloseProjectPopUpModal" v-tooltip="'Archive project and free up space'" />
+          :icon="getAppIcon('archive')" :showLabel="true" :fullWidth="true" :label="$t('panes.archiveProject')"
+          :buttonFunction="prepCloseProjectPopUpModal" v-tooltip="$t('panes.archiveProjectTooltip')" />
 
 
         <ActionButton v-else-if="userStore.userCanCreateProject" :icon="getAppIcon('unarchive')" :showLabel="true"
-          :fullWidth="true" label="Unarchive Project" :buttonFunction="toggleCloseProject" v-tooltip="'Restore archived project'" />
+          :fullWidth="true" :label="$t('panes.unarchiveProject')" :buttonFunction="toggleCloseProject" v-tooltip="$t('panes.unarchiveProjectTooltip')" />
 
         <!-- Rebuild -->
         <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded && !projectStore.getActiveProject.is_closed"
-          :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" label="Rebuild Project"
-          :buttonFunction="rebuildAll" v-tooltip="'Download and restore all project files'" />
+          :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" :label="$t('panes.rebuildProject')"
+          :buttonFunction="rebuildAll" v-tooltip="$t('panes.rebuildProjectTooltip')" />
 
         <!-- Free space -->
-        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" label="Free Up space"
-          :buttonFunction="prepFreeUpSpacePopUpModal" v-tooltip="'Delete working files to free disk space'" />
+        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" :label="$t('panes.freeUpSpace')"
+          :buttonFunction="prepFreeUpSpacePopUpModal" v-tooltip="$t('panes.freeUpSpaceTooltip')" />
 
         <!-- Trim Project - only for remote projects that are synced -->
         <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.has_remote && !projectStore.getActiveProject.is_unsynced"
-          :icon="getAppIcon('scissors')" :showLabel="true" :fullWidth="true" label="Trim Project"
-          :buttonFunction="prepTrimProjectPopUpModal" v-tooltip="'Reduce project to contain only metadata'" />
+          :icon="getAppIcon('scissors')" :showLabel="true" :fullWidth="true" :label="$t('panes.trimProject')"
+          :buttonFunction="prepTrimProjectPopUpModal" v-tooltip="$t('panes.trimProjectTooltip')" />
 
         <!-- Delete project -->
         <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
-          label="Empty trash" :buttonFunction="prepEmptyTrashPopUpModal" v-tooltip="'Permanently delete all items in trash'" />
+          :label="$t('panes.emptyTrash')" :buttonFunction="prepEmptyTrashPopUpModal" v-tooltip="$t('panes.emptyTrashTooltip')" />
 
       </div>
 
       <div v-if="!projectStore.isProjectStatsExpanded" class="project-stats project-stats-collapsed">
 
         <ActionButton :icon="getAppIcon('info')" :showLabel="true" :fullWidth="true"
-          label="Project stats" :buttonFunction="toggleProjectStats" />
+          :label="$t('panes.projectStats')" :buttonFunction="toggleProjectStats" />
 
       </div>
       <div v-else class="project-stats project-stats-collapsed">
 
         <ActionButton :icon="getAppIcon('chevron-down')" :showLabel="true" :fullWidth="true"
-          label="Project stats" :buttonFunction="toggleProjectStats" />
+          :label="$t('panes.projectStats')" :buttonFunction="toggleProjectStats" />
 
           <div class="project-stats-content">
             <div class="pane-parameter-detail">
               <div class="simple-text-key">
-              Total Assets
+              {{ $t('panes.totalAssets') }}
               </div>
               <div class="simple-text-value">
               {{  assetsOnDiskCount }} / {{  assetCount }}
@@ -101,7 +101,7 @@
 
             <div class="pane-parameter-detail">
               <div class="simple-text-key">
-              Total Collections
+              {{ $t('panes.totalCollections') }}
               </div>
               <div class="simple-text-value">
               {{  collectionsOnDiskCount }} / {{  collectionCount }}
@@ -110,7 +110,7 @@
 
             <div class="pane-parameter-detail">
               <div class="simple-text-key">
-              Files on your computer 
+              {{ $t('panes.filesOnComputer') }}
               </div>
               <div class="simple-text-value">
                 {{  projectSize }}
@@ -119,7 +119,7 @@
 
             <div class="pane-parameter-detail">
               <div class="simple-text-key">
-              Clustta file size
+              {{ $t('panes.clusttaFileSize') }}
               </div>
               <div class="simple-text-value">
               {{  clusttaSize }}
@@ -138,6 +138,7 @@
 <script setup>
 // imports
 import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { SettingsService, ProjectService, SyncService, AssetService } from "@/services";
 import { FSService, DialogService } from '@/services';
 import { Clipboard } from '@wailsio/runtime';
@@ -181,7 +182,8 @@ const commonStore = useCommonStore();
 const iconStore = useIconStore();
 const platformStore = usePlatformStore();
 
-
+// i18n
+const { t } = useI18n();
 
 const getAppIcon = (iconName) => {
   const icon = iconStore.getAppIcon(iconName);
@@ -252,7 +254,7 @@ const relocateWorkingDirectory = async () => {
   const currentWorkingDir = project.working_directory;
   
   try {
-    const result = await DialogService.SelectFolderDialog("Select New Working Directory");
+    const result = await DialogService.SelectFolderDialog(t('panes.selectNewWorkingDirectory'));
     
     if (!result) {
       return;
@@ -260,8 +262,8 @@ const relocateWorkingDirectory = async () => {
     
     let newWorkingDir = result.replace(/\\/g, '/');
     
-    trayStates.popUpModalTitle = 'Relocate Working Directory?';
-    trayStates.popUpModalMessage = `Change working directory from:\n${currentWorkingDir}\n\nTo:\n${newWorkingDir}\n\nNote: Files will NOT be moved. Only the path will be updated.`;
+    trayStates.popUpModalTitle = t('panes.relocateWorkingDirectory');
+    trayStates.popUpModalMessage = t('confirmations.relocateWorkingDirectoryMessage', { from: currentWorkingDir, to: newWorkingDir });
     trayStates.popUpModalIcon = 'folder';
     trayStates.popUpModalFunction = async () => {
       try {
@@ -278,14 +280,14 @@ const relocateWorkingDirectory = async () => {
         await projectStore.refreshProjects();
         
         notificationStore.addNotification(
-          'Working directory updated',
+          t('notifications.workingDirUpdated'),
           `New location: ${newWorkingDir}`,
           'success',
           false
         );
         
       } catch (error) {
-        notificationStore.errorNotification('Error updating working directory', error);
+        notificationStore.errorNotification(t('notifications.errorUpdatingWorkingDirectory'), error);
       } finally {
         stage.operationActive = false;
         modals.setModalVisibility('popUpModal', false);
@@ -296,7 +298,7 @@ const relocateWorkingDirectory = async () => {
     modals.setModalVisibility('popUpModal', true);
     
   } catch (error) {
-    notificationStore.errorNotification('Error selecting directory', error);
+    notificationStore.errorNotification(t('notifications.errorSelectingDirectory'), error);
   }
 };
 
@@ -362,8 +364,8 @@ const toggleProjectStats = () => {
 
 const prepFreeUpSpacePopUpModal = () => {
   let project = projectStore.getActiveProject;
-  trayStates.popUpModalTitle = `Delete \"${project.name}\" Working Data? `;
-  trayStates.popUpModalMessage = "This will irreversibly delete all unsynced data on this project.";
+  trayStates.popUpModalTitle = t('panes.deleteWorkingData', { name: project.name });
+  trayStates.popUpModalMessage = t('confirmations.deleteWorkingData');
   trayStates.popUpModalFunction = deleteProjectWorkData;
   trayStates.popUpModalIcon = 'broom';
   modals.setModalVisibility('popUpModal', true);
@@ -373,8 +375,8 @@ const prepFreeUpSpacePopUpModal = () => {
 const prepEmptyTrashPopUpModal = () => {
   menu.hideContextMenu();
 	trayStates.popUpModalIcon = 'trash'
-	trayStates.popUpModalTitle = "Empty Trash";
-	trayStates.popUpModalMessage = "This will irreversibly delete all items in trash. Continue?";
+	trayStates.popUpModalTitle = t('panes.emptyTrashTitle');
+	trayStates.popUpModalMessage = t('confirmations.emptyTrash');
 	trayStates.popUpModalFunction = emptyTrash;
 	modals.setModalVisibility('popUpModal', true);
 };
@@ -387,7 +389,7 @@ const emptyTrash = async () => {
 		}).catch((error) => {
 			console.error(error.message)
 			notificationStore.addNotification(
-				"Error Syncing Data",
+				t('notifications.errorSyncingData'),
 				error.message,
 				"error",
 				false
@@ -400,8 +402,8 @@ const prepTrimProjectPopUpModal = () => {
   menu.hideContextMenu();
   let project = projectStore.getActiveProject;
   trayStates.popUpModalIcon = 'scissors';
-  trayStates.popUpModalTitle = `Trim \"${project.name}\"`;
-  trayStates.popUpModalMessage = "This will remove cached file data from the project archive and delete the working directory to reduce disk usage. The data can be re-downloaded from the remote when needed. Continue?";
+  trayStates.popUpModalTitle = t('panes.trimProjectTitle', { name: project.name });
+  trayStates.popUpModalMessage = t('confirmations.trimProjectMessage');
   trayStates.popUpModalFunction = trimProject;
   modals.setModalVisibility('popUpModal', true);
 };
@@ -424,15 +426,15 @@ const trimProject = async () => {
     }
     
     notificationStore.addNotification(
-      "Project Trimmed",
-      "Cached data and working files have been cleared.",
+      t('notifications.projectTrimmed'),
+      t('notifications.projectTrimmedDesc'),
       "success",
       false
     );
   } catch (error) {
     console.error(error.message || error);
     notificationStore.addNotification(
-      "Error Trimming Project",
+      t('notifications.errorTrimmingProject'),
       error.message || "An error occurred",
       "error",
       false
@@ -445,8 +447,8 @@ const trimProject = async () => {
 
 const prepCloseProjectPopUpModal = () => {
   let project = projectStore.getActiveProject;
-  trayStates.popUpModalTitle = `Archive \"${project.name}\"`;
-  trayStates.popUpModalMessage = "Archiving this project will also free up space in the working directory. Any untracked items will be lost. Proceed?";
+  trayStates.popUpModalTitle = t('panes.archiveProjectTitle', { name: project.name });
+  trayStates.popUpModalMessage = t('confirmations.archiveProjectMessage');
   trayStates.popUpModalFunction = toggleCloseProject;
   trayStates.popUpModalIcon = 'archive';
   modals.setModalVisibility('popUpModal', true);
@@ -468,7 +470,7 @@ const toggleCloseProject = async () => {
     }).catch((error) => {
       console.error(error.message)
       notificationStore.addNotification(
-        "Error closing project",
+        t('notifications.errorClosingProject'),
         error.message,
         "error",
         false

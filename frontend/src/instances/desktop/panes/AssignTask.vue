@@ -9,7 +9,7 @@
         <ScrollList v-if="assigneeList && assigneeList.length" :unassignListItem="unassignTask" :isSingle="true"
           :useAvatar="true" :items="assigneeList" :unassignItems="true" />
         <!-- {{entity.assignee_id }} -->
-        Assign to someone else
+        {{ $t('panes.assignToSomeoneElse') }}
         <ScrollList v-if="collaboratorsList && collaboratorsList.length" :items="collaboratorsList" :useAvatar="true"
           :deleteItems="false" :assignItems="true" :editListItem="assignTask" :assignListItem="assignEntity" />
 
@@ -22,6 +22,7 @@
 
 import { useTrayStates } from '@/stores/TrayStates';
 import { ref, onMounted, computed, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from "@/services/utils";
 
 // store/state imports
@@ -43,6 +44,8 @@ const userStore = useUserStore();
 const notificationStore = useNotificationStore();
 const assetStore = useAssetStore();
 const projectStore = useProjectStore();
+
+const { t } = useI18n();
 
 // refs
 const entityName = ref('');
@@ -110,11 +113,11 @@ const assignTask = async (index) => {
   await AssetService.AssignAsset(projectStore.activeProject.uri, taskId, userId)
     .then(async (data) => {
       assetStore.findAsset(taskId).assignee_id = userId;
-      notificationStore.addNotification("Task Assigned Successfully.", "", "success")
+      notificationStore.addNotification(t('notifications.taskAssigned'), "", "success")
     })
     .catch((error) => {
       console.log(error)
-      notificationStore.errorNotification("Error Assigning Task", error)
+      notificationStore.errorNotification(t('notifications.errorAssigningTask'), error)
     });
 };
 
@@ -124,11 +127,11 @@ const unassignTask = async (index) => {
   await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId)
     .then(async (data) => {
       assetStore.findAsset(taskId).assignee_id = ""
-      notificationStore.addNotification("Task UnAssigned Successfully.", "", "success")
+      notificationStore.addNotification(t('notifications.taskUnassigned'), "", "success")
     })
     .catch((error) => {
       console.log(error)
-      notificationStore.errorNotification("Error UnAssigning Task", error)
+      notificationStore.errorNotification(t('notifications.errorUnassigningTask'), error)
     });
 };
 

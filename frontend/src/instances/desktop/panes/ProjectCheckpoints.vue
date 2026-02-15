@@ -1,6 +1,6 @@
 <template>
   <div class="general-pane-header">
-    <SearchBar v-model="searchQuery" placeholder="Search by message or author" @clear="clearSearch" />
+    <SearchBar v-model="searchQuery" :placeholder="$t('placeholders.searchByMessageOrAuthor')" @clear="clearSearch" />
   </div>
 
   <div class="general-pane-root">
@@ -21,6 +21,7 @@
 <script setup>
 // imports
 import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { v4 as uuidv4 } from 'uuid';
 
 // services
@@ -41,6 +42,8 @@ import { useUserStore } from '@/stores/users';
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
+
+const { t } = useI18n();
 
 // refs
 const checkpointList = ref(null);
@@ -71,8 +74,8 @@ const illustration = () => '/page-states/resources.png';
 
 // Returns the message for the empty state.
 const message = () => {
-  if (searchQuery.value) return 'No checkpoints match your search';
-  return 'No checkpoints in this project';
+  if (searchQuery.value) return t('panes.noCheckpointsMatchSearch');
+  return t('panes.noCheckpointsInProject');
 };
 
 // Updates the expanded checkpoint index.
@@ -122,7 +125,7 @@ onMounted(async () => {
     })
     .catch((error) => {
       notificationStore.errorNotification(
-        "Error loading Timeline", error
+        t('notifications.errorLoadingTimeline'), error
       )
       console.log(error)
       closeModal()
