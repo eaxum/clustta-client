@@ -1,31 +1,32 @@
 <template>
 	<div v-if="isLoading" class="state-bar">
-		<ActionButton :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="'Loading collection states'" />
+		<ActionButton :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="$t('components.stateBar.loadingCollectionStates')" />
 	</div>
 
 	<div v-else-if="hasData" class="state-bar">
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" 
-			v-tooltip="'Rebuild All'" :buttonFunction="rebuildAll" />
+			v-tooltip="$t('components.stateBar.rebuildAll')" :buttonFunction="rebuildAll" />
 
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_untracked && userStore.canDo('create_checkpoint')"
-			:icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Create Checkpoints'"
+			:icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
 			:buttonFunction="prepAllCheckpointModal" />
 
 		<ActionButton v-else-if="collectionStore.collectionStateFlags.has_modified && userStore.canDo('create_checkpoint')"
-			:icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="'Create Checkpoints'"
+			:icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
 			:buttonFunction="prepAllCheckpointModal" />
 
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_modified" :icon="getAppIcon('revert')" 
-			:useAlert="true" :noFilter="true" v-tooltip="'Revert All'" :buttonFunction="prepResetPopUpModal" />
+			:useAlert="true" :noFilter="true" v-tooltip="$t('components.stateBar.revertAll')" :buttonFunction="prepResetPopUpModal" />
 
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check')" 
-			:useAlert="true" :noFilter="true" v-tooltip="'Update all'" :buttonFunction="updateAll" />
+			:useAlert="true" :noFilter="true" v-tooltip="$t('components.stateBar.updateAll')" :buttonFunction="updateAll" />
 	</div>
 </template>
 
 <script setup>
 // imports
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 
 // components
@@ -56,6 +57,7 @@ const projectStore = useProjectStore();
 const stage = useStageStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
+const { t } = useI18n();
 
 // props
 const props = defineProps({
@@ -95,8 +97,8 @@ const prepAllCheckpointModal = () => {
 const prepResetPopUpModal = () => {
 	clearSelection();
 	trayStates.popUpModalIcon = 'revert';
-	trayStates.popUpModalTitle = "Revert All Changes";
-	trayStates.popUpModalMessage = "All Modified tasks will be reverted to their last saved state. Are you sure you want to continue?";
+	trayStates.popUpModalTitle = t('components.stateBar.revertAllChangesTitle');
+	trayStates.popUpModalMessage = t('components.stateBar.revertAllChangesMessage');
 	trayStates.popUpModalFunction = revertAllChanges;
 	modals.setModalVisibility('popUpModal', true);
 };
@@ -117,7 +119,7 @@ const rebuildAll = async () => {
 	} else {
 		await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedEntityId)
 			.then(() => { if (!path) assetStore.rebuildableAssetsPath = []; emitter.emit('refresh-browser'); })
-			.catch((error) => notificationStore.errorNotification("Error Rebuilding All", error));
+			.catch((error) => notificationStore.errorNotification(t('components.stateBar.errorRebuildingAll'), error));
 	}
 };
 
@@ -136,7 +138,7 @@ const revertAllChanges = async () => {
 			assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter((item) => !filteredPaths.includes(item.task_path)); 
 			emitter.emit('refresh-browser'); 
 		})
-		.catch((error) => { notificationStore.errorNotification("Failed to Revert Tasks", error); console.error(error); });
+		.catch((error) => { notificationStore.errorNotification(t('components.stateBar.failedToRevertTasks'), error); console.error(error); });
 };
 
 // Updates all outdated tasks to their latest server version.
@@ -152,7 +154,7 @@ const updateAll = async () => {
 	if (filteredPaths.length === 0) return;
 	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
 		.then(() => emitter.emit('refresh-browser'))
-		.catch((error) => { notificationStore.errorNotification("Failed to Revert Tasks", error); console.error(error); });
+		.catch((error) => { notificationStore.errorNotification(t('components.stateBar.failedToRevertTasks'), error); console.error(error); });
 };
 </script>
 

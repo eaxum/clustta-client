@@ -1354,7 +1354,130 @@
       "errorRebuildingCollections": "Error rebuilding collections",
       "tasksUnassignedSuccessfully": "Tasks Unassigned Successfully.",
       "errorAssigningTask": "Error Assigning Task",
-      "errorRevertingTasks": "Error Reverting Tasks"
+      "errorRevertingTasks": "Error Reverting Tasks",
+      "errorRemovingUser": "Error removing user"
+    },
+    "assetTypeForm": {
+      "assetTypeNamePlaceholder": "Asset Type Name",
+      "nameAlreadyExists": "An asset type with this name already exists.",
+      "cancel": "Cancel",
+      "create": "Create",
+      "update": "Update",
+      "assetTypeCreated": "Asset type created",
+      "errorCreatingAssetType": "Error creating asset type",
+      "assetTypeUpdated": "Asset type updated",
+      "errorUpdatingAssetType": "Error updating asset type"
+    },
+    "collectionTypeForm": {
+      "collectionTypeNamePlaceholder": "Collection Type Name",
+      "nameAlreadyExists": "A collection type with this name already exists.",
+      "cancel": "Cancel",
+      "create": "Create",
+      "update": "Update",
+      "collectionTypeCreated": "Collection type created",
+      "errorCreatingCollectionType": "Error creating collection type",
+      "collectionTypeUpdated": "Collection type updated",
+      "errorUpdatingCollectionType": "Error updating collection type"
+    },
+    "filterBar": {
+      "status": "Status",
+      "state": "State",
+      "extension": "Extension",
+      "assetType": "Asset Type",
+      "tags": "Tags",
+      "assignees": "Assignees",
+      "assignation": "Assignation",
+      "type": "Type",
+      "resetFilters": "Reset Filters"
+    },
+    "stateBar": {
+      "loadingCollectionStates": "Loading collection states",
+      "rebuildAll": "Rebuild All",
+      "createCheckpoints": "Create Checkpoints",
+      "revertAll": "Revert All",
+      "updateAll": "Update all",
+      "revertAllChangesTitle": "Revert All Changes",
+      "revertAllChangesMessage": "All Modified tasks will be reverted to their last saved state. Are you sure you want to continue?",
+      "errorRebuildingAll": "Error Rebuilding All",
+      "failedToRevertTasks": "Failed to Revert Tasks"
+    },
+    "breadcrumbs": {
+      "home": "Home",
+      "refresh": "Refresh",
+      "upALevel": "Up a level",
+      "copyPath": "Copy Path",
+      "showInExplorer": "Show in Explorer",
+      "pathCopiedToClipboard": "Path copied to clipboard",
+      "navigationFailed": "Navigation failed",
+      "couldNotFindSelectedPath": "Could not find the selected path"
+    },
+    "footerArea": {
+      "logout": "Logout",
+      "goBack": "Go back",
+      "unpin": "Unpin",
+      "pin": "Pin",
+      "logoutFailed": "Logout Failed"
+    },
+    "searchSuggestions": {
+      "hideSuggestion": "Hide Suggestion",
+      "showSuggestions": "Show Suggestions",
+      "hideSearch": "Hide Search",
+      "searchTags": "Search Tags",
+      "searchTasks": "Search Tasks"
+    },
+    "appsGrid": {
+      "noAssetTemplates": "This project has no Asset templates",
+      "manageTemplates": "Manage templates",
+      "addTemplates": "Add templates",
+      "newAssetTitle": "New {name} asset"
+    },
+    "apps": {
+      "newAssetTitle": "New {name} asset"
+    },
+    "headerArea": {
+      "toggleMetadata": "Toggle Metadata",
+      "toggleSearch": "Toggle Search",
+      "unpin": "Unpin",
+      "pin": "Pin"
+    },
+    "collaboratorSuggestions": {
+      "remove": "Remove",
+      "userLabel": "User",
+      "newLabel": "New"
+    },
+    "flashMessage": {
+      "minimize": "Minimize",
+      "cancelling": "Cancelling...",
+      "cancel": "Cancel"
+    },
+    "desktopScrollList": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "dropDownBox": {
+      "select": "Select",
+      "noItem": "No Item"
+    },
+    "listBox": {
+      "nothingSelected": "Nothing Selected",
+      "noItem": "No Item"
+    },
+    "scrollList": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "singleListItem": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "clusttaLogo": {
+      "altText": "Clustta Icon"
+    },
+    "generalButton": {
+      "defaultLabel": "Button"
+    },
+    "ignoreListBox": {
+      "remove": "Remove"
     }
   },
   "errors": {

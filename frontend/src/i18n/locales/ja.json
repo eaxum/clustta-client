@@ -1351,7 +1351,130 @@
       "errorRebuildingCollections": "コレクションの再構築エラー",
       "tasksUnassignedSuccessfully": "タスクの割り当てが正常に解除されました。",
       "errorAssigningTask": "タスクの割り当てエラー",
-      "errorRevertingTasks": "タスクの復元エラー"
+      "errorRevertingTasks": "タスクの復元エラー",
+      "errorRemovingUser": "ユーザーの削除エラー"
+    },
+    "assetTypeForm": {
+      "assetTypeNamePlaceholder": "アセットタイプ名",
+      "nameAlreadyExists": "この名前のアセットタイプは既に存在します。",
+      "cancel": "キャンセル",
+      "create": "作成",
+      "update": "更新",
+      "assetTypeCreated": "アセットタイプが作成されました",
+      "errorCreatingAssetType": "アセットタイプの作成エラー",
+      "assetTypeUpdated": "アセットタイプが更新されました",
+      "errorUpdatingAssetType": "アセットタイプの更新エラー"
+    },
+    "collectionTypeForm": {
+      "collectionTypeNamePlaceholder": "コレクションタイプ名",
+      "nameAlreadyExists": "この名前のコレクションタイプは既に存在します。",
+      "cancel": "キャンセル",
+      "create": "作成",
+      "update": "更新",
+      "collectionTypeCreated": "コレクションタイプが作成されました",
+      "errorCreatingCollectionType": "コレクションタイプの作成エラー",
+      "collectionTypeUpdated": "コレクションタイプが更新されました",
+      "errorUpdatingCollectionType": "コレクションタイプの更新エラー"
+    },
+    "filterBar": {
+      "status": "ステータス",
+      "state": "状態",
+      "extension": "拡張子",
+      "assetType": "アセットタイプ",
+      "tags": "タグ",
+      "assignees": "担当者",
+      "assignation": "割り当て",
+      "type": "タイプ",
+      "resetFilters": "フィルターをリセット"
+    },
+    "stateBar": {
+      "loadingCollectionStates": "コレクション状態を読み込み中",
+      "rebuildAll": "すべて再構築",
+      "createCheckpoints": "チェックポイントを作成",
+      "revertAll": "すべて復元",
+      "updateAll": "すべて更新",
+      "revertAllChangesTitle": "すべての変更を復元",
+      "revertAllChangesMessage": "すべての変更されたタスクが最後に保存された状態に復元されます。続行してもよろしいですか？",
+      "errorRebuildingAll": "すべての再構築エラー",
+      "failedToRevertTasks": "タスクの復元に失敗しました"
+    },
+    "breadcrumbs": {
+      "home": "ホーム",
+      "refresh": "更新",
+      "upALevel": "一つ上へ",
+      "copyPath": "パスをコピー",
+      "showInExplorer": "エクスプローラーで表示",
+      "pathCopiedToClipboard": "パスがクリップボードにコピーされました",
+      "navigationFailed": "ナビゲーション失敗",
+      "couldNotFindSelectedPath": "選択されたパスが見つかりませんでした"
+    },
+    "footerArea": {
+      "logout": "ログアウト",
+      "goBack": "戻る",
+      "unpin": "ピン留め解除",
+      "pin": "ピン留め",
+      "logoutFailed": "ログアウト失敗"
+    },
+    "searchSuggestions": {
+      "hideSuggestion": "候補を非表示",
+      "showSuggestions": "候補を表示",
+      "hideSearch": "検索を非表示",
+      "searchTags": "タグを検索",
+      "searchTasks": "タスクを検索"
+    },
+    "appsGrid": {
+      "noAssetTemplates": "このプロジェクトにはアセットテンプレートがありません",
+      "manageTemplates": "テンプレートを管理",
+      "addTemplates": "テンプレートを追加",
+      "newAssetTitle": "新しい{name}アセット"
+    },
+    "apps": {
+      "newAssetTitle": "新しい{name}アセット"
+    },
+    "headerArea": {
+      "toggleMetadata": "メタデータの切り替え",
+      "toggleSearch": "検索の切り替え",
+      "unpin": "ピン留め解除",
+      "pin": "ピン留め"
+    },
+    "collaboratorSuggestions": {
+      "remove": "削除",
+      "userLabel": "ユーザー",
+      "newLabel": "新規"
+    },
+    "flashMessage": {
+      "minimize": "最小化",
+      "cancelling": "キャンセル中...",
+      "cancel": "キャンセル"
+    },
+    "desktopScrollList": {
+      "edit": "編集",
+      "delete": "削除"
+    },
+    "dropDownBox": {
+      "select": "選択",
+      "noItem": "アイテムなし"
+    },
+    "listBox": {
+      "nothingSelected": "未選択",
+      "noItem": "アイテムなし"
+    },
+    "scrollList": {
+      "edit": "編集",
+      "delete": "削除"
+    },
+    "singleListItem": {
+      "edit": "編集",
+      "delete": "削除"
+    },
+    "clusttaLogo": {
+      "altText": "Clusttaアイコン"
+    },
+    "generalButton": {
+      "defaultLabel": "ボタン"
+    },
+    "ignoreListBox": {
+      "remove": "削除"
     }
   },
   "errors": {

@@ -14,13 +14,13 @@
 
       <span class="page-header-title" :class="{ 'mini-display': miniDisplay }">{{ title }}</span>
     </div>
-    <span v-if="showMeta" class="single-action-button" @click="toggleMeta" v-tooltip="'Toggle Metadata'"><img
+    <span v-if="showMeta" class="single-action-button" @click="toggleMeta" v-tooltip="$t('components.headerArea.toggleMetadata')"><img
         class="large-icons" src="/icons/info.svg"></span>
-    <span v-if="showSearch" class="single-action-button" @click="toggleSearch" v-tooltip="'Toggle Search'"><img
+    <span v-if="showSearch" class="single-action-button" @click="toggleSearch" v-tooltip="$t('components.headerArea.toggleSearch')"><img
         class="large-icons" src="/icons/search.svg"></span>
     <span v-if="showPin" class="single-action-button"
       :class="{ 'single-action-button-pressed': trayStates.keepModalOpen === true }" @click="trayStates.toggleKeepModal"
-      v-tooltip="trayStates.keepModalOpen ? 'Unpin' : 'Pin'">
+      v-tooltip="trayStates.keepModalOpen ? $t('components.headerArea.unpin') : $t('components.headerArea.pin')">
       <img v-if="!trayStates.keepModalOpen" class="large-icons" src="/icons/pin.svg">
       <img v-else class="large-icons" src="/icons/unpin.svg">
     </span>

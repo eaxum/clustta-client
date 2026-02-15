@@ -1,10 +1,10 @@
 <template>
 	<div ref="breadcrumbRoot" class="breadcrumb-root">
-		<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon(commonStore.navigatorMode ? 'home' : 'forward-slash')" v-tooltip="'Home'" :buttonFunction="goHome" />
-		<ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Refresh'" :buttonFunction="refresh" />
+		<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon(commonStore.navigatorMode ? 'home' : 'forward-slash')" v-tooltip="$t('components.breadcrumbs.home')" :buttonFunction="goHome" />
+		<ActionButton :icon="getAppIcon('refresh')" v-tooltip="$t('components.breadcrumbs.refresh')" :buttonFunction="refresh" />
 
 		<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon('arrow-back-ramp')"
-			:allowDeactivate="true" v-tooltip="'Up a level'" :buttonFunction="goUpALevel" />
+			:allowDeactivate="true" v-tooltip="$t('components.breadcrumbs.upALevel')" :buttonFunction="goUpALevel" />
 
 		<ActionButton v-if="!commonStore.navigatorMode" :icon="getAppIcon('forward-slash')" v-tooltip="commonStore.navigatorMode ? 'Home' : ''" 
 			:label="projectStore.activeProject?.name" :buttonFunction="goHome" />
@@ -22,10 +22,10 @@
 		</div>
 
 		<ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" 
-			v-tooltip="'Copy Path'" @click="copyDirectoryPath" />
+			v-tooltip="$t('components.breadcrumbs.copyPath')" @click="copyDirectoryPath" />
 
 		<ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-up-right')" :showLabel="false" :fullWidth="false" 
-			v-tooltip="'Show in Explorer'" @click="revealInExplorer" />
+			v-tooltip="$t('components.breadcrumbs.showInExplorer')" @click="revealInExplorer" />
 	</div>
 
 	<Teleport to="#app">
@@ -44,6 +44,7 @@
 <script setup>
 // imports
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
@@ -72,6 +73,7 @@ const notificationStore = useNotificationStore();
 const platformStore = usePlatformStore();
 const projectStore = useProjectStore();
 const stage = useStageStore();
+const { t } = useI18n();
 
 // refs
 const breadcrumbContainer = ref(null);
@@ -180,7 +182,7 @@ const copyDirectoryPath = async () => {
 	}
 
 	await Clipboard.SetText(explorerPath);
-	notificationStore.addNotification('Path copied to clipboard', '', 'success');
+	notificationStore.addNotification(t('components.breadcrumbs.pathCopiedToClipboard'), '', 'success');
 };
 
 // Generates an untracked entity object from a given path.
@@ -249,7 +251,7 @@ const goToCollection = async (selectedPath) => {
 		collectionStore.navigatedCollection = targetEntity;
 		collectionStore.selectedCollection = targetEntity;
 	} else {
-		notificationStore.addNotification('Navigation failed', 'Could not find the selected path', 'error');
+		notificationStore.addNotification(t('components.breadcrumbs.navigationFailed'), t('components.breadcrumbs.couldNotFindSelectedPath'), 'error');
 	}
 };
 

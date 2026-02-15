@@ -37,6 +37,7 @@
 
 // imports
 import { computed, onMounted, watchEffect, ref, nextTick, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from "@/services/utils";
 import emitter from '@/lib/mitt';
 
@@ -46,6 +47,7 @@ import { useStageStore } from '@/stores/stages';
 import { useMenu } from '@/stores/menu';
 const menu = useMenu();
 const stage = useStageStore();
+const { t } = useI18n();
 
 // refs
 const listBoxParent = ref(null);
@@ -96,7 +98,7 @@ const filteredItems = computed(() => {
 });
 
 const selectedListItem = computed(() => { 
-  return props.selectedItem ? utils.capitalizeStr(props.selectedItem) : 'Select' 
+  return props.selectedItem ? utils.capitalizeStr(props.selectedItem) : t('components.dropDownBox.select') 
 });
 
 const selectedItemIcon = computed(() => {

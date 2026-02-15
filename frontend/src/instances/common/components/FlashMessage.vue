@@ -16,7 +16,7 @@
       <div class="progress-bar-header">
         <div class="header-with-minimize">
           <HeaderArea :title="notificationStore.getProgress.title" :icon="progressIcon" :showSearch="showSearch" :notModal="true" />
-          <button @click="minimizeProgress" class="minimize-button single-action-button" v-tooltip="'Minimize'">
+          <button @click="minimizeProgress" class="minimize-button single-action-button" v-tooltip="$t('components.flashMessage.minimize')">
             <img :src="getAppIcon('chevron-down')" class="minimize-icon small-icons" />
           </button>
         </div>
@@ -40,7 +40,7 @@
           </div>
         </div>
         <GeneralButton v-if="notificationStore.canCancel" 
-          :label="isAwaitingResponse ? 'Cancelling...' : 'Cancel'" 
+          :label="isAwaitingResponse ? $t('components.flashMessage.cancelling') : $t('components.flashMessage.cancel')" 
           :buttonFunction="cancelOperation" 
           :loading="isAwaitingResponse"
           :colored="false"

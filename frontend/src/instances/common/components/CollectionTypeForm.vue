@@ -1,14 +1,14 @@
 <template>
   <div class="type-form-container">
     <div class="input-section">
-      <input v-model="typeName" class="input-short" type="text" placeholder="Collection Type Name" v-focus />
-      <InputAlert :show="isNameTaken" message="A collection type with this name already exists." />
+      <input v-model="typeName" class="input-short" type="text" :placeholder="$t('components.collectionTypeForm.collectionTypeNamePlaceholder')" v-focus />
+      <InputAlert :show="isNameTaken" :message="$t('components.collectionTypeForm.nameAlreadyExists')" />
     </div>
 
     <IconGrid @iconSelected="setIcon" :icons="availableIcons" />
 
     <div class="pop-up-actions">
-      <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="handleCancel" :colored="false" />
+      <GeneralButton :label="$t('components.collectionTypeForm.cancel')" :fullWidth="true" :buttonFunction="handleCancel" :colored="false" />
       <GeneralButton :label="submitLabel" :fullWidth="true" :buttonFunction="handleSubmit" :isActive="isFormValid" :loading="isSubmitting" />
     </div>
   </div>
@@ -17,6 +17,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import iconData from '@/data/iconData.json';
 
 // components
@@ -35,6 +36,7 @@ import { useProjectStore } from '@/stores/projects';
 const collectionStore = useCollectionStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const { t } = useI18n();
 
 // props
 const props = defineProps({
@@ -77,7 +79,7 @@ const isFormValid = computed(() => {
 
 // Returns the submit button label based on mode.
 const submitLabel = computed(() => {
-  return props.mode === 'create' ? 'Create' : 'Update';
+  return props.mode === 'create' ? t('components.collectionTypeForm.create') : t('components.collectionTypeForm.update');
 });
 
 // methods
@@ -86,12 +88,12 @@ const createType = async () => {
   isSubmitting.value = true;
   await CollectionService.CreateCollectionType(projectStore.activeProject.uri, typeName.value, typeIcon.value)
     .then((response) => {
-      notificationStore.addNotification('Collection type created', '', 'success');
+      notificationStore.addNotification(t('components.collectionTypeForm.collectionTypeCreated'), '', 'success');
       collectionStore.collectionTypes.push(response);
       emit('created', response);
     })
     .catch((error) => {
-      notificationStore.errorNotification('Error creating collection type', error);
+      notificationStore.errorNotification(t('components.collectionTypeForm.errorCreatingCollectionType'), error);
     })
     .finally(() => {
       isSubmitting.value = false;
@@ -123,7 +125,7 @@ const updateType = async () => {
   isSubmitting.value = true;
   await CollectionService.UpdateCollectionType(projectStore.activeProject.uri, props.typeId, typeName.value, typeIcon.value)
     .then((response) => {
-      notificationStore.addNotification('Collection type updated', '', 'success');
+      notificationStore.addNotification(t('components.collectionTypeForm.collectionTypeUpdated'), '', 'success');
       const index = collectionStore.collectionTypes.findIndex((t) => t.id === props.typeId);
       if (index !== -1) {
         collectionStore.collectionTypes[index] = response;
@@ -131,7 +133,7 @@ const updateType = async () => {
       emit('updated', response);
     })
     .catch((error) => {
-      notificationStore.errorNotification('Error updating collection type', error);
+      notificationStore.errorNotification(t('components.collectionTypeForm.errorUpdatingCollectionType'), error);
     })
     .finally(() => {
       isSubmitting.value = false;
