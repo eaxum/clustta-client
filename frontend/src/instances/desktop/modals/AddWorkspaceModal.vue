@@ -4,14 +4,14 @@
     <div class="general-container">
       <div class="input-section">
         <div class="horizontal-flex">
-          <input v-model="workspaceName" class="input-short" type="text" placeholder="Workspace Name" 
+          <input v-model="workspaceName" class="input-short" type="text" :placeholder="$t('placeholders.workspaceName')" 
           @keydown.enter="handleEnterKey" v-focus />
         </div>
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Create'" :fullWidth="true" @click="saveWorkspace" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="saveWorkspace" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
     </div>
@@ -21,6 +21,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
@@ -35,6 +36,7 @@ import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useProjectStore } from '@/stores/projects';
 
+const { t } = useI18n();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const modals = useDesktopModalStore();
@@ -46,7 +48,7 @@ const workspaceName = ref('');
 
 // constants
 const showSearch = false;
-const title = 'Save Workspace';
+const title = t('modals.saveWorkspace');
 
 // computed
 // Returns whether the workspace name is valid and not already in use.

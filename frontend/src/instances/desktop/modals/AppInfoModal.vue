@@ -9,9 +9,9 @@
     <div class="general-container">
       <div class="version-info">
         <!-- <div> Clustta for Windows (64 bit) </div> -->
-        <div> Version {{ clusttaVersion }} </div>
-        <div> Copyright &copy; 2024 Clustta </div>
-        <div> Clustta<sup>&reg;</sup> is a registered trademark of Eaxum LLC. </div>
+        <div> {{ $t('modals.versionLabel') }} {{ clusttaVersion }} </div>
+        <div> {{ $t('modals.copyrightNotice') }} </div>
+        <div> {{ $t('modals.trademarkNotice') }} </div>
       </div>
 
     </div>
@@ -21,6 +21,7 @@
 <script setup>
 // imports
 import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // components
@@ -29,6 +30,7 @@ import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
 
+const { t } = useI18n();
 const modals = useDesktopModalStore();
 
 // refs
@@ -36,7 +38,7 @@ const clusttaVersion = ref('');
 
 // constants
 const showSearch = false;
-const title = 'Clustta';
+const title = t('modals.clusttaApp');
 
 // methods
 // Closes the modal.

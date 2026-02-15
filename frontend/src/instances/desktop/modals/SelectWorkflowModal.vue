@@ -6,7 +6,7 @@
     <div class="general-container general-container-wide" :style="{ gap: showTaskOptions ? 10 + 'px' : 20 + 'px' }">
 
       <div v-if="!workflowStore.workflows.length" class="page-state-container">
-        <PageState :message="'This project has no Workflow templates'" :illustration="'/page-states/workflow.png'" />
+        <PageState :message="$t('modals.noWorkflowTemplates')" :illustration="'/page-states/workflow.png'" />
       </div>
 
       <div v-else class="workflow-template-list">
@@ -16,7 +16,7 @@
       </div>
 
       <div class="pop-up-actions" ref="popUpActions">
-        <ActionButton v-if="userStore.canDo('create_template')" :icon="getAppIcon('workflow-plus')" :label="'Manage workflows'"
+        <ActionButton v-if="userStore.canDo('create_template')" :icon="getAppIcon('workflow-plus')" :label="$t('modals.manageWorkflows')"
           :buttonFunction="manageTemplates" />
         <!-- <GeneralButton :label="'Cancel'" :fullWidth="false" :buttonFunction="closeModal" :colored="false" /> -->
       </div>
@@ -30,6 +30,7 @@
 <script setup>
 // imports
 import { onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -38,6 +39,7 @@ import PageState from '@/instances/common/components/PageState.vue';
 import WorkflowItem from '@/instances/desktop/blocks/WorkflowItem.vue';
 
 // stores
+const { t } = useI18n();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const settings = useSettingsStore();
@@ -54,7 +56,7 @@ import { useWorkflowStore } from '@/stores/workflow';
 
 // constants
 const showSearch = false;
-const title = 'Select Workflow template';
+const title = t('modals.selectWorkflowTemplate');
 
 // refs
 const expandedWorkflowId = ref('');

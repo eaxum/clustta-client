@@ -47,7 +47,7 @@ const props = defineProps({
 }
 
 .full-width{
-  width: 30%;
+  min-width: 30%;
 }
 
 .default{

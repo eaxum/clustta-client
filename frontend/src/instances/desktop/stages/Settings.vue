@@ -46,8 +46,8 @@ const settingsComponents = {
 // computed props
 const settingsItems = computed(() => {
 	
-	const userSettingsItems = ['General', 'Directories', 'Project Templates'];
-	const generalSettings = settings.settingsItems.filter((item) => userSettingsItems.includes(item.name));
+	const userSettingsIds = ['general', 'directories', 'projecttemplates'];
+	const generalSettings = settings.settingsItems.filter((item) => userSettingsIds.includes(item.id));
 	return generalSettings
 });
 
@@ -62,14 +62,7 @@ const visiblePages = computed(() => {
 
 // methods
 const filterList = (selectedTab) => {
-	let modalName;
-	if(selectedTab === 'Project Templates'){
-		modalName = 'ProjectTemplates'
-	} else {
-		modalName = selectedTab;
-	}
-	const selectedTabName = modalName.toLowerCase();
-	settings.setModalVisibility(selectedTabName, true);
+	settings.setModalVisibility(selectedTab, true);
 };
 
 watchEffect(() => {

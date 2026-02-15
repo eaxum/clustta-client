@@ -35,7 +35,7 @@
           </div>
 
           <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('globe')"></div>
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('translation')"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.language') }}</div>
               <div class="settings-body">{{ $t('settings.languageDescription') }}</div>

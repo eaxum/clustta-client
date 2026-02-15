@@ -1,7 +1,7 @@
 <template>
   <div class="settings-component-root">
     <div class="settings-component-container">
-      <ActionBar v-if="userStore.canDo('add_user')" :itemType="'Add collaborator'" :addFunction="addCollaborator" />
+      <ActionBar v-if="userStore.canDo('add_user')" :itemType="$t('settings.addCollaborator').toLowerCase()" :addFunction="addCollaborator" />
 
       <div v-if="projectCollaborators.length" class="collaborators-list-wrapper">
         <div class="collaborators-list">
@@ -27,6 +27,7 @@
 
 // imports
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { ProjectService } from "@/services";
 import utils from '@/services/utils';
 
@@ -51,6 +52,7 @@ const trayStates = useTrayStates();
 
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
+const { t } = useI18n();
 
 const addCollaborator = () => {
   modals.setModalVisibility('manageCollaboratorModal', true);
@@ -113,11 +115,11 @@ const projectCollaborators = computed(() => {
 const changeCollaboratorRole = async (userId, newRole) => {
   await ProjectService.ChangeRole(projectStore.activeProject.uri, userId, newRole)
     .then(async () => {
-      notificationStore.addNotification("User updated Successfully.", "", "success");
+      notificationStore.addNotification(t('notifications.userUpdated'), "", "success");
       await trayStates.refreshData();
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error updating User", error);
+      notificationStore.errorNotification(t('notifications.errorUpdatingUser'), error);
     });
 };
 
@@ -131,10 +133,10 @@ const deleteCollaborator = (userId) => {
       let users = userStore.users;
       let userIndex = users.indexOf(collaborator)
       userStore.users.splice(userIndex, 1)
-      notificationStore.addNotification("User Removed Successfully.", "", "success")
+      notificationStore.addNotification(t('notifications.userRemoved'), "", "success")
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error Removing User", error);
+      notificationStore.errorNotification(t('notifications.errorRemovingUser'), error);
     })
 };
 

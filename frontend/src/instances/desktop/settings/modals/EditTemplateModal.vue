@@ -5,12 +5,11 @@
 
     <div class="general-container">
       <div class="input-section">
-        <input v-model="templateName" class="input-short" type="text" placeholder="Template Name" v-focus />
+        <input v-model="templateName" class="input-short" type="text" :placeholder="$t('placeholders.templateName')" v-focus />
       </div>
 
       <div v-if="!fileIsSelected" class="category-item">
-        <span @click="selectFile()" class="single-action-button"><img class="small-icons" src="/icons/add.svg">Select
-          a file</span>
+        <span @click="selectFile()" class="single-action-button"><img class="small-icons" src="/icons/add.svg">{{ $t('modals.selectAFile') }}</span>
       </div>
 
       <div v-else class="category-item">
@@ -23,8 +22,8 @@
 
 
       <div class="pop-up-actions">
-        <button class="button default" @click="closeModal()" v-stop-propagation>Cancel</button>
-        <button class="button colored" @click="editTemplate()" v-stop-propagation>Confirm</button>
+        <button class="button default" @click="closeModal()" v-stop-propagation>{{ $t('common.cancel') }}</button>
+        <button class="button colored" @click="editTemplate()" v-stop-propagation>{{ $t('common.confirm') }}</button>
       </div>
 
 
@@ -35,6 +34,7 @@
 <script setup>
 // imports
 import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -55,6 +55,8 @@ const projectStore = useProjectStore();
 const templateStore = useTemplateStore();
 const trayStates = useTrayStates();
 
+const { t } = useI18n();
+
 // refs
 const fileIsSelected = ref(false);
 const templateFullName = ref('');
@@ -63,7 +65,7 @@ const templatePath = ref("");
 
 // constants
 const showSearch = false;
-const title = 'Edit Template';
+const title = t('modals.editTemplate');
 
 // methods
 // Clears the selected file.
@@ -82,7 +84,7 @@ const closeModal = () => {
 const editTemplate = async () => {
   let selectedTemplate = templateStore.selectedTemplate;
   if (!templateName.value) {
-    notificationStore.addNotification('Error editing template', 'Invalid template name', "error");
+    notificationStore.addNotification(t('notifications.errorEditingTemplate'), t('notifications.invalidTemplateName'), "error");
     return;
   }
 
@@ -95,7 +97,7 @@ const editTemplate = async () => {
       await TemplateService.ChangeTemplateFile(projectStore.activeProject.uri, selectedTemplate.name, templatePath.value);
     }
   } catch (error) {
-    notificationStore.errorNotification('Error editing template', error);
+    notificationStore.errorNotification(t('notifications.errorEditingTemplate'), error);
     return;
   }
   trayStates.refreshData();

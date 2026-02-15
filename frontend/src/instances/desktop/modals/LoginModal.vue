@@ -6,7 +6,7 @@
         <FormInput
           v-if="showStudioLogin"
           v-model="studioUrl"
-          placeholder="Studio URL"
+          :placeholder="$t('placeholders.studioUrl')"
           needsValidation
           :error="studioUrlError"
           :valid="isStudioUrlValid"
@@ -15,22 +15,22 @@
         />
         <FormInput
           v-model="username"
-          placeholder="Email address"
+          :placeholder="$t('placeholders.emailAddress')"
           needsValidation
           :error="emailError"
           :valid="isEmailValid"
           :showValidation="!!username"
           @input="validateEmail"
         />
-        <FormInput v-model="password" placeholder="Password" isSecret />
+        <FormInput v-model="password" :placeholder="$t('placeholders.password')" isSecret />
         <div class="horizontal-flex">
-          <ActionButton :isInactive="true" :icon="getAppIcon('two-drives')" :label="'Private Server'" />
+          <ActionButton :isInactive="true" :icon="getAppIcon('two-drives')" :label="$t('modals.privateServer')" />
           <ToggleSwitch  @click="toggleStudioLogin" :switchValueProp="showStudioLogin" />
         </div>
       </div>
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Log in'" :fullWidth="true" @click="logUserIn(username, password)"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.logIn')" :fullWidth="true" @click="logUserIn(username, password)"
           :isActive="isValueChanged" :loading="isAwaitingResponse" />
       </div>
     </div>
@@ -40,6 +40,7 @@
 <script setup>
 // imports
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -63,6 +64,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
 
 const accountStore = useAccountStore();
+const { t } = useI18n();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -83,7 +85,7 @@ const studioUrlError = ref('');
 const username = ref('');
 
 // constants
-const title = 'Login';
+const title = t('modals.loginTitle');
 
 // computed
 // Returns whether the email is valid.
@@ -182,7 +184,7 @@ const logUserIn = async (usernameValue, passwordValue) => {
     .catch((error) => {
       console.log(error);
       isAwaitingResponse.value = false;
-      notificationStore.errorNotification('Error Loggin In', error);
+      notificationStore.errorNotification(t('notifications.errorLoggingIn'), error);
     });
 };
 

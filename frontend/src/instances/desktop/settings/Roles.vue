@@ -2,7 +2,7 @@
   <div class="settings-component-root">
     <div class="settings-component-container">
 
-      <ActionBar :itemType="'Add Role'" :addFunction="addRole" />
+      <ActionBar :itemType="$t('settings.addRole')" :addFunction="addRole" />
 
       <ScrollList v-if="projectRoles.length" :items="projectRoles" :useIcons="true" :useItemId="true" :wrapItems="false"
         :editItems="true" :editListItem="prepEditRole" :deleteItems="true" :deleteListItem="deleteRole" />
@@ -25,6 +25,7 @@ const getAppIcon = (iconName) => {
 
 // imports
 import { onMounted, computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // state imports
@@ -47,6 +48,7 @@ const userStore = useUserStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const { t } = useI18n();
 
 // computed props
 const getRoleTypeIcon = (icon) => {
@@ -82,7 +84,7 @@ const projectRoles = computed(() => {
 
 // methods
 const message = () => {
-  return 'You have no user roles';
+  return t('settings.noUserRoles');
 };
 
 const illustration = () => {
@@ -90,7 +92,7 @@ const illustration = () => {
 };
 
 const secondaryActionMessage = () => {
-  return 'Add Template'
+  return t('settings.addRole')
 };
 
 const secondaryActionFunction = () => {
@@ -117,12 +119,12 @@ const replaceSymbols = (name) => {
 const deleteRole = async (roleId) => {
   UserService.DeleteRole(projectStore.activeProject.uri, roleId)
     .then((response) => {
-      notificationStore.addNotification("Role Deleted", "", "success");
+      notificationStore.addNotification(t('notifications.roleDeleted'), "", "success");
       const index = userStore.roles.findIndex(role => role.id === roleId);
       userStore.roles.splice(index, 1);
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error Deleting Role", error);
+      notificationStore.errorNotification(t('notifications.errorDeletingRole'), error);
     });
 };
 

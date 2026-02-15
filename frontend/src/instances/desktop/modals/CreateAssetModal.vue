@@ -7,7 +7,7 @@
       <template v-if="!displayTypeCreator">
         <div class="input-section">
           <div class="compound-input-section">
-            <input v-model="taskName" class="input-short" type="text" placeholder="Task Name" v-focus @keydown.enter="handleEnterKey" />
+            <input v-model="taskName" class="input-short" type="text" :placeholder="$t('placeholders.taskName')" v-focus @keydown.enter="handleEnterKey" />
             <ActionButton :icon="getAppIcon('switches')" :buttonFunction="toggleOptions" :isActive="exposeParams" v-tooltip="'Show Options'" />
           </div>
         </div>
@@ -17,7 +17,7 @@
             <div class="dropdown-wrapper">
               <DropDownBox :items="taskTypeNames" :selectedItem="taskType" :onSelect="selectTaskType" />
             </div>
-            <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="'Add New Asset Type'">
+            <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addNewAssetType')">
               <img class="small-icons" :src="getAppIcon('plus-circle')">
             </span>
           </div>
@@ -30,8 +30,8 @@
         </div>
 
         <div class="pop-up-actions">
-          <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-          <GeneralButton :label="'Create'" :fullWidth="true" @click="createTask(false)" :isActive="isValueChanged" :loading="isAwaitingResponse" />
+          <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+          <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createTask(false)" :isActive="isValueChanged" :loading="isAwaitingResponse" />
         </div>
       </template>
 
@@ -47,6 +47,7 @@
 <script setup>
 // imports
 import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
@@ -85,6 +86,7 @@ const projectStore = useProjectStore();
 const stageStore = useStageStore();
 const templateStore = useTemplateStore();
 const trayStates = useTrayStates();
+const { t } = useI18n();
 
 // refs
 const displayTypeCreator = ref(false);
@@ -133,7 +135,7 @@ const taskTypeNames = computed(() => {
 // Returns the modal title from tray states or type creator title.
 const title = computed(() => {
   if (displayTypeCreator.value) {
-    return 'Add Asset Type';
+    return t('modals.addAssetTypeTitle');
   }
   return trayStates.popUpModalTitle;
 });
@@ -177,7 +179,7 @@ const createTask = async (launch = false, comment = 'Asset created') => {
     )
       .then(async (data) => {
         const newAsset = data;
-        notificationStore.addNotification('Creating ' + taskName.value + '...', '', 'success');
+        notificationStore.addNotification(t('notifications.creatingItem', { name: taskName.value }), '', 'success');
         if (!trayStates.keepModalOpen) {
           closeModal();
         } else {
@@ -189,7 +191,7 @@ const createTask = async (launch = false, comment = 'Asset created') => {
         assetStore.selectedAsset = newAsset;
         stageStore.firstSelectedItemId = newAsset.id;
         stageStore.markedItems = [newAsset.id];
-        notificationStore.addNotification('Created ' + taskName.value + ' successfully.', '', 'success');
+        notificationStore.addNotification(t('notifications.createdItem', { name: taskName.value }), '', 'success');
         emitter.emit('refresh-browser');
         if (launch) {
           FSService.LaunchFile(newAsset.file_path);
@@ -197,7 +199,7 @@ const createTask = async (launch = false, comment = 'Asset created') => {
       })
       .catch((error) => {
         console.log(error);
-        notificationStore.errorNotification('Error creating task', error);
+        notificationStore.errorNotification(t('notifications.errorCreatingTask'), error);
       });
   }
 };

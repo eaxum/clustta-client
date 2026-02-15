@@ -5,25 +5,25 @@
 
       <div class="input-section">
         <div class="compound-input-section">
-          <input v-model="taskName" class="input-short" type="text" placeholder="Task Name" v-focus
+          <input v-model="taskName" class="input-short" type="text" :placeholder="$t('placeholders.taskName')" v-focus
             @keydown.enter="handleEnterKey" />
         </div>
       </div>
 
       <div class="input-section">
         <div class="horizontal-flex">
-          <input v-model="taskWebLink" class="input-short" type="text" placeholder="Web link" ref="taskWebLinkInput" @keydown.enter="handleEnterKey"/>
-          <span @click="pasteWebLink" class="single-action-button" v-tooltip="'Paste link'"><img class="small-icons"
+          <input v-model="taskWebLink" class="input-short" type="text" :placeholder="$t('placeholders.webLink')" ref="taskWebLinkInput" @keydown.enter="handleEnterKey"/>
+          <span @click="pasteWebLink" class="single-action-button" v-tooltip="$t('modals.pasteLink')"><img class="small-icons"
               :src="getAppIcon('clipboard')"></span>
         </div>
-        <InputAlert :show="!isValidWeblink(taskWebLink) && taskWebLink !== 'https://'" message="Invalid web link. Must start with 'http://' or 'https://'" />
+        <InputAlert :show="!isValidWeblink(taskWebLink) && taskWebLink !== 'https://'" :message="$t('modals.invalidWebLink')" />
       </div>
 
 
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Create'" :fullWidth="true" @click="createWebLink(false)" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createWebLink(false)" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
     </div>
@@ -33,6 +33,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { isValidWeblink } from '@/lib/pointer';
 import emitter from '@/lib/mitt';
 
@@ -66,6 +67,7 @@ const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const stageStore = useStageStore();
 const trayStates = useTrayStates();
+const { t } = useI18n();
 
 // refs
 const isAwaitingResponse = ref(false);
@@ -78,7 +80,7 @@ const taskWebLinkInput = ref(null);
 
 // constants
 const showSearch = false;
-const title = 'Add web link';
+const title = computed(() => t('modals.addWebLink'));
 
 // computed
 // Returns whether the form values are valid for submission.
@@ -128,7 +130,7 @@ const createWebLink = async (launch = false, comment = 'Asset created') => {
       comment
     )
       .then(async (data) => {
-        notificationStore.addNotification('Creating ' + taskName.value + '...', '', 'success');
+        notificationStore.addNotification(t('notifications.creatingItem', { name: taskName.value }), '', 'success');
         if (!trayStates.keepModalOpen) {
           closeModal();
         } else {
@@ -136,7 +138,7 @@ const createWebLink = async (launch = false, comment = 'Asset created') => {
           tags.value = [];
         }
         isAwaitingResponse.value = false;
-        notificationStore.addNotification('Created ' + taskName.value + ' successfully.', '', 'success');
+        notificationStore.addNotification(t('notifications.createdItem', { name: taskName.value }), '', 'success');
         if (launch) {
           FSService.LaunchFile(data.file_path);
         }
@@ -144,7 +146,7 @@ const createWebLink = async (launch = false, comment = 'Asset created') => {
       })
       .catch((error) => {
         console.log(error);
-        notificationStore.errorNotification('Error creating task', error);
+        notificationStore.errorNotification(t('notifications.errorCreatingTask'), error);
       });
   }
 };
@@ -161,7 +163,7 @@ const ensureWeblinkAssetType = async () => {
       );
       assetStore.assetTypes.push(weblinkType);
     } catch (error) {
-      notificationStore.errorNotification('Error creating weblink asset type', error);
+      notificationStore.errorNotification(t('notifications.errorCreatingWeblink'), error);
       throw error;
     }
   }

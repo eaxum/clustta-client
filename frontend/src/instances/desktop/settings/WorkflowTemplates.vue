@@ -2,7 +2,7 @@
   <div class="settings-component-root">
     <div class="settings-component-container">
 
-      <ActionBar :itemType="'Add workflow'" :addFunction="composeWorkflow" />
+      <ActionBar :itemType="$t('settings.addWorkflow').toLowerCase()" :addFunction="composeWorkflow" />
 
       <div v-if="workflowStore.workflows.length" class="settings-component-body">
         <div class="workflow-items-container">
@@ -23,6 +23,7 @@
 
 // imports
 import { onMounted, computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // store imports
 import { useCollectionStore } from '@/stores/collections';
@@ -40,6 +41,7 @@ import PageState from '@/instances/common/components/PageState.vue';
 const modals = useDesktopModalStore();
 const iconStore = useIconStore();
 const workflowStore = useWorkflowStore();
+const { t } = useI18n();
 
 const expandedWorkflowId = ref('');
 
@@ -74,7 +76,7 @@ const deleteWorkflowItem = (workflowId) => {
 };
 
 const message = () => {
-  return 'You have no workflows';
+  return t('settings.noWorkflows');
 };
 
 const illustration = () => {

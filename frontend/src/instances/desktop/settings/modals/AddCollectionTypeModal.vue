@@ -11,6 +11,7 @@
 <script setup>
 // imports
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import CollectionTypeForm from '@/instances/common/components/CollectionTypeForm.vue';
@@ -21,13 +22,15 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 
 const modals = useDesktopModalStore();
 
+const { t } = useI18n();
+
 // refs
 const modalContainer = ref(null);
 const typeFormRef = ref(null);
 const typeIcon = ref('generic');
 
 // constants
-const title = 'Add Collection type';
+const title = t('modals.addCollectionType');
 
 // methods
 // Closes the modal.

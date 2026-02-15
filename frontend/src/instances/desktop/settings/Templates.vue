@@ -2,7 +2,7 @@
   <div class="settings-component-root">
     <div class="settings-component-container">
 
-      <ActionBar v-if="userStore.canDo('create_template')" :itemType="'Add template'" :addFunction="addTemplate" />
+      <ActionBar v-if="userStore.canDo('create_template')" :itemType="$t('settings.addTemplate').toLowerCase()" :addFunction="addTemplate" />
 
       <ScrollList v-if="projectTemplates.length" :items="projectTemplates" :customIcons="true" :useItemId="true"
         :wrapItems="true" :editItems="true" :editListItem="prepEditTemplate" :deleteItems="true"
@@ -29,6 +29,7 @@ const getAppIcon = (iconName) => {
 
 // imports
 import { onMounted, computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // services
@@ -56,6 +57,7 @@ const notificationStore = useNotificationStore();
 const templateStore = useTemplateStore();
 const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
+const { t } = useI18n();
 
 // refs
 
@@ -70,7 +72,7 @@ const projectTemplates = computed(() => {
 
 // methods
 const message = () => {
-  return 'You have no templates';
+  return t('settings.noTemplates');
 };
 
 const illustration = () => {
@@ -78,7 +80,7 @@ const illustration = () => {
 };
 
 const secondaryActionMessage = () => {
-  return 'Add Template'
+  return t('settings.addTemplate')
 };
 
 const secondaryActionFunction = () => {
@@ -108,10 +110,10 @@ const deleteTemplate = async (selectedTemplateId) => {
       trayStates.undoFunction = undoTemplateDelete;
     })
     .catch((error) => {
-      notificationStore.errorNotification('Error deleting template', error);
+      notificationStore.errorNotification(t('notifications.errorDeletingTemplate'), error);
     });
   let longMessage = `Template of name: ${template.name} was moved to Trash.`
-  notificationStore.addNotification("Template moved to Trash.", longMessage, "success", true)
+  notificationStore.addNotification(t('notifications.templateMovedToTrash'), longMessage, "success", true)
 };
 
 const undoTemplateDelete = async () => {
@@ -120,7 +122,7 @@ const undoTemplateDelete = async () => {
       templateStore.unmarkTemplateAsDeleted(trayStates.undoItemId)
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error Restoring Item", error)
+      notificationStore.errorNotification(t('notifications.errorRestoringItem'), error)
     });
 };
 

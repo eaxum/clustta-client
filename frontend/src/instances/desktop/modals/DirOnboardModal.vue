@@ -1,20 +1,19 @@
 <template>
   <div class="modal-container" v-stop-propagation>
-    <HeaderArea :title="'Setup Clustta'" :icon="getAppIcon('clustta')" :showSearch="false" />
+    <HeaderArea :title="$t('modals.setupClustta')" :icon="getAppIcon('clustta')" :showSearch="false" />
     <div class="general-container">
 
       <!-- Card 1: Select data storage location -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
           <div class="header-content">
-            <h2 class="settings-section-card-title">Grant permission</h2>
+            <h2 class="settings-section-card-title">{{ $t('modals.grantPermission') }}</h2>
             <div class="card-description">
-              Grant clustta permission to save data to your computer.
-              This is where Clustta will store data for your project checkpoints as well as shared projects.
+              {{ $t('modals.grantPermissionDesc') }}
             </div>
           </div>
           <GeneralButton 
-            :label="selectedClusttaDirectory ? 'Change' : 'Select'" 
+            :label="selectedClusttaDirectory ? $t('common.change') : $t('common.select')" 
             :buttonFunction="selectDirectory"
             :fullWidth="false"
           />
@@ -28,7 +27,7 @@
             </div>
             <div class="location-content">
               <div class="location-header">
-                <div class="location-name">Clustta Data</div>
+                <div class="location-name">{{ $t('settings.clusttaData') }}</div>
               </div>
               <div class="location-body">
                 {{ selectedClusttaDirectory }}
@@ -42,13 +41,13 @@
       <div v-if="selectedClusttaDirectory" class="settings-section-card">
         <div class="settings-section-card-header">
           <div class="header-content">
-            <h2 class="settings-section-card-title">Project folders</h2>
+            <h2 class="settings-section-card-title">{{ $t('settings.projectFolders') }}</h2>
             <div class="card-description">
-              Add any folders where you currently save your project files. E.g 'Documents', 'Projects' or even an external drive likle E://Projects.
+              {{ $t('modals.projectFoldersDesc') }}
             </div>
           </div>
           <GeneralButton 
-            label="Add" 
+            :label="$t('common.add')" 
             :buttonFunction="addLocation"
             :fullWidth="false"
           />
@@ -83,27 +82,27 @@
                   :icon="getAppIcon('star')" 
                   :buttonFunction="() => setDefaultLocation(location.id)"
                   :disabled="true"
-                  v-tooltip="'Default location'"
+                  v-tooltip="$t('modals.defaultLocation')"
                 />
                 
                 <template v-else>
                   <ActionButton 
                     :icon="getAppIcon('star')" 
                     :buttonFunction="() => setDefaultLocation(location.id)"
-                    v-tooltip="'Set as default'"
+                    v-tooltip="$t('modals.setAsDefault')"
                     class="hover-action"
                   />
                   <ActionButton 
                     :icon="getAppIcon('explorer')" 
                     :buttonFunction="() => selectPath(location)"
-                    v-tooltip="'Change Location'"
+                    v-tooltip="$t('modals.changeLocation')"
                     class="hover-action"
                   />
                   <ActionButton 
                     :icon="getAppIcon('trash')" 
                     :buttonFunction="() => removeLocation(location.id)"
                     :isDisabled="!canDeleteLocation(location.id)"
-                    v-tooltip="canDeleteLocation(location.id) ? 'Remove Location' : 'Cannot remove: projects are using this location'"
+                    v-tooltip="canDeleteLocation(location.id) ? $t('modals.removeLocation') : $t('modals.cannotRemoveLocation')"
                     class="hover-action"
                   />
                 </template>
@@ -116,7 +115,7 @@
       <!-- Action Buttons -->
       <div v-if="selectedClusttaDirectory" class="pop-up-actions">
         <GeneralButton 
-          label="Continue" 
+          :label="$t('common.continue')" 
           :buttonFunction="saveChanges"
           :fullWidth="false"
           :isActive="hasDefaultLocation"
@@ -131,6 +130,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -152,6 +152,7 @@ const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const trayStates = useTrayStates();
+const { t } = useI18n();
 
 // refs
 const defaultClusttaDirectory = ref('');
@@ -175,7 +176,7 @@ const hasDefaultLocation = computed(() => {
 // Adds a new project location via folder dialog.
 const addLocation = async () => {
   const documentsPath = userBaseDirectory.value + 'Documents';
-  const result = await DialogService.SelectSpecificFolderDialog("Select Location Folder", documentsPath);
+  const result = await DialogService.SelectSpecificFolderDialog(t('modals.selectLocationFolder'), documentsPath);
   if (!result) return;
   
   const path = result.replace(/\\/g, '/');
@@ -193,7 +194,7 @@ const addLocation = async () => {
   locations.value.push(newLocation);
   await checkAllLocationHealth();
   
-  notificationStore.addNotification('Location added', '', 'success', false);
+  notificationStore.addNotification(t('notifications.locationAdded'), '', 'success', false);
 };
 
 // Determines if a location can be deleted.
@@ -251,8 +252,8 @@ const loadProjects = async () => {
 const removeLocation = (locationId) => {
   if (!canDeleteLocation(locationId)) {
     notificationStore.addNotification(
-      'Cannot remove location',
-      'Projects are using this location or it is the last location',
+      t('notifications.cannotRemoveLocation'),
+      t('notifications.cannotRemoveLocationDesc'),
       'error',
       false
     );
@@ -262,7 +263,7 @@ const removeLocation = (locationId) => {
   const index = locations.value.findIndex(loc => loc.id === locationId);
   if (index !== -1) {
     locations.value.splice(index, 1);
-    notificationStore.addNotification('Location removed', '', 'success', false);
+    notificationStore.addNotification(t('notifications.locationRemoved'), '', 'success', false);
   }
 };
 
@@ -294,7 +295,7 @@ const saveChanges = async () => {
     await loadProjects();
     closeModal();
   } catch (error) {
-    notificationStore.errorNotification('Error saving settings', error);
+    notificationStore.errorNotification(t('notifications.errorSavingSettings'), error);
   } finally {
     isAwaitingResponse.value = false;
   }
@@ -302,7 +303,7 @@ const saveChanges = async () => {
 
 // Opens dialog to select the Clustta directory.
 const selectDirectory = async () => {
-  let title = 'Clustta Directory';
+  let title = t('modals.clusttaDirectory');
   let directory = userBaseDirectory.value;
 
   const result = await DialogService.SelectSpecificFolderDialog(title, directory);
@@ -337,7 +338,7 @@ const selectDirectory = async () => {
 
 // Opens dialog to change the path of an existing location.
 const selectPath = async (location) => {
-  const result = await DialogService.SelectFolderDialog("Select Location Folder");
+  const result = await DialogService.SelectFolderDialog(t('modals.selectLocationFolder'));
   if (!result) return;
   
   const path = result.replace(/\\/g, '/');
@@ -345,7 +346,7 @@ const selectPath = async (location) => {
   
   await checkAllLocationHealth();
   
-  notificationStore.addNotification('Location updated', '', 'success', false);
+  notificationStore.addNotification(t('notifications.locationUpdated'), '', 'success', false);
 };
 
 // Sets a location as the default.
@@ -354,7 +355,7 @@ const setDefaultLocation = (locationId) => {
     loc.is_default = loc.id === locationId;
   });
   
-  notificationStore.addNotification('Default location updated', '', 'success', false);
+  notificationStore.addNotification(t('notifications.defaultLocationUpdated'), '', 'success', false);
 };
 
 // lifecycle
@@ -365,9 +366,9 @@ onMounted(async () => {
     defaultClusttaDirectory.value = `${response}clustta`;
   } catch (error) {
     notificationStore.addNotification(
-      "Error Loading Settings",
+      t('notifications.errorLoadingSettings'),
       error.message,
-      "error",
+      'error',
       false
     );
   }
@@ -377,9 +378,9 @@ onMounted(async () => {
     userName.value = response;
   } catch (error) {
     notificationStore.addNotification(
-      "Error Loading Settings",
+      t('notifications.errorLoadingSettings'),
       error.message,
-      "error",
+      'error',
       false
     );
   }

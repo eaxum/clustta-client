@@ -7,28 +7,28 @@
 
       <div class="input-section">
         <div class="input-label-row">
-          <label class="input-label">Studio Name</label>
+          <label class="input-label">{{ $t('modals.studioNameLabel') }}</label>
         </div>
         <div class="horizontal-flex">
-          <input v-model="studioName" class="input-short" type="text" placeholder="Studio Name" disabled />
+          <input v-model="studioName" class="input-short" type="text" :placeholder="$t('placeholders.studioName')" disabled />
         </div>
       </div>
 
       <div class="input-section">
         <div class="input-label-row">
-          <label class="input-label">Studio URL</label>
+          <label class="input-label">{{ $t('modals.studioUrlLabel') }}</label>
         </div>
         <div class="horizontal-flex">
-          <input v-model="studioUrl" class="input-short" type="text" placeholder="Studio URL" v-focus />
+          <input v-model="studioUrl" class="input-short" type="text" :placeholder="$t('placeholders.studioUrl')" v-focus />
         </div>
       </div>
 
       <div class="input-section">
         <div class="input-label-row">
-          <label class="input-label">Alternate URL</label>
+          <label class="input-label">{{ $t('modals.alternateUrlLabel') }}</label>
         </div>
         <div class="horizontal-flex">
-          <input v-model="studioAltUrl" class="input-short" type="text" placeholder="Alternate URL (optional)" />
+          <input v-model="studioAltUrl" class="input-short" type="text" :placeholder="$t('placeholders.alternateUrlOptional')" />
         </div>
       </div>
 
@@ -43,16 +43,16 @@
 
       <div class="input-section">
         <div class="input-label-row">
-          <label class="input-label">Studio Key</label>
+          <label class="input-label">{{ $t('modals.studioKeyLabel') }}</label>
         </div>
         <div class="horizontal-flex">
-          <input v-model="studioKey" class="input-short monospace-input" type="password" placeholder="Enter Studio Key" />
+          <input v-model="studioKey" class="input-short monospace-input" type="password" :placeholder="$t('placeholders.studioKey')" />
         </div>
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Update'" :fullWidth="true" @click="updateStudio" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateStudio" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
     </div>
@@ -63,6 +63,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
@@ -72,6 +73,7 @@ import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import { StudioService } from '@/services';
 
 // stores
+const { t } = useI18n();
 const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
@@ -85,7 +87,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 
 // constants
-const title = 'Update Studio';
+const title = t('modals.updateStudio');
 
 // refs
 const isAwaitingResponse = ref(false);
@@ -161,7 +163,7 @@ const updateStudio = async () => {
       studioKey.value
     );
 
-    notificationStore.addNotification("Studio updated successfully", "", "success");
+    notificationStore.addNotification(t('notifications.studioUpdated'), "", "success");
     
     await projectStore.loadStudios();
     let studio = projectStore.studios.find((item) => item.name === studioName.value);
@@ -175,7 +177,7 @@ const updateStudio = async () => {
   } catch (error) {
     isAwaitingResponse.value = false;
     console.log(error);
-    notificationStore.errorNotification('Error updating studio', error);
+    notificationStore.errorNotification(t('notifications.errorUpdatingStudio'), error);
   }
 };
 

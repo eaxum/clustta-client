@@ -8,7 +8,7 @@
           <div class="settings-item" v-stop-propagation>
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('stall')"></div>
             <div class="settings-content">
-              <div class="settings-header">Studio Name</div>
+              <div class="settings-header">{{ $t('settings.studioName') }}</div>
               <div class="settings-body">{{ studioInfo.name }}</div>
             </div>
           </div>
@@ -17,7 +17,7 @@
           <div class="settings-item"  @click="launchUpdateStudioModal()" v-stop-propagation>
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('website')"></div>
             <div class="settings-content">
-              <div class="settings-header">IP Address/URL</div>
+              <div class="settings-header">{{ $t('settings.ipAddressUrl') }}</div>
               <div class="settings-body">{{ studioInfo.url }}</div>
             </div>
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
@@ -26,7 +26,7 @@
           <div v-if="studioInfo?.alt_url" class="settings-item"  @click="launchUpdateStudioModal()" v-stop-propagation>
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('website')"></div>
             <div class="settings-content">
-              <div class="settings-header">Alternate URL</div>
+              <div class="settings-header">{{ $t('settings.alternateUrl') }}</div>
               <div class="settings-body">{{ studioInfo?.alt_url }}</div>
             </div>
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
@@ -35,8 +35,8 @@
           <div class="settings-item" v-stop-propagation>
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('clustta')"></div>
             <div class="settings-content">
-              <div class="settings-header">Clustta server Version</div>
-              <div class="settings-body">{{ serverVersion || 'Loading...' }}</div>
+              <div class="settings-header">{{ $t('settings.clusttaServerVersion') }}</div>
+              <div class="settings-body">{{ serverVersion || $t('common.loading') + '...' }}</div>
             </div>
           </div>
 
@@ -51,6 +51,7 @@
 <script setup>
 // imports
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from 'vue-i18n';
 import { SettingsService, StudioService } from "@/services";
 
 // services
@@ -67,6 +68,7 @@ const trayStates = useTrayStates();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
+const { t } = useI18n();
 
 // vars
 const autoStart = ref(trayStates.autoStart);
@@ -81,13 +83,13 @@ const fetchServerVersion = async () => {
   try {
     const studioUrl = studioInfo.value?.url;
     if (!studioUrl) {
-      serverVersion.value = 'No studio connected';
+      serverVersion.value = t('settings.noStudioConnected');
       return;
     }
     const version = await StudioService.GetServerVersion(studioUrl);
-    serverVersion.value = version || 'Unknown';
+    serverVersion.value = version || t('settings.unknown');
   } catch (error) {
-    serverVersion.value = 'Unavailable';
+    serverVersion.value = t('settings.unavailable');
   }
 };
 

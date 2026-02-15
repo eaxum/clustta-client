@@ -2,22 +2,22 @@
   <div class="header-tab-root"
     :class="{ 'fullwidth-header-tab-root': fullWidth, 'icon-header-tab-root': iconsOnly }">
     <!-- <div class="header-tab-container" > -->
-    <div v-for="(dataType, index) in dataTypes" :key="dataType.name"
-      v-tooltip="((filterIndex !== index || iconsOnly) && useTooltip) ? utils.capitalizeStr(dataType.name) : ''"
-      @click="filterList(index, dataType.name)" class="tab-button"
-      :class="{ 'selected-tab-button': useSelected ? selectedTab === dataType.name : filterIndex === index, 'fullwidth-tab-button': fullWidth }">
+    <div v-for="(dataType, index) in dataTypes" :key="dataType.id || dataType.name"
+      v-tooltip="((filterIndex !== index || iconsOnly) && useTooltip) ? (dataType.nameKey ? $t(dataType.nameKey) : utils.capitalizeStr(dataType.name)) : ''"
+      @click="filterList(index, dataType.id || dataType.name)" class="tab-button"
+      :class="{ 'selected-tab-button': useSelected ? selectedTab === (dataType.id || dataType.name) : filterIndex === index, 'fullwidth-tab-button': fullWidth }">
       <div v-if="useFunctions">
-        <div class="alert-items" v-if="alertItems(dataType.name).value !== 0 && displayCount"
-          :class="{ 'alert-items-with-text': alertItems(dataType.name).value !== 0, 'critical-items': criticalItems(dataType.name).value }">
-          {{ alertItems(dataType.name) }}
+        <div class="alert-items" v-if="alertItems(dataType.id || dataType.name).value !== 0 && displayCount"
+          :class="{ 'alert-items-with-text': alertItems(dataType.id || dataType.name).value !== 0, 'critical-items': criticalItems(dataType.id || dataType.name).value }">
+          {{ alertItems(dataType.id || dataType.name) }}
         </div>
-        <div class="alert-items" v-else-if="alertItems(dataType.name).value"
-          :class="{ 'critical-items': criticalItems(dataType.name).value }">
+        <div class="alert-items" v-else-if="alertItems(dataType.id || dataType.name).value"
+          :class="{ 'critical-items': criticalItems(dataType.id || dataType.name).value }">
         </div>
       </div>
       <div class="tab-content">
         <div v-if="!iconsOnly && (filterIndex === index || fullWidth)" class="selected-tab-button-text"> {{
-          utils.capitalizeStr(dataType.name) }}</div>
+          dataType.nameKey ? $t(dataType.nameKey) : utils.capitalizeStr(dataType.name) }}</div>
         <img class="small-icons" :src="getAppIcon(dataType.icon)">
       </div>
     </div>

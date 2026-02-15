@@ -1,25 +1,23 @@
 <template>
   <div ref="modalContainer" class="modal-container">
 
-    <div class="general-pane-header">
       <HeaderArea :title="title" :icon="getAppIcon('edit')" :showSearch="false" />
-    </div>
 
     <div class="general-container">
 
       <div class="input-section">
         <div class="horizontal-flex">
-          <input v-model="projectTemplateName" class="input-short" type="text" placeholder="Template Name"
+          <input v-model="projectTemplateName" class="input-short" type="text" :placeholder="$t('placeholders.templateName')"
             @keydown.enter="handleEnterKey" v-focus />
         </div>
         <div v-if="!projectTemplateIsCreated && projectTemplateNameInUse" class="horizontal-flex input-alert">
-          A template with this name already exists.
+          {{ $t('modals.templateNameExists') }}
         </div>
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Duplicate'" :fullWidth="true" @click="duplicateProjectTemplate"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.duplicate')" :fullWidth="true" @click="duplicateProjectTemplate"
           :isActive="isValueChanged" :loading="isAwaitingResponse" />
       </div>
     </div>
@@ -29,6 +27,7 @@
 <script setup>
 // imports
 import { computed, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
@@ -107,7 +106,7 @@ const duplicateProjectTemplate = async () => {
   }).catch((error) => {
     isAwaitingResponse.value = false;
     console.log(error);
-    notificationStore.errorNotification('Error creating project', error);
+    notificationStore.errorNotification(t('notifications.errorDuplicatingProjectTemplate'), error);
   });
   isAwaitingResponse.value = false;
 };

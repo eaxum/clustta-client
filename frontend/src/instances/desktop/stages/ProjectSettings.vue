@@ -61,17 +61,17 @@ const settingsItems = computed(() => {
 	const canViewTemplate = userStore.canDo('view_template');
 	const isProjectRemote = projectStore.activeProject.has_remote;
 	
-	const userSettingsItems = ['General', 'Directories', 'Project Templates', 'Studio', 'Studio Collaborators'];
-	const remoteProjectItems = ['Collaborators', 'Roles', 'Advanced'];
+	const userSettingsIds = ['general', 'directories', 'projecttemplates', 'studio', 'studiocollaborators'];
+	const remoteProjectIds = ['collaborators', 'roles', 'advanced'];
 
 	const projectSettings = settings.settingsItems.filter((item) => 
-		!userSettingsItems.includes(item.name) &&
-		(canChangeRole || item.name !== 'Roles') &&
-		(canChangeRole || item.name !== 'Advanced') &&
-		(canViewTemplate || item.name !== 'Project Templates')
+		!userSettingsIds.includes(item.id) &&
+		(canChangeRole || item.id !== 'roles') &&
+		(canChangeRole || item.id !== 'advanced') &&
+		(canViewTemplate || item.id !== 'projecttemplates')
 	);
 	
-	const localProjectSettings = projectSettings.filter((item) => !remoteProjectItems.includes(item.name));
+	const localProjectSettings = projectSettings.filter((item) => !remoteProjectIds.includes(item.id));
 	return isProjectRemote ? projectSettings : localProjectSettings;
 });
 
@@ -87,19 +87,17 @@ const visiblePages = computed(() => {
 // methods
 const filterList = (selectedTab) => {
 	selectedSettingsContext.value = selectedTab;
-	const modalName = selectedTab.replace(/\s+/g, '');
-	const selectedTabName = modalName.toLowerCase();
-	settings.setModalVisibility(selectedTabName, true);
+	settings.setModalVisibility(selectedTab, true);
 };
 
 // onmounted hook
 onMounted(() => {
 	if(!settings.activeModal){
 		settings.setModalVisibility('templates', true);
-		settings.activeModalName = 'Templates';
-		selectedSettingsContext.value = 'Templates';
+		settings.activeModalName = 'templates';
+		selectedSettingsContext.value = 'templates';
 	} else {
-		selectedSettingsContext.value = settings.activeModalName;
+		selectedSettingsContext.value = settings.activeModal;
 	}
 });
 

@@ -74,3 +74,9 @@ export function getLocale() {
 export function getAvailableLocales() {
   return i18n.global.availableLocales;
 }
+
+// Translate function for non-component code (stores, libs, utils).
+// Usage: import { t } from '@/i18n'; t('common.delete');
+export function t(key, params) {
+  return i18n.global.t(key, params);
+}

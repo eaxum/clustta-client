@@ -1,13 +1,12 @@
 <template>
   <div class="modal-container" ref="modalContainer" v-stop-propagation>
-    <HeaderArea title="Cornflakes!" :icon="getAppIcon('cloud-error')" :showSearch="false" />
-    <!-- <HeaderArea title="Resolve Conflicts" :icon="getAppIcon('cloud-error')" :showSearch="false" /> -->
+    <HeaderArea :title="$t('modals.resolveConflicts')" :icon="getAppIcon('cloud-error')" :showSearch="false" />
 
     <div class="general-container">
       <div class="conflict-message">
-        <p>Some items may have been created by another user and already exist on the server.</p>
+        <p>{{ $t('modals.conflictsDescription') }}</p>
 
-        <p>Either rename yours or merge them and retry the sync after. <span class="learn-more-link" @click="openLearnMore">Learn more <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span></p>
+        <p>{{ $t('modals.conflictsInstruction') }} <span class="learn-more-link" @click="openLearnMore">{{ $t('modals.learnMore') }} <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span></p>
       </div>
 
       <div class="conflict-tabs-header">
@@ -16,9 +15,9 @@
         </div>
 
         <div class="conflict-tabs-options">
-          <ActionButton :icon="hideExtensions ? getAppIcon('extension-cancel') : getAppIcon('extension')" v-tooltip="hideExtensions ? 'Show extensions' : 'Hide extensions'" :buttonFunction="toggleHideExtensions" />
+          <ActionButton :icon="hideExtensions ? getAppIcon('extension-cancel') : getAppIcon('extension')" v-tooltip="hideExtensions ? $t('modals.showExtensions') : $t('modals.hideExtensions')" :buttonFunction="toggleHideExtensions" />
 
-          <ActionButton :icon="showFullPath ? getAppIcon('file-name') : getAppIcon('file-path')" v-tooltip="showFullPath ? 'Name' : 'Path'" :buttonFunction="toggleShowFullPath" />
+          <ActionButton :icon="showFullPath ? getAppIcon('file-name') : getAppIcon('file-path')" v-tooltip="showFullPath ? $t('modals.nameColumn') : $t('modals.pathColumn')" :buttonFunction="toggleShowFullPath" />
         </div>
       </div>
 
@@ -26,12 +25,12 @@
         <div class="conflict-loading">
           <img :src="getAppIcon('loading')" alt="loading" class="loading-icon" />
 
-          <span>Loading conflict details...</span>
+          <span>{{ $t('modals.loadingConflicts') }}</span>
         </div>
       </div>
 
       <div class="conflict-list-container conflict-list-empty" v-else-if="!filteredConflicts.length">
-        <PageState :message="'No conflicts to resolve'" :illustration="'/page-states/resources.png'" />
+        <PageState :message="$t('modals.noConflicts')" :illustration="'/page-states/resources.png'" />
       </div>
 
       <div class="conflict-list-container" v-else-if="filteredConflicts.length > 0">
@@ -41,9 +40,9 @@
       </div>
 
       <div class="pop-up-actions" :class="{ 'pop-up-actions-end': !hasConflicts }">
-        <GeneralButton v-if="hasConflicts" label="Cancel" :fullWidth="true" :buttonFunction="handleCancel" :colored="false" />
+        <GeneralButton v-if="hasConflicts" :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="handleCancel" :colored="false" />
 
-        <GeneralButton :label="hasConflicts ? 'Merge All' : 'Done'" :fullWidth="true" :buttonFunction="hasConflicts ? handleMergeAll : handleDone" :isActive="true" :loading="isLoading" />
+        <GeneralButton :label="hasConflicts ? $t('modals.mergeAll') : $t('common.done')" :fullWidth="true" :buttonFunction="hasConflicts ? handleMergeAll : handleDone" :isActive="true" :loading="isLoading" />
       </div>
     </div>
   </div>
@@ -52,6 +51,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import {
   filterTopLevelConflicts,
@@ -78,6 +78,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useSyncConflictStore } from '@/stores/syncConflict';
 
+const { t } = useI18n();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -240,8 +241,8 @@ const handleMergeAll = async () => {
     await SyncService.ResolveConflicts(projectPath.value, conflictsJSON);
     
     notificationStore.addNotification(
-      'Conflicts Resolved', 
-      `${allEnrichedConflicts.value.length} item(s) merged successfully.`,
+      t('notifications.conflictsResolved'), 
+      t('notifications.itemsMergedSuccessfully', { count: allEnrichedConflicts.value.length }),
       'success'
     );
     
@@ -249,7 +250,7 @@ const handleMergeAll = async () => {
     syncConflictStore.clearConflicts();
   } catch (error) {
     console.error('Failed to resolve conflicts:', error);
-    notificationStore.errorNotification('Merge Failed', error.message || 'Failed to resolve conflicts');
+    notificationStore.errorNotification(t('notifications.mergeFailed'), error.message || t('notifications.failedToResolveConflicts'));
   } finally {
     isLoading.value = false;
   }
@@ -266,7 +267,7 @@ const handleRenameResolved = (conflict) => {
   enrichedConflicts.value = enrichedConflicts.value.filter(c => !idsToRemove.includes(c.local_id));
   syncConflictStore.removeConflicts(idsToRemove);
   
-  notificationStore.addNotification('Renamed Successfully', summary, 'success');
+  notificationStore.addNotification(t('notifications.renamedSuccessfully'), summary, 'success');
 };
 
 // Merges a single conflict item with server version (including children recursively).
@@ -284,10 +285,10 @@ const handleSingleMerge = async (conflict) => {
     syncConflictStore.removeConflicts(idsToRemove);
     
     const summary = getResolutionSummary(conflict, allEnrichedConflicts.value, 'merge');
-    notificationStore.addNotification('Merged Successfully', summary, 'success');
+    notificationStore.addNotification(t('notifications.mergedSuccessfully'), summary, 'success');
   } catch (error) {
     console.error('Failed to merge conflict:', error);
-    notificationStore.errorNotification('Merge Failed', error.message || 'Failed to merge item');
+    notificationStore.errorNotification(t('notifications.mergeFailed'), error.message || t('notifications.failedToMergeItem'));
   }
 };
 

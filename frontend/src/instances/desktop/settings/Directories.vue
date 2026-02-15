@@ -6,7 +6,7 @@
       <!-- Clustta Data Card -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">Clustta Data</h2>
+          <h2 class="settings-section-card-title">{{ $t('settings.clusttaData') }}</h2>
         </div>
         <div class="settings-section-card-content">
           <!-- Local Projects -->
@@ -20,7 +20,7 @@
             <div class="location-content">
               <!-- Header -->
               <div class="location-header">
-                <div class="location-name">Local projects</div>
+                <div class="location-name">{{ $t('settings.localProjects') }}</div>
               </div>
               
               <!-- Body (Path) -->
@@ -34,7 +34,7 @@
               <ActionButton 
                 :icon="getAppIcon('explorer')" 
                 :buttonFunction="() => selectDirectoryPath('personal')"
-                v-tooltip="'Browse Path'"
+                v-tooltip="$t('settings.browsePath')"
               />
             </div>
           </div>
@@ -50,7 +50,7 @@
             <div class="location-content">
               <!-- Header -->
               <div class="location-header">
-                <div class="location-name">Shared projects</div>
+                <div class="location-name">{{ $t('settings.sharedProjects') }}</div>
               </div>
               
               <!-- Body (Path) -->
@@ -64,7 +64,7 @@
               <ActionButton 
                 :icon="getAppIcon('explorer')" 
                 :buttonFunction="() => selectDirectoryPath('shared')"
-                v-tooltip="'Browse Path'"
+                v-tooltip="$t('settings.browsePath')"
               />
             </div>
           </div>
@@ -74,10 +74,10 @@
       <!-- Working Folder Locations Card -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">Project folders</h2>
+          <h2 class="settings-section-card-title">{{ $t('settings.projectFolders') }}</h2>
           <ActionButton 
             :icon="getAppIcon('plus-circle')" 
-            label="Add Location" 
+            :label="$t('settings.addLocation')" 
             :buttonFunction="addLocation"
             :showLabel="true"
           />
@@ -106,7 +106,7 @@
                   <RenameInput 
                     v-model="editableLocationName"
                     :originalValue="location.name"
-                    placeholder="Location name"
+                    :placeholder="$t('placeholders.locationName')"
                     @confirm="confirmEditLocationName(location)"
                     @cancel="cancelEditingLocation"
                   />
@@ -131,7 +131,7 @@
                   :icon="getAppIcon('star')" 
                   :buttonFunction="() => setDefaultLocation(location.id)"
                   :disabled="true"
-                  v-tooltip="'Default location'"
+                  v-tooltip="$t('settings.defaultLocation')"
                 />
                 
                 <!-- Other actions - visible on hover -->
@@ -139,27 +139,27 @@
                   <ActionButton 
                     :icon="getAppIcon('edit')" 
                     :buttonFunction="() => startEditingLocation(location)"
-                    v-tooltip="'Edit name'"
+                    v-tooltip="$t('settings.editName')"
                     class="hover-action"
                   />
                   <ActionButton 
                     v-if="!location.is_default"
                     :icon="getAppIcon('star')" 
                     :buttonFunction="() => setDefaultLocation(location.id)"
-                    v-tooltip="'Set as default'"
+                    v-tooltip="$t('settings.setAsDefault')"
                     class="hover-action"
                   />
                   <ActionButton 
                     :icon="getAppIcon('explorer')" 
                     :buttonFunction="() => selectPath(location)"
-                    v-tooltip="'Change Location'"
+                    v-tooltip="$t('settings.changeLocation')"
                     class="hover-action"
                   />
                   <ActionButton 
                     :icon="getAppIcon('trash')" 
                     :buttonFunction="() => removeLocation(location.id)"
                     :isDisabled="!canDeleteLocation(location.id)"
-                    v-tooltip="canDeleteLocation(location.id) ? 'Remove Location' : 'Cannot remove: projects are using this location'"
+                    v-tooltip="canDeleteLocation(location.id) ? $t('settings.removeLocation') : $t('settings.cannotRemoveLocation')"
                     class="hover-action"
                   />
                 </template>
@@ -177,6 +177,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useAccountStore } from '@/stores/accounts';
@@ -187,6 +188,7 @@ import RenameInput from '@/instances/desktop/components/RenameInput.vue';
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const accountStore = useAccountStore();
+const { t } = useI18n();
 
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
@@ -203,7 +205,7 @@ const editableLocationName = ref('');
 
 // Methods for project/shared directories
 const selectDirectoryPath = async (context) => {
-  const result = await DialogService.SelectFolderDialog("Select Folder");
+  const result = await DialogService.SelectFolderDialog(t('settings.selectFolder'));
   if (!result) return;
   
   const fileDir = result.replace(/\\/g, '/');
@@ -212,14 +214,14 @@ const selectDirectoryPath = async (context) => {
     if (context === 'shared') {
       await SettingsService.SetSharedProjectDirectory(fileDir);
       sharedProjectsDirectory.value = fileDir;
-      notificationStore.addNotification('Shared directory updated', '', 'success', false);
+      notificationStore.addNotification(t('notifications.sharedDirectoryUpdated'), '', 'success', false);
     } else if (context === 'personal') {
       await SettingsService.SetProjectDirectory(fileDir);
       projectsDirectory.value = fileDir;
-      notificationStore.addNotification('Projects directory updated', '', 'success', false);
+      notificationStore.addNotification(t('notifications.projectsDirectoryUpdated'), '', 'success', false);
     }
   } catch (error) {
-    notificationStore.errorNotification('Error updating directory', error);
+    notificationStore.errorNotification(t('notifications.errorUpdatingDirectory'), error);
   }
 };
 
@@ -267,7 +269,7 @@ const canDeleteLocation = (locationId) => {
 const addLocation = async () => {
   const newLocationName = `Location ${locations.value.length + 1}`;
   
-  const result = await DialogService.SelectFolderDialog("Select Location Folder");
+  const result = await DialogService.SelectFolderDialog(t('settings.selectFolder'));
   if (!result) return;
   
   const path = result.replace(/\\/g, '/');
@@ -279,14 +281,14 @@ const addLocation = async () => {
     await checkAllLocationHealth();
     await loadLocationUsage();
     
-    notificationStore.addNotification('Location added successfully', '', 'success', false);
+    notificationStore.addNotification(t('notifications.locationAdded'), '', 'success', false);
   } catch (error) {
-    notificationStore.errorNotification('Error adding location', error);
+    notificationStore.errorNotification(t('notifications.errorAddingLocation'), error);
   }
 };
 
 const selectPath = async (location) => {
-  const result = await DialogService.SelectFolderDialog("Select Location Folder");
+  const result = await DialogService.SelectFolderDialog(t('settings.selectFolder'));
   if (!result) return;
   
   const path = result.replace(/\\/g, '/');
@@ -297,17 +299,17 @@ const selectPath = async (location) => {
     
     await checkAllLocationHealth();
     
-    notificationStore.addNotification('Location updated successfully', '', 'success', false);
+    notificationStore.addNotification(t('notifications.locationUpdated'), '', 'success', false);
   } catch (error) {
-    notificationStore.errorNotification('Error updating location', error);
+    notificationStore.errorNotification(t('notifications.errorUpdatingLocation'), error);
   }
 };
 
 const removeLocation = async (locationId) => {
   if (!canDeleteLocation(locationId)) {
     notificationStore.addNotification(
-      'Cannot remove location',
-      'Projects are using this location or it is the last location',
+      t('notifications.cannotRemoveLocation'),
+      t('notifications.locationInUse'),
       'error',
       false
     );
@@ -321,9 +323,9 @@ const removeLocation = async (locationId) => {
       locations.value.splice(index, 1);
     }
     
-    notificationStore.addNotification('Location removed successfully', '', 'success', false);
+    notificationStore.addNotification(t('notifications.locationRemoved'), '', 'success', false);
   } catch (error) {
-    notificationStore.errorNotification('Error removing location', error);
+    notificationStore.errorNotification(t('notifications.errorRemovingLocation'), error);
   }
 };
 
@@ -336,9 +338,9 @@ const setDefaultLocation = async (locationId) => {
       loc.is_default = loc.id === locationId;
     });
     
-    notificationStore.addNotification('Default location updated', '', 'success', false);
+    notificationStore.addNotification(t('notifications.defaultLocationUpdated'), '', 'success', false);
   } catch (error) {
-    notificationStore.errorNotification('Error setting default location', error);
+    notificationStore.errorNotification(t('notifications.errorSettingDefaultLocation'), error);
   }
 };
 
@@ -366,10 +368,10 @@ const confirmEditLocationName = async (location) => {
     await SettingsService.UpdateProjectLocation(location.id, editableLocationName.value, location.path);
     location.name = editableLocationName.value;
     
-    notificationStore.addNotification('Location name updated', '', 'success', false);
+    notificationStore.addNotification(t('notifications.locationNameUpdated'), '', 'success', false);
     cancelEditingLocation();
   } catch (error) {
-    notificationStore.errorNotification('Error updating location name', error);
+    notificationStore.errorNotification(t('notifications.errorUpdatingLocationName'), error);
   }
 };
 
@@ -384,7 +386,7 @@ onMounted(async () => {
     await loadLocationUsage();
   } catch (error) {
     notificationStore.addNotification(
-      "Error Loading Settings",
+      t('notifications.errorLoadingSettings'),
       error.message,
       "error",
       false

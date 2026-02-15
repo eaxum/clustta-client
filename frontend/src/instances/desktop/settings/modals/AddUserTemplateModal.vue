@@ -5,13 +5,12 @@
 
     <div class="general-container">
       <div class="input-section">
-        <input v-model="templateName" class="input-short" type="text" placeholder="Template Name" v-focus
+        <input v-model="templateName" class="input-short" type="text" :placeholder="$t('placeholders.templateName')" v-focus
           @keydown.enter="handleEnterKey" />
       </div>
 
       <div v-if="!fileIsSelected" class="category-item">
-        <span @click="selectFile()" class="single-action-button"><img class="small-icons" src="/icons/add.svg">Select
-          a file</span>
+        <span @click="selectFile()" class="single-action-button"><img class="small-icons" src="/icons/add.svg">{{ $t('modals.selectAFile') }}</span>
       </div>
 
       <div v-else class="category-item">
@@ -24,8 +23,8 @@
 
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Create'" :fullWidth="true" @click="createTemplate" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createTemplate" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -37,6 +36,7 @@
 <script setup>
 // imports
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
@@ -51,6 +51,8 @@ const notificationStore = useNotificationStore();
 const projectTemplateStore = useProjectTemplateStore();
 const trayStates = useTrayStates();
 
+const { t } = useI18n();
+
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectTemplateStore } from '@/stores/project_template';
@@ -58,7 +60,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 
 // constants
 const showSearch = false;
-const title = 'Add Template';
+const title = t('modals.addTemplate');
 
 // refs
 const fileIsSelected = ref(false);
@@ -89,11 +91,11 @@ const closeModal = () => {
 // Creates a new template from the selected file.
 const createTemplate = () => {
   if (!templateName.value) {
-    notificationStore.addNotification('Template Name is Required', 'Template name is required', "error");
+    notificationStore.addNotification(t('notifications.templateNameRequired'), '', "error");
     return;
   }
   if (!fileIsSelected.value) {
-    notificationStore.addNotification('Template File is Required', 'Template file is required', "error");
+    notificationStore.addNotification(t('notifications.templateFileRequired'), '', "error");
     return;
   }
 
@@ -102,7 +104,7 @@ const createTemplate = () => {
       projectTemplateStore.reloadProjectTemplate();
     })
     .catch((error) => {
-      notificationStore.errorNotification('Error creating template', error);
+      notificationStore.errorNotification(t('notifications.errorCreatingTemplate'), error);
     });
 
   closeModal();

@@ -1,11 +1,11 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
-    <HeaderArea :title="'New Workflow'" :icon="getAppIcon(entityTypeIcon)" />
+    <HeaderArea :title="$t('modals.newWorkflow')" :icon="getAppIcon(entityTypeIcon)" />
 
     <div class="general-container general-container-wide">
       <div class="input-section">
         <div class="input-section drop-down-box-section">
-          <input v-model="workflowName" class="input-short" type="text" placeholder="Workflow Name" v-focus
+          <input v-model="workflowName" class="input-short" type="text" :placeholder="$t('placeholders.workflowName')" v-focus
             @keydown.enter="handleEnterKey" />
         </div>
       </div>
@@ -32,14 +32,14 @@
         <EditWorkflowItem v-if="isAdding && !editableWorkflowId" @confirm="confirm" @cancel="cancel" />
 
         <div v-else class="workflow-items-action">
-          <ActionButton :label="'Add Item'" :icon="getAppIcon('plus-circle')" v-tooltip="'Confirm'"
+          <ActionButton :label="$t('modals.addItem')" :icon="getAppIcon('plus-circle')" v-tooltip="$t('common.confirm')"
             @click="addItem()" />
         </div>
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="isUpdate ? 'Update' : 'Create'" :fullWidth="true" @click="createWorkflow(false)"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="isUpdate ? $t('common.update') : $t('common.create')" :fullWidth="true" @click="createWorkflow(false)"
           :isActive="isValueChanged" :loading="isAwaitingResponse" />
       </div>
     </div>
@@ -49,6 +49,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { v4 as uuidv4 } from 'uuid';
 
 // components
@@ -62,6 +63,7 @@ import WorkflowItem from '@/instances/desktop/blocks/WorkflowItem.vue';
 import { WorkflowService } from "@/services";
 
 // stores
+const { t } = useI18n();
 const collectionStore = useCollectionStore();
 const iconStore = useIconStore();
 const menu = useMenu();
@@ -163,7 +165,7 @@ const createWorkflow = async () => {
       })
       .catch((error) => {
         console.error(error);
-        notificationStore.errorNotification('Error updating workflow', error);
+        notificationStore.errorNotification(t('notifications.errorUpdatingWorkflow'), error);
       });
   } else {
     WorkflowService.CreateWorkflow(projectStore.activeProject.uri, workflowName.value, workflowTasks.value, workflowEntities.value, workflowLinks.value)
@@ -172,7 +174,7 @@ const createWorkflow = async () => {
       })
       .catch((error) => {
         console.error(error);
-        notificationStore.errorNotification('Error creating workflow', error);
+        notificationStore.errorNotification(t('notifications.errorCreatingWorkflow'), error);
       });
   }
   isAwaitingResponse.value = false;

@@ -40,29 +40,29 @@ export const useSettingsStore = defineStore("settings", {
     allTasksMarked: true,
 
     settingsItems: [
-      { name: "General", icon: "monitor" },
-      { name: "Directories", icon: "explorer" },
-      { name: "Templates", icon: "file" },
-      { name: "Collaborators", icon: "person" },
-      { name: "Roles", icon: "scale" },
-      
-      { name: "Asset types", icon: "brush" },
-      { name: "Collection types", icon: "folder" },
-      { name: "Ignore List", icon: "file-watch" },
-      { name: "Project Templates", icon: "briefcase" },
-      { name: "Workflows", icon: "workflow-arrow" },
-      
-      { name: "Advanced", icon: "skull" },
+      { id: "general", nameKey: "settings.general", name: "General", icon: "monitor" },
+      { id: "directories", nameKey: "settings.directories", name: "Directories", icon: "explorer" },
+      { id: "templates", nameKey: "settings.templates", name: "Templates", icon: "file" },
+      { id: "collaborators", nameKey: "settings.collaborators", name: "Collaborators", icon: "person" },
+      { id: "roles", nameKey: "settings.roles", name: "Roles", icon: "scale" },
 
-      { name: "Studio", icon: "stall" },
-      { name: "Studio Collaborators", icon: "person" },
+      { id: "assettypes", nameKey: "settings.assetTypes", name: "Asset types", icon: "brush" },
+      { id: "collectiontypes", nameKey: "settings.collectionTypes", name: "Collection types", icon: "folder" },
+      { id: "ignorelist", nameKey: "settings.ignoreList", name: "Ignore List", icon: "file-watch" },
+      { id: "projecttemplates", nameKey: "settings.projectTemplates", name: "Project Templates", icon: "briefcase" },
+      { id: "workflows", nameKey: "settings.workflows", name: "Workflows", icon: "workflow-arrow" },
+
+      { id: "advanced", nameKey: "settings.advanced", name: "Advanced", icon: "skull" },
+
+      { id: "studio", nameKey: "settings.studio", name: "Studio", icon: "stall" },
+      { id: "studiocollaborators", nameKey: "settings.studioCollaborators", name: "Studio Collaborators", icon: "person" },
     ],
 
     templateContexts: [
-      { name: "Templates", icon: "file" },
-      { name: "Asset types", icon: "brush" },
-      { name: "Collection types", icon: "folder" },
-      { name: "Ignore List", icon: "file-watch" },
+      { id: "templates", nameKey: "settings.templates", name: "Templates", icon: "file" },
+      { id: "assettypes", nameKey: "settings.assetTypes", name: "Asset types", icon: "brush" },
+      { id: "collectiontypes", nameKey: "settings.collectionTypes", name: "Collection types", icon: "folder" },
+      { id: "ignorelist", nameKey: "settings.ignoreList", name: "Ignore List", icon: "file-watch" },
     ],
   }),
   getters: {},

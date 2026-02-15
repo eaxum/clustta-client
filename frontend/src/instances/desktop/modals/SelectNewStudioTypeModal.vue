@@ -4,7 +4,7 @@
     <div class="general-container">
 
       <div class="studio-info-text">
-        <p>Studios are spaces for your projects and teams to collaborate. Select how you would like to create your studio</p>
+        <p>{{ $t('modals.studioDescription') }}</p>
       </div>
 
       <div class="studio-types-container">
@@ -19,19 +19,19 @@
           </div>
           <div class="studio-details">
             <div class="studio-type-title">
-              {{ studioType.title }}
+              {{ $t(studioType.titleKey) }}
               <span v-if="studioType.beta" class="beta-badge">BETA</span>
             </div>
             <div class="studio-type-description">
-              {{ studioType.message }}
+              {{ $t(studioType.messageKey) }}
             </div>
           </div>
         </div>
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Next'" :fullWidth="true" :buttonFunction="handleNext" :isActive="true" />
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.next')" :fullWidth="true" :buttonFunction="handleNext" :isActive="true" />
       </div>
 
     </div>
@@ -41,12 +41,14 @@
 <script setup>
 // imports
 import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
 // stores
+const { t } = useI18n();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const templateStore = useTemplateStore();
@@ -59,21 +61,21 @@ import { useTrayStates } from '@/stores/TrayStates';
 
 // constants
 const showSearch = false;
-const title = 'New Studio';
+const title = t('modals.newStudio');
 
 // studio types data
 const studioTypes = ref([
   {
     type: 'clustta-cloud',
-    title: 'ClusttaCloud',
-    message: 'Get started instantly with our managed cloud service. No setup required, automatic updates and enterprise-grade security.',
+    titleKey: 'modals.newClusttaCloudStudio',
+    messageKey: 'modals.clusttaCloudDesc',
     icon: 'clustta',
     beta: true
   },
   {
     type: 'self-managed',
-    title: 'Self Managed',
-    message: 'Host and manage your own Clustta studio instance with full control over data, security, and customization.',
+    titleKey: 'modals.newSelfManagedStudio',
+    messageKey: 'modals.selfManagedDesc',
     icon: 'two-drives'
   }
 ]);

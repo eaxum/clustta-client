@@ -9,15 +9,15 @@
 
     <div class="general-container">
       <div class="input-section">
-        <input v-model="entityTypeName" class="input-short" type="text" placeholder="Collection type Name" v-focus
+        <input v-model="entityTypeName" class="input-short" type="text" :placeholder="$t('placeholders.collectionTypeName')" v-focus
           @keydown.enter="handleEnterKey" />
       </div>
 
       <IconGrid v-if="displayIconSelector" @iconSelected="setIcon" :icons="icons" />
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Update'" :fullWidth="true" @click="updateEntityType" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateEntityType" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -29,6 +29,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import iconData from "@/data/iconData.json";
 
 // components
@@ -93,13 +94,13 @@ const setIcon = (icon) => {
 const updateEntityType = () => {
   CollectionService.UpdateCollectionType(projectStore.activeProject.uri, collectionStore.selectedCollectionType.id, entityTypeName.value, entityTypeIcon.value)
     .then((response) => {
-      notificationStore.addNotification("Collection type Updated", "", "success");
+      notificationStore.addNotification(t('notifications.collectionTypeUpdated'), "", "success");
       const index = collectionStore.collectionTypes.findIndex(entityType => entityType.id === collectionStore.selectedCollectionType.id);
       collectionStore.collectionTypes[index] = response;
       closeModal();
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error updating folder Type", error);
+      notificationStore.errorNotification(t('notifications.errorUpdatingCollectionType'), error);
     });
 };
 

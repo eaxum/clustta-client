@@ -9,14 +9,14 @@
 
     <div class="general-container">
       <div class="input-section">
-        <input v-model="taskTypeName" class="input-short" type="text" placeholder="Asset type Name" v-focus
+        <input v-model="taskTypeName" class="input-short" type="text" :placeholder="$t('placeholders.assetTypeName')" v-focus
           @keydown.enter="handleEnterKey" />
       </div>
 
       <IconGrid v-if="displayIconSelector" @iconSelected="setIcon" :icons="icons" />
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Create'" :fullWidth="true" @click="createTaskType" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createTaskType" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -27,6 +27,7 @@
 <script setup>
 // imports
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import iconData from "@/data/iconData.json";
 
 // components
@@ -81,12 +82,12 @@ const closeModal = () => {
 const createTaskType = () => {
   AssetService.CreateAssetType(projectTemplateStore.activeProjectTemplate.uri, taskTypeName.value, taskTypeIcon.value)
     .then(() => {
-      notificationStore.addNotification("Task Type Created", "", "success");
+      notificationStore.addNotification(t('notifications.taskTypeCreated'), "", "success");
       projectTemplateStore.reloadProjectTemplate();
       closeModal();
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error Deleting Task Type", error);
+      notificationStore.errorNotification(t('notifications.errorCreatingTaskType'), error);
     });
 };
 

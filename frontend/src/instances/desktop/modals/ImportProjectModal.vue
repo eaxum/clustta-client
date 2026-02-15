@@ -1,19 +1,19 @@
 <template>
   <div class="modal-container" v-stop-propagation>
-    <HeaderArea :title="'Import Projects'" :icon="getAppIcon('arrow-down-ramp')" :showSearch="false" />
+    <HeaderArea :title="$t('modals.importProjects')" :icon="getAppIcon('arrow-down-ramp')" :showSearch="false" />
     <div class="general-container">
 
       <!-- File Selection Card -->
       <div v-if="!isImporting && !importComplete" class="settings-section-card">
         <div class="settings-section-card-header">
           <div class="header-content">
-            <h2 class="settings-section-card-title">Select Clustta project archives to import</h2>
+            <h2 class="settings-section-card-title">{{ $t('modals.selectClusttaArchives') }}</h2>
             <div class="card-description">
-              Choose one or more .clst archives to import into your personal studio.
+              {{ $t('modals.chooseArchives') }}
             </div>
           </div>
           <GeneralButton 
-            :label="selectedFiles.length > 0 ? 'Add More' : 'Select Files'" 
+            :label="selectedFiles.length > 0 ? $t('modals.addMore') : $t('modals.selectFiles')" 
             :buttonFunction="selectFiles"
             :fullWidth="false"
           />
@@ -34,7 +34,7 @@
                   :useDanger="true"
                   :noFilter="true"
                   :buttonFunction="() => removeFile(index)"
-                  v-tooltip="'Remove'"
+                  v-tooltip="$t('common.remove')"
                 />
               </div>
             </div>
@@ -63,9 +63,9 @@
       <div v-if="importComplete" class="settings-section-card">
         <div class="settings-section-card-header">
           <div class="header-content">
-            <h2 class="settings-section-card-title">✓ Import successful</h2>
+            <h2 class="settings-section-card-title">{{ $t('modals.importSuccessCheck') }}</h2>
             <div class="card-description">
-              {{ importedFiles.length }} project{{ importedFiles.length > 1 ? 's' : '' }} imported successfully
+              {{ $t('modals.projectsImportedCount', { count: importedFiles.length }) }}
             </div>
           </div>
         </div>
@@ -83,7 +83,7 @@
                 <ActionButton 
                   :icon="getAppIcon('folder-arrow-up-right')" 
                   :buttonFunction="() => locateFile(filePath)"
-                  v-tooltip="'Locate in Explorer'"
+                  v-tooltip="$t('modals.locateInExplorer')"
                 />
               </div>
             </div>
@@ -94,21 +94,21 @@
       <!-- Action Buttons -->
       <div v-if="!isImporting" class="pop-up-actions" :class="{ 'import-complete' : importComplete }" >
         <GeneralButton v-if="!importComplete"
-          label="Cancel" 
+          :label="$t('common.cancel')" 
           :buttonFunction="closeModal"
           :colored="false"
           :fullWidth="false"
         />
         <GeneralButton 
           v-if="!importComplete"
-          label="Import" 
+          :label="$t('common.import')" 
           :buttonFunction="importProjects"
           :fullWidth="false"
           :isActive="selectedFiles.length > 0"
         />
         <GeneralButton 
           v-else
-          label="Close" 
+          :label="$t('common.close')" 
           :buttonFunction="closeModal"
           :fullWidth="false"
         />
@@ -121,6 +121,7 @@
 <script setup>
 // imports
 import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -143,6 +144,7 @@ const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const stage = useStageStore();
+const { t } = useI18n();
 
 // refs
 const destinationDirectory = ref('');
@@ -173,7 +175,7 @@ const getFileName = (path) => {
 // Imports the selected project files.
 const importProjects = async () => {
   if (selectedFiles.value.length === 0) {
-    notificationStore.addNotification('No files selected', 'Please select at least one .clst file to import', 'error', false);
+    notificationStore.addNotification(t('notifications.noFilesSelected'), t('notifications.selectAtLeastOneFile'), 'error', false);
     return;
   }
 
@@ -186,13 +188,13 @@ const importProjects = async () => {
     importedFiles.value = importedPaths;
     importComplete.value = true;
     notificationStore.addNotification(
-      'Import successful',
-      `${importedPaths.length} project${importedPaths.length > 1 ? 's' : ''} imported successfully`,
+      t('notifications.importSuccessful'),
+      t('notifications.projectsImportedCount', { count: importedPaths.length }),
       'success',
       false
     );
   } catch (error) {
-    notificationStore.errorNotification('Error importing projects', error);
+    notificationStore.errorNotification(t('notifications.errorImportingProjects'), error);
   } finally {
     stage.operationActive = false;
     isImporting.value = false;
@@ -238,7 +240,7 @@ onMounted(async () => {
     destinationDirectory.value = personalProjectsDir.replace(/\\/g, '/');
   } catch (error) {
     console.error('Failed to get project directory:', error);
-    notificationStore.errorNotification('Error loading destination', error);
+    notificationStore.errorNotification(t('notifications.errorLoadingDestination'), error);
   }
 });
 </script>

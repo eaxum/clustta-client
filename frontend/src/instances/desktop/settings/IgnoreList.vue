@@ -2,7 +2,7 @@
   <div class="settings-component-root">
     <div class="settings-component-container">
 
-      <IgnoreListBox :placeholder="'Add item'" :selectedItems="ignoreList" @itemAdded="addIgnoredItem"
+      <IgnoreListBox :placeholder="$t('placeholders.addItem')" :selectedItems="ignoreList" @itemAdded="addIgnoredItem"
         @itemRemoved="removeIgnoredItem" />
 
 
@@ -16,6 +16,7 @@ const iconStore = useIconStore();
 
 // imports
 import { onMounted, computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 import { UserService } from '@/services';
 import { ProjectService } from "@/services";
@@ -37,8 +38,7 @@ const userStore = useUserStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
-
-// computed props
+const { t } = useI18n();
 const getRoleTypeIcon = (icon) => {
   return '/icons/person.svg'
 }
@@ -65,7 +65,7 @@ const addIgnoredItem = (item) => {
       })
       .catch((error) => {
         console.log(error)
-        notificationStore.addNotification('Failed to update ignore list', 'error');
+        notificationStore.addNotification(t('notifications.failedToUpdateIgnoreList'), 'error');
       });
   }
 };
@@ -89,7 +89,7 @@ const removeIgnoredItem = (item) => {
       // projectStore.reloadUntrackedItems()
     })
     .catch((error) => {
-      notificationStore.addNotification('Failed to update ignore list', 'error');
+      notificationStore.addNotification(t('notifications.failedToUpdateIgnoreList'), 'error');
     });
 };
 

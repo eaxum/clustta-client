@@ -43,8 +43,8 @@ const settingsComponents = {
 
 // computed props
 const settingsItems = computed(() => {
-	const studioSettingsItems = ['Studio', 'Studio Collaborators'];
-	const studioSettings = settings.settingsItems.filter((item) => studioSettingsItems.includes(item.name));
+	const studioSettingsIds = ['studio', 'studiocollaborators'];
+	const studioSettings = settings.settingsItems.filter((item) => studioSettingsIds.includes(item.id));
 	return studioSettings;
 });
 
@@ -59,16 +59,7 @@ const visiblePages = computed(() => {
 
 // methods
 const filterList = (selectedTab) => {
-	let modalName;
-	if(selectedTab === 'Project Templates'){
-		modalName = 'ProjectTemplates'
-	} else if(selectedTab === 'Studio Collaborators'){
-		modalName = 'StudioCollaborators'
-	} else {
-		modalName = selectedTab;
-	}
-	const selectedTabName = modalName.toLowerCase();
-	settings.setModalVisibility(selectedTabName, true);
+	settings.setModalVisibility(selectedTab, true);
 };
 
 watchEffect(() => {

@@ -6,10 +6,10 @@
     <div class="general-container">
 
       <div class="input-section">
-        <span class="input-label">Project File</span>
+        <span class="input-label">{{ $t('modals.projectFileLabel') }}</span>
         <div class="horizontal-flex">
-          <input v-model="selectedFilePath" class="input-short" type="text" placeholder="Select .clst file..." readonly />
-          <span @click="selectProjectFile" class="single-action-button" v-tooltip="'Browse'">
+          <input v-model="selectedFilePath" class="input-short" type="text" :placeholder="$t('placeholders.selectClusttaFile')" readonly />
+          <span @click="selectProjectFile" class="single-action-button" v-tooltip="$t('common.browse')">
             <img class="small-icons" :src="getAppIcon('clustta')">
           </span>
         </div>
@@ -17,16 +17,16 @@
       </div>
 
       <div class="input-section">
-        <span class="input-label">Project Name</span>
+        <span class="input-label">{{ $t('placeholders.projectName') }}</span>
         <div class="horizontal-flex">
-          <input v-model="projectName" class="input-short" type="text" placeholder="Project Name"
+          <input v-model="projectName" class="input-short" type="text" :placeholder="$t('placeholders.projectName')"
             @keydown.enter="handleEnterKey" />
         </div>
-        <InputAlert :show="!projectIsUploaded && projectNameInUse" message="A project with this name already exists." />
+        <InputAlert :show="!projectIsUploaded && projectNameInUse" :message="$t('notifications.projectNameInUse')" />
       </div>
 
       <div class="input-section">
-        <span class="input-label">Location</span>
+        <span class="input-label">{{ $t('modals.locationLabel') }}</span>
         <div class="horizontal-flex">
           <div class="location-dropdown-wrapper">
             <DropDownBox 
@@ -35,18 +35,18 @@
               :onSelect="selectLocation" 
             />
           </div>
-          <span @click="addNewLocation" class="single-action-button" v-tooltip="'Add New Location'">
+          <span @click="addNewLocation" class="single-action-button" v-tooltip="$t('modals.addNewLocation')">
             <img class="small-icons" :src="getAppIcon('plus-circle')">
           </span>
         </div>
         <div v-if="workingDirectory" class="computed-path-display">
-          Final path: {{ workingDirectory }}
+          {{ $t('modals.finalPath') }} {{ workingDirectory }}
         </div>
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Upload'" :fullWidth="true" @click="uploadProject" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.upload')" :fullWidth="true" @click="uploadProject" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
     </div>
@@ -56,6 +56,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
@@ -86,6 +87,7 @@ const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const stage = useStageStore();
+const { t } = useI18n();
 
 // refs
 const fileError = ref(false);
@@ -100,7 +102,7 @@ const selectedFilePath = ref('');
 const selectedLocation = ref(null);
 
 // constants
-const title = 'Upload Project';
+const title = computed(() => t('modals.uploadProject'));
 
 // computed
 // Checks if form values are valid for upload.
@@ -154,9 +156,9 @@ const addNewLocation = async () => {
     const newLocation = await SettingsService.AddProjectLocation(folderName, path);
     projectLocations.value.push(newLocation);
     selectedLocation.value = newLocation;
-    notificationStore.addNotification('Location added successfully', '', 'success', false);
+    notificationStore.addNotification(t('notifications.locationAddedSuccessfully'), '', 'success', false);
   } catch (error) {
-    notificationStore.errorNotification('Error adding location', error);
+    notificationStore.errorNotification(t('notifications.errorAddingLocation'), error);
   }
 };
 
@@ -187,7 +189,7 @@ const loadProjectLocations = async () => {
     const defaultLoc = locations.find(loc => loc.is_default);
     selectedLocation.value = defaultLoc || locations[0];
   } catch (error) {
-    notificationStore.errorNotification('Error loading locations', error);
+    notificationStore.errorNotification(t('notifications.errorLoadingLocations'), error);
   } finally {
     isLoadingLocations.value = false;
   }
@@ -231,11 +233,11 @@ const selectProjectFile = async () => {
     const isValid = await ProjectService.ValidateProjectFile(selectedFilePath.value);
     if (!isValid) {
       fileError.value = true;
-      fileErrorMessage.value = 'Invalid or corrupted project file.';
+      fileErrorMessage.value = t('notifications.invalidProjectFile');
     }
   } catch (error) {
     fileError.value = true;
-    fileErrorMessage.value = 'Error selecting file: ' + (error.message || error);
+    fileErrorMessage.value = t('notifications.errorSelectingFile') + (error.message || error);
   }
 };
 
@@ -243,8 +245,8 @@ const selectProjectFile = async () => {
 const uploadProject = async () => {
   if (!selectedLocation.value) {
     notificationStore.addNotification(
-      'No location selected',
-      'Please select or add a project location',
+      t('notifications.noLocationSelected'),
+      t('notifications.selectProjectLocation'),
       'error',
       false
     );
@@ -253,8 +255,8 @@ const uploadProject = async () => {
 
   if (!workingDirectory.value) {
     notificationStore.addNotification(
-      'Invalid working directory',
-      'Working directory cannot be empty',
+      t('notifications.invalidWorkingDirectory'),
+      t('notifications.workingDirectoryEmpty'),
       'error',
       false
     );
@@ -263,8 +265,8 @@ const uploadProject = async () => {
 
   if (!selectedFilePath.value) {
     notificationStore.addNotification(
-      'No file selected',
-      'Please select a .clst project file',
+      t('notifications.noFilesSelectedUpload'),
+      t('notifications.selectProjectFile'),
       'error',
       false
     );
@@ -301,8 +303,8 @@ const uploadProject = async () => {
     projectStore.activeProject = project;
 
     notificationStore.addNotification(
-      'Project uploaded successfully',
-      'Trigger sync to push all data to the remote studio.',
+      t('notifications.projectUploadedSuccessfully'),
+      t('notifications.triggerSyncToPush'),
       'success',
       false
     );
@@ -310,7 +312,7 @@ const uploadProject = async () => {
     closeModal();
   } catch (error) {
     console.error(error);
-    notificationStore.errorNotification('Error uploading project', error);
+    notificationStore.errorNotification(t('notifications.errorUploadingProject'), error);
   } finally {
     isAwaitingResponse.value = false;
   }

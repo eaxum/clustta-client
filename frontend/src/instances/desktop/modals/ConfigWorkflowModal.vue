@@ -1,12 +1,12 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
 
-    <HeaderArea :title="'Add Workflow'" :icon="headerIcon" />
+    <HeaderArea :title="$t('modals.addWorkflow')" :icon="headerIcon" />
     <div class="general-container" :style="{ gap: showTaskOptions ? 10 + 'px' : 20 + 'px' }">
 
       <div v-if="!isMultiple" class="input-section">
         <div class="compound-input-section">
-          <input v-model="workflowName" class="input-short" type="text" placeholder="Workflow Name" v-focus
+          <input v-model="workflowName" class="input-short" type="text" :placeholder="$t('placeholders.workflowName')" v-focus
             v-return="handleEnterKey" />
         </div>
       </div>
@@ -21,13 +21,13 @@
 
       
       <div class="horizontal-flex">
-        Generate Multiple Items
+        {{ $t('modals.generateMultipleItems') }}
         <ToggleSwitch v-tooltip="isMultiple? 'Unmark as library' : 'Mark as a library'" @click="toggleIsMultiple" :switchValueProp="isMultiple" />
       </div>
 
       <div class="pop-up-actions" ref="popUpActions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Confirm'" :fullWidth="true" :buttonFunction="addWorkflows" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.confirm')" :fullWidth="true" :buttonFunction="addWorkflows" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -39,6 +39,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 
 // components
@@ -52,6 +53,7 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import { CollectionService, WorkflowService } from "@/services";
 
 // stores
+const { t } = useI18n();
 const collectionStore = useCollectionStore();
 const iconStore = useIconStore();
 const menu = useMenu();
@@ -133,7 +135,7 @@ const addSingleWorkflow = async () => {
   ).then(async (data) => {
   }).catch((error) => {
     console.log(error);
-    notificationStore.errorNotification("Error adding workflow", error);
+    notificationStore.errorNotification(t('notifications.errorAddingWorkflow'), error);
   });
 };
 

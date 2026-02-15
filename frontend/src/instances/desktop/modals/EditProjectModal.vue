@@ -4,15 +4,15 @@
     <div class="general-pane-header">
       <HeaderArea :notModal="true" v-if="isCustomIcon" :title="title" :customIcon="projectIcon" />
       <HeaderArea :notModal="true" v-else :title="title" :emoji="projectIcon" />
-      <ActionButton v-if="displayEmojiSelector"  :icon="getAppIcon('arrow-left')" :showLabel="false" v-tooltip="'Back to details'"
+      <ActionButton v-if="displayEmojiSelector"  :icon="getAppIcon('arrow-left')" :showLabel="false" v-tooltip="$t('modals.backToDetails')"
         :buttonFunction="toggleEmojiSelector" />
-      <ActionButton v-else  :icon="getAppIcon('face-plus')" :showLabel="false" v-tooltip="'Set project Icon'"
+      <ActionButton v-else  :icon="getAppIcon('face-plus')" :showLabel="false" v-tooltip="$t('modals.setProjectIcon')"
         :buttonFunction="toggleEmojiSelector" />
       <ActionButton v-if="isPreviewChanged" :icon="getAppIcon('revert')" :showLabel="false"
-        v-tooltip="'Revert Cover Image'" :buttonFunction="revertCoverImage" />
+        v-tooltip="$t('modals.revertCoverImage')" :buttonFunction="revertCoverImage" />
       <ActionButton v-if="projectPreview && !displayEmojiSelector" :icon="getAppIcon('image-cancel')" :showLabel="false"
-        v-tooltip="'Remove Cover Image'" :buttonFunction="removeCoverImage" />
-      <ActionButton v-if="!projectPreview" :icon="getAppIcon('image-plus')" :showLabel="false" v-tooltip="'Add Cover Image'"
+        v-tooltip="$t('modals.removeCoverImage')" :buttonFunction="removeCoverImage" />
+      <ActionButton v-if="!projectPreview" :icon="getAppIcon('image-plus')" :showLabel="false" v-tooltip="$t('modals.addCoverImage')"
         :buttonFunction="addCoverImage" />
     </div>
 
@@ -24,29 +24,29 @@
       </span>
 
       <div class="input-section">
-        <input v-model="projectName" class="input-short" type="text" placeholder="Project Name" v-focus />
+        <input v-model="projectName" class="input-short" type="text" :placeholder="$t('placeholders.projectName')" v-focus />
       </div>
 
       <div v-if="displayEmojiSelector" class="header-tab-container">
         <div class="tab-button" :class="{ 'selected-tab-button': iconType === 'emoji', 'fullwidth-tab-button': true }"
           @click="changeIconType('emoji')">
-          Emoji
+          {{ $t('modals.emoji') }}
         </div>
         <div class="tab-button" :class="{ 'selected-tab-button': iconType === 'upload', 'fullwidth-tab-button': true }"
           @click="changeIconType('upload')">
-          Upload
+          {{ $t('modals.upload') }}
         </div>
       </div>
 
       <EmojiPicker v-if="displayEmojiSelector && iconType == 'emoji'" @select="handleEmojiSelect" />
       <div v-if="displayEmojiSelector && iconType == 'upload'">
         
-      <ActionButton  :icon="getAppIcon('image-plus')" :label="'Upload an image'" :buttonFunction="selectIcon" />
+      <ActionButton  :icon="getAppIcon('image-plus')" :label="$t('modals.uploadAnImage')" :buttonFunction="selectIcon" />
 
       </div>
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Update'" :fullWidth="true" @click="updateProject()" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateProject()" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -58,6 +58,7 @@
 <script setup>
 // imports
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // components
@@ -79,6 +80,7 @@ const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const { t } = useI18n();
 
 // refs
 const coverImagePath = ref('');
@@ -96,7 +98,7 @@ const projectsDirectory = ref('');
 const selectedEmoji = ref('');
 
 // constants
-const title = 'Project Details';
+const title = t('modals.projectDetails');
 
 // computed
 // Returns whether the project icon is a custom image.
@@ -127,7 +129,7 @@ const isValueChanged = computed(() => {
 // methods
 // Opens a dialog to select a cover image.
 const addCoverImage = async () => {
-  const result = await DialogService.SelectFileDialog('Select Image File', '*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp');
+  const result = await DialogService.SelectFileDialog(t('modals.selectImageFile'), '*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp');
   if (result) {
     const filePath = result.replace(/\\/g, '/');
     const fileName = filePath.split('/').pop();
@@ -214,7 +216,7 @@ const updateProjectCover = async () => {
     })
     .catch((error) => {
       console.error(error);
-      notificationStore.addNotification('Error Updating Image', error, 'error', false);
+      notificationStore.addNotification(t('notifications.errorUpdatingImage'), error, 'error', false);
     });
 };
 
@@ -229,7 +231,7 @@ const updateProjectIcon = async () => {
       })
       .catch((error) => {
         console.error(error);
-        notificationStore.addNotification('Error Updating Icon', error, 'error', false);
+        notificationStore.addNotification(t('notifications.errorUpdatingIcon'), error, 'error', false);
       });
   } else {
     await ProjectService.UpdateIcon(projectStore.activeProject.uri, projectStore.selectedStudio.name, projectIcon.value)
@@ -240,7 +242,7 @@ const updateProjectIcon = async () => {
       })
       .catch((error) => {
         console.error(error);
-        notificationStore.addNotification('Error Updating Icon', error, 'error', false);
+        notificationStore.addNotification(t('notifications.errorUpdatingIcon'), error, 'error', false);
       });
   }
 };
