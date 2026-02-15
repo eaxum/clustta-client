@@ -7,7 +7,7 @@
       <div class="header-container">
         <ClusttaLogo :colored="true" :inverted="true" />
         <div class="auth-header">
-          Login to Clustta
+          {{ $t('auth.login.title') }}
         </div>
       </div>
       <div class="auth-container">
@@ -15,37 +15,37 @@
         <div class="auth-form-container">
           <!-- studio server toggle -->
           <div class="horizontal-flex studio-toggle-row">
-            <ActionButton :isInactive="true" :icon="getAppIcon('two-drives')" :label="'Private Server'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('two-drives')" :label="$t('auth.login.privateServer')" />
             <ToggleSwitch @click="toggleStudioLogin" :switchValueProp="showStudioLogin" />
           </div>
           <div v-if="showStudioLogin" class="studio-url-container">
             <FormInput
               v-model="studioUrl"
-              placeholder="Studio URL"
+              :placeholder="$t('auth.login.studioUrl')"
               :error="studioUrlError"
-              :info="!studioUrlError ? 'Enter the URL of your studio server, then login with your studio credentials below.' : ''"
+              :info="!studioUrlError ? $t('auth.login.studioUrlInfo') : ''"
               @input="validateStudioUrl"
             />
           </div>
           <!-- actual-form -->
           <form @submit.prevent="handleLogin" class="auth-form">
             <!-- email -->
-            <FormInput v-model="loginForm.email" placeholder="Username or Email address" />
+            <FormInput v-model="loginForm.email" :placeholder="$t('auth.login.usernamePlaceholder')" />
             <!-- password -->
             <FormInput
               v-model="loginForm.password"
-              placeholder="Password"
+              :placeholder="$t('auth.login.passwordPlaceholder')"
               isSecret
               @keydown.enter="handleEnterKey"
             />
             <!-- forgot password -->
             <div @click="showResetPassword" class="forgot-password-link">
-              Forgot password?
+              {{ $t('auth.login.forgotPassword') }}
             </div>
             <!-- submit button -->
             <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isLoginFormFilled }">
               <div v-if="!isAwaitingResponse">
-                Login
+                {{ $t('auth.login.loginButton') }}
               </div>
               <ActionButton
                 v-else
@@ -68,17 +68,17 @@
         <div v-if="!isAwaitingResponse" class="additional-actions">
 
           <div @click="toggleLogin" class="signup-toggle">
-            Don't have an account?&nbsp;<span class="bold">Sign Up</span>
+            {{ $t('auth.login.noAccount') }}&nbsp;<span class="bold">{{ $t('auth.login.signUpLink') }}</span>
           </div>
 
           <div class="divider-container">
             <div class="divider-line"></div>
-            <div class="divider-text">or</div>
+            <div class="divider-text">{{ $t('auth.login.or') }}</div>
             <div class="divider-line"></div>
           </div>
 
           <div @click="enableOfflineMode" class="offline-toggle" :class="{ 'button-inactive': isAwaitingResponse }">
-            Use without an account
+            {{ $t('auth.login.useWithoutAccount') }}
           </div>
           
         </div>
@@ -91,6 +91,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeMount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useProjectStore } from '@/stores/projects';
@@ -107,6 +108,7 @@ import utils from "@/services/utils";
 import { SettingsService } from '@/services';
 
 const router = useRouter();
+const { t } = useI18n();
 const trayStates = useTrayStates();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
@@ -182,9 +184,9 @@ const validateStudioUrl = () => {
   const urlPattern = /^https?:\/\/[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+(:\d+)?(\/.*)?$/;
   
   if (!studioUrl.value.startsWith('http://') && !studioUrl.value.startsWith('https://')) {
-    studioUrlError.value = 'URL must start with http:// or https://';
+    studioUrlError.value = t('auth.login.urlMustStartWith');
   } else if (!urlPattern.test(studioUrl.value)) {
-    studioUrlError.value = 'Please enter a valid URL';
+    studioUrlError.value = t('auth.login.invalidUrl');
   } else {
     studioUrlError.value = '';
   }
@@ -205,7 +207,7 @@ const normalizeStudioUrl = (url) => {
 const handleLogin = async () => {
   isAwaitingResponse.value = true;
   error.value = '';
-  loadingStatus.value = 'Authenticating...';
+  loadingStatus.value = t('auth.login.authenticating');
 
   // Determine if this is a studio login
   const isStudioLogin = showStudioLogin.value && studioUrl.value.trim();
@@ -225,19 +227,19 @@ const handleLogin = async () => {
     userStore.isUserAuthenticated = true;
 
     // Initialize stores that require authentication
-    loadingStatus.value = 'Loading account...';
+    loadingStatus.value = t('auth.login.loadingAccount');
     await accountStore.initialize();
     
-    loadingStatus.value = 'Applying theme...';
+    loadingStatus.value = t('auth.login.applyingTheme');
     await themeStore.initializeTheme();
     
-    loadingStatus.value = 'Loading studios...';
+    loadingStatus.value = t('auth.login.loadingStudios');
     await projectStore.loadStudios();
 
     projectDirectoryExists.value = await SettingsService.GetProjectDirectory();
 
     if(projectDirectoryExists.value){
-      loadingStatus.value = 'Loading projects...';
+      loadingStatus.value = t('auth.login.loadingProjects');
       await projectStore.loadProjects();
       trayStates.refreshData();
     } else {
@@ -249,7 +251,7 @@ const handleLogin = async () => {
     
     // Navigate to home after successful login
     if (isStudioLogin) {
-      notificationStore.addNotification("Studio Login", `Successfully logged in to ${normalizedStudioUrl}`, "●");
+      notificationStore.addNotification(t('auth.login.studioLoginTitle'), t('auth.login.studioLoginSuccess', { url: normalizedStudioUrl }), "●");
     }
     router.push('/');
   } catch (err) {
@@ -263,7 +265,7 @@ const handleLogin = async () => {
                              errorMessage.toLowerCase().includes('account not verified');
     
     if (isUnverifiedUser) {
-      notificationStore.addNotification("Verification Required", "Please check your email for a verification code.", "info");
+      notificationStore.addNotification(t('auth.login.verificationRequired'), t('auth.login.checkEmailForCode'), "info");
       // Store credentials for verification page and navigate
       userStore.setPendingVerification(loginForm.email, loginForm.password);
       // Resend verification token
@@ -271,11 +273,11 @@ const handleLogin = async () => {
       router.push('/verify-email');
     } else if (isStudioLogin) {
       // Handle studio login errors
-      notificationStore.errorNotification("Studio Login Failed", errorMessage || 'Could not connect to studio server. Please check the URL and credentials.');
-      error.value = errorMessage || 'Could not connect to studio server';
+      notificationStore.errorNotification(t('auth.login.studioLoginFailed'), errorMessage || t('auth.login.studioConnectionError'));
+      error.value = errorMessage || t('auth.login.studioConnectionError');
     } else {
       // Handle other login errors normally
-      notificationStore.errorNotification("Error Logging In", 'Please check your credentials and try again');
+      notificationStore.errorNotification(t('auth.login.errorLoggingIn'), t('auth.login.checkCredentials'));
     }
   }
 };
@@ -300,7 +302,7 @@ const enableOfflineMode = async () => {
   
   isAwaitingResponse.value = true;
   error.value = '';
-  loadingStatus.value = 'Enabling offline mode...';
+  loadingStatus.value = t('auth.login.enablingOfflineMode');
 
   try {
     await AuthService.EnableOfflineMode();
@@ -317,19 +319,19 @@ const enableOfflineMode = async () => {
     userStore.isUserAuthenticated = true;
     
     // Initialize stores
-    loadingStatus.value = 'Loading account...';
+    loadingStatus.value = t('auth.login.loadingAccount');
     await accountStore.initialize();
     
-    loadingStatus.value = 'Applying theme...';
+    loadingStatus.value = t('auth.login.applyingTheme');
     await themeStore.initializeTheme();
     
-    loadingStatus.value = 'Loading studios...';
+    loadingStatus.value = t('auth.login.loadingStudios');
     await projectStore.loadStudios();
     
     projectDirectoryExists.value = await SettingsService.GetProjectDirectory();
 
     if (projectDirectoryExists.value) {
-      loadingStatus.value = 'Loading projects...';
+      loadingStatus.value = t('auth.login.loadingProjects');
       await projectStore.loadProjects();
       trayStates.refreshData();
     } else {
@@ -340,13 +342,13 @@ const enableOfflineMode = async () => {
     markStoresInitialized();
     
     // Navigate to home after successful offline setup
-    notificationStore.addNotification("Offline Mode", "You're now using Clustta in offline mode. Some features will be limited.", "success");
+    notificationStore.addNotification(t('auth.login.offlineModeTitle'), t('auth.login.offlineModeMessage'), "success");
     router.push('/');
   } catch (err) {
     console.error('Failed to enable offline mode:', err);
-    error.value = 'Failed to enable offline mode. Please try again.';
+    error.value = t('auth.login.offlineModeFailed');
     loadingStatus.value = '';
-    notificationStore.errorNotification("Offline Mode Error", 'Failed to enable offline mode');
+    notificationStore.errorNotification(t('auth.login.offlineModeErrorTitle'), t('auth.login.offlineModeErrorMessage'));
   } finally {
     isAwaitingResponse.value = false;
   }

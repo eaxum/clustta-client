@@ -8,7 +8,7 @@
       <div class="header-container">
         <ClusttaLogo :colored="true" :inverted="true" />
         <div class="auth-header">
-          Sign up for Clustta
+          {{ $t('auth.signUp.title') }}
         </div>
       </div>
 
@@ -17,16 +17,16 @@
         <div class="auth-form-container">
           <!-- studio server toggle -->
           <div class="horizontal-flex studio-toggle-row">
-            <ActionButton :isInactive="true" :icon="getAppIcon('two-drives')" :label="'Private Server'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('two-drives')" :label="$t('auth.signUp.privateServer')" />
             <ToggleSwitch @click="toggleStudioSignup" :switchValueProp="showStudioSignup" />
           </div>
           <!-- studio URL input (shown when toggled) -->
           <div v-if="showStudioSignup" class="studio-url-container">
             <FormInput
               v-model="studioUrl"
-              placeholder="Studio URL"
+              :placeholder="$t('auth.signUp.studioUrl')"
               :error="studioUrlError"
-              :info="!studioUrlError ? 'Enter the URL of your studio server to create an account there.' : ''"
+              :info="!studioUrlError ? $t('auth.signUp.studioUrlInfo') : ''"
               @input="validateStudioUrl"
             />
           </div>
@@ -34,15 +34,15 @@
           <form @submit.prevent="handleRegister" class="auth-form" autocomplete="off">
             <!-- first and last names -->
             <div class="form-row">
-              <FormInput v-model="registerForm.first_name" placeholder="First Name" :error="errors.first_name" />
-              <FormInput v-model="registerForm.last_name" placeholder="Last Name" />
+              <FormInput v-model="registerForm.first_name" :placeholder="$t('auth.signUp.firstName')" :error="errors.first_name" />
+              <FormInput v-model="registerForm.last_name" :placeholder="$t('auth.signUp.lastName')" />
             </div>
             <!-- username -->
             <FormInput
               v-model="registerForm.username"
-              placeholder="Username"
+              :placeholder="$t('auth.signUp.username')"
               needsValidation
-              :error="errors.username || (!usernameValid && registerForm.username ? 'Username must be at least 3 characters long and can only contain letters, numbers, and underscores (_).' : '')"
+              :error="errors.username || (!usernameValid && registerForm.username ? $t('auth.signUp.usernameValidation') : '')"
               :loading="checkingUsernameAvailability"
               :valid="usernameValid && !isUsernameTaken"
               :showValidation="!!registerForm.username"
@@ -51,7 +51,7 @@
             <!-- email -->
             <FormInput
               v-model="registerForm.email"
-              placeholder="Email address"
+              :placeholder="$t('auth.signUp.emailAddress')"
               needsValidation
               :error="errors.email"
               :loading="checkingEmailAvailability"
@@ -62,21 +62,21 @@
             <!-- password -->
             <FormInput
               v-model="registerForm.password"
-              placeholder="Password"
+              :placeholder="$t('auth.signUp.password')"
               isSecret
               :error="passwordValidation"
             />
             <!-- confirm password -->
             <FormInput
               v-model="registerForm.confirm_password"
-              placeholder="Confirm password"
+              :placeholder="$t('auth.signUp.confirmPassword')"
               isSecret
               :error="!passwordsMatch && registerForm.confirm_password ? errors.confirm_password : ''"
             />
             <!-- submit button -->
             <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isRegisterFormFilled }">
               <div v-if="!isAwaitingResponse">
-                Sign Up
+                {{ $t('auth.signUp.signUpButton') }}
               </div>
               <ActionButton
                 v-else
@@ -98,13 +98,13 @@
         <!-- toggle -->
         <div class="additional-actions">
           <div @click="toggleLogin" class="login-toggle">
-            Have an account?&nbsp;<span class="bold">Login</span>
+            {{ $t('auth.signUp.haveAccount') }}&nbsp;<span class="bold">{{ $t('auth.signUp.loginLink') }}</span>
           </div>
         </div>
 
         <!-- legal agreement -->
         <div class="legal-agreement">
-          <p>By continuing, I acknowledge the <span class="legal-link" @click="openPrivacyPolicy">Privacy Policy <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span> and agree to the <span class="legal-link" @click="openTermsOfService">Terms of Service <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span>.</p>
+          <p>{{ $t('auth.signUp.legalPrefix') }} <span class="legal-link" @click="openPrivacyPolicy">{{ $t('auth.signUp.privacyPolicy') }} <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span> {{ $t('auth.signUp.legalMiddle') }} <span class="legal-link" @click="openTermsOfService">{{ $t('auth.signUp.termsOfService') }} <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span>.</p>
         </div>
 
       </div>
@@ -117,6 +117,7 @@
 
 // imports
 import { ref, reactive, computed, onMounted, onBeforeMount } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { Browser } from "@wailsio/runtime";
 import { useTrayStates } from '@/stores/TrayStates';
@@ -134,6 +135,7 @@ import FormInput from '@/instances/desktop/components/FormInput.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 const router = useRouter();
+const { t } = useI18n();
 const trayStates = useTrayStates();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
@@ -190,19 +192,19 @@ const passwordValidation = computed(() => {
   const patterns = [
     {
       value: username,
-      errorMessage: 'Password cannot contain your Email or Username'
+      errorMessage: t('auth.signUp.passwordContainsEmailOrUsername')
     },
     {
       value: email.split('@')[0],
-      errorMessage: 'Password cannot contain your Email or Username'
+      errorMessage: t('auth.signUp.passwordContainsEmailOrUsername')
     },
     {
       value: firstName,
-      errorMessage: 'Password cannot contain your First Name'
+      errorMessage: t('auth.signUp.passwordContainsFirstName')
     },
     {
       value: lastName,
-      errorMessage: 'Password cannot contain your Last Name'
+      errorMessage: t('auth.signUp.passwordContainsLastName')
     }
   ]
 
@@ -220,23 +222,23 @@ const passwordValidation = computed(() => {
   const validationRules = [
     {
       regex: /.{8,}/,
-      errorMessage: 'Password must be at least 8 characters long'
+      errorMessage: t('auth.signUp.passwordMinLength')
     },
     {
       regex: /[A-Z]/,
-      errorMessage: 'Password must include at least one uppercase letter (A-Z)'
+      errorMessage: t('auth.signUp.passwordUppercase')
     },
     {
       regex: /[a-z]/,
-      errorMessage: 'Password must include at least one lowercase letter (a-z)'
+      errorMessage: t('auth.signUp.passwordLowercase')
     },
     {
       regex: /\d/,
-      errorMessage: 'Password must include at least one number'
+      errorMessage: t('auth.signUp.passwordNumber')
     },
     {
       regex: /[@$!%*?&]/,
-      errorMessage: 'Password must include at least one special character (@, $, !, %, *, ?, &)'
+      errorMessage: t('auth.signUp.passwordSpecialChar')
     }
   ]
 
@@ -254,7 +256,7 @@ const credentialsValid = computed(() => { return emailValid.value && !isEmailTak
 const detailsInputed = computed(() => { return registerForm.first_name && registerForm.last_name && registerForm.username });
 const passwordsMatch = computed(() => {
   const passwordsMatch = registerForm.password === registerForm.confirm_password
-  errors.confirm_password = passwordsMatch ? '' : 'Passwords do not match';
+  errors.confirm_password = passwordsMatch ? '' : t('auth.signUp.passwordsDoNotMatch');
   return passwordsMatch && registerForm.password.length
 });
 const isRegisterFormFilled = computed(() => {
@@ -280,7 +282,7 @@ const checkEmail = async () => {
     const emailExist = await AuthService.CheckEmailExists(registerForm.email)
     if (emailExist) {
       isEmailTaken.value = true;
-      errors.email = 'Email is already registered'
+      errors.email = t('auth.signUp.emailAlreadyRegistered')
     } else {
       isEmailTaken.value = false;
       errors.email = ''
@@ -309,7 +311,7 @@ const checkUsername = async () => {
   try {
     const usernameExist = await AuthService.CheckUsernameExists(registerForm.username.toLowerCase())
     if (usernameExist) {
-      errors.username = 'Username is already taken'
+      errors.username = t('auth.signUp.usernameAlreadyTaken')
       isUsernameTaken.value = true;
     } else {
       errors.username = ''
@@ -340,7 +342,7 @@ const handleRegister = async () => {
   
   try {
     if (registerForm.password !== registerForm.confirm_password) {
-      error.value = 'Passwords do not match';
+      error.value = t('auth.signUp.passwordsDoNotMatch');
       isAwaitingResponse.value = false;
       return;
     }
@@ -363,8 +365,8 @@ const handleRegister = async () => {
       
       // Studio registration is auto-activated, go directly to login
       notificationStore.addNotification(
-        "Registration Successful",
-        `Account created on ${normalizedStudioUrl}. You can now login.`,
+        t('auth.signUp.registrationSuccessful'),
+        t('auth.signUp.studioAccountCreated', { url: normalizedStudioUrl }),
         "success"
       );
       router.push('/auth/login');
@@ -380,8 +382,8 @@ const handleRegister = async () => {
       );
       
       notificationStore.addNotification(
-        "Registration Successful",
-        "Please check your email for a verification code.",
+        t('auth.signUp.registrationSuccessful'),
+        t('auth.signUp.checkEmailForCode'),
         "success"
       );
       userStore.setPendingVerification(registerForm.email, registerForm.password);
@@ -389,9 +391,9 @@ const handleRegister = async () => {
     }
   } catch (err) {
     console.log(err);
-    const errorMessage = err.message || err.response?.data?.message || 'Registration failed';
+    const errorMessage = err.message || err.response?.data?.message || t('auth.signUp.registrationFailedDefault');
     error.value = errorMessage;
-    notificationStore.errorNotification("Registration Failed", errorMessage);
+    notificationStore.errorNotification(t('auth.signUp.registrationFailed'), errorMessage);
   } finally {
     isAwaitingResponse.value = false;
   }
@@ -446,9 +448,9 @@ const validateStudioUrl = () => {
   const urlPattern = /^https?:\/\/[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+(:\d+)?(\/.*)?$/;
   
   if (!studioUrl.value.startsWith('http://') && !studioUrl.value.startsWith('https://')) {
-    studioUrlError.value = 'URL must start with http:// or https://';
+    studioUrlError.value = t('auth.signUp.urlMustStartWith');
   } else if (!urlPattern.test(studioUrl.value)) {
-    studioUrlError.value = 'Please enter a valid URL';
+    studioUrlError.value = t('auth.signUp.invalidUrl');
   } else {
     studioUrlError.value = '';
   }
