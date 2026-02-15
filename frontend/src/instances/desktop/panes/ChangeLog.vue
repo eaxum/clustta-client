@@ -11,6 +11,7 @@
           <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.tasks }" />
           <span class="changelog-group-title">Tasks</span>
           <span class="changelog-group-count">{{ summary.tasks.length }}</span>
+          <div class="menu-divider"></div>
         </div>
 
         <div v-if="expandedGroups.tasks" class="changelog-group-items">
@@ -23,6 +24,7 @@
           <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.entities }" />
           <span class="changelog-group-title">Collections</span>
           <span class="changelog-group-count">{{ summary.entities.length }}</span>
+          <div class="menu-divider"></div>
         </div>
 
         <div v-if="expandedGroups.entities" class="changelog-group-items">
@@ -35,6 +37,7 @@
           <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.other }" />
           <span class="changelog-group-title">Other</span>
           <span class="changelog-group-count">{{ summary.other.length }}</span>
+          <div class="menu-divider"></div>
         </div>
 
         <div v-if="expandedGroups.other" class="changelog-group-items">
@@ -227,7 +230,6 @@ onUnmounted(() => {
 .changelog-group-count {
   font-size: 12px;
   opacity: .5;
-  margin-left: auto;
 }
 
 .changelog-group-header {
@@ -236,11 +238,12 @@ onUnmounted(() => {
   gap: .5rem;
   padding: .4rem .2rem;
   cursor: pointer;
-  border-radius: var(--small-radius);
+  opacity: .5;
+  transition: opacity .2s ease;
 }
 
 .changelog-group-header:hover {
-  background-color: var(--light-steel);
+  opacity: 1;
 }
 
 .changelog-group-items {
