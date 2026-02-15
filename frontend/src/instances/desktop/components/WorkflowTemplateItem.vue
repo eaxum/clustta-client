@@ -20,7 +20,7 @@
       <span class="item-name">{{ item.name }}</span>
 
       <div v-if="isHierarchyRoot" class="hierarchy-header-config">
-        <ActionButton v-if="isHierarchyRoot" :icon="getAppIcon('plus-circle')" v-tooltip="'Remove'" @click="addWorkflow()" />
+        <ActionButton v-if="isHierarchyRoot" :icon="getAppIcon('plus-circle')" v-tooltip="$t('components.workflowTemplateItem.remove')" @click="addWorkflow()" />
       </div>
 
       <div v-else class="hierarchy-item-config">
@@ -28,7 +28,7 @@
           <ListBox v-if="item.task_type_id" :items="assetStore.getAssetTypesNames" :selectedItem="taskType"
             :onSelect="selectTaskType" />
         </div>
-        <ActionButton :icon="getAppIcon('trash')" v-tooltip="'Remove'" @click="removeItem(item)" />
+        <ActionButton :icon="getAppIcon('trash')" v-tooltip="$t('components.workflowTemplateItem.remove')" @click="removeItem(item)" />
       </div>
 
 

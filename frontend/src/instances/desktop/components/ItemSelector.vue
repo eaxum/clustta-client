@@ -41,7 +41,7 @@
           </div>
           
           <div v-if="filteredItems.length === 0 && searchQuery" class="no-results">
-            No matching {{ itemType }}s found
+            {{ $t('components.itemSelector.noMatchingItems', { type: itemType }) }}
           </div>
         </div>
       </Teleport>

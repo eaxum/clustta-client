@@ -967,6 +967,393 @@
     "manageTemplates": "テンプレートを管理",
     "addTemplates": "テンプレートを追加"
   },
+  "components": {
+    "createMenu": {
+      "addAsset": "アセットを追加",
+      "addCollection": "コレクションを追加",
+      "addWorkflow": "ワークフローを追加",
+      "addWeblink": "ウェブリンクを追加",
+      "importItems": "アイテムをインポート"
+    },
+    "actionBar": {
+      "add": "追加"
+    },
+    "changeLogItem": {
+      "goToItem": "アイテムに移動",
+      "discard": "破棄"
+    },
+    "batchGenerator": {
+      "firstItem": "最初のアイテム",
+      "secondItem": "2番目のアイテム",
+      "totalCount": "合計数",
+      "placeholderFirst": "例: shot01",
+      "placeholderSecond": "例: shot02",
+      "placeholderCount": "例: 10"
+    },
+    "clipboard": {
+      "clearClipboard": "クリップボードをクリア",
+      "cut": "切り取り",
+      "copied": "コピー済み",
+      "clipboardTitle": "{action} [{count} {unit}]"
+    },
+    "emojiPicker": {
+      "searchPlaceholder": "絵文字を検索...",
+      "noResults": "表示する結果がありません"
+    },
+    "ghostItem": {
+      "dropIn": "{location}にドロップ",
+      "root": "ルート"
+    },
+    "hierarchyItem": {
+      "remove": "削除",
+      "task": "タスク",
+      "resource": "リソース"
+    },
+    "infoBar": {
+      "clickToUpdate": "クリックして更新",
+      "closeConsole": "コンソールを閉じる",
+      "openConsole": "コンソールを開く",
+      "clickToRestore": "{title}（クリックして復元）"
+    },
+    "itemSelector": {
+      "noMatchingItems": "一致する{type}が見つかりません",
+      "searchPlaceholder": "検索または追加...",
+      "defaultItemType": "アイテム"
+    },
+    "renameInput": {
+      "confirm": "確認",
+      "cancel": "キャンセル",
+      "enterName": "名前を入力"
+    },
+    "conflictItem": {
+      "enterNewName": "新しい名前を入力",
+      "rename": "名前を変更",
+      "merge": "マージ",
+      "noActiveProject": "アクティブなプロジェクトがありません",
+      "renameFailed": "名前の変更に失敗しました"
+    },
+    "collaboratorItem": {
+      "remove": "削除",
+      "viewProfile": "プロフィールを表示",
+      "editRole": "役割を編集",
+      "removing": "削除中...",
+      "adding": "追加中...",
+      "addToProject": "プロジェクトに追加",
+      "errorRemovingCollaborator": "コラボレーターの削除エラー",
+      "errorAddingCollaborator": "コラボレーターの追加エラー",
+      "errorUpdatingRole": "役割の更新エラー"
+    },
+    "checkpointItem": {
+      "close": "閉じる",
+      "viewAttachment": "添付ファイルを表示",
+      "revertToCheckpoint": "このチェックポイントに戻す",
+      "downloadCheckpoint": "チェックポイントをダウンロード",
+      "openCheckpoint": "チェックポイントを開く",
+      "deleteCheckpoint": "チェックポイントを削除",
+      "revert": "元に戻す",
+      "download": "ダウンロード",
+      "open": "開く",
+      "delete": "削除",
+      "errorDownloading": "チェックポイントのダウンロードエラー",
+      "errorReverting": "バージョンへの復元エラー",
+      "errorDeleting": "チェックポイントの削除エラー",
+      "deleteCheckpointTitle": "チェックポイントを削除",
+      "deleteCheckpointConfirm": "このチェックポイントを削除してもよろしいですか？"
+    },
+    "debugConsole": {
+      "title": "デバッグコンソール",
+      "filterPlaceholder": "ログをフィルター...",
+      "copyLogs": "ログをコピー",
+      "openLogsFolder": "ログフォルダーを開く",
+      "submitDiagnostics": "診断情報を送信",
+      "clear": "クリア",
+      "close": "閉じる",
+      "noLogs": "表示するログがありません",
+      "noMatchingLogs": "一致するログがありません",
+      "copiedLogEntries": "{count}件のログエントリをコピーしました",
+      "copiedLogEntriesToClipboard": "{count}件のログエントリをクリップボードにコピーしました"
+    },
+    "contributionGraph": {
+      "activitySummary": "過去1年間で{projects}プロジェクトと{studios}スタジオにわたる{count}件の貢献",
+      "mon": "月",
+      "wed": "水",
+      "fri": "金",
+      "less": "少ない",
+      "more": "多い",
+      "contributionsOn": "{date}に{count}件の貢献",
+      "jan": "1月",
+      "feb": "2月",
+      "mar": "3月",
+      "apr": "4月",
+      "may": "5月",
+      "jun": "6月",
+      "jul": "7月",
+      "aug": "8月",
+      "sep": "9月",
+      "oct": "10月",
+      "nov": "11月",
+      "dec": "12月"
+    },
+    "linksManager": {
+      "portfolioLabel": "ポートフォリオURL（YouTube/Vimeo）",
+      "portfolioPlaceholder": "https://youtube.com/watch?v=... または https://vimeo.com/...",
+      "artstationLabel": "ArtStation URL",
+      "artstationPlaceholder": "https://artstation.com/yourprofile",
+      "behanceLabel": "Behance URL",
+      "behancePlaceholder": "https://behance.net/yourprofile",
+      "linkedinLabel": "LinkedIn URL",
+      "linkedinPlaceholder": "https://linkedin.com/in/yourprofile",
+      "instagramLabel": "Instagram URL",
+      "instagramPlaceholder": "https://instagram.com/yourprofile",
+      "portfolio": "ポートフォリオ",
+      "artstation": "ArtStation",
+      "behance": "Behance",
+      "linkedin": "LinkedIn",
+      "instagram": "Instagram",
+      "noLinks": "プロフェッショナルリンクはまだ追加されていません",
+      "errorBehance": "https://behance.net/ で始まる必要があります",
+      "errorArtstation": "https://artstation.com/ で始まる必要があります",
+      "errorLinkedin": "https://linkedin.com/in/ で始まる必要があります",
+      "errorPortfolio": "YouTubeまたはVimeoのリンクである必要があります",
+      "errorInstagram": "https://instagram.com/ で始まる必要があります"
+    },
+    "paneHeader": {
+      "toggleMetadata": "メタデータを切り替え",
+      "toggleSearch": "検索を切り替え",
+      "unpin": "ピン留め解除",
+      "pin": "ピン留め"
+    },
+    "profileAvatar": {
+      "changePhoto": "写真を変更",
+      "removePhoto": "写真を削除",
+      "selectProfilePicture": "プロフィール写真を選択"
+    },
+    "profileCard": {
+      "cancelEditing": "編集をキャンセル",
+      "editSection": "セクションを編集"
+    },
+    "projectList": {
+      "pinnedProjects": "ピン留めされたプロジェクト",
+      "recentProjects": "最近のプロジェクト",
+      "clearRecentProjects": "最近のプロジェクトをクリア",
+      "unpinProject": "プロジェクトのピン留めを解除",
+      "pinProject": "プロジェクトをピン留め",
+      "recentProjectsCleared": "最近のプロジェクトをクリアしました"
+    },
+    "searchBar": {
+      "loading": "読み込み中...",
+      "clearSearch": "検索をクリア",
+      "search": "検索"
+    },
+    "scrollList": {
+      "edit": "編集",
+      "delete": "削除",
+      "assign": "割り当て",
+      "unassign": "割り当て解除"
+    },
+    "formInput": {
+      "hide": "非表示",
+      "show": "表示"
+    },
+    "virtualNode": {
+      "remove": "削除",
+      "addDependency": "依存関係を追加"
+    },
+    "workflowTemplateItem": {
+      "remove": "削除"
+    },
+    "workspaceTabs": {
+      "deleteWorkspace": "ワークスペースを削除",
+      "saveWorkspace": "ワークスペースを保存",
+      "unableToAddWorkspaces": "新しいワークスペースを追加できません"
+    },
+    "sidePane": {
+      "allProjects": "すべてのプロジェクト",
+      "settings": "設定",
+      "login": "ログイン"
+    },
+    "trashItem": {
+      "restore": "復元",
+      "expand": "展開",
+      "itemRestored": "アイテムが復元されました",
+      "errorRestoringItem": "アイテムの復元エラー"
+    },
+    "timelineItem": {
+      "revert": "元に戻す",
+      "expand": "展開",
+      "close": "閉じる",
+      "projectReverted": "プロジェクトが正常に元に戻されました",
+      "errorRevertingProject": "プロジェクトの復元エラー"
+    },
+    "skillsManager": {
+      "noSkills": "表示するスキルがありません",
+      "searchPlaceholder": "スキルを検索して追加...",
+      "maxReached": "スキルの上限5に達しました。追加するにはスキルを削除してください。",
+      "skillAdded": "スキルを追加しました",
+      "skillAddedMessage": "スキルが正常に追加されました。",
+      "failedToAddSkill": "スキルの追加に失敗しました",
+      "skillRemoved": "スキルを削除しました",
+      "skillRemovedMessage": "スキルが正常に削除されました。",
+      "failedToRemoveSkill": "スキルの削除に失敗しました"
+    },
+    "toolsManager": {
+      "noTools": "表示するツールがありません",
+      "searchPlaceholder": "ツールを検索して追加...",
+      "maxReached": "ツールの上限5に達しました。追加するにはツールを削除してください。",
+      "toolAdded": "ツールを追加しました",
+      "toolAddedMessage": "ツールが正常に追加されました。",
+      "failedToAddTool": "ツールの追加に失敗しました",
+      "toolRemoved": "ツールを削除しました",
+      "toolRemovedMessage": "ツールが正常に削除されました。",
+      "failedToRemoveTool": "ツールの削除に失敗しました"
+    },
+    "importPreview": {
+      "deselectAll": "すべて選択解除",
+      "removeSelected": "選択を削除",
+      "removeSelectedTooltip": "選択を削除",
+      "removeEmptyFolders": "空のフォルダを削除",
+      "entity": "エンティティ",
+      "entities": "エンティティ",
+      "task": "タスク",
+      "tasks": "タスク",
+      "and": "と",
+      "toImport": "インポート予定",
+      "selected": "選択済み",
+      "projectRoot": "プロジェクトルート"
+    },
+    "titleBar": {
+      "aboutClustta": "Clusttaについて",
+      "connected": "接続済み",
+      "offline": "オフライン",
+      "studioSettings": "スタジオ設定",
+      "reloadStudio": "スタジオを再読み込み",
+      "signUp": "サインアップ",
+      "login": "ログイン",
+      "newStudio": "新しいスタジオ",
+      "working": "作業中"
+    },
+    "headerBar": {
+      "trash": "ゴミ箱",
+      "projectSettings": "プロジェクト設定",
+      "empty": "空にする",
+      "emptyTrash": "ゴミ箱を空にする",
+      "serverUnreachable": "サーバーに到達できません",
+      "projectOffline": "プロジェクトオフライン",
+      "syncing": "同期中...",
+      "upToDate": "最新の状態",
+      "unsyncedChanges": "未同期の変更",
+      "serverBusy": "サーバーがビジー...",
+      "operationInProgress": "操作進行中...",
+      "projectNotDownloaded": "プロジェクト未ダウンロード",
+      "noChangesToRevert": "元に戻す変更がありません",
+      "revertLocalChanges": "ローカルの変更を元に戻す",
+      "serverUnreachableSync": "サーバーに到達できません",
+      "sync": "同期",
+      "projects": "プロジェクト",
+      "back": "戻る",
+      "studioSettings": "スタジオ設定",
+      "clusttaSettings": "Clustta設定",
+      "accountSettings": "アカウント設定",
+      "emptyTrashTitle": "ゴミ箱を空にする",
+      "emptyTrashMessage": "ゴミ箱のすべてのアイテムが完全に削除されます。続行しますか？",
+      "errorSyncingData": "データ同期エラー"
+    },
+    "dependencyGraph": {
+      "fullGraph": "完全なグラフ",
+      "hideThumbnails": "サムネイルを非表示",
+      "showThumbnails": "サムネイルを表示",
+      "toggleTasksDisplay": "タスク表示の切り替え",
+      "toggleEntityDisplay": "エンティティ表示の切り替え",
+      "toggleResourcesDisplay": "リソース表示の切り替え",
+      "fitView": "ビューに合わせる",
+      "search": "検索",
+      "collectionType": "コレクションタイプ",
+      "taskType": "タスクタイプ",
+      "type": "タイプ",
+      "resetFilters": "フィルターをリセット",
+      "directDependencies": "このタスクには{count}個の直接依存関係があります",
+      "directDependency": "このタスクには{count}個の直接依存関係があります",
+      "noDependencies": "このタスクには依存関係がありません",
+      "totalDependencies": "合計{count}個の依存関係",
+      "totalDependency": "合計{count}個の依存関係",
+      "errorLoadingProject": "プロジェクトデータの読み込みエラー",
+      "dependencyAdded": "依存関係を追加しました",
+      "errorAddingDependencies": "依存関係の追加エラー",
+      "dependencyRemoved": "依存関係を削除しました",
+      "errorRemovingDependencies": "依存関係の削除エラー",
+      "errorBuildingGraph": "依存関係グラフの構築エラー"
+    },
+    "detailsPane": {
+      "collections": "コレクション",
+      "assets": "アセット",
+      "untrackedItems": "未追跡アイテム",
+      "makeDependencies": "アクティブタスクの依存関係にする",
+      "makeDependenciesTooltip": "選択したアイテムをアクティブタスクの依存関係として追加",
+      "moveIntoCollection": "アクティブコレクションに移動",
+      "moveIntoCollectionTooltip": "選択したアイテムをアクティブコレクションに移動",
+      "type": "タイプ",
+      "assetType": "アセットタイプ",
+      "status": "ステータス",
+      "moveToCollection": "コレクションに移動",
+      "moveToCollectionTooltip": "選択したアセットを別のコレクションに移動",
+      "rebuildAssets": "アセットを再構築",
+      "rebuildAssetsTooltip": "選択したアセットをダウンロードして復元",
+      "createCheckpoints": "チェックポイントを作成",
+      "createCheckpointsTooltip": "選択したアセットの現在の状態を保存",
+      "revertTasks": "タスクを元に戻す",
+      "revertTasksTooltip": "選択したアセットを最後のチェックポイントに戻す",
+      "assignAssets": "アセットを割り当て",
+      "assignAssetsTooltip": "選択したアセットにコラボレーターを割り当て",
+      "unassignAssets": "アセットの割り当て解除",
+      "unassignAssetsTooltip": "選択したアセットのすべての割り当てを解除",
+      "freeUpSpace": "空き容量を確保",
+      "freeUpSpaceTaskTooltip": "作業ファイルを削除してディスク容量を確保",
+      "deleteSelectedAssets": "選択したアセットを削除",
+      "deleteSelectedAssetsTooltip": "選択したアセットをゴミ箱に移動",
+      "collectionType": "コレクションタイプ",
+      "library": "ライブラリ",
+      "assignees": "担当者",
+      "unassignCollections": "コレクションの割り当て解除",
+      "unassignCollectionsTooltip": "選択したコレクションのすべての割り当てを解除",
+      "rebuildCollections": "コレクションを再構築",
+      "rebuildCollectionsTooltip": "選択したコレクションのすべてのアセットをダウンロードして復元",
+      "freeUpSpaceCollectionTooltip": "コレクションの内容を削除してディスク容量を確保",
+      "deleteCollections": "コレクションを削除",
+      "deleteCollectionsTooltip": "選択したコレクションをゴミ箱に移動",
+      "createCheckpointsUntrackedTooltip": "選択したアイテムを追跡してチェックポイントを作成",
+      "ignoreItems": "アイテムを無視",
+      "ignoreItemsTooltip": "アイテムを無視リストに追加",
+      "deleteItems": "アイテムを削除",
+      "deleteItemsTooltip": "選択した未追跡アイテムを完全に削除",
+      "deleteAllItemsTooltip": "選択したすべてのアイテムを削除",
+      "searchCollaborators": "コラボレーターを検索",
+      "dependencyAdded": "依存関係を追加しました",
+      "errorAddingDependencies": "依存関係の追加エラー",
+      "errorAddingUser": "ユーザーの追加エラー",
+      "movedSuccessfully": "正常に移動しました。",
+      "errorChangingParent": "親エンティティの変更エラー",
+      "errorChangingEntity": "タスクエンティティの変更エラー",
+      "collectionsMovedToTrash": "コレクションがゴミ箱に移動されました。",
+      "entitiesFailedToDelete": "エンティティの削除に失敗しました。",
+      "assetsMovedToTrash": "アセットがゴミ箱に移動されました。",
+      "assetsFailedToDelete": "アセットの削除に失敗しました。",
+      "untrackedItemsDeleted": "未追跡アイテムが削除されました。",
+      "failedToDeleteUntracked": "未追跡アイテムの削除に失敗しました。",
+      "freeUpCollectionSpaceTitle": "コレクションの空き容量を確保",
+      "freeUpCollectionSpaceMessage": "これらのコレクションの作業ファイルを削除してもよろしいですか？ディスク容量は確保されますが、再度作業するには再構築が必要です。",
+      "freeUpTaskSpaceTitle": "タスクの空き容量を確保",
+      "freeUpTaskSpaceMessage": "これらのタスクの作業ファイルを削除してもよろしいですか？ディスク容量は確保されますが、再度作業するには再構築が必要です。",
+      "revertSelectedTasksTitle": "選択したタスクを元に戻す",
+      "revertSelectedTasksMessage": "変更されたタスクは最後のチェックポイントに戻されます。この操作は元に戻せません。",
+      "updatedIgnoreList": "無視リストを更新しました",
+      "failedToUpdateIgnoreList": "無視リストの更新に失敗しました",
+      "collectionsRebuiltSuccessfully": "コレクションが正常に再構築されました",
+      "errorRebuildingCollections": "コレクションの再構築エラー",
+      "tasksUnassignedSuccessfully": "タスクの割り当てが正常に解除されました。",
+      "errorAssigningTask": "タスクの割り当てエラー",
+      "errorRevertingTasks": "タスクの復元エラー"
+    }
+  },
   "errors": {
     "badRequest": "不正なリクエスト",
     "authenticationRequired": "認証が必要です",

@@ -19,7 +19,7 @@
         </div>
         <div v-if="isSecret && modelValue" class="form-input-icon">
           <ActionButton
-            v-tooltip="isSecretVisible ? 'Hide' : 'Show'"
+            v-tooltip="isSecretVisible ? $t('components.formInput.hide') : $t('components.formInput.show')"
             :icon="isSecretVisible ? getAppIcon('eye-cancel') : getAppIcon('eye')"
             :buttonFunction="toggleSecretVisibility"
             :showLabel="false"

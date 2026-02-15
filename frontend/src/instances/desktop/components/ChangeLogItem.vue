@@ -10,8 +10,8 @@
       </div>
 
       <div class="changelog-item-actions">
-        <ActionButton v-if="item.change_type !== 'deleted'" :icon="getAppIcon('file-search')" v-tooltip="'Go to Item'" :buttonFunction="() => $emit('find', item.id)" :isDisabled="isLoading" />
-        <ActionButton :icon="getAppIcon('revert')" v-tooltip="'Discard'" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
+        <ActionButton v-if="item.change_type !== 'deleted'" :icon="getAppIcon('file-search')" v-tooltip="$t('components.changeLogItem.goToItem')" :buttonFunction="() => $emit('find', item.id)" :isDisabled="isLoading" />
+        <ActionButton :icon="getAppIcon('revert')" v-tooltip="$t('components.changeLogItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
       </div>
     </div>
   </div>

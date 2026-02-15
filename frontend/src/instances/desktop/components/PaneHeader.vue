@@ -4,12 +4,12 @@
       <span><img class="large-icons header-icons" :src="icon"></span>
       <span class="page-header-title">{{ title }}</span>
     </div>
-    <span v-if="showMeta" class="action-button" @click="toggleMeta" v-tooltip="'Toggle Metadata'"><img
+    <span v-if="showMeta" class="action-button" @click="toggleMeta" v-tooltip="$t('components.paneHeader.toggleMetadata')"><img
         class="large-icons" src="/icons/info.svg"></span>
-    <span v-if="showSearch" class="action-button" @click="toggleSearch" v-tooltip="'Toggle Search'"><img
+    <span v-if="showSearch" class="action-button" @click="toggleSearch" v-tooltip="$t('components.paneHeader.toggleSearch')"><img
         class="large-icons" src="/icons/search.svg"></span>
     <span v-if="showPin" class="action-button" :class="{ 'action-button-pressed': trayStates.keepModalOpen === true }"
-      @click="trayStates.toggleKeepModal" v-tooltip="trayStates.keepModalOpen ? 'Unpin' : 'Pin'">
+      @click="trayStates.toggleKeepModal" v-tooltip="trayStates.keepModalOpen ? $t('components.paneHeader.unpin') : $t('components.paneHeader.pin')">
       <img v-if="!trayStates.keepModalOpen" class="large-icons" src="/icons/pin.svg">
       <img v-else class="large-icons" src="/icons/unpin.svg">
     </span>
@@ -18,7 +18,7 @@
     <!-- <span><img class="large-icons" :src="icon"></span> -->
     <input v-model="query" class="input-short search-bar" type="text" :placeholder="placeholder" @input="updateSearch"
       v-focus />
-    <span class="action-button" @click="toggleSearch" v-tooltip="'Toggle Search'"><img class="large-icons"
+    <span class="action-button" @click="toggleSearch" v-tooltip="$t('components.paneHeader.toggleSearch')"><img class="large-icons"
         src="/icons/search.svg"></span>
   </div>
 </template>

@@ -970,6 +970,393 @@
     "manageTemplates": "Manage templates",
     "addTemplates": "Add templates"
   },
+  "components": {
+    "createMenu": {
+      "addAsset": "Add Asset",
+      "addCollection": "Add Collection",
+      "addWorkflow": "Add Workflow",
+      "addWeblink": "Add Weblink",
+      "importItems": "Import Items"
+    },
+    "actionBar": {
+      "add": "Add"
+    },
+    "changeLogItem": {
+      "goToItem": "Go to Item",
+      "discard": "Discard"
+    },
+    "batchGenerator": {
+      "firstItem": "First Item",
+      "secondItem": "Second Item",
+      "totalCount": "Total Count",
+      "placeholderFirst": "e.g., shot01",
+      "placeholderSecond": "e.g., shot02",
+      "placeholderCount": "e.g., 10"
+    },
+    "clipboard": {
+      "clearClipboard": "Clear clipboard",
+      "cut": "Cut",
+      "copied": "Copied",
+      "clipboardTitle": "{action} [{count} {unit}]"
+    },
+    "emojiPicker": {
+      "searchPlaceholder": "Search emojis...",
+      "noResults": "No results to display"
+    },
+    "ghostItem": {
+      "dropIn": "Drop in {location}",
+      "root": "Root"
+    },
+    "hierarchyItem": {
+      "remove": "Remove",
+      "task": "Task",
+      "resource": "Resource"
+    },
+    "infoBar": {
+      "clickToUpdate": "Click to update",
+      "closeConsole": "Close Console",
+      "openConsole": "Open Console",
+      "clickToRestore": "{title} (Click to restore)"
+    },
+    "itemSelector": {
+      "noMatchingItems": "No matching {type}s found",
+      "searchPlaceholder": "Search or add...",
+      "defaultItemType": "item"
+    },
+    "renameInput": {
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "enterName": "Enter name"
+    },
+    "conflictItem": {
+      "enterNewName": "Enter new name",
+      "rename": "Rename",
+      "merge": "Merge",
+      "noActiveProject": "No active project",
+      "renameFailed": "Rename Failed"
+    },
+    "collaboratorItem": {
+      "remove": "Remove",
+      "viewProfile": "View profile",
+      "editRole": "Edit role",
+      "removing": "Removing...",
+      "adding": "Adding...",
+      "addToProject": "Add to project",
+      "errorRemovingCollaborator": "Error removing collaborator",
+      "errorAddingCollaborator": "Error adding collaborator",
+      "errorUpdatingRole": "Error updating role"
+    },
+    "checkpointItem": {
+      "close": "Close",
+      "viewAttachment": "View attachment",
+      "revertToCheckpoint": "Revert to this Checkpoint",
+      "downloadCheckpoint": "Download Checkpoint",
+      "openCheckpoint": "Open Checkpoint",
+      "deleteCheckpoint": "Delete Checkpoint",
+      "revert": "Revert",
+      "download": "Download",
+      "open": "Open",
+      "delete": "Delete",
+      "errorDownloading": "Error Downloading Checkpoint",
+      "errorReverting": "Error Reverting to Version",
+      "errorDeleting": "Error Deleting Checkpoint",
+      "deleteCheckpointTitle": "Delete Checkpoint",
+      "deleteCheckpointConfirm": "Are you sure you want to delete this Checkpoint?"
+    },
+    "debugConsole": {
+      "title": "Debug Console",
+      "filterPlaceholder": "Filter logs...",
+      "copyLogs": "Copy logs",
+      "openLogsFolder": "Open logs folder",
+      "submitDiagnostics": "Submit Diagnostics",
+      "clear": "Clear",
+      "close": "Close",
+      "noLogs": "No logs to display",
+      "noMatchingLogs": "No matching logs",
+      "copiedLogEntries": "Copied {count} log entries",
+      "copiedLogEntriesToClipboard": "Copied {count} log entries to clipboard"
+    },
+    "contributionGraph": {
+      "activitySummary": "{count} contributions in the last year across {projects} projects and {studios} studios",
+      "mon": "Mon",
+      "wed": "Wed",
+      "fri": "Fri",
+      "less": "Less",
+      "more": "More",
+      "contributionsOn": "{count} contributions on {date}",
+      "jan": "Jan",
+      "feb": "Feb",
+      "mar": "Mar",
+      "apr": "Apr",
+      "may": "May",
+      "jun": "Jun",
+      "jul": "Jul",
+      "aug": "Aug",
+      "sep": "Sep",
+      "oct": "Oct",
+      "nov": "Nov",
+      "dec": "Dec"
+    },
+    "linksManager": {
+      "portfolioLabel": "Portfolio URL (YouTube/Vimeo)",
+      "portfolioPlaceholder": "https://youtube.com/watch?v=... or https://vimeo.com/...",
+      "artstationLabel": "ArtStation URL",
+      "artstationPlaceholder": "https://artstation.com/yourprofile",
+      "behanceLabel": "Behance URL",
+      "behancePlaceholder": "https://behance.net/yourprofile",
+      "linkedinLabel": "LinkedIn URL",
+      "linkedinPlaceholder": "https://linkedin.com/in/yourprofile",
+      "instagramLabel": "Instagram URL",
+      "instagramPlaceholder": "https://instagram.com/yourprofile",
+      "portfolio": "Portfolio",
+      "artstation": "ArtStation",
+      "behance": "Behance",
+      "linkedin": "LinkedIn",
+      "instagram": "Instagram",
+      "noLinks": "No professional links added yet",
+      "errorBehance": "Must start with https://behance.net/",
+      "errorArtstation": "Must start with https://artstation.com/",
+      "errorLinkedin": "Must start with https://linkedin.com/in/",
+      "errorPortfolio": "Must be a YouTube or Vimeo link",
+      "errorInstagram": "Must start with https://instagram.com/"
+    },
+    "paneHeader": {
+      "toggleMetadata": "Toggle Metadata",
+      "toggleSearch": "Toggle Search",
+      "unpin": "Unpin",
+      "pin": "Pin"
+    },
+    "profileAvatar": {
+      "changePhoto": "Change Photo",
+      "removePhoto": "Remove Photo",
+      "selectProfilePicture": "Select Profile Picture"
+    },
+    "profileCard": {
+      "cancelEditing": "Cancel editing",
+      "editSection": "Edit section"
+    },
+    "projectList": {
+      "pinnedProjects": "Pinned projects",
+      "recentProjects": "Recent projects",
+      "clearRecentProjects": "Clear recent projects",
+      "unpinProject": "Unpin project",
+      "pinProject": "Pin project",
+      "recentProjectsCleared": "Recent Projects Cleared"
+    },
+    "searchBar": {
+      "loading": "Loading...",
+      "clearSearch": "Clear search",
+      "search": "Search"
+    },
+    "scrollList": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "assign": "Assign",
+      "unassign": "Unassign"
+    },
+    "formInput": {
+      "hide": "Hide",
+      "show": "Show"
+    },
+    "virtualNode": {
+      "remove": "Remove",
+      "addDependency": "Add dependency"
+    },
+    "workflowTemplateItem": {
+      "remove": "Remove"
+    },
+    "workspaceTabs": {
+      "deleteWorkspace": "Delete Workspace",
+      "saveWorkspace": "Save Workspace",
+      "unableToAddWorkspaces": "Unable to add new workspaces"
+    },
+    "sidePane": {
+      "allProjects": "All Projects",
+      "settings": "Settings",
+      "login": "Login"
+    },
+    "trashItem": {
+      "restore": "Restore",
+      "expand": "Expand",
+      "itemRestored": "Item Restored",
+      "errorRestoringItem": "Error Restoring Item"
+    },
+    "timelineItem": {
+      "revert": "Revert",
+      "expand": "Expand",
+      "close": "Close",
+      "projectReverted": "Project Successfully Reverted",
+      "errorRevertingProject": "Error Reverting Project"
+    },
+    "skillsManager": {
+      "noSkills": "No skills to display",
+      "searchPlaceholder": "Search and add skills...",
+      "maxReached": "Maximum of 5 skills reached. Remove a skill to add another.",
+      "skillAdded": "Skill added",
+      "skillAddedMessage": "Skill added successfully.",
+      "failedToAddSkill": "Failed to add skill",
+      "skillRemoved": "Skill removed",
+      "skillRemovedMessage": "Skill removed successfully.",
+      "failedToRemoveSkill": "Failed to remove skill"
+    },
+    "toolsManager": {
+      "noTools": "No tools to display",
+      "searchPlaceholder": "Search and add tools...",
+      "maxReached": "Maximum of 5 tools reached. Remove a tool to add another.",
+      "toolAdded": "Tool added",
+      "toolAddedMessage": "Tool added successfully.",
+      "failedToAddTool": "Failed to add tool",
+      "toolRemoved": "Tool removed",
+      "toolRemovedMessage": "Tool removed successfully.",
+      "failedToRemoveTool": "Failed to remove tool"
+    },
+    "importPreview": {
+      "deselectAll": "Deselect all",
+      "removeSelected": "Remove selected",
+      "removeSelectedTooltip": "Remove Selected",
+      "removeEmptyFolders": "Remove Empty Folders",
+      "entity": "entity",
+      "entities": "entities",
+      "task": "task",
+      "tasks": "tasks",
+      "and": "and",
+      "toImport": "to import",
+      "selected": "selected",
+      "projectRoot": "Project Root"
+    },
+    "titleBar": {
+      "aboutClustta": "About Clustta",
+      "connected": "Connected",
+      "offline": "Offline",
+      "studioSettings": "Studio Settings",
+      "reloadStudio": "Reload Studio",
+      "signUp": "Sign Up",
+      "login": "Login",
+      "newStudio": "New Studio",
+      "working": "working"
+    },
+    "headerBar": {
+      "trash": "Trash",
+      "projectSettings": "Project Settings",
+      "empty": "Empty",
+      "emptyTrash": "Empty trash",
+      "serverUnreachable": "Server unreachable",
+      "projectOffline": "Project offline",
+      "syncing": "Syncing...",
+      "upToDate": "Up to date",
+      "unsyncedChanges": "Unsynced changes",
+      "serverBusy": "Server is busy...",
+      "operationInProgress": "Operation in progress...",
+      "projectNotDownloaded": "Project not downloaded",
+      "noChangesToRevert": "No changes to revert",
+      "revertLocalChanges": "Revert local changes",
+      "serverUnreachableSync": "Server Unreachable",
+      "sync": "Sync",
+      "projects": "Projects",
+      "back": "Back",
+      "studioSettings": "Studio Settings",
+      "clusttaSettings": "Clustta Settings",
+      "accountSettings": "Account Settings",
+      "emptyTrashTitle": "Empty Trash",
+      "emptyTrashMessage": "This will irreversibly delete all items in trash. Continue?",
+      "errorSyncingData": "Error Syncing Data"
+    },
+    "dependencyGraph": {
+      "fullGraph": "Full graph",
+      "hideThumbnails": "Hide Thumbnails",
+      "showThumbnails": "Show Thumbnails",
+      "toggleTasksDisplay": "Toggle Tasks Display",
+      "toggleEntityDisplay": "Toggle Entity Display",
+      "toggleResourcesDisplay": "Toggle Resources Display",
+      "fitView": "Fit View",
+      "search": "Search",
+      "collectionType": "Collection Type",
+      "taskType": "Task Type",
+      "type": "Type",
+      "resetFilters": "Reset Filters",
+      "directDependencies": "This task has {count} direct dependencies",
+      "directDependency": "This task has {count} direct dependency",
+      "noDependencies": "This task has no dependencies",
+      "totalDependencies": "{count} total dependencies",
+      "totalDependency": "{count} total dependency",
+      "errorLoadingProject": "Error loading project data",
+      "dependencyAdded": "Dependency Added",
+      "errorAddingDependencies": "Error adding dependencies",
+      "dependencyRemoved": "Dependency Removed",
+      "errorRemovingDependencies": "Error removing dependencies",
+      "errorBuildingGraph": "Error building dependency graph"
+    },
+    "detailsPane": {
+      "collections": "collections",
+      "assets": "Assets",
+      "untrackedItems": "untracked items",
+      "makeDependencies": "Make dependencies of active task",
+      "makeDependenciesTooltip": "Add selected items as dependencies of the active task",
+      "moveIntoCollection": "Move into active collection",
+      "moveIntoCollectionTooltip": "Move selected items into the active collection",
+      "type": "Type",
+      "assetType": "Asset type",
+      "status": "Status",
+      "moveToCollection": "Move to Collection",
+      "moveToCollectionTooltip": "Move selected assets to a different collection",
+      "rebuildAssets": "Rebuild Assets",
+      "rebuildAssetsTooltip": "Download and restore selected assets",
+      "createCheckpoints": "Create Checkpoints",
+      "createCheckpointsTooltip": "Save current state of selected assets",
+      "revertTasks": "Revert Tasks",
+      "revertTasksTooltip": "Revert selected assets to their last checkpoint",
+      "assignAssets": "Assign assets",
+      "assignAssetsTooltip": "Assign a collaborator to selected assets",
+      "unassignAssets": "Unassign assets",
+      "unassignAssetsTooltip": "Remove all assignees from selected assets",
+      "freeUpSpace": "Free up space",
+      "freeUpSpaceTaskTooltip": "Delete working files to free disk space",
+      "deleteSelectedAssets": "Delete Selected assets",
+      "deleteSelectedAssetsTooltip": "Move selected assets to trash",
+      "collectionType": "Collection type",
+      "library": "Library",
+      "assignees": "Assignees",
+      "unassignCollections": "Unassign collections",
+      "unassignCollectionsTooltip": "Remove all assignees from selected collections",
+      "rebuildCollections": "Rebuild collections",
+      "rebuildCollectionsTooltip": "Download and restore all assets in selected collections",
+      "freeUpSpaceCollectionTooltip": "Delete collection contents to free disk space",
+      "deleteCollections": "Delete collections",
+      "deleteCollectionsTooltip": "Move selected collections to trash",
+      "createCheckpointsUntrackedTooltip": "Track and create checkpoints for selected items",
+      "ignoreItems": "Ignore Items",
+      "ignoreItemsTooltip": "Add items to the ignore list",
+      "deleteItems": "Delete Items",
+      "deleteItemsTooltip": "Permanently delete selected untracked items",
+      "deleteAllItemsTooltip": "Delete all selected items",
+      "searchCollaborators": "Search collaborators",
+      "dependencyAdded": "Dependency Added",
+      "errorAddingDependencies": "Error adding dependencies",
+      "errorAddingUser": "Error adding user",
+      "movedSuccessfully": "Moved successfully.",
+      "errorChangingParent": "Error changing entity parent",
+      "errorChangingEntity": "Error changing task entity",
+      "collectionsMovedToTrash": "Collections moved to trash.",
+      "entitiesFailedToDelete": "Entities failed to delete.",
+      "assetsMovedToTrash": "Assets moved to Trash.",
+      "assetsFailedToDelete": "Assets failed to delete.",
+      "untrackedItemsDeleted": "Untracked items deleted.",
+      "failedToDeleteUntracked": "Failed to delete untracked items.",
+      "freeUpCollectionSpaceTitle": "Free Up Collection Space",
+      "freeUpCollectionSpaceMessage": "Are you sure you want to delete these Collections working files? This will free up disk space but you'll need to rebuild to work on them again.",
+      "freeUpTaskSpaceTitle": "Free Up Task Space",
+      "freeUpTaskSpaceMessage": "Are you sure you want to delete these task working files? This will free up disk space but you'll need to rebuild to work on them again.",
+      "revertSelectedTasksTitle": "Revert Selected tasks",
+      "revertSelectedTasksMessage": "Modified tasks will be reverted to their last checkpoint. This cannot be undone.",
+      "updatedIgnoreList": "Updated ignore list",
+      "failedToUpdateIgnoreList": "Failed to update ignore list",
+      "collectionsRebuiltSuccessfully": "collection(s) rebuilt successfully",
+      "errorRebuildingCollections": "Error rebuilding collections",
+      "tasksUnassignedSuccessfully": "Tasks Unassigned Successfully.",
+      "errorAssigningTask": "Error Assigning Task",
+      "errorRevertingTasks": "Error Reverting Tasks"
+    }
+  },
   "errors": {
     "badRequest": "Bad request",
     "authenticationRequired": "Authentication required",

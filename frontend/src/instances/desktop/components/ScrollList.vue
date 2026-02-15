@@ -25,29 +25,29 @@
         </div>
         <div class="task-item-container-footer">
           <div v-if="useItemId" class="task-item-actions">
-            <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="'Edit'"
+            <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="$t('components.scrollList.edit')"
               @click="editListItem(item.id)" />
             <ActionButton v-if="item.can_delete" :icon="getAppIcon('trash')"
               :class="{ 'item-inactive': buttonInactive(item.id) }" @click="deleteListItem(item.id)"
-              v-tooltip="'Delete'" />
+              v-tooltip="$t('components.scrollList.delete')" />
             <ActionButton v-if="assignItems" :icon="getAppIcon('person-plus')"
-              :class="{ 'item-inactive': buttonInactive(item.id) }" @click="assignListItem(item.id)" :label="'Assign'"
-              v-tooltip="'Assign'" />
+              :class="{ 'item-inactive': buttonInactive(item.id) }" @click="assignListItem(item.id)" :label="$t('components.scrollList.assign')"
+              v-tooltip="$t('components.scrollList.assign')" />
             <ActionButton v-if="unassignItems" :icon="getAppIcon('person-minus')"
               :class="{ 'item-inactive': buttonInactive(item.id) }" @click="unassignListItem(item.id)"
-              :label="'Unassign'" v-tooltip="'Unassign'" />
+              :label="$t('components.scrollList.unassign')" v-tooltip="$t('components.scrollList.unassign')" />
           </div>
           <div v-else class="task-item-actions">
-            <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="'Edit'"
+            <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="$t('components.scrollList.edit')"
               @click="editListItem(index)" />
             <ActionButton v-if="item.can_delete" :icon="getAppIcon('trash')"
-              :class="{ 'item-inactive': buttonInactive(index) }" @click="deleteListItem(index)" v-tooltip="'Delete'" />
+              :class="{ 'item-inactive': buttonInactive(index) }" @click="deleteListItem(index)" v-tooltip="$t('components.scrollList.delete')" />
             <ActionButton v-if="assignItems" :icon="getAppIcon('person-plus')"
-              :class="{ 'item-inactive': buttonInactive(index) }" @click="assignListItem(index)" :label="'Assign'"
-              v-tooltip="'Assign'" />
+              :class="{ 'item-inactive': buttonInactive(index) }" @click="assignListItem(index)" :label="$t('components.scrollList.assign')"
+              v-tooltip="$t('components.scrollList.assign')" />
             <ActionButton v-if="unassignItems" :icon="getAppIcon('person-minus')"
-              :class="{ 'item-inactive': buttonInactive(index) }" @click="unassignListItem(index)" :label="'Unassign'"
-              v-tooltip="'Unassign'" />
+              :class="{ 'item-inactive': buttonInactive(index) }" @click="unassignListItem(index)" :label="$t('components.scrollList.unassign')"
+              v-tooltip="$t('components.scrollList.unassign')" />
           </div>
         </div>
       </div>
@@ -79,42 +79,42 @@
 
         <div class="task-item-container-footer">
           <div v-if="useItemId" class="task-item-actions">
-            <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="'Edit'"
+            <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="$t('components.scrollList.edit')"
               @click="editListItem(item.id)" />
             <ActionButton v-if="item.can_delete" :icon="forCollab ? getAppIcon('person-minus') : getAppIcon('trash')"
               :class="{ 'item-inactive': buttonInactive(item.id) }" @click="deleteListItem(item.id)"
-              v-tooltip="'Delete'" />
+              v-tooltip="$t('components.scrollList.delete')" />
             <ActionButton v-if="assignItems" :icon="getAppIcon('person-plus')"
-              :class="{ 'item-inactive': buttonInactive(item.id) }" @click="assignListItem(item.id)" :label="'Assign'"
-              v-tooltip="'Assign'" />
+              :class="{ 'item-inactive': buttonInactive(item.id) }" @click="assignListItem(item.id)" :label="$t('components.scrollList.assign')"
+              v-tooltip="$t('components.scrollList.assign')" />
             <ActionButton v-if="unassignItems" :icon="getAppIcon('person-minus')"
               :class="{ 'item-inactive': buttonInactive(item.id) }" @click="unassignListItem(item.id)"
-              :label="'Unassign'" v-tooltip="'Unassign'" />
+              :label="$t('components.scrollList.unassign')" v-tooltip="$t('components.scrollList.unassign')" />
           </div>
           <div v-else-if="useItemName" class="task-item-actions">
-            <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="'Edit'"
+            <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="$t('components.scrollList.edit')"
               @click="editListItem(item.name)" />
             <ActionButton v-if="item.can_delete" :icon="forCollab ? getAppIcon('person-minus') : getAppIcon('trash')"
               :class="{ 'item-inactive': buttonInactive(item.name) }" @click="deleteListItem(item.name)"
-              v-tooltip="'Delete'" />
+              v-tooltip="$t('components.scrollList.delete')" />
             <ActionButton v-if="assignItems" :icon="getAppIcon('person-plus')"
-              :class="{ 'item-inactive': buttonInactive(item.name) }" @click="assignListItem(item.name)" :label="'Assign'"
-              v-tooltip="'Assign'" />
+              :class="{ 'item-inactive': buttonInactive(item.name) }" @click="assignListItem(item.name)" :label="$t('components.scrollList.assign')"
+              v-tooltip="$t('components.scrollList.assign')" />
             <ActionButton v-if="unassignItems" :icon="getAppIcon('person-minus')"
               :class="{ 'item-inactive': buttonInactive(item.name) }" @click="unassignListItem(item.name)"
-              :label="'Unassign'" v-tooltip="'Unassign'" />
+              :label="$t('components.scrollList.unassign')" v-tooltip="$t('components.scrollList.unassign')" />
           </div>
           <div v-else class="task-item-actions">
-            <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="'Edit'"
+            <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="$t('components.scrollList.edit')"
               @click="editListItem(index)" />
             <ActionButton v-if="item.can_delete" :icon="forCollab ? getAppIcon('person-minus') : getAppIcon('trash')"
-              :class="{ 'item-inactive': buttonInactive(index) }" @click="deleteListItem(index)" v-tooltip="'Delete'" />
+              :class="{ 'item-inactive': buttonInactive(index) }" @click="deleteListItem(index)" v-tooltip="$t('components.scrollList.delete')" />
             <ActionButton v-if="assignItems" :icon="getAppIcon('person-plus')"
-              :class="{ 'item-inactive': buttonInactive(index) }" @click="assignListItem(index)" :label="'Assign'"
-              v-tooltip="'Assign'" />
+              :class="{ 'item-inactive': buttonInactive(index) }" @click="assignListItem(index)" :label="$t('components.scrollList.assign')"
+              v-tooltip="$t('components.scrollList.assign')" />
             <ActionButton v-if="unassignItems" :icon="getAppIcon('person-minus')"
-              :class="{ 'item-inactive': buttonInactive(index) }" @click="unassignListItem(index)" :label="'Unassign'"
-              v-tooltip="'Unassign'" />
+              :class="{ 'item-inactive': buttonInactive(index) }" @click="unassignListItem(index)" :label="$t('components.scrollList.unassign')"
+              v-tooltip="$t('components.scrollList.unassign')" />
           </div>
         </div>
       </div>

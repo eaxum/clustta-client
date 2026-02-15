@@ -1,15 +1,15 @@
 <template>
 	<div class="create-menu">
 		<ActionButton :icon="getAppIcon('file-plus')" :isDisabled="kanbanView || !(canCreateTask || canModifyEntity)"
-			@click="createAsset" v-tooltip="'Add Asset'" />
+			@click="createAsset" v-tooltip="$t('components.createMenu.addAsset')" />
 		<ActionButton :icon="getAppIcon('folder-plus')" :isDisabled="kanbanView || !(canCreateEntity || canModifyEntity)"
-			@click="createEntity" v-tooltip="'Add Collection'" />
+			@click="createEntity" v-tooltip="$t('components.createMenu.addCollection')" />
 		<ActionButton :icon="getAppIcon('workflow-plus')" :isDisabled="kanbanView || !(canCreateEntity || canModifyEntity)"
-			@click="createWorkflow" v-tooltip="'Add Workflow'" />
+			@click="createWorkflow" v-tooltip="$t('components.createMenu.addWorkflow')" />
 		<ActionButton :icon="getAppIcon('web-plus')" :isDisabled="kanbanView || !(canCreateTask || canModifyEntity)"
-			@click="createWebLink" v-tooltip="'Add Weblink'" />
+			@click="createWebLink" v-tooltip="$t('components.createMenu.addWeblink')" />
 		<ActionButton :icon="getAppIcon('arrow-down-ramp')" v-if="!(platformStore.isWeb || kanbanView)"  :isDisabled="!(canCreateEntity || canModifyEntity)"
-			@click="importItems" v-tooltip="'Import Items'" />
+			@click="importItems" v-tooltip="$t('components.createMenu.importItems')" />
 		<!-- <ActionButton :icon="getAppIcon('arrow-down-ramp')" :isDisabled="platformStore.isWeb || kanbanView || !canCreateEntity"
 			@click="importItems" v-tooltip="'Import Items'" /> -->
 	</div>
@@ -18,7 +18,10 @@
 <script setup>
 // imports
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
+
+const { t } = useI18n();
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';

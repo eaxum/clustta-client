@@ -9,7 +9,7 @@
           <div class="workspace-tab-meta">
             <img v-if="workspace.icon" :src="workspace.icon" class="tab-favicon" alt="favicon">
             <span class="tab-title">{{ workspace.name }}</span>
-            <span v-if="index > 1" v-stop-propagation v-tooltip="'Delete Workspace'"
+            <span v-if="index > 1" v-stop-propagation v-tooltip="$t('components.workspaceTabs.deleteWorkspace')"
               @click.stop="deleteWorkspace(workspace.name)" class="workspace-tab-button">
               <img class="small-icons no-cursor" :src="getAppIcon('close')">
             </span>
@@ -20,7 +20,7 @@
       
       <span class="workspace-tab-button">
           <ActionButton v-if="addWorkspaceVisible" :icon="getAppIcon('plus-circle')" 
-          v-tooltip="withinLimits ? 'Save Workspace' : 'Unable to add new workspaces'"
+          v-tooltip="withinLimits ? $t('components.workspaceTabs.saveWorkspace') : $t('components.workspaceTabs.unableToAddWorkspaces')"
               :buttonFunction="addWorkspace" />
       </span>
       

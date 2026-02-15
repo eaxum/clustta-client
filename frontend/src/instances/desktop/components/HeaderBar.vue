@@ -20,9 +20,9 @@
 
 			<div class="local-project-actions" v-if="stage.selectedStage === 'browser'">
 				<ActionButton v-if="userStore.canDo('delete_task')" :icon="getAppIcon('trash')" @click="goToTrash()"
-					v-tooltip="'Trash'" />
+					v-tooltip="$t('components.headerBar.trash')" />
 				<ActionButton v-if="userStore.canDo('create_task')" :icon="getAppIcon('briefcase-cog')"
-					@click="goToSettings()" v-tooltip="'Project Settings'" />
+					@click="goToSettings()" v-tooltip="$t('components.headerBar.projectSettings')" />
 
 			</div>
 
@@ -42,8 +42,8 @@
 		</div>
 
 		<div class="header-bar-actions" v-if="stage.selectedStage === 'trash' && trayStates.trashables.length">
-			<ActionButton :icon="getAppIcon('trash')" label="Empty" :showLabel="true" @click="prepEmptyTrashPopUpModal"
-				v-tooltip="'Empty trash'" :useBackground="true" :color="'var(--danger)'" />
+			<ActionButton :icon="getAppIcon('trash')" :label="$t('components.headerBar.empty')" :showLabel="true" @click="prepEmptyTrashPopUpModal"
+				v-tooltip="$t('components.headerBar.emptyTrash')" :useBackground="true" :color="'var(--danger)'" />
 		</div>
 	</div>
 
@@ -54,6 +54,7 @@
 
 // imports
 import { computed, ref, onMounted, toRaw } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { ProjectService } from '@/services';
 import { syncData, pullData } from '@/lib/sync';
 import utils from '@/services/utils';
@@ -93,6 +94,8 @@ const studioStore = useStudioStore();
 const userStore = useUserStore();
 const platformStore = usePlatformStore();
 
+const { t } = useI18n();
+
 const emits = defineEmits(["update-search", "toggle-search"]);
 const enabledStages = ref(['browser', 'projectSettings']);
 
@@ -125,11 +128,11 @@ const getCloudIcon = computed(() => {
 
 // Returns the tooltip text for the cloud/sync icon.
 const cloudIconTooltip = computed(() => {
-	if (!studioStore.appOnline) return 'Server unreachable';
-	if (projectStore.getActiveProject?.is_offline) return 'Project offline';
-	if (!!notificationStore.getProgress.running) return 'Syncing...';
-	if (!unSynced.value) return 'Up to date';
-	return 'Unsynced changes';
+	if (!studioStore.appOnline) return t('components.headerBar.serverUnreachable');
+	if (projectStore.getActiveProject?.is_offline) return t('components.headerBar.projectOffline');
+	if (!!notificationStore.getProgress.running) return t('components.headerBar.syncing');
+	if (!unSynced.value) return t('components.headerBar.upToDate');
+	return t('components.headerBar.unsyncedChanges');
 });
 
 // computed properties
@@ -153,13 +156,13 @@ const toggleFullTaskPath = () => {
 // Returns the header configuration for the active stage.
 const activeHeaderConfig = computed(() => {
 	const configs = {
-		projects: { icon: 'home', isInactive: true, title: 'Projects' },
-		dependencies: { icon: 'chevron-left', action: goToList, title: taskName.value, customIcon: assetStore.selectedAsset?.icon, containerClick: toggleFullTaskPath, tooltip: 'Back' },
-		trash: { icon: 'chevron-left', action: goToList, title: 'Trash', tooltip: 'Back' },
-		projectSettings: { icon: 'chevron-left', action: goToList, title: 'Project Settings', tooltip: 'Back' },
-		studioSettings: { icon: 'chevron-left', action: goToProjects, title: 'Studio Settings', tooltip: 'Back' },
-		settings: { icon: 'chevron-left', action: goToProjects, title: 'Clustta Settings', tooltip: 'Back' },
-		account: { icon: 'chevron-left', action: goToProjects, title: 'Account Settings', tooltip: 'Back' },
+		projects: { icon: 'home', isInactive: true, title: t('components.headerBar.projects') },
+		dependencies: { icon: 'chevron-left', action: goToList, title: taskName.value, customIcon: assetStore.selectedAsset?.icon, containerClick: toggleFullTaskPath, tooltip: t('components.headerBar.back') },
+		trash: { icon: 'chevron-left', action: goToList, title: t('components.headerBar.trash'), tooltip: t('components.headerBar.back') },
+		projectSettings: { icon: 'chevron-left', action: goToList, title: t('components.headerBar.projectSettings'), tooltip: t('components.headerBar.back') },
+		studioSettings: { icon: 'chevron-left', action: goToProjects, title: t('components.headerBar.studioSettings'), tooltip: t('components.headerBar.back') },
+		settings: { icon: 'chevron-left', action: goToProjects, title: t('components.headerBar.clusttaSettings'), tooltip: t('components.headerBar.back') },
+		account: { icon: 'chevron-left', action: goToProjects, title: t('components.headerBar.accountSettings'), tooltip: t('components.headerBar.back') },
 	};
 	return configs[stage.activeStage] || null;
 });
@@ -175,11 +178,11 @@ const revertButtonDisabled = computed(() => {
 });
 
 const revertButtonTooltip = computed(() => {
-	if (projectStore.serverIsBusy) return 'Server is busy...';
-	if (stage.operationActive) return 'Operation in progress...';
-	if (!projectStore.getActiveProject?.is_downloaded) return 'Project not downloaded';
-	if (!unSynced.value) return 'No changes to revert';
-	return 'Revert local changes';
+	if (projectStore.serverIsBusy) return t('components.headerBar.serverBusy');
+	if (stage.operationActive) return t('components.headerBar.operationInProgress');
+	if (!projectStore.getActiveProject?.is_downloaded) return t('components.headerBar.projectNotDownloaded');
+	if (!unSynced.value) return t('components.headerBar.noChangesToRevert');
+	return t('components.headerBar.revertLocalChanges');
 });
 
 const syncButtonDisabled = computed(() => {
@@ -190,12 +193,12 @@ const syncButtonDisabled = computed(() => {
 });
 
 const syncButtonTooltip = computed(() => {
-	if (projectStore.serverIsBusy) return 'Server is busy...';
-	if (stage.operationActive) return 'Operation in progress...';
-	if (projectStore.getActiveProject?.is_offline) return 'Server Unreachable';
-	if (!projectStore.getActiveProject?.is_downloaded) return 'Project not downloaded';
-	if (!unSynced.value) return 'Sync';
-	return 'Sync';
+	if (projectStore.serverIsBusy) return t('components.headerBar.serverBusy');
+	if (stage.operationActive) return t('components.headerBar.operationInProgress');
+	if (projectStore.getActiveProject?.is_offline) return t('components.headerBar.serverUnreachableSync');
+	if (!projectStore.getActiveProject?.is_downloaded) return t('components.headerBar.projectNotDownloaded');
+	if (!unSynced.value) return t('components.headerBar.sync');
+	return t('components.headerBar.sync');
 });
 
 // methods
@@ -208,8 +211,8 @@ const openChangeLog = () => {
 
 const prepEmptyTrashPopUpModal = () => {
 	trayStates.popUpModalIcon = 'trash'
-	trayStates.popUpModalTitle = "Empty Trash";
-	trayStates.popUpModalMessage = "This will irreversibly delete all items in trash. Continue?";
+	trayStates.popUpModalTitle = t('components.headerBar.emptyTrashTitle');
+	trayStates.popUpModalMessage = t('components.headerBar.emptyTrashMessage');
 	trayStates.popUpModalFunction = emptyTrash;
 	modals.setModalVisibility('popUpModal', true);
 };
@@ -223,7 +226,7 @@ const emptyTrash = async () => {
 		}).catch((error) => {
 			console.error(error.message)
 			notificationStore.addNotification(
-				"Error Syncing Data",
+				t('components.headerBar.errorSyncingData'),
 				error.message,
 				"error",
 				false

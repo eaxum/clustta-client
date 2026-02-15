@@ -1,7 +1,7 @@
 <template>
   <div class="contribution-graph">
     <div class="graph-header">
-      <span class="activity-count">{{ totalActivity }} contributions in the last year accross 6 projects and 2 studios</span>
+      <span class="activity-count">{{ $t('components.contributionGraph.activitySummary', { count: totalActivity, projects: 6, studios: 2 }) }}</span>
     </div>
     
     <div class="graph-container">
@@ -13,9 +13,9 @@
       
       <div class="graph-grid">
         <div class="days-labels">
-          <span class="day-label">Mon</span>
-          <span class="day-label">Wed</span>
-          <span class="day-label">Fri</span>
+          <span class="day-label">{{ $t('components.contributionGraph.mon') }}</span>
+          <span class="day-label">{{ $t('components.contributionGraph.wed') }}</span>
+          <span class="day-label">{{ $t('components.contributionGraph.fri') }}</span>
         </div>
         
         <div class="weeks-container">
@@ -32,12 +32,12 @@
       </div>
       
       <div class="legend">
-        <span class="legend-label">Less</span>
+        <span class="legend-label">{{ $t('components.contributionGraph.less') }}</span>
         <div class="legend-cell level-0"></div>
         <div class="legend-cell level-1"></div>
         <div class="legend-cell level-2"></div>
         <div class="legend-cell level-3"></div>
-        <span class="legend-label">More</span>
+        <span class="legend-label">{{ $t('components.contributionGraph.more') }}</span>
       </div>
     </div>
   </div>
@@ -45,11 +45,21 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const weeks = ref([]);
 const totalActivity = ref(0);
 
-const visibleMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const visibleMonths = computed(() => [
+  t('components.contributionGraph.jan'), t('components.contributionGraph.feb'),
+  t('components.contributionGraph.mar'), t('components.contributionGraph.apr'),
+  t('components.contributionGraph.may'), t('components.contributionGraph.jun'),
+  t('components.contributionGraph.jul'), t('components.contributionGraph.aug'),
+  t('components.contributionGraph.sep'), t('components.contributionGraph.oct'),
+  t('components.contributionGraph.nov'), t('components.contributionGraph.dec')
+]);
 
 // Generate contribution data for the last year
 const generateContributionData = () => {
@@ -111,7 +121,7 @@ const getTooltip = (day) => {
     month: 'short', 
     day: 'numeric' 
   });
-  return `${day.count} contributions on ${dateStr}`;
+  return t('components.contributionGraph.contributionsOn', { count: day.count, date: dateStr });
 };
 
 onMounted(() => {

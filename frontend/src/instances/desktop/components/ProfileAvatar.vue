@@ -11,7 +11,7 @@
           <button 
             class="avatar-action-button" 
             @click="selectPhoto"
-            v-tooltip="'Change Photo'"
+            v-tooltip="$t('components.profileAvatar.changePhoto')"
           >
             <img class="action-icon" :src="getAppIcon('camera')" alt="Change">
           </button>
@@ -19,7 +19,7 @@
             v-if="photoPreview || userPhoto" 
             class="avatar-action-button" 
             @click="removePhoto"
-            v-tooltip="'Remove Photo'"
+            v-tooltip="$t('components.profileAvatar.removePhoto')"
           >
             <img class="action-icon" :src="getAppIcon('close')" alt="Remove">
           </button>
@@ -31,9 +31,12 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useIconStore } from '@/stores/icons';
 import { DialogService, FSService } from '@/services';
 import utils from '@/services/utils';
+
+const { t } = useI18n();
 
 const iconStore = useIconStore();
 
@@ -71,7 +74,7 @@ const displayPhoto = computed(() => {
 const selectPhoto = async () => {
   try {
     const result = await DialogService.SelectFileDialog(
-      "Select Profile Picture", 
+      t('components.profileAvatar.selectProfilePicture'), 
       "*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp"
     );
     

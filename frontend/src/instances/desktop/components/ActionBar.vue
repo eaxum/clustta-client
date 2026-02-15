@@ -1,7 +1,7 @@
 <template>
 	<div class="action-bar-root">
 		<div class="create-menu">
-			<ActionButton :icon="getAppIcon(itemIcon)" :label="itemType ? itemType : 'Add'"  v-tooltip="itemType ? itemType : 'Add'" :buttonFunction="addFunction" />
+			<ActionButton :icon="getAppIcon(itemIcon)" :label="itemType ? itemType : $t('components.actionBar.add')"  v-tooltip="itemType ? itemType : $t('components.actionBar.add')" :buttonFunction="addFunction" />
 		</div>
 	</div>
 </template>

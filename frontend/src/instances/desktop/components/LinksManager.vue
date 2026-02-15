@@ -3,8 +3,8 @@
     <div v-if="isEditing" class="links-edit-mode">
       <FormInput
         v-model="localLinks.portfolio"
-        placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
-        label="Portfolio URL (YouTube/Vimeo)"
+        :placeholder="$t('components.linksManager.portfolioPlaceholder')"
+        :label="$t('components.linksManager.portfolioLabel')"
         type="url"
         :error="linkErrors.portfolio"
         :showValidation="!!localLinks.portfolio"
@@ -12,8 +12,8 @@
       />
       <FormInput
         v-model="localLinks.artstation"
-        placeholder="https://artstation.com/yourprofile"
-        label="ArtStation URL"
+        :placeholder="$t('components.linksManager.artstationPlaceholder')"
+        :label="$t('components.linksManager.artstationLabel')"
         type="url"
         :error="linkErrors.artstation"
         :showValidation="!!localLinks.artstation"
@@ -21,8 +21,8 @@
       />
       <FormInput
         v-model="localLinks.behance"
-        placeholder="https://behance.net/yourprofile"
-        label="Behance URL"
+        :placeholder="$t('components.linksManager.behancePlaceholder')"
+        :label="$t('components.linksManager.behanceLabel')"
         type="url"
         :error="linkErrors.behance"
         :showValidation="!!localLinks.behance"
@@ -30,8 +30,8 @@
       />
       <FormInput
         v-model="localLinks.linkedin"
-        placeholder="https://linkedin.com/in/yourprofile"
-        label="LinkedIn URL"
+        :placeholder="$t('components.linksManager.linkedinPlaceholder')"
+        :label="$t('components.linksManager.linkedinLabel')"
         type="url"
         :error="linkErrors.linkedin"
         :showValidation="!!localLinks.linkedin"
@@ -39,8 +39,8 @@
       />
       <FormInput
         v-model="localLinks.instagram"
-        placeholder="https://instagram.com/yourprofile"
-        label="Instagram URL"
+        :placeholder="$t('components.linksManager.instagramPlaceholder')"
+        :label="$t('components.linksManager.instagramLabel')"
         type="url"
         :error="linkErrors.instagram"
         :showValidation="!!localLinks.instagram"
@@ -52,7 +52,7 @@
       <ActionButton
         v-if="safeLinks.portfolio"
         :icon="getAppIcon('video-camera')"
-        label="Portfolio"
+        :label="$t('components.linksManager.portfolio')"
         :iconAfter="false"
         :useOutline="true"
         @click="openLink(safeLinks.portfolio)"
@@ -60,7 +60,7 @@
       <ActionButton
         v-if="safeLinks.artstation"
         :icon="getAppIcon('brand-artstation')"
-        label="ArtStation"
+        :label="$t('components.linksManager.artstation')"
         :iconAfter="false"
         :useOutline="true"
         @click="openLink(safeLinks.artstation)"
@@ -68,7 +68,7 @@
       <ActionButton
         v-if="safeLinks.behance"
         :icon="getAppIcon('brand-behance')"
-        label="Behance"
+        :label="$t('components.linksManager.behance')"
         :iconAfter="false"
         :useOutline="true"
         @click="openLink(safeLinks.behance)"
@@ -76,7 +76,7 @@
       <ActionButton
         v-if="safeLinks.linkedin"
         :icon="getAppIcon('brand-linkedin')"
-        label="LinkedIn"
+        :label="$t('components.linksManager.linkedin')"
         :iconAfter="false"
         :useOutline="true"
         @click="openLink(safeLinks.linkedin)"
@@ -84,13 +84,13 @@
       <ActionButton
         v-if="safeLinks.instagram"
         :icon="getAppIcon('brand-instagram')"
-        label="Instagram"
+        :label="$t('components.linksManager.instagram')"
         :iconAfter="false"
         :useOutline="true"
         @click="openLink(safeLinks.instagram)"
       />
       <p v-if="!hasAnyLinks" class="no-links-message">
-        No professional links added yet
+        {{ $t('components.linksManager.noLinks') }}
       </p>
     </div>
   </div>
@@ -98,10 +98,13 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useIconStore } from '@/stores/icons';
 import { Browser } from "@wailsio/runtime";
 import FormInput from './FormInput.vue';
 import ActionButton from './ActionButton.vue';
+
+const { t } = useI18n();
 
 const iconStore = useIconStore();
 
@@ -189,11 +192,11 @@ const validateLink = (platform, url) => {
   
   if (!isValid) {
     const messages = {
-      behance: 'Must start with https://behance.net/',
-      artstation: 'Must start with https://artstation.com/',
-      linkedin: 'Must start with https://linkedin.com/in/',
-      portfolio: 'Must be a YouTube or Vimeo link',
-      instagram: 'Must start with https://instagram.com/'
+      behance: t('components.linksManager.errorBehance'),
+      artstation: t('components.linksManager.errorArtstation'),
+      linkedin: t('components.linksManager.errorLinkedin'),
+      portfolio: t('components.linksManager.errorPortfolio'),
+      instagram: t('components.linksManager.errorInstagram')
     };
     linkErrors.value[platform] = messages[platform];
     return false;

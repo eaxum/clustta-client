@@ -4,25 +4,25 @@
       <div class="dependency-graph-header">
         <div class="dependency-count"> {{ message }}</div>
         <div class="dependency-toggle-container">
-          <div class="input-label"> Full graph</div>
+          <div class="input-label"> {{ $t('components.dependencyGraph.fullGraph') }}</div>
           <ToggleSwitch :switchValueProp="useMaxDepth" @click="changeDepth()" />
         </div>
         <div v-if="false" class="node-filters">
           <ActionButton :icon="commonStore.showThumbs ? '/icons/hide_thumbs.svg' : '/icons/show_thumbs.svg'"
-            v-tooltip="commonStore.showThumbs ? 'Hide Thumbnails' : 'Show Thumbnails'"
+            v-tooltip="commonStore.showThumbs ? $t('components.dependencyGraph.hideThumbnails') : $t('components.dependencyGraph.showThumbnails')"
             :buttonFunction="toggleShowThumbs" />
-          <ActionButton :icon="'/icons/new_task.svg'" :isActive="showTasks" v-tooltip="'Toggle Tasks Display'"
+          <ActionButton :icon="'/icons/new_task.svg'" :isActive="showTasks" v-tooltip="$t('components.dependencyGraph.toggleTasksDisplay')"
             :buttonFunction="toggleShowTasks" />
-          <ActionButton :icon="'/entity-icons/other.svg'" :isActive="showEntities" v-tooltip="'Toggle Entity Display'"
+          <ActionButton :icon="'/entity-icons/other.svg'" :isActive="showEntities" v-tooltip="$t('components.dependencyGraph.toggleEntityDisplay')"
             :buttonFunction="toggleShowEntities" />
-          <ActionButton :icon="'/icons/resources.svg'" :isActive="showResources" v-tooltip="'Toggle Resources Display'"
+          <ActionButton :icon="'/icons/resources.svg'" :isActive="showResources" v-tooltip="$t('components.dependencyGraph.toggleResourcesDisplay')"
             :buttonFunction="toggleShowResources" />
         </div>
       </div>
       <div class="task-graph-container">
         <div class="graph-container">
           <div class="fit-view-button">
-            <ActionButton :icon="getAppIcon('arrows-expand')" v-tooltip="'Fit View'" @click="fitViewToAllNodes()" />
+            <ActionButton :icon="getAppIcon('arrows-expand')" v-tooltip="$t('components.dependencyGraph.fitView')" @click="fitViewToAllNodes()" />
           </div>
           <VueFlow v-model="graphElements" :default-viewport="{ zoom: 1 }" :fit-view-on-init="true"
             :no-drag-class-name="noDragClassName">
@@ -38,22 +38,22 @@
 
     <div class="sidebar-outer">
       <div class="sidebar">
-        <input v-model="commonStore.viewSearchQuery" class="desktop-search-bar" type="text" placeholder="Search"
+        <input v-model="commonStore.viewSearchQuery" class="desktop-search-bar" type="text" :placeholder="$t('components.dependencyGraph.search')"
           @input="updateSearch" />
 
         <div class="deps-graph-filter">
           <div class="filter-options">
-            <FilterButton :icon="getAppIcon('folder')" v-tooltip="'Collection Type'"
+            <FilterButton :icon="getAppIcon('folder')" v-tooltip="$t('components.dependencyGraph.collectionType')"
               :alert="isFilterActive('entity-type')" @mouseenter="flashFilterMenu($event, 'collectionTypeFilterMenu')"
               @click="showFilterMenu($event, 'collectionTypeFilterMenu')" />
-            <FilterButton :icon="getAppIcon('brush')" v-tooltip="'Task Type'" :alert="isFilterActive('task-type')"
+            <FilterButton :icon="getAppIcon('brush')" v-tooltip="$t('components.dependencyGraph.taskType')" :alert="isFilterActive('task-type')"
               @mouseenter="flashFilterMenu($event, 'assetTypeFilterMenu')"
               @click="showFilterMenu($event, 'assetTypeFilterMenu')" />
-            <FilterButton :icon="getAppIcon('filter')" v-tooltip="'Type'" :alert="isFilterActive('general')"
+            <FilterButton :icon="getAppIcon('filter')" v-tooltip="$t('components.dependencyGraph.type')" :alert="isFilterActive('general')"
               @mouseenter="flashFilterMenu($event, 'typeFilterMenu')"
               @click="showFilterMenu($event, 'typeFilterMenu')" />
           </div>
-          <ActionButton v-if="filtersActive" :icon="'/icons/close.svg'" v-tooltip="'Reset Filters'"
+          <ActionButton v-if="filtersActive" :icon="'/icons/close.svg'" v-tooltip="$t('components.dependencyGraph.resetFilters')"
             :buttonFunction="clearFilters" />
         </div>
 
@@ -70,6 +70,7 @@
 <script setup>
 // imports
 import { ref, computed, onMounted, watch, nextTick, markRaw, onUnmounted, reactive } from 'vue'
+import { useI18n } from 'vue-i18n';
 import dagre from '@dagrejs/dagre'
 import { AssetService, CollectionService } from "@/services";
 import emitter from '@/lib/mitt';
@@ -113,6 +114,8 @@ const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 const menu = useMenu();
+
+const { t } = useI18n();
 
 // refs
 const useMaxDepth = ref(false);
@@ -204,19 +207,19 @@ const toggleShowResources = async () => {
 const message = computed(() => {
   if (!useMaxDepth.value) {
     if (totalTaskDeps.value > 1) {
-      return 'This task has ' + totalTaskDeps.value + ' direct dependencies';
+      return t('components.dependencyGraph.directDependencies', { count: totalTaskDeps.value });
     } else if (totalTaskDeps.value === 1) {
-      return 'This task has ' + totalTaskDeps.value + ' direct dependency';
+      return t('components.dependencyGraph.directDependency', { count: totalTaskDeps.value });
     } else {
-      return 'This task has no dependencies';
+      return t('components.dependencyGraph.noDependencies');
     }
   } else {
     if (totalTaskDeps.value > 1) {
-      return 'This task has ' + totalTaskDeps.value + ' total dependencies';
+      return t('components.dependencyGraph.totalDependencies', { count: totalTaskDeps.value });
     } else if (totalTaskDeps.value === 1) {
-      return 'This task has ' + totalTaskDeps.value + ' total dependency';
+      return t('components.dependencyGraph.totalDependency', { count: totalTaskDeps.value });
     } else {
-      return 'This task has no dependencies';
+      return t('components.dependencyGraph.noDependencies');
     }
   }
 });
@@ -295,7 +298,7 @@ const fetchSidebarData = async () => {
     await updateFilteredEntities();
   } catch (error) {
     console.error("Error fetching sidebar data:", error);
-    notificationStore.errorNotification("Error loading project data", error);
+    notificationStore.errorNotification(t('components.dependencyGraph.errorLoadingProject'), error);
   } finally {
     isLoadingSidebar.value = false;
   }
@@ -437,7 +440,7 @@ const buildGraphFromDependencies = async () => {
     graphData.value = { nodes, edges };
   } catch (error) {
     console.error("Error building graph:", error);
-    notificationStore.errorNotification("Error building dependency graph", error);
+    notificationStore.errorNotification(t('components.dependencyGraph.errorBuildingGraph'), error);
   } finally {
     isLoadingGraph.value = false;
   }
@@ -564,7 +567,7 @@ const addDependency = async (dependencyId, itemType) => {
   if (itemType === "task") {
     await AssetService.AddAssetDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
       .then( async(response) => {
-        notificationStore.addNotification("Dependency Added", "", "success");
+        notificationStore.addNotification(t('components.dependencyGraph.dependencyAdded'), "", "success");
         const addedDependency = allDependencies.find((newDependency) => newDependency.id === dependencyId);
         if (addedDependency) {
           dependencies.value.push(addedDependency.id);
@@ -577,12 +580,12 @@ const addDependency = async (dependencyId, itemType) => {
       })
       .catch((error) => {
         console.log(error)
-        notificationStore.errorNotification("Error adding dependencies", error);
+        notificationStore.errorNotification(t('components.dependencyGraph.errorAddingDependencies'), error);
       });
   } else {
     await AssetService.AddEntityDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
       .then( async(response) => {
-        notificationStore.addNotification("Dependency Added", "", "success");
+        notificationStore.addNotification(t('components.dependencyGraph.dependencyAdded'), "", "success");
         const addedDependency = allDependencies.find((newDependency) => newDependency.id === dependencyId);
         if (addedDependency) {
           dependencies.value.push(addedDependency.id);
@@ -596,7 +599,7 @@ const addDependency = async (dependencyId, itemType) => {
       })
       .catch((error) => {
         console.log(error)
-        notificationStore.errorNotification("Error adding dependencies", error);
+        notificationStore.errorNotification(t('components.dependencyGraph.errorAddingDependencies'), error);
       });
   }
 };
@@ -606,7 +609,7 @@ const removeDependency = async (dependencyId, itemType) => {
   if (itemType === "task") {
     await AssetService.RemoveAssetDependency(projectStore.activeProject.uri, task.id, dependencyId)
       .then(async(response) => {
-        notificationStore.addNotification("Dependency Removed", "", "success");
+        notificationStore.addNotification(t('components.dependencyGraph.dependencyRemoved'), "", "success");
         dependencies.value = dependencies.value.filter(id => id !== dependencyId);
         assetStore.selectedAsset.dependencies = dependencies.value;
         await buildGraphFromDependencies();
@@ -615,12 +618,12 @@ const removeDependency = async (dependencyId, itemType) => {
         })
       })
       .catch((error) => {
-        notificationStore.errorNotification("Error removing dependencies", error);
+        notificationStore.errorNotification(t('components.dependencyGraph.errorRemovingDependencies'), error);
       });
   } else {
     await AssetService.RemoveEntityDependency(projectStore.activeProject.uri, task.id, dependencyId)
       .then(async(response) => {
-        notificationStore.addNotification("Dependency Removed", "", "success");
+        notificationStore.addNotification(t('components.dependencyGraph.dependencyRemoved'), "", "success");
         dependencies.value = dependencies.value.filter(id => id !== dependencyId);
         assetStore.selectedAsset.entity_dependencies = dependencies.value;
         buildGraphFromDependencies();
@@ -629,7 +632,7 @@ const removeDependency = async (dependencyId, itemType) => {
         })
       })
       .catch((error) => {
-        notificationStore.errorNotification("Error removing dependencies", error);
+        notificationStore.errorNotification(t('components.dependencyGraph.errorRemovingDependencies'), error);
       });
   }
 };
