@@ -5,7 +5,7 @@
     {{ stage.firstSelectedItemId }} -->
 
 
-    <ActionButton v-if="itemsSelected" :icon="getAppIcon('close')" v-tooltip="'Deselect all'" @click="deselectItems" />
+    <ActionButton v-if="itemsSelected" :icon="getAppIcon('close')" v-tooltip="$t('components.importPreview.deselectAll')" @click="deselectItems" />
 
     <div v-if="entities.length || tasks.length" class="selected-items-meta">
       {{ message }}
@@ -29,11 +29,11 @@
       </div>
 
       <ActionButton v-if="itemsSelected" :icon="getAppIcon('trash')" :iconAfter="true"
-        :label="(entitiesSelected || tasksSelected) ? '' : 'Remove selected'" v-tooltip="'Remove Selected'"
+        :label="(entitiesSelected || tasksSelected) ? '' : $t('components.importPreview.removeSelected')" v-tooltip="$t('components.importPreview.removeSelectedTooltip')"
         @click="removeItems" />
 
       <ActionButton v-if="!itemsSelected && emptyEntityIds?.length" :icon="getAppIcon('trash')" :iconAfter="true"
-        :label="'Remove Empty Folders'" v-tooltip="'Remove Selected'" @click="removeEmptyFolders" />
+        :label="$t('components.importPreview.removeEmptyFolders')" v-tooltip="$t('components.importPreview.removeSelectedTooltip')" @click="removeEmptyFolders" />
 
     </div>
 
@@ -61,6 +61,7 @@ const getAppIcon = (iconName) => {
 import emitter from '@/lib/mitt';
 
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n';
 import { useDndStore } from '@/stores/dnd';
 import { useCollectionStore } from '@/stores/collections';
 import { useTemplateStore } from '@/stores/template';
@@ -81,6 +82,8 @@ const collectionStore = useCollectionStore();
 const templateStore = useTemplateStore();
 const menu = useMenu();
 const stage = useStageStore();
+
+const { t } = useI18n();
 
 // refs
 const itemTypes = ref(['task', 'Resource']);
@@ -111,30 +114,30 @@ const totalTasks = computed(() => {
 
 const totalCountMessage = computed(() => {
   const noOfEntities = totalEntities.value?.length;
-  const entitiesMsg = noOfEntities < 2 ? ' entity' : ' entities';
+  const entitiesMsg = noOfEntities < 2 ? ' ' + t('components.importPreview.entity') : ' ' + t('components.importPreview.entities');
   const noOfTasks = totalTasks.value?.length;
-  const tasksMsg = noOfTasks < 2 ? ' task' : ' tasks';
+  const tasksMsg = noOfTasks < 2 ? ' ' + t('components.importPreview.task') : ' ' + t('components.importPreview.tasks');
   if (noOfTasks && noOfEntities) {
-    return noOfEntities + entitiesMsg + ' and ' + noOfTasks + tasksMsg + ' to import';
+    return noOfEntities + entitiesMsg + ' ' + t('components.importPreview.and') + ' ' + noOfTasks + tasksMsg + ' ' + t('components.importPreview.toImport');
   } else if (noOfTasks) {
-    return noOfTasks + tasksMsg + ' to import';
+    return noOfTasks + tasksMsg + ' ' + t('components.importPreview.toImport');
   } else if (noOfEntities) {
-    return noOfEntities + entitiesMsg + ' to import';
+    return noOfEntities + entitiesMsg + ' ' + t('components.importPreview.toImport');
   }
   else return ''
 });
 
 const message = computed(() => {
   const noOfEntities = entities.value?.length;
-  const entitiesMsg = noOfEntities < 2 ? ' entity' : ' entities';
+  const entitiesMsg = noOfEntities < 2 ? ' ' + t('components.importPreview.entity') : ' ' + t('components.importPreview.entities');
   const noOfTasks = tasks.value?.length;
-  const tasksMsg = noOfTasks < 2 ? ' task' : ' tasks';
+  const tasksMsg = noOfTasks < 2 ? ' ' + t('components.importPreview.task') : ' ' + t('components.importPreview.tasks');
   if (noOfTasks && noOfEntities) {
-    return noOfEntities + entitiesMsg + ' and ' + noOfTasks + tasksMsg + ' selected';
+    return noOfEntities + entitiesMsg + ' ' + t('components.importPreview.and') + ' ' + noOfTasks + tasksMsg + ' ' + t('components.importPreview.selected');
   } else if (noOfTasks) {
-    return noOfTasks + tasksMsg + ' selected';
+    return noOfTasks + tasksMsg + ' ' + t('components.importPreview.selected');
   } else if (noOfEntities) {
-    return noOfEntities + entitiesMsg + ' selected';
+    return noOfEntities + entitiesMsg + ' ' + t('components.importPreview.selected');
   }
   else return ''
 });
@@ -173,7 +176,7 @@ const previewData = computed(() => {
 
   const formattedData = {
 
-    name: rootEntity ? rootEntity.name : 'Project Root',
+    name: rootEntity ? rootEntity.name : t('components.importPreview.projectRoot'),
     root: true,
     is_tracked_parent: true,
     type: "entity",

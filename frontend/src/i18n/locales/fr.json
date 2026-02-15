@@ -967,6 +967,393 @@
     "manageTemplates": "Gérer les modèles",
     "addTemplates": "Ajouter des modèles"
   },
+  "components": {
+    "createMenu": {
+      "addAsset": "Ajouter une ressource",
+      "addCollection": "Ajouter une collection",
+      "addWorkflow": "Ajouter un flux de travail",
+      "addWeblink": "Ajouter un lien web",
+      "importItems": "Importer des éléments"
+    },
+    "actionBar": {
+      "add": "Ajouter"
+    },
+    "changeLogItem": {
+      "goToItem": "Aller à l'élément",
+      "discard": "Annuler"
+    },
+    "batchGenerator": {
+      "firstItem": "Premier élément",
+      "secondItem": "Deuxième élément",
+      "totalCount": "Nombre total",
+      "placeholderFirst": "ex., shot01",
+      "placeholderSecond": "ex., shot02",
+      "placeholderCount": "ex., 10"
+    },
+    "clipboard": {
+      "clearClipboard": "Vider le presse-papiers",
+      "cut": "Coupé",
+      "copied": "Copié",
+      "clipboardTitle": "{action} [{count} {unit}]"
+    },
+    "emojiPicker": {
+      "searchPlaceholder": "Rechercher des emojis...",
+      "noResults": "Aucun résultat à afficher"
+    },
+    "ghostItem": {
+      "dropIn": "Déposer dans {location}",
+      "root": "Racine"
+    },
+    "hierarchyItem": {
+      "remove": "Supprimer",
+      "task": "Tâche",
+      "resource": "Ressource"
+    },
+    "infoBar": {
+      "clickToUpdate": "Cliquez pour mettre à jour",
+      "closeConsole": "Fermer la console",
+      "openConsole": "Ouvrir la console",
+      "clickToRestore": "{title} (Cliquez pour restaurer)"
+    },
+    "itemSelector": {
+      "noMatchingItems": "Aucun {type}s correspondant trouvé",
+      "searchPlaceholder": "Rechercher ou ajouter...",
+      "defaultItemType": "élément"
+    },
+    "renameInput": {
+      "confirm": "Confirmer",
+      "cancel": "Annuler",
+      "enterName": "Entrez le nom"
+    },
+    "conflictItem": {
+      "enterNewName": "Entrez un nouveau nom",
+      "rename": "Renommer",
+      "merge": "Fusionner",
+      "noActiveProject": "Aucun projet actif",
+      "renameFailed": "Échec du renommage"
+    },
+    "collaboratorItem": {
+      "remove": "Supprimer",
+      "viewProfile": "Voir le profil",
+      "editRole": "Modifier le rôle",
+      "removing": "Suppression...",
+      "adding": "Ajout...",
+      "addToProject": "Ajouter au projet",
+      "errorRemovingCollaborator": "Erreur lors de la suppression du collaborateur",
+      "errorAddingCollaborator": "Erreur lors de l'ajout du collaborateur",
+      "errorUpdatingRole": "Erreur lors de la mise à jour du rôle"
+    },
+    "checkpointItem": {
+      "close": "Fermer",
+      "viewAttachment": "Voir la pièce jointe",
+      "revertToCheckpoint": "Revenir à ce point de contrôle",
+      "downloadCheckpoint": "Télécharger le point de contrôle",
+      "openCheckpoint": "Ouvrir le point de contrôle",
+      "deleteCheckpoint": "Supprimer le point de contrôle",
+      "revert": "Revenir",
+      "download": "Télécharger",
+      "open": "Ouvrir",
+      "delete": "Supprimer",
+      "errorDownloading": "Erreur lors du téléchargement du point de contrôle",
+      "errorReverting": "Erreur lors du retour à la version",
+      "errorDeleting": "Erreur lors de la suppression du point de contrôle",
+      "deleteCheckpointTitle": "Supprimer le point de contrôle",
+      "deleteCheckpointConfirm": "Êtes-vous sûr de vouloir supprimer ce point de contrôle ?"
+    },
+    "debugConsole": {
+      "title": "Console de débogage",
+      "filterPlaceholder": "Filtrer les journaux...",
+      "copyLogs": "Copier les journaux",
+      "openLogsFolder": "Ouvrir le dossier des journaux",
+      "submitDiagnostics": "Soumettre les diagnostics",
+      "clear": "Effacer",
+      "close": "Fermer",
+      "noLogs": "Aucun journal à afficher",
+      "noMatchingLogs": "Aucun journal correspondant",
+      "copiedLogEntries": "{count} entrées de journal copiées",
+      "copiedLogEntriesToClipboard": "{count} entrées de journal copiées dans le presse-papiers"
+    },
+    "contributionGraph": {
+      "activitySummary": "{count} contributions au cours de la dernière année dans {projects} projets et {studios} studios",
+      "mon": "Lun",
+      "wed": "Mer",
+      "fri": "Ven",
+      "less": "Moins",
+      "more": "Plus",
+      "contributionsOn": "{count} contributions le {date}",
+      "jan": "Jan",
+      "feb": "Fév",
+      "mar": "Mar",
+      "apr": "Avr",
+      "may": "Mai",
+      "jun": "Juin",
+      "jul": "Juil",
+      "aug": "Août",
+      "sep": "Sep",
+      "oct": "Oct",
+      "nov": "Nov",
+      "dec": "Déc"
+    },
+    "linksManager": {
+      "portfolioLabel": "URL du portfolio (YouTube/Vimeo)",
+      "portfolioPlaceholder": "https://youtube.com/watch?v=... ou https://vimeo.com/...",
+      "artstationLabel": "URL ArtStation",
+      "artstationPlaceholder": "https://artstation.com/votreprofil",
+      "behanceLabel": "URL Behance",
+      "behancePlaceholder": "https://behance.net/votreprofil",
+      "linkedinLabel": "URL LinkedIn",
+      "linkedinPlaceholder": "https://linkedin.com/in/votreprofil",
+      "instagramLabel": "URL Instagram",
+      "instagramPlaceholder": "https://instagram.com/votreprofil",
+      "portfolio": "Portfolio",
+      "artstation": "ArtStation",
+      "behance": "Behance",
+      "linkedin": "LinkedIn",
+      "instagram": "Instagram",
+      "noLinks": "Aucun lien professionnel ajouté",
+      "errorBehance": "Doit commencer par https://behance.net/",
+      "errorArtstation": "Doit commencer par https://artstation.com/",
+      "errorLinkedin": "Doit commencer par https://linkedin.com/in/",
+      "errorPortfolio": "Doit être un lien YouTube ou Vimeo",
+      "errorInstagram": "Doit commencer par https://instagram.com/"
+    },
+    "paneHeader": {
+      "toggleMetadata": "Basculer les métadonnées",
+      "toggleSearch": "Basculer la recherche",
+      "unpin": "Détacher",
+      "pin": "Épingler"
+    },
+    "profileAvatar": {
+      "changePhoto": "Changer la photo",
+      "removePhoto": "Supprimer la photo",
+      "selectProfilePicture": "Sélectionner la photo de profil"
+    },
+    "profileCard": {
+      "cancelEditing": "Annuler la modification",
+      "editSection": "Modifier la section"
+    },
+    "projectList": {
+      "pinnedProjects": "Projets épinglés",
+      "recentProjects": "Projets récents",
+      "clearRecentProjects": "Effacer les projets récents",
+      "unpinProject": "Détacher le projet",
+      "pinProject": "Épingler le projet",
+      "recentProjectsCleared": "Projets récents effacés"
+    },
+    "searchBar": {
+      "loading": "Chargement...",
+      "clearSearch": "Effacer la recherche",
+      "search": "Rechercher"
+    },
+    "scrollList": {
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "assign": "Assigner",
+      "unassign": "Désassigner"
+    },
+    "formInput": {
+      "hide": "Masquer",
+      "show": "Afficher"
+    },
+    "virtualNode": {
+      "remove": "Supprimer",
+      "addDependency": "Ajouter une dépendance"
+    },
+    "workflowTemplateItem": {
+      "remove": "Supprimer"
+    },
+    "workspaceTabs": {
+      "deleteWorkspace": "Supprimer l'espace de travail",
+      "saveWorkspace": "Enregistrer l'espace de travail",
+      "unableToAddWorkspaces": "Impossible d'ajouter de nouveaux espaces de travail"
+    },
+    "sidePane": {
+      "allProjects": "Tous les projets",
+      "settings": "Paramètres",
+      "login": "Connexion"
+    },
+    "trashItem": {
+      "restore": "Restaurer",
+      "expand": "Développer",
+      "itemRestored": "Élément restauré",
+      "errorRestoringItem": "Erreur lors de la restauration de l'élément"
+    },
+    "timelineItem": {
+      "revert": "Rétablir",
+      "expand": "Développer",
+      "close": "Fermer",
+      "projectReverted": "Projet rétabli avec succès",
+      "errorRevertingProject": "Erreur lors du rétablissement du projet"
+    },
+    "skillsManager": {
+      "noSkills": "Aucune compétence à afficher",
+      "searchPlaceholder": "Rechercher et ajouter des compétences...",
+      "maxReached": "Maximum de 5 compétences atteint. Supprimez-en une pour en ajouter une autre.",
+      "skillAdded": "Compétence ajoutée",
+      "skillAddedMessage": "Compétence ajoutée avec succès.",
+      "failedToAddSkill": "Échec de l'ajout de la compétence",
+      "skillRemoved": "Compétence supprimée",
+      "skillRemovedMessage": "Compétence supprimée avec succès.",
+      "failedToRemoveSkill": "Échec de la suppression de la compétence"
+    },
+    "toolsManager": {
+      "noTools": "Aucun outil à afficher",
+      "searchPlaceholder": "Rechercher et ajouter des outils...",
+      "maxReached": "Maximum de 5 outils atteint. Supprimez-en un pour en ajouter un autre.",
+      "toolAdded": "Outil ajouté",
+      "toolAddedMessage": "Outil ajouté avec succès.",
+      "failedToAddTool": "Échec de l'ajout de l'outil",
+      "toolRemoved": "Outil supprimé",
+      "toolRemovedMessage": "Outil supprimé avec succès.",
+      "failedToRemoveTool": "Échec de la suppression de l'outil"
+    },
+    "importPreview": {
+      "deselectAll": "Tout désélectionner",
+      "removeSelected": "Supprimer la sélection",
+      "removeSelectedTooltip": "Supprimer la sélection",
+      "removeEmptyFolders": "Supprimer les dossiers vides",
+      "entity": "entité",
+      "entities": "entités",
+      "task": "tâche",
+      "tasks": "tâches",
+      "and": "et",
+      "toImport": "à importer",
+      "selected": "sélectionnés",
+      "projectRoot": "Racine du projet"
+    },
+    "titleBar": {
+      "aboutClustta": "À propos de Clustta",
+      "connected": "Connecté",
+      "offline": "Hors ligne",
+      "studioSettings": "Paramètres du studio",
+      "reloadStudio": "Recharger le studio",
+      "signUp": "S'inscrire",
+      "login": "Connexion",
+      "newStudio": "Nouveau studio",
+      "working": "en cours"
+    },
+    "headerBar": {
+      "trash": "Corbeille",
+      "projectSettings": "Paramètres du projet",
+      "empty": "Vider",
+      "emptyTrash": "Vider la corbeille",
+      "serverUnreachable": "Serveur injoignable",
+      "projectOffline": "Projet hors ligne",
+      "syncing": "Synchronisation...",
+      "upToDate": "À jour",
+      "unsyncedChanges": "Modifications non synchronisées",
+      "serverBusy": "Serveur occupé...",
+      "operationInProgress": "Opération en cours...",
+      "projectNotDownloaded": "Projet non téléchargé",
+      "noChangesToRevert": "Aucune modification à rétablir",
+      "revertLocalChanges": "Rétablir les modifications locales",
+      "serverUnreachableSync": "Serveur injoignable",
+      "sync": "Synchroniser",
+      "projects": "Projets",
+      "back": "Retour",
+      "studioSettings": "Paramètres du studio",
+      "clusttaSettings": "Paramètres de Clustta",
+      "accountSettings": "Paramètres du compte",
+      "emptyTrashTitle": "Vider la corbeille",
+      "emptyTrashMessage": "Cela supprimera irréversiblement tous les éléments de la corbeille. Continuer ?",
+      "errorSyncingData": "Erreur de synchronisation des données"
+    },
+    "dependencyGraph": {
+      "fullGraph": "Graphe complet",
+      "hideThumbnails": "Masquer les miniatures",
+      "showThumbnails": "Afficher les miniatures",
+      "toggleTasksDisplay": "Basculer l'affichage des tâches",
+      "toggleEntityDisplay": "Basculer l'affichage des entités",
+      "toggleResourcesDisplay": "Basculer l'affichage des ressources",
+      "fitView": "Ajuster la vue",
+      "search": "Rechercher",
+      "collectionType": "Type de collection",
+      "taskType": "Type de tâche",
+      "type": "Type",
+      "resetFilters": "Réinitialiser les filtres",
+      "directDependencies": "Cette tâche a {count} dépendances directes",
+      "directDependency": "Cette tâche a {count} dépendance directe",
+      "noDependencies": "Cette tâche n'a aucune dépendance",
+      "totalDependencies": "{count} dépendances au total",
+      "totalDependency": "{count} dépendance au total",
+      "errorLoadingProject": "Erreur lors du chargement des données du projet",
+      "dependencyAdded": "Dépendance ajoutée",
+      "errorAddingDependencies": "Erreur lors de l'ajout des dépendances",
+      "dependencyRemoved": "Dépendance supprimée",
+      "errorRemovingDependencies": "Erreur lors de la suppression des dépendances",
+      "errorBuildingGraph": "Erreur lors de la construction du graphe de dépendances"
+    },
+    "detailsPane": {
+      "collections": "collections",
+      "assets": "Actifs",
+      "untrackedItems": "éléments non suivis",
+      "makeDependencies": "Créer des dépendances de la tâche active",
+      "makeDependenciesTooltip": "Ajouter les éléments sélectionnés comme dépendances de la tâche active",
+      "moveIntoCollection": "Déplacer dans la collection active",
+      "moveIntoCollectionTooltip": "Déplacer les éléments sélectionnés dans la collection active",
+      "type": "Type",
+      "assetType": "Type d'actif",
+      "status": "Statut",
+      "moveToCollection": "Déplacer vers une collection",
+      "moveToCollectionTooltip": "Déplacer les actifs sélectionnés vers une autre collection",
+      "rebuildAssets": "Reconstruire les actifs",
+      "rebuildAssetsTooltip": "Télécharger et restaurer les actifs sélectionnés",
+      "createCheckpoints": "Créer des points de contrôle",
+      "createCheckpointsTooltip": "Sauvegarder l'état actuel des actifs sélectionnés",
+      "revertTasks": "Rétablir les tâches",
+      "revertTasksTooltip": "Rétablir les actifs sélectionnés à leur dernier point de contrôle",
+      "assignAssets": "Assigner des actifs",
+      "assignAssetsTooltip": "Assigner un collaborateur aux actifs sélectionnés",
+      "unassignAssets": "Désassigner des actifs",
+      "unassignAssetsTooltip": "Retirer tous les assignés des actifs sélectionnés",
+      "freeUpSpace": "Libérer de l'espace",
+      "freeUpSpaceTaskTooltip": "Supprimer les fichiers de travail pour libérer de l'espace disque",
+      "deleteSelectedAssets": "Supprimer les actifs sélectionnés",
+      "deleteSelectedAssetsTooltip": "Déplacer les actifs sélectionnés vers la corbeille",
+      "collectionType": "Type de collection",
+      "library": "Bibliothèque",
+      "assignees": "Assignés",
+      "unassignCollections": "Désassigner les collections",
+      "unassignCollectionsTooltip": "Retirer tous les assignés des collections sélectionnées",
+      "rebuildCollections": "Reconstruire les collections",
+      "rebuildCollectionsTooltip": "Télécharger et restaurer tous les actifs des collections sélectionnées",
+      "freeUpSpaceCollectionTooltip": "Supprimer le contenu des collections pour libérer de l'espace disque",
+      "deleteCollections": "Supprimer les collections",
+      "deleteCollectionsTooltip": "Déplacer les collections sélectionnées vers la corbeille",
+      "createCheckpointsUntrackedTooltip": "Suivre et créer des points de contrôle pour les éléments sélectionnés",
+      "ignoreItems": "Ignorer les éléments",
+      "ignoreItemsTooltip": "Ajouter les éléments à la liste d'exclusion",
+      "deleteItems": "Supprimer les éléments",
+      "deleteItemsTooltip": "Supprimer définitivement les éléments non suivis sélectionnés",
+      "deleteAllItemsTooltip": "Supprimer tous les éléments sélectionnés",
+      "searchCollaborators": "Rechercher des collaborateurs",
+      "dependencyAdded": "Dépendance ajoutée",
+      "errorAddingDependencies": "Erreur lors de l'ajout des dépendances",
+      "errorAddingUser": "Erreur lors de l'ajout de l'utilisateur",
+      "movedSuccessfully": "Déplacé avec succès.",
+      "errorChangingParent": "Erreur lors du changement d'entité parente",
+      "errorChangingEntity": "Erreur lors du changement d'entité de tâche",
+      "collectionsMovedToTrash": "Collections déplacées vers la corbeille.",
+      "entitiesFailedToDelete": "Échec de la suppression des entités.",
+      "assetsMovedToTrash": "Actifs déplacés vers la corbeille.",
+      "assetsFailedToDelete": "Échec de la suppression des actifs.",
+      "untrackedItemsDeleted": "Éléments non suivis supprimés.",
+      "failedToDeleteUntracked": "Échec de la suppression des éléments non suivis.",
+      "freeUpCollectionSpaceTitle": "Libérer l'espace de collection",
+      "freeUpCollectionSpaceMessage": "Êtes-vous sûr de vouloir supprimer les fichiers de travail de ces collections ? Cela libérera de l'espace disque mais vous devrez reconstruire pour y travailler à nouveau.",
+      "freeUpTaskSpaceTitle": "Libérer l'espace de tâche",
+      "freeUpTaskSpaceMessage": "Êtes-vous sûr de vouloir supprimer ces fichiers de travail de tâches ? Cela libérera de l'espace disque mais vous devrez reconstruire pour y travailler à nouveau.",
+      "revertSelectedTasksTitle": "Rétablir les tâches sélectionnées",
+      "revertSelectedTasksMessage": "Les tâches modifiées seront rétablies à leur dernier point de contrôle. Cette action est irréversible.",
+      "updatedIgnoreList": "Liste d'exclusion mise à jour",
+      "failedToUpdateIgnoreList": "Échec de la mise à jour de la liste d'exclusion",
+      "collectionsRebuiltSuccessfully": "collection(s) reconstruite(s) avec succès",
+      "errorRebuildingCollections": "Erreur lors de la reconstruction des collections",
+      "tasksUnassignedSuccessfully": "Tâches désassignées avec succès.",
+      "errorAssigningTask": "Erreur lors de l'assignation de la tâche",
+      "errorRevertingTasks": "Erreur lors du rétablissement des tâches"
+    }
+  },
   "errors": {
     "badRequest": "Requête incorrecte",
     "authenticationRequired": "Authentification requise",

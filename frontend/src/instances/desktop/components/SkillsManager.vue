@@ -28,7 +28,7 @@
     
     <!-- Empty state -->
     <div v-else-if="!isEditing" class="empty-state">
-      No skills to display
+      {{ $t('components.skillsManager.noSkills') }}
     </div>
     
     <!-- ItemSelector for adding new skills -->
@@ -37,13 +37,13 @@
         v-if="skills.length < 5"
         :selectedItems="skills"
         :allItems="normalizedAllSkills"
-        :placeholder="'Search and add skills...'"
+        :placeholder="$t('components.skillsManager.searchPlaceholder')"
         :itemType="'skill'"
         @itemAdded="addSkill"
       />
       <div v-else class="limit-message">
         <img :src="getAppIcon('info')" alt="Info" class="limit-icon" />
-        <span>Maximum of 5 skills reached. Remove a skill to add another.</span>
+        <span>{{ $t('components.skillsManager.maxReached') }}</span>
       </div>
     </div>
   </div>
@@ -51,6 +51,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useIconStore } from '@/stores/icons';
 import { useUserStore } from '@/stores/users';
 import { useProfileStore } from '@/stores/profile';
@@ -64,6 +65,8 @@ const iconStore = useIconStore();
 const userStore = useUserStore();
 const profileStore = useProfileStore();
 const notificationStore = useNotificationStore();
+
+const { t } = useI18n();
 
 const props = defineProps({
   skills: {
@@ -111,10 +114,10 @@ const addSkill = (skill) => {
         skill_category: skill.skill_category || skill.category
       };
       profileStore.addSkill(transformedSkill);
-      notificationStore.addNotification("Skill added", "Skill added successfully.", "success", false);
+      notificationStore.addNotification(t('components.skillsManager.skillAdded'), t('components.skillsManager.skillAddedMessage'), "success", false);
     })
     .catch((err) => {
-      notificationStore.errorNotification("Failed to add skill", err?.message || err);
+      notificationStore.errorNotification(t('components.skillsManager.failedToAddSkill'), err?.message || err);
     });
 };
 
@@ -123,10 +126,10 @@ const removeSkill = (skill) => {
   ProfileService.RemoveUserSkill(userStore.user.id, skill.skill_id)
     .then(() => {
       profileStore.removeSkill(skill.id);
-      notificationStore.addNotification("Skill removed", "Skill removed successfully.", "success", false);
+      notificationStore.addNotification(t('components.skillsManager.skillRemoved'), t('components.skillsManager.skillRemovedMessage'), "success", false);
     })
     .catch((err) => {
-      notificationStore.errorNotification("Failed to remove skill", err?.message || err);
+      notificationStore.errorNotification(t('components.skillsManager.failedToRemoveSkill'), err?.message || err);
     });
 };
 

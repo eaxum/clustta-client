@@ -3,16 +3,16 @@
     <div class="debug-console-header">
       <div class="debug-console-title">
         <img class="small-icons" :src="getAppIcon('bug')">
-        <span>Debug Console</span>
+        <span>{{ $t('components.debugConsole.title') }}</span>
         <span class="log-count">({{ searchQuery ? `${filteredLogs.length}/${logs.length}` : logs.length }})</span>
       </div>
       <div class="debug-console-actions">
-        <SearchBar v-model="searchQuery" placeholder="Filter logs..." />
-        <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy logs'" :buttonFunction="copyLogs" />
-        <ActionButton :icon="getAppIcon('file')" v-tooltip="'Open logs folder'" :buttonFunction="openLogsFolder" />
-        <ActionButton :icon="getAppIcon('megaphone')" v-tooltip="'Submit Diagnostics'" :buttonFunction="openDiagnosticsModal" />
-        <ActionButton :icon="getAppIcon('broom')" v-tooltip="'Clear'" :buttonFunction="clearLogs" />
-        <ActionButton :icon="getAppIcon('close')" v-tooltip="'Close'" :buttonFunction="closeConsole" />
+        <SearchBar v-model="searchQuery" :placeholder="$t('components.debugConsole.filterPlaceholder')" />
+        <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('components.debugConsole.copyLogs')" :buttonFunction="copyLogs" />
+        <ActionButton :icon="getAppIcon('file')" v-tooltip="$t('components.debugConsole.openLogsFolder')" :buttonFunction="openLogsFolder" />
+        <ActionButton :icon="getAppIcon('megaphone')" v-tooltip="$t('components.debugConsole.submitDiagnostics')" :buttonFunction="openDiagnosticsModal" />
+        <ActionButton :icon="getAppIcon('broom')" v-tooltip="$t('components.debugConsole.clear')" :buttonFunction="clearLogs" />
+        <ActionButton :icon="getAppIcon('close')" v-tooltip="$t('components.debugConsole.close')" :buttonFunction="closeConsole" />
       </div>
     </div>
 
@@ -24,7 +24,7 @@
           <span class="log-message">{{ formatMessage(log.args) }}</span>
         </div>
       </div>
-      <div v-if="filteredLogs.length === 0" class="no-logs">{{ logs.length === 0 ? 'No logs to display' : 'No matching logs' }}</div>
+      <div v-if="filteredLogs.length === 0" class="no-logs">{{ logs.length === 0 ? $t('components.debugConsole.noLogs') : $t('components.debugConsole.noMatchingLogs') }}</div>
     </div>
   </div>
 </template>
@@ -32,6 +32,7 @@
 <script setup>
 // imports
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Events } from "@wailsio/runtime";
 
 // components
@@ -49,6 +50,8 @@ import { useNotificationStore } from '@/stores/notifications';
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
+
+const { t } = useI18n();
 
 const emit = defineEmits(['close']);
 
@@ -95,7 +98,7 @@ const copyLogs = async () => {
   
   try {
     await navigator.clipboard.writeText(formattedLogs);
-    notificationStore.addNotification(`Copied ${logsToExport.length} log entries`, `Copied ${logsToExport.length} log entries to clipboard`, 'success');
+    notificationStore.addNotification(t('components.debugConsole.copiedLogEntries', { count: logsToExport.length }), t('components.debugConsole.copiedLogEntriesToClipboard', { count: logsToExport.length }), 'success');
   } catch (e) {
     console.error('Failed to copy logs:', e);
   }

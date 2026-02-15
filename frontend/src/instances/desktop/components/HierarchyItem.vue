@@ -44,7 +44,7 @@
           <DropDownBox :items="taskTypeNames" :selectedItem="taskType" :onSelect="selectTaskType" :fullWidth="false" />
         </div>
 
-        <ActionButton :icon="getAppIcon('trash')" v-tooltip="'Remove'" @click="removeItem(item)" />
+        <ActionButton :icon="getAppIcon('trash')" v-tooltip="$t('components.hierarchyItem.remove')" @click="removeItem(item)" />
       </div>
 
 
@@ -65,7 +65,10 @@ const getAppIcon = (iconName) => {
   return icon
 };
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
+
+const { t } = useI18n();
 
 // state imports
 import { useMenu } from '@/stores/menu';
@@ -96,7 +99,7 @@ const props = defineProps({
 // refs
 const isExpanded = ref(props.isExpanded);
 const itemType = computed(() => {
-  return !props.item.is_resource ? 'Task' : 'Resource';
+  return !props.item.is_resource ? t('components.hierarchyItem.task') : t('components.hierarchyItem.resource');
 });
 
 

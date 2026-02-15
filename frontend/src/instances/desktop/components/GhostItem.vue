@@ -9,7 +9,7 @@
         </div>
 
         <div class="file-drop-indicator">
-            Drop in {{ dropLocation }}
+            {{ t('components.ghostItem.dropIn', { location: dropLocation }) }}
         </div>
     </div>
 </template>
@@ -18,8 +18,11 @@
 
 // imports
 import { computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDndStore } from '@/stores/dnd';
 import { useCollectionStore } from '@/stores/collections';
+
+const { t } = useI18n();
 
 
 const dndStore = useDndStore();
@@ -27,7 +30,7 @@ const collectionStore = useCollectionStore();
 
 const dropLocation = computed(() => {
     if (!dndStore.targetItemId) {
-        return 'Root'
+        return t('components.ghostItem.root')
     } else {
         const entityName = collectionStore.findCollection(dndStore.targetItemId).name;
         return entityName

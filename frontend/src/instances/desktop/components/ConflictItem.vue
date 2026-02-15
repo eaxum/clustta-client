@@ -5,14 +5,14 @@
     </div>
 
     <div class="conflict-item-content">
-      <RenameInput v-if="isRenaming" v-model="newName" :originalValue="conflict.name" placeholder="Enter new name" @confirm="handleRenameConfirm" @cancel="handleRenameCancel" />
+      <RenameInput v-if="isRenaming" v-model="newName" :originalValue="conflict.name" :placeholder="$t('components.conflictItem.enterNewName')" @confirm="handleRenameConfirm" @cancel="handleRenameCancel" />
       <span v-else class="conflict-item-name">{{ displayName }}</span>
       <!-- <span v-else class="conflict-item-name">{{ conflict.entity_path }}</span> -->
     </div>
 
     <div v-if="!isResolved && !isRenaming" class="conflict-item-actions">
-      <ActionButton :icon="getAppIcon('edit')" v-tooltip="'Rename'" :buttonFunction="startRename" />
-      <ActionButton :icon="getAppIcon('merge')" v-tooltip="'Merge'" :buttonFunction="handleMerge" />
+      <ActionButton :icon="getAppIcon('edit')" v-tooltip="$t('components.conflictItem.rename')" :buttonFunction="startRename" />
+      <ActionButton :icon="getAppIcon('merge')" v-tooltip="$t('components.conflictItem.merge')" :buttonFunction="handleMerge" />
     </div>
 
     <ActionButton v-if="isResolved && !isRenaming" :icon="getAppIcon('circle-check')" :isDisabled="true" :useGo="true" :allowDeactivate="true" />
@@ -22,6 +22,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -38,6 +39,8 @@ import { useProjectStore } from '@/stores/projects';
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+
+const { t } = useI18n();
 
 // props
 const props = defineProps({
@@ -109,7 +112,7 @@ const handleRenameCancel = () => {
 const handleRenameConfirm = async (confirmedName) => {
   const projectUri = projectStore.activeProject?.uri;
   if (!projectUri) {
-    notificationStore.errorNotification('Error', 'No active project');
+    notificationStore.errorNotification('Error', t('components.conflictItem.noActiveProject'));
     return;
   }
 
@@ -131,7 +134,7 @@ const handleRenameConfirm = async (confirmedName) => {
     });
   } catch (error) {
     console.error('Failed to rename:', error);
-    notificationStore.errorNotification('Rename Failed', error.message || 'Failed to rename item');
+    notificationStore.errorNotification(t('components.conflictItem.renameFailed'), error.message || 'Failed to rename item');
   }
 };
 

@@ -3,8 +3,8 @@
 		<div class="side-pane-content">
 			<div class="project-section">
 				<div class="project-list-items">
-					<TabButton :icon="getAppIcon('four-squares')" v-tooltip="'All Projects'" @click="goToProjects"
-						:showLabel="sidePaneActive" :fullWidth="sidePaneActive" label="All Projects"
+				<TabButton :icon="getAppIcon('four-squares')" v-tooltip="$t('components.sidePane.allProjects')" @click="goToProjects"
+					:showLabel="sidePaneActive" :fullWidth="sidePaneActive" :label="$t('components.sidePane.allProjects')"
 						:buttonFunction="doNothing" />
 					<ProjectList />
 				</div>
@@ -21,10 +21,10 @@
 					</span>
 				</div>
 
-				<TabButton :icon="getAppIcon('cog')" v-tooltip="'Settings'"
+				<TabButton :icon="getAppIcon('cog')" v-tooltip="$t('components.sidePane.settings')"
 					@click="stage.setStageVisibility('settings', true)" :isActive="stage.activeStage === 'settings'"
-					:showLabel="sidePaneActive" :fullWidth="sidePaneActive" label="Settings" />
-				<TabButton v-if="!userStore.getUserAuthentication" :icon="getAppIcon('login')" v-tooltip="'Login'"
+					:showLabel="sidePaneActive" :fullWidth="sidePaneActive" :label="$t('components.sidePane.settings')" />
+				<TabButton v-if="!userStore.getUserAuthentication" :icon="getAppIcon('login')" v-tooltip="$t('components.sidePane.login')"
 					:showLabel="sidePaneIsOpen" :fullWidth="sidePaneIsOpen" :buttonFunction="logUserIn" />
 				<!-- <TabButton v-else :icon="getAppIcon('logout')" v-tooltip="'Logout'" :showLabel="sidePaneIsOpen"
 					:fullWidth="sidePaneIsOpen" :buttonFunction="logUserOut" /> -->

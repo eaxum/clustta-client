@@ -4,14 +4,14 @@
 
     <div v-if="!titleOnly" class="titlebar-left" :class="{ 'titlebar-left-inactive': modalsActive }">
 
-      <ClusttaLogo v-if="os !== 'darwin'" :boldText="true" :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="'About Clustta'" :class="{ 'is-disabled': progressRunning }" />
+      <ClusttaLogo v-if="os !== 'darwin'" :boldText="true" :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="$t('components.titleBar.aboutClustta')" :class="{ 'is-disabled': progressRunning }" />
 
       <div ref="studioTabsParent" class="studio-tabs-parent" v-if="userStore.user && projectStore.selectedStudio && !accountStore.isOfflineMode" 
       :class="{ 'is-disabled': progressRunning, 'mac-os': !isMacFullscreen && os === 'darwin' }">
         <div class="studio-tabs-container" @click="toggleStudioList()" v-stop-propagation>
           <span class="studio-tabs">
             <div class="studio-name-with-status">
-              <span class="online-indicator" :class="studioStore.appOnline ? 'online' : 'offline'" v-tooltip="studioStore.appOnline ? 'Connected' : 'Offline'"></span>
+              <span class="online-indicator" :class="studioStore.appOnline ? 'online' : 'offline'" v-tooltip="studioStore.appOnline ? $t('components.titleBar.connected') : $t('components.titleBar.offline')"></span>
               {{ utils.capitalizeStr(projectStore.getSelectedStudioName) }}
             </div>
             <img  class="small-icons chevron" :src="getAppIcon('chevron-down')">
@@ -33,8 +33,8 @@
           </span>
         </div>
 
-          <ActionButton v-if="userStore.userCanCreateProject && projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('stall-cog')" v-tooltip="'Studio Settings'" :buttonFunction="studioSettings" />
-          <ActionButton v-if="projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('refresh')" v-tooltip="'Reload Studio'" :buttonFunction="reloadStudio" />
+          <ActionButton v-if="userStore.userCanCreateProject && projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('stall-cog')" v-tooltip="$t('components.titleBar.studioSettings')" :buttonFunction="studioSettings" />
+          <ActionButton v-if="projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('refresh')" v-tooltip="$t('components.titleBar.reloadStudio')" :buttonFunction="reloadStudio" />
       </div>
 
     </div>
@@ -57,12 +57,12 @@
     </div>
 
 
-    <ClusttaLogo v-if="os === 'darwin'" :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="'About Clustta'" :class="{ 'is-disabled': progressRunning }" />
+    <ClusttaLogo v-if="os === 'darwin'" :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="$t('components.titleBar.aboutClustta')" :class="{ 'is-disabled': progressRunning }" />
 
     <!-- Web mode auth buttons (only when not logged in) -->
     <div v-else-if="platformStore.isWeb && !userStore.isUserAuthenticated" class="titlebar-auth-buttons">
-      <ActionButton :icon="getAppIcon('launch')" :label="'Sign Up'" color="var(--grape)" forceIconColor="light" :buttonFunction="goToSignUp" v-tooltip="isWideScreen ? '' : 'Sign Up'" />
-      <ActionButton :icon="getAppIcon('login')" :label="isWideScreen ? 'Login' : ''" :useOutline="true" :buttonFunction="goToLogin" v-tooltip="isWideScreen ? '' : 'Login'" />
+      <ActionButton :icon="getAppIcon('launch')" :label="$t('components.titleBar.signUp')" color="var(--grape)" forceIconColor="light" :buttonFunction="goToSignUp" v-tooltip="isWideScreen ? '' : $t('components.titleBar.signUp')" />
+      <ActionButton :icon="getAppIcon('login')" :label="isWideScreen ? $t('components.titleBar.login') : ''" :useOutline="true" :buttonFunction="goToLogin" v-tooltip="isWideScreen ? '' : $t('components.titleBar.login')" />
     </div>
 
     <div v-else-if="!platformStore.isWeb" class="titlebar-buttons">
@@ -102,7 +102,7 @@
       <div class="studio-instance" @click="createStudio()" v-stop-propagation >
         <div class="studio-instance-meta">
           <img class="large-icons" :src="getAppIcon('stall')">
-          <div>New Studio</div>
+          <div>{{ $t('components.titleBar.newStudio') }}</div>
         </div>
       </div>
 
@@ -113,6 +113,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { AppService, SettingsService } from '@/services';
 import { Window, Events } from "@wailsio/runtime";
@@ -151,6 +152,8 @@ const platformStore = usePlatformStore();
 const accountStore = useAccountStore();
 const route = useRoute();
 const router = useRouter();
+
+const { t } = useI18n();
 
 const goToLogin = () => {
   router.push('/auth/login');
@@ -246,7 +249,7 @@ watchEffect(() => {
 const studioList = computed(() => { return projectStore.studios.filter(item => item.id !== projectStore.selectedStudio.id && item.url ) });
 
 const operationMessage = computed(() => {
-  return ' - working';
+  return ' - ' + t('components.titleBar.working');
 });
 
 const modalsActive = computed(() => {

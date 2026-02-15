@@ -32,14 +32,14 @@
             <span class="text-container" >{{ utils.capitalizeStr(notification.message) }}</span>
         </div>
 
-        <div class="version-info" :class="{ 'oudated' : isOutdated}" v-tooltip="isOutdated ? 'Click to update' : ''">
+        <div class="version-info" :class="{ 'oudated' : isOutdated}" v-tooltip="isOutdated ? $t('components.infoBar.clickToUpdate') : ''">
             <div v-if="isOutdated" class="outdated-icon-button">
                 <img :src="getAppIcon('info-triangle')" alt="Maximize">
             </div>
             <div>{{ clusttaVersion }}</div>
         </div>
 
-        <ActionButton v-if="debugModeEnabled || (isHoveringInfobar && altKeyActive)" :icon="getAppIcon('bug')" v-tooltip="debugModeEnabled ? 'Close Console' : 'Open Console'" :buttonFunction="toggleDebugConsole" />
+        <ActionButton v-if="debugModeEnabled || (isHoveringInfobar && altKeyActive)" :icon="getAppIcon('bug')" v-tooltip="debugModeEnabled ? $t('components.infoBar.closeConsole') : $t('components.infoBar.openConsole')" :buttonFunction="toggleDebugConsole" />
         </div>
     </div>
 
@@ -48,9 +48,12 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
+
+const { t } = useI18n();
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -116,7 +119,7 @@ const progressTitle = computed(() => {
 });
 
 const progressTooltip = computed(() => {
-  return `${progressTitle.value} (Click to restore)`;
+  return t('components.infoBar.clickToRestore', { title: progressTitle.value });
 });
 
 const progressTotal = computed(() => {

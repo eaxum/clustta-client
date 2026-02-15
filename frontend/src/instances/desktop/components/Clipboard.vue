@@ -4,7 +4,7 @@
       <div class="header-content">
         <h2 class="clipboard-title">{{ clipboardTitle }}</h2>
       </div>
-      <ActionButton :icon="getAppIcon('broom')" v-tooltip="'Clear clipboard'" :buttonFunction="clearClipboard" />
+      <ActionButton :icon="getAppIcon('broom')" v-tooltip="$t('components.clipboard.clearClipboard')" :buttonFunction="clearClipboard" />
     </div>
 
     <div class="clipboard-list-container">
@@ -16,6 +16,7 @@
 <script setup>
 // imports
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -28,6 +29,8 @@ import { useStageStore } from '@/stores/stages';
 const iconStore = useIconStore();
 const stage = useStageStore();
 
+const { t } = useI18n();
+
 // computed
 
 // Returns the clipboard items (either copied or cut).
@@ -39,8 +42,9 @@ const clipboardItems = computed(() => {
 // Returns the title for the clipboard pane.
 const clipboardTitle = computed(() => {
   const count = clipboardItems.value.length;
-  const action = isCutMode.value ? 'Cut' : 'Copied';
-  return `${action} [${count} item${count !== 1 ? 's' : ''}]`;
+  const action = isCutMode.value ? t('components.clipboard.cut') : t('components.clipboard.copied');
+  const unit = count !== 1 ? 'items' : 'item';
+  return t('components.clipboard.clipboardTitle', { action, count, unit });
 });
 
 // Checks if there are items in the clipboard.

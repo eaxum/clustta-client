@@ -27,9 +27,9 @@
           </div>
         </div> -->
         <div class="virtual-node-actions" v-if="userStore.canDo('manage_dependencies')" >
-          <ActionButton v-if="(data.depth === 1 || isDependency) && showRemove" :icon="getAppIcon('minus-circle')" v-tooltip="'Remove'"
+          <ActionButton v-if="(data.depth === 1 || isDependency) && showRemove" :icon="getAppIcon('minus-circle')" v-tooltip="$t('components.virtualNode.remove')"
             @click="removeDependency" />
-          <ActionButton v-if="forList && showAdd" :icon="getAppIcon('plus-circle')" v-tooltip="'Add dependency'"
+          <ActionButton v-if="forList && showAdd" :icon="getAppIcon('plus-circle')" v-tooltip="$t('components.virtualNode.addDependency')"
             @click="addDependency" />
         </div>
       </div>

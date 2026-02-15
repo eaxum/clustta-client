@@ -26,7 +26,7 @@
             </div>
 
             <div v-if="isExpanded === index" class="checkpoint-item-actions close-button">
-                <ActionButton :plainBackground="true" :icon="getAppIcon('close')" v-tooltip="'Close'"
+                <ActionButton :plainBackground="true" :icon="getAppIcon('close')" v-tooltip="$t('components.checkpointItem.close')"
                     @click="leaveCheckpoint($event, index)" />
             </div>
         </div>
@@ -42,32 +42,32 @@
         </div>
 
         <div v-if="checkpoint.preview && isExpanded !== index" class="checkpoint-item-attachment">
-            <ActionButton :icon="getAppIcon('paper-clip')" v-tooltip="'View attachment'"/>
+            <ActionButton :icon="getAppIcon('paper-clip')" v-tooltip="$t('components.checkpointItem.viewAttachment')"/>
         </div>
 
         <div v-if="isExpanded === index" class="menu-divider"></div>
 
         <div v-if="isExpanded !== index" class="checkpoint-item-actions">
-            <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('revert')" v-tooltip="'Revert to this Checkpoint'"
+            <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('revert')" v-tooltip="$t('components.checkpointItem.revertToCheckpoint')"
                 @click="revertToVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
             <template v-if="!platformStore.isWeb" >
                 <ActionButton v-if="!checkpoint.is_downloaded" :icon="getAppIcon('cloud-down')"
-                    v-tooltip="'Download Checkpoint'" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
-                <ActionButton v-else :icon="getAppIcon('launch')" v-tooltip="'Open Checkpoint'"
+                    v-tooltip="$t('components.checkpointItem.downloadCheckpoint')" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
+                <ActionButton v-else :icon="getAppIcon('launch')" v-tooltip="$t('components.checkpointItem.openCheckpoint')"
                     @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
             </template>
-            <ActionButton v-else-if="userStore.canDo('delete_checkpoint')" :icon="getAppIcon('trash')" v-tooltip="'Delete Checkpoint'"
+            <ActionButton v-else-if="userStore.canDo('delete_checkpoint')" :icon="getAppIcon('trash')" v-tooltip="$t('components.checkpointItem.deleteCheckpoint')"
                 @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>
 
         <div v-else class="full-checkpoint-item-actions">
-            <ActionButton v-if="!platformStore.isWeb" :label="'Revert'" :icon="getAppIcon('revert')" v-tooltip="'Revert to this Checkpoint'"
+            <ActionButton v-if="!platformStore.isWeb" :label="$t('components.checkpointItem.revert')" :icon="getAppIcon('revert')" v-tooltip="$t('components.checkpointItem.revertToCheckpoint')"
                 @click="revertToVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
-            <ActionButton v-if="!platformStore.isWeb && !checkpoint.is_downloaded" :label="'Download'" :icon="getAppIcon('cloud-down')"
-                v-tooltip="'Download Checkpoint'" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
-            <ActionButton v-if="!platformStore.isWeb && checkpoint.is_downloaded" :label="'Open'" :icon="getAppIcon('launch')"
-                v-tooltip="'Open Checkpoint'" @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
-            <ActionButton v-if="userStore.canDo('delete_checkpoint')" :label="'Delete'" :icon="getAppIcon('trash')" v-tooltip="'Delete Checkpoint'"
+            <ActionButton v-if="!platformStore.isWeb && !checkpoint.is_downloaded" :label="$t('components.checkpointItem.download')" :icon="getAppIcon('cloud-down')"
+                v-tooltip="$t('components.checkpointItem.downloadCheckpoint')" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
+            <ActionButton v-if="!platformStore.isWeb && checkpoint.is_downloaded" :label="$t('components.checkpointItem.open')" :icon="getAppIcon('launch')"
+                v-tooltip="$t('components.checkpointItem.openCheckpoint')" @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
+            <ActionButton v-if="userStore.canDo('delete_checkpoint')" :label="$t('components.checkpointItem.delete')" :icon="getAppIcon('trash')" v-tooltip="$t('components.checkpointItem.deleteCheckpoint')"
                 @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>
 
@@ -84,6 +84,7 @@ const getAppIcon = (iconName) => {
 };
 // imports
 import { ref, onMounted, onBeforeUnmount, computed, nextTick, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // services
@@ -97,6 +98,8 @@ import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { usePlatformStore } from '@/stores/platform';
+
+const { t } = useI18n();
 
 // components
 import CheckpointListSkeleton from '@/instances/common/components/CheckpointListSkeleton.vue';
@@ -156,7 +159,7 @@ const downloadCheckpoint = (checkpointId) => {
         .catch((error) => {
             notificationStore.resetProgress()
             notificationStore.addNotification(
-                "Error Downloading Checkpoint",
+                t('components.checkpointItem.errorDownloading'),
                 error.message,
                 "error",
                 false
@@ -176,7 +179,7 @@ const revertToVersion = (id, checkpointId) => {
         .catch((error) => {
             console.log(error)
             notificationStore.addNotification(
-                "Error Reverting to Version",
+                t('components.checkpointItem.errorReverting'),
                 error.message,
                 "error",
                 false
@@ -192,7 +195,7 @@ const viewVersion = (id, checkpointId) => {
         })
         .catch((error) => {
             notificationStore.addNotification(
-                "Error Reverting to Version",
+                t('components.checkpointItem.errorReverting'),
                 error.message,
                 "error",
                 false
@@ -235,7 +238,7 @@ const deleteVersion = async () => {
         })
         .catch((error) => {
             notificationStore.addNotification(
-                "Error Deleting Checkpoint",
+                t('components.checkpointItem.errorDeleting'),
                 error.message,
                 "error",
                 false
@@ -247,8 +250,8 @@ const deleteVersion = async () => {
 };
 
 const prepDeletePopUpModal = (checkpointId) => {
-    trayStates.popUpModalTitle = "Delete Checkpoint";
-    trayStates.popUpModalMessage = "Are you sure you want to delete this Checkpoint?";
+    trayStates.popUpModalTitle = t('components.checkpointItem.deleteCheckpointTitle');
+    trayStates.popUpModalMessage = t('components.checkpointItem.deleteCheckpointConfirm');
     trayStates.popUpModalIcon = 'trash';
     itemVersionId.value = checkpointId;
     trayStates.popUpModalFunction = deleteVersion;

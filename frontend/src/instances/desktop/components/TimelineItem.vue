@@ -25,11 +25,11 @@
 
             <div v-if="isExpanded !== timelineItemIndex" class="checkpoint-item-actions">
 
-                <span @click="revertProject(timelineItem.created_at)" class="single-action-button" v-tooltip="'Revert'">
+                <span @click="revertProject(timelineItem.created_at)" class="single-action-button" v-tooltip="$t('components.timelineItem.revert')">
                     <img class="small-icons" :src="getAppIcon('revert')">
                 </span>
 
-                <span @click="toggleVersions(timelineItemIndex)" class="single-action-button" v-tooltip="'Expand'">
+                <span @click="toggleVersions(timelineItemIndex)" class="single-action-button" v-tooltip="$t('components.timelineItem.expand')">
                     <img class="small-icons" src="/icons/chevron_down_white_slim.svg"
                         :class="{ 'is-active': isExpanded === timelineItemIndex }">
                 </span>
@@ -37,11 +37,11 @@
 
             <div v-else class="checkpoint-item-actions">
 
-                <span @click="revertProject(timelineItem.created_at)" class="single-action-button" v-tooltip="'Revert'">
+                <span @click="revertProject(timelineItem.created_at)" class="single-action-button" v-tooltip="$t('components.timelineItem.revert')">
                     <img class="small-icons" :src="getAppIcon('revert')">
                 </span>
 
-                <span @click="toggleVersions(timelineItemIndex)" class="single-action-button" v-tooltip="'Close'">
+                <span @click="toggleVersions(timelineItemIndex)" class="single-action-button" v-tooltip="$t('components.timelineItem.close')">
                     <img class="small-icons" :src="getAppIcon('close')"
                         :class="{ 'is-active': isExpanded === timelineItemIndex }">
                 </span>
@@ -72,6 +72,7 @@
 
 <script setup>
 import { computed, onMounted, ref, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { CheckpointService, CollectionService, AssetService, TrashService } from "@/services";
 import utils from '@/services/utils';
 import { useCollectionStore } from '@/stores/collections';
@@ -105,6 +106,8 @@ const assetStore = useAssetStore();
 const stage = useStageStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
+
+const { t } = useI18n();
 
 const getAppIcon = (iconName) => {
     const icon = iconStore.getAppIcon(iconName);
@@ -162,7 +165,7 @@ const revertProject = async (createdAt) => {
     CheckpointService.RevertProject(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, createdAt)
         .then(async (response) => {
             notificationStore.addNotification(
-                "Project Successfully Reverted",
+                t('components.timelineItem.projectReverted'),
                 "",
                 "success",
                 false
@@ -171,7 +174,7 @@ const revertProject = async (createdAt) => {
         })
         .catch((error) => {
             console.log(error)
-            notificationStore.errorNotification("Error Reverting Project", error)
+            notificationStore.errorNotification(t('components.timelineItem.errorRevertingProject'), error)
         });
 };
 

@@ -6,7 +6,7 @@
         v-if="showEditButton"
         :icon="isEditing ? '/icons/close.svg' : '/icons/edit.svg'"
         :buttonFunction="() => $emit('toggleEdit')"
-        v-tooltip="isEditing ? 'Cancel editing' : 'Edit section'"
+        v-tooltip="isEditing ? $t('components.profileCard.cancelEditing') : $t('components.profileCard.editSection')"
       />
     </div>
     <div class="profile-card-content">

@@ -26,7 +26,7 @@
     
     <!-- Empty state -->
     <div v-else-if="!isEditing" class="empty-state">
-      No tools to display
+      {{ $t('components.toolsManager.noTools') }}
     </div>
     
     <!-- ItemSelector for adding new tools -->
@@ -35,13 +35,13 @@
         v-if="tools.length < 5"
         :selectedItems="tools"
         :allItems="normalizedAllTools"
-        :placeholder="'Search and add tools...'"
+        :placeholder="$t('components.toolsManager.searchPlaceholder')"
         :itemType="'tool'"
         @itemAdded="addTool"
       />
       <div v-else class="limit-message">
         <img :src="getAppIcon('info')" alt="Info" class="limit-icon" />
-        <span>Maximum of 5 tools reached. Remove a tool to add another.</span>
+        <span>{{ $t('components.toolsManager.maxReached') }}</span>
       </div>
     </div>
   </div>
@@ -49,6 +49,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useIconStore } from '@/stores/icons';
 import { useUserStore } from '@/stores/users';
 import { useProfileStore } from '@/stores/profile';
@@ -62,6 +63,8 @@ const iconStore = useIconStore();
 const userStore = useUserStore();
 const profileStore = useProfileStore();
 const notificationStore = useNotificationStore();
+
+const { t } = useI18n();
 
 const props = defineProps({
   tools: {
@@ -109,10 +112,10 @@ const addTool = (tool) => {
         tool_category: tool.tool_category || tool.category
       };
       profileStore.addTool(transformedTool);
-      notificationStore.addNotification("Tool added", "Tool added successfully.", "success", false);
+      notificationStore.addNotification(t('components.toolsManager.toolAdded'), t('components.toolsManager.toolAddedMessage'), "success", false);
     })
     .catch((err) => {
-      notificationStore.errorNotification("Failed to add tool", err?.message || err);
+      notificationStore.errorNotification(t('components.toolsManager.failedToAddTool'), err?.message || err);
     });
 };
 
@@ -120,10 +123,10 @@ const removeTool = (tool) => {
   ProfileService.RemoveUserTool(userStore.user.id, tool.tool_id)
     .then(() => {
       profileStore.removeTool(tool.id);
-      notificationStore.addNotification("Tool removed", "Tool removed successfully.", "success", false);
+      notificationStore.addNotification(t('components.toolsManager.toolRemoved'), t('components.toolsManager.toolRemovedMessage'), "success", false);
     })
     .catch((err) => {
-      notificationStore.errorNotification("Failed to remove tool", err?.message || err);
+      notificationStore.errorNotification(t('components.toolsManager.failedToRemoveTool'), err?.message || err);
     });
 };
 

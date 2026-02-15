@@ -1,7 +1,7 @@
 <template>
   <div class="apps-container-full" v-stop-propagation>
     
-  <SearchBar v-model="searchTerm" placeholder="Search emojis..." @clear="clearSearch" />
+  <SearchBar v-model="searchTerm" :placeholder="$t('components.emojiPicker.searchPlaceholder')" @clear="clearSearch" />
 
   <div class="category-buttons" v-show="!searchTerm">
     <button  v-for="(category, key) in emojiData"  :key="key"
@@ -21,7 +21,7 @@
           </div>
         </template>
 
-        <div v-else class="no-results">No results to display</div>
+        <div v-else class="no-results">{{ $t('components.emojiPicker.noResults') }}</div>
       </div>
 
     </div>

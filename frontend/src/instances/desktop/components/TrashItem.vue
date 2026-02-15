@@ -18,11 +18,11 @@
             </div>
 
             <span v-if="!trashItem.checkpoints.length" @click="restoreItem(trashItem.id, trashItem.type)"
-                class="single-action-button" v-tooltip="'Restore'">
+                class="single-action-button" v-tooltip="$t('components.trashItem.restore')">
                 <img class="small-icons" :src="getAppIcon('undo')">
             </span>
 
-            <span v-else @click="toggleVersions(trashItemIndex)" class="single-action-button" v-tooltip="'Expand'">
+            <span v-else @click="toggleVersions(trashItemIndex)" class="single-action-button" v-tooltip="$t('components.trashItem.expand')">
                 <img class="small-icons" src="/icons/chevron_down_white_slim.svg"
                     :class="{ 'is-active': isExpanded === trashItemIndex }">
             </span>
@@ -42,7 +42,7 @@
                     </div>
 
                     <span @click="restoreItem(checkpoint.id, checkpoint.type)" class="single-action-button"
-                        v-tooltip="'Restore'">
+                        v-tooltip="$t('components.trashItem.restore')">
                         <img class="small-icons" :src="getAppIcon('undo')">
                     </span>
 
@@ -56,6 +56,10 @@
 <script setup>
 import { useIconStore } from '@/stores/icons';
 const iconStore = useIconStore();
+
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const getAppIcon = (iconName) => {
 	const icon = iconStore.getAppIcon(iconName);
@@ -129,7 +133,7 @@ const restoreItem = async (id, type) => {
         .then(async (response) => {
             trayStates.trashables = await TrashService.GetTrashs(projectStore.activeProject.uri)
             notificationStore.addNotification(
-                "Item Restored",
+                t('components.trashItem.itemRestored'),
                 "",
                 "success",
                 false
@@ -138,7 +142,7 @@ const restoreItem = async (id, type) => {
         })
         .catch((error) => {
             notificationStore.addNotification(
-                "Error Restoring Item",
+                t('components.trashItem.errorRestoringItem'),
                 error.message,
                 "error",
                 false

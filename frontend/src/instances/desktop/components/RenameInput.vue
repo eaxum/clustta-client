@@ -13,12 +13,12 @@
     <ActionButton 
       :isDisabled="!isNameChanged" 
       :icon="getAppIcon('check')" 
-      v-tooltip="'Confirm'"
+      v-tooltip="$t('components.renameInput.confirm')"
       @click="handleConfirm" 
     />
     <ActionButton 
       :icon="getAppIcon('close')" 
-      v-tooltip="'Cancel'" 
+      v-tooltip="$t('components.renameInput.cancel')" 
       @click="handleCancel" 
     />
   </div>
@@ -45,6 +45,8 @@ const props = defineProps({
     default: 'Enter name'
   }
 });
+
+// Note: placeholder prop default not i18n'd since it's a prop default
 
 const emit = defineEmits(['update:modelValue', 'confirm', 'cancel']);
 

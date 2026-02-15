@@ -23,20 +23,20 @@
         </div>
 
         <div v-if="!compact" class="collaborator-item-actions">
-          <ActionButton v-if="canDeleteUser" :icon="getAppIcon('person-minus')" @click="deleteCollaborator(collaborator.id)" v-tooltip="'Remove'" />
-          <ActionButton :icon="getAppIcon('person-search')" @click="openUserProfile" v-tooltip="'View profile'" />
+          <ActionButton v-if="canDeleteUser" :icon="getAppIcon('person-minus')" @click="deleteCollaborator(collaborator.id)" v-tooltip="$t('components.collaboratorItem.remove')" />
+          <ActionButton :icon="getAppIcon('person-search')" @click="openUserProfile" v-tooltip="$t('components.collaboratorItem.viewProfile')" />
         </div>
 
         <div v-if="compact && !isEditing && isProjectMember" class="collaborator-item-actions compact-actions-container">
           <div class="compact-role-meta" v-tooltip="displayRole">{{ displayRole }}</div>
           <div class="compact-hover-actions">
-            <ActionButton v-if="canEditRole" :icon="getAppIcon('edit')" @click="startEditing" v-tooltip="'Edit role'" />
-            <ActionButton v-if="canDeleteUser" :icon="getAppIcon(isLoading ? 'loading' : 'person-minus')" :isLoading="isLoading" @click="deleteCollaborator(collaborator.id)" v-tooltip="isLoading ? 'Removing...' : 'Remove'" />
+            <ActionButton v-if="canEditRole" :icon="getAppIcon('edit')" @click="startEditing" v-tooltip="$t('components.collaboratorItem.editRole')" />
+            <ActionButton v-if="canDeleteUser" :icon="getAppIcon(isLoading ? 'loading' : 'person-minus')" :isLoading="isLoading" @click="deleteCollaborator(collaborator.id)" v-tooltip="isLoading ? $t('components.collaboratorItem.removing') : $t('components.collaboratorItem.remove')" />
           </div>
         </div>
 
         <div v-if="compact && !isProjectMember" class="collaborator-item-actions compact-actions-container">
-          <ActionButton v-if="canEditRole" :icon="getAppIcon(isLoading ? 'loading' : 'person-plus')" :isLoading="isLoading" @click="addToProject" v-tooltip="isLoading ? 'Adding...' : 'Add to project'" />
+          <ActionButton v-if="canEditRole" :icon="getAppIcon(isLoading ? 'loading' : 'person-plus')" :isLoading="isLoading" @click="addToProject" v-tooltip="isLoading ? $t('components.collaboratorItem.adding') : $t('components.collaboratorItem.addToProject')" />
         </div>
 
       </div>
@@ -47,6 +47,7 @@
 <script setup>
 // imports
 import { computed, ref, watch, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Browser } from "@wailsio/runtime";
 
 // components
@@ -69,6 +70,8 @@ const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const studioStore = useStudioStore();
 const userStore = useUserStore();
+
+const { t } = useI18n();
 
 // props
 const props = defineProps({
@@ -136,7 +139,7 @@ const deleteCollaborator = (collaboratorId) => {
       studioStore.studioUsers = studioStore.studioUsers.filter((user) => user.id !== userId);
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error Deleting User", error.response.data);
+      notificationStore.errorNotification(t('components.collaboratorItem.errorRemovingCollaborator'), error.response.data);
     });
 };
 
@@ -179,7 +182,7 @@ const selectRole = (role) => {
       }
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error Changing Role", error.response.data);
+      notificationStore.errorNotification(t('components.collaboratorItem.errorUpdatingRole'), error.response.data);
     });
 };
 

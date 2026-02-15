@@ -3,7 +3,7 @@
     <input ref="inputRef" v-model="model" class="searchbar-input" type="text" :placeholder="placeholder"
       @input="$emit('input', $event)" spellcheck="false" />
     <ActionButton v-if="model.length" :isLoading="isLoading" :icon="getAppIcon( isLoading? 'loading' : 'close')" :allowDeactivate="true"
-      v-tooltip="isLoading ? 'Loading...' : 'Clear search'" :buttonFunction="handleClear" />
+      v-tooltip="isLoading ? $t('components.searchBar.loading') : $t('components.searchBar.clearSearch')" :buttonFunction="handleClear" />
   </div>
 </template>
 

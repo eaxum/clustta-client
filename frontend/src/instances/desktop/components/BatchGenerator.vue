@@ -2,21 +2,21 @@
     
     <div class="input-group">
       <div class="field">
-        <label for="input1">First Item</label>
+        <label for="input1">{{ $t('components.batchGenerator.firstItem') }}</label>
         <input class="input-short" :class="{ 'error' : invalidPattern}"
-          id="input1" v-model="input1" type="text" placeholder="e.g., shot01" />
+          id="input1" v-model="input1" type="text" :placeholder="$t('components.batchGenerator.placeholderFirst')" />
       </div>
       
       <div class="field">
-        <label for="input2">Second Item</label>
+        <label for="input2">{{ $t('components.batchGenerator.secondItem') }}</label>
         <input class="input-short" :class="{ 'error' : invalidPattern}"
-          id="input2" v-model="input2" type="text" placeholder="e.g., shot02" />
+          id="input2" v-model="input2" type="text" :placeholder="$t('components.batchGenerator.placeholderSecond')" />
       </div>
       
       <div class="field">
-        <label for="count">Total Count</label>
+        <label for="count">{{ $t('components.batchGenerator.totalCount') }}</label>
         <input class="input-short"
-          id="count" v-model="count" type="number" placeholder="e.g., 10" min="1" />
+          id="count" v-model="count" type="number" :placeholder="$t('components.batchGenerator.placeholderCount')" min="1" />
       </div>
     </div>
 

@@ -32,7 +32,7 @@
 
 		</span>
 
-		<div v-if="recents.length" v-tooltip="isHoveringRecents ? 'Clear recent projects' : 'Recent projects'" 
+		<div v-if="recents.length" v-tooltip="isHoveringRecents ? $t('components.projectList.clearRecentProjects') : $t('components.projectList.recentProjects')" 
 			 class="pinned-indicator" :class="{ 'clickable': isHoveringRecents }"
 			 @mouseenter="isHoveringRecents = true" @mouseleave="isHoveringRecents = false" @click="clearRecents">
 			<div class="menu-divider"></div>
@@ -77,6 +77,7 @@ const getAppIcon = (iconName) => {
 
 // imports
 import { computed, ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // services
 import { SettingsService } from '@/services';
@@ -92,6 +93,8 @@ const stage = useStageStore();
 const projectStore = useProjectStore();
 const platformStore = usePlatformStore();
 const notificationStore = useNotificationStore();
+
+const { t } = useI18n();
 const listItem = ref(null);
 const isHoveringPinned = ref(false);
 const isHoveringRecents = ref(false);
@@ -141,8 +144,8 @@ const pinnedIndicatorIcon = computed(() => {
 });
 
 const pinnedIndicatorTooltip = computed(() => {
-	if (!isHoveringPinned.value) return 'Pinned projects';
-	return activeProjectIsPinned.value ? 'Unpin project' : 'Pin project';
+	if (!isHoveringPinned.value) return t('components.projectList.pinnedProjects');
+	return activeProjectIsPinned.value ? t('components.projectList.unpinProject') : t('components.projectList.pinProject');
 });
 
 const criticalItemsDot = computed(() => {
@@ -189,7 +192,7 @@ const togglePinProject = async () => {
 const clearRecents = () => {
 	SettingsService.ClearRecentProject().then(() => {
 		projectStore.recentProjects = [];
-		notificationStore.addNotification("Recent Projects Cleared", "Recent Projects Cleared", "success");
+		notificationStore.addNotification(t('components.projectList.recentProjectsCleared'), t('components.projectList.recentProjectsCleared'), "success");
 	});
 };
 

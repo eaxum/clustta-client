@@ -7,98 +7,98 @@
       <div v-if="isMultipleItems" class="details-pane-content">
 
         <div v-if="itemsIsEntity" class="pane-parameter-detail">
-          {{ itemCounts.entity + ' collections' }}
+          {{ itemCounts.entity + ' ' + $t('components.detailsPane.collections') }}
         </div>
 
         <div v-if="itemsIsTask" class="pane-parameter-detail">
-          {{ itemCounts.task + ' Assets' }}
+          {{ itemCounts.task + ' ' + $t('components.detailsPane.assets') }}
         </div>
 
         <div v-if="itemsIsUntracked" class="pane-parameter-detail">
-          {{ (itemCounts.untracked_task + itemCounts.untracked_entity) + ' untracked items' }}
+          {{ (itemCounts.untracked_task + itemCounts.untracked_entity) + ' ' + $t('components.detailsPane.untrackedItems') }}
         </div>
 
 
         <div v-if="showTaskEntityActions || showEntityTaskActions" class="action-bar">
-          <ActionButton v-if="activeIsTask" :icon="getAppIcon('dependency')" :label="'Make dependencies of active task'"
-            :buttonFunction="makeDependenciesOfActive" v-tooltip="'Add selected items as dependencies of the active task'" />
+          <ActionButton v-if="activeIsTask" :icon="getAppIcon('dependency')" :label="$t('components.detailsPane.makeDependencies')"
+            :buttonFunction="makeDependenciesOfActive" v-tooltip="$t('components.detailsPane.makeDependenciesTooltip')" />
           <ActionButton v-if="activeIsEntity" :icon="getAppIcon('folder-arrow-in')"
-            :label="'Move into active collection'" :buttonFunction="moveIntoFolder" v-tooltip="'Move selected items into the active collection'" />
+            :label="$t('components.detailsPane.moveIntoCollection')" :buttonFunction="moveIntoFolder" v-tooltip="$t('components.detailsPane.moveIntoCollectionTooltip')" />
         </div>
 
 
         <div v-if="onlyTasks" class="action-bar">
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('shapes')" :label="'Type'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('shapes')" :label="$t('components.detailsPane.type')" />
             <DropDownBox :items="itemTypes" :selectedItem="''" :onSelect="toggleIsTask" :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('file-plus')" :label="'Asset type'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('file-plus')" :label="$t('components.detailsPane.assetType')" />
             <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="taskType" :onSelect="changeTaskType"
               :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('clock')" :label="'Status'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('clock')" :label="$t('components.detailsPane.status')" />
             <DropDownBox :items="projectStatuses" :selectedItem="defaultStatus" :onSelect="setMultipleStatus"
               :fixedWidth="true" />
           </div>
           
-          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :label="'Move to Collection'"
-            @click="prepMoveToCollection($event)" v-tooltip="'Move selected assets to a different collection'" />
-          <ActionButton v-if="!platformStore.isWeb && tasksCanRebuild" :icon="getAppIcon('jigsaw')" :label="'Rebuild Assets'"
-            :buttonFunction="revertAllChanges" v-tooltip="'Download and restore selected assets'" />
-          <ActionButton v-if="tasksModified" :noFilter="true" :icon="getAppIcon('layers-plus')" :useAlert="true" :label="'Create Checkpoints'"
-            :buttonFunction="prepAllCheckpointModal" v-tooltip="'Save current state of selected assets'" />
-          <ActionButton v-if="!platformStore.isWeb && tasksModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :label="'Revert Tasks'"
-            :buttonFunction="prepResetPopUpModal" v-tooltip="'Revert selected assets to their last checkpoint'" />
-          <ActionButton :icon="getAppIcon('person-plus')" :label="'Assign assets'"
-            @click="prepAssignTask($event)" v-tooltip="'Assign a collaborator to selected assets'" />
-          <ActionButton :icon="getAppIcon('person-minus')" :label="'Unassign assets'"
-            :buttonFunction="unassignTasks" v-tooltip="'Remove all assignees from selected assets'" />
-          <ActionButton v-if="!platformStore.isWeb && tasksOnDisk" :icon="getAppIcon('broom')" :label="'Free up space'"
-            :buttonFunction="prepFreeUpSpacePopUpModal" v-tooltip="'Delete working files to free disk space'" />
-          <ActionButton :icon="getAppIcon('trash')" :label="'Delete Selected assets'"
-            :buttonFunction="deleteMultipleTasks" v-tooltip="'Move selected assets to trash'" />
+          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :label="$t('components.detailsPane.moveToCollection')"
+            @click="prepMoveToCollection($event)" v-tooltip="$t('components.detailsPane.moveToCollectionTooltip')" />
+          <ActionButton v-if="!platformStore.isWeb && tasksCanRebuild" :icon="getAppIcon('jigsaw')" :label="$t('components.detailsPane.rebuildAssets')"
+            :buttonFunction="revertAllChanges" v-tooltip="$t('components.detailsPane.rebuildAssetsTooltip')" />
+          <ActionButton v-if="tasksModified" :noFilter="true" :icon="getAppIcon('layers-plus')" :useAlert="true" :label="$t('components.detailsPane.createCheckpoints')"
+            :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsTooltip')" />
+          <ActionButton v-if="!platformStore.isWeb && tasksModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :label="$t('components.detailsPane.revertTasks')"
+            :buttonFunction="prepResetPopUpModal" v-tooltip="$t('components.detailsPane.revertTasksTooltip')" />
+          <ActionButton :icon="getAppIcon('person-plus')" :label="$t('components.detailsPane.assignAssets')"
+            @click="prepAssignTask($event)" v-tooltip="$t('components.detailsPane.assignAssetsTooltip')" />
+          <ActionButton :icon="getAppIcon('person-minus')" :label="$t('components.detailsPane.unassignAssets')"
+            :buttonFunction="unassignTasks" v-tooltip="$t('components.detailsPane.unassignAssetsTooltip')" />
+          <ActionButton v-if="!platformStore.isWeb && tasksOnDisk" :icon="getAppIcon('broom')" :label="$t('components.detailsPane.freeUpSpace')"
+            :buttonFunction="prepFreeUpSpacePopUpModal" v-tooltip="$t('components.detailsPane.freeUpSpaceTaskTooltip')" />
+          <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteSelectedAssets')"
+            :buttonFunction="deleteMultipleTasks" v-tooltip="$t('components.detailsPane.deleteSelectedAssetsTooltip')" />
         </div>
 
         <div v-else-if="onlyEntities" class="action-bar">
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="'Collection type'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="$t('components.detailsPane.collectionType')" />
             <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType"
               :onSelect="changeEntityType" :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="'Library'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="$t('components.detailsPane.library')" />
             <DropDownBox :items="collectionMode" :selectedItem="''" :onSelect="changeIsLibrary" :fixedWidth="true" />
           </div>
 
           <div class="vertical-flex assignees-search">
-            <ActionButton :isInactive="true" :icon="getAppIcon('two-persons')" :label="'Assignees'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('two-persons')" :label="$t('components.detailsPane.assignees')" />
             <CollaboratorSuggestions :displayEmail="false" :placeholder="placeholder" :allItems="projectUsers"
               @tagAdded="assignCollections"/>
           </div>
           
-          <ActionButton :icon="getAppIcon('person-minus')" :label="'Unassign collections'"
-            :buttonFunction="unassignCollections" v-tooltip="'Remove all assignees from selected collections'" />
-          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('jigsaw')" :label="'Rebuild collections'" :buttonFunction="rebuildCollections" v-tooltip="'Download and restore all assets in selected collections'" />
-          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :label="'Free up space'"
-            :buttonFunction="freeUpCollectionSpacePopUpModal" v-tooltip="'Delete collection contents to free disk space'" />
-          <ActionButton :icon="getAppIcon('trash')" :label="'Delete collections'"
-            :buttonFunction="deleteMultipleEntities" v-tooltip="'Move selected collections to trash'" />
+          <ActionButton :icon="getAppIcon('person-minus')" :label="$t('components.detailsPane.unassignCollections')"
+            :buttonFunction="unassignCollections" v-tooltip="$t('components.detailsPane.unassignCollectionsTooltip')" />
+          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('jigsaw')" :label="$t('components.detailsPane.rebuildCollections')" :buttonFunction="rebuildCollections" v-tooltip="$t('components.detailsPane.rebuildCollectionsTooltip')" />
+          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :label="$t('components.detailsPane.freeUpSpace')"
+            :buttonFunction="freeUpCollectionSpacePopUpModal" v-tooltip="$t('components.detailsPane.freeUpSpaceCollectionTooltip')" />
+          <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteCollections')"
+            :buttonFunction="deleteMultipleEntities" v-tooltip="$t('components.detailsPane.deleteCollectionsTooltip')" />
         </div>
 
         
         <div v-else-if="onlyUntrackedAssets || onlyUntrackedCollections" class="action-bar">
-          <ActionButton v-if="userStore.canDo('create_task') && onlyUntrackedAssets" :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" :label="'Create Checkpoints'" :buttonFunction="prepAllCheckpointModal" v-tooltip="'Track and create checkpoints for selected items'" />
-          <ActionButton :icon="getAppIcon('file-watch')" :label="'Ignore Items'" :buttonFunction="ignoreItems" v-tooltip="'Add items to the ignore list'" />
-          <ActionButton :icon="getAppIcon('trash')" :label="'Delete Items'" :buttonFunction="deleteMultipleUntrackedTasks" v-tooltip="'Permanently delete selected untracked items'" />
+          <ActionButton v-if="userStore.canDo('create_task') && onlyUntrackedAssets" :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsUntrackedTooltip')" />
+          <ActionButton :icon="getAppIcon('file-watch')" :label="$t('components.detailsPane.ignoreItems')" :buttonFunction="ignoreItems" v-tooltip="$t('components.detailsPane.ignoreItemsTooltip')" />
+          <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleUntrackedTasks" v-tooltip="$t('components.detailsPane.deleteItemsTooltip')" />
         </div>
 
         <div v-else class="action-bar">
-          <ActionButton :icon="getAppIcon('trash')" :label="'Delete Items'" :buttonFunction="deleteMultipleItems" v-tooltip="'Delete all selected items'" />
+          <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleItems" v-tooltip="$t('components.detailsPane.deleteAllItemsTooltip')" />
         </div>
 
       </div>
@@ -118,6 +118,7 @@
 <script setup>
 // imports
 import { computed, nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
 import { addIgnoredItem } from '@/lib/untracked';
@@ -178,6 +179,7 @@ const stage = useStageStore();
 const statusStore = useStatusStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
+const { t } = useI18n();
 
 // props
 const props = defineProps({
@@ -188,7 +190,7 @@ const props = defineProps({
 const collectionMode = ['basic', 'library'];
 const itemTypes = ['task', 'resource'];
 const noHeaders = [];
-const placeholder = 'Search collaborators';
+const placeholder = computed(() => t('components.detailsPane.searchCollaboratorsPlaceholder'));
 
 const assetDetailPanes = [
   { name: "Details", nameKey: "panes.detailsTab", tab_name: "assetDetails", icon: "info" },
@@ -358,9 +360,9 @@ const addEntityDependency = async (task, dependencyId) => {
     .then(() => {
       if (!task.entity_dependencies) task.entity_dependencies = [];
       task.entity_dependencies.push(dependencyId);
-      notificationStore.addNotification("Dependency Added", "", "success");
+      notificationStore.addNotification(t('components.detailsPane.dependencyAdded'), "", "success");
     })
-    .catch((error) => { console.log(error); notificationStore.errorNotification("Error adding dependencies", error); });
+    .catch((error) => { console.log(error); notificationStore.errorNotification(t('components.detailsPane.errorAddingDependencies'), error); });
 };
 
 // Adds a task dependency to a task.
@@ -370,9 +372,9 @@ const addTaskDependency = async (task, dependencyId) => {
     .then(() => {
       if (!task.dependencies) task.dependencies = [];
       task.dependencies.push(dependencyId);
-      notificationStore.addNotification("Dependency Added", "", "success");
+      notificationStore.addNotification(t('components.detailsPane.dependencyAdded'), "", "success");
     })
-    .catch((error) => { console.log(error); notificationStore.errorNotification("Error adding dependencies", error); });
+    .catch((error) => { console.log(error); notificationStore.errorNotification(t('components.detailsPane.errorAddingDependencies'), error); });
 };
 
 // Assigns collections to a user.
@@ -391,7 +393,7 @@ const assignCollections = async (user) => {
         }
         projectStore.refreshActiveProject();
       })
-      .catch((error) => { notificationStore.errorNotification('Error adding user', error); console.error('Error adding user:', error); });
+      .catch((error) => { notificationStore.errorNotification(t('components.detailsPane.errorAddingUser'), error); console.error('Error adding user:', error); });
   }
   emitter.emit('refresh-browser');
   stage.operationActive = false;
@@ -400,8 +402,8 @@ const assignCollections = async (user) => {
 // Changes the parent collection of one or more entities.
 const changeEntityParent = async (entityIds, parentId) => {
   await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityIds, parentId)
-    .then(() => notificationStore.addNotification('Moved successfully.', "", "success"))
-    .catch((error) => { console.error(error); notificationStore.errorNotification("Error changing entity parent", error); });
+    .then(() => notificationStore.addNotification(t('components.detailsPane.movedSuccessfully'), "", "success"))
+    .catch((error) => { console.error(error); notificationStore.errorNotification(t('components.detailsPane.errorChangingEntityParent'), error); });
 };
 
 // Changes the type of multiple entities.
@@ -430,8 +432,8 @@ const changeIsLibrary = async (mode) => {
 // Moves one or more tasks to a different collection.
 const changeTaskEntity = async (taskIds, entityId) => {
   await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskIds, entityId)
-    .then(() => notificationStore.addNotification('Moved successfully.', "", "success"))
-    .catch((error) => { console.error(error); notificationStore.errorNotification("Error changing task entity", error); });
+    .then(() => notificationStore.addNotification(t('components.detailsPane.movedSuccessfully'), "", "success"))
+    .catch((error) => { console.error(error); notificationStore.errorNotification(t('components.detailsPane.errorChangingTaskEntity'), error); });
 };
 
 // Changes the type of multiple tasks.
@@ -465,10 +467,10 @@ const deleteMultipleEntities = async () => {
   for (let entityId of stage.markedItems) {
     await CollectionService.DeleteCollection(projectStore.activeProject.uri, entityId, true)
       .then(() => { if (onlyEntities.value) { stage.markedItems = []; collectionStore.selectedCollection = null; } })
-      .catch((error) => { console.log(error); notificationStore.errorNotification("Entities failed to delete.", error); });
+      .catch((error) => { console.log(error); notificationStore.errorNotification(t('components.detailsPane.entitiesFailedToDelete'), error); });
   }
   clearSelection();
-  notificationStore.addNotification("Collections moved to trash.", '', "success", false);
+  notificationStore.addNotification(t('components.detailsPane.collectionsMovedToTrash'), '', "success", false);
   emitter.emit('refresh-browser');
   stage.operationActive = false;
 };
@@ -487,8 +489,8 @@ const deleteMultipleTasks = async () => {
   stage.operationActive = true;
   for (let taskId of stage.markedItems) {
     await AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
-      .then(() => { emitter.emit('refresh-browser'); notificationStore.addNotification("Assets moved to Trash.", '', "success", false); })
-      .catch((error) => { if (onlyTasks.value) { console.log(error); notificationStore.errorNotification("Assets failed to delete.", error); } });
+      .then(() => { emitter.emit('refresh-browser'); notificationStore.addNotification(t('components.detailsPane.assetsMovedToTrash'), '', "success", false); })
+      .catch((error) => { if (onlyTasks.value) { console.log(error); notificationStore.errorNotification(t('components.detailsPane.assetsFailedToDelete'), error); } });
   }
   stage.operationActive = false;
 };
@@ -508,8 +510,8 @@ const deleteMultipleUntrackedTasks = async () => {
     }
     if (onlyUntracked.value) { stage.markedItems = []; projectStore.selectedUntrackedItem = null; }
     emitter.emit('refresh-browser');
-    notificationStore.addNotification("Untracked items deleted.", '', "success", false);
-  } catch (error) { console.error(error); notificationStore.errorNotification("Failed to delete untracked items.", error); }
+    notificationStore.addNotification(t('components.detailsPane.untrackedItemsDeleted'), '', "success", false);
+  } catch (error) { console.error(error); notificationStore.errorNotification(t('components.detailsPane.failedToDeleteUntrackedItems'), error); }
   stage.operationActive = false;
 };
 
@@ -547,8 +549,8 @@ const freeUpCollectionSpace = async () => {
 
 // Shows the free up collection space confirmation modal.
 const freeUpCollectionSpacePopUpModal = () => {
-  trayStates.popUpModalTitle = "Free Up Collection Space";
-  trayStates.popUpModalMessage = "Are you sure you want to delete these Collections? This will permanently remove all untracked files and contents. Please confirm if you wish to proceed.";
+  trayStates.popUpModalTitle = t('components.detailsPane.freeUpCollectionSpaceTitle');
+  trayStates.popUpModalMessage = t('components.detailsPane.freeUpCollectionSpaceMessage');
   trayStates.popUpModalIcon = 'broom';
   trayStates.popUpModalFunction = freeUpCollectionSpace;
   modals.setModalVisibility('popUpModal', true);
@@ -592,9 +594,9 @@ const ignoreItems = async () => {
     panes.setPaneVisibility('projectDetails', true);
     clearSelection();
     emitter.emit('refresh-browser');
-    notificationStore.addNotification("Updated ignore list", '', "success", false);
+    notificationStore.addNotification(t('components.detailsPane.updatedIgnoreList'), '', "success", false);
   } catch (error) {
-    notificationStore.addNotification("Failed to update ignore list", "error");
+    notificationStore.addNotification(t('components.detailsPane.failedToUpdateIgnoreList'), "error");
   }
   stage.operationActive = false;
 };
@@ -696,8 +698,8 @@ const prepAssignTask = (event) => menu.showContextMenu(event, 'assignMenu', true
 
 // Shows the free up task space confirmation modal.
 const prepFreeUpSpacePopUpModal = () => {
-  trayStates.popUpModalTitle = "Free Up Task Space";
-  trayStates.popUpModalMessage = "Are you sure you want to delete these task working files? This will permanently remove all uncheckpointed resources and all task outputs. Please confirm if you wish to proceed.";
+  trayStates.popUpModalTitle = t('components.detailsPane.freeUpTaskSpaceTitle');
+  trayStates.popUpModalMessage = t('components.detailsPane.freeUpTaskSpaceMessage');
   trayStates.popUpModalIcon = 'broom';
   trayStates.popUpModalFunction = freeUpSpace;
   modals.setModalVisibility('popUpModal', true);
@@ -706,8 +708,8 @@ const prepFreeUpSpacePopUpModal = () => {
 // Shows the revert tasks confirmation modal.
 const prepResetPopUpModal = () => {
   trayStates.popUpModalIcon = 'revert';
-  trayStates.popUpModalTitle = "Revert Selected tasks";
-  trayStates.popUpModalMessage = "Modified tasks will be reverted to their last saved state. Are you sure you want to continue?";
+  trayStates.popUpModalTitle = t('components.detailsPane.revertSelectedTasksTitle');
+  trayStates.popUpModalMessage = t('components.detailsPane.revertSelectedTasksMessage');
   trayStates.popUpModalFunction = revertAllChanges;
   modals.setModalVisibility('popUpModal', true);
 };
@@ -721,12 +723,12 @@ const rebuildCollections = async () => {
     await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entityIdsString)
       .then(() => {
         assetStore.refreshEntityFilesStatus();
-        notificationStore.addNotification(`${stage.markedItems.length} collection(s) rebuilt successfully`, '', "success", false);
+        notificationStore.addNotification(t('components.detailsPane.collectionsRebuiltSuccessfully', { count: stage.markedItems.length }), '', "success", false);
       })
-      .catch((error) => { console.error('Error rebuilding collections:', error); notificationStore.errorNotification('Error rebuilding collections', error); });
+      .catch((error) => { console.error('Error rebuilding collections:', error); notificationStore.errorNotification(t('components.detailsPane.errorRebuildingCollections'), error); });
   } catch (error) {
     console.error('Error rebuilding collections:', error);
-    notificationStore.errorNotification('Error rebuilding collections', error);
+    notificationStore.errorNotification(t('components.detailsPane.errorRebuildingCollections'), error);
   } finally {
     emitter.emit('refresh-browser');
     notificationStore.canCancel = false;
@@ -760,7 +762,7 @@ const revertAllChanges = async () => {
         emitItemUpdates(task.id, [{ property: 'file_status', value: 'normal' }]);
       }
     })
-    .catch((error) => { notificationStore.errorNotification("Error Revering Tasks", error); console.error(error); });
+    .catch((error) => { notificationStore.errorNotification(t('components.detailsPane.errorRevertingTasks'), error); console.error(error); });
 };
 
 // Sets the status of multiple tasks.
@@ -801,7 +803,7 @@ const unassignCollections = async () => {
           const itemIndex = stage.selectedItems.findIndex(item => item.id === collection.id);
           if (itemIndex !== -1) stage.selectedItems[itemIndex].assignee_ids = stage.selectedItems[itemIndex].assignee_ids.filter(id => id !== assigneeId);
         })
-        .catch((error) => { notificationStore.errorNotification('Error removing user', error); console.error('Error removing user:', error); });
+        .catch((error) => { notificationStore.errorNotification(t('components.detailsPane.errorRemovingUser'), error); console.error('Error removing user:', error); });
     }
   }
   emitter.emit('refresh-browser');
@@ -811,10 +813,10 @@ const unassignCollections = async () => {
 // Unassigns all collaborators from tasks.
 const unassignTasks = async () => {
   for (const taskId of stage.markedItems) {
-    await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId).catch((error) => { console.log(error); notificationStore.errorNotification("Error Assigning Task", error); });
+    await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId).catch((error) => { console.log(error); notificationStore.errorNotification(t('components.detailsPane.errorAssigningTask'), error); });
   }
   emitter.emit('refresh-browser');
-  notificationStore.addNotification("Tasks Unssigned Successfully.", "", "success");
+  notificationStore.addNotification(t('components.detailsPane.tasksUnassignedSuccessfully'), "", "success");
 };
 
 // Switches to the checkpoints tab.
