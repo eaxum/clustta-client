@@ -32,33 +32,33 @@
           <RenameInput 
             v-model="editableEntityName"
             :originalValue="entity.name"
-            placeholder="Collection name"
+            :placeholder="$t('placeholders.collectionName')"
             @confirm="confirmRename"
             @cancel="cancelRename"
           />
         </div>
         
         <div v-if="!isEditing" class="entity-item-grid-status">
-          <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="'Loading state'" />
+          <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="$t('blocks.loadingState')" />
           <template v-else-if="!isUntracked">
             <ActionButton v-if="collectionStateFlags.has_outdated" 
               @click="updateEntityAssets" 
-              :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="'Outdated Items. Click to update'" />
+              :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickToUpdate')" />
             <ActionButton v-else-if="collectionStateFlags.has_modified" 
               @click="prepAllCheckpointModal(props.entity.entity_path)" 
-              :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="'Untracked/Modified Items. Click to add checkpoints'" />
+              :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.untrackedModifiedClickCheckpoint')" />
             <ActionButton v-else-if="collectionStateFlags.has_untracked" 
               @click="prepAllCheckpointModal(props.entity.entity_path)" 
-              :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="'Untracked Items. Click to add checkpoints'" />
+              :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.untrackedClickCheckpoint')" />
           </template>
           <template v-else-if="entity.type === 'untracked_entity' && props.hasChildren">
             <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" 
               v-if="userStore.canDo('create_entity') || canImport || isAssigned"
-              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Add checkpoints'" />
+              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.addCheckpoints')" />
           </template>
           <template v-else-if="entity.type === 'untracked_entity' && !props.hasChildren">
             <ActionButton @click="" :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
-              v-tooltip="'Untracked Collection'" />
+              v-tooltip="$t('blocks.untrackedCollection')" />
           </template>
         </div>
       </div>
@@ -85,7 +85,7 @@
 
     <div v-if="loadingChildren && !isGhost" class="entity-spacer">
       <ActionButton :isLoading="true" :icon="getAppIcon('loading')" 
-        v-tooltip="'Loading...'" />
+        v-tooltip="$t('common.loading')" />
     </div>
 
     <div v-else class="entity-spacer" :class="{ 'entity-spacer-inactive': !!!props.hasChildren }">
@@ -118,7 +118,7 @@
             v-else
             v-model="editableEntityName"
             :originalValue="entity.name"
-            placeholder="Collection name"
+            :placeholder="$t('placeholders.collectionName')"
             @confirm="confirmRename"
             @cancel="cancelRename"
           />
@@ -146,32 +146,32 @@
 
         <!-- Optimized entity-item-actions using GetCollectionStateFlags -->
         <div v-if="!isEditing && !isUntracked" class="entity-item-actions">
-          <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="'Loading state'" />
+          <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="$t('blocks.loadingState')" />
           <template v-else>
             <ActionButton v-if="collectionStateFlags.has_modified && !(entity.id in stage.expandedEntities)" 
               @click="prepAllCheckpointModal(props.entity.entity_path)" 
-              :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="'Untracked/Modified Items. Click to add checkpoints'" />
+              :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.untrackedModifiedClickCheckpoint')" />
             <ActionButton v-else-if="collectionStateFlags.has_untracked && !(entity.id in stage.expandedEntities)" 
               @click="prepAllCheckpointModal(props.entity.entity_path)" 
-              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Untracked Items. Click to add checkpoints'" />
+              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.untrackedClickCheckpoint')" />
             <ActionButton v-if="collectionStateFlags.has_outdated && !(entity.id in stage.expandedEntities)" 
               @click="updateEntityAssets" 
-              :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Outdated Items. Click to update'" />
+              :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickToUpdate')" />
             <ActionButton v-if="collectionStateFlags.has_rebuildable && !(entity.id in stage.expandedEntities)" 
               @click="rebuildEntity" 
-              :icon="getAppIcon('jigsaw')" v-tooltip="'Items missing. Click to rebuild'" />
-              <ActionButton v-if="entity.is_library" :icon="getAppIcon('library')" v-tooltip="'This is a Library'" />
+              :icon="getAppIcon('jigsaw')" v-tooltip="$t('blocks.itemsMissingClickRebuild')" />
+              <ActionButton v-if="entity.is_library" :icon="getAppIcon('library')" v-tooltip="$t('blocks.thisIsALibrary')" />
           </template>
         </div>
 
         <div v-else-if="!isEditing && entity.type === 'untracked_entity' && props.hasChildren" class="entity-item-actions">
             <ActionButton @click="prepAllCheckpointModal(props.entity.entity_path)" v-if="userStore.canDo('create_entity') || canImport || isAssigned"
-              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'Add checkpoints'" />
+              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.addCheckpoints')" />
         </div>
 
         <div v-else-if="!isEditing && entity.type === 'untracked_entity' && !props.hasChildren" class="entity-item-actions">
             <ActionButton @click="" :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
-              v-tooltip="'Untracked Collection'" />
+              v-tooltip="$t('blocks.untrackedCollection')" />
         </div>
 
       </div>
@@ -188,6 +188,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, watchEffect
 import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 import { getParentPath } from '@/lib/pathlib';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // components
@@ -226,6 +227,8 @@ const projectStore = useProjectStore();
 const stage = useStageStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
+
+const { t } = useI18n();
 
 // props
 const props = defineProps({
@@ -370,8 +373,7 @@ const entityName = computed(() => {
 // Returns the meta information for the entity (item count).
 const entityMeta = computed(() => {
   const noOfItems = props.entityChildren?.length;
-  const message = noOfItems === 1 ? ' item' : ' items';
-  return noOfItems + message;
+  return t('blocks.itemCount', noOfItems);
 });
 
 // Returns the grid styles for the entity item.
@@ -453,8 +455,8 @@ const deleteEntity = async () => {
       .catch((error) => {
         console.error(error);
       });
-    let longMessage = `Collection of name: ${entity.name} was moved to Trash.`;
-    notificationStore.addNotification("Collection moved to Trash.", longMessage, "success", true);
+    let longMessage = t('notifications.movedToTrash', { item: entity.name });
+    notificationStore.addNotification(t('notifications.movedToTrash', { item: 'Collection' }), longMessage, "success", true);
 
   } else if (props.entity.type === 'untracked_entity') {
     prepDeleteUntrackedEntityPopUpModal();
@@ -520,8 +522,8 @@ const prepAllCheckpointModal = (entityPath) => {
 
 // Prepares the delete untracked entity popup modal.
 const prepDeleteUntrackedEntityPopUpModal = () => {
-  trayStates.popUpModalTitle = "Delete";
-  trayStates.popUpModalMessage = "Are you sure you want to delete this item? This will permanently remove this item. Please confirm if you wish to proceed.";
+  trayStates.popUpModalTitle = t('common.delete');
+  trayStates.popUpModalMessage = t('confirmations.deleteItemPermanently');
   trayStates.popUpModalIcon = 'trash';
   trayStates.popUpModalFunction = deleteUntrackedItem;
   modals.setModalVisibility('popUpModal', true);
@@ -529,8 +531,8 @@ const prepDeleteUntrackedEntityPopUpModal = () => {
 
 // Prepares the free up space popup modal.
 const prepFreeUpSpacePopUpModal = () => {
-  trayStates.popUpModalTitle = "Free Up Entity Space";
-  trayStates.popUpModalMessage = "Are you sure you want to delete this entity working files? This will permanently remove all uncheckpointed resources and all entity outputs. Please confirm if you wish to proceed.";
+  trayStates.popUpModalTitle = t('menus.freeUpEntitySpace');
+  trayStates.popUpModalMessage = t('confirmations.deleteWorkingFiles', { item: 'entity' });
   trayStates.popUpModalIcon = 'broom';
   trayStates.popUpModalFunction = freeUpSpace;
   modals.setModalVisibility('popUpModal', true);
@@ -545,7 +547,7 @@ const rebuildEntity = async () => {
       assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(taskPath => !taskPath.startsWith(props.entity.entity_path));
       emitter.emit('refresh-browser');
     }).catch(async (error) => {
-      notificationStore.errorNotification("Error Rebuilding All", error);
+      notificationStore.errorNotification(t('notifications.errorRebuildingAll'), error);
     });
 };
 
@@ -615,7 +617,7 @@ const updateCollectionName = async () => {
       })
       .catch((error) => {
         isAwaitingResponse.value = false;
-        notificationStore.errorNotification('Rename Failed', error.message || 'Failed to rename collection');
+        notificationStore.errorNotification(t('notifications.renameFailed'), error.message || t('notifications.failedToRenameCollection'));
         console.error('Error:', error);
       });
     } else if (props.entity.type === 'untracked_entity') {
@@ -638,7 +640,7 @@ const updateCollectionName = async () => {
       })
       .catch((error) => {
         isAwaitingResponse.value = false;
-        notificationStore.errorNotification('Rename Failed, Collection is in use', error.message || 'Failed to rename item');
+        notificationStore.errorNotification(t('notifications.renameFailedInUse'), error.message || t('notifications.failedToRenameItem'));
         console.error('Error:', error);
       });
   }
@@ -660,7 +662,7 @@ const updateEntityAssets = async () => {
     .then((data) => {
       emitter.emit('refresh-browser');
     }).catch(async (error) => {
-      notificationStore.errorNotification("Error Updating Items", error);
+      notificationStore.errorNotification(t('notifications.errorUpdatingItems'), error);
     });
 };
 

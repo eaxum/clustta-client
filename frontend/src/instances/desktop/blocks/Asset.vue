@@ -89,7 +89,7 @@
               
               <!-- Untracked label for untracked items -->
               <div v-if="isUntracked" class="task-item-grid-untracked-label">
-                <span>Untracked</span>
+                <span>{{ $t('blocks.untracked') }}</span>
               </div>
               
               <!-- Task Status -->
@@ -102,12 +102,12 @@
               
               <!-- View Checkpoints button -->
               <div v-if="!task.is_link && !isUntracked && userStore.canDo('view_checkpoint')" class="task-item-grid-checkpoints-button">
-                <ActionButton :icon="getAppIcon('layers')" v-tooltip="'View Checkpoints'" @click="viewCheckpoints(index, task, $event)" />
+                <ActionButton :icon="getAppIcon('layers')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, task, $event)" />
               </div>
               
               <!-- Assign Task button -->
               <div v-if="!isUntracked && userStore.canDo('assign_task')" class="task-item-grid-assign-task-button">
-                <ActionButton :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
+                <ActionButton :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignTask')" @click="prepAssignTask(index, task, $event)" />
               </div>
               
             </div>
@@ -120,7 +120,7 @@
               <RenameInput 
                 v-model="editableTaskName"
                 :originalValue="task.name || ''"
-                placeholder="Task name"
+                :placeholder="$t('placeholders.taskName')"
                 @confirm="confirmRename"
                 @cancel="cancelRename"
               />
@@ -132,40 +132,40 @@
 
             <div v-if="loadingAssetState" class="file-state">
               <ActionButton :isLoading="true" :icon="getAppIcon('loading')"  
-                v-tooltip="'Loading...'" />
+                v-tooltip="$t('common.loading')" />
             </div>
 
             <div v-else-if="!isUntracked && userStore.canDo('pull_chunk')" class="file-state">
               <ActionButton v-if="task.is_link" :icon="getAppIcon('square-arrow-right-up')" 
-                v-tooltip="'Visit link'" @click="openLink()" />
+                v-tooltip="$t('blocks.visitLink')" @click="openLink()" />
               <ActionButton v-else-if="platformStore.isWeb" :icon="getAppIcon(isDownloading ? 'loading' : 'arrow-down-ramp')" 
-                v-tooltip="isDownloading ? 'Downloading...' : 'Download'" 
+                v-tooltip="isDownloading ? $t('blocks.downloading') : $t('common.download')" 
                 :isLoading="isDownloading"
                 @click="downloadAsset(index, task, $event)" />
               <ActionButton v-else-if="task.file_status == 'normal'" :icon="getAppIcon('circle-check-go')" :noFilter="true" 
-                v-tooltip="'No changes'"  />
+                v-tooltip="$t('blocks.noChanges')"  />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" 
-                v-tooltip="'Outdated - Click to update'" v-else-if="task.file_status == 'outdated'" 
+                v-tooltip="$t('blocks.outdatedClickUpdate')" v-else-if="task.file_status == 'outdated'" 
                 @click="revertTask(index, task, $event)" />
               <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" 
-                v-tooltip="'Modified - Assigned to someone else'" 
+                v-tooltip="$t('blocks.modifiedAssignedOther')" 
                 v-else-if="task.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
               <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" 
-                v-tooltip="'Modified - Click to add Checkpoint'" 
+                v-tooltip="$t('blocks.modifiedClickCheckpoint')" 
                 v-else-if="task.file_status == 'modified' && userStore.canDo('create_checkpoint')"
                 @click="prepCreateCheckpoint(index, task, $event)" />
-              <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="'File missing - Click to build'"
+              <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="$t('blocks.fileMissingClickBuild')"
                 v-else-if="task.file_status == 'rebuildable'" @click="revertTask(index, task, $event)" />
               <ActionButton :icon="getAppIcon('alert')" :noFilter="true" 
-                v-tooltip="'Task missing - Resync your project'" v-else-if="task.file_status == 'missing'" />
+                v-tooltip="$t('blocks.taskMissingResync')" v-else-if="task.file_status == 'missing'" />
             </div>
 
             <div v-else-if="isUntracked">
               <ActionButton v-if="userStore.canDo('create_task') || canImport" 
                 @click="prepCreateCheckpoint(index, task, $event)" :icon="getAppIcon('layers-plus')" :useDanger="true" 
-                :noFilter="true" v-tooltip="'File untracked, click to add.'" />
+                :noFilter="true" v-tooltip="$t('blocks.fileUntrackedClickAdd')" />
               <ActionButton v-else :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" 
-                v-tooltip="'File untracked'" />
+                v-tooltip="$t('blocks.fileUntracked')" />
             </div>
           </div>
           
@@ -221,7 +221,7 @@
             v-else
             v-model="editableTaskName"
             :originalValue="task.name || ''"
-            placeholder="Task name"
+            :placeholder="$t('placeholders.taskName')"
             @confirm="confirmRename"
             @cancel="cancelRename"
           />
@@ -241,10 +241,10 @@
           <!-- task assignation -->
           <div v-if="!isUntracked && (!task.is_resource || isCurrentUser)" class="task-item-assignee-container">
             <ActionButton class="task-item-assignee-button" v-if="!task.is_link && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
-              :icon="getAppIcon('layers')" v-tooltip="'View Checkpoints'" @click="viewCheckpoints(index, task, $event)" />
+              :icon="getAppIcon('layers')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, task, $event)" />
 
             <ActionButton class="task-item-assignee-button" v-if="userStore.canDo('assign_task') && !statusMenuDisplayed && !task.assignee_id"
-              :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
+              :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignTask')" @click="prepAssignTask(index, task, $event)" />
 
             <div v-else-if="task.assignee_id" @click="prepAssignTask(index, task, $event)" v-stop-propagation
               class="task-item-assignee">
@@ -260,10 +260,10 @@
 
           <div v-else-if="!isEditing" class="task-item-assignee-container">
             <ActionButton class="task-item-assignee-button" v-if="!task.is_link && !isUntracked && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
-              :icon="getAppIcon('layers')" v-tooltip="'View Checkpoints'" @click="viewCheckpoints(index, task, $event)" />
+              :icon="getAppIcon('layers')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, task, $event)" />
 
             <ActionButton class="task-item-assignee-button" v-if="userStore.canDo('assign_task') && !statusMenuDisplayed && !task.assignee_id && !isUntracked"
-              :icon="getAppIcon('person-plus')" v-tooltip="'Assign Task'" @click="prepAssignTask(index, task, $event)" />
+              :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignTask')" @click="prepAssignTask(index, task, $event)" />
           </div>
 
           <!-- task status -->
@@ -290,40 +290,40 @@
           <div v-if="!isEditing && !isUntracked && !statusMenuDisplayed" class="task-item-actions">
             <div v-if="loadingAssetState" class="file-state">
                 <ActionButton :isLoading="true" :icon="getAppIcon('loading')" 
-                  v-tooltip="'Loading...'" />
+                  v-tooltip="$t('common.loading')" />
             </div>
 
             <div v-else-if="userStore.canDo('pull_chunk')" class="file-state">
               
               <ActionButton v-if="platformStore.isWeb" :icon="getAppIcon(isDownloading ? 'loading' : 'arrow-down-ramp')" 
-                v-tooltip="isDownloading ? 'Downloading...' : 'Download'" 
+                v-tooltip="isDownloading ? $t('blocks.downloading') : $t('common.download')" 
                 :isLoading="isDownloading"
                 @click="downloadAsset(index, task, $event)" />
               <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" @click="handleClick(index, task, $event)"
-                v-tooltip="'No changes'" v-else-if="task.file_status == 'normal'" />
-              <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="'Outdated - Click to update'"
+                v-tooltip="$t('blocks.noChanges')" v-else-if="task.file_status == 'normal'" />
+              <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickUpdate')"
                 v-else-if="task.file_status == 'outdated'" @click="revertTask(index, task, $event)" />
-              <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="'Modified - Assigned to someone else'"
+              <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedAssignedOther')"
                 v-else-if="task.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
-              <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="'Modified - Click to add Checkpoint'"
+              <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedClickCheckpoint')"
                 v-else-if="task.file_status == 'modified' && userStore.canDo('create_checkpoint')"
                 @click="prepCreateCheckpoint(index, task, $event)" />
-              <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="'File missing - Click to build'"
+              <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="$t('blocks.fileMissingClickBuild')"
                 v-else-if="task.file_status == 'rebuildable'" @click="revertTask(index, task, $event)" />
-              <ActionButton :icon="getAppIcon('alert')" :noFilter="true" v-tooltip="'Task missing - Resync your project'"
+              <ActionButton :icon="getAppIcon('alert')" :noFilter="true" v-tooltip="$t('blocks.taskMissingResync')"
                 v-else-if="task.file_status == 'missing'" />
             </div>
           </div>
         </template>
 
         <div v-if="task.is_link" class="task-item-actions link-item-actions" >
-          <ActionButton :icon="getAppIcon('square-arrow-right-up')" v-tooltip="'Visit link'" v-stop-propagation @click="openLink()" />
+          <ActionButton :icon="getAppIcon('square-arrow-right-up')" v-tooltip="$t('blocks.visitLink')" v-stop-propagation @click="openLink()" />
         </div>
 
         <div v-else-if="isUntracked" class="task-item-actions">
           <ActionButton v-if="userStore.canDo('create_task') || canImport" @click="prepCreateCheckpoint(index, task, $event)"
-            :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="'File untracked, click to add.'" />
-          <ActionButton v-else :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="'File untracked'" />
+            :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.fileUntrackedClickAdd')" />
+          <ActionButton v-else :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.fileUntracked')" />
         </div>
 
 
@@ -336,6 +336,7 @@
 <script setup>
 // imports
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Browser, Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 import { getParentPath } from '@/lib/pathlib';
@@ -381,6 +382,7 @@ const projectStore = useProjectStore();
 const stage = useStageStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
+const { t } = useI18n();
 
 // props
 const props = defineProps({
@@ -519,7 +521,7 @@ const taskName = computed(() => {
 const userFullName = computed(() => {
   let user = userStore.getUserData(props.task.assignee_id);
   if (!user) {
-    return 'Removed User';
+    return t('notifications.removedUser');
   } else {
     return `${user.first_name} ${user.last_name}`;
   }
@@ -580,8 +582,8 @@ const cancelRename = () => {
 
 // Shows a popup modal when user cannot modify the task.
 const canModifyPopUpModal = () => {
-  trayStates.popUpModalTitle = "Warning";
-  trayStates.popUpModalMessage = "You cannot modify this task because it is assigned to another user.";
+  trayStates.popUpModalTitle = t('common.warning');
+  trayStates.popUpModalMessage = t('notifications.cannotModifyTask');
   trayStates.popUpModalIcon = 'help';
   trayStates.popUpModalFunction = null;
   modals.setModalVisibility('popUpModal', true);
@@ -618,10 +620,10 @@ const deleteTask = async () => {
         emitter.emit('refresh-browser');
       })
       .catch((error) => {
-        notificationStore.errorNotification("Task failed to delete.", error);
+        notificationStore.errorNotification(t('notifications.taskFailedToDelete'), error);
       });
-    let longMessage = `Task of name: ${assetStore.selectedAsset.name} was moved to Trash.`;
-    notificationStore.addNotification("Task moved to Trash.", longMessage, "success", true);
+    let longMessage = t('notifications.movedToTrash', { item: assetStore.selectedAsset.name });
+    notificationStore.addNotification(t('notifications.movedToTrash', { item: 'Task' }), longMessage, "success", true);
   } else if (props.task.type === 'untracked_task') {
     prepDeleteUntrackedTaskPopUpModal();
   }
@@ -654,14 +656,14 @@ const downloadAsset = async (index, task, event) => {
     );
     
     notificationStore.addNotification(
-      "Download Complete",
-      `${fileName} downloaded successfully`,
+      t('notifications.downloadComplete'),
+      t('notifications.downloadedSuccessfully', { fileName }),
       "success",
       true
     );
   } catch (error) {
     console.error('Download error:', error);
-    notificationStore.errorNotification("Download Failed", error.message || error);
+    notificationStore.errorNotification(t('notifications.downloadFailed'), error.message || error);
   } finally {
     isDownloading.value = false;
   }
@@ -677,7 +679,7 @@ const downloadCheckpoint = (checkpointId) => {
     })
     .catch((error) => {
       console.log(error);
-      notificationStore.errorNotification("Error Downloading Checkpoint", error);
+      notificationStore.errorNotification(t('notifications.errorDownloadingCheckpoint'), error);
     });
 };
 
@@ -825,7 +827,7 @@ const launchTaskCommand = async () => {
         })
         .catch((error) => {
           console.log(error);
-          notificationStore.errorNotification("Error Rebuilding Task", error);
+          notificationStore.errorNotification(t('notifications.errorRebuildingTask'), error);
         });
     }
   }
@@ -928,8 +930,8 @@ const prepCreateCheckpoint = (index, mask, event) => {
 
 // Prepares the delete untracked task popup modal.
 const prepDeleteUntrackedTaskPopUpModal = () => {
-  trayStates.popUpModalTitle = "Delete";
-  trayStates.popUpModalMessage = "Are you sure you want to delete this item? This will permanently remove this item. Please confirm if you wish to proceed.";
+  trayStates.popUpModalTitle = t('common.delete');
+  trayStates.popUpModalMessage = t('confirmations.deleteItemPermanently');
   trayStates.popUpModalIcon = 'trash';
   trayStates.popUpModalFunction = deleteUntrackedItem;
   modals.setModalVisibility('popUpModal', true);
@@ -937,8 +939,8 @@ const prepDeleteUntrackedTaskPopUpModal = () => {
 
 // Prepares the free up space popup modal.
 const prepFreeUpSpacePopUpModal = () => {
-  trayStates.popUpModalTitle = "Free Up Task Space";
-  trayStates.popUpModalMessage = "Are you sure you want to delete this task working files? This will permanently remove all uncheckpointed resources and all task outputs. Please confirm if you wish to proceed.";
+  trayStates.popUpModalTitle = t('notifications.freeUpTaskSpace');
+  trayStates.popUpModalMessage = t('confirmations.deleteWorkingFiles', { item: 'task' });
   trayStates.popUpModalIcon = 'broom';
   trayStates.popUpModalFunction = freeUpSpace;
   modals.setModalVisibility('popUpModal', true);
@@ -966,7 +968,7 @@ const revertTask = async (index, task, event) => {
     })
     .catch((error) => {
       console.log(error);
-      notificationStore.errorNotification("Error Reverting Task", error);
+      notificationStore.errorNotification(t('notifications.errorRevertingTask'), error);
     });
 };
 
