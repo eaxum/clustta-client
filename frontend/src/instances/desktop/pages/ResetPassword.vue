@@ -8,10 +8,10 @@
       <div class="header-container">
         <ClusttaLogo :colored="true" :inverted="true" />
         <div class="auth-header">
-          Reset Password
+          {{ $t('auth.resetPassword.title') }}
         </div>
         <div class="auth-subheader">
-          Enter your email address and we'll send you instructions to reset your password.
+          {{ $t('auth.resetPassword.subheader') }}
         </div>
       </div>
 
@@ -26,7 +26,7 @@
             <!-- email -->
             <FormInput
               v-model="resetForm.email"
-              placeholder="Email address"
+              :placeholder="$t('auth.resetPassword.emailPlaceholder')"
               needsValidation
               :error="errors.email"
               :valid="emailValid"
@@ -37,7 +37,7 @@
             <!-- submit button -->
             <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isResetFormFilled }">
               <div v-if="!isAwaitingResponse">
-                Reset Password
+                {{ $t('auth.resetPassword.resetButton') }}
               </div>
               <ActionButton
                 v-else
@@ -61,7 +61,7 @@
         <!-- toggle -->
         <div @click="backToLogin" class="toggle-container">
             <div class="bold" >
-              Back to Login
+              {{ $t('auth.resetPassword.backToLogin') }}
             </div>
         </div>
 
@@ -74,12 +74,14 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { AuthService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useIconStore } from '@/stores/icons';
 
 const router = useRouter();
+const { t } = useI18n();
 const notificationStore = useNotificationStore();
 const iconStore = useIconStore();
 
@@ -118,7 +120,7 @@ const validateEmail = () => {
   emailValid.value = emailRegex.test(resetForm.email);
   
   if (resetForm.email && !emailValid.value) {
-    errors.email = 'Please enter a valid email address';
+    errors.email = t('auth.resetPassword.invalidEmail');
   } else {
     errors.email = '';
   }
@@ -130,7 +132,7 @@ const backToLogin = () => {
 
 const handleResetPassword = async () => {
   if (!emailValid.value) {
-    error.value = 'Please enter a valid email address';
+    error.value = t('auth.resetPassword.invalidEmail');
     return;
   }
 
@@ -140,8 +142,8 @@ const handleResetPassword = async () => {
   await AuthService.ResetPassword(resetForm.email)
     .then(() => {
       notificationStore.addNotification(
-        "Password Reset Sent", 
-        "Please check your email for password reset instructions.", 
+        t('auth.resetPassword.passwordResetSent'), 
+        t('auth.resetPassword.checkEmailForInstructions'), 
         "success"
       );
       // Reset form
@@ -156,8 +158,8 @@ const handleResetPassword = async () => {
       console.log(error);
       isAwaitingResponse.value = false;
       const errorMessage = error.message || error.toString();
-      notificationStore.errorNotification("Error", errorMessage || 'Failed to send password reset email. Please try again.');
-      error.value = errorMessage || 'Failed to send password reset email. Please try again.';
+      notificationStore.errorNotification(t('auth.resetPassword.errorTitle'), errorMessage || t('auth.resetPassword.resetFailed'));
+      error.value = errorMessage || t('auth.resetPassword.resetFailed');
     })
     .finally(() => {
       isAwaitingResponse.value = false;

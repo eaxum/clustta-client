@@ -8,10 +8,10 @@
       <div class="header-container">
         <ClusttaLogo :colored="true" :inverted="true" />
         <div class="auth-header">
-          Verify Your Account
+          {{ $t('auth.verifyEmail.title') }}
         </div>
         <div class="auth-subheader">
-          Enter the 6-character verification code sent to your email
+          {{ $t('auth.verifyEmail.subheader') }}
         </div>
       </div>
 
@@ -68,7 +68,7 @@
           
           
           <div @click="handleResendToken" class="resend-container" :class="{ 'disabled': isResendDisabled }">
-              <span v-if="!isResendingToken">Resend Code</span>
+              <span v-if="!isResendingToken">{{ $t('auth.verifyEmail.resendCode') }}</span>
               <div v-else class="submit-button-icon loading-icon">
                 <img src="/icons/loading.svg" />
               </div>
@@ -76,7 +76,7 @@
           
 
           <div @click="toggleLogin" class="toggle-container bold">
-              Back to Login 🔐
+              {{ $t('auth.verifyEmail.backToLogin') }}
           </div>
 
         </div>
@@ -89,6 +89,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { AuthService, SettingsService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
@@ -101,6 +102,7 @@ import { useAccountStore } from '@/stores/accounts';
 import { markStoresInitialized } from '@/router';
 
 const router = useRouter();
+const { t } = useI18n();
 const notificationStore = useNotificationStore();
 const userStore = useUserStore();
 const projectStore = useProjectStore();
@@ -221,41 +223,41 @@ const toggleLogin = () => {
 
 const handleVerification = async () => {
   if (!isVerificationFormFilled.value) {
-    error.value = 'Please enter all 6 digits of your verification code';
+    error.value = t('auth.verifyEmail.enterAllDigits');
     return;
   }
 
   isAwaitingResponse.value = true;
   error.value = '';
-  loadingStatus.value = 'Verifying code...';
+  loadingStatus.value = t('auth.verifyEmail.verifyingCode');
 
   try {
     
     const token = fullToken.value;
     await AuthService.VerifyOTP(userEmail.value, token);
-    notificationStore.addNotification("Account Verified", "Your account has been successfully verified!", "success");
+    notificationStore.addNotification(t('auth.verifyEmail.accountVerified'), t('auth.verifyEmail.verificationSuccess'), "success");
     
     // Auto-login the user after successful verification
     try {
-      loadingStatus.value = 'Logging in...';
+      loadingStatus.value = t('auth.verifyEmail.loggingIn');
       const loginData = await AuthService.Login(userEmail.value, userPassword.value);
       userStore.user = loginData.user;
       userStore.isUserAuthenticated = true;
 
       // Initialize stores that require authentication
-      loadingStatus.value = 'Loading account...';
+      loadingStatus.value = t('auth.verifyEmail.loadingAccount');
       await accountStore.initialize();
       
-      loadingStatus.value = 'Applying theme...';
+      loadingStatus.value = t('auth.verifyEmail.applyingTheme');
       await themeStore.initializeTheme();
       
-      loadingStatus.value = 'Loading studios...';
+      loadingStatus.value = t('auth.verifyEmail.loadingStudios');
       await projectStore.loadStudios();
 
       const projectDirectoryExists = await SettingsService.GetProjectDirectory();
 
       if(projectDirectoryExists){
-        loadingStatus.value = 'Loading projects...';
+        loadingStatus.value = t('auth.verifyEmail.loadingProjects');
         await projectStore.loadProjects();
         trayStates.refreshData();
       } else {
@@ -270,7 +272,7 @@ const handleVerification = async () => {
       
     } catch (loginError) {
       console.log("Auto-login failed:", loginError);
-      notificationStore.errorNotification("Login Failed", "Verification successful but auto-login failed. Please try logging in manually.");
+      notificationStore.errorNotification(t('auth.verifyEmail.loginFailed'), t('auth.verifyEmail.autoLoginFailed'));
       userStore.clearPendingVerification();
       router.push('/auth/login');
     }
@@ -279,8 +281,8 @@ const handleVerification = async () => {
     console.log(error);
     isAwaitingResponse.value = false;
     loadingStatus.value = '';
-    notificationStore.errorNotification("Verification Failed", error.message || "Invalid verification code. Please try again.");
-    error.value = error.message || "Invalid verification code. Please try again.";
+    notificationStore.errorNotification(t('auth.verifyEmail.verificationFailed'), error.message || t('auth.verifyEmail.invalidCode'));
+    error.value = error.message || t('auth.verifyEmail.invalidCode');
     clearTokenInputs();
   }
 };
@@ -298,7 +300,7 @@ const handleResendToken = async () => {
     // Simulate API call
     // await new Promise(resolve => setTimeout(resolve, 1000));
     
-    notificationStore.addNotification("Code Sent", "A new verification code has been sent to your email.", "success");
+    notificationStore.addNotification(t('auth.verifyEmail.codeSent'), t('auth.verifyEmail.codeSentMessage'), "success");
     
     // Start cooldown timer (30 seconds)
     resendCooldown.value = 30;
@@ -311,8 +313,8 @@ const handleResendToken = async () => {
     
   } catch (error) {
     console.log(error);
-    notificationStore.errorNotification("Resend Failed", error.message || "Failed to resend verification code. Please try again.");
-    error.value = error.message || "Failed to resend verification code. Please try again.";
+    notificationStore.errorNotification(t('auth.verifyEmail.resendFailed'), error.message || t('auth.verifyEmail.resendFailedMessage'));
+    error.value = error.message || t('auth.verifyEmail.resendFailedMessage');
   } finally {
     isResendingToken.value = false;
   }
