@@ -36,6 +36,7 @@ type ProjectLocation struct {
 type Settings struct {
 	IconScheme            string `json:"icon_scheme"`
 	Theme                 string `json:"theme"`
+	Language              string `json:"language"` // User's language preference (e.g., "en", "es", "fr")
 	EulaAccepted          bool   `json:"eula_accepted"`
 	ProjectGridView       bool   `json:"project_grid_view"`
 	UseGrid               bool   `json:"use_grid"`
@@ -242,6 +243,28 @@ func SetTheme(theme string) error {
 		return err
 	}
 	settings.Theme = theme
+	return saveSettings(settings)
+}
+
+// GetLanguage returns the user's language preference or defaults to "en".
+func GetLanguage() (string, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return "", err
+	}
+	if settings.Language == "" {
+		settings.Language = "en"
+	}
+	return settings.Language, nil
+}
+
+// SetLanguage updates the user's language preference.
+func SetLanguage(language string) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.Language = language
 	return saveSettings(settings)
 }
 

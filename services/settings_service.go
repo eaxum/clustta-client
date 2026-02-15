@@ -252,6 +252,24 @@ func (s *SettingsService) SetTheme(theme string) error {
 	return nil
 }
 
+// GetLanguage retrieves the user's language preference.
+func (s *SettingsService) GetLanguage() (string, error) {
+	language, err := settings.GetLanguage()
+	if err != nil {
+		return "", err
+	}
+	return language, nil
+}
+
+// SetLanguage sets the user's language preference.
+func (s *SettingsService) SetLanguage(language string) error {
+	err := settings.SetLanguage(language)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // GetUseGrid retrieves whether grid view is enabled.
 func (s *SettingsService) GetUseGrid() (bool, error) {
 	useGrid, err := settings.GetUseGrid()

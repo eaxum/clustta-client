@@ -2,14 +2,14 @@
 
   <div class="modal-container">
     
-    <HeaderArea :title="title" :icon="'clustta'" :showSearch="showSearch" />
+    <HeaderArea :title="$t('eula.title')" :icon="'clustta'" :showSearch="showSearch" />
     <div class="general-container general-container-wide">
       <pre ref="eulaContent" class="eula-content" @scroll="updateScrollPosition">
         {{ textContent }}
       </pre>
       <div class="pop-up-actions">
-        <GeneralButton :label="'Decline'" :fullWidth="true" @click="logUserOut()" :colored="false" />
-        <GeneralButton :label="'Accept'" :fullWidth="true" @click="acceptAgreement()" :colored="true" :isActive="isAtBottom"/>
+        <GeneralButton :label="$t('common.decline')" :fullWidth="true" @click="logUserOut()" :colored="false" />
+        <GeneralButton :label="$t('common.accept')" :fullWidth="true" @click="acceptAgreement()" :colored="true" :isActive="isAtBottom"/>
       </div>
 
     </div>
@@ -50,7 +50,6 @@ const scrollTop = ref(0);
 
 // constants
 const showSearch = false;
-const title = 'Clustta End User License Agreement';
 
 // computed
 // Returns whether the user has scrolled to the bottom of the EULA.
