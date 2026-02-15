@@ -8,13 +8,13 @@
 		
 					<div v-if="!isEditing" class="dashboard-actions">
 						<ActionButton  :iconAfter="true" :icon="getAppIcon('edit')"
-							label="Edit Profile" @click="startEditing" />
+							:label="$t('stages.editProfile')" @click="startEditing" />
 						<!-- <ActionButton  :iconAfter="true" :icon="getAppIcon('key')"
 							label="Change Password" @click="goToChangePassword" /> -->
 					</div>
 
 					<div v-else class="dashboard-actions">
-						<ActionButton :color="'crimson'" :iconAfter="true" :icon="getAppIcon('close-circle')" label="Cancel"
+						<ActionButton :color="'crimson'" :iconAfter="true" :icon="getAppIcon('close-circle')" :label="$t('common.cancel')"
 							@click="cancelEditing" />
 					</div>
 
@@ -48,18 +48,18 @@
 
 					<div class="form-row">
 						<div class="form-group">
-						<label>First Name</label>
+						<label>{{ $t('stages.firstName') }}</label>
 						<input class="form-input input-short" v-model="formData.first_name" type="text" :disabled="!isEditing" />
 						
 						</div>
 						<div class="form-group">
-						<label>Last Name</label>
+						<label>{{ $t('stages.lastName') }}</label>
 						<input class="form-input input-short" v-model="formData.last_name" type="text" :disabled="!isEditing" />
 						</div>
 					</div>
 
 					<div class="form-group">
-						<label>Username</label>
+						<label>{{ $t('stages.username') }}</label>
 						<div class="compound-form-input">
 							<input class="form-input input-short" @input="checkUsername" v-model="formData.username" type="text" :disabled="!isEditing" />
 							<div v-if="formData.username" class="form-input-icon">
@@ -72,7 +72,7 @@
 					</div>
 
 					<div class="form-group">
-						<label>Email</label>
+						<label>{{ $t('stages.email') }}</label>
 						<div class="compound-form-input">
 							<input class="form-input input-short" @input="checkEmail" v-model="formData.email" type="email" :disabled="!isEditing" />
 							<div v-if="formData.email" class="form-input-icon">
@@ -88,10 +88,10 @@
 
 						
 						<ActionButton v-if="isEditing" :isDisabled="!isDataValid"  :iconAfter="true" :icon="getAppIcon('check-circle')"
-							label="Save Changes" @click="handleUpdate" />
+							:label="$t('stages.saveChanges')" @click="handleUpdate" />
 
 						<ActionButton v-else  :iconAfter="true" :icon="getAppIcon('trash')"
-							label="Delete account" @click="prepDeleteAccountModal()" />
+							:label="$t('stages.deleteAccount')" @click="prepDeleteAccountModal()" />
 				</div>
 			</div>
 		</div>
@@ -102,6 +102,7 @@
 // imports
 import { ref, reactive, computed, onMounted, onBeforeMount } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n';
 import { AuthService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
@@ -119,6 +120,7 @@ const userStore = useUserStore();
 const trayStates = useTrayStates();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const { t } = useI18n();
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
@@ -202,8 +204,8 @@ const getAppIcon = (iconName) => {
 
 const prepDeleteAccountModal = () => {
 	trayStates.popUpModalIcon = 'trash'
-	trayStates.popUpModalTitle = "Delete account";
-	trayStates.popUpModalMessage = "Your account will be irreversibly deleted and you will be unable to access files through Clustta. Continue?";
+	trayStates.popUpModalTitle = t('stages.deleteAccount');
+	trayStates.popUpModalMessage = t('stages.deleteAccountConfirmation');
 	trayStates.popUpModalFunction = deactivateUserAccount;
 	modals.setModalVisibility('popUpModal', true);
 };
@@ -219,11 +221,11 @@ const deactivateUserAccount = async () => {
 		}
 		)
 		.catch((error) => {
-			notificationStore.errorNotification("Logout Failed", error)
+			notificationStore.errorNotification(t('stages.logoutFailed'), error)
 		});
 		modals.disableAllModals();
 	} catch (err) {
-		notificationStore.errorNotification("Failed to delete account.", err?.message || err)
+		notificationStore.errorNotification(t('stages.failedToDeleteAccount'), err?.message || err)
 	}
 }
 
@@ -301,12 +303,12 @@ const handleUpdate = async () => {
 		// 	await handleUpdatePhoto();
 		// }
 
-		let longMessage = `Details updated.`
-		notificationStore.addNotification("Details updated.", longMessage, "success", true);
+		let longMessage = t('stages.detailsUpdated')
+		notificationStore.addNotification(t('stages.detailsUpdated'), longMessage, "success", true);
 		isEditing.value = false;
 		
     }).catch((error) => {
-		notificationStore.errorNotification("Failed to update details.", error)
+		notificationStore.errorNotification(t('stages.failedToUpdateDetails'), error)
     })
 	
 	isEditing.value = false
@@ -331,7 +333,7 @@ const checkUsername = async () => {
 	try {
 		const usernameExist = await AuthService.CheckUsernameExists(formData.username.toLowerCase())
 		if (usernameExist) {
-		errors.username = 'Username is already taken'
+		errors.username = t('stages.usernameAlreadyTaken')
 		isUsernameTaken.value = true;
 		} else {
 		errors.username = ''
@@ -361,7 +363,7 @@ const checkEmail = async () => {
 		const emailExist = await AuthService.CheckEmailExists(formData.email)
 		if (emailExist) {
 		isEmailTaken.value = true;
-		errors.email = 'Email is already registered'
+		errors.email = t('stages.emailAlreadyRegistered')
 		} else {
 		isEmailTaken.value = false;
 		errors.email = ''

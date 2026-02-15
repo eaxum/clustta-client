@@ -3,21 +3,21 @@
 		<div class="task-header">
 			<div class="create-menu" >
 				<ActionButton :isDisabled="operationsActive" v-if="userStore.userCanCreateProject" :icon="getAppIcon('briefcase-plus')" 
-					@click="createProject" v-tooltip="'New Project'" :buttonFunction="doNothing" />
+					@click="createProject" v-tooltip="$t('stages.newProject')" :buttonFunction="doNothing" />
 				<ActionButton :isDisabled="operationsActive" v-if="projectStore.selectedStudio?.name === 'Personal'" :icon="getAppIcon('arrow-down-ramp')" 
-					v-tooltip="'Import Project'" :buttonFunction="importProject" />
+					v-tooltip="$t('stages.importProject')" :buttonFunction="importProject" />
 				<ActionButton :isDisabled="operationsActive" v-if="projectStore.selectedStudio?.name !== 'Personal' && userStore.userCanCreateProject" :icon="getAppIcon('arrow-up-ramp')" 
-					v-tooltip="'Upload Project'" :buttonFunction="uploadProject" />
+					v-tooltip="$t('stages.uploadProject')" :buttonFunction="uploadProject" />
 				<ActionButton :isDisabled="operationsActive" :icon="getAppIcon('refresh')" 
-					v-tooltip="'Refresh'" :buttonFunction="refresh" />
+					v-tooltip="$t('common.refresh')" :buttonFunction="refresh" />
 			</div>
 			<div class="action-bar" v-if="projects.length && projectStore.projectsLoaded || projectStore.projectSearchQuery">
-				<SearchBar ref="searchBar" v-model="projectStore.projectSearchQuery" placeholder="Search projects" :isLoading="!projectStore.projectsLoaded" @input="updateSearch" @clear="clearSearch" />
+				<SearchBar ref="searchBar" v-model="projectStore.projectSearchQuery" :placeholder="$t('stages.searchProjects')" :isLoading="!projectStore.projectsLoaded" @input="updateSearch" @clear="clearSearch" />
 			</div>
 		<div class="view-options">
-			<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="!untrackedProjects.length || operationsActive" :icon="getAppIcon(projectStore.showUntrackedProjects ? 'eye-cancel' : 'eye')" v-tooltip="projectStore.showUntrackedProjects ? 'Hide untracked projects' : 'Show untracked projects'"
+			<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="!untrackedProjects.length || operationsActive" :icon="getAppIcon(projectStore.showUntrackedProjects ? 'eye-cancel' : 'eye')" v-tooltip="projectStore.showUntrackedProjects ? $t('stages.hideUntrackedProjects') : $t('stages.showUntrackedProjects')"
 				:buttonFunction="toggleShowUntrackedProjects" />
-			<ActionButton :isDisabled="!projects.length || operationsActive" :icon="getAppIcon(cardView ? 'list' : 'four-squares')" :v-tooltip="cardView ? 'List' : 'Cards'"
+			<ActionButton :isDisabled="!projects.length || operationsActive" :icon="getAppIcon(cardView ? 'list' : 'four-squares')" :v-tooltip="cardView ? $t('stages.list') : $t('stages.cards')"
 				:buttonFunction="switchViewLayout" />
 		</div>
 	</div>		<div ref="projectListContainer" class="project-list-root" 
@@ -41,7 +41,7 @@
 				<div v-if="closedProjects.length" class="project-list-divider" ref="projectListDivider">
 					<TabButton
 						:icon="closedProjectsVisible ? '/icons/chevron_up_white_slim.svg' : '/icons/chevron_down_white_slim.svg'"
-						:label="closedProjectsVisible ? 'Hide archived projects' : 'Show archived projects'"
+						:label="closedProjectsVisible ? $t('stages.hideArchivedProjects') : $t('stages.showArchivedProjects')"
 						:smallIcons="true" :showLabel="true" @click="toggleExpandClosedProjects" />
 					<div class="menu-divider"></div>
 				</div>
@@ -56,7 +56,7 @@
 				<div v-if="untrackedProjects.length && projectStore.showUntrackedProjects" class="project-list-divider" ref="untrackedProjectsDivider">
 					<TabButton
 						:icon="untrackedProjectsVisible ? '/icons/chevron_up_white_slim.svg' : '/icons/chevron_down_white_slim.svg'"
-						:label="untrackedProjectsVisible ? 'Collapse untracked projects' : 'Expand untracked projects'"
+						:label="untrackedProjectsVisible ? $t('stages.collapseUntrackedProjects') : $t('stages.expandUntrackedProjects')"
 						:smallIcons="true" :showLabel="true" @click="toggleExpandUntrackedProjects" />
 					<div class="menu-divider"></div>
 				</div>
@@ -83,6 +83,7 @@
 <script setup>
 // imports
 import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // stores/state imports
 import { useStageStore } from '@/stores/stages';
@@ -113,6 +114,7 @@ const panes = usePaneStore();
 const menu = useMenu();
 const iconStore = useIconStore();
 const dndStore = useDndStore();
+const { t } = useI18n();
 
 const projectListContainer = ref(null);
 const projectListRoot = ref(null);
@@ -307,12 +309,12 @@ const message = () => {
 	const searching = !!projectStore.projectSearchQuery.length;
 
 	if (searching) {
-		return 'No projects match your search.'
+		return t('stages.noProjectsMatchSearch')
 	} else {
 		if (userStore.userCanCreateProject) {
-			return 'You have no projects.'
+			return t('stages.noProjects')
 		} else {
-			return 'You dont have access to any projects. Please check in with your supervisor'
+			return t('stages.noProjectAccess')
 		}
 	}
 
@@ -338,9 +340,9 @@ const secondaryActionMessage = () => {
 	if (searching) {
 		return ''
 	} else if (!hasTrackedProjects && hasUntrackedProjects) {
-		return 'Display untracked projects'
+		return t('stages.displayUntrackedProjects')
 	} else if (userStore.userCanCreateProject) {
-		return 'Create New Project.'
+		return t('stages.createNewProject')
 	} else {
 		return ''
 	}

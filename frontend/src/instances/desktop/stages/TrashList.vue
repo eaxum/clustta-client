@@ -24,6 +24,7 @@
 <script setup>
 // imports
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // services
 import { TrashService } from "@/services";
@@ -47,6 +48,7 @@ const modalStore = useModalStore();
 const collectionStore = useCollectionStore();
 const assetStore = useAssetStore();
 const projectStore = useProjectStore();
+const { t } = useI18n();
 
 // refs
 const tasks = ref([]);
@@ -140,8 +142,8 @@ const filteredtrashItems = computed(() => {
 // methods
 const message = () => {
   const type = trashTypefilter.value;
-  if (type === 'all') { return 'You have not deleted any items' }
-  else { return 'You have not deleted any ' + type + '.' };
+  if (type === 'all') { return t('stages.noDeletedItems') }
+  else { return t('stages.noDeletedItemsByType', { type: type }) };
 };
 
 const illustration = () => {
@@ -161,8 +163,8 @@ const illustration = () => {
 
 const secondaryActionMessage = () => {
   const type = trashTypefilter.value;
-  if (type === 'all') { return 'Import resource' }
-  else { return 'Import ' + type };
+  if (type === 'all') { return t('stages.importResource') }
+  else { return t('stages.importByType', { type: type }) };
 };
 
 const highlightFilter = (index) => {
