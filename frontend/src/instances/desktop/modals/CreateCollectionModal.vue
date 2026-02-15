@@ -9,7 +9,7 @@
       <template v-if="!displayTypeCreator">
         <div v-if="!isMultiple" class="input-section">
           <div class="compound-input-section">
-            <input v-model="entityName" class="input-short" type="text" placeholder="Collection Name" v-focus v-return="handleEnterKey" />
+            <input v-model="entityName" class="input-short" type="text" :placeholder="$t('placeholders.collectionName')" v-focus v-return="handleEnterKey" />
           </div>
         </div>
 
@@ -20,25 +20,25 @@
             <div class="dropdown-wrapper">
               <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="selectEntityType" />
             </div>
-            <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="'Add New Collection Type'">
+            <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addCollectionTypeTitle')">
               <img class="small-icons" :src="getAppIcon('plus-circle')">
             </span>
           </div>
         </div>
 
         <div v-if="!stage.groupItems" class="horizontal-flex">
-          Generate Multiple Items
+          {{ $t('modals.generateMultipleItems') }}
           <ToggleSwitch v-tooltip="isMultiple? 'Unmark as library' : 'Mark as a library'" @click="toggleIsMultiple" :switchValueProp="isMultiple" />
         </div>
 
         <div class="horizontal-flex">
-          <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="'Library'" />
+          <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="$t('common.library')" />
           <ToggleSwitch v-tooltip="isLibrary? 'Unmark as library' : 'Mark as a library'" @click="toggleIsLibrary" :switchValueProp="isLibrary" />
         </div>
 
         <div class="pop-up-actions" ref="popUpActions">
-          <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-          <GeneralButton :label="'Confirm'" :fullWidth="true" :buttonFunction="createCollections" :isActive="isValueChanged" :loading="isAwaitingResponse" />
+          <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+          <GeneralButton :label="$t('common.confirm')" :fullWidth="true" :buttonFunction="createCollections" :isActive="isValueChanged" :loading="isAwaitingResponse" />
         </div>
       </template>
 
@@ -56,6 +56,7 @@
 // imports
 import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue';
 import { getRelativePath } from '@/lib/pathlib';
+import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 
 // components
@@ -90,6 +91,7 @@ const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const stage = useStageStore();
 const trayStates = useTrayStates();
+const { t } = useI18n();
 
 // refs
 const batchGen = ref(null);
@@ -146,11 +148,11 @@ const selectedEntityTypeId = computed(() => {
 // Returns the modal title based on current mode.
 const title = computed(() => {
   if (displayTypeCreator.value) {
-    return 'Add new Collection Type';
+    return t('modals.addCollectionTypeTitle');
   } else if (stage.groupItems) {
-    return 'Move into new Collection';
+    return t('modals.moveIntoNewCollection');
   } else {
-    return isMultiple.value ? 'Create Multiple Collections' : 'Create Collection';
+    return isMultiple.value ? t('modals.createMultipleCollections') : t('modals.createCollection');
   }
 });
 
@@ -159,11 +161,11 @@ const title = computed(() => {
 const changeEntityParent = async (entityIds, parentId) => {
   await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityIds, parentId)
     .then(() => {
-      notificationStore.addNotification('Moved successfully.', '', 'success');
+      notificationStore.addNotification(t('notifications.movedSuccessfully'), '', 'success');
     })
     .catch((error) => {
       console.error(error);
-      notificationStore.errorNotification('Error changing entity parent', error);
+      notificationStore.errorNotification(t('notifications.errorChangingEntityParent'), error);
     });
 };
 
@@ -171,11 +173,11 @@ const changeEntityParent = async (entityIds, parentId) => {
 const changeTaskEntity = async (taskIds, entityId) => {
   await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskIds, entityId)
     .then(() => {
-      notificationStore.addNotification('Moved successfully.', '', 'success');
+      notificationStore.addNotification(t('notifications.movedSuccessfully'), '', 'success');
     })
     .catch((error) => {
       console.error(error);
-      notificationStore.errorNotification('Error changing task entity', error);
+      notificationStore.errorNotification(t('notifications.errorChangingTaskEntity'), error);
     });
 };
 
@@ -191,7 +193,7 @@ const createCollections = async () => {
     await createEntityAndMove();
   } else if (isMultiple.value) {
     await createMultipleEntities();
-    const successMessage = collections.value.length + ' collections created';
+    const successMessage = t('notifications.collectionsCreated', { count: collections.value.length });
     notificationStore.addNotification(successMessage, '', 'success');
   } else {
     await createSingleEntity();
@@ -223,7 +225,7 @@ const createEntityAndMove = async () => {
       isAwaitingResponse.value = false;
       await moveIntoFolder(newEntity.id);
       closeModal();
-      notificationStore.addNotification(entityName.value + ' collection created', '', 'success');
+      notificationStore.addNotification(t('notifications.collectionCreated', { name: entityName.value }), '', 'success');
       if (parentIdValue && !(parentIdValue in stage.expandedEntities)) {
         stage.expandEntity(parent);
       }
@@ -233,7 +235,7 @@ const createEntityAndMove = async () => {
     })
     .catch((error) => {
       console.log(error);
-      notificationStore.errorNotification('Error creating entity', error);
+      notificationStore.errorNotification(t('notifications.errorCreatingEntity'), error);
     });
 };
 
@@ -254,14 +256,14 @@ const createSingleEntity = async () => {
         const newEntity = data;
         collectionStore.selectedCollection = newEntity;
         stage.selectedItem = newEntity;
-        notificationStore.addNotification(entityName.value + ' collection created', '', 'success');
+        notificationStore.addNotification(t('notifications.collectionCreated', { name: entityName.value }), '', 'success');
         stage.firstSelectedItemId = newEntity.id;
         stage.markedItems = [newEntity.id];
       }
     })
     .catch((error) => {
       console.log(error);
-      notificationStore.errorNotification('Error creating entity', error);
+      notificationStore.errorNotification(t('notifications.errorCreatingEntity'), error);
     });
 };
 

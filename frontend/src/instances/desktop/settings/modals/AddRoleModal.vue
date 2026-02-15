@@ -6,7 +6,7 @@
     <div class="general-container">
 
       <div class="input-section">
-        <input v-model="roleParameters.name" class="input-short" type="text" placeholder="Role Name" v-focus />
+        <input v-model="roleParameters.name" class="input-short" type="text" :placeholder="$t('placeholders.roleName')" v-focus />
       </div>
 
       <div ref="collectionMenu" class="role-config" v-stop-propagation>
@@ -18,7 +18,7 @@
               {{ formatLabel(groupName) }}
             </div>
             <span class="active-count">
-              {{ activePermissionsCount[groupName] }} permissions
+              {{ $t('modals.permissionCount', { count: activePermissionsCount[groupName] }) }}
             </span>
           </div>
           <div class="menu-divider"></div>
@@ -36,8 +36,8 @@
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Add Role'" :fullWidth="true" @click="addRole" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.addRole')" :fullWidth="true" @click="addRole" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -49,6 +49,7 @@
 <script setup>
 // imports
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
@@ -68,6 +69,8 @@ const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
+
+const { t } = useI18n();
 
 // refs
 const collectionMenu = ref(null);
@@ -121,7 +124,7 @@ const permissionGroups = {
 
 const roleParameters = ref({ ...defaultRole });
 const showSearch = false;
-const title = 'Add new role';
+const title = t('modals.addNewRole');
 
 // computed
 // Computes active permissions count per group.
@@ -159,14 +162,14 @@ const addRole = async () => {
   let parameters = roleParameters.value;
   await UserService.AddRole(projectStore.activeProject.uri, parameters.name, parameters)
     .then((response) => {
-      notificationStore.addNotification("Role Created", "", "success");
+      notificationStore.addNotification(t('notifications.roleCreated'), "", "success");
       const index = userStore.roles.findIndex(role => role.id === parameters.id);
       userStore.roles[index] = response;
       closeModal();
     })
     .catch((error) => {
       console.log(error);
-      notificationStore.errorNotification("Error Creating Role", error);
+      notificationStore.errorNotification(t('notifications.errorCreatingRole'), error);
     });
 };
 

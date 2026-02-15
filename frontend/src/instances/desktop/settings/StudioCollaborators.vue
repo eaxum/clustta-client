@@ -4,9 +4,9 @@
 
         <div class="task-header">
 			<div class="create-menu">
-				<ActionButton :icon="getAppIcon('person-plus')" label="Add Collaborator" :showLabel="true"
-					@click="addCollaborator" v-tooltip="'Add Collaborator'" />
-				<ActionButton :icon="getAppIcon('refresh')" :label="'Refresh'" v-tooltip="'Refresh'"
+				<ActionButton :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
+					@click="addCollaborator" v-tooltip="$t('settings.addCollaborator')" />
+				<ActionButton :icon="getAppIcon('refresh')" :label="$t('common.refresh')" v-tooltip="$t('common.refresh')"
 					:buttonFunction="refresh" />
 			</div>
 		</div>

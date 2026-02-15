@@ -2,7 +2,7 @@
   <div class="settings-component-root">
     <div class="settings-component-container">
 
-      <ActionBar :itemType="'Add collection type'" :addFunction="addEntityType" />
+      <ActionBar :itemType="$t('settings.addCollectionType')" :addFunction="addEntityType" />
 
       <ScrollList v-if="projectEntityTypes.length" :items="projectEntityTypes" :useIcons="true" :useItemId="true"
         :wrapItems="true" :editItems="true" :editListItem="prepEditEntityType" :deleteItems="true"
@@ -18,6 +18,7 @@
 
 // imports
 import { onMounted, computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // store imports
@@ -39,6 +40,7 @@ const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
+const { t } = useI18n();
 
 // computed props
 const projectEntityTypes = computed(() => {
@@ -73,7 +75,7 @@ const getAppIcon = (iconName) => {
 };
 
 const message = () => {
-  return 'You have no collection types';
+  return t('settings.noCollectionTypes');
 };
 
 const illustration = () => {
@@ -81,7 +83,7 @@ const illustration = () => {
 };
 
 const secondaryActionMessage = () => {
-  return 'Add collection type'
+  return t('settings.addCollectionType')
 };
 
 const secondaryActionFunction = () => {
@@ -106,12 +108,12 @@ const replaceSymbols = (name) => {
 const deleteEntityType = async (entityTypeId) => {
   CollectionService.DeleteCollectionType(projectStore.activeProject.uri, entityTypeId)
     .then((response) => {
-      notificationStore.addNotification("Entity Type Deleted", "", "success");
+      notificationStore.addNotification(t('notifications.collectionTypeDeleted'), "", "success");
       const index = collectionStore.collectionTypes.findIndex(entityType => entityType.id === entityTypeId);
       collectionStore.collectionTypes.splice(index, 1);
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error Deleting Entity Type", error);
+      notificationStore.errorNotification(t('notifications.errorDeletingCollectionType'), error);
     });
 };
 

@@ -1,6 +1,6 @@
 <template>
   <div class="modal-container" ref="modalContainer" v-stop-propagation v-esc="closeModal">
-    <HeaderArea :title="'Add Studio Collaborator'" :icon="getAppIcon('person-plus')" :showSearch="false" />
+    <HeaderArea :title="$t('modals.addStudioCollaborator')" :icon="getAppIcon('person-plus')" :showSearch="false" />
     <div class="general-container">
 
       <div class="horizontal-flex">
@@ -10,7 +10,7 @@
 
       <div class="horizontal-flex">
         <DropDownBox :items="studioRoles" :onSelect="selectRole"
-          :selectedItem="studioCollaboratorRole" :placeHolder="'None'" :fullWidth="true" />
+          :selectedItem="studioCollaboratorRole" :placeHolder="$t('common.none')" :fullWidth="true" />
       </div>
 
       <!-- Notification section for non-studio users -->
@@ -21,16 +21,16 @@
         <NotificationBox 
           type="invitation"
           :icon="getAppIcon('mail')"
-          iconAlt="Invitation"
-          title="Invitation Required"
-          :message="`${newUsers.length} user${newUsers.length > 1 ? 's' : ''} ${newUsers.length > 1 ? 'are' : 'is'}n't on Clustta yet. ${newUsers.length > 1 ? 'They' : 'This user'} will be sent an invite to signup.`"
+          :iconAlt="$t('common.invitation')"
+          :title="$t('modals.invitationRequired')"
+          :message="$t('modals.invitationMessage', newUsers.length)"
         />
       </div>
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Add'" :buttonFunction="addCollaborators" :isActive="!!selectedUsers.length"
+        <GeneralButton :label="$t('common.cancel')" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.add')" :buttonFunction="addCollaborators" :isActive="!!selectedUsers.length"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -41,6 +41,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import CollaboratorSuggestions from '@/instances/common/components/CollaboratorSuggestions.vue';
@@ -71,6 +72,8 @@ const studioStore = useStudioStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
 
+const { t } = useI18n();
+
 // refs
 const isAwaitingResponse = ref(false);
 const modalContainer = ref(null);
@@ -80,7 +83,7 @@ const studioRoles = ref(["admin", "user"]);
 const unregisteredUserEmails = ref([]);
 
 // constants
-const placeholder = 'Enter names or emails to add to studio';
+const placeholder = t('placeholders.enterNamesOrEmails');
 
 // computed
 // Tracks new users who need invitation emails.
@@ -158,7 +161,7 @@ const addCollaborators = async () => {
         await StudioService.AddCollaborator(user.email, projectStore.selectedStudio.id, studioCollaboratorRole.value);
       } catch (error) {
         console.error('Error adding global user to studio:', error);
-        notificationStore.errorNotification("Error Adding User to Studio", error);
+        notificationStore.errorNotification(t('notifications.errorAddingUserToStudio'), error);
       }
     }
 
@@ -171,7 +174,7 @@ const addCollaborators = async () => {
         );
       } catch (error) {
         console.error('Error sending invitation:', error);
-        notificationStore.errorNotification("Error Sending Invitation", error);
+        notificationStore.errorNotification(t('notifications.errorSendingInvitation'), error);
       }
     }
 
@@ -179,16 +182,16 @@ const addCollaborators = async () => {
     const invitationCount = newUsersList.length;
 
     if (successCount > 0) {
-      notificationStore.addNotification(`${successCount} user(s) added to studio successfully.`, "", "success");
+      notificationStore.addNotification(t('notifications.usersAddedToStudioSuccessfully', { count: successCount }), "", "success");
     }
     
     if (invitationCount > 0) {
-      notificationStore.addNotification(`${invitationCount} invitation(s) sent.`, "", "info");
+      notificationStore.addNotification(t('notifications.invitationsSent', { count: invitationCount }), "", "info");
     }
 
   } catch (error) {
     console.error('Error in addCollaborators:', error);
-    notificationStore.errorNotification("Error Adding Users", error);
+    notificationStore.errorNotification(t('notifications.errorAddingUsers'), error);
   } finally {
     await studioStore.getStudioUsers();
     isAwaitingResponse.value = false;
@@ -205,7 +208,7 @@ const addUser = (user) => {
     return;
   }
   if (studioUserEmails.includes(userEmail)) {
-    notificationStore.addNotification(`User is already in the studio.`, "", "success");
+    notificationStore.addNotification(t('notifications.userAlreadyInStudio'), "", "success");
     return;
   } else {
     if (!user.userType) {

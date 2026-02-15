@@ -1,17 +1,14 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
-    <HeaderArea :title="'Submit Diagnostic Report'" :icon="'bug'" />
+    <HeaderArea :title="$t('modals.submitDiagnosticReport')" :icon="'bug'" />
     <div class="general-container">
 
-      <p class="description-text">
-        If you're having problems with Clustta, use this function to send diagnostic data
-        to our support team in order to better assist you.
-      </p>
+      <p class="description-text">{{ $t('modals.diagnosticDescription') }}</p>
 
-      <FormInput v-model="email" :labelTop="true" placeholder="Your email address (optional)" type="email"
+      <FormInput v-model="email" :labelTop="true" :placeholder="$t('placeholders.yourEmail')" type="email"
         :needsValidation="true" :showValidation="email.length > 0" :valid="isEmailValid" :error="emailError" />
 
-      <textarea v-model="message" class="desktop-input-long" type="text" placeholder="Describe your problem"
+      <textarea v-model="message" class="desktop-input-long" type="text" :placeholder="$t('placeholders.describeProblem')"
         @keydown.enter="handleEnterKey" />
 
       <InputAlert :show="!isFormValid && message.length > 0" :message="validationMessage" />
@@ -19,24 +16,24 @@
       <div class="system-info-section">
         <div class="system-info-header">
           <img class="small-icons" :src="getAppIcon('monitor')">
-          <span>System Information</span>
+          <span>{{ $t('modals.systemInformation') }}</span>
         </div>
         <div class="system-info-content">
-          <div class="info-row"><span class="info-label">OS:</span><span class="info-value">{{ systemInfo.os }}</span></div>
-          <div class="info-row"><span class="info-label">OS Version:</span><span class="info-value">{{ systemInfo.osVersion }}</span></div>
-          <div class="info-row"><span class="info-label">Architecture:</span><span class="info-value">{{ systemInfo.arch }}</span></div>
-          <div class="info-row"><span class="info-label">Clustta Version:</span><span class="info-value">{{ systemInfo.clusttaVersion }}</span></div>
+          <div class="info-row"><span class="info-label">{{ $t('modals.osLabel') }}</span><span class="info-value">{{ systemInfo.os }}</span></div>
+          <div class="info-row"><span class="info-label">{{ $t('modals.osVersionLabel') }}</span><span class="info-value">{{ systemInfo.osVersion }}</span></div>
+          <div class="info-row"><span class="info-label">{{ $t('modals.architectureLabel') }}</span><span class="info-value">{{ systemInfo.arch }}</span></div>
+          <div class="info-row"><span class="info-label">{{ $t('modals.clusttaVersionLabel') }}</span><span class="info-value">{{ systemInfo.clusttaVersion }}</span></div>
         </div>
       </div>
 
       <div class="attachment-section">
         <img class="small-icons" :src="getAppIcon('paperclip')">
-        <span class="attachment-label">{{ logFileName || 'No log file attached' }}</span>
+        <span class="attachment-label">{{ logFileName || $t('modals.noLogFile') }}</span>
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Send'" :fullWidth="true" @click="submitDiagnostics" :isActive="isFormValid"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.send')" :fullWidth="true" @click="submitDiagnostics" :isActive="isFormValid"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -47,6 +44,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // components
@@ -63,6 +61,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 
+const { t } = useI18n();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -85,7 +84,7 @@ const systemInfo = ref({
 // Returns the email validation error message.
 const emailError = computed(() => {
   if (email.value.length === 0) return '';
-  if (!isEmailValid.value) return 'Please enter a valid email address';
+  if (!isEmailValid.value) return t('notifications.invalidEmail');
   return '';
 });
 
@@ -105,7 +104,7 @@ const isFormValid = computed(() => {
 // Returns the validation message for the form.
 const validationMessage = computed(() => {
   if (message.value.trim().length <= 10) {
-    return 'Please provide a more detailed description of the problem.';
+    return t('notifications.moreDetailedDescription');
   }
   return '';
 });
@@ -169,10 +168,10 @@ const submitDiagnostics = async () => {
       systemInfo.value.arch,
       systemInfo.value.clusttaVersion
     );
-    notificationStore.addNotification('Report Sent', 'Your diagnostic report has been sent to our support team.', 'success');
+    notificationStore.addNotification(t('notifications.reportSent'), t('notifications.reportSentDescription'), 'success');
     closeModal();
   } catch (error) {
-    notificationStore.errorNotification('Failed to Send Report', error);
+    notificationStore.errorNotification(t('notifications.failedToSendReport'), error);
   } finally {
     isAwaitingResponse.value = false;
   }

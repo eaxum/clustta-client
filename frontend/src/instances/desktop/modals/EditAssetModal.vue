@@ -8,13 +8,13 @@
       <!-- Asset Edit Context -->
       <template v-if="!displayTypeCreator">
         <div class="input-section">
-          <input v-model="taskName" class="input-short" type="text" placeholder="Task Name" v-focus />
+          <input v-model="taskName" class="input-short" type="text" :placeholder="$t('placeholders.taskName')" v-focus />
         </div>
 
         <div v-if="task.is_link" class="input-section">
           <div class="horizontal-flex">
-            <input v-model="taskWebLink" class="input-short" type="text" placeholder="Web link" ref="taskWebLinkInput" />
-            <span @click="pasteWebLink" class="single-action-button" v-tooltip="'Paste link'">
+            <input v-model="taskWebLink" class="input-short" type="text" :placeholder="$t('placeholders.webLink')" ref="taskWebLinkInput" />
+            <span @click="pasteWebLink" class="single-action-button" v-tooltip="$t('modals.pasteLink')">
               <img class="small-icons" :src="getAppIcon('clipboard')">
             </span>
           </div>
@@ -25,15 +25,15 @@
             <div class="dropdown-wrapper">
               <DropDownBox :items="taskTypeNames" :selectedItem="taskType" :onSelect="selectTaskType" />
             </div>
-            <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="'Add New Asset Type'">
+            <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addNewAssetType')">
               <img class="small-icons" :src="getAppIcon('plus-circle')">
             </span>
           </div>
         </div>
 
         <div class="pop-up-actions">
-          <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-          <GeneralButton :label="'Confirm'" :fullWidth="true" @click="updateTask()" :isActive="isValueChanged" :loading="isAwaitingResponse" />
+          <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+          <GeneralButton :label="$t('common.confirm')" :fullWidth="true" @click="updateTask()" :isActive="isValueChanged" :loading="isAwaitingResponse" />
         </div>
       </template>
 
@@ -49,6 +49,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { isValidWeblink } from '@/lib/pointer';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
@@ -72,6 +73,7 @@ import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
 
+const { t } = useI18n();
 const assetStore = useAssetStore();
 const iconStore = useIconStore();
 const menu = useMenu();
@@ -134,9 +136,9 @@ const taskTypeNames = computed(() => {
 // Returns the modal title based on task type or type creator.
 const title = computed(() => {
   if (displayTypeCreator.value) {
-    return 'Add Asset Type';
+    return t('modals.addAssetTypeTitle');
   }
-  return task.value.is_link ? 'Edit link' : 'Edit task';
+  return task.value.is_link ? t('modals.editLink') : t('modals.editTask');
 });
 
 // Returns the type icon name (used in type creation context).

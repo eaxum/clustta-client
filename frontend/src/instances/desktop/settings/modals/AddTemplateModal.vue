@@ -4,7 +4,7 @@
 
     <div class="general-container">
       <div v-if="selectedFiles.length === 0" class="category-item">
-        <ActionButton :icon="getAppIcon('plus-circle')" :label="'Select files'" :showLabel="true" :buttonFunction="selectFiles" />
+        <ActionButton :icon="getAppIcon('plus-circle')" :label="$t('modals.selectFiles')" :showLabel="true" :buttonFunction="selectFiles" />
       </div>
 
       <div v-else class="category-area">
@@ -12,7 +12,7 @@
           <div v-for="(file, index) in selectedFiles" :key="index" class="file-item-wrapper">
             <div class="category-item">
               <img v-if="file.icon" :src="file.icon" class="file-icon small-icons no-filter " />
-              <input v-model="file.name" class="input-short" type="text" placeholder="Template Name" />
+              <input v-model="file.name" class="input-short" type="text" :placeholder="$t('placeholders.templateName')" />
               <span v-if="file.extension" class="extension-badge">{{ file.extension }}</span>
               <div class="category-item-actions">
                 <ActionButton :icon="getAppIcon('trash')" :useDanger="true" :noFilter="true" :buttonFunction="() => removeFile(index)" />
@@ -20,17 +20,17 @@
             </div>
             <InputAlert 
               :show="duplicateNameIndices.includes(index)" 
-              :message="'Duplicate template name'" 
+              :message="$t('modals.duplicateTemplateName')" 
             />
           </div>
         </div>
-        <ActionButton :icon="getAppIcon('plus-circle')" :label="'Add more files'" :showLabel="true" :buttonFunction="selectFiles" />
+        <ActionButton :icon="getAppIcon('plus-circle')" :label="$t('modals.addMoreFiles')" :showLabel="true" :buttonFunction="selectFiles" />
       </div>
 
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Create'" :fullWidth="true" @click="createTemplate" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createTemplate" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -42,6 +42,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -67,6 +68,8 @@ const projectStore = useProjectStore();
 const stage = useStageStore();
 const trayStates = useTrayStates();
 
+const { t } = useI18n();
+
 // refs
 const isAwaitingResponse = ref(false);
 const modalContainer = ref(null);
@@ -74,7 +77,7 @@ const selectedFiles = ref([]);
 
 // constants
 const showSearch = false;
-const title = 'Add Templates';
+const title = t('modals.addTemplates');
 
 // computed
 // Returns indices of files with duplicate names.
@@ -119,18 +122,18 @@ const closeModal = () => {
 // Creates templates from selected files.
 const createTemplate = async () => {
   if (selectedFiles.value.length === 0) {
-    notificationStore.addNotification('No Files Selected', 'Please select at least one template file', "error");
+    notificationStore.addNotification(t('notifications.noFilesSelected'), t('notifications.selectAtLeastOneFile'), "error");
     return;
   }
 
   const filesWithoutNames = selectedFiles.value.filter(file => !file.name.trim());
   if (filesWithoutNames.length > 0) {
-    notificationStore.addNotification('Template Names Required', 'All templates must have a name', "error");
+    notificationStore.addNotification(t('notifications.templateNamesRequired'), t('notifications.allTemplatesMustHaveName'), "error");
     return;
   }
 
   if (hasDuplicateNames.value) {
-    notificationStore.addNotification('Duplicate Names Found', 'All templates must have unique names', "error");
+    notificationStore.addNotification(t('notifications.duplicateNamesFound'), t('notifications.allTemplatesMustBeUnique'), "error");
     return;
   }
 
@@ -143,10 +146,10 @@ const createTemplate = async () => {
     }
     
     trayStates.refreshData();
-    notificationStore.addNotification('Templates Created', `Successfully created ${selectedFiles.value.length} template(s)`, "success");
+    notificationStore.addNotification(t('notifications.templatesCreated'), t('notifications.successfullyCreatedTemplates', { count: selectedFiles.value.length }), "success");
     closeModal();
   } catch (error) {
-    notificationStore.errorNotification('Error creating templates', error);
+    notificationStore.errorNotification(t('notifications.errorCreatingTemplates'), error);
   } finally {
     stage.operationActive = false;
     isAwaitingResponse.value = false;

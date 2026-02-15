@@ -6,10 +6,10 @@
     <div class="general-container">
       <div class="input-section">
         <div class="horizontal-flex">
-          <input v-model="projectName" @input="updateWorkingDirectory" class="input-short" type="text" placeholder="Project Name" ref="projectNameInput"
+          <input v-model="projectName" @input="updateWorkingDirectory" class="input-short" type="text" :placeholder="$t('placeholders.projectName')" ref="projectNameInput"
             @keydown.enter="handleEnterKey" v-focus />
         </div>
-        <InputAlert :show="!projectIsCreated && projectNameInUse" message="A project with this name already exists." />
+        <InputAlert :show="!projectIsCreated && projectNameInUse" :message="$t('modals.projectNameExists')" />
       </div>
 
       <div class="input-section">
@@ -22,12 +22,12 @@
               :onSelect="selectLocation" 
             />
           </div>
-          <span @click="addNewLocation" class="single-action-button" v-tooltip="'Add New Location'">
+          <span @click="addNewLocation" class="single-action-button" v-tooltip="$t('modals.addNewLocation')">
             <img class="small-icons" :src="getAppIcon('plus-circle')">
           </span>
         </div>
         <div v-if="workingDirectory" class="computed-path-display">
-          Final path: {{ workingDirectory }}
+          {{ $t('modals.finalPath') }} {{ workingDirectory }}
         </div>
       </div>
 
@@ -39,8 +39,8 @@
 
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Create'" :fullWidth="true" @click="createProject" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createProject" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
     </div>
@@ -50,6 +50,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
@@ -71,6 +72,7 @@ const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const projectTemplateStore = useProjectTemplateStore();
 const stage = useStageStore();
+const { t } = useI18n();
 
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
@@ -92,10 +94,10 @@ const projectLocations = ref([]);
 const projectName = ref('');
 const projectNameInput = ref(null);
 const selectedLocation = ref(null);
-const selectedProjectTemplate = ref('No Template');
+const selectedProjectTemplate = ref(t('modals.noTemplate'));
 
 // constants
-const title = 'Add Project';
+const title = computed(() => t('modals.addProject'));
 
 // computed
 // Returns whether form values are valid for submission.
@@ -120,7 +122,7 @@ const projectNameInUse = computed(() => {
 
 // Returns list of project template names with 'No Template' option.
 const projectTemplateNames = computed(() => {
-  return ['No Template', ...projectTemplateStore.projectTemplateNames];
+  return [t('modals.noTemplate'), ...projectTemplateStore.projectTemplateNames];
 });
 
 // Returns list of restricted project names (lowercase).
@@ -158,9 +160,9 @@ const addNewLocation = async () => {
     const newLocation = await SettingsService.AddProjectLocation(folderName, path);
     projectLocations.value.push(newLocation);
     selectedLocation.value = newLocation;
-    notificationStore.addNotification('Location added successfully', '', 'success', false);
+    notificationStore.addNotification(t('notifications.locationAdded'), '', 'success', false);
   } catch (error) {
-    notificationStore.errorNotification('Error adding location', error);
+    notificationStore.errorNotification(t('notifications.errorAddingLocation'), error);
   }
 };
 
@@ -190,7 +192,7 @@ const loadProjectLocations = async () => {
     const defaultLoc = locations.find(loc => loc.is_default);
     selectedLocation.value = defaultLoc || locations[0];
   } catch (error) {
-    notificationStore.errorNotification('Error loading locations', error);
+    notificationStore.errorNotification(t('notifications.errorLoadingLocations'), error);
   } finally {
     isLoadingLocations.value = false;
   }
@@ -216,8 +218,8 @@ const createProject = async () => {
   // Validate that a location is selected
   if (!selectedLocation.value) {
     notificationStore.addNotification(
-      'No location selected',
-      'Please select or add a project location',
+      t('notifications.noLocationSelected'),
+      t('notifications.selectOrAddLocation'),
       'error',
       false
     );
@@ -227,8 +229,8 @@ const createProject = async () => {
   // Validate working directory is not empty
   if (!workingDirectory.value) {
     notificationStore.addNotification(
-      'Invalid working directory',
-      'Working directory cannot be empty',
+      t('notifications.invalidWorkingDirectory'),
+      t('notifications.workingDirectoryEmpty'),
       'error',
       false
     );
@@ -280,7 +282,7 @@ const createProject = async () => {
   }).catch((error) => {
     isAwaitingResponse.value = false
     console.log(error)
-    notificationStore.errorNotification('Error creating project', error);
+    notificationStore.errorNotification(t('notifications.errorCreatingProject'), error);
   });
 
 };
@@ -308,7 +310,7 @@ const cloneProject = async () => {
       if (updatedProject) {
         projectStore.activeProject = updatedProject;
       }
-      if (selectedProjectTemplate.value && selectedProjectTemplate.value !== 'No Template') {
+      if (selectedProjectTemplate.value && selectedProjectTemplate.value !== t('modals.noTemplate')) {
         const localProjectPath = projectStore.activeProject.uri;
         await ProjectService.ApplyTemplate(localProjectPath, selectedProjectTemplate.value)
           .then(async () => {
@@ -321,19 +323,19 @@ const cloneProject = async () => {
             await SyncService.SyncData(localProjectPath, projectUrl, false, templateSyncOptions)
               .catch((error) => {
                 console.error('Failed to sync template changes:', error);
-                notificationStore.addNotification('Template applied locally but sync failed', 'warning');
+                notificationStore.addNotification(t('notifications.templateAppliedSyncFailed'), 'warning');
               });
           })
           .catch((error) => {
             console.error('Failed to apply template:', error);
-            notificationStore.errorNotification('Failed to apply template', error);
+            notificationStore.errorNotification(t('notifications.failedToApplyTemplate'), error);
           });
       }
       await projectStore.refreshProjectsPreview();
     })
     .catch((error) => {
       console.error(error);
-      notificationStore.errorNotification("Error Cloning Project", error);
+      notificationStore.errorNotification(t('notifications.errorCloningProject'), error);
     });
   closeModal();
 };

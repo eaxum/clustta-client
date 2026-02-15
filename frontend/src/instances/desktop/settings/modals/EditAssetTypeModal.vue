@@ -13,6 +13,7 @@
 <script setup>
 // imports
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import AssetTypeForm from '@/instances/common/components/AssetTypeForm.vue';
@@ -25,13 +26,15 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 const assetStore = useAssetStore();
 const modals = useDesktopModalStore();
 
+const { t } = useI18n();
+
 // refs
 const modalContainer = ref(null);
 const typeFormRef = ref(null);
 const typeIcon = ref('generic');
 
 // constants
-const title = 'Edit asset type';
+const title = t('modals.editAssetType');
 
 // computed
 // Returns the initial icon from the selected asset type.

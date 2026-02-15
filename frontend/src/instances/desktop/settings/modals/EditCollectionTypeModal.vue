@@ -13,6 +13,7 @@
 <script setup>
 // imports
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import CollectionTypeForm from '@/instances/common/components/CollectionTypeForm.vue';
@@ -25,13 +26,15 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 const collectionStore = useCollectionStore();
 const modals = useDesktopModalStore();
 
+const { t } = useI18n();
+
 // refs
 const modalContainer = ref(null);
 const typeFormRef = ref(null);
 const typeIcon = ref('generic');
 
 // constants
-const title = 'Edit Collection type';
+const title = t('modals.editCollectionType');
 
 // computed
 // Returns the initial icon from the selected collection type.

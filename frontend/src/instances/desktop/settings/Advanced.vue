@@ -6,15 +6,15 @@
       <!-- Experimental Features Card -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">Experimental Features</h2>
+          <h2 class="settings-section-card-title">{{ $t('settings.experimentalFeatures') }}</h2>
         </div>
         <div class="settings-section-card-content">
 
           <div class="settings-item" @click="toggleWriteThrough">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('arrow-big-up-lines')"></div>
             <div class="settings-content">
-              <div class="settings-header">Write-through sync</div>
-              <div class="settings-body">Push metadata changes to the server immediately instead of waiting for a full sync. This is experimental and may not work reliably in all cases.</div>
+              <div class="settings-header">{{ $t('settings.writeThroughSync') }}</div>
+              <div class="settings-body">{{ $t('settings.writeThroughDescription') }}</div>
             </div>
             <div class="settings-action fixed-width">
               <ToggleSwitch :switchValueProp="writeThroughEnabled" />
@@ -32,6 +32,7 @@
 <script setup>
 // imports
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // services
 import { ProjectService } from '@/services';
@@ -49,6 +50,7 @@ const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const writeThroughEnabled = ref(false);
+const { t } = useI18n();
 
 // methods
 const getAppIcon = (iconName) => {
@@ -64,13 +66,13 @@ const toggleWriteThrough = () => {
   ProjectService.SetWriteThroughEnabled(projectUri, newValue).then(() => {
     writeThroughEnabled.value = newValue;
     notificationStore.addNotification(
-      "Write-Through Sync",
-      `Write-through sync ${newValue ? 'enabled' : 'disabled'}`,
+      t('settings.writeThroughSync'),
+      t('notifications.writeThroughToggled', { status: newValue ? 'enabled' : 'disabled' }),
       "success"
     );
   }).catch((error) => {
     console.log(error);
-    notificationStore.addNotification("Error", "Failed to update write-through setting", "error");
+    notificationStore.addNotification(t('common.error'), t('notifications.failedToUpdateWriteThrough'), "error");
   });
 };
 

@@ -1,13 +1,13 @@
 <template>
   <div class="modal-container" v-stop-propagation>
-    <HeaderArea :title="'Backup Project'" :icon="getAppIcon('clustta')" :showSearch="false" />
+    <HeaderArea :title="$t('modals.backupProject')" :icon="getAppIcon('clustta')" :showSearch="false" />
     <div class="general-container">
 
       <!-- Project Info Display -->
       <div v-if="!isBackingUp && !isSyncing && !backupComplete" class="settings-section-card">
         <div class="settings-section-card-header">
           <div class="header-content">
-            <h2 class="settings-section-card-title">Project to backup</h2>
+            <h2 class="settings-section-card-title">{{ $t('modals.projectToBackup') }}</h2>
             <div class="card-description">
               {{ projectStore.getActiveProjectName }}
             </div>
@@ -21,7 +21,7 @@
             </div>
             <div class="location-content">
               <div class="location-header">
-                <div class="location-name">Source File</div>
+                <div class="location-name">{{ $t('modals.sourceFile') }}</div>
               </div>
               <div class="location-body">
                 {{ projectStore.getActiveProject.uri }}
@@ -35,13 +35,13 @@
       <div v-if="!isBackingUp && !isSyncing && !backupComplete" class="settings-section-card">
         <div class="settings-section-card-header">
           <div class="header-content">
-            <h2 class="settings-section-card-title">Backup destination</h2>
+            <h2 class="settings-section-card-title">{{ $t('modals.backupDestination') }}</h2>
             <div class="card-description">
-              Select where you want to save the backup copy of your .clst file.
+              {{ $t('modals.selectBackupDestText') }}
             </div>
           </div>
           <GeneralButton 
-            :label="selectedBackupDirectory ? 'Change' : 'Select'" 
+            :label="selectedBackupDirectory ? $t('common.change') : $t('common.select')" 
             :buttonFunction="selectBackupDirectory"
             :fullWidth="false"
           />
@@ -55,7 +55,7 @@
             </div>
             <div class="location-content">
               <div class="location-header">
-                <div class="location-name">Backup Location</div>
+                <div class="location-name">{{ $t('modals.backupLocation') }}</div>
               </div>
               <div class="location-body">
                 {{ selectedBackupDirectory }}
@@ -69,13 +69,13 @@
       <div v-if="!isBackingUp && !isSyncing && projectStore.activeProject.has_remote && !backupComplete" class="settings-section-card">
         <div class="settings-section-card-header">
           <div class="header-content">
-            <h2 class="settings-section-card-title">Sync before backup</h2>
+            <h2 class="settings-section-card-title">{{ $t('modals.syncBeforeBackup') }}</h2>
             <div class="card-description">
-              Optionally perform a full sync to ensure all checkpoints are included in the backup.
+              {{ $t('modals.syncBeforeBackupDesc') }}
             </div>
           </div>
           <GeneralButton 
-            label="Full Sync" 
+            :label="$t('modals.fullSync')" 
             :buttonFunction="performFullSync"
             :fullWidth="false"
             :isDisabled="isSyncing"
@@ -87,7 +87,7 @@
       <div v-if="isBackingUp || isSyncing" class="settings-section-card">
       <div class="progress-section">
         <div class="progress-header">
-          <span class="progress-title">{{ isSyncing ? 'Performing full sync' : notificationStore.progress.title }}</span>
+          <span class="progress-title">{{ isSyncing ? $t('modals.performingFullSync') : notificationStore.progress.title }}</span>
           <span class="progress-percentage">{{ Math.round(notificationStore.progress.percentage) }}%</span>
         </div>
         <div class="progress-message">{{ notificationStore.progress.message }}</div>
@@ -104,7 +104,7 @@
       <div v-if="backupComplete" class="settings-section-card">
         <div class="settings-section-card-header">
           <div class="header-content">
-            <h2 class="settings-section-card-title">✓ Backup successful</h2>
+            <h2 class="settings-section-card-title">{{ $t('modals.backupSuccessTitle') }}</h2>
             <div class="card-description">
               {{ backupDestinationPath }}
             </div>
@@ -117,7 +117,7 @@
             </div>
             <div class="location-content">
               <div class="location-header">
-                <div class="location-name">Backup File</div>
+                <div class="location-name">{{ $t('modals.backupFile') }}</div>
               </div>
               <div class="location-body">
                 {{ backupDestinationPath }}
@@ -127,7 +127,7 @@
               <ActionButton 
                 :icon="getAppIcon('folder-arrow-up-right')" 
                 :buttonFunction="() => locateBackupFile()"
-                v-tooltip="'Locate in Explorer'"
+                v-tooltip="$t('modals.locateInExplorer')"
               />
             </div>
           </div>
@@ -138,27 +138,27 @@
       <div v-if="!isBackingUp" class="pop-up-actions" :class="{ 'pop-up-actions-syncing' : isSyncing || backupComplete }" >
         <GeneralButton 
           v-if="!backupComplete && !isSyncing"
-          label="Cancel" 
+          :label="$t('common.cancel')" 
           :buttonFunction="closeModal"
           :fullWidth="false"
         />
         <GeneralButton 
           v-if="!backupComplete && isSyncing"
-          label="Cancel Sync"
+          :label="$t('modals.cancelSync')"
           :colored="false" 
           :buttonFunction="cancelOperation"
           :fullWidth="false"
         />
         <GeneralButton 
           v-else-if="!backupComplete"
-          label="Backup" 
+          :label="$t('modals.backup')" 
           :buttonFunction="backupProject"
           :fullWidth="false"
           :isActive="selectedBackupDirectory !== ''"
         />
         <GeneralButton 
           v-if="backupComplete"
-          label="Close" 
+          :label="$t('common.close')" 
           :buttonFunction="closeModal"
           :fullWidth="false"
         />
@@ -171,6 +171,7 @@
 <script setup>
 // imports
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { syncFullData } from '@/lib/sync';
 
 // components
@@ -194,6 +195,7 @@ const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const stage = useStageStore();
+const { t } = useI18n();
 
 // refs
 const backupComplete = ref(false);
@@ -207,7 +209,7 @@ const selectedBackupDirectory = ref('');
 // Creates a backup of the project to the selected directory.
 const backupProject = async () => {
   if (!selectedBackupDirectory.value) {
-    notificationStore.addNotification('No destination selected', 'Please select a backup location', 'error', false);
+    notificationStore.addNotification(t('notifications.noDestinationSelected'), t('notifications.selectBackupLocation'), 'error', false);
     return;
   }
 
@@ -220,9 +222,9 @@ const backupProject = async () => {
     const destinationPath = await FSService.BackupFile(sourceFile, destinationDirectory);
     backupDestinationPath.value = destinationPath;
     backupComplete.value = true;
-    notificationStore.addNotification('Backup successful', `Project backed up to: ${destinationPath}`, 'success', false);
+    notificationStore.addNotification(t('notifications.backupSuccessful'), `${destinationPath}`, 'success', false);
   } catch (error) {
-    notificationStore.errorNotification('Error backing up project', error);
+    notificationStore.errorNotification(t('notifications.errorBackingUp'), error);
   } finally {
     stage.operationActive = false;
     isBackingUp.value = false;
@@ -268,9 +270,9 @@ const performFullSync = async () => {
     notificationStore.cancleFunction = SyncService.CancelSync;
     notificationStore.canCancel = true;
     await syncFullData();
-    notificationStore.addNotification('Sync complete', 'All checkpoints have been synced successfully', 'success', false);
+    notificationStore.addNotification(t('notifications.syncComplete'), t('notifications.syncCompleteMessage'), 'success', false);
   } catch (error) {
-    notificationStore.errorNotification('Sync failed', error);
+    notificationStore.errorNotification(t('notifications.syncFailed'), error);
   } finally {
     stage.operationActive = false;
     isSyncing.value = false;

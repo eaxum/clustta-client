@@ -8,15 +8,15 @@
 
     <div class="general-container">
       <div class="input-section">
-        <input v-model="entityTypeName" class="input-short" type="text" placeholder="Collection type Name" v-focus
+        <input v-model="entityTypeName" class="input-short" type="text" :placeholder="$t('placeholders.collectionTypeName')" v-focus
           @keydown.enter="handleEnterKey" />
       </div>
 
       <IconGrid v-if="displayIconSelector" @iconSelected="setIcon" :icons="icons" />
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Create'" :fullWidth="true" @click="createEntityType" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createEntityType" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -28,6 +28,7 @@
 <script setup>
 // imports
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import iconData from "@/data/iconData.json";
 
 // components
@@ -80,12 +81,12 @@ const closeModal = () => {
 const createEntityType = () => {
   CollectionService.CreateCollectionType(projectTemplateStore.activeProjectTemplate.uri, entityTypeName.value, entityTypeIcon.value)
     .then(() => {
-      notificationStore.addNotification("Collection type created", "", "success");
+      notificationStore.addNotification(t('notifications.collectionTypeCreated'), "", "success");
       projectTemplateStore.reloadProjectTemplate();
       closeModal();
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error deleting folder Type", error);
+      notificationStore.errorNotification(t('notifications.errorCreatingCollectionType'), error);
     });
 };
 

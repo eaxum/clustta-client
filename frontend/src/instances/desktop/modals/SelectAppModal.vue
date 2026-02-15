@@ -10,6 +10,7 @@
 <script setup>
 // imports
 import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import AppsGrid from '@/instances/common/components/AppsGrid.vue';
@@ -20,6 +21,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useTemplateStore } from '@/stores/template';
 import { useTrayStates } from '@/stores/TrayStates';
 
+const { t } = useI18n();
 const modals = useDesktopModalStore();
 const templateStore = useTemplateStore();
 const trayStates = useTrayStates();
@@ -30,7 +32,7 @@ const selectedTemplate = ref('');
 
 // constants
 const showSearch = false;
-const title = 'Select Asset Template';
+const title = t('modals.selectAssetTemplate');
 
 // lifecycle hooks
 onMounted(() => {

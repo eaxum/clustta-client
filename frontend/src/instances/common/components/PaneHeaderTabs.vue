@@ -2,14 +2,14 @@
   <div class="header-tab-root"
     :class="{ 'fullwidth-header-tab-root': fullWidth, 'icon-header-tab-root': iconsOnly }">
 
-    <div v-for="(dataType, index) in dataTypes" :key="dataType.name"
-      v-tooltip="((filterIndex !== index || iconsOnly)) ? utils.capitalizeStr(dataType.name) : ''"
-      @click="filterList(index, dataType.name)" class="tab-button"
-      :class="{ 'selected-tab-button': selectedTab === dataType.name, 'fullwidth-tab-button': fullWidth }">
+    <div v-for="(dataType, index) in dataTypes" :key="dataType.id || dataType.name"
+      v-tooltip="((filterIndex !== index || iconsOnly)) ? (dataType.nameKey ? $t(dataType.nameKey) : utils.capitalizeStr(dataType.name)) : ''"
+      @click="filterList(index, dataType.id || dataType.name)" class="tab-button"
+      :class="{ 'selected-tab-button': selectedTab === (dataType.id || dataType.name), 'fullwidth-tab-button': fullWidth }">
       <div class="tab-content">
         <img class="small-icons" :src="getAppIcon(dataType.icon)">
-        <div v-if="!iconsOnly && (selectedTab === dataType.name || fullWidth)" class="selected-tab-button-text"> {{
-          utils.capitalizeStr(dataType.name) }}</div>
+        <div v-if="!iconsOnly && (selectedTab === (dataType.id || dataType.name) || fullWidth)" class="selected-tab-button-text"> {{
+          dataType.nameKey ? $t(dataType.nameKey) : utils.capitalizeStr(dataType.name) }}</div>
       </div>
     </div>
     

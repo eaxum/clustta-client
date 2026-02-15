@@ -3,7 +3,7 @@
 
 
     <div class="general-pane-header">
-      <HeaderArea :title="title" :icon="'folder-arrow-in'" :showSearch="false" />
+      <HeaderArea :title="$t('modals.ignoreConfiguration')" :icon="'folder-arrow-in'" :showSearch="false" />
 
     </div>
 
@@ -59,13 +59,13 @@
         </span>
       </div>
 
-      <SearchSuggestions placeholder="Add Extension" :tags="extensions" :projectTags="projectTags" :showTags="true"
+      <SearchSuggestions :placeholder="$t('placeholders.addExtension')" :tags="extensions" :projectTags="projectTags" :showTags="true"
         :forSearch="false" @tagAdded="addExtension" @tagRemoved="removeExtension" />
 
 
       <div class="pop-up-actions" ref="popUpActions">
-        <GeneralButton :label="'Cancel'" :fullWidth="false" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Confirm'" :fullWidth="false" @click="importItems()" :loading="isAwaitingResponse" />
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="false" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.save')" :fullWidth="false" @click="importItems()" :loading="isAwaitingResponse" />
       </div>
 
     </div>
@@ -77,6 +77,7 @@
 <script setup>
 // imports
 import { ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
@@ -90,6 +91,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 
+const { t } = useI18n();
 const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
@@ -112,11 +114,11 @@ const selectedTabName = ref('File Types');
 // constants
 const projectTags = [];
 const settingsItems = [
-  { name: 'File Types', icon: 'file' },
-  { name: 'Folders', icon: 'folder' },
-  { name: 'Common Presets', icon: 'cog' },
+  { name: t('modals.fileTypes'), icon: 'file' },
+  { name: t('modals.foldersLabel'), icon: 'folder' },
+  { name: t('modals.commonPresets'), icon: 'cog' },
 ];
-const title = 'Ignore Configuration';
+
 
 // methods
 // Adds an extension to the ignore list.

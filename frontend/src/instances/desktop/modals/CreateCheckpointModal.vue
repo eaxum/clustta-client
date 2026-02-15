@@ -1,9 +1,9 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
-    <HeaderArea :title="'Create Checkpoint'" :icon="'layers-plus'" />
+    <HeaderArea :title="$t('modals.createCheckpoint')" :icon="'layers-plus'" />
     <div class="general-container">
 
-      <textarea v-model="message" class="desktop-input-long" type="text" placeholder="make a comment..." v-focus
+      <textarea v-model="message" class="desktop-input-long" type="text" :placeholder="$t('placeholders.makeAComment')" v-focus
         @keydown.enter="handleEnterKey" />
 
       <InputAlert :show="!isValueChanged" :message="validationMessage" />
@@ -15,11 +15,11 @@
             {{ taskStatus.short_name }}
           </div>
         </div>
-        <ActionButton :icon="getAppIcon('paperclip')" v-tooltip="'Attach Snapshot'" v-stop-propagation
+        <ActionButton :icon="getAppIcon('paperclip')" v-tooltip="$t('modals.attachSnapshot')" v-stop-propagation
           :buttonFunction="selectPreviewFile" />
-        <ActionButton :icon="getAppIcon('clipboard')" v-tooltip="'Paste Snapshot'" v-stop-propagation
+        <ActionButton :icon="getAppIcon('clipboard')" v-tooltip="$t('modals.pasteSnapshot')" v-stop-propagation
           :buttonFunction="addImageFromClipBoard" />
-        <ActionButton v-if="trayStates.screenshot" :icon="getAppIcon('trash')" v-tooltip="'Delete Snapshot'"
+        <ActionButton v-if="trayStates.screenshot" :icon="getAppIcon('trash')" v-tooltip="$t('modals.deleteSnapshot')"
           v-stop-propagation :buttonFunction="removePreveiw" />
       </div>
 
@@ -34,13 +34,13 @@
       </span>
 
       <div v-if="trayStates.screenshot" class="horizontal-flex">
-        <div class="input-label"> Use Image as Asset thumbnail</div>
+        <div class="input-label"> {{ $t('modals.useImageAsThumbnail') }}</div>
         <ToggleSwitch :switchValueProp="useImageAsCover" @click="useAsCover()" />
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Create'" :fullWidth="true" @click="createCheckPoint" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createCheckPoint" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -54,6 +54,7 @@
 // imports
 import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
+import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
@@ -86,6 +87,7 @@ const projectStore = useProjectStore();
 const statusStore = useStatusStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
+const { t } = useI18n();
 
 // refs
 const displayStatusMenu = ref(false);
@@ -123,14 +125,14 @@ const taskStatus = computed(() => {
 // Returns the validation message for the comment field.
 const validationMessage = computed(() => {
   if (message.value.trim().length <= 6) {
-    return 'Your message is too short.';
+    return t('notifications.messageTooShort');
   }
   const messageWords = message.value.toLowerCase().split(/\s+/);
   const foundForbidden = forbiddenComments.find(comment =>
     messageWords.includes(comment.toLowerCase())
   );
   if (foundForbidden) {
-    return `Please avoid using "${foundForbidden.toUpperCase()}" in your message. Be more descriptive.`;
+    return t('notifications.avoidForbiddenWord', { word: foundForbidden.toUpperCase() });
   }
   return '';
 });
@@ -178,7 +180,7 @@ const createCheckPoint = async () => {
       })
       .catch((error) => {
         isAwaitingResponse.value = false;
-        notificationStore.errorNotification('Error Creating Checkpoint', error);
+        notificationStore.errorNotification(t('notifications.errorCreatingCheckpoint'), error);
       });
   } else {
     await CheckpointService.AddUntrackedTask(projectStore.activeProject.uri, projectStore.activeProject.working_directory, [taskPath], 0, 1, comment, previewPath, groupId)
@@ -191,7 +193,7 @@ const createCheckPoint = async () => {
       })
       .catch((error) => {
         isAwaitingResponse.value = false;
-        notificationStore.errorNotification('Error Creating Checkpoint', error);
+        notificationStore.errorNotification(t('notifications.errorCreatingCheckpoint'), error);
       });
   }
 };

@@ -10,7 +10,7 @@
       </span>
       
       <div class="input-section">
-        <span class="input-label">Location</span>
+        <span class="input-label">{{ $t('modals.locationLabel') }}</span>
         <div class="horizontal-flex">
           <div class="location-dropdown-wrapper">
             <DropDownBox 
@@ -19,7 +19,7 @@
               :onSelect="selectLocation" 
             />
           </div>
-          <span @click="addNewLocation" class="single-action-button" v-tooltip="'Add New Location'">
+          <span @click="addNewLocation" class="single-action-button" v-tooltip="$t('modals.addNewLocation')">
             <img class="small-icons" :src="getAppIcon('plus-circle')">
           </span>
         </div>
@@ -31,8 +31,8 @@
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :isActive="!isAwaitingResponse" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Download'" :fullWidth="true" @click="cloneProject" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :isActive="!isAwaitingResponse" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.download')" :fullWidth="true" @click="cloneProject" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
     </div>
@@ -42,6 +42,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
@@ -63,6 +64,7 @@ const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const { t } = useI18n();
 
 // refs
 const isAwaitingResponse = ref(false);
@@ -72,7 +74,7 @@ const projectLocations = ref([]);
 const selectedLocation = ref(null);
 
 // constants
-const title = `Download "${projectStore.activeProject.name}"`;
+const title = t('modals.downloadProject', { name: projectStore.activeProject.name });
 
 // computed
 // Returns whether the form is valid for submission.
@@ -116,20 +118,20 @@ const addNewLocation = async () => {
     const newLocation = await SettingsService.AddProjectLocation(folderName, path);
     projectLocations.value.push(newLocation);
     selectedLocation.value = newLocation;
-    notificationStore.addNotification('Location added successfully', '', 'success', false);
+    notificationStore.addNotification(t('notifications.locationAddedSuccessfully'), '', 'success', false);
   } catch (error) {
-    notificationStore.errorNotification('Error adding location', error);
+    notificationStore.errorNotification(t('notifications.errorAddingLocation'), error);
   }
 };
 
 // Clones the project from the server to the selected location.
 const cloneProject = async () => {
   if (!selectedLocation.value) {
-    notificationStore.addNotification('No location selected', 'Please select or add a project location', 'error', false);
+    notificationStore.addNotification(t('notifications.noLocationSelected'), t('notifications.selectOrAddLocation'), 'error', false);
     return;
   }
   if (!workingDirectory.value) {
-    notificationStore.addNotification('Invalid working directory', 'Working directory cannot be empty', 'error', false);
+    notificationStore.addNotification(t('notifications.invalidWorkingDir'), t('notifications.workingDirEmpty'), 'error', false);
     return;
   }
   isAwaitingResponse.value = true;
@@ -164,7 +166,7 @@ const cloneProject = async () => {
     .catch((error) => {
       isAwaitingResponse.value = false;
       console.error(error);
-      notificationStore.errorNotification('Error Cloning Project', error);
+      notificationStore.errorNotification(t('notifications.errorCloningProject'), error);
     });
 };
 

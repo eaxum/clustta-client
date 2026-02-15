@@ -138,6 +138,14 @@ export function GetIconScheme() {
 }
 
 /**
+ * GetLanguage retrieves the user's language preference.
+ * @returns {$CancellablePromise<string>}
+ */
+export function GetLanguage() {
+    return $Call.ByID(2844941544);
+}
+
+/**
  * GetLastStudio retrieves the last active studio name.
  * @returns {$CancellablePromise<string>}
  */
@@ -363,6 +371,15 @@ export function SetEulaAccepted(eulaAccepted) {
  */
 export function SetIconScheme(iconScheme) {
     return $Call.ByID(2125293608, iconScheme);
+}
+
+/**
+ * SetLanguage sets the user's language preference.
+ * @param {string} language
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetLanguage(language) {
+    return $Call.ByID(2588646004, language);
 }
 
 /**

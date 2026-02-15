@@ -15,8 +15,8 @@
       </div>
 
       <div class="pop-up-actions" ref="popUpActions">
-        <GeneralButton :label="'Cancel'" :fullWidth="false" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Confirm'" :fullWidth="false" @click="importItems()" :isActive="storeHasData"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="false" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.confirm')" :fullWidth="false" @click="importItems()" :isActive="storeHasData"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -29,6 +29,7 @@
 <script setup>
 // imports
 import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { v4 as uuidv4 } from 'uuid';
 
 // components
@@ -52,6 +53,7 @@ import { useStageStore } from '@/stores/stages';
 import { useStatusStore } from '@/stores/status';
 import { useTrayStates } from '@/stores/TrayStates';
 
+const { t } = useI18n();
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const dndStore = useDndStore();
@@ -70,7 +72,7 @@ const modalContainer = ref(null);
 const popUpActions = ref(null);
 
 // constants
-const title = 'Import Items';
+const title = t('modals.importItems');
 
 // computed
 // Returns whether the preview data store has any items.
@@ -134,7 +136,7 @@ const importItems = async (comment = 'Asset created') => {
   } else {
     isAwaitingResponse.value = false;
     notificationStore.resetProgress();
-    notificationStore.errorNotification('Error creating items', errorMessage);
+    notificationStore.errorNotification(t('notifications.errorCreatingItems'), errorMessage);
     closeModal();
   }
 };
@@ -219,7 +221,7 @@ const previewImportItems = async () => {
     .catch((error) => {
       isAwaitingResponse.value = false;
       console.log(error);
-      notificationStore.errorNotification('Error generating previews', error);
+      notificationStore.errorNotification(t('notifications.errorGeneratingPreviews'), error);
     });
 };
 

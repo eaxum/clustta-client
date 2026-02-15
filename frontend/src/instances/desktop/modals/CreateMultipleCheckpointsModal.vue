@@ -1,9 +1,9 @@
 <template>
   <div class="modal-container" v-stop-propagation>
-    <HeaderArea :title="'Create Checkpoints'" :icon="getAppIcon('layers-plus')" />
+    <HeaderArea :title="$t('modals.createCheckpoints')" :icon="getAppIcon('layers-plus')" />
     
     <div class="general-container">
-      <textarea v-model="message" class="desktop-input-long" type="text" placeholder="write a comment..." v-focus
+      <textarea v-model="message" class="desktop-input-long" type="text" :placeholder="$t('placeholders.writeAComment')" v-focus
         @keydown.enter="handleEnterKey" />
 
       <InputAlert :show="!isValueChanged" :message="validationMessage" />
@@ -11,10 +11,10 @@
       
     <div v-if="assetStore.loadingAssetStates" class="horizontal-flex input-alert loading-items-count">
       <ActionButton :isLoading="true" :icon="getAppIcon('loading')"  
-					v-tooltip="'Loading collection states'" />
+					v-tooltip="$t('modals.loadingCollectionStates')" />
 
       <div class="refresh-label">
-        refreshing modified items...
+        {{ $t('modals.refreshingModifiedItems') }}
       </div>
     </div>
 
@@ -22,9 +22,9 @@
       :class="{ 'modified-items-count-expanded' : showCheckpointItems}" 
       @click="toggleShowCheckpointItems()">
       
-      {{ currentModifiedDisplayPaths.length + currentUntrackedPaths.length }} item(s) modified
+      {{ $t('modals.itemsModified', { count: currentModifiedDisplayPaths.length + currentUntrackedPaths.length }) }}
 
-      <ActionButton :isInactive="true" :label="showCheckpointItems ? 'Hide' : 'Show'"
+      <ActionButton :isInactive="true" :label="showCheckpointItems ? $t('common.hide') : $t('common.show')"
         :icon="getAppIcon(showCheckpointItems ? 'eye-cancel' : 'eye')" />
     </div>
 
@@ -32,21 +32,21 @@
     <div v-if="showCheckpointItems" class="modified-items">
 
       <div v-for="assetState in currentModifiedDisplayPaths" class="modified-item" :key="assetState.task_path">
-        <ActionButton :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="'Modified Asset'" />
+        <ActionButton :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="$t('modals.modifiedAsset')" />
         <div class="modified-item-name">
           {{ assetState.display_path }}
         </div>
-        <span class="single-action-button" @click="removeItem(assetState.task_path)" v-tooltip="'Remove'">
+        <span class="single-action-button" @click="removeItem(assetState.task_path)" v-tooltip="$t('common.remove')">
           <img class="small-icons" src="/icons/close.svg">
         </span>
       </div>
 
       <div v-for="taskPath in currentUntrackedPaths" class="modified-item">
-        <ActionButton :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="'Untracked Asset'" />
+        <ActionButton :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="$t('modals.untrackedAsset')" />
         <div class="modified-item-name">
           {{ taskPath }}
         </div>
-        <span class="single-action-button" @click="removeItem(taskPath)" v-tooltip="'Remove'">
+        <span class="single-action-button" @click="removeItem(taskPath)" v-tooltip="$t('common.remove')">
           <img class="small-icons" src="/icons/close.svg">
         </span>
       </div>
@@ -54,8 +54,8 @@
     </div>
 
     <div class="pop-up-actions">
-      <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-      <GeneralButton :label="'Confirm'" :fullWidth="true" @click="createCheckPoints" :isActive="isValueChanged"
+      <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+      <GeneralButton :label="$t('common.confirm')" :fullWidth="true" @click="createCheckPoints" :isActive="isValueChanged"
         :loading="isAwaitingResponse" />
     </div>
     
@@ -68,6 +68,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { v4 as uuidv4 } from 'uuid';
 import emitter from '@/lib/mitt';
 
@@ -90,6 +91,7 @@ import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 import { useTrayStates } from '@/stores/TrayStates';
 
+const { t } = useI18n();
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const iconStore = useIconStore();
@@ -153,14 +155,14 @@ const isValueChanged = computed(() => {
 // Returns the validation message for the comment field.
 const validationMessage = computed(() => {
   if (message.value.trim().length <= 6) {
-    return 'Your message is too short.';
+    return t('notifications.messageTooShort');
   }
   const messageWords = message.value.toLowerCase().split(/\s+/);
   const foundForbidden = forbiddenComments.find(comment =>
     messageWords.includes(comment.toLowerCase())
   );
   if (foundForbidden) {
-    return `Please avoid using "${foundForbidden.toUpperCase()}" in your message. Be more descriptive.`;
+    return t('notifications.avoidForbiddenWord', { word: foundForbidden.toUpperCase() });
   }
   return '';
 });
@@ -188,7 +190,7 @@ const createCheckPoints = async () => {
     })
     .catch((error) => {
       console.error(error);
-      notificationStore.errorNotification('Failed to Create Checkpoints', error);
+      notificationStore.errorNotification(t('notifications.failedToCreateCheckpoints'), error);
       isAwaitingResponse.value = false;
     });
   const untracked = currentUntrackedPaths.value;
@@ -199,7 +201,7 @@ const createCheckPoints = async () => {
     }
   } catch (error) {
     isAwaitingResponse.value = false;
-    notificationStore.errorNotification('Error Creating Checkpoint', error);
+    notificationStore.errorNotification(t('notifications.errorCreatingCheckpoint'), error);
   }
   assetStore.modifiedAssets.untracked = assetStore.modifiedAssets.untracked.filter(
     (untrackedTaskPath) => !currentUntrackedPaths.value.includes(untrackedTaskPath)

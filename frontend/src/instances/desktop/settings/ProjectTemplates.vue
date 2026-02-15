@@ -10,18 +10,18 @@
                         :selectedItem="projectTemplateStore.activeProjectTemplateName" :placeHolder="'None'"
                         :fixedWidth="true" />
 
-                    <ActionButton :icon="getAppIcon('edit')" @click="editProjectTemplate" v-tooltip="'Edit Template'" />
+                    <ActionButton :icon="getAppIcon('edit')" @click="editProjectTemplate" v-tooltip="$t('settings.editTemplate')" />
 
                     <ActionButton :icon="getAppIcon('duplicate')" @click="duplicateProjectTemplate"
-                        v-tooltip="'Duplicate Template'" />
+                        v-tooltip="$t('settings.duplicateTemplate')" />
 
                     <ActionButton :icon="getAppIcon('trash')" @click="prepDeletePopUpModal"
-                        v-tooltip="'Delete Template'" />
+                        v-tooltip="$t('settings.deleteTemplate')" />
 
                 </div>
 
                 <ActionButton :icon="getAppIcon('plus-circle')" @click="addNewProjectTemplate"
-                    :label="'New Project Template'" v-tooltip="'New Template'" />
+                    :label="$t('settings.newProjectTemplate')" v-tooltip="$t('settings.newTemplate')" />
 
             </div>
 
@@ -32,23 +32,23 @@
 
             <div v-if="projectTemplateStore.projectTemplates.length" class="settings-component-body">
 
-                <ScrollList v-if="projectTemplateStore.taskTemplates.length && activeTemplateContext === 'Templates'"
+                <ScrollList v-if="projectTemplateStore.taskTemplates.length && activeTemplateContext === 'templates'"
                     :items="assetTemplates" :customIcons="true" :useItemId="true" :wrapItems="true"
                     :editItems="true" :editListItem="prepEditTemplate" :deleteItems="true"
                     :deleteListItem="deleteTaskTemplate" />
 
-                <ScrollList v-else-if="projectTemplateStore.assetTypes.length && activeTemplateContext === 'Asset types'"
+                <ScrollList v-else-if="projectTemplateStore.assetTypes.length && activeTemplateContext === 'assettypes'"
                     :items="assetTypes" :useIcons="true" :useItemId="true" :wrapItems="true"
                     :editItems="true" :editListItem="prepEditTaskType" :deleteItems="true"
                     :deleteListItem="deleteTaskType" />
 
                 <ScrollList
-                    v-else-if="projectTemplateStore.collectionTypes.length && activeTemplateContext === 'Collection types'"
+                    v-else-if="projectTemplateStore.collectionTypes.length && activeTemplateContext === 'collectiontypes'"
                     :items="collectionTypes" :useIcons="true" :useItemId="true" :wrapItems="true"
                     :editItems="true" :editListItem="prepEditEntityType" :deleteItems="true"
                     :deleteListItem="deleteEntityType" />
 
-                <IgnoreListBox v-else-if="activeTemplateContext === 'Ignore List'" :placeholder="'Add item'"
+                <IgnoreListBox v-else-if="activeTemplateContext === 'ignorelist'" :placeholder="$t('placeholders.addItem')"
                     :selectedItems="ignoreList" @itemAdded="addIgnoredItem" @itemRemoved="removeIgnoredItem" />
 
                 <PageState v-else :message="message()" :illustration="illustration()" />
@@ -57,13 +57,13 @@
 
             <div v-else class="settings-component-body">
 
-                <PageState  :message="'You have no project templates'" :illustration="illustration()" />
+                <PageState  :message="$t('settings.noProjectTemplates')" :illustration="illustration()" />
 
                 </div>
 
-            <div v-if="projectTemplateStore.projectTemplates.length && activeTemplateContext !== 'Ignore List'" class="settings-component-footer">
+            <div v-if="projectTemplateStore.projectTemplates.length && activeTemplateContext !== 'ignorelist'" class="settings-component-footer">
                 <ActionButton :icon="getAppIcon('plus-circle')" @click="contextAddFunction"
-                    :label="contextPropmtMessage()" v-tooltip="'New Template'" />
+                    :label="contextPropmtMessage()" v-tooltip="$t('settings.newTemplate')" />
             </div>
 
 
@@ -73,6 +73,7 @@
 
 <script setup>
 import { onMounted, computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 import { AssetService } from "@/services";
 
@@ -107,6 +108,7 @@ const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const settings = useSettingsStore();
 const projectTemplateStore = useProjectTemplateStore();
+const { t } = useI18n();
 
 
 const ignoreList = ref([])
@@ -157,7 +159,7 @@ const collectionTypes = computed(() => {
 })
 
 const templateContextNames = computed(() => {
-    return settings.templateContexts.map((context) => context.name)
+    return settings.templateContexts.map((context) => context.id)
 });
 
 const activeTemplateContext = ref(templateContextNames.value[0]);
@@ -176,8 +178,13 @@ const filterList = (selectedContext) => {
 
 // methods
 const message = () => {
-    const templateContext = activeTemplateContext.value.toLowerCase();
-    return `You have no ${templateContext}`;
+    const contextMessages = {
+        templates: t('settings.noTemplates'),
+        assettypes: t('settings.noAssetTypes'),
+        collectiontypes: t('settings.noCollectionTypes'),
+        ignorelist: t('settings.noIgnoreItems'),
+    };
+    return contextMessages[activeTemplateContext.value] || '';
 };
 
 const illustration = () => {
@@ -185,18 +192,21 @@ const illustration = () => {
 };
 
 const contextPropmtMessage = () => {
-    let templateContext = activeTemplateContext.value.toLowerCase();
-    templateContext = templateContext.slice(0, -1); // Removes the last character
-    return `Add a ${templateContext}`
+    const contextLabels = {
+        templates: t('settings.addATemplate'),
+        assettypes: t('settings.addAnAssetType'),
+        collectiontypes: t('settings.addACollectionType'),
+    };
+    return contextLabels[activeTemplateContext.value] || '';
 };
 
 const contextAddFunction = () => {
     let templateContext = activeTemplateContext.value;
-    if (templateContext === 'Templates') {
+    if (templateContext === 'templates') {
         addTaskTemplate();
-    } else if (templateContext === 'Asset types') {
+    } else if (templateContext === 'assettypes') {
         addTaskType();
-    } else if (templateContext === 'Collection types') {
+    } else if (templateContext === 'collectiontypes') {
         addEntityType();
     } else {
         return

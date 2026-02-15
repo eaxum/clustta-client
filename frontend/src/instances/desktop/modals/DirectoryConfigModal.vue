@@ -4,21 +4,21 @@
     <div class="general-container">
 
       <div class="input-section">
-        <span class="regular">Clustta local projects data</span>
+        <span class="regular">{{ $t('settings.clusttaLocalProjectsData') }}</span>
         <div class="horizontal-flex">
-          <input v-model="projectsDirectory" class="input-short" type="text" placeholder="Projects Directory"
+          <input v-model="projectsDirectory" class="input-short" type="text" :placeholder="$t('placeholders.projectsDirectory')"
             ref="projectsDirectoryInput" />
-          <span @click="selectDirectoryPath('personal')" class="single-action-button" v-tooltip="'Browse Path'"><img
+          <span @click="selectDirectoryPath('personal')" class="single-action-button" v-tooltip="$t('common.browsePath')"><img
               class="small-icons" :src="getAppIcon('explorer')"></span>
         </div>
       </div>
 
       <div class="input-section">
-        <span class="regular">Clustta shared projects data</span>
+        <span class="regular">{{ $t('settings.clusttaSharedProjectsData') }}</span>
         <div class="horizontal-flex">
           <input v-model="sharedProjectsDirectory" class="input-short" type="text"
-            placeholder="Shared Projects Directory" ref="sharedProjectsDirectoryInput"  />
-          <span @click="selectDirectoryPath('shared')" class="single-action-button" v-tooltip="'Browse Path'"><img
+            :placeholder="$t('placeholders.sharedProjectsDirectory')" ref="sharedProjectsDirectoryInput"  />
+          <span @click="selectDirectoryPath('shared')" class="single-action-button" v-tooltip="$t('common.browsePath')"><img
               class="small-icons" :src="getAppIcon('explorer')"></span>
         </div>
       </div>
@@ -26,8 +26,8 @@
       <div class="menu-divider"></div>
 
       <div class="pop-up-actions">
-        <button class="button default" @click="closeModal()" v-stop-propagation>Cancel</button>
-        <button class="button colored" @click="saveChanges()" v-stop-propagation>Save</button>
+        <button class="button default" @click="closeModal()" v-stop-propagation>{{ $t('common.cancel') }}</button>
+        <button class="button colored" @click="saveChanges()" v-stop-propagation>{{ $t('common.save') }}</button>
       </div>
     </div>
   </div>
@@ -36,6 +36,7 @@
 <script setup>
 // imports
 import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -51,6 +52,7 @@ import { useNotificationStore } from '@/stores/notifications';
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
+const { t } = useI18n();
 
 // refs
 const projectLocations = ref([]);
@@ -61,7 +63,7 @@ const sharedProjectsDirectoryInput = ref(null);
 
 // constants
 const showSearch = false;
-const title = 'Configure Directories';
+const title = t('modals.configureDirectories');
 
 // methods
 // Closes the modal.
@@ -79,16 +81,16 @@ const saveChanges = async () => {
   try {
     await SettingsService.SetProjectDirectory(projectsDirectory.value);
     await SettingsService.SetSharedProjectDirectory(sharedProjectsDirectory.value);
-    notificationStore.addNotification('Settings saved successfully', '', 'success', false);
+    notificationStore.addNotification(t('notifications.settingsSaved'), '', 'success', false);
     closeModal();
   } catch (error) {
-    notificationStore.errorNotification('Error saving settings', error);
+    notificationStore.errorNotification(t('notifications.errorSavingSettings'), error);
   }
 };
 
 // Opens a dialog to select a directory path.
 const selectDirectoryPath = async (context) => {
-  const result = await DialogService.SelectFolderDialog('Select Folder File');
+  const result = await DialogService.SelectFolderDialog(t('modals.selectFolder'));
   if (result) {
     const fileDir = result.replace(/\\/g, '/');
     if (context === 'shared') {
@@ -108,7 +110,7 @@ onMounted(async () => {
     sharedProjectsDirectory.value = await SettingsService.GetSharedProjectDirectory();
     projectLocations.value = await SettingsService.GetAllLocationPaths();
   } catch (error) {
-    notificationStore.addNotification('Error Loading Settings', error.message, 'error', false);
+    notificationStore.addNotification(t('notifications.errorLoadingSettings'), error.message, 'error', false);
   }
 });
 </script>

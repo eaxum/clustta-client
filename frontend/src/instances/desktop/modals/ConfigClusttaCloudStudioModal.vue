@@ -6,12 +6,12 @@
     <div v-if="!isStudioRegistered" class="general-container">
 
       <div class="studio-info-text">
-        <p>Get started instantly with our managed cloud service. No setup required, automatic updates and enterprise-grade security.</p>
+        <p>{{ $t('modals.clusttaCloudDesc') }}</p>
       </div>
 
       <FormInput
         v-model="studioName"
-        placeholder="Studio Name"
+        :placeholder="$t('placeholders.studioName')"
         :error="studioNameError"
         :loading="checkingStudioNameAvailability"
         :valid="!!studioName && !studioNameError && !checkingStudioNameAvailability"
@@ -21,7 +21,7 @@
 
       <FormInput
         v-model="deploymentCode"
-        placeholder="Code"
+        :placeholder="$t('placeholders.deploymentCode')"
         :error="deploymentCodeError"
         @input="deploymentCodeError = ''"
       />
@@ -32,9 +32,9 @@
           <NotificationBox 
             type="info"
             :icon="getAppIcon('info')"
-            iconAlt="Info"
-            title="Get Your Code"
-            message="Join our Discord community to receive your deployment code. Visit the #beta-studio-codes channel."
+            :iconAlt="$t('common.info')"
+            :title="$t('modals.getYourCode')"
+            :message="$t('modals.discordCodeMessage')"
             :clickable="true"
             @click="openDiscordLink"
           />
@@ -63,9 +63,9 @@
 
 
       <div class="pop-up-actions">
-        <GeneralButton :label="'Back'" :fullWidth="true" :buttonFunction="goBack" :colored="false" />
+        <GeneralButton :label="$t('common.back')" :fullWidth="true" :buttonFunction="goBack" :colored="false" />
         <GeneralButton 
-          :label="'Create'" 
+          :label="$t('common.create')" 
           :fullWidth="true" 
           @click="createStudio" 
           :isActive="isValueChanged"
@@ -77,8 +77,8 @@
     <div v-else class="general-container">
 
       <div class="success-message">
-        <p v-if="deploymentStatus?.status === 'completed'">Your Studio is created successfully!</p>
-        <p v-else>Hang tight, we're creating your studio... This wont take long.</p>
+        <p v-if="deploymentStatus?.status === 'completed'">{{ $t('modals.studioCreatedSuccess') }}</p>
+        <p v-else>{{ $t('modals.studioCreatingMessage') }}</p>
       </div>
 
       <!-- Deployment Progress -->
@@ -107,7 +107,7 @@
         
         
         <div v-if="deploymentStatus.status === 'failed'" class="deployment-error">
-          Error: {{ deploymentStatus.error }}
+          {{ $t('common.error') }}: {{ deploymentStatus.error }}
         </div>
       </div>      
       
@@ -122,7 +122,7 @@
       </div> -->
       
       <div class="pop-up-actions single-action">
-        <GeneralButton :label="'Finish'" :fullWidth="true" @click="launchStudio" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.finish')" :fullWidth="true" @click="launchStudio" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
     </div>
@@ -134,6 +134,7 @@
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
 import { Browser } from "@wailsio/runtime";
+import { useI18n } from 'vue-i18n';
 
 // components
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
@@ -148,6 +149,7 @@ import ProgressBar from '@/instances/common/components/ProgressBar.vue';
 import { DeploymentService, StudioService } from '@/services';
 
 // stores
+const { t } = useI18n();
 const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
@@ -163,7 +165,7 @@ import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 
 // constants
-const title = 'New ClusttaCloud Studio';
+const title = t('modals.newClusttaCloudStudio');
 
 // Dummy deployment status for UI testing
 const dummyStatuses = [
@@ -331,7 +333,7 @@ const checkStudioName = async () => {
   }
   
   if (restrictedNames.value.includes(studioName.value.toLowerCase())) {
-    studioNameError.value = 'This studio name is reserved';
+    studioNameError.value = t('notifications.studioNameReserved');
     isStudioNameTaken.value = true;
     return;
   }
@@ -342,7 +344,7 @@ const checkStudioName = async () => {
     const nameExists = await StudioService.CheckStudioNameExists(studioName.value.toLowerCase());
     console.log(nameExists);
     if (nameExists) {
-      studioNameError.value = 'Studio name is already taken';
+      studioNameError.value = t('notifications.studioNameTaken');
       isStudioNameTaken.value = true;
     } else {
       studioNameError.value = '';
@@ -372,8 +374,8 @@ const createStudio = async () => {
     deploymentCode.value = '';
     
     if (!isValid) {
-      deploymentCodeError.value = message || 'The deployment code you entered is not valid.';
-      notificationStore.errorNotification('Invalid Deployment Code', deploymentCodeError.value);
+      deploymentCodeError.value = message || t('notifications.invalidDeploymentCode');
+      notificationStore.errorNotification(t('notifications.invalidDeploymentCode'), deploymentCodeError.value);
       isAwaitingResponse.value = false;
       return;
     }
@@ -399,7 +401,7 @@ const createStudio = async () => {
 
   } catch (error) {
     console.error(error);
-    notificationStore.errorNotification('Error creating studio', error);
+    notificationStore.errorNotification(t('notifications.errorCreatingStudio'), error);
   } finally {
     isAwaitingResponse.value = false;
   }
@@ -451,15 +453,15 @@ const monitorDeployment = async () => {
       
       if (status.status === 'completed') {
         createdStudio.value.url = `http://${status.public_ip}`;
-        notificationStore.addNotification('Deployment Complete', 'Your Azure VM is ready!');
+        notificationStore.addNotification(t('notifications.deploymentComplete'), t('notifications.vmReady'));
       } else if (status.status === 'failed') {
-        notificationStore.errorNotification('Deployment Failed', status.error || 'Unknown error');
+        notificationStore.errorNotification(t('notifications.deploymentFailed'), status.error || t('notifications.unknownError'));
       } else {
         setTimeout(checkDeployment, 5000);
       }
     } catch (error) {
       console.error('Error monitoring deployment:', error);
-      notificationStore.errorNotification('Monitoring Error', 'Failed to check deployment status');
+      notificationStore.errorNotification(t('notifications.monitoringError'), t('notifications.failedToCheckDeploymentStatus'));
     }
   };
   

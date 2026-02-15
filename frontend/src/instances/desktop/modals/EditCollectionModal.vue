@@ -13,7 +13,7 @@
         </span>
 
         <div class="input-section">
-          <input v-model="entityName" class="input-short" type="text" placeholder="Collection Name" v-focus />
+          <input v-model="entityName" class="input-short" type="text" :placeholder="$t('placeholders.collectionName')" v-focus />
         </div>
 
         <div class="input-section">
@@ -21,20 +21,20 @@
             <div class="dropdown-wrapper">
               <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="changeEntityType" />
             </div>
-            <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="'Add New Collection Type'">
+            <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addNewCollectionType')">
               <img class="small-icons" :src="getAppIcon('plus-circle')">
             </span>
           </div>
         </div>
 
         <div class="horizontal-flex is-library-prompt">
-          <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="'Library'" />
+          <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="$t('common.library')" />
           <ToggleSwitch v-tooltip="isLibrary? 'Unmark as library' : 'Mark as a library'" @click="toggleIsLibrary" :switchValueProp="isLibrary" />
         </div>
 
         <div class="pop-up-actions">
-          <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-          <GeneralButton :label="'Update'" :fullWidth="true" @click="updateEntity()" :isActive="isValueChanged" :loading="isAwaitingResponse" />
+          <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+          <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateEntity()" :isActive="isValueChanged" :loading="isAwaitingResponse" />
         </div>
       </template>
 
@@ -50,6 +50,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
@@ -72,6 +73,7 @@ import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 
+const { t } = useI18n();
 const collectionStore = useCollectionStore();
 const iconStore = useIconStore();
 const menu = useMenu();
@@ -102,9 +104,9 @@ const typeFormRef = ref(null);
 // constants
 const title = computed(() => {
   if (displayTypeCreator.value) {
-    return 'Add Collection Type';
+    return t('modals.addCollectionTypeTitle');
   }
-  return 'Collection Details';
+  return t('modals.collectionDetails');
 });
 
 // computed

@@ -4,13 +4,13 @@
 
     <div v-if="!isStudioCreated" class="general-container">
       <div class="studio-info-text">
-        <p>Host and manage your own Clustta studio instance with full control over data, security, and customization.</p>
+        <p>{{ $t('modals.selfManagedDesc') }}</p>
       </div>
-      <FormInput v-model="studioName" placeholder="Studio Name" />
-      <FormInput v-model="studioUrl" placeholder="Studio URL" />
+      <FormInput v-model="studioName" :placeholder="$t('placeholders.studioName')" />
+      <FormInput v-model="studioUrl" :placeholder="$t('placeholders.studioUrl')" />
       <div class="pop-up-actions">
-        <GeneralButton :label="'Back'" :fullWidth="true" :buttonFunction="goBack" :colored="false" />
-        <GeneralButton :label="'Create'" :fullWidth="true" @click="createStudio" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.back')" :fullWidth="true" :buttonFunction="goBack" :colored="false" />
+        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createStudio" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
     </div>
@@ -18,24 +18,24 @@
     <div v-else class="general-container">
 
       <div class="success-message">
-        <div>Congratulations, your studio <strong>{{ createdStudio?.name }}</strong> has been created.</div>
+        <div>{{ $t('modals.studioCreatedCongrats', { name: createdStudio?.name }) }}</div>
       </div>
 
       <div class="menu-divider"></div>
 
       <div class="secret-key-container">
         <div class="secret-key-header">
-          <div class="studio-info-label">Studio Secret Key</div>
+          <div class="studio-info-label">{{ $t('modals.studioSecretKeyLabel') }}</div>
           <div class="secret-key-actions">
             <ActionButton 
               :icon="getAppIcon(showSecretKey ? 'eye-cancel' : 'eye')" 
               :buttonFunction="toggleSecretKey"
-              v-tooltip="showSecretKey ? 'Hide' : 'Show'"
+              v-tooltip="showSecretKey ? $t('common.hide') : $t('common.show')"
             />
             <ActionButton 
               :icon="getAppIcon('copy')" 
               :buttonFunction="copySecretKey"
-              :label="secretKeyCopied ? 'Copied!' : 'Copy'"
+              :label="secretKeyCopied ? $t('common.copied') : $t('common.copy')"
               :showLabel="true"
             />
           </div>
@@ -56,7 +56,7 @@
             disabled
           />
         </div>
-        <div class="warning-text">Copy and store your secret key somewhere safe - it will never be displayed again once you close this modal.</div>
+        <div class="warning-text">{{ $t('modals.secretKeyWarning') }}</div>
       </div>
 
       
@@ -65,17 +65,17 @@
 
       <div class="env-file-container">
         <div class="env-file-header">
-          <div class="studio-info-label">Environment File</div>
+          <div class="studio-info-label">{{ $t('modals.environmentFileLabel') }}</div>
           <div class="env-file-actions">
             <ActionButton 
               :icon="getAppIcon(showEnvFile ? 'eye-cancel' : 'eye')" 
               :buttonFunction="toggleEnvFile"
-              v-tooltip="showEnvFile ? 'Hide' : 'Show'"
+              v-tooltip="showEnvFile ? $t('common.hide') : $t('common.show')"
             />
             <ActionButton 
               :icon="getAppIcon('copy')" 
               :buttonFunction="copyEnvFile"
-              :label="envCopied ? 'Copied!' : 'Copy'"
+              :label="envCopied ? $t('common.copied') : $t('common.copy')"
               :showLabel="true"
             />
           </div>
@@ -91,14 +91,14 @@
           ></textarea>
         </div>
 
-        <div class="env-usage-text">Copy the data above and paste it in your '.env' file to complete the setup on your server.</div>
+        <div class="env-usage-text">{{ $t('modals.envFileUsageText') }}</div>
       </div>
 
       
 
       
       <div class="pop-up-actions single-action">
-        <GeneralButton :label="'Finish'" :fullWidth="true" @click="launchStudio" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.finish')" :fullWidth="true" @click="launchStudio" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
     </div>
@@ -109,6 +109,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -120,6 +121,7 @@ import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import { StudioService } from '@/services';
 
 // stores
+const { t } = useI18n();
 const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
@@ -135,7 +137,7 @@ import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 
 // constants
-const title = 'New Self Managed Studio';
+const title = t('modals.newSelfManagedStudio');
 
 // refs
 const createdStudio = ref(null);
@@ -194,7 +196,7 @@ const copyEnvFile = async () => {
     }, 2000);
   } catch (error) {
     console.error('Failed to copy:', error);
-    notificationStore.errorNotification('Failed to copy to clipboard', error);
+    notificationStore.errorNotification(t('notifications.failedToCopyToClipboard'), error);
   }
 };
 
@@ -210,7 +212,7 @@ const copySecretKey = async () => {
     }
   } catch (error) {
     console.error('Failed to copy:', error);
-    notificationStore.errorNotification('Failed to copy to clipboard', error);
+    notificationStore.errorNotification(t('notifications.failedToCopyToClipboard'), error);
   }
 };
 
@@ -224,7 +226,7 @@ const createStudio = async () => {
   }).catch((error) => {
     isAwaitingResponse.value = false;
     console.log(error);
-    notificationStore.errorNotification('Error creating project', error);
+    notificationStore.errorNotification(t('notifications.errorCreatingStudio'), error);
   });
 };
 

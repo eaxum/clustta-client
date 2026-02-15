@@ -9,14 +9,14 @@
 
     <div class="general-container">
       <div class="input-section">
-        <input v-model="taskTypeName" class="input-short" type="text" placeholder="Task type Name" v-focus
+        <input v-model="taskTypeName" class="input-short" type="text" :placeholder="$t('placeholders.taskTypeName')" v-focus
           @keydown.enter="handleEnterKey" />
       </div>
 
       <IconGrid v-if="displayIconSelector" @iconSelected="setIcon" :icons="icons" />
       <div class="pop-up-actions">
-        <GeneralButton :label="'Cancel'" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Update'" :fullWidth="true" @click="updateTaskType" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateTaskType" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -27,6 +27,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import iconData from "@/data/iconData.json";
 
 // components
@@ -98,13 +99,13 @@ const setIcon = (icon) => {
 const updateTaskType = () => {
   AssetService.UpdateAssetType(projectStore.activeProject.uri, assetStore.selectedAssetType.id, taskTypeName.value, taskTypeIcon.value)
     .then((response) => {
-      notificationStore.addNotification("Task Type Updated", "", "success");
+      notificationStore.addNotification(t('notifications.taskTypeUpdated'), "", "success");
       const index = assetStore.assetTypes.findIndex(taskType => taskType.id === assetStore.selectedAssetType.id);
       assetStore.assetTypes[index] = response;
       closeModal();
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error Updating Task Type", error);
+      notificationStore.errorNotification(t('notifications.errorUpdatingTaskType'), error);
     });
 };
 

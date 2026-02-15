@@ -2,7 +2,7 @@
   <div class="settings-component-root">
     <div class="settings-component-container">
 
-      <ActionBar :itemType="'Add Asset type'" :addFunction="addTaskType" />
+      <ActionBar :itemType="$t('settings.addAssetType')" :addFunction="addTaskType" />
 
       <ScrollList v-if="projectTaskTypes.length" :items="projectTaskTypes" :useIcons="true" :useItemId="true"
         :wrapItems="true" :editItems="true" :editListItem="prepEditTaskType" :deleteItems="true"
@@ -26,6 +26,7 @@ const getAppIcon = (iconName) => {
 
 // imports
 import { onMounted, computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // services
@@ -48,6 +49,7 @@ const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
+const { t } = useI18n();
 
 const projectTaskTypes = computed(() => {
   
@@ -76,7 +78,7 @@ return allTypes
 
 // methods
 const message = () => {
-  return 'You have no task types';
+  return t('settings.noAssetTypes');
 };
 
 const illustration = () => {
@@ -84,7 +86,7 @@ const illustration = () => {
 };
 
 const secondaryActionMessage = () => {
-  return 'Add Task type'
+  return t('settings.addAssetType')
 };
 
 const secondaryActionFunction = () => {
@@ -109,12 +111,12 @@ const replaceSymbols = (name) => {
 const deleteTaskType = async (taskTypeId) => {
   AssetService.DeleteAssetType(projectStore.activeProject.uri, taskTypeId)
     .then((response) => {
-      notificationStore.addNotification("Task Type Deleted", "", "success");
+      notificationStore.addNotification(t('notifications.assetTypeDeleted'), "", "success");
       const index = assetStore.assetTypes.findIndex(taskType => taskType.id === taskTypeId);
       assetStore.assetTypes.splice(index, 1);
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error Deleting Task Type", error);
+      notificationStore.errorNotification(t('notifications.errorDeletingAssetType'), error);
     });
 };
 
