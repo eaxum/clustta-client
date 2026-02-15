@@ -20,10 +20,10 @@
 
       <div class="console-input-container">
         <div class="console-input-wrapper">
-          <textarea ref="textareaRef" v-model="currentMessage" class="console-input" type="text" placeholder="[Coming Soon]"
+          <textarea ref="textareaRef" v-model="currentMessage" class="console-input" type="text" :placeholder="$t('panes.comingSoon')"
             spellcheck="false" @input="handleInput" @keydown.enter="sendMessage" />
           <ActionButton :icon="getAppIcon('send')" :showLabel="false" :isDisabled="!currentMessage.trim()"
-            v-tooltip="'Send message'" :buttonFunction="sendMessage" />
+            v-tooltip="$t('panes.sendMessage')" :buttonFunction="sendMessage" />
         </div>
 
         <div class="console-tabs-container">
@@ -38,6 +38,7 @@
 <script setup>
 // imports
 import { computed, nextTick, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -54,10 +55,12 @@ const collectionStore = useCollectionStore();
 const iconStore = useIconStore();
 const stage = useStageStore();
 
+const { t } = useI18n();
+
 // refs
 const consoleTabs = ref([
-  { name: "Agent", icon: "brain" },
-  { name: "Bash", icon: "console" }
+  { name: "Agent", nameKey: "panes.agent", icon: "brain" },
+  { name: "Bash", nameKey: "panes.bash", icon: "console" }
 ]);
 const currentMessage = ref('');
 const messages = ref([]);
@@ -67,13 +70,13 @@ const textareaRef = ref(null);
 
 // computed properties
 const emptyStateSubtext = computed(() => {
-  if (selectedConsoleTab.value === 'Bash') return `Execute terminal commands on this ${itemType.value}`;
-  return `Perform an operation on this ${itemType.value} or get help with Clustta`;
+  if (selectedConsoleTab.value === 'Bash') return t('panes.executeTerminalCommands', { itemType: itemType.value });
+  return t('panes.performOperation', { itemType: itemType.value });
 });
 
 const emptyStateTitle = computed(() => {
-  if (selectedConsoleTab.value === 'Bash') return 'Terminal ready...';
-  return 'Start a conversation...';
+  if (selectedConsoleTab.value === 'Bash') return t('panes.terminalReady');
+  return t('panes.startConversation');
 });
 
 const itemType = computed(() => {
@@ -119,7 +122,7 @@ const sendMessage = () => {
   const userMessage = {
     id: messages.value.length + 1,
     type: 'user',
-    sender: 'You',
+    sender: t('panes.you'),
     content: currentMessage.value.trim(),
     timestamp: Date.now()
   };
@@ -132,7 +135,7 @@ const sendMessage = () => {
     const aiResponse = {
       id: messages.value.length + 1,
       type: 'assistant',
-      sender: 'Clustta',
+      sender: t('panes.clustta'),
       content: `I understand you want to "${messageContent}". Let me help you with that ...`,
       timestamp: Date.now()
     };

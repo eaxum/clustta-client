@@ -2,14 +2,14 @@
   <div class="general-pane-root">
     <div v-if="hasChanges" class="changelog-scroll-container">
       <div class="changelog-actions">
-        <ActionButton :icon="getAppIcon('revert')" label="Discard All" :showLabel="true" :buttonFunction="prepDiscardAll" :useDanger="true" :useBackground="true" :isDisabled="isLoading" />
-        <ActionButton :icon="getAppIcon(getCloudIcon)" label="Sync Now" :showLabel="true" :buttonFunction="syncNow" :useBackground="true" :isDisabled="isLoading" />
+        <ActionButton :icon="getAppIcon('revert')" :label="$t('panes.discardAll')" :showLabel="true" :buttonFunction="prepDiscardAll" :useDanger="true" :useBackground="true" :isDisabled="isLoading" />
+        <ActionButton :icon="getAppIcon(getCloudIcon)" :label="$t('panes.syncNow')" :showLabel="true" :buttonFunction="syncNow" :useBackground="true" :isDisabled="isLoading" />
       </div>
 
       <div v-if="summary.tasks.length" class="changelog-group">
         <div class="changelog-group-header" @click="toggleGroup('tasks')">
           <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.tasks }" />
-          <span class="changelog-group-title">Tasks</span>
+          <span class="changelog-group-title">{{ $t('panes.tasks') }}</span>
           <span class="changelog-group-count">{{ summary.tasks.length }}</span>
           <div class="menu-divider"></div>
         </div>
@@ -22,7 +22,7 @@
       <div v-if="summary.entities.length" class="changelog-group">
         <div class="changelog-group-header" @click="toggleGroup('entities')">
           <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.entities }" />
-          <span class="changelog-group-title">Collections</span>
+          <span class="changelog-group-title">{{ $t('panes.collections') }}</span>
           <span class="changelog-group-count">{{ summary.entities.length }}</span>
           <div class="menu-divider"></div>
         </div>
@@ -35,7 +35,7 @@
       <div v-if="summary.other.length" class="changelog-group">
         <div class="changelog-group-header" @click="toggleGroup('other')">
           <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.other }" />
-          <span class="changelog-group-title">Other</span>
+          <span class="changelog-group-title">{{ $t('panes.other') }}</span>
           <span class="changelog-group-count">{{ summary.other.length }}</span>
           <div class="menu-divider"></div>
         </div>
@@ -53,6 +53,7 @@
 <script setup>
 // imports
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { syncData } from '@/lib/sync';
 
@@ -87,13 +88,15 @@ const stage = useStageStore();
 const studioStore = useStudioStore();
 const trayStates = useTrayStates();
 
+const { t } = useI18n();
+
 // refs
 const expandedGroups = reactive({ tasks: true, entities: true, other: false });
 const isLoading = ref(false);
 const summary = ref({ tasks: [], entities: [], other: [], total_count: 0 });
 
 // computed properties
-const emptyMessage = computed(() => isLoading.value ? 'Loading changes...' : 'No pending changes');
+const emptyMessage = computed(() => isLoading.value ? t('panes.loadingChanges') : t('panes.noPendingChanges'));
 
 const getCloudIcon = computed(() => {
   if (!studioStore.appOnline || projectStore.getActiveProject?.is_offline) return 'cloud-cancel';
@@ -112,13 +115,13 @@ const discardAll = async () => {
   try {
     await SyncService.DiscardAllChanges(projectStore.activeProject.uri, projectStore.getActiveProjectUrl);
     projectStore.activeProject.is_unsynced = false;
-    notificationStore.addNotification('All changes discarded', '', 'success', false);
+    notificationStore.addNotification(t('notifications.allChangesDiscarded'), '', 'success', false);
     emitter.emit('refresh-browser');
     modals.disableAllModals();
     await loadChanges();
   } catch (error) {
     console.error(error);
-    notificationStore.errorNotification('Error discarding changes', error);
+    notificationStore.errorNotification(t('notifications.errorDiscardingChanges'), error);
   }
   isLoading.value = false;
 };
@@ -128,12 +131,12 @@ const discardItem = async (itemId, itemType) => {
   isLoading.value = true;
   try {
     await SyncService.DiscardChanges(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [itemId], itemType);
-    notificationStore.addNotification('Change discarded', '', 'success', false);
+    notificationStore.addNotification(t('notifications.changeDiscarded'), '', 'success', false);
     emitter.emit('refresh-browser');
     await loadChanges();
   } catch (error) {
     console.error(error);
-    notificationStore.errorNotification('Error discarding change', error);
+    notificationStore.errorNotification(t('notifications.errorDiscardingChange'), error);
   }
   isLoading.value = false;
 };
@@ -162,7 +165,7 @@ const findItem = async (itemId, itemType) => {
     }
   } catch (error) {
     console.error(error);
-    notificationStore.errorNotification('Error navigating to item', error);
+    notificationStore.errorNotification(t('notifications.errorNavigatingToItem'), error);
   }
 };
 
@@ -185,8 +188,8 @@ const loadChanges = async () => {
 // Shows the discard all confirmation modal.
 const prepDiscardAll = () => {
   trayStates.popUpModalIcon = 'revert';
-  trayStates.popUpModalTitle = 'Discard All Changes';
-  trayStates.popUpModalMessage = 'All unsynced changes will be reverted to the remote version. This cannot be undone. Continue?';
+  trayStates.popUpModalTitle = t('panes.discardAllChanges');
+  trayStates.popUpModalMessage = t('confirmations.discardAllChanges');
   trayStates.popUpModalFunction = discardAll;
   modals.setModalVisibility('popUpModal', true);
 };
@@ -230,6 +233,7 @@ onUnmounted(() => {
 .changelog-group-count {
   font-size: 12px;
   opacity: .5;
+  white-space: nowrap;
 }
 
 .changelog-group-header {
@@ -256,6 +260,7 @@ onUnmounted(() => {
 .changelog-group-title {
   font-size: 13px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .chevron-expanded {

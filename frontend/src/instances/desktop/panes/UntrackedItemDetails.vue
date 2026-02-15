@@ -9,7 +9,7 @@
         <div class="action-bar">
 
           <div class="action-bar-section">
-            <ActionButton @click="deleteItem" :icon="getAppIcon('trash')" :label="'Delete item'" />
+            <ActionButton @click="deleteItem" :icon="getAppIcon('trash')" :label="$t('panes.deleteItem')" />
           </div>
         </div>
 
@@ -17,7 +17,7 @@
 
           <div v-if="projectStore.selectedUntrackedItem.type === 'untracked_task'" class="pane-parameter-detail">
             <div class="simple-text-key">
-              Extension
+              {{ $t('panes.extension') }}
             </div>
             <div class="simple-text-value">
               {{ projectStore.selectedUntrackedItem.extension }}
@@ -26,7 +26,7 @@
 
           <div v-if="projectStore.selectedUntrackedItem.type === 'untracked_task'" class="pane-parameter-detail">
             <div class="simple-text-key">
-            Size 
+            {{ $t('panes.size') }}
             </div>
             <div class="simple-text-value">
               {{  itemSize }}
@@ -35,7 +35,7 @@
 
           <div v-if="projectStore.selectedUntrackedItem.type === 'untracked_entity'" class="pane-parameter-detail">
             <div class="simple-text-key">
-            Size 
+            {{ $t('panes.size') }}
             </div>
             <div class="simple-text-value">
               {{  collectionSize }}
@@ -56,6 +56,7 @@ import { FSService, AssetService, CollectionService } from "@/services";
 
 // imports
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
@@ -92,6 +93,8 @@ const projectStore = useProjectStore();
 const dndStore = useDndStore();
 const panes = usePaneStore();
 const assetStore = useAssetStore();
+
+const { t } = useI18n();
 
 // vars
 const debugging = ref(true);
@@ -146,8 +149,8 @@ const deleteUntrackedFile = () => {
 
 const prepDeleteUntrackedItemPopUpModal = () => {
   const untrackedItemType = untrackedItem.value?.type;
-  trayStates.popUpModalTitle = "Delete";
-  trayStates.popUpModalMessage = "Are you sure you want to delete this item? This will permanently remove this item. Please confirm if you wish to proceed.";
+  trayStates.popUpModalTitle = t('common.delete');
+  trayStates.popUpModalMessage = t('confirmations.deleteItemPermanently');
   trayStates.popUpModalIcon = 'trash';
   trayStates.popUpModalFunction = untrackedItemType === 'untracked_entity' ? deleteUntrackedFolder : deleteUntrackedFile;
   modals.setModalVisibility('popUpModal', true);

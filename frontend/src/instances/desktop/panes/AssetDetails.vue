@@ -14,21 +14,21 @@
         <div class="action-bar" v-if="userStore.canDo('update_task')">
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('file-plus')" :label="'Type'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('file-plus')" :label="$t('panes.type')" />
             <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="assetStore.selectedAsset.task_type_name"
               :onSelect="changeTaskType" :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('clock')" :label="'Status'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('clock')" :label="$t('panes.status')" />
             <DropDownBox :items="projectStatuses" :selectedItem="assetStore.selectedAsset.status_short_name"
               :onSelect="setStatus" :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('shapes')" :label="'Task'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('shapes')" :label="$t('panes.task')" />
 
-            <ToggleSwitch v-tooltip="!assetStore.selectedAsset.is_resource ? 'Unset as Task' : 'Set as Task'"
+            <ToggleSwitch v-tooltip="!assetStore.selectedAsset.is_resource ? $t('panes.unsetAsTask') : $t('panes.setAsTask')"
               @click="toggleIsTask" :switchValueProp="!assetStore.selectedAsset.is_resource" />
           </div>
 
@@ -39,7 +39,7 @@
         <div class="task-details">
           <div class="pane-parameter-detail">
             <div class="simple-text-key">
-              Parent
+              {{ $t('panes.parent') }}
             </div>
             <div class="simple-text-value">
               {{ assetStore.selectedAsset.entity_name }}
@@ -48,7 +48,7 @@
 
           <div v-if="!assetStore.selectedAsset.is_link" class="pane-parameter-detail">
             <div class="simple-text-key">
-              Extension
+              {{ $t('panes.extension') }}
             </div>
             <div class="simple-text-value">
               {{ assetStore.selectedAsset.extension }}
@@ -57,9 +57,9 @@
 
           <div class="pane-parameter-detail">
             <div class="simple-text-key">
-              Assigned to
+              {{ $t('panes.assignedTo') }}
             </div>
-            <ActionButton v-if="assetStore.selectedAsset.assignee_id" :iconAfter="true" :label="userFullName" v-tooltip="'See all tasks'" :buttonFunction="showAllTasks"/>
+            <ActionButton v-if="assetStore.selectedAsset.assignee_id" :iconAfter="true" :label="userFullName" v-tooltip="$t('panes.seeAllTasks')" :buttonFunction="showAllTasks"/>
             <div v-else class="simple-text-value">
               {{ userFullName }}
             </div>
@@ -67,17 +67,17 @@
 
           <div v-if="!assetStore.selectedAsset.is_link" class="pane-parameter-detail">
             <div class="simple-text-key">
-              Checkpoint Comment
+              {{ $t('panes.checkpointComment') }}
             </div>
             <div class="simple-text-value">
               {{ lastCheckpoint.comment }}
             </div>
           </div>
 
-          <div v-if="lastCheckpoint?.comment !== 'No checkpoints' && !assetStore.selectedAsset.is_link"
+          <div v-if="lastCheckpoint?.comment !== $t('panes.noCheckpoints') && !assetStore.selectedAsset.is_link"
             class="pane-parameter-detail">
             <div class="simple-text-key">
-              Checkpoint Date
+              {{ $t('panes.checkpointDate') }}
             </div>
             <div class="simple-text-value">
               {{ formatMtime(lastCheckpoint.created_at) }}
@@ -87,20 +87,20 @@
 
           <div v-if="!assetStore.selectedAsset.is_link" class="pane-parameter-detail">
             <div class="simple-text-key">
-              Location
+              {{ $t('panes.location') }}
             </div>
               <div class="simple-text-value">
                 {{ assetStore.selectedAsset.file_path }}
               </div>
               <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
-                <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy Path'" @click="copyTaskPath('task')"/>
-                <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="'Reveal in Explorer'" :buttonFunction="revealInExplorer"/>
+                <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('common.copyPath')" @click="copyTaskPath('task')"/>
+                <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="$t('common.revealInExplorer')" :buttonFunction="revealInExplorer"/>
               </div>
           </div>
 
           <div v-if="!assetStore.selectedAsset.is_link" class="pane-parameter-detail">
             <div class="simple-text-key">
-              File State
+              {{ $t('panes.fileState') }}
             </div>
             <div class="simple-text-value">
               {{ assetStore.selectedAsset.file_status }}
@@ -109,7 +109,7 @@
 
           <div v-if="!assetStore.selectedAsset.is_link" class="pane-parameter-detail">
           <div class="simple-text-key">
-          Size 
+          {{ $t('panes.size') }}
           </div>
           <div class="simple-text-value">
             {{  assetSize }}
@@ -118,7 +118,7 @@
 
           <div v-if="assetStore.selectedAsset.tags.length" class="pane-parameter-detail">
             <div class="simple-text-key">
-              Tags
+              {{ $t('panes.tags') }}
             </div>
           </div>
         </div>
@@ -139,6 +139,7 @@
 <script setup>
 // imports
 import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { FSService } from '@/services';
 import { Clipboard } from '@wailsio/runtime';
 import utils from '@/services/utils';
@@ -178,6 +179,7 @@ const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const commonStore = useCommonStore();
 const platformStore = usePlatformStore();
+const { t } = useI18n();
 
 // refs
 const numberOfSelectedTasks = ref(0);
@@ -203,7 +205,7 @@ const singleTask = computed(() => {
 
 const selectedTaskName = computed(() => {
   if (assetStore.selectedAsset) {
-    return singleTask.value ? assetStore.selectedAsset.name : 'Multiple tasks selected'
+    return singleTask.value ? assetStore.selectedAsset.name : t('panes.multipleTasksSelected')
   }
 });
 
@@ -239,7 +241,7 @@ const copyTaskPath = async (pathType) => {
     taskPath = outputPath;
   }
   await Clipboard.SetText(taskPath);
-  const message = 'Path copied to clipboard';
+  const message = t('notifications.pathCopied');
   notificationStore.addNotification(message, "", "success");
 };
 
@@ -273,7 +275,7 @@ const revealInExplorer = async () => {
       emitter.emit('get-project-data')
     })
     .catch((error) => {
-      notificationStore.errorNotification("Error downloading Task", error);
+      notificationStore.errorNotification(t('notifications.errorDownloadingTask'), error);
       console.error(error);
     });
 
@@ -366,9 +368,9 @@ const userFullName = computed(() => {
     let fullname = `${user.first_name} ${user.last_name}`;
     return fullname
   } else if(!assigneeId) {
-    return 'Nobody'
+    return t('panes.nobody')
   } else {
-    return 'Removed User'
+    return t('notifications.removedUser')
   }
 });
 
@@ -383,7 +385,7 @@ const lastCheckpoint = computed(() => {
     };
   }
   
-  return { comment: 'No checkpoints', created_at: task.created_at };
+  return { comment: t('panes.noCheckpoints'), created_at: task.created_at };
 });
 
 const loadLatestCheckpoint = async () => {
@@ -434,7 +436,7 @@ const getAssetSize = async() => {
 
 const getProjectData = async () => {
   if (!await FSService.Exists(assetPath.value)){
-    assetSize.value = 'Not on disk'
+    assetSize.value = t('panes.notOnDisk')
     return
   }
   getAssetSize();

@@ -15,20 +15,20 @@
         <div class="action-bar" v-if="userStore.canDo('update_entity')">
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="'Collection type'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="$t('panes.collectionType')" />
             <DropDownBox :items="collectionStore.getCollectionTypesNames"
               :selectedItem="collectionStore.selectedCollection.entity_type_name" :onSelect="changeEntityType"
               :fixedWidth="true" />
           </div>
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="'Library'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="$t('panes.library')" />
 
-            <ToggleSwitch v-tooltip="collectionStore.selectedCollection.is_library ? 'Unmark as library' : 'Mark as a library'"
+            <ToggleSwitch v-tooltip="collectionStore.selectedCollection.is_library ? $t('panes.unmarkAsLibrary') : $t('panes.markAsLibrary')"
               @click="changeIsLibrary" :switchValueProp="collectionStore.selectedCollection.is_library" />
           </div>
 
           <div class="vertical-flex assignees-search">
-            <ActionButton :isInactive="true" :icon="getAppIcon('two-persons')" :label="'Assignees'" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('two-persons')" :label="$t('panes.assignees')" />
             <CollaboratorSuggestions :displayEmail="false" :placeholder="placeholder" :allItems="projectUsers"
               @tagAdded="addUser" @tagRemoved="removeUser" />
           </div>
@@ -38,7 +38,7 @@
               :avatarColor="collaborator.avatarColor">
               <template #actions>
                 <span v-stop-propagation class="single-action-button" @click="removeUser(collaborator)"
-                  v-tooltip="'Unassign'">
+                  v-tooltip="$t('common.unassign')">
                   <img class="small-icons" src="/icons/remove_collaborator.svg">
                 </span>
               </template>
@@ -51,7 +51,7 @@
 
         <div class="pane-parameter-detail">
           <div class="simple-text-key">
-            Parent
+            {{ $t('panes.parent') }}
           </div>
           <div class="simple-text-value">
             {{ parentName }}
@@ -60,20 +60,20 @@
 
         <div class="pane-parameter-detail">
           <div class="simple-text-key">
-            Location
+            {{ $t('panes.location') }}
           </div>
             <div class="simple-text-value" >
               {{ collectionStore.selectedCollection.file_path }}
             </div>
             <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
-              <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy Path'" @click="copyEntityPath('entity')"/>
-              <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="'Reveal in Explorer'" :buttonFunction="revealInExplorer"/>
+              <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('common.copyPath')" @click="copyEntityPath('entity')"/>
+              <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="$t('common.revealInExplorer')" :buttonFunction="revealInExplorer"/>
             </div>
         </div>
 
         <div class="pane-parameter-detail">
           <div class="simple-text-key">
-          Assets
+          {{ $t('panes.assets') }}
           </div>
           <div class="simple-text-value">
            {{  assetsOnDiskCount }}
@@ -82,7 +82,7 @@
 
         <div class="pane-parameter-detail">
           <div class="simple-text-key">
-          Collections
+          {{ $t('panes.collections') }}
           </div>
           <div class="simple-text-value">
            {{  collectionsOnDiskCount }}
@@ -91,7 +91,7 @@
 
         <div class="pane-parameter-detail">
           <div class="simple-text-key">
-          Size 
+          {{ $t('panes.size') }}
           </div>
           <div class="simple-text-value">
             {{  collectionSize }}
@@ -124,6 +124,7 @@ import AssigneeItem from '@/instances/common/components/AssigneeItem.vue'
 
 // imports
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
@@ -151,8 +152,11 @@ const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
 const platformStore = usePlatformStore();
 
+// i18n
+const { t } = useI18n();
+
 // vars
-let placeholder = 'Search collaborators';
+const placeholder = computed(() => t('placeholders.searchCollaborators'));
 
 const collaboratorsList = computed(() => {
   return userStore.getProjectCollaborators
@@ -195,7 +199,7 @@ const copyEntityPath = async () => {
   entityDir = entityDir.replace(/\\/g, '/');
   FSService.MakeDirs(entityDir);
   await Clipboard.SetText(entityDir);
-  const message = 'Path copied to clipboard';
+  const message = t('notifications.pathCopied');
   notificationStore.addNotification(message, "", "success");
 };
 
@@ -214,7 +218,7 @@ const removeUser = (user) => {
       projectStore.refreshActiveProject();
     })
     .catch((error) => {
-      notificationStore.errorNotification('Error removing user', error);
+      notificationStore.errorNotification(t('notifications.errorRemovingUser'), error);
       console.error('Error removing user:', error);
     });
 };
@@ -239,7 +243,7 @@ const addUser = (user) => {
         projectStore.refreshActiveProject();
       })
       .catch((error) => {
-        notificationStore.errorNotification('Error adding user', error);
+        notificationStore.errorNotification(t('notifications.errorAddingUserToProject'), error);
         console.error('Error adding user:', error);
       });
   }
@@ -248,7 +252,7 @@ const addUser = (user) => {
 const parentName = computed(() => {
   const parentId = collectionStore.selectedCollection.parent_id
   const parent = collectionStore.getCollections.find((item) => item.id === parentId)
-  return parent ? parent.entity_path.replace(/\//g, ' / ') : 'None'
+  return parent ? parent.entity_path.replace(/\//g, ' / ') : t('common.none')
 });
 
 const changeEntityType = async (entityTypeName) => {
