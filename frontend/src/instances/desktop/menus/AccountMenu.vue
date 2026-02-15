@@ -14,7 +14,7 @@
           <div v-if="!isOfflineMode" class="account-email">{{ currentAccount?.email }}</div>
         </div>
         <div class="account-status">
-          <span v-if="isOfflineMode" class="status-indicator offline" v-tooltip="'Offline Mode - Sign in to sync'">●</span>
+          <span v-if="isOfflineMode" class="status-indicator offline" v-tooltip="$t('menus.offlineModeTooltip')">●</span>
           <span v-else class="status-indicator active">●</span>
         </div>
       </div>
@@ -69,7 +69,7 @@
         :icon="getAppIcon('login')" 
         :showLabel="true" 
         :fullWidth="true" 
-        label="Sign In"
+        :label="$t('common.signIn')"
         :buttonFunction="signInFromOffline" 
       />
       
@@ -78,7 +78,7 @@
         :icon="getAppIcon('person-plus')" 
         :showLabel="true" 
         :fullWidth="true" 
-        label="Add Account"
+        :label="$t('menus.addAccount')"
         :buttonFunction="addAccount" 
       />
       
@@ -87,7 +87,7 @@
         :icon="getAppIcon('cog')" 
         :showLabel="true" 
         :fullWidth="true" 
-        label="Account Settings"
+        :label="$t('menus.accountSettings')"
         :buttonFunction="openAccountSettings" 
       />
       
@@ -96,7 +96,7 @@
         :icon="getAppIcon('logout')" 
         :showLabel="true" 
         :fullWidth="true" 
-        label="Sign Out"
+        :label="$t('common.signOut')"
         :buttonFunction="signOutCurrentAccount" 
       />
     </div>
@@ -106,6 +106,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { resetStoreInitialization } from '@/router';
 
@@ -127,6 +128,7 @@ import { useThemeStore } from '@/stores/theme';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
 
+const { t } = useI18n();
 const accountStore = useAccountStore();
 const iconStore = useIconStore();
 const menu = useMenu();
@@ -160,7 +162,7 @@ const addAccount = () => {
     modals.setModalVisibility('loginModal', true);
     menu.hideContextMenu();
   } catch (error) {
-    notificationStore.errorNotification("Add Account Failed", error);
+    notificationStore.errorNotification(t('notifications.addAccountFailed'), error);
   }
 };
 
@@ -175,7 +177,7 @@ const openAccountSettings = () => {
     stage.setStageVisibility('account', true);
     menu.hideContextMenu();
   } catch (error) {
-    notificationStore.errorNotification("Settings Failed", error);
+    notificationStore.errorNotification(t('notifications.settingsFailed'), error);
   }
 };
 
@@ -190,10 +192,10 @@ const profileColor = (uuid) => {
 const removeAccountFromList = async (accountId) => {
   try {
     await accountStore.removeAccount(accountId);
-    notificationStore.addNotification("Account Removed", "Account has been successfully removed", "success");
+    notificationStore.addNotification(t('notifications.accountRemoved'), t('notifications.accountRemovedDesc'), "success");
   } catch (error) {
     console.error('Remove account error:', error);
-    notificationStore.errorNotification("Remove Failed", error.message || 'Unable to remove account');
+    notificationStore.errorNotification(t('notifications.removeFailed'), error.message || t('notifications.unableToRemoveAccount'));
   }
 };
 
@@ -246,12 +248,12 @@ const signOutCurrentAccount = async () => {
         await projectStore.loadProjects();
         trayStates.refreshData();
         
-        notificationStore.addNotification("Account Switched", `Switched to ${activeAccount.user.first_name} ${activeAccount.user.last_name}`);
+        notificationStore.addNotification(t('notifications.accountSwitched'), `Switched to ${activeAccount.user.first_name} ${activeAccount.user.last_name}`);
       }
     } else {
       userStore.user = null;
       userStore.isUserAuthenticated = false;
-      notificationStore.addNotification("Signed Out", "All accounts signed out");
+      notificationStore.addNotification(t('notifications.signedOut'), t('notifications.allAccountsSignedOut'));
       resetStoreInitialization();
       router.push('/auth/login');
     }
@@ -259,7 +261,7 @@ const signOutCurrentAccount = async () => {
     menu.hideContextMenu();
   } catch (error) {
     console.error('Sign out error:', error);
-    notificationStore.errorNotification("Sign Out Failed", error.message || 'Unable to sign out');
+    notificationStore.errorNotification(t('notifications.signOutFailed'), error.message || t('notifications.unableToSignOut'));
   }
 };
 

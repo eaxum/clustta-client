@@ -4,7 +4,7 @@
     <span :class="{ 'disabled' : commonStore.onlyAssets }" class="filter-menu-item" @click="toggleShowEntities()">
       <img class="small-icons" :src="getAppIcon('folder')">
       <div class="horizontal-flex">
-        <div class="menu-item-text" >Collections</div>
+        <div class="menu-item-text" >{{ $t('menus.collections') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.showEntities" />
       </div>
     </span>
@@ -12,7 +12,7 @@
     <span :class="{ 'disabled' : commonStore.onlyAssets }" class="filter-menu-item" @click="toggleShowTasks()">
       <img class="small-icons" :src="getAppIcon('brush')">
       <div class="horizontal-flex">
-        <div class="menu-item-text">Assets </div>
+        <div class="menu-item-text">{{ $t('menus.assets') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.showTasks" />
       </div>
     </span>
@@ -22,7 +22,7 @@
      <span :class="{ 'disabled' : !commonStore.showTasks }" v-if="!commonStore.navigatorMode && stage.activeStage === 'browser'" class="filter-menu-item" @click="toggleOnlyAssets()">
       <img class="small-icons" :src="getAppIcon('shapes')">
       <div class="horizontal-flex">
-        <div class="menu-item-text">Only Project Assets</div>
+        <div class="menu-item-text">{{ $t('menus.onlyProjectAssets') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.onlyAssets" />
       </div>
     </span>
@@ -30,7 +30,7 @@
     <span :class="{ 'disabled' : !commonStore.showTasks }" class="filter-menu-item" @click="toggleShowResources()">
       <img class="small-icons" :src="getAppIcon('paperclip')">
       <div class="horizontal-flex">
-        <div class="menu-item-text">Resources</div>
+        <div class="menu-item-text">{{ $t('menus.resources') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.showResources" />
       </div>
     </span>
@@ -43,6 +43,7 @@
 // imports
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
+import { useI18n } from 'vue-i18n';
 
 // components
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
@@ -57,6 +58,8 @@ const commonStore = useCommonStore();
 const iconStore = useIconStore();
 const menu = useMenu();
 const stage = useStageStore();
+
+const { t } = useI18n();
 
 // refs
 const collectionMenu = ref(null);

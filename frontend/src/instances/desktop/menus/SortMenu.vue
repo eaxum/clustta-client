@@ -2,19 +2,19 @@
   <div ref="sortMenu" class="filter-menu-container" v-stop-propagation>
 
     <!-- Sort Options Section -->
-    <ActionButton :icon="getAppIcon('sort-a-z')" :showLabel="true" :fullWidth="true" label="Alphabetically"
+    <ActionButton :icon="getAppIcon('sort-a-z')" :showLabel="true" :fullWidth="true" :label="$t('menus.sortAlphabetically')"
       :color="isAlphabeticalActive ? 'var(--steel)' : undefined" :buttonFunction="setSortByName" />
 
-    <ActionButton :icon="getAppIcon('clock')" :showLabel="true" :fullWidth="true" label="By Status"
+    <ActionButton :icon="getAppIcon('clock')" :showLabel="true" :fullWidth="true" :label="$t('menus.sortByStatus')"
       :color="isStatusActive ? 'var(--steel)' : undefined" :buttonFunction="setSortByStatus" />
 
     <span class="menu-divider"></span>
 
     <!-- Sort Order Section -->
-    <ActionButton :icon="getAppIcon(ascendingIcon)" :showLabel="true" :fullWidth="true" label="Ascending"
+    <ActionButton :icon="getAppIcon(ascendingIcon)" :showLabel="true" :fullWidth="true" :label="$t('menus.ascending')"
       :color="isAscending ? 'var(--steel)' : undefined" :buttonFunction="setSortAscending" />
 
-    <ActionButton :icon="getAppIcon(descendingIcon)" :showLabel="true" :fullWidth="true" label="Descending"
+    <ActionButton :icon="getAppIcon(descendingIcon)" :showLabel="true" :fullWidth="true" :label="$t('menus.descending')"
       :color="!isAscending ? 'var(--steel)' : undefined" :buttonFunction="setSortDescending" />
 
   </div>
@@ -24,6 +24,7 @@
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
+import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -36,6 +37,8 @@ import { useMenu } from '@/stores/menu';
 const commonStore = useCommonStore();
 const iconStore = useIconStore();
 const menu = useMenu();
+
+const { t } = useI18n();
 
 // refs
 const sortMenu = ref(null);

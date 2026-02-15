@@ -4,7 +4,7 @@
     <span v-if="stage.activeStage === 'browser'" class="filter-menu-item" @click="toggleUseExclusive">
       <img class="small-icons" src="/icons/parameters.svg">
       <div class="horizontal-flex">
-        <div> Use Exclusive </div>
+        <div>{{ $t('menus.useExclusive') }}</div>
         <ToggleSwitch :switchValueProp="useExclusive" />
       </div>
     </span>
@@ -12,7 +12,7 @@
     <span v-if="stage.activeStage === 'browser'" class="filter-menu-item" @click="toggleUseDeep">
       <img class="small-icons" src="/icons/deep.svg">
       <div class="horizontal-flex">
-        <div> Deep </div>
+        <div>{{ $t('menus.deep') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.useDeep" />
       </div>
     </span>
@@ -35,6 +35,7 @@
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import utils from '@/services/utils';
+import { useI18n } from 'vue-i18n';
 
 // components
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
@@ -51,6 +52,8 @@ const commonStore = useCommonStore();
 const iconStore = useIconStore();
 const menu = useMenu();
 const stage = useStageStore();
+
+const { t } = useI18n();
 
 // refs
 const collectionMenu = ref(null);

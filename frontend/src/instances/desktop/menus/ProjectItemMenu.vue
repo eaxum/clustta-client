@@ -2,63 +2,63 @@
   <div ref="collectionMenu" class="filter-menu-container">
 
     <ActionButton :icon="getAppIcon('info')" :showLabel="true" :fullWidth="true"
-      label="Project Details" :buttonFunction="showProjectDetails" />
+      :label="$t('modals.projectDetails')" :buttonFunction="showProjectDetails" />
 
-    <ActionButton :icon="getAppIcon('edit')" v-if="userStore.userCanCreateProject" :showLabel="true" :fullWidth="true" label="Rename Project"
+    <ActionButton :icon="getAppIcon('edit')" v-if="userStore.userCanCreateProject" :showLabel="true" :fullWidth="true" :label="$t('modals.renameProject')"
       :buttonFunction="renameProject" />
 
     <!-- Create -->
     <ActionButton :icon="getAppIcon('switches')" v-if="userStore.userCanCreateProject" :showLabel="true" :fullWidth="true"
-      label="Edit Project" :buttonFunction="editProject" />
+      :label="$t('menus.editProject')" :buttonFunction="editProject" />
 
     <!-- {{  isPinExceeded  }} -->
     <ActionButton v-if="(projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && isProjectPinned" :icon="getAppIcon('unpin')" :showLabel="true" :fullWidth="true"
-      label="Unpin Project" :buttonFunction="unpinProject" />
+      :label="$t('menus.unpinProject')" :buttonFunction="unpinProject" />
 
     <ActionButton v-else-if="!isPinExceeded" :icon="getAppIcon('pin')" :showLabel="true" :fullWidth="true"
-      label="Pin Project" :buttonFunction="pinProject" />
+      :label="$t('menus.pinProject')" :buttonFunction="pinProject" />
 
     <span v-if="userStore.canDo('create_entity') && !platformStore.isWeb" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
     <span v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded" class="horizontal-flex">
-      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" label="Show in Explorer"
+      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
         :buttonFunction="revealInExplorer" />
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyProjectPath()"
-        v-tooltip="'Copy Path'" />
+        v-tooltip="$t('common.copyPath')" />
     </span>
 
     <!-- Locate Clustta file -->
     <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded" :icon="getAppIcon('clustta')" :showLabel="true"
-      :fullWidth="true" label="Locate Clustta File" :buttonFunction="locateClusttaFile" />
+      :fullWidth="true" :label="$t('menus.locateClusttaFile')" :buttonFunction="locateClusttaFile" />
 
     <!-- Relocate Working Directory -->
-    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
+    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" :label="$t('menus.relocate')"
       :buttonFunction="relocateWorkingDirectory" />
 
     <span v-if="projectStore.getActiveProject?.is_downloaded || platformStore.isWeb" class="menu-divider"></span>
 
     <!-- Archive -->
     <ActionButton v-if="!projectStore.getActiveProject?.is_closed && userStore.userCanCreateProject"
-      :icon="getAppIcon('archive')" :showLabel="true" :fullWidth="true" label="Archive Project"
+      :icon="getAppIcon('archive')" :showLabel="true" :fullWidth="true" :label="$t('menus.archiveProject')"
       :buttonFunction="prepCloseProjectPopUpModal" />
 
 
     <ActionButton v-else-if="userStore.userCanCreateProject" :icon="getAppIcon('unarchive')" :showLabel="true"
-      :fullWidth="true" label="Unarchive Project" :buttonFunction="toggleCloseProject" />
+      :fullWidth="true" :label="$t('menus.unarchiveProject')" :buttonFunction="toggleCloseProject" />
 
     <!-- Rebuild -->
     <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded && !projectStore.getActiveProject?.is_closed"
-      :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" label="Rebuild Project"
+      :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" :label="$t('menus.rebuildProject')"
       :buttonFunction="rebuildAll" />
 
     <!-- Trim Project - only for remote projects that are synced -->
     <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.has_remote && !projectStore.getActiveProject?.is_unsynced"
-      :icon="getAppIcon('scissors')" :showLabel="true" :fullWidth="true" label="Trim Project"
+      :icon="getAppIcon('scissors')" :showLabel="true" :fullWidth="true" :label="$t('menus.trimProject')"
       :buttonFunction="prepTrimProjectPopUpModal" />
 
     <!-- Delete project -->
-    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded || platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Remove Project"
+    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded || platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('menus.removeProject')"
       :buttonFunction="prepDeletePopUpModal" />
 
 
@@ -69,6 +69,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
 
@@ -90,6 +91,7 @@ import { useStageStore } from '@/stores/stages';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
 
+const { t } = useI18n();
 const assetStore = useAssetStore();
 const iconStore = useIconStore();
 const menu = useMenu();
@@ -190,8 +192,8 @@ const pinProject = async () => {
 // Prepares and shows the archive project confirmation modal.
 const prepCloseProjectPopUpModal = () => {
   let project = projectStore.getActiveProject;
-  trayStates.popUpModalTitle = `Archive \"${project.name}\"`;
-  trayStates.popUpModalMessage = "Archiving this project will also free up space in the working directory. Any untracked items will be lost. Proceed?";
+  trayStates.popUpModalTitle = t('menus.archiveProjectTitle', { name: project.name });
+  trayStates.popUpModalMessage = t('confirmations.archiveProject');
   trayStates.popUpModalFunction = toggleCloseProject;
   trayStates.popUpModalIcon = 'archive';
   modals.setModalVisibility('popUpModal', true);
@@ -201,8 +203,8 @@ const prepCloseProjectPopUpModal = () => {
 // Prepares and shows the delete project confirmation modal.
 const prepDeletePopUpModal = () => {
   let project = projectStore.getActiveProject;
-  trayStates.popUpModalTitle = `Remove \"${project.name}\"`;
-  trayStates.popUpModalMessage = "This will irreversibly remove this project from Clustta! You will lose all of your checkpoints and other metadata but your actual files will not be deleted. Ensure to 'Build' any missing assets before proceeding.";
+  trayStates.popUpModalTitle = t('menus.removeProjectTitle', { name: project.name });
+  trayStates.popUpModalMessage = t('confirmations.removeProject');
   trayStates.popUpModalFunction = deleteProject;
   trayStates.popUpModalIcon = 'trash';
   modals.setModalVisibility('popUpModal', true);
@@ -214,8 +216,8 @@ const prepTrimProjectPopUpModal = () => {
   menu.hideContextMenu();
   let project = projectStore.getActiveProject;
   trayStates.popUpModalIcon = 'scissors';
-  trayStates.popUpModalTitle = `Trim \"${project.name}\"`;
-  trayStates.popUpModalMessage = "This will remove cached file data from the project database and delete the working directory to reduce disk usage. The data can be re-downloaded from the remote when needed. Continue?";
+  trayStates.popUpModalTitle = t('menus.trimProjectTitle', { name: project.name });
+  trayStates.popUpModalMessage = t('confirmations.trimProject');
   trayStates.popUpModalFunction = trimProject;
   modals.setModalVisibility('popUpModal', true);
 };
@@ -243,13 +245,13 @@ const relocateWorkingDirectory = async () => {
   const currentWorkingDir = project.working_directory;
   
   try {
-    const result = await DialogService.SelectFolderDialog("Select New Working Directory");
+    const result = await DialogService.SelectFolderDialog(t('menus.selectNewWorkingDirectory'));
     if (!result) return;
     
     let newWorkingDir = result.replace(/\\/g, '/');
     
-    trayStates.popUpModalTitle = 'Relocate Working Directory?';
-    trayStates.popUpModalMessage = `Change working directory from:\n${currentWorkingDir}\n\nTo:\n${newWorkingDir}\n\nNote: Files will NOT be moved. Only the path will be updated.`;
+    trayStates.popUpModalTitle = t('menus.relocateWorkingDirectory');
+    trayStates.popUpModalMessage = t('confirmations.relocateWorkingDirectory', { from: currentWorkingDir, to: newWorkingDir });
     trayStates.popUpModalIcon = 'folder';
     trayStates.popUpModalFunction = async () => {
       try {
@@ -261,9 +263,9 @@ const relocateWorkingDirectory = async () => {
         );
         project.working_directory = newWorkingDir;
         await projectStore.refreshProjects();
-        notificationStore.addNotification('Working directory updated', `New location: ${newWorkingDir}`, 'success', false);
+        notificationStore.addNotification(t('notifications.workingDirUpdated'), `New location: ${newWorkingDir}`, 'success', false);
       } catch (error) {
-        notificationStore.errorNotification('Error updating working directory', error);
+        notificationStore.errorNotification(t('notifications.errorUpdatingDirectory'), error);
       } finally {
         stage.operationActive = false;
         modals.setModalVisibility('popUpModal', false);
@@ -272,7 +274,7 @@ const relocateWorkingDirectory = async () => {
     
     modals.setModalVisibility('popUpModal', true);
   } catch (error) {
-    notificationStore.errorNotification('Error selecting directory', error);
+    notificationStore.errorNotification(t('notifications.errorSelectingDirectory'), error);
   }
 };
 
@@ -311,7 +313,7 @@ const toggleCloseProject = async () => {
     })
     .catch((error) => {
       console.error(error);
-      notificationStore.addNotification("Error closing project", error, "error", false);
+      notificationStore.addNotification(t('notifications.errorClosingProject'), error, "error", false);
     });
   modals.setModalVisibility('popUpModal', false);
   menu.hideContextMenu();
@@ -330,10 +332,10 @@ const trimProject = async () => {
       trayStates.$reset();
     }
     
-    notificationStore.addNotification("Project Trimmed", "Cached data and working files have been cleared.", "success", false);
+    notificationStore.addNotification(t('notifications.projectTrimmed'), t('notifications.projectTrimmedDesc'), "success", false);
   } catch (error) {
     console.error(error.message || error);
-    notificationStore.addNotification("Error Trimming Project", error.message || "An error occurred", "error", false);
+    notificationStore.addNotification(t('notifications.errorTrimmingProject'), error.message || t('notifications.errorOccurred'), "error", false);
   } finally {
     modals.disableAllModals();
   }

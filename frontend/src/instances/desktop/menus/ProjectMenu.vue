@@ -2,48 +2,48 @@
   <div ref="collectionMenu" class="filter-menu-container">
 
     <!-- Create -->
-     <ActionButton :icon="getAppIcon('file-plus')" :showLabel="true" :fullWidth="true" label="Add Asset"
+     <ActionButton :icon="getAppIcon('file-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addAsset')"
       v-if="templateStore.getTemplates.length && userStore.canDo('create_task')" :buttonFunction="createTask" />
 
-    <ActionButton :icon="getAppIcon('folder-plus')" :showLabel="true" :fullWidth="true" label="Add Collection"
+    <ActionButton :icon="getAppIcon('folder-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addCollection')"
       v-if="userStore.canDo('create_entity')" :buttonFunction="createEntity" />
 
-    <ActionButton :icon="getAppIcon('workflow-plus')" :showLabel="true" :fullWidth="true" label="Add Workflow"
+    <ActionButton :icon="getAppIcon('workflow-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addWorkflow')"
       v-if="workflowStore.workflows.length && userStore.canDo('create_task')" :buttonFunction="addWorkflow" />
 
-    <ActionButton :icon="getAppIcon('arrow-down-ramp')" :showLabel="true" :fullWidth="true" label="Import Items"
+    <ActionButton :icon="getAppIcon('arrow-down-ramp')" :showLabel="true" :fullWidth="true" :label="$t('modals.importItems')"
       v-if="!platformStore.isWeb && userStore.canDo('create_task')" :buttonFunction="importItems" />
 
-    <ActionButton :icon="getAppIcon('arrow-up-ramp')" :showLabel="true" :fullWidth="true" label="Upload Items"
+    <ActionButton :icon="getAppIcon('arrow-up-ramp')" :showLabel="true" :fullWidth="true" :label="$t('menus.uploadItems')"
       v-if="platformStore.isWeb && userStore.canDo('create_task')" :buttonFunction="uploadItems" />
 
-    <ActionButton :icon="getAppIcon('clipboard')" :showLabel="true" :fullWidth="true" label="Paste"
+    <ActionButton :icon="getAppIcon('clipboard')" :showLabel="true" :fullWidth="true" :label="$t('common.paste')"
       v-if="hasClipboardItems && userStore.canDo('update_entity')" :buttonFunction="pasteItems" />
 
     <span v-if="userStore.canDo('create_entity') && !platformStore.isWeb" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
     <span v-if="!platformStore.isWeb" class="horizontal-flex">
-      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" label="Show in Explorer"
+      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
         :buttonFunction="revealInExplorer" />
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyDirectoryPath()"
-        v-tooltip="'Copy Path'" />
+        v-tooltip="$t('common.copyPath')" />
     </span>
 
     <!-- Relocate Working Directory -->
-    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" label="Relocate"
+    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" :label="$t('menus.relocate')"
       :buttonFunction="relocateWorkingDirectory" />
 
     <!-- Rebuild -->
-    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" label="Build Project"
+    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" :label="$t('menus.buildProject')"
       :buttonFunction="rebuildAll" />
 
     <!-- Free space -->
-    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" label="Free Up space"
+    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" :label="$t('common.freeUpSpace')"
       :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Clear Trash -->
-    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" label="Empty Trash"
+    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.emptyTrash')"
       :buttonFunction="prepEmptyTrashPopUpModal" />
 
 
@@ -54,6 +54,7 @@
 <script setup>
 // imports
 import { onBeforeUnmount, onMounted, ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
 
@@ -79,6 +80,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
 import { useWorkflowStore } from '@/stores/workflow';
 
+const { t } = useI18n();
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
@@ -128,7 +130,7 @@ const copyDirectoryPath = async () => {
     await Clipboard.SetText(explorerPath);
   }
 
-  notificationStore.addNotification('Path copied to clipboard', "", "success");
+  notificationStore.addNotification(t('notifications.pathCopied'), "", "success");
   menu.hideContextMenu();
 };
 
@@ -153,7 +155,7 @@ const emptyTrash = async () => {
     })
     .catch((error) => {
       console.error(error.message);
-      notificationStore.addNotification("Error Syncing Data", error.message, "error", false);
+      notificationStore.addNotification(t('notifications.errorSyncingData'), error.message, "error", false);
       modals.disableAllModals();
     });
 };
@@ -250,7 +252,7 @@ const importItems = async () => {
 
     const currentDirectory = getCurrentDirectory();
     if (!currentDirectory) {
-      notificationStore.errorNotification("Could not determine current directory", "");
+      notificationStore.errorNotification(t('notifications.couldNotDetermineDirectory'), "");
       menu.hideContextMenu();
       return;
     }
@@ -282,20 +284,18 @@ const importItems = async () => {
     }
 
     if (successCount > 0) {
-      const message = successCount === 1 ? "1 item imported successfully" : `${successCount} items imported successfully`;
-      notificationStore.addNotification(message, "", "success");
+      notificationStore.addNotification(t('notifications.itemsImported', successCount), "", "success");
     }
 
     if (failureCount > 0) {
-      const message = failureCount === 1 ? "1 item failed to import" : `${failureCount} items failed to import`;
-      notificationStore.errorNotification(message, errors.join("\n"));
+      notificationStore.errorNotification(t('notifications.itemsFailedImport', failureCount), errors.join("\n"));
     }
 
     if (successCount > 0) {
       emitter.emit('refresh-browser');
     }
   } catch (error) {
-    notificationStore.errorNotification("Error importing items", error.message || error);
+    notificationStore.errorNotification(t('notifications.errorImportingItems'), error.message || error);
   } finally {
     stage.operationActive = false;
     menu.hideContextMenu();
@@ -306,8 +306,8 @@ const importItems = async () => {
 const prepEmptyTrashPopUpModal = () => {
   menu.hideContextMenu();
   trayStates.popUpModalIcon = 'trash';
-  trayStates.popUpModalTitle = "Empty Trash";
-  trayStates.popUpModalMessage = "This will irreversibly delete all items in trash. Continue?";
+  trayStates.popUpModalTitle = t('common.emptyTrash');
+  trayStates.popUpModalMessage = t('confirmations.emptyTrash');
   trayStates.popUpModalFunction = emptyTrash;
   modals.setModalVisibility('popUpModal', true);
 };
@@ -318,12 +318,12 @@ const prepFreeUpSpacePopUpModal = () => {
   let project = projectStore.getActiveProject;
   if (commonStore.navigatorMode) {
     const navigatedEntity = collectionStore.navigatedCollection;
-    trayStates.popUpModalTitle = `Delete the files in \"${navigatedEntity.name}\"? `;
-    trayStates.popUpModalMessage = `This will clear the contents of \"${navigatedEntity.name}\". Please save your checkpoints before proceeding to avoid losing your work`;
+    trayStates.popUpModalTitle = t('confirmations.deleteFilesIn', { name: navigatedEntity.name });
+    trayStates.popUpModalMessage = t('confirmations.clearContentsEntity', { name: navigatedEntity.name });
     trayStates.popUpModalFunction = freeUpEntitySpace;
   } else {
-    trayStates.popUpModalTitle = `Delete the files in \"${project.name}\"? `;
-    trayStates.popUpModalMessage = "This will clear the current project directory. Please save your checkpoints before proceeding to avoid losing your work";
+    trayStates.popUpModalTitle = t('confirmations.deleteFilesIn', { name: project.name });
+    trayStates.popUpModalMessage = t('confirmations.clearContentsProject');
     trayStates.popUpModalFunction = freeUpProjectSpace;
   }
   trayStates.popUpModalIcon = 'broom';
@@ -359,7 +359,7 @@ const rebuildAll = async () => {
       emitter.emit('refresh-browser');
     })
     .catch(async (error) => {
-      notificationStore.errorNotification("Error Rebuilding All", error);
+      notificationStore.errorNotification(t('notifications.errorRebuildingAll'), error);
     });
 };
 
@@ -371,13 +371,13 @@ const relocateWorkingDirectory = async () => {
   const currentWorkingDir = project.working_directory;
   
   try {
-    const result = await DialogService.SelectFolderDialog("Select New Working Directory");
+    const result = await DialogService.SelectFolderDialog(t('menus.selectNewWorkingDirectory'));
     if (!result) return;
     
     let newWorkingDir = result.replace(/\\/g, '/');
     
-    trayStates.popUpModalTitle = 'Relocate Working Directory?';
-    trayStates.popUpModalMessage = `Change working directory from:\n${currentWorkingDir}\n\nTo:\n${newWorkingDir}\n\nNote: Files will NOT be moved. Only the path will be updated.`;
+    trayStates.popUpModalTitle = t('menus.relocateWorkingDirectory');
+    trayStates.popUpModalMessage = t('confirmations.relocateWorkingDirectory', { from: currentWorkingDir, to: newWorkingDir });
     trayStates.popUpModalIcon = 'folder';
     trayStates.popUpModalFunction = async () => {
       try {
@@ -389,9 +389,9 @@ const relocateWorkingDirectory = async () => {
         );
         project.working_directory = newWorkingDir;
         await projectStore.refreshProjects();
-        notificationStore.addNotification('Working directory updated', `New location: ${newWorkingDir}`, 'success', false);
+        notificationStore.addNotification(t('notifications.workingDirUpdated'), `New location: ${newWorkingDir}`, 'success', false);
       } catch (error) {
-        notificationStore.errorNotification('Error updating working directory', error);
+        notificationStore.errorNotification(t('notifications.errorUpdatingDirectory'), error);
       } finally {
         stage.operationActive = false;
         modals.setModalVisibility('popUpModal', false);
@@ -401,7 +401,7 @@ const relocateWorkingDirectory = async () => {
     
     modals.setModalVisibility('popUpModal', true);
   } catch (error) {
-    notificationStore.errorNotification('Error selecting directory', error);
+    notificationStore.errorNotification(t('notifications.errorSelectingDirectory'), error);
   }
 };
 

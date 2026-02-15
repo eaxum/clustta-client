@@ -11,21 +11,21 @@
 
     <!-- Copy here option -->
     <ActionButton v-if="currentView === 'entities'" :icon="getAppIcon('arrow-down-ramp')" :showLabel="true"
-      :fullWidth="true" label="Copy Here" :buttonFunction="() => copyToLocation(currentParentId)" />
+      :fullWidth="true" :label="$t('menus.copyHere')" :buttonFunction="() => copyToLocation(currentParentId)" />
 
     <!-- <span v-if="filteredEntities.length > 0" class="menu-divider"></span> -->
 
     <!-- Search input -->
     <div v-if="showSearch" class="input-section">
       <input ref="searchInput" v-stop-propagation v-model="searchTerm" class="input-short" type="text"
-        :placeholder="currentView === 'projects' ? 'Search projects' : 'Search collections'" />
+        :placeholder="currentView === 'projects' ? $t('placeholders.searchProjects') : $t('placeholders.searchCollections')" />
     </div>
 
     <span v-if="showSearch" class="menu-divider"></span>
 
     <!-- Loading state -->
     <div v-if="isLoading" class="sub-menu-loading">
-      <span class="menu-item-text">Loading...</span>
+      <span class="menu-item-text">{{ $t('common.loading') }}...</span>
     </div>
 
     <!-- Scrollable list container -->
@@ -41,7 +41,7 @@
         </template>
 
         <div v-if="filteredProjects.length === 0" class="sub-menu-empty">
-          <span class="menu-item-text">{{ searchTerm ? 'No matching projects' : 'No other projects available' }}</span>
+          <span class="menu-item-text">{{ searchTerm ? $t('menus.noMatchingProjects') : $t('menus.noOtherProjects') }}</span>
         </div>
       </template>
 
@@ -56,11 +56,11 @@
         </template>
 
         <div v-if="filteredEntities.length === 0 && childEntities.length > 0" class="sub-menu-empty">
-          <span class="menu-item-text subtle">No matching collections</span>
+          <span class="menu-item-text subtle">{{ $t('menus.noMatchingCollections') }}</span>
         </div>
 
         <div v-if="childEntities.length === 0" class="sub-menu-empty">
-          <span class="menu-item-text subtle">No sub-collections</span>
+          <span class="menu-item-text subtle">{{ $t('menus.noSubCollections') }}</span>
         </div>
       </template>
 
@@ -72,6 +72,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 
 // components
@@ -88,6 +89,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 
+const { t } = useI18n();
 const assetStore = useAssetStore();
 const iconStore = useIconStore();
 const menu = useMenu();
@@ -152,9 +154,9 @@ const filteredProjects = computed(() => {
 // Returns the header title based on navigation depth.
 const headerTitle = computed(() => {
   if (navigationDepth.value <= 1) {
-    return 'Select Project';
+    return t('menus.selectProject');
   }
-  return currentNavItem.value?.title || 'Select Location';
+  return currentNavItem.value?.title || t('menus.selectLocation');
 });
 
 // Returns the current navigation depth.
@@ -179,13 +181,13 @@ const copyToLocation = async (targetEntityId, projectOverride = null) => {
   const targetProject = projectOverride || selectedProject.value;
   
   if (!targetProject) {
-    notificationStore.errorNotification('Error', 'No target project selected');
+    notificationStore.errorNotification(t('common.error'), t('notifications.noTargetProject'));
     return;
   }
   
   const asset = assetStore.selectedAsset;
   if (!asset) {
-    notificationStore.errorNotification('Error', 'No asset selected');
+    notificationStore.errorNotification(t('common.error'), t('notifications.noAssetSelected'));
     return;
   }
   
@@ -200,12 +202,12 @@ const copyToLocation = async (targetEntityId, projectOverride = null) => {
       false
     );
     
-    notificationStore.addNotification('Asset Copied', `${asset.name} copied to ${targetProject.name}`, 'success');
+    notificationStore.addNotification(t('notifications.assetCopied'), t('notifications.assetCopiedTo', { name: asset.name, project: targetProject.name }), 'success');
     menu.hideContextMenu();
     menu.resetSubMenu();
   } catch (error) {
     console.error('Error copying asset:', error);
-    notificationStore.errorNotification('Failed to Copy Asset', error);
+    notificationStore.errorNotification(t('notifications.failedToCopyAsset'), error);
   } finally {
     stage.operationActive = false;
   }
@@ -245,7 +247,7 @@ const loadEntities = async (project, parentId, entityFilePath = null) => {
     );
   } catch (error) {
     console.error('Error loading entities:', error);
-    notificationStore.errorNotification('Failed to load collections', error);
+    notificationStore.errorNotification(t('notifications.failedToLoadCollections'), error);
   } finally {
     isLoading.value = false;
   }
