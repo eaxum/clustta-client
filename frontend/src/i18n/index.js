@@ -2,12 +2,14 @@ import { createI18n } from 'vue-i18n';
 import en from './locales/en.json';
 import es from './locales/es.json';
 import fr from './locales/fr.json';
+import ja from './locales/ja.json';
 
 // Supported languages configuration
 export const SUPPORTED_LANGUAGES = {
   en: 'English',
   es: 'Spanish',
-  fr: 'French'
+  fr: 'French',
+  ja: 'Japanese'
 };
 
 // Get valid locale codes
@@ -36,7 +38,8 @@ const i18n = createI18n({
   messages: {
     en,
     es,
-    fr
+    fr,
+    ja
   },
   // Global injection for $t, $tc, etc.
   globalInjection: true
