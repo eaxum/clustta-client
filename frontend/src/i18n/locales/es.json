@@ -856,11 +856,16 @@
     "title": "Acuerdo de Licencia de Usuario Final de Clustta"
   },
   "languages": {
+    "de": "Alemán",
     "en": "Inglés",
     "es": "Español",
     "fr": "Francés",
     "hi": "Hindi",
+    "it": "Italiano",
     "ja": "Japonés",
+    "ko": "Coreano",
+    "pt-BR": "Portugués (Brasil)",
+    "ru": "Ruso",
     "zh": "Chino"
   },
   "stages": {
