@@ -101,7 +101,9 @@
     "selectClusttaFile": "Seleccionar archivo .clst...",
     "workspaceName": "Nombre del Espacio de trabajo",
     "searchProjects": "Buscar proyectos",
-    "workflowItemName": "Nombre del elemento de flujo"
+    "workflowItemName": "Nombre del elemento de flujo",
+    "collectionType": "Tipo de colección",
+    "assetType": "Tipo de activo"
   },
   "confirmations": {
     "deleteItemPermanently": "¿Está seguro de que desea eliminar este elemento? Esto eliminará permanentemente este elemento. Confirme si desea continuar.",

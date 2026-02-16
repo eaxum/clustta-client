@@ -101,7 +101,9 @@
     "describeProblem": "Décrivez votre problème",
     "yourEmail": "Votre adresse e-mail (optionnel)",
     "selectClusttaFile": "Sélectionner un fichier .clst...",
-    "workspaceName": "Nom de l'Espace de travail"
+    "workspaceName": "Nom de l'Espace de travail",
+    "collectionType": "Type de collection",
+    "assetType": "Type d'actif"
   },
   "confirmations": {
     "deleteItemPermanently": "Êtes-vous sûr de vouloir supprimer cet élément ? Cela supprimera définitivement cet élément. Veuillez confirmer si vous souhaitez continuer.",

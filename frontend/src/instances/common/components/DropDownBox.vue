@@ -6,7 +6,7 @@
     <div class="list-box-parent" :class="{ 'is-disabled': stage.operationActive}" ref="listBoxParent" @click="toggleList()">
       <div class="list-box-parent-content" @mouseenter="utils.handleHover($event)"
         @mouseleave="utils.resetScroll($event)">
-        <div class="list-box-parent-text" style="overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.5rem;">
+        <div class="list-box-parent-text" :class="{ 'placeholder-text': isPlaceholder }" style="overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.5rem;">
           <img v-if="selectedItemIcon" :src="selectedItemIcon" class="listbox-icon" />
           {{ selectedListItem }}
         </div>
@@ -97,8 +97,10 @@ const filteredItems = computed(() => {
   }
 });
 
+const isPlaceholder = computed(() => !props.selectedItem);
+
 const selectedListItem = computed(() => { 
-  return props.selectedItem ? utils.capitalizeStr(props.selectedItem) : t('components.dropDownBox.select') 
+  return props.selectedItem ? utils.capitalizeStr(props.selectedItem) : props.placeHolder
 });
 
 const selectedItemIcon = computed(() => {
@@ -411,6 +413,11 @@ onUnmounted(() => {
   min-width: 16px;
   object-fit: contain;
   flex-shrink: 0;
+}
+
+.placeholder-text {
+  font-style: italic;
+  opacity: 0.6;
 }
 
 .list-box {

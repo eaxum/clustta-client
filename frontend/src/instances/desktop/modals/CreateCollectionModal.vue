@@ -18,7 +18,7 @@
         <div class="input-section">
           <div class="horizontal-flex">
             <div class="dropdown-wrapper">
-              <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="selectEntityType" />
+              <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="selectEntityType" :useFilter="false" :placeHolder="$t('placeholders.collectionType')" />
             </div>
             <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addCollectionTypeTitle')">
               <img class="small-icons" :src="getAppIcon('plus-circle')">
@@ -38,7 +38,7 @@
 
         <div class="pop-up-actions" ref="popUpActions">
           <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-          <GeneralButton :label="$t('common.confirm')" :fullWidth="true" :buttonFunction="createCollections" :isActive="isValueChanged" :loading="isAwaitingResponse" />
+          <GeneralButton :label="$t('common.create')" :fullWidth="true" :buttonFunction="createCollections" :isActive="isValueChanged" :loading="isAwaitingResponse" />
         </div>
       </template>
 
@@ -98,7 +98,7 @@ const batchGen = ref(null);
 const collections = ref([]);
 const displayTypeCreator = ref(false);
 const entityName = ref('');
-const entityType = ref(collectionStore.getCollectionTypesNames[0]);
+const entityType = ref('');
 const isAwaitingResponse = ref(false);
 const isLibrary = ref(false);
 const isMultiple = ref(false);
@@ -121,6 +121,7 @@ const headerIcon = computed(() => {
 
 // Returns whether the form is valid for submission.
 const isValueChanged = computed(() => {
+  if (!entityType.value) return false;
   if (isMultiple.value) {
     return !batchGen.value?.invalidPattern;
   } else {

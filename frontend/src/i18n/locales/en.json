@@ -101,7 +101,9 @@
     "selectClusttaFile": "Select .clst file...",
     "searchProjects": "Search projects",
     "workflowItemName": "Workflow item Name",
-    "workspaceName": "Workspace Name"
+    "workspaceName": "Workspace Name",
+    "collectionType": "Collection Type",
+    "assetType": "Asset Type"
   },
   "confirmations": {
     "deleteItemPermanently": "Are you sure you want to delete this item? This will permanently remove this item. Please confirm if you wish to proceed.",
