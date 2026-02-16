@@ -101,7 +101,9 @@
     "selectClusttaFile": ".clstファイルを選択...",
     "workspaceName": "ワークスペース名",
     "searchProjects": "プロジェクトを検索",
-    "workflowItemName": "ワークフローアイテム名"
+    "workflowItemName": "ワークフローアイテム名",
+    "collectionType": "コレクションタイプ",
+    "assetType": "アセットタイプ"
   },
   "confirmations": {
     "deleteItemPermanently": "このアイテムを削除してもよろしいですか？このアイテムは完全に削除されます。続行する場合は確認してください。",

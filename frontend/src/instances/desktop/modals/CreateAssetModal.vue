@@ -15,7 +15,7 @@
         <div class="input-section drop-down-box-section">
           <div class="horizontal-flex">
             <div class="dropdown-wrapper">
-              <DropDownBox :items="taskTypeNames" :selectedItem="taskType" :onSelect="selectTaskType" />
+              <DropDownBox :items="taskTypeNames" :selectedItem="taskType" :onSelect="selectTaskType" :useFilter="false" :placeHolder="$t('placeholders.assetType')" />
             </div>
             <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addNewAssetType')">
               <img class="small-icons" :src="getAppIcon('plus-circle')">
@@ -99,7 +99,7 @@ const selectedTemplate = ref('');
 const showTaskOptions = ref(true);
 const tags = ref([]);
 const taskName = ref('');
-const taskType = ref(assetStore.getAssetTypesNames[0]);
+const taskType = ref('');
 const typeFormRef = ref(null);
 
 // constants
@@ -122,9 +122,9 @@ const icon = computed(() => {
   return null;
 });
 
-// Returns whether the task name is not empty.
+// Returns whether the form is valid for submission.
 const isValueChanged = computed(() => {
-  return taskName.value !== '';
+  return taskName.value !== '' && taskType.value !== '';
 });
 
 // Returns the list of asset type names.
