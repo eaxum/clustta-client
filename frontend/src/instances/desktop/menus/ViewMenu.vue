@@ -2,7 +2,7 @@
   <div ref="viewMenu" class="filter-menu-container" v-stop-propagation>
 
     <!-- View Mode Section -->
-    <ActionButton :icon="getAppIcon('list')" :showLabel="true" :fullWidth="true" :label="$t('menus.listView')"
+    <!-- <ActionButton :icon="getAppIcon('list')" :showLabel="true" :fullWidth="true" :label="$t('menus.listView')"
       :color="isListActive ? 'var(--steel)' : undefined" :buttonFunction="setListView" />
 
     <ActionButton :icon="getAppIcon('list-compact')" :showLabel="true" :fullWidth="true" :label="$t('menus.compactView')"
@@ -14,7 +14,7 @@
     <ActionButton v-if="isDefaultWorkspace" :icon="getAppIcon('kanban')" :showLabel="true" :fullWidth="true" :label="$t('menus.kanbanView')"
       :color="isKanbanActive ? 'var(--steel)' : undefined" :buttonFunction="setKanbanView" />
 
-    <span  v-if="isDefaultWorkspace && !isKanbanActive && userStore.canDo('update_entity')" class="menu-divider"></span>
+    <span  v-if="isDefaultWorkspace && !isKanbanActive && userStore.canDo('update_entity')" class="menu-divider"></span> -->
 
     <!-- Display Options Section -->
     <ActionButton v-if="isDefaultWorkspace && !isKanbanActive && userStore.canDo('update_entity')"
