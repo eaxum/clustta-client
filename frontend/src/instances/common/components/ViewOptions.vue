@@ -1,0 +1,90 @@
+<template>
+  <div class="view-options-root" @mouseenter="expanded = true" @mouseleave="expanded = false">
+    <ActionButton v-if="!expanded" :icon="getAppIcon(activeIcon)" v-tooltip="activeTooltip" />
+
+    <template v-else>
+      <ActionButton :icon="getAppIcon('list')" v-tooltip="$t('menus.listView')" :buttonFunction="setListView" />
+      <ActionButton :icon="getAppIcon('list-compact')" v-tooltip="$t('menus.compactView')" :buttonFunction="setDenseView" />
+      <ActionButton :icon="getAppIcon('four-squares')" v-tooltip="$t('menus.gridView')" :buttonFunction="setGridView" />
+    </template>
+  </div>
+</template>
+
+<script setup>
+// imports
+import { computed, ref } from 'vue';
+import emitter from '@/lib/mitt';
+
+// components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+
+// stores
+import { useCommonStore } from '@/stores/common';
+import { useIconStore } from '@/stores/icons';
+
+const commonStore = useCommonStore();
+const iconStore = useIconStore();
+
+// refs
+const expanded = ref(false);
+
+// computed properties
+const isDenseActive = computed(() => commonStore.viewMode === 'dense');
+const isGridActive = computed(() => commonStore.viewMode === 'grid');
+const isListActive = computed(() => commonStore.viewMode === 'compact');
+
+// Returns the icon name for the currently active view mode.
+const activeIcon = computed(() => {
+  if (isDenseActive.value) return 'list-compact';
+  if (isGridActive.value) return 'four-squares';
+  return 'list';
+});
+
+// Returns the tooltip for the currently active view mode.
+const activeTooltip = computed(() => {
+  if (isDenseActive.value) return commonStore.viewMode;
+  if (isGridActive.value) return commonStore.viewMode;
+  return commonStore.viewMode;
+});
+
+// methods
+
+// Returns the app icon path for the given icon name.
+const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
+// Sets the view to dense list mode.
+const setDenseView = () => {
+  commonStore.setDenseView();
+  emitter.emit('refresh-browser');
+};
+
+// Sets the view to grid mode.
+const setGridView = () => {
+  commonStore.setGridView();
+  emitter.emit('refresh-browser');
+};
+
+// Sets the view to list mode.
+const setListView = () => {
+  commonStore.setListView();
+  emitter.emit('refresh-browser');
+};
+</script>
+
+<style scoped>
+.view-options-root {
+  display: flex;
+  gap: .1rem;
+  align-items: center;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  height: min-content;
+  overflow: hidden;
+}
+
+.view-options-root:hover {
+  /* padding: .2rem; */
+  /* background-color: var(--black-steel); */
+  border-radius: var(--large-radius);
+}
+</style>

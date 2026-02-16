@@ -13,6 +13,7 @@
 			<StateBar v-if="(!showFilters || !isDefaultWorkspace) && !kanbanView" :hasData="!!rootData.length" />
 			<div v-if="rootData.length || commonStore.viewSearchQuery.length || commonStore.showUntracked"
 				class="view-options">
+				<ViewOptions v-if="!kanbanView" />
 				<ActionButton v-if="!kanbanView" :icon="getAppIcon('arrows-sort')" v-tooltip="$t('stages.sort')" :buttonFunction="openSortMenu" />
 				<ActionButton :icon="getAppIcon('eye-cog')" v-tooltip="$t('stages.viewOptions')" :buttonFunction="openViewMenu" />
 				<ActionButton v-if="!kanbanView && isWideScreen" :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
@@ -59,6 +60,7 @@ import Kanban from '@/instances/desktop/components/Kanban.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 import SearchBar from '@/instances/desktop/components/SearchBar.vue';
 import StateBar from '@/instances/common/components/StateBar.vue';
+import ViewOptions from '@/instances/common/components/ViewOptions.vue';
 import VirtuaScroll from '@/instances/common/components/VirtuaScroll.vue';
 
 // services
