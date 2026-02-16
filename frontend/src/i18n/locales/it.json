@@ -61,7 +61,9 @@
     "upload": "Carica",
     "warning": "Attenzione",
     "yes": "Sì",
-    "all": "Tutti"
+    "all": "Tutti",
+    "hide": "Nascondi",
+    "show": "Mostra"
   },
   "placeholders": {
     "addItem": "Aggiungi elemento",
@@ -635,7 +637,12 @@
     "fileTypes": "Tipi di file",
     "foldersLabel": "Cartelle",
     "commonPresets": "Preset comuni",
-    "addExtension": "Aggiungi estensione"
+    "addExtension": "Aggiungi estensione",
+    "itemsModified": "{count} elementi modificati",
+    "loadingCollectionStates": "Caricamento stati della collezione",
+    "modifiedAsset": "Risorsa modificata",
+    "refreshingModifiedItems": "Aggiornamento elementi modificati",
+    "untrackedAsset": "Risorsa non tracciata"
   },
   "menus": {
     "addAccount": "Aggiungi account",

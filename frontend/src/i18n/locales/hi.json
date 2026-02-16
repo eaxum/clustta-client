@@ -61,7 +61,9 @@
     "upload": "अपलोड करें",
     "warning": "चेतावनी",
     "yes": "हाँ",
-    "all": "सभी"
+    "all": "सभी",
+    "hide": "छुपाएं",
+    "show": "दिखाएं"
   },
   "placeholders": {
     "addItem": "आइटम जोड़ें",
@@ -635,7 +637,12 @@
     "fileTypes": "फ़ाइल प्रकार",
     "foldersLabel": "फ़ोल्डर",
     "commonPresets": "सामान्य प्रीसेट",
-    "addExtension": "एक्सटेंशन जोड़ें"
+    "addExtension": "एक्सटेंशन जोड़ें",
+    "itemsModified": "{count} आइटम संशोधित",
+    "loadingCollectionStates": "संग्रह स्थितियाँ लोड हो रही हैं",
+    "modifiedAsset": "संशोधित संपत्ति",
+    "refreshingModifiedItems": "संशोधित आइटम रिफ्रेश हो रहे हैं",
+    "untrackedAsset": "अनट्रैक्ड संपत्ति"
   },
   "menus": {
     "addAccount": "खाता जोड़ें",

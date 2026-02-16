@@ -61,7 +61,9 @@
     "upload": "アップロード",
     "warning": "警告",
     "yes": "はい",
-    "all": "すべて"
+    "all": "すべて",
+    "hide": "非表示",
+    "show": "表示"
   },
   "placeholders": {
     "addItem": "アイテムを追加",
@@ -632,7 +634,12 @@
     "fileTypes": "ファイルタイプ",
     "foldersLabel": "フォルダー",
     "commonPresets": "共通プリセット",
-    "addExtension": "拡張子を追加"
+    "addExtension": "拡張子を追加",
+    "itemsModified": "{count} 個のアイテムが変更されました",
+    "loadingCollectionStates": "コレクションの状態を読み込み中",
+    "modifiedAsset": "変更されたアセット",
+    "refreshingModifiedItems": "変更されたアイテムを更新中",
+    "untrackedAsset": "未追跡のアセット"
   },
   "menus": {
     "addAccount": "アカウントを追加",
