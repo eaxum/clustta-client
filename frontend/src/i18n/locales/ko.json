@@ -61,7 +61,9 @@
     "upload": "업로드",
     "warning": "경고",
     "yes": "예",
-    "all": "전체"
+    "all": "전체",
+    "hide": "숨기기",
+    "show": "보기"
   },
   "placeholders": {
     "addItem": "항목 추가",
@@ -635,7 +637,12 @@
     "fileTypes": "파일 유형",
     "foldersLabel": "폴더",
     "commonPresets": "일반 프리셋",
-    "addExtension": "확장자 추가"
+    "addExtension": "확장자 추가",
+    "itemsModified": "{count}개 항목 수정됨",
+    "loadingCollectionStates": "컨렉션 상태 로딩 중",
+    "modifiedAsset": "수정된 에셋",
+    "refreshingModifiedItems": "수정된 항목 새로고침 중",
+    "untrackedAsset": "추적되지 않는 에셋"
   },
   "menus": {
     "addAccount": "계정 추가",

@@ -61,7 +61,9 @@
     "upload": "Upload",
     "warning": "Warning",
     "yes": "Yes",
-    "all": "All"
+    "all": "All",
+    "hide": "Hide",
+    "show": "Show"
   },
   "placeholders": {
     "addItem": "Add item",
@@ -635,7 +637,12 @@
     "fileTypes": "File Types",
     "foldersLabel": "Folders",
     "commonPresets": "Common Presets",
-    "addExtension": "Add Extension"
+    "addExtension": "Add Extension",
+    "itemsModified": "{count} items modified",
+    "loadingCollectionStates": "Loading collection states",
+    "modifiedAsset": "Modified asset",
+    "refreshingModifiedItems": "Refreshing modified items",
+    "untrackedAsset": "Untracked asset"
   },
   "menus": {
     "addAccount": "Add Account",

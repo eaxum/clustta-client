@@ -61,7 +61,9 @@
     "upload": "Загрузить",
     "warning": "Предупреждение",
     "yes": "Да",
-    "all": "Все"
+    "all": "Все",
+    "hide": "Скрыть",
+    "show": "Показать"
   },
   "placeholders": {
     "addItem": "Добавить элемент",
@@ -635,7 +637,12 @@
     "fileTypes": "Типы файлов",
     "foldersLabel": "Папки",
     "commonPresets": "Общие предустановки",
-    "addExtension": "Добавить расширение"
+    "addExtension": "Добавить расширение",
+    "itemsModified": "{count} элементов изменено",
+    "loadingCollectionStates": "Загрузка состояний коллекции",
+    "modifiedAsset": "Изменённый ресурс",
+    "refreshingModifiedItems": "Обновление изменённых элементов",
+    "untrackedAsset": "Неотслеживаемый ресурс"
   },
   "menus": {
     "addAccount": "Добавить аккаунт",

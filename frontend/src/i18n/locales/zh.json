@@ -61,7 +61,9 @@
     "upload": "上传",
     "warning": "警告",
     "yes": "是",
-    "all": "全部"
+    "all": "全部",
+    "hide": "隐藏",
+    "show": "显示"
   },
   "placeholders": {
     "addItem": "添加项目",
@@ -634,7 +636,12 @@
     "fileTypes": "文件类型",
     "foldersLabel": "文件夹",
     "commonPresets": "常用预设",
-    "addExtension": "添加扩展名"
+    "addExtension": "添加扩展名",
+    "itemsModified": "{count} 个项目已修改",
+    "loadingCollectionStates": "正在加载集合状态",
+    "modifiedAsset": "已修改的资产",
+    "refreshingModifiedItems": "正在刷新已修改的项目",
+    "untrackedAsset": "未跟踪的资产"
   },
   "menus": {
     "addAccount": "添加账户",

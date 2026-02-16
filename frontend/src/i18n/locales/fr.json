@@ -61,7 +61,9 @@
     "upload": "Téléverser",
     "warning": "Avertissement",
     "yes": "Oui",
-    "all": "Tout"
+    "all": "Tout",
+    "hide": "Masquer",
+    "show": "Afficher"
   },
   "placeholders": {
     "addItem": "Ajouter un élément",
@@ -632,7 +634,12 @@
     "fileTypes": "Types de fichiers",
     "foldersLabel": "Dossiers",
     "commonPresets": "Préréglages courants",
-    "addExtension": "Ajouter une extension"
+    "addExtension": "Ajouter une extension",
+    "itemsModified": "{count} éléments modifiés",
+    "loadingCollectionStates": "Chargement des états de la collection",
+    "modifiedAsset": "Ressource modifiée",
+    "refreshingModifiedItems": "Actualisation des éléments modifiés",
+    "untrackedAsset": "Ressource non suivie"
   },
   "menus": {
     "addAccount": "Ajouter un compte",

@@ -61,7 +61,9 @@
     "upload": "Enviar",
     "warning": "Aviso",
     "yes": "Sim",
-    "all": "Todos"
+    "all": "Todos",
+    "hide": "Ocultar",
+    "show": "Mostrar"
   },
   "placeholders": {
     "addItem": "Adicionar item",
@@ -635,7 +637,12 @@
     "fileTypes": "Tipos de Arquivo",
     "foldersLabel": "Pastas",
     "commonPresets": "Predefinições Comuns",
-    "addExtension": "Adicionar Extensão"
+    "addExtension": "Adicionar Extensão",
+    "itemsModified": "{count} itens modificados",
+    "loadingCollectionStates": "Carregando estados da coleção",
+    "modifiedAsset": "Recurso modificado",
+    "refreshingModifiedItems": "Atualizando itens modificados",
+    "untrackedAsset": "Recurso não rastreado"
   },
   "menus": {
     "addAccount": "Adicionar Conta",

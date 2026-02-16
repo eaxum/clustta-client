@@ -61,7 +61,9 @@
     "upload": "Hochladen",
     "warning": "Warnung",
     "yes": "Ja",
-    "all": "Alle"
+    "all": "Alle",
+    "hide": "Ausblenden",
+    "show": "Anzeigen"
   },
   "placeholders": {
     "addItem": "Element hinzufügen",
@@ -635,7 +637,12 @@
     "fileTypes": "Dateitypen",
     "foldersLabel": "Ordner",
     "commonPresets": "Gängige Voreinstellungen",
-    "addExtension": "Erweiterung hinzufügen"
+    "addExtension": "Erweiterung hinzufügen",
+    "itemsModified": "{count} Elemente geändert",
+    "loadingCollectionStates": "Sammlungsstatus wird geladen",
+    "modifiedAsset": "Geändertes Asset",
+    "refreshingModifiedItems": "Geänderte Elemente werden aktualisiert",
+    "untrackedAsset": "Nicht verfolgtes Asset"
   },
   "menus": {
     "addAccount": "Konto hinzufügen",

@@ -61,7 +61,9 @@
     "upload": "Subir",
     "warning": "Advertencia",
     "yes": "Sí",
-    "all": "Todo"
+    "all": "Todo",
+    "hide": "Ocultar",
+    "show": "Mostrar"
   },
   "placeholders": {
     "addItem": "Agregar elemento",
@@ -632,7 +634,12 @@
     "fileTypes": "Tipos de archivo",
     "foldersLabel": "Carpetas",
     "commonPresets": "Presets comunes",
-    "addExtension": "Agregar extensión"
+    "addExtension": "Agregar extensión",
+    "itemsModified": "{count} elementos modificados",
+    "loadingCollectionStates": "Cargando estados de la colección",
+    "modifiedAsset": "Recurso modificado",
+    "refreshingModifiedItems": "Actualizando elementos modificados",
+    "untrackedAsset": "Recurso sin seguimiento"
   },
   "menus": {
     "addAccount": "Agregar cuenta",
