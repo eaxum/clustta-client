@@ -663,6 +663,7 @@
     "ignoreFileFolder": "Ignorer ce fichier/dossier",
     "isAssigned": "Est assigné",
     "isNotAssigned": "N'est pas assigné",
+    "denseListView": "Vue en liste compacte",
     "kanbanView": "Vue Kanban",
     "listView": "Vue en liste",
     "locateClusttaFile": "Localiser le fichier Clustta",
@@ -857,7 +858,9 @@
     "en": "Anglais",
     "es": "Espagnol",
     "fr": "Français",
-    "ja": "Japonais"
+    "hi": "Hindi",
+    "ja": "Japonais",
+    "zh": "Chinois"
   },
   "stages": {
     "editProfile": "Modifier le profil",

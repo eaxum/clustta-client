@@ -666,6 +666,7 @@
     "ignoreFileFolder": "Ignore this file/folder",
     "isAssigned": "Is assigned",
     "isNotAssigned": "Is not assigned",
+    "denseListView": "Dense List View",
     "kanbanView": "Kanban View",
     "listView": "List View",
     "locateClusttaFile": "Locate Clustta File",
@@ -860,7 +861,9 @@
     "en": "English",
     "es": "Spanish",
     "fr": "French",
-    "ja": "Japanese"
+    "hi": "Hindi",
+    "ja": "Japanese",
+    "zh": "Chinese"
   },
   "stages": {
     "editProfile": "Edit Profile",
