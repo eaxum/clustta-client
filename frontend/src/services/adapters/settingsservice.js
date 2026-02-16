@@ -17,6 +17,13 @@ export const SettingsService = {
   GetUseGrid: async () => getSetting('useGrid', true),
   // Sets grid layout preference
   SetUseGrid: async (value) => setSetting('useGrid', value),
+  // Returns the default view mode ('compact', 'dense', or 'grid')
+  GetDefaultViewMode: async () => getSetting('defaultViewMode', 'compact'),
+  // Sets the default view mode
+  SetDefaultViewMode: async (value) => {
+    setSetting('defaultViewMode', value);
+    setSetting('useGrid', value === 'grid');
+  },
   // Returns whether to show untracked projects
   IsShowUntrackedProjects: async () => getSetting('showUntrackedProjects', true),
   // Sets whether to show untracked projects

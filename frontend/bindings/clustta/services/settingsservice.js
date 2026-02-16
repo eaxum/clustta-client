@@ -122,6 +122,15 @@ export function GetDefaultLocation() {
 }
 
 /**
+ * GetDefaultViewMode retrieves the default view mode setting.
+ * Returns "compact" (list), "dense" (compact), or "grid".
+ * @returns {$CancellablePromise<string>}
+ */
+export function GetDefaultViewMode() {
+    return $Call.ByID(1115855849);
+}
+
+/**
  * GetEulaAccepted retrieves whether the user has accepted the EULA.
  * @returns {$CancellablePromise<boolean>}
  */
@@ -353,6 +362,15 @@ export function SetCurrentVersion(versionNumber) {
  */
 export function SetDefaultLocation(locationID) {
     return $Call.ByID(1651704380, locationID);
+}
+
+/**
+ * SetDefaultViewMode sets the default view mode.
+ * @param {string} viewMode
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetDefaultViewMode(viewMode) {
+    return $Call.ByID(204045845, viewMode);
 }
 
 /**

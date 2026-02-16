@@ -46,14 +46,15 @@
             </div>
           </div>
 
-          <div class="settings-item" @click="toggleUseGrid">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon(commonStore.useGrid ? 'four-squares' : 'list-compact')"></div>
+          <div class="settings-item">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon(defaultViewIcon)"></div>
             <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.defaultView') }}:  {{ commonStore.useGrid ? $t('settings.grid') : $t('settings.list') }}</div>
+              <div class="settings-header">{{ $t('settings.defaultView') }}</div>
               <div class="settings-body">{{ $t('settings.defaultViewDescription') }}</div>
             </div>
             <div class="settings-action fixed-width">
-              <ToggleSwitch :switchValueProp="commonStore.useGrid" />
+              <DropDownBox :items="viewModeOptions" :onSelect="selectDefaultView"
+                :selectedItem="currentViewLabel" :placeHolder="'None'" :fixedWidth="true" />
             </div>
           </div>
         </div>
@@ -175,7 +176,6 @@ import { useCommonStore } from '@/stores/common';
 
 // components
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // refs
 const { t, currentLanguage, languageNames, setLocale, getLocaleCode } = useLocale();
@@ -200,6 +200,29 @@ const availableLanguages = computed(() => {
 const currentLanguageName = computed(() => {
   return currentLanguage.value;
 });
+
+// Returns the display label for the current default view mode.
+const currentViewLabel = computed(() => {
+  const mode = commonStore.viewMode;
+  if (mode === 'dense') return t('settings.compact');
+  if (mode === 'grid') return t('settings.grid');
+  return t('settings.list');
+});
+
+// Returns the icon for the current default view mode.
+const defaultViewIcon = computed(() => {
+  const mode = commonStore.viewMode;
+  if (mode === 'dense') return 'list-compact';
+  if (mode === 'grid') return 'four-squares';
+  return 'list';
+});
+
+// Returns the available view mode options for the dropdown.
+const viewModeOptions = computed(() => [
+  t('settings.list'),
+  t('settings.compact'),
+  t('settings.grid'),
+]);
 
 // methods
 
@@ -238,20 +261,21 @@ const selectTheme = (theme) => {
   })
 };
 
-const toggleUseGrid = () => {
-  const newUseGrid = !commonStore.useGrid;
-  SettingsService.SetUseGrid(newUseGrid).then(() => {
-    commonStore.useGrid = newUseGrid;
-    // Update viewMode to match
-    if (newUseGrid) {
-      commonStore.setGridView();
-    } else {
-      commonStore.setCompactView();
-    }
-    const viewType = newUseGrid ? t('settings.grid') : t('settings.list');
+// Selects and applies the default view mode.
+const selectDefaultView = (viewLabel) => {
+  const listLabel = t('settings.list');
+  const compactLabel = t('settings.compact');
+  let viewMode = 'compact';
+  if (viewLabel === compactLabel) viewMode = 'dense';
+  else if (viewLabel !== listLabel) viewMode = 'grid';
+
+  SettingsService.SetDefaultViewMode(viewMode).then(() => {
+    if (viewMode === 'compact') commonStore.setCompactView();
+    else if (viewMode === 'dense') commonStore.setDenseView();
+    else commonStore.setGridView();
     notificationStore.addNotification(
       t('notifications.defaultViewUpdated'),
-      t('notifications.defaultViewSet', { viewType }),
+      t('notifications.defaultViewSet', { viewType: viewLabel }),
       "success"
     );
   }).catch((error) => {

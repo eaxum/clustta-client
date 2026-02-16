@@ -142,10 +142,12 @@ const setWorkspace = (workspaceName) => {
   if (workspace.viewMode !== undefined) {
     if (workspace.viewMode === 'compact') {
       commonStore.setCompactView();
-    } else if (workspace.viewMode === 'larger') {
-      commonStore.setLargerView();
+    } else if (workspace.viewMode === 'dense') {
+      commonStore.setDenseView();
     } else if (workspace.viewMode === 'grid') {
       commonStore.setGridView();
+    } else if (workspace.viewMode === 'kanban') {
+      commonStore.setKanbanView();
     }
   }
   

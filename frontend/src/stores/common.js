@@ -3,10 +3,10 @@ import {
   SettingsService,
 } from "@/services";
 
-let defaultUseGrid = true;
-await SettingsService.GetUseGrid()
+let defaultViewMode = 'compact';
+await SettingsService.GetDefaultViewMode()
   .then((response) => {
-    defaultUseGrid = response;
+    defaultViewMode = response;
   })
   .catch((error) => console.log(error));
 
@@ -33,13 +33,13 @@ export const useCommonStore = defineStore("common", {
     showDependencies: true,
     useDeep: false,
     navigatorMode: false,
-    useGrid: defaultUseGrid,
-    viewMode: defaultUseGrid ? 'grid' : 'compact',
+    useGrid: defaultViewMode === 'grid',
+    viewMode: defaultViewMode,
     sortBy: 'name',
     sortOrder: 'asc',
     gridSize: 200,
-    listItemHeight: 60,
-    listItemGap: 4,
+    listItemHeight: defaultViewMode === 'dense' ? 42 : 60,
+    listItemGap: defaultViewMode === 'dense' ? 2 : 4,
 
     filterDependencyAssets: true,
     filterDependencyCollections: true,
@@ -140,6 +140,12 @@ export const useCommonStore = defineStore("common", {
     setKanbanView() {
       this.viewMode = 'kanban';
       this.useGrid = false;
+    },
+    setDenseView() {
+      this.viewMode = 'dense';
+      this.useGrid = false;
+      this.listItemGap = 2;
+      this.listItemHeight = 42;
     },
     setListView() {
       this.viewMode = 'compact';
