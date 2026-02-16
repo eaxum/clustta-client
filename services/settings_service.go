@@ -288,6 +288,25 @@ func (s *SettingsService) SetUseGrid(useGrid bool) error {
 	return nil
 }
 
+// GetDefaultViewMode retrieves the default view mode setting.
+// Returns "compact" (list), "dense" (compact), or "grid".
+func (s *SettingsService) GetDefaultViewMode() (string, error) {
+	viewMode, err := settings.GetDefaultViewMode()
+	if err != nil {
+		return viewMode, err
+	}
+	return viewMode, nil
+}
+
+// SetDefaultViewMode sets the default view mode.
+func (s *SettingsService) SetDefaultViewMode(viewMode string) error {
+	err := settings.SetDefaultViewMode(viewMode)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // GetProjectDirectory retrieves the default project directory path.
 func (s *SettingsService) GetProjectDirectory() (string, error) {
 	projectDir, err := settings.GetProjectDirectory()

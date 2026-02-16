@@ -2,8 +2,11 @@
   <div ref="viewMenu" class="filter-menu-container" v-stop-propagation>
 
     <!-- View Mode Section -->
-    <ActionButton :icon="getAppIcon('list-compact')" :showLabel="true" :fullWidth="true" :label="$t('menus.listView')"
+    <ActionButton :icon="getAppIcon('list')" :showLabel="true" :fullWidth="true" :label="$t('menus.listView')"
       :color="isListActive ? 'var(--steel)' : undefined" :buttonFunction="setListView" />
+
+    <ActionButton :icon="getAppIcon('list-compact')" :showLabel="true" :fullWidth="true" :label="$t('menus.compactView')"
+      :color="isDenseActive ? 'var(--steel)' : undefined" :buttonFunction="setDenseView" />
 
     <ActionButton :icon="getAppIcon('four-squares')" :showLabel="true" :fullWidth="true" :label="$t('menus.gridView')"
       :color="isGridActive ? 'var(--steel)' : undefined" :buttonFunction="setGridView" />
@@ -65,6 +68,7 @@ const viewMenu = ref(null);
 
 // computed properties
 const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
+const isDenseActive = computed(() => commonStore.viewMode === 'dense');
 const isGridActive = computed(() => commonStore.viewMode === 'grid');
 const isKanbanActive = computed(() => commonStore.viewMode === 'kanban');
 const isListActive = computed(() => commonStore.viewMode === 'compact');
@@ -79,6 +83,13 @@ const collapseAll = () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
+// Sets the view to dense list mode.
+const setDenseView = () => {
+  commonStore.setDenseView();
+  emitter.emit('refresh-browser');
+  menu.hideContextMenu();
+};
 
 // Sets the view to grid mode.
 const setGridView = () => {

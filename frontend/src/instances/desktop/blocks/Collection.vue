@@ -716,6 +716,8 @@ onBeforeUnmount(() => {
 .single-action-button{
   align-content: center;
   justify-content: center;
+  /* background-color: crimson; */
+  border-radius: var(--small-radius);
 }
 
 .loading-children-icon {

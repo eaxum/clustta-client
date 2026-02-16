@@ -40,6 +40,7 @@ type Settings struct {
 	EulaAccepted          bool   `json:"eula_accepted"`
 	ProjectGridView       bool   `json:"project_grid_view"`
 	UseGrid               bool   `json:"use_grid"`
+	DefaultViewMode       string `json:"default_view_mode"`
 	ShowUntrackedProjects bool   `json:"show_untracked_projects"`
 
 	ProjectsDir         string `json:"projects_dir"`
@@ -294,6 +295,33 @@ func SetUseGrid(useGrid bool) error {
 		return err
 	}
 	settings.UseGrid = useGrid
+	return saveSettings(settings)
+}
+
+// GetDefaultViewMode retrieves the default view mode setting.
+// Returns "compact" (list), "dense" (compact), or "grid".
+func GetDefaultViewMode() (string, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return "compact", err
+	}
+	if settings.DefaultViewMode == "" {
+		if settings.UseGrid {
+			return "grid", nil
+		}
+		return "compact", nil
+	}
+	return settings.DefaultViewMode, nil
+}
+
+// SetDefaultViewMode sets the default view mode.
+func SetDefaultViewMode(viewMode string) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.DefaultViewMode = viewMode
+	settings.UseGrid = viewMode == "grid"
 	return saveSettings(settings)
 }
 
