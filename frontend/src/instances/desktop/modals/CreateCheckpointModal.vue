@@ -172,6 +172,7 @@ const createCheckPoint = async () => {
     CheckpointService.AddCheckpoint(projectStore.activeProject.uri, [taskPath], comment, previewPath, groupId, useImageAsCover.value)
       .then(() => {
         emitter.emit('refresh-browser');
+        emitter.emit('update-checkpoints');
         assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter((modifiedTaskPath) => modifiedTaskPath !== taskPath);
         assetStore.selectedAsset.file_status = 'normal';
         projectStore.refreshProjects();
@@ -187,6 +188,7 @@ const createCheckPoint = async () => {
       .then(() => {
         assetStore.untrackedAssetsPath = assetStore.untrackedAssetsPath.filter((path) => path !== taskPath);
         emitter.emit('refresh-browser');
+        emitter.emit('update-checkpoints');
         projectStore.refreshProjects();
         isAwaitingResponse.value = false;
         closeModal();

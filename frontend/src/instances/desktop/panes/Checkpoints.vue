@@ -24,6 +24,7 @@
 // imports
 import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
+import emitter from '@/lib/mitt';
 import { FSService, CheckpointService } from '@/services';
 import utils from '@/services/utils';
 
@@ -196,6 +197,11 @@ const updateTaskHash = async () => {
   }
 };
 
+const updateCheckpoints = async () => {
+  await refreshCheckpoints();
+  await updateTaskHash();
+}
+
 // Add keyboard navigation handler
 const handleKeyDown = (event) => {
   if (!checkpoints.value.length) return;
@@ -232,19 +238,16 @@ const handleKeyDown = (event) => {
 };
 
 onMounted(async () => {
-  await refreshCheckpoints();
-
-  // Get task hash
-  await updateTaskHash();
-  console.log(taskHash.value);
-
+  await updateCheckpoints();
   // Add keyboard navigation listener
   // window.addEventListener('keydown', handleKeyDown);
+  emitter.on('update-checkpoints', updateCheckpoints);
 });
 
 onBeforeUnmount(() => {
   // Remove keyboard navigation listener
   // window.removeEventListener('keydown', handleKeyDown);
+  emitter.off('update-checkpoints', updateCheckpoints);
 });
 
 </script>
