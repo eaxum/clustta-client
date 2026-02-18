@@ -260,6 +260,14 @@ export function GetStudios(path) {
 }
 
 /**
+ * GetSyncAfterCheckpoint returns whether auto-sync after checkpoint is enabled.
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function GetSyncAfterCheckpoint() {
+    return $Call.ByID(1410419631);
+}
+
+/**
  * GetTheme retrieves the current theme name.
  * @returns {$CancellablePromise<string>}
  */
@@ -425,6 +433,15 @@ export function SetProjectDirectory(dir) {
  */
 export function SetSharedProjectDirectory(dir) {
     return $Call.ByID(2608064267, dir);
+}
+
+/**
+ * SetSyncAfterCheckpoint sets the auto-sync after checkpoint preference.
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetSyncAfterCheckpoint(enabled) {
+    return $Call.ByID(1067699379, enabled);
 }
 
 /**

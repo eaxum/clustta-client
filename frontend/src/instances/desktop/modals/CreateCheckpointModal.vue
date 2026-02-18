@@ -38,6 +38,11 @@
         <ToggleSwitch :switchValueProp="useImageAsCover" @click="useAsCover()" />
       </div>
 
+      <div v-if="isRemoteProject" class="horizontal-flex">
+        <div class="input-label"> {{ $t('modals.syncAfterCheckpoint') }}</div>
+        <ToggleSwitch :switchValueProp="syncAfterCheckpointEnabled" @click="toggleSyncAfterCheckpoint()" />
+      </div>
+
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
         <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createCheckPoint" :isActive="isValueChanged"
@@ -67,7 +72,7 @@ import StatusMenu from '@/instances/desktop/menus/StatusMenu.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // services
-import { CheckpointService, ClipboardService, DialogService } from '@/services';
+import { CheckpointService, ClipboardService, DialogService, SettingsService, SyncService } from '@/services';
 
 // stores
 import { useAssetStore } from '@/stores/assets';
@@ -94,6 +99,7 @@ const displayStatusMenu = ref(false);
 const isAwaitingResponse = ref(false);
 const message = ref('');
 const modalContainer = ref(null);
+const syncAfterCheckpointEnabled = ref(false);
 const useImageAsCover = ref(true);
 
 // constants
@@ -110,6 +116,10 @@ const isValueChanged = computed(() => {
 });
 
 // Returns whether the status menu should be displayed.
+const isRemoteProject = computed(() => {
+  return projectStore.activeProject?.has_remote;
+});
+
 const statusMenuDisplayed = computed(() => {
   return assetStore.selectedAsset.type !== 'untracked_task' && displayStatusMenu.value;
 });
@@ -178,6 +188,9 @@ const createCheckPoint = async () => {
         projectStore.refreshProjects();
         isAwaitingResponse.value = false;
         closeModal();
+        if (syncAfterCheckpointEnabled.value) {
+          syncAsset();
+        }
       })
       .catch((error) => {
         isAwaitingResponse.value = false;
@@ -192,6 +205,9 @@ const createCheckPoint = async () => {
         projectStore.refreshProjects();
         isAwaitingResponse.value = false;
         closeModal();
+        if (syncAfterCheckpointEnabled.value) {
+          syncAsset();
+        }
       })
       .catch((error) => {
         isAwaitingResponse.value = false;
@@ -217,6 +233,25 @@ const removePreveiw = () => {
   trayStates.screenshot = '';
   trayStates.previewFile = '';
   trayStates.previewFullPath = '';
+};
+
+// Syncs the current asset to the remote server.
+const syncAsset = () => {
+  const assetId = assetStore.selectedAsset.id;
+  if (!assetId || !isRemoteProject.value) return;
+  SyncService.SyncAsset(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, assetId)
+    .then(() => {
+      notificationStore.addNotification(t('common.sync'), t('notifications.assetSyncedSuccessfully'), 'success');
+    })
+    .catch((error) => {
+      console.error(error);
+      notificationStore.errorNotification(t('notifications.errorSyncingAsset'), error);
+    });
+};
+
+// Toggles the sync after checkpoint toggle.
+const toggleSyncAfterCheckpoint = () => {
+  syncAfterCheckpointEnabled.value = !syncAfterCheckpointEnabled.value;
 };
 
 // Opens a dialog to select a preview file.
@@ -264,6 +299,11 @@ onMounted(async () => {
   trayStates.screenshot = null;
   trayStates.previewFile = '';
   trayStates.previewFullPath = '';
+  try {
+    syncAfterCheckpointEnabled.value = await SettingsService.GetSyncAfterCheckpoint();
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 onUnmounted(() => {

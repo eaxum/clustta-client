@@ -33,6 +33,7 @@ import General from '@/instances/desktop/settings/General.vue';
 import Collaborators from '@/instances/desktop/settings/Collaborators.vue';
 import ProjectTemplates from '@/instances/desktop/settings/ProjectTemplates.vue';
 import Directories from '@/instances/desktop/settings/Directories.vue';
+import UserAdvanced from '@/instances/desktop/settings/UserAdvanced.vue';
 
 
 // refs
@@ -41,12 +42,13 @@ const settingsComponents = {
 	collaborators: Collaborators,
 	projecttemplates: ProjectTemplates,
 	directories: Directories,
+	advanced: UserAdvanced,
 };
 
 // computed props
 const settingsItems = computed(() => {
 	
-	const userSettingsIds = ['general', 'directories', 'projecttemplates'];
+	const userSettingsIds = ['general', 'directories', 'projecttemplates', 'advanced'];
 	const generalSettings = settings.settingsItems.filter((item) => userSettingsIds.includes(item.id));
 	return generalSettings
 });

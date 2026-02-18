@@ -420,3 +420,13 @@ func (s *SettingsService) CheckLocationHealth(locationID string) (settings.Locat
 func (s *SettingsService) CheckAllLocationsHealth() ([]settings.LocationHealth, error) {
 	return settings.CheckAllLocationsHealth()
 }
+
+// GetSyncAfterCheckpoint returns whether auto-sync after checkpoint is enabled.
+func (s *SettingsService) GetSyncAfterCheckpoint() (bool, error) {
+	return settings.GetSyncAfterCheckpoint()
+}
+
+// SetSyncAfterCheckpoint sets the auto-sync after checkpoint preference.
+func (s *SettingsService) SetSyncAfterCheckpoint(enabled bool) error {
+	return settings.SetSyncAfterCheckpoint(enabled)
+}

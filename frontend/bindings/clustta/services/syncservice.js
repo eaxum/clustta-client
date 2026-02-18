@@ -126,6 +126,18 @@ export function ResolveConflicts(projectPath, conflictsJSON) {
 }
 
 /**
+ * SyncAsset pushes a single asset and its checkpoints (including chunks and previews) to the server.
+ * This is a user-initiated action that bypasses the write-through gate.
+ * @param {string} projectPath
+ * @param {string} remoteURL
+ * @param {string} assetId
+ * @returns {$CancellablePromise<void>}
+ */
+export function SyncAsset(projectPath, remoteURL, assetId) {
+    return $Call.ByID(2549427781, projectPath, remoteURL, assetId);
+}
+
+/**
  * @param {string} projectPath
  * @param {string} remoteURL
  * @param {boolean} pullChunk

@@ -339,3 +339,152 @@ func PushPartialData(projectPath, remoteUrl, userId string, data ProjectData, sy
 	}
 	return tx.Commit()
 }
+
+// PushAssetData loads a single asset and its checkpoints, uploads their chunks and previews,
+// then pushes the metadata to the server. On success it marks only the pushed rows as synced.
+func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func(int, int, string, string)) error {
+	if !utils.IsValidURL(remoteUrl) {
+		return fmt.Errorf("invalid remote URL: %s", remoteUrl)
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	data, err := LoadAssetData(tx, assetId)
+	if err != nil {
+		return err
+	}
+	if data.IsEmpty() {
+		return nil
+	}
+
+	// Collect chunk hashes from checkpoints
+	chunks := []string{}
+	for _, cp := range data.TasksCheckpoints {
+		if cp.Chunks == "" {
+			continue
+		}
+		for _, hash := range strings.Split(cp.Chunks, ",") {
+			if !utils.Contains(chunks, hash) {
+				chunks = append(chunks, hash)
+			}
+		}
+	}
+
+	// Upload missing chunks
+	if len(chunks) > 0 {
+		remoteMissing, err := FetchMissingChunks(remoteUrl, userId, chunks)
+		if err != nil {
+			return err
+		}
+		if len(remoteMissing) > 0 {
+			chunkInfos, err := chunk_service.GetChunksInfo(tx, remoteMissing)
+			if err != nil {
+				return err
+			}
+			err = chunk_service.PushChunksBatch(tx, remoteUrl, userId, chunkInfos, callback)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Collect and upload missing previews
+	previewIds := []string{}
+	for _, task := range data.Tasks {
+		if task.PreviewId != "" && !utils.Contains(previewIds, task.PreviewId) {
+			previewIds = append(previewIds, task.PreviewId)
+		}
+	}
+	for _, cp := range data.TasksCheckpoints {
+		if cp.PreviewId != "" && !utils.Contains(previewIds, cp.PreviewId) {
+			previewIds = append(previewIds, cp.PreviewId)
+		}
+	}
+
+	if len(previewIds) > 0 {
+		remoteMissingPreviews, err := FetchMissingPreviews(remoteUrl, userId, previewIds)
+		if err != nil {
+			return err
+		}
+		if len(remoteMissingPreviews) > 0 {
+			err = repository.PushPreviews(tx, remoteUrl, userId, remoteMissingPreviews, callback)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Serialize and push metadata
+	pdData := repositorypb.ProjectData{
+		Tasks:            repository.ToPbTasks(data.Tasks),
+		TasksCheckpoints: repository.ToPbCheckpoints(data.TasksCheckpoints),
+	}
+
+	dataByte, err := proto.Marshal(&pdData)
+	if err != nil {
+		return err
+	}
+	compressedData, err := zstd.CompressLevel(nil, dataByte, 3)
+	if err != nil {
+		return err
+	}
+
+	dataUrl := remoteUrl + "/data"
+	req, err := http.NewRequest("POST", dataUrl, bytes.NewBuffer(compressedData))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{Timeout: 5 * time.Minute}
+	response, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	switch response.StatusCode {
+	case 200:
+		// Mark only the specific rows as synced
+		syncTargets := map[string][]string{}
+		for _, t := range data.Tasks {
+			syncTargets["task"] = append(syncTargets["task"], t.Id)
+		}
+		for _, cp := range data.TasksCheckpoints {
+			syncTargets["task_checkpoint"] = append(syncTargets["task_checkpoint"], cp.Id)
+		}
+		for table, ids := range syncTargets {
+			err = utils.SetRowsSynced(tx, table, ids)
+			if err != nil {
+				return err
+			}
+		}
+		return tx.Commit()
+	case 409:
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read conflict response: %w", err)
+		}
+		var result WriteResult
+		if err := json.Unmarshal(body, &result); err != nil {
+			return fmt.Errorf("failed to parse conflict response: %w", err)
+		}
+		return &SyncConflictError{Conflicts: result.Conflicts}
+	default:
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			return err
+		}
+		return errors.New(string(body))
+	}
+}
