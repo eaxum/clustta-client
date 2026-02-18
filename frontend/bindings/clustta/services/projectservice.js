@@ -146,6 +146,19 @@ export function GetWriteThroughEnabled(projectPath) {
 }
 
 /**
+ * InspectClusttaFile opens a .clst file and extracts its metadata.
+ * If the file is outside Clustta's known project directories, updates the
+ * working directory in the database to a sibling folder of the .clst file.
+ * @param {string} filePath
+ * @returns {$CancellablePromise<$models.ClusttaFileInfo>}
+ */
+export function InspectClusttaFile(filePath) {
+    return $Call.ByID(1688002974, filePath).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType5($result);
+    }));
+}
+
+/**
  * @param {string} itemPath
  * @param {string[]} ignoreList
  * @returns {$CancellablePromise<boolean>}
@@ -317,3 +330,4 @@ const $$createType1 = repository$0.ProjectInfo.createFrom;
 const $$createType2 = $models.UntrackedItems.createFrom;
 const $$createType3 = $Create.Array($Create.Any);
 const $$createType4 = $Create.Array($$createType1);
+const $$createType5 = $models.ClusttaFileInfo.createFrom;

@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, createMemoryHistory } from "vue-router";
-import { AuthService, SettingsService } from "@/services";
+import { AuthService, SettingsService, AppService, ProjectService } from "@/services";
 import { useUserStore } from '@/stores/users';
 import { useAccountStore } from '@/stores/accounts';
 import { useThemeStore } from '@/stores/theme';
@@ -161,6 +161,21 @@ router.beforeEach(async (to, from, next) => {
       }
       
       storesInitialized = true;
+
+      // Check for a .clst file that was opened before the frontend was ready
+      if (!isWebMode) {
+        try {
+          const pendingFile = await AppService.GetPendingOpenFile();
+          if (pendingFile) {
+            const fileInfo = await ProjectService.InspectClusttaFile(pendingFile);
+            if (fileInfo && fileInfo.valid) {
+              await projectStore.openClusttaFile(fileInfo);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to open pending project file:', error);
+        }
+      }
     } catch (error) {
       console.error('Failed to initialize stores:', error);
     }

@@ -75,8 +75,21 @@ const handleSyncConflict = (conflictData) => {
     modals.setModalVisibility('syncConflictModal', true);
 };
 
-const handleOpenProjectFile = async (filePath) => {
-//  TODO implement reading clustta files
+const handleopenClusttaFile = async (filePath) => {
+    if (!filePath) return;
+
+    try {
+        const fileInfo = await ProjectService.InspectClusttaFile(filePath);
+        if (!fileInfo || !fileInfo.valid) {
+            notificationStore.errorNotification("Invalid Project", "The selected file is not a valid Clustta project.");
+            return;
+        }
+
+        await projectStore.openClusttaFile(fileInfo);
+    } catch (error) {
+        console.error('Failed to open project file:', error);
+        notificationStore.errorNotification("Failed to Open Project", error);
+    }
 };
 
 if (platformStore.isWeb) {
@@ -92,7 +105,7 @@ if (platformStore.isWeb) {
     Events.On('open-project-file', async (message) => {
         const filePath = message.data;
         console.log('Opening project file:', filePath);
-        await handleOpenProjectFile(filePath);
+        await handleopenClusttaFile(filePath);
     });
 }
 

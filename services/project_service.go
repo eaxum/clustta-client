@@ -682,6 +682,123 @@ func (p *ProjectService) ValidateProjectFile(filePath string) (bool, error) {
 	return repository.VerifyProjectIntegrity(filePath)
 }
 
+// ClusttaFileInfo contains lightweight metadata extracted from a .clst file.
+// Used when opening a project file from an arbitrary location.
+type ClusttaFileInfo struct {
+	Id                    string `json:"id"`
+	Name                  string `json:"name"`
+	StudioName            string `json:"studio_name"`
+	Icon                  string `json:"icon"`
+	WorkingDirectory      string `json:"working_directory"`
+	LocalWorkingDirectory string `json:"local_working_directory"`
+	FilePath              string `json:"file_path"`
+	Valid                 bool   `json:"valid"`
+}
+
+// InspectClusttaFile opens a .clst file and extracts its metadata.
+// If the file is outside Clustta's known project directories, updates the
+// working directory in the database to a sibling folder of the .clst file.
+func (p *ProjectService) InspectClusttaFile(filePath string) (ClusttaFileInfo, error) {
+	if !utils.FileExists(filePath) {
+		return ClusttaFileInfo{}, errors.New("file not found")
+	}
+
+	absPath, err := filepath.Abs(filePath)
+	if err != nil {
+		return ClusttaFileInfo{}, err
+	}
+
+	valid, err := repository.VerifyProjectIntegrity(absPath)
+	if err != nil || !valid {
+		return ClusttaFileInfo{Valid: false, FilePath: absPath}, errors.New("invalid project file")
+	}
+
+	dbConn, err := utils.OpenDb(absPath)
+	if err != nil {
+		return ClusttaFileInfo{Valid: false, FilePath: absPath}, err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return ClusttaFileInfo{Valid: false, FilePath: absPath}, err
+	}
+	defer tx.Rollback()
+
+	projectId, err := utils.GetProjectId(tx)
+	if err != nil {
+		return ClusttaFileInfo{Valid: false, FilePath: absPath}, err
+	}
+
+	projectName, err := utils.GetProjectName(tx)
+	if err != nil {
+		return ClusttaFileInfo{Valid: false, FilePath: absPath}, err
+	}
+
+	studioName, err := utils.GetStudioName(tx)
+	if err != nil {
+		studioName = "Personal"
+	}
+
+	icon, err := utils.GetProjectIcon(tx)
+	if err != nil {
+		icon = ""
+	}
+
+	workingDir, err := utils.GetProjectWorkingDir(tx)
+	if err != nil {
+		workingDir = ""
+	}
+
+	// If the file is outside Clustta's known project directories,
+	// update the working directory in the database to a sibling folder of the .clst file.
+	localWorkingDir := ""
+	if !isInProjectsDirectory(absPath) {
+		localWorkingDir = strings.TrimSuffix(absPath, filepath.Ext(absPath))
+		err = utils.SetProjectWorkingDir(tx, filepath.ToSlash(localWorkingDir))
+		if err != nil {
+			return ClusttaFileInfo{Valid: false, FilePath: absPath}, err
+		}
+		err = tx.Commit()
+		if err != nil {
+			return ClusttaFileInfo{Valid: false, FilePath: absPath}, err
+		}
+		workingDir = localWorkingDir
+	}
+
+	return ClusttaFileInfo{
+		Id:                    projectId,
+		Name:                  projectName,
+		StudioName:            studioName,
+		Icon:                  icon,
+		WorkingDirectory:      workingDir,
+		LocalWorkingDirectory: localWorkingDir,
+		FilePath:              absPath,
+		Valid:                 true,
+	}, nil
+}
+
+// isInProjectsDirectory checks if a file path is inside Clustta's known project directories.
+func isInProjectsDirectory(absPath string) bool {
+	projectsDir, err := settings.GetProjectDirectory()
+	if err == nil && projectsDir != "" {
+		normed, _ := filepath.Abs(projectsDir)
+		if strings.HasPrefix(strings.ToLower(absPath), strings.ToLower(normed)+string(filepath.Separator)) {
+			return true
+		}
+	}
+
+	sharedDir, err := settings.GetSharedProjectDirectory()
+	if err == nil && sharedDir != "" {
+		normed, _ := filepath.Abs(sharedDir)
+		if strings.HasPrefix(strings.ToLower(absPath), strings.ToLower(normed)+string(filepath.Separator)) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // UploadProject uploads a local .clst project to a remote studio.
 // It creates the project on the remote, copies the file, remaps IDs, and prepares for sync.
 func (p *ProjectService) UploadProject(sourceClstPath, studioName, workingDir, projectName, remoteProjectUrl string) (repository.ProjectInfo, error) {

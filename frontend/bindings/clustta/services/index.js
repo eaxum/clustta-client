@@ -57,6 +57,7 @@ export {
     AccountInfo,
     AssetStateItem,
     AssetsStates,
+    ClusttaFileInfo,
     CollectionChildrenState,
     CollectionStateFlags,
     Country,

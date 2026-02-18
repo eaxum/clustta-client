@@ -511,6 +511,70 @@ export const useProjectStore = defineStore("projects", {
         }
       }
     },
+
+    // Opens a .clst file from an arbitrary location.
+    // If the project belongs to a known studio and is already listed, navigates to it.
+    // Otherwise, temporarily adds it to the Personal studio project list.
+    async openClusttaFile(fileInfo) {
+      const notificationStore = useNotificationStore();
+      const stage = useStageStore();
+
+      const studioName = fileInfo.studio_name || "Personal";
+
+      // Check if the project's studio matches the currently selected studio
+      const matchingStudio = this.studios.find(s => s.name === studioName);
+
+      if (matchingStudio && matchingStudio.name === this.selectedStudio?.name) {
+        // Same studio - check if project is already in the list
+        const existingProject = this.projects.find(p => p.id === fileInfo.id);
+        if (existingProject) {
+          await this.gotoProject(existingProject);
+          stage.setStageVisibility("browser", true);
+          return;
+        }
+      }
+
+      if (matchingStudio && matchingStudio.name !== "Personal") {
+        // Project belongs to a different known studio - switch to it and look for the project
+        await this.selectStudio(matchingStudio);
+        const existingProject = this.projects.find(p => p.id === fileInfo.id);
+        if (existingProject) {
+          await this.gotoProject(existingProject);
+          stage.setStageVisibility("browser", true);
+          return;
+        }
+      }
+
+      // Project is not in any known studio directory - open temporarily in Personal
+      const personalStudio = this.studios.find(s => s.name === "Personal");
+      if (personalStudio && this.selectedStudio?.name !== "Personal") {
+        await this.selectStudio(personalStudio);
+      }
+
+      // Build a temporary ProjectInfo from the file info and add to list
+      let projectInfo;
+      try {
+        projectInfo = await ProjectService.ProjectInfo(fileInfo.file_path);
+      } catch (error) {
+        notificationStore.errorNotification("Failed to read project file", error);
+        return;
+      }
+
+      projectInfo.uri = fileInfo.file_path;
+      projectInfo.is_downloaded = true;
+      projectInfo.is_external = true;
+
+      // Avoid duplicates
+      const alreadyAdded = this.projects.find(p => p.id === projectInfo.id);
+      if (alreadyAdded) {
+        await this.gotoProject(alreadyAdded);
+      } else {
+        this.projects.unshift(projectInfo);
+        await this.gotoProject(projectInfo);
+      }
+
+      stage.setStageVisibility("browser", true);
+    },
   },
 });
 
