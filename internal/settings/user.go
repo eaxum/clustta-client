@@ -55,6 +55,8 @@ type Settings struct {
 	ProjectLocations  []ProjectLocation `json:"project_locations"`
 	DefaultLocationID string            `json:"default_location_id"`
 
+	SyncAfterCheckpoint bool `json:"sync_after_checkpoint"`
+
 	PinnedProjects map[string][]string      `json:"pinned_projects"`
 	RecentProjects map[string][]string      `json:"recent_projects"`
 	Studios        []Studio                 `json:"studios"`
@@ -322,6 +324,26 @@ func SetDefaultViewMode(viewMode string) error {
 	}
 	settings.DefaultViewMode = viewMode
 	settings.UseGrid = viewMode == "grid"
+	return saveSettings(settings)
+}
+
+// GetSyncAfterCheckpoint returns whether auto-sync after checkpoint is enabled.
+// Defaults to false if not set.
+func GetSyncAfterCheckpoint() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return false, err
+	}
+	return settings.SyncAfterCheckpoint, nil
+}
+
+// SetSyncAfterCheckpoint sets the auto-sync after checkpoint preference.
+func SetSyncAfterCheckpoint(enabled bool) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.SyncAfterCheckpoint = enabled
 	return saveSettings(settings)
 }
 

@@ -51,6 +51,10 @@
     <ActionButton v-if="!platformStore.isWeb && isAssetModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :showLabel="true" :fullWidth="true"
       :label="$t('menus.revertFile')" :buttonFunction="revertAsset" />
 
+    <!-- Sync Asset -->
+    <ActionButton v-if="isRemoteProject" :icon="getAppIcon('cloud-up')" :showLabel="true" :fullWidth="true"
+      :label="$t('menus.syncAsset')" :buttonFunction="syncAsset" />
+
     <span v-if="userStore.canDo('delete_task') || !isNotOnDisk" class="menu-divider"></span>
 
     <!-- Free space -->
@@ -77,7 +81,7 @@ import { useI18n } from 'vue-i18n';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 // services
-import { AssetService, CheckpointService, CollectionService, FSService } from "@/services";
+import { AssetService, CheckpointService, CollectionService, FSService, SyncService } from "@/services";
 
 // stores
 import { useAssetStore } from '@/stores/assets';
@@ -168,6 +172,11 @@ const isAssetModified = computed(() => {
 // Checks if the asset is not on disk.
 const isNotOnDisk = computed(() => {
   return asset.value?.file_status === 'rebuildable';
+});
+
+// Checks if the active project is remote.
+const isRemoteProject = computed(() => {
+  return projectStore.activeProject?.has_remote;
 });
 
 // methods
@@ -445,6 +454,21 @@ const revertAsset = async () => {
       notificationStore.errorNotification(t('notifications.failedToRevertAsset'), error);
     });
   menu.hideContextMenu();
+};
+
+// Syncs the selected asset (including checkpoints and chunks) to the server.
+const syncAsset = () => {
+  const assetId = assetStore.selectedAsset.id;
+  if (!assetId || !projectStore.activeProject?.has_remote) return;
+  menu.hideContextMenu();
+  SyncService.SyncAsset(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, assetId)
+    .then(() => {
+      notificationStore.addNotification(t('common.sync'), t('notifications.assetSyncedSuccessfully'), 'success');
+    })
+    .catch((error) => {
+      console.error(error);
+      notificationStore.errorNotification(t('notifications.errorSyncingAsset'), error);
+    });
 };
 
 // Reveals the asset in the file explorer.

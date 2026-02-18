@@ -832,3 +832,112 @@ func (s *SyncService) DiscardAllChanges(projectPath, remoteURL string) error {
 	}
 	return nil
 }
+
+// SyncAsset pushes a single asset and its checkpoints (including chunks and previews) to the server.
+// This is a user-initiated action that bypasses the write-through gate.
+func (s *SyncService) SyncAsset(projectPath, remoteURL, assetId string) error {
+	defer reset()
+
+	ctx := getContext()
+	if ctx.Err() != nil {
+		return errors.New("operation cancelled before starting")
+	}
+
+	app := application.Get()
+	activeUser, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+
+	errChan := make(chan error, 1)
+	progressChan := make(chan output.ProgressReport, 10)
+
+	// Progress update goroutine
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case progress, ok := <-progressChan:
+				if !ok {
+					return
+				}
+				app.Event.Emit("progress-update", progress)
+			}
+		}
+	}()
+
+	// Initial progress
+	select {
+	case <-ctx.Done():
+		return errors.New("operation cancelled")
+	case progressChan <- output.ProgressReport{
+		Title:      "Syncing Asset",
+		Message:    "Sending",
+		Percentage: 0,
+		Current:    1,
+		Total:      1,
+	}:
+	}
+
+	pushCallback := func(current int, total int, message string, extraMessage string) {
+		if ctx.Err() != nil {
+			return
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case progressChan <- output.ProgressReport{
+			Title:        "Syncing Asset",
+			Message:      message,
+			Percentage:   (float64(current) / float64(total) * 99),
+			Current:      1,
+			Total:        1,
+			ExtraMessage: extraMessage,
+		}:
+		default:
+		}
+	}
+
+	go func() {
+		err := sync_service.PushAssetData(projectPath, remoteURL, activeUser.Id, assetId, pushCallback)
+		if ctx.Err() == nil {
+			errChan <- err
+		}
+	}()
+
+	select {
+	case err = <-errChan:
+		if err != nil {
+			if conflictErr, ok := err.(*sync_service.SyncConflictError); ok {
+				close(progressChan)
+				app.Event.Emit("sync-conflict", map[string]interface{}{
+					"projectPath": projectPath,
+					"remoteURL":   remoteURL,
+					"conflicts":   conflictErr.Conflicts,
+				})
+				return errors.New("sync_conflict")
+			}
+			close(progressChan)
+			return err
+		}
+	case <-ctx.Done():
+		close(progressChan)
+		return errors.New("cancelled")
+	}
+
+	select {
+	case <-ctx.Done():
+		return errors.New("operation cancelled during completion")
+	case progressChan <- output.ProgressReport{
+		Title:      "Syncing Asset",
+		Message:    "Complete",
+		Percentage: 100,
+		Current:    1,
+		Total:      1,
+	}:
+	}
+
+	close(progressChan)
+	return nil
+}

@@ -921,6 +921,30 @@ func LoadChangedData(tx *sqlx.Tx) (ProjectData, error) {
 	return userData, nil
 }
 
+// LoadAssetData loads a single asset (task) and its unsynced checkpoints from the database.
+// Only includes rows where synced = 0. Does not include dependencies.
+func LoadAssetData(tx *sqlx.Tx, assetId string) (ProjectData, error) {
+	data := ProjectData{}
+
+	task := models.Task{}
+	err := tx.Get(&task, "SELECT * FROM task WHERE id = ? AND synced = 0", assetId)
+	if err != nil && err != sql.ErrNoRows {
+		return data, err
+	}
+	if err == nil {
+		data.Tasks = []models.Task{task}
+	}
+
+	checkpoints := []models.Checkpoint{}
+	err = tx.Select(&checkpoints, "SELECT * FROM task_checkpoint WHERE task_id = ? AND synced = 0", assetId)
+	if err != nil && err != sql.ErrNoRows {
+		return data, err
+	}
+	data.TasksCheckpoints = checkpoints
+
+	return data, nil
+}
+
 func LoadChangedDataPb(tx *sqlx.Tx) ([]byte, error) {
 
 	taskQuery := "SELECT * FROM task WHERE synced = 0"

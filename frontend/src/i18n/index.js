@@ -13,17 +13,17 @@ import zh from './locales/zh.json';
 
 // Supported languages configuration
 export const SUPPORTED_LANGUAGES = {
-  de: 'German',
+  de: 'Deutsch',
   en: 'English',
-  es: 'Spanish',
-  fr: 'French',
-  hi: 'Hindi',
-  it: 'Italian',
-  ja: 'Japanese',
-  ko: 'Korean',
-  'pt-BR': 'Portuguese (Brazil)',
-  ru: 'Russian',
-  zh: 'Chinese'
+  es: 'Español',
+  fr: 'Français',
+  hi: 'हिन्दी',
+  it: 'Italiano',
+  ja: '日本語',
+  ko: '한국어',
+  'pt-BR': 'Português (Brasil)',
+  ru: 'Русский',
+  zh: '中文'
 };
 
 // Get valid locale codes
