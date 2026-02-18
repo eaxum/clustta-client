@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"os/exec"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -103,6 +104,15 @@ func main() {
 				if data.AdditionalData != nil {
 					log.Printf("Additional data: %v\n", data.AdditionalData)
 				}
+
+				// Forward .clst file path from second instance to frontend
+				for _, arg := range data.Args {
+					if strings.HasSuffix(strings.ToLower(arg), ".clst") {
+						log.Printf("Second instance opened with project file: %s", arg)
+						app.Event.Emit("open-project-file", arg)
+						break
+					}
+				}
 			},
 			AdditionalData: map[string]string{
 				"launchtime": time.Now().Local().String(),
@@ -152,9 +162,11 @@ func main() {
 	})
 
 	// Listen for file open events (when user double-clicks a .clst file)
+	// Buffer the path for the frontend to retrieve after initialization.
 	app.Event.OnApplicationEvent(events.Common.ApplicationOpenedWithFile, func(event *application.ApplicationEvent) {
 		filePath := event.Context().Filename()
 		log.Printf("Application opened with file: %s", filePath)
+		services.SetPendingOpenFile(filePath)
 		app.Event.Emit("open-project-file", filePath)
 	})
 

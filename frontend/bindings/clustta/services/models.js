@@ -199,6 +199,87 @@ export class AssetsStates {
     }
 }
 
+/**
+ * ClusttaFileInfo contains lightweight metadata extracted from a .clst file.
+ * Used when opening a project file from an arbitrary location.
+ */
+export class ClusttaFileInfo {
+    /**
+     * Creates a new ClusttaFileInfo instance.
+     * @param {Partial<ClusttaFileInfo>} [$$source = {}] - The source object to create the ClusttaFileInfo.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("studio_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["studio_name"] = "";
+        }
+        if (!("icon" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["icon"] = "";
+        }
+        if (!("working_directory" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["working_directory"] = "";
+        }
+        if (!("local_working_directory" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["local_working_directory"] = "";
+        }
+        if (!("file_path" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["file_path"] = "";
+        }
+        if (!("valid" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["valid"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ClusttaFileInfo instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ClusttaFileInfo}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ClusttaFileInfo(/** @type {Partial<ClusttaFileInfo>} */($$parsedSource));
+    }
+}
+
 export class CollectionChildrenState {
     /**
      * Creates a new CollectionChildrenState instance.

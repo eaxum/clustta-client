@@ -6,8 +6,15 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
+)
+
+// pendingOpenFile stores a .clst file path received before the frontend was ready.
+var (
+	pendingOpenFile   string
+	pendingOpenFileMu sync.Mutex
 )
 
 // SystemInfo contains detailed system information.
@@ -166,4 +173,22 @@ func (s *AppService) Minimize() {
 			window.Minimise()
 		}
 	}
+}
+
+// SetPendingOpenFile stores a .clst file path for the frontend to retrieve after initialization.
+// Used when the app is launched via file association before the frontend is ready.
+func SetPendingOpenFile(filePath string) {
+	pendingOpenFileMu.Lock()
+	defer pendingOpenFileMu.Unlock()
+	pendingOpenFile = filePath
+}
+
+// GetPendingOpenFile returns and clears any buffered .clst file path.
+// Called by the frontend after store initialization to handle cold-launch file opens.
+func (s *AppService) GetPendingOpenFile() string {
+	pendingOpenFileMu.Lock()
+	defer pendingOpenFileMu.Unlock()
+	filePath := pendingOpenFile
+	pendingOpenFile = ""
+	return filePath
 }

@@ -20,6 +20,15 @@ export function GetOS() {
 }
 
 /**
+ * GetPendingOpenFile returns and clears any buffered .clst file path.
+ * Called by the frontend after store initialization to handle cold-launch file opens.
+ * @returns {$CancellablePromise<string>}
+ */
+export function GetPendingOpenFile() {
+    return $Call.ByID(3844375629);
+}
+
+/**
  * GetSystemInfo returns detailed system information including OS version.
  * @returns {$CancellablePromise<$models.SystemInfo>}
  */
