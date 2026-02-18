@@ -1,3 +1,6 @@
+import * as WailsRuntime from "@wailsio/runtime";
+window.wails = WailsRuntime;
+
 import { createPinia } from "pinia";
 import { createApp } from "vue";
 import App from "./App.vue";

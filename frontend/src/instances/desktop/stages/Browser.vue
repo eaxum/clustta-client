@@ -25,7 +25,7 @@
 			:class="{ 'browser-root-container-hover-drop': isHovered }" @mouseup="onDragStop($event)" @scroll="disableMenus">
 			<GhostItem :data="draggedCard" :index="0" />
 			<div class="browser-root-content">
-				<div class="left-column">
+				<div class="left-column" data-file-drop-target>
 					<VirtuaScroll v-if="(!assetStore.assetsLoaded || rootData.length) && !commonStore.useGrid" :items="rootData" />
 					<GridView v-else-if="!assetStore.assetsLoaded || rootData.length" :rootItems="rootData" />
 					<PageState v-else :message="message()" :prompt="prompt()" :illustration="illustration()" />
@@ -812,10 +812,51 @@ const updateScreenWidth = () => { screenWidth.value = window.innerWidth; if (scr
 
 const debouncedUpdateSearch = useDebounce(updateSearch, 300);
 
+// Copies files dropped from the OS file explorer into the target directory.
+const handleFileDrop = async (files, details) => {
+	if (!files || files.length === 0) return;
+
+	const elementId = details?.id || '';
+	let destinationDir;
+	if (elementId.startsWith('drop-')) {
+		const entityId = elementId.replace('drop-', '');
+		const entity = dndStore.allViewItems?.find(item => item.id === entityId && (item.type === 'entity' || item.type === 'untracked_entity'));
+		if (entity?.file_path) destinationDir = entity.file_path;
+	}
+	if (!destinationDir) destinationDir = getCurrentDirectory();
+	if (!destinationDir) { notificationStore.errorNotification(t('stages.couldNotDetermineCurrentDirectory'), ''); return; }
+
+	stage.operationActive = true;
+	try {
+		await FSService.MakeDirs(destinationDir);
+		let successCount = 0, failureCount = 0;
+		const errors = [];
+		for (const sourcePath of files) {
+			try {
+				const isFile = await FSService.IsFile(sourcePath);
+				const itemName = await FSService.BaseName(sourcePath);
+				const destinationPath = await generateUniqueDestinationPath(destinationDir, itemName);
+				if (isFile) await FSService.DuplicateFile(sourcePath, destinationPath);
+				else await FSService.DuplicateFolder(sourcePath, destinationPath);
+				successCount++;
+			} catch (error) {
+				failureCount++;
+				const itemName = await FSService.BaseName(sourcePath).catch(() => sourcePath);
+				errors.push(`${itemName}: ${error.message || error}`);
+			}
+		}
+		if (successCount > 0) notificationStore.addNotification(successCount === 1 ? t('stages.itemImportedSuccessfully') : t('stages.itemsImportedSuccessfully', { count: successCount }), '', 'success');
+		if (failureCount > 0) notificationStore.errorNotification(failureCount === 1 ? t('stages.itemFailedToImport') : t('stages.itemsFailedToImport', { count: failureCount }), errors.join('\n'));
+		if (successCount > 0) await softRefresh();
+	} catch (error) { notificationStore.errorNotification(t('stages.errorImportingItems'), error.message || error); }
+	finally { stage.operationActive = false; }
+};
+
 // events
 
-Events.On('clustta-drag-drop', async () => {
-	console.log('clustta-drag-drop')
+Events.On('files-dropped', async (event) => {
+	if (operationsActive.value) return;
+	handleFileDrop(event.data?.files, event.data?.details);
 });
 
 Events.On('reload-view', async () => {
