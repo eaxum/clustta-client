@@ -140,7 +140,6 @@ onBeforeUnmount(async () => {
 	display: flex;
 	box-sizing: border-box;
 	flex-direction: column;
-	background-color: crimson;
 }
 
 .desktop-container {

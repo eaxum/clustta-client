@@ -28,13 +28,11 @@
               </div>
 
             </div>
-
-
           </span>
         </div>
 
           <ActionButton v-if="userStore.userCanCreateProject && projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('stall-cog')" v-tooltip="$t('components.titleBar.studioSettings')" :buttonFunction="studioSettings" />
-          <ActionButton v-if="projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('refresh')" v-tooltip="$t('components.titleBar.reloadStudio')" :buttonFunction="reloadStudio" />
+          <ActionButton :icon="getAppIcon('refresh')" v-tooltip="$t('components.titleBar.reloadStudio')" :buttonFunction="reloadStudio" />
       </div>
 
     </div>
@@ -564,17 +562,21 @@ onBeforeUnmount(() => {
   overflow: hidden;
   flex-direction: column;
   border-radius: var(--small-radius);
-  background-color: var(--steel);
+  background-color: hsla(0, 0%, 0%, 0.2);
   border-radius: var(--normal-radius);
 }
 
 .studio-tabs-container:hover {
   outline: var(--transparent-line);
-  background-color: var(--black-steel);
+  background-color: hsla(0, 0%, 0%, 0.15);
 }
 
 [data-theme="dark"] .studio-tabs-container {
-  background-color: var(--midnight-steel);
+  background-color: hsla(0, 0%, 0%, 0.8);
+}
+
+[data-theme="dark"] .studio-tabs-container:hover {
+  background-color: hsla(0, 0%, 0%, 0.2);
 }
 
 .studio-tabs-parent {
