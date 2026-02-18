@@ -2,6 +2,7 @@
   <!-- Grid View Entity Item -->
   <div v-if="commonStore.useGrid" 
     data-file-drop-target
+    :id="'drop-' + entity.id"
     class="entity-item-main entity-item-grid" 
     v-return="revealSelectedEntity" 
     v-esc="cancelRename" 
@@ -67,7 +68,8 @@
 
   <!-- List View Entity Item -->
   <div v-else
-    data-file-drop-target 
+    data-file-drop-target
+    :id="'drop-' + entity.id"
     class="entity-item-main" 
     v-return="revealSelectedEntity" 
     v-esc="cancelRename" 
@@ -251,10 +253,6 @@ const isEditing = ref(false);
 const renameInput = ref(null);
 
 // events
-Events.On('files-dropped', (event) => {
-  console.log('event');
-  if (operationsActive.value) return;
-});
 
 Events.On('rename-item', async () => {
   if (operationsActive.value) return;

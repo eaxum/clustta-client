@@ -307,20 +307,20 @@ func main() {
 	})
 
 	window.OnWindowEvent(events.Common.WindowFilesDropped, func(event *application.WindowEvent) {
-		app.Event.Emit("clustta-drag-drop", nil)
-		// files := event.Context().DroppedFiles()
-		// details := event.Context().DropTargetDetails()
 
-		// log.Printf("Files dropped: %v", event)
-		// if details != nil {
-		// 	log.Printf("Drop target: id=%s, classes=%v, x=%d, y=%d",
-		// 		details.ElementID, details.ClassList, details.X, details.Y)
-		// }
+		files := event.Context().DroppedFiles()
+		details := event.Context().DropTargetDetails()
 
-		// app.Event.Emit("files-dropped", map[string]any{
-		// 	"files":   files,
-		// 	"details": details,
-		// })
+		log.Printf("Files dropped: %v", event)
+		if details != nil {
+			log.Printf("Drop target: id=%s, classes=%v, x=%d, y=%d",
+				details.ElementID, details.ClassList, details.X, details.Y)
+		}
+
+		app.Event.Emit("files-dropped", map[string]any{
+			"files":   files,
+			"details": details,
+		})
 	})
 
 	window.OnWindowEvent(events.Common.WindowFocus, func(event *application.WindowEvent) {
