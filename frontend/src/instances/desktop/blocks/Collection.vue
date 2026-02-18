@@ -1211,7 +1211,7 @@ onBeforeUnmount(() => {
   align-items: center;
   height: 100%;
   /* background-color: crimson; */
-  padding-right: .8rem;
+  padding-right: .4rem;
 }
 
 .entity-item-assignee-container {
