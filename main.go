@@ -138,6 +138,7 @@ func main() {
 			application.NewService(&services.DependencyTypeService{}),
 			application.NewService(&services.DeploymentService{}),
 			application.NewService(&services.DialogService{}),
+			application.NewService(&services.DragService{}),
 			application.NewService(createFSService()),
 			application.NewService(&services.ImportService{}),
 			application.NewService(&services.LogService{}),

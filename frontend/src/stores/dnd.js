@@ -4,6 +4,7 @@ import { useCommonStore } from '@/stores/common';
 import { useAssetStore } from "@/stores/assets";
 import { useCollectionStore } from "@/stores/collections";
 import { useProjectStore } from '@/stores/projects';
+import { DragService } from '@/services';
 
 export const useDndStore = defineStore("dnd", {
   state: () => ({
@@ -40,6 +41,7 @@ export const useDndStore = defineStore("dnd", {
       y: -1000,
     },
     isDragging: false,
+    nativeDragInitiated: false,
     dragPosition: {
       x: 100,
       y: 100,
@@ -129,6 +131,7 @@ export const useDndStore = defineStore("dnd", {
       this.mousePos.y = e.pageY;
 
       this.draggedItemId = id;
+      console.log('[DragDebug] Drag started, draggedItemId:', id, 'filePath:', this.getDraggedFilePaths());
 
       this.ghostCardStyle.width =
       selectedCard.clientWidth - paddingLeft - paddingRight;
@@ -215,9 +218,100 @@ export const useDndStore = defineStore("dnd", {
 
     onDrag(e) {
       e = e || window.event;
+      // DEBUG: Verify onDrag is called (will spam console during drag)
+      if (this.draggedItemId !== null) {
+        // Only log once per drag session
+        if (!this._dragLoggedOnce) {
+          console.log('[DragDebug] onDrag active, draggedItemId:', this.draggedItemId);
+          this._dragLoggedOnce = true;
+        }
+      }
       if (this.draggedItemId === null) return;
       this.mousePos.x = e.pageX;
       this.mousePos.y = e.pageY;
+      
+      // Check if cursor is at/beyond window boundary for native drag-out
+      this.checkWindowBoundary(e);
+    },
+    
+    // Detects when drag exits window and initiates native OS drag.
+    async checkWindowBoundary(e) {
+      if (this.nativeDragInitiated || this.draggedItemId === null) return;
+      
+      const edgeThreshold = 20; // pixels from edge to trigger (needs buffer before mouse leaves webview)
+      const debugThreshold = 50; // log when within this distance of edge
+      const { clientX, clientY } = e;
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      
+      // Calculate distances to each edge
+      const distLeft = clientX;
+      const distTop = clientY;
+      const distRight = windowWidth - clientX;
+      const distBottom = windowHeight - clientY;
+      const minDist = Math.min(distLeft, distTop, distRight, distBottom);
+      
+      // DEBUG: Only log when approaching edge (within 50px)
+      if (minDist <= debugThreshold) {
+        console.log('[DragDebug] Near edge - distances:', { left: distLeft, top: distTop, right: distRight, bottom: distBottom }, 'min:', minDist);
+      }
+      
+      const isAtEdge = (
+        clientX <= edgeThreshold ||
+        clientY <= edgeThreshold ||
+        clientX >= windowWidth - edgeThreshold ||
+        clientY >= windowHeight - edgeThreshold
+      );
+      
+      if (!isAtEdge) return;
+      
+      // Get file paths of all selected/dragged items
+      const filePaths = this.getDraggedFilePaths();
+      console.log('[DragDebug] AT EDGE! filePaths:', filePaths);
+      
+      if (filePaths.length === 0) {
+        console.log('[DragDebug] No file paths found, aborting');
+        return;
+      }
+      
+      // Mark as initiated to prevent multiple calls
+      this.nativeDragInitiated = true;
+      console.log('[DragDebug] Starting native drag with paths:', filePaths);
+      
+      try {
+        // Cancel internal drag visuals
+        document.documentElement.style.cursor = 'default';
+        this.ghostCardStyle.leaving = true;
+        
+        // Start native OS drag - this will capture the mouse
+        const result = await DragService.StartNativeDrag(filePaths);
+        console.log('[DragDebug] Native drag completed, result:', result);
+      } catch (err) {
+        console.error('[DragDebug] Native drag failed:', err);
+      } finally {
+        // Reset drag state after native drag completes/cancels
+        this.resetValues();
+      }
+    },
+    
+    // Returns file paths for all currently dragged items.
+    getDraggedFilePaths() {
+      const stage = useStageStore();
+      const allItems = this.allViewItems || [];
+      
+      // Get marked items or just the dragged item
+      const draggedIds = stage.markedItems?.length > 0 
+        ? stage.markedItems 
+        : [this.draggedItemId];
+      
+      const filePaths = [];
+      for (const id of draggedIds) {
+        const item = allItems.find(i => i.id === id);
+        if (item?.file_path) {
+          filePaths.push(item.file_path);
+        }
+      }
+      return filePaths;
     },
 
     onDragStop(cardEl) {
@@ -248,6 +342,8 @@ export const useDndStore = defineStore("dnd", {
       this.altKeyActive = false;
       this.isOverlapping = false;
       this.dropType = null;
+      this.nativeDragInitiated = false;
+      this._dragLoggedOnce = false; // DEBUG
 
       this.draggedItem = null;
       this.draggedItemId = null;

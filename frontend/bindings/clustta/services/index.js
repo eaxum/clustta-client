@@ -12,6 +12,7 @@ import * as CollectionService from "./collectionservice.js";
 import * as DependencyTypeService from "./dependencytypeservice.js";
 import * as DeploymentService from "./deploymentservice.js";
 import * as DialogService from "./dialogservice.js";
+import * as DragService from "./dragservice.js";
 import * as FSService from "./fsservice.js";
 import * as ImportService from "./importservice.js";
 import * as LogService from "./logservice.js";
@@ -37,6 +38,7 @@ export {
     DependencyTypeService,
     DeploymentService,
     DialogService,
+    DragService,
     FSService,
     ImportService,
     LogService,

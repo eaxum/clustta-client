@@ -40,3 +40,4 @@ export { ImportService } from './importservice.js';
 export { DeploymentService } from './deploymentservice.js';
 export { AppService } from './appservice.js';
 export { LogService } from './logservice.js';
+export { DragService } from './dragservice.js';
