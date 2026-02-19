@@ -943,7 +943,7 @@ Events.On('paste-items', async () => {
 	if (isEditableElementFocused()) return;
 	if (!userStore.canDo('update_entity')) return;
 	const result = await stage.pasteItems();
-	if (result.needsRefresh) await softRefresh();
+	if (result.needsRefresh) await refresh();
 });
 
 Events.On('free-item-space', async () => {

@@ -97,8 +97,12 @@ const notificationStore = useNotificationStore();
 const stageStore = useStageStore();
 
 const notificationItem = ref(null);
-const progressRunning = computed(() => { return notificationStore.getProgress.running })
+const progressRunning = ref(false);
 const files = ref(214);
+
+// timers
+const progressDelay = 100;
+let progressTimer = null;
 
 const progressIcon = computed(() => {
   const message = notificationStore.getProgress.message?.toLowerCase() || '';
@@ -127,6 +131,17 @@ const progressIcon = computed(() => {
 const throttledExtraMessage = ref(notificationStore.getProgress.extra_message);
 let extraMessageTimeout = null;
 let lastExtraMessage = notificationStore.getProgress.extra_message;
+
+watch(() => notificationStore.getProgress.running, (isRunning) => {
+  if (isRunning) {
+    progressTimer = setTimeout(() => {
+      progressRunning.value = true;
+    }, progressDelay);
+  } else {
+    clearTimeout(progressTimer);
+    progressRunning.value = false;
+  }
+});
 
 watch(
   () => notificationStore.getProgress.extra_message,
@@ -210,6 +225,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  clearTimeout(progressTimer);
   document.removeEventListener('click', handleClickOutside);
 });
 </script>

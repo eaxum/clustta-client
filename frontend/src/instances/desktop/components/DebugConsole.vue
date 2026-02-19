@@ -2,14 +2,14 @@
   <div class="debug-console">
     <div class="debug-console-header">
       <div class="debug-console-title">
-        <img class="small-icons" :src="getAppIcon('bug')">
+        <img class="small-icons" :src="getAppIcon('console')">
         <span>{{ $t('components.debugConsole.title') }}</span>
         <span class="log-count">({{ searchQuery ? `${filteredLogs.length}/${logs.length}` : logs.length }})</span>
       </div>
       <div class="debug-console-actions">
         <SearchBar v-model="searchQuery" :placeholder="$t('components.debugConsole.filterPlaceholder')" />
         <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('components.debugConsole.copyLogs')" :buttonFunction="copyLogs" />
-        <ActionButton :icon="getAppIcon('file')" v-tooltip="$t('components.debugConsole.openLogsFolder')" :buttonFunction="openLogsFolder" />
+        <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="$t('components.debugConsole.openLogsFolder')" :buttonFunction="openLogsFolder" />
         <ActionButton :icon="getAppIcon('megaphone')" v-tooltip="$t('components.debugConsole.submitDiagnostics')" :buttonFunction="openDiagnosticsModal" />
         <ActionButton :icon="getAppIcon('broom')" v-tooltip="$t('components.debugConsole.clear')" :buttonFunction="clearLogs" />
         <ActionButton :icon="getAppIcon('close')" v-tooltip="$t('components.debugConsole.close')" :buttonFunction="closeConsole" />
