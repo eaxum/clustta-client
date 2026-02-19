@@ -11,7 +11,7 @@
     <ActionButton :icon="getAppIcon('workflow-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addWorkflow')"
       v-if="workflowStore.workflows.length && userStore.canDo('create_task')" :buttonFunction="addWorkflow" />
 
-    <ActionButton :icon="getAppIcon('arrow-down-ramp')" :showLabel="true" :fullWidth="true" :label="$t('modals.importItems')"
+    <ActionButton :icon="getAppIcon('arrow-down-on-square-stack')" :showLabel="true" :fullWidth="true" :label="$t('modals.importItems')"
       v-if="!platformStore.isWeb && userStore.canDo('create_task')" :buttonFunction="importItems" />
 
     <ActionButton :icon="getAppIcon('arrow-up-ramp')" :showLabel="true" :fullWidth="true" :label="$t('menus.uploadItems')"
