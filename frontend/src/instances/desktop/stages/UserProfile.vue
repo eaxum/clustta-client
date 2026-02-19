@@ -82,6 +82,7 @@
                     v-model="formData.bio"
                     :label="$t('stages.bio')"
                     :placeholder="$t('stages.bioPlaceholder')"
+                    :error="bioError"
                   />
                   <FormInput
                     v-model="formData.country"
@@ -465,6 +466,17 @@ const isPasswordValid = computed(() => {
   return true;
 });
 
+const bioError = computed(() => {
+  if (formData.value.bio && formData.value.bio.length > 100) {
+    return t('stages.bioMaxLength');
+  }
+  return '';
+});
+
+const bioValid = computed(() => {
+  return !formData.value.bio || formData.value.bio.length <= 100;
+});
+
 const isDataChanged = computed(() => {
   const basicFieldsChanged = ['first_name', 'last_name', 'username', 'email', 'title', 'country', 'availability']
     .some(key => formData.value[key] !== (userData.value?.[key] || ''));
@@ -473,7 +485,7 @@ const isDataChanged = computed(() => {
 });
 
 const isDataValid = computed(() => {
-  return detailsInputed.value && credentialsValid.value && isDataChanged.value && areLinksValid.value;
+  return detailsInputed.value && credentialsValid.value && isDataChanged.value && areLinksValid.value && bioValid.value;
 });
 
 const userPhoto = computed(() => {

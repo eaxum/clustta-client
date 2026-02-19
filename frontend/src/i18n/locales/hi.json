@@ -962,6 +962,7 @@
     "profileInformation": "प्रोफ़ाइल जानकारी",
     "bio": "बायो",
     "bioPlaceholder": "उदा., 3D कलाकार और एनिमेटर",
+    "bioMaxLength": "बायो 100 अक्षर या उससे कम होना चाहिए",
     "location": "स्थान",
     "locationPlaceholder": "उदा., भारत",
     "availability": "उपलब्धता",

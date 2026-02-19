@@ -962,6 +962,7 @@
     "profileInformation": "프로필 정보",
     "bio": "소개",
     "bioPlaceholder": "예: 3D 아티스트 & 애니메이터",
+    "bioMaxLength": "소개는 100자 이하여야 합니다",
     "location": "위치",
     "locationPlaceholder": "예: 대한민국",
     "availability": "가용성",

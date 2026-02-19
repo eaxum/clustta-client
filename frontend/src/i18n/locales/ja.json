@@ -959,6 +959,7 @@
     "profileInformation": "プロフィール情報",
     "bio": "自己紹介",
     "bioPlaceholder": "例：3Dアーティスト＆アニメーター",
+    "bioMaxLength": "自己紹介は100文字以内にしてください",
     "location": "所在地",
     "locationPlaceholder": "例：ポルトガル",
     "availability": "対応可否",
