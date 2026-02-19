@@ -16,7 +16,6 @@
       <div class="icon-skeleton"></div>
       <div class="status-pill"></div>
       <div class="icon-skeleton"></div>
-      <div class="icon-skeleton"></div>
     </div>
   </div>
 </div>
@@ -101,7 +100,7 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   overflow: hidden;
-  min-height: 50px;
+  min-height: 34px;
   opacity: 0;
   animation: fadeInFadeOut infinite ease-in-out;
 }
@@ -119,7 +118,7 @@ onMounted(async () => {
   align-items: center;
   border-radius: 12px;
   overflow: hidden;
-  padding: .5rem;
+  padding: .5rem 1rem;
   height: 90%;
   outline: var(--transparent-line);
   

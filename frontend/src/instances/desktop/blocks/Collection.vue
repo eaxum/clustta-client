@@ -132,9 +132,6 @@
             {{ entityMeta }}
           </div>
         </div>
-        
-        <div v-if="collaboratorsList.length && entity.is_library && !isEditing && !isGhost" class="horizontal-divider">
-        </div>
 
         <div v-if="collaboratorsList.length && !isEditing && !isGhost" class="entity-item-assignees">
           <div v-for="(collaborator, index) in collaboratorsList.slice(0, 5)" class="entity-item-assignee-container"
@@ -144,6 +141,10 @@
             <ProfilePhoto :assigneeId="collaborator.id" :userPhoto="collaborator.photo"
               :avatarColor="collaborator.avatarColor" />
           </div>
+        </div>
+        
+        
+        <div v-if="collaboratorsList.length && entity.is_library && !isEditing && !isGhost" class="horizontal-divider">
         </div>
 
         <!-- Optimized entity-item-actions using GetCollectionStateFlags -->

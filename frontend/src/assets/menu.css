@@ -41,7 +41,7 @@
     flex-direction: column;
     color: white;
     align-items: flex-start;
-    gap: .3rem;
+    gap: .05rem;
     padding: .3rem;
     box-sizing: border-box;
     width: max-content;

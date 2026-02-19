@@ -4,7 +4,7 @@
             <DebugConsole @close="toggleDebugConsole" />
         </div>
         
-        <div class="info-bar-root" :style="{ backgroundColor : bgColor }" @mouseenter="isHoveringInfobar = true" @mouseleave="isHoveringInfobar = false">
+        <div class="info-bar-root" :style="{ backgroundColor : bgColor }">
 
         <!-- <div v-if="currentPrompt" ref="promptItem" :class="['prompt-message', currentPrompt.type]">
             <span class="text-container" >{{ currentPrompt.message }}</span>
@@ -39,7 +39,7 @@
             <div>{{ clusttaVersion }}</div>
         </div>
 
-        <ActionButton v-if="debugModeEnabled || (isHoveringInfobar && altKeyActive)" :icon="getAppIcon('bug')" v-tooltip="debugModeEnabled ? $t('components.infoBar.closeConsole') : $t('components.infoBar.openConsole')" :buttonFunction="toggleDebugConsole" />
+        <ActionButton :icon="getAppIcon('console')" v-tooltip="debugModeEnabled ? $t('components.infoBar.closeConsole') : $t('components.infoBar.openConsole')" :buttonFunction="toggleDebugConsole" />
         </div>
     </div>
 
@@ -78,7 +78,6 @@ const altKeyActive = ref(false);
 const clusttaVersion = ref('');
 const currentPrompt = ref(null);
 const debugModeEnabled = ref(false);
-const isHoveringInfobar = ref(false);
 const notification = ref(false);
 const notificationItem = ref(null);
 const timer = ref(null);
@@ -276,10 +275,6 @@ onBeforeUnmount(() => {
     font-weight: 300;
     /* background-color: var(--dark-steel);uy7 */
   }
-  
-.solid-background{
-  /* background-color: var(--steel); */
-}
 
 .version-info {
   gap: .5rem;
@@ -366,10 +361,6 @@ onBeforeUnmount(() => {
 .mini-progress:hover {
   background-color: rgba(44, 117, 226, 0.25);
   background-color: var(--light-steel);
-}
-
-.mini-progress.write-operation {
-  /* background-color: rgba(238, 92, 8, 0.15); */
 }
 
 .mini-progress.write-operation:hover {
