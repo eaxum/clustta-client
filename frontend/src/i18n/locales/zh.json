@@ -960,6 +960,7 @@
     "profileInformation": "个人资料信息",
     "bio": "简介",
     "bioPlaceholder": "例如：3D 艺术家和动画师",
+    "bioMaxLength": "简介不能超过100个字符",
     "location": "位置",
     "locationPlaceholder": "例如：中国",
     "availability": "可用性",

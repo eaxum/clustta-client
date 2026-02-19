@@ -962,6 +962,7 @@
     "profileInformation": "Informazioni profilo",
     "bio": "Biografia",
     "bioPlaceholder": "es. Artista 3D e Animatore",
+    "bioMaxLength": "La bio deve contenere al massimo 100 caratteri",
     "location": "Posizione",
     "locationPlaceholder": "es. Italia",
     "availability": "Disponibilità",

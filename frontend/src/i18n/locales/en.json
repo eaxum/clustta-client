@@ -962,6 +962,7 @@
     "profileInformation": "Profile Information",
     "bio": "Bio",
     "bioPlaceholder": "e.g., 3D Artist & Animator",
+    "bioMaxLength": "Bio must be 100 characters or less",
     "location": "Location",
     "locationPlaceholder": "e.g., Portugal",
     "availability": "Availability",

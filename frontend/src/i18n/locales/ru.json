@@ -962,6 +962,7 @@
     "profileInformation": "Информация профиля",
     "bio": "О себе",
     "bioPlaceholder": "напр., 3D-художник и аниматор",
+    "bioMaxLength": "Биография должна содержать не более 100 символов",
     "location": "Местоположение",
     "locationPlaceholder": "напр., Россия",
     "availability": "Доступность",
