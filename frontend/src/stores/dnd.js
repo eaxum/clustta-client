@@ -131,7 +131,14 @@ export const useDndStore = defineStore("dnd", {
       this.mousePos.y = e.pageY;
 
       this.draggedItemId = id;
-      console.log('[DragDebug] Drag started, draggedItemId:', id, 'filePath:', this.getDraggedFilePaths());
+
+      // Register window-level mouse tracking for native drag detection.
+      // The container-level @mousemove stops firing when cursor leaves
+      // the container, so we need a window-level listener to detect edge proximity.
+      this._windowMoveHandler = (e) => this.checkWindowBoundary(e);
+      this._mouseLeaveHandler = () => this.initiateNativeDrag();
+      window.addEventListener('mousemove', this._windowMoveHandler);
+      document.documentElement.addEventListener('mouseleave', this._mouseLeaveHandler);
 
       this.ghostCardStyle.width =
       selectedCard.clientWidth - paddingLeft - paddingRight;
@@ -218,97 +225,67 @@ export const useDndStore = defineStore("dnd", {
 
     onDrag(e) {
       e = e || window.event;
-      // DEBUG: Verify onDrag is called (will spam console during drag)
-      if (this.draggedItemId !== null) {
-        // Only log once per drag session
-        if (!this._dragLoggedOnce) {
-          console.log('[DragDebug] onDrag active, draggedItemId:', this.draggedItemId);
-          this._dragLoggedOnce = true;
-        }
-      }
       if (this.draggedItemId === null) return;
       this.mousePos.x = e.pageX;
       this.mousePos.y = e.pageY;
-      
-      // Check if cursor is at/beyond window boundary for native drag-out
       this.checkWindowBoundary(e);
     },
     
-    // Detects when drag exits window and initiates native OS drag.
-    async checkWindowBoundary(e) {
+    // Checks if cursor is near window edge during drag to trigger native drag.
+    checkWindowBoundary(e) {
       if (this.nativeDragInitiated || this.draggedItemId === null) return;
-      
-      const edgeThreshold = 20; // pixels from edge to trigger (needs buffer before mouse leaves webview)
-      const debugThreshold = 50; // log when within this distance of edge
+
+      const edgeThreshold = 20;
       const { clientX, clientY } = e;
-      const windowWidth = window.innerWidth;
-      const windowHeight = window.innerHeight;
-      
-      // Calculate distances to each edge
-      const distLeft = clientX;
-      const distTop = clientY;
-      const distRight = windowWidth - clientX;
-      const distBottom = windowHeight - clientY;
-      const minDist = Math.min(distLeft, distTop, distRight, distBottom);
-      
-      // DEBUG: Only log when approaching edge (within 50px)
-      if (minDist <= debugThreshold) {
-        console.log('[DragDebug] Near edge - distances:', { left: distLeft, top: distTop, right: distRight, bottom: distBottom }, 'min:', minDist);
-      }
-      
       const isAtEdge = (
         clientX <= edgeThreshold ||
         clientY <= edgeThreshold ||
-        clientX >= windowWidth - edgeThreshold ||
-        clientY >= windowHeight - edgeThreshold
+        clientX >= window.innerWidth - edgeThreshold ||
+        clientY >= window.innerHeight - edgeThreshold
       );
-      
-      if (!isAtEdge) return;
-      
-      // Get file paths of all selected/dragged items
-      const filePaths = this.getDraggedFilePaths();
-      console.log('[DragDebug] AT EDGE! filePaths:', filePaths);
-      
-      if (filePaths.length === 0) {
-        console.log('[DragDebug] No file paths found, aborting');
-        return;
+
+      if (isAtEdge) {
+        this.initiateNativeDrag();
       }
-      
-      // Mark as initiated to prevent multiple calls
+    },
+
+    // Initiates native OS drag with the currently dragged items.
+    async initiateNativeDrag() {
+      if (this.nativeDragInitiated || this.draggedItemId === null) return;
+
+      const filePaths = this.getDraggedFilePaths();
+      if (filePaths.length === 0) return;
+
       this.nativeDragInitiated = true;
-      console.log('[DragDebug] Starting native drag with paths:', filePaths);
-      
+
       try {
-        // Cancel internal drag visuals
         document.documentElement.style.cursor = 'default';
         this.ghostCardStyle.leaving = true;
-        
-        // Start native OS drag - this will capture the mouse
         const result = await DragService.StartNativeDrag(filePaths);
-        console.log('[DragDebug] Native drag completed, result:', result);
+        if (result > 0) {
+          console.log(`Copied ${filePaths.length} file(s) successfully`);
+        }
       } catch (err) {
-        console.error('[DragDebug] Native drag failed:', err);
+        console.error('Native drag failed:', err);
       } finally {
-        // Reset drag state after native drag completes/cancels
         this.resetValues();
       }
     },
-    
+
     // Returns file paths for all currently dragged items.
     getDraggedFilePaths() {
       const stage = useStageStore();
       const allItems = this.allViewItems || [];
-      
-      // Get marked items or just the dragged item
-      const draggedIds = stage.markedItems?.length > 0 
-        ? stage.markedItems 
+      const draggedIds = stage.markedItems?.length > 0
+        ? stage.markedItems
         : [this.draggedItemId];
-      
+
       const filePaths = [];
       for (const id of draggedIds) {
         const item = allItems.find(i => i.id === id);
-        if (item?.file_path) {
-          filePaths.push(item.file_path);
+        const path = item?.pointer || item?.file_path;
+        if (path) {
+          filePaths.push(path);
         }
       }
       return filePaths;
@@ -343,7 +320,14 @@ export const useDndStore = defineStore("dnd", {
       this.isOverlapping = false;
       this.dropType = null;
       this.nativeDragInitiated = false;
-      this._dragLoggedOnce = false; // DEBUG
+      if (this._windowMoveHandler) {
+        window.removeEventListener('mousemove', this._windowMoveHandler);
+        this._windowMoveHandler = null;
+      }
+      if (this._mouseLeaveHandler) {
+        document.documentElement.removeEventListener('mouseleave', this._mouseLeaveHandler);
+        this._mouseLeaveHandler = null;
+      }
 
       this.draggedItem = null;
       this.draggedItemId = null;

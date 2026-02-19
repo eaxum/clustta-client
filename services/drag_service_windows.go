@@ -4,23 +4,26 @@ package services
 
 import (
 	"fmt"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"sync"
 	"syscall"
 	"unsafe"
+
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 var (
-	ole32                = syscall.NewLazyDLL("ole32.dll")
-	shell32              = syscall.NewLazyDLL("shell32.dll")
-	procOleInitialize    = ole32.NewProc("OleInitialize")
-	procDoDragDrop       = ole32.NewProc("DoDragDrop")
-	procReleaseStgMedium = ole32.NewProc("ReleaseStgMedium")
+	ole32               = syscall.NewLazyDLL("ole32.dll")
+	procOleInitialize   = ole32.NewProc("OleInitialize")
+	procOleUninitialize = ole32.NewProc("OleUninitialize")
+	procDoDragDrop      = ole32.NewProc("DoDragDrop")
 )
 
 const (
 	DROPEFFECT_NONE = 0
 	DROPEFFECT_COPY = 1
-	DROPEFFECT_MOVE = 2
-	DROPEFFECT_LINK = 4
 
 	CF_HDROP = 15
 
@@ -44,9 +47,10 @@ type GUID struct {
 }
 
 var (
-	IID_IUnknown    = GUID{0x00000000, 0x0000, 0x0000, [8]byte{0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}}
-	IID_IDataObject = GUID{0x0000010E, 0x0000, 0x0000, [8]byte{0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}}
-	IID_IDropSource = GUID{0x00000121, 0x0000, 0x0000, [8]byte{0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}}
+	IID_IUnknown       = GUID{0x00000000, 0x0000, 0x0000, [8]byte{0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}}
+	IID_IDataObject    = GUID{0x0000010E, 0x0000, 0x0000, [8]byte{0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}}
+	IID_IDropSource    = GUID{0x00000121, 0x0000, 0x0000, [8]byte{0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}}
+	IID_IEnumFORMATETC = GUID{0x00000103, 0x0000, 0x0000, [8]byte{0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}}
 )
 
 // FORMATETC describes data format for clipboard/drag-drop.
@@ -103,7 +107,7 @@ type FileDataObject struct {
 	vtbl      *IDataObjectVtbl
 	refCount  int32
 	filePaths []string
-	hGlobal   uintptr
+	enums     []*FileEnumFORMATETC // prevents GC of enumerators returned to COM callers
 }
 
 // FileDropSource implements IDropSource for drag operations.
@@ -127,7 +131,6 @@ const (
 	GMEM_ZEROINIT = 0x0040
 	GHND          = GMEM_MOVEABLE | GMEM_ZEROINIT
 	VK_LBUTTON    = 0x01
-	VK_ESCAPE     = 0x1B
 )
 
 // createDropFilesBuffer creates a CF_HDROP format buffer from file paths.
@@ -146,14 +149,15 @@ func createDropFilesBuffer(paths []string) (uintptr, error) {
 	}
 
 	// Lock memory and get pointer
-	ptr, _, err := procGlobalLock.Call(hGlobal)
-	if ptr == 0 {
+	ptrVal, _, err := procGlobalLock.Call(hGlobal)
+	if ptrVal == 0 {
 		procGlobalFree.Call(hGlobal)
 		return 0, fmt.Errorf("GlobalLock failed: %v", err)
 	}
+	ptr := unsafe.Pointer(ptrVal)
 
 	// Fill DROPFILES structure
-	dropFiles := (*DROPFILES)(unsafe.Pointer(ptr))
+	dropFiles := (*DROPFILES)(ptr)
 	dropFiles.PFiles = uint32(unsafe.Sizeof(DROPFILES{}))
 	dropFiles.FWide = 1 // Unicode paths
 
@@ -161,11 +165,11 @@ func createDropFilesBuffer(paths []string) (uintptr, error) {
 	offset := unsafe.Sizeof(DROPFILES{})
 	for _, path := range paths {
 		pathPtr, _ := syscall.UTF16FromString(path)
-		dst := unsafe.Pointer(ptr + offset)
+		dst := unsafe.Add(ptr, offset)
 		for i, c := range pathPtr {
-			*(*uint16)(unsafe.Pointer(uintptr(dst) + uintptr(i*2))) = c
+			*(*uint16)(unsafe.Add(dst, i*2)) = c
 		}
-		offset += uintptr((len(pathPtr)) * 2)
+		offset += uintptr(len(pathPtr) * 2)
 	}
 
 	procGlobalUnlock.Call(hGlobal)
@@ -192,45 +196,29 @@ func dataObjectAddRef(this uintptr) uintptr {
 func dataObjectRelease(this uintptr) uintptr {
 	obj := (*FileDataObject)(unsafe.Pointer(this))
 	obj.refCount--
-	if obj.refCount == 0 {
-		if obj.hGlobal != 0 {
-			procGlobalFree.Call(obj.hGlobal)
-		}
-		return 0
-	}
 	return uintptr(obj.refCount)
 }
 
 func dataObjectGetData(this uintptr, pformatetc *FORMATETC, pmedium *STGMEDIUM) uintptr {
 	obj := (*FileDataObject)(unsafe.Pointer(this))
-	fmt.Printf("[DragService] GetData called: format=%d, tymed=%d\n", pformatetc.CfFormat, pformatetc.Tymed)
 
 	if pformatetc.CfFormat != CF_HDROP {
-		fmt.Printf("[DragService] GetData: wrong format, expected CF_HDROP (%d)\n", CF_HDROP)
 		return 0x80040064 // DV_E_FORMATETC
 	}
 	if pformatetc.Tymed&TYMED_HGLOBAL == 0 {
-		fmt.Println("[DragService] GetData: wrong tymed")
 		return 0x80040069 // DV_E_TYMED
 	}
 
-	// Create the drop files buffer if not already created
-	if obj.hGlobal == 0 {
-		fmt.Println("[DragService] GetData: creating drop files buffer...")
-		hGlobal, err := createDropFilesBuffer(obj.filePaths)
-		if err != nil {
-			fmt.Printf("[DragService] GetData: failed to create buffer: %v\n", err)
-			return 0x80004005 // E_FAIL
-		}
-		obj.hGlobal = hGlobal
-		fmt.Printf("[DragService] GetData: created buffer at 0x%X\n", hGlobal)
+	// Allocate a fresh buffer each call — caller owns the medium
+	hGlobal, err := createDropFilesBuffer(obj.filePaths)
+	if err != nil {
+		return 0x80004005 // E_FAIL
 	}
 
 	pmedium.Tymed = TYMED_HGLOBAL
-	pmedium.Data = obj.hGlobal
+	pmedium.Data = hGlobal
 	pmedium.PUnkForRelease = 0
 
-	fmt.Println("[DragService] GetData: returning S_OK")
 	return S_OK
 }
 
@@ -265,40 +253,187 @@ func dropSourceRelease(this uintptr) uintptr {
 }
 
 func dropSourceQueryContinueDrag(this uintptr, fEscapePressed int32, grfKeyState uint32) uintptr {
-	fmt.Printf("[DragService] QueryContinueDrag called: escape=%d, keyState=0x%X\n", fEscapePressed, grfKeyState)
-
-	// Check if escape was pressed
 	if fEscapePressed != 0 {
-		fmt.Println("[DragService] Escape pressed, canceling drag")
 		return DRAGDROP_S_CANCEL
 	}
-
-	// Check if mouse button was released (MK_LBUTTON = 0x0001)
+	// MK_LBUTTON = 0x0001, when not set means mouse released
 	if grfKeyState&0x0001 == 0 {
-		fmt.Println("[DragService] Mouse released, completing drop")
 		return DRAGDROP_S_DROP
 	}
-
 	return S_OK
 }
 
 func dropSourceGiveFeedback(this uintptr, dwEffect uint32) uintptr {
-	// DRAGDROP_S_USEDEFAULTCURSORS = 0x00040102
-	return 0x00040102
+	return 0x00040102 // DRAGDROP_S_USEDEFAULTCURSORS
+}
+
+// IEnumFORMATETC implementation for enumerating supported clipboard formats.
+
+// IEnumFORMATETCVtbl is the virtual function table for IEnumFORMATETC.
+type IEnumFORMATETCVtbl struct {
+	QueryInterface uintptr
+	AddRef         uintptr
+	Release        uintptr
+	Next           uintptr
+	Skip           uintptr
+	Reset          uintptr
+	Clone          uintptr
+}
+
+// FileEnumFORMATETC enumerates the formats supported by FileDataObject.
+type FileEnumFORMATETC struct {
+	vtbl     *IEnumFORMATETCVtbl
+	refCount int32
+	index    int32
+}
+
+// Supported format: CF_HDROP delivered via HGLOBAL.
+var supportedFormat = FORMATETC{
+	CfFormat: CF_HDROP,
+	Ptd:      0,
+	DwAspect: DVASPECT_CONTENT,
+	Lindex:   -1,
+	Tymed:    TYMED_HGLOBAL,
+}
+
+func enumFmtQueryInterface(this uintptr, riid *GUID, ppvObject *uintptr) uintptr {
+	if guidEqual(riid, &IID_IUnknown) || guidEqual(riid, &IID_IEnumFORMATETC) {
+		*ppvObject = this
+		enumFmtAddRef(this)
+		return S_OK
+	}
+	*ppvObject = 0
+	return E_NOINTERFACE
+}
+
+func enumFmtAddRef(this uintptr) uintptr {
+	obj := (*FileEnumFORMATETC)(unsafe.Pointer(this))
+	obj.refCount++
+	return uintptr(obj.refCount)
+}
+
+func enumFmtRelease(this uintptr) uintptr {
+	obj := (*FileEnumFORMATETC)(unsafe.Pointer(this))
+	obj.refCount--
+	return uintptr(obj.refCount)
+}
+
+// enumFmtNext returns the next format(s) in the enumeration.
+func enumFmtNext(this uintptr, celt uint32, rgelt *FORMATETC, pceltFetched *uint32) uintptr {
+	obj := (*FileEnumFORMATETC)(unsafe.Pointer(this))
+
+	if obj.index >= 1 || celt == 0 {
+		if pceltFetched != nil {
+			*pceltFetched = 0
+		}
+		return 1 // S_FALSE
+	}
+
+	*rgelt = supportedFormat
+	obj.index++
+
+	if pceltFetched != nil {
+		*pceltFetched = 1
+	}
+	if celt == 1 {
+		return S_OK
+	}
+	return 1 // S_FALSE
+}
+
+// enumFmtSkip advances the enumeration by celt entries.
+func enumFmtSkip(this uintptr, celt uint32) uintptr {
+	obj := (*FileEnumFORMATETC)(unsafe.Pointer(this))
+	obj.index += int32(celt)
+	if obj.index > 1 {
+		obj.index = 1
+		return 1 // S_FALSE
+	}
+	return S_OK
+}
+
+// enumFmtReset resets the enumeration to the beginning.
+func enumFmtReset(this uintptr) uintptr {
+	obj := (*FileEnumFORMATETC)(unsafe.Pointer(this))
+	obj.index = 0
+	return S_OK
+}
+
+// enumFmtClone creates a copy of the enumerator with the same state.
+func enumFmtClone(this uintptr, ppEnum *uintptr) uintptr {
+	obj := (*FileEnumFORMATETC)(unsafe.Pointer(this))
+	clone := &FileEnumFORMATETC{
+		vtbl:     enumFmtVtblInstance,
+		refCount: 1,
+		index:    obj.index,
+	}
+	pinComObject(clone)
+	*ppEnum = uintptr(unsafe.Pointer(clone))
+	return S_OK
+}
+
+// dataObjectEnumFormatEtc returns an enumerator listing supported formats.
+func dataObjectEnumFormatEtc(this uintptr, dwDirection uint32, ppEnumFORMATETC *uintptr) uintptr {
+	obj := (*FileDataObject)(unsafe.Pointer(this))
+	if dwDirection != 1 { // DATADIR_GET
+		return E_NOTIMPL
+	}
+	enum := &FileEnumFORMATETC{
+		vtbl:     enumFmtVtblInstance,
+		refCount: 1,
+		index:    0,
+	}
+	// Pin on parent object and global list to prevent GC
+	obj.enums = append(obj.enums, enum)
+	pinComObject(enum)
+	*ppEnumFORMATETC = uintptr(unsafe.Pointer(enum))
+	return S_OK
 }
 
 func guidEqual(g1, g2 *GUID) bool {
 	return g1.Data1 == g2.Data1 && g1.Data2 == g2.Data2 && g1.Data3 == g2.Data3 && g1.Data4 == g2.Data4
 }
 
+// pinnedComObjects prevents Go GC from collecting COM objects whose pointers
+// have been handed to Windows via uintptr. Cleared after each drag operation.
+var (
+	pinnedMu         sync.Mutex
+	pinnedComObjects []interface{}
+)
+
+// pinComObject stores a reference to prevent garbage collection.
+func pinComObject(obj interface{}) {
+	pinnedMu.Lock()
+	pinnedComObjects = append(pinnedComObjects, obj)
+	pinnedMu.Unlock()
+}
+
+// unpinAllComObjects releases pinned references so objects can be collected.
+func unpinAllComObjects() {
+	pinnedMu.Lock()
+	pinnedComObjects = nil
+	pinnedMu.Unlock()
+}
+
 // Global callback references to prevent garbage collection
 var (
 	dataObjectVtblInstance *IDataObjectVtbl
 	dropSourceVtblInstance *IDropSourceVtbl
+	enumFmtVtblInstance    *IEnumFORMATETCVtbl
 )
 
 func init() {
 	// Initialize vtables with callback functions
+	enumFmtVtblInstance = &IEnumFORMATETCVtbl{
+		QueryInterface: syscall.NewCallback(enumFmtQueryInterface),
+		AddRef:         syscall.NewCallback(enumFmtAddRef),
+		Release:        syscall.NewCallback(enumFmtRelease),
+		Next:           syscall.NewCallback(enumFmtNext),
+		Skip:           syscall.NewCallback(enumFmtSkip),
+		Reset:          syscall.NewCallback(enumFmtReset),
+		Clone:          syscall.NewCallback(enumFmtClone),
+	}
+
 	dataObjectVtblInstance = &IDataObjectVtbl{
 		QueryInterface:        syscall.NewCallback(dataObjectQueryInterface),
 		AddRef:                syscall.NewCallback(dataObjectAddRef),
@@ -308,7 +443,7 @@ func init() {
 		QueryGetData:          syscall.NewCallback(dataObjectQueryGetData),
 		GetCanonicalFormatEtc: syscall.NewCallback(func(uintptr, *FORMATETC, *FORMATETC) uintptr { return E_NOTIMPL }),
 		SetData:               syscall.NewCallback(func(uintptr, *FORMATETC, *STGMEDIUM, int32) uintptr { return E_NOTIMPL }),
-		EnumFormatEtc:         syscall.NewCallback(func(uintptr, uint32, *uintptr) uintptr { return E_NOTIMPL }),
+		EnumFormatEtc:         syscall.NewCallback(dataObjectEnumFormatEtc),
 		DAdvise:               syscall.NewCallback(func(uintptr, *FORMATETC, uint32, uintptr, *uint32) uintptr { return E_NOTIMPL }),
 		DUnadvise:             syscall.NewCallback(func(uintptr, uint32) uintptr { return E_NOTIMPL }),
 		EnumDAdvise:           syscall.NewCallback(func(uintptr, *uintptr) uintptr { return E_NOTIMPL }),
@@ -323,53 +458,85 @@ func init() {
 	}
 }
 
+// normalizeFilePaths cleans and validates file paths for CF_HDROP.
+func normalizeFilePaths(paths []string) []string {
+	result := make([]string, 0, len(paths))
+	for _, p := range paths {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		p = filepath.Clean(p)
+		if !filepath.IsAbs(p) {
+			continue
+		}
+		result = append(result, p)
+	}
+	return result
+}
+
 // StartNativeDrag initiates a native Windows drag-and-drop operation.
 // This function blocks until the user completes or cancels the drag.
 // Returns the drop effect (copy, move, link, or none).
 func (d *DragService) StartNativeDrag(filePaths []string) (int, error) {
-	if len(filePaths) == 0 {
+	normalized := normalizeFilePaths(filePaths)
+	if len(normalized) == 0 {
 		return DROPEFFECT_NONE, nil
 	}
 
-	fmt.Printf("[DragService] StartNativeDrag called with %d files: %v\n", len(filePaths), filePaths)
+	// Check if mouse is still down - if released, DoDragDrop will fail immediately
+	if !d.IsMouseButtonDown() {
+		return DROPEFFECT_NONE, nil
+	}
 
-	// Check if mouse button is down
-	mouseDown := d.IsMouseButtonDown()
-	fmt.Printf("[DragService] Mouse button down: %v\n", mouseDown)
+	// DoDragDrop must run on the main UI thread where the message pump
+	// is active. Dispatch via Wails' InvokeSyncWithResultAndError.
+	result, err := application.InvokeSyncWithResultAndError(func() (int, error) {
+		return d.doDragDropOnMainThread(normalized)
+	})
 
-	// Initialize OLE (safe to call multiple times)
-	hr, _, err := procOleInitialize.Call(0)
-	fmt.Printf("[DragService] OleInitialize returned: 0x%X, err: %v\n", hr, err)
+	return result, err
+}
 
-	// Create IDataObject
+// doDragDropOnMainThread performs the actual COM drag-drop operation.
+// Must be called on the main UI thread.
+func (d *DragService) doDragDropOnMainThread(filePaths []string) (int, error) {
+	// Initialize OLE on this thread for drag-drop support.
+	// The main thread may have COM initialized but not OLE specifically.
+	hr, _, _ := procOleInitialize.Call(0)
+	if hr != S_OK && hr != 1 { // 1 = S_FALSE (already initialized)
+		return DROPEFFECT_NONE, fmt.Errorf("OleInitialize failed with HRESULT: 0x%X", hr)
+	}
+	// Note: Don't call OleUninitialize here - the main thread may need OLE for other operations
+
 	dataObject := &FileDataObject{
 		vtbl:      dataObjectVtblInstance,
 		refCount:  1,
 		filePaths: filePaths,
 	}
-	fmt.Printf("[DragService] Created dataObject at %p, vtbl at %p\n", dataObject, dataObject.vtbl)
 
-	// Create IDropSource
 	dropSource := &FileDropSource{
 		vtbl:     dropSourceVtblInstance,
 		refCount: 1,
 	}
-	fmt.Printf("[DragService] Created dropSource at %p, vtbl at %p\n", dropSource, dropSource.vtbl)
 
-	// Call DoDragDrop - this blocks until drag completes
+	// Pin COM objects to prevent GC during the blocking DoDragDrop call
+	pinComObject(dataObject)
+	pinComObject(dropSource)
+
+	// Call DoDragDrop — blocks until drag completes or is cancelled
 	var dwEffect uint32
-	fmt.Printf("[DragService] Calling DoDragDrop...\n")
-	hr, _, err = procDoDragDrop.Call(
+	hr, _, _ = procDoDragDrop.Call(
 		uintptr(unsafe.Pointer(dataObject)),
 		uintptr(unsafe.Pointer(dropSource)),
-		DROPEFFECT_COPY|DROPEFFECT_MOVE|DROPEFFECT_LINK,
+		DROPEFFECT_COPY, // Only allow copy, not move
 		uintptr(unsafe.Pointer(&dwEffect)),
 	)
-	fmt.Printf("[DragService] DoDragDrop returned: hr=0x%X, effect=%d, err=%v\n", hr, dwEffect, err)
 
-	// Clean up
-	dataObjectRelease(uintptr(unsafe.Pointer(dataObject)))
-	dropSourceRelease(uintptr(unsafe.Pointer(dropSource)))
+	// Release pinned references now that DoDragDrop has returned
+	unpinAllComObjects()
+	runtime.KeepAlive(dataObject)
+	runtime.KeepAlive(dropSource)
 
 	if hr != S_OK && hr != DRAGDROP_S_DROP && hr != DRAGDROP_S_CANCEL {
 		return DROPEFFECT_NONE, fmt.Errorf("DoDragDrop failed with HRESULT: 0x%X", hr)
