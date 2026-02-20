@@ -78,6 +78,7 @@
     "newPassword": "Nova senha",
     "currentPassword": "Senha atual",
     "password": "Senha",
+    "presetName": "Nome do Preset",
     "projectName": "Nome do Projeto",
     "roleName": "Nome da Função",
     "search": "Pesquisar",
@@ -135,6 +136,12 @@
     "dependencyAdded": "Dependência Adicionada",
     "dependencyRemoved": "Dependência Removida",
     "dependencyAlreadyExists": "Dependência já existe",
+    "presetAppliedWithSkipped": "{skipped} dependências ignoradas (já existem)",
+    "dependencyPresetSaved": "Preset de dependência salvo",
+    "dependencyPresetDeleted": "Preset de dependência excluído",
+    "errorSavingDependencyPreset": "Erro ao salvar preset de dependência",
+    "errorDeletingDependencyPreset": "Erro ao excluir preset de dependência",
+    "errorUpdatingPreset": "Erro ao atualizar preset",
     "errorOccurred": "Ocorreu um erro",
     "errorUpdatingIcon": "Erro ao Atualizar Ícone",
     "errorUpdatingImage": "Erro ao Atualizar Imagem",
@@ -525,6 +532,7 @@
     "templateNameExists": "Um modelo com este nome já existe.",
     "selectAssetTemplate": "Selecionar Modelo de Ativo",
     "saveWorkspace": "Salvar Workspace",
+    "saveDependencyPreset": "Salvar Preset de Dependência",
     "clusttaApp": "Clustta",
     "versionLabel": "Versão",
     "copyrightNotice": "Copyright © 2024 Clustta",
@@ -778,6 +786,8 @@
     "searchDependencies": "Pesquisar dependências para adicionar",
     "filter": "Filtrar",
     "viewInGraph": "Ver no Gráfico",
+    "saveAsPreset": "Salvar como preset",
+    "dependencyPresets": "Presets",
     "noItemsMatchSearch": "Nenhum item corresponde à sua pesquisa",
     "noDependencies": "Este ativo não tem dependências",
     "noProjectSelected": "Nenhum projeto selecionado",
@@ -1217,6 +1227,14 @@
       "projectReverted": "Projeto Revertido com Sucesso",
       "errorRevertingProject": "Erro ao Reverter Projeto"
     },
+    "dependencyPresetItem": {
+      "dependencies": "dependências",
+      "apply": "Aplicar predefinição",
+      "delete": "Excluir predefinição",
+      "expand": "Expandir",
+      "collapse": "Recolher",
+      "remove": "Remover da predefinição"
+    },
     "skillsManager": {
       "noSkills": "Nenhuma habilidade para exibir",
       "searchPlaceholder": "Pesquisar e adicionar habilidades...",
@@ -1629,5 +1647,8 @@
     "serverUnavailable": "Servidor indisponível",
     "connectionLost": "Conexão perdida",
     "connectionReset": "Conexão redefinida"
+  },
+  "info": {
+    "presetWillOverwrite": "Uma predefinição com este nome já existe e será substituída"
   }
 }

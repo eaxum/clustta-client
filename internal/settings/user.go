@@ -57,12 +57,13 @@ type Settings struct {
 
 	SyncAfterCheckpoint bool `json:"sync_after_checkpoint"`
 
-	PinnedProjects map[string][]string      `json:"pinned_projects"`
-	RecentProjects map[string][]string      `json:"recent_projects"`
-	Studios        []Studio                 `json:"studios"`
-	WorkSpaces     map[string][]interface{} `json:"workspaces"`
-	LastStudio     string                   `json:"last_studio"`
-	CurrentVersion string                   `json:"current_version"`
+	PinnedProjects    map[string][]string      `json:"pinned_projects"`
+	RecentProjects    map[string][]string      `json:"recent_projects"`
+	Studios           []Studio                 `json:"studios"`
+	WorkSpaces        map[string][]interface{} `json:"workspaces"`
+	DependencyPresets map[string][]interface{} `json:"dependency_presets"`
+	LastStudio        string                   `json:"last_studio"`
+	CurrentVersion    string                   `json:"current_version"`
 }
 
 func loadUserSettings() (Settings, error) {
@@ -849,6 +850,88 @@ func RemoveProjectWorkspace(projectId string, workspaceName string) error {
 		}
 	}
 	settings.WorkSpaces[projectId] = projectWorkspaces
+	return saveSettings(settings)
+}
+
+// ========== Dependency Preset Management ==========
+
+// GetProjectDependencyPresets retrieves all dependency presets for a project.
+func GetProjectDependencyPresets(projectId string) ([]interface{}, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return []interface{}{}, err
+	}
+
+	presets, exists := settings.DependencyPresets[projectId]
+	if !exists {
+		return []interface{}{}, nil
+	}
+	return presets, nil
+}
+
+// AddDependencyPreset adds a dependency preset to a project.
+// If a preset with the same name exists, it will be overwritten.
+func AddDependencyPreset(projectId string, presetData interface{}) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+
+	if settings.DependencyPresets == nil {
+		settings.DependencyPresets = make(map[string][]interface{})
+	}
+
+	if _, exists := settings.DependencyPresets[projectId]; !exists {
+		settings.DependencyPresets[projectId] = []interface{}{}
+	}
+
+	projectPresets := settings.DependencyPresets[projectId]
+	presetName := presetData.(map[string]interface{})["name"]
+
+	// Remove existing preset with the same name if it exists
+	for i, preset := range projectPresets {
+		if presetName == preset.(map[string]interface{})["name"] {
+			projectPresets = append(projectPresets[:i], projectPresets[i+1:]...)
+			break
+		}
+	}
+
+	projectPresets = append(projectPresets, presetData)
+	settings.DependencyPresets[projectId] = projectPresets
+	return saveSettings(settings)
+}
+
+// RemoveDependencyPreset removes a dependency preset from a project.
+func RemoveDependencyPreset(projectId string, presetName string) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	projectPresets := settings.DependencyPresets[projectId]
+	for i, preset := range projectPresets {
+		if presetName == preset.(map[string]interface{})["name"] {
+			projectPresets = append(projectPresets[:i], projectPresets[i+1:]...)
+			break
+		}
+	}
+	settings.DependencyPresets[projectId] = projectPresets
+	return saveSettings(settings)
+}
+
+// UpdateDependencyPreset updates an existing dependency preset.
+func UpdateDependencyPreset(projectId string, presetName string, updatedPreset interface{}) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	projectPresets := settings.DependencyPresets[projectId]
+	for i, preset := range projectPresets {
+		if presetName == preset.(map[string]interface{})["name"] {
+			projectPresets[i] = updatedPreset
+			break
+		}
+	}
+	settings.DependencyPresets[projectId] = projectPresets
 	return saveSettings(settings)
 }
 

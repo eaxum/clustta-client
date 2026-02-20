@@ -1252,15 +1252,12 @@ func (t *AssetService) RemoveAssetDependency(projectPath, taskId, dependencyId s
 	if err != nil {
 		return err
 	}
-	tomb, err := repository.GetTomb(tx, dependencyId)
-	if err != nil {
-		return err
-	}
+
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
-	enqueueTombWriteThrough(projectPath, tomb)
+
 	return nil
 }
 func (t *AssetService) GetAssetDependencies2(projectPath string, taskIds []string) ([]models.Task, error) {

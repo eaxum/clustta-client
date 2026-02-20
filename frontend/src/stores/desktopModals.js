@@ -38,6 +38,7 @@ export const useDesktopModalStore = defineStore("desktopModals", {
 
       importItemsModal: false,
       addWorkspaceModal: false,
+      addDependencyPresetModal: false,
 
       // settings
       addProjectTemplateModal: false,
