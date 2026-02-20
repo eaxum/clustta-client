@@ -78,6 +78,7 @@
     "newPassword": "新密码",
     "currentPassword": "当前密码",
     "password": "密码",
+    "presetName": "预设名称",
     "projectName": "项目名称",
     "roleName": "角色名称",
     "search": "搜索",
@@ -135,6 +136,12 @@
     "dependencyAdded": "依赖项已添加",
     "dependencyRemoved": "依赖项已移除",
     "dependencyAlreadyExists": "依赖项已存在",
+    "presetAppliedWithSkipped": "{skipped} 个依赖项已跳过（已存在）",
+    "dependencyPresetSaved": "依赖项预设已保存",
+    "dependencyPresetDeleted": "依赖项预设已删除",
+    "errorSavingDependencyPreset": "保存依赖项预设时出错",
+    "errorDeletingDependencyPreset": "删除依赖项预设时出错",
+    "errorUpdatingPreset": "更新预设时出错",
     "errorOccurred": "发生错误",
     "errorUpdatingIcon": "更新图标时出错",
     "errorUpdatingImage": "更新图片时出错",
@@ -524,6 +531,7 @@
     "templateNameExists": "已存在同名模板。",
     "selectAssetTemplate": "选择资产模板",
     "saveWorkspace": "保存工作区",
+    "saveDependencyPreset": "保存依赖项预设",
     "clusttaApp": "Clustta",
     "versionLabel": "版本",
     "copyrightNotice": "版权所有 © 2024 Clustta",
@@ -776,6 +784,8 @@
     "searchDependencies": "搜索要添加的依赖项",
     "filter": "筛选",
     "viewInGraph": "在图中查看",
+    "saveAsPreset": "保存为预设",
+    "dependencyPresets": "预设",
     "noItemsMatchSearch": "没有匹配您搜索的项目",
     "noDependencies": "此资产没有依赖项",
     "noProjectSelected": "未选择项目",
@@ -1215,6 +1225,14 @@
       "projectReverted": "项目还原成功",
       "errorRevertingProject": "还原项目时出错"
     },
+    "dependencyPresetItem": {
+      "dependencies": "依赖项",
+      "apply": "应用预设",
+      "delete": "删除预设",
+      "expand": "展开",
+      "collapse": "折叠",
+      "remove": "从预设中移除"
+    },
     "skillsManager": {
       "noSkills": "没有可显示的技能",
       "searchPlaceholder": "搜索并添加技能...",
@@ -1627,5 +1645,8 @@
     "serverUnavailable": "服务器不可用",
     "connectionLost": "连接丢失",
     "connectionReset": "连接重置"
+  },
+  "info": {
+    "presetWillOverwrite": "具有此名称的预设已存在，将被覆盖"
   }
 }

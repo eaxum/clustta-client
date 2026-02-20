@@ -11,17 +11,22 @@
   <div class="general-pane-root">
 
     <div v-if="isSearching" class="sidebar-scroll" >
+      <div v-if="dependencyPresets.length" class="presets-section">
+        <div class="section-header">{{ $t('panes.dependencyPresets') }}</div>
+        <DependencyPresetItem v-for="preset in dependencyPresets" :key="preset.name" 
+          :preset="preset" @apply="applyPreset" @delete="deletePreset" @update="updatePreset" />
+      </div>
 
-      <PageState v-if="!availableDependencies.length && !isLoadingData" :message="message()" :illustration="illustration()" />
-      <ItemsList v-else :items="availableDependencies" :isDependency="true" :showAdd="true" :forList="true" />
+      <PageState v-if="!availableDependencies.length && !dependencyPresets.length && !isLoadingData" :message="message()" :illustration="illustration()" />
+      <ItemsList v-else-if="availableDependencies.length" :items="availableDependencies" :isDependency="true" :showAdd="true" :forList="true" />
     </div>
     
     <div v-else-if="assetDependencies.length" class="sidebar-scroll">
       <ItemsList :items="assetDependencies" :isDependency="true" :showRemove="true" :forList="true"/>
       
       <div class="bottom-bar">
-        <ActionButton :icon="getAppIcon('square-arrow-right-up')" :showLabel="true" :iconAfter="true" :fullWidth="false" :label="$t('panes.viewInGraph')"
-        :buttonFunction="goToDependencyGraph" />
+        <ActionButton :icon="getAppIcon('floppy-disk')" v-tooltip="$t('panes.saveAsPreset')" :buttonFunction="openSavePresetModal" />
+        <ActionButton :icon="getAppIcon('square-arrow-right-up')"  v-tooltip="$t('panes.viewInGraph')" :buttonFunction="goToDependencyGraph" />
       </div>
     </div>
 
@@ -41,7 +46,7 @@ import utils from '@/services/utils';
 import { isValidWeblink } from '@/lib/pointer';
 
 // services
-import { AssetService, CollectionService } from "@/services";
+import { AssetService, CollectionService, SettingsService } from "@/services";
 
 // states/store imports
 import { useCommonStore } from '@/stores/common';
@@ -52,28 +57,32 @@ import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
 import { useMenu } from '@/stores/menu';
 import { useDependencyStore } from '@/stores/dependency';
+import { useDesktopModalStore } from '@/stores/desktopModals';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import DependencyPresetItem from '@/instances/desktop/components/DependencyPresetItem.vue';
 import FilterButton from '@/instances/desktop/components/FilterButton.vue';
 import ItemsList from '@/instances/desktop/components/ItemsList.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 import SearchBar from '@/instances/desktop/components/SearchBar.vue';
 
 // states/stores
+const commonStore = useCommonStore();
 const stage = useStageStore();
 const notificationStore = useNotificationStore();
 const assetStore = useAssetStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 const menu = useMenu();
-const commonStore = useCommonStore();
 const dependencyStore = useDependencyStore();
+const modals = useDesktopModalStore();
 
 // i18n
 const { t } = useI18n();
 
 // refs
+const dependencyPresets = ref([]);
 const isLoadingData = ref(false);
 const searchQuery = ref('');
 const allDependencies = ref([]);
@@ -175,6 +184,88 @@ const goToDependencyGraph = () => {
   stage.setStageVisibility('dependencies', true);
 };
 
+const fetchDependencyPresets = async () => {
+  try {
+    const presets = await SettingsService.GetProjectDependencyPresets(projectStore.getActiveProject.id);
+    dependencyPresets.value = presets || [];
+  } catch (error) {
+    console.error("Error fetching dependency presets:", error);
+  }
+};
+
+const openSavePresetModal = () => {
+  assetStore.dependencyPresetModalData = {
+    dependencies: assetDependencies.value,
+    existingPresets: dependencyPresets.value
+  };
+  modals.setModalVisibility('addDependencyPresetModal', true);
+};
+
+const applyPreset = async (preset) => {
+  const asset = assetStore.selectedAsset;
+  if (!asset) return;
+
+  const existingTaskDeps = asset.dependencies || [];
+  const existingEntityDeps = asset.entity_dependencies || [];
+  
+  // Filter out dependencies that already exist
+  const depsToAdd = preset.dependencies.filter(dep => {
+    if (dep.type === 'task') {
+      return !existingTaskDeps.includes(dep.id);
+    } else {
+      return !existingEntityDeps.includes(dep.id);
+    }
+  });
+
+  const skippedCount = preset.dependencies.length - depsToAdd.length;
+  
+  for (const dep of depsToAdd) {
+    await addDependency(dep.id, dep.type);
+  }
+
+  if (skippedCount > 0) {
+    notificationStore.addNotification(
+      t('notifications.presetAppliedWithSkipped', { skipped: skippedCount }),
+      "",
+      "warning"
+    );
+  }
+};
+
+const updatePreset = async (updatedPreset) => {
+  try {
+    if (updatedPreset.dependencies.length === 0) {
+      await SettingsService.RemoveDependencyPreset(projectStore.getActiveProject.id, updatedPreset.name);
+      dependencyPresets.value = dependencyPresets.value.filter(p => p.name !== updatedPreset.name);
+    } else {
+      await SettingsService.UpdateDependencyPreset(projectStore.getActiveProject.id, updatedPreset.name, updatedPreset);
+      const index = dependencyPresets.value.findIndex(p => p.name === updatedPreset.name);
+      if (index !== -1) {
+        dependencyPresets.value[index] = updatedPreset;
+      }
+    }
+  } catch (error) {
+    console.error("Error updating preset:", error);
+    notificationStore.errorNotification(t('notifications.errorUpdatingPreset'), error);
+  }
+};
+
+// Deletes a dependency preset.
+const deletePreset = async (preset) => {
+  try {
+    await SettingsService.RemoveDependencyPreset(projectStore.getActiveProject.id, preset.name);
+    dependencyPresets.value = dependencyPresets.value.filter(p => p.name !== preset.name);
+    notificationStore.addNotification(t('notifications.dependencyPresetDeleted'), '', 'success');
+  } catch (error) {
+    console.error("Error deleting preset:", error);
+    notificationStore.errorNotification(t('notifications.errorDeletingDependencyPreset'), error);
+  }
+};
+
+const handlePresetAdded = (newPreset) => {
+  dependencyPresets.value.push(newPreset);
+};
+
 // refs
 const assetDependencies = ref([]);
 
@@ -188,8 +279,8 @@ const emitUpdates = (assetId, updates) => {
 const getAssetDependencies = async() => {
 	let project = projectStore.activeProject
   let allDependencies;
-  const selectedAssetDependencies = assetStore.selectedAsset?.dependencies;
-  const selectedAssetCollectionDependencies = assetStore.selectedAsset?.entity_dependencies;
+  const selectedAssetDependencies = assetStore.selectedAsset?.dependencies || [] ;
+  const selectedAssetCollectionDependencies = assetStore.selectedAsset?.entity_dependencies || [];
   allDependencies = [ ...selectedAssetDependencies, ...selectedAssetCollectionDependencies];
   const children = await AssetService.GetAssetDependencies(project.uri, allDependencies);
 
@@ -292,7 +383,7 @@ const addDependency = async (dependencyId, itemType) => {
     
     // Check if dependency already exists
     if (selectedAssetDependencies.includes(dependencyId)) {
-      notificationStore.addNotification(t('notifications.dependencyAlreadyExists'), "", "info");
+      notificationStore.addNotification(t('notifications.dependencyAlreadyExists'), "", "warning");
       return;
     }
     
@@ -324,7 +415,7 @@ const addDependency = async (dependencyId, itemType) => {
     
     // Check if dependency already exists
     if (selectedAssetDependencies.includes(dependencyId)) {
-      notificationStore.addNotification(t('notifications.dependencyAlreadyExists'), "", "info");
+      notificationStore.addNotification(t('notifications.dependencyAlreadyExists'), "", "warning");
       return;
     }
     
@@ -374,13 +465,16 @@ watch(() => assetStore.selectedAsset, async () => {
 // onMounted hook
 onMounted( async () => {
   await getAssetDependencies();
+  await fetchDependencyPresets();
   emitter.on('addDependency', handleAddDependency);
   emitter.on('removeDependency', handleRemoveDependency);
+  emitter.on('dependency-preset-added', handlePresetAdded);
 });
 
 onUnmounted(() => {
   emitter.off('addDependency', handleAddDependency);
   emitter.off('removeDependency', handleRemoveDependency);
+  emitter.off('dependency-preset-added', handlePresetAdded);
 });
 
 
@@ -454,6 +548,24 @@ onUnmounted(() => {
   height: max-content;
   padding: .2rem;
   align-items: flex-start;
+}
+
+.presets-section {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  margin-bottom: .5rem;
+  padding-bottom: .5rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--white);
+}
+
+.section-header {
+  font-size: .7rem;
+  font-weight: 600;
+  color: var(--subtle-text);
+  text-transform: uppercase;
+  padding: .25rem .5rem;
 }
 </style>
 

@@ -3,15 +3,8 @@
     <label v-if="label" class="form-label">{{ label }}</label>
     <div class="form-input-wrapper">
       <div class="form-input-container">
-        <input
-          :type="inputType"
-          :value="modelValue"
-          @input="handleInput"
-          :disabled="disabled"
-          :placeholder="placeholder"
-          class="form-input"
-          :class="{ 'has-icon': showValidation || isSecret }"
-        />
+        <input ref="inputRef" :type="inputType" :value="modelValue" @input="handleInput" :disabled="disabled"
+          :placeholder="placeholder" class="form-input" :class="{ 'has-icon': showValidation || isSecret }" />
         <div v-if="needsValidation && showValidation" class="form-input-icon">
           <ActionButton v-if="error" :icon="getAppIcon('alert')" :isInactive="true" useAlert :showLabel="false" />
           <ActionButton v-else-if="loading" :icon="getAppIcon('loading')" :isInactive="true" :isLoading="true" :showLabel="false" />
@@ -34,7 +27,7 @@
 
 <script setup>
 // imports
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -46,6 +39,10 @@ import { useIconStore } from '@/stores/icons';
 const iconStore = useIconStore();
 
 const props = defineProps({
+  autofocus: {
+    type: Boolean,
+    default: false
+  },
   disabled: {
     type: Boolean,
     default: false
@@ -101,6 +98,7 @@ const props = defineProps({
 });
 
 // refs
+const inputRef = ref(null);
 const isSecretVisible = ref(false);
 
 // computed
@@ -130,6 +128,13 @@ const handleInput = (event) => {
 const toggleSecretVisibility = () => {
   isSecretVisible.value = !isSecretVisible.value;
 };
+
+// lifecycle hooks
+onMounted(() => {
+  if (props.autofocus && inputRef.value) {
+    inputRef.value.focus();
+  }
+});
 </script>
 
 <style scoped>

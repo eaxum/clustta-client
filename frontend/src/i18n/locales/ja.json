@@ -78,6 +78,7 @@
     "newPassword": "新しいパスワード",
     "currentPassword": "現在のパスワード",
     "password": "パスワード",
+    "presetName": "プリセット名",
     "projectName": "プロジェクト名",
     "roleName": "ロール名",
     "search": "検索",
@@ -135,6 +136,12 @@
     "dependencyAdded": "依存関係が追加されました",
     "dependencyRemoved": "依存関係が削除されました",
     "dependencyAlreadyExists": "依存関係は既に存在します",
+    "presetAppliedWithSkipped": "{skipped}個の依存関係をスキップしました（既に存在します）",
+    "dependencyPresetSaved": "依存関係プリセットを保存しました",
+    "dependencyPresetDeleted": "依存関係プリセットを削除しました",
+    "errorSavingDependencyPreset": "依存関係プリセットの保存エラー",
+    "errorDeletingDependencyPreset": "依存関係プリセットの削除エラー",
+    "errorUpdatingPreset": "プリセットの更新エラー",
     "errorOccurred": "エラーが発生しました",
     "errorUpdatingIcon": "アイコンの更新エラー",
     "errorUpdatingImage": "画像の更新エラー",
@@ -526,6 +533,7 @@
     "templateNameExists": "この名前のテンプレートは既に存在します。",
     "selectAssetTemplate": "アセットテンプレートを選択",
     "saveWorkspace": "ワークスペースを保存",
+    "saveDependencyPreset": "依存関係プリセットを保存",
     "clusttaApp": "Clustta",
     "versionLabel": "バージョン",
     "copyrightNotice": "Copyright © 2024 Clustta",
@@ -775,6 +783,8 @@
     "searchDependencies": "追加する依存関係を検索",
     "filter": "フィルター",
     "viewInGraph": "グラフで表示",
+    "saveAsPreset": "プリセットとして保存",
+    "dependencyPresets": "プリセット",
     "noItemsMatchSearch": "検索に一致するアイテムがありません",
     "noDependencies": "このアセットには依存関係がありません",
     "noProjectSelected": "プロジェクトが選択されていません",
@@ -1214,6 +1224,14 @@
       "projectReverted": "プロジェクトが正常に元に戻されました",
       "errorRevertingProject": "プロジェクトの復元エラー"
     },
+    "dependencyPresetItem": {
+      "dependencies": "依存関係",
+      "apply": "プリセットを適用",
+      "delete": "プリセットを削除",
+      "expand": "展開",
+      "collapse": "折りたたむ",
+      "remove": "プリセットから削除"
+    },
     "skillsManager": {
       "noSkills": "表示するスキルがありません",
       "searchPlaceholder": "スキルを検索して追加...",
@@ -1626,5 +1644,8 @@
     "serverUnavailable": "サーバーが利用できません",
     "connectionLost": "接続が失われました",
     "connectionReset": "接続がリセットされました"
+  },
+  "info": {
+    "presetWillOverwrite": "この名前のプリセットは既に存在し、上書きされます"
   }
 }

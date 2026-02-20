@@ -10,6 +10,7 @@
 import { computed, onBeforeUnmount, onMounted } from 'vue';
 
 // components - browser
+import AddDependencyPresetModal from '@/instances/desktop/modals/AddDependencyPresetModal.vue';
 import AddProjectModal from '@/instances/desktop/modals/AddProjectModal.vue';
 import AddWebLinkModal from '@/instances/desktop/modals/AddWebLinkModal.vue';
 import AddWorkspaceModal from '@/instances/desktop/modals/AddWorkspaceModal.vue';
@@ -95,6 +96,7 @@ const props = defineProps({
 // modal components mapping
 const modalComponents = {
   // browser
+  addDependencyPresetModal: AddDependencyPresetModal,
   addProjectModal: AddProjectModal,
   addWebLinkModal: AddWebLinkModal,
   addWorkspaceModal: AddWorkspaceModal,

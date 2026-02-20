@@ -78,6 +78,7 @@
     "newPassword": "Nouveau mot de passe",
     "currentPassword": "Mot de passe actuel",
     "password": "Mot de passe",
+    "presetName": "Nom du préréglage",
     "projectName": "Nom du Projet",
     "roleName": "Nom du Rôle",
     "search": "Rechercher",
@@ -135,6 +136,12 @@
     "dependencyAdded": "Dépendance Ajoutée",
     "dependencyRemoved": "Dépendance Supprimée",
     "dependencyAlreadyExists": "La dépendance existe déjà",
+    "presetAppliedWithSkipped": "{skipped} dépendances ignorées (existent déjà)",
+    "dependencyPresetSaved": "Préréglage de dépendance enregistré",
+    "dependencyPresetDeleted": "Préréglage de dépendance supprimé",
+    "errorSavingDependencyPreset": "Erreur lors de l'enregistrement du préréglage de dépendance",
+    "errorDeletingDependencyPreset": "Erreur lors de la suppression du préréglage de dépendance",
+    "errorUpdatingPreset": "Erreur lors de la mise à jour du préréglage",
     "errorOccurred": "Une erreur s'est produite",
     "errorUpdatingIcon": "Erreur lors de la mise à jour de l'icône",
     "errorUpdatingImage": "Erreur lors de la mise à jour de l'image",
@@ -526,6 +533,7 @@
     "templateNameExists": "Un modèle avec ce nom existe déjà.",
     "selectAssetTemplate": "Sélectionner un modèle d'actif",
     "saveWorkspace": "Enregistrer l'espace de travail",
+    "saveDependencyPreset": "Enregistrer le préréglage de dépendance",
     "clusttaApp": "Clustta",
     "versionLabel": "Version",
     "copyrightNotice": "Copyright © 2024 Clustta",
@@ -775,6 +783,8 @@
     "searchDependencies": "Rechercher des dépendances à ajouter",
     "filter": "Filtrer",
     "viewInGraph": "Voir dans le graphe",
+    "saveAsPreset": "Enregistrer comme préréglage",
+    "dependencyPresets": "Préréglages",
     "noItemsMatchSearch": "Aucun élément ne correspond à votre recherche",
     "noDependencies": "Cet asset n'a aucune dépendance",
     "noProjectSelected": "Aucun projet sélectionné",
@@ -1214,6 +1224,14 @@
       "projectReverted": "Projet rétabli avec succès",
       "errorRevertingProject": "Erreur lors du rétablissement du projet"
     },
+    "dependencyPresetItem": {
+      "dependencies": "dépendances",
+      "apply": "Appliquer le préréglage",
+      "delete": "Supprimer le préréglage",
+      "expand": "Développer",
+      "collapse": "Réduire",
+      "remove": "Supprimer du préréglage"
+    },
     "skillsManager": {
       "noSkills": "Aucune compétence à afficher",
       "searchPlaceholder": "Rechercher et ajouter des compétences...",
@@ -1626,5 +1644,8 @@
     "serverUnavailable": "Serveur indisponible",
     "connectionLost": "Connexion perdue",
     "connectionReset": "Connexion réinitialisée"
+  },
+  "info": {
+    "presetWillOverwrite": "Un préréglage avec ce nom existe et sera écrasé"
   }
 }

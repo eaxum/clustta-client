@@ -78,6 +78,7 @@
     "newPassword": "New password",
     "currentPassword": "Current password",
     "password": "Password",
+    "presetName": "Preset Name",
     "projectName": "Project Name",
     "roleName": "Role Name",
     "search": "Search",
@@ -135,6 +136,12 @@
     "dependencyAdded": "Dependency Added",
     "dependencyRemoved": "Dependency Removed",
     "dependencyAlreadyExists": "Dependency already exists",
+    "presetAppliedWithSkipped": "{skipped} dependencies skipped (already exist)",
+    "dependencyPresetSaved": "Dependency preset saved",
+    "dependencyPresetDeleted": "Dependency preset deleted",
+    "errorSavingDependencyPreset": "Error saving dependency preset",
+    "errorDeletingDependencyPreset": "Error deleting dependency preset",
+    "errorUpdatingPreset": "Error updating preset",
     "errorOccurred": "An error occurred",
     "errorUpdatingIcon": "Error Updating Icon",
     "errorUpdatingImage": "Error Updating Image",
@@ -525,6 +532,7 @@
     "templateNameExists": "A template with this name already exists.",
     "selectAssetTemplate": "Select Asset Template",
     "saveWorkspace": "Save Workspace",
+    "saveDependencyPreset": "Save Dependency Preset",
     "clusttaApp": "Clustta",
     "versionLabel": "Version",
     "copyrightNotice": "Copyright © 2024 Clustta",
@@ -778,6 +786,8 @@
     "searchDependencies": "Search for dependencies to add",
     "filter": "Filter",
     "viewInGraph": "View in Graph",
+    "saveAsPreset": "Save as preset",
+    "dependencyPresets": "Presets",
     "noItemsMatchSearch": "No items match your search",
     "noDependencies": "This asset has no dependencies",
     "noProjectSelected": "No project selected",
@@ -1217,6 +1227,14 @@
       "projectReverted": "Project Successfully Reverted",
       "errorRevertingProject": "Error Reverting Project"
     },
+    "dependencyPresetItem": {
+      "dependencies": "dependencies",
+      "apply": "Apply preset",
+      "delete": "Delete preset",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "remove": "Remove from preset"
+    },
     "skillsManager": {
       "noSkills": "No skills to display",
       "searchPlaceholder": "Search and add skills...",
@@ -1629,5 +1647,8 @@
     "serverUnavailable": "Server unavailable",
     "connectionLost": "Connection lost",
     "connectionReset": "Connection reset"
+  },
+  "info": {
+    "presetWillOverwrite": "A preset with this name exists and will be overwritten"
   }
 }

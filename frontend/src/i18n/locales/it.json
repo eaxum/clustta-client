@@ -78,6 +78,7 @@
     "newPassword": "Nuova password",
     "currentPassword": "Password attuale",
     "password": "Password",
+    "presetName": "Nome Preset",
     "projectName": "Nome progetto",
     "roleName": "Nome ruolo",
     "search": "Cerca",
@@ -135,6 +136,12 @@
     "dependencyAdded": "Dipendenza aggiunta",
     "dependencyRemoved": "Dipendenza rimossa",
     "dependencyAlreadyExists": "La dipendenza esiste già",
+    "presetAppliedWithSkipped": "{skipped} dipendenze ignorate (già esistenti)",
+    "dependencyPresetSaved": "Preset dipendenze salvato",
+    "dependencyPresetDeleted": "Preset dipendenze eliminato",
+    "errorSavingDependencyPreset": "Errore nel salvataggio del preset dipendenze",
+    "errorDeletingDependencyPreset": "Errore nell'eliminazione del preset dipendenze",
+    "errorUpdatingPreset": "Errore nell'aggiornamento del preset",
     "errorOccurred": "Si è verificato un errore",
     "errorUpdatingIcon": "Errore nell'aggiornamento dell'icona",
     "errorUpdatingImage": "Errore nell'aggiornamento dell'immagine",
@@ -525,6 +532,7 @@
     "templateNameExists": "Un modello con questo nome esiste già.",
     "selectAssetTemplate": "Seleziona modello asset",
     "saveWorkspace": "Salva workspace",
+    "saveDependencyPreset": "Salva Preset Dipendenze",
     "clusttaApp": "Clustta",
     "versionLabel": "Versione",
     "copyrightNotice": "Copyright © 2024 Clustta",
@@ -778,6 +786,8 @@
     "searchDependencies": "Cerca dipendenze da aggiungere",
     "filter": "Filtro",
     "viewInGraph": "Visualizza nel grafico",
+    "saveAsPreset": "Salva come preset",
+    "dependencyPresets": "Preset",
     "noItemsMatchSearch": "Nessun elemento corrisponde alla ricerca",
     "noDependencies": "Questo asset non ha dipendenze",
     "noProjectSelected": "Nessun progetto selezionato",
@@ -1030,6 +1040,7 @@
     "sidePane": { "allProjects": "Tutti i progetti", "settings": "Impostazioni", "login": "Accesso" },
     "trashItem": { "restore": "Ripristina", "expand": "Espandi", "itemRestored": "Elemento ripristinato", "errorRestoringItem": "Errore nel ripristino dell'elemento" },
     "timelineItem": { "revert": "Ripristina", "expand": "Espandi", "close": "Chiudi", "projectReverted": "Progetto ripristinato con successo", "errorRevertingProject": "Errore nel ripristino del progetto" },
+    "dependencyPresetItem": { "dependencies": "dipendenze", "apply": "Applica preset", "delete": "Elimina preset", "expand": "Espandi", "collapse": "Comprimi", "remove": "Rimuovi dal preset" },
     "skillsManager": { "noSkills": "Nessuna competenza da mostrare", "searchPlaceholder": "Cerca e aggiungi competenze...", "maxReached": "Massimo 5 competenze raggiunte. Rimuovi una competenza per aggiungerne un'altra.", "skillAdded": "Competenza aggiunta", "skillAddedMessage": "Competenza aggiunta con successo.", "failedToAddSkill": "Aggiunta competenza fallita", "skillRemoved": "Competenza rimossa", "skillRemovedMessage": "Competenza rimossa con successo.", "failedToRemoveSkill": "Rimozione competenza fallita" },
     "toolsManager": { "noTools": "Nessuno strumento da mostrare", "searchPlaceholder": "Cerca e aggiungi strumenti...", "maxReached": "Massimo 5 strumenti raggiunti. Rimuovi uno strumento per aggiungerne un altro.", "toolAdded": "Strumento aggiunto", "toolAddedMessage": "Strumento aggiunto con successo.", "failedToAddTool": "Aggiunta strumento fallita", "toolRemoved": "Strumento rimosso", "toolRemovedMessage": "Strumento rimosso con successo.", "failedToRemoveTool": "Rimozione strumento fallita" },
     "importPreview": { "deselectAll": "Deseleziona tutto", "removeSelected": "Rimuovi selezionati", "removeSelectedTooltip": "Rimuovi selezionati", "removeEmptyFolders": "Rimuovi cartelle vuote", "entity": "entità", "entities": "entità", "task": "attività", "tasks": "attività", "and": "e", "toImport": "da importare", "selected": "selezionati", "projectRoot": "Radice progetto" },
@@ -1074,5 +1085,8 @@
     "serverUnavailable": "Server non disponibile",
     "connectionLost": "Connessione persa",
     "connectionReset": "Connessione reimpostata"
+  },
+  "info": {
+    "presetWillOverwrite": "Un preset con questo nome esiste e verrà sovrascritto"
   }
 }
