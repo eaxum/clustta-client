@@ -37,6 +37,7 @@
         :allItems="normalizedAllTools"
         :placeholder="$t('components.toolsManager.searchPlaceholder')"
         :itemType="'tool'"
+        :iconFilter="false"
         @itemAdded="addTool"
       />
       <div v-else class="limit-message">
