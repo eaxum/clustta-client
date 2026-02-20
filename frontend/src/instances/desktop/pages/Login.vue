@@ -14,7 +14,7 @@
         <!-- form container -->
         <div class="auth-form-container">
           <!-- studio server toggle -->
-          <div class="horizontal-flex studio-toggle-row">
+          <div v-if="!platformStore.isWeb" class="horizontal-flex studio-toggle-row">
             <ActionButton :isInactive="true" :icon="getAppIcon('two-drives')" :label="$t('auth.login.privateServer')" />
             <ToggleSwitch @click="toggleStudioLogin" :switchValueProp="showStudioLogin" />
           </div>
@@ -71,15 +71,17 @@
             {{ $t('auth.login.noAccount') }}&nbsp;<span class="bold">{{ $t('auth.login.signUpLink') }}</span>
           </div>
 
-          <div class="divider-container">
-            <div class="divider-line"></div>
-            <div class="divider-text">{{ $t('auth.login.or') }}</div>
-            <div class="divider-line"></div>
-          </div>
+          <template v-if="!platformStore.isWeb">
+            <div class="divider-container">
+              <div class="divider-line"></div>
+              <div class="divider-text">{{ $t('auth.login.or') }}</div>
+              <div class="divider-line"></div>
+            </div>
 
-          <div @click="enableOfflineMode" class="offline-toggle" :class="{ 'button-inactive': isAwaitingResponse }">
-            {{ $t('auth.login.useWithoutAccount') }}
-          </div>
+            <div @click="enableOfflineMode" class="offline-toggle" :class="{ 'button-inactive': isAwaitingResponse }">
+              {{ $t('auth.login.useWithoutAccount') }}
+            </div>
+          </template>
           
         </div>
       </div>
@@ -102,6 +104,7 @@ import { useIconStore } from '@/stores/icons';
 import { useThemeStore } from '@/stores/theme';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useAccountStore } from '@/stores/accounts';
+import { usePlatformStore } from '@/stores/platform';
 import { markStoresInitialized } from '@/router';
 import utils from "@/services/utils";
 
@@ -117,6 +120,7 @@ const iconStore = useIconStore();
 const themeStore = useThemeStore();
 const modals = useDesktopModalStore();
 const accountStore = useAccountStore();
+const platformStore = usePlatformStore();
 
 // refs
 const error = ref('');

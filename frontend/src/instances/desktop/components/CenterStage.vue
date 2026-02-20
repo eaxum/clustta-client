@@ -12,10 +12,12 @@ import { computed, ref, onMounted, onUnmounted } from 'vue';
 // state imports
 import { useMenu } from '@/stores/menu';
 import { useStageStore } from '@/stores/stages';
+import { usePlatformStore } from '@/stores/platform';
 
 // states/stores
 const menu = useMenu();
 const stage = useStageStore();
+const platformStore = usePlatformStore();
 const stageContainer = ref(null);
 
 // components
@@ -60,7 +62,11 @@ const disableMenu = () => {
 };
 
 onMounted(() => {
-	stage.setStageVisibility('projects', true);
+	if (platformStore.isWeb) {
+		stage.setStageVisibility('account', true);
+	} else {
+		stage.setStageVisibility('projects', true);
+	}
 });
 
 
