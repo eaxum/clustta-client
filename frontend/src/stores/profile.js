@@ -84,7 +84,6 @@ export const useProfileStore = defineStore("profile", {
       const tools = profileData.tools;
 
       const skills = profileData.skills;
-    console.log(profileData)
       this.profile = {
         ...this.profile,
         ...profileData,

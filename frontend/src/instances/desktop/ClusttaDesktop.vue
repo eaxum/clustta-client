@@ -12,7 +12,7 @@
 					<div ref="mainAreaContainer" class="main-area">
 						<CenterStage />
 					</div>
-        			<InfoBar />
+        			<InfoBar v-if="!platformStore.isWeb" />
 				</div>
 			</div>
 		</div>
