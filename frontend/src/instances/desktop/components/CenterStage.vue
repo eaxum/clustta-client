@@ -1,5 +1,5 @@
 <template>
-	<div ref="stageContainer" class="center-stage" @scroll="disableMenu()">
+	<div ref="stageContainer" :class="['center-stage', { 'web-mode': platformStore.isWeb }]" @scroll="disableMenu()">
 		<ContextMenu />
 		<component v-for="stage in visibleStages" :key="stage.name" :is="stage.component" />
 	</div>
@@ -89,6 +89,10 @@ onMounted(() => {
 	background-color: firebrick;
 	background-color: var(--shadow-steel);
 	/* background-color: forestgreen; */
+}
+
+.center-stage.web-mode {
+	min-width: unset;
 }
 
 .absolute-pane{
