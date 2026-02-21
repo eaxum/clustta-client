@@ -43,3 +43,4 @@ Clustta_template.xml
 build/darwin/clustta.entitlements
 *.mjs
 unreal_ignore_list.txt
+scripts/sync-repos.ps1

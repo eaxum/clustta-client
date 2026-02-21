@@ -2,7 +2,7 @@
   <div  class="scroll-list-container">
       <div v-for="(item, index) in items" :key="index" :index="index" class="scroll-list-item">
       <div v-if="useAvatar" class="profile-picture" :style="{ backgroundColor: item.avatarColor}">
-        <img class="profile-img"  :src=" item.profile ? item.profile : '/icons/default_profile_picture.svg'">
+        <img class="profile-img"  :src=" item.profile ? item.profile : generateAvatar(item.id)">
       </div>
       <img v-else-if="useIcons" class="small-icons" :src="item.icon">
       <div class="scroll-list-item-name"> {{ item.name }}</div>
@@ -31,6 +31,7 @@
 
 
 <script setup>
+import { generateAvatar } from '@/lib/avatar';
 const props = defineProps({
     items: Array,
     useAvatar: {

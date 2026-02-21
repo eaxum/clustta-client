@@ -32,6 +32,7 @@
             <div class="header-layout">
               <ProfileAvatar
                 :userPhoto="userPhoto"
+                :userId="userData?.id"
                 :avatarColor="profileColor"
                 :isEditing="editingSections.header"
                 @photoChanged="handlePhotoChange"
@@ -306,6 +307,7 @@
 import { ref, reactive, computed, onBeforeMount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AuthService, ProfileService, FSService, ClipboardService } from "@/services";
+import { generateAvatar } from '@/lib/avatar';
 
 const isWebMode = import.meta.env.VITE_PLATFORM === 'web';
 
@@ -497,7 +499,7 @@ const isDataValid = computed(() => {
 
 const userPhoto = computed(() => {
   if (photoPreview.value) return photoPreview.value;
-  if (!userStore.user?.photo) return '/icons/default_profile_picture.svg';
+  if (!userStore.user?.photo) return generateAvatar(userStore.user?.id);
   return userStore.user.photo;
 });
 

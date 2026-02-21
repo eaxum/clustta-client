@@ -4,7 +4,7 @@
       <!-- Avatar -->
       <div class="user-avatar" :style="{ backgroundColor: avatarColor }">
         <img v-if="user.photo" class="avatar-img" :src="photoUrl" alt="Profile Photo">
-        <img v-else class="avatar-img" :src="getAppIcon('person')" alt="Default Avatar">
+        <img v-else class="avatar-img" :src="generateAvatar(user.id)" alt="Default Avatar">
       </div>
 
       <!-- Main Info -->
@@ -115,6 +115,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useIconStore } from '@/stores/icons';
+import { generateAvatar } from '@/lib/avatar';
 import SkillsManager from '@/instances/desktop/components/SkillsManager.vue';
 import ToolsManager from '@/instances/desktop/components/ToolsManager.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';

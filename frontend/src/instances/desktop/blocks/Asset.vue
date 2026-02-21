@@ -55,7 +55,7 @@
             <span v-tooltip="userFullName" class="single-action-button">
               <div class="profile-picture-grid" :style="{ backgroundColor: profileColor(task.assignee_id) }">
                 <img v-if="userPhoto" class="profile-img-grid" :src="userPhoto">
-                <img v-else class="profile-img-grid" :src="getAppIcon('person')">
+                <img v-else class="profile-img-grid" :src="generateAvatar(task.assignee_id)">
               </div>
             </span>
           </div>
@@ -251,7 +251,7 @@
               <span v-tooltip="userFullName" class="single-action-button">
                 <div class="profile-picture" :style="{ backgroundColor: profileColor(task.assignee_id) }">
                   <img v-if="userPhoto" class="profile-img" :src="userPhoto">
-                  <img v-else class="profile-img" :src="getAppIcon('person')">
+                  <img v-else class="profile-img" :src="generateAvatar(task.assignee_id)">
                 </div>
               </span>
             </div>
@@ -342,6 +342,7 @@ import emitter from '@/lib/mitt';
 import { getParentPath } from '@/lib/pathlib';
 import { isValidWeblink } from '@/lib/pointer';
 import utils from '@/services/utils';
+import { generateAvatar } from '@/lib/avatar';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';

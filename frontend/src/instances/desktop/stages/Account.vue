@@ -106,6 +106,7 @@ import { useI18n } from 'vue-i18n';
 import { AuthService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
+import { generateAvatar } from '@/lib/avatar';
 
 // state imports
 import { useIconStore } from '@/stores/icons';
@@ -190,7 +191,7 @@ const isDataValid = computed(() => {
 
 const userPhoto = computed(() => {
 	if (!userStore.user?.photo) {
-	return '/icons/default_profile_picture.svg'
+	return generateAvatar(userStore.user?.id)
 	}
 	return userStore.user.photo
 });

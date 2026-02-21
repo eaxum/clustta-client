@@ -173,6 +173,7 @@ const refreshCheckpoints = async () => {
     const checkpointObj = {
       comment: checkpoint.comment,
       author: author_fullname,
+      author_id: authorId,
       created_at: checkpoint.created_at,
       preview: preview,
       ownerId: checkpoint.task_id,
