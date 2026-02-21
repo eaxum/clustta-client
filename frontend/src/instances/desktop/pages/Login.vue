@@ -257,7 +257,7 @@ const handleLogin = async () => {
     if (isStudioLogin) {
       notificationStore.addNotification(t('auth.login.studioLoginTitle'), t('auth.login.studioLoginSuccess', { url: normalizedStudioUrl }), "●");
     }
-    router.push('/');
+    router.push(platformStore.isWeb ? '/profile' : '/');
   } catch (err) {
     console.log(err);
     isAwaitingResponse.value = false;
@@ -347,7 +347,7 @@ const enableOfflineMode = async () => {
     
     // Navigate to home after successful offline setup
     notificationStore.addNotification(t('auth.login.offlineModeTitle'), t('auth.login.offlineModeMessage'), "success");
-    router.push('/');
+    router.push(platformStore.isWeb ? '/profile' : '/');
   } catch (err) {
     console.error('Failed to enable offline mode:', err);
     error.value = t('auth.login.offlineModeFailed');

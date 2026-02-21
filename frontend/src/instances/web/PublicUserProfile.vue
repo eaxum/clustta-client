@@ -1,8 +1,7 @@
 <template>
   <div class="public-profile-root">
     <div class="public-profile-header">
-      <!-- <ClusttaLogo :boldText="true" :showText="true" :colored="true" size="small" @click="goHome" class="header-logo" /> -->
-      <TitleBar />
+      <NavigationBar />
     </div>
 
     <!-- Loading State -->
@@ -142,8 +141,7 @@ import { ProfileService } from '@/services/adapters/profileservice.js';
 import { ClipboardService } from '@/services';
 
 // Components
-import TitleBar from '@/instances/desktop/components/TitleBar.vue';
-import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
+import NavigationBar from '@/instances/web/components/NavigationBar.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import ProfileCard from '@/instances/desktop/components/ProfileCard.vue';
 import ProfileAvatar from '@/instances/desktop/components/ProfileAvatar.vue';
@@ -236,6 +234,15 @@ const getPhotoUrl = (photo) => {
 
 const goHome = () => {
   router.push('/');
+};
+
+const goBack = () => {
+  // If there's history, go back; otherwise go to discover page
+  if (window.history.length > 2) {
+    router.back();
+  } else {
+    router.push('/discover');
+  }
 };
 
 const copyProfileLink = async () => {
@@ -335,13 +342,47 @@ onMounted(() => {
   width: 100%;
   display: flex;
   align-items: center;
-  background-color: var(--black);
-  border-bottom: var(--transparent-line);
+  background-color: rgba(255, 255, 255, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 99999;
+  backdrop-filter: blur(30px);
 }
 
 .header-logo {
   padding-left: 0.5rem;
   flex: unset !important;
+}
+
+.back-nav-container {
+  width: 100%;
+  max-width: 800px;
+  padding: 1rem 2rem 0;
+}
+
+.back-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  border-radius: var(--normal-radius);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.back-nav-btn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--white);
+}
+
+.back-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
 }
 
 .public-profile-root::-webkit-scrollbar {

@@ -63,6 +63,7 @@ const disableMenu = () => {
 
 onMounted(() => {
 	if (platformStore.isWeb) {
+		console.log('web')
 		stage.setStageVisibility('account', true);
 	} else {
 		stage.setStageVisibility('projects', true);
