@@ -28,6 +28,7 @@ import UserProfile from '@/instances/desktop/stages/UserProfile.vue';
   overflow: hidden;
   overflow-y: auto;
   color: var(--white);
+  box-sizing: border-box;
 }
 
 .profile-header {

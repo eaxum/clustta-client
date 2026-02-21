@@ -8,7 +8,7 @@
                 <div class="profile-picture" :style="{ backgroundColor: checkpoint.avatarColor }"
                     v-tooltip="checkpoint.author">
                     <img class="profile-img"
-                        :src="checkpoint.author_profile ? checkpoint.author_profile : '/icons/default_profile_picture.svg'">
+                        :src="checkpoint.author_profile ? checkpoint.author_profile : generateAvatar(checkpoint.author_id)">
                 </div>
             </div>
             <div class="checkpoint-item-data">
@@ -86,6 +86,7 @@ const getAppIcon = (iconName) => {
 import { ref, onMounted, onBeforeUnmount, computed, nextTick, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
+import { generateAvatar } from '@/lib/avatar';
 
 // services
 import { SyncService } from "@/services";

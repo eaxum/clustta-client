@@ -1,16 +1,15 @@
 <template>
     <div class="profile-picture" :style="{ backgroundColor: profileColor(assigneeId) }">
       <img v-if="userPhoto" class="profile-img" :src="userPhoto">
-      <img v-else class="profile-img" :src="getAppIcon('person')">
+      <img v-else class="profile-img" :src="fallbackAvatar">
     </div>
   </template>
   
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
-import { useIconStore } from '@/stores/icons';
+import { computed } from 'vue';
+import { generateAvatar } from '@/lib/avatar';
 import { useUserStore } from '@/stores/users';
 
-const iconStore = useIconStore();
 const userStore = useUserStore();
     
 const props = defineProps({
@@ -30,14 +29,16 @@ const props = defineProps({
 
 const emit = defineEmits(['click']);
 
+// Generates a DiceBear avatar based on assigneeId as fallback.
+const fallbackAvatar = computed(() => {
+  return generateAvatar(props.assigneeId);
+});
+
+// Generates profile background color from UUID.
 const profileColor = (uuid) => {
+  if (!uuid) return '#cccccc';
   const parts = uuid.split('-');
   return '#' + parts[0];
-};
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
 };
 </script>
   
@@ -48,13 +49,14 @@ const getAppIcon = (iconName) => {
     overflow: hidden;
     display: flex;
     align-items: center;
+    justify-content: center;
     border-radius: 24px;
     opacity: 1;
   }
   
   .profile-img {
-    width: 100%;
-    height: 100%;
+    width: 120%;
+    height: 120%;
   }
   
   .assignee-list-item-name {

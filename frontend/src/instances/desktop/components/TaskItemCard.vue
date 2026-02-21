@@ -26,7 +26,7 @@
         <div class="single-action-button" v-tooltip="userFullName">
           <div class="profile-picture" :style="{ backgroundColor: profileColor(task.assignee_id) }">
               <img v-if="userPhoto" class="profile-img" :src="userPhoto">
-              <img v-else class="profile-img" :src="getAppIcon('person')">
+              <img v-else class="profile-img" :src="generateAvatar(task.assignee_id)">
           </div>
         </div>
       </div>
@@ -45,6 +45,7 @@
 // imports
 import { computed, ref, onMounted } from 'vue';;
 import utils from '@/services/utils';
+import { generateAvatar } from '@/lib/avatar';
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';

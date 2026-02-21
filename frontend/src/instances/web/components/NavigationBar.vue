@@ -43,7 +43,7 @@
         <div class="user-menu" @click="toggleUserMenu" v-stop-propagation>
           <div class="user-avatar" :style="{ backgroundColor: avatarColor }">
             <img v-if="userStore.user?.photo" class="avatar-img" :src="photoUrl" alt="Profile">
-            <img v-else class="avatar-img" :src="getAppIcon('person')" alt="Profile">
+            <img v-else class="avatar-img" :src="generateAvatar(userStore.user?.id)" alt="Profile">
           </div>
         </div>
 
@@ -103,6 +103,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useIconStore } from '@/stores/icons';
 import { useUserStore } from '@/stores/users';
+import { generateAvatar } from '@/lib/avatar';
 
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';

@@ -6,7 +6,7 @@
         <div class="account-avatar">
           <div class="profile-picture" :style="{ backgroundColor: profileColor(currentAccount?.id) }">
             <img v-if="currentAccount?.photo" class="profile-img" :src="currentAccount.photo">
-            <img v-else class="profile-img" :src="getAppIcon('person')">
+            <img v-else class="profile-img" :src="generateAvatar(currentAccount?.id)">
           </div>
         </div>
         <div class="account-info">
@@ -37,7 +37,7 @@
           <div class="account-avatar">
             <div class="profile-picture" :style="{ backgroundColor: profileColor(account.id) }">
               <img v-if="account.photo" class="profile-img" :src="account.photo">
-              <img v-else class="profile-img" :src="getAppIcon('person')">
+              <img v-else class="profile-img" :src="generateAvatar(account.id)">
             </div>
           </div>
           <div class="account-info">
@@ -109,6 +109,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { resetStoreInitialization } from '@/router';
+import { generateAvatar } from '@/lib/avatar';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';

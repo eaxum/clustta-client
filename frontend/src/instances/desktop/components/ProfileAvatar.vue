@@ -3,7 +3,7 @@
     <div class="avatar-wrapper">
       <div class="profile-avatar" :style="{ backgroundColor: avatarColor }">
         <img v-if="displayPhoto" class="avatar-img" :src="displayPhoto" alt="Profile Photo">
-        <img v-else class="avatar-img" :src="getAppIcon('person')" alt="Default Avatar">
+        <img v-else class="avatar-img" :src="fallbackAvatar" alt="Default Avatar">
       </div>
       
       <div v-if="isEditing && !readonly" class="avatar-overlay">
@@ -34,6 +34,7 @@ import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useIconStore } from '@/stores/icons';
 import { DialogService, FSService } from '@/services';
+import { generateAvatar } from '@/lib/avatar';
 import utils from '@/services/utils';
 
 const { t } = useI18n();
@@ -42,6 +43,10 @@ const iconStore = useIconStore();
 
 const props = defineProps({
   userPhoto: {
+    type: String,
+    default: ''
+  },
+  userId: {
     type: String,
     default: ''
   },
@@ -66,6 +71,11 @@ const props = defineProps({
 const emit = defineEmits(['photoChanged', 'photoRemoved']);
 
 const photoPreview = ref(null);
+
+// Generates a DiceBear avatar based on userId as fallback.
+const fallbackAvatar = computed(() => {
+  return generateAvatar(props.userId);
+});
 
 const displayPhoto = computed(() => {
   return photoPreview.value || props.userPhoto;

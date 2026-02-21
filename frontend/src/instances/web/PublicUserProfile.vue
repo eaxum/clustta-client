@@ -33,6 +33,7 @@
           <div class="header-layout">
             <ProfileAvatar
               :userPhoto="profileData.photo"
+              :userId="profileData.id"
               :avatarColor="profileColor"
               :isEditing="false"
               :readonly="true"

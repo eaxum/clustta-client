@@ -5,7 +5,7 @@
       <div v-for="(item, index) in items" :key="index" :index="index" @click="selectItem(index)"
         class="scroll-list-item" :class="{ 'scroll-list-item-wrap': wrapItems, 'selected-item': selectedItem(index) }">
         <div v-if="useAvatar" class="profile-picture" :style="{ backgroundColor: item.avatarColor }">
-          <img class="profile-img" :src="item.profile ? item.profile : '/icons/default_profile_picture.svg'">
+          <img class="profile-img" :src="item.profile ? item.profile : generateAvatar(item.id)">
         </div>
         <div v-else-if="useIcons" class="task-item-icon-container">
           <img class="large-icons" :src="getAppIcon(item.icon)">
@@ -60,7 +60,7 @@
    
         <div class="task-item-content">
           <div v-if="useAvatar" class="profile-picture" :style="{ backgroundColor: item.avatarColor }">
-            <img class="profile-img" :src="item.profile ? item.profile : '/icons/default_profile_picture.svg'">
+            <img class="profile-img" :src="item.profile ? item.profile : generateAvatar(item.id)">
           </div>
           <div v-else-if="useIcons" class="task-item-icon-container">
             <img class="large-icons" :src="getAppIcon(item.icon)">
@@ -125,6 +125,7 @@
 
 <script setup>
 import { useIconStore } from '@/stores/icons';
+import { generateAvatar } from '@/lib/avatar';
 const iconStore = useIconStore();
 
 const getAppIcon = (iconName) => {
