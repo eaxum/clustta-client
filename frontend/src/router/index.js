@@ -61,25 +61,46 @@ const routes = [
   { path: '/verify-email', redirect: '/auth/verify-email' },
   { path: '/forgot-password', redirect: '/auth/forgot-password' },
   { path: '/reset-change-password', redirect: '/auth/reset-change-password' },
-  // Public profile (web only in practice)
+  // Discovery page (requires auth)
+  {
+    path: '/discover',
+    name: 'discover',
+    component: () => import('@/instances/web/DiscoverPage.vue'),
+    meta: { requiresAuth: true }
+  },
+  // Public profile 
   {
     path: '/user/:username',
     name: 'public-profile',
     component: () => import('@/instances/web/PublicUserProfile.vue'),
     meta: { requiresAuth: false, isPublic: true }
   },
+  // User profile page (web authenticated users)
+  {
+    path: '/profile',
+    name: 'profile',
+    component: () => import('@/instances/web/ProfilePage.vue'),
+    meta: { requiresAuth: true }
+  },
   // Protected routes (main app)
   {
     path: '/',
     name: 'home',
     component: () => import('@/instances/desktop/ClusttaDesktop.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
+    beforeEnter: (to, from, next) => {
+      if (isWebMode) {
+        next('/profile');
+      } else {
+        next();
+      }
+    }
   },
   // Catch-all redirect
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
-    redirect: '/'
+    redirect: () => isWebMode ? '/profile' : '/'
   }
 ];
 
@@ -98,8 +119,30 @@ const setLoaderStatus = (message) => {
 
 // Navigation guard for auth
 router.beforeEach(async (to, from, next) => {
-  // Public routes that don't need any auth check
+  // Public routes - check auth but don't require it
   if (to.meta.isPublic && !to.meta.isAuthPage) {
+    const themeStore = useThemeStore();
+    await themeStore.initializeTheme();
+    
+    // Try to authenticate user if possible (but don't require it)
+    try {
+      const result = await AuthService.IsAuthenticated();
+      const isAuthenticated = result[0] === true;
+      const userData = result[1];
+      
+      if (isAuthenticated && !storesInitialized) {
+        const userStore = useUserStore();
+        const accountStore = useAccountStore();
+        
+        userStore.user = userData;
+        userStore.isUserAuthenticated = true;
+        await accountStore.initialize();
+        storesInitialized = true;
+      }
+    } catch (error) {
+      // Ignore auth errors for public pages
+    }
+    
     next();
     return;
   }
@@ -118,7 +161,7 @@ router.beforeEach(async (to, from, next) => {
 
   // Auth pages: redirect to home if already logged in
   if (to.meta.isAuthPage && isAuthenticated) {
-    return next('/');
+    return next(isWebMode ? '/profile' : '/');
   }
 
   // Protected routes: redirect to login if not authenticated

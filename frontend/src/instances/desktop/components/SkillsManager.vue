@@ -2,28 +2,14 @@
   <div class="skills-manager">
     <!-- Display selected skills -->
     <div v-if="skills.length > 0" class="skills-container">
-      <span
+      <Chip
         v-for="skill in skills"
         :key="skill.id"
-        class="skill-badge"
-        :class="{ 'readonly': readonly }"
-      >
-        <ActionButton
-          :icon="getSkillIconPath(skill)"
-          :isInactive="true"
-          :showIcon="true"
-          :showLabel="false"
-        />
-        <span class="skill-name">{{ skill.skill_name }}</span>
-        <ActionButton
-          v-if="!readonly"
-          :icon="getAppIcon('close')"
-          :buttonFunction="() => removeSkill(skill)"
-          :showIcon="true"
-          :showLabel="false"
-          :noFilter="false"
-        />
-      </span>
+        :icon="getSkillIconPath(skill)"
+        :label="skill.skill_name"
+        :onRemove="() => removeSkill(skill)"
+        :readonly="readonly"
+      />
     </div>
     
     <!-- Empty state -->
@@ -58,7 +44,7 @@ import { useProfileStore } from '@/stores/profile';
 import { useNotificationStore } from '@/stores/notifications';
 import { ProfileService } from "@/services";
 import ItemSelector from './ItemSelector.vue';
-import ActionButton from './ActionButton.vue';
+import Chip from '@/instances/common/components/Chip.vue';
 import { getSkillIcon } from '@/utils/iconMappers';
 
 const iconStore = useIconStore();
@@ -159,38 +145,6 @@ const getAppIcon = (iconName) => {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-}
-
-.skill-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.3rem;
-  background-color: var(--steel);
-  border-radius: var(--large-radius);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--white);
-  position: relative;
-  transition: background-color 0.2s;
-}
-
-.skill-badge:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.skill-icon {
-  width: 14px;
-  height: 14px;
-  filter: brightness(0) invert(1);
-}
-
-.skill-name {
-  user-select: none;
-}
-
-.skill-badge.readonly {
-  padding-right: 0.75rem;
 }
 
 .limit-message {
