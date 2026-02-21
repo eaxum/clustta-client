@@ -63,7 +63,7 @@ const routes = [
   { path: '/reset-change-password', redirect: '/auth/reset-change-password' },
   // Public profile (web only in practice)
   {
-    path: '/profile/:username',
+    path: '/user/:username',
     name: 'public-profile',
     component: () => import('@/instances/web/PublicUserProfile.vue'),
     meta: { requiresAuth: false, isPublic: true }
