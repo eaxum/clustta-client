@@ -70,6 +70,11 @@ import UpdateStudioModal from '@/instances/desktop/modals/UpdateStudioModal.vue'
 // components - sync
 import SyncConflictModal from '@/instances/desktop/modals/SyncConflictModal.vue';
 
+// components - integrations
+import IntegrationAuthModal from '@/instances/desktop/modals/IntegrationAuthModal.vue';
+import IntegrationLinkModal from '@/instances/desktop/modals/IntegrationLinkModal.vue';
+import IntegrationSyncModal from '@/instances/desktop/modals/IntegrationSyncModal.vue';
+
 // components - diagnostics
 import SubmitDiagnosticsModal from '@/instances/desktop/modals/SubmitDiagnosticsModal.vue';
 
@@ -155,6 +160,11 @@ const modalComponents = {
 
   // sync
   syncConflictModal: SyncConflictModal,
+
+  // integrations
+  integrationAuthModal: IntegrationAuthModal,
+  integrationLinkModal: IntegrationLinkModal,
+  integrationSyncModal: IntegrationSyncModal,
 
   // diagnostics
   submitDiagnosticsModal: SubmitDiagnosticsModal,

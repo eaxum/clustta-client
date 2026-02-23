@@ -14,6 +14,7 @@ import * as DeploymentService from "./deploymentservice.js";
 import * as DialogService from "./dialogservice.js";
 import * as FSService from "./fsservice.js";
 import * as ImportService from "./importservice.js";
+import * as IntegrationService from "./integrationservice.js";
 import * as LogService from "./logservice.js";
 import * as ProfileService from "./profileservice.js";
 import * as ProjectService from "./projectservice.js";
@@ -39,6 +40,7 @@ export {
     DialogService,
     FSService,
     ImportService,
+    IntegrationService,
     LogService,
     ProfileService,
     ProjectService,

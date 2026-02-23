@@ -1,0 +1,193 @@
+package integrations
+
+import (
+	"errors"
+	"sync"
+)
+
+// Integration defines the contract that all external integrations must implement.
+// All operations are stateless - tokens are passed per call for flexibility.
+type Integration interface {
+	// Identity and metadata
+	ID() string               // "kitsu", "clickup"
+	Name() string             // "Kitsu", "ClickUp"
+	GetInfo() IntegrationInfo // Full metadata for UI
+
+	// Authentication (returns token to store locally)
+	Authenticate(credentials map[string]string) (AuthResult, error)
+	ValidateToken(token, apiUrl string) (bool, error)
+
+	// Project operations (token passed per call)
+	GetProjects(token, apiUrl string) ([]ExternalProject, error)
+	GetProjectEntities(token, apiUrl, projectID string) ([]ExternalEntity, error)
+	GetProjectTasks(token, apiUrl, projectID string) ([]ExternalTask, error)
+
+	// Push operations
+	UpdateTaskStatus(token, apiUrl, taskID, status string) error
+	UploadPreview(token, apiUrl, taskID, filePath, comment string) error
+}
+
+// AuthResult contains the result of an authentication attempt.
+type AuthResult struct {
+	Success      bool   `json:"success"`
+	UserID       string `json:"user_id"`
+	UserName     string `json:"user_name"`
+	UserEmail    string `json:"user_email"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresAt    int64  `json:"expires_at"`
+	Error        string `json:"error,omitempty"`
+}
+
+// ExternalUser represents a user in the external system.
+type ExternalUser struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+// ExternalProject represents a project in the external system.
+type ExternalProject struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	Stats       string `json:"stats,omitempty"` // e.g., "12 episodes, 89 shots"
+}
+
+// ExternalEntity represents a hierarchy item in the external system.
+// This can be an episode, sequence, shot, folder, list, task type, etc.
+type ExternalEntity struct {
+	ID           string                 `json:"id"`
+	ParentID     string                 `json:"parent_id,omitempty"`
+	Name         string                 `json:"name"`
+	Type         string                 `json:"type"` // "episode", "sequence", "shot", "folder", "list", "task_type"
+	Path         string                 `json:"path"` // Full path for display
+	Children     []ExternalEntity       `json:"children,omitempty"`
+	Metadata     map[string]interface{} `json:"metadata,omitempty"`
+	HasTasks     bool                   `json:"has_tasks"`
+	TaskTypeName string                 `json:"task_type_name,omitempty"` // For task type entities
+}
+
+// ExternalTask represents a task/work item in the external system.
+type ExternalTask struct {
+	ID          string   `json:"id"`
+	ParentID    string   `json:"parent_id"` // Parent entity ID
+	Name        string   `json:"name"`
+	Type        string   `json:"type"` // "task", "subtask"
+	Status      string   `json:"status"`
+	Assignees   []string `json:"assignees,omitempty"`
+	DueDate     string   `json:"due_date,omitempty"`
+	TaskType    string   `json:"task_type,omitempty"` // e.g., "Animation", "Lighting"
+	Description string   `json:"description,omitempty"`
+}
+
+// ProjectHierarchy contains the full hierarchy of a project.
+type ProjectHierarchy struct {
+	Project  ExternalProject  `json:"project"`
+	Entities []ExternalEntity `json:"entities"`
+	Tasks    []ExternalTask   `json:"tasks"`
+}
+
+// SyncPreview contains preview data for what will be synced.
+type SyncPreview struct {
+	IntegrationID string             `json:"integration_id"`
+	Collections   []SyncCollection   `json:"collections"`
+	Assets        []SyncAsset        `json:"assets"`
+	Summary       SyncPreviewSummary `json:"summary"`
+}
+
+// SyncCollection represents a collection to be created or linked.
+type SyncCollection struct {
+	TempID           string `json:"temp_id"`            // Temporary ID for UI
+	ExternalID       string `json:"external_id"`        // ID in external system
+	ExternalType     string `json:"external_type"`      // "episode", "sequence", "shot", etc.
+	ExternalName     string `json:"external_name"`      // Name in external system
+	ExternalParentID string `json:"external_parent_id"` // Parent in external system
+	ExternalPath     string `json:"external_path"`      // Full path in external system
+	CollectionPath   string `json:"collection_path"`    // Proposed Clustta collection path
+	Action           string `json:"action"`             // "create", "link", "skip"
+	CollectionID     string `json:"collection_id"`      // Existing Clustta collection ID (if linking)
+	EntityTypeName   string `json:"entity_type_name"`   // Clustta entity type to use
+	EntityTypeIcon   string `json:"entity_type_icon"`   // Icon for the entity type
+	Selected         bool   `json:"selected"`           // User selected for sync
+}
+
+// SyncAsset represents an asset to be created or linked.
+type SyncAsset struct {
+	TempID            string   `json:"temp_id"`
+	ExternalID        string   `json:"external_id"`
+	ExternalName      string   `json:"external_name"`
+	ExternalParentID  string   `json:"external_parent_id"`
+	ExternalType      string   `json:"external_type"` // "task", "subtask"
+	ExternalStatus    string   `json:"external_status"`
+	ExternalAssignees []string `json:"external_assignees"`
+	CollectionPath    string   `json:"collection_path"` // Parent collection path
+	Action            string   `json:"action"`          // "create", "link", "skip"
+	AssetID           string   `json:"asset_id"`        // Existing Clustta asset ID (if linking)
+	TaskTypeName      string   `json:"task_type_name"`  // Clustta task type to use
+	TaskTypeIcon      string   `json:"task_type_icon"`
+	Selected          bool     `json:"selected"`
+}
+
+// SyncPreviewSummary contains counts for the sync preview.
+type SyncPreviewSummary struct {
+	TotalCollections    int `json:"total_collections"`
+	TotalAssets         int `json:"total_assets"`
+	CollectionsToCreate int `json:"collections_to_create"`
+	CollectionsToLink   int `json:"collections_to_link"`
+	AssetsToCreate      int `json:"assets_to_create"`
+	AssetsToLink        int `json:"assets_to_link"`
+}
+
+// IntegrationInfo contains metadata about an integration for UI display.
+type IntegrationInfo struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Icon        string `json:"icon"`
+	AuthType    string `json:"auth_type"`  // "password", "oauth", "token"
+	Configured  bool   `json:"configured"` // User has authenticated
+}
+
+var (
+	registry     = make(map[string]Integration)
+	registryLock sync.RWMutex
+)
+
+// Register adds an integration to the registry.
+func Register(integration Integration) {
+	registryLock.Lock()
+	defer registryLock.Unlock()
+	registry[integration.ID()] = integration
+}
+
+// Get retrieves an integration by ID.
+func Get(id string) (Integration, error) {
+	registryLock.RLock()
+	defer registryLock.RUnlock()
+	if integration, ok := registry[id]; ok {
+		return integration, nil
+	}
+	return nil, errors.New("integration not found: " + id)
+}
+
+// GetAll returns all registered integrations.
+func GetAll() []Integration {
+	registryLock.RLock()
+	defer registryLock.RUnlock()
+	result := make([]Integration, 0, len(registry))
+	for _, integration := range registry {
+		result = append(result, integration)
+	}
+	return result
+}
+
+// GetAllInfo returns info about all registered integrations.
+func GetAllInfo() []IntegrationInfo {
+	integrations := GetAll()
+	infos := make([]IntegrationInfo, 0, len(integrations))
+	for _, integration := range integrations {
+		infos = append(infos, integration.GetInfo())
+	}
+	return infos
+}

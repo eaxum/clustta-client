@@ -44,3 +44,6 @@ build/darwin/clustta.entitlements
 *.mjs
 unreal_ignore_list.txt
 scripts/sync-repos.ps1
+docs/clickup-integration.md
+docs/integration-architecture.md
+docs/kitsu-integration.md

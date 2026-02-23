@@ -254,6 +254,52 @@ message Preview {
   string extension = 3;
 }
 
+message IntegrationProject {
+  string id = 1;
+  int64 mtime = 2;
+  string integration_id = 3;
+  string external_project_id = 4;
+  string external_project_name = 5;
+  string api_url = 6;
+  string sync_options = 7;
+  string linked_by_user_id = 8;
+  string linked_at = 9;
+  bool enabled = 10;
+  bool synced = 11;
+}
+
+message IntegrationCollectionMapping {
+  string id = 1;
+  int64 mtime = 2;
+  string integration_id = 3;
+  string external_id = 4;
+  string external_type = 5;
+  string external_name = 6;
+  string external_parent_id = 7;
+  string external_path = 8;
+  string external_metadata = 9;
+  string collection_id = 10;
+  string synced_at = 11;
+  bool synced = 12;
+}
+
+message IntegrationAssetMapping {
+  string id = 1;
+  int64 mtime = 2;
+  string integration_id = 3;
+  string external_id = 4;
+  string external_name = 5;
+  string external_parent_id = 6;
+  string external_type = 7;
+  string external_status = 8;
+  string external_assignees = 9;
+  string external_metadata = 10;
+  string asset_id = 11;
+  string last_pushed_checkpoint_id = 12;
+  string synced_at = 13;
+  bool synced = 14;
+}
+
 message Tomb {
   string id = 1;
   int64 mtime = 2;
@@ -289,6 +335,10 @@ message ProjectData {
     repeated WorkflowTask workflow_tasks = 20;
 
     repeated Tomb tomb = 21;
+
+    repeated IntegrationProject integration_projects = 22;
+    repeated IntegrationCollectionMapping integration_collection_mappings = 23;
+    repeated IntegrationAssetMapping integration_asset_mappings = 24;
 }
 
 message FullTask {
