@@ -52,6 +52,10 @@ type ProjectData struct {
 	WorkflowTasks    []models.WorkflowTask   `json:"workflow_tasks"`
 
 	Tombs []repository.Tomb `json:"tomb"`
+
+	IntegrationProjects           []models.IntegrationProject           `json:"integration_projects"`
+	IntegrationCollectionMappings []models.IntegrationCollectionMapping `json:"integration_collection_mappings"`
+	IntegrationAssetMappings      []models.IntegrationAssetMapping      `json:"integration_asset_mappings"`
 }
 
 func (d *ProjectData) IsEmpty() bool {
@@ -75,6 +79,9 @@ func (d *ProjectData) IsEmpty() bool {
 		len(d.WorkflowEntities) == 0 &&
 		len(d.WorkflowTasks) == 0 &&
 		len(d.Tombs) == 0 &&
+		len(d.IntegrationProjects) == 0 &&
+		len(d.IntegrationCollectionMappings) == 0 &&
+		len(d.IntegrationAssetMappings) == 0 &&
 		d.ProjectPreview == ""
 }
 
@@ -722,6 +729,110 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 			}
 		}
 	}
+
+	// Integration project (only one per project)
+	for _, integrationProject := range data.IntegrationProjects {
+		if tombItems[integrationProject.Id] {
+			continue
+		}
+		localIntegration, err := repository.GetIntegrationProject(tx)
+		if err != nil {
+			// No integration exists, create new
+			_, err = repository.CreateIntegrationProject(
+				tx, integrationProject.Id, integrationProject.IntegrationId, integrationProject.ExternalProjectId,
+				integrationProject.ExternalProjectName, integrationProject.ApiUrl, integrationProject.SyncOptions,
+				integrationProject.LinkedByUserId, integrationProject.LinkedAt)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Update if remote is newer
+			if localIntegration.MTime < integrationProject.MTime {
+				err = repository.UpdateIntegrationProject(tx, localIntegration.Id, map[string]interface{}{
+					"integration_id":        integrationProject.IntegrationId,
+					"external_project_id":   integrationProject.ExternalProjectId,
+					"external_project_name": integrationProject.ExternalProjectName,
+					"api_url":               integrationProject.ApiUrl,
+					"sync_options":          integrationProject.SyncOptions,
+					"enabled":               integrationProject.Enabled,
+				})
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	// Integration collection mappings
+	for _, mapping := range data.IntegrationCollectionMappings {
+		if tombItems[mapping.Id] {
+			continue
+		}
+		localMapping, err := repository.GetCollectionMapping(tx, mapping.Id)
+		if err != nil {
+			// Mapping doesn't exist, create new
+			_, err = repository.CreateCollectionMapping(
+				tx, mapping.Id, mapping.IntegrationId, mapping.ExternalId, mapping.ExternalType,
+				mapping.ExternalName, mapping.ExternalParentId, mapping.ExternalPath,
+				mapping.ExternalMetadata, mapping.CollectionId, mapping.SyncedAt)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Update if remote is newer
+			if localMapping.MTime < mapping.MTime {
+				err = repository.UpdateCollectionMapping(tx, mapping.Id, map[string]interface{}{
+					"external_type":      mapping.ExternalType,
+					"external_name":      mapping.ExternalName,
+					"external_parent_id": mapping.ExternalParentId,
+					"external_path":      mapping.ExternalPath,
+					"external_metadata":  mapping.ExternalMetadata,
+					"collection_id":      mapping.CollectionId,
+					"synced_at":          mapping.SyncedAt,
+				})
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	// Integration asset mappings
+	for _, mapping := range data.IntegrationAssetMappings {
+		if tombItems[mapping.Id] {
+			continue
+		}
+		localMapping, err := repository.GetAssetMapping(tx, mapping.Id)
+		if err != nil {
+			// Mapping doesn't exist, create new
+			_, err = repository.CreateAssetMapping(
+				tx, mapping.Id, mapping.IntegrationId, mapping.ExternalId, mapping.ExternalName,
+				mapping.ExternalParentId, mapping.ExternalType, mapping.ExternalStatus,
+				mapping.ExternalAssignees, mapping.ExternalMetadata, mapping.AssetId, mapping.SyncedAt)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Update if remote is newer
+			if localMapping.MTime < mapping.MTime {
+				err = repository.UpdateAssetMapping(tx, mapping.Id, map[string]interface{}{
+					"external_name":             mapping.ExternalName,
+					"external_parent_id":        mapping.ExternalParentId,
+					"external_type":             mapping.ExternalType,
+					"external_status":           mapping.ExternalStatus,
+					"external_assignees":        mapping.ExternalAssignees,
+					"external_metadata":         mapping.ExternalMetadata,
+					"asset_id":                  mapping.AssetId,
+					"last_pushed_checkpoint_id": mapping.LastPushedCheckpointId,
+					"synced_at":                 mapping.SyncedAt,
+				})
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
 	return nil
 }
 

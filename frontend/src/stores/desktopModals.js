@@ -81,6 +81,11 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       // sync
       syncConflictModal: false,
 
+      // integrations
+      integrationAuthModal: false,
+      integrationLinkModal: false,
+      integrationSyncModal: false,
+
       // diagnostics
       submitDiagnosticsModal: false,
     },

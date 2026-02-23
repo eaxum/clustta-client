@@ -259,6 +259,340 @@ export class EntityType {
     }
 }
 
+/**
+ * IntegrationAssetMapping maps external tasks to Clustta Assets. Synced to server.
+ */
+export class IntegrationAssetMapping {
+    /**
+     * Creates a new IntegrationAssetMapping instance.
+     * @param {Partial<IntegrationAssetMapping>} [$$source = {}] - The source object to create the IntegrationAssetMapping.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("mtime" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["mtime"] = 0;
+        }
+        if (!("integration_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["integration_id"] = "";
+        }
+        if (!("external_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_id"] = "";
+        }
+        if (!("external_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_name"] = "";
+        }
+        if (!("external_parent_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_parent_id"] = "";
+        }
+        if (!("external_type" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_type"] = "";
+        }
+        if (!("external_status" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_status"] = "";
+        }
+        if (!("external_assignees" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_assignees"] = "";
+        }
+        if (!("external_metadata" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_metadata"] = "";
+        }
+        if (!("asset_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["asset_id"] = "";
+        }
+        if (!("last_pushed_checkpoint_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["last_pushed_checkpoint_id"] = "";
+        }
+        if (!("synced_at" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["synced_at"] = "";
+        }
+        if (!("synced" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["synced"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new IntegrationAssetMapping instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {IntegrationAssetMapping}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new IntegrationAssetMapping(/** @type {Partial<IntegrationAssetMapping>} */($$parsedSource));
+    }
+}
+
+/**
+ * IntegrationCollectionMapping maps external hierarchy items (episodes, sequences, shots, etc.)
+ * to Clustta Collections. Synced to server.
+ */
+export class IntegrationCollectionMapping {
+    /**
+     * Creates a new IntegrationCollectionMapping instance.
+     * @param {Partial<IntegrationCollectionMapping>} [$$source = {}] - The source object to create the IntegrationCollectionMapping.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("mtime" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["mtime"] = 0;
+        }
+        if (!("integration_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["integration_id"] = "";
+        }
+        if (!("external_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_id"] = "";
+        }
+        if (!("external_type" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_type"] = "";
+        }
+        if (!("external_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_name"] = "";
+        }
+        if (!("external_parent_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_parent_id"] = "";
+        }
+        if (!("external_path" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_path"] = "";
+        }
+        if (!("external_metadata" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_metadata"] = "";
+        }
+        if (!("collection_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["collection_id"] = "";
+        }
+        if (!("synced_at" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["synced_at"] = "";
+        }
+        if (!("synced" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["synced"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new IntegrationCollectionMapping instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {IntegrationCollectionMapping}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new IntegrationCollectionMapping(/** @type {Partial<IntegrationCollectionMapping>} */($$parsedSource));
+    }
+}
+
+/**
+ * IntegrationProject stores the link between a Clustta project and an external integration.
+ * Only ONE row is allowed per project (one integration per project constraint).
+ * This data is synced to the server so team members see the same integration link.
+ */
+export class IntegrationProject {
+    /**
+     * Creates a new IntegrationProject instance.
+     * @param {Partial<IntegrationProject>} [$$source = {}] - The source object to create the IntegrationProject.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("mtime" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["mtime"] = 0;
+        }
+        if (!("integration_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["integration_id"] = "";
+        }
+        if (!("external_project_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_project_id"] = "";
+        }
+        if (!("external_project_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_project_name"] = "";
+        }
+        if (!("api_url" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["api_url"] = "";
+        }
+        if (!("sync_options" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["sync_options"] = "";
+        }
+        if (!("linked_by_user_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["linked_by_user_id"] = "";
+        }
+        if (!("linked_at" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["linked_at"] = "";
+        }
+        if (!("enabled" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["enabled"] = false;
+        }
+        if (!("synced" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["synced"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new IntegrationProject instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {IntegrationProject}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new IntegrationProject(/** @type {Partial<IntegrationProject>} */($$parsedSource));
+    }
+}
+
 export class Role {
     /**
      * Creates a new Role instance.
