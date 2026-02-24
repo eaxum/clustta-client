@@ -13,7 +13,89 @@ import (
 	"time"
 )
 
+// StudioInfo represents metadata returned by a studio server's /studio-info endpoint
+type StudioInfo struct {
+	Id     string `json:"id"`
+	Name   string `json:"name"`
+	Url    string `json:"url"`
+	AltUrl string `json:"alt_url"`
+}
+
+// GetStudioInfo fetches studio metadata from a private studio server.
+// Used when authenticated against a private server to discover its details.
+func GetStudioInfo(studioUrl string) (StudioInfo, error) {
+	if studioUrl == "" {
+		return StudioInfo{}, fmt.Errorf("no studio URL provided")
+	}
+
+	url := studioUrl + "/studio-info"
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return StudioInfo{}, err
+	}
+
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	// Include session if available
+	token, err := auth_service.GetToken()
+	if err == nil && token.SessionId != "" {
+		req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	response, err := client.Do(req)
+	if err != nil {
+		return StudioInfo{}, fmt.Errorf("failed to connect to studio server: %v", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode == http.StatusOK {
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			return StudioInfo{}, fmt.Errorf("error reading response body: %v", err)
+		}
+
+		var info StudioInfo
+		err = json.Unmarshal(body, &info)
+		if err != nil {
+			return StudioInfo{}, fmt.Errorf("failed to parse studio info: %v", err)
+		}
+
+		// Use the request URL as fallback if server doesn't return URL
+		if info.Url == "" {
+			info.Url = studioUrl
+		}
+
+		return info, nil
+	}
+
+	return StudioInfo{}, fmt.Errorf("failed to get studio info: status code %d", response.StatusCode)
+}
+
+// getEffectiveHost returns the appropriate API host based on auth mode.
+// Returns empty string for offline mode (caller should handle this).
+// Returns the auth host (private server URL) for studio mode.
+// Returns constants.HOST (api.clustta.com) for global mode.
+func getEffectiveHost() string {
+	if auth_service.IsOfflineMode() {
+		return ""
+	}
+	return auth_service.GetAuthHost()
+}
+
+// isGlobalMode returns true if in global authentication mode.
+// Some operations (like registering studios) only make sense in global mode.
+func isGlobalMode() bool {
+	return auth_service.GetActiveAuthMode() == auth_service.AuthModeGlobal
+}
+
+// GetUserStudios fetches studios for the current user from the global Clustta server.
+// Note: This only works in global mode. For studio mode, use GetStudioInfo instead.
 func GetUserStudios() ([]models.MinimalStudio, error) {
+	if !isGlobalMode() {
+		return nil, fmt.Errorf("GetUserStudios is only available in global auth mode")
+	}
 	url := constants.HOST + "/person/studios"
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -62,8 +144,14 @@ func GetUserStudios() ([]models.MinimalStudio, error) {
 	return nil, fmt.Errorf("error loading studios: code - %d: body - %s", response.StatusCode, bodyData)
 }
 
+// GetUserPhoto fetches a user's photo from the current auth server.
 func GetUserPhoto(userId string) ([]byte, error) {
-	url := constants.HOST + "/person/" + userId + "/photo"
+	host := getEffectiveHost()
+	if host == "" {
+		return nil, nil // No photos in offline mode
+	}
+
+	url := host + "/person/" + userId + "/photo"
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -102,8 +190,21 @@ func GetUserPhoto(userId string) ([]byte, error) {
 	return nil, nil // Return nil for non-200 responses (user has no photo)
 }
 
+// GetStudioUsers fetches all users for a studio from the current auth server.
+// In studio mode, calls /studio/persons on the private server.
+// In global mode, calls /studio/{studioId}/persons on the global server.
 func GetStudioUsers(studioId string) ([]models.StudioUserInfo, error) {
-	url := constants.HOST + "/studio/" + studioId + "/persons"
+	host := getEffectiveHost()
+	if host == "" {
+		return nil, fmt.Errorf("cannot fetch studio users in offline mode")
+	}
+
+	var url string
+	if isGlobalMode() {
+		url = host + "/studio/" + studioId + "/persons"
+	} else {
+		url = host + "/studio/persons"
+	}
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -129,7 +230,6 @@ func GetStudioUsers(studioId string) ([]models.StudioUserInfo, error) {
 	if responseCode == 201 {
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
-			// Handle error
 			return nil, fmt.Errorf("error reading response body: %s", err)
 		}
 
@@ -162,8 +262,14 @@ func GetStudioUsers(studioId string) ([]models.StudioUserInfo, error) {
 	return nil, fmt.Errorf("error loading studio users: code - %d: body - %s", response.StatusCode, bodyData)
 }
 
+// AddCollaborator adds a collaborator to a studio on the current auth server.
 func AddCollaborator(email, studioId, roleName string) (interface{}, error) {
-	url := constants.HOST + "/studio/person"
+	host := getEffectiveHost()
+	if host == "" {
+		return nil, fmt.Errorf("cannot add collaborator in offline mode")
+	}
+
+	url := host + "/studio/person"
 
 	requestBody := map[string]string{
 		"email":     email,
@@ -222,13 +328,30 @@ func AddCollaborator(email, studioId, roleName string) (interface{}, error) {
 	return nil, fmt.Errorf("error adding collaborator: code - %d: body - %s", response.StatusCode, bodyData)
 }
 
+// ChangeCollaboratorRole changes a collaborator's role on the current auth server.
+// In studio mode, calls /studio/person/role on the private server.
+// In global mode, calls /studio/person on the global server.
 func ChangeCollaboratorRole(userId, studioId, roleName string) (interface{}, error) {
-	url := constants.HOST + "/studio/person"
+	host := getEffectiveHost()
+	if host == "" {
+		return nil, fmt.Errorf("cannot change collaborator role in offline mode")
+	}
 
-	requestBody := map[string]string{
-		"user_id":   userId,
-		"role_name": roleName,
-		"studio_id": studioId,
+	var url string
+	var requestBody map[string]string
+	if isGlobalMode() {
+		url = host + "/studio/person"
+		requestBody = map[string]string{
+			"user_id":   userId,
+			"role_name": roleName,
+			"studio_id": studioId,
+		}
+	} else {
+		url = host + "/studio/person/role"
+		requestBody = map[string]string{
+			"user_id":   userId,
+			"role_name": roleName,
+		}
 	}
 
 	jsonData, err := json.Marshal(requestBody)
@@ -282,8 +405,21 @@ func ChangeCollaboratorRole(userId, studioId, roleName string) (interface{}, err
 	return nil, fmt.Errorf("error changing collaborator role: code - %d: body - %s", response.StatusCode, bodyData)
 }
 
+// RemoveCollaborator removes a collaborator from a studio on the current auth server.
+// In studio mode, calls /studio/person/{userId} on the private server.
+// In global mode, calls /studio/person/{studioId}/{userId} on the global server.
 func RemoveCollaborator(userId, studioId string) (interface{}, error) {
-	url := constants.HOST + "/studio/person/" + studioId + "/" + userId
+	host := getEffectiveHost()
+	if host == "" {
+		return nil, fmt.Errorf("cannot remove collaborator in offline mode")
+	}
+
+	var url string
+	if isGlobalMode() {
+		url = host + "/studio/person/" + studioId + "/" + userId
+	} else {
+		url = host + "/studio/person/" + userId
+	}
 
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
@@ -420,7 +556,13 @@ func GetStudioStatus(studioUrl string) (string, error) {
 	return "offline", nil
 }
 
+// RegisterStudio registers a new studio on the global Clustta server.
+// This operation is only available in global auth mode.
 func RegisterStudio(studioName, studioUrl string) (interface{}, error) {
+	if !isGlobalMode() {
+		return nil, fmt.Errorf("studio registration is only available in global auth mode")
+	}
+
 	url := constants.HOST + "/studio"
 
 	requestBody := map[string]string{
@@ -479,7 +621,13 @@ func RegisterStudio(studioName, studioUrl string) (interface{}, error) {
 	return nil, fmt.Errorf("error creating studio: code - %d: body - %s", response.StatusCode, bodyData)
 }
 
+// UpdateStudio updates a studio's configuration on the global Clustta server.
+// This operation is only available in global auth mode.
 func UpdateStudio(studioName, url, altUrl, port, key string) (interface{}, error) {
+	if !isGlobalMode() {
+		return nil, fmt.Errorf("studio update is only available in global auth mode")
+	}
+
 	apiUrl := constants.HOST + "/studio/" + studioName + "/url"
 
 	requestBody := map[string]string{
@@ -540,7 +688,13 @@ func UpdateStudio(studioName, url, altUrl, port, key string) (interface{}, error
 	return nil, fmt.Errorf("error updating studio: code - %d: body - %s", response.StatusCode, bodyData)
 }
 
+// VerifyDeploymentCode verifies a deployment code on the global Clustta server.
+// This operation is only available in global auth mode.
 func VerifyDeploymentCode(code string) (bool, string, error) {
+	if !isGlobalMode() {
+		return false, "", fmt.Errorf("deployment code verification is only available in global auth mode")
+	}
+
 	url := constants.HOST + "/studio/verify-deployment-code"
 
 	requestBody := map[string]string{
@@ -595,7 +749,13 @@ func VerifyDeploymentCode(code string) (bool, string, error) {
 	return false, "", fmt.Errorf("error verifying deployment code: code - %d: body - %s", response.StatusCode, bodyData)
 }
 
+// CheckStudioNameExists checks if a studio name is available on the global Clustta server.
+// This operation is only available in global auth mode.
 func CheckStudioNameExists(studioName string) (bool, error) {
+	if !isGlobalMode() {
+		return false, fmt.Errorf("studio name check is only available in global auth mode")
+	}
+
 	url := constants.HOST + "/check-studio-availability/" + studioName
 
 	req, err := http.NewRequest("GET", url, nil)

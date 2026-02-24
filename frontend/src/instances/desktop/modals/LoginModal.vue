@@ -98,7 +98,7 @@ const isEmailValid = computed(() => {
 // Returns whether the studio URL is valid.
 const isStudioUrlValid = computed(() => {
   if (!studioUrl.value) return false;
-  const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/;
+  const urlRegex = /^https?:\/\/[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+(:\d+)?(\/.*)?$/;
   return urlRegex.test(studioUrl.value.trim());
 });
 
