@@ -8,13 +8,13 @@
 
       <div ref="studioTabsParent" class="studio-tabs-parent" v-if="userStore.user && projectStore.selectedStudio && !accountStore.isOfflineMode && stage.selectedStage !== 'settings'" 
       :class="{ 'is-disabled': progressRunning, 'mac-os': !isMacFullscreen && os === 'darwin' }">
-        <div class="studio-tabs-container" @click="toggleStudioList()" v-stop-propagation>
+        <div class="studio-tabs-container" @click="!accountStore.isStudioAuth && toggleStudioList()" v-stop-propagation>
           <span class="studio-tabs">
             <div class="studio-name-with-status">
               <span class="online-indicator" :class="studioStore.appOnline ? 'online' : 'offline'" v-tooltip="studioStore.appOnline ? $t('components.titleBar.connected') : $t('components.titleBar.offline')"></span>
               {{ utils.capitalizeStr(projectStore.getSelectedStudioName) }}
             </div>
-            <img  class="small-icons chevron" :src="getAppIcon('chevron-down')">
+            <img v-if="!accountStore.isStudioAuth" class="small-icons chevron" :src="getAppIcon('chevron-down')">
 
             <div v-if="displayStudioList" class="studio-list-container" :style="{ left: parentLocation?.left + 'px', top: parentLocation?.top + parentLocation?.height + 'px' }">
               <div class="studio-instance-container">
@@ -230,7 +230,7 @@ const userCanCreateProject = () => {
       userStore.userCanCreateProject = false
       return false
     } else {
-      const userStudioRole = selectedStudio.Users?.find((item) => item.id === activeUserId)?.role_name;
+      const userStudioRole = studioStore.studioUsers?.find((item) => item.id === activeUserId)?.role_name;
       const isAdmin = userStudioRole === 'admin';
       userStore.userCanCreateProject = isAdmin;
       return userStudioRole === 'admin';
@@ -240,6 +240,8 @@ const userCanCreateProject = () => {
 
 watchEffect(() => {
   if (projectStore.selectedStudio) {
+    // Track studioUsers so permission re-evaluates when users finish loading
+    const _ = studioStore.studioUsers;
     userCanCreateProject()
   }
 });
@@ -255,7 +257,7 @@ const modalsActive = computed(() => {
 });
 
 const toggleStudioList = () => {
-  // if (!studioList.value.length) return;
+  if (accountStore.isStudioAuth) return;
   displayStudioList.value = !displayStudioList.value;
 };
 
@@ -317,6 +319,7 @@ const selectStudio = async (studio) => {
 
   if(projectStore.selectedStudio?.name !== 'Personal'){
     await studioStore.getStudioUsers();
+    console.log('pppppppppp')
   }
 
   if (projectStore.projects.length && projectStore.activeProject && projectStore.activeProject.is_downloaded) {

@@ -1212,6 +1212,7 @@ func CreateProject(projectUri, studioName, workingDir, templateName string, user
 	// }
 
 	if utils.IsValidURL(projectUri) {
+		fmt.Println(projectUri)
 		req, err := http.NewRequest("POST", projectUri, nil)
 		if err != nil {
 			return projectInfo, err

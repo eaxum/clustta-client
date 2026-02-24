@@ -740,37 +740,91 @@ func GetStudios() ([]Studio, error) {
 		AltUrl: "",
 	}
 
-	if len(settings.Studios) == 0 {
-		settings.Studios = append(settings.Studios, personal)
-	}
+	// Handle based on auth mode
+	authMode := auth_service.GetActiveAuthMode()
 
-	userStudios, err := studio_service.GetUserStudios()
-	if err != nil {
+	switch authMode {
+	case auth_service.AuthModeOffline:
+		// Offline mode: only Personal studio, no network calls
+		settings.Studios = []Studio{personal}
+		err = saveSettings(settings)
+		if err != nil {
+			return settings.Studios, err
+		}
 		return settings.Studios, nil
-	}
 
-	settings.Studios = []Studio{personal}
+	case auth_service.AuthModeStudio:
+		// Studio mode: only the private server studio (no Personal)
+		accountToken, err := auth_service.GetActiveAccountToken()
+		if err != nil {
+			return []Studio{}, fmt.Errorf("failed to get account token: %w", err)
+		}
 
-	for _, userStudio := range userStudios {
-		studioUsers, err := studio_service.GetStudioUsers(userStudio.Id)
+		// Fetch studio info from the private server
+		studioInfo, err := studio_service.GetStudioInfo(accountToken.AuthHost)
+		if err != nil {
+			// If we can't get studio info, use fallback with auth host
+			privateStudio := Studio{
+				Id:     accountToken.StudioId,
+				Name:   "Private Studio",
+				Url:    accountToken.AuthHost,
+				AltUrl: "",
+			}
+			settings.Studios = []Studio{privateStudio}
+		} else {
+			privateStudio := Studio{
+				Id:     studioInfo.Id,
+				Name:   studioInfo.Name,
+				Url:    studioInfo.Url,
+				AltUrl: studioInfo.AltUrl,
+			}
+			// If name is empty, use a default
+			if privateStudio.Name == "" {
+				privateStudio.Name = "Private Studio"
+			}
+			settings.Studios = []Studio{privateStudio}
+		}
+
+		err = saveSettings(settings)
+		if err != nil {
+			return settings.Studios, err
+		}
+		return settings.Studios, nil
+
+	default: // AuthModeGlobal
+		// Global mode: fetch studios from api.clustta.com (existing behavior)
+		if len(settings.Studios) == 0 {
+			settings.Studios = append(settings.Studios, personal)
+		}
+
+		userStudios, err := studio_service.GetUserStudios()
 		if err != nil {
 			return settings.Studios, nil
 		}
-		studio := Studio{
-			Id:     userStudio.Id,
-			Name:   userStudio.Name,
-			Url:    userStudio.URL,
-			AltUrl: userStudio.AltURL,
-			Users:  studioUsers,
-		}
-		settings.Studios = append(settings.Studios, studio)
-	}
 
-	err = saveSettings(settings)
-	if err != nil {
-		return settings.Studios, err
+		settings.Studios = []Studio{personal}
+
+		for _, userStudio := range userStudios {
+			studioUsers, err := studio_service.GetStudioUsers(userStudio.Id)
+			if err != nil {
+				return settings.Studios, nil
+			}
+			studio := Studio{
+				Id:     userStudio.Id,
+				Name:   userStudio.Name,
+				Url:    userStudio.URL,
+				AltUrl: userStudio.AltURL,
+				Users:  studioUsers,
+			}
+			settings.Studios = append(settings.Studios, studio)
+		}
+
+		err = saveSettings(settings)
+		if err != nil {
+			return settings.Studios, err
+		}
+		return settings.Studios, nil
 	}
-	return settings.Studios, nil
 }
 
 func GetProjectWorkspaces(projectId string) ([]interface{}, error) {

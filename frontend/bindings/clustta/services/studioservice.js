@@ -9,6 +9,9 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as models$0 from "../internal/server/models/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as studio_service$0 from "../internal/studio_service/models.js";
 
 /**
  * Adds a new collaborator to a studio with specified role
@@ -51,6 +54,18 @@ export function GetServerVersion(studioUrl) {
 }
 
 /**
+ * GetStudioInfo fetches studio metadata from a private studio server.
+ * Used when authenticated against a private server to discover its details.
+ * @param {string} studioUrl
+ * @returns {$CancellablePromise<studio_service$0.StudioInfo>}
+ */
+export function GetStudioInfo(studioUrl) {
+    return $Call.ByID(1544643585, studioUrl).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
  * Checks if a studio server is online or offline by URL
  * @param {string} studioUrl
  * @returns {$CancellablePromise<string>}
@@ -66,7 +81,7 @@ export function GetStudioStatus(studioUrl) {
  */
 export function GetStudioUsers(studioId) {
     return $Call.ByID(3707174447, studioId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType1($result);
+        return $$createType2($result);
     }));
 }
 
@@ -124,5 +139,6 @@ export function VerifyDeploymentCode(code) {
 }
 
 // Private type creation functions
-const $$createType0 = models$0.StudioUserInfo.createFrom;
-const $$createType1 = $Create.Array($$createType0);
+const $$createType0 = studio_service$0.StudioInfo.createFrom;
+const $$createType1 = models$0.StudioUserInfo.createFrom;
+const $$createType2 = $Create.Array($$createType1);
