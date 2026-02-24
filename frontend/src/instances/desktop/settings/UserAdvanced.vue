@@ -3,6 +3,40 @@
     <div class="settings-component-scroll">
     <div class="settings-component-container">
 
+      <!-- Integrations Card -->
+      <div class="settings-section-card">
+        <div class="settings-section-card-header">
+          <h2 class="settings-section-card-title">{{ $t('settings.integrations') }}</h2>
+        </div>
+        <div class="settings-section-card-content">
+
+          <!-- Connected Integrations List -->
+          <div v-for="integration in connectedIntegrations" :key="integration.id" class="settings-item" @click="openIntegrationAuth">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon(integration.icon)"></div>
+            <div class="settings-content">
+              <div class="settings-header">{{ integration.name }}</div>
+              <div class="settings-body">{{ $t('settings.connected') }}</div>
+            </div>
+            <div class="settings-action">
+              <span class="connected-badge">{{ $t('common.connected') }}</span>
+            </div>
+          </div>
+
+          <!-- Connect New Integration -->
+          <div class="settings-item" v-stop-propagation @click="openIntegrationAuth">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('plug')"></div>
+            <div class="settings-content">
+              <div class="settings-header">{{ $t('settings.connectIntegration') }}</div>
+              <div class="settings-body">{{ $t('settings.connectIntegrationDescription') }}</div>
+            </div>
+            <div class="settings-action">
+              <img class="small-icons" :src="getAppIcon('chevron-right')">
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       <!-- Experimental Features Card -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
@@ -31,7 +65,7 @@
 
 <script setup>
 // imports
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // components
@@ -41,19 +75,34 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import { SettingsService } from '@/services';
 
 // stores
+import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
+import { useIntegrationStore } from '@/stores/integrations';
 import { useNotificationStore } from '@/stores/notifications';
 
 // refs
+const desktopModals = useDesktopModalStore();
 const iconStore = useIconStore();
+const integrationStore = useIntegrationStore();
 const notificationStore = useNotificationStore();
 const syncAfterCheckpoint = ref(false);
 const { t } = useI18n();
+
+// computed
+// Returns list of integrations user has authenticated with.
+const connectedIntegrations = computed(() => {
+  return integrationStore.availableIntegrations.filter(i => integrationStore.isAuthenticated(i.id));
+});
 
 // methods
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
+};
+
+// Opens the integration authentication modal.
+const openIntegrationAuth = () => {
+  desktopModals.setModalVisibility('integrationAuthModal', true);
 };
 
 // Toggles the sync-after-checkpoint default for the current user.
@@ -76,6 +125,7 @@ const toggleSyncAfterCheckpoint = () => {
 onMounted(async () => {
   try {
     syncAfterCheckpoint.value = await SettingsService.GetSyncAfterCheckpoint();
+    await integrationStore.initialize();
   } catch (error) {
     console.log(error);
   }
@@ -204,5 +254,14 @@ onMounted(async () => {
 
 .fixed-width {
   min-width: 200px;
+}
+
+.connected-badge {
+  color: var(--accent-primary);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: var(--small-radius);
+  background-color: rgba(var(--accent-primary-rgb), 0.15);
 }
 </style>

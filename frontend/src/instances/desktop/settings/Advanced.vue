@@ -3,6 +3,40 @@
     <div class="settings-component-scroll">
     <div class="settings-component-container">
 
+      <!-- External Integrations Card -->
+      <div class="settings-section-card">
+        <div class="settings-section-card-header">
+          <h2 class="settings-section-card-title">{{ $t('settings.externalIntegrations') }}</h2>
+        </div>
+        <div class="settings-section-card-content">
+
+          <!-- Linked Integration -->
+          <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openIntegrationLink">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon(linkedIntegration.integration_id)"></div>
+            <div class="settings-content">
+              <div class="settings-header">{{ linkedIntegration.external_project_name }}</div>
+              <div class="settings-body">{{ $t('settings.linkedTo', { integration: linkedIntegration.integration_id }) }}</div>
+            </div>
+            <div class="settings-action" v-stop-propagation>
+              <ActionButton :icon="getAppIcon('cog')" :label="$t('common.manage')" :buttonFunction="openIntegrationLink" />
+            </div>
+          </div>
+
+          <!-- No Integration Linked -->
+          <div v-else class="settings-item" v-stop-propagation @click="openIntegrationLink">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('plug')"></div>
+            <div class="settings-content">
+              <div class="settings-header">{{ $t('settings.linkIntegration') }}</div>
+              <div class="settings-body">{{ $t('settings.linkIntegrationDescription') }}</div>
+            </div>
+            <div class="settings-action">
+              <ActionButton :icon="getAppIcon('link')" :label="$t('common.link')" :buttonFunction="openIntegrationLink" />
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       <!-- Experimental Features Card -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
@@ -31,30 +65,43 @@
 
 <script setup>
 // imports
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // services
 import { ProjectService } from '@/services';
 
 // stores
+import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
+import { useIntegrationStore } from '@/stores/integrations';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 
 // components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // refs
+const desktopModals = useDesktopModalStore();
 const iconStore = useIconStore();
+const integrationStore = useIntegrationStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const writeThroughEnabled = ref(false);
 const { t } = useI18n();
 
+// computed
+const linkedIntegration = computed(() => integrationStore.linkedIntegration);
+
 // methods
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
+};
+
+// Opens the integration link modal to manage project integration.
+const openIntegrationLink = () => {
+  desktopModals.setModalVisibility('integrationLinkModal', true);
 };
 
 // Toggles the write-through sync experimental feature for the active project.
@@ -82,6 +129,7 @@ onMounted(async () => {
     const projectUri = projectStore.activeProject?.uri;
     if (projectUri) {
       writeThroughEnabled.value = await ProjectService.GetWriteThroughEnabled(projectUri);
+      await integrationStore.loadLinkedIntegration();
     }
   } catch (error) {
     console.log(error);

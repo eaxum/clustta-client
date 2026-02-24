@@ -11,6 +11,7 @@
     "change": "Change",
     "close": "Close",
     "confirm": "Confirm",
+    "connected": "Connected",
     "continue": "Continue",
     "copyPath": "Copy Path",
     "create": "Create",
@@ -65,7 +66,9 @@
     "yes": "Yes",
     "all": "All",
     "hide": "Hide",
-    "show": "Show"
+    "show": "Show",
+    "link": "Link",
+    "manage": "Manage"
   },
   "placeholders": {
     "addItem": "Add item",
@@ -472,6 +475,14 @@
     "writeThroughDescription": "Push metadata changes to the server immediately instead of waiting for a full sync. This is experimental and may not work reliably in all cases.",
     "syncAfterCheckpoint": "Sync after checkpoint",
     "syncAfterCheckpointDescription": "Automatically sync an asset to the server after creating a checkpoint. Sets the default state of the toggle in the checkpoint modal.",
+    "integrations": "Integrations",
+    "externalIntegrations": "External Integrations",
+    "linkIntegration": "Link External Project",
+    "linkIntegrationDescription": "Connect this project to Kitsu, ClickUp, or other external project management tools.",
+    "linkedTo": "Linked to {integration}",
+    "connectIntegration": "Connect Integration",
+    "connectIntegrationDescription": "Connect to external services like Kitsu, ClickUp, and more.",
+    "connected": "Connected",
     "addRole": "Add Role",
     "noUserRoles": "You have no user roles",
     "clusttaData": "Clustta Data",

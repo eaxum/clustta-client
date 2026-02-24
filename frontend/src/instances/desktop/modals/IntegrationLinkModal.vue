@@ -1,20 +1,22 @@
 <template>
-  <div class="modal-container" v-esc="closeModal">
-    <HeaderArea :title="title" :icon="'link'" />
+  <div class="modal-container" v-stop-propagation v-esc="closeModal">
+    <HeaderArea :title="title" :icon="headerIcon" />
 
     <div class="general-container">
       <!-- Linked Integration Info -->
-      <div v-if="linkedIntegration" class="linked-info">
-        <div class="linked-header">
-          <img :src="getIntegrationIcon(linkedIntegration.integration_id)" class="integration-icon" />
-          <div class="linked-details">
-            <span class="project-name">{{ linkedIntegration.external_project_name }}</span>
-            <span class="integration-name">{{ linkedIntegration.integration_id }}</span>
+      <div v-if="linkedIntegration" class="linked-container">
+        <div class="linked-info">
+          <div class="linked-header">
+            <img :src="getAppIcon(linkedIntegration.integration_id)" class="integration-icon" />
+            <div class="linked-details">
+              <span class="project-name">{{ linkedIntegration.external_project_name }}</span>
+              <span class="integration-name">{{ linkedIntegration.integration_id }}</span>
+            </div>
           </div>
-        </div>
-        <div class="linked-actions">
-          <ActionButton :icon="getAppIcon('sync')" :label="'Sync Now'" :buttonFunction="openSyncModal" />
-          <ActionButton :icon="getAppIcon('disconnect')" :label="'Unlink'" :buttonFunction="unlinkProject" />
+          <div class="linked-actions">
+            <!-- <ActionButton :icon="getAppIcon('sync')" v-tooltip="'Sync Now'" :buttonFunction="openSyncModal" /> -->
+            <ActionButton :icon="getAppIcon('plug')" v-tooltip="'Unlink'" :buttonFunction="unlinkProject" />
+          </div>
         </div>
       </div>
 
@@ -24,7 +26,7 @@
         <div class="integration-list">
           <div v-for="integration in authenticatedIntegrations" :key="integration.id" class="integration-item"
             @click="selectIntegration(integration)">
-            <img :src="getIntegrationIcon(integration.icon)" class="integration-icon" />
+            <img :src="getAppIcon(integration.icon)" class="integration-icon" />
             <span class="integration-name">{{ integration.name }}</span>
           </div>
         </div>
@@ -36,10 +38,6 @@
 
       <!-- Project Selection -->
       <div v-else class="project-selection">
-        <div class="selection-header">
-          <img :src="getIntegrationIcon(selectedIntegration.icon)" class="integration-icon" />
-          <span>{{ selectedIntegration.name }}</span>
-        </div>
 
         <div v-if="isLoadingProjects" class="loading-state">
           <span>Loading projects...</span>
@@ -82,6 +80,9 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
+// services
+import { IntegrationService } from '@/services';
+
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
@@ -103,13 +104,29 @@ const isLoadingProjects = ref(false);
 const selectedIntegration = ref(null);
 const selectedProject = ref(null);
 
-// constants
-const title = 'Link Integration';
-
 // computed
 // Returns integrations the user has authenticated with.
 const authenticatedIntegrations = computed(() => {
   return integrationStore.availableIntegrations.filter(i => integrationStore.isAuthenticated(i.id));
+});
+
+// Returns the icon for the header based on selected integration.
+const headerIcon = computed(() => {
+  if (selectedIntegration.value) {
+    return selectedIntegration.value.icon;
+  }
+  return 'link';
+});
+
+// Returns the title based on selected integration.
+const title = computed(() => {
+  if (linkedIntegration.value) {
+    return 'Manage Integration';
+  }
+  if (selectedIntegration.value) {
+    return selectedIntegration.value.name;
+  }
+  return 'Link Integration';
 });
 
 // Returns the linked integration for current project.
@@ -133,25 +150,34 @@ const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
-// Returns the integration icon path.
-const getIntegrationIcon = (iconName) => {
-  return `/icons/${iconName}.svg`;
-};
-
 // Links the current project to the selected external project.
 const linkProject = async () => {
-  if (!selectedProject.value) return;
+  if (!selectedProject.value || !projectStore.activeProject?.uri) return;
+
+  const integrationId = selectedIntegration.value.id;
+  const tokenData = integrationStore.tokens[integrationId];
+
+  if (!tokenData?.token) {
+    notificationStore.addNotification('Not authenticated with ' + integrationId, 'error');
+    return;
+  }
 
   isLinking.value = true;
   try {
-    await integrationStore.linkProject(
-      selectedIntegration.value.id,
-      selectedProject.value.id,
-      selectedProject.value.name
+    const result = await IntegrationService.LinkProject(
+      String(projectStore.activeProject.uri),
+      String(integrationId),
+      String(selectedProject.value.id),
+      String(selectedProject.value.name),
+      String(tokenData.apiUrl || ''),
+      JSON.stringify({}),
+      String(tokenData.userId || '')
     );
+    integrationStore.linkedIntegration = result;
+    notificationStore.addNotification('Project linked to ' + selectedProject.value.name, '', 'success');
     clearSelection();
   } catch (error) {
-    // Error handled by store
+    notificationStore.addNotification(error.message || 'Failed to link project', 'error');
   } finally {
     isLinking.value = false;
   }
@@ -167,7 +193,7 @@ const loadExternalProjects = async () => {
   try {
     externalProjects.value = await integrationStore.getExternalProjects(selectedIntegration.value.id);
   } catch (error) {
-    notificationStore.sendNotification('Failed to load projects: ' + error.message, 'error');
+    notificationStore.addNotification('Failed to load projects: ' + error.message, 'error');
   } finally {
     isLoadingProjects.value = false;
   }
@@ -210,18 +236,33 @@ watch(() => projectStore.activeProject, async () => {
 
 // lifecycle
 onMounted(async () => {
-  await integrationStore.loadAvailableIntegrations();
+  await integrationStore.initialize();
   await integrationStore.loadLinkedIntegration();
 });
 </script>
 
 <style scoped>
+.linked-container {
+  display: flex;
+  width: 100%;
+}
+
 .linked-info {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 16px;
-  background: var(--surface-primary);
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--dark-steel);
+  cursor: pointer;
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+  border-radius: var(--large-radius);
+  transition: all 0.2s ease-in-out;
+  width: 100%;
+}
+
+.linked-info:hover {
+  background: var(--steel);
   border-radius: var(--small-radius);
 }
 
@@ -229,6 +270,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 1;
 }
 
 .linked-details {
@@ -237,7 +279,7 @@ onMounted(async () => {
 }
 
 .project-name {
-  font-weight: 500;
+  font-weight: 300;
   color: var(--text-primary);
 }
 
@@ -249,9 +291,8 @@ onMounted(async () => {
 
 .linked-actions {
   display: flex;
-  gap: 8px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-primary);
+  gap: 4px;
+  justify-content: flex-end;
 }
 
 .section-label {
@@ -286,15 +327,18 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  border-radius: var(--small-radius);
-  background: var(--surface-primary);
+  background: var(--dark-steel);
   cursor: pointer;
-  transition: background 0.15s;
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+  border-radius: var(--large-radius);
+  transition: all 0.2s ease-in-out;
 }
 
 .integration-item:hover,
 .project-item:hover {
-  background: var(--surface-secondary);
+  background: var(--steel);
+  border-radius: var(--small-radius);
 }
 
 .project-item {
@@ -303,8 +347,9 @@ onMounted(async () => {
 }
 
 .project-item.selected {
-  border: 1px solid var(--accent-primary);
-  background: var(--accent-primary-subtle);
+  outline: var(--transparent-line);
+  background: var(--black-steel);
+  border-radius: var(--small-radius);
 }
 
 .project-desc {
@@ -338,5 +383,9 @@ onMounted(async () => {
   color: var(--text-secondary);
   text-align: center;
   gap: 12px;
+}
+
+.project-selection, .integration-selection{
+  width: 100%;
 }
 </style>

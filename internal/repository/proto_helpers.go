@@ -1010,3 +1010,149 @@ func FromPbTombs(pbs []*repositorypb.Tomb) []Tomb {
 	}
 	return tombs
 }
+
+func ToPbIntegrationProjects(integrations []models.IntegrationProject) []*repositorypb.IntegrationProject {
+	pb := make([]*repositorypb.IntegrationProject, len(integrations))
+	for i, ip := range integrations {
+		pb[i] = &repositorypb.IntegrationProject{
+			Id:                  ip.Id,
+			Mtime:               int64(ip.MTime),
+			IntegrationId:       ip.IntegrationId,
+			ExternalProjectId:   ip.ExternalProjectId,
+			ExternalProjectName: ip.ExternalProjectName,
+			ApiUrl:              ip.ApiUrl,
+			SyncOptions:         ip.SyncOptions,
+			LinkedByUserId:      ip.LinkedByUserId,
+			LinkedAt:            ip.LinkedAt,
+			Enabled:             ip.Enabled,
+			Synced:              ip.Synced,
+		}
+	}
+	return pb
+}
+
+func ToPbIntegrationCollectionMappings(mappings []models.IntegrationCollectionMapping) []*repositorypb.IntegrationCollectionMapping {
+	pb := make([]*repositorypb.IntegrationCollectionMapping, len(mappings))
+	for i, cm := range mappings {
+		pb[i] = &repositorypb.IntegrationCollectionMapping{
+			Id:               cm.Id,
+			Mtime:            int64(cm.MTime),
+			IntegrationId:    cm.IntegrationId,
+			ExternalId:       cm.ExternalId,
+			ExternalType:     cm.ExternalType,
+			ExternalName:     cm.ExternalName,
+			ExternalParentId: cm.ExternalParentId,
+			ExternalPath:     cm.ExternalPath,
+			ExternalMetadata: cm.ExternalMetadata,
+			CollectionId:     cm.CollectionId,
+			SyncedAt:         cm.SyncedAt,
+			Synced:           cm.Synced,
+		}
+	}
+	return pb
+}
+
+func ToPbIntegrationAssetMappings(mappings []models.IntegrationAssetMapping) []*repositorypb.IntegrationAssetMapping {
+	pb := make([]*repositorypb.IntegrationAssetMapping, len(mappings))
+	for i, am := range mappings {
+		pb[i] = &repositorypb.IntegrationAssetMapping{
+			Id:                     am.Id,
+			Mtime:                  int64(am.MTime),
+			IntegrationId:          am.IntegrationId,
+			ExternalId:             am.ExternalId,
+			ExternalName:           am.ExternalName,
+			ExternalParentId:       am.ExternalParentId,
+			ExternalType:           am.ExternalType,
+			ExternalStatus:         am.ExternalStatus,
+			ExternalAssignees:      am.ExternalAssignees,
+			ExternalMetadata:       am.ExternalMetadata,
+			AssetId:                am.AssetId,
+			LastPushedCheckpointId: am.LastPushedCheckpointId,
+			SyncedAt:               am.SyncedAt,
+			Synced:                 am.Synced,
+		}
+	}
+	return pb
+}
+
+// FromPbIntegrationProject converts a protobuf IntegrationProject to a model.
+func FromPbIntegrationProject(pb *repositorypb.IntegrationProject) models.IntegrationProject {
+	return models.IntegrationProject{
+		Id:                  pb.Id,
+		MTime:               int(pb.Mtime),
+		IntegrationId:       pb.IntegrationId,
+		ExternalProjectId:   pb.ExternalProjectId,
+		ExternalProjectName: pb.ExternalProjectName,
+		ApiUrl:              pb.ApiUrl,
+		SyncOptions:         pb.SyncOptions,
+		LinkedByUserId:      pb.LinkedByUserId,
+		LinkedAt:            pb.LinkedAt,
+		Enabled:             pb.Enabled,
+		Synced:              pb.Synced,
+	}
+}
+
+// FromPbIntegrationProjects converts a slice of protobuf IntegrationProjects to models.
+func FromPbIntegrationProjects(pbs []*repositorypb.IntegrationProject) []models.IntegrationProject {
+	items := make([]models.IntegrationProject, len(pbs))
+	for i, pb := range pbs {
+		items[i] = FromPbIntegrationProject(pb)
+	}
+	return items
+}
+
+// FromPbIntegrationCollectionMapping converts a protobuf IntegrationCollectionMapping to a model.
+func FromPbIntegrationCollectionMapping(pb *repositorypb.IntegrationCollectionMapping) models.IntegrationCollectionMapping {
+	return models.IntegrationCollectionMapping{
+		Id:               pb.Id,
+		MTime:            int(pb.Mtime),
+		IntegrationId:    pb.IntegrationId,
+		ExternalId:       pb.ExternalId,
+		ExternalType:     pb.ExternalType,
+		ExternalName:     pb.ExternalName,
+		ExternalParentId: pb.ExternalParentId,
+		ExternalPath:     pb.ExternalPath,
+		ExternalMetadata: pb.ExternalMetadata,
+		CollectionId:     pb.CollectionId,
+		SyncedAt:         pb.SyncedAt,
+		Synced:           pb.Synced,
+	}
+}
+
+// FromPbIntegrationCollectionMappings converts a slice of protobuf IntegrationCollectionMappings to models.
+func FromPbIntegrationCollectionMappings(pbs []*repositorypb.IntegrationCollectionMapping) []models.IntegrationCollectionMapping {
+	items := make([]models.IntegrationCollectionMapping, len(pbs))
+	for i, pb := range pbs {
+		items[i] = FromPbIntegrationCollectionMapping(pb)
+	}
+	return items
+}
+
+// FromPbIntegrationAssetMapping converts a protobuf IntegrationAssetMapping to a model.
+func FromPbIntegrationAssetMapping(pb *repositorypb.IntegrationAssetMapping) models.IntegrationAssetMapping {
+	return models.IntegrationAssetMapping{
+		Id:                     pb.Id,
+		MTime:                  int(pb.Mtime),
+		IntegrationId:          pb.IntegrationId,
+		ExternalId:             pb.ExternalId,
+		ExternalName:           pb.ExternalName,
+		ExternalParentId:       pb.ExternalParentId,
+		ExternalType:           pb.ExternalType,
+		ExternalStatus:         pb.ExternalStatus,
+		ExternalAssignees:      pb.ExternalAssignees,
+		ExternalMetadata:       pb.ExternalMetadata,
+		AssetId:                pb.AssetId,
+		LastPushedCheckpointId: pb.LastPushedCheckpointId,
+		SyncedAt:               pb.SyncedAt,
+		Synced:                 pb.Synced,
+	}
+}
+
+// FromPbIntegrationAssetMappings converts a slice of protobuf IntegrationAssetMappings to models.
+func FromPbIntegrationAssetMappings(pbs []*repositorypb.IntegrationAssetMapping) []models.IntegrationAssetMapping {
+	items := make([]models.IntegrationAssetMapping, len(pbs))
+	for i, pb := range pbs {
+		items[i] = FromPbIntegrationAssetMapping(pb)
+	}
+	return items
+}

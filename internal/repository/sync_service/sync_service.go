@@ -1135,6 +1135,40 @@ func OverWriteProjectData(tx *sqlx.Tx, data ProjectData) error {
 			return err
 		}
 	}
+
+	// Integration project
+	for _, integrationProject := range data.IntegrationProjects {
+		_, err = repository.CreateIntegrationProject(
+			tx, integrationProject.Id, integrationProject.IntegrationId, integrationProject.ExternalProjectId,
+			integrationProject.ExternalProjectName, integrationProject.ApiUrl, integrationProject.SyncOptions,
+			integrationProject.LinkedByUserId, integrationProject.LinkedAt)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Integration collection mappings
+	for _, mapping := range data.IntegrationCollectionMappings {
+		_, err = repository.CreateCollectionMapping(
+			tx, mapping.Id, mapping.IntegrationId, mapping.ExternalId, mapping.ExternalType,
+			mapping.ExternalName, mapping.ExternalParentId, mapping.ExternalPath,
+			mapping.ExternalMetadata, mapping.CollectionId, mapping.SyncedAt)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Integration asset mappings
+	for _, mapping := range data.IntegrationAssetMappings {
+		_, err = repository.CreateAssetMapping(
+			tx, mapping.Id, mapping.IntegrationId, mapping.ExternalId, mapping.ExternalName,
+			mapping.ExternalParentId, mapping.ExternalType, mapping.ExternalStatus,
+			mapping.ExternalAssignees, mapping.ExternalMetadata, mapping.AssetId, mapping.SyncedAt)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -1212,6 +1246,10 @@ func FetchData(remoteUrl string, userId string) (ProjectData, error) {
 
 				Tags:      repository.FromPbTags(userDataPb.Tags),
 				TasksTags: repository.FromPbTaskTags(userDataPb.TasksTags),
+
+				IntegrationProjects:           repository.FromPbIntegrationProjects(userDataPb.IntegrationProjects),
+				IntegrationCollectionMappings: repository.FromPbIntegrationCollectionMappings(userDataPb.IntegrationCollectionMappings),
+				IntegrationAssetMappings:      repository.FromPbIntegrationAssetMappings(userDataPb.IntegrationAssetMappings),
 			}
 
 			return userData, nil

@@ -33,6 +33,21 @@ type ProjectLocation struct {
 	ProjectIDs []string `json:"project_ids"`
 }
 
+// IntegrationCredential stores user credentials for external integrations.
+// Stored per user locally, keyed by "projectId_integrationId".
+type IntegrationCredential struct {
+	IntegrationId string `json:"integration_id"`
+	UserId        string `json:"user_id"`
+	UserName      string `json:"user_name"`
+	UserEmail     string `json:"user_email"`
+	AccessToken   string `json:"access_token"`
+	RefreshToken  string `json:"refresh_token"`
+	ExpiresAt     int64  `json:"expires_at"`
+	ApiUrl        string `json:"api_url"`
+	CreatedAt     string `json:"created_at"`
+	UpdatedAt     string `json:"updated_at"`
+}
+
 type Settings struct {
 	IconScheme            string `json:"icon_scheme"`
 	Theme                 string `json:"theme"`
@@ -57,13 +72,14 @@ type Settings struct {
 
 	SyncAfterCheckpoint bool `json:"sync_after_checkpoint"`
 
-	PinnedProjects    map[string][]string      `json:"pinned_projects"`
-	RecentProjects    map[string][]string      `json:"recent_projects"`
-	Studios           []Studio                 `json:"studios"`
-	WorkSpaces        map[string][]interface{} `json:"workspaces"`
-	DependencyPresets map[string][]interface{} `json:"dependency_presets"`
-	LastStudio        string                   `json:"last_studio"`
-	CurrentVersion    string                   `json:"current_version"`
+	PinnedProjects    map[string][]string              `json:"pinned_projects"`
+	RecentProjects    map[string][]string              `json:"recent_projects"`
+	Studios           []Studio                         `json:"studios"`
+	WorkSpaces        map[string][]interface{}         `json:"workspaces"`
+	DependencyPresets map[string][]interface{}         `json:"dependency_presets"`
+	IntegrationCreds  map[string]IntegrationCredential `json:"integration_credentials"`
+	LastStudio        string                           `json:"last_studio"`
+	CurrentVersion    string                           `json:"current_version"`
 }
 
 func loadUserSettings() (Settings, error) {
@@ -904,6 +920,58 @@ func RemoveProjectWorkspace(projectId string, workspaceName string) error {
 		}
 	}
 	settings.WorkSpaces[projectId] = projectWorkspaces
+	return saveSettings(settings)
+}
+
+// ========== Integration Credentials Management ==========
+
+// GetIntegrationCredential retrieves integration credentials for an integration.
+// Credentials are stored per user per integration (not per project).
+func GetIntegrationCredential(integrationId string) (IntegrationCredential, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return IntegrationCredential{}, err
+	}
+
+	if settings.IntegrationCreds == nil {
+		return IntegrationCredential{}, fmt.Errorf("no credentials found")
+	}
+
+	cred, exists := settings.IntegrationCreds[integrationId]
+	if !exists {
+		return IntegrationCredential{}, fmt.Errorf("no credentials found for %s", integrationId)
+	}
+	return cred, nil
+}
+
+// SaveIntegrationCredential saves or updates integration credentials.
+// Credentials are stored per user per integration (not per project).
+func SaveIntegrationCredential(cred IntegrationCredential) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+
+	if settings.IntegrationCreds == nil {
+		settings.IntegrationCreds = make(map[string]IntegrationCredential)
+	}
+
+	settings.IntegrationCreds[cred.IntegrationId] = cred
+	return saveSettings(settings)
+}
+
+// DeleteIntegrationCredential deletes integration credentials for an integration.
+func DeleteIntegrationCredential(integrationId string) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+
+	if settings.IntegrationCreds == nil {
+		return nil
+	}
+
+	delete(settings.IntegrationCreds, integrationId)
 	return saveSettings(settings)
 }
 

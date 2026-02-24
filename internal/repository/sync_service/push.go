@@ -74,6 +74,10 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 		TasksTags: repository.ToPbTaskTags(data.TasksTags),
 
 		Tomb: repository.ToPbTombs(data.Tombs),
+
+		IntegrationProjects:           repository.ToPbIntegrationProjects(data.IntegrationProjects),
+		IntegrationCollectionMappings: repository.ToPbIntegrationCollectionMappings(data.IntegrationCollectionMappings),
+		IntegrationAssetMappings:      repository.ToPbIntegrationAssetMappings(data.IntegrationAssetMappings),
 	}
 
 	dataByte, err := proto.Marshal(&pdData)
@@ -290,6 +294,10 @@ func PushPartialData(projectPath, remoteUrl, userId string, data ProjectData, sy
 		TasksTags: repository.ToPbTaskTags(data.TasksTags),
 
 		Tomb: repository.ToPbTombs(data.Tombs),
+
+		IntegrationProjects:           repository.ToPbIntegrationProjects(data.IntegrationProjects),
+		IntegrationCollectionMappings: repository.ToPbIntegrationCollectionMappings(data.IntegrationCollectionMappings),
+		IntegrationAssetMappings:      repository.ToPbIntegrationAssetMappings(data.IntegrationAssetMappings),
 	}
 
 	dataByte, err := proto.Marshal(&pdData)

@@ -1,13 +1,13 @@
 <template>
-  <div class="modal-container" v-esc="closeModal" v-return="handleEnterKey">
-    <HeaderArea :title="title" :icon="'integration'" />
+  <div class="modal-container" v-stop-propagation v-esc="closeModal" v-return="handleEnterKey">
+    <HeaderArea :title="title" :icon="headerIcon" />
 
     <div class="general-container">
       <!-- Integration Selection -->
       <div v-if="!selectedIntegration" class="integration-list">
         <div v-for="integration in availableIntegrations" :key="integration.id" class="integration-item"
-          :class="{ 'authenticated': isAuthenticated(integration.id) }" @click="selectIntegration(integration)">
-          <img :src="getIntegrationIcon(integration.icon)" :alt="integration.name" class="integration-icon" />
+          :class="{ 'authenticated': isAuthenticated(integration.id) }" v-stop-propagation @click="selectIntegration(integration)">
+          <img :src="getAppIcon(integration.icon)" :alt="integration.name" class="integration-icon" />
           <div class="integration-info">
             <span class="integration-name">{{ integration.name }}</span>
             <span class="integration-desc">{{ integration.description }}</span>
@@ -18,11 +18,6 @@
 
       <!-- Authentication Form -->
       <div v-else class="auth-form">
-        <div class="auth-header">
-          <img :src="getIntegrationIcon(selectedIntegration.icon)" :alt="selectedIntegration.name" class="integration-icon-large" />
-          <span class="selected-name">{{ selectedIntegration.name }}</span>
-        </div>
-
         <!-- Kitsu Login Form -->
         <div v-if="selectedIntegration.auth_type === 'password'" class="form-fields">
           <FormInput v-model="apiUrl" placeholder="Server URL (e.g., https://kitsu.mystudio.com)" needsValidation
@@ -90,11 +85,22 @@ const isAuthenticating = ref(false);
 const password = ref('');
 const selectedIntegration = ref(null);
 
-// constants
-const title = 'Connect Integration';
-
 // computed
+const title = computed(() => {
+  if (selectedIntegration.value) {
+    return selectedIntegration.value.name;
+  }
+  return 'Connect Integration';
+});
+
 const availableIntegrations = computed(() => integrationStore.availableIntegrations);
+
+const headerIcon = computed(() => {
+  if (selectedIntegration.value) {
+    return selectedIntegration.value.icon;
+  }
+  return 'plug';
+});
 
 // Validates the API URL format.
 const isApiUrlValid = computed(() => {
@@ -129,7 +135,7 @@ const authenticate = async () => {
     });
 
     if (result.success) {
-      notificationStore.sendNotification('Connected to ' + selectedIntegration.value.name, 'success');
+      notificationStore.addNotification('Connected to ' + selectedIntegration.value.name, 'success');
       clearSelection();
     }
   } finally {
@@ -154,17 +160,12 @@ const closeModal = () => {
 // Disconnects from the selected integration.
 const disconnect = () => {
   integrationStore.disconnect(selectedIntegration.value.id);
-  notificationStore.sendNotification('Disconnected from ' + selectedIntegration.value.name, 'success');
+  notificationStore.addNotification('Disconnected from ' + selectedIntegration.value.name, 'success');
 };
 
 // Returns the app icon path.
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
-};
-
-// Returns the integration icon path.
-const getIntegrationIcon = (iconName) => {
-  return `/icons/${iconName}.svg`;
 };
 
 // Handles enter key press.
@@ -192,7 +193,7 @@ const selectIntegration = (integration) => {
 // Starts OAuth flow.
 const startOAuth = () => {
   // TODO: Implement OAuth redirect for ClickUp
-  notificationStore.sendNotification('OAuth integration coming soon', 'info');
+  notificationStore.addNotification('OAuth integration coming soon','', 'warning');
 };
 
 // lifecycle
@@ -211,31 +212,28 @@ onMounted(async () => {
 .integration-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border-radius: var(--small-radius);
-  background: var(--surface-primary);
+  gap: .5rem;
+  padding: 1rem 1rem;
+  border-radius: var(--large-radius);
+  background-color: var(--dark-steel);
+  outline: var(--transparent-line);
+  outline-offset: -1px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.2s ease-in-out;
 }
 
 .integration-item:hover {
-  background: var(--surface-secondary);
+  background-color: var(--steel);
+  border-radius: var(--small-radius);
 }
 
 .integration-item.authenticated {
-  border: 1px solid var(--accent-primary);
+  outline: 1px solid var(--accent-primary);
 }
 
 .integration-icon {
   width: 32px;
   height: 32px;
-  object-fit: contain;
-}
-
-.integration-icon-large {
-  width: 48px;
-  height: 48px;
   object-fit: contain;
 }
 
@@ -247,12 +245,12 @@ onMounted(async () => {
 
 .integration-name {
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--white);
 }
 
 .integration-desc {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--white);
 }
 
 .auth-status {
@@ -267,20 +265,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.auth-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-primary);
-}
-
-.selected-name {
-  font-size: 18px;
-  font-weight: 500;
-  color: var(--text-primary);
+  width: 100%;
 }
 
 .form-fields {
@@ -292,7 +277,7 @@ onMounted(async () => {
 .oauth-info {
   text-align: center;
   padding: 20px;
-  color: var(--text-secondary);
+  color: var(--white);
 }
 
 .oauth-note {
