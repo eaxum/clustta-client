@@ -15,10 +15,6 @@ import (
 type IntegrationService struct {
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// INTEGRATION REGISTRY
-// ═══════════════════════════════════════════════════════════════════════════
-
 // GetAvailableIntegrations returns all registered integrations.
 // Each integration contains id, name, description, and auth requirements.
 func (s *IntegrationService) GetAvailableIntegrations() []integrations.IntegrationInfo {
@@ -33,10 +29,6 @@ func (s *IntegrationService) GetIntegration(integrationId string) (integrations.
 	}
 	return integration.GetInfo(), nil
 }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// AUTHENTICATION
-// ═══════════════════════════════════════════════════════════════════════════
 
 // Authenticate authenticates with an external integration.
 // Returns auth result with user info and token on success.

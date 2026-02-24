@@ -466,3 +466,20 @@ func (s *SettingsService) GetSyncAfterCheckpoint() (bool, error) {
 func (s *SettingsService) SetSyncAfterCheckpoint(enabled bool) error {
 	return settings.SetSyncAfterCheckpoint(enabled)
 }
+
+// GetIntegrationCredential retrieves integration credentials for an integration.
+// Credentials are stored per user per integration (not per project).
+func (s *SettingsService) GetIntegrationCredential(integrationId string) (settings.IntegrationCredential, error) {
+	return settings.GetIntegrationCredential(integrationId)
+}
+
+// SaveIntegrationCredential saves or updates integration credentials.
+// Credentials are stored per user per integration (not per project).
+func (s *SettingsService) SaveIntegrationCredential(cred settings.IntegrationCredential) error {
+	return settings.SaveIntegrationCredential(cred)
+}
+
+// DeleteIntegrationCredential deletes integration credentials for an integration.
+func (s *SettingsService) DeleteIntegrationCredential(integrationId string) error {
+	return settings.DeleteIntegrationCredential(integrationId)
+}

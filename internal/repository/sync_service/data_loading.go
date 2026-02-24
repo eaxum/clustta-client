@@ -680,6 +680,22 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 		}
 	}
 
+	// Load integration data
+	integrationProjects, err := repository.GetIntegrationProjects(tx)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	integrationCollectionMappings, err := repository.GetAllCollectionMappings(tx)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	integrationAssetMappings, err := repository.GetAllAssetMappings(tx)
+	if err != nil {
+		return []byte{}, err
+	}
+
 	userData := &repositorypb.ProjectData{
 		ProjectPreview:  projectPreview.Hash,
 		EntityTypes:     repository.ToPbEntityTypes(entityTypes),
@@ -707,6 +723,10 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 
 		Tags:      repository.ToPbTags(tags),
 		TasksTags: repository.ToPbTaskTags(tasksTags),
+
+		IntegrationProjects:           repository.ToPbIntegrationProjects(integrationProjects),
+		IntegrationCollectionMappings: repository.ToPbIntegrationCollectionMappings(integrationCollectionMappings),
+		IntegrationAssetMappings:      repository.ToPbIntegrationAssetMappings(integrationAssetMappings),
 	}
 	userDataBytes, err := proto.Marshal(userData)
 	if err != nil {

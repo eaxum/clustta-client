@@ -896,19 +896,3 @@ CREATE INDEX IF NOT EXISTS idx_integration_collection_mapping_collection ON inte
 CREATE INDEX IF NOT EXISTS idx_integration_collection_mapping_external ON integration_collection_mapping(integration_id, external_id);
 CREATE INDEX IF NOT EXISTS idx_integration_asset_mapping_asset ON integration_asset_mapping(asset_id);
 CREATE INDEX IF NOT EXISTS idx_integration_asset_mapping_external ON integration_asset_mapping(integration_id, external_id);
-
--- LOCAL ONLY: User credentials for integrations (never synced to server)
-CREATE TABLE IF NOT EXISTS integration_credentials (
-    id TEXT PRIMARY KEY,
-    integration_id TEXT NOT NULL,
-    user_id TEXT DEFAULT '' NOT NULL,
-    user_name TEXT DEFAULT '' NOT NULL,
-    user_email TEXT DEFAULT '' NOT NULL,
-    access_token TEXT DEFAULT '' NOT NULL,
-    refresh_token TEXT DEFAULT '' NOT NULL,
-    expires_at INTEGER DEFAULT 0 NOT NULL,
-    api_url TEXT DEFAULT '' NOT NULL,
-    created_at TEXT DEFAULT '' NOT NULL,
-    updated_at TEXT DEFAULT '' NOT NULL,
-    UNIQUE(integration_id)
-);

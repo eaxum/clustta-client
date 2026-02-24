@@ -6,6 +6,7 @@ import (
 	"clustta/internal/utils"
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -14,6 +15,10 @@ import (
 // Returns error if an integration already exists (one integration per project).
 func CreateIntegrationProject(tx *sqlx.Tx, id, integrationId, externalProjectId, externalProjectName, apiUrl, syncOptions, linkedByUserId, linkedAt string) (models.IntegrationProject, error) {
 	integration := models.IntegrationProject{}
+
+	if id == "" {
+		id = uuid.New().String()
+	}
 
 	// Check if integration already exists
 	existing, err := GetIntegrationProject(tx)
@@ -56,6 +61,13 @@ func GetIntegrationProject(tx *sqlx.Tx) (models.IntegrationProject, error) {
 		return integration, errors.New("no integration found")
 	}
 	return integrations[0], nil
+}
+
+// GetIntegrationProjects retrieves all integration projects.
+func GetIntegrationProjects(tx *sqlx.Tx) ([]models.IntegrationProject, error) {
+	integrations := []models.IntegrationProject{}
+	err := base_service.GetAll(tx, "integration_project", &integrations)
+	return integrations, err
 }
 
 // UpdateIntegrationProject updates the integration project settings.
@@ -168,6 +180,13 @@ func GetCollectionMappings(tx *sqlx.Tx, integrationId string) ([]models.Integrat
 	return mappings, err
 }
 
+// GetAllCollectionMappings retrieves all collection mappings.
+func GetAllCollectionMappings(tx *sqlx.Tx) ([]models.IntegrationCollectionMapping, error) {
+	mappings := []models.IntegrationCollectionMapping{}
+	err := base_service.GetAll(tx, "integration_collection_mapping", &mappings)
+	return mappings, err
+}
+
 // UpdateCollectionMapping updates a collection mapping.
 func UpdateCollectionMapping(tx *sqlx.Tx, id string, params map[string]interface{}) error {
 	err := base_service.Update(tx, "integration_collection_mapping", id, params)
@@ -265,6 +284,13 @@ func GetAssetMappings(tx *sqlx.Tx, integrationId string) ([]models.IntegrationAs
 	return mappings, err
 }
 
+// GetAllAssetMappings retrieves all asset mappings.
+func GetAllAssetMappings(tx *sqlx.Tx) ([]models.IntegrationAssetMapping, error) {
+	mappings := []models.IntegrationAssetMapping{}
+	err := base_service.GetAll(tx, "integration_asset_mapping", &mappings)
+	return mappings, err
+}
+
 // GetAssetMappingsByCollectionMapping returns all asset mappings whose external_parent_id
 // matches the external_id of the given collection mapping.
 func GetAssetMappingsByCollectionMapping(tx *sqlx.Tx, integrationId, externalParentId string) ([]models.IntegrationAssetMapping, error) {
@@ -294,57 +320,6 @@ func DeleteAssetMapping(tx *sqlx.Tx, id string) error {
 // deleteAssetMappingsByIntegration deletes all asset mappings for an integration.
 func deleteAssetMappingsByIntegration(tx *sqlx.Tx, integrationId string) error {
 	query := `DELETE FROM integration_asset_mapping WHERE integration_id = ?`
-	_, err := tx.Exec(query, integrationId)
-	return err
-}
-
-// SaveCredentials saves or updates integration credentials (local only, never synced).
-func SaveCredentials(tx *sqlx.Tx, id, integrationId, userId, userName, userEmail, accessToken, refreshToken, apiUrl, createdAt, updatedAt string, expiresAt int64) (models.IntegrationCredentials, error) {
-	creds := models.IntegrationCredentials{}
-
-	// Check if credentials already exist for this integration
-	existing, err := GetCredentials(tx, integrationId)
-	if err == nil && existing.Id != "" {
-		// Update existing
-		params := map[string]interface{}{
-			"user_id":       userId,
-			"user_name":     userName,
-			"user_email":    userEmail,
-			"access_token":  accessToken,
-			"refresh_token": refreshToken,
-			"expires_at":    expiresAt,
-			"api_url":       apiUrl,
-			"updated_at":    updatedAt,
-		}
-		query := `UPDATE integration_credentials SET user_id = :user_id, user_name = :user_name, user_email = :user_email, access_token = :access_token, refresh_token = :refresh_token, expires_at = :expires_at, api_url = :api_url, updated_at = :updated_at WHERE integration_id = :integration_id`
-		params["integration_id"] = integrationId
-		_, err = tx.NamedExec(query, params)
-		if err != nil {
-			return creds, err
-		}
-		return GetCredentials(tx, integrationId)
-	}
-
-	// Create new
-	query := `INSERT INTO integration_credentials (id, integration_id, user_id, user_name, user_email, access_token, refresh_token, expires_at, api_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-	_, err = tx.Exec(query, id, integrationId, userId, userName, userEmail, accessToken, refreshToken, expiresAt, apiUrl, createdAt, updatedAt)
-	if err != nil {
-		return creds, err
-	}
-	return GetCredentials(tx, integrationId)
-}
-
-// GetCredentials retrieves integration credentials by integration ID.
-func GetCredentials(tx *sqlx.Tx, integrationId string) (models.IntegrationCredentials, error) {
-	creds := models.IntegrationCredentials{}
-	query := `SELECT * FROM integration_credentials WHERE integration_id = ?`
-	err := tx.Get(&creds, query, integrationId)
-	return creds, err
-}
-
-// DeleteCredentials deletes integration credentials.
-func DeleteCredentials(tx *sqlx.Tx, integrationId string) error {
-	query := `DELETE FROM integration_credentials WHERE integration_id = ?`
 	_, err := tx.Exec(query, integrationId)
 	return err
 }

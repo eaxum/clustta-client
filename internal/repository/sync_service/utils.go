@@ -23,6 +23,7 @@ var ProjectTables = []string{
 	"entity_type", "entity", "entity_assignee", "template",
 	"workflow", "workflow_link", "workflow_entity", "workflow_task",
 	"task_tag", "task_checkpoint", "tomb",
+	"integration_project", "integration_collection_mapping", "integration_asset_mapping",
 }
 
 func clearTables(tx *sqlx.Tx, tables []string) error {

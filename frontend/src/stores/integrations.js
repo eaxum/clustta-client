@@ -75,14 +75,14 @@ export const useIntegrationStore = defineStore('integrations', {
     // Load linked integration for current project
     async loadLinkedIntegration() {
       const projectStore = useProjectStore();
-      if (!projectStore.activeProject?.path) {
+      if (!projectStore.activeProject?.uri) {
         this.linkedIntegration = null;
         return;
       }
 
       try {
         const { IntegrationService } = await import('@/services');
-        const integration = await IntegrationService.GetLinkedIntegration(projectStore.activeProject.path);
+        const integration = await IntegrationService.GetLinkedIntegration(projectStore.activeProject.uri);
         this.linkedIntegration = integration;
       } catch (error) {
         // No integration linked - this is expected for most projects
@@ -108,7 +108,7 @@ export const useIntegrationStore = defineStore('integrations', {
             userName: result.user_name,
             userEmail: result.user_email,
           };
-          this.saveTokens();
+          await this.saveTokens();
           return { success: true, user: result };
         } else {
           notificationStore.sendNotification(result.error || 'Authentication failed', 'error');
@@ -133,7 +133,7 @@ export const useIntegrationStore = defineStore('integrations', {
         if (!valid) {
           // Token expired, remove it
           delete this.tokens[integrationId];
-          this.saveTokens();
+          await this.saveTokens();
         }
         return valid;
       } catch (error) {
@@ -142,9 +142,10 @@ export const useIntegrationStore = defineStore('integrations', {
     },
 
     // Disconnect from an integration (remove stored token)
-    disconnect(integrationId) {
+    async disconnect(integrationId) {
       delete this.tokens[integrationId];
-      this.saveTokens();
+      const { SettingsService } = await import('@/services');
+      await SettingsService.DeleteIntegrationCredential(integrationId);
     },
 
     // Get external projects for an integration
@@ -169,11 +170,14 @@ export const useIntegrationStore = defineStore('integrations', {
 
     // Link current project to an external project
     async linkProject(integrationId, externalProjectId, externalProjectName, syncOptions = {}) {
+      console.log(integrationId)
+      console.log(externalProjectId)
+      console.log(externalProjectName)
       const projectStore = useProjectStore();
       const notificationStore = useNotificationStore();
       const tokenData = this.tokens[integrationId];
 
-      if (!projectStore.activeProject?.path) {
+      if (!projectStore.activeProject?.uri) {
         throw new Error('No active project');
       }
       if (!tokenData?.token) {
@@ -183,13 +187,13 @@ export const useIntegrationStore = defineStore('integrations', {
       try {
         const { IntegrationService } = await import('@/services');
         const result = await IntegrationService.LinkProject(
-          projectStore.activeProject.path,
-          integrationId,
-          externalProjectId,
-          externalProjectName,
-          tokenData.apiUrl,
+          String(projectStore.activeProject.uri),
+          String(integrationId),
+          String(externalProjectId || ''),
+          String(externalProjectName || ''),
+          String(tokenData.apiUrl || ''),
           JSON.stringify(syncOptions),
-          tokenData.userId
+          String(tokenData.userId || '')
         );
         this.linkedIntegration = result;
         notificationStore.sendNotification('Project linked to ' + externalProjectName, 'success');
@@ -205,13 +209,13 @@ export const useIntegrationStore = defineStore('integrations', {
       const projectStore = useProjectStore();
       const notificationStore = useNotificationStore();
 
-      if (!projectStore.activeProject?.path) {
+      if (!projectStore.activeProject?.uri) {
         throw new Error('No active project');
       }
 
       try {
         const { IntegrationService } = await import('@/services');
-        await IntegrationService.UnlinkProject(projectStore.activeProject.path);
+        await IntegrationService.UnlinkProject(projectStore.activeProject.uri);
         this.linkedIntegration = null;
         this.syncPreview = null;
         notificationStore.sendNotification('Integration unlinked', 'success');
@@ -226,7 +230,7 @@ export const useIntegrationStore = defineStore('integrations', {
       const projectStore = useProjectStore();
       const tokenData = this.tokens[this.linkedIntegration?.integration_id];
 
-      if (!projectStore.activeProject?.path || !tokenData?.token) {
+      if (!projectStore.activeProject?.uri || !tokenData?.token) {
         throw new Error('Not ready to sync');
       }
 
@@ -234,7 +238,7 @@ export const useIntegrationStore = defineStore('integrations', {
       try {
         const { IntegrationService } = await import('@/services');
         const preview = await IntegrationService.GetSyncPreview(
-          projectStore.activeProject.path,
+          projectStore.activeProject.uri,
           tokenData.token
         );
         this.syncPreview = preview;
@@ -250,7 +254,7 @@ export const useIntegrationStore = defineStore('integrations', {
       const notificationStore = useNotificationStore();
       const tokenData = this.tokens[this.linkedIntegration?.integration_id];
 
-      if (!projectStore.activeProject?.path || !tokenData?.token) {
+      if (!projectStore.activeProject?.uri || !tokenData?.token) {
         throw new Error('Not ready to sync');
       }
 
@@ -258,7 +262,7 @@ export const useIntegrationStore = defineStore('integrations', {
       try {
         const { IntegrationService } = await import('@/services');
         await IntegrationService.ExecuteSync(
-          projectStore.activeProject.path,
+          projectStore.activeProject.uri,
           tokenData.token,
           selectedCollections,
           selectedAssets
@@ -273,21 +277,52 @@ export const useIntegrationStore = defineStore('integrations', {
       }
     },
 
-    // Save tokens to localStorage
-    saveTokens() {
+    // Save tokens to user settings 
+    async saveTokens() {
       try {
-        localStorage.setItem('integration_tokens', JSON.stringify(this.tokens));
+        const { SettingsService } = await import('@/services');
+        for (const [integrationId, tokenData] of Object.entries(this.tokens)) {
+          await SettingsService.SaveIntegrationCredential({
+            integration_id: integrationId,
+            user_id: tokenData.userId || '',
+            user_name: tokenData.userName || '',
+            user_email: tokenData.userEmail || '',
+            access_token: tokenData.token || '',
+            refresh_token: tokenData.refreshToken || '',
+            expires_at: tokenData.expiresAt || 0,
+            api_url: tokenData.apiUrl || '',
+            created_at: tokenData.createdAt || new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        }
       } catch (error) {
         console.error('Failed to save integration tokens:', error);
       }
     },
 
-    // Load tokens from localStorage
-    loadTokens() {
+    // Load tokens from user settings 
+    async loadTokens() {
       try {
-        const stored = localStorage.getItem('integration_tokens');
-        if (stored) {
-          this.tokens = JSON.parse(stored);
+        const { SettingsService } = await import('@/services');
+        // Load for each known integration
+        for (const integration of this.availableIntegrations) {
+          try {
+            const cred = await SettingsService.GetIntegrationCredential(integration.id);
+            if (cred && cred.access_token) {
+              this.tokens[integration.id] = {
+                token: cred.access_token,
+                refreshToken: cred.refresh_token,
+                apiUrl: cred.api_url,
+                userId: cred.user_id,
+                userName: cred.user_name,
+                userEmail: cred.user_email,
+                expiresAt: cred.expires_at,
+                createdAt: cred.created_at,
+              };
+            }
+          } catch (e) {
+            // No credentials for this integration - expected
+          }
         }
       } catch (error) {
         console.error('Failed to load integration tokens:', error);
@@ -295,13 +330,14 @@ export const useIntegrationStore = defineStore('integrations', {
       }
     },
 
-    // Initialize store
+    // Initialize store and load credentials
     async initialize() {
-      this.loadTokens();
       await this.loadAvailableIntegrations();
+      await this.loadTokens();
     },
 
     // Reset store state (called when project changes)
+    // Note: tokens are NOT reset because they are user-level, not project-level
     reset() {
       this.linkedIntegration = null;
       this.syncPreview = null;

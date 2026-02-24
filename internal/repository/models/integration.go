@@ -17,22 +17,6 @@ type IntegrationProject struct {
 	Synced              bool   `db:"synced" json:"synced"`
 }
 
-// IntegrationCredentials stores user credentials for external integrations.
-// LOCAL ONLY - never synced to server. Each team member stores their own credentials.
-type IntegrationCredentials struct {
-	Id            string `db:"id" json:"id"`
-	IntegrationId string `db:"integration_id" json:"integration_id"`
-	UserId        string `db:"user_id" json:"user_id"`
-	UserName      string `db:"user_name" json:"user_name"`
-	UserEmail     string `db:"user_email" json:"user_email"`
-	AccessToken   string `db:"access_token" json:"access_token"`
-	RefreshToken  string `db:"refresh_token" json:"refresh_token"`
-	ExpiresAt     int64  `db:"expires_at" json:"expires_at"`
-	ApiUrl        string `db:"api_url" json:"api_url"`
-	CreatedAt     string `db:"created_at" json:"created_at"`
-	UpdatedAt     string `db:"updated_at" json:"updated_at"`
-}
-
 // IntegrationCollectionMapping maps external hierarchy items (episodes, sequences, shots, etc.)
 // to Clustta Collections. Synced to server.
 type IntegrationCollectionMapping struct {
