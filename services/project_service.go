@@ -12,6 +12,7 @@ import (
 	"clustta/output"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -35,6 +36,8 @@ func (p *ProjectService) CreateProject(projectUri, studioName, workingDir, templ
 	if err != nil {
 		return repository.ProjectInfo{}, err
 	}
+
+	fmt.Println(user)
 	projectInfo, err := repository.CreateProject(projectUri, studioName, workingDir, templateName, user)
 	if err != nil {
 		if !utils.IsValidURL(projectUri) &&

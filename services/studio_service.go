@@ -113,3 +113,16 @@ func (s *StudioService) CheckStudioNameExists(studioName string) (bool, error) {
 	}
 	return exists, nil
 }
+
+// StudioInfo type alias for frontend bindings
+type StudioInfo = studio_service.StudioInfo
+
+// GetStudioInfo fetches studio metadata from a private studio server.
+// Used when authenticated against a private server to discover its details.
+func (s *StudioService) GetStudioInfo(studioUrl string) (studio_service.StudioInfo, error) {
+	info, err := studio_service.GetStudioInfo(studioUrl)
+	if err != nil {
+		return studio_service.StudioInfo{}, err
+	}
+	return info, nil
+}

@@ -93,7 +93,8 @@ func AddAccount(token Token) error {
 	return AddAccountToken(accountToken)
 }
 
-// AddAccountToken adds a new account with full auth context to the multi-account structure
+// AddAccountToken adds a new account with full auth context to the multi-account structure.
+// The newly added account is always set as the active account.
 func AddAccountToken(accountToken AccountToken) error {
 	multiToken, err := GetMultiAccountToken()
 	if err != nil {
@@ -107,10 +108,8 @@ func AddAccountToken(accountToken AccountToken) error {
 	// Add the new account
 	multiToken.Accounts[accountToken.User.Id] = accountToken
 
-	// If this is the first account or no active account is set, make it active
-	if multiToken.ActiveAccountId == "" || len(multiToken.Accounts) == 1 {
-		multiToken.ActiveAccountId = accountToken.User.Id
-	}
+	// Always set the newly logged-in account as active
+	multiToken.ActiveAccountId = accountToken.User.Id
 
 	return SetMultiAccountToken(multiToken)
 }
