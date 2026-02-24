@@ -145,6 +145,15 @@ type SkillData struct {
 	ProficiencyLevel string `json:"proficiency_level"`
 }
 
+// getProfileHost returns the appropriate API host for profile operations.
+// Returns the current auth host for all modes except offline.
+func (p *ProfileService) getProfileHost() (string, error) {
+	if auth_service.IsOfflineMode() {
+		return "", fmt.Errorf("profile operations are not available in offline mode")
+	}
+	return auth_service.GetAuthHost(), nil
+}
+
 // makeRequest executes authenticated HTTP requests to the profile API.
 // Handles request construction, authentication headers, and response validation.
 func (p *ProfileService) makeRequest(method, url string, body interface{}) ([]byte, error) {
@@ -192,7 +201,11 @@ func (p *ProfileService) makeRequest(method, url string, body interface{}) ([]by
 
 // GetUserProfile fetches the complete user profile including bio, location, and professional info.
 func (p *ProfileService) GetUserProfile(userId string) (UserProfile, error) {
-	url := constants.HOST + "/api/users/" + userId + "/profile"
+	host, err := p.getProfileHost()
+	if err != nil {
+		return UserProfile{}, err
+	}
+	url := host + "/api/users/" + userId + "/profile"
 
 	responseBody, err := p.makeRequest("GET", url, nil)
 	if err != nil {
@@ -210,9 +223,13 @@ func (p *ProfileService) GetUserProfile(userId string) (UserProfile, error) {
 
 // UpdateUserProfile updates user profile fields with the provided data.
 func (p *ProfileService) UpdateUserProfile(userId string, updateData ProfileUpdateData) error {
-	url := constants.HOST + "/api/users/" + userId + "/profile"
+	host, err := p.getProfileHost()
+	if err != nil {
+		return err
+	}
+	url := host + "/api/users/" + userId + "/profile"
 
-	_, err := p.makeRequest("PUT", url, updateData)
+	_, err = p.makeRequest("PUT", url, updateData)
 	if err != nil {
 		return err
 	}
@@ -222,7 +239,11 @@ func (p *ProfileService) UpdateUserProfile(userId string, updateData ProfileUpda
 
 // GetUserTools fetches all tools associated with the user's profile.
 func (p *ProfileService) GetUserTools(userId string) ([]UserTool, error) {
-	url := constants.HOST + "/api/users/" + userId + "/tools"
+	host, err := p.getProfileHost()
+	if err != nil {
+		return nil, err
+	}
+	url := host + "/api/users/" + userId + "/tools"
 
 	responseBody, err := p.makeRequest("GET", url, nil)
 	if err != nil {
@@ -240,9 +261,13 @@ func (p *ProfileService) GetUserTools(userId string) ([]UserTool, error) {
 
 // AddUserTool adds a new tool with proficiency level to the user's profile.
 func (p *ProfileService) AddUserTool(userId string, toolData ToolData) error {
-	url := constants.HOST + "/api/users/" + userId + "/tools"
+	host, err := p.getProfileHost()
+	if err != nil {
+		return err
+	}
+	url := host + "/api/users/" + userId + "/tools"
 
-	_, err := p.makeRequest("POST", url, toolData)
+	_, err = p.makeRequest("POST", url, toolData)
 	if err != nil {
 		return err
 	}
@@ -252,13 +277,17 @@ func (p *ProfileService) AddUserTool(userId string, toolData ToolData) error {
 
 // UpdateUserTool updates the proficiency level for an existing tool.
 func (p *ProfileService) UpdateUserTool(userId, toolId, proficiencyLevel string) error {
-	url := constants.HOST + "/api/users/" + userId + "/tools/" + toolId
+	host, err := p.getProfileHost()
+	if err != nil {
+		return err
+	}
+	url := host + "/api/users/" + userId + "/tools/" + toolId
 
 	body := map[string]string{
 		"proficiency_level": proficiencyLevel,
 	}
 
-	_, err := p.makeRequest("PUT", url, body)
+	_, err = p.makeRequest("PUT", url, body)
 	if err != nil {
 		return err
 	}
@@ -268,9 +297,13 @@ func (p *ProfileService) UpdateUserTool(userId, toolId, proficiencyLevel string)
 
 // RemoveUserTool removes a tool from the user's profile.
 func (p *ProfileService) RemoveUserTool(userId, toolId string) error {
-	url := constants.HOST + "/api/users/" + userId + "/tools/" + toolId
+	host, err := p.getProfileHost()
+	if err != nil {
+		return err
+	}
+	url := host + "/api/users/" + userId + "/tools/" + toolId
 
-	_, err := p.makeRequest("DELETE", url, nil)
+	_, err = p.makeRequest("DELETE", url, nil)
 	if err != nil {
 		return err
 	}
@@ -280,7 +313,11 @@ func (p *ProfileService) RemoveUserTool(userId, toolId string) error {
 
 // GetUserSkills fetches all skills associated with the user's profile.
 func (p *ProfileService) GetUserSkills(userId string) ([]UserSkill, error) {
-	url := constants.HOST + "/api/users/" + userId + "/skills"
+	host, err := p.getProfileHost()
+	if err != nil {
+		return nil, err
+	}
+	url := host + "/api/users/" + userId + "/skills"
 
 	responseBody, err := p.makeRequest("GET", url, nil)
 	if err != nil {
@@ -298,9 +335,13 @@ func (p *ProfileService) GetUserSkills(userId string) ([]UserSkill, error) {
 
 // AddUserSkill adds a new skill with proficiency level to the user's profile.
 func (p *ProfileService) AddUserSkill(userId string, skillData SkillData) error {
-	url := constants.HOST + "/api/users/" + userId + "/skills"
+	host, err := p.getProfileHost()
+	if err != nil {
+		return err
+	}
+	url := host + "/api/users/" + userId + "/skills"
 
-	_, err := p.makeRequest("POST", url, skillData)
+	_, err = p.makeRequest("POST", url, skillData)
 	if err != nil {
 		return err
 	}
@@ -310,13 +351,17 @@ func (p *ProfileService) AddUserSkill(userId string, skillData SkillData) error 
 
 // UpdateUserSkill updates the proficiency level for an existing skill.
 func (p *ProfileService) UpdateUserSkill(userId, skillId, proficiencyLevel string) error {
-	url := constants.HOST + "/api/users/" + userId + "/skills/" + skillId
+	host, err := p.getProfileHost()
+	if err != nil {
+		return err
+	}
+	url := host + "/api/users/" + userId + "/skills/" + skillId
 
 	body := map[string]string{
 		"proficiency_level": proficiencyLevel,
 	}
 
-	_, err := p.makeRequest("PUT", url, body)
+	_, err = p.makeRequest("PUT", url, body)
 	if err != nil {
 		return err
 	}
@@ -326,9 +371,13 @@ func (p *ProfileService) UpdateUserSkill(userId, skillId, proficiencyLevel strin
 
 // RemoveUserSkill removes a skill from the user's profile.
 func (p *ProfileService) RemoveUserSkill(userId, skillId string) error {
-	url := constants.HOST + "/api/users/" + userId + "/skills/" + skillId
+	host, err := p.getProfileHost()
+	if err != nil {
+		return err
+	}
+	url := host + "/api/users/" + userId + "/skills/" + skillId
 
-	_, err := p.makeRequest("DELETE", url, nil)
+	_, err = p.makeRequest("DELETE", url, nil)
 	if err != nil {
 		return err
 	}
@@ -338,7 +387,11 @@ func (p *ProfileService) RemoveUserSkill(userId, skillId string) error {
 
 // GetAllTools fetches all available tools from the system.
 func (p *ProfileService) GetAllTools() ([]Tool, error) {
-	url := constants.HOST + "/api/tools"
+	host, err := p.getProfileHost()
+	if err != nil {
+		return nil, err
+	}
+	url := host + "/api/tools"
 
 	responseBody, err := p.makeRequest("GET", url, nil)
 	if err != nil {
@@ -356,7 +409,11 @@ func (p *ProfileService) GetAllTools() ([]Tool, error) {
 
 // GetToolsByCategory fetches tools filtered by the specified category.
 func (p *ProfileService) GetToolsByCategory(category string) ([]Tool, error) {
-	url := constants.HOST + "/api/tools/category/" + category
+	host, err := p.getProfileHost()
+	if err != nil {
+		return nil, err
+	}
+	url := host + "/api/tools/category/" + category
 
 	responseBody, err := p.makeRequest("GET", url, nil)
 	if err != nil {
@@ -374,7 +431,11 @@ func (p *ProfileService) GetToolsByCategory(category string) ([]Tool, error) {
 
 // GetAllSkills fetches all available skills from the system.
 func (p *ProfileService) GetAllSkills() ([]Skill, error) {
-	url := constants.HOST + "/api/skills"
+	host, err := p.getProfileHost()
+	if err != nil {
+		return nil, err
+	}
+	url := host + "/api/skills"
 
 	responseBody, err := p.makeRequest("GET", url, nil)
 	if err != nil {
@@ -392,7 +453,11 @@ func (p *ProfileService) GetAllSkills() ([]Skill, error) {
 
 // GetSkillsByCategory fetches skills filtered by the specified category.
 func (p *ProfileService) GetSkillsByCategory(category string) ([]Skill, error) {
-	url := constants.HOST + "/api/skills/category/" + category
+	host, err := p.getProfileHost()
+	if err != nil {
+		return nil, err
+	}
+	url := host + "/api/skills/category/" + category
 
 	responseBody, err := p.makeRequest("GET", url, nil)
 	if err != nil {
@@ -410,7 +475,11 @@ func (p *ProfileService) GetSkillsByCategory(category string) ([]Skill, error) {
 
 // GetAllCountries fetches all available countries for profile location selection.
 func (p *ProfileService) GetAllCountries() ([]Country, error) {
-	url := constants.HOST + "/api/countries"
+	host, err := p.getProfileHost()
+	if err != nil {
+		return nil, err
+	}
+	url := host + "/api/countries"
 
 	responseBody, err := p.makeRequest("GET", url, nil)
 	if err != nil {
@@ -428,7 +497,11 @@ func (p *ProfileService) GetAllCountries() ([]Country, error) {
 
 // GetAllGenders fetches all available gender options for profile selection.
 func (p *ProfileService) GetAllGenders() ([]Gender, error) {
-	url := constants.HOST + "/api/genders"
+	host, err := p.getProfileHost()
+	if err != nil {
+		return nil, err
+	}
+	url := host + "/api/genders"
 
 	responseBody, err := p.makeRequest("GET", url, nil)
 	if err != nil {
@@ -446,7 +519,11 @@ func (p *ProfileService) GetAllGenders() ([]Gender, error) {
 
 // UpdateUserPhoto uploads a new profile photo for the user.
 func (p *ProfileService) UpdateUserPhoto(photoPath string) error {
-	url := constants.HOST + "/person/photo"
+	host, err := p.getProfileHost()
+	if err != nil {
+		return err
+	}
+	url := host + "/person/photo"
 
 	// Read the file
 	fileData, err := os.ReadFile(photoPath)

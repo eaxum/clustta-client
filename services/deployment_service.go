@@ -57,9 +57,19 @@ const (
 	DeployDeleteEndpoint = "/api/deploy"
 )
 
-//DeployStudio initiates a new studio deployment on Azure.
-//Returns the deployment response with ID and WebSocket URL, or an error if deployment fails.
+// isGlobalMode returns true if in global authentication mode.
+func (d *DeploymentService) isGlobalMode() bool {
+	return auth_service.GetActiveAuthMode() == auth_service.AuthModeGlobal
+}
+
+// DeployStudio initiates a new studio deployment on Azure.
+// Returns the deployment response with ID and WebSocket URL, or an error if deployment fails.
+// This operation is only available in global auth mode.
 func (d *DeploymentService) DeployStudio(request DeploymentRequest) (*DeploymentResponse, error) {
+	if !d.isGlobalMode() {
+		return nil, fmt.Errorf("studio deployment is only available in global auth mode")
+	}
+
 	token, err := auth_service.GetToken()
 	if err != nil {
 		return nil, fmt.Errorf("authentication required: %w", err)
@@ -103,9 +113,14 @@ func (d *DeploymentService) DeployStudio(request DeploymentRequest) (*Deployment
 	return &deploymentResponse, nil
 }
 
-//GetDeploymentStatus retrieves the current status of a deployment.
-//Returns the deployment status details or an error if the request fails.
+// GetDeploymentStatus retrieves the current status of a deployment.
+// Returns the deployment status details or an error if the request fails.
+// This operation is only available in global auth mode.
 func (d *DeploymentService) GetDeploymentStatus(deploymentID string) (*DeploymentStatus, error) {
+	if !d.isGlobalMode() {
+		return nil, fmt.Errorf("deployment status is only available in global auth mode")
+	}
+
 	token, err := auth_service.GetToken()
 	if err != nil {
 		return nil, fmt.Errorf("authentication required: %w", err)
@@ -143,9 +158,14 @@ func (d *DeploymentService) GetDeploymentStatus(deploymentID string) (*Deploymen
 	return &status, nil
 }
 
-//DestroyDeployment tears down a studio deployment and releases Azure resources.
-//Returns an error if the destruction fails.
+// DestroyDeployment tears down a studio deployment and releases Azure resources.
+// Returns an error if the destruction fails.
+// This operation is only available in global auth mode.
 func (d *DeploymentService) DestroyDeployment(deploymentID string) error {
+	if !d.isGlobalMode() {
+		return fmt.Errorf("deployment destruction is only available in global auth mode")
+	}
+
 	token, err := auth_service.GetToken()
 	if err != nil {
 		return fmt.Errorf("authentication required: %w", err)

@@ -282,6 +282,13 @@ export const useProjectStore = defineStore("projects", {
           this.studios = data;
           let lastSelectedStudio = this.studios.find((item) => item.name === lastStudio)
           this.selectedStudio = lastSelectedStudio ? lastSelectedStudio: data[0] ;
+
+          // Fetch studio users for non-Personal studios so permissions are available immediately
+          if (this.selectedStudio?.name !== 'Personal') {
+            const { useStudioStore } = await import('./studio');
+            const studioStore = useStudioStore();
+            await studioStore.getStudioUsers();
+          }
         })
         .catch((error) => {
           console.log(error);
@@ -545,10 +552,10 @@ export const useProjectStore = defineStore("projects", {
         }
       }
 
-      // Project is not in any known studio directory - open temporarily in Personal
-      const personalStudio = this.studios.find(s => s.name === "Personal");
-      if (personalStudio && this.selectedStudio?.name !== "Personal") {
-        await this.selectStudio(personalStudio);
+      // Project is not in any known studio directory - open temporarily in first studio
+      const fallbackStudio = this.studios[0];
+      if (fallbackStudio && this.selectedStudio?.name !== fallbackStudio.name) {
+        await this.selectStudio(fallbackStudio);
       }
 
       // Build a temporary ProjectInfo from the file info and add to list
