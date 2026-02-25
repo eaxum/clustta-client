@@ -18,8 +18,6 @@ else ifeq ($(DETECTED_OS),Darwin)
     SERVER_BINARY := src-tauri/clustta_server-aarch64-apple-darwin
 endif
 
-PYTHON_SCRIPT := populate.py
-
 # Default target
 .PHONY: all
 all: build
