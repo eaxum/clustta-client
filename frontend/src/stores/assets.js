@@ -41,6 +41,11 @@ export const useAssetStore = defineStore("asset", {
       modified: [],
       untracked: []
     },
+    // Dependency preset modal data
+    dependencyPresetModalData: {
+      dependencies: [],
+      existingPresets: []
+    },
   }),
   getters: {
     getAssetTypes: (state) => {

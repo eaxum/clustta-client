@@ -32,6 +32,7 @@
             <div class="header-layout">
               <ProfileAvatar
                 :userPhoto="userPhoto"
+                :userId="userData?.id"
                 :avatarColor="profileColor"
                 :isEditing="editingSections.header"
                 @photoChanged="handlePhotoChange"
@@ -115,7 +116,7 @@
                   <div class="profile-name-row">
                     <div class="profile-name">{{ fullName }}</div>
                     <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('stages.copyProfileLink')" @click="copyProfileLink" />
-                    <ActionButton :icon="getAppIcon('person-search')" v-tooltip="$t('stages.openProfileInBrowser')" @click="openProfileInBrowser" />
+                    <ActionButton v-if="!isWebMode" :icon="getAppIcon('person-search')" v-tooltip="$t('stages.openProfileInBrowser')" @click="openProfileInBrowser" />
                   </div>
                   <div v-if="formData.bio" class="profile-title">{{ formData.bio }}</div>
                   
@@ -306,7 +307,15 @@
 import { ref, reactive, computed, onBeforeMount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AuthService, ProfileService, FSService, ClipboardService } from "@/services";
-import { Browser } from "@wailsio/runtime";
+import { generateAvatar } from '@/lib/avatar';
+
+const isWebMode = import.meta.env.VITE_PLATFORM === 'web';
+
+// Conditionally import Browser only in desktop mode
+let Browser = null;
+if (!isWebMode) {
+  import('@wailsio/runtime').then(m => { Browser = m.Browser; });
+}
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useIconStore } from '@/stores/icons';
@@ -490,7 +499,7 @@ const isDataValid = computed(() => {
 
 const userPhoto = computed(() => {
   if (photoPreview.value) return photoPreview.value;
-  if (!userStore.user.photo) return '/icons/default_profile_picture.svg';
+  if (!userStore.user?.photo) return generateAvatar(userStore.user?.id);
   return userStore.user.photo;
 });
 
@@ -808,7 +817,11 @@ const toggleProfileVisibility = async () => {
 const copyProfileLink = async () => {
   const profileUrl = `https://app.clustta.com/user/${formData.value.username}`;
   try {
-    await ClipboardService.WriteText(profileUrl);
+    if (isWebMode) {
+      await navigator.clipboard.writeText(profileUrl);
+    } else {
+      await ClipboardService.WriteText(profileUrl);
+    }
     notificationStore.addNotification(t('stages.profileLinkCopied'), t('stages.profileLinkCopiedMessage'), 'success');
   } catch (err) {
     console.error('Failed to copy profile link:', err);
@@ -818,7 +831,11 @@ const copyProfileLink = async () => {
 
 const openProfileInBrowser = () => {
   const profileUrl = `https://app.clustta.com/user/${formData.value.username}`;
-  Browser.OpenURL(profileUrl);
+  if (isWebMode) {
+    window.open(profileUrl, '_blank');
+  } else if (Browser) {
+    Browser.OpenURL(profileUrl);
+  }
 };
 
 const updateLinks = (newLinks) => {

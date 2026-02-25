@@ -33,7 +33,7 @@
             class="item-suggestion" 
             @click="addItem(item)"
           >
-              <img class="large-icons no-filter" :src="getItemIcon(item)">
+              <img :class="['large-icons', { 'no-filter': !iconFilter }]" :src="getItemIcon(item)">
             <div class="item-meta">
               <div class="item-suggestion-name">{{ item.name }}</div>
               <div v-if="item.category" class="item-suggestion-category">{{ item.category }}</div>
@@ -83,6 +83,10 @@ const props = defineProps({
     default: 'item' // 'skill' or 'tool'
   },
   allowMultiple: {
+    type: Boolean,
+    default: true
+  },
+  iconFilter: {
     type: Boolean,
     default: true
   }
@@ -319,7 +323,8 @@ onBeforeUnmount(() => {
 }
 
 .input-field::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--white);
+  font-style: italic;
 }
 
 /* Suggestions Dropdown */

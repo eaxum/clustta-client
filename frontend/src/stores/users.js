@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { UserService } from "@/services";
+import { UserService, AuthService } from "@/services";
 import { useProjectStore } from "./projects";
 
 export const useUserStore = defineStore("users", {
@@ -114,6 +114,22 @@ export const useUserStore = defineStore("users", {
     // Clear pending verification data
     clearPendingVerification() {
       this.pendingVerification = { email: '', password: '' };
+    },
+    // Logout user
+    async logout() {
+      try {
+        await AuthService.Logout();
+      } catch (error) {
+        console.error('Logout API call failed:', error);
+      }
+      // Clear user data regardless of API result
+      this.user = null;
+      this.isUserAuthenticated = false;
+      this.users = [];
+      this.users_index = {};
+      this.roles = [];
+      this.selectedUser = null;
+      this.selectedRole = null;
     },
   },
 });

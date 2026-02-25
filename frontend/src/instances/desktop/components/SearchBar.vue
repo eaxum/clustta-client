@@ -1,5 +1,5 @@
 <template>
-  <div class="searchbar-container" v-esc="handleClear">
+  <div class="searchbar-container" :class="{ 'searchbar-large': size === 'large' }" v-esc="handleClear">
     <input ref="inputRef" v-model="model" class="searchbar-input" type="text" :placeholder="placeholder"
       @input="$emit('input', $event)" spellcheck="false" />
     <ActionButton v-if="model.length" :isLoading="isLoading" :icon="getAppIcon( isLoading? 'loading' : 'close')" :allowDeactivate="true"
@@ -22,7 +22,8 @@ const iconStore = useIconStore();
 // props
 const props = defineProps({
   placeholder: { type: String, default: 'Search' },
-  isLoading: { type: Boolean, default: false }
+  isLoading: { type: Boolean, default: false },
+  size: { type: String, default: 'normal' } // 'normal' | 'large'
 });
 
 // emits
@@ -68,6 +69,7 @@ defineExpose({ focus });
   border-radius: var(--large-radius);
   height: 40px;
   min-height: 40px;
+  outline: var(--transparent-line);
 }
 
 .searchbar-container:hover {
@@ -88,5 +90,16 @@ defineExpose({ focus });
   color: var(--white);
   border-radius: var(--large-radius);
   transition: width 0.2s ease-out;
+}
+
+/* Large variant */
+.searchbar-container.searchbar-large {
+  border-radius: var(--very-large-radius);
+  height: 50px;
+  min-height: 50px;
+}
+
+.searchbar-container.searchbar-large .searchbar-input {
+  font-size: 18px;
 }
 </style>

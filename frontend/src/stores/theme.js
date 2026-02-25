@@ -15,6 +15,7 @@ export const useThemeStore = defineStore("theme", {
   state: () => ({
     isDarkMode: true,
     selectedTheme: defaultTheme,
+    themeInitialized: false,
     themes: [
       "light",
       "dark",
@@ -36,10 +37,14 @@ export const useThemeStore = defineStore("theme", {
     },
     
     async initializeTheme() {
+      if (this.themeInitialized) return;
       await SettingsService.GetTheme().then((response) => {
-        this.isDarkMode = response === 'dark';
+        this.isDarkMode = response !== 'light';
+      }).catch(() => {
+        this.isDarkMode = true; // Default to dark mode
       })
         this.applyTheme();
+        this.themeInitialized = true;
     }
 },
 

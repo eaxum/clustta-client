@@ -6,7 +6,7 @@
                 <div class="profile-picture" :style="{ backgroundColor: timelineItem.avatarColor }"
                     v-tooltip="timelineItem.author_name">
                     <img class="profile-img"
-                        :src="timelineItem.author_profile ? timelineItem.author_profile : '/icons/default_profile_picture.svg'">
+                        :src="timelineItem.author_profile ? timelineItem.author_profile : generateAvatar(timelineItem.author_id)">
                 </div>
                 <div ref="trash_name" class="meta">
                     <div class="trash-item-name" @mouseenter="trayStates.handleHover($event)"
@@ -75,6 +75,7 @@ import { computed, onMounted, ref, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { CheckpointService, CollectionService, AssetService, TrashService } from "@/services";
 import utils from '@/services/utils';
+import { generateAvatar } from '@/lib/avatar';
 import { useCollectionStore } from '@/stores/collections';
 
 import { useTrayStates } from '@/stores/TrayStates';

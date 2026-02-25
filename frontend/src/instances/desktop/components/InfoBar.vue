@@ -332,6 +332,11 @@ onBeforeUnmount(() => {
   background-color:  #FF3333;
 }
 
+.warning {
+  outline: solid 1px #F5A623;
+  background-color: #F5A623;
+}
+
 .success {
   background-color:  #20A41C;
 }

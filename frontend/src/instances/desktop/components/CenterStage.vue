@@ -1,5 +1,5 @@
 <template>
-	<div ref="stageContainer" class="center-stage" @scroll="disableMenu()">
+	<div ref="stageContainer" :class="['center-stage', { 'web-mode': platformStore.isWeb }]" @scroll="disableMenu()">
 		<ContextMenu />
 		<component v-for="stage in visibleStages" :key="stage.name" :is="stage.component" />
 	</div>
@@ -12,10 +12,12 @@ import { computed, ref, onMounted, onUnmounted } from 'vue';
 // state imports
 import { useMenu } from '@/stores/menu';
 import { useStageStore } from '@/stores/stages';
+import { usePlatformStore } from '@/stores/platform';
 
 // states/stores
 const menu = useMenu();
 const stage = useStageStore();
+const platformStore = usePlatformStore();
 const stageContainer = ref(null);
 
 // components
@@ -60,7 +62,12 @@ const disableMenu = () => {
 };
 
 onMounted(() => {
-	stage.setStageVisibility('projects', true);
+	if (platformStore.isWeb) {
+		console.log('web')
+		stage.setStageVisibility('account', true);
+	} else {
+		stage.setStageVisibility('projects', true);
+	}
 });
 
 
@@ -83,6 +90,10 @@ onMounted(() => {
 	background-color: firebrick;
 	background-color: var(--shadow-steel);
 	/* background-color: forestgreen; */
+}
+
+.center-stage.web-mode {
+	min-width: unset;
 }
 
 .absolute-pane{

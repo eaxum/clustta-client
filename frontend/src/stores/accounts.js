@@ -67,6 +67,15 @@ export const useAccountStore = defineStore('accounts', {
   actions: {
     // Load auth mode and host from backend
     async loadAuthContext() {
+      const isWebMode = import.meta.env.VITE_PLATFORM === 'web';
+      
+      // In web mode, always use global auth
+      if (isWebMode) {
+        this.authMode = 'global';
+        this.authHost = '';
+        return;
+      }
+      
       try {
         const [authMode, authHost] = await Promise.all([
           AuthService.GetAuthMode(),

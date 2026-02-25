@@ -52,7 +52,7 @@
       <ActionButton
         v-if="safeLinks.portfolio"
         :icon="getAppIcon('video-camera')"
-        :label="$t('components.linksManager.portfolio')"
+        :label="showLabels ? $t('components.linksManager.portfolio') : ''"
         :iconAfter="false"
         :useOutline="true"
         @click="openLink(safeLinks.portfolio)"
@@ -60,7 +60,7 @@
       <ActionButton
         v-if="safeLinks.artstation"
         :icon="getAppIcon('brand-artstation')"
-        :label="$t('components.linksManager.artstation')"
+        :label="showLabels ? $t('components.linksManager.artstation') : ''"
         :iconAfter="false"
         :useOutline="true"
         @click="openLink(safeLinks.artstation)"
@@ -68,7 +68,7 @@
       <ActionButton
         v-if="safeLinks.behance"
         :icon="getAppIcon('brand-behance')"
-        :label="$t('components.linksManager.behance')"
+        :label="showLabels ? $t('components.linksManager.behance') : ''"
         :iconAfter="false"
         :useOutline="true"
         @click="openLink(safeLinks.behance)"
@@ -76,7 +76,7 @@
       <ActionButton
         v-if="safeLinks.linkedin"
         :icon="getAppIcon('brand-linkedin')"
-        :label="$t('components.linksManager.linkedin')"
+        :label="showLabels ? $t('components.linksManager.linkedin') : ''"
         :iconAfter="false"
         :useOutline="true"
         @click="openLink(safeLinks.linkedin)"
@@ -84,7 +84,7 @@
       <ActionButton
         v-if="safeLinks.instagram"
         :icon="getAppIcon('brand-instagram')"
-        :label="$t('components.linksManager.instagram')"
+        :label="showLabels ? $t('components.linksManager.instagram') : ''"
         :iconAfter="false"
         :useOutline="true"
         @click="openLink(safeLinks.instagram)"
@@ -126,6 +126,10 @@ const props = defineProps({
   readonly: {
     type: Boolean,
     default: false
+  },
+  showLabels: {
+    type: Boolean,
+    default: true
   }
 });
 

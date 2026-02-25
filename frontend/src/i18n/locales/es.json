@@ -78,6 +78,7 @@
     "newPassword": "Nueva contraseña",
     "currentPassword": "Contraseña actual",
     "password": "Contraseña",
+    "presetName": "Nombre del Preset",
     "projectName": "Nombre del Proyecto",
     "roleName": "Nombre del Rol",
     "search": "Buscar",
@@ -135,6 +136,12 @@
     "dependencyAdded": "Dependencia Agregada",
     "dependencyRemoved": "Dependencia Eliminada",
     "dependencyAlreadyExists": "La dependencia ya existe",
+    "presetAppliedWithSkipped": "{skipped} dependencias omitidas (ya existen)",
+    "dependencyPresetSaved": "Preset de dependencia guardado",
+    "dependencyPresetDeleted": "Preset de dependencia eliminado",
+    "errorSavingDependencyPreset": "Error al guardar el preset de dependencia",
+    "errorDeletingDependencyPreset": "Error al eliminar el preset de dependencia",
+    "errorUpdatingPreset": "Error al actualizar el preset",
     "errorOccurred": "Ocurrió un error",
     "errorUpdatingIcon": "Error al actualizar el icono",
     "errorUpdatingImage": "Error al actualizar la imagen",
@@ -526,6 +533,7 @@
     "templateNameExists": "Ya existe una plantilla con este nombre.",
     "selectAssetTemplate": "Seleccionar plantilla de activo",
     "saveWorkspace": "Guardar espacio de trabajo",
+    "saveDependencyPreset": "Guardar Preset de Dependencia",
     "clusttaApp": "Clustta",
     "versionLabel": "Versión",
     "copyrightNotice": "Copyright © 2024 Clustta",
@@ -775,6 +783,8 @@
     "searchDependencies": "Buscar dependencias para agregar",
     "filter": "Filtrar",
     "viewInGraph": "Ver en gráfico",
+    "saveAsPreset": "Guardar como preset",
+    "dependencyPresets": "Presets",
     "noItemsMatchSearch": "Ningún elemento coincide con tu búsqueda",
     "noDependencies": "Este asset no tiene dependencias",
     "noProjectSelected": "Ningún proyecto seleccionado",
@@ -1214,6 +1224,14 @@
       "projectReverted": "Proyecto revertido exitosamente",
       "errorRevertingProject": "Error al revertir proyecto"
     },
+    "dependencyPresetItem": {
+      "dependencies": "dependencias",
+      "apply": "Aplicar preset",
+      "delete": "Eliminar preset",
+      "expand": "Expandir",
+      "collapse": "Contraer",
+      "remove": "Eliminar del preset"
+    },
     "skillsManager": {
       "noSkills": "No hay habilidades para mostrar",
       "searchPlaceholder": "Buscar y agregar habilidades...",
@@ -1626,5 +1644,8 @@
     "serverUnavailable": "Servidor no disponible",
     "connectionLost": "Conexión perdida",
     "connectionReset": "Conexión restablecida"
+  },
+  "info": {
+    "presetWillOverwrite": "Ya existe un preset con este nombre y será sobrescrito"
   }
 }

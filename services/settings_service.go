@@ -142,6 +142,42 @@ func (s *SettingsService) GetProjectWorkspaces(projectId string) ([]interface{},
 	return projectWorkspaces, nil
 }
 
+// AddDependencyPreset adds a dependency preset to a project.
+func (s *SettingsService) AddDependencyPreset(projectId string, presetData interface{}) error {
+	err := settings.AddDependencyPreset(projectId, presetData)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// RemoveDependencyPreset removes a dependency preset from a project.
+func (s *SettingsService) RemoveDependencyPreset(projectId string, presetName string) error {
+	err := settings.RemoveDependencyPreset(projectId, presetName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// UpdateDependencyPreset updates an existing dependency preset.
+func (s *SettingsService) UpdateDependencyPreset(projectId string, presetName string, updatedPreset interface{}) error {
+	err := settings.UpdateDependencyPreset(projectId, presetName, updatedPreset)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// GetProjectDependencyPresets retrieves all dependency presets for a project.
+func (s *SettingsService) GetProjectDependencyPresets(projectId string) ([]interface{}, error) {
+	presets, err := settings.GetProjectDependencyPresets(projectId)
+	if err != nil {
+		return presets, err
+	}
+	return presets, nil
+}
+
 // GetEulaAccepted retrieves whether the user has accepted the EULA.
 func (s *SettingsService) GetEulaAccepted() (bool, error) {
 	eulaAccepted, err := settings.GetEulaAccepted()

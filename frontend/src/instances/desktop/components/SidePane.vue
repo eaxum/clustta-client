@@ -16,7 +16,7 @@
 					<span v-tooltip="userFullName" class="single-action-button">
 						<div class="profile-picture" :style="{ backgroundColor: profileColor(user?.id) }">
 							<img v-if="userStore.user?.photo" class="profile-img" :src="userStore.user.photo">
-							<img v-else class="profile-img" :src="getAppIcon('person')">
+							<img v-else class="profile-img" :src="generateAvatar(user?.id)">
 						</div>
 					</span>
 				</div>
@@ -35,6 +35,7 @@
 
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
+import { generateAvatar } from '@/lib/avatar';
 
 // services
 import { AuthService } from "@/services";

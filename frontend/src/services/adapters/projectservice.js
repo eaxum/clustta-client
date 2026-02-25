@@ -35,6 +35,11 @@ const fetchProjectPreview = async (project, studioUrl) => {
 export const ProjectService = {
   // Returns all projects for a studio
   GetStudioProjects: async (url, studioName) => {
+    // Personal studio in web mode has no real URL - return empty
+    if (!url || url.startsWith('/')) {
+      return [];
+    }
+    
     setActiveStudioUrl(url);
     const projects = await studioApiCall(url, '/projects', 'GET');
     
