@@ -56,3 +56,23 @@ endif
 .PHONY: install-dev
 install-dev:
 	go install -v github.com/wailsapp/wails/v3/cmd/wails3@latest
+
+# Build the Clustta Agent (HTTP server for addon integrations)
+.PHONY: agent
+agent:
+	@echo "Building Clustta Agent"
+ifeq ($(DETECTED_OS),Windows)
+	wails3 generate syso -arch amd64 -icon build/windows/icon.ico -manifest build/windows/wails.exe.manifest -info build/windows/info.json -out agent_windows_amd64.syso
+	go build -trimpath -ldflags="-w -s" -o bin$(PATH_SEP)clustta-agent$(BINARY_EXT) ./cmd/agent
+	-powershell -Command "Remove-Item agent_windows_amd64.syso -ErrorAction SilentlyContinue"
+else ifeq ($(DETECTED_OS),Darwin)
+	go build -trimpath -ldflags="-w -s" -o bin/clustta-agent ./cmd/agent
+else
+	go build -trimpath -ldflags="-w -s" -o bin/clustta-agent ./cmd/agent
+endif
+
+# Build the agent for development (no icon, no trimming)
+.PHONY: agent-dev
+agent-dev:
+	@echo "Building Clustta Agent (dev)"
+	go build -o bin$(PATH_SEP)clustta-agent$(BINARY_EXT) ./cmd/agent
