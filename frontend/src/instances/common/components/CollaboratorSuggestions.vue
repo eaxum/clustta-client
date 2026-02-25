@@ -6,7 +6,7 @@
           <div v-if="selectedItems.length" class="user-item-wrapper">
             <div v-for="item in selectedItems" class="user-item" :class="getUserItemClass(item)">
               <div class="profile-picture" :style="{ backgroundColor: item.avatarColor }">
-                <img class="profile-img" :src="item.photo || '/icons/default_profile_picture.svg'">
+                <img class="profile-img" :src="item.photo || generateAvatar(item.id)">
               </div>
               <div class="user-item-name">
                 {{ getUserDisplayName(item) }}
@@ -31,7 +31,7 @@
 
             <div v-for="item in filteredItems" class="user-item-suggestion" @click="addItem(item)">
               <div class="profile-picture" :style="{ backgroundColor: item.avatarColor }">
-                <img class="profile-img" :src="item.photo ? item.photo : '/icons/default_profile_picture.svg'">
+                <img class="profile-img" :src="item.photo ? item.photo : generateAvatar(item.id)">
               </div>
               <div class="user-item-meta">
                 <div class="user-item-name" :class="{ 'user-item-name-compact': !displayEmail }">
@@ -54,6 +54,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, onUnmounted, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { generateAvatar } from '@/lib/avatar';
 
 // stores
 import { useMenu } from '@/stores/menu';

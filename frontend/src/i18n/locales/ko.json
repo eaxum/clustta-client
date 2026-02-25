@@ -78,6 +78,7 @@
     "newPassword": "새 비밀번호",
     "currentPassword": "현재 비밀번호",
     "password": "비밀번호",
+    "presetName": "프리셋 이름",
     "projectName": "프로젝트 이름",
     "roleName": "역할 이름",
     "search": "검색",
@@ -135,6 +136,12 @@
     "dependencyAdded": "의존성 추가됨",
     "dependencyRemoved": "의존성 제거됨",
     "dependencyAlreadyExists": "의존성이 이미 존재합니다",
+    "presetAppliedWithSkipped": "{skipped}개의 의존성이 건너뜀 (이미 존재함)",
+    "dependencyPresetSaved": "의존성 프리셋 저장됨",
+    "dependencyPresetDeleted": "의존성 프리셋 삭제됨",
+    "errorSavingDependencyPreset": "의존성 프리셋 저장 오류",
+    "errorDeletingDependencyPreset": "의존성 프리셋 삭제 오류",
+    "errorUpdatingPreset": "프리셋 업데이트 오류",
     "errorOccurred": "오류가 발생했습니다",
     "errorUpdatingIcon": "아이콘 업데이트 오류",
     "errorUpdatingImage": "이미지 업데이트 오류",
@@ -525,6 +532,7 @@
     "templateNameExists": "이 이름의 템플릿이 이미 존재합니다.",
     "selectAssetTemplate": "에셋 템플릿 선택",
     "saveWorkspace": "워크스페이스 저장",
+    "saveDependencyPreset": "의존성 프리셋 저장",
     "clusttaApp": "Clustta",
     "versionLabel": "버전",
     "copyrightNotice": "Copyright © 2024 Clustta",
@@ -778,6 +786,8 @@
     "searchDependencies": "추가할 의존성 검색",
     "filter": "필터",
     "viewInGraph": "그래프에서 보기",
+    "saveAsPreset": "프리셋으로 저장",
+    "dependencyPresets": "프리셋",
     "noItemsMatchSearch": "검색과 일치하는 항목 없음",
     "noDependencies": "이 에셋에 의존성이 없습니다",
     "noProjectSelected": "프로젝트가 선택되지 않음",
@@ -1217,6 +1227,14 @@
       "projectReverted": "프로젝트가 성공적으로 되돌려짐",
       "errorRevertingProject": "프로젝트 되돌리기 오류"
     },
+    "dependencyPresetItem": {
+      "dependencies": "종속성",
+      "apply": "프리셋 적용",
+      "delete": "프리셋 삭제",
+      "expand": "펼치기",
+      "collapse": "접기",
+      "remove": "프리셋에서 제거"
+    },
     "skillsManager": {
       "noSkills": "표시할 기술 없음",
       "searchPlaceholder": "기술 검색 및 추가...",
@@ -1629,5 +1647,8 @@
     "serverUnavailable": "서버 사용 불가",
     "connectionLost": "연결 끊김",
     "connectionReset": "연결 재설정"
+  },
+  "info": {
+    "presetWillOverwrite": "이 이름의 프리셋이 이미 존재하여 덮어씁니다"
   }
 }

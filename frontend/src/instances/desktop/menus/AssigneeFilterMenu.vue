@@ -21,7 +21,7 @@
 
     <span v-if="!assigneeFilterActive" v-for="collaborator in allCollaborators" class="filter-menu-item" @click="toggleFilter(collaborator)">
       <div class="profile-picture" :style="{ backgroundColor: collaborator.avatarColor}">
-            <img class="profile-img"  :src=" collaborator.photo ? collaborator.photo : '/icons/default_profile_picture.svg'">
+            <img class="profile-img"  :src=" collaborator.photo ? collaborator.photo : generateAvatar(collaborator.id)">
         </div>
       <div class="horizontal-flex">
         <div class="menu-item-text"> {{  utils.capitalizeStr(collaborator.name) }} </div>
@@ -39,6 +39,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
+import { generateAvatar } from '@/lib/avatar';
 
 // components
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';

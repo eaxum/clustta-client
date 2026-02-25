@@ -16,20 +16,22 @@
         <!-- form container -->
         <div class="auth-form-container">
           <!-- studio server toggle -->
-          <div class="horizontal-flex studio-toggle-row">
-            <ActionButton :isInactive="true" :icon="getAppIcon('two-drives')" :label="$t('auth.signUp.privateServer')" />
-            <ToggleSwitch @click="toggleStudioSignup" :switchValueProp="showStudioSignup" />
-          </div>
-          <!-- studio URL input (shown when toggled) -->
-          <div v-if="showStudioSignup" class="studio-url-container">
-            <FormInput
-              v-model="studioUrl"
-              :placeholder="$t('auth.signUp.studioUrl')"
-              :error="studioUrlError"
-              :info="!studioUrlError ? $t('auth.signUp.studioUrlInfo') : ''"
-              @input="validateStudioUrl"
-            />
-          </div>
+          <template v-if="!platformStore.isWeb">
+            <div class="horizontal-flex studio-toggle-row">
+              <ActionButton :isInactive="true" :icon="getAppIcon('two-drives')" :label="$t('auth.signUp.privateServer')" />
+              <ToggleSwitch @click="toggleStudioSignup" :switchValueProp="showStudioSignup" />
+            </div>
+            <!-- studio URL input (shown when toggled) -->
+            <div v-if="showStudioSignup" class="studio-url-container">
+              <FormInput
+                v-model="studioUrl"
+                :placeholder="$t('auth.signUp.studioUrl')"
+                :error="studioUrlError"
+                :info="!studioUrlError ? $t('auth.signUp.studioUrlInfo') : ''"
+                @input="validateStudioUrl"
+              />
+            </div>
+          </template>
           <!-- actual-form -->
           <form @submit.prevent="handleRegister" class="auth-form" autocomplete="off">
             <!-- first and last names -->
@@ -127,6 +129,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useUserStore } from '@/stores/users';
 import { useIconStore } from '@/stores/icons';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { usePlatformStore } from '@/stores/platform';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -142,6 +145,7 @@ const userStore = useUserStore();
 const notificationStore = useNotificationStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
+const platformStore = usePlatformStore();
 
 // refs
 const checkingEmailAvailability = ref(false);

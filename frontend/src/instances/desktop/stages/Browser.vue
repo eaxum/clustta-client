@@ -13,7 +13,7 @@
 			<StateBar v-if="(!showFilters || !isDefaultWorkspace) && !kanbanView" :hasData="!!rootData.length" />
 			<div v-if="rootData.length || commonStore.viewSearchQuery.length || commonStore.showUntracked"
 				class="view-options">
-				<ViewOptions v-if="!kanbanView" />
+				<ViewOptions />
 				<ActionButton v-if="!kanbanView" :icon="getAppIcon('arrows-sort')" v-tooltip="$t('stages.sort')" :buttonFunction="openSortMenu" />
 				<ActionButton :icon="getAppIcon('eye-cog')" v-tooltip="$t('stages.viewOptions')" :buttonFunction="openViewMenu" />
 				<ActionButton v-if="!kanbanView && isWideScreen" :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"

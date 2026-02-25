@@ -33,7 +33,7 @@ export const getToolLogo = (toolName) => {
     'affinity photo': 'afphoto',
     'affinity publisher': 'afpub',
     'fl studio': 'flp',
-    'davinci resolve': 'drp',
+    'davinci resolve': 'default',
     'character animator': 'chproj',
     'animate': 'fla',
     'indesign': 'indd',

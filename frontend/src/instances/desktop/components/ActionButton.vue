@@ -179,6 +179,7 @@ onBeforeUnmount(() => {
 .action-button:hover {
   /* background-color: #09ff09bc; */
   background-color: var(--hover);
+  border-radius: var(--small-radius);
 }
 
 .action-button:active {

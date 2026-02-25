@@ -78,6 +78,7 @@
     "newPassword": "नया पासवर्ड",
     "currentPassword": "वर्तमान पासवर्ड",
     "password": "पासवर्ड",
+    "presetName": "प्रीसेट नाम",
     "projectName": "प्रोजेक्ट का नाम",
     "roleName": "भूमिका का नाम",
     "search": "खोजें",
@@ -135,6 +136,12 @@
     "dependencyAdded": "डिपेंडेंसी जोड़ी गई",
     "dependencyRemoved": "डिपेंडेंसी हटाई गई",
     "dependencyAlreadyExists": "डिपेंडेंसी पहले से मौजूद है",
+    "presetAppliedWithSkipped": "{skipped} डिपेंडेंसी छोड़ी गईं (पहले से मौजूद हैं)",
+    "dependencyPresetSaved": "डिपेंडेंसी प्रीसेट सहेजा गया",
+    "dependencyPresetDeleted": "डिपेंडेंसी प्रीसेट हटाया गया",
+    "errorSavingDependencyPreset": "डिपेंडेंसी प्रीसेट सहेजने में त्रुटि",
+    "errorDeletingDependencyPreset": "डिपेंडेंसी प्रीसेट हटाने में त्रुटि",
+    "errorUpdatingPreset": "प्रीसेट अपडेट करने में त्रुटि",
     "errorOccurred": "एक त्रुटि हुई",
     "errorUpdatingIcon": "आइकन अपडेट करने में त्रुटि",
     "errorUpdatingImage": "छवि अपडेट करने में त्रुटि",
@@ -525,6 +532,7 @@
     "templateNameExists": "इस नाम का एक टेम्पलेट पहले से मौजूद है।",
     "selectAssetTemplate": "एसेट टेम्पलेट चुनें",
     "saveWorkspace": "वर्कस्पेस सहेजें",
+    "saveDependencyPreset": "डिपेंडेंसी प्रीसेट सहेजें",
     "clusttaApp": "Clustta",
     "versionLabel": "संस्करण",
     "copyrightNotice": "कॉपीराइट © 2024 Clustta",
@@ -778,6 +786,8 @@
     "searchDependencies": "जोड़ने के लिए डिपेंडेंसी खोजें",
     "filter": "फ़िल्टर",
     "viewInGraph": "ग्राफ़ में देखें",
+    "saveAsPreset": "प्रीसेट के रूप में सहेजें",
+    "dependencyPresets": "प्रीसेट",
     "noItemsMatchSearch": "आपकी खोज से कोई आइटम मेल नहीं खाता",
     "noDependencies": "इस एसेट की कोई डिपेंडेंसी नहीं है",
     "noProjectSelected": "कोई प्रोजेक्ट चयनित नहीं",
@@ -1217,6 +1227,14 @@
       "projectReverted": "प्रोजेक्ट सफलतापूर्वक पूर्ववत किया गया",
       "errorRevertingProject": "प्रोजेक्ट पूर्ववत करने में त्रुटि"
     },
+    "dependencyPresetItem": {
+      "dependencies": "निर्भरताएं",
+      "apply": "प्रीसेट लागू करें",
+      "delete": "प्रीसेट हटाएं",
+      "expand": "विस्तारित करें",
+      "collapse": "संक्षिप्त करें",
+      "remove": "प्रीसेट से हटाएं"
+    },
     "skillsManager": {
       "noSkills": "प्रदर्शित करने के लिए कोई कौशल नहीं",
       "searchPlaceholder": "कौशल खोजें और जोड़ें...",
@@ -1629,5 +1647,8 @@
     "serverUnavailable": "सर्वर अनुपलब्ध",
     "connectionLost": "कनेक्शन टूट गया",
     "connectionReset": "कनेक्शन रीसेट"
+  },
+  "info": {
+    "presetWillOverwrite": "इस नाम का एक प्रीसेट पहले से मौजूद है और इसे अधिलेखित किया जाएगा"
   }
 }

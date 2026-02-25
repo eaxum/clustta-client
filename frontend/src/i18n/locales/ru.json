@@ -78,6 +78,7 @@
     "newPassword": "Новый пароль",
     "currentPassword": "Текущий пароль",
     "password": "Пароль",
+    "presetName": "Название пресета",
     "projectName": "Название проекта",
     "roleName": "Название роли",
     "search": "Поиск",
@@ -135,6 +136,12 @@
     "dependencyAdded": "Зависимость добавлена",
     "dependencyRemoved": "Зависимость удалена",
     "dependencyAlreadyExists": "Зависимость уже существует",
+    "presetAppliedWithSkipped": "{skipped} зависимостей пропущено (уже существуют)",
+    "dependencyPresetSaved": "Пресет зависимостей сохранён",
+    "dependencyPresetDeleted": "Пресет зависимостей удалён",
+    "errorSavingDependencyPreset": "Ошибка сохранения пресета зависимостей",
+    "errorDeletingDependencyPreset": "Ошибка удаления пресета зависимостей",
+    "errorUpdatingPreset": "Ошибка обновления пресета",
     "errorOccurred": "Произошла ошибка",
     "errorUpdatingIcon": "Ошибка обновления иконки",
     "errorUpdatingImage": "Ошибка обновления изображения",
@@ -525,6 +532,7 @@
     "templateNameExists": "Шаблон с таким названием уже существует.",
     "selectAssetTemplate": "Выбрать шаблон ресурса",
     "saveWorkspace": "Сохранить рабочее пространство",
+    "saveDependencyPreset": "Сохранить пресет зависимостей",
     "clusttaApp": "Clustta",
     "versionLabel": "Версия",
     "copyrightNotice": "Copyright © 2024 Clustta",
@@ -778,6 +786,8 @@
     "searchDependencies": "Поиск зависимостей для добавления",
     "filter": "Фильтр",
     "viewInGraph": "Показать в графе",
+    "saveAsPreset": "Сохранить как пресет",
+    "dependencyPresets": "Пресеты",
     "noItemsMatchSearch": "Нет элементов, соответствующих поиску",
     "noDependencies": "У этого ресурса нет зависимостей",
     "noProjectSelected": "Проект не выбран",
@@ -1217,6 +1227,14 @@
       "projectReverted": "Проект успешно откачен",
       "errorRevertingProject": "Ошибка отката проекта"
     },
+    "dependencyPresetItem": {
+      "dependencies": "зависимости",
+      "apply": "Применить пресет",
+      "delete": "Удалить пресет",
+      "expand": "Развернуть",
+      "collapse": "Свернуть",
+      "remove": "Удалить из пресета"
+    },
     "skillsManager": {
       "noSkills": "Нет навыков для отображения",
       "searchPlaceholder": "Поиск и добавление навыков...",
@@ -1629,5 +1647,8 @@
     "serverUnavailable": "Сервер недоступен",
     "connectionLost": "Соединение потеряно",
     "connectionReset": "Соединение сброшено"
+  },
+  "info": {
+    "presetWillOverwrite": "Пресет с таким именем уже существует и будет перезаписан"
   }
 }

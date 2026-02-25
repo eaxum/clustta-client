@@ -11,6 +11,16 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 import * as settings$0 from "../internal/settings/models.js";
 
 /**
+ * AddDependencyPreset adds a dependency preset to a project.
+ * @param {string} projectId
+ * @param {any} presetData
+ * @returns {$CancellablePromise<void>}
+ */
+export function AddDependencyPreset(projectId, presetData) {
+    return $Call.ByID(278533171, projectId, presetData);
+}
+
+/**
  * AddProjectLocation adds a new project location with name and path.
  * @param {string} name
  * @param {string} path
@@ -202,6 +212,17 @@ export function GetPinnedProjects(studioName) {
 }
 
 /**
+ * GetProjectDependencyPresets retrieves all dependency presets for a project.
+ * @param {string} projectId
+ * @returns {$CancellablePromise<any[]>}
+ */
+export function GetProjectDependencyPresets(projectId) {
+    return $Call.ByID(3058392474, projectId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType5($result);
+    }));
+}
+
+/**
  * GetProjectDirectory retrieves the default project directory path.
  * @returns {$CancellablePromise<string>}
  */
@@ -333,6 +354,16 @@ export function PinProject(studioName, projectId) {
     return $Call.ByID(2392329694, studioName, projectId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
+}
+
+/**
+ * RemoveDependencyPreset removes a dependency preset from a project.
+ * @param {string} projectId
+ * @param {string} presetName
+ * @returns {$CancellablePromise<void>}
+ */
+export function RemoveDependencyPreset(projectId, presetName) {
+    return $Call.ByID(1574357336, projectId, presetName);
 }
 
 /**
@@ -497,6 +528,17 @@ export function UnpinProject(studioName, projectId) {
     return $Call.ByID(3096272593, studioName, projectId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
+}
+
+/**
+ * UpdateDependencyPreset updates an existing dependency preset.
+ * @param {string} projectId
+ * @param {string} presetName
+ * @param {any} updatedPreset
+ * @returns {$CancellablePromise<void>}
+ */
+export function UpdateDependencyPreset(projectId, presetName, updatedPreset) {
+    return $Call.ByID(3275376729, projectId, presetName, updatedPreset);
 }
 
 /**

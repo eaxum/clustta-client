@@ -39,6 +39,18 @@
   resolved "https://registry.yarnpkg.com/@dagrejs/graphlib/-/graphlib-2.2.4.tgz#d77bfa9ff49e2307c0c6e6b8b26b5dd3c05816c4"
   integrity sha512-mepCf/e9+SKYy1d02/UkvSy6+6MoyXhVxP8lLDfA7BPE1X1d4dR0sZznmbM8/XVJ1GPM+Svnx7Xj6ZweByWUkw==
 
+"@dicebear/big-smile@^9.3.2":
+  version "9.3.2"
+  resolved "https://registry.yarnpkg.com/@dicebear/big-smile/-/big-smile-9.3.2.tgz#dd8e3c394533ccf30c1a5ea85b492c1486607c17"
+  integrity sha512-0rhz2+0enHCv9+NWw4XcAQdIN9UzY4e6BNKuYY3+4YwQTi3YnKf6w1ZcmmUAXSflFwtg6Yxby+6BftpJFR8WUQ==
+
+"@dicebear/core@^9.3.2":
+  version "9.3.2"
+  resolved "https://registry.yarnpkg.com/@dicebear/core/-/core-9.3.2.tgz#e51abee5898241062d91898b209e2d16266ef8e6"
+  integrity sha512-iSdPB6ThMjj+qp6qePbLTpkf/x/o3GistmyP5tZT4KdZfpf24R+YCzf8gjVssSUxSz6K15BIxnD4I5wqsKvwaQ==
+  dependencies:
+    "@types/json-schema" "^7.0.15"
+
 "@epic-web/invariant@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@epic-web/invariant/-/invariant-1.0.0.tgz#1073e5dee6dd540410784990eb73e4acd25c9813"
@@ -337,6 +349,11 @@
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-1.0.6.tgz#628effeeae2064a1b4e79f78e81d87b7e5fc7b50"
   integrity sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==
+
+"@types/json-schema@^7.0.15":
+  version "7.0.15"
+  resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.15.tgz#596a1747233694d50f6ad8a7869fcb6f56cf5841"
+  integrity sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==
 
 "@types/node@>=13.7.0":
   version "22.15.19"

@@ -2,26 +2,15 @@
   <div class="tools-manager">
     <!-- Display selected tools -->
     <div v-if="tools.length > 0" class="tools-container">
-      <div
+      <Chip
         v-for="tool in tools"
         :key="tool.id"
-        class="tool-item"
-        :class="{ 'readonly': readonly }"
-      >
-        <div class="tool-icon-container">
-          <img class="large-icons no-filter" :src="getToolLogoPath(tool)">
-        </div>
-
-        <span class="tool-name">{{ tool.tool_name }}</span>
-        <ActionButton
-          v-if="!readonly"
-          :icon="getAppIcon('close')"
-          :buttonFunction="() => removeTool(tool)"
-          :showIcon="true"
-          :showLabel="false"
-          :noFilter="false"
-        />
-      </div>
+        :icon="getToolLogoPath(tool)"
+        :label="tool.tool_name"
+        :onRemove="() => removeTool(tool)"
+        :readonly="readonly"
+        :useImage="true"
+      />
     </div>
     
     <!-- Empty state -->
@@ -37,6 +26,7 @@
         :allItems="normalizedAllTools"
         :placeholder="$t('components.toolsManager.searchPlaceholder')"
         :itemType="'tool'"
+        :iconFilter="false"
         @itemAdded="addTool"
       />
       <div v-else class="limit-message">
@@ -56,7 +46,7 @@ import { useProfileStore } from '@/stores/profile';
 import { useNotificationStore } from '@/stores/notifications';
 import { ProfileService } from "@/services";
 import ItemSelector from './ItemSelector.vue';
-import ActionButton from './ActionButton.vue';
+import Chip from '@/instances/common/components/Chip.vue';
 import { getToolLogo } from '@/utils/iconMappers';
 
 const iconStore = useIconStore();
@@ -164,35 +154,6 @@ const getAppIcon = (iconName) => {
   gap: 0.75rem;
 }
 
-.tool-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.3rem;
-  background-color: var(--steel);
-  border-radius: var(--large-radius);
-  transition: background-color 0.2s;
-}
-
-.tool-icon-container{
-  padding: .3rem;
-}
-
-.tool-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.tool-name {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--white);
-  user-select: none;
-}
-
-.tool-item.readonly {
-  padding-right: 1rem;
-}
-
 .limit-message {
   display: flex;
   align-items: center;
@@ -210,11 +171,6 @@ const getAppIcon = (iconName) => {
   height: 16px;
   filter: invert(82%) sepia(89%) saturate(548%) hue-rotate(359deg) brightness(103%) contrast(98%);
   flex-shrink: 0;
-}
-
-.tool-logo-default {
-  filter: brightness(0) invert(1);
-  opacity: 0.7;
 }
 
 .empty-state {

@@ -6,6 +6,7 @@
       <ActionButton :icon="getAppIcon('list')" v-tooltip="$t('menus.listView')" :buttonFunction="setListView" />
       <ActionButton :icon="getAppIcon('list-compact')" v-tooltip="$t('menus.compactView')" :buttonFunction="setDenseView" />
       <ActionButton :icon="getAppIcon('four-squares')" v-tooltip="$t('menus.gridView')" :buttonFunction="setGridView" />
+      <ActionButton v-if="isDefaultWorkspace" :icon="getAppIcon('kanban')" v-tooltip="$t('menus.kanbanView')" :buttonFunction="setKanbanView" />
     </template>
   </div>
 </template>
@@ -29,21 +30,22 @@ const iconStore = useIconStore();
 const expanded = ref(false);
 
 // computed properties
+const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
 const isDenseActive = computed(() => commonStore.viewMode === 'dense');
 const isGridActive = computed(() => commonStore.viewMode === 'grid');
+const isKanbanActive = computed(() => commonStore.viewMode === 'kanban');
 const isListActive = computed(() => commonStore.viewMode === 'compact');
 
 // Returns the icon name for the currently active view mode.
 const activeIcon = computed(() => {
   if (isDenseActive.value) return 'list-compact';
   if (isGridActive.value) return 'four-squares';
+  if (isKanbanActive.value) return 'kanban';
   return 'list';
 });
 
 // Returns the tooltip for the currently active view mode.
 const activeTooltip = computed(() => {
-  if (isDenseActive.value) return commonStore.viewMode;
-  if (isGridActive.value) return commonStore.viewMode;
   return commonStore.viewMode;
 });
 
@@ -61,6 +63,12 @@ const setDenseView = () => {
 // Sets the view to grid mode.
 const setGridView = () => {
   commonStore.setGridView();
+  emitter.emit('refresh-browser');
+};
+
+// Sets the view to kanban mode.
+const setKanbanView = () => {
+  commonStore.setKanbanView();
   emitter.emit('refresh-browser');
 };
 

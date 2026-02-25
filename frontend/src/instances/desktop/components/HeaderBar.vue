@@ -1,7 +1,7 @@
 <template>
 	<div class="header-bar">
 
-		<div class="header-bar-breadcrumbs-parent">
+		<div v-if="!platformStore.isWeb" class="header-bar-breadcrumbs-parent">
 
 			<div v-if="projectIsActive && stage.activeStage === 'browser'" class="header-bar-tabs">
 				<WorkspaceTabs />
@@ -45,6 +45,12 @@
 			<ActionButton :icon="getAppIcon('trash')" :label="$t('components.headerBar.empty')" :showLabel="true" @click="prepEmptyTrashPopUpModal"
 				v-tooltip="$t('components.headerBar.emptyTrash')" :useBackground="true" :color="'var(--danger)'" />
 		</div>
+
+		<!-- Web mode logout button -->
+		<div class="header-bar-actions" v-if="platformStore.isWeb && stage.activeStage === 'account'">
+			<ActionButton :icon="getAppIcon('logout')" :label="$t('common.logout')" :showLabel="true" @click="logUserOut"
+				v-tooltip="$t('common.logout')" :useBackground="true" />
+		</div>
 	</div>
 
 </template>
@@ -55,8 +61,10 @@
 // imports
 import { computed, ref, onMounted, toRaw } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ProjectService } from '@/services';
+import { useRouter } from 'vue-router';
+import { ProjectService, AuthService } from '@/services';
 import { syncData, pullData } from '@/lib/sync';
+import { resetStoreInitialization } from '@/router';
 import utils from '@/services/utils';
 
 import emitter from '@/lib/mitt';
@@ -93,6 +101,7 @@ const modals = useDesktopModalStore();
 const studioStore = useStudioStore();
 const userStore = useUserStore();
 const platformStore = usePlatformStore();
+const router = useRouter();
 
 const { t } = useI18n();
 
@@ -261,6 +270,20 @@ const goToTrash = () => {
 
 const goToSettings = () => {
 	stage.setStageVisibility('projectSettings', true);
+};
+
+// Logs out the current user and redirects to login page.
+const logUserOut = async () => {
+	try {
+		await AuthService.Logout();
+		userStore.$reset();
+		projectStore.$reset();
+		trayStates.$reset();
+		resetStoreInitialization();
+		router.push('/auth/login');
+	} catch (error) {
+		notificationStore.errorNotification(t('stages.logoutFailed'), error);
+	}
 };
 
 </script>

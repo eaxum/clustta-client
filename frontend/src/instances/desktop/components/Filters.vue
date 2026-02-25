@@ -4,7 +4,7 @@
             <div v-for="(item, index) in items" :key="index" :index="index" @click="selectItem(item)" 
                 class="filter-item" :style="{ backgroundColor: item.backgroundColor, color: item.textColor}">
                 <div v-if="useAvatar" class="profile-picture" :style="{ backgroundColor: item.avatarColor}">
-                    <img class="profile-img"  :src=" item.profile ? item.profile : '/icons/default_profile_picture.svg'">
+                    <img class="profile-img"  :src=" item.profile ? item.profile : generateAvatar(item.id)">
                 </div>
                 <div v-else-if="useIcons && item.icon" class="task-item-icon-container">
                     <img class="small-icons" :src="item.icon">
@@ -27,6 +27,7 @@
   
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { generateAvatar } from '@/lib/avatar';
 const scrollableElement = ref(null);
 
 // components

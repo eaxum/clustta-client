@@ -78,6 +78,7 @@
     "newPassword": "Neues Passwort",
     "currentPassword": "Aktuelles Passwort",
     "password": "Passwort",
+    "presetName": "Preset-Name",
     "projectName": "Projektname",
     "roleName": "Rollenname",
     "search": "Suchen",
@@ -135,6 +136,12 @@
     "dependencyAdded": "Abhängigkeit hinzugefügt",
     "dependencyRemoved": "Abhängigkeit entfernt",
     "dependencyAlreadyExists": "Abhängigkeit existiert bereits",
+    "presetAppliedWithSkipped": "{skipped} Abhängigkeiten übersprungen (existieren bereits)",
+    "dependencyPresetSaved": "Abhängigkeits-Preset gespeichert",
+    "dependencyPresetDeleted": "Abhängigkeits-Preset gelöscht",
+    "errorSavingDependencyPreset": "Fehler beim Speichern des Abhängigkeits-Presets",
+    "errorDeletingDependencyPreset": "Fehler beim Löschen des Abhängigkeits-Presets",
+    "errorUpdatingPreset": "Fehler beim Aktualisieren des Presets",
     "errorOccurred": "Ein Fehler ist aufgetreten",
     "errorUpdatingIcon": "Fehler beim Aktualisieren des Symbols",
     "errorUpdatingImage": "Fehler beim Aktualisieren des Bildes",
@@ -525,6 +532,7 @@
     "templateNameExists": "Eine Vorlage mit diesem Namen existiert bereits.",
     "selectAssetTemplate": "Asset-Vorlage auswählen",
     "saveWorkspace": "Workspace speichern",
+    "saveDependencyPreset": "Abhängigkeits-Preset speichern",
     "clusttaApp": "Clustta",
     "versionLabel": "Version",
     "copyrightNotice": "Copyright © 2024 Clustta",
@@ -778,6 +786,8 @@
     "searchDependencies": "Abhängigkeiten zum Hinzufügen suchen",
     "filter": "Filter",
     "viewInGraph": "Im Graphen anzeigen",
+    "saveAsPreset": "Als Preset speichern",
+    "dependencyPresets": "Presets",
     "noItemsMatchSearch": "Keine Elemente entsprechen der Suche",
     "noDependencies": "Dieses Asset hat keine Abhängigkeiten",
     "noProjectSelected": "Kein Projekt ausgewählt",
@@ -1030,6 +1040,7 @@
     "sidePane": { "allProjects": "Alle Projekte", "settings": "Einstellungen", "login": "Anmeldung" },
     "trashItem": { "restore": "Wiederherstellen", "expand": "Erweitern", "itemRestored": "Element wiederhergestellt", "errorRestoringItem": "Fehler beim Wiederherstellen des Elements" },
     "timelineItem": { "revert": "Zurücksetzen", "expand": "Erweitern", "close": "Schließen", "projectReverted": "Projekt erfolgreich zurückgesetzt", "errorRevertingProject": "Fehler beim Zurücksetzen des Projekts" },
+    "dependencyPresetItem": { "dependencies": "Abhängigkeiten", "apply": "Voreinstellung anwenden", "delete": "Voreinstellung löschen", "expand": "Erweitern", "collapse": "Einklappen", "remove": "Aus Voreinstellung entfernen" },
     "skillsManager": { "noSkills": "Keine Fähigkeiten anzuzeigen", "searchPlaceholder": "Fähigkeiten suchen und hinzufügen...", "maxReached": "Maximal 5 Fähigkeiten erreicht. Entfernen Sie eine Fähigkeit, um eine weitere hinzuzufügen.", "skillAdded": "Fähigkeit hinzugefügt", "skillAddedMessage": "Fähigkeit erfolgreich hinzugefügt.", "failedToAddSkill": "Fähigkeit konnte nicht hinzugefügt werden", "skillRemoved": "Fähigkeit entfernt", "skillRemovedMessage": "Fähigkeit erfolgreich entfernt.", "failedToRemoveSkill": "Fähigkeit konnte nicht entfernt werden" },
     "toolsManager": { "noTools": "Keine Tools anzuzeigen", "searchPlaceholder": "Tools suchen und hinzufügen...", "maxReached": "Maximal 5 Tools erreicht. Entfernen Sie ein Tool, um ein weiteres hinzuzufügen.", "toolAdded": "Tool hinzugefügt", "toolAddedMessage": "Tool erfolgreich hinzugefügt.", "failedToAddTool": "Tool konnte nicht hinzugefügt werden", "toolRemoved": "Tool entfernt", "toolRemovedMessage": "Tool erfolgreich entfernt.", "failedToRemoveTool": "Tool konnte nicht entfernt werden" },
     "importPreview": { "deselectAll": "Alle abwählen", "removeSelected": "Ausgewählte entfernen", "removeSelectedTooltip": "Ausgewählte entfernen", "removeEmptyFolders": "Leere Ordner entfernen", "entity": "Entität", "entities": "Entitäten", "task": "Aufgabe", "tasks": "Aufgaben", "and": "und", "toImport": "zum Importieren", "selected": "ausgewählt", "projectRoot": "Projektwurzel" },
@@ -1074,5 +1085,8 @@
     "serverUnavailable": "Server nicht verfügbar",
     "connectionLost": "Verbindung verloren",
     "connectionReset": "Verbindung zurückgesetzt"
+  },
+  "info": {
+    "presetWillOverwrite": "Eine Voreinstellung mit diesem Namen existiert und wird überschrieben"
   }
 }
