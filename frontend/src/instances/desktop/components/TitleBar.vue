@@ -127,6 +127,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
 import { useThemeStore } from '@/stores/theme';
 import { useCollectionStore } from '@/stores/collections';
+import { useSettingsStore } from '@/stores/settings';
 
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import CheckBox from '@/instances/common/components/CheckBox.vue';
@@ -146,6 +147,7 @@ const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
 const themeStore = useThemeStore();
 const collectionStore = useCollectionStore();
+const settingsStore = useSettingsStore();
 const platformStore = usePlatformStore();
 const accountStore = useAccountStore();
 const route = useRoute();
@@ -357,8 +359,11 @@ const isFullscreen = async () => {
 
 
 function closeWindow() {
-  AppService.Quit()
-  return
+  if (settingsStore.minimizeOnClose) {
+    AppService.Hide()
+  } else {
+    AppService.Quit()
+  }
 }
 
 function minimizeWindow() {

@@ -6,6 +6,27 @@
       <!-- Integrations Card -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
+          <h2 class="settings-section-card-title">{{ $t('settings.behaviour') }}</h2>
+        </div>
+        <div class="settings-section-card-content">
+
+          <div class="settings-item" @click="toggleMinimizeOnClose">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('minimize')"></div>
+            <div class="settings-content">
+              <div class="settings-header">{{ $t('settings.minimizeOnClose') }}</div>
+              <div class="settings-body">{{ $t('settings.minimizeOnCloseDescription') }}</div>
+            </div>
+            <div class="settings-action fixed-width">
+              <ToggleSwitch :switchValueProp="minimizeOnClose" />
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Integrations Card -->
+      <div class="settings-section-card">
+        <div class="settings-section-card-header">
           <h2 class="settings-section-card-title">{{ $t('settings.integrations') }}</h2>
         </div>
         <div class="settings-section-card-content">
@@ -126,6 +147,8 @@ const { t } = useI18n();
 // computed
 // Returns the current bridge enabled state from the shared store.
 const bridgeEnabled = computed(() => settingsStore.bridgeEnabled);
+// Returns the current minimize on close state from the shared store.
+const minimizeOnClose = computed(() => settingsStore.minimizeOnClose);
 // Returns list of integrations user has authenticated with.
 const connectedIntegrations = computed(() => {
   return integrationStore.availableIntegrations.filter(i => integrationStore.isAuthenticated(i.id));
@@ -156,6 +179,20 @@ const toggleBridgeEnabled = () => {
   });
 };
 
+// Toggles the minimize-on-close behaviour.
+const toggleMinimizeOnClose = () => {
+  settingsStore.toggleMinimizeOnClose().then(() => {
+    notificationStore.addNotification(
+      t('settings.minimizeOnClose'),
+      t('notifications.minimizeOnCloseToggled', { status: settingsStore.minimizeOnClose ? 'enabled' : 'disabled' }),
+      "success"
+    );
+  }).catch((error) => {
+    console.log(error);
+    notificationStore.addNotification(t('common.error'), t('notifications.failedToUpdateMinimizeOnClose'), "error");
+  });
+};
+
 // Toggles the sync-after-checkpoint default for the current user.
 const toggleSyncAfterCheckpoint = () => {
   const newValue = !syncAfterCheckpoint.value;
@@ -176,6 +213,7 @@ const toggleSyncAfterCheckpoint = () => {
 onMounted(async () => {
   try {
     await settingsStore.initializeBridge();
+    await settingsStore.initializeMinimizeOnClose();
     syncAfterCheckpoint.value = await SettingsService.GetSyncAfterCheckpoint();
     await integrationStore.initialize();
   } catch (error) {
