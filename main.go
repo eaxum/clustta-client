@@ -1,6 +1,7 @@
 package main
 
 import (
+	"clustta/internal/bridge"
 	"clustta/internal/repository"
 	"clustta/internal/settings"
 	"clustta/services"
@@ -86,6 +87,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Start the bridge HTTP server for DCC addon integrations
+	bridge.Start()
+	defer bridge.Stop()
 
 	var singleInstanceOpt *application.SingleInstanceOptions = nil
 
