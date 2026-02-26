@@ -44,8 +44,11 @@ func Start() {
 	handler := corsMiddleware(mux)
 
 	server = &http.Server{
-		Addr:    "127.0.0.1:" + bridgePort,
-		Handler: handler,
+		Addr:         "127.0.0.1:" + bridgePort,
+		Handler:      handler,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
 
 	go func() {
