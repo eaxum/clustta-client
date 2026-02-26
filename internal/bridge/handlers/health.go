@@ -2,7 +2,7 @@ package handlers
 
 import "net/http"
 
-// Health returns the agent status.
+// Health returns the bridge status.
 func Health(w http.ResponseWriter, r *http.Request) {
 	jsonResponse(w, http.StatusOK, map[string]string{"status": "ok"})
 }
