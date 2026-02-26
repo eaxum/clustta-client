@@ -88,8 +88,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Start the bridge HTTP server for DCC addon integrations
-	bridge.Start()
+	// Start the bridge HTTP server if the user has enabled it
+	bridgeEnabled, err := settings.GetBridgeEnabled()
+	log.Printf("Bridge enabled: %v (err: %v)", bridgeEnabled, err)
+	if err == nil && bridgeEnabled {
+		bridge.Start()
+	}
 	defer bridge.Stop()
 
 	var singleInstanceOpt *application.SingleInstanceOptions = nil

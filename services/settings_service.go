@@ -1,6 +1,7 @@
 package services
 
 import (
+	"clustta/internal/bridge"
 	"clustta/internal/settings"
 	"os"
 	"strings"
@@ -465,6 +466,26 @@ func (s *SettingsService) GetSyncAfterCheckpoint() (bool, error) {
 // SetSyncAfterCheckpoint sets the auto-sync after checkpoint preference.
 func (s *SettingsService) SetSyncAfterCheckpoint(enabled bool) error {
 	return settings.SetSyncAfterCheckpoint(enabled)
+}
+
+// GetBridgeEnabled returns whether the bridge HTTP server is enabled.
+func (s *SettingsService) GetBridgeEnabled() (bool, error) {
+	return settings.GetBridgeEnabled()
+}
+
+// SetBridgeEnabled sets the bridge HTTP server enabled preference.
+// Starts or stops the bridge server accordingly.
+func (s *SettingsService) SetBridgeEnabled(enabled bool) error {
+	err := settings.SetBridgeEnabled(enabled)
+	if err != nil {
+		return err
+	}
+	if enabled {
+		bridge.Start()
+	} else {
+		bridge.Stop()
+	}
+	return nil
 }
 
 // GetIntegrationCredential retrieves integration credentials for an integration.

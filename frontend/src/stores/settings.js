@@ -1,7 +1,9 @@
 import { defineStore } from "pinia";
+import { SettingsService } from '@/services';
 
 export const useSettingsStore = defineStore("settings", {
   state: () => ({
+    bridgeEnabled: false,
     modalStates: {
       general: false,
       templates: false,
@@ -67,6 +69,22 @@ export const useSettingsStore = defineStore("settings", {
   }),
   getters: {},
   actions: {
+    // Loads the bridge enabled state from user settings.
+    async initializeBridge() {
+      try {
+        this.bridgeEnabled = await SettingsService.GetBridgeEnabled();
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    // Toggles the bridge on or off and persists the setting.
+    async toggleBridge() {
+      const newValue = !this.bridgeEnabled;
+      await SettingsService.SetBridgeEnabled(newValue);
+      this.bridgeEnabled = newValue;
+    },
+
     setModalVisibility(modalName, value) {
       if (this.modalStates.hasOwnProperty(modalName)) {
         // Check if the modal is already active

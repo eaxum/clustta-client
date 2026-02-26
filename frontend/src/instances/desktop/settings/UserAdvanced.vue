@@ -37,6 +37,38 @@
         </div>
       </div>
 
+      <!-- Plugins Card -->
+      <div class="settings-section-card">
+        <div class="settings-section-card-header">
+          <h2 class="settings-section-card-title">{{ $t('settings.plugins') }}</h2>
+        </div>
+        <div class="settings-section-card-content">
+
+          <div class="settings-item" @click="toggleBridgeEnabled">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('brick')"></div>
+            <div class="settings-content">
+              <div class="settings-header">{{ bridgeEnabled ? $t('settings.disableBridge') : $t('settings.enableBridge') }}</div>
+              <div class="settings-body">{{ $t('settings.bridgeEnabledDescription') }}</div>
+            </div>
+            <div class="settings-action fixed-width">
+              <ToggleSwitch :switchValueProp="bridgeEnabled" />
+            </div>
+          </div>
+
+          <div class="settings-item" @click="Browser.OpenURL('https://www.clustta.com/plugins')">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('download')"></div>
+            <div class="settings-content">
+              <div class="settings-header">{{ $t('settings.downloadPlugins') }}</div>
+              <div class="settings-body">{{ $t('settings.downloadPluginsDescription') }}</div>
+            </div>
+            <div class="settings-action">
+              <img class="small-icons" :src="getAppIcon('chevron-right')">
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       <!-- Experimental Features Card -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
@@ -66,6 +98,7 @@
 <script setup>
 // imports
 import { computed, ref, onMounted } from 'vue';
+import { Browser } from '@wailsio/runtime';
 import { useI18n } from 'vue-i18n';
 
 // components
@@ -79,16 +112,20 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useIntegrationStore } from '@/stores/integrations';
 import { useNotificationStore } from '@/stores/notifications';
+import { useSettingsStore } from '@/stores/settings';
 
 // refs
 const desktopModals = useDesktopModalStore();
 const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
 const notificationStore = useNotificationStore();
+const settingsStore = useSettingsStore();
 const syncAfterCheckpoint = ref(false);
 const { t } = useI18n();
 
 // computed
+// Returns the current bridge enabled state from the shared store.
+const bridgeEnabled = computed(() => settingsStore.bridgeEnabled);
 // Returns list of integrations user has authenticated with.
 const connectedIntegrations = computed(() => {
   return integrationStore.availableIntegrations.filter(i => integrationStore.isAuthenticated(i.id));
@@ -103,6 +140,20 @@ const getAppIcon = (iconName) => {
 // Opens the integration authentication modal.
 const openIntegrationAuth = () => {
   desktopModals.setModalVisibility('integrationAuthModal', true);
+};
+
+// Toggles the bridge HTTP server for DCC plugin integrations.
+const toggleBridgeEnabled = () => {
+  settingsStore.toggleBridge().then(() => {
+    notificationStore.addNotification(
+      t('settings.bridgeEnabled'),
+      t('notifications.bridgeToggled', { status: settingsStore.bridgeEnabled ? 'enabled' : 'disabled' }),
+      "success"
+    );
+  }).catch((error) => {
+    console.log(error);
+    notificationStore.addNotification(t('common.error'), t('notifications.failedToUpdateBridge'), "error");
+  });
 };
 
 // Toggles the sync-after-checkpoint default for the current user.
@@ -124,6 +175,7 @@ const toggleSyncAfterCheckpoint = () => {
 // lifecycle hooks
 onMounted(async () => {
   try {
+    await settingsStore.initializeBridge();
     syncAfterCheckpoint.value = await SettingsService.GetSyncAfterCheckpoint();
     await integrationStore.initialize();
   } catch (error) {
