@@ -61,16 +61,16 @@ bridge:
 	@echo "Building Clustta Bridge"
 ifeq ($(DETECTED_OS),Windows)
 	wails3 generate syso -arch amd64 -icon build/windows/icon.ico -manifest build/windows/wails.exe.manifest -info build/windows/info.json -out bridge_windows_amd64.syso
-	go build -trimpath -ldflags="-w -s" -o bin$(PATH_SEP)clustta-bridge$(BINARY_EXT) ./cmd/agent
+	go build -trimpath -ldflags="-w -s" -o bin$(PATH_SEP)clustta-bridge$(BINARY_EXT) ./cmd/bridge
 	-powershell -Command "Remove-Item bridge_windows_amd64.syso -ErrorAction SilentlyContinue"
 else ifeq ($(DETECTED_OS),Darwin)
-	go build -trimpath -ldflags="-w -s" -o bin/clustta-bridge ./cmd/agent
+	go build -trimpath -ldflags="-w -s" -o bin/clustta-bridge ./cmd/bridge
 else
-	go build -trimpath -ldflags="-w -s" -o bin/clustta-bridge ./cmd/agent
+	go build -trimpath -ldflags="-w -s" -o bin/clustta-bridge ./cmd/bridge
 endif
 
 # Build the bridge for development (no icon, no trimming)
 .PHONY: bridge-dev
 bridge-dev:
 	@echo "Building Clustta Bridge (dev)"
-	go build -o bin$(PATH_SEP)clustta-bridge$(BINARY_EXT) ./cmd/agent
+	go build -o bin$(PATH_SEP)clustta-bridge$(BINARY_EXT) ./cmd/bridge
