@@ -23,7 +23,7 @@ For that, you have several ways to contribute:
 Our community support is available through GitHub Discussions and Issues.
 Everyone is amiable and would be glad to meet you!
 
-[Join the discussion on Discord](https://discord.gg/DxkawsVW)
+[Join the discussion on Discord](https://discord.gg/h3YBk9kB)
 
 
 ## Feature requests
