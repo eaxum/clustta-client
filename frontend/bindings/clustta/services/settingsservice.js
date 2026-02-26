@@ -123,6 +123,14 @@ export function GetAllLocationPaths() {
 }
 
 /**
+ * GetBridgeEnabled returns whether the bridge HTTP server is enabled.
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function GetBridgeEnabled() {
+    return $Call.ByID(406544000);
+}
+
+/**
  * GetCurrentVersion retrieves the current application version number.
  * @returns {$CancellablePromise<string>}
  */
@@ -414,6 +422,16 @@ export function RemoveProjectWorkspace(projectId, workspaceName) {
  */
 export function SaveIntegrationCredential(cred) {
     return $Call.ByID(927307362, cred);
+}
+
+/**
+ * SetBridgeEnabled sets the bridge HTTP server enabled preference.
+ * Starts or stops the bridge server accordingly.
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetBridgeEnabled(enabled) {
+    return $Call.ByID(2597264452, enabled);
 }
 
 /**

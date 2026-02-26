@@ -71,6 +71,7 @@ type Settings struct {
 	DefaultLocationID string            `json:"default_location_id"`
 
 	SyncAfterCheckpoint bool `json:"sync_after_checkpoint"`
+	BridgeEnabled       bool `json:"bridge_enabled"`
 
 	PinnedProjects    map[string][]string              `json:"pinned_projects"`
 	RecentProjects    map[string][]string              `json:"recent_projects"`
@@ -361,6 +362,26 @@ func SetSyncAfterCheckpoint(enabled bool) error {
 		return err
 	}
 	settings.SyncAfterCheckpoint = enabled
+	return saveSettings(settings)
+}
+
+// GetBridgeEnabled returns whether the bridge HTTP server is enabled.
+// Defaults to false if not set.
+func GetBridgeEnabled() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return false, err
+	}
+	return settings.BridgeEnabled, nil
+}
+
+// SetBridgeEnabled sets the bridge HTTP server enabled preference.
+func SetBridgeEnabled(enabled bool) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.BridgeEnabled = enabled
 	return saveSettings(settings)
 }
 

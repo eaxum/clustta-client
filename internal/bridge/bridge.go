@@ -14,7 +14,11 @@ const bridgePort = "1173"
 var server *http.Server
 
 // Start launches the bridge HTTP server in the background (non-blocking).
+// Safe to call multiple times; does nothing if the server is already running.
 func Start() {
+	if server != nil {
+		return
+	}
 	mux := http.NewServeMux()
 
 	// Health
@@ -70,6 +74,7 @@ func Stop() {
 	if err := server.Shutdown(ctx); err != nil {
 		log.Printf("Bridge shutdown error: %v", err)
 	}
+	server = nil
 	log.Println("Clustta Bridge stopped.")
 }
 
