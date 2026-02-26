@@ -70,8 +70,9 @@ type Settings struct {
 	ProjectLocations  []ProjectLocation `json:"project_locations"`
 	DefaultLocationID string            `json:"default_location_id"`
 
-	SyncAfterCheckpoint bool `json:"sync_after_checkpoint"`
-	BridgeEnabled       bool `json:"bridge_enabled"`
+	SyncAfterCheckpoint bool  `json:"sync_after_checkpoint"`
+	BridgeEnabled       bool  `json:"bridge_enabled"`
+	MinimizeOnClose     *bool `json:"minimize_on_close,omitempty"`
 
 	PinnedProjects    map[string][]string              `json:"pinned_projects"`
 	RecentProjects    map[string][]string              `json:"recent_projects"`
@@ -362,6 +363,29 @@ func SetSyncAfterCheckpoint(enabled bool) error {
 		return err
 	}
 	settings.SyncAfterCheckpoint = enabled
+	return saveSettings(settings)
+}
+
+// GetMinimizeOnClose returns whether the app should minimize to tray on close.
+// Defaults to true if not explicitly set.
+func GetMinimizeOnClose() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return true, err
+	}
+	if settings.MinimizeOnClose == nil {
+		return true, nil
+	}
+	return *settings.MinimizeOnClose, nil
+}
+
+// SetMinimizeOnClose sets the minimize-to-tray on close preference.
+func SetMinimizeOnClose(enabled bool) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.MinimizeOnClose = &enabled
 	return saveSettings(settings)
 }
 

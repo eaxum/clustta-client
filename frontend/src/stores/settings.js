@@ -4,6 +4,7 @@ import { SettingsService } from '@/services';
 export const useSettingsStore = defineStore("settings", {
   state: () => ({
     bridgeEnabled: false,
+    minimizeOnClose: true,
     modalStates: {
       general: false,
       templates: false,
@@ -83,6 +84,22 @@ export const useSettingsStore = defineStore("settings", {
       const newValue = !this.bridgeEnabled;
       await SettingsService.SetBridgeEnabled(newValue);
       this.bridgeEnabled = newValue;
+    },
+
+    // Loads the minimize on close state from user settings.
+    async initializeMinimizeOnClose() {
+      try {
+        this.minimizeOnClose = await SettingsService.GetMinimizeOnClose();
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    // Toggles minimize on close and persists the setting.
+    async toggleMinimizeOnClose() {
+      const newValue = !this.minimizeOnClose;
+      await SettingsService.SetMinimizeOnClose(newValue);
+      this.minimizeOnClose = newValue;
     },
 
     setModalVisibility(modalName, value) {

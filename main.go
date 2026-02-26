@@ -22,6 +22,9 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+//go:embed build/appicon.png
+var trayIcon []byte
+
 var app *application.App
 
 // InitializeFullscreenMonitoring starts fullscreen state monitoring for the application window.
@@ -342,8 +345,36 @@ func main() {
 	})
 
 	window.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
-		window.Hide()
-		e.Cancel()
+		minimizeOnClose, err := settings.GetMinimizeOnClose()
+		if err != nil {
+			log.Printf("Failed to get minimize on close setting: %v", err)
+			minimizeOnClose = true
+		}
+		if minimizeOnClose {
+			window.Hide()
+			e.Cancel()
+		}
+	})
+
+	// System tray icon with context menu
+	systemTray := app.SystemTray.New()
+	systemTray.SetIcon(trayIcon)
+	systemTray.SetLabel("Clustta")
+
+	trayMenu := app.NewMenu()
+	trayMenu.Add("Show Clustta").OnClick(func(ctx *application.Context) {
+		window.Show()
+		window.Focus()
+	})
+	trayMenu.AddSeparator()
+	trayMenu.Add("Quit").OnClick(func(ctx *application.Context) {
+		app.Quit()
+	})
+	systemTray.SetMenu(trayMenu)
+
+	systemTray.OnClick(func() {
+		window.Show()
+		window.Focus()
 	})
 
 	if runtime.GOOS == "darwin" {

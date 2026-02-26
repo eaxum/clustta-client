@@ -230,6 +230,14 @@ export function GetLogPath() {
 }
 
 /**
+ * GetMinimizeOnClose returns whether the app minimizes to tray on close.
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function GetMinimizeOnClose() {
+    return $Call.ByID(319830377);
+}
+
+/**
  * GetPinnedProjects retrieves all pinned projects for the specified studio.
  * @param {string} studioName
  * @returns {$CancellablePromise<string[]>}
@@ -495,6 +503,15 @@ export function SetLanguage(language) {
  */
 export function SetLastStudio(lastStudioName) {
     return $Call.ByID(4086447016, lastStudioName);
+}
+
+/**
+ * SetMinimizeOnClose sets the minimize-to-tray on close preference.
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetMinimizeOnClose(enabled) {
+    return $Call.ByID(2305241605, enabled);
 }
 
 /**

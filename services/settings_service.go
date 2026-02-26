@@ -468,6 +468,16 @@ func (s *SettingsService) SetSyncAfterCheckpoint(enabled bool) error {
 	return settings.SetSyncAfterCheckpoint(enabled)
 }
 
+// GetMinimizeOnClose returns whether the app minimizes to tray on close.
+func (s *SettingsService) GetMinimizeOnClose() (bool, error) {
+	return settings.GetMinimizeOnClose()
+}
+
+// SetMinimizeOnClose sets the minimize-to-tray on close preference.
+func (s *SettingsService) SetMinimizeOnClose(enabled bool) error {
+	return settings.SetMinimizeOnClose(enabled)
+}
+
 // GetBridgeEnabled returns whether the bridge HTTP server is enabled.
 func (s *SettingsService) GetBridgeEnabled() (bool, error) {
 	return settings.GetBridgeEnabled()
