@@ -37,6 +37,7 @@ export { DialogService } from './dialogservice.js';
 export { ClipboardService } from './clipboardservice.js';
 export { TrashService } from './trashservice.js';
 export { ImportService } from './importservice.js';
+export { IntegrationService } from './integrationservice.js';
 export { DeploymentService } from './deploymentservice.js';
 export { AppService } from './appservice.js';
 export { LogService } from './logservice.js';

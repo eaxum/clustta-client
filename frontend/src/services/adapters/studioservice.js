@@ -45,6 +45,15 @@ export const StudioService = {
     }
   },
 
+  // Returns info about a studio server (id, name, url, alt_url)
+  GetStudioInfo: async (studioUrl) => {
+    const response = await fetch(`${studioUrl}/studio-info`, { method: 'GET' });
+    if (!response.ok) {
+      throw new Error('Failed to reach studio server');
+    }
+    return await response.json();
+  },
+
   // Returns the online/offline status of a studio server
   GetStudioStatus: async (studioUrl) => {
     try {

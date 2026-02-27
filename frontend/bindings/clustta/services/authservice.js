@@ -54,6 +54,22 @@ export function CheckUsernameExists(username) {
 }
 
 /**
+ * ContactSales sends a sales inquiry to the Clustta sales team.
+ * Returns an error if the submission fails.
+ * @param {string} name
+ * @param {string} email
+ * @param {string} company
+ * @param {string} teamSize
+ * @param {string} source
+ * @param {string} website
+ * @param {string} message
+ * @returns {$CancellablePromise<void>}
+ */
+export function ContactSales(name, email, company, teamSize, source, website, message) {
+    return $Call.ByID(3477825493, name, email, company, teamSize, source, website, message);
+}
+
+/**
  * DeactivateUserAccount deactivates the current user's account.
  * Returns an error if the deactivation fails.
  * @returns {$CancellablePromise<void>}

@@ -15,23 +15,6 @@
       <div class="auth-container">
         <!-- form container -->
         <div class="auth-form-container">
-          <!-- studio server toggle -->
-          <template v-if="!platformStore.isWeb">
-            <div class="horizontal-flex studio-toggle-row">
-              <ActionButton :isInactive="true" :icon="getAppIcon('two-drives')" :label="$t('auth.signUp.privateServer')" />
-              <ToggleSwitch @click="toggleStudioSignup" :switchValueProp="showStudioSignup" />
-            </div>
-            <!-- studio URL input (shown when toggled) -->
-            <div v-if="showStudioSignup" class="studio-url-container">
-              <FormInput
-                v-model="studioUrl"
-                :placeholder="$t('auth.signUp.studioUrl')"
-                :error="studioUrlError"
-                :info="!studioUrlError ? $t('auth.signUp.studioUrlInfo') : ''"
-                @input="validateStudioUrl"
-              />
-            </div>
-          </template>
           <!-- actual-form -->
           <form @submit.prevent="handleRegister" class="auth-form" autocomplete="off">
             <!-- first and last names -->
@@ -122,30 +105,27 @@ import { ref, reactive, computed, onMounted, onBeforeMount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { Browser } from "@wailsio/runtime";
-import { useTrayStates } from '@/stores/TrayStates';
-import { useProjectStore } from '@/stores/projects';
+
+// services
 import { AuthService } from "@/services";
-import { useNotificationStore } from '@/stores/notifications';
-import { useUserStore } from '@/stores/users';
-import { useIconStore } from '@/stores/icons';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { usePlatformStore } from '@/stores/platform';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import FormInput from '@/instances/desktop/components/FormInput.vue';
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+
+// store imports
+import { useIconStore } from '@/stores/icons';
+import { useNotificationStore } from '@/stores/notifications';
+import { useUserStore } from '@/stores/users';
+
+// stores
+const iconStore = useIconStore();
+const notificationStore = useNotificationStore();
+const userStore = useUserStore();
 
 const router = useRouter();
 const { t } = useI18n();
-const trayStates = useTrayStates();
-const projectStore = useProjectStore();
-const userStore = useUserStore();
-const notificationStore = useNotificationStore();
-const iconStore = useIconStore();
-const modals = useDesktopModalStore();
-const platformStore = usePlatformStore();
 
 // refs
 const checkingEmailAvailability = ref(false);
@@ -156,9 +136,6 @@ const error = ref('');
 const isAwaitingResponse = ref(false);
 const isEmailTaken = ref(false);
 const isUsernameTaken = ref(false);
-const showStudioSignup = ref(false);
-const studioUrl = ref('');
-const studioUrlError = ref('');
 const userNameRegex = /^[a-zA-Z0-9_]{3,}$/
 
 const registerForm = reactive({
@@ -273,13 +250,6 @@ const isRegisterFormFilled = computed(() => {
 const checkEmail = async () => {
   if (!registerForm.email || !emailValid.value) return
   
-  // For studio signup, skip live availability check (validated on submit)
-  if (showStudioSignup.value) {
-    isEmailTaken.value = false;
-    errors.email = '';
-    return;
-  }
-  
   checkingEmailAvailability.value = true;
 
   try {
@@ -302,13 +272,6 @@ const checkEmail = async () => {
 // Checks if the username is already taken.
 const checkUsername = async () => {
   if (!registerForm.username) return
-  
-  // For studio signup, skip live availability check (validated on submit)
-  if (showStudioSignup.value) {
-    isUsernameTaken.value = false;
-    errors.username = '';
-    return;
-  }
   
   checkingUsernameAvailability.value = true;
 
@@ -351,48 +314,23 @@ const handleRegister = async () => {
       return;
     }
 
-    // Determine if this is a studio registration
-    const isStudioSignup = showStudioSignup.value && studioUrl.value.trim();
-    const normalizedStudioUrl = isStudioSignup ? normalizeStudioUrl(studioUrl.value) : '';
+    // Register against Clustta Cloud (requires email verification)
+    await AuthService.Register(
+      registerForm.first_name,
+      registerForm.last_name,
+      registerForm.username,
+      registerForm.email,
+      registerForm.password,
+      registerForm.confirm_password
+    );
 
-    if (isStudioSignup) {
-      // Register against studio server
-      await AuthService.RegisterWithHost(
-        registerForm.first_name,
-        registerForm.last_name,
-        registerForm.username,
-        registerForm.email,
-        registerForm.password,
-        registerForm.confirm_password,
-        normalizedStudioUrl
-      );
-      
-      // Studio registration is auto-activated, go directly to login
-      notificationStore.addNotification(
-        t('auth.signUp.registrationSuccessful'),
-        t('auth.signUp.studioAccountCreated', { url: normalizedStudioUrl }),
-        "success"
-      );
-      router.push('/auth/login');
-    } else {
-      // Register against Clustta Cloud (requires email verification)
-      await AuthService.Register(
-        registerForm.first_name,
-        registerForm.last_name,
-        registerForm.username,
-        registerForm.email,
-        registerForm.password,
-        registerForm.confirm_password
-      );
-      
-      notificationStore.addNotification(
-        t('auth.signUp.registrationSuccessful'),
-        t('auth.signUp.checkEmailForCode'),
-        "success"
-      );
-      userStore.setPendingVerification(registerForm.email, registerForm.password);
-      router.push('/auth/verify-email');
-    }
+    notificationStore.addNotification(
+      t('auth.signUp.registrationSuccessful'),
+      t('auth.signUp.checkEmailForCode'),
+      'success'
+    );
+    userStore.setPendingVerification(registerForm.email, registerForm.password);
+    router.push('/auth/verify-email');
   } catch (err) {
     console.log(err);
     const errorMessage = err.message || err.response?.data?.message || t('auth.signUp.registrationFailedDefault');
@@ -401,17 +339,6 @@ const handleRegister = async () => {
   } finally {
     isAwaitingResponse.value = false;
   }
-};
-
-// Normalizes the studio URL by ensuring it has a protocol and no trailing slash.
-const normalizeStudioUrl = (url) => {
-  if (!url) return '';
-  let normalized = url.trim();
-  normalized = normalized.replace(/\/+$/, '');
-  if (!normalized.startsWith('http://') && !normalized.startsWith('https://')) {
-    normalized = 'https://' + normalized;
-  }
-  return normalized;
 };
 
 // Opens the privacy policy page in the browser.
@@ -429,37 +356,6 @@ const toggleLogin = () => {
   router.push('/auth/login')
 };
 
-// Toggles the studio signup mode.
-const toggleStudioSignup = () => {
-  showStudioSignup.value = !showStudioSignup.value;
-  if (!showStudioSignup.value) {
-    studioUrl.value = '';
-    studioUrlError.value = '';
-  }
-  isEmailTaken.value = false;
-  isUsernameTaken.value = false;
-  errors.email = '';
-  errors.username = '';
-};
-
-// Validates the studio URL format.
-const validateStudioUrl = () => {
-  if (!studioUrl.value) {
-    studioUrlError.value = '';
-    return;
-  }
-  
-  const urlPattern = /^https?:\/\/[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+(:\d+)?(\/.*)?$/;
-  
-  if (!studioUrl.value.startsWith('http://') && !studioUrl.value.startsWith('https://')) {
-    studioUrlError.value = t('auth.signUp.urlMustStartWith');
-  } else if (!urlPattern.test(studioUrl.value)) {
-    studioUrlError.value = t('auth.signUp.invalidUrl');
-  } else {
-    studioUrlError.value = '';
-  }
-};
-
 onMounted(() => {
   
 });
@@ -471,44 +367,6 @@ onBeforeMount(async () => {
 
 <style scoped>
 @import "@/assets/desktop.css";
-
-.divider-container {
-  width: 90%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin: 0.5rem 0;
-}
-
-.divider-line {
-  flex: 1;
-  height: 1px;
-  background: var(--white-20);
-}
-
-.divider-text {
-  color: var(--white-60);
-  font-size: 0.85rem;
-  text-transform: uppercase;
-}
-
-.studio-toggle-row {
-  justify-content: space-between;
-  padding: 0.5rem 0;
-}
-
-.studio-url-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.studio-url-hint {
-  font-size: 0.75rem;
-  color: var(--white-60);
-  text-align: center;
-}
 
 .additional-actions {
   display: flex;
