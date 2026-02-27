@@ -226,4 +226,9 @@ export const AuthService = {
   SendInvitationEmail: async (email, studioName, projectName) => {
     await globalApiCall('/auth/send-invitation', 'POST', { email, studio_name: studioName, project_name: projectName });
   },
+
+  // Submits a contact sales inquiry
+  ContactSales: async (name, email, company, teamSize, source, website, message) => {
+    await globalApiCall('/contact-sales', 'POST', { name, email, company, team_size: teamSize, source, website, message });
+  },
 };

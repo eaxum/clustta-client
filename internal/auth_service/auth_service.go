@@ -869,6 +869,62 @@ func ResetPassword(email string) error {
 	return nil
 }
 
+// ContactSales sends a sales inquiry to the Clustta sales team.
+func ContactSales(name, email, company, teamSize, source, website, message string) error {
+	type requestData struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Company  string `json:"company"`
+		TeamSize string `json:"team_size"`
+		Source   string `json:"source"`
+		Website  string `json:"website"`
+		Message  string `json:"message"`
+	}
+
+	data := requestData{
+		Name:     name,
+		Email:    email,
+		Company:  company,
+		TeamSize: teamSize,
+		Source:   source,
+		Website:  website,
+		Message:  message,
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request data: %v", err)
+	}
+
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return fmt.Errorf("cannot contact sales in offline mode")
+	}
+
+	url := authHost + "/contact-sales"
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to submit sales inquiry: %s", string(body))
+	}
+
+	return nil
+}
+
 func SubmitDiagnostics(email, description, os, arch, clusttaVersion, logContents string) error {
 	type requestData struct {
 		Email          string `json:"email"`
