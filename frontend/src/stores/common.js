@@ -132,26 +132,31 @@ export const useCommonStore = defineStore("common", {
       this.useGrid = false;
       this.listItemGap = 4;
       this.listItemHeight = 60;
+      SettingsService.SetDefaultViewMode('compact');
     },
     setGridView() {
       this.viewMode = 'grid';
       this.useGrid = true;
+      SettingsService.SetDefaultViewMode('grid');
     },
     setKanbanView() {
       this.viewMode = 'kanban';
       this.useGrid = false;
+      SettingsService.SetDefaultViewMode('kanban');
     },
     setDenseView() {
       this.viewMode = 'dense';
       this.useGrid = false;
       this.listItemGap = 2;
       this.listItemHeight = 42;
+      SettingsService.SetDefaultViewMode('dense');
     },
     setListView() {
       this.viewMode = 'compact';
       this.useGrid = false;
       this.listItemGap = 4;
       this.listItemHeight = 60;
+      SettingsService.SetDefaultViewMode('compact');
     },
   },
 });

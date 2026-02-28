@@ -57,6 +57,7 @@ type Settings struct {
 	UseGrid               bool   `json:"use_grid"`
 	DefaultViewMode       string `json:"default_view_mode"`
 	ShowUntrackedProjects bool   `json:"show_untracked_projects"`
+	ShowTypeIcons         *bool  `json:"show_type_icons,omitempty"`
 
 	ProjectsDir         string `json:"projects_dir"`
 	ProjectsDirBookmark []byte `json:"projects_dir_bookmark,omitempty"`
@@ -406,6 +407,29 @@ func SetBridgeEnabled(enabled bool) error {
 		return err
 	}
 	settings.BridgeEnabled = enabled
+	return saveSettings(settings)
+}
+
+// GetShowTypeIcons returns whether type icons are shown in the browser.
+// Defaults to true if not set.
+func GetShowTypeIcons() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return true, err
+	}
+	if settings.ShowTypeIcons == nil {
+		return true, nil
+	}
+	return *settings.ShowTypeIcons, nil
+}
+
+// SetShowTypeIcons sets the show type icons preference.
+func SetShowTypeIcons(enabled bool) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.ShowTypeIcons = &enabled
 	return saveSettings(settings)
 }
 

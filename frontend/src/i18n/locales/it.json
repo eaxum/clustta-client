@@ -663,6 +663,8 @@
     "learnMore": "Scopri di più",
     "showExtensions": "Mostra estensioni",
     "hideExtensions": "Nascondi estensioni",
+    "showTypeIcons": "Mostra icone tipo",
+    "hideTypeIcons": "Nascondi icone tipo",
     "nameColumn": "Nome",
     "pathColumn": "Percorso",
     "loadingConflicts": "Caricamento dettagli conflitti...",

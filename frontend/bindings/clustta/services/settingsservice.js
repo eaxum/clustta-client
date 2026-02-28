@@ -307,6 +307,14 @@ export function GetSharedProjectDirectory() {
 }
 
 /**
+ * GetShowTypeIcons returns whether type icons are shown in the browser.
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function GetShowTypeIcons() {
+    return $Call.ByID(742250271);
+}
+
+/**
  * GetStudios retrieves all configured studios from user settings.
  * @param {string} path
  * @returns {$CancellablePromise<settings$0.Studio[]>}
@@ -530,6 +538,15 @@ export function SetProjectDirectory(dir) {
  */
 export function SetSharedProjectDirectory(dir) {
     return $Call.ByID(2608064267, dir);
+}
+
+/**
+ * SetShowTypeIcons sets the show type icons preference.
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetShowTypeIcons(enabled) {
+    return $Call.ByID(3308454819, enabled);
 }
 
 /**

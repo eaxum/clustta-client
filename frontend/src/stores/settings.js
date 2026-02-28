@@ -5,6 +5,7 @@ export const useSettingsStore = defineStore("settings", {
   state: () => ({
     bridgeEnabled: false,
     minimizeOnClose: true,
+    showTypeIcons: true,
     modalStates: {
       general: false,
       templates: false,
@@ -100,6 +101,22 @@ export const useSettingsStore = defineStore("settings", {
       const newValue = !this.minimizeOnClose;
       await SettingsService.SetMinimizeOnClose(newValue);
       this.minimizeOnClose = newValue;
+    },
+
+    // Loads the show type icons state from user settings.
+    async initializeShowTypeIcons() {
+      try {
+        this.showTypeIcons = await SettingsService.GetShowTypeIcons();
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    // Toggles show type icons and persists the setting.
+    async toggleShowTypeIcons() {
+      const newValue = !this.showTypeIcons;
+      await SettingsService.SetShowTypeIcons(newValue);
+      this.showTypeIcons = newValue;
     },
 
     setModalVisibility(modalName, value) {

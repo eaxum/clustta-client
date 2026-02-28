@@ -662,6 +662,8 @@
     "learnMore": "了解更多",
     "showExtensions": "显示扩展名",
     "hideExtensions": "隐藏扩展名",
+    "showTypeIcons": "显示类型图标",
+    "hideTypeIcons": "隐藏类型图标",
     "nameColumn": "名称",
     "pathColumn": "路径",
     "loadingConflicts": "正在加载冲突详情...",

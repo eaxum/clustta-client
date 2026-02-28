@@ -660,6 +660,8 @@
     "learnMore": "詳しく見る",
     "showExtensions": "拡張子を表示",
     "hideExtensions": "拡張子を非表示",
+    "showTypeIcons": "タイプアイコンを表示",
+    "hideTypeIcons": "タイプアイコンを非表示",
     "nameColumn": "名前",
     "pathColumn": "パス",
     "loadingConflicts": "競合の詳細を読み込み中...",
