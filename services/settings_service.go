@@ -498,6 +498,16 @@ func (s *SettingsService) SetBridgeEnabled(enabled bool) error {
 	return nil
 }
 
+// GetShowTypeIcons returns whether type icons are shown in the browser.
+func (s *SettingsService) GetShowTypeIcons() (bool, error) {
+	return settings.GetShowTypeIcons()
+}
+
+// SetShowTypeIcons sets the show type icons preference.
+func (s *SettingsService) SetShowTypeIcons(enabled bool) error {
+	return settings.SetShowTypeIcons(enabled)
+}
+
 // GetIntegrationCredential retrieves integration credentials for an integration.
 // Credentials are stored per user per integration (not per project).
 func (s *SettingsService) GetIntegrationCredential(integrationId string) (settings.IntegrationCredential, error) {

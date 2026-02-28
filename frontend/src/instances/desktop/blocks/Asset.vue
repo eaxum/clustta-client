@@ -74,7 +74,7 @@
             
             <!-- Row 1: Name/Meta (always visible) -->
             <div class="task-item-grid-meta-row">
-              <div class="task-item-grid-type-icon" >
+              <div v-if="settingsStore.showTypeIcons" class="task-item-grid-type-icon" >
                 <img v-if="isUntracked" class="small-icons" :src="getAppIcon('generic')">
                 <img v-else class="small-icons" :src="getAppIcon(task.task_type_icon)" v-tooltip="assetTypeName">
               </div>
@@ -192,7 +192,7 @@
     }" 
     @dblclick="launchTaskCommand()">
 
-    <div class="task-spacer" v-tooltip="assetTypeName" @click="console.log(task)">
+    <div v-if="settingsStore.showTypeIcons" class="task-spacer" v-tooltip="assetTypeName" @click="console.log(task)">
       <span v-if="isUntracked" class="single-action-button single-action-button-disabled">
         <img class="small-icons entity-collapsed" :src="getAppIcon('generic')">
       </span>
@@ -365,6 +365,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { usePaneStore } from '@/stores/panes';
 import { usePlatformStore } from '@/stores/platform';
 import { useProjectStore } from '@/stores/projects';
+import { useSettingsStore } from '@/stores/settings';
 import { useStageStore } from '@/stores/stages';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
@@ -380,6 +381,7 @@ const notificationStore = useNotificationStore();
 const panes = usePaneStore();
 const platformStore = usePlatformStore();
 const projectStore = useProjectStore();
+const settingsStore = useSettingsStore();
 const stage = useStageStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();

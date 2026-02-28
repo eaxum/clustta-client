@@ -660,6 +660,8 @@
     "learnMore": "En savoir plus",
     "showExtensions": "Afficher les extensions",
     "hideExtensions": "Masquer les extensions",
+    "showTypeIcons": "Afficher les icônes de type",
+    "hideTypeIcons": "Masquer les icônes de type",
     "nameColumn": "Nom",
     "pathColumn": "Chemin",
     "loadingConflicts": "Chargement des détails des conflits...",

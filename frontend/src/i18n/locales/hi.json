@@ -663,6 +663,8 @@
     "learnMore": "अधिक जानें",
     "showExtensions": "एक्सटेंशन दिखाएँ",
     "hideExtensions": "एक्सटेंशन छिपाएँ",
+    "showTypeIcons": "प्रकार आइकन दिखाएँ",
+    "hideTypeIcons": "प्रकार आइकन छिपाएँ",
     "nameColumn": "नाम",
     "pathColumn": "पथ",
     "loadingConflicts": "विरोध विवरण लोड हो रहे हैं...",

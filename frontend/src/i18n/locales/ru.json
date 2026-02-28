@@ -663,6 +663,8 @@
     "learnMore": "Узнать больше",
     "showExtensions": "Показать расширения",
     "hideExtensions": "Скрыть расширения",
+    "showTypeIcons": "Показать значки типов",
+    "hideTypeIcons": "Скрыть значки типов",
     "nameColumn": "Название",
     "pathColumn": "Путь",
     "loadingConflicts": "Загрузка деталей конфликта...",

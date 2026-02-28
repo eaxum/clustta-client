@@ -673,6 +673,8 @@
     "learnMore": "Learn more",
     "showExtensions": "Show extensions",
     "hideExtensions": "Hide extensions",
+    "showTypeIcons": "Show type icons",
+    "hideTypeIcons": "Hide type icons",
     "nameColumn": "Name",
     "pathColumn": "Path",
     "loadingConflicts": "Loading conflict details...",
