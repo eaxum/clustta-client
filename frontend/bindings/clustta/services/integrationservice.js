@@ -44,17 +44,15 @@ export function CreateMissingTypes(projectPath, missingTypes) {
 }
 
 /**
- * ExecuteSync stores mappings for selected external items.
- * Collections and assets are not automatically created - users create them manually
- * and the mappings help track what's been imported.
+ * ExecuteSync creates Clustta collections and tasks from the sync preview.
+ * Creates all items from the preview - collections sorted by path depth (parents first),
+ * then tasks with templates. Fails entire operation on any error.
  * @param {string} projectPath
  * @param {string} token
- * @param {string[]} selectedCollections
- * @param {string[]} selectedAssets
  * @returns {$CancellablePromise<void>}
  */
-export function ExecuteSync(projectPath, token, selectedCollections, selectedAssets) {
-    return $Call.ByID(2812294731, projectPath, token, selectedCollections, selectedAssets);
+export function ExecuteSync(projectPath, token) {
+    return $Call.ByID(2812294731, projectPath, token);
 }
 
 /**

@@ -1,14 +1,19 @@
 package services
 
 import (
+	error_service "clustta/internal/error_service"
 	"clustta/internal/integrations"
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
 	"clustta/internal/utils"
 	"encoding/json"
 	"errors"
+	"sort"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 )
 
 // IntegrationService handles external integration operations (Kitsu, etc.)
@@ -257,6 +262,11 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 
 	// Process entities (collections) - only add if needs to be created
 	for _, entity := range externalEntities {
+		// Skip virtual folder entities (asset type containers) - they're only for path building
+		if strings.HasPrefix(entity.ID, "asset-type-") {
+			continue
+		}
+
 		// Skip if already mapped
 		if _, exists := existingCollectionMap[entity.ID]; exists {
 			continue
@@ -427,12 +437,9 @@ func resolveEntityPath(entity integrations.ExternalEntity, entityByID map[string
 	return normalizeCollectionPath(resolved)
 }
 
-// normalizeCollectionPath ensures the path is lowercase and has leading/trailing slashes.
-// Example: "Episodes/EP01/Sequences" -> "/episodes/ep01/sequences/"
+// normalizeCollectionPath ensures the path has leading/trailing slashes.
+// Example: "Episodes/EP01/Sequences" -> "/Episodes/EP01/Sequences/"
 func normalizeCollectionPath(path string) string {
-	// Convert to lowercase
-	path = strings.ToLower(path)
-
 	// Add leading slash if missing
 	if !strings.HasPrefix(path, "/") {
 		path = "/" + path
@@ -766,10 +773,10 @@ func getPathSegmentName(path string) string {
 // SYNC EXECUTION
 // ═══════════════════════════════════════════════════════════════════════════
 
-// ExecuteSync stores mappings for selected external items.
-// Collections and assets are not automatically created - users create them manually
-// and the mappings help track what's been imported.
-func (s *IntegrationService) ExecuteSync(projectPath, token string, selectedCollections, selectedAssets []string) error {
+// ExecuteSync creates Clustta collections and tasks from the sync preview.
+// Creates all items from the preview - collections sorted by path depth (parents first),
+// then tasks with templates. Fails entire operation on any error.
+func (s *IntegrationService) ExecuteSync(projectPath, token string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -787,60 +794,60 @@ func (s *IntegrationService) ExecuteSync(projectPath, token string, selectedColl
 		return errors.New("no integration linked to this project")
 	}
 
-	// Get integration client
-	integration, err := integrations.Get(integrationProject.IntegrationId)
+	// Get sync preview to know what to create
+	preview, err := s.buildSyncPreview(tx, integrationProject, token)
 	if err != nil {
 		return err
 	}
 
-	// Fetch fresh hierarchy data
-	entities, err := integration.GetProjectEntities(token, integrationProject.ApiUrl, integrationProject.ExternalProjectId)
+	// Load current sync options
+	syncOptions := integrations.SyncOptions{}
+	if integrationProject.SyncOptions != "" {
+		json.Unmarshal([]byte(integrationProject.SyncOptions), &syncOptions)
+	}
+
+	// Phase 0: Validate/auto-create types
+	syncOptionsModified, err := s.ensureTypesExist(tx, preview, &syncOptions)
 	if err != nil {
 		return err
 	}
 
-	tasks, err := integration.GetProjectTasks(token, integrationProject.ApiUrl, integrationProject.ExternalProjectId)
+	// Phase 1: Create collections (sorted by path depth - parents first)
+	collectionMap, err := s.createCollections(tx, preview.Collections, &syncOptions)
 	if err != nil {
 		return err
 	}
 
-	// Build maps for quick lookup
-	selectedCollectionSet := make(map[string]bool)
-	for _, id := range selectedCollections {
-		selectedCollectionSet[id] = true
-	}
-	selectedAssetSet := make(map[string]bool)
-	for _, id := range selectedAssets {
-		selectedAssetSet[id] = true
+	// Phase 2: Create tasks with templates
+	assetMap, err := s.createTasks(tx, preview.Assets, &syncOptions)
+	if err != nil {
+		return err
 	}
 
 	syncedAt := time.Now().UTC().Format(time.RFC3339)
 
-	// Process collections - create mappings (without creating actual collections)
-	for _, entity := range entities {
-		if !selectedCollectionSet[entity.ID] {
+	// Phase 3: Create mappings for collections
+	for _, coll := range preview.Collections {
+		if coll.Action != "create" {
+			continue
+		}
+		collectionID, exists := collectionMap[coll.ExternalID]
+		if !exists {
 			continue
 		}
 
-		// Check if already mapped
-		_, err := repository.GetCollectionMappingByExternalId(tx, integrationProject.IntegrationId, entity.ID)
-		if err == nil {
-			// Already mapped, skip
-			continue
-		}
-
-		// Create mapping without linking to a collection yet
+		mappingID := uuid.New().String()
 		_, err = repository.CreateCollectionMapping(
 			tx,
-			"",
+			mappingID,
 			integrationProject.IntegrationId,
-			entity.ID,
-			entity.Type,
-			entity.Name,
-			entity.ParentID,
-			entity.Path,
+			coll.ExternalID,
+			coll.ExternalType,
+			coll.ExternalName,
+			coll.ExternalParentID,
+			coll.CollectionPath,
 			"{}",
-			"", // collection_id empty - will be linked when user creates/selects collection
+			collectionID,
 			syncedAt,
 		)
 		if err != nil {
@@ -848,46 +855,580 @@ func (s *IntegrationService) ExecuteSync(projectPath, token string, selectedColl
 		}
 	}
 
-	// Process assets - create mappings (without creating actual assets)
-	for _, task := range tasks {
-		if !selectedAssetSet[task.ID] {
+	// Phase 3b: Create mappings for tasks
+	for _, asset := range preview.Assets {
+		if asset.Action != "create" {
+			continue
+		}
+		assetID, exists := assetMap[asset.ExternalID]
+		if !exists {
 			continue
 		}
 
-		// Check if already mapped
-		_, err := repository.GetAssetMappingByExternalId(tx, integrationProject.IntegrationId, task.ID)
-		if err == nil {
-			// Already mapped, skip
-			continue
-		}
-
-		// Convert assignees to JSON string
 		assigneesStr := "[]"
-		if len(task.Assignees) > 0 {
-			assigneesStr = "[\"" + strings.Join(task.Assignees, "\",\"") + "\"]"
+		if len(asset.ExternalAssignees) > 0 {
+			assigneesStr = "[\"" + strings.Join(asset.ExternalAssignees, "\",\"") + "\"]"
 		}
 
-		// Create mapping without linking to an asset yet
+		mappingID := uuid.New().String()
 		_, err = repository.CreateAssetMapping(
 			tx,
-			"",
+			mappingID,
 			integrationProject.IntegrationId,
-			task.ID,
-			task.Name,
-			task.ParentID,
-			task.Type,
-			task.Status,
+			asset.ExternalID,
+			asset.ExternalName,
+			"", // parent_id not needed
+			asset.ExternalType,
+			asset.ExternalStatus,
 			assigneesStr,
 			"{}",
-			"", // asset_id empty - will be linked when user creates/selects asset
+			assetID,
 			syncedAt,
 		)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Phase 4: Save updated sync_options if types were auto-created
+	if syncOptionsModified {
+		syncOptionsJSON, err := json.Marshal(syncOptions)
+		if err != nil {
+			return err
+		}
+		err = repository.UpdateIntegrationProject(tx, integrationProject.Id, map[string]interface{}{
+			"sync_options": string(syncOptionsJSON),
+		})
 		if err != nil {
 			return err
 		}
 	}
 
 	return tx.Commit()
+}
+
+// buildSyncPreview generates the sync preview within an existing transaction.
+func (s *IntegrationService) buildSyncPreview(tx *sqlx.Tx, integrationProject models.IntegrationProject, token string) (integrations.SyncPreview, error) {
+	integration, err := integrations.Get(integrationProject.IntegrationId)
+	if err != nil {
+		return integrations.SyncPreview{}, err
+	}
+
+	externalEntities, err := integration.GetProjectEntities(token, integrationProject.ApiUrl, integrationProject.ExternalProjectId)
+	if err != nil {
+		return integrations.SyncPreview{}, err
+	}
+
+	externalTasks, err := integration.GetProjectTasks(token, integrationProject.ApiUrl, integrationProject.ExternalProjectId)
+	if err != nil {
+		return integrations.SyncPreview{}, err
+	}
+
+	syncOptions := integrations.SyncOptions{}
+	if integrationProject.SyncOptions != "" {
+		json.Unmarshal([]byte(integrationProject.SyncOptions), &syncOptions)
+	}
+
+	// Get existing mappings
+	existingCollections, err := repository.GetCollectionMappings(tx, integrationProject.IntegrationId)
+	if err != nil {
+		return integrations.SyncPreview{}, err
+	}
+	existingAssets, err := repository.GetAssetMappings(tx, integrationProject.IntegrationId)
+	if err != nil {
+		return integrations.SyncPreview{}, err
+	}
+
+	// Load templates for extension lookup
+	templates, err := repository.GetTemplates(tx, false)
+	if err != nil {
+		return integrations.SyncPreview{}, err
+	}
+	templateByID := make(map[string]models.Template)
+	for _, t := range templates {
+		templateByID[t.Id] = t
+	}
+
+	// Build lookup maps
+	existingCollectionMap := make(map[string]models.IntegrationCollectionMapping)
+	for _, m := range existingCollections {
+		existingCollectionMap[m.ExternalId] = m
+	}
+	existingAssetMap := make(map[string]models.IntegrationAssetMapping)
+	for _, m := range existingAssets {
+		existingAssetMap[m.ExternalId] = m
+	}
+
+	entityByID := make(map[string]integrations.ExternalEntity)
+	for _, e := range externalEntities {
+		entityByID[e.ID] = e
+	}
+
+	// Build paths for entities
+	entityPaths := make(map[string]string)
+	for _, entity := range externalEntities {
+		path := resolveEntityPath(entity, entityByID, syncOptions.DirectoryStructure)
+		entityPaths[entity.ID] = path
+	}
+
+	preview := integrations.SyncPreview{
+		IntegrationID: integrationProject.IntegrationId,
+		Collections:   []integrations.SyncCollection{},
+		Assets:        []integrations.SyncAsset{},
+	}
+
+	// Process entities (collections)
+	for _, entity := range externalEntities {
+		// Skip virtual folder entities (asset type containers) - they're only for path building
+		if strings.HasPrefix(entity.ID, "asset-type-") {
+			continue
+		}
+
+		if _, exists := existingCollectionMap[entity.ID]; exists {
+			continue
+		}
+
+		fullPath := entityPaths[entity.ID]
+		existingEntity, err := repository.GetEntityByPath(tx, fullPath)
+		if err == nil && existingEntity.Id != "" {
+			continue
+		}
+
+		typeMapping, hasMapping := syncOptions.EntityTypeMappings[entity.Type]
+		entityTypeName := ""
+		entityTypeIcon := ""
+		if hasMapping {
+			entityTypeName = typeMapping.ClustttaName
+			entityTypeIcon = typeMapping.ClustttaIcon
+		}
+
+		preview.Collections = append(preview.Collections, integrations.SyncCollection{
+			TempID:           entity.ID,
+			ExternalID:       entity.ID,
+			ExternalType:     entity.Type,
+			ExternalName:     entity.Name,
+			ExternalParentID: entity.ParentID,
+			ExternalPath:     fullPath,
+			CollectionPath:   fullPath,
+			Action:           "create",
+			EntityTypeName:   entityTypeName,
+			EntityTypeIcon:   entityTypeIcon,
+			Selected:         true,
+		})
+	}
+
+	// Process tasks (assets)
+	for _, task := range externalTasks {
+		if _, exists := existingAssetMap[task.ID]; exists {
+			continue
+		}
+
+		parentPath := ""
+		if parentEntity, exists := entityByID[task.ParentID]; exists {
+			parentPath = entityPaths[parentEntity.ID]
+		}
+
+		if parentPath != "" {
+			parentCollection, err := repository.GetEntityByPath(tx, parentPath)
+			if err == nil && parentCollection.Id != "" {
+				existingTask, err := repository.GetTaskByName(tx, task.Name, parentCollection.Id, "")
+				if err == nil && existingTask.Id != "" {
+					continue
+				}
+			}
+		}
+
+		typeMapping, hasMapping := syncOptions.TaskTypeMappings[task.TaskType]
+		taskTypeName := ""
+		taskTypeIcon := ""
+		if hasMapping {
+			taskTypeName = typeMapping.ClustttaName
+			taskTypeIcon = typeMapping.ClustttaIcon
+		}
+
+		templateID := ""
+		templateExtension := ""
+		if syncOptions.TaskTypeTemplates != nil {
+			if tmplID, ok := syncOptions.TaskTypeTemplates[task.TaskTypeID]; ok {
+				templateID = tmplID
+				if tmpl, exists := templateByID[tmplID]; exists {
+					templateExtension = tmpl.Extension
+				}
+			}
+		}
+
+		preview.Assets = append(preview.Assets, integrations.SyncAsset{
+			TempID:            task.ID,
+			ExternalID:        task.ID,
+			ExternalName:      task.Name,
+			ExternalParentID:  task.ParentID,
+			ExternalType:      task.TaskType,
+			ExternalTypeID:    task.TaskTypeID,
+			ExternalStatus:    task.Status,
+			ExternalAssignees: task.Assignees,
+			CollectionPath:    parentPath,
+			Action:            "create",
+			TaskTypeName:      taskTypeName,
+			TaskTypeIcon:      taskTypeIcon,
+			Selected:          true,
+			TemplateID:        templateID,
+			TemplateExtension: templateExtension,
+		})
+	}
+
+	return preview, nil
+}
+
+// Available icons for entity types (from types-icons folder)
+var entityTypeIcons = []string{
+	"episode", "sequence", "shot", "scene", "character", "environment", "prop", "folder", "library", "generic", "other",
+}
+
+// Available icons for task types (from types-icons folder)
+var taskTypeIcons = []string{
+	"animation", "audio", "character creation", "compositing", "concept art", "design", "editing",
+	"environment creation", "fx", "hdri", "image", "layout", "lighting", "lookdev", "modeling",
+	"previz", "prop creation", "rendering", "rigging", "texture", "texturing", "video", "generic", "other",
+}
+
+// ensureTypesExist validates that all required types exist, auto-creating if needed.
+// Returns true if syncOptions was modified.
+func (s *IntegrationService) ensureTypesExist(tx *sqlx.Tx, preview integrations.SyncPreview, syncOptions *integrations.SyncOptions) (bool, error) {
+	modified := false
+
+	// Ensure entity type mappings map exists
+	if syncOptions.EntityTypeMappings == nil {
+		syncOptions.EntityTypeMappings = make(map[string]integrations.TypeMapping)
+	}
+
+	// Ensure task type mappings map exists
+	if syncOptions.TaskTypeMappings == nil {
+		syncOptions.TaskTypeMappings = make(map[string]integrations.TypeMapping)
+	}
+
+	// Build set of used icons from existing entity types
+	existingEntityTypes, err := repository.GetEntityTypes(tx)
+	if err != nil {
+		return false, err
+	}
+	usedEntityIcons := make(map[string]bool)
+	for _, et := range existingEntityTypes {
+		if et.Icon != "" {
+			usedEntityIcons[et.Icon] = true
+		}
+	}
+
+	// Build set of used icons from existing task types
+	existingTaskTypes, err := repository.GetTaskTypes(tx)
+	if err != nil {
+		return false, err
+	}
+	usedTaskIcons := make(map[string]bool)
+	for _, tt := range existingTaskTypes {
+		if tt.Icon != "" {
+			usedTaskIcons[tt.Icon] = true
+		}
+	}
+
+	// Helper to get next available icon
+	getNextAvailableIcon := func(iconPool []string, usedIcons map[string]bool) string {
+		for _, icon := range iconPool {
+			if !usedIcons[icon] {
+				return icon
+			}
+		}
+		// All icons used, generate a unique fallback
+		return "type-" + uuid.New().String()[:8]
+	}
+
+	// Check entity types
+	for _, coll := range preview.Collections {
+		if coll.Action != "create" {
+			continue
+		}
+
+		mapping, exists := syncOptions.EntityTypeMappings[coll.ExternalType]
+		if !exists || mapping.ClustttaName == "" {
+			continue
+		}
+
+		// Has name but no ID - need to get or create the type
+		if mapping.ClustttaTypeID == "" {
+			// Try to find by name first (may already exist)
+			existingType, err := repository.GetEntityTypeByName(tx, mapping.ClustttaName)
+			if err == nil {
+				// Type exists, use its ID
+				mapping.ClustttaTypeID = existingType.Id
+				syncOptions.EntityTypeMappings[coll.ExternalType] = mapping
+				modified = true
+				continue
+			}
+
+			// Need to create new type - get unique icon
+			icon := getNextAvailableIcon(entityTypeIcons, usedEntityIcons)
+			usedEntityIcons[icon] = true
+
+			entityType, err := repository.CreateEntityType(tx, "", mapping.ClustttaName, icon)
+			if err != nil {
+				return false, err
+			}
+			mapping.ClustttaTypeID = entityType.Id
+			syncOptions.EntityTypeMappings[coll.ExternalType] = mapping
+			modified = true
+		}
+	}
+
+	// Check task types
+	for _, asset := range preview.Assets {
+		if asset.Action != "create" {
+			continue
+		}
+
+		mapping, exists := syncOptions.TaskTypeMappings[asset.ExternalType]
+		if !exists || mapping.ClustttaName == "" {
+			continue
+		}
+
+		// Has name but no ID - need to get or create the type
+		if mapping.ClustttaTypeID == "" {
+			// Try to find by name first (may already exist)
+			existingType, err := repository.GetTaskTypeByName(tx, mapping.ClustttaName)
+			if err == nil {
+				// Type exists, use its ID
+				mapping.ClustttaTypeID = existingType.Id
+				syncOptions.TaskTypeMappings[asset.ExternalType] = mapping
+				modified = true
+				continue
+			}
+
+			// Need to create new type - get unique icon
+			icon := getNextAvailableIcon(taskTypeIcons, usedTaskIcons)
+			usedTaskIcons[icon] = true
+
+			taskType, err := repository.CreateTaskType(tx, "", mapping.ClustttaName, icon)
+			if err != nil {
+				return false, err
+			}
+			mapping.ClustttaTypeID = taskType.Id
+			syncOptions.TaskTypeMappings[asset.ExternalType] = mapping
+			modified = true
+		}
+	}
+
+	return modified, nil
+}
+
+// createCollections creates all collections sorted by path depth (parents first).
+// Returns map of external_id -> created collection_id.
+func (s *IntegrationService) createCollections(tx *sqlx.Tx, collections []integrations.SyncCollection, syncOptions *integrations.SyncOptions) (map[string]string, error) {
+	// Get generic type for intermediate folders
+	genericType, err := repository.GetEntityTypeByName(tx, "generic")
+	if err != nil {
+		return nil, errors.New("generic entity type not found")
+	}
+
+	// Phase 1: Create all missing intermediate path segments
+	// Collect all unique parent paths that need to exist
+	allPaths := make(map[string]bool)
+	for _, coll := range collections {
+		if coll.Action != "create" {
+			continue
+		}
+		// Add all parent segments for this path
+		segments := strings.Split(strings.Trim(coll.CollectionPath, "/"), "/")
+		currentPath := "/"
+		for i := 0; i < len(segments)-1; i++ { // Exclude the last segment (the actual entity)
+			currentPath = currentPath + segments[i] + "/"
+			allPaths[currentPath] = true
+		}
+	}
+
+	// Sort intermediate paths by depth (parents first)
+	intermediatePaths := make([]string, 0, len(allPaths))
+	for path := range allPaths {
+		intermediatePaths = append(intermediatePaths, path)
+	}
+	sort.Slice(intermediatePaths, func(i, j int) bool {
+		depthI := strings.Count(intermediatePaths[i], "/")
+		depthJ := strings.Count(intermediatePaths[j], "/")
+		return depthI < depthJ
+	})
+
+	// Create intermediate folders that don't exist
+	for _, path := range intermediatePaths {
+		// Skip if already exists
+		existingEntity, err := repository.GetEntityByPath(tx, path)
+		if err == nil && existingEntity.Id != "" {
+			continue
+		}
+
+		// Find parent
+		parentID := ""
+		parentPath := getParentPath(path)
+		if parentPath != "" && parentPath != "/" {
+			parentEntity, err := repository.GetEntityByPath(tx, parentPath)
+			if err == nil && parentEntity.Id != "" {
+				parentID = parentEntity.Id
+			}
+		}
+
+		// Create intermediate folder
+		folderName := getPathSegmentName(path)
+		newID := uuid.New().String()
+		_, err = repository.CreateEntity(tx, newID, folderName, "", genericType.Id, parentID, "", false)
+		if err != nil && err != error_service.ErrEntityExists && err != error_service.ErrEntityExistsInTrash {
+			return nil, err
+		}
+	}
+
+	// Phase 2: Create actual collections (sorted by depth)
+	sorted := make([]integrations.SyncCollection, len(collections))
+	copy(sorted, collections)
+	sort.Slice(sorted, func(i, j int) bool {
+		depthI := strings.Count(sorted[i].CollectionPath, "/")
+		depthJ := strings.Count(sorted[j].CollectionPath, "/")
+		return depthI < depthJ
+	})
+
+	result := make(map[string]string)
+
+	for _, coll := range sorted {
+		if coll.Action != "create" {
+			continue
+		}
+
+		// Check if entity already exists at this path
+		existingEntity, err := repository.GetEntityByPath(tx, coll.CollectionPath)
+		if err == nil && existingEntity.Id != "" {
+			result[coll.ExternalID] = existingEntity.Id
+			continue
+		}
+
+		// Find parent entity
+		parentID := ""
+		parentPath := getParentPath(coll.CollectionPath)
+		if parentPath != "" && parentPath != "/" {
+			parentEntity, err := repository.GetEntityByPath(tx, parentPath)
+			if err == nil && parentEntity.Id != "" {
+				parentID = parentEntity.Id
+			}
+		}
+
+		// Get entity type ID
+		entityTypeID := ""
+		if mapping, exists := syncOptions.EntityTypeMappings[coll.ExternalType]; exists {
+			entityTypeID = mapping.ClustttaTypeID
+		}
+		if entityTypeID == "" {
+			entityTypeID = genericType.Id
+		}
+
+		// Extract entity name from path
+		entityName := getPathSegmentName(coll.CollectionPath)
+		if entityName == "" {
+			entityName = coll.ExternalName
+		}
+
+		// Create the entity
+		newID := uuid.New().String()
+		entity, err := repository.CreateEntity(tx, newID, entityName, "", entityTypeID, parentID, "", false)
+		if err != nil {
+			// If entity already exists, get it by name and parent
+			if err == error_service.ErrEntityExists || err == error_service.ErrEntityExistsInTrash {
+				existingEntity, getErr := repository.GetEntityByName(tx, entityName, parentID)
+				if getErr == nil {
+					result[coll.ExternalID] = existingEntity.Id
+					continue
+				}
+			}
+			return nil, err
+		}
+
+		result[coll.ExternalID] = entity.Id
+	}
+
+	return result, nil
+}
+
+// createTasks creates all tasks with templates.
+// Returns map of external_id -> created task_id.
+func (s *IntegrationService) createTasks(tx *sqlx.Tx, assets []integrations.SyncAsset, syncOptions *integrations.SyncOptions) (map[string]string, error) {
+	result := make(map[string]string)
+
+	for _, asset := range assets {
+		if asset.Action != "create" {
+			continue
+		}
+
+		// Skip tasks without template mapping - can't create without template
+		if asset.TemplateID == "" {
+			continue
+		}
+
+		// Find parent entity by path
+		parentID := ""
+		if asset.CollectionPath != "" {
+			parentEntity, err := repository.GetEntityByPath(tx, asset.CollectionPath)
+			if err == nil && parentEntity.Id != "" {
+				parentID = parentEntity.Id
+			}
+		}
+
+		// Get task type ID
+		taskTypeID := ""
+		if mapping, exists := syncOptions.TaskTypeMappings[asset.ExternalType]; exists {
+			taskTypeID = mapping.ClustttaTypeID
+		}
+		if taskTypeID == "" {
+			// Fall back to generic type
+			genericType, err := repository.GetTaskTypeByName(tx, "generic")
+			if err != nil {
+				return nil, errors.New("generic task type not found")
+			}
+			taskTypeID = genericType.Id
+		}
+
+		// Create the task
+		newID := uuid.New().String()
+		checkpointGroupID := uuid.New().String()
+
+		task, err := repository.CreateTask(
+			tx,
+			newID,
+			asset.ExternalName,
+			taskTypeID,
+			parentID,
+			false, // isResource
+			asset.TemplateID,
+			"", // description
+			"", // template_file_path (using templateId instead)
+			[]string{},
+			"",    // pointer
+			false, // isLink
+			"",    // previewId
+			"",    // userId
+			"Synced from external integration",
+			checkpointGroupID,
+			nil, // callback
+		)
+		if err != nil {
+			// If task already exists, get it by name and parent
+			if err == error_service.ErrTaskExists || err == error_service.ErrTaskExistsInTrash {
+				// Get template extension to find existing task
+				template, _ := repository.GetTemplate(tx, asset.TemplateID)
+				existingTask, getErr := repository.GetTaskByName(tx, asset.ExternalName, parentID, template.Extension)
+				if getErr == nil {
+					result[asset.ExternalID] = existingTask.Id
+					continue
+				}
+			}
+			return nil, err
+		}
+
+		result[asset.ExternalID] = task.Id
+	}
+
+	return result, nil
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

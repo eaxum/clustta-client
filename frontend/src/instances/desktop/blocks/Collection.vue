@@ -107,7 +107,7 @@
           </div>
         </div> -->
 
-        <div v-if="settingsStore.showTypeIcons" class="entity-item-icon-container">
+        <div v-if="settingsStore.showTypeIcons", @click="console.log(entity)" class="entity-item-icon-container">
           <img class="large-icons" :src="getAppIcon(collectionTypeIcon)" v-tooltip="collectionTypeName">
         </div>
 

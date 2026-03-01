@@ -19,8 +19,8 @@
           </div>
           <div v-else class="preview-tree-content">
             <PreviewVirtuaItem v-for="item in syncPreviewTree" :key="item.id" :item="item" 
-              :depth="0" :itemHeight="48" :expandedItems="expandedItems" :selectedItems="selectedItemsSet" 
-              @toggle-expand="toggleExpand" @toggle-selection="toggleSelection" />
+              :depth="0" :itemHeight="48" :expandedItems="expandedItems" 
+              @toggle-expand="toggleExpand" />
           </div>
         </div>
       </div>
@@ -34,7 +34,7 @@
       <!-- Actions -->
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Create'" :fullWidth="true" :buttonFunction="executeSync" :isActive="hasSelection" :loading="isSyncing" />
+        <GeneralButton :label="'Create'" :fullWidth="true" :buttonFunction="executeSync" :isActive="hasItemsToCreate && !isLoading" :loading="isSyncing" />
       </div>
     </div>
   </div>
@@ -44,6 +44,7 @@
 // imports
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import emitter from '@/lib/mitt';
 
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
@@ -68,7 +69,6 @@ const expandedItems = ref(new Set());
 const isLoading = ref(false);
 const isSyncing = ref(false);
 const loadingMessage = ref('');
-const selectedItems = ref([]);
 
 // computed
 // Returns all assets from sync preview.
@@ -83,8 +83,8 @@ const collections = computed(() => integrationStore.collectionsToSync);
 // Returns count of collections to create (excludes existing).
 const collectionsToCreate = computed(() => collections.value.filter(c => c.action === 'create').length);
 
-// Checks if any items are selected.
-const hasSelection = computed(() => selectedItems.value.length > 0);
+// Checks if there are items to create.
+const hasItemsToCreate = computed(() => collectionsToCreate.value > 0 || assetsToCreate.value > 0);
 
 // Returns the integration name.
 const integrationName = computed(() => {
@@ -93,8 +93,7 @@ const integrationName = computed(() => {
   return integration?.name || id;
 });
 
-// Returns selected items as a Set for efficient lookup.
-const selectedItemsSet = computed(() => new Set(selectedItems.value));
+
 
 // Returns the hierarchical tree for sync preview.
 const syncPreviewTree = computed(() => integrationStore.syncPreviewTree);
@@ -105,18 +104,14 @@ const closeModal = () => {
   modals.disableAllModals();
 };
 
-// Executes sync for selected items.
+// Executes sync - creates all items from the preview.
 const executeSync = async () => {
-  if (!hasSelection.value) return;
-
-  // Split selected items into collections and assets
-  const collectionIds = new Set(collections.value.map(c => c.external_id));
-  const selectedCollectionIds = selectedItems.value.filter(id => collectionIds.has(id));
-  const selectedAssetIds = selectedItems.value.filter(id => !collectionIds.has(id));
+  if (!hasItemsToCreate.value) return;
 
   isSyncing.value = true;
   try {
-    await integrationStore.executeSync(selectedCollectionIds, selectedAssetIds);
+    await integrationStore.executeSync();
+    emitter.emit('refresh-browser');
     closeModal();
   } catch (err) {
     // Error handled by store
@@ -130,7 +125,7 @@ const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
-// Loads sync preview, auto-creating type mappings and missing types.
+// Loads sync preview, auto-creating type mappings.
 const loadSyncPreview = async () => {
   isLoading.value = true;
   loadingMessage.value = 'Loading...';
@@ -140,9 +135,6 @@ const loadSyncPreview = async () => {
     // Load external types from the integration
     loadingMessage.value = 'Fetching types from ' + integrationName.value + '...';
     await integrationStore.getExternalTypes();
-
-    // Load local types from Clustta
-    await integrationStore.getLocalTypes();
 
     // Load existing type mappings
     await integrationStore.loadTypeMappings();
@@ -180,38 +172,20 @@ const loadSyncPreview = async () => {
       task_type_mappings: taskTypeMappingsMap,
     });
 
-    // Get and auto-create missing types
-    await integrationStore.getMissingTypes();
-    const missingTypes = integrationStore.missingTypes || { entity_types: [], task_types: [] };
-    const hasMissingTypes = (missingTypes.entity_types?.length || 0) > 0 || (missingTypes.task_types?.length || 0) > 0;
-
-    if (hasMissingTypes) {
-      loadingMessage.value = 'Creating missing types...';
-      await integrationStore.createMissingTypes();
-    }
-
-    // Load the sync preview
+    // Load the sync preview (missing types are auto-created during ExecuteSync)
     loadingMessage.value = 'Fetching data from ' + integrationName.value + '...';
     await integrationStore.getSyncPreview();
 
     // Load templates for extension display
     await templateStore.reloadTemplates();
 
-    // Pre-select all new items
-    selectAllNew();
+    
   } catch (err) {
     console.error('loadSyncPreview error:', err);
     error.value = err.message || 'Failed to load sync preview';
   } finally {
     isLoading.value = false;
   }
-};
-
-// Selects all items that will be created (excludes existing items).
-const selectAllNew = () => {
-  const collectionIds = collections.value.filter(c => c.action === 'create').map(c => c.external_id);
-  const assetIds = assets.value.filter(a => a.action === 'create').map(a => a.external_id);
-  selectedItems.value = [...collectionIds, ...assetIds];
 };
 
 // Toggles item expand state.
@@ -223,16 +197,6 @@ const toggleExpand = (itemId) => {
     newSet.add(itemId);
   }
   expandedItems.value = newSet;
-};
-
-// Toggles item selection state.
-const toggleSelection = (itemId) => {
-  const index = selectedItems.value.indexOf(itemId);
-  if (index === -1) {
-    selectedItems.value = [...selectedItems.value, itemId];
-  } else {
-    selectedItems.value = selectedItems.value.filter(id => id !== itemId);
-  }
 };
 
 // lifecycle

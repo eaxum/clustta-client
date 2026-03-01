@@ -205,7 +205,7 @@
 
       <div class="task-item-container drop-zone">
 
-        <div class="task-item-icon-container">
+        <div class="task-item-icon-container" @click="console.log(task)" >
           <img v-if="task.icon" class="large-icons no-filter" :src="task.icon">
           <img v-else-if="isUntracked" class="large-icons " :src="getAppIcon(getFileTypeIcon(task))" @error="$event.target.src = getAppIcon('file')">
           <span v-else class="app-ext">
