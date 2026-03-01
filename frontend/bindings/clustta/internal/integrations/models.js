@@ -87,6 +87,58 @@ export class AuthResult {
 }
 
 /**
+ * DirectoryStructure defines path templates for synced items.
+ */
+export class DirectoryStructure {
+    /**
+     * Creates a new DirectoryStructure instance.
+     * @param {Partial<DirectoryStructure>} [$$source = {}] - The source object to create the DirectoryStructure.
+     */
+    constructor($$source = {}) {
+        if (!("preset" in $$source)) {
+            /**
+             * "3d-animation", "custom"
+             * @member
+             * @type {string}
+             */
+            this["preset"] = "";
+        }
+        if (!("style" in $$source)) {
+            /**
+             * "lowercase", "uppercase", "capitalize", "kebab-case"
+             * @member
+             * @type {string}
+             */
+            this["style"] = "";
+        }
+        if (!("paths" in $$source)) {
+            /**
+             * Template ID -> { name, icon, template }
+             * @member
+             * @type {{ [_: string]: any }}
+             */
+            this["paths"] = {};
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DirectoryStructure instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DirectoryStructure}
+     */
+    static createFrom($$source = {}) {
+        const $$createField2_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("paths" in $$parsedSource) {
+            $$parsedSource["paths"] = $$createField2_0($$parsedSource["paths"]);
+        }
+        return new DirectoryStructure(/** @type {Partial<DirectoryStructure>} */($$parsedSource));
+    }
+}
+
+/**
  * ExternalProject represents a project in the external system.
  */
 export class ExternalProject {
@@ -136,6 +188,44 @@ export class ExternalProject {
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new ExternalProject(/** @type {Partial<ExternalProject>} */($$parsedSource));
+    }
+}
+
+/**
+ * ExternalTypeInfo represents a type definition from an external system.
+ */
+export class ExternalTypeInfo {
+    /**
+     * Creates a new ExternalTypeInfo instance.
+     * @param {Partial<ExternalTypeInfo>} [$$source = {}] - The source object to create the ExternalTypeInfo.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ExternalTypeInfo instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ExternalTypeInfo}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ExternalTypeInfo(/** @type {Partial<ExternalTypeInfo>} */($$parsedSource));
     }
 }
 
@@ -208,6 +298,70 @@ export class IntegrationInfo {
 }
 
 /**
+ * MissingType represents an external type that doesn't exist in Clustta.
+ */
+export class MissingType {
+    /**
+     * Creates a new MissingType instance.
+     * @param {Partial<MissingType>} [$$source = {}] - The source object to create the MissingType.
+     */
+    constructor($$source = {}) {
+        if (!("external_name" in $$source)) {
+            /**
+             * Name in external system
+             * @member
+             * @type {string}
+             */
+            this["external_name"] = "";
+        }
+        if (!("external_id" in $$source)) {
+            /**
+             * ID in external system
+             * @member
+             * @type {string}
+             */
+            this["external_id"] = "";
+        }
+        if (!("type_category" in $$source)) {
+            /**
+             * "entity" or "task"
+             * @member
+             * @type {string}
+             */
+            this["type_category"] = "";
+        }
+        if (!("suggested_name" in $$source)) {
+            /**
+             * Suggested Clustta name (lowercase, sanitized)
+             * @member
+             * @type {string}
+             */
+            this["suggested_name"] = "";
+        }
+        if (!("suggested_icon" in $$source)) {
+            /**
+             * Random icon suggestion
+             * @member
+             * @type {string}
+             */
+            this["suggested_icon"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new MissingType instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {MissingType}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new MissingType(/** @type {Partial<MissingType>} */($$parsedSource));
+    }
+}
+
+/**
  * SyncAsset represents an asset to be created or linked.
  */
 export class SyncAsset {
@@ -246,11 +400,19 @@ export class SyncAsset {
         }
         if (!("external_type" in $$source)) {
             /**
-             * "task", "subtask"
+             * Task type name (e.g., "Animation")
              * @member
              * @type {string}
              */
             this["external_type"] = "";
+        }
+        if (!("external_type_id" in $$source)) {
+            /**
+             * External task type ID
+             * @member
+             * @type {string}
+             */
+            this["external_type_id"] = "";
         }
         if (!("external_status" in $$source)) {
             /**
@@ -322,10 +484,10 @@ export class SyncAsset {
      * @returns {SyncAsset}
      */
     static createFrom($$source = {}) {
-        const $$createField6_0 = $$createType0;
+        const $$createField7_0 = $$createType1;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("external_assignees" in $$parsedSource) {
-            $$parsedSource["external_assignees"] = $$createField6_0($$parsedSource["external_assignees"]);
+            $$parsedSource["external_assignees"] = $$createField7_0($$parsedSource["external_assignees"]);
         }
         return new SyncAsset(/** @type {Partial<SyncAsset>} */($$parsedSource));
     }
@@ -452,6 +614,85 @@ export class SyncCollection {
 }
 
 /**
+ * SyncOptions contains configuration stored in integration_project.sync_options.
+ */
+export class SyncOptions {
+    /**
+     * Creates a new SyncOptions instance.
+     * @param {Partial<SyncOptions>} [$$source = {}] - The source object to create the SyncOptions.
+     */
+    constructor($$source = {}) {
+        if (!("entity_type_mappings" in $$source)) {
+            /**
+             * External entity type → Clustta collection type
+             * @member
+             * @type {{ [_: string]: TypeMapping }}
+             */
+            this["entity_type_mappings"] = {};
+        }
+        if (!("task_type_mappings" in $$source)) {
+            /**
+             * External task type → Clustta asset type
+             * @member
+             * @type {{ [_: string]: TypeMapping }}
+             */
+            this["task_type_mappings"] = {};
+        }
+        if (!("task_type_templates" in $$source)) {
+            /**
+             * External task type ID → Clustta template ID
+             * @member
+             * @type {{ [_: string]: string }}
+             */
+            this["task_type_templates"] = {};
+        }
+        if (!("directory_structure" in $$source)) {
+            /**
+             * Folder path templates
+             * @member
+             * @type {DirectoryStructure}
+             */
+            this["directory_structure"] = (new DirectoryStructure());
+        }
+        if (!("last_sync_at" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["last_sync_at"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SyncOptions instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {SyncOptions}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType3;
+        const $$createField1_0 = $$createType3;
+        const $$createField2_0 = $$createType4;
+        const $$createField3_0 = $$createType5;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("entity_type_mappings" in $$parsedSource) {
+            $$parsedSource["entity_type_mappings"] = $$createField0_0($$parsedSource["entity_type_mappings"]);
+        }
+        if ("task_type_mappings" in $$parsedSource) {
+            $$parsedSource["task_type_mappings"] = $$createField1_0($$parsedSource["task_type_mappings"]);
+        }
+        if ("task_type_templates" in $$parsedSource) {
+            $$parsedSource["task_type_templates"] = $$createField2_0($$parsedSource["task_type_templates"]);
+        }
+        if ("directory_structure" in $$parsedSource) {
+            $$parsedSource["directory_structure"] = $$createField3_0($$parsedSource["directory_structure"]);
+        }
+        return new SyncOptions(/** @type {Partial<SyncOptions>} */($$parsedSource));
+    }
+}
+
+/**
  * SyncPreview contains preview data for what will be synced.
  */
 export class SyncPreview {
@@ -481,6 +722,13 @@ export class SyncPreview {
              */
             this["assets"] = [];
         }
+        if (!("missing_types" in $$source)) {
+            /**
+             * @member
+             * @type {MissingType[]}
+             */
+            this["missing_types"] = [];
+        }
         if (!("summary" in $$source)) {
             /**
              * @member
@@ -498,9 +746,10 @@ export class SyncPreview {
      * @returns {SyncPreview}
      */
     static createFrom($$source = {}) {
-        const $$createField1_0 = $$createType2;
-        const $$createField2_0 = $$createType4;
-        const $$createField3_0 = $$createType5;
+        const $$createField1_0 = $$createType7;
+        const $$createField2_0 = $$createType9;
+        const $$createField3_0 = $$createType11;
+        const $$createField4_0 = $$createType12;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("collections" in $$parsedSource) {
             $$parsedSource["collections"] = $$createField1_0($$parsedSource["collections"]);
@@ -508,8 +757,11 @@ export class SyncPreview {
         if ("assets" in $$parsedSource) {
             $$parsedSource["assets"] = $$createField2_0($$parsedSource["assets"]);
         }
+        if ("missing_types" in $$parsedSource) {
+            $$parsedSource["missing_types"] = $$createField3_0($$parsedSource["missing_types"]);
+        }
         if ("summary" in $$parsedSource) {
-            $$parsedSource["summary"] = $$createField3_0($$parsedSource["summary"]);
+            $$parsedSource["summary"] = $$createField4_0($$parsedSource["summary"]);
         }
         return new SyncPreview(/** @type {Partial<SyncPreview>} */($$parsedSource));
     }
@@ -581,10 +833,81 @@ export class SyncPreviewSummary {
     }
 }
 
+/**
+ * TypeMapping maps an external type name to a Clustta type.
+ */
+export class TypeMapping {
+    /**
+     * Creates a new TypeMapping instance.
+     * @param {Partial<TypeMapping>} [$$source = {}] - The source object to create the TypeMapping.
+     */
+    constructor($$source = {}) {
+        if (!("external_name" in $$source)) {
+            /**
+             * Name in external system (e.g., "Animation")
+             * @member
+             * @type {string}
+             */
+            this["external_name"] = "";
+        }
+        if (!("external_id" in $$source)) {
+            /**
+             * ID in external system
+             * @member
+             * @type {string}
+             */
+            this["external_id"] = "";
+        }
+        if (!("clustta_type_id" in $$source)) {
+            /**
+             * Clustta entity_type or task_type ID
+             * @member
+             * @type {string}
+             */
+            this["clustta_type_id"] = "";
+        }
+        if (!("clustta_name" in $$source)) {
+            /**
+             * Clustta type name (e.g., "animation")
+             * @member
+             * @type {string}
+             */
+            this["clustta_name"] = "";
+        }
+        if (!("clustta_icon" in $$source)) {
+            /**
+             * Icon name
+             * @member
+             * @type {string}
+             */
+            this["clustta_icon"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new TypeMapping instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {TypeMapping}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new TypeMapping(/** @type {Partial<TypeMapping>} */($$parsedSource));
+    }
+}
+
 // Private type creation functions
-const $$createType0 = $Create.Array($Create.Any);
-const $$createType1 = SyncCollection.createFrom;
-const $$createType2 = $Create.Array($$createType1);
-const $$createType3 = SyncAsset.createFrom;
-const $$createType4 = $Create.Array($$createType3);
-const $$createType5 = SyncPreviewSummary.createFrom;
+const $$createType0 = $Create.Map($Create.Any, $Create.Any);
+const $$createType1 = $Create.Array($Create.Any);
+const $$createType2 = TypeMapping.createFrom;
+const $$createType3 = $Create.Map($Create.Any, $$createType2);
+const $$createType4 = $Create.Map($Create.Any, $Create.Any);
+const $$createType5 = DirectoryStructure.createFrom;
+const $$createType6 = SyncCollection.createFrom;
+const $$createType7 = $Create.Array($$createType6);
+const $$createType8 = SyncAsset.createFrom;
+const $$createType9 = $Create.Array($$createType8);
+const $$createType10 = MissingType.createFrom;
+const $$createType11 = $Create.Array($$createType10);
+const $$createType12 = SyncPreviewSummary.createFrom;

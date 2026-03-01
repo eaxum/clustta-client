@@ -156,6 +156,18 @@ func (k *KitsuClient) GetProjectEntities(token, apiUrl, projectID string) ([]Ext
 	apiUrl = strings.TrimSuffix(apiUrl, "/")
 	entities := []ExternalEntity{}
 
+	// Fetch asset types first to build lookup map for resolving asset type names
+	assetTypeMap := make(map[string]string)
+	data, err := k.get(token, apiUrl+"/api/data/asset-types")
+	if err == nil {
+		var assetTypes []kitsuAssetType
+		if json.Unmarshal(data, &assetTypes) == nil {
+			for _, at := range assetTypes {
+				assetTypeMap[at.ID] = at.Name
+			}
+		}
+	}
+
 	// Fetch episodes
 	episodes, err := k.getEpisodes(token, apiUrl, projectID)
 	if err != nil {
@@ -178,7 +190,7 @@ func (k *KitsuClient) GetProjectEntities(token, apiUrl, projectID string) ([]Ext
 	entities = append(entities, shots...)
 
 	// Fetch assets (3D models, rigs, etc.)
-	assets, err := k.getAssets(token, apiUrl, projectID)
+	assets, err := k.getAssets(token, apiUrl, projectID, assetTypeMap)
 	if err != nil {
 		return nil, err
 	}
@@ -190,6 +202,19 @@ func (k *KitsuClient) GetProjectEntities(token, apiUrl, projectID string) ([]Ext
 // GetProjectTasks fetches all tasks from the project.
 func (k *KitsuClient) GetProjectTasks(token, apiUrl, projectID string) ([]ExternalTask, error) {
 	apiUrl = strings.TrimSuffix(apiUrl, "/")
+
+	// Fetch task types first to build lookup map
+	taskTypeMap := make(map[string]string)
+	typeData, err := k.get(token, apiUrl+"/api/data/task-types")
+	if err == nil {
+		var taskTypes []kitsuTaskType
+		if json.Unmarshal(typeData, &taskTypes) == nil {
+			for _, tt := range taskTypes {
+				taskTypeMap[tt.ID] = tt.Name
+			}
+		}
+	}
+
 	data, err := k.get(token, apiUrl+"/api/data/projects/"+projectID+"/tasks")
 	if err != nil {
 		return nil, err
@@ -202,6 +227,13 @@ func (k *KitsuClient) GetProjectTasks(token, apiUrl, projectID string) ([]Extern
 
 	tasks := make([]ExternalTask, 0, len(kitsuTasks))
 	for _, t := range kitsuTasks {
+		// Resolve task type name from ID if not provided
+		taskTypeName := t.TaskTypeName
+		if taskTypeName == "" {
+			if name, ok := taskTypeMap[t.TaskTypeID]; ok {
+				taskTypeName = name
+			}
+		}
 		tasks = append(tasks, ExternalTask{
 			ID:          t.ID,
 			ParentID:    t.EntityID,
@@ -209,7 +241,8 @@ func (k *KitsuClient) GetProjectTasks(token, apiUrl, projectID string) ([]Extern
 			Type:        "task",
 			Status:      t.TaskStatusID,
 			Assignees:   t.Assignees,
-			TaskType:    t.TaskTypeName,
+			TaskType:    taskTypeName,
+			TaskTypeID:  t.TaskTypeID,
 			Description: t.Description,
 		})
 	}
@@ -249,6 +282,103 @@ func (k *KitsuClient) UploadPreview(token, apiUrl, taskID, filePath, comment str
 
 	// Upload preview to the comment
 	return k.uploadFile(token, apiUrl+"/api/data/comments/"+commentResp.ID+"/preview", filePath)
+}
+
+// GetEntityTypes fetches all entity types (asset types) from Kitsu.
+// Kitsu has built-in entity types: Episode, Sequence, Shot plus user-defined asset types.
+func (k *KitsuClient) GetEntityTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error) {
+	apiUrl = strings.TrimSuffix(apiUrl, "/")
+	types := []ExternalTypeInfo{}
+
+	// Built-in entity types that Kitsu always has
+	builtinTypes := []ExternalTypeInfo{
+		{ID: "episode", Name: "Episode"},
+		{ID: "sequence", Name: "Sequence"},
+		{ID: "shot", Name: "Shot"},
+	}
+	types = append(types, builtinTypes...)
+
+	// Fetch asset types (user-defined entity types like Character, Prop, Environment)
+	data, err := k.get(token, apiUrl+"/api/data/asset-types")
+	if err != nil {
+		// If we can't fetch asset types, still return built-in types
+		return types, nil
+	}
+
+	var kitsuAssetTypes []kitsuAssetType
+	if err := json.Unmarshal(data, &kitsuAssetTypes); err != nil {
+		return types, nil
+	}
+
+	for _, at := range kitsuAssetTypes {
+		types = append(types, ExternalTypeInfo{
+			ID:   at.ID,
+			Name: at.Name,
+		})
+	}
+
+	return types, nil
+}
+
+// GetTaskTypes fetches task types used in a specific Kitsu project.
+// Only returns task types that have actual tasks in the project.
+func (k *KitsuClient) GetTaskTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error) {
+	apiUrl = strings.TrimSuffix(apiUrl, "/")
+
+	// Fetch all studio task types
+	data, err := k.get(token, apiUrl+"/api/data/task-types")
+	if err != nil {
+		return nil, err
+	}
+
+	var kitsuTaskTypes []kitsuTaskType
+	if err := json.Unmarshal(data, &kitsuTaskTypes); err != nil {
+		return nil, err
+	}
+
+	// Build map of all task types
+	allTaskTypes := make(map[string]kitsuTaskType)
+	for _, tt := range kitsuTaskTypes {
+		allTaskTypes[tt.ID] = tt
+	}
+
+	// Fetch tasks for this project to find which task types are actually used
+	tasksData, err := k.get(token, apiUrl+"/api/data/projects/"+projectID+"/tasks")
+	if err != nil {
+		// If we can't get project tasks, fall back to all task types
+		types := make([]ExternalTypeInfo, 0, len(kitsuTaskTypes))
+		for _, tt := range kitsuTaskTypes {
+			types = append(types, ExternalTypeInfo{
+				ID:   tt.ID,
+				Name: tt.Name,
+			})
+		}
+		return types, nil
+	}
+
+	var projectTasks []kitsuTask
+	if err := json.Unmarshal(tasksData, &projectTasks); err != nil {
+		return nil, err
+	}
+
+	// Extract unique task type IDs from project tasks
+	usedTaskTypeIDs := make(map[string]bool)
+	for _, task := range projectTasks {
+		usedTaskTypeIDs[task.TaskTypeID] = true
+	}
+
+	// Return only task types that are used in this project
+	types := make([]ExternalTypeInfo, 0)
+	for typeID := range usedTaskTypeIDs {
+		if tt, exists := allTaskTypes[typeID]; exists {
+			types = append(types, ExternalTypeInfo{
+				ID:   tt.ID,
+				Name: tt.Name,
+			})
+		}
+	}
+
+	return types, nil
 }
 
 func (k *KitsuClient) get(token, url string) ([]byte, error) {
@@ -432,7 +562,7 @@ func (k *KitsuClient) getShots(token, apiUrl, projectID string) ([]ExternalEntit
 	return entities, nil
 }
 
-func (k *KitsuClient) getAssets(token, apiUrl, projectID string) ([]ExternalEntity, error) {
+func (k *KitsuClient) getAssets(token, apiUrl, projectID string, assetTypeMap map[string]string) ([]ExternalEntity, error) {
 	data, err := k.get(token, apiUrl+"/api/data/projects/"+projectID+"/assets")
 	if err != nil {
 		return nil, err
@@ -445,11 +575,16 @@ func (k *KitsuClient) getAssets(token, apiUrl, projectID string) ([]ExternalEnti
 
 	entities := make([]ExternalEntity, 0, len(kitsuAssets))
 	for _, a := range kitsuAssets {
+		// Resolve asset type name from ID
+		typeName := "Asset"
+		if name, ok := assetTypeMap[a.AssetTypeID]; ok {
+			typeName = name
+		}
 		entities = append(entities, ExternalEntity{
 			ID:       a.ID,
 			ParentID: a.AssetTypeID,
 			Name:     a.Name,
-			Type:     "asset",
+			Type:     typeName,
 			Path:     a.Name,
 			HasTasks: true,
 		})
@@ -502,6 +637,16 @@ type kitsuTask struct {
 	TaskTypeName string   `json:"task_type_name"`
 	TaskStatusID string   `json:"task_status_id"`
 	Assignees    []string `json:"assignees"`
+}
+
+type kitsuAssetType struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type kitsuTaskType struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 // init registers the Kitsu client.

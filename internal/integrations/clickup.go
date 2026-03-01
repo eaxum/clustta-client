@@ -245,6 +245,27 @@ func (c *ClickUpClient) UploadPreview(token, apiUrl, taskID, filePath, comment s
 	return c.uploadAttachment(token, taskID, filePath)
 }
 
+// GetEntityTypes returns entity types for ClickUp.
+// ClickUp uses Folders and Lists as organizational hierarchy.
+func (c *ClickUpClient) GetEntityTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error) {
+	// ClickUp has fixed entity types
+	return []ExternalTypeInfo{
+		{ID: "folder", Name: "Folder"},
+		{ID: "list", Name: "List"},
+	}, nil
+}
+
+// GetTaskTypes returns task types for ClickUp.
+// In ClickUp, task types are custom fields or task templates - not directly applicable.
+// Returns empty as ClickUp doesn't have the same task type concept as Kitsu.
+func (c *ClickUpClient) GetTaskTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error) {
+	// ClickUp tasks don't have types like Kitsu (Animation, Lighting, etc.)
+	// Return a generic task type
+	return []ExternalTypeInfo{
+		{ID: "task", Name: "Task"},
+	}, nil
+}
+
 func (c *ClickUpClient) get(token, url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

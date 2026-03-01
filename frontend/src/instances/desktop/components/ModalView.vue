@@ -71,9 +71,11 @@ import UpdateStudioModal from '@/instances/desktop/modals/UpdateStudioModal.vue'
 import SyncConflictModal from '@/instances/desktop/modals/SyncConflictModal.vue';
 
 // components - integrations
+import DirectoryMappingModal from '@/instances/desktop/modals/DirectoryMappingModal.vue';
 import IntegrationAuthModal from '@/instances/desktop/modals/IntegrationAuthModal.vue';
 import IntegrationLinkModal from '@/instances/desktop/modals/IntegrationLinkModal.vue';
 import IntegrationSyncModal from '@/instances/desktop/modals/IntegrationSyncModal.vue';
+import TaskTypeMappingModal from '@/instances/desktop/modals/TaskTypeMappingModal.vue';
 
 // components - diagnostics
 import SubmitDiagnosticsModal from '@/instances/desktop/modals/SubmitDiagnosticsModal.vue';
@@ -162,9 +164,11 @@ const modalComponents = {
   syncConflictModal: SyncConflictModal,
 
   // integrations
+  directoryMappingModal: DirectoryMappingModal,
   integrationAuthModal: IntegrationAuthModal,
   integrationLinkModal: IntegrationLinkModal,
   integrationSyncModal: IntegrationSyncModal,
+  taskTypeMappingModal: TaskTypeMappingModal,
 
   // diagnostics
   submitDiagnosticsModal: SubmitDiagnosticsModal,

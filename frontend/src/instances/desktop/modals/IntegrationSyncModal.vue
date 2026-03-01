@@ -1,87 +1,58 @@
 <template>
   <div class="modal-container large-modal" v-esc="closeModal">
-    <HeaderArea :title="title" :icon="'sync'" />
+    <HeaderArea :title="'Sync Preview'" :icon="'cloud-sync'" />
 
     <div class="general-container">
       <!-- Loading State -->
       <div v-if="isLoading" class="loading-state">
-        <span>Fetching data from {{ integrationName }}...</span>
+        <span>{{ loadingMessage }}</span>
       </div>
 
-      <!-- Sync Preview Content -->
-      <div v-else-if="syncPreview" class="sync-content">
+      <!-- Sync Preview -->
+      <div v-else-if="!error" class="step-content">
         <!-- Summary -->
         <div class="sync-summary">
           <div class="summary-item">
             <span class="summary-count">{{ collectionsToCreate }}</span>
             <span class="summary-label">New Collections</span>
           </div>
+
           <div class="summary-item">
             <span class="summary-count">{{ assetsToCreate }}</span>
             <span class="summary-label">New Assets</span>
           </div>
-          <div class="summary-item">
-            <span class="summary-count">{{ unchangedCount }}</span>
-            <span class="summary-label">Unchanged</span>
-          </div>
         </div>
 
-        <!-- Tabs -->
-        <div class="sync-tabs">
-          <button class="tab-button" :class="{ active: activeTab === 'collections' }" @click="activeTab = 'collections'">
-            Collections ({{ collections.length }})
-          </button>
-          <button class="tab-button" :class="{ active: activeTab === 'assets' }" @click="activeTab = 'assets'">
-            Assets ({{ assets.length }})
-          </button>
-        </div>
-
-        <!-- Collections List -->
-        <div v-if="activeTab === 'collections'" class="sync-list">
-          <div v-for="item in collections" :key="item.external_id" class="sync-item"
-            :class="{ 'sync-create': item.action === 'create', 'sync-update': item.action === 'update' }">
-            <input type="checkbox" v-model="selectedCollections" :value="item.external_id" :disabled="item.action === 'unchanged'" />
-            <div class="item-info">
-              <span class="item-name">{{ item.external_name }}</span>
-              <span class="item-path">{{ item.external_path }}</span>
-            </div>
-            <span class="item-action" :class="item.action">{{ item.action }}</span>
+        <!-- Tree View -->
+        <div class="sync-preview-scroll">
+          <div v-if="syncPreviewTree.length === 0" class="empty-preview">
+            <img :src="getAppIcon('check-circle')" alt="" class="empty-icon" />
+            <span class="empty-text">Everything is up to date</span>
           </div>
-          <div v-if="collections.length === 0" class="empty-list">No collections to sync</div>
-        </div>
-
-        <!-- Assets List -->
-        <div v-if="activeTab === 'assets'" class="sync-list">
-          <div v-for="item in assets" :key="item.external_id" class="sync-item"
-            :class="{ 'sync-create': item.action === 'create', 'sync-update': item.action === 'update' }">
-            <input type="checkbox" v-model="selectedAssets" :value="item.external_id" :disabled="item.action === 'unchanged'" />
-            <div class="item-info">
-              <span class="item-name">{{ item.external_name }}</span>
-              <span class="item-type">{{ item.external_type }}</span>
-            </div>
-            <span class="item-action" :class="item.action">{{ item.action }}</span>
+          <div v-else class="preview-tree-content">
+            <PreviewVirtuaItem v-for="item in syncPreviewTree" :key="item.id" :item="item" 
+              :depth="0" :itemHeight="36" :expandedItems="expandedItems" :selectedItems="selectedItemsSet" 
+              @toggle-expand="toggleExpand" @toggle-selection="toggleSelection" />
           </div>
-          <div v-if="assets.length === 0" class="empty-list">No assets to sync</div>
         </div>
 
         <!-- Selection Controls -->
         <div class="selection-controls">
-          <ActionButton :icon="getAppIcon('select-all')" :label="'Select All New'" :buttonFunction="selectAllNew" />
-          <ActionButton :icon="getAppIcon('deselect')" :label="'Clear Selection'" :buttonFunction="clearSelection" />
+          <ActionButton :icon="getAppIcon('select-all')" :label="'Select All'" :buttonFunction="selectAllNew" />
+          <ActionButton :icon="getAppIcon('deselect')" :label="'Clear'" :buttonFunction="clearSelection" />
         </div>
       </div>
 
       <!-- Error State -->
       <div v-else-if="error" class="error-state">
         <p>{{ error }}</p>
-        <GeneralButton :label="'Retry'" :buttonFunction="loadPreview" />
+        <GeneralButton :label="'Retry'" :buttonFunction="loadSyncPreview" />
       </div>
 
       <!-- Actions -->
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Sync Selected'" :fullWidth="true" @click="executeSync"
-          :isActive="hasSelection" :loading="isSyncing" />
+        <GeneralButton :label="'Sync Selected'" :fullWidth="true" :buttonFunction="executeSync" :isActive="hasSelection" :loading="isSyncing" />
       </div>
     </div>
   </div>
@@ -96,45 +67,45 @@ import { useI18n } from 'vue-i18n';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import PreviewVirtuaItem from '@/instances/common/components/PreviewVirtuaItem.vue';
 
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useIntegrationStore } from '@/stores/integrations';
 import { useNotificationStore } from '@/stores/notifications';
+import { useTemplateStore } from '@/stores/template';
 
 const { t } = useI18n();
 const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
+const templateStore = useTemplateStore();
 
 // refs
-const activeTab = ref('collections');
 const error = ref(null);
+const expandedItems = ref(new Set());
 const isLoading = ref(false);
 const isSyncing = ref(false);
-const selectedAssets = ref([]);
-const selectedCollections = ref([]);
-
-// constants
-const title = 'Sync Preview';
+const loadingMessage = ref('');
+const selectedItems = ref([]);
 
 // computed
 // Returns all assets from sync preview.
 const assets = computed(() => integrationStore.assetsToSync);
 
-// Returns count of assets to create.
+// Returns count of assets to create (excludes existing).
 const assetsToCreate = computed(() => assets.value.filter(a => a.action === 'create').length);
 
 // Returns all collections from sync preview.
 const collections = computed(() => integrationStore.collectionsToSync);
 
-// Returns count of collections to create.
+// Returns count of collections to create (excludes existing).
 const collectionsToCreate = computed(() => collections.value.filter(c => c.action === 'create').length);
 
 // Checks if any items are selected.
-const hasSelection = computed(() => selectedCollections.value.length > 0 || selectedAssets.value.length > 0);
+const hasSelection = computed(() => selectedItems.value.length > 0);
 
 // Returns the integration name.
 const integrationName = computed(() => {
@@ -143,21 +114,16 @@ const integrationName = computed(() => {
   return integration?.name || id;
 });
 
-// Returns the sync preview data.
-const syncPreview = computed(() => integrationStore.syncPreview);
+// Returns selected items as a Set for efficient lookup.
+const selectedItemsSet = computed(() => new Set(selectedItems.value));
 
-// Returns count of unchanged items.
-const unchangedCount = computed(() => {
-  const unchangedCollections = collections.value.filter(c => c.action === 'unchanged').length;
-  const unchangedAssets = assets.value.filter(a => a.action === 'unchanged').length;
-  return unchangedCollections + unchangedAssets;
-});
+// Returns the hierarchical tree for sync preview.
+const syncPreviewTree = computed(() => integrationStore.syncPreviewTree);
 
 // methods
 // Clears all selections.
 const clearSelection = () => {
-  selectedCollections.value = [];
-  selectedAssets.value = [];
+  selectedItems.value = [];
 };
 
 // Closes the modal.
@@ -169,9 +135,14 @@ const closeModal = () => {
 const executeSync = async () => {
   if (!hasSelection.value) return;
 
+  // Split selected items into collections and assets
+  const collectionIds = new Set(collections.value.map(c => c.external_id));
+  const selectedCollectionIds = selectedItems.value.filter(id => collectionIds.has(id));
+  const selectedAssetIds = selectedItems.value.filter(id => !collectionIds.has(id));
+
   isSyncing.value = true;
   try {
-    await integrationStore.executeSync(selectedCollections.value, selectedAssets.value);
+    await integrationStore.executeSync(selectedCollectionIds, selectedAssetIds);
     closeModal();
   } catch (err) {
     // Error handled by store
@@ -185,48 +156,155 @@ const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
-// Loads the sync preview.
-const loadPreview = async () => {
+// Loads sync preview, auto-creating type mappings and missing types.
+const loadSyncPreview = async () => {
   isLoading.value = true;
+  loadingMessage.value = 'Loading...';
   error.value = null;
 
   try {
+    // Load external types from the integration
+    loadingMessage.value = 'Fetching types from ' + integrationName.value + '...';
+    await integrationStore.getExternalTypes();
+
+    // Load local types from Clustta
+    await integrationStore.getLocalTypes();
+
+    // Load existing type mappings
+    await integrationStore.loadTypeMappings();
+
+    // Auto-generate 1:1 type mappings for any unmapped types
+    const entityTypeMappingsMap = { ...(integrationStore.typeMappings?.entity_type_mappings || {}) };
+    for (const type of integrationStore.externalEntityTypes) {
+      if (!entityTypeMappingsMap[type.name]) {
+        entityTypeMappingsMap[type.name] = {
+          external_name: type.name,
+          external_id: type.id,
+          clustta_name: type.name,
+          clustta_icon: 'folder',
+        };
+      }
+    }
+
+    const taskTypeMappingsMap = { ...(integrationStore.typeMappings?.task_type_mappings || {}) };
+    for (const type of integrationStore.externalTaskTypes) {
+      if (!taskTypeMappingsMap[type.name]) {
+        taskTypeMappingsMap[type.name] = {
+          external_name: type.name,
+          external_id: type.id,
+          clustta_name: type.name,
+          clustta_icon: 'generic',
+        };
+      }
+    }
+
+    // Save auto-generated mappings (preserving existing directory_structure and task_type_templates)
+    loadingMessage.value = 'Saving type mappings...';
+    await integrationStore.saveTypeMappings({
+      ...integrationStore.typeMappings,
+      entity_type_mappings: entityTypeMappingsMap,
+      task_type_mappings: taskTypeMappingsMap,
+    });
+
+    // Get and auto-create missing types
+    await integrationStore.getMissingTypes();
+    const missingTypes = integrationStore.missingTypes || { entity_types: [], task_types: [] };
+    const hasMissingTypes = (missingTypes.entity_types?.length || 0) > 0 || (missingTypes.task_types?.length || 0) > 0;
+
+    if (hasMissingTypes) {
+      loadingMessage.value = 'Creating missing types...';
+      await integrationStore.createMissingTypes();
+    }
+
+    // Load the sync preview
+    loadingMessage.value = 'Fetching data from ' + integrationName.value + '...';
     await integrationStore.getSyncPreview();
-    // Pre-select items to create
+
+    // Load templates for extension display
+    await templateStore.reloadTemplates();
+
+    // Pre-select all new items
     selectAllNew();
   } catch (err) {
+    console.error('loadSyncPreview error:', err);
     error.value = err.message || 'Failed to load sync preview';
   } finally {
     isLoading.value = false;
   }
 };
 
-// Selects all items that need to be created.
+// Selects all items that will be created (excludes existing items).
 const selectAllNew = () => {
-  selectedCollections.value = collections.value
-    .filter(c => c.action === 'create')
-    .map(c => c.external_id);
-  selectedAssets.value = assets.value
-    .filter(a => a.action === 'create')
-    .map(a => a.external_id);
+  const collectionIds = collections.value.filter(c => c.action === 'create').map(c => c.external_id);
+  const assetIds = assets.value.filter(a => a.action === 'create').map(a => a.external_id);
+  selectedItems.value = [...collectionIds, ...assetIds];
+};
+
+// Toggles item expand state.
+const toggleExpand = (itemId) => {
+  const newSet = new Set(expandedItems.value);
+  if (newSet.has(itemId)) {
+    newSet.delete(itemId);
+  } else {
+    newSet.add(itemId);
+  }
+  expandedItems.value = newSet;
+};
+
+// Toggles item selection state.
+const toggleSelection = (itemId) => {
+  const index = selectedItems.value.indexOf(itemId);
+  if (index === -1) {
+    selectedItems.value = [...selectedItems.value, itemId];
+  } else {
+    selectedItems.value = selectedItems.value.filter(id => id !== itemId);
+  }
 };
 
 // lifecycle
 onMounted(() => {
-  loadPreview();
+  loadSyncPreview();
 });
 </script>
 
 <style scoped>
-.large-modal {
-  width: 600px;
+@import "@/assets/desktop.css";
+
+.modal-container {
   max-height: 80vh;
+  max-width: 90vw;
 }
 
-.sync-content {
+.general-container {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: 90vw;
+  max-width: 900px;
+  box-sizing: border-box;
+}
+
+.step-content {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.step-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.step-content::-webkit-scrollbar-thumb {
+  border-radius: var(--small-radius);
+  background-color: var(--light-steel);
+}
+
+.step-content::-webkit-scrollbar-track {
+  border-radius: var(--small-radius);
 }
 
 .sync-summary {
@@ -235,6 +313,7 @@ onMounted(() => {
   padding: 16px;
   background: var(--surface-primary);
   border-radius: var(--small-radius);
+  flex-shrink: 0;
 }
 
 .summary-item {
@@ -255,135 +334,12 @@ onMounted(() => {
   color: var(--text-secondary);
 }
 
-.sync-tabs {
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  background: var(--surface-primary);
-  border-radius: var(--small-radius);
-}
-
-.tab-button {
-  flex: 1;
-  padding: 8px 16px;
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  border-radius: var(--small-radius);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.tab-button.active {
-  background: var(--surface-secondary);
-  color: var(--text-primary);
-}
-
-.sync-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.sync-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.sync-list::-webkit-scrollbar-thumb {
-  border-radius: var(--small-radius);
-  background-color: var(--light-steel);
-}
-
-.sync-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  background: var(--surface-primary);
-  border-radius: var(--small-radius);
-  border-left: 3px solid transparent;
-}
-
-.sync-item.sync-create {
-  border-left-color: var(--color-success);
-}
-
-.sync-item.sync-update {
-  border-left-color: var(--color-warning);
-}
-
-.sync-item input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-
-.sync-item input[type="checkbox"]:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.item-info {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-}
-
-.item-name {
-  font-weight: 500;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.item-path,
-.item-type {
-  font-size: 11px;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.item-action {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: var(--small-radius);
-  text-transform: capitalize;
-}
-
-.item-action.create {
-  background: var(--color-success-subtle);
-  color: var(--color-success);
-}
-
-.item-action.update {
-  background: var(--color-warning-subtle);
-  color: var(--color-warning);
-}
-
-.item-action.unchanged {
-  background: var(--surface-secondary);
-  color: var(--text-tertiary);
-}
-
 .selection-controls {
   display: flex;
   justify-content: center;
   gap: 16px;
   padding-top: 8px;
-}
-
-.empty-list {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 32px;
-  color: var(--text-secondary);
+  flex-shrink: 0;
 }
 
 .loading-state,
@@ -395,5 +351,55 @@ onMounted(() => {
   padding: 48px;
   gap: 16px;
   color: var(--text-secondary);
+}
+
+.sync-preview-scroll {
+  display: flex;
+  flex-direction: column;
+  max-height: 350px;
+  overflow-y: auto;
+  border-radius: var(--small-radius);
+  background: var(--surface-secondary);
+}
+
+.sync-preview-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sync-preview-scroll::-webkit-scrollbar-thumb {
+  border-radius: var(--small-radius);
+  background-color: var(--light-steel);
+}
+
+.sync-preview-scroll::-webkit-scrollbar-track {
+  border-radius: var(--small-radius);
+}
+
+.preview-tree-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+}
+
+.empty-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 12px;
+}
+
+.empty-icon {
+  width: 48px;
+  height: 48px;
+  opacity: 0.4;
+}
+
+.empty-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 </style>

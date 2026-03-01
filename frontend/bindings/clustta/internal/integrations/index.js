@@ -4,10 +4,15 @@
 
 export {
     AuthResult,
+    DirectoryStructure,
     ExternalProject,
+    ExternalTypeInfo,
     IntegrationInfo,
+    MissingType,
     SyncAsset,
     SyncCollection,
+    SyncOptions,
     SyncPreview,
-    SyncPreviewSummary
+    SyncPreviewSummary,
+    TypeMapping
 } from "./models.js";

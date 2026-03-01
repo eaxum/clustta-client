@@ -85,6 +85,8 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       integrationAuthModal: false,
       integrationLinkModal: false,
       integrationSyncModal: false,
+      directoryMappingModal: false,
+      taskTypeMappingModal: false,
 
       // diagnostics
       submitDiagnosticsModal: false,
