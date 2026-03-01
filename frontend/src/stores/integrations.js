@@ -151,11 +151,11 @@ export const useIntegrationStore = defineStore('integrations', {
           await this.saveTokens();
           return { success: true, user: result };
         } else {
-          notificationStore.addNotification(result.error || 'Authentication failed', 'error');
+          notificationStore.addNotification(result.error || 'Authentication failed', '', 'error');
           return { success: false, error: result.error };
         }
       } catch (error) {
-        notificationStore.addNotification(error.message || 'Authentication failed', 'error');
+        notificationStore.addNotification(error.message || 'Authentication failed', '', 'error');
         return { success: false, error: error.message };
       } finally {
         this.isAuthenticating = false;
@@ -214,10 +214,10 @@ export const useIntegrationStore = defineStore('integrations', {
           String(tokenData.userId || '')
         );
         this.linkedIntegration = result;
-        notificationStore.addNotification('Project linked to ' + externalProjectName, 'success');
+        notificationStore.addNotification('Project linked to ' + externalProjectName, '', 'success');
         return result;
       } catch (error) {
-        notificationStore.addNotification(error.message || 'Failed to link project', 'error');
+        notificationStore.addNotification(error.message || 'Failed to link project', '', 'error');
         throw error;
       }
     },
@@ -235,9 +235,9 @@ export const useIntegrationStore = defineStore('integrations', {
         await IntegrationService.UnlinkProject(projectStore.activeProject.uri);
         this.linkedIntegration = null;
         this.syncPreview = null;
-        notificationStore.addNotification('Integration unlinked', 'success');
+        notificationStore.addNotification('Integration unlinked', '', 'success');
       } catch (error) {
-        notificationStore.addNotification(error.message || 'Failed to unlink project', 'error');
+        notificationStore.addNotification(error.message || 'Failed to unlink project', '', 'error');
         throw error;
       }
     },
@@ -283,9 +283,9 @@ export const useIntegrationStore = defineStore('integrations', {
           selectedAssets
         );
         this.lastSyncAt = new Date().toISOString();
-        notificationStore.addNotification('Sync completed successfully', 'success');
+        notificationStore.addNotification('Sync completed successfully', '', 'success');
       } catch (error) {
-        notificationStore.addNotification(error.message || 'Sync failed', 'error');
+        notificationStore.addNotification(error.message || 'Sync failed', '', 'error');
         throw error;
       } finally {
         this.isSyncing = false;
@@ -379,9 +379,9 @@ export const useIntegrationStore = defineStore('integrations', {
       try {
         await IntegrationService.SaveTypeMappings(projectStore.activeProject.uri, syncOptions);
         this.typeMappings = syncOptions;
-        notificationStore.addNotification('Type mappings saved', 'success');
+        notificationStore.addNotification('Type mappings saved', '', 'success');
       } catch (error) {
-        notificationStore.addNotification(error.message || 'Failed to save type mappings', 'error');
+        notificationStore.addNotification(error.message || 'Failed to save type mappings', '', 'error');
         throw error;
       }
     },
@@ -496,9 +496,9 @@ export const useIntegrationStore = defineStore('integrations', {
         // Reload local types
         await this.getLocalTypes();
         this.missingTypes = [];
-        notificationStore.addNotification(`Created ${typesToCreate.length} type(s)`, 'success');
+        notificationStore.addNotification(`Created ${typesToCreate.length} type(s)`, '', 'success');
       } catch (error) {
-        notificationStore.addNotification(error.message || 'Failed to create types', 'error');
+        notificationStore.addNotification(error.message || 'Failed to create types', '', 'error');
         throw error;
       } finally {
         this.isLoading = false;

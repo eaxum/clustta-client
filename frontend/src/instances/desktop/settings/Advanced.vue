@@ -24,25 +24,25 @@
 
           <!-- Directory Mapping (only when integration linked) -->
           <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openDirectoryMapping">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('folder-tree')"></div>
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('file-path')"></div>
             <div class="settings-content">
               <div class="settings-header">Directory Mapping</div>
               <div class="settings-body">Configure folder structure for synced items</div>
             </div>
             <div class="settings-action" v-stop-propagation>
-              <ActionButton :icon="getAppIcon('settings-2')" :label="'Configure'" :buttonFunction="openDirectoryMapping" />
+              <ActionButton :icon="getAppIcon('cog')" :label="'Configure'" :buttonFunction="openDirectoryMapping" />
             </div>
           </div>
 
           <!-- Task Type Templates (only when integration linked) -->
           <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openTaskTypeMapping">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('file-type')"></div>
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('extension')"></div>
             <div class="settings-content">
               <div class="settings-header">Task Type Templates</div>
               <div class="settings-body">Map task types to file templates</div>
             </div>
             <div class="settings-action" v-stop-propagation>
-              <ActionButton :icon="getAppIcon('settings-2')" :label="'Configure'" :buttonFunction="openTaskTypeMapping" />
+              <ActionButton :icon="getAppIcon('cog')" :label="'Configure'" :buttonFunction="openTaskTypeMapping" />
             </div>
           </div>
 
