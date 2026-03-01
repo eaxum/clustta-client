@@ -9,6 +9,7 @@ export {
     ExternalTypeInfo,
     IntegrationInfo,
     MissingType,
+    PreviewItem,
     SyncAsset,
     SyncCollection,
     SyncOptions,

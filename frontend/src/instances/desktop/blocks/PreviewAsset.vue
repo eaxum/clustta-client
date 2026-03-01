@@ -1,10 +1,8 @@
 <template>
   <div class="preview-asset" :class="{ 'preview-asset-selected': isSelected }">
-    <div class="preview-checkbox" @click.stop="toggleSelection">
-      <img class="tiny-icons" :src="checkboxIcon">
+    <div class="asset-spacer">
+      <img v-if="fileIcon" class="small-icons" :src="fileIcon" v-tooltip="fileExtension">
     </div>
-
-    <div class="asset-spacer" ></div>
 
     <div class="preview-type-icon">
       <img class="small-icons" :src="typeIcon" v-tooltip="typeName">
@@ -12,7 +10,7 @@
 
     <div class="preview-content" @click="console.log(task)" >
       <span class="preview-name">{{ task.name }}</span>
-      <span v-if="templateExtension" class="preview-extension">{{ templateExtension }}</span>
+      <span v-if="fileExtension" class="preview-extension">{{ fileExtension }}</span>
     </div>
 
     <div class="preview-meta">
@@ -23,17 +21,13 @@
 
 <script setup>
 // imports
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import utils from '@/services/utils';
 
 // stores
 import { useIconStore } from '@/stores/icons';
-import { useIntegrationStore } from '@/stores/integrations';
-import { useTemplateStore } from '@/stores/template';
 
 const iconStore = useIconStore();
-const integrationStore = useIntegrationStore();
-const templateStore = useTemplateStore();
 
 // props
 const props = defineProps({
@@ -42,24 +36,15 @@ const props = defineProps({
 });
 
 // emits
-const emit = defineEmits(['toggle-selection']);
+const emit = defineEmits([]);
+
+// refs
+const fileIcon = ref('');
 
 // computed
-// Returns the checkbox icon based on selection state.
-const checkboxIcon = computed(() => {
-  return props.isSelected 
-    ? iconStore.getAppIcon('checkbox-selected') 
-    : iconStore.getAppIcon('checkbox-unselected');
-});
-
-// Returns the template extension for this task type.
-const templateExtension = computed(() => {
-  const taskTypeTemplates = integrationStore.typeMappings?.task_type_templates || {};
-  const templateId = taskTypeTemplates[props.task.external_type_id];
-  if (!templateId) return null;
-  
-  const template = templateStore.templates.find(t => t.id === templateId);
-  return template?.extension || null;
+// Returns the file extension from the template (e.g., ".blend").
+const fileExtension = computed(() => {
+  return props.task.template_extension || null;
 });
 
 // Returns the type icon path.
@@ -74,10 +59,21 @@ const typeName = computed(() => {
 });
 
 // methods
-// Toggles the selection state.
-const toggleSelection = () => {
-  emit('toggle-selection', props.task.id);
+// Loads the file icon based on extension.
+const loadFileIcon = async () => {
+  if (fileExtension.value) {
+    // Remove leading dot for icon lookup
+    const ext = fileExtension.value.startsWith('.') 
+      ? fileExtension.value.substring(1) 
+      : fileExtension.value;
+    fileIcon.value = await iconStore.getIcon(ext) || '';
+  }
 };
+
+// lifecycle
+onMounted(() => {
+  loadFileIcon();
+});
 </script>
 
 <style scoped>
@@ -111,20 +107,10 @@ const toggleSelection = () => {
   background-color: var(--solid-blue-steel);
 }
 
-.preview-checkbox {
+.asset-spacer {
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  padding: 0.2rem;
-  border-radius: var(--tiny-radius);
-}
-
-.preview-checkbox:hover {
-  background-color: var(--light-steel);
-}
-
-.asset-spacer {
   min-width: 24px;
 }
 

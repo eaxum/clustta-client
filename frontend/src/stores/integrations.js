@@ -23,11 +23,6 @@ export const useIntegrationStore = defineStore('integrations', {
   }),
 
   getters: {
-    // Get token for a specific integration
-    getToken: (state) => (integrationId) => {
-      return state.tokens[integrationId]?.token || null;
-    },
-
     // Get API URL for a specific integration
     getApiUrl: (state) => (integrationId) => {
       return state.tokens[integrationId]?.apiUrl || null;
@@ -36,11 +31,6 @@ export const useIntegrationStore = defineStore('integrations', {
     // Check if authenticated with a specific integration
     isAuthenticated: (state) => (integrationId) => {
       return !!state.tokens[integrationId]?.token;
-    },
-
-    // Check if current project has an integration linked
-    hasLinkedIntegration: (state) => {
-      return !!state.linkedIntegration;
     },
 
     // Get the linked integration type
@@ -65,139 +55,50 @@ export const useIntegrationStore = defineStore('integrations', {
       return state.syncPreview.assets || [];
     },
 
-    // Builds a hierarchical tree from collection_path values (from DirectoryMapping).
-    // Creates folder nodes for path segments and places items at their correct locations.
+    // Legacy getter for backward compatibility - builds tree from preview_items
     syncPreviewTree: (state) => {
-      if (!state.syncPreview) return [];
+      if (!state.syncPreview?.preview_items) return [];
 
-      const collections = state.syncPreview.collections || [];
-      const assets = state.syncPreview.assets || [];
+      const items = state.syncPreview.preview_items;
 
-      // Root node to hold everything
-      const root = { children: new Map() };
-
-      // Helper to get or create a folder node at a path
-      const getOrCreateFolder = (pathSegments) => {
-        let current = root;
-        for (const segment of pathSegments) {
-          if (!current.children.has(segment)) {
-            current.children.set(segment, {
-              id: `folder-${pathSegments.slice(0, pathSegments.indexOf(segment) + 1).join('/')}`,
-              type: 'entity',
-              name: segment,
-              entity_type_name: 'Folder',
-              entity_type_icon: 'folder',
-              external_type: 'folder',
-              action: 'virtual',
-              children: new Map(),
-            });
-          }
-          current = current.children.get(segment);
+      // Group items by parent_path
+      const childrenMap = new Map();
+      for (const item of items) {
+        const parent = item.parent_path || '/';
+        if (!childrenMap.has(parent)) {
+          childrenMap.set(parent, []);
         }
-        return current;
+        childrenMap.get(parent).push(item);
+      }
+
+      // Recursively build tree structure
+      const buildNode = (item) => {
+        const children = childrenMap.get(item.collection_path) || [];
+        return {
+          id: item.id,
+          type: item.item_type === 'task' ? 'task' : 'entity',
+          name: item.name,
+          entity_type_name: item.type_name,
+          entity_type_icon: item.type_icon || 'folder',
+          task_type_name: item.type_name,
+          task_type_icon: item.type_icon || 'generic',
+          external_id: item.external_id,
+          external_type: item.external_type,
+          external_type_id: item.external_type_id,
+          collection_path: item.collection_path,
+          parent_path: item.parent_path,
+          action: item.action,
+          is_virtual: item.is_virtual,
+          has_children: item.has_children,
+          template_id: item.template_id,
+          template_extension: item.template_extension,
+          children: children.map(buildNode),
+        };
       };
 
-      // Place collections into tree based on collection_path
-      collections.forEach(c => {
-        const path = c.collection_path || c.external_name;
-        const segments = path.split('/').filter(s => s);
-        
-        if (segments.length === 0) return;
-
-        // Parent path is all segments except the last one
-        const parentSegments = segments.slice(0, -1);
-        const parent = parentSegments.length > 0 ? getOrCreateFolder(parentSegments) : root;
-
-        // Use last segment as key (matches getOrCreateFolder's segment-based lookup)
-        const key = segments[segments.length - 1];
-
-        // Check if a virtual folder already exists at this key (from child paths processed earlier)
-        const existingNode = parent.children.get(key);
-        
-        // Create the collection node, preserving children from any existing virtual folder
-        const collectionNode = {
-          id: c.external_id,
-          type: 'entity',
-          name: c.external_name,
-          entity_type_name: c.entity_type_name,
-          entity_type_icon: c.entity_type_icon || 'folder',
-          external_id: c.external_id,
-          external_type: c.external_type,
-          collection_path: c.collection_path,
-          action: c.action,
-          children: existingNode?.children instanceof Map ? existingNode.children : new Map(),
-        };
-
-        parent.children.set(key, collectionNode);
-      });
-
-      // Place assets into tree based on their collection_path (parent folder)
-      assets.forEach(a => {
-        const parentPath = a.collection_path || '';
-        const parentSegments = parentPath.split('/').filter(s => s);
-        const parent = parentSegments.length > 0 ? getOrCreateFolder(parentSegments) : root;
-
-        const assetNode = {
-          id: a.external_id,
-          type: 'task',
-          name: a.external_name,
-          task_type_name: a.task_type_name,
-          task_type_icon: a.task_type_icon || 'generic',
-          external_id: a.external_id,
-          external_type: a.external_type,
-          external_type_id: a.external_type_id,
-          collection_path: a.collection_path,
-          action: a.action,
-          children: new Map(),
-        };
-
-        // Use external_id as key for assets
-        parent.children.set(`asset-${a.external_id}`, assetNode);
-      });
-
-      // Convert Map children to arrays recursively
-      const convertToArray = (node) => {
-        if (node.children instanceof Map) {
-          node.children = Array.from(node.children.values()).map(convertToArray);
-        }
-        return node;
-      };
-
-      return Array.from(root.children.values()).map(convertToArray);
-    },
-
-    // Missing types from sync preview
-    missingTypesFromPreview: (state) => {
-      if (!state.syncPreview) return [];
-      return state.syncPreview.missing_types || [];
-    },
-
-    // Check if there are missing types
-    hasMissingTypes: (state) => {
-      if (!state.syncPreview) return false;
-      return (state.syncPreview.missing_types || []).length > 0;
-    },
-
-    // Count of missing entity types
-    missingEntityTypesCount: (state) => {
-      if (!state.syncPreview?.missing_types) return 0;
-      return state.syncPreview.missing_types.filter(t => t.type_category === 'entity').length;
-    },
-
-    // Count of missing task types
-    missingTaskTypesCount: (state) => {
-      if (!state.syncPreview?.missing_types) return 0;
-      return state.syncPreview.missing_types.filter(t => t.type_category === 'task').length;
-    },
-
-    // Entity type mappings from sync options
-    entityTypeMappings: (state) => {
-      return state.typeMappings?.entity_type_mappings || {};
-    },
-
-    // Task type mappings from sync options
-    taskTypeMappings: (state) => {
-      return state.typeMappings?.task_type_mappings || {};
+      // Start from root items
+      const rootItems = childrenMap.get('/') || [];
+      return rootItems.map(buildNode);
     },
   },
 
@@ -258,24 +159,6 @@ export const useIntegrationStore = defineStore('integrations', {
         return { success: false, error: error.message };
       } finally {
         this.isAuthenticating = false;
-      }
-    },
-
-    // Validate stored token
-    async validateToken(integrationId) {
-      const tokenData = this.tokens[integrationId];
-      if (!tokenData?.token) return false;
-
-      try {
-        const valid = await IntegrationService.ValidateToken(integrationId, tokenData.token, tokenData.apiUrl);
-        if (!valid) {
-          // Token expired, remove it
-          delete this.tokens[integrationId];
-          await this.saveTokens();
-        }
-        return valid;
-      } catch (error) {
-        return false;
       }
     },
 

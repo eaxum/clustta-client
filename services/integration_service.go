@@ -7,12 +7,11 @@ import (
 	"clustta/internal/utils"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 )
 
-// IntegrationService handles external integration operations (Kitsu, ClickUp, etc.)
+// IntegrationService handles external integration operations (Kitsu, etc.)
 // Exposed to frontend via Wails bindings.
 type IntegrationService struct {
 }
@@ -23,15 +22,6 @@ func (s *IntegrationService) GetAvailableIntegrations() []integrations.Integrati
 	return integrations.GetAllInfo()
 }
 
-// GetIntegration returns info for a specific integration by ID.
-func (s *IntegrationService) GetIntegration(integrationId string) (integrations.IntegrationInfo, error) {
-	integration, err := integrations.Get(integrationId)
-	if err != nil {
-		return integrations.IntegrationInfo{}, err
-	}
-	return integration.GetInfo(), nil
-}
-
 // Authenticate authenticates with an external integration.
 // Returns auth result with user info and token on success.
 func (s *IntegrationService) Authenticate(integrationId string, credentials map[string]string) (integrations.AuthResult, error) {
@@ -40,15 +30,6 @@ func (s *IntegrationService) Authenticate(integrationId string, credentials map[
 		return integrations.AuthResult{}, err
 	}
 	return integration.Authenticate(credentials)
-}
-
-// ValidateToken validates an existing token is still valid.
-func (s *IntegrationService) ValidateToken(integrationId, token, apiUrl string) (bool, error) {
-	integration, err := integrations.Get(integrationId)
-	if err != nil {
-		return false, err
-	}
-	return integration.ValidateToken(token, apiUrl)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -188,19 +169,8 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		syncOptions.TaskTypeMappings = make(map[string]integrations.TypeMapping)
 	}
 
-	// DEBUG: Log raw sync_options and parsed directory structure
-	fmt.Printf("DEBUG raw sync_options: %s\n", integrationProject.SyncOptions)
-	fmt.Printf("DEBUG DirectoryStructure.Preset: %q\n", syncOptions.DirectoryStructure.Preset)
-	fmt.Printf("DEBUG DirectoryStructure.Style: %q\n", syncOptions.DirectoryStructure.Style)
-	fmt.Printf("DEBUG DirectoryStructure.Paths: %+v\n", syncOptions.DirectoryStructure.Paths)
-	if syncOptions.DirectoryStructure.Paths != nil {
-		for key, val := range syncOptions.DirectoryStructure.Paths {
-			fmt.Printf("DEBUG   Path[%s] = %+v\n", key, val)
-		}
-	}
-
 	// Apply default directory structure if none configured
-	if syncOptions.DirectoryStructure.Paths == nil || len(syncOptions.DirectoryStructure.Paths) == 0 {
+	if len(syncOptions.DirectoryStructure.Paths) == 0 {
 		syncOptions.DirectoryStructure = integrations.DirectoryStructure{
 			Preset: "3d-animation",
 			Style:  "lowercase",
@@ -217,7 +187,6 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 				},
 			},
 		}
-		fmt.Printf("DEBUG Applied default directory structure\n")
 	}
 
 	// Fetch external hierarchy
@@ -239,6 +208,16 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 	existingAssets, err := repository.GetAssetMappings(tx, integrationProject.IntegrationId)
 	if err != nil {
 		return integrations.SyncPreview{}, err
+	}
+
+	// Load templates for extension lookup
+	templates, err := repository.GetTemplates(tx, false)
+	if err != nil {
+		return integrations.SyncPreview{}, err
+	}
+	templateByID := make(map[string]models.Template)
+	for _, t := range templates {
+		templateByID[t.Id] = t
 	}
 
 	// Build lookup maps for existing mappings (by external ID)
@@ -358,6 +337,18 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 			missingTaskTypes[task.TaskType] = true
 		}
 
+		// Get template mapping
+		templateID := ""
+		templateExtension := ""
+		if syncOptions.TaskTypeTemplates != nil {
+			if tmplID, ok := syncOptions.TaskTypeTemplates[task.TaskTypeID]; ok {
+				templateID = tmplID
+				if tmpl, exists := templateByID[tmplID]; exists {
+					templateExtension = tmpl.Extension
+				}
+			}
+		}
+
 		// This is a new asset to create
 		preview.Assets = append(preview.Assets, integrations.SyncAsset{
 			TempID:            task.ID,
@@ -373,6 +364,8 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 			TaskTypeName:      taskTypeName,
 			TaskTypeIcon:      taskTypeIcon,
 			Selected:          true,
+			TemplateID:        templateID,
+			TemplateExtension: templateExtension,
 		})
 	}
 
@@ -412,6 +405,9 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		AssetsToCreate:      len(preview.Assets),
 	}
 
+	// Generate unified PreviewItems from collections and assets
+	preview.PreviewItems = buildPreviewItems(preview.Collections, preview.Assets)
+
 	return preview, nil
 }
 
@@ -420,17 +416,14 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 func resolveEntityPath(entity integrations.ExternalEntity, entityByID map[string]integrations.ExternalEntity, dirStructure integrations.DirectoryStructure) string {
 	// Find matching template based on entity type
 	template := findMatchingTemplate(entity.Type, dirStructure)
-	fmt.Printf("DEBUG resolveEntityPath: entity=%s type=%s template=%q\n", entity.Name, entity.Type, template)
 	if template == "" {
 		// No matching template - use raw hierarchy
 		fallback := buildExternalEntityPath(entity, entityByID)
-		fmt.Printf("DEBUG resolveEntityPath: fallback path=%s\n", fallback)
 		return normalizeCollectionPath(fallback)
 	}
 
 	// Resolve template variables
 	resolved := resolveTemplateVariables(template, entity, entityByID, dirStructure.Style)
-	fmt.Printf("DEBUG resolveEntityPath: resolved path=%s\n", resolved)
 	return normalizeCollectionPath(resolved)
 }
 
@@ -623,6 +616,152 @@ func buildExternalEntityPath(entity integrations.ExternalEntity, entityByID map[
 	return strings.Join(parts, "/")
 }
 
+// buildPreviewItems generates a unified list of PreviewItems from collections and assets.
+// It also creates virtual folder items for any path segments that don't have real items.
+func buildPreviewItems(collections []integrations.SyncCollection, assets []integrations.SyncAsset) []integrations.PreviewItem {
+	items := make([]integrations.PreviewItem, 0)
+	pathToItem := make(map[string]bool) // Track which paths have real items
+	allPaths := make(map[string]bool)   // Track all paths including parent segments
+
+	// First pass: convert collections to PreviewItems and track paths
+	for _, c := range collections {
+		parentPath := getParentPath(c.CollectionPath)
+		items = append(items, integrations.PreviewItem{
+			ID:             c.ExternalID,
+			Name:           c.ExternalName,
+			ItemType:       "entity",
+			CollectionPath: c.CollectionPath,
+			ParentPath:     parentPath,
+			ExternalID:     c.ExternalID,
+			ExternalType:   c.ExternalType,
+			ExternalName:   c.ExternalName,
+			TypeName:       c.EntityTypeName,
+			TypeIcon:       c.EntityTypeIcon,
+			Action:         c.Action,
+			Selected:       c.Selected,
+			IsVirtual:      false,
+			HasChildren:    false, // Will be updated below
+		})
+		pathToItem[c.CollectionPath] = true
+		allPaths[c.CollectionPath] = true
+
+		// Track all parent paths
+		addParentPaths(c.CollectionPath, allPaths)
+	}
+
+	// Second pass: convert assets to PreviewItems
+	for _, a := range assets {
+		// Assets use their parent's collection_path as their parent
+		// Their own "path" is parent + /asset-{id}/
+		assetPath := a.CollectionPath + "asset-" + a.ExternalID + "/"
+		items = append(items, integrations.PreviewItem{
+			ID:                a.ExternalID,
+			Name:              a.ExternalName,
+			ItemType:          "task",
+			CollectionPath:    assetPath,
+			ParentPath:        a.CollectionPath,
+			ExternalID:        a.ExternalID,
+			ExternalType:      a.ExternalType,
+			ExternalTypeID:    a.ExternalTypeID,
+			ExternalName:      a.ExternalName,
+			TypeName:          a.TaskTypeName,
+			TypeIcon:          a.TaskTypeIcon,
+			Action:            a.Action,
+			Selected:          a.Selected,
+			IsVirtual:         false,
+			HasChildren:       false,
+			TemplateID:        a.TemplateID,
+			TemplateExtension: a.TemplateExtension,
+		})
+		pathToItem[assetPath] = true // Mark asset path as having a real item
+		allPaths[assetPath] = true
+
+		// Track parent paths of the asset's collection
+		addParentPaths(a.CollectionPath, allPaths)
+	}
+
+	// Third pass: create virtual folder items for path segments without real items
+	virtualFolders := make([]integrations.PreviewItem, 0)
+	for path := range allPaths {
+		if pathToItem[path] {
+			continue // Real item exists at this path
+		}
+		// This is a path segment that needs a virtual folder
+		name := getPathSegmentName(path)
+		if name == "" {
+			continue // Root path, skip
+		}
+		parentPath := getParentPath(path)
+		virtualFolders = append(virtualFolders, integrations.PreviewItem{
+			ID:             "virtual-" + path,
+			Name:           name,
+			ItemType:       "virtual",
+			CollectionPath: path,
+			ParentPath:     parentPath,
+			ExternalID:     "",
+			ExternalType:   "folder",
+			ExternalName:   name,
+			TypeName:       "Folder",
+			TypeIcon:       "folder",
+			Action:         "virtual",
+			Selected:       false,
+			IsVirtual:      true,
+			HasChildren:    true,
+		})
+	}
+	items = append(items, virtualFolders...)
+
+	// Fourth pass: update HasChildren flag for all items
+	childCount := make(map[string]int)
+	for _, item := range items {
+		if item.ParentPath != "" && item.ParentPath != "/" {
+			childCount[item.ParentPath]++
+		}
+	}
+	for i := range items {
+		if childCount[items[i].CollectionPath] > 0 {
+			items[i].HasChildren = true
+		}
+	}
+
+	return items
+}
+
+// addParentPaths adds all parent path segments to the map.
+func addParentPaths(path string, allPaths map[string]bool) {
+	segments := strings.Split(strings.Trim(path, "/"), "/")
+	currentPath := "/"
+	for _, seg := range segments {
+		if seg == "" {
+			continue
+		}
+		currentPath = currentPath + seg + "/"
+		allPaths[currentPath] = true
+	}
+}
+
+// getParentPath returns the parent path of a collection_path.
+// Example: "/episodes/ep01/seq01/" -> "/episodes/ep01/"
+func getParentPath(path string) string {
+	path = strings.TrimSuffix(path, "/")
+	lastSlash := strings.LastIndex(path, "/")
+	if lastSlash <= 0 {
+		return "/"
+	}
+	return path[:lastSlash] + "/"
+}
+
+// getPathSegmentName returns the last segment name from a path.
+// Example: "/episodes/ep01/" -> "ep01"
+func getPathSegmentName(path string) string {
+	path = strings.TrimSuffix(path, "/")
+	lastSlash := strings.LastIndex(path, "/")
+	if lastSlash == -1 {
+		return path
+	}
+	return path[lastSlash+1:]
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // SYNC EXECUTION
 // ═══════════════════════════════════════════════════════════════════════════
@@ -756,79 +895,6 @@ func (s *IntegrationService) ExecuteSync(projectPath, token string, selectedColl
 // ═══════════════════════════════════════════════════════════════════════════
 
 // GetCollectionMappings returns all collection mappings for the project.
-func (s *IntegrationService) GetCollectionMappings(projectPath string) ([]models.IntegrationCollectionMapping, error) {
-	dbConn, err := utils.OpenDb(projectPath)
-	if err != nil {
-		return nil, err
-	}
-	defer dbConn.Close()
-	tx, err := dbConn.Beginx()
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
-	integration, err := repository.GetIntegrationProject(tx)
-	if err != nil {
-		return nil, err
-	}
-
-	return repository.GetCollectionMappings(tx, integration.IntegrationId)
-}
-
-// GetAssetMappings returns all asset mappings for the project.
-func (s *IntegrationService) GetAssetMappings(projectPath string) ([]models.IntegrationAssetMapping, error) {
-	dbConn, err := utils.OpenDb(projectPath)
-	if err != nil {
-		return nil, err
-	}
-	defer dbConn.Close()
-	tx, err := dbConn.Beginx()
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
-	integration, err := repository.GetIntegrationProject(tx)
-	if err != nil {
-		return nil, err
-	}
-
-	return repository.GetAssetMappings(tx, integration.IntegrationId)
-}
-
-// GetAssetExternalInfo returns the external info for a synced asset.
-func (s *IntegrationService) GetAssetExternalInfo(projectPath, assetId string) (models.IntegrationAssetMapping, error) {
-	dbConn, err := utils.OpenDb(projectPath)
-	if err != nil {
-		return models.IntegrationAssetMapping{}, err
-	}
-	defer dbConn.Close()
-	tx, err := dbConn.Beginx()
-	if err != nil {
-		return models.IntegrationAssetMapping{}, err
-	}
-	defer tx.Rollback()
-
-	return repository.GetAssetMappingByAssetId(tx, assetId)
-}
-
-// GetCollectionExternalInfo returns the external info for a synced collection.
-func (s *IntegrationService) GetCollectionExternalInfo(projectPath, collectionId string) (models.IntegrationCollectionMapping, error) {
-	dbConn, err := utils.OpenDb(projectPath)
-	if err != nil {
-		return models.IntegrationCollectionMapping{}, err
-	}
-	defer dbConn.Close()
-	tx, err := dbConn.Beginx()
-	if err != nil {
-		return models.IntegrationCollectionMapping{}, err
-	}
-	defer tx.Rollback()
-
-	return repository.GetCollectionMappingByCollectionId(tx, collectionId)
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPE MAPPING
 // ═══════════════════════════════════════════════════════════════════════════

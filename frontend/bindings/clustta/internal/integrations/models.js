@@ -362,6 +362,166 @@ export class MissingType {
 }
 
 /**
+ * PreviewItem represents a unified item in the sync preview (collection, asset, or virtual folder).
+ */
+export class PreviewItem {
+    /**
+     * Creates a new PreviewItem instance.
+     * @param {Partial<PreviewItem>} [$$source = {}] - The source object to create the PreviewItem.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * Unique ID (external_id or generated for virtual)
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * Display name
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("item_type" in $$source)) {
+            /**
+             * "entity", "task", "virtual"
+             * @member
+             * @type {string}
+             */
+            this["item_type"] = "";
+        }
+        if (!("collection_path" in $$source)) {
+            /**
+             * Full path e.g. "/episodes/ep01/"
+             * @member
+             * @type {string}
+             */
+            this["collection_path"] = "";
+        }
+        if (!("parent_path" in $$source)) {
+            /**
+             * Parent's collection_path e.g. "/episodes/"
+             * @member
+             * @type {string}
+             */
+            this["parent_path"] = "";
+        }
+        if (!("external_id" in $$source)) {
+            /**
+             * ID in external system (empty for virtual)
+             * @member
+             * @type {string}
+             */
+            this["external_id"] = "";
+        }
+        if (!("external_type" in $$source)) {
+            /**
+             * Type in external system
+             * @member
+             * @type {string}
+             */
+            this["external_type"] = "";
+        }
+        if (!("external_type_id" in $$source)) {
+            /**
+             * External type ID (for tasks)
+             * @member
+             * @type {string}
+             */
+            this["external_type_id"] = "";
+        }
+        if (!("external_name" in $$source)) {
+            /**
+             * Name in external system
+             * @member
+             * @type {string}
+             */
+            this["external_name"] = "";
+        }
+        if (!("type_name" in $$source)) {
+            /**
+             * Clustta type name (entity_type or task_type)
+             * @member
+             * @type {string}
+             */
+            this["type_name"] = "";
+        }
+        if (!("type_icon" in $$source)) {
+            /**
+             * Icon for the type
+             * @member
+             * @type {string}
+             */
+            this["type_icon"] = "";
+        }
+        if (!("action" in $$source)) {
+            /**
+             * "create", "link", "skip", "virtual"
+             * @member
+             * @type {string}
+             */
+            this["action"] = "";
+        }
+        if (!("selected" in $$source)) {
+            /**
+             * User selected for sync
+             * @member
+             * @type {boolean}
+             */
+            this["selected"] = false;
+        }
+        if (!("is_virtual" in $$source)) {
+            /**
+             * True for path segment folders
+             * @member
+             * @type {boolean}
+             */
+            this["is_virtual"] = false;
+        }
+        if (!("has_children" in $$source)) {
+            /**
+             * True if has child items
+             * @member
+             * @type {boolean}
+             */
+            this["has_children"] = false;
+        }
+        if (!("template_id" in $$source)) {
+            /**
+             * Clustta template ID for this task type
+             * @member
+             * @type {string}
+             */
+            this["template_id"] = "";
+        }
+        if (!("template_extension" in $$source)) {
+            /**
+             * File extension from template (e.g., ".blend")
+             * @member
+             * @type {string}
+             */
+            this["template_extension"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PreviewItem instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {PreviewItem}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new PreviewItem(/** @type {Partial<PreviewItem>} */($$parsedSource));
+    }
+}
+
+/**
  * SyncAsset represents an asset to be created or linked.
  */
 export class SyncAsset {
@@ -473,6 +633,22 @@ export class SyncAsset {
              * @type {boolean}
              */
             this["selected"] = false;
+        }
+        if (!("template_id" in $$source)) {
+            /**
+             * Clustta template ID for this task type
+             * @member
+             * @type {string}
+             */
+            this["template_id"] = "";
+        }
+        if (!("template_extension" in $$source)) {
+            /**
+             * File extension from template (e.g., ".blend")
+             * @member
+             * @type {string}
+             */
+            this["template_extension"] = "";
         }
 
         Object.assign(this, $$source);
@@ -708,8 +884,17 @@ export class SyncPreview {
              */
             this["integration_id"] = "";
         }
+        if (!("preview_items" in $$source)) {
+            /**
+             * Unified list of all items (collections, assets, virtual folders)
+             * @member
+             * @type {PreviewItem[]}
+             */
+            this["preview_items"] = [];
+        }
         if (!("collections" in $$source)) {
             /**
+             * Deprecated: use PreviewItems
              * @member
              * @type {SyncCollection[]}
              */
@@ -717,6 +902,7 @@ export class SyncPreview {
         }
         if (!("assets" in $$source)) {
             /**
+             * Deprecated: use PreviewItems
              * @member
              * @type {SyncAsset[]}
              */
@@ -749,19 +935,23 @@ export class SyncPreview {
         const $$createField1_0 = $$createType7;
         const $$createField2_0 = $$createType9;
         const $$createField3_0 = $$createType11;
-        const $$createField4_0 = $$createType12;
+        const $$createField4_0 = $$createType13;
+        const $$createField5_0 = $$createType14;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("preview_items" in $$parsedSource) {
+            $$parsedSource["preview_items"] = $$createField1_0($$parsedSource["preview_items"]);
+        }
         if ("collections" in $$parsedSource) {
-            $$parsedSource["collections"] = $$createField1_0($$parsedSource["collections"]);
+            $$parsedSource["collections"] = $$createField2_0($$parsedSource["collections"]);
         }
         if ("assets" in $$parsedSource) {
-            $$parsedSource["assets"] = $$createField2_0($$parsedSource["assets"]);
+            $$parsedSource["assets"] = $$createField3_0($$parsedSource["assets"]);
         }
         if ("missing_types" in $$parsedSource) {
-            $$parsedSource["missing_types"] = $$createField3_0($$parsedSource["missing_types"]);
+            $$parsedSource["missing_types"] = $$createField4_0($$parsedSource["missing_types"]);
         }
         if ("summary" in $$parsedSource) {
-            $$parsedSource["summary"] = $$createField4_0($$parsedSource["summary"]);
+            $$parsedSource["summary"] = $$createField5_0($$parsedSource["summary"]);
         }
         return new SyncPreview(/** @type {Partial<SyncPreview>} */($$parsedSource));
     }
@@ -904,10 +1094,12 @@ const $$createType2 = TypeMapping.createFrom;
 const $$createType3 = $Create.Map($Create.Any, $$createType2);
 const $$createType4 = $Create.Map($Create.Any, $Create.Any);
 const $$createType5 = DirectoryStructure.createFrom;
-const $$createType6 = SyncCollection.createFrom;
+const $$createType6 = PreviewItem.createFrom;
 const $$createType7 = $Create.Array($$createType6);
-const $$createType8 = SyncAsset.createFrom;
+const $$createType8 = SyncCollection.createFrom;
 const $$createType9 = $Create.Array($$createType8);
-const $$createType10 = MissingType.createFrom;
+const $$createType10 = SyncAsset.createFrom;
 const $$createType11 = $Create.Array($$createType10);
-const $$createType12 = SyncPreviewSummary.createFrom;
+const $$createType12 = MissingType.createFrom;
+const $$createType13 = $Create.Array($$createType12);
+const $$createType14 = SyncPreviewSummary.createFrom;

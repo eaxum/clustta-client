@@ -35,12 +35,6 @@
               @toggle-expand="toggleExpand" @toggle-selection="toggleSelection" />
           </div>
         </div>
-
-        <!-- Selection Controls -->
-        <div class="selection-controls">
-          <ActionButton :icon="getAppIcon('select-all')" :label="'Select All'" :buttonFunction="selectAllNew" />
-          <ActionButton :icon="getAppIcon('deselect')" :label="'Clear'" :buttonFunction="clearSelection" />
-        </div>
       </div>
 
       <!-- Error State -->
@@ -64,7 +58,6 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // components
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import PreviewVirtuaItem from '@/instances/common/components/PreviewVirtuaItem.vue';
@@ -121,11 +114,6 @@ const selectedItemsSet = computed(() => new Set(selectedItems.value));
 const syncPreviewTree = computed(() => integrationStore.syncPreviewTree);
 
 // methods
-// Clears all selections.
-const clearSelection = () => {
-  selectedItems.value = [];
-};
-
 // Closes the modal.
 const closeModal = () => {
   modals.disableAllModals();
@@ -332,14 +320,6 @@ onMounted(() => {
 .summary-label {
   font-size: 12px;
   color: var(--text-secondary);
-}
-
-.selection-controls {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  padding-top: 8px;
-  flex-shrink: 0;
 }
 
 .loading-state,

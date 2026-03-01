@@ -96,10 +96,32 @@ type ProjectHierarchy struct {
 // SyncPreview contains preview data for what will be synced.
 type SyncPreview struct {
 	IntegrationID string             `json:"integration_id"`
-	Collections   []SyncCollection   `json:"collections"`
-	Assets        []SyncAsset        `json:"assets"`
+	PreviewItems  []PreviewItem      `json:"preview_items"` // Unified list of all items (collections, assets, virtual folders)
+	Collections   []SyncCollection   `json:"collections"`   // Deprecated: use PreviewItems
+	Assets        []SyncAsset        `json:"assets"`        // Deprecated: use PreviewItems
 	MissingTypes  []MissingType      `json:"missing_types"`
 	Summary       SyncPreviewSummary `json:"summary"`
+}
+
+// PreviewItem represents a unified item in the sync preview (collection, asset, or virtual folder).
+type PreviewItem struct {
+	ID                string `json:"id"`                 // Unique ID (external_id or generated for virtual)
+	Name              string `json:"name"`               // Display name
+	ItemType          string `json:"item_type"`          // "entity", "task", "virtual"
+	CollectionPath    string `json:"collection_path"`    // Full path e.g. "/episodes/ep01/"
+	ParentPath        string `json:"parent_path"`        // Parent's collection_path e.g. "/episodes/"
+	ExternalID        string `json:"external_id"`        // ID in external system (empty for virtual)
+	ExternalType      string `json:"external_type"`      // Type in external system
+	ExternalTypeID    string `json:"external_type_id"`   // External type ID (for tasks)
+	ExternalName      string `json:"external_name"`      // Name in external system
+	TypeName          string `json:"type_name"`          // Clustta type name (entity_type or task_type)
+	TypeIcon          string `json:"type_icon"`          // Icon for the type
+	Action            string `json:"action"`             // "create", "link", "skip", "virtual"
+	Selected          bool   `json:"selected"`           // User selected for sync
+	IsVirtual         bool   `json:"is_virtual"`         // True for path segment folders
+	HasChildren       bool   `json:"has_children"`       // True if has child items
+	TemplateID        string `json:"template_id"`        // Clustta template ID for this task type
+	TemplateExtension string `json:"template_extension"` // File extension from template (e.g., ".blend")
 }
 
 // SyncCollection represents a collection to be created or linked.
@@ -134,6 +156,8 @@ type SyncAsset struct {
 	TaskTypeName      string   `json:"task_type_name"`  // Clustta task type to use
 	TaskTypeIcon      string   `json:"task_type_icon"`
 	Selected          bool     `json:"selected"`
+	TemplateID        string   `json:"template_id"`        // Clustta template ID for this task type
+	TemplateExtension string   `json:"template_extension"` // File extension from template (e.g., ".blend")
 }
 
 // SyncPreviewSummary contains counts for the sync preview.
