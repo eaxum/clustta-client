@@ -17,20 +17,20 @@
 
       <div v-else class="mapping-content">
         <p class="section-description">
-          Map each task type from Kitsu to a Clustta template. The template determines which file is created for each task.
+          Map each task type from Kitsu to an asset template. The template determines which file is created for each task.
         </p>
 
         <!-- Mapping Table -->
         <div class="mapping-table">
           <div class="table-header">
-            <span class="col-task-type">Task Type (Kitsu)</span>
-            <span class="col-template">Template (Clustta)</span>
+            <span class="col-task-type">Kitsu Task Type</span>
+            <span class="col-template">Asset template</span>
           </div>
 
           <div class="table-body">
             <div v-for="taskType in externalTaskTypes" :key="taskType.id" class="mapping-row">
               <div class="col-task-type">
-                <img :src="getAppIcon('tag')" alt="" class="row-icon" />
+                <img :src="getTaskTypeIcon(taskType.id)" alt="" class="row-icon" />
                 <span class="type-name">{{ taskType.name }}</span>
               </div>
               <div class="col-template">
@@ -116,6 +116,16 @@ const closeModal = () => {
 // Returns the app icon path.
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
+};
+
+// Gets the icon for a task type based on its mapped template extension.
+const getTaskTypeIcon = (taskTypeId) => {
+  const templateId = mappings.value[taskTypeId];
+  if (!templateId) return getAppIcon('tag');
+  const template = templates.value.find(t => t.id === templateId);
+  if (!template?.extension) return getAppIcon('tag');
+  const ext = template.extension.replace('.', '').toLowerCase();
+  return `/file-icons/${ext}.svg`;
 };
 
 // Gets the currently selected template name for a task type.
@@ -261,8 +271,10 @@ onMounted(async () => {
 .mapping-table {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--bright-steel);
-  border-radius: var(--small-radius);
+  /* border: 1px solid var(--bright-steel); */
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+  border-radius: var(--large-radius);
   overflow: hidden;
 }
 
@@ -315,8 +327,8 @@ onMounted(async () => {
 }
 
 .row-icon {
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
 }
 
 .type-name {

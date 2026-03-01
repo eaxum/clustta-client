@@ -14,7 +14,6 @@
             </div>
           </div>
           <div class="linked-actions">
-            <ActionButton :icon="getAppIcon('sync')" v-tooltip="'Sync Now'" :buttonFunction="openSyncModal" />
             <ActionButton :icon="getAppIcon('plug')" v-tooltip="'Unlink'" :buttonFunction="unlinkProject" />
           </div>
         </div>
@@ -115,7 +114,7 @@ const headerIcon = computed(() => {
   if (selectedIntegration.value) {
     return selectedIntegration.value.icon;
   }
-  return 'link';
+  return 'plug';
 });
 
 // Returns the title based on selected integration.
@@ -202,11 +201,6 @@ const loadExternalProjects = async () => {
 // Opens the authentication modal.
 const openAuthModal = () => {
   modals.setModalVisibility('integrationAuthModal', true);
-};
-
-// Opens the sync modal.
-const openSyncModal = () => {
-  modals.setModalVisibility('integrationSyncModal', true);
 };
 
 // Selects an integration to browse projects.

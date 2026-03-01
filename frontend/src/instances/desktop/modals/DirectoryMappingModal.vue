@@ -31,9 +31,8 @@
           <!-- Dynamic Templates -->
           <div v-for="template in customTemplates" :key="template.id" class="template-item">
             <div class="template-header">
-              <img :src="getAppIcon(template.icon)" alt="" class="template-icon" />
               <input type="text" class="template-name-input" v-model="template.name" placeholder="Template name" />
-              <ActionButton :icon="getAppIcon('trash')" v-tooltip="'Remove template'" :buttonFunction="() => removeTemplate(template.id)" />
+              <ActionButton :icon="getAppIcon('minus-circle')" v-tooltip="'Remove template'" :buttonFunction="() => removeTemplate(template.id)" />
             </div>
             <input :ref="(el) => setTemplateInputRef(template.id, el)" type="text" class="template-input"
               v-model="template.template" @focus="activeTemplateId = template.id"
@@ -45,7 +44,7 @@
           </div>
 
           <!-- Add Template Button -->
-          <ActionButton :icon="getAppIcon('add')" :label="'Add Template'" :showLabel="true" :useOutline="true"
+          <ActionButton :icon="getAppIcon('plus-circle')" :label="'Add Template'" :showLabel="true" :useOutline="true"
             :buttonFunction="addTemplate" />
         </div>
 

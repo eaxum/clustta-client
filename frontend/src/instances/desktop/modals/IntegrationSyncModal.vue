@@ -10,18 +10,6 @@
 
       <!-- Sync Preview -->
       <div v-else-if="!error" class="step-content">
-        <!-- Summary -->
-        <div class="sync-summary">
-          <div class="summary-item">
-            <span class="summary-count">{{ collectionsToCreate }}</span>
-            <span class="summary-label">New Collections</span>
-          </div>
-
-          <div class="summary-item">
-            <span class="summary-count">{{ assetsToCreate }}</span>
-            <span class="summary-label">New Assets</span>
-          </div>
-        </div>
 
         <!-- Tree View -->
         <div class="sync-preview-scroll">
@@ -31,7 +19,7 @@
           </div>
           <div v-else class="preview-tree-content">
             <PreviewVirtuaItem v-for="item in syncPreviewTree" :key="item.id" :item="item" 
-              :depth="0" :itemHeight="36" :expandedItems="expandedItems" :selectedItems="selectedItemsSet" 
+              :depth="0" :itemHeight="48" :expandedItems="expandedItems" :selectedItems="selectedItemsSet" 
               @toggle-expand="toggleExpand" @toggle-selection="toggleSelection" />
           </div>
         </div>
@@ -46,7 +34,7 @@
       <!-- Actions -->
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Sync Selected'" :fullWidth="true" :buttonFunction="executeSync" :isActive="hasSelection" :loading="isSyncing" />
+        <GeneralButton :label="'Create'" :fullWidth="true" :buttonFunction="executeSync" :isActive="hasSelection" :loading="isSyncing" />
       </div>
     </div>
   </div>
@@ -66,14 +54,12 @@ import PreviewVirtuaItem from '@/instances/common/components/PreviewVirtuaItem.v
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useIntegrationStore } from '@/stores/integrations';
-import { useNotificationStore } from '@/stores/notifications';
 import { useTemplateStore } from '@/stores/template';
 
 const { t } = useI18n();
 const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
 const modals = useDesktopModalStore();
-const notificationStore = useNotificationStore();
 const templateStore = useTemplateStore();
 
 // refs
@@ -267,7 +253,8 @@ onMounted(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  width: 90vw;
+  width: 50vw;
+  min-width: 600px;
   max-width: 900px;
   box-sizing: border-box;
 }
