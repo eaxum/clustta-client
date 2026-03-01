@@ -243,10 +243,10 @@ const saveMapping = async () => {
       style: namingStyle.value,
       paths,
     });
-    notificationStore.addNotification('Directory mapping saved', 'success');
+    notificationStore.addNotification('Directory mapping saved','', 'success');
     closeModal();
   } catch (error) {
-    notificationStore.addNotification(error.message || 'Failed to save', 'error');
+    notificationStore.addNotification(error.message || 'Failed to save', '', 'error');
   } finally {
     isSaving.value = false;
   }

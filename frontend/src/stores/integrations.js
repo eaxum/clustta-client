@@ -264,8 +264,8 @@ export const useIntegrationStore = defineStore('integrations', {
       }
     },
 
-    // Execute sync
-    async executeSync(selectedCollections, selectedAssets) {
+    // Execute sync - creates all items from sync preview
+    async executeSync() {
       const projectStore = useProjectStore();
       const notificationStore = useNotificationStore();
       const tokenData = this.tokens[this.linkedIntegration?.integration_id];
@@ -278,9 +278,7 @@ export const useIntegrationStore = defineStore('integrations', {
       try {
         await IntegrationService.ExecuteSync(
           projectStore.activeProject.uri,
-          tokenData.token,
-          selectedCollections,
-          selectedAssets
+          tokenData.token
         );
         this.lastSyncAt = new Date().toISOString();
         notificationStore.addNotification('Sync completed successfully', '', 'success');

@@ -896,3 +896,25 @@ CREATE INDEX IF NOT EXISTS idx_integration_collection_mapping_collection ON inte
 CREATE INDEX IF NOT EXISTS idx_integration_collection_mapping_external ON integration_collection_mapping(integration_id, external_id);
 CREATE INDEX IF NOT EXISTS idx_integration_asset_mapping_asset ON integration_asset_mapping(asset_id);
 CREATE INDEX IF NOT EXISTS idx_integration_asset_mapping_external ON integration_asset_mapping(integration_id, external_id);
+
+-- Integration triggers to set synced = 0 on mtime change
+CREATE TRIGGER IF NOT EXISTS integration_project_update AFTER UPDATE ON integration_project
+FOR EACH ROW
+WHEN OLD.mtime != NEW.mtime
+BEGIN
+    UPDATE integration_project SET synced = 0 WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS integration_collection_mapping_update AFTER UPDATE ON integration_collection_mapping
+FOR EACH ROW
+WHEN OLD.mtime != NEW.mtime
+BEGIN
+    UPDATE integration_collection_mapping SET synced = 0 WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS integration_asset_mapping_update AFTER UPDATE ON integration_asset_mapping
+FOR EACH ROW
+WHEN OLD.mtime != NEW.mtime
+BEGIN
+    UPDATE integration_asset_mapping SET synced = 0 WHERE id = NEW.id;
+END;

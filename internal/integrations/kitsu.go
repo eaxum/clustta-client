@@ -168,6 +168,19 @@ func (k *KitsuClient) GetProjectEntities(token, apiUrl, projectID string) ([]Ext
 		}
 	}
 
+	// Create virtual folder entities for asset types (Characters, Props, etc.)
+	// These serve as parent containers for assets
+	for typeID, typeName := range assetTypeMap {
+		entities = append(entities, ExternalEntity{
+			ID:       "asset-type-" + typeID,
+			ParentID: "",
+			Name:     typeName,
+			Type:     "folder",
+			Path:     typeName,
+			HasTasks: false,
+		})
+	}
+
 	// Fetch episodes
 	episodes, err := k.getEpisodes(token, apiUrl, projectID)
 	if err != nil {
@@ -594,9 +607,14 @@ func (k *KitsuClient) getAssets(token, apiUrl, projectID string, assetTypeMap ma
 				typeName = "Asset"
 			}
 		}
+		// Parent to virtual asset type folder (e.g., "asset-type-xxx" for Characters)
+		parentID := ""
+		if a.AssetTypeID != "" {
+			parentID = "asset-type-" + a.AssetTypeID
+		}
 		entities = append(entities, ExternalEntity{
 			ID:       a.ID,
-			ParentID: a.AssetTypeID,
+			ParentID: parentID,
 			Name:     a.Name,
 			Type:     typeName,
 			Path:     a.Name,

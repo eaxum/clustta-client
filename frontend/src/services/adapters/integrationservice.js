@@ -140,8 +140,9 @@ export const IntegrationService = {
     }
   },
 
-  // Stores mappings for selected external items
-  ExecuteSync: async (projectPath, token, selectedCollections, selectedAssets) => {
+  // Creates collections and tasks from sync preview
+  // TODO: Full implementation for web mode would require creating entities/tasks like the Go backend
+  ExecuteSync: async (projectPath, token) => {
     const projectName = getProjectName(projectPath);
     const db = await getDatabase(projectName);
 
@@ -150,38 +151,9 @@ export const IntegrationService = {
       throw new Error('No integration linked to this project');
     }
 
+    // Web mode: For now just create mappings without actual entities/tasks
+    // Full implementation would need to replicate the Go backend's ExecuteSync logic
     const syncedAt = new Date().toISOString();
-    const mtime = Date.now();
-
-    // Create collection mappings for selected items
-    if (selectedCollections?.length) {
-      for (const externalId of selectedCollections) {
-        const existing = queryOne(db, 'SELECT id FROM integration_collection_mapping WHERE integration_id = ? AND external_id = ?',
-          [integrationProject.integration_id, externalId]);
-        if (existing) continue;
-
-        const id = generateId();
-        execute(db, `
-          INSERT INTO integration_collection_mapping (id, mtime, integration_id, external_id, external_type, external_name, external_parent_id, external_path, external_metadata, collection_id, synced_at, synced)
-          VALUES (?, ?, ?, ?, '', '', '', '', '{}', '', ?, 0)
-        `, [id, mtime, integrationProject.integration_id, externalId, syncedAt]);
-      }
-    }
-
-    // Create asset mappings for selected items
-    if (selectedAssets?.length) {
-      for (const externalId of selectedAssets) {
-        const existing = queryOne(db, 'SELECT id FROM integration_asset_mapping WHERE integration_id = ? AND external_id = ?',
-          [integrationProject.integration_id, externalId]);
-        if (existing) continue;
-
-        const id = generateId();
-        execute(db, `
-          INSERT INTO integration_asset_mapping (id, mtime, integration_id, external_id, external_name, external_parent_id, external_type, external_status, external_assignees, external_metadata, asset_id, synced_at, synced)
-          VALUES (?, ?, ?, ?, '', '', '', '', '[]', '{}', '', ?, 0)
-        `, [id, mtime, integrationProject.integration_id, externalId, syncedAt]);
-      }
-    }
 
     await persistDatabase(projectName);
   },

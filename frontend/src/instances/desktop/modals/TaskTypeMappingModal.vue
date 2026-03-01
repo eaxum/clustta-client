@@ -44,7 +44,7 @@
 
         <!-- Unmapped Warning -->
         <div v-if="unmappedCount > 0" class="warning-banner">
-          <img :src="getAppIcon('warning')" alt="" class="warning-icon" />
+          <img :src="getAppIcon('alert')" alt="" class="warning-icon" />
           <span>{{ unmappedCount }} task type{{ unmappedCount > 1 ? 's' : '' }} not mapped. Unmapped types won't create files during sync.</span>
         </div>
       </div>
@@ -152,10 +152,10 @@ const saveMapping = async () => {
   isSaving.value = true;
   try {
     await integrationStore.saveTaskTypeTemplates(mappings.value);
-    notificationStore.addNotification('Task type templates saved', 'success');
+    notificationStore.addNotification('Task type templates saved','', 'success');
     closeModal();
   } catch (error) {
-    notificationStore.addNotification(error.message || 'Failed to save', 'error');
+    notificationStore.addNotification(error.message || 'Failed to save', '', 'error');
   } finally {
     isSaving.value = false;
   }
