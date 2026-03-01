@@ -33,6 +33,17 @@ export function Authenticate(integrationId, credentials) {
 }
 
 /**
+ * CreateMissingTypes creates entity and task types in Clustta for missing external types.
+ * Updates sync_options with the new mappings.
+ * @param {string} projectPath
+ * @param {integrations$0.MissingType[]} missingTypes
+ * @returns {$CancellablePromise<void>}
+ */
+export function CreateMissingTypes(projectPath, missingTypes) {
+    return $Call.ByID(3078528372, projectPath, missingTypes);
+}
+
+/**
  * ExecuteSync stores mappings for selected external items.
  * Collections and assets are not automatically created - users create them manually
  * and the mappings help track what's been imported.
@@ -118,6 +129,21 @@ export function GetExternalProjects(integrationId, token, apiUrl) {
 }
 
 /**
+ * GetExternalTypes fetches entity and task types from the external integration.
+ * Requires valid token and linked integration.
+ * @param {string} projectPath
+ * @param {string} token
+ * @returns {$CancellablePromise<[integrations$0.ExternalTypeInfo[], integrations$0.ExternalTypeInfo[]]>}
+ */
+export function GetExternalTypes(projectPath, token) {
+    return $Call.ByID(1578626957, projectPath, token).then(/** @type {($result: any) => any} */(($result) => {
+        $result[0] = $$createType10($result[0]);
+        $result[1] = $$createType10($result[1]);
+        return $result;
+    }));
+}
+
+/**
  * GetIntegration returns info for a specific integration by ID.
  * @param {string} integrationId
  * @returns {$CancellablePromise<integrations$0.IntegrationInfo>}
@@ -136,20 +162,59 @@ export function GetIntegration(integrationId) {
  */
 export function GetLinkedIntegration(projectPath) {
     return $Call.ByID(3555362308, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType9($result);
+        return $$createType11($result);
+    }));
+}
+
+/**
+ * GetLocalTypes returns all entity and task types from the project.
+ * Used by frontend to populate mapping dropdowns.
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<[models$0.EntityType[], models$0.TaskType[]]>}
+ */
+export function GetLocalTypes(projectPath) {
+    return $Call.ByID(443978039, projectPath).then(/** @type {($result: any) => any} */(($result) => {
+        $result[0] = $$createType13($result[0]);
+        $result[1] = $$createType15($result[1]);
+        return $result;
+    }));
+}
+
+/**
+ * GetMissingTypes compares external types with local Clustta types.
+ * Returns types that don't have a mapping in sync_options and don't exist in Clustta.
+ * @param {string} projectPath
+ * @param {string} token
+ * @returns {$CancellablePromise<integrations$0.MissingType[]>}
+ */
+export function GetMissingTypes(projectPath, token) {
+    return $Call.ByID(3905082754, projectPath, token).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType17($result);
     }));
 }
 
 /**
  * GetSyncPreview fetches external hierarchy and compares with local state.
- * Returns preview of what will be created/updated/unchanged.
+ * Applies type mappings, auto-matches by path/name, returns only NEW items.
  * @param {string} projectPath
  * @param {string} token
  * @returns {$CancellablePromise<integrations$0.SyncPreview>}
  */
 export function GetSyncPreview(projectPath, token) {
     return $Call.ByID(1539504252, projectPath, token).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType10($result);
+        return $$createType18($result);
+    }));
+}
+
+/**
+ * GetTypeMappings retrieves the type mappings from sync_options for a project.
+ * Returns empty SyncOptions if no mappings configured yet.
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<integrations$0.SyncOptions>}
+ */
+export function GetTypeMappings(projectPath) {
+    return $Call.ByID(2092174792, projectPath).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType19($result);
     }));
 }
 
@@ -167,8 +232,18 @@ export function GetSyncPreview(projectPath, token) {
  */
 export function LinkProject(projectPath, integrationId, externalProjectId, externalProjectName, apiUrl, syncOptions, userId) {
     return $Call.ByID(3276450698, projectPath, integrationId, externalProjectId, externalProjectName, apiUrl, syncOptions, userId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType9($result);
+        return $$createType11($result);
     }));
+}
+
+/**
+ * SaveTypeMappings saves type mappings to sync_options for a project.
+ * @param {string} projectPath
+ * @param {integrations$0.SyncOptions} syncOptions
+ * @returns {$CancellablePromise<void>}
+ */
+export function SaveTypeMappings(projectPath, syncOptions) {
+    return $Call.ByID(2486271679, projectPath, syncOptions);
 }
 
 /**
@@ -202,5 +277,14 @@ const $$createType5 = models$0.IntegrationCollectionMapping.createFrom;
 const $$createType6 = $Create.Array($$createType5);
 const $$createType7 = integrations$0.ExternalProject.createFrom;
 const $$createType8 = $Create.Array($$createType7);
-const $$createType9 = models$0.IntegrationProject.createFrom;
-const $$createType10 = integrations$0.SyncPreview.createFrom;
+const $$createType9 = integrations$0.ExternalTypeInfo.createFrom;
+const $$createType10 = $Create.Array($$createType9);
+const $$createType11 = models$0.IntegrationProject.createFrom;
+const $$createType12 = models$0.EntityType.createFrom;
+const $$createType13 = $Create.Array($$createType12);
+const $$createType14 = models$0.TaskType.createFrom;
+const $$createType15 = $Create.Array($$createType14);
+const $$createType16 = integrations$0.MissingType.createFrom;
+const $$createType17 = $Create.Array($$createType16);
+const $$createType18 = integrations$0.SyncPreview.createFrom;
+const $$createType19 = integrations$0.SyncOptions.createFrom;

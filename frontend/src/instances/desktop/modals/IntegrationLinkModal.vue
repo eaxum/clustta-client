@@ -14,7 +14,7 @@
             </div>
           </div>
           <div class="linked-actions">
-            <!-- <ActionButton :icon="getAppIcon('sync')" v-tooltip="'Sync Now'" :buttonFunction="openSyncModal" /> -->
+            <ActionButton :icon="getAppIcon('sync')" v-tooltip="'Sync Now'" :buttonFunction="openSyncModal" />
             <ActionButton :icon="getAppIcon('plug')" v-tooltip="'Unlink'" :buttonFunction="unlinkProject" />
           </div>
         </div>

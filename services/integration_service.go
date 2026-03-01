@@ -5,7 +5,9 @@ import (
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
 	"clustta/internal/utils"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 )
@@ -149,7 +151,7 @@ func (s *IntegrationService) UnlinkProject(projectPath string) error {
 // ═══════════════════════════════════════════════════════════════════════════
 
 // GetSyncPreview fetches external hierarchy and compares with local state.
-// Returns preview of what will be created/updated/unchanged.
+// Applies type mappings, auto-matches by path/name, returns only NEW items.
 func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrations.SyncPreview, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -174,13 +176,57 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		return integrations.SyncPreview{}, err
 	}
 
+	// Load type mappings from sync_options
+	var syncOptions integrations.SyncOptions
+	if integrationProject.SyncOptions != "" && integrationProject.SyncOptions != "{}" {
+		json.Unmarshal([]byte(integrationProject.SyncOptions), &syncOptions)
+	}
+	if syncOptions.EntityTypeMappings == nil {
+		syncOptions.EntityTypeMappings = make(map[string]integrations.TypeMapping)
+	}
+	if syncOptions.TaskTypeMappings == nil {
+		syncOptions.TaskTypeMappings = make(map[string]integrations.TypeMapping)
+	}
+
+	// DEBUG: Log raw sync_options and parsed directory structure
+	fmt.Printf("DEBUG raw sync_options: %s\n", integrationProject.SyncOptions)
+	fmt.Printf("DEBUG DirectoryStructure.Preset: %q\n", syncOptions.DirectoryStructure.Preset)
+	fmt.Printf("DEBUG DirectoryStructure.Style: %q\n", syncOptions.DirectoryStructure.Style)
+	fmt.Printf("DEBUG DirectoryStructure.Paths: %+v\n", syncOptions.DirectoryStructure.Paths)
+	if syncOptions.DirectoryStructure.Paths != nil {
+		for key, val := range syncOptions.DirectoryStructure.Paths {
+			fmt.Printf("DEBUG   Path[%s] = %+v\n", key, val)
+		}
+	}
+
+	// Apply default directory structure if none configured
+	if syncOptions.DirectoryStructure.Paths == nil || len(syncOptions.DirectoryStructure.Paths) == 0 {
+		syncOptions.DirectoryStructure = integrations.DirectoryStructure{
+			Preset: "3d-animation",
+			Style:  "lowercase",
+			Paths: map[string]interface{}{
+				"asset": map[string]interface{}{
+					"name":     "Assets",
+					"icon":     "package",
+					"template": "Assets/<CollectionType>/<Asset>",
+				},
+				"shot": map[string]interface{}{
+					"name":     "Shots",
+					"icon":     "clapperboard",
+					"template": "Episodes/<Episode>/<Sequence>/<Shot>",
+				},
+			},
+		}
+		fmt.Printf("DEBUG Applied default directory structure\n")
+	}
+
 	// Fetch external hierarchy
-	entities, err := integration.GetProjectEntities(token, integrationProject.ApiUrl, integrationProject.ExternalProjectId)
+	externalEntities, err := integration.GetProjectEntities(token, integrationProject.ApiUrl, integrationProject.ExternalProjectId)
 	if err != nil {
 		return integrations.SyncPreview{}, err
 	}
 
-	tasks, err := integration.GetProjectTasks(token, integrationProject.ApiUrl, integrationProject.ExternalProjectId)
+	externalTasks, err := integration.GetProjectTasks(token, integrationProject.ApiUrl, integrationProject.ExternalProjectId)
 	if err != nil {
 		return integrations.SyncPreview{}, err
 	}
@@ -195,7 +241,7 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		return integrations.SyncPreview{}, err
 	}
 
-	// Build lookup maps for existing mappings
+	// Build lookup maps for existing mappings (by external ID)
 	existingCollectionMap := make(map[string]models.IntegrationCollectionMapping)
 	for _, m := range existingCollections {
 		existingCollectionMap[m.ExternalId] = m
@@ -205,54 +251,376 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		existingAssetMap[m.ExternalId] = m
 	}
 
-	// Build sync preview
+	// Build entity ID → entity map for path building
+	entityByID := make(map[string]integrations.ExternalEntity)
+	for _, e := range externalEntities {
+		entityByID[e.ID] = e
+	}
+
+	// Build full paths for all external entities using DirectoryStructure templates
+	entityPaths := make(map[string]string) // external ID → full path
+	for _, entity := range externalEntities {
+		path := resolveEntityPath(entity, entityByID, syncOptions.DirectoryStructure)
+		entityPaths[entity.ID] = path
+	}
+
+	// Build sync preview - only includes items to CREATE
 	preview := integrations.SyncPreview{
-		Collections: []integrations.SyncCollection{},
-		Assets:      []integrations.SyncAsset{},
+		IntegrationID: integrationProject.IntegrationId,
+		Collections:   []integrations.SyncCollection{},
+		Assets:        []integrations.SyncAsset{},
+		MissingTypes:  []integrations.MissingType{},
 	}
 
-	// Process entities (collections)
-	for _, entity := range entities {
-		syncColl := integrations.SyncCollection{
-			ExternalID:   entity.ID,
-			ExternalName: entity.Name,
-			ExternalPath: entity.Path,
-			ExternalType: entity.Type,
+	// Track missing types
+	missingEntityTypes := make(map[string]bool)
+	missingTaskTypes := make(map[string]bool)
+
+	// Process entities (collections) - only add if needs to be created
+	for _, entity := range externalEntities {
+		// Skip if already mapped
+		if _, exists := existingCollectionMap[entity.ID]; exists {
+			continue
 		}
-		if existing, ok := existingCollectionMap[entity.ID]; ok {
-			syncColl.Action = "unchanged"
-			syncColl.CollectionID = existing.CollectionId
-			// Check if name changed
-			if existing.ExternalName != entity.Name {
-				syncColl.Action = "update"
-			}
+
+		fullPath := entityPaths[entity.ID]
+
+		// Try to auto-match by path in Clustta
+		existingEntity, err := repository.GetEntityByPath(tx, fullPath)
+		if err == nil && existingEntity.Id != "" {
+			// Found matching collection - skip (not a new item)
+			continue
+		}
+
+		// Get type mapping
+		typeMapping, hasMaping := syncOptions.EntityTypeMappings[entity.Type]
+		entityTypeName := ""
+		entityTypeIcon := ""
+		if hasMaping {
+			entityTypeName = typeMapping.ClustttaName
+			entityTypeIcon = typeMapping.ClustttaIcon
 		} else {
-			syncColl.Action = "create"
+			// Track missing type
+			missingEntityTypes[entity.Type] = true
 		}
-		preview.Collections = append(preview.Collections, syncColl)
+
+		// This is a new collection to create
+		preview.Collections = append(preview.Collections, integrations.SyncCollection{
+			TempID:           entity.ID,
+			ExternalID:       entity.ID,
+			ExternalType:     entity.Type,
+			ExternalName:     entity.Name,
+			ExternalParentID: entity.ParentID,
+			ExternalPath:     fullPath,
+			CollectionPath:   fullPath,
+			Action:           "create",
+			EntityTypeName:   entityTypeName,
+			EntityTypeIcon:   entityTypeIcon,
+			Selected:         true,
+		})
 	}
 
-	// Process tasks (assets)
-	for _, task := range tasks {
-		syncAsset := integrations.SyncAsset{
-			ExternalID:   task.ID,
-			ExternalName: task.Name,
-			ExternalType: task.TaskType,
+	// Process tasks (assets) - only add if needs to be created
+	for _, task := range externalTasks {
+		// Skip if already mapped
+		if _, exists := existingAssetMap[task.ID]; exists {
+			continue
 		}
-		if existing, ok := existingAssetMap[task.ID]; ok {
-			syncAsset.Action = "unchanged"
-			syncAsset.AssetID = existing.AssetId
-			// Check if name or status changed
-			if existing.ExternalName != task.Name || existing.ExternalStatus != task.Status {
-				syncAsset.Action = "update"
+
+		// Get parent entity path
+		parentPath := ""
+		if parentEntity, exists := entityByID[task.ParentID]; exists {
+			parentPath = entityPaths[parentEntity.ID]
+		}
+
+		// Try to auto-match by name+parent in Clustta
+		if parentPath != "" {
+			parentCollection, err := repository.GetEntityByPath(tx, parentPath)
+			if err == nil && parentCollection.Id != "" {
+				// Check if asset exists in this collection
+				existingTask, err := repository.GetTaskByName(tx, task.Name, parentCollection.Id, "")
+				if err == nil && existingTask.Id != "" {
+					// Found matching asset - skip (not a new item)
+					continue
+				}
 			}
-		} else {
-			syncAsset.Action = "create"
 		}
-		preview.Assets = append(preview.Assets, syncAsset)
+
+		// Get type mapping
+		typeMapping, hasMapping := syncOptions.TaskTypeMappings[task.TaskType]
+		taskTypeName := ""
+		taskTypeIcon := ""
+		if hasMapping {
+			taskTypeName = typeMapping.ClustttaName
+			taskTypeIcon = typeMapping.ClustttaIcon
+		} else if task.TaskType != "" {
+			// Track missing type
+			missingTaskTypes[task.TaskType] = true
+		}
+
+		// This is a new asset to create
+		preview.Assets = append(preview.Assets, integrations.SyncAsset{
+			TempID:            task.ID,
+			ExternalID:        task.ID,
+			ExternalName:      task.Name,
+			ExternalParentID:  task.ParentID,
+			ExternalType:      task.TaskType,
+			ExternalTypeID:    task.TaskTypeID,
+			ExternalStatus:    task.Status,
+			ExternalAssignees: task.Assignees,
+			CollectionPath:    parentPath,
+			Action:            "create",
+			TaskTypeName:      taskTypeName,
+			TaskTypeIcon:      taskTypeIcon,
+			Selected:          true,
+		})
+	}
+
+	// Build missing types list
+	entityIcons := []string{"folder", "episode", "sequence", "shot", "character", "prop", "environment", "scene"}
+	taskIcons := []string{"animation", "lighting", "compositing", "modeling", "rigging", "texturing", "fx", "rendering", "concept art", "layout"}
+
+	i := 0
+	for typeName := range missingEntityTypes {
+		preview.MissingTypes = append(preview.MissingTypes, integrations.MissingType{
+			ExternalName:  typeName,
+			ExternalID:    typeName,
+			TypeCategory:  "entity",
+			SuggestedName: strings.ToLower(strings.TrimSpace(typeName)),
+			SuggestedIcon: entityIcons[i%len(entityIcons)],
+		})
+		i++
+	}
+
+	j := 0
+	for typeName := range missingTaskTypes {
+		preview.MissingTypes = append(preview.MissingTypes, integrations.MissingType{
+			ExternalName:  typeName,
+			ExternalID:    typeName,
+			TypeCategory:  "task",
+			SuggestedName: strings.ToLower(strings.TrimSpace(typeName)),
+			SuggestedIcon: taskIcons[j%len(taskIcons)],
+		})
+		j++
+	}
+
+	// Build summary
+	preview.Summary = integrations.SyncPreviewSummary{
+		TotalCollections:    len(externalEntities),
+		TotalAssets:         len(externalTasks),
+		CollectionsToCreate: len(preview.Collections),
+		AssetsToCreate:      len(preview.Assets),
 	}
 
 	return preview, nil
+}
+
+// resolveEntityPath resolves the path for an entity using DirectoryStructure templates.
+// Falls back to raw hierarchy path if no matching template is found.
+func resolveEntityPath(entity integrations.ExternalEntity, entityByID map[string]integrations.ExternalEntity, dirStructure integrations.DirectoryStructure) string {
+	// Find matching template based on entity type
+	template := findMatchingTemplate(entity.Type, dirStructure)
+	fmt.Printf("DEBUG resolveEntityPath: entity=%s type=%s template=%q\n", entity.Name, entity.Type, template)
+	if template == "" {
+		// No matching template - use raw hierarchy
+		fallback := buildExternalEntityPath(entity, entityByID)
+		fmt.Printf("DEBUG resolveEntityPath: fallback path=%s\n", fallback)
+		return normalizeCollectionPath(fallback)
+	}
+
+	// Resolve template variables
+	resolved := resolveTemplateVariables(template, entity, entityByID, dirStructure.Style)
+	fmt.Printf("DEBUG resolveEntityPath: resolved path=%s\n", resolved)
+	return normalizeCollectionPath(resolved)
+}
+
+// normalizeCollectionPath ensures the path is lowercase and has leading/trailing slashes.
+// Example: "Episodes/EP01/Sequences" -> "/episodes/ep01/sequences/"
+func normalizeCollectionPath(path string) string {
+	// Convert to lowercase
+	path = strings.ToLower(path)
+
+	// Add leading slash if missing
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+
+	// Add trailing slash if missing
+	if !strings.HasSuffix(path, "/") {
+		path = path + "/"
+	}
+
+	return path
+}
+
+// findMatchingTemplate finds a template that matches the given entity type.
+// Templates match based on the variable names they contain.
+// Uses frontend format: <Episode>, <Sequence>, <Shot>, <Asset>, <CollectionType>
+func findMatchingTemplate(entityType string, dirStructure integrations.DirectoryStructure) string {
+	if dirStructure.Paths == nil {
+		return ""
+	}
+
+	entityTypeLower := strings.ToLower(entityType)
+
+	// Standard entity types and their variable names (matching frontend format)
+	standardTypes := map[string]string{
+		"episode":  "<Episode>",
+		"sequence": "<Sequence>",
+		"shot":     "<Shot>",
+	}
+
+	// Check if this is a standard type
+	if varName, ok := standardTypes[entityTypeLower]; ok {
+		// Find template containing this variable
+		for _, pathData := range dirStructure.Paths {
+			if data, ok := pathData.(map[string]interface{}); ok {
+				if tmpl, ok := data["template"].(string); ok {
+					if strings.Contains(tmpl, varName) {
+						return tmpl
+					}
+				}
+			}
+		}
+		return ""
+	}
+
+	// For assets (non-standard types like "Character", "Prop"), find template with <Asset>
+	for _, pathData := range dirStructure.Paths {
+		if data, ok := pathData.(map[string]interface{}); ok {
+			if tmpl, ok := data["template"].(string); ok {
+				if strings.Contains(tmpl, "<Asset>") {
+					return tmpl
+				}
+			}
+		}
+	}
+
+	return ""
+}
+
+// resolveTemplateVariables resolves variables in a template path.
+// Variables like <Episode>, <Sequence>, <Shot>, <Asset>, <CollectionType> are replaced with actual values.
+// The template is truncated at the entity's level to avoid unresolved variables.
+func resolveTemplateVariables(template string, entity integrations.ExternalEntity, entityByID map[string]integrations.ExternalEntity, style string) string {
+	entityTypeLower := strings.ToLower(entity.Type)
+
+	// Standard variable mappings by entity type (matching frontend format)
+	typeToVar := map[string]string{
+		"episode":  "<Episode>",
+		"sequence": "<Sequence>",
+		"shot":     "<Shot>",
+	}
+
+	// Truncate template at the entity's variable level
+	// For a sequence, "Episodes/<Episode>/<Sequence>/<Shot>" becomes "Episodes/<Episode>/<Sequence>"
+	if varName, ok := typeToVar[entityTypeLower]; ok {
+		// Find the position of this entity's variable and truncate after it
+		idx := strings.Index(template, varName)
+		if idx != -1 {
+			template = template[:idx+len(varName)]
+		}
+	} else {
+		// For assets (non-standard types), truncate at <Asset>
+		idx := strings.Index(template, "<Asset>")
+		if idx != -1 {
+			template = template[:idx+len("<Asset>")]
+		}
+	}
+
+	result := template
+
+	// Build entity hierarchy for variable resolution
+	hierarchy := buildEntityHierarchy(entity, entityByID)
+
+	// Resolve standard type variables from hierarchy
+	for _, e := range hierarchy {
+		typeLower := strings.ToLower(e.Type)
+		if varName, ok := typeToVar[typeLower]; ok {
+			result = strings.ReplaceAll(result, varName, applyNamingStyle(e.Name, style))
+		}
+	}
+
+	// For assets, resolve <Asset> and <CollectionType>
+	if entityTypeLower != "episode" && entityTypeLower != "sequence" && entityTypeLower != "shot" {
+		// This is an asset - resolve <Asset> with entity name
+		result = strings.ReplaceAll(result, "<Asset>", applyNamingStyle(entity.Name, style))
+		// Resolve <CollectionType> with entity type (like "Character", "Prop")
+		result = strings.ReplaceAll(result, "<CollectionType>", applyNamingStyle(entity.Type, style))
+	}
+
+	// Remove any path segments that still contain unresolved variables
+	// This handles cases where parent entities are missing (e.g., sequence without episode)
+	segments := strings.Split(result, "/")
+	var cleanedSegments []string
+	for _, seg := range segments {
+		if !strings.Contains(seg, "<") {
+			cleanedSegments = append(cleanedSegments, seg)
+		}
+	}
+	result = strings.Join(cleanedSegments, "/")
+
+	return result
+}
+
+// buildEntityHierarchy returns the entity and all its ancestors from leaf to root.
+func buildEntityHierarchy(entity integrations.ExternalEntity, entityByID map[string]integrations.ExternalEntity) []integrations.ExternalEntity {
+	var hierarchy []integrations.ExternalEntity
+	current := entity
+
+	for {
+		hierarchy = append(hierarchy, current)
+		if current.ParentID == "" {
+			break
+		}
+		parent, exists := entityByID[current.ParentID]
+		if !exists {
+			break
+		}
+		current = parent
+	}
+
+	return hierarchy
+}
+
+// applyNamingStyle applies the configured naming style to a string.
+func applyNamingStyle(name, style string) string {
+	switch style {
+	case "lowercase":
+		return strings.ToLower(name)
+	case "uppercase":
+		return strings.ToUpper(name)
+	case "kebab-case":
+		// Convert spaces and underscores to hyphens, lowercase
+		result := strings.ReplaceAll(name, " ", "-")
+		result = strings.ReplaceAll(result, "_", "-")
+		return strings.ToLower(result)
+	case "capitalize":
+		// Capitalize first letter of each word
+		return strings.Title(strings.ToLower(name))
+	default:
+		return name
+	}
+}
+
+// buildExternalEntityPath builds the full path for an external entity.
+func buildExternalEntityPath(entity integrations.ExternalEntity, entityByID map[string]integrations.ExternalEntity) string {
+	var parts []string
+	current := entity
+
+	for {
+		parts = append([]string{current.Name}, parts...)
+		if current.ParentID == "" {
+			break
+		}
+		parent, exists := entityByID[current.ParentID]
+		if !exists {
+			break
+		}
+		current = parent
+	}
+
+	return strings.Join(parts, "/")
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -459,4 +827,378 @@ func (s *IntegrationService) GetCollectionExternalInfo(projectPath, collectionId
 	defer tx.Rollback()
 
 	return repository.GetCollectionMappingByCollectionId(tx, collectionId)
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TYPE MAPPING
+// ═══════════════════════════════════════════════════════════════════════════
+
+// GetTypeMappings retrieves the type mappings from sync_options for a project.
+// Returns empty SyncOptions if no mappings configured yet.
+func (s *IntegrationService) GetTypeMappings(projectPath string) (integrations.SyncOptions, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return integrations.SyncOptions{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return integrations.SyncOptions{}, err
+	}
+	defer tx.Rollback()
+
+	integrationProject, err := repository.GetIntegrationProject(tx)
+	if err != nil {
+		return integrations.SyncOptions{}, errors.New("no integration linked to this project")
+	}
+
+	var syncOptions integrations.SyncOptions
+	if integrationProject.SyncOptions != "" && integrationProject.SyncOptions != "{}" {
+		if err := json.Unmarshal([]byte(integrationProject.SyncOptions), &syncOptions); err != nil {
+			// Return empty options if parse fails
+			return integrations.SyncOptions{
+				EntityTypeMappings: make(map[string]integrations.TypeMapping),
+				TaskTypeMappings:   make(map[string]integrations.TypeMapping),
+			}, nil
+		}
+	}
+
+	// Initialize maps if nil
+	if syncOptions.EntityTypeMappings == nil {
+		syncOptions.EntityTypeMappings = make(map[string]integrations.TypeMapping)
+	}
+	if syncOptions.TaskTypeMappings == nil {
+		syncOptions.TaskTypeMappings = make(map[string]integrations.TypeMapping)
+	}
+	if syncOptions.TaskTypeTemplates == nil {
+		syncOptions.TaskTypeTemplates = make(map[string]string)
+	}
+
+	return syncOptions, nil
+}
+
+// SaveTypeMappings saves type mappings to sync_options for a project.
+func (s *IntegrationService) SaveTypeMappings(projectPath string, syncOptions integrations.SyncOptions) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	integrationProject, err := repository.GetIntegrationProject(tx)
+	if err != nil {
+		return errors.New("no integration linked to this project")
+	}
+
+	syncOptionsJSON, err := json.Marshal(syncOptions)
+	if err != nil {
+		return err
+	}
+
+	err = repository.UpdateIntegrationProject(tx, integrationProject.Id, map[string]interface{}{
+		"sync_options": string(syncOptionsJSON),
+	})
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+// GetExternalTypes fetches entity and task types from the external integration.
+// Requires valid token and linked integration.
+func (s *IntegrationService) GetExternalTypes(projectPath, token string) ([]integrations.ExternalTypeInfo, []integrations.ExternalTypeInfo, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return nil, nil, err
+	}
+	defer tx.Rollback()
+
+	integrationProject, err := repository.GetIntegrationProject(tx)
+	if err != nil {
+		return nil, nil, errors.New("no integration linked to this project")
+	}
+
+	integration, err := integrations.Get(integrationProject.IntegrationId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	entityTypes, err := integration.GetEntityTypes(token, integrationProject.ApiUrl, integrationProject.ExternalProjectId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	taskTypes, err := integration.GetTaskTypes(token, integrationProject.ApiUrl, integrationProject.ExternalProjectId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return entityTypes, taskTypes, nil
+}
+
+// GetMissingTypes compares external types with local Clustta types.
+// Returns types that don't have a mapping in sync_options and don't exist in Clustta.
+func (s *IntegrationService) GetMissingTypes(projectPath, token string) ([]integrations.MissingType, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return nil, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	integrationProject, err := repository.GetIntegrationProject(tx)
+	if err != nil {
+		return nil, errors.New("no integration linked to this project")
+	}
+
+	// Get integration client
+	integration, err := integrations.Get(integrationProject.IntegrationId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get current type mappings
+	var syncOptions integrations.SyncOptions
+	if integrationProject.SyncOptions != "" && integrationProject.SyncOptions != "{}" {
+		json.Unmarshal([]byte(integrationProject.SyncOptions), &syncOptions)
+	}
+	if syncOptions.EntityTypeMappings == nil {
+		syncOptions.EntityTypeMappings = make(map[string]integrations.TypeMapping)
+	}
+	if syncOptions.TaskTypeMappings == nil {
+		syncOptions.TaskTypeMappings = make(map[string]integrations.TypeMapping)
+	}
+
+	// Get local types
+	localEntityTypes, err := repository.GetEntityTypes(tx)
+	if err != nil {
+		return nil, err
+	}
+	localTaskTypes, err := repository.GetTaskTypes(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build lookup maps for local types (by lowercase name)
+	localEntityTypeMap := make(map[string]models.EntityType)
+	for _, et := range localEntityTypes {
+		localEntityTypeMap[strings.ToLower(et.Name)] = et
+	}
+	localTaskTypeMap := make(map[string]models.TaskType)
+	for _, tt := range localTaskTypes {
+		localTaskTypeMap[strings.ToLower(tt.Name)] = tt
+	}
+
+	// Get external types
+	externalEntityTypes, err := integration.GetEntityTypes(token, integrationProject.ApiUrl, integrationProject.ExternalProjectId)
+	if err != nil {
+		return nil, err
+	}
+	externalTaskTypes, err := integration.GetTaskTypes(token, integrationProject.ApiUrl, integrationProject.ExternalProjectId)
+	if err != nil {
+		return nil, err
+	}
+
+	missingTypes := []integrations.MissingType{}
+
+	// Available icons for random selection
+	entityIcons := []string{"folder", "episode", "sequence", "shot", "character", "prop", "environment", "scene"}
+	taskIcons := []string{"animation", "lighting", "compositing", "modeling", "rigging", "texturing", "fx", "rendering", "concept art", "layout"}
+
+	// Check entity types
+	for i, et := range externalEntityTypes {
+		// Skip if already mapped
+		if _, exists := syncOptions.EntityTypeMappings[et.Name]; exists {
+			continue
+		}
+
+		// Check if matching local type exists (case-insensitive)
+		suggestedName := strings.ToLower(strings.TrimSpace(et.Name))
+		if localType, exists := localEntityTypeMap[suggestedName]; exists {
+			// Auto-map to existing type
+			syncOptions.EntityTypeMappings[et.Name] = integrations.TypeMapping{
+				ExternalName:   et.Name,
+				ExternalID:     et.ID,
+				ClustttaTypeID: localType.Id,
+				ClustttaName:   localType.Name,
+				ClustttaIcon:   localType.Icon,
+			}
+			continue
+		}
+
+		// Type is missing - add to list
+		missingTypes = append(missingTypes, integrations.MissingType{
+			ExternalName:  et.Name,
+			ExternalID:    et.ID,
+			TypeCategory:  "entity",
+			SuggestedName: suggestedName,
+			SuggestedIcon: entityIcons[i%len(entityIcons)],
+		})
+	}
+
+	// Check task types
+	for i, tt := range externalTaskTypes {
+		// Skip if already mapped
+		if _, exists := syncOptions.TaskTypeMappings[tt.Name]; exists {
+			continue
+		}
+
+		// Check if matching local type exists (case-insensitive)
+		suggestedName := strings.ToLower(strings.TrimSpace(tt.Name))
+		if localType, exists := localTaskTypeMap[suggestedName]; exists {
+			// Auto-map to existing type
+			syncOptions.TaskTypeMappings[tt.Name] = integrations.TypeMapping{
+				ExternalName:   tt.Name,
+				ExternalID:     tt.ID,
+				ClustttaTypeID: localType.Id,
+				ClustttaName:   localType.Name,
+				ClustttaIcon:   localType.Icon,
+			}
+			continue
+		}
+
+		// Type is missing - add to list
+		missingTypes = append(missingTypes, integrations.MissingType{
+			ExternalName:  tt.Name,
+			ExternalID:    tt.ID,
+			TypeCategory:  "task",
+			SuggestedName: suggestedName,
+			SuggestedIcon: taskIcons[i%len(taskIcons)],
+		})
+	}
+
+	// Save auto-mapped types if any
+	if len(syncOptions.EntityTypeMappings) > 0 || len(syncOptions.TaskTypeMappings) > 0 {
+		syncOptionsJSON, _ := json.Marshal(syncOptions)
+		repository.UpdateIntegrationProject(tx, integrationProject.Id, map[string]interface{}{
+			"sync_options": string(syncOptionsJSON),
+		})
+		tx.Commit()
+	}
+
+	return missingTypes, nil
+}
+
+// CreateMissingTypes creates entity and task types in Clustta for missing external types.
+// Updates sync_options with the new mappings.
+func (s *IntegrationService) CreateMissingTypes(projectPath string, missingTypes []integrations.MissingType) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	integrationProject, err := repository.GetIntegrationProject(tx)
+	if err != nil {
+		return errors.New("no integration linked to this project")
+	}
+
+	// Get current sync options
+	var syncOptions integrations.SyncOptions
+	if integrationProject.SyncOptions != "" && integrationProject.SyncOptions != "{}" {
+		json.Unmarshal([]byte(integrationProject.SyncOptions), &syncOptions)
+	}
+	if syncOptions.EntityTypeMappings == nil {
+		syncOptions.EntityTypeMappings = make(map[string]integrations.TypeMapping)
+	}
+	if syncOptions.TaskTypeMappings == nil {
+		syncOptions.TaskTypeMappings = make(map[string]integrations.TypeMapping)
+	}
+
+	// Create each missing type
+	for _, mt := range missingTypes {
+		if mt.TypeCategory == "entity" {
+			// Create entity type
+			entityType, err := repository.GetOrCreateEntityType(tx, mt.SuggestedName, mt.SuggestedIcon)
+			if err != nil {
+				return err
+			}
+
+			// Add to mappings
+			syncOptions.EntityTypeMappings[mt.ExternalName] = integrations.TypeMapping{
+				ExternalName:   mt.ExternalName,
+				ExternalID:     mt.ExternalID,
+				ClustttaTypeID: entityType.Id,
+				ClustttaName:   entityType.Name,
+				ClustttaIcon:   entityType.Icon,
+			}
+		} else if mt.TypeCategory == "task" {
+			// Create task type
+			taskType, err := repository.GetOrCreateTaskType(tx, mt.SuggestedName, mt.SuggestedIcon)
+			if err != nil {
+				return err
+			}
+
+			// Add to mappings
+			syncOptions.TaskTypeMappings[mt.ExternalName] = integrations.TypeMapping{
+				ExternalName:   mt.ExternalName,
+				ExternalID:     mt.ExternalID,
+				ClustttaTypeID: taskType.Id,
+				ClustttaName:   taskType.Name,
+				ClustttaIcon:   taskType.Icon,
+			}
+		}
+	}
+
+	// Save updated sync options
+	syncOptionsJSON, err := json.Marshal(syncOptions)
+	if err != nil {
+		return err
+	}
+
+	err = repository.UpdateIntegrationProject(tx, integrationProject.Id, map[string]interface{}{
+		"sync_options": string(syncOptionsJSON),
+	})
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+// GetLocalTypes returns all entity and task types from the project.
+// Used by frontend to populate mapping dropdowns.
+func (s *IntegrationService) GetLocalTypes(projectPath string) ([]models.EntityType, []models.TaskType, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return nil, nil, err
+	}
+	defer tx.Rollback()
+
+	entityTypes, err := repository.GetEntityTypes(tx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	taskTypes, err := repository.GetTaskTypes(tx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return entityTypes, taskTypes, nil
 }

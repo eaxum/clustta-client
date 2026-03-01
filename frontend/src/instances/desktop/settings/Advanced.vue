@@ -22,6 +22,30 @@
             </div>
           </div>
 
+          <!-- Directory Mapping (only when integration linked) -->
+          <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openDirectoryMapping">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('folder-tree')"></div>
+            <div class="settings-content">
+              <div class="settings-header">Directory Mapping</div>
+              <div class="settings-body">Configure folder structure for synced items</div>
+            </div>
+            <div class="settings-action" v-stop-propagation>
+              <ActionButton :icon="getAppIcon('settings-2')" :label="'Configure'" :buttonFunction="openDirectoryMapping" />
+            </div>
+          </div>
+
+          <!-- Task Type Templates (only when integration linked) -->
+          <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openTaskTypeMapping">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('file-type')"></div>
+            <div class="settings-content">
+              <div class="settings-header">Task Type Templates</div>
+              <div class="settings-body">Map task types to file templates</div>
+            </div>
+            <div class="settings-action" v-stop-propagation>
+              <ActionButton :icon="getAppIcon('settings-2')" :label="'Configure'" :buttonFunction="openTaskTypeMapping" />
+            </div>
+          </div>
+
           <!-- No Integration Linked -->
           <div v-else class="settings-item" v-stop-propagation @click="openIntegrationLink">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('plug')"></div>
@@ -102,6 +126,16 @@ const getAppIcon = (iconName) => {
 // Opens the integration link modal to manage project integration.
 const openIntegrationLink = () => {
   desktopModals.setModalVisibility('integrationLinkModal', true);
+};
+
+// Opens the directory mapping modal to configure folder structure.
+const openDirectoryMapping = () => {
+  desktopModals.setModalVisibility('directoryMappingModal', true);
+};
+
+// Opens the task type mapping modal to configure template mappings.
+const openTaskTypeMapping = () => {
+  desktopModals.setModalVisibility('taskTypeMappingModal', true);
 };
 
 // Toggles the write-through sync experimental feature for the active project.

@@ -22,6 +22,10 @@ type Integration interface {
 	GetProjectEntities(token, apiUrl, projectID string) ([]ExternalEntity, error)
 	GetProjectTasks(token, apiUrl, projectID string) ([]ExternalTask, error)
 
+	// Type discovery (for mapping configuration)
+	GetEntityTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error)
+	GetTaskTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error)
+
 	// Push operations
 	UpdateTaskStatus(token, apiUrl, taskID, status string) error
 	UploadPreview(token, apiUrl, taskID, filePath, comment string) error
@@ -77,7 +81,8 @@ type ExternalTask struct {
 	Status      string   `json:"status"`
 	Assignees   []string `json:"assignees,omitempty"`
 	DueDate     string   `json:"due_date,omitempty"`
-	TaskType    string   `json:"task_type,omitempty"` // e.g., "Animation", "Lighting"
+	TaskType    string   `json:"task_type,omitempty"`    // e.g., "Animation", "Lighting"
+	TaskTypeID  string   `json:"task_type_id,omitempty"` // External task type ID
 	Description string   `json:"description,omitempty"`
 }
 
@@ -93,6 +98,7 @@ type SyncPreview struct {
 	IntegrationID string             `json:"integration_id"`
 	Collections   []SyncCollection   `json:"collections"`
 	Assets        []SyncAsset        `json:"assets"`
+	MissingTypes  []MissingType      `json:"missing_types"`
 	Summary       SyncPreviewSummary `json:"summary"`
 }
 
@@ -118,7 +124,8 @@ type SyncAsset struct {
 	ExternalID        string   `json:"external_id"`
 	ExternalName      string   `json:"external_name"`
 	ExternalParentID  string   `json:"external_parent_id"`
-	ExternalType      string   `json:"external_type"` // "task", "subtask"
+	ExternalType      string   `json:"external_type"`    // Task type name (e.g., "Animation")
+	ExternalTypeID    string   `json:"external_type_id"` // External task type ID
 	ExternalStatus    string   `json:"external_status"`
 	ExternalAssignees []string `json:"external_assignees"`
 	CollectionPath    string   `json:"collection_path"` // Parent collection path
@@ -147,6 +154,46 @@ type IntegrationInfo struct {
 	Icon        string `json:"icon"`
 	AuthType    string `json:"auth_type"`  // "password", "oauth", "token"
 	Configured  bool   `json:"configured"` // User has authenticated
+}
+
+// TypeMapping maps an external type name to a Clustta type.
+type TypeMapping struct {
+	ExternalName   string `json:"external_name"`   // Name in external system (e.g., "Animation")
+	ExternalID     string `json:"external_id"`     // ID in external system
+	ClustttaTypeID string `json:"clustta_type_id"` // Clustta entity_type or task_type ID
+	ClustttaName   string `json:"clustta_name"`    // Clustta type name (e.g., "animation")
+	ClustttaIcon   string `json:"clustta_icon"`    // Icon name
+}
+
+// SyncOptions contains configuration stored in integration_project.sync_options.
+type SyncOptions struct {
+	EntityTypeMappings map[string]TypeMapping `json:"entity_type_mappings"` // External entity type → Clustta collection type
+	TaskTypeMappings   map[string]TypeMapping `json:"task_type_mappings"`   // External task type → Clustta asset type
+	TaskTypeTemplates  map[string]string      `json:"task_type_templates"`  // External task type ID → Clustta template ID
+	DirectoryStructure DirectoryStructure     `json:"directory_structure"`  // Folder path templates
+	LastSyncAt         string                 `json:"last_sync_at"`
+}
+
+// DirectoryStructure defines path templates for synced items.
+type DirectoryStructure struct {
+	Preset string                 `json:"preset"` // "3d-animation", "custom"
+	Style  string                 `json:"style"`  // "lowercase", "uppercase", "capitalize", "kebab-case"
+	Paths  map[string]interface{} `json:"paths"`  // Template ID -> { name, icon, template }
+}
+
+// MissingType represents an external type that doesn't exist in Clustta.
+type MissingType struct {
+	ExternalName  string `json:"external_name"`  // Name in external system
+	ExternalID    string `json:"external_id"`    // ID in external system
+	TypeCategory  string `json:"type_category"`  // "entity" or "task"
+	SuggestedName string `json:"suggested_name"` // Suggested Clustta name (lowercase, sanitized)
+	SuggestedIcon string `json:"suggested_icon"` // Random icon suggestion
+}
+
+// ExternalTypeInfo represents a type definition from an external system.
+type ExternalTypeInfo struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 var (
