@@ -234,10 +234,15 @@ func (k *KitsuClient) GetProjectTasks(token, apiUrl, projectID string) ([]Extern
 				taskTypeName = name
 			}
 		}
+		// Use task type as display name (e.g., "Animation" instead of "main")
+		displayName := taskTypeName
+		if displayName == "" {
+			displayName = t.Name
+		}
 		tasks = append(tasks, ExternalTask{
 			ID:          t.ID,
 			ParentID:    t.EntityID,
-			Name:        t.Name,
+			Name:        displayName,
 			Type:        "task",
 			Status:      t.TaskStatusID,
 			Assignees:   t.Assignees,
@@ -550,9 +555,14 @@ func (k *KitsuClient) getShots(token, apiUrl, projectID string) ([]ExternalEntit
 
 	entities := make([]ExternalEntity, 0, len(kitsuShots))
 	for _, s := range kitsuShots {
+		// Use sequence_id if available, otherwise fall back to parent_id
+		parentID := s.SequenceID
+		if parentID == "" {
+			parentID = s.ParentID
+		}
 		entities = append(entities, ExternalEntity{
 			ID:       s.ID,
-			ParentID: s.SequenceID,
+			ParentID: parentID,
 			Name:     s.Name,
 			Type:     "shot",
 			Path:     s.Name,
@@ -575,10 +585,14 @@ func (k *KitsuClient) getAssets(token, apiUrl, projectID string, assetTypeMap ma
 
 	entities := make([]ExternalEntity, 0, len(kitsuAssets))
 	for _, a := range kitsuAssets {
-		// Resolve asset type name from ID
-		typeName := "Asset"
-		if name, ok := assetTypeMap[a.AssetTypeID]; ok {
-			typeName = name
+		// Use asset type name directly from response, fallback to lookup, then default
+		typeName := a.AssetTypeName
+		if typeName == "" {
+			if name, ok := assetTypeMap[a.AssetTypeID]; ok {
+				typeName = name
+			} else {
+				typeName = "Asset"
+			}
 		}
 		entities = append(entities, ExternalEntity{
 			ID:       a.ID,
@@ -620,12 +634,14 @@ type kitsuShot struct {
 	ID         string `json:"id"`
 	Name       string `json:"name"`
 	SequenceID string `json:"sequence_id"`
+	ParentID   string `json:"parent_id"`
 }
 
 type kitsuAsset struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	AssetTypeID string `json:"asset_type_id"`
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	AssetTypeID   string `json:"entity_type_id"`
+	AssetTypeName string `json:"asset_type_name"`
 }
 
 type kitsuTask struct {

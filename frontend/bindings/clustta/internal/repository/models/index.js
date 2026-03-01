@@ -6,8 +6,6 @@ export {
     Checkpoint,
     DependencyType,
     EntityType,
-    IntegrationAssetMapping,
-    IntegrationCollectionMapping,
     IntegrationProject,
     Role,
     RoleAttributes,

@@ -108,7 +108,6 @@ watch(() => itemChildren.value, async () => {
 .preview-virtua-item {
   display: flex;
   flex-direction: column;
-  padding-left: calc(var(--depth) * 16px);
 }
 
 .preview-item-header {
@@ -138,5 +137,6 @@ watch(() => itemChildren.value, async () => {
   gap: 2px;
   width: 100%;
   padding-top: 2px;
+  padding-left: 16px;
 }
 </style>

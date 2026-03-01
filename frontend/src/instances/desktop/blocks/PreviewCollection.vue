@@ -1,12 +1,5 @@
 <template>
   <div class="preview-collection" :class="{ 'preview-collection-selected': isSelected, 'preview-collection-virtual': isVirtual }">
-    <div v-if="!isVirtual" class="preview-checkbox" @click.stop="toggleSelection">
-      <img class="tiny-icons" :src="checkboxIcon">
-    </div>
-    <div v-else class="preview-virtual-badge">
-      <img class="tiny-icons" :src="iconStore.getAppIcon('folder')">
-    </div>
-
     <div class="collection-spacer" :class="{ 'collection-spacer-inactive': !hasChildren }">
       <span @click.stop="toggleExpand" class="single-action-button">
         <img class="small-icons collection-chevron" :class="{ 'collection-expanded': isExpanded }" :src="chevronIcon">
@@ -51,16 +44,9 @@ const props = defineProps({
 });
 
 // emits
-const emit = defineEmits(['toggle', 'toggle-selection']);
+const emit = defineEmits(['toggle']);
 
 // computed
-// Returns the checkbox icon based on selection state.
-const checkboxIcon = computed(() => {
-  return props.isSelected 
-    ? iconStore.getAppIcon('checkbox-selected') 
-    : iconStore.getAppIcon('checkbox-unselected');
-});
-
 // Returns the chevron icon.
 const chevronIcon = computed(() => {
   return iconStore.getAppIcon('chevron-down');
@@ -88,11 +74,6 @@ const toggleExpand = () => {
   if (props.hasChildren) {
     emit('toggle');
   }
-};
-
-// Toggles the selection state.
-const toggleSelection = () => {
-  emit('toggle-selection', props.entity.id);
 };
 </script>
 
@@ -129,28 +110,6 @@ const toggleSelection = () => {
 
 .preview-collection-virtual {
   opacity: 0.7;
-}
-
-.preview-checkbox {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0.2rem;
-  border-radius: var(--tiny-radius);
-}
-
-.preview-checkbox:hover {
-  background-color: var(--light-steel);
-}
-
-.preview-virtual-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.2rem;
-  border-radius: var(--tiny-radius);
-  opacity: 0.5;
 }
 
 .collection-spacer {

@@ -25,28 +25,9 @@ export const IntegrationService = {
     }
   },
 
-  // Returns info for a specific integration by ID
-  GetIntegration: async (integrationId) => {
-    try {
-      return await globalApiCall(`/api/integrations/${integrationId}`, 'GET') || {};
-    } catch {
-      return {};
-    }
-  },
-
   // Authenticates with an external integration
   Authenticate: async (integrationId, credentials) => {
     return await globalApiCall(`/api/integrations/${integrationId}/auth`, 'POST', credentials);
-  },
-
-  // Validates an existing token is still valid
-  ValidateToken: async (integrationId, token, apiUrl) => {
-    try {
-      const result = await globalApiCall(`/api/integrations/${integrationId}/validate`, 'POST', { token, api_url: apiUrl });
-      return result?.valid ?? false;
-    } catch {
-      return false;
-    }
   },
 
   // Returns the integration linked to a project
