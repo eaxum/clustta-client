@@ -268,9 +268,8 @@ export const useIntegrationStore = defineStore('integrations', {
     async executeSync() {
       const projectStore = useProjectStore();
       const notificationStore = useNotificationStore();
-      const tokenData = this.tokens[this.linkedIntegration?.integration_id];
 
-      if (!projectStore.activeProject?.uri || !tokenData?.token) {
+      if (!projectStore.activeProject?.uri) {
         throw new Error('Not ready to sync');
       }
 
@@ -278,7 +277,8 @@ export const useIntegrationStore = defineStore('integrations', {
       try {
         await IntegrationService.ExecuteSync(
           projectStore.activeProject.uri,
-          tokenData.token
+          JSON.stringify(this.collectionsToSync),
+          JSON.stringify(this.assetsToSync)
         );
         this.lastSyncAt = new Date().toISOString();
         notificationStore.addNotification('Sync completed successfully', '', 'success');
