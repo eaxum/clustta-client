@@ -4,6 +4,13 @@
     <HeaderArea :title="title" :icon="getAppIcon('briefcase-plus')" :showSearch="false" />
 
     <div class="general-container">
+
+      <!-- Clone Progress Display -->
+      <div v-if="isCloning" class="settings-section-card">
+        <ProgressSection variant="success" />
+      </div>
+
+      <template v-else>
       <div class="input-section">
         <div class="horizontal-flex">
           <input v-model="projectName" @input="updateWorkingDirectory" class="input-short" type="text" :placeholder="$t('placeholders.projectName')" ref="projectNameInput"
@@ -36,13 +43,12 @@
           :onSelect="selectProjectTemplate" />
       </div>
 
-
-
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
         <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createProject" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
+      </template>
     </div>
   </div>
 </template>
@@ -57,6 +63,7 @@ import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import InputAlert from '@/instances/common/components/InputAlert.vue';
+import ProgressSection from '@/instances/common/components/ProgressSection.vue';
 
 // services
 import { DialogService, ProjectService, SettingsService, SyncService } from '@/services';
@@ -87,6 +94,7 @@ import { useStageStore } from '@/stores/stages';
 
 // refs
 const isAwaitingResponse = ref(false);
+const isCloning = ref(false);
 const isLoadingLocations = ref(false);
 const modalContainer = ref(null);
 const projectIsCreated = ref(false);
@@ -273,10 +281,11 @@ const createProject = async () => {
 
         
     if(studio.name !== 'Personal'){
-      await cloneProject()
+      await cloneProject();
+    } else {
+      closeModal();
     }
     
-    closeModal();
     isAwaitingResponse.value = false;
 
   }).catch((error) => {
@@ -289,6 +298,8 @@ const createProject = async () => {
 
 // Clones the project from server after creation.
 const cloneProject = async () => {
+  isCloning.value = true;
+  stage.operationActive = true;
   const project = projectStore.activeProject;
   const studioDisplayName = projectStore.selectedStudio.name;
   const projectName = project.name;
@@ -301,43 +312,45 @@ const cloneProject = async () => {
   };
   notificationStore.cancleFunction = SyncService.CancelSync;
   notificationStore.canCancel = true;
-  await SyncService.CloneProject(projectUrl, studioDisplayName, workingDirectory.value, syncOptions)
-    .then(async () => {
-      projectStore.projects.find(p => p.name === projectName).working_directory = workingDirectory.value;
-      projectStore.activeProject.working_directory = workingDirectory.value;
-      await projectStore.refreshProjects();
-      const updatedProject = projectStore.projects.find(p => p.name === projectName);
-      if (updatedProject) {
-        projectStore.activeProject = updatedProject;
+  try {
+    await SyncService.CloneProject(projectUrl, studioDisplayName, workingDirectory.value, syncOptions);
+    projectStore.projects.find(p => p.name === projectName).working_directory = workingDirectory.value;
+    projectStore.activeProject.working_directory = workingDirectory.value;
+    await projectStore.refreshProjects();
+    const updatedProject = projectStore.projects.find(p => p.name === projectName);
+    if (updatedProject) {
+      projectStore.activeProject = updatedProject;
+    }
+    if (selectedProjectTemplate.value && selectedProjectTemplate.value !== t('modals.noTemplate')) {
+      const localProjectPath = projectStore.activeProject.uri;
+      try {
+        await ProjectService.ApplyTemplate(localProjectPath, selectedProjectTemplate.value);
+        const templateSyncOptions = {
+          only_latest_checkpoints: false,
+          task_dependencies: false,
+          tasks: false,
+          templates: false,
+        };
+        try {
+          await SyncService.SyncData(localProjectPath, projectUrl, false, templateSyncOptions);
+        } catch (error) {
+          console.error('Failed to sync template changes:', error);
+          notificationStore.addNotification(t('notifications.templateAppliedSyncFailed'), 'warning');
+        }
+      } catch (error) {
+        console.error('Failed to apply template:', error);
+        notificationStore.errorNotification(t('notifications.failedToApplyTemplate'), error);
       }
-      if (selectedProjectTemplate.value && selectedProjectTemplate.value !== t('modals.noTemplate')) {
-        const localProjectPath = projectStore.activeProject.uri;
-        await ProjectService.ApplyTemplate(localProjectPath, selectedProjectTemplate.value)
-          .then(async () => {
-            const templateSyncOptions = {
-              only_latest_checkpoints: false,
-              task_dependencies: false,
-              tasks: false,
-              templates: false,
-            };
-            await SyncService.SyncData(localProjectPath, projectUrl, false, templateSyncOptions)
-              .catch((error) => {
-                console.error('Failed to sync template changes:', error);
-                notificationStore.addNotification(t('notifications.templateAppliedSyncFailed'), 'warning');
-              });
-          })
-          .catch((error) => {
-            console.error('Failed to apply template:', error);
-            notificationStore.errorNotification(t('notifications.failedToApplyTemplate'), error);
-          });
-      }
-      await projectStore.refreshProjectsPreview();
-    })
-    .catch((error) => {
-      console.error(error);
-      notificationStore.errorNotification(t('notifications.errorCloningProject'), error);
-    });
-  closeModal();
+    }
+    await projectStore.refreshProjectsPreview();
+    closeModal();
+  } catch (error) {
+    console.error(error);
+    notificationStore.errorNotification(t('notifications.errorCloningProject'), error);
+  } finally {
+    stage.operationActive = false;
+    isCloning.value = false;
+  }
 };
 
 // Resets project data in stores after creation.
@@ -382,6 +395,11 @@ onMounted(async () => {
 
 .general-container {
   gap: 1rem;
+}
+
+.settings-section-card{
+  background-color: transparent;
+  outline: 0px;
 }
 
 .input-section {

@@ -42,22 +42,7 @@
         </div>
       </div>
 
-      <!-- Progress Display -->
-      <div v-if="isImporting" class="settings-section-card">
-        <div class="progress-section">
-          <div class="progress-header">
-            <span class="progress-title">{{ notificationStore.progress.title }}</span>
-            <span class="progress-percentage">{{ Math.round(notificationStore.progress.percentage) }}%</span>
-          </div>
-          <div class="progress-message">{{ notificationStore.progress.message }}</div>
-          <div class="progress-bar-wrapper">
-            <ProgressBar :taskProgress="notificationStore.progress.percentage" />
-          </div>
-          <div class="progress-meta">
-            <span>{{ notificationStore.progress.current }}/{{ notificationStore.progress.total }}</span>
-          </div>
-        </div>
-      </div>
+        <ProgressSection v-if="isImporting" variant="success" />
 
       <!-- Import Success Message -->
       <div v-if="importComplete" class="settings-section-card">
@@ -127,7 +112,7 @@ import { useI18n } from 'vue-i18n';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import ProgressBar from '@/instances/common/components/ProgressBar.vue';
+import ProgressSection from '@/instances/common/components/ProgressSection.vue';
 
 // services
 import { DialogService, FSService, SettingsService } from '@/services';
@@ -443,59 +428,6 @@ onMounted(async () => {
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
-}
-
-/* Progress Section */
-.progress-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
-  background-color: var(--steel);
-  border-radius: var(--normal-radius);
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: var(--white);
-}
-
-.progress-title {
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.progress-percentage {
-  font-size: 14px;
-  font-weight: 600;
-  color: rgb(67, 210, 67);
-}
-
-.progress-message {
-  font-size: 13px;
-  color: var(--silver);
-  opacity: 0.9;
-}
-
-.progress-bar-wrapper {
-  position: relative;
-  width: 100%;
-  height: 0.2rem;
-  border-radius: 999px;
-  overflow: hidden;
-  background-color: var(--dark-steel);
-}
-
-.progress-meta {
-  display: flex;
-  justify-content: flex-end;
-  font-size: 12px;
-  color: var(--silver);
-  opacity: 0.8;
 }
 
 /* Action Buttons */
