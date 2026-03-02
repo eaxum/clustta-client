@@ -44,15 +44,16 @@ export function CreateMissingTypes(projectPath, missingTypes) {
 }
 
 /**
- * ExecuteSync creates Clustta collections and tasks from the sync preview.
- * Creates all items from the preview - collections sorted by path depth (parents first),
- * then tasks with templates. Fails entire operation on any error.
+ * ExecuteSync creates Clustta collections and tasks from the provided sync preview data.
+ * Accepts collections and assets from frontend instead of re-fetching from integration.
+ * Creates all items - collections sorted by path depth (parents first), then tasks with templates.
  * @param {string} projectPath
- * @param {string} token
+ * @param {string} collectionsJSON
+ * @param {string} assetsJSON
  * @returns {$CancellablePromise<void>}
  */
-export function ExecuteSync(projectPath, token) {
-    return $Call.ByID(2812294731, projectPath, token);
+export function ExecuteSync(projectPath, collectionsJSON, assetsJSON) {
+    return $Call.ByID(2812294731, projectPath, collectionsJSON, assetsJSON);
 }
 
 /**

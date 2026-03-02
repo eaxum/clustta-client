@@ -135,7 +135,7 @@ const authenticate = async () => {
     });
 
     if (result.success) {
-      notificationStore.addNotification('Connected to ' + selectedIntegration.value.name, 'success');
+      notificationStore.addNotification('Connected to ' + selectedIntegration.value.name, '', 'success');
       clearSelection();
     }
   } finally {
@@ -160,7 +160,7 @@ const closeModal = () => {
 // Disconnects from the selected integration.
 const disconnect = () => {
   integrationStore.disconnect(selectedIntegration.value.id);
-  notificationStore.addNotification('Disconnected from ' + selectedIntegration.value.name, 'success');
+  notificationStore.addNotification('Disconnected from ' + selectedIntegration.value.name, '', 'success');
 };
 
 // Returns the app icon path.

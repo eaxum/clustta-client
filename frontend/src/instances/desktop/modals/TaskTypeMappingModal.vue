@@ -1,6 +1,6 @@
 <template>
   <div class="modal-container large-modal" v-esc="closeModal">
-    <HeaderArea :title="'Task Type Templates'" :icon="'link'" />
+    <HeaderArea :title="'Task Type Templates'" :icon="'extension'" />
 
     <div class="general-container">
       <!-- Loading State -->
@@ -195,8 +195,8 @@ onMounted(async () => {
 @import "@/assets/desktop.css";
 
 .modal-container {
-  max-height: 85vh;
-  max-width: 700px;
+  max-height: 80vh;
+  max-width: 500px;
 }
 
 .general-container {
@@ -205,8 +205,8 @@ onMounted(async () => {
   gap: 1rem;
   padding: 1rem;
   overflow-y: auto;
-  width: 700px;
-  max-width: 700px;
+  width: 500px;
+  max-width: 500px;
 }
 
 .general-container::-webkit-scrollbar {

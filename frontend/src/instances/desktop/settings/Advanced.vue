@@ -18,7 +18,7 @@
               <div class="settings-body">{{ $t('settings.linkedTo', { integration: linkedIntegration.integration_id }) }}</div>
             </div>
             <div class="settings-action" v-stop-propagation>
-              <ActionButton :icon="getAppIcon('cog')" :label="$t('common.manage')" :buttonFunction="openIntegrationLink" />
+              <ActionButton :icon="getAppIcon('settings')" :label="$t('common.manage')" :buttonFunction="openIntegrationLink" />
             </div>
           </div>
 
@@ -30,7 +30,7 @@
               <div class="settings-body">Configure folder structure for synced items</div>
             </div>
             <div class="settings-action" v-stop-propagation>
-              <ActionButton :icon="getAppIcon('cog')" :label="'Configure'" :buttonFunction="openDirectoryMapping" />
+              <ActionButton :icon="getAppIcon('settings')" :label="'Configure'" :buttonFunction="openDirectoryMapping" />
             </div>
           </div>
 
@@ -42,7 +42,7 @@
               <div class="settings-body">Map task types to file templates</div>
             </div>
             <div class="settings-action" v-stop-propagation>
-              <ActionButton :icon="getAppIcon('cog')" :label="'Configure'" :buttonFunction="openTaskTypeMapping" />
+              <ActionButton :icon="getAppIcon('settings')" :label="'Configure'" :buttonFunction="openTaskTypeMapping" />
             </div>
           </div>
 

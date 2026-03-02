@@ -8,8 +8,29 @@
         <span>{{ loadingMessage }}</span>
       </div>
 
+      <!-- Syncing Progress -->
+      <div v-else-if="isSyncing" class="progress-section">
+        <div class="progress-header">
+          <span class="progress-title">{{ progressData.title }}</span>
+          <span class="progress-percentage">{{ Math.round(progressData.percentage) }}%</span>
+        </div>
+        <div class="progress-message">{{ progressData.message }}</div>
+        <div class="progress-bar-wrapper">
+          <ProgressBar :taskProgress="progressData.percentage" />
+        </div>
+        <div class="progress-meta">
+          <span>{{ progressData.current }}/{{ progressData.total }}</span>
+        </div>
+      </div>
+
       <!-- Sync Preview -->
       <div v-else-if="!error" class="step-content">
+        <div class="preview-header">
+          <span class="preview-summary">{{ assetsToCreate }} Assets in {{ collectionsToCreate }} Collections</span>
+          <ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Refresh'" :buttonFunction="loadSyncPreview" />
+        </div>
+
+        <div class="preview-divider"></div>
 
         <!-- Tree View -->
         <div class="sync-preview-scroll">
@@ -47,20 +68,26 @@ import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 
 // components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import PreviewVirtuaItem from '@/instances/common/components/PreviewVirtuaItem.vue';
+import ProgressBar from '@/instances/common/components/ProgressBar.vue';
 
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useIntegrationStore } from '@/stores/integrations';
+import { useNotificationStore } from '@/stores/notifications';
+import { useStageStore } from '@/stores/stages';
 import { useTemplateStore } from '@/stores/template';
 
 const { t } = useI18n();
 const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
 const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
+const stageStore = useStageStore();
 const templateStore = useTemplateStore();
 
 // refs
@@ -69,6 +96,18 @@ const expandedItems = ref(new Set());
 const isLoading = ref(false);
 const isSyncing = ref(false);
 const loadingMessage = ref('');
+
+// // DEBUG: Dummy progress data for styling
+// const dummyProgress = ref({
+//   title: 'Integration Sync',
+//   message: 'Creating: EP01_SEQ02_SHOT_0010_animation',
+//   percentage: 45,
+//   current: 23,
+//   total: 51,
+// });
+
+// Use notificationStore for real progress data
+const progressData = computed(() => notificationStore.progress);
 
 // computed
 // Returns all assets from sync preview.
@@ -109,6 +148,7 @@ const executeSync = async () => {
   if (!hasItemsToCreate.value) return;
 
   isSyncing.value = true;
+  stageStore.operationActive = true;
   try {
     await integrationStore.executeSync();
     emitter.emit('refresh-browser');
@@ -116,6 +156,7 @@ const executeSync = async () => {
   } catch (err) {
     // Error handled by store
   } finally {
+    stageStore.operationActive = false;
     isSyncing.value = false;
   }
 };
@@ -246,6 +287,24 @@ onMounted(() => {
   border-radius: var(--small-radius);
 }
 
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.preview-summary {
+  font-size: 15px;
+}
+
+.preview-divider {
+  width: 100%;
+  height: 1px;
+  background-color: var(--steel);
+  flex-shrink: 0;
+}
+
 .sync-summary {
   display: flex;
   justify-content: space-around;
@@ -332,5 +391,62 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
+}
+
+.progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  border-radius: var(--small-radius);
+  width: 100%;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.progress-percentage {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.progress-message {
+  font-size: 13px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-bar-wrapper {
+  position: relative;
+  width: 100%;
+  border-radius: 999px;
+  overflow: hidden;
+  background-color: var(--dark-steel);
+
+  position: relative;
+  width: 100%;
+  height: .2rem;
+  border-radius: 999px;
+  /* background-color: white; */
+
+}
+
+
+
+.progress-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 </style>
