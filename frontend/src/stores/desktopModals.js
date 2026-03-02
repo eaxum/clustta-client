@@ -4,6 +4,7 @@ export const useDesktopModalStore = defineStore("desktopModals", {
   state: () => ({
     modalStates: {
       popUpModal: false,
+      confirmDangerousActionModal: false,
       loginModal: false,
 
       ignoreConfigModal: false,

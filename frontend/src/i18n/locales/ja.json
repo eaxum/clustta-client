@@ -117,6 +117,9 @@
     "trimProject": "効率化のためにキャッシュされたファイルデータが削除されます。再構築または同期時に必要に応じて再ダウンロードされます。",
     "rebuildProject": "現在のプロジェクトディレクトリがクリアされます。続行する前にチェックポイントを保存してください。",
     "removeProject": "このプロジェクトはClusttaから完全に削除されます！",
+    "deleteProjectLocal": "プロジェクトがClusttaライブラリから削除されます。",
+    "deleteProjectPersonalSuffix": "チェックポイントとその他のメタデータが失われます。",
+    "deleteProjectTeamSuffix": "プロジェクトはいつでも再ダウンロードできます。",
     "deleteCheckpoint": "このチェックポイントを削除してもよろしいですか？",
     "cannotBeUndone": "この操作は元に戻せません。",
     "confirmProceed": "続行する場合は確認してください。",
@@ -130,7 +133,8 @@
     "deleteWorkingData": "これにより、このプロジェクトの未同期データがすべて完全に削除されます。",
     "trimProjectMessage": "プロジェクトアーカイブからキャッシュされたファイルデータを削除し、作業ディレクトリを削除してディスク使用量を削減します。データは必要に応じてリモートから再ダウンロードできます。続行しますか？",
     "archiveProjectMessage": "このプロジェクトをアーカイブすると、作業ディレクトリのスペースも解放されます。未追跡のアイテムは失われます。続行しますか？",
-    "relocateWorkingDirectoryMessage": "作業ディレクトリを変更:\n{from}\n\n先:\n{to}\n\n注意: ファイルは移動されません。パスのみが更新されます。"
+    "relocateWorkingDirectoryMessage": "作業ディレクトリを変更:\n{from}\n\n先:\n{to}\n\n注意: ファイルは移動されません。パスのみが更新されます。",
+    "deleteRemoteProject": "\"{name}\" がサーバーから完全に削除されます。この操作は元に戻せません。確認のためプロジェクト名を入力してください："
   },
   "notifications": {
     "defaultViewUpdated": "デフォルトビューが更新されました",
@@ -156,7 +160,11 @@
     "movedSuccessfully": "正常に移動しました。",
     "movedToTrash": "{item}がゴミ箱に移動しました。",
     "pathCopied": "パスがクリップボードにコピーされました",
+    "projectDeleted": "プロジェクト削除済み",
+    "projectDeletedDesc": "\"{name}\" がサーバーから完全に削除されました。",
     "projectNameInUse": "このプロジェクト名は既に使用されています",
+    "projectNameMismatch": "プロジェクト名が一致しません",
+    "projectNameMismatchDesc": "削除を確認するために正確なプロジェクト名を入力してください。",
     "recentProjectsCleared": "最近のプロジェクトがクリアされました",
     "roleCreated": "ロールが作成されました",
     "roleUpdated": "ロールが更新されました",
@@ -530,6 +538,12 @@
     "addStudioCollaborator": "スタジオコラボレーターを追加",
     "addTemplate": "テンプレートを追加",
     "addTemplates": "テンプレートを追加",
+    "confirmDangerousAction": {
+      "nameMismatch": "入力された名前が一致しません",
+      "deleteWorkingFiles": "作業ファイルを削除",
+      "deleteWorkingFilesOff": "作業ディレクトリとファイルは影響を受けません。",
+      "deleteWorkingFilesOn": "作業ディレクトリとそのすべてのファイルも完全に削除されます。"
+    },
     "duplicateProjectTemplate": "プロジェクトテンプレートを複製",
     "duplicateTemplateName": "テンプレート名が重複",
     "editAssetType": "アセットタイプを編集",
@@ -731,6 +745,8 @@
     "relocateWorkingDirectory": "作業ディレクトリを再配置しますか？",
     "removeProject": "プロジェクトを削除",
     "removeProjectTitle": "\"{name}\"を削除",
+    "deleteProject": "プロジェクトを削除",
+    "deleteProjectTitle": "\"{name}\" を削除",
     "resources": "リソース",
     "revertContents": "コンテンツを復元",
     "revertFile": "ファイルを復元",

@@ -117,6 +117,9 @@
     "trimProject": "Zwischengespeicherte Dateidaten werden zur Effizienzsteigerung entfernt. Neuaufbau oder Synchronisation lädt sie bei Bedarf erneut herunter.",
     "rebuildProject": "Das aktuelle Projektverzeichnis wird gelöscht. Speichern Sie Checkpoints, bevor Sie fortfahren.",
     "removeProject": "Dieses Projekt wird unwiderruflich aus Clustta entfernt!",
+    "deleteProjectLocal": "Das Projekt wird aus Ihrer Clustta-Bibliothek entfernt.",
+    "deleteProjectPersonalSuffix": "Sie verlieren Ihre Checkpoints und andere Metadaten.",
+    "deleteProjectTeamSuffix": "Sie können das Projekt jederzeit erneut herunterladen.",
     "deleteCheckpoint": "Sind Sie sicher, dass Sie diesen Checkpoint löschen möchten?",
     "cannotBeUndone": "Diese Aktion kann nicht rückgängig gemacht werden.",
     "confirmProceed": "Bestätigen Sie, um fortzufahren.",
@@ -130,7 +133,8 @@
     "deleteWorkingData": "Alle nicht synchronisierten Daten dieses Projekts werden unwiderruflich gelöscht.",
     "trimProjectMessage": "Zwischengespeicherte Dateidaten werden aus dem Projektarchiv entfernt und das Arbeitsverzeichnis wird gelöscht, um die Festplattennutzung zu reduzieren. Daten können bei Bedarf erneut vom Remote heruntergeladen werden. Fortfahren?",
     "archiveProjectMessage": "Die Archivierung dieses Projekts gibt auch Speicherplatz im Arbeitsverzeichnis frei. Nicht verfolgte Elemente gehen verloren. Fortfahren?",
-    "relocateWorkingDirectoryMessage": "Arbeitsverzeichnis ändern von:\n{from}\n\nnach:\n{to}\n\nHinweis: Dateien werden NICHT verschoben. Nur der Pfad wird aktualisiert."
+    "relocateWorkingDirectoryMessage": "Arbeitsverzeichnis ändern von:\n{from}\n\nnach:\n{to}\n\nHinweis: Dateien werden NICHT verschoben. Nur der Pfad wird aktualisiert.",
+    "deleteRemoteProject": "Dies wird \"{name}\" DAUERHAFT vom Server löschen. Diese Aktion kann nicht rückgängig gemacht werden. Geben Sie den Projektnamen zur Bestätigung ein:"
   },
   "notifications": {
     "defaultViewUpdated": "Standardansicht aktualisiert",
@@ -156,7 +160,11 @@
     "movedSuccessfully": "Erfolgreich verschoben.",
     "movedToTrash": "{item} in den Papierkorb verschoben.",
     "pathCopied": "Pfad in die Zwischenablage kopiert",
+    "projectDeleted": "Projekt Gelöscht",
+    "projectDeletedDesc": "\"{name}\" wurde dauerhaft vom Server gelöscht.",
     "projectNameInUse": "Dieser Projektname wird bereits verwendet",
+    "projectNameMismatch": "Projektname stimmt nicht überein",
+    "projectNameMismatchDesc": "Bitte geben Sie den genauen Projektnamen ein, um das Löschen zu bestätigen.",
     "recentProjectsCleared": "Letzte Projekte gelöscht",
     "roleCreated": "Rolle erstellt",
     "roleUpdated": "Rolle aktualisiert",
@@ -530,6 +538,12 @@
     "addStudioCollaborator": "Studio-Mitarbeiter hinzufügen",
     "addTemplate": "Vorlage hinzufügen",
     "addTemplates": "Vorlagen hinzufügen",
+    "confirmDangerousAction": {
+      "nameMismatch": "Der eingegebene Name stimmt nicht überein",
+      "deleteWorkingFiles": "Arbeitsdateien löschen",
+      "deleteWorkingFilesOff": "Ihr Arbeitsverzeichnis und Ihre Dateien werden nicht beeinträchtigt.",
+      "deleteWorkingFilesOn": "Ihr Arbeitsverzeichnis und alle darin enthaltenen Dateien werden ebenfalls dauerhaft gelöscht."
+    },
     "duplicateProjectTemplate": "Projektvorlage duplizieren",
     "duplicateTemplateName": "Doppelter Vorlagenname",
     "editAssetType": "Asset-Typ bearbeiten",
@@ -734,6 +748,8 @@
     "relocateWorkingDirectory": "Arbeitsverzeichnis verschieben?",
     "removeProject": "Projekt entfernen",
     "removeProjectTitle": "\"{name}\" entfernen",
+    "deleteProject": "Projekt Löschen",
+    "deleteProjectTitle": "\"{name}\" löschen",
     "resources": "Ressourcen",
     "revertContents": "Inhalte zurücksetzen",
     "revertFile": "Datei zurücksetzen",

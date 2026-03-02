@@ -117,6 +117,9 @@
     "trimProject": "Isso removerá dados de arquivo em cache para eficiência. Reconstruir ou sincronizar fará o download novamente quando necessário.",
     "rebuildProject": "Isso limpará o diretório atual do projeto. Salve seus checkpoints antes de continuar.",
     "removeProject": "Isso removerá irreversivelmente este projeto do Clustta!",
+    "deleteProjectLocal": "Isso removerá o projeto da sua biblioteca Clustta.",
+    "deleteProjectPersonalSuffix": "Você perderá seus checkpoints e outros metadados.",
+    "deleteProjectTeamSuffix": "Você pode baixar o projeto novamente a qualquer momento.",
     "deleteCheckpoint": "Tem certeza de que deseja excluir este Checkpoint?",
     "cannotBeUndone": "Esta ação não pode ser desfeita.",
     "confirmProceed": "Confirme se deseja prosseguir.",
@@ -130,7 +133,8 @@
     "deleteWorkingData": "Isso excluirá irreversivelmente todos os dados não sincronizados neste projeto.",
     "trimProjectMessage": "Isso removerá dados de arquivo em cache do arquivo do projeto e excluirá o diretório de trabalho para reduzir o uso de disco. Os dados podem ser baixados novamente do remoto quando necessário. Continuar?",
     "archiveProjectMessage": "Arquivar este projeto também liberará espaço no diretório de trabalho. Quaisquer itens não rastreados serão perdidos. Prosseguir?",
-    "relocateWorkingDirectoryMessage": "Alterar diretório de trabalho de:\n{from}\n\nPara:\n{to}\n\nNota: Os arquivos NÃO serão movidos. Apenas o caminho será atualizado."
+    "relocateWorkingDirectoryMessage": "Alterar diretório de trabalho de:\n{from}\n\nPara:\n{to}\n\nNota: Os arquivos NÃO serão movidos. Apenas o caminho será atualizado.",
+    "deleteRemoteProject": "Isso EXCLUIRÁ PERMANENTEMENTE \"{name}\" do servidor. Esta ação não pode ser desfeita. Digite o nome do projeto para confirmar:"
   },
   "notifications": {
     "defaultViewUpdated": "Visualização Padrão Atualizada",
@@ -156,7 +160,11 @@
     "movedSuccessfully": "Movido com sucesso.",
     "movedToTrash": "{item} movido para a Lixeira.",
     "pathCopied": "Caminho copiado para a área de transferência",
+    "projectDeleted": "Projeto Excluído",
+    "projectDeletedDesc": "\"{name}\" foi permanentemente excluído do servidor.",
     "projectNameInUse": "Este nome de projeto já está em uso",
+    "projectNameMismatch": "O nome do projeto não corresponde",
+    "projectNameMismatchDesc": "Digite o nome exato do projeto para confirmar a exclusão.",
     "recentProjectsCleared": "Projetos Recentes Limpos",
     "roleCreated": "Função Criada",
     "roleUpdated": "Função Atualizada",
@@ -530,6 +538,12 @@
     "addStudioCollaborator": "Adicionar Colaborador do Estúdio",
     "addTemplate": "Adicionar Modelo",
     "addTemplates": "Adicionar Modelos",
+    "confirmDangerousAction": {
+      "nameMismatch": "O nome digitado não corresponde",
+      "deleteWorkingFiles": "Excluir arquivos de trabalho",
+      "deleteWorkingFilesOff": "Seu diretório de trabalho e arquivos não serão afetados.",
+      "deleteWorkingFilesOn": "Seu diretório de trabalho e todos os seus arquivos também serão permanentemente excluídos."
+    },
     "duplicateProjectTemplate": "Duplicar modelo de projeto",
     "duplicateTemplateName": "Nome de modelo duplicado",
     "editAssetType": "Editar tipo de ativo",
@@ -734,6 +748,8 @@
     "relocateWorkingDirectory": "Realocar Diretório de Trabalho?",
     "removeProject": "Remover Projeto",
     "removeProjectTitle": "Remover \"{name}\"",
+    "deleteProject": "Excluir Projeto",
+    "deleteProjectTitle": "Excluir \"{name}\"",
     "resources": "Recursos",
     "revertContents": "Reverter Conteúdos",
     "revertFile": "Reverter Arquivo",

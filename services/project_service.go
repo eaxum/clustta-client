@@ -293,6 +293,16 @@ func (p *ProjectService) TrimProject(projectPath string) error {
 	return nil
 }
 
+// DeleteRemoteProject permanently deletes a project from the studio server.
+// This requires admin permissions and cannot be undone.
+func (p *ProjectService) DeleteRemoteProject(projectUri, studioName string) error {
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+	return repository.DeleteRemoteProject(projectUri, studioName, user)
+}
+
 func (p *ProjectService) AddUser(projectPath, email, roleName string) (models.User, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
