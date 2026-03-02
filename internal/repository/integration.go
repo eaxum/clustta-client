@@ -11,8 +11,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// CreateIntegrationProject creates a new integration link for the project.
-// Returns error if an integration already exists (one integration per project).
+// CreateIntegrationProject creates or updates an integration link for the project.
+// If an integration already exists, it will be updated with the new values.
 func CreateIntegrationProject(tx *sqlx.Tx, id, integrationId, externalProjectId, externalProjectName, apiUrl, syncOptions, linkedByUserId, linkedAt string) (models.IntegrationProject, error) {
 	integration := models.IntegrationProject{}
 
@@ -20,10 +20,23 @@ func CreateIntegrationProject(tx *sqlx.Tx, id, integrationId, externalProjectId,
 		id = uuid.New().String()
 	}
 
-	// Check if integration already exists
+	// Check if integration already exists - update instead of error
 	existing, err := GetIntegrationProject(tx)
 	if err == nil && existing.Id != "" {
-		return integration, errors.New("project already has an integration linked")
+		err = UpdateIntegrationProject(tx, existing.Id, map[string]interface{}{
+			"integration_id":        integrationId,
+			"external_project_id":   externalProjectId,
+			"external_project_name": externalProjectName,
+			"api_url":               apiUrl,
+			"sync_options":          syncOptions,
+			"linked_by_user_id":     linkedByUserId,
+			"linked_at":             linkedAt,
+			"enabled":               true,
+		})
+		if err != nil {
+			return integration, err
+		}
+		return GetIntegrationProject(tx)
 	}
 
 	params := map[string]interface{}{
