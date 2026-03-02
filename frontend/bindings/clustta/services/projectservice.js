@@ -70,6 +70,17 @@ export function CreateProject(projectUri, studioName, workingDir, templateName) 
 }
 
 /**
+ * DeleteRemoteProject permanently deletes a project from the studio server.
+ * This requires admin permissions and cannot be undone.
+ * @param {string} projectUri
+ * @param {string} studioName
+ * @returns {$CancellablePromise<void>}
+ */
+export function DeleteRemoteProject(projectUri, studioName) {
+    return $Call.ByID(1336252116, projectUri, studioName);
+}
+
+/**
  * @param {string} projectWorkingDir
  * @param {string} directory
  * @param {string[]} ignoreList

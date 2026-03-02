@@ -117,6 +117,9 @@
     "trimProject": "Esto eliminará los datos de archivos en caché para mayor eficiencia. La reconstrucción o sincronización los volverá a descargar cuando sea necesario.",
     "rebuildProject": "Esto borrará el directorio actual del proyecto. Guarde sus checkpoints antes de continuar.",
     "removeProject": "¡Esto eliminará irreversiblemente este proyecto de Clustta!",
+    "deleteProjectLocal": "Esto eliminará el proyecto de su biblioteca de Clustta.",
+    "deleteProjectPersonalSuffix": "Perderá sus checkpoints y otros metadatos.",
+    "deleteProjectTeamSuffix": "Siempre puede volver a descargar el proyecto.",
     "deleteCheckpoint": "¿Está seguro de que desea eliminar este Checkpoint?",
     "cannotBeUndone": "Esta acción no se puede deshacer.",
     "confirmProceed": "Confirme si desea continuar.",
@@ -130,7 +133,8 @@
     "deleteWorkingData": "Esto eliminará irreversiblemente todos los datos no sincronizados de este proyecto.",
     "trimProjectMessage": "Esto eliminará los datos de archivos en caché del archivo del proyecto y eliminará el directorio de trabajo para reducir el uso de disco. Los datos se pueden volver a descargar del servidor remoto cuando sea necesario. ¿Continuar?",
     "archiveProjectMessage": "Archivar este proyecto también liberará espacio en el directorio de trabajo. Cualquier elemento sin seguimiento se perderá. ¿Continuar?",
-    "relocateWorkingDirectoryMessage": "Cambiar directorio de trabajo de:\n{from}\n\nA:\n{to}\n\nNota: Los archivos NO se moverán. Solo se actualizará la ruta."
+    "relocateWorkingDirectoryMessage": "Cambiar directorio de trabajo de:\n{from}\n\nA:\n{to}\n\nNota: Los archivos NO se moverán. Solo se actualizará la ruta.",
+    "deleteRemoteProject": "Esto ELIMINARÁ PERMANENTEMENTE \"{name}\" del servidor. Esta acción no se puede deshacer. Escriba el nombre del proyecto para confirmar:"
   },
   "notifications": {
     "defaultViewUpdated": "Vista Predeterminada Actualizada",
@@ -156,7 +160,11 @@
     "movedSuccessfully": "Movido exitosamente.",
     "movedToTrash": "{item} movido a la Papelera.",
     "pathCopied": "Ruta copiada al portapapeles",
+    "projectDeleted": "Proyecto Eliminado",
+    "projectDeletedDesc": "\"{name}\" ha sido eliminado permanentemente del servidor.",
     "projectNameInUse": "Este nombre de proyecto ya está en uso",
+    "projectNameMismatch": "El nombre del proyecto no coincide",
+    "projectNameMismatchDesc": "Escriba el nombre exacto del proyecto para confirmar la eliminación.",
     "recentProjectsCleared": "Proyectos Recientes Borrados",
     "roleCreated": "Rol Creado",
     "roleUpdated": "Rol Actualizado",
@@ -530,6 +538,12 @@
     "addStudioCollaborator": "Agregar colaborador al estudio",
     "addTemplate": "Agregar plantilla",
     "addTemplates": "Agregar plantillas",
+    "confirmDangerousAction": {
+      "nameMismatch": "El nombre ingresado no coincide",
+      "deleteWorkingFiles": "Eliminar archivos de trabajo",
+      "deleteWorkingFilesOff": "Su directorio de trabajo y archivos no se verán afectados.",
+      "deleteWorkingFilesOn": "Su directorio de trabajo y todos sus archivos también se eliminarán permanentemente."
+    },
     "duplicateProjectTemplate": "Duplicar plantilla de proyecto",
     "duplicateTemplateName": "Nombre de plantilla duplicado",
     "editAssetType": "Editar tipo de activo",
@@ -731,6 +745,8 @@
     "relocateWorkingDirectory": "¿Reubicar directorio de trabajo?",
     "removeProject": "Eliminar proyecto",
     "removeProjectTitle": "Eliminar \"{name}\"",
+    "deleteProject": "Eliminar Proyecto",
+    "deleteProjectTitle": "Eliminar \"{name}\"",
     "resources": "Recursos",
     "revertContents": "Revertir contenido",
     "revertFile": "Revertir archivo",

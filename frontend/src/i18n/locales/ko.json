@@ -117,6 +117,9 @@
     "trimProject": "효율성을 위해 캐시된 파일 데이터가 제거됩니다. 필요 시 다시 빌드하거나 동기화하면 다시 다운로드됩니다.",
     "rebuildProject": "현재 프로젝트 디렉터리가 초기화됩니다. 계속하기 전에 체크포인트를 저장해 주세요.",
     "removeProject": "이 프로젝트가 Clustta에서 영구적으로 제거됩니다!",
+    "deleteProjectLocal": "프로젝트가 Clustta 라이브러리에서 제거됩니다.",
+    "deleteProjectPersonalSuffix": "체크포인트와 기타 메타데이터가 손실됩니다.",
+    "deleteProjectTeamSuffix": "프로젝트를 언제든 다시 다운로드할 수 있습니다.",
     "deleteCheckpoint": "이 체크포인트를 삭제하시겠습니까?",
     "cannotBeUndone": "이 작업은 취소할 수 없습니다.",
     "confirmProceed": "계속하려면 확인해 주세요.",
@@ -130,7 +133,8 @@
     "deleteWorkingData": "이 프로젝트의 동기화되지 않은 모든 데이터가 영구적으로 삭제됩니다.",
     "trimProjectMessage": "프로젝트 아카이브에서 캐시된 파일 데이터를 제거하고 작업 디렉터리를 삭제하여 디스크 사용량을 줄입니다. 필요 시 원격에서 다시 다운로드할 수 있습니다. 계속하시겠습니까?",
     "archiveProjectMessage": "이 프로젝트를 보관하면 작업 디렉터리의 공간도 확보됩니다. 추적되지 않은 항목은 손실됩니다. 계속하시겠습니까?",
-    "relocateWorkingDirectoryMessage": "작업 디렉터리를 변경합니다:\n{from}\n\n에서:\n{to}\n(으)로\n\n참고: 파일은 이동되지 않습니다. 경로만 업데이트됩니다."
+    "relocateWorkingDirectoryMessage": "작업 디렉터리를 변경합니다:\n{from}\n\n에서:\n{to}\n(으)로\n\n참고: 파일은 이동되지 않습니다. 경로만 업데이트됩니다.",
+    "deleteRemoteProject": "\"{name}\" 이(가) 서버에서 영구적으로 삭제됩니다. 이 작업은 취소할 수 없습니다. 확인을 위해 프로젝트 이름을 입력하세요:"
   },
   "notifications": {
     "defaultViewUpdated": "기본 보기 업데이트됨",
@@ -156,7 +160,11 @@
     "movedSuccessfully": "이동 완료.",
     "movedToTrash": "{item}이(가) 휴지통으로 이동됨.",
     "pathCopied": "경로가 클립보드에 복사됨",
+    "projectDeleted": "프로젝트 삭제됨",
+    "projectDeletedDesc": "\"{name}\" 이(가) 서버에서 영구적으로 삭제되었습니다.",
     "projectNameInUse": "이 프로젝트 이름은 이미 사용 중입니다",
+    "projectNameMismatch": "프로젝트 이름이 일치하지 않습니다",
+    "projectNameMismatchDesc": "삭제를 확인하려면 정확한 프로젝트 이름을 입력하세요.",
     "recentProjectsCleared": "최근 프로젝트 초기화됨",
     "roleCreated": "역할 생성됨",
     "roleUpdated": "역할 업데이트됨",
@@ -530,6 +538,12 @@
     "addStudioCollaborator": "스튜디오 협업자 추가",
     "addTemplate": "템플릿 추가",
     "addTemplates": "템플릿 추가",
+    "confirmDangerousAction": {
+      "nameMismatch": "입력한 이름이 일치하지 않습니다",
+      "deleteWorkingFiles": "작업 파일 삭제",
+      "deleteWorkingFilesOff": "작업 디렉터리와 파일은 영향을 받지 않습니다.",
+      "deleteWorkingFilesOn": "작업 디렉터리와 모든 파일도 영구적으로 삭제됩니다."
+    },
     "duplicateProjectTemplate": "프로젝트 템플릿 복제",
     "duplicateTemplateName": "템플릿 이름 복제",
     "editAssetType": "에셋 유형 편집",
@@ -734,6 +748,8 @@
     "relocateWorkingDirectory": "작업 디렉터리 재배치?",
     "removeProject": "프로젝트 제거",
     "removeProjectTitle": "「{name}」 제거",
+    "deleteProject": "프로젝트 삭제",
+    "deleteProjectTitle": "「{name}」 삭제",
     "resources": "리소스",
     "revertContents": "콘텐츠 되돌리기",
     "revertFile": "파일 되돌리기",
