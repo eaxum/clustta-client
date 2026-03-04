@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"syscall"
 	"time"
@@ -1111,4 +1112,227 @@ func (c *CheckpointService) AddMissingGroupIds(projectPath string) error {
 
 	tx.Commit()
 	return nil
+}
+
+// SquashAssets combines multiple untracked files into a single asset with sequential checkpoints.
+// The first file becomes the initial checkpoint, and subsequent files are added as additional checkpoints.
+func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, filePaths []string, assetName, entityId string, deleteSourceFiles bool, checkpointComments []string) (models.Task, error) {
+	if len(filePaths) < 2 {
+		return models.Task{}, errors.New("at least two files are required for squash")
+	}
+	if len(filePaths) > 99 {
+		return models.Task{}, errors.New("cannot squash more than 99 files")
+	}
+	if assetName == "" {
+		return models.Task{}, errors.New("asset name cannot be empty")
+	}
+	if len(checkpointComments) != len(filePaths) {
+		return models.Task{}, errors.New("checkpoint comments count must match file paths count")
+	}
+
+	app := application.Get()
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return models.Task{}, err
+	}
+	defer dbConn.Close()
+
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return models.Task{}, err
+	}
+
+	// Look up required types and status
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return models.Task{}, err
+	}
+	taskType, err := repository.GetTaskTypeByName(tx, "generic")
+	if err != nil {
+		tx.Rollback()
+		return models.Task{}, err
+	}
+	status, err := repository.GetStatusByShortName(tx, "todo")
+	if err != nil {
+		tx.Rollback()
+		return models.Task{}, err
+	}
+	statusId := status.Id
+	tx.Rollback()
+
+	totalFiles := len(filePaths)
+	groupId := uuid.New().String()
+	taskId := uuid.New().String()
+
+	// Determine the task path relative to working dir using the first file
+	firstFilePath := filePaths[0]
+	if projectWorkingDir == "" {
+		return models.Task{}, errors.New("project working directory cannot be empty")
+	}
+	firstRelPath, err := filepath.Rel(projectWorkingDir, firstFilePath)
+	if err != nil {
+		return models.Task{}, fmt.Errorf("failed to compute relative path: %w", err)
+	}
+
+	// Rebuild the task path with the new asset name
+	extension := filepath.Ext(firstFilePath)
+	taskDir := filepath.Dir(firstRelPath)
+	taskRelPath := filepath.Join(taskDir, assetName+extension)
+	taskAbsPath := filepath.Join(projectWorkingDir, taskRelPath)
+
+	// Step 1: Create the task + first checkpoint from the first file
+	app.Event.Emit("progress-update", output.ProgressReport{
+		Title:      "Squashing Assets",
+		Message:    filepath.Base(filePaths[0]),
+		Percentage: 0,
+		Current:    1,
+		Total:      totalFiles,
+	})
+
+	tx, err = dbConn.Beginx()
+	if err != nil {
+		return models.Task{}, err
+	}
+	comment := checkpointComments[0]
+	callBack := func(current int, total int, message string, extraMessage string) {
+		progress := output.ProgressReport{
+			Title:      "Squashing Assets",
+			Message:    assetName,
+			Percentage: float64(current) / float64(total) * 99,
+			Current:    1,
+			Total:      totalFiles,
+		}
+		app.Event.Emit("progress-update", progress)
+	}
+	err = repository.CreateTaskFast(tx, taskId, assetName, taskType.Id, entityId, true, "", firstFilePath, "", user.Id, comment, groupId, taskRelPath, statusId, callBack)
+	if err != nil {
+		tx.Rollback()
+		return models.Task{}, fmt.Errorf("failed to create asset from first file: %w", err)
+	}
+	err = tx.Commit()
+	if err != nil {
+		return models.Task{}, err
+	}
+
+	// Step 2: Create checkpoints from subsequent files
+	for i := 1; i < len(filePaths); i++ {
+		filePath := filePaths[i]
+		checkpointComment := checkpointComments[i]
+
+		tx, err = dbConn.Beginx()
+		if err != nil {
+			return models.Task{}, err
+		}
+
+		callBack := func(current int, total int, message string, extraMessage string) {
+			progress := output.ProgressReport{
+				Title:      "Squashing Assets",
+				Message:    filepath.Base(filePath),
+				Percentage: float64(current) / float64(total) * 99,
+				Current:    i + 1,
+				Total:      totalFiles,
+			}
+			app.Event.Emit("progress-update", progress)
+		}
+
+		_, err = repository.CreateCheckpoint(tx, taskId, checkpointComment, "", "", 0, 0, filePath, user.Id, "", groupId, callBack)
+		if err != nil {
+			tx.Rollback()
+			if err.Error() == "file not modified" {
+				continue
+			}
+			return models.Task{}, fmt.Errorf("failed to create checkpoint %s: %w", checkpointComment, err)
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			return models.Task{}, err
+		}
+	}
+
+	// Step 3: Fix checkpoint timestamps so they sort correctly (first=oldest, last=newest)
+	tx, err = dbConn.Beginx()
+	if err != nil {
+		return models.Task{}, err
+	}
+	checkpoints, err := repository.GetCheckpoints(tx, taskId, false)
+	if err != nil {
+		tx.Rollback()
+		return models.Task{}, fmt.Errorf("failed to fetch checkpoints for reordering: %w", err)
+	}
+
+	// Build a lookup from comment to desired order index
+	commentOrder := map[string]int{}
+	for i, c := range checkpointComments {
+		commentOrder[c] = i
+	}
+
+	// Sort checkpoints by their intended order (matching checkpointComments array)
+	sort.Slice(checkpoints, func(i, j int) bool {
+		return commentOrder[checkpoints[i].Comment] < commentOrder[checkpoints[j].Comment]
+	})
+
+	baseEpoch := time.Now().Unix() - int64(len(checkpoints))
+	for i, cp := range checkpoints {
+		newTime := baseEpoch + int64(i)
+		_, err = tx.Exec("UPDATE task_checkpoint SET created_at = ? WHERE id = ?", newTime, cp.Id)
+		if err != nil {
+			tx.Rollback()
+			return models.Task{}, fmt.Errorf("failed to update checkpoint timestamp: %w", err)
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return models.Task{}, err
+	}
+
+	// Step 4: Rename/copy the latest file to the task's working path
+	latestFilePath := filePaths[len(filePaths)-1]
+	if latestFilePath != taskAbsPath {
+		taskDir := filepath.Dir(taskAbsPath)
+		err = os.MkdirAll(taskDir, os.ModePerm)
+		if err != nil {
+			return models.Task{}, fmt.Errorf("failed to create directory for working file: %w", err)
+		}
+		data, err := os.ReadFile(latestFilePath)
+		if err != nil {
+			return models.Task{}, fmt.Errorf("failed to read latest file: %w", err)
+		}
+		err = os.WriteFile(taskAbsPath, data, 0644)
+		if err != nil {
+			return models.Task{}, fmt.Errorf("failed to write working file: %w", err)
+		}
+	}
+
+	// Step 5: Delete source files if requested
+	if deleteSourceFiles {
+		for _, filePath := range filePaths {
+			if filePath == taskAbsPath {
+				continue
+			}
+			os.Remove(filePath)
+		}
+	}
+
+	// Step 6: Retrieve and return the created task
+	tx, err = dbConn.Beginx()
+	if err != nil {
+		return models.Task{}, err
+	}
+	defer tx.Rollback()
+
+	task, err := repository.GetTask(tx, taskId)
+	if err != nil {
+		return models.Task{}, fmt.Errorf("failed to retrieve created task: %w", err)
+	}
+
+	app.Event.Emit("progress-update", output.ProgressReport{
+		Title:      "Squashing Assets",
+		Message:    "Complete",
+		Percentage: 100,
+		Current:    totalFiles,
+		Total:      totalFiles,
+	})
+
+	return task, nil
 }

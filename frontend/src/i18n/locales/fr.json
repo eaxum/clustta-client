@@ -1441,7 +1441,23 @@
       "tasksUnassignedSuccessfully": "Tâches désassignées avec succès.",
       "errorAssigningTask": "Erreur lors de l'assignation de la tâche",
       "errorRevertingTasks": "Erreur lors du rétablissement des tâches",
-      "errorRemovingUser": "Erreur lors de la suppression de l'utilisateur"
+      "errorRemovingUser": "Erreur lors de la suppression de l'utilisateur",
+      "squashAssets": "Fusionner les assets",
+      "squashAssetsTooltip": "Combiner les fichiers sélectionnés en un seul asset avec des checkpoints séquentiels"
+    },
+    "squashModal": {
+      "title": "Fusionner les assets",
+      "assetName": "Nom de l'asset",
+      "assetNamePlaceholder": "Entrez le nom de l'asset",
+      "filesToCheckpoints": "fichiers → checkpoints",
+      "noItems": "Aucun élément à fusionner",
+      "deleteSourceFiles": "Supprimer les fichiers sources après la fusion",
+      "squash": "Fusionner",
+      "squashingAssets": "Fusion des assets",
+      "squashSuccess": "Assets fusionnés avec succès",
+      "squashFailed": "Échec de la fusion des assets",
+      "nameAlreadyExists": "Un asset avec ce nom existe déjà dans cette collection",
+      "nameTooLong": "Le nom de l'asset est trop long (max 255 caractères)"
     },
     "assetTypeForm": {
       "assetTypeNamePlaceholder": "Nom du type d'asset",

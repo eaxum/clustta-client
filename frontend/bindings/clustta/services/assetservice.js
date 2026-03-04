@@ -320,6 +320,20 @@ export function GetRecursiveDependencies(projectPath, taskId, maxDepth) {
 }
 
 /**
+ * GetSiblingAssetNames returns the names of all assets in the same collection with the given extension.
+ * Used for client-side name validation to avoid duplicate asset names.
+ * @param {string} projectPath
+ * @param {string} entityId
+ * @param {string} extension
+ * @returns {$CancellablePromise<string[]>}
+ */
+export function GetSiblingAssetNames(projectPath, entityId, extension) {
+    return $Call.ByID(3568231505, projectPath, entityId, extension).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType7($result);
+    }));
+}
+
+/**
  * @param {string} projectPath
  * @param {string} projectWorkingDir
  * @param {string[]} ignoreList

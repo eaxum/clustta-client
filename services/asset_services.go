@@ -2017,3 +2017,34 @@ func (t *AssetService) GetUntrackedFiles(projectPath, projectWorkingDir string, 
 
 	return untrackedFiles, nil
 }
+
+// GetSiblingAssetNames returns the names of all assets in the same collection with the given extension.
+// Used for client-side name validation to avoid duplicate asset names.
+func (t *AssetService) GetSiblingAssetNames(projectPath, entityId, extension string) ([]string, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return []string{}, err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return []string{}, err
+	}
+	defer tx.Rollback()
+
+	type taskName struct {
+		Name string `db:"name"`
+	}
+	names := []taskName{}
+	err = tx.Select(&names, "SELECT name FROM task WHERE entity_id = ? AND extension = ?", entityId, extension)
+	if err != nil {
+		return []string{}, err
+	}
+
+	result := make([]string, len(names))
+	for i, n := range names {
+		result[i] = n.Name
+	}
+	return result, nil
+}

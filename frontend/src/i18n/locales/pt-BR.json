@@ -1444,7 +1444,23 @@
       "tasksUnassignedSuccessfully": "Tarefas Desatribuídas com Sucesso.",
       "errorAssigningTask": "Erro ao Atribuir Tarefa",
       "errorRevertingTasks": "Erro ao Reverter Tarefas",
-      "errorRemovingUser": "Erro ao remover usuário"
+      "errorRemovingUser": "Erro ao remover usuário",
+      "squashAssets": "Unificar ativos",
+      "squashAssetsTooltip": "Combinar arquivos selecionados em um único ativo com checkpoints sequenciais"
+    },
+    "squashModal": {
+      "title": "Unificar ativos",
+      "assetName": "Nome do ativo",
+      "assetNamePlaceholder": "Digite o nome do ativo",
+      "filesToCheckpoints": "arquivos → checkpoints",
+      "noItems": "Nenhum item para unificar",
+      "deleteSourceFiles": "Excluir arquivos de origem após unificar",
+      "squash": "Unificar",
+      "squashingAssets": "Unificando ativos",
+      "squashSuccess": "Ativos unificados com sucesso",
+      "squashFailed": "Falha ao unificar ativos",
+      "nameAlreadyExists": "Um ativo com este nome já existe nesta coleção",
+      "nameTooLong": "Nome do ativo muito longo (máx. 255 caracteres)"
     },
     "assetTypeForm": {
       "assetTypeNamePlaceholder": "Nome do Tipo de Ativo",

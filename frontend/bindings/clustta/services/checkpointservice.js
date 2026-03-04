@@ -154,6 +154,22 @@ export function RevertToCheckpoint(projectPath, remoteUrl, taskId, checkpointId)
 }
 
 /**
+ * SquashAssets combines multiple untracked files into a single asset with sequential checkpoints.
+ * The first file becomes the initial checkpoint, and subsequent files are added as additional checkpoints.
+ * @param {string} projectPath
+ * @param {string} projectWorkingDir
+ * @param {string[]} filePaths
+ * @param {string} assetName
+ * @param {string} entityId
+ * @param {boolean} deleteSourceFiles
+ * @param {string[]} checkpointComments
+ * @returns {$CancellablePromise<models$0.Task>}
+ */
+export function SquashAssets(projectPath, projectWorkingDir, filePaths, assetName, entityId, deleteSourceFiles, checkpointComments) {
+    return $Call.ByID(2209883097, projectPath, projectWorkingDir, filePaths, assetName, entityId, deleteSourceFiles, checkpointComments);
+}
+
+/**
  * ViewCheckpoint creates a temporary file from a checkpoint and opens it.
  * Returns an error if the operation fails.
  * @param {string} projectPath
