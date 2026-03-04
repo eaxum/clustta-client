@@ -1444,7 +1444,23 @@
       "tasksUnassignedSuccessfully": "작업 할당이 성공적으로 해제됨.",
       "errorAssigningTask": "작업 할당 오류",
       "errorRevertingTasks": "작업 되돌리기 오류",
-      "errorRemovingUser": "사용자 제거 오류"
+      "errorRemovingUser": "사용자 제거 오류",
+      "squashAssets": "에셋 스쿼시",
+      "squashAssetsTooltip": "선택한 파일을 순차적 체크포인트가 있는 단일 에셋으로 결합"
+    },
+    "squashModal": {
+      "title": "에셋 스쿼시",
+      "assetName": "에셋 이름",
+      "assetNamePlaceholder": "에셋 이름 입력",
+      "filesToCheckpoints": "파일 → 체크포인트",
+      "noItems": "스쿼시할 항목이 없습니다",
+      "deleteSourceFiles": "스쿼시 후 원본 파일 삭제",
+      "squash": "스쿼시",
+      "squashingAssets": "에셋 스쿼시 중",
+      "squashSuccess": "에셋이 성공적으로 스쿼시되었습니다",
+      "squashFailed": "에셋 스쿼시 실패",
+      "nameAlreadyExists": "이 컬렉션에 같은 이름의 에셋이 이미 존재합니다",
+      "nameTooLong": "에셋 이름이 너무 깁니다 (최대 255자)"
     },
     "assetTypeForm": {
       "assetTypeNamePlaceholder": "에셋 유형 이름",

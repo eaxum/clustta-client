@@ -1455,7 +1455,23 @@
       "tasksUnassignedSuccessfully": "Tasks Unassigned Successfully.",
       "errorAssigningTask": "Error Assigning Task",
       "errorRevertingTasks": "Error Reverting Tasks",
-      "errorRemovingUser": "Error removing user"
+      "errorRemovingUser": "Error removing user",
+      "squashAssets": "Squash Assets",
+      "squashAssetsTooltip": "Combine selected files into a single asset with sequential checkpoints"
+    },
+    "squashModal": {
+      "title": "Squash Assets",
+      "assetName": "Asset Name",
+      "assetNamePlaceholder": "Enter asset name",
+      "filesToCheckpoints": "files → checkpoints",
+      "noItems": "No items to squash",
+      "deleteSourceFiles": "Delete source files after squash",
+      "squash": "Squash",
+      "squashingAssets": "Squashing Assets",
+      "squashSuccess": "Assets squashed successfully",
+      "squashFailed": "Failed to squash assets",
+      "nameAlreadyExists": "An asset with this name already exists in this collection",
+      "nameTooLong": "Asset name is too long (max 255 characters)"
     },
     "assetTypeForm": {
       "assetTypeNamePlaceholder": "Asset Type Name",

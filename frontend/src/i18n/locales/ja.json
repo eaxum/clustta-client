@@ -1441,7 +1441,23 @@
       "tasksUnassignedSuccessfully": "タスクの割り当てが正常に解除されました。",
       "errorAssigningTask": "タスクの割り当てエラー",
       "errorRevertingTasks": "タスクの復元エラー",
-      "errorRemovingUser": "ユーザーの削除エラー"
+      "errorRemovingUser": "ユーザーの削除エラー",
+      "squashAssets": "アセットを統合",
+      "squashAssetsTooltip": "選択したファイルを連続チェックポイント付きの単一アセットに統合"
+    },
+    "squashModal": {
+      "title": "アセットを統合",
+      "assetName": "アセット名",
+      "assetNamePlaceholder": "アセット名を入力",
+      "filesToCheckpoints": "ファイル → チェックポイント",
+      "noItems": "統合するアイテムがありません",
+      "deleteSourceFiles": "統合後にソースファイルを削除",
+      "squash": "統合",
+      "squashingAssets": "アセットを統合中",
+      "squashSuccess": "アセットが正常に統合されました",
+      "squashFailed": "アセットの統合に失敗しました",
+      "nameAlreadyExists": "このコレクションに同名のアセットが既に存在します",
+      "nameTooLong": "アセット名が長すぎます（最大255文字）"
     },
     "assetTypeForm": {
       "assetTypeNamePlaceholder": "アセットタイプ名",

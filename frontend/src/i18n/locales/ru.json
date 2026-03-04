@@ -1444,7 +1444,23 @@
       "tasksUnassignedSuccessfully": "Назначения задач успешно сняты.",
       "errorAssigningTask": "Ошибка назначения задачи",
       "errorRevertingTasks": "Ошибка отката задач",
-      "errorRemovingUser": "Ошибка удаления пользователя"
+      "errorRemovingUser": "Ошибка удаления пользователя",
+      "squashAssets": "Объединить ресурсы",
+      "squashAssetsTooltip": "Объединить выбранные файлы в один ресурс с последовательными контрольными точками"
+    },
+    "squashModal": {
+      "title": "Объединить ресурсы",
+      "assetName": "Название ресурса",
+      "assetNamePlaceholder": "Введите название ресурса",
+      "filesToCheckpoints": "файлы → контрольные точки",
+      "noItems": "Нет элементов для объединения",
+      "deleteSourceFiles": "Удалить исходные файлы после объединения",
+      "squash": "Объединить",
+      "squashingAssets": "Объединение ресурсов",
+      "squashSuccess": "Ресурсы успешно объединены",
+      "squashFailed": "Не удалось объединить ресурсы",
+      "nameAlreadyExists": "Ресурс с таким названием уже существует в этой коллекции",
+      "nameTooLong": "Название ресурса слишком длинное (макс. 255 символов)"
     },
     "assetTypeForm": {
       "assetTypeNamePlaceholder": "Название типа ресурса",

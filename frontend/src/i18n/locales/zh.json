@@ -1442,7 +1442,23 @@
       "tasksUnassignedSuccessfully": "任务取消分配成功。",
       "errorAssigningTask": "分配任务时出错",
       "errorRevertingTasks": "还原任务时出错",
-      "errorRemovingUser": "移除用户时出错"
+      "errorRemovingUser": "移除用户时出错",
+      "squashAssets": "合并资产",
+      "squashAssetsTooltip": "将选定文件合并为一个包含连续检查点的资产"
+    },
+    "squashModal": {
+      "title": "合并资产",
+      "assetName": "资产名称",
+      "assetNamePlaceholder": "输入资产名称",
+      "filesToCheckpoints": "文件 → 检查点",
+      "noItems": "没有可合并的项目",
+      "deleteSourceFiles": "合并后删除源文件",
+      "squash": "合并",
+      "squashingAssets": "正在合并资产",
+      "squashSuccess": "资产合并成功",
+      "squashFailed": "资产合并失败",
+      "nameAlreadyExists": "此集合中已存在同名资产",
+      "nameTooLong": "资产名称过长（最多255个字符）"
     },
     "assetTypeForm": {
       "assetTypeNamePlaceholder": "资产类型名称",

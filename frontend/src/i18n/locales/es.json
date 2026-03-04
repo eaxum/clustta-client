@@ -1441,7 +1441,23 @@
       "tasksUnassignedSuccessfully": "Tareas desasignadas exitosamente.",
       "errorAssigningTask": "Error al asignar tarea",
       "errorRevertingTasks": "Error al revertir tareas",
-      "errorRemovingUser": "Error al eliminar usuario"
+      "errorRemovingUser": "Error al eliminar usuario",
+      "squashAssets": "Combinar assets",
+      "squashAssetsTooltip": "Combinar archivos seleccionados en un solo asset con checkpoints secuenciales"
+    },
+    "squashModal": {
+      "title": "Combinar assets",
+      "assetName": "Nombre del asset",
+      "assetNamePlaceholder": "Ingrese el nombre del asset",
+      "filesToCheckpoints": "archivos → checkpoints",
+      "noItems": "No hay elementos para combinar",
+      "deleteSourceFiles": "Eliminar archivos de origen después de combinar",
+      "squash": "Combinar",
+      "squashingAssets": "Combinando assets",
+      "squashSuccess": "Assets combinados exitosamente",
+      "squashFailed": "Error al combinar assets",
+      "nameAlreadyExists": "Ya existe un asset con este nombre en esta colección",
+      "nameTooLong": "El nombre del asset es demasiado largo (máx. 255 caracteres)"
     },
     "assetTypeForm": {
       "assetTypeNamePlaceholder": "Nombre del tipo de asset",

@@ -1444,7 +1444,23 @@
       "tasksUnassignedSuccessfully": "टास्क सफलतापूर्वक अनसाइन किए गए।",
       "errorAssigningTask": "टास्क असाइन करने में त्रुटि",
       "errorRevertingTasks": "टास्क पूर्ववत करने में त्रुटि",
-      "errorRemovingUser": "उपयोगकर्ता हटाने में त्रुटि"
+      "errorRemovingUser": "उपयोगकर्ता हटाने में त्रुटि",
+      "squashAssets": "एसेट्स स्क्वॉश करें",
+      "squashAssetsTooltip": "चयनित फ़ाइलों को क्रमिक चेकपॉइंट्स के साथ एक एसेट में संयोजित करें"
+    },
+    "squashModal": {
+      "title": "एसेट्स स्क्वॉश करें",
+      "assetName": "एसेट का नाम",
+      "assetNamePlaceholder": "एसेट का नाम दर्ज करें",
+      "filesToCheckpoints": "फ़ाइलें → चेकपॉइंट्स",
+      "noItems": "स्क्वॉश करने के लिए कोई आइटम नहीं",
+      "deleteSourceFiles": "स्क्वॉश के बाद स्रोत फ़ाइलें हटाएं",
+      "squash": "स्क्वॉश",
+      "squashingAssets": "एसेट्स स्क्वॉश हो रहे हैं",
+      "squashSuccess": "एसेट्स सफलतापूर्वक स्क्वॉश किए गए",
+      "squashFailed": "एसेट्स स्क्वॉश करने में विफल",
+      "nameAlreadyExists": "इस संग्रह में इस नाम का एसेट पहले से मौजूद है",
+      "nameTooLong": "एसेट का नाम बहुत लंबा है (अधिकतम 255 वर्ण)"
     },
     "assetTypeForm": {
       "assetTypeNamePlaceholder": "एसेट टाइप का नाम",
