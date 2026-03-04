@@ -2,11 +2,11 @@
 	<div ref="projectListRoot" class="project-stage-root absolute-pane">
 		<div class="task-header">
 			<div class="create-menu" >
-				<ActionButton :isDisabled="operationsActive" v-if="userStore.userCanCreateProject" :icon="getAppIcon('briefcase-plus')" 
+				<ActionButton :isDisabled="!userStore.userCanCreateProject || operationsActive" :icon="getAppIcon('briefcase-plus')" 
 					@click="createProject" v-tooltip="$t('stages.newProject')" :buttonFunction="doNothing" />
-				<ActionButton :isDisabled="operationsActive" v-if="projectStore.selectedStudio?.name === 'Personal'" :icon="getAppIcon('arrow-down-ramp')" 
+				<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="operationsActive" :icon="getAppIcon('arrow-down-on-square-stack')" 
 					v-tooltip="$t('stages.importProject')" :buttonFunction="importProject" />
-				<ActionButton :isDisabled="operationsActive" v-if="projectStore.selectedStudio?.name !== 'Personal' && userStore.userCanCreateProject" :icon="getAppIcon('arrow-up-ramp')" 
+				<ActionButton v-else :isDisabled="!userStore.userCanCreateProject || operationsActive"  :icon="getAppIcon('arrow-down-on-square-stack')" 
 					v-tooltip="$t('stages.uploadProject')" :buttonFunction="uploadProject" />
 				<ActionButton :isDisabled="operationsActive" :icon="getAppIcon('refresh')" 
 					v-tooltip="$t('common.refresh')" :buttonFunction="refresh" />
