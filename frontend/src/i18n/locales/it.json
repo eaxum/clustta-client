@@ -1047,6 +1047,13 @@
     "manageTemplates": "Gestisci modelli",
     "addTemplates": "Aggiungi modelli"
   },
+  "checkpointGroups": {
+    "today": "Oggi",
+    "yesterday": "Ieri",
+    "lastWeek": "La settimana scorsa",
+    "twoWeeksAgo": "2 settimane fa",
+    "threeWeeksAgo": "3 settimane fa"
+  },
   "components": {
     "createMenu": { "addAsset": "Aggiungi asset", "addCollection": "Aggiungi collezione", "addWorkflow": "Aggiungi flusso di lavoro", "addWeblink": "Aggiungi weblink", "importItems": "Importa elementi" },
     "actionBar": { "add": "Aggiungi" },

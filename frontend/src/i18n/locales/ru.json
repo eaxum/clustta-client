@@ -1047,6 +1047,13 @@
     "manageTemplates": "Управление шаблонами",
     "addTemplates": "Добавить шаблоны"
   },
+  "checkpointGroups": {
+    "today": "Сегодня",
+    "yesterday": "Вчера",
+    "lastWeek": "На прошлой неделе",
+    "twoWeeksAgo": "2 недели назад",
+    "threeWeeksAgo": "3 недели назад"
+  },
   "components": {
     "createMenu": {
       "addAsset": "Добавить ресурс",

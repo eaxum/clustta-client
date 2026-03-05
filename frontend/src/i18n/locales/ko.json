@@ -1047,6 +1047,13 @@
     "manageTemplates": "템플릿 관리",
     "addTemplates": "템플릿 추가"
   },
+  "checkpointGroups": {
+    "today": "오늘",
+    "yesterday": "어제",
+    "lastWeek": "지난주",
+    "twoWeeksAgo": "2주 전",
+    "threeWeeksAgo": "3주 전"
+  },
   "components": {
     "createMenu": {
       "addAsset": "에셋 추가",

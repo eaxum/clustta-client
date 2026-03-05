@@ -1044,6 +1044,13 @@
     "manageTemplates": "テンプレートを管理",
     "addTemplates": "テンプレートを追加"
   },
+  "checkpointGroups": {
+    "today": "今日",
+    "yesterday": "昨日",
+    "lastWeek": "先週",
+    "twoWeeksAgo": "2週間前",
+    "threeWeeksAgo": "3週間前"
+  },
   "components": {
     "createMenu": {
       "addAsset": "アセットを追加",
