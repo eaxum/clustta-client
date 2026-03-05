@@ -3,7 +3,7 @@ import {
   SettingsService,
 } from "@/services";
 
-let defaultViewMode = 'compact';
+let defaultViewMode = 'dense';
 await SettingsService.GetDefaultViewMode()
   .then((response) => {
     defaultViewMode = response;
