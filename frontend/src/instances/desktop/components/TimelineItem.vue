@@ -18,7 +18,7 @@
                     <div class="trash-item-name" @mouseenter="trayStates.handleHover($event)"
                         @mouseleave="trayStates.resetScroll($event)">
                         <div class="checkpoint-item-label-text" style="overflow: hidden; font-size: 12px; text-overflow: ellipsis;">{{
-                            utils.formatDate(timelineItem.created_at) }}</div>
+                            utils.formatDate(timelineItem.created_at, locale) }}</div>
                     </div>
                 </div>
             </div>
@@ -108,7 +108,7 @@ const stage = useStageStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const getAppIcon = (iconName) => {
     const icon = iconStore.getAppIcon(iconName);
@@ -130,11 +130,11 @@ const toggleVersions = (index) => {
 
 const formatName = (name, type) => {
     // return name
-    return utils.formatDate(name.slice(-20));
+    return utils.formatDate(name.slice(-20), locale.value);
 
     if (type.includes('checkpoint')) {
         // return name.slice(0, -20);
-        return utils.formatDate(name.slice(-20));
+        return utils.formatDate(name.slice(-20), locale.value);
     } else return name;
 
 }

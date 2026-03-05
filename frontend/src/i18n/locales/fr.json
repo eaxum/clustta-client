@@ -1044,6 +1044,13 @@
     "manageTemplates": "Gérer les modèles",
     "addTemplates": "Ajouter des modèles"
   },
+  "checkpointGroups": {
+    "today": "Aujourd'hui",
+    "yesterday": "Hier",
+    "lastWeek": "La semaine dernière",
+    "twoWeeksAgo": "Il y a 2 semaines",
+    "threeWeeksAgo": "Il y a 3 semaines"
+  },
   "components": {
     "createMenu": {
       "addAsset": "Ajouter une ressource",

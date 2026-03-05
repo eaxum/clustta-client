@@ -1047,6 +1047,13 @@
     "manageTemplates": "Gerenciar modelos",
     "addTemplates": "Adicionar modelos"
   },
+  "checkpointGroups": {
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "lastWeek": "Semana passada",
+    "twoWeeksAgo": "2 semanas atrás",
+    "threeWeeksAgo": "3 semanas atrás"
+  },
   "components": {
     "createMenu": {
       "addAsset": "Adicionar Ativo",

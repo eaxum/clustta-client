@@ -1047,6 +1047,13 @@
     "manageTemplates": "टेम्पलेट प्रबंधित करें",
     "addTemplates": "टेम्पलेट जोड़ें"
   },
+  "checkpointGroups": {
+    "today": "आज",
+    "yesterday": "कल",
+    "lastWeek": "पिछला सप्ताह",
+    "twoWeeksAgo": "2 सप्ताह पहले",
+    "threeWeeksAgo": "3 सप्ताह पहले"
+  },
   "components": {
     "createMenu": {
       "addAsset": "एसेट जोड़ें",

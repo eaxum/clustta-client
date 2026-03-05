@@ -1047,6 +1047,13 @@
     "manageTemplates": "Vorlagen verwalten",
     "addTemplates": "Vorlagen hinzufügen"
   },
+  "checkpointGroups": {
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "lastWeek": "Letzte Woche",
+    "twoWeeksAgo": "Vor 2 Wochen",
+    "threeWeeksAgo": "Vor 3 Wochen"
+  },
   "components": {
     "createMenu": { "addAsset": "Asset hinzufügen", "addCollection": "Sammlung hinzufügen", "addWorkflow": "Workflow hinzufügen", "addWeblink": "Weblink hinzufügen", "importItems": "Elemente importieren" },
     "actionBar": { "add": "Hinzufügen" },

@@ -128,19 +128,20 @@ const utils = {
   endTransition(el) {
     el.style.height = "";
   },
-  formatDate(checkpointDate) {
+  formatDate(checkpointDate, locale) {
     const date = new Date(checkpointDate);
+    const lng = locale || undefined;
 
-    const formattedDate = date.toLocaleDateString("en-US", {
+    const formattedDate = date.toLocaleDateString(lng, {
       day: "numeric",
       month: "long",
       year: "numeric",
     });
 
-    const hours = date.getHours();
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    const ampm = hours >= 12 ? "PM" : "AM";
-    const formattedTime = `${hours % 12}:${minutes} ${ampm}`;
+    const formattedTime = date.toLocaleTimeString(lng, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
 
     return `${formattedDate} ${formattedTime}`;
   },

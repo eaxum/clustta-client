@@ -1045,6 +1045,13 @@
     "manageTemplates": "管理模板",
     "addTemplates": "添加模板"
   },
+  "checkpointGroups": {
+    "today": "今天",
+    "yesterday": "昨天",
+    "lastWeek": "上周",
+    "twoWeeksAgo": "2周前",
+    "threeWeeksAgo": "3周前"
+  },
   "components": {
     "createMenu": {
       "addAsset": "添加资产",

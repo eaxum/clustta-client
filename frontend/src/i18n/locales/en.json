@@ -1058,6 +1058,13 @@
     "manageTemplates": "Manage templates",
     "addTemplates": "Add templates"
   },
+  "checkpointGroups": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "lastWeek": "Last Week",
+    "twoWeeksAgo": "2 Weeks Ago",
+    "threeWeeksAgo": "3 Weeks Ago"
+  },
   "components": {
     "createMenu": {
       "addAsset": "Add Asset",

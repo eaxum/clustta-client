@@ -1,9 +1,9 @@
 <template>
-    <div @click="enterCheckpoint($event, index)" class="checkpoint-item" v-esc="closeAllCheckpoints" :key="index"
-        :class="{ 'checkpoint-item-recent': justViewed === index, 'checkpoint-active': checkpoint.hash === taskHash }"
-        :style="{ animationDelay: index < 10 ? `${(index - 1) * 0.05}s` : '0s' }">
+    <div @click="enterCheckpoint" class="checkpoint-item" v-esc="closeAllCheckpoints"
+        :class="{ 'checkpoint-item-recent': justViewed === checkpoint.checkpoint_id, 'checkpoint-active': checkpoint.hash === taskHash }"
+        :style="{ animationDelay: '0s' }">
 
-        <div class="checkpoint-item-content" :class="{ 'checkpoint-item-content-active': isExpanded === index }">
+        <div class="checkpoint-item-content" :class="{ 'checkpoint-item-content-active': isItemExpanded }">
             <div class="checkpoint-item-profile">
                 <div class="profile-picture" :style="{ backgroundColor: checkpoint.avatarColor }"
                     v-tooltip="checkpoint.author">
@@ -12,7 +12,7 @@
                 </div>
             </div>
             <div class="checkpoint-item-data">
-                <div class="checkpoint-item-meta" :class="{ 'checkpoint-item-meta-active': isExpanded === index }"
+                <div class="checkpoint-item-meta" :class="{ 'checkpoint-item-meta-active': isItemExpanded }"
                     @mouseenter="trayStates.handleHover($event)" @mouseleave="trayStates.resetScroll($event)">
                     <div class="checkpoint-item-label-text checkpoint-item-message"
                         style="overflow: hidden; text-overflow: ellipsis;">
@@ -21,18 +21,18 @@
 
                 </div>
                 <div class="checkpoint-item-meta">
-                    <p class="checkpoint-item-label-text">{{ utils.formatDate(checkpoint.created_at) }}</p>
+                    <p class="checkpoint-item-label-text">{{ utils.formatDate(checkpoint.created_at, locale) }}</p>
                 </div>
             </div>
 
-            <div v-if="isExpanded === index" class="checkpoint-item-actions close-button">
+            <div v-if="isItemExpanded" class="checkpoint-item-actions close-button">
                 <ActionButton :plainBackground="true" :icon="getAppIcon('close')" v-tooltip="$t('components.checkpointItem.close')"
-                    @click="leaveCheckpoint($event, index)" />
+                    @click="leaveCheckpoint" />
             </div>
         </div>
 
-        <div v-if="checkpoint.preview && isExpanded === index" class="checkpoint-item-thumb"
-            :class="{ 'checkpoint-item-thumb-active': isExpanded === index }">
+        <div v-if="checkpoint.preview && isItemExpanded" class="checkpoint-item-thumb"
+            :class="{ 'checkpoint-item-thumb-active': isItemExpanded }">
 
             <div class="checkpoint-item-snapshot">
                 <img v-if="checkpoint.preview" class="thumbs" :src='checkpoint.preview'>
@@ -41,13 +41,13 @@
 
         </div>
 
-        <div v-if="checkpoint.preview && isExpanded !== index" class="checkpoint-item-attachment">
+        <div v-if="checkpoint.preview && !isItemExpanded" class="checkpoint-item-attachment">
             <ActionButton :icon="getAppIcon('paper-clip')" v-tooltip="$t('components.checkpointItem.viewAttachment')"/>
         </div>
 
-        <div v-if="isExpanded === index" class="menu-divider"></div>
+        <div v-if="isItemExpanded" class="menu-divider"></div>
 
-        <div v-if="isExpanded !== index" class="checkpoint-item-actions">
+        <div v-if="!isItemExpanded" class="checkpoint-item-actions">
             <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('revert')" v-tooltip="$t('components.checkpointItem.revertToCheckpoint')"
                 @click="revertToVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
             <template v-if="!platformStore.isWeb" >
@@ -100,7 +100,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { usePlatformStore } from '@/stores/platform';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 // components
 import CheckpointListSkeleton from '@/instances/common/components/CheckpointListSkeleton.vue';
@@ -114,16 +114,12 @@ const props = defineProps({
         type: Object,
         required: true
     },
-    index: {
-        type: Number,
-        required: true
-    },
     taskHash: {
         type: String,
         default: ''
     },
-    isExpanded: {
-        type: Number,
+    expandedId: {
+        type: String,
         default: ''
     }
 });
@@ -143,8 +139,10 @@ const platformStore = usePlatformStore();
 // refs
 const itemVersionId = ref(null);
 const elements = ref([]);
-// const isExpanded = ref(-1);
-const justViewed = ref(-1);
+const justViewed = ref('');
+
+// computed properties
+const isItemExpanded = computed(() => props.expandedId === props.checkpoint.checkpoint_id);
 
 // methods
 const downloadCheckpoint = (checkpointId) => {
@@ -206,29 +204,29 @@ const viewVersion = (id, checkpointId) => {
 
 let timeoutId;
 
-const enterCheckpoint = (event, index) => {
-    // console.log(index)
-    // justViewed.value = index;
-    if (props.isExpanded !== index) {
-        emit('update-expanded', index)
+const enterCheckpoint = (event) => {
+    if (!isItemExpanded.value) {
+        emit('update-expanded', props.checkpoint.checkpoint_id)
 
         nextTick(() => {
-            const element = document.querySelectorAll('.checkpoint-item')[index];
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const element = event.target.closest('.checkpoint-item');
+            if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     };
 };
 
-const leaveCheckpoint = (event, index) => {
-    emit('update-expanded', -1)
+// Collapses the current checkpoint.
+const leaveCheckpoint = (event) => {
+    emit('update-expanded', '')
     nextTick(() => {
-        const element = document.querySelectorAll('.checkpoint-item')[index];
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const element = event.target.closest('.checkpoint-item');
+        if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 };
 
+// Closes all expanded checkpoints.
 const closeAllCheckpoints = () => {
-    emit('update-expanded', -1)
+    emit('update-expanded', '')
 }
 
 const deleteVersion = async () => {
