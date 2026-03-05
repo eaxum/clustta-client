@@ -2,7 +2,7 @@
     
     <div  class="trash-item-container">
         <div class="trash-item">
-            <div @click="toggleVersions(timelineItemIndex)" class="trash-item-meta">
+            <div @click="toggleVersions" class="trash-item-meta">
                 <div class="profile-picture" :style="{ backgroundColor: timelineItem.avatarColor }"
                     v-tooltip="timelineItem.author_name">
                     <img class="profile-img"
@@ -23,15 +23,15 @@
                 </div>
             </div>
 
-            <div v-if="isExpanded !== timelineItemIndex" class="checkpoint-item-actions">
+            <div v-if="!isItemExpanded" class="checkpoint-item-actions">
 
                 <span @click="revertProject(timelineItem.created_at)" class="single-action-button" v-tooltip="$t('components.timelineItem.revert')">
                     <img class="small-icons" :src="getAppIcon('revert')">
                 </span>
 
-                <span @click="toggleVersions(timelineItemIndex)" class="single-action-button" v-tooltip="$t('components.timelineItem.expand')">
+                <span @click="toggleVersions" class="single-action-button" v-tooltip="$t('components.timelineItem.expand')">
                     <img class="small-icons" src="/icons/chevron_down_white_slim.svg"
-                        :class="{ 'is-active': isExpanded === timelineItemIndex }">
+                        :class="{ 'is-active': isItemExpanded }">
                 </span>
             </div>
 
@@ -41,16 +41,16 @@
                     <img class="small-icons" :src="getAppIcon('revert')">
                 </span>
 
-                <span @click="toggleVersions(timelineItemIndex)" class="single-action-button" v-tooltip="$t('components.timelineItem.close')">
+                <span @click="toggleVersions" class="single-action-button" v-tooltip="$t('components.timelineItem.close')">
                     <img class="small-icons" :src="getAppIcon('close')"
-                        :class="{ 'is-active': isExpanded === timelineItemIndex }">
+                        :class="{ 'is-active': isItemExpanded }">
                 </span>
             </div>
 
         </div>
 
         <transition name="expand" appear>
-            <div v-if="timelineItem.task_paths.length" v-show="isExpanded === timelineItemIndex"
+            <div v-if="timelineItem.task_paths.length" v-show="isItemExpanded"
                 class="trash-checkpoints-root">
                 <div class="trash-checkpoints">
                     <div class="checkpoint-item-children" v-for="(taskPath, index) in timelineItem.task_paths" :key="index">
@@ -71,7 +71,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, nextTick } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { CheckpointService, CollectionService, AssetService, TrashService } from "@/services";
 import utils from '@/services/utils';
@@ -87,17 +87,14 @@ import { useStageStore } from '@/stores/stages';
 import { useCommonStore } from '@/stores/common';
 
 const props = defineProps({
-
     timelineItem: Object,
-    timelineItemIndex: Number,
-    isExpanded: {
-        type: Number,
+    expandedId: {
+        type: String,
         default: ''
     }
-
 });
 
-const emit = defineEmits(['update-expanded']);
+const emit = defineEmits(['updateExpanded']);
 
 const trayStates = useTrayStates();
 const iconStore = useIconStore();
@@ -115,16 +112,15 @@ const getAppIcon = (iconName) => {
     return icon
 };
 
-const toggleVersions = (index) => {
-    if (props.isExpanded !== index) {
-        emit('update-expanded', index)
+// Returns whether this item is currently expanded.
+const isItemExpanded = computed(() => props.expandedId === props.timelineItem.created_at);
 
-        nextTick(() => {
-            const element = document.querySelectorAll('.trash-item-container')[index];
-            // element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
+// Toggles the expanded state of this timeline item.
+const toggleVersions = () => {
+    if (!isItemExpanded.value) {
+        emit('updateExpanded', props.timelineItem.created_at);
     } else {
-        emit('update-expanded', -1)
+        emit('updateExpanded', '');
     }
 };
 
