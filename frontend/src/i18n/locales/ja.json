@@ -11,7 +11,10 @@
     "change": "変更",
     "close": "閉じる",
     "confirm": "確認",
+    "connected": "接続済み",
     "continue": "続行",
+    "copy": "コピー",
+    "copied": "コピーしました",
     "copyPath": "パスをコピー",
     "create": "作成",
     "decline": "辞退",
@@ -65,7 +68,9 @@
     "yes": "はい",
     "all": "すべて",
     "hide": "非表示",
-    "show": "表示"
+    "show": "表示",
+    "link": "リンク",
+    "manage": "管理"
   },
   "placeholders": {
     "addItem": "アイテムを追加",
@@ -598,6 +603,20 @@
     "noTemplate": "テンプレートなし",
     "addWebLink": "Webリンクを追加",
     "invalidWebLink": "無効なWebリンクです。'http://'または'https://'で始まる必要があります",
+    "shareLink": "リンクを共有",
+    "shareLabelPlaceholder": "ラベル（例: 最終エクスポート v2）",
+    "shareExpiry": "リンクの有効期限",
+    "shareExpiry1Day": "1日",
+    "shareExpiry3Days": "3日",
+    "shareExpiry7Days": "7日",
+    "shareExpiry30Days": "30日",
+    "generateLink": "リンクを生成",
+    "shareLinkReady": "共有リンクが準備できました",
+    "copyLink": "リンクをコピー",
+    "shareLinkExpires": "{date} に期限切れ",
+    "shareLinkCopied": "リンクをクリップボードにコピーしました",
+    "shareLinkCopyError": "リンクをコピーできませんでした",
+    "shareError": "共有リンクを生成できませんでした",
     "backupProject": "プロジェクトをバックアップ",
     "backup": "バックアップ",
     "projectToBackup": "バックアップするプロジェクト",
@@ -918,6 +937,25 @@
   "eula": {
     "title": "Clustta エンドユーザーライセンス契約"
   },
+  "share": {
+    "loading": "共有リンクを読み込み中...",
+    "files": "ファイル",
+    "fileCount": "{count} ファイル",
+    "downloadAll": "すべてダウンロード",
+    "expiresOn": "{date} に期限切れ",
+    "invalidLink": "無効なリンク",
+    "noToken": "共有トークンが提供されていません。",
+    "linkNotFound": "リンクが見つかりません",
+    "linkNotFoundMessage": "この共有リンクは存在しないか、利用できなくなっています。",
+    "linkExpired": "リンクの有効期限切れ",
+    "linkExpiredMessage": "この共有リンクは期限が切れ、利用できなくなっています。",
+    "linkRevoked": "リンクが取り消されました",
+    "linkRevokedMessage": "この共有リンクは所有者によって取り消されました。",
+    "loadError": "読み込めません",
+    "loadErrorMessage": "この共有リンクの読み込み中にエラーが発生しました。後でもう一度お試しください。",
+    "downloading": "ダウンロード中...",
+    "downloadFailed": "ダウンロードに失敗しました。もう一度お試しください。"
+  },
   "languages": {
     "de": "ドイツ語",
     "en": "英語",
@@ -1146,7 +1184,9 @@
       "errorReverting": "バージョンへの復元エラー",
       "errorDeleting": "チェックポイントの削除エラー",
       "deleteCheckpointTitle": "チェックポイントを削除",
-      "deleteCheckpointConfirm": "このチェックポイントを削除してもよろしいですか？"
+      "deleteCheckpointConfirm": "このチェックポイントを削除してもよろしいですか？",
+      "share": "共有",
+      "shareCheckpoint": "チェックポイントを共有"
     },
     "debugConsole": {
       "title": "デバッグコンソール",

@@ -62,7 +62,7 @@
       :buttonFunction="prepRemovePopUpModal" />
 
     <!-- Delete project -->
-    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded || platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('menus.deleteProject')"
+    <ActionButton v-if="(projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && userStore.userCanCreateProject" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('menus.deleteProject')"
       :buttonFunction="prepDeletePopUpModal" />
 
 

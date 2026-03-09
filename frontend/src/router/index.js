@@ -87,6 +87,13 @@ const routes = [
     component: () => import('@/instances/web/PublicUserProfile.vue'),
     meta: { requiresAuth: false, isPublic: true }
   },
+  // Share download page (public)
+  {
+    path: '/share/:token',
+    name: 'share-download',
+    component: () => import('@/instances/web/ShareDownloadPage.vue'),
+    meta: { requiresAuth: false, isPublic: true }
+  },
   // User profile page (web authenticated users)
   {
     path: '/profile',

@@ -11,7 +11,10 @@
     "change": "Изменить",
     "close": "Закрыть",
     "confirm": "Подтвердить",
+    "connected": "Подключено",
     "continue": "Продолжить",
+    "copy": "Копировать",
+    "copied": "Скопировано",
     "copyPath": "Копировать путь",
     "create": "Создать",
     "decline": "Отклонить",
@@ -65,7 +68,9 @@
     "yes": "Да",
     "all": "Все",
     "hide": "Скрыть",
-    "show": "Показать"
+    "show": "Показать",
+    "link": "Ссылка",
+    "manage": "Управлять"
   },
   "placeholders": {
     "addItem": "Добавить элемент",
@@ -600,6 +605,20 @@
     "noTemplate": "Без шаблона",
     "addWebLink": "Добавить веб-ссылку",
     "invalidWebLink": "Недопустимая веб-ссылка. Должна начинаться с 'http://' или 'https://'",
+    "shareLink": "Поделиться ссылкой",
+    "shareLabelPlaceholder": "Метка (напр. Финальный экспорт v2)",
+    "shareExpiry": "Ссылка истекает через",
+    "shareExpiry1Day": "1 день",
+    "shareExpiry3Days": "3 дня",
+    "shareExpiry7Days": "7 дней",
+    "shareExpiry30Days": "30 дней",
+    "generateLink": "Создать ссылку",
+    "shareLinkReady": "Ваша ссылка для обмена готова",
+    "copyLink": "Копировать ссылку",
+    "shareLinkExpires": "Истекает {date}",
+    "shareLinkCopied": "Ссылка скопирована в буфер обмена",
+    "shareLinkCopyError": "Не удалось скопировать ссылку",
+    "shareError": "Не удалось создать ссылку для обмена",
     "backupProject": "Резервное копирование проекта",
     "backup": "Резервная копия",
     "projectToBackup": "Проект для резервного копирования",
@@ -921,6 +940,25 @@
   "eula": {
     "title": "Лицензионное соглашение Clustta"
   },
+  "share": {
+    "loading": "Загрузка ссылки для обмена...",
+    "files": "Файлы",
+    "fileCount": "{count} файл | {count} файлов",
+    "downloadAll": "Скачать все",
+    "expiresOn": "Истекает {date}",
+    "invalidLink": "Недопустимая ссылка",
+    "noToken": "Токен обмена не предоставлен.",
+    "linkNotFound": "Ссылка не найдена",
+    "linkNotFoundMessage": "Эта ссылка для обмена не существует или больше недоступна.",
+    "linkExpired": "Ссылка истекла",
+    "linkExpiredMessage": "Эта ссылка для обмена истекла и больше недоступна.",
+    "linkRevoked": "Ссылка отозвана",
+    "linkRevokedMessage": "Эта ссылка для обмена была отозвана владельцем.",
+    "loadError": "Не удалось загрузить",
+    "loadErrorMessage": "Произошла ошибка при загрузке этой ссылки для обмена. Пожалуйста, попробуйте позже.",
+    "downloading": "Скачивание...",
+    "downloadFailed": "Скачивание не удалось. Попробуйте еще раз."
+  },
   "languages": {
     "en": "Английский",
     "es": "Испанский",
@@ -1149,7 +1187,9 @@
       "errorReverting": "Ошибка отката к версии",
       "errorDeleting": "Ошибка удаления контрольной точки",
       "deleteCheckpointTitle": "Удалить контрольную точку",
-      "deleteCheckpointConfirm": "Вы уверены, что хотите удалить эту контрольную точку?"
+      "deleteCheckpointConfirm": "Вы уверены, что хотите удалить эту контрольную точку?",
+      "share": "Поделиться",
+      "shareCheckpoint": "Поделиться контрольной точкой"
     },
     "debugConsole": {
       "title": "Консоль отладки",

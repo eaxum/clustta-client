@@ -107,6 +107,8 @@ export const useTrayStates = defineStore("useTrayStates", {
 
     activeModal: null,
 
+    shareModalData: null,
+
     showTraySearch: false,
     showMeta: false,
     undoItemId: "",

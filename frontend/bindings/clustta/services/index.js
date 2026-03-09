@@ -19,6 +19,7 @@ import * as LogService from "./logservice.js";
 import * as ProfileService from "./profileservice.js";
 import * as ProjectService from "./projectservice.js";
 import * as SettingsService from "./settingsservice.js";
+import * as ShareService from "./shareservice.js";
 import * as StatusService from "./statusservice.js";
 import * as StudioService from "./studioservice.js";
 import * as SyncService from "./syncservice.js";
@@ -45,6 +46,7 @@ export {
     ProfileService,
     ProjectService,
     SettingsService,
+    ShareService,
     StatusService,
     StudioService,
     SyncService,
@@ -75,6 +77,7 @@ export {
     NullString,
     ProfileUpdateData,
     RecycleItem,
+    ShareLinkResponse,
     Skill,
     SkillData,
     SystemInfo,
