@@ -29,6 +29,7 @@ import UploadProjectModal from '@/instances/desktop/modals/UploadProjectModal.vu
 
 // components - general
 import AppInfoModal from '@/instances/desktop/modals/AppInfoModal.vue';
+import ShareModal from '@/instances/desktop/modals/ShareModal.vue';
 import BackUpProjectModal from '@/instances/desktop/modals/BackUpProjectModal.vue';
 import ConfirmDangerousActionModal from '@/instances/desktop/modals/ConfirmDangerousActionModal.vue';
 import DirOnboardModal from '@/instances/desktop/modals/DirOnboardModal.vue';
@@ -124,6 +125,7 @@ const modalComponents = {
 
   // general
   appInfoModal: AppInfoModal,
+  shareModal: ShareModal,
   backUpProjectModal: BackUpProjectModal,
   confirmDangerousActionModal: ConfirmDangerousActionModal,
   dirOnboardModal: DirOnboardModal,
