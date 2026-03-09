@@ -42,3 +42,4 @@ export { DeploymentService } from './deploymentservice.js';
 export { AppService } from './appservice.js';
 export { LogService } from './logservice.js';
 export { DiscoveryService } from './discoveryservice.js';
+export { ShareService } from './shareservice.js';

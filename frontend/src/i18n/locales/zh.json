@@ -11,7 +11,10 @@
     "change": "更改",
     "close": "关闭",
     "confirm": "确认",
+    "connected": "已连接",
     "continue": "继续",
+    "copy": "复制",
+    "copied": "已复制",
     "copyPath": "复制路径",
     "create": "创建",
     "decline": "拒绝",
@@ -65,7 +68,9 @@
     "yes": "是",
     "all": "全部",
     "hide": "隐藏",
-    "show": "显示"
+    "show": "显示",
+    "link": "链接",
+    "manage": "管理"
   },
   "placeholders": {
     "addItem": "添加项目",
@@ -599,6 +604,20 @@
     "noTemplate": "无模板",
     "addWebLink": "添加网页链接",
     "invalidWebLink": "无效的网页链接。必须以 'http://' 或 'https://' 开头",
+    "shareLink": "分享链接",
+    "shareLabelPlaceholder": "标签（例如 最终导出 v2）",
+    "shareExpiry": "链接过期时间",
+    "shareExpiry1Day": "1 天",
+    "shareExpiry3Days": "3 天",
+    "shareExpiry7Days": "7 天",
+    "shareExpiry30Days": "30 天",
+    "generateLink": "生成链接",
+    "shareLinkReady": "您的分享链接已准备就绪",
+    "copyLink": "复制链接",
+    "shareLinkExpires": "{date} 过期",
+    "shareLinkCopied": "链接已复制到剪贴板",
+    "shareLinkCopyError": "无法复制链接",
+    "shareError": "无法生成分享链接",
     "backupProject": "备份项目",
     "backup": "备份",
     "projectToBackup": "要备份的项目",
@@ -919,6 +938,25 @@
   "eula": {
     "title": "Clustta 最终用户许可协议"
   },
+  "share": {
+    "loading": "正在加载分享链接...",
+    "files": "文件",
+    "fileCount": "{count} 个文件",
+    "downloadAll": "全部下载",
+    "expiresOn": "{date} 过期",
+    "invalidLink": "无效链接",
+    "noToken": "未提供分享令牌。",
+    "linkNotFound": "链接未找到",
+    "linkNotFoundMessage": "此分享链接不存在或已不可用。",
+    "linkExpired": "链接已过期",
+    "linkExpiredMessage": "此分享链接已过期，不再可用。",
+    "linkRevoked": "链接已撤销",
+    "linkRevokedMessage": "此分享链接已被所有者撤销。",
+    "loadError": "无法加载",
+    "loadErrorMessage": "加载此分享链接时发生错误。请稍后重试。",
+    "downloading": "下载中...",
+    "downloadFailed": "下载失败。请重试。"
+  },
   "languages": {
     "de": "德语",
     "en": "英语",
@@ -1147,7 +1185,9 @@
       "errorReverting": "还原到版本时出错",
       "errorDeleting": "删除检查点时出错",
       "deleteCheckpointTitle": "删除检查点",
-      "deleteCheckpointConfirm": "您确定要删除此检查点吗？"
+      "deleteCheckpointConfirm": "您确定要删除此检查点吗？",
+      "share": "分享",
+      "shareCheckpoint": "分享检查点"
     },
     "debugConsole": {
       "title": "调试控制台",

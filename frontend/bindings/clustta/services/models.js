@@ -1260,6 +1260,51 @@ export class RecycleItem {
     }
 }
 
+/**
+ * ShareLinkResponse represents the response from creating a share link.
+ */
+export class ShareLinkResponse {
+    /**
+     * Creates a new ShareLinkResponse instance.
+     * @param {Partial<ShareLinkResponse>} [$$source = {}] - The source object to create the ShareLinkResponse.
+     */
+    constructor($$source = {}) {
+        if (!("token" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["token"] = "";
+        }
+        if (!("share_url" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["share_url"] = "";
+        }
+        if (!("expires_at" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["expires_at"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ShareLinkResponse instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ShareLinkResponse}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ShareLinkResponse(/** @type {Partial<ShareLinkResponse>} */($$parsedSource));
+    }
+}
+
 export class Skill {
     /**
      * Creates a new Skill instance.

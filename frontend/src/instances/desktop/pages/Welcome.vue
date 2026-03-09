@@ -207,7 +207,11 @@ const goToSignUp = () => {
 
 // Navigates to the studio setup page.
 const goToStudioSetup = () => {
-  router.push('/auth/studio-setup');
+  if (platformStore.isWeb) {
+    router.push({ path: '/auth/studio-setup', query: { type: 'managed' } });
+  } else {
+    router.push('/auth/studio-setup');
+  }
 };
 </script>
 

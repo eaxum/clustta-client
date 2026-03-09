@@ -157,6 +157,7 @@ func main() {
 			application.NewService(&services.ProfileService{}),
 			application.NewService(&services.ProjectService{}),
 			application.NewService(&services.SettingsService{}),
+			application.NewService(&services.ShareService{}),
 			application.NewService(&services.StatusService{}),
 			application.NewService(&services.StudioService{}),
 			application.NewService(&services.SyncService{}),

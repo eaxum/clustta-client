@@ -11,7 +11,10 @@
     "change": "변경",
     "close": "닫기",
     "confirm": "확인",
+    "connected": "연결됨",
     "continue": "계속",
+    "copy": "복사",
+    "copied": "복사됨",
     "copyPath": "경로 복사",
     "create": "생성",
     "decline": "거절",
@@ -65,7 +68,9 @@
     "yes": "예",
     "all": "전체",
     "hide": "숨기기",
-    "show": "보기"
+    "show": "보기",
+    "link": "링크",
+    "manage": "관리"
   },
   "placeholders": {
     "addItem": "항목 추가",
@@ -600,6 +605,20 @@
     "noTemplate": "템플릿 없음",
     "addWebLink": "웹 링크 추가",
     "invalidWebLink": "잘못된 웹 링크입니다. 'http://' 또는 'https://'로 시작해야 합니다",
+    "shareLink": "링크 공유",
+    "shareLabelPlaceholder": "레이블 (예: 최종 내보내기 v2)",
+    "shareExpiry": "링크 만료 기간",
+    "shareExpiry1Day": "1일",
+    "shareExpiry3Days": "3일",
+    "shareExpiry7Days": "7일",
+    "shareExpiry30Days": "30일",
+    "generateLink": "링크 생성",
+    "shareLinkReady": "공유 링크가 준비되었습니다",
+    "copyLink": "링크 복사",
+    "shareLinkExpires": "{date}에 만료",
+    "shareLinkCopied": "링크가 클립보드에 복사되었습니다",
+    "shareLinkCopyError": "링크를 복사할 수 없습니다",
+    "shareError": "공유 링크를 생성할 수 없습니다",
     "backupProject": "프로젝트 백업",
     "backup": "백업",
     "projectToBackup": "백업할 프로젝트",
@@ -921,6 +940,25 @@
   "eula": {
     "title": "Clustta 최종 사용자 사용권 계약"
   },
+  "share": {
+    "loading": "공유 링크 로딩 중...",
+    "files": "파일",
+    "fileCount": "{count}개 파일",
+    "downloadAll": "모두 다운로드",
+    "expiresOn": "{date}에 만료",
+    "invalidLink": "잘못된 링크",
+    "noToken": "공유 토큰이 제공되지 않았습니다.",
+    "linkNotFound": "링크를 찾을 수 없습니다",
+    "linkNotFoundMessage": "이 공유 링크는 존재하지 않거나 더 이상 사용할 수 없습니다.",
+    "linkExpired": "링크 만료",
+    "linkExpiredMessage": "이 공유 링크는 만료되어 더 이상 사용할 수 없습니다.",
+    "linkRevoked": "링크 철회됨",
+    "linkRevokedMessage": "이 공유 링크는 소유자에 의해 철회되었습니다.",
+    "loadError": "로드할 수 없습니다",
+    "loadErrorMessage": "이 공유 링크를 로드하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.",
+    "downloading": "다운로드 중...",
+    "downloadFailed": "다운로드 실패. 다시 시도해 주세요."
+  },
   "languages": {
     "en": "영어",
     "es": "스페인어",
@@ -1149,7 +1187,9 @@
       "errorReverting": "버전 되돌리기 오류",
       "errorDeleting": "체크포인트 삭제 오류",
       "deleteCheckpointTitle": "체크포인트 삭제",
-      "deleteCheckpointConfirm": "이 체크포인트를 삭제하시겠습니까?"
+      "deleteCheckpointConfirm": "이 체크포인트를 삭제하시겠습니까?",
+      "share": "공유",
+      "shareCheckpoint": "체크포인트 공유"
     },
     "debugConsole": {
       "title": "디버그 콘솔",

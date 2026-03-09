@@ -176,9 +176,9 @@
 
 <script setup>
 // imports
-import { ref, reactive, computed } from 'vue';
+import { onMounted, ref, reactive, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { Browser } from '@wailsio/runtime';
 
 // components
@@ -198,6 +198,7 @@ import { useNotificationStore } from '@/stores/notifications';
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 
+const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 
@@ -486,6 +487,13 @@ const resetHostingType = () => {
 const selectHostingType = (type) => {
   hostingType.value = type;
 };
+
+// lifecycle hooks
+onMounted(() => {
+  if (route.query.type === 'managed') {
+    hostingType.value = 'managed';
+  }
+});
 
 // Validates the studio URL format.
 const validateStudioUrl = () => {

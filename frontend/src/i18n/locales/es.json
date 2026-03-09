@@ -11,7 +11,10 @@
     "change": "Cambiar",
     "close": "Cerrar",
     "confirm": "Confirmar",
+    "connected": "Conectado",
     "continue": "Continuar",
+    "copy": "Copiar",
+    "copied": "Copiado",
     "copyPath": "Copiar Ruta",
     "create": "Crear",
     "decline": "Rechazar",
@@ -65,7 +68,9 @@
     "yes": "Sí",
     "all": "Todo",
     "hide": "Ocultar",
-    "show": "Mostrar"
+    "show": "Mostrar",
+    "link": "Enlace",
+    "manage": "Gestionar"
   },
   "placeholders": {
     "addItem": "Agregar elemento",
@@ -598,6 +603,20 @@
     "noTemplate": "Sin plantilla",
     "addWebLink": "Agregar enlace web",
     "invalidWebLink": "Enlace web inválido. Debe comenzar con 'http://' o 'https://'",
+    "shareLink": "Compartir enlace",
+    "shareLabelPlaceholder": "Etiqueta (ej. Exportación Final v2)",
+    "shareExpiry": "El enlace expira después de",
+    "shareExpiry1Day": "1 día",
+    "shareExpiry3Days": "3 días",
+    "shareExpiry7Days": "7 días",
+    "shareExpiry30Days": "30 días",
+    "generateLink": "Generar enlace",
+    "shareLinkReady": "Su enlace para compartir está listo",
+    "copyLink": "Copiar enlace",
+    "shareLinkExpires": "Expira el {date}",
+    "shareLinkCopied": "Enlace copiado al portapapeles",
+    "shareLinkCopyError": "No se pudo copiar el enlace",
+    "shareError": "No se pudo generar el enlace para compartir",
     "backupProject": "Copia de seguridad del proyecto",
     "backup": "Respaldar",
     "projectToBackup": "Proyecto a respaldar",
@@ -918,6 +937,25 @@
   "eula": {
     "title": "Acuerdo de Licencia de Usuario Final de Clustta"
   },
+  "share": {
+    "loading": "Cargando enlace para compartir...",
+    "files": "Archivos",
+    "fileCount": "{count} archivo | {count} archivos",
+    "downloadAll": "Descargar todo",
+    "expiresOn": "Expira el {date}",
+    "invalidLink": "Enlace inválido",
+    "noToken": "No se proporcionó ningún token de compartir.",
+    "linkNotFound": "Enlace no encontrado",
+    "linkNotFoundMessage": "Este enlace para compartir no existe o ya no está disponible.",
+    "linkExpired": "Enlace expirado",
+    "linkExpiredMessage": "Este enlace para compartir ha expirado y ya no está disponible.",
+    "linkRevoked": "Enlace revocado",
+    "linkRevokedMessage": "Este enlace para compartir ha sido revocado por el propietario.",
+    "loadError": "No se pudo cargar",
+    "loadErrorMessage": "Se produjo un error al cargar este enlace para compartir. Inténtelo de nuevo más tarde.",
+    "downloading": "Descargando...",
+    "downloadFailed": "La descarga falló. Inténtelo de nuevo."
+  },
   "languages": {
     "de": "Alemán",
     "en": "Inglés",
@@ -1146,7 +1184,9 @@
       "errorReverting": "Error al revertir a la versión",
       "errorDeleting": "Error al eliminar punto de control",
       "deleteCheckpointTitle": "Eliminar punto de control",
-      "deleteCheckpointConfirm": "¿Está seguro de que desea eliminar este punto de control?"
+      "deleteCheckpointConfirm": "¿Está seguro de que desea eliminar este punto de control?",
+      "share": "Compartir",
+      "shareCheckpoint": "Compartir punto de control"
     },
     "debugConsole": {
       "title": "Consola de depuración",

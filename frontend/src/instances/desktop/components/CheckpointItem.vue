@@ -56,18 +56,20 @@
                 <ActionButton v-else :icon="getAppIcon('launch')" v-tooltip="$t('components.checkpointItem.openCheckpoint')"
                     @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
             </template>
-            <ActionButton v-else-if="userStore.canDo('delete_checkpoint')" :icon="getAppIcon('trash')" v-tooltip="$t('components.checkpointItem.deleteCheckpoint')"
+            <ActionButton :icon="getAppIcon('send')" v-tooltip="$t('components.checkpointItem.shareCheckpoint')" @click="openShareModal" />
+            <ActionButton v-if="userStore.canDo('delete_checkpoint')" :icon="getAppIcon('trash')" v-tooltip="$t('components.checkpointItem.deleteCheckpoint')"
                 @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>
 
         <div v-else class="full-checkpoint-item-actions">
-            <ActionButton v-if="!platformStore.isWeb" :label="$t('components.checkpointItem.revert')" :icon="getAppIcon('revert')" v-tooltip="$t('components.checkpointItem.revertToCheckpoint')"
+            <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('revert')" v-tooltip="$t('components.checkpointItem.revertToCheckpoint')"
                 @click="revertToVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
-            <ActionButton v-if="!platformStore.isWeb && !checkpoint.is_downloaded" :label="$t('components.checkpointItem.download')" :icon="getAppIcon('cloud-down')"
+            <ActionButton v-if="!platformStore.isWeb && !checkpoint.is_downloaded" :icon="getAppIcon('cloud-down')"
                 v-tooltip="$t('components.checkpointItem.downloadCheckpoint')" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
-            <ActionButton v-if="!platformStore.isWeb && checkpoint.is_downloaded" :label="$t('components.checkpointItem.open')" :icon="getAppIcon('launch')"
+            <ActionButton v-if="!platformStore.isWeb && checkpoint.is_downloaded" :icon="getAppIcon('launch')"
                 v-tooltip="$t('components.checkpointItem.openCheckpoint')" @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
-            <ActionButton v-if="userStore.canDo('delete_checkpoint')" :label="$t('components.checkpointItem.delete')" :icon="getAppIcon('trash')" v-tooltip="$t('components.checkpointItem.deleteCheckpoint')"
+            <ActionButton v-if="userStore.canDo('delete_checkpoint')" :icon="getAppIcon('send')" v-tooltip="$t('components.checkpointItem.shareCheckpoint')" @click="openShareModal" />
+            <ActionButton v-if="userStore.canDo('delete_checkpoint')" :icon="getAppIcon('trash')" v-tooltip="$t('components.checkpointItem.deleteCheckpoint')"
                 @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>
 
@@ -246,6 +248,15 @@ const deleteVersion = async () => {
 
     modals.setModalVisibility('popUpModal', false);
     modals.setModalVisibility('projectMenu', false);
+};
+
+// Opens the share modal with this checkpoint's ID.
+const openShareModal = () => {
+    trayStates.shareModalData = {
+        checkpointIds: [props.checkpoint.checkpoint_id],
+        label: props.checkpoint.comment || '',
+    };
+    modals.setModalVisibility('shareModal', true);
 };
 
 const prepDeletePopUpModal = (checkpointId) => {

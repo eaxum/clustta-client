@@ -11,7 +11,10 @@
     "change": "बदलें",
     "close": "बंद करें",
     "confirm": "पुष्टि करें",
+    "connected": "कनेक्टेड",
     "continue": "जारी रखें",
+    "copy": "कॉपी करें",
+    "copied": "कॉपी हो गया",
     "copyPath": "पथ कॉपी करें",
     "create": "बनाएँ",
     "decline": "अस्वीकार करें",
@@ -65,7 +68,9 @@
     "yes": "हाँ",
     "all": "सभी",
     "hide": "छुपाएं",
-    "show": "दिखाएं"
+    "show": "दिखाएं",
+    "link": "लिंक",
+    "manage": "प्रबंधित करें"
   },
   "placeholders": {
     "addItem": "आइटम जोड़ें",
@@ -600,6 +605,20 @@
     "noTemplate": "कोई टेम्पलेट नहीं",
     "addWebLink": "वेब लिंक जोड़ें",
     "invalidWebLink": "अमान्य वेब लिंक। 'http://' या 'https://' से शुरू होना चाहिए",
+    "shareLink": "लिंक साझा करें",
+    "shareLabelPlaceholder": "लेबल (जैसे फाइनल एक्सपोर्ट v2)",
+    "shareExpiry": "लिंक के बाद समाप्त होता है",
+    "shareExpiry1Day": "1 दिन",
+    "shareExpiry3Days": "3 दिन",
+    "shareExpiry7Days": "7 दिन",
+    "shareExpiry30Days": "30 दिन",
+    "generateLink": "लिंक बनाएं",
+    "shareLinkReady": "आपका शेयर लिंक तैयार है",
+    "copyLink": "लिंक कॉपी करें",
+    "shareLinkExpires": "{date} को समाप्त होता है",
+    "shareLinkCopied": "लिंक क्लिपबोर्ड पर कॉपी हो गया",
+    "shareLinkCopyError": "लिंक कॉपी नहीं हो सका",
+    "shareError": "शेयर लिंक बनाने में विफल",
     "backupProject": "प्रोजेक्ट बैकअप",
     "backup": "बैकअप",
     "projectToBackup": "बैकअप के लिए प्रोजेक्ट",
@@ -921,6 +940,25 @@
   "eula": {
     "title": "Clustta अंतिम उपयोगकर्ता लाइसेंस अनुबंध"
   },
+  "share": {
+    "loading": "शेयर लिंक लोड हो रहा है...",
+    "files": "फाइलें",
+    "fileCount": "{count} फाइल | {count} फाइलें",
+    "downloadAll": "सब डाउनलोड करें",
+    "expiresOn": "{date} को समाप्त होता है",
+    "invalidLink": "अमान्य लिंक",
+    "noToken": "कोई शेयर टोकन प्रदान नहीं किया गया।",
+    "linkNotFound": "लिंक नहीं मिला",
+    "linkNotFoundMessage": "यह शेयर लिंक मौजूद नहीं है या अब उपलब्ध नहीं है।",
+    "linkExpired": "लिंक समाप्त हो गया",
+    "linkExpiredMessage": "यह शेयर लिंक समाप्त हो गया है और अब उपलब्ध नहीं है।",
+    "linkRevoked": "लिंक रद्द किया गया",
+    "linkRevokedMessage": "यह शेयर लिंक स्वामी द्वारा रद्द किया गया है।",
+    "loadError": "लोड नहीं हो सका",
+    "loadErrorMessage": "इस शेयर लिंक को लोड करते समय एक त्रुटि हुई। कृपया बाद में पुनः प्रयास करें।",
+    "downloading": "डाउनलोड हो रहा है...",
+    "downloadFailed": "डाउनलोड विफल। कृपया पुनः प्रयास करें।"
+  },
   "languages": {
     "de": "जर्मन",
     "en": "अंग्रेज़ी",
@@ -1149,7 +1187,9 @@
       "errorReverting": "संस्करण पर पूर्ववत करने में त्रुटि",
       "errorDeleting": "चेकपॉइंट हटाने में त्रुटि",
       "deleteCheckpointTitle": "चेकपॉइंट हटाएँ",
-      "deleteCheckpointConfirm": "क्या आप वाकई इस चेकपॉइंट को हटाना चाहते हैं?"
+      "deleteCheckpointConfirm": "क्या आप वाकई इस चेकपॉइंट को हटाना चाहते हैं?",
+      "share": "साझा करें",
+      "shareCheckpoint": "चेकपॉइंट साझा करें"
     },
     "debugConsole": {
       "title": "डीबग कंसोल",

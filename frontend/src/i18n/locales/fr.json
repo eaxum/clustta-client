@@ -11,7 +11,10 @@
     "change": "Modifier",
     "close": "Fermer",
     "confirm": "Confirmer",
+    "connected": "Connecté",
     "continue": "Continuer",
+    "copy": "Copier",
+    "copied": "Copié",
     "copyPath": "Copier le chemin",
     "create": "Créer",
     "decline": "Refuser",
@@ -65,7 +68,9 @@
     "yes": "Oui",
     "all": "Tout",
     "hide": "Masquer",
-    "show": "Afficher"
+    "show": "Afficher",
+    "link": "Lien",
+    "manage": "Gérer"
   },
   "placeholders": {
     "addItem": "Ajouter un élément",
@@ -690,7 +695,20 @@
     "loadingCollectionStates": "Chargement des états de la collection",
     "modifiedAsset": "Ressource modifiée",
     "refreshingModifiedItems": "Actualisation des éléments modifiés",
-    "untrackedAsset": "Ressource non suivie"
+    "untrackedAsset": "Ressource non suivie",
+    "shareLink": "Lien de partage",
+    "shareLabelPlaceholder": "Libellé (ex. Export Final v2)",
+    "shareExpiry": "Le lien expire après",
+    "shareExpiry1Day": "1 jour",
+    "shareExpiry3Days": "3 jours",
+    "shareExpiry7Days": "7 jours",
+    "shareExpiry30Days": "30 jours",
+    "generateLink": "Générer le lien",
+    "shareLinkReady": "Votre lien de partage est prêt",
+    "shareLinkExpires": "Expire le {date}",
+    "shareLinkCopied": "Lien copié dans le presse-papiers",
+    "shareLinkCopyError": "Impossible de copier le lien",
+    "shareError": "Impossible de générer le lien de partage"
   },
   "menus": {
     "addAccount": "Ajouter un compte",
@@ -914,6 +932,25 @@
     "releaseToMoveToRootShort": "Relâchez pour déplacer à la racine du projet.",
     "itemsSelected": "{count} éléments -",
     "unpinProject": "Désépingler le projet"
+  },
+  "share": {
+    "loading": "Chargement du lien de partage...",
+    "files": "Fichiers",
+    "fileCount": "{count} fichier | {count} fichiers",
+    "downloadAll": "Tout télécharger",
+    "expiresOn": "Expire le {date}",
+    "invalidLink": "Lien invalide",
+    "noToken": "Aucun jeton de partage n'a été fourni.",
+    "linkNotFound": "Lien introuvable",
+    "linkNotFoundMessage": "Ce lien de partage n'existe pas ou n'est plus disponible.",
+    "linkExpired": "Lien expiré",
+    "linkExpiredMessage": "Ce lien de partage a expiré et n'est plus disponible.",
+    "linkRevoked": "Lien révoqué",
+    "linkRevokedMessage": "Ce lien de partage a été révoqué par le propriétaire.",
+    "loadError": "Impossible de charger",
+    "loadErrorMessage": "Une erreur est survenue lors du chargement de ce lien de partage. Veuillez réessayer plus tard.",
+    "downloading": "Téléchargement...",
+    "downloadFailed": "Le téléchargement a échoué. Veuillez réessayer."
   },
   "eula": {
     "title": "Accord de Licence Utilisateur Final Clustta"
@@ -1146,7 +1183,9 @@
       "errorReverting": "Erreur lors du retour à la version",
       "errorDeleting": "Erreur lors de la suppression du point de contrôle",
       "deleteCheckpointTitle": "Supprimer le point de contrôle",
-      "deleteCheckpointConfirm": "Êtes-vous sûr de vouloir supprimer ce point de contrôle ?"
+      "deleteCheckpointConfirm": "Êtes-vous sûr de vouloir supprimer ce point de contrôle ?",
+      "share": "Partager",
+      "shareCheckpoint": "Partager le point de contrôle"
     },
     "debugConsole": {
       "title": "Console de débogage",
