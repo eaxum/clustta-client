@@ -252,6 +252,7 @@ const deleteVersion = async () => {
 
 // Opens the share modal with this checkpoint's ID.
 const openShareModal = () => {
+    console.log('ppppppppp');
     trayStates.shareModalData = {
         checkpointIds: [props.checkpoint.checkpoint_id],
         label: props.checkpoint.comment || '',
