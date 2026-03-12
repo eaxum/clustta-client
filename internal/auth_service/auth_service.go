@@ -101,12 +101,21 @@ func IsAuthenticated() (bool, error) {
 	return false, fmt.Errorf("error loading user: code - %d: body - %s", response.StatusCode, bodyData)
 }
 
+// userLookupPrefix returns the URL path prefix for user lookup endpoints.
+// Studio servers use /auth prefix to avoid route conflicts with project wildcards.
+func userLookupPrefix() string {
+	if GetActiveAuthMode() == AuthModeStudio {
+		return "/auth"
+	}
+	return ""
+}
+
 func FetchUserPhoto(userId string) ([]byte, error) {
 	authHost := GetAuthHost()
 	if authHost == "" {
 		return []byte{}, nil // No photo in offline mode
 	}
-	url := authHost + "/person/" + userId + "/photo"
+	url := authHost + userLookupPrefix() + "/person/" + userId + "/photo"
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -132,6 +141,11 @@ func FetchUserPhoto(userId string) ([]byte, error) {
 		return body, nil
 	}
 
+	// No photo available
+	if responseCode == 204 {
+		return []byte{}, nil
+	}
+
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		// Handle error
@@ -150,7 +164,7 @@ func FetchUserData(email string) (models.User, error) {
 	if authHost == "" {
 		return models.User{}, fmt.Errorf("cannot fetch user data in offline mode")
 	}
-	url := authHost + "/person/" + email
+	url := authHost + userLookupPrefix() + "/person/" + email
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -211,7 +225,7 @@ func FetchUserDataById(userId string) (models.User, error) {
 	if authHost == "" {
 		return models.User{}, fmt.Errorf("cannot fetch user data in offline mode")
 	}
-	url := authHost + "/persons/" + userId
+	url := authHost + userLookupPrefix() + "/persons/" + userId
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -855,23 +869,79 @@ func ResetPassword(email string) error {
 	return nil
 }
 
-func SubmitDiagnostics(email, description, os, arch, clusttaVersion, logContents string) error {
+// ContactSales sends a sales inquiry to the Clustta sales team.
+func ContactSales(name, email, company, teamSize, source, website, message string) error {
 	type requestData struct {
-		Email           string `json:"email"`
-		Description     string `json:"description"`
-		OS              string `json:"os"`
-		Arch            string `json:"arch"`
-		ClusttaVersion  string `json:"clustta_version"`
-		LogContents     string `json:"log_contents"`
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Company  string `json:"company"`
+		TeamSize string `json:"team_size"`
+		Source   string `json:"source"`
+		Website  string `json:"website"`
+		Message  string `json:"message"`
 	}
 
 	data := requestData{
-		Email:           email,
-		Description:     description,
-		OS:              os,
-		Arch:            arch,
-		ClusttaVersion:  clusttaVersion,
-		LogContents:     logContents,
+		Name:     name,
+		Email:    email,
+		Company:  company,
+		TeamSize: teamSize,
+		Source:   source,
+		Website:  website,
+		Message:  message,
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request data: %v", err)
+	}
+
+	authHost := GetAuthHost()
+	if authHost == "" {
+		return fmt.Errorf("cannot contact sales in offline mode")
+	}
+
+	url := authHost + "/contact-sales"
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to submit sales inquiry: %s", string(body))
+	}
+
+	return nil
+}
+
+func SubmitDiagnostics(email, description, os, arch, clusttaVersion, logContents string) error {
+	type requestData struct {
+		Email          string `json:"email"`
+		Description    string `json:"description"`
+		OS             string `json:"os"`
+		Arch           string `json:"arch"`
+		ClusttaVersion string `json:"clustta_version"`
+		LogContents    string `json:"log_contents"`
+	}
+
+	data := requestData{
+		Email:          email,
+		Description:    description,
+		OS:             os,
+		Arch:           arch,
+		ClusttaVersion: clusttaVersion,
+		LogContents:    logContents,
 	}
 
 	jsonData, err := json.Marshal(data)

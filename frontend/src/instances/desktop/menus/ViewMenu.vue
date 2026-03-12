@@ -29,6 +29,10 @@
       :icon="commonStore.showFullPath ? getAppIcon('file-name') : getAppIcon('file-path')" :showLabel="true" :fullWidth="true"
       :label="commonStore.showFullPath ? $t('menus.showNameOnly') : $t('menus.showFullPath')" :buttonFunction="toggleShowFullPath" />
 
+    <ActionButton v-if="!isKanbanActive"
+      :icon="getAppIcon('shapes')" :showLabel="true" :fullWidth="true"
+      :label="settingsStore.showTypeIcons ? $t('modals.hideTypeIcons') : $t('modals.showTypeIcons')" :buttonFunction="toggleShowTypeIcons" />
+
     <span v-if="!isKanbanActive && !commonStore.useGrid" class="menu-divider"></span>
 
     <!-- Collapse Section -->
@@ -53,12 +57,14 @@ import { useCommonStore } from '@/stores/common';
 import { useDndStore } from '@/stores/dnd';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
+import { useSettingsStore } from '@/stores/settings';
 import { useUserStore } from '@/stores/users';
 
 const commonStore = useCommonStore();
 const dndStore = useDndStore();
 const iconStore = useIconStore();
 const menu = useMenu();
+const settingsStore = useSettingsStore();
 const userStore = useUserStore();
 
 const { t } = useI18n();
@@ -127,6 +133,12 @@ const toggleLockUI = () => {
 // Toggles the show full path option.
 const toggleShowFullPath = () => {
   commonStore.showFullPath = !commonStore.showFullPath;
+  menu.hideContextMenu();
+};
+
+// Toggles the show type icons option.
+const toggleShowTypeIcons = async () => {
+  await settingsStore.toggleShowTypeIcons();
   menu.hideContextMenu();
 };
 

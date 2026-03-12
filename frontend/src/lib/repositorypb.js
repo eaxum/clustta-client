@@ -8293,6 +8293,1448 @@ export const repository = $root.repository = (() => {
         return Preview;
     })();
 
+    repository.IntegrationProject = (function() {
+
+        /**
+         * Properties of an IntegrationProject.
+         * @memberof repository
+         * @interface IIntegrationProject
+         * @property {string|null} [id] IntegrationProject id
+         * @property {number|Long|null} [mtime] IntegrationProject mtime
+         * @property {string|null} [integration_id] IntegrationProject integration_id
+         * @property {string|null} [external_project_id] IntegrationProject external_project_id
+         * @property {string|null} [external_project_name] IntegrationProject external_project_name
+         * @property {string|null} [api_url] IntegrationProject api_url
+         * @property {string|null} [sync_options] IntegrationProject sync_options
+         * @property {string|null} [linked_by_user_id] IntegrationProject linked_by_user_id
+         * @property {string|null} [linked_at] IntegrationProject linked_at
+         * @property {boolean|null} [enabled] IntegrationProject enabled
+         * @property {boolean|null} [synced] IntegrationProject synced
+         */
+
+        /**
+         * Constructs a new IntegrationProject.
+         * @memberof repository
+         * @classdesc Represents an IntegrationProject.
+         * @implements IIntegrationProject
+         * @constructor
+         * @param {repository.IIntegrationProject=} [properties] Properties to set
+         */
+        function IntegrationProject(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * IntegrationProject id.
+         * @member {string} id
+         * @memberof repository.IntegrationProject
+         * @instance
+         */
+        IntegrationProject.prototype.id = "";
+
+        /**
+         * IntegrationProject mtime.
+         * @member {number|Long} mtime
+         * @memberof repository.IntegrationProject
+         * @instance
+         */
+        IntegrationProject.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+        /**
+         * IntegrationProject integration_id.
+         * @member {string} integration_id
+         * @memberof repository.IntegrationProject
+         * @instance
+         */
+        IntegrationProject.prototype.integration_id = "";
+
+        /**
+         * IntegrationProject external_project_id.
+         * @member {string} external_project_id
+         * @memberof repository.IntegrationProject
+         * @instance
+         */
+        IntegrationProject.prototype.external_project_id = "";
+
+        /**
+         * IntegrationProject external_project_name.
+         * @member {string} external_project_name
+         * @memberof repository.IntegrationProject
+         * @instance
+         */
+        IntegrationProject.prototype.external_project_name = "";
+
+        /**
+         * IntegrationProject api_url.
+         * @member {string} api_url
+         * @memberof repository.IntegrationProject
+         * @instance
+         */
+        IntegrationProject.prototype.api_url = "";
+
+        /**
+         * IntegrationProject sync_options.
+         * @member {string} sync_options
+         * @memberof repository.IntegrationProject
+         * @instance
+         */
+        IntegrationProject.prototype.sync_options = "";
+
+        /**
+         * IntegrationProject linked_by_user_id.
+         * @member {string} linked_by_user_id
+         * @memberof repository.IntegrationProject
+         * @instance
+         */
+        IntegrationProject.prototype.linked_by_user_id = "";
+
+        /**
+         * IntegrationProject linked_at.
+         * @member {string} linked_at
+         * @memberof repository.IntegrationProject
+         * @instance
+         */
+        IntegrationProject.prototype.linked_at = "";
+
+        /**
+         * IntegrationProject enabled.
+         * @member {boolean} enabled
+         * @memberof repository.IntegrationProject
+         * @instance
+         */
+        IntegrationProject.prototype.enabled = false;
+
+        /**
+         * IntegrationProject synced.
+         * @member {boolean} synced
+         * @memberof repository.IntegrationProject
+         * @instance
+         */
+        IntegrationProject.prototype.synced = false;
+
+        /**
+         * Creates a new IntegrationProject instance using the specified properties.
+         * @function create
+         * @memberof repository.IntegrationProject
+         * @static
+         * @param {repository.IIntegrationProject=} [properties] Properties to set
+         * @returns {repository.IntegrationProject} IntegrationProject instance
+         */
+        IntegrationProject.create = function create(properties) {
+            return new IntegrationProject(properties);
+        };
+
+        /**
+         * Encodes the specified IntegrationProject message. Does not implicitly {@link repository.IntegrationProject.verify|verify} messages.
+         * @function encode
+         * @memberof repository.IntegrationProject
+         * @static
+         * @param {repository.IIntegrationProject} message IntegrationProject message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        IntegrationProject.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
+            if (message.mtime != null && Object.hasOwnProperty.call(message, "mtime"))
+                writer.uint32(/* id 2, wireType 0 =*/16).int64(message.mtime);
+            if (message.integration_id != null && Object.hasOwnProperty.call(message, "integration_id"))
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.integration_id);
+            if (message.external_project_id != null && Object.hasOwnProperty.call(message, "external_project_id"))
+                writer.uint32(/* id 4, wireType 2 =*/34).string(message.external_project_id);
+            if (message.external_project_name != null && Object.hasOwnProperty.call(message, "external_project_name"))
+                writer.uint32(/* id 5, wireType 2 =*/42).string(message.external_project_name);
+            if (message.api_url != null && Object.hasOwnProperty.call(message, "api_url"))
+                writer.uint32(/* id 6, wireType 2 =*/50).string(message.api_url);
+            if (message.sync_options != null && Object.hasOwnProperty.call(message, "sync_options"))
+                writer.uint32(/* id 7, wireType 2 =*/58).string(message.sync_options);
+            if (message.linked_by_user_id != null && Object.hasOwnProperty.call(message, "linked_by_user_id"))
+                writer.uint32(/* id 8, wireType 2 =*/66).string(message.linked_by_user_id);
+            if (message.linked_at != null && Object.hasOwnProperty.call(message, "linked_at"))
+                writer.uint32(/* id 9, wireType 2 =*/74).string(message.linked_at);
+            if (message.enabled != null && Object.hasOwnProperty.call(message, "enabled"))
+                writer.uint32(/* id 10, wireType 0 =*/80).bool(message.enabled);
+            if (message.synced != null && Object.hasOwnProperty.call(message, "synced"))
+                writer.uint32(/* id 11, wireType 0 =*/88).bool(message.synced);
+            return writer;
+        };
+
+        /**
+         * Encodes the specified IntegrationProject message, length delimited. Does not implicitly {@link repository.IntegrationProject.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof repository.IntegrationProject
+         * @static
+         * @param {repository.IIntegrationProject} message IntegrationProject message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        IntegrationProject.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes an IntegrationProject message from the specified reader or buffer.
+         * @function decode
+         * @memberof repository.IntegrationProject
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {repository.IntegrationProject} IntegrationProject
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        IntegrationProject.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.IntegrationProject();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.id = reader.string();
+                        break;
+                    }
+                case 2: {
+                        message.mtime = reader.int64();
+                        break;
+                    }
+                case 3: {
+                        message.integration_id = reader.string();
+                        break;
+                    }
+                case 4: {
+                        message.external_project_id = reader.string();
+                        break;
+                    }
+                case 5: {
+                        message.external_project_name = reader.string();
+                        break;
+                    }
+                case 6: {
+                        message.api_url = reader.string();
+                        break;
+                    }
+                case 7: {
+                        message.sync_options = reader.string();
+                        break;
+                    }
+                case 8: {
+                        message.linked_by_user_id = reader.string();
+                        break;
+                    }
+                case 9: {
+                        message.linked_at = reader.string();
+                        break;
+                    }
+                case 10: {
+                        message.enabled = reader.bool();
+                        break;
+                    }
+                case 11: {
+                        message.synced = reader.bool();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Decodes an IntegrationProject message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof repository.IntegrationProject
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {repository.IntegrationProject} IntegrationProject
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        IntegrationProject.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = new $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies an IntegrationProject message.
+         * @function verify
+         * @memberof repository.IntegrationProject
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        IntegrationProject.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            if (message.id != null && message.hasOwnProperty("id"))
+                if (!$util.isString(message.id))
+                    return "id: string expected";
+            if (message.mtime != null && message.hasOwnProperty("mtime"))
+                if (!$util.isInteger(message.mtime) && !(message.mtime && $util.isInteger(message.mtime.low) && $util.isInteger(message.mtime.high)))
+                    return "mtime: integer|Long expected";
+            if (message.integration_id != null && message.hasOwnProperty("integration_id"))
+                if (!$util.isString(message.integration_id))
+                    return "integration_id: string expected";
+            if (message.external_project_id != null && message.hasOwnProperty("external_project_id"))
+                if (!$util.isString(message.external_project_id))
+                    return "external_project_id: string expected";
+            if (message.external_project_name != null && message.hasOwnProperty("external_project_name"))
+                if (!$util.isString(message.external_project_name))
+                    return "external_project_name: string expected";
+            if (message.api_url != null && message.hasOwnProperty("api_url"))
+                if (!$util.isString(message.api_url))
+                    return "api_url: string expected";
+            if (message.sync_options != null && message.hasOwnProperty("sync_options"))
+                if (!$util.isString(message.sync_options))
+                    return "sync_options: string expected";
+            if (message.linked_by_user_id != null && message.hasOwnProperty("linked_by_user_id"))
+                if (!$util.isString(message.linked_by_user_id))
+                    return "linked_by_user_id: string expected";
+            if (message.linked_at != null && message.hasOwnProperty("linked_at"))
+                if (!$util.isString(message.linked_at))
+                    return "linked_at: string expected";
+            if (message.enabled != null && message.hasOwnProperty("enabled"))
+                if (typeof message.enabled !== "boolean")
+                    return "enabled: boolean expected";
+            if (message.synced != null && message.hasOwnProperty("synced"))
+                if (typeof message.synced !== "boolean")
+                    return "synced: boolean expected";
+            return null;
+        };
+
+        /**
+         * Creates an IntegrationProject message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof repository.IntegrationProject
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {repository.IntegrationProject} IntegrationProject
+         */
+        IntegrationProject.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.IntegrationProject)
+                return object;
+            let message = new $root.repository.IntegrationProject();
+            if (object.id != null)
+                message.id = String(object.id);
+            if (object.mtime != null)
+                if ($util.Long)
+                    (message.mtime = $util.Long.fromValue(object.mtime)).unsigned = false;
+                else if (typeof object.mtime === "string")
+                    message.mtime = parseInt(object.mtime, 10);
+                else if (typeof object.mtime === "number")
+                    message.mtime = object.mtime;
+                else if (typeof object.mtime === "object")
+                    message.mtime = new $util.LongBits(object.mtime.low >>> 0, object.mtime.high >>> 0).toNumber();
+            if (object.integration_id != null)
+                message.integration_id = String(object.integration_id);
+            if (object.external_project_id != null)
+                message.external_project_id = String(object.external_project_id);
+            if (object.external_project_name != null)
+                message.external_project_name = String(object.external_project_name);
+            if (object.api_url != null)
+                message.api_url = String(object.api_url);
+            if (object.sync_options != null)
+                message.sync_options = String(object.sync_options);
+            if (object.linked_by_user_id != null)
+                message.linked_by_user_id = String(object.linked_by_user_id);
+            if (object.linked_at != null)
+                message.linked_at = String(object.linked_at);
+            if (object.enabled != null)
+                message.enabled = Boolean(object.enabled);
+            if (object.synced != null)
+                message.synced = Boolean(object.synced);
+            return message;
+        };
+
+        /**
+         * Creates a plain object from an IntegrationProject message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof repository.IntegrationProject
+         * @static
+         * @param {repository.IntegrationProject} message IntegrationProject
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        IntegrationProject.toObject = function toObject(message, options) {
+            if (!options)
+                options = {};
+            let object = {};
+            if (options.defaults) {
+                object.id = "";
+                if ($util.Long) {
+                    let long = new $util.Long(0, 0, false);
+                    object.mtime = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                } else
+                    object.mtime = options.longs === String ? "0" : 0;
+                object.integration_id = "";
+                object.external_project_id = "";
+                object.external_project_name = "";
+                object.api_url = "";
+                object.sync_options = "";
+                object.linked_by_user_id = "";
+                object.linked_at = "";
+                object.enabled = false;
+                object.synced = false;
+            }
+            if (message.id != null && message.hasOwnProperty("id"))
+                object.id = message.id;
+            if (message.mtime != null && message.hasOwnProperty("mtime"))
+                if (typeof message.mtime === "number")
+                    object.mtime = options.longs === String ? String(message.mtime) : message.mtime;
+                else
+                    object.mtime = options.longs === String ? $util.Long.prototype.toString.call(message.mtime) : options.longs === Number ? new $util.LongBits(message.mtime.low >>> 0, message.mtime.high >>> 0).toNumber() : message.mtime;
+            if (message.integration_id != null && message.hasOwnProperty("integration_id"))
+                object.integration_id = message.integration_id;
+            if (message.external_project_id != null && message.hasOwnProperty("external_project_id"))
+                object.external_project_id = message.external_project_id;
+            if (message.external_project_name != null && message.hasOwnProperty("external_project_name"))
+                object.external_project_name = message.external_project_name;
+            if (message.api_url != null && message.hasOwnProperty("api_url"))
+                object.api_url = message.api_url;
+            if (message.sync_options != null && message.hasOwnProperty("sync_options"))
+                object.sync_options = message.sync_options;
+            if (message.linked_by_user_id != null && message.hasOwnProperty("linked_by_user_id"))
+                object.linked_by_user_id = message.linked_by_user_id;
+            if (message.linked_at != null && message.hasOwnProperty("linked_at"))
+                object.linked_at = message.linked_at;
+            if (message.enabled != null && message.hasOwnProperty("enabled"))
+                object.enabled = message.enabled;
+            if (message.synced != null && message.hasOwnProperty("synced"))
+                object.synced = message.synced;
+            return object;
+        };
+
+        /**
+         * Converts this IntegrationProject to JSON.
+         * @function toJSON
+         * @memberof repository.IntegrationProject
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        IntegrationProject.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        /**
+         * Gets the default type url for IntegrationProject
+         * @function getTypeUrl
+         * @memberof repository.IntegrationProject
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        IntegrationProject.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/repository.IntegrationProject";
+        };
+
+        return IntegrationProject;
+    })();
+
+    repository.IntegrationCollectionMapping = (function() {
+
+        /**
+         * Properties of an IntegrationCollectionMapping.
+         * @memberof repository
+         * @interface IIntegrationCollectionMapping
+         * @property {string|null} [id] IntegrationCollectionMapping id
+         * @property {number|Long|null} [mtime] IntegrationCollectionMapping mtime
+         * @property {string|null} [integration_id] IntegrationCollectionMapping integration_id
+         * @property {string|null} [external_id] IntegrationCollectionMapping external_id
+         * @property {string|null} [external_type] IntegrationCollectionMapping external_type
+         * @property {string|null} [external_name] IntegrationCollectionMapping external_name
+         * @property {string|null} [external_parent_id] IntegrationCollectionMapping external_parent_id
+         * @property {string|null} [external_path] IntegrationCollectionMapping external_path
+         * @property {string|null} [external_metadata] IntegrationCollectionMapping external_metadata
+         * @property {string|null} [collection_id] IntegrationCollectionMapping collection_id
+         * @property {string|null} [synced_at] IntegrationCollectionMapping synced_at
+         * @property {boolean|null} [synced] IntegrationCollectionMapping synced
+         */
+
+        /**
+         * Constructs a new IntegrationCollectionMapping.
+         * @memberof repository
+         * @classdesc Represents an IntegrationCollectionMapping.
+         * @implements IIntegrationCollectionMapping
+         * @constructor
+         * @param {repository.IIntegrationCollectionMapping=} [properties] Properties to set
+         */
+        function IntegrationCollectionMapping(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * IntegrationCollectionMapping id.
+         * @member {string} id
+         * @memberof repository.IntegrationCollectionMapping
+         * @instance
+         */
+        IntegrationCollectionMapping.prototype.id = "";
+
+        /**
+         * IntegrationCollectionMapping mtime.
+         * @member {number|Long} mtime
+         * @memberof repository.IntegrationCollectionMapping
+         * @instance
+         */
+        IntegrationCollectionMapping.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+        /**
+         * IntegrationCollectionMapping integration_id.
+         * @member {string} integration_id
+         * @memberof repository.IntegrationCollectionMapping
+         * @instance
+         */
+        IntegrationCollectionMapping.prototype.integration_id = "";
+
+        /**
+         * IntegrationCollectionMapping external_id.
+         * @member {string} external_id
+         * @memberof repository.IntegrationCollectionMapping
+         * @instance
+         */
+        IntegrationCollectionMapping.prototype.external_id = "";
+
+        /**
+         * IntegrationCollectionMapping external_type.
+         * @member {string} external_type
+         * @memberof repository.IntegrationCollectionMapping
+         * @instance
+         */
+        IntegrationCollectionMapping.prototype.external_type = "";
+
+        /**
+         * IntegrationCollectionMapping external_name.
+         * @member {string} external_name
+         * @memberof repository.IntegrationCollectionMapping
+         * @instance
+         */
+        IntegrationCollectionMapping.prototype.external_name = "";
+
+        /**
+         * IntegrationCollectionMapping external_parent_id.
+         * @member {string} external_parent_id
+         * @memberof repository.IntegrationCollectionMapping
+         * @instance
+         */
+        IntegrationCollectionMapping.prototype.external_parent_id = "";
+
+        /**
+         * IntegrationCollectionMapping external_path.
+         * @member {string} external_path
+         * @memberof repository.IntegrationCollectionMapping
+         * @instance
+         */
+        IntegrationCollectionMapping.prototype.external_path = "";
+
+        /**
+         * IntegrationCollectionMapping external_metadata.
+         * @member {string} external_metadata
+         * @memberof repository.IntegrationCollectionMapping
+         * @instance
+         */
+        IntegrationCollectionMapping.prototype.external_metadata = "";
+
+        /**
+         * IntegrationCollectionMapping collection_id.
+         * @member {string} collection_id
+         * @memberof repository.IntegrationCollectionMapping
+         * @instance
+         */
+        IntegrationCollectionMapping.prototype.collection_id = "";
+
+        /**
+         * IntegrationCollectionMapping synced_at.
+         * @member {string} synced_at
+         * @memberof repository.IntegrationCollectionMapping
+         * @instance
+         */
+        IntegrationCollectionMapping.prototype.synced_at = "";
+
+        /**
+         * IntegrationCollectionMapping synced.
+         * @member {boolean} synced
+         * @memberof repository.IntegrationCollectionMapping
+         * @instance
+         */
+        IntegrationCollectionMapping.prototype.synced = false;
+
+        /**
+         * Creates a new IntegrationCollectionMapping instance using the specified properties.
+         * @function create
+         * @memberof repository.IntegrationCollectionMapping
+         * @static
+         * @param {repository.IIntegrationCollectionMapping=} [properties] Properties to set
+         * @returns {repository.IntegrationCollectionMapping} IntegrationCollectionMapping instance
+         */
+        IntegrationCollectionMapping.create = function create(properties) {
+            return new IntegrationCollectionMapping(properties);
+        };
+
+        /**
+         * Encodes the specified IntegrationCollectionMapping message. Does not implicitly {@link repository.IntegrationCollectionMapping.verify|verify} messages.
+         * @function encode
+         * @memberof repository.IntegrationCollectionMapping
+         * @static
+         * @param {repository.IIntegrationCollectionMapping} message IntegrationCollectionMapping message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        IntegrationCollectionMapping.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
+            if (message.mtime != null && Object.hasOwnProperty.call(message, "mtime"))
+                writer.uint32(/* id 2, wireType 0 =*/16).int64(message.mtime);
+            if (message.integration_id != null && Object.hasOwnProperty.call(message, "integration_id"))
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.integration_id);
+            if (message.external_id != null && Object.hasOwnProperty.call(message, "external_id"))
+                writer.uint32(/* id 4, wireType 2 =*/34).string(message.external_id);
+            if (message.external_type != null && Object.hasOwnProperty.call(message, "external_type"))
+                writer.uint32(/* id 5, wireType 2 =*/42).string(message.external_type);
+            if (message.external_name != null && Object.hasOwnProperty.call(message, "external_name"))
+                writer.uint32(/* id 6, wireType 2 =*/50).string(message.external_name);
+            if (message.external_parent_id != null && Object.hasOwnProperty.call(message, "external_parent_id"))
+                writer.uint32(/* id 7, wireType 2 =*/58).string(message.external_parent_id);
+            if (message.external_path != null && Object.hasOwnProperty.call(message, "external_path"))
+                writer.uint32(/* id 8, wireType 2 =*/66).string(message.external_path);
+            if (message.external_metadata != null && Object.hasOwnProperty.call(message, "external_metadata"))
+                writer.uint32(/* id 9, wireType 2 =*/74).string(message.external_metadata);
+            if (message.collection_id != null && Object.hasOwnProperty.call(message, "collection_id"))
+                writer.uint32(/* id 10, wireType 2 =*/82).string(message.collection_id);
+            if (message.synced_at != null && Object.hasOwnProperty.call(message, "synced_at"))
+                writer.uint32(/* id 11, wireType 2 =*/90).string(message.synced_at);
+            if (message.synced != null && Object.hasOwnProperty.call(message, "synced"))
+                writer.uint32(/* id 12, wireType 0 =*/96).bool(message.synced);
+            return writer;
+        };
+
+        /**
+         * Encodes the specified IntegrationCollectionMapping message, length delimited. Does not implicitly {@link repository.IntegrationCollectionMapping.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof repository.IntegrationCollectionMapping
+         * @static
+         * @param {repository.IIntegrationCollectionMapping} message IntegrationCollectionMapping message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        IntegrationCollectionMapping.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes an IntegrationCollectionMapping message from the specified reader or buffer.
+         * @function decode
+         * @memberof repository.IntegrationCollectionMapping
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {repository.IntegrationCollectionMapping} IntegrationCollectionMapping
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        IntegrationCollectionMapping.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.IntegrationCollectionMapping();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.id = reader.string();
+                        break;
+                    }
+                case 2: {
+                        message.mtime = reader.int64();
+                        break;
+                    }
+                case 3: {
+                        message.integration_id = reader.string();
+                        break;
+                    }
+                case 4: {
+                        message.external_id = reader.string();
+                        break;
+                    }
+                case 5: {
+                        message.external_type = reader.string();
+                        break;
+                    }
+                case 6: {
+                        message.external_name = reader.string();
+                        break;
+                    }
+                case 7: {
+                        message.external_parent_id = reader.string();
+                        break;
+                    }
+                case 8: {
+                        message.external_path = reader.string();
+                        break;
+                    }
+                case 9: {
+                        message.external_metadata = reader.string();
+                        break;
+                    }
+                case 10: {
+                        message.collection_id = reader.string();
+                        break;
+                    }
+                case 11: {
+                        message.synced_at = reader.string();
+                        break;
+                    }
+                case 12: {
+                        message.synced = reader.bool();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Decodes an IntegrationCollectionMapping message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof repository.IntegrationCollectionMapping
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {repository.IntegrationCollectionMapping} IntegrationCollectionMapping
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        IntegrationCollectionMapping.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = new $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies an IntegrationCollectionMapping message.
+         * @function verify
+         * @memberof repository.IntegrationCollectionMapping
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        IntegrationCollectionMapping.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            if (message.id != null && message.hasOwnProperty("id"))
+                if (!$util.isString(message.id))
+                    return "id: string expected";
+            if (message.mtime != null && message.hasOwnProperty("mtime"))
+                if (!$util.isInteger(message.mtime) && !(message.mtime && $util.isInteger(message.mtime.low) && $util.isInteger(message.mtime.high)))
+                    return "mtime: integer|Long expected";
+            if (message.integration_id != null && message.hasOwnProperty("integration_id"))
+                if (!$util.isString(message.integration_id))
+                    return "integration_id: string expected";
+            if (message.external_id != null && message.hasOwnProperty("external_id"))
+                if (!$util.isString(message.external_id))
+                    return "external_id: string expected";
+            if (message.external_type != null && message.hasOwnProperty("external_type"))
+                if (!$util.isString(message.external_type))
+                    return "external_type: string expected";
+            if (message.external_name != null && message.hasOwnProperty("external_name"))
+                if (!$util.isString(message.external_name))
+                    return "external_name: string expected";
+            if (message.external_parent_id != null && message.hasOwnProperty("external_parent_id"))
+                if (!$util.isString(message.external_parent_id))
+                    return "external_parent_id: string expected";
+            if (message.external_path != null && message.hasOwnProperty("external_path"))
+                if (!$util.isString(message.external_path))
+                    return "external_path: string expected";
+            if (message.external_metadata != null && message.hasOwnProperty("external_metadata"))
+                if (!$util.isString(message.external_metadata))
+                    return "external_metadata: string expected";
+            if (message.collection_id != null && message.hasOwnProperty("collection_id"))
+                if (!$util.isString(message.collection_id))
+                    return "collection_id: string expected";
+            if (message.synced_at != null && message.hasOwnProperty("synced_at"))
+                if (!$util.isString(message.synced_at))
+                    return "synced_at: string expected";
+            if (message.synced != null && message.hasOwnProperty("synced"))
+                if (typeof message.synced !== "boolean")
+                    return "synced: boolean expected";
+            return null;
+        };
+
+        /**
+         * Creates an IntegrationCollectionMapping message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof repository.IntegrationCollectionMapping
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {repository.IntegrationCollectionMapping} IntegrationCollectionMapping
+         */
+        IntegrationCollectionMapping.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.IntegrationCollectionMapping)
+                return object;
+            let message = new $root.repository.IntegrationCollectionMapping();
+            if (object.id != null)
+                message.id = String(object.id);
+            if (object.mtime != null)
+                if ($util.Long)
+                    (message.mtime = $util.Long.fromValue(object.mtime)).unsigned = false;
+                else if (typeof object.mtime === "string")
+                    message.mtime = parseInt(object.mtime, 10);
+                else if (typeof object.mtime === "number")
+                    message.mtime = object.mtime;
+                else if (typeof object.mtime === "object")
+                    message.mtime = new $util.LongBits(object.mtime.low >>> 0, object.mtime.high >>> 0).toNumber();
+            if (object.integration_id != null)
+                message.integration_id = String(object.integration_id);
+            if (object.external_id != null)
+                message.external_id = String(object.external_id);
+            if (object.external_type != null)
+                message.external_type = String(object.external_type);
+            if (object.external_name != null)
+                message.external_name = String(object.external_name);
+            if (object.external_parent_id != null)
+                message.external_parent_id = String(object.external_parent_id);
+            if (object.external_path != null)
+                message.external_path = String(object.external_path);
+            if (object.external_metadata != null)
+                message.external_metadata = String(object.external_metadata);
+            if (object.collection_id != null)
+                message.collection_id = String(object.collection_id);
+            if (object.synced_at != null)
+                message.synced_at = String(object.synced_at);
+            if (object.synced != null)
+                message.synced = Boolean(object.synced);
+            return message;
+        };
+
+        /**
+         * Creates a plain object from an IntegrationCollectionMapping message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof repository.IntegrationCollectionMapping
+         * @static
+         * @param {repository.IntegrationCollectionMapping} message IntegrationCollectionMapping
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        IntegrationCollectionMapping.toObject = function toObject(message, options) {
+            if (!options)
+                options = {};
+            let object = {};
+            if (options.defaults) {
+                object.id = "";
+                if ($util.Long) {
+                    let long = new $util.Long(0, 0, false);
+                    object.mtime = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                } else
+                    object.mtime = options.longs === String ? "0" : 0;
+                object.integration_id = "";
+                object.external_id = "";
+                object.external_type = "";
+                object.external_name = "";
+                object.external_parent_id = "";
+                object.external_path = "";
+                object.external_metadata = "";
+                object.collection_id = "";
+                object.synced_at = "";
+                object.synced = false;
+            }
+            if (message.id != null && message.hasOwnProperty("id"))
+                object.id = message.id;
+            if (message.mtime != null && message.hasOwnProperty("mtime"))
+                if (typeof message.mtime === "number")
+                    object.mtime = options.longs === String ? String(message.mtime) : message.mtime;
+                else
+                    object.mtime = options.longs === String ? $util.Long.prototype.toString.call(message.mtime) : options.longs === Number ? new $util.LongBits(message.mtime.low >>> 0, message.mtime.high >>> 0).toNumber() : message.mtime;
+            if (message.integration_id != null && message.hasOwnProperty("integration_id"))
+                object.integration_id = message.integration_id;
+            if (message.external_id != null && message.hasOwnProperty("external_id"))
+                object.external_id = message.external_id;
+            if (message.external_type != null && message.hasOwnProperty("external_type"))
+                object.external_type = message.external_type;
+            if (message.external_name != null && message.hasOwnProperty("external_name"))
+                object.external_name = message.external_name;
+            if (message.external_parent_id != null && message.hasOwnProperty("external_parent_id"))
+                object.external_parent_id = message.external_parent_id;
+            if (message.external_path != null && message.hasOwnProperty("external_path"))
+                object.external_path = message.external_path;
+            if (message.external_metadata != null && message.hasOwnProperty("external_metadata"))
+                object.external_metadata = message.external_metadata;
+            if (message.collection_id != null && message.hasOwnProperty("collection_id"))
+                object.collection_id = message.collection_id;
+            if (message.synced_at != null && message.hasOwnProperty("synced_at"))
+                object.synced_at = message.synced_at;
+            if (message.synced != null && message.hasOwnProperty("synced"))
+                object.synced = message.synced;
+            return object;
+        };
+
+        /**
+         * Converts this IntegrationCollectionMapping to JSON.
+         * @function toJSON
+         * @memberof repository.IntegrationCollectionMapping
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        IntegrationCollectionMapping.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        /**
+         * Gets the default type url for IntegrationCollectionMapping
+         * @function getTypeUrl
+         * @memberof repository.IntegrationCollectionMapping
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        IntegrationCollectionMapping.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/repository.IntegrationCollectionMapping";
+        };
+
+        return IntegrationCollectionMapping;
+    })();
+
+    repository.IntegrationAssetMapping = (function() {
+
+        /**
+         * Properties of an IntegrationAssetMapping.
+         * @memberof repository
+         * @interface IIntegrationAssetMapping
+         * @property {string|null} [id] IntegrationAssetMapping id
+         * @property {number|Long|null} [mtime] IntegrationAssetMapping mtime
+         * @property {string|null} [integration_id] IntegrationAssetMapping integration_id
+         * @property {string|null} [external_id] IntegrationAssetMapping external_id
+         * @property {string|null} [external_name] IntegrationAssetMapping external_name
+         * @property {string|null} [external_parent_id] IntegrationAssetMapping external_parent_id
+         * @property {string|null} [external_type] IntegrationAssetMapping external_type
+         * @property {string|null} [external_status] IntegrationAssetMapping external_status
+         * @property {string|null} [external_assignees] IntegrationAssetMapping external_assignees
+         * @property {string|null} [external_metadata] IntegrationAssetMapping external_metadata
+         * @property {string|null} [asset_id] IntegrationAssetMapping asset_id
+         * @property {string|null} [last_pushed_checkpoint_id] IntegrationAssetMapping last_pushed_checkpoint_id
+         * @property {string|null} [synced_at] IntegrationAssetMapping synced_at
+         * @property {boolean|null} [synced] IntegrationAssetMapping synced
+         */
+
+        /**
+         * Constructs a new IntegrationAssetMapping.
+         * @memberof repository
+         * @classdesc Represents an IntegrationAssetMapping.
+         * @implements IIntegrationAssetMapping
+         * @constructor
+         * @param {repository.IIntegrationAssetMapping=} [properties] Properties to set
+         */
+        function IntegrationAssetMapping(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * IntegrationAssetMapping id.
+         * @member {string} id
+         * @memberof repository.IntegrationAssetMapping
+         * @instance
+         */
+        IntegrationAssetMapping.prototype.id = "";
+
+        /**
+         * IntegrationAssetMapping mtime.
+         * @member {number|Long} mtime
+         * @memberof repository.IntegrationAssetMapping
+         * @instance
+         */
+        IntegrationAssetMapping.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+        /**
+         * IntegrationAssetMapping integration_id.
+         * @member {string} integration_id
+         * @memberof repository.IntegrationAssetMapping
+         * @instance
+         */
+        IntegrationAssetMapping.prototype.integration_id = "";
+
+        /**
+         * IntegrationAssetMapping external_id.
+         * @member {string} external_id
+         * @memberof repository.IntegrationAssetMapping
+         * @instance
+         */
+        IntegrationAssetMapping.prototype.external_id = "";
+
+        /**
+         * IntegrationAssetMapping external_name.
+         * @member {string} external_name
+         * @memberof repository.IntegrationAssetMapping
+         * @instance
+         */
+        IntegrationAssetMapping.prototype.external_name = "";
+
+        /**
+         * IntegrationAssetMapping external_parent_id.
+         * @member {string} external_parent_id
+         * @memberof repository.IntegrationAssetMapping
+         * @instance
+         */
+        IntegrationAssetMapping.prototype.external_parent_id = "";
+
+        /**
+         * IntegrationAssetMapping external_type.
+         * @member {string} external_type
+         * @memberof repository.IntegrationAssetMapping
+         * @instance
+         */
+        IntegrationAssetMapping.prototype.external_type = "";
+
+        /**
+         * IntegrationAssetMapping external_status.
+         * @member {string} external_status
+         * @memberof repository.IntegrationAssetMapping
+         * @instance
+         */
+        IntegrationAssetMapping.prototype.external_status = "";
+
+        /**
+         * IntegrationAssetMapping external_assignees.
+         * @member {string} external_assignees
+         * @memberof repository.IntegrationAssetMapping
+         * @instance
+         */
+        IntegrationAssetMapping.prototype.external_assignees = "";
+
+        /**
+         * IntegrationAssetMapping external_metadata.
+         * @member {string} external_metadata
+         * @memberof repository.IntegrationAssetMapping
+         * @instance
+         */
+        IntegrationAssetMapping.prototype.external_metadata = "";
+
+        /**
+         * IntegrationAssetMapping asset_id.
+         * @member {string} asset_id
+         * @memberof repository.IntegrationAssetMapping
+         * @instance
+         */
+        IntegrationAssetMapping.prototype.asset_id = "";
+
+        /**
+         * IntegrationAssetMapping last_pushed_checkpoint_id.
+         * @member {string} last_pushed_checkpoint_id
+         * @memberof repository.IntegrationAssetMapping
+         * @instance
+         */
+        IntegrationAssetMapping.prototype.last_pushed_checkpoint_id = "";
+
+        /**
+         * IntegrationAssetMapping synced_at.
+         * @member {string} synced_at
+         * @memberof repository.IntegrationAssetMapping
+         * @instance
+         */
+        IntegrationAssetMapping.prototype.synced_at = "";
+
+        /**
+         * IntegrationAssetMapping synced.
+         * @member {boolean} synced
+         * @memberof repository.IntegrationAssetMapping
+         * @instance
+         */
+        IntegrationAssetMapping.prototype.synced = false;
+
+        /**
+         * Creates a new IntegrationAssetMapping instance using the specified properties.
+         * @function create
+         * @memberof repository.IntegrationAssetMapping
+         * @static
+         * @param {repository.IIntegrationAssetMapping=} [properties] Properties to set
+         * @returns {repository.IntegrationAssetMapping} IntegrationAssetMapping instance
+         */
+        IntegrationAssetMapping.create = function create(properties) {
+            return new IntegrationAssetMapping(properties);
+        };
+
+        /**
+         * Encodes the specified IntegrationAssetMapping message. Does not implicitly {@link repository.IntegrationAssetMapping.verify|verify} messages.
+         * @function encode
+         * @memberof repository.IntegrationAssetMapping
+         * @static
+         * @param {repository.IIntegrationAssetMapping} message IntegrationAssetMapping message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        IntegrationAssetMapping.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
+            if (message.mtime != null && Object.hasOwnProperty.call(message, "mtime"))
+                writer.uint32(/* id 2, wireType 0 =*/16).int64(message.mtime);
+            if (message.integration_id != null && Object.hasOwnProperty.call(message, "integration_id"))
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.integration_id);
+            if (message.external_id != null && Object.hasOwnProperty.call(message, "external_id"))
+                writer.uint32(/* id 4, wireType 2 =*/34).string(message.external_id);
+            if (message.external_name != null && Object.hasOwnProperty.call(message, "external_name"))
+                writer.uint32(/* id 5, wireType 2 =*/42).string(message.external_name);
+            if (message.external_parent_id != null && Object.hasOwnProperty.call(message, "external_parent_id"))
+                writer.uint32(/* id 6, wireType 2 =*/50).string(message.external_parent_id);
+            if (message.external_type != null && Object.hasOwnProperty.call(message, "external_type"))
+                writer.uint32(/* id 7, wireType 2 =*/58).string(message.external_type);
+            if (message.external_status != null && Object.hasOwnProperty.call(message, "external_status"))
+                writer.uint32(/* id 8, wireType 2 =*/66).string(message.external_status);
+            if (message.external_assignees != null && Object.hasOwnProperty.call(message, "external_assignees"))
+                writer.uint32(/* id 9, wireType 2 =*/74).string(message.external_assignees);
+            if (message.external_metadata != null && Object.hasOwnProperty.call(message, "external_metadata"))
+                writer.uint32(/* id 10, wireType 2 =*/82).string(message.external_metadata);
+            if (message.asset_id != null && Object.hasOwnProperty.call(message, "asset_id"))
+                writer.uint32(/* id 11, wireType 2 =*/90).string(message.asset_id);
+            if (message.last_pushed_checkpoint_id != null && Object.hasOwnProperty.call(message, "last_pushed_checkpoint_id"))
+                writer.uint32(/* id 12, wireType 2 =*/98).string(message.last_pushed_checkpoint_id);
+            if (message.synced_at != null && Object.hasOwnProperty.call(message, "synced_at"))
+                writer.uint32(/* id 13, wireType 2 =*/106).string(message.synced_at);
+            if (message.synced != null && Object.hasOwnProperty.call(message, "synced"))
+                writer.uint32(/* id 14, wireType 0 =*/112).bool(message.synced);
+            return writer;
+        };
+
+        /**
+         * Encodes the specified IntegrationAssetMapping message, length delimited. Does not implicitly {@link repository.IntegrationAssetMapping.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof repository.IntegrationAssetMapping
+         * @static
+         * @param {repository.IIntegrationAssetMapping} message IntegrationAssetMapping message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        IntegrationAssetMapping.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes an IntegrationAssetMapping message from the specified reader or buffer.
+         * @function decode
+         * @memberof repository.IntegrationAssetMapping
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {repository.IntegrationAssetMapping} IntegrationAssetMapping
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        IntegrationAssetMapping.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.IntegrationAssetMapping();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.id = reader.string();
+                        break;
+                    }
+                case 2: {
+                        message.mtime = reader.int64();
+                        break;
+                    }
+                case 3: {
+                        message.integration_id = reader.string();
+                        break;
+                    }
+                case 4: {
+                        message.external_id = reader.string();
+                        break;
+                    }
+                case 5: {
+                        message.external_name = reader.string();
+                        break;
+                    }
+                case 6: {
+                        message.external_parent_id = reader.string();
+                        break;
+                    }
+                case 7: {
+                        message.external_type = reader.string();
+                        break;
+                    }
+                case 8: {
+                        message.external_status = reader.string();
+                        break;
+                    }
+                case 9: {
+                        message.external_assignees = reader.string();
+                        break;
+                    }
+                case 10: {
+                        message.external_metadata = reader.string();
+                        break;
+                    }
+                case 11: {
+                        message.asset_id = reader.string();
+                        break;
+                    }
+                case 12: {
+                        message.last_pushed_checkpoint_id = reader.string();
+                        break;
+                    }
+                case 13: {
+                        message.synced_at = reader.string();
+                        break;
+                    }
+                case 14: {
+                        message.synced = reader.bool();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Decodes an IntegrationAssetMapping message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof repository.IntegrationAssetMapping
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {repository.IntegrationAssetMapping} IntegrationAssetMapping
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        IntegrationAssetMapping.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = new $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies an IntegrationAssetMapping message.
+         * @function verify
+         * @memberof repository.IntegrationAssetMapping
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        IntegrationAssetMapping.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            if (message.id != null && message.hasOwnProperty("id"))
+                if (!$util.isString(message.id))
+                    return "id: string expected";
+            if (message.mtime != null && message.hasOwnProperty("mtime"))
+                if (!$util.isInteger(message.mtime) && !(message.mtime && $util.isInteger(message.mtime.low) && $util.isInteger(message.mtime.high)))
+                    return "mtime: integer|Long expected";
+            if (message.integration_id != null && message.hasOwnProperty("integration_id"))
+                if (!$util.isString(message.integration_id))
+                    return "integration_id: string expected";
+            if (message.external_id != null && message.hasOwnProperty("external_id"))
+                if (!$util.isString(message.external_id))
+                    return "external_id: string expected";
+            if (message.external_name != null && message.hasOwnProperty("external_name"))
+                if (!$util.isString(message.external_name))
+                    return "external_name: string expected";
+            if (message.external_parent_id != null && message.hasOwnProperty("external_parent_id"))
+                if (!$util.isString(message.external_parent_id))
+                    return "external_parent_id: string expected";
+            if (message.external_type != null && message.hasOwnProperty("external_type"))
+                if (!$util.isString(message.external_type))
+                    return "external_type: string expected";
+            if (message.external_status != null && message.hasOwnProperty("external_status"))
+                if (!$util.isString(message.external_status))
+                    return "external_status: string expected";
+            if (message.external_assignees != null && message.hasOwnProperty("external_assignees"))
+                if (!$util.isString(message.external_assignees))
+                    return "external_assignees: string expected";
+            if (message.external_metadata != null && message.hasOwnProperty("external_metadata"))
+                if (!$util.isString(message.external_metadata))
+                    return "external_metadata: string expected";
+            if (message.asset_id != null && message.hasOwnProperty("asset_id"))
+                if (!$util.isString(message.asset_id))
+                    return "asset_id: string expected";
+            if (message.last_pushed_checkpoint_id != null && message.hasOwnProperty("last_pushed_checkpoint_id"))
+                if (!$util.isString(message.last_pushed_checkpoint_id))
+                    return "last_pushed_checkpoint_id: string expected";
+            if (message.synced_at != null && message.hasOwnProperty("synced_at"))
+                if (!$util.isString(message.synced_at))
+                    return "synced_at: string expected";
+            if (message.synced != null && message.hasOwnProperty("synced"))
+                if (typeof message.synced !== "boolean")
+                    return "synced: boolean expected";
+            return null;
+        };
+
+        /**
+         * Creates an IntegrationAssetMapping message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof repository.IntegrationAssetMapping
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {repository.IntegrationAssetMapping} IntegrationAssetMapping
+         */
+        IntegrationAssetMapping.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.IntegrationAssetMapping)
+                return object;
+            let message = new $root.repository.IntegrationAssetMapping();
+            if (object.id != null)
+                message.id = String(object.id);
+            if (object.mtime != null)
+                if ($util.Long)
+                    (message.mtime = $util.Long.fromValue(object.mtime)).unsigned = false;
+                else if (typeof object.mtime === "string")
+                    message.mtime = parseInt(object.mtime, 10);
+                else if (typeof object.mtime === "number")
+                    message.mtime = object.mtime;
+                else if (typeof object.mtime === "object")
+                    message.mtime = new $util.LongBits(object.mtime.low >>> 0, object.mtime.high >>> 0).toNumber();
+            if (object.integration_id != null)
+                message.integration_id = String(object.integration_id);
+            if (object.external_id != null)
+                message.external_id = String(object.external_id);
+            if (object.external_name != null)
+                message.external_name = String(object.external_name);
+            if (object.external_parent_id != null)
+                message.external_parent_id = String(object.external_parent_id);
+            if (object.external_type != null)
+                message.external_type = String(object.external_type);
+            if (object.external_status != null)
+                message.external_status = String(object.external_status);
+            if (object.external_assignees != null)
+                message.external_assignees = String(object.external_assignees);
+            if (object.external_metadata != null)
+                message.external_metadata = String(object.external_metadata);
+            if (object.asset_id != null)
+                message.asset_id = String(object.asset_id);
+            if (object.last_pushed_checkpoint_id != null)
+                message.last_pushed_checkpoint_id = String(object.last_pushed_checkpoint_id);
+            if (object.synced_at != null)
+                message.synced_at = String(object.synced_at);
+            if (object.synced != null)
+                message.synced = Boolean(object.synced);
+            return message;
+        };
+
+        /**
+         * Creates a plain object from an IntegrationAssetMapping message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof repository.IntegrationAssetMapping
+         * @static
+         * @param {repository.IntegrationAssetMapping} message IntegrationAssetMapping
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        IntegrationAssetMapping.toObject = function toObject(message, options) {
+            if (!options)
+                options = {};
+            let object = {};
+            if (options.defaults) {
+                object.id = "";
+                if ($util.Long) {
+                    let long = new $util.Long(0, 0, false);
+                    object.mtime = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                } else
+                    object.mtime = options.longs === String ? "0" : 0;
+                object.integration_id = "";
+                object.external_id = "";
+                object.external_name = "";
+                object.external_parent_id = "";
+                object.external_type = "";
+                object.external_status = "";
+                object.external_assignees = "";
+                object.external_metadata = "";
+                object.asset_id = "";
+                object.last_pushed_checkpoint_id = "";
+                object.synced_at = "";
+                object.synced = false;
+            }
+            if (message.id != null && message.hasOwnProperty("id"))
+                object.id = message.id;
+            if (message.mtime != null && message.hasOwnProperty("mtime"))
+                if (typeof message.mtime === "number")
+                    object.mtime = options.longs === String ? String(message.mtime) : message.mtime;
+                else
+                    object.mtime = options.longs === String ? $util.Long.prototype.toString.call(message.mtime) : options.longs === Number ? new $util.LongBits(message.mtime.low >>> 0, message.mtime.high >>> 0).toNumber() : message.mtime;
+            if (message.integration_id != null && message.hasOwnProperty("integration_id"))
+                object.integration_id = message.integration_id;
+            if (message.external_id != null && message.hasOwnProperty("external_id"))
+                object.external_id = message.external_id;
+            if (message.external_name != null && message.hasOwnProperty("external_name"))
+                object.external_name = message.external_name;
+            if (message.external_parent_id != null && message.hasOwnProperty("external_parent_id"))
+                object.external_parent_id = message.external_parent_id;
+            if (message.external_type != null && message.hasOwnProperty("external_type"))
+                object.external_type = message.external_type;
+            if (message.external_status != null && message.hasOwnProperty("external_status"))
+                object.external_status = message.external_status;
+            if (message.external_assignees != null && message.hasOwnProperty("external_assignees"))
+                object.external_assignees = message.external_assignees;
+            if (message.external_metadata != null && message.hasOwnProperty("external_metadata"))
+                object.external_metadata = message.external_metadata;
+            if (message.asset_id != null && message.hasOwnProperty("asset_id"))
+                object.asset_id = message.asset_id;
+            if (message.last_pushed_checkpoint_id != null && message.hasOwnProperty("last_pushed_checkpoint_id"))
+                object.last_pushed_checkpoint_id = message.last_pushed_checkpoint_id;
+            if (message.synced_at != null && message.hasOwnProperty("synced_at"))
+                object.synced_at = message.synced_at;
+            if (message.synced != null && message.hasOwnProperty("synced"))
+                object.synced = message.synced;
+            return object;
+        };
+
+        /**
+         * Converts this IntegrationAssetMapping to JSON.
+         * @function toJSON
+         * @memberof repository.IntegrationAssetMapping
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        IntegrationAssetMapping.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        /**
+         * Gets the default type url for IntegrationAssetMapping
+         * @function getTypeUrl
+         * @memberof repository.IntegrationAssetMapping
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        IntegrationAssetMapping.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/repository.IntegrationAssetMapping";
+        };
+
+        return IntegrationAssetMapping;
+    })();
+
     repository.Tomb = (function() {
 
         /**
@@ -8609,6 +10051,9 @@ export const repository = $root.repository = (() => {
          * @property {Array.<repository.IWorkflowEntity>|null} [workflow_entities] ProjectData workflow_entities
          * @property {Array.<repository.IWorkflowTask>|null} [workflow_tasks] ProjectData workflow_tasks
          * @property {Array.<repository.ITomb>|null} [tomb] ProjectData tomb
+         * @property {Array.<repository.IIntegrationProject>|null} [integration_projects] ProjectData integration_projects
+         * @property {Array.<repository.IIntegrationCollectionMapping>|null} [integration_collection_mappings] ProjectData integration_collection_mappings
+         * @property {Array.<repository.IIntegrationAssetMapping>|null} [integration_asset_mappings] ProjectData integration_asset_mappings
          */
 
         /**
@@ -8640,6 +10085,9 @@ export const repository = $root.repository = (() => {
             this.workflow_entities = [];
             this.workflow_tasks = [];
             this.tomb = [];
+            this.integration_projects = [];
+            this.integration_collection_mappings = [];
+            this.integration_asset_mappings = [];
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -8815,6 +10263,30 @@ export const repository = $root.repository = (() => {
         ProjectData.prototype.tomb = $util.emptyArray;
 
         /**
+         * ProjectData integration_projects.
+         * @member {Array.<repository.IIntegrationProject>} integration_projects
+         * @memberof repository.ProjectData
+         * @instance
+         */
+        ProjectData.prototype.integration_projects = $util.emptyArray;
+
+        /**
+         * ProjectData integration_collection_mappings.
+         * @member {Array.<repository.IIntegrationCollectionMapping>} integration_collection_mappings
+         * @memberof repository.ProjectData
+         * @instance
+         */
+        ProjectData.prototype.integration_collection_mappings = $util.emptyArray;
+
+        /**
+         * ProjectData integration_asset_mappings.
+         * @member {Array.<repository.IIntegrationAssetMapping>} integration_asset_mappings
+         * @memberof repository.ProjectData
+         * @instance
+         */
+        ProjectData.prototype.integration_asset_mappings = $util.emptyArray;
+
+        /**
          * Creates a new ProjectData instance using the specified properties.
          * @function create
          * @memberof repository.ProjectData
@@ -8900,6 +10372,15 @@ export const repository = $root.repository = (() => {
             if (message.tomb != null && message.tomb.length)
                 for (let i = 0; i < message.tomb.length; ++i)
                     $root.repository.Tomb.encode(message.tomb[i], writer.uint32(/* id 21, wireType 2 =*/170).fork()).ldelim();
+            if (message.integration_projects != null && message.integration_projects.length)
+                for (let i = 0; i < message.integration_projects.length; ++i)
+                    $root.repository.IntegrationProject.encode(message.integration_projects[i], writer.uint32(/* id 22, wireType 2 =*/178).fork()).ldelim();
+            if (message.integration_collection_mappings != null && message.integration_collection_mappings.length)
+                for (let i = 0; i < message.integration_collection_mappings.length; ++i)
+                    $root.repository.IntegrationCollectionMapping.encode(message.integration_collection_mappings[i], writer.uint32(/* id 23, wireType 2 =*/186).fork()).ldelim();
+            if (message.integration_asset_mappings != null && message.integration_asset_mappings.length)
+                for (let i = 0; i < message.integration_asset_mappings.length; ++i)
+                    $root.repository.IntegrationAssetMapping.encode(message.integration_asset_mappings[i], writer.uint32(/* id 24, wireType 2 =*/194).fork()).ldelim();
             return writer;
         };
 
@@ -9058,6 +10539,24 @@ export const repository = $root.repository = (() => {
                         if (!(message.tomb && message.tomb.length))
                             message.tomb = [];
                         message.tomb.push($root.repository.Tomb.decode(reader, reader.uint32()));
+                        break;
+                    }
+                case 22: {
+                        if (!(message.integration_projects && message.integration_projects.length))
+                            message.integration_projects = [];
+                        message.integration_projects.push($root.repository.IntegrationProject.decode(reader, reader.uint32()));
+                        break;
+                    }
+                case 23: {
+                        if (!(message.integration_collection_mappings && message.integration_collection_mappings.length))
+                            message.integration_collection_mappings = [];
+                        message.integration_collection_mappings.push($root.repository.IntegrationCollectionMapping.decode(reader, reader.uint32()));
+                        break;
+                    }
+                case 24: {
+                        if (!(message.integration_asset_mappings && message.integration_asset_mappings.length))
+                            message.integration_asset_mappings = [];
+                        message.integration_asset_mappings.push($root.repository.IntegrationAssetMapping.decode(reader, reader.uint32()));
                         break;
                     }
                 default:
@@ -9278,6 +10777,33 @@ export const repository = $root.repository = (() => {
                         return "tomb." + error;
                 }
             }
+            if (message.integration_projects != null && message.hasOwnProperty("integration_projects")) {
+                if (!Array.isArray(message.integration_projects))
+                    return "integration_projects: array expected";
+                for (let i = 0; i < message.integration_projects.length; ++i) {
+                    let error = $root.repository.IntegrationProject.verify(message.integration_projects[i]);
+                    if (error)
+                        return "integration_projects." + error;
+                }
+            }
+            if (message.integration_collection_mappings != null && message.hasOwnProperty("integration_collection_mappings")) {
+                if (!Array.isArray(message.integration_collection_mappings))
+                    return "integration_collection_mappings: array expected";
+                for (let i = 0; i < message.integration_collection_mappings.length; ++i) {
+                    let error = $root.repository.IntegrationCollectionMapping.verify(message.integration_collection_mappings[i]);
+                    if (error)
+                        return "integration_collection_mappings." + error;
+                }
+            }
+            if (message.integration_asset_mappings != null && message.hasOwnProperty("integration_asset_mappings")) {
+                if (!Array.isArray(message.integration_asset_mappings))
+                    return "integration_asset_mappings: array expected";
+                for (let i = 0; i < message.integration_asset_mappings.length; ++i) {
+                    let error = $root.repository.IntegrationAssetMapping.verify(message.integration_asset_mappings[i]);
+                    if (error)
+                        return "integration_asset_mappings." + error;
+                }
+            }
             return null;
         };
 
@@ -9495,6 +11021,36 @@ export const repository = $root.repository = (() => {
                     message.tomb[i] = $root.repository.Tomb.fromObject(object.tomb[i]);
                 }
             }
+            if (object.integration_projects) {
+                if (!Array.isArray(object.integration_projects))
+                    throw TypeError(".repository.ProjectData.integration_projects: array expected");
+                message.integration_projects = [];
+                for (let i = 0; i < object.integration_projects.length; ++i) {
+                    if (typeof object.integration_projects[i] !== "object")
+                        throw TypeError(".repository.ProjectData.integration_projects: object expected");
+                    message.integration_projects[i] = $root.repository.IntegrationProject.fromObject(object.integration_projects[i]);
+                }
+            }
+            if (object.integration_collection_mappings) {
+                if (!Array.isArray(object.integration_collection_mappings))
+                    throw TypeError(".repository.ProjectData.integration_collection_mappings: array expected");
+                message.integration_collection_mappings = [];
+                for (let i = 0; i < object.integration_collection_mappings.length; ++i) {
+                    if (typeof object.integration_collection_mappings[i] !== "object")
+                        throw TypeError(".repository.ProjectData.integration_collection_mappings: object expected");
+                    message.integration_collection_mappings[i] = $root.repository.IntegrationCollectionMapping.fromObject(object.integration_collection_mappings[i]);
+                }
+            }
+            if (object.integration_asset_mappings) {
+                if (!Array.isArray(object.integration_asset_mappings))
+                    throw TypeError(".repository.ProjectData.integration_asset_mappings: array expected");
+                message.integration_asset_mappings = [];
+                for (let i = 0; i < object.integration_asset_mappings.length; ++i) {
+                    if (typeof object.integration_asset_mappings[i] !== "object")
+                        throw TypeError(".repository.ProjectData.integration_asset_mappings: object expected");
+                    message.integration_asset_mappings[i] = $root.repository.IntegrationAssetMapping.fromObject(object.integration_asset_mappings[i]);
+                }
+            }
             return message;
         };
 
@@ -9532,6 +11088,9 @@ export const repository = $root.repository = (() => {
                 object.workflow_entities = [];
                 object.workflow_tasks = [];
                 object.tomb = [];
+                object.integration_projects = [];
+                object.integration_collection_mappings = [];
+                object.integration_asset_mappings = [];
             }
             if (options.defaults)
                 object.project_preview = "";
@@ -9636,6 +11195,21 @@ export const repository = $root.repository = (() => {
                 object.tomb = [];
                 for (let j = 0; j < message.tomb.length; ++j)
                     object.tomb[j] = $root.repository.Tomb.toObject(message.tomb[j], options);
+            }
+            if (message.integration_projects && message.integration_projects.length) {
+                object.integration_projects = [];
+                for (let j = 0; j < message.integration_projects.length; ++j)
+                    object.integration_projects[j] = $root.repository.IntegrationProject.toObject(message.integration_projects[j], options);
+            }
+            if (message.integration_collection_mappings && message.integration_collection_mappings.length) {
+                object.integration_collection_mappings = [];
+                for (let j = 0; j < message.integration_collection_mappings.length; ++j)
+                    object.integration_collection_mappings[j] = $root.repository.IntegrationCollectionMapping.toObject(message.integration_collection_mappings[j], options);
+            }
+            if (message.integration_asset_mappings && message.integration_asset_mappings.length) {
+                object.integration_asset_mappings = [];
+                for (let j = 0; j < message.integration_asset_mappings.length; ++j)
+                    object.integration_asset_mappings[j] = $root.repository.IntegrationAssetMapping.toObject(message.integration_asset_mappings[j], options);
             }
             return object;
         };

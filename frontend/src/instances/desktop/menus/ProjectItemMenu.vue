@@ -38,6 +38,11 @@
 
     <span v-if="projectStore.getActiveProject?.is_downloaded || platformStore.isWeb" class="menu-divider"></span>
 
+    <!-- Trim Project - only for remote projects that are synced -->
+    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.has_remote && !projectStore.getActiveProject?.is_unsynced"
+      :icon="getAppIcon('scissors')" :showLabel="true" :fullWidth="true" :label="$t('menus.trimProject')"
+      :buttonFunction="prepTrimProjectPopUpModal" />
+      
     <!-- Archive -->
     <ActionButton v-if="!projectStore.getActiveProject?.is_closed && userStore.userCanCreateProject"
       :icon="getAppIcon('archive')" :showLabel="true" :fullWidth="true" :label="$t('menus.archiveProject')"
@@ -48,17 +53,16 @@
       :fullWidth="true" :label="$t('menus.unarchiveProject')" :buttonFunction="toggleCloseProject" />
 
     <!-- Rebuild -->
-    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded && !projectStore.getActiveProject?.is_closed"
+    <!-- <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded && !projectStore.getActiveProject?.is_closed"
       :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" :label="$t('menus.rebuildProject')"
-      :buttonFunction="rebuildAll" />
+      :buttonFunction="rebuildAll" /> -->
 
-    <!-- Trim Project - only for remote projects that are synced -->
-    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.has_remote && !projectStore.getActiveProject?.is_unsynced"
-      :icon="getAppIcon('scissors')" :showLabel="true" :fullWidth="true" :label="$t('menus.trimProject')"
-      :buttonFunction="prepTrimProjectPopUpModal" />
+    <!-- Remove project (local copy only, remote stays) -->
+    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.has_remote && projectStore.getActiveProject?.is_downloaded" :icon="getAppIcon('minus-circle')" :showLabel="true" :fullWidth="true" :label="$t('menus.removeProject')"
+      :buttonFunction="prepRemovePopUpModal" />
 
     <!-- Delete project -->
-    <ActionButton v-if="projectStore.getActiveProject?.is_downloaded || platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('menus.removeProject')"
+    <ActionButton v-if="(projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && userStore.userCanCreateProject" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('menus.deleteProject')"
       :buttonFunction="prepDeletePopUpModal" />
 
 
@@ -126,19 +130,49 @@ const copyProjectPath = async () => {
   let projectDir = project.working_directory;
   projectDir = projectDir.replace(/\\/g, '/');
   await Clipboard.SetText(projectDir);
+  notificationStore.addNotification('Path copied', '', 'success')
   menu.hideContextMenu();
 };
 
 // Deletes the project from the local database.
-const deleteProject = async () => {
-  await FSService.DeleteFile(projectStore.activeProject.uri)
-    .then(() => {
-      projectStore.loadProjects();
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-  modals.setModalVisibility('popUpModal', false);
+const deleteProject = async ({ deleteWorkingFiles } = {}) => {
+  const project = projectStore.getActiveProject;
+  await FSService.DeleteFile(project.uri);
+
+  if (deleteWorkingFiles && project.working_directory) {
+    await FSService.DeleteFolder(project.working_directory);
+  }
+
+  await projectStore.loadProjects();
+};
+
+// Deletes a remote project from the studio server.
+const deleteRemoteProject = async ({ deleteWorkingFiles } = {}) => {
+  const project = projectStore.getActiveProject;
+  
+  // Delete from server first
+  await ProjectService.DeleteRemoteProject(
+    projectStore.getActiveProjectUrl,
+    projectStore.selectedStudio.name
+  );
+  
+  // Then delete local file if it exists
+  if (project.uri && project.is_downloaded) {
+    await FSService.DeleteFile(project.uri);
+  }
+
+  // Delete working files if toggled on
+  if (deleteWorkingFiles && project.working_directory) {
+    await FSService.DeleteFolder(project.working_directory);
+  }
+  
+  await projectStore.loadProjects();
+  notificationStore.addNotification(
+    t('notifications.projectDeleted'),
+    t('notifications.projectDeletedDesc', { name: project.name }),
+    'success',
+    false
+  );
 };
 
 // Deletes the project working directory data.
@@ -203,11 +237,51 @@ const prepCloseProjectPopUpModal = () => {
 // Prepares and shows the delete project confirmation modal.
 const prepDeletePopUpModal = () => {
   let project = projectStore.getActiveProject;
-  trayStates.popUpModalTitle = t('menus.removeProjectTitle', { name: project.name });
-  trayStates.popUpModalMessage = t('confirmations.removeProject');
-  trayStates.popUpModalFunction = deleteProject;
-  trayStates.popUpModalIcon = 'trash';
-  modals.setModalVisibility('popUpModal', true);
+  const isPersonal = projectStore.selectedStudio?.name === 'Personal';
+
+  // Build contextual message
+  let message = '';
+  if (project.has_remote && userStore.userCanCreateProject) {
+    message = t('confirmations.deleteRemoteProject', { name: project.name });
+  } else {
+    message = t('confirmations.deleteProjectLocal');
+    message += ' ' + (isPersonal
+      ? t('confirmations.deleteProjectPersonalSuffix')
+      : t('confirmations.deleteProjectTeamSuffix'));
+  }
+
+  trayStates.dangerousActionTitle = t('menus.deleteProjectTitle', { name: project.name });
+  trayStates.dangerousActionMessage = message;
+  trayStates.dangerousActionIcon = 'trash';
+  trayStates.dangerousActionConfirmText = project.name;
+  trayStates.dangerousActionShowInput = true;
+  trayStates.dangerousActionFunction = project.has_remote && userStore.userCanCreateProject
+    ? deleteRemoteProject
+    : deleteProject;
+  trayStates.dangerousActionShowToggle = true;
+  trayStates.dangerousActionToggleLabel = t('modals.confirmDangerousAction.deleteWorkingFiles');
+  trayStates.dangerousActionToggleOffHint = t('modals.confirmDangerousAction.deleteWorkingFilesOff');
+  trayStates.dangerousActionToggleOnHint = t('modals.confirmDangerousAction.deleteWorkingFilesOn');
+  modals.setModalVisibility('confirmDangerousActionModal', true);
+  menu.hideContextMenu();
+};
+
+// Prepares and shows the remove project confirmation modal.
+const prepRemovePopUpModal = () => {
+  let project = projectStore.getActiveProject;
+  let message = t('confirmations.deleteProjectLocal') + ' ' + t('confirmations.deleteProjectTeamSuffix');
+
+  trayStates.dangerousActionTitle = t('menus.removeProjectTitle', { name: project.name });
+  trayStates.dangerousActionMessage = message;
+  trayStates.dangerousActionIcon = 'minus-circle';
+  trayStates.dangerousActionConfirmText = '';
+  trayStates.dangerousActionShowInput = false;
+  trayStates.dangerousActionFunction = removeProject;
+  trayStates.dangerousActionShowToggle = true;
+  trayStates.dangerousActionToggleLabel = t('modals.confirmDangerousAction.deleteWorkingFiles');
+  trayStates.dangerousActionToggleOffHint = t('modals.confirmDangerousAction.deleteWorkingFilesOff');
+  trayStates.dangerousActionToggleOnHint = t('modals.confirmDangerousAction.deleteWorkingFilesOn');
+  modals.setModalVisibility('confirmDangerousActionModal', true);
   menu.hideContextMenu();
 };
 
@@ -282,6 +356,18 @@ const relocateWorkingDirectory = async () => {
 const renameProject = () => {
   emitter.emit('renameProject');
   menu.hideContextMenu();
+};
+
+// Removes the local .clst file only (keeps server copy).
+const removeProject = async ({ deleteWorkingFiles } = {}) => {
+  const project = projectStore.getActiveProject;
+  await FSService.DeleteFile(project.uri);
+
+  if (deleteWorkingFiles && project.working_directory) {
+    await FSService.DeleteFolder(project.working_directory);
+  }
+
+  await projectStore.loadProjects();
 };
 
 // Reveals the project directory in the file explorer.

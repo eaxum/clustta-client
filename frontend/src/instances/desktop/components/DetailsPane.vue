@@ -93,6 +93,7 @@
         
         <div v-else-if="onlyUntrackedAssets || onlyUntrackedCollections" class="action-bar">
           <ActionButton v-if="userStore.canDo('create_task') && onlyUntrackedAssets" :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsUntrackedTooltip')" />
+          <ActionButton v-if="squashEnabled" :icon="getAppIcon('squash')" :label="$t('components.detailsPane.squashAssets')" :buttonFunction="prepSquashModal" v-tooltip="$t('components.detailsPane.squashAssetsTooltip')" />
           <ActionButton :icon="getAppIcon('file-watch')" :label="$t('components.detailsPane.ignoreItems')" :buttonFunction="ignoreItems" v-tooltip="$t('components.detailsPane.ignoreItemsTooltip')" />
           <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleUntrackedTasks" v-tooltip="$t('components.detailsPane.deleteItemsTooltip')" />
         </div>
@@ -122,6 +123,7 @@ import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
 import { addIgnoredItem } from '@/lib/untracked';
+import { canSquash } from '@/utils/squash';
 import utils from "@/services/utils";
 
 // components
@@ -317,6 +319,12 @@ const settingsItems = computed(() => {
 const showEntityTaskActions = computed(() => {
   const hasTasksOrEntities = stage.selectedItems.some(item => item.type === 'task' || item.type === 'entity');
   return hasTasksOrEntities && activeIsEntity.value;
+});
+
+// Determines whether the squash button should be shown.
+const squashEnabled = computed(() => {
+  if (!userStore.canDo('create_task')) return false;
+  return canSquash(stage.selectedItems).valid;
 });
 
 const showTaskEntityActions = computed(() => {
@@ -691,6 +699,11 @@ const moveIntoFolder = async () => {
 const prepAllCheckpointModal = () => {
   trayStates.createMultipleCheckpoints = false;
   modals.setModalVisibility('createMultipleCheckpointsModal', true);
+};
+
+// Shows the squash modal.
+const prepSquashModal = () => {
+  modals.setModalVisibility('squashModal', true);
 };
 
 // Opens the assign menu.

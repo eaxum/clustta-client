@@ -48,6 +48,7 @@ export default {
 
     el.addEventListener("mouseenter", el._showTooltip);
     el.addEventListener("mouseleave", el._hideTooltip);
+    el.addEventListener("click", el._hideTooltip);
 
     dir.updateTooltip(el, { value, modifiers });
   },
@@ -61,6 +62,7 @@ export default {
     }
     el.removeEventListener("mouseenter", el._showTooltip);
     el.removeEventListener("mouseleave", el._hideTooltip);
+    el.removeEventListener("click", el._hideTooltip);
   },
 };
 

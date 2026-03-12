@@ -10,6 +10,8 @@
 			@click="createWorkflow" v-tooltip="$t('components.createMenu.addWorkflow')" />
 		<ActionButton :icon="getAppIcon('web-plus')" :isDisabled="kanbanView || !(canCreateTask || canModifyEntity)"
 			@click="createWebLink" v-tooltip="$t('components.createMenu.addWeblink')" />
+		<ActionButton v-if="integrationStore.linkedIntegration" :icon="getAppIcon('kitsu')"  :isDisabled="kanbanView || !(canCreateTask || canModifyEntity)"
+			v-tooltip="'Sync Now'" :buttonFunction="openSyncModal" />
 		<!-- <ActionButton :icon="getAppIcon('arrow-down-ramp')" :isDisabled="platformStore.isWeb || kanbanView || !canCreateEntity"
 			@click="importItems" v-tooltip="'Import Items'" /> -->
 	</div>
@@ -34,6 +36,7 @@ import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
+import { useIntegrationStore } from '@/stores/integrations';
 import { usePlatformStore } from '@/stores/platform';
 import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
@@ -43,6 +46,7 @@ import { useWorkflowStore } from '@/stores/workflow';
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const iconStore = useIconStore();
+const integrationStore = useIntegrationStore();
 const modals = useDesktopModalStore();
 const platformStore = usePlatformStore();
 const projectStore = useProjectStore();
@@ -116,8 +120,14 @@ const createWorkflow = () => { clearSelection(); modals.setModalVisibility('sele
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
+// Opens the integration sync modal.
+const openSyncModal = () => { modals.setModalVisibility('integrationSyncModal', true); };
+
 // lifecycle hooks
-onMounted(() => { emitter.on('refresh-browser', checkModifyPermission); });
+onMounted(async () => {
+	emitter.on('refresh-browser', checkModifyPermission);
+	await integrationStore.loadLinkedIntegration();
+});
 
 onUnmounted(() => { emitter.off('refresh-browser', checkModifyPermission); });
 </script>

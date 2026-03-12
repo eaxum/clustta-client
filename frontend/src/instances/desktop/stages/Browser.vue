@@ -993,7 +993,6 @@ watch(() => assetStore.assetsLoaded, async () => {
 
 watch(() => projectStore.activeProject, async () => {
 	if (projectStore.activeProject) {
-		commonStore.setListView();
 		await refresh();
 		stage.copiedItems = [];
 		stage.cutItems = [];

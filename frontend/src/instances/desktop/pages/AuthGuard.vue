@@ -2,6 +2,7 @@
   <div class="auth-guard-wrapper">
     <TitleBar v-if="!platformStore.isWeb" :titleOnly="true" />
     <div class="auth-guard-root">
+      <LanguageSwitcher />
       <router-view />
     </div>
     <InfoBar v-if="!platformStore.isWeb" />
@@ -9,8 +10,9 @@
 </template>
 
 <script setup>
-import TitleBar from '@/instances/desktop/components/TitleBar.vue'
 import InfoBar from '@/instances/desktop/components/InfoBar.vue'
+import LanguageSwitcher from '@/instances/common/components/LanguageSwitcher.vue'
+import TitleBar from '@/instances/desktop/components/TitleBar.vue'
 import { usePlatformStore } from '@/stores/platform'
 
 const platformStore = usePlatformStore()
@@ -38,6 +40,7 @@ const platformStore = usePlatformStore()
     background-color: var(--black-steel);
     box-sizing: border-box;
     overflow: hidden;
+    position: relative;
 }
 
 .sign-up-page-root{

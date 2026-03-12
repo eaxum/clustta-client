@@ -7,6 +7,9 @@ import { useThemeStore } from '@/stores/theme';
 import { useNotificationStore } from '@/stores/notifications';
 import { useStageStore } from '@/stores/stages';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIntegrationStore } from '@/stores/integrations';
+import { useIconStore } from '@/stores/icons';
+import { setLocale } from '@/i18n';
 
 export const useAccountStore = defineStore('accounts', {
   state: () => ({
@@ -192,6 +195,38 @@ export const useAccountStore = defineStore('accounts', {
       }
     },
 
+    // Reload user settings and reset settings-dependent stores
+    async reloadUserSettings() {
+      const integrationStore = useIntegrationStore();
+      const trayStates = useTrayStates();
+      const themeStore = useThemeStore();
+      const iconStore = useIconStore();
+      
+      // Reset integration state and reload credentials for new user
+      integrationStore.reset();
+      integrationStore.tokens = {};
+      await integrationStore.initialize();
+      
+      // Tray states may have user-specific data
+      trayStates.$reset();
+      
+      // Reset theme so it reloads from new user's settings
+      themeStore.$reset();
+      
+      // Reload icon scheme from new user's settings
+      await iconStore.reloadIconScheme();
+      
+      // Reload language from new user's settings
+      try {
+        const savedLocale = await SettingsService.GetLanguage();
+        if (savedLocale) {
+          setLocale(savedLocale);
+        }
+      } catch (error) {
+        console.error('Failed to reload language:', error);
+      }
+    },
+
     // Complete account switch with UI updates (call from components)
     async switchToAccount(userId) {
       try {
@@ -214,7 +249,9 @@ export const useAccountStore = defineStore('accounts', {
         // Reset stores after successful switch
         userStore.$reset();
         projectStore.$reset();
-        trayStates.$reset();
+        
+        // Reload user-specific settings
+        await this.reloadUserSettings();
         
         if (activeAccount && activeAccount.user) {
           // Update user store with the switched account

@@ -218,3 +218,9 @@ func (a *AuthService) SubmitDiagnostics(email, description, os, arch, clusttaVer
 
 	return auth_service.SubmitDiagnostics(email, description, os, arch, clusttaVersion, logContents)
 }
+
+// ContactSales sends a sales inquiry to the Clustta sales team.
+// Returns an error if the submission fails.
+func (a *AuthService) ContactSales(name, email, company, teamSize, source, website, message string) error {
+	return auth_service.ContactSales(name, email, company, teamSize, source, website, message)
+}

@@ -59,7 +59,7 @@ const iconStore = useIconStore();
 
 import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const getAppIcon = (iconName) => {
 	const icon = iconStore.getAppIcon(iconName);
@@ -105,11 +105,11 @@ const toggleVersions = (index) => {
 
 const formatName = (name, type) => {
     // return name
-    return utils.formatDate(name.slice(-20));
+    return utils.formatDate(name.slice(-20), locale.value);
 
     if (type.includes('checkpoint')) {
         // return name.slice(0, -20);
-        return utils.formatDate(name.slice(-20));
+        return utils.formatDate(name.slice(-20), locale.value);
     } else return name;
 
 }

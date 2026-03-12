@@ -93,7 +93,21 @@ export const useTrayStates = defineStore("useTrayStates", {
     popUpModalButtons: ['Cancel', 'Confirm'],
     usePopUpModalInput: false,
 
+    // ConfirmDangerousActionModal state
+    dangerousActionTitle: "",
+    dangerousActionMessage: "",
+    dangerousActionIcon: "trash",
+    dangerousActionConfirmText: "",
+    dangerousActionFunction: null,
+    dangerousActionShowInput: true,
+    dangerousActionShowToggle: false,
+    dangerousActionToggleLabel: "",
+    dangerousActionToggleOffHint: "",
+    dangerousActionToggleOnHint: "",
+
     activeModal: null,
+
+    shareModalData: null,
 
     showTraySearch: false,
     showMeta: false,

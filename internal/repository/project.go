@@ -1186,13 +1186,22 @@ func UpdateProject(projectPath string) error {
 		}
 	}
 
+	// Version 1.8: Integration tables (Kitsu, ShotGrid, etc.)
+	// Running schema adds new tables without affecting existing ones (CREATE TABLE IF NOT EXISTS)
+	if projectVersion <= 1.7 {
+		err = utils.CreateSchema(db, ProjectSchema)
+		if err != nil {
+			return err
+		}
+	}
+
 	tx, err = db.Beginx()
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	err = utils.SetProjectVersion(tx, 1.7)
+	err = utils.SetProjectVersion(tx, 1.8)
 	if err != nil {
 		return err
 	}
@@ -1212,6 +1221,7 @@ func CreateProject(projectUri, studioName, workingDir, templateName string, user
 	// }
 
 	if utils.IsValidURL(projectUri) {
+		fmt.Println(projectUri)
 		req, err := http.NewRequest("POST", projectUri, nil)
 		if err != nil {
 			return projectInfo, err
@@ -1767,6 +1777,41 @@ func ToggleCloseProject(projectUri, studioName string, user auth_service.User) e
 		}
 		return nil
 	}
+}
+
+// DeleteRemoteProject permanently deletes a project from the studio server.
+// This operation cannot be undone and requires admin permissions on the server.
+func DeleteRemoteProject(projectUri, studioName string, user auth_service.User) error {
+	if !utils.IsValidURL(projectUri) {
+		return errors.New("not a remote project URL")
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, projectUri, nil)
+	if err != nil {
+		return err
+	}
+
+	userJson, err := json.Marshal(user)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("UserData", string(userJson))
+	req.Header.Set("UserId", user.Id)
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != 200 {
+		body, _ := io.ReadAll(response.Body)
+		return errors.New(string(body))
+	}
+
+	return nil
 }
 
 // UpdateProjectWorkingDirectory updates the working directory path for a project.

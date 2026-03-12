@@ -202,3 +202,42 @@ export async function studioDataFetch(studioUrl, endpoint, method = 'POST', body
 
   return allChunks.buffer;
 }
+
+// Returns the raw Response from a studio data fetch for streaming consumption
+export async function studioRawFetch(studioUrl, endpoint, method = 'POST', body = null, options = {}) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Clustta-Agent': CLUSTTA_AGENT,
+    ...options.headers,
+  };
+
+  let fetchUrl;
+  if (isDev) {
+    fetchUrl = `/studio-data${endpoint}`;
+    headers['X-Studio-URL'] = studioUrl;
+  } else if (studioUrl.startsWith('http://')) {
+    fetchUrl = `${GLOBAL_API}/v1/studio-proxy`;
+    headers['X-Studio-URL'] = `${studioUrl}${endpoint}`;
+    headers['X-Studio-Method'] = 'GET';
+  } else {
+    fetchUrl = `${studioUrl}${endpoint}`;
+  }
+
+  const response = await fetch(fetchUrl, {
+    method: 'POST',
+    headers,
+    body: body ? JSON.stringify(body) : null,
+  });
+
+  if (!response.ok) {
+    let errorMessage;
+    try {
+      errorMessage = await response.text();
+    } catch {
+      errorMessage = response.statusText;
+    }
+    throw new Error(errorMessage);
+  }
+
+  return response;
+}

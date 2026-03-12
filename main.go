@@ -22,6 +22,9 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+//go:embed build/appicon.png
+var trayIcon []byte
+
 var app *application.App
 
 // InitializeFullscreenMonitoring starts fullscreen state monitoring for the application window.
@@ -88,8 +91,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Start the bridge HTTP server for DCC addon integrations
-	bridge.Start()
+	// Start the bridge HTTP server if the user has enabled it
+	bridgeEnabled, err := settings.GetBridgeEnabled()
+	log.Printf("Bridge enabled: %v (err: %v)", bridgeEnabled, err)
+	if err == nil && bridgeEnabled {
+		bridge.Start()
+	}
 	defer bridge.Stop()
 
 	var singleInstanceOpt *application.SingleInstanceOptions = nil
@@ -145,10 +152,12 @@ func main() {
 			application.NewService(&services.DialogService{}),
 			application.NewService(createFSService()),
 			application.NewService(&services.ImportService{}),
+			application.NewService(&services.IntegrationService{}),
 			application.NewService(&services.LogService{}),
 			application.NewService(&services.ProfileService{}),
 			application.NewService(&services.ProjectService{}),
 			application.NewService(&services.SettingsService{}),
+			application.NewService(&services.ShareService{}),
 			application.NewService(&services.StatusService{}),
 			application.NewService(&services.StudioService{}),
 			application.NewService(&services.SyncService{}),
@@ -337,8 +346,36 @@ func main() {
 	})
 
 	window.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
-		window.Hide()
-		e.Cancel()
+		minimizeOnClose, err := settings.GetMinimizeOnClose()
+		if err != nil {
+			log.Printf("Failed to get minimize on close setting: %v", err)
+			minimizeOnClose = true
+		}
+		if minimizeOnClose {
+			window.Hide()
+			e.Cancel()
+		}
+	})
+
+	// System tray icon with context menu
+	systemTray := app.SystemTray.New()
+	systemTray.SetIcon(trayIcon)
+	systemTray.SetLabel("Clustta")
+
+	trayMenu := app.NewMenu()
+	trayMenu.Add("Show Clustta").OnClick(func(ctx *application.Context) {
+		window.Show()
+		window.Focus()
+	})
+	trayMenu.AddSeparator()
+	trayMenu.Add("Quit").OnClick(func(ctx *application.Context) {
+		app.Quit()
+	})
+	systemTray.SetMenu(trayMenu)
+
+	systemTray.OnClick(func() {
+		window.Show()
+		window.Focus()
 	})
 
 	if runtime.GOOS == "darwin" {

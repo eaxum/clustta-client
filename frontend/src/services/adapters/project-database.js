@@ -391,6 +391,61 @@ function createSchema(db) {
     )
   `);
 
+  // Integration tables
+  db.run(`
+    CREATE TABLE IF NOT EXISTS integration_project (
+      id TEXT PRIMARY KEY,
+      mtime INTEGER NOT NULL,
+      integration_id TEXT NOT NULL,
+      external_project_id TEXT NOT NULL,
+      external_project_name TEXT DEFAULT '' NOT NULL,
+      api_url TEXT DEFAULT '' NOT NULL,
+      sync_options TEXT DEFAULT '{}' NOT NULL,
+      linked_by_user_id TEXT DEFAULT '' NOT NULL,
+      linked_at TEXT DEFAULT '' NOT NULL,
+      enabled INTEGER DEFAULT 1 NOT NULL,
+      synced BOOLEAN DEFAULT 0 NOT NULL
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS integration_collection_mapping (
+      id TEXT PRIMARY KEY,
+      mtime INTEGER NOT NULL,
+      integration_id TEXT NOT NULL,
+      external_id TEXT NOT NULL,
+      external_type TEXT DEFAULT '' NOT NULL,
+      external_name TEXT DEFAULT '' NOT NULL,
+      external_parent_id TEXT DEFAULT '' NOT NULL,
+      external_path TEXT DEFAULT '' NOT NULL,
+      external_metadata TEXT DEFAULT '{}' NOT NULL,
+      collection_id TEXT DEFAULT '' NOT NULL,
+      synced_at TEXT DEFAULT '' NOT NULL,
+      synced BOOLEAN DEFAULT 0 NOT NULL,
+      UNIQUE(integration_id, external_id)
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS integration_asset_mapping (
+      id TEXT PRIMARY KEY,
+      mtime INTEGER NOT NULL,
+      integration_id TEXT NOT NULL,
+      external_id TEXT NOT NULL,
+      external_name TEXT DEFAULT '' NOT NULL,
+      external_parent_id TEXT DEFAULT '' NOT NULL,
+      external_type TEXT DEFAULT '' NOT NULL,
+      external_status TEXT DEFAULT '' NOT NULL,
+      external_assignees TEXT DEFAULT '[]' NOT NULL,
+      external_metadata TEXT DEFAULT '{}' NOT NULL,
+      asset_id TEXT DEFAULT '' NOT NULL,
+      last_pushed_checkpoint_id TEXT DEFAULT '' NOT NULL,
+      synced_at TEXT DEFAULT '' NOT NULL,
+      synced BOOLEAN DEFAULT 0 NOT NULL,
+      UNIQUE(integration_id, external_id)
+    )
+  `);
+
   // Create indexes for common queries
   db.run('CREATE INDEX IF NOT EXISTS idx_entity_parent ON entity(parent_id)');
   db.run('CREATE INDEX IF NOT EXISTS idx_task_entity ON task(entity_id)');
@@ -398,6 +453,10 @@ function createSchema(db) {
   db.run('CREATE INDEX IF NOT EXISTS idx_task_tag_task ON task_tag(task_id)');
   db.run('CREATE INDEX IF NOT EXISTS idx_task_dependency_task ON task_dependency(task_id)');
   db.run('CREATE INDEX IF NOT EXISTS idx_tomb_table ON tomb(table_name)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_integration_collection_mapping_collection ON integration_collection_mapping(collection_id)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_integration_collection_mapping_external ON integration_collection_mapping(integration_id, external_id)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_integration_asset_mapping_asset ON integration_asset_mapping(asset_id)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_integration_asset_mapping_external ON integration_asset_mapping(integration_id, external_id)');
 }
 
 /**
@@ -440,7 +499,8 @@ function populateFromProjectData(db, projectData) {
     'entity', 'task', 'task_checkpoint', 'user', 'role', 'status',
     'entity_type', 'task_type', 'tag', 'task_tag', 'dependency_type',
     'task_dependency', 'entity_dependency', 'entity_assignee', 'template',
-    'workflow', 'workflow_link', 'workflow_entity', 'workflow_task', 'tomb'
+    'workflow', 'workflow_link', 'workflow_entity', 'workflow_task', 'tomb',
+    'integration_project', 'integration_collection_mapping', 'integration_asset_mapping'
   ];
   
   for (const table of tables) {
@@ -673,6 +733,56 @@ function populateFromProjectData(db, projectData) {
         n(wt.id), num(wt.mtime), n(wt.workflow_id), n(wt.workflow_entity_id), str(wt.name),
         n(wt.task_type_id), str(wt.extension), n(wt.template_id), bool(wt.is_resource),
         num(wt.pos_x), num(wt.pos_y), 1
+      ]);
+    }
+    stmt.free();
+  }
+
+  // Insert integration project
+  if (projectData.integration_projects?.length) {
+    const stmt = db.prepare(`
+      INSERT INTO integration_project (id, mtime, integration_id, external_project_id, external_project_name, api_url, sync_options, linked_by_user_id, linked_at, enabled, synced)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    for (const ip of projectData.integration_projects) {
+      stmt.run([
+        n(ip.id), num(ip.mtime), str(ip.integration_id), str(ip.external_project_id),
+        str(ip.external_project_name), str(ip.api_url), str(ip.sync_options),
+        str(ip.linked_by_user_id), str(ip.linked_at), bool(ip.enabled ?? true), 1
+      ]);
+    }
+    stmt.free();
+  }
+
+  // Insert integration collection mappings
+  if (projectData.integration_collection_mappings?.length) {
+    const stmt = db.prepare(`
+      INSERT INTO integration_collection_mapping (id, mtime, integration_id, external_id, external_type, external_name, external_parent_id, external_path, external_metadata, collection_id, synced_at, synced)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    for (const m of projectData.integration_collection_mappings) {
+      stmt.run([
+        n(m.id), num(m.mtime), str(m.integration_id), str(m.external_id),
+        str(m.external_type), str(m.external_name), str(m.external_parent_id),
+        str(m.external_path), str(m.external_metadata), str(m.collection_id),
+        str(m.synced_at), 1
+      ]);
+    }
+    stmt.free();
+  }
+
+  // Insert integration asset mappings
+  if (projectData.integration_asset_mappings?.length) {
+    const stmt = db.prepare(`
+      INSERT INTO integration_asset_mapping (id, mtime, integration_id, external_id, external_name, external_parent_id, external_type, external_status, external_assignees, external_metadata, asset_id, last_pushed_checkpoint_id, synced_at, synced)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    for (const m of projectData.integration_asset_mappings) {
+      stmt.run([
+        n(m.id), num(m.mtime), str(m.integration_id), str(m.external_id),
+        str(m.external_name), str(m.external_parent_id), str(m.external_type),
+        str(m.external_status), str(m.external_assignees), str(m.external_metadata),
+        str(m.asset_id), str(m.last_pushed_checkpoint_id), str(m.synced_at), 1
       ]);
     }
     stmt.free();

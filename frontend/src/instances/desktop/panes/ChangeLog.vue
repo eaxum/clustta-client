@@ -1,10 +1,10 @@
 <template>
   <div class="general-pane-root">
-    <div v-if="hasChanges" class="changelog-scroll-container">
       <div class="changelog-actions">
         <ActionButton :icon="getAppIcon('revert')" :label="$t('panes.discardAll')" :showLabel="true" :buttonFunction="prepDiscardAll" :useDanger="true" :useBackground="true" :isDisabled="isLoading" />
         <ActionButton :icon="getAppIcon(getCloudIcon)" :label="$t('panes.syncNow')" :showLabel="true" :buttonFunction="syncNow" :useBackground="true" :isDisabled="isLoading" />
       </div>
+    <div v-if="hasChanges" class="changelog-scroll-container">
 
       <div v-if="summary.tasks.length" class="changelog-group">
         <div class="changelog-group-header" @click="toggleGroup('tasks')">
@@ -110,19 +110,46 @@ const illustration = computed(() => '/page-states/resources.png');
 // methods
 
 // Discards all pending changes after confirmation.
-const discardAll = async () => {
+// const discardAll = async () => {
+//   isLoading.value = true;
+//   try {
+//     await SyncService.DiscardAllChanges(projectStore.activeProject.uri, projectStore.getActiveProjectUrl);
+//     projectStore.activeProject.is_unsynced = false;
+//     notificationStore.addNotification(t('notifications.allChangesDiscarded'), '', 'success', false);
+//     emitter.emit('refresh-browser');
+//     modals.disableAllModals();
+//     await loadChanges();
+//   } catch (error) {
+//     console.error(error);
+//     notificationStore.errorNotification(t('notifications.errorDiscardingChanges'), error);
+//   }
+//   isLoading.value = false;
+// };
+
+// Reverts project to the remote version as of the last sync.
+const revertChanges = async () => {
   isLoading.value = true;
-  try {
-    await SyncService.DiscardAllChanges(projectStore.activeProject.uri, projectStore.getActiveProjectUrl);
-    projectStore.activeProject.is_unsynced = false;
-    notificationStore.addNotification(t('notifications.allChangesDiscarded'), '', 'success', false);
-    emitter.emit('refresh-browser');
-    modals.disableAllModals();
-    await loadChanges();
-  } catch (error) {
-    console.error(error);
-    notificationStore.errorNotification(t('notifications.errorDiscardingChanges'), error);
-  }
+  const syncOptions = {
+    only_latest_checkpoints: false,
+    task_dependencies: false,
+    tasks: false,
+    templates: false,
+    force: true,
+  };
+  await SyncService.PullData(
+    projectStore.activeProject.uri, projectStore.getActiveProjectUrl, false, syncOptions
+  )
+    .then(async () => {
+      projectStore.activeProject.is_unsynced = false;
+      trayStates.refreshData();
+      emitter.emit('refresh-browser');
+      modals.disableAllModals();
+      await loadChanges();
+    }).catch((error) => {
+      console.error(error.message);
+      notificationStore.errorNotification(t('notifications.errorDiscardingChanges'), error);
+      modals.disableAllModals();
+    });
   isLoading.value = false;
 };
 
@@ -190,7 +217,7 @@ const prepDiscardAll = () => {
   trayStates.popUpModalIcon = 'revert';
   trayStates.popUpModalTitle = t('panes.discardAllChanges');
   trayStates.popUpModalMessage = t('confirmations.discardAllChanges');
-  trayStates.popUpModalFunction = discardAll;
+  trayStates.popUpModalFunction = revertChanges;
   modals.setModalVisibility('popUpModal', true);
 };
 
@@ -223,6 +250,7 @@ onUnmounted(() => {
   display: flex;
   gap: .5rem;
   padding: .5rem 0;
+  width: 100%;
 }
 
 .changelog-group {
