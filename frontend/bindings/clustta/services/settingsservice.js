@@ -104,6 +104,15 @@ export function ClearRecentProject(studioName) {
 }
 
 /**
+ * DeleteIntegrationCredential deletes integration credentials for an integration.
+ * @param {string} integrationId
+ * @returns {$CancellablePromise<void>}
+ */
+export function DeleteIntegrationCredential(integrationId) {
+    return $Call.ByID(2497484404, integrationId);
+}
+
+/**
  * GetAllLocationPaths retrieves all configured project locations.
  * @returns {$CancellablePromise<settings$0.ProjectLocation[]>}
  */
@@ -111,6 +120,14 @@ export function GetAllLocationPaths() {
     return $Call.ByID(1879856430).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType4($result);
     }));
+}
+
+/**
+ * GetBridgeEnabled returns whether the bridge HTTP server is enabled.
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function GetBridgeEnabled() {
+    return $Call.ByID(406544000);
 }
 
 /**
@@ -154,6 +171,18 @@ export function GetEulaAccepted() {
  */
 export function GetIconScheme() {
     return $Call.ByID(636356804);
+}
+
+/**
+ * GetIntegrationCredential retrieves integration credentials for an integration.
+ * Credentials are stored per user per integration (not per project).
+ * @param {string} integrationId
+ * @returns {$CancellablePromise<settings$0.IntegrationCredential>}
+ */
+export function GetIntegrationCredential(integrationId) {
+    return $Call.ByID(3906565165, integrationId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType5($result);
+    }));
 }
 
 /**
@@ -201,6 +230,14 @@ export function GetLogPath() {
 }
 
 /**
+ * GetMinimizeOnClose returns whether the app minimizes to tray on close.
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function GetMinimizeOnClose() {
+    return $Call.ByID(319830377);
+}
+
+/**
  * GetPinnedProjects retrieves all pinned projects for the specified studio.
  * @param {string} studioName
  * @returns {$CancellablePromise<string[]>}
@@ -218,7 +255,7 @@ export function GetPinnedProjects(studioName) {
  */
 export function GetProjectDependencyPresets(projectId) {
     return $Call.ByID(3058392474, projectId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
+        return $$createType6($result);
     }));
 }
 
@@ -246,7 +283,7 @@ export function GetProjectLocation(projectID) {
  */
 export function GetProjectWorkspaces(projectId) {
     return $Call.ByID(2164081225, projectId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
+        return $$createType6($result);
     }));
 }
 
@@ -270,13 +307,21 @@ export function GetSharedProjectDirectory() {
 }
 
 /**
+ * GetShowTypeIcons returns whether type icons are shown in the browser.
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function GetShowTypeIcons() {
+    return $Call.ByID(742250271);
+}
+
+/**
  * GetStudios retrieves all configured studios from user settings.
  * @param {string} path
  * @returns {$CancellablePromise<settings$0.Studio[]>}
  */
 export function GetStudios(path) {
     return $Call.ByID(2852753313, path).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType7($result);
+        return $$createType8($result);
     }));
 }
 
@@ -386,6 +431,26 @@ export function RemoveProjectWorkspace(projectId, workspaceName) {
 }
 
 /**
+ * SaveIntegrationCredential saves or updates integration credentials.
+ * Credentials are stored per user per integration (not per project).
+ * @param {settings$0.IntegrationCredential} cred
+ * @returns {$CancellablePromise<void>}
+ */
+export function SaveIntegrationCredential(cred) {
+    return $Call.ByID(927307362, cred);
+}
+
+/**
+ * SetBridgeEnabled sets the bridge HTTP server enabled preference.
+ * Starts or stops the bridge server accordingly.
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetBridgeEnabled(enabled) {
+    return $Call.ByID(2597264452, enabled);
+}
+
+/**
  * SetCurrentVersion sets the current application version number.
  * @param {string} versionNumber
  * @returns {$CancellablePromise<void>}
@@ -449,6 +514,15 @@ export function SetLastStudio(lastStudioName) {
 }
 
 /**
+ * SetMinimizeOnClose sets the minimize-to-tray on close preference.
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetMinimizeOnClose(enabled) {
+    return $Call.ByID(2305241605, enabled);
+}
+
+/**
  * SetProjectDirectory sets the default project directory path.
  * @param {string} dir
  * @returns {$CancellablePromise<void>}
@@ -464,6 +538,15 @@ export function SetProjectDirectory(dir) {
  */
 export function SetSharedProjectDirectory(dir) {
     return $Call.ByID(2608064267, dir);
+}
+
+/**
+ * SetShowTypeIcons sets the show type icons preference.
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetShowTypeIcons(enabled) {
+    return $Call.ByID(3308454819, enabled);
 }
 
 /**
@@ -558,6 +641,7 @@ const $$createType1 = $Create.Array($Create.Any);
 const $$createType2 = settings$0.LocationHealth.createFrom;
 const $$createType3 = $Create.Array($$createType2);
 const $$createType4 = $Create.Array($$createType0);
-const $$createType5 = $Create.Array($Create.Any);
-const $$createType6 = settings$0.Studio.createFrom;
-const $$createType7 = $Create.Array($$createType6);
+const $$createType5 = settings$0.IntegrationCredential.createFrom;
+const $$createType6 = $Create.Array($Create.Any);
+const $$createType7 = settings$0.Studio.createFrom;
+const $$createType8 = $Create.Array($$createType7);

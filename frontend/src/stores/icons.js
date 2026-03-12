@@ -92,5 +92,16 @@ export const useIconStore = defineStore("icons", {
     getAppIcon(name) {
       return `/icons/${this.selectedIconType}/${name}.svg`;
     },
+
+    // Reload icon scheme from user settings (used on account switch)
+    async reloadIconScheme() {
+      try {
+        const scheme = await SettingsService.GetIconScheme();
+        this.selectedIconType = scheme || 'solid';
+      } catch (error) {
+        console.error('Failed to reload icon scheme:', error);
+        this.selectedIconType = 'solid';
+      }
+    },
   },
 });

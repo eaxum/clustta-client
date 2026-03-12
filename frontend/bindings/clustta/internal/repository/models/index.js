@@ -6,6 +6,7 @@ export {
     Checkpoint,
     DependencyType,
     EntityType,
+    IntegrationProject,
     Role,
     RoleAttributes,
     Status,

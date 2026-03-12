@@ -1,6 +1,7 @@
 package services
 
 import (
+	"clustta/internal/bridge"
 	"clustta/internal/settings"
 	"os"
 	"strings"
@@ -465,4 +466,61 @@ func (s *SettingsService) GetSyncAfterCheckpoint() (bool, error) {
 // SetSyncAfterCheckpoint sets the auto-sync after checkpoint preference.
 func (s *SettingsService) SetSyncAfterCheckpoint(enabled bool) error {
 	return settings.SetSyncAfterCheckpoint(enabled)
+}
+
+// GetMinimizeOnClose returns whether the app minimizes to tray on close.
+func (s *SettingsService) GetMinimizeOnClose() (bool, error) {
+	return settings.GetMinimizeOnClose()
+}
+
+// SetMinimizeOnClose sets the minimize-to-tray on close preference.
+func (s *SettingsService) SetMinimizeOnClose(enabled bool) error {
+	return settings.SetMinimizeOnClose(enabled)
+}
+
+// GetBridgeEnabled returns whether the bridge HTTP server is enabled.
+func (s *SettingsService) GetBridgeEnabled() (bool, error) {
+	return settings.GetBridgeEnabled()
+}
+
+// SetBridgeEnabled sets the bridge HTTP server enabled preference.
+// Starts or stops the bridge server accordingly.
+func (s *SettingsService) SetBridgeEnabled(enabled bool) error {
+	err := settings.SetBridgeEnabled(enabled)
+	if err != nil {
+		return err
+	}
+	if enabled {
+		bridge.Start()
+	} else {
+		bridge.Stop()
+	}
+	return nil
+}
+
+// GetShowTypeIcons returns whether type icons are shown in the browser.
+func (s *SettingsService) GetShowTypeIcons() (bool, error) {
+	return settings.GetShowTypeIcons()
+}
+
+// SetShowTypeIcons sets the show type icons preference.
+func (s *SettingsService) SetShowTypeIcons(enabled bool) error {
+	return settings.SetShowTypeIcons(enabled)
+}
+
+// GetIntegrationCredential retrieves integration credentials for an integration.
+// Credentials are stored per user per integration (not per project).
+func (s *SettingsService) GetIntegrationCredential(integrationId string) (settings.IntegrationCredential, error) {
+	return settings.GetIntegrationCredential(integrationId)
+}
+
+// SaveIntegrationCredential saves or updates integration credentials.
+// Credentials are stored per user per integration (not per project).
+func (s *SettingsService) SaveIntegrationCredential(cred settings.IntegrationCredential) error {
+	return settings.SaveIntegrationCredential(cred)
+}
+
+// DeleteIntegrationCredential deletes integration credentials for an integration.
+func (s *SettingsService) DeleteIntegrationCredential(integrationId string) error {
+	return settings.DeleteIntegrationCredential(integrationId)
 }

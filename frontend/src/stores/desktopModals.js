@@ -4,6 +4,8 @@ export const useDesktopModalStore = defineStore("desktopModals", {
   state: () => ({
     modalStates: {
       popUpModal: false,
+      shareModal: false,
+      confirmDangerousActionModal: false,
       loginModal: false,
 
       ignoreConfigModal: false,
@@ -80,6 +82,16 @@ export const useDesktopModalStore = defineStore("desktopModals", {
 
       // sync
       syncConflictModal: false,
+
+      // integrations
+      integrationAuthModal: false,
+      integrationLinkModal: false,
+      integrationSyncModal: false,
+      directoryMappingModal: false,
+      taskTypeMappingModal: false,
+
+      // squash
+      squashModal: false,
 
       // diagnostics
       submitDiagnosticsModal: false,

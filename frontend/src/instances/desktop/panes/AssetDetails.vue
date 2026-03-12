@@ -15,7 +15,7 @@
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('file-plus')" :label="$t('panes.type')" />
-            <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="assetStore.selectedAsset.task_type_name"
+            <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="assetStore.selectedAsset?.task_type_name"
               :onSelect="changeTaskType" :fixedWidth="true" />
           </div>
 

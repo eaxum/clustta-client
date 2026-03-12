@@ -21,7 +21,7 @@
     <div class="main-entity-item-grid">
 
       <div class="main-entity-item-grid-bottom-bar">
-        <div v-if="!isEditing" class="entity-item-grid-type-icon">
+        <div v-if="!isEditing && settingsStore.showTypeIcons" class="entity-item-grid-type-icon">
           <img class="small-icons" :src="getAppIcon(collectionTypeIcon)" v-tooltip="collectionTypeName">
         </div>
         
@@ -107,7 +107,7 @@
           </div>
         </div> -->
 
-        <div class="entity-item-icon-container">
+        <div v-if="settingsStore.showTypeIcons", @click="console.log(entity)" class="entity-item-icon-container">
           <img class="large-icons" :src="getAppIcon(collectionTypeIcon)" v-tooltip="collectionTypeName">
         </div>
 
@@ -213,6 +213,7 @@ import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { usePaneStore } from '@/stores/panes';
 import { useProjectStore } from '@/stores/projects';
+import { useSettingsStore } from '@/stores/settings';
 import { useStageStore } from '@/stores/stages';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
@@ -227,6 +228,7 @@ const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const panes = usePaneStore();
 const projectStore = useProjectStore();
+const settingsStore = useSettingsStore();
 const stage = useStageStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();

@@ -13,20 +13,6 @@
       <div class="auth-container">
         <!-- form container -->
         <div class="auth-form-container">
-          <!-- studio server toggle -->
-          <div v-if="!platformStore.isWeb" class="horizontal-flex studio-toggle-row">
-            <ActionButton :isInactive="true" :icon="getAppIcon('two-drives')" :label="$t('auth.login.privateServer')" />
-            <ToggleSwitch @click="toggleStudioLogin" :switchValueProp="showStudioLogin" />
-          </div>
-          <div v-if="showStudioLogin" class="studio-url-container">
-            <FormInput
-              v-model="studioUrl"
-              :placeholder="$t('auth.login.studioUrl')"
-              :error="studioUrlError"
-              :info="!studioUrlError ? $t('auth.login.studioUrlInfo') : ''"
-              @input="validateStudioUrl"
-            />
-          </div>
           <!-- actual-form -->
           <form @submit.prevent="handleLogin" class="auth-form">
             <!-- email -->
@@ -64,25 +50,21 @@
             {{ error }}
           </div>
         </div>
+        <!-- studio URL (contextual) -->
+        <div v-if="!platformStore.isWeb" class="studio-section">
+          <div @click="toggleStudioLogin" class="studio-reveal-link">
+            {{ $t('auth.login.connectingToStudio') }}
+          </div>
+          <div v-if="showStudioLogin" class="studio-url-container">
+            <FormInput v-model="studioUrl" :placeholder="$t('auth.login.studioUrl')" :error="studioUrlError" :info="!studioUrlError ? $t('auth.login.studioUrlInfo') : ''" @input="validateStudioUrl" />
+          </div>
+        </div>
+
         <!-- toggle -->
         <div v-if="!isAwaitingResponse" class="additional-actions">
-
           <div @click="toggleLogin" class="signup-toggle">
             {{ $t('auth.login.noAccount') }}&nbsp;<span class="bold">{{ $t('auth.login.signUpLink') }}</span>
           </div>
-
-          <template v-if="!platformStore.isWeb">
-            <div class="divider-container">
-              <div class="divider-line"></div>
-              <div class="divider-text">{{ $t('auth.login.or') }}</div>
-              <div class="divider-line"></div>
-            </div>
-
-            <div @click="enableOfflineMode" class="offline-toggle" :class="{ 'button-inactive': isAwaitingResponse }">
-              {{ $t('auth.login.useWithoutAccount') }}
-            </div>
-          </template>
-          
         </div>
       </div>
       
@@ -92,23 +74,24 @@
 
 
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeMount } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { useTrayStates } from '@/stores/TrayStates';
-import { useProjectStore } from '@/stores/projects';
-import { AuthService } from "@/services";
-import { useNotificationStore } from '@/stores/notifications';
-import { useUserStore } from '@/stores/users';
-import { useIconStore } from '@/stores/icons';
-import { useThemeStore } from '@/stores/theme';
-import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useAccountStore } from '@/stores/accounts';
-import { usePlatformStore } from '@/stores/platform';
-import { markStoresInitialized } from '@/router';
-import utils from "@/services/utils";
 
-import { SettingsService } from '@/services';
+// services
+import { AuthService, SettingsService } from '@/services';
+
+// store imports
+import { useAccountStore } from '@/stores/accounts';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useNotificationStore } from '@/stores/notifications';
+import { usePlatformStore } from '@/stores/platform';
+import { useProjectStore } from '@/stores/projects';
+import { useThemeStore } from '@/stores/theme';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useUserStore } from '@/stores/users';
+import { markStoresInitialized } from '@/router';
 
 const router = useRouter();
 const { t } = useI18n();
@@ -134,7 +117,6 @@ const studioUrlError = ref('');
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import FormInput from '@/instances/desktop/components/FormInput.vue';
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // vars
 const loginForm = reactive({
@@ -301,63 +283,6 @@ const handleEnterKey = (event) => {
   }
 };
 
-const enableOfflineMode = async () => {
-  if (isAwaitingResponse.value) return;
-  
-  isAwaitingResponse.value = true;
-  error.value = '';
-  loadingStatus.value = t('auth.login.enablingOfflineMode');
-
-  try {
-    await AuthService.EnableOfflineMode();
-    
-    // Set up the offline user in the user store
-    userStore.user = {
-      id: 'offline-user',
-      username: 'offline',
-      email: 'offline@local',
-      first_name: 'Offline',
-      last_name: 'User',
-      photo: null
-    };
-    userStore.isUserAuthenticated = true;
-    
-    // Initialize stores
-    loadingStatus.value = t('auth.login.loadingAccount');
-    await accountStore.initialize();
-    
-    loadingStatus.value = t('auth.login.applyingTheme');
-    await themeStore.initializeTheme();
-    
-    loadingStatus.value = t('auth.login.loadingStudios');
-    await projectStore.loadStudios();
-    
-    projectDirectoryExists.value = await SettingsService.GetProjectDirectory();
-
-    if (projectDirectoryExists.value) {
-      loadingStatus.value = t('auth.login.loadingProjects');
-      await projectStore.loadProjects();
-      trayStates.refreshData();
-    } else {
-      setDirectories();
-    }
-
-    // Mark stores as initialized so router doesn't re-init
-    markStoresInitialized();
-    
-    // Navigate to home after successful offline setup
-    notificationStore.addNotification(t('auth.login.offlineModeTitle'), t('auth.login.offlineModeMessage'), "success");
-    router.push(platformStore.isWeb ? '/profile' : '/');
-  } catch (err) {
-    console.error('Failed to enable offline mode:', err);
-    error.value = t('auth.login.offlineModeFailed');
-    loadingStatus.value = '';
-    notificationStore.errorNotification(t('auth.login.offlineModeErrorTitle'), t('auth.login.offlineModeErrorMessage'));
-  } finally {
-    isAwaitingResponse.value = false;
-  }
-};
-
 onMounted( async () => {
 })
 </script>
@@ -366,26 +291,28 @@ onMounted( async () => {
 <style scoped>
 @import "@/assets/desktop.css";
 
-.divider-container {
-  width: 90%;
+.studio-section {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin: 0.5rem 0;
-  opacity: .5;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0 1rem;
+  box-sizing: border-box;
 }
 
-.divider-line {
-  flex: 1;
-  height: 1px;
-  background: var(--white);
-}
-
-.divider-text {
+.studio-reveal-link {
+  font-size: 0.8rem;
   color: var(--white);
-  font-size: 0.85rem;
-  text-transform: uppercase;
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.studio-reveal-link:hover {
+  opacity: 0.9;
 }
 
 .additional-actions{
@@ -416,43 +343,11 @@ onMounted( async () => {
   opacity: 1;
 }
 
-.offline-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: .3rem;
-  border-radius: 8px;
-  color: var(--white);
-  opacity: 0.6;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.offline-toggle:hover {
-  opacity: 1;
-}
-
-.offline-hint {
-  font-size: 0.75rem;
-  color: var(--white-60);
-  font-weight: normal;
-}
-
-.studio-toggle-row {
-  justify-content: space-between;
-  padding: 0.5rem 0;
-}
-
 .studio-url-container {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-.studio-url-hint {
-  font-size: 0.75rem;
-  color: var(--white-60);
-  text-align: center;
+  width: 100%;
 }
 
 .button-inactive {

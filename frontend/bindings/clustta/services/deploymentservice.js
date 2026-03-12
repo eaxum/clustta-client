@@ -13,6 +13,7 @@ import * as $models from "./models.js";
 /**
  * DeployStudio initiates a new studio deployment on Azure.
  * Returns the deployment response with ID and WebSocket URL, or an error if deployment fails.
+ * This operation is only available in global auth mode.
  * @param {$models.DeploymentRequest} request
  * @returns {$CancellablePromise<$models.DeploymentResponse | null>}
  */
@@ -25,6 +26,7 @@ export function DeployStudio(request) {
 /**
  * DestroyDeployment tears down a studio deployment and releases Azure resources.
  * Returns an error if the destruction fails.
+ * This operation is only available in global auth mode.
  * @param {string} deploymentID
  * @returns {$CancellablePromise<void>}
  */
@@ -35,6 +37,7 @@ export function DestroyDeployment(deploymentID) {
 /**
  * GetDeploymentStatus retrieves the current status of a deployment.
  * Returns the deployment status details or an error if the request fails.
+ * This operation is only available in global auth mode.
  * @param {string} deploymentID
  * @returns {$CancellablePromise<$models.DeploymentStatus | null>}
  */

@@ -67,7 +67,7 @@ const gridStyles = computed(() => ({
   display: 'grid',
   boxSizing: 'border-box',
   gridTemplateColumns: `repeat(auto-fill, minmax(${commonStore.gridSize}px, 1fr))`,
-  gap: '10px',
+  gap: '8px',
   width: '100%'
 }));
 
@@ -362,7 +362,7 @@ onUnmounted(async () => {
 	align-items: flex-start;
 	justify-content: center;
 	overflow: hidden;
-  gap: 10px;
+  gap: 8px;
   border-radius: var(--small-radius);
 }
 

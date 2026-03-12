@@ -5,11 +5,16 @@
 
     <div class="general-container">
 
-      <span v-if="projectStore.activeProjectCover" class="screenshot-preview">
+      <!-- Clone Progress Display -->
+      <div v-if="isCloning" class="settings-section-card">
+        <ProgressSection variant="success" />
+      </div>
+
+      <span v-if="!isCloning && projectStore.activeProjectCover" class="screenshot-preview">
         <img class="screenshot-thumb" :src="projectStore.activeProjectCover">
       </span>
       
-      <div class="input-section">
+      <div v-if="!isCloning" class="input-section">
         <span class="input-label">{{ $t('modals.locationLabel') }}</span>
         <div class="horizontal-flex">
           <div class="location-dropdown-wrapper">
@@ -23,14 +28,9 @@
             <img class="small-icons" :src="getAppIcon('plus-circle')">
           </span>
         </div>
-
-        <!-- <div v-if="workingDirectory" class="computed-path-display">
-          {{ workingDirectory }}
-        </div> -->
-
       </div>
 
-      <div class="pop-up-actions">
+      <div v-if="!isCloning" class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :isActive="!isAwaitingResponse" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
         <GeneralButton :label="$t('common.download')" :fullWidth="true" @click="cloneProject" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
@@ -48,6 +48,7 @@ import { useI18n } from 'vue-i18n';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import ProgressSection from '@/instances/common/components/ProgressSection.vue';
 
 // services
 import { DialogService, SettingsService, SyncService } from '@/services';
@@ -58,16 +59,19 @@ import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
 
 const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const stage = useStageStore();
 const { t } = useI18n();
 
 // refs
 const isAwaitingResponse = ref(false);
+const isCloning = ref(false);
 const isLoadingLocations = ref(false);
 const modalContainer = ref(null);
 const projectLocations = ref([]);
@@ -135,6 +139,8 @@ const cloneProject = async () => {
     return;
   }
   isAwaitingResponse.value = true;
+  isCloning.value = true;
+  stage.operationActive = true;
   const project = projectStore.activeProject;
   const studioDisplayName = projectStore.selectedStudio.name;
   const projectName = project.name;
@@ -147,27 +153,28 @@ const cloneProject = async () => {
   };
   notificationStore.cancleFunction = SyncService.CancelSync;
   notificationStore.canCancel = true;
-  await SyncService.CloneProject(projectUrl, studioDisplayName, workingDirectory.value, syncOptions)
-    .then(async () => {
-      projectStore.projects.find(p => p.name === projectName).working_directory = workingDirectory.value;
-      projectStore.activeProject.working_directory = workingDirectory.value;
-      if (selectedLocation.value) {
-        try {
-          await SettingsService.AssignProjectToLocation(project.id, selectedLocation.value.id);
-        } catch (error) {
-          console.error('Error assigning project to location:', error);
-        }
+  try {
+    await SyncService.CloneProject(projectUrl, studioDisplayName, workingDirectory.value, syncOptions);
+    projectStore.projects.find(p => p.name === projectName).working_directory = workingDirectory.value;
+    projectStore.activeProject.working_directory = workingDirectory.value;
+    if (selectedLocation.value) {
+      try {
+        await SettingsService.AssignProjectToLocation(project.id, selectedLocation.value.id);
+      } catch (error) {
+        console.error('Error assigning project to location:', error);
       }
-      await projectStore.refreshProjects();
-      await projectStore.refreshProjectsPreview();
-      isAwaitingResponse.value = false;
-      closeModal();
-    })
-    .catch((error) => {
-      isAwaitingResponse.value = false;
-      console.error(error);
-      notificationStore.errorNotification(t('notifications.errorCloningProject'), error);
-    });
+    }
+    await projectStore.refreshProjects();
+    await projectStore.refreshProjectsPreview();
+    closeModal();
+  } catch (error) {
+    console.error(error);
+    notificationStore.errorNotification(t('notifications.errorCloningProject'), error);
+  } finally {
+    stage.operationActive = false;
+    isCloning.value = false;
+    isAwaitingResponse.value = false;
+  }
 };
 
 // Closes the modal.
@@ -241,6 +248,10 @@ onMounted(async () => {
   justify-content: flex-start;
   gap: .4px;
   color: var(--white);
+}
+
+.settings-section-card{
+  outline: 0px;
 }
 
 .location-dropdown-wrapper {

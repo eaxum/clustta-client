@@ -1,8 +1,6 @@
 <template>
   <div class="modal-container" ref="modalContainer" v-stop-propagation v-esc="closeModal">
-    <div class="general-pane-header">
       <HeaderArea :title="title" :icon="typeIcon" />
-    </div>
 
     <div class="general-container">
       <CollectionTypeForm ref="typeFormRef" mode="edit" :initialName="initialName" :initialIcon="initialIcon" :typeId="typeId" @updated="handleUpdated" @cancel="closeModal" @iconChange="handleIconChange" />
@@ -55,7 +53,7 @@ const typeId = computed(() => {
 // methods
 // Closes the modal.
 const closeModal = () => {
-  modals.setModalVisibility('editEntityTypeModal', false);
+  modals.setModalVisibility('editCollectionTypeModal', false);
 };
 
 // Handles icon change from form.

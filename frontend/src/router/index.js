@@ -21,7 +21,13 @@ const routes = [
       {
         path: '',
         name: 'auth-default',
-        redirect: '/auth/login'
+        redirect: '/auth/welcome'
+      },
+      {
+        path: 'welcome',
+        name: 'welcome',
+        component: () => import('@/instances/desktop/pages/Welcome.vue'),
+        meta: { requiresAuth: false, isPublic: true, isAuthPage: true }
       },
       {
         path: 'login',
@@ -33,6 +39,12 @@ const routes = [
         path: 'signup',
         name: 'signup',
         component: () => import('@/instances/desktop/pages/SignUp.vue'),
+        meta: { requiresAuth: false, isPublic: true, isAuthPage: true }
+      },
+      {
+        path: 'studio-setup',
+        name: 'studio-setup',
+        component: () => import('@/instances/desktop/pages/StudioSetup.vue'),
         meta: { requiresAuth: false, isPublic: true, isAuthPage: true }
       },
       {
@@ -73,6 +85,13 @@ const routes = [
     path: '/user/:username',
     name: 'public-profile',
     component: () => import('@/instances/web/PublicUserProfile.vue'),
+    meta: { requiresAuth: false, isPublic: true }
+  },
+  // Share download page (public)
+  {
+    path: '/share/:token',
+    name: 'share-download',
+    component: () => import('@/instances/web/ShareDownloadPage.vue'),
     meta: { requiresAuth: false, isPublic: true }
   },
   // User profile page (web authenticated users)
@@ -164,9 +183,9 @@ router.beforeEach(async (to, from, next) => {
     return next(isWebMode ? '/profile' : '/');
   }
 
-  // Protected routes: redirect to login if not authenticated
+  // Protected routes: redirect to welcome if not authenticated
   if (to.meta.requiresAuth && !isAuthenticated) {
-    return next('/auth/login');
+    return next('/auth/welcome');
   }
 
   // Initialize stores if user is authenticated and stores haven't been initialized yet

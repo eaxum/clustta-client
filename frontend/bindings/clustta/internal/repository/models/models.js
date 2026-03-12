@@ -259,6 +259,109 @@ export class EntityType {
     }
 }
 
+/**
+ * IntegrationProject stores the link between a Clustta project and an external integration.
+ * Only ONE row is allowed per project (one integration per project constraint).
+ * This data is synced to the server so team members see the same integration link.
+ */
+export class IntegrationProject {
+    /**
+     * Creates a new IntegrationProject instance.
+     * @param {Partial<IntegrationProject>} [$$source = {}] - The source object to create the IntegrationProject.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("mtime" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["mtime"] = 0;
+        }
+        if (!("integration_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["integration_id"] = "";
+        }
+        if (!("external_project_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_project_id"] = "";
+        }
+        if (!("external_project_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_project_name"] = "";
+        }
+        if (!("api_url" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["api_url"] = "";
+        }
+        if (!("sync_options" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["sync_options"] = "";
+        }
+        if (!("linked_by_user_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["linked_by_user_id"] = "";
+        }
+        if (!("linked_at" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["linked_at"] = "";
+        }
+        if (!("enabled" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["enabled"] = false;
+        }
+        if (!("synced" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["synced"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new IntegrationProject instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {IntegrationProject}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new IntegrationProject(/** @type {Partial<IntegrationProject>} */($$parsedSource));
+    }
+}
+
 export class Role {
     /**
      * Creates a new Role instance.

@@ -1,7 +1,11 @@
 import { defineStore } from "pinia";
+import { SettingsService } from '@/services';
 
 export const useSettingsStore = defineStore("settings", {
   state: () => ({
+    bridgeEnabled: false,
+    minimizeOnClose: true,
+    showTypeIcons: true,
     modalStates: {
       general: false,
       templates: false,
@@ -67,6 +71,54 @@ export const useSettingsStore = defineStore("settings", {
   }),
   getters: {},
   actions: {
+    // Loads the bridge enabled state from user settings.
+    async initializeBridge() {
+      try {
+        this.bridgeEnabled = await SettingsService.GetBridgeEnabled();
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    // Toggles the bridge on or off and persists the setting.
+    async toggleBridge() {
+      const newValue = !this.bridgeEnabled;
+      await SettingsService.SetBridgeEnabled(newValue);
+      this.bridgeEnabled = newValue;
+    },
+
+    // Loads the minimize on close state from user settings.
+    async initializeMinimizeOnClose() {
+      try {
+        this.minimizeOnClose = await SettingsService.GetMinimizeOnClose();
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    // Toggles minimize on close and persists the setting.
+    async toggleMinimizeOnClose() {
+      const newValue = !this.minimizeOnClose;
+      await SettingsService.SetMinimizeOnClose(newValue);
+      this.minimizeOnClose = newValue;
+    },
+
+    // Loads the show type icons state from user settings.
+    async initializeShowTypeIcons() {
+      try {
+        this.showTypeIcons = await SettingsService.GetShowTypeIcons();
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    // Toggles show type icons and persists the setting.
+    async toggleShowTypeIcons() {
+      const newValue = !this.showTypeIcons;
+      await SettingsService.SetShowTypeIcons(newValue);
+      this.showTypeIcons = newValue;
+    },
+
     setModalVisibility(modalName, value) {
       if (this.modalStates.hasOwnProperty(modalName)) {
         // Check if the modal is already active

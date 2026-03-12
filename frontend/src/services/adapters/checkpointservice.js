@@ -1,4 +1,4 @@
-import { studioApiCall, studioDataFetch, getActiveStudioUrl } from './http-client.js';
+import { studioApiCall, studioRawFetch, getActiveStudioUrl } from './http-client.js';
 import { getDatabase, query, queryOne, execute, persistDatabase } from './project-database.js';
 import { decompress } from 'fzstd';
 import emitter from '@/lib/mitt';
@@ -237,7 +237,6 @@ export const CheckpointService = {
       const totalSize = checkpoint.file_size || 0;  // Get from checkpoint record
       
       const downloadProgressCallback = (receivedBytes, contentLength) => {
-        // Use checkpoint.file_size as total if Content-Length not available
         const total = contentLength > 0 ? contentLength : totalSize;
         const percentage = total > 0 ? Math.round((receivedBytes / total) * 95) : 0;
         const currentSize = bytesToHumanReadable(receivedBytes);
@@ -254,40 +253,24 @@ export const CheckpointService = {
         });
       };
       
-      // Fetch chunks from studio server using stream-chunks endpoint (GET with body)
-      const chunksData = await studioDataFetch(
-        studioUrl,
-        `/${projectName}/stream-chunks`,
-        'GET',
-        { chunks: chunkHashes },
-        {},
-        downloadProgressCallback
-      );
-      
-      const totalBytes = chunksData.byteLength;
-      
-      // Decode TLV-encoded chunks and reassemble (no separate progress needed, already shown during download)
-      const reassembledData = decodeTLVChunks(new Uint8Array(chunksData), totalChunks, null);
-      const decompressedData = decompress(reassembledData);
-      
-      const blob = new Blob([decompressedData], { type: 'application/octet-stream' });
+      // Stream chunks, parse TLV records, and decompress incrementally
+      const response = await studioRawFetch(studioUrl, `/${projectName}/stream-chunks`, 'GET', { chunks: chunkHashes });
+      const blob = await streamTLVAndDecompress(response, downloadProgressCallback);
       triggerBrowserDownload(blob, filename);
       
-      // Emit 100% progress to close the modal
       emitter.emit('progress-update', {
         current: 100,
         total: 100,
         percentage: 100,
         title: 'Downloading',
-        message: `Downloaded ${bytesToHumanReadable(decompressedData.length)}`,
+        message: `Downloaded ${bytesToHumanReadable(blob.size)}`,
         extra_message: displayName,
         operation_type: 'read'
       });
       
-      // Show success notification
       emitter.emit('add_message', {
         message: 'Download Complete',
-        longMessage: `${displayName} (${bytesToHumanReadable(decompressedData.length)}) downloaded successfully`,
+        longMessage: `${displayName} (${bytesToHumanReadable(blob.size)}) downloaded successfully`,
         type: 'success',
         hasUndo: false,
         read: false,
@@ -386,6 +369,54 @@ function decodeTLVChunks(data, expectedCount, onProgress = null) {
 }
 
 /**
+ * Stream-parse TLV records from a fetch Response, decompress each chunk individually,
+ * and return a Blob. Processes one chunk at a time to minimize memory usage.
+ * @param {Response} response - Fetch Response with TLV-encoded body
+ * @param {function} [onProgress] - Optional (receivedBytes, totalBytes) callback
+ * @returns {Promise<Blob>} - The reassembled decompressed file
+ */
+async function streamTLVAndDecompress(response, onProgress = null) {
+  const contentLength = response.headers.get('content-length');
+  const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
+  const reader = response.body.getReader();
+
+  const parts = [];
+  let buffer = new Uint8Array(0);
+  let receivedBytes = 0;
+
+  for (;;) {
+    const { done, value } = await reader.read();
+
+    if (value) {
+      receivedBytes += value.length;
+      const newBuffer = new Uint8Array(buffer.length + value.length);
+      newBuffer.set(buffer);
+      newBuffer.set(value, buffer.length);
+      buffer = newBuffer;
+
+      if (onProgress) {
+        onProgress(receivedBytes, totalBytes);
+      }
+    }
+
+    // Extract and decompress complete TLV records
+    while (buffer.length >= 36) {
+      const dataLength = (buffer[32] << 24) | (buffer[33] << 16) | (buffer[34] << 8) | buffer[35];
+      const recordLength = 36 + dataLength;
+      if (buffer.length < recordLength) break;
+
+      const compressedData = buffer.slice(36, recordLength);
+      parts.push(decompress(compressedData));
+      buffer = buffer.slice(recordLength);
+    }
+
+    if (done) break;
+  }
+
+  return new Blob(parts, { type: 'application/octet-stream' });
+}
+
+/**
  * Trigger a browser file download from a Blob
  * @param {Blob} blob - The file data
  * @param {string} filename - The filename to save as
@@ -400,3 +431,5 @@ function triggerBrowserDownload(blob, filename) {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+export { streamTLVAndDecompress, triggerBrowserDownload };

@@ -29,7 +29,9 @@ import UploadProjectModal from '@/instances/desktop/modals/UploadProjectModal.vu
 
 // components - general
 import AppInfoModal from '@/instances/desktop/modals/AppInfoModal.vue';
+import ShareModal from '@/instances/desktop/modals/ShareModal.vue';
 import BackUpProjectModal from '@/instances/desktop/modals/BackUpProjectModal.vue';
+import ConfirmDangerousActionModal from '@/instances/desktop/modals/ConfirmDangerousActionModal.vue';
 import DirOnboardModal from '@/instances/desktop/modals/DirOnboardModal.vue';
 import DirectoryConfigModal from '@/instances/desktop/modals/DirectoryConfigModal.vue';
 import EulaModal from '@/instances/desktop/modals/EulaModal.vue';
@@ -69,6 +71,14 @@ import UpdateStudioModal from '@/instances/desktop/modals/UpdateStudioModal.vue'
 
 // components - sync
 import SyncConflictModal from '@/instances/desktop/modals/SyncConflictModal.vue';
+
+// components - integrations
+import DirectoryMappingModal from '@/instances/desktop/modals/DirectoryMappingModal.vue';
+import IntegrationAuthModal from '@/instances/desktop/modals/IntegrationAuthModal.vue';
+import IntegrationLinkModal from '@/instances/desktop/modals/IntegrationLinkModal.vue';
+import IntegrationSyncModal from '@/instances/desktop/modals/IntegrationSyncModal.vue';
+import SquashModal from '@/instances/desktop/modals/SquashModal.vue';
+import TaskTypeMappingModal from '@/instances/desktop/modals/TaskTypeMappingModal.vue';
 
 // components - diagnostics
 import SubmitDiagnosticsModal from '@/instances/desktop/modals/SubmitDiagnosticsModal.vue';
@@ -115,7 +125,9 @@ const modalComponents = {
 
   // general
   appInfoModal: AppInfoModal,
+  shareModal: ShareModal,
   backUpProjectModal: BackUpProjectModal,
+  confirmDangerousActionModal: ConfirmDangerousActionModal,
   dirOnboardModal: DirOnboardModal,
   directoryConfigModal: DirectoryConfigModal,
   eulaModal: EulaModal,
@@ -155,6 +167,14 @@ const modalComponents = {
 
   // sync
   syncConflictModal: SyncConflictModal,
+
+  // integrations
+  directoryMappingModal: DirectoryMappingModal,
+  integrationAuthModal: IntegrationAuthModal,
+  integrationLinkModal: IntegrationLinkModal,
+  integrationSyncModal: IntegrationSyncModal,
+  squashModal: SquashModal,
+  taskTypeMappingModal: TaskTypeMappingModal,
 
   // diagnostics
   submitDiagnosticsModal: SubmitDiagnosticsModal,

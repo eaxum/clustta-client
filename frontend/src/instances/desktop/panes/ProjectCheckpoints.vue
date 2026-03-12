@@ -6,11 +6,12 @@
   <div class="general-pane-root">
     <CheckpointListSkeleton v-if="projectCheckpointsLoading" />
 
-    <div v-else-if="filteredCheckpoints.length" ref="checkpointList" id="checkpointList" class="checkpoint-list-container"
+    <div v-else-if="groupedCheckpoints.length" ref="checkpointList" id="checkpointList" class="checkpoint-list-container"
       v-stop-propagation>
-      <TimelineItem class="task-item" v-for="(timelineItem, index) in filteredCheckpoints" :key="index"
-      @updateExpanded="updateExpanded" :isExpanded="isExpanded" :timelineItem="timelineItem" :timelineItemIndex="index"
-        :style="{ animationDelay: index < 10 ? `${(index - 1) * 0.05}s` : '0s' }" />
+      <TimelineGroup v-for="(group, groupIndex) in groupedCheckpoints" :key="group.key" :group="group"
+        :expandedId="expandedId" :isFirstGroup="groupIndex === 0"
+        :isLastGroup="groupIndex === groupedCheckpoints.length - 1"
+        @updateExpanded="updateExpanded" />
     </div>
 
     <PageState v-else :message="message()" :illustration="illustration()" />
@@ -31,7 +32,7 @@ import { CheckpointService } from '@/services';
 import CheckpointListSkeleton from '@/instances/common/components/CheckpointListSkeleton.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 import SearchBar from '@/instances/desktop/components/SearchBar.vue';
-import TimelineItem from '@/instances/desktop/components/TimelineItem.vue';
+import TimelineGroup from '@/instances/desktop/components/TimelineGroup.vue';
 
 // store imports
 import { useNotificationStore } from '@/stores/notifications';
@@ -43,30 +44,41 @@ const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 // refs
 const checkpointList = ref(null);
-const isExpanded = ref(-1);
+const expandedId = ref('');
 const modalContainer = ref(null);
 const projectCheckpoints = ref([]);
 const projectCheckpointsLoading = ref(true);
 const searchQuery = ref('');
-
-// computed properties
-const filteredCheckpoints = computed(() => {
-  const query = searchQuery.value.toLowerCase();
-  return projectCheckpoints.value.filter((checkpoint) =>
-    checkpoint.comment?.toLowerCase().includes(query) ||
-    checkpoint.author?.toLowerCase().includes(query)
-  );
-});
 
 // methods
 
 // Clears the search query.
 const clearSearch = () => {
   searchQuery.value = '';
+};
+
+// Returns the group key label for a given checkpoint date.
+const getGroupKey = (dateStr, now) => {
+  const date = new Date(dateStr);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffDays = Math.floor((today - new Date(date.getFullYear(), date.getMonth(), date.getDate())) / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return { key: 'today', label: t('checkpointGroups.today') };
+  if (diffDays === 1) return { key: 'yesterday', label: t('checkpointGroups.yesterday') };
+  if (diffDays < 5) {
+    const dayName = date.toLocaleDateString(locale.value, { weekday: 'long' });
+    return { key: `day-${diffDays}`, label: dayName };
+  }
+  if (diffDays < 12) return { key: 'last-week', label: t('checkpointGroups.lastWeek') };
+  if (diffDays < 19) return { key: '2-weeks-ago', label: t('checkpointGroups.twoWeeksAgo') };
+  if (diffDays < 26) return { key: '3-weeks-ago', label: t('checkpointGroups.threeWeeksAgo') };
+
+  const monthYear = date.toLocaleDateString(locale.value, { month: 'long', year: 'numeric' });
+  return { key: `month-${date.getFullYear()}-${date.getMonth()}`, label: monthYear };
 };
 
 // Returns the illustration path for the empty state.
@@ -78,10 +90,38 @@ const message = () => {
   return t('panes.noCheckpointsInProject');
 };
 
-// Updates the expanded checkpoint index.
-const updateExpanded = (index) => {
-  isExpanded.value = index;
+// Updates the expanded checkpoint ID.
+const updateExpanded = (id) => {
+  expandedId.value = id;
 };
+
+// computed properties
+
+// Filters and groups checkpoints by date tier.
+const groupedCheckpoints = computed(() => {
+  const now = new Date();
+  let items = projectCheckpoints.value;
+
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    items = items.filter(checkpoint => {
+      const { label } = getGroupKey(checkpoint.created_at, now);
+      return checkpoint.comment?.toLowerCase().includes(query) ||
+        checkpoint.author_name?.toLowerCase().includes(query) ||
+        label.toLowerCase().includes(query);
+    });
+  }
+
+  const groups = new Map();
+  for (const cp of items) {
+    const { key, label } = getGroupKey(cp.created_at, now);
+    if (!groups.has(key)) {
+      groups.set(key, { key, label, items: [] });
+    }
+    groups.get(key).items.push(cp);
+  }
+  return [...groups.values()];
+});
 
 // watchers
 watchEffect(() => {
@@ -146,7 +186,7 @@ onUnmounted(() => {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: .5rem;
+  gap: 0;
   overflow: hidden;
   overflow-y: scroll;
   border-radius: 10px;

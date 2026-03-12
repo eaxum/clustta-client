@@ -11,6 +11,101 @@ import { Create as $Create } from "@wailsio/runtime";
 import * as models$0 from "../server/models/models.js";
 
 /**
+ * IntegrationCredential stores user credentials for external integrations.
+ * Stored per user locally, keyed by "projectId_integrationId".
+ */
+export class IntegrationCredential {
+    /**
+     * Creates a new IntegrationCredential instance.
+     * @param {Partial<IntegrationCredential>} [$$source = {}] - The source object to create the IntegrationCredential.
+     */
+    constructor($$source = {}) {
+        if (!("integration_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["integration_id"] = "";
+        }
+        if (!("user_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["user_id"] = "";
+        }
+        if (!("user_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["user_name"] = "";
+        }
+        if (!("user_email" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["user_email"] = "";
+        }
+        if (!("access_token" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["access_token"] = "";
+        }
+        if (!("refresh_token" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["refresh_token"] = "";
+        }
+        if (!("expires_at" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["expires_at"] = 0;
+        }
+        if (!("api_url" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["api_url"] = "";
+        }
+        if (!("created_at" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["created_at"] = "";
+        }
+        if (!("updated_at" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["updated_at"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new IntegrationCredential instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {IntegrationCredential}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new IntegrationCredential(/** @type {Partial<IntegrationCredential>} */($$parsedSource));
+    }
+}
+
+/**
  * LocationHealth represents the health status of a location
  */
 export class LocationHealth {

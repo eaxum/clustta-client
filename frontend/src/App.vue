@@ -23,6 +23,7 @@ import { LogService } from '@/services';
 import { useStageStore } from './stores/stages';
 import { useMenu } from '@/stores/menu';
 import { useAccountStore } from '@/stores/accounts';
+import { useSettingsStore } from '@/stores/settings';
 import { useThemeStore } from '@/stores/theme';
 import { usePlatformStore } from '@/stores/platform';
 
@@ -35,6 +36,7 @@ const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const syncConflictStore = useSyncConflictStore();
 const themeStore = useThemeStore();
+const settingsStore = useSettingsStore();
 const stageStore = useStageStore();
 const studioStore = useStudioStore();
 const userStore = useUserStore();
@@ -231,6 +233,7 @@ function startCheckSycnTokenInterval() {
 
 
 onMounted(async () => {
+    await settingsStore.initializeShowTypeIcons();
     if (!platformStore.isWeb) {
         startCheckSycnTokenInterval();
         startConnectivityCheckInterval();

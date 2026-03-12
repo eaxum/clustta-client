@@ -33,6 +33,21 @@ type ProjectLocation struct {
 	ProjectIDs []string `json:"project_ids"`
 }
 
+// IntegrationCredential stores user credentials for external integrations.
+// Stored per user locally, keyed by "projectId_integrationId".
+type IntegrationCredential struct {
+	IntegrationId string `json:"integration_id"`
+	UserId        string `json:"user_id"`
+	UserName      string `json:"user_name"`
+	UserEmail     string `json:"user_email"`
+	AccessToken   string `json:"access_token"`
+	RefreshToken  string `json:"refresh_token"`
+	ExpiresAt     int64  `json:"expires_at"`
+	ApiUrl        string `json:"api_url"`
+	CreatedAt     string `json:"created_at"`
+	UpdatedAt     string `json:"updated_at"`
+}
+
 type Settings struct {
 	IconScheme            string `json:"icon_scheme"`
 	Theme                 string `json:"theme"`
@@ -42,6 +57,7 @@ type Settings struct {
 	UseGrid               bool   `json:"use_grid"`
 	DefaultViewMode       string `json:"default_view_mode"`
 	ShowUntrackedProjects bool   `json:"show_untracked_projects"`
+	ShowTypeIcons         *bool  `json:"show_type_icons,omitempty"`
 
 	ProjectsDir         string `json:"projects_dir"`
 	ProjectsDirBookmark []byte `json:"projects_dir_bookmark,omitempty"`
@@ -55,15 +71,18 @@ type Settings struct {
 	ProjectLocations  []ProjectLocation `json:"project_locations"`
 	DefaultLocationID string            `json:"default_location_id"`
 
-	SyncAfterCheckpoint bool `json:"sync_after_checkpoint"`
+	SyncAfterCheckpoint bool  `json:"sync_after_checkpoint"`
+	BridgeEnabled       bool  `json:"bridge_enabled"`
+	MinimizeOnClose     *bool `json:"minimize_on_close,omitempty"`
 
-	PinnedProjects    map[string][]string      `json:"pinned_projects"`
-	RecentProjects    map[string][]string      `json:"recent_projects"`
-	Studios           []Studio                 `json:"studios"`
-	WorkSpaces        map[string][]interface{} `json:"workspaces"`
-	DependencyPresets map[string][]interface{} `json:"dependency_presets"`
-	LastStudio        string                   `json:"last_studio"`
-	CurrentVersion    string                   `json:"current_version"`
+	PinnedProjects    map[string][]string              `json:"pinned_projects"`
+	RecentProjects    map[string][]string              `json:"recent_projects"`
+	Studios           []Studio                         `json:"studios"`
+	WorkSpaces        map[string][]interface{}         `json:"workspaces"`
+	DependencyPresets map[string][]interface{}         `json:"dependency_presets"`
+	IntegrationCreds  map[string]IntegrationCredential `json:"integration_credentials"`
+	LastStudio        string                           `json:"last_studio"`
+	CurrentVersion    string                           `json:"current_version"`
 }
 
 func loadUserSettings() (Settings, error) {
@@ -345,6 +364,72 @@ func SetSyncAfterCheckpoint(enabled bool) error {
 		return err
 	}
 	settings.SyncAfterCheckpoint = enabled
+	return saveSettings(settings)
+}
+
+// GetMinimizeOnClose returns whether the app should minimize to tray on close.
+// Defaults to true if not explicitly set.
+func GetMinimizeOnClose() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return true, err
+	}
+	if settings.MinimizeOnClose == nil {
+		return true, nil
+	}
+	return *settings.MinimizeOnClose, nil
+}
+
+// SetMinimizeOnClose sets the minimize-to-tray on close preference.
+func SetMinimizeOnClose(enabled bool) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.MinimizeOnClose = &enabled
+	return saveSettings(settings)
+}
+
+// GetBridgeEnabled returns whether the bridge HTTP server is enabled.
+// Defaults to false if not set.
+func GetBridgeEnabled() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return false, err
+	}
+	return settings.BridgeEnabled, nil
+}
+
+// SetBridgeEnabled sets the bridge HTTP server enabled preference.
+func SetBridgeEnabled(enabled bool) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.BridgeEnabled = enabled
+	return saveSettings(settings)
+}
+
+// GetShowTypeIcons returns whether type icons are shown in the browser.
+// Defaults to true if not set.
+func GetShowTypeIcons() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return true, err
+	}
+	if settings.ShowTypeIcons == nil {
+		return true, nil
+	}
+	return *settings.ShowTypeIcons, nil
+}
+
+// SetShowTypeIcons sets the show type icons preference.
+func SetShowTypeIcons(enabled bool) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.ShowTypeIcons = &enabled
 	return saveSettings(settings)
 }
 
@@ -740,37 +825,91 @@ func GetStudios() ([]Studio, error) {
 		AltUrl: "",
 	}
 
-	if len(settings.Studios) == 0 {
-		settings.Studios = append(settings.Studios, personal)
-	}
+	// Handle based on auth mode
+	authMode := auth_service.GetActiveAuthMode()
 
-	userStudios, err := studio_service.GetUserStudios()
-	if err != nil {
+	switch authMode {
+	case auth_service.AuthModeOffline:
+		// Offline mode: only Personal studio, no network calls
+		settings.Studios = []Studio{personal}
+		err = saveSettings(settings)
+		if err != nil {
+			return settings.Studios, err
+		}
 		return settings.Studios, nil
-	}
 
-	settings.Studios = []Studio{personal}
+	case auth_service.AuthModeStudio:
+		// Studio mode: only the private server studio (no Personal)
+		accountToken, err := auth_service.GetActiveAccountToken()
+		if err != nil {
+			return []Studio{}, fmt.Errorf("failed to get account token: %w", err)
+		}
 
-	for _, userStudio := range userStudios {
-		studioUsers, err := studio_service.GetStudioUsers(userStudio.Id)
+		// Fetch studio info from the private server
+		studioInfo, err := studio_service.GetStudioInfo(accountToken.AuthHost)
+		if err != nil {
+			// If we can't get studio info, use fallback with auth host
+			privateStudio := Studio{
+				Id:     accountToken.StudioId,
+				Name:   "Private Studio",
+				Url:    accountToken.AuthHost,
+				AltUrl: "",
+			}
+			settings.Studios = []Studio{privateStudio}
+		} else {
+			privateStudio := Studio{
+				Id:     studioInfo.Id,
+				Name:   studioInfo.Name,
+				Url:    studioInfo.Url,
+				AltUrl: studioInfo.AltUrl,
+			}
+			// If name is empty, use a default
+			if privateStudio.Name == "" {
+				privateStudio.Name = "Private Studio"
+			}
+			settings.Studios = []Studio{privateStudio}
+		}
+
+		err = saveSettings(settings)
+		if err != nil {
+			return settings.Studios, err
+		}
+		return settings.Studios, nil
+
+	default: // AuthModeGlobal
+		// Global mode: fetch studios from api.clustta.com (existing behavior)
+		if len(settings.Studios) == 0 {
+			settings.Studios = append(settings.Studios, personal)
+		}
+
+		userStudios, err := studio_service.GetUserStudios()
 		if err != nil {
 			return settings.Studios, nil
 		}
-		studio := Studio{
-			Id:     userStudio.Id,
-			Name:   userStudio.Name,
-			Url:    userStudio.URL,
-			AltUrl: userStudio.AltURL,
-			Users:  studioUsers,
-		}
-		settings.Studios = append(settings.Studios, studio)
-	}
 
-	err = saveSettings(settings)
-	if err != nil {
-		return settings.Studios, err
+		settings.Studios = []Studio{personal}
+
+		for _, userStudio := range userStudios {
+			studioUsers, err := studio_service.GetStudioUsers(userStudio.Id)
+			if err != nil {
+				return settings.Studios, nil
+			}
+			studio := Studio{
+				Id:     userStudio.Id,
+				Name:   userStudio.Name,
+				Url:    userStudio.URL,
+				AltUrl: userStudio.AltURL,
+				Users:  studioUsers,
+			}
+			settings.Studios = append(settings.Studios, studio)
+		}
+
+		err = saveSettings(settings)
+		if err != nil {
+			return settings.Studios, err
+		}
+		return settings.Studios, nil
 	}
-	return settings.Studios, nil
 }
 
 func GetProjectWorkspaces(projectId string) ([]interface{}, error) {
@@ -850,6 +989,58 @@ func RemoveProjectWorkspace(projectId string, workspaceName string) error {
 		}
 	}
 	settings.WorkSpaces[projectId] = projectWorkspaces
+	return saveSettings(settings)
+}
+
+// ========== Integration Credentials Management ==========
+
+// GetIntegrationCredential retrieves integration credentials for an integration.
+// Credentials are stored per user per integration (not per project).
+func GetIntegrationCredential(integrationId string) (IntegrationCredential, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return IntegrationCredential{}, err
+	}
+
+	if settings.IntegrationCreds == nil {
+		return IntegrationCredential{}, fmt.Errorf("no credentials found")
+	}
+
+	cred, exists := settings.IntegrationCreds[integrationId]
+	if !exists {
+		return IntegrationCredential{}, fmt.Errorf("no credentials found for %s", integrationId)
+	}
+	return cred, nil
+}
+
+// SaveIntegrationCredential saves or updates integration credentials.
+// Credentials are stored per user per integration (not per project).
+func SaveIntegrationCredential(cred IntegrationCredential) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+
+	if settings.IntegrationCreds == nil {
+		settings.IntegrationCreds = make(map[string]IntegrationCredential)
+	}
+
+	settings.IntegrationCreds[cred.IntegrationId] = cred
+	return saveSettings(settings)
+}
+
+// DeleteIntegrationCredential deletes integration credentials for an integration.
+func DeleteIntegrationCredential(integrationId string) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+
+	if settings.IntegrationCreds == nil {
+		return nil
+	}
+
+	delete(settings.IntegrationCreds, integrationId)
 	return saveSettings(settings)
 }
 

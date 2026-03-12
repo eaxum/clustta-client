@@ -680,6 +680,22 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 		}
 	}
 
+	// Load integration data
+	integrationProjects, err := repository.GetIntegrationProjects(tx)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	integrationCollectionMappings, err := repository.GetAllCollectionMappings(tx)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	integrationAssetMappings, err := repository.GetAllAssetMappings(tx)
+	if err != nil {
+		return []byte{}, err
+	}
+
 	userData := &repositorypb.ProjectData{
 		ProjectPreview:  projectPreview.Hash,
 		EntityTypes:     repository.ToPbEntityTypes(entityTypes),
@@ -707,6 +723,10 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 
 		Tags:      repository.ToPbTags(tags),
 		TasksTags: repository.ToPbTaskTags(tasksTags),
+
+		IntegrationProjects:           repository.ToPbIntegrationProjects(integrationProjects),
+		IntegrationCollectionMappings: repository.ToPbIntegrationCollectionMappings(integrationCollectionMappings),
+		IntegrationAssetMappings:      repository.ToPbIntegrationAssetMappings(integrationAssetMappings),
 	}
 	userDataBytes, err := proto.Marshal(userData)
 	if err != nil {
@@ -918,6 +938,32 @@ func LoadChangedData(tx *sqlx.Tx) (ProjectData, error) {
 	userData.TasksTags = tasksTags
 
 	userData.Tombs = tombs
+
+	// Integration tables
+	integrationProjectsQuery := "SELECT * FROM integration_project WHERE synced = 0"
+	integrationProjects := []models.IntegrationProject{}
+	err = tx.Select(&integrationProjects, integrationProjectsQuery)
+	if err != nil && err != sql.ErrNoRows {
+		return userData, err
+	}
+	userData.IntegrationProjects = integrationProjects
+
+	integrationCollectionMappingsQuery := "SELECT * FROM integration_collection_mapping WHERE synced = 0"
+	integrationCollectionMappings := []models.IntegrationCollectionMapping{}
+	err = tx.Select(&integrationCollectionMappings, integrationCollectionMappingsQuery)
+	if err != nil && err != sql.ErrNoRows {
+		return userData, err
+	}
+	userData.IntegrationCollectionMappings = integrationCollectionMappings
+
+	integrationAssetMappingsQuery := "SELECT * FROM integration_asset_mapping WHERE synced = 0"
+	integrationAssetMappings := []models.IntegrationAssetMapping{}
+	err = tx.Select(&integrationAssetMappings, integrationAssetMappingsQuery)
+	if err != nil && err != sql.ErrNoRows {
+		return userData, err
+	}
+	userData.IntegrationAssetMappings = integrationAssetMappings
+
 	return userData, nil
 }
 

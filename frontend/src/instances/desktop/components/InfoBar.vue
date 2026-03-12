@@ -32,6 +32,12 @@
             <span class="text-container" >{{ utils.capitalizeStr(notification.message) }}</span>
         </div>
 
+        
+
+        <ActionButton :icon="getAppIcon(bridgeEnabled ? 'brick-cancel' : 'brick')" v-tooltip="bridgeEnabled ? $t('components.infoBar.clickToStopBridge') : $t('components.infoBar.clickToStartBridge')" :buttonFunction="toggleBridge" />
+
+        <ActionButton :icon="getAppIcon('console')" v-tooltip="debugModeEnabled ? $t('components.infoBar.closeConsole') : $t('components.infoBar.openConsole')" :buttonFunction="toggleDebugConsole" />
+
         <div class="version-info" :class="{ 'oudated' : isOutdated}" v-tooltip="isOutdated ? $t('components.infoBar.clickToUpdate') : ''">
             <div v-if="isOutdated" class="outdated-icon-button">
                 <img :src="getAppIcon('info-triangle')" alt="Maximize">
@@ -39,7 +45,6 @@
             <div>{{ clusttaVersion }}</div>
         </div>
 
-        <ActionButton :icon="getAppIcon('console')" v-tooltip="debugModeEnabled ? $t('components.infoBar.closeConsole') : $t('components.infoBar.openConsole')" :buttonFunction="toggleDebugConsole" />
         </div>
     </div>
 
@@ -63,10 +68,12 @@ import DebugConsole from '@/instances/desktop/components/DebugConsole.vue';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { usePlatformStore } from '@/stores/platform';
+import { useSettingsStore } from '@/stores/settings';
 
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const platformStore = usePlatformStore();
+const settingsStore = useSettingsStore();
 
 // props
 const props = defineProps({
@@ -89,6 +96,8 @@ const restrictedMessages = [
 ];
 
 // computed properties
+const bridgeEnabled = computed(() => settingsStore.bridgeEnabled);
+
 const isOutdated = computed(() => {
   return false;
 });
@@ -223,6 +232,15 @@ const stopTimer = () => {
   clearTimeout(timer.value);
 };
 
+// Toggles the bridge HTTP server on or off.
+const toggleBridge = async () => {
+  try {
+    await settingsStore.toggleBridge();
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 // Toggles the debug console visibility.
 const toggleDebugConsole = () => {
   debugModeEnabled.value = !debugModeEnabled.value;
@@ -231,6 +249,7 @@ const toggleDebugConsole = () => {
 // lifecycle hooks
 onMounted(async () => {
   clusttaVersion.value = await utils.getRawClusttaVersion();
+  await settingsStore.initializeBridge();
   window.addEventListener('keydown', detectModifier);
   window.addEventListener('keyup', detectModifier);
 });
@@ -456,5 +475,6 @@ onBeforeUnmount(() => {
   background-color: #20A41C;
   outline: solid 1px #20A41C;
 }
+
 </style>
 

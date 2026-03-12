@@ -212,6 +212,7 @@ export const useStudioStore = defineStore("studio", {
                   user.photo = "data:image/png;base64," + user.photo
               }
             })
+        console.log(users)
         this.studioUsers = this.sortAlphabetically(users);
       }).catch((error) => {
         // Handle offline or server errors gracefully

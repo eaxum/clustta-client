@@ -14,10 +14,12 @@ import * as DeploymentService from "./deploymentservice.js";
 import * as DialogService from "./dialogservice.js";
 import * as FSService from "./fsservice.js";
 import * as ImportService from "./importservice.js";
+import * as IntegrationService from "./integrationservice.js";
 import * as LogService from "./logservice.js";
 import * as ProfileService from "./profileservice.js";
 import * as ProjectService from "./projectservice.js";
 import * as SettingsService from "./settingsservice.js";
+import * as ShareService from "./shareservice.js";
 import * as StatusService from "./statusservice.js";
 import * as StudioService from "./studioservice.js";
 import * as SyncService from "./syncservice.js";
@@ -39,10 +41,12 @@ export {
     DialogService,
     FSService,
     ImportService,
+    IntegrationService,
     LogService,
     ProfileService,
     ProjectService,
     SettingsService,
+    ShareService,
     StatusService,
     StudioService,
     SyncService,
@@ -73,6 +77,7 @@ export {
     NullString,
     ProfileUpdateData,
     RecycleItem,
+    ShareLinkResponse,
     Skill,
     SkillData,
     SystemInfo,
