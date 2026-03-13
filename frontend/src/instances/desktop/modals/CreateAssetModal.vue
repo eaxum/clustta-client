@@ -7,7 +7,7 @@
       <template v-if="!displayTypeCreator">
         <div class="input-section">
           <div class="compound-input-section">
-            <input v-model="taskName" class="input-short" type="text" :placeholder="$t('placeholders.taskName')" v-focus @keydown.enter="handleEnterKey" />
+            <input v-model="assetName" class="input-short" type="text" :placeholder="$t('placeholders.assetName')" v-focus @keydown.enter="handleEnterKey" />
             <ActionButton :icon="getAppIcon('switches')" :buttonFunction="toggleOptions" :isActive="exposeParams" v-tooltip="'Show Options'" />
           </div>
         </div>
@@ -15,7 +15,7 @@
         <div class="input-section drop-down-box-section">
           <div class="horizontal-flex">
             <div class="dropdown-wrapper">
-              <DropDownBox :items="taskTypeNames" :selectedItem="taskType" :onSelect="selectTaskType" :useFilter="false" :placeHolder="$t('placeholders.assetType')" />
+              <DropDownBox :items="assetTypeNames" :selectedItem="assetType" :onSelect="selectAssetType" :useFilter="false" :placeHolder="$t('placeholders.assetType')" />
             </div>
             <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addNewAssetType')">
               <img class="small-icons" :src="getAppIcon('plus-circle')">
@@ -23,7 +23,7 @@
           </div>
         </div>
 
-        <div class="task-options-container" :class="{ 'task-options-container-closed': showTaskOptions === true }">
+        <div class="asset-options-container" :class="{ 'asset-options-container-closed': showAssetOptions === true }">
           <div class="input-section">
             <Apps />
           </div>
@@ -31,7 +31,7 @@
 
         <div class="pop-up-actions">
           <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-          <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createTask(false)" :isActive="isValueChanged" :loading="isAwaitingResponse" />
+          <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createAsset(false)" :isActive="isValueChanged" :loading="isAwaitingResponse" />
         </div>
       </template>
 
@@ -96,10 +96,10 @@ const isResource = ref(true);
 const modalContainer = ref(null);
 const newTypeIcon = ref('generic');
 const selectedTemplate = ref('');
-const showTaskOptions = ref(true);
+const showAssetOptions = ref(true);
 const tags = ref([]);
-const taskName = ref('');
-const taskType = ref('');
+const assetName = ref('');
+const assetType = ref('');
 const typeFormRef = ref(null);
 
 // constants
@@ -124,11 +124,11 @@ const icon = computed(() => {
 
 // Returns whether the form is valid for submission.
 const isValueChanged = computed(() => {
-  return taskName.value !== '' && taskType.value !== '';
+  return assetName.value !== '' && assetType.value !== '';
 });
 
 // Returns the list of asset type names.
-const taskTypeNames = computed(() => {
+const assetTypeNames = computed(() => {
   return assetStore.getAssetTypesNames;
 });
 
@@ -147,27 +147,27 @@ const closeModal = () => {
   modals.setModalVisibility('createAssetModal', false);
 };
 
-// Creates a new task/asset in the project.
-const createTask = async (launch = false, comment = 'Asset created') => {
+// Creates a new asset/asset in the project.
+const createAsset = async (launch = false, comment = 'Asset created') => {
   isAwaitingResponse.value = true;
-  const selectedTaskType = assetStore.assetTypes.find(item => item.name === taskType.value);
-  const entities = stageStore.markedEntities;
+  const selectedAssetType = assetStore.assetTypes.find(item => item.name === assetType.value);
+  const collections = stageStore.markedCollections;
   const template = templateStore.templates.find(template => template.name === templateStore.selectedTemplateName);
   templateStore.lastUsedTemplate = template.name;
   const isNested = commonStore.navigatorMode && !!collectionStore.navigatedCollection;
-  if (entities.length <= 1) {
-    let entityId = '';
+  if (collections.length <= 1) {
+    let collectionId = '';
     if (isNested) {
-      entityId = collectionStore.navigatedCollection.id;
-    } else if (entities.length > 0) {
-      entityId = entities[0];
+      collectionId = collectionStore.navigatedCollection.id;
+    } else if (collections.length > 0) {
+      collectionId = collections[0];
     }
     await AssetService.CreateAsset(
       projectStore.activeProject.uri,
-      taskName.value,
+      assetName.value,
       '',
-      selectedTaskType.id,
-      entityId,
+      selectedAssetType.id,
+      collectionId,
       isResource.value,
       template.id,
       '',
@@ -179,11 +179,11 @@ const createTask = async (launch = false, comment = 'Asset created') => {
     )
       .then(async (data) => {
         const newAsset = data;
-        notificationStore.addNotification(t('notifications.creatingItem', { name: taskName.value }), '', 'success');
+        notificationStore.addNotification(t('notifications.creatingItem', { name: assetName.value }), '', 'success');
         if (!trayStates.keepModalOpen) {
           closeModal();
         } else {
-          taskName.value = '';
+          assetName.value = '';
           tags.value = [];
         }
         isAwaitingResponse.value = false;
@@ -191,7 +191,7 @@ const createTask = async (launch = false, comment = 'Asset created') => {
         assetStore.selectedAsset = newAsset;
         stageStore.firstSelectedItemId = newAsset.id;
         stageStore.markedItems = [newAsset.id];
-        notificationStore.addNotification(t('notifications.createdItem', { name: taskName.value }), '', 'success');
+        notificationStore.addNotification(t('notifications.createdItem', { name: assetName.value }), '', 'success');
         emitter.emit('refresh-browser');
         if (launch) {
           FSService.LaunchFile(newAsset.file_path);
@@ -199,7 +199,7 @@ const createTask = async (launch = false, comment = 'Asset created') => {
       })
       .catch((error) => {
         console.log(error);
-        notificationStore.errorNotification(t('notifications.errorCreatingTask'), error);
+        notificationStore.errorNotification(t('notifications.errorCreatingAsset'), error);
       });
   }
 };
@@ -212,13 +212,13 @@ const getAppIcon = (iconName) => {
 // Handles enter key press to submit form.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter' && isValueChanged.value) {
-    createTask(false);
+    createAsset(false);
   }
 };
 
 // Handles successful type creation from the form.
 const handleTypeCreated = (response) => {
-  taskType.value = response.name;
+  assetType.value = response.name;
   displayTypeCreator.value = false;
 };
 
@@ -239,19 +239,19 @@ const scrollAppIntoView = () => {
   });
 };
 
-// Selects a task type from the dropdown.
-const selectTaskType = (taskTypeName) => {
-  taskType.value = taskTypeName;
-  const allTaskTypeNames = taskTypeNames.value;
-  const currentTaskName = taskName.value.toLowerCase();
-  if (allTaskTypeNames.includes(currentTaskName)) {
-    taskName.value = utils.capitalizeStr(taskTypeName);
+// Selects a asset type from the dropdown.
+const selectAssetType = (assetTypeName) => {
+  assetType.value = assetTypeName;
+  const allAssetTypeNames = assetTypeNames.value;
+  const currentAssetName = assetName.value.toLowerCase();
+  if (allAssetTypeNames.includes(currentAssetName)) {
+    assetName.value = utils.capitalizeStr(assetTypeName);
   }
 };
 
-// Toggles the visibility of task options.
+// Toggles the visibility of asset options.
 const toggleOptions = () => {
-  showTaskOptions.value = !showTaskOptions.value;
+  showAssetOptions.value = !showAssetOptions.value;
   exposeParams.value = !exposeParams.value;
   scrollAppIntoView();
 };
@@ -274,7 +274,7 @@ watchEffect(() => {
 // lifecycle hooks
 onMounted(() => {
   menu.clickOutsideMask = null;
-  taskName.value = utils.capitalizeStr(assetStore.getAssetTypesNames[0]);
+  assetName.value = utils.capitalizeStr(assetStore.getAssetTypesNames[0]);
   trayStates.listItemsBoundary = modalContainer.value;
   trayStates.tagSearchQuery = '';
   trayStates.itemTags = [];
@@ -286,7 +286,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  stageStore.markedEntities = [];
+  stageStore.markedCollections = [];
 });
 </script>
 
@@ -319,7 +319,7 @@ onUnmounted(() => {
   margin-top: 0;
 }
 
-.task-options-container {
+.asset-options-container {
   position: relative;
   box-sizing: border-box;
   width: 100%;
@@ -331,7 +331,7 @@ onUnmounted(() => {
   margin: 0;
 }
 
-.task-options-container-closed {
+.asset-options-container-closed {
   height: 0px;
   padding: 0;
   margin-bottom: -1.5rem;

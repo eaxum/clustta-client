@@ -457,7 +457,7 @@ onMounted(async () => {
   display: flex;
 }
 
-.task-options-container {
+.asset-options-container {
   position: relative;
   box-sizing: border-box;
   width: 100%;
@@ -470,7 +470,7 @@ onMounted(async () => {
   margin: 0;
 }
 
-.task-options-container-closed {
+.asset-options-container-closed {
   height: 0px;
   padding: 0;
   margin-bottom: -1rem;

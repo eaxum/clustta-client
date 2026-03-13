@@ -101,10 +101,10 @@ const utils = {
     return data.sort((a, b) => a.name.localeCompare(b.name));
   },
   sortPathAlphabetically(data, type) {
-    if (type === "task") {
-      return data.sort((a, b) => a.task_path.localeCompare(b.task_path));
-    } else if (type === "entity") {
-      return data.sort((a, b) => a.entity_path.localeCompare(b.entity_path));
+    if (type === "asset") {
+      return data.sort((a, b) => a.asset_path.localeCompare(b.asset_path));
+    } else if (type === "collection") {
+      return data.sort((a, b) => a.collection_path.localeCompare(b.collection_path));
     } else if (type === "resource") {
       return data.sort((a, b) =>
         a.resource_path.localeCompare(b.resource_path)
@@ -242,15 +242,15 @@ const utils = {
 
     return paths;
   },
-  getUntrackedEntityparent(untracked) {
+  getUntrackedCollectionparent(untracked) {
     const collectionStore = useCollectionStore();
-    let parentPaths = this.getParentPaths(untracked.entity_path);
+    let parentPaths = this.getParentPaths(untracked.collection_path);
     for (let parent of parentPaths) {
-      let entity = collectionStore.collections.find(
-        (item) => item.entity_path === parent
+      let collection = collectionStore.collections.find(
+        (item) => item.collection_path === parent
       );
-      if (entity !== undefined) {
-        return entity;
+      if (collection !== undefined) {
+        return collection;
       }
     }
     return null;

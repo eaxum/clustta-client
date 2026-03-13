@@ -15,7 +15,7 @@ function rowToTrashItem(row) {
   if (!row) return null;
   return {
     id: row.id,
-    table_name: row.table_name,  // 'entity' or 'task'
+    table_name: row.table_name,  // 'collection' or 'asset'
     item_type: row.table_name,   // For compatibility
     dtime: row.dtime,
   };

@@ -21,10 +21,10 @@ function getProjectName(projectPath) {
 }
 
 /**
- * Convert database row to task object with proper types
+ * Convert database row to asset object with proper types
  * Basic version without enrichment
  */
-function rowToTaskBasic(row) {
+function rowToAssetBasic(row) {
   if (!row) return null;
   return {
     ...row,
@@ -33,32 +33,32 @@ function rowToTaskBasic(row) {
     trashed: !!row.trashed,
     is_trashed: !!row.trashed,
     synced: !!row.synced,
-    type: 'task',
+    type: 'asset',
     // Web mode specific - no local file tracking
     file_status: 'normal',
   };
 }
 
 /**
- * Convert database row to task object with enriched data (status, tags, type)
- * Also computes entity_path and task_path from entity
+ * Convert database row to asset object with enriched data (status, tags, type)
+ * Also computes collection_path and asset_path from collection
  */
-function rowToTask(row, statusMap = {}, taskTypeMap = {}, taskTagsMap = {}, tagMap = {}, taskDependenciesMap = {}, entityDependenciesMap = {}, entityMap = {}) {
+function rowToAsset(row, statusMap = {}, assetTypeMap = {}, assetTagsMap = {}, tagMap = {}, assetDependenciesMap = {}, collectionDependenciesMap = {}, collectionMap = {}) {
   if (!row) return null;
   const status = statusMap[row.status_id] || {};
-  const taskType = taskTypeMap[row.task_type_id] || {};
-  const tagIds = taskTagsMap[row.id] || [];
+  const assetType = assetTypeMap[row.asset_type_id] || {};
+  const tagIds = assetTagsMap[row.id] || [];
   const tags = tagIds.map(tagId => tagMap[tagId]?.name || tagId).filter(Boolean);
   
-  // Get dependencies for this task
-  const dependencies = taskDependenciesMap[row.id] || [];
-  const entity_dependencies = entityDependenciesMap[row.id] || [];
+  // Get dependencies for this asset
+  const dependencies = assetDependenciesMap[row.id] || [];
+  const collection_dependencies = collectionDependenciesMap[row.id] || [];
   
-  // Compute entity_path and task_path from parent entity (mirrors full_task view)
-  const entity = entityMap[row.entity_id] || {};
-  const entityPath = entity.entity_path || '';
-  const taskPath = entityPath ? entityPath + row.name : '/' + row.name;
-  const entityName = entity.name || '';
+  // Compute collection_path and asset_path from parent collection (mirrors full_asset view)
+  const collection = collectionMap[row.collection_id] || {};
+  const collectionPath = collection.collection_path || '';
+  const assetPath = collectionPath ? collectionPath + row.name : '/' + row.name;
+  const collectionName = collection.name || '';
   
   return {
     ...row,
@@ -67,32 +67,32 @@ function rowToTask(row, statusMap = {}, taskTypeMap = {}, taskTagsMap = {}, tagM
     trashed: !!row.trashed,
     is_trashed: !!row.trashed,
     synced: !!row.synced,
-    type: 'task',
+    type: 'asset',
     // Status object
     status: status,
     status_name: status.name || '',
     status_short_name: status.short_name || '',
     status_color: status.color || '',
-    // Task type info
-    task_type: taskType.name || '',
-    task_type_name: taskType.name || '',
-    task_type_icon: taskType.icon || '',
+    // Asset type info
+    asset_type: assetType.name || '',
+    asset_type_name: assetType.name || '',
+    asset_type_icon: assetType.icon || '',
     // Tags array
     tags: tags,
     // Dependencies arrays
     dependencies: dependencies,
-    entity_dependencies: entity_dependencies,
-    // Entity-related paths
-    entity_path: entityPath,
-    task_path: taskPath,
-    entity_name: entityName,
+    collection_dependencies: collection_dependencies,
+    // Collection-related paths
+    collection_path: collectionPath,
+    asset_path: assetPath,
+    collection_name: collectionName,
     // Web mode specific - no local file tracking
     file_status: 'normal',
   };
 }
 
 /**
- * Build lookup maps from database for enriching tasks
+ * Build lookup maps from database for enriching assets
  */
 function buildLookupMaps(db) {
   const statusRows = query(db, 'SELECT * FROM status');
@@ -101,10 +101,10 @@ function buildLookupMaps(db) {
     statusMap[s.id] = s;
   }
   
-  const taskTypeRows = query(db, 'SELECT * FROM task_type');
-  const taskTypeMap = {};
-  for (const tt of taskTypeRows) {
-    taskTypeMap[tt.id] = tt;
+  const assetTypeRows = query(db, 'SELECT * FROM asset_type');
+  const assetTypeMap = {};
+  for (const tt of assetTypeRows) {
+    assetTypeMap[tt.id] = tt;
   }
   
   const tagRows = query(db, 'SELECT * FROM tag');
@@ -113,45 +113,45 @@ function buildLookupMaps(db) {
     tagMap[t.id] = t;
   }
   
-  const taskTagRows = query(db, 'SELECT * FROM task_tag');
-  const taskTagsMap = {};
-  for (const tt of taskTagRows) {
-    if (!taskTagsMap[tt.task_id]) {
-      taskTagsMap[tt.task_id] = [];
+  const assetTagRows = query(db, 'SELECT * FROM asset_tag');
+  const assetTagsMap = {};
+  for (const tt of assetTagRows) {
+    if (!assetTagsMap[tt.asset_id]) {
+      assetTagsMap[tt.asset_id] = [];
     }
-    taskTagsMap[tt.task_id].push(tt.tag_id);
+    assetTagsMap[tt.asset_id].push(tt.tag_id);
   }
   
-  // Map task_id -> [dependency objects]
-  const taskDependencyRows = query(db, 'SELECT * FROM task_dependency');
-  const taskDependenciesMap = {};
-  for (const td of taskDependencyRows) {
-    if (!taskDependenciesMap[td.task_id]) taskDependenciesMap[td.task_id] = [];
-    taskDependenciesMap[td.task_id].push({
+  // Map asset_id -> [dependency objects]
+  const assetDependencyRows = query(db, 'SELECT * FROM asset_dependency');
+  const assetDependenciesMap = {};
+  for (const td of assetDependencyRows) {
+    if (!assetDependenciesMap[td.asset_id]) assetDependenciesMap[td.asset_id] = [];
+    assetDependenciesMap[td.asset_id].push({
       id: td.dependency_id,
       type_id: td.dependency_type_id
     });
   }
   
-  // Map task_id -> [entity dependency objects]
-  const entityDependencyRows = query(db, 'SELECT * FROM entity_dependency');
-  const entityDependenciesMap = {};
-  for (const ed of entityDependencyRows) {
-    if (!entityDependenciesMap[ed.task_id]) entityDependenciesMap[ed.task_id] = [];
-    entityDependenciesMap[ed.task_id].push({
-      id: ed.entity_id,
+  // Map asset_id -> [collection dependency objects]
+  const collectionDependencyRows = query(db, 'SELECT * FROM collection_dependency');
+  const collectionDependenciesMap = {};
+  for (const ed of collectionDependencyRows) {
+    if (!collectionDependenciesMap[ed.asset_id]) collectionDependenciesMap[ed.asset_id] = [];
+    collectionDependenciesMap[ed.asset_id].push({
+      id: ed.collection_id,
       type_id: ed.dependency_type_id
     });
   }
   
-  // Map entity_id -> entity (for computing task_path/entity_path)
-  const entityRows = query(db, 'SELECT id, name, entity_path FROM entity');
-  const entityMap = {};
-  for (const e of entityRows) {
-    entityMap[e.id] = e;
+  // Map collection_id -> collection (for computing asset_path/collection_path)
+  const collectionRows = query(db, 'SELECT id, name, collection_path FROM collection');
+  const collectionMap = {};
+  for (const e of collectionRows) {
+    collectionMap[e.id] = e;
   }
   
-  return { statusMap, taskTypeMap, tagMap, taskTagsMap, taskDependenciesMap, entityDependenciesMap, entityMap };
+  return { statusMap, assetTypeMap, tagMap, assetTagsMap, assetDependenciesMap, collectionDependenciesMap, collectionMap };
 }
 
 export const AssetService = {
@@ -160,11 +160,11 @@ export const AssetService = {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      const { statusMap, taskTypeMap, tagMap, taskTagsMap, taskDependenciesMap, entityDependenciesMap, entityMap } = buildLookupMaps(db);
+      const { statusMap, assetTypeMap, tagMap, assetTagsMap, assetDependenciesMap, collectionDependenciesMap, collectionMap } = buildLookupMaps(db);
       
       const trashedCondition = includeTrashed ? '' : 'WHERE trashed = 0';
-      const rows = query(db, `SELECT * FROM task ${trashedCondition}`);
-      return rows.map(row => rowToTask(row, statusMap, taskTypeMap, taskTagsMap, tagMap, taskDependenciesMap, entityDependenciesMap, entityMap));
+      const rows = query(db, `SELECT * FROM asset ${trashedCondition}`);
+      return rows.map(row => rowToAsset(row, statusMap, assetTypeMap, assetTagsMap, tagMap, assetDependenciesMap, collectionDependenciesMap, collectionMap));
     } catch (error) {
       console.error('GetAssets error:', error);
       return [];
@@ -176,10 +176,10 @@ export const AssetService = {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      const { statusMap, taskTypeMap, tagMap, taskTagsMap, taskDependenciesMap, entityDependenciesMap, entityMap } = buildLookupMaps(db);
+      const { statusMap, assetTypeMap, tagMap, assetTagsMap, assetDependenciesMap, collectionDependenciesMap, collectionMap } = buildLookupMaps(db);
       
-      const row = queryOne(db, 'SELECT * FROM task WHERE id = ?', [assetId]);
-      return rowToTask(row, statusMap, taskTypeMap, taskTagsMap, tagMap, taskDependenciesMap, entityDependenciesMap, entityMap) || {};
+      const row = queryOne(db, 'SELECT * FROM asset WHERE id = ?', [assetId]);
+      return rowToAsset(row, statusMap, assetTypeMap, assetTagsMap, tagMap, assetDependenciesMap, collectionDependenciesMap, collectionMap) || {};
     } catch (error) {
       console.error('GetAsset error:', error);
       return {};
@@ -187,12 +187,12 @@ export const AssetService = {
   },
 
   // Creates a new asset (local-first approach)
-  // Signature matches Wails: CreateAsset(projectPath, name, description, taskTypeId, entityId, isResource, templateId, templateFilePath, pointer, isLink, tags, previewPath, comment)
-  CreateAsset: async (projectPath, name, description, taskTypeId, entityId, isResource, templateId, templateFilePath, pointer, isLink, tags, previewPath, comment) => {
+  // Signature matches Wails: CreateAsset(projectPath, name, description, assetTypeId, collectionId, isResource, templateId, templateFilePath, pointer, isLink, tags, previewPath, comment)
+  CreateAsset: async (projectPath, name, description, assetTypeId, collectionId, isResource, templateId, templateFilePath, pointer, isLink, tags, previewPath, comment) => {
     const projectName = getProjectName(projectPath);
     
     // Generate IDs client-side for local-first
-    const taskId = crypto.randomUUID();
+    const assetId = crypto.randomUUID();
     const checkpointId = crypto.randomUUID();
     const checkpointGroupId = crypto.randomUUID();
     const now = Date.now();
@@ -231,16 +231,16 @@ export const AssetService = {
         statusId = defaultStatus.id;
       }
       
-      // Insert task into local SQLite with synced=0 (dirty)
+      // Insert asset into local SQLite with synced=0 (dirty)
       execute(db, `
-        INSERT INTO task (id, mtime, created_at, name, description, extension, is_resource, 
-                         status_id, task_type_id, entity_id, assignee_id, assigner_id, 
+        INSERT INTO asset (id, mtime, created_at, name, description, extension, is_resource, 
+                         status_id, asset_type_id, collection_id, assignee_id, assigner_id, 
                          is_link, pointer, preview_id, trashed, synced)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
       `, [
-        taskId, now, createdAt, 
+        assetId, now, createdAt, 
         name || '', description || '', extension, isResource ? 1 : 0,
-        statusId, taskTypeId || '', entityId || '', '',
+        statusId, assetTypeId || '', collectionId || '', '',
         '', isLink ? 1 : 0, pointer || '', previewPath || ''
       ]);
       
@@ -254,10 +254,10 @@ export const AssetService = {
             execute(db, 'INSERT INTO tag (id, mtime, name, synced) VALUES (?, ?, ?, 0)', [tagId, now, tagName]);
             tag = { id: tagId };
           }
-          // Create task_tag association
-          const taskTagId = crypto.randomUUID();
-          execute(db, 'INSERT INTO task_tag (id, mtime, task_id, tag_id, synced) VALUES (?, ?, ?, ?, 0)', 
-            [taskTagId, now, taskId, tag.id]);
+          // Create asset_tag association
+          const assetTagId = crypto.randomUUID();
+          execute(db, 'INSERT INTO asset_tag (id, mtime, asset_id, tag_id, synced) VALUES (?, ?, ?, ?, 0)', 
+            [assetTagId, now, assetId, tag.id]);
         }
       }
       
@@ -267,12 +267,12 @@ export const AssetService = {
         const checkpointComment = comment || 'Asset created';
         const authorId = getCurrentUserId();
         execute(db, `
-          INSERT INTO task_checkpoint (id, created_at, mtime, task_id, xxhash_checksum, 
+          INSERT INTO asset_checkpoint (id, created_at, mtime, asset_id, xxhash_checksum, 
                                        time_modified, file_size, chunks, comment, 
                                        author_id, group_id, preview_id, trashed, synced)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
         `, [
-          checkpointId, createdAt, now, taskId, templateChecksum,
+          checkpointId, createdAt, now, assetId, templateChecksum,
           Math.floor(now / 1000), templateFileSize, templateChunks, checkpointComment,
           authorId, checkpointGroupId, '', // author_id from current user, group_id for batch, no preview
         ]);
@@ -280,10 +280,10 @@ export const AssetService = {
       
       await persistDatabase(projectName);
       
-      // Return the created task object
-      const { statusMap, taskTypeMap, tagMap, taskTagsMap, taskDependenciesMap, entityDependenciesMap, entityMap } = buildLookupMaps(db);
-      const row = queryOne(db, 'SELECT * FROM task WHERE id = ?', [taskId]);
-      return rowToTask(row, statusMap, taskTypeMap, taskTagsMap, tagMap, taskDependenciesMap, entityDependenciesMap, entityMap);
+      // Return the created asset object
+      const { statusMap, assetTypeMap, tagMap, assetTagsMap, assetDependenciesMap, collectionDependenciesMap, collectionMap } = buildLookupMaps(db);
+      const row = queryOne(db, 'SELECT * FROM asset WHERE id = ?', [assetId]);
+      return rowToAsset(row, statusMap, assetTypeMap, assetTagsMap, tagMap, assetDependenciesMap, collectionDependenciesMap, collectionMap);
     } catch (error) {
       console.error('CreateAsset error:', error);
       throw error;
@@ -291,38 +291,38 @@ export const AssetService = {
   },
 
   // Updates an existing asset (local-first approach)
-  // Signature matches Wails binding: UpdateAsset(projectPath, taskId, name, taskTypeId, isResource, pointer, tags)
-  UpdateAsset: async (projectPath, taskId, name, taskTypeId, isResource, pointer, tags) => {
+  // Signature matches Wails binding: UpdateAsset(projectPath, assetId, name, assetTypeId, isResource, pointer, tags)
+  UpdateAsset: async (projectPath, assetId, name, assetTypeId, isResource, pointer, tags) => {
     const projectName = getProjectName(projectPath);
     
-    // Validate taskId is present
-    if (!taskId) {
-      console.error('UpdateAsset error: taskId is required');
-      throw new Error('taskId is required for update');
+    // Validate assetId is present
+    if (!assetId) {
+      console.error('UpdateAsset error: assetId is required');
+      throw new Error('assetId is required for update');
     }
     
     try {
       const db = await getDatabase(projectName);
       
       execute(db, `
-        UPDATE task SET name = ?, task_type_id = ?, is_resource = ?, pointer = ?, mtime = ?, synced = 0
+        UPDATE asset SET name = ?, asset_type_id = ?, is_resource = ?, pointer = ?, mtime = ?, synced = 0
         WHERE id = ?
       `, [
         name ?? '', 
-        taskTypeId ?? null, 
+        assetTypeId ?? null, 
         isResource ? 1 : 0, 
         pointer ?? '',
         Date.now(), 
-        taskId
+        assetId
       ]);
       await persistDatabase(projectName);
       
       // TODO: Handle tags update separately if needed
       
-      // Return the updated task
-      const { statusMap, taskTypeMap, tagMap, taskTagsMap, taskDependenciesMap, entityDependenciesMap, entityMap } = buildLookupMaps(db);
-      const row = queryOne(db, 'SELECT * FROM task WHERE id = ?', [taskId]);
-      return rowToTask(row, statusMap, taskTypeMap, taskTagsMap, tagMap, taskDependenciesMap, entityDependenciesMap, entityMap);
+      // Return the updated asset
+      const { statusMap, assetTypeMap, tagMap, assetTagsMap, assetDependenciesMap, collectionDependenciesMap, collectionMap } = buildLookupMaps(db);
+      const row = queryOne(db, 'SELECT * FROM asset WHERE id = ?', [assetId]);
+      return rowToAsset(row, statusMap, assetTypeMap, assetTagsMap, tagMap, assetDependenciesMap, collectionDependenciesMap, collectionMap);
     } catch (error) {
       console.error('UpdateAsset error:', error);
       throw error;
@@ -336,9 +336,9 @@ export const AssetService = {
     try {
       const db = await getDatabase(projectName);
       if (moveToTrash) {
-        execute(db, 'UPDATE task SET trashed = 1, synced = 0, mtime = ? WHERE id = ?', [Date.now(), assetId]);
+        execute(db, 'UPDATE asset SET trashed = 1, synced = 0, mtime = ? WHERE id = ?', [Date.now(), assetId]);
       } else {
-        execute(db, 'DELETE FROM task WHERE id = ?', [assetId]);
+        execute(db, 'DELETE FROM asset WHERE id = ?', [assetId]);
       }
       await persistDatabase(projectName);
     } catch (error) {
@@ -347,13 +347,13 @@ export const AssetService = {
     }
   },
 
-  // Changes an asset's collection (entity) - local-first approach
-  ChangeAssetCollection: async (projectPath, assetId, newEntityId) => {
+  // Changes an asset's collection (collection) - local-first approach
+  ChangeAssetCollection: async (projectPath, assetId, newCollectionId) => {
     const projectName = getProjectName(projectPath);
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'UPDATE task SET entity_id = ?, mtime = ?, synced = 0 WHERE id = ?', [newEntityId, Date.now(), assetId]);
+      execute(db, 'UPDATE asset SET collection_id = ?, mtime = ?, synced = 0 WHERE id = ?', [newCollectionId, Date.now(), assetId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('ChangeAssetCollection error:', error);
@@ -361,42 +361,42 @@ export const AssetService = {
     }
   },
 
-  // Adds a task dependency (local-first approach)
-  AddAssetDependency: async (projectPath, taskId, dependencyId, dependencyTypeId) => {
+  // Adds a asset dependency (local-first approach)
+  AddAssetDependency: async (projectPath, assetId, dependencyId, dependencyTypeId) => {
     const projectName = getProjectName(projectPath);
     const id = crypto.randomUUID();
     
     try {
       const db = await getDatabase(projectName);
       execute(db, `
-        INSERT INTO task_dependency (id, mtime, task_id, dependency_id, dependency_type_id, synced)
+        INSERT INTO asset_dependency (id, mtime, asset_id, dependency_id, dependency_type_id, synced)
         VALUES (?, ?, ?, ?, ?, 0)
-      `, [id, Date.now(), taskId, dependencyId, dependencyTypeId]);
+      `, [id, Date.now(), assetId, dependencyId, dependencyTypeId]);
       await persistDatabase(projectName);
       
-      return { id, task_id: taskId, dependency_id: dependencyId, dependency_type_id: dependencyTypeId };
+      return { id, asset_id: assetId, dependency_id: dependencyId, dependency_type_id: dependencyTypeId };
     } catch (error) {
       console.error('AddAssetDependency error:', error);
       throw error;
     }
   },
 
-  // Adds an entity dependency (local-first approach)
-  AddEntityDependency: async (projectPath, taskId, entityId, dependencyTypeId) => {
+  // Adds an collection dependency (local-first approach)
+  AddCollectionDependency: async (projectPath, assetId, collectionId, dependencyTypeId) => {
     const projectName = getProjectName(projectPath);
     const id = crypto.randomUUID();
     
     try {
       const db = await getDatabase(projectName);
       execute(db, `
-        INSERT INTO entity_dependency (id, mtime, task_id, entity_id, dependency_type_id, synced)
+        INSERT INTO collection_dependency (id, mtime, asset_id, collection_id, dependency_type_id, synced)
         VALUES (?, ?, ?, ?, ?, 0)
-      `, [id, Date.now(), taskId, entityId, dependencyTypeId]);
+      `, [id, Date.now(), assetId, collectionId, dependencyTypeId]);
       await persistDatabase(projectName);
       
-      return { id, task_id: taskId, entity_id: entityId, dependency_type_id: dependencyTypeId };
+      return { id, asset_id: assetId, collection_id: collectionId, dependency_type_id: dependencyTypeId };
     } catch (error) {
-      console.error('AddEntityDependency error:', error);
+      console.error('AddCollectionDependency error:', error);
       throw error;
     }
   },
@@ -406,7 +406,7 @@ export const AssetService = {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      return query(db, 'SELECT * FROM task_type');
+      return query(db, 'SELECT * FROM asset_type');
     } catch (error) {
       console.error('GetAssetTypes error:', error);
       return [];
@@ -420,7 +420,7 @@ export const AssetService = {
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'INSERT INTO task_type (id, mtime, name, icon, synced) VALUES (?, ?, ?, ?, 0)', 
+      execute(db, 'INSERT INTO asset_type (id, mtime, name, icon, synced) VALUES (?, ?, ?, ?, 0)', 
         [id, Date.now(), type.name || '', type.icon || '']);
       await persistDatabase(projectName);
       
@@ -437,7 +437,7 @@ export const AssetService = {
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'UPDATE task_type SET name = ?, icon = ?, mtime = ?, synced = 0 WHERE id = ?',
+      execute(db, 'UPDATE asset_type SET name = ?, icon = ?, mtime = ?, synced = 0 WHERE id = ?',
         [type.name || '', type.icon || '', Date.now(), type.id]);
       await persistDatabase(projectName);
       
@@ -454,7 +454,7 @@ export const AssetService = {
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'DELETE FROM task_type WHERE id = ?', [typeId]);
+      execute(db, 'DELETE FROM asset_type WHERE id = ?', [typeId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('DeleteAssetType error:', error);
@@ -468,7 +468,7 @@ export const AssetService = {
     return 'normal';
   },
 
-  // Returns full task/entity objects for a list of dependency IDs
+  // Returns full asset/collection objects for a list of dependency IDs
   GetAssetDependencies: async (projectPath, dependencyIds) => {
     const projectName = getProjectName(projectPath);
     try {
@@ -480,47 +480,47 @@ export const AssetService = {
       
       const result = [];
       
-      // Build lookup maps for task enrichment
-      const { statusMap, taskTypeMap, tagMap, taskTagsMap, taskDependenciesMap, entityDependenciesMap, entityMap } = buildLookupMaps(db);
+      // Build lookup maps for asset enrichment
+      const { statusMap, assetTypeMap, tagMap, assetTagsMap, assetDependenciesMap, collectionDependenciesMap, collectionMap } = buildLookupMaps(db);
       
-      // Build entity type map
-      const entityTypeRows = query(db, 'SELECT * FROM entity_type');
-      const entityTypeMap = {};
-      for (const et of entityTypeRows) {
-        entityTypeMap[et.id] = et;
+      // Build collection type map
+      const collectionTypeRows = query(db, 'SELECT * FROM collection_type');
+      const collectionTypeMap = {};
+      for (const et of collectionTypeRows) {
+        collectionTypeMap[et.id] = et;
       }
       
-      // Try to find tasks first
+      // Try to find assets first
       const placeholders = dependencyIds.map(() => '?').join(',');
-      const taskQuery = `SELECT * FROM task WHERE id IN (${placeholders}) AND trashed = 0 ORDER BY name`;
-      const taskRows = query(db, taskQuery, dependencyIds);
+      const assetQuery = `SELECT * FROM asset WHERE id IN (${placeholders}) AND trashed = 0 ORDER BY name`;
+      const assetRows = query(db, assetQuery, dependencyIds);
       
-      const foundTaskIds = new Set();
-      for (const row of taskRows) {
-        foundTaskIds.add(row.id);
-        const task = rowToTask(row, statusMap, taskTypeMap, taskTagsMap, tagMap, taskDependenciesMap, entityDependenciesMap, entityMap);
-        result.push(task);
+      const foundAssetIds = new Set();
+      for (const row of assetRows) {
+        foundAssetIds.add(row.id);
+        const asset = rowToAsset(row, statusMap, assetTypeMap, assetTagsMap, tagMap, assetDependenciesMap, collectionDependenciesMap, collectionMap);
+        result.push(asset);
       }
       
-      // Find IDs that didn't match any tasks - they might be entities
-      const missingIds = dependencyIds.filter(id => !foundTaskIds.has(id));
+      // Find IDs that didn't match any assets - they might be collections
+      const missingIds = dependencyIds.filter(id => !foundAssetIds.has(id));
       
       if (missingIds.length > 0) {
-        const entityPlaceholders = missingIds.map(() => '?').join(',');
-        const entityQuery = `SELECT * FROM entity WHERE id IN (${entityPlaceholders}) AND trashed = 0 ORDER BY name`;
-        const entityRows = query(db, entityQuery, missingIds);
+        const collectionPlaceholders = missingIds.map(() => '?').join(',');
+        const collectionQuery = `SELECT * FROM collection WHERE id IN (${collectionPlaceholders}) AND trashed = 0 ORDER BY name`;
+        const collectionRows = query(db, collectionQuery, missingIds);
         
-        for (const row of entityRows) {
-          const entity = {
+        for (const row of collectionRows) {
+          const collection = {
             ...row,
             trashed: !!row.trashed,
             is_trashed: !!row.trashed,
             synced: !!row.synced,
-            type: 'entity',
-            entity_type: entityTypeMap[row.entity_type_id]?.name || '',
-            entity_type_icon: entityTypeMap[row.entity_type_id]?.icon || '',
+            type: 'collection',
+            collection_type: collectionTypeMap[row.collection_type_id]?.name || '',
+            collection_type_icon: collectionTypeMap[row.collection_type_id]?.icon || '',
           };
-          result.push(entity);
+          result.push(collection);
         }
       }
       
@@ -532,18 +532,18 @@ export const AssetService = {
   },
 
   // Renames an asset (local-first approach)
-  RenameAsset: async (projectPath, taskId, newName) => {
+  RenameAsset: async (projectPath, assetId, newName) => {
     const projectName = getProjectName(projectPath);
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'UPDATE task SET name = ?, mtime = ?, synced = 0 WHERE id = ?', [newName, Date.now(), taskId]);
+      execute(db, 'UPDATE asset SET name = ?, mtime = ?, synced = 0 WHERE id = ?', [newName, Date.now(), assetId]);
       await persistDatabase(projectName);
       
-      // Return updated task
-      const { statusMap, taskTypeMap, tagMap, taskTagsMap, taskDependenciesMap, entityDependenciesMap, entityMap } = buildLookupMaps(db);
-      const row = queryOne(db, 'SELECT * FROM task WHERE id = ?', [taskId]);
-      return rowToTask(row, statusMap, taskTypeMap, taskTagsMap, tagMap, taskDependenciesMap, entityDependenciesMap, entityMap);
+      // Return updated asset
+      const { statusMap, assetTypeMap, tagMap, assetTagsMap, assetDependenciesMap, collectionDependenciesMap, collectionMap } = buildLookupMaps(db);
+      const row = queryOne(db, 'SELECT * FROM asset WHERE id = ?', [assetId]);
+      return rowToAsset(row, statusMap, assetTypeMap, assetTagsMap, tagMap, assetDependenciesMap, collectionDependenciesMap, collectionMap);
     } catch (error) {
       console.error('RenameAsset error:', error);
       throw error;
@@ -551,53 +551,53 @@ export const AssetService = {
   },
 
   // Duplicates an asset (local-first approach)
-  DuplicateAsset: async (projectPath, sourceTaskId) => {
+  DuplicateAsset: async (projectPath, sourceAssetId) => {
     const projectName = getProjectName(projectPath);
-    const newTaskId = crypto.randomUUID();
+    const newAssetId = crypto.randomUUID();
     const now = Date.now();
     const createdAt = new Date().toISOString();
     
     try {
       const db = await getDatabase(projectName);
       
-      // Get source task
-      const source = queryOne(db, 'SELECT * FROM task WHERE id = ?', [sourceTaskId]);
-      if (!source) throw new Error('Source task not found');
+      // Get source asset
+      const source = queryOne(db, 'SELECT * FROM asset WHERE id = ?', [sourceAssetId]);
+      if (!source) throw new Error('Source asset not found');
       
       // Generate unique duplicate name (like Go: baseName + "-duplicate", increment if exists)
       const baseName = source.name;
       let duplicateName = `${baseName}-duplicate`;
       let counter = 1;
-      while (queryOne(db, 'SELECT id FROM task WHERE name = ? AND entity_id = ?', [duplicateName, source.entity_id])) {
+      while (queryOne(db, 'SELECT id FROM asset WHERE name = ? AND collection_id = ?', [duplicateName, source.collection_id])) {
         counter++;
         duplicateName = `${baseName}-duplicate-${counter}`;
       }
       
-      // Insert duplicated task with new ID
+      // Insert duplicated asset with new ID
       execute(db, `
-        INSERT INTO task (id, mtime, created_at, name, description, extension, is_resource, 
-                         status_id, task_type_id, entity_id, assignee_id, assigner_id, 
+        INSERT INTO asset (id, mtime, created_at, name, description, extension, is_resource, 
+                         status_id, asset_type_id, collection_id, assignee_id, assigner_id, 
                          is_link, pointer, preview_id, trashed, synced)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
       `, [
-        newTaskId, now, createdAt, 
+        newAssetId, now, createdAt, 
         duplicateName, source.description || '', source.extension || '', source.is_resource,
-        source.status_id || '', source.task_type_id || '', source.entity_id || '', '',
+        source.status_id || '', source.asset_type_id || '', source.collection_id || '', '',
         '', source.is_link, source.pointer || '', ''
       ]);
       
-      // Copy tags from source task
-      const sourceTags = query(db, 'SELECT tag_id FROM task_tag WHERE task_id = ?', [sourceTaskId]);
+      // Copy tags from source asset
+      const sourceTags = query(db, 'SELECT tag_id FROM asset_tag WHERE asset_id = ?', [sourceAssetId]);
       for (const tag of sourceTags) {
         const newTagId = crypto.randomUUID();
-        execute(db, 'INSERT INTO task_tag (id, mtime, task_id, tag_id, synced) VALUES (?, ?, ?, ?, 0)', 
-          [newTagId, now, newTaskId, tag.tag_id]);
+        execute(db, 'INSERT INTO asset_tag (id, mtime, asset_id, tag_id, synced) VALUES (?, ?, ?, ?, 0)', 
+          [newTagId, now, newAssetId, tag.tag_id]);
       }
       
-      // Copy latest checkpoint from source task
+      // Copy latest checkpoint from source asset
       const latestCheckpoint = queryOne(db, 
-        'SELECT * FROM task_checkpoint WHERE task_id = ? ORDER BY created_at DESC LIMIT 1', 
-        [sourceTaskId]
+        'SELECT * FROM asset_checkpoint WHERE asset_id = ? ORDER BY created_at DESC LIMIT 1', 
+        [sourceAssetId]
       );
       
       if (latestCheckpoint) {
@@ -606,12 +606,12 @@ export const AssetService = {
         const authorId = getCurrentUserId();
         
         execute(db, `
-          INSERT INTO task_checkpoint (id, created_at, mtime, task_id, xxhash_checksum, 
+          INSERT INTO asset_checkpoint (id, created_at, mtime, asset_id, xxhash_checksum, 
                                        time_modified, file_size, chunks, comment, 
                                        author_id, group_id, preview_id, trashed, synced)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
         `, [
-          newCheckpointId, createdAt, now, newTaskId,
+          newCheckpointId, createdAt, now, newAssetId,
           latestCheckpoint.xxhash_checksum || '',
           latestCheckpoint.time_modified || now,
           latestCheckpoint.file_size || 0,
@@ -625,10 +625,10 @@ export const AssetService = {
       
       await persistDatabase(projectName);
       
-      // Return the new task
-      const { statusMap, taskTypeMap, tagMap, taskTagsMap, taskDependenciesMap, entityDependenciesMap, entityMap } = buildLookupMaps(db);
-      const row = queryOne(db, 'SELECT * FROM task WHERE id = ?', [newTaskId]);
-      return rowToTask(row, statusMap, taskTypeMap, taskTagsMap, tagMap, taskDependenciesMap, entityDependenciesMap, entityMap);
+      // Return the new asset
+      const { statusMap, assetTypeMap, tagMap, assetTagsMap, assetDependenciesMap, collectionDependenciesMap, collectionMap } = buildLookupMaps(db);
+      const row = queryOne(db, 'SELECT * FROM asset WHERE id = ?', [newAssetId]);
+      return rowToAsset(row, statusMap, assetTypeMap, assetTagsMap, tagMap, assetDependenciesMap, collectionDependenciesMap, collectionMap);
     } catch (error) {
       console.error('DuplicateAsset error:', error);
       throw error;
@@ -636,12 +636,12 @@ export const AssetService = {
   },
 
   // Changes the status of an asset (local-first approach)
-  ChangeStatus: async (projectPath, taskId, statusId) => {
+  ChangeStatus: async (projectPath, assetId, statusId) => {
     const projectName = getProjectName(projectPath);
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'UPDATE task SET status_id = ?, mtime = ?, synced = 0 WHERE id = ?', [statusId, Date.now(), taskId]);
+      execute(db, 'UPDATE asset SET status_id = ?, mtime = ?, synced = 0 WHERE id = ?', [statusId, Date.now(), assetId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('ChangeStatus error:', error);
@@ -650,12 +650,12 @@ export const AssetService = {
   },
 
   // Changes the type of an asset (local-first approach)
-  ChangeAssetType: async (projectPath, taskId, taskTypeId) => {
+  ChangeAssetType: async (projectPath, assetId, assetTypeId) => {
     const projectName = getProjectName(projectPath);
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'UPDATE task SET task_type_id = ?, mtime = ?, synced = 0 WHERE id = ?', [taskTypeId, Date.now(), taskId]);
+      execute(db, 'UPDATE asset SET asset_type_id = ?, mtime = ?, synced = 0 WHERE id = ?', [assetTypeId, Date.now(), assetId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('ChangeAssetType error:', error);
@@ -663,31 +663,31 @@ export const AssetService = {
     }
   },
 
-  // Toggles whether an asset is a task or resource (local-first approach)
-  ToggleIsTask: async (projectPath, taskId, isTask) => {
+  // Toggles whether an asset is a asset or resource (local-first approach)
+  ToggleIsAsset: async (projectPath, assetId, isAsset) => {
     const projectName = getProjectName(projectPath);
     
-    // isTask means it's NOT a resource
-    const isResource = !isTask;
+    // isAsset means it's NOT a resource
+    const isResource = !isAsset;
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'UPDATE task SET is_resource = ?, mtime = ?, synced = 0 WHERE id = ?', [isResource ? 1 : 0, Date.now(), taskId]);
+      execute(db, 'UPDATE asset SET is_resource = ?, mtime = ?, synced = 0 WHERE id = ?', [isResource ? 1 : 0, Date.now(), assetId]);
       await persistDatabase(projectName);
     } catch (error) {
-      console.error('ToggleIsTask error:', error);
+      console.error('ToggleIsAsset error:', error);
       throw error;
     }
   },
 
   // Toggles whether assets are resources (local-first approach)
-  ToggleIsResource: async (projectPath, taskIds, isResource) => {
+  ToggleIsResource: async (projectPath, assetIds, isResource) => {
     const projectName = getProjectName(projectPath);
     
     try {
       const db = await getDatabase(projectName);
-      const placeholders = taskIds.map(() => '?').join(',');
-      execute(db, `UPDATE task SET is_resource = ?, mtime = ?, synced = 0 WHERE id IN (${placeholders})`, [isResource ? 1 : 0, Date.now(), ...taskIds]);
+      const placeholders = assetIds.map(() => '?').join(',');
+      execute(db, `UPDATE asset SET is_resource = ?, mtime = ?, synced = 0 WHERE id IN (${placeholders})`, [isResource ? 1 : 0, Date.now(), ...assetIds]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('ToggleIsResource error:', error);
@@ -696,12 +696,12 @@ export const AssetService = {
   },
 
   // Assigns a user to an asset (local-first approach)
-  AssignAsset: async (projectPath, taskId, userId) => {
+  AssignAsset: async (projectPath, assetId, userId) => {
     const projectName = getProjectName(projectPath);
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'UPDATE task SET assignee_id = ?, mtime = ?, synced = 0 WHERE id = ?', [userId, Date.now(), taskId]);
+      execute(db, 'UPDATE asset SET assignee_id = ?, mtime = ?, synced = 0 WHERE id = ?', [userId, Date.now(), assetId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('AssignAsset error:', error);
@@ -710,12 +710,12 @@ export const AssetService = {
   },
 
   // Unassigns a user from an asset (local-first approach)
-  UnassignAsset: async (projectPath, taskId) => {
+  UnassignAsset: async (projectPath, assetId) => {
     const projectName = getProjectName(projectPath);
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'UPDATE task SET assignee_id = NULL, mtime = ?, synced = 0 WHERE id = ?', [Date.now(), taskId]);
+      execute(db, 'UPDATE asset SET assignee_id = NULL, mtime = ?, synced = 0 WHERE id = ?', [Date.now(), assetId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('UnassignAsset error:', error);
@@ -724,13 +724,13 @@ export const AssetService = {
   },
 
   // Unassigns multiple assets (local-first approach)
-  UnassignAssets: async (projectPath, taskIds) => {
+  UnassignAssets: async (projectPath, assetIds) => {
     const projectName = getProjectName(projectPath);
     
     try {
       const db = await getDatabase(projectName);
-      const placeholders = taskIds.map(() => '?').join(',');
-      execute(db, `UPDATE task SET assignee_id = NULL, mtime = ?, synced = 0 WHERE id IN (${placeholders})`, [Date.now(), ...taskIds]);
+      const placeholders = assetIds.map(() => '?').join(',');
+      execute(db, `UPDATE asset SET assignee_id = NULL, mtime = ?, synced = 0 WHERE id IN (${placeholders})`, [Date.now(), ...assetIds]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('UnassignAssets error:', error);
@@ -738,13 +738,13 @@ export const AssetService = {
     }
   },
 
-  // Removes a task dependency (local-first approach)
-  RemoveAssetDependency: async (projectPath, taskId, dependencyId) => {
+  // Removes a asset dependency (local-first approach)
+  RemoveAssetDependency: async (projectPath, assetId, dependencyId) => {
     const projectName = getProjectName(projectPath);
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'DELETE FROM task_dependency WHERE task_id = ? AND dependency_id = ?', [taskId, dependencyId]);
+      execute(db, 'DELETE FROM asset_dependency WHERE asset_id = ? AND dependency_id = ?', [assetId, dependencyId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('RemoveAssetDependency error:', error);
@@ -752,28 +752,28 @@ export const AssetService = {
     }
   },
 
-  // Removes an entity dependency (local-first approach)
-  RemoveEntityDependency: async (projectPath, taskId, entityId) => {
+  // Removes an collection dependency (local-first approach)
+  RemoveCollectionDependency: async (projectPath, assetId, collectionId) => {
     const projectName = getProjectName(projectPath);
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'DELETE FROM entity_dependency WHERE task_id = ? AND entity_id = ?', [taskId, entityId]);
+      execute(db, 'DELETE FROM collection_dependency WHERE asset_id = ? AND collection_id = ?', [assetId, collectionId]);
       await persistDatabase(projectName);
     } catch (error) {
-      console.error('RemoveEntityDependency error:', error);
+      console.error('RemoveCollectionDependency error:', error);
       throw error;
     }
   },
 
   // Adds a preview to an asset (local-first approach)
   // In web mode, preview path would be a URL/blob reference
-  AddPreview: async (projectPath, taskId, previewPath) => {
+  AddPreview: async (projectPath, assetId, previewPath) => {
     const projectName = getProjectName(projectPath);
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'UPDATE task SET preview_id = ?, mtime = ?, synced = 0 WHERE id = ?', [previewPath, Date.now(), taskId]);
+      execute(db, 'UPDATE asset SET preview_id = ?, mtime = ?, synced = 0 WHERE id = ?', [previewPath, Date.now(), assetId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('AddPreview error:', error);
@@ -786,28 +786,28 @@ export const AssetService = {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      const { statusMap, taskTypeMap, tagMap, taskTagsMap, taskDependenciesMap, entityDependenciesMap, entityMap } = buildLookupMaps(db);
+      const { statusMap, assetTypeMap, tagMap, assetTagsMap, assetDependenciesMap, collectionDependenciesMap, collectionMap } = buildLookupMaps(db);
       
-      const row = queryOne(db, 'SELECT * FROM task WHERE id = ?', [assetId]);
-      return rowToTask(row, statusMap, taskTypeMap, taskTagsMap, tagMap, taskDependenciesMap, entityDependenciesMap, entityMap) || {};
+      const row = queryOne(db, 'SELECT * FROM asset WHERE id = ?', [assetId]);
+      return rowToAsset(row, statusMap, assetTypeMap, assetTagsMap, tagMap, assetDependenciesMap, collectionDependenciesMap, collectionMap) || {};
     } catch (error) {
       console.error('GetAssetByID error:', error);
       return {};
     }
   },
 
-  // Returns asset by its task_path.
-  GetAssetByPath: async (projectPath, taskPath) => {
+  // Returns asset by its asset_path.
+  GetAssetByPath: async (projectPath, assetPath) => {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      const { statusMap, taskTypeMap, tagMap, taskTagsMap, taskDependenciesMap, entityDependenciesMap, entityMap } = buildLookupMaps(db);
+      const { statusMap, assetTypeMap, tagMap, assetTagsMap, assetDependenciesMap, collectionDependenciesMap, collectionMap } = buildLookupMaps(db);
 
-      const rows = query(db, 'SELECT * FROM task WHERE trashed = 0');
+      const rows = query(db, 'SELECT * FROM asset WHERE trashed = 0');
       for (const row of rows) {
-        const task = rowToTask(row, statusMap, taskTypeMap, taskTagsMap, tagMap, taskDependenciesMap, entityDependenciesMap, entityMap);
-        if (task && task.task_path === taskPath) {
-          return task;
+        const asset = rowToAsset(row, statusMap, assetTypeMap, assetTagsMap, tagMap, assetDependenciesMap, collectionDependenciesMap, collectionMap);
+        if (asset && asset.asset_path === assetPath) {
+          return asset;
         }
       }
       return {};
@@ -822,7 +822,7 @@ export const AssetService = {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      const row = queryOne(db, 'SELECT COUNT(*) as count FROM task WHERE trashed = 0');
+      const row = queryOne(db, 'SELECT COUNT(*) as count FROM asset WHERE trashed = 0');
       return row?.count || 0;
     } catch (error) {
       console.error('GetAssetCount error:', error);
@@ -830,30 +830,30 @@ export const AssetService = {
     }
   },
 
-  // Returns all task-type assets
-  GetAssetTasks: async (projectPath) => {
+  // Returns all asset-type assets
+  GetAssetAssets: async (projectPath) => {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      const { statusMap, taskTypeMap, tagMap, taskTagsMap, taskDependenciesMap, entityDependenciesMap, entityMap } = buildLookupMaps(db);
+      const { statusMap, assetTypeMap, tagMap, assetTagsMap, assetDependenciesMap, collectionDependenciesMap, collectionMap } = buildLookupMaps(db);
       
-      const rows = query(db, 'SELECT * FROM task WHERE is_resource = 0 AND trashed = 0');
-      return rows.map(row => rowToTask(row, statusMap, taskTypeMap, taskTagsMap, tagMap, taskDependenciesMap, entityDependenciesMap, entityMap));
+      const rows = query(db, 'SELECT * FROM asset WHERE is_resource = 0 AND trashed = 0');
+      return rows.map(row => rowToAsset(row, statusMap, assetTypeMap, assetTagsMap, tagMap, assetDependenciesMap, collectionDependenciesMap, collectionMap));
     } catch (error) {
-      console.error('GetAssetTasks error:', error);
+      console.error('GetAssetAssets error:', error);
       return [];
     }
   },
 
   // Returns file status for an asset - not available in web mode
-  AssetFileStatus: async (projectPath, taskId) => {
+  AssetFileStatus: async (projectPath, assetId) => {
     return 'normal';
   },
 
   // Returns file statuses for multiple assets - not available in web mode
-  AssetFilesStatus: async (projectPath, taskIds) => {
+  AssetFilesStatus: async (projectPath, assetIds) => {
     const result = {};
-    for (const id of taskIds) {
+    for (const id of assetIds) {
       result[id] = 'normal';
     }
     return result;
@@ -870,17 +870,17 @@ export const AssetService = {
   },
 
   // Reveals asset in file explorer - not available in web mode
-  RevealAsset: async (projectPath, taskId) => {
+  RevealAsset: async (projectPath, assetId) => {
     console.warn('RevealAsset not available in web mode (no file system)');
     return {};
   },
 
-  // Returns recursive dependencies for a task
-  GetRecursiveDependencies: async (projectPath, taskId, maxDepth = 5) => {
+  // Returns recursive dependencies for a asset
+  GetRecursiveDependencies: async (projectPath, assetId, maxDepth = 5) => {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      const { statusMap, taskTypeMap, tagMap, taskTagsMap, taskDependenciesMap, entityDependenciesMap, entityMap } = buildLookupMaps(db);
+      const { statusMap, assetTypeMap, tagMap, assetTagsMap, assetDependenciesMap, collectionDependenciesMap, collectionMap } = buildLookupMaps(db);
       
       const visited = new Set();
       const result = [];
@@ -889,17 +889,17 @@ export const AssetService = {
         if (depth > maxDepth || visited.has(id)) return;
         visited.add(id);
         
-        const deps = taskDependenciesMap[id] || [];
+        const deps = assetDependenciesMap[id] || [];
         for (const dep of deps) {
-          const row = queryOne(db, 'SELECT * FROM task WHERE id = ? AND trashed = 0', [dep.id]);
+          const row = queryOne(db, 'SELECT * FROM asset WHERE id = ? AND trashed = 0', [dep.id]);
           if (row) {
-            result.push(rowToTask(row, statusMap, taskTypeMap, taskTagsMap, tagMap, taskDependenciesMap, entityDependenciesMap, entityMap));
+            result.push(rowToAsset(row, statusMap, assetTypeMap, assetTagsMap, tagMap, assetDependenciesMap, collectionDependenciesMap, collectionMap));
             collectDependencies(dep.id, depth + 1);
           }
         }
       };
       
-      collectDependencies(taskId, 0);
+      collectDependencies(assetId, 0);
       return result;
     } catch (error) {
       console.error('GetRecursiveDependencies error:', error);

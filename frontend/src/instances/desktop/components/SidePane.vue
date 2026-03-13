@@ -125,7 +125,7 @@ const goToProjects = () => {
 	stage.setStageVisibility('projects', true);
 	stage.markedItems = [];
 	stage.selectedItems = [];
-	stage.markedEntities = [];
+	stage.markedCollections = [];
 	stage.firstSelectedItemId = '';
 	stage.lastSelectedItemId = '';
 	stage.selectedItem = null;

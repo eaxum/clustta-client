@@ -41,7 +41,7 @@ export function DiscardAllChanges(projectPath, remoteURL) {
 
 /**
  * DiscardChanges reverts specific items to their server state by fetching remote data
- * and selectively replacing local rows. itemType should be "task" or "entity".
+ * and selectively replacing local rows. itemType should be "asset" or "collection".
  * @param {string} projectPath
  * @param {string} remoteURL
  * @param {string[]} itemIds

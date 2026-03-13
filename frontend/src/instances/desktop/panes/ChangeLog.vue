@@ -6,29 +6,29 @@
       </div>
     <div v-if="hasChanges" class="changelog-scroll-container">
 
-      <div v-if="summary.tasks.length" class="changelog-group">
-        <div class="changelog-group-header" @click="toggleGroup('tasks')">
-          <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.tasks }" />
-          <span class="changelog-group-title">{{ $t('panes.tasks') }}</span>
-          <span class="changelog-group-count">{{ summary.tasks.length }}</span>
+      <div v-if="summary.assets.length" class="changelog-group">
+        <div class="changelog-group-header" @click="toggleGroup('assets')">
+          <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.assets }" />
+          <span class="changelog-group-title">{{ $t('panes.assets') }}</span>
+          <span class="changelog-group-count">{{ summary.assets.length }}</span>
           <div class="menu-divider"></div>
         </div>
 
-        <div v-if="expandedGroups.tasks" class="changelog-group-items">
-          <ChangeLogItem v-for="item in summary.tasks" :key="item.id" :item="item" itemType="task" :isLoading="isLoading" @find="(id) => findItem(id, 'task')" @discard="(id) => discardItem(id, 'task')" />
+        <div v-if="expandedGroups.assets" class="changelog-group-items">
+          <ChangeLogItem v-for="item in summary.assets" :key="item.id" :item="item" itemType="asset" :isLoading="isLoading" @find="(id) => findItem(id, 'asset')" @discard="(id) => discardItem(id, 'asset')" />
         </div>
       </div>
 
-      <div v-if="summary.entities.length" class="changelog-group">
-        <div class="changelog-group-header" @click="toggleGroup('entities')">
-          <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.entities }" />
+      <div v-if="summary.collections.length" class="changelog-group">
+        <div class="changelog-group-header" @click="toggleGroup('collections')">
+          <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.collections }" />
           <span class="changelog-group-title">{{ $t('panes.collections') }}</span>
-          <span class="changelog-group-count">{{ summary.entities.length }}</span>
+          <span class="changelog-group-count">{{ summary.collections.length }}</span>
           <div class="menu-divider"></div>
         </div>
 
-        <div v-if="expandedGroups.entities" class="changelog-group-items">
-          <ChangeLogItem v-for="item in summary.entities" :key="item.id" :item="item" itemType="entity" :isLoading="isLoading" @find="(id) => findItem(id, 'entity')" @discard="(id) => discardItem(id, 'entity')" />
+        <div v-if="expandedGroups.collections" class="changelog-group-items">
+          <ChangeLogItem v-for="item in summary.collections" :key="item.id" :item="item" itemType="collection" :isLoading="isLoading" @find="(id) => findItem(id, 'collection')" @discard="(id) => discardItem(id, 'collection')" />
         </div>
       </div>
 
@@ -91,9 +91,9 @@ const trayStates = useTrayStates();
 const { t } = useI18n();
 
 // refs
-const expandedGroups = reactive({ tasks: true, entities: true, other: false });
+const expandedGroups = reactive({ assets: true, collections: true, other: false });
 const isLoading = ref(false);
-const summary = ref({ tasks: [], entities: [], other: [], total_count: 0 });
+const summary = ref({ assets: [], collections: [], other: [], total_count: 0 });
 
 // computed properties
 const emptyMessage = computed(() => isLoading.value ? t('panes.loadingChanges') : t('panes.noPendingChanges'));
@@ -131,8 +131,8 @@ const revertChanges = async () => {
   isLoading.value = true;
   const syncOptions = {
     only_latest_checkpoints: false,
-    task_dependencies: false,
-    tasks: false,
+    asset_dependencies: false,
+    assets: false,
     templates: false,
     force: true,
   };
@@ -171,22 +171,22 @@ const discardItem = async (itemId, itemType) => {
 // Navigates to the item in the browser view.
 const findItem = async (itemId, itemType) => {
   try {
-    if (itemType === 'task') {
-      const task = await AssetService.GetAssetByID(projectStore.activeProject.uri, itemId);
-      if (!task?.id) return;
-      const taskParent = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, task.entity_id);
-      if (taskParent) {
-        collectionStore.navigateToCollection(taskParent);
+    if (itemType === 'asset') {
+      const asset = await AssetService.GetAssetByID(projectStore.activeProject.uri, itemId);
+      if (!asset?.id) return;
+      const assetParent = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, asset.collection_id);
+      if (assetParent) {
+        collectionStore.navigateToCollection(assetParent);
         commonStore.navigatorMode = true;
       }
       stage.deselectAllItems();
-      assetStore.selectAsset(task.id);
-      stage.firstSelectedItemId = task.id;
-      stage.markedItems = [task.id];
-    } else if (itemType === 'entity') {
-      const entity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, itemId);
-      if (entity) {
-        collectionStore.navigateToCollection(entity);
+      assetStore.selectAsset(asset.id);
+      stage.firstSelectedItemId = asset.id;
+      stage.markedItems = [asset.id];
+    } else if (itemType === 'collection') {
+      const collection = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, itemId);
+      if (collection) {
+        collectionStore.navigateToCollection(collection);
         commonStore.navigatorMode = true;
       }
     }
@@ -207,7 +207,7 @@ const loadChanges = async () => {
     summary.value = await SyncService.GetPendingChanges(projectStore.activeProject.uri);
   } catch (error) {
     console.error(error);
-    summary.value = { tasks: [], entities: [], other: [], total_count: 0 };
+    summary.value = { assets: [], collections: [], other: [], total_count: 0 };
   }
   isLoading.value = false;
 };

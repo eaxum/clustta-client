@@ -76,14 +76,14 @@ const addWorkspaceVisible = computed(() => {
   if (inCollectionView) return true;
 
   // Otherwise, show only with filters
-  const taskFilters = commonStore.taskFilters.length;
-  const entityFilters = commonStore.entityFilters.length;
+  const assetFilters = commonStore.assetFilters.length;
+  const collectionFilters = commonStore.collectionFilters.length;
   const resourceFilters = commonStore.resourceFilters.length;
-  const isActive = commonStore.showEntities && commonStore.showTasks
-    && commonStore.showResources && commonStore.showChildEntities
-    && commonStore.showChildTasks && commonStore.showDependencies && !commonStore.onlyAssets;
+  const isActive = commonStore.showCollections && commonStore.showAssets
+    && commonStore.showResources && commonStore.showChildCollections
+    && commonStore.showChildAssets && commonStore.showDependencies && !commonStore.onlyAssets;
 
-  const showButton = taskFilters || entityFilters || resourceFilters || !isActive || commonStore.viewSearchQuery;
+  const showButton = assetFilters || collectionFilters || resourceFilters || !isActive || commonStore.viewSearchQuery;
   return showButton;
 });
 

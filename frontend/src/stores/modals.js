@@ -38,7 +38,7 @@ export const useModalStore = defineStore("modals", {
       trackFileModal: false,
       editTemplateModal: false,
       manageCollaboratorModal: false,
-      assignTaskModal: false,
+      assignAssetModal: false,
       testModal: false,
     },
   }),

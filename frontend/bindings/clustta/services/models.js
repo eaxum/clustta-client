@@ -106,21 +106,21 @@ export class AssetStateItem {
      * @param {Partial<AssetStateItem>} [$$source = {}] - The source object to create the AssetStateItem.
      */
     constructor($$source = {}) {
-        if (!("task_id" in $$source)) {
+        if (!("asset_id" in $$source)) {
             /**
-             * task ID for filtering
+             * asset ID for filtering
              * @member
              * @type {string}
              */
-            this["task_id"] = "";
+            this["asset_id"] = "";
         }
-        if (!("task_path" in $$source)) {
+        if (!("asset_path" in $$source)) {
             /**
              * for checkpoints: "path/to/file"
              * @member
              * @type {string}
              */
-            this["task_path"] = "";
+            this["asset_path"] = "";
         }
         if (!("display_path" in $$source)) {
             /**
@@ -286,45 +286,45 @@ export class CollectionChildrenState {
      * @param {Partial<CollectionChildrenState>} [$$source = {}] - The source object to create the CollectionChildrenState.
      */
     constructor($$source = {}) {
-        if (!("modified_tasks" in $$source)) {
+        if (!("modified_assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.Task[]}
+             * @type {models$0.Asset[]}
              */
-            this["modified_tasks"] = [];
+            this["modified_assets"] = [];
         }
-        if (!("outdated_tasks" in $$source)) {
+        if (!("outdated_assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.Task[]}
+             * @type {models$0.Asset[]}
              */
-            this["outdated_tasks"] = [];
+            this["outdated_assets"] = [];
         }
-        if (!("rebuildable_tasks" in $$source)) {
+        if (!("rebuildable_assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.Task[]}
+             * @type {models$0.Asset[]}
              */
-            this["rebuildable_tasks"] = [];
+            this["rebuildable_assets"] = [];
         }
-        if (!("normal_tasks" in $$source)) {
+        if (!("normal_assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.Task[]}
+             * @type {models$0.Asset[]}
              */
-            this["normal_tasks"] = [];
+            this["normal_assets"] = [];
         }
         if (!("untracked_files" in $$source)) {
             /**
              * @member
-             * @type {models$0.UntrackedTask[]}
+             * @type {models$0.UntrackedAsset[]}
              */
             this["untracked_files"] = [];
         }
         if (!("untracked_folders" in $$source)) {
             /**
              * @member
-             * @type {models$0.UntrackedEntity[]}
+             * @type {models$0.UntrackedCollection[]}
              */
             this["untracked_folders"] = [];
         }
@@ -345,17 +345,17 @@ export class CollectionChildrenState {
         const $$createField4_0 = $$createType3;
         const $$createField5_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("modified_tasks" in $$parsedSource) {
-            $$parsedSource["modified_tasks"] = $$createField0_0($$parsedSource["modified_tasks"]);
+        if ("modified_assets" in $$parsedSource) {
+            $$parsedSource["modified_assets"] = $$createField0_0($$parsedSource["modified_assets"]);
         }
-        if ("outdated_tasks" in $$parsedSource) {
-            $$parsedSource["outdated_tasks"] = $$createField1_0($$parsedSource["outdated_tasks"]);
+        if ("outdated_assets" in $$parsedSource) {
+            $$parsedSource["outdated_assets"] = $$createField1_0($$parsedSource["outdated_assets"]);
         }
-        if ("rebuildable_tasks" in $$parsedSource) {
-            $$parsedSource["rebuildable_tasks"] = $$createField2_0($$parsedSource["rebuildable_tasks"]);
+        if ("rebuildable_assets" in $$parsedSource) {
+            $$parsedSource["rebuildable_assets"] = $$createField2_0($$parsedSource["rebuildable_assets"]);
         }
-        if ("normal_tasks" in $$parsedSource) {
-            $$parsedSource["normal_tasks"] = $$createField3_0($$parsedSource["normal_tasks"]);
+        if ("normal_assets" in $$parsedSource) {
+            $$parsedSource["normal_assets"] = $$createField3_0($$parsedSource["normal_assets"]);
         }
         if ("untracked_files" in $$parsedSource) {
             $$parsedSource["untracked_files"] = $$createField4_0($$parsedSource["untracked_files"]);
@@ -364,6 +364,71 @@ export class CollectionChildrenState {
             $$parsedSource["untracked_folders"] = $$createField5_0($$parsedSource["untracked_folders"]);
         }
         return new CollectionChildrenState(/** @type {Partial<CollectionChildrenState>} */($$parsedSource));
+    }
+}
+
+export class CollectionItems {
+    /**
+     * Creates a new CollectionItems instance.
+     * @param {Partial<CollectionItems>} [$$source = {}] - The source object to create the CollectionItems.
+     */
+    constructor($$source = {}) {
+        if (!("assets" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.Asset[]}
+             */
+            this["assets"] = [];
+        }
+        if (!("collections" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.Collection[]}
+             */
+            this["collections"] = [];
+        }
+        if (!("untracked_assets" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.UntrackedAsset[]}
+             */
+            this["untracked_assets"] = [];
+        }
+        if (!("untracked_collections" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.UntrackedCollection[]}
+             */
+            this["untracked_collections"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CollectionItems instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CollectionItems}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType2;
+        const $$createField1_0 = $$createType5;
+        const $$createField2_0 = $$createType3;
+        const $$createField3_0 = $$createType4;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("assets" in $$parsedSource) {
+            $$parsedSource["assets"] = $$createField0_0($$parsedSource["assets"]);
+        }
+        if ("collections" in $$parsedSource) {
+            $$parsedSource["collections"] = $$createField1_0($$parsedSource["collections"]);
+        }
+        if ("untracked_assets" in $$parsedSource) {
+            $$parsedSource["untracked_assets"] = $$createField2_0($$parsedSource["untracked_assets"]);
+        }
+        if ("untracked_collections" in $$parsedSource) {
+            $$parsedSource["untracked_collections"] = $$createField3_0($$parsedSource["untracked_collections"]);
+        }
+        return new CollectionItems(/** @type {Partial<CollectionItems>} */($$parsedSource));
     }
 }
 
@@ -710,71 +775,6 @@ export class DeploymentStatus {
     }
 }
 
-export class EntityItems {
-    /**
-     * Creates a new EntityItems instance.
-     * @param {Partial<EntityItems>} [$$source = {}] - The source object to create the EntityItems.
-     */
-    constructor($$source = {}) {
-        if (!("tasks" in $$source)) {
-            /**
-             * @member
-             * @type {models$0.Task[]}
-             */
-            this["tasks"] = [];
-        }
-        if (!("entities" in $$source)) {
-            /**
-             * @member
-             * @type {models$0.Entity[]}
-             */
-            this["entities"] = [];
-        }
-        if (!("untracked_tasks" in $$source)) {
-            /**
-             * @member
-             * @type {models$0.UntrackedTask[]}
-             */
-            this["untracked_tasks"] = [];
-        }
-        if (!("untracked_entities" in $$source)) {
-            /**
-             * @member
-             * @type {models$0.UntrackedEntity[]}
-             */
-            this["untracked_entities"] = [];
-        }
-
-        Object.assign(this, $$source);
-    }
-
-    /**
-     * Creates a new EntityItems instance from a string or object.
-     * @param {any} [$$source = {}]
-     * @returns {EntityItems}
-     */
-    static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType2;
-        const $$createField1_0 = $$createType5;
-        const $$createField2_0 = $$createType3;
-        const $$createField3_0 = $$createType4;
-        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("tasks" in $$parsedSource) {
-            $$parsedSource["tasks"] = $$createField0_0($$parsedSource["tasks"]);
-        }
-        if ("entities" in $$parsedSource) {
-            $$parsedSource["entities"] = $$createField1_0($$parsedSource["entities"]);
-        }
-        if ("untracked_tasks" in $$parsedSource) {
-            $$parsedSource["untracked_tasks"] = $$createField2_0($$parsedSource["untracked_tasks"]);
-        }
-        if ("untracked_entities" in $$parsedSource) {
-            $$parsedSource["untracked_entities"] = $$createField3_0($$parsedSource["untracked_entities"]);
-        }
-        return new EntityItems(/** @type {Partial<EntityItems>} */($$parsedSource));
-    }
-}
-
 export class FileInfo {
     /**
      * Creates a new FileInfo instance.
@@ -872,19 +872,19 @@ export class ImportItems {
      * @param {Partial<ImportItems>} [$$source = {}] - The source object to create the ImportItems.
      */
     constructor($$source = {}) {
-        if (!("tasks" in $$source)) {
+        if (!("assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.Task[]}
+             * @type {models$0.Asset[]}
              */
-            this["tasks"] = [];
+            this["assets"] = [];
         }
-        if (!("entities" in $$source)) {
+        if (!("collections" in $$source)) {
             /**
              * @member
-             * @type {models$0.Entity[]}
+             * @type {models$0.Collection[]}
              */
-            this["entities"] = [];
+            this["collections"] = [];
         }
 
         Object.assign(this, $$source);
@@ -899,11 +899,11 @@ export class ImportItems {
         const $$createField0_0 = $$createType2;
         const $$createField1_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("tasks" in $$parsedSource) {
-            $$parsedSource["tasks"] = $$createField0_0($$parsedSource["tasks"]);
+        if ("assets" in $$parsedSource) {
+            $$parsedSource["assets"] = $$createField0_0($$parsedSource["assets"]);
         }
-        if ("entities" in $$parsedSource) {
-            $$parsedSource["entities"] = $$createField1_0($$parsedSource["entities"]);
+        if ("collections" in $$parsedSource) {
+            $$parsedSource["collections"] = $$createField1_0($$parsedSource["collections"]);
         }
         return new ImportItems(/** @type {Partial<ImportItems>} */($$parsedSource));
     }
@@ -915,17 +915,17 @@ export class ItemsForCheckpoint {
      * @param {Partial<ItemsForCheckpoint>} [$$source = {}] - The source object to create the ItemsForCheckpoint.
      */
     constructor($$source = {}) {
-        if (!("modified_tasks" in $$source)) {
+        if (!("modified_assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.Task[]}
+             * @type {models$0.Asset[]}
              */
-            this["modified_tasks"] = [];
+            this["modified_assets"] = [];
         }
         if (!("untracked_files" in $$source)) {
             /**
              * @member
-             * @type {models$0.UntrackedTask[]}
+             * @type {models$0.UntrackedAsset[]}
              */
             this["untracked_files"] = [];
         }
@@ -942,8 +942,8 @@ export class ItemsForCheckpoint {
         const $$createField0_0 = $$createType2;
         const $$createField1_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("modified_tasks" in $$parsedSource) {
-            $$parsedSource["modified_tasks"] = $$createField0_0($$parsedSource["modified_tasks"]);
+        if ("modified_assets" in $$parsedSource) {
+            $$parsedSource["modified_assets"] = $$createField0_0($$parsedSource["modified_assets"]);
         }
         if ("untracked_files" in $$parsedSource) {
             $$parsedSource["untracked_files"] = $$createField1_0($$parsedSource["untracked_files"]);
@@ -958,12 +958,12 @@ export class ItemsForUpdate {
      * @param {Partial<ItemsForUpdate>} [$$source = {}] - The source object to create the ItemsForUpdate.
      */
     constructor($$source = {}) {
-        if (!("outdated_tasks" in $$source)) {
+        if (!("outdated_assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.Task[]}
+             * @type {models$0.Asset[]}
              */
-            this["outdated_tasks"] = [];
+            this["outdated_assets"] = [];
         }
 
         Object.assign(this, $$source);
@@ -977,8 +977,8 @@ export class ItemsForUpdate {
     static createFrom($$source = {}) {
         const $$createField0_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("outdated_tasks" in $$parsedSource) {
-            $$parsedSource["outdated_tasks"] = $$createField0_0($$parsedSource["outdated_tasks"]);
+        if ("outdated_assets" in $$parsedSource) {
+            $$parsedSource["outdated_assets"] = $$createField0_0($$parsedSource["outdated_assets"]);
         }
         return new ItemsForUpdate(/** @type {Partial<ItemsForUpdate>} */($$parsedSource));
     }
@@ -1524,19 +1524,19 @@ export class UntrackedItems {
      * @param {Partial<UntrackedItems>} [$$source = {}] - The source object to create the UntrackedItems.
      */
     constructor($$source = {}) {
-        if (!("tasks" in $$source)) {
+        if (!("assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.UntrackedTask[]}
+             * @type {models$0.UntrackedAsset[]}
              */
-            this["tasks"] = [];
+            this["assets"] = [];
         }
-        if (!("entities" in $$source)) {
+        if (!("collections" in $$source)) {
             /**
              * @member
-             * @type {models$0.UntrackedEntity[]}
+             * @type {models$0.UntrackedCollection[]}
              */
-            this["entities"] = [];
+            this["collections"] = [];
         }
 
         Object.assign(this, $$source);
@@ -1551,11 +1551,11 @@ export class UntrackedItems {
         const $$createField0_0 = $$createType3;
         const $$createField1_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("tasks" in $$parsedSource) {
-            $$parsedSource["tasks"] = $$createField0_0($$parsedSource["tasks"]);
+        if ("assets" in $$parsedSource) {
+            $$parsedSource["assets"] = $$createField0_0($$parsedSource["assets"]);
         }
-        if ("entities" in $$parsedSource) {
-            $$parsedSource["entities"] = $$createField1_0($$parsedSource["entities"]);
+        if ("collections" in $$parsedSource) {
+            $$parsedSource["collections"] = $$createField1_0($$parsedSource["collections"]);
         }
         return new UntrackedItems(/** @type {Partial<UntrackedItems>} */($$parsedSource));
     }

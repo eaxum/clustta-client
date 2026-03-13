@@ -19,26 +19,26 @@ type TypeMapping struct {
 // TypeMappings holds all type mappings for a project upload.
 type TypeMappings struct {
 	StatusMappings     []TypeMapping
-	EntityTypeMappings []TypeMapping
-	TaskTypeMappings   []TypeMapping
+	CollectionTypeMappings []TypeMapping
+	AssetTypeMappings   []TypeMapping
 	RoleMappings       []TypeMapping
 }
 
 // FetchLocalTypes retrieves all types from the local project database.
-func FetchLocalTypes(tx *sqlx.Tx) (statuses []models.Status, entityTypes []models.EntityType, taskTypes []models.TaskType, roles []models.Role, err error) {
+func FetchLocalTypes(tx *sqlx.Tx) (statuses []models.Status, collectionTypes []models.CollectionType, assetTypes []models.AssetType, roles []models.Role, err error) {
 	err = tx.Select(&statuses, "SELECT * FROM status")
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("failed to fetch local statuses: %w", err)
 	}
 
-	err = tx.Select(&entityTypes, "SELECT * FROM entity_type")
+	err = tx.Select(&collectionTypes, "SELECT * FROM collection_type")
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("failed to fetch local entity types: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("failed to fetch local collection types: %w", err)
 	}
 
-	err = tx.Select(&taskTypes, "SELECT * FROM task_type")
+	err = tx.Select(&assetTypes, "SELECT * FROM asset_type")
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("failed to fetch local task types: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("failed to fetch local asset types: %w", err)
 	}
 
 	err = tx.Select(&roles, "SELECT * FROM role")
@@ -46,14 +46,14 @@ func FetchLocalTypes(tx *sqlx.Tx) (statuses []models.Status, entityTypes []model
 		return nil, nil, nil, nil, fmt.Errorf("failed to fetch local roles: %w", err)
 	}
 
-	return statuses, entityTypes, taskTypes, roles, nil
+	return statuses, collectionTypes, assetTypes, roles, nil
 }
 
 // BuildTypeMappings creates mappings between local and remote type IDs by matching names.
 func BuildTypeMappings(
 	localStatuses []models.Status, remoteStatuses []models.Status,
-	localEntityTypes []models.EntityType, remoteEntityTypes []models.EntityType,
-	localTaskTypes []models.TaskType, remoteTaskTypes []models.TaskType,
+	localCollectionTypes []models.CollectionType, remoteCollectionTypes []models.CollectionType,
+	localAssetTypes []models.AssetType, remoteAssetTypes []models.AssetType,
 	localRoles []models.Role, remoteRoles []models.Role,
 ) TypeMappings {
 	mappings := TypeMappings{}
@@ -72,11 +72,11 @@ func BuildTypeMappings(
 		}
 	}
 
-	// Build entity type mappings
-	for _, local := range localEntityTypes {
-		for _, remote := range remoteEntityTypes {
+	// Build collection type mappings
+	for _, local := range localCollectionTypes {
+		for _, remote := range remoteCollectionTypes {
 			if local.Name == remote.Name {
-				mappings.EntityTypeMappings = append(mappings.EntityTypeMappings, TypeMapping{
+				mappings.CollectionTypeMappings = append(mappings.CollectionTypeMappings, TypeMapping{
 					LocalID:  local.Id,
 					RemoteID: remote.Id,
 					Name:     local.Name,
@@ -86,11 +86,11 @@ func BuildTypeMappings(
 		}
 	}
 
-	// Build task type mappings
-	for _, local := range localTaskTypes {
-		for _, remote := range remoteTaskTypes {
+	// Build asset type mappings
+	for _, local := range localAssetTypes {
+		for _, remote := range remoteAssetTypes {
 			if local.Name == remote.Name {
-				mappings.TaskTypeMappings = append(mappings.TaskTypeMappings, TypeMapping{
+				mappings.AssetTypeMappings = append(mappings.AssetTypeMappings, TypeMapping{
 					LocalID:  local.Id,
 					RemoteID: remote.Id,
 					Name:     local.Name,
@@ -119,27 +119,27 @@ func BuildTypeMappings(
 
 // RemapProjectIds updates all type IDs in the local database to match remote IDs.
 func RemapProjectIds(tx *sqlx.Tx, mappings TypeMappings) error {
-	// Remap status IDs in tasks
+	// Remap status IDs in assets
 	for _, m := range mappings.StatusMappings {
-		_, err := tx.Exec("UPDATE task SET status_id = ? WHERE status_id = ?", m.RemoteID, m.LocalID)
+		_, err := tx.Exec("UPDATE asset SET status_id = ? WHERE status_id = ?", m.RemoteID, m.LocalID)
 		if err != nil {
 			return fmt.Errorf("failed to remap status_id %s to %s: %w", m.LocalID, m.RemoteID, err)
 		}
 	}
 
-	// Remap entity type IDs in entities
-	for _, m := range mappings.EntityTypeMappings {
-		_, err := tx.Exec("UPDATE entity SET entity_type_id = ? WHERE entity_type_id = ?", m.RemoteID, m.LocalID)
+	// Remap collection type IDs in collections
+	for _, m := range mappings.CollectionTypeMappings {
+		_, err := tx.Exec("UPDATE collection SET collection_type_id = ? WHERE collection_type_id = ?", m.RemoteID, m.LocalID)
 		if err != nil {
-			return fmt.Errorf("failed to remap entity_type_id %s to %s: %w", m.LocalID, m.RemoteID, err)
+			return fmt.Errorf("failed to remap collection_type_id %s to %s: %w", m.LocalID, m.RemoteID, err)
 		}
 	}
 
-	// Remap task type IDs in tasks
-	for _, m := range mappings.TaskTypeMappings {
-		_, err := tx.Exec("UPDATE task SET task_type_id = ? WHERE task_type_id = ?", m.RemoteID, m.LocalID)
+	// Remap asset type IDs in assets
+	for _, m := range mappings.AssetTypeMappings {
+		_, err := tx.Exec("UPDATE asset SET asset_type_id = ? WHERE asset_type_id = ?", m.RemoteID, m.LocalID)
 		if err != nil {
-			return fmt.Errorf("failed to remap task_type_id %s to %s: %w", m.LocalID, m.RemoteID, err)
+			return fmt.Errorf("failed to remap asset_type_id %s to %s: %w", m.LocalID, m.RemoteID, err)
 		}
 	}
 
@@ -155,7 +155,7 @@ func RemapProjectIds(tx *sqlx.Tx, mappings TypeMappings) error {
 }
 
 // ReplaceTypeTables replaces local type tables with remote types.
-func ReplaceTypeTables(tx *sqlx.Tx, remoteStatuses []models.Status, remoteEntityTypes []models.EntityType, remoteTaskTypes []models.TaskType, remoteRoles []models.Role) error {
+func ReplaceTypeTables(tx *sqlx.Tx, remoteStatuses []models.Status, remoteCollectionTypes []models.CollectionType, remoteAssetTypes []models.AssetType, remoteRoles []models.Role) error {
 	// Clear and replace statuses
 	_, err := tx.Exec("DELETE FROM status")
 	if err != nil {
@@ -171,33 +171,33 @@ func ReplaceTypeTables(tx *sqlx.Tx, remoteStatuses []models.Status, remoteEntity
 		}
 	}
 
-	// Clear and replace entity types
-	_, err = tx.Exec("DELETE FROM entity_type")
+	// Clear and replace collection types
+	_, err = tx.Exec("DELETE FROM collection_type")
 	if err != nil {
-		return fmt.Errorf("failed to clear entity_type table: %w", err)
+		return fmt.Errorf("failed to clear collection_type table: %w", err)
 	}
-	for _, et := range remoteEntityTypes {
+	for _, et := range remoteCollectionTypes {
 		_, err := tx.Exec(
-			"INSERT INTO entity_type (id, name, icon, synced, mtime) VALUES (?, ?, ?, 1, ?)",
+			"INSERT INTO collection_type (id, name, icon, synced, mtime) VALUES (?, ?, ?, 1, ?)",
 			et.Id, et.Name, et.Icon, utils.GetEpochTime(),
 		)
 		if err != nil {
-			return fmt.Errorf("failed to insert entity_type %s: %w", et.Name, err)
+			return fmt.Errorf("failed to insert collection_type %s: %w", et.Name, err)
 		}
 	}
 
-	// Clear and replace task types
-	_, err = tx.Exec("DELETE FROM task_type")
+	// Clear and replace asset types
+	_, err = tx.Exec("DELETE FROM asset_type")
 	if err != nil {
-		return fmt.Errorf("failed to clear task_type table: %w", err)
+		return fmt.Errorf("failed to clear asset_type table: %w", err)
 	}
-	for _, tt := range remoteTaskTypes {
+	for _, tt := range remoteAssetTypes {
 		_, err := tx.Exec(
-			"INSERT INTO task_type (id, name, icon, synced, mtime) VALUES (?, ?, ?, 1, ?)",
+			"INSERT INTO asset_type (id, name, icon, synced, mtime) VALUES (?, ?, ?, 1, ?)",
 			tt.Id, tt.Name, tt.Icon, utils.GetEpochTime(),
 		)
 		if err != nil {
-			return fmt.Errorf("failed to insert task_type %s: %w", tt.Name, err)
+			return fmt.Errorf("failed to insert asset_type %s: %w", tt.Name, err)
 		}
 	}
 
@@ -209,22 +209,22 @@ func ReplaceTypeTables(tx *sqlx.Tx, remoteStatuses []models.Status, remoteEntity
 	for _, r := range remoteRoles {
 		_, err := tx.Exec(
 			`INSERT INTO role (id, name, synced, mtime, 
-				view_entity, create_entity, update_entity, delete_entity,
-				view_task, create_task, update_task, delete_task,
+				view_collection, create_collection, update_collection, delete_collection,
+				view_asset, create_asset, update_asset, delete_asset,
 				view_template, create_template, update_template, delete_template,
 				view_checkpoint, create_checkpoint, delete_checkpoint,
-				pull_chunk, assign_task, unassign_task,
+				pull_chunk, assign_asset, unassign_asset,
 				add_user, remove_user, change_role,
-				change_status, set_done_task, set_retake_task, view_done_task, manage_dependencies
+				change_status, set_done_asset, set_retake_asset, view_done_asset, manage_dependencies
 			) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			r.Id, r.Name, utils.GetEpochTime(),
-			r.ViewEntity, r.CreateEntity, r.UpdateEntity, r.DeleteEntity,
-			r.ViewTask, r.CreateTask, r.UpdateTask, r.DeleteTask,
+			r.ViewCollection, r.CreateCollection, r.UpdateCollection, r.DeleteCollection,
+			r.ViewAsset, r.CreateAsset, r.UpdateAsset, r.DeleteAsset,
 			r.ViewTemplate, r.CreateTemplate, r.UpdateTemplate, r.DeleteTemplate,
 			r.ViewCheckpoint, r.CreateCheckpoint, r.DeleteCheckpoint,
-			r.PullChunk, r.AssignTask, r.UnassignTask,
+			r.PullChunk, r.AssignAsset, r.UnassignAsset,
 			r.AddUser, r.RemoveUser, r.ChangeRole,
-			r.ChangeStatus, r.SetDoneTask, r.SetRetakeTask, r.ViewDoneTask, r.ManageDependencies,
+			r.ChangeStatus, r.SetDoneAsset, r.SetRetakeAsset, r.ViewDoneAsset, r.ManageDependencies,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to insert role %s: %w", r.Name, err)
@@ -268,22 +268,22 @@ func UpdateProjectConfig(tx *sqlx.Tx, projectId, remoteUrl, workingDirectory str
 // MarkAllTablesUnsynced sets synced = 0 for all data tables to ensure full sync.
 func MarkAllTablesUnsynced(tx *sqlx.Tx) error {
 	tables := []string{
-		"entity",
-		"entity_assignee",
-		"task",
-		"task_checkpoint",
-		"task_dependency",
-		"entity_dependency",
+		"collection",
+		"collection_assignee",
+		"asset",
+		"asset_checkpoint",
+		"asset_dependency",
+		"collection_dependency",
 		"dependency_type",
 		"user",
 		"role",
 		"template",
 		"workflow",
 		"workflow_link",
-		"workflow_entity",
-		"workflow_task",
+		"workflow_collection",
+		"workflow_asset",
 		"tag",
-		"task_tag",
+		"asset_tag",
 	}
 
 	for _, table := range tables {
@@ -304,13 +304,13 @@ func MarkAllTablesUnsynced(tx *sqlx.Tx) error {
 }
 
 // FetchRemoteProjectTypes fetches the type configurations from a remote project.
-func FetchRemoteProjectTypes(remoteUrl string, userId string) ([]models.Status, []models.EntityType, []models.TaskType, []models.Role, error) {
+func FetchRemoteProjectTypes(remoteUrl string, userId string) ([]models.Status, []models.CollectionType, []models.AssetType, []models.Role, error) {
 	data, err := FetchData(remoteUrl, userId)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("failed to fetch remote project data: %w", err)
 	}
 
-	return data.Statuses, data.EntityTypes, data.TaskTypes, data.Roles, nil
+	return data.Statuses, data.CollectionTypes, data.AssetTypes, data.Roles, nil
 }
 
 // PrepareProjectForUpload prepares a local .clst file for upload to a remote studio.
@@ -329,13 +329,13 @@ func PrepareProjectForUpload(projectPath string, remoteProjectInfo repository.Pr
 	defer tx.Rollback()
 
 	// Fetch local types
-	localStatuses, localEntityTypes, localTaskTypes, localRoles, err := FetchLocalTypes(tx)
+	localStatuses, localCollectionTypes, localAssetTypes, localRoles, err := FetchLocalTypes(tx)
 	if err != nil {
 		return err
 	}
 
 	// Fetch remote types
-	remoteStatuses, remoteEntityTypes, remoteTaskTypes, remoteRoles, err := FetchRemoteProjectTypes(remoteUrl, userId)
+	remoteStatuses, remoteCollectionTypes, remoteAssetTypes, remoteRoles, err := FetchRemoteProjectTypes(remoteUrl, userId)
 	if err != nil {
 		return err
 	}
@@ -343,19 +343,19 @@ func PrepareProjectForUpload(projectPath string, remoteProjectInfo repository.Pr
 	// Build mappings
 	mappings := BuildTypeMappings(
 		localStatuses, remoteStatuses,
-		localEntityTypes, remoteEntityTypes,
-		localTaskTypes, remoteTaskTypes,
+		localCollectionTypes, remoteCollectionTypes,
+		localAssetTypes, remoteAssetTypes,
 		localRoles, remoteRoles,
 	)
 
-	// Remap IDs in tasks and entities
+	// Remap IDs in assets and collections
 	err = RemapProjectIds(tx, mappings)
 	if err != nil {
 		return err
 	}
 
 	// Replace type tables with remote types
-	err = ReplaceTypeTables(tx, remoteStatuses, remoteEntityTypes, remoteTaskTypes, remoteRoles)
+	err = ReplaceTypeTables(tx, remoteStatuses, remoteCollectionTypes, remoteAssetTypes, remoteRoles)
 	if err != nil {
 		return err
 	}

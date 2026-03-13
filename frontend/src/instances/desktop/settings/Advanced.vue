@@ -34,15 +34,15 @@
             </div>
           </div>
 
-          <!-- Task Type Templates (only when integration linked) -->
-          <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openTaskTypeMapping">
+          <!-- Asset Type Templates (only when integration linked) -->
+          <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openAssetTypeMapping">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('extension')"></div>
             <div class="settings-content">
-              <div class="settings-header">Task Type Templates</div>
-              <div class="settings-body">Map task types to file templates</div>
+              <div class="settings-header">Asset Type Templates</div>
+              <div class="settings-body">Map asset types to file templates</div>
             </div>
             <div class="settings-action" v-stop-propagation>
-              <ActionButton :icon="getAppIcon('settings')" :label="'Configure'" :buttonFunction="openTaskTypeMapping" />
+              <ActionButton :icon="getAppIcon('settings')" :label="'Configure'" :buttonFunction="openAssetTypeMapping" />
             </div>
           </div>
 
@@ -133,9 +133,9 @@ const openDirectoryMapping = () => {
   desktopModals.setModalVisibility('directoryMappingModal', true);
 };
 
-// Opens the task type mapping modal to configure template mappings.
-const openTaskTypeMapping = () => {
-  desktopModals.setModalVisibility('taskTypeMappingModal', true);
+// Opens the asset type mapping modal to configure template mappings.
+const openAssetTypeMapping = () => {
+  desktopModals.setModalVisibility('assetTypeMappingModal', true);
 };
 
 // Toggles the write-through sync experimental feature for the active project.

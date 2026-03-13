@@ -1,7 +1,7 @@
 <template>
   <div ref="collectionMenu" class="filter-menu-container" v-stop-propagation>
 
-    <span class="filter-menu-item" @click="toggleShowEntities()">
+    <span class="filter-menu-item" @click="toggleShowCollections()">
       <img class="small-icons" :src="getAppIcon('folder')">
       <div class="horizontal-flex">
         <div class="menu-item-text" >{{ $t('menus.collections') }}</div>
@@ -9,7 +9,7 @@
       </div>
     </span>
 
-    <span class="filter-menu-item" @click="toggleShowTasks()">
+    <span class="filter-menu-item" @click="toggleShowAssets()">
       <img class="small-icons" :src="getAppIcon('brush')">
       <div class="horizontal-flex">
         <div class="menu-item-text">{{ $t('menus.assets') }}</div>
@@ -59,7 +59,7 @@ const getAppIcon = (iconName) => {
 };
 
 // Toggles the filter for showing collections in dependency search.
-const toggleShowEntities = () => {
+const toggleShowCollections = () => {
   commonStore.filterDependencyCollections = !commonStore.filterDependencyCollections;
 };
 
@@ -69,7 +69,7 @@ const toggleShowResources = () => {
 };
 
 // Toggles the filter for showing assets in dependency search.
-const toggleShowTasks = () => {
+const toggleShowAssets = () => {
   commonStore.filterDependencyAssets = !commonStore.filterDependencyAssets;
 };
 

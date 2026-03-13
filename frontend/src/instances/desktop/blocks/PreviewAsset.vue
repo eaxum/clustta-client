@@ -8,8 +8,8 @@
       <img class="small-icons" :src="typeIcon" v-tooltip="typeName">
     </div>
 
-    <div class="preview-content" @click="console.log(task)" >
-      <span class="preview-name">{{ task.name }}</span>
+    <div class="preview-content" @click="console.log(asset)" >
+      <span class="preview-name">{{ asset.name }}</span>
       <span v-if="fileExtension" class="preview-extension">{{ fileExtension }}</span>
     </div>
 
@@ -32,7 +32,7 @@ const iconStore = useIconStore();
 // props
 const props = defineProps({
   isSelected: { type: Boolean, default: false },
-  task: { type: Object, required: true },
+  asset: { type: Object, required: true },
 });
 
 // emits
@@ -44,18 +44,18 @@ const fileIcon = ref('');
 // computed
 // Returns the file extension from the template (e.g., ".blend").
 const fileExtension = computed(() => {
-  return props.task.template_extension || null;
+  return props.asset.template_extension || null;
 });
 
 // Returns the type icon path.
 const typeIcon = computed(() => {
-  const iconName = props.task.task_type_icon || 'generic';
+  const iconName = props.asset.asset_type_icon || 'generic';
   return iconStore.getAppIcon(iconName);
 });
 
 // Returns the capitalized external type name.
 const typeName = computed(() => {
-  return utils.capitalizeStr(props.task.external_type || 'Task');
+  return utils.capitalizeStr(props.asset.external_type || 'Asset');
 });
 
 // methods

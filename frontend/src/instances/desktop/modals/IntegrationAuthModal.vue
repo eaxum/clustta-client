@@ -235,6 +235,11 @@ onMounted(async () => {
   width: 32px;
   height: 32px;
   object-fit: contain;
+  filter: invert(100%);
+}
+
+[data-theme="dark"] .integration-icon {
+  filter: none;
 }
 
 .integration-info {
@@ -255,10 +260,10 @@ onMounted(async () => {
 
 .auth-status {
   font-size: 11px;
-  color: var(--accent-primary);
+  color: var(--online);
   padding: 2px 8px;
-  background: var(--accent-primary-subtle);
   border-radius: var(--small-radius);
+  font-weight: 500;
 }
 
 .auth-form {

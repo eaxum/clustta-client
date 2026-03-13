@@ -107,15 +107,15 @@ const allEnrichedConflicts = computed(() =>
 
 const topLevelConflicts = computed(() => filterTopLevelConflicts(allEnrichedConflicts.value));
 
-const entityConflicts = computed(() => topLevelConflicts.value.filter(c => c.type === 'entity'));
+const collectionConflicts = computed(() => topLevelConflicts.value.filter(c => c.type === 'collection'));
 
 const filteredConflicts = computed(() => {
   if (selectedFilter.value === 'all') {
     return topLevelConflicts.value;
   } else if (selectedFilter.value === 'assets') {
-    return taskConflicts.value;
+    return assetConflicts.value;
   } else if (selectedFilter.value === 'collections') {
-    return entityConflicts.value;
+    return collectionConflicts.value;
   }
   return topLevelConflicts.value;
 });
@@ -124,7 +124,7 @@ const hasConflicts = computed(() => enrichedConflicts.value.length > 0);
 
 const projectPath = computed(() => syncConflictStore.projectPath);
 
-const taskConflicts = computed(() => topLevelConflicts.value.filter(c => c.type === 'task'));
+const assetConflicts = computed(() => topLevelConflicts.value.filter(c => c.type === 'asset'));
 
 // methods
 // Fetches full data for conflicts from DB using parallel requests.
@@ -136,56 +136,56 @@ const enrichConflicts = async () => {
   const projectUri = projectStore.activeProject?.uri || projectPath.value;
 
   try {
-    const entityIds = rawConflicts.filter(c => c.type === 'entity').map(c => c.local_id);
-    const taskIds = rawConflicts.filter(c => c.type === 'task').map(c => c.local_id);
+    const collectionIds = rawConflicts.filter(c => c.type === 'collection').map(c => c.local_id);
+    const assetIds = rawConflicts.filter(c => c.type === 'asset').map(c => c.local_id);
 
-    const [entityResults, taskResults] = await Promise.all([
-      Promise.all(entityIds.map(id => 
+    const [collectionResults, assetResults] = await Promise.all([
+      Promise.all(collectionIds.map(id => 
         CollectionService.GetCollectionByID(projectUri, id).catch(err => {
-          console.warn(`Failed to fetch entity ${id}:`, err);
+          console.warn(`Failed to fetch collection ${id}:`, err);
           return null;
         })
       )),
-      Promise.all(taskIds.map(id => 
+      Promise.all(assetIds.map(id => 
         AssetService.GetAssetByID(projectUri, id).catch(err => {
-          console.warn(`Failed to fetch task ${id}:`, err);
+          console.warn(`Failed to fetch asset ${id}:`, err);
           return null;
         })
       ))
     ]);
 
-    const entityMap = new Map();
-    entityResults.forEach((entity, idx) => {
-      if (entity && entity.id) {
-        entityMap.set(entityIds[idx], entity);
+    const collectionMap = new Map();
+    collectionResults.forEach((collection, idx) => {
+      if (collection && collection.id) {
+        collectionMap.set(collectionIds[idx], collection);
       }
     });
 
-    const taskMap = new Map();
-    taskResults.forEach((task, idx) => {
-      if (task && task.id) {
-        taskMap.set(taskIds[idx], task);
+    const assetMap = new Map();
+    assetResults.forEach((asset, idx) => {
+      if (asset && asset.id) {
+        assetMap.set(assetIds[idx], asset);
       }
     });
 
     enrichedConflicts.value = rawConflicts.map(conflict => {
-      if (conflict.type === 'entity') {
-        const entityData = entityMap.get(conflict.local_id);
-        if (entityData) {
+      if (conflict.type === 'collection') {
+        const collectionData = collectionMap.get(conflict.local_id);
+        if (collectionData) {
           return {
             ...conflict,
-            ...entityData,
+            ...collectionData,
             local_id: conflict.local_id,
             server_id: conflict.server_id,
             type: conflict.type,
           };
         }
-      } else if (conflict.type === 'task') {
-        const taskData = taskMap.get(conflict.local_id);
-        if (taskData) {
+      } else if (conflict.type === 'asset') {
+        const assetData = assetMap.get(conflict.local_id);
+        if (assetData) {
           return {
             ...conflict,
-            ...taskData,
+            ...assetData,
             local_id: conflict.local_id,
             server_id: conflict.server_id,
             type: conflict.type,

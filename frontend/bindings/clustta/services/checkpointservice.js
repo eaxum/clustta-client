@@ -14,18 +14,18 @@ import * as repository$0 from "../internal/repository/models.js";
 import * as models$0 from "../internal/repository/models/models.js";
 
 /**
- * AddCheckpoint creates new checkpoints for multiple tasks.
+ * AddCheckpoint creates new checkpoints for multiple assets.
  * Returns the created checkpoints or an error if the operation fails.
  * @param {string} projectPath
- * @param {string[]} taskPaths
+ * @param {string[]} assetPaths
  * @param {string} message
  * @param {string} previewPath
  * @param {string} groupId
  * @param {boolean} useAsThumbnail
  * @returns {$CancellablePromise<models$0.Checkpoint[]>}
  */
-export function AddCheckpoint(projectPath, taskPaths, message, previewPath, groupId, useAsThumbnail) {
-    return $Call.ByID(3142003966, projectPath, taskPaths, message, previewPath, groupId, useAsThumbnail).then(/** @type {($result: any) => any} */(($result) => {
+export function AddCheckpoint(projectPath, assetPaths, message, previewPath, groupId, useAsThumbnail) {
+    return $Call.ByID(3142003966, projectPath, assetPaths, message, previewPath, groupId, useAsThumbnail).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
 }
@@ -39,20 +39,20 @@ export function AddMissingGroupIds(projectPath) {
 }
 
 /**
- * AddUntrackedTask tracks previously untracked files and creates checkpoints for them.
- * Returns the newly tracked tasks or an error if the operation fails.
+ * AddUntrackedAsset tracks previously untracked files and creates checkpoints for them.
+ * Returns the newly tracked assets or an error if the operation fails.
  * @param {string} projectPath
  * @param {string} projectWorkingDir
- * @param {string[]} taskPaths
+ * @param {string[]} assetPaths
  * @param {number} completed
- * @param {number} totalTasks
+ * @param {number} totalAssets
  * @param {string} message
  * @param {string} previewPath
  * @param {string} groupId
- * @returns {$CancellablePromise<models$0.Task[]>}
+ * @returns {$CancellablePromise<models$0.Asset[]>}
  */
-export function AddUntrackedTask(projectPath, projectWorkingDir, taskPaths, completed, totalTasks, message, previewPath, groupId) {
-    return $Call.ByID(2633046258, projectPath, projectWorkingDir, taskPaths, completed, totalTasks, message, previewPath, groupId).then(/** @type {($result: any) => any} */(($result) => {
+export function AddUntrackedAsset(projectPath, projectWorkingDir, assetPaths, completed, totalAssets, message, previewPath, groupId) {
+    return $Call.ByID(3571873797, projectPath, projectWorkingDir, assetPaths, completed, totalAssets, message, previewPath, groupId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType2($result);
     }));
 }
@@ -69,27 +69,27 @@ export function DeleteCheckpoint(projectPath, checkpointId) {
 }
 
 /**
- * GetCheckpoints retrieves all checkpoints for a specific task.
+ * GetCheckpoints retrieves all checkpoints for a specific asset.
  * Returns the list of checkpoints or an error if the operation fails.
  * @param {string} projectPath
- * @param {string} taskId
+ * @param {string} assetId
  * @returns {$CancellablePromise<models$0.Checkpoint[]>}
  */
-export function GetCheckpoints(projectPath, taskId) {
-    return $Call.ByID(4053110126, projectPath, taskId).then(/** @type {($result: any) => any} */(($result) => {
+export function GetCheckpoints(projectPath, assetId) {
+    return $Call.ByID(4053110126, projectPath, assetId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
 }
 
 /**
- * GetLatestCheckpoint retrieves the most recent checkpoint for a task.
+ * GetLatestCheckpoint retrieves the most recent checkpoint for a asset.
  * Returns the latest checkpoint or an error if not found.
  * @param {string} projectPath
- * @param {string} taskId
+ * @param {string} assetId
  * @returns {$CancellablePromise<models$0.Checkpoint>}
  */
-export function GetLatestCheckpoint(projectPath, taskId) {
-    return $Call.ByID(1994898182, projectPath, taskId).then(/** @type {($result: any) => any} */(($result) => {
+export function GetLatestCheckpoint(projectPath, assetId) {
+    return $Call.ByID(1994898182, projectPath, assetId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
 }
@@ -107,15 +107,27 @@ export function GetTimeline(projectPath) {
 }
 
 /**
- * Revert reverts multiple tasks to their latest checkpoints.
+ * Revert reverts multiple assets to their latest checkpoints.
  * Downloads missing chunks if needed and supports cancellation.
  * @param {string} projectPath
  * @param {string} remoteUrl
- * @param {string[]} taskIds
+ * @param {string[]} assetIds
  * @returns {$CancellablePromise<void>}
  */
-export function Revert(projectPath, remoteUrl, taskIds) {
-    return $Call.ByID(3999685591, projectPath, remoteUrl, taskIds);
+export function Revert(projectPath, remoteUrl, assetIds) {
+    return $Call.ByID(3999685591, projectPath, remoteUrl, assetIds);
+}
+
+/**
+ * RevertAssetPaths reverts assets by their file paths to latest checkpoints.
+ * Downloads missing chunks if needed and supports cancellation.
+ * @param {string} projectPath
+ * @param {string} remoteUrl
+ * @param {string[]} assetPaths
+ * @returns {$CancellablePromise<void>}
+ */
+export function RevertAssetPaths(projectPath, remoteUrl, assetPaths) {
+    return $Call.ByID(1619220907, projectPath, remoteUrl, assetPaths);
 }
 
 /**
@@ -129,28 +141,16 @@ export function RevertProject(projectPath, remoteUrl, checkpointTime) {
 }
 
 /**
- * RevertTaskPaths reverts tasks by their file paths to latest checkpoints.
+ * RevertToCheckpoint reverts a asset to a specific checkpoint state.
  * Downloads missing chunks if needed and supports cancellation.
  * @param {string} projectPath
  * @param {string} remoteUrl
- * @param {string[]} taskPaths
- * @returns {$CancellablePromise<void>}
- */
-export function RevertTaskPaths(projectPath, remoteUrl, taskPaths) {
-    return $Call.ByID(1735214066, projectPath, remoteUrl, taskPaths);
-}
-
-/**
- * RevertToCheckpoint reverts a task to a specific checkpoint state.
- * Downloads missing chunks if needed and supports cancellation.
- * @param {string} projectPath
- * @param {string} remoteUrl
- * @param {string} taskId
+ * @param {string} assetId
  * @param {string} checkpointId
  * @returns {$CancellablePromise<void>}
  */
-export function RevertToCheckpoint(projectPath, remoteUrl, taskId, checkpointId) {
-    return $Call.ByID(1668596852, projectPath, remoteUrl, taskId, checkpointId);
+export function RevertToCheckpoint(projectPath, remoteUrl, assetId, checkpointId) {
+    return $Call.ByID(1668596852, projectPath, remoteUrl, assetId, checkpointId);
 }
 
 /**
@@ -160,13 +160,13 @@ export function RevertToCheckpoint(projectPath, remoteUrl, taskId, checkpointId)
  * @param {string} projectWorkingDir
  * @param {string[]} filePaths
  * @param {string} assetName
- * @param {string} entityId
+ * @param {string} collectionId
  * @param {boolean} deleteSourceFiles
  * @param {string[]} checkpointComments
- * @returns {$CancellablePromise<models$0.Task>}
+ * @returns {$CancellablePromise<models$0.Asset>}
  */
-export function SquashAssets(projectPath, projectWorkingDir, filePaths, assetName, entityId, deleteSourceFiles, checkpointComments) {
-    return $Call.ByID(2209883097, projectPath, projectWorkingDir, filePaths, assetName, entityId, deleteSourceFiles, checkpointComments);
+export function SquashAssets(projectPath, projectWorkingDir, filePaths, assetName, collectionId, deleteSourceFiles, checkpointComments) {
+    return $Call.ByID(2209883097, projectPath, projectWorkingDir, filePaths, assetName, collectionId, deleteSourceFiles, checkpointComments);
 }
 
 /**
@@ -174,12 +174,12 @@ export function SquashAssets(projectPath, projectWorkingDir, filePaths, assetNam
  * Returns an error if the operation fails.
  * @param {string} projectPath
  * @param {string} checkpointId
- * @param {string} entityName
+ * @param {string} collectionName
  * @param {string} extension
  * @returns {$CancellablePromise<void>}
  */
-export function ViewCheckpoint(projectPath, checkpointId, entityName, extension) {
-    return $Call.ByID(674726738, projectPath, checkpointId, entityName, extension);
+export function ViewCheckpoint(projectPath, checkpointId, collectionName, extension) {
+    return $Call.ByID(674726738, projectPath, checkpointId, collectionName, extension);
 }
 
 // Private type creation functions

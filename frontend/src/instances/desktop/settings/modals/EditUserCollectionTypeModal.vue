@@ -4,12 +4,12 @@
     <!-- <HeaderArea :title="title" :icon="'folder'" :showSearch="showSearch" /> -->
 
     <div class="general-pane-header">
-      <HeaderArea :title="title" :icon="entityTypeIcon" />
+      <HeaderArea :title="title" :icon="collectionTypeIcon" />
     </div>
 
     <div class="general-container">
       <div class="input-section">
-        <input v-model="entityTypeName" class="input-short" type="text" :placeholder="$t('placeholders.collectionTypeName')" v-focus
+        <input v-model="collectionTypeName" class="input-short" type="text" :placeholder="$t('placeholders.collectionTypeName')" v-focus
           @keydown.enter="handleEnterKey" />
       </div>
 
@@ -17,7 +17,7 @@
 
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateEntityType" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateCollectionType" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -56,19 +56,19 @@ const title = 'Edit Collection type';
 
 // refs
 const displayIconSelector = ref(true);
-const entityTypeIcon = ref('');
-const entityTypeName = ref('');
+const collectionTypeIcon = ref('');
+const collectionTypeName = ref('');
 const isAwaitingResponse = ref(false);
 
 // computed
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allEntityTypeIcons = collectionStore.getCollectionTypes.map((item) => item.icon);
-  return allIcons.filter((icon) => !allEntityTypeIcons.includes(icon));
+  const allCollectionTypeIcons = collectionStore.getCollectionTypes.map((item) => item.icon);
+  return allIcons.filter((icon) => !allCollectionTypeIcons.includes(icon));
 });
 
 const isValueChanged = computed(() => {
-  return !!entityTypeName.value && entityTypeIcon.value !== 'generic';
+  return !!collectionTypeName.value && collectionTypeIcon.value !== 'generic';
 });
 
 // methods
@@ -81,21 +81,21 @@ const closeModal = () => {
 // Handles enter key press.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter') {
-    // updateEntityType();
+    // updateCollectionType();
   }
 };
 
 // Sets the selected icon.
 const setIcon = (icon) => {
-  entityTypeIcon.value = icon;
+  collectionTypeIcon.value = icon;
 };
 
 // Updates the collection type with the new values.
-const updateEntityType = () => {
-  CollectionService.UpdateCollectionType(projectStore.activeProject.uri, collectionStore.selectedCollectionType.id, entityTypeName.value, entityTypeIcon.value)
+const updateCollectionType = () => {
+  CollectionService.UpdateCollectionType(projectStore.activeProject.uri, collectionStore.selectedCollectionType.id, collectionTypeName.value, collectionTypeIcon.value)
     .then((response) => {
       notificationStore.addNotification(t('notifications.collectionTypeUpdated'), "", "success");
-      const index = collectionStore.collectionTypes.findIndex(entityType => entityType.id === collectionStore.selectedCollectionType.id);
+      const index = collectionStore.collectionTypes.findIndex(collectionType => collectionType.id === collectionStore.selectedCollectionType.id);
       collectionStore.collectionTypes[index] = response;
       closeModal();
     })
@@ -106,8 +106,8 @@ const updateEntityType = () => {
 
 // lifecycle
 onMounted(() => {
-  // entityTypeName.value = collectionStore.selectedCollectionType.name;
-  // entityTypeIcon.value = collectionStore.selectedCollectionType.icon;
+  // collectionTypeName.value = collectionStore.selectedCollectionType.name;
+  // collectionTypeIcon.value = collectionStore.selectedCollectionType.icon;
 });
 </script>
 

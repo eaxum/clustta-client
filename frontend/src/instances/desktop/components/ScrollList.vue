@@ -7,24 +7,24 @@
         <div v-if="useAvatar" class="profile-picture" :style="{ backgroundColor: item.avatarColor }">
           <img class="profile-img" :src="item.profile ? item.profile : generateAvatar(item.id)">
         </div>
-        <div v-else-if="useIcons" class="task-item-icon-container">
+        <div v-else-if="useIcons" class="asset-item-icon-container">
           <img class="large-icons" :src="getAppIcon(item.icon)">
         </div>
-        <div v-else-if="customIcons" class="task-item-icon-container">
+        <div v-else-if="customIcons" class="asset-item-icon-container">
           <img class="large-icons no-filter" :src="item.icon">
         </div>
 
 
-        <div class="task-item-content">
-          <div class="task-item-details">
+        <div class="asset-item-content">
+          <div class="asset-item-details">
             {{ item.name }}
           </div>
         </div>
         <div v-if="item.meta" class="scroll-list-item-meta-container">
           <div class="scroll-list-item-meta"> {{ utils.capitalizeStr(item.meta) }}</div>
         </div>
-        <div class="task-item-container-footer">
-          <div v-if="useItemId" class="task-item-actions">
+        <div class="asset-item-container-footer">
+          <div v-if="useItemId" class="asset-item-actions">
             <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="$t('components.scrollList.edit')"
               @click="editListItem(item.id)" />
             <ActionButton v-if="item.can_delete" :icon="getAppIcon('trash')"
@@ -37,7 +37,7 @@
               :class="{ 'item-inactive': buttonInactive(item.id) }" @click="unassignListItem(item.id)"
               :label="$t('components.scrollList.unassign')" v-tooltip="$t('components.scrollList.unassign')" />
           </div>
-          <div v-else class="task-item-actions">
+          <div v-else class="asset-item-actions">
             <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="$t('components.scrollList.edit')"
               @click="editListItem(index)" />
             <ActionButton v-if="item.can_delete" :icon="getAppIcon('trash')"
@@ -58,17 +58,17 @@
       <div v-for="(item, index) in items" :key="index" :index="index" @click="selectItem(index)"
         class="scroll-list-item" :class="{ 'scroll-list-item-wrap': wrapItems, 'selected-item': selectedItem(index) }">
    
-        <div class="task-item-content">
+        <div class="asset-item-content">
           <div v-if="useAvatar" class="profile-picture" :style="{ backgroundColor: item.avatarColor }">
             <img class="profile-img" :src="item.profile ? item.profile : generateAvatar(item.id)">
           </div>
-          <div v-else-if="useIcons" class="task-item-icon-container">
+          <div v-else-if="useIcons" class="asset-item-icon-container">
             <img class="large-icons" :src="getAppIcon(item.icon)">
           </div>
-          <div v-else-if="customIcons" class="task-item-icon-container">
+          <div v-else-if="customIcons" class="asset-item-icon-container">
             <img class="large-icons no-filter" :src="item.icon">
           </div>
-            <div class="task-item-details">
+            <div class="asset-item-details">
               {{ item.name }}
             </div>
         </div>
@@ -77,8 +77,8 @@
           <div class="scroll-list-item-meta"> {{ utils.capitalizeStr(item.meta) }}</div>
         </div>
 
-        <div class="task-item-container-footer">
-          <div v-if="useItemId" class="task-item-actions">
+        <div class="asset-item-container-footer">
+          <div v-if="useItemId" class="asset-item-actions">
             <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="$t('components.scrollList.edit')"
               @click="editListItem(item.id)" />
             <ActionButton v-if="item.can_delete" :icon="forCollab ? getAppIcon('person-minus') : getAppIcon('trash')"
@@ -91,7 +91,7 @@
               :class="{ 'item-inactive': buttonInactive(item.id) }" @click="unassignListItem(item.id)"
               :label="$t('components.scrollList.unassign')" v-tooltip="$t('components.scrollList.unassign')" />
           </div>
-          <div v-else-if="useItemName" class="task-item-actions">
+          <div v-else-if="useItemName" class="asset-item-actions">
             <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="$t('components.scrollList.edit')"
               @click="editListItem(item.name)" />
             <ActionButton v-if="item.can_delete" :icon="forCollab ? getAppIcon('person-minus') : getAppIcon('trash')"
@@ -104,7 +104,7 @@
               :class="{ 'item-inactive': buttonInactive(item.name) }" @click="unassignListItem(item.name)"
               :label="$t('components.scrollList.unassign')" v-tooltip="$t('components.scrollList.unassign')" />
           </div>
-          <div v-else class="task-item-actions">
+          <div v-else class="asset-item-actions">
             <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="$t('components.scrollList.edit')"
               @click="editListItem(index)" />
             <ActionButton v-if="item.can_delete" :icon="forCollab ? getAppIcon('person-minus') : getAppIcon('trash')"
@@ -386,7 +386,7 @@ const props = defineProps({
   border-radius: var(--small-radius);
 }
 
-.task-item-container {
+.asset-item-container {
   display: flex;
   gap: .5rem;
   color: var(--white);
@@ -398,17 +398,17 @@ const props = defineProps({
   justify-content: space-between;
 }
 
-.task-item-container-cards {
+.asset-item-container-cards {
   height: 100%;
   flex-direction: column;
 }
 
-.task-item-container-selected {
+.asset-item-container-selected {
   outline: 1px solid rgb(255, 255, 255);
   outline-offset: -1px;
 }
 
-.task-item-container-selected:hover {
+.asset-item-container-selected:hover {
   outline: 1px solid rgb(255, 255, 255);
   outline-offset: -1px;
 }
@@ -423,7 +423,7 @@ const props = defineProps({
   outline-offset: -1px;
 }
 
-.task-spacer {
+.asset-spacer {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -436,7 +436,7 @@ const props = defineProps({
   /* flex: 1; */
 }
 
-.task-spacer-empty {
+.asset-spacer-empty {
   background-color: moccasin;
 }
 
@@ -469,7 +469,7 @@ const props = defineProps({
 }
 
 
-.task-item-icon-container {
+.asset-item-icon-container {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -481,7 +481,7 @@ const props = defineProps({
   /* background-color: firebrick; */
 }
 
-.task-item-content {
+.asset-item-content {
   gap: .4rem;
   display: flex;
   box-sizing: border-box;
@@ -494,11 +494,11 @@ const props = defineProps({
   /* max-width: 40%; */
 }
 
-.task-item-content-cards {
+.asset-item-content-cards {
   height: max-content;
 }
 
-.task-item-details {
+.asset-item-details {
   /* display: flex; */
   padding: .2rem;
   flex-wrap: nowrap;
@@ -515,7 +515,7 @@ const props = defineProps({
   /* background-color: forestgreen; */
 }
 
-.task-item-meta {
+.asset-item-meta {
   display: flex;
   padding: .2rem;
   box-sizing: border-box;
@@ -527,7 +527,7 @@ const props = defineProps({
   /* background-color: rosybrown; */
 }
 
-.task-item-tag {
+.asset-item-tag {
   display: flex;
   box-sizing: border-box;
   overflow: hidden;
@@ -538,7 +538,7 @@ const props = defineProps({
 }
 
 
-.task-item-status-container {
+.asset-item-status-container {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -550,7 +550,7 @@ const props = defineProps({
   /* flex: 1; */
 }
 
-.task-item-container-footer {
+.asset-item-container-footer {
   /* background-color: royalblue; */
   align-items: center;
   display: none;
@@ -563,13 +563,13 @@ const props = defineProps({
   justify-content: flex-end;
 }
 
-.task-item-container-footer-cards {
+.asset-item-container-footer-cards {
   width: 100%;
   justify-content: space-between;
 
 }
 
-.task-item-status {
+.asset-item-status {
   display: flex;
   border-radius: var(--normal-radius);
   box-sizing: border-box;
@@ -586,7 +586,7 @@ const props = defineProps({
   color: black;
 }
 
-.task-item-actions {
+.asset-item-actions {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -601,7 +601,7 @@ const props = defineProps({
   /* flex: 1; */
 }
 
-.task-item-assignee {
+.asset-item-assignee {
   display: flex;
   box-sizing: border-box;
   align-items: center;

@@ -341,17 +341,17 @@ func ChangeUserRole(tx *sqlx.Tx, userId string, roleId string) error {
 }
 
 func RemoveUser(tx *sqlx.Tx, userId string) error {
-	tasks, err := GetUserTasks(tx, userId)
+	assets, err := GetUserAssets(tx, userId)
 	if err != nil {
 		return err
 	}
-	if len(tasks) != 0 {
-		// Unassign all tasks from the user instead of returning an error
-		taskIds := make([]string, len(tasks))
-		for i, task := range tasks {
-			taskIds[i] = task.Id
+	if len(assets) != 0 {
+		// Unassign all assets from the user instead of returning an error
+		assetIds := make([]string, len(assets))
+		for i, asset := range assets {
+			assetIds[i] = asset.Id
 		}
-		err = UnAssignTasks(tx, taskIds)
+		err = UnAssignAssets(tx, assetIds)
 		if err != nil {
 			return err
 		}

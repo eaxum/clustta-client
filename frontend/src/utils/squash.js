@@ -93,8 +93,8 @@ export function canSquash(selectedItems) {
     return { valid: false, reason: 'Cannot squash more than 99 files.' };
   }
 
-  // All must be untracked_task
-  const allUntracked = selectedItems.every(item => item.type === 'untracked_task');
+  // All must be untracked_asset
+  const allUntracked = selectedItems.every(item => item.type === 'untracked_asset');
   if (!allUntracked) {
     return { valid: false, reason: 'All selected items must be untracked files.' };
   }
@@ -105,9 +105,9 @@ export function canSquash(selectedItems) {
     return { valid: false, reason: 'All selected files must have the same extension.' };
   }
 
-  // All must be siblings (same entity_id)
-  const entityIds = new Set(selectedItems.map(item => item.entity_id || ''));
-  if (entityIds.size !== 1) {
+  // All must be siblings (same collection_id)
+  const collectionIds = new Set(selectedItems.map(item => item.collection_id || ''));
+  if (collectionIds.size !== 1) {
     return { valid: false, reason: 'All selected files must be in the same collection.' };
   }
 

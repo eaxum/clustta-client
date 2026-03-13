@@ -41,9 +41,9 @@ const allStates = computed(() => {
 });
 
 // methods
-// Adds a filter to both task and resource filters lists.
+// Adds a filter to both asset and resource filters lists.
 const addFilter = (filter) => {
-  commonStore.taskFilters.push(filter);
+  commonStore.assetFilters.push(filter);
   commonStore.resourceFilters.push(filter);
 };
 
@@ -58,14 +58,14 @@ const isColored = (stateName) => {
   return coloredItems.includes(stateName);
 };
 
-// Checks if a filter is currently active in task or resource filters.
+// Checks if a filter is currently active in asset or resource filters.
 const isFilterActive = (filter) => {
-  return commonStore.taskFilters.includes(filter) || commonStore.resourceFilters.includes(filter);
+  return commonStore.assetFilters.includes(filter) || commonStore.resourceFilters.includes(filter);
 };
 
-// Removes a filter from both task and resource filters lists.
+// Removes a filter from both asset and resource filters lists.
 const removeFilter = (filter) => {
-  commonStore.taskFilters = commonStore.taskFilters.filter((item) => item !== filter);
+  commonStore.assetFilters = commonStore.assetFilters.filter((item) => item !== filter);
   commonStore.resourceFilters = commonStore.resourceFilters.filter((item) => item !== filter);
 };
 

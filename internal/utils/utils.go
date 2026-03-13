@@ -571,14 +571,14 @@ func GetParent(p string) string {
 	return "/" + dir + "/"
 }
 
-func GetEntityPaths(entityPath string) []string {
-	entityPath, _ = strings.CutSuffix(entityPath, "/")
-	entityPath, _ = strings.CutPrefix(entityPath, "/")
-	parts := strings.Split(entityPath, "/")
-	var entityPaths []string
+func GetCollectionPaths(collectionPath string) []string {
+	collectionPath, _ = strings.CutSuffix(collectionPath, "/")
+	collectionPath, _ = strings.CutPrefix(collectionPath, "/")
+	parts := strings.Split(collectionPath, "/")
+	var collectionPaths []string
 	var current string
 
-	if entityPath == "" {
+	if collectionPath == "" {
 		return []string{}
 	}
 
@@ -589,8 +589,8 @@ func GetEntityPaths(entityPath string) []string {
 			current = path.Join(current, part)
 		}
 		current = current + "/"
-		entityPaths = append(entityPaths, current)
+		collectionPaths = append(collectionPaths, current)
 	}
 
-	return entityPaths
+	return collectionPaths
 }

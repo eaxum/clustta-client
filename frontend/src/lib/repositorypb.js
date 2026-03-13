@@ -475,28 +475,28 @@ export const repository = $root.repository = (() => {
         return User;
     })();
 
-    repository.EntityType = (function() {
+    repository.CollectionType = (function() {
 
         /**
-         * Properties of an EntityType.
+         * Properties of a CollectionType.
          * @memberof repository
-         * @interface IEntityType
-         * @property {string|null} [id] EntityType id
-         * @property {number|Long|null} [mtime] EntityType mtime
-         * @property {string|null} [name] EntityType name
-         * @property {string|null} [icon] EntityType icon
-         * @property {boolean|null} [synced] EntityType synced
+         * @interface ICollectionType
+         * @property {string|null} [id] CollectionType id
+         * @property {number|Long|null} [mtime] CollectionType mtime
+         * @property {string|null} [name] CollectionType name
+         * @property {string|null} [icon] CollectionType icon
+         * @property {boolean|null} [synced] CollectionType synced
          */
 
         /**
-         * Constructs a new EntityType.
+         * Constructs a new CollectionType.
          * @memberof repository
-         * @classdesc Represents an EntityType.
-         * @implements IEntityType
+         * @classdesc Represents a CollectionType.
+         * @implements ICollectionType
          * @constructor
-         * @param {repository.IEntityType=} [properties] Properties to set
+         * @param {repository.ICollectionType=} [properties] Properties to set
          */
-        function EntityType(properties) {
+        function CollectionType(properties) {
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -504,67 +504,67 @@ export const repository = $root.repository = (() => {
         }
 
         /**
-         * EntityType id.
+         * CollectionType id.
          * @member {string} id
-         * @memberof repository.EntityType
+         * @memberof repository.CollectionType
          * @instance
          */
-        EntityType.prototype.id = "";
+        CollectionType.prototype.id = "";
 
         /**
-         * EntityType mtime.
+         * CollectionType mtime.
          * @member {number|Long} mtime
-         * @memberof repository.EntityType
+         * @memberof repository.CollectionType
          * @instance
          */
-        EntityType.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+        CollectionType.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
         /**
-         * EntityType name.
+         * CollectionType name.
          * @member {string} name
-         * @memberof repository.EntityType
+         * @memberof repository.CollectionType
          * @instance
          */
-        EntityType.prototype.name = "";
+        CollectionType.prototype.name = "";
 
         /**
-         * EntityType icon.
+         * CollectionType icon.
          * @member {string} icon
-         * @memberof repository.EntityType
+         * @memberof repository.CollectionType
          * @instance
          */
-        EntityType.prototype.icon = "";
+        CollectionType.prototype.icon = "";
 
         /**
-         * EntityType synced.
+         * CollectionType synced.
          * @member {boolean} synced
-         * @memberof repository.EntityType
+         * @memberof repository.CollectionType
          * @instance
          */
-        EntityType.prototype.synced = false;
+        CollectionType.prototype.synced = false;
 
         /**
-         * Creates a new EntityType instance using the specified properties.
+         * Creates a new CollectionType instance using the specified properties.
          * @function create
-         * @memberof repository.EntityType
+         * @memberof repository.CollectionType
          * @static
-         * @param {repository.IEntityType=} [properties] Properties to set
-         * @returns {repository.EntityType} EntityType instance
+         * @param {repository.ICollectionType=} [properties] Properties to set
+         * @returns {repository.CollectionType} CollectionType instance
          */
-        EntityType.create = function create(properties) {
-            return new EntityType(properties);
+        CollectionType.create = function create(properties) {
+            return new CollectionType(properties);
         };
 
         /**
-         * Encodes the specified EntityType message. Does not implicitly {@link repository.EntityType.verify|verify} messages.
+         * Encodes the specified CollectionType message. Does not implicitly {@link repository.CollectionType.verify|verify} messages.
          * @function encode
-         * @memberof repository.EntityType
+         * @memberof repository.CollectionType
          * @static
-         * @param {repository.IEntityType} message EntityType message or plain object to encode
+         * @param {repository.ICollectionType} message CollectionType message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        EntityType.encode = function encode(message, writer) {
+        CollectionType.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
             if (message.id != null && Object.hasOwnProperty.call(message, "id"))
@@ -581,33 +581,33 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Encodes the specified EntityType message, length delimited. Does not implicitly {@link repository.EntityType.verify|verify} messages.
+         * Encodes the specified CollectionType message, length delimited. Does not implicitly {@link repository.CollectionType.verify|verify} messages.
          * @function encodeDelimited
-         * @memberof repository.EntityType
+         * @memberof repository.CollectionType
          * @static
-         * @param {repository.IEntityType} message EntityType message or plain object to encode
+         * @param {repository.ICollectionType} message CollectionType message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        EntityType.encodeDelimited = function encodeDelimited(message, writer) {
+        CollectionType.encodeDelimited = function encodeDelimited(message, writer) {
             return this.encode(message, writer).ldelim();
         };
 
         /**
-         * Decodes an EntityType message from the specified reader or buffer.
+         * Decodes a CollectionType message from the specified reader or buffer.
          * @function decode
-         * @memberof repository.EntityType
+         * @memberof repository.CollectionType
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {repository.EntityType} EntityType
+         * @returns {repository.CollectionType} CollectionType
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        EntityType.decode = function decode(reader, length, error) {
+        CollectionType.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.EntityType();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.CollectionType();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -642,30 +642,30 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Decodes an EntityType message from the specified reader or buffer, length delimited.
+         * Decodes a CollectionType message from the specified reader or buffer, length delimited.
          * @function decodeDelimited
-         * @memberof repository.EntityType
+         * @memberof repository.CollectionType
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @returns {repository.EntityType} EntityType
+         * @returns {repository.CollectionType} CollectionType
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        EntityType.decodeDelimited = function decodeDelimited(reader) {
+        CollectionType.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
-         * Verifies an EntityType message.
+         * Verifies a CollectionType message.
          * @function verify
-         * @memberof repository.EntityType
+         * @memberof repository.CollectionType
          * @static
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        EntityType.verify = function verify(message) {
+        CollectionType.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
             if (message.id != null && message.hasOwnProperty("id"))
@@ -687,17 +687,17 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates an EntityType message from a plain object. Also converts values to their respective internal types.
+         * Creates a CollectionType message from a plain object. Also converts values to their respective internal types.
          * @function fromObject
-         * @memberof repository.EntityType
+         * @memberof repository.CollectionType
          * @static
          * @param {Object.<string,*>} object Plain object
-         * @returns {repository.EntityType} EntityType
+         * @returns {repository.CollectionType} CollectionType
          */
-        EntityType.fromObject = function fromObject(object) {
-            if (object instanceof $root.repository.EntityType)
+        CollectionType.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.CollectionType)
                 return object;
-            let message = new $root.repository.EntityType();
+            let message = new $root.repository.CollectionType();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.mtime != null)
@@ -719,15 +719,15 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a plain object from an EntityType message. Also converts values to other types if specified.
+         * Creates a plain object from a CollectionType message. Also converts values to other types if specified.
          * @function toObject
-         * @memberof repository.EntityType
+         * @memberof repository.CollectionType
          * @static
-         * @param {repository.EntityType} message EntityType
+         * @param {repository.CollectionType} message CollectionType
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        EntityType.toObject = function toObject(message, options) {
+        CollectionType.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
             let object = {};
@@ -759,56 +759,56 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Converts this EntityType to JSON.
+         * Converts this CollectionType to JSON.
          * @function toJSON
-         * @memberof repository.EntityType
+         * @memberof repository.CollectionType
          * @instance
          * @returns {Object.<string,*>} JSON object
          */
-        EntityType.prototype.toJSON = function toJSON() {
+        CollectionType.prototype.toJSON = function toJSON() {
             return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
         };
 
         /**
-         * Gets the default type url for EntityType
+         * Gets the default type url for CollectionType
          * @function getTypeUrl
-         * @memberof repository.EntityType
+         * @memberof repository.CollectionType
          * @static
          * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns {string} The default type url
          */
-        EntityType.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        CollectionType.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
             if (typeUrlPrefix === undefined) {
                 typeUrlPrefix = "type.googleapis.com";
             }
-            return typeUrlPrefix + "/repository.EntityType";
+            return typeUrlPrefix + "/repository.CollectionType";
         };
 
-        return EntityType;
+        return CollectionType;
     })();
 
-    repository.TaskType = (function() {
+    repository.AssetType = (function() {
 
         /**
-         * Properties of a TaskType.
+         * Properties of an AssetType.
          * @memberof repository
-         * @interface ITaskType
-         * @property {string|null} [id] TaskType id
-         * @property {number|Long|null} [mtime] TaskType mtime
-         * @property {string|null} [name] TaskType name
-         * @property {string|null} [icon] TaskType icon
-         * @property {boolean|null} [synced] TaskType synced
+         * @interface IAssetType
+         * @property {string|null} [id] AssetType id
+         * @property {number|Long|null} [mtime] AssetType mtime
+         * @property {string|null} [name] AssetType name
+         * @property {string|null} [icon] AssetType icon
+         * @property {boolean|null} [synced] AssetType synced
          */
 
         /**
-         * Constructs a new TaskType.
+         * Constructs a new AssetType.
          * @memberof repository
-         * @classdesc Represents a TaskType.
-         * @implements ITaskType
+         * @classdesc Represents an AssetType.
+         * @implements IAssetType
          * @constructor
-         * @param {repository.ITaskType=} [properties] Properties to set
+         * @param {repository.IAssetType=} [properties] Properties to set
          */
-        function TaskType(properties) {
+        function AssetType(properties) {
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -816,67 +816,67 @@ export const repository = $root.repository = (() => {
         }
 
         /**
-         * TaskType id.
+         * AssetType id.
          * @member {string} id
-         * @memberof repository.TaskType
+         * @memberof repository.AssetType
          * @instance
          */
-        TaskType.prototype.id = "";
+        AssetType.prototype.id = "";
 
         /**
-         * TaskType mtime.
+         * AssetType mtime.
          * @member {number|Long} mtime
-         * @memberof repository.TaskType
+         * @memberof repository.AssetType
          * @instance
          */
-        TaskType.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+        AssetType.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
         /**
-         * TaskType name.
+         * AssetType name.
          * @member {string} name
-         * @memberof repository.TaskType
+         * @memberof repository.AssetType
          * @instance
          */
-        TaskType.prototype.name = "";
+        AssetType.prototype.name = "";
 
         /**
-         * TaskType icon.
+         * AssetType icon.
          * @member {string} icon
-         * @memberof repository.TaskType
+         * @memberof repository.AssetType
          * @instance
          */
-        TaskType.prototype.icon = "";
+        AssetType.prototype.icon = "";
 
         /**
-         * TaskType synced.
+         * AssetType synced.
          * @member {boolean} synced
-         * @memberof repository.TaskType
+         * @memberof repository.AssetType
          * @instance
          */
-        TaskType.prototype.synced = false;
+        AssetType.prototype.synced = false;
 
         /**
-         * Creates a new TaskType instance using the specified properties.
+         * Creates a new AssetType instance using the specified properties.
          * @function create
-         * @memberof repository.TaskType
+         * @memberof repository.AssetType
          * @static
-         * @param {repository.ITaskType=} [properties] Properties to set
-         * @returns {repository.TaskType} TaskType instance
+         * @param {repository.IAssetType=} [properties] Properties to set
+         * @returns {repository.AssetType} AssetType instance
          */
-        TaskType.create = function create(properties) {
-            return new TaskType(properties);
+        AssetType.create = function create(properties) {
+            return new AssetType(properties);
         };
 
         /**
-         * Encodes the specified TaskType message. Does not implicitly {@link repository.TaskType.verify|verify} messages.
+         * Encodes the specified AssetType message. Does not implicitly {@link repository.AssetType.verify|verify} messages.
          * @function encode
-         * @memberof repository.TaskType
+         * @memberof repository.AssetType
          * @static
-         * @param {repository.ITaskType} message TaskType message or plain object to encode
+         * @param {repository.IAssetType} message AssetType message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        TaskType.encode = function encode(message, writer) {
+        AssetType.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
             if (message.id != null && Object.hasOwnProperty.call(message, "id"))
@@ -893,33 +893,33 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Encodes the specified TaskType message, length delimited. Does not implicitly {@link repository.TaskType.verify|verify} messages.
+         * Encodes the specified AssetType message, length delimited. Does not implicitly {@link repository.AssetType.verify|verify} messages.
          * @function encodeDelimited
-         * @memberof repository.TaskType
+         * @memberof repository.AssetType
          * @static
-         * @param {repository.ITaskType} message TaskType message or plain object to encode
+         * @param {repository.IAssetType} message AssetType message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        TaskType.encodeDelimited = function encodeDelimited(message, writer) {
+        AssetType.encodeDelimited = function encodeDelimited(message, writer) {
             return this.encode(message, writer).ldelim();
         };
 
         /**
-         * Decodes a TaskType message from the specified reader or buffer.
+         * Decodes an AssetType message from the specified reader or buffer.
          * @function decode
-         * @memberof repository.TaskType
+         * @memberof repository.AssetType
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {repository.TaskType} TaskType
+         * @returns {repository.AssetType} AssetType
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        TaskType.decode = function decode(reader, length, error) {
+        AssetType.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.TaskType();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.AssetType();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -954,30 +954,30 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Decodes a TaskType message from the specified reader or buffer, length delimited.
+         * Decodes an AssetType message from the specified reader or buffer, length delimited.
          * @function decodeDelimited
-         * @memberof repository.TaskType
+         * @memberof repository.AssetType
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @returns {repository.TaskType} TaskType
+         * @returns {repository.AssetType} AssetType
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        TaskType.decodeDelimited = function decodeDelimited(reader) {
+        AssetType.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
-         * Verifies a TaskType message.
+         * Verifies an AssetType message.
          * @function verify
-         * @memberof repository.TaskType
+         * @memberof repository.AssetType
          * @static
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        TaskType.verify = function verify(message) {
+        AssetType.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
             if (message.id != null && message.hasOwnProperty("id"))
@@ -999,17 +999,17 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a TaskType message from a plain object. Also converts values to their respective internal types.
+         * Creates an AssetType message from a plain object. Also converts values to their respective internal types.
          * @function fromObject
-         * @memberof repository.TaskType
+         * @memberof repository.AssetType
          * @static
          * @param {Object.<string,*>} object Plain object
-         * @returns {repository.TaskType} TaskType
+         * @returns {repository.AssetType} AssetType
          */
-        TaskType.fromObject = function fromObject(object) {
-            if (object instanceof $root.repository.TaskType)
+        AssetType.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.AssetType)
                 return object;
-            let message = new $root.repository.TaskType();
+            let message = new $root.repository.AssetType();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.mtime != null)
@@ -1031,15 +1031,15 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a plain object from a TaskType message. Also converts values to other types if specified.
+         * Creates a plain object from an AssetType message. Also converts values to other types if specified.
          * @function toObject
-         * @memberof repository.TaskType
+         * @memberof repository.AssetType
          * @static
-         * @param {repository.TaskType} message TaskType
+         * @param {repository.AssetType} message AssetType
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        TaskType.toObject = function toObject(message, options) {
+        AssetType.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
             let object = {};
@@ -1071,68 +1071,68 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Converts this TaskType to JSON.
+         * Converts this AssetType to JSON.
          * @function toJSON
-         * @memberof repository.TaskType
+         * @memberof repository.AssetType
          * @instance
          * @returns {Object.<string,*>} JSON object
          */
-        TaskType.prototype.toJSON = function toJSON() {
+        AssetType.prototype.toJSON = function toJSON() {
             return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
         };
 
         /**
-         * Gets the default type url for TaskType
+         * Gets the default type url for AssetType
          * @function getTypeUrl
-         * @memberof repository.TaskType
+         * @memberof repository.AssetType
          * @static
          * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns {string} The default type url
          */
-        TaskType.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        AssetType.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
             if (typeUrlPrefix === undefined) {
                 typeUrlPrefix = "type.googleapis.com";
             }
-            return typeUrlPrefix + "/repository.TaskType";
+            return typeUrlPrefix + "/repository.AssetType";
         };
 
-        return TaskType;
+        return AssetType;
     })();
 
-    repository.Task = (function() {
+    repository.Asset = (function() {
 
         /**
-         * Properties of a Task.
+         * Properties of an Asset.
          * @memberof repository
-         * @interface ITask
-         * @property {string|null} [id] Task id
-         * @property {number|Long|null} [mtime] Task mtime
-         * @property {string|null} [created_at] Task created_at
-         * @property {string|null} [name] Task name
-         * @property {string|null} [description] Task description
-         * @property {string|null} [extension] Task extension
-         * @property {boolean|null} [is_resource] Task is_resource
-         * @property {string|null} [status_id] Task status_id
-         * @property {string|null} [task_type_id] Task task_type_id
-         * @property {string|null} [entity_id] Task entity_id
-         * @property {string|null} [assignee_id] Task assignee_id
-         * @property {string|null} [assigner_id] Task assigner_id
-         * @property {boolean|null} [is_link] Task is_link
-         * @property {string|null} [pointer] Task pointer
-         * @property {string|null} [preview_id] Task preview_id
-         * @property {boolean|null} [trashed] Task trashed
-         * @property {boolean|null} [synced] Task synced
+         * @interface IAsset
+         * @property {string|null} [id] Asset id
+         * @property {number|Long|null} [mtime] Asset mtime
+         * @property {string|null} [created_at] Asset created_at
+         * @property {string|null} [name] Asset name
+         * @property {string|null} [description] Asset description
+         * @property {string|null} [extension] Asset extension
+         * @property {boolean|null} [is_resource] Asset is_resource
+         * @property {string|null} [status_id] Asset status_id
+         * @property {string|null} [asset_type_id] Asset asset_type_id
+         * @property {string|null} [collection_id] Asset collection_id
+         * @property {string|null} [assignee_id] Asset assignee_id
+         * @property {string|null} [assigner_id] Asset assigner_id
+         * @property {boolean|null} [is_link] Asset is_link
+         * @property {string|null} [pointer] Asset pointer
+         * @property {string|null} [preview_id] Asset preview_id
+         * @property {boolean|null} [trashed] Asset trashed
+         * @property {boolean|null} [synced] Asset synced
          */
 
         /**
-         * Constructs a new Task.
+         * Constructs a new Asset.
          * @memberof repository
-         * @classdesc Represents a Task.
-         * @implements ITask
+         * @classdesc Represents an Asset.
+         * @implements IAsset
          * @constructor
-         * @param {repository.ITask=} [properties] Properties to set
+         * @param {repository.IAsset=} [properties] Properties to set
          */
-        function Task(properties) {
+        function Asset(properties) {
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -1140,163 +1140,163 @@ export const repository = $root.repository = (() => {
         }
 
         /**
-         * Task id.
+         * Asset id.
          * @member {string} id
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.id = "";
+        Asset.prototype.id = "";
 
         /**
-         * Task mtime.
+         * Asset mtime.
          * @member {number|Long} mtime
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+        Asset.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
         /**
-         * Task created_at.
+         * Asset created_at.
          * @member {string} created_at
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.created_at = "";
+        Asset.prototype.created_at = "";
 
         /**
-         * Task name.
+         * Asset name.
          * @member {string} name
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.name = "";
+        Asset.prototype.name = "";
 
         /**
-         * Task description.
+         * Asset description.
          * @member {string} description
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.description = "";
+        Asset.prototype.description = "";
 
         /**
-         * Task extension.
+         * Asset extension.
          * @member {string} extension
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.extension = "";
+        Asset.prototype.extension = "";
 
         /**
-         * Task is_resource.
+         * Asset is_resource.
          * @member {boolean} is_resource
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.is_resource = false;
+        Asset.prototype.is_resource = false;
 
         /**
-         * Task status_id.
+         * Asset status_id.
          * @member {string} status_id
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.status_id = "";
+        Asset.prototype.status_id = "";
 
         /**
-         * Task task_type_id.
-         * @member {string} task_type_id
-         * @memberof repository.Task
+         * Asset asset_type_id.
+         * @member {string} asset_type_id
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.task_type_id = "";
+        Asset.prototype.asset_type_id = "";
 
         /**
-         * Task entity_id.
-         * @member {string} entity_id
-         * @memberof repository.Task
+         * Asset collection_id.
+         * @member {string} collection_id
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.entity_id = "";
+        Asset.prototype.collection_id = "";
 
         /**
-         * Task assignee_id.
+         * Asset assignee_id.
          * @member {string} assignee_id
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.assignee_id = "";
+        Asset.prototype.assignee_id = "";
 
         /**
-         * Task assigner_id.
+         * Asset assigner_id.
          * @member {string} assigner_id
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.assigner_id = "";
+        Asset.prototype.assigner_id = "";
 
         /**
-         * Task is_link.
+         * Asset is_link.
          * @member {boolean} is_link
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.is_link = false;
+        Asset.prototype.is_link = false;
 
         /**
-         * Task pointer.
+         * Asset pointer.
          * @member {string} pointer
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.pointer = "";
+        Asset.prototype.pointer = "";
 
         /**
-         * Task preview_id.
+         * Asset preview_id.
          * @member {string} preview_id
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.preview_id = "";
+        Asset.prototype.preview_id = "";
 
         /**
-         * Task trashed.
+         * Asset trashed.
          * @member {boolean} trashed
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.trashed = false;
+        Asset.prototype.trashed = false;
 
         /**
-         * Task synced.
+         * Asset synced.
          * @member {boolean} synced
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          */
-        Task.prototype.synced = false;
+        Asset.prototype.synced = false;
 
         /**
-         * Creates a new Task instance using the specified properties.
+         * Creates a new Asset instance using the specified properties.
          * @function create
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @static
-         * @param {repository.ITask=} [properties] Properties to set
-         * @returns {repository.Task} Task instance
+         * @param {repository.IAsset=} [properties] Properties to set
+         * @returns {repository.Asset} Asset instance
          */
-        Task.create = function create(properties) {
-            return new Task(properties);
+        Asset.create = function create(properties) {
+            return new Asset(properties);
         };
 
         /**
-         * Encodes the specified Task message. Does not implicitly {@link repository.Task.verify|verify} messages.
+         * Encodes the specified Asset message. Does not implicitly {@link repository.Asset.verify|verify} messages.
          * @function encode
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @static
-         * @param {repository.ITask} message Task message or plain object to encode
+         * @param {repository.IAsset} message Asset message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        Task.encode = function encode(message, writer) {
+        Asset.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
             if (message.id != null && Object.hasOwnProperty.call(message, "id"))
@@ -1315,10 +1315,10 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 7, wireType 0 =*/56).bool(message.is_resource);
             if (message.status_id != null && Object.hasOwnProperty.call(message, "status_id"))
                 writer.uint32(/* id 8, wireType 2 =*/66).string(message.status_id);
-            if (message.task_type_id != null && Object.hasOwnProperty.call(message, "task_type_id"))
-                writer.uint32(/* id 9, wireType 2 =*/74).string(message.task_type_id);
-            if (message.entity_id != null && Object.hasOwnProperty.call(message, "entity_id"))
-                writer.uint32(/* id 10, wireType 2 =*/82).string(message.entity_id);
+            if (message.asset_type_id != null && Object.hasOwnProperty.call(message, "asset_type_id"))
+                writer.uint32(/* id 9, wireType 2 =*/74).string(message.asset_type_id);
+            if (message.collection_id != null && Object.hasOwnProperty.call(message, "collection_id"))
+                writer.uint32(/* id 10, wireType 2 =*/82).string(message.collection_id);
             if (message.assignee_id != null && Object.hasOwnProperty.call(message, "assignee_id"))
                 writer.uint32(/* id 11, wireType 2 =*/90).string(message.assignee_id);
             if (message.assigner_id != null && Object.hasOwnProperty.call(message, "assigner_id"))
@@ -1337,33 +1337,33 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Encodes the specified Task message, length delimited. Does not implicitly {@link repository.Task.verify|verify} messages.
+         * Encodes the specified Asset message, length delimited. Does not implicitly {@link repository.Asset.verify|verify} messages.
          * @function encodeDelimited
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @static
-         * @param {repository.ITask} message Task message or plain object to encode
+         * @param {repository.IAsset} message Asset message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        Task.encodeDelimited = function encodeDelimited(message, writer) {
+        Asset.encodeDelimited = function encodeDelimited(message, writer) {
             return this.encode(message, writer).ldelim();
         };
 
         /**
-         * Decodes a Task message from the specified reader or buffer.
+         * Decodes an Asset message from the specified reader or buffer.
          * @function decode
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {repository.Task} Task
+         * @returns {repository.Asset} Asset
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Task.decode = function decode(reader, length, error) {
+        Asset.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.Task();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.Asset();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -1402,11 +1402,11 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 9: {
-                        message.task_type_id = reader.string();
+                        message.asset_type_id = reader.string();
                         break;
                     }
                 case 10: {
-                        message.entity_id = reader.string();
+                        message.collection_id = reader.string();
                         break;
                     }
                 case 11: {
@@ -1446,30 +1446,30 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Decodes a Task message from the specified reader or buffer, length delimited.
+         * Decodes an Asset message from the specified reader or buffer, length delimited.
          * @function decodeDelimited
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @returns {repository.Task} Task
+         * @returns {repository.Asset} Asset
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Task.decodeDelimited = function decodeDelimited(reader) {
+        Asset.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
-         * Verifies a Task message.
+         * Verifies an Asset message.
          * @function verify
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @static
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        Task.verify = function verify(message) {
+        Asset.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
             if (message.id != null && message.hasOwnProperty("id"))
@@ -1496,12 +1496,12 @@ export const repository = $root.repository = (() => {
             if (message.status_id != null && message.hasOwnProperty("status_id"))
                 if (!$util.isString(message.status_id))
                     return "status_id: string expected";
-            if (message.task_type_id != null && message.hasOwnProperty("task_type_id"))
-                if (!$util.isString(message.task_type_id))
-                    return "task_type_id: string expected";
-            if (message.entity_id != null && message.hasOwnProperty("entity_id"))
-                if (!$util.isString(message.entity_id))
-                    return "entity_id: string expected";
+            if (message.asset_type_id != null && message.hasOwnProperty("asset_type_id"))
+                if (!$util.isString(message.asset_type_id))
+                    return "asset_type_id: string expected";
+            if (message.collection_id != null && message.hasOwnProperty("collection_id"))
+                if (!$util.isString(message.collection_id))
+                    return "collection_id: string expected";
             if (message.assignee_id != null && message.hasOwnProperty("assignee_id"))
                 if (!$util.isString(message.assignee_id))
                     return "assignee_id: string expected";
@@ -1527,17 +1527,17 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a Task message from a plain object. Also converts values to their respective internal types.
+         * Creates an Asset message from a plain object. Also converts values to their respective internal types.
          * @function fromObject
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @static
          * @param {Object.<string,*>} object Plain object
-         * @returns {repository.Task} Task
+         * @returns {repository.Asset} Asset
          */
-        Task.fromObject = function fromObject(object) {
-            if (object instanceof $root.repository.Task)
+        Asset.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.Asset)
                 return object;
-            let message = new $root.repository.Task();
+            let message = new $root.repository.Asset();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.mtime != null)
@@ -1561,10 +1561,10 @@ export const repository = $root.repository = (() => {
                 message.is_resource = Boolean(object.is_resource);
             if (object.status_id != null)
                 message.status_id = String(object.status_id);
-            if (object.task_type_id != null)
-                message.task_type_id = String(object.task_type_id);
-            if (object.entity_id != null)
-                message.entity_id = String(object.entity_id);
+            if (object.asset_type_id != null)
+                message.asset_type_id = String(object.asset_type_id);
+            if (object.collection_id != null)
+                message.collection_id = String(object.collection_id);
             if (object.assignee_id != null)
                 message.assignee_id = String(object.assignee_id);
             if (object.assigner_id != null)
@@ -1583,15 +1583,15 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a plain object from a Task message. Also converts values to other types if specified.
+         * Creates a plain object from an Asset message. Also converts values to other types if specified.
          * @function toObject
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @static
-         * @param {repository.Task} message Task
+         * @param {repository.Asset} message Asset
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        Task.toObject = function toObject(message, options) {
+        Asset.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
             let object = {};
@@ -1608,8 +1608,8 @@ export const repository = $root.repository = (() => {
                 object.extension = "";
                 object.is_resource = false;
                 object.status_id = "";
-                object.task_type_id = "";
-                object.entity_id = "";
+                object.asset_type_id = "";
+                object.collection_id = "";
                 object.assignee_id = "";
                 object.assigner_id = "";
                 object.is_link = false;
@@ -1637,10 +1637,10 @@ export const repository = $root.repository = (() => {
                 object.is_resource = message.is_resource;
             if (message.status_id != null && message.hasOwnProperty("status_id"))
                 object.status_id = message.status_id;
-            if (message.task_type_id != null && message.hasOwnProperty("task_type_id"))
-                object.task_type_id = message.task_type_id;
-            if (message.entity_id != null && message.hasOwnProperty("entity_id"))
-                object.entity_id = message.entity_id;
+            if (message.asset_type_id != null && message.hasOwnProperty("asset_type_id"))
+                object.asset_type_id = message.asset_type_id;
+            if (message.collection_id != null && message.hasOwnProperty("collection_id"))
+                object.collection_id = message.collection_id;
             if (message.assignee_id != null && message.hasOwnProperty("assignee_id"))
                 object.assignee_id = message.assignee_id;
             if (message.assigner_id != null && message.hasOwnProperty("assigner_id"))
@@ -1659,63 +1659,63 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Converts this Task to JSON.
+         * Converts this Asset to JSON.
          * @function toJSON
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @instance
          * @returns {Object.<string,*>} JSON object
          */
-        Task.prototype.toJSON = function toJSON() {
+        Asset.prototype.toJSON = function toJSON() {
             return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
         };
 
         /**
-         * Gets the default type url for Task
+         * Gets the default type url for Asset
          * @function getTypeUrl
-         * @memberof repository.Task
+         * @memberof repository.Asset
          * @static
          * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns {string} The default type url
          */
-        Task.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        Asset.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
             if (typeUrlPrefix === undefined) {
                 typeUrlPrefix = "type.googleapis.com";
             }
-            return typeUrlPrefix + "/repository.Task";
+            return typeUrlPrefix + "/repository.Asset";
         };
 
-        return Task;
+        return Asset;
     })();
 
-    repository.Entity = (function() {
+    repository.Collection = (function() {
 
         /**
-         * Properties of an Entity.
+         * Properties of a Collection.
          * @memberof repository
-         * @interface IEntity
-         * @property {string|null} [id] Entity id
-         * @property {number|Long|null} [mtime] Entity mtime
-         * @property {string|null} [created_at] Entity created_at
-         * @property {string|null} [name] Entity name
-         * @property {string|null} [entity_path] Entity entity_path
-         * @property {string|null} [description] Entity description
-         * @property {boolean|null} [trashed] Entity trashed
-         * @property {string|null} [entity_type_id] Entity entity_type_id
-         * @property {string|null} [parent_id] Entity parent_id
-         * @property {string|null} [preview_id] Entity preview_id
-         * @property {boolean|null} [synced] Entity synced
-         * @property {boolean|null} [is_library] Entity is_library
+         * @interface ICollection
+         * @property {string|null} [id] Collection id
+         * @property {number|Long|null} [mtime] Collection mtime
+         * @property {string|null} [created_at] Collection created_at
+         * @property {string|null} [name] Collection name
+         * @property {string|null} [collection_path] Collection collection_path
+         * @property {string|null} [description] Collection description
+         * @property {boolean|null} [trashed] Collection trashed
+         * @property {string|null} [collection_type_id] Collection collection_type_id
+         * @property {string|null} [parent_id] Collection parent_id
+         * @property {string|null} [preview_id] Collection preview_id
+         * @property {boolean|null} [synced] Collection synced
+         * @property {boolean|null} [is_library] Collection is_library
          */
 
         /**
-         * Constructs a new Entity.
+         * Constructs a new Collection.
          * @memberof repository
-         * @classdesc Represents an Entity.
-         * @implements IEntity
+         * @classdesc Represents a Collection.
+         * @implements ICollection
          * @constructor
-         * @param {repository.IEntity=} [properties] Properties to set
+         * @param {repository.ICollection=} [properties] Properties to set
          */
-        function Entity(properties) {
+        function Collection(properties) {
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -1723,123 +1723,123 @@ export const repository = $root.repository = (() => {
         }
 
         /**
-         * Entity id.
+         * Collection id.
          * @member {string} id
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @instance
          */
-        Entity.prototype.id = "";
+        Collection.prototype.id = "";
 
         /**
-         * Entity mtime.
+         * Collection mtime.
          * @member {number|Long} mtime
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @instance
          */
-        Entity.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+        Collection.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
         /**
-         * Entity created_at.
+         * Collection created_at.
          * @member {string} created_at
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @instance
          */
-        Entity.prototype.created_at = "";
+        Collection.prototype.created_at = "";
 
         /**
-         * Entity name.
+         * Collection name.
          * @member {string} name
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @instance
          */
-        Entity.prototype.name = "";
+        Collection.prototype.name = "";
 
         /**
-         * Entity entity_path.
-         * @member {string} entity_path
-         * @memberof repository.Entity
+         * Collection collection_path.
+         * @member {string} collection_path
+         * @memberof repository.Collection
          * @instance
          */
-        Entity.prototype.entity_path = "";
+        Collection.prototype.collection_path = "";
 
         /**
-         * Entity description.
+         * Collection description.
          * @member {string} description
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @instance
          */
-        Entity.prototype.description = "";
+        Collection.prototype.description = "";
 
         /**
-         * Entity trashed.
+         * Collection trashed.
          * @member {boolean} trashed
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @instance
          */
-        Entity.prototype.trashed = false;
+        Collection.prototype.trashed = false;
 
         /**
-         * Entity entity_type_id.
-         * @member {string} entity_type_id
-         * @memberof repository.Entity
+         * Collection collection_type_id.
+         * @member {string} collection_type_id
+         * @memberof repository.Collection
          * @instance
          */
-        Entity.prototype.entity_type_id = "";
+        Collection.prototype.collection_type_id = "";
 
         /**
-         * Entity parent_id.
+         * Collection parent_id.
          * @member {string} parent_id
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @instance
          */
-        Entity.prototype.parent_id = "";
+        Collection.prototype.parent_id = "";
 
         /**
-         * Entity preview_id.
+         * Collection preview_id.
          * @member {string} preview_id
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @instance
          */
-        Entity.prototype.preview_id = "";
+        Collection.prototype.preview_id = "";
 
         /**
-         * Entity synced.
+         * Collection synced.
          * @member {boolean} synced
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @instance
          */
-        Entity.prototype.synced = false;
+        Collection.prototype.synced = false;
 
         /**
-         * Entity is_library.
+         * Collection is_library.
          * @member {boolean} is_library
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @instance
          */
-        Entity.prototype.is_library = false;
+        Collection.prototype.is_library = false;
 
         /**
-         * Creates a new Entity instance using the specified properties.
+         * Creates a new Collection instance using the specified properties.
          * @function create
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @static
-         * @param {repository.IEntity=} [properties] Properties to set
-         * @returns {repository.Entity} Entity instance
+         * @param {repository.ICollection=} [properties] Properties to set
+         * @returns {repository.Collection} Collection instance
          */
-        Entity.create = function create(properties) {
-            return new Entity(properties);
+        Collection.create = function create(properties) {
+            return new Collection(properties);
         };
 
         /**
-         * Encodes the specified Entity message. Does not implicitly {@link repository.Entity.verify|verify} messages.
+         * Encodes the specified Collection message. Does not implicitly {@link repository.Collection.verify|verify} messages.
          * @function encode
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @static
-         * @param {repository.IEntity} message Entity message or plain object to encode
+         * @param {repository.ICollection} message Collection message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        Entity.encode = function encode(message, writer) {
+        Collection.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
             if (message.id != null && Object.hasOwnProperty.call(message, "id"))
@@ -1850,14 +1850,14 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 3, wireType 2 =*/26).string(message.created_at);
             if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                 writer.uint32(/* id 4, wireType 2 =*/34).string(message.name);
-            if (message.entity_path != null && Object.hasOwnProperty.call(message, "entity_path"))
-                writer.uint32(/* id 5, wireType 2 =*/42).string(message.entity_path);
+            if (message.collection_path != null && Object.hasOwnProperty.call(message, "collection_path"))
+                writer.uint32(/* id 5, wireType 2 =*/42).string(message.collection_path);
             if (message.description != null && Object.hasOwnProperty.call(message, "description"))
                 writer.uint32(/* id 6, wireType 2 =*/50).string(message.description);
             if (message.trashed != null && Object.hasOwnProperty.call(message, "trashed"))
                 writer.uint32(/* id 7, wireType 0 =*/56).bool(message.trashed);
-            if (message.entity_type_id != null && Object.hasOwnProperty.call(message, "entity_type_id"))
-                writer.uint32(/* id 8, wireType 2 =*/66).string(message.entity_type_id);
+            if (message.collection_type_id != null && Object.hasOwnProperty.call(message, "collection_type_id"))
+                writer.uint32(/* id 8, wireType 2 =*/66).string(message.collection_type_id);
             if (message.parent_id != null && Object.hasOwnProperty.call(message, "parent_id"))
                 writer.uint32(/* id 9, wireType 2 =*/74).string(message.parent_id);
             if (message.preview_id != null && Object.hasOwnProperty.call(message, "preview_id"))
@@ -1870,33 +1870,33 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Encodes the specified Entity message, length delimited. Does not implicitly {@link repository.Entity.verify|verify} messages.
+         * Encodes the specified Collection message, length delimited. Does not implicitly {@link repository.Collection.verify|verify} messages.
          * @function encodeDelimited
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @static
-         * @param {repository.IEntity} message Entity message or plain object to encode
+         * @param {repository.ICollection} message Collection message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        Entity.encodeDelimited = function encodeDelimited(message, writer) {
+        Collection.encodeDelimited = function encodeDelimited(message, writer) {
             return this.encode(message, writer).ldelim();
         };
 
         /**
-         * Decodes an Entity message from the specified reader or buffer.
+         * Decodes a Collection message from the specified reader or buffer.
          * @function decode
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {repository.Entity} Entity
+         * @returns {repository.Collection} Collection
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Entity.decode = function decode(reader, length, error) {
+        Collection.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.Entity();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.Collection();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -1919,7 +1919,7 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 5: {
-                        message.entity_path = reader.string();
+                        message.collection_path = reader.string();
                         break;
                     }
                 case 6: {
@@ -1931,7 +1931,7 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 8: {
-                        message.entity_type_id = reader.string();
+                        message.collection_type_id = reader.string();
                         break;
                     }
                 case 9: {
@@ -1959,30 +1959,30 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Decodes an Entity message from the specified reader or buffer, length delimited.
+         * Decodes a Collection message from the specified reader or buffer, length delimited.
          * @function decodeDelimited
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @returns {repository.Entity} Entity
+         * @returns {repository.Collection} Collection
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Entity.decodeDelimited = function decodeDelimited(reader) {
+        Collection.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
-         * Verifies an Entity message.
+         * Verifies a Collection message.
          * @function verify
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @static
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        Entity.verify = function verify(message) {
+        Collection.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
             if (message.id != null && message.hasOwnProperty("id"))
@@ -1997,18 +1997,18 @@ export const repository = $root.repository = (() => {
             if (message.name != null && message.hasOwnProperty("name"))
                 if (!$util.isString(message.name))
                     return "name: string expected";
-            if (message.entity_path != null && message.hasOwnProperty("entity_path"))
-                if (!$util.isString(message.entity_path))
-                    return "entity_path: string expected";
+            if (message.collection_path != null && message.hasOwnProperty("collection_path"))
+                if (!$util.isString(message.collection_path))
+                    return "collection_path: string expected";
             if (message.description != null && message.hasOwnProperty("description"))
                 if (!$util.isString(message.description))
                     return "description: string expected";
             if (message.trashed != null && message.hasOwnProperty("trashed"))
                 if (typeof message.trashed !== "boolean")
                     return "trashed: boolean expected";
-            if (message.entity_type_id != null && message.hasOwnProperty("entity_type_id"))
-                if (!$util.isString(message.entity_type_id))
-                    return "entity_type_id: string expected";
+            if (message.collection_type_id != null && message.hasOwnProperty("collection_type_id"))
+                if (!$util.isString(message.collection_type_id))
+                    return "collection_type_id: string expected";
             if (message.parent_id != null && message.hasOwnProperty("parent_id"))
                 if (!$util.isString(message.parent_id))
                     return "parent_id: string expected";
@@ -2025,17 +2025,17 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates an Entity message from a plain object. Also converts values to their respective internal types.
+         * Creates a Collection message from a plain object. Also converts values to their respective internal types.
          * @function fromObject
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @static
          * @param {Object.<string,*>} object Plain object
-         * @returns {repository.Entity} Entity
+         * @returns {repository.Collection} Collection
          */
-        Entity.fromObject = function fromObject(object) {
-            if (object instanceof $root.repository.Entity)
+        Collection.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.Collection)
                 return object;
-            let message = new $root.repository.Entity();
+            let message = new $root.repository.Collection();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.mtime != null)
@@ -2051,14 +2051,14 @@ export const repository = $root.repository = (() => {
                 message.created_at = String(object.created_at);
             if (object.name != null)
                 message.name = String(object.name);
-            if (object.entity_path != null)
-                message.entity_path = String(object.entity_path);
+            if (object.collection_path != null)
+                message.collection_path = String(object.collection_path);
             if (object.description != null)
                 message.description = String(object.description);
             if (object.trashed != null)
                 message.trashed = Boolean(object.trashed);
-            if (object.entity_type_id != null)
-                message.entity_type_id = String(object.entity_type_id);
+            if (object.collection_type_id != null)
+                message.collection_type_id = String(object.collection_type_id);
             if (object.parent_id != null)
                 message.parent_id = String(object.parent_id);
             if (object.preview_id != null)
@@ -2071,15 +2071,15 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a plain object from an Entity message. Also converts values to other types if specified.
+         * Creates a plain object from a Collection message. Also converts values to other types if specified.
          * @function toObject
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @static
-         * @param {repository.Entity} message Entity
+         * @param {repository.Collection} message Collection
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        Entity.toObject = function toObject(message, options) {
+        Collection.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
             let object = {};
@@ -2092,10 +2092,10 @@ export const repository = $root.repository = (() => {
                     object.mtime = options.longs === String ? "0" : 0;
                 object.created_at = "";
                 object.name = "";
-                object.entity_path = "";
+                object.collection_path = "";
                 object.description = "";
                 object.trashed = false;
-                object.entity_type_id = "";
+                object.collection_type_id = "";
                 object.parent_id = "";
                 object.preview_id = "";
                 object.synced = false;
@@ -2112,14 +2112,14 @@ export const repository = $root.repository = (() => {
                 object.created_at = message.created_at;
             if (message.name != null && message.hasOwnProperty("name"))
                 object.name = message.name;
-            if (message.entity_path != null && message.hasOwnProperty("entity_path"))
-                object.entity_path = message.entity_path;
+            if (message.collection_path != null && message.hasOwnProperty("collection_path"))
+                object.collection_path = message.collection_path;
             if (message.description != null && message.hasOwnProperty("description"))
                 object.description = message.description;
             if (message.trashed != null && message.hasOwnProperty("trashed"))
                 object.trashed = message.trashed;
-            if (message.entity_type_id != null && message.hasOwnProperty("entity_type_id"))
-                object.entity_type_id = message.entity_type_id;
+            if (message.collection_type_id != null && message.hasOwnProperty("collection_type_id"))
+                object.collection_type_id = message.collection_type_id;
             if (message.parent_id != null && message.hasOwnProperty("parent_id"))
                 object.parent_id = message.parent_id;
             if (message.preview_id != null && message.hasOwnProperty("preview_id"))
@@ -2132,57 +2132,57 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Converts this Entity to JSON.
+         * Converts this Collection to JSON.
          * @function toJSON
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @instance
          * @returns {Object.<string,*>} JSON object
          */
-        Entity.prototype.toJSON = function toJSON() {
+        Collection.prototype.toJSON = function toJSON() {
             return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
         };
 
         /**
-         * Gets the default type url for Entity
+         * Gets the default type url for Collection
          * @function getTypeUrl
-         * @memberof repository.Entity
+         * @memberof repository.Collection
          * @static
          * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns {string} The default type url
          */
-        Entity.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        Collection.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
             if (typeUrlPrefix === undefined) {
                 typeUrlPrefix = "type.googleapis.com";
             }
-            return typeUrlPrefix + "/repository.Entity";
+            return typeUrlPrefix + "/repository.Collection";
         };
 
-        return Entity;
+        return Collection;
     })();
 
-    repository.EntityAssignee = (function() {
+    repository.CollectionAssignee = (function() {
 
         /**
-         * Properties of an EntityAssignee.
+         * Properties of a CollectionAssignee.
          * @memberof repository
-         * @interface IEntityAssignee
-         * @property {string|null} [id] EntityAssignee id
-         * @property {number|Long|null} [mtime] EntityAssignee mtime
-         * @property {string|null} [entity_id] EntityAssignee entity_id
-         * @property {string|null} [assignee_id] EntityAssignee assignee_id
-         * @property {string|null} [assigner_id] EntityAssignee assigner_id
-         * @property {boolean|null} [synced] EntityAssignee synced
+         * @interface ICollectionAssignee
+         * @property {string|null} [id] CollectionAssignee id
+         * @property {number|Long|null} [mtime] CollectionAssignee mtime
+         * @property {string|null} [collection_id] CollectionAssignee collection_id
+         * @property {string|null} [assignee_id] CollectionAssignee assignee_id
+         * @property {string|null} [assigner_id] CollectionAssignee assigner_id
+         * @property {boolean|null} [synced] CollectionAssignee synced
          */
 
         /**
-         * Constructs a new EntityAssignee.
+         * Constructs a new CollectionAssignee.
          * @memberof repository
-         * @classdesc Represents an EntityAssignee.
-         * @implements IEntityAssignee
+         * @classdesc Represents a CollectionAssignee.
+         * @implements ICollectionAssignee
          * @constructor
-         * @param {repository.IEntityAssignee=} [properties] Properties to set
+         * @param {repository.ICollectionAssignee=} [properties] Properties to set
          */
-        function EntityAssignee(properties) {
+        function CollectionAssignee(properties) {
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -2190,83 +2190,83 @@ export const repository = $root.repository = (() => {
         }
 
         /**
-         * EntityAssignee id.
+         * CollectionAssignee id.
          * @member {string} id
-         * @memberof repository.EntityAssignee
+         * @memberof repository.CollectionAssignee
          * @instance
          */
-        EntityAssignee.prototype.id = "";
+        CollectionAssignee.prototype.id = "";
 
         /**
-         * EntityAssignee mtime.
+         * CollectionAssignee mtime.
          * @member {number|Long} mtime
-         * @memberof repository.EntityAssignee
+         * @memberof repository.CollectionAssignee
          * @instance
          */
-        EntityAssignee.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+        CollectionAssignee.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
         /**
-         * EntityAssignee entity_id.
-         * @member {string} entity_id
-         * @memberof repository.EntityAssignee
+         * CollectionAssignee collection_id.
+         * @member {string} collection_id
+         * @memberof repository.CollectionAssignee
          * @instance
          */
-        EntityAssignee.prototype.entity_id = "";
+        CollectionAssignee.prototype.collection_id = "";
 
         /**
-         * EntityAssignee assignee_id.
+         * CollectionAssignee assignee_id.
          * @member {string} assignee_id
-         * @memberof repository.EntityAssignee
+         * @memberof repository.CollectionAssignee
          * @instance
          */
-        EntityAssignee.prototype.assignee_id = "";
+        CollectionAssignee.prototype.assignee_id = "";
 
         /**
-         * EntityAssignee assigner_id.
+         * CollectionAssignee assigner_id.
          * @member {string} assigner_id
-         * @memberof repository.EntityAssignee
+         * @memberof repository.CollectionAssignee
          * @instance
          */
-        EntityAssignee.prototype.assigner_id = "";
+        CollectionAssignee.prototype.assigner_id = "";
 
         /**
-         * EntityAssignee synced.
+         * CollectionAssignee synced.
          * @member {boolean} synced
-         * @memberof repository.EntityAssignee
+         * @memberof repository.CollectionAssignee
          * @instance
          */
-        EntityAssignee.prototype.synced = false;
+        CollectionAssignee.prototype.synced = false;
 
         /**
-         * Creates a new EntityAssignee instance using the specified properties.
+         * Creates a new CollectionAssignee instance using the specified properties.
          * @function create
-         * @memberof repository.EntityAssignee
+         * @memberof repository.CollectionAssignee
          * @static
-         * @param {repository.IEntityAssignee=} [properties] Properties to set
-         * @returns {repository.EntityAssignee} EntityAssignee instance
+         * @param {repository.ICollectionAssignee=} [properties] Properties to set
+         * @returns {repository.CollectionAssignee} CollectionAssignee instance
          */
-        EntityAssignee.create = function create(properties) {
-            return new EntityAssignee(properties);
+        CollectionAssignee.create = function create(properties) {
+            return new CollectionAssignee(properties);
         };
 
         /**
-         * Encodes the specified EntityAssignee message. Does not implicitly {@link repository.EntityAssignee.verify|verify} messages.
+         * Encodes the specified CollectionAssignee message. Does not implicitly {@link repository.CollectionAssignee.verify|verify} messages.
          * @function encode
-         * @memberof repository.EntityAssignee
+         * @memberof repository.CollectionAssignee
          * @static
-         * @param {repository.IEntityAssignee} message EntityAssignee message or plain object to encode
+         * @param {repository.ICollectionAssignee} message CollectionAssignee message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        EntityAssignee.encode = function encode(message, writer) {
+        CollectionAssignee.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
             if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
             if (message.mtime != null && Object.hasOwnProperty.call(message, "mtime"))
                 writer.uint32(/* id 2, wireType 0 =*/16).int64(message.mtime);
-            if (message.entity_id != null && Object.hasOwnProperty.call(message, "entity_id"))
-                writer.uint32(/* id 3, wireType 2 =*/26).string(message.entity_id);
+            if (message.collection_id != null && Object.hasOwnProperty.call(message, "collection_id"))
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.collection_id);
             if (message.assignee_id != null && Object.hasOwnProperty.call(message, "assignee_id"))
                 writer.uint32(/* id 4, wireType 2 =*/34).string(message.assignee_id);
             if (message.assigner_id != null && Object.hasOwnProperty.call(message, "assigner_id"))
@@ -2277,33 +2277,33 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Encodes the specified EntityAssignee message, length delimited. Does not implicitly {@link repository.EntityAssignee.verify|verify} messages.
+         * Encodes the specified CollectionAssignee message, length delimited. Does not implicitly {@link repository.CollectionAssignee.verify|verify} messages.
          * @function encodeDelimited
-         * @memberof repository.EntityAssignee
+         * @memberof repository.CollectionAssignee
          * @static
-         * @param {repository.IEntityAssignee} message EntityAssignee message or plain object to encode
+         * @param {repository.ICollectionAssignee} message CollectionAssignee message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        EntityAssignee.encodeDelimited = function encodeDelimited(message, writer) {
+        CollectionAssignee.encodeDelimited = function encodeDelimited(message, writer) {
             return this.encode(message, writer).ldelim();
         };
 
         /**
-         * Decodes an EntityAssignee message from the specified reader or buffer.
+         * Decodes a CollectionAssignee message from the specified reader or buffer.
          * @function decode
-         * @memberof repository.EntityAssignee
+         * @memberof repository.CollectionAssignee
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {repository.EntityAssignee} EntityAssignee
+         * @returns {repository.CollectionAssignee} CollectionAssignee
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        EntityAssignee.decode = function decode(reader, length, error) {
+        CollectionAssignee.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.EntityAssignee();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.CollectionAssignee();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -2318,7 +2318,7 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 3: {
-                        message.entity_id = reader.string();
+                        message.collection_id = reader.string();
                         break;
                     }
                 case 4: {
@@ -2342,30 +2342,30 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Decodes an EntityAssignee message from the specified reader or buffer, length delimited.
+         * Decodes a CollectionAssignee message from the specified reader or buffer, length delimited.
          * @function decodeDelimited
-         * @memberof repository.EntityAssignee
+         * @memberof repository.CollectionAssignee
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @returns {repository.EntityAssignee} EntityAssignee
+         * @returns {repository.CollectionAssignee} CollectionAssignee
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        EntityAssignee.decodeDelimited = function decodeDelimited(reader) {
+        CollectionAssignee.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
-         * Verifies an EntityAssignee message.
+         * Verifies a CollectionAssignee message.
          * @function verify
-         * @memberof repository.EntityAssignee
+         * @memberof repository.CollectionAssignee
          * @static
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        EntityAssignee.verify = function verify(message) {
+        CollectionAssignee.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
             if (message.id != null && message.hasOwnProperty("id"))
@@ -2374,9 +2374,9 @@ export const repository = $root.repository = (() => {
             if (message.mtime != null && message.hasOwnProperty("mtime"))
                 if (!$util.isInteger(message.mtime) && !(message.mtime && $util.isInteger(message.mtime.low) && $util.isInteger(message.mtime.high)))
                     return "mtime: integer|Long expected";
-            if (message.entity_id != null && message.hasOwnProperty("entity_id"))
-                if (!$util.isString(message.entity_id))
-                    return "entity_id: string expected";
+            if (message.collection_id != null && message.hasOwnProperty("collection_id"))
+                if (!$util.isString(message.collection_id))
+                    return "collection_id: string expected";
             if (message.assignee_id != null && message.hasOwnProperty("assignee_id"))
                 if (!$util.isString(message.assignee_id))
                     return "assignee_id: string expected";
@@ -2390,17 +2390,17 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates an EntityAssignee message from a plain object. Also converts values to their respective internal types.
+         * Creates a CollectionAssignee message from a plain object. Also converts values to their respective internal types.
          * @function fromObject
-         * @memberof repository.EntityAssignee
+         * @memberof repository.CollectionAssignee
          * @static
          * @param {Object.<string,*>} object Plain object
-         * @returns {repository.EntityAssignee} EntityAssignee
+         * @returns {repository.CollectionAssignee} CollectionAssignee
          */
-        EntityAssignee.fromObject = function fromObject(object) {
-            if (object instanceof $root.repository.EntityAssignee)
+        CollectionAssignee.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.CollectionAssignee)
                 return object;
-            let message = new $root.repository.EntityAssignee();
+            let message = new $root.repository.CollectionAssignee();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.mtime != null)
@@ -2412,8 +2412,8 @@ export const repository = $root.repository = (() => {
                     message.mtime = object.mtime;
                 else if (typeof object.mtime === "object")
                     message.mtime = new $util.LongBits(object.mtime.low >>> 0, object.mtime.high >>> 0).toNumber();
-            if (object.entity_id != null)
-                message.entity_id = String(object.entity_id);
+            if (object.collection_id != null)
+                message.collection_id = String(object.collection_id);
             if (object.assignee_id != null)
                 message.assignee_id = String(object.assignee_id);
             if (object.assigner_id != null)
@@ -2424,15 +2424,15 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a plain object from an EntityAssignee message. Also converts values to other types if specified.
+         * Creates a plain object from a CollectionAssignee message. Also converts values to other types if specified.
          * @function toObject
-         * @memberof repository.EntityAssignee
+         * @memberof repository.CollectionAssignee
          * @static
-         * @param {repository.EntityAssignee} message EntityAssignee
+         * @param {repository.CollectionAssignee} message CollectionAssignee
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        EntityAssignee.toObject = function toObject(message, options) {
+        CollectionAssignee.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
             let object = {};
@@ -2443,7 +2443,7 @@ export const repository = $root.repository = (() => {
                     object.mtime = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.mtime = options.longs === String ? "0" : 0;
-                object.entity_id = "";
+                object.collection_id = "";
                 object.assignee_id = "";
                 object.assigner_id = "";
                 object.synced = false;
@@ -2455,8 +2455,8 @@ export const repository = $root.repository = (() => {
                     object.mtime = options.longs === String ? String(message.mtime) : message.mtime;
                 else
                     object.mtime = options.longs === String ? $util.Long.prototype.toString.call(message.mtime) : options.longs === Number ? new $util.LongBits(message.mtime.low >>> 0, message.mtime.high >>> 0).toNumber() : message.mtime;
-            if (message.entity_id != null && message.hasOwnProperty("entity_id"))
-                object.entity_id = message.entity_id;
+            if (message.collection_id != null && message.hasOwnProperty("collection_id"))
+                object.collection_id = message.collection_id;
             if (message.assignee_id != null && message.hasOwnProperty("assignee_id"))
                 object.assignee_id = message.assignee_id;
             if (message.assigner_id != null && message.hasOwnProperty("assigner_id"))
@@ -2467,57 +2467,57 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Converts this EntityAssignee to JSON.
+         * Converts this CollectionAssignee to JSON.
          * @function toJSON
-         * @memberof repository.EntityAssignee
+         * @memberof repository.CollectionAssignee
          * @instance
          * @returns {Object.<string,*>} JSON object
          */
-        EntityAssignee.prototype.toJSON = function toJSON() {
+        CollectionAssignee.prototype.toJSON = function toJSON() {
             return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
         };
 
         /**
-         * Gets the default type url for EntityAssignee
+         * Gets the default type url for CollectionAssignee
          * @function getTypeUrl
-         * @memberof repository.EntityAssignee
+         * @memberof repository.CollectionAssignee
          * @static
          * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns {string} The default type url
          */
-        EntityAssignee.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        CollectionAssignee.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
             if (typeUrlPrefix === undefined) {
                 typeUrlPrefix = "type.googleapis.com";
             }
-            return typeUrlPrefix + "/repository.EntityAssignee";
+            return typeUrlPrefix + "/repository.CollectionAssignee";
         };
 
-        return EntityAssignee;
+        return CollectionAssignee;
     })();
 
-    repository.TaskDependency = (function() {
+    repository.AssetDependency = (function() {
 
         /**
-         * Properties of a TaskDependency.
+         * Properties of an AssetDependency.
          * @memberof repository
-         * @interface ITaskDependency
-         * @property {string|null} [id] TaskDependency id
-         * @property {number|Long|null} [mtime] TaskDependency mtime
-         * @property {string|null} [task_id] TaskDependency task_id
-         * @property {string|null} [dependency_id] TaskDependency dependency_id
-         * @property {string|null} [dependency_type_id] TaskDependency dependency_type_id
-         * @property {boolean|null} [synced] TaskDependency synced
+         * @interface IAssetDependency
+         * @property {string|null} [id] AssetDependency id
+         * @property {number|Long|null} [mtime] AssetDependency mtime
+         * @property {string|null} [asset_id] AssetDependency asset_id
+         * @property {string|null} [dependency_id] AssetDependency dependency_id
+         * @property {string|null} [dependency_type_id] AssetDependency dependency_type_id
+         * @property {boolean|null} [synced] AssetDependency synced
          */
 
         /**
-         * Constructs a new TaskDependency.
+         * Constructs a new AssetDependency.
          * @memberof repository
-         * @classdesc Represents a TaskDependency.
-         * @implements ITaskDependency
+         * @classdesc Represents an AssetDependency.
+         * @implements IAssetDependency
          * @constructor
-         * @param {repository.ITaskDependency=} [properties] Properties to set
+         * @param {repository.IAssetDependency=} [properties] Properties to set
          */
-        function TaskDependency(properties) {
+        function AssetDependency(properties) {
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -2525,83 +2525,83 @@ export const repository = $root.repository = (() => {
         }
 
         /**
-         * TaskDependency id.
+         * AssetDependency id.
          * @member {string} id
-         * @memberof repository.TaskDependency
+         * @memberof repository.AssetDependency
          * @instance
          */
-        TaskDependency.prototype.id = "";
+        AssetDependency.prototype.id = "";
 
         /**
-         * TaskDependency mtime.
+         * AssetDependency mtime.
          * @member {number|Long} mtime
-         * @memberof repository.TaskDependency
+         * @memberof repository.AssetDependency
          * @instance
          */
-        TaskDependency.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+        AssetDependency.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
         /**
-         * TaskDependency task_id.
-         * @member {string} task_id
-         * @memberof repository.TaskDependency
+         * AssetDependency asset_id.
+         * @member {string} asset_id
+         * @memberof repository.AssetDependency
          * @instance
          */
-        TaskDependency.prototype.task_id = "";
+        AssetDependency.prototype.asset_id = "";
 
         /**
-         * TaskDependency dependency_id.
+         * AssetDependency dependency_id.
          * @member {string} dependency_id
-         * @memberof repository.TaskDependency
+         * @memberof repository.AssetDependency
          * @instance
          */
-        TaskDependency.prototype.dependency_id = "";
+        AssetDependency.prototype.dependency_id = "";
 
         /**
-         * TaskDependency dependency_type_id.
+         * AssetDependency dependency_type_id.
          * @member {string} dependency_type_id
-         * @memberof repository.TaskDependency
+         * @memberof repository.AssetDependency
          * @instance
          */
-        TaskDependency.prototype.dependency_type_id = "";
+        AssetDependency.prototype.dependency_type_id = "";
 
         /**
-         * TaskDependency synced.
+         * AssetDependency synced.
          * @member {boolean} synced
-         * @memberof repository.TaskDependency
+         * @memberof repository.AssetDependency
          * @instance
          */
-        TaskDependency.prototype.synced = false;
+        AssetDependency.prototype.synced = false;
 
         /**
-         * Creates a new TaskDependency instance using the specified properties.
+         * Creates a new AssetDependency instance using the specified properties.
          * @function create
-         * @memberof repository.TaskDependency
+         * @memberof repository.AssetDependency
          * @static
-         * @param {repository.ITaskDependency=} [properties] Properties to set
-         * @returns {repository.TaskDependency} TaskDependency instance
+         * @param {repository.IAssetDependency=} [properties] Properties to set
+         * @returns {repository.AssetDependency} AssetDependency instance
          */
-        TaskDependency.create = function create(properties) {
-            return new TaskDependency(properties);
+        AssetDependency.create = function create(properties) {
+            return new AssetDependency(properties);
         };
 
         /**
-         * Encodes the specified TaskDependency message. Does not implicitly {@link repository.TaskDependency.verify|verify} messages.
+         * Encodes the specified AssetDependency message. Does not implicitly {@link repository.AssetDependency.verify|verify} messages.
          * @function encode
-         * @memberof repository.TaskDependency
+         * @memberof repository.AssetDependency
          * @static
-         * @param {repository.ITaskDependency} message TaskDependency message or plain object to encode
+         * @param {repository.IAssetDependency} message AssetDependency message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        TaskDependency.encode = function encode(message, writer) {
+        AssetDependency.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
             if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
             if (message.mtime != null && Object.hasOwnProperty.call(message, "mtime"))
                 writer.uint32(/* id 2, wireType 0 =*/16).int64(message.mtime);
-            if (message.task_id != null && Object.hasOwnProperty.call(message, "task_id"))
-                writer.uint32(/* id 3, wireType 2 =*/26).string(message.task_id);
+            if (message.asset_id != null && Object.hasOwnProperty.call(message, "asset_id"))
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.asset_id);
             if (message.dependency_id != null && Object.hasOwnProperty.call(message, "dependency_id"))
                 writer.uint32(/* id 4, wireType 2 =*/34).string(message.dependency_id);
             if (message.dependency_type_id != null && Object.hasOwnProperty.call(message, "dependency_type_id"))
@@ -2612,33 +2612,33 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Encodes the specified TaskDependency message, length delimited. Does not implicitly {@link repository.TaskDependency.verify|verify} messages.
+         * Encodes the specified AssetDependency message, length delimited. Does not implicitly {@link repository.AssetDependency.verify|verify} messages.
          * @function encodeDelimited
-         * @memberof repository.TaskDependency
+         * @memberof repository.AssetDependency
          * @static
-         * @param {repository.ITaskDependency} message TaskDependency message or plain object to encode
+         * @param {repository.IAssetDependency} message AssetDependency message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        TaskDependency.encodeDelimited = function encodeDelimited(message, writer) {
+        AssetDependency.encodeDelimited = function encodeDelimited(message, writer) {
             return this.encode(message, writer).ldelim();
         };
 
         /**
-         * Decodes a TaskDependency message from the specified reader or buffer.
+         * Decodes an AssetDependency message from the specified reader or buffer.
          * @function decode
-         * @memberof repository.TaskDependency
+         * @memberof repository.AssetDependency
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {repository.TaskDependency} TaskDependency
+         * @returns {repository.AssetDependency} AssetDependency
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        TaskDependency.decode = function decode(reader, length, error) {
+        AssetDependency.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.TaskDependency();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.AssetDependency();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -2653,7 +2653,7 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 3: {
-                        message.task_id = reader.string();
+                        message.asset_id = reader.string();
                         break;
                     }
                 case 4: {
@@ -2677,30 +2677,30 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Decodes a TaskDependency message from the specified reader or buffer, length delimited.
+         * Decodes an AssetDependency message from the specified reader or buffer, length delimited.
          * @function decodeDelimited
-         * @memberof repository.TaskDependency
+         * @memberof repository.AssetDependency
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @returns {repository.TaskDependency} TaskDependency
+         * @returns {repository.AssetDependency} AssetDependency
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        TaskDependency.decodeDelimited = function decodeDelimited(reader) {
+        AssetDependency.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
-         * Verifies a TaskDependency message.
+         * Verifies an AssetDependency message.
          * @function verify
-         * @memberof repository.TaskDependency
+         * @memberof repository.AssetDependency
          * @static
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        TaskDependency.verify = function verify(message) {
+        AssetDependency.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
             if (message.id != null && message.hasOwnProperty("id"))
@@ -2709,9 +2709,9 @@ export const repository = $root.repository = (() => {
             if (message.mtime != null && message.hasOwnProperty("mtime"))
                 if (!$util.isInteger(message.mtime) && !(message.mtime && $util.isInteger(message.mtime.low) && $util.isInteger(message.mtime.high)))
                     return "mtime: integer|Long expected";
-            if (message.task_id != null && message.hasOwnProperty("task_id"))
-                if (!$util.isString(message.task_id))
-                    return "task_id: string expected";
+            if (message.asset_id != null && message.hasOwnProperty("asset_id"))
+                if (!$util.isString(message.asset_id))
+                    return "asset_id: string expected";
             if (message.dependency_id != null && message.hasOwnProperty("dependency_id"))
                 if (!$util.isString(message.dependency_id))
                     return "dependency_id: string expected";
@@ -2725,17 +2725,17 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a TaskDependency message from a plain object. Also converts values to their respective internal types.
+         * Creates an AssetDependency message from a plain object. Also converts values to their respective internal types.
          * @function fromObject
-         * @memberof repository.TaskDependency
+         * @memberof repository.AssetDependency
          * @static
          * @param {Object.<string,*>} object Plain object
-         * @returns {repository.TaskDependency} TaskDependency
+         * @returns {repository.AssetDependency} AssetDependency
          */
-        TaskDependency.fromObject = function fromObject(object) {
-            if (object instanceof $root.repository.TaskDependency)
+        AssetDependency.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.AssetDependency)
                 return object;
-            let message = new $root.repository.TaskDependency();
+            let message = new $root.repository.AssetDependency();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.mtime != null)
@@ -2747,8 +2747,8 @@ export const repository = $root.repository = (() => {
                     message.mtime = object.mtime;
                 else if (typeof object.mtime === "object")
                     message.mtime = new $util.LongBits(object.mtime.low >>> 0, object.mtime.high >>> 0).toNumber();
-            if (object.task_id != null)
-                message.task_id = String(object.task_id);
+            if (object.asset_id != null)
+                message.asset_id = String(object.asset_id);
             if (object.dependency_id != null)
                 message.dependency_id = String(object.dependency_id);
             if (object.dependency_type_id != null)
@@ -2759,15 +2759,15 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a plain object from a TaskDependency message. Also converts values to other types if specified.
+         * Creates a plain object from an AssetDependency message. Also converts values to other types if specified.
          * @function toObject
-         * @memberof repository.TaskDependency
+         * @memberof repository.AssetDependency
          * @static
-         * @param {repository.TaskDependency} message TaskDependency
+         * @param {repository.AssetDependency} message AssetDependency
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        TaskDependency.toObject = function toObject(message, options) {
+        AssetDependency.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
             let object = {};
@@ -2778,7 +2778,7 @@ export const repository = $root.repository = (() => {
                     object.mtime = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.mtime = options.longs === String ? "0" : 0;
-                object.task_id = "";
+                object.asset_id = "";
                 object.dependency_id = "";
                 object.dependency_type_id = "";
                 object.synced = false;
@@ -2790,8 +2790,8 @@ export const repository = $root.repository = (() => {
                     object.mtime = options.longs === String ? String(message.mtime) : message.mtime;
                 else
                     object.mtime = options.longs === String ? $util.Long.prototype.toString.call(message.mtime) : options.longs === Number ? new $util.LongBits(message.mtime.low >>> 0, message.mtime.high >>> 0).toNumber() : message.mtime;
-            if (message.task_id != null && message.hasOwnProperty("task_id"))
-                object.task_id = message.task_id;
+            if (message.asset_id != null && message.hasOwnProperty("asset_id"))
+                object.asset_id = message.asset_id;
             if (message.dependency_id != null && message.hasOwnProperty("dependency_id"))
                 object.dependency_id = message.dependency_id;
             if (message.dependency_type_id != null && message.hasOwnProperty("dependency_type_id"))
@@ -2802,57 +2802,57 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Converts this TaskDependency to JSON.
+         * Converts this AssetDependency to JSON.
          * @function toJSON
-         * @memberof repository.TaskDependency
+         * @memberof repository.AssetDependency
          * @instance
          * @returns {Object.<string,*>} JSON object
          */
-        TaskDependency.prototype.toJSON = function toJSON() {
+        AssetDependency.prototype.toJSON = function toJSON() {
             return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
         };
 
         /**
-         * Gets the default type url for TaskDependency
+         * Gets the default type url for AssetDependency
          * @function getTypeUrl
-         * @memberof repository.TaskDependency
+         * @memberof repository.AssetDependency
          * @static
          * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns {string} The default type url
          */
-        TaskDependency.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        AssetDependency.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
             if (typeUrlPrefix === undefined) {
                 typeUrlPrefix = "type.googleapis.com";
             }
-            return typeUrlPrefix + "/repository.TaskDependency";
+            return typeUrlPrefix + "/repository.AssetDependency";
         };
 
-        return TaskDependency;
+        return AssetDependency;
     })();
 
-    repository.EntityDependency = (function() {
+    repository.CollectionDependency = (function() {
 
         /**
-         * Properties of an EntityDependency.
+         * Properties of a CollectionDependency.
          * @memberof repository
-         * @interface IEntityDependency
-         * @property {string|null} [id] EntityDependency id
-         * @property {number|Long|null} [mtime] EntityDependency mtime
-         * @property {string|null} [task_id] EntityDependency task_id
-         * @property {string|null} [dependency_id] EntityDependency dependency_id
-         * @property {string|null} [dependency_type_id] EntityDependency dependency_type_id
-         * @property {boolean|null} [synced] EntityDependency synced
+         * @interface ICollectionDependency
+         * @property {string|null} [id] CollectionDependency id
+         * @property {number|Long|null} [mtime] CollectionDependency mtime
+         * @property {string|null} [asset_id] CollectionDependency asset_id
+         * @property {string|null} [dependency_id] CollectionDependency dependency_id
+         * @property {string|null} [dependency_type_id] CollectionDependency dependency_type_id
+         * @property {boolean|null} [synced] CollectionDependency synced
          */
 
         /**
-         * Constructs a new EntityDependency.
+         * Constructs a new CollectionDependency.
          * @memberof repository
-         * @classdesc Represents an EntityDependency.
-         * @implements IEntityDependency
+         * @classdesc Represents a CollectionDependency.
+         * @implements ICollectionDependency
          * @constructor
-         * @param {repository.IEntityDependency=} [properties] Properties to set
+         * @param {repository.ICollectionDependency=} [properties] Properties to set
          */
-        function EntityDependency(properties) {
+        function CollectionDependency(properties) {
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -2860,83 +2860,83 @@ export const repository = $root.repository = (() => {
         }
 
         /**
-         * EntityDependency id.
+         * CollectionDependency id.
          * @member {string} id
-         * @memberof repository.EntityDependency
+         * @memberof repository.CollectionDependency
          * @instance
          */
-        EntityDependency.prototype.id = "";
+        CollectionDependency.prototype.id = "";
 
         /**
-         * EntityDependency mtime.
+         * CollectionDependency mtime.
          * @member {number|Long} mtime
-         * @memberof repository.EntityDependency
+         * @memberof repository.CollectionDependency
          * @instance
          */
-        EntityDependency.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+        CollectionDependency.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
         /**
-         * EntityDependency task_id.
-         * @member {string} task_id
-         * @memberof repository.EntityDependency
+         * CollectionDependency asset_id.
+         * @member {string} asset_id
+         * @memberof repository.CollectionDependency
          * @instance
          */
-        EntityDependency.prototype.task_id = "";
+        CollectionDependency.prototype.asset_id = "";
 
         /**
-         * EntityDependency dependency_id.
+         * CollectionDependency dependency_id.
          * @member {string} dependency_id
-         * @memberof repository.EntityDependency
+         * @memberof repository.CollectionDependency
          * @instance
          */
-        EntityDependency.prototype.dependency_id = "";
+        CollectionDependency.prototype.dependency_id = "";
 
         /**
-         * EntityDependency dependency_type_id.
+         * CollectionDependency dependency_type_id.
          * @member {string} dependency_type_id
-         * @memberof repository.EntityDependency
+         * @memberof repository.CollectionDependency
          * @instance
          */
-        EntityDependency.prototype.dependency_type_id = "";
+        CollectionDependency.prototype.dependency_type_id = "";
 
         /**
-         * EntityDependency synced.
+         * CollectionDependency synced.
          * @member {boolean} synced
-         * @memberof repository.EntityDependency
+         * @memberof repository.CollectionDependency
          * @instance
          */
-        EntityDependency.prototype.synced = false;
+        CollectionDependency.prototype.synced = false;
 
         /**
-         * Creates a new EntityDependency instance using the specified properties.
+         * Creates a new CollectionDependency instance using the specified properties.
          * @function create
-         * @memberof repository.EntityDependency
+         * @memberof repository.CollectionDependency
          * @static
-         * @param {repository.IEntityDependency=} [properties] Properties to set
-         * @returns {repository.EntityDependency} EntityDependency instance
+         * @param {repository.ICollectionDependency=} [properties] Properties to set
+         * @returns {repository.CollectionDependency} CollectionDependency instance
          */
-        EntityDependency.create = function create(properties) {
-            return new EntityDependency(properties);
+        CollectionDependency.create = function create(properties) {
+            return new CollectionDependency(properties);
         };
 
         /**
-         * Encodes the specified EntityDependency message. Does not implicitly {@link repository.EntityDependency.verify|verify} messages.
+         * Encodes the specified CollectionDependency message. Does not implicitly {@link repository.CollectionDependency.verify|verify} messages.
          * @function encode
-         * @memberof repository.EntityDependency
+         * @memberof repository.CollectionDependency
          * @static
-         * @param {repository.IEntityDependency} message EntityDependency message or plain object to encode
+         * @param {repository.ICollectionDependency} message CollectionDependency message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        EntityDependency.encode = function encode(message, writer) {
+        CollectionDependency.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
             if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
             if (message.mtime != null && Object.hasOwnProperty.call(message, "mtime"))
                 writer.uint32(/* id 2, wireType 0 =*/16).int64(message.mtime);
-            if (message.task_id != null && Object.hasOwnProperty.call(message, "task_id"))
-                writer.uint32(/* id 3, wireType 2 =*/26).string(message.task_id);
+            if (message.asset_id != null && Object.hasOwnProperty.call(message, "asset_id"))
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.asset_id);
             if (message.dependency_id != null && Object.hasOwnProperty.call(message, "dependency_id"))
                 writer.uint32(/* id 4, wireType 2 =*/34).string(message.dependency_id);
             if (message.dependency_type_id != null && Object.hasOwnProperty.call(message, "dependency_type_id"))
@@ -2947,33 +2947,33 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Encodes the specified EntityDependency message, length delimited. Does not implicitly {@link repository.EntityDependency.verify|verify} messages.
+         * Encodes the specified CollectionDependency message, length delimited. Does not implicitly {@link repository.CollectionDependency.verify|verify} messages.
          * @function encodeDelimited
-         * @memberof repository.EntityDependency
+         * @memberof repository.CollectionDependency
          * @static
-         * @param {repository.IEntityDependency} message EntityDependency message or plain object to encode
+         * @param {repository.ICollectionDependency} message CollectionDependency message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        EntityDependency.encodeDelimited = function encodeDelimited(message, writer) {
+        CollectionDependency.encodeDelimited = function encodeDelimited(message, writer) {
             return this.encode(message, writer).ldelim();
         };
 
         /**
-         * Decodes an EntityDependency message from the specified reader or buffer.
+         * Decodes a CollectionDependency message from the specified reader or buffer.
          * @function decode
-         * @memberof repository.EntityDependency
+         * @memberof repository.CollectionDependency
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {repository.EntityDependency} EntityDependency
+         * @returns {repository.CollectionDependency} CollectionDependency
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        EntityDependency.decode = function decode(reader, length, error) {
+        CollectionDependency.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.EntityDependency();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.CollectionDependency();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -2988,7 +2988,7 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 3: {
-                        message.task_id = reader.string();
+                        message.asset_id = reader.string();
                         break;
                     }
                 case 4: {
@@ -3012,30 +3012,30 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Decodes an EntityDependency message from the specified reader or buffer, length delimited.
+         * Decodes a CollectionDependency message from the specified reader or buffer, length delimited.
          * @function decodeDelimited
-         * @memberof repository.EntityDependency
+         * @memberof repository.CollectionDependency
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @returns {repository.EntityDependency} EntityDependency
+         * @returns {repository.CollectionDependency} CollectionDependency
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        EntityDependency.decodeDelimited = function decodeDelimited(reader) {
+        CollectionDependency.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
-         * Verifies an EntityDependency message.
+         * Verifies a CollectionDependency message.
          * @function verify
-         * @memberof repository.EntityDependency
+         * @memberof repository.CollectionDependency
          * @static
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        EntityDependency.verify = function verify(message) {
+        CollectionDependency.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
             if (message.id != null && message.hasOwnProperty("id"))
@@ -3044,9 +3044,9 @@ export const repository = $root.repository = (() => {
             if (message.mtime != null && message.hasOwnProperty("mtime"))
                 if (!$util.isInteger(message.mtime) && !(message.mtime && $util.isInteger(message.mtime.low) && $util.isInteger(message.mtime.high)))
                     return "mtime: integer|Long expected";
-            if (message.task_id != null && message.hasOwnProperty("task_id"))
-                if (!$util.isString(message.task_id))
-                    return "task_id: string expected";
+            if (message.asset_id != null && message.hasOwnProperty("asset_id"))
+                if (!$util.isString(message.asset_id))
+                    return "asset_id: string expected";
             if (message.dependency_id != null && message.hasOwnProperty("dependency_id"))
                 if (!$util.isString(message.dependency_id))
                     return "dependency_id: string expected";
@@ -3060,17 +3060,17 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates an EntityDependency message from a plain object. Also converts values to their respective internal types.
+         * Creates a CollectionDependency message from a plain object. Also converts values to their respective internal types.
          * @function fromObject
-         * @memberof repository.EntityDependency
+         * @memberof repository.CollectionDependency
          * @static
          * @param {Object.<string,*>} object Plain object
-         * @returns {repository.EntityDependency} EntityDependency
+         * @returns {repository.CollectionDependency} CollectionDependency
          */
-        EntityDependency.fromObject = function fromObject(object) {
-            if (object instanceof $root.repository.EntityDependency)
+        CollectionDependency.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.CollectionDependency)
                 return object;
-            let message = new $root.repository.EntityDependency();
+            let message = new $root.repository.CollectionDependency();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.mtime != null)
@@ -3082,8 +3082,8 @@ export const repository = $root.repository = (() => {
                     message.mtime = object.mtime;
                 else if (typeof object.mtime === "object")
                     message.mtime = new $util.LongBits(object.mtime.low >>> 0, object.mtime.high >>> 0).toNumber();
-            if (object.task_id != null)
-                message.task_id = String(object.task_id);
+            if (object.asset_id != null)
+                message.asset_id = String(object.asset_id);
             if (object.dependency_id != null)
                 message.dependency_id = String(object.dependency_id);
             if (object.dependency_type_id != null)
@@ -3094,15 +3094,15 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a plain object from an EntityDependency message. Also converts values to other types if specified.
+         * Creates a plain object from a CollectionDependency message. Also converts values to other types if specified.
          * @function toObject
-         * @memberof repository.EntityDependency
+         * @memberof repository.CollectionDependency
          * @static
-         * @param {repository.EntityDependency} message EntityDependency
+         * @param {repository.CollectionDependency} message CollectionDependency
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        EntityDependency.toObject = function toObject(message, options) {
+        CollectionDependency.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
             let object = {};
@@ -3113,7 +3113,7 @@ export const repository = $root.repository = (() => {
                     object.mtime = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.mtime = options.longs === String ? "0" : 0;
-                object.task_id = "";
+                object.asset_id = "";
                 object.dependency_id = "";
                 object.dependency_type_id = "";
                 object.synced = false;
@@ -3125,8 +3125,8 @@ export const repository = $root.repository = (() => {
                     object.mtime = options.longs === String ? String(message.mtime) : message.mtime;
                 else
                     object.mtime = options.longs === String ? $util.Long.prototype.toString.call(message.mtime) : options.longs === Number ? new $util.LongBits(message.mtime.low >>> 0, message.mtime.high >>> 0).toNumber() : message.mtime;
-            if (message.task_id != null && message.hasOwnProperty("task_id"))
-                object.task_id = message.task_id;
+            if (message.asset_id != null && message.hasOwnProperty("asset_id"))
+                object.asset_id = message.asset_id;
             if (message.dependency_id != null && message.hasOwnProperty("dependency_id"))
                 object.dependency_id = message.dependency_id;
             if (message.dependency_type_id != null && message.hasOwnProperty("dependency_type_id"))
@@ -3137,32 +3137,32 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Converts this EntityDependency to JSON.
+         * Converts this CollectionDependency to JSON.
          * @function toJSON
-         * @memberof repository.EntityDependency
+         * @memberof repository.CollectionDependency
          * @instance
          * @returns {Object.<string,*>} JSON object
          */
-        EntityDependency.prototype.toJSON = function toJSON() {
+        CollectionDependency.prototype.toJSON = function toJSON() {
             return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
         };
 
         /**
-         * Gets the default type url for EntityDependency
+         * Gets the default type url for CollectionDependency
          * @function getTypeUrl
-         * @memberof repository.EntityDependency
+         * @memberof repository.CollectionDependency
          * @static
          * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns {string} The default type url
          */
-        EntityDependency.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        CollectionDependency.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
             if (typeUrlPrefix === undefined) {
                 typeUrlPrefix = "type.googleapis.com";
             }
-            return typeUrlPrefix + "/repository.EntityDependency";
+            return typeUrlPrefix + "/repository.CollectionDependency";
         };
 
-        return EntityDependency;
+        return CollectionDependency;
     })();
 
     repository.Workflow = (function() {
@@ -3454,34 +3454,34 @@ export const repository = $root.repository = (() => {
         return Workflow;
     })();
 
-    repository.WorkflowTask = (function() {
+    repository.WorkflowAsset = (function() {
 
         /**
-         * Properties of a WorkflowTask.
+         * Properties of a WorkflowAsset.
          * @memberof repository
-         * @interface IWorkflowTask
-         * @property {string|null} [id] WorkflowTask id
-         * @property {number|Long|null} [mtime] WorkflowTask mtime
-         * @property {string|null} [name] WorkflowTask name
-         * @property {string|null} [template_id] WorkflowTask template_id
-         * @property {boolean|null} [is_resource] WorkflowTask is_resource
-         * @property {string|null} [workflow_id] WorkflowTask workflow_id
-         * @property {string|null} [task_type_id] WorkflowTask task_type_id
-         * @property {string|null} [workflow_entity_id] WorkflowTask workflow_entity_id
-         * @property {boolean|null} [is_link] WorkflowTask is_link
-         * @property {string|null} [pointer] WorkflowTask pointer
-         * @property {boolean|null} [synced] WorkflowTask synced
+         * @interface IWorkflowAsset
+         * @property {string|null} [id] WorkflowAsset id
+         * @property {number|Long|null} [mtime] WorkflowAsset mtime
+         * @property {string|null} [name] WorkflowAsset name
+         * @property {string|null} [template_id] WorkflowAsset template_id
+         * @property {boolean|null} [is_resource] WorkflowAsset is_resource
+         * @property {string|null} [workflow_id] WorkflowAsset workflow_id
+         * @property {string|null} [asset_type_id] WorkflowAsset asset_type_id
+         * @property {string|null} [workflow_collection_id] WorkflowAsset workflow_collection_id
+         * @property {boolean|null} [is_link] WorkflowAsset is_link
+         * @property {string|null} [pointer] WorkflowAsset pointer
+         * @property {boolean|null} [synced] WorkflowAsset synced
          */
 
         /**
-         * Constructs a new WorkflowTask.
+         * Constructs a new WorkflowAsset.
          * @memberof repository
-         * @classdesc Represents a WorkflowTask.
-         * @implements IWorkflowTask
+         * @classdesc Represents a WorkflowAsset.
+         * @implements IWorkflowAsset
          * @constructor
-         * @param {repository.IWorkflowTask=} [properties] Properties to set
+         * @param {repository.IWorkflowAsset=} [properties] Properties to set
          */
-        function WorkflowTask(properties) {
+        function WorkflowAsset(properties) {
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -3489,115 +3489,115 @@ export const repository = $root.repository = (() => {
         }
 
         /**
-         * WorkflowTask id.
+         * WorkflowAsset id.
          * @member {string} id
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @instance
          */
-        WorkflowTask.prototype.id = "";
+        WorkflowAsset.prototype.id = "";
 
         /**
-         * WorkflowTask mtime.
+         * WorkflowAsset mtime.
          * @member {number|Long} mtime
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @instance
          */
-        WorkflowTask.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+        WorkflowAsset.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
         /**
-         * WorkflowTask name.
+         * WorkflowAsset name.
          * @member {string} name
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @instance
          */
-        WorkflowTask.prototype.name = "";
+        WorkflowAsset.prototype.name = "";
 
         /**
-         * WorkflowTask template_id.
+         * WorkflowAsset template_id.
          * @member {string} template_id
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @instance
          */
-        WorkflowTask.prototype.template_id = "";
+        WorkflowAsset.prototype.template_id = "";
 
         /**
-         * WorkflowTask is_resource.
+         * WorkflowAsset is_resource.
          * @member {boolean} is_resource
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @instance
          */
-        WorkflowTask.prototype.is_resource = false;
+        WorkflowAsset.prototype.is_resource = false;
 
         /**
-         * WorkflowTask workflow_id.
+         * WorkflowAsset workflow_id.
          * @member {string} workflow_id
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @instance
          */
-        WorkflowTask.prototype.workflow_id = "";
+        WorkflowAsset.prototype.workflow_id = "";
 
         /**
-         * WorkflowTask task_type_id.
-         * @member {string} task_type_id
-         * @memberof repository.WorkflowTask
+         * WorkflowAsset asset_type_id.
+         * @member {string} asset_type_id
+         * @memberof repository.WorkflowAsset
          * @instance
          */
-        WorkflowTask.prototype.task_type_id = "";
+        WorkflowAsset.prototype.asset_type_id = "";
 
         /**
-         * WorkflowTask workflow_entity_id.
-         * @member {string} workflow_entity_id
-         * @memberof repository.WorkflowTask
+         * WorkflowAsset workflow_collection_id.
+         * @member {string} workflow_collection_id
+         * @memberof repository.WorkflowAsset
          * @instance
          */
-        WorkflowTask.prototype.workflow_entity_id = "";
+        WorkflowAsset.prototype.workflow_collection_id = "";
 
         /**
-         * WorkflowTask is_link.
+         * WorkflowAsset is_link.
          * @member {boolean} is_link
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @instance
          */
-        WorkflowTask.prototype.is_link = false;
+        WorkflowAsset.prototype.is_link = false;
 
         /**
-         * WorkflowTask pointer.
+         * WorkflowAsset pointer.
          * @member {string} pointer
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @instance
          */
-        WorkflowTask.prototype.pointer = "";
+        WorkflowAsset.prototype.pointer = "";
 
         /**
-         * WorkflowTask synced.
+         * WorkflowAsset synced.
          * @member {boolean} synced
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @instance
          */
-        WorkflowTask.prototype.synced = false;
+        WorkflowAsset.prototype.synced = false;
 
         /**
-         * Creates a new WorkflowTask instance using the specified properties.
+         * Creates a new WorkflowAsset instance using the specified properties.
          * @function create
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @static
-         * @param {repository.IWorkflowTask=} [properties] Properties to set
-         * @returns {repository.WorkflowTask} WorkflowTask instance
+         * @param {repository.IWorkflowAsset=} [properties] Properties to set
+         * @returns {repository.WorkflowAsset} WorkflowAsset instance
          */
-        WorkflowTask.create = function create(properties) {
-            return new WorkflowTask(properties);
+        WorkflowAsset.create = function create(properties) {
+            return new WorkflowAsset(properties);
         };
 
         /**
-         * Encodes the specified WorkflowTask message. Does not implicitly {@link repository.WorkflowTask.verify|verify} messages.
+         * Encodes the specified WorkflowAsset message. Does not implicitly {@link repository.WorkflowAsset.verify|verify} messages.
          * @function encode
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @static
-         * @param {repository.IWorkflowTask} message WorkflowTask message or plain object to encode
+         * @param {repository.IWorkflowAsset} message WorkflowAsset message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        WorkflowTask.encode = function encode(message, writer) {
+        WorkflowAsset.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
             if (message.id != null && Object.hasOwnProperty.call(message, "id"))
@@ -3612,10 +3612,10 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 5, wireType 0 =*/40).bool(message.is_resource);
             if (message.workflow_id != null && Object.hasOwnProperty.call(message, "workflow_id"))
                 writer.uint32(/* id 6, wireType 2 =*/50).string(message.workflow_id);
-            if (message.task_type_id != null && Object.hasOwnProperty.call(message, "task_type_id"))
-                writer.uint32(/* id 7, wireType 2 =*/58).string(message.task_type_id);
-            if (message.workflow_entity_id != null && Object.hasOwnProperty.call(message, "workflow_entity_id"))
-                writer.uint32(/* id 8, wireType 2 =*/66).string(message.workflow_entity_id);
+            if (message.asset_type_id != null && Object.hasOwnProperty.call(message, "asset_type_id"))
+                writer.uint32(/* id 7, wireType 2 =*/58).string(message.asset_type_id);
+            if (message.workflow_collection_id != null && Object.hasOwnProperty.call(message, "workflow_collection_id"))
+                writer.uint32(/* id 8, wireType 2 =*/66).string(message.workflow_collection_id);
             if (message.is_link != null && Object.hasOwnProperty.call(message, "is_link"))
                 writer.uint32(/* id 9, wireType 0 =*/72).bool(message.is_link);
             if (message.pointer != null && Object.hasOwnProperty.call(message, "pointer"))
@@ -3626,33 +3626,33 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Encodes the specified WorkflowTask message, length delimited. Does not implicitly {@link repository.WorkflowTask.verify|verify} messages.
+         * Encodes the specified WorkflowAsset message, length delimited. Does not implicitly {@link repository.WorkflowAsset.verify|verify} messages.
          * @function encodeDelimited
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @static
-         * @param {repository.IWorkflowTask} message WorkflowTask message or plain object to encode
+         * @param {repository.IWorkflowAsset} message WorkflowAsset message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        WorkflowTask.encodeDelimited = function encodeDelimited(message, writer) {
+        WorkflowAsset.encodeDelimited = function encodeDelimited(message, writer) {
             return this.encode(message, writer).ldelim();
         };
 
         /**
-         * Decodes a WorkflowTask message from the specified reader or buffer.
+         * Decodes a WorkflowAsset message from the specified reader or buffer.
          * @function decode
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {repository.WorkflowTask} WorkflowTask
+         * @returns {repository.WorkflowAsset} WorkflowAsset
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        WorkflowTask.decode = function decode(reader, length, error) {
+        WorkflowAsset.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.WorkflowTask();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.WorkflowAsset();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -3683,11 +3683,11 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 7: {
-                        message.task_type_id = reader.string();
+                        message.asset_type_id = reader.string();
                         break;
                     }
                 case 8: {
-                        message.workflow_entity_id = reader.string();
+                        message.workflow_collection_id = reader.string();
                         break;
                     }
                 case 9: {
@@ -3711,30 +3711,30 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Decodes a WorkflowTask message from the specified reader or buffer, length delimited.
+         * Decodes a WorkflowAsset message from the specified reader or buffer, length delimited.
          * @function decodeDelimited
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @returns {repository.WorkflowTask} WorkflowTask
+         * @returns {repository.WorkflowAsset} WorkflowAsset
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        WorkflowTask.decodeDelimited = function decodeDelimited(reader) {
+        WorkflowAsset.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
-         * Verifies a WorkflowTask message.
+         * Verifies a WorkflowAsset message.
          * @function verify
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @static
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        WorkflowTask.verify = function verify(message) {
+        WorkflowAsset.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
             if (message.id != null && message.hasOwnProperty("id"))
@@ -3755,12 +3755,12 @@ export const repository = $root.repository = (() => {
             if (message.workflow_id != null && message.hasOwnProperty("workflow_id"))
                 if (!$util.isString(message.workflow_id))
                     return "workflow_id: string expected";
-            if (message.task_type_id != null && message.hasOwnProperty("task_type_id"))
-                if (!$util.isString(message.task_type_id))
-                    return "task_type_id: string expected";
-            if (message.workflow_entity_id != null && message.hasOwnProperty("workflow_entity_id"))
-                if (!$util.isString(message.workflow_entity_id))
-                    return "workflow_entity_id: string expected";
+            if (message.asset_type_id != null && message.hasOwnProperty("asset_type_id"))
+                if (!$util.isString(message.asset_type_id))
+                    return "asset_type_id: string expected";
+            if (message.workflow_collection_id != null && message.hasOwnProperty("workflow_collection_id"))
+                if (!$util.isString(message.workflow_collection_id))
+                    return "workflow_collection_id: string expected";
             if (message.is_link != null && message.hasOwnProperty("is_link"))
                 if (typeof message.is_link !== "boolean")
                     return "is_link: boolean expected";
@@ -3774,17 +3774,17 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a WorkflowTask message from a plain object. Also converts values to their respective internal types.
+         * Creates a WorkflowAsset message from a plain object. Also converts values to their respective internal types.
          * @function fromObject
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @static
          * @param {Object.<string,*>} object Plain object
-         * @returns {repository.WorkflowTask} WorkflowTask
+         * @returns {repository.WorkflowAsset} WorkflowAsset
          */
-        WorkflowTask.fromObject = function fromObject(object) {
-            if (object instanceof $root.repository.WorkflowTask)
+        WorkflowAsset.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.WorkflowAsset)
                 return object;
-            let message = new $root.repository.WorkflowTask();
+            let message = new $root.repository.WorkflowAsset();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.mtime != null)
@@ -3804,10 +3804,10 @@ export const repository = $root.repository = (() => {
                 message.is_resource = Boolean(object.is_resource);
             if (object.workflow_id != null)
                 message.workflow_id = String(object.workflow_id);
-            if (object.task_type_id != null)
-                message.task_type_id = String(object.task_type_id);
-            if (object.workflow_entity_id != null)
-                message.workflow_entity_id = String(object.workflow_entity_id);
+            if (object.asset_type_id != null)
+                message.asset_type_id = String(object.asset_type_id);
+            if (object.workflow_collection_id != null)
+                message.workflow_collection_id = String(object.workflow_collection_id);
             if (object.is_link != null)
                 message.is_link = Boolean(object.is_link);
             if (object.pointer != null)
@@ -3818,15 +3818,15 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a plain object from a WorkflowTask message. Also converts values to other types if specified.
+         * Creates a plain object from a WorkflowAsset message. Also converts values to other types if specified.
          * @function toObject
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @static
-         * @param {repository.WorkflowTask} message WorkflowTask
+         * @param {repository.WorkflowAsset} message WorkflowAsset
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        WorkflowTask.toObject = function toObject(message, options) {
+        WorkflowAsset.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
             let object = {};
@@ -3841,8 +3841,8 @@ export const repository = $root.repository = (() => {
                 object.template_id = "";
                 object.is_resource = false;
                 object.workflow_id = "";
-                object.task_type_id = "";
-                object.workflow_entity_id = "";
+                object.asset_type_id = "";
+                object.workflow_collection_id = "";
                 object.is_link = false;
                 object.pointer = "";
                 object.synced = false;
@@ -3862,10 +3862,10 @@ export const repository = $root.repository = (() => {
                 object.is_resource = message.is_resource;
             if (message.workflow_id != null && message.hasOwnProperty("workflow_id"))
                 object.workflow_id = message.workflow_id;
-            if (message.task_type_id != null && message.hasOwnProperty("task_type_id"))
-                object.task_type_id = message.task_type_id;
-            if (message.workflow_entity_id != null && message.hasOwnProperty("workflow_entity_id"))
-                object.workflow_entity_id = message.workflow_entity_id;
+            if (message.asset_type_id != null && message.hasOwnProperty("asset_type_id"))
+                object.asset_type_id = message.asset_type_id;
+            if (message.workflow_collection_id != null && message.hasOwnProperty("workflow_collection_id"))
+                object.workflow_collection_id = message.workflow_collection_id;
             if (message.is_link != null && message.hasOwnProperty("is_link"))
                 object.is_link = message.is_link;
             if (message.pointer != null && message.hasOwnProperty("pointer"))
@@ -3876,58 +3876,58 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Converts this WorkflowTask to JSON.
+         * Converts this WorkflowAsset to JSON.
          * @function toJSON
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @instance
          * @returns {Object.<string,*>} JSON object
          */
-        WorkflowTask.prototype.toJSON = function toJSON() {
+        WorkflowAsset.prototype.toJSON = function toJSON() {
             return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
         };
 
         /**
-         * Gets the default type url for WorkflowTask
+         * Gets the default type url for WorkflowAsset
          * @function getTypeUrl
-         * @memberof repository.WorkflowTask
+         * @memberof repository.WorkflowAsset
          * @static
          * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns {string} The default type url
          */
-        WorkflowTask.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        WorkflowAsset.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
             if (typeUrlPrefix === undefined) {
                 typeUrlPrefix = "type.googleapis.com";
             }
-            return typeUrlPrefix + "/repository.WorkflowTask";
+            return typeUrlPrefix + "/repository.WorkflowAsset";
         };
 
-        return WorkflowTask;
+        return WorkflowAsset;
     })();
 
-    repository.WorkflowEntity = (function() {
+    repository.WorkflowCollection = (function() {
 
         /**
-         * Properties of a WorkflowEntity.
+         * Properties of a WorkflowCollection.
          * @memberof repository
-         * @interface IWorkflowEntity
-         * @property {string|null} [id] WorkflowEntity id
-         * @property {number|Long|null} [mtime] WorkflowEntity mtime
-         * @property {string|null} [name] WorkflowEntity name
-         * @property {string|null} [workflow_id] WorkflowEntity workflow_id
-         * @property {string|null} [entity_type_id] WorkflowEntity entity_type_id
-         * @property {string|null} [parent_id] WorkflowEntity parent_id
-         * @property {boolean|null} [synced] WorkflowEntity synced
+         * @interface IWorkflowCollection
+         * @property {string|null} [id] WorkflowCollection id
+         * @property {number|Long|null} [mtime] WorkflowCollection mtime
+         * @property {string|null} [name] WorkflowCollection name
+         * @property {string|null} [workflow_id] WorkflowCollection workflow_id
+         * @property {string|null} [collection_type_id] WorkflowCollection collection_type_id
+         * @property {string|null} [parent_id] WorkflowCollection parent_id
+         * @property {boolean|null} [synced] WorkflowCollection synced
          */
 
         /**
-         * Constructs a new WorkflowEntity.
+         * Constructs a new WorkflowCollection.
          * @memberof repository
-         * @classdesc Represents a WorkflowEntity.
-         * @implements IWorkflowEntity
+         * @classdesc Represents a WorkflowCollection.
+         * @implements IWorkflowCollection
          * @constructor
-         * @param {repository.IWorkflowEntity=} [properties] Properties to set
+         * @param {repository.IWorkflowCollection=} [properties] Properties to set
          */
-        function WorkflowEntity(properties) {
+        function WorkflowCollection(properties) {
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -3935,83 +3935,83 @@ export const repository = $root.repository = (() => {
         }
 
         /**
-         * WorkflowEntity id.
+         * WorkflowCollection id.
          * @member {string} id
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @instance
          */
-        WorkflowEntity.prototype.id = "";
+        WorkflowCollection.prototype.id = "";
 
         /**
-         * WorkflowEntity mtime.
+         * WorkflowCollection mtime.
          * @member {number|Long} mtime
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @instance
          */
-        WorkflowEntity.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+        WorkflowCollection.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
         /**
-         * WorkflowEntity name.
+         * WorkflowCollection name.
          * @member {string} name
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @instance
          */
-        WorkflowEntity.prototype.name = "";
+        WorkflowCollection.prototype.name = "";
 
         /**
-         * WorkflowEntity workflow_id.
+         * WorkflowCollection workflow_id.
          * @member {string} workflow_id
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @instance
          */
-        WorkflowEntity.prototype.workflow_id = "";
+        WorkflowCollection.prototype.workflow_id = "";
 
         /**
-         * WorkflowEntity entity_type_id.
-         * @member {string} entity_type_id
-         * @memberof repository.WorkflowEntity
+         * WorkflowCollection collection_type_id.
+         * @member {string} collection_type_id
+         * @memberof repository.WorkflowCollection
          * @instance
          */
-        WorkflowEntity.prototype.entity_type_id = "";
+        WorkflowCollection.prototype.collection_type_id = "";
 
         /**
-         * WorkflowEntity parent_id.
+         * WorkflowCollection parent_id.
          * @member {string} parent_id
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @instance
          */
-        WorkflowEntity.prototype.parent_id = "";
+        WorkflowCollection.prototype.parent_id = "";
 
         /**
-         * WorkflowEntity synced.
+         * WorkflowCollection synced.
          * @member {boolean} synced
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @instance
          */
-        WorkflowEntity.prototype.synced = false;
+        WorkflowCollection.prototype.synced = false;
 
         /**
-         * Creates a new WorkflowEntity instance using the specified properties.
+         * Creates a new WorkflowCollection instance using the specified properties.
          * @function create
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @static
-         * @param {repository.IWorkflowEntity=} [properties] Properties to set
-         * @returns {repository.WorkflowEntity} WorkflowEntity instance
+         * @param {repository.IWorkflowCollection=} [properties] Properties to set
+         * @returns {repository.WorkflowCollection} WorkflowCollection instance
          */
-        WorkflowEntity.create = function create(properties) {
-            return new WorkflowEntity(properties);
+        WorkflowCollection.create = function create(properties) {
+            return new WorkflowCollection(properties);
         };
 
         /**
-         * Encodes the specified WorkflowEntity message. Does not implicitly {@link repository.WorkflowEntity.verify|verify} messages.
+         * Encodes the specified WorkflowCollection message. Does not implicitly {@link repository.WorkflowCollection.verify|verify} messages.
          * @function encode
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @static
-         * @param {repository.IWorkflowEntity} message WorkflowEntity message or plain object to encode
+         * @param {repository.IWorkflowCollection} message WorkflowCollection message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        WorkflowEntity.encode = function encode(message, writer) {
+        WorkflowCollection.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
             if (message.id != null && Object.hasOwnProperty.call(message, "id"))
@@ -4022,8 +4022,8 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 3, wireType 2 =*/26).string(message.name);
             if (message.workflow_id != null && Object.hasOwnProperty.call(message, "workflow_id"))
                 writer.uint32(/* id 4, wireType 2 =*/34).string(message.workflow_id);
-            if (message.entity_type_id != null && Object.hasOwnProperty.call(message, "entity_type_id"))
-                writer.uint32(/* id 5, wireType 2 =*/42).string(message.entity_type_id);
+            if (message.collection_type_id != null && Object.hasOwnProperty.call(message, "collection_type_id"))
+                writer.uint32(/* id 5, wireType 2 =*/42).string(message.collection_type_id);
             if (message.parent_id != null && Object.hasOwnProperty.call(message, "parent_id"))
                 writer.uint32(/* id 6, wireType 2 =*/50).string(message.parent_id);
             if (message.synced != null && Object.hasOwnProperty.call(message, "synced"))
@@ -4032,33 +4032,33 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Encodes the specified WorkflowEntity message, length delimited. Does not implicitly {@link repository.WorkflowEntity.verify|verify} messages.
+         * Encodes the specified WorkflowCollection message, length delimited. Does not implicitly {@link repository.WorkflowCollection.verify|verify} messages.
          * @function encodeDelimited
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @static
-         * @param {repository.IWorkflowEntity} message WorkflowEntity message or plain object to encode
+         * @param {repository.IWorkflowCollection} message WorkflowCollection message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        WorkflowEntity.encodeDelimited = function encodeDelimited(message, writer) {
+        WorkflowCollection.encodeDelimited = function encodeDelimited(message, writer) {
             return this.encode(message, writer).ldelim();
         };
 
         /**
-         * Decodes a WorkflowEntity message from the specified reader or buffer.
+         * Decodes a WorkflowCollection message from the specified reader or buffer.
          * @function decode
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {repository.WorkflowEntity} WorkflowEntity
+         * @returns {repository.WorkflowCollection} WorkflowCollection
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        WorkflowEntity.decode = function decode(reader, length, error) {
+        WorkflowCollection.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.WorkflowEntity();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.WorkflowCollection();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -4081,7 +4081,7 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 5: {
-                        message.entity_type_id = reader.string();
+                        message.collection_type_id = reader.string();
                         break;
                     }
                 case 6: {
@@ -4101,30 +4101,30 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Decodes a WorkflowEntity message from the specified reader or buffer, length delimited.
+         * Decodes a WorkflowCollection message from the specified reader or buffer, length delimited.
          * @function decodeDelimited
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @returns {repository.WorkflowEntity} WorkflowEntity
+         * @returns {repository.WorkflowCollection} WorkflowCollection
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        WorkflowEntity.decodeDelimited = function decodeDelimited(reader) {
+        WorkflowCollection.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
-         * Verifies a WorkflowEntity message.
+         * Verifies a WorkflowCollection message.
          * @function verify
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @static
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        WorkflowEntity.verify = function verify(message) {
+        WorkflowCollection.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
             if (message.id != null && message.hasOwnProperty("id"))
@@ -4139,9 +4139,9 @@ export const repository = $root.repository = (() => {
             if (message.workflow_id != null && message.hasOwnProperty("workflow_id"))
                 if (!$util.isString(message.workflow_id))
                     return "workflow_id: string expected";
-            if (message.entity_type_id != null && message.hasOwnProperty("entity_type_id"))
-                if (!$util.isString(message.entity_type_id))
-                    return "entity_type_id: string expected";
+            if (message.collection_type_id != null && message.hasOwnProperty("collection_type_id"))
+                if (!$util.isString(message.collection_type_id))
+                    return "collection_type_id: string expected";
             if (message.parent_id != null && message.hasOwnProperty("parent_id"))
                 if (!$util.isString(message.parent_id))
                     return "parent_id: string expected";
@@ -4152,17 +4152,17 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a WorkflowEntity message from a plain object. Also converts values to their respective internal types.
+         * Creates a WorkflowCollection message from a plain object. Also converts values to their respective internal types.
          * @function fromObject
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @static
          * @param {Object.<string,*>} object Plain object
-         * @returns {repository.WorkflowEntity} WorkflowEntity
+         * @returns {repository.WorkflowCollection} WorkflowCollection
          */
-        WorkflowEntity.fromObject = function fromObject(object) {
-            if (object instanceof $root.repository.WorkflowEntity)
+        WorkflowCollection.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.WorkflowCollection)
                 return object;
-            let message = new $root.repository.WorkflowEntity();
+            let message = new $root.repository.WorkflowCollection();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.mtime != null)
@@ -4178,8 +4178,8 @@ export const repository = $root.repository = (() => {
                 message.name = String(object.name);
             if (object.workflow_id != null)
                 message.workflow_id = String(object.workflow_id);
-            if (object.entity_type_id != null)
-                message.entity_type_id = String(object.entity_type_id);
+            if (object.collection_type_id != null)
+                message.collection_type_id = String(object.collection_type_id);
             if (object.parent_id != null)
                 message.parent_id = String(object.parent_id);
             if (object.synced != null)
@@ -4188,15 +4188,15 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a plain object from a WorkflowEntity message. Also converts values to other types if specified.
+         * Creates a plain object from a WorkflowCollection message. Also converts values to other types if specified.
          * @function toObject
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @static
-         * @param {repository.WorkflowEntity} message WorkflowEntity
+         * @param {repository.WorkflowCollection} message WorkflowCollection
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        WorkflowEntity.toObject = function toObject(message, options) {
+        WorkflowCollection.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
             let object = {};
@@ -4209,7 +4209,7 @@ export const repository = $root.repository = (() => {
                     object.mtime = options.longs === String ? "0" : 0;
                 object.name = "";
                 object.workflow_id = "";
-                object.entity_type_id = "";
+                object.collection_type_id = "";
                 object.parent_id = "";
                 object.synced = false;
             }
@@ -4224,8 +4224,8 @@ export const repository = $root.repository = (() => {
                 object.name = message.name;
             if (message.workflow_id != null && message.hasOwnProperty("workflow_id"))
                 object.workflow_id = message.workflow_id;
-            if (message.entity_type_id != null && message.hasOwnProperty("entity_type_id"))
-                object.entity_type_id = message.entity_type_id;
+            if (message.collection_type_id != null && message.hasOwnProperty("collection_type_id"))
+                object.collection_type_id = message.collection_type_id;
             if (message.parent_id != null && message.hasOwnProperty("parent_id"))
                 object.parent_id = message.parent_id;
             if (message.synced != null && message.hasOwnProperty("synced"))
@@ -4234,32 +4234,32 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Converts this WorkflowEntity to JSON.
+         * Converts this WorkflowCollection to JSON.
          * @function toJSON
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @instance
          * @returns {Object.<string,*>} JSON object
          */
-        WorkflowEntity.prototype.toJSON = function toJSON() {
+        WorkflowCollection.prototype.toJSON = function toJSON() {
             return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
         };
 
         /**
-         * Gets the default type url for WorkflowEntity
+         * Gets the default type url for WorkflowCollection
          * @function getTypeUrl
-         * @memberof repository.WorkflowEntity
+         * @memberof repository.WorkflowCollection
          * @static
          * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns {string} The default type url
          */
-        WorkflowEntity.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        WorkflowCollection.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
             if (typeUrlPrefix === undefined) {
                 typeUrlPrefix = "type.googleapis.com";
             }
-            return typeUrlPrefix + "/repository.WorkflowEntity";
+            return typeUrlPrefix + "/repository.WorkflowCollection";
         };
 
-        return WorkflowEntity;
+        return WorkflowCollection;
     })();
 
     repository.WorkflowLink = (function() {
@@ -4271,7 +4271,7 @@ export const repository = $root.repository = (() => {
          * @property {string|null} [id] WorkflowLink id
          * @property {number|Long|null} [mtime] WorkflowLink mtime
          * @property {string|null} [name] WorkflowLink name
-         * @property {string|null} [entity_type_id] WorkflowLink entity_type_id
+         * @property {string|null} [collection_type_id] WorkflowLink collection_type_id
          * @property {string|null} [workflow_id] WorkflowLink workflow_id
          * @property {string|null} [linked_workflow_id] WorkflowLink linked_workflow_id
          * @property {string|null} [linked_workflow_name] WorkflowLink linked_workflow_name
@@ -4318,12 +4318,12 @@ export const repository = $root.repository = (() => {
         WorkflowLink.prototype.name = "";
 
         /**
-         * WorkflowLink entity_type_id.
-         * @member {string} entity_type_id
+         * WorkflowLink collection_type_id.
+         * @member {string} collection_type_id
          * @memberof repository.WorkflowLink
          * @instance
          */
-        WorkflowLink.prototype.entity_type_id = "";
+        WorkflowLink.prototype.collection_type_id = "";
 
         /**
          * WorkflowLink workflow_id.
@@ -4387,8 +4387,8 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 2, wireType 0 =*/16).int64(message.mtime);
             if (message.name != null && Object.hasOwnProperty.call(message, "name"))
                 writer.uint32(/* id 3, wireType 2 =*/26).string(message.name);
-            if (message.entity_type_id != null && Object.hasOwnProperty.call(message, "entity_type_id"))
-                writer.uint32(/* id 4, wireType 2 =*/34).string(message.entity_type_id);
+            if (message.collection_type_id != null && Object.hasOwnProperty.call(message, "collection_type_id"))
+                writer.uint32(/* id 4, wireType 2 =*/34).string(message.collection_type_id);
             if (message.workflow_id != null && Object.hasOwnProperty.call(message, "workflow_id"))
                 writer.uint32(/* id 5, wireType 2 =*/42).string(message.workflow_id);
             if (message.linked_workflow_id != null && Object.hasOwnProperty.call(message, "linked_workflow_id"))
@@ -4446,7 +4446,7 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 4: {
-                        message.entity_type_id = reader.string();
+                        message.collection_type_id = reader.string();
                         break;
                     }
                 case 5: {
@@ -4509,9 +4509,9 @@ export const repository = $root.repository = (() => {
             if (message.name != null && message.hasOwnProperty("name"))
                 if (!$util.isString(message.name))
                     return "name: string expected";
-            if (message.entity_type_id != null && message.hasOwnProperty("entity_type_id"))
-                if (!$util.isString(message.entity_type_id))
-                    return "entity_type_id: string expected";
+            if (message.collection_type_id != null && message.hasOwnProperty("collection_type_id"))
+                if (!$util.isString(message.collection_type_id))
+                    return "collection_type_id: string expected";
             if (message.workflow_id != null && message.hasOwnProperty("workflow_id"))
                 if (!$util.isString(message.workflow_id))
                     return "workflow_id: string expected";
@@ -4552,8 +4552,8 @@ export const repository = $root.repository = (() => {
                     message.mtime = new $util.LongBits(object.mtime.low >>> 0, object.mtime.high >>> 0).toNumber();
             if (object.name != null)
                 message.name = String(object.name);
-            if (object.entity_type_id != null)
-                message.entity_type_id = String(object.entity_type_id);
+            if (object.collection_type_id != null)
+                message.collection_type_id = String(object.collection_type_id);
             if (object.workflow_id != null)
                 message.workflow_id = String(object.workflow_id);
             if (object.linked_workflow_id != null)
@@ -4586,7 +4586,7 @@ export const repository = $root.repository = (() => {
                 } else
                     object.mtime = options.longs === String ? "0" : 0;
                 object.name = "";
-                object.entity_type_id = "";
+                object.collection_type_id = "";
                 object.workflow_id = "";
                 object.linked_workflow_id = "";
                 object.linked_workflow_name = "";
@@ -4601,8 +4601,8 @@ export const repository = $root.repository = (() => {
                     object.mtime = options.longs === String ? $util.Long.prototype.toString.call(message.mtime) : options.longs === Number ? new $util.LongBits(message.mtime.low >>> 0, message.mtime.high >>> 0).toNumber() : message.mtime;
             if (message.name != null && message.hasOwnProperty("name"))
                 object.name = message.name;
-            if (message.entity_type_id != null && message.hasOwnProperty("entity_type_id"))
-                object.entity_type_id = message.entity_type_id;
+            if (message.collection_type_id != null && message.hasOwnProperty("collection_type_id"))
+                object.collection_type_id = message.collection_type_id;
             if (message.workflow_id != null && message.hasOwnProperty("workflow_id"))
                 object.workflow_id = message.workflow_id;
             if (message.linked_workflow_id != null && message.hasOwnProperty("linked_workflow_id"))
@@ -5556,28 +5556,28 @@ export const repository = $root.repository = (() => {
         return Tag;
     })();
 
-    repository.TaskTag = (function() {
+    repository.AssetTag = (function() {
 
         /**
-         * Properties of a TaskTag.
+         * Properties of an AssetTag.
          * @memberof repository
-         * @interface ITaskTag
-         * @property {string|null} [id] TaskTag id
-         * @property {number|Long|null} [mtime] TaskTag mtime
-         * @property {string|null} [task_id] TaskTag task_id
-         * @property {string|null} [tag_id] TaskTag tag_id
-         * @property {boolean|null} [synced] TaskTag synced
+         * @interface IAssetTag
+         * @property {string|null} [id] AssetTag id
+         * @property {number|Long|null} [mtime] AssetTag mtime
+         * @property {string|null} [asset_id] AssetTag asset_id
+         * @property {string|null} [tag_id] AssetTag tag_id
+         * @property {boolean|null} [synced] AssetTag synced
          */
 
         /**
-         * Constructs a new TaskTag.
+         * Constructs a new AssetTag.
          * @memberof repository
-         * @classdesc Represents a TaskTag.
-         * @implements ITaskTag
+         * @classdesc Represents an AssetTag.
+         * @implements IAssetTag
          * @constructor
-         * @param {repository.ITaskTag=} [properties] Properties to set
+         * @param {repository.IAssetTag=} [properties] Properties to set
          */
-        function TaskTag(properties) {
+        function AssetTag(properties) {
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -5585,75 +5585,75 @@ export const repository = $root.repository = (() => {
         }
 
         /**
-         * TaskTag id.
+         * AssetTag id.
          * @member {string} id
-         * @memberof repository.TaskTag
+         * @memberof repository.AssetTag
          * @instance
          */
-        TaskTag.prototype.id = "";
+        AssetTag.prototype.id = "";
 
         /**
-         * TaskTag mtime.
+         * AssetTag mtime.
          * @member {number|Long} mtime
-         * @memberof repository.TaskTag
+         * @memberof repository.AssetTag
          * @instance
          */
-        TaskTag.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+        AssetTag.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
         /**
-         * TaskTag task_id.
-         * @member {string} task_id
-         * @memberof repository.TaskTag
+         * AssetTag asset_id.
+         * @member {string} asset_id
+         * @memberof repository.AssetTag
          * @instance
          */
-        TaskTag.prototype.task_id = "";
+        AssetTag.prototype.asset_id = "";
 
         /**
-         * TaskTag tag_id.
+         * AssetTag tag_id.
          * @member {string} tag_id
-         * @memberof repository.TaskTag
+         * @memberof repository.AssetTag
          * @instance
          */
-        TaskTag.prototype.tag_id = "";
+        AssetTag.prototype.tag_id = "";
 
         /**
-         * TaskTag synced.
+         * AssetTag synced.
          * @member {boolean} synced
-         * @memberof repository.TaskTag
+         * @memberof repository.AssetTag
          * @instance
          */
-        TaskTag.prototype.synced = false;
+        AssetTag.prototype.synced = false;
 
         /**
-         * Creates a new TaskTag instance using the specified properties.
+         * Creates a new AssetTag instance using the specified properties.
          * @function create
-         * @memberof repository.TaskTag
+         * @memberof repository.AssetTag
          * @static
-         * @param {repository.ITaskTag=} [properties] Properties to set
-         * @returns {repository.TaskTag} TaskTag instance
+         * @param {repository.IAssetTag=} [properties] Properties to set
+         * @returns {repository.AssetTag} AssetTag instance
          */
-        TaskTag.create = function create(properties) {
-            return new TaskTag(properties);
+        AssetTag.create = function create(properties) {
+            return new AssetTag(properties);
         };
 
         /**
-         * Encodes the specified TaskTag message. Does not implicitly {@link repository.TaskTag.verify|verify} messages.
+         * Encodes the specified AssetTag message. Does not implicitly {@link repository.AssetTag.verify|verify} messages.
          * @function encode
-         * @memberof repository.TaskTag
+         * @memberof repository.AssetTag
          * @static
-         * @param {repository.ITaskTag} message TaskTag message or plain object to encode
+         * @param {repository.IAssetTag} message AssetTag message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        TaskTag.encode = function encode(message, writer) {
+        AssetTag.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
             if (message.id != null && Object.hasOwnProperty.call(message, "id"))
                 writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
             if (message.mtime != null && Object.hasOwnProperty.call(message, "mtime"))
                 writer.uint32(/* id 2, wireType 0 =*/16).int64(message.mtime);
-            if (message.task_id != null && Object.hasOwnProperty.call(message, "task_id"))
-                writer.uint32(/* id 3, wireType 2 =*/26).string(message.task_id);
+            if (message.asset_id != null && Object.hasOwnProperty.call(message, "asset_id"))
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.asset_id);
             if (message.tag_id != null && Object.hasOwnProperty.call(message, "tag_id"))
                 writer.uint32(/* id 4, wireType 2 =*/34).string(message.tag_id);
             if (message.synced != null && Object.hasOwnProperty.call(message, "synced"))
@@ -5662,33 +5662,33 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Encodes the specified TaskTag message, length delimited. Does not implicitly {@link repository.TaskTag.verify|verify} messages.
+         * Encodes the specified AssetTag message, length delimited. Does not implicitly {@link repository.AssetTag.verify|verify} messages.
          * @function encodeDelimited
-         * @memberof repository.TaskTag
+         * @memberof repository.AssetTag
          * @static
-         * @param {repository.ITaskTag} message TaskTag message or plain object to encode
+         * @param {repository.IAssetTag} message AssetTag message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        TaskTag.encodeDelimited = function encodeDelimited(message, writer) {
+        AssetTag.encodeDelimited = function encodeDelimited(message, writer) {
             return this.encode(message, writer).ldelim();
         };
 
         /**
-         * Decodes a TaskTag message from the specified reader or buffer.
+         * Decodes an AssetTag message from the specified reader or buffer.
          * @function decode
-         * @memberof repository.TaskTag
+         * @memberof repository.AssetTag
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {repository.TaskTag} TaskTag
+         * @returns {repository.AssetTag} AssetTag
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        TaskTag.decode = function decode(reader, length, error) {
+        AssetTag.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.TaskTag();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.AssetTag();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -5703,7 +5703,7 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 3: {
-                        message.task_id = reader.string();
+                        message.asset_id = reader.string();
                         break;
                     }
                 case 4: {
@@ -5723,30 +5723,30 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Decodes a TaskTag message from the specified reader or buffer, length delimited.
+         * Decodes an AssetTag message from the specified reader or buffer, length delimited.
          * @function decodeDelimited
-         * @memberof repository.TaskTag
+         * @memberof repository.AssetTag
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @returns {repository.TaskTag} TaskTag
+         * @returns {repository.AssetTag} AssetTag
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        TaskTag.decodeDelimited = function decodeDelimited(reader) {
+        AssetTag.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
-         * Verifies a TaskTag message.
+         * Verifies an AssetTag message.
          * @function verify
-         * @memberof repository.TaskTag
+         * @memberof repository.AssetTag
          * @static
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        TaskTag.verify = function verify(message) {
+        AssetTag.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
             if (message.id != null && message.hasOwnProperty("id"))
@@ -5755,9 +5755,9 @@ export const repository = $root.repository = (() => {
             if (message.mtime != null && message.hasOwnProperty("mtime"))
                 if (!$util.isInteger(message.mtime) && !(message.mtime && $util.isInteger(message.mtime.low) && $util.isInteger(message.mtime.high)))
                     return "mtime: integer|Long expected";
-            if (message.task_id != null && message.hasOwnProperty("task_id"))
-                if (!$util.isString(message.task_id))
-                    return "task_id: string expected";
+            if (message.asset_id != null && message.hasOwnProperty("asset_id"))
+                if (!$util.isString(message.asset_id))
+                    return "asset_id: string expected";
             if (message.tag_id != null && message.hasOwnProperty("tag_id"))
                 if (!$util.isString(message.tag_id))
                     return "tag_id: string expected";
@@ -5768,17 +5768,17 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a TaskTag message from a plain object. Also converts values to their respective internal types.
+         * Creates an AssetTag message from a plain object. Also converts values to their respective internal types.
          * @function fromObject
-         * @memberof repository.TaskTag
+         * @memberof repository.AssetTag
          * @static
          * @param {Object.<string,*>} object Plain object
-         * @returns {repository.TaskTag} TaskTag
+         * @returns {repository.AssetTag} AssetTag
          */
-        TaskTag.fromObject = function fromObject(object) {
-            if (object instanceof $root.repository.TaskTag)
+        AssetTag.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.AssetTag)
                 return object;
-            let message = new $root.repository.TaskTag();
+            let message = new $root.repository.AssetTag();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.mtime != null)
@@ -5790,8 +5790,8 @@ export const repository = $root.repository = (() => {
                     message.mtime = object.mtime;
                 else if (typeof object.mtime === "object")
                     message.mtime = new $util.LongBits(object.mtime.low >>> 0, object.mtime.high >>> 0).toNumber();
-            if (object.task_id != null)
-                message.task_id = String(object.task_id);
+            if (object.asset_id != null)
+                message.asset_id = String(object.asset_id);
             if (object.tag_id != null)
                 message.tag_id = String(object.tag_id);
             if (object.synced != null)
@@ -5800,15 +5800,15 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a plain object from a TaskTag message. Also converts values to other types if specified.
+         * Creates a plain object from an AssetTag message. Also converts values to other types if specified.
          * @function toObject
-         * @memberof repository.TaskTag
+         * @memberof repository.AssetTag
          * @static
-         * @param {repository.TaskTag} message TaskTag
+         * @param {repository.AssetTag} message AssetTag
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        TaskTag.toObject = function toObject(message, options) {
+        AssetTag.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
             let object = {};
@@ -5819,7 +5819,7 @@ export const repository = $root.repository = (() => {
                     object.mtime = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
                 } else
                     object.mtime = options.longs === String ? "0" : 0;
-                object.task_id = "";
+                object.asset_id = "";
                 object.tag_id = "";
                 object.synced = false;
             }
@@ -5830,8 +5830,8 @@ export const repository = $root.repository = (() => {
                     object.mtime = options.longs === String ? String(message.mtime) : message.mtime;
                 else
                     object.mtime = options.longs === String ? $util.Long.prototype.toString.call(message.mtime) : options.longs === Number ? new $util.LongBits(message.mtime.low >>> 0, message.mtime.high >>> 0).toNumber() : message.mtime;
-            if (message.task_id != null && message.hasOwnProperty("task_id"))
-                object.task_id = message.task_id;
+            if (message.asset_id != null && message.hasOwnProperty("asset_id"))
+                object.asset_id = message.asset_id;
             if (message.tag_id != null && message.hasOwnProperty("tag_id"))
                 object.tag_id = message.tag_id;
             if (message.synced != null && message.hasOwnProperty("synced"))
@@ -5840,32 +5840,32 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Converts this TaskTag to JSON.
+         * Converts this AssetTag to JSON.
          * @function toJSON
-         * @memberof repository.TaskTag
+         * @memberof repository.AssetTag
          * @instance
          * @returns {Object.<string,*>} JSON object
          */
-        TaskTag.prototype.toJSON = function toJSON() {
+        AssetTag.prototype.toJSON = function toJSON() {
             return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
         };
 
         /**
-         * Gets the default type url for TaskTag
+         * Gets the default type url for AssetTag
          * @function getTypeUrl
-         * @memberof repository.TaskTag
+         * @memberof repository.AssetTag
          * @static
          * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns {string} The default type url
          */
-        TaskTag.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        AssetTag.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
             if (typeUrlPrefix === undefined) {
                 typeUrlPrefix = "type.googleapis.com";
             }
-            return typeUrlPrefix + "/repository.TaskTag";
+            return typeUrlPrefix + "/repository.AssetTag";
         };
 
-        return TaskTag;
+        return AssetTag;
     })();
 
     repository.Checkpoint = (function() {
@@ -5877,7 +5877,7 @@ export const repository = $root.repository = (() => {
          * @property {string|null} [id] Checkpoint id
          * @property {number|Long|null} [mtime] Checkpoint mtime
          * @property {string|null} [created_at] Checkpoint created_at
-         * @property {string|null} [task_id] Checkpoint task_id
+         * @property {string|null} [asset_id] Checkpoint asset_id
          * @property {string|null} [xxhash_checksum] Checkpoint xxhash_checksum
          * @property {number|Long|null} [time_modified] Checkpoint time_modified
          * @property {number|Long|null} [file_size] Checkpoint file_size
@@ -5930,12 +5930,12 @@ export const repository = $root.repository = (() => {
         Checkpoint.prototype.created_at = "";
 
         /**
-         * Checkpoint task_id.
-         * @member {string} task_id
+         * Checkpoint asset_id.
+         * @member {string} asset_id
          * @memberof repository.Checkpoint
          * @instance
          */
-        Checkpoint.prototype.task_id = "";
+        Checkpoint.prototype.asset_id = "";
 
         /**
          * Checkpoint xxhash_checksum.
@@ -6047,8 +6047,8 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 2, wireType 0 =*/16).int64(message.mtime);
             if (message.created_at != null && Object.hasOwnProperty.call(message, "created_at"))
                 writer.uint32(/* id 3, wireType 2 =*/26).string(message.created_at);
-            if (message.task_id != null && Object.hasOwnProperty.call(message, "task_id"))
-                writer.uint32(/* id 4, wireType 2 =*/34).string(message.task_id);
+            if (message.asset_id != null && Object.hasOwnProperty.call(message, "asset_id"))
+                writer.uint32(/* id 4, wireType 2 =*/34).string(message.asset_id);
             if (message.xxhash_checksum != null && Object.hasOwnProperty.call(message, "xxhash_checksum"))
                 writer.uint32(/* id 5, wireType 2 =*/42).string(message.xxhash_checksum);
             if (message.time_modified != null && Object.hasOwnProperty.call(message, "time_modified"))
@@ -6118,7 +6118,7 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 4: {
-                        message.task_id = reader.string();
+                        message.asset_id = reader.string();
                         break;
                     }
                 case 5: {
@@ -6205,9 +6205,9 @@ export const repository = $root.repository = (() => {
             if (message.created_at != null && message.hasOwnProperty("created_at"))
                 if (!$util.isString(message.created_at))
                     return "created_at: string expected";
-            if (message.task_id != null && message.hasOwnProperty("task_id"))
-                if (!$util.isString(message.task_id))
-                    return "task_id: string expected";
+            if (message.asset_id != null && message.hasOwnProperty("asset_id"))
+                if (!$util.isString(message.asset_id))
+                    return "asset_id: string expected";
             if (message.xxhash_checksum != null && message.hasOwnProperty("xxhash_checksum"))
                 if (!$util.isString(message.xxhash_checksum))
                     return "xxhash_checksum: string expected";
@@ -6266,8 +6266,8 @@ export const repository = $root.repository = (() => {
                     message.mtime = new $util.LongBits(object.mtime.low >>> 0, object.mtime.high >>> 0).toNumber();
             if (object.created_at != null)
                 message.created_at = String(object.created_at);
-            if (object.task_id != null)
-                message.task_id = String(object.task_id);
+            if (object.asset_id != null)
+                message.asset_id = String(object.asset_id);
             if (object.xxhash_checksum != null)
                 message.xxhash_checksum = String(object.xxhash_checksum);
             if (object.time_modified != null)
@@ -6326,7 +6326,7 @@ export const repository = $root.repository = (() => {
                 } else
                     object.mtime = options.longs === String ? "0" : 0;
                 object.created_at = "";
-                object.task_id = "";
+                object.asset_id = "";
                 object.xxhash_checksum = "";
                 if ($util.Long) {
                     let long = new $util.Long(0, 0, false);
@@ -6355,8 +6355,8 @@ export const repository = $root.repository = (() => {
                     object.mtime = options.longs === String ? $util.Long.prototype.toString.call(message.mtime) : options.longs === Number ? new $util.LongBits(message.mtime.low >>> 0, message.mtime.high >>> 0).toNumber() : message.mtime;
             if (message.created_at != null && message.hasOwnProperty("created_at"))
                 object.created_at = message.created_at;
-            if (message.task_id != null && message.hasOwnProperty("task_id"))
-                object.task_id = message.task_id;
+            if (message.asset_id != null && message.hasOwnProperty("asset_id"))
+                object.asset_id = message.asset_id;
             if (message.xxhash_checksum != null && message.hasOwnProperty("xxhash_checksum"))
                 object.xxhash_checksum = message.xxhash_checksum;
             if (message.time_modified != null && message.hasOwnProperty("time_modified"))
@@ -6425,14 +6425,14 @@ export const repository = $root.repository = (() => {
          * @property {number|Long|null} [mtime] Role mtime
          * @property {string|null} [name] Role name
          * @property {boolean|null} [synced] Role synced
-         * @property {boolean|null} [view_entity] Role view_entity
-         * @property {boolean|null} [create_entity] Role create_entity
-         * @property {boolean|null} [update_entity] Role update_entity
-         * @property {boolean|null} [delete_entity] Role delete_entity
-         * @property {boolean|null} [view_task] Role view_task
-         * @property {boolean|null} [create_task] Role create_task
-         * @property {boolean|null} [update_task] Role update_task
-         * @property {boolean|null} [delete_task] Role delete_task
+         * @property {boolean|null} [view_collection] Role view_collection
+         * @property {boolean|null} [create_collection] Role create_collection
+         * @property {boolean|null} [update_collection] Role update_collection
+         * @property {boolean|null} [delete_collection] Role delete_collection
+         * @property {boolean|null} [view_asset] Role view_asset
+         * @property {boolean|null} [create_asset] Role create_asset
+         * @property {boolean|null} [update_asset] Role update_asset
+         * @property {boolean|null} [delete_asset] Role delete_asset
          * @property {boolean|null} [view_template] Role view_template
          * @property {boolean|null} [create_template] Role create_template
          * @property {boolean|null} [update_template] Role update_template
@@ -6441,15 +6441,15 @@ export const repository = $root.repository = (() => {
          * @property {boolean|null} [create_checkpoint] Role create_checkpoint
          * @property {boolean|null} [delete_checkpoint] Role delete_checkpoint
          * @property {boolean|null} [pull_chunk] Role pull_chunk
-         * @property {boolean|null} [assign_task] Role assign_task
-         * @property {boolean|null} [unassign_task] Role unassign_task
+         * @property {boolean|null} [assign_asset] Role assign_asset
+         * @property {boolean|null} [unassign_asset] Role unassign_asset
          * @property {boolean|null} [add_user] Role add_user
          * @property {boolean|null} [remove_user] Role remove_user
          * @property {boolean|null} [change_role] Role change_role
          * @property {boolean|null} [change_status] Role change_status
-         * @property {boolean|null} [set_done_task] Role set_done_task
-         * @property {boolean|null} [set_retake_task] Role set_retake_task
-         * @property {boolean|null} [view_done_task] Role view_done_task
+         * @property {boolean|null} [set_done_asset] Role set_done_asset
+         * @property {boolean|null} [set_retake_asset] Role set_retake_asset
+         * @property {boolean|null} [view_done_asset] Role view_done_asset
          * @property {boolean|null} [manage_dependencies] Role manage_dependencies
          */
 
@@ -6501,68 +6501,68 @@ export const repository = $root.repository = (() => {
         Role.prototype.synced = false;
 
         /**
-         * Role view_entity.
-         * @member {boolean} view_entity
+         * Role view_collection.
+         * @member {boolean} view_collection
          * @memberof repository.Role
          * @instance
          */
-        Role.prototype.view_entity = false;
+        Role.prototype.view_collection = false;
 
         /**
-         * Role create_entity.
-         * @member {boolean} create_entity
+         * Role create_collection.
+         * @member {boolean} create_collection
          * @memberof repository.Role
          * @instance
          */
-        Role.prototype.create_entity = false;
+        Role.prototype.create_collection = false;
 
         /**
-         * Role update_entity.
-         * @member {boolean} update_entity
+         * Role update_collection.
+         * @member {boolean} update_collection
          * @memberof repository.Role
          * @instance
          */
-        Role.prototype.update_entity = false;
+        Role.prototype.update_collection = false;
 
         /**
-         * Role delete_entity.
-         * @member {boolean} delete_entity
+         * Role delete_collection.
+         * @member {boolean} delete_collection
          * @memberof repository.Role
          * @instance
          */
-        Role.prototype.delete_entity = false;
+        Role.prototype.delete_collection = false;
 
         /**
-         * Role view_task.
-         * @member {boolean} view_task
+         * Role view_asset.
+         * @member {boolean} view_asset
          * @memberof repository.Role
          * @instance
          */
-        Role.prototype.view_task = false;
+        Role.prototype.view_asset = false;
 
         /**
-         * Role create_task.
-         * @member {boolean} create_task
+         * Role create_asset.
+         * @member {boolean} create_asset
          * @memberof repository.Role
          * @instance
          */
-        Role.prototype.create_task = false;
+        Role.prototype.create_asset = false;
 
         /**
-         * Role update_task.
-         * @member {boolean} update_task
+         * Role update_asset.
+         * @member {boolean} update_asset
          * @memberof repository.Role
          * @instance
          */
-        Role.prototype.update_task = false;
+        Role.prototype.update_asset = false;
 
         /**
-         * Role delete_task.
-         * @member {boolean} delete_task
+         * Role delete_asset.
+         * @member {boolean} delete_asset
          * @memberof repository.Role
          * @instance
          */
-        Role.prototype.delete_task = false;
+        Role.prototype.delete_asset = false;
 
         /**
          * Role view_template.
@@ -6629,20 +6629,20 @@ export const repository = $root.repository = (() => {
         Role.prototype.pull_chunk = false;
 
         /**
-         * Role assign_task.
-         * @member {boolean} assign_task
+         * Role assign_asset.
+         * @member {boolean} assign_asset
          * @memberof repository.Role
          * @instance
          */
-        Role.prototype.assign_task = false;
+        Role.prototype.assign_asset = false;
 
         /**
-         * Role unassign_task.
-         * @member {boolean} unassign_task
+         * Role unassign_asset.
+         * @member {boolean} unassign_asset
          * @memberof repository.Role
          * @instance
          */
-        Role.prototype.unassign_task = false;
+        Role.prototype.unassign_asset = false;
 
         /**
          * Role add_user.
@@ -6677,28 +6677,28 @@ export const repository = $root.repository = (() => {
         Role.prototype.change_status = false;
 
         /**
-         * Role set_done_task.
-         * @member {boolean} set_done_task
+         * Role set_done_asset.
+         * @member {boolean} set_done_asset
          * @memberof repository.Role
          * @instance
          */
-        Role.prototype.set_done_task = false;
+        Role.prototype.set_done_asset = false;
 
         /**
-         * Role set_retake_task.
-         * @member {boolean} set_retake_task
+         * Role set_retake_asset.
+         * @member {boolean} set_retake_asset
          * @memberof repository.Role
          * @instance
          */
-        Role.prototype.set_retake_task = false;
+        Role.prototype.set_retake_asset = false;
 
         /**
-         * Role view_done_task.
-         * @member {boolean} view_done_task
+         * Role view_done_asset.
+         * @member {boolean} view_done_asset
          * @memberof repository.Role
          * @instance
          */
-        Role.prototype.view_done_task = false;
+        Role.prototype.view_done_asset = false;
 
         /**
          * Role manage_dependencies.
@@ -6740,22 +6740,22 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 3, wireType 2 =*/26).string(message.name);
             if (message.synced != null && Object.hasOwnProperty.call(message, "synced"))
                 writer.uint32(/* id 4, wireType 0 =*/32).bool(message.synced);
-            if (message.view_entity != null && Object.hasOwnProperty.call(message, "view_entity"))
-                writer.uint32(/* id 5, wireType 0 =*/40).bool(message.view_entity);
-            if (message.create_entity != null && Object.hasOwnProperty.call(message, "create_entity"))
-                writer.uint32(/* id 6, wireType 0 =*/48).bool(message.create_entity);
-            if (message.update_entity != null && Object.hasOwnProperty.call(message, "update_entity"))
-                writer.uint32(/* id 7, wireType 0 =*/56).bool(message.update_entity);
-            if (message.delete_entity != null && Object.hasOwnProperty.call(message, "delete_entity"))
-                writer.uint32(/* id 8, wireType 0 =*/64).bool(message.delete_entity);
-            if (message.view_task != null && Object.hasOwnProperty.call(message, "view_task"))
-                writer.uint32(/* id 9, wireType 0 =*/72).bool(message.view_task);
-            if (message.create_task != null && Object.hasOwnProperty.call(message, "create_task"))
-                writer.uint32(/* id 10, wireType 0 =*/80).bool(message.create_task);
-            if (message.update_task != null && Object.hasOwnProperty.call(message, "update_task"))
-                writer.uint32(/* id 11, wireType 0 =*/88).bool(message.update_task);
-            if (message.delete_task != null && Object.hasOwnProperty.call(message, "delete_task"))
-                writer.uint32(/* id 12, wireType 0 =*/96).bool(message.delete_task);
+            if (message.view_collection != null && Object.hasOwnProperty.call(message, "view_collection"))
+                writer.uint32(/* id 5, wireType 0 =*/40).bool(message.view_collection);
+            if (message.create_collection != null && Object.hasOwnProperty.call(message, "create_collection"))
+                writer.uint32(/* id 6, wireType 0 =*/48).bool(message.create_collection);
+            if (message.update_collection != null && Object.hasOwnProperty.call(message, "update_collection"))
+                writer.uint32(/* id 7, wireType 0 =*/56).bool(message.update_collection);
+            if (message.delete_collection != null && Object.hasOwnProperty.call(message, "delete_collection"))
+                writer.uint32(/* id 8, wireType 0 =*/64).bool(message.delete_collection);
+            if (message.view_asset != null && Object.hasOwnProperty.call(message, "view_asset"))
+                writer.uint32(/* id 9, wireType 0 =*/72).bool(message.view_asset);
+            if (message.create_asset != null && Object.hasOwnProperty.call(message, "create_asset"))
+                writer.uint32(/* id 10, wireType 0 =*/80).bool(message.create_asset);
+            if (message.update_asset != null && Object.hasOwnProperty.call(message, "update_asset"))
+                writer.uint32(/* id 11, wireType 0 =*/88).bool(message.update_asset);
+            if (message.delete_asset != null && Object.hasOwnProperty.call(message, "delete_asset"))
+                writer.uint32(/* id 12, wireType 0 =*/96).bool(message.delete_asset);
             if (message.view_template != null && Object.hasOwnProperty.call(message, "view_template"))
                 writer.uint32(/* id 13, wireType 0 =*/104).bool(message.view_template);
             if (message.create_template != null && Object.hasOwnProperty.call(message, "create_template"))
@@ -6772,10 +6772,10 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 19, wireType 0 =*/152).bool(message.delete_checkpoint);
             if (message.pull_chunk != null && Object.hasOwnProperty.call(message, "pull_chunk"))
                 writer.uint32(/* id 20, wireType 0 =*/160).bool(message.pull_chunk);
-            if (message.assign_task != null && Object.hasOwnProperty.call(message, "assign_task"))
-                writer.uint32(/* id 21, wireType 0 =*/168).bool(message.assign_task);
-            if (message.unassign_task != null && Object.hasOwnProperty.call(message, "unassign_task"))
-                writer.uint32(/* id 22, wireType 0 =*/176).bool(message.unassign_task);
+            if (message.assign_asset != null && Object.hasOwnProperty.call(message, "assign_asset"))
+                writer.uint32(/* id 21, wireType 0 =*/168).bool(message.assign_asset);
+            if (message.unassign_asset != null && Object.hasOwnProperty.call(message, "unassign_asset"))
+                writer.uint32(/* id 22, wireType 0 =*/176).bool(message.unassign_asset);
             if (message.add_user != null && Object.hasOwnProperty.call(message, "add_user"))
                 writer.uint32(/* id 23, wireType 0 =*/184).bool(message.add_user);
             if (message.remove_user != null && Object.hasOwnProperty.call(message, "remove_user"))
@@ -6784,12 +6784,12 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 25, wireType 0 =*/200).bool(message.change_role);
             if (message.change_status != null && Object.hasOwnProperty.call(message, "change_status"))
                 writer.uint32(/* id 26, wireType 0 =*/208).bool(message.change_status);
-            if (message.set_done_task != null && Object.hasOwnProperty.call(message, "set_done_task"))
-                writer.uint32(/* id 27, wireType 0 =*/216).bool(message.set_done_task);
-            if (message.set_retake_task != null && Object.hasOwnProperty.call(message, "set_retake_task"))
-                writer.uint32(/* id 28, wireType 0 =*/224).bool(message.set_retake_task);
-            if (message.view_done_task != null && Object.hasOwnProperty.call(message, "view_done_task"))
-                writer.uint32(/* id 29, wireType 0 =*/232).bool(message.view_done_task);
+            if (message.set_done_asset != null && Object.hasOwnProperty.call(message, "set_done_asset"))
+                writer.uint32(/* id 27, wireType 0 =*/216).bool(message.set_done_asset);
+            if (message.set_retake_asset != null && Object.hasOwnProperty.call(message, "set_retake_asset"))
+                writer.uint32(/* id 28, wireType 0 =*/224).bool(message.set_retake_asset);
+            if (message.view_done_asset != null && Object.hasOwnProperty.call(message, "view_done_asset"))
+                writer.uint32(/* id 29, wireType 0 =*/232).bool(message.view_done_asset);
             if (message.manage_dependencies != null && Object.hasOwnProperty.call(message, "manage_dependencies"))
                 writer.uint32(/* id 30, wireType 0 =*/240).bool(message.manage_dependencies);
             return writer;
@@ -6845,35 +6845,35 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 5: {
-                        message.view_entity = reader.bool();
+                        message.view_collection = reader.bool();
                         break;
                     }
                 case 6: {
-                        message.create_entity = reader.bool();
+                        message.create_collection = reader.bool();
                         break;
                     }
                 case 7: {
-                        message.update_entity = reader.bool();
+                        message.update_collection = reader.bool();
                         break;
                     }
                 case 8: {
-                        message.delete_entity = reader.bool();
+                        message.delete_collection = reader.bool();
                         break;
                     }
                 case 9: {
-                        message.view_task = reader.bool();
+                        message.view_asset = reader.bool();
                         break;
                     }
                 case 10: {
-                        message.create_task = reader.bool();
+                        message.create_asset = reader.bool();
                         break;
                     }
                 case 11: {
-                        message.update_task = reader.bool();
+                        message.update_asset = reader.bool();
                         break;
                     }
                 case 12: {
-                        message.delete_task = reader.bool();
+                        message.delete_asset = reader.bool();
                         break;
                     }
                 case 13: {
@@ -6909,11 +6909,11 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 21: {
-                        message.assign_task = reader.bool();
+                        message.assign_asset = reader.bool();
                         break;
                     }
                 case 22: {
-                        message.unassign_task = reader.bool();
+                        message.unassign_asset = reader.bool();
                         break;
                     }
                 case 23: {
@@ -6933,15 +6933,15 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 27: {
-                        message.set_done_task = reader.bool();
+                        message.set_done_asset = reader.bool();
                         break;
                     }
                 case 28: {
-                        message.set_retake_task = reader.bool();
+                        message.set_retake_asset = reader.bool();
                         break;
                     }
                 case 29: {
-                        message.view_done_task = reader.bool();
+                        message.view_done_asset = reader.bool();
                         break;
                     }
                 case 30: {
@@ -6995,30 +6995,30 @@ export const repository = $root.repository = (() => {
             if (message.synced != null && message.hasOwnProperty("synced"))
                 if (typeof message.synced !== "boolean")
                     return "synced: boolean expected";
-            if (message.view_entity != null && message.hasOwnProperty("view_entity"))
-                if (typeof message.view_entity !== "boolean")
-                    return "view_entity: boolean expected";
-            if (message.create_entity != null && message.hasOwnProperty("create_entity"))
-                if (typeof message.create_entity !== "boolean")
-                    return "create_entity: boolean expected";
-            if (message.update_entity != null && message.hasOwnProperty("update_entity"))
-                if (typeof message.update_entity !== "boolean")
-                    return "update_entity: boolean expected";
-            if (message.delete_entity != null && message.hasOwnProperty("delete_entity"))
-                if (typeof message.delete_entity !== "boolean")
-                    return "delete_entity: boolean expected";
-            if (message.view_task != null && message.hasOwnProperty("view_task"))
-                if (typeof message.view_task !== "boolean")
-                    return "view_task: boolean expected";
-            if (message.create_task != null && message.hasOwnProperty("create_task"))
-                if (typeof message.create_task !== "boolean")
-                    return "create_task: boolean expected";
-            if (message.update_task != null && message.hasOwnProperty("update_task"))
-                if (typeof message.update_task !== "boolean")
-                    return "update_task: boolean expected";
-            if (message.delete_task != null && message.hasOwnProperty("delete_task"))
-                if (typeof message.delete_task !== "boolean")
-                    return "delete_task: boolean expected";
+            if (message.view_collection != null && message.hasOwnProperty("view_collection"))
+                if (typeof message.view_collection !== "boolean")
+                    return "view_collection: boolean expected";
+            if (message.create_collection != null && message.hasOwnProperty("create_collection"))
+                if (typeof message.create_collection !== "boolean")
+                    return "create_collection: boolean expected";
+            if (message.update_collection != null && message.hasOwnProperty("update_collection"))
+                if (typeof message.update_collection !== "boolean")
+                    return "update_collection: boolean expected";
+            if (message.delete_collection != null && message.hasOwnProperty("delete_collection"))
+                if (typeof message.delete_collection !== "boolean")
+                    return "delete_collection: boolean expected";
+            if (message.view_asset != null && message.hasOwnProperty("view_asset"))
+                if (typeof message.view_asset !== "boolean")
+                    return "view_asset: boolean expected";
+            if (message.create_asset != null && message.hasOwnProperty("create_asset"))
+                if (typeof message.create_asset !== "boolean")
+                    return "create_asset: boolean expected";
+            if (message.update_asset != null && message.hasOwnProperty("update_asset"))
+                if (typeof message.update_asset !== "boolean")
+                    return "update_asset: boolean expected";
+            if (message.delete_asset != null && message.hasOwnProperty("delete_asset"))
+                if (typeof message.delete_asset !== "boolean")
+                    return "delete_asset: boolean expected";
             if (message.view_template != null && message.hasOwnProperty("view_template"))
                 if (typeof message.view_template !== "boolean")
                     return "view_template: boolean expected";
@@ -7043,12 +7043,12 @@ export const repository = $root.repository = (() => {
             if (message.pull_chunk != null && message.hasOwnProperty("pull_chunk"))
                 if (typeof message.pull_chunk !== "boolean")
                     return "pull_chunk: boolean expected";
-            if (message.assign_task != null && message.hasOwnProperty("assign_task"))
-                if (typeof message.assign_task !== "boolean")
-                    return "assign_task: boolean expected";
-            if (message.unassign_task != null && message.hasOwnProperty("unassign_task"))
-                if (typeof message.unassign_task !== "boolean")
-                    return "unassign_task: boolean expected";
+            if (message.assign_asset != null && message.hasOwnProperty("assign_asset"))
+                if (typeof message.assign_asset !== "boolean")
+                    return "assign_asset: boolean expected";
+            if (message.unassign_asset != null && message.hasOwnProperty("unassign_asset"))
+                if (typeof message.unassign_asset !== "boolean")
+                    return "unassign_asset: boolean expected";
             if (message.add_user != null && message.hasOwnProperty("add_user"))
                 if (typeof message.add_user !== "boolean")
                     return "add_user: boolean expected";
@@ -7061,15 +7061,15 @@ export const repository = $root.repository = (() => {
             if (message.change_status != null && message.hasOwnProperty("change_status"))
                 if (typeof message.change_status !== "boolean")
                     return "change_status: boolean expected";
-            if (message.set_done_task != null && message.hasOwnProperty("set_done_task"))
-                if (typeof message.set_done_task !== "boolean")
-                    return "set_done_task: boolean expected";
-            if (message.set_retake_task != null && message.hasOwnProperty("set_retake_task"))
-                if (typeof message.set_retake_task !== "boolean")
-                    return "set_retake_task: boolean expected";
-            if (message.view_done_task != null && message.hasOwnProperty("view_done_task"))
-                if (typeof message.view_done_task !== "boolean")
-                    return "view_done_task: boolean expected";
+            if (message.set_done_asset != null && message.hasOwnProperty("set_done_asset"))
+                if (typeof message.set_done_asset !== "boolean")
+                    return "set_done_asset: boolean expected";
+            if (message.set_retake_asset != null && message.hasOwnProperty("set_retake_asset"))
+                if (typeof message.set_retake_asset !== "boolean")
+                    return "set_retake_asset: boolean expected";
+            if (message.view_done_asset != null && message.hasOwnProperty("view_done_asset"))
+                if (typeof message.view_done_asset !== "boolean")
+                    return "view_done_asset: boolean expected";
             if (message.manage_dependencies != null && message.hasOwnProperty("manage_dependencies"))
                 if (typeof message.manage_dependencies !== "boolean")
                     return "manage_dependencies: boolean expected";
@@ -7103,22 +7103,22 @@ export const repository = $root.repository = (() => {
                 message.name = String(object.name);
             if (object.synced != null)
                 message.synced = Boolean(object.synced);
-            if (object.view_entity != null)
-                message.view_entity = Boolean(object.view_entity);
-            if (object.create_entity != null)
-                message.create_entity = Boolean(object.create_entity);
-            if (object.update_entity != null)
-                message.update_entity = Boolean(object.update_entity);
-            if (object.delete_entity != null)
-                message.delete_entity = Boolean(object.delete_entity);
-            if (object.view_task != null)
-                message.view_task = Boolean(object.view_task);
-            if (object.create_task != null)
-                message.create_task = Boolean(object.create_task);
-            if (object.update_task != null)
-                message.update_task = Boolean(object.update_task);
-            if (object.delete_task != null)
-                message.delete_task = Boolean(object.delete_task);
+            if (object.view_collection != null)
+                message.view_collection = Boolean(object.view_collection);
+            if (object.create_collection != null)
+                message.create_collection = Boolean(object.create_collection);
+            if (object.update_collection != null)
+                message.update_collection = Boolean(object.update_collection);
+            if (object.delete_collection != null)
+                message.delete_collection = Boolean(object.delete_collection);
+            if (object.view_asset != null)
+                message.view_asset = Boolean(object.view_asset);
+            if (object.create_asset != null)
+                message.create_asset = Boolean(object.create_asset);
+            if (object.update_asset != null)
+                message.update_asset = Boolean(object.update_asset);
+            if (object.delete_asset != null)
+                message.delete_asset = Boolean(object.delete_asset);
             if (object.view_template != null)
                 message.view_template = Boolean(object.view_template);
             if (object.create_template != null)
@@ -7135,10 +7135,10 @@ export const repository = $root.repository = (() => {
                 message.delete_checkpoint = Boolean(object.delete_checkpoint);
             if (object.pull_chunk != null)
                 message.pull_chunk = Boolean(object.pull_chunk);
-            if (object.assign_task != null)
-                message.assign_task = Boolean(object.assign_task);
-            if (object.unassign_task != null)
-                message.unassign_task = Boolean(object.unassign_task);
+            if (object.assign_asset != null)
+                message.assign_asset = Boolean(object.assign_asset);
+            if (object.unassign_asset != null)
+                message.unassign_asset = Boolean(object.unassign_asset);
             if (object.add_user != null)
                 message.add_user = Boolean(object.add_user);
             if (object.remove_user != null)
@@ -7147,12 +7147,12 @@ export const repository = $root.repository = (() => {
                 message.change_role = Boolean(object.change_role);
             if (object.change_status != null)
                 message.change_status = Boolean(object.change_status);
-            if (object.set_done_task != null)
-                message.set_done_task = Boolean(object.set_done_task);
-            if (object.set_retake_task != null)
-                message.set_retake_task = Boolean(object.set_retake_task);
-            if (object.view_done_task != null)
-                message.view_done_task = Boolean(object.view_done_task);
+            if (object.set_done_asset != null)
+                message.set_done_asset = Boolean(object.set_done_asset);
+            if (object.set_retake_asset != null)
+                message.set_retake_asset = Boolean(object.set_retake_asset);
+            if (object.view_done_asset != null)
+                message.view_done_asset = Boolean(object.view_done_asset);
             if (object.manage_dependencies != null)
                 message.manage_dependencies = Boolean(object.manage_dependencies);
             return message;
@@ -7180,14 +7180,14 @@ export const repository = $root.repository = (() => {
                     object.mtime = options.longs === String ? "0" : 0;
                 object.name = "";
                 object.synced = false;
-                object.view_entity = false;
-                object.create_entity = false;
-                object.update_entity = false;
-                object.delete_entity = false;
-                object.view_task = false;
-                object.create_task = false;
-                object.update_task = false;
-                object.delete_task = false;
+                object.view_collection = false;
+                object.create_collection = false;
+                object.update_collection = false;
+                object.delete_collection = false;
+                object.view_asset = false;
+                object.create_asset = false;
+                object.update_asset = false;
+                object.delete_asset = false;
                 object.view_template = false;
                 object.create_template = false;
                 object.update_template = false;
@@ -7196,15 +7196,15 @@ export const repository = $root.repository = (() => {
                 object.create_checkpoint = false;
                 object.delete_checkpoint = false;
                 object.pull_chunk = false;
-                object.assign_task = false;
-                object.unassign_task = false;
+                object.assign_asset = false;
+                object.unassign_asset = false;
                 object.add_user = false;
                 object.remove_user = false;
                 object.change_role = false;
                 object.change_status = false;
-                object.set_done_task = false;
-                object.set_retake_task = false;
-                object.view_done_task = false;
+                object.set_done_asset = false;
+                object.set_retake_asset = false;
+                object.view_done_asset = false;
                 object.manage_dependencies = false;
             }
             if (message.id != null && message.hasOwnProperty("id"))
@@ -7218,22 +7218,22 @@ export const repository = $root.repository = (() => {
                 object.name = message.name;
             if (message.synced != null && message.hasOwnProperty("synced"))
                 object.synced = message.synced;
-            if (message.view_entity != null && message.hasOwnProperty("view_entity"))
-                object.view_entity = message.view_entity;
-            if (message.create_entity != null && message.hasOwnProperty("create_entity"))
-                object.create_entity = message.create_entity;
-            if (message.update_entity != null && message.hasOwnProperty("update_entity"))
-                object.update_entity = message.update_entity;
-            if (message.delete_entity != null && message.hasOwnProperty("delete_entity"))
-                object.delete_entity = message.delete_entity;
-            if (message.view_task != null && message.hasOwnProperty("view_task"))
-                object.view_task = message.view_task;
-            if (message.create_task != null && message.hasOwnProperty("create_task"))
-                object.create_task = message.create_task;
-            if (message.update_task != null && message.hasOwnProperty("update_task"))
-                object.update_task = message.update_task;
-            if (message.delete_task != null && message.hasOwnProperty("delete_task"))
-                object.delete_task = message.delete_task;
+            if (message.view_collection != null && message.hasOwnProperty("view_collection"))
+                object.view_collection = message.view_collection;
+            if (message.create_collection != null && message.hasOwnProperty("create_collection"))
+                object.create_collection = message.create_collection;
+            if (message.update_collection != null && message.hasOwnProperty("update_collection"))
+                object.update_collection = message.update_collection;
+            if (message.delete_collection != null && message.hasOwnProperty("delete_collection"))
+                object.delete_collection = message.delete_collection;
+            if (message.view_asset != null && message.hasOwnProperty("view_asset"))
+                object.view_asset = message.view_asset;
+            if (message.create_asset != null && message.hasOwnProperty("create_asset"))
+                object.create_asset = message.create_asset;
+            if (message.update_asset != null && message.hasOwnProperty("update_asset"))
+                object.update_asset = message.update_asset;
+            if (message.delete_asset != null && message.hasOwnProperty("delete_asset"))
+                object.delete_asset = message.delete_asset;
             if (message.view_template != null && message.hasOwnProperty("view_template"))
                 object.view_template = message.view_template;
             if (message.create_template != null && message.hasOwnProperty("create_template"))
@@ -7250,10 +7250,10 @@ export const repository = $root.repository = (() => {
                 object.delete_checkpoint = message.delete_checkpoint;
             if (message.pull_chunk != null && message.hasOwnProperty("pull_chunk"))
                 object.pull_chunk = message.pull_chunk;
-            if (message.assign_task != null && message.hasOwnProperty("assign_task"))
-                object.assign_task = message.assign_task;
-            if (message.unassign_task != null && message.hasOwnProperty("unassign_task"))
-                object.unassign_task = message.unassign_task;
+            if (message.assign_asset != null && message.hasOwnProperty("assign_asset"))
+                object.assign_asset = message.assign_asset;
+            if (message.unassign_asset != null && message.hasOwnProperty("unassign_asset"))
+                object.unassign_asset = message.unassign_asset;
             if (message.add_user != null && message.hasOwnProperty("add_user"))
                 object.add_user = message.add_user;
             if (message.remove_user != null && message.hasOwnProperty("remove_user"))
@@ -7262,12 +7262,12 @@ export const repository = $root.repository = (() => {
                 object.change_role = message.change_role;
             if (message.change_status != null && message.hasOwnProperty("change_status"))
                 object.change_status = message.change_status;
-            if (message.set_done_task != null && message.hasOwnProperty("set_done_task"))
-                object.set_done_task = message.set_done_task;
-            if (message.set_retake_task != null && message.hasOwnProperty("set_retake_task"))
-                object.set_retake_task = message.set_retake_task;
-            if (message.view_done_task != null && message.hasOwnProperty("view_done_task"))
-                object.view_done_task = message.view_done_task;
+            if (message.set_done_asset != null && message.hasOwnProperty("set_done_asset"))
+                object.set_done_asset = message.set_done_asset;
+            if (message.set_retake_asset != null && message.hasOwnProperty("set_retake_asset"))
+                object.set_retake_asset = message.set_retake_asset;
+            if (message.view_done_asset != null && message.hasOwnProperty("view_done_asset"))
+                object.view_done_asset = message.view_done_asset;
             if (message.manage_dependencies != null && message.hasOwnProperty("manage_dependencies"))
                 object.manage_dependencies = message.manage_dependencies;
             return object;
@@ -10031,25 +10031,25 @@ export const repository = $root.repository = (() => {
          * @memberof repository
          * @interface IProjectData
          * @property {string|null} [project_preview] ProjectData project_preview
-         * @property {Array.<repository.ITask>|null} [tasks] ProjectData tasks
-         * @property {Array.<repository.ITaskType>|null} [task_types] ProjectData task_types
-         * @property {Array.<repository.ICheckpoint>|null} [tasks_checkpoints] ProjectData tasks_checkpoints
-         * @property {Array.<repository.ITaskDependency>|null} [task_dependencies] ProjectData task_dependencies
-         * @property {Array.<repository.IEntityDependency>|null} [entity_dependencies] ProjectData entity_dependencies
+         * @property {Array.<repository.IAsset>|null} [assets] ProjectData assets
+         * @property {Array.<repository.IAssetType>|null} [asset_types] ProjectData asset_types
+         * @property {Array.<repository.ICheckpoint>|null} [asset_checkpoints] ProjectData asset_checkpoints
+         * @property {Array.<repository.IAssetDependency>|null} [asset_dependencies] ProjectData asset_dependencies
+         * @property {Array.<repository.ICollectionDependency>|null} [collection_dependencies] ProjectData collection_dependencies
          * @property {Array.<repository.IStatus>|null} [statuses] ProjectData statuses
          * @property {Array.<repository.IDependencyType>|null} [dependency_types] ProjectData dependency_types
          * @property {Array.<repository.IUser>|null} [users] ProjectData users
          * @property {Array.<repository.IRole>|null} [roles] ProjectData roles
-         * @property {Array.<repository.IEntityType>|null} [entity_types] ProjectData entity_types
-         * @property {Array.<repository.IEntity>|null} [entities] ProjectData entities
-         * @property {Array.<repository.IEntityAssignee>|null} [entity_assignees] ProjectData entity_assignees
+         * @property {Array.<repository.ICollectionType>|null} [collection_types] ProjectData collection_types
+         * @property {Array.<repository.ICollection>|null} [collections] ProjectData collections
+         * @property {Array.<repository.ICollectionAssignee>|null} [collection_assignees] ProjectData collection_assignees
          * @property {Array.<repository.ITemplate>|null} [templates] ProjectData templates
          * @property {Array.<repository.ITag>|null} [tags] ProjectData tags
-         * @property {Array.<repository.ITaskTag>|null} [tasks_tags] ProjectData tasks_tags
+         * @property {Array.<repository.IAssetTag>|null} [asset_tags] ProjectData asset_tags
          * @property {Array.<repository.IWorkflow>|null} [workflows] ProjectData workflows
          * @property {Array.<repository.IWorkflowLink>|null} [workflow_links] ProjectData workflow_links
-         * @property {Array.<repository.IWorkflowEntity>|null} [workflow_entities] ProjectData workflow_entities
-         * @property {Array.<repository.IWorkflowTask>|null} [workflow_tasks] ProjectData workflow_tasks
+         * @property {Array.<repository.IWorkflowCollection>|null} [workflow_collections] ProjectData workflow_collections
+         * @property {Array.<repository.IWorkflowAsset>|null} [workflow_assets] ProjectData workflow_assets
          * @property {Array.<repository.ITomb>|null} [tomb] ProjectData tomb
          * @property {Array.<repository.IIntegrationProject>|null} [integration_projects] ProjectData integration_projects
          * @property {Array.<repository.IIntegrationCollectionMapping>|null} [integration_collection_mappings] ProjectData integration_collection_mappings
@@ -10065,25 +10065,25 @@ export const repository = $root.repository = (() => {
          * @param {repository.IProjectData=} [properties] Properties to set
          */
         function ProjectData(properties) {
-            this.tasks = [];
-            this.task_types = [];
-            this.tasks_checkpoints = [];
-            this.task_dependencies = [];
-            this.entity_dependencies = [];
+            this.assets = [];
+            this.asset_types = [];
+            this.asset_checkpoints = [];
+            this.asset_dependencies = [];
+            this.collection_dependencies = [];
             this.statuses = [];
             this.dependency_types = [];
             this.users = [];
             this.roles = [];
-            this.entity_types = [];
-            this.entities = [];
-            this.entity_assignees = [];
+            this.collection_types = [];
+            this.collections = [];
+            this.collection_assignees = [];
             this.templates = [];
             this.tags = [];
-            this.tasks_tags = [];
+            this.asset_tags = [];
             this.workflows = [];
             this.workflow_links = [];
-            this.workflow_entities = [];
-            this.workflow_tasks = [];
+            this.workflow_collections = [];
+            this.workflow_assets = [];
             this.tomb = [];
             this.integration_projects = [];
             this.integration_collection_mappings = [];
@@ -10103,44 +10103,44 @@ export const repository = $root.repository = (() => {
         ProjectData.prototype.project_preview = "";
 
         /**
-         * ProjectData tasks.
-         * @member {Array.<repository.ITask>} tasks
+         * ProjectData assets.
+         * @member {Array.<repository.IAsset>} assets
          * @memberof repository.ProjectData
          * @instance
          */
-        ProjectData.prototype.tasks = $util.emptyArray;
+        ProjectData.prototype.assets = $util.emptyArray;
 
         /**
-         * ProjectData task_types.
-         * @member {Array.<repository.ITaskType>} task_types
+         * ProjectData asset_types.
+         * @member {Array.<repository.IAssetType>} asset_types
          * @memberof repository.ProjectData
          * @instance
          */
-        ProjectData.prototype.task_types = $util.emptyArray;
+        ProjectData.prototype.asset_types = $util.emptyArray;
 
         /**
-         * ProjectData tasks_checkpoints.
-         * @member {Array.<repository.ICheckpoint>} tasks_checkpoints
+         * ProjectData asset_checkpoints.
+         * @member {Array.<repository.ICheckpoint>} asset_checkpoints
          * @memberof repository.ProjectData
          * @instance
          */
-        ProjectData.prototype.tasks_checkpoints = $util.emptyArray;
+        ProjectData.prototype.asset_checkpoints = $util.emptyArray;
 
         /**
-         * ProjectData task_dependencies.
-         * @member {Array.<repository.ITaskDependency>} task_dependencies
+         * ProjectData asset_dependencies.
+         * @member {Array.<repository.IAssetDependency>} asset_dependencies
          * @memberof repository.ProjectData
          * @instance
          */
-        ProjectData.prototype.task_dependencies = $util.emptyArray;
+        ProjectData.prototype.asset_dependencies = $util.emptyArray;
 
         /**
-         * ProjectData entity_dependencies.
-         * @member {Array.<repository.IEntityDependency>} entity_dependencies
+         * ProjectData collection_dependencies.
+         * @member {Array.<repository.ICollectionDependency>} collection_dependencies
          * @memberof repository.ProjectData
          * @instance
          */
-        ProjectData.prototype.entity_dependencies = $util.emptyArray;
+        ProjectData.prototype.collection_dependencies = $util.emptyArray;
 
         /**
          * ProjectData statuses.
@@ -10175,28 +10175,28 @@ export const repository = $root.repository = (() => {
         ProjectData.prototype.roles = $util.emptyArray;
 
         /**
-         * ProjectData entity_types.
-         * @member {Array.<repository.IEntityType>} entity_types
+         * ProjectData collection_types.
+         * @member {Array.<repository.ICollectionType>} collection_types
          * @memberof repository.ProjectData
          * @instance
          */
-        ProjectData.prototype.entity_types = $util.emptyArray;
+        ProjectData.prototype.collection_types = $util.emptyArray;
 
         /**
-         * ProjectData entities.
-         * @member {Array.<repository.IEntity>} entities
+         * ProjectData collections.
+         * @member {Array.<repository.ICollection>} collections
          * @memberof repository.ProjectData
          * @instance
          */
-        ProjectData.prototype.entities = $util.emptyArray;
+        ProjectData.prototype.collections = $util.emptyArray;
 
         /**
-         * ProjectData entity_assignees.
-         * @member {Array.<repository.IEntityAssignee>} entity_assignees
+         * ProjectData collection_assignees.
+         * @member {Array.<repository.ICollectionAssignee>} collection_assignees
          * @memberof repository.ProjectData
          * @instance
          */
-        ProjectData.prototype.entity_assignees = $util.emptyArray;
+        ProjectData.prototype.collection_assignees = $util.emptyArray;
 
         /**
          * ProjectData templates.
@@ -10215,12 +10215,12 @@ export const repository = $root.repository = (() => {
         ProjectData.prototype.tags = $util.emptyArray;
 
         /**
-         * ProjectData tasks_tags.
-         * @member {Array.<repository.ITaskTag>} tasks_tags
+         * ProjectData asset_tags.
+         * @member {Array.<repository.IAssetTag>} asset_tags
          * @memberof repository.ProjectData
          * @instance
          */
-        ProjectData.prototype.tasks_tags = $util.emptyArray;
+        ProjectData.prototype.asset_tags = $util.emptyArray;
 
         /**
          * ProjectData workflows.
@@ -10239,20 +10239,20 @@ export const repository = $root.repository = (() => {
         ProjectData.prototype.workflow_links = $util.emptyArray;
 
         /**
-         * ProjectData workflow_entities.
-         * @member {Array.<repository.IWorkflowEntity>} workflow_entities
+         * ProjectData workflow_collections.
+         * @member {Array.<repository.IWorkflowCollection>} workflow_collections
          * @memberof repository.ProjectData
          * @instance
          */
-        ProjectData.prototype.workflow_entities = $util.emptyArray;
+        ProjectData.prototype.workflow_collections = $util.emptyArray;
 
         /**
-         * ProjectData workflow_tasks.
-         * @member {Array.<repository.IWorkflowTask>} workflow_tasks
+         * ProjectData workflow_assets.
+         * @member {Array.<repository.IWorkflowAsset>} workflow_assets
          * @memberof repository.ProjectData
          * @instance
          */
-        ProjectData.prototype.workflow_tasks = $util.emptyArray;
+        ProjectData.prototype.workflow_assets = $util.emptyArray;
 
         /**
          * ProjectData tomb.
@@ -10312,21 +10312,21 @@ export const repository = $root.repository = (() => {
                 writer = $Writer.create();
             if (message.project_preview != null && Object.hasOwnProperty.call(message, "project_preview"))
                 writer.uint32(/* id 1, wireType 2 =*/10).string(message.project_preview);
-            if (message.tasks != null && message.tasks.length)
-                for (let i = 0; i < message.tasks.length; ++i)
-                    $root.repository.Task.encode(message.tasks[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-            if (message.task_types != null && message.task_types.length)
-                for (let i = 0; i < message.task_types.length; ++i)
-                    $root.repository.TaskType.encode(message.task_types[i], writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
-            if (message.tasks_checkpoints != null && message.tasks_checkpoints.length)
-                for (let i = 0; i < message.tasks_checkpoints.length; ++i)
-                    $root.repository.Checkpoint.encode(message.tasks_checkpoints[i], writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
-            if (message.task_dependencies != null && message.task_dependencies.length)
-                for (let i = 0; i < message.task_dependencies.length; ++i)
-                    $root.repository.TaskDependency.encode(message.task_dependencies[i], writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
-            if (message.entity_dependencies != null && message.entity_dependencies.length)
-                for (let i = 0; i < message.entity_dependencies.length; ++i)
-                    $root.repository.EntityDependency.encode(message.entity_dependencies[i], writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
+            if (message.assets != null && message.assets.length)
+                for (let i = 0; i < message.assets.length; ++i)
+                    $root.repository.Asset.encode(message.assets[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+            if (message.asset_types != null && message.asset_types.length)
+                for (let i = 0; i < message.asset_types.length; ++i)
+                    $root.repository.AssetType.encode(message.asset_types[i], writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+            if (message.asset_checkpoints != null && message.asset_checkpoints.length)
+                for (let i = 0; i < message.asset_checkpoints.length; ++i)
+                    $root.repository.Checkpoint.encode(message.asset_checkpoints[i], writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+            if (message.asset_dependencies != null && message.asset_dependencies.length)
+                for (let i = 0; i < message.asset_dependencies.length; ++i)
+                    $root.repository.AssetDependency.encode(message.asset_dependencies[i], writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+            if (message.collection_dependencies != null && message.collection_dependencies.length)
+                for (let i = 0; i < message.collection_dependencies.length; ++i)
+                    $root.repository.CollectionDependency.encode(message.collection_dependencies[i], writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
             if (message.statuses != null && message.statuses.length)
                 for (let i = 0; i < message.statuses.length; ++i)
                     $root.repository.Status.encode(message.statuses[i], writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
@@ -10339,36 +10339,36 @@ export const repository = $root.repository = (() => {
             if (message.roles != null && message.roles.length)
                 for (let i = 0; i < message.roles.length; ++i)
                     $root.repository.Role.encode(message.roles[i], writer.uint32(/* id 10, wireType 2 =*/82).fork()).ldelim();
-            if (message.entity_types != null && message.entity_types.length)
-                for (let i = 0; i < message.entity_types.length; ++i)
-                    $root.repository.EntityType.encode(message.entity_types[i], writer.uint32(/* id 11, wireType 2 =*/90).fork()).ldelim();
-            if (message.entities != null && message.entities.length)
-                for (let i = 0; i < message.entities.length; ++i)
-                    $root.repository.Entity.encode(message.entities[i], writer.uint32(/* id 12, wireType 2 =*/98).fork()).ldelim();
-            if (message.entity_assignees != null && message.entity_assignees.length)
-                for (let i = 0; i < message.entity_assignees.length; ++i)
-                    $root.repository.EntityAssignee.encode(message.entity_assignees[i], writer.uint32(/* id 13, wireType 2 =*/106).fork()).ldelim();
+            if (message.collection_types != null && message.collection_types.length)
+                for (let i = 0; i < message.collection_types.length; ++i)
+                    $root.repository.CollectionType.encode(message.collection_types[i], writer.uint32(/* id 11, wireType 2 =*/90).fork()).ldelim();
+            if (message.collections != null && message.collections.length)
+                for (let i = 0; i < message.collections.length; ++i)
+                    $root.repository.Collection.encode(message.collections[i], writer.uint32(/* id 12, wireType 2 =*/98).fork()).ldelim();
+            if (message.collection_assignees != null && message.collection_assignees.length)
+                for (let i = 0; i < message.collection_assignees.length; ++i)
+                    $root.repository.CollectionAssignee.encode(message.collection_assignees[i], writer.uint32(/* id 13, wireType 2 =*/106).fork()).ldelim();
             if (message.templates != null && message.templates.length)
                 for (let i = 0; i < message.templates.length; ++i)
                     $root.repository.Template.encode(message.templates[i], writer.uint32(/* id 14, wireType 2 =*/114).fork()).ldelim();
             if (message.tags != null && message.tags.length)
                 for (let i = 0; i < message.tags.length; ++i)
                     $root.repository.Tag.encode(message.tags[i], writer.uint32(/* id 15, wireType 2 =*/122).fork()).ldelim();
-            if (message.tasks_tags != null && message.tasks_tags.length)
-                for (let i = 0; i < message.tasks_tags.length; ++i)
-                    $root.repository.TaskTag.encode(message.tasks_tags[i], writer.uint32(/* id 16, wireType 2 =*/130).fork()).ldelim();
+            if (message.asset_tags != null && message.asset_tags.length)
+                for (let i = 0; i < message.asset_tags.length; ++i)
+                    $root.repository.AssetTag.encode(message.asset_tags[i], writer.uint32(/* id 16, wireType 2 =*/130).fork()).ldelim();
             if (message.workflows != null && message.workflows.length)
                 for (let i = 0; i < message.workflows.length; ++i)
                     $root.repository.Workflow.encode(message.workflows[i], writer.uint32(/* id 17, wireType 2 =*/138).fork()).ldelim();
             if (message.workflow_links != null && message.workflow_links.length)
                 for (let i = 0; i < message.workflow_links.length; ++i)
                     $root.repository.WorkflowLink.encode(message.workflow_links[i], writer.uint32(/* id 18, wireType 2 =*/146).fork()).ldelim();
-            if (message.workflow_entities != null && message.workflow_entities.length)
-                for (let i = 0; i < message.workflow_entities.length; ++i)
-                    $root.repository.WorkflowEntity.encode(message.workflow_entities[i], writer.uint32(/* id 19, wireType 2 =*/154).fork()).ldelim();
-            if (message.workflow_tasks != null && message.workflow_tasks.length)
-                for (let i = 0; i < message.workflow_tasks.length; ++i)
-                    $root.repository.WorkflowTask.encode(message.workflow_tasks[i], writer.uint32(/* id 20, wireType 2 =*/162).fork()).ldelim();
+            if (message.workflow_collections != null && message.workflow_collections.length)
+                for (let i = 0; i < message.workflow_collections.length; ++i)
+                    $root.repository.WorkflowCollection.encode(message.workflow_collections[i], writer.uint32(/* id 19, wireType 2 =*/154).fork()).ldelim();
+            if (message.workflow_assets != null && message.workflow_assets.length)
+                for (let i = 0; i < message.workflow_assets.length; ++i)
+                    $root.repository.WorkflowAsset.encode(message.workflow_assets[i], writer.uint32(/* id 20, wireType 2 =*/162).fork()).ldelim();
             if (message.tomb != null && message.tomb.length)
                 for (let i = 0; i < message.tomb.length; ++i)
                     $root.repository.Tomb.encode(message.tomb[i], writer.uint32(/* id 21, wireType 2 =*/170).fork()).ldelim();
@@ -10422,33 +10422,33 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 2: {
-                        if (!(message.tasks && message.tasks.length))
-                            message.tasks = [];
-                        message.tasks.push($root.repository.Task.decode(reader, reader.uint32()));
+                        if (!(message.assets && message.assets.length))
+                            message.assets = [];
+                        message.assets.push($root.repository.Asset.decode(reader, reader.uint32()));
                         break;
                     }
                 case 3: {
-                        if (!(message.task_types && message.task_types.length))
-                            message.task_types = [];
-                        message.task_types.push($root.repository.TaskType.decode(reader, reader.uint32()));
+                        if (!(message.asset_types && message.asset_types.length))
+                            message.asset_types = [];
+                        message.asset_types.push($root.repository.AssetType.decode(reader, reader.uint32()));
                         break;
                     }
                 case 4: {
-                        if (!(message.tasks_checkpoints && message.tasks_checkpoints.length))
-                            message.tasks_checkpoints = [];
-                        message.tasks_checkpoints.push($root.repository.Checkpoint.decode(reader, reader.uint32()));
+                        if (!(message.asset_checkpoints && message.asset_checkpoints.length))
+                            message.asset_checkpoints = [];
+                        message.asset_checkpoints.push($root.repository.Checkpoint.decode(reader, reader.uint32()));
                         break;
                     }
                 case 5: {
-                        if (!(message.task_dependencies && message.task_dependencies.length))
-                            message.task_dependencies = [];
-                        message.task_dependencies.push($root.repository.TaskDependency.decode(reader, reader.uint32()));
+                        if (!(message.asset_dependencies && message.asset_dependencies.length))
+                            message.asset_dependencies = [];
+                        message.asset_dependencies.push($root.repository.AssetDependency.decode(reader, reader.uint32()));
                         break;
                     }
                 case 6: {
-                        if (!(message.entity_dependencies && message.entity_dependencies.length))
-                            message.entity_dependencies = [];
-                        message.entity_dependencies.push($root.repository.EntityDependency.decode(reader, reader.uint32()));
+                        if (!(message.collection_dependencies && message.collection_dependencies.length))
+                            message.collection_dependencies = [];
+                        message.collection_dependencies.push($root.repository.CollectionDependency.decode(reader, reader.uint32()));
                         break;
                     }
                 case 7: {
@@ -10476,21 +10476,21 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 11: {
-                        if (!(message.entity_types && message.entity_types.length))
-                            message.entity_types = [];
-                        message.entity_types.push($root.repository.EntityType.decode(reader, reader.uint32()));
+                        if (!(message.collection_types && message.collection_types.length))
+                            message.collection_types = [];
+                        message.collection_types.push($root.repository.CollectionType.decode(reader, reader.uint32()));
                         break;
                     }
                 case 12: {
-                        if (!(message.entities && message.entities.length))
-                            message.entities = [];
-                        message.entities.push($root.repository.Entity.decode(reader, reader.uint32()));
+                        if (!(message.collections && message.collections.length))
+                            message.collections = [];
+                        message.collections.push($root.repository.Collection.decode(reader, reader.uint32()));
                         break;
                     }
                 case 13: {
-                        if (!(message.entity_assignees && message.entity_assignees.length))
-                            message.entity_assignees = [];
-                        message.entity_assignees.push($root.repository.EntityAssignee.decode(reader, reader.uint32()));
+                        if (!(message.collection_assignees && message.collection_assignees.length))
+                            message.collection_assignees = [];
+                        message.collection_assignees.push($root.repository.CollectionAssignee.decode(reader, reader.uint32()));
                         break;
                     }
                 case 14: {
@@ -10506,9 +10506,9 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 16: {
-                        if (!(message.tasks_tags && message.tasks_tags.length))
-                            message.tasks_tags = [];
-                        message.tasks_tags.push($root.repository.TaskTag.decode(reader, reader.uint32()));
+                        if (!(message.asset_tags && message.asset_tags.length))
+                            message.asset_tags = [];
+                        message.asset_tags.push($root.repository.AssetTag.decode(reader, reader.uint32()));
                         break;
                     }
                 case 17: {
@@ -10524,15 +10524,15 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 19: {
-                        if (!(message.workflow_entities && message.workflow_entities.length))
-                            message.workflow_entities = [];
-                        message.workflow_entities.push($root.repository.WorkflowEntity.decode(reader, reader.uint32()));
+                        if (!(message.workflow_collections && message.workflow_collections.length))
+                            message.workflow_collections = [];
+                        message.workflow_collections.push($root.repository.WorkflowCollection.decode(reader, reader.uint32()));
                         break;
                     }
                 case 20: {
-                        if (!(message.workflow_tasks && message.workflow_tasks.length))
-                            message.workflow_tasks = [];
-                        message.workflow_tasks.push($root.repository.WorkflowTask.decode(reader, reader.uint32()));
+                        if (!(message.workflow_assets && message.workflow_assets.length))
+                            message.workflow_assets = [];
+                        message.workflow_assets.push($root.repository.WorkflowAsset.decode(reader, reader.uint32()));
                         break;
                     }
                 case 21: {
@@ -10597,49 +10597,49 @@ export const repository = $root.repository = (() => {
             if (message.project_preview != null && message.hasOwnProperty("project_preview"))
                 if (!$util.isString(message.project_preview))
                     return "project_preview: string expected";
-            if (message.tasks != null && message.hasOwnProperty("tasks")) {
-                if (!Array.isArray(message.tasks))
-                    return "tasks: array expected";
-                for (let i = 0; i < message.tasks.length; ++i) {
-                    let error = $root.repository.Task.verify(message.tasks[i]);
+            if (message.assets != null && message.hasOwnProperty("assets")) {
+                if (!Array.isArray(message.assets))
+                    return "assets: array expected";
+                for (let i = 0; i < message.assets.length; ++i) {
+                    let error = $root.repository.Asset.verify(message.assets[i]);
                     if (error)
-                        return "tasks." + error;
+                        return "assets." + error;
                 }
             }
-            if (message.task_types != null && message.hasOwnProperty("task_types")) {
-                if (!Array.isArray(message.task_types))
-                    return "task_types: array expected";
-                for (let i = 0; i < message.task_types.length; ++i) {
-                    let error = $root.repository.TaskType.verify(message.task_types[i]);
+            if (message.asset_types != null && message.hasOwnProperty("asset_types")) {
+                if (!Array.isArray(message.asset_types))
+                    return "asset_types: array expected";
+                for (let i = 0; i < message.asset_types.length; ++i) {
+                    let error = $root.repository.AssetType.verify(message.asset_types[i]);
                     if (error)
-                        return "task_types." + error;
+                        return "asset_types." + error;
                 }
             }
-            if (message.tasks_checkpoints != null && message.hasOwnProperty("tasks_checkpoints")) {
-                if (!Array.isArray(message.tasks_checkpoints))
-                    return "tasks_checkpoints: array expected";
-                for (let i = 0; i < message.tasks_checkpoints.length; ++i) {
-                    let error = $root.repository.Checkpoint.verify(message.tasks_checkpoints[i]);
+            if (message.asset_checkpoints != null && message.hasOwnProperty("asset_checkpoints")) {
+                if (!Array.isArray(message.asset_checkpoints))
+                    return "asset_checkpoints: array expected";
+                for (let i = 0; i < message.asset_checkpoints.length; ++i) {
+                    let error = $root.repository.Checkpoint.verify(message.asset_checkpoints[i]);
                     if (error)
-                        return "tasks_checkpoints." + error;
+                        return "asset_checkpoints." + error;
                 }
             }
-            if (message.task_dependencies != null && message.hasOwnProperty("task_dependencies")) {
-                if (!Array.isArray(message.task_dependencies))
-                    return "task_dependencies: array expected";
-                for (let i = 0; i < message.task_dependencies.length; ++i) {
-                    let error = $root.repository.TaskDependency.verify(message.task_dependencies[i]);
+            if (message.asset_dependencies != null && message.hasOwnProperty("asset_dependencies")) {
+                if (!Array.isArray(message.asset_dependencies))
+                    return "asset_dependencies: array expected";
+                for (let i = 0; i < message.asset_dependencies.length; ++i) {
+                    let error = $root.repository.AssetDependency.verify(message.asset_dependencies[i]);
                     if (error)
-                        return "task_dependencies." + error;
+                        return "asset_dependencies." + error;
                 }
             }
-            if (message.entity_dependencies != null && message.hasOwnProperty("entity_dependencies")) {
-                if (!Array.isArray(message.entity_dependencies))
-                    return "entity_dependencies: array expected";
-                for (let i = 0; i < message.entity_dependencies.length; ++i) {
-                    let error = $root.repository.EntityDependency.verify(message.entity_dependencies[i]);
+            if (message.collection_dependencies != null && message.hasOwnProperty("collection_dependencies")) {
+                if (!Array.isArray(message.collection_dependencies))
+                    return "collection_dependencies: array expected";
+                for (let i = 0; i < message.collection_dependencies.length; ++i) {
+                    let error = $root.repository.CollectionDependency.verify(message.collection_dependencies[i]);
                     if (error)
-                        return "entity_dependencies." + error;
+                        return "collection_dependencies." + error;
                 }
             }
             if (message.statuses != null && message.hasOwnProperty("statuses")) {
@@ -10678,31 +10678,31 @@ export const repository = $root.repository = (() => {
                         return "roles." + error;
                 }
             }
-            if (message.entity_types != null && message.hasOwnProperty("entity_types")) {
-                if (!Array.isArray(message.entity_types))
-                    return "entity_types: array expected";
-                for (let i = 0; i < message.entity_types.length; ++i) {
-                    let error = $root.repository.EntityType.verify(message.entity_types[i]);
+            if (message.collection_types != null && message.hasOwnProperty("collection_types")) {
+                if (!Array.isArray(message.collection_types))
+                    return "collection_types: array expected";
+                for (let i = 0; i < message.collection_types.length; ++i) {
+                    let error = $root.repository.CollectionType.verify(message.collection_types[i]);
                     if (error)
-                        return "entity_types." + error;
+                        return "collection_types." + error;
                 }
             }
-            if (message.entities != null && message.hasOwnProperty("entities")) {
-                if (!Array.isArray(message.entities))
-                    return "entities: array expected";
-                for (let i = 0; i < message.entities.length; ++i) {
-                    let error = $root.repository.Entity.verify(message.entities[i]);
+            if (message.collections != null && message.hasOwnProperty("collections")) {
+                if (!Array.isArray(message.collections))
+                    return "collections: array expected";
+                for (let i = 0; i < message.collections.length; ++i) {
+                    let error = $root.repository.Collection.verify(message.collections[i]);
                     if (error)
-                        return "entities." + error;
+                        return "collections." + error;
                 }
             }
-            if (message.entity_assignees != null && message.hasOwnProperty("entity_assignees")) {
-                if (!Array.isArray(message.entity_assignees))
-                    return "entity_assignees: array expected";
-                for (let i = 0; i < message.entity_assignees.length; ++i) {
-                    let error = $root.repository.EntityAssignee.verify(message.entity_assignees[i]);
+            if (message.collection_assignees != null && message.hasOwnProperty("collection_assignees")) {
+                if (!Array.isArray(message.collection_assignees))
+                    return "collection_assignees: array expected";
+                for (let i = 0; i < message.collection_assignees.length; ++i) {
+                    let error = $root.repository.CollectionAssignee.verify(message.collection_assignees[i]);
                     if (error)
-                        return "entity_assignees." + error;
+                        return "collection_assignees." + error;
                 }
             }
             if (message.templates != null && message.hasOwnProperty("templates")) {
@@ -10723,13 +10723,13 @@ export const repository = $root.repository = (() => {
                         return "tags." + error;
                 }
             }
-            if (message.tasks_tags != null && message.hasOwnProperty("tasks_tags")) {
-                if (!Array.isArray(message.tasks_tags))
-                    return "tasks_tags: array expected";
-                for (let i = 0; i < message.tasks_tags.length; ++i) {
-                    let error = $root.repository.TaskTag.verify(message.tasks_tags[i]);
+            if (message.asset_tags != null && message.hasOwnProperty("asset_tags")) {
+                if (!Array.isArray(message.asset_tags))
+                    return "asset_tags: array expected";
+                for (let i = 0; i < message.asset_tags.length; ++i) {
+                    let error = $root.repository.AssetTag.verify(message.asset_tags[i]);
                     if (error)
-                        return "tasks_tags." + error;
+                        return "asset_tags." + error;
                 }
             }
             if (message.workflows != null && message.hasOwnProperty("workflows")) {
@@ -10750,22 +10750,22 @@ export const repository = $root.repository = (() => {
                         return "workflow_links." + error;
                 }
             }
-            if (message.workflow_entities != null && message.hasOwnProperty("workflow_entities")) {
-                if (!Array.isArray(message.workflow_entities))
-                    return "workflow_entities: array expected";
-                for (let i = 0; i < message.workflow_entities.length; ++i) {
-                    let error = $root.repository.WorkflowEntity.verify(message.workflow_entities[i]);
+            if (message.workflow_collections != null && message.hasOwnProperty("workflow_collections")) {
+                if (!Array.isArray(message.workflow_collections))
+                    return "workflow_collections: array expected";
+                for (let i = 0; i < message.workflow_collections.length; ++i) {
+                    let error = $root.repository.WorkflowCollection.verify(message.workflow_collections[i]);
                     if (error)
-                        return "workflow_entities." + error;
+                        return "workflow_collections." + error;
                 }
             }
-            if (message.workflow_tasks != null && message.hasOwnProperty("workflow_tasks")) {
-                if (!Array.isArray(message.workflow_tasks))
-                    return "workflow_tasks: array expected";
-                for (let i = 0; i < message.workflow_tasks.length; ++i) {
-                    let error = $root.repository.WorkflowTask.verify(message.workflow_tasks[i]);
+            if (message.workflow_assets != null && message.hasOwnProperty("workflow_assets")) {
+                if (!Array.isArray(message.workflow_assets))
+                    return "workflow_assets: array expected";
+                for (let i = 0; i < message.workflow_assets.length; ++i) {
+                    let error = $root.repository.WorkflowAsset.verify(message.workflow_assets[i]);
                     if (error)
-                        return "workflow_tasks." + error;
+                        return "workflow_assets." + error;
                 }
             }
             if (message.tomb != null && message.hasOwnProperty("tomb")) {
@@ -10821,54 +10821,54 @@ export const repository = $root.repository = (() => {
             let message = new $root.repository.ProjectData();
             if (object.project_preview != null)
                 message.project_preview = String(object.project_preview);
-            if (object.tasks) {
-                if (!Array.isArray(object.tasks))
-                    throw TypeError(".repository.ProjectData.tasks: array expected");
-                message.tasks = [];
-                for (let i = 0; i < object.tasks.length; ++i) {
-                    if (typeof object.tasks[i] !== "object")
-                        throw TypeError(".repository.ProjectData.tasks: object expected");
-                    message.tasks[i] = $root.repository.Task.fromObject(object.tasks[i]);
+            if (object.assets) {
+                if (!Array.isArray(object.assets))
+                    throw TypeError(".repository.ProjectData.assets: array expected");
+                message.assets = [];
+                for (let i = 0; i < object.assets.length; ++i) {
+                    if (typeof object.assets[i] !== "object")
+                        throw TypeError(".repository.ProjectData.assets: object expected");
+                    message.assets[i] = $root.repository.Asset.fromObject(object.assets[i]);
                 }
             }
-            if (object.task_types) {
-                if (!Array.isArray(object.task_types))
-                    throw TypeError(".repository.ProjectData.task_types: array expected");
-                message.task_types = [];
-                for (let i = 0; i < object.task_types.length; ++i) {
-                    if (typeof object.task_types[i] !== "object")
-                        throw TypeError(".repository.ProjectData.task_types: object expected");
-                    message.task_types[i] = $root.repository.TaskType.fromObject(object.task_types[i]);
+            if (object.asset_types) {
+                if (!Array.isArray(object.asset_types))
+                    throw TypeError(".repository.ProjectData.asset_types: array expected");
+                message.asset_types = [];
+                for (let i = 0; i < object.asset_types.length; ++i) {
+                    if (typeof object.asset_types[i] !== "object")
+                        throw TypeError(".repository.ProjectData.asset_types: object expected");
+                    message.asset_types[i] = $root.repository.AssetType.fromObject(object.asset_types[i]);
                 }
             }
-            if (object.tasks_checkpoints) {
-                if (!Array.isArray(object.tasks_checkpoints))
-                    throw TypeError(".repository.ProjectData.tasks_checkpoints: array expected");
-                message.tasks_checkpoints = [];
-                for (let i = 0; i < object.tasks_checkpoints.length; ++i) {
-                    if (typeof object.tasks_checkpoints[i] !== "object")
-                        throw TypeError(".repository.ProjectData.tasks_checkpoints: object expected");
-                    message.tasks_checkpoints[i] = $root.repository.Checkpoint.fromObject(object.tasks_checkpoints[i]);
+            if (object.asset_checkpoints) {
+                if (!Array.isArray(object.asset_checkpoints))
+                    throw TypeError(".repository.ProjectData.asset_checkpoints: array expected");
+                message.asset_checkpoints = [];
+                for (let i = 0; i < object.asset_checkpoints.length; ++i) {
+                    if (typeof object.asset_checkpoints[i] !== "object")
+                        throw TypeError(".repository.ProjectData.asset_checkpoints: object expected");
+                    message.asset_checkpoints[i] = $root.repository.Checkpoint.fromObject(object.asset_checkpoints[i]);
                 }
             }
-            if (object.task_dependencies) {
-                if (!Array.isArray(object.task_dependencies))
-                    throw TypeError(".repository.ProjectData.task_dependencies: array expected");
-                message.task_dependencies = [];
-                for (let i = 0; i < object.task_dependencies.length; ++i) {
-                    if (typeof object.task_dependencies[i] !== "object")
-                        throw TypeError(".repository.ProjectData.task_dependencies: object expected");
-                    message.task_dependencies[i] = $root.repository.TaskDependency.fromObject(object.task_dependencies[i]);
+            if (object.asset_dependencies) {
+                if (!Array.isArray(object.asset_dependencies))
+                    throw TypeError(".repository.ProjectData.asset_dependencies: array expected");
+                message.asset_dependencies = [];
+                for (let i = 0; i < object.asset_dependencies.length; ++i) {
+                    if (typeof object.asset_dependencies[i] !== "object")
+                        throw TypeError(".repository.ProjectData.asset_dependencies: object expected");
+                    message.asset_dependencies[i] = $root.repository.AssetDependency.fromObject(object.asset_dependencies[i]);
                 }
             }
-            if (object.entity_dependencies) {
-                if (!Array.isArray(object.entity_dependencies))
-                    throw TypeError(".repository.ProjectData.entity_dependencies: array expected");
-                message.entity_dependencies = [];
-                for (let i = 0; i < object.entity_dependencies.length; ++i) {
-                    if (typeof object.entity_dependencies[i] !== "object")
-                        throw TypeError(".repository.ProjectData.entity_dependencies: object expected");
-                    message.entity_dependencies[i] = $root.repository.EntityDependency.fromObject(object.entity_dependencies[i]);
+            if (object.collection_dependencies) {
+                if (!Array.isArray(object.collection_dependencies))
+                    throw TypeError(".repository.ProjectData.collection_dependencies: array expected");
+                message.collection_dependencies = [];
+                for (let i = 0; i < object.collection_dependencies.length; ++i) {
+                    if (typeof object.collection_dependencies[i] !== "object")
+                        throw TypeError(".repository.ProjectData.collection_dependencies: object expected");
+                    message.collection_dependencies[i] = $root.repository.CollectionDependency.fromObject(object.collection_dependencies[i]);
                 }
             }
             if (object.statuses) {
@@ -10911,34 +10911,34 @@ export const repository = $root.repository = (() => {
                     message.roles[i] = $root.repository.Role.fromObject(object.roles[i]);
                 }
             }
-            if (object.entity_types) {
-                if (!Array.isArray(object.entity_types))
-                    throw TypeError(".repository.ProjectData.entity_types: array expected");
-                message.entity_types = [];
-                for (let i = 0; i < object.entity_types.length; ++i) {
-                    if (typeof object.entity_types[i] !== "object")
-                        throw TypeError(".repository.ProjectData.entity_types: object expected");
-                    message.entity_types[i] = $root.repository.EntityType.fromObject(object.entity_types[i]);
+            if (object.collection_types) {
+                if (!Array.isArray(object.collection_types))
+                    throw TypeError(".repository.ProjectData.collection_types: array expected");
+                message.collection_types = [];
+                for (let i = 0; i < object.collection_types.length; ++i) {
+                    if (typeof object.collection_types[i] !== "object")
+                        throw TypeError(".repository.ProjectData.collection_types: object expected");
+                    message.collection_types[i] = $root.repository.CollectionType.fromObject(object.collection_types[i]);
                 }
             }
-            if (object.entities) {
-                if (!Array.isArray(object.entities))
-                    throw TypeError(".repository.ProjectData.entities: array expected");
-                message.entities = [];
-                for (let i = 0; i < object.entities.length; ++i) {
-                    if (typeof object.entities[i] !== "object")
-                        throw TypeError(".repository.ProjectData.entities: object expected");
-                    message.entities[i] = $root.repository.Entity.fromObject(object.entities[i]);
+            if (object.collections) {
+                if (!Array.isArray(object.collections))
+                    throw TypeError(".repository.ProjectData.collections: array expected");
+                message.collections = [];
+                for (let i = 0; i < object.collections.length; ++i) {
+                    if (typeof object.collections[i] !== "object")
+                        throw TypeError(".repository.ProjectData.collections: object expected");
+                    message.collections[i] = $root.repository.Collection.fromObject(object.collections[i]);
                 }
             }
-            if (object.entity_assignees) {
-                if (!Array.isArray(object.entity_assignees))
-                    throw TypeError(".repository.ProjectData.entity_assignees: array expected");
-                message.entity_assignees = [];
-                for (let i = 0; i < object.entity_assignees.length; ++i) {
-                    if (typeof object.entity_assignees[i] !== "object")
-                        throw TypeError(".repository.ProjectData.entity_assignees: object expected");
-                    message.entity_assignees[i] = $root.repository.EntityAssignee.fromObject(object.entity_assignees[i]);
+            if (object.collection_assignees) {
+                if (!Array.isArray(object.collection_assignees))
+                    throw TypeError(".repository.ProjectData.collection_assignees: array expected");
+                message.collection_assignees = [];
+                for (let i = 0; i < object.collection_assignees.length; ++i) {
+                    if (typeof object.collection_assignees[i] !== "object")
+                        throw TypeError(".repository.ProjectData.collection_assignees: object expected");
+                    message.collection_assignees[i] = $root.repository.CollectionAssignee.fromObject(object.collection_assignees[i]);
                 }
             }
             if (object.templates) {
@@ -10961,14 +10961,14 @@ export const repository = $root.repository = (() => {
                     message.tags[i] = $root.repository.Tag.fromObject(object.tags[i]);
                 }
             }
-            if (object.tasks_tags) {
-                if (!Array.isArray(object.tasks_tags))
-                    throw TypeError(".repository.ProjectData.tasks_tags: array expected");
-                message.tasks_tags = [];
-                for (let i = 0; i < object.tasks_tags.length; ++i) {
-                    if (typeof object.tasks_tags[i] !== "object")
-                        throw TypeError(".repository.ProjectData.tasks_tags: object expected");
-                    message.tasks_tags[i] = $root.repository.TaskTag.fromObject(object.tasks_tags[i]);
+            if (object.asset_tags) {
+                if (!Array.isArray(object.asset_tags))
+                    throw TypeError(".repository.ProjectData.asset_tags: array expected");
+                message.asset_tags = [];
+                for (let i = 0; i < object.asset_tags.length; ++i) {
+                    if (typeof object.asset_tags[i] !== "object")
+                        throw TypeError(".repository.ProjectData.asset_tags: object expected");
+                    message.asset_tags[i] = $root.repository.AssetTag.fromObject(object.asset_tags[i]);
                 }
             }
             if (object.workflows) {
@@ -10991,24 +10991,24 @@ export const repository = $root.repository = (() => {
                     message.workflow_links[i] = $root.repository.WorkflowLink.fromObject(object.workflow_links[i]);
                 }
             }
-            if (object.workflow_entities) {
-                if (!Array.isArray(object.workflow_entities))
-                    throw TypeError(".repository.ProjectData.workflow_entities: array expected");
-                message.workflow_entities = [];
-                for (let i = 0; i < object.workflow_entities.length; ++i) {
-                    if (typeof object.workflow_entities[i] !== "object")
-                        throw TypeError(".repository.ProjectData.workflow_entities: object expected");
-                    message.workflow_entities[i] = $root.repository.WorkflowEntity.fromObject(object.workflow_entities[i]);
+            if (object.workflow_collections) {
+                if (!Array.isArray(object.workflow_collections))
+                    throw TypeError(".repository.ProjectData.workflow_collections: array expected");
+                message.workflow_collections = [];
+                for (let i = 0; i < object.workflow_collections.length; ++i) {
+                    if (typeof object.workflow_collections[i] !== "object")
+                        throw TypeError(".repository.ProjectData.workflow_collections: object expected");
+                    message.workflow_collections[i] = $root.repository.WorkflowCollection.fromObject(object.workflow_collections[i]);
                 }
             }
-            if (object.workflow_tasks) {
-                if (!Array.isArray(object.workflow_tasks))
-                    throw TypeError(".repository.ProjectData.workflow_tasks: array expected");
-                message.workflow_tasks = [];
-                for (let i = 0; i < object.workflow_tasks.length; ++i) {
-                    if (typeof object.workflow_tasks[i] !== "object")
-                        throw TypeError(".repository.ProjectData.workflow_tasks: object expected");
-                    message.workflow_tasks[i] = $root.repository.WorkflowTask.fromObject(object.workflow_tasks[i]);
+            if (object.workflow_assets) {
+                if (!Array.isArray(object.workflow_assets))
+                    throw TypeError(".repository.ProjectData.workflow_assets: array expected");
+                message.workflow_assets = [];
+                for (let i = 0; i < object.workflow_assets.length; ++i) {
+                    if (typeof object.workflow_assets[i] !== "object")
+                        throw TypeError(".repository.ProjectData.workflow_assets: object expected");
+                    message.workflow_assets[i] = $root.repository.WorkflowAsset.fromObject(object.workflow_assets[i]);
                 }
             }
             if (object.tomb) {
@@ -11068,25 +11068,25 @@ export const repository = $root.repository = (() => {
                 options = {};
             let object = {};
             if (options.arrays || options.defaults) {
-                object.tasks = [];
-                object.task_types = [];
-                object.tasks_checkpoints = [];
-                object.task_dependencies = [];
-                object.entity_dependencies = [];
+                object.assets = [];
+                object.asset_types = [];
+                object.asset_checkpoints = [];
+                object.asset_dependencies = [];
+                object.collection_dependencies = [];
                 object.statuses = [];
                 object.dependency_types = [];
                 object.users = [];
                 object.roles = [];
-                object.entity_types = [];
-                object.entities = [];
-                object.entity_assignees = [];
+                object.collection_types = [];
+                object.collections = [];
+                object.collection_assignees = [];
                 object.templates = [];
                 object.tags = [];
-                object.tasks_tags = [];
+                object.asset_tags = [];
                 object.workflows = [];
                 object.workflow_links = [];
-                object.workflow_entities = [];
-                object.workflow_tasks = [];
+                object.workflow_collections = [];
+                object.workflow_assets = [];
                 object.tomb = [];
                 object.integration_projects = [];
                 object.integration_collection_mappings = [];
@@ -11096,30 +11096,30 @@ export const repository = $root.repository = (() => {
                 object.project_preview = "";
             if (message.project_preview != null && message.hasOwnProperty("project_preview"))
                 object.project_preview = message.project_preview;
-            if (message.tasks && message.tasks.length) {
-                object.tasks = [];
-                for (let j = 0; j < message.tasks.length; ++j)
-                    object.tasks[j] = $root.repository.Task.toObject(message.tasks[j], options);
+            if (message.assets && message.assets.length) {
+                object.assets = [];
+                for (let j = 0; j < message.assets.length; ++j)
+                    object.assets[j] = $root.repository.Asset.toObject(message.assets[j], options);
             }
-            if (message.task_types && message.task_types.length) {
-                object.task_types = [];
-                for (let j = 0; j < message.task_types.length; ++j)
-                    object.task_types[j] = $root.repository.TaskType.toObject(message.task_types[j], options);
+            if (message.asset_types && message.asset_types.length) {
+                object.asset_types = [];
+                for (let j = 0; j < message.asset_types.length; ++j)
+                    object.asset_types[j] = $root.repository.AssetType.toObject(message.asset_types[j], options);
             }
-            if (message.tasks_checkpoints && message.tasks_checkpoints.length) {
-                object.tasks_checkpoints = [];
-                for (let j = 0; j < message.tasks_checkpoints.length; ++j)
-                    object.tasks_checkpoints[j] = $root.repository.Checkpoint.toObject(message.tasks_checkpoints[j], options);
+            if (message.asset_checkpoints && message.asset_checkpoints.length) {
+                object.asset_checkpoints = [];
+                for (let j = 0; j < message.asset_checkpoints.length; ++j)
+                    object.asset_checkpoints[j] = $root.repository.Checkpoint.toObject(message.asset_checkpoints[j], options);
             }
-            if (message.task_dependencies && message.task_dependencies.length) {
-                object.task_dependencies = [];
-                for (let j = 0; j < message.task_dependencies.length; ++j)
-                    object.task_dependencies[j] = $root.repository.TaskDependency.toObject(message.task_dependencies[j], options);
+            if (message.asset_dependencies && message.asset_dependencies.length) {
+                object.asset_dependencies = [];
+                for (let j = 0; j < message.asset_dependencies.length; ++j)
+                    object.asset_dependencies[j] = $root.repository.AssetDependency.toObject(message.asset_dependencies[j], options);
             }
-            if (message.entity_dependencies && message.entity_dependencies.length) {
-                object.entity_dependencies = [];
-                for (let j = 0; j < message.entity_dependencies.length; ++j)
-                    object.entity_dependencies[j] = $root.repository.EntityDependency.toObject(message.entity_dependencies[j], options);
+            if (message.collection_dependencies && message.collection_dependencies.length) {
+                object.collection_dependencies = [];
+                for (let j = 0; j < message.collection_dependencies.length; ++j)
+                    object.collection_dependencies[j] = $root.repository.CollectionDependency.toObject(message.collection_dependencies[j], options);
             }
             if (message.statuses && message.statuses.length) {
                 object.statuses = [];
@@ -11141,20 +11141,20 @@ export const repository = $root.repository = (() => {
                 for (let j = 0; j < message.roles.length; ++j)
                     object.roles[j] = $root.repository.Role.toObject(message.roles[j], options);
             }
-            if (message.entity_types && message.entity_types.length) {
-                object.entity_types = [];
-                for (let j = 0; j < message.entity_types.length; ++j)
-                    object.entity_types[j] = $root.repository.EntityType.toObject(message.entity_types[j], options);
+            if (message.collection_types && message.collection_types.length) {
+                object.collection_types = [];
+                for (let j = 0; j < message.collection_types.length; ++j)
+                    object.collection_types[j] = $root.repository.CollectionType.toObject(message.collection_types[j], options);
             }
-            if (message.entities && message.entities.length) {
-                object.entities = [];
-                for (let j = 0; j < message.entities.length; ++j)
-                    object.entities[j] = $root.repository.Entity.toObject(message.entities[j], options);
+            if (message.collections && message.collections.length) {
+                object.collections = [];
+                for (let j = 0; j < message.collections.length; ++j)
+                    object.collections[j] = $root.repository.Collection.toObject(message.collections[j], options);
             }
-            if (message.entity_assignees && message.entity_assignees.length) {
-                object.entity_assignees = [];
-                for (let j = 0; j < message.entity_assignees.length; ++j)
-                    object.entity_assignees[j] = $root.repository.EntityAssignee.toObject(message.entity_assignees[j], options);
+            if (message.collection_assignees && message.collection_assignees.length) {
+                object.collection_assignees = [];
+                for (let j = 0; j < message.collection_assignees.length; ++j)
+                    object.collection_assignees[j] = $root.repository.CollectionAssignee.toObject(message.collection_assignees[j], options);
             }
             if (message.templates && message.templates.length) {
                 object.templates = [];
@@ -11166,10 +11166,10 @@ export const repository = $root.repository = (() => {
                 for (let j = 0; j < message.tags.length; ++j)
                     object.tags[j] = $root.repository.Tag.toObject(message.tags[j], options);
             }
-            if (message.tasks_tags && message.tasks_tags.length) {
-                object.tasks_tags = [];
-                for (let j = 0; j < message.tasks_tags.length; ++j)
-                    object.tasks_tags[j] = $root.repository.TaskTag.toObject(message.tasks_tags[j], options);
+            if (message.asset_tags && message.asset_tags.length) {
+                object.asset_tags = [];
+                for (let j = 0; j < message.asset_tags.length; ++j)
+                    object.asset_tags[j] = $root.repository.AssetTag.toObject(message.asset_tags[j], options);
             }
             if (message.workflows && message.workflows.length) {
                 object.workflows = [];
@@ -11181,15 +11181,15 @@ export const repository = $root.repository = (() => {
                 for (let j = 0; j < message.workflow_links.length; ++j)
                     object.workflow_links[j] = $root.repository.WorkflowLink.toObject(message.workflow_links[j], options);
             }
-            if (message.workflow_entities && message.workflow_entities.length) {
-                object.workflow_entities = [];
-                for (let j = 0; j < message.workflow_entities.length; ++j)
-                    object.workflow_entities[j] = $root.repository.WorkflowEntity.toObject(message.workflow_entities[j], options);
+            if (message.workflow_collections && message.workflow_collections.length) {
+                object.workflow_collections = [];
+                for (let j = 0; j < message.workflow_collections.length; ++j)
+                    object.workflow_collections[j] = $root.repository.WorkflowCollection.toObject(message.workflow_collections[j], options);
             }
-            if (message.workflow_tasks && message.workflow_tasks.length) {
-                object.workflow_tasks = [];
-                for (let j = 0; j < message.workflow_tasks.length; ++j)
-                    object.workflow_tasks[j] = $root.repository.WorkflowTask.toObject(message.workflow_tasks[j], options);
+            if (message.workflow_assets && message.workflow_assets.length) {
+                object.workflow_assets = [];
+                for (let j = 0; j < message.workflow_assets.length; ++j)
+                    object.workflow_assets[j] = $root.repository.WorkflowAsset.toObject(message.workflow_assets[j], options);
             }
             if (message.tomb && message.tomb.length) {
                 object.tomb = [];
@@ -11243,67 +11243,67 @@ export const repository = $root.repository = (() => {
         return ProjectData;
     })();
 
-    repository.FullTask = (function() {
+    repository.FullAsset = (function() {
 
         /**
-         * Properties of a FullTask.
+         * Properties of a FullAsset.
          * @memberof repository
-         * @interface IFullTask
-         * @property {string|null} [id] FullTask id
-         * @property {number|Long|null} [mtime] FullTask mtime
-         * @property {string|null} [created_at] FullTask created_at
-         * @property {string|null} [name] FullTask name
-         * @property {string|null} [description] FullTask description
-         * @property {string|null} [extension] FullTask extension
-         * @property {boolean|null} [is_resource] FullTask is_resource
-         * @property {string|null} [status_id] FullTask status_id
-         * @property {string|null} [status_short_name] FullTask status_short_name
-         * @property {string|null} [task_type_id] FullTask task_type_id
-         * @property {string|null} [task_type_name] FullTask task_type_name
-         * @property {string|null} [task_type_icon] FullTask task_type_icon
-         * @property {string|null} [entity_id] FullTask entity_id
-         * @property {string|null} [entity_name] FullTask entity_name
-         * @property {string|null} [entity_path] FullTask entity_path
-         * @property {string|null} [task_path] FullTask task_path
-         * @property {string|null} [assignee_id] FullTask assignee_id
-         * @property {string|null} [assignee_email] FullTask assignee_email
-         * @property {string|null} [assignee_name] FullTask assignee_name
-         * @property {string|null} [assigner_id] FullTask assigner_id
-         * @property {string|null} [assigner_email] FullTask assigner_email
-         * @property {string|null} [assigner_name] FullTask assigner_name
-         * @property {boolean|null} [is_dependency] FullTask is_dependency
-         * @property {number|null} [dependency_level] FullTask dependency_level
-         * @property {string|null} [file_path] FullTask file_path
-         * @property {Array.<string>|null} [tags] FullTask tags
-         * @property {string|null} [tags_raw] FullTask tags_raw
-         * @property {Array.<string>|null} [entity_dependencies] FullTask entity_dependencies
-         * @property {string|null} [entity_dependencies_raw] FullTask entity_dependencies_raw
-         * @property {Array.<string>|null} [dependencies] FullTask dependencies
-         * @property {string|null} [dependencies_raw] FullTask dependencies_raw
-         * @property {string|null} [file_status] FullTask file_status
-         * @property {repository.IStatus|null} [status] FullTask status
-         * @property {boolean|null} [is_link] FullTask is_link
-         * @property {string|null} [pointer] FullTask pointer
-         * @property {string|null} [preview_id] FullTask preview_id
-         * @property {Uint8Array|null} [preview] FullTask preview
-         * @property {string|null} [preview_extension] FullTask preview_extension
-         * @property {Array.<repository.ICheckpoint>|null} [checkpoints] FullTask checkpoints
-         * @property {boolean|null} [trashed] FullTask trashed
-         * @property {boolean|null} [synced] FullTask synced
-         * @property {string|null} [type] FullTask type
+         * @interface IFullAsset
+         * @property {string|null} [id] FullAsset id
+         * @property {number|Long|null} [mtime] FullAsset mtime
+         * @property {string|null} [created_at] FullAsset created_at
+         * @property {string|null} [name] FullAsset name
+         * @property {string|null} [description] FullAsset description
+         * @property {string|null} [extension] FullAsset extension
+         * @property {boolean|null} [is_resource] FullAsset is_resource
+         * @property {string|null} [status_id] FullAsset status_id
+         * @property {string|null} [status_short_name] FullAsset status_short_name
+         * @property {string|null} [asset_type_id] FullAsset asset_type_id
+         * @property {string|null} [asset_type_name] FullAsset asset_type_name
+         * @property {string|null} [asset_type_icon] FullAsset asset_type_icon
+         * @property {string|null} [collection_id] FullAsset collection_id
+         * @property {string|null} [collection_name] FullAsset collection_name
+         * @property {string|null} [collection_path] FullAsset collection_path
+         * @property {string|null} [asset_path] FullAsset asset_path
+         * @property {string|null} [assignee_id] FullAsset assignee_id
+         * @property {string|null} [assignee_email] FullAsset assignee_email
+         * @property {string|null} [assignee_name] FullAsset assignee_name
+         * @property {string|null} [assigner_id] FullAsset assigner_id
+         * @property {string|null} [assigner_email] FullAsset assigner_email
+         * @property {string|null} [assigner_name] FullAsset assigner_name
+         * @property {boolean|null} [is_dependency] FullAsset is_dependency
+         * @property {number|null} [dependency_level] FullAsset dependency_level
+         * @property {string|null} [file_path] FullAsset file_path
+         * @property {Array.<string>|null} [tags] FullAsset tags
+         * @property {string|null} [tags_raw] FullAsset tags_raw
+         * @property {Array.<string>|null} [collection_dependencies] FullAsset collection_dependencies
+         * @property {string|null} [collection_dependencies_raw] FullAsset collection_dependencies_raw
+         * @property {Array.<string>|null} [dependencies] FullAsset dependencies
+         * @property {string|null} [dependencies_raw] FullAsset dependencies_raw
+         * @property {string|null} [file_status] FullAsset file_status
+         * @property {repository.IStatus|null} [status] FullAsset status
+         * @property {boolean|null} [is_link] FullAsset is_link
+         * @property {string|null} [pointer] FullAsset pointer
+         * @property {string|null} [preview_id] FullAsset preview_id
+         * @property {Uint8Array|null} [preview] FullAsset preview
+         * @property {string|null} [preview_extension] FullAsset preview_extension
+         * @property {Array.<repository.ICheckpoint>|null} [checkpoints] FullAsset checkpoints
+         * @property {boolean|null} [trashed] FullAsset trashed
+         * @property {boolean|null} [synced] FullAsset synced
+         * @property {string|null} [type] FullAsset type
          */
 
         /**
-         * Constructs a new FullTask.
+         * Constructs a new FullAsset.
          * @memberof repository
-         * @classdesc Represents a FullTask.
-         * @implements IFullTask
+         * @classdesc Represents a FullAsset.
+         * @implements IFullAsset
          * @constructor
-         * @param {repository.IFullTask=} [properties] Properties to set
+         * @param {repository.IFullAsset=} [properties] Properties to set
          */
-        function FullTask(properties) {
+        function FullAsset(properties) {
             this.tags = [];
-            this.entity_dependencies = [];
+            this.collection_dependencies = [];
             this.dependencies = [];
             this.checkpoints = [];
             if (properties)
@@ -11313,363 +11313,363 @@ export const repository = $root.repository = (() => {
         }
 
         /**
-         * FullTask id.
+         * FullAsset id.
          * @member {string} id
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.id = "";
+        FullAsset.prototype.id = "";
 
         /**
-         * FullTask mtime.
+         * FullAsset mtime.
          * @member {number|Long} mtime
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+        FullAsset.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
 
         /**
-         * FullTask created_at.
+         * FullAsset created_at.
          * @member {string} created_at
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.created_at = "";
+        FullAsset.prototype.created_at = "";
 
         /**
-         * FullTask name.
+         * FullAsset name.
          * @member {string} name
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.name = "";
+        FullAsset.prototype.name = "";
 
         /**
-         * FullTask description.
+         * FullAsset description.
          * @member {string} description
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.description = "";
+        FullAsset.prototype.description = "";
 
         /**
-         * FullTask extension.
+         * FullAsset extension.
          * @member {string} extension
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.extension = "";
+        FullAsset.prototype.extension = "";
 
         /**
-         * FullTask is_resource.
+         * FullAsset is_resource.
          * @member {boolean} is_resource
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.is_resource = false;
+        FullAsset.prototype.is_resource = false;
 
         /**
-         * FullTask status_id.
+         * FullAsset status_id.
          * @member {string} status_id
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.status_id = "";
+        FullAsset.prototype.status_id = "";
 
         /**
-         * FullTask status_short_name.
+         * FullAsset status_short_name.
          * @member {string} status_short_name
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.status_short_name = "";
+        FullAsset.prototype.status_short_name = "";
 
         /**
-         * FullTask task_type_id.
-         * @member {string} task_type_id
-         * @memberof repository.FullTask
+         * FullAsset asset_type_id.
+         * @member {string} asset_type_id
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.task_type_id = "";
+        FullAsset.prototype.asset_type_id = "";
 
         /**
-         * FullTask task_type_name.
-         * @member {string} task_type_name
-         * @memberof repository.FullTask
+         * FullAsset asset_type_name.
+         * @member {string} asset_type_name
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.task_type_name = "";
+        FullAsset.prototype.asset_type_name = "";
 
         /**
-         * FullTask task_type_icon.
-         * @member {string} task_type_icon
-         * @memberof repository.FullTask
+         * FullAsset asset_type_icon.
+         * @member {string} asset_type_icon
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.task_type_icon = "";
+        FullAsset.prototype.asset_type_icon = "";
 
         /**
-         * FullTask entity_id.
-         * @member {string} entity_id
-         * @memberof repository.FullTask
+         * FullAsset collection_id.
+         * @member {string} collection_id
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.entity_id = "";
+        FullAsset.prototype.collection_id = "";
 
         /**
-         * FullTask entity_name.
-         * @member {string} entity_name
-         * @memberof repository.FullTask
+         * FullAsset collection_name.
+         * @member {string} collection_name
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.entity_name = "";
+        FullAsset.prototype.collection_name = "";
 
         /**
-         * FullTask entity_path.
-         * @member {string} entity_path
-         * @memberof repository.FullTask
+         * FullAsset collection_path.
+         * @member {string} collection_path
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.entity_path = "";
+        FullAsset.prototype.collection_path = "";
 
         /**
-         * FullTask task_path.
-         * @member {string} task_path
-         * @memberof repository.FullTask
+         * FullAsset asset_path.
+         * @member {string} asset_path
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.task_path = "";
+        FullAsset.prototype.asset_path = "";
 
         /**
-         * FullTask assignee_id.
+         * FullAsset assignee_id.
          * @member {string} assignee_id
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.assignee_id = "";
+        FullAsset.prototype.assignee_id = "";
 
         /**
-         * FullTask assignee_email.
+         * FullAsset assignee_email.
          * @member {string} assignee_email
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.assignee_email = "";
+        FullAsset.prototype.assignee_email = "";
 
         /**
-         * FullTask assignee_name.
+         * FullAsset assignee_name.
          * @member {string} assignee_name
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.assignee_name = "";
+        FullAsset.prototype.assignee_name = "";
 
         /**
-         * FullTask assigner_id.
+         * FullAsset assigner_id.
          * @member {string} assigner_id
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.assigner_id = "";
+        FullAsset.prototype.assigner_id = "";
 
         /**
-         * FullTask assigner_email.
+         * FullAsset assigner_email.
          * @member {string} assigner_email
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.assigner_email = "";
+        FullAsset.prototype.assigner_email = "";
 
         /**
-         * FullTask assigner_name.
+         * FullAsset assigner_name.
          * @member {string} assigner_name
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.assigner_name = "";
+        FullAsset.prototype.assigner_name = "";
 
         /**
-         * FullTask is_dependency.
+         * FullAsset is_dependency.
          * @member {boolean} is_dependency
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.is_dependency = false;
+        FullAsset.prototype.is_dependency = false;
 
         /**
-         * FullTask dependency_level.
+         * FullAsset dependency_level.
          * @member {number} dependency_level
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.dependency_level = 0;
+        FullAsset.prototype.dependency_level = 0;
 
         /**
-         * FullTask file_path.
+         * FullAsset file_path.
          * @member {string} file_path
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.file_path = "";
+        FullAsset.prototype.file_path = "";
 
         /**
-         * FullTask tags.
+         * FullAsset tags.
          * @member {Array.<string>} tags
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.tags = $util.emptyArray;
+        FullAsset.prototype.tags = $util.emptyArray;
 
         /**
-         * FullTask tags_raw.
+         * FullAsset tags_raw.
          * @member {string} tags_raw
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.tags_raw = "";
+        FullAsset.prototype.tags_raw = "";
 
         /**
-         * FullTask entity_dependencies.
-         * @member {Array.<string>} entity_dependencies
-         * @memberof repository.FullTask
+         * FullAsset collection_dependencies.
+         * @member {Array.<string>} collection_dependencies
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.entity_dependencies = $util.emptyArray;
+        FullAsset.prototype.collection_dependencies = $util.emptyArray;
 
         /**
-         * FullTask entity_dependencies_raw.
-         * @member {string} entity_dependencies_raw
-         * @memberof repository.FullTask
+         * FullAsset collection_dependencies_raw.
+         * @member {string} collection_dependencies_raw
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.entity_dependencies_raw = "";
+        FullAsset.prototype.collection_dependencies_raw = "";
 
         /**
-         * FullTask dependencies.
+         * FullAsset dependencies.
          * @member {Array.<string>} dependencies
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.dependencies = $util.emptyArray;
+        FullAsset.prototype.dependencies = $util.emptyArray;
 
         /**
-         * FullTask dependencies_raw.
+         * FullAsset dependencies_raw.
          * @member {string} dependencies_raw
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.dependencies_raw = "";
+        FullAsset.prototype.dependencies_raw = "";
 
         /**
-         * FullTask file_status.
+         * FullAsset file_status.
          * @member {string} file_status
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.file_status = "";
+        FullAsset.prototype.file_status = "";
 
         /**
-         * FullTask status.
+         * FullAsset status.
          * @member {repository.IStatus|null|undefined} status
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.status = null;
+        FullAsset.prototype.status = null;
 
         /**
-         * FullTask is_link.
+         * FullAsset is_link.
          * @member {boolean} is_link
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.is_link = false;
+        FullAsset.prototype.is_link = false;
 
         /**
-         * FullTask pointer.
+         * FullAsset pointer.
          * @member {string} pointer
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.pointer = "";
+        FullAsset.prototype.pointer = "";
 
         /**
-         * FullTask preview_id.
+         * FullAsset preview_id.
          * @member {string} preview_id
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.preview_id = "";
+        FullAsset.prototype.preview_id = "";
 
         /**
-         * FullTask preview.
+         * FullAsset preview.
          * @member {Uint8Array} preview
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.preview = $util.newBuffer([]);
+        FullAsset.prototype.preview = $util.newBuffer([]);
 
         /**
-         * FullTask preview_extension.
+         * FullAsset preview_extension.
          * @member {string} preview_extension
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.preview_extension = "";
+        FullAsset.prototype.preview_extension = "";
 
         /**
-         * FullTask checkpoints.
+         * FullAsset checkpoints.
          * @member {Array.<repository.ICheckpoint>} checkpoints
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.checkpoints = $util.emptyArray;
+        FullAsset.prototype.checkpoints = $util.emptyArray;
 
         /**
-         * FullTask trashed.
+         * FullAsset trashed.
          * @member {boolean} trashed
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.trashed = false;
+        FullAsset.prototype.trashed = false;
 
         /**
-         * FullTask synced.
+         * FullAsset synced.
          * @member {boolean} synced
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.synced = false;
+        FullAsset.prototype.synced = false;
 
         /**
-         * FullTask type.
+         * FullAsset type.
          * @member {string} type
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          */
-        FullTask.prototype.type = "";
+        FullAsset.prototype.type = "";
 
         /**
-         * Creates a new FullTask instance using the specified properties.
+         * Creates a new FullAsset instance using the specified properties.
          * @function create
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @static
-         * @param {repository.IFullTask=} [properties] Properties to set
-         * @returns {repository.FullTask} FullTask instance
+         * @param {repository.IFullAsset=} [properties] Properties to set
+         * @returns {repository.FullAsset} FullAsset instance
          */
-        FullTask.create = function create(properties) {
-            return new FullTask(properties);
+        FullAsset.create = function create(properties) {
+            return new FullAsset(properties);
         };
 
         /**
-         * Encodes the specified FullTask message. Does not implicitly {@link repository.FullTask.verify|verify} messages.
+         * Encodes the specified FullAsset message. Does not implicitly {@link repository.FullAsset.verify|verify} messages.
          * @function encode
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @static
-         * @param {repository.IFullTask} message FullTask message or plain object to encode
+         * @param {repository.IFullAsset} message FullAsset message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        FullTask.encode = function encode(message, writer) {
+        FullAsset.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
             if (message.id != null && Object.hasOwnProperty.call(message, "id"))
@@ -11690,20 +11690,20 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 8, wireType 2 =*/66).string(message.status_id);
             if (message.status_short_name != null && Object.hasOwnProperty.call(message, "status_short_name"))
                 writer.uint32(/* id 9, wireType 2 =*/74).string(message.status_short_name);
-            if (message.task_type_id != null && Object.hasOwnProperty.call(message, "task_type_id"))
-                writer.uint32(/* id 10, wireType 2 =*/82).string(message.task_type_id);
-            if (message.task_type_name != null && Object.hasOwnProperty.call(message, "task_type_name"))
-                writer.uint32(/* id 11, wireType 2 =*/90).string(message.task_type_name);
-            if (message.task_type_icon != null && Object.hasOwnProperty.call(message, "task_type_icon"))
-                writer.uint32(/* id 12, wireType 2 =*/98).string(message.task_type_icon);
-            if (message.entity_id != null && Object.hasOwnProperty.call(message, "entity_id"))
-                writer.uint32(/* id 13, wireType 2 =*/106).string(message.entity_id);
-            if (message.entity_name != null && Object.hasOwnProperty.call(message, "entity_name"))
-                writer.uint32(/* id 14, wireType 2 =*/114).string(message.entity_name);
-            if (message.entity_path != null && Object.hasOwnProperty.call(message, "entity_path"))
-                writer.uint32(/* id 15, wireType 2 =*/122).string(message.entity_path);
-            if (message.task_path != null && Object.hasOwnProperty.call(message, "task_path"))
-                writer.uint32(/* id 16, wireType 2 =*/130).string(message.task_path);
+            if (message.asset_type_id != null && Object.hasOwnProperty.call(message, "asset_type_id"))
+                writer.uint32(/* id 10, wireType 2 =*/82).string(message.asset_type_id);
+            if (message.asset_type_name != null && Object.hasOwnProperty.call(message, "asset_type_name"))
+                writer.uint32(/* id 11, wireType 2 =*/90).string(message.asset_type_name);
+            if (message.asset_type_icon != null && Object.hasOwnProperty.call(message, "asset_type_icon"))
+                writer.uint32(/* id 12, wireType 2 =*/98).string(message.asset_type_icon);
+            if (message.collection_id != null && Object.hasOwnProperty.call(message, "collection_id"))
+                writer.uint32(/* id 13, wireType 2 =*/106).string(message.collection_id);
+            if (message.collection_name != null && Object.hasOwnProperty.call(message, "collection_name"))
+                writer.uint32(/* id 14, wireType 2 =*/114).string(message.collection_name);
+            if (message.collection_path != null && Object.hasOwnProperty.call(message, "collection_path"))
+                writer.uint32(/* id 15, wireType 2 =*/122).string(message.collection_path);
+            if (message.asset_path != null && Object.hasOwnProperty.call(message, "asset_path"))
+                writer.uint32(/* id 16, wireType 2 =*/130).string(message.asset_path);
             if (message.assignee_id != null && Object.hasOwnProperty.call(message, "assignee_id"))
                 writer.uint32(/* id 17, wireType 2 =*/138).string(message.assignee_id);
             if (message.assignee_email != null && Object.hasOwnProperty.call(message, "assignee_email"))
@@ -11727,11 +11727,11 @@ export const repository = $root.repository = (() => {
                     writer.uint32(/* id 26, wireType 2 =*/210).string(message.tags[i]);
             if (message.tags_raw != null && Object.hasOwnProperty.call(message, "tags_raw"))
                 writer.uint32(/* id 27, wireType 2 =*/218).string(message.tags_raw);
-            if (message.entity_dependencies != null && message.entity_dependencies.length)
-                for (let i = 0; i < message.entity_dependencies.length; ++i)
-                    writer.uint32(/* id 28, wireType 2 =*/226).string(message.entity_dependencies[i]);
-            if (message.entity_dependencies_raw != null && Object.hasOwnProperty.call(message, "entity_dependencies_raw"))
-                writer.uint32(/* id 29, wireType 2 =*/234).string(message.entity_dependencies_raw);
+            if (message.collection_dependencies != null && message.collection_dependencies.length)
+                for (let i = 0; i < message.collection_dependencies.length; ++i)
+                    writer.uint32(/* id 28, wireType 2 =*/226).string(message.collection_dependencies[i]);
+            if (message.collection_dependencies_raw != null && Object.hasOwnProperty.call(message, "collection_dependencies_raw"))
+                writer.uint32(/* id 29, wireType 2 =*/234).string(message.collection_dependencies_raw);
             if (message.dependencies != null && message.dependencies.length)
                 for (let i = 0; i < message.dependencies.length; ++i)
                     writer.uint32(/* id 30, wireType 2 =*/242).string(message.dependencies[i]);
@@ -11764,33 +11764,33 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Encodes the specified FullTask message, length delimited. Does not implicitly {@link repository.FullTask.verify|verify} messages.
+         * Encodes the specified FullAsset message, length delimited. Does not implicitly {@link repository.FullAsset.verify|verify} messages.
          * @function encodeDelimited
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @static
-         * @param {repository.IFullTask} message FullTask message or plain object to encode
+         * @param {repository.IFullAsset} message FullAsset message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        FullTask.encodeDelimited = function encodeDelimited(message, writer) {
+        FullAsset.encodeDelimited = function encodeDelimited(message, writer) {
             return this.encode(message, writer).ldelim();
         };
 
         /**
-         * Decodes a FullTask message from the specified reader or buffer.
+         * Decodes a FullAsset message from the specified reader or buffer.
          * @function decode
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {repository.FullTask} FullTask
+         * @returns {repository.FullAsset} FullAsset
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        FullTask.decode = function decode(reader, length, error) {
+        FullAsset.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.FullTask();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.FullAsset();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -11833,31 +11833,31 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 10: {
-                        message.task_type_id = reader.string();
+                        message.asset_type_id = reader.string();
                         break;
                     }
                 case 11: {
-                        message.task_type_name = reader.string();
+                        message.asset_type_name = reader.string();
                         break;
                     }
                 case 12: {
-                        message.task_type_icon = reader.string();
+                        message.asset_type_icon = reader.string();
                         break;
                     }
                 case 13: {
-                        message.entity_id = reader.string();
+                        message.collection_id = reader.string();
                         break;
                     }
                 case 14: {
-                        message.entity_name = reader.string();
+                        message.collection_name = reader.string();
                         break;
                     }
                 case 15: {
-                        message.entity_path = reader.string();
+                        message.collection_path = reader.string();
                         break;
                     }
                 case 16: {
-                        message.task_path = reader.string();
+                        message.asset_path = reader.string();
                         break;
                     }
                 case 17: {
@@ -11907,13 +11907,13 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 28: {
-                        if (!(message.entity_dependencies && message.entity_dependencies.length))
-                            message.entity_dependencies = [];
-                        message.entity_dependencies.push(reader.string());
+                        if (!(message.collection_dependencies && message.collection_dependencies.length))
+                            message.collection_dependencies = [];
+                        message.collection_dependencies.push(reader.string());
                         break;
                     }
                 case 29: {
-                        message.entity_dependencies_raw = reader.string();
+                        message.collection_dependencies_raw = reader.string();
                         break;
                     }
                 case 30: {
@@ -11981,30 +11981,30 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Decodes a FullTask message from the specified reader or buffer, length delimited.
+         * Decodes a FullAsset message from the specified reader or buffer, length delimited.
          * @function decodeDelimited
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @returns {repository.FullTask} FullTask
+         * @returns {repository.FullAsset} FullAsset
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        FullTask.decodeDelimited = function decodeDelimited(reader) {
+        FullAsset.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
-         * Verifies a FullTask message.
+         * Verifies a FullAsset message.
          * @function verify
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @static
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        FullTask.verify = function verify(message) {
+        FullAsset.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
             if (message.id != null && message.hasOwnProperty("id"))
@@ -12034,27 +12034,27 @@ export const repository = $root.repository = (() => {
             if (message.status_short_name != null && message.hasOwnProperty("status_short_name"))
                 if (!$util.isString(message.status_short_name))
                     return "status_short_name: string expected";
-            if (message.task_type_id != null && message.hasOwnProperty("task_type_id"))
-                if (!$util.isString(message.task_type_id))
-                    return "task_type_id: string expected";
-            if (message.task_type_name != null && message.hasOwnProperty("task_type_name"))
-                if (!$util.isString(message.task_type_name))
-                    return "task_type_name: string expected";
-            if (message.task_type_icon != null && message.hasOwnProperty("task_type_icon"))
-                if (!$util.isString(message.task_type_icon))
-                    return "task_type_icon: string expected";
-            if (message.entity_id != null && message.hasOwnProperty("entity_id"))
-                if (!$util.isString(message.entity_id))
-                    return "entity_id: string expected";
-            if (message.entity_name != null && message.hasOwnProperty("entity_name"))
-                if (!$util.isString(message.entity_name))
-                    return "entity_name: string expected";
-            if (message.entity_path != null && message.hasOwnProperty("entity_path"))
-                if (!$util.isString(message.entity_path))
-                    return "entity_path: string expected";
-            if (message.task_path != null && message.hasOwnProperty("task_path"))
-                if (!$util.isString(message.task_path))
-                    return "task_path: string expected";
+            if (message.asset_type_id != null && message.hasOwnProperty("asset_type_id"))
+                if (!$util.isString(message.asset_type_id))
+                    return "asset_type_id: string expected";
+            if (message.asset_type_name != null && message.hasOwnProperty("asset_type_name"))
+                if (!$util.isString(message.asset_type_name))
+                    return "asset_type_name: string expected";
+            if (message.asset_type_icon != null && message.hasOwnProperty("asset_type_icon"))
+                if (!$util.isString(message.asset_type_icon))
+                    return "asset_type_icon: string expected";
+            if (message.collection_id != null && message.hasOwnProperty("collection_id"))
+                if (!$util.isString(message.collection_id))
+                    return "collection_id: string expected";
+            if (message.collection_name != null && message.hasOwnProperty("collection_name"))
+                if (!$util.isString(message.collection_name))
+                    return "collection_name: string expected";
+            if (message.collection_path != null && message.hasOwnProperty("collection_path"))
+                if (!$util.isString(message.collection_path))
+                    return "collection_path: string expected";
+            if (message.asset_path != null && message.hasOwnProperty("asset_path"))
+                if (!$util.isString(message.asset_path))
+                    return "asset_path: string expected";
             if (message.assignee_id != null && message.hasOwnProperty("assignee_id"))
                 if (!$util.isString(message.assignee_id))
                     return "assignee_id: string expected";
@@ -12092,16 +12092,16 @@ export const repository = $root.repository = (() => {
             if (message.tags_raw != null && message.hasOwnProperty("tags_raw"))
                 if (!$util.isString(message.tags_raw))
                     return "tags_raw: string expected";
-            if (message.entity_dependencies != null && message.hasOwnProperty("entity_dependencies")) {
-                if (!Array.isArray(message.entity_dependencies))
-                    return "entity_dependencies: array expected";
-                for (let i = 0; i < message.entity_dependencies.length; ++i)
-                    if (!$util.isString(message.entity_dependencies[i]))
-                        return "entity_dependencies: string[] expected";
+            if (message.collection_dependencies != null && message.hasOwnProperty("collection_dependencies")) {
+                if (!Array.isArray(message.collection_dependencies))
+                    return "collection_dependencies: array expected";
+                for (let i = 0; i < message.collection_dependencies.length; ++i)
+                    if (!$util.isString(message.collection_dependencies[i]))
+                        return "collection_dependencies: string[] expected";
             }
-            if (message.entity_dependencies_raw != null && message.hasOwnProperty("entity_dependencies_raw"))
-                if (!$util.isString(message.entity_dependencies_raw))
-                    return "entity_dependencies_raw: string expected";
+            if (message.collection_dependencies_raw != null && message.hasOwnProperty("collection_dependencies_raw"))
+                if (!$util.isString(message.collection_dependencies_raw))
+                    return "collection_dependencies_raw: string expected";
             if (message.dependencies != null && message.hasOwnProperty("dependencies")) {
                 if (!Array.isArray(message.dependencies))
                     return "dependencies: array expected";
@@ -12157,17 +12157,17 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a FullTask message from a plain object. Also converts values to their respective internal types.
+         * Creates a FullAsset message from a plain object. Also converts values to their respective internal types.
          * @function fromObject
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @static
          * @param {Object.<string,*>} object Plain object
-         * @returns {repository.FullTask} FullTask
+         * @returns {repository.FullAsset} FullAsset
          */
-        FullTask.fromObject = function fromObject(object) {
-            if (object instanceof $root.repository.FullTask)
+        FullAsset.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.FullAsset)
                 return object;
-            let message = new $root.repository.FullTask();
+            let message = new $root.repository.FullAsset();
             if (object.id != null)
                 message.id = String(object.id);
             if (object.mtime != null)
@@ -12193,20 +12193,20 @@ export const repository = $root.repository = (() => {
                 message.status_id = String(object.status_id);
             if (object.status_short_name != null)
                 message.status_short_name = String(object.status_short_name);
-            if (object.task_type_id != null)
-                message.task_type_id = String(object.task_type_id);
-            if (object.task_type_name != null)
-                message.task_type_name = String(object.task_type_name);
-            if (object.task_type_icon != null)
-                message.task_type_icon = String(object.task_type_icon);
-            if (object.entity_id != null)
-                message.entity_id = String(object.entity_id);
-            if (object.entity_name != null)
-                message.entity_name = String(object.entity_name);
-            if (object.entity_path != null)
-                message.entity_path = String(object.entity_path);
-            if (object.task_path != null)
-                message.task_path = String(object.task_path);
+            if (object.asset_type_id != null)
+                message.asset_type_id = String(object.asset_type_id);
+            if (object.asset_type_name != null)
+                message.asset_type_name = String(object.asset_type_name);
+            if (object.asset_type_icon != null)
+                message.asset_type_icon = String(object.asset_type_icon);
+            if (object.collection_id != null)
+                message.collection_id = String(object.collection_id);
+            if (object.collection_name != null)
+                message.collection_name = String(object.collection_name);
+            if (object.collection_path != null)
+                message.collection_path = String(object.collection_path);
+            if (object.asset_path != null)
+                message.asset_path = String(object.asset_path);
             if (object.assignee_id != null)
                 message.assignee_id = String(object.assignee_id);
             if (object.assignee_email != null)
@@ -12227,25 +12227,25 @@ export const repository = $root.repository = (() => {
                 message.file_path = String(object.file_path);
             if (object.tags) {
                 if (!Array.isArray(object.tags))
-                    throw TypeError(".repository.FullTask.tags: array expected");
+                    throw TypeError(".repository.FullAsset.tags: array expected");
                 message.tags = [];
                 for (let i = 0; i < object.tags.length; ++i)
                     message.tags[i] = String(object.tags[i]);
             }
             if (object.tags_raw != null)
                 message.tags_raw = String(object.tags_raw);
-            if (object.entity_dependencies) {
-                if (!Array.isArray(object.entity_dependencies))
-                    throw TypeError(".repository.FullTask.entity_dependencies: array expected");
-                message.entity_dependencies = [];
-                for (let i = 0; i < object.entity_dependencies.length; ++i)
-                    message.entity_dependencies[i] = String(object.entity_dependencies[i]);
+            if (object.collection_dependencies) {
+                if (!Array.isArray(object.collection_dependencies))
+                    throw TypeError(".repository.FullAsset.collection_dependencies: array expected");
+                message.collection_dependencies = [];
+                for (let i = 0; i < object.collection_dependencies.length; ++i)
+                    message.collection_dependencies[i] = String(object.collection_dependencies[i]);
             }
-            if (object.entity_dependencies_raw != null)
-                message.entity_dependencies_raw = String(object.entity_dependencies_raw);
+            if (object.collection_dependencies_raw != null)
+                message.collection_dependencies_raw = String(object.collection_dependencies_raw);
             if (object.dependencies) {
                 if (!Array.isArray(object.dependencies))
-                    throw TypeError(".repository.FullTask.dependencies: array expected");
+                    throw TypeError(".repository.FullAsset.dependencies: array expected");
                 message.dependencies = [];
                 for (let i = 0; i < object.dependencies.length; ++i)
                     message.dependencies[i] = String(object.dependencies[i]);
@@ -12256,7 +12256,7 @@ export const repository = $root.repository = (() => {
                 message.file_status = String(object.file_status);
             if (object.status != null) {
                 if (typeof object.status !== "object")
-                    throw TypeError(".repository.FullTask.status: object expected");
+                    throw TypeError(".repository.FullAsset.status: object expected");
                 message.status = $root.repository.Status.fromObject(object.status);
             }
             if (object.is_link != null)
@@ -12274,11 +12274,11 @@ export const repository = $root.repository = (() => {
                 message.preview_extension = String(object.preview_extension);
             if (object.checkpoints) {
                 if (!Array.isArray(object.checkpoints))
-                    throw TypeError(".repository.FullTask.checkpoints: array expected");
+                    throw TypeError(".repository.FullAsset.checkpoints: array expected");
                 message.checkpoints = [];
                 for (let i = 0; i < object.checkpoints.length; ++i) {
                     if (typeof object.checkpoints[i] !== "object")
-                        throw TypeError(".repository.FullTask.checkpoints: object expected");
+                        throw TypeError(".repository.FullAsset.checkpoints: object expected");
                     message.checkpoints[i] = $root.repository.Checkpoint.fromObject(object.checkpoints[i]);
                 }
             }
@@ -12292,21 +12292,21 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Creates a plain object from a FullTask message. Also converts values to other types if specified.
+         * Creates a plain object from a FullAsset message. Also converts values to other types if specified.
          * @function toObject
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @static
-         * @param {repository.FullTask} message FullTask
+         * @param {repository.FullAsset} message FullAsset
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        FullTask.toObject = function toObject(message, options) {
+        FullAsset.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
             let object = {};
             if (options.arrays || options.defaults) {
                 object.tags = [];
-                object.entity_dependencies = [];
+                object.collection_dependencies = [];
                 object.dependencies = [];
                 object.checkpoints = [];
             }
@@ -12324,13 +12324,13 @@ export const repository = $root.repository = (() => {
                 object.is_resource = false;
                 object.status_id = "";
                 object.status_short_name = "";
-                object.task_type_id = "";
-                object.task_type_name = "";
-                object.task_type_icon = "";
-                object.entity_id = "";
-                object.entity_name = "";
-                object.entity_path = "";
-                object.task_path = "";
+                object.asset_type_id = "";
+                object.asset_type_name = "";
+                object.asset_type_icon = "";
+                object.collection_id = "";
+                object.collection_name = "";
+                object.collection_path = "";
+                object.asset_path = "";
                 object.assignee_id = "";
                 object.assignee_email = "";
                 object.assignee_name = "";
@@ -12341,7 +12341,7 @@ export const repository = $root.repository = (() => {
                 object.dependency_level = 0;
                 object.file_path = "";
                 object.tags_raw = "";
-                object.entity_dependencies_raw = "";
+                object.collection_dependencies_raw = "";
                 object.dependencies_raw = "";
                 object.file_status = "";
                 object.status = null;
@@ -12381,20 +12381,20 @@ export const repository = $root.repository = (() => {
                 object.status_id = message.status_id;
             if (message.status_short_name != null && message.hasOwnProperty("status_short_name"))
                 object.status_short_name = message.status_short_name;
-            if (message.task_type_id != null && message.hasOwnProperty("task_type_id"))
-                object.task_type_id = message.task_type_id;
-            if (message.task_type_name != null && message.hasOwnProperty("task_type_name"))
-                object.task_type_name = message.task_type_name;
-            if (message.task_type_icon != null && message.hasOwnProperty("task_type_icon"))
-                object.task_type_icon = message.task_type_icon;
-            if (message.entity_id != null && message.hasOwnProperty("entity_id"))
-                object.entity_id = message.entity_id;
-            if (message.entity_name != null && message.hasOwnProperty("entity_name"))
-                object.entity_name = message.entity_name;
-            if (message.entity_path != null && message.hasOwnProperty("entity_path"))
-                object.entity_path = message.entity_path;
-            if (message.task_path != null && message.hasOwnProperty("task_path"))
-                object.task_path = message.task_path;
+            if (message.asset_type_id != null && message.hasOwnProperty("asset_type_id"))
+                object.asset_type_id = message.asset_type_id;
+            if (message.asset_type_name != null && message.hasOwnProperty("asset_type_name"))
+                object.asset_type_name = message.asset_type_name;
+            if (message.asset_type_icon != null && message.hasOwnProperty("asset_type_icon"))
+                object.asset_type_icon = message.asset_type_icon;
+            if (message.collection_id != null && message.hasOwnProperty("collection_id"))
+                object.collection_id = message.collection_id;
+            if (message.collection_name != null && message.hasOwnProperty("collection_name"))
+                object.collection_name = message.collection_name;
+            if (message.collection_path != null && message.hasOwnProperty("collection_path"))
+                object.collection_path = message.collection_path;
+            if (message.asset_path != null && message.hasOwnProperty("asset_path"))
+                object.asset_path = message.asset_path;
             if (message.assignee_id != null && message.hasOwnProperty("assignee_id"))
                 object.assignee_id = message.assignee_id;
             if (message.assignee_email != null && message.hasOwnProperty("assignee_email"))
@@ -12420,13 +12420,13 @@ export const repository = $root.repository = (() => {
             }
             if (message.tags_raw != null && message.hasOwnProperty("tags_raw"))
                 object.tags_raw = message.tags_raw;
-            if (message.entity_dependencies && message.entity_dependencies.length) {
-                object.entity_dependencies = [];
-                for (let j = 0; j < message.entity_dependencies.length; ++j)
-                    object.entity_dependencies[j] = message.entity_dependencies[j];
+            if (message.collection_dependencies && message.collection_dependencies.length) {
+                object.collection_dependencies = [];
+                for (let j = 0; j < message.collection_dependencies.length; ++j)
+                    object.collection_dependencies[j] = message.collection_dependencies[j];
             }
-            if (message.entity_dependencies_raw != null && message.hasOwnProperty("entity_dependencies_raw"))
-                object.entity_dependencies_raw = message.entity_dependencies_raw;
+            if (message.collection_dependencies_raw != null && message.hasOwnProperty("collection_dependencies_raw"))
+                object.collection_dependencies_raw = message.collection_dependencies_raw;
             if (message.dependencies && message.dependencies.length) {
                 object.dependencies = [];
                 for (let j = 0; j < message.dependencies.length; ++j)
@@ -12463,32 +12463,32 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Converts this FullTask to JSON.
+         * Converts this FullAsset to JSON.
          * @function toJSON
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @instance
          * @returns {Object.<string,*>} JSON object
          */
-        FullTask.prototype.toJSON = function toJSON() {
+        FullAsset.prototype.toJSON = function toJSON() {
             return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
         };
 
         /**
-         * Gets the default type url for FullTask
+         * Gets the default type url for FullAsset
          * @function getTypeUrl
-         * @memberof repository.FullTask
+         * @memberof repository.FullAsset
          * @static
          * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns {string} The default type url
          */
-        FullTask.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        FullAsset.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
             if (typeUrlPrefix === undefined) {
                 typeUrlPrefix = "type.googleapis.com";
             }
-            return typeUrlPrefix + "/repository.FullTask";
+            return typeUrlPrefix + "/repository.FullAsset";
         };
 
-        return FullTask;
+        return FullAsset;
     })();
 
     repository.ChunkInfo = (function() {
@@ -12734,25 +12734,25 @@ export const repository = $root.repository = (() => {
         return ChunkInfo;
     })();
 
-    repository.FullTaskList = (function() {
+    repository.FullAssetList = (function() {
 
         /**
-         * Properties of a FullTaskList.
+         * Properties of a FullAssetList.
          * @memberof repository
-         * @interface IFullTaskList
-         * @property {Array.<repository.IFullTask>|null} [full_tasks] FullTaskList full_tasks
+         * @interface IFullAssetList
+         * @property {Array.<repository.IFullAsset>|null} [full_assets] FullAssetList full_assets
          */
 
         /**
-         * Constructs a new FullTaskList.
+         * Constructs a new FullAssetList.
          * @memberof repository
-         * @classdesc Represents a FullTaskList.
-         * @implements IFullTaskList
+         * @classdesc Represents a FullAssetList.
+         * @implements IFullAssetList
          * @constructor
-         * @param {repository.IFullTaskList=} [properties] Properties to set
+         * @param {repository.IFullAssetList=} [properties] Properties to set
          */
-        function FullTaskList(properties) {
-            this.full_tasks = [];
+        function FullAssetList(properties) {
+            this.full_assets = [];
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
@@ -12760,80 +12760,80 @@ export const repository = $root.repository = (() => {
         }
 
         /**
-         * FullTaskList full_tasks.
-         * @member {Array.<repository.IFullTask>} full_tasks
-         * @memberof repository.FullTaskList
+         * FullAssetList full_assets.
+         * @member {Array.<repository.IFullAsset>} full_assets
+         * @memberof repository.FullAssetList
          * @instance
          */
-        FullTaskList.prototype.full_tasks = $util.emptyArray;
+        FullAssetList.prototype.full_assets = $util.emptyArray;
 
         /**
-         * Creates a new FullTaskList instance using the specified properties.
+         * Creates a new FullAssetList instance using the specified properties.
          * @function create
-         * @memberof repository.FullTaskList
+         * @memberof repository.FullAssetList
          * @static
-         * @param {repository.IFullTaskList=} [properties] Properties to set
-         * @returns {repository.FullTaskList} FullTaskList instance
+         * @param {repository.IFullAssetList=} [properties] Properties to set
+         * @returns {repository.FullAssetList} FullAssetList instance
          */
-        FullTaskList.create = function create(properties) {
-            return new FullTaskList(properties);
+        FullAssetList.create = function create(properties) {
+            return new FullAssetList(properties);
         };
 
         /**
-         * Encodes the specified FullTaskList message. Does not implicitly {@link repository.FullTaskList.verify|verify} messages.
+         * Encodes the specified FullAssetList message. Does not implicitly {@link repository.FullAssetList.verify|verify} messages.
          * @function encode
-         * @memberof repository.FullTaskList
+         * @memberof repository.FullAssetList
          * @static
-         * @param {repository.IFullTaskList} message FullTaskList message or plain object to encode
+         * @param {repository.IFullAssetList} message FullAssetList message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        FullTaskList.encode = function encode(message, writer) {
+        FullAssetList.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.full_tasks != null && message.full_tasks.length)
-                for (let i = 0; i < message.full_tasks.length; ++i)
-                    $root.repository.FullTask.encode(message.full_tasks[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            if (message.full_assets != null && message.full_assets.length)
+                for (let i = 0; i < message.full_assets.length; ++i)
+                    $root.repository.FullAsset.encode(message.full_assets[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
             return writer;
         };
 
         /**
-         * Encodes the specified FullTaskList message, length delimited. Does not implicitly {@link repository.FullTaskList.verify|verify} messages.
+         * Encodes the specified FullAssetList message, length delimited. Does not implicitly {@link repository.FullAssetList.verify|verify} messages.
          * @function encodeDelimited
-         * @memberof repository.FullTaskList
+         * @memberof repository.FullAssetList
          * @static
-         * @param {repository.IFullTaskList} message FullTaskList message or plain object to encode
+         * @param {repository.IFullAssetList} message FullAssetList message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
-        FullTaskList.encodeDelimited = function encodeDelimited(message, writer) {
+        FullAssetList.encodeDelimited = function encodeDelimited(message, writer) {
             return this.encode(message, writer).ldelim();
         };
 
         /**
-         * Decodes a FullTaskList message from the specified reader or buffer.
+         * Decodes a FullAssetList message from the specified reader or buffer.
          * @function decode
-         * @memberof repository.FullTaskList
+         * @memberof repository.FullAssetList
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {repository.FullTaskList} FullTaskList
+         * @returns {repository.FullAssetList} FullAssetList
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        FullTaskList.decode = function decode(reader, length, error) {
+        FullAssetList.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.FullTaskList();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.FullAssetList();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
                     break;
                 switch (tag >>> 3) {
                 case 1: {
-                        if (!(message.full_tasks && message.full_tasks.length))
-                            message.full_tasks = [];
-                        message.full_tasks.push($root.repository.FullTask.decode(reader, reader.uint32()));
+                        if (!(message.full_assets && message.full_assets.length))
+                            message.full_assets = [];
+                        message.full_assets.push($root.repository.FullAsset.decode(reader, reader.uint32()));
                         break;
                     }
                 default:
@@ -12845,119 +12845,119 @@ export const repository = $root.repository = (() => {
         };
 
         /**
-         * Decodes a FullTaskList message from the specified reader or buffer, length delimited.
+         * Decodes a FullAssetList message from the specified reader or buffer, length delimited.
          * @function decodeDelimited
-         * @memberof repository.FullTaskList
+         * @memberof repository.FullAssetList
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @returns {repository.FullTaskList} FullTaskList
+         * @returns {repository.FullAssetList} FullAssetList
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        FullTaskList.decodeDelimited = function decodeDelimited(reader) {
+        FullAssetList.decodeDelimited = function decodeDelimited(reader) {
             if (!(reader instanceof $Reader))
                 reader = new $Reader(reader);
             return this.decode(reader, reader.uint32());
         };
 
         /**
-         * Verifies a FullTaskList message.
+         * Verifies a FullAssetList message.
          * @function verify
-         * @memberof repository.FullTaskList
+         * @memberof repository.FullAssetList
          * @static
          * @param {Object.<string,*>} message Plain object to verify
          * @returns {string|null} `null` if valid, otherwise the reason why it is not
          */
-        FullTaskList.verify = function verify(message) {
+        FullAssetList.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (message.full_tasks != null && message.hasOwnProperty("full_tasks")) {
-                if (!Array.isArray(message.full_tasks))
-                    return "full_tasks: array expected";
-                for (let i = 0; i < message.full_tasks.length; ++i) {
-                    let error = $root.repository.FullTask.verify(message.full_tasks[i]);
+            if (message.full_assets != null && message.hasOwnProperty("full_assets")) {
+                if (!Array.isArray(message.full_assets))
+                    return "full_assets: array expected";
+                for (let i = 0; i < message.full_assets.length; ++i) {
+                    let error = $root.repository.FullAsset.verify(message.full_assets[i]);
                     if (error)
-                        return "full_tasks." + error;
+                        return "full_assets." + error;
                 }
             }
             return null;
         };
 
         /**
-         * Creates a FullTaskList message from a plain object. Also converts values to their respective internal types.
+         * Creates a FullAssetList message from a plain object. Also converts values to their respective internal types.
          * @function fromObject
-         * @memberof repository.FullTaskList
+         * @memberof repository.FullAssetList
          * @static
          * @param {Object.<string,*>} object Plain object
-         * @returns {repository.FullTaskList} FullTaskList
+         * @returns {repository.FullAssetList} FullAssetList
          */
-        FullTaskList.fromObject = function fromObject(object) {
-            if (object instanceof $root.repository.FullTaskList)
+        FullAssetList.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.FullAssetList)
                 return object;
-            let message = new $root.repository.FullTaskList();
-            if (object.full_tasks) {
-                if (!Array.isArray(object.full_tasks))
-                    throw TypeError(".repository.FullTaskList.full_tasks: array expected");
-                message.full_tasks = [];
-                for (let i = 0; i < object.full_tasks.length; ++i) {
-                    if (typeof object.full_tasks[i] !== "object")
-                        throw TypeError(".repository.FullTaskList.full_tasks: object expected");
-                    message.full_tasks[i] = $root.repository.FullTask.fromObject(object.full_tasks[i]);
+            let message = new $root.repository.FullAssetList();
+            if (object.full_assets) {
+                if (!Array.isArray(object.full_assets))
+                    throw TypeError(".repository.FullAssetList.full_assets: array expected");
+                message.full_assets = [];
+                for (let i = 0; i < object.full_assets.length; ++i) {
+                    if (typeof object.full_assets[i] !== "object")
+                        throw TypeError(".repository.FullAssetList.full_assets: object expected");
+                    message.full_assets[i] = $root.repository.FullAsset.fromObject(object.full_assets[i]);
                 }
             }
             return message;
         };
 
         /**
-         * Creates a plain object from a FullTaskList message. Also converts values to other types if specified.
+         * Creates a plain object from a FullAssetList message. Also converts values to other types if specified.
          * @function toObject
-         * @memberof repository.FullTaskList
+         * @memberof repository.FullAssetList
          * @static
-         * @param {repository.FullTaskList} message FullTaskList
+         * @param {repository.FullAssetList} message FullAssetList
          * @param {$protobuf.IConversionOptions} [options] Conversion options
          * @returns {Object.<string,*>} Plain object
          */
-        FullTaskList.toObject = function toObject(message, options) {
+        FullAssetList.toObject = function toObject(message, options) {
             if (!options)
                 options = {};
             let object = {};
             if (options.arrays || options.defaults)
-                object.full_tasks = [];
-            if (message.full_tasks && message.full_tasks.length) {
-                object.full_tasks = [];
-                for (let j = 0; j < message.full_tasks.length; ++j)
-                    object.full_tasks[j] = $root.repository.FullTask.toObject(message.full_tasks[j], options);
+                object.full_assets = [];
+            if (message.full_assets && message.full_assets.length) {
+                object.full_assets = [];
+                for (let j = 0; j < message.full_assets.length; ++j)
+                    object.full_assets[j] = $root.repository.FullAsset.toObject(message.full_assets[j], options);
             }
             return object;
         };
 
         /**
-         * Converts this FullTaskList to JSON.
+         * Converts this FullAssetList to JSON.
          * @function toJSON
-         * @memberof repository.FullTaskList
+         * @memberof repository.FullAssetList
          * @instance
          * @returns {Object.<string,*>} JSON object
          */
-        FullTaskList.prototype.toJSON = function toJSON() {
+        FullAssetList.prototype.toJSON = function toJSON() {
             return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
         };
 
         /**
-         * Gets the default type url for FullTaskList
+         * Gets the default type url for FullAssetList
          * @function getTypeUrl
-         * @memberof repository.FullTaskList
+         * @memberof repository.FullAssetList
          * @static
          * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
          * @returns {string} The default type url
          */
-        FullTaskList.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        FullAssetList.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
             if (typeUrlPrefix === undefined) {
                 typeUrlPrefix = "type.googleapis.com";
             }
-            return typeUrlPrefix + "/repository.FullTaskList";
+            return typeUrlPrefix + "/repository.FullAssetList";
         };
 
-        return FullTaskList;
+        return FullAssetList;
     })();
 
     repository.Previews = (function() {

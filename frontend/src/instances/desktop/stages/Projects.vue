@@ -1,6 +1,6 @@
 <template>
 	<div ref="projectListRoot" class="project-stage-root absolute-pane">
-		<div class="task-header">
+		<div class="asset-header">
 			<div class="create-menu" >
 				<ActionButton :isDisabled="!userStore.userCanCreateProject || operationsActive" :icon="getAppIcon('briefcase-plus')" 
 					@click="createProject" v-tooltip="$t('stages.newProject')" :buttonFunction="doNothing" />
@@ -458,11 +458,11 @@ onUnmounted(() => {
 	}
 }
 
-.all-tasks-collapsed {
+.all-assets-collapsed {
 	transform: rotate(90deg);
 }
 
-.all-tasks-expanded {
+.all-assets-expanded {
 	transform: rotate(-90deg);
 }
 
@@ -576,7 +576,7 @@ onUnmounted(() => {
 	margin: 10px;
 }
 
-.task-header {
+.asset-header {
 	position: relative;
 	display: flex;
 	width: 100%;

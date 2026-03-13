@@ -26,7 +26,7 @@ export const useTrayStates = defineStore("useTrayStates", {
     itemTags: [],
 
     icons: {},
-    queuedTasks: [],
+    queuedAssets: [],
 
     suggestedTags: [
       "todo",
@@ -60,14 +60,14 @@ export const useTrayStates = defineStore("useTrayStates", {
     popUpModalTitle: "",
 
     createMultipleCheckpoints: true,
-    createMultipleCheckpointsEntityPath: "",
+    createMultipleCheckpointsCollectionPath: "",
     assignTo: "",
 
     trashTypes: [
       { name: "all", icon: "four-squares" },
       { name: "collections", icon: "folder" },
-      { name: "task", icon: "brush" },
-      { name: "task_checkpoint", icon: "layers" },
+      { name: "asset", icon: "brush" },
+      { name: "asset_checkpoint", icon: "layers" },
       { name: "resource_checkpoint", icon: "layers" },
       { name: "resource", icon: "paperclip" },
       { name: "template", icon: "file" },

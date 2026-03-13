@@ -145,7 +145,7 @@ func (x *User) GetRole() string {
 	return ""
 }
 
-type EntityType struct {
+type CollectionType struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Mtime         int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
@@ -156,20 +156,20 @@ type EntityType struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *EntityType) Reset() {
-	*x = EntityType{}
+func (x *CollectionType) Reset() {
+	*x = CollectionType{}
 	mi := &file_internal_repository_schema_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *EntityType) String() string {
+func (x *CollectionType) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EntityType) ProtoMessage() {}
+func (*CollectionType) ProtoMessage() {}
 
-func (x *EntityType) ProtoReflect() protoreflect.Message {
+func (x *CollectionType) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_repository_schema_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -181,47 +181,47 @@ func (x *EntityType) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use EntityType.ProtoReflect.Descriptor instead.
-func (*EntityType) Descriptor() ([]byte, []int) {
+// Deprecated: Use CollectionType.ProtoReflect.Descriptor instead.
+func (*CollectionType) Descriptor() ([]byte, []int) {
 	return file_internal_repository_schema_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *EntityType) GetId() string {
+func (x *CollectionType) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *EntityType) GetMtime() int64 {
+func (x *CollectionType) GetMtime() int64 {
 	if x != nil {
 		return x.Mtime
 	}
 	return 0
 }
 
-func (x *EntityType) GetName() string {
+func (x *CollectionType) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *EntityType) GetIcon() string {
+func (x *CollectionType) GetIcon() string {
 	if x != nil {
 		return x.Icon
 	}
 	return ""
 }
 
-func (x *EntityType) GetSynced() bool {
+func (x *CollectionType) GetSynced() bool {
 	if x != nil {
 		return x.Synced
 	}
 	return false
 }
 
-type TaskType struct {
+type AssetType struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Mtime         int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
@@ -232,20 +232,20 @@ type TaskType struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *TaskType) Reset() {
-	*x = TaskType{}
+func (x *AssetType) Reset() {
+	*x = AssetType{}
 	mi := &file_internal_repository_schema_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *TaskType) String() string {
+func (x *AssetType) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*TaskType) ProtoMessage() {}
+func (*AssetType) ProtoMessage() {}
 
-func (x *TaskType) ProtoReflect() protoreflect.Message {
+func (x *AssetType) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_repository_schema_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -257,47 +257,47 @@ func (x *TaskType) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use TaskType.ProtoReflect.Descriptor instead.
-func (*TaskType) Descriptor() ([]byte, []int) {
+// Deprecated: Use AssetType.ProtoReflect.Descriptor instead.
+func (*AssetType) Descriptor() ([]byte, []int) {
 	return file_internal_repository_schema_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *TaskType) GetId() string {
+func (x *AssetType) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *TaskType) GetMtime() int64 {
+func (x *AssetType) GetMtime() int64 {
 	if x != nil {
 		return x.Mtime
 	}
 	return 0
 }
 
-func (x *TaskType) GetName() string {
+func (x *AssetType) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *TaskType) GetIcon() string {
+func (x *AssetType) GetIcon() string {
 	if x != nil {
 		return x.Icon
 	}
 	return ""
 }
 
-func (x *TaskType) GetSynced() bool {
+func (x *AssetType) GetSynced() bool {
 	if x != nil {
 		return x.Synced
 	}
 	return false
 }
 
-type Task struct {
+type Asset struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Mtime         int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
@@ -307,8 +307,8 @@ type Task struct {
 	Extension     string                 `protobuf:"bytes,6,opt,name=extension,proto3" json:"extension,omitempty"`
 	IsResource    bool                   `protobuf:"varint,7,opt,name=is_resource,json=isResource,proto3" json:"is_resource,omitempty"`
 	StatusId      string                 `protobuf:"bytes,8,opt,name=status_id,json=statusId,proto3" json:"status_id,omitempty"`
-	TaskTypeId    string                 `protobuf:"bytes,9,opt,name=task_type_id,json=taskTypeId,proto3" json:"task_type_id,omitempty"`
-	EntityId      string                 `protobuf:"bytes,10,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
+	AssetTypeId   string                 `protobuf:"bytes,9,opt,name=asset_type_id,json=assetTypeId,proto3" json:"asset_type_id,omitempty"`
+	CollectionId  string                 `protobuf:"bytes,10,opt,name=collection_id,json=collectionId,proto3" json:"collection_id,omitempty"`
 	AssigneeId    string                 `protobuf:"bytes,11,opt,name=assignee_id,json=assigneeId,proto3" json:"assignee_id,omitempty"`
 	AssignerId    string                 `protobuf:"bytes,12,opt,name=assigner_id,json=assignerId,proto3" json:"assigner_id,omitempty"`
 	IsLink        bool                   `protobuf:"varint,13,opt,name=is_link,json=isLink,proto3" json:"is_link,omitempty"`
@@ -320,20 +320,20 @@ type Task struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Task) Reset() {
-	*x = Task{}
+func (x *Asset) Reset() {
+	*x = Asset{}
 	mi := &file_internal_repository_schema_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Task) String() string {
+func (x *Asset) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Task) ProtoMessage() {}
+func (*Asset) ProtoMessage() {}
 
-func (x *Task) ProtoReflect() protoreflect.Message {
+func (x *Asset) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_repository_schema_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -345,162 +345,162 @@ func (x *Task) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Task.ProtoReflect.Descriptor instead.
-func (*Task) Descriptor() ([]byte, []int) {
+// Deprecated: Use Asset.ProtoReflect.Descriptor instead.
+func (*Asset) Descriptor() ([]byte, []int) {
 	return file_internal_repository_schema_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *Task) GetId() string {
+func (x *Asset) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *Task) GetMtime() int64 {
+func (x *Asset) GetMtime() int64 {
 	if x != nil {
 		return x.Mtime
 	}
 	return 0
 }
 
-func (x *Task) GetCreatedAt() string {
+func (x *Asset) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
 	}
 	return ""
 }
 
-func (x *Task) GetName() string {
+func (x *Asset) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *Task) GetDescription() string {
+func (x *Asset) GetDescription() string {
 	if x != nil {
 		return x.Description
 	}
 	return ""
 }
 
-func (x *Task) GetExtension() string {
+func (x *Asset) GetExtension() string {
 	if x != nil {
 		return x.Extension
 	}
 	return ""
 }
 
-func (x *Task) GetIsResource() bool {
+func (x *Asset) GetIsResource() bool {
 	if x != nil {
 		return x.IsResource
 	}
 	return false
 }
 
-func (x *Task) GetStatusId() string {
+func (x *Asset) GetStatusId() string {
 	if x != nil {
 		return x.StatusId
 	}
 	return ""
 }
 
-func (x *Task) GetTaskTypeId() string {
+func (x *Asset) GetAssetTypeId() string {
 	if x != nil {
-		return x.TaskTypeId
+		return x.AssetTypeId
 	}
 	return ""
 }
 
-func (x *Task) GetEntityId() string {
+func (x *Asset) GetCollectionId() string {
 	if x != nil {
-		return x.EntityId
+		return x.CollectionId
 	}
 	return ""
 }
 
-func (x *Task) GetAssigneeId() string {
+func (x *Asset) GetAssigneeId() string {
 	if x != nil {
 		return x.AssigneeId
 	}
 	return ""
 }
 
-func (x *Task) GetAssignerId() string {
+func (x *Asset) GetAssignerId() string {
 	if x != nil {
 		return x.AssignerId
 	}
 	return ""
 }
 
-func (x *Task) GetIsLink() bool {
+func (x *Asset) GetIsLink() bool {
 	if x != nil {
 		return x.IsLink
 	}
 	return false
 }
 
-func (x *Task) GetPointer() string {
+func (x *Asset) GetPointer() string {
 	if x != nil {
 		return x.Pointer
 	}
 	return ""
 }
 
-func (x *Task) GetPreviewId() string {
+func (x *Asset) GetPreviewId() string {
 	if x != nil {
 		return x.PreviewId
 	}
 	return ""
 }
 
-func (x *Task) GetTrashed() bool {
+func (x *Asset) GetTrashed() bool {
 	if x != nil {
 		return x.Trashed
 	}
 	return false
 }
 
-func (x *Task) GetSynced() bool {
+func (x *Asset) GetSynced() bool {
 	if x != nil {
 		return x.Synced
 	}
 	return false
 }
 
-type Entity struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Mtime         int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	EntityPath    string                 `protobuf:"bytes,5,opt,name=entity_path,json=entityPath,proto3" json:"entity_path,omitempty"`
-	Description   string                 `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
-	Trashed       bool                   `protobuf:"varint,7,opt,name=trashed,proto3" json:"trashed,omitempty"`
-	EntityTypeId  string                 `protobuf:"bytes,8,opt,name=entity_type_id,json=entityTypeId,proto3" json:"entity_type_id,omitempty"`
-	ParentId      string                 `protobuf:"bytes,9,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
-	PreviewId     string                 `protobuf:"bytes,10,opt,name=preview_id,json=previewId,proto3" json:"preview_id,omitempty"`
-	Synced        bool                   `protobuf:"varint,11,opt,name=synced,proto3" json:"synced,omitempty"`
-	IsLibrary     bool                   `protobuf:"varint,12,opt,name=is_library,json=isLibrary,proto3" json:"is_library,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+type Collection struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Mtime            int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
+	CreatedAt        string                 `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Name             string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	CollectionPath   string                 `protobuf:"bytes,5,opt,name=collection_path,json=collectionPath,proto3" json:"collection_path,omitempty"`
+	Description      string                 `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
+	Trashed          bool                   `protobuf:"varint,7,opt,name=trashed,proto3" json:"trashed,omitempty"`
+	CollectionTypeId string                 `protobuf:"bytes,8,opt,name=collection_type_id,json=collectionTypeId,proto3" json:"collection_type_id,omitempty"`
+	ParentId         string                 `protobuf:"bytes,9,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	PreviewId        string                 `protobuf:"bytes,10,opt,name=preview_id,json=previewId,proto3" json:"preview_id,omitempty"`
+	Synced           bool                   `protobuf:"varint,11,opt,name=synced,proto3" json:"synced,omitempty"`
+	IsLibrary        bool                   `protobuf:"varint,12,opt,name=is_library,json=isLibrary,proto3" json:"is_library,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
-func (x *Entity) Reset() {
-	*x = Entity{}
+func (x *Collection) Reset() {
+	*x = Collection{}
 	mi := &file_internal_repository_schema_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Entity) String() string {
+func (x *Collection) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Entity) ProtoMessage() {}
+func (*Collection) ProtoMessage() {}
 
-func (x *Entity) ProtoReflect() protoreflect.Message {
+func (x *Collection) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_repository_schema_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -512,100 +512,100 @@ func (x *Entity) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Entity.ProtoReflect.Descriptor instead.
-func (*Entity) Descriptor() ([]byte, []int) {
+// Deprecated: Use Collection.ProtoReflect.Descriptor instead.
+func (*Collection) Descriptor() ([]byte, []int) {
 	return file_internal_repository_schema_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *Entity) GetId() string {
+func (x *Collection) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *Entity) GetMtime() int64 {
+func (x *Collection) GetMtime() int64 {
 	if x != nil {
 		return x.Mtime
 	}
 	return 0
 }
 
-func (x *Entity) GetCreatedAt() string {
+func (x *Collection) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
 	}
 	return ""
 }
 
-func (x *Entity) GetName() string {
+func (x *Collection) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *Entity) GetEntityPath() string {
+func (x *Collection) GetCollectionPath() string {
 	if x != nil {
-		return x.EntityPath
+		return x.CollectionPath
 	}
 	return ""
 }
 
-func (x *Entity) GetDescription() string {
+func (x *Collection) GetDescription() string {
 	if x != nil {
 		return x.Description
 	}
 	return ""
 }
 
-func (x *Entity) GetTrashed() bool {
+func (x *Collection) GetTrashed() bool {
 	if x != nil {
 		return x.Trashed
 	}
 	return false
 }
 
-func (x *Entity) GetEntityTypeId() string {
+func (x *Collection) GetCollectionTypeId() string {
 	if x != nil {
-		return x.EntityTypeId
+		return x.CollectionTypeId
 	}
 	return ""
 }
 
-func (x *Entity) GetParentId() string {
+func (x *Collection) GetParentId() string {
 	if x != nil {
 		return x.ParentId
 	}
 	return ""
 }
 
-func (x *Entity) GetPreviewId() string {
+func (x *Collection) GetPreviewId() string {
 	if x != nil {
 		return x.PreviewId
 	}
 	return ""
 }
 
-func (x *Entity) GetSynced() bool {
+func (x *Collection) GetSynced() bool {
 	if x != nil {
 		return x.Synced
 	}
 	return false
 }
 
-func (x *Entity) GetIsLibrary() bool {
+func (x *Collection) GetIsLibrary() bool {
 	if x != nil {
 		return x.IsLibrary
 	}
 	return false
 }
 
-type EntityAssignee struct {
+type CollectionAssignee struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Mtime         int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
-	EntityId      string                 `protobuf:"bytes,3,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
+	CollectionId  string                 `protobuf:"bytes,3,opt,name=collection_id,json=collectionId,proto3" json:"collection_id,omitempty"`
 	AssigneeId    string                 `protobuf:"bytes,4,opt,name=assignee_id,json=assigneeId,proto3" json:"assignee_id,omitempty"`
 	AssignerId    string                 `protobuf:"bytes,5,opt,name=assigner_id,json=assignerId,proto3" json:"assigner_id,omitempty"`
 	Synced        bool                   `protobuf:"varint,6,opt,name=synced,proto3" json:"synced,omitempty"`
@@ -613,20 +613,20 @@ type EntityAssignee struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *EntityAssignee) Reset() {
-	*x = EntityAssignee{}
+func (x *CollectionAssignee) Reset() {
+	*x = CollectionAssignee{}
 	mi := &file_internal_repository_schema_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *EntityAssignee) String() string {
+func (x *CollectionAssignee) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EntityAssignee) ProtoMessage() {}
+func (*CollectionAssignee) ProtoMessage() {}
 
-func (x *EntityAssignee) ProtoReflect() protoreflect.Message {
+func (x *CollectionAssignee) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_repository_schema_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -638,58 +638,58 @@ func (x *EntityAssignee) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use EntityAssignee.ProtoReflect.Descriptor instead.
-func (*EntityAssignee) Descriptor() ([]byte, []int) {
+// Deprecated: Use CollectionAssignee.ProtoReflect.Descriptor instead.
+func (*CollectionAssignee) Descriptor() ([]byte, []int) {
 	return file_internal_repository_schema_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *EntityAssignee) GetId() string {
+func (x *CollectionAssignee) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *EntityAssignee) GetMtime() int64 {
+func (x *CollectionAssignee) GetMtime() int64 {
 	if x != nil {
 		return x.Mtime
 	}
 	return 0
 }
 
-func (x *EntityAssignee) GetEntityId() string {
+func (x *CollectionAssignee) GetCollectionId() string {
 	if x != nil {
-		return x.EntityId
+		return x.CollectionId
 	}
 	return ""
 }
 
-func (x *EntityAssignee) GetAssigneeId() string {
+func (x *CollectionAssignee) GetAssigneeId() string {
 	if x != nil {
 		return x.AssigneeId
 	}
 	return ""
 }
 
-func (x *EntityAssignee) GetAssignerId() string {
+func (x *CollectionAssignee) GetAssignerId() string {
 	if x != nil {
 		return x.AssignerId
 	}
 	return ""
 }
 
-func (x *EntityAssignee) GetSynced() bool {
+func (x *CollectionAssignee) GetSynced() bool {
 	if x != nil {
 		return x.Synced
 	}
 	return false
 }
 
-type TaskDependency struct {
+type AssetDependency struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Mtime            int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
-	TaskId           string                 `protobuf:"bytes,3,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	AssetId          string                 `protobuf:"bytes,3,opt,name=asset_id,json=assetId,proto3" json:"asset_id,omitempty"`
 	DependencyId     string                 `protobuf:"bytes,4,opt,name=dependency_id,json=dependencyId,proto3" json:"dependency_id,omitempty"`
 	DependencyTypeId string                 `protobuf:"bytes,5,opt,name=dependency_type_id,json=dependencyTypeId,proto3" json:"dependency_type_id,omitempty"`
 	Synced           bool                   `protobuf:"varint,6,opt,name=synced,proto3" json:"synced,omitempty"`
@@ -697,20 +697,20 @@ type TaskDependency struct {
 	sizeCache        protoimpl.SizeCache
 }
 
-func (x *TaskDependency) Reset() {
-	*x = TaskDependency{}
+func (x *AssetDependency) Reset() {
+	*x = AssetDependency{}
 	mi := &file_internal_repository_schema_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *TaskDependency) String() string {
+func (x *AssetDependency) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*TaskDependency) ProtoMessage() {}
+func (*AssetDependency) ProtoMessage() {}
 
-func (x *TaskDependency) ProtoReflect() protoreflect.Message {
+func (x *AssetDependency) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_repository_schema_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -722,58 +722,58 @@ func (x *TaskDependency) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use TaskDependency.ProtoReflect.Descriptor instead.
-func (*TaskDependency) Descriptor() ([]byte, []int) {
+// Deprecated: Use AssetDependency.ProtoReflect.Descriptor instead.
+func (*AssetDependency) Descriptor() ([]byte, []int) {
 	return file_internal_repository_schema_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *TaskDependency) GetId() string {
+func (x *AssetDependency) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *TaskDependency) GetMtime() int64 {
+func (x *AssetDependency) GetMtime() int64 {
 	if x != nil {
 		return x.Mtime
 	}
 	return 0
 }
 
-func (x *TaskDependency) GetTaskId() string {
+func (x *AssetDependency) GetAssetId() string {
 	if x != nil {
-		return x.TaskId
+		return x.AssetId
 	}
 	return ""
 }
 
-func (x *TaskDependency) GetDependencyId() string {
+func (x *AssetDependency) GetDependencyId() string {
 	if x != nil {
 		return x.DependencyId
 	}
 	return ""
 }
 
-func (x *TaskDependency) GetDependencyTypeId() string {
+func (x *AssetDependency) GetDependencyTypeId() string {
 	if x != nil {
 		return x.DependencyTypeId
 	}
 	return ""
 }
 
-func (x *TaskDependency) GetSynced() bool {
+func (x *AssetDependency) GetSynced() bool {
 	if x != nil {
 		return x.Synced
 	}
 	return false
 }
 
-type EntityDependency struct {
+type CollectionDependency struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Mtime            int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
-	TaskId           string                 `protobuf:"bytes,3,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	AssetId          string                 `protobuf:"bytes,3,opt,name=asset_id,json=assetId,proto3" json:"asset_id,omitempty"`
 	DependencyId     string                 `protobuf:"bytes,4,opt,name=dependency_id,json=dependencyId,proto3" json:"dependency_id,omitempty"`
 	DependencyTypeId string                 `protobuf:"bytes,5,opt,name=dependency_type_id,json=dependencyTypeId,proto3" json:"dependency_type_id,omitempty"`
 	Synced           bool                   `protobuf:"varint,6,opt,name=synced,proto3" json:"synced,omitempty"`
@@ -781,20 +781,20 @@ type EntityDependency struct {
 	sizeCache        protoimpl.SizeCache
 }
 
-func (x *EntityDependency) Reset() {
-	*x = EntityDependency{}
+func (x *CollectionDependency) Reset() {
+	*x = CollectionDependency{}
 	mi := &file_internal_repository_schema_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *EntityDependency) String() string {
+func (x *CollectionDependency) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EntityDependency) ProtoMessage() {}
+func (*CollectionDependency) ProtoMessage() {}
 
-func (x *EntityDependency) ProtoReflect() protoreflect.Message {
+func (x *CollectionDependency) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_repository_schema_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -806,47 +806,47 @@ func (x *EntityDependency) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use EntityDependency.ProtoReflect.Descriptor instead.
-func (*EntityDependency) Descriptor() ([]byte, []int) {
+// Deprecated: Use CollectionDependency.ProtoReflect.Descriptor instead.
+func (*CollectionDependency) Descriptor() ([]byte, []int) {
 	return file_internal_repository_schema_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *EntityDependency) GetId() string {
+func (x *CollectionDependency) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *EntityDependency) GetMtime() int64 {
+func (x *CollectionDependency) GetMtime() int64 {
 	if x != nil {
 		return x.Mtime
 	}
 	return 0
 }
 
-func (x *EntityDependency) GetTaskId() string {
+func (x *CollectionDependency) GetAssetId() string {
 	if x != nil {
-		return x.TaskId
+		return x.AssetId
 	}
 	return ""
 }
 
-func (x *EntityDependency) GetDependencyId() string {
+func (x *CollectionDependency) GetDependencyId() string {
 	if x != nil {
 		return x.DependencyId
 	}
 	return ""
 }
 
-func (x *EntityDependency) GetDependencyTypeId() string {
+func (x *CollectionDependency) GetDependencyTypeId() string {
 	if x != nil {
 		return x.DependencyTypeId
 	}
 	return ""
 }
 
-func (x *EntityDependency) GetSynced() bool {
+func (x *CollectionDependency) GetSynced() bool {
 	if x != nil {
 		return x.Synced
 	}
@@ -921,37 +921,37 @@ func (x *Workflow) GetSynced() bool {
 	return false
 }
 
-type WorkflowTask struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Mtime            int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
-	Name             string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	TemplateId       string                 `protobuf:"bytes,4,opt,name=template_id,json=templateId,proto3" json:"template_id,omitempty"`
-	IsResource       bool                   `protobuf:"varint,5,opt,name=is_resource,json=isResource,proto3" json:"is_resource,omitempty"`
-	WorkflowId       string                 `protobuf:"bytes,6,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
-	TaskTypeId       string                 `protobuf:"bytes,7,opt,name=task_type_id,json=taskTypeId,proto3" json:"task_type_id,omitempty"`
-	WorkflowEntityId string                 `protobuf:"bytes,8,opt,name=workflow_entity_id,json=workflowEntityId,proto3" json:"workflow_entity_id,omitempty"`
-	IsLink           bool                   `protobuf:"varint,9,opt,name=is_link,json=isLink,proto3" json:"is_link,omitempty"`
-	Pointer          string                 `protobuf:"bytes,10,opt,name=pointer,proto3" json:"pointer,omitempty"`
-	Synced           bool                   `protobuf:"varint,11,opt,name=synced,proto3" json:"synced,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+type WorkflowAsset struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Id                   string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Mtime                int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
+	Name                 string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	TemplateId           string                 `protobuf:"bytes,4,opt,name=template_id,json=templateId,proto3" json:"template_id,omitempty"`
+	IsResource           bool                   `protobuf:"varint,5,opt,name=is_resource,json=isResource,proto3" json:"is_resource,omitempty"`
+	WorkflowId           string                 `protobuf:"bytes,6,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	AssetTypeId          string                 `protobuf:"bytes,7,opt,name=asset_type_id,json=assetTypeId,proto3" json:"asset_type_id,omitempty"`
+	WorkflowCollectionId string                 `protobuf:"bytes,8,opt,name=workflow_collection_id,json=workflowCollectionId,proto3" json:"workflow_collection_id,omitempty"`
+	IsLink               bool                   `protobuf:"varint,9,opt,name=is_link,json=isLink,proto3" json:"is_link,omitempty"`
+	Pointer              string                 `protobuf:"bytes,10,opt,name=pointer,proto3" json:"pointer,omitempty"`
+	Synced               bool                   `protobuf:"varint,11,opt,name=synced,proto3" json:"synced,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
-func (x *WorkflowTask) Reset() {
-	*x = WorkflowTask{}
+func (x *WorkflowAsset) Reset() {
+	*x = WorkflowAsset{}
 	mi := &file_internal_repository_schema_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *WorkflowTask) String() string {
+func (x *WorkflowAsset) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*WorkflowTask) ProtoMessage() {}
+func (*WorkflowAsset) ProtoMessage() {}
 
-func (x *WorkflowTask) ProtoReflect() protoreflect.Message {
+func (x *WorkflowAsset) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_repository_schema_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -963,115 +963,115 @@ func (x *WorkflowTask) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use WorkflowTask.ProtoReflect.Descriptor instead.
-func (*WorkflowTask) Descriptor() ([]byte, []int) {
+// Deprecated: Use WorkflowAsset.ProtoReflect.Descriptor instead.
+func (*WorkflowAsset) Descriptor() ([]byte, []int) {
 	return file_internal_repository_schema_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *WorkflowTask) GetId() string {
+func (x *WorkflowAsset) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *WorkflowTask) GetMtime() int64 {
+func (x *WorkflowAsset) GetMtime() int64 {
 	if x != nil {
 		return x.Mtime
 	}
 	return 0
 }
 
-func (x *WorkflowTask) GetName() string {
+func (x *WorkflowAsset) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *WorkflowTask) GetTemplateId() string {
+func (x *WorkflowAsset) GetTemplateId() string {
 	if x != nil {
 		return x.TemplateId
 	}
 	return ""
 }
 
-func (x *WorkflowTask) GetIsResource() bool {
+func (x *WorkflowAsset) GetIsResource() bool {
 	if x != nil {
 		return x.IsResource
 	}
 	return false
 }
 
-func (x *WorkflowTask) GetWorkflowId() string {
+func (x *WorkflowAsset) GetWorkflowId() string {
 	if x != nil {
 		return x.WorkflowId
 	}
 	return ""
 }
 
-func (x *WorkflowTask) GetTaskTypeId() string {
+func (x *WorkflowAsset) GetAssetTypeId() string {
 	if x != nil {
-		return x.TaskTypeId
+		return x.AssetTypeId
 	}
 	return ""
 }
 
-func (x *WorkflowTask) GetWorkflowEntityId() string {
+func (x *WorkflowAsset) GetWorkflowCollectionId() string {
 	if x != nil {
-		return x.WorkflowEntityId
+		return x.WorkflowCollectionId
 	}
 	return ""
 }
 
-func (x *WorkflowTask) GetIsLink() bool {
+func (x *WorkflowAsset) GetIsLink() bool {
 	if x != nil {
 		return x.IsLink
 	}
 	return false
 }
 
-func (x *WorkflowTask) GetPointer() string {
+func (x *WorkflowAsset) GetPointer() string {
 	if x != nil {
 		return x.Pointer
 	}
 	return ""
 }
 
-func (x *WorkflowTask) GetSynced() bool {
+func (x *WorkflowAsset) GetSynced() bool {
 	if x != nil {
 		return x.Synced
 	}
 	return false
 }
 
-type WorkflowEntity struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Mtime         int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	WorkflowId    string                 `protobuf:"bytes,4,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
-	EntityTypeId  string                 `protobuf:"bytes,5,opt,name=entity_type_id,json=entityTypeId,proto3" json:"entity_type_id,omitempty"`
-	ParentId      string                 `protobuf:"bytes,6,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
-	Synced        bool                   `protobuf:"varint,7,opt,name=synced,proto3" json:"synced,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+type WorkflowCollection struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Mtime            int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
+	Name             string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	WorkflowId       string                 `protobuf:"bytes,4,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	CollectionTypeId string                 `protobuf:"bytes,5,opt,name=collection_type_id,json=collectionTypeId,proto3" json:"collection_type_id,omitempty"`
+	ParentId         string                 `protobuf:"bytes,6,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	Synced           bool                   `protobuf:"varint,7,opt,name=synced,proto3" json:"synced,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
-func (x *WorkflowEntity) Reset() {
-	*x = WorkflowEntity{}
+func (x *WorkflowCollection) Reset() {
+	*x = WorkflowCollection{}
 	mi := &file_internal_repository_schema_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *WorkflowEntity) String() string {
+func (x *WorkflowCollection) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*WorkflowEntity) ProtoMessage() {}
+func (*WorkflowCollection) ProtoMessage() {}
 
-func (x *WorkflowEntity) ProtoReflect() protoreflect.Message {
+func (x *WorkflowCollection) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_repository_schema_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1083,54 +1083,54 @@ func (x *WorkflowEntity) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use WorkflowEntity.ProtoReflect.Descriptor instead.
-func (*WorkflowEntity) Descriptor() ([]byte, []int) {
+// Deprecated: Use WorkflowCollection.ProtoReflect.Descriptor instead.
+func (*WorkflowCollection) Descriptor() ([]byte, []int) {
 	return file_internal_repository_schema_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *WorkflowEntity) GetId() string {
+func (x *WorkflowCollection) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *WorkflowEntity) GetMtime() int64 {
+func (x *WorkflowCollection) GetMtime() int64 {
 	if x != nil {
 		return x.Mtime
 	}
 	return 0
 }
 
-func (x *WorkflowEntity) GetName() string {
+func (x *WorkflowCollection) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *WorkflowEntity) GetWorkflowId() string {
+func (x *WorkflowCollection) GetWorkflowId() string {
 	if x != nil {
 		return x.WorkflowId
 	}
 	return ""
 }
 
-func (x *WorkflowEntity) GetEntityTypeId() string {
+func (x *WorkflowCollection) GetCollectionTypeId() string {
 	if x != nil {
-		return x.EntityTypeId
+		return x.CollectionTypeId
 	}
 	return ""
 }
 
-func (x *WorkflowEntity) GetParentId() string {
+func (x *WorkflowCollection) GetParentId() string {
 	if x != nil {
 		return x.ParentId
 	}
 	return ""
 }
 
-func (x *WorkflowEntity) GetSynced() bool {
+func (x *WorkflowCollection) GetSynced() bool {
 	if x != nil {
 		return x.Synced
 	}
@@ -1142,7 +1142,7 @@ type WorkflowLink struct {
 	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Mtime              int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
 	Name               string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	EntityTypeId       string                 `protobuf:"bytes,4,opt,name=entity_type_id,json=entityTypeId,proto3" json:"entity_type_id,omitempty"`
+	CollectionTypeId   string                 `protobuf:"bytes,4,opt,name=collection_type_id,json=collectionTypeId,proto3" json:"collection_type_id,omitempty"`
 	WorkflowId         string                 `protobuf:"bytes,5,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
 	LinkedWorkflowId   string                 `protobuf:"bytes,6,opt,name=linked_workflow_id,json=linkedWorkflowId,proto3" json:"linked_workflow_id,omitempty"`
 	LinkedWorkflowName string                 `protobuf:"bytes,7,opt,name=linked_workflow_name,json=linkedWorkflowName,proto3" json:"linked_workflow_name,omitempty"`
@@ -1202,9 +1202,9 @@ func (x *WorkflowLink) GetName() string {
 	return ""
 }
 
-func (x *WorkflowLink) GetEntityTypeId() string {
+func (x *WorkflowLink) GetCollectionTypeId() string {
 	if x != nil {
-		return x.EntityTypeId
+		return x.CollectionTypeId
 	}
 	return ""
 }
@@ -1457,31 +1457,31 @@ func (x *Tag) GetSynced() bool {
 	return false
 }
 
-type TaskTag struct {
+type AssetTag struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Mtime         int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
-	TaskId        string                 `protobuf:"bytes,3,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	AssetId       string                 `protobuf:"bytes,3,opt,name=asset_id,json=assetId,proto3" json:"asset_id,omitempty"`
 	TagId         string                 `protobuf:"bytes,4,opt,name=tag_id,json=tagId,proto3" json:"tag_id,omitempty"`
 	Synced        bool                   `protobuf:"varint,5,opt,name=synced,proto3" json:"synced,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *TaskTag) Reset() {
-	*x = TaskTag{}
+func (x *AssetTag) Reset() {
+	*x = AssetTag{}
 	mi := &file_internal_repository_schema_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *TaskTag) String() string {
+func (x *AssetTag) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*TaskTag) ProtoMessage() {}
+func (*AssetTag) ProtoMessage() {}
 
-func (x *TaskTag) ProtoReflect() protoreflect.Message {
+func (x *AssetTag) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_repository_schema_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1493,40 +1493,40 @@ func (x *TaskTag) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use TaskTag.ProtoReflect.Descriptor instead.
-func (*TaskTag) Descriptor() ([]byte, []int) {
+// Deprecated: Use AssetTag.ProtoReflect.Descriptor instead.
+func (*AssetTag) Descriptor() ([]byte, []int) {
 	return file_internal_repository_schema_proto_rawDescGZIP(), []int{15}
 }
 
-func (x *TaskTag) GetId() string {
+func (x *AssetTag) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *TaskTag) GetMtime() int64 {
+func (x *AssetTag) GetMtime() int64 {
 	if x != nil {
 		return x.Mtime
 	}
 	return 0
 }
 
-func (x *TaskTag) GetTaskId() string {
+func (x *AssetTag) GetAssetId() string {
 	if x != nil {
-		return x.TaskId
+		return x.AssetId
 	}
 	return ""
 }
 
-func (x *TaskTag) GetTagId() string {
+func (x *AssetTag) GetTagId() string {
 	if x != nil {
 		return x.TagId
 	}
 	return ""
 }
 
-func (x *TaskTag) GetSynced() bool {
+func (x *AssetTag) GetSynced() bool {
 	if x != nil {
 		return x.Synced
 	}
@@ -1538,7 +1538,7 @@ type Checkpoint struct {
 	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Mtime          int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
 	CreatedAt      string                 `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	TaskId         string                 `protobuf:"bytes,4,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	AssetId        string                 `protobuf:"bytes,4,opt,name=asset_id,json=assetId,proto3" json:"asset_id,omitempty"`
 	XxhashChecksum string                 `protobuf:"bytes,5,opt,name=xxhash_checksum,json=xxhashChecksum,proto3" json:"xxhash_checksum,omitempty"`
 	TimeModified   int64                  `protobuf:"varint,6,opt,name=time_modified,json=timeModified,proto3" json:"time_modified,omitempty"`
 	FileSize       int64                  `protobuf:"varint,7,opt,name=file_size,json=fileSize,proto3" json:"file_size,omitempty"`
@@ -1604,9 +1604,9 @@ func (x *Checkpoint) GetCreatedAt() string {
 	return ""
 }
 
-func (x *Checkpoint) GetTaskId() string {
+func (x *Checkpoint) GetAssetId() string {
 	if x != nil {
-		return x.TaskId
+		return x.AssetId
 	}
 	return ""
 }
@@ -1687,14 +1687,14 @@ type Role struct {
 	Mtime              int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
 	Name               string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	Synced             bool                   `protobuf:"varint,4,opt,name=synced,proto3" json:"synced,omitempty"`
-	ViewEntity         bool                   `protobuf:"varint,5,opt,name=view_entity,json=viewEntity,proto3" json:"view_entity,omitempty"`
-	CreateEntity       bool                   `protobuf:"varint,6,opt,name=create_entity,json=createEntity,proto3" json:"create_entity,omitempty"`
-	UpdateEntity       bool                   `protobuf:"varint,7,opt,name=update_entity,json=updateEntity,proto3" json:"update_entity,omitempty"`
-	DeleteEntity       bool                   `protobuf:"varint,8,opt,name=delete_entity,json=deleteEntity,proto3" json:"delete_entity,omitempty"`
-	ViewTask           bool                   `protobuf:"varint,9,opt,name=view_task,json=viewTask,proto3" json:"view_task,omitempty"`
-	CreateTask         bool                   `protobuf:"varint,10,opt,name=create_task,json=createTask,proto3" json:"create_task,omitempty"`
-	UpdateTask         bool                   `protobuf:"varint,11,opt,name=update_task,json=updateTask,proto3" json:"update_task,omitempty"`
-	DeleteTask         bool                   `protobuf:"varint,12,opt,name=delete_task,json=deleteTask,proto3" json:"delete_task,omitempty"`
+	ViewCollection     bool                   `protobuf:"varint,5,opt,name=view_collection,json=viewCollection,proto3" json:"view_collection,omitempty"`
+	CreateCollection   bool                   `protobuf:"varint,6,opt,name=create_collection,json=createCollection,proto3" json:"create_collection,omitempty"`
+	UpdateCollection   bool                   `protobuf:"varint,7,opt,name=update_collection,json=updateCollection,proto3" json:"update_collection,omitempty"`
+	DeleteCollection   bool                   `protobuf:"varint,8,opt,name=delete_collection,json=deleteCollection,proto3" json:"delete_collection,omitempty"`
+	ViewAsset          bool                   `protobuf:"varint,9,opt,name=view_asset,json=viewAsset,proto3" json:"view_asset,omitempty"`
+	CreateAsset        bool                   `protobuf:"varint,10,opt,name=create_asset,json=createAsset,proto3" json:"create_asset,omitempty"`
+	UpdateAsset        bool                   `protobuf:"varint,11,opt,name=update_asset,json=updateAsset,proto3" json:"update_asset,omitempty"`
+	DeleteAsset        bool                   `protobuf:"varint,12,opt,name=delete_asset,json=deleteAsset,proto3" json:"delete_asset,omitempty"`
 	ViewTemplate       bool                   `protobuf:"varint,13,opt,name=view_template,json=viewTemplate,proto3" json:"view_template,omitempty"`
 	CreateTemplate     bool                   `protobuf:"varint,14,opt,name=create_template,json=createTemplate,proto3" json:"create_template,omitempty"`
 	UpdateTemplate     bool                   `protobuf:"varint,15,opt,name=update_template,json=updateTemplate,proto3" json:"update_template,omitempty"`
@@ -1703,15 +1703,15 @@ type Role struct {
 	CreateCheckpoint   bool                   `protobuf:"varint,18,opt,name=create_checkpoint,json=createCheckpoint,proto3" json:"create_checkpoint,omitempty"`
 	DeleteCheckpoint   bool                   `protobuf:"varint,19,opt,name=delete_checkpoint,json=deleteCheckpoint,proto3" json:"delete_checkpoint,omitempty"`
 	PullChunk          bool                   `protobuf:"varint,20,opt,name=pull_chunk,json=pullChunk,proto3" json:"pull_chunk,omitempty"`
-	AssignTask         bool                   `protobuf:"varint,21,opt,name=assign_task,json=assignTask,proto3" json:"assign_task,omitempty"`
-	UnassignTask       bool                   `protobuf:"varint,22,opt,name=unassign_task,json=unassignTask,proto3" json:"unassign_task,omitempty"`
+	AssignAsset        bool                   `protobuf:"varint,21,opt,name=assign_asset,json=assignAsset,proto3" json:"assign_asset,omitempty"`
+	UnassignAsset      bool                   `protobuf:"varint,22,opt,name=unassign_asset,json=unassignAsset,proto3" json:"unassign_asset,omitempty"`
 	AddUser            bool                   `protobuf:"varint,23,opt,name=add_user,json=addUser,proto3" json:"add_user,omitempty"`
 	RemoveUser         bool                   `protobuf:"varint,24,opt,name=remove_user,json=removeUser,proto3" json:"remove_user,omitempty"`
 	ChangeRole         bool                   `protobuf:"varint,25,opt,name=change_role,json=changeRole,proto3" json:"change_role,omitempty"`
 	ChangeStatus       bool                   `protobuf:"varint,26,opt,name=change_status,json=changeStatus,proto3" json:"change_status,omitempty"`
-	SetDoneTask        bool                   `protobuf:"varint,27,opt,name=set_done_task,json=setDoneTask,proto3" json:"set_done_task,omitempty"`
-	SetRetakeTask      bool                   `protobuf:"varint,28,opt,name=set_retake_task,json=setRetakeTask,proto3" json:"set_retake_task,omitempty"`
-	ViewDoneTask       bool                   `protobuf:"varint,29,opt,name=view_done_task,json=viewDoneTask,proto3" json:"view_done_task,omitempty"`
+	SetDoneAsset       bool                   `protobuf:"varint,27,opt,name=set_done_asset,json=setDoneAsset,proto3" json:"set_done_asset,omitempty"`
+	SetRetakeAsset     bool                   `protobuf:"varint,28,opt,name=set_retake_asset,json=setRetakeAsset,proto3" json:"set_retake_asset,omitempty"`
+	ViewDoneAsset      bool                   `protobuf:"varint,29,opt,name=view_done_asset,json=viewDoneAsset,proto3" json:"view_done_asset,omitempty"`
 	ManageDependencies bool                   `protobuf:"varint,30,opt,name=manage_dependencies,json=manageDependencies,proto3" json:"manage_dependencies,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
@@ -1775,58 +1775,58 @@ func (x *Role) GetSynced() bool {
 	return false
 }
 
-func (x *Role) GetViewEntity() bool {
+func (x *Role) GetViewCollection() bool {
 	if x != nil {
-		return x.ViewEntity
+		return x.ViewCollection
 	}
 	return false
 }
 
-func (x *Role) GetCreateEntity() bool {
+func (x *Role) GetCreateCollection() bool {
 	if x != nil {
-		return x.CreateEntity
+		return x.CreateCollection
 	}
 	return false
 }
 
-func (x *Role) GetUpdateEntity() bool {
+func (x *Role) GetUpdateCollection() bool {
 	if x != nil {
-		return x.UpdateEntity
+		return x.UpdateCollection
 	}
 	return false
 }
 
-func (x *Role) GetDeleteEntity() bool {
+func (x *Role) GetDeleteCollection() bool {
 	if x != nil {
-		return x.DeleteEntity
+		return x.DeleteCollection
 	}
 	return false
 }
 
-func (x *Role) GetViewTask() bool {
+func (x *Role) GetViewAsset() bool {
 	if x != nil {
-		return x.ViewTask
+		return x.ViewAsset
 	}
 	return false
 }
 
-func (x *Role) GetCreateTask() bool {
+func (x *Role) GetCreateAsset() bool {
 	if x != nil {
-		return x.CreateTask
+		return x.CreateAsset
 	}
 	return false
 }
 
-func (x *Role) GetUpdateTask() bool {
+func (x *Role) GetUpdateAsset() bool {
 	if x != nil {
-		return x.UpdateTask
+		return x.UpdateAsset
 	}
 	return false
 }
 
-func (x *Role) GetDeleteTask() bool {
+func (x *Role) GetDeleteAsset() bool {
 	if x != nil {
-		return x.DeleteTask
+		return x.DeleteAsset
 	}
 	return false
 }
@@ -1887,16 +1887,16 @@ func (x *Role) GetPullChunk() bool {
 	return false
 }
 
-func (x *Role) GetAssignTask() bool {
+func (x *Role) GetAssignAsset() bool {
 	if x != nil {
-		return x.AssignTask
+		return x.AssignAsset
 	}
 	return false
 }
 
-func (x *Role) GetUnassignTask() bool {
+func (x *Role) GetUnassignAsset() bool {
 	if x != nil {
-		return x.UnassignTask
+		return x.UnassignAsset
 	}
 	return false
 }
@@ -1929,23 +1929,23 @@ func (x *Role) GetChangeStatus() bool {
 	return false
 }
 
-func (x *Role) GetSetDoneTask() bool {
+func (x *Role) GetSetDoneAsset() bool {
 	if x != nil {
-		return x.SetDoneTask
+		return x.SetDoneAsset
 	}
 	return false
 }
 
-func (x *Role) GetSetRetakeTask() bool {
+func (x *Role) GetSetRetakeAsset() bool {
 	if x != nil {
-		return x.SetRetakeTask
+		return x.SetRetakeAsset
 	}
 	return false
 }
 
-func (x *Role) GetViewDoneTask() bool {
+func (x *Role) GetViewDoneAsset() bool {
 	if x != nil {
-		return x.ViewDoneTask
+		return x.ViewDoneAsset
 	}
 	return false
 }
@@ -2676,25 +2676,25 @@ func (x *Tomb) GetSynced() bool {
 type ProjectData struct {
 	state                         protoimpl.MessageState          `protogen:"open.v1"`
 	ProjectPreview                string                          `protobuf:"bytes,1,opt,name=project_preview,json=projectPreview,proto3" json:"project_preview,omitempty"`
-	Tasks                         []*Task                         `protobuf:"bytes,2,rep,name=tasks,proto3" json:"tasks,omitempty"`
-	TaskTypes                     []*TaskType                     `protobuf:"bytes,3,rep,name=task_types,json=taskTypes,proto3" json:"task_types,omitempty"`
-	TasksCheckpoints              []*Checkpoint                   `protobuf:"bytes,4,rep,name=tasks_checkpoints,json=tasksCheckpoints,proto3" json:"tasks_checkpoints,omitempty"`
-	TaskDependencies              []*TaskDependency               `protobuf:"bytes,5,rep,name=task_dependencies,json=taskDependencies,proto3" json:"task_dependencies,omitempty"`
-	EntityDependencies            []*EntityDependency             `protobuf:"bytes,6,rep,name=entity_dependencies,json=entityDependencies,proto3" json:"entity_dependencies,omitempty"`
+	Assets                        []*Asset                        `protobuf:"bytes,2,rep,name=assets,proto3" json:"assets,omitempty"`
+	AssetTypes                    []*AssetType                    `protobuf:"bytes,3,rep,name=asset_types,json=assetTypes,proto3" json:"asset_types,omitempty"`
+	AssetCheckpoints              []*Checkpoint                   `protobuf:"bytes,4,rep,name=asset_checkpoints,json=assetCheckpoints,proto3" json:"asset_checkpoints,omitempty"`
+	AssetDependencies             []*AssetDependency              `protobuf:"bytes,5,rep,name=asset_dependencies,json=assetDependencies,proto3" json:"asset_dependencies,omitempty"`
+	CollectionDependencies        []*CollectionDependency         `protobuf:"bytes,6,rep,name=collection_dependencies,json=collectionDependencies,proto3" json:"collection_dependencies,omitempty"`
 	Statuses                      []*Status                       `protobuf:"bytes,7,rep,name=statuses,proto3" json:"statuses,omitempty"`
 	DependencyTypes               []*DependencyType               `protobuf:"bytes,8,rep,name=dependency_types,json=dependencyTypes,proto3" json:"dependency_types,omitempty"`
 	Users                         []*User                         `protobuf:"bytes,9,rep,name=users,proto3" json:"users,omitempty"`
 	Roles                         []*Role                         `protobuf:"bytes,10,rep,name=roles,proto3" json:"roles,omitempty"`
-	EntityTypes                   []*EntityType                   `protobuf:"bytes,11,rep,name=entity_types,json=entityTypes,proto3" json:"entity_types,omitempty"`
-	Entities                      []*Entity                       `protobuf:"bytes,12,rep,name=entities,proto3" json:"entities,omitempty"`
-	EntityAssignees               []*EntityAssignee               `protobuf:"bytes,13,rep,name=entity_assignees,json=entityAssignees,proto3" json:"entity_assignees,omitempty"`
+	CollectionTypes               []*CollectionType               `protobuf:"bytes,11,rep,name=collection_types,json=collectionTypes,proto3" json:"collection_types,omitempty"`
+	Collections                   []*Collection                   `protobuf:"bytes,12,rep,name=collections,proto3" json:"collections,omitempty"`
+	CollectionAssignees           []*CollectionAssignee           `protobuf:"bytes,13,rep,name=collection_assignees,json=collectionAssignees,proto3" json:"collection_assignees,omitempty"`
 	Templates                     []*Template                     `protobuf:"bytes,14,rep,name=templates,proto3" json:"templates,omitempty"`
 	Tags                          []*Tag                          `protobuf:"bytes,15,rep,name=tags,proto3" json:"tags,omitempty"`
-	TasksTags                     []*TaskTag                      `protobuf:"bytes,16,rep,name=tasks_tags,json=tasksTags,proto3" json:"tasks_tags,omitempty"`
+	AssetTags                     []*AssetTag                     `protobuf:"bytes,16,rep,name=asset_tags,json=assetTags,proto3" json:"asset_tags,omitempty"`
 	Workflows                     []*Workflow                     `protobuf:"bytes,17,rep,name=workflows,proto3" json:"workflows,omitempty"`
 	WorkflowLinks                 []*WorkflowLink                 `protobuf:"bytes,18,rep,name=workflow_links,json=workflowLinks,proto3" json:"workflow_links,omitempty"`
-	WorkflowEntities              []*WorkflowEntity               `protobuf:"bytes,19,rep,name=workflow_entities,json=workflowEntities,proto3" json:"workflow_entities,omitempty"`
-	WorkflowTasks                 []*WorkflowTask                 `protobuf:"bytes,20,rep,name=workflow_tasks,json=workflowTasks,proto3" json:"workflow_tasks,omitempty"`
+	WorkflowCollections           []*WorkflowCollection           `protobuf:"bytes,19,rep,name=workflow_collections,json=workflowCollections,proto3" json:"workflow_collections,omitempty"`
+	WorkflowAssets                []*WorkflowAsset                `protobuf:"bytes,20,rep,name=workflow_assets,json=workflowAssets,proto3" json:"workflow_assets,omitempty"`
 	Tomb                          []*Tomb                         `protobuf:"bytes,21,rep,name=tomb,proto3" json:"tomb,omitempty"`
 	IntegrationProjects           []*IntegrationProject           `protobuf:"bytes,22,rep,name=integration_projects,json=integrationProjects,proto3" json:"integration_projects,omitempty"`
 	IntegrationCollectionMappings []*IntegrationCollectionMapping `protobuf:"bytes,23,rep,name=integration_collection_mappings,json=integrationCollectionMappings,proto3" json:"integration_collection_mappings,omitempty"`
@@ -2740,37 +2740,37 @@ func (x *ProjectData) GetProjectPreview() string {
 	return ""
 }
 
-func (x *ProjectData) GetTasks() []*Task {
+func (x *ProjectData) GetAssets() []*Asset {
 	if x != nil {
-		return x.Tasks
+		return x.Assets
 	}
 	return nil
 }
 
-func (x *ProjectData) GetTaskTypes() []*TaskType {
+func (x *ProjectData) GetAssetTypes() []*AssetType {
 	if x != nil {
-		return x.TaskTypes
+		return x.AssetTypes
 	}
 	return nil
 }
 
-func (x *ProjectData) GetTasksCheckpoints() []*Checkpoint {
+func (x *ProjectData) GetAssetCheckpoints() []*Checkpoint {
 	if x != nil {
-		return x.TasksCheckpoints
+		return x.AssetCheckpoints
 	}
 	return nil
 }
 
-func (x *ProjectData) GetTaskDependencies() []*TaskDependency {
+func (x *ProjectData) GetAssetDependencies() []*AssetDependency {
 	if x != nil {
-		return x.TaskDependencies
+		return x.AssetDependencies
 	}
 	return nil
 }
 
-func (x *ProjectData) GetEntityDependencies() []*EntityDependency {
+func (x *ProjectData) GetCollectionDependencies() []*CollectionDependency {
 	if x != nil {
-		return x.EntityDependencies
+		return x.CollectionDependencies
 	}
 	return nil
 }
@@ -2803,23 +2803,23 @@ func (x *ProjectData) GetRoles() []*Role {
 	return nil
 }
 
-func (x *ProjectData) GetEntityTypes() []*EntityType {
+func (x *ProjectData) GetCollectionTypes() []*CollectionType {
 	if x != nil {
-		return x.EntityTypes
+		return x.CollectionTypes
 	}
 	return nil
 }
 
-func (x *ProjectData) GetEntities() []*Entity {
+func (x *ProjectData) GetCollections() []*Collection {
 	if x != nil {
-		return x.Entities
+		return x.Collections
 	}
 	return nil
 }
 
-func (x *ProjectData) GetEntityAssignees() []*EntityAssignee {
+func (x *ProjectData) GetCollectionAssignees() []*CollectionAssignee {
 	if x != nil {
-		return x.EntityAssignees
+		return x.CollectionAssignees
 	}
 	return nil
 }
@@ -2838,9 +2838,9 @@ func (x *ProjectData) GetTags() []*Tag {
 	return nil
 }
 
-func (x *ProjectData) GetTasksTags() []*TaskTag {
+func (x *ProjectData) GetAssetTags() []*AssetTag {
 	if x != nil {
-		return x.TasksTags
+		return x.AssetTags
 	}
 	return nil
 }
@@ -2859,16 +2859,16 @@ func (x *ProjectData) GetWorkflowLinks() []*WorkflowLink {
 	return nil
 }
 
-func (x *ProjectData) GetWorkflowEntities() []*WorkflowEntity {
+func (x *ProjectData) GetWorkflowCollections() []*WorkflowCollection {
 	if x != nil {
-		return x.WorkflowEntities
+		return x.WorkflowCollections
 	}
 	return nil
 }
 
-func (x *ProjectData) GetWorkflowTasks() []*WorkflowTask {
+func (x *ProjectData) GetWorkflowAssets() []*WorkflowAsset {
 	if x != nil {
-		return x.WorkflowTasks
+		return x.WorkflowAssets
 	}
 	return nil
 }
@@ -2901,68 +2901,68 @@ func (x *ProjectData) GetIntegrationAssetMappings() []*IntegrationAssetMapping {
 	return nil
 }
 
-type FullTask struct {
-	state                 protoimpl.MessageState `protogen:"open.v1"`
-	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Mtime                 int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
-	CreatedAt             string                 `protobuf:"bytes,3,opt,name=created_at,proto3" json:"created_at,omitempty"`
-	Name                  string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	Description           string                 `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
-	Extension             string                 `protobuf:"bytes,6,opt,name=extension,proto3" json:"extension,omitempty"`
-	IsResource            bool                   `protobuf:"varint,7,opt,name=is_resource,proto3" json:"is_resource,omitempty"`
-	StatusId              string                 `protobuf:"bytes,8,opt,name=status_id,proto3" json:"status_id,omitempty"`
-	StatusShortName       string                 `protobuf:"bytes,9,opt,name=status_short_name,proto3" json:"status_short_name,omitempty"`
-	TaskTypeId            string                 `protobuf:"bytes,10,opt,name=task_type_id,proto3" json:"task_type_id,omitempty"`
-	TaskTypeName          string                 `protobuf:"bytes,11,opt,name=task_type_name,proto3" json:"task_type_name,omitempty"`
-	TaskTypeIcon          string                 `protobuf:"bytes,12,opt,name=task_type_icon,proto3" json:"task_type_icon,omitempty"`
-	EntityId              string                 `protobuf:"bytes,13,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
-	EntityName            string                 `protobuf:"bytes,14,opt,name=entity_name,json=entityName,proto3" json:"entity_name,omitempty"`
-	EntityPath            string                 `protobuf:"bytes,15,opt,name=entity_path,json=entityPath,proto3" json:"entity_path,omitempty"`
-	TaskPath              string                 `protobuf:"bytes,16,opt,name=task_path,json=taskPath,proto3" json:"task_path,omitempty"`
-	AssigneeId            string                 `protobuf:"bytes,17,opt,name=assignee_id,json=assigneeId,proto3" json:"assignee_id,omitempty"`
-	AssigneeEmail         string                 `protobuf:"bytes,18,opt,name=assignee_email,json=assigneeEmail,proto3" json:"assignee_email,omitempty"`
-	AssigneeName          string                 `protobuf:"bytes,19,opt,name=assignee_name,json=assigneeName,proto3" json:"assignee_name,omitempty"`
-	AssignerId            string                 `protobuf:"bytes,20,opt,name=assigner_id,json=assignerId,proto3" json:"assigner_id,omitempty"`
-	AssignerEmail         string                 `protobuf:"bytes,21,opt,name=assigner_email,json=assignerEmail,proto3" json:"assigner_email,omitempty"`
-	AssignerName          string                 `protobuf:"bytes,22,opt,name=assigner_name,json=assignerName,proto3" json:"assigner_name,omitempty"`
-	IsDependency          bool                   `protobuf:"varint,23,opt,name=is_dependency,json=isDependency,proto3" json:"is_dependency,omitempty"`
-	DependencyLevel       int32                  `protobuf:"varint,24,opt,name=dependency_level,json=dependencyLevel,proto3" json:"dependency_level,omitempty"`
-	FilePath              string                 `protobuf:"bytes,25,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
-	Tags                  []string               `protobuf:"bytes,26,rep,name=tags,proto3" json:"tags,omitempty"`
-	TagsRaw               string                 `protobuf:"bytes,27,opt,name=tags_raw,json=tagsRaw,proto3" json:"tags_raw,omitempty"`
-	EntityDependencies    []string               `protobuf:"bytes,28,rep,name=entity_dependencies,json=entityDependencies,proto3" json:"entity_dependencies,omitempty"`
-	EntityDependenciesRaw string                 `protobuf:"bytes,29,opt,name=entity_dependencies_raw,json=entityDependenciesRaw,proto3" json:"entity_dependencies_raw,omitempty"`
-	Dependencies          []string               `protobuf:"bytes,30,rep,name=dependencies,proto3" json:"dependencies,omitempty"`
-	DependenciesRaw       string                 `protobuf:"bytes,31,opt,name=dependencies_raw,json=dependenciesRaw,proto3" json:"dependencies_raw,omitempty"`
-	FileStatus            string                 `protobuf:"bytes,32,opt,name=file_status,json=fileStatus,proto3" json:"file_status,omitempty"`
-	Status                *Status                `protobuf:"bytes,33,opt,name=status,proto3" json:"status,omitempty"`
-	IsLink                bool                   `protobuf:"varint,34,opt,name=is_link,json=isLink,proto3" json:"is_link,omitempty"`
-	Pointer               string                 `protobuf:"bytes,35,opt,name=pointer,proto3" json:"pointer,omitempty"`
-	PreviewId             string                 `protobuf:"bytes,36,opt,name=preview_id,json=previewId,proto3" json:"preview_id,omitempty"`
-	Preview               []byte                 `protobuf:"bytes,37,opt,name=preview,proto3" json:"preview,omitempty"`
-	PreviewExtension      string                 `protobuf:"bytes,38,opt,name=preview_extension,json=previewExtension,proto3" json:"preview_extension,omitempty"`
-	Checkpoints           []*Checkpoint          `protobuf:"bytes,39,rep,name=checkpoints,proto3" json:"checkpoints,omitempty"`
-	Trashed               bool                   `protobuf:"varint,40,opt,name=trashed,proto3" json:"trashed,omitempty"`
-	Synced                bool                   `protobuf:"varint,41,opt,name=synced,proto3" json:"synced,omitempty"`
-	Type                  string                 `protobuf:"bytes,42,opt,name=type,proto3" json:"type,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+type FullAsset struct {
+	state                     protoimpl.MessageState `protogen:"open.v1"`
+	Id                        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Mtime                     int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
+	CreatedAt                 string                 `protobuf:"bytes,3,opt,name=created_at,proto3" json:"created_at,omitempty"`
+	Name                      string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Description               string                 `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
+	Extension                 string                 `protobuf:"bytes,6,opt,name=extension,proto3" json:"extension,omitempty"`
+	IsResource                bool                   `protobuf:"varint,7,opt,name=is_resource,proto3" json:"is_resource,omitempty"`
+	StatusId                  string                 `protobuf:"bytes,8,opt,name=status_id,proto3" json:"status_id,omitempty"`
+	StatusShortName           string                 `protobuf:"bytes,9,opt,name=status_short_name,proto3" json:"status_short_name,omitempty"`
+	AssetTypeId               string                 `protobuf:"bytes,10,opt,name=asset_type_id,proto3" json:"asset_type_id,omitempty"`
+	AssetTypeName             string                 `protobuf:"bytes,11,opt,name=asset_type_name,proto3" json:"asset_type_name,omitempty"`
+	AssetTypeIcon             string                 `protobuf:"bytes,12,opt,name=asset_type_icon,proto3" json:"asset_type_icon,omitempty"`
+	CollectionId              string                 `protobuf:"bytes,13,opt,name=collection_id,json=collectionId,proto3" json:"collection_id,omitempty"`
+	CollectionName            string                 `protobuf:"bytes,14,opt,name=collection_name,json=collectionName,proto3" json:"collection_name,omitempty"`
+	CollectionPath            string                 `protobuf:"bytes,15,opt,name=collection_path,json=collectionPath,proto3" json:"collection_path,omitempty"`
+	AssetPath                 string                 `protobuf:"bytes,16,opt,name=asset_path,json=assetPath,proto3" json:"asset_path,omitempty"`
+	AssigneeId                string                 `protobuf:"bytes,17,opt,name=assignee_id,json=assigneeId,proto3" json:"assignee_id,omitempty"`
+	AssigneeEmail             string                 `protobuf:"bytes,18,opt,name=assignee_email,json=assigneeEmail,proto3" json:"assignee_email,omitempty"`
+	AssigneeName              string                 `protobuf:"bytes,19,opt,name=assignee_name,json=assigneeName,proto3" json:"assignee_name,omitempty"`
+	AssignerId                string                 `protobuf:"bytes,20,opt,name=assigner_id,json=assignerId,proto3" json:"assigner_id,omitempty"`
+	AssignerEmail             string                 `protobuf:"bytes,21,opt,name=assigner_email,json=assignerEmail,proto3" json:"assigner_email,omitempty"`
+	AssignerName              string                 `protobuf:"bytes,22,opt,name=assigner_name,json=assignerName,proto3" json:"assigner_name,omitempty"`
+	IsDependency              bool                   `protobuf:"varint,23,opt,name=is_dependency,json=isDependency,proto3" json:"is_dependency,omitempty"`
+	DependencyLevel           int32                  `protobuf:"varint,24,opt,name=dependency_level,json=dependencyLevel,proto3" json:"dependency_level,omitempty"`
+	FilePath                  string                 `protobuf:"bytes,25,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
+	Tags                      []string               `protobuf:"bytes,26,rep,name=tags,proto3" json:"tags,omitempty"`
+	TagsRaw                   string                 `protobuf:"bytes,27,opt,name=tags_raw,json=tagsRaw,proto3" json:"tags_raw,omitempty"`
+	CollectionDependencies    []string               `protobuf:"bytes,28,rep,name=collection_dependencies,json=collectionDependencies,proto3" json:"collection_dependencies,omitempty"`
+	CollectionDependenciesRaw string                 `protobuf:"bytes,29,opt,name=collection_dependencies_raw,json=collectionDependenciesRaw,proto3" json:"collection_dependencies_raw,omitempty"`
+	Dependencies              []string               `protobuf:"bytes,30,rep,name=dependencies,proto3" json:"dependencies,omitempty"`
+	DependenciesRaw           string                 `protobuf:"bytes,31,opt,name=dependencies_raw,json=dependenciesRaw,proto3" json:"dependencies_raw,omitempty"`
+	FileStatus                string                 `protobuf:"bytes,32,opt,name=file_status,json=fileStatus,proto3" json:"file_status,omitempty"`
+	Status                    *Status                `protobuf:"bytes,33,opt,name=status,proto3" json:"status,omitempty"`
+	IsLink                    bool                   `protobuf:"varint,34,opt,name=is_link,json=isLink,proto3" json:"is_link,omitempty"`
+	Pointer                   string                 `protobuf:"bytes,35,opt,name=pointer,proto3" json:"pointer,omitempty"`
+	PreviewId                 string                 `protobuf:"bytes,36,opt,name=preview_id,json=previewId,proto3" json:"preview_id,omitempty"`
+	Preview                   []byte                 `protobuf:"bytes,37,opt,name=preview,proto3" json:"preview,omitempty"`
+	PreviewExtension          string                 `protobuf:"bytes,38,opt,name=preview_extension,json=previewExtension,proto3" json:"preview_extension,omitempty"`
+	Checkpoints               []*Checkpoint          `protobuf:"bytes,39,rep,name=checkpoints,proto3" json:"checkpoints,omitempty"`
+	Trashed                   bool                   `protobuf:"varint,40,opt,name=trashed,proto3" json:"trashed,omitempty"`
+	Synced                    bool                   `protobuf:"varint,41,opt,name=synced,proto3" json:"synced,omitempty"`
+	Type                      string                 `protobuf:"bytes,42,opt,name=type,proto3" json:"type,omitempty"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
-func (x *FullTask) Reset() {
-	*x = FullTask{}
+func (x *FullAsset) Reset() {
+	*x = FullAsset{}
 	mi := &file_internal_repository_schema_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *FullTask) String() string {
+func (x *FullAsset) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*FullTask) ProtoMessage() {}
+func (*FullAsset) ProtoMessage() {}
 
-func (x *FullTask) ProtoReflect() protoreflect.Message {
+func (x *FullAsset) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_repository_schema_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2974,299 +2974,299 @@ func (x *FullTask) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use FullTask.ProtoReflect.Descriptor instead.
-func (*FullTask) Descriptor() ([]byte, []int) {
+// Deprecated: Use FullAsset.ProtoReflect.Descriptor instead.
+func (*FullAsset) Descriptor() ([]byte, []int) {
 	return file_internal_repository_schema_proto_rawDescGZIP(), []int{26}
 }
 
-func (x *FullTask) GetId() string {
+func (x *FullAsset) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *FullTask) GetMtime() int64 {
+func (x *FullAsset) GetMtime() int64 {
 	if x != nil {
 		return x.Mtime
 	}
 	return 0
 }
 
-func (x *FullTask) GetCreatedAt() string {
+func (x *FullAsset) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
 	}
 	return ""
 }
 
-func (x *FullTask) GetName() string {
+func (x *FullAsset) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *FullTask) GetDescription() string {
+func (x *FullAsset) GetDescription() string {
 	if x != nil {
 		return x.Description
 	}
 	return ""
 }
 
-func (x *FullTask) GetExtension() string {
+func (x *FullAsset) GetExtension() string {
 	if x != nil {
 		return x.Extension
 	}
 	return ""
 }
 
-func (x *FullTask) GetIsResource() bool {
+func (x *FullAsset) GetIsResource() bool {
 	if x != nil {
 		return x.IsResource
 	}
 	return false
 }
 
-func (x *FullTask) GetStatusId() string {
+func (x *FullAsset) GetStatusId() string {
 	if x != nil {
 		return x.StatusId
 	}
 	return ""
 }
 
-func (x *FullTask) GetStatusShortName() string {
+func (x *FullAsset) GetStatusShortName() string {
 	if x != nil {
 		return x.StatusShortName
 	}
 	return ""
 }
 
-func (x *FullTask) GetTaskTypeId() string {
+func (x *FullAsset) GetAssetTypeId() string {
 	if x != nil {
-		return x.TaskTypeId
+		return x.AssetTypeId
 	}
 	return ""
 }
 
-func (x *FullTask) GetTaskTypeName() string {
+func (x *FullAsset) GetAssetTypeName() string {
 	if x != nil {
-		return x.TaskTypeName
+		return x.AssetTypeName
 	}
 	return ""
 }
 
-func (x *FullTask) GetTaskTypeIcon() string {
+func (x *FullAsset) GetAssetTypeIcon() string {
 	if x != nil {
-		return x.TaskTypeIcon
+		return x.AssetTypeIcon
 	}
 	return ""
 }
 
-func (x *FullTask) GetEntityId() string {
+func (x *FullAsset) GetCollectionId() string {
 	if x != nil {
-		return x.EntityId
+		return x.CollectionId
 	}
 	return ""
 }
 
-func (x *FullTask) GetEntityName() string {
+func (x *FullAsset) GetCollectionName() string {
 	if x != nil {
-		return x.EntityName
+		return x.CollectionName
 	}
 	return ""
 }
 
-func (x *FullTask) GetEntityPath() string {
+func (x *FullAsset) GetCollectionPath() string {
 	if x != nil {
-		return x.EntityPath
+		return x.CollectionPath
 	}
 	return ""
 }
 
-func (x *FullTask) GetTaskPath() string {
+func (x *FullAsset) GetAssetPath() string {
 	if x != nil {
-		return x.TaskPath
+		return x.AssetPath
 	}
 	return ""
 }
 
-func (x *FullTask) GetAssigneeId() string {
+func (x *FullAsset) GetAssigneeId() string {
 	if x != nil {
 		return x.AssigneeId
 	}
 	return ""
 }
 
-func (x *FullTask) GetAssigneeEmail() string {
+func (x *FullAsset) GetAssigneeEmail() string {
 	if x != nil {
 		return x.AssigneeEmail
 	}
 	return ""
 }
 
-func (x *FullTask) GetAssigneeName() string {
+func (x *FullAsset) GetAssigneeName() string {
 	if x != nil {
 		return x.AssigneeName
 	}
 	return ""
 }
 
-func (x *FullTask) GetAssignerId() string {
+func (x *FullAsset) GetAssignerId() string {
 	if x != nil {
 		return x.AssignerId
 	}
 	return ""
 }
 
-func (x *FullTask) GetAssignerEmail() string {
+func (x *FullAsset) GetAssignerEmail() string {
 	if x != nil {
 		return x.AssignerEmail
 	}
 	return ""
 }
 
-func (x *FullTask) GetAssignerName() string {
+func (x *FullAsset) GetAssignerName() string {
 	if x != nil {
 		return x.AssignerName
 	}
 	return ""
 }
 
-func (x *FullTask) GetIsDependency() bool {
+func (x *FullAsset) GetIsDependency() bool {
 	if x != nil {
 		return x.IsDependency
 	}
 	return false
 }
 
-func (x *FullTask) GetDependencyLevel() int32 {
+func (x *FullAsset) GetDependencyLevel() int32 {
 	if x != nil {
 		return x.DependencyLevel
 	}
 	return 0
 }
 
-func (x *FullTask) GetFilePath() string {
+func (x *FullAsset) GetFilePath() string {
 	if x != nil {
 		return x.FilePath
 	}
 	return ""
 }
 
-func (x *FullTask) GetTags() []string {
+func (x *FullAsset) GetTags() []string {
 	if x != nil {
 		return x.Tags
 	}
 	return nil
 }
 
-func (x *FullTask) GetTagsRaw() string {
+func (x *FullAsset) GetTagsRaw() string {
 	if x != nil {
 		return x.TagsRaw
 	}
 	return ""
 }
 
-func (x *FullTask) GetEntityDependencies() []string {
+func (x *FullAsset) GetCollectionDependencies() []string {
 	if x != nil {
-		return x.EntityDependencies
+		return x.CollectionDependencies
 	}
 	return nil
 }
 
-func (x *FullTask) GetEntityDependenciesRaw() string {
+func (x *FullAsset) GetCollectionDependenciesRaw() string {
 	if x != nil {
-		return x.EntityDependenciesRaw
+		return x.CollectionDependenciesRaw
 	}
 	return ""
 }
 
-func (x *FullTask) GetDependencies() []string {
+func (x *FullAsset) GetDependencies() []string {
 	if x != nil {
 		return x.Dependencies
 	}
 	return nil
 }
 
-func (x *FullTask) GetDependenciesRaw() string {
+func (x *FullAsset) GetDependenciesRaw() string {
 	if x != nil {
 		return x.DependenciesRaw
 	}
 	return ""
 }
 
-func (x *FullTask) GetFileStatus() string {
+func (x *FullAsset) GetFileStatus() string {
 	if x != nil {
 		return x.FileStatus
 	}
 	return ""
 }
 
-func (x *FullTask) GetStatus() *Status {
+func (x *FullAsset) GetStatus() *Status {
 	if x != nil {
 		return x.Status
 	}
 	return nil
 }
 
-func (x *FullTask) GetIsLink() bool {
+func (x *FullAsset) GetIsLink() bool {
 	if x != nil {
 		return x.IsLink
 	}
 	return false
 }
 
-func (x *FullTask) GetPointer() string {
+func (x *FullAsset) GetPointer() string {
 	if x != nil {
 		return x.Pointer
 	}
 	return ""
 }
 
-func (x *FullTask) GetPreviewId() string {
+func (x *FullAsset) GetPreviewId() string {
 	if x != nil {
 		return x.PreviewId
 	}
 	return ""
 }
 
-func (x *FullTask) GetPreview() []byte {
+func (x *FullAsset) GetPreview() []byte {
 	if x != nil {
 		return x.Preview
 	}
 	return nil
 }
 
-func (x *FullTask) GetPreviewExtension() string {
+func (x *FullAsset) GetPreviewExtension() string {
 	if x != nil {
 		return x.PreviewExtension
 	}
 	return ""
 }
 
-func (x *FullTask) GetCheckpoints() []*Checkpoint {
+func (x *FullAsset) GetCheckpoints() []*Checkpoint {
 	if x != nil {
 		return x.Checkpoints
 	}
 	return nil
 }
 
-func (x *FullTask) GetTrashed() bool {
+func (x *FullAsset) GetTrashed() bool {
 	if x != nil {
 		return x.Trashed
 	}
 	return false
 }
 
-func (x *FullTask) GetSynced() bool {
+func (x *FullAsset) GetSynced() bool {
 	if x != nil {
 		return x.Synced
 	}
 	return false
 }
 
-func (x *FullTask) GetType() string {
+func (x *FullAsset) GetType() string {
 	if x != nil {
 		return x.Type
 	}
@@ -3325,27 +3325,27 @@ func (x *ChunkInfo) GetSize() int64 {
 	return 0
 }
 
-type FullTaskList struct {
+type FullAssetList struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	FullTasks     []*FullTask            `protobuf:"bytes,1,rep,name=full_tasks,json=fullTasks,proto3" json:"full_tasks,omitempty"`
+	FullAssets    []*FullAsset           `protobuf:"bytes,1,rep,name=full_assets,json=fullAssets,proto3" json:"full_assets,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *FullTaskList) Reset() {
-	*x = FullTaskList{}
+func (x *FullAssetList) Reset() {
+	*x = FullAssetList{}
 	mi := &file_internal_repository_schema_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *FullTaskList) String() string {
+func (x *FullAssetList) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*FullTaskList) ProtoMessage() {}
+func (*FullAssetList) ProtoMessage() {}
 
-func (x *FullTaskList) ProtoReflect() protoreflect.Message {
+func (x *FullAssetList) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_repository_schema_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3357,14 +3357,14 @@ func (x *FullTaskList) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use FullTaskList.ProtoReflect.Descriptor instead.
-func (*FullTaskList) Descriptor() ([]byte, []int) {
+// Deprecated: Use FullAssetList.ProtoReflect.Descriptor instead.
+func (*FullAssetList) Descriptor() ([]byte, []int) {
 	return file_internal_repository_schema_proto_rawDescGZIP(), []int{28}
 }
 
-func (x *FullTaskList) GetFullTasks() []*FullTask {
+func (x *FullAssetList) GetFullAssets() []*FullAsset {
 	if x != nil {
-		return x.FullTasks
+		return x.FullAssets
 	}
 	return nil
 }
@@ -3520,21 +3520,20 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\arole_id\x18\t \x01(\tR\x06roleId\x12\x16\n" +
 	"\x06synced\x18\n" +
 	" \x01(\bR\x06synced\x12\x12\n" +
-	"\x04role\x18\v \x01(\tR\x04role\"r\n" +
-	"\n" +
-	"EntityType\x12\x0e\n" +
+	"\x04role\x18\v \x01(\tR\x04role\"v\n" +
+	"\x0eCollectionType\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x12\n" +
 	"\x04icon\x18\x04 \x01(\tR\x04icon\x12\x16\n" +
-	"\x06synced\x18\x05 \x01(\bR\x06synced\"p\n" +
-	"\bTaskType\x12\x0e\n" +
+	"\x06synced\x18\x05 \x01(\bR\x06synced\"q\n" +
+	"\tAssetType\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x12\n" +
 	"\x04icon\x18\x04 \x01(\tR\x04icon\x12\x16\n" +
-	"\x06synced\x18\x05 \x01(\bR\x06synced\"\xe2\x03\n" +
-	"\x04Task\x12\x0e\n" +
+	"\x06synced\x18\x05 \x01(\bR\x06synced\"\xed\x03\n" +
+	"\x05Asset\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x1d\n" +
 	"\n" +
@@ -3544,11 +3543,10 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\textension\x18\x06 \x01(\tR\textension\x12\x1f\n" +
 	"\vis_resource\x18\a \x01(\bR\n" +
 	"isResource\x12\x1b\n" +
-	"\tstatus_id\x18\b \x01(\tR\bstatusId\x12 \n" +
-	"\ftask_type_id\x18\t \x01(\tR\n" +
-	"taskTypeId\x12\x1b\n" +
-	"\tentity_id\x18\n" +
-	" \x01(\tR\bentityId\x12\x1f\n" +
+	"\tstatus_id\x18\b \x01(\tR\bstatusId\x12\"\n" +
+	"\rasset_type_id\x18\t \x01(\tR\vassetTypeId\x12#\n" +
+	"\rcollection_id\x18\n" +
+	" \x01(\tR\fcollectionId\x12\x1f\n" +
 	"\vassignee_id\x18\v \x01(\tR\n" +
 	"assigneeId\x12\x1f\n" +
 	"\vassigner_id\x18\f \x01(\tR\n" +
@@ -3558,45 +3556,45 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\n" +
 	"preview_id\x18\x0f \x01(\tR\tpreviewId\x12\x18\n" +
 	"\atrashed\x18\x10 \x01(\bR\atrashed\x12\x16\n" +
-	"\x06synced\x18\x11 \x01(\bR\x06synced\"\xd7\x02\n" +
-	"\x06Entity\x12\x0e\n" +
+	"\x06synced\x18\x11 \x01(\bR\x06synced\"\xeb\x02\n" +
+	"\n" +
+	"Collection\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x03 \x01(\tR\tcreatedAt\x12\x12\n" +
-	"\x04name\x18\x04 \x01(\tR\x04name\x12\x1f\n" +
-	"\ventity_path\x18\x05 \x01(\tR\n" +
-	"entityPath\x12 \n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12'\n" +
+	"\x0fcollection_path\x18\x05 \x01(\tR\x0ecollectionPath\x12 \n" +
 	"\vdescription\x18\x06 \x01(\tR\vdescription\x12\x18\n" +
-	"\atrashed\x18\a \x01(\bR\atrashed\x12$\n" +
-	"\x0eentity_type_id\x18\b \x01(\tR\fentityTypeId\x12\x1b\n" +
+	"\atrashed\x18\a \x01(\bR\atrashed\x12,\n" +
+	"\x12collection_type_id\x18\b \x01(\tR\x10collectionTypeId\x12\x1b\n" +
 	"\tparent_id\x18\t \x01(\tR\bparentId\x12\x1d\n" +
 	"\n" +
 	"preview_id\x18\n" +
 	" \x01(\tR\tpreviewId\x12\x16\n" +
 	"\x06synced\x18\v \x01(\bR\x06synced\x12\x1d\n" +
 	"\n" +
-	"is_library\x18\f \x01(\bR\tisLibrary\"\xad\x01\n" +
-	"\x0eEntityAssignee\x12\x0e\n" +
+	"is_library\x18\f \x01(\bR\tisLibrary\"\xb9\x01\n" +
+	"\x12CollectionAssignee\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
-	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x1b\n" +
-	"\tentity_id\x18\x03 \x01(\tR\bentityId\x12\x1f\n" +
+	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12#\n" +
+	"\rcollection_id\x18\x03 \x01(\tR\fcollectionId\x12\x1f\n" +
 	"\vassignee_id\x18\x04 \x01(\tR\n" +
 	"assigneeId\x12\x1f\n" +
 	"\vassigner_id\x18\x05 \x01(\tR\n" +
 	"assignerId\x12\x16\n" +
-	"\x06synced\x18\x06 \x01(\bR\x06synced\"\xba\x01\n" +
-	"\x0eTaskDependency\x12\x0e\n" +
+	"\x06synced\x18\x06 \x01(\bR\x06synced\"\xbd\x01\n" +
+	"\x0fAssetDependency\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
-	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x17\n" +
-	"\atask_id\x18\x03 \x01(\tR\x06taskId\x12#\n" +
+	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x19\n" +
+	"\basset_id\x18\x03 \x01(\tR\aassetId\x12#\n" +
 	"\rdependency_id\x18\x04 \x01(\tR\fdependencyId\x12,\n" +
 	"\x12dependency_type_id\x18\x05 \x01(\tR\x10dependencyTypeId\x12\x16\n" +
-	"\x06synced\x18\x06 \x01(\bR\x06synced\"\xbc\x01\n" +
-	"\x10EntityDependency\x12\x0e\n" +
+	"\x06synced\x18\x06 \x01(\bR\x06synced\"\xc2\x01\n" +
+	"\x14CollectionDependency\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
-	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x17\n" +
-	"\atask_id\x18\x03 \x01(\tR\x06taskId\x12#\n" +
+	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x19\n" +
+	"\basset_id\x18\x03 \x01(\tR\aassetId\x12#\n" +
 	"\rdependency_id\x18\x04 \x01(\tR\fdependencyId\x12,\n" +
 	"\x12dependency_type_id\x18\x05 \x01(\tR\x10dependencyTypeId\x12\x16\n" +
 	"\x06synced\x18\x06 \x01(\bR\x06synced\"\\\n" +
@@ -3604,8 +3602,8 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
-	"\x06synced\x18\x04 \x01(\bR\x06synced\"\xc6\x02\n" +
-	"\fWorkflowTask\x12\x0e\n" +
+	"\x06synced\x18\x04 \x01(\bR\x06synced\"\xd1\x02\n" +
+	"\rWorkflowAsset\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1f\n" +
@@ -3614,28 +3612,27 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\vis_resource\x18\x05 \x01(\bR\n" +
 	"isResource\x12\x1f\n" +
 	"\vworkflow_id\x18\x06 \x01(\tR\n" +
-	"workflowId\x12 \n" +
-	"\ftask_type_id\x18\a \x01(\tR\n" +
-	"taskTypeId\x12,\n" +
-	"\x12workflow_entity_id\x18\b \x01(\tR\x10workflowEntityId\x12\x17\n" +
+	"workflowId\x12\"\n" +
+	"\rasset_type_id\x18\a \x01(\tR\vassetTypeId\x124\n" +
+	"\x16workflow_collection_id\x18\b \x01(\tR\x14workflowCollectionId\x12\x17\n" +
 	"\ais_link\x18\t \x01(\bR\x06isLink\x12\x18\n" +
 	"\apointer\x18\n" +
 	" \x01(\tR\apointer\x12\x16\n" +
-	"\x06synced\x18\v \x01(\bR\x06synced\"\xc6\x01\n" +
-	"\x0eWorkflowEntity\x12\x0e\n" +
+	"\x06synced\x18\v \x01(\bR\x06synced\"\xd2\x01\n" +
+	"\x12WorkflowCollection\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1f\n" +
 	"\vworkflow_id\x18\x04 \x01(\tR\n" +
-	"workflowId\x12$\n" +
-	"\x0eentity_type_id\x18\x05 \x01(\tR\fentityTypeId\x12\x1b\n" +
+	"workflowId\x12,\n" +
+	"\x12collection_type_id\x18\x05 \x01(\tR\x10collectionTypeId\x12\x1b\n" +
 	"\tparent_id\x18\x06 \x01(\tR\bparentId\x12\x16\n" +
-	"\x06synced\x18\a \x01(\bR\x06synced\"\x87\x02\n" +
+	"\x06synced\x18\a \x01(\bR\x06synced\"\x8f\x02\n" +
 	"\fWorkflowLink\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12$\n" +
-	"\x0eentity_type_id\x18\x04 \x01(\tR\fentityTypeId\x12\x1f\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12,\n" +
+	"\x12collection_type_id\x18\x04 \x01(\tR\x10collectionTypeId\x12\x1f\n" +
 	"\vworkflow_id\x18\x05 \x01(\tR\n" +
 	"workflowId\x12,\n" +
 	"\x12linked_workflow_id\x18\x06 \x01(\tR\x10linkedWorkflowId\x120\n" +
@@ -3658,20 +3655,20 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
-	"\x06synced\x18\x04 \x01(\bR\x06synced\"w\n" +
-	"\aTaskTag\x12\x0e\n" +
+	"\x06synced\x18\x04 \x01(\bR\x06synced\"z\n" +
+	"\bAssetTag\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
-	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x17\n" +
-	"\atask_id\x18\x03 \x01(\tR\x06taskId\x12\x15\n" +
+	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x19\n" +
+	"\basset_id\x18\x03 \x01(\tR\aassetId\x12\x15\n" +
 	"\x06tag_id\x18\x04 \x01(\tR\x05tagId\x12\x16\n" +
-	"\x06synced\x18\x05 \x01(\bR\x06synced\"\x92\x03\n" +
+	"\x06synced\x18\x05 \x01(\bR\x06synced\"\x94\x03\n" +
 	"\n" +
 	"Checkpoint\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x03 \x01(\tR\tcreatedAt\x12\x17\n" +
-	"\atask_id\x18\x04 \x01(\tR\x06taskId\x12'\n" +
+	"created_at\x18\x03 \x01(\tR\tcreatedAt\x12\x19\n" +
+	"\basset_id\x18\x04 \x01(\tR\aassetId\x12'\n" +
 	"\x0fxxhash_checksum\x18\x05 \x01(\tR\x0exxhashChecksum\x12#\n" +
 	"\rtime_modified\x18\x06 \x01(\x03R\ftimeModified\x12\x1b\n" +
 	"\tfile_size\x18\a \x01(\x03R\bfileSize\x12\x18\n" +
@@ -3684,25 +3681,22 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"preview_id\x18\v \x01(\tR\tpreviewId\x12\x18\n" +
 	"\atrashed\x18\f \x01(\bR\atrashed\x12\x16\n" +
 	"\x06synced\x18\r \x01(\bR\x06synced\x12\x19\n" +
-	"\bgroup_id\x18\x0e \x01(\tR\agroupId\"\x95\b\n" +
+	"\bgroup_id\x18\x0e \x01(\tR\agroupId\"\xc7\b\n" +
 	"\x04Role\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
-	"\x06synced\x18\x04 \x01(\bR\x06synced\x12\x1f\n" +
-	"\vview_entity\x18\x05 \x01(\bR\n" +
-	"viewEntity\x12#\n" +
-	"\rcreate_entity\x18\x06 \x01(\bR\fcreateEntity\x12#\n" +
-	"\rupdate_entity\x18\a \x01(\bR\fupdateEntity\x12#\n" +
-	"\rdelete_entity\x18\b \x01(\bR\fdeleteEntity\x12\x1b\n" +
-	"\tview_task\x18\t \x01(\bR\bviewTask\x12\x1f\n" +
-	"\vcreate_task\x18\n" +
-	" \x01(\bR\n" +
-	"createTask\x12\x1f\n" +
-	"\vupdate_task\x18\v \x01(\bR\n" +
-	"updateTask\x12\x1f\n" +
-	"\vdelete_task\x18\f \x01(\bR\n" +
-	"deleteTask\x12#\n" +
+	"\x06synced\x18\x04 \x01(\bR\x06synced\x12'\n" +
+	"\x0fview_collection\x18\x05 \x01(\bR\x0eviewCollection\x12+\n" +
+	"\x11create_collection\x18\x06 \x01(\bR\x10createCollection\x12+\n" +
+	"\x11update_collection\x18\a \x01(\bR\x10updateCollection\x12+\n" +
+	"\x11delete_collection\x18\b \x01(\bR\x10deleteCollection\x12\x1d\n" +
+	"\n" +
+	"view_asset\x18\t \x01(\bR\tviewAsset\x12!\n" +
+	"\fcreate_asset\x18\n" +
+	" \x01(\bR\vcreateAsset\x12!\n" +
+	"\fupdate_asset\x18\v \x01(\bR\vupdateAsset\x12!\n" +
+	"\fdelete_asset\x18\f \x01(\bR\vdeleteAsset\x12#\n" +
 	"\rview_template\x18\r \x01(\bR\fviewTemplate\x12'\n" +
 	"\x0fcreate_template\x18\x0e \x01(\bR\x0ecreateTemplate\x12'\n" +
 	"\x0fupdate_template\x18\x0f \x01(\bR\x0eupdateTemplate\x12'\n" +
@@ -3711,19 +3705,18 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\x11create_checkpoint\x18\x12 \x01(\bR\x10createCheckpoint\x12+\n" +
 	"\x11delete_checkpoint\x18\x13 \x01(\bR\x10deleteCheckpoint\x12\x1d\n" +
 	"\n" +
-	"pull_chunk\x18\x14 \x01(\bR\tpullChunk\x12\x1f\n" +
-	"\vassign_task\x18\x15 \x01(\bR\n" +
-	"assignTask\x12#\n" +
-	"\runassign_task\x18\x16 \x01(\bR\funassignTask\x12\x19\n" +
+	"pull_chunk\x18\x14 \x01(\bR\tpullChunk\x12!\n" +
+	"\fassign_asset\x18\x15 \x01(\bR\vassignAsset\x12%\n" +
+	"\x0eunassign_asset\x18\x16 \x01(\bR\runassignAsset\x12\x19\n" +
 	"\badd_user\x18\x17 \x01(\bR\aaddUser\x12\x1f\n" +
 	"\vremove_user\x18\x18 \x01(\bR\n" +
 	"removeUser\x12\x1f\n" +
 	"\vchange_role\x18\x19 \x01(\bR\n" +
 	"changeRole\x12#\n" +
-	"\rchange_status\x18\x1a \x01(\bR\fchangeStatus\x12\"\n" +
-	"\rset_done_task\x18\x1b \x01(\bR\vsetDoneTask\x12&\n" +
-	"\x0fset_retake_task\x18\x1c \x01(\bR\rsetRetakeTask\x12$\n" +
-	"\x0eview_done_task\x18\x1d \x01(\bR\fviewDoneTask\x12/\n" +
+	"\rchange_status\x18\x1a \x01(\bR\fchangeStatus\x12$\n" +
+	"\x0eset_done_asset\x18\x1b \x01(\bR\fsetDoneAsset\x12(\n" +
+	"\x10set_retake_asset\x18\x1c \x01(\bR\x0esetRetakeAsset\x12&\n" +
+	"\x0fview_done_asset\x18\x1d \x01(\bR\rviewDoneAsset\x12/\n" +
 	"\x13manage_dependencies\x18\x1e \x01(\bR\x12manageDependencies\"z\n" +
 	"\bUserRole\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
@@ -3795,36 +3788,36 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x1d\n" +
 	"\n" +
 	"table_name\x18\x03 \x01(\tR\ttableName\x12\x16\n" +
-	"\x06synced\x18\x04 \x01(\bR\x06synced\"\xc3\v\n" +
+	"\x06synced\x18\x04 \x01(\bR\x06synced\"\x88\f\n" +
 	"\vProjectData\x12'\n" +
-	"\x0fproject_preview\x18\x01 \x01(\tR\x0eprojectPreview\x12&\n" +
-	"\x05tasks\x18\x02 \x03(\v2\x10.repository.TaskR\x05tasks\x123\n" +
-	"\n" +
-	"task_types\x18\x03 \x03(\v2\x14.repository.TaskTypeR\ttaskTypes\x12C\n" +
-	"\x11tasks_checkpoints\x18\x04 \x03(\v2\x16.repository.CheckpointR\x10tasksCheckpoints\x12G\n" +
-	"\x11task_dependencies\x18\x05 \x03(\v2\x1a.repository.TaskDependencyR\x10taskDependencies\x12M\n" +
-	"\x13entity_dependencies\x18\x06 \x03(\v2\x1c.repository.EntityDependencyR\x12entityDependencies\x12.\n" +
+	"\x0fproject_preview\x18\x01 \x01(\tR\x0eprojectPreview\x12)\n" +
+	"\x06assets\x18\x02 \x03(\v2\x11.repository.AssetR\x06assets\x126\n" +
+	"\vasset_types\x18\x03 \x03(\v2\x15.repository.AssetTypeR\n" +
+	"assetTypes\x12C\n" +
+	"\x11asset_checkpoints\x18\x04 \x03(\v2\x16.repository.CheckpointR\x10assetCheckpoints\x12J\n" +
+	"\x12asset_dependencies\x18\x05 \x03(\v2\x1b.repository.AssetDependencyR\x11assetDependencies\x12Y\n" +
+	"\x17collection_dependencies\x18\x06 \x03(\v2 .repository.CollectionDependencyR\x16collectionDependencies\x12.\n" +
 	"\bstatuses\x18\a \x03(\v2\x12.repository.StatusR\bstatuses\x12E\n" +
 	"\x10dependency_types\x18\b \x03(\v2\x1a.repository.DependencyTypeR\x0fdependencyTypes\x12&\n" +
 	"\x05users\x18\t \x03(\v2\x10.repository.UserR\x05users\x12&\n" +
 	"\x05roles\x18\n" +
-	" \x03(\v2\x10.repository.RoleR\x05roles\x129\n" +
-	"\fentity_types\x18\v \x03(\v2\x16.repository.EntityTypeR\ventityTypes\x12.\n" +
-	"\bentities\x18\f \x03(\v2\x12.repository.EntityR\bentities\x12E\n" +
-	"\x10entity_assignees\x18\r \x03(\v2\x1a.repository.EntityAssigneeR\x0fentityAssignees\x122\n" +
+	" \x03(\v2\x10.repository.RoleR\x05roles\x12E\n" +
+	"\x10collection_types\x18\v \x03(\v2\x1a.repository.CollectionTypeR\x0fcollectionTypes\x128\n" +
+	"\vcollections\x18\f \x03(\v2\x16.repository.CollectionR\vcollections\x12Q\n" +
+	"\x14collection_assignees\x18\r \x03(\v2\x1e.repository.CollectionAssigneeR\x13collectionAssignees\x122\n" +
 	"\ttemplates\x18\x0e \x03(\v2\x14.repository.TemplateR\ttemplates\x12#\n" +
-	"\x04tags\x18\x0f \x03(\v2\x0f.repository.TagR\x04tags\x122\n" +
+	"\x04tags\x18\x0f \x03(\v2\x0f.repository.TagR\x04tags\x123\n" +
 	"\n" +
-	"tasks_tags\x18\x10 \x03(\v2\x13.repository.TaskTagR\ttasksTags\x122\n" +
+	"asset_tags\x18\x10 \x03(\v2\x14.repository.AssetTagR\tassetTags\x122\n" +
 	"\tworkflows\x18\x11 \x03(\v2\x14.repository.WorkflowR\tworkflows\x12?\n" +
-	"\x0eworkflow_links\x18\x12 \x03(\v2\x18.repository.WorkflowLinkR\rworkflowLinks\x12G\n" +
-	"\x11workflow_entities\x18\x13 \x03(\v2\x1a.repository.WorkflowEntityR\x10workflowEntities\x12?\n" +
-	"\x0eworkflow_tasks\x18\x14 \x03(\v2\x18.repository.WorkflowTaskR\rworkflowTasks\x12$\n" +
+	"\x0eworkflow_links\x18\x12 \x03(\v2\x18.repository.WorkflowLinkR\rworkflowLinks\x12Q\n" +
+	"\x14workflow_collections\x18\x13 \x03(\v2\x1e.repository.WorkflowCollectionR\x13workflowCollections\x12B\n" +
+	"\x0fworkflow_assets\x18\x14 \x03(\v2\x19.repository.WorkflowAssetR\x0eworkflowAssets\x12$\n" +
 	"\x04tomb\x18\x15 \x03(\v2\x10.repository.TombR\x04tomb\x12Q\n" +
 	"\x14integration_projects\x18\x16 \x03(\v2\x1e.repository.IntegrationProjectR\x13integrationProjects\x12p\n" +
 	"\x1fintegration_collection_mappings\x18\x17 \x03(\v2(.repository.IntegrationCollectionMappingR\x1dintegrationCollectionMappings\x12a\n" +
-	"\x1aintegration_asset_mappings\x18\x18 \x03(\v2#.repository.IntegrationAssetMappingR\x18integrationAssetMappings\"\x96\v\n" +
-	"\bFullTask\x12\x0e\n" +
+	"\x1aintegration_asset_mappings\x18\x18 \x03(\v2#.repository.IntegrationAssetMappingR\x18integrationAssetMappings\"\xc7\v\n" +
+	"\tFullAsset\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x1e\n" +
 	"\n" +
@@ -3835,17 +3828,16 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\textension\x18\x06 \x01(\tR\textension\x12 \n" +
 	"\vis_resource\x18\a \x01(\bR\vis_resource\x12\x1c\n" +
 	"\tstatus_id\x18\b \x01(\tR\tstatus_id\x12,\n" +
-	"\x11status_short_name\x18\t \x01(\tR\x11status_short_name\x12\"\n" +
-	"\ftask_type_id\x18\n" +
-	" \x01(\tR\ftask_type_id\x12&\n" +
-	"\x0etask_type_name\x18\v \x01(\tR\x0etask_type_name\x12&\n" +
-	"\x0etask_type_icon\x18\f \x01(\tR\x0etask_type_icon\x12\x1b\n" +
-	"\tentity_id\x18\r \x01(\tR\bentityId\x12\x1f\n" +
-	"\ventity_name\x18\x0e \x01(\tR\n" +
-	"entityName\x12\x1f\n" +
-	"\ventity_path\x18\x0f \x01(\tR\n" +
-	"entityPath\x12\x1b\n" +
-	"\ttask_path\x18\x10 \x01(\tR\btaskPath\x12\x1f\n" +
+	"\x11status_short_name\x18\t \x01(\tR\x11status_short_name\x12$\n" +
+	"\rasset_type_id\x18\n" +
+	" \x01(\tR\rasset_type_id\x12(\n" +
+	"\x0fasset_type_name\x18\v \x01(\tR\x0fasset_type_name\x12(\n" +
+	"\x0fasset_type_icon\x18\f \x01(\tR\x0fasset_type_icon\x12#\n" +
+	"\rcollection_id\x18\r \x01(\tR\fcollectionId\x12'\n" +
+	"\x0fcollection_name\x18\x0e \x01(\tR\x0ecollectionName\x12'\n" +
+	"\x0fcollection_path\x18\x0f \x01(\tR\x0ecollectionPath\x12\x1d\n" +
+	"\n" +
+	"asset_path\x18\x10 \x01(\tR\tassetPath\x12\x1f\n" +
 	"\vassignee_id\x18\x11 \x01(\tR\n" +
 	"assigneeId\x12%\n" +
 	"\x0eassignee_email\x18\x12 \x01(\tR\rassigneeEmail\x12#\n" +
@@ -3858,9 +3850,9 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\x10dependency_level\x18\x18 \x01(\x05R\x0fdependencyLevel\x12\x1b\n" +
 	"\tfile_path\x18\x19 \x01(\tR\bfilePath\x12\x12\n" +
 	"\x04tags\x18\x1a \x03(\tR\x04tags\x12\x19\n" +
-	"\btags_raw\x18\x1b \x01(\tR\atagsRaw\x12/\n" +
-	"\x13entity_dependencies\x18\x1c \x03(\tR\x12entityDependencies\x126\n" +
-	"\x17entity_dependencies_raw\x18\x1d \x01(\tR\x15entityDependenciesRaw\x12\"\n" +
+	"\btags_raw\x18\x1b \x01(\tR\atagsRaw\x127\n" +
+	"\x17collection_dependencies\x18\x1c \x03(\tR\x16collectionDependencies\x12>\n" +
+	"\x1bcollection_dependencies_raw\x18\x1d \x01(\tR\x19collectionDependenciesRaw\x12\"\n" +
 	"\fdependencies\x18\x1e \x03(\tR\fdependencies\x12)\n" +
 	"\x10dependencies_raw\x18\x1f \x01(\tR\x0fdependenciesRaw\x12\x1f\n" +
 	"\vfile_status\x18  \x01(\tR\n" +
@@ -3878,10 +3870,10 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\x04type\x18* \x01(\tR\x04type\"3\n" +
 	"\tChunkInfo\x12\x12\n" +
 	"\x04hash\x18\x03 \x01(\tR\x04hash\x12\x12\n" +
-	"\x04size\x18\x02 \x01(\x03R\x04size\"C\n" +
-	"\fFullTaskList\x123\n" +
-	"\n" +
-	"full_tasks\x18\x01 \x03(\v2\x14.repository.FullTaskR\tfullTasks\";\n" +
+	"\x04size\x18\x02 \x01(\x03R\x04size\"G\n" +
+	"\rFullAssetList\x126\n" +
+	"\vfull_assets\x18\x01 \x03(\v2\x15.repository.FullAssetR\n" +
+	"fullAssets\";\n" +
 	"\bPreviews\x12/\n" +
 	"\bpreviews\x18\x01 \x03(\v2\x13.repository.PreviewR\bpreviews\"0\n" +
 	"\vChunkHashes\x12!\n" +
@@ -3906,21 +3898,21 @@ func file_internal_repository_schema_proto_rawDescGZIP() []byte {
 var file_internal_repository_schema_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
 var file_internal_repository_schema_proto_goTypes = []any{
 	(*User)(nil),                         // 0: repository.User
-	(*EntityType)(nil),                   // 1: repository.EntityType
-	(*TaskType)(nil),                     // 2: repository.TaskType
-	(*Task)(nil),                         // 3: repository.Task
-	(*Entity)(nil),                       // 4: repository.Entity
-	(*EntityAssignee)(nil),               // 5: repository.EntityAssignee
-	(*TaskDependency)(nil),               // 6: repository.TaskDependency
-	(*EntityDependency)(nil),             // 7: repository.EntityDependency
+	(*CollectionType)(nil),               // 1: repository.CollectionType
+	(*AssetType)(nil),                    // 2: repository.AssetType
+	(*Asset)(nil),                        // 3: repository.Asset
+	(*Collection)(nil),                   // 4: repository.Collection
+	(*CollectionAssignee)(nil),           // 5: repository.CollectionAssignee
+	(*AssetDependency)(nil),              // 6: repository.AssetDependency
+	(*CollectionDependency)(nil),         // 7: repository.CollectionDependency
 	(*Workflow)(nil),                     // 8: repository.Workflow
-	(*WorkflowTask)(nil),                 // 9: repository.WorkflowTask
-	(*WorkflowEntity)(nil),               // 10: repository.WorkflowEntity
+	(*WorkflowAsset)(nil),                // 9: repository.WorkflowAsset
+	(*WorkflowCollection)(nil),           // 10: repository.WorkflowCollection
 	(*WorkflowLink)(nil),                 // 11: repository.WorkflowLink
 	(*DependencyType)(nil),               // 12: repository.DependencyType
 	(*Status)(nil),                       // 13: repository.Status
 	(*Tag)(nil),                          // 14: repository.Tag
-	(*TaskTag)(nil),                      // 15: repository.TaskTag
+	(*AssetTag)(nil),                     // 15: repository.AssetTag
 	(*Checkpoint)(nil),                   // 16: repository.Checkpoint
 	(*Role)(nil),                         // 17: repository.Role
 	(*UserRole)(nil),                     // 18: repository.UserRole
@@ -3931,40 +3923,40 @@ var file_internal_repository_schema_proto_goTypes = []any{
 	(*IntegrationAssetMapping)(nil),      // 23: repository.IntegrationAssetMapping
 	(*Tomb)(nil),                         // 24: repository.Tomb
 	(*ProjectData)(nil),                  // 25: repository.ProjectData
-	(*FullTask)(nil),                     // 26: repository.FullTask
+	(*FullAsset)(nil),                    // 26: repository.FullAsset
 	(*ChunkInfo)(nil),                    // 27: repository.ChunkInfo
-	(*FullTaskList)(nil),                 // 28: repository.FullTaskList
+	(*FullAssetList)(nil),                // 28: repository.FullAssetList
 	(*Previews)(nil),                     // 29: repository.Previews
 	(*ChunkHashes)(nil),                  // 30: repository.ChunkHashes
 	(*ChunkInfos)(nil),                   // 31: repository.ChunkInfos
 }
 var file_internal_repository_schema_proto_depIdxs = []int32{
-	3,  // 0: repository.ProjectData.tasks:type_name -> repository.Task
-	2,  // 1: repository.ProjectData.task_types:type_name -> repository.TaskType
-	16, // 2: repository.ProjectData.tasks_checkpoints:type_name -> repository.Checkpoint
-	6,  // 3: repository.ProjectData.task_dependencies:type_name -> repository.TaskDependency
-	7,  // 4: repository.ProjectData.entity_dependencies:type_name -> repository.EntityDependency
+	3,  // 0: repository.ProjectData.assets:type_name -> repository.Asset
+	2,  // 1: repository.ProjectData.asset_types:type_name -> repository.AssetType
+	16, // 2: repository.ProjectData.asset_checkpoints:type_name -> repository.Checkpoint
+	6,  // 3: repository.ProjectData.asset_dependencies:type_name -> repository.AssetDependency
+	7,  // 4: repository.ProjectData.collection_dependencies:type_name -> repository.CollectionDependency
 	13, // 5: repository.ProjectData.statuses:type_name -> repository.Status
 	12, // 6: repository.ProjectData.dependency_types:type_name -> repository.DependencyType
 	0,  // 7: repository.ProjectData.users:type_name -> repository.User
 	17, // 8: repository.ProjectData.roles:type_name -> repository.Role
-	1,  // 9: repository.ProjectData.entity_types:type_name -> repository.EntityType
-	4,  // 10: repository.ProjectData.entities:type_name -> repository.Entity
-	5,  // 11: repository.ProjectData.entity_assignees:type_name -> repository.EntityAssignee
+	1,  // 9: repository.ProjectData.collection_types:type_name -> repository.CollectionType
+	4,  // 10: repository.ProjectData.collections:type_name -> repository.Collection
+	5,  // 11: repository.ProjectData.collection_assignees:type_name -> repository.CollectionAssignee
 	19, // 12: repository.ProjectData.templates:type_name -> repository.Template
 	14, // 13: repository.ProjectData.tags:type_name -> repository.Tag
-	15, // 14: repository.ProjectData.tasks_tags:type_name -> repository.TaskTag
+	15, // 14: repository.ProjectData.asset_tags:type_name -> repository.AssetTag
 	8,  // 15: repository.ProjectData.workflows:type_name -> repository.Workflow
 	11, // 16: repository.ProjectData.workflow_links:type_name -> repository.WorkflowLink
-	10, // 17: repository.ProjectData.workflow_entities:type_name -> repository.WorkflowEntity
-	9,  // 18: repository.ProjectData.workflow_tasks:type_name -> repository.WorkflowTask
+	10, // 17: repository.ProjectData.workflow_collections:type_name -> repository.WorkflowCollection
+	9,  // 18: repository.ProjectData.workflow_assets:type_name -> repository.WorkflowAsset
 	24, // 19: repository.ProjectData.tomb:type_name -> repository.Tomb
 	21, // 20: repository.ProjectData.integration_projects:type_name -> repository.IntegrationProject
 	22, // 21: repository.ProjectData.integration_collection_mappings:type_name -> repository.IntegrationCollectionMapping
 	23, // 22: repository.ProjectData.integration_asset_mappings:type_name -> repository.IntegrationAssetMapping
-	13, // 23: repository.FullTask.status:type_name -> repository.Status
-	16, // 24: repository.FullTask.checkpoints:type_name -> repository.Checkpoint
-	26, // 25: repository.FullTaskList.full_tasks:type_name -> repository.FullTask
+	13, // 23: repository.FullAsset.status:type_name -> repository.Status
+	16, // 24: repository.FullAsset.checkpoints:type_name -> repository.Checkpoint
+	26, // 25: repository.FullAssetList.full_assets:type_name -> repository.FullAsset
 	20, // 26: repository.Previews.previews:type_name -> repository.Preview
 	27, // 27: repository.ChunkInfos.chunk_infos:type_name -> repository.ChunkInfo
 	28, // [28:28] is the sub-list for method output_type

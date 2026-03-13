@@ -203,7 +203,7 @@ const resetProjectData = () => {
   assetStore.assets = [];
   collectionStore.selectedCollection = null;
   assetStore.selectedAsset = null;
-  stage.expandedEntities = {};
+  stage.expandedCollections = {};
 };
 
 // Selects a location from the dropdown.

@@ -19,11 +19,11 @@
 
     <span v-if="stage.activeStage === 'browser'" class="menu-divider"></span>
 
-    <span v-for="entityType in entityTypes" class="filter-menu-item" @click="toggleFilter(entityType)">
-      <img class="small-icons" :src="getAppIcon(entityType.icon)">
+    <span v-for="collectionType in collectionTypes" class="filter-menu-item" @click="toggleFilter(collectionType)">
+      <img class="small-icons" :src="getAppIcon(collectionType.icon)">
       <div class="horizontal-flex">
-        <div class="menu-item-text"> {{ utils.capitalizeStr(entityType.name) }} </div>
-        <ToggleSwitch :switchValueProp="isFilterActive(entityType)" />
+        <div class="menu-item-text"> {{ utils.capitalizeStr(collectionType.name) }} </div>
+        <ToggleSwitch :switchValueProp="isFilterActive(collectionType)" />
       </div>
     </span>
 
@@ -60,15 +60,15 @@ const collectionMenu = ref(null);
 const useExclusive = ref(false);
 
 // computed properties
-// Returns list of collection/entity types available in the project.
-const entityTypes = computed(() => {
+// Returns list of collection/collection types available in the project.
+const collectionTypes = computed(() => {
   return collectionStore.getCollectionTypes;
 });
 
 // methods
-// Adds a filter to the entity filters list.
+// Adds a filter to the collection filters list.
 const addFilter = (filter) => {
-  commonStore.entityFilters.push(filter);
+  commonStore.collectionFilters.push(filter);
 };
 
 // Returns the icon path for a given icon name.
@@ -78,19 +78,19 @@ const getAppIcon = (iconName) => {
 
 // Checks if a filter is currently active.
 const isFilterActive = (filter) => {
-  return commonStore.entityFilters.includes(filter);
+  return commonStore.collectionFilters.includes(filter);
 };
 
-// Removes a filter from the entity filters list.
+// Removes a filter from the collection filters list.
 const removeFilter = (filter) => {
-  commonStore.entityFilters = commonStore.entityFilters.filter((item) => item !== filter);
+  commonStore.collectionFilters = commonStore.collectionFilters.filter((item) => item !== filter);
 };
 
 // Toggles a filter on or off with exclusive mode support.
 const toggleFilter = (filter) => {
-  const existingFilter = commonStore.entityFilters.find((item) => item.type = 'entity-type');
+  const existingFilter = commonStore.collectionFilters.find((item) => item.type = 'collection-type');
 
-  if (commonStore.entityFilters.includes(filter)) {
+  if (commonStore.collectionFilters.includes(filter)) {
     removeFilter(filter);
   } else {
     addFilter(filter);
@@ -109,7 +109,7 @@ const toggleUseDeep = () => {
 const toggleUseExclusive = () => {
   useExclusive.value = !useExclusive.value;
   if (useExclusive.value) {
-    commonStore.entityFilters = commonStore.entityFilters.filter((item) => item.type !== 'entity-type');
+    commonStore.collectionFilters = commonStore.collectionFilters.filter((item) => item.type !== 'collection-type');
   }
 };
 

@@ -5,18 +5,18 @@
 
       <div class="input-section">
         <div class="compound-input-section">
-          <input v-model="taskName" class="input-short" type="text" :placeholder="$t('placeholders.taskName')" v-focus
+          <input v-model="assetName" class="input-short" type="text" :placeholder="$t('placeholders.assetName')" v-focus
             @keydown.enter="handleEnterKey" />
         </div>
       </div>
 
       <div class="input-section">
         <div class="horizontal-flex">
-          <input v-model="taskWebLink" class="input-short" type="text" :placeholder="$t('placeholders.webLink')" ref="taskWebLinkInput" @keydown.enter="handleEnterKey"/>
+          <input v-model="assetWebLink" class="input-short" type="text" :placeholder="$t('placeholders.webLink')" ref="assetWebLinkInput" @keydown.enter="handleEnterKey"/>
           <span @click="pasteWebLink" class="single-action-button" v-tooltip="$t('modals.pasteLink')"><img class="small-icons"
               :src="getAppIcon('clipboard')"></span>
         </div>
-        <InputAlert :show="!isValidWeblink(taskWebLink) && taskWebLink !== 'https://'" :message="$t('modals.invalidWebLink')" />
+        <InputAlert :show="!isValidWeblink(assetWebLink) && assetWebLink !== 'https://'" :message="$t('modals.invalidWebLink')" />
       </div>
 
 
@@ -74,9 +74,9 @@ const isAwaitingResponse = ref(false);
 const isResource = ref(false);
 const modalContainer = ref(null);
 const tags = ref([]);
-const taskName = ref('');
-const taskWebLink = ref('https://');
-const taskWebLinkInput = ref(null);
+const assetName = ref('');
+const assetWebLink = ref('https://');
+const assetWebLinkInput = ref(null);
 
 // constants
 const showSearch = false;
@@ -85,7 +85,7 @@ const title = computed(() => t('modals.addWebLink'));
 // computed
 // Returns whether the form values are valid for submission.
 const isValueChanged = computed(() => {
-  return taskName.value !== '' && isValidWeblink(taskWebLink.value);
+  return assetName.value !== '' && isValidWeblink(assetWebLink.value);
 });
 
 // methods
@@ -98,47 +98,47 @@ const closeModal = () => {
 // Creates a weblink asset in the current project.
 const createWebLink = async (launch = false, comment = 'Asset created') => {
   isAwaitingResponse.value = true;
-  let selectedTaskType;
+  let selectedAssetType;
   try {
-    selectedTaskType = await ensureWeblinkAssetType();
+    selectedAssetType = await ensureWeblinkAssetType();
   } catch (error) {
     isAwaitingResponse.value = false;
     return;
   }
-  const entities = stageStore.markedEntities;
+  const collections = stageStore.markedCollections;
   const isNested = commonStore.navigatorMode && !!collectionStore.navigatedCollection;
-  if (entities.length <= 1) {
-    let entityId = '';
+  if (collections.length <= 1) {
+    let collectionId = '';
     if (isNested) {
-      entityId = collectionStore.navigatedCollection.id;
-    } else if (entities.length > 0) {
-      entityId = entities[0];
+      collectionId = collectionStore.navigatedCollection.id;
+    } else if (collections.length > 0) {
+      collectionId = collections[0];
     }
     await AssetService.CreateAsset(
       projectStore.activeProject.uri,
-      taskName.value,
+      assetName.value,
       '',
-      selectedTaskType.id,
-      entityId,
+      selectedAssetType.id,
+      collectionId,
       isResource.value,
       '',
       '',
-      taskWebLink.value,
+      assetWebLink.value,
       true,
       tags.value,
       '',
       comment
     )
       .then(async (data) => {
-        notificationStore.addNotification(t('notifications.creatingItem', { name: taskName.value }), '', 'success');
+        notificationStore.addNotification(t('notifications.creatingItem', { name: assetName.value }), '', 'success');
         if (!trayStates.keepModalOpen) {
           closeModal();
         } else {
-          taskName.value = '';
+          assetName.value = '';
           tags.value = [];
         }
         isAwaitingResponse.value = false;
-        notificationStore.addNotification(t('notifications.createdItem', { name: taskName.value }), '', 'success');
+        notificationStore.addNotification(t('notifications.createdItem', { name: assetName.value }), '', 'success');
         if (launch) {
           FSService.LaunchFile(data.file_path);
         }
@@ -146,7 +146,7 @@ const createWebLink = async (launch = false, comment = 'Asset created') => {
       })
       .catch((error) => {
         console.log(error);
-        notificationStore.errorNotification(t('notifications.errorCreatingTask'), error);
+        notificationStore.errorNotification(t('notifications.errorCreatingAsset'), error);
       });
   }
 };
@@ -187,7 +187,7 @@ const pasteWebLink = async () => {
   ClipboardService.ReadText()
     .then(link => {
       if (isValidWeblink(link)) {
-        taskWebLink.value = link;
+        assetWebLink.value = link;
       }
     })
     .catch(err => {

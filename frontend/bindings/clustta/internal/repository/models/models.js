@@ -6,6 +6,129 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+/**
+ * @typedef {any} Asset
+ */
+
+export class AssetDependency {
+    /**
+     * Creates a new AssetDependency instance.
+     * @param {Partial<AssetDependency>} [$$source = {}] - The source object to create the AssetDependency.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("mtime" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["mtime"] = 0;
+        }
+        if (!("asset_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["asset_id"] = "";
+        }
+        if (!("dependency_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["dependency_id"] = "";
+        }
+        if (!("dependency_type_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["dependency_type_id"] = "";
+        }
+        if (!("synced" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["synced"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AssetDependency instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AssetDependency}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new AssetDependency(/** @type {Partial<AssetDependency>} */($$parsedSource));
+    }
+}
+
+export class AssetType {
+    /**
+     * Creates a new AssetType instance.
+     * @param {Partial<AssetType>} [$$source = {}] - The source object to create the AssetType.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("mtime" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["mtime"] = 0;
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("icon" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["icon"] = "";
+        }
+        if (!("synced" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["synced"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AssetType instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AssetType}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new AssetType(/** @type {Partial<AssetType>} */($$parsedSource));
+    }
+}
+
 export class Checkpoint {
     /**
      * Creates a new Checkpoint instance.
@@ -33,12 +156,12 @@ export class Checkpoint {
              */
             this["created_at"] = "";
         }
-        if (!("task_id" in $$source)) {
+        if (!("asset_id" in $$source)) {
             /**
              * @member
              * @type {string}
              */
-            this["task_id"] = "";
+            this["asset_id"] = "";
         }
         if (!("xxhash_checksum" in $$source)) {
             /**
@@ -150,6 +273,66 @@ export class Checkpoint {
     }
 }
 
+/**
+ * @typedef {any} Collection
+ */
+
+export class CollectionType {
+    /**
+     * Creates a new CollectionType instance.
+     * @param {Partial<CollectionType>} [$$source = {}] - The source object to create the CollectionType.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("mtime" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["mtime"] = 0;
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("icon" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["icon"] = "";
+        }
+        if (!("synced" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["synced"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CollectionType instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CollectionType}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new CollectionType(/** @type {Partial<CollectionType>} */($$parsedSource));
+    }
+}
+
 export class DependencyType {
     /**
      * Creates a new DependencyType instance.
@@ -196,66 +379,6 @@ export class DependencyType {
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new DependencyType(/** @type {Partial<DependencyType>} */($$parsedSource));
-    }
-}
-
-/**
- * @typedef {any} Entity
- */
-
-export class EntityType {
-    /**
-     * Creates a new EntityType instance.
-     * @param {Partial<EntityType>} [$$source = {}] - The source object to create the EntityType.
-     */
-    constructor($$source = {}) {
-        if (!("id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["id"] = "";
-        }
-        if (!("mtime" in $$source)) {
-            /**
-             * @member
-             * @type {number}
-             */
-            this["mtime"] = 0;
-        }
-        if (!("name" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["name"] = "";
-        }
-        if (!("icon" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["icon"] = "";
-        }
-        if (!("synced" in $$source)) {
-            /**
-             * @member
-             * @type {boolean}
-             */
-            this["synced"] = false;
-        }
-
-        Object.assign(this, $$source);
-    }
-
-    /**
-     * Creates a new EntityType instance from a string or object.
-     * @param {any} [$$source = {}]
-     * @returns {EntityType}
-     */
-    static createFrom($$source = {}) {
-        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        return new EntityType(/** @type {Partial<EntityType>} */($$parsedSource));
     }
 }
 
@@ -396,61 +519,61 @@ export class Role {
              */
             this["synced"] = false;
         }
-        if (!("view_entity" in $$source)) {
+        if (!("view_collection" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["view_entity"] = false;
+            this["view_collection"] = false;
         }
-        if (!("create_entity" in $$source)) {
+        if (!("create_collection" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["create_entity"] = false;
+            this["create_collection"] = false;
         }
-        if (!("update_entity" in $$source)) {
+        if (!("update_collection" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["update_entity"] = false;
+            this["update_collection"] = false;
         }
-        if (!("delete_entity" in $$source)) {
+        if (!("delete_collection" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["delete_entity"] = false;
+            this["delete_collection"] = false;
         }
-        if (!("view_task" in $$source)) {
+        if (!("view_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["view_task"] = false;
+            this["view_asset"] = false;
         }
-        if (!("create_task" in $$source)) {
+        if (!("create_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["create_task"] = false;
+            this["create_asset"] = false;
         }
-        if (!("update_task" in $$source)) {
+        if (!("update_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["update_task"] = false;
+            this["update_asset"] = false;
         }
-        if (!("delete_task" in $$source)) {
+        if (!("delete_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["delete_task"] = false;
+            this["delete_asset"] = false;
         }
         if (!("view_template" in $$source)) {
             /**
@@ -508,19 +631,19 @@ export class Role {
              */
             this["pull_chunk"] = false;
         }
-        if (!("assign_task" in $$source)) {
+        if (!("assign_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["assign_task"] = false;
+            this["assign_asset"] = false;
         }
-        if (!("unassign_task" in $$source)) {
+        if (!("unassign_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["unassign_task"] = false;
+            this["unassign_asset"] = false;
         }
         if (!("add_user" in $$source)) {
             /**
@@ -550,26 +673,26 @@ export class Role {
              */
             this["change_status"] = false;
         }
-        if (!("set_done_task" in $$source)) {
+        if (!("set_done_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["set_done_task"] = false;
+            this["set_done_asset"] = false;
         }
-        if (!("set_retake_task" in $$source)) {
+        if (!("set_retake_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["set_retake_task"] = false;
+            this["set_retake_asset"] = false;
         }
-        if (!("view_done_task" in $$source)) {
+        if (!("view_done_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["view_done_task"] = false;
+            this["view_done_asset"] = false;
         }
         if (!("manage_dependencies" in $$source)) {
             /**
@@ -599,61 +722,61 @@ export class RoleAttributes {
      * @param {Partial<RoleAttributes>} [$$source = {}] - The source object to create the RoleAttributes.
      */
     constructor($$source = {}) {
-        if (!("view_entity" in $$source)) {
+        if (!("view_collection" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["view_entity"] = false;
+            this["view_collection"] = false;
         }
-        if (!("create_entity" in $$source)) {
+        if (!("create_collection" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["create_entity"] = false;
+            this["create_collection"] = false;
         }
-        if (!("update_entity" in $$source)) {
+        if (!("update_collection" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["update_entity"] = false;
+            this["update_collection"] = false;
         }
-        if (!("delete_entity" in $$source)) {
+        if (!("delete_collection" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["delete_entity"] = false;
+            this["delete_collection"] = false;
         }
-        if (!("view_task" in $$source)) {
+        if (!("view_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["view_task"] = false;
+            this["view_asset"] = false;
         }
-        if (!("create_task" in $$source)) {
+        if (!("create_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["create_task"] = false;
+            this["create_asset"] = false;
         }
-        if (!("update_task" in $$source)) {
+        if (!("update_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["update_task"] = false;
+            this["update_asset"] = false;
         }
-        if (!("delete_task" in $$source)) {
+        if (!("delete_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["delete_task"] = false;
+            this["delete_asset"] = false;
         }
         if (!("view_template" in $$source)) {
             /**
@@ -711,19 +834,19 @@ export class RoleAttributes {
              */
             this["pull_chunk"] = false;
         }
-        if (!("assign_task" in $$source)) {
+        if (!("assign_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["assign_task"] = false;
+            this["assign_asset"] = false;
         }
-        if (!("unassign_task" in $$source)) {
+        if (!("unassign_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["unassign_task"] = false;
+            this["unassign_asset"] = false;
         }
         if (!("add_user" in $$source)) {
             /**
@@ -753,26 +876,26 @@ export class RoleAttributes {
              */
             this["change_status"] = false;
         }
-        if (!("set_done_task" in $$source)) {
+        if (!("set_done_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["set_done_task"] = false;
+            this["set_done_asset"] = false;
         }
-        if (!("set_retake_task" in $$source)) {
+        if (!("set_retake_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["set_retake_task"] = false;
+            this["set_retake_asset"] = false;
         }
-        if (!("view_done_task" in $$source)) {
+        if (!("view_done_asset" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["view_done_task"] = false;
+            this["view_done_asset"] = false;
         }
         if (!("manage_dependencies" in $$source)) {
             /**
@@ -908,129 +1031,6 @@ export class Tag {
     }
 }
 
-/**
- * @typedef {any} Task
- */
-
-export class TaskDependency {
-    /**
-     * Creates a new TaskDependency instance.
-     * @param {Partial<TaskDependency>} [$$source = {}] - The source object to create the TaskDependency.
-     */
-    constructor($$source = {}) {
-        if (!("id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["id"] = "";
-        }
-        if (!("mtime" in $$source)) {
-            /**
-             * @member
-             * @type {number}
-             */
-            this["mtime"] = 0;
-        }
-        if (!("task_id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["task_id"] = "";
-        }
-        if (!("dependency_id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["dependency_id"] = "";
-        }
-        if (!("dependency_type_id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["dependency_type_id"] = "";
-        }
-        if (!("synced" in $$source)) {
-            /**
-             * @member
-             * @type {boolean}
-             */
-            this["synced"] = false;
-        }
-
-        Object.assign(this, $$source);
-    }
-
-    /**
-     * Creates a new TaskDependency instance from a string or object.
-     * @param {any} [$$source = {}]
-     * @returns {TaskDependency}
-     */
-    static createFrom($$source = {}) {
-        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        return new TaskDependency(/** @type {Partial<TaskDependency>} */($$parsedSource));
-    }
-}
-
-export class TaskType {
-    /**
-     * Creates a new TaskType instance.
-     * @param {Partial<TaskType>} [$$source = {}] - The source object to create the TaskType.
-     */
-    constructor($$source = {}) {
-        if (!("id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["id"] = "";
-        }
-        if (!("mtime" in $$source)) {
-            /**
-             * @member
-             * @type {number}
-             */
-            this["mtime"] = 0;
-        }
-        if (!("name" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["name"] = "";
-        }
-        if (!("icon" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["icon"] = "";
-        }
-        if (!("synced" in $$source)) {
-            /**
-             * @member
-             * @type {boolean}
-             */
-            this["synced"] = false;
-        }
-
-        Object.assign(this, $$source);
-    }
-
-    /**
-     * Creates a new TaskType instance from a string or object.
-     * @param {any} [$$source = {}]
-     * @returns {TaskType}
-     */
-    static createFrom($$source = {}) {
-        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        return new TaskType(/** @type {Partial<TaskType>} */($$parsedSource));
-    }
-}
-
 export class Template {
     /**
      * Creates a new Template instance.
@@ -1116,11 +1116,11 @@ export class Template {
 }
 
 /**
- * @typedef {any} UntrackedEntity
+ * @typedef {any} UntrackedAsset
  */
 
 /**
- * @typedef {any} UntrackedTask
+ * @typedef {any} UntrackedCollection
  */
 
 export class User {
@@ -1263,19 +1263,19 @@ export class Workflow {
              */
             this["synced"] = false;
         }
-        if (!("tasks" in $$source)) {
+        if (!("assets" in $$source)) {
             /**
              * @member
-             * @type {WorkflowTask[]}
+             * @type {WorkflowAsset[]}
              */
-            this["tasks"] = [];
+            this["assets"] = [];
         }
-        if (!("entities" in $$source)) {
+        if (!("collections" in $$source)) {
             /**
              * @member
-             * @type {WorkflowEntity[]}
+             * @type {WorkflowCollection[]}
              */
-            this["entities"] = [];
+            this["collections"] = [];
         }
         if (!("links" in $$source)) {
             /**
@@ -1298,11 +1298,11 @@ export class Workflow {
         const $$createField5_0 = $$createType4;
         const $$createField6_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("tasks" in $$parsedSource) {
-            $$parsedSource["tasks"] = $$createField4_0($$parsedSource["tasks"]);
+        if ("assets" in $$parsedSource) {
+            $$parsedSource["assets"] = $$createField4_0($$parsedSource["assets"]);
         }
-        if ("entities" in $$parsedSource) {
-            $$parsedSource["entities"] = $$createField5_0($$parsedSource["entities"]);
+        if ("collections" in $$parsedSource) {
+            $$parsedSource["collections"] = $$createField5_0($$parsedSource["collections"]);
         }
         if ("links" in $$parsedSource) {
             $$parsedSource["links"] = $$createField6_0($$parsedSource["links"]);
@@ -1311,157 +1311,10 @@ export class Workflow {
     }
 }
 
-export class WorkflowEntity {
+export class WorkflowAsset {
     /**
-     * Creates a new WorkflowEntity instance.
-     * @param {Partial<WorkflowEntity>} [$$source = {}] - The source object to create the WorkflowEntity.
-     */
-    constructor($$source = {}) {
-        if (!("id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["id"] = "";
-        }
-        if (!("mtime" in $$source)) {
-            /**
-             * @member
-             * @type {number}
-             */
-            this["mtime"] = 0;
-        }
-        if (!("name" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["name"] = "";
-        }
-        if (!("workflow_id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["workflow_id"] = "";
-        }
-        if (!("entity_type_id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["entity_type_id"] = "";
-        }
-        if (!("parent_id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["parent_id"] = "";
-        }
-        if (!("synced" in $$source)) {
-            /**
-             * @member
-             * @type {boolean}
-             */
-            this["synced"] = false;
-        }
-
-        Object.assign(this, $$source);
-    }
-
-    /**
-     * Creates a new WorkflowEntity instance from a string or object.
-     * @param {any} [$$source = {}]
-     * @returns {WorkflowEntity}
-     */
-    static createFrom($$source = {}) {
-        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        return new WorkflowEntity(/** @type {Partial<WorkflowEntity>} */($$parsedSource));
-    }
-}
-
-export class WorkflowLink {
-    /**
-     * Creates a new WorkflowLink instance.
-     * @param {Partial<WorkflowLink>} [$$source = {}] - The source object to create the WorkflowLink.
-     */
-    constructor($$source = {}) {
-        if (!("id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["id"] = "";
-        }
-        if (!("mtime" in $$source)) {
-            /**
-             * @member
-             * @type {number}
-             */
-            this["mtime"] = 0;
-        }
-        if (!("name" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["name"] = "";
-        }
-        if (!("entity_type_id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["entity_type_id"] = "";
-        }
-        if (!("workflow_id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["workflow_id"] = "";
-        }
-        if (!("linked_workflow_id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["linked_workflow_id"] = "";
-        }
-        if (!("linked_workflow_name" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["linked_workflow_name"] = "";
-        }
-        if (!("synced" in $$source)) {
-            /**
-             * @member
-             * @type {boolean}
-             */
-            this["synced"] = false;
-        }
-
-        Object.assign(this, $$source);
-    }
-
-    /**
-     * Creates a new WorkflowLink instance from a string or object.
-     * @param {any} [$$source = {}]
-     * @returns {WorkflowLink}
-     */
-    static createFrom($$source = {}) {
-        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        return new WorkflowLink(/** @type {Partial<WorkflowLink>} */($$parsedSource));
-    }
-}
-
-export class WorkflowTask {
-    /**
-     * Creates a new WorkflowTask instance.
-     * @param {Partial<WorkflowTask>} [$$source = {}] - The source object to create the WorkflowTask.
+     * Creates a new WorkflowAsset instance.
+     * @param {Partial<WorkflowAsset>} [$$source = {}] - The source object to create the WorkflowAsset.
      */
     constructor($$source = {}) {
         if (!("id" in $$source)) {
@@ -1506,19 +1359,19 @@ export class WorkflowTask {
              */
             this["workflow_id"] = "";
         }
-        if (!("task_type_id" in $$source)) {
+        if (!("asset_type_id" in $$source)) {
             /**
              * @member
              * @type {string}
              */
-            this["task_type_id"] = "";
+            this["asset_type_id"] = "";
         }
-        if (!("workflow_entity_id" in $$source)) {
+        if (!("workflow_collection_id" in $$source)) {
             /**
              * @member
              * @type {string}
              */
-            this["workflow_entity_id"] = "";
+            this["workflow_collection_id"] = "";
         }
         if (!("is_link" in $$source)) {
             /**
@@ -1546,21 +1399,168 @@ export class WorkflowTask {
     }
 
     /**
-     * Creates a new WorkflowTask instance from a string or object.
+     * Creates a new WorkflowAsset instance from a string or object.
      * @param {any} [$$source = {}]
-     * @returns {WorkflowTask}
+     * @returns {WorkflowAsset}
      */
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        return new WorkflowTask(/** @type {Partial<WorkflowTask>} */($$parsedSource));
+        return new WorkflowAsset(/** @type {Partial<WorkflowAsset>} */($$parsedSource));
+    }
+}
+
+export class WorkflowCollection {
+    /**
+     * Creates a new WorkflowCollection instance.
+     * @param {Partial<WorkflowCollection>} [$$source = {}] - The source object to create the WorkflowCollection.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("mtime" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["mtime"] = 0;
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("workflow_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["workflow_id"] = "";
+        }
+        if (!("collection_type_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["collection_type_id"] = "";
+        }
+        if (!("parent_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["parent_id"] = "";
+        }
+        if (!("synced" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["synced"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new WorkflowCollection instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {WorkflowCollection}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new WorkflowCollection(/** @type {Partial<WorkflowCollection>} */($$parsedSource));
+    }
+}
+
+export class WorkflowLink {
+    /**
+     * Creates a new WorkflowLink instance.
+     * @param {Partial<WorkflowLink>} [$$source = {}] - The source object to create the WorkflowLink.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("mtime" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["mtime"] = 0;
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("collection_type_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["collection_type_id"] = "";
+        }
+        if (!("workflow_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["workflow_id"] = "";
+        }
+        if (!("linked_workflow_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["linked_workflow_id"] = "";
+        }
+        if (!("linked_workflow_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["linked_workflow_name"] = "";
+        }
+        if (!("synced" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["synced"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new WorkflowLink instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {WorkflowLink}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new WorkflowLink(/** @type {Partial<WorkflowLink>} */($$parsedSource));
     }
 }
 
 // Private type creation functions
 const $$createType0 = Role.createFrom;
-const $$createType1 = WorkflowTask.createFrom;
+const $$createType1 = WorkflowAsset.createFrom;
 const $$createType2 = $Create.Array($$createType1);
-const $$createType3 = WorkflowEntity.createFrom;
+const $$createType3 = WorkflowCollection.createFrom;
 const $$createType4 = $Create.Array($$createType3);
 const $$createType5 = WorkflowLink.createFrom;
 const $$createType6 = $Create.Array($$createType5);

@@ -7,9 +7,9 @@
     <div class="alert-content">
       <div class="alert-title">New types will be created</div>
       <div class="alert-description">
-        <span v-if="entityCount > 0">{{ entityCount }} collection type{{ entityCount > 1 ? 's' : '' }}</span>
-        <span v-if="entityCount > 0 && taskCount > 0"> and </span>
-        <span v-if="taskCount > 0">{{ taskCount }} task type{{ taskCount > 1 ? 's' : '' }}</span>
+        <span v-if="collectionCount > 0">{{ collectionCount }} collection type{{ collectionCount > 1 ? 's' : '' }}</span>
+        <span v-if="collectionCount > 0 && assetCount > 0"> and </span>
+        <span v-if="assetCount > 0">{{ assetCount }} asset type{{ assetCount > 1 ? 's' : '' }}</span>
         <span> will be created to match {{ integrationName }}.</span>
       </div>
     </div>
@@ -26,7 +26,7 @@
       <img :src="getTypeIcon(typeItem.suggested_icon)" alt="" class="type-icon" />
       <div class="type-info">
         <span class="type-name">{{ typeItem.external_name }}</span>
-        <span class="type-category">{{ typeItem.type_category === 'entity' ? 'Collection Type' : 'Task Type' }}</span>
+        <span class="type-category">{{ typeItem.type_category === 'collection' ? 'Collection Type' : 'Asset Type' }}</span>
       </div>
       <span class="type-badge">{{ typeItem.suggested_name }}</span>
     </div>
@@ -54,9 +54,9 @@ const props = defineProps({
 const emit = defineEmits(['toggle']);
 
 // computed
-// Count of entity types missing.
-const entityCount = computed(() => {
-  return props.missingTypes.filter(t => t.type_category === 'entity').length;
+// Count of collection types missing.
+const collectionCount = computed(() => {
+  return props.missingTypes.filter(t => t.type_category === 'collection').length;
 });
 
 // Whether there are any missing types.
@@ -64,9 +64,9 @@ const hasMissingTypes = computed(() => {
   return props.missingTypes.length > 0;
 });
 
-// Count of task types missing.
-const taskCount = computed(() => {
-  return props.missingTypes.filter(t => t.type_category === 'task').length;
+// Count of asset types missing.
+const assetCount = computed(() => {
+  return props.missingTypes.filter(t => t.type_category === 'asset').length;
 });
 
 // methods

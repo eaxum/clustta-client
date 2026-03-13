@@ -20,7 +20,7 @@ type RecycleItem struct {
 
 type TrashService struct{}
 
-// Retrieves all deleted items from project database including entities, templates, tasks, and checkpoints
+// Retrieves all deleted items from project database including collections, templates, assets, and checkpoints
 func (t *TrashService) GetTrashs(projectPath string) ([]RecycleItem, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
@@ -35,15 +35,15 @@ func (t *TrashService) GetTrashs(projectPath string) ([]RecycleItem, error) {
 
 	recycleItems := []RecycleItem{}
 
-	entities, err := repository.GetDeletedEntities(tx)
+	collections, err := repository.GetDeletedCollections(tx)
 	if err != nil {
 		return []RecycleItem{}, err
 	}
-	for _, entity := range entities {
+	for _, collection := range collections {
 		recycleItem := RecycleItem{
-			Name: entity.Name,
-			Type: "entity",
-			Id:   entity.Id,
+			Name: collection.Name,
+			Type: "collection",
+			Id:   collection.Id,
 		}
 		recycleItems = append(recycleItems, recycleItem)
 
@@ -64,44 +64,44 @@ func (t *TrashService) GetTrashs(projectPath string) ([]RecycleItem, error) {
 
 	}
 
-	//task
+	//asset
 
-	tasks, err := repository.GetDeletedTasks(tx)
+	assets, err := repository.GetDeletedAssets(tx)
 	if err != nil {
 		return []RecycleItem{}, err
 	}
-	for _, task := range tasks {
+	for _, asset := range assets {
 		recycleItem := RecycleItem{
-			Name:       task.Name,
-			Type:       "task",
-			Id:         task.Id,
-			ParentId:   task.EntityId,
-			ParentName: task.EntityName,
+			Name:       asset.Name,
+			Type:       "asset",
+			Id:         asset.Id,
+			ParentId:   asset.CollectionId,
+			ParentName: asset.CollectionName,
 		}
 		recycleItems = append(recycleItems, recycleItem)
 
 	}
 
-	taskCheckpoints, err := repository.GetDeletedCheckpoints(tx)
+	assetCheckpoints, err := repository.GetDeletedCheckpoints(tx)
 	if err != nil {
 		return []RecycleItem{}, err
 	}
-	for _, taskCheckpoint := range taskCheckpoints {
-		checkpointTask, err := repository.GetTask(tx, taskCheckpoint.TaskId)
+	for _, assetCheckpoint := range assetCheckpoints {
+		checkpointAsset, err := repository.GetAsset(tx, assetCheckpoint.AssetId)
 		if err != nil {
 			return []RecycleItem{}, err
 		}
-		checkpointName := fmt.Sprintf("%s %s", checkpointTask.Name, taskCheckpoint.CreatedAt)
-		task, err := repository.GetTask(tx, taskCheckpoint.TaskId)
+		checkpointName := fmt.Sprintf("%s %s", checkpointAsset.Name, assetCheckpoint.CreatedAt)
+		asset, err := repository.GetAsset(tx, assetCheckpoint.AssetId)
 		if err != nil {
 			return []RecycleItem{}, err
 		}
 		recycleItem := RecycleItem{
 			Name:       checkpointName,
-			Type:       "task_checkpoint",
-			Id:         taskCheckpoint.Id,
-			ParentId:   taskCheckpoint.TaskId,
-			ParentName: task.Name,
+			Type:       "asset_checkpoint",
+			Id:         assetCheckpoint.Id,
+			ParentId:   assetCheckpoint.AssetId,
+			ParentName: asset.Name,
 		}
 		recycleItems = append(recycleItems, recycleItem)
 

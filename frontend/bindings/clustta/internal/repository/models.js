@@ -19,12 +19,12 @@ export class CompatTimeline {
              */
             this["created_at"] = "";
         }
-        if (!("task_paths" in $$source)) {
+        if (!("asset_paths" in $$source)) {
             /**
              * @member
              * @type {string[]}
              */
-            this["task_paths"] = [];
+            this["asset_paths"] = [];
         }
         if (!("group_id" in $$source)) {
             /**
@@ -67,8 +67,8 @@ export class CompatTimeline {
         const $$createField1_0 = $$createType0;
         const $$createField5_0 = $Create.ByteSlice;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("task_paths" in $$parsedSource) {
-            $$parsedSource["task_paths"] = $$createField1_0($$parsedSource["task_paths"]);
+        if ("asset_paths" in $$parsedSource) {
+            $$parsedSource["asset_paths"] = $$createField1_0($$parsedSource["asset_paths"]);
         }
         if ("preview" in $$parsedSource) {
             $$parsedSource["preview"] = $$createField5_0($$parsedSource["preview"]);

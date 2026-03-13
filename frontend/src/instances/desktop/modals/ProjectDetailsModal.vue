@@ -262,7 +262,7 @@ const getProjectSize = async () => {
 // Handles emoji selection from picker.
 const handleEmojiSelect = (emojiData) => {
   selectedEmoji.value = emojiData;
-  projectIcon.value = selectedEmoji.value.entity;
+  projectIcon.value = selectedEmoji.value.collection;
   displayEmojiSelector.value = false;
 };
 

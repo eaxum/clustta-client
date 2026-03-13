@@ -1,6 +1,6 @@
 <template>
     <div @click="enterCheckpoint" class="checkpoint-item" v-esc="closeAllCheckpoints"
-        :class="{ 'checkpoint-item-recent': justViewed === checkpoint.checkpoint_id, 'checkpoint-active': checkpoint.hash === taskHash }"
+        :class="{ 'checkpoint-item-recent': justViewed === checkpoint.checkpoint_id, 'checkpoint-active': checkpoint.hash === assetHash }"
         :style="{ animationDelay: '0s' }">
 
         <div class="checkpoint-item-content" :class="{ 'checkpoint-item-content-active': isItemExpanded }">
@@ -116,7 +116,7 @@ const props = defineProps({
         type: Object,
         required: true
     },
-    taskHash: {
+    assetHash: {
         type: String,
         default: ''
     },
@@ -127,7 +127,7 @@ const props = defineProps({
 });
 
 // emits
-const emit = defineEmits(['refreshCheckpoints', 'update-task-hash', 'update-expanded']);
+const emit = defineEmits(['refreshCheckpoints', 'update-asset-hash', 'update-expanded']);
 
 // stores/states
 const modals = useDesktopModalStore();
@@ -173,7 +173,7 @@ const revertToVersion = (id, checkpointId) => {
     notificationStore.canCancel = true
     CheckpointService.RevertToCheckpoint(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, id, checkpointId)
         .then((response) => {
-            emit('update-task-hash');
+            emit('update-asset-hash');
             emit('refreshCheckpoints');
             assetStore.refreshDisplayedFilesStatus()
         })

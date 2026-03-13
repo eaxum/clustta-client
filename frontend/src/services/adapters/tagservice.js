@@ -83,7 +83,7 @@ export const TagService = {
     try {
       const db = await getDatabase(projectName);
       execute(db, 'DELETE FROM tag WHERE id = ?', [tagId]);
-      execute(db, 'DELETE FROM task_tag WHERE tag_id = ?', [tagId]);
+      execute(db, 'DELETE FROM asset_tag WHERE tag_id = ?', [tagId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('DeleteTag local update error:', error);

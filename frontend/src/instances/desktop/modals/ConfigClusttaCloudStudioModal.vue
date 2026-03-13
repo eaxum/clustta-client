@@ -100,7 +100,7 @@
 
         <div class="deployment-progress-bar-container">
             <div class="progress-bar-loader tint">
-                <ProgressBar :taskProgress="deploymentStatus.progress" />
+                <ProgressBar :assetProgress="deploymentStatus.progress" />
             </div>
         </div>
         

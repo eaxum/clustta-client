@@ -1,9 +1,9 @@
 <template>
-  <div class="entity-item-main" v-stop-propagation>
+  <div class="collection-item-main" v-stop-propagation>
 
-    <div class="entity-spacer">
-      <span v-if="!entity.task_type_id" @click="expandItem" class="single-action-button">
-        <img class="small-icons entity-collapsed" :class="{ 'entity-expanded': isExpanded }"
+    <div class="collection-spacer">
+      <span v-if="!collection.asset_type_id" @click="expandItem" class="single-action-button">
+        <img class="small-icons collection-collapsed" :class="{ 'collection-expanded': isExpanded }"
           :src="getAppIcon('chevron-down')">
       </span>
 
@@ -12,18 +12,18 @@
       </span>
     </div>
 
-    <div class="entity-item-root">
+    <div class="collection-item-root">
 
-      <div class="entity-item-container drop-zone">
+      <div class="collection-item-container drop-zone">
 
-        <div class="entity-item-icon-container">
-          <img v-if="!entity.task_type_id" class="large-icons" :src="getAppIcon(workflowItemIcon)">
-          <img v-else class="large-icons" :src="getAppIcon(workflowTaskIcon)">
+        <div class="collection-item-icon-container">
+          <img v-if="!collection.asset_type_id" class="large-icons" :src="getAppIcon(workflowItemIcon)">
+          <img v-else class="large-icons" :src="getAppIcon(workflowAssetIcon)">
         </div>
 
-        <div class="entity-item-content selection-area">
-          <div class="entity-item-details">
-            {{ entity.name }}
+        <div class="collection-item-content selection-area">
+          <div class="collection-item-details">
+            {{ collection.name }}
           </div>
         </div>
 
@@ -37,13 +37,13 @@
       </div>
 
 
-      <transition name="expand-task" @enter="utils.startTransition" @after-enter="utils.endTransition"
+      <transition name="expand-asset" @enter="utils.startTransition" @after-enter="utils.endTransition"
         @before-leave="utils.startTransition" @after-leave="utils.endTransition">
-        <div v-if="isExpanded" class="entity-child-root">
+        <div v-if="isExpanded" class="collection-child-root">
 
-          <WorkflowItem v-for="workflowItem in entity.links" :entity="workflowItem" />
-          <WorkflowItem v-for="workflowItem in entity.entities" :entity="workflowItem" />
-          <WorkflowItem v-for="workflowItem in entity.tasks" :entity="workflowItem" />
+          <WorkflowItem v-for="workflowItem in collection.links" :collection="workflowItem" />
+          <WorkflowItem v-for="workflowItem in collection.collections" :collection="workflowItem" />
+          <WorkflowItem v-for="workflowItem in collection.assets" :collection="workflowItem" />
 
         </div>
       </transition>
@@ -80,7 +80,7 @@ const { t } = useI18n();
 
 // props
 const props = defineProps({
-  entity: Object,
+  collection: Object,
   index: Number,
   isExpanded: { type: Boolean, default: false },
   isParent: { type: Boolean, default: false },
@@ -92,23 +92,23 @@ const emit = defineEmits(['expand', 'edit', 'delete', 'select'])
 // refs
 
 const workflowItemIcon = computed(() => {
-  const workflow = props.entity;
+  const workflow = props.collection;
 
-  if (workflow.entity_type_id) {
-    return collectionStore.getCollectionTypeIcon(workflow.entity_type_id)
+  if (workflow.collection_type_id) {
+    return collectionStore.getCollectionTypeIcon(workflow.collection_type_id)
   } else {
     return 'folder'
   }
 });
 
-const workflowTaskIcon = computed(() => {
-  const workflow = props.entity;
-  console.log(assetStore.getAssetTypeIcon(workflow.task_type_id))
-  return assetStore.getAssetTypeIcon(workflow.task_type_id)
+const workflowAssetIcon = computed(() => {
+  const workflow = props.collection;
+  console.log(assetStore.getAssetTypeIcon(workflow.asset_type_id))
+  return assetStore.getAssetTypeIcon(workflow.asset_type_id)
 });
 
 const templateIcon = computed(() => {
-  const workflow = props.entity;
+  const workflow = props.collection;
   return templateStore.getAssetTypeIcon(workflow.template_id)
 });
 
@@ -119,19 +119,19 @@ const getAppIcon = (iconName) => {
 };
 
 const expandItem = () => {
-  emit('expand', props.entity.id)
+  emit('expand', props.collection.id)
 };
 
 const editWorkflowItem = () => {
-  emit('edit', props.entity.id)
+  emit('edit', props.collection.id)
 };
 
 const deleteWorkflowItem = () => {
-  emit('delete', props.entity.id)
+  emit('delete', props.collection.id)
 };
 
 const selectWorkflowItem = () => {
-  emit('select', props.entity.id)
+  emit('select', props.collection.id)
 };
 
 onMounted(() => {
@@ -149,11 +149,11 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
-.entity-collapsed {
+.collection-collapsed {
   transform: rotate(-90deg);
 }
 
-.entity-expanded {
+.collection-expanded {
   transform: rotate(0deg);
 }
 
@@ -161,7 +161,7 @@ onBeforeUnmount(() => {
   opacity: .2;
 }
 
-.entity-item-main {
+.collection-item-main {
   display: flex;
   gap: .2rem;
   color: var(--white);
@@ -184,48 +184,48 @@ onBeforeUnmount(() => {
 
 }
 
-.entity-item-main:hover {
+.collection-item-main:hover {
   background-color: var(--steel);
   border-radius: var(--small-radius);
   outline: 1px solid var(--light-steel);
 }
 
-.entity-item-main-selected {
+.collection-item-main-selected {
   outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--black-steel);
-  background-color: var(--entity-item-selected);
+  background-color: var(--collection-item-selected);
 }
 
-.entity-item-selected {
+.collection-item-selected {
   outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--blue-steel);
 }
 
-.entity-item-last-selected {
+.collection-item-last-selected {
   outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--solid-blue-steel);
 }
 
-.entity-item-only-selected {
+.collection-item-only-selected {
   outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--solid-blue-steel);
 }
 
-.entity-item-main-selected:hover {
+.collection-item-main-selected:hover {
   outline: 1px solid rgb(255, 255, 255);
   outline-offset: -1px;
 }
 
 
-.entity-drop-zone-hovered {
+.collection-drop-zone-hovered {
   width: 100%;
   height: 100%;
   position: absolute;
@@ -237,7 +237,7 @@ onBeforeUnmount(() => {
   /* background-color: red; */
 }
 
-.entity-item-root {
+.collection-item-root {
 
   display: flex;
   flex-direction: column;
@@ -255,7 +255,7 @@ onBeforeUnmount(() => {
 
 }
 
-.entity-item-container {
+.collection-item-container {
   display: flex;
   gap: .5rem;
   color: var(--white);
@@ -269,7 +269,7 @@ onBeforeUnmount(() => {
   /* background-color: firebrick */
 }
 
-.entity-child-root {
+.collection-child-root {
   display: flex;
   flex-direction: column;
   gap: .2rem;
@@ -282,11 +282,11 @@ onBeforeUnmount(() => {
 }
 
 
-.entity-child-root-collapsed {
+.collection-child-root-collapsed {
   height: 0px;
 }
 
-.entity-spacer {
+.collection-spacer {
   position: relative;
   width: min-content;
   width: 25px;
@@ -296,7 +296,7 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 
-.entity-spacer-empty {
+.collection-spacer-empty {
   background-color: moccasin;
 }
 
@@ -319,7 +319,7 @@ onBeforeUnmount(() => {
   /* background-color: royalblue; */
 }
 
-.entity-item-preview-container {
+.collection-item-preview-container {
 
   display: flex;
   box-sizing: border-box;
@@ -333,7 +333,7 @@ onBeforeUnmount(() => {
   /* background-color: firebrick; */
 }
 
-.entity-item-preview-image {
+.collection-item-preview-image {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -345,7 +345,7 @@ onBeforeUnmount(() => {
   border-radius: 5px;
 }
 
-.entity-item-icon-container {
+.collection-item-icon-container {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -357,7 +357,7 @@ onBeforeUnmount(() => {
   /* background-color: firebrick; */
 }
 
-.entity-item-content {
+.collection-item-content {
   gap: .4rem;
   /* flex-direction: column; */
   display: flex;
@@ -371,14 +371,14 @@ onBeforeUnmount(() => {
 }
 
 
-.entity-item-meta-container {
+.collection-item-meta-container {
   /* background-color: firebrick; */
   width: 100%;
   display: flex;
   justify-content: flex-end;
 }
 
-.entity-item-meta {
+.collection-item-meta {
   display: flex;
   padding: .2rem;
   box-sizing: border-box;
@@ -392,7 +392,7 @@ onBeforeUnmount(() => {
   font-size: 14px;
 }
 
-.entity-item-details {
+.collection-item-details {
   /* display: flex; */
   padding: .2rem;
   flex-wrap: nowrap;
@@ -410,7 +410,7 @@ onBeforeUnmount(() => {
 }
 
 
-.entity-item-tag {
+.collection-item-tag {
   display: flex;
   box-sizing: border-box;
   overflow: hidden;
@@ -421,7 +421,7 @@ onBeforeUnmount(() => {
 }
 
 
-.entity-item-status-container {
+.collection-item-status-container {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -433,7 +433,7 @@ onBeforeUnmount(() => {
   /* flex: 1; */
 }
 
-.entity-item-status {
+.collection-item-status {
   display: flex;
   /* border-radius: var(--normal-radius); */
   box-sizing: border-box;
@@ -452,12 +452,12 @@ onBeforeUnmount(() => {
   transition: all 0.2s ease-out;
 }
 
-/* .entity-item-status:hover {
+/* .collection-item-status:hover {
   border-radius: 10px;
   transform: scale(1.03);
 } */
 
-.entity-item-actions {
+.collection-item-actions {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -483,7 +483,7 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 
-.entity-item-assignee {
+.collection-item-assignee {
   display: flex;
   box-sizing: border-box;
   align-items: center;

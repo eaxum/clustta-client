@@ -19,16 +19,16 @@ type Integration interface {
 
 	// Project operations (token passed per call)
 	GetProjects(token, apiUrl string) ([]ExternalProject, error)
-	GetProjectEntities(token, apiUrl, projectID string) ([]ExternalEntity, error)
-	GetProjectTasks(token, apiUrl, projectID string) ([]ExternalTask, error)
+	GetProjectCollections(token, apiUrl, projectID string) ([]ExternalCollection, error)
+	GetProjectAssets(token, apiUrl, projectID string) ([]ExternalAsset, error)
 
 	// Type discovery (for mapping configuration)
-	GetEntityTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error)
-	GetTaskTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error)
+	GetCollectionTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error)
+	GetAssetTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error)
 
 	// Push operations
-	UpdateTaskStatus(token, apiUrl, taskID, status string) error
-	UploadPreview(token, apiUrl, taskID, filePath, comment string) error
+	UpdateAssetStatus(token, apiUrl, assetID, status string) error
+	UploadPreview(token, apiUrl, assetID, filePath, comment string) error
 }
 
 // AuthResult contains the result of an authentication attempt.
@@ -58,39 +58,39 @@ type ExternalProject struct {
 	Stats       string `json:"stats,omitempty"` // e.g., "12 episodes, 89 shots"
 }
 
-// ExternalEntity represents a hierarchy item in the external system.
-// This can be an episode, sequence, shot, folder, list, task type, etc.
-type ExternalEntity struct {
+// ExternalCollection represents a hierarchy item in the external system.
+// This can be an episode, sequence, shot, folder, list, asset type, etc.
+type ExternalCollection struct {
 	ID           string                 `json:"id"`
 	ParentID     string                 `json:"parent_id,omitempty"`
 	Name         string                 `json:"name"`
-	Type         string                 `json:"type"` // "episode", "sequence", "shot", "folder", "list", "task_type"
+	Type         string                 `json:"type"` // "episode", "sequence", "shot", "folder", "list", "asset_type"
 	Path         string                 `json:"path"` // Full path for display
-	Children     []ExternalEntity       `json:"children,omitempty"`
+	Children     []ExternalCollection       `json:"children,omitempty"`
 	Metadata     map[string]interface{} `json:"metadata,omitempty"`
-	HasTasks     bool                   `json:"has_tasks"`
-	TaskTypeName string                 `json:"task_type_name,omitempty"` // For task type entities
+	HasAssets     bool                   `json:"has_assets"`
+	AssetTypeName string                 `json:"asset_type_name,omitempty"` // For asset type collections
 }
 
-// ExternalTask represents a task/work item in the external system.
-type ExternalTask struct {
+// ExternalAsset represents a asset/work item in the external system.
+type ExternalAsset struct {
 	ID          string   `json:"id"`
-	ParentID    string   `json:"parent_id"` // Parent entity ID
+	ParentID    string   `json:"parent_id"` // Parent collection ID
 	Name        string   `json:"name"`
-	Type        string   `json:"type"` // "task", "subtask"
+	Type        string   `json:"type"` // "asset", "subasset"
 	Status      string   `json:"status"`
 	Assignees   []string `json:"assignees,omitempty"`
 	DueDate     string   `json:"due_date,omitempty"`
-	TaskType    string   `json:"task_type,omitempty"`    // e.g., "Animation", "Lighting"
-	TaskTypeID  string   `json:"task_type_id,omitempty"` // External task type ID
+	AssetType    string   `json:"asset_type,omitempty"`    // e.g., "Animation", "Lighting"
+	AssetTypeID  string   `json:"asset_type_id,omitempty"` // External asset type ID
 	Description string   `json:"description,omitempty"`
 }
 
 // ProjectHierarchy contains the full hierarchy of a project.
 type ProjectHierarchy struct {
 	Project  ExternalProject  `json:"project"`
-	Entities []ExternalEntity `json:"entities"`
-	Tasks    []ExternalTask   `json:"tasks"`
+	Collections []ExternalCollection `json:"collections"`
+	Assets    []ExternalAsset   `json:"assets"`
 }
 
 // SyncPreview contains preview data for what will be synced.
@@ -107,20 +107,20 @@ type SyncPreview struct {
 type PreviewItem struct {
 	ID                string `json:"id"`                 // Unique ID (external_id or generated for virtual)
 	Name              string `json:"name"`               // Display name
-	ItemType          string `json:"item_type"`          // "entity", "task", "virtual"
+	ItemType          string `json:"item_type"`          // "collection", "asset", "virtual"
 	CollectionPath    string `json:"collection_path"`    // Full path e.g. "/episodes/ep01/"
 	ParentPath        string `json:"parent_path"`        // Parent's collection_path e.g. "/episodes/"
 	ExternalID        string `json:"external_id"`        // ID in external system (empty for virtual)
 	ExternalType      string `json:"external_type"`      // Type in external system
-	ExternalTypeID    string `json:"external_type_id"`   // External type ID (for tasks)
+	ExternalTypeID    string `json:"external_type_id"`   // External type ID (for assets)
 	ExternalName      string `json:"external_name"`      // Name in external system
-	TypeName          string `json:"type_name"`          // Clustta type name (entity_type or task_type)
+	TypeName          string `json:"type_name"`          // Clustta type name (collection_type or asset_type)
 	TypeIcon          string `json:"type_icon"`          // Icon for the type
 	Action            string `json:"action"`             // "create", "link", "skip", "virtual"
 	Selected          bool   `json:"selected"`           // User selected for sync
 	IsVirtual         bool   `json:"is_virtual"`         // True for path segment folders
 	HasChildren       bool   `json:"has_children"`       // True if has child items
-	TemplateID        string `json:"template_id"`        // Clustta template ID for this task type
+	TemplateID        string `json:"template_id"`        // Clustta template ID for this asset type
 	TemplateExtension string `json:"template_extension"` // File extension from template (e.g., ".blend")
 }
 
@@ -135,8 +135,8 @@ type SyncCollection struct {
 	CollectionPath   string `json:"collection_path"`    // Proposed Clustta collection path
 	Action           string `json:"action"`             // "create", "link", "skip"
 	CollectionID     string `json:"collection_id"`      // Existing Clustta collection ID (if linking)
-	EntityTypeName   string `json:"entity_type_name"`   // Clustta entity type to use
-	EntityTypeIcon   string `json:"entity_type_icon"`   // Icon for the entity type
+	CollectionTypeName   string `json:"collection_type_name"`   // Clustta collection type to use
+	CollectionTypeIcon   string `json:"collection_type_icon"`   // Icon for the collection type
 	Selected         bool   `json:"selected"`           // User selected for sync
 }
 
@@ -146,17 +146,17 @@ type SyncAsset struct {
 	ExternalID        string   `json:"external_id"`
 	ExternalName      string   `json:"external_name"`
 	ExternalParentID  string   `json:"external_parent_id"`
-	ExternalType      string   `json:"external_type"`    // Task type name (e.g., "Animation")
-	ExternalTypeID    string   `json:"external_type_id"` // External task type ID
+	ExternalType      string   `json:"external_type"`    // Asset type name (e.g., "Animation")
+	ExternalTypeID    string   `json:"external_type_id"` // External asset type ID
 	ExternalStatus    string   `json:"external_status"`
 	ExternalAssignees []string `json:"external_assignees"`
 	CollectionPath    string   `json:"collection_path"` // Parent collection path
 	Action            string   `json:"action"`          // "create", "link", "skip"
 	AssetID           string   `json:"asset_id"`        // Existing Clustta asset ID (if linking)
-	TaskTypeName      string   `json:"task_type_name"`  // Clustta task type to use
-	TaskTypeIcon      string   `json:"task_type_icon"`
+	AssetTypeName      string   `json:"asset_type_name"`  // Clustta asset type to use
+	AssetTypeIcon      string   `json:"asset_type_icon"`
 	Selected          bool     `json:"selected"`
-	TemplateID        string   `json:"template_id"`        // Clustta template ID for this task type
+	TemplateID        string   `json:"template_id"`        // Clustta template ID for this asset type
 	TemplateExtension string   `json:"template_extension"` // File extension from template (e.g., ".blend")
 }
 
@@ -184,16 +184,16 @@ type IntegrationInfo struct {
 type TypeMapping struct {
 	ExternalName   string `json:"external_name"`   // Name in external system (e.g., "Animation")
 	ExternalID     string `json:"external_id"`     // ID in external system
-	ClustttaTypeID string `json:"clustta_type_id"` // Clustta entity_type or task_type ID
+	ClustttaTypeID string `json:"clustta_type_id"` // Clustta collection_type or asset_type ID
 	ClustttaName   string `json:"clustta_name"`    // Clustta type name (e.g., "animation")
 	ClustttaIcon   string `json:"clustta_icon"`    // Icon name
 }
 
 // SyncOptions contains configuration stored in integration_project.sync_options.
 type SyncOptions struct {
-	EntityTypeMappings map[string]TypeMapping `json:"entity_type_mappings"` // External entity type → Clustta collection type
-	TaskTypeMappings   map[string]TypeMapping `json:"task_type_mappings"`   // External task type → Clustta asset type
-	TaskTypeTemplates  map[string]string      `json:"task_type_templates"`  // External task type ID → Clustta template ID
+	CollectionTypeMappings map[string]TypeMapping `json:"collection_type_mappings"` // External collection type → Clustta collection type
+	AssetTypeMappings   map[string]TypeMapping `json:"asset_type_mappings"`   // External asset type → Clustta asset type
+	AssetTypeTemplates  map[string]string      `json:"asset_type_templates"`  // External asset type ID → Clustta template ID
 	DirectoryStructure DirectoryStructure     `json:"directory_structure"`  // Folder path templates
 	LastSyncAt         string                 `json:"last_sync_at"`
 }
@@ -209,7 +209,7 @@ type DirectoryStructure struct {
 type MissingType struct {
 	ExternalName  string `json:"external_name"`  // Name in external system
 	ExternalID    string `json:"external_id"`    // ID in external system
-	TypeCategory  string `json:"type_category"`  // "entity" or "task"
+	TypeCategory  string `json:"type_category"`  // "collection" or "asset"
 	SuggestedName string `json:"suggested_name"` // Suggested Clustta name (lowercase, sanitized)
 	SuggestedIcon string `json:"suggested_icon"` // Random icon suggestion
 }

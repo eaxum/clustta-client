@@ -11,18 +11,18 @@
             </div>
             <div class="input-section drop-down-box-section">
                 <DropDownBox :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" />
-                <DropDownBox v-if="itemType === 'Asset'" :items="taskTypeNames" :selectedItem="taskType"
-                    :onSelect="selectTaskType" />
-                <DropDownBox v-else-if="itemType === 'Collection'" :items="entityTypeNames" :selectedItem="entityType"
-                    :onSelect="selectEntityType" />
+                <DropDownBox v-if="itemType === 'Asset'" :items="assetTypeNames" :selectedItem="assetType"
+                    :onSelect="selectAssetType" />
+                <DropDownBox v-else-if="itemType === 'Collection'" :items="collectionTypeNames" :selectedItem="collectionType"
+                    :onSelect="selectCollectionType" />
                 <DropDownBox v-else-if="itemType === 'Workflow'" :items="projectWorkflowNames"
                     :selectedItem="selectedWorkflowName" :onSelect="selectWorkflow" />
-                <DropDownBox v-if="itemType === 'Workflow'" :items="entityTypeNames" :selectedItem="entityType"
-                    :onSelect="selectEntityType" />
+                <DropDownBox v-if="itemType === 'Workflow'" :items="collectionTypeNames" :selectedItem="collectionType"
+                    :onSelect="selectCollectionType" />
             </div>
-            <div v-if="itemType === 'Asset'" class="task-options-container">
+            <div v-if="itemType === 'Asset'" class="asset-options-container">
                 <div class="input-section">
-                    <Apps @templateSelected="selectTemplate" :selectedTemplateId="taskTemplateId" />
+                    <Apps @templateSelected="selectTemplate" :selectedTemplateId="assetTemplateId" />
                 </div>
             </div>
 
@@ -76,26 +76,26 @@ const itemType = ref(t('blocks.selectType'));
 const workflowId = ref('');
 const workflowName = ref('');
 
-const taskTemplateId = ref('');
-const taskTypeId = ref('');
-const taskTypeIcon = ref('');
+const assetTemplateId = ref('');
+const assetTypeId = ref('');
+const assetTypeIcon = ref('');
 
-const entityTypeId = ref('');
-const entityTypeIcon = ref('');
+const collectionTypeId = ref('');
+const collectionTypeIcon = ref('');
 
 const workflowTemplateId = ref('');
 
 // computed
-const taskType = computed(() => {
-    const allTaskTypes = assetStore.getAssetTypes;
-    const selectedTaskType = allTaskTypes.find((item) => item.id === taskTypeId.value);
-    return selectedTaskType ? selectedTaskType.name : t('blocks.selectTaskType')
+const assetType = computed(() => {
+    const allAssetTypes = assetStore.getAssetTypes;
+    const selectedAssetType = allAssetTypes.find((item) => item.id === assetTypeId.value);
+    return selectedAssetType ? selectedAssetType.name : t('blocks.selectAssetType')
 });
 
-const entityType = computed(() => {
-    const allEntityTypes = collectionStore.getCollectionTypes;
-    const selectedEntityType = allEntityTypes.find((item) => item.id === entityTypeId.value);
-    return selectedEntityType ? selectedEntityType.name : t('blocks.selectCollectionType')
+const collectionType = computed(() => {
+    const allCollectionTypes = collectionStore.getCollectionTypes;
+    const selectedCollectionType = allCollectionTypes.find((item) => item.id === collectionTypeId.value);
+    return selectedCollectionType ? selectedCollectionType.name : t('blocks.selectCollectionType')
 });
 
 const projectWorkflows = computed(() => {
@@ -123,15 +123,15 @@ const projectWorkflowNames = computed(() => {
 
 const selectedWorkflowName = ref(projectWorkflowNames.value[0]);
 
-const taskTypeNames = computed(() => {
+const assetTypeNames = computed(() => {
     return assetStore.getAssetTypesNames;
 });
 
-const taskTemplates = computed(() => {
+const assetTemplates = computed(() => {
     return templateStore.getTemplates;
 });
 
-const entityTypeNames = computed(() => {
+const collectionTypeNames = computed(() => {
     return collectionStore.getCollectionTypesNames;
 });
 
@@ -150,36 +150,36 @@ const newWorkflowItemData = computed(() => {
     let data = {};
     if (itemTypeName === 'Asset') {
 
-        const allTaskTypes = assetStore.getAssetTypes;
-        const firstTaskType = allTaskTypes[0];
-        taskTypeIcon.value = taskTypeIcon.value ? taskTypeIcon.value : firstTaskType.icon;
-        taskTypeId.value = taskTypeId.value ? taskTypeId.value : firstTaskType.id;
+        const allAssetTypes = assetStore.getAssetTypes;
+        const firstAssetType = allAssetTypes[0];
+        assetTypeIcon.value = assetTypeIcon.value ? assetTypeIcon.value : firstAssetType.icon;
+        assetTypeId.value = assetTypeId.value ? assetTypeId.value : firstAssetType.id;
 
-        const allTaskTemplates = templateStore.getTemplates;
-        const firstTaskTemplate = allTaskTemplates[0];
-        taskTemplateId.value = taskTemplateId.value ? taskTemplateId.value : firstTaskTemplate.id;
+        const allAssetTemplates = templateStore.getTemplates;
+        const firstAssetTemplate = allAssetTemplates[0];
+        assetTemplateId.value = assetTemplateId.value ? assetTemplateId.value : firstAssetTemplate.id;
 
         data = {
             id: workflowId.value,
             name: workflowName.value,
-            template_id: taskTemplateId.value,
-            task_type_id: taskTypeId.value,
-            task_type_icon: taskTypeIcon.value,
-            type: 'Task',
+            template_id: assetTemplateId.value,
+            asset_type_id: assetTypeId.value,
+            asset_type_icon: assetTypeIcon.value,
+            type: 'Asset',
         };
     } else if (itemTypeName === 'Collection') {
 
-        const allEntityTypes = collectionStore.getCollectionTypes;
-        const firstEntityType = allEntityTypes[0];
-        entityTypeIcon.value = entityTypeIcon.value ? entityTypeIcon.value : firstEntityType.icon;
-        entityTypeId.value = entityTypeId.value ? entityTypeId.value : firstEntityType.id;
+        const allCollectionTypes = collectionStore.getCollectionTypes;
+        const firstCollectionType = allCollectionTypes[0];
+        collectionTypeIcon.value = collectionTypeIcon.value ? collectionTypeIcon.value : firstCollectionType.icon;
+        collectionTypeId.value = collectionTypeId.value ? collectionTypeId.value : firstCollectionType.id;
 
         data = {
             id: workflowId.value,
             name: workflowName.value,
-            entity_type_id: entityTypeId.value,
-            entity_type_icon: entityTypeIcon.value,
-            type: 'Entity',
+            collection_type_id: collectionTypeId.value,
+            collection_type_icon: collectionTypeIcon.value,
+            type: 'Collection',
         };
     } else if (itemTypeName === 'Workflow') {
 
@@ -190,7 +190,7 @@ const newWorkflowItemData = computed(() => {
         data = {
             id: workflowId.value,
             name: workflowName.value,
-            entity_type_id: entityTypeId.value,
+            collection_type_id: collectionTypeId.value,
             workflow_id: workflowId.value,
             linked_workflow_id: workflowTemplateId.value,
             type: 'Workflow',
@@ -247,24 +247,24 @@ const getAppIcon = (iconName) => {
     return icon
 };
 
-const selectTaskType = (taskTypeName) => {
-    const allTaskTypes = assetStore.getAssetTypes;
-    const selectedTaskType = allTaskTypes.find((item) => item.name === taskTypeName);
+const selectAssetType = (assetTypeName) => {
+    const allAssetTypes = assetStore.getAssetTypes;
+    const selectedAssetType = allAssetTypes.find((item) => item.name === assetTypeName);
 
-    taskTypeId.value = selectedTaskType.id;
-    taskTypeIcon.value = selectedTaskType.icon;
+    assetTypeId.value = selectedAssetType.id;
+    assetTypeIcon.value = selectedAssetType.icon;
 };
 
-const selectEntityType = (entityTypeName) => {
-    const allEntityTypes = collectionStore.getCollectionTypes;
-    const selectedEntityType = allEntityTypes.find((item) => item.name === entityTypeName);
+const selectCollectionType = (collectionTypeName) => {
+    const allCollectionTypes = collectionStore.getCollectionTypes;
+    const selectedCollectionType = allCollectionTypes.find((item) => item.name === collectionTypeName);
 
-    entityTypeId.value = selectedEntityType.id;
-    entityTypeIcon.value = selectedEntityType.icon;
+    collectionTypeId.value = selectedCollectionType.id;
+    collectionTypeIcon.value = selectedCollectionType.icon;
 };
 
-const selectTemplate = (taskTemplate) => {
-    taskTemplateId.value = taskTemplate.id;
+const selectTemplate = (assetTemplate) => {
+    assetTemplateId.value = assetTemplate.id;
 };
 
 const selectWorkflow = (workflowName) => {
@@ -278,7 +278,7 @@ const selectWorkflow = (workflowName) => {
 const changeItemType = (newItemTypeName) => {
     itemType.value = newItemTypeName;
     if (newItemTypeName === 'Asset') {
-        taskTemplateId.value = taskTemplates.value[0]?.id;
+        assetTemplateId.value = assetTemplates.value[0]?.id;
     }
 };
 
@@ -288,15 +288,15 @@ onMounted(() => {
         workflowId.value = props.workflowItemData.id || '';
         workflowName.value = props.workflowItemData.name || '';
 
-        if (props.workflowItemData.task_type_id) {
+        if (props.workflowItemData.asset_type_id) {
             itemType.value = 'Asset';
-            taskTypeId.value = props.workflowItemData.task_type_id;
-            taskTypeIcon.value = props.workflowItemData.task_type_icon || '';
-            taskTemplateId.value = props.workflowItemData.template_id || '';
-        } else if (props.workflowItemData.entity_type_id) {
+            assetTypeId.value = props.workflowItemData.asset_type_id;
+            assetTypeIcon.value = props.workflowItemData.asset_type_icon || '';
+            assetTemplateId.value = props.workflowItemData.template_id || '';
+        } else if (props.workflowItemData.collection_type_id) {
             itemType.value = 'Collection';
-            entityTypeId.value = props.workflowItemData.entity_type_id;
-            entityTypeIcon.value = props.workflowItemData.entity_type_icon || '';
+            collectionTypeId.value = props.workflowItemData.collection_type_id;
+            collectionTypeIcon.value = props.workflowItemData.collection_type_icon || '';
         } else if (props.workflowItemData.workflow_template_id) {
             itemType.value = 'Workflow';
             workflowTemplateId.value = props.workflowItemData.workflow_template_id;
@@ -318,7 +318,7 @@ onBeforeUnmount(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 
-.task-options-container {
+.asset-options-container {
     position: relative;
     box-sizing: border-box;
     width: 100%;

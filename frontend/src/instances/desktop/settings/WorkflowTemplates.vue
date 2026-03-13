@@ -7,7 +7,7 @@
       <div v-if="workflowStore.workflows.length" class="settings-component-body">
         <div class="workflow-items-container">
           <WorkflowItem v-for="workflow in workflowStore.workflows" @expand="expandWorkflowItem"
-            @delete="deleteWorkflowItem" @edit="editWorkflowItem" :entity="workflow"
+            @delete="deleteWorkflowItem" @edit="editWorkflowItem" :collection="workflow"
             :isExpanded="isExpanded(workflow.id)" :isParent="true" />
         </div>
       </div>

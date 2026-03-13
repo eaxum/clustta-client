@@ -33,7 +33,7 @@ export function Authenticate(integrationId, credentials) {
 }
 
 /**
- * CreateMissingTypes creates entity and task types in Clustta for missing external types.
+ * CreateMissingTypes creates collection and asset types in Clustta for missing external types.
  * Updates sync_options with the new mappings.
  * @param {string} projectPath
  * @param {integrations$0.MissingType[]} missingTypes
@@ -44,9 +44,9 @@ export function CreateMissingTypes(projectPath, missingTypes) {
 }
 
 /**
- * ExecuteSync creates Clustta collections and tasks from the provided sync preview data.
+ * ExecuteSync creates Clustta collections and assets from the provided sync preview data.
  * Accepts collections and assets from frontend instead of re-fetching from integration.
- * Creates all items - collections sorted by path depth (parents first), then tasks with templates.
+ * Creates all items - collections sorted by path depth (parents first), then assets with templates.
  * @param {string} projectPath
  * @param {string} collectionsJSON
  * @param {string} assetsJSON
@@ -82,7 +82,7 @@ export function GetExternalProjects(integrationId, token, apiUrl) {
 }
 
 /**
- * GetExternalTypes fetches entity and task types from the external integration.
+ * GetExternalTypes fetches collection and asset types from the external integration.
  * Requires valid token and linked integration.
  * @param {string} projectPath
  * @param {string} token
@@ -109,10 +109,10 @@ export function GetLinkedIntegration(projectPath) {
 }
 
 /**
- * GetLocalTypes returns all entity and task types from the project.
+ * GetLocalTypes returns all collection and asset types from the project.
  * Used by frontend to populate mapping dropdowns.
  * @param {string} projectPath
- * @returns {$CancellablePromise<[models$0.EntityType[], models$0.TaskType[]]>}
+ * @returns {$CancellablePromise<[models$0.CollectionType[], models$0.AssetType[]]>}
  */
 export function GetLocalTypes(projectPath) {
     return $Call.ByID(443978039, projectPath).then(/** @type {($result: any) => any} */(($result) => {
@@ -207,9 +207,9 @@ const $$createType4 = $Create.Array($$createType3);
 const $$createType5 = integrations$0.ExternalTypeInfo.createFrom;
 const $$createType6 = $Create.Array($$createType5);
 const $$createType7 = models$0.IntegrationProject.createFrom;
-const $$createType8 = models$0.EntityType.createFrom;
+const $$createType8 = models$0.CollectionType.createFrom;
 const $$createType9 = $Create.Array($$createType8);
-const $$createType10 = models$0.TaskType.createFrom;
+const $$createType10 = models$0.AssetType.createFrom;
 const $$createType11 = $Create.Array($$createType10);
 const $$createType12 = integrations$0.MissingType.createFrom;
 const $$createType13 = $Create.Array($$createType12);

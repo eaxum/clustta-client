@@ -40,13 +40,13 @@ const collectionMenu = ref(null);
 const viewTags = computed(() => {
   let tags = tagStore.tags;
   let viewTags = [];
-  let filteredTaskResults = assetStore.getFilteredAssets;
+  let filteredAssetResults = assetStore.getFilteredAssets;
 
-  for (const task of filteredTaskResults) {
-    let taskTags = task.tags;
-    for (let t = 0; t < taskTags.length; t++) {
-      if (!viewTags.includes(taskTags[t])) {
-        viewTags.push(taskTags[t]);
+  for (const asset of filteredAssetResults) {
+    let assetTags = asset.tags;
+    for (let t = 0; t < assetTags.length; t++) {
+      if (!viewTags.includes(assetTags[t])) {
+        viewTags.push(assetTags[t]);
       }
     }
   }
@@ -61,24 +61,24 @@ const viewTags = computed(() => {
 });
 
 // methods
-// Adds a filter to the task filters list.
+// Adds a filter to the asset filters list.
 const addFilter = (filter) => {
-  commonStore.taskFilters.push(filter);
+  commonStore.assetFilters.push(filter);
 };
 
 // Checks if a filter is currently active.
 const isFilterActive = (filter) => {
-  return commonStore.taskFilters.includes(filter);
+  return commonStore.assetFilters.includes(filter);
 };
 
-// Removes a filter from the task filters list.
+// Removes a filter from the asset filters list.
 const removeFilter = (filter) => {
-  commonStore.taskFilters = commonStore.taskFilters.filter((item) => item !== filter);
+  commonStore.assetFilters = commonStore.assetFilters.filter((item) => item !== filter);
 };
 
 // Toggles a filter on or off.
 const toggleFilter = (filter) => {
-  if (commonStore.taskFilters.includes(filter)) {
+  if (commonStore.assetFilters.includes(filter)) {
     removeFilter(filter);
   } else {
     addFilter(filter);

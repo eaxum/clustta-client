@@ -128,9 +128,9 @@ const updateSearch = async () => {
   }
 
   const dependencies = allDependencies.value;
-  const assets = commonStore.filterDependencyAssets ? dependencies.filter((item) => item.type === 'task' && !item.is_resource) : [];
-  const resources = commonStore.filterDependencyResources ? dependencies.filter((item) => item.type === 'task' && item.is_resource ) : [];
-  const collections = commonStore.filterDependencyCollections ? dependencies.filter((item) => item.type === 'entity') : [];
+  const assets = commonStore.filterDependencyAssets ? dependencies.filter((item) => item.type === 'asset' && !item.is_resource) : [];
+  const resources = commonStore.filterDependencyResources ? dependencies.filter((item) => item.type === 'asset' && item.is_resource ) : [];
+  const collections = commonStore.filterDependencyCollections ? dependencies.filter((item) => item.type === 'collection') : [];
   const query = searchQuery.value?.toLowerCase();
   const projectData = [ ...assets, ...resources, ...collections  ]
   availableDependencies.value = projectData?.filter((item) => item.name.toLowerCase().includes(query?.toLowerCase()))
@@ -205,15 +205,15 @@ const applyPreset = async (preset) => {
   const asset = assetStore.selectedAsset;
   if (!asset) return;
 
-  const existingTaskDeps = asset.dependencies || [];
-  const existingEntityDeps = asset.entity_dependencies || [];
+  const existingAssetDeps = asset.dependencies || [];
+  const existingCollectionDeps = asset.collection_dependencies || [];
   
   // Filter out dependencies that already exist
   const depsToAdd = preset.dependencies.filter(dep => {
-    if (dep.type === 'task') {
-      return !existingTaskDeps.includes(dep.id);
+    if (dep.type === 'asset') {
+      return !existingAssetDeps.includes(dep.id);
     } else {
-      return !existingEntityDeps.includes(dep.id);
+      return !existingCollectionDeps.includes(dep.id);
     }
   });
 
@@ -280,7 +280,7 @@ const getAssetDependencies = async() => {
 	let project = projectStore.activeProject
   let allDependencies;
   const selectedAssetDependencies = assetStore.selectedAsset?.dependencies || [] ;
-  const selectedAssetCollectionDependencies = assetStore.selectedAsset?.entity_dependencies || [];
+  const selectedAssetCollectionDependencies = assetStore.selectedAsset?.collection_dependencies || [];
   allDependencies = [ ...selectedAssetDependencies, ...selectedAssetCollectionDependencies];
   const children = await AssetService.GetAssetDependencies(project.uri, allDependencies);
 
@@ -306,7 +306,7 @@ const getAssetDependencies = async() => {
         }
       }
       let iconPath = "";
-      if(item.type === "task"){
+      if(item.type === "asset"){
         if (item.is_link && isValidWeblink(item.pointer)) {
           iconPath = await iconStore.getWebIcon(item.pointer);
         } else {
@@ -338,7 +338,7 @@ const removeDependency = async (dependencyId, itemType) => {
   const asset = assetStore.selectedAsset;
   let selectedAssetDependencies;
 
-  if (itemType === "task") {
+  if (itemType === "asset") {
     selectedAssetDependencies = asset.dependencies;
     await AssetService.RemoveAssetDependency(projectStore.activeProject.uri, asset.id, dependencyId)
       .then((response) => {
@@ -352,13 +352,13 @@ const removeDependency = async (dependencyId, itemType) => {
         notificationStore.errorNotification(t('notifications.errorRemovingDependency'), error);
       });
   } else {
-    selectedAssetDependencies = asset.entity_dependencies;
-    await AssetService.RemoveEntityDependency(projectStore.activeProject.uri, asset.id, dependencyId)
+    selectedAssetDependencies = asset.collection_dependencies;
+    await AssetService.RemoveCollectionDependency(projectStore.activeProject.uri, asset.id, dependencyId)
       .then((response) => {
         notificationStore.addNotification(t('notifications.dependencyRemoved'), "", "success");
         assetDependencies.value = assetDependencies.value.filter((item) => item.id !== dependencyId)
         emitUpdates(asset.id, [
-          { property: 'entity_dependencies', value: selectedAssetDependencies.filter(dep => dep !== dependencyId) }
+          { property: 'collection_dependencies', value: selectedAssetDependencies.filter(dep => dep !== dependencyId) }
         ])
       })
       .catch((error) => {
@@ -378,7 +378,7 @@ const addDependency = async (dependencyId, itemType) => {
     return;
   }
 
-  if (itemType === "task") {
+  if (itemType === "asset") {
     selectedAssetDependencies = asset.dependencies || [];
     
     // Check if dependency already exists
@@ -411,7 +411,7 @@ const addDependency = async (dependencyId, itemType) => {
         notificationStore.errorNotification(t('notifications.errorAddingDependency'), error);
       });
   } else {
-    selectedAssetDependencies = asset.entity_dependencies || [];
+    selectedAssetDependencies = asset.collection_dependencies || [];
     
     // Check if dependency already exists
     if (selectedAssetDependencies.includes(dependencyId)) {
@@ -419,15 +419,15 @@ const addDependency = async (dependencyId, itemType) => {
       return;
     }
     
-    await AssetService.AddEntityDependency(projectStore.activeProject.uri, asset.id, dependencyId, dependencyTypeID)
+    await AssetService.AddCollectionDependency(projectStore.activeProject.uri, asset.id, dependencyId, dependencyTypeID)
       .then((response) => {
         notificationStore.addNotification(t('notifications.dependencyAdded'), "", "success");
         
         // Update local asset collection dependencies
-        if (!asset.entity_dependencies) {
-          asset.entity_dependencies = [];
+        if (!asset.collection_dependencies) {
+          asset.collection_dependencies = [];
         }
-        asset.entity_dependencies.push(dependencyId);
+        asset.collection_dependencies.push(dependencyId);
         
         // Remove from available dependencies
         availableDependencies.value = availableDependencies.value.filter(dep => dep.id !== dependencyId);
@@ -436,7 +436,7 @@ const addDependency = async (dependencyId, itemType) => {
         getAssetDependencies();
         
         emitUpdates(asset.id, [
-          { property: 'entity_dependencies', value: asset.entity_dependencies }
+          { property: 'collection_dependencies', value: asset.collection_dependencies }
         ]);
       })
       .catch((error) => {

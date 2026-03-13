@@ -24,8 +24,8 @@ type ProjectService struct {
 }
 
 type UntrackedItems struct {
-	Files   []models.UntrackedTask   `json:"tasks"`
-	Folders []models.UntrackedEntity `json:"entities"`
+	Files   []models.UntrackedAsset   `json:"assets"`
+	Folders []models.UntrackedCollection `json:"collections"`
 }
 
 func (p *ProjectService) CreateProject(projectUri, studioName, workingDir, templateName string) (repository.ProjectInfo, error) {
@@ -369,8 +369,8 @@ func (p *ProjectService) RemoveUser(projectPath, userId string) error {
 
 	err = repository.RemoveUser(tx, userId)
 	if err != nil {
-		if errors.Is(err, error_service.ErrUserHaveTaskAssigned) {
-			return error_service.ErrUserHaveTaskAssigned
+		if errors.Is(err, error_service.ErrUserHaveAssetAssigned) {
+			return error_service.ErrUserHaveAssetAssigned
 		}
 		return err
 	}
@@ -561,8 +561,8 @@ func (p *ProjectService) GetFolderUntrackedItems(
 
 	// Initialize result structure with thread-safe slices
 	untracked := UntrackedItems{
-		Files:   make([]models.UntrackedTask, 0),
-		Folders: make([]models.UntrackedEntity, 0),
+		Files:   make([]models.UntrackedAsset, 0),
+		Folders: make([]models.UntrackedCollection, 0),
 	}
 
 	ignoreObject := ignore.CompileIgnoreLines(ignoreList...)
@@ -588,27 +588,27 @@ func (p *ProjectService) GetFolderUntrackedItems(
 		if entry.IsDir() {
 			// check if directory is tracked
 			if !utils.Contains(tracked, path) {
-				entity := models.UntrackedEntity{
+				collection := models.UntrackedCollection{
 					Id:         utils.GetMD5Hash(path),
 					Name:       entry.Name(),
 					FilePath:   path,
-					EntityPath: relativePath,
+					CollectionPath: relativePath,
 				}
-				untracked.Folders = append(untracked.Folders, entity)
+				untracked.Folders = append(untracked.Folders, collection)
 			}
 		} else {
 			// check if file is tracked
 			if !utils.Contains(tracked, path) {
-				taskName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
-				task := models.UntrackedTask{
+				assetName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
+				asset := models.UntrackedAsset{
 					Id:         utils.GetMD5Hash(path),
-					Name:       taskName,
+					Name:       assetName,
 					FilePath:   path,
-					TaskPath:   relativePath,
-					EntityPath: filepath.ToSlash(filepath.Dir(relativePath)),
+					AssetPath:   relativePath,
+					CollectionPath: filepath.ToSlash(filepath.Dir(relativePath)),
 					Extension:  filepath.Ext(entry.Name()),
 				}
-				untracked.Files = append(untracked.Files, task)
+				untracked.Files = append(untracked.Files, asset)
 			}
 		}
 	}

@@ -47,15 +47,15 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 	}
 	pdData := repositorypb.ProjectData{
 		ProjectPreview:  data.ProjectPreview,
-		EntityTypes:     repository.ToPbEntityTypes(data.EntityTypes),
-		Entities:        repository.ToPbEntities(data.Entities),
-		EntityAssignees: repository.ToPbEntityAssignees(data.EntityAssignees),
+		CollectionTypes:     repository.ToPbCollectionTypes(data.CollectionTypes),
+		Collections:        repository.ToPbCollections(data.Collections),
+		CollectionAssignees: repository.ToPbCollectionAssignees(data.CollectionAssignees),
 
-		TaskTypes:          repository.ToPbTaskTypes(data.TaskTypes),
-		Tasks:              repository.ToPbTasks(data.Tasks),
-		TasksCheckpoints:   repository.ToPbCheckpoints(data.TasksCheckpoints),
-		TaskDependencies:   repository.ToPbTaskDependencies(data.TaskDependencies),
-		EntityDependencies: repository.ToPbEntityDependencies(data.EntityDependencies),
+		AssetTypes:          repository.ToPbAssetTypes(data.AssetTypes),
+		Assets:              repository.ToPbAssets(data.Assets),
+		AssetCheckpoints:   repository.ToPbCheckpoints(data.AssetCheckpoints),
+		AssetDependencies:   repository.ToPbAssetDependencies(data.AssetDependencies),
+		CollectionDependencies: repository.ToPbCollectionDependencies(data.CollectionDependencies),
 
 		Statuses:        repository.ToPbStatuses(data.Statuses),
 		DependencyTypes: repository.ToPbDependencyTypes(data.DependencyTypes),
@@ -67,11 +67,11 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 
 		Workflows:        repository.ToPbWorkflows(data.Workflows),
 		WorkflowLinks:    repository.ToPbWorkflowLinks(data.WorkflowLinks),
-		WorkflowEntities: repository.ToPbWorkflowEntities(data.WorkflowEntities),
-		WorkflowTasks:    repository.ToPbWorkflowTasks(data.WorkflowTasks),
+		WorkflowCollections: repository.ToPbWorkflowCollections(data.WorkflowCollections),
+		WorkflowAssets:    repository.ToPbWorkflowAssets(data.WorkflowAssets),
 
 		Tags:      repository.ToPbTags(data.Tags),
-		TasksTags: repository.ToPbTaskTags(data.TasksTags),
+		AssetTags: repository.ToPbAssetTags(data.AssetTags),
 
 		Tomb: repository.ToPbTombs(data.Tombs),
 
@@ -91,8 +91,8 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 	}
 
 	chunks := []string{}
-	for _, TaskCheckpoint := range data.TasksCheckpoints {
-		chunksString := TaskCheckpoint.Chunks
+	for _, AssetCheckpoint := range data.AssetCheckpoints {
+		chunksString := AssetCheckpoint.Chunks
 		chunkHashes := strings.Split(chunksString, ",")
 		for _, chunkHash := range chunkHashes {
 			if !utils.Contains(chunks, chunkHash) {
@@ -131,19 +131,19 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 	if data.ProjectPreview != "" && !utils.Contains(previewIds, data.ProjectPreview) {
 		previewIds = append(previewIds, data.ProjectPreview)
 	}
-	for _, task := range data.Tasks {
-		if task.PreviewId != "" && !utils.Contains(previewIds, task.PreviewId) {
-			previewIds = append(previewIds, task.PreviewId)
+	for _, asset := range data.Assets {
+		if asset.PreviewId != "" && !utils.Contains(previewIds, asset.PreviewId) {
+			previewIds = append(previewIds, asset.PreviewId)
 		}
 	}
-	for _, entity := range data.Entities {
-		if entity.PreviewId != "" && !utils.Contains(previewIds, entity.PreviewId) {
-			previewIds = append(previewIds, entity.PreviewId)
+	for _, collection := range data.Collections {
+		if collection.PreviewId != "" && !utils.Contains(previewIds, collection.PreviewId) {
+			previewIds = append(previewIds, collection.PreviewId)
 		}
 	}
-	for _, taskCheckpoint := range data.TasksCheckpoints {
-		if taskCheckpoint.PreviewId != "" && !utils.Contains(previewIds, taskCheckpoint.PreviewId) {
-			previewIds = append(previewIds, taskCheckpoint.PreviewId)
+	for _, assetCheckpoint := range data.AssetCheckpoints {
+		if assetCheckpoint.PreviewId != "" && !utils.Contains(previewIds, assetCheckpoint.PreviewId) {
+			previewIds = append(previewIds, assetCheckpoint.PreviewId)
 		}
 	}
 
@@ -267,15 +267,15 @@ func PushPartialData(projectPath, remoteUrl, userId string, data ProjectData, sy
 
 	pdData := repositorypb.ProjectData{
 		ProjectPreview:  data.ProjectPreview,
-		EntityTypes:     repository.ToPbEntityTypes(data.EntityTypes),
-		Entities:        repository.ToPbEntities(data.Entities),
-		EntityAssignees: repository.ToPbEntityAssignees(data.EntityAssignees),
+		CollectionTypes:     repository.ToPbCollectionTypes(data.CollectionTypes),
+		Collections:        repository.ToPbCollections(data.Collections),
+		CollectionAssignees: repository.ToPbCollectionAssignees(data.CollectionAssignees),
 
-		TaskTypes:          repository.ToPbTaskTypes(data.TaskTypes),
-		Tasks:              repository.ToPbTasks(data.Tasks),
-		TasksCheckpoints:   repository.ToPbCheckpoints(data.TasksCheckpoints),
-		TaskDependencies:   repository.ToPbTaskDependencies(data.TaskDependencies),
-		EntityDependencies: repository.ToPbEntityDependencies(data.EntityDependencies),
+		AssetTypes:          repository.ToPbAssetTypes(data.AssetTypes),
+		Assets:              repository.ToPbAssets(data.Assets),
+		AssetCheckpoints:   repository.ToPbCheckpoints(data.AssetCheckpoints),
+		AssetDependencies:   repository.ToPbAssetDependencies(data.AssetDependencies),
+		CollectionDependencies: repository.ToPbCollectionDependencies(data.CollectionDependencies),
 
 		Statuses:        repository.ToPbStatuses(data.Statuses),
 		DependencyTypes: repository.ToPbDependencyTypes(data.DependencyTypes),
@@ -287,11 +287,11 @@ func PushPartialData(projectPath, remoteUrl, userId string, data ProjectData, sy
 
 		Workflows:        repository.ToPbWorkflows(data.Workflows),
 		WorkflowLinks:    repository.ToPbWorkflowLinks(data.WorkflowLinks),
-		WorkflowEntities: repository.ToPbWorkflowEntities(data.WorkflowEntities),
-		WorkflowTasks:    repository.ToPbWorkflowTasks(data.WorkflowTasks),
+		WorkflowCollections: repository.ToPbWorkflowCollections(data.WorkflowCollections),
+		WorkflowAssets:    repository.ToPbWorkflowAssets(data.WorkflowAssets),
 
 		Tags:      repository.ToPbTags(data.Tags),
-		TasksTags: repository.ToPbTaskTags(data.TasksTags),
+		AssetTags: repository.ToPbAssetTags(data.AssetTags),
 
 		Tomb: repository.ToPbTombs(data.Tombs),
 
@@ -377,7 +377,7 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 
 	// Collect chunk hashes from checkpoints
 	chunks := []string{}
-	for _, cp := range data.TasksCheckpoints {
+	for _, cp := range data.AssetCheckpoints {
 		if cp.Chunks == "" {
 			continue
 		}
@@ -408,12 +408,12 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 
 	// Collect and upload missing previews
 	previewIds := []string{}
-	for _, task := range data.Tasks {
-		if task.PreviewId != "" && !utils.Contains(previewIds, task.PreviewId) {
-			previewIds = append(previewIds, task.PreviewId)
+	for _, asset := range data.Assets {
+		if asset.PreviewId != "" && !utils.Contains(previewIds, asset.PreviewId) {
+			previewIds = append(previewIds, asset.PreviewId)
 		}
 	}
-	for _, cp := range data.TasksCheckpoints {
+	for _, cp := range data.AssetCheckpoints {
 		if cp.PreviewId != "" && !utils.Contains(previewIds, cp.PreviewId) {
 			previewIds = append(previewIds, cp.PreviewId)
 		}
@@ -434,8 +434,8 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 
 	// Serialize and push metadata
 	pdData := repositorypb.ProjectData{
-		Tasks:            repository.ToPbTasks(data.Tasks),
-		TasksCheckpoints: repository.ToPbCheckpoints(data.TasksCheckpoints),
+		Assets:            repository.ToPbAssets(data.Assets),
+		AssetCheckpoints: repository.ToPbCheckpoints(data.AssetCheckpoints),
 	}
 
 	dataByte, err := proto.Marshal(&pdData)
@@ -465,11 +465,11 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 	case 200:
 		// Mark only the specific rows as synced
 		syncTargets := map[string][]string{}
-		for _, t := range data.Tasks {
-			syncTargets["task"] = append(syncTargets["task"], t.Id)
+		for _, t := range data.Assets {
+			syncTargets["asset"] = append(syncTargets["asset"], t.Id)
 		}
-		for _, cp := range data.TasksCheckpoints {
-			syncTargets["task_checkpoint"] = append(syncTargets["task_checkpoint"], cp.Id)
+		for _, cp := range data.AssetCheckpoints {
+			syncTargets["asset_checkpoint"] = append(syncTargets["asset_checkpoint"], cp.Id)
 		}
 		for table, ids := range syncTargets {
 			err = utils.SetRowsSynced(tx, table, ids)

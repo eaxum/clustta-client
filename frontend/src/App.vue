@@ -127,8 +127,8 @@ async function updateFileStates() {
 async function pullData() {
     let syncOptions = {
         only_latest_checkpoints: false,
-        task_dependencies: false,
-        tasks: false,
+        asset_dependencies: false,
+        assets: false,
         templates: false,
     };
     await SyncService.PullData(

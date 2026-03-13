@@ -15,19 +15,19 @@ export class ChangeSummary {
      * @param {Partial<ChangeSummary>} [$$source = {}] - The source object to create the ChangeSummary.
      */
     constructor($$source = {}) {
-        if (!("tasks" in $$source)) {
+        if (!("assets" in $$source)) {
             /**
              * @member
              * @type {ChangeSummaryItem[]}
              */
-            this["tasks"] = [];
+            this["assets"] = [];
         }
-        if (!("entities" in $$source)) {
+        if (!("collections" in $$source)) {
             /**
              * @member
              * @type {ChangeSummaryItem[]}
              */
-            this["entities"] = [];
+            this["collections"] = [];
         }
         if (!("other" in $$source)) {
             /**
@@ -57,11 +57,11 @@ export class ChangeSummary {
         const $$createField1_0 = $$createType1;
         const $$createField2_0 = $$createType1;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("tasks" in $$parsedSource) {
-            $$parsedSource["tasks"] = $$createField0_0($$parsedSource["tasks"]);
+        if ("assets" in $$parsedSource) {
+            $$parsedSource["assets"] = $$createField0_0($$parsedSource["assets"]);
         }
-        if ("entities" in $$parsedSource) {
-            $$parsedSource["entities"] = $$createField1_0($$parsedSource["entities"]);
+        if ("collections" in $$parsedSource) {
+            $$parsedSource["collections"] = $$createField1_0($$parsedSource["collections"]);
         }
         if ("other" in $$parsedSource) {
             $$parsedSource["other"] = $$createField2_0($$parsedSource["other"]);
@@ -142,19 +142,19 @@ export class SyncOptions {
              */
             this["only_latest_checkpoints"] = false;
         }
-        if (!("task_dependencies" in $$source)) {
+        if (!("asset_dependencies" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["task_dependencies"] = false;
+            this["asset_dependencies"] = false;
         }
-        if (!("tasks" in $$source)) {
+        if (!("assets" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["tasks"] = false;
+            this["assets"] = false;
         }
         if (!("resources" in $$source)) {
             /**

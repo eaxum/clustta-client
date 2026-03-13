@@ -4,16 +4,16 @@
             <div class="trash-item-meta">
                 <span><img class="small-icons" :src="trashItemIcon(trashItem.type)"></span>
                 <div ref="trash_name" class="trash-item-label">
-                    <!-- <p class="trash-item-label-text">{{ trashItem.name }} - {{ trashItem.entity_name }}</p> -->
+                    <!-- <p class="trash-item-label-text">{{ trashItem.name }} - {{ trashItem.collection_name }}</p> -->
                     <div class="trash-item-name" @mouseenter="trayStates.handleHover($event)"
                         @mouseleave="trayStates.resetScroll($event)">
                         <p class="trash-item-label-text" style="overflow: hidden; text-overflow: ellipsis;">{{
                             trashItem.name.replace(/_/g, " ") }}</p>
                     </div>
-                    <div v-if="trashItem.type === 'task'" class="trash-item-entity">{{
-                        trashItem.entity_name }}</div>
-                    <div v-if="trashItem.type === 'resource'" class="trash-item-entity">{{
-                        trashItem.entity_name }}</div>
+                    <div v-if="trashItem.type === 'asset'" class="trash-item-collection">{{
+                        trashItem.collection_name }}</div>
+                    <div v-if="trashItem.type === 'resource'" class="trash-item-collection">{{
+                        trashItem.collection_name }}</div>
                 </div>
             </div>
 
@@ -115,10 +115,10 @@ const formatName = (name, type) => {
 }
 const trashItemIcon = (type) => {
 
-    if (type === 'entity') {
-        return '/icons/entity.svg';
-    } else if (type === 'task') {
-        return '/icons/task.svg';
+    if (type === 'collection') {
+        return '/icons/collection.svg';
+    } else if (type === 'asset') {
+        return '/icons/asset.svg';
     } else if (type === 'resource') {
         return '/icons/resources.svg';
     } else if (type === 'template') {
@@ -355,7 +355,7 @@ onMounted(() => {
 
 }
 
-.trash-item-entity {
+.trash-item-collection {
     color: rgb(219, 219, 219);
     background-color: rgba(0, 0, 0, 0.216);
     padding: .3rem;

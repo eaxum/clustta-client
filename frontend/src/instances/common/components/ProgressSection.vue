@@ -6,7 +6,7 @@
     </div>
     <div class="progress-message">{{ progress.message }}</div>
     <div class="progress-bar-wrapper">
-      <ProgressBar :taskProgress="progress.percentage" />
+      <ProgressBar :assetProgress="progress.percentage" />
     </div>
     <div class="progress-meta">
       <span>{{ progress.current }}/{{ progress.total }}</span>

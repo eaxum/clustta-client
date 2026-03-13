@@ -8,7 +8,7 @@
       :customIcon="projectStore.activeProject.icon" :notModal="true" />
     <HeaderArea v-else :title="projectStore.getActiveProjectName" :notModal="true" 
       :emoji="projectStore.activeProject.icon" />
-    <ActionButton :icon="getAppIcon('switches')" v-if="userStore.canDo('update_task')" :showLabel="false"
+    <ActionButton :icon="getAppIcon('switches')" v-if="userStore.canDo('update_asset')" :showLabel="false"
       v-tooltip="$t('panes.editProject')" :buttonFunction="editProject" />
   </div>
 
@@ -334,13 +334,13 @@ const deleteProject = async () => {
 };
 
 const rebuildAll = async () => {
-  // let entity = collectionStore.selectedCollection;
+  // let collection = collectionStore.selectedCollection;
   menu.hideContextMenu();
   notificationStore.cancleFunction = SyncService.CancelSync
   notificationStore.canCancel = true
   await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
     .then((data) => {
-      assetStore.refreshEntityFilesStatus("")
+      assetStore.refreshCollectionFilesStatus("")
       getProjectData()
     }).catch(error => {
       console.log(error)

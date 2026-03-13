@@ -147,8 +147,8 @@ const cloneProject = async () => {
   const projectUrl = projectStore.getStudioUrl + '/' + projectName;
   const syncOptions = {
     only_latest_checkpoints: true,
-    task_dependencies: true,
-    tasks: false,
+    asset_dependencies: true,
+    assets: false,
     templates: true,
   };
   notificationStore.cancleFunction = SyncService.CancelSync;

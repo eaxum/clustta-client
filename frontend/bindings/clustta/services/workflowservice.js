@@ -11,29 +11,29 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 import * as models$0 from "../internal/repository/models/models.js";
 
 /**
- * Adds a workflow to an entity with specified parent and type
+ * Adds a workflow to an collection with specified parent and type
  * @param {string} projectPath
  * @param {string} workflow_id
  * @param {string} name
- * @param {string} entityTypeId
+ * @param {string} collectionTypeId
  * @param {string} parentId
  * @returns {$CancellablePromise<void>}
  */
-export function AddWorkflow(projectPath, workflow_id, name, entityTypeId, parentId) {
-    return $Call.ByID(4015215456, projectPath, workflow_id, name, entityTypeId, parentId);
+export function AddWorkflow(projectPath, workflow_id, name, collectionTypeId, parentId) {
+    return $Call.ByID(4015215456, projectPath, workflow_id, name, collectionTypeId, parentId);
 }
 
 /**
- * Creates a new workflow with tasks, entities, and links
+ * Creates a new workflow with assets, collections, and links
  * @param {string} projectPath
  * @param {string} name
- * @param {models$0.WorkflowTask[]} workflowTasks
- * @param {models$0.WorkflowEntity[]} workflowEntities
+ * @param {models$0.WorkflowAsset[]} workflowAssets
+ * @param {models$0.WorkflowCollection[]} workflowCollections
  * @param {models$0.WorkflowLink[]} workflowLinks
  * @returns {$CancellablePromise<models$0.Workflow>}
  */
-export function CreateWorkflow(projectPath, name, workflowTasks, workflowEntities, workflowLinks) {
-    return $Call.ByID(4183453851, projectPath, name, workflowTasks, workflowEntities, workflowLinks).then(/** @type {($result: any) => any} */(($result) => {
+export function CreateWorkflow(projectPath, name, workflowAssets, workflowCollections, workflowLinks) {
+    return $Call.ByID(4183453851, projectPath, name, workflowAssets, workflowCollections, workflowLinks).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
 }
@@ -50,17 +50,17 @@ export function GetWorkflows(projectPath) {
 }
 
 /**
- * Updates an existing workflow including tasks, entities, and links
+ * Updates an existing workflow including assets, collections, and links
  * @param {string} projectPath
  * @param {string} workflowId
  * @param {string} name
- * @param {models$0.WorkflowTask[]} workflowTasks
- * @param {models$0.WorkflowEntity[]} workflowEntities
+ * @param {models$0.WorkflowAsset[]} workflowAssets
+ * @param {models$0.WorkflowCollection[]} workflowCollections
  * @param {models$0.WorkflowLink[]} workflowLinks
  * @returns {$CancellablePromise<models$0.Workflow>}
  */
-export function UpdateWorkflow(projectPath, workflowId, name, workflowTasks, workflowEntities, workflowLinks) {
-    return $Call.ByID(871693934, projectPath, workflowId, name, workflowTasks, workflowEntities, workflowLinks).then(/** @type {($result: any) => any} */(($result) => {
+export function UpdateWorkflow(projectPath, workflowId, name, workflowAssets, workflowCollections, workflowLinks) {
+    return $Call.ByID(871693934, projectPath, workflowId, name, workflowAssets, workflowCollections, workflowLinks).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
 }

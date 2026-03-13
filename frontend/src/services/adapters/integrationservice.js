@@ -140,8 +140,8 @@ export const IntegrationService = {
     }
   },
 
-  // Creates collections and tasks from sync preview
-  // TODO: Full implementation for web mode would require creating entities/tasks like the Go backend
+  // Creates collections and assets from sync preview
+  // TODO: Full implementation for web mode would require creating collections/assets like the Go backend
   ExecuteSync: async (projectPath, token) => {
     const projectName = getProjectName(projectPath);
     const db = await getDatabase(projectName);
@@ -151,7 +151,7 @@ export const IntegrationService = {
       throw new Error('No integration linked to this project');
     }
 
-    // Web mode: For now just create mappings without actual entities/tasks
+    // Web mode: For now just create mappings without actual collections/assets
     // Full implementation would need to replicate the Go backend's ExecuteSync logic
     const syncedAt = new Date().toISOString();
 

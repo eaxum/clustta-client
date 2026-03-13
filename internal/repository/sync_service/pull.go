@@ -220,8 +220,8 @@ func PullLatestCheckpoints(ctx context.Context, projectPath, remoteUrl string, u
 
 	syncOptions := SyncOptions{
 		OnlyLatestCheckpoints: true,
-		Tasks:                 true,
-		TaskDependencies:      true,
+		Assets:                true,
+		AssetDependencies:     true,
 		Resources:             true,
 	}
 

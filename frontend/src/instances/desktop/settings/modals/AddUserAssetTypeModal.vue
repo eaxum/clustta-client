@@ -3,20 +3,20 @@
   <div class="modal-container" ref="modalContainer" v-stop-propagation v-esc="closeModal">
 
     <div class="general-pane-header">
-      <HeaderArea :title="title" :icon="taskTypeIcon" />
+      <HeaderArea :title="title" :icon="assetTypeIcon" />
     </div>
 
 
     <div class="general-container">
       <div class="input-section">
-        <input v-model="taskTypeName" class="input-short" type="text" :placeholder="$t('placeholders.assetTypeName')" v-focus
+        <input v-model="assetTypeName" class="input-short" type="text" :placeholder="$t('placeholders.assetTypeName')" v-focus
           @keydown.enter="handleEnterKey" />
       </div>
 
       <IconGrid v-if="displayIconSelector" @iconSelected="setIcon" :icons="icons" />
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createTaskType" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createAssetType" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -57,18 +57,18 @@ const title = 'Add Asset type';
 // refs
 const displayIconSelector = ref(true);
 const isAwaitingResponse = ref(false);
-const taskTypeIcon = ref('generic');
-const taskTypeName = ref('');
+const assetTypeIcon = ref('generic');
+const assetTypeName = ref('');
 
 // computed
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allTaskTypeIcons = assetStore.assetTypes.map((item) => item.icon);
-  return allIcons.filter((icon) => !allTaskTypeIcons.includes(icon));
+  const allAssetTypeIcons = assetStore.assetTypes.map((item) => item.icon);
+  return allIcons.filter((icon) => !allAssetTypeIcons.includes(icon));
 });
 
 const isValueChanged = computed(() => {
-  return !!taskTypeName.value && taskTypeIcon.value !== 'generic';
+  return !!assetTypeName.value && assetTypeIcon.value !== 'generic';
 });
 
 // methods
@@ -79,15 +79,15 @@ const closeModal = () => {
 };
 
 // Creates a new asset type.
-const createTaskType = () => {
-  AssetService.CreateAssetType(projectTemplateStore.activeProjectTemplate.uri, taskTypeName.value, taskTypeIcon.value)
+const createAssetType = () => {
+  AssetService.CreateAssetType(projectTemplateStore.activeProjectTemplate.uri, assetTypeName.value, assetTypeIcon.value)
     .then(() => {
-      notificationStore.addNotification(t('notifications.taskTypeCreated'), "", "success");
+      notificationStore.addNotification(t('notifications.assetTypeCreated'), "", "success");
       projectTemplateStore.reloadProjectTemplate();
       closeModal();
     })
     .catch((error) => {
-      notificationStore.errorNotification(t('notifications.errorCreatingTaskType'), error);
+      notificationStore.errorNotification(t('notifications.errorCreatingAssetType'), error);
     });
 };
 
@@ -99,13 +99,13 @@ const getAppIcon = (iconName) => {
 // Handles enter key press.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter') {
-    // createTaskType();
+    // createAssetType();
   }
 };
 
 // Sets the selected icon.
 const setIcon = (icon) => {
-  taskTypeIcon.value = icon;
+  assetTypeIcon.value = icon;
 };
 </script>
 
