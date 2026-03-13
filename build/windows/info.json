@@ -1,10 +1,10 @@
 {
 	"fixed": {
-		"file_version": "0.4.30"
+		"file_version": "0.4.31"
 	},
 	"info": {
 		"0000": {
-			"ProductVersion": "0.4.30",
+			"ProductVersion": "0.4.31",
 			"CompanyName": "Eaxum",
 			"FileDescription": "Clustta simplifies file management, collaboration and version control for creative workflows.",
 			"LegalCopyright": "(c) 2025, Eaxum",
