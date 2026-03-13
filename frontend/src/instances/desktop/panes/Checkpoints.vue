@@ -220,6 +220,7 @@ const refreshCheckpoints = async () => {
       hash: checkpoint.xxhash_checksum,
       author_profile: authorProfile,
       avatarColor: userStore.userProfileColor(authorId),
+      synced: !projectStore.activeProject?.has_remote || checkpoint.synced,
     };
 
     const existingCheckpoint = checkpoints.value.find(cp => cp.checkpoint_id === checkpoint.id);
