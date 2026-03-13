@@ -56,7 +56,7 @@
                 <ActionButton v-else :icon="getAppIcon('launch')" v-tooltip="$t('components.checkpointItem.openCheckpoint')"
                     @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
             </template>
-            <ActionButton :icon="getAppIcon('send')" v-tooltip="$t('components.checkpointItem.shareCheckpoint')" @click="openShareModal" />
+            <ActionButton v-if="userStore.canDo('delete_checkpoint') && checkpoint.synced && !accountStore.isStudioAuth" :icon="getAppIcon('send')" v-tooltip="$t('components.checkpointItem.shareCheckpoint')" @click="openShareModal" />
             <ActionButton v-if="userStore.canDo('delete_checkpoint')" :icon="getAppIcon('trash')" v-tooltip="$t('components.checkpointItem.deleteCheckpoint')"
                 @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>
@@ -68,7 +68,7 @@
                 v-tooltip="$t('components.checkpointItem.downloadCheckpoint')" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
             <ActionButton v-if="!platformStore.isWeb && checkpoint.is_downloaded" :icon="getAppIcon('launch')"
                 v-tooltip="$t('components.checkpointItem.openCheckpoint')" @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
-            <ActionButton v-if="userStore.canDo('delete_checkpoint')" :icon="getAppIcon('send')" v-tooltip="$t('components.checkpointItem.shareCheckpoint')" @click="openShareModal" />
+            <ActionButton v-if="userStore.canDo('delete_checkpoint') && checkpoint.synced && !accountStore.isStudioAuth" :icon="getAppIcon('send')" v-tooltip="$t('components.checkpointItem.shareCheckpoint')" @click="openShareModal" />
             <ActionButton v-if="userStore.canDo('delete_checkpoint')" :icon="getAppIcon('trash')" v-tooltip="$t('components.checkpointItem.deleteCheckpoint')"
                 @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>
@@ -101,6 +101,7 @@ import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { usePlatformStore } from '@/stores/platform';
+import { useAccountStore } from '@/stores/accounts';
 
 const { t, locale } = useI18n();
 
@@ -137,6 +138,7 @@ const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const platformStore = usePlatformStore();
+const accountStore = useAccountStore();
 
 // refs
 const itemVersionId = ref(null);
@@ -207,6 +209,7 @@ const viewVersion = (id, checkpointId) => {
 let timeoutId;
 
 const enterCheckpoint = (event) => {
+    console.log(props.checkpoint)
     if (!isItemExpanded.value) {
         emit('update-expanded', props.checkpoint.checkpoint_id)
 

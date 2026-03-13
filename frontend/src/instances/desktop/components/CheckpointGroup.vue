@@ -1,10 +1,14 @@
 <template>
     <div class="checkpoint-group">
 
-        <div ref="railRef" class="timeline-rail" :class="{ 'timeline-rail-first': isFirstGroup, 'timeline-rail-last': isLastGroup }">
+        <div ref="railRef" class="timeline-rail">
+            <div class="timeline-segment" v-for="segment in railSegments" :key="segment.key"
+                :style="{ top: segment.top, height: segment.height, background: segment.background }">
+            </div>
+
             <div class="timeline-dot" v-for="checkpoint in group.items" :key="checkpoint.checkpoint_id"
-                :class="{ 'timeline-dot-active': checkpoint.hash === taskHash }"
-                :style="{ top: dotPositions[checkpoint.checkpoint_id] }">
+                :class="{ 'timeline-dot-active': checkpoint.hash === taskHash, 'timeline-dot-alert': !checkpoint.synced }"
+                :style="{ top: dotPositions[checkpoint.checkpoint_id] }" v-tooltip="checkpoint.synced ? 'Synced' : 'Not synced'">
             </div>
         </div>
 
@@ -59,6 +63,7 @@ const emit = defineEmits(['refreshCheckpoints', 'updateTaskHash', 'updateExpande
 const dotPositions = ref({});
 const itemRefs = {};
 const railRef = ref(null);
+const railSegments = ref([]);
 
 // Stores a reference to each CheckpointItem element.
 const setItemRef = (checkpointId, el) => {
@@ -67,33 +72,63 @@ const setItemRef = (checkpointId, el) => {
     }
 };
 
-// Calculates the vertical position of each dot to align with its card.
+// Calculates the vertical position of each dot and rail segments.
 const calculateDotPositions = () => {
     nextTick(() => {
         if (!railRef.value) return;
-        const railTop = railRef.value.getBoundingClientRect().top;
+        const railRect = railRef.value.getBoundingClientRect();
+        const railTop = railRect.top;
+        const railHeight = railRect.height;
         const positions = {};
-        let firstDotTop = null;
-        let lastDotTop = 0;
+        const dots = [];
+
         for (const checkpoint of props.group.items) {
             const itemEl = itemRefs[checkpoint.checkpoint_id];
             if (itemEl && itemEl.$el) {
                 const rect = itemEl.$el.getBoundingClientRect();
                 const top = rect.top - railTop + (rect.height / 2);
                 positions[checkpoint.checkpoint_id] = `${top}px`;
-                if (firstDotTop === null) firstDotTop = top;
-                lastDotTop = top;
+                dots.push({ top, synced: checkpoint.synced });
             }
         }
         dotPositions.value = positions;
 
-        if (props.isFirstGroup) {
-            railRef.value.style.setProperty('--first-dot-top', `${firstDotTop ?? 0}px`);
+        const segments = [];
+        const danger = getComputedStyle(railRef.value).getPropertyValue('--danger').trim();
+        const steel = getComputedStyle(railRef.value).getPropertyValue('--light-steel').trim();
+
+        // Returns the background value for a segment given the sync state at each end.
+        const segmentBg = (startSynced, endSynced) => {
+            if (!startSynced && !endSynced) return danger;
+            if (startSynced && endSynced) return steel;
+            const from = startSynced ? steel : danger;
+            const to = endSynced ? steel : danger;
+            return `linear-gradient(to bottom, ${from}, ${to})`;
+        };
+
+        // Segment from rail top to first dot (non-first groups)
+        if (!props.isFirstGroup && dots.length > 0) {
+            const synced = dots[0].synced;
+            segments.push({ key: 'top', top: '0px', height: `${dots[0].top}px`, background: segmentBg(synced, synced) });
         }
-        if (props.isLastGroup) {
-            const lineStart = props.isFirstGroup ? (firstDotTop ?? 0) : 0;
-            railRef.value.style.setProperty('--last-dot-height', `${lastDotTop - lineStart}px`);
+
+        // Segments between consecutive dots
+        for (let i = 0; i < dots.length - 1; i++) {
+            segments.push({
+                key: `seg-${i}`,
+                top: `${dots[i].top}px`,
+                height: `${dots[i + 1].top - dots[i].top}px`,
+                background: segmentBg(dots[i].synced, dots[i + 1].synced)
+            });
         }
+
+        // Segment from last dot to rail bottom (non-last groups)
+        if (!props.isLastGroup && dots.length > 0) {
+            const lastDot = dots[dots.length - 1];
+            segments.push({ key: 'bottom', top: `${lastDot.top}px`, height: `${railHeight - lastDot.top}px`, background: segmentBg(lastDot.synced, lastDot.synced) });
+        }
+
+        railSegments.value = segments;
     });
 };
 
@@ -123,24 +158,11 @@ watch(() => [props.group.items, props.expandedId], () => {
     flex-shrink: 0;
 }
 
-.timeline-rail::before {
-    content: '';
+.timeline-segment {
     position: absolute;
     left: 50%;
-    top: 0;
-    bottom: 0;
     width: 2px;
     transform: translateX(-50%);
-    background-color: var(--light-steel);
-}
-
-.timeline-rail-first::before {
-    top: var(--first-dot-top, 0);
-}
-
-.timeline-rail-last::before {
-    bottom: auto;
-    height: var(--last-dot-height, 100%);
 }
 
 .timeline-dot {
@@ -160,6 +182,10 @@ watch(() => [props.group.items, props.expandedId], () => {
     background-color: var(--solid-blue-steel);
     border-radius: 2px;
     transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.timeline-dot-alert {
+    background-color: var(--danger);
 }
 
 .checkpoint-data {
