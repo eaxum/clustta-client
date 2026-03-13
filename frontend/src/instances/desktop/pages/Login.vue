@@ -10,76 +10,121 @@
           {{ $t('auth.login.title') }}
         </div>
       </div>
-      <div class="auth-container">
-        <!-- form container -->
-        <div class="auth-form-container">
-          <!-- actual-form -->
-          <form @submit.prevent="handleLogin" class="auth-form">
-            <!-- email -->
-            <FormInput v-model="loginForm.email" :placeholder="$t('auth.login.usernamePlaceholder')" />
-            <!-- password -->
-            <FormInput
-              v-model="loginForm.password"
-              :placeholder="$t('auth.login.passwordPlaceholder')"
-              isSecret
-              @keydown.enter="handleEnterKey"
-            />
-            <!-- forgot password -->
-            <div @click="showResetPassword" class="forgot-password-link">
-              {{ $t('auth.login.forgotPassword') }}
-            </div>
-            <!-- submit button -->
-            <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isLoginFormFilled }">
-              <div v-if="!isAwaitingResponse">
-                {{ $t('auth.login.loginButton') }}
-              </div>
-              <ActionButton
-                v-else
-                :icon="getAppIcon('loading')"
-                :isLoading="true"
-                :showLabel="false"
-                :noFilter="true"
-              />
-            </button>
-            <div v-if="loadingStatus" class="loading-status">
-              {{ loadingStatus }}
-            </div>
-          </form>
-          <!-- form error -->
-          <div v-if="error" class="error-message">
-            {{ error }}
-          </div>
-        </div>
-        <!-- studio URL (contextual) -->
-        <div v-if="!platformStore.isWeb" class="studio-section">
-          <div @click="toggleStudioLogin" class="studio-reveal-link">
-            {{ $t('auth.login.connectingToStudio') }}
-          </div>
-          <div v-if="showStudioLogin" class="studio-url-container">
-            <FormInput v-model="studioUrl" :placeholder="$t('auth.login.studioUrl')" :error="studioUrlError" :info="!studioUrlError ? $t('auth.login.studioUrlInfo') : ''" @input="validateStudioUrl" />
-          </div>
-        </div>
 
-        <!-- toggle -->
-        <div v-if="!isAwaitingResponse" class="additional-actions">
-          <div @click="toggleLogin" class="signup-toggle">
-            {{ $t('auth.login.noAccount') }}&nbsp;<span class="bold">{{ $t('auth.login.signUpLink') }}</span>
+      <div class="auth-container">
+
+        <!-- STATE 1: Cloud login -->
+        <template v-if="loginMode === 'cloud'">
+          <div class="auth-form-container">
+            <form @submit.prevent="handleLogin" class="auth-form">
+              <FormInput v-model="loginForm.email" :placeholder="$t('auth.login.usernamePlaceholder')" />
+
+              <FormInput v-model="loginForm.password" :placeholder="$t('auth.login.passwordPlaceholder')" isSecret @keydown.enter="handleEnterKey" />
+
+              <div @click="showResetPassword" class="forgot-password-link">
+                {{ $t('auth.login.forgotPassword') }}
+              </div>
+
+              <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isLoginFormFilled }">
+                <div v-if="!isAwaitingResponse">{{ $t('auth.login.loginButton') }}</div>
+                <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" :noFilter="true" />
+              </button>
+
+              <div v-if="loadingStatus" class="loading-status">{{ loadingStatus }}</div>
+            </form>
+
+            <div v-if="error" class="error-message">{{ error }}</div>
           </div>
-        </div>
+
+          <div v-if="!platformStore.isWeb && !isAwaitingResponse" class="additional-actions">
+            <div @click="setLoginMode('studio-connect')" class="studio-reveal-link">{{ $t('auth.login.connectToStudio') }}</div>
+          </div>
+
+          <div v-if="!isAwaitingResponse" class="additional-actions">
+            <div @click="toggleLogin" class="signup-toggle">
+              {{ $t('auth.login.noAccount') }}&nbsp;<span class="bold">{{ $t('auth.login.signUpLink') }}</span>
+            </div>
+          </div>
+        </template>
+
+        <!-- STATE 2: Studio URL connect -->
+        <template v-if="loginMode === 'studio-connect'">
+          <div class="auth-form-container">
+            <FormInput v-model="studioUrl" :placeholder="$t('auth.login.studioUrl')" :error="studioUrlError" :info="!studioUrlError ? $t('auth.login.studioUrlInfo') : ''" @input="validateStudioUrl" />
+
+            <button class="submit-button display-font" :class="{ 'button-inactive': !isUrlValid }" @click="connectToServer">
+              <div v-if="!isConnecting">{{ $t('auth.login.connectButton') }}</div>
+              <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" />
+            </button>
+
+            <div v-if="connectionError" class="error-message">{{ connectionError }}</div>
+          </div>
+
+          <div class="additional-actions">
+            <div @click="setLoginMode('cloud')" class="back-link">{{ $t('auth.login.loginToCloud') }}</div>
+          </div>
+        </template>
+
+        <!-- STATE 3: Studio login (connected) -->
+        <template v-if="loginMode === 'studio-login'">
+          <div class="auth-form-container">
+            <div class="server-badge">
+              <div class="server-badge-info">
+                <div class="status-dot"></div>
+                <div class="server-badge-details">
+                  <span class="server-badge-name">{{ connectedServerName }}</span>
+                  <span class="server-badge-url">{{ studioUrl }}</span>
+                </div>
+              </div>
+              <div @click="disconnectServer" class="server-change-link">{{ $t('auth.login.changeServer') }}</div>
+            </div>
+
+            <form @submit.prevent="handleLogin" class="auth-form">
+              <FormInput v-model="loginForm.email" :placeholder="$t('auth.login.usernamePlaceholder')" />
+
+              <FormInput v-model="loginForm.password" :placeholder="$t('auth.login.passwordPlaceholder')" isSecret @keydown.enter="handleEnterKey" />
+
+              <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isLoginFormFilled }">
+                <div v-if="!isAwaitingResponse">{{ $t('auth.login.loginButton') }}</div>
+                <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" :noFilter="true" />
+              </button>
+
+              <div v-if="loadingStatus" class="loading-status">{{ loadingStatus }}</div>
+            </form>
+
+            <div v-if="error" class="error-message">{{ error }}</div>
+          </div>
+
+          <div v-if="!isAwaitingResponse" class="additional-actions">
+            <div @click="goToStudioSignUp" class="back-link">
+              {{ $t('auth.login.signUpToStudio') }}
+            </div>
+
+            <div @click="backToCloudLogin" class="back-link">{{ $t('auth.login.loginToCloud') }}</div>
+          </div>
+        </template>
+
       </div>
-      
+
     </div>
   </div>
 </template>
 
 
 <script setup>
+
+// imports
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+
+// components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
+import FormInput from '@/instances/desktop/components/FormInput.vue';
 
 // services
-import { AuthService, SettingsService } from '@/services';
+import { AuthService, SettingsService, StudioService } from '@/services';
 
 // store imports
 import { useAccountStore } from '@/stores/accounts';
@@ -93,30 +138,31 @@ import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
 import { markStoresInitialized } from '@/router';
 
-const router = useRouter();
-const { t } = useI18n();
-const trayStates = useTrayStates();
-const projectStore = useProjectStore();
-const userStore = useUserStore();
-const notificationStore = useNotificationStore();
-const iconStore = useIconStore();
-const themeStore = useThemeStore();
-const modals = useDesktopModalStore();
+// stores
 const accountStore = useAccountStore();
+const iconStore = useIconStore();
+const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
 const platformStore = usePlatformStore();
+const projectStore = useProjectStore();
+const themeStore = useThemeStore();
+const userStore = useUserStore();
+
+const route = useRoute();
+const router = useRouter();
+const trayStates = useTrayStates();
+const { t } = useI18n();
 
 // refs
+const connectedServerName = ref('');
+const connectionError = ref('');
 const error = ref('');
 const isAwaitingResponse = ref(false);
+const isConnecting = ref(false);
 const loadingStatus = ref('');
-const showStudioLogin = ref(false);
+const loginMode = ref('cloud');
 const studioUrl = ref('');
 const studioUrlError = ref('');
-
-// components
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
-import FormInput from '@/instances/desktop/components/FormInput.vue';
 
 // vars
 const loginForm = reactive({
@@ -129,35 +175,171 @@ const errors = reactive({
   password: '',
 });
 
-// computed props
+// computed properties
 const isLoginFormFilled = computed(() => {
-  return loginForm.email && loginForm.password
+  return loginForm.email && loginForm.password;
+});
+
+const isUrlValid = computed(() => {
+  return studioUrl.value.trim() && !studioUrlError.value;
 });
 
 // methods
 
+// Navigates back to cloud login, clearing studio state.
+const backToCloudLogin = () => {
+  loginMode.value = 'cloud';
+  studioUrl.value = '';
+  studioUrlError.value = '';
+  connectedServerName.value = '';
+  connectionError.value = '';
+  error.value = '';
+};
+
+// Connects to the studio server and retrieves its info.
+const connectToServer = async () => {
+  if (!isUrlValid.value || isConnecting.value) return;
+
+  isConnecting.value = true;
+  connectionError.value = '';
+
+  const normalizedUrl = normalizeStudioUrl(studioUrl.value);
+
+  try {
+    const info = await StudioService.GetStudioInfo(normalizedUrl);
+    connectedServerName.value = info.name || normalizedUrl;
+    studioUrl.value = normalizedUrl;
+    loginMode.value = 'studio-login';
+  } catch (err) {
+    console.log(err);
+    connectionError.value = t('auth.login.connectionFailed');
+  } finally {
+    isConnecting.value = false;
+  }
+};
+
+// Disconnects from the connected server and returns to URL input.
+const disconnectServer = () => {
+  loginMode.value = 'studio-connect';
+  connectedServerName.value = '';
+  connectionError.value = '';
+  error.value = '';
+};
+
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-	const icon = iconStore.getAppIcon(iconName);
-	return icon
+  return iconStore.getAppIcon(iconName);
 };
 
-const projectDirectoryExists = ref(false);
-
-const toggleLogin = () => {
-  router.push('/auth/signup')
+// Navigates to the studio setup page with the connected server URL.
+const goToStudioSignUp = () => {
+  router.push({
+    path: '/auth/studio-setup',
+    query: { type: 'self-hosted', url: studioUrl.value, name: connectedServerName.value }
+  });
 };
 
-const showResetPassword = () => {
-  router.push('/auth/forgot-password')
-};
+// Handles the login form submission.
+const handleLogin = async () => {
+  isAwaitingResponse.value = true;
+  error.value = '';
+  loadingStatus.value = t('auth.login.authenticating');
 
-const toggleStudioLogin = () => {
-  showStudioLogin.value = !showStudioLogin.value;
-  if (!showStudioLogin.value) {
-    studioUrl.value = '';
-    studioUrlError.value = '';
+  const isStudioLogin = loginMode.value === 'studio-login';
+  const normalizedUrl = isStudioLogin ? normalizeStudioUrl(studioUrl.value) : '';
+
+  try {
+    let data;
+    if (isStudioLogin) {
+      data = await AuthService.LoginWithHost(loginForm.email, loginForm.password, normalizedUrl, 'studio', '');
+    } else {
+      data = await AuthService.Login(loginForm.email, loginForm.password);
+    }
+
+    userStore.user = data.user;
+    userStore.isUserAuthenticated = true;
+
+    loadingStatus.value = t('auth.login.loadingAccount');
+    await accountStore.initialize();
+
+    loadingStatus.value = t('auth.login.applyingTheme');
+    await themeStore.initializeTheme();
+
+    loadingStatus.value = t('auth.login.loadingStudios');
+    await projectStore.loadStudios();
+
+    const projectDirectoryExists = await SettingsService.GetProjectDirectory();
+
+    if (projectDirectoryExists) {
+      loadingStatus.value = t('auth.login.loadingProjects');
+      await projectStore.loadProjects();
+      trayStates.refreshData();
+    } else {
+      modals.setModalVisibility('dirOnboardModal', true);
+    }
+
+    markStoresInitialized();
+
+    if (isStudioLogin) {
+      notificationStore.addNotification(t('auth.login.studioLoginTitle'), t('auth.login.studioLoginSuccess', { url: normalizedUrl }), '●');
+    }
+    router.push(platformStore.isWeb ? '/profile' : '/');
+  } catch (err) {
+    console.log(err);
+    isAwaitingResponse.value = false;
+    loadingStatus.value = '';
+
+    const errorMessage = err.message || err.toString();
+    const isUnverifiedUser = errorMessage.toLowerCase().includes('please verify your email before logging in') ||
+                             errorMessage.toLowerCase().includes('account not verified');
+
+    if (isUnverifiedUser) {
+      notificationStore.addNotification(t('auth.login.verificationRequired'), t('auth.login.checkEmailForCode'), 'info');
+      userStore.setPendingVerification(loginForm.email, loginForm.password);
+      AuthService.ResendToken(loginForm.email).catch(() => {});
+      router.push('/verify-email');
+    } else if (isStudioLogin) {
+      notificationStore.errorNotification(t('auth.login.studioLoginFailed'), errorMessage || t('auth.login.studioConnectionError'));
+      error.value = errorMessage || t('auth.login.studioConnectionError');
+    } else {
+      notificationStore.errorNotification(t('auth.login.errorLoggingIn'), t('auth.login.checkCredentials'));
+    }
   }
+};
+
+// Handles enter key press on the password field.
+const handleEnterKey = (event) => {
+  if (event.key === 'Enter') {
+    handleLogin();
+  }
+};
+
+// Normalizes a studio URL by ensuring protocol and removing trailing slash.
+const normalizeStudioUrl = (url) => {
+  if (!url) return '';
+  let normalized = url.trim();
+  normalized = normalized.replace(/\/+$/, '');
+  if (!normalized.startsWith('http://') && !normalized.startsWith('https://')) {
+    normalized = 'https://' + normalized;
+  }
+  return normalized;
+};
+
+// Sets the login mode and resets errors.
+const setLoginMode = (mode) => {
+  loginMode.value = mode;
+  error.value = '';
+  connectionError.value = '';
+};
+
+// Navigates to the forgot password page.
+const showResetPassword = () => {
+  router.push('/auth/forgot-password');
+};
+
+// Navigates to the sign up page.
+const toggleLogin = () => {
+  router.push('/auth/signup');
 };
 
 // Validates the studio URL format.
@@ -166,9 +348,9 @@ const validateStudioUrl = () => {
     studioUrlError.value = '';
     return;
   }
-  
+
   const urlPattern = /^https?:\/\/[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+(:\d+)?(\/.*)?$/;
-  
+
   if (!studioUrl.value.startsWith('http://') && !studioUrl.value.startsWith('https://')) {
     studioUrlError.value = t('auth.login.urlMustStartWith');
   } else if (!urlPattern.test(studioUrl.value)) {
@@ -178,112 +360,16 @@ const validateStudioUrl = () => {
   }
 };
 
-const normalizeStudioUrl = (url) => {
-  if (!url) return '';
-  let normalized = url.trim();
-  // Remove trailing slash
-  normalized = normalized.replace(/\/+$/, '');
-  // Ensure https:// prefix if no protocol
-  if (!normalized.startsWith('http://') && !normalized.startsWith('https://')) {
-    normalized = 'https://' + normalized;
+// lifecycle hooks
+onMounted(async () => {
+  const queryUrl = route.query.studioUrl;
+  const queryName = route.query.name;
+  if (queryUrl) {
+    studioUrl.value = queryUrl;
+    connectedServerName.value = queryName || queryUrl;
+    loginMode.value = 'studio-login';
+    await connectToServer();
   }
-  return normalized;
-};
-
-const handleLogin = async () => {
-  isAwaitingResponse.value = true;
-  error.value = '';
-  loadingStatus.value = t('auth.login.authenticating');
-
-  // Determine if this is a studio login
-  const isStudioLogin = showStudioLogin.value && studioUrl.value.trim();
-  const normalizedStudioUrl = isStudioLogin ? normalizeStudioUrl(studioUrl.value) : '';
-  
-  try {
-    let data;
-    if (isStudioLogin) {
-      // Login to studio server - authMode 'studio', studioId can be empty
-      data = await AuthService.LoginWithHost(loginForm.email, loginForm.password, normalizedStudioUrl, 'studio', '');
-    } else {
-      // Regular global login
-      data = await AuthService.Login(loginForm.email, loginForm.password);
-    }
-    
-    userStore.user = data.user;
-    userStore.isUserAuthenticated = true;
-
-    // Initialize stores that require authentication
-    loadingStatus.value = t('auth.login.loadingAccount');
-    await accountStore.initialize();
-    
-    loadingStatus.value = t('auth.login.applyingTheme');
-    await themeStore.initializeTheme();
-    
-    loadingStatus.value = t('auth.login.loadingStudios');
-    await projectStore.loadStudios();
-
-    projectDirectoryExists.value = await SettingsService.GetProjectDirectory();
-
-    if(projectDirectoryExists.value){
-      loadingStatus.value = t('auth.login.loadingProjects');
-      await projectStore.loadProjects();
-      trayStates.refreshData();
-    } else {
-      setDirectories();
-    }
-
-    // Mark stores as initialized so router doesn't re-init
-    markStoresInitialized();
-    
-    // Navigate to home after successful login
-    if (isStudioLogin) {
-      notificationStore.addNotification(t('auth.login.studioLoginTitle'), t('auth.login.studioLoginSuccess', { url: normalizedStudioUrl }), "●");
-    }
-    router.push(platformStore.isWeb ? '/profile' : '/');
-  } catch (err) {
-    console.log(err);
-    isAwaitingResponse.value = false;
-    loadingStatus.value = '';
-    
-    // Check if error indicates user needs verification
-    const errorMessage = err.message || err.toString();
-    const isUnverifiedUser = errorMessage.toLowerCase().includes('please verify your email before logging in') || 
-                             errorMessage.toLowerCase().includes('account not verified');
-    
-    if (isUnverifiedUser) {
-      notificationStore.addNotification(t('auth.login.verificationRequired'), t('auth.login.checkEmailForCode'), "info");
-      // Store credentials for verification page and navigate
-      userStore.setPendingVerification(loginForm.email, loginForm.password);
-      // Resend verification token
-      AuthService.ResendToken(loginForm.email).catch(() => {});
-      router.push('/verify-email');
-    } else if (isStudioLogin) {
-      // Handle studio login errors
-      notificationStore.errorNotification(t('auth.login.studioLoginFailed'), errorMessage || t('auth.login.studioConnectionError'));
-      error.value = errorMessage || t('auth.login.studioConnectionError');
-    } else {
-      // Handle other login errors normally
-      notificationStore.errorNotification(t('auth.login.errorLoggingIn'), t('auth.login.checkCredentials'));
-    }
-  }
-};
-
-const setDirectories = async () => {
-	  modals.setModalVisibility('dirOnboardModal', true);
-};
-
-const loadProjects = async () => {
-      await projectStore.loadProjects();
-      trayStates.refreshData();
-};
-
-const handleEnterKey = (event) => {
-  if (event.key === 'Enter') {
-    handleLogin();
-  }
-};
-
-onMounted( async () => {
 })
 </script>
 
@@ -291,34 +377,10 @@ onMounted( async () => {
 <style scoped>
 @import "@/assets/desktop.css";
 
-.studio-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0 1rem;
-  box-sizing: border-box;
-}
-
-.studio-reveal-link {
-  font-size: 0.8rem;
-  color: var(--white);
-  opacity: 0.5;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.studio-reveal-link:hover {
-  opacity: 0.9;
-}
-
-.additional-actions{
+.additional-actions {
   display: flex;
   box-sizing: border-box;
-  padding: .5rem;
+  padding: 0.5rem;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
@@ -328,26 +390,19 @@ onMounted( async () => {
   justify-content: center;
 }
 
-.signup-toggle {
+.back-link {
   color: var(--white);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: .3rem;
+  padding: 0.3rem;
   opacity: 0.6;
   cursor: pointer;
   transition: opacity 0.2s;
 }
 
-.signup-toggle:hover {
+.back-link:hover {
   opacity: 1;
-}
-
-.studio-url-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  width: 100%;
 }
 
 .button-inactive {
@@ -379,9 +434,129 @@ onMounted( async () => {
   animation: pulse 1.5s ease-in-out infinite;
 }
 
+.server-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: var(--large-radius);
+  background-color: var(--midnight-steel);
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+  gap: 1rem;
+  transition: border-radius 0.2s;
+}
+
+.server-badge:hover {
+  border-radius: var(--normal-radius);
+}
+
+.server-badge-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.server-badge-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.server-badge-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--white);
+  opacity: 0.9;
+}
+
+.server-badge-url {
+  font-size: 0.7rem;
+  color: var(--white);
+  opacity: 0.4;
+  font-weight: 300;
+}
+
+.server-change-link {
+  font-size: 0.75rem;
+  color: var(--white);
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.server-change-link:hover {
+  opacity: 1;
+}
+
+.signup-toggle {
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem;
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.signup-toggle:hover {
+  opacity: 1;
+}
+
+.status-dot {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  animation: dot-entrance 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.status-dot::before,
+.status-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-color: #22c55e;
+  animation: ripple 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.status-dot::after {
+  animation-delay: 1.25s;
+}
+
+.studio-reveal-link {
+  font-size: 0.8rem;
+  color: var(--white);
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.studio-reveal-link:hover {
+  opacity: 0.9;
+}
+
+@keyframes dot-entrance {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.3); }
+  80% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 0.5; }
   50% { opacity: 0.9; }
+}
+
+@keyframes ripple {
+  0% { opacity: 0.5; transform: scale(1); }
+  100% { opacity: 0; transform: scale(3); }
 }
 
 </style>
