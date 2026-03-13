@@ -82,12 +82,12 @@ const projectCollaborators = computed(() => {
 
   let projectUsers = userStore.getProjectCollaborators;
   let assignedUserIds = [];
-  let tasks = assetStore.assets;
+  let assets = assetStore.assets;
 
-  for (const task of tasks) {
-    let taskAssigneeId = task.assignee_id;
-    if (!assignedUserIds.includes(taskAssigneeId)) {
-      assignedUserIds.push(taskAssigneeId)
+  for (const asset of assets) {
+    let assetAssigneeId = asset.assignee_id;
+    if (!assignedUserIds.includes(assetAssigneeId)) {
+      assignedUserIds.push(assetAssigneeId)
     }
   }
 

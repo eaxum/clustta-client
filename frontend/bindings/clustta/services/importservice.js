@@ -16,38 +16,38 @@ import * as $models from "./models.js";
 
 /**
  * @param {string} projectPath
- * @param {models$0.Entity[]} entities
+ * @param {models$0.Asset[]} assets
  * @param {number} completed
- * @param {number} totalEntities
- * @returns {$CancellablePromise<void>}
- */
-export function CreateEntities(projectPath, entities, completed, totalEntities) {
-    return $Call.ByID(1462445845, projectPath, entities, completed, totalEntities);
-}
-
-/**
- * @param {string} projectPath
- * @param {models$0.Entity[]} entities
- * @param {models$0.Task[]} tasks
+ * @param {number} totalAssets
  * @param {string} comment
  * @param {string} groupId
  * @returns {$CancellablePromise<void>}
  */
-export function CreateItems(projectPath, entities, tasks, comment, groupId) {
-    return $Call.ByID(1562194358, projectPath, entities, tasks, comment, groupId);
+export function CreateAssets(projectPath, assets, completed, totalAssets, comment, groupId) {
+    return $Call.ByID(563301719, projectPath, assets, completed, totalAssets, comment, groupId);
 }
 
 /**
  * @param {string} projectPath
- * @param {models$0.Task[]} tasks
+ * @param {models$0.Collection[]} collections
  * @param {number} completed
- * @param {number} totalTasks
+ * @param {number} totalCollections
+ * @returns {$CancellablePromise<void>}
+ */
+export function CreateCollections(projectPath, collections, completed, totalCollections) {
+    return $Call.ByID(4245556523, projectPath, collections, completed, totalCollections);
+}
+
+/**
+ * @param {string} projectPath
+ * @param {models$0.Collection[]} collections
+ * @param {models$0.Asset[]} assets
  * @param {string} comment
  * @param {string} groupId
  * @returns {$CancellablePromise<void>}
  */
-export function CreateTasks(projectPath, tasks, completed, totalTasks, comment, groupId) {
-    return $Call.ByID(3633228444, projectPath, tasks, completed, totalTasks, comment, groupId);
+export function CreateItems(projectPath, collections, assets, comment, groupId) {
+    return $Call.ByID(1562194358, projectPath, collections, assets, comment, groupId);
 }
 
 /**

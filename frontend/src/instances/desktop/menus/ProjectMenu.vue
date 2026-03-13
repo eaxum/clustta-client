@@ -3,24 +3,24 @@
 
     <!-- Create -->
      <ActionButton :icon="getAppIcon('file-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addAsset')"
-      v-if="templateStore.getTemplates.length && userStore.canDo('create_task')" :buttonFunction="createTask" />
+      v-if="templateStore.getTemplates.length && userStore.canDo('create_asset')" :buttonFunction="createAsset" />
 
     <ActionButton :icon="getAppIcon('folder-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addCollection')"
-      v-if="userStore.canDo('create_entity')" :buttonFunction="createEntity" />
+      v-if="userStore.canDo('create_collection')" :buttonFunction="createCollection" />
 
     <ActionButton :icon="getAppIcon('workflow-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addWorkflow')"
-      v-if="workflowStore.workflows.length && userStore.canDo('create_task')" :buttonFunction="addWorkflow" />
+      v-if="workflowStore.workflows.length && userStore.canDo('create_asset')" :buttonFunction="addWorkflow" />
 
     <ActionButton :icon="getAppIcon('arrow-down-on-square-stack')" :showLabel="true" :fullWidth="true" :label="$t('modals.importItems')"
-      v-if="!platformStore.isWeb && userStore.canDo('create_task')" :buttonFunction="importItems" />
+      v-if="!platformStore.isWeb && userStore.canDo('create_asset')" :buttonFunction="importItems" />
 
     <ActionButton :icon="getAppIcon('arrow-up-ramp')" :showLabel="true" :fullWidth="true" :label="$t('menus.uploadItems')"
-      v-if="platformStore.isWeb && userStore.canDo('create_task')" :buttonFunction="uploadItems" />
+      v-if="platformStore.isWeb && userStore.canDo('create_asset')" :buttonFunction="uploadItems" />
 
     <ActionButton :icon="getAppIcon('clipboard')" :showLabel="true" :fullWidth="true" :label="$t('common.paste')"
-      v-if="hasClipboardItems && userStore.canDo('update_entity')" :buttonFunction="pasteItems" />
+      v-if="hasClipboardItems && userStore.canDo('update_collection')" :buttonFunction="pasteItems" />
 
-    <span v-if="userStore.canDo('create_entity') && !platformStore.isWeb" class="menu-divider"></span>
+    <span v-if="userStore.canDo('create_collection') && !platformStore.isWeb" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
     <span v-if="!platformStore.isWeb" class="horizontal-flex">
@@ -121,8 +121,8 @@ const copyDirectoryPath = async () => {
     FSService.MakeDirs(projectDir);
     await Clipboard.SetText(projectDir);
   } else {
-    let path = collectionStore.navigatedCollection?.type === 'entity' 
-      ? collectionStore.navigatedCollection.entity_path
+    let path = collectionStore.navigatedCollection?.type === 'collection' 
+      ? collectionStore.navigatedCollection.collection_path
       : collectionStore.navigatedCollection.item_path;
 
     let explorerPath = `${project.working_directory}${path}`;
@@ -135,13 +135,13 @@ const copyDirectoryPath = async () => {
 };
 
 // Opens the create collection modal.
-const createEntity = () => {
+const createCollection = () => {
   modals.setModalVisibility('createCollectionModal', true);
   menu.hideContextMenu();
 };
 
 // Opens the create asset modal.
-const createTask = () => {
+const createAsset = () => {
   modals.setModalVisibility('selectAppModal', true);
   menu.hideContextMenu();
 };
@@ -160,11 +160,11 @@ const emptyTrash = async () => {
     });
 };
 
-// Frees up space by deleting the navigated entity's files.
-const freeUpEntitySpace = async () => {
-  let entity = collectionStore.navigatedCollection;
-  let entityDir = entity.file_path.replace(/\\/g, '/');
-  await FSService.DeleteFolder(entityDir)
+// Frees up space by deleting the navigated collection's files.
+const freeUpCollectionSpace = async () => {
+  let collection = collectionStore.navigatedCollection;
+  let collectionDir = collection.file_path.replace(/\\/g, '/');
+  await FSService.DeleteFolder(collectionDir)
     .then(() => {
       emitter.emit('refresh-browser');
     })
@@ -317,10 +317,10 @@ const prepFreeUpSpacePopUpModal = () => {
   menu.hideContextMenu();
   let project = projectStore.getActiveProject;
   if (commonStore.navigatorMode) {
-    const navigatedEntity = collectionStore.navigatedCollection;
-    trayStates.popUpModalTitle = t('confirmations.deleteFilesIn', { name: navigatedEntity.name });
-    trayStates.popUpModalMessage = t('confirmations.clearContentsEntity', { name: navigatedEntity.name });
-    trayStates.popUpModalFunction = freeUpEntitySpace;
+    const navigatedCollection = collectionStore.navigatedCollection;
+    trayStates.popUpModalTitle = t('confirmations.deleteFilesIn', { name: navigatedCollection.name });
+    trayStates.popUpModalMessage = t('confirmations.clearContentsCollection', { name: navigatedCollection.name });
+    trayStates.popUpModalFunction = freeUpCollectionSpace;
   } else {
     trayStates.popUpModalTitle = t('confirmations.deleteFilesIn', { name: project.name });
     trayStates.popUpModalMessage = t('confirmations.clearContentsProject');
@@ -342,17 +342,17 @@ const pasteItems = async () => {
 // Rebuilds all assets in the current context.
 const rebuildAll = async () => { 
   menu.hideContextMenu();
-  const path = collectionStore.navigatedCollection?.entity_path;
-  const navigatedEntityId = collectionStore.navigatedCollection?.id;
-  const rebuildableTasksPath = assetStore.rebuildableAssetsPath;
+  const path = collectionStore.navigatedCollection?.collection_path;
+  const navigatedCollectionId = collectionStore.navigatedCollection?.id;
+  const rebuildableAssetsPath = assetStore.rebuildableAssetsPath;
 
   notificationStore.cancleFunction = SyncService.CancelSync;
   notificationStore.canCancel = true;
 
-  await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedEntityId)
+  await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedCollectionId)
     .then(() => {
       if (path) {
-        assetStore.rebuildableAssetsPath = rebuildableTasksPath.filter(item => !item.startsWith(path));
+        assetStore.rebuildableAssetsPath = rebuildableAssetsPath.filter(item => !item.startsWith(path));
       } else {
         assetStore.rebuildableAssetsPath = [];
       }
@@ -415,8 +415,8 @@ const revealInExplorer = async () => {
     await FSService.MakeDirs(project.working_directory);
     FSService.RevealInExplorer(project.working_directory);
   } else {
-    let path = collectionStore.navigatedCollection?.type === 'entity' 
-      ? collectionStore.navigatedCollection.entity_path
+    let path = collectionStore.navigatedCollection?.type === 'collection' 
+      ? collectionStore.navigatedCollection.collection_path
       : collectionStore.navigatedCollection.item_path;
 
     const trimmedPath = path.endsWith('/') ? path.slice(0, -1) : path;

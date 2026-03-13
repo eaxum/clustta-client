@@ -2,11 +2,11 @@
   <div class="settings-component-root">
     <div class="settings-component-container">
 
-      <ActionBar :itemType="$t('settings.addAssetType')" :addFunction="addTaskType" />
+      <ActionBar :itemType="$t('settings.addAssetType')" :addFunction="addAssetType" />
 
-      <ScrollList v-if="projectTaskTypes.length" :items="projectTaskTypes" :useIcons="true" :useItemId="true"
-        :wrapItems="true" :editItems="true" :editListItem="prepEditTaskType" :deleteItems="true"
-        :deleteListItem="deleteTaskType" />
+      <ScrollList v-if="projectAssetTypes.length" :items="projectAssetTypes" :useIcons="true" :useItemId="true"
+        :wrapItems="true" :editItems="true" :editListItem="prepEditAssetType" :deleteItems="true"
+        :deleteListItem="deleteAssetType" />
 
       <PageState v-else :message="message()" :illustration="illustration()" :secondaryIcon="getAppIcon('plus-circle')"
         :secondaryActionMessage="secondaryActionMessage()" :secondaryActionFunction="secondaryActionFunction" />
@@ -51,21 +51,21 @@ const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
 const { t } = useI18n();
 
-const projectTaskTypes = computed(() => {
+const projectAssetTypes = computed(() => {
   
-  let taskTypes = assetStore.getAssetTypes;
-  console.log(taskTypes)
-  let viewTaskTypeIds = [];
-  let tasks = assetStore.assets;
+  let assetTypes = assetStore.getAssetTypes;
+  console.log(assetTypes)
+  let viewAssetTypeIds = [];
+  let assets = assetStore.assets;
 
-  for (const task of tasks){
-    let taskTypeId = task.task_type_id;
-    if(!viewTaskTypeIds.includes(taskTypeId)){
-      viewTaskTypeIds.push(taskTypeId)
+  for (const asset of assets){
+    let assetTypeId = asset.asset_type_id;
+    if(!viewAssetTypeIds.includes(assetTypeId)){
+      viewAssetTypeIds.push(assetTypeId)
     }
   }
   const restrictedNames = ['generic', 'weblink']
-  const allTypes =  taskTypes.map(type => ({
+  const allTypes =  assetTypes.map(type => ({
     ...type,
     can_delete: !restrictedNames.includes(type.name),
     can_edit: !restrictedNames.includes(type.name),
@@ -90,16 +90,16 @@ const secondaryActionMessage = () => {
 };
 
 const secondaryActionFunction = () => {
-  addTaskType();
+  addAssetType();
 };
 
-const addTaskType = () => {
+const addAssetType = () => {
   modals.setModalVisibility('addAssetTypeModal', true);
 };
 
-const prepEditTaskType = (selectedTaskTypeId) => {
-  console.log(selectedTaskTypeId)
-  assetStore.selectedAssetType = assetStore.getAssetTypes.find((item) => item.id === selectedTaskTypeId)
+const prepEditAssetType = (selectedAssetTypeId) => {
+  console.log(selectedAssetTypeId)
+  assetStore.selectedAssetType = assetStore.getAssetTypes.find((item) => item.id === selectedAssetTypeId)
   modals.setModalVisibility('editAssetTypeModal', true);
 
 };
@@ -108,11 +108,11 @@ const replaceSymbols = (name) => {
   return name.replace(/_/g, " ").toLowerCase().replace(/(^\w|\s\w)/g, match => match.toUpperCase());
 };
 
-const deleteTaskType = async (taskTypeId) => {
-  AssetService.DeleteAssetType(projectStore.activeProject.uri, taskTypeId)
+const deleteAssetType = async (assetTypeId) => {
+  AssetService.DeleteAssetType(projectStore.activeProject.uri, assetTypeId)
     .then((response) => {
       notificationStore.addNotification(t('notifications.assetTypeDeleted'), "", "success");
-      const index = assetStore.assetTypes.findIndex(taskType => taskType.id === taskTypeId);
+      const index = assetStore.assetTypes.findIndex(assetType => assetType.id === assetTypeId);
       assetStore.assetTypes.splice(index, 1);
     })
     .catch((error) => {

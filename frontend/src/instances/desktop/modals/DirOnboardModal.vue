@@ -309,8 +309,9 @@ const selectDirectory = async () => {
   const result = await DialogService.SelectSpecificFolderDialog(title, directory);
 
   if (result) {
-    let fileDir = result.replace(/\\/g, '/');
-    selectedClusttaDirectory.value = fileDir.replace(/\/clustta/g, '') + '/clustta';
+    let fileDir = result.replace(/\\/g, '/').replace(/\/+$/, '');
+    let baseDir = userBaseDirectory.value.replace(/\\/g, '/').replace(/\/+$/, '');
+    selectedClusttaDirectory.value = fileDir === baseDir ? fileDir + '/clustta' : fileDir;
 
     personalDataDirectory.value = selectedClusttaDirectory.value + '/projects';
     sharedDataDirectory.value = selectedClusttaDirectory.value + '/shared_projects';

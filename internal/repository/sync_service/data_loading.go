@@ -26,58 +26,58 @@ func OLDLoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 		return ProjectData{}, err
 	}
 
-	// tasks, err := repository.GetUserTasks(tx, userId)
+	// assets, err := repository.GetUserAssets(tx, userId)
 	// if err != nil {
 	// 	return ProjectData{}, err
 	// }
-	tasks := []models.Task{}
-	if userRole.ViewTask {
-		tasks, err = repository.GetTasks(tx, true)
+	assets := []models.Asset{}
+	if userRole.ViewAsset {
+		assets, err = repository.GetAssets(tx, true)
 		if err != nil {
 			return ProjectData{}, err
 		}
 	} else {
-		tasks, err = repository.OLDGetUserTasks(tx, user.Id)
+		assets, err = repository.OLDGetUserAssets(tx, user.Id)
 		if err != nil {
 			return ProjectData{}, err
 		}
 	}
 
-	var taskEntityIds []string
-	var taskIds []string
-	for _, task := range tasks {
-		taskIds = append(taskIds, task.Id)
-		if !utils.Contains(taskEntityIds, task.EntityId) {
-			taskEntityIds = append(taskEntityIds, task.EntityId)
+	var assetCollectionIds []string
+	var assetIds []string
+	for _, asset := range assets {
+		assetIds = append(assetIds, asset.Id)
+		if !utils.Contains(assetCollectionIds, asset.CollectionId) {
+			assetCollectionIds = append(assetCollectionIds, asset.CollectionId)
 		}
 	}
-	quotedTaskIds := make([]string, len(taskIds))
-	for i, id := range taskIds {
-		quotedTaskIds[i] = fmt.Sprintf("\"%s\"", id)
+	quotedAssetIds := make([]string, len(assetIds))
+	for i, id := range assetIds {
+		quotedAssetIds[i] = fmt.Sprintf("\"%s\"", id)
 	}
-	quotedTaskEntityIds := make([]string, len(taskEntityIds))
-	for i, id := range taskEntityIds {
-		quotedTaskEntityIds[i] = fmt.Sprintf("\"%s\"", id)
+	quotedAssetCollectionIds := make([]string, len(assetCollectionIds))
+	for i, id := range assetCollectionIds {
+		quotedAssetCollectionIds[i] = fmt.Sprintf("\"%s\"", id)
 	}
 
-	// dependenciesQuery := fmt.Sprintf("SELECT * FROM task_dependencies WHERE task_id IN (%s) AND dependency_id NOT IN (%s)", strings.Join(quotedTaskIds, ","), strings.Join(quotedTaskIds, ","))
-	taskDependenciesQuery := fmt.Sprintf("SELECT * FROM task_dependency WHERE task_id IN (%s)", strings.Join(quotedTaskIds, ","))
-	taskDependencies := []models.TaskDependency{}
-	err = tx.Select(&taskDependencies, taskDependenciesQuery)
+	// dependenciesQuery := fmt.Sprintf("SELECT * FROM asset_dependencies WHERE asset_id IN (%s) AND dependency_id NOT IN (%s)", strings.Join(quotedAssetIds, ","), strings.Join(quotedAssetIds, ","))
+	assetDependenciesQuery := fmt.Sprintf("SELECT * FROM asset_dependency WHERE asset_id IN (%s)", strings.Join(quotedAssetIds, ","))
+	assetDependencies := []models.AssetDependency{}
+	err = tx.Select(&assetDependencies, assetDependenciesQuery)
 	if err != nil {
 		return ProjectData{}, err
 	}
 
-	entityDependenciesQuery := fmt.Sprintf("SELECT * FROM entity_dependency WHERE task_id IN (%s)", strings.Join(quotedTaskIds, ","))
-	entityDependencies := []models.EntityDependency{}
-	err = tx.Select(&entityDependencies, entityDependenciesQuery)
+	collectionDependenciesQuery := fmt.Sprintf("SELECT * FROM collection_dependency WHERE asset_id IN (%s)", strings.Join(quotedAssetIds, ","))
+	collectionDependencies := []models.CollectionDependency{}
+	err = tx.Select(&collectionDependencies, collectionDependenciesQuery)
 	if err != nil {
 		return ProjectData{}, err
 	}
 
 	var uniqueDependencyIds []string
-	for _, dependency := range taskDependencies {
-		if !utils.Contains(uniqueDependencyIds, dependency.DependencyId) && !utils.Contains(taskIds, dependency.DependencyId) {
+	for _, dependency := range assetDependencies {
+		if !utils.Contains(uniqueDependencyIds, dependency.DependencyId) && !utils.Contains(assetIds, dependency.DependencyId) {
 			uniqueDependencyIds = append(uniqueDependencyIds, dependency.DependencyId)
 		}
 	}
@@ -86,21 +86,21 @@ func OLDLoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 		quotedUniqueDependencyIds[i] = fmt.Sprintf("\"%s\"", id)
 	}
 
-	uniqueDependenciesQuery := fmt.Sprintf("SELECT * FROM task WHERE trashed = 0 AND id IN (%s)", strings.Join(quotedUniqueDependencyIds, ","))
-	uniqueDependencies := []models.Task{}
+	uniqueDependenciesQuery := fmt.Sprintf("SELECT * FROM asset WHERE trashed = 0 AND id IN (%s)", strings.Join(quotedUniqueDependencyIds, ","))
+	uniqueDependencies := []models.Asset{}
 	err = tx.Select(&uniqueDependencies, uniqueDependenciesQuery)
 	if err != nil {
 		return ProjectData{}, err
 	}
 
-	tasks = append(tasks, uniqueDependencies...)
-	taskIds = append(taskIds, uniqueDependencyIds...)
+	assets = append(assets, uniqueDependencies...)
+	assetIds = append(assetIds, uniqueDependencyIds...)
 
-	quotedTaskIds = append(quotedTaskIds, quotedUniqueDependencyIds...)
+	quotedAssetIds = append(quotedAssetIds, quotedUniqueDependencyIds...)
 
-	checkpointQuery := fmt.Sprintf("SELECT * FROM task_checkpoint WHERE trashed = 0 AND task_id IN (%s)", strings.Join(quotedTaskIds, ","))
-	tasksCheckpoints := []models.Checkpoint{}
-	err = tx.Select(&tasksCheckpoints, checkpointQuery)
+	checkpointQuery := fmt.Sprintf("SELECT * FROM asset_checkpoint WHERE trashed = 0 AND asset_id IN (%s)", strings.Join(quotedAssetIds, ","))
+	assetsCheckpoints := []models.Checkpoint{}
+	err = tx.Select(&assetsCheckpoints, checkpointQuery)
 	if err != nil {
 		return ProjectData{}, err
 	}
@@ -109,7 +109,7 @@ func OLDLoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 	if err != nil {
 		return ProjectData{}, err
 	}
-	taskTypes, err := repository.GetTaskTypes(tx)
+	assetTypes, err := repository.GetAssetTypes(tx)
 	if err != nil {
 		return ProjectData{}, err
 	}
@@ -128,40 +128,40 @@ func OLDLoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 		return ProjectData{}, err
 	}
 
-	entityTypes, err := repository.GetEntityTypes(tx)
+	collectionTypes, err := repository.GetCollectionTypes(tx)
 	if err != nil {
 		return ProjectData{}, err
 	}
-	entities := []models.Entity{}
-	entityAssignees := []models.EntityAssignee{}
-	if userRole.ViewTask {
+	collections := []models.Collection{}
+	collectionAssignees := []models.CollectionAssignee{}
+	if userRole.ViewAsset {
 		//TODO remove with trashed
-		entities, err = repository.GetEntities(tx, true)
+		collections, err = repository.GetCollections(tx, true)
 		if err != nil {
 			return ProjectData{}, err
 		}
-		err = tx.Select(&entityAssignees, "SELECT * FROM entity_assignee")
+		err = tx.Select(&collectionAssignees, "SELECT * FROM collection_assignee")
 		if err != nil {
 			return ProjectData{}, err
 		}
 	} else {
-		entities, err = repository.OLDGetUserEntities(tx, user.Id)
+		collections, err = repository.OLDGetUserCollections(tx, user.Id)
 		if err != nil {
 			return ProjectData{}, err
 		}
-		qoutedEntityIds := make([]string, len(entities))
-		for i, entity := range entities {
-			qoutedEntityIds[i] = fmt.Sprintf("\"%s\"", entity.Id)
+		qoutedCollectionIds := make([]string, len(collections))
+		for i, collection := range collections {
+			qoutedCollectionIds[i] = fmt.Sprintf("\"%s\"", collection.Id)
 		}
-		entityAssigneesQuery := fmt.Sprintf("SELECT * FROM entity_assignee WHERE entity_id IN (%s)", strings.Join(qoutedEntityIds, ","))
-		err = tx.Select(&entityAssignees, entityAssigneesQuery)
+		collectionAssigneesQuery := fmt.Sprintf("SELECT * FROM collection_assignee WHERE collection_id IN (%s)", strings.Join(qoutedCollectionIds, ","))
+		err = tx.Select(&collectionAssignees, collectionAssigneesQuery)
 		if err != nil {
 			return ProjectData{}, err
 		}
 	}
 
 	templates := []models.Template{}
-	if userRole.CreateTask {
+	if userRole.CreateAsset {
 		templates, err = repository.GetTemplates(tx, false)
 		if err != nil {
 			return ProjectData{}, err
@@ -169,29 +169,29 @@ func OLDLoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 	}
 
 	workflows := []models.Workflow{}
-	if userRole.CreateTask {
+	if userRole.CreateAsset {
 		workflows, err = repository.GetWorkflows(tx)
 		if err != nil {
 			return ProjectData{}, err
 		}
 	}
 	workflowLinks := []models.WorkflowLink{}
-	if userRole.CreateTask {
+	if userRole.CreateAsset {
 		err = base_service.GetAll(tx, "workflow_link", &workflowLinks)
 		if err != nil {
 			return ProjectData{}, err
 		}
 	}
-	workflowEntities := []models.WorkflowEntity{}
-	if userRole.CreateTask {
-		err = base_service.GetAll(tx, "workflow_entity", &workflowEntities)
+	workflowCollections := []models.WorkflowCollection{}
+	if userRole.CreateAsset {
+		err = base_service.GetAll(tx, "workflow_collection", &workflowCollections)
 		if err != nil {
 			return ProjectData{}, err
 		}
 	}
-	workflowTasks := []models.WorkflowTask{}
-	if userRole.CreateTask {
-		err = base_service.GetAll(tx, "workflow_task", &workflowTasks)
+	workflowAssets := []models.WorkflowAsset{}
+	if userRole.CreateAsset {
+		err = base_service.GetAll(tx, "workflow_asset", &workflowAssets)
 		if err != nil {
 			return ProjectData{}, err
 		}
@@ -202,9 +202,9 @@ func OLDLoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 		return ProjectData{}, err
 	}
 
-	taskstagsQuery := fmt.Sprintf("SELECT * FROM task_tag WHERE task_id IN (%s)", strings.Join(quotedTaskIds, ","))
-	tasksTags := []models.TaskTag{}
-	err = tx.Select(&tasksTags, taskstagsQuery)
+	assetstagsQuery := fmt.Sprintf("SELECT * FROM asset_tag WHERE asset_id IN (%s)", strings.Join(quotedAssetIds, ","))
+	assetsTags := []models.AssetTag{}
+	err = tx.Select(&assetsTags, assetstagsQuery)
 	if err != nil {
 		return ProjectData{}, err
 	}
@@ -217,15 +217,15 @@ func OLDLoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 	}
 
 	userData.ProjectPreview = projectPreview.Hash
-	userData.EntityTypes = entityTypes
-	userData.Entities = entities
-	userData.EntityAssignees = entityAssignees
+	userData.CollectionTypes = collectionTypes
+	userData.Collections = collections
+	userData.CollectionAssignees = collectionAssignees
 
-	userData.TaskTypes = taskTypes
-	userData.Tasks = tasks
-	userData.TasksCheckpoints = tasksCheckpoints
-	userData.TaskDependencies = taskDependencies
-	userData.EntityDependencies = entityDependencies
+	userData.AssetTypes = assetTypes
+	userData.Assets = assets
+	userData.AssetCheckpoints = assetsCheckpoints
+	userData.AssetDependencies = assetDependencies
+	userData.CollectionDependencies = collectionDependencies
 
 	userData.Statuses = statuses
 	userData.DependencyTypes = dependencyTypes
@@ -237,11 +237,11 @@ func OLDLoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 
 	userData.Workflows = workflows
 	userData.WorkflowLinks = workflowLinks
-	userData.WorkflowEntities = workflowEntities
-	userData.WorkflowTasks = workflowTasks
+	userData.WorkflowCollections = workflowCollections
+	userData.WorkflowAssets = workflowAssets
 
 	userData.Tags = tags
-	userData.TasksTags = tasksTags
+	userData.AssetTags = assetsTags
 	return userData, nil
 }
 
@@ -257,58 +257,58 @@ func LoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 		return ProjectData{}, err
 	}
 
-	// tasks, err := repository.GetUserTasks(tx, userId)
+	// assets, err := repository.GetUserAssets(tx, userId)
 	// if err != nil {
 	// 	return ProjectData{}, err
 	// }
-	tasks := []models.Task{}
-	if userRole.ViewTask {
-		tasks, err = repository.GetTasks(tx, true)
+	assets := []models.Asset{}
+	if userRole.ViewAsset {
+		assets, err = repository.GetAssets(tx, true)
 		if err != nil {
 			return ProjectData{}, err
 		}
 	} else {
-		tasks, err = repository.GetUserTasks(tx, user.Id)
+		assets, err = repository.GetUserAssets(tx, user.Id)
 		if err != nil {
 			return ProjectData{}, err
 		}
 	}
 
-	var taskEntityIds []string
-	var taskIds []string
-	for _, task := range tasks {
-		taskIds = append(taskIds, task.Id)
-		if !utils.Contains(taskEntityIds, task.EntityId) {
-			taskEntityIds = append(taskEntityIds, task.EntityId)
+	var assetCollectionIds []string
+	var assetIds []string
+	for _, asset := range assets {
+		assetIds = append(assetIds, asset.Id)
+		if !utils.Contains(assetCollectionIds, asset.CollectionId) {
+			assetCollectionIds = append(assetCollectionIds, asset.CollectionId)
 		}
 	}
-	quotedTaskIds := make([]string, len(taskIds))
-	for i, id := range taskIds {
-		quotedTaskIds[i] = fmt.Sprintf("\"%s\"", id)
+	quotedAssetIds := make([]string, len(assetIds))
+	for i, id := range assetIds {
+		quotedAssetIds[i] = fmt.Sprintf("\"%s\"", id)
 	}
-	quotedTaskEntityIds := make([]string, len(taskEntityIds))
-	for i, id := range taskEntityIds {
-		quotedTaskEntityIds[i] = fmt.Sprintf("\"%s\"", id)
+	quotedAssetCollectionIds := make([]string, len(assetCollectionIds))
+	for i, id := range assetCollectionIds {
+		quotedAssetCollectionIds[i] = fmt.Sprintf("\"%s\"", id)
 	}
 
-	// dependenciesQuery := fmt.Sprintf("SELECT * FROM task_dependencies WHERE task_id IN (%s) AND dependency_id NOT IN (%s)", strings.Join(quotedTaskIds, ","), strings.Join(quotedTaskIds, ","))
-	taskDependenciesQuery := fmt.Sprintf("SELECT * FROM task_dependency WHERE task_id IN (%s)", strings.Join(quotedTaskIds, ","))
-	taskDependencies := []models.TaskDependency{}
-	err = tx.Select(&taskDependencies, taskDependenciesQuery)
+	// dependenciesQuery := fmt.Sprintf("SELECT * FROM asset_dependencies WHERE asset_id IN (%s) AND dependency_id NOT IN (%s)", strings.Join(quotedAssetIds, ","), strings.Join(quotedAssetIds, ","))
+	assetDependenciesQuery := fmt.Sprintf("SELECT * FROM asset_dependency WHERE asset_id IN (%s)", strings.Join(quotedAssetIds, ","))
+	assetDependencies := []models.AssetDependency{}
+	err = tx.Select(&assetDependencies, assetDependenciesQuery)
 	if err != nil {
 		return ProjectData{}, err
 	}
 
-	entityDependenciesQuery := fmt.Sprintf("SELECT * FROM entity_dependency WHERE task_id IN (%s)", strings.Join(quotedTaskIds, ","))
-	entityDependencies := []models.EntityDependency{}
-	err = tx.Select(&entityDependencies, entityDependenciesQuery)
+	collectionDependenciesQuery := fmt.Sprintf("SELECT * FROM collection_dependency WHERE asset_id IN (%s)", strings.Join(quotedAssetIds, ","))
+	collectionDependencies := []models.CollectionDependency{}
+	err = tx.Select(&collectionDependencies, collectionDependenciesQuery)
 	if err != nil {
 		return ProjectData{}, err
 	}
 
 	var uniqueDependencyIds []string
-	for _, dependency := range taskDependencies {
-		if !utils.Contains(uniqueDependencyIds, dependency.DependencyId) && !utils.Contains(taskIds, dependency.DependencyId) {
+	for _, dependency := range assetDependencies {
+		if !utils.Contains(uniqueDependencyIds, dependency.DependencyId) && !utils.Contains(assetIds, dependency.DependencyId) {
 			uniqueDependencyIds = append(uniqueDependencyIds, dependency.DependencyId)
 		}
 	}
@@ -317,21 +317,21 @@ func LoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 		quotedUniqueDependencyIds[i] = fmt.Sprintf("\"%s\"", id)
 	}
 
-	uniqueDependenciesQuery := fmt.Sprintf("SELECT * FROM task WHERE trashed = 0 AND id IN (%s)", strings.Join(quotedUniqueDependencyIds, ","))
-	uniqueDependencies := []models.Task{}
+	uniqueDependenciesQuery := fmt.Sprintf("SELECT * FROM asset WHERE trashed = 0 AND id IN (%s)", strings.Join(quotedUniqueDependencyIds, ","))
+	uniqueDependencies := []models.Asset{}
 	err = tx.Select(&uniqueDependencies, uniqueDependenciesQuery)
 	if err != nil {
 		return ProjectData{}, err
 	}
 
-	tasks = append(tasks, uniqueDependencies...)
-	taskIds = append(taskIds, uniqueDependencyIds...)
+	assets = append(assets, uniqueDependencies...)
+	assetIds = append(assetIds, uniqueDependencyIds...)
 
-	quotedTaskIds = append(quotedTaskIds, quotedUniqueDependencyIds...)
+	quotedAssetIds = append(quotedAssetIds, quotedUniqueDependencyIds...)
 
-	checkpointQuery := fmt.Sprintf("SELECT * FROM task_checkpoint WHERE trashed = 0 AND task_id IN (%s)", strings.Join(quotedTaskIds, ","))
-	tasksCheckpoints := []models.Checkpoint{}
-	err = tx.Select(&tasksCheckpoints, checkpointQuery)
+	checkpointQuery := fmt.Sprintf("SELECT * FROM asset_checkpoint WHERE trashed = 0 AND asset_id IN (%s)", strings.Join(quotedAssetIds, ","))
+	assetsCheckpoints := []models.Checkpoint{}
+	err = tx.Select(&assetsCheckpoints, checkpointQuery)
 	if err != nil {
 		return ProjectData{}, err
 	}
@@ -340,7 +340,7 @@ func LoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 	if err != nil {
 		return ProjectData{}, err
 	}
-	taskTypes, err := repository.GetTaskTypes(tx)
+	assetTypes, err := repository.GetAssetTypes(tx)
 	if err != nil {
 		return ProjectData{}, err
 	}
@@ -359,42 +359,42 @@ func LoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 		return ProjectData{}, err
 	}
 
-	entityTypes, err := repository.GetEntityTypes(tx)
+	collectionTypes, err := repository.GetCollectionTypes(tx)
 	if err != nil {
 		return ProjectData{}, err
 	}
 
-	entities := []models.Entity{}
-	entityAssignees := []models.EntityAssignee{}
-	if userRole.ViewTask {
+	collections := []models.Collection{}
+	collectionAssignees := []models.CollectionAssignee{}
+	if userRole.ViewAsset {
 		//TODO remove with trashed
-		entities, err = repository.GetEntities(tx, true)
+		collections, err = repository.GetCollections(tx, true)
 		if err != nil {
 			return ProjectData{}, err
 		}
-		err = tx.Select(&entityAssignees, "SELECT * FROM entity_assignee")
+		err = tx.Select(&collectionAssignees, "SELECT * FROM collection_assignee")
 		if err != nil {
 			return ProjectData{}, err
 		}
 	} else {
-		entities, err = repository.GetUserEntities(tx, tasks, user.Id)
+		collections, err = repository.GetUserCollections(tx, assets, user.Id)
 		if err != nil {
 			return ProjectData{}, err
 		}
 
-		qoutedEntityIds := make([]string, len(entities))
-		for i, entity := range entities {
-			qoutedEntityIds[i] = fmt.Sprintf("\"%s\"", entity.Id)
+		qoutedCollectionIds := make([]string, len(collections))
+		for i, collection := range collections {
+			qoutedCollectionIds[i] = fmt.Sprintf("\"%s\"", collection.Id)
 		}
-		entityAssigneesQuery := fmt.Sprintf("SELECT * FROM entity_assignee WHERE entity_id IN (%s)", strings.Join(qoutedEntityIds, ","))
-		err = tx.Select(&entityAssignees, entityAssigneesQuery)
+		collectionAssigneesQuery := fmt.Sprintf("SELECT * FROM collection_assignee WHERE collection_id IN (%s)", strings.Join(qoutedCollectionIds, ","))
+		err = tx.Select(&collectionAssignees, collectionAssigneesQuery)
 		if err != nil {
 			return ProjectData{}, err
 		}
 	}
 
 	templates := []models.Template{}
-	if userRole.CreateTask {
+	if userRole.CreateAsset {
 		templates, err = repository.GetTemplates(tx, false)
 		if err != nil {
 			return ProjectData{}, err
@@ -402,29 +402,29 @@ func LoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 	}
 
 	workflows := []models.Workflow{}
-	if userRole.CreateTask {
+	if userRole.CreateAsset {
 		workflows, err = repository.GetWorkflows(tx)
 		if err != nil {
 			return ProjectData{}, err
 		}
 	}
 	workflowLinks := []models.WorkflowLink{}
-	if userRole.CreateTask {
+	if userRole.CreateAsset {
 		err = base_service.GetAll(tx, "workflow_link", &workflowLinks)
 		if err != nil {
 			return ProjectData{}, err
 		}
 	}
-	workflowEntities := []models.WorkflowEntity{}
-	if userRole.CreateTask {
-		err = base_service.GetAll(tx, "workflow_entity", &workflowEntities)
+	workflowCollections := []models.WorkflowCollection{}
+	if userRole.CreateAsset {
+		err = base_service.GetAll(tx, "workflow_collection", &workflowCollections)
 		if err != nil {
 			return ProjectData{}, err
 		}
 	}
-	workflowTasks := []models.WorkflowTask{}
-	if userRole.CreateTask {
-		err = base_service.GetAll(tx, "workflow_task", &workflowTasks)
+	workflowAssets := []models.WorkflowAsset{}
+	if userRole.CreateAsset {
+		err = base_service.GetAll(tx, "workflow_asset", &workflowAssets)
 		if err != nil {
 			return ProjectData{}, err
 		}
@@ -435,9 +435,9 @@ func LoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 		return ProjectData{}, err
 	}
 
-	taskstagsQuery := fmt.Sprintf("SELECT * FROM task_tag WHERE task_id IN (%s)", strings.Join(quotedTaskIds, ","))
-	tasksTags := []models.TaskTag{}
-	err = tx.Select(&tasksTags, taskstagsQuery)
+	assetstagsQuery := fmt.Sprintf("SELECT * FROM asset_tag WHERE asset_id IN (%s)", strings.Join(quotedAssetIds, ","))
+	assetsTags := []models.AssetTag{}
+	err = tx.Select(&assetsTags, assetstagsQuery)
 	if err != nil {
 		return ProjectData{}, err
 	}
@@ -450,15 +450,15 @@ func LoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 	}
 
 	userData.ProjectPreview = projectPreview.Hash
-	userData.EntityTypes = entityTypes
-	userData.Entities = entities
-	userData.EntityAssignees = entityAssignees
+	userData.CollectionTypes = collectionTypes
+	userData.Collections = collections
+	userData.CollectionAssignees = collectionAssignees
 
-	userData.TaskTypes = taskTypes
-	userData.Tasks = tasks
-	userData.TasksCheckpoints = tasksCheckpoints
-	userData.TaskDependencies = taskDependencies
-	userData.EntityDependencies = entityDependencies
+	userData.AssetTypes = assetTypes
+	userData.Assets = assets
+	userData.AssetCheckpoints = assetsCheckpoints
+	userData.AssetDependencies = assetDependencies
+	userData.CollectionDependencies = collectionDependencies
 
 	userData.Statuses = statuses
 	userData.DependencyTypes = dependencyTypes
@@ -470,11 +470,11 @@ func LoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 
 	userData.Workflows = workflows
 	userData.WorkflowLinks = workflowLinks
-	userData.WorkflowEntities = workflowEntities
-	userData.WorkflowTasks = workflowTasks
+	userData.WorkflowCollections = workflowCollections
+	userData.WorkflowAssets = workflowAssets
 
 	userData.Tags = tags
-	userData.TasksTags = tasksTags
+	userData.AssetTags = assetsTags
 	return userData, nil
 }
 
@@ -488,58 +488,58 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	// tasks, err := repository.GetUserTasks(tx, userId)
+	// assets, err := repository.GetUserAssets(tx, userId)
 	// if err != nil {
 	// 	return ProjectData{}, err
 	// }
-	tasks := []models.Task{}
-	if userRole.ViewTask {
-		tasks, err = repository.GetTasks(tx, true)
+	assets := []models.Asset{}
+	if userRole.ViewAsset {
+		assets, err = repository.GetAssets(tx, true)
 		if err != nil {
 			return []byte{}, err
 		}
 	} else {
-		tasks, err = repository.GetUserTasks(tx, user.Id)
+		assets, err = repository.GetUserAssets(tx, user.Id)
 		if err != nil {
 			return []byte{}, err
 		}
 	}
 
-	var taskEntityIds []string
-	var taskIds []string
-	for _, task := range tasks {
-		taskIds = append(taskIds, task.Id)
-		if !utils.Contains(taskEntityIds, task.EntityId) {
-			taskEntityIds = append(taskEntityIds, task.EntityId)
+	var assetCollectionIds []string
+	var assetIds []string
+	for _, asset := range assets {
+		assetIds = append(assetIds, asset.Id)
+		if !utils.Contains(assetCollectionIds, asset.CollectionId) {
+			assetCollectionIds = append(assetCollectionIds, asset.CollectionId)
 		}
 	}
-	quotedTaskIds := make([]string, len(taskIds))
-	for i, id := range taskIds {
-		quotedTaskIds[i] = fmt.Sprintf("\"%s\"", id)
+	quotedAssetIds := make([]string, len(assetIds))
+	for i, id := range assetIds {
+		quotedAssetIds[i] = fmt.Sprintf("\"%s\"", id)
 	}
-	quotedTaskEntityIds := make([]string, len(taskEntityIds))
-	for i, id := range taskEntityIds {
-		quotedTaskEntityIds[i] = fmt.Sprintf("\"%s\"", id)
+	quotedAssetCollectionIds := make([]string, len(assetCollectionIds))
+	for i, id := range assetCollectionIds {
+		quotedAssetCollectionIds[i] = fmt.Sprintf("\"%s\"", id)
 	}
 
-	// dependenciesQuery := fmt.Sprintf("SELECT * FROM task_dependencies WHERE task_id IN (%s) AND dependency_id NOT IN (%s)", strings.Join(quotedTaskIds, ","), strings.Join(quotedTaskIds, ","))
-	taskDependenciesQuery := fmt.Sprintf("SELECT * FROM task_dependency WHERE task_id IN (%s)", strings.Join(quotedTaskIds, ","))
-	taskDependencies := []models.TaskDependency{}
-	err = tx.Select(&taskDependencies, taskDependenciesQuery)
+	// dependenciesQuery := fmt.Sprintf("SELECT * FROM asset_dependencies WHERE asset_id IN (%s) AND dependency_id NOT IN (%s)", strings.Join(quotedAssetIds, ","), strings.Join(quotedAssetIds, ","))
+	assetDependenciesQuery := fmt.Sprintf("SELECT * FROM asset_dependency WHERE asset_id IN (%s)", strings.Join(quotedAssetIds, ","))
+	assetDependencies := []models.AssetDependency{}
+	err = tx.Select(&assetDependencies, assetDependenciesQuery)
 	if err != nil {
 		return []byte{}, err
 	}
 
-	entityDependenciesQuery := fmt.Sprintf("SELECT * FROM entity_dependency WHERE task_id IN (%s)", strings.Join(quotedTaskIds, ","))
-	entityDependencies := []models.EntityDependency{}
-	err = tx.Select(&entityDependencies, entityDependenciesQuery)
+	collectionDependenciesQuery := fmt.Sprintf("SELECT * FROM collection_dependency WHERE asset_id IN (%s)", strings.Join(quotedAssetIds, ","))
+	collectionDependencies := []models.CollectionDependency{}
+	err = tx.Select(&collectionDependencies, collectionDependenciesQuery)
 	if err != nil {
 		return []byte{}, err
 	}
 
 	var uniqueDependencyIds []string
-	for _, dependency := range taskDependencies {
-		if !utils.Contains(uniqueDependencyIds, dependency.DependencyId) && !utils.Contains(taskIds, dependency.DependencyId) {
+	for _, dependency := range assetDependencies {
+		if !utils.Contains(uniqueDependencyIds, dependency.DependencyId) && !utils.Contains(assetIds, dependency.DependencyId) {
 			uniqueDependencyIds = append(uniqueDependencyIds, dependency.DependencyId)
 		}
 	}
@@ -548,21 +548,21 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 		quotedUniqueDependencyIds[i] = fmt.Sprintf("\"%s\"", id)
 	}
 
-	uniqueDependenciesQuery := fmt.Sprintf("SELECT * FROM task WHERE trashed = 0 AND id IN (%s)", strings.Join(quotedUniqueDependencyIds, ","))
-	uniqueDependencies := []models.Task{}
+	uniqueDependenciesQuery := fmt.Sprintf("SELECT * FROM asset WHERE trashed = 0 AND id IN (%s)", strings.Join(quotedUniqueDependencyIds, ","))
+	uniqueDependencies := []models.Asset{}
 	err = tx.Select(&uniqueDependencies, uniqueDependenciesQuery)
 	if err != nil {
 		return []byte{}, err
 	}
 
-	tasks = append(tasks, uniqueDependencies...)
-	taskIds = append(taskIds, uniqueDependencyIds...)
+	assets = append(assets, uniqueDependencies...)
+	assetIds = append(assetIds, uniqueDependencyIds...)
 
-	quotedTaskIds = append(quotedTaskIds, quotedUniqueDependencyIds...)
+	quotedAssetIds = append(quotedAssetIds, quotedUniqueDependencyIds...)
 
-	checkpointQuery := fmt.Sprintf("SELECT * FROM task_checkpoint WHERE trashed = 0 AND task_id IN (%s)", strings.Join(quotedTaskIds, ","))
-	tasksCheckpoints := []models.Checkpoint{}
-	err = tx.Select(&tasksCheckpoints, checkpointQuery)
+	checkpointQuery := fmt.Sprintf("SELECT * FROM asset_checkpoint WHERE trashed = 0 AND asset_id IN (%s)", strings.Join(quotedAssetIds, ","))
+	assetsCheckpoints := []models.Checkpoint{}
+	err = tx.Select(&assetsCheckpoints, checkpointQuery)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -571,7 +571,7 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	taskTypes, err := repository.GetTaskTypes(tx)
+	assetTypes, err := repository.GetAssetTypes(tx)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -590,42 +590,42 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	entityTypes, err := repository.GetEntityTypes(tx)
+	collectionTypes, err := repository.GetCollectionTypes(tx)
 	if err != nil {
 		return []byte{}, err
 	}
 
-	entities := []models.Entity{}
-	entityAssignees := []models.EntityAssignee{}
-	if userRole.ViewTask {
+	collections := []models.Collection{}
+	collectionAssignees := []models.CollectionAssignee{}
+	if userRole.ViewAsset {
 		//TODO remove with trashed
-		entities, err = repository.GetEntities(tx, true)
+		collections, err = repository.GetCollections(tx, true)
 		if err != nil {
 			return []byte{}, err
 		}
-		err = tx.Select(&entityAssignees, "SELECT * FROM entity_assignee")
+		err = tx.Select(&collectionAssignees, "SELECT * FROM collection_assignee")
 		if err != nil {
 			return []byte{}, err
 		}
 	} else {
-		entities, err = repository.GetUserEntities(tx, tasks, user.Id)
+		collections, err = repository.GetUserCollections(tx, assets, user.Id)
 		if err != nil {
 			return []byte{}, err
 		}
 
-		qoutedEntityIds := make([]string, len(entities))
-		for i, entity := range entities {
-			qoutedEntityIds[i] = fmt.Sprintf("\"%s\"", entity.Id)
+		qoutedCollectionIds := make([]string, len(collections))
+		for i, collection := range collections {
+			qoutedCollectionIds[i] = fmt.Sprintf("\"%s\"", collection.Id)
 		}
-		entityAssigneesQuery := fmt.Sprintf("SELECT * FROM entity_assignee WHERE entity_id IN (%s)", strings.Join(qoutedEntityIds, ","))
-		err = tx.Select(&entityAssignees, entityAssigneesQuery)
+		collectionAssigneesQuery := fmt.Sprintf("SELECT * FROM collection_assignee WHERE collection_id IN (%s)", strings.Join(qoutedCollectionIds, ","))
+		err = tx.Select(&collectionAssignees, collectionAssigneesQuery)
 		if err != nil {
 			return []byte{}, err
 		}
 	}
 
 	templates := []models.Template{}
-	if userRole.CreateTask {
+	if userRole.CreateAsset {
 		templates, err = repository.GetTemplates(tx, false)
 		if err != nil {
 			return []byte{}, err
@@ -633,29 +633,29 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 	}
 
 	workflows := []models.Workflow{}
-	if userRole.CreateTask {
+	if userRole.CreateAsset {
 		workflows, err = repository.GetWorkflows(tx)
 		if err != nil {
 			return []byte{}, err
 		}
 	}
 	workflowLinks := []models.WorkflowLink{}
-	if userRole.CreateTask {
+	if userRole.CreateAsset {
 		err = base_service.GetAll(tx, "workflow_link", &workflowLinks)
 		if err != nil {
 			return []byte{}, err
 		}
 	}
-	workflowEntities := []models.WorkflowEntity{}
-	if userRole.CreateTask {
-		err = base_service.GetAll(tx, "workflow_entity", &workflowEntities)
+	workflowCollections := []models.WorkflowCollection{}
+	if userRole.CreateAsset {
+		err = base_service.GetAll(tx, "workflow_collection", &workflowCollections)
 		if err != nil {
 			return []byte{}, err
 		}
 	}
-	workflowTasks := []models.WorkflowTask{}
-	if userRole.CreateTask {
-		err = base_service.GetAll(tx, "workflow_task", &workflowTasks)
+	workflowAssets := []models.WorkflowAsset{}
+	if userRole.CreateAsset {
+		err = base_service.GetAll(tx, "workflow_asset", &workflowAssets)
 		if err != nil {
 			return []byte{}, err
 		}
@@ -666,9 +666,9 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	taskstagsQuery := fmt.Sprintf("SELECT * FROM task_tag WHERE task_id IN (%s)", strings.Join(quotedTaskIds, ","))
-	tasksTags := []models.TaskTag{}
-	err = tx.Select(&tasksTags, taskstagsQuery)
+	assetstagsQuery := fmt.Sprintf("SELECT * FROM asset_tag WHERE asset_id IN (%s)", strings.Join(quotedAssetIds, ","))
+	assetsTags := []models.AssetTag{}
+	err = tx.Select(&assetsTags, assetstagsQuery)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -698,15 +698,15 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 
 	userData := &repositorypb.ProjectData{
 		ProjectPreview:  projectPreview.Hash,
-		EntityTypes:     repository.ToPbEntityTypes(entityTypes),
-		Entities:        repository.ToPbEntities(entities),
-		EntityAssignees: repository.ToPbEntityAssignees(entityAssignees),
+		CollectionTypes:     repository.ToPbCollectionTypes(collectionTypes),
+		Collections:        repository.ToPbCollections(collections),
+		CollectionAssignees: repository.ToPbCollectionAssignees(collectionAssignees),
 
-		TaskTypes:          repository.ToPbTaskTypes(taskTypes),
-		Tasks:              repository.ToPbTasks(tasks),
-		TasksCheckpoints:   repository.ToPbCheckpoints(tasksCheckpoints),
-		TaskDependencies:   repository.ToPbTaskDependencies(taskDependencies),
-		EntityDependencies: repository.ToPbEntityDependencies(entityDependencies),
+		AssetTypes:          repository.ToPbAssetTypes(assetTypes),
+		Assets:              repository.ToPbAssets(assets),
+		AssetCheckpoints:   repository.ToPbCheckpoints(assetsCheckpoints),
+		AssetDependencies:   repository.ToPbAssetDependencies(assetDependencies),
+		CollectionDependencies: repository.ToPbCollectionDependencies(collectionDependencies),
 
 		Statuses:        repository.ToPbStatuses(statuses),
 		DependencyTypes: repository.ToPbDependencyTypes(dependencyTypes),
@@ -718,11 +718,11 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 
 		Workflows:        repository.ToPbWorkflows(workflows),
 		WorkflowLinks:    repository.ToPbWorkflowLinks(workflowLinks),
-		WorkflowEntities: repository.ToPbWorkflowEntities(workflowEntities),
-		WorkflowTasks:    repository.ToPbWorkflowTasks(workflowTasks),
+		WorkflowCollections: repository.ToPbWorkflowCollections(workflowCollections),
+		WorkflowAssets:    repository.ToPbWorkflowAssets(workflowAssets),
 
 		Tags:      repository.ToPbTags(tags),
-		TasksTags: repository.ToPbTaskTags(tasksTags),
+		AssetTags: repository.ToPbAssetTags(assetsTags),
 
 		IntegrationProjects:           repository.ToPbIntegrationProjects(integrationProjects),
 		IntegrationCollectionMappings: repository.ToPbIntegrationCollectionMappings(integrationCollectionMappings),
@@ -736,15 +736,15 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 	return userDataBytes, nil
 
 	// userData.ProjectPreview = projectPreview.Hash
-	// userData.EntityTypes = repository.ToPbEntityTypes(entityTypes)
-	// userData.Entities = repository.ToPbEntities(entities)
-	// userData.EntityAssignees = repository.ToPbEntityAssignees(entityAssignees)
+	// userData.CollectionTypes = repository.ToPbCollectionTypes(collectionTypes)
+	// userData.Collections = repository.ToPbCollections(collections)
+	// userData.CollectionAssignees = repository.ToPbCollectionAssignees(collectionAssignees)
 
-	// userData.TaskTypes = repository.ToPbTaskTypes(taskTypes)
-	// userData.Tasks = repository.ToPbTasks(tasks)
-	// userData.TasksCheckpoints = repository.ToPbCheckpoints(tasksCheckpoints)
-	// userData.TaskDependencies = repository.ToPbTaskDependencies(taskDependencies)
-	// userData.EntityDependencies = repository.ToPbEntityDependencies(entityDependencies)
+	// userData.AssetTypes = repository.ToPbAssetTypes(assetTypes)
+	// userData.Assets = repository.ToPbAssets(assets)
+	// userData.AssetCheckpoints = repository.ToPbCheckpoints(assetsCheckpoints)
+	// userData.AssetDependencies = repository.ToPbAssetDependencies(assetDependencies)
+	// userData.CollectionDependencies = repository.ToPbCollectionDependencies(collectionDependencies)
 
 	// userData.Statuses = repository.ToPbStatuses(statuses)
 	// userData.DependencyTypes = repository.ToPbDependencyTypes(dependencyTypes)
@@ -756,41 +756,41 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 
 	// userData.Workflows = repository.ToPbWorkflows(workflows)
 	// userData.WorkflowLinks = repository.ToPbWorkflowLinks(workflowLinks)
-	// userData.WorkflowEntities = repository.ToPbWorkflowEntities(workflowEntities)
-	// userData.WorkflowTasks = repository.ToPbWorkflowTasks(workflowTasks)
+	// userData.WorkflowCollections = repository.ToPbWorkflowCollections(workflowCollections)
+	// userData.WorkflowAssets = repository.ToPbWorkflowAssets(workflowAssets)
 
 	// userData.Tags = repository.ToPbTags(tags)
-	// userData.TasksTags = repository.ToPbTaskTags(tasksTags)
+	// userData.AssetTags = repository.ToPbAssetTags(assetsTags)
 	// return userData, nil
 }
 
 func LoadChangedData(tx *sqlx.Tx) (ProjectData, error) {
 	userData := ProjectData{}
 
-	taskQuery := "SELECT * FROM task WHERE synced = 0"
-	tasks := []models.Task{}
-	err := tx.Select(&tasks, taskQuery)
+	assetQuery := "SELECT * FROM asset WHERE synced = 0"
+	assets := []models.Asset{}
+	err := tx.Select(&assets, assetQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
 
-	checkpointQuery := "SELECT * FROM task_checkpoint WHERE synced = 0"
-	tasksCheckpoints := []models.Checkpoint{}
-	err = tx.Select(&tasksCheckpoints, checkpointQuery)
+	checkpointQuery := "SELECT * FROM asset_checkpoint WHERE synced = 0"
+	assetsCheckpoints := []models.Checkpoint{}
+	err = tx.Select(&assetsCheckpoints, checkpointQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
 
-	taskDependenciesQuery := "SELECT * FROM task_dependency WHERE synced = 0"
-	taskDependencies := []models.TaskDependency{}
-	err = tx.Select(&taskDependencies, taskDependenciesQuery)
+	assetDependenciesQuery := "SELECT * FROM asset_dependency WHERE synced = 0"
+	assetDependencies := []models.AssetDependency{}
+	err = tx.Select(&assetDependencies, assetDependenciesQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
 
-	entityDependenciesQuery := "SELECT * FROM entity_dependency WHERE synced = 0"
-	entityDependencies := []models.EntityDependency{}
-	err = tx.Select(&entityDependencies, entityDependenciesQuery)
+	collectionDependenciesQuery := "SELECT * FROM collection_dependency WHERE synced = 0"
+	collectionDependencies := []models.CollectionDependency{}
+	err = tx.Select(&collectionDependencies, collectionDependenciesQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
@@ -809,30 +809,30 @@ func LoadChangedData(tx *sqlx.Tx) (ProjectData, error) {
 		return userData, err
 	}
 
-	taskTypeQuery := "SELECT * FROM task_type WHERE synced = 0"
-	taskTypes := []models.TaskType{}
-	err = tx.Select(&taskTypes, taskTypeQuery)
+	assetTypeQuery := "SELECT * FROM asset_type WHERE synced = 0"
+	assetTypes := []models.AssetType{}
+	err = tx.Select(&assetTypes, assetTypeQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
 
-	entityTypesQuery := "SELECT * FROM entity_type WHERE synced = 0"
-	entityTypes := []models.EntityType{}
-	err = tx.Select(&entityTypes, entityTypesQuery)
+	collectionTypesQuery := "SELECT * FROM collection_type WHERE synced = 0"
+	collectionTypes := []models.CollectionType{}
+	err = tx.Select(&collectionTypes, collectionTypesQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
 
-	entityQuery := "SELECT * FROM entity WHERE synced = 0"
-	entities := []models.Entity{}
-	err = tx.Select(&entities, entityQuery)
+	collectionQuery := "SELECT * FROM collection WHERE synced = 0"
+	collections := []models.Collection{}
+	err = tx.Select(&collections, collectionQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
 
-	entityAssigneeQuery := "SELECT * FROM entity_assignee WHERE synced = 0"
-	entityAssignees := []models.EntityAssignee{}
-	err = tx.Select(&entityAssignees, entityAssigneeQuery)
+	collectionAssigneeQuery := "SELECT * FROM collection_assignee WHERE synced = 0"
+	collectionAssignees := []models.CollectionAssignee{}
+	err = tx.Select(&collectionAssignees, collectionAssigneeQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
@@ -870,15 +870,15 @@ func LoadChangedData(tx *sqlx.Tx) (ProjectData, error) {
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
-	workflowEntitiesQuery := "SELECT * FROM workflow_entity WHERE synced = 0"
-	workflowEntities := []models.WorkflowEntity{}
-	err = tx.Select(&workflowEntities, workflowEntitiesQuery)
+	workflowCollectionsQuery := "SELECT * FROM workflow_collection WHERE synced = 0"
+	workflowCollections := []models.WorkflowCollection{}
+	err = tx.Select(&workflowCollections, workflowCollectionsQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
-	workflowTasksQuery := "SELECT * FROM workflow_task WHERE synced = 0"
-	workflowTasks := []models.WorkflowTask{}
-	err = tx.Select(&workflowTasks, workflowTasksQuery)
+	workflowAssetsQuery := "SELECT * FROM workflow_asset WHERE synced = 0"
+	workflowAssets := []models.WorkflowAsset{}
+	err = tx.Select(&workflowAssets, workflowAssetsQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
@@ -889,9 +889,9 @@ func LoadChangedData(tx *sqlx.Tx) (ProjectData, error) {
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
-	tasksTagsQuery := "SELECT * FROM task_tag WHERE synced = 0"
-	tasksTags := []models.TaskTag{}
-	err = tx.Select(&tasksTags, tasksTagsQuery)
+	assetsTagsQuery := "SELECT * FROM asset_tag WHERE synced = 0"
+	assetsTags := []models.AssetTag{}
+	err = tx.Select(&assetsTags, assetsTagsQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
@@ -911,11 +911,11 @@ func LoadChangedData(tx *sqlx.Tx) (ProjectData, error) {
 		}
 		userData.ProjectPreview = projectPreview.Hash
 	}
-	userData.TaskTypes = taskTypes
-	userData.Tasks = tasks
-	userData.TasksCheckpoints = tasksCheckpoints
-	userData.TaskDependencies = taskDependencies
-	userData.EntityDependencies = entityDependencies
+	userData.AssetTypes = assetTypes
+	userData.Assets = assets
+	userData.AssetCheckpoints = assetsCheckpoints
+	userData.AssetDependencies = assetDependencies
+	userData.CollectionDependencies = collectionDependencies
 
 	userData.Statuses = statuses
 	userData.DependencyTypes = dependencyTypes
@@ -923,19 +923,19 @@ func LoadChangedData(tx *sqlx.Tx) (ProjectData, error) {
 	userData.Users = users
 	userData.Roles = roles
 
-	userData.EntityTypes = entityTypes
-	userData.Entities = entities
-	userData.EntityAssignees = entityAssignees
+	userData.CollectionTypes = collectionTypes
+	userData.Collections = collections
+	userData.CollectionAssignees = collectionAssignees
 
 	userData.Templates = templates
 
 	userData.Workflows = workflows
 	userData.WorkflowLinks = workflowLinks
-	userData.WorkflowEntities = workflowEntities
-	userData.WorkflowTasks = workflowTasks
+	userData.WorkflowCollections = workflowCollections
+	userData.WorkflowAssets = workflowAssets
 
 	userData.Tags = tags
-	userData.TasksTags = tasksTags
+	userData.AssetTags = assetsTags
 
 	userData.Tombs = tombs
 
@@ -967,56 +967,56 @@ func LoadChangedData(tx *sqlx.Tx) (ProjectData, error) {
 	return userData, nil
 }
 
-// LoadAssetData loads a single asset (task) and its unsynced checkpoints from the database.
+// LoadAssetData loads a single asset (asset) and its unsynced checkpoints from the database.
 // Only includes rows where synced = 0. Does not include dependencies.
 func LoadAssetData(tx *sqlx.Tx, assetId string) (ProjectData, error) {
 	data := ProjectData{}
 
-	task := models.Task{}
-	err := tx.Get(&task, "SELECT * FROM task WHERE id = ? AND synced = 0", assetId)
+	asset := models.Asset{}
+	err := tx.Get(&asset, "SELECT * FROM asset WHERE id = ? AND synced = 0", assetId)
 	if err != nil && err != sql.ErrNoRows {
 		return data, err
 	}
 	if err == nil {
-		data.Tasks = []models.Task{task}
+		data.Assets = []models.Asset{asset}
 	}
 
 	checkpoints := []models.Checkpoint{}
-	err = tx.Select(&checkpoints, "SELECT * FROM task_checkpoint WHERE task_id = ? AND synced = 0", assetId)
+	err = tx.Select(&checkpoints, "SELECT * FROM asset_checkpoint WHERE asset_id = ? AND synced = 0", assetId)
 	if err != nil && err != sql.ErrNoRows {
 		return data, err
 	}
-	data.TasksCheckpoints = checkpoints
+	data.AssetCheckpoints = checkpoints
 
 	return data, nil
 }
 
 func LoadChangedDataPb(tx *sqlx.Tx) ([]byte, error) {
 
-	taskQuery := "SELECT * FROM task WHERE synced = 0"
-	tasks := []models.Task{}
-	err := tx.Select(&tasks, taskQuery)
+	assetQuery := "SELECT * FROM asset WHERE synced = 0"
+	assets := []models.Asset{}
+	err := tx.Select(&assets, assetQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return []byte{}, err
 	}
 
-	checkpointQuery := "SELECT * FROM task_checkpoint WHERE synced = 0"
-	tasksCheckpoints := []models.Checkpoint{}
-	err = tx.Select(&tasksCheckpoints, checkpointQuery)
+	checkpointQuery := "SELECT * FROM asset_checkpoint WHERE synced = 0"
+	assetsCheckpoints := []models.Checkpoint{}
+	err = tx.Select(&assetsCheckpoints, checkpointQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return []byte{}, err
 	}
 
-	taskDependenciesQuery := "SELECT * FROM task_dependency WHERE synced = 0"
-	taskDependencies := []models.TaskDependency{}
-	err = tx.Select(&taskDependencies, taskDependenciesQuery)
+	assetDependenciesQuery := "SELECT * FROM asset_dependency WHERE synced = 0"
+	assetDependencies := []models.AssetDependency{}
+	err = tx.Select(&assetDependencies, assetDependenciesQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return []byte{}, err
 	}
 
-	entityDependenciesQuery := "SELECT * FROM entity_dependency WHERE synced = 0"
-	entityDependencies := []models.EntityDependency{}
-	err = tx.Select(&entityDependencies, entityDependenciesQuery)
+	collectionDependenciesQuery := "SELECT * FROM collection_dependency WHERE synced = 0"
+	collectionDependencies := []models.CollectionDependency{}
+	err = tx.Select(&collectionDependencies, collectionDependenciesQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return []byte{}, err
 	}
@@ -1035,30 +1035,30 @@ func LoadChangedDataPb(tx *sqlx.Tx) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	taskTypeQuery := "SELECT * FROM task_type WHERE synced = 0"
-	taskTypes := []models.TaskType{}
-	err = tx.Select(&taskTypes, taskTypeQuery)
+	assetTypeQuery := "SELECT * FROM asset_type WHERE synced = 0"
+	assetTypes := []models.AssetType{}
+	err = tx.Select(&assetTypes, assetTypeQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return []byte{}, err
 	}
 
-	entityTypesQuery := "SELECT * FROM entity_type WHERE synced = 0"
-	entityTypes := []models.EntityType{}
-	err = tx.Select(&entityTypes, entityTypesQuery)
+	collectionTypesQuery := "SELECT * FROM collection_type WHERE synced = 0"
+	collectionTypes := []models.CollectionType{}
+	err = tx.Select(&collectionTypes, collectionTypesQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return []byte{}, err
 	}
 
-	entityQuery := "SELECT * FROM entity WHERE synced = 0"
-	entities := []models.Entity{}
-	err = tx.Select(&entities, entityQuery)
+	collectionQuery := "SELECT * FROM collection WHERE synced = 0"
+	collections := []models.Collection{}
+	err = tx.Select(&collections, collectionQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return []byte{}, err
 	}
 
-	entityAssigneeQuery := "SELECT * FROM entity_assignee WHERE synced = 0"
-	entityAssignees := []models.EntityAssignee{}
-	err = tx.Select(&entityAssignees, entityAssigneeQuery)
+	collectionAssigneeQuery := "SELECT * FROM collection_assignee WHERE synced = 0"
+	collectionAssignees := []models.CollectionAssignee{}
+	err = tx.Select(&collectionAssignees, collectionAssigneeQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return []byte{}, err
 	}
@@ -1096,15 +1096,15 @@ func LoadChangedDataPb(tx *sqlx.Tx) ([]byte, error) {
 	if err != nil && err != sql.ErrNoRows {
 		return []byte{}, err
 	}
-	workflowEntitiesQuery := "SELECT * FROM workflow_entity WHERE synced = 0"
-	workflowEntities := []models.WorkflowEntity{}
-	err = tx.Select(&workflowEntities, workflowEntitiesQuery)
+	workflowCollectionsQuery := "SELECT * FROM workflow_collection WHERE synced = 0"
+	workflowCollections := []models.WorkflowCollection{}
+	err = tx.Select(&workflowCollections, workflowCollectionsQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return []byte{}, err
 	}
-	workflowTasksQuery := "SELECT * FROM workflow_task WHERE synced = 0"
-	workflowTasks := []models.WorkflowTask{}
-	err = tx.Select(&workflowTasks, workflowTasksQuery)
+	workflowAssetsQuery := "SELECT * FROM workflow_asset WHERE synced = 0"
+	workflowAssets := []models.WorkflowAsset{}
+	err = tx.Select(&workflowAssets, workflowAssetsQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return []byte{}, err
 	}
@@ -1115,9 +1115,9 @@ func LoadChangedDataPb(tx *sqlx.Tx) ([]byte, error) {
 	if err != nil && err != sql.ErrNoRows {
 		return []byte{}, err
 	}
-	tasksTagsQuery := "SELECT * FROM task_tag WHERE synced = 0"
-	tasksTags := []models.TaskTag{}
-	err = tx.Select(&tasksTags, tasksTagsQuery)
+	assetsTagsQuery := "SELECT * FROM asset_tag WHERE synced = 0"
+	assetsTags := []models.AssetTag{}
+	err = tx.Select(&assetsTags, assetsTagsQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return []byte{}, err
 	}
@@ -1140,15 +1140,15 @@ func LoadChangedDataPb(tx *sqlx.Tx) ([]byte, error) {
 
 	userData := &repositorypb.ProjectData{
 		ProjectPreview:  projectPreview.Hash,
-		EntityTypes:     repository.ToPbEntityTypes(entityTypes),
-		Entities:        repository.ToPbEntities(entities),
-		EntityAssignees: repository.ToPbEntityAssignees(entityAssignees),
+		CollectionTypes:     repository.ToPbCollectionTypes(collectionTypes),
+		Collections:        repository.ToPbCollections(collections),
+		CollectionAssignees: repository.ToPbCollectionAssignees(collectionAssignees),
 
-		TaskTypes:          repository.ToPbTaskTypes(taskTypes),
-		Tasks:              repository.ToPbTasks(tasks),
-		TasksCheckpoints:   repository.ToPbCheckpoints(tasksCheckpoints),
-		TaskDependencies:   repository.ToPbTaskDependencies(taskDependencies),
-		EntityDependencies: repository.ToPbEntityDependencies(entityDependencies),
+		AssetTypes:          repository.ToPbAssetTypes(assetTypes),
+		Assets:              repository.ToPbAssets(assets),
+		AssetCheckpoints:   repository.ToPbCheckpoints(assetsCheckpoints),
+		AssetDependencies:   repository.ToPbAssetDependencies(assetDependencies),
+		CollectionDependencies: repository.ToPbCollectionDependencies(collectionDependencies),
 
 		Statuses:        repository.ToPbStatuses(statuses),
 		DependencyTypes: repository.ToPbDependencyTypes(dependencyTypes),
@@ -1160,11 +1160,11 @@ func LoadChangedDataPb(tx *sqlx.Tx) ([]byte, error) {
 
 		Workflows:        repository.ToPbWorkflows(workflows),
 		WorkflowLinks:    repository.ToPbWorkflowLinks(workflowLinks),
-		WorkflowEntities: repository.ToPbWorkflowEntities(workflowEntities),
-		WorkflowTasks:    repository.ToPbWorkflowTasks(workflowTasks),
+		WorkflowCollections: repository.ToPbWorkflowCollections(workflowCollections),
+		WorkflowAssets:    repository.ToPbWorkflowAssets(workflowAssets),
 
 		Tags:      repository.ToPbTags(tags),
-		TasksTags: repository.ToPbTaskTags(tasksTags),
+		AssetTags: repository.ToPbAssetTags(assetsTags),
 
 		Tomb: repository.ToPbTombs(tombs),
 	}
@@ -1178,13 +1178,13 @@ func LoadChangedDataPb(tx *sqlx.Tx) ([]byte, error) {
 func LoadCheckpointData(tx *sqlx.Tx) (ProjectData, error) {
 	userData := ProjectData{}
 
-	taskCheckpointQuery := "SELECT * FROM task_checkpoint WHERE synced = 0"
-	tasksCheckpoints := []models.Checkpoint{}
-	err := tx.Select(&tasksCheckpoints, taskCheckpointQuery)
+	assetCheckpointQuery := "SELECT * FROM asset_checkpoint WHERE synced = 0"
+	assetsCheckpoints := []models.Checkpoint{}
+	err := tx.Select(&assetsCheckpoints, assetCheckpointQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
 
-	userData.TasksCheckpoints = tasksCheckpoints
+	userData.AssetCheckpoints = assetsCheckpoints
 	return userData, nil
 }

@@ -67,15 +67,15 @@ func GetOrCreateStatus(tx *sqlx.Tx, name string, shortName string, color string)
 	return status, nil
 }
 
-func Updatestatus(tx *sqlx.Tx, taskId string, statusId string) error {
+func Updatestatus(tx *sqlx.Tx, assetId string, statusId string) error {
 	params := map[string]interface{}{
 		"status_id": statusId,
 	}
-	err := base_service.Update(tx, "task", taskId, params)
+	err := base_service.Update(tx, "asset", assetId, params)
 	if err != nil {
 		return err
 	}
-	err = base_service.UpdateMtime(tx, "task", taskId, utils.GetEpochTime())
+	err = base_service.UpdateMtime(tx, "asset", assetId, utils.GetEpochTime())
 	if err != nil {
 		return err
 	}

@@ -88,7 +88,7 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       integrationLinkModal: false,
       integrationSyncModal: false,
       directoryMappingModal: false,
-      taskTypeMappingModal: false,
+      assetTypeMappingModal: false,
 
       // squash
       squashModal: false,

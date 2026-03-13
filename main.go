@@ -268,7 +268,7 @@ func main() {
 		app.Event.Emit("new-collection")
 	}
 	keyBindings[modifier+"+t"] = func(window application.Window) {
-		app.Event.Emit("new-task")
+		app.Event.Emit("new-asset")
 	}
 	keyBindings[modifier+"+l"] = func(window application.Window) {
 		app.Event.Emit("new-web-link")
@@ -286,7 +286,7 @@ func main() {
 		app.Event.Emit("paste-items")
 	}
 	keyBindings[modifier+"+d"] = func(window application.Window) {
-		app.Event.Emit("duplicate-task")
+		app.Event.Emit("duplicate-asset")
 	}
 
 	window := app.Window.NewWithOptions(application.WebviewWindowOptions{

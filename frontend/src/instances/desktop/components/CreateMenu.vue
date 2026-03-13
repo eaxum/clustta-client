@@ -1,18 +1,18 @@
 <template>
 	<div class="create-menu">
-		<ActionButton :icon="getAppIcon('file-plus')" :isDisabled="kanbanView || !(canCreateTask || canModifyEntity)"
+		<ActionButton :icon="getAppIcon('file-plus')" :isDisabled="kanbanView || !(canCreateAsset || canModifyCollection)"
 			@click="createAsset" v-tooltip="$t('components.createMenu.addAsset')" />
-		<ActionButton :icon="getAppIcon('folder-plus')" :isDisabled="kanbanView || !(canCreateEntity || canModifyEntity)"
-			@click="createEntity" v-tooltip="$t('components.createMenu.addCollection')" />
-		<ActionButton :icon="getAppIcon('arrow-down-on-square-stack')" v-if="!(platformStore.isWeb || kanbanView)"  :isDisabled="!(canCreateEntity || canModifyEntity)"
+		<ActionButton :icon="getAppIcon('folder-plus')" :isDisabled="kanbanView || !(canCreateCollection || canModifyCollection)"
+			@click="createCollection" v-tooltip="$t('components.createMenu.addCollection')" />
+		<ActionButton :icon="getAppIcon('arrow-down-on-square-stack')" v-if="!(platformStore.isWeb || kanbanView)"  :isDisabled="!(canCreateCollection || canModifyCollection)"
 			@click="importItems" v-tooltip="$t('components.createMenu.importItems')" />
-		<ActionButton :icon="getAppIcon('workflow-plus')" :isDisabled="kanbanView || !(canCreateEntity || canModifyEntity)"
+		<ActionButton :icon="getAppIcon('workflow-plus')" :isDisabled="kanbanView || !(canCreateCollection || canModifyCollection)"
 			@click="createWorkflow" v-tooltip="$t('components.createMenu.addWorkflow')" />
-		<ActionButton :icon="getAppIcon('web-plus')" :isDisabled="kanbanView || !(canCreateTask || canModifyEntity)"
+		<ActionButton :icon="getAppIcon('web-plus')" :isDisabled="kanbanView || !(canCreateAsset || canModifyCollection)"
 			@click="createWebLink" v-tooltip="$t('components.createMenu.addWeblink')" />
-		<ActionButton v-if="integrationStore.linkedIntegration" :icon="getAppIcon('kitsu')"  :isDisabled="kanbanView || !(canCreateTask || canModifyEntity)"
+		<ActionButton v-if="integrationStore.linkedIntegration" :icon="getAppIcon('kitsu')"  :isDisabled="kanbanView || !(canCreateAsset || canModifyCollection)"
 			v-tooltip="'Sync Now'" :buttonFunction="openSyncModal" />
-		<!-- <ActionButton :icon="getAppIcon('arrow-down-ramp')" :isDisabled="platformStore.isWeb || kanbanView || !canCreateEntity"
+		<!-- <ActionButton :icon="getAppIcon('arrow-down-ramp')" :isDisabled="platformStore.isWeb || kanbanView || !canCreateCollection"
 			@click="importItems" v-tooltip="'Import Items'" /> -->
 	</div>
 </template>
@@ -61,12 +61,12 @@ const props = defineProps({
 });
 
 // computed properties
-const canCreateEntity = computed(() => userStore.canDo('create_entity'));
+const canCreateCollection = computed(() => userStore.canDo('create_collection'));
 
-const canCreateTask = computed(() => userStore.canDo('create_task'));
+const canCreateAsset = computed(() => userStore.canDo('create_asset'));
 
 // refs
-const canModifyEntity = ref(false);
+const canModifyCollection = ref(false);
 
 // methods
 
@@ -74,20 +74,20 @@ const canModifyEntity = ref(false);
 const checkModifyPermission = async () => {
 	const collection = collectionStore.navigatedCollection;
 	if (!commonStore.navigatorMode || !collection) {
-		canModifyEntity.value = false;
+		canModifyCollection.value = false;
 		return;
 	}
 	const userId = userStore.user?.id;
 	if (!userId || !projectStore.activeProject) {
-		canModifyEntity.value = false;
+		canModifyCollection.value = false;
 		return;
 	}
 	try {
-		canModifyEntity.value = await CollectionService.IsUserAssignedToCollectionOrAncestor(
+		canModifyCollection.value = await CollectionService.IsUserAssignedToCollectionOrAncestor(
 			projectStore.activeProject.uri, collection.id, userId
 		);
 	} catch {
-		canModifyEntity.value = false;
+		canModifyCollection.value = false;
 	}
 };
 
@@ -109,7 +109,7 @@ const clearSelection = () => {
 const createAsset = () => { clearSelection(); modals.setModalVisibility('selectAppModal', true); };
 
 // Opens the create collection modal.
-const createEntity = () => { if (!stage.groupItems) clearSelection(); modals.setModalVisibility('createCollectionModal', true); };
+const createCollection = () => { if (!stage.groupItems) clearSelection(); modals.setModalVisibility('createCollectionModal', true); };
 
 // Opens the add web link modal.
 const createWebLink = () => { clearSelection(); modals.setModalVisibility('addWebLinkModal', true); };

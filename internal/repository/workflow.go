@@ -17,7 +17,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func CreateWorkflow(tx *sqlx.Tx, id, name string, workflowTasks []models.WorkflowTask, workflowEntities []models.WorkflowEntity, workflowLinks []models.WorkflowLink) (models.Workflow, error) {
+func CreateWorkflow(tx *sqlx.Tx, id, name string, workflowAssets []models.WorkflowAsset, workflowCollections []models.WorkflowCollection, workflowLinks []models.WorkflowLink) (models.Workflow, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
 		return models.Workflow{}, errors.New("workflow name cannot be empty")
@@ -32,7 +32,7 @@ func CreateWorkflow(tx *sqlx.Tx, id, name string, workflowTasks []models.Workflo
 		//FIXME check back here for error handling
 		if sqliteErr, ok := err.(sqlite3.Error); ok {
 			if sqliteErr.Code == sqlite3.ErrConstraint {
-				return models.Workflow{}, error_service.ErrTaskExists
+				return models.Workflow{}, error_service.ErrAssetExists
 			}
 		}
 		return models.Workflow{}, err
@@ -42,21 +42,21 @@ func CreateWorkflow(tx *sqlx.Tx, id, name string, workflowTasks []models.Workflo
 		return models.Workflow{}, err
 	}
 
-	for _, workflowTask := range workflowTasks {
-		_, err := CreateWorkflowTask(tx, "", workflowTask.Name, workflow.Id, workflowTask.TaskTypeId, workflowTask.IsResource, workflowTask.TemplateId, workflowTask.Pointer, workflowTask.IsLink)
+	for _, workflowAsset := range workflowAssets {
+		_, err := CreateWorkflowAsset(tx, "", workflowAsset.Name, workflow.Id, workflowAsset.AssetTypeId, workflowAsset.IsResource, workflowAsset.TemplateId, workflowAsset.Pointer, workflowAsset.IsLink)
 		if err != nil {
 			return models.Workflow{}, err
 		}
 	}
-	for _, workflowEntity := range workflowEntities {
-		_, err := CreateWorkflowEntity(tx, "", workflowEntity.Name, workflow.Id, workflowEntity.EntityTypeId)
+	for _, workflowCollection := range workflowCollections {
+		_, err := CreateWorkflowCollection(tx, "", workflowCollection.Name, workflow.Id, workflowCollection.CollectionTypeId)
 		if err != nil {
 			return models.Workflow{}, err
 		}
 	}
 
 	for _, workflowLink := range workflowLinks {
-		err := LinkWorkflow(tx, workflowLink.Name, workflowLink.EntityTypeId, workflow.Id, workflowLink.LinkedWorkflowId)
+		err := LinkWorkflow(tx, workflowLink.Name, workflowLink.CollectionTypeId, workflow.Id, workflowLink.LinkedWorkflowId)
 		if err != nil {
 			return models.Workflow{}, err
 		}
@@ -64,30 +64,30 @@ func CreateWorkflow(tx *sqlx.Tx, id, name string, workflowTasks []models.Workflo
 
 	return GetWorkflow(tx, workflow.Id)
 }
-func AddWorkflow(tx *sqlx.Tx, workflowId, name, entityTypeId, parentId string, user auth_service.User) error {
+func AddWorkflow(tx *sqlx.Tx, workflowId, name, collectionTypeId, parentId string, user auth_service.User) error {
 	workflow, err := GetWorkflow(tx, workflowId)
 	if err != nil {
 		return err
 	}
-	entity, err := CreateEntity(tx, "", name, "", entityTypeId, parentId, "", false)
+	collection, err := CreateCollection(tx, "", name, "", collectionTypeId, parentId, "", false)
 	if err != nil {
 		return err
 	}
 
-	for _, workflowEntity := range workflow.Entities {
-		_, err := CreateEntity(tx, "", workflowEntity.Name, "", workflowEntity.EntityTypeId, entity.Id, "", false)
+	for _, workflowCollection := range workflow.Collections {
+		_, err := CreateCollection(tx, "", workflowCollection.Name, "", workflowCollection.CollectionTypeId, collection.Id, "", false)
 		if err != nil {
 			return err
 		}
 	}
-	for _, workflowTask := range workflow.Tasks {
-		_, err := CreateTask(tx, "", workflowTask.Name, workflowTask.TaskTypeId, entity.Id, workflowTask.IsResource, workflowTask.TemplateId, "", "", []string{}, workflowTask.Pointer, workflowTask.IsLink, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
+	for _, workflowAsset := range workflow.Assets {
+		_, err := CreateAsset(tx, "", workflowAsset.Name, workflowAsset.AssetTypeId, collection.Id, workflowAsset.IsResource, workflowAsset.TemplateId, "", "", []string{}, workflowAsset.Pointer, workflowAsset.IsLink, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 		if err != nil {
 			return err
 		}
 	}
 	for _, workflowLink := range workflow.Links {
-		err = AddWorkflow(tx, workflowLink.LinkedWorkflowId, workflowLink.Name, workflowLink.EntityTypeId, entity.Id, user)
+		err = AddWorkflow(tx, workflowLink.LinkedWorkflowId, workflowLink.Name, workflowLink.CollectionTypeId, collection.Id, user)
 		if err != nil {
 			return err
 		}
@@ -118,12 +118,12 @@ func GetWorkflow(tx *sqlx.Tx, workflowId string) (models.Workflow, error) {
 		return models.Workflow{}, err
 	}
 
-	workflowTasks, err := GetWorkflowTasks(tx, workflowId)
+	workflowAssets, err := GetWorkflowAssets(tx, workflowId)
 	if err != nil {
 		return workflow, err
 	}
 
-	workflowEntities, err := GetWorkflowEntities(tx, workflowId)
+	workflowCollections, err := GetWorkflowCollections(tx, workflowId)
 	if err != nil {
 		return workflow, err
 	}
@@ -133,8 +133,8 @@ func GetWorkflow(tx *sqlx.Tx, workflowId string) (models.Workflow, error) {
 		return workflow, err
 	}
 
-	workflow.Tasks = workflowTasks
-	workflow.Entities = workflowEntities
+	workflow.Assets = workflowAssets
+	workflow.Collections = workflowCollections
 	workflow.Links = workflowLinks
 
 	return workflow, nil
@@ -153,34 +153,34 @@ func GetWorkflows(tx *sqlx.Tx) ([]models.Workflow, error) {
 		allWorkflowsMap[workflow.Id] = workflow
 	}
 
-	allWorkflowTasks := []models.WorkflowTask{}
-	err = base_service.GetAll(tx, "workflow_task", &allWorkflowTasks)
+	allWorkflowAssets := []models.WorkflowAsset{}
+	err = base_service.GetAll(tx, "workflow_asset", &allWorkflowAssets)
 	if err != nil {
 		return workflows, err
 	}
 
-	allWorkflowTasksMap := map[string][]models.WorkflowTask{}
-	for _, task := range allWorkflowTasks {
-		if _, ok := allWorkflowTasksMap[task.WorkflowId]; !ok {
-			allWorkflowTasksMap[task.WorkflowId] = []models.WorkflowTask{}
+	allWorkflowAssetsMap := map[string][]models.WorkflowAsset{}
+	for _, asset := range allWorkflowAssets {
+		if _, ok := allWorkflowAssetsMap[asset.WorkflowId]; !ok {
+			allWorkflowAssetsMap[asset.WorkflowId] = []models.WorkflowAsset{}
 		}
 
-		allWorkflowTasksMap[task.WorkflowId] = append(allWorkflowTasksMap[task.WorkflowId], task)
+		allWorkflowAssetsMap[asset.WorkflowId] = append(allWorkflowAssetsMap[asset.WorkflowId], asset)
 	}
 
-	allWorkflowEntities := []models.WorkflowEntity{}
-	err = base_service.GetAll(tx, "workflow_entity", &allWorkflowEntities)
+	allWorkflowCollections := []models.WorkflowCollection{}
+	err = base_service.GetAll(tx, "workflow_collection", &allWorkflowCollections)
 	if err != nil {
 		return workflows, err
 	}
 
-	allWorkflowEntitiesMap := map[string][]models.WorkflowEntity{}
-	for _, entity := range allWorkflowEntities {
-		if _, ok := allWorkflowEntitiesMap[entity.WorkflowId]; !ok {
-			allWorkflowEntitiesMap[entity.WorkflowId] = []models.WorkflowEntity{}
+	allWorkflowCollectionsMap := map[string][]models.WorkflowCollection{}
+	for _, collection := range allWorkflowCollections {
+		if _, ok := allWorkflowCollectionsMap[collection.WorkflowId]; !ok {
+			allWorkflowCollectionsMap[collection.WorkflowId] = []models.WorkflowCollection{}
 		}
 
-		allWorkflowEntitiesMap[entity.WorkflowId] = append(allWorkflowEntitiesMap[entity.WorkflowId], entity)
+		allWorkflowCollectionsMap[collection.WorkflowId] = append(allWorkflowCollectionsMap[collection.WorkflowId], collection)
 	}
 
 	allWorkflowLinks := []models.WorkflowLink{}
@@ -200,16 +200,16 @@ func GetWorkflows(tx *sqlx.Tx) ([]models.Workflow, error) {
 	}
 
 	for i, workflow := range workflows {
-		if tasks, ok := allWorkflowTasksMap[workflow.Id]; ok {
-			workflows[i].Tasks = tasks
+		if assets, ok := allWorkflowAssetsMap[workflow.Id]; ok {
+			workflows[i].Assets = assets
 		} else {
-			workflows[i].Tasks = []models.WorkflowTask{}
+			workflows[i].Assets = []models.WorkflowAsset{}
 		}
 
-		if entities, ok := allWorkflowEntitiesMap[workflow.Id]; ok {
-			workflows[i].Entities = entities
+		if collections, ok := allWorkflowCollectionsMap[workflow.Id]; ok {
+			workflows[i].Collections = collections
 		} else {
-			workflows[i].Entities = []models.WorkflowEntity{}
+			workflows[i].Collections = []models.WorkflowCollection{}
 		}
 
 		if links, ok := allWorkflowLinksMap[workflow.Id]; ok {
@@ -241,7 +241,7 @@ func RenameWorkflow(tx *sqlx.Tx, id, name string) error {
 	return nil
 }
 
-func UpdateWorkflow(tx *sqlx.Tx, workflowId, name string, workflowTasks []models.WorkflowTask, workflowEntities []models.WorkflowEntity, workflowLinks []models.WorkflowLink) (models.Workflow, error) {
+func UpdateWorkflow(tx *sqlx.Tx, workflowId, name string, workflowAssets []models.WorkflowAsset, workflowCollections []models.WorkflowCollection, workflowLinks []models.WorkflowLink) (models.Workflow, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
 		return models.Workflow{}, errors.New("workflow name cannot be empty")
@@ -264,41 +264,41 @@ func UpdateWorkflow(tx *sqlx.Tx, workflowId, name string, workflowTasks []models
 		}
 	}
 
-	originalWorkflowTaskIds := []string{}
-	workflowTaskQuery := "SELECT id FROM workflow_task WHERE workflow_id = ?"
-	err = tx.Select(&originalWorkflowTaskIds, workflowTaskQuery, workflowId)
+	originalWorkflowAssetIds := []string{}
+	workflowAssetQuery := "SELECT id FROM workflow_asset WHERE workflow_id = ?"
+	err = tx.Select(&originalWorkflowAssetIds, workflowAssetQuery, workflowId)
 	if err != nil {
 		return models.Workflow{}, err
 	}
 
-	listOfWorkFlowTaskIds := []string{}
-	for _, workflowTask := range workflowTasks {
-		listOfWorkFlowTaskIds = append(listOfWorkFlowTaskIds, workflowTask.Id)
+	listOfWorkFlowAssetIds := []string{}
+	for _, workflowAsset := range workflowAssets {
+		listOfWorkFlowAssetIds = append(listOfWorkFlowAssetIds, workflowAsset.Id)
 	}
 
-	for _, originalWorkflowTaskId := range originalWorkflowTaskIds {
-		if !utils.Contains(listOfWorkFlowTaskIds, originalWorkflowTaskId) {
-			err = DeleteWorkflowTask(tx, originalWorkflowTaskId)
+	for _, originalWorkflowAssetId := range originalWorkflowAssetIds {
+		if !utils.Contains(listOfWorkFlowAssetIds, originalWorkflowAssetId) {
+			err = DeleteWorkflowAsset(tx, originalWorkflowAssetId)
 			if err != nil {
 				return models.Workflow{}, err
 			}
 		}
 	}
 
-	originalWorkflowEntityIds := []string{}
-	workflowEntityQuery := "SELECT id FROM workflow_entity WHERE workflow_id = ?"
-	err = tx.Select(&originalWorkflowEntityIds, workflowEntityQuery, workflowId)
+	originalWorkflowCollectionIds := []string{}
+	workflowCollectionQuery := "SELECT id FROM workflow_collection WHERE workflow_id = ?"
+	err = tx.Select(&originalWorkflowCollectionIds, workflowCollectionQuery, workflowId)
 	if err != nil {
 		return models.Workflow{}, err
 	}
-	listOfWorkFlowEntityIds := []string{}
-	for _, workflowEntity := range workflowEntities {
-		listOfWorkFlowEntityIds = append(listOfWorkFlowEntityIds, workflowEntity.Id)
+	listOfWorkFlowCollectionIds := []string{}
+	for _, workflowCollection := range workflowCollections {
+		listOfWorkFlowCollectionIds = append(listOfWorkFlowCollectionIds, workflowCollection.Id)
 	}
 
-	for _, originalWorkflowEntityId := range originalWorkflowEntityIds {
-		if !utils.Contains(listOfWorkFlowEntityIds, originalWorkflowEntityId) {
-			err = DeleteWorkflowEntity(tx, originalWorkflowEntityId)
+	for _, originalWorkflowCollectionId := range originalWorkflowCollectionIds {
+		if !utils.Contains(listOfWorkFlowCollectionIds, originalWorkflowCollectionId) {
+			err = DeleteWorkflowCollection(tx, originalWorkflowCollectionId)
 			if err != nil {
 				return models.Workflow{}, err
 			}
@@ -326,29 +326,29 @@ func UpdateWorkflow(tx *sqlx.Tx, workflowId, name string, workflowTasks []models
 		}
 	}
 
-	for _, workflowTask := range workflowTasks {
-		_, err = GetWorkflowTask(tx, workflowTask.Id)
-		if err != nil && err == error_service.ErrWorkflowTaskNotFound {
-			_, err := CreateWorkflowTask(tx, "", workflowTask.Name, workflow.Id, workflowTask.TaskTypeId, workflowTask.IsResource, workflowTask.TemplateId, workflowTask.Pointer, workflowTask.IsLink)
+	for _, workflowAsset := range workflowAssets {
+		_, err = GetWorkflowAsset(tx, workflowAsset.Id)
+		if err != nil && err == error_service.ErrWorkflowAssetNotFound {
+			_, err := CreateWorkflowAsset(tx, "", workflowAsset.Name, workflow.Id, workflowAsset.AssetTypeId, workflowAsset.IsResource, workflowAsset.TemplateId, workflowAsset.Pointer, workflowAsset.IsLink)
 			if err != nil {
 				return models.Workflow{}, err
 			}
 		} else {
-			_, err := UpdateWorkflowTask(tx, workflowTask.Id, workflowTask.Name, workflowTask.TaskTypeId, workflowTask.IsResource, workflowTask.TemplateId, workflowTask.Pointer, workflowTask.IsLink)
+			_, err := UpdateWorkflowAsset(tx, workflowAsset.Id, workflowAsset.Name, workflowAsset.AssetTypeId, workflowAsset.IsResource, workflowAsset.TemplateId, workflowAsset.Pointer, workflowAsset.IsLink)
 			if err != nil {
 				return models.Workflow{}, err
 			}
 		}
 	}
-	for _, workflowEntity := range workflowEntities {
-		_, err = GetWorkflowEntity(tx, workflowEntity.Id)
-		if err != nil && err == error_service.ErrWorkflowEntityNotFound {
-			_, err := CreateWorkflowEntity(tx, "", workflowEntity.Name, workflow.Id, workflowEntity.EntityTypeId)
+	for _, workflowCollection := range workflowCollections {
+		_, err = GetWorkflowCollection(tx, workflowCollection.Id)
+		if err != nil && err == error_service.ErrWorkflowCollectionNotFound {
+			_, err := CreateWorkflowCollection(tx, "", workflowCollection.Name, workflow.Id, workflowCollection.CollectionTypeId)
 			if err != nil {
 				return models.Workflow{}, err
 			}
 		} else {
-			_, err := UpdateWorkflowEntity(tx, workflowEntity.Id, workflowEntity.Name, workflowEntity.EntityTypeId)
+			_, err := UpdateWorkflowCollection(tx, workflowCollection.Id, workflowCollection.Name, workflowCollection.CollectionTypeId)
 			if err != nil {
 				return models.Workflow{}, err
 			}
@@ -391,89 +391,89 @@ func DeleteWorkflow(tx *sqlx.Tx, workflowId string) error {
 	return nil
 }
 
-func CreateWorkflowTask(
-	tx *sqlx.Tx, id, name, workflowId, taskTypeId string,
+func CreateWorkflowAsset(
+	tx *sqlx.Tx, id, name, workflowId, assetTypeId string,
 	isResource bool, templateId, pointer string, isLink bool,
-) (models.WorkflowTask, error) {
+) (models.WorkflowAsset, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return models.WorkflowTask{}, errors.New("task name cannot be empty")
+		return models.WorkflowAsset{}, errors.New("asset name cannot be empty")
 	}
 
 	if isLink && !utils.IsValidPointer(pointer) {
-		return models.WorkflowTask{}, errors.New("invalid pointer, path does not exist")
+		return models.WorkflowAsset{}, errors.New("invalid pointer, path does not exist")
 	}
 
 	params := map[string]any{
 		"id":           id,
 		"name":         name,
 		"workflow_id":  workflowId,
-		"task_type_id": taskTypeId,
+		"asset_type_id": assetTypeId,
 		"is_resource":  isResource,
 		"template_id":  templateId,
 		"pointer":      pointer,
 		"is_link":      isLink,
 	}
-	err := base_service.Create(tx, "workflow_task", params)
+	err := base_service.Create(tx, "workflow_asset", params)
 	if err != nil {
 		//FIXME check back here for error handling
 		if sqliteErr, ok := err.(sqlite3.Error); ok {
 			if sqliteErr.Code == sqlite3.ErrConstraint {
-				return models.WorkflowTask{}, error_service.ErrWorkflowTaskExists
+				return models.WorkflowAsset{}, error_service.ErrWorkflowAssetExists
 			}
 		}
-		return models.WorkflowTask{}, err
+		return models.WorkflowAsset{}, err
 	}
-	workflow, err := GetWorkflowTaskByName(tx, name, workflowId)
+	workflow, err := GetWorkflowAssetByName(tx, name, workflowId)
 	if err != nil {
-		return models.WorkflowTask{}, err
+		return models.WorkflowAsset{}, err
 	}
 
 	return workflow, nil
 }
 
-func UpdateWorkflowTask(
-	tx *sqlx.Tx, id string, name, taskTypeId string,
+func UpdateWorkflowAsset(
+	tx *sqlx.Tx, id string, name, assetTypeId string,
 	isResource bool, templateId, pointer string, isLink bool,
-) (models.WorkflowTask, error) {
+) (models.WorkflowAsset, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return models.WorkflowTask{}, errors.New("entity name cannot be empty")
+		return models.WorkflowAsset{}, errors.New("collection name cannot be empty")
 	}
 
 	params := map[string]any{
 		"name":         name,
-		"task_type_id": taskTypeId,
+		"asset_type_id": assetTypeId,
 		"is_resource":  isResource,
 		"template_id":  templateId,
 		"pointer":      pointer,
 		"is_link":      isLink,
 	}
-	err := base_service.Update(tx, "workflow_task", id, params)
+	err := base_service.Update(tx, "workflow_asset", id, params)
 	if err != nil {
 		//FIXME check back here for error handling
 		if sqliteErr, ok := err.(sqlite3.Error); ok {
 			if sqliteErr.Code == sqlite3.ErrConstraint {
-				return models.WorkflowTask{}, error_service.ErrWorkflowTaskExists
+				return models.WorkflowAsset{}, error_service.ErrWorkflowAssetExists
 			}
 		}
-		return models.WorkflowTask{}, err
+		return models.WorkflowAsset{}, err
 	}
 
-	err = base_service.UpdateMtime(tx, "workflow_task", id, utils.GetEpochTime())
+	err = base_service.UpdateMtime(tx, "workflow_asset", id, utils.GetEpochTime())
 	if err != nil {
-		return models.WorkflowTask{}, err
+		return models.WorkflowAsset{}, err
 	}
 
-	workflowTask, err := GetWorkflowTask(tx, id)
+	workflowAsset, err := GetWorkflowAsset(tx, id)
 	if err != nil {
-		return models.WorkflowTask{}, err
+		return models.WorkflowAsset{}, err
 	}
-	return workflowTask, nil
+	return workflowAsset, nil
 }
 
-func DeleteWorkflowTask(tx *sqlx.Tx, id string) error {
-	err := base_service.Delete(tx, "workflow_task", id)
+func DeleteWorkflowAsset(tx *sqlx.Tx, id string) error {
+	err := base_service.Delete(tx, "workflow_asset", id)
 	if err != nil {
 		return err
 	}
@@ -481,58 +481,58 @@ func DeleteWorkflowTask(tx *sqlx.Tx, id string) error {
 	return nil
 }
 
-func GetWorkflowTasks(tx *sqlx.Tx, workflowId string) ([]models.WorkflowTask, error) {
-	workflowTasks := []models.WorkflowTask{}
+func GetWorkflowAssets(tx *sqlx.Tx, workflowId string) ([]models.WorkflowAsset, error) {
+	workflowAssets := []models.WorkflowAsset{}
 
 	conditions := map[string]any{"workflow_id": workflowId}
 
-	err := base_service.GetAllBy(tx, "workflow_task", conditions, &workflowTasks)
+	err := base_service.GetAllBy(tx, "workflow_asset", conditions, &workflowAssets)
 	if err != nil {
-		return workflowTasks, err
+		return workflowAssets, err
 	}
-	return workflowTasks, nil
+	return workflowAssets, nil
 }
 
-func GetWorkflowTask(tx *sqlx.Tx, id string) (models.WorkflowTask, error) {
-	task := models.WorkflowTask{}
-	err := base_service.Get(tx, "workflow_task", id, &task)
+func GetWorkflowAsset(tx *sqlx.Tx, id string) (models.WorkflowAsset, error) {
+	asset := models.WorkflowAsset{}
+	err := base_service.Get(tx, "workflow_asset", id, &asset)
 	if err != nil && err == sql.ErrNoRows {
-		return models.WorkflowTask{}, error_service.ErrTaskNotFound
+		return models.WorkflowAsset{}, error_service.ErrAssetNotFound
 	} else if err != nil {
-		return models.WorkflowTask{}, err
+		return models.WorkflowAsset{}, err
 	}
-	return task, nil
+	return asset, nil
 }
 
-func GetWorkflowTaskByName(tx *sqlx.Tx, name, workflowId string) (models.WorkflowTask, error) {
-	workflow := models.WorkflowTask{}
-	query := "SELECT * FROM workflow_task WHERE name = ? AND workflow_id = ?"
+func GetWorkflowAssetByName(tx *sqlx.Tx, name, workflowId string) (models.WorkflowAsset, error) {
+	workflow := models.WorkflowAsset{}
+	query := "SELECT * FROM workflow_asset WHERE name = ? AND workflow_id = ?"
 
 	err := tx.Get(&workflow, query, name, workflowId)
 	if err != nil && err == sql.ErrNoRows {
-		return models.WorkflowTask{}, error_service.ErrWorkflowNotFound
+		return models.WorkflowAsset{}, error_service.ErrWorkflowNotFound
 	} else if err != nil {
-		return models.WorkflowTask{}, err
+		return models.WorkflowAsset{}, err
 	}
 	return workflow, nil
 }
 
-func CreateWorkflowEntity(
-	tx *sqlx.Tx, id string, name, workflow_id, entity_type_id string,
-) (models.WorkflowEntity, error) {
+func CreateWorkflowCollection(
+	tx *sqlx.Tx, id string, name, workflow_id, collection_type_id string,
+) (models.WorkflowCollection, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return models.WorkflowEntity{}, errors.New("entity name cannot be empty")
+		return models.WorkflowCollection{}, errors.New("collection name cannot be empty")
 	}
 
 	conditions := map[string]any{
 		"name":        name,
 		"workflow_id": workflow_id,
 	}
-	workflowEntity := models.WorkflowEntity{}
-	err := base_service.GetBy(tx, "workflow_entity", conditions, &workflowEntity)
+	workflowCollection := models.WorkflowCollection{}
+	err := base_service.GetBy(tx, "workflow_collection", conditions, &workflowCollection)
 	if err == nil {
-		return models.WorkflowEntity{}, error_service.ErrWorkflowEntityExists
+		return models.WorkflowCollection{}, error_service.ErrWorkflowCollectionExists
 
 	}
 
@@ -540,60 +540,60 @@ func CreateWorkflowEntity(
 		"id":             id,
 		"name":           name,
 		"workflow_id":    workflow_id,
-		"entity_type_id": entity_type_id,
+		"collection_type_id": collection_type_id,
 	}
-	err = base_service.Create(tx, "workflow_entity", params)
+	err = base_service.Create(tx, "workflow_collection", params)
 	if err != nil {
 		//FIXME check back here for error handling
 		if sqliteErr, ok := err.(sqlite3.Error); ok {
 			if sqliteErr.Code == sqlite3.ErrConstraint {
-				return models.WorkflowEntity{}, error_service.ErrWorkflowEntityExists
+				return models.WorkflowCollection{}, error_service.ErrWorkflowCollectionExists
 			}
 		}
-		return models.WorkflowEntity{}, err
+		return models.WorkflowCollection{}, err
 	}
-	workflowEntity, err = GetWorkflowEntityByName(tx, name, workflow_id)
+	workflowCollection, err = GetWorkflowCollectionByName(tx, name, workflow_id)
 	if err != nil {
-		return models.WorkflowEntity{}, err
+		return models.WorkflowCollection{}, err
 	}
-	return workflowEntity, nil
+	return workflowCollection, nil
 }
 
-func UpdateWorkflowEntity(
-	tx *sqlx.Tx, id string, name, entity_type_id string,
-) (models.WorkflowEntity, error) {
+func UpdateWorkflowCollection(
+	tx *sqlx.Tx, id string, name, collection_type_id string,
+) (models.WorkflowCollection, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return models.WorkflowEntity{}, errors.New("entity name cannot be empty")
+		return models.WorkflowCollection{}, errors.New("collection name cannot be empty")
 	}
 
 	params := map[string]any{
 		"name":           name,
-		"entity_type_id": entity_type_id,
+		"collection_type_id": collection_type_id,
 	}
-	err := base_service.Update(tx, "workflow_entity", id, params)
+	err := base_service.Update(tx, "workflow_collection", id, params)
 	if err != nil {
 		//FIXME check back here for error handling
 		if sqliteErr, ok := err.(sqlite3.Error); ok {
 			if sqliteErr.Code == sqlite3.ErrConstraint {
-				return models.WorkflowEntity{}, error_service.ErrWorkflowEntityExists
+				return models.WorkflowCollection{}, error_service.ErrWorkflowCollectionExists
 			}
 		}
-		return models.WorkflowEntity{}, err
+		return models.WorkflowCollection{}, err
 	}
-	err = base_service.UpdateMtime(tx, "workflow_entity", id, utils.GetEpochTime())
+	err = base_service.UpdateMtime(tx, "workflow_collection", id, utils.GetEpochTime())
 	if err != nil {
-		return models.WorkflowEntity{}, err
+		return models.WorkflowCollection{}, err
 	}
-	workflowEntity, err := GetWorkflowEntity(tx, id)
+	workflowCollection, err := GetWorkflowCollection(tx, id)
 	if err != nil {
-		return models.WorkflowEntity{}, err
+		return models.WorkflowCollection{}, err
 	}
-	return workflowEntity, nil
+	return workflowCollection, nil
 }
 
-func DeleteWorkflowEntity(tx *sqlx.Tx, id string) error {
-	err := base_service.Delete(tx, "workflow_entity", id)
+func DeleteWorkflowCollection(tx *sqlx.Tx, id string) error {
+	err := base_service.Delete(tx, "workflow_collection", id)
 	if err != nil {
 		return err
 	}
@@ -601,45 +601,45 @@ func DeleteWorkflowEntity(tx *sqlx.Tx, id string) error {
 	return nil
 }
 
-func GetWorkflowEntities(tx *sqlx.Tx, workflowId string) ([]models.WorkflowEntity, error) {
-	entities := []models.WorkflowEntity{}
+func GetWorkflowCollections(tx *sqlx.Tx, workflowId string) ([]models.WorkflowCollection, error) {
+	collections := []models.WorkflowCollection{}
 
 	conditions := map[string]any{"workflow_id": workflowId}
 
-	err := base_service.GetAllBy(tx, "workflow_entity", conditions, &entities)
+	err := base_service.GetAllBy(tx, "workflow_collection", conditions, &collections)
 	if err != nil {
-		return entities, err
+		return collections, err
 	}
-	return entities, nil
+	return collections, nil
 }
 
-func GetWorkflowEntity(tx *sqlx.Tx, id string) (models.WorkflowEntity, error) {
-	entity := models.WorkflowEntity{}
-	err := base_service.Get(tx, "workflow_entity", id, &entity)
+func GetWorkflowCollection(tx *sqlx.Tx, id string) (models.WorkflowCollection, error) {
+	collection := models.WorkflowCollection{}
+	err := base_service.Get(tx, "workflow_collection", id, &collection)
 	if err != nil && err == sql.ErrNoRows {
-		return models.WorkflowEntity{}, error_service.ErrEntityNotFound
+		return models.WorkflowCollection{}, error_service.ErrCollectionNotFound
 	} else if err != nil {
-		return models.WorkflowEntity{}, err
+		return models.WorkflowCollection{}, err
 	}
-	return entity, nil
+	return collection, nil
 }
-func GetWorkflowEntityByName(tx *sqlx.Tx, name, workflowId string) (models.WorkflowEntity, error) {
-	entity := models.WorkflowEntity{}
-	query := "SELECT * FROM workflow_entity WHERE name = ? AND workflow_id = ?"
+func GetWorkflowCollectionByName(tx *sqlx.Tx, name, workflowId string) (models.WorkflowCollection, error) {
+	collection := models.WorkflowCollection{}
+	query := "SELECT * FROM workflow_collection WHERE name = ? AND workflow_id = ?"
 
-	err := tx.Get(&entity, query, name, workflowId)
+	err := tx.Get(&collection, query, name, workflowId)
 	if err != nil && err == sql.ErrNoRows {
-		return models.WorkflowEntity{}, error_service.ErrEntityNotFound
+		return models.WorkflowCollection{}, error_service.ErrCollectionNotFound
 	} else if err != nil {
-		return models.WorkflowEntity{}, err
+		return models.WorkflowCollection{}, err
 	}
-	return entity, nil
+	return collection, nil
 }
 
-func LinkWorkflow(tx *sqlx.Tx, name, entityTypeId, workflow_id, linked_workflow_id string) error {
+func LinkWorkflow(tx *sqlx.Tx, name, collectionTypeId, workflow_id, linked_workflow_id string) error {
 	params := map[string]any{
 		"name":               name,
-		"entity_type_id":     entityTypeId,
+		"collection_type_id":     collectionTypeId,
 		"workflow_id":        workflow_id,
 		"linked_workflow_id": linked_workflow_id,
 	}
@@ -657,11 +657,11 @@ func LinkWorkflow(tx *sqlx.Tx, name, entityTypeId, workflow_id, linked_workflow_
 	return nil
 }
 
-func AddLinkWorkflow(tx *sqlx.Tx, id, name, entityTypeId, workflow_id, linked_workflow_id string) error {
+func AddLinkWorkflow(tx *sqlx.Tx, id, name, collectionTypeId, workflow_id, linked_workflow_id string) error {
 	params := map[string]any{
 		"id":                 id,
 		"name":               name,
-		"entity_type_id":     entityTypeId,
+		"collection_type_id":     collectionTypeId,
 		"workflow_id":        workflow_id,
 		"linked_workflow_id": linked_workflow_id,
 	}

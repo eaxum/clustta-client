@@ -52,35 +52,35 @@ export const useCollectionStore = defineStore("collection", {
 
       let filteredCollections;
 
-      if (commonStore.entityFilters.length) {
-        const selectedCollectionTypes = commonStore.entityFilters
-          .filter((filter) => filter.type === "entity-type")
+      if (commonStore.collectionFilters.length) {
+        const selectedCollectionTypes = commonStore.collectionFilters
+          .filter((filter) => filter.type === "collection-type")
           .map((filter) => filter.name.toLowerCase());
 
         filteredCollections = collections
           .filter((collection) => {
             const collectionTypeMatch =
               selectedCollectionTypes.length === 0 ||
-              selectedCollectionTypes.includes(collection.entity_type.toLowerCase());
+              selectedCollectionTypes.includes(collection.collection_type.toLowerCase());
 
             return collectionTypeMatch;
           })
           .filter(
             (item) =>
-              item.entity_path
+              item.collection_path
                 .toLowerCase()
                 .includes(viewSearchQuery) &&
-              item.entity_path
+              item.collection_path
                 .toLowerCase()
                 .includes(workspaceSearchQuery)
           );
       } else {
         filteredCollections = collections.filter(
           (item) =>
-            item.entity_path
+            item.collection_path
               .toLowerCase()
               .includes(viewSearchQuery) &&
-            item.entity_path
+            item.collection_path
               .toLowerCase()
               .includes(workspaceSearchQuery)
         );
@@ -88,7 +88,7 @@ export const useCollectionStore = defineStore("collection", {
 
       const sortedCollections = utils.sortPathAlphabetically(
         filteredCollections,
-        "entity"
+        "collection"
       );
       return sortedCollections;
     },
@@ -125,9 +125,9 @@ export const useCollectionStore = defineStore("collection", {
 
       let filteredCollections;
 
-      if (commonStore.entityFilters.length) {
-        const selectedCollectionTypes = commonStore.entityFilters
-          .filter((filter) => filter.type === "entity-type")
+      if (commonStore.collectionFilters.length) {
+        const selectedCollectionTypes = commonStore.collectionFilters
+          .filter((filter) => filter.type === "collection-type")
           .map((filter) => filter.name.toLowerCase());
 
         filteredCollections = collections
@@ -135,7 +135,7 @@ export const useCollectionStore = defineStore("collection", {
 
             // matched asset types
             const collectionType = this.collectionTypes.find(
-              (item) => item.id === collection.entity_type_id
+              (item) => item.id === collection.collection_type_id
             );
 
             const collectionTypeMatch =
@@ -147,29 +147,29 @@ export const useCollectionStore = defineStore("collection", {
           .filter(
             (item) => {
               const nameMatch = !viewSearchQuery || item.name?.toLowerCase().includes(viewSearchQuery.toLowerCase());
-              const entityPathMatch = !viewSearchQuery || item.entity_path?.toLowerCase().includes(viewSearchQuery.toLowerCase());
+              const collectionPathMatch = !viewSearchQuery || item.collection_path?.toLowerCase().includes(viewSearchQuery.toLowerCase());
               const workspaceNameMatch = !workspaceSearchQuery || item.name?.toLowerCase().includes(workspaceSearchQuery.toLowerCase());
-              const workspaceEntityPathMatch = !workspaceSearchQuery || item.entity_path?.toLowerCase().includes(workspaceSearchQuery.toLowerCase());
+              const workspaceCollectionPathMatch = !workspaceSearchQuery || item.collection_path?.toLowerCase().includes(workspaceSearchQuery.toLowerCase());
               
-              return (nameMatch || entityPathMatch) && (workspaceNameMatch || workspaceEntityPathMatch);
+              return (nameMatch || collectionPathMatch) && (workspaceNameMatch || workspaceCollectionPathMatch);
             }
           );
       } else {
         filteredCollections = collections.filter(
           (item) => {
             const nameMatch = !viewSearchQuery || item.name?.toLowerCase().includes(viewSearchQuery.toLowerCase());
-            const entityPathMatch = !viewSearchQuery || item.entity_path?.toLowerCase().includes(viewSearchQuery.toLowerCase());
+            const collectionPathMatch = !viewSearchQuery || item.collection_path?.toLowerCase().includes(viewSearchQuery.toLowerCase());
             const workspaceNameMatch = !workspaceSearchQuery || item.name?.toLowerCase().includes(workspaceSearchQuery.toLowerCase());
-            const workspaceEntityPathMatch = !workspaceSearchQuery || item.entity_path?.toLowerCase().includes(workspaceSearchQuery.toLowerCase());
+            const workspaceCollectionPathMatch = !workspaceSearchQuery || item.collection_path?.toLowerCase().includes(workspaceSearchQuery.toLowerCase());
             
-            return (nameMatch || entityPathMatch) && (workspaceNameMatch || workspaceEntityPathMatch);
+            return (nameMatch || collectionPathMatch) && (workspaceNameMatch || workspaceCollectionPathMatch);
           }
         );
       }
 
       const sortedCollections = utils.sortPathAlphabetically(
         filteredCollections,
-        "entity"
+        "collection"
       );
       return sortedCollections;
     },
@@ -191,7 +191,7 @@ export const useCollectionStore = defineStore("collection", {
       );
       this.collectionTypes = collectionTypes.map(type => ({
         ...type,
-        type: 'entity-type',
+        type: 'collection-type',
       }));
     },
 
@@ -274,7 +274,7 @@ export const useCollectionStore = defineStore("collection", {
      * - Root: Pass neither to scan entire project
      * 
      * Updates assetStore.modifiedAssets with structure:
-     * { modified: [{ task_id, task_path, display_path }], untracked: [task_paths] }
+     * { modified: [{ asset_id, asset_path, display_path }], untracked: [asset_paths] }
      */
     async reloadItemsForCheckpoint(collectionId = null, targetPath = null) {
       const assetStore = useAssetStore();
@@ -282,25 +282,25 @@ export const useCollectionStore = defineStore("collection", {
       const projectStore = useProjectStore();
       let project = projectStore.activeProject;
       
-      let entityId = collectionId || "";
+      collectionId = collectionId || "";
       let scanPath = targetPath || "";
       
       try {
         const items = await CollectionService.GetItemsForCheckpoint(
           project.uri,
-          entityId,
+          collectionId,
           scanPath,
           project.working_directory,
           project.ignore_list
         );
 
-        const modifiedAssets = items.modified_tasks.map(task => ({
-          task_id: task.id,
-          task_path: task.task_path,
-          display_path: task.task_path + task.extension
+        const modifiedAssets = items.modified_assets.map(asset => ({
+          asset_id: asset.id,
+          asset_path: asset.asset_path,
+          display_path: asset.asset_path + asset.extension
         }));
 
-        const untrackedPaths = items.untracked_files.map(file => file.task_path);
+        const untrackedPaths = items.untracked_files.map(file => file.asset_path);
 
         assetStore.modifiedAssets = {
           modified: modifiedAssets,
@@ -318,9 +318,9 @@ export const useCollectionStore = defineStore("collection", {
     },
 
     /**
-     * Fetches outdated tasks recursively for a collection.
+     * Fetches outdated assets recursively for a collection.
      * @param {string|null} collectionId - Collection ID to scan (null for root)
-     * @returns {Promise<Array>} Array of outdated task objects
+     * @returns {Promise<Array>} Array of outdated asset objects
      */
     async getOutdatedItems(collectionId = null) {
       const assetStore = useAssetStore();
@@ -328,17 +328,17 @@ export const useCollectionStore = defineStore("collection", {
       const projectStore = useProjectStore();
       let project = projectStore.activeProject;
       
-      let entityId = collectionId || "";
+      collectionId = collectionId || "";
       
       try {
         const result = await CollectionService.GetOutdatedItemsInCollection(
           project.uri,
-          entityId,
+          collectionId,
           project.working_directory,
           project.ignore_list
         );
 
-        return result.outdated_tasks || [];
+        return result.outdated_assets || [];
       } catch (error) {
         console.error('Error loading outdated items:', error);
         return [];
@@ -360,21 +360,21 @@ export const useCollectionStore = defineStore("collection", {
         const project = projectStore.activeProject;
         if (!project) return;
 
-        let entityId = "root";
+        let collectionId = "root";
         
         if (commonStore.navigatorMode && this.navigatedCollection) {
-          entityId = this.navigatedCollection.id || "root";
+          collectionId = this.navigatedCollection.id || "root";
         }
 
         if (this.navigatedCollection) {
-          if (this.navigatedCollection?.type !== 'entity') {
+          if (this.navigatedCollection?.type !== 'collection') {
             return;
           }
         }
 
         const flags = await CollectionService.GetCollectionStateFlags(
           project.uri,
-          entityId,
+          collectionId,
           project.working_directory,
           project.ignore_list
         );

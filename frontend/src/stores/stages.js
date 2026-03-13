@@ -28,15 +28,15 @@ export const useStageStore = defineStore("stages", {
     activeStage: null,
     selectedStage: null,
     modalMaskVisible: false,
-    showTaskCheckboxes: false,
-    showEntityCheckboxes: false,
-    expandAllSubtasks: false,
+    showAssetCheckboxes: false,
+    showCollectionCheckboxes: false,
+    expandAllSubassets: false,
 
-    firstSelectedTaskId: "",
-    lastSelectedTaskId: "",
+    firstSelectedAssetId: "",
+    lastSelectedAssetId: "",
 
-    firstSelectedEntityId: "",
-    lastSelectedEntityId: "",
+    firstSelectedCollectionId: "",
+    lastSelectedCollectionId: "",
 
     firstSelectedItemId: "",
     lastSelectedItemId: "",
@@ -44,46 +44,46 @@ export const useStageStore = defineStore("stages", {
     sidePaneActive: false,
 
     navigationBreadCrumbs: ["browser", "dependencies"],
-    allTasks: [],
-    expandedTask: null,
-    expandedTasks: [],
-    expandedEntity: null,
-    expandedEntities: {},
+    allAssets: [],
+    expandedAsset: null,
+    expandedAssets: [],
+    expandedCollection: null,
+    expandedCollections: {},
     selectedItem: null,
     cutItems: [],
     copiedItems: [],
-    allTasksCollapsed: true,
-    visibleTasks: 0,
-    visibleSubtasks: 0,
-    visibleEntities: 0,
-    entityDataIds: [],
+    allAssetsCollapsed: true,
+    visibleAssets: 0,
+    visibleSubassets: 0,
+    visibleCollections: 0,
+    collectionDataIds: [],
     selectedTypes: "none",
-    markedTasks: [],
+    markedAssets: [],
     selectdProject: [],
     markedProjects: [],
     markedResources: [],
-    markedEntities: [],
+    markedCollections: [],
     markedItems: [],
     selectedItems: [],
-    allTasksMarked: true,
-    allSubtasksMarked: true,
-    allEntitiesMarked: true,
+    allAssetsMarked: true,
+    allSubassetsMarked: true,
+    allCollectionsMarked: true,
     allResourcesMarked: true,
   }),
   getters: {
     typeTracker() {
       const counts = {
-        entity: 0,
-        task: 0,
-        untracked_task: 0,
-        untracked_entity: 0,
+        collection: 0,
+        asset: 0,
+        untracked_asset: 0,
+        untracked_collection: 0,
       };
       
       this.selectedItems.forEach(item => {
         if (item.type in counts) {
           counts[item.type]++;
         } else if (item.type === 'resource') {
-          counts.task++; // Resources are counted as tasks
+          counts.asset++; // Resources are counted as assets
         }
       });
       
@@ -124,61 +124,61 @@ export const useStageStore = defineStore("stages", {
     isAnyModalActive() {
       return Object.values(this.stages).some((isVisible) => isVisible);
     },
-    toggleTaskCheckboxVisibility() {
-      this.showTaskCheckboxes = !this.showTaskCheckboxes;
+    toggleAssetCheckboxVisibility() {
+      this.showAssetCheckboxes = !this.showAssetCheckboxes;
     },
-    toggleEntityCheckboxVisibility() {
-      this.showEntityCheckboxes = !this.showEntityCheckboxes;
+    toggleCollectionCheckboxVisibility() {
+      this.showCollectionCheckboxes = !this.showCollectionCheckboxes;
     },
 
-    toggleSubtasks(id) {
+    toggleSubassets(id) {
       //check if active sequence's index is included and then add it if not
-      if (this.allTasks.includes(id)) {
-        this.allTasks = this.allTasks.filter((i) => i !== id);
+      if (this.allAssets.includes(id)) {
+        this.allAssets = this.allAssets.filter((i) => i !== id);
       } else {
-        this.allTasks.push(id);
+        this.allAssets.push(id);
       }
 
-      //collapse/expand all sequences based on whether the allTasks is empty
-      if (this.allTasks.length >= 0) {
-        this.allTasksCollapsed = false;
+      //collapse/expand all sequences based on whether the allAssets is empty
+      if (this.allAssets.length >= 0) {
+        this.allAssetsCollapsed = false;
       }
-      if (this.allTasks.length == 0) {
-        this.allTasksCollapsed = true;
+      if (this.allAssets.length == 0) {
+        this.allAssetsCollapsed = true;
       }
     },
 
-    expandTask(taskId) {
-      if (this.expandedTasks.includes(taskId)) {
-        this.expandedTasks = this.expandedTasks.filter(
-          (item) => item !== taskId
+    expandAsset(assetId) {
+      if (this.expandedAssets.includes(assetId)) {
+        this.expandedAssets = this.expandedAssets.filter(
+          (item) => item !== assetId
         );
       } else {
-        this.expandedTasks.push(taskId);
+        this.expandedAssets.push(assetId);
       }
     },
 
-    expandEntity(entity, untracked = false) {
-      let entityId = entity.id;
-      if (entityId in this.expandedEntities) {
-        const childrenIds = Object.entries(this.expandedEntities)
-          .filter(([key, value]) => value.entity_path.startsWith(entity.entity_path))
+    expandCollection(collection, untracked = false) {
+      let collectionId = collection.id;
+      if (collectionId in this.expandedCollections) {
+        const childrenIds = Object.entries(this.expandedCollections)
+          .filter(([key, value]) => value.collection_path.startsWith(collection.collection_path))
           .map(([key]) => key);
-        let entitiesToClose = [entityId, ...childrenIds];
+        let collectionsToClose = [collectionId, ...childrenIds];
 
-        const newExpandedEntities = { ...this.expandedEntities };
-        for (const id of entitiesToClose) {
-          delete newExpandedEntities[id];
+        const newExpandedCollections = { ...this.expandedCollections };
+        for (const id of collectionsToClose) {
+          delete newExpandedCollections[id];
         }
-        this.expandedEntities = newExpandedEntities;
+        this.expandedCollections = newExpandedCollections;
       } else {
         const assetStore = useAssetStore();
         // Initialize with 0 initially, the actual height will be set by onHeightChange
-        this.expandedEntities = {
-          ...this.expandedEntities,
-          [entityId]: {
+        this.expandedCollections = {
+          ...this.expandedCollections,
+          [collectionId]: {
             height: 0,
-            entity_path: entity.entity_path,
+            collection_path: collection.collection_path,
           },
         };
       }
@@ -261,13 +261,13 @@ export const useStageStore = defineStore("stages", {
       let itemType;
       const id = item.id;
 
-      if (item.entity_type_id) {
-        itemType = "entity";
+      if (item.collection_type_id) {
+        itemType = "collection";
       } else {
         if (item.is_resource) {
           itemType = "resource";
         } else {
-          itemType = "task";
+          itemType = "asset";
         }
       }
 
@@ -306,15 +306,15 @@ export const useStageStore = defineStore("stages", {
         this.markedItems = selectedRange.map((i) => i.id);
 
         for (const rangeItem of selectedRange) {
-          rangeItem.type = rangeItem.entity_type_id ? "entity" : "task";
+          rangeItem.type = rangeItem.collection_type_id ? "collection" : "asset";
 
-          const entities = selectedRange.filter(
-            (item) => item.type === "entity"
+          const collections = selectedRange.filter(
+            (item) => item.type === "collection"
           );
-          const tasks = selectedRange.filter((item) => item.type === "task");
+          const assets = selectedRange.filter((item) => item.type === "asset");
 
-          dndStore.previewDataSelectedItems["entities"] = entities;
-          dndStore.previewDataSelectedItems["tasks"] = tasks;
+          dndStore.previewDataSelectedItems["collections"] = collections;
+          dndStore.previewDataSelectedItems["assets"] = assets;
         }
       } else {
         const key = this.pluralize(item.type);
@@ -332,8 +332,8 @@ export const useStageStore = defineStore("stages", {
 
     pluralize(word) {
       const pluralRules = {
-        entity: "entities",
-        task: "tasks",
+        collection: "collections",
+        asset: "assets",
         resource: "resources",
       };
 
@@ -379,10 +379,10 @@ export const useStageStore = defineStore("stages", {
         this.deselectAllItems();
       }
 
-      if (itemType === "entity") {
+      if (itemType === "collection") {
         collectionStore.selectCollection(item);
         this.selectedItem = item;
-      } else if (itemType === "task") {
+      } else if (itemType === "asset") {
         assetStore.selectAsset(item);
         this.selectedItem = item;
       } else if (itemType === "resource") {
@@ -475,35 +475,35 @@ export const useStageStore = defineStore("stages", {
 
         if (hasCutItems) {
           // CUT: Move items to target location
-          const entityIdsToMove = [];
-          const taskIdsToMove = [];
+          const collectionIdsToMove = [];
+          const assetIdsToMove = [];
           const renameOperations = [];
 
           for (const item of this.cutItems) {
-            if (item.type === 'entity') {
-              entityIdsToMove.push(item.id);
-            } else if (item.type === 'task') {
-              taskIdsToMove.push(item.id);
-            } else if (item.type === 'untracked_task' || item.type === 'untracked_entity') {
-              const extension = item.type === 'untracked_task' ? item.extension : '';
+            if (item.type === 'collection') {
+              collectionIdsToMove.push(item.id);
+            } else if (item.type === 'asset') {
+              assetIdsToMove.push(item.id);
+            } else if (item.type === 'untracked_asset' || item.type === 'untracked_collection') {
+              const extension = item.type === 'untracked_asset' ? item.extension : '';
               const fullName = item.name + extension;
               const newPath = await FSService.JoinPath(finalTargetDirectory, fullName);
               renameOperations.push({ oldPath: item.file_path, newPath });
             }
           }
 
-          if (entityIdsToMove.length) {
+          if (collectionIdsToMove.length) {
             try {
-              await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityIdsToMove, finalTargetCollectionId);
+              await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, collectionIdsToMove, finalTargetCollectionId);
               notificationStore.addNotification('Moved successfully.', '', 'success');
               needsRefresh = true;
             } catch (error) {
-              notificationStore.errorNotification('Error changing entity parent', error);
+              notificationStore.errorNotification('Error changing collection parent', error);
             }
           }
-          if (taskIdsToMove.length) {
+          if (assetIdsToMove.length) {
             try {
-              await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskIdsToMove, finalTargetCollectionId);
+              await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, assetIdsToMove, finalTargetCollectionId);
               notificationStore.addNotification('Moved successfully.', '', 'success');
               needsRefresh = true;
             } catch (error) {
@@ -527,28 +527,28 @@ export const useStageStore = defineStore("stages", {
 
           for (const item of this.copiedItems) {
             try {
-              if (item.type === 'task') {
-                // Duplicate tracked task to target collection
-                const duplicatedTask = await AssetService.DuplicateAsset(
+              if (item.type === 'asset') {
+                // Duplicate tracked asset to target collection
+                const duplicatedAsset = await AssetService.DuplicateAsset(
                   projectStore.activeProject.uri,
                   item.id,
                   finalTargetCollectionId
                 );
                 // Copy the physical file if it exists
-                if (item.file_path && duplicatedTask.file_path) {
+                if (item.file_path && duplicatedAsset.file_path) {
                   const sourceExists = await FSService.Exists(item.file_path);
                   if (sourceExists) {
-                    await FSService.DuplicateFile(item.file_path, duplicatedTask.file_path);
+                    await FSService.DuplicateFile(item.file_path, duplicatedAsset.file_path);
                   }
                 }
                 successCount++;
-              } else if (item.type === 'untracked_task') {
+              } else if (item.type === 'untracked_asset') {
                 // Copy untracked file
                 const fullName = item.name + (item.extension || '');
                 const destinationPath = await this.generateUniqueDestinationPath(finalTargetDirectory, fullName);
                 await FSService.DuplicateFile(item.file_path, destinationPath);
                 successCount++;
-              } else if (item.type === 'untracked_entity') {
+              } else if (item.type === 'untracked_collection') {
                 // Copy untracked folder
                 const destinationPath = await this.generateUniqueDestinationPath(finalTargetDirectory, item.name);
                 await FSService.DuplicateFolder(item.file_path, destinationPath);

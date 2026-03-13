@@ -2,24 +2,24 @@
 
   <div ref="modalContainer" class="modal-container" v-esc="closeModal" v-return="handleEnterKey" v-stop-propagation>
 
-      <HeaderArea :title="title" :icon="getAppIcon(displayTypeCreator ? newTypeIcon : entityTypeIcon)" :showSearch="false" />
+      <HeaderArea :title="title" :icon="getAppIcon(displayTypeCreator ? newTypeIcon : collectionTypeIcon)" :showSearch="false" />
 
     <div class="general-container">
 
       <!-- Collection Edit Context -->
       <template v-if="!displayTypeCreator">
-        <span @click="addCoverImage" v-if="entityPreview" class="screenshot-preview">
-          <img class="screenshot-thumb" :src="entityPreview">
+        <span @click="addCoverImage" v-if="collectionPreview" class="screenshot-preview">
+          <img class="screenshot-thumb" :src="collectionPreview">
         </span>
 
         <div class="input-section">
-          <input v-model="entityName" class="input-short" type="text" :placeholder="$t('placeholders.collectionName')" v-focus />
+          <input v-model="collectionName" class="input-short" type="text" :placeholder="$t('placeholders.collectionName')" v-focus />
         </div>
 
         <div class="input-section">
           <div class="horizontal-flex">
             <div class="dropdown-wrapper">
-              <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="changeEntityType" />
+              <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="collectionType" :onSelect="changeCollectionType" />
             </div>
             <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addNewCollectionType')">
               <img class="small-icons" :src="getAppIcon('plus-circle')">
@@ -34,7 +34,7 @@
 
         <div class="pop-up-actions">
           <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-          <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateEntity()" :isActive="isValueChanged" :loading="isAwaitingResponse" />
+          <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateCollection()" :isActive="isValueChanged" :loading="isAwaitingResponse" />
         </div>
       </template>
 
@@ -84,21 +84,21 @@ const projectStore = useProjectStore();
 // refs
 const coverImagePath = ref('');
 const displayTypeCreator = ref(false);
-const entityName = ref('');
-const entityPreview = ref(null);
-const entityType = ref('');
-const entityTypeIcon = ref('');
-const entityTypeId = ref('');
-const entityTypeName = ref('');
+const collectionName = ref('');
+const collectionPreview = ref(null);
+const collectionType = ref('');
+const collectionTypeIcon = ref('');
+const collectionTypeId = ref('');
+const collectionTypeName = ref('');
 const isAwaitingResponse = ref(false);
 const isLibrary = ref(null);
 const modalContainer = ref(null);
 const newTypeIcon = ref('generic');
-const oldEntityName = ref('');
-const oldEntityPreview = ref(null);
-const oldEntityType = ref('');
+const oldCollectionName = ref('');
+const oldCollectionPreview = ref(null);
+const oldCollectionType = ref('');
 const OldisLibrary = ref(null);
-const selectedEntity = ref(null);
+const selectedCollection = ref(null);
 const typeFormRef = ref(null);
 
 // constants
@@ -110,8 +110,8 @@ const title = computed(() => {
 });
 
 // computed
-// Returns the currently selected entity.
-const entity = computed(() => {
+// Returns the currently selected collection.
+const collection = computed(() => {
   return collectionStore.selectedCollection;
 });
 
@@ -120,20 +120,20 @@ const isLibraryChanged = computed(() => {
   return OldisLibrary.value !== isLibrary.value;
 });
 
-// Returns whether the entity name has changed.
+// Returns whether the collection name has changed.
 const isNameChanged = computed(() => {
-  const restrictedEntries = [oldEntityName.value, ''];
-  return !restrictedEntries.includes(entityName.value);
+  const restrictedEntries = [oldCollectionName.value, ''];
+  return !restrictedEntries.includes(collectionName.value);
 });
 
 // Returns whether the preview image has changed.
 const isPreviewChanged = computed(() => {
-  return oldEntityPreview.value !== entityPreview.value;
+  return oldCollectionPreview.value !== collectionPreview.value;
 });
 
-// Returns whether the entity type has changed.
+// Returns whether the collection type has changed.
 const isTypeChanged = computed(() => {
-  return oldEntityType.value?.toLowerCase() !== entityType.value?.toLowerCase();
+  return oldCollectionType.value?.toLowerCase() !== collectionType.value?.toLowerCase();
 });
 
 // Returns whether any form values have changed.
@@ -149,17 +149,17 @@ const addCoverImage = async () => {
     const filePath = result.replace(/\\/g, '/');
     const base64Image = await utils.base64FromFile(filePath);
     coverImagePath.value = filePath;
-    entityPreview.value = base64Image;
+    collectionPreview.value = base64Image;
   }
 };
 
-// Changes the entity type.
-const changeEntityType = (newEntityTypeName) => {
-  const entityTypes = collectionStore.getCollectionTypes;
-  const newEntityType = entityTypes.find((item) => item.name === newEntityTypeName);
-  entityType.value = newEntityType.name;
-  entityTypeIcon.value = newEntityType.icon;
-  entityTypeId.value = newEntityType.id;
+// Changes the collection type.
+const changeCollectionType = (newCollectionTypeName) => {
+  const collectionTypes = collectionStore.getCollectionTypes;
+  const newCollectionType = collectionTypes.find((item) => item.name === newCollectionTypeName);
+  collectionType.value = newCollectionType.name;
+  collectionTypeIcon.value = newCollectionType.icon;
+  collectionTypeId.value = newCollectionType.id;
 };
 
 // Closes the modal.
@@ -175,15 +175,15 @@ const getAppIcon = (iconName) => {
 // Handles enter key press to submit form.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter' && isValueChanged.value) {
-    updateEntity();
+    updateCollection();
   }
 };
 
 // Handles successful type creation from the form.
 const handleTypeCreated = (response) => {
-  entityType.value = response.name;
-  entityTypeIcon.value = response.icon;
-  entityTypeId.value = response.id;
+  collectionType.value = response.name;
+  collectionTypeIcon.value = response.icon;
+  collectionTypeId.value = response.id;
   displayTypeCreator.value = false;
 };
 
@@ -194,12 +194,12 @@ const handleTypeIconChange = (icon) => {
 
 // Removes the current cover image.
 const removeCoverImage = () => {
-  entityPreview.value = null;
+  collectionPreview.value = null;
 };
 
 // Reverts to the original cover image.
 const revertCoverImage = () => {
-  entityPreview.value = oldEntityPreview.value;
+  collectionPreview.value = oldCollectionPreview.value;
 };
 
 // Toggles the library flag.
@@ -215,28 +215,28 @@ const toggleTypeCreator = () => {
   }
 };
 
-// Updates the entity with all changed values.
-const updateEntity = async () => {
+// Updates the collection with all changed values.
+const updateCollection = async () => {
   isAwaitingResponse.value = true;
   if (isTypeChanged.value || isNameChanged.value || isLibraryChanged.value) {
-    await updateEntityMeta();
+    await updateCollectionMeta();
   }
   if (isPreviewChanged.value) {
-    await updateEntityCover();
+    await updateCollectionCover();
   }
   await collectionStore.reloadCollections();
   isAwaitingResponse.value = false;
   closeModal();
 };
 
-// Updates the entity cover image.
-const updateEntityCover = async () => {
-  const entityId = collectionStore.selectedCollection.id;
-  const currentEntity = collectionStore.findCollection(entityId);
+// Updates the collection cover image.
+const updateCollectionCover = async () => {
+  const collectionId = collectionStore.selectedCollection.id;
+  const currentCollection = collectionStore.findCollection(collectionId);
   const filePath = coverImagePath.value;
-  await CollectionService.UpdatePreview(projectStore.activeProject.uri, entityId, filePath)
+  await CollectionService.UpdatePreview(projectStore.activeProject.uri, collectionId, filePath)
     .then(() => {
-      currentEntity.preview = entityPreview.value;
+      currentCollection.preview = collectionPreview.value;
     })
     .catch((error) => {
       console.error(error);
@@ -245,14 +245,14 @@ const updateEntityCover = async () => {
     });
 };
 
-// Updates the entity metadata (name, type, library flag).
-const updateEntityMeta = async () => {
-  const entityId = collectionStore.selectedCollection.id;
-  const currentEntity = collectionStore.selectedCollection;
-  if (currentEntity.name != entityName.value) {
-    await CollectionService.RenameCollection(projectStore.activeProject.uri, entityId, entityName.value)
+// Updates the collection metadata (name, type, library flag).
+const updateCollectionMeta = async () => {
+  const collectionId = collectionStore.selectedCollection.id;
+  const currentCollection = collectionStore.selectedCollection;
+  if (currentCollection.name != collectionName.value) {
+    await CollectionService.RenameCollection(projectStore.activeProject.uri, collectionId, collectionName.value)
       .then(() => {
-        currentEntity.name = entityName.value;
+        currentCollection.name = collectionName.value;
         emitter.emit('refresh-browser');
       })
       .catch((error) => {
@@ -260,22 +260,22 @@ const updateEntityMeta = async () => {
         console.error('Error:', error);
       });
   }
-  if (currentEntity.entityTypeId != entityTypeId.value) {
-    await CollectionService.ChangeType(projectStore.activeProject.uri, entityId, entityTypeId.value)
+  if (currentCollection.collectionTypeId != collectionTypeId.value) {
+    await CollectionService.ChangeType(projectStore.activeProject.uri, collectionId, collectionTypeId.value)
       .then(() => {
-        currentEntity.entity_type_name = entityType.value;
-        currentEntity.entity_type_icon = entityTypeIcon.value;
-        currentEntity.entity_type_id = entityTypeId.value;
+        currentCollection.collection_type_name = collectionType.value;
+        currentCollection.collection_type_icon = collectionTypeIcon.value;
+        currentCollection.collection_type_id = collectionTypeId.value;
       })
       .catch((error) => {
         isAwaitingResponse.value = false;
         console.error('Error:', error);
       });
   }
-  if (currentEntity.isLibrary != isLibrary.value) {
-    await CollectionService.ChangeIsLibrary(projectStore.activeProject.uri, entityId, isLibrary.value)
+  if (currentCollection.isLibrary != isLibrary.value) {
+    await CollectionService.ChangeIsLibrary(projectStore.activeProject.uri, collectionId, isLibrary.value)
       .then(() => {
-        currentEntity.isLibrary = isLibrary.value;
+        currentCollection.isLibrary = isLibrary.value;
       })
       .catch((error) => {
         isAwaitingResponse.value = false;
@@ -293,18 +293,18 @@ watchEffect(() => {
 
 // lifecycle hooks
 onMounted(() => {
-  const currentEntity = collectionStore.selectedCollection;
-  selectedEntity.value = currentEntity;
-  entityName.value = currentEntity.name;
-  oldEntityName.value = currentEntity.name;
-  entityPreview.value = currentEntity.preview;
-  oldEntityPreview.value = currentEntity.preview;
-  entityType.value = currentEntity.entity_type_name;
-  oldEntityType.value = currentEntity.entity_type_name;
-  entityTypeName.value = currentEntity.entity_type_name;
-  entityTypeIcon.value = currentEntity.entity_type_icon;
-  OldisLibrary.value = currentEntity.is_library;
-  isLibrary.value = currentEntity.is_library;
+  const currentCollection = collectionStore.selectedCollection;
+  selectedCollection.value = currentCollection;
+  collectionName.value = currentCollection.name;
+  oldCollectionName.value = currentCollection.name;
+  collectionPreview.value = currentCollection.preview;
+  oldCollectionPreview.value = currentCollection.preview;
+  collectionType.value = currentCollection.collection_type_name;
+  oldCollectionType.value = currentCollection.collection_type_name;
+  collectionTypeName.value = currentCollection.collection_type_name;
+  collectionTypeIcon.value = currentCollection.collection_type_icon;
+  OldisLibrary.value = currentCollection.is_library;
+  isLibrary.value = currentCollection.is_library;
 });
 </script>
 

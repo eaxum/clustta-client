@@ -10,7 +10,7 @@
 
             <PageState v-if="!filteredtrashItems.length" :message="message()" :illustration="illustration()" />
 
-            <TrashItem class="task-item" v-for="(trashItem, index) in filteredtrashItems" :key="index"
+            <TrashItem class="asset-item" v-for="(trashItem, index) in filteredtrashItems" :key="index"
               :trashItem="trashItem" :trashItemIndex="index" :allTrash="filteredtrashItems"
               :style="{ animationDelay: index < 10 ? `${(index - 1) * 0.05}s` : '0s' }" />
 
@@ -51,7 +51,7 @@ const projectStore = useProjectStore();
 const { t } = useI18n();
 
 // refs
-const tasks = ref([]);
+const assets = ref([]);
 const resources = ref([]);
 const filterIndex = ref(0);
 const trashTypefilter = ref('all');
@@ -70,10 +70,10 @@ const sortedTrashItems = computed(() => {
   for (const key in trashables) {
     if (trashables.hasOwnProperty(key)) {
       const item = trashables[key];
-      const entityName = getMeta(item.type, item.id, item.parent_id, item.data).name;
+      const collectionName = getMeta(item.type, item.id, item.parent_id, item.data).name;
       allTrash.push({
         ...item,
-        entity_name: entityName,
+        collection_name: collectionName,
       });
     }
   };
@@ -89,8 +89,8 @@ const sortedTrashItems = computed(() => {
           name: item.name.slice(0, -21),
           type: item.type.replace("_checkpoint", ""),
           id: item.parent_id,
-          entity_name: item.entity_name,
-          task_name: item.task_name,
+          collection_name: item.collection_name,
+          asset_name: item.asset_name,
           parent_id: item.parent_id,
           checkpoints: []
         };
@@ -148,10 +148,10 @@ const message = () => {
 
 const illustration = () => {
   const type = trashTypefilter.value;
-  if(type === 'entity'){
+  if(type === 'collection'){
     return  '/page-states/collections.png';
-  } else if ( type === 'task'){
-    return '/page-states/tasks.png'
+  } else if ( type === 'asset'){
+    return '/page-states/assets.png'
   } else if ( type === 'resource'){
     return '/page-states/resources.png'
   } else if ( type === 'template'){
@@ -177,14 +177,14 @@ const sortByName = (arr) => {
 
 const getMeta = (type, id, parent_id, data) => {
 
-  if (type === 'task') {
-    const entityName = tasks.value.find(item => item.id === id)?.entity_name;
-    return { name: entityName, task: '' };
+  if (type === 'asset') {
+    const collectionName = assets.value.find(item => item.id === id)?.collection_name;
+    return { name: collectionName, asset: '' };
 
-  } else if (type === 'task_checkpoint') {
-    const entityName = tasks.value.find(item => item.id === parent_id)?.entity_name;
-    console.log(entityName)
-    return { name: entityName, task: '' };
+  } else if (type === 'asset_checkpoint') {
+    const collectionName = assets.value.find(item => item.id === parent_id)?.collection_name;
+    console.log(collectionName)
+    return { name: collectionName, asset: '' };
   }
   else {
     return ''
@@ -193,17 +193,17 @@ const getMeta = (type, id, parent_id, data) => {
 };
 
 const findParentID = (id) => {
-  const entityId = tasks.value.filter(item => item.id === id)[0].entity_id;
-  const entityName = collectionStore.collections.filter(item => item.id === entityId)[0].name;
-  // console.log(entityName);
-  return entityName;
+  const collectionId = assets.value.filter(item => item.id === id)[0].collection_id;
+  const collectionName = collectionStore.collections.filter(item => item.id === collectionId)[0].name;
+  // console.log(collectionName);
+  return collectionName;
 };
 
 
 const filterList = (trashType) => {
   let trashTypeName
   if(trashType === 'collections'){
-    trashTypeName = 'entity'
+    trashTypeName = 'collection'
   } else {
     trashTypeName = trashType
   }
@@ -217,7 +217,7 @@ const editParams = (itemType) => {
 // onMounted hook
 onBeforeMount(async () => {
   trayStates.showMeta = false;
-  tasks.value = assetStore.assets;
+  assets.value = assetStore.assets;
   trayStates.trashables = await TrashService.GetTrashs(projectStore.activeProject.uri);
 });
 

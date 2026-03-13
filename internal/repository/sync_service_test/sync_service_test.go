@@ -91,8 +91,8 @@ func TestGetCloneProject(t *testing.T) {
 	project := projects[0]
 	syncOptions := sync_service.SyncOptions{
 		OnlyLatestCheckpoints: true,
-		TaskDependencies:      true,
-		Tasks:                 true,
+		AssetDependencies:      true,
+		Assets:                 true,
 		Resources:             true,
 		Templates:             true,
 	}

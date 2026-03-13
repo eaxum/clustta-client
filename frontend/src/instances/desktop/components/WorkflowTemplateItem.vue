@@ -1,12 +1,12 @@
 <template>
-  <div :class="['hierarchy-item', { 'is-directory': item.type === 'entity', 'hierarchy-item-root': isHierarchyRoot }]"
+  <div :class="['hierarchy-item', { 'is-directory': item.type === 'collection', 'hierarchy-item-root': isHierarchyRoot }]"
     @click="console.log()">
     <div class="item-header">
 
       <span class="hierarchy-item-spacer single-action-button" @click="toggleExpand"
-        :class="{ 'no-expand': item.type !== 'entity' || !item.children.length }">
-        <img v-if="item.type === 'entity' && item.children.length" class="large-icons hierarchy-entity-collapsed"
-          :class="{ 'hierarchy-entity-expanded': isExpanded }" :src="getAppIcon('chevron_down_white_slim')">
+        :class="{ 'no-expand': item.type !== 'collection' || !item.children.length }">
+        <img v-if="item.type === 'collection' && item.children.length" class="large-icons hierarchy-collection-collapsed"
+          :class="{ 'hierarchy-collection-expanded': isExpanded }" :src="getAppIcon('chevron_down_white_slim')">
       </span>
 
       <div class="hierarchy-item-type-icon-container">
@@ -24,9 +24,9 @@
       </div>
 
       <div v-else class="hierarchy-item-config">
-        <div v-if="!item.entity_type_id" class="hierarchy-item-type-options">
-          <ListBox v-if="item.task_type_id" :items="assetStore.getAssetTypesNames" :selectedItem="taskType"
-            :onSelect="selectTaskType" />
+        <div v-if="!item.collection_type_id" class="hierarchy-item-type-options">
+          <ListBox v-if="item.asset_type_id" :items="assetStore.getAssetTypesNames" :selectedItem="assetType"
+            :onSelect="selectAssetType" />
         </div>
         <ActionButton :icon="getAppIcon('trash')" v-tooltip="$t('components.workflowTemplateItem.remove')" @click="removeItem(item)" />
       </div>
@@ -34,7 +34,7 @@
 
     </div>
 
-    <div v-if="item.type === 'entity' && isExpanded" class="item-children">
+    <div v-if="item.type === 'collection' && isExpanded" class="item-children">
       <WorkflowTemplateItem v-for="child in item.children" :key="child.name" :item="child" />
     </div>
   </div>
@@ -72,18 +72,18 @@ const props = defineProps({
 
 // refs
 const isExpanded = ref(props.isExpanded);
-const entityType = ref(props.item.entity_type_name);
+const collectionType = ref(props.item.collection_type_name);
 const itemType = ref(props.item.type);
 
-const itemTypes = ref(['Task', 'Resource']);
+const itemTypes = ref(['Asset', 'Resource']);
 
 // computed
 const isHierarchyRoot = computed(() => {
   return props.item.is_root
 });
 
-const taskType = computed(() => {
-  return props.item.task_type_name;
+const assetType = computed(() => {
+  return props.item.asset_type_name;
 });
 
 const resourceType = computed(() => {
@@ -93,18 +93,18 @@ const resourceType = computed(() => {
 const itemIcon = computed(() => {
 
   const item = props.item;
-  const isProjectRoot = !item.entity_type_id && item.is_root;
+  const isProjectRoot = !item.collection_type_id && item.is_root;
 
   if (item.is_root) {
     if (isProjectRoot) {
       return '/icons/home.svg';
     } else {
-      return '/types-icons/' + item.entity_type_icon + '.svg'
+      return '/types-icons/' + item.collection_type_icon + '.svg'
     }
-  } else if (item.entity_type_id) {
-    return '/types-icons/' + item.entity_type_icon + '.svg'
-  } else if (item.task_type_id) {
-    return '/types-icons/' + item.task_type_icon + '.svg';
+  } else if (item.collection_type_id) {
+    return '/types-icons/' + item.collection_type_icon + '.svg'
+  } else if (item.asset_type_id) {
+    return '/types-icons/' + item.asset_type_icon + '.svg';
   } else {
     return '/types-icons/' + item.resource_type_icon + '.svg';
   }
@@ -113,7 +113,7 @@ const itemIcon = computed(() => {
 
 
 const toggleExpand = () => {
-  if (props.item.type === 'entity' && props.item.children.length) {
+  if (props.item.type === 'collection' && props.item.children.length) {
     isExpanded.value = !isExpanded.value
   }
 };
@@ -147,7 +147,7 @@ const changeItemType = (newItemTypeName) => {
     [lowerNewItemTypeName + '_type_name']: "generic",
     [lowerNewItemTypeName + '_type_icon']: "generic",
     [lowerNewItemTypeName + '_type_id']: "c432bcb8-204a-4a95-878f-8613b7cb9b05",
-    entity_id: selectedItem.entity_id,
+    collection_id: selectedItem.collection_id,
   };
 
   let reducedPreviewData = previewDataBefore.filter(item => item.id !== itemId);
@@ -158,17 +158,17 @@ const changeItemType = (newItemTypeName) => {
 
 };
 
-const selectTaskType = (taskTypeName) => {
+const selectAssetType = (assetTypeName) => {
 
-  let previewData = dndStore.previewData['tasks'];
+  let previewData = dndStore.previewData['assets'];
   const itemId = props.item.id;
   const selectedItem = previewData.find(item => item.id === itemId);
 
 
   if (selectedItem) {
-    selectedItem.task_type_name = taskTypeName;
-    selectedItem.task_type_icon = taskTypeName;
-    dndStore.previewData['tasks'] = [...previewData];
+    selectedItem.asset_type_name = assetTypeName;
+    selectedItem.asset_type_icon = assetTypeName;
+    dndStore.previewData['assets'] = [...previewData];
   }
 
 };
@@ -188,18 +188,18 @@ const selectResourceType = (resourceTypeName) => {
 
 };
 
-const selectEntityType = (entityTypeName) => {
+const selectCollectionType = (collectionTypeName) => {
 
-  let previewData = dndStore.previewData['entities'];
+  let previewData = dndStore.previewData['collections'];
   const itemId = props.item.id;
   const selectedItem = previewData.find(item => item.id === itemId);
 
 
   if (selectedItem) {
-    selectedItem.entity_type_name = entityTypeName;
-    selectedItem.entity_type_icon = entityTypeName;
-    dndStore.previewData['entities'] = [...previewData];
-    entityType.value = entityTypeName;
+    selectedItem.collection_type_name = collectionTypeName;
+    selectedItem.collection_type_icon = collectionTypeName;
+    dndStore.previewData['collections'] = [...previewData];
+    collectionType.value = collectionTypeName;
   }
 
 };
@@ -323,11 +323,11 @@ const selectEntityType = (entityTypeName) => {
   /* background-color: salmon; */
 }
 
-.hierarchy-entity-collapsed {
+.hierarchy-collection-collapsed {
   transform: rotate(-90deg);
 }
 
-.hierarchy-entity-expanded {
+.hierarchy-collection-expanded {
   transform: rotate(0deg);
 }
 

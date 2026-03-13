@@ -1,5 +1,5 @@
 <template>
-<!-- <div class="task-options-container" :class="{ 'task-options-container-closed': showTaskOptions === true }"> -->
+<!-- <div class="asset-options-container" :class="{ 'asset-options-container-closed': showAssetOptions === true }"> -->
   <div class="tag-chip-wrapper-parent" :class="{ 'tag-chip-wrapper-parent-closed': !emptyData }">
     <div ref="tagChipWrapper" class="tag-chip-wrapper" @wheel="handleWheel">
       <div v-if="queryTag" @click="removeQueryTag()" v-stop-propagation class="tag-chip chip query-tag">

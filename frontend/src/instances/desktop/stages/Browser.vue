@@ -21,7 +21,7 @@
 			</div>
 		</div>
 		
-		<div v-if="!kanbanView" ref="taskListContainer" class="browser-root-container" @mousemove="onDrag($event)"
+		<div v-if="!kanbanView" ref="assetListContainer" class="browser-root-container" @mousemove="onDrag($event)"
 			:class="{ 'browser-root-container-hover-drop': isHovered }" @mouseup="onDragStop($event)" @scroll="disableMenus">
 			<GhostItem :data="draggedCard" :index="0" />
 			<div class="browser-root-content">
@@ -33,8 +33,8 @@
 				<DetailsPane v-if="projectStore.getProjects.length && isWideScreen" :isVisible="panes.showDetailsPane" />
 			</div>
 		</div>
-		<div v-else ref="taskListContainer" class="browser-root-container kanban-container">
-			<Kanban :filtersActive="filtersActive" :tasks="rootData" />
+		<div v-else ref="assetListContainer" class="browser-root-container kanban-container">
+			<Kanban :filtersActive="filtersActive" :assets="rootData" />
 		</div>
 	</div>
 </template>
@@ -115,20 +115,20 @@ const rootData = ref([]);
 const screenWidth = ref(window.innerWidth);
 const searchBar = ref(null);
 const showFilters = ref(false);
-const taskListContainer = ref(null);
+const assetListContainer = ref(null);
 
 // computed properties
 const draggedCard = computed(() => dndStore.allViewItems?.find(card => card.id === dndStore.draggedItemId));
 
-const entityExpanded = computed(() => Object.keys(stage.expandedEntities).length);
+const collectionExpanded = computed(() => Object.keys(stage.expandedCollections).length);
 
 const filtersActive = computed(() => {
 	const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
-	const entityFilters = commonStore.entityFilters.length > 0;
-	const taskFilters = commonStore.taskFilters.length > 0;
+	const collectionFilters = commonStore.collectionFilters.length > 0;
+	const assetFilters = commonStore.assetFilters.length > 0;
 	const resourceFilters = commonStore.resourceFilters.length > 0;
-	const generalFilterActive = !(commonStore.showEntities && commonStore.showTasks && commonStore.showResources && commonStore.showChildEntities && commonStore.showChildTasks && commonStore.showDependencies && !commonStore.onlyAssets);
-	return assigneeFilters || entityFilters || taskFilters || resourceFilters || generalFilterActive;
+	const generalFilterActive = !(commonStore.showCollections && commonStore.showAssets && commonStore.showResources && commonStore.showChildCollections && commonStore.showChildAssets && commonStore.showDependencies && !commonStore.onlyAssets);
+	return assigneeFilters || collectionFilters || assetFilters || resourceFilters || generalFilterActive;
 });
 
 const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
@@ -145,10 +145,10 @@ const operationsActive = computed(() => {
 
 // methods
 
-// Adds an entity dependency to a task. Returns true on success.
-const addEntityDependency = async (taskId, dependencyId, dependencyTypeId) => {
+// Adds an collection dependency to a asset. Returns true on success.
+const addCollectionDependency = async (assetId, dependencyId, dependencyTypeId) => {
 	try {
-		await AssetService.AddEntityDependency(projectStore.activeProject.uri, taskId, dependencyId, dependencyTypeId);
+		await AssetService.AddCollectionDependency(projectStore.activeProject.uri, assetId, dependencyId, dependencyTypeId);
 		notificationStore.addNotification(t('stages.dependencyAdded'), "", "success");
 		return true;
 	} catch (error) {
@@ -158,10 +158,10 @@ const addEntityDependency = async (taskId, dependencyId, dependencyTypeId) => {
 	}
 };
 
-// Adds a task dependency between two assets. Returns true on success.
-const addDependency = async (taskId, dependencyId, dependencyTypeId) => {
+// Adds a asset dependency between two assets. Returns true on success.
+const addDependency = async (assetId, dependencyId, dependencyTypeId) => {
 	try {
-		await AssetService.AddAssetDependency(projectStore.activeProject.uri, taskId, dependencyId, dependencyTypeId);
+		await AssetService.AddAssetDependency(projectStore.activeProject.uri, assetId, dependencyId, dependencyTypeId);
 		notificationStore.addNotification(t('stages.dependencyAdded'), "", "success");
 		return true;
 	} catch (error) {
@@ -177,24 +177,24 @@ const cancelOps = () => {
 	if (!dndStore.altKeyActive) dndStore.resetValues();
 };
 
-// Changes the parent collection of one or more entities. Returns true on success.
-const changeEntityParent = async (entityIds, parentId) => {
+// Changes the parent collection of one or more collections. Returns true on success.
+const changeCollectionParent = async (collectionIds, parentId) => {
 	try {
-		await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityIds, parentId);
+		await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, collectionIds, parentId);
 		notificationStore.addNotification(t('stages.movedSuccessfully'), "", "success");
 		return true;
 	} catch (error) {
 		console.error(error);
-		notificationStore.errorNotification(t('stages.errorChangingEntityParent'), error);
+		notificationStore.errorNotification(t('stages.errorChangingCollectionParent'), error);
 		return false;
 	}
 };
 
-// Moves one or more tasks to a different collection. Returns true on success.
+// Moves one or more assets to a different collection. Returns true on success.
 // Duplicate name+extension validation is handled at the service layer.
-const changeTaskEntity = async (taskIds, entityId) => {
+const changeAssetCollection = async (assetIds, collectionId) => {
 	try {
-		await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskIds, entityId);
+		await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, assetIds, collectionId);
 		notificationStore.addNotification(t('stages.movedSuccessfully'), "", "success");
 		return true;
 	} catch (error) {
@@ -217,11 +217,11 @@ const clearSelection = () => {
 	collectionStore.selectedCollection = null;
 };
 
-// Collapses all expanded entities and clears selection.
+// Collapses all expanded collections and clears selection.
 const collapseAll = () => {
-	stage.expandedEntities = {};
+	stage.expandedCollections = {};
 	stage.markedItems = [];
-	stage.firstSelectedEntityId = '';
+	stage.firstSelectedCollectionId = '';
 	collectionStore.selectedCollection = null;
 };
 
@@ -229,12 +229,12 @@ const collapseAll = () => {
 const createAsset = () => { clearSelection(); modals.setModalVisibility('selectAppModal', true); };
 
 // Opens the create collection modal.
-const createEntity = () => { if (!stage.groupItems) clearSelection(); modals.setModalVisibility('createCollectionModal', true); };
+const createCollection = () => { if (!stage.groupItems) clearSelection(); modals.setModalVisibility('createCollectionModal', true); };
 
 // Opens the add web link modal.
 const createWebLink = () => { clearSelection(); modals.setModalVisibility('addWebLinkModal', true); };
 
-// Deletes all selected items including tasks, entities, and untracked files.
+// Deletes all selected items including assets, collections, and untracked files.
 const deleteMultipleItems = async () => {
 	panes.setPaneVisibility('projectDetails', true);
 	stage.operationActive = true;
@@ -243,53 +243,53 @@ const deleteMultipleItems = async () => {
 	assetStore.selectedAsset = null;
 	collectionStore.selectedCollection = null;
 	const allItemsToDelete = dndStore.allViewItems.filter((item) => stage.markedItems.includes(item.id));
-	const tasksToDelete = allItemsToDelete.filter((item) => item.type === 'task');
-	const entitiesToDelete = allItemsToDelete.filter((item) => item.type === 'entity');
-	const untrackedTasksToDelete = allItemsToDelete.filter((item) => item.type === 'untracked_task');
-	const untrackedEntitiesToDelete = allItemsToDelete.filter((item) => item.type === 'untracked_entity');
-	await deleteMultipleTasks(tasksToDelete.map((item) => item.id));
-	await deleteMultipleEntities(entitiesToDelete.map((item) => item.id));
-	await deleteMultipleUntrackedTasks(untrackedTasksToDelete);
-	await deleteMultipleUntrackedEntities(untrackedEntitiesToDelete);
+	const assetsToDelete = allItemsToDelete.filter((item) => item.type === 'asset');
+	const collectionsToDelete = allItemsToDelete.filter((item) => item.type === 'collection');
+	const untrackedAssetsToDelete = allItemsToDelete.filter((item) => item.type === 'untracked_asset');
+	const untrackedCollectionsToDelete = allItemsToDelete.filter((item) => item.type === 'untracked_collection');
+	await deleteMultipleAssets(assetsToDelete.map((item) => item.id));
+	await deleteMultipleCollections(collectionsToDelete.map((item) => item.id));
+	await deleteMultipleUntrackedAssets(untrackedAssetsToDelete);
+	await deleteMultipleUntrackedCollections(untrackedCollectionsToDelete);
 	stage.markedItems = [];
 	stage.selectedItems = [];
-	stage.markedTasks = [];
-	stage.markedEntities = [];
+	stage.markedAssets = [];
+	stage.markedCollections = [];
 	stage.operationActive = false;
 	modals.setModalVisibility('popUpModal', false);
 };
 
-// Moves multiple entities to trash.
-const deleteMultipleEntities = async (entityIds) => {
-	for (let entityId of entityIds) {
-		await CollectionService.DeleteCollection(projectStore.activeProject.uri, entityId, true)
-			.then(async () => { await collectionStore.markCollectionAsDeleted(entityId); notificationStore.addNotification(t('stages.entityMovedToTrash'), '', "success", false); })
-			.catch((error) => { console.log(error); notificationStore.errorNotification(t('stages.entitiesFailedToDelete'), error); });
+// Moves multiple collections to trash.
+const deleteMultipleCollections = async (collectionIds) => {
+	for (let collectionId of collectionIds) {
+		await CollectionService.DeleteCollection(projectStore.activeProject.uri, collectionId, true)
+			.then(async () => { await collectionStore.markCollectionAsDeleted(collectionId); notificationStore.addNotification(t('stages.collectionMovedToTrash'), '', "success", false); })
+			.catch((error) => { console.log(error); notificationStore.errorNotification(t('stages.collectionsFailedToDelete'), error); });
 	}
 };
 
-// Moves multiple tasks to trash.
-const deleteMultipleTasks = async (taskIds) => {
-	for (let taskId of taskIds) {
-		await AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
-			.then(async () => { softRefresh(); notificationStore.addNotification(t('stages.tasksMovedToTrash'), '', "success", false); })
-			.catch((error) => { console.log(error); notificationStore.errorNotification(t('stages.tasksFailedToDelete'), error); });
+// Moves multiple assets to trash.
+const deleteMultipleAssets = async (assetIds) => {
+	for (let assetId of assetIds) {
+		await AssetService.DeleteAsset(projectStore.activeProject.uri, assetId, true)
+			.then(async () => { softRefresh(); notificationStore.addNotification(t('stages.assetsMovedToTrash'), '', "success", false); })
+			.catch((error) => { console.log(error); notificationStore.errorNotification(t('stages.assetsFailedToDelete'), error); });
 	}
 };
 
-// Permanently deletes multiple untracked entity folders.
-const deleteMultipleUntrackedEntities = async (untrackedEntities) => {
-	for (let untrackedEntity of untrackedEntities) {
-		FSService.DeleteFolder(untrackedEntity.file_path);
-		projectStore.removeUntrackedEntity(untrackedEntity.id);
+// Permanently deletes multiple untracked collection folders.
+const deleteMultipleUntrackedCollections = async (untrackedCollections) => {
+	for (let untrackedCollection of untrackedCollections) {
+		FSService.DeleteFolder(untrackedCollection.file_path);
+		projectStore.removeUntrackedCollection(untrackedCollection.id);
 	}
 };
 
-// Permanently deletes multiple untracked task files.
-const deleteMultipleUntrackedTasks = async (untrackedTasks) => {
-	for (let untrackedTask of untrackedTasks) {
-		await FSService.DeleteFile(untrackedTask.file_path);
-		projectStore.removeUntrackedTask(untrackedTask.id);
+// Permanently deletes multiple untracked asset files.
+const deleteMultipleUntrackedAssets = async (untrackedAssets) => {
+	for (let untrackedAsset of untrackedAssets) {
+		await FSService.DeleteFile(untrackedAsset.file_path);
+		projectStore.removeUntrackedAsset(untrackedAsset.id);
 	}
 };
 
@@ -299,44 +299,44 @@ const detectModifier = (event) => { dndStore.altKeyActive = event.getModifierSta
 // Hides all context menus.
 const disableMenus = () => { menu.disableAllMenus(); };
 
-// Duplicates the selected task in the database and copies the physical file.
-const duplicateTask = async () => {
+// Duplicates the selected asset in the database and copies the physical file.
+const duplicateAsset = async () => {
 	const selectedItemId = stage.markedItems[0];
 	const selectedItem = dndStore.allViewItems.find(item => item.id === selectedItemId);
-	if (!selectedItem || selectedItem.type !== 'task') return;
+	if (!selectedItem || selectedItem.type !== 'asset') return;
 	try {
 		stage.operationActive = true;
 		stage.markedItems = [];
 		assetStore.selectedAsset = null;
 		await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedItemId, '')
-			.then(async (duplicatedTask) => {
-				try { await FSService.DuplicateFile(selectedItem.file_path, duplicatedTask.file_path); }
+			.then(async (duplicatedAsset) => {
+				try { await FSService.DuplicateFile(selectedItem.file_path, duplicatedAsset.file_path); }
 				catch (fileError) { console.warn('Physical file duplication failed (asset may be rebuildable):', fileError); }
 				await refresh();
-				assetStore.selectAsset(duplicatedTask);
-				stage.selectedItem = duplicatedTask;
-				stage.markedItems = [duplicatedTask.id];
+				assetStore.selectAsset(duplicatedAsset);
+				stage.selectedItem = duplicatedAsset;
+				stage.markedItems = [duplicatedAsset.id];
 				stage.lastSelectedItemId = "";
-				stage.firstSelectedItemId = duplicatedTask.id;
+				stage.firstSelectedItemId = duplicatedAsset.id;
 				notificationStore.addNotification(t('stages.assetDuplicated'), '', "success", false);
 			});
 	} catch (error) {
-		console.error('Error duplicating task:', error);
-		notificationStore.errorNotification(t('stages.failedToDuplicateTask'), error.message || error);
+		console.error('Error duplicating asset:', error);
+		notificationStore.errorNotification(t('stages.failedToDuplicateAsset'), error.message || error);
 	} finally { stage.operationActive = false; }
 };
 
-// Expands all entities in the view.
+// Expands all collections in the view.
 const expandAll = () => {
-	const entities = collectionStore.getCollections;
-	const expandedEntities = {};
-	for (let i = 0; i < entities.length; i++) {
-		expandedEntities[entities[i].id] = { "height": 0, "entity_path": entities[i].entity_path };
+	const collections = collectionStore.getCollections;
+	const expandedCollections = {};
+	for (let i = 0; i < collections.length; i++) {
+		expandedCollections[collections[i].id] = { "height": 0, "collection_path": collections[i].collection_path };
 	}
-	stage.expandedEntities = expandedEntities;
+	stage.expandedCollections = expandedCollections;
 };
 
-// Frees up disk space by removing files for selected tasks and entities.
+// Frees up disk space by removing files for selected assets and collections.
 const freeUpSpace = async () => {
 	panes.setPaneVisibility('projectDetails', true);
 	stage.operationActive = true;
@@ -345,38 +345,38 @@ const freeUpSpace = async () => {
 	assetStore.selectedAsset = null;
 	collectionStore.selectedCollection = null;
 	const allItemsToDelete = dndStore.allViewItems.filter((item) => stage.markedItems.includes(item.id));
-	await freeUpMultipleTaskSpace(allItemsToDelete.filter((item) => item.type === 'task'));
-	await freeUpMultipleEntitySpace(allItemsToDelete.filter((item) => item.type === 'entity'));
-	await deleteMultipleUntrackedTasks(allItemsToDelete.filter((item) => item.type === 'untracked_task'));
-	await deleteMultipleUntrackedEntities(allItemsToDelete.filter((item) => item.type === 'untracked_entity'));
+	await freeUpMultipleAssetSpace(allItemsToDelete.filter((item) => item.type === 'asset'));
+	await freeUpMultipleCollectionSpace(allItemsToDelete.filter((item) => item.type === 'collection'));
+	await deleteMultipleUntrackedAssets(allItemsToDelete.filter((item) => item.type === 'untracked_asset'));
+	await deleteMultipleUntrackedCollections(allItemsToDelete.filter((item) => item.type === 'untracked_collection'));
 	stage.markedItems = [];
 	stage.selectedItems = [];
-	stage.markedTasks = [];
-	stage.markedEntities = [];
+	stage.markedAssets = [];
+	stage.markedCollections = [];
 	stage.operationActive = false;
 	modals.setModalVisibility('popUpModal', false);
 };
 
-// Deletes entity folders to free up disk space.
-const freeUpMultipleEntitySpace = async (entities) => {
-	for (const entity of entities) {
-		let entityDir = entity.file_path.replace(/\\/g, '/');
-		await FSService.DeleteFolder(entityDir)
-			.then(() => assetStore.refreshEntityFilesStatus(entity.id))
+// Deletes collection folders to free up disk space.
+const freeUpMultipleCollectionSpace = async (collections) => {
+	for (const collection of collections) {
+		let collectionDir = collection.file_path.replace(/\\/g, '/');
+		await FSService.DeleteFolder(collectionDir)
+			.then(() => assetStore.refreshCollectionFilesStatus(collection.id))
 			.catch((error) => console.error(error));
 	}
 };
 
-// Deletes physical files for tasks to free up disk space.
-const freeUpMultipleTaskSpace = async (selectedTasks) => {
+// Deletes physical files for assets to free up disk space.
+const freeUpMultipleAssetSpace = async (selectedAssets) => {
 	const fileStatus = ['missing', 'rebuildable'];
-	let taskIds = [];
-	for (let task of selectedTasks) { if (!fileStatus.includes(task.file_status)) taskIds.push(task.id); }
-	for (const taskId of taskIds) {
-		let task = assetStore.getAssets.find((item) => item.id === taskId);
-		let taskPath = task.file_path.replace(/\\/g, '/');
-		await FSService.DeleteFile(taskPath)
-			.then(() => { task.file_status = 'rebuildable'; })
+	let assetIds = [];
+	for (let asset of selectedAssets) { if (!fileStatus.includes(asset.file_status)) assetIds.push(asset.id); }
+	for (const assetId of assetIds) {
+		let asset = assetStore.getAssets.find((item) => item.id === assetId);
+		let assetPath = asset.file_path.replace(/\\/g, '/');
+		await FSService.DeleteFile(assetPath)
+			.then(() => { asset.file_status = 'rebuildable'; })
 			.catch((error) => console.error(error));
 	}
 };
@@ -414,12 +414,12 @@ const getCurrentDirectory = () => {
 const handleClickOutside = (event, rightClick = false) => {
 	if (event) {
 		if (!event.shiftKey || !event.ctrlKey) {
-			if (!event.target.closest('.entity-item-main')) {
-				stage.markedItems = []; stage.selectedItems = []; stage.markedEntities = []; stage.firstSelectedItemId = ''; stage.lastSelectedItemId = '';
+			if (!event.target.closest('.collection-item-main')) {
+				stage.markedItems = []; stage.selectedItems = []; stage.markedCollections = []; stage.firstSelectedItemId = ''; stage.lastSelectedItemId = '';
 				stage.selectedItem = null; assetStore.selectedAsset = null; collectionStore.selectedCollection = null; projectStore.selectedUntrackedItem = null;
 			}
-			if (!event.target.closest('.task-item-main')) {
-				stage.markedItems = []; stage.selectedItems = []; stage.markedEntities = []; stage.firstSelectedItemId = ''; stage.lastSelectedItemId = '';
+			if (!event.target.closest('.asset-item-main')) {
+				stage.markedItems = []; stage.selectedItems = []; stage.markedCollections = []; stage.firstSelectedItemId = ''; stage.lastSelectedItemId = '';
 				stage.selectedItem = null; assetStore.selectedAsset = null; projectStore.selectedUntrackedItem = null;
 			}
 		}
@@ -450,14 +450,14 @@ const handleUpdateRootData = (eventData) => {
 // Replaces untracked items in root data with updated list from emitter events.
 const handleUpdateUntrackedItems = (untrackedItems) => {
 	if (!untrackedItems) return;
-	rootData.value = rootData.value.filter(item => item.type !== 'untracked_entity' && item.type !== 'untracked_task');
+	rootData.value = rootData.value.filter(item => item.type !== 'untracked_collection' && item.type !== 'untracked_asset');
 	rootData.value.push(...untrackedItems);
 	emitter.emit('get-project-data');
 	collectionStore.loadCollectionStateFlags();
 };
 
 // Returns the empty state illustration path.
-const illustration = () => commonStore.viewSearchQuery ? '/page-states/resources.png' : '/page-states/tasks.png';
+const illustration = () => commonStore.viewSearchQuery ? '/page-states/resources.png' : '/page-states/assets.png';
 
 // Checks if an editable element (input, textarea, contenteditable) is currently focused.
 const isEditableElementFocused = () => {
@@ -505,10 +505,10 @@ const importItems = async () => {
 // Returns the empty state message based on current view context.
 const message = () => {
 	const searching = commonStore.viewSearchQuery;
-	const myTasksWorkspace = commonStore.activeWorkspace === 'My Tasks';
+	const myAssetsWorkspace = commonStore.activeWorkspace === 'My Assets';
 	if (searching) return t('stages.noResultsFound');
 	if (isDefaultWorkspace.value && filtersActive.value) return t('stages.noResultsMatchFilters');
-	if (myTasksWorkspace) return t('stages.noAssetsAssigned');
+	if (myAssetsWorkspace) return t('stages.noAssetsAssigned');
 	if (!isDefaultWorkspace.value) return t('stages.nothingInWorkspace');
 	return t('stages.nothingToSeeHere');
 };
@@ -523,7 +523,7 @@ const onDragStop = async (event) => {
 	document.documentElement.style.cursor = 'default';
 	const dropTarget = dndStore.itemRefs[dndStore.targetItemId];
 	const draggedItem = dndStore.itemRefs[dndStore.draggedItemId];
-	const targetEntity = dndStore.allViewItems.find((item) => item.id === dndStore.targetItemId);
+	const targetCollection = dndStore.allViewItems.find((item) => item.id === dndStore.targetItemId);
 	stage.operationActive = true;
 
 	// Initialize cardRect with fallback to ghost position
@@ -533,57 +533,57 @@ const onDragStop = async (event) => {
 	const draggedItems = draggedItemIds.map(id => dndStore.allViewItems.find(item => item.id === id)).filter(Boolean);
 
 	// Collect items by type for batch operations
-	const entityIdsToMove = [];
-	const taskIdsToMove = [];
+	const collectionIdsToMove = [];
+	const assetIdsToMove = [];
 	const renameOperations = [];
-	const dependencyUpdates = { taskId: null, dependencies: [], entityDependencies: [] };
+	const dependencyUpdates = { assetId: null, dependencies: [], collectionDependencies: [] };
 	let needsRefresh = false;
 
-	for (const draggedEntity of draggedItems) {
+	for (const draggedCollection of draggedItems) {
 		if (event.altKey) {
 			if (draggedItem) cardRect = draggedItem.getBoundingClientRect();
-			if (draggedEntity.entity_type_id) entityIdsToMove.push(draggedEntity.id);
-			else if (draggedEntity.task_type_id) taskIdsToMove.push(draggedEntity.id);
+			if (draggedCollection.collection_type_id) collectionIdsToMove.push(draggedCollection.id);
+			else if (draggedCollection.asset_type_id) assetIdsToMove.push(draggedCollection.id);
 			else {
-				let extension = draggedEntity.type === 'untracked_task' ? draggedEntity.extension : '';
-				let fullName = draggedEntity.name + extension;
+				let extension = draggedCollection.type === 'untracked_asset' ? draggedCollection.extension : '';
+				let fullName = draggedCollection.name + extension;
 				await FSService.MakeDirs(projectStore.activeProject.working_directory);
 				let newPath = await FSService.JoinPath(projectStore.activeProject.working_directory, fullName);
-				renameOperations.push({ oldPath: draggedEntity.file_path, newPath });
+				renameOperations.push({ oldPath: draggedCollection.file_path, newPath });
 			}
 		} else if (dndStore.isOverlapping && dropTarget) {
 			cardRect = dropTarget.getBoundingClientRect();
-			if (draggedEntity.id !== dndStore.targetItemId) {
-				if (targetEntity.type === 'entity') {
-					if (draggedEntity.type === 'entity') entityIdsToMove.push(draggedEntity.id);
-					else if (draggedEntity.type === 'task') taskIdsToMove.push(draggedEntity.id);
+			if (draggedCollection.id !== dndStore.targetItemId) {
+				if (targetCollection.type === 'collection') {
+					if (draggedCollection.type === 'collection') collectionIdsToMove.push(draggedCollection.id);
+					else if (draggedCollection.type === 'asset') assetIdsToMove.push(draggedCollection.id);
 					else {
-						let entity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, dndStore.targetItemId);
-						await FSService.MakeDirs(entity.file_path);
-						let extension = draggedEntity.type === 'untracked_task' ? draggedEntity.extension : '';
-						let fullName = draggedEntity.name + extension;
-						let newPath = await FSService.JoinPath(entity.file_path, fullName);
-						renameOperations.push({ oldPath: draggedEntity.file_path, newPath });
+						let collection = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, dndStore.targetItemId);
+						await FSService.MakeDirs(collection.file_path);
+						let extension = draggedCollection.type === 'untracked_asset' ? draggedCollection.extension : '';
+						let fullName = draggedCollection.name + extension;
+						let newPath = await FSService.JoinPath(collection.file_path, fullName);
+						renameOperations.push({ oldPath: draggedCollection.file_path, newPath });
 					}
-				} else if (targetEntity?.task_type_id) {
+				} else if (targetCollection?.asset_type_id) {
 					let dependencyTypeId = dependencyStore.dependency_types.find(item => item.name === "linked").id;
-					dependencyUpdates.taskId = dndStore.targetItemId;
-					if (draggedEntity.entity_type_id) {
-						const success = await addEntityDependency(dndStore.targetItemId, draggedEntity.id, dependencyTypeId);
-						if (success) dependencyUpdates.entityDependencies.push(draggedEntity.id);
-					} else if (draggedEntity.task_type_id) {
-						const success = await addDependency(dndStore.targetItemId, draggedEntity.id, dependencyTypeId);
-						if (success) dependencyUpdates.dependencies.push(draggedEntity.id);
-					} else if (!draggedEntity.item_type) {
-						const success = await addDependency(dndStore.targetItemId, draggedEntity.id, dependencyTypeId);
-						if (success) dependencyUpdates.dependencies.push(draggedEntity.id);
+					dependencyUpdates.assetId = dndStore.targetItemId;
+					if (draggedCollection.collection_type_id) {
+						const success = await addCollectionDependency(dndStore.targetItemId, draggedCollection.id, dependencyTypeId);
+						if (success) dependencyUpdates.collectionDependencies.push(draggedCollection.id);
+					} else if (draggedCollection.asset_type_id) {
+						const success = await addDependency(dndStore.targetItemId, draggedCollection.id, dependencyTypeId);
+						if (success) dependencyUpdates.dependencies.push(draggedCollection.id);
+					} else if (!draggedCollection.item_type) {
+						const success = await addDependency(dndStore.targetItemId, draggedCollection.id, dependencyTypeId);
+						if (success) dependencyUpdates.dependencies.push(draggedCollection.id);
 					}
-				} else if (targetEntity?.type === 'untracked_entity') {
-					if (!draggedEntity.entity_type_id && !draggedEntity.task_type_id && (draggedEntity.type === 'untracked_task' || draggedEntity.type === 'untracked_entity')) {
-						let extension = draggedEntity.type === 'untracked_task' ? draggedEntity.extension : '';
-						let fullName = draggedEntity.name + extension;
-						let newPath = await FSService.JoinPath(targetEntity.file_path, fullName);
-						renameOperations.push({ oldPath: draggedEntity.file_path, newPath });
+				} else if (targetCollection?.type === 'untracked_collection') {
+					if (!draggedCollection.collection_type_id && !draggedCollection.asset_type_id && (draggedCollection.type === 'untracked_asset' || draggedCollection.type === 'untracked_collection')) {
+						let extension = draggedCollection.type === 'untracked_asset' ? draggedCollection.extension : '';
+						let fullName = draggedCollection.name + extension;
+						let newPath = await FSService.JoinPath(targetCollection.file_path, fullName);
+						renameOperations.push({ oldPath: draggedCollection.file_path, newPath });
 					}
 				}
 			} else if (draggedItem) cardRect = draggedItem.getBoundingClientRect();
@@ -592,12 +592,12 @@ const onDragStop = async (event) => {
 
 	// Execute batch operations for file moves (requires refresh)
 	const targetParentId = event.altKey ? '' : dndStore.targetItemId;
-	if (entityIdsToMove.length) {
-		const success = await changeEntityParent(entityIdsToMove, targetParentId);
+	if (collectionIdsToMove.length) {
+		const success = await changeCollectionParent(collectionIdsToMove, targetParentId);
 		if (success) needsRefresh = true;
 	}
-	if (taskIdsToMove.length) {
-		const success = await changeTaskEntity(taskIdsToMove, targetParentId);
+	if (assetIdsToMove.length) {
+		const success = await changeAssetCollection(assetIdsToMove, targetParentId);
 		if (success) needsRefresh = true;
 	}
 	if (renameOperations.length) {
@@ -610,16 +610,16 @@ const onDragStop = async (event) => {
 	}
 
 	// Emit dependency updates (no refresh needed, just update item data)
-	if (dependencyUpdates.taskId && (dependencyUpdates.dependencies.length || dependencyUpdates.entityDependencies.length)) {
-		const targetTask = dndStore.allViewItems.find(item => item.id === dependencyUpdates.taskId);
-		if (targetTask) {
-			const currentDeps = targetTask.dependencies || [];
-			const currentEntityDeps = targetTask.entity_dependencies || [];
+	if (dependencyUpdates.assetId && (dependencyUpdates.dependencies.length || dependencyUpdates.collectionDependencies.length)) {
+		const targetAsset = dndStore.allViewItems.find(item => item.id === dependencyUpdates.assetId);
+		if (targetAsset) {
+			const currentDeps = targetAsset.dependencies || [];
+			const currentCollectionDeps = targetAsset.collection_dependencies || [];
 			const updates = [
 				{ property: 'dependencies', value: [...currentDeps, ...dependencyUpdates.dependencies] },
-				{ property: 'entity_dependencies', value: [...currentEntityDeps, ...dependencyUpdates.entityDependencies] }
+				{ property: 'collection_dependencies', value: [...currentCollectionDeps, ...dependencyUpdates.collectionDependencies] }
 			];
-			emitter.emit('update-root-data', { itemId: dependencyUpdates.taskId, updates });
+			emitter.emit('update-root-data', { itemId: dependencyUpdates.assetId, updates });
 		}
 	}
 
@@ -656,7 +656,7 @@ const openViewMenu = (event) => {
 const prepAllCheckpointModal = () => {
 	clearSelection();
 	trayStates.createMultipleCheckpoints = true;
-	trayStates.createMultipleCheckpointsEntityPath = "";
+	trayStates.createMultipleCheckpointsCollectionPath = "";
 	modals.setModalVisibility('createMultipleCheckpointsModal', true);
 };
 
@@ -690,8 +690,8 @@ const prompt = () => {
 const statusPriority = { 'retake': 1, 'wip': 2, 'wfa': 3, 'ready': 4, 'todo': 5, 'done': 6 };
 
 // Sorts items based on the current sort settings in commonStore.
-// Entities and tasks are sorted separately to maintain grouping.
-const sortItems = (entities, tasks, untrackedEntities, untrackedTasks) => {
+// Collections and assets are sorted separately to maintain grouping.
+const sortItems = (collections, assets, untrackedCollections, untrackedAssets) => {
 	const sortBy = commonStore.sortBy;
 	const sortOrder = commonStore.sortOrder;
 	const multiplier = sortOrder === 'asc' ? 1 : -1;
@@ -714,10 +714,10 @@ const sortItems = (entities, tasks, untrackedEntities, untrackedTasks) => {
 	const sortFn = sortBy === 'status' ? sortByStatus : sortByName;
 
 	return [
-		...(entities ? [...entities].sort(sortByName) : []),
-		...(untrackedEntities ? [...untrackedEntities].sort(sortByName) : []),
-		...(tasks ? [...tasks].sort(sortFn) : []),
-		...(untrackedTasks ? [...untrackedTasks].sort(sortByName) : [])
+		...(collections ? [...collections].sort(sortByName) : []),
+		...(untrackedCollections ? [...untrackedCollections].sort(sortByName) : []),
+		...(assets ? [...assets].sort(sortFn) : []),
+		...(untrackedAssets ? [...untrackedAssets].sort(sortByName) : [])
 	];
 };
 
@@ -731,13 +731,13 @@ const refresh = async () => {
 	let project = projectStore.activeProject;
 	if (!commonStore.navigatorMode) children = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
 	else {
-		const navigatedEntityId = collectionStore.navigatedCollection?.id;
-		const entity_file_path = collectionStore.navigatedCollection?.file_path;
-		children = await CollectionService.GetCollectionChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false);
+		const navigatedCollectionId = collectionStore.navigatedCollection?.id;
+		const collection_file_path = collectionStore.navigatedCollection?.file_path;
+		children = await CollectionService.GetCollectionChildren(project.uri, navigatedCollectionId, project.working_directory, collection_file_path, project.ignore_list, false);
 	}
-	await assetStore.processAssetsIconsAndPreviews(children.tasks);
-	await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
-	rootData.value = sortItems(children.entities, children.tasks, children.untracked_entities, children.untracked_tasks);
+	await assetStore.processAssetsIconsAndPreviews(children.assets);
+	await assetStore.processUntrackedAssetsIcons(children.untracked_assets);
+	rootData.value = sortItems(children.collections, children.assets, children.untracked_collections, children.untracked_assets);
 	assetStore.assetsLoaded = true;
 	collectionStore.loadCollectionStateFlags();
 	await nextTick();
@@ -751,39 +751,39 @@ const softRefresh = async () => {
 	let project = projectStore.activeProject;
 	const searching = commonStore.viewSearchQuery.toLowerCase();
 	if (searching || filtersActive.value) {
-		let entities, tasks;
+		let collections, assets;
 		if (!commonStore.navigatorMode) {
 			if (!searching) {
 				const rootItems = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
-				entities = rootItems['entities'];
-				tasks = commonStore.onlyAssets ? await AssetService.GetAssets(project.uri) : rootItems['tasks'];
+				collections = rootItems['collections'];
+				assets = commonStore.onlyAssets ? await AssetService.GetAssets(project.uri) : rootItems['assets'];
 			} else {
-				entities = await CollectionService.GetCollections(project.uri);
-				tasks = await AssetService.GetAssets(project.uri);
+				collections = await CollectionService.GetCollections(project.uri);
+				assets = await AssetService.GetAssets(project.uri);
 			}
-			entities = commonStore.onlyAssets ? [] : entities;
+			collections = commonStore.onlyAssets ? [] : collections;
 		} else {
-			const navigatedEntityId = collectionStore.navigatedCollection?.id;
-			const entity_file_path = collectionStore.navigatedCollection?.file_path;
-			const entityItems = await CollectionService.GetCollectionChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false);
-			entities = entityItems['entities'];
-			tasks = entityItems['tasks'];
+			const navigatedCollectionId = collectionStore.navigatedCollection?.id;
+			const collection_file_path = collectionStore.navigatedCollection?.file_path;
+			const collectionItems = await CollectionService.GetCollectionChildren(project.uri, navigatedCollectionId, project.working_directory, collection_file_path, project.ignore_list, false);
+			collections = collectionItems['collections'];
+			assets = collectionItems['assets'];
 		}
-		children['entities'] = await collectionStore.filterCollections(entities);
-		children['tasks'] = await assetStore.filterAssets(tasks);
+		children['collections'] = await collectionStore.filterCollections(collections);
+		children['assets'] = await assetStore.filterAssets(assets);
 	} else {
 		if (!commonStore.navigatorMode) children = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
 		else {
-			const navigatedEntityId = collectionStore.navigatedCollection?.id;
-			const entity_file_path = collectionStore.navigatedCollection?.file_path;
-			children = await CollectionService.GetCollectionChildren(project.uri, navigatedEntityId, project.working_directory, entity_file_path, project.ignore_list, false);
+			const navigatedCollectionId = collectionStore.navigatedCollection?.id;
+			const collection_file_path = collectionStore.navigatedCollection?.file_path;
+			children = await CollectionService.GetCollectionChildren(project.uri, navigatedCollectionId, project.working_directory, collection_file_path, project.ignore_list, false);
 		}
 	}
-	if (children.tasks) await assetStore.processAssetsIconsAndPreviews(children.tasks);
-	if (children.untracked_tasks) await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
-	const allEntities = commonStore.showEntities ? children.entities?.filter((item) => !item.is_trashed) : [];
-	const allTasks = commonStore.showTasks ? children.tasks : [];
-	rootData.value = sortItems(allEntities, allTasks, children.untracked_entities, children.untracked_tasks);
+	if (children.assets) await assetStore.processAssetsIconsAndPreviews(children.assets);
+	if (children.untracked_assets) await assetStore.processUntrackedAssetsIcons(children.untracked_assets);
+	const allCollections = commonStore.showCollections ? children.collections?.filter((item) => !item.is_trashed) : [];
+	const allAssets = commonStore.showAssets ? children.assets : [];
+	rootData.value = sortItems(allCollections, allAssets, children.untracked_collections, children.untracked_assets);
 	assetStore.assetsLoaded = true;
 	collectionStore.loadCollectionStateFlags();
 	await nextTick();
@@ -802,7 +802,7 @@ const trackWidthChange = (entries) => { /* Reserved for future responsive layout
 // Updates the search query, resets scroll position, and refreshes results.
 const updateSearch = async (event) => {
 	if (scrollStore.scrollTop > 0) scrollStore.requestScroll(0);
-	if (entityExpanded.value) collapseAll();
+	if (collectionExpanded.value) collapseAll();
 	commonStore.viewSearchQuery = event.target.value.toLowerCase();
 	await softRefresh();
 };
@@ -819,9 +819,9 @@ const handleFileDrop = async (files, details) => {
 	const elementId = details?.id || '';
 	let destinationDir;
 	if (elementId.startsWith('drop-')) {
-		const entityId = elementId.replace('drop-', '');
-		const entity = dndStore.allViewItems?.find(item => item.id === entityId && (item.type === 'entity' || item.type === 'untracked_entity'));
-		if (entity?.file_path) destinationDir = entity.file_path;
+		const collectionId = elementId.replace('drop-', '');
+		const collection = dndStore.allViewItems?.find(item => item.id === collectionId && (item.type === 'collection' || item.type === 'untracked_collection'));
+		if (collection?.file_path) destinationDir = collection.file_path;
 	}
 	if (!destinationDir) destinationDir = getCurrentDirectory();
 	if (!destinationDir) { notificationStore.errorNotification(t('stages.couldNotDetermineCurrentDirectory'), ''); return; }
@@ -873,10 +873,10 @@ Events.On('search', async () => {
 
 Events.On('new-collection', async () => {
 	if (operationsActive.value) return
-	createEntity();
+	createCollection();
 });
 
-Events.On('new-task', async () => {
+Events.On('new-asset', async () => {
 	if (operationsActive.value) return
 	createAsset();
 });
@@ -903,20 +903,20 @@ Events.On('sync-project', async () => {
 
 Events.On('group-items', async () => {
 	if (operationsActive.value) return
-	if (stage.markedItems.length > 1 && userStore.canDo('update_entity')) {
+	if (stage.markedItems.length > 1 && userStore.canDo('update_collection')) {
 		stage.groupItems = true;
-		createEntity();
+		createCollection();
 	}
 });
 
 Events.On('cut-items', async () => {
 	if (operationsActive.value) return;
 	if (isEditableElementFocused()) return;
-	if (!!stage.markedItems.length && userStore.canDo('update_entity')) {
+	if (!!stage.markedItems.length && userStore.canDo('update_collection')) {
 		stage.copiedItems = [];
 		const viewItems = dndStore.allViewItems;
 		stage.cutItems = viewItems.filter((item) => stage.markedItems.includes(item.id));
-		stage.cutItems = stage.cutItems.filter((item) => !stage.markedItems.includes(item.parent_id || item.entity_id));
+		stage.cutItems = stage.cutItems.filter((item) => !stage.markedItems.includes(item.parent_id || item.collection_id));
 		clearSelection();
 	}
 });
@@ -924,13 +924,13 @@ Events.On('cut-items', async () => {
 Events.On('copy-items', async () => {
 	if (operationsActive.value) return;
 	if (isEditableElementFocused()) return;
-	if (!!stage.markedItems.length && userStore.canDo('update_entity')) {
+	if (!!stage.markedItems.length && userStore.canDo('update_collection')) {
 		stage.cutItems = [];
 		const viewItems = dndStore.allViewItems;
 		let copiedItems = viewItems.filter((item) => stage.markedItems.includes(item.id));
-		copiedItems = copiedItems.filter((item) => !stage.markedItems.includes(item.parent_id || item.entity_id));
-		// Filter out tracked entities - copying collections is not yet supported
-		stage.copiedItems = copiedItems.filter((item) => item.type !== 'entity');
+		copiedItems = copiedItems.filter((item) => !stage.markedItems.includes(item.parent_id || item.collection_id));
+		// Filter out tracked collections - copying collections is not yet supported
+		stage.copiedItems = copiedItems.filter((item) => item.type !== 'collection');
 		if (copiedItems.length > stage.copiedItems.length) {
 			notificationStore.addNotification(t('stages.collectionsCannotBeCopied'), t('stages.onlyAssetsAddedToClipboard'), 'info');
 		}
@@ -941,7 +941,7 @@ Events.On('copy-items', async () => {
 Events.On('paste-items', async () => {
 	if (operationsActive.value) return;
 	if (isEditableElementFocused()) return;
-	if (!userStore.canDo('update_entity')) return;
+	if (!userStore.canDo('update_collection')) return;
 	const result = await stage.pasteItems();
 	if (result.needsRefresh) await refresh();
 });
@@ -960,7 +960,7 @@ Events.On('free-item-space', async () => {
 
 Events.On('delete-item', async () => {
 	if (operationsActive.value) return
-	if (stage.markedItems.length > 1 && userStore.canDo('delete_task') && userStore.canDo('delete_entity')) {
+	if (stage.markedItems.length > 1 && userStore.canDo('delete_asset') && userStore.canDo('delete_collection')) {
 
 		const allItemsToDelete = dndStore.allViewItems.filter((item) => stage.markedItems.includes(item.id));
 		const hasUntrackedItems = allItemsToDelete.some((item) => item.type.includes('untracked'));
@@ -974,11 +974,11 @@ Events.On('delete-item', async () => {
 	}
 });
 
-Events.On('duplicate-task', async () => {
+Events.On('duplicate-asset', async () => {
 	if (operationsActive.value) return
 	if (stage.markedItems.length !== 1) return
-	if (!userStore.canDo('create_task')) return
-	await duplicateTask();
+	if (!userStore.canDo('create_asset')) return
+	await duplicateAsset();
 });
 
 // watchers
@@ -1003,7 +1003,7 @@ watch(() => collectionStore.navigatedCollection, async () => {
 	await softRefresh();
 });
 
-watch(() => commonStore.showTasks, async () => {
+watch(() => commonStore.showAssets, async () => {
 	stage.operationActive = true
 	await softRefresh();
 	stage.operationActive = false
@@ -1055,8 +1055,8 @@ onUnmounted(() => {
 });
 
 onBeforeUnmount(() => {
-	stage.expandedEntities = {};
-	stage.markedEntities = [];
+	stage.expandedCollections = {};
+	stage.markedCollections = [];
 	panes.showDetailsPane = false;
 	document.removeEventListener('click', handleClickOutside);
 	window.removeEventListener('keydown', detectModifier);

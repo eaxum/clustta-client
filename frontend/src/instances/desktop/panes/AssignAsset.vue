@@ -1,17 +1,17 @@
 <template>
   <div class="details-pane-container absolute-pane">
     <div class="general-pane-header">
-      <HeaderArea :title="entityName" :icon="entityIcon" />
+      <HeaderArea :title="collectionName" :icon="collectionIcon" />
     </div>
     <div class="general-pane-root">
       <div class="general-pane-container">
         <!-- Assignee:  -->
-        <ScrollList v-if="assigneeList && assigneeList.length" :unassignListItem="unassignTask" :isSingle="true"
+        <ScrollList v-if="assigneeList && assigneeList.length" :unassignListItem="unassignAsset" :isSingle="true"
           :useAvatar="true" :items="assigneeList" :unassignItems="true" />
-        <!-- {{entity.assignee_id }} -->
+        <!-- {{collection.assignee_id }} -->
         {{ $t('panes.assignToSomeoneElse') }}
         <ScrollList v-if="collaboratorsList && collaboratorsList.length" :items="collaboratorsList" :useAvatar="true"
-          :deleteItems="false" :assignItems="true" :editListItem="assignTask" :assignListItem="assignEntity" />
+          :deleteItems="false" :assignItems="true" :editListItem="assignAsset" :assignListItem="assignCollection" />
 
       </div>
     </div>
@@ -48,18 +48,18 @@ const projectStore = useProjectStore();
 const { t } = useI18n();
 
 // refs
-const entityName = ref('');
-const entityIcon = ref('');
+const collectionName = ref('');
+const collectionIcon = ref('');
 
 // computed props
 const assignTo = computed(() => { return trayStates.assignTo });
-const task = computed(() => { return assetStore.selectedAsset });
+const asset = computed(() => { return assetStore.selectedAsset });
 
-const entity = computed(() => {
-  if (assignTo.value === 'task') {
-    entityName.value = task.value.name;
-    entityIcon.value = task.value.icon;
-    return task.value
+const collection = computed(() => {
+  if (assignTo.value === 'asset') {
+    collectionName.value = asset.value.name;
+    collectionIcon.value = asset.value.icon;
+    return asset.value
   } else return ''
 });
 
@@ -68,14 +68,14 @@ const projectCollaborators = computed(() => {
 });
 
 const assignee = computed(() => {
-  if (!entity.value.assignee_id) {
+  if (!collection.value.assignee_id) {
     return
   };
-  return userStore.getUserData(entity.value.assignee_id);
+  return userStore.getUserData(collection.value.assignee_id);
 });
 
 const assigneeList = computed(() => {
-  if (!entity.value.assignee_id) {
+  if (!collection.value.assignee_id) {
     return
   };
   const allCollaborators = userStore.getProjectCollaborators;
@@ -86,7 +86,7 @@ const assigneeList = computed(() => {
 const collaboratorsList = computed(() => {
 
   const allCollaborators = projectCollaborators.value;
-  if (!entity.value.assignee_id) {
+  if (!collection.value.assignee_id) {
     return utils.sortAlphabetically(formatCollaborators(allCollaborators))
   };
   const filteredCollaborators = allCollaborators.filter((item) => item.id !== assignee.value.id);
@@ -105,33 +105,33 @@ const formatCollaborators = (arr) => {
   }));
 };
 
-const assignTask = async (index) => {
-  let task = entity.value;
-  let taskId = entity.value.id;
+const assignAsset = async (index) => {
+  let asset = collection.value;
+  let assetId = collection.value.id;
   let user = collaboratorsList.value[index];
   let userId = user ? user.id : "";
-  await AssetService.AssignAsset(projectStore.activeProject.uri, taskId, userId)
+  await AssetService.AssignAsset(projectStore.activeProject.uri, assetId, userId)
     .then(async (data) => {
-      assetStore.findAsset(taskId).assignee_id = userId;
-      notificationStore.addNotification(t('notifications.taskAssigned'), "", "success")
+      assetStore.findAsset(assetId).assignee_id = userId;
+      notificationStore.addNotification(t('notifications.assetAssigned'), "", "success")
     })
     .catch((error) => {
       console.log(error)
-      notificationStore.errorNotification(t('notifications.errorAssigningTask'), error)
+      notificationStore.errorNotification(t('notifications.errorAssigningAsset'), error)
     });
 };
 
-const unassignTask = async (index) => {
-  let task = entity.value;
-  let taskId = entity.value.id;
-  await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId)
+const unassignAsset = async (index) => {
+  let asset = collection.value;
+  let assetId = collection.value.id;
+  await AssetService.UnassignAsset(projectStore.activeProject.uri, assetId)
     .then(async (data) => {
-      assetStore.findAsset(taskId).assignee_id = ""
-      notificationStore.addNotification(t('notifications.taskUnassigned'), "", "success")
+      assetStore.findAsset(assetId).assignee_id = ""
+      notificationStore.addNotification(t('notifications.assetUnassigned'), "", "success")
     })
     .catch((error) => {
       console.log(error)
-      notificationStore.errorNotification(t('notifications.errorUnassigningTask'), error)
+      notificationStore.errorNotification(t('notifications.errorUnassigningAsset'), error)
     });
 };
 

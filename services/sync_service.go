@@ -51,6 +51,7 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 
 	}
 	projectsDir, err := settings.GetSharedProjectDirectory()
+	fmt.Println(projectsDir)
 	if err != nil {
 		return err
 	}
@@ -743,7 +744,7 @@ func (s *SyncService) GetPendingChanges(projectPath string) (sync_service.Change
 }
 
 // DiscardChanges reverts specific items to their server state by fetching remote data
-// and selectively replacing local rows. itemType should be "task" or "entity".
+// and selectively replacing local rows. itemType should be "asset" or "collection".
 func (s *SyncService) DiscardChanges(projectPath, remoteURL string, itemIds []string, itemType string) error {
 	if !utils.FileExists(projectPath) {
 		return error_service.ErrProjectNotFound
@@ -773,10 +774,10 @@ func (s *SyncService) DiscardChanges(projectPath, remoteURL string, itemIds []st
 
 	for _, itemId := range itemIds {
 		switch itemType {
-		case "task":
-			err = sync_service.DiscardTaskChanges(tx, serverData, itemId)
-		case "entity":
-			err = sync_service.DiscardEntityChanges(tx, serverData, itemId)
+		case "asset":
+			err = sync_service.DiscardAssetChanges(tx, serverData, itemId)
+		case "collection":
+			err = sync_service.DiscardCollectionChanges(tx, serverData, itemId)
 		default:
 			return fmt.Errorf("unsupported item type: %s", itemType)
 		}

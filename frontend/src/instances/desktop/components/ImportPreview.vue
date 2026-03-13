@@ -7,7 +7,7 @@
 
     <ActionButton v-if="itemsSelected" :icon="getAppIcon('close')" v-tooltip="$t('components.importPreview.deselectAll')" @click="deselectItems" />
 
-    <div v-if="entities.length || tasks.length" class="selected-items-meta">
+    <div v-if="collections.length || assets.length" class="selected-items-meta">
       {{ message }}
     </div>
 
@@ -17,22 +17,22 @@
 
     <div class="hierarchy-item-config">
 
-      <DropDownBox v-if="entitiesSelected" :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType"
-        :onSelect="selectEntityType" :fullWidth="false" />
+      <DropDownBox v-if="collectionsSelected" :items="collectionStore.getCollectionTypesNames" :selectedItem="collectionType"
+        :onSelect="selectCollectionType" :fullWidth="false" />
 
-      <DropDownBox v-if="tasksSelected" :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType"
+      <DropDownBox v-if="assetsSelected" :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType"
         :fullWidth="false" />
 
-      <div v-if="tasksSelected" class="hierarchy-item-type-options">
-        <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="taskType" :onSelect="selectTaskType"
+      <div v-if="assetsSelected" class="hierarchy-item-type-options">
+        <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="assetType" :onSelect="selectAssetType"
           :fullWidth="false" />
       </div>
 
       <ActionButton v-if="itemsSelected" :icon="getAppIcon('trash')" :iconAfter="true"
-        :label="(entitiesSelected || tasksSelected) ? '' : $t('components.importPreview.removeSelected')" v-tooltip="$t('components.importPreview.removeSelectedTooltip')"
+        :label="(collectionsSelected || assetsSelected) ? '' : $t('components.importPreview.removeSelected')" v-tooltip="$t('components.importPreview.removeSelectedTooltip')"
         @click="removeItems" />
 
-      <ActionButton v-if="!itemsSelected && emptyEntityIds?.length" :icon="getAppIcon('trash')" :iconAfter="true"
+      <ActionButton v-if="!itemsSelected && emptyCollectionIds?.length" :icon="getAppIcon('trash')" :iconAfter="true"
         :label="$t('components.importPreview.removeEmptyFolders')" v-tooltip="$t('components.importPreview.removeSelectedTooltip')" @click="removeEmptyFolders" />
 
     </div>
@@ -40,7 +40,7 @@
 
   </div>
 
-  <TaskListSkeleton v-if="!formattedData" :forModal="true" />
+  <AssetListSkeleton v-if="!formattedData" :forModal="true" />
 
   <div v-else class="file-hierarchy" @scroll="disableListBox">
     <HierarchyItem :item="formattedData" :isExpanded="true" />
@@ -70,7 +70,7 @@ import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
 
 // components
-import TaskListSkeleton from '@/instances/desktop/components/TaskListSkeleton.vue'
+import AssetListSkeleton from '@/instances/desktop/components/AssetListSkeleton.vue'
 import HierarchyItem from '@/instances/desktop/components/HierarchyItem.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -86,9 +86,9 @@ const stage = useStageStore();
 const { t } = useI18n();
 
 // refs
-const itemTypes = ref(['task', 'Resource']);
-const entityType = ref('');
-const taskType = ref('');
+const itemTypes = ref(['asset', 'Resource']);
+const collectionType = ref('');
+const assetType = ref('');
 const itemType = ref(itemTypes.value[0]);
 
 // computed
@@ -96,71 +96,71 @@ const itemsSelected = computed(() => {
   return allSelectedItems.value?.length;
 });
 
-const entities = computed(() => {
-  return dndStore.previewDataSelectedItems['entities'] ? dndStore.previewDataSelectedItems['entities'] : [];
+const collections = computed(() => {
+  return dndStore.previewDataSelectedItems['collections'] ? dndStore.previewDataSelectedItems['collections'] : [];
 });
 
-const totalEntities = computed(() => {
-  return dndStore.previewData['entities'] ? dndStore.previewData['entities'] : [];
+const totalCollections = computed(() => {
+  return dndStore.previewData['collections'] ? dndStore.previewData['collections'] : [];
 });
 
-const tasks = computed(() => {
-  return dndStore.previewDataSelectedItems['tasks'] ? dndStore.previewDataSelectedItems['tasks'] : [];
+const assets = computed(() => {
+  return dndStore.previewDataSelectedItems['assets'] ? dndStore.previewDataSelectedItems['assets'] : [];
 });
 
-const totalTasks = computed(() => {
-  return dndStore.previewData['tasks'] ? dndStore.previewData['tasks'] : [];
+const totalAssets = computed(() => {
+  return dndStore.previewData['assets'] ? dndStore.previewData['assets'] : [];
 });
 
 const totalCountMessage = computed(() => {
-  const noOfEntities = totalEntities.value?.length;
-  const entitiesMsg = noOfEntities < 2 ? ' ' + t('components.importPreview.entity') : ' ' + t('components.importPreview.entities');
-  const noOfTasks = totalTasks.value?.length;
-  const tasksMsg = noOfTasks < 2 ? ' ' + t('components.importPreview.task') : ' ' + t('components.importPreview.tasks');
-  if (noOfTasks && noOfEntities) {
-    return noOfEntities + entitiesMsg + ' ' + t('components.importPreview.and') + ' ' + noOfTasks + tasksMsg + ' ' + t('components.importPreview.toImport');
-  } else if (noOfTasks) {
-    return noOfTasks + tasksMsg + ' ' + t('components.importPreview.toImport');
-  } else if (noOfEntities) {
-    return noOfEntities + entitiesMsg + ' ' + t('components.importPreview.toImport');
+  const noOfCollections = totalCollections.value?.length;
+  const collectionsMsg = noOfCollections < 2 ? ' ' + t('components.importPreview.collection') : ' ' + t('components.importPreview.collections');
+  const noOfAssets = totalAssets.value?.length;
+  const assetsMsg = noOfAssets < 2 ? ' ' + t('components.importPreview.asset') : ' ' + t('components.importPreview.assets');
+  if (noOfAssets && noOfCollections) {
+    return noOfCollections + collectionsMsg + ' ' + t('components.importPreview.and') + ' ' + noOfAssets + assetsMsg + ' ' + t('components.importPreview.toImport');
+  } else if (noOfAssets) {
+    return noOfAssets + assetsMsg + ' ' + t('components.importPreview.toImport');
+  } else if (noOfCollections) {
+    return noOfCollections + collectionsMsg + ' ' + t('components.importPreview.toImport');
   }
   else return ''
 });
 
 const message = computed(() => {
-  const noOfEntities = entities.value?.length;
-  const entitiesMsg = noOfEntities < 2 ? ' ' + t('components.importPreview.entity') : ' ' + t('components.importPreview.entities');
-  const noOfTasks = tasks.value?.length;
-  const tasksMsg = noOfTasks < 2 ? ' ' + t('components.importPreview.task') : ' ' + t('components.importPreview.tasks');
-  if (noOfTasks && noOfEntities) {
-    return noOfEntities + entitiesMsg + ' ' + t('components.importPreview.and') + ' ' + noOfTasks + tasksMsg + ' ' + t('components.importPreview.selected');
-  } else if (noOfTasks) {
-    return noOfTasks + tasksMsg + ' ' + t('components.importPreview.selected');
-  } else if (noOfEntities) {
-    return noOfEntities + entitiesMsg + ' ' + t('components.importPreview.selected');
+  const noOfCollections = collections.value?.length;
+  const collectionsMsg = noOfCollections < 2 ? ' ' + t('components.importPreview.collection') : ' ' + t('components.importPreview.collections');
+  const noOfAssets = assets.value?.length;
+  const assetsMsg = noOfAssets < 2 ? ' ' + t('components.importPreview.asset') : ' ' + t('components.importPreview.assets');
+  if (noOfAssets && noOfCollections) {
+    return noOfCollections + collectionsMsg + ' ' + t('components.importPreview.and') + ' ' + noOfAssets + assetsMsg + ' ' + t('components.importPreview.selected');
+  } else if (noOfAssets) {
+    return noOfAssets + assetsMsg + ' ' + t('components.importPreview.selected');
+  } else if (noOfCollections) {
+    return noOfCollections + collectionsMsg + ' ' + t('components.importPreview.selected');
   }
   else return ''
 });
 
 const allSelectedItems = computed(() => {
-  return [...entities.value, ...tasks.value]
+  return [...collections.value, ...assets.value]
 });
 
-const entitiesSelected = computed(() => {
-  const onlyEntitiesSelected = allSelectedItems.value?.every((item) => item.type === 'entity');
-  return itemsSelected.value && onlyEntitiesSelected;
+const collectionsSelected = computed(() => {
+  const onlyCollectionsSelected = allSelectedItems.value?.every((item) => item.type === 'collection');
+  return itemsSelected.value && onlyCollectionsSelected;
 });
 
-const tasksSelected = computed(() => {
-  const onlyTasksSelected = allSelectedItems.value?.every((item) => item.type === 'task');
-  return itemsSelected.value && onlyTasksSelected;
+const assetsSelected = computed(() => {
+  const onlyAssetsSelected = allSelectedItems.value?.every((item) => item.type === 'asset');
+  return itemsSelected.value && onlyAssetsSelected;
 });
 
-const targetEntity = computed(() => {
+const targetCollection = computed(() => {
   if (!dndStore.targetItemId) {
     return null;
   }
-  return collectionStore.getCollections.find(entity => entity.id === dndStore.targetItemId);
+  return collectionStore.getCollections.find(collection => collection.id === dndStore.targetItemId);
 });
 
 const previewData = computed(() => {
@@ -172,25 +172,25 @@ const previewData = computed(() => {
   const simplifiedResponse = simplifyObject(rawData);
   const transformedData = transformData(simplifiedResponse);
 
-  const rootEntity = targetEntity.value;
+  const rootCollection = targetCollection.value;
 
   const formattedData = {
 
-    name: rootEntity ? rootEntity.name : t('components.importPreview.projectRoot'),
+    name: rootCollection ? rootCollection.name : t('components.importPreview.projectRoot'),
     root: true,
     is_tracked_parent: true,
-    type: "entity",
-    entity_type_name: rootEntity ? rootEntity.entity_type_name : '',
-    entity_type_icon: rootEntity ? rootEntity.entity_type_icon : '',
-    entity_type_id: rootEntity ? rootEntity.entity_type_id : '',
+    type: "collection",
+    collection_type_name: rootCollection ? rootCollection.collection_type_name : '',
+    collection_type_icon: rootCollection ? rootCollection.collection_type_icon : '',
+    collection_type_id: rootCollection ? rootCollection.collection_type_id : '',
     children: transformedData.rootItems,
 
   };
-  const emptyEntities = transformedData.emptyEntities;
+  const emptyCollections = transformedData.emptyCollections;
 
   return {
     formattedData,
-    emptyEntities
+    emptyCollections
   };
   return formattedData;
 });
@@ -199,8 +199,8 @@ const formattedData = computed(() => {
   return previewData.value?.formattedData;
 });
 
-const emptyEntityIds = computed(() => {
-  return previewData.value?.emptyEntities;
+const emptyCollectionIds = computed(() => {
+  return previewData.value?.emptyCollections;
 });
 
 // methods
@@ -216,14 +216,14 @@ const getIconPath = (filePath) => {
 const simplifyObject = (data) => {
   const simplifiedData = {};
 
-  const necessaryKeys = ['id', 'name', 'entity_id', 'parent_id', 'icon', 'file_path', 'is_resource', 'is_expanded', 'is_tracked_parent'];
+  const necessaryKeys = ['id', 'name', 'collection_id', 'parent_id', 'icon', 'file_path', 'is_resource', 'is_expanded', 'is_tracked_parent'];
 
   for (const key in data) {
     if (Array.isArray(data[key])) {
       simplifiedData[key] = data[key].map(item => {
         const simplifiedItem = {};
-        simplifiedItem.type = key === 'entities' ? 'entity' : key.slice(0, -1);
-        simplifiedItem.icon = key === 'entities' ? '' : getIconPath(item.file_path);
+        simplifiedItem.type = key === 'collections' ? 'collection' : key.slice(0, -1);
+        simplifiedItem.icon = key === 'collections' ? '' : getIconPath(item.file_path);
 
         for (const itemKey in item) {
           if (necessaryKeys.includes(itemKey) || itemKey.includes('type')) {
@@ -239,158 +239,158 @@ const simplifyObject = (data) => {
 };
 
 const transformData2 = (data) => {
-  const entitiesMap = new Map();
+  const collectionsMap = new Map();
   const rootItems = [];
-  const emptyEntities = new Set(); // Using Set for efficient deletion/lookup
+  const emptyCollections = new Set(); // Using Set for efficient deletion/lookup
 
-  // Create a map of entities for easy lookup and collect all entity IDs initially
-  for (const entity of data.entities) {
-    entitiesMap.set(entity.id, { ...entity, children: [] });
-    emptyEntities.add(entity.id); // Initially add all entity IDs
+  // Create a map of collections for easy lookup and collect all collection IDs initially
+  for (const collection of data.collections) {
+    collectionsMap.set(collection.id, { ...collection, children: [] });
+    emptyCollections.add(collection.id); // Initially add all collection IDs
   }
 
-  // Get the parent ID from either entity_id or parent_id
-  const getParentId = (item) => item.entity_id || item.parent_id;
+  // Get the parent ID from either collection_id or parent_id
+  const getParentId = (item) => item.collection_id || item.parent_id;
 
-  // Process resources and tasks, assigning them to their parent entities or root
+  // Process resources and assets, assigning them to their parent collections or root
   const processItems = (items) => {
     for (const item of items) {
       const parentId = getParentId(item);
-      if (parentId && entitiesMap.has(parentId)) {
-        entitiesMap.get(parentId).children.push(item);
-        emptyEntities.delete(parentId); // Remove parent ID since it has children
+      if (parentId && collectionsMap.has(parentId)) {
+        collectionsMap.get(parentId).children.push(item);
+        emptyCollections.delete(parentId); // Remove parent ID since it has children
       } else {
         rootItems.push(item);
       }
     }
   };
 
-  // Process resources and tasks if they exist
+  // Process resources and assets if they exist
   if (data.resources) {
     processItems(data.resources);
   }
-  if (data.tasks) {
-    processItems(data.tasks);
+  if (data.assets) {
+    processItems(data.assets);
   }
 
   // Build the nested structure
-  for (const entity of data.entities) {
-    const parentId = getParentId(entity);
-    if (!parentId || !entitiesMap.has(parentId)) {
-      rootItems.push(entitiesMap.get(entity.id));
+  for (const collection of data.collections) {
+    const parentId = getParentId(collection);
+    if (!parentId || !collectionsMap.has(parentId)) {
+      rootItems.push(collectionsMap.get(collection.id));
     } else {
-      const parent = entitiesMap.get(parentId);
+      const parent = collectionsMap.get(parentId);
       if (parent) {
-        parent.children.push(entitiesMap.get(entity.id));
-        emptyEntities.delete(parentId); // Remove parent ID since it has children
+        parent.children.push(collectionsMap.get(collection.id));
+        emptyCollections.delete(parentId); // Remove parent ID since it has children
       }
     }
   }
 
-  // const emptyEntitiesArray = Array.from(emptyEntities);
+  // const emptyCollectionsArray = Array.from(emptyCollections);
   // return rootItems;
 
   return {
     rootItems,
-    emptyEntities: Array.from(emptyEntities) // Convert Set to Array
+    emptyCollections: Array.from(emptyCollections) // Convert Set to Array
   };
 };
 
 const transformData = (data) => {
-  data.entities.sort((a, b) => a.name.localeCompare(b.name));
-  data.tasks.sort((a, b) => a.name.localeCompare(b.name));
-  const entitiesMap = new Map();
+  data.collections.sort((a, b) => a.name.localeCompare(b.name));
+  data.assets.sort((a, b) => a.name.localeCompare(b.name));
+  const collectionsMap = new Map();
   const rootItems = [];
-  const emptyEntities = new Set();
+  const emptyCollections = new Set();
   const childToParent = new Map(); // Track parent relationships
 
-  // Create a map of entities for easy lookup and collect all entity IDs initially
-  for (const entity of data.entities) {
-    entitiesMap.set(entity.id, { ...entity, children: [] });
-    emptyEntities.add(entity.id);
+  // Create a map of collections for easy lookup and collect all collection IDs initially
+  for (const collection of data.collections) {
+    collectionsMap.set(collection.id, { ...collection, children: [] });
+    emptyCollections.add(collection.id);
   }
 
-  // Get the parent ID from either entity_id or parent_id
-  const getParentId = (item) => item.entity_id || item.parent_id;
+  // Get the parent ID from either collection_id or parent_id
+  const getParentId = (item) => item.collection_id || item.parent_id;
 
-  // Process resources and tasks, assigning them to their parent entities or root
+  // Process resources and assets, assigning them to their parent collections or root
   const processItems = (items) => {
     for (const item of items) {
       const parentId = getParentId(item);
-      if (parentId && entitiesMap.has(parentId)) {
-        entitiesMap.get(parentId).children.push(item);
-        emptyEntities.delete(parentId);
+      if (parentId && collectionsMap.has(parentId)) {
+        collectionsMap.get(parentId).children.push(item);
+        emptyCollections.delete(parentId);
       } else {
         rootItems.push(item);
       }
     }
   };
 
-  // Process resources and tasks if they exist
+  // Process resources and assets if they exist
   if (data.resources) {
     processItems(data.resources);
   }
-  if (data.tasks) {
-    processItems(data.tasks);
+  if (data.assets) {
+    processItems(data.assets);
   }
 
   // Build the nested structure and track parent relationships
-  for (const entity of data.entities) {
-    const parentId = getParentId(entity);
-    if (!parentId || !entitiesMap.has(parentId)) {
-      rootItems.push(entitiesMap.get(entity.id));
+  for (const collection of data.collections) {
+    const parentId = getParentId(collection);
+    if (!parentId || !collectionsMap.has(parentId)) {
+      rootItems.push(collectionsMap.get(collection.id));
     } else {
-      const parent = entitiesMap.get(parentId);
+      const parent = collectionsMap.get(parentId);
       if (parent) {
-        parent.children.push(entitiesMap.get(entity.id));
-        emptyEntities.delete(parentId);
-        childToParent.set(entity.id, parentId); // Track parent relationship
+        parent.children.push(collectionsMap.get(collection.id));
+        emptyCollections.delete(parentId);
+        childToParent.set(collection.id, parentId); // Track parent relationship
       }
     }
   }
 
-  // Function to get all siblings of an entity
-  const getSiblings = (entityId) => {
-    const parentId = childToParent.get(entityId);
+  // Function to get all siblings of an collection
+  const getSiblings = (collectionId) => {
+    const parentId = childToParent.get(collectionId);
     if (!parentId) return [];
-    const parent = entitiesMap.get(parentId);
-    return parent.children.map(child => child.id || child.entity_id).filter(id => id !== entityId);
+    const parent = collectionsMap.get(parentId);
+    return parent.children.map(child => child.id || child.collection_id).filter(id => id !== collectionId);
   };
 
   // Function to recursively add parents with no other children
-  const addLonelyParents = (entityId, addedParents = new Set()) => {
-    const parentId = childToParent.get(entityId);
+  const addLonelyParents = (collectionId, addedParents = new Set()) => {
+    const parentId = childToParent.get(collectionId);
     if (!parentId || addedParents.has(parentId)) return;
 
-    const siblings = getSiblings(entityId);
+    const siblings = getSiblings(collectionId);
     if (siblings.length === 0) {
-      emptyEntities.add(parentId);
+      emptyCollections.add(parentId);
       addedParents.add(parentId);
       addLonelyParents(parentId, addedParents);
     }
   };
 
-  // Process each childless entity to include its lonely parents
-  for (const entityId of emptyEntities) {
-    addLonelyParents(entityId);
+  // Process each childless collection to include its lonely parents
+  for (const collectionId of emptyCollections) {
+    addLonelyParents(collectionId);
   }
 
   return {
     rootItems,
-    emptyEntities: Array.from(emptyEntities) // Convert Set to Array
+    emptyCollections: Array.from(emptyCollections) // Convert Set to Array
   }
 
   return {
     rootItems,
-    entitiesWithoutChildren: Array.from(entitiesWithoutChildren)
+    collectionsWithoutChildren: Array.from(collectionsWithoutChildren)
   };
 };
 
 // change types
 const pluralize = (word) => {
   const pluralRules = {
-    'entity': 'entities',
-    'task': 'tasks',
+    'collection': 'collections',
+    'asset': 'assets',
     'resource': 'resources'
   };
 
@@ -402,78 +402,78 @@ const changeItemType = (newItemTypeName) => {
 
   const itemTypeName = newItemTypeName.toLowerCase() + 's';
 
-  let previewData = dndStore.previewData['tasks'];
-  const tasks = allSelectedItems.value;
+  let previewData = dndStore.previewData['assets'];
+  const assets = allSelectedItems.value;
 
-  for (const task of tasks) {
+  for (const asset of assets) {
 
-    const taskId = task.id;
-    const selectedItem = previewData.find(item => item.id === taskId);
+    const assetId = asset.id;
+    const selectedItem = previewData.find(item => item.id === assetId);
 
 
     if (selectedItem) {
-      selectedItem.is_resource = itemTypeName !== 'tasks';
-      dndStore.previewData['tasks'] = [...previewData];
+      selectedItem.is_resource = itemTypeName !== 'assets';
+      dndStore.previewData['assets'] = [...previewData];
       itemType.value = newItemTypeName;
     }
   }
 
 };
 
-const selectTaskType = (taskTypeName) => {
+const selectAssetType = (assetTypeName) => {
 
-  let newTaskType;
-  const taskTypes = assetStore.getAssetTypes;
-  newTaskType = taskTypes.find((item) => item.name === taskTypeName);
+  let newAssetType;
+  const assetTypes = assetStore.getAssetTypes;
+  newAssetType = assetTypes.find((item) => item.name === assetTypeName);
 
 
-  let previewData = dndStore.previewData['tasks'];
-  const tasks = allSelectedItems.value;
+  let previewData = dndStore.previewData['assets'];
+  const assets = allSelectedItems.value;
 
-  for (const task of tasks) {
+  for (const asset of assets) {
 
-    const taskId = task.id;
-    const selectedTask = previewData.find(item => item.id === taskId);
+    const assetId = asset.id;
+    const selectedAsset = previewData.find(item => item.id === assetId);
 
-    if (selectedTask) {
-      selectedTask.task_type_name = newTaskType.name;
-      selectedTask.task_type_icon = newTaskType.icon;
-      selectedTask.task_type_id = newTaskType.id;
-      dndStore.previewData['tasks'] = [...previewData];
+    if (selectedAsset) {
+      selectedAsset.asset_type_name = newAssetType.name;
+      selectedAsset.asset_type_icon = newAssetType.icon;
+      selectedAsset.asset_type_id = newAssetType.id;
+      dndStore.previewData['assets'] = [...previewData];
     }
 
   }
 
-  taskType.value = taskTypeName;
+  assetType.value = assetTypeName;
 
 };
 
-const selectEntityType = (entityTypeName) => {
+const selectCollectionType = (collectionTypeName) => {
 
-  let newEntityType;
-  const entityTypes = collectionStore.getCollectionTypes;
-  newEntityType = entityTypes.find((item) => item.name === entityTypeName);
-
-
-  let previewData = dndStore.previewData['entities'];
-  const entities = allSelectedItems.value;
+  let newCollectionType;
+  const collectionTypes = collectionStore.getCollectionTypes;
+  newCollectionType = collectionTypes.find((item) => item.name === collectionTypeName);
 
 
-  for (const entity of entities) {
+  let previewData = dndStore.previewData['collections'];
+  const collections = allSelectedItems.value;
 
-    const entityId = entity.id;
-    const selectedEntity = previewData.find(item => item.id === entityId);
 
-    if (selectedEntity) {
-      selectedEntity.entity_type_name = newEntityType.name;
-      selectedEntity.entity_type_icon = newEntityType.icon;
-      selectedEntity.entity_type_id = newEntityType.id;
-      dndStore.previewData['entities'] = [...previewData];
+  for (const collection of collections) {
+
+    const collectionId = collection.id;
+    const selectedCollection = previewData.find(item => item.id === collectionId);
+
+    if (selectedCollection) {
+      selectedCollection.collection_type_name = newCollectionType.name;
+      selectedCollection.collection_type_icon = newCollectionType.icon;
+      selectedCollection.collection_type_id = newCollectionType.id;
+      dndStore.previewData['collections'] = [...previewData];
     }
 
   }
 
-  entityType.value = entityTypeName;
+  collectionType.value = collectionTypeName;
 
 
 };
@@ -485,9 +485,9 @@ const deselectItems = () => {
 };
 
 const removeItems = () => {
-  const entities = dndStore.previewDataSelectedItems['entities'] ? dndStore.previewDataSelectedItems['entities'] : [];
-  const tasks = dndStore.previewDataSelectedItems['tasks'] ? dndStore.previewDataSelectedItems['tasks'] : [];
-  const items = [...entities, ...tasks]
+  const collections = dndStore.previewDataSelectedItems['collections'] ? dndStore.previewDataSelectedItems['collections'] : [];
+  const assets = dndStore.previewDataSelectedItems['assets'] ? dndStore.previewDataSelectedItems['assets'] : [];
+  const items = [...collections, ...assets]
   for (const item of items) {
     removeItem(item);
   }
@@ -495,8 +495,8 @@ const removeItems = () => {
 };
 
 const removeEmptyFolders = () => {
-  const previewData = dndStore.previewData['entities'];
-  dndStore.previewData['entities'] = previewData.filter(item => !emptyEntityIds.value.includes(item.id));
+  const previewData = dndStore.previewData['collections'];
+  dndStore.previewData['collections'] = previewData.filter(item => !emptyCollectionIds.value.includes(item.id));
 
 };
 
@@ -536,8 +536,8 @@ const removeItem = (item) => {
 };
 
 onMounted(async () => {
-  entityType.value = collectionStore.getCollectionTypesNames[0];
-  taskType.value = assetStore.getAssetTypesNames[0];
+  collectionType.value = collectionStore.getCollectionTypesNames[0];
+  assetType.value = assetStore.getAssetTypesNames[0];
 });
 
 

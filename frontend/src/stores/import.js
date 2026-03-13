@@ -3,15 +3,15 @@ import { defineStore } from "pinia";
 export const useImportStore = defineStore("import", {
   state: () => ({
     defaultFileType: ["^.*$", "resource"],
-    defaultEntityType: ["^.*$", "folder"],
-    defaultTaskType: ["^.*$", "generic"],
+    defaultCollectionType: ["^.*$", "folder"],
+    defaultAssetType: ["^.*$", "generic"],
     defaultResourceType: ["^.*$", "generic"],
     fileTypeRule: [
-      ["^.*.blend$|^.*.BLEND$", "task"],
-      ["^.*.spp$|^.*.SPP$", "task"],
-      ["^.*.afdesign$|^.*.AFDESIGN$", "task"],
+      ["^.*.blend$|^.*.BLEND$", "asset"],
+      ["^.*.spp$|^.*.SPP$", "asset"],
+      ["^.*.afdesign$|^.*.AFDESIGN$", "asset"],
     ],
-    entityTypeRule: [
+    collectionTypeRule: [
       [".*/assets/$", "folder"],
       [".*/characters/$", "character"],
       [".*/props/$", "prop"],
@@ -24,7 +24,7 @@ export const useImportStore = defineStore("import", {
       ["^(?:.*/)?sequences/[^/]+/$", "sequence"],
       [".*/sequences/[^/]+/[^/]+/?$", "shot"],
     ],
-    taskTypeRule: [
+    assetTypeRule: [
       [".*/characters/.*.blend$", "character creation"],
       [".*/props/.*.blend$", "prop creation"],
       [".*/environment/.*.blend$", "environment creation"],

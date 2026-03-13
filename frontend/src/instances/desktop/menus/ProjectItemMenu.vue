@@ -18,7 +18,7 @@
     <ActionButton v-else-if="!isPinExceeded" :icon="getAppIcon('pin')" :showLabel="true" :fullWidth="true"
       :label="$t('menus.pinProject')" :buttonFunction="pinProject" />
 
-    <span v-if="userStore.canDo('create_entity') && !platformStore.isWeb" class="menu-divider"></span>
+    <span v-if="userStore.canDo('create_collection') && !platformStore.isWeb" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
     <span v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded" class="horizontal-flex">
@@ -303,7 +303,7 @@ const rebuildAll = async () => {
   notificationStore.canCancel = true;
   await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
     .then(() => {
-      assetStore.refreshEntityFilesStatus("");
+      assetStore.refreshCollectionFilesStatus("");
     })
     .catch((error) => {
       console.error(error);

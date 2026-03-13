@@ -65,23 +65,23 @@ const props = defineProps({
 // computed properties
 const filtersActive = computed(() => {
 	const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
-	const entityFilters = commonStore.entityFilters.length > 0;
-	const taskFilters = commonStore.taskFilters.length > 0;
+	const collectionFilters = commonStore.collectionFilters.length > 0;
+	const assetFilters = commonStore.assetFilters.length > 0;
 	const resourceFilters = commonStore.resourceFilters.length > 0;
 	const generalFilter = isFilterActive('general');
-	return assigneeFilters || entityFilters || taskFilters || resourceFilters || generalFilter;
+	return assigneeFilters || collectionFilters || assetFilters || resourceFilters || generalFilter;
 });
 
-const showTagsFilter = computed(() => !!tagStore.tags.length && (commonStore.showTasks || commonStore.showResources));
+const showTagsFilter = computed(() => !!tagStore.tags.length && (commonStore.showAssets || commonStore.showResources));
 
 const viewTags = computed(() => {
 	let tags = tagStore.tags;
 	let viewTagNames = [];
-	let filteredTaskResults = assetStore.getFilteredAssets;
-	for (const task of filteredTaskResults) {
-		let taskTags = task.tags;
-		for (let t = 0; t < taskTags.length; t++) {
-			if (!viewTagNames.includes(taskTags[t])) viewTagNames.push(taskTags[t]);
+	let filteredAssetResults = assetStore.getFilteredAssets;
+	for (const asset of filteredAssetResults) {
+		let assetTags = asset.tags;
+		for (let t = 0; t < assetTags.length; t++) {
+			if (!viewTagNames.includes(assetTags[t])) viewTagNames.push(assetTags[t]);
 		}
 	}
 	for (let i = 0; i < tags.length; i++) {
@@ -101,13 +101,13 @@ const clearFilters = () => { commonStore.resetFilters(); emitter.emit('refresh-b
 // Checks if a specific filter type is currently active.
 const isFilterActive = (filter) => {
 	if (filter.includes('general')) {
-		const isActive = commonStore.showEntities && commonStore.showTasks && commonStore.showResources && commonStore.showChildEntities && commonStore.showChildTasks && commonStore.showDependencies && !commonStore.onlyAssets;
+		const isActive = commonStore.showCollections && commonStore.showAssets && commonStore.showResources && commonStore.showChildCollections && commonStore.showChildAssets && commonStore.showDependencies && !commonStore.onlyAssets;
 		return !isActive;
-	} else if (filter.includes('entity')) return commonStore.entityFilters.some((item) => item.type === filter);
+	} else if (filter.includes('collection')) return commonStore.collectionFilters.some((item) => item.type === filter);
 	else if (filter.includes('assignation')) {
 		const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
-		return assigneeFilters || commonStore.taskFilters.some((item) => item.type === filter);
-	} else return commonStore.taskFilters.some((item) => item.type === filter);
+		return assigneeFilters || commonStore.assetFilters.some((item) => item.type === filter);
+	} else return commonStore.assetFilters.some((item) => item.type === filter);
 };
 
 // Shows a filter menu for the selected filter button.

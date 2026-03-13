@@ -2,7 +2,7 @@
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
 
     <HeaderArea :title="$t('modals.addWorkflow')" :icon="headerIcon" />
-    <div class="general-container" :style="{ gap: showTaskOptions ? 10 + 'px' : 20 + 'px' }">
+    <div class="general-container" :style="{ gap: showAssetOptions ? 10 + 'px' : 20 + 'px' }">
 
       <div v-if="!isMultiple" class="input-section">
         <div class="compound-input-section">
@@ -16,7 +16,7 @@
       <div class="input-section drop-down-box-section">
         <DropDownBox :items="projectWorkflowNames" :selectedItem="selectedWorkflowName"
           :onSelect="changeSelectedWorkflow" />
-        <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="selectEntityType" />
+        <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="collectionType" :onSelect="selectCollectionType" />
       </div>
 
       
@@ -76,19 +76,19 @@ import { useWorkflowStore } from '@/stores/workflow';
 
 // refs
 const batchGen = ref(null);
-const entityType = ref(collectionStore.getCollectionTypesNames[0]);
+const collectionType = ref(collectionStore.getCollectionTypesNames[0]);
 const isAwaitingResponse = ref(false);
 const isMultiple = ref(false);
 const modalContainer = ref(null);
 const popUpActions = ref(null);
 const selectedWorkflowName = ref(workflowStore.selectedWorkflow.name);
-const showTaskOptions = ref(true);
+const showAssetOptions = ref(true);
 const workflowName = ref(workflowStore.selectedWorkflow.name);
 const workflows = ref([]);
 
 // computed
-const entityId = computed(() => {
-  if (stageStore.selectedItem && stageStore.selectedItem.type === 'entity') {
+const collectionId = computed(() => {
+  if (stageStore.selectedItem && stageStore.selectedItem.type === 'collection') {
     return stageStore.selectedItem?.id;
   } else if (collectionStore.navigatedCollection) {
     return collectionStore.navigatedCollection.id;
@@ -97,7 +97,7 @@ const entityId = computed(() => {
 });
 
 const headerIcon = computed(() => {
-  const selectedType = collectionStore.collectionTypes.find(item => item.name === entityType.value);
+  const selectedType = collectionStore.collectionTypes.find(item => item.name === collectionType.value);
   return selectedType?.icon || 'workflow-plus';
 });
 
@@ -128,10 +128,10 @@ const addMultipleWorkflows = async () => {
 
 // Adds a single workflow instance.
 const addSingleWorkflow = async () => {
-  let entityTypeData = collectionStore.collectionTypes.find((entityTypeData) => entityTypeData.name === entityType.value);
+  let collectionTypeData = collectionStore.collectionTypes.find((collectionTypeData) => collectionTypeData.name === collectionType.value);
   await WorkflowService.AddWorkflow(
     projectStore.activeProject.uri, workflowStore.selectedWorkflow.id,
-    workflowName.value, entityTypeData.id, entityId.value
+    workflowName.value, collectionTypeData.id, collectionId.value
   ).then(async (data) => {
   }).catch((error) => {
     console.log(error);
@@ -179,9 +179,9 @@ const onUpdateWorkflows = (allWorkflows) => {
   console.log(allWorkflows);
 };
 
-// Selects an entity type.
-const selectEntityType = (entityTypeName) => {
-  entityType.value = entityTypeName;
+// Selects an collection type.
+const selectCollectionType = (collectionTypeName) => {
+  collectionType.value = collectionTypeName;
 };
 
 // Toggles multiple workflow mode.
@@ -203,7 +203,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  stageStore.markedEntities = [];
+  stageStore.markedCollections = [];
   stageStore.selectedItem = null;
 });
 

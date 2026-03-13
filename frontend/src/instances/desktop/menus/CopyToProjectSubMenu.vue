@@ -10,10 +10,10 @@
     <span class="menu-divider"></span>
 
     <!-- Copy here option -->
-    <ActionButton v-if="currentView === 'entities'" :icon="getAppIcon('arrow-down-ramp')" :showLabel="true"
+    <ActionButton v-if="currentView === 'collections'" :icon="getAppIcon('arrow-down-ramp')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.copyHere')" :buttonFunction="() => copyToLocation(currentParentId)" />
 
-    <!-- <span v-if="filteredEntities.length > 0" class="menu-divider"></span> -->
+    <!-- <span v-if="filteredCollections.length > 0" class="menu-divider"></span> -->
 
     <!-- Search input -->
     <div v-if="showSearch" class="input-section">
@@ -45,21 +45,21 @@
         </div>
       </template>
 
-      <!-- Entity list (when navigating inside a project) -->
-      <template v-else-if="currentView === 'entities'">
+      <!-- Collection list (when navigating inside a project) -->
+      <template v-else-if="currentView === 'collections'">
 
-        <!-- Child entities -->
-        <template v-for="entity in filteredEntities" :key="entity.id">
-          <ActionButton :customIconUrl="getAppIcon(entity.entity_type_icon || 'folder')" :icon="getAppIcon('chevron-right')" 
-            :showLabel="true" :fullWidth="true" :iconAfter="true" :label="entity.name" 
-            :buttonFunction="() => navigateIntoEntity(entity)" />
+        <!-- Child collections -->
+        <template v-for="collection in filteredCollections" :key="collection.id">
+          <ActionButton :customIconUrl="getAppIcon(collection.collection_type_icon || 'folder')" :icon="getAppIcon('chevron-right')" 
+            :showLabel="true" :fullWidth="true" :iconAfter="true" :label="collection.name" 
+            :buttonFunction="() => navigateIntoCollection(collection)" />
         </template>
 
-        <div v-if="filteredEntities.length === 0 && childEntities.length > 0" class="sub-menu-empty">
+        <div v-if="filteredCollections.length === 0 && childCollections.length > 0" class="sub-menu-empty">
           <span class="menu-item-text subtle">{{ $t('menus.noMatchingCollections') }}</span>
         </div>
 
-        <div v-if="childEntities.length === 0" class="sub-menu-empty">
+        <div v-if="childCollections.length === 0" class="sub-menu-empty">
           <span class="menu-item-text subtle">{{ $t('menus.noSubCollections') }}</span>
         </div>
       </template>
@@ -98,7 +98,7 @@ const projectStore = useProjectStore();
 const stage = useStageStore();
 
 // refs
-const childEntities = ref([]);
+const childCollections = ref([]);
 const isLoading = ref(false);
 const searchInput = ref(null);
 const searchTerm = ref('');
@@ -119,7 +119,7 @@ const currentNavItem = computed(() => {
   return stack.length > 0 ? stack[stack.length - 1] : null;
 });
 
-// Returns the current parent entity ID.
+// Returns the current parent collection ID.
 const currentParentId = computed(() => {
   return currentNavItem.value?.parentId || null;
 });
@@ -129,14 +129,14 @@ const currentView = computed(() => {
   return currentNavItem.value?.type || 'projects';
 });
 
-// Returns entities filtered by search term.
-const filteredEntities = computed(() => {
+// Returns collections filtered by search term.
+const filteredCollections = computed(() => {
   if (!searchTerm.value) {
-    return childEntities.value;
+    return childCollections.value;
   }
   const term = searchTerm.value.toLowerCase();
-  return childEntities.value.filter(entity => 
-    entity.name.toLowerCase().includes(term)
+  return childCollections.value.filter(collection => 
+    collection.name.toLowerCase().includes(term)
   );
 });
 
@@ -172,12 +172,12 @@ const selectedProject = computed(() => {
 // Determines whether to show the search input (more than 10 items).
 const showSearch = computed(() => {
   if (currentView.value === 'projects') return availableProjects.value.length > 10;
-  return childEntities.value.length > 10;
+  return childCollections.value.length > 10;
 });
 
 // methods
 // Copies the asset to the specified location.
-const copyToLocation = async (targetEntityId, projectOverride = null) => {
+const copyToLocation = async (targetCollectionId, projectOverride = null) => {
   const targetProject = projectOverride || selectedProject.value;
   
   if (!targetProject) {
@@ -198,7 +198,7 @@ const copyToLocation = async (targetEntityId, projectOverride = null) => {
       projectStore.activeProject.uri,
       asset.id,
       targetProject.uri,
-      targetEntityId || '',
+      targetCollectionId || '',
       false
     );
     
@@ -224,65 +224,65 @@ const goBack = () => {
   menu.navigateSubMenuBack();
 };
 
-// Loads child entities for a project and parent.
-const loadEntities = async (project, parentId, entityFilePath = null) => {
+// Loads child collections for a project and parent.
+const loadCollections = async (project, parentId, collectionFilePath = null) => {
   isLoading.value = true;
-  childEntities.value = [];
+  childCollections.value = [];
   
   try {
-    const entityId = parentId || 'root';
-    const folderPath = entityFilePath || project.working_directory;
+    const collectionId = parentId || 'root';
+    const folderPath = collectionFilePath || project.working_directory;
     
     const children = await CollectionService.GetCollectionChildren(
       project.uri,
-      entityId,
+      collectionId,
       project.working_directory,
       folderPath,
       project.ignore_list || [],
       false
     );
     
-    childEntities.value = (children.entities || []).sort((a, b) => 
+    childCollections.value = (children.collections || []).sort((a, b) => 
       a.name.localeCompare(b.name)
     );
   } catch (error) {
-    console.error('Error loading entities:', error);
+    console.error('Error loading collections:', error);
     notificationStore.errorNotification(t('notifications.failedToLoadCollections'), error);
   } finally {
     isLoading.value = false;
   }
 };
 
-// Navigates into an entity to show its children.
-const navigateIntoEntity = async (entity) => {
+// Navigates into an collection to show its children.
+const navigateIntoCollection = async (collection) => {
   const project = selectedProject.value;
   searchTerm.value = '';
   
   menu.navigateSubMenuForward({
-    type: 'entities',
+    type: 'collections',
     projectUri: project.uri,
-    parentId: entity.id,
-    entityFilePath: entity.file_path,
-    title: entity.name
+    parentId: collection.id,
+    collectionFilePath: collection.file_path,
+    title: collection.name
   });
   
-  await loadEntities(project, entity.id, entity.file_path);
+  await loadCollections(project, collection.id, collection.file_path);
 };
 
-// Navigates into a project to show its root entities.
+// Navigates into a project to show its root collections.
 const navigateIntoProject = async (project) => {
   searchTerm.value = '';
   menu.subMenuState.selectedProject = project;
   
   menu.navigateSubMenuForward({
-    type: 'entities',
+    type: 'collections',
     projectUri: project.uri,
     parentId: null,
-    entityFilePath: project.working_directory,
+    collectionFilePath: project.working_directory,
     title: project.name
   });
   
-  await loadEntities(project, null, null);
+  await loadCollections(project, null, null);
 };
 
 // watchers
@@ -292,8 +292,8 @@ watch(
     if (newLength > 0) {
       const navItem = currentNavItem.value;
       const project = selectedProject.value;
-      if (navItem?.type === 'entities' && project) {
-        await loadEntities(project, navItem.parentId, navItem.entityFilePath);
+      if (navItem?.type === 'collections' && project) {
+        await loadCollections(project, navItem.parentId, navItem.collectionFilePath);
       }
     }
   }

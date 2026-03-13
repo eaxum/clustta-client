@@ -200,7 +200,7 @@ export const ProjectService = {
 
   // Returns untracked items in a folder
   GetFolderUntrackedItems: async (projectWorkingDir, directory, ignoreList, tracked) => {
-    return { tasks: [], entities: [] };
+    return { assets: [], collections: [] };
   },
 
   // Checks if an item is ignored

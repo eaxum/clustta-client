@@ -36,8 +36,8 @@ type ChangedFiles struct {
 }
 
 type AssetStateItem struct {
-	TaskId      string `json:"task_id"`      // task ID for filtering
-	TaskPath    string `json:"task_path"`    // for checkpoints: "path/to/file"
+	AssetId      string `json:"asset_id"`      // asset ID for filtering
+	AssetPath    string `json:"asset_path"`    // for checkpoints: "path/to/file"
 	DisplayPath string `json:"display_path"` // for UI: "path/to/file.blend"
 }
 
@@ -60,7 +60,7 @@ func (t *AssetService) GetAssetCount(projectPath string) (int, error) {
 	defer dbConn.Close()
 
 	var count int
-	query := "SELECT COUNT(*) FROM full_task"
+	query := "SELECT COUNT(*) FROM full_asset"
 
 	err = dbConn.Get(&count, query)
 	if err != nil {
@@ -70,52 +70,52 @@ func (t *AssetService) GetAssetCount(projectPath string) (int, error) {
 	return count, nil
 }
 
-func (t *AssetService) GetAssetByID(projectPath, assetId string) (models.Task, error) {
+func (t *AssetService) GetAssetByID(projectPath, assetId string) (models.Asset, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer tx.Rollback()
-	return repository.GetTask(tx, assetId)
+	return repository.GetAsset(tx, assetId)
 }
 
-// GetAssetByPath retrieves an asset by its task_path.
+// GetAssetByPath retrieves an asset by its asset_path.
 // Returns the asset or an error if not found.
-func (t *AssetService) GetAssetByPath(projectPath, taskPath string) (models.Task, error) {
+func (t *AssetService) GetAssetByPath(projectPath, assetPath string) (models.Asset, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer tx.Rollback()
-	return repository.GetTaskByPath(tx, taskPath)
+	return repository.GetAssetByPath(tx, assetPath)
 }
 
-func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, entityId string, isResource bool, templateId, templateFilePath, pointer string, isLink bool, tags []string, previewPath, comment string) (models.Task, error) {
+func (t *AssetService) CreateAsset(projectPath, name, description, assetTypeId, collectionId string, isResource bool, templateId, templateFilePath, pointer string, isLink bool, tags []string, previewPath, comment string) (models.Asset, error) {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer tx.Rollback()
 
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 
 	previewId := ""
@@ -123,13 +123,13 @@ func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, e
 		preview, err := repository.CreatePreview(tx, previewPath)
 		if err != nil {
 			tx.Rollback()
-			return models.Task{}, err
+			return models.Asset{}, err
 		}
 		previewId = preview.Hash
 	}
 	callBack := func(current int, total int, message string, extraMessage string) {
 		progress := output.ProgressReport{
-			Title:         "Creating Tasks for Entity",
+			Title:         "Creating Assets for Collection",
 			Message:       name,
 			Percentage:    float64(current) / float64(total) * 99,
 			Current:       1,
@@ -139,12 +139,12 @@ func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, e
 		app.Event.Emit("progress-update", progress)
 	}
 
-	createdTask, err := repository.CreateTask(
+	createdAsset, err := repository.CreateAsset(
 		tx,
 		"",
 		name,
-		taskTypeId,
-		entityId,
+		assetTypeId,
+		collectionId,
 		isResource,
 		templateId,
 		description,
@@ -160,36 +160,36 @@ func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, e
 	)
 	if err != nil {
 		tx.Rollback()
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 
-	createdTask, err = repository.GetTask(tx, createdTask.Id)
+	createdAsset, err = repository.GetAsset(tx, createdAsset.Id)
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 
-	// Read simple task for write-through before commit (pointer/link assets only)
-	var simpleTask models.Task
-	if createdTask.Pointer != "" {
-		simpleTask, _ = repository.GetSimpleTask(tx, createdTask.Id)
+	// Read simple asset for write-through before commit (pointer/link assets only)
+	var simpleAsset models.Asset
+	if createdAsset.Pointer != "" {
+		simpleAsset, _ = repository.GetSimpleAsset(tx, createdAsset.Id)
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 
 	// Write through pointer/link assets (no binary data)
-	if createdTask.Pointer != "" && simpleTask.Id != "" {
-		enqueueTaskWriteThrough(projectPath, simpleTask)
+	if createdAsset.Pointer != "" && simpleAsset.Id != "" {
+		enqueueAssetWriteThrough(projectPath, simpleAsset)
 	}
 
 	if templateFilePath == "" {
-		return createdTask, nil
+		return createdAsset, nil
 	} else {
 		progress := output.ProgressReport{
-			Title:         "Creating Tasks for Entity",
-			Message:       "Task",
+			Title:         "Creating Assets for Collection",
+			Message:       "Asset",
 			Percentage:    100,
 			Current:       1,
 			Total:         1,
@@ -197,52 +197,52 @@ func (t *AssetService) CreateAsset(projectPath, name, description, taskTypeId, e
 		}
 		app.Event.Emit("progress-update", progress)
 	}
-	return createdTask, nil
+	return createdAsset, nil
 }
 
-// DuplicateAsset duplicates a task to the same or a different collection.
-// If targetEntityId is empty, the task is duplicated in the same collection as the source.
-func (t *AssetService) DuplicateAsset(projectPath, sourceTaskId, targetEntityId string) (models.Task, error) {
+// DuplicateAsset duplicates a asset to the same or a different collection.
+// If targetCollectionId is empty, the asset is duplicated in the same collection as the source.
+func (t *AssetService) DuplicateAsset(projectPath, sourceAssetId, targetCollectionId string) (models.Asset, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer tx.Rollback()
 
-	// Get the source task
-	sourceTask, err := repository.GetTask(tx, sourceTaskId)
+	// Get the source asset
+	sourceAsset, err := repository.GetAsset(tx, sourceAssetId)
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 
-	// Determine target entity: use provided targetEntityId or fall back to source's entity
-	destinationEntityId := targetEntityId
-	if destinationEntityId == "" {
-		destinationEntityId = sourceTask.EntityId
+	// Determine target collection: use provided targetCollectionId or fall back to source's collection
+	destinationCollectionId := targetCollectionId
+	if destinationCollectionId == "" {
+		destinationCollectionId = sourceAsset.CollectionId
 	}
 
-	// Generate unique name by checking for conflicts in the destination entity
-	baseName := sourceTask.Name
-	if destinationEntityId == sourceTask.EntityId {
-		baseName = sourceTask.Name + "-duplicate"
+	// Generate unique name by checking for conflicts in the destination collection
+	baseName := sourceAsset.Name
+	if destinationCollectionId == sourceAsset.CollectionId {
+		baseName = sourceAsset.Name + "-duplicate"
 	}
 	newName := baseName
 	counter := 1
 
-	// Check for name conflicts in the destination entity
+	// Check for name conflicts in the destination collection
 	for {
-		_, err := repository.GetTaskByName(tx, newName, destinationEntityId, sourceTask.Extension)
+		_, err := repository.GetAssetByName(tx, newName, destinationCollectionId, sourceAsset.Extension)
 		if err != nil {
-			// Task with this name doesn't exist, so we can use it
+			// Asset with this name doesn't exist, so we can use it
 			break
 		}
-		// Task exists, try with number suffix
-		if destinationEntityId == sourceTask.EntityId {
+		// Asset exists, try with number suffix
+		if destinationCollectionId == sourceAsset.CollectionId {
 			newName = fmt.Sprintf("%s-%d", baseName, counter)
 		} else {
 			newName = fmt.Sprintf("%s (%d)", baseName, counter)
@@ -251,43 +251,43 @@ func (t *AssetService) DuplicateAsset(projectPath, sourceTaskId, targetEntityId 
 	}
 
 	// Generate new ID
-	newTaskId := uuid.New().String()
+	newAssetId := uuid.New().String()
 
-	// Create the duplicate task using AddTask (simpler than CreateTask)
-	err = repository.AddTask(
+	// Create the duplicate asset using AddAsset (simpler than CreateAsset)
+	err = repository.AddAsset(
 		tx,
-		newTaskId,
+		newAssetId,
 		utils.GetCurrentTime(),
 		newName,
-		sourceTask.TaskTypeId,
-		destinationEntityId,
-		sourceTask.StatusId,
-		sourceTask.Extension,
-		sourceTask.Description,
-		sourceTask.Tags,
-		sourceTask.Pointer,
-		sourceTask.IsLink,
-		"", // No assignee for duplicated task
-		sourceTask.PreviewId,
+		sourceAsset.AssetTypeId,
+		destinationCollectionId,
+		sourceAsset.StatusId,
+		sourceAsset.Extension,
+		sourceAsset.Description,
+		sourceAsset.Tags,
+		sourceAsset.Pointer,
+		sourceAsset.IsLink,
+		"", // No assignee for duplicated asset
+		sourceAsset.PreviewId,
 	)
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 
-	// Copy tags from source task
-	if len(sourceTask.Tags) > 0 {
-		for _, tag := range sourceTask.Tags {
-			err = repository.AddTagToTask(tx, newTaskId, tag)
+	// Copy tags from source asset
+	if len(sourceAsset.Tags) > 0 {
+		for _, tag := range sourceAsset.Tags {
+			err = repository.AddTagToAsset(tx, newAssetId, tag)
 			if err != nil {
-				return models.Task{}, err
+				return models.Asset{}, err
 			}
 		}
 	}
 
 	// Duplicate the most recent checkpoint if it exists
-	latestCheckpoint, err := repository.GetLatestCheckpoint(tx, sourceTaskId)
+	latestCheckpoint, err := repository.GetLatestCheckpoint(tx, sourceAssetId)
 	if err != nil && err.Error() != "no checkpoints" {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 
 	if latestCheckpoint.Id != "" {
@@ -295,12 +295,12 @@ func (t *AssetService) DuplicateAsset(projectPath, sourceTaskId, targetEntityId 
 		newCheckpointId := uuid.New().String()
 		newGroupId := uuid.New().String()
 
-		// Duplicate the latest checkpoint for the new task
+		// Duplicate the latest checkpoint for the new asset
 		err = repository.AddCheckpoint(
 			tx,
 			newCheckpointId,
 			utils.GetEpochTime(),
-			newTaskId, // Link to the new duplicated task
+			newAssetId, // Link to the new duplicated asset
 			latestCheckpoint.XXHashChecksum,
 			latestCheckpoint.TimeModified,
 			latestCheckpoint.FileSize,
@@ -311,104 +311,104 @@ func (t *AssetService) DuplicateAsset(projectPath, sourceTaskId, targetEntityId 
 			false, // Not synced initially
 		)
 		if err != nil {
-			return models.Task{}, err
+			return models.Asset{}, err
 		}
 
 		// Update the checkpoint with the new group ID
-		_, err = tx.Exec("UPDATE task_checkpoint SET group_id = ? WHERE id = ?", newGroupId, newCheckpointId)
+		_, err = tx.Exec("UPDATE asset_checkpoint SET group_id = ? WHERE id = ?", newGroupId, newCheckpointId)
 		if err != nil {
-			return models.Task{}, err
+			return models.Asset{}, err
 		}
 	}
 
-	// Get the newly created task
-	duplicatedTask, err := repository.GetTask(tx, newTaskId)
+	// Get the newly created asset
+	duplicatedAsset, err := repository.GetAsset(tx, newAssetId)
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 
-	return duplicatedTask, nil
+	return duplicatedAsset, nil
 }
 
 // CopyAssetToProject copies an asset from one project to another, including metadata, checkpoints, chunks, and previews.
-// If targetEntityId is empty, the asset is copied to the root of the target project.
+// If targetCollectionId is empty, the asset is copied to the root of the target project.
 // If copyAllCheckpoints is false, only the latest checkpoint is copied.
-func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceTaskId, targetProjectPath, targetEntityId string, copyAllCheckpoints bool) (models.Task, error) {
+func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceAssetId, targetProjectPath, targetCollectionId string, copyAllCheckpoints bool) (models.Asset, error) {
 	app := application.Get()
 
 	// Open source database
 	sourceDbConn, err := utils.OpenDb(sourceProjectPath)
 	if err != nil {
-		return models.Task{}, fmt.Errorf("failed to open source project: %w", err)
+		return models.Asset{}, fmt.Errorf("failed to open source project: %w", err)
 	}
 	defer sourceDbConn.Close()
 
 	sourceTx, err := sourceDbConn.Beginx()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer sourceTx.Rollback()
 
 	// Open target database
 	targetDbConn, err := utils.OpenDb(targetProjectPath)
 	if err != nil {
-		return models.Task{}, fmt.Errorf("failed to open target project: %w", err)
+		return models.Asset{}, fmt.Errorf("failed to open target project: %w", err)
 	}
 	defer targetDbConn.Close()
 
 	targetTx, err := targetDbConn.Beginx()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer targetTx.Rollback()
 
-	// Get the source task
-	sourceTask, err := repository.GetTask(sourceTx, sourceTaskId)
+	// Get the source asset
+	sourceAsset, err := repository.GetAsset(sourceTx, sourceAssetId)
 	if err != nil {
-		return models.Task{}, fmt.Errorf("failed to get source task: %w", err)
+		return models.Asset{}, fmt.Errorf("failed to get source asset: %w", err)
 	}
 
 	// Emit progress
 	progress := output.ProgressReport{
 		Title:         "Copying Asset",
-		Message:       sourceTask.Name,
+		Message:       sourceAsset.Name,
 		Percentage:    10,
 		OperationType: "write",
 	}
 	app.Event.Emit("progress-update", progress)
 
-	// Map task type - find equivalent in target project by name, or use "Generic"
-	var targetTaskTypeId string
-	if sourceTask.TaskTypeName != "" {
-		targetTaskType, err := repository.GetTaskTypeByName(targetTx, sourceTask.TaskTypeName)
+	// Map asset type - find equivalent in target project by name, or use "Generic"
+	var targetAssetTypeId string
+	if sourceAsset.AssetTypeName != "" {
+		targetAssetType, err := repository.GetAssetTypeByName(targetTx, sourceAsset.AssetTypeName)
 		if err == nil {
-			targetTaskTypeId = targetTaskType.Id
+			targetAssetTypeId = targetAssetType.Id
 		}
 	}
-	if targetTaskTypeId == "" {
+	if targetAssetTypeId == "" {
 		// Fall back to Generic
-		genericTaskType, err := repository.GetTaskTypeByName(targetTx, "Generic")
+		genericAssetType, err := repository.GetAssetTypeByName(targetTx, "Generic")
 		if err == nil {
-			targetTaskTypeId = genericTaskType.Id
+			targetAssetTypeId = genericAssetType.Id
 		} else {
 			// Create Generic if it doesn't exist
-			genericTaskType, err = repository.GetOrCreateTaskType(targetTx, "Generic", "")
+			genericAssetType, err = repository.GetOrCreateAssetType(targetTx, "Generic", "")
 			if err != nil {
-				return models.Task{}, fmt.Errorf("failed to get or create Generic task type: %w", err)
+				return models.Asset{}, fmt.Errorf("failed to get or create Generic asset type: %w", err)
 			}
-			targetTaskTypeId = genericTaskType.Id
+			targetAssetTypeId = genericAssetType.Id
 		}
 	}
 
 	// Map status - find equivalent in target project or use first available
 	var targetStatusId string
-	if sourceTask.StatusShortName != "" {
-		targetStatus, err := repository.GetStatusByShortName(targetTx, sourceTask.StatusShortName)
+	if sourceAsset.StatusShortName != "" {
+		targetStatus, err := repository.GetStatusByShortName(targetTx, sourceAsset.StatusShortName)
 		if err == nil {
 			targetStatusId = targetStatus.Id
 		}
@@ -422,17 +422,17 @@ func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceTaskId, targe
 	}
 
 	// Generate unique name by checking for conflicts in target project
-	baseName := sourceTask.Name
+	baseName := sourceAsset.Name
 	newName := baseName
 	counter := 1
 
 	for {
-		_, err := repository.GetTaskByName(targetTx, newName, targetEntityId, sourceTask.Extension)
+		_, err := repository.GetAssetByName(targetTx, newName, targetCollectionId, sourceAsset.Extension)
 		if err != nil {
-			// Task with this name doesn't exist, we can use it
+			// Asset with this name doesn't exist, we can use it
 			break
 		}
-		// Task exists, try with number suffix
+		// Asset exists, try with number suffix
 		newName = fmt.Sprintf("%s-%d", baseName, counter)
 		counter++
 	}
@@ -441,13 +441,13 @@ func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceTaskId, targe
 	progress.Message = "Creating asset in target project"
 	app.Event.Emit("progress-update", progress)
 
-	// Generate new task ID
-	newTaskId := uuid.New().String()
+	// Generate new asset ID
+	newAssetId := uuid.New().String()
 
 	// Copy preview if exists
 	var newPreviewId string
-	if sourceTask.PreviewId != "" {
-		sourcePreview, err := repository.GetPreview(sourceTx, sourceTask.PreviewId)
+	if sourceAsset.PreviewId != "" {
+		sourcePreview, err := repository.GetPreview(sourceTx, sourceAsset.PreviewId)
 		if err == nil {
 			// Add preview to target project if it doesn't exist
 			err = repository.AddPreview(targetTx, sourcePreview.Hash, sourcePreview.Preview, sourcePreview.Extension)
@@ -457,17 +457,17 @@ func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceTaskId, targe
 		}
 	}
 
-	// Create the task in target project
-	err = repository.AddTask(
+	// Create the asset in target project
+	err = repository.AddAsset(
 		targetTx,
-		newTaskId,
+		newAssetId,
 		utils.GetCurrentTime(),
 		newName,
-		targetTaskTypeId,
-		targetEntityId,
+		targetAssetTypeId,
+		targetCollectionId,
 		targetStatusId,
-		sourceTask.Extension,
-		sourceTask.Description,
+		sourceAsset.Extension,
+		sourceAsset.Description,
 		[]string{}, // Don't copy tags (they may not exist in target project)
 		"",         // No pointer (file path will be different in target project)
 		false,      // Not a link
@@ -475,7 +475,7 @@ func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceTaskId, targe
 		newPreviewId,
 	)
 	if err != nil {
-		return models.Task{}, fmt.Errorf("failed to create task in target project: %w", err)
+		return models.Asset{}, fmt.Errorf("failed to create asset in target project: %w", err)
 	}
 
 	progress.Percentage = 30
@@ -485,14 +485,14 @@ func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceTaskId, targe
 	// Get checkpoints to copy
 	var checkpointsToCopy []models.Checkpoint
 	if copyAllCheckpoints {
-		checkpointsToCopy, err = repository.GetCheckpoints(sourceTx, sourceTaskId, false)
+		checkpointsToCopy, err = repository.GetCheckpoints(sourceTx, sourceAssetId, false)
 		if err != nil && err.Error() != "no checkpoints" {
-			return models.Task{}, fmt.Errorf("failed to get checkpoints: %w", err)
+			return models.Asset{}, fmt.Errorf("failed to get checkpoints: %w", err)
 		}
 	} else {
-		latestCheckpoint, err := repository.GetLatestCheckpoint(sourceTx, sourceTaskId)
+		latestCheckpoint, err := repository.GetLatestCheckpoint(sourceTx, sourceAssetId)
 		if err != nil && err.Error() != "no checkpoints" {
-			return models.Task{}, fmt.Errorf("failed to get latest checkpoint: %w", err)
+			return models.Asset{}, fmt.Errorf("failed to get latest checkpoint: %w", err)
 		}
 		if latestCheckpoint.Id != "" {
 			checkpointsToCopy = []models.Checkpoint{latestCheckpoint}
@@ -563,7 +563,7 @@ func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceTaskId, targe
 			targetTx,
 			newCheckpointId,
 			utils.GetEpochTime(),
-			newTaskId,
+			newAssetId,
 			checkpoint.XXHashChecksum,
 			checkpoint.TimeModified,
 			checkpoint.FileSize,
@@ -574,13 +574,13 @@ func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceTaskId, targe
 			false, // Not synced
 		)
 		if err != nil {
-			return models.Task{}, fmt.Errorf("failed to add checkpoint: %w", err)
+			return models.Asset{}, fmt.Errorf("failed to add checkpoint: %w", err)
 		}
 
 		// Update the checkpoint with the group ID
-		_, err = targetTx.Exec("UPDATE task_checkpoint SET group_id = ? WHERE id = ?", newGroupId, newCheckpointId)
+		_, err = targetTx.Exec("UPDATE asset_checkpoint SET group_id = ? WHERE id = ?", newGroupId, newCheckpointId)
 		if err != nil {
-			return models.Task{}, fmt.Errorf("failed to update checkpoint group: %w", err)
+			return models.Asset{}, fmt.Errorf("failed to update checkpoint group: %w", err)
 		}
 	}
 
@@ -588,26 +588,26 @@ func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceTaskId, targe
 	progress.Message = "Finalizing"
 	app.Event.Emit("progress-update", progress)
 
-	// Get the newly created task
-	newTask, err := repository.GetTask(targetTx, newTaskId)
+	// Get the newly created asset
+	newAsset, err := repository.GetAsset(targetTx, newAssetId)
 	if err != nil {
-		return models.Task{}, fmt.Errorf("failed to get created task: %w", err)
+		return models.Asset{}, fmt.Errorf("failed to get created asset: %w", err)
 	}
 
 	// Commit target transaction
 	err = targetTx.Commit()
 	if err != nil {
-		return models.Task{}, fmt.Errorf("failed to commit changes: %w", err)
+		return models.Asset{}, fmt.Errorf("failed to commit changes: %w", err)
 	}
 
 	progress.Percentage = 100
 	progress.Message = "Complete"
 	app.Event.Emit("progress-update", progress)
 
-	return newTask, nil
+	return newAsset, nil
 }
 
-func (t *AssetService) ChangeStatus(projectPath, taskId, statusId string) error {
+func (t *AssetService) ChangeStatus(projectPath, assetId, statusId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -619,11 +619,11 @@ func (t *AssetService) ChangeStatus(projectPath, taskId, statusId string) error 
 	}
 	defer tx.Rollback()
 
-	err = repository.UpdateStatus(tx, taskId, statusId)
+	err = repository.UpdateStatus(tx, assetId, statusId)
 	if err != nil {
 		return err
 	}
-	task, err := repository.GetSimpleTask(tx, taskId)
+	asset, err := repository.GetSimpleAsset(tx, assetId)
 	if err != nil {
 		return err
 	}
@@ -631,14 +631,14 @@ func (t *AssetService) ChangeStatus(projectPath, taskId, statusId string) error 
 	if err != nil {
 		return err
 	}
-	enqueueTaskWriteThrough(projectPath, task)
+	enqueueAssetWriteThrough(projectPath, asset)
 	return nil
 }
 
 // ChangeAssetCollection moves one or more assets to a different collection.
 // Checks for name+extension conflicts in the target collection before moving.
 // Returns an error if any asset would conflict or if the operation fails.
-func (t *AssetService) ChangeAssetCollection(projectPath string, assetIds []string, entityId string) error {
+func (t *AssetService) ChangeAssetCollection(projectPath string, assetIds []string, collectionId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -652,17 +652,17 @@ func (t *AssetService) ChangeAssetCollection(projectPath string, assetIds []stri
 
 	var conflicts []string
 	for _, assetId := range assetIds {
-		asset, err := repository.GetTask(tx, assetId)
+		asset, err := repository.GetAsset(tx, assetId)
 		if err != nil {
 			return err
 		}
-		if asset.EntityId == entityId {
+		if asset.CollectionId == collectionId {
 			continue
 		}
-		_, err = repository.GetTaskByName(tx, asset.Name, entityId, asset.Extension)
+		_, err = repository.GetAssetByName(tx, asset.Name, collectionId, asset.Extension)
 		if err == nil {
 			conflicts = append(conflicts, asset.Name+asset.Extension)
-		} else if err != error_service.ErrTaskNotFound {
+		} else if err != error_service.ErrAssetNotFound {
 			return err
 		}
 	}
@@ -671,22 +671,22 @@ func (t *AssetService) ChangeAssetCollection(projectPath string, assetIds []stri
 		return fmt.Errorf("assets with the same name and extension already exist in the target collection: %s", strings.Join(conflicts, ", "))
 	}
 
-	var movedTasks []models.Task
+	var movedAssets []models.Asset
 	for _, assetId := range assetIds {
-		repository.ChangeEntity(tx, assetId, entityId)
+		repository.ChangeCollection(tx, assetId, collectionId)
 	}
 	for _, assetId := range assetIds {
-		task, err := repository.GetSimpleTask(tx, assetId)
+		asset, err := repository.GetSimpleAsset(tx, assetId)
 		if err == nil {
-			movedTasks = append(movedTasks, task)
+			movedAssets = append(movedAssets, asset)
 		}
 	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
-	for _, task := range movedTasks {
-		enqueueTaskWriteThrough(projectPath, task)
+	for _, asset := range movedAssets {
+		enqueueAssetWriteThrough(projectPath, asset)
 	}
 	return nil
 }
@@ -695,7 +695,7 @@ func (t *AssetService) ChangeAssetCollection(projectPath string, assetIds []stri
 // Updates the database and moves the physical files if they exist on disk.
 // Checks for name+extension conflicts in the target collection before moving.
 // Returns an error if any asset would conflict or if the operation fails.
-func (t *AssetService) MoveAssetsToCollection(projectPath string, assetIds []string, targetEntityId string) error {
+func (t *AssetService) MoveAssetsToCollection(projectPath string, assetIds []string, targetCollectionId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -709,7 +709,7 @@ func (t *AssetService) MoveAssetsToCollection(projectPath string, assetIds []str
 
 	// Get target directory path
 	var targetDir string
-	if targetEntityId == "" {
+	if targetCollectionId == "" {
 		// Moving to root - use project's working directory
 		targetDir, err = utils.GetProjectWorkingDir(tx)
 		if err != nil {
@@ -717,31 +717,31 @@ func (t *AssetService) MoveAssetsToCollection(projectPath string, assetIds []str
 		}
 	} else {
 		// Moving to a collection - get its file path
-		targetEntity, err := repository.GetEntity(tx, targetEntityId)
+		targetCollection, err := repository.GetCollection(tx, targetCollectionId)
 		if err != nil {
 			return err
 		}
-		targetDir = targetEntity.FilePath
+		targetDir = targetCollection.FilePath
 	}
 
 	// Check for name+extension conflicts in target collection
 	var conflicts []string
-	var assetsToMove []models.Task
+	var assetsToMove []models.Asset
 	for _, assetId := range assetIds {
-		asset, err := repository.GetTask(tx, assetId)
+		asset, err := repository.GetAsset(tx, assetId)
 		if err != nil {
 			return err
 		}
 		// Skip if already in target collection
-		if asset.EntityId == targetEntityId {
+		if asset.CollectionId == targetCollectionId {
 			continue
 		}
-		// Check if a task with same name+extension exists in target collection
-		_, err = repository.GetTaskByName(tx, asset.Name, targetEntityId, asset.Extension)
+		// Check if a asset with same name+extension exists in target collection
+		_, err = repository.GetAssetByName(tx, asset.Name, targetCollectionId, asset.Extension)
 		if err == nil {
-			// Task exists - this is a conflict
+			// Asset exists - this is a conflict
 			conflicts = append(conflicts, asset.Name+asset.Extension)
-		} else if err != error_service.ErrTaskNotFound {
+		} else if err != error_service.ErrAssetNotFound {
 			// Some other error occurred
 			return err
 		}
@@ -773,15 +773,15 @@ func (t *AssetService) MoveAssetsToCollection(projectPath string, assetIds []str
 		}
 
 		// Update database
-		repository.ChangeEntity(tx, asset.Id, targetEntityId)
+		repository.ChangeCollection(tx, asset.Id, targetCollectionId)
 	}
 
-	// Read updated tasks for write-through before commit
-	var movedSimpleTasks []models.Task
+	// Read updated assets for write-through before commit
+	var movedSimpleAssets []models.Asset
 	for _, asset := range assetsToMove {
-		simpleTask, err := repository.GetSimpleTask(tx, asset.Id)
+		simpleAsset, err := repository.GetSimpleAsset(tx, asset.Id)
 		if err == nil {
-			movedSimpleTasks = append(movedSimpleTasks, simpleTask)
+			movedSimpleAssets = append(movedSimpleAssets, simpleAsset)
 		}
 	}
 
@@ -789,13 +789,13 @@ func (t *AssetService) MoveAssetsToCollection(projectPath string, assetIds []str
 	if err != nil {
 		return err
 	}
-	for _, task := range movedSimpleTasks {
-		enqueueTaskWriteThrough(projectPath, task)
+	for _, asset := range movedSimpleAssets {
+		enqueueAssetWriteThrough(projectPath, asset)
 	}
 	return nil
 }
 
-func (t *AssetService) DeleteAsset(projectPath, taskId string, removeFiles bool) error {
+func (t *AssetService) DeleteAsset(projectPath, assetId string, removeFiles bool) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -807,7 +807,7 @@ func (t *AssetService) DeleteAsset(projectPath, taskId string, removeFiles bool)
 	}
 	defer tx.Rollback()
 
-	err = repository.DeleteTask(tx, taskId, removeFiles, true)
+	err = repository.DeleteAsset(tx, assetId, removeFiles, true)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -819,31 +819,31 @@ func (t *AssetService) DeleteAsset(projectPath, taskId string, removeFiles bool)
 	return nil
 }
 
-func (t *AssetService) UpdateAsset(projectPath, taskId, name, taskTypeId string, isResource bool, pointer string, tags []string) (models.Task, error) {
+func (t *AssetService) UpdateAsset(projectPath, assetId, name, assetTypeId string, isResource bool, pointer string, tags []string) (models.Asset, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer tx.Rollback()
 
-	updatedTask, err := repository.UpdateTask(tx, taskId, name, taskTypeId, isResource, pointer, tags)
+	updatedAsset, err := repository.UpdateAsset(tx, assetId, name, assetTypeId, isResource, pointer, tags)
 	if err != nil {
 		tx.Rollback()
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	err = tx.Commit()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
-	return updatedTask, nil
+	return updatedAsset, nil
 }
 
-func (t *AssetService) ChangeAssetType(projectPath, taskId, taskTypeId string) error {
+func (t *AssetService) ChangeAssetType(projectPath, assetId, assetTypeId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -855,11 +855,11 @@ func (t *AssetService) ChangeAssetType(projectPath, taskId, taskTypeId string) e
 	}
 	defer tx.Rollback()
 
-	err = repository.ChangeTaskType(tx, taskId, taskTypeId)
+	err = repository.ChangeAssetType(tx, assetId, assetTypeId)
 	if err != nil {
 		return err
 	}
-	task, err := repository.GetSimpleTask(tx, taskId)
+	asset, err := repository.GetSimpleAsset(tx, assetId)
 	if err != nil {
 		return err
 	}
@@ -867,11 +867,11 @@ func (t *AssetService) ChangeAssetType(projectPath, taskId, taskTypeId string) e
 	if err != nil {
 		return err
 	}
-	enqueueTaskWriteThrough(projectPath, task)
+	enqueueAssetWriteThrough(projectPath, asset)
 	return nil
 }
 
-func (t *AssetService) ToggleIsTask(projectPath, taskId string, isTask bool) error {
+func (t *AssetService) ToggleIsAsset(projectPath, assetId string, isAsset bool) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -883,11 +883,11 @@ func (t *AssetService) ToggleIsTask(projectPath, taskId string, isTask bool) err
 	}
 	defer tx.Rollback()
 
-	err = repository.ToggleIsTask(tx, taskId, isTask)
+	err = repository.ToggleIsAsset(tx, assetId, isAsset)
 	if err != nil {
 		return err
 	}
-	task, err := repository.GetSimpleTask(tx, taskId)
+	asset, err := repository.GetSimpleAsset(tx, assetId)
 	if err != nil {
 		return err
 	}
@@ -895,77 +895,77 @@ func (t *AssetService) ToggleIsTask(projectPath, taskId string, isTask bool) err
 	if err != nil {
 		return err
 	}
-	enqueueTaskWriteThrough(projectPath, task)
+	enqueueAssetWriteThrough(projectPath, asset)
 	return nil
 }
 
-func (t *AssetService) RenameAsset(projectPath, taskId, name string) (models.Task, error) {
+func (t *AssetService) RenameAsset(projectPath, assetId, name string) (models.Asset, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer tx.Rollback()
 
-	updatedTask, err := repository.RenameTask(tx, taskId, name)
+	updatedAsset, err := repository.RenameAsset(tx, assetId, name)
 	if err != nil {
 		tx.Rollback()
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
-	simpleTask, err := repository.GetSimpleTask(tx, taskId)
+	simpleAsset, err := repository.GetSimpleAsset(tx, assetId)
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	err = tx.Commit()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
-	enqueueTaskWriteThrough(projectPath, simpleTask)
-	return updatedTask, nil
+	enqueueAssetWriteThrough(projectPath, simpleAsset)
+	return updatedAsset, nil
 }
 
-func (t *AssetService) AddPreview(projectPath, taskId, previewPath string) (models.Task, error) {
+func (t *AssetService) AddPreview(projectPath, assetId, previewPath string) (models.Asset, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer tx.Rollback()
 
 	preview, err := repository.CreatePreview(tx, previewPath)
 	if err != nil {
 		tx.Rollback()
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
-	err = repository.SetEntityPreview(tx, taskId, "task", preview.Hash)
+	err = repository.SetCollectionPreview(tx, assetId, "asset", preview.Hash)
 	if err != nil {
 		tx.Rollback()
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
-	updatedTask, err := repository.GetTask(tx, taskId)
+	updatedAsset, err := repository.GetAsset(tx, assetId)
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 
-	return updatedTask, nil
+	return updatedAsset, nil
 }
 
-// AssignAsset assigns a task to a user.
-// If the task is a resource (is_resource == true), it will be converted to a task first.
-func (t *AssetService) AssignAsset(projectPath, taskId, userId string) error {
+// AssignAsset assigns a asset to a user.
+// If the asset is a resource (is_resource == true), it will be converted to a asset first.
+func (t *AssetService) AssignAsset(projectPath, assetId, userId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -977,23 +977,23 @@ func (t *AssetService) AssignAsset(projectPath, taskId, userId string) error {
 	}
 	defer tx.Rollback()
 
-	task, err := repository.GetTask(tx, taskId)
+	asset, err := repository.GetAsset(tx, assetId)
 	if err != nil {
 		return err
 	}
 
-	if task.IsResource {
-		err = repository.ToggleIsTask(tx, taskId, true)
+	if asset.IsResource {
+		err = repository.ToggleIsAsset(tx, assetId, true)
 		if err != nil {
 			return err
 		}
 	}
 
-	err = repository.AssignTask(tx, taskId, userId)
+	err = repository.AssignAsset(tx, assetId, userId)
 	if err != nil {
 		return err
 	}
-	task, err = repository.GetSimpleTask(tx, taskId)
+	asset, err = repository.GetSimpleAsset(tx, assetId)
 	if err != nil {
 		return err
 	}
@@ -1001,10 +1001,10 @@ func (t *AssetService) AssignAsset(projectPath, taskId, userId string) error {
 	if err != nil {
 		return err
 	}
-	enqueueTaskWriteThrough(projectPath, task)
+	enqueueAssetWriteThrough(projectPath, asset)
 	return nil
 }
-func (t *AssetService) UnassignAsset(projectPath, taskId string) error {
+func (t *AssetService) UnassignAsset(projectPath, assetId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -1016,12 +1016,12 @@ func (t *AssetService) UnassignAsset(projectPath, taskId string) error {
 	}
 	defer tx.Rollback()
 
-	err = repository.UnAssignTask(tx, taskId)
+	err = repository.UnAssignAsset(tx, assetId)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
-	task, err := repository.GetSimpleTask(tx, taskId)
+	asset, err := repository.GetSimpleAsset(tx, assetId)
 	if err != nil {
 		return err
 	}
@@ -1029,10 +1029,10 @@ func (t *AssetService) UnassignAsset(projectPath, taskId string) error {
 	if err != nil {
 		return err
 	}
-	enqueueTaskWriteThrough(projectPath, task)
+	enqueueAssetWriteThrough(projectPath, asset)
 	return nil
 }
-func (t *AssetService) UnassignAssets(projectPath string, taskIds []string) error {
+func (t *AssetService) UnassignAssets(projectPath string, assetIds []string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -1044,28 +1044,28 @@ func (t *AssetService) UnassignAssets(projectPath string, taskIds []string) erro
 	}
 	defer tx.Rollback()
 
-	err = repository.UnAssignTasks(tx, taskIds)
+	err = repository.UnAssignAssets(tx, assetIds)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
-	var unassignedTasks []models.Task
-	for _, id := range taskIds {
-		task, err := repository.GetSimpleTask(tx, id)
+	var unassignedAssets []models.Asset
+	for _, id := range assetIds {
+		asset, err := repository.GetSimpleAsset(tx, id)
 		if err == nil {
-			unassignedTasks = append(unassignedTasks, task)
+			unassignedAssets = append(unassignedAssets, asset)
 		}
 	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
-	for _, task := range unassignedTasks {
-		enqueueTaskWriteThrough(projectPath, task)
+	for _, asset := range unassignedAssets {
+		enqueueAssetWriteThrough(projectPath, asset)
 	}
 	return nil
 }
-func (t *AssetService) AssetFileStatus(projectPath, taskId string) (string, error) {
+func (t *AssetService) AssetFileStatus(projectPath, assetId string) (string, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return "", err
@@ -1077,13 +1077,13 @@ func (t *AssetService) AssetFileStatus(projectPath, taskId string) (string, erro
 	}
 	defer tx.Rollback()
 
-	task, err := repository.GetTask(tx, taskId)
+	asset, err := repository.GetAsset(tx, assetId)
 	if err != nil {
 		return "", err
 	}
-	return task.FileStatus, nil
+	return asset.FileStatus, nil
 }
-func (t *AssetService) AssetFilesStatus(projectPath string, taskIds []string) (map[string]string, error) {
+func (t *AssetService) AssetFilesStatus(projectPath string, assetIds []string) (map[string]string, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return map[string]string{}, err
@@ -1095,14 +1095,14 @@ func (t *AssetService) AssetFilesStatus(projectPath string, taskIds []string) (m
 	}
 	defer tx.Rollback()
 
-	filesStatus, err := repository.GetFilesStatus(tx, taskIds)
+	filesStatus, err := repository.GetFilesStatus(tx, assetIds)
 	if err != nil {
 		return map[string]string{}, err
 	}
 	return filesStatus, nil
 }
 
-func (t *AssetService) GetAssetState(projectPath string, taskId string) (string, error) {
+func (t *AssetService) GetAssetState(projectPath string, assetId string) (string, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return "", err
@@ -1114,14 +1114,14 @@ func (t *AssetService) GetAssetState(projectPath string, taskId string) (string,
 	}
 	defer tx.Rollback()
 
-	assetState, err := repository.GetAssetState(tx, taskId)
+	assetState, err := repository.GetAssetState(tx, assetId)
 	if err != nil {
 		return "", err
 	}
 	return assetState, nil
 }
 
-func (t *AssetService) ToggleIsResource(projectPath string, taskIds []string, isResource bool) error {
+func (t *AssetService) ToggleIsResource(projectPath string, assetIds []string, isResource bool) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -1133,14 +1133,14 @@ func (t *AssetService) ToggleIsResource(projectPath string, taskIds []string, is
 	}
 	defer tx.Rollback()
 
-	err = repository.ToggleIsResourceM(tx, taskIds, isResource)
+	err = repository.ToggleIsResourceM(tx, assetIds, isResource)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (t *AssetService) RevealAsset(projectPath, taskId string) error {
+func (t *AssetService) RevealAsset(projectPath, assetId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -1152,38 +1152,38 @@ func (t *AssetService) RevealAsset(projectPath, taskId string) error {
 	}
 	defer tx.Rollback()
 
-	task, err := repository.GetTask(tx, taskId)
+	asset, err := repository.GetAsset(tx, assetId)
 	if err != nil {
 		return err
 	}
-	utils.RevealInExplorer(task.GetFilePath())
+	utils.RevealInExplorer(asset.GetFilePath())
 	return nil
 }
 
 // dependencies
-func (t *AssetService) AddEntityDependency(projectPath, taskId, dependencyId, dependencyTypeId string) (models.TaskDependency, error) {
+func (t *AssetService) AddCollectionDependency(projectPath, assetId, dependencyId, dependencyTypeId string) (models.AssetDependency, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return models.TaskDependency{}, err
+		return models.AssetDependency{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return models.TaskDependency{}, err
+		return models.AssetDependency{}, err
 	}
 	defer tx.Rollback()
-	entityDependency, err := repository.AddEntityDependency(tx, "", taskId, dependencyId, dependencyTypeId)
+	collectionDependency, err := repository.AddCollectionDependency(tx, "", assetId, dependencyId, dependencyTypeId)
 	if err != nil {
-		return models.TaskDependency{}, err
+		return models.AssetDependency{}, err
 	}
 	err = tx.Commit()
 	if err != nil {
-		return models.TaskDependency{}, err
+		return models.AssetDependency{}, err
 	}
-	enqueueEntityDependencyWriteThrough(projectPath, entityDependency)
-	return entityDependency, nil
+	enqueueCollectionDependencyWriteThrough(projectPath, collectionDependency)
+	return collectionDependency, nil
 }
-func (t *AssetService) RemoveEntityDependency(projectPath, taskId, dependencyId string) error {
+func (t *AssetService) RemoveCollectionDependency(projectPath, assetId, dependencyId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -1194,12 +1194,12 @@ func (t *AssetService) RemoveEntityDependency(projectPath, taskId, dependencyId 
 		return err
 	}
 	defer tx.Rollback()
-	// Read the entity dependency row ID before deletion for tomb lookup
-	dep, err := repository.GetEntityDependencyByKeys(tx, taskId, dependencyId)
+	// Read the collection dependency row ID before deletion for tomb lookup
+	dep, err := repository.GetCollectionDependencyByKeys(tx, assetId, dependencyId)
 	if err != nil {
 		return err
 	}
-	err = repository.RemoveEntityDependency(tx, taskId, dependencyId)
+	err = repository.RemoveCollectionDependency(tx, assetId, dependencyId)
 	if err != nil {
 		return err
 	}
@@ -1214,30 +1214,30 @@ func (t *AssetService) RemoveEntityDependency(projectPath, taskId, dependencyId 
 	enqueueTombWriteThrough(projectPath, tomb)
 	return nil
 }
-func (t *AssetService) AddAssetDependency(projectPath, taskId, dependencyId, dependencyTypeId string) (models.TaskDependency, error) {
+func (t *AssetService) AddAssetDependency(projectPath, assetId, dependencyId, dependencyTypeId string) (models.AssetDependency, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return models.TaskDependency{}, err
+		return models.AssetDependency{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return models.TaskDependency{}, err
+		return models.AssetDependency{}, err
 	}
 	defer tx.Rollback()
 
-	taskDependency, err := repository.AddDependency(tx, "", taskId, dependencyId, dependencyTypeId)
+	assetDependency, err := repository.AddDependency(tx, "", assetId, dependencyId, dependencyTypeId)
 	if err != nil {
-		return models.TaskDependency{}, err
+		return models.AssetDependency{}, err
 	}
 	err = tx.Commit()
 	if err != nil {
-		return models.TaskDependency{}, err
+		return models.AssetDependency{}, err
 	}
-	enqueueDependencyWriteThrough(projectPath, taskDependency)
-	return taskDependency, nil
+	enqueueDependencyWriteThrough(projectPath, assetDependency)
+	return assetDependency, nil
 }
-func (t *AssetService) RemoveAssetDependency(projectPath, taskId, dependencyId string) error {
+func (t *AssetService) RemoveAssetDependency(projectPath, assetId, dependencyId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -1248,7 +1248,7 @@ func (t *AssetService) RemoveAssetDependency(projectPath, taskId, dependencyId s
 		return err
 	}
 	defer tx.Rollback()
-	err = repository.RemoveTaskDependency(tx, taskId, dependencyId)
+	err = repository.RemoveAssetDependency(tx, assetId, dependencyId)
 	if err != nil {
 		return err
 	}
@@ -1260,44 +1260,44 @@ func (t *AssetService) RemoveAssetDependency(projectPath, taskId, dependencyId s
 
 	return nil
 }
-func (t *AssetService) GetAssetDependencies2(projectPath string, taskIds []string) ([]models.Task, error) {
+func (t *AssetService) GetAssetDependencies2(projectPath string, assetIds []string) ([]models.Asset, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
 	defer dbConn.Close()
 
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
 	defer tx.Rollback()
 
-	if len(taskIds) == 0 {
-		return []models.Task{}, nil
+	if len(assetIds) == 0 {
+		return []models.Asset{}, nil
 	}
 
-	tasks := []models.Task{}
-	quotedTaskIds := make([]string, len(taskIds))
-	for i, id := range taskIds {
-		quotedTaskIds[i] = fmt.Sprintf("'%s'", id)
+	assets := []models.Asset{}
+	quotedAssetIds := make([]string, len(assetIds))
+	for i, id := range assetIds {
+		quotedAssetIds[i] = fmt.Sprintf("'%s'", id)
 	}
 
-	tasksQuery := fmt.Sprintf(` SELECT * FROM full_task  WHERE id IN (%s) AND trashed = 0 ORDER BY name `, strings.Join(quotedTaskIds, ","))
+	assetsQuery := fmt.Sprintf(` SELECT * FROM full_asset  WHERE id IN (%s) AND trashed = 0 ORDER BY name `, strings.Join(quotedAssetIds, ","))
 
-	err = tx.Select(&tasks, tasksQuery)
+	err = tx.Select(&assets, assetsQuery)
 	if err != nil && err != sql.ErrNoRows {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return tasks, err
+		return assets, err
 	}
 
-	return tasks, nil
+	return assets, nil
 }
-func (t *AssetService) GetAssetDependencies(projectPath string, taskIds []string) ([]interface{}, error) {
+func (t *AssetService) GetAssetDependencies(projectPath string, assetIds []string) ([]interface{}, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return []interface{}{}, err
@@ -1310,70 +1310,70 @@ func (t *AssetService) GetAssetDependencies(projectPath string, taskIds []string
 	}
 	defer tx.Rollback()
 
-	// If no task IDs provided, return empty result
-	if len(taskIds) == 0 {
+	// If no asset IDs provided, return empty result
+	if len(assetIds) == 0 {
 		return []interface{}{}, nil
 	}
 
 	result := []interface{}{}
 
-	// Get the task records
-	tasks := []models.Task{}
-	quotedTaskIds := make([]string, len(taskIds))
-	for i, id := range taskIds {
-		quotedTaskIds[i] = fmt.Sprintf("'%s'", id)
+	// Get the asset records
+	assets := []models.Asset{}
+	quotedAssetIds := make([]string, len(assetIds))
+	for i, id := range assetIds {
+		quotedAssetIds[i] = fmt.Sprintf("'%s'", id)
 	}
 
-	tasksQuery := fmt.Sprintf(`
-		SELECT * FROM full_task 
+	assetsQuery := fmt.Sprintf(`
+		SELECT * FROM full_asset 
 		WHERE id IN (%s) AND trashed = 0 
 		ORDER BY name
-	`, strings.Join(quotedTaskIds, ","))
+	`, strings.Join(quotedAssetIds, ","))
 
-	err = tx.Select(&tasks, tasksQuery)
+	err = tx.Select(&assets, assetsQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return []interface{}{}, err
 	}
 
-	// Add tasks to result
-	for _, task := range tasks {
-		result = append(result, task)
+	// Add assets to result
+	for _, asset := range assets {
+		result = append(result, asset)
 	}
 
-	// Find IDs that didn't match any tasks
-	foundTaskIds := make(map[string]bool)
-	for _, task := range tasks {
-		foundTaskIds[task.Id] = true
+	// Find IDs that didn't match any assets
+	foundAssetIds := make(map[string]bool)
+	for _, asset := range assets {
+		foundAssetIds[asset.Id] = true
 	}
 
 	missingIds := []string{}
-	for _, id := range taskIds {
-		if !foundTaskIds[id] {
+	for _, id := range assetIds {
+		if !foundAssetIds[id] {
 			missingIds = append(missingIds, id)
 		}
 	}
 
-	// Get entities for missing IDs
+	// Get collections for missing IDs
 	if len(missingIds) > 0 {
-		entities := []models.Entity{}
+		collections := []models.Collection{}
 		quotedMissingIds := make([]string, len(missingIds))
 		for i, id := range missingIds {
 			quotedMissingIds[i] = fmt.Sprintf("'%s'", id)
 		}
 
-		entitiesQuery := fmt.Sprintf(`
-			SELECT * FROM full_entity 
+		collectionsQuery := fmt.Sprintf(`
+			SELECT * FROM full_collection 
 			WHERE id IN (%s) AND trashed = 0 
 			ORDER BY name
 		`, strings.Join(quotedMissingIds, ","))
 
-		err = tx.Select(&entities, entitiesQuery)
+		err = tx.Select(&collections, collectionsQuery)
 		if err != nil && err != sql.ErrNoRows {
 			return []interface{}{}, err
 		}
 
-		for _, entity := range entities {
-			result = append(result, entity)
+		for _, collection := range collections {
+			result = append(result, collection)
 		}
 	}
 
@@ -1386,7 +1386,7 @@ func (t *AssetService) GetAssetDependencies(projectPath string, taskIds []string
 	return result, nil
 }
 
-func (t *AssetService) GetRecursiveDependencies(projectPath string, taskId string, maxDepth int) ([]interface{}, error) {
+func (t *AssetService) GetRecursiveDependencies(projectPath string, assetId string, maxDepth int) ([]interface{}, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return []interface{}{}, err
@@ -1399,34 +1399,34 @@ func (t *AssetService) GetRecursiveDependencies(projectPath string, taskId strin
 	}
 	defer tx.Rollback()
 
-	// Get all task dependencies records
-	allTaskDependencies := []models.TaskDependency{}
-	query := `SELECT task_id, dependency_id FROM task_dependency`
-	err = tx.Select(&allTaskDependencies, query)
+	// Get all asset dependencies records
+	allAssetDependencies := []models.AssetDependency{}
+	query := `SELECT asset_id, dependency_id FROM asset_dependency`
+	err = tx.Select(&allAssetDependencies, query)
 	if err != nil {
 		return []interface{}{}, err
 	}
 
-	// Get all entity dependencies records
-	allEntityDependencies := []models.EntityDependency{}
-	query = `SELECT task_id, dependency_id FROM entity_dependency`
-	err = tx.Select(&allEntityDependencies, query)
+	// Get all collection dependencies records
+	allCollectionDependencies := []models.CollectionDependency{}
+	query = `SELECT asset_id, dependency_id FROM collection_dependency`
+	err = tx.Select(&allCollectionDependencies, query)
 	if err != nil {
 		return []interface{}{}, err
 	}
 
-	// Get all task info for checking task existence
-	allTaskInfo := []models.Task{}
-	query = `SELECT id FROM task WHERE trashed = 0`
-	err = tx.Select(&allTaskInfo, query)
+	// Get all asset info for checking asset existence
+	allAssetInfo := []models.Asset{}
+	query = `SELECT id FROM asset WHERE trashed = 0`
+	err = tx.Select(&allAssetInfo, query)
 	if err != nil {
 		return []interface{}{}, err
 	}
 
-	// Get all entity info for checking entity existence
-	allEntityInfo := []models.Entity{}
-	query = `SELECT id FROM entity WHERE trashed = 0`
-	err = tx.Select(&allEntityInfo, query)
+	// Get all collection info for checking collection existence
+	allCollectionInfo := []models.Collection{}
+	query = `SELECT id FROM collection WHERE trashed = 0`
+	err = tx.Select(&allCollectionInfo, query)
 	if err != nil {
 		return []interface{}{}, err
 	}
@@ -1443,56 +1443,56 @@ func (t *AssetService) GetRecursiveDependencies(projectPath string, taskId strin
 
 	// Helper function to collect dependencies recursively
 	var collectDependencies func(string, int, string)
-	collectDependencies = func(currentTaskId string, currentDepth int, parentTaskId string) {
+	collectDependencies = func(currentAssetId string, currentDepth int, parentAssetId string) {
 		if currentDepth >= maxDepth {
 			return
 		}
 
-		// If we encounter the original taskId, skip collecting it or its dependencies
-		if currentTaskId == taskId && currentDepth > 0 {
+		// If we encounter the original assetId, skip collecting it or its dependencies
+		if currentAssetId == assetId && currentDepth > 0 {
 			return
 		}
 
-		// Get direct task dependencies
-		for _, taskDep := range allTaskDependencies {
-			if taskDep.TaskId == currentTaskId {
-				depId := taskDep.DependencyId
-				if depId == taskId {
-					// Skip collecting the original taskId as a dependency
+		// Get direct asset dependencies
+		for _, assetDep := range allAssetDependencies {
+			if assetDep.AssetId == currentAssetId {
+				depId := assetDep.DependencyId
+				if depId == assetId {
+					// Skip collecting the original assetId as a dependency
 					continue
 				}
 				if existing, exists := dependenciesMap[depId]; !exists || currentDepth+1 < existing.Depth {
 					dependenciesMap[depId] = DependencyInfo{
 						ID:       depId,
 						Depth:    currentDepth + 1,
-						ParentID: currentTaskId, // The current task is the parent of this dependency
+						ParentID: currentAssetId, // The current asset is the parent of this dependency
 					}
-					collectDependencies(depId, currentDepth+1, currentTaskId)
+					collectDependencies(depId, currentDepth+1, currentAssetId)
 				}
 			}
 		}
 
-		// Get entity dependencies (entities only, no child traversal)
-		for _, entityDep := range allEntityDependencies {
-			if entityDep.TaskId == currentTaskId {
-				entityId := entityDep.DependencyId
-				if entityId == taskId {
-					// Skip collecting the original taskId as a dependency
+		// Get collection dependencies (collections only, no child traversal)
+		for _, collectionDep := range allCollectionDependencies {
+			if collectionDep.AssetId == currentAssetId {
+				collectionId := collectionDep.DependencyId
+				if collectionId == assetId {
+					// Skip collecting the original assetId as a dependency
 					continue
 				}
-				if existing, exists := dependenciesMap[entityId]; !exists || currentDepth+1 < existing.Depth {
-					dependenciesMap[entityId] = DependencyInfo{
-						ID:       entityId,
+				if existing, exists := dependenciesMap[collectionId]; !exists || currentDepth+1 < existing.Depth {
+					dependenciesMap[collectionId] = DependencyInfo{
+						ID:       collectionId,
 						Depth:    currentDepth + 1,
-						ParentID: currentTaskId, // The current task is the parent of this entity dependency
+						ParentID: currentAssetId, // The current asset is the parent of this collection dependency
 					}
 				}
 			}
 		}
 	}
 
-	// Start recursive collection from the given task
-	collectDependencies(taskId, 0, "")
+	// Start recursive collection from the given asset
+	collectDependencies(assetId, 0, "")
 
 	// Get all dependency IDs
 	dependencyIds := make([]string, 0, len(dependenciesMap))
@@ -1504,82 +1504,82 @@ func (t *AssetService) GetRecursiveDependencies(projectPath string, taskId strin
 		return result, nil
 	}
 
-	// Fetch task objects
-	tasks := []models.Task{}
-	quotedTaskIds := make([]string, 0)
+	// Fetch asset objects
+	assets := []models.Asset{}
+	quotedAssetIds := make([]string, 0)
 
 	for _, depId := range dependencyIds {
-		// Check if this ID corresponds to a task
-		for _, task := range allTaskInfo {
-			if task.Id == depId {
-				quotedTaskIds = append(quotedTaskIds, fmt.Sprintf("'%s'", depId))
+		// Check if this ID corresponds to a asset
+		for _, asset := range allAssetInfo {
+			if asset.Id == depId {
+				quotedAssetIds = append(quotedAssetIds, fmt.Sprintf("'%s'", depId))
 				break
 			}
 		}
 	}
 
-	if len(quotedTaskIds) > 0 {
-		tasksQuery := fmt.Sprintf(`
-			SELECT * FROM full_task 
+	if len(quotedAssetIds) > 0 {
+		assetsQuery := fmt.Sprintf(`
+			SELECT * FROM full_asset 
 			WHERE id IN (%s) AND trashed = 0 
 			ORDER BY name
-		`, strings.Join(quotedTaskIds, ","))
+		`, strings.Join(quotedAssetIds, ","))
 
-		err = tx.Select(&tasks, tasksQuery)
+		err = tx.Select(&assets, assetsQuery)
 		if err != nil && err != sql.ErrNoRows {
 			return []interface{}{}, err
 		}
 
-		// Add depth and parent information to tasks
-		for _, task := range tasks {
-			depInfo := dependenciesMap[task.Id]
-			taskWithDepth := map[string]interface{}{
-				"task":     task,
-				"name":     task.Name,
+		// Add depth and parent information to assets
+		for _, asset := range assets {
+			depInfo := dependenciesMap[asset.Id]
+			assetWithDepth := map[string]interface{}{
+				"asset":     asset,
+				"name":     asset.Name,
 				"depth":    depInfo.Depth,
 				"parentId": depInfo.ParentID,
-				"type":     "task",
+				"type":     "asset",
 			}
-			result = append(result, taskWithDepth)
+			result = append(result, assetWithDepth)
 		}
 	}
 
-	// Fetch entity objects
-	entities := []models.Entity{}
-	quotedEntityIds := make([]string, 0)
+	// Fetch collection objects
+	collections := []models.Collection{}
+	quotedCollectionIds := make([]string, 0)
 
 	for _, depId := range dependencyIds {
-		// Check if this ID corresponds to an entity
-		for _, entity := range allEntityInfo {
-			if entity.Id == depId {
-				quotedEntityIds = append(quotedEntityIds, fmt.Sprintf("'%s'", depId))
+		// Check if this ID corresponds to an collection
+		for _, collection := range allCollectionInfo {
+			if collection.Id == depId {
+				quotedCollectionIds = append(quotedCollectionIds, fmt.Sprintf("'%s'", depId))
 				break
 			}
 		}
 	}
 
-	if len(quotedEntityIds) > 0 {
-		entitiesQuery := fmt.Sprintf(`
-			SELECT * FROM full_entity 
+	if len(quotedCollectionIds) > 0 {
+		collectionsQuery := fmt.Sprintf(`
+			SELECT * FROM full_collection 
 			WHERE id IN (%s) AND trashed = 0 
 			ORDER BY name
-		`, strings.Join(quotedEntityIds, ","))
+		`, strings.Join(quotedCollectionIds, ","))
 
-		err = tx.Select(&entities, entitiesQuery)
+		err = tx.Select(&collections, collectionsQuery)
 		if err != nil && err != sql.ErrNoRows {
 			return []interface{}{}, err
 		}
 
-		// Add depth and parent information to entities
-		for _, entity := range entities {
-			depInfo := dependenciesMap[entity.Id]
-			entityWithDepth := map[string]interface{}{
-				"entity":   entity,
+		// Add depth and parent information to collections
+		for _, collection := range collections {
+			depInfo := dependenciesMap[collection.Id]
+			collectionWithDepth := map[string]interface{}{
+				"collection":   collection,
 				"depth":    depInfo.Depth,
 				"parentId": depInfo.ParentID,
-				"type":     "entity",
+				"type":     "collection",
 			}
-			result = append(result, entityWithDepth)
+			result = append(result, collectionWithDepth)
 		}
 	}
 
@@ -1591,66 +1591,66 @@ func (t *AssetService) GetRecursiveDependencies(projectPath string, taskId strin
 	return result, nil
 }
 
-func (t *AssetService) GetAssets(projectPath string) ([]models.Task, error) {
+func (t *AssetService) GetAssets(projectPath string) ([]models.Asset, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
 	defer tx.Rollback()
 
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
 	userData, err := repository.GetUser(tx, user.Id)
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
 	userRole, err := repository.GetRole(tx, userData.RoleId)
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
-	if userRole.ViewTask {
+	if userRole.ViewAsset {
 		start := time.Now()
-		tasks, err := repository.GetTasks(tx, true)
+		assets, err := repository.GetAssets(tx, true)
 		if err != nil {
-			return []models.Task{}, err
+			return []models.Asset{}, err
 		}
 		elapsed := time.Since(start)
-		fmt.Printf("GetTasks operation took %s\n", elapsed)
-		return tasks, nil
+		fmt.Printf("GetAssets operation took %s\n", elapsed)
+		return assets, nil
 	} else {
-		tasks, err := repository.GetUserTasks(tx, user.Id)
+		assets, err := repository.GetUserAssets(tx, user.Id)
 		if err != nil {
-			return []models.Task{}, err
+			return []models.Asset{}, err
 		}
-		return tasks, nil
+		return assets, nil
 	}
 }
 
-// GetAssetTasks gets all tasks where is_resource is false with minimal fields for UI display
-func (t *AssetService) GetAssetTasks(projectPath string) ([]models.Task, error) {
+// GetAssetAssets gets all assets where is_resource is false with minimal fields for UI display
+func (t *AssetService) GetAssetAssets(projectPath string) ([]models.Asset, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
 	defer tx.Rollback()
 
-	tasks, err := repository.GetAssetTasks(tx)
+	assets, err := repository.GetAssetAssets(tx)
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
-	return tasks, nil
+	return assets, nil
 }
 
 func (t *AssetService) TestData() string {
@@ -1681,27 +1681,27 @@ func (t *AssetService) GetAssetsPB(projectPath string) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	if userRole.ViewTask {
+	if userRole.ViewAsset {
 		start := time.Now()
-		tasks, err := repository.GetTasks(tx, true)
+		assets, err := repository.GetAssets(tx, true)
 		if err != nil {
 			return []byte{}, err
 		}
 
-		pbTasks := repository.ToPbFullTasks(tasks)
-		pbTasksList := &repositorypb.FullTaskList{FullTasks: pbTasks}
-		pbTasksBytes, err := proto.Marshal(pbTasksList)
+		pbAssets := repository.ToPbFullAssets(assets)
+		pbAssetsList := &repositorypb.FullAssetList{FullAssets: pbAssets}
+		pbAssetsBytes, err := proto.Marshal(pbAssetsList)
 		if err != nil {
 			return []byte{}, err
 		}
 
 		elapsed := time.Since(start)
-		fmt.Printf("GetTasks operation took %s\n", elapsed)
+		fmt.Printf("GetAssets operation took %s\n", elapsed)
 
 		//zlib compression
 		compressedData := bytes.NewBuffer(nil)
 		writer := zlib.NewWriter(compressedData)
-		_, err = writer.Write(pbTasksBytes)
+		_, err = writer.Write(pbAssetsBytes)
 		if err != nil {
 			return []byte{}, err
 		}
@@ -1713,21 +1713,21 @@ func (t *AssetService) GetAssetsPB(projectPath string) ([]byte, error) {
 
 		return compressedBytes, nil
 	} else {
-		tasks, err := repository.GetUserTasks(tx, user.Id)
+		assets, err := repository.GetUserAssets(tx, user.Id)
 		if err != nil {
 			return []byte{}, err
 		}
 
-		pbTasks := repository.ToPbFullTasks(tasks)
-		pbTasksList := &repositorypb.FullTaskList{FullTasks: pbTasks}
-		pbTasksBytes, err := proto.Marshal(pbTasksList)
+		pbAssets := repository.ToPbFullAssets(assets)
+		pbAssetsList := &repositorypb.FullAssetList{FullAssets: pbAssets}
+		pbAssetsBytes, err := proto.Marshal(pbAssetsList)
 		if err != nil {
 			return []byte{}, err
 		}
 
 		compressedData := bytes.NewBuffer(nil)
 		writer := zlib.NewWriter(compressedData)
-		_, err = writer.Write(pbTasksBytes)
+		_, err = writer.Write(pbAssetsBytes)
 		if err != nil {
 			return []byte{}, err
 		}
@@ -1741,23 +1741,23 @@ func (t *AssetService) GetAssetsPB(projectPath string) ([]byte, error) {
 }
 
 // asset types
-func (t *AssetService) GetAssetTypes(projectPath string) ([]models.TaskType, error) {
+func (t *AssetService) GetAssetTypes(projectPath string) ([]models.AssetType, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
-		return []models.TaskType{}, err
+		return []models.AssetType{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return []models.TaskType{}, err
+		return []models.AssetType{}, err
 	}
 	defer tx.Rollback()
 
-	taskTypes, err := repository.GetTaskTypes(tx)
+	assetTypes, err := repository.GetAssetTypes(tx)
 	if err != nil {
-		return []models.TaskType{}, err
+		return []models.AssetType{}, err
 	}
-	return taskTypes, nil
+	return assetTypes, nil
 }
 
 func (t *AssetService) DeleteAssetType(projectPath, id string) error {
@@ -1772,7 +1772,7 @@ func (t *AssetService) DeleteAssetType(projectPath, id string) error {
 	}
 	defer tx.Rollback()
 
-	err = repository.DeleteTaskType(tx, id)
+	err = repository.DeleteAssetType(tx, id)
 	if err != nil {
 		return err
 	}
@@ -1788,54 +1788,54 @@ func (t *AssetService) DeleteAssetType(projectPath, id string) error {
 	return nil
 }
 
-func (t *AssetService) CreateAssetType(projectPath, name, icon string) (models.TaskType, error) {
+func (t *AssetService) CreateAssetType(projectPath, name, icon string) (models.AssetType, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
-		return models.TaskType{}, err
+		return models.AssetType{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return models.TaskType{}, err
+		return models.AssetType{}, err
 	}
 	defer tx.Rollback()
 
-	taskTypes, err := repository.CreateTaskType(tx, "", name, icon)
+	assetTypes, err := repository.CreateAssetType(tx, "", name, icon)
 	if err != nil {
-		return models.TaskType{}, err
+		return models.AssetType{}, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return models.TaskType{}, err
+		return models.AssetType{}, err
 	}
-	enqueueTaskTypeWriteThrough(projectPath, taskTypes)
-	return taskTypes, nil
+	enqueueAssetTypeWriteThrough(projectPath, assetTypes)
+	return assetTypes, nil
 }
 
-func (t *AssetService) UpdateAssetType(projectPath, id, name, icon string) (models.TaskType, error) {
+func (t *AssetService) UpdateAssetType(projectPath, id, name, icon string) (models.AssetType, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
-		return models.TaskType{}, err
+		return models.AssetType{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return models.TaskType{}, err
+		return models.AssetType{}, err
 	}
 	defer tx.Rollback()
 
-	taskType, err := repository.UpdateTaskType(tx, id, name, icon)
+	assetType, err := repository.UpdateAssetType(tx, id, name, icon)
 	if err != nil {
-		return models.TaskType{}, err
+		return models.AssetType{}, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return models.TaskType{}, err
+		return models.AssetType{}, err
 	}
-	enqueueTaskTypeWriteThrough(projectPath, taskType)
-	return taskType, nil
+	enqueueAssetTypeWriteThrough(projectPath, assetType)
+	return assetType, nil
 }
 
 func (t *AssetService) GetAssetsStates(projectPath, projectWorkingDir string, ignoreList []string) (AssetsStates, error) {
@@ -1857,41 +1857,41 @@ func (t *AssetService) GetAssetsStates(projectPath, projectWorkingDir string, ig
 	defer tx.Rollback()
 
 	if !utils.DirExists(projectWorkingDir) {
-		tasks := []models.Task{}
-		query := "SELECT task_path, extension FROM full_task WHERE trashed = 0 ORDER BY task_path"
-		err = tx.Select(&tasks, query)
+		assets := []models.Asset{}
+		query := "SELECT asset_path, extension FROM full_asset WHERE trashed = 0 ORDER BY asset_path"
+		err = tx.Select(&assets, query)
 		if err != nil {
 			return assetsStates, err
 		}
-		for _, task := range tasks {
-			displayPath := task.TaskPath
-			if task.Extension != "" {
-				displayPath = task.TaskPath + task.Extension
+		for _, asset := range assets {
+			displayPath := asset.AssetPath
+			if asset.Extension != "" {
+				displayPath = asset.AssetPath + asset.Extension
 			}
 			assetsStates.Rebuildable = append(assetsStates.Rebuildable, AssetStateItem{
-				TaskId:      task.Id,
-				TaskPath:    task.TaskPath,
+				AssetId:      asset.Id,
+				AssetPath:    asset.AssetPath,
 				DisplayPath: displayPath,
 			})
 		}
-		return assetsStates, nil // No untracked items if the entity folder does not exist
+		return assetsStates, nil // No untracked items if the collection folder does not exist
 	}
 
-	tasks := []models.Task{}
-	query := "SELECT * FROM full_task WHERE trashed = 0 ORDER BY task_path"
+	assets := []models.Asset{}
+	query := "SELECT * FROM full_asset WHERE trashed = 0 ORDER BY asset_path"
 
-	err = tx.Select(&tasks, query)
+	err = tx.Select(&assets, query)
 	if err != nil {
 		return assetsStates, err
 	}
 
-	checkpointQuery := "SELECT * FROM task_checkpoint WHERE trashed = 0 ORDER BY created_at DESC"
-	tasksCheckpoints := []models.Checkpoint{}
-	tx.Select(&tasksCheckpoints, checkpointQuery)
+	checkpointQuery := "SELECT * FROM asset_checkpoint WHERE trashed = 0 ORDER BY created_at DESC"
+	assetsCheckpoints := []models.Checkpoint{}
+	tx.Select(&assetsCheckpoints, checkpointQuery)
 
-	taskCheckpoints := map[string][]models.Checkpoint{}
-	for _, taskCheckpoint := range tasksCheckpoints {
-		taskCheckpoints[taskCheckpoint.TaskId] = append(taskCheckpoints[taskCheckpoint.TaskId], taskCheckpoint)
+	assetCheckpoints := map[string][]models.Checkpoint{}
+	for _, assetCheckpoint := range assetsCheckpoints {
+		assetCheckpoints[assetCheckpoint.AssetId] = append(assetCheckpoints[assetCheckpoint.AssetId], assetCheckpoint)
 	}
 
 	rootFolder, err := utils.GetProjectWorkingDir(tx)
@@ -1899,46 +1899,46 @@ func (t *AssetService) GetAssetsStates(projectPath, projectWorkingDir string, ig
 		return assetsStates, err
 	}
 
-	for i, task := range tasks {
-		taskFilePath, err := utils.BuildTaskPath(rootFolder, task.EntityPath, task.Name, task.Extension)
+	for i, asset := range assets {
+		assetFilePath, err := utils.BuildAssetPath(rootFolder, asset.CollectionPath, asset.Name, asset.Extension)
 		if err != nil {
 			return assetsStates, err
 		}
-		tasks[i].FilePath = taskFilePath
-		tasks[i].Checkpoints = taskCheckpoints[task.Id]
+		assets[i].FilePath = assetFilePath
+		assets[i].Checkpoints = assetCheckpoints[asset.Id]
 
-		fileStatus, err := repository.GetTaskFileStatus(&tasks[i], taskCheckpoints[task.Id])
+		fileStatus, err := repository.GetAssetFileStatus(&assets[i], assetCheckpoints[asset.Id])
 		if err != nil {
 			return assetsStates, err
 		}
 		if fileStatus == "modified" {
-			displayPath := task.TaskPath
-			if task.Extension != "" {
-				displayPath = task.TaskPath + task.Extension
+			displayPath := asset.AssetPath
+			if asset.Extension != "" {
+				displayPath = asset.AssetPath + asset.Extension
 			}
 			assetsStates.Modifieds = append(assetsStates.Modifieds, AssetStateItem{
-				TaskId:      task.Id,
-				TaskPath:    task.TaskPath,
+				AssetId:      asset.Id,
+				AssetPath:    asset.AssetPath,
 				DisplayPath: displayPath,
 			})
 		} else if fileStatus == "outdated" {
-			displayPath := task.TaskPath
-			if task.Extension != "" {
-				displayPath = task.TaskPath + task.Extension
+			displayPath := asset.AssetPath
+			if asset.Extension != "" {
+				displayPath = asset.AssetPath + asset.Extension
 			}
 			assetsStates.Outdated = append(assetsStates.Outdated, AssetStateItem{
-				TaskId:      task.Id,
-				TaskPath:    task.TaskPath,
+				AssetId:      asset.Id,
+				AssetPath:    asset.AssetPath,
 				DisplayPath: displayPath,
 			})
 		} else if fileStatus == "rebuildable" {
-			displayPath := task.TaskPath
-			if task.Extension != "" {
-				displayPath = task.TaskPath + task.Extension
+			displayPath := asset.AssetPath
+			if asset.Extension != "" {
+				displayPath = asset.AssetPath + asset.Extension
 			}
 			assetsStates.Rebuildable = append(assetsStates.Rebuildable, AssetStateItem{
-				TaskId:      task.Id,
-				TaskPath:    task.TaskPath,
+				AssetId:      asset.Id,
+				AssetPath:    asset.AssetPath,
 				DisplayPath: displayPath,
 			})
 		}
@@ -1969,21 +1969,21 @@ func (t *AssetService) GetUntrackedFiles(projectPath, projectWorkingDir string, 
 	// Pre-process tracked items into maps for O(1) lookup
 	absoluteTrackedFiles := make(map[string]bool)
 
-	tasks := []models.Task{}
-	query := "SELECT task_path, extension FROM full_task WHERE trashed = 0 ORDER BY task_path"
+	assets := []models.Asset{}
+	query := "SELECT asset_path, extension FROM full_asset WHERE trashed = 0 ORDER BY asset_path"
 
-	err = tx.Select(&tasks, query)
+	err = tx.Select(&assets, query)
 	if err != nil {
 		return untrackedFiles, err
 	}
 
-	for _, task := range tasks {
-		absoluteTaskFilePath, err := filepath.Abs(filepath.Join(projectWorkingDir, task.TaskPath+task.Extension))
+	for _, asset := range assets {
+		absoluteAssetFilePath, err := filepath.Abs(filepath.Join(projectWorkingDir, asset.AssetPath+asset.Extension))
 		if err != nil {
 			return untrackedFiles, err
 		}
-		// absoluteTaskFilePath = utils.NormalizePath(absoluteTaskFilePath)
-		absoluteTrackedFiles[absoluteTaskFilePath] = true
+		// absoluteAssetFilePath = utils.NormalizePath(absoluteAssetFilePath)
+		absoluteTrackedFiles[absoluteAssetFilePath] = true
 	}
 
 	err = filepath.WalkDir(projectWorkingDir, func(path string, d fs.DirEntry, err error) error {
@@ -2020,7 +2020,7 @@ func (t *AssetService) GetUntrackedFiles(projectPath, projectWorkingDir string, 
 
 // GetSiblingAssetNames returns the names of all assets in the same collection with the given extension.
 // Used for client-side name validation to avoid duplicate asset names.
-func (t *AssetService) GetSiblingAssetNames(projectPath, entityId, extension string) ([]string, error) {
+func (t *AssetService) GetSiblingAssetNames(projectPath, collectionId, extension string) ([]string, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return []string{}, err
@@ -2033,11 +2033,11 @@ func (t *AssetService) GetSiblingAssetNames(projectPath, entityId, extension str
 	}
 	defer tx.Rollback()
 
-	type taskName struct {
+	type assetName struct {
 		Name string `db:"name"`
 	}
-	names := []taskName{}
-	err = tx.Select(&names, "SELECT name FROM task WHERE entity_id = ? AND extension = ?", entityId, extension)
+	names := []assetName{}
+	err = tx.Select(&names, "SELECT name FROM asset WHERE collection_id = ? AND extension = ?", collectionId, extension)
 	if err != nil {
 		return []string{}, err
 	}

@@ -10,9 +10,9 @@
 
     <div v-else-if="checkpoints.length" ref="checkpointList" class="checkpoint-list-container" v-stop-propagation>
       <CheckpointGroup v-for="(group, groupIndex) in groupedCheckpoints" :key="group.key" :group="group"
-        :taskHash="taskHash" :expandedId="expandedId" :isFirstGroup="groupIndex === 0"
+        :assetHash="assetHash" :expandedId="expandedId" :isFirstGroup="groupIndex === 0"
         :isLastGroup="groupIndex === groupedCheckpoints.length - 1"
-        @refreshCheckpoints="refreshCheckpoints" @updateTaskHash="updateTaskHash" @updateExpanded="updateExpanded" />
+        @refreshCheckpoints="refreshCheckpoints" @updateAssetHash="updateAssetHash" @updateExpanded="updateExpanded" />
     </div>
 
     <PageState v-else :message="message()" :illustration="illustration()" />
@@ -55,7 +55,7 @@ const checkpointList = ref(null);
 const checkpoints = ref([]);
 const expandedId = ref('');
 const searchQuery = ref('');
-const taskHash = ref('');
+const assetHash = ref('');
 
 // methods
 
@@ -113,7 +113,7 @@ const getGroupKey = (dateStr, now) => {
 };
 
 // computed properties
-const checkpointEntity = computed(() => assetStore.selectedAsset);
+const checkpointCollection = computed(() => assetStore.selectedAsset);
 
 // Groups checkpoints by date tier.
 const groupedCheckpoints = computed(() => {
@@ -131,16 +131,16 @@ const groupedCheckpoints = computed(() => {
 });
 
 // watchers
-watch(checkpointEntity, () => {
+watch(checkpointCollection, () => {
   refreshCheckpoints();
 });
 
 // Refreshes the checkpoints list from the server.
 const refreshCheckpoints = async () => {
 
-  taskHash.value = "";
+  assetHash.value = "";
   if (assetStore.selectedAsset && await FSService.Exists(assetStore.selectedAsset.file_path)) {
-    taskHash.value = await FSService.FileHash(assetStore.selectedAsset.file_path);
+    assetHash.value = await FSService.FileHash(assetStore.selectedAsset.file_path);
   }
 
   trayStates.checkpointsLoaded = false;
@@ -151,8 +151,8 @@ const refreshCheckpoints = async () => {
     return;
   }
 
-  let task = assetStore.selectedAsset;
-  let taskCheckpoints = await CheckpointService.GetCheckpoints(projectStore.activeProject.uri, task.id)
+  let asset = assetStore.selectedAsset;
+  let assetCheckpoints = await CheckpointService.GetCheckpoints(projectStore.activeProject.uri, asset.id)
     .then((data) => {
       return data;
     })
@@ -166,10 +166,10 @@ const refreshCheckpoints = async () => {
     });
 
   trayStates.checkpointsLoaded = true;
-  if (!taskCheckpoints || !taskCheckpoints.length) return;
+  if (!assetCheckpoints || !assetCheckpoints.length) return;
   let userCache = {}
-  for (let i = 0; i < taskCheckpoints.length; i++) {
-    let checkpoint = taskCheckpoints[i];
+  for (let i = 0; i < assetCheckpoints.length; i++) {
+    let checkpoint = assetCheckpoints[i];
     let authorId = checkpoint.author_id
     if (!userCache[authorId]) {
       userCache[authorId] = await userStore.getUserData(authorId);
@@ -178,7 +178,7 @@ const refreshCheckpoints = async () => {
     if (!author) {
       // Try fetching from global server before skipping
       try {
-        console.log(taskCheckpoints)
+        console.log(assetCheckpoints)
         author = await userStore.fetchUserData(authorId);
         if (author) {
           userCache[authorId] = author;
@@ -214,7 +214,7 @@ const refreshCheckpoints = async () => {
       author_id: authorId,
       created_at: checkpoint.created_at,
       preview: preview,
-      ownerId: checkpoint.task_id,
+      ownerId: checkpoint.asset_id,
       checkpoint_id: checkpoint.id,
       is_downloaded: checkpoint.is_downloaded,
       hash: checkpoint.xxhash_checksum,
@@ -229,16 +229,16 @@ const refreshCheckpoints = async () => {
   }
 };
 
-const updateTaskHash = async () => {
-  taskHash.value = "";
+const updateAssetHash = async () => {
+  assetHash.value = "";
   if (assetStore.selectedAsset && await FSService.Exists(assetStore.selectedAsset.file_path)) {
-    taskHash.value = await FSService.FileHash(assetStore.selectedAsset.file_path);
+    assetHash.value = await FSService.FileHash(assetStore.selectedAsset.file_path);
   }
 };
 
 const updateCheckpoints = async () => {
   await refreshCheckpoints();
-  await updateTaskHash();
+  await updateAssetHash();
 }
 
 // Add keyboard navigation handler

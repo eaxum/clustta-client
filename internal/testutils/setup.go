@@ -24,10 +24,10 @@ var Tx *sqlx.Tx
 var Project repository.ProjectInfo
 var Template models.Template
 var DependencyType models.DependencyType
-var EntityType models.EntityType
-var Entity models.Entity
-var TaskType models.TaskType
-var Task models.Task
+var CollectionType models.CollectionType
+var Collection models.Collection
+var AssetType models.AssetType
+var Asset models.Asset
 
 func getAbsolutePath(file_path string) string {
 	file, err := filepath.Abs(file_path)
@@ -56,37 +56,37 @@ func GenerateFixtureTemplate() {
 	}
 	Template = template
 }
-func GenerateFixtureEntityType() {
-	entityType, err := repository.CreateEntityType(Tx, "", "Test Entity Type", "test")
+func GenerateFixtureCollectionType() {
+	collectionType, err := repository.CreateCollectionType(Tx, "", "Test Collection Type", "test")
 	if err != nil {
 		panic(err)
 	}
-	EntityType = entityType
+	CollectionType = collectionType
 }
-func GenerateFixtureEntity() {
-	entity, err := repository.CreateEntity(Tx, "", "Test Entity", "", EntityType.Id, "", "", true)
+func GenerateFixtureCollection() {
+	collection, err := repository.CreateCollection(Tx, "", "Test Collection", "", CollectionType.Id, "", "", true)
 	if err != nil {
 		panic(err)
 	}
-	Entity = entity
+	Collection = collection
 }
-func GenerateFixtureTaskType() {
-	taskType, err := repository.CreateTaskType(Tx, "", "Test Task Type", "test")
+func GenerateFixtureAssetType() {
+	assetType, err := repository.CreateAssetType(Tx, "", "Test Asset Type", "test")
 	if err != nil {
 		panic(err)
 	}
-	TaskType = taskType
+	AssetType = assetType
 }
-func GenerateFixtureTask() {
+func GenerateFixtureAsset() {
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
 		panic(err)
 	}
-	task, err := repository.CreateTask(Tx, "", "Test Task", TaskType.Id, Entity.Id, false, Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(int, int, string, string) {})
+	asset, err := repository.CreateAsset(Tx, "", "Test Asset", AssetType.Id, Collection.Id, false, Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(int, int, string, string) {})
 	if err != nil {
 		panic(err)
 	}
-	Task = task
+	Asset = asset
 }
 func GenerateFixtureDependencyType() {
 	dependencyType, err := repository.CreateDependencyType(Tx, "", "Test")

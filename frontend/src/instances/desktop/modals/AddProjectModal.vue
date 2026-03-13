@@ -306,8 +306,8 @@ const cloneProject = async () => {
   const projectUrl = projectStore.getStudioUrl + '/' + projectName;
   const syncOptions = {
     only_latest_checkpoints: true,
-    task_dependencies: true,
-    tasks: false,
+    asset_dependencies: true,
+    assets: false,
     templates: true,
   };
   notificationStore.cancleFunction = SyncService.CancelSync;
@@ -327,8 +327,8 @@ const cloneProject = async () => {
         await ProjectService.ApplyTemplate(localProjectPath, selectedProjectTemplate.value);
         const templateSyncOptions = {
           only_latest_checkpoints: false,
-          task_dependencies: false,
-          tasks: false,
+          asset_dependencies: false,
+          assets: false,
           templates: false,
         };
         try {
@@ -361,7 +361,7 @@ const resetProjectData = () => {
   assetStore.assets = [];
   collectionStore.selectedCollection = null;
   assetStore.selectedAsset = null;
-  stage.expandedEntities = {};
+  stage.expandedCollections = {};
 };
 
 // watchers

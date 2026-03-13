@@ -1,8 +1,8 @@
 <template>
   <div class="progress-bar-container">
-    <div  v-if="taskProgress === 0" class="loaderBar"></div>
-    <div v-if="taskProgress === 0" class="queued" :style="{ width: '100%' }"></div>
-    <div v-else class="progress-bar" :style="{ width: taskProgress + '%' }"></div>
+    <div  v-if="assetProgress === 0" class="loaderBar"></div>
+    <div v-if="assetProgress === 0" class="queued" :style="{ width: '100%' }"></div>
+    <div v-else class="progress-bar" :style="{ width: assetProgress + '%' }"></div>
   </div>
 </template>
 
@@ -10,7 +10,7 @@
 
 const props = defineProps({
 
-  taskProgress: {
+  assetProgress: {
     type: Number,
     required: true,
   }

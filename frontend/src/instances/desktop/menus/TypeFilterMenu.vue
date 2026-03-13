@@ -1,25 +1,25 @@
 <template>
   <div ref="collectionMenu" class="filter-menu-container" v-stop-propagation>
 
-    <span :class="{ 'disabled' : commonStore.onlyAssets }" class="filter-menu-item" @click="toggleShowEntities()">
+    <span :class="{ 'disabled' : commonStore.onlyAssets }" class="filter-menu-item" @click="toggleShowCollections()">
       <img class="small-icons" :src="getAppIcon('folder')">
       <div class="horizontal-flex">
         <div class="menu-item-text" >{{ $t('menus.collections') }}</div>
-        <ToggleSwitch :switchValueProp="commonStore.showEntities" />
+        <ToggleSwitch :switchValueProp="commonStore.showCollections" />
       </div>
     </span>
 
-    <span :class="{ 'disabled' : commonStore.onlyAssets }" class="filter-menu-item" @click="toggleShowTasks()">
+    <span :class="{ 'disabled' : commonStore.onlyAssets }" class="filter-menu-item" @click="toggleShowAssets()">
       <img class="small-icons" :src="getAppIcon('brush')">
       <div class="horizontal-flex">
         <div class="menu-item-text">{{ $t('menus.assets') }}</div>
-        <ToggleSwitch :switchValueProp="commonStore.showTasks" />
+        <ToggleSwitch :switchValueProp="commonStore.showAssets" />
       </div>
     </span>
 
     <span class="menu-divider"></span>
 
-     <span :class="{ 'disabled' : !commonStore.showTasks }" v-if="!commonStore.navigatorMode && stage.activeStage === 'browser'" class="filter-menu-item" @click="toggleOnlyAssets()">
+     <span :class="{ 'disabled' : !commonStore.showAssets }" v-if="!commonStore.navigatorMode && stage.activeStage === 'browser'" class="filter-menu-item" @click="toggleOnlyAssets()">
       <img class="small-icons" :src="getAppIcon('shapes')">
       <div class="horizontal-flex">
         <div class="menu-item-text">{{ $t('menus.onlyProjectAssets') }}</div>
@@ -27,7 +27,7 @@
       </div>
     </span>
 
-    <span :class="{ 'disabled' : !commonStore.showTasks }" class="filter-menu-item" @click="toggleShowResources()">
+    <span :class="{ 'disabled' : !commonStore.showAssets }" class="filter-menu-item" @click="toggleShowResources()">
       <img class="small-icons" :src="getAppIcon('paperclip')">
       <div class="horizontal-flex">
         <div class="menu-item-text">{{ $t('menus.resources') }}</div>
@@ -76,9 +76,9 @@ const toggleOnlyAssets = () => {
   emitter.emit('refresh-browser');
 };
 
-// Toggles show entities filter and refreshes browser.
-const toggleShowEntities = () => {
-  commonStore.showEntities = !commonStore.showEntities;
+// Toggles show collections filter and refreshes browser.
+const toggleShowCollections = () => {
+  commonStore.showCollections = !commonStore.showCollections;
   emitter.emit('refresh-browser');
 };
 
@@ -88,9 +88,9 @@ const toggleShowResources = () => {
   emitter.emit('refresh-browser');
 };
 
-// Toggles show tasks filter and refreshes browser.
-const toggleShowTasks = () => {
-  commonStore.showTasks = !commonStore.showTasks;
+// Toggles show assets filter and refreshes browser.
+const toggleShowAssets = () => {
+  commonStore.showAssets = !commonStore.showAssets;
   emitter.emit('refresh-browser');
 };
 

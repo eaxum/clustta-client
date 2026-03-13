@@ -5,7 +5,7 @@
     }" class="file-drop">
 
         <div class="ghost-item-icon-container">
-            <img class="large-icons" :src="canDrop ? '/entity-icons/generic.svg' : '/icons/home.svg'">
+            <img class="large-icons" :src="canDrop ? '/collection-icons/generic.svg' : '/icons/home.svg'">
         </div>
 
         <div class="file-drop-indicator">
@@ -32,8 +32,8 @@ const dropLocation = computed(() => {
     if (!dndStore.targetItemId) {
         return t('components.ghostItem.root')
     } else {
-        const entityName = collectionStore.findCollection(dndStore.targetItemId).name;
-        return entityName
+        const collectionName = collectionStore.findCollection(dndStore.targetItemId).name;
+        return collectionName
     }
 });
 

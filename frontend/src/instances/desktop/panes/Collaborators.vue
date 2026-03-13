@@ -125,12 +125,12 @@ const isLastAdmin = computed(() => {
 const projectCollaborators = computed(() => {
   const projectUsers = userStore.getProjectCollaborators;
   const assignedUserIds = [];
-  const tasks = assetStore.assets;
+  const assets = assetStore.assets;
 
-  for (const task of tasks) {
-    const taskAssigneeId = task.assignee_id;
-    if (!assignedUserIds.includes(taskAssigneeId)) {
-      assignedUserIds.push(taskAssigneeId);
+  for (const asset of assets) {
+    const assetAssigneeId = asset.assignee_id;
+    if (!assignedUserIds.includes(assetAssigneeId)) {
+      assignedUserIds.push(assetAssigneeId);
     }
   }
 

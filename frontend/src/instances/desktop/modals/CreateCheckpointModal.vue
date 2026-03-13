@@ -9,10 +9,10 @@
       <InputAlert :show="!isValueChanged" :message="validationMessage" />
 
       <div v-if="!statusMenuDisplayed" class="attachment-area">
-        <div class="task-item-status-container" v-stop-propagation>
-          <div class="task-item-status" @click="toggleDisplayStatusMenu()"
-            :style="{ backgroundColor: taskStatus.color }">
-            {{ taskStatus.short_name }}
+        <div class="asset-item-status-container" v-stop-propagation>
+          <div class="asset-item-status" @click="toggleDisplayStatusMenu()"
+            :style="{ backgroundColor: assetStatus.color }">
+            {{ assetStatus.short_name }}
           </div>
         </div>
         <ActionButton :icon="getAppIcon('paperclip')" v-tooltip="$t('modals.attachSnapshot')" v-stop-propagation
@@ -24,7 +24,7 @@
       </div>
 
       <div v-else class="status-section">
-        <div class="task-item-status-container status-displayed">
+        <div class="asset-item-status-container status-displayed">
           <StatusMenu @statusSelected="closeStatusMenu" />
         </div>
       </div>
@@ -121,12 +121,12 @@ const isRemoteProject = computed(() => {
 });
 
 const statusMenuDisplayed = computed(() => {
-  return assetStore.selectedAsset.type !== 'untracked_task' && displayStatusMenu.value;
+  return assetStore.selectedAsset.type !== 'untracked_asset' && displayStatusMenu.value;
 });
 
-// Returns the current task status.
-const taskStatus = computed(() => {
-  if (assetStore.selectedAsset.type === 'untracked_task') {
+// Returns the current asset status.
+const assetStatus = computed(() => {
+  if (assetStore.selectedAsset.type === 'untracked_asset') {
     return statusStore.statuses.find((item) => item.name === 'todo');
   }
   return assetStore.selectedAsset.status;
@@ -174,16 +174,16 @@ const closeStatusMenu = () => {
 // Creates a checkpoint for the selected asset.
 const createCheckPoint = async () => {
   isAwaitingResponse.value = true;
-  const taskPath = assetStore.selectedAsset.task_path;
+  const assetPath = assetStore.selectedAsset.asset_path;
   const comment = message.value;
   const previewPath = trayStates.previewFullPath;
   const groupId = uuidv4();
-  if (assetStore.selectedAsset.type === 'task') {
-    CheckpointService.AddCheckpoint(projectStore.activeProject.uri, [taskPath], comment, previewPath, groupId, useImageAsCover.value)
+  if (assetStore.selectedAsset.type === 'asset') {
+    CheckpointService.AddCheckpoint(projectStore.activeProject.uri, [assetPath], comment, previewPath, groupId, useImageAsCover.value)
       .then(() => {
         emitter.emit('refresh-browser');
         emitter.emit('update-checkpoints');
-        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter((modifiedTaskPath) => modifiedTaskPath !== taskPath);
+        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter((modifiedAssetPath) => modifiedAssetPath !== assetPath);
         assetStore.selectedAsset.file_status = 'normal';
         projectStore.refreshProjects();
         isAwaitingResponse.value = false;
@@ -197,9 +197,9 @@ const createCheckPoint = async () => {
         notificationStore.errorNotification(t('notifications.errorCreatingCheckpoint'), error);
       });
   } else {
-    await CheckpointService.AddUntrackedTask(projectStore.activeProject.uri, projectStore.activeProject.working_directory, [taskPath], 0, 1, comment, previewPath, groupId)
+    await CheckpointService.AddUntrackedAsset(projectStore.activeProject.uri, projectStore.activeProject.working_directory, [assetPath], 0, 1, comment, previewPath, groupId)
       .then(() => {
-        assetStore.untrackedAssetsPath = assetStore.untrackedAssetsPath.filter((path) => path !== taskPath);
+        assetStore.untrackedAssetsPath = assetStore.untrackedAssetsPath.filter((path) => path !== assetPath);
         emitter.emit('refresh-browser');
         emitter.emit('update-checkpoints');
         projectStore.refreshProjects();
@@ -278,7 +278,7 @@ const toggleDisplayStatusMenu = () => {
   if (!userStore.canDo('change_status')) {
     return;
   }
-  assetStore.isAssetTaskStatus = true;
+  assetStore.isAssetAssetStatus = true;
   displayStatusMenu.value = true;
 };
 
@@ -332,7 +332,7 @@ onUnmounted(() => {
   width: 100%;
 }
 
-.task-item-status-container {
+.asset-item-status-container {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -352,7 +352,7 @@ onUnmounted(() => {
 
 }
 
-.task-item-status {
+.asset-item-status {
   display: flex;
   border-radius: var(--normal-radius);
   box-sizing: border-box;
@@ -370,7 +370,7 @@ onUnmounted(() => {
   transition: all 0.2s ease-out;
 }
 
-.task-item-status:hover {
+.asset-item-status:hover {
   border-radius: 10px;
   transform: scale(1.03);
 }

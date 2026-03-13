@@ -14,8 +14,8 @@ export const useCommonStore = defineStore("common", {
   state: () => ({
     activeFilters: [],
     resourceFilters: [],
-    taskFilters: [],
-    entityFilters: [],
+    assetFilters: [],
+    collectionFilters: [],
     hasAssignees: false,
     noAssignees: false,
     reloadFilters: false,
@@ -23,12 +23,12 @@ export const useCommonStore = defineStore("common", {
     hideExtensions: true,
     showThumbs: true,
     showUntracked: true,
-    showEntities: true,
-    showTasks: true,
+    showCollections: true,
+    showAssets: true,
     onlyAssets: false,
     showResources: true,
-    showChildEntities: true,
-    showChildTasks: true,
+    showChildCollections: true,
+    showChildAssets: true,
     showChildResources: true,
     showDependencies: true,
     useDeep: false,
@@ -62,7 +62,7 @@ export const useCommonStore = defineStore("common", {
         icon: "layers",
       },
       { name: "Dependencies", active: true, icon: "dependency" },
-      { name: "All Tasks/Resources", active: false, icon: "brush" },
+      { name: "All Assets/Resources", active: false, icon: "brush" },
       { name: "Templates", active: false, icon: "file" },
     ],
     workspaces: [],
@@ -77,11 +77,11 @@ export const useCommonStore = defineStore("common", {
     },
   }),
   getters: {
-    getEntities: (state) => {
-      return state.entities;
+    getCollections: (state) => {
+      return state.collections;
     },
-    getTasks: (state) => {
-      return state.tasks;
+    getAssets: (state) => {
+      return state.assets;
     },
     getResources: (state) => {
       return state.resources;
@@ -90,16 +90,16 @@ export const useCommonStore = defineStore("common", {
   actions: {
     setActiveWorkspace(workspace) {
       this.activeWorkspace = workspace.name;
-      this.taskFilters = workspace.filters.taskFilters;
-      this.entityFilters = workspace.filters.entityFilters;
+      this.assetFilters = workspace.filters.assetFilters;
+      this.collectionFilters = workspace.filters.collectionFilters;
       this.resourceFilters = workspace.filters.resourceFilters;
 
-      this.showEntities = workspace.filters.showEntities;
-      this.showTasks = workspace.filters.showTasks;
+      this.showCollections = workspace.filters.showCollections;
+      this.showAssets = workspace.filters.showAssets;
       this.onlyAssets = workspace.filters.onlyAssets;
       this.showResources = workspace.filters.showResources;
-      this.showChildEntities = workspace.filters.showChildEntities;
-      this.showChildTasks = workspace.filters.showChildTasks;
+      this.showChildCollections = workspace.filters.showChildCollections;
+      this.showChildAssets = workspace.filters.showChildAssets;
       this.showChildResources = workspace.filters.showChildResources;
       this.showDependencies = workspace.filters.showDependencies;
       this.useDeep = workspace.filters.useDeep;
@@ -110,19 +110,19 @@ export const useCommonStore = defineStore("common", {
       this.workspaceSearchQuery = workspace.workspaceSearchQuery;
     },
     resetFilters() {
-      (this.showEntities = true),
-        (this.showTasks = true),
+      (this.showCollections = true),
+        (this.showAssets = true),
         (this.onlyAssets = false),
         (this.showResources = true),
-        (this.showChildEntities = true),
-        (this.showChildTasks = true),
+        (this.showChildCollections = true),
+        (this.showChildAssets = true),
         (this.showChildResources = true),
         (this.useDeep = false);
       this.hasAssignees = false;
       this.noAssignees = false;
       this.showDependencies = true;
-      this.taskFilters = [];
-      this.entityFilters = [];
+      this.assetFilters = [];
+      this.collectionFilters = [];
       this.resourceFilters = [];
       this.workspaceSearchQuery = "";
       this.viewSearchQuery = "";

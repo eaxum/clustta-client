@@ -61,35 +61,35 @@ BEGIN
     INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'workflow', 0);
 END;
 
-CREATE TABLE IF NOT EXISTS workflow_entity (
+CREATE TABLE IF NOT EXISTS workflow_collection (
     id TEXT PRIMARY KEY,
     mtime INTEGER NOT NULL,
     name TEXT NOT NULL COLLATE NOCASE,
     workflow_id TEXT NOT NULL,
-    entity_type_id TEXT NOT NULL,
+    collection_type_id TEXT NOT NULL,
     synced BOOLEAN DEFAULT 0 NOT NULL,
     FOREIGN KEY (workflow_id) REFERENCES workflow(id),
-    FOREIGN KEY (entity_type_id) REFERENCES entity_type(id),
+    FOREIGN KEY (collection_type_id) REFERENCES collection_type(id),
     UNIQUE (name, workflow_id),
     CHECK( typeof(workflow_id)='text' AND length(workflow_id)>=1),
-    CHECK( typeof(entity_type_id)='text' AND length(entity_type_id)>=1),
+    CHECK( typeof(collection_type_id)='text' AND length(collection_type_id)>=1),
     CHECK( typeof(name)='text' AND length(name)>=1)
 );
 
-CREATE TRIGGER IF NOT EXISTS workflow_entity_update AFTER UPDATE ON workflow_entity
+CREATE TRIGGER IF NOT EXISTS workflow_collection_update AFTER UPDATE ON workflow_collection
 FOR EACH ROW
 WHEN OLD.mtime != NEW.mtime
 BEGIN
-    UPDATE workflow_entity SET synced = 0 WHERE id = NEW.id;
+    UPDATE workflow_collection SET synced = 0 WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS workflow_entity_delete AFTER DELETE ON workflow_entity
+CREATE TRIGGER IF NOT EXISTS workflow_collection_delete AFTER DELETE ON workflow_collection
 FOR EACH ROW
 BEGIN
-    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'workflow_entity', 0);
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'workflow_collection', 0);
 END;
 
-CREATE TABLE IF NOT EXISTS workflow_task (
+CREATE TABLE IF NOT EXISTS workflow_asset (
     id TEXT PRIMARY KEY,
     mtime INTEGER NOT NULL,
     name TEXT NOT NULL COLLATE NOCASE,
@@ -98,44 +98,44 @@ CREATE TABLE IF NOT EXISTS workflow_task (
 	is_link BOOLEAN DEFAULT 0 NOT NULL,
 	pointer TEXT DEFAULT '' NOT NULL,
     template_id TEXT NOT NULL,
-    task_type_id TEXT NOT NULL,
+    asset_type_id TEXT NOT NULL,
     synced BOOLEAN DEFAULT 0 NOT NULL,
     FOREIGN KEY (workflow_id) REFERENCES workflow(id),
     FOREIGN KEY (template_id) REFERENCES template(id),
-    FOREIGN KEY (task_type_id) REFERENCES task_type(id),
+    FOREIGN KEY (asset_type_id) REFERENCES asset_type(id),
     UNIQUE (name, workflow_id),
 	CHECK( typeof(workflow_id)='text' AND length(workflow_id)>=1),
 	CHECK( typeof(template_id)='text' AND length(template_id)>=1),
-	CHECK( typeof(task_type_id)='text' AND length(task_type_id)>=1),
+	CHECK( typeof(asset_type_id)='text' AND length(asset_type_id)>=1),
 	CHECK( typeof(name)='text' AND length(name)>=1)
 );
 
-CREATE TRIGGER IF NOT EXISTS workflow_task_update AFTER UPDATE ON workflow_task
+CREATE TRIGGER IF NOT EXISTS workflow_asset_update AFTER UPDATE ON workflow_asset
 FOR EACH ROW
 WHEN OLD.mtime != NEW.mtime
 BEGIN
-    UPDATE workflow_task SET synced = 0 WHERE id = NEW.id;
+    UPDATE workflow_asset SET synced = 0 WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS workflow_task_delete AFTER DELETE ON workflow_task
+CREATE TRIGGER IF NOT EXISTS workflow_asset_delete AFTER DELETE ON workflow_asset
 FOR EACH ROW
 BEGIN
-    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'workflow_task', 0);
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'workflow_asset', 0);
 END;
 
 CREATE TABLE IF NOT EXISTS workflow_link (
     id TEXT PRIMARY KEY,
     mtime INTEGER NOT NULL,
     name TEXT NOT NULL COLLATE NOCASE,
-    entity_type_id TEXT NOT NULL,
+    collection_type_id TEXT NOT NULL,
     workflow_id TEXT NOT NULL,
     linked_workflow_id TEXT NOT NULL,
     synced BOOLEAN DEFAULT 0 NOT NULL,
     FOREIGN KEY (workflow_id) REFERENCES workflow(id),
     FOREIGN KEY (linked_workflow_id) REFERENCES workflow(id),
-    FOREIGN KEY (entity_type_id) REFERENCES entity_type(id),
+    FOREIGN KEY (collection_type_id) REFERENCES collection_type(id),
     UNIQUE (workflow_id, linked_workflow_id, name),
-    CHECK( typeof(entity_type_id)='text' AND length(entity_type_id)>=1)
+    CHECK( typeof(collection_type_id)='text' AND length(collection_type_id)>=1)
 );
 
 
@@ -200,111 +200,111 @@ BEGIN
     INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'tag', 0);
 END;
 
-CREATE TABLE IF NOT EXISTS entity (
+CREATE TABLE IF NOT EXISTS collection (
     id TEXT PRIMARY KEY,
     created_at DATETIME NOT NULL,
     mtime INTEGER NOT NULL,
     name TEXT NOT NULL COLLATE NOCASE,
-    entity_path TEXT DEFAULT '' NOT NULL,
+    collection_path TEXT DEFAULT '' NOT NULL,
     description TEXT,
-    entity_type_id TEXT NOT NULL,
+    collection_type_id TEXT NOT NULL,
     parent_id TEXT NOT NULL,
 	trashed BOOLEAN DEFAULT 0 NOT NULL,
     preview_id TEXT DEFAULT '' NOT NULL,
 	synced BOOLEAN DEFAULT 0 NOT NULL,
 	is_library BOOLEAN DEFAULT 0 NOT NULL,
-    FOREIGN KEY (entity_type_id) REFERENCES entity_type(id),
-    FOREIGN KEY (parent_id) REFERENCES entity(id),
+    FOREIGN KEY (collection_type_id) REFERENCES collection_type(id),
+    FOREIGN KEY (parent_id) REFERENCES collection(id),
     FOREIGN KEY (preview_id) REFERENCES preview(hash),
     UNIQUE (name, parent_id),
-	CHECK( typeof(entity_type_id)='text' AND length(entity_type_id)>=1),
+	CHECK( typeof(collection_type_id)='text' AND length(collection_type_id)>=1),
 	CHECK( typeof(name)='text' AND length(name)>=1)
 );
 
-CREATE TRIGGER IF NOT EXISTS entity_update AFTER UPDATE ON entity
+CREATE TRIGGER IF NOT EXISTS collection_update AFTER UPDATE ON collection
 FOR EACH ROW
 WHEN OLD.mtime != NEW.mtime
 BEGIN
-    UPDATE entity SET synced = 0 WHERE id = NEW.id;
+    UPDATE collection SET synced = 0 WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS entity_delete AFTER DELETE ON entity
+CREATE TRIGGER IF NOT EXISTS collection_delete AFTER DELETE ON collection
 FOR EACH ROW
 BEGIN
-    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'entity', 0);
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'collection', 0);
 END;
 
 -- Trigger to maintain materialized path on INSERT
-CREATE TRIGGER IF NOT EXISTS entity_path_insert 
-AFTER INSERT ON entity
+CREATE TRIGGER IF NOT EXISTS collection_path_insert 
+AFTER INSERT ON collection
 FOR EACH ROW
 BEGIN
-    UPDATE entity
-    SET entity_path = 
+    UPDATE collection
+    SET collection_path = 
         CASE
         WHEN NEW.parent_id = '' OR NEW.parent_id IS NULL THEN '/' || NEW.name || '/'
         ELSE (
-            SELECT entity_path || NEW.name || '/' FROM entity WHERE id = NEW.parent_id
+            SELECT collection_path || NEW.name || '/' FROM collection WHERE id = NEW.parent_id
         )
         END
     WHERE id = NEW.id;
 END;
 
--- Updated entity path trigger to handle orphaned entities
-CREATE TRIGGER IF NOT EXISTS entity_path_update 
-AFTER UPDATE OF name, parent_id ON entity
+-- Updated collection path trigger to handle orphaned collections
+CREATE TRIGGER IF NOT EXISTS collection_path_update 
+AFTER UPDATE OF name, parent_id ON collection
 FOR EACH ROW
 WHEN OLD.name != NEW.name OR OLD.parent_id != NEW.parent_id
 BEGIN
-    -- Recalculate this entity's path
-  UPDATE entity
-  SET entity_path =
+    -- Recalculate this collection's path
+  UPDATE collection
+  SET collection_path =
     CASE
       WHEN NEW.parent_id IS NULL THEN '/' || NEW.name || '/'
       ELSE COALESCE(
-        (SELECT entity_path || NEW.name || '/' FROM entity WHERE id = NEW.parent_id),
+        (SELECT collection_path || NEW.name || '/' FROM collection WHERE id = NEW.parent_id),
         '/' || NEW.name || '/'
       )
     END
   WHERE id = NEW.id;
 
   -- Recalculate all descendant paths
-  UPDATE entity
-  SET entity_path =
-    (SELECT entity_path FROM entity WHERE id = NEW.id) || substr(entity_path, length(OLD.entity_path) + 1)
-  WHERE entity_path LIKE OLD.entity_path || '%'
+  UPDATE collection
+  SET collection_path =
+    (SELECT collection_path FROM collection WHERE id = NEW.id) || substr(collection_path, length(OLD.collection_path) + 1)
+  WHERE collection_path LIKE OLD.collection_path || '%'
     AND id != NEW.id;
 END;
 
 
-CREATE TABLE IF NOT EXISTS entity_assignee (
+CREATE TABLE IF NOT EXISTS collection_assignee (
     id TEXT PRIMARY KEY,
     mtime INTEGER NOT NULL,
-    entity_id TEXT NOT NULL,
+    collection_id TEXT NOT NULL,
     assignee_id TEXT DEFAULT '' NOT NULL,
     assigner_id TEXT DEFAULT '' NOT NULL,
 	synced BOOLEAN DEFAULT 0 NOT NULL,
-    FOREIGN KEY (entity_id) REFERENCES entity(id),
+    FOREIGN KEY (collection_id) REFERENCES collection(id),
     FOREIGN KEY (assignee_id) REFERENCES user(id),
     FOREIGN KEY (assigner_id) REFERENCES user(id),
-    UNIQUE (entity_id, assignee_id),
-	CHECK( typeof(entity_id)='text' AND length(entity_id)>=1)
+    UNIQUE (collection_id, assignee_id),
+	CHECK( typeof(collection_id)='text' AND length(collection_id)>=1)
 );
 
-CREATE TRIGGER IF NOT EXISTS entity_assignee_update AFTER UPDATE ON entity_assignee
+CREATE TRIGGER IF NOT EXISTS collection_assignee_update AFTER UPDATE ON collection_assignee
 FOR EACH ROW
 WHEN OLD.mtime != NEW.mtime
 BEGIN
-    UPDATE entity_assignee SET synced = 0 WHERE id = NEW.id;
+    UPDATE collection_assignee SET synced = 0 WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS entity_assignee_delete AFTER DELETE ON entity_assignee
+CREATE TRIGGER IF NOT EXISTS collection_assignee_delete AFTER DELETE ON collection_assignee
 FOR EACH ROW
 BEGIN
-    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'entity_assignee', 0);
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'collection_assignee', 0);
 END;
 
-CREATE TABLE IF NOT EXISTS entity_type (
+CREATE TABLE IF NOT EXISTS collection_type (
     id TEXT PRIMARY KEY,
     mtime INTEGER NOT NULL,
     name TEXT NOT NULL UNIQUE COLLATE NOCASE,
@@ -313,20 +313,20 @@ CREATE TABLE IF NOT EXISTS entity_type (
 	CHECK( typeof(name)='text' AND length(name)>=1)
 );
 
-CREATE TRIGGER IF NOT EXISTS entity_type_update AFTER UPDATE ON entity_type
+CREATE TRIGGER IF NOT EXISTS collection_type_update AFTER UPDATE ON collection_type
 FOR EACH ROW
 WHEN OLD.mtime != NEW.mtime
 BEGIN
-    UPDATE entity_type SET synced = 0 WHERE id = NEW.id;
+    UPDATE collection_type SET synced = 0 WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS entity_type_delete AFTER DELETE ON entity_type
+CREATE TRIGGER IF NOT EXISTS collection_type_delete AFTER DELETE ON collection_type
 FOR EACH ROW
 BEGIN
-    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'entity_type', 0);
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'collection_type', 0);
 END;
 
-CREATE TABLE IF NOT EXISTS task (
+CREATE TABLE IF NOT EXISTS asset (
     id TEXT PRIMARY KEY,
     created_at DATETIME NOT NULL,
     mtime INTEGER NOT NULL,
@@ -337,8 +337,8 @@ CREATE TABLE IF NOT EXISTS task (
 	is_link BOOLEAN DEFAULT 0 NOT NULL,
 	pointer TEXT DEFAULT '' NOT NULL,
     status_id TEXT NOT NULL,
-    task_type_id TEXT NOT NULL,
-    entity_id TEXT DEFAULT '' NOT NULL,
+    asset_type_id TEXT NOT NULL,
+    collection_id TEXT DEFAULT '' NOT NULL,
 	assignee_id TEXT DEFAULT '' NOT NULL,
 	assigner_id TEXT DEFAULT '' NOT NULL,
     preview_id TEXT DEFAULT '' NOT NULL,
@@ -346,29 +346,29 @@ CREATE TABLE IF NOT EXISTS task (
     synced BOOLEAN DEFAULT 0 NOT NULL,
     FOREIGN KEY (preview_id) REFERENCES preview(hash),
     FOREIGN KEY (status_id) REFERENCES status(id),
-    FOREIGN KEY (task_type_id) REFERENCES task_type(id),
-    FOREIGN KEY (entity_id) REFERENCES entity(id),
+    FOREIGN KEY (asset_type_id) REFERENCES asset_type(id),
+    FOREIGN KEY (collection_id) REFERENCES collection(id),
 	FOREIGN KEY (assignee_id) REFERENCES user(id),
 	FOREIGN KEY (assigner_id) REFERENCES user(id),
-    UNIQUE (name, entity_id, extension),
-	CHECK( typeof(task_type_id)='text' AND length(task_type_id)>=1),
+    UNIQUE (name, collection_id, extension),
+	CHECK( typeof(asset_type_id)='text' AND length(asset_type_id)>=1),
 	CHECK( typeof(name)='text' AND length(name)>=1)
 );
 
-CREATE TRIGGER IF NOT EXISTS task_update AFTER UPDATE ON task
+CREATE TRIGGER IF NOT EXISTS asset_update AFTER UPDATE ON asset
 FOR EACH ROW
 WHEN OLD.mtime != NEW.mtime
 BEGIN
-    UPDATE task SET synced = 0 WHERE id = NEW.id;
+    UPDATE asset SET synced = 0 WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS task_delete AFTER DELETE ON task
+CREATE TRIGGER IF NOT EXISTS asset_delete AFTER DELETE ON asset
 FOR EACH ROW
 BEGIN
-    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'task', 0);
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'asset', 0);
 END;
 
-CREATE TABLE IF NOT EXISTS task_type (
+CREATE TABLE IF NOT EXISTS asset_type (
     id TEXT PRIMARY KEY,
     mtime INTEGER NOT NULL,
     name TEXT NOT NULL UNIQUE COLLATE NOCASE,
@@ -377,17 +377,17 @@ CREATE TABLE IF NOT EXISTS task_type (
 	CHECK( typeof(name)='text' AND length(name)>=1)
 );
 
-CREATE TRIGGER IF NOT EXISTS task_type_update AFTER UPDATE ON task_type
+CREATE TRIGGER IF NOT EXISTS asset_type_update AFTER UPDATE ON asset_type
 FOR EACH ROW
 WHEN OLD.mtime != NEW.mtime
 BEGIN
-    UPDATE task_type SET synced = 0 WHERE id = NEW.id;
+    UPDATE asset_type SET synced = 0 WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS task_type_delete AFTER DELETE ON task_type
+CREATE TRIGGER IF NOT EXISTS asset_type_delete AFTER DELETE ON asset_type
 FOR EACH ROW
 BEGIN
-    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'task_type', 0);
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'asset_type', 0);
 END;
 
 CREATE TABLE IF NOT EXISTS dependency_type (
@@ -411,56 +411,56 @@ BEGIN
     INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'dependency_type', 0);
 END;
 
-CREATE TABLE IF NOT EXISTS entity_dependency (
+CREATE TABLE IF NOT EXISTS collection_dependency (
     id TEXT PRIMARY KEY,
     mtime INTEGER NOT NULL,
-    task_id TEXT NOT NULL,
+    asset_id TEXT NOT NULL,
     dependency_id TEXT NOT NULL,
     dependency_type_id TEXT NOT NULL,
     synced BOOLEAN DEFAULT 0 NOT NULL,
-    FOREIGN KEY (task_id) REFERENCES task(id),
-    FOREIGN KEY (dependency_id) REFERENCES entity(id),
+    FOREIGN KEY (asset_id) REFERENCES asset(id),
+    FOREIGN KEY (dependency_id) REFERENCES collection(id),
     FOREIGN KEY (dependency_type_id) REFERENCES dependency_type(id),
-    UNIQUE (task_id, dependency_id)
+    UNIQUE (asset_id, dependency_id)
 );
 
-CREATE TRIGGER IF NOT EXISTS entity_dependency_update AFTER UPDATE ON entity_dependency
+CREATE TRIGGER IF NOT EXISTS collection_dependency_update AFTER UPDATE ON collection_dependency
 FOR EACH ROW
 WHEN OLD.mtime != NEW.mtime
 BEGIN
-    UPDATE entity_dependency SET synced = 0 WHERE id = NEW.id;
+    UPDATE collection_dependency SET synced = 0 WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS entity_dependency_delete AFTER DELETE ON entity_dependency
+CREATE TRIGGER IF NOT EXISTS collection_dependency_delete AFTER DELETE ON collection_dependency
 FOR EACH ROW
 BEGIN
-    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'entity_dependency', 0);
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'collection_dependency', 0);
 END;
 
-CREATE TABLE IF NOT EXISTS task_dependency (
+CREATE TABLE IF NOT EXISTS asset_dependency (
     id TEXT PRIMARY KEY,
     mtime INTEGER NOT NULL,
-    task_id TEXT NOT NULL,
+    asset_id TEXT NOT NULL,
     dependency_id TEXT NOT NULL,
     dependency_type_id TEXT NOT NULL,
     synced BOOLEAN DEFAULT 0 NOT NULL,
-    FOREIGN KEY (task_id) REFERENCES task(id),
-    FOREIGN KEY (dependency_id) REFERENCES task(id),
+    FOREIGN KEY (asset_id) REFERENCES asset(id),
+    FOREIGN KEY (dependency_id) REFERENCES asset(id),
     FOREIGN KEY (dependency_type_id) REFERENCES dependency_type(id),
-    UNIQUE (task_id, dependency_id)
+    UNIQUE (asset_id, dependency_id)
 );
 
-CREATE TRIGGER IF NOT EXISTS task_dependency_update AFTER UPDATE ON task_dependency
+CREATE TRIGGER IF NOT EXISTS asset_dependency_update AFTER UPDATE ON asset_dependency
 FOR EACH ROW
 WHEN OLD.mtime != NEW.mtime
 BEGIN
-    UPDATE task_dependency SET synced = 0 WHERE id = NEW.id;
+    UPDATE asset_dependency SET synced = 0 WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS task_dependency_delete AFTER DELETE ON task_dependency
+CREATE TRIGGER IF NOT EXISTS asset_dependency_delete AFTER DELETE ON asset_dependency
 FOR EACH ROW
 BEGIN
-    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'task_dependency', 0);
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'asset_dependency', 0);
 END;
 
 CREATE TABLE IF NOT EXISTS "status" (
@@ -486,35 +486,35 @@ BEGIN
     INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'status', 0);
 END;
 
-CREATE TABLE IF NOT EXISTS task_tag (
+CREATE TABLE IF NOT EXISTS asset_tag (
     id TEXT PRIMARY KEY,
     mtime INTEGER NOT NULL,
-    task_id TEXT NOT NULL,
+    asset_id TEXT NOT NULL,
     tag_id TEXT NOT NULL,
     synced BOOLEAN DEFAULT 0 NOT NULL,
-    FOREIGN KEY (task_id) REFERENCES task(id),
+    FOREIGN KEY (asset_id) REFERENCES asset(id),
     FOREIGN KEY (tag_id) REFERENCES tag(id),
-    UNIQUE (task_id, tag_id)
+    UNIQUE (asset_id, tag_id)
 );
 
-CREATE TRIGGER IF NOT EXISTS task_tag_update AFTER UPDATE ON task_tag
+CREATE TRIGGER IF NOT EXISTS asset_tag_update AFTER UPDATE ON asset_tag
 FOR EACH ROW
 WHEN OLD.mtime != NEW.mtime
 BEGIN
-    UPDATE task_tag SET synced = 0 WHERE id = NEW.id;
+    UPDATE asset_tag SET synced = 0 WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS task_tag_delete AFTER DELETE ON task_tag
+CREATE TRIGGER IF NOT EXISTS asset_tag_delete AFTER DELETE ON asset_tag
 FOR EACH ROW
 BEGIN
-    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'task_tag', 0);
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'asset_tag', 0);
 END;
 
-CREATE TABLE IF NOT EXISTS task_checkpoint (
+CREATE TABLE IF NOT EXISTS asset_checkpoint (
     id TEXT PRIMARY KEY,
     created_at DATETIME NOT NULL,
     mtime INTEGER NOT NULL,
-    task_id TEXT NOT NULL,
+    asset_id TEXT NOT NULL,
     xxhash_checksum TEXT NOT NULL,
     time_modified INTEGER NOT NULL,
     file_size INTEGER NOT NULL,
@@ -526,21 +526,21 @@ CREATE TABLE IF NOT EXISTS task_checkpoint (
     trashed BOOLEAN DEFAULT 0 NOT NULL,
     synced BOOLEAN DEFAULT 0 NOT NULL,
     FOREIGN KEY (preview_id) REFERENCES preview(hash),
-    FOREIGN KEY (task_id) REFERENCES task(id),
+    FOREIGN KEY (asset_id) REFERENCES asset(id),
     FOREIGN KEY (author_id) REFERENCES user(id)
 );
 
-CREATE TRIGGER IF NOT EXISTS task_checkpoint_update AFTER UPDATE ON task_checkpoint
+CREATE TRIGGER IF NOT EXISTS asset_checkpoint_update AFTER UPDATE ON asset_checkpoint
 FOR EACH ROW
 WHEN OLD.mtime != NEW.mtime
 BEGIN
-    UPDATE task_checkpoint SET synced = 0 WHERE id = NEW.id;
+    UPDATE asset_checkpoint SET synced = 0 WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS task_checkpoint_delete AFTER DELETE ON task_checkpoint
+CREATE TRIGGER IF NOT EXISTS asset_checkpoint_delete AFTER DELETE ON asset_checkpoint
 FOR EACH ROW
 BEGIN
-    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'task_checkpoint', 0);
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'asset_checkpoint', 0);
 END;
 
 CREATE TABLE IF NOT EXISTS chunk (
@@ -555,15 +555,15 @@ CREATE TABLE IF NOT EXISTS "role" (
     name TEXT UNIQUE NOT NULL COLLATE NOCASE,
     synced BOOLEAN DEFAULT 0 NOT NULL,
 
-    view_entity BOOLEAN DEFAULT FALSE NOT NULL,
-    create_entity BOOLEAN DEFAULT FALSE NOT NULL,
-    update_entity BOOLEAN DEFAULT FALSE NOT NULL,
-    delete_entity BOOLEAN DEFAULT FALSE NOT NULL,
+    view_collection BOOLEAN DEFAULT FALSE NOT NULL,
+    create_collection BOOLEAN DEFAULT FALSE NOT NULL,
+    update_collection BOOLEAN DEFAULT FALSE NOT NULL,
+    delete_collection BOOLEAN DEFAULT FALSE NOT NULL,
 
-    view_task BOOLEAN DEFAULT FALSE NOT NULL,
-    create_task BOOLEAN DEFAULT FALSE NOT NULL,
-    update_task BOOLEAN DEFAULT FALSE NOT NULL,
-    delete_task BOOLEAN DEFAULT FALSE NOT NULL,
+    view_asset BOOLEAN DEFAULT FALSE NOT NULL,
+    create_asset BOOLEAN DEFAULT FALSE NOT NULL,
+    update_asset BOOLEAN DEFAULT FALSE NOT NULL,
+    delete_asset BOOLEAN DEFAULT FALSE NOT NULL,
     
     view_template BOOLEAN DEFAULT FALSE NOT NULL,
     create_template BOOLEAN DEFAULT FALSE NOT NULL,
@@ -576,8 +576,8 @@ CREATE TABLE IF NOT EXISTS "role" (
 
     pull_chunk BOOLEAN DEFAULT FALSE NOT NULL,
 
-    assign_task BOOLEAN DEFAULT FALSE NOT NULL,
-    unassign_task BOOLEAN DEFAULT FALSE NOT NULL,
+    assign_asset BOOLEAN DEFAULT FALSE NOT NULL,
+    unassign_asset BOOLEAN DEFAULT FALSE NOT NULL,
 
     add_user BOOLEAN DEFAULT FALSE NOT NULL,
     remove_user BOOLEAN DEFAULT FALSE NOT NULL,
@@ -585,10 +585,10 @@ CREATE TABLE IF NOT EXISTS "role" (
 
 
     change_status BOOLEAN DEFAULT FALSE NOT NULL,
-    set_done_task BOOLEAN DEFAULT FALSE NOT NULL,
-    set_retake_task BOOLEAN DEFAULT FALSE NOT NULL,
+    set_done_asset BOOLEAN DEFAULT FALSE NOT NULL,
+    set_retake_asset BOOLEAN DEFAULT FALSE NOT NULL,
 
-    view_done_task BOOLEAN DEFAULT FALSE NOT NULL,
+    view_done_asset BOOLEAN DEFAULT FALSE NOT NULL,
 
     manage_dependencies BOOLEAN DEFAULT FALSE NOT NULL,
     
@@ -652,17 +652,17 @@ CREATE TABLE IF NOT EXISTS tomb (
     synced BOOLEAN DEFAULT 0 NOT NULL
 );
 
-DROP VIEW IF EXISTS entity_hierarchy;
+DROP VIEW IF EXISTS collection_hierarchy;
 
-CREATE VIEW entity_hierarchy AS
-WITH RECURSIVE entity_hierarchy_cte AS (
+CREATE VIEW collection_hierarchy AS
+WITH RECURSIVE collection_hierarchy_cte AS (
     SELECT 
         id, 
         name, 
         parent_id, 
-        '/' || name || '/' AS entity_path
+        '/' || name || '/' AS collection_path
     FROM 
-        entity 
+        collection 
     WHERE 
         parent_id = '' OR parent_id IS NULL 
 
@@ -672,119 +672,119 @@ WITH RECURSIVE entity_hierarchy_cte AS (
         e.id, 
         e.name, 
         e.parent_id, 
-        eh.entity_path || e.name || '/' AS entity_path
+        eh.collection_path || e.name || '/' AS collection_path
     FROM 
-        entity e
+        collection e
     JOIN 
-        entity_hierarchy_cte eh ON e.parent_id = eh.id
+        collection_hierarchy_cte eh ON e.parent_id = eh.id
 )
-SELECT * FROM entity_hierarchy_cte;
+SELECT * FROM collection_hierarchy_cte;
 
-DROP VIEW IF EXISTS entity_assignees;
-CREATE VIEW entity_assignees AS
+DROP VIEW IF EXISTS collection_assignees;
+CREATE VIEW collection_assignees AS
 SELECT 
-    entity_assignee.entity_id,
-    json_group_array(entity_assignee.assignee_id) AS assignee_ids
+    collection_assignee.collection_id,
+    json_group_array(collection_assignee.assignee_id) AS assignee_ids
 FROM 
-    entity_assignee
+    collection_assignee
 GROUP BY 
-    entity_assignee.entity_id;
+    collection_assignee.collection_id;
 
-DROP VIEW IF EXISTS full_entity;
-CREATE VIEW full_entity AS
+DROP VIEW IF EXISTS full_collection;
+CREATE VIEW full_collection AS
 SELECT 
-    entity.*,
-    entity_type.name AS entity_type_name,
-    entity_type.icon AS entity_type_icon,
+    collection.*,
+    collection_type.name AS collection_type_name,
+    collection_type.icon AS collection_type_icon,
     preview.preview AS preview,
     IFNULL(ea.assignee_ids, '[]') as assignee_ids
 FROM 
-    entity
+    collection
 LEFT JOIN 
-    preview ON entity.preview_id = preview.hash 
+    preview ON collection.preview_id = preview.hash 
 JOIN 
-    entity_type ON entity.entity_type_id = entity_type.id
+    collection_type ON collection.collection_type_id = collection_type.id
 LEFT JOIN
-    entity_assignees ea ON entity.id = ea.entity_id;
+    collection_assignees ea ON collection.id = ea.collection_id;
 
-DROP VIEW IF EXISTS task_assignees;
-CREATE VIEW task_assignees AS
+DROP VIEW IF EXISTS asset_assignees;
+CREATE VIEW asset_assignees AS
 SELECT 
-    task.id AS task_id,
+    asset.id AS asset_id,
     COALESCE(assignee.first_name, '') || ' ' || COALESCE(assignee.last_name, '') as assignee_name,
     IFNULL(assignee.email, '') as assignee_email,
     COALESCE(assigner.first_name, '') || ' ' || COALESCE(assigner.last_name, '') as assigner_name,
     IFNULL(assigner.email, '') as assigner_email
 FROM 
-    task
+    asset
 LEFT JOIN 
-    user assignee ON task.assignee_id = assignee.id
+    user assignee ON asset.assignee_id = assignee.id
 LEFT JOIN 
-    user assigner ON task.assigner_id = assigner.id;
+    user assigner ON asset.assigner_id = assigner.id;
 
-DROP VIEW IF EXISTS task_tags;
-CREATE VIEW task_tags AS
+DROP VIEW IF EXISTS asset_tags;
+CREATE VIEW asset_tags AS
 SELECT 
-    task_tag.task_id,
+    asset_tag.asset_id,
     json_group_array(json_object(
         'id', tag.id,
         'name', tag.name
     )) AS tags
 FROM 
-    task_tag
+    asset_tag
 LEFT JOIN 
-    tag ON task_tag.tag_id = tag.id
+    tag ON asset_tag.tag_id = tag.id
 GROUP BY 
-    task_tag.task_id;
+    asset_tag.asset_id;
 
-DROP VIEW IF EXISTS task_dependencies;
-CREATE VIEW task_dependencies AS
+DROP VIEW IF EXISTS asset_dependencies;
+CREATE VIEW asset_dependencies AS
 SELECT 
-    td.task_id,
+    ad.asset_id,
     json_group_array(json_object(
-        'id', td.dependency_id,
-        'type_id', td.dependency_type_id,
+        'id', ad.dependency_id,
+        'type_id', ad.dependency_type_id,
         'type_name', dt.name
     )) AS dependencies
 FROM 
-    task_dependency td
+    asset_dependency ad
 LEFT JOIN 
-    dependency_type dt ON td.dependency_type_id = dt.id
+    dependency_type dt ON ad.dependency_type_id = dt.id
 GROUP BY 
-    td.task_id;
+    ad.asset_id;
 
-DROP VIEW IF EXISTS task_entity_dependencies;
-CREATE VIEW task_entity_dependencies AS
+DROP VIEW IF EXISTS asset_collection_dependencies;
+CREATE VIEW asset_collection_dependencies AS
 SELECT 
-    ed.task_id,
+    cd.asset_id,
     json_group_array(json_object(
-        'id', ed.dependency_id,
-        'type_id', ed.dependency_type_id,
+        'id', cd.dependency_id,
+        'type_id', cd.dependency_type_id,
         'type_name', dt.name
-    )) AS entity_dependencies
+    )) AS collection_dependencies
 FROM 
-    entity_dependency ed
+    collection_dependency cd
 LEFT JOIN 
-    dependency_type dt ON ed.dependency_type_id = dt.id
+    dependency_type dt ON cd.dependency_type_id = dt.id
 GROUP BY 
-    ed.task_id;
+    cd.asset_id;
 
--- 2. Improved main full_task view
-DROP VIEW IF EXISTS full_task;
-CREATE VIEW full_task AS
-WITH task_base AS (
+-- 2. Improved main full_asset view
+DROP VIEW IF EXISTS full_asset;
+CREATE VIEW full_asset AS
+WITH asset_base AS (
     SELECT 
         t.*,
-        tt.icon AS task_type_icon,
-        tt.name AS task_type_name,
-        IFNULL(e.name, '') AS entity_name,
+        tt.icon AS asset_type_icon,
+        tt.name AS asset_type_name,
+        IFNULL(e.name, '') AS collection_name,
         IFNULL(p.extension, '') AS preview_extension,
         p.preview,
         CASE 
-            WHEN IFNULL(e.entity_path, '') = '' THEN '/' || t.name 
-            ELSE e.entity_path || t.name 
-        END AS task_path,
-        IFNULL(e.entity_path, '') AS entity_path,
+            WHEN IFNULL(e.collection_path, '') = '' THEN '/' || t.name 
+            ELSE e.collection_path || t.name 
+        END AS asset_path,
+        IFNULL(e.collection_path, '') AS collection_path,
         -- Include user data directly here, only when needed
         CASE WHEN t.assignee_id != '' THEN 
             COALESCE(assignee.first_name, '') || ' ' || COALESCE(assignee.last_name, '') 
@@ -795,13 +795,13 @@ WITH task_base AS (
             ELSE '' END as assigner_name,
         CASE WHEN t.assigner_id != '' THEN IFNULL(assigner.email, '') ELSE '' END as assigner_email
     FROM 
-        task t
+        asset t
     JOIN 
-        task_type tt ON t.task_type_id = tt.id
+        asset_type tt ON t.asset_type_id = tt.id
     LEFT JOIN 
         preview p ON t.preview_id = p.hash 
     LEFT JOIN  
-        entity e ON t.entity_id = e.id
+        collection e ON t.collection_id = e.id
     LEFT JOIN 
         user assignee ON t.assignee_id != '' AND t.assignee_id = assignee.id
     LEFT JOIN 
@@ -811,27 +811,27 @@ SELECT
     tb.*,
     IFNULL(tt.tags, '[]') as tags,
     IFNULL(td.dependencies, '[]') as dependencies,
-    IFNULL(ted.entity_dependencies, '[]') as entity_dependencies
+    IFNULL(tcd.collection_dependencies, '[]') as collection_dependencies
 FROM 
-    task_base tb
+    asset_base tb
 LEFT JOIN 
-    task_tags tt ON tb.id = tt.task_id
+    asset_tags tt ON tb.id = tt.asset_id
 LEFT JOIN 
-    task_dependencies td ON tb.id = td.task_id
+    asset_dependencies td ON tb.id = td.asset_id
 LEFT JOIN 
-    task_entity_dependencies ted ON tb.id = ted.task_id;
+    asset_collection_dependencies tcd ON tb.id = tcd.asset_id;
 
 
-CREATE INDEX IF NOT EXISTS idx_task_assignee ON task(assignee_id);
-CREATE INDEX IF NOT EXISTS idx_task_assigner ON task(assigner_id);
-CREATE INDEX IF NOT EXISTS idx_task_entity ON task(entity_id);
-CREATE INDEX IF NOT EXISTS idx_task_preview ON task(preview_id);
-CREATE INDEX IF NOT EXISTS idx_task_type ON task(task_type_id);
-CREATE INDEX IF NOT EXISTS idx_task_tag_task ON task_tag(task_id);
-CREATE INDEX IF NOT EXISTS idx_task_tag_tag ON task_tag(tag_id);
-CREATE INDEX IF NOT EXISTS idx_task_dependency_task ON task_dependency(task_id);
-CREATE INDEX IF NOT EXISTS idx_entity_dependency_task ON entity_dependency(task_id);
-CREATE INDEX IF NOT EXISTS idx_entity_parent ON entity(parent_id);
+CREATE INDEX IF NOT EXISTS idx_asset_assignee ON asset(assignee_id);
+CREATE INDEX IF NOT EXISTS idx_asset_assigner ON asset(assigner_id);
+CREATE INDEX IF NOT EXISTS idx_asset_collection ON asset(collection_id);
+CREATE INDEX IF NOT EXISTS idx_asset_preview ON asset(preview_id);
+CREATE INDEX IF NOT EXISTS idx_asset_type ON asset(asset_type_id);
+CREATE INDEX IF NOT EXISTS idx_asset_tag_asset ON asset_tag(asset_id);
+CREATE INDEX IF NOT EXISTS idx_asset_tag_tag ON asset_tag(tag_id);
+CREATE INDEX IF NOT EXISTS idx_asset_dependency_asset ON asset_dependency(asset_id);
+CREATE INDEX IF NOT EXISTS idx_collection_dependency_asset ON collection_dependency(asset_id);
+CREATE INDEX IF NOT EXISTS idx_collection_parent ON collection(parent_id);
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- INTEGRATION TABLES
@@ -869,10 +869,10 @@ CREATE TABLE IF NOT EXISTS integration_collection_mapping (
     synced_at TEXT DEFAULT '' NOT NULL,
     synced BOOLEAN DEFAULT 0 NOT NULL,
     UNIQUE(integration_id, external_id),
-    FOREIGN KEY (collection_id) REFERENCES entity(id) ON DELETE SET NULL
+    FOREIGN KEY (collection_id) REFERENCES collection(id) ON DELETE SET NULL
 );
 
--- Asset mappings: external tasks → Clustta Assets
+-- Asset mappings: external assets → Clustta Assets
 CREATE TABLE IF NOT EXISTS integration_asset_mapping (
     id TEXT PRIMARY KEY,
     mtime INTEGER NOT NULL,
@@ -889,7 +889,7 @@ CREATE TABLE IF NOT EXISTS integration_asset_mapping (
     synced_at TEXT DEFAULT '' NOT NULL,
     synced BOOLEAN DEFAULT 0 NOT NULL,
     UNIQUE(integration_id, external_id),
-    FOREIGN KEY (asset_id) REFERENCES task(id) ON DELETE SET NULL
+    FOREIGN KEY (asset_id) REFERENCES asset(id) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_integration_collection_mapping_collection ON integration_collection_mapping(collection_id);

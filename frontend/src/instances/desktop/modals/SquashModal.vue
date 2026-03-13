@@ -91,16 +91,16 @@ const canConfirm = computed(() => {
 
 // Returns the common extension of all selected files.
 const commonExtension = computed(() => {
-  const items = stageStore.selectedItems.filter(i => i.type === 'untracked_task');
+  const items = stageStore.selectedItems.filter(i => i.type === 'untracked_asset');
   if (items.length === 0) return '';
   return items[0].extension || '';
 });
 
-// Returns the entity ID shared by all selected items.
-const entityId = computed(() => {
-  const items = stageStore.selectedItems.filter(i => i.type === 'untracked_task');
+// Returns the collection ID shared by all selected items.
+const collectionId = computed(() => {
+  const items = stageStore.selectedItems.filter(i => i.type === 'untracked_asset');
   if (items.length === 0) return '';
-  return items[0].entity_id || '';
+  return items[0].collection_id || '';
 });
 
 // Returns validation error for the asset name.
@@ -133,7 +133,7 @@ const executeSquash = async () => {
       projectStore.activeProject.working_directory,
       filePaths,
       assetName.value.trim(),
-      entityId.value,
+      collectionId.value,
       deleteSourceFiles.value,
       comments,
     );
@@ -153,7 +153,7 @@ const executeSquash = async () => {
 const loadExcludedNames = async () => {
   try {
     const ext = commonExtension.value;
-    const eid = entityId.value;
+    const eid = collectionId.value;
     const names = await AssetService.GetSiblingAssetNames(projectStore.activeProject.uri, eid, ext);
     excludedNames.value = new Set((names || []).map(n => n.toLowerCase()));
   } catch (err) {
@@ -169,7 +169,7 @@ const updateAssetName = (value) => {
 
 // lifecycle
 onMounted(async () => {
-  const selected = stageStore.selectedItems.filter(i => i.type === 'untracked_task');
+  const selected = stageStore.selectedItems.filter(i => i.type === 'untracked_asset');
   const analysis = analyzeFileNames(selected);
   orderedItems.value = analysis.orderedItems;
   patternFound.value = analysis.patternFound;

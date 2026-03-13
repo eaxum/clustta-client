@@ -3,20 +3,20 @@
   <div class="modal-container" ref="modalContainer" v-stop-propagation v-esc="closeModal">
 
     <div class="general-pane-header">
-      <HeaderArea :title="title" :icon="taskTypeIcon" />
+      <HeaderArea :title="title" :icon="assetTypeIcon" />
     </div>
 
 
     <div class="general-container">
       <div class="input-section">
-        <input v-model="taskTypeName" class="input-short" type="text" :placeholder="$t('placeholders.taskTypeName')" v-focus
+        <input v-model="assetTypeName" class="input-short" type="text" :placeholder="$t('placeholders.assetTypeName')" v-focus
           @keydown.enter="handleEnterKey" />
       </div>
 
       <IconGrid v-if="displayIconSelector" @iconSelected="setIcon" :icons="icons" />
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateTaskType" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateAssetType" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -52,23 +52,23 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 
 // constants
-const title = 'Edit task type';
+const title = 'Edit asset type';
 
 // refs
 const displayIconSelector = ref(true);
 const isAwaitingResponse = ref(false);
-const taskTypeIcon = ref('generic');
-const taskTypeName = ref('');
+const assetTypeIcon = ref('generic');
+const assetTypeName = ref('');
 
 // computed
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allTaskTypeIcons = assetStore.assetTypes.map((item) => item.icon);
-  return allIcons.filter((icon) => !allTaskTypeIcons.includes(icon));
+  const allAssetTypeIcons = assetStore.assetTypes.map((item) => item.icon);
+  return allIcons.filter((icon) => !allAssetTypeIcons.includes(icon));
 });
 
 const isValueChanged = computed(() => {
-  return !!taskTypeName.value && taskTypeIcon.value !== 'generic';
+  return !!assetTypeName.value && assetTypeIcon.value !== 'generic';
 });
 
 // methods
@@ -86,33 +86,33 @@ const getAppIcon = (iconName) => {
 // Handles enter key press.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter') {
-    // updateTaskType();
+    // updateAssetType();
   }
 };
 
 // Sets the selected icon.
 const setIcon = (icon) => {
-  taskTypeIcon.value = icon;
+  assetTypeIcon.value = icon;
 };
 
-// Updates the task type with the new values.
-const updateTaskType = () => {
-  AssetService.UpdateAssetType(projectStore.activeProject.uri, assetStore.selectedAssetType.id, taskTypeName.value, taskTypeIcon.value)
+// Updates the asset type with the new values.
+const updateAssetType = () => {
+  AssetService.UpdateAssetType(projectStore.activeProject.uri, assetStore.selectedAssetType.id, assetTypeName.value, assetTypeIcon.value)
     .then((response) => {
-      notificationStore.addNotification(t('notifications.taskTypeUpdated'), "", "success");
-      const index = assetStore.assetTypes.findIndex(taskType => taskType.id === assetStore.selectedAssetType.id);
+      notificationStore.addNotification(t('notifications.assetTypeUpdated'), "", "success");
+      const index = assetStore.assetTypes.findIndex(assetType => assetType.id === assetStore.selectedAssetType.id);
       assetStore.assetTypes[index] = response;
       closeModal();
     })
     .catch((error) => {
-      notificationStore.errorNotification(t('notifications.errorUpdatingTaskType'), error);
+      notificationStore.errorNotification(t('notifications.errorUpdatingAssetType'), error);
     });
 };
 
 // lifecycle
 onMounted(() => {
-  // taskTypeName.value = assetStore.selectedAssetType.name;
-  // taskTypeIcon.value = assetStore.selectedAssetType.icon;
+  // assetTypeName.value = assetStore.selectedAssetType.name;
+  // assetTypeIcon.value = assetStore.selectedAssetType.icon;
 });
 </script>
 

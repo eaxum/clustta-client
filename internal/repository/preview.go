@@ -115,7 +115,7 @@ func GetPreview(tx *sqlx.Tx, hash string) (models.Preview, error) {
 	return preview, nil
 }
 
-func AddEntityPreview(tx *sqlx.Tx, entityId, entityModel, previewPath string) (models.Preview, error) {
+func AddCollectionPreview(tx *sqlx.Tx, collectionId, collectionModel, previewPath string) (models.Preview, error) {
 	preview, err := CreatePreview(tx, previewPath)
 	if err != nil {
 		return preview, err
@@ -124,25 +124,25 @@ func AddEntityPreview(tx *sqlx.Tx, entityId, entityModel, previewPath string) (m
 	params := map[string]any{
 		"preview_id": preview.Hash,
 	}
-	err = base_service.Update(tx, entityModel, entityId, params)
+	err = base_service.Update(tx, collectionModel, collectionId, params)
 	if err != nil {
 		return preview, err
 	}
-	err = base_service.UpdateMtime(tx, entityModel, entityId, utils.GetEpochTime())
+	err = base_service.UpdateMtime(tx, collectionModel, collectionId, utils.GetEpochTime())
 	if err != nil {
 		return preview, err
 	}
 	return preview, nil
 }
-func SetEntityPreview(tx *sqlx.Tx, entityId, entityModel, previewHash string) error {
+func SetCollectionPreview(tx *sqlx.Tx, collectionId, collectionModel, previewHash string) error {
 	params := map[string]any{
 		"preview_id": previewHash,
 	}
-	err := base_service.Update(tx, entityModel, entityId, params)
+	err := base_service.Update(tx, collectionModel, collectionId, params)
 	if err != nil {
 		return err
 	}
-	err = base_service.UpdateMtime(tx, entityModel, entityId, utils.GetEpochTime())
+	err = base_service.UpdateMtime(tx, collectionModel, collectionId, utils.GetEpochTime())
 	if err != nil {
 		return err
 	}

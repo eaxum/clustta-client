@@ -17,7 +17,7 @@ message User {
     string role = 11; 
 }
 
-message EntityType {
+message CollectionType {
   string id = 1;
   int64 mtime = 2;
   string name = 3;
@@ -25,7 +25,7 @@ message EntityType {
   bool synced = 5;
 }
 
-message TaskType {
+message AssetType {
   string id = 1;
   int64 mtime = 2;
   string name = 3;
@@ -33,7 +33,7 @@ message TaskType {
   bool synced = 5;
 }
 
-message Task {
+message Asset {
   string id = 1;
   int64 mtime = 2;
   string created_at = 3;
@@ -42,8 +42,8 @@ message Task {
   string extension = 6;
   bool is_resource = 7;
   string status_id = 8;
-  string task_type_id = 9;
-  string entity_id = 10;
+  string asset_type_id = 9;
+  string collection_id = 10;
   string assignee_id = 11;
   string assigner_id = 12;
   bool is_link = 13;
@@ -53,43 +53,43 @@ message Task {
   bool synced = 17;
 }
 
-message Entity {
+message Collection {
   string id = 1;
   int64 mtime = 2;
   string created_at = 3;
   string name = 4;
-  string entity_path = 5;
+  string collection_path = 5;
   string description = 6;
   bool trashed = 7;
-  string entity_type_id = 8;
+  string collection_type_id = 8;
   string parent_id = 9;
   string preview_id = 10;
   bool synced = 11;
   bool is_library = 12;
 }
 
-message EntityAssignee {
+message CollectionAssignee {
   string id = 1;
   int64 mtime = 2;
-  string entity_id = 3;
+  string collection_id = 3;
   string assignee_id = 4;
   string assigner_id = 5;
   bool synced = 6;
 }
 
-message TaskDependency {
+message AssetDependency {
   string id = 1;
   int64 mtime = 2;
-  string task_id = 3;
+  string asset_id = 3;
   string dependency_id = 4;
   string dependency_type_id = 5;
   bool synced = 6;
 }
 
-message EntityDependency {
+message CollectionDependency {
   string id = 1;
   int64 mtime = 2;
-  string task_id = 3;
+  string asset_id = 3;
   string dependency_id = 4;
   string dependency_type_id = 5;
   bool synced = 6;
@@ -102,26 +102,26 @@ message Workflow {
   bool synced = 4;
 }
 
-message WorkflowTask {
+message WorkflowAsset {
   string id = 1;
   int64 mtime = 2;
   string name = 3;
   string template_id = 4;
   bool is_resource = 5;
   string workflow_id = 6;
-  string task_type_id = 7;
-  string workflow_entity_id = 8;
+  string asset_type_id = 7;
+  string workflow_collection_id = 8;
   bool is_link = 9;
   string pointer = 10;
   bool synced = 11;
 }
 
-message WorkflowEntity {
+message WorkflowCollection {
   string id = 1;
   int64 mtime = 2;
   string name = 3;
   string workflow_id = 4;
-  string entity_type_id = 5;
+  string collection_type_id = 5;
   string parent_id = 6;
   bool synced = 7;
 }
@@ -130,7 +130,7 @@ message WorkflowLink {
   string id = 1;
   int64 mtime = 2;
   string name = 3;
-  string entity_type_id = 4;
+  string collection_type_id = 4;
   string workflow_id = 5;
   string linked_workflow_id = 6;
   string linked_workflow_name = 7;
@@ -160,10 +160,10 @@ message Tag {
   bool synced = 4;
 }
 
-message TaskTag {
+message AssetTag {
   string id = 1;
   int64 mtime = 2;
-  string task_id = 3;
+  string asset_id = 3;
   string tag_id = 4;
   bool synced = 5;
 }
@@ -172,7 +172,7 @@ message Checkpoint {
   string id = 1;
   int64 mtime = 2;
   string created_at = 3;
-  string task_id = 4;
+  string asset_id = 4;
   string xxhash_checksum = 5;
   int64 time_modified = 6;
   int64 file_size = 7;
@@ -191,15 +191,15 @@ message Role {
   string name = 3;
   bool synced = 4;
 
-  bool view_entity = 5;
-  bool create_entity = 6;
-  bool update_entity = 7;
-  bool delete_entity = 8;
+  bool view_collection = 5;
+  bool create_collection = 6;
+  bool update_collection = 7;
+  bool delete_collection = 8;
 
-  bool view_task = 9;
-  bool create_task = 10;
-  bool update_task = 11;
-  bool delete_task = 12;
+  bool view_asset = 9;
+  bool create_asset = 10;
+  bool update_asset = 11;
+  bool delete_asset = 12;
 
   bool view_template = 13;
   bool create_template = 14;
@@ -212,18 +212,18 @@ message Role {
 
   bool pull_chunk = 20;
 
-  bool assign_task = 21;
-  bool unassign_task = 22;
+  bool assign_asset = 21;
+  bool unassign_asset = 22;
 
   bool add_user = 23;
   bool remove_user = 24;
   bool change_role = 25;
 
   bool change_status = 26;
-  bool set_done_task = 27;
-  bool set_retake_task = 28;
+  bool set_done_asset = 27;
+  bool set_retake_asset = 28;
 
-  bool view_done_task = 29;
+  bool view_done_asset = 29;
 
   bool manage_dependencies = 30;
 }
@@ -309,11 +309,11 @@ message Tomb {
 
 message ProjectData {
     string project_preview = 1;
-    repeated Task tasks = 2;
-    repeated TaskType task_types = 3;
-    repeated Checkpoint tasks_checkpoints = 4;
-    repeated TaskDependency task_dependencies = 5;
-    repeated EntityDependency entity_dependencies = 6;
+    repeated Asset assets = 2;
+    repeated AssetType asset_types = 3;
+    repeated Checkpoint asset_checkpoints = 4;
+    repeated AssetDependency asset_dependencies = 5;
+    repeated CollectionDependency collection_dependencies = 6;
 
     repeated Status statuses = 7;
     repeated DependencyType dependency_types = 8;
@@ -321,18 +321,18 @@ message ProjectData {
     repeated User users = 9;
     repeated Role roles = 10;
 
-    repeated EntityType entity_types = 11;
-    repeated Entity entities = 12;
-    repeated EntityAssignee entity_assignees = 13;
+    repeated CollectionType collection_types = 11;
+    repeated Collection collections = 12;
+    repeated CollectionAssignee collection_assignees = 13;
 
     repeated Template templates = 14;
     repeated Tag tags = 15;
-    repeated TaskTag tasks_tags = 16;
+    repeated AssetTag asset_tags = 16;
 
     repeated Workflow workflows = 17;
     repeated WorkflowLink workflow_links = 18;
-    repeated WorkflowEntity workflow_entities = 19;
-    repeated WorkflowTask workflow_tasks = 20;
+    repeated WorkflowCollection workflow_collections = 19;
+    repeated WorkflowAsset workflow_assets = 20;
 
     repeated Tomb tomb = 21;
 
@@ -341,7 +341,7 @@ message ProjectData {
     repeated IntegrationAssetMapping integration_asset_mappings = 24;
 }
 
-message FullTask {
+message FullAsset {
   string id = 1;
   int64 mtime = 2 [json_name = "mtime"];
   string created_at = 3 [json_name = "created_at"];
@@ -351,13 +351,13 @@ message FullTask {
   bool is_resource = 7 [json_name = "is_resource"];
   string status_id = 8 [json_name = "status_id"];
   string status_short_name = 9 [json_name = "status_short_name"];
-  string task_type_id = 10 [json_name = "task_type_id"];
-  string task_type_name = 11 [json_name = "task_type_name"];
-  string task_type_icon = 12 [json_name = "task_type_icon"];
-  string entity_id = 13;
-  string entity_name = 14;
-  string entity_path = 15;
-  string task_path = 16;
+  string asset_type_id = 10 [json_name = "asset_type_id"];
+  string asset_type_name = 11 [json_name = "asset_type_name"];
+  string asset_type_icon = 12 [json_name = "asset_type_icon"];
+  string collection_id = 13;
+  string collection_name = 14;
+  string collection_path = 15;
+  string asset_path = 16;
   string assignee_id = 17;
   string assignee_email = 18;
   string assignee_name = 19;
@@ -369,8 +369,8 @@ message FullTask {
   string file_path = 25;
   repeated string tags = 26;
   string tags_raw = 27;
-  repeated string entity_dependencies = 28;
-  string entity_dependencies_raw = 29;
+  repeated string collection_dependencies = 28;
+  string collection_dependencies_raw = 29;
   repeated string dependencies = 30;
   string dependencies_raw = 31;
   string file_status = 32;
@@ -391,8 +391,8 @@ message ChunkInfo {
   int64 size = 2 [json_name = "size"];
 }
 
-message FullTaskList {
-  repeated FullTask full_tasks = 1;
+message FullAssetList {
+  repeated FullAsset full_assets = 1;
 }
 
 message Previews {

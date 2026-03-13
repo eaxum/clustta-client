@@ -10,7 +10,7 @@
       class="column" :class="{ 'column-minimized' : minimizedColumns.includes(column.id)}" >
 
       <div  class="column-header" :style="{ outline :  '2px solid' + column.color }" @dblclick="minimizeColumn(column.id)" 
-      :class="{ 'column-header-minimized' : minimizedColumns.includes(column.id)}" @click="loadAssetTasks">
+      :class="{ 'column-header-minimized' : minimizedColumns.includes(column.id)}" @click="loadAssetAssets">
 
         <div class="column-header-icon" >
             <img class="small-icons no-filter" :src="getStatusIcon(column.short_name)">
@@ -38,7 +38,7 @@
           <div :class="{ 'column-card': true, 'dragging': dndStore.draggedItemId === card.id }"
                :ref="el => el && (draggedItemRefs[card.id] = el)" 
                @mousedown="onDragStart($event, card.id, minimizedColumns.includes(column.id))">
-            <TaskItemCard v-bind="card" :task="card" :isTask="isTask(card.task_name)" :isMinimized="minimizedColumns.includes(column.id)" />
+            <AssetItemCard v-bind="card" :asset="card" :isAsset="isAsset(card.asset_name)" :isMinimized="minimizedColumns.includes(column.id)" />
           </div>
           
         </template>
@@ -54,7 +54,7 @@
     <div id="ghost-card" ref="ghostCard"
         :style="ghostCardStyles"
         :class="{ 'column-card': true, 'active': dndStore.draggedItemId !== null, leaving: dndStore.ghostCardStyle.leaving }">
-        <TaskItemCard v-bind="draggedCard" :task="draggedCard"  :isTask="isTask(draggedCard.task_name)"/>
+        <AssetItemCard v-bind="draggedCard" :asset="draggedCard"  :isAsset="isAsset(draggedCard.asset_name)"/>
     </div>
 
   </div>
@@ -80,7 +80,7 @@ import { useDndStore } from '@/stores/dnd';
 import { useProjectStore } from '@/stores/projects';
 
 // components
-import TaskItemCard from '@/instances/desktop/components/TaskItemCard.vue'
+import AssetItemCard from '@/instances/desktop/components/AssetItemCard.vue'
 
 // stores/state 
 const dndStore = useDndStore();
@@ -94,7 +94,7 @@ const iconStore = useIconStore();
 // props
 const props = defineProps({
   
-  tasks: Array,
+  assets: Array,
   filtersActive: Boolean,
   showThumbs: {
     type: Boolean,
@@ -123,45 +123,45 @@ const filteredCards = ref([]);
 const hoveredCardIndex = ref(-1);
 const hoveredColumnId = ref(null);
 
-// Fetch asset tasks from the backend
-const loadAssetTasks = async () => {
+// Fetch asset assets from the backend
+const loadAssetAssets = async () => {
   try {
     const projectPath = projectStore.activeProject?.uri;
     if (projectPath) {
-      let tasks;
+      let assets;
       
-      // If navigator mode is active and we have a navigated collection, filter tasks by entity_id
+      // If navigator mode is active and we have a navigated collection, filter assets by collection_id
       if (commonStore.navigatorMode && collectionStore.navigatedCollection) {
-        const navigatedEntityId = collectionStore.navigatedCollection.id;
-        const entity_file_path = collectionStore.navigatedCollection.file_path;
+        const navigatedCollectionId = collectionStore.navigatedCollection.id;
+        const collection_file_path = collectionStore.navigatedCollection.file_path;
         const project = projectStore.activeProject;
         
         // Get children of the navigated collection (similar to Browser.vue)
         const children = await CollectionService.GetCollectionChildren(
           project.uri,
-          navigatedEntityId,
+          navigatedCollectionId,
           project.working_directory,
-          entity_file_path,
+          collection_file_path,
           project.ignore_list,
           false
         );
         
-        tasks = children.tasks.filter((item) => !item.is_resource) || [];
+        assets = children.assets.filter((item) => !item.is_resource) || [];
       } else {
-        // Get all tasks if not in navigator mode
-        tasks = await AssetService.GetAssetTasks(projectPath);
+        // Get all assets if not in navigator mode
+        assets = await AssetService.GetAssetAssets(projectPath);
       }
       
-      await assetStore.processAssetsIconsAndPreviews(tasks);
-      cards.value = tasks; // Update cards ref with the fetched tasks
+      await assetStore.processAssetsIconsAndPreviews(assets);
+      cards.value = assets; // Update cards ref with the fetched assets
       await updateFilteredCards(); // Update filtered cards
     }
   } catch (error) {
-    console.error('Error loading asset tasks:', error);
+    console.error('Error loading asset assets:', error);
   }
 };
 
-// Update filtered cards using the async filterTasks method
+// Update filtered cards using the async filterAssets method
 const updateFilteredCards = async () => {
   try {
     
@@ -178,9 +178,9 @@ const updateFilteredCards = async () => {
 };
 
 const statuses = computed(() => { 
-  const taskStatuses = statusStore.statuses;
+  const assetStatuses = statusStore.statuses;
   const order = { 'todo': 1, 'ready': 2, 'wip': 3, 'wfa': 4, 'retake': 5, 'done': 6 };
-  return taskStatuses.sort((a, b) => {
+  return assetStatuses.sort((a, b) => {
     const orderA = order[a.short_name] || Infinity;
     const orderB = order[b.short_name] || Infinity;
     return orderA - orderB;
@@ -310,8 +310,8 @@ const minimizeColumn = (id) => {
   }
 };
 
-const isTask = (taskName) => {
-  if(taskName){
+const isAsset = (assetName) => {
+  if(assetName){
     return false
   } else {
     return true
@@ -352,9 +352,9 @@ const onDragStart = (e, id, isMinimized) => {
   dndStore.draggedItemId = id;
 
  
-  const taskId = id;
-  const task = assetStore.getAssets.find(item => item.id === taskId );
-  assetStore.selectAsset(task);
+  const assetId = id;
+  const asset = assetStore.getAssets.find(item => item.id === assetId );
+  assetStore.selectAsset(asset);
 
   dndStore.ghostCardStyle.width = selectedCard.clientWidth - paddingLeft - paddingRight;
   dndStore.ghostCardStyle.cursorDistance.x = e.pageX - cardRect.x;
@@ -424,22 +424,22 @@ const updateUI = () => {
 };
 
 const setStatus = async () => {
-  const taskId = dndStore.draggedItemId;
+  const assetId = dndStore.draggedItemId;
   const status = statusColumns.find(item => item.id === dndStore.itemOverlappedId);
   
   try {
     const projectPath = projectStore.activeProject?.uri;
-    if (projectPath && taskId && status) {
-      await AssetService.ChangeStatus(projectPath, taskId, status.id);
+    if (projectPath && assetId && status) {
+      await AssetService.ChangeStatus(projectPath, assetId, status.id);
       
       // The card position has already been updated in putCardInColumn
       // No need to update local data again here since putCardInColumn handles positioning
     }
   } catch (error) {
-    console.error('Error changing task status:', error);
+    console.error('Error changing asset status:', error);
     
-    // On error, reload the tasks to ensure consistency
-    await loadAssetTasks();
+    // On error, reload the assets to ensure consistency
+    await loadAssetAssets();
   }
 };
 
@@ -539,7 +539,7 @@ const findGlobalInsertIndexForEmptyColumn = (targetColumnId) => {
 
 onMounted(async () => {
   // emitter.emit('refresh-browser')
-  await loadAssetTasks();
+  await loadAssetAssets();
   // Ensure filtered cards are initialized even if no filters are active
   if (filteredCards.value.length === 0 && cards.value.length > 0) {
     await updateFilteredCards();
@@ -551,7 +551,7 @@ watch(() => cards.value, async () => {
   await updateFilteredCards();
 }, { deep: true });
 
-watch(() => commonStore.taskFilters, async () => {
+watch(() => commonStore.assetFilters, async () => {
   await updateFilteredCards();
 }, { deep: true });
 
@@ -571,14 +571,14 @@ watch(() => commonStore.noAssignees, async () => {
   await updateFilteredCards();
 });
 
-// Watch for navigator mode changes to reload tasks
+// Watch for navigator mode changes to reload assets
 watch(() => commonStore.navigatorMode, async () => {
-  await loadAssetTasks();
+  await loadAssetAssets();
 });
 
-// Watch for navigated collection changes to reload tasks
+// Watch for navigated collection changes to reload assets
 watch(() => collectionStore.navigatedCollection, async () => {
-  await loadAssetTasks();
+  await loadAssetAssets();
 });
 
 onUnmounted(() => {

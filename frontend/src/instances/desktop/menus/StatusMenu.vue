@@ -33,7 +33,7 @@ const emits = defineEmits(['statusSelected']);
 
 const projectStatuses = computed(() => {
   const allStatuses = statusStore.statuses;
-  if (!userStore.canDo('set_done_task')) {
+  if (!userStore.canDo('set_done_asset')) {
     const limitedStatus = ['done', 'retake']
     return allStatuses.filter((item) => !limitedStatus.includes(item.short_name))
   } else {
@@ -46,14 +46,14 @@ const selectStatus = async (fullStatus) => {
   stage.operationActive = true;
   const projectPath = projectStore.activeProject.uri;
   const status = statusStore.statuses.find(item => item.short_name === statusName.toLowerCase());
-  let task = assetStore.selectedAsset;
+  let asset = assetStore.selectedAsset;
   
-  await AssetService.ChangeStatus(projectPath, task.id, status.id)
+  await AssetService.ChangeStatus(projectPath, asset.id, status.id)
     .then((data) => {
-      task.status_short_name = status.short_name;
-      task.status = status;
+      asset.status_short_name = status.short_name;
+      asset.status = status;
       
-      emitTaskUpdates(task.id, [
+      emitAssetUpdates(asset.id, [
         { property: 'status_short_name', value: status.short_name },
         { property: 'status', value: status }
       ]);
@@ -68,9 +68,9 @@ const selectStatus = async (fullStatus) => {
   menu.hideContextMenu();
 };
 
-// Helper function to emit task data updates
-const emitTaskUpdates = (taskId, updates) => {
-  const updateData = { itemId: taskId, updates };
+// Helper function to emit asset data updates
+const emitAssetUpdates = (assetId, updates) => {
+  const updateData = { itemId: assetId, updates };
   
   // Emit to both Browser and VirtuaItem components
   emitter.emit('update-root-data', updateData);
@@ -79,7 +79,7 @@ const emitTaskUpdates = (taskId, updates) => {
 
 
 const handleClickOutside = (event) => {
-  if (menu.showStatusOptions && !event.target.closest('.task-item-status')) {
+  if (menu.showStatusOptions && !event.target.closest('.asset-item-status')) {
     menu.hideContextMenu();;
     //console.log('clicked outside');
   }

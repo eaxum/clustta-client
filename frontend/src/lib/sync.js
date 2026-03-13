@@ -33,8 +33,8 @@ export async function syncData() {
   
   let syncOptions = {
     only_latest_checkpoints: false,
-    task_dependencies: false,
-    tasks: false,
+    asset_dependencies: false,
+    assets: false,
     templates: false,
   };
   await SyncService.SyncData(
@@ -62,8 +62,8 @@ export async function pullData() {
   
   let syncOptions = {
       only_latest_checkpoints: false,
-      task_dependencies: false,
-      tasks: false,
+      asset_dependencies: false,
+      assets: false,
       templates: false,
   };
 
@@ -91,8 +91,8 @@ export async function syncFullData() {
   const notificationStore = useNotificationStore();
   let syncOptions = {
     only_latest_checkpoints: false,
-    task_dependencies: true,
-    tasks: true,
+    asset_dependencies: true,
+    assets: true,
     templates: true,
   };
   await SyncService.SyncData(

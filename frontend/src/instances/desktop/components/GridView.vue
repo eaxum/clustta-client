@@ -5,14 +5,14 @@
 
     <div v-else ref="navigatorRoot" class="navigator-root">
       
-      <div v-if="entityItems.length > 0" class="navigator-item-container" :style="gridStyles">
-          <GridItem v-for="(child, index) in entityItems" :child="child" :key="child.index" :index="index" 
+      <div v-if="collectionItems.length > 0" class="navigator-item-container" :style="gridStyles">
+          <GridItem v-for="(child, index) in collectionItems" :child="child" :key="child.index" :index="index" 
           @mousedown="onMouseDown($event, child, index)"
           @mouseup="onMouseUp($event, child, index)" :ref="el => handleRef(child.id, el?.$el || el)" />
       </div>
       
-      <div v-if="taskItems.length > 0" class="navigator-item-container" :style="gridStyles">
-          <GridItem v-for="(child, index) in taskItems" :child="child" :key="child.index" :index="index" 
+      <div v-if="assetItems.length > 0" class="navigator-item-container" :style="gridStyles">
+          <GridItem v-for="(child, index) in assetItems" :child="child" :key="child.index" :index="index" 
           @mousedown="onMouseDown($event, child, index)"
           @mouseup="onMouseUp($event, child, index)" :ref="el => handleRef(child.id, el?.$el || el)" />
       </div>
@@ -71,17 +71,17 @@ const gridStyles = computed(() => ({
   width: '100%'
 }));
 
-// Filter root items to get only entity type items
-const entityItems = computed(() => {
+// Filter root items to get only collection type items
+const collectionItems = computed(() => {
   return props.rootItems.filter(item => 
-    item.type === 'entity' || item.type === 'untracked_entity'
+    item.type === 'collection' || item.type === 'untracked_collection'
   );
 });
 
-// Filter root items to get only task type items
-const taskItems = computed(() => {
+// Filter root items to get only asset type items
+const assetItems = computed(() => {
   return props.rootItems.filter(item => 
-    item.type !== 'entity' && item.type !== 'untracked_entity'
+    item.type !== 'collection' && item.type !== 'untracked_collection'
   );
 });
 
@@ -92,7 +92,7 @@ const containerHeight = computed(() => {
 
 // Get all untracked items from root items
 const previousUntracked = computed(() => {
-  const allUntracked = props.rootItems.filter((item) => item.type === 'untracked_task' || item.type === 'untracked_entity');
+  const allUntracked = props.rootItems.filter((item) => item.type === 'untracked_asset' || item.type === 'untracked_collection');
   return allUntracked;
 });
 
@@ -142,43 +142,43 @@ const debouncedRefreshView = () => {
 // Fetch and update collection children state from backend
 const refreshView = async () => {
   const project = projectStore.activeProject;
-  const entityId = collectionStore.navigatedCollection?.id;
+  const collectionId = collectionStore.navigatedCollection?.id;
   
   try {
     const state = await CollectionService.GetCollectionChildrenState(
       project.uri,
-      entityId,
+      collectionId,
       project.working_directory,
       project.ignore_list
     );
     
-    if (state.normal_tasks && state.normal_tasks.length > 0) {
-      state.normal_tasks.forEach(task => {
-        emitItemUpdates(task.id, [
+    if (state.normal_assets && state.normal_assets.length > 0) {
+      state.normal_assets.forEach(asset => {
+        emitItemUpdates(asset.id, [
           { property: 'file_status', value: 'normal' }
         ]);
       });
     }
 
-    if (state.modified_tasks && state.modified_tasks.length > 0) {
-      state.modified_tasks.forEach(task => {
-        emitItemUpdates(task.id, [
+    if (state.modified_assets && state.modified_assets.length > 0) {
+      state.modified_assets.forEach(asset => {
+        emitItemUpdates(asset.id, [
           { property: 'file_status', value: 'modified' }
         ]);
       });
     }
     
-    if (state.outdated_tasks && state.outdated_tasks.length > 0) {
-      state.outdated_tasks.forEach(task => {
-        emitItemUpdates(task.id, [
+    if (state.outdated_assets && state.outdated_assets.length > 0) {
+      state.outdated_assets.forEach(asset => {
+        emitItemUpdates(asset.id, [
           { property: 'file_status', value: 'outdated' }
         ]);
       });
     }
     
-    if (state.rebuildable_tasks && state.rebuildable_tasks.length > 0) {
-      state.rebuildable_tasks.forEach(task => {
-        emitItemUpdates(task.id, [
+    if (state.rebuildable_assets && state.rebuildable_assets.length > 0) {
+      state.rebuildable_assets.forEach(asset => {
+        emitItemUpdates(asset.id, [
           { property: 'file_status', value: 'rebuildable' }
         ]);
       });
@@ -212,13 +212,13 @@ const onMouseDown = (event, item, index) => {
   const allItems = props.rootItems;
   let itemType;
 
-  if (item.entity_type_id) {
-    itemType = 'entity';
-  } else if (item.task_type_id) {
+  if (item.collection_type_id) {
+    itemType = 'collection';
+  } else if (item.asset_type_id) {
     if (item.is_resource) {
       itemType = 'resource';
     } else {
-      itemType = 'task';
+      itemType = 'asset';
     }
   } else if (item.item_type) {
     itemType = item.item_type;
@@ -259,13 +259,13 @@ const onMouseUp = (event, item) => {
   const allItems = props.rootItems;
   let itemType;
 
-  if (item.entity_type_id) {
-    itemType = 'entity';
-  } else if (item.task_type_id) {
+  if (item.collection_type_id) {
+    itemType = 'collection';
+  } else if (item.asset_type_id) {
     if (item.is_resource) {
       itemType = 'resource';
     } else {
-      itemType = 'task';
+      itemType = 'asset';
     }
   } else if (item.item_type) {
     itemType = item.item_type;

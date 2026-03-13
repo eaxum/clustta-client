@@ -27,14 +27,14 @@ func Get(tx *sqlx.Tx, table string, id string, dest interface{}) error {
 		switch table {
 		case "status":
 			return error_service.ErrStatusNotFound
-		case "task_type":
-			return error_service.ErrTaskTypeNotFound
-		case "full_task":
-			return error_service.ErrTaskNotFound
-		case "task":
-			return error_service.ErrTaskNotFound
-		case "task_checkpoint":
-			return error_service.ErrTaskCheckPointNotFound
+		case "asset_type":
+			return error_service.ErrAssetTypeNotFound
+		case "full_asset":
+			return error_service.ErrAssetNotFound
+		case "asset":
+			return error_service.ErrAssetNotFound
+		case "asset_checkpoint":
+			return error_service.ErrAssetCheckPointNotFound
 
 		case "user":
 			return error_service.ErrUserNotFound
@@ -42,34 +42,34 @@ func Get(tx *sqlx.Tx, table string, id string, dest interface{}) error {
 			return error_service.ErrRoleNotFound
 		case "dependency_type":
 			return error_service.ErrDependencyTypeNotFound
-		case "entity":
-			return error_service.ErrEntityNotFound
-		case "entity_assignee":
-			return error_service.ErrEntityAssigneeNotFound
-		case "full_entity":
-			return error_service.ErrEntityNotFound
-		case "entity_type":
-			return error_service.ErrEntityTypeNotFound
+		case "collection":
+			return error_service.ErrCollectionNotFound
+		case "collection_assignee":
+			return error_service.ErrCollectionAssigneeNotFound
+		case "full_collection":
+			return error_service.ErrCollectionNotFound
+		case "collection_type":
+			return error_service.ErrCollectionTypeNotFound
 		case "template":
 			return error_service.ErrTemplateNotFound
 		case "workflow":
 			return error_service.ErrWorkflowNotFound
-		case "workflow_entity":
-			return error_service.ErrWorkflowEntityNotFound
-		case "workflow_task":
-			return error_service.ErrWorkflowTaskNotFound
+		case "workflow_collection":
+			return error_service.ErrWorkflowCollectionNotFound
+		case "workflow_asset":
+			return error_service.ErrWorkflowAssetNotFound
 		case "tag":
 			return error_service.ErrTagNotFound
-		case "task_tag":
-			return error_service.ErrTaskTagNotFound
-		case "task_dependency":
-			return error_service.ErrTaskDependencyNotFound
-		case "entity_dependency":
-			return error_service.ErrEntityDependencyNotFound
+		case "asset_tag":
+			return error_service.ErrAssetTagNotFound
+		case "asset_dependency":
+			return error_service.ErrAssetDependencyNotFound
+		case "collection_dependency":
+			return error_service.ErrCollectionDependencyNotFound
 		case "preview":
 			return error_service.ErrPreviewNotFound
-		// case "subtask_dependency":
-		// 	return error_service.ErrSubtaskDe
+		// case "subasset_dependency":
+		// 	return error_service.ErrSubassetDe
 		default:
 			return fmt.Errorf("id of %s not found in %s", id, table)
 		}
@@ -86,14 +86,14 @@ func GetByName(tx *sqlx.Tx, table string, name string, dest interface{}) error {
 		switch table {
 		case "status":
 			return error_service.ErrStatusNotFound
-		case "task_type":
-			return error_service.ErrTaskTypeNotFound
-		case "full_task":
-			return error_service.ErrTaskNotFound
-		case "task":
-			return error_service.ErrTaskNotFound
-		case "task_checkpoint":
-			return error_service.ErrTaskCheckPointNotFound
+		case "asset_type":
+			return error_service.ErrAssetTypeNotFound
+		case "full_asset":
+			return error_service.ErrAssetNotFound
+		case "asset":
+			return error_service.ErrAssetNotFound
+		case "asset_checkpoint":
+			return error_service.ErrAssetCheckPointNotFound
 
 		case "user":
 			return error_service.ErrUserNotFound
@@ -101,30 +101,30 @@ func GetByName(tx *sqlx.Tx, table string, name string, dest interface{}) error {
 			return error_service.ErrRoleNotFound
 		case "dependency_type":
 			return error_service.ErrDependencyTypeNotFound
-		case "entity":
-			return error_service.ErrEntityNotFound
-		case "entity_assignee":
-			return error_service.ErrEntityAssigneeNotFound
-		case "full_entity":
-			return error_service.ErrEntityNotFound
-		case "entity_type":
-			return error_service.ErrEntityTypeNotFound
+		case "collection":
+			return error_service.ErrCollectionNotFound
+		case "collection_assignee":
+			return error_service.ErrCollectionAssigneeNotFound
+		case "full_collection":
+			return error_service.ErrCollectionNotFound
+		case "collection_type":
+			return error_service.ErrCollectionTypeNotFound
 		case "template":
 			return error_service.ErrTemplateNotFound
 		case "workflow":
 			return error_service.ErrWorkflowNotFound
-		case "workflow_entity":
-			return error_service.ErrWorkflowEntityNotFound
-		case "workflow_task":
-			return error_service.ErrWorkflowTaskNotFound
+		case "workflow_collection":
+			return error_service.ErrWorkflowCollectionNotFound
+		case "workflow_asset":
+			return error_service.ErrWorkflowAssetNotFound
 		case "tag":
 			return error_service.ErrTagNotFound
-		case "task_tag":
-			return error_service.ErrTaskTagNotFound
-		case "task_dependency":
-			return error_service.ErrTaskDependencyNotFound
-		case "entity_dependency":
-			return error_service.ErrEntityDependencyNotFound
+		case "asset_tag":
+			return error_service.ErrAssetTagNotFound
+		case "asset_dependency":
+			return error_service.ErrAssetDependencyNotFound
+		case "collection_dependency":
+			return error_service.ErrCollectionDependencyNotFound
 		case "preview":
 			return error_service.ErrPreviewNotFound
 		default:

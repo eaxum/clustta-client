@@ -3,8 +3,8 @@
   <div class="general-pane-root">
     <div class="general-pane-container">
 
-      <div v-if="collectionStore.selectedCollection?.preview" class="entity-thumb-container">
-        <div class="entity-thumb">
+      <div v-if="collectionStore.selectedCollection?.preview" class="collection-thumb-container">
+        <div class="collection-thumb">
           <img v-if="collectionStore.selectedCollection.preview" class="screenshot-thumb"
             :src="'data:image/png;base64,' + collectionStore.selectedCollection.preview">
           <img v-else class="screenshot-thumb" src="/page-states/no_image.png">
@@ -12,12 +12,12 @@
       </div>
 
       <div v-if="collectionStore.selectedCollection" class="pane-parameter-section">
-        <div class="action-bar" v-if="userStore.canDo('update_entity')">
+        <div class="action-bar" v-if="userStore.canDo('update_collection')">
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="$t('panes.collectionType')" />
             <DropDownBox :items="collectionStore.getCollectionTypesNames"
-              :selectedItem="collectionStore.selectedCollection.entity_type_name" :onSelect="changeEntityType"
+              :selectedItem="collectionStore.selectedCollection.collection_type_name" :onSelect="changeCollectionType"
               :fixedWidth="true" />
           </div>
           <div class="action-bar-section">
@@ -47,7 +47,7 @@
 
         </div>
 
-        <span v-if="userStore.canDo('update_entity')" class="menu-divider"></span>
+        <span v-if="userStore.canDo('update_collection')" class="menu-divider"></span>
 
         <div class="pane-parameter-detail">
           <div class="simple-text-key">
@@ -66,7 +66,7 @@
               {{ collectionStore.selectedCollection.file_path }}
             </div>
             <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
-              <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('common.copyPath')" @click="copyEntityPath('entity')"/>
+              <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('common.copyPath')" @click="copyCollectionPath('collection')"/>
               <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="$t('common.revealInExplorer')" :buttonFunction="revealInExplorer"/>
             </div>
         </div>
@@ -179,9 +179,9 @@ const projectUsers = computed(() => {
   return availableUsers;
 });
 
-// Helper function to emit entity data updates
-const emitEntityUpdates = (entityId, updates) => {
-  const updateData = { itemId: entityId, updates };
+// Helper function to emit collection data updates
+const emitCollectionUpdates = (collectionId, updates) => {
+  const updateData = { itemId: collectionId, updates };
   
   // Emit to both Browser and VirtuaItem components
   emitter.emit('update-root-data', updateData);
@@ -193,12 +193,12 @@ const revealInExplorer = async () => {
   FSService.RevealInExplorer(collectionStore.selectedCollection.file_path)
 };
 
-const copyEntityPath = async () => {
-  let entity = collectionStore.selectedCollection;
-  let entityDir = entity.file_path;
-  entityDir = entityDir.replace(/\\/g, '/');
-  FSService.MakeDirs(entityDir);
-  await Clipboard.SetText(entityDir);
+const copyCollectionPath = async () => {
+  let collection = collectionStore.selectedCollection;
+  let collectionDir = collection.file_path;
+  collectionDir = collectionDir.replace(/\\/g, '/');
+  FSService.MakeDirs(collectionDir);
+  await Clipboard.SetText(collectionDir);
   const message = t('notifications.pathCopied');
   notificationStore.addNotification(message, "", "success");
 };
@@ -207,11 +207,11 @@ const removeUser = (user) => {
   const userId = user.id;
   CollectionService.Unassign(projectStore.activeProject.uri, collectionStore.selectedCollection.id, userId)
     .then((data) => {
-      // Update local entity data
+      // Update local collection data
       collectionStore.selectedCollection.assignee_ids = collectionStore.selectedCollection.assignee_ids.filter(t => t !== userId);
       
       // Emit updates using helper function
-      emitEntityUpdates(collectionStore.selectedCollection.id, [
+      emitCollectionUpdates(collectionStore.selectedCollection.id, [
         { property: 'assignee_ids', value: collectionStore.selectedCollection.assignee_ids }
       ]);
       
@@ -232,11 +232,11 @@ const addUser = (user) => {
   else {
     CollectionService.Assign(projectStore.activeProject.uri, collectionStore.selectedCollection.id, userId)
       .then((data) => {
-        // Update local entity data
+        // Update local collection data
         collectionStore.selectedCollection.assignee_ids.push(userId);
         
         // Emit updates using helper function
-        emitEntityUpdates(collectionStore.selectedCollection.id, [
+        emitCollectionUpdates(collectionStore.selectedCollection.id, [
           { property: 'assignee_ids', value: collectionStore.selectedCollection.assignee_ids }
         ]);
         
@@ -252,31 +252,31 @@ const addUser = (user) => {
 const parentName = computed(() => {
   const parentId = collectionStore.selectedCollection.parent_id
   const parent = collectionStore.getCollections.find((item) => item.id === parentId)
-  return parent ? parent.entity_path.replace(/\//g, ' / ') : t('common.none')
+  return parent ? parent.collection_path.replace(/\//g, ' / ') : t('common.none')
 });
 
-const changeEntityType = async (entityTypeName) => {
+const changeCollectionType = async (collectionTypeName) => {
   stage.operationActive = true;
 
-  let newEntityType;
-  const entityTypes = collectionStore.getCollectionTypes;
-  newEntityType = entityTypes.find((item) => item.name === entityTypeName);
+  let newCollectionType;
+  const collectionTypes = collectionStore.getCollectionTypes;
+  newCollectionType = collectionTypes.find((item) => item.name === collectionTypeName);
 
   const projectPath = projectStore.activeProject.uri;
-  let entity = collectionStore.selectedCollection;
+  let collection = collectionStore.selectedCollection;
 
-  await CollectionService.ChangeType(projectPath, entity.id, newEntityType.id)
+  await CollectionService.ChangeType(projectPath, collection.id, newCollectionType.id)
     .then((data) => {
-      // Update local entity data
-      entity.entity_type_name = newEntityType.name;
-      entity.entity_type_icon = newEntityType.icon;
-      entity.entity_type_id = newEntityType.id;
+      // Update local collection data
+      collection.collection_type_name = newCollectionType.name;
+      collection.collection_type_icon = newCollectionType.icon;
+      collection.collection_type_id = newCollectionType.id;
       
       // Emit updates using helper function
-      emitEntityUpdates(entity.id, [
-        { property: 'entity_type_name', value: newEntityType.name },
-        { property: 'entity_type_icon', value: newEntityType.icon },
-        { property: 'entity_type_id', value: newEntityType.id }
+      emitCollectionUpdates(collection.id, [
+        { property: 'collection_type_name', value: newCollectionType.name },
+        { property: 'collection_type_icon', value: newCollectionType.icon },
+        { property: 'collection_type_id', value: newCollectionType.id }
       ]);
     })
     .catch((error) => {
@@ -289,15 +289,15 @@ const changeEntityType = async (entityTypeName) => {
 const changeIsLibrary = async () => {
   stage.operationActive = true;
   const projectPath = projectStore.activeProject.uri;
-  let entity = collectionStore.selectedCollection;
+  let collection = collectionStore.selectedCollection;
 
-  await CollectionService.ChangeIsLibrary(projectPath, entity.id, !collectionStore.selectedCollection.is_library)
+  await CollectionService.ChangeIsLibrary(projectPath, collection.id, !collectionStore.selectedCollection.is_library)
     .then((data) => {
-      // Update local entity data
+      // Update local collection data
       collectionStore.selectedCollection.is_library = !collectionStore.selectedCollection.is_library;
       
       // Emit updates using helper function
-      emitEntityUpdates(entity.id, [
+      emitCollectionUpdates(collection.id, [
         { property: 'is_library', value: collectionStore.selectedCollection.is_library }
       ]);
       
@@ -311,10 +311,10 @@ const changeIsLibrary = async () => {
 
 };
 // refs
-const numberOfSelectedEntities = ref(0);
+const numberOfSelectedCollections = ref(0);
 
-const entityTypeIcon = computed(() => {
-  const icon = '/types-icons/' + collectionStore.selectedCollection?.entity_type_icon + '.svg';
+const collectionTypeIcon = computed(() => {
+  const icon = '/types-icons/' + collectionStore.selectedCollection?.collection_type_icon + '.svg';
   if (icon) {
     return icon
   } else {
@@ -323,7 +323,7 @@ const entityTypeIcon = computed(() => {
 });
 
 
-const editEntity = () => {
+const editCollection = () => {
   modals.setModalVisibility('editCollectionModal', true);
 };
 
@@ -342,9 +342,9 @@ const getCollectionSize = async() => {
 }
 
 const getItemsCount = async() => {
-  let entity = collectionStore.selectedCollection;
-  assetsOnDiskCount.value = await FSService.FileCount(entity?.file_path);
-  collectionsOnDiskCount.value = await FSService.FolderCount(entity?.file_path);
+  let collection = collectionStore.selectedCollection;
+  assetsOnDiskCount.value = await FSService.FileCount(collection?.file_path);
+  collectionsOnDiskCount.value = await FSService.FolderCount(collection?.file_path);
 }
 
 const getProjectData = async () => {

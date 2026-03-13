@@ -10,8 +10,8 @@
       <img class="small-icons" :src="typeIcon" v-tooltip="typeName">
     </div>
 
-    <div class="preview-content" @click="console.log(entity)" >
-      <span class="preview-name">{{ entity.name }}</span>
+    <div class="preview-content" @click="console.log(collection)" >
+      <span class="preview-name">{{ collection.name }}</span>
     </div>
 
     <div class="preview-meta">
@@ -37,7 +37,7 @@ const iconStore = useIconStore();
 // props
 const props = defineProps({
   childCount: { type: Number, default: 0 },
-  entity: { type: Object, required: true },
+  collection: { type: Object, required: true },
   hasChildren: { type: Boolean, default: false },
   isExpanded: { type: Boolean, default: false },
   isSelected: { type: Boolean, default: false },
@@ -52,20 +52,20 @@ const chevronIcon = computed(() => {
   return iconStore.getAppIcon('chevron-down');
 });
 
-// Returns true if this is a virtual folder (directory structure node, not a Kitsu entity).
+// Returns true if this is a virtual folder (directory structure node, not a Kitsu collection).
 const isVirtual = computed(() => {
-  return props.entity.action === 'virtual';
+  return props.collection.action === 'virtual';
 });
 
 // Returns the type icon path.
 const typeIcon = computed(() => {
-  const iconName = props.entity.entity_type_icon || 'folder';
+  const iconName = props.collection.collection_type_icon || 'folder';
   return iconStore.getAppIcon(iconName);
 });
 
 // Returns the capitalized external type name.
 const typeName = computed(() => {
-  return utils.capitalizeStr(props.entity.external_type || 'Collection');
+  return utils.capitalizeStr(props.collection.external_type || 'Collection');
 });
 
 // methods

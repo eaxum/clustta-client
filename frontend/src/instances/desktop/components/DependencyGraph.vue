@@ -11,15 +11,15 @@
           <ActionButton :icon="commonStore.showThumbs ? '/icons/hide_thumbs.svg' : '/icons/show_thumbs.svg'"
             v-tooltip="commonStore.showThumbs ? $t('components.dependencyGraph.hideThumbnails') : $t('components.dependencyGraph.showThumbnails')"
             :buttonFunction="toggleShowThumbs" />
-          <ActionButton :icon="'/icons/new_task.svg'" :isActive="showTasks" v-tooltip="$t('components.dependencyGraph.toggleTasksDisplay')"
-            :buttonFunction="toggleShowTasks" />
-          <ActionButton :icon="'/entity-icons/other.svg'" :isActive="showEntities" v-tooltip="$t('components.dependencyGraph.toggleEntityDisplay')"
-            :buttonFunction="toggleShowEntities" />
+          <ActionButton :icon="'/icons/new_asset.svg'" :isActive="showAssets" v-tooltip="$t('components.dependencyGraph.toggleAssetsDisplay')"
+            :buttonFunction="toggleShowAssets" />
+          <ActionButton :icon="'/collection-icons/other.svg'" :isActive="showCollections" v-tooltip="$t('components.dependencyGraph.toggleCollectionDisplay')"
+            :buttonFunction="toggleShowCollections" />
           <ActionButton :icon="'/icons/resources.svg'" :isActive="showResources" v-tooltip="$t('components.dependencyGraph.toggleResourcesDisplay')"
             :buttonFunction="toggleShowResources" />
         </div>
       </div>
-      <div class="task-graph-container">
+      <div class="asset-graph-container">
         <div class="graph-container">
           <div class="fit-view-button">
             <ActionButton :icon="getAppIcon('arrows-expand')" v-tooltip="$t('components.dependencyGraph.fitView')" @click="fitViewToAllNodes()" />
@@ -44,9 +44,9 @@
         <div class="deps-graph-filter">
           <div class="filter-options">
             <FilterButton :icon="getAppIcon('folder')" v-tooltip="$t('components.dependencyGraph.collectionType')"
-              :alert="isFilterActive('entity-type')" @mouseenter="flashFilterMenu($event, 'collectionTypeFilterMenu')"
+              :alert="isFilterActive('collection-type')" @mouseenter="flashFilterMenu($event, 'collectionTypeFilterMenu')"
               @click="showFilterMenu($event, 'collectionTypeFilterMenu')" />
-            <FilterButton :icon="getAppIcon('brush')" v-tooltip="$t('components.dependencyGraph.taskType')" :alert="isFilterActive('task-type')"
+            <FilterButton :icon="getAppIcon('brush')" v-tooltip="$t('components.dependencyGraph.assetType')" :alert="isFilterActive('asset-type')"
               @mouseenter="flashFilterMenu($event, 'assetTypeFilterMenu')"
               @click="showFilterMenu($event, 'assetTypeFilterMenu')" />
             <FilterButton :icon="getAppIcon('filter')" v-tooltip="$t('components.dependencyGraph.type')" :alert="isFilterActive('general')"
@@ -121,10 +121,10 @@ const { t } = useI18n();
 const useMaxDepth = ref(false);
 const graphElements = ref([]);
 const noDragClassName = 'no-drag';
-const sidebarTasks = ref([]);
-const sidebarEntities = ref([]);
-const filteredTasks = ref([]);
-const filteredEntities = ref([]);
+const sidebarAssets = ref([]);
+const sidebarCollections = ref([]);
+const filteredAssets = ref([]);
+const filteredCollections = ref([]);
 const graphData = ref({ nodes: [], edges: [] });
 const isLoadingGraph = ref(false);
 const isLoadingSidebar = ref(false);
@@ -138,7 +138,7 @@ const nodeStyle = smoothNode ? 'smoothstep' : '';
 const maxDepth = computed(() => { return useMaxDepth.value ? 4 : 1 });
 
 const filtersActive = computed(() => {
-  return commonStore.entityFilters.length || commonStore.taskFilters.length || isFilterActive('general') || commonStore.resourceFilters.length;
+  return commonStore.collectionFilters.length || commonStore.assetFilters.length || isFilterActive('general') || commonStore.resourceFilters.length;
 });
 
 // methods
@@ -154,13 +154,13 @@ const updateSearch = (event) => {
 
 const isFilterActive = (filter) => {
   if (filter.includes('general')) {
-    const isActive = commonStore.showEntities && commonStore.showTasks && commonStore.showResources;
+    const isActive = commonStore.showCollections && commonStore.showAssets && commonStore.showResources;
     return !isActive;
   } else
-    if (filter.includes('entity')) {
-      return commonStore.entityFilters.some((item) => item.type === filter);
+    if (filter.includes('collection')) {
+      return commonStore.collectionFilters.some((item) => item.type === filter);
     } else {
-      return commonStore.taskFilters.some((item) => item.type === filter);
+      return commonStore.assetFilters.some((item) => item.type === filter);
     }
 };
 
@@ -188,13 +188,13 @@ const toggleShowThumbs = () => {
   commonStore.showThumbs = !commonStore.showThumbs;
 };
 
-const toggleShowTasks = async () => {
-  showTasks.value = !showTasks.value;
+const toggleShowAssets = async () => {
+  showAssets.value = !showAssets.value;
   await buildGraphFromDependencies();
 };
 
-const toggleShowEntities = async () => {
-  showEntities.value = !showEntities.value;
+const toggleShowCollections = async () => {
+  showCollections.value = !showCollections.value;
   await buildGraphFromDependencies();
 };
 
@@ -206,18 +206,18 @@ const toggleShowResources = async () => {
 // //////////////////////////////
 const message = computed(() => {
   if (!useMaxDepth.value) {
-    if (totalTaskDeps.value > 1) {
-      return t('components.dependencyGraph.directDependencies', { count: totalTaskDeps.value });
-    } else if (totalTaskDeps.value === 1) {
-      return t('components.dependencyGraph.directDependency', { count: totalTaskDeps.value });
+    if (totalAssetDeps.value > 1) {
+      return t('components.dependencyGraph.directDependencies', { count: totalAssetDeps.value });
+    } else if (totalAssetDeps.value === 1) {
+      return t('components.dependencyGraph.directDependency', { count: totalAssetDeps.value });
     } else {
       return t('components.dependencyGraph.noDependencies');
     }
   } else {
-    if (totalTaskDeps.value > 1) {
-      return t('components.dependencyGraph.totalDependencies', { count: totalTaskDeps.value });
-    } else if (totalTaskDeps.value === 1) {
-      return t('components.dependencyGraph.totalDependency', { count: totalTaskDeps.value });
+    if (totalAssetDeps.value > 1) {
+      return t('components.dependencyGraph.totalDependencies', { count: totalAssetDeps.value });
+    } else if (totalAssetDeps.value === 1) {
+      return t('components.dependencyGraph.totalDependency', { count: totalAssetDeps.value });
     } else {
       return t('components.dependencyGraph.noDependencies');
     }
@@ -227,36 +227,36 @@ const message = computed(() => {
 
 
 const dependencies = ref([]);
-const totalTaskDepsCount = ref(0);
-const totalTaskDeps = computed(() => { return totalTaskDepsCount.value });
-const showTasks = ref(true);
-const showEntities = ref(true);
+const totalAssetDepsCount = ref(0);
+const totalAssetDeps = computed(() => { return totalAssetDepsCount.value });
+const showAssets = ref(true);
+const showCollections = ref(true);
 const showResources = ref(true);
 
 // computed getters - refactored to use service data
-const projectEntities = computed(() => {
-  if (!commonStore.showEntities) return [];
-  return filteredEntities.value;
+const projectCollections = computed(() => {
+  if (!commonStore.showCollections) return [];
+  return filteredCollections.value;
 });
 
-const projectTasks = computed(() => {
-  if (!commonStore.showTasks) return [];
-  return filteredTasks.value;
+const projectAssets = computed(() => {
+  if (!commonStore.showAssets) return [];
+  return filteredAssets.value;
 });
 
 const projectData = computed(() => {
-  const selectedTask = assetStore.selectedAsset;
-  if (!selectedTask) return [];
+  const selectedAsset = assetStore.selectedAsset;
+  if (!selectedAsset) return [];
   
-  const allData = [...projectTasks.value, ...projectEntities.value]
+  const allData = [...projectAssets.value, ...projectCollections.value]
   const currentDependencies = dependencies.value;
   const filteredData = allData.filter((item) => {
-    if (currentDependencies.includes(item.id) || item.id === selectedTask.id) {
+    if (currentDependencies.includes(item.id) || item.id === selectedAsset.id) {
       return false;
     }
     
-    const itemDependencies = [...(item.dependencies || []), ...(item.entity_dependencies || [])];
-    if (itemDependencies.includes(selectedTask.id)) {
+    const itemDependencies = [...(item.dependencies || []), ...(item.collection_dependencies || [])];
+    if (itemDependencies.includes(selectedAsset.id)) {
       return false;
     }
     
@@ -286,16 +286,16 @@ const fetchSidebarData = async () => {
   try {
     const projectPath = projectStore.activeProject.uri;
     
-    const [tasksResult, entitiesResult] = await Promise.all([
+    const [assetsResult, collectionsResult] = await Promise.all([
       AssetService.GetAssets(projectPath),
       CollectionService.GetCollections(projectPath)
     ]);
     
-    sidebarTasks.value = tasksResult || [];
-    sidebarEntities.value = entitiesResult || [];
+    sidebarAssets.value = assetsResult || [];
+    sidebarCollections.value = collectionsResult || [];
     
-    await updateFilteredTasks();
-    await updateFilteredEntities();
+    await updateFilteredAssets();
+    await updateFilteredCollections();
   } catch (error) {
     console.error("Error fetching sidebar data:", error);
     notificationStore.errorNotification(t('components.dependencyGraph.errorLoadingProject'), error);
@@ -304,29 +304,29 @@ const fetchSidebarData = async () => {
   }
 };
 
-const updateFilteredTasks = async () => {
+const updateFilteredAssets = async () => {
   try {
-    filteredTasks.value = await assetStore.filterAssets(sidebarTasks.value);
+    filteredAssets.value = await assetStore.filterAssets(sidebarAssets.value);
   } catch (error) {
-    console.error("Error filtering tasks:", error);
-    filteredTasks.value = [];
+    console.error("Error filtering assets:", error);
+    filteredAssets.value = [];
   }
 };
 
-const updateFilteredEntities = async () => {
+const updateFilteredCollections = async () => {
   try {
-    filteredEntities.value = await collectionStore.filterCollections(sidebarEntities.value);
+    filteredCollections.value = await collectionStore.filterCollections(sidebarCollections.value);
   } catch (error) {
-    console.error("Error filtering entities:", error);
-    filteredEntities.value = [];
+    console.error("Error filtering collections:", error);
+    filteredCollections.value = [];
   }
 };
 
 const buildGraphFromDependencies = async () => {
   isLoadingGraph.value = true;
-  const selectedTask = assetStore.selectedAsset;
+  const selectedAsset = assetStore.selectedAsset;
   
-  if (!selectedTask) {
+  if (!selectedAsset) {
     graphData.value = { nodes: [], edges: [] };
     isLoadingGraph.value = false;
     return;
@@ -336,7 +336,7 @@ const buildGraphFromDependencies = async () => {
     // Use the new recursive dependencies service with proper depth control
     const dependencyItems = await AssetService.GetRecursiveDependencies(
       projectStore.activeProject.uri, 
-      selectedTask.id, 
+      selectedAsset.id, 
       maxDepth.value
     );
 
@@ -347,22 +347,22 @@ const buildGraphFromDependencies = async () => {
     const edges = [];
     const nodeIdMap = new Map(); // Map from item IDs to generated node IDs
     
-    // First, create the parent task node
+    // First, create the parent asset node
     const parentNodeId = uuidv4();
-    nodeIdMap.set(selectedTask.id, parentNodeId);
+    nodeIdMap.set(selectedAsset.id, parentNodeId);
     
     const parentNode = {
       id: parentNodeId,
-      label: selectedTask.name,
+      label: selectedAsset.name,
       position: { x: 0, y: 0 },
       type: 'custom',
-      data: { ...selectedTask, nodeId: parentNodeId, parentId: null, depth: 0 },
+      data: { ...selectedAsset, nodeId: parentNodeId, parentId: null, depth: 0 },
       sourcePosition: Position.Left,
       targetPosition: Position.Right,
     };
     nodes.push(parentNode);
 
-    totalTaskDepsCount.value = dependencyItems.length;
+    totalAssetDepsCount.value = dependencyItems.length;
 
     // Create nodes for all dependencies
     dependencyItems.forEach(item => {
@@ -371,17 +371,17 @@ const buildGraphFromDependencies = async () => {
       // Extract the actual item data based on the service response structure
       let actualItem;
       let itemDepth = 1;
-      let parentTaskId = selectedTask.id; // Default parent
+      let parentAssetId = selectedAsset.id; // Default parent
       
-      if (item.task) {
-        actualItem = item.task;
+      if (item.asset) {
+        actualItem = item.asset;
         itemDepth = item.depth || 1;
-        parentTaskId = item.parentId || selectedTask.id;
+        parentAssetId = item.parentId || selectedAsset.id;
         nodeIdMap.set(actualItem.id, nodeId);
-      } else if (item.entity) {
-        actualItem = item.entity;
+      } else if (item.collection) {
+        actualItem = item.collection;
         itemDepth = item.depth || 1;
-        parentTaskId = item.parentId || selectedTask.id;
+        parentAssetId = item.parentId || selectedAsset.id;
         nodeIdMap.set(actualItem.id, nodeId);
       } else {
         // Fallback for direct item (if not wrapped in depth structure)
@@ -394,7 +394,7 @@ const buildGraphFromDependencies = async () => {
         label: `${actualItem.name}${itemDepth === maxDepth.value ? ' (...)' : ''}`,
         position: { x: 0, y: 0 },
         type: 'custom',
-        data: { ...actualItem, nodeId: nodeId, parentId: parentTaskId, depth: itemDepth },
+        data: { ...actualItem, nodeId: nodeId, parentId: parentAssetId, depth: itemDepth },
         sourcePosition: Position.Left,
         targetPosition: Position.Right,
       };
@@ -404,20 +404,20 @@ const buildGraphFromDependencies = async () => {
     // Create edges based on parent-child relationships
     dependencyItems.forEach(item => {
       let actualItem;
-      let parentTaskId = selectedTask.id;
+      let parentAssetId = selectedAsset.id;
       
-      if (item.task) {
-        actualItem = item.task;
-        parentTaskId = item.parentId || selectedTask.id;
-      } else if (item.entity) {
-        actualItem = item.entity;
-        parentTaskId = item.parentId || selectedTask.id;
+      if (item.asset) {
+        actualItem = item.asset;
+        parentAssetId = item.parentId || selectedAsset.id;
+      } else if (item.collection) {
+        actualItem = item.collection;
+        parentAssetId = item.parentId || selectedAsset.id;
       } else {
         actualItem = item;
       }
 
       const childNodeId = nodeIdMap.get(actualItem.id);
-      const parentNodeId = nodeIdMap.get(parentTaskId);
+      const parentNodeId = nodeIdMap.get(parentAssetId);
       
       if (childNodeId && parentNodeId && childNodeId !== parentNodeId) {
         edges.push({
@@ -431,8 +431,8 @@ const buildGraphFromDependencies = async () => {
 
     // Update dependencies ref for other computed properties
     const allDependencyIds = dependencyItems.map(item => {
-      if (item.task) return item.task.id;
-      if (item.entity) return item.entity.id;
+      if (item.asset) return item.asset.id;
+      if (item.collection) return item.collection.id;
       return item.id;
     });
     dependencies.value = allDependencyIds;
@@ -496,60 +496,60 @@ watch(maxDepth, () => {
 });
 
 // Watch for show toggles and rebuild graph  
-watch([showTasks, showEntities], () => {
+watch([showAssets, showCollections], () => {
   buildGraphFromDependencies();
 });
 
-// Watch for selected task changes and rebuild graph
-watch(() => assetStore.selectedAsset, async (newTask) => {
-  if (newTask) {
+// Watch for selected asset changes and rebuild graph
+watch(() => assetStore.selectedAsset, async (newAsset) => {
+  if (newAsset) {
     await buildGraphFromDependencies();
   }
 }, { immediate: false });
 
-// Watch for filter changes and update filtered tasks and entities
+// Watch for filter changes and update filtered assets and collections
 watch(
   () => [
     commonStore.viewSearchQuery,
     commonStore.workspaceSearchQuery,
-    commonStore.taskFilters,
-    commonStore.entityFilters,
+    commonStore.assetFilters,
+    commonStore.collectionFilters,
     commonStore.showResources
   ],
   async () => {
-    await updateFilteredTasks();
-    await updateFilteredEntities();
+    await updateFilteredAssets();
+    await updateFilteredCollections();
   },
   { deep: true }
 );
 
 // Watch for sidebar data changes and update filtered data
-watch(sidebarTasks, async () => {
-  await updateFilteredTasks();
+watch(sidebarAssets, async () => {
+  await updateFilteredAssets();
 }, { deep: true });
 
-watch(sidebarEntities, async () => {
-  await updateFilteredEntities();
+watch(sidebarCollections, async () => {
+  await updateFilteredCollections();
 }, { deep: true });
 
-const selectTask = async (taskId) => {
-  // Find task in our cached sidebar data first
-  let task = sidebarTasks.value.find(item => item.id === taskId);
+const selectAsset = async (assetId) => {
+  // Find asset in our cached sidebar data first
+  let asset = sidebarAssets.value.find(item => item.id === assetId);
   
-  if (!task) {
+  if (!asset) {
     // If not found in sidebar, try to fetch it from the service
     try {
-      const allTasks = await AssetService.GetAssets(projectStore.activeProject.uri);
-      task = allTasks.find(item => item.id === taskId);
+      const allAssets = await AssetService.GetAssets(projectStore.activeProject.uri);
+      asset = allAssets.find(item => item.id === assetId);
     } catch (error) {
-      console.error("Error fetching task:", error);
-      notificationStore.errorNotification("Error selecting task", error);
+      console.error("Error fetching asset:", error);
+      notificationStore.errorNotification("Error selecting asset", error);
       return;
     }
   }
   
-  if (task) {
-    assetStore.selectAsset(task);
+  if (asset) {
+    assetStore.selectAsset(asset);
     await fetchSidebarData()
     await buildGraphFromDependencies();
     
@@ -560,12 +560,12 @@ const selectTask = async (taskId) => {
 };
 
 const addDependency = async (dependencyId, itemType) => {
-  const task = assetStore.selectedAsset;
-  const allDependencies = [...sidebarTasks.value, ...sidebarEntities.value];
+  const asset = assetStore.selectedAsset;
+  const allDependencies = [...sidebarAssets.value, ...sidebarCollections.value];
 
   let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
-  if (itemType === "task") {
-    await AssetService.AddAssetDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+  if (itemType === "asset") {
+    await AssetService.AddAssetDependency(projectStore.activeProject.uri, asset.id, dependencyId, dependencyTypeID)
       .then( async(response) => {
         notificationStore.addNotification(t('components.dependencyGraph.dependencyAdded'), "", "success");
         const addedDependency = allDependencies.find((newDependency) => newDependency.id === dependencyId);
@@ -583,13 +583,13 @@ const addDependency = async (dependencyId, itemType) => {
         notificationStore.errorNotification(t('components.dependencyGraph.errorAddingDependencies'), error);
       });
   } else {
-    await AssetService.AddEntityDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+    await AssetService.AddCollectionDependency(projectStore.activeProject.uri, asset.id, dependencyId, dependencyTypeID)
       .then( async(response) => {
         notificationStore.addNotification(t('components.dependencyGraph.dependencyAdded'), "", "success");
         const addedDependency = allDependencies.find((newDependency) => newDependency.id === dependencyId);
         if (addedDependency) {
           dependencies.value.push(addedDependency.id);
-          assetStore.selectedAsset.entity_dependencies = dependencies.value;
+          assetStore.selectedAsset.collection_dependencies = dependencies.value;
           
           await buildGraphFromDependencies();
           nextTick(() => {
@@ -605,9 +605,9 @@ const addDependency = async (dependencyId, itemType) => {
 };
 
 const removeDependency = async (dependencyId, itemType) => {
-  const task = assetStore.selectedAsset;
-  if (itemType === "task") {
-    await AssetService.RemoveAssetDependency(projectStore.activeProject.uri, task.id, dependencyId)
+  const asset = assetStore.selectedAsset;
+  if (itemType === "asset") {
+    await AssetService.RemoveAssetDependency(projectStore.activeProject.uri, asset.id, dependencyId)
       .then(async(response) => {
         notificationStore.addNotification(t('components.dependencyGraph.dependencyRemoved'), "", "success");
         dependencies.value = dependencies.value.filter(id => id !== dependencyId);
@@ -621,11 +621,11 @@ const removeDependency = async (dependencyId, itemType) => {
         notificationStore.errorNotification(t('components.dependencyGraph.errorRemovingDependencies'), error);
       });
   } else {
-    await AssetService.RemoveEntityDependency(projectStore.activeProject.uri, task.id, dependencyId)
+    await AssetService.RemoveCollectionDependency(projectStore.activeProject.uri, asset.id, dependencyId)
       .then(async(response) => {
         notificationStore.addNotification(t('components.dependencyGraph.dependencyRemoved'), "", "success");
         dependencies.value = dependencies.value.filter(id => id !== dependencyId);
-        assetStore.selectedAsset.entity_dependencies = dependencies.value;
+        assetStore.selectedAsset.collection_dependencies = dependencies.value;
         buildGraphFromDependencies();
         nextTick(() => {
           fitViewToAllNodes();
@@ -639,7 +639,7 @@ const removeDependency = async (dependencyId, itemType) => {
 
 const handleSelectItem = (payload) => {
   const id = payload.message;
-  selectTask(id);
+  selectAsset(id);
 };
 
 const handleAddDependency = (payload) => {
@@ -657,7 +657,7 @@ onMounted(async () => {
   // Fetch sidebar data first
   await fetchSidebarData();
   
-  // Build initial graph if there's a selected task
+  // Build initial graph if there's a selected asset
   if (assetStore.selectedAsset) {
     await buildGraphFromDependencies();
   }
@@ -739,7 +739,7 @@ onUnmounted(() => {
   /* background-color: tomato; */
 }
 
-.task-graph-container {
+.asset-graph-container {
   background-color: var(--black-steel);
   border-radius: var(--large-radius);
   display: flex;
@@ -1069,7 +1069,7 @@ onUnmounted(() => {
   z-index: 1000;
 }
 
-.draggable-task {
+.draggable-asset {
   display: flex;
   margin: 10px 0;
   padding: 10px;

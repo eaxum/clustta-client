@@ -2,11 +2,11 @@
   <div class="settings-component-root">
     <div class="settings-component-container">
 
-      <ActionBar :itemType="$t('settings.addCollectionType')" :addFunction="addEntityType" />
+      <ActionBar :itemType="$t('settings.addCollectionType')" :addFunction="addCollectionType" />
 
-      <ScrollList v-if="projectEntityTypes.length" :items="projectEntityTypes" :useIcons="true" :useItemId="true"
-        :wrapItems="true" :editItems="true" :editListItem="prepEditEntityType" :deleteItems="true"
-        :deleteListItem="deleteEntityType" />
+      <ScrollList v-if="projectCollectionTypes.length" :items="projectCollectionTypes" :useIcons="true" :useItemId="true"
+        :wrapItems="true" :editItems="true" :editListItem="prepEditCollectionType" :deleteItems="true"
+        :deleteListItem="deleteCollectionType" />
       <PageState v-else :message="message()" :illustration="illustration()" :secondaryIcon="getAppIcon('plus-circle')"
         :secondaryActionMessage="secondaryActionMessage()" :secondaryActionFunction="secondaryActionFunction" />
 
@@ -43,22 +43,22 @@ const notificationStore = useNotificationStore();
 const { t } = useI18n();
 
 // computed props
-const projectEntityTypes = computed(() => {
+const projectCollectionTypes = computed(() => {
   
-    let entityTypes = collectionStore.getCollectionTypes;
-    let viewEntityTypeIds = [];
-    let entities = collectionStore.collections;
+    let collectionTypes = collectionStore.getCollectionTypes;
+    let viewCollectionTypeIds = [];
+    let collections = collectionStore.collections;
 
-    for (const entity of entities){
-      let entityTypeId = entity.entity_type_id;
-      if(!viewEntityTypeIds.includes(entityTypeId)){
-        viewEntityTypeIds.push(entityTypeId)
+    for (const collection of collections){
+      let collectionTypeId = collection.collection_type_id;
+      if(!viewCollectionTypeIds.includes(collectionTypeId)){
+        viewCollectionTypeIds.push(collectionTypeId)
       }
     }
 
-    const allTypes =  entityTypes.map(type => ({
+    const allTypes =  collectionTypes.map(type => ({
       ...type,
-      can_delete: !viewEntityTypeIds.includes(type.id),
+      can_delete: !viewCollectionTypeIds.includes(type.id),
       can_edit: type.name !== 'generic',
     }))
 
@@ -87,17 +87,17 @@ const secondaryActionMessage = () => {
 };
 
 const secondaryActionFunction = () => {
-  addEntityType();
+  addCollectionType();
 };
 
-const addEntityType = () => {
+const addCollectionType = () => {
   modals.setModalVisibility('addCollectionTypeModal', true);
 };
 
-const prepEditEntityType = (selectedEntityTypeId) => {
+const prepEditCollectionType = (selectedCollectionTypeId) => {
 
-  console.log(selectedEntityTypeId)
-  collectionStore.selectedCollectionType = collectionStore.getCollectionTypes.find((item) => item.id === selectedEntityTypeId)
+  console.log(selectedCollectionTypeId)
+  collectionStore.selectedCollectionType = collectionStore.getCollectionTypes.find((item) => item.id === selectedCollectionTypeId)
   modals.setModalVisibility('editCollectionTypeModal', true);
 };
 
@@ -105,11 +105,11 @@ const replaceSymbols = (name) => {
   return name.replace(/_/g, " ").toLowerCase().replace(/(^\w|\s\w)/g, match => match.toUpperCase());
 };
 
-const deleteEntityType = async (entityTypeId) => {
-  CollectionService.DeleteCollectionType(projectStore.activeProject.uri, entityTypeId)
+const deleteCollectionType = async (collectionTypeId) => {
+  CollectionService.DeleteCollectionType(projectStore.activeProject.uri, collectionTypeId)
     .then((response) => {
       notificationStore.addNotification(t('notifications.collectionTypeDeleted'), "", "success");
-      const index = collectionStore.collectionTypes.findIndex(entityType => entityType.id === entityTypeId);
+      const index = collectionStore.collectionTypes.findIndex(collectionType => collectionType.id === collectionTypeId);
       collectionStore.collectionTypes.splice(index, 1);
     })
     .catch((error) => {

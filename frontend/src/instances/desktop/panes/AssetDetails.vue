@@ -3,20 +3,20 @@
   <div class="general-pane-root">
     <div class="general-pane-container">
 
-      <div v-if="assetStore.selectedAsset?.preview" class="entity-thumb-container">
-        <div class="entity-thumb">
+      <div v-if="assetStore.selectedAsset?.preview" class="collection-thumb-container">
+        <div class="collection-thumb">
           <img v-if="assetStore.selectedAsset.preview" class="screenshot-thumb" :src="assetStore.selectedAsset.preview">
           <img v-else class="screenshot-thumb" src="/page-states/no_image.png">
         </div>
       </div>
 
       <div class="pane-parameter-section">
-        <div class="action-bar" v-if="userStore.canDo('update_task')">
+        <div class="action-bar" v-if="userStore.canDo('update_asset')">
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('file-plus')" :label="$t('panes.type')" />
-            <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="assetStore.selectedAsset?.task_type_name"
-              :onSelect="changeTaskType" :fixedWidth="true" />
+            <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="assetStore.selectedAsset?.asset_type_name"
+              :onSelect="changeAssetType" :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
@@ -26,23 +26,23 @@
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('shapes')" :label="$t('panes.task')" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('shapes')" :label="$t('panes.asset')" />
 
-            <ToggleSwitch v-tooltip="!assetStore.selectedAsset.is_resource ? $t('panes.unsetAsTask') : $t('panes.setAsTask')"
-              @click="toggleIsTask" :switchValueProp="!assetStore.selectedAsset.is_resource" />
+            <ToggleSwitch v-tooltip="!assetStore.selectedAsset.is_resource ? $t('panes.unsetAsAsset') : $t('panes.setAsAsset')"
+              @click="toggleIsAsset" :switchValueProp="!assetStore.selectedAsset.is_resource" />
           </div>
 
         </div>
 
-        <span v-if="userStore.canDo('update_task')" class="menu-divider"></span>
+        <span v-if="userStore.canDo('update_asset')" class="menu-divider"></span>
 
-        <div class="task-details">
+        <div class="asset-details">
           <div class="pane-parameter-detail">
             <div class="simple-text-key">
               {{ $t('panes.parent') }}
             </div>
             <div class="simple-text-value">
-              {{ assetStore.selectedAsset.entity_name }}
+              {{ assetStore.selectedAsset.collection_name }}
             </div>
           </div>
 
@@ -59,7 +59,7 @@
             <div class="simple-text-key">
               {{ $t('panes.assignedTo') }}
             </div>
-            <ActionButton v-if="assetStore.selectedAsset.assignee_id" :iconAfter="true" :label="userFullName" v-tooltip="$t('panes.seeAllTasks')" :buttonFunction="showAllTasks"/>
+            <ActionButton v-if="assetStore.selectedAsset.assignee_id" :iconAfter="true" :label="userFullName" v-tooltip="$t('panes.seeAllAssets')" :buttonFunction="showAllAssets"/>
             <div v-else class="simple-text-value">
               {{ userFullName }}
             </div>
@@ -93,7 +93,7 @@
                 {{ assetStore.selectedAsset.file_path }}
               </div>
               <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
-                <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('common.copyPath')" @click="copyTaskPath('task')"/>
+                <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('common.copyPath')" @click="copyAssetPath('asset')"/>
                 <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="$t('common.revealInExplorer')" :buttonFunction="revealInExplorer"/>
               </div>
           </div>
@@ -182,14 +182,14 @@ const platformStore = usePlatformStore();
 const { t } = useI18n();
 
 // refs
-const numberOfSelectedTasks = ref(0);
+const numberOfSelectedAssets = ref(0);
 const multiStatusChange = ref(false);
 const latestCheckpoint = ref(null);
 
 // computed properties
 const projectStatuses = computed(() => {
   const allStatuses = statusStore.statuses;
-  if (!userStore.canDo('set_done_task')) {
+  if (!userStore.canDo('set_done_asset')) {
     const limitedStatus = ['done', 'retake']
     return allStatuses.filter((item) => !limitedStatus.includes(item.short_name))
   } else {
@@ -197,21 +197,21 @@ const projectStatuses = computed(() => {
   }
 });
 
-const singleTask = computed(() => {
-  numberOfSelectedTasks.value = stage.markedTasks.length;
-  const isSingleTask = stage.markedTasks.length <= 1 && assetStore.selectedAsset;
-  return isSingleTask
+const singleAsset = computed(() => {
+  numberOfSelectedAssets.value = stage.markedAssets.length;
+  const isSingleAsset = stage.markedAssets.length <= 1 && assetStore.selectedAsset;
+  return isSingleAsset
 });
 
-const selectedTaskName = computed(() => {
+const selectedAssetName = computed(() => {
   if (assetStore.selectedAsset) {
-    return singleTask.value ? assetStore.selectedAsset.name : t('panes.multipleTasksSelected')
+    return singleAsset.value ? assetStore.selectedAsset.name : t('panes.multipleAssetsSelected')
   }
 });
 
-const selectedTaskIcon = computed(() => {
+const selectedAssetIcon = computed(() => {
   if (assetStore.selectedAsset) {
-    return singleTask.value ? assetStore.selectedAsset.icon : '/icons/categories.svg'
+    return singleAsset.value ? assetStore.selectedAsset.icon : '/icons/categories.svg'
   }
 });
 
@@ -221,31 +221,31 @@ const getAppIcon = (iconName) => {
   return icon
 };
 
-const emitTaskUpdates = (taskId, updates) => {
-  const updateData = { itemId: taskId, updates };
+const emitAssetUpdates = (assetId, updates) => {
+  const updateData = { itemId: assetId, updates };
   
   emitter.emit('update-root-data', updateData);
   emitter.emit('update-children', updateData);
 };
 
-const copyTaskPath = async (pathType) => {
-  let task = assetStore.selectedAsset;
-  let taskPath = task.file_path;
-  taskPath = taskPath.replace(/\\/g, '/');
-  let taskDir = taskPath.split('/').slice(0, -1).join('/');
-  let resourcesFolder = taskDir + '/resources';
-  let outputPath = taskDir + '/output';
+const copyAssetPath = async (pathType) => {
+  let asset = assetStore.selectedAsset;
+  let assetPath = asset.file_path;
+  assetPath = assetPath.replace(/\\/g, '/');
+  let assetDir = assetPath.split('/').slice(0, -1).join('/');
+  let resourcesFolder = assetDir + '/resources';
+  let outputPath = assetDir + '/output';
   if (pathType === 'resources') {
-    taskPath = resourcesFolder;
+    assetPath = resourcesFolder;
   } else if (pathType === 'output') {
-    taskPath = outputPath;
+    assetPath = outputPath;
   }
-  await Clipboard.SetText(taskPath);
+  await Clipboard.SetText(assetPath);
   const message = t('notifications.pathCopied');
   notificationStore.addNotification(message, "", "success");
 };
 
-const showAllTasks = () => {
+const showAllAssets = () => {
   commonStore.activeWorkspace = 'Default'
   commonStore.resetFilters();
   commonStore.navigatorMode = false;
@@ -258,7 +258,7 @@ const showAllTasks = () => {
         type: 'assignation',
         avatarColor: userStore.userProfileColor(assignee.id)
       };
-      commonStore.taskFilters.push(assigneeFilter);
+      commonStore.assetFilters.push(assigneeFilter);
     }
   }
   commonStore.onlyAssets = true;
@@ -266,16 +266,16 @@ const showAllTasks = () => {
 };
 
 const revealInExplorer = async () => {
-  const taskId = assetStore.selectedAsset.id;
+  const assetId = assetStore.selectedAsset.id;
   if(assetStore.selectedAsset.file_status == "rebuildable"){
-    await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [taskId])
+    await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [assetId])
     .then( async (response) => {
-      assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(taskPath => taskPath !== task.task_path)
-      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path);
+      assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(assetPath => assetPath !== asset.asset_path)
+      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.asset_path);
       emitter.emit('get-project-data')
     })
     .catch((error) => {
-      notificationStore.errorNotification(t('notifications.errorDownloadingTask'), error);
+      notificationStore.errorNotification(t('notifications.errorDownloadingAsset'), error);
       console.error(error);
     });
 
@@ -283,18 +283,18 @@ const revealInExplorer = async () => {
   AssetService.RevealAsset(projectStore.activeProject.uri, assetStore.selectedAsset.id);
 };
 
-const toggleIsTask = async () => {
+const toggleIsAsset = async () => {
   stage.operationActive = true;
   const projectPath = projectStore.activeProject.uri;
-  let isTask = assetStore.selectedAsset.is_resource;
-  let task = assetStore.selectedAsset;
+  let isAsset = assetStore.selectedAsset.is_resource;
+  let asset = assetStore.selectedAsset;
     
-  await AssetService.ToggleIsTask(projectPath, task.id,  isTask)
+  await AssetService.ToggleIsAsset(projectPath, asset.id,  isAsset)
     .then((data) => {
 
-      assetStore.selectedAsset.is_resource = !isTask;
-      emitTaskUpdates(task.id, [
-        { property: 'is_resource', value: !isTask }
+      assetStore.selectedAsset.is_resource = !isAsset;
+      emitAssetUpdates(asset.id, [
+        { property: 'is_resource', value: !isAsset }
       ]);
       
     })
@@ -305,26 +305,26 @@ const toggleIsTask = async () => {
     stage.operationActive = false;
 };
 
-const changeTaskType = async (taskTypeName) => {
+const changeAssetType = async (assetTypeName) => {
   stage.operationActive = true;
 
-  let newTaskType;
-  const taskTypes = assetStore.getAssetTypes;
-  newTaskType = taskTypes.find((item) => item.name === taskTypeName);
+  let newAssetType;
+  const assetTypes = assetStore.getAssetTypes;
+  newAssetType = assetTypes.find((item) => item.name === assetTypeName);
 
   const projectPath = projectStore.activeProject.uri;
-  let task = assetStore.selectedAsset;
+  let asset = assetStore.selectedAsset;
 
-  await AssetService.UpdateAsset(projectPath, task.id, task.name, newTaskType.id, task.is_resource, '', task.tags)
+  await AssetService.UpdateAsset(projectPath, asset.id, asset.name, newAssetType.id, asset.is_resource, '', asset.tags)
     .then((data) => {
-      task.task_type_name = newTaskType.name;
-      task.task_type_icon = newTaskType.icon;
-      task.task_type_id = newTaskType.id;
+      asset.asset_type_name = newAssetType.name;
+      asset.asset_type_icon = newAssetType.icon;
+      asset.asset_type_id = newAssetType.id;
       
-      emitTaskUpdates(task.id, [
-        { property: 'task_type_name', value: newTaskType.name },
-        { property: 'task_type_icon', value: newTaskType.icon },
-        { property: 'task_type_id', value: newTaskType.id }
+      emitAssetUpdates(asset.id, [
+        { property: 'asset_type_name', value: newAssetType.name },
+        { property: 'asset_type_icon', value: newAssetType.icon },
+        { property: 'asset_type_id', value: newAssetType.id }
       ]);
       
     })
@@ -340,14 +340,14 @@ const setStatus = async (statusName) => {
   stage.operationActive = true;
   const projectPath = projectStore.activeProject.uri;
   const status = statusStore.statuses.find(item => item.short_name === statusName.toLowerCase());
-  let task = assetStore.selectedAsset;
+  let asset = assetStore.selectedAsset;
   
-  await AssetService.ChangeStatus(projectPath, task.id, status.id)
+  await AssetService.ChangeStatus(projectPath, asset.id, status.id)
     .then((data) => {
-      task.status_short_name = status.short_name;
-      task.status = status;
+      asset.status_short_name = status.short_name;
+      asset.status = status;
       
-      emitTaskUpdates(task.id, [
+      emitAssetUpdates(asset.id, [
         { property: 'status_short_name', value: status.short_name },
         { property: 'status', value: status }
       ]);
@@ -375,8 +375,8 @@ const userFullName = computed(() => {
 });
 
 const lastCheckpoint = computed(() => {
-  let task = assetStore.selectedAsset;
-  if (task.is_link) return { comment: '', created_at: task.created_at };
+  let asset = assetStore.selectedAsset;
+  if (asset.is_link) return { comment: '', created_at: asset.created_at };
   
   if (latestCheckpoint.value) {
     return { 
@@ -385,7 +385,7 @@ const lastCheckpoint = computed(() => {
     };
   }
   
-  return { comment: t('panes.noCheckpoints'), created_at: task.created_at };
+  return { comment: t('panes.noCheckpoints'), created_at: asset.created_at };
 });
 
 const loadLatestCheckpoint = async () => {
@@ -418,7 +418,7 @@ const formatMtime = (mtime) => {
   return `${day} ${month} ${year}`;
 };
 
-const editTask = () => {
+const editAsset = () => {
   modals.setModalVisibility('editAssetModal', true);
 };
 
@@ -452,7 +452,7 @@ watch(() => assetStore.selectedAsset, () => {
 
 // onMounted
 onMounted(() => {
-  stage.markedTasks = [];
+  stage.markedAssets = [];
   
   getProjectData();
   loadLatestCheckpoint();
@@ -469,22 +469,22 @@ onBeforeUnmount(() => {
 
 <style scoped>
 @import "@/assets/desktop.css";
-.task-details{
+.asset-details{
   overflow: hidden;
   overflow-y: scroll;
   padding-right: .5rem;
 }
 
-.task-details::-webkit-scrollbar {
+.asset-details::-webkit-scrollbar {
   width: 4px;
 }
 
-.task-details::-webkit-scrollbar-thumb {
+.asset-details::-webkit-scrollbar-thumb {
   border-radius: 10px;
   background-color: var(--light-steel);
 }
 
-.task-details::-webkit-scrollbar-track {
+.asset-details::-webkit-scrollbar-track {
   border-radius: 10px;
 }
 .pane-parameter-detail {

@@ -29,7 +29,7 @@
       </div>
 
       <div class="progress-bar-loader tint">
-        <ProgressBar :taskProgress="notificationStore.getProgress.percentage" v-stop-propagation />
+        <ProgressBar :assetProgress="notificationStore.getProgress.percentage" v-stop-propagation />
       </div>
 
       <div class="pop-up-actions">

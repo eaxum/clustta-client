@@ -44,7 +44,7 @@ const isHovered = ref(false);
 
 // computed properties
 const itemIcon = computed(() => {
-  if (props.itemType === 'entity') return getAppIcon('folder');
+  if (props.itemType === 'collection') return getAppIcon('folder');
   return getAppIcon('generic');
 });
 

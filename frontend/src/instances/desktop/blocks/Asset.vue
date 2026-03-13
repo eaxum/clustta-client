@@ -1,61 +1,61 @@
 <template>
-  <!-- Grid View Task Item -->
+  <!-- Grid View Asset Item -->
   <div v-if="commonStore.useGrid" 
-    ref="taskItem" 
-    class="task-item-main task-item-grid" 
-    v-return="launchSelectedTask" 
+    ref="assetItem" 
+    class="asset-item-main asset-item-grid" 
+    v-return="launchSelectedAsset" 
     v-esc="handleEscKey" 
     v-stop-propagation
     :style="gridStyles" 
     :class="{
-      'task-item-grid-selected': stage.markedItems.includes(task.id) && !isGhost,
-      'task-item-grid-cut': stage.cutItems.map((item) => item.id).includes(task.id) && !isGhost,
-      'task-item-grid-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
-      'task-item-grid-last-selected': stage.lastSelectedItemId === task.id && !isGhost,
-      'task-item-child': task.parent_id,
+      'asset-item-grid-selected': stage.markedItems.includes(asset.id) && !isGhost,
+      'asset-item-grid-cut': stage.cutItems.map((item) => item.id).includes(asset.id) && !isGhost,
+      'asset-item-grid-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === asset.id && !isGhost,
+      'asset-item-grid-last-selected': stage.lastSelectedItemId === asset.id && !isGhost,
+      'asset-item-child': asset.parent_id,
       'file-drop-target-active': isHovered,
-      'task-item-untracked': isUntracked
+      'asset-item-untracked': isUntracked
     }" 
-    @dblclick="launchTaskCommand()">
+    @dblclick="launchAssetCommand()">
 
-    <div class="main-task-item-grid">
+    <div class="main-asset-item-grid">
       
       <!-- Grid Status Menu Overlay -->
       <GridStatusMenu 
-        v-if="gridStatusMenuVisible && !isUntracked && task.status" 
+        v-if="gridStatusMenuVisible && !isUntracked && asset.status" 
         @statusSelected="handleGridStatusSelected"
         @close="closeGridStatusMenu"
       />
       
-      <div class="main-task-item-grid-thumb-container">
+      <div class="main-asset-item-grid-thumb-container">
 
-        <div v-if="task.preview || osThumbnail" class="task-item-preview-container">
+        <div v-if="asset.preview || osThumbnail" class="asset-item-preview-container">
 
-          <div class="task-item-preview-image">
+          <div class="asset-item-preview-image">
             <img class="screenshot-thumb" :src="displayThumbnail">
           </div>
 
           <!-- Icon container at bottom left when preview is present -->
-          <div class="task-item-icon-container task-item-icon-overlay">
-            <img v-if="task.icon" class="small-icons no-filter overlay-icons" :src="task.icon">
-            <img v-else-if="isUntracked" class="small-icons overlay-icons" :src="getAppIcon(getFileTypeIcon(task))" @error="$event.target.src = getAppIcon('file')">
+          <div class="asset-item-icon-container asset-item-icon-overlay">
+            <img v-if="asset.icon" class="small-icons no-filter overlay-icons" :src="asset.icon">
+            <img v-else-if="isUntracked" class="small-icons overlay-icons" :src="getAppIcon(getFileTypeIcon(asset))" @error="$event.target.src = getAppIcon('file')">
             <span v-else class="app-ext">
             </span>
           </div>
         </div>
 
-        <div v-else class="task-item-icon-container">
+        <div v-else class="asset-item-icon-container">
           <img class="gigantic-icons no-filter " :src="displayThumbnail">
         </div>
 
-        <!-- Task assignee overlay in top right corner -->
-        <div v-if="!isUntracked && (!task.is_resource || isCurrentUser) && !isEditing" class="task-item-grid-assignee-overlay-top-right">
+        <!-- Asset assignee overlay in top right corner -->
+        <div v-if="!isUntracked && (!asset.is_resource || isCurrentUser) && !isEditing" class="asset-item-grid-assignee-overlay-top-right">
           <!-- Show assignee profile picture if assigned -->
-          <div v-if="task.assignee_id" @click="prepAssignTask(index, task, $event)" v-stop-propagation class="task-item-assignee">
+          <div v-if="asset.assignee_id" @click="prepAssignAsset(index, asset, $event)" v-stop-propagation class="asset-item-assignee">
             <span v-tooltip="userFullName" class="single-action-button">
-              <div class="profile-picture-grid" :style="{ backgroundColor: profileColor(task.assignee_id) }">
+              <div class="profile-picture-grid" :style="{ backgroundColor: profileColor(asset.assignee_id) }">
                 <img v-if="userPhoto" class="profile-img-grid" :src="userPhoto">
-                <img v-else class="profile-img-grid" :src="generateAvatar(task.assignee_id)">
+                <img v-else class="profile-img-grid" :src="generateAvatar(asset.assignee_id)">
               </div>
             </span>
           </div>
@@ -63,51 +63,51 @@
         
       </div>
       
-      <!-- Bottom bar with task type icon, name, and file status -->
-      <div class="main-task-item-grid-bottom-bar">
+      <!-- Bottom bar with asset type icon, name, and file status -->
+      <div class="main-asset-item-grid-bottom-bar">
         
         <!-- Outermost container with relative positioning -->
-        <div class="task-item-grid-bottom-bar-wrapper">
+        <div class="asset-item-grid-bottom-bar-wrapper">
           
           <!-- Middle container with slide-up transition and padding for file state -->
-          <div v-if="!isEditing" class="task-item-grid-slide-container">
+          <div v-if="!isEditing" class="asset-item-grid-slide-container">
             
             <!-- Row 1: Name/Meta (always visible) -->
-            <div class="task-item-grid-meta-row">
-              <div v-if="settingsStore.showTypeIcons" class="task-item-grid-type-icon" >
+            <div class="asset-item-grid-meta-row">
+              <div v-if="settingsStore.showTypeIcons" class="asset-item-grid-type-icon" >
                 <img v-if="isUntracked" class="small-icons" :src="getAppIcon('generic')">
-                <img v-else class="small-icons" :src="getAppIcon(task.task_type_icon)" v-tooltip="assetTypeName">
+                <img v-else class="small-icons" :src="getAppIcon(asset.asset_type_icon)" v-tooltip="assetTypeName">
               </div>
               
-              <div class="main-task-item-grid-meta">
-                {{ taskName }}
+              <div class="main-asset-item-grid-meta">
+                {{ assetName }}
               </div>
             </div>
             
             <!-- Row 2: Action Buttons (shows on hover) -->
-            <div class="task-item-grid-actions-row">
+            <div class="asset-item-grid-actions-row">
               
               <!-- Untracked label for untracked items -->
-              <div v-if="isUntracked" class="task-item-grid-untracked-label">
+              <div v-if="isUntracked" class="asset-item-grid-untracked-label">
                 <span>{{ $t('blocks.untracked') }}</span>
               </div>
               
-              <!-- Task Status -->
-              <div v-if="!isUntracked && task.status" @click="openGridStatusMenu" class="task-item-grid-status-display">
-                <div class="task-item-status-grid" :style="{ backgroundColor: task.status.color }">
-                  {{ task.status.short_name }}
+              <!-- Asset Status -->
+              <div v-if="!isUntracked && asset.status" @click="openGridStatusMenu" class="asset-item-grid-status-display">
+                <div class="asset-item-status-grid" :style="{ backgroundColor: asset.status.color }">
+                  {{ asset.status.short_name }}
                 </div>
                 
               </div>
               
               <!-- View Checkpoints button -->
-              <div v-if="!task.is_link && !isUntracked && userStore.canDo('view_checkpoint')" class="task-item-grid-checkpoints-button">
-                <ActionButton :icon="getAppIcon('layers')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, task, $event)" />
+              <div v-if="!asset.is_link && !isUntracked && userStore.canDo('view_checkpoint')" class="asset-item-grid-checkpoints-button">
+                <ActionButton :icon="getAppIcon('layers')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
               </div>
               
-              <!-- Assign Task button -->
-              <div v-if="!isUntracked && userStore.canDo('assign_task')" class="task-item-grid-assign-task-button">
-                <ActionButton :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignTask')" @click="prepAssignTask(index, task, $event)" />
+              <!-- Assign Asset button -->
+              <div v-if="!isUntracked && userStore.canDo('assign_asset')" class="asset-item-grid-assign-asset-button">
+                <ActionButton :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
               </div>
               
             </div>
@@ -115,12 +115,12 @@
           </div>
 
           <!-- Editing mode -->
-          <div v-else class="task-item-grid-slide-container">
-            <div class="task-item-grid-meta-row rename-input-grid">
+          <div v-else class="asset-item-grid-slide-container">
+            <div class="asset-item-grid-meta-row rename-input-grid">
               <RenameInput 
-                v-model="editableTaskName"
-                :originalValue="task.name || ''"
-                :placeholder="$t('placeholders.taskName')"
+                v-model="editableAssetName"
+                :originalValue="asset.name || ''"
+                :placeholder="$t('placeholders.assetName')"
                 @confirm="confirmRename"
                 @cancel="cancelRename"
               />
@@ -128,7 +128,7 @@
           </div>
           
           <!-- File state section (absolute positioned, always visible) -->
-          <div v-if="!isEditing" class="task-item-grid-file-state-absolute">
+          <div v-if="!isEditing" class="asset-item-grid-file-state-absolute">
 
             <div v-if="loadingAssetState" class="file-state">
               <ActionButton :isLoading="true" :icon="getAppIcon('loading')"  
@@ -136,33 +136,33 @@
             </div>
 
             <div v-else-if="!isUntracked && userStore.canDo('pull_chunk')" class="file-state">
-              <ActionButton v-if="task.is_link" :icon="getAppIcon('square-arrow-right-up')" 
+              <ActionButton v-if="asset.is_link" :icon="getAppIcon('square-arrow-right-up')" 
                 v-tooltip="$t('blocks.visitLink')" @click="openLink()" />
               <ActionButton v-else-if="platformStore.isWeb" :icon="getAppIcon(isDownloading ? 'loading' : 'arrow-down-ramp')" 
                 v-tooltip="isDownloading ? $t('blocks.downloading') : $t('common.download')" 
                 :isLoading="isDownloading"
-                @click="downloadAsset(index, task, $event)" />
-              <ActionButton v-else-if="task.file_status == 'normal'" :icon="getAppIcon('circle-check-go')" :noFilter="true" 
+                @click="downloadAsset(index, asset, $event)" />
+              <ActionButton v-else-if="asset.file_status == 'normal'" :icon="getAppIcon('circle-check-go')" :noFilter="true" 
                 v-tooltip="$t('blocks.noChanges')"  />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" 
-                v-tooltip="$t('blocks.outdatedClickUpdate')" v-else-if="task.file_status == 'outdated'" 
-                @click="revertTask(index, task, $event)" />
+                v-tooltip="$t('blocks.outdatedClickUpdate')" v-else-if="asset.file_status == 'outdated'" 
+                @click="revertAsset(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" 
                 v-tooltip="$t('blocks.modifiedAssignedOther')" 
-                v-else-if="task.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
+                v-else-if="asset.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
               <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" 
                 v-tooltip="$t('blocks.modifiedClickCheckpoint')" 
-                v-else-if="task.file_status == 'modified' && userStore.canDo('create_checkpoint')"
-                @click="prepCreateCheckpoint(index, task, $event)" />
+                v-else-if="asset.file_status == 'modified' && userStore.canDo('create_checkpoint')"
+                @click="prepCreateCheckpoint(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="$t('blocks.fileMissingClickBuild')"
-                v-else-if="task.file_status == 'rebuildable'" @click="revertTask(index, task, $event)" />
+                v-else-if="asset.file_status == 'rebuildable'" @click="revertAsset(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('alert')" :noFilter="true" 
-                v-tooltip="$t('blocks.taskMissingResync')" v-else-if="task.file_status == 'missing'" />
+                v-tooltip="$t('blocks.assetMissingResync')" v-else-if="asset.file_status == 'missing'" />
             </div>
 
             <div v-else-if="isUntracked">
-              <ActionButton v-if="userStore.canDo('create_task') || canImport" 
-                @click="prepCreateCheckpoint(index, task, $event)" :icon="getAppIcon('layers-plus')" :useDanger="true" 
+              <ActionButton v-if="userStore.canDo('create_asset') || canImport" 
+                @click="prepCreateCheckpoint(index, asset, $event)" :icon="getAppIcon('layers-plus')" :useDanger="true" 
                 :noFilter="true" v-tooltip="$t('blocks.fileUntrackedClickAdd')" />
               <ActionButton v-else :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" 
                 v-tooltip="$t('blocks.fileUntracked')" />
@@ -174,120 +174,120 @@
     </div>
   </div>
 
-  <!-- List View Task Item -->
+  <!-- List View Asset Item -->
   <div v-else 
-    ref="taskItem" 
-    class="task-item-main" 
-    v-return="launchSelectedTask" 
+    ref="assetItem" 
+    class="asset-item-main" 
+    v-return="launchSelectedAsset" 
     v-esc="handleEscKey" 
     v-stop-propagation
     :style="itemHeightStyles" 
     :class="{
-      'task-item-selected': stage.markedItems.includes(task.id) && !isGhost,
-      'task-item-cut': stage.cutItems.map((item) => item.id).includes(task.id) && !isGhost,
-      'task-item-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === task.id && !isGhost,
-      'task-item-last-selected': stage.lastSelectedItemId === task.id && !isGhost,
-      'task-item-child': task.parent_id,
+      'asset-item-selected': stage.markedItems.includes(asset.id) && !isGhost,
+      'asset-item-cut': stage.cutItems.map((item) => item.id).includes(asset.id) && !isGhost,
+      'asset-item-only-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === asset.id && !isGhost,
+      'asset-item-last-selected': stage.lastSelectedItemId === asset.id && !isGhost,
+      'asset-item-child': asset.parent_id,
       'file-drop-target-active': isHovered
     }" 
-    @dblclick="launchTaskCommand()">
+    @dblclick="launchAssetCommand()">
 
-    <div v-if="settingsStore.showTypeIcons" class="task-spacer" v-tooltip="assetTypeName" @click="console.log(task)">
+    <div v-if="settingsStore.showTypeIcons" class="asset-spacer" v-tooltip="assetTypeName" @click="console.log(asset)">
       <span v-if="isUntracked" class="single-action-button single-action-button-disabled">
-        <img class="small-icons entity-collapsed" :src="getAppIcon('generic')">
+        <img class="small-icons collection-collapsed" :src="getAppIcon('generic')">
       </span>
       <span v-else class="single-action-button single-action-button-disabled">
-        <img class="small-icons entity-collapsed" :src="getAppIcon(task.task_type_icon)">
+        <img class="small-icons collection-collapsed" :src="getAppIcon(asset.asset_type_icon)">
       </span>
     </div>
 
-    <div class="main-task-item-root">
+    <div class="main-asset-item-root">
 
-      <div class="task-item-container drop-zone">
+      <div class="asset-item-container drop-zone">
 
-        <div class="task-item-icon-container" @click="console.log(task)" >
-          <img v-if="task.icon" class="large-icons no-filter" :src="task.icon">
-          <img v-else-if="isUntracked" class="large-icons " :src="getAppIcon(getFileTypeIcon(task))" @error="$event.target.src = getAppIcon('file')">
+        <div class="asset-item-icon-container" @click="console.log(asset)" >
+          <img v-if="asset.icon" class="large-icons no-filter" :src="asset.icon">
+          <img v-else-if="isUntracked" class="large-icons " :src="getAppIcon(getFileTypeIcon(asset))" @error="$event.target.src = getAppIcon('file')">
           <span v-else class="app-ext">
           </span>
         </div>
 
-        <div class="task-item-content selection-area">
-          <div v-if="!isEditing" class="task-item-details">
-            {{ taskName }}
+        <div class="asset-item-content selection-area">
+          <div v-if="!isEditing" class="asset-item-details">
+            {{ assetName }}
           </div>
 
           <RenameInput 
             v-else
-            v-model="editableTaskName"
-            :originalValue="task.name || ''"
-            :placeholder="$t('placeholders.taskName')"
+            v-model="editableAssetName"
+            :originalValue="asset.name || ''"
+            :placeholder="$t('placeholders.assetName')"
             @confirm="confirmRename"
             @cancel="cancelRename"
           />
 
           
 
-          <div v-if="!isEditing && task.is_link" class="weblink-pointer-container">
+          <div v-if="!isEditing && asset.is_link" class="weblink-pointer-container">
               <div class="weblink-pointer">
-                {{ task.pointer }}  
+                {{ asset.pointer }}  
               </div>
           </div>
 
         </div>
 
-        <template v-if="!isEditing && !task.is_link">
+        <template v-if="!isEditing && !asset.is_link">
           
-          <!-- task assignation -->
-          <div v-if="!isUntracked && (!task.is_resource || isCurrentUser)" class="task-item-assignee-container">
-            <ActionButton class="task-item-assignee-button" v-if="!task.is_link && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
-              :icon="getAppIcon('layers')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, task, $event)" />
+          <!-- asset assignation -->
+          <div v-if="!isUntracked && (!asset.is_resource || isCurrentUser)" class="asset-item-assignee-container">
+            <ActionButton class="asset-item-assignee-button" v-if="!asset.is_link && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
+              :icon="getAppIcon('layers')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
 
-            <ActionButton class="task-item-assignee-button" v-if="userStore.canDo('assign_task') && !statusMenuDisplayed && !task.assignee_id"
-              :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignTask')" @click="prepAssignTask(index, task, $event)" />
+            <ActionButton class="asset-item-assignee-button" v-if="userStore.canDo('assign_asset') && !statusMenuDisplayed && !asset.assignee_id"
+              :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
 
-            <div v-else-if="task.assignee_id" @click="prepAssignTask(index, task, $event)" v-stop-propagation
-              class="task-item-assignee">
+            <div v-else-if="asset.assignee_id" @click="prepAssignAsset(index, asset, $event)" v-stop-propagation
+              class="asset-item-assignee">
               <span v-tooltip="userFullName" class="single-action-button">
-                <div class="profile-picture" :style="{ backgroundColor: profileColor(task.assignee_id) }">
+                <div class="profile-picture" :style="{ backgroundColor: profileColor(asset.assignee_id) }">
                   <img v-if="userPhoto" class="profile-img" :src="userPhoto">
-                  <img v-else class="profile-img" :src="generateAvatar(task.assignee_id)">
+                  <img v-else class="profile-img" :src="generateAvatar(asset.assignee_id)">
                 </div>
               </span>
             </div>
             
           </div>
 
-          <div v-else-if="!isEditing" class="task-item-assignee-container">
-            <ActionButton class="task-item-assignee-button" v-if="!task.is_link && !isUntracked && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
-              :icon="getAppIcon('layers')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, task, $event)" />
+          <div v-else-if="!isEditing" class="asset-item-assignee-container">
+            <ActionButton class="asset-item-assignee-button" v-if="!asset.is_link && !isUntracked && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
+              :icon="getAppIcon('layers')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
 
-            <ActionButton class="task-item-assignee-button" v-if="userStore.canDo('assign_task') && !statusMenuDisplayed && !task.assignee_id && !isUntracked"
-              :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignTask')" @click="prepAssignTask(index, task, $event)" />
+            <ActionButton class="asset-item-assignee-button" v-if="userStore.canDo('assign_asset') && !statusMenuDisplayed && !asset.assignee_id && !isUntracked"
+              :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
           </div>
 
-          <!-- task status -->
-          <div v-if="!isEditing && !isUntracked && (!task.is_resource || isCurrentUser)" class="task-item-status-root">
+          <!-- asset status -->
+          <div v-if="!isEditing && !isUntracked && (!asset.is_resource || isCurrentUser)" class="asset-item-status-root">
             <StatusMenu @statusSelected="closeStatusMenu" v-if="statusMenuDisplayed" />
 
-            <div :class="{ 'is-disabled': stage.operationActive }" v-else class="task-item-status-container"
-              v-stop-propagation @click="toggleDisplayStatusMenu(index, task, $event)">
-              <div class="task-item-status" :style="{ backgroundColor: task.status.color }">
-                {{ task.status.short_name }}
+            <div :class="{ 'is-disabled': stage.operationActive }" v-else class="asset-item-status-container"
+              v-stop-propagation @click="toggleDisplayStatusMenu(index, asset, $event)">
+              <div class="asset-item-status" :style="{ backgroundColor: asset.status.color }">
+                {{ asset.status.short_name }}
               </div>
             </div>
           </div>
 
-          <div v-else-if="!isEditing && !isUntracked" class="task-item-status-root">
+          <div v-else-if="!isEditing && !isUntracked" class="asset-item-status-root">
 
-            <div class="task-item-status-container" v-stop-propagation>
-              <div class="task-item-status" :style="{ backgroundColor: task.status.color, padding: 3 + 'px' }">
+            <div class="asset-item-status-container" v-stop-propagation>
+              <div class="asset-item-status" :style="{ backgroundColor: asset.status.color, padding: 3 + 'px' }">
               </div>
             </div>
           </div>
 
-          <!-- task actions -->
-          <div v-if="!isEditing && !isUntracked && !statusMenuDisplayed" class="task-item-actions">
+          <!-- asset actions -->
+          <div v-if="!isEditing && !isUntracked && !statusMenuDisplayed" class="asset-item-actions">
             <div v-if="loadingAssetState" class="file-state">
                 <ActionButton :isLoading="true" :icon="getAppIcon('loading')" 
                   v-tooltip="$t('common.loading')" />
@@ -298,30 +298,30 @@
               <ActionButton v-if="platformStore.isWeb" :icon="getAppIcon(isDownloading ? 'loading' : 'arrow-down-ramp')" 
                 v-tooltip="isDownloading ? $t('blocks.downloading') : $t('common.download')" 
                 :isLoading="isDownloading"
-                @click="downloadAsset(index, task, $event)" />
-              <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" @click="handleClick(index, task, $event)"
-                v-tooltip="$t('blocks.noChanges')" v-else-if="task.file_status == 'normal'" />
+                @click="downloadAsset(index, asset, $event)" />
+              <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" @click="handleClick(index, asset, $event)"
+                v-tooltip="$t('blocks.noChanges')" v-else-if="asset.file_status == 'normal'" />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickUpdate')"
-                v-else-if="task.file_status == 'outdated'" @click="revertTask(index, task, $event)" />
+                v-else-if="asset.file_status == 'outdated'" @click="revertAsset(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedAssignedOther')"
-                v-else-if="task.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
+                v-else-if="asset.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
               <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedClickCheckpoint')"
-                v-else-if="task.file_status == 'modified' && userStore.canDo('create_checkpoint')"
-                @click="prepCreateCheckpoint(index, task, $event)" />
+                v-else-if="asset.file_status == 'modified' && userStore.canDo('create_checkpoint')"
+                @click="prepCreateCheckpoint(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="$t('blocks.fileMissingClickBuild')"
-                v-else-if="task.file_status == 'rebuildable'" @click="revertTask(index, task, $event)" />
-              <ActionButton :icon="getAppIcon('alert')" :noFilter="true" v-tooltip="$t('blocks.taskMissingResync')"
-                v-else-if="task.file_status == 'missing'" />
+                v-else-if="asset.file_status == 'rebuildable'" @click="revertAsset(index, asset, $event)" />
+              <ActionButton :icon="getAppIcon('alert')" :noFilter="true" v-tooltip="$t('blocks.assetMissingResync')"
+                v-else-if="asset.file_status == 'missing'" />
             </div>
           </div>
         </template>
 
-        <div v-if="task.is_link" class="task-item-actions link-item-actions" >
+        <div v-if="asset.is_link" class="asset-item-actions link-item-actions" >
           <ActionButton :icon="getAppIcon('square-arrow-right-up')" v-tooltip="$t('blocks.visitLink')" v-stop-propagation @click="openLink()" />
         </div>
 
-        <div v-else-if="isUntracked" class="task-item-actions">
-          <ActionButton v-if="userStore.canDo('create_task') || canImport" @click="prepCreateCheckpoint(index, task, $event)"
+        <div v-else-if="isUntracked" class="asset-item-actions">
+          <ActionButton v-if="userStore.canDo('create_asset') || canImport" @click="prepCreateCheckpoint(index, asset, $event)"
             :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.fileUntrackedClickAdd')" />
           <ActionButton v-else :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.fileUntracked')" />
         </div>
@@ -389,20 +389,20 @@ const { t } = useI18n();
 
 // props
 const props = defineProps({
-  entityId: { type: String, default: '' },
+  collectionId: { type: String, default: '' },
   index: Number,
   isChild: { type: Boolean, default: false },
   isGhost: { type: Boolean, default: false },
   isUntracked: { type: Boolean, default: false },
   loadingAssetState: { type: Boolean, default: false },
-  task: Object,
+  asset: Object,
 });
 
 // emits
 const emit = defineEmits(['toggle-edit-mode', 'expand', 'refreshData']);
 
 // refs
-const editableTaskName = ref(props.task.name || '');
+const editableAssetName = ref(props.asset.name || '');
 const gridStatusMenuVisible = ref(false);
 const isAwaitingResponse = ref(false);
 const isDownloading = ref(false);
@@ -410,7 +410,7 @@ const isEditing = ref(false);
 const isExpanded = ref(false);
 const osThumbnail = ref('');
 const statusMenuDisplayed = ref(false);
-const taskItem = ref(null);
+const assetItem = ref(null);
 const thumbnailLoading = ref(false);
 
 // thumbnail cache
@@ -419,21 +419,21 @@ const thumbnailCache = new Map();
 // computed
 // Returns the capitalized asset type name.
 const assetTypeName = computed(() => {
-  return utils.capitalizeStr(props.task?.task_type_name);
+  return utils.capitalizeStr(props.asset?.asset_type_name);
 });
 
-// Checks if the user can import into the untracked task's parent.
+// Checks if the user can import into the untracked asset's parent.
 const canImport = computed(() => {
-  let trackedParent = utils.getUntrackedEntityparent(props.task);
-  if (props.task.entity_path === "") {
+  let trackedParent = utils.getUntrackedCollectionparent(props.asset);
+  if (props.asset.collection_path === "") {
     return false;
   }
   return trackedParent && trackedParent.can_modify;
 });
 
-// Checks if the current user can modify this task.
+// Checks if the current user can modify this asset.
 const canModify = computed(() => {
-  let assigneeId = props.task.assignee_id;
+  let assigneeId = props.asset.assignee_id;
   if (assigneeId == "") {
     return true;
   } else if (assigneeId == userStore.user.id) {
@@ -445,19 +445,19 @@ const canModify = computed(() => {
 
 // Determines the thumbnail to display with priority order.
 const displayThumbnail = computed(() => {
-  if (props.task.preview) {
-    return props.task.preview;
+  if (props.asset.preview) {
+    return props.asset.preview;
   }
   
   if (osThumbnail.value) {
     return `data:image/png;base64,${osThumbnail.value}`;
   }
   
-  if (props.task.icon) {
-    return props.task.icon;
+  if (props.asset.icon) {
+    return props.asset.icon;
   }
   
-  return getAppIcon(getFileTypeIcon(props.task));
+  return getAppIcon(getFileTypeIcon(props.asset));
 });
 
 // Returns the grid styles for the asset item.
@@ -473,15 +473,15 @@ const isCurrentUser = computed(() => {
     return false;
   }
   let currentUserId = user.id;
-  return props.task.assignee_id === currentUserId;
+  return props.asset.assignee_id === currentUserId;
 });
 
 // Checks if the item is hovered for drag and drop.
-const isHovered = computed(() => { return dndStore.targetItemId === props.task.id; });
+const isHovered = computed(() => { return dndStore.targetItemId === props.asset.id; });
 
-// Checks if the task is focused for selection.
-const isTaskInFocus = computed(() => {
-  return stage.markedItems.length === 1 && stage.firstSelectedItemId === props.task.id && !dndStore.draggedItem;
+// Checks if the asset is focused for selection.
+const isAssetInFocus = computed(() => {
+  return stage.markedItems.length === 1 && stage.firstSelectedItemId === props.asset.id && !dndStore.draggedItem;
 });
 
 // Returns the height styles for the item in list view.
@@ -494,35 +494,35 @@ const operationsActive = computed(() => {
   return stage.operationActive || !!modals.activeModal || !!menu.activeMenu || isEditing.value || stage.activeStage !== 'browser';
 });
 
-// Returns the display name for the task.
-const taskName = computed(() => {
-  const task = props.task;
-  const extension = commonStore.hideExtensions ? '' : task.name ? task.extension : '';
-  const taskName = task.name ? task.name : task.extension;
-  const isDirectParent = props.task.id === task.entity_id;
-  const taskPath = task.task_path?.replace(/\//g, ' / ').replace(/^( \/ )?/, '');
+// Returns the display name for the asset.
+const assetName = computed(() => {
+  const asset = props.asset;
+  const extension = commonStore.hideExtensions ? '' : asset.name ? asset.extension : '';
+  const assetName = asset.name ? asset.name : asset.extension;
+  const isDirectParent = props.asset.id === asset.collection_id;
+  const assetPath = asset.asset_path?.replace(/\//g, ' / ').replace(/^( \/ )?/, '');
 
   if (commonStore.showFullPath) {
-    return taskPath + extension;
+    return assetPath + extension;
   }
   if (props.isChild) {
-    if (commonStore.showChildEntities) {
-      return taskName + extension;
+    if (commonStore.showChildCollections) {
+      return assetName + extension;
     } else {
-      return isDirectParent ? (taskName + extension) : taskPath;
+      return isDirectParent ? (assetName + extension) : assetPath;
     }
   } else {
     if (commonStore.viewSearchQuery) {
-      return taskPath + extension;
+      return assetPath + extension;
     } else {
-      return taskName + extension;
+      return assetName + extension;
     }
   }
 });
 
 // Returns the full name of the assigned user.
 const userFullName = computed(() => {
-  let user = userStore.getUserData(props.task.assignee_id);
+  let user = userStore.getUserData(props.asset.assignee_id);
   if (!user) {
     return t('notifications.removedUser');
   } else {
@@ -532,76 +532,76 @@ const userFullName = computed(() => {
 
 // Returns the profile photo URL of the assigned user.
 const userPhoto = computed(() => {
-  return userStore.userProfilePhoto(props.task.assignee_id);
+  return userStore.userProfilePhoto(props.asset.assignee_id);
 });
 
 // events
 Events.On('rename-item', async () => {
   if (operationsActive.value) return;
-  if (isTaskInFocus.value && userStore.canDo('update_task')) {
+  if (isAssetInFocus.value && userStore.canDo('update_asset')) {
     startRename();
   }
 });
 
 Events.On('edit-item', async () => {
   if (operationsActive.value) return;
-  if (isTaskInFocus.value && userStore.canDo('update_task')) {
+  if (isAssetInFocus.value && userStore.canDo('update_asset')) {
     modals.setModalVisibility('editAssetModal', true);
   }
 });
 
 Events.On('add-checkpoint', async () => {
   if (operationsActive.value) return;
-  if (isTaskInFocus.value && userStore.canDo('create_checkpoint')) {
+  if (isAssetInFocus.value && userStore.canDo('create_checkpoint')) {
     prepCreateCheckpoint();
   }
 });
 
 Events.On('free-item-space', async () => {
   if (operationsActive.value) return;
-  if (isTaskInFocus.value) {
-    if (props.task.type === 'task') {
+  if (isAssetInFocus.value) {
+    if (props.asset.type === 'asset') {
       prepFreeUpSpacePopUpModal();
-    } else if (props.task.type === 'untracked_task') {
-      prepDeleteUntrackedTaskPopUpModal();
+    } else if (props.asset.type === 'untracked_asset') {
+      prepDeleteUntrackedAssetPopUpModal();
     }
   }
 });
 
 Events.On('delete-item', async () => {
   if (operationsActive.value) return;
-  if (isTaskInFocus.value && userStore.canDo('delete_task')) {
+  if (isAssetInFocus.value && userStore.canDo('delete_asset')) {
     panes.setPaneVisibility('projectDetails', true);
-    deleteTask();
+    deleteAsset();
   }
 });
 
 // methods
 // Cancels the current rename operation.
 const cancelRename = () => {
-  editableTaskName.value = props.task.name || '';
+  editableAssetName.value = props.asset.name || '';
   toggleEditMode();
 };
 
-// Shows a popup modal when user cannot modify the task.
+// Shows a popup modal when user cannot modify the asset.
 const canModifyPopUpModal = () => {
   trayStates.popUpModalTitle = t('common.warning');
-  trayStates.popUpModalMessage = t('notifications.cannotModifyTask');
+  trayStates.popUpModalMessage = t('notifications.cannotModifyAsset');
   trayStates.popUpModalIcon = 'help';
   trayStates.popUpModalFunction = null;
   modals.setModalVisibility('popUpModal', true);
 };
 
-// Closes the grid status menu and updates task status.
+// Closes the grid status menu and updates asset status.
 const closeGridStatusMenu = () => {
   gridStatusMenuVisible.value = false;
 };
 
-// Closes the status menu and updates task status properties.
+// Closes the status menu and updates asset status properties.
 const closeStatusMenu = () => {
-  props.task.status = assetStore.selectedAsset.status;
-  props.task.status_id = assetStore.selectedAsset.status_id;
-  props.task.status_short_name = assetStore.selectedAsset.status_short_name;
+  props.asset.status = assetStore.selectedAsset.status;
+  props.asset.status_id = assetStore.selectedAsset.status_id;
+  props.asset.status_short_name = assetStore.selectedAsset.status_short_name;
   statusMenuDisplayed.value = false;
 };
 
@@ -612,41 +612,41 @@ const confirmRename = async () => {
   toggleEditMode();
 };
 
-// Deletes the task or prepares to delete untracked task.
-const deleteTask = async () => {
-  if (props.task.type === 'task') {
-    let taskId = assetStore.selectedAsset.id;
-    AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
+// Deletes the asset or prepares to delete untracked asset.
+const deleteAsset = async () => {
+  if (props.asset.type === 'asset') {
+    let assetId = assetStore.selectedAsset.id;
+    AssetService.DeleteAsset(projectStore.activeProject.uri, assetId, true)
       .then(async (response) => {
         assetStore.selectedAsset = null;
         stage.markedItems = [];
         emitter.emit('refresh-browser');
       })
       .catch((error) => {
-        notificationStore.errorNotification(t('notifications.taskFailedToDelete'), error);
+        notificationStore.errorNotification(t('notifications.assetFailedToDelete'), error);
       });
     let longMessage = t('notifications.movedToTrash', { item: assetStore.selectedAsset.name });
-    notificationStore.addNotification(t('notifications.movedToTrash', { item: 'Task' }), longMessage, "success", true);
-  } else if (props.task.type === 'untracked_task') {
-    prepDeleteUntrackedTaskPopUpModal();
+    notificationStore.addNotification(t('notifications.movedToTrash', { item: 'Asset' }), longMessage, "success", true);
+  } else if (props.asset.type === 'untracked_asset') {
+    prepDeleteUntrackedAssetPopUpModal();
   }
 };
 
 // Deletes an untracked item from the file system.
 const deleteUntrackedItem = () => {
-  FSService.DeleteFile(props.task.file_path);
-  projectStore.removeUntrackedTask(props.task.id);
+  FSService.DeleteFile(props.asset.file_path);
+  projectStore.removeUntrackedAsset(props.asset.id);
   emitter.emit('refresh-browser');
   modals.disableAllModals();
 };
 
 // Downloads an asset in web mode.
-const downloadAsset = async (index, task, event) => {
+const downloadAsset = async (index, asset, event) => {
   if (isDownloading.value) return;
   
-  handleClick(index, task, event);
-  const taskId = task.id;
-  const fileName = `${task.name}${task.extension}`;
+  handleClick(index, asset, event);
+  const assetId = asset.id;
+  const fileName = `${asset.name}${asset.extension}`;
   
   isDownloading.value = true;
   
@@ -654,7 +654,7 @@ const downloadAsset = async (index, task, event) => {
     const { CheckpointService: WebCheckpointService } = await import('@/services/adapters/checkpointservice.js');
     await WebCheckpointService.DownloadAsset(
       projectStore.activeProject.uri,
-      taskId,
+      assetId,
       null
     );
     
@@ -686,9 +686,9 @@ const downloadCheckpoint = (checkpointId) => {
     });
 };
 
-// Emits task data updates to related components.
-const emitTaskUpdates = (taskId, updates) => {
-  const updateData = { itemId: taskId, updates };
+// Emits asset data updates to related components.
+const emitAssetUpdates = (assetId, updates) => {
+  const updateData = { itemId: assetId, updates };
   
   emitter.emit('update-root-data', updateData);
   emitter.emit('update-children', updateData);
@@ -696,14 +696,14 @@ const emitTaskUpdates = (taskId, updates) => {
 
 // Frees up disk space by deleting working files.
 const freeUpSpace = async () => {
-  let task = assetStore.selectedAsset;
-  let taskDir = task.file_path.replace(/\\/g, '/');
-  await FSService.DeleteFile(taskDir)
+  let asset = assetStore.selectedAsset;
+  let assetDir = asset.file_path.replace(/\\/g, '/');
+  await FSService.DeleteFile(assetDir)
     .then((response) => {
-      task.file_status = 'rebuildable';
-      assetStore.rebuildableAssetsPath.push(task.task_path);
-      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path);
-      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => taskPath !== task.task_path);
+      asset.file_status = 'rebuildable';
+      assetStore.rebuildableAssetsPath.push(asset.asset_path);
+      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.asset_path);
+      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(assetPath => assetPath !== asset.asset_path);
       emitter.emit('refresh-browser');
     })
     .catch((error) => {
@@ -719,8 +719,8 @@ const getAppIcon = (iconName) => {
 };
 
 // Returns the appropriate icon based on file type.
-const getFileTypeIcon = (task) => {
-  const extension = task.extension?.toLowerCase() || '';
+const getFileTypeIcon = (asset) => {
+  const extension = asset.extension?.toLowerCase() || '';
 
   const imageFormats = ['.png', '.exr', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp', '.svg'];
   const videoFormats = ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm'];
@@ -757,17 +757,17 @@ const getFileTypeIcon = (task) => {
   }
 };
 
-// Navigates to the task dependencies view.
-const goToDependencies = (index, task, event) => {
-  handleClick(index, task, event);
-  assetStore.selectAsset(task);
+// Navigates to the asset dependencies view.
+const goToDependencies = (index, asset, event) => {
+  handleClick(index, asset, event);
+  assetStore.selectAsset(asset);
   stage.setStageVisibility('dependencies', true);
 };
 
-// Handles task click event and closes status menu.
-const handleClick = (index, task, event) => {
+// Handles asset click event and closes status menu.
+const handleClick = (index, asset, event) => {
   closeStatusMenu();
-  const id = task.id;
+  const id = asset.id;
 };
 
 // Handles clicks outside menus to close them.
@@ -793,44 +793,44 @@ const handleEscKey = () => {
   }
 };
 
-// Handles grid status selection and updates task status.
+// Handles grid status selection and updates asset status.
 const handleGridStatusSelected = () => {
-  props.task.status = assetStore.selectedAsset.status;
-  props.task.status_id = assetStore.selectedAsset.status_id;
-  props.task.status_short_name = assetStore.selectedAsset.status_short_name;
+  props.asset.status = assetStore.selectedAsset.status;
+  props.asset.status_id = assetStore.selectedAsset.status_id;
+  props.asset.status_short_name = assetStore.selectedAsset.status_short_name;
   closeGridStatusMenu();
 };
 
-// Launches the selected task if conditions are met.
-const launchSelectedTask = () => {
+// Launches the selected asset if conditions are met.
+const launchSelectedAsset = () => {
   if (isEditing.value) return;
-  if (isTaskInFocus.value && !modals.activeModal) {
-    launchTaskCommand();
+  if (isAssetInFocus.value && !modals.activeModal) {
+    launchAssetCommand();
   }
 };
 
-// Launches the task file or opens web link.
-const launchTaskCommand = async () => {
+// Launches the asset file or opens web link.
+const launchAssetCommand = async () => {
   if (!userStore.canDo('pull_chunk')) {
     return;
   }
-  const task = props.task;
-  if (task.is_link && isValidWeblink(task.pointer)) {
-    Browser.OpenURL(task.pointer);
+  const asset = props.asset;
+  if (asset.is_link && isValidWeblink(asset.pointer)) {
+    Browser.OpenURL(asset.pointer);
   } else {
-    let file_path = task.pointer ? task.pointer : task.file_path;
+    let file_path = asset.pointer ? asset.pointer : asset.file_path;
     if (await FSService.Exists(file_path)) {
       FSService.LaunchFile(file_path);
     } else {
-      CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [task.id])
+      CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [asset.id])
         .then(async (response) => {
-          let fileStatus = await assetStore.getAssetFileStatus(task);
-          props.task.file_status = fileStatus;
+          let fileStatus = await assetStore.getAssetFileStatus(asset);
+          props.asset.file_status = fileStatus;
           FSService.LaunchFile(file_path);
         })
         .catch((error) => {
           console.log(error);
-          notificationStore.errorNotification(t('notifications.errorRebuildingTask'), error);
+          notificationStore.errorNotification(t('notifications.errorRebuildingAsset'), error);
         });
     }
   }
@@ -838,10 +838,10 @@ const launchTaskCommand = async () => {
 
 // Loads OS-generated thumbnail for the file.
 const loadOSThumbnail = async () => {
-  const filePath = props.task.file_path;
+  const filePath = props.asset.file_path;
 
   const fileExists = await FSService.Exists(filePath);
-  if (!commonStore.useGrid || props.task.preview || !props.task.file_path || !fileExists || thumbnailLoading.value || props.task.is_link) {
+  if (!commonStore.useGrid || props.asset.preview || !props.asset.file_path || !fileExists || thumbnailLoading.value || props.asset.is_link) {
     return;
   }
 
@@ -888,51 +888,51 @@ const loadOSThumbnail = async () => {
 
 // Triggers rename from the menu.
 const menuRename = () => {
-  if (isTaskInFocus.value && userStore.canDo('update_task')) {
+  if (isAssetInFocus.value && userStore.canDo('update_asset')) {
     startRename();
   }
 };
 
 // Opens a web link in the browser.
 const openLink = () => {
-  const task = props.task;
-  if (task.is_link && isValidWeblink(task.pointer)) {
-    Browser.OpenURL(task.pointer);
+  const asset = props.asset;
+  if (asset.is_link && isValidWeblink(asset.pointer)) {
+    Browser.OpenURL(asset.pointer);
   }
 };
 
 // Opens the grid status menu.
 const openGridStatusMenu = (event) => {
-  const id = props.task.id;
-  const task = props.task;
-  assetStore.selectAsset(task);
-  stage.markedTasks = [id];
+  const id = props.asset.id;
+  const asset = props.asset;
+  assetStore.selectAsset(asset);
+  stage.markedAssets = [id];
   gridStatusMenuVisible.value = !gridStatusMenuVisible.value;
 };
 
-// Prepares to assign the task to a user.
-const prepAssignTask = (index, task, event) => {
-  if (!userStore.canDo('assign_task')) {
+// Prepares to assign the asset to a user.
+const prepAssignAsset = (index, asset, event) => {
+  if (!userStore.canDo('assign_asset')) {
     return;
   }
-  handleClick(index, task, event);
+  handleClick(index, asset, event);
 
-  const id = task.id;
-  assetStore.selectAsset(task);
-  stage.markedTasks = [id];
+  const id = asset.id;
+  assetStore.selectAsset(asset);
+  stage.markedAssets = [id];
   menu.showContextMenu(event, 'assignMenu', true);
 };
 
 // Prepares the create checkpoint modal.
 const prepCreateCheckpoint = (index, mask, event) => {
-  const task = props.task;
-  assetStore.selectedAsset = task;
-  handleClick(index, task, event);
+  const asset = props.asset;
+  assetStore.selectedAsset = asset;
+  handleClick(index, asset, event);
   modals.setModalVisibility('createCheckpointModal', true);
 };
 
-// Prepares the delete untracked task popup modal.
-const prepDeleteUntrackedTaskPopUpModal = () => {
+// Prepares the delete untracked asset popup modal.
+const prepDeleteUntrackedAssetPopUpModal = () => {
   trayStates.popUpModalTitle = t('common.delete');
   trayStates.popUpModalMessage = t('confirmations.deleteItemPermanently');
   trayStates.popUpModalIcon = 'trash';
@@ -942,8 +942,8 @@ const prepDeleteUntrackedTaskPopUpModal = () => {
 
 // Prepares the free up space popup modal.
 const prepFreeUpSpacePopUpModal = () => {
-  trayStates.popUpModalTitle = t('notifications.freeUpTaskSpace');
-  trayStates.popUpModalMessage = t('confirmations.deleteWorkingFiles', { item: 'task' });
+  trayStates.popUpModalTitle = t('notifications.freeUpAssetSpace');
+  trayStates.popUpModalMessage = t('confirmations.deleteWorkingFiles', { item: 'asset' });
   trayStates.popUpModalIcon = 'broom';
   trayStates.popUpModalFunction = freeUpSpace;
   modals.setModalVisibility('popUpModal', true);
@@ -955,23 +955,23 @@ const profileColor = (uuid) => {
   return '#' + parts[0];
 };
 
-// Reverts a task to its last checkpoint.
-const revertTask = async (index, task, event) => {
-  handleClick(index, task, event);
-  const taskId = task.id;
+// Reverts a asset to its last checkpoint.
+const revertAsset = async (index, asset, event) => {
+  handleClick(index, asset, event);
+  const assetId = asset.id;
 
   notificationStore.cancleFunction = SyncService.CancelSync;
   notificationStore.canCancel = true;
 
-  CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [taskId])
+  CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [assetId])
     .then(async (response) => {
-      emitTaskUpdates(taskId, [
+      emitAssetUpdates(assetId, [
         { property: 'file_status', value: 'normal' }
       ]);
     })
     .catch((error) => {
       console.log(error);
-      notificationStore.errorNotification(t('notifications.errorRevertingTask'), error);
+      notificationStore.errorNotification(t('notifications.errorRevertingAsset'), error);
     });
 };
 
@@ -999,21 +999,21 @@ const toggleEditMode = (event) => {
   }
 };
 
-// Opens the status menu for changing task status.
-const toggleDisplayStatusMenu = (index, task, event) => {
-  handleClick(index, task, event);
+// Opens the status menu for changing asset status.
+const toggleDisplayStatusMenu = (index, asset, event) => {
+  handleClick(index, asset, event);
   if (!userStore.canDo('change_status')) {
     return;
   }
-  assetStore.isAssetTaskStatus = true;
-  assetStore.selectAsset(task);
+  assetStore.isAssetAssetStatus = true;
+  assetStore.selectAsset(asset);
   statusMenuDisplayed.value = true;
 };
 
 // Triggers the rename operation if conditions are met.
 const triggerRename = () => {
   if (operationsActive.value) return;
-  if (isTaskInFocus.value && userStore.canDo('update_task')) {
+  if (isAssetInFocus.value && userStore.canDo('update_asset')) {
     startRename();
   }
 };
@@ -1022,19 +1022,19 @@ const triggerRename = () => {
 const updateAssetName = async () => {
   isAwaitingResponse.value = true;
 
-  let taskId = props.task.id;
-  let task = props.task;
+  let assetId = props.asset.id;
+  let asset = props.asset;
 
-  if (props.task.type === 'task') {
-    await AssetService.RenameAsset(projectStore.activeProject.uri, taskId, editableTaskName.value)
+  if (props.asset.type === 'asset') {
+    await AssetService.RenameAsset(projectStore.activeProject.uri, assetId, editableAssetName.value)
       .then((data) => {
-        task.name = editableTaskName.value;
-        emitTaskUpdates(taskId, [
-          { property: 'name', value: editableTaskName.value },
+        asset.name = editableAssetName.value;
+        emitAssetUpdates(assetId, [
+          { property: 'name', value: editableAssetName.value },
           { property: 'file_status', value: 'outdated' },
         ]);
 
-        props.task.file_status = 'outdated';
+        props.asset.file_status = 'outdated';
         
         isAwaitingResponse.value = false;
       })
@@ -1042,14 +1042,14 @@ const updateAssetName = async () => {
         isAwaitingResponse.value = false;
         console.error('Error:', error);
       });
-  } else if (props.task.type === 'untracked_task') {
-    let oldPath = props.task.file_path;
-    let newPath = getParentPath(props.task.file_path) + "/" + editableTaskName.value + props.task.extension;
-    let task = projectStore.findUntrackedTask(props.task.id);
+  } else if (props.asset.type === 'untracked_asset') {
+    let oldPath = props.asset.file_path;
+    let newPath = getParentPath(props.asset.file_path) + "/" + editableAssetName.value + props.asset.extension;
+    let asset = projectStore.findUntrackedAsset(props.asset.id);
     await FSService.Rename(oldPath, newPath)
       .then((data) => {
-        emitTaskUpdates(taskId, [
-          { property: 'name', value: editableTaskName.value },
+        emitAssetUpdates(assetId, [
+          { property: 'name', value: editableAssetName.value },
           { property: 'file_path', value: newPath }
         ]);
         
@@ -1063,18 +1063,18 @@ const updateAssetName = async () => {
 };
 
 // Opens the checkpoints view panel.
-const viewCheckpoints = (index, task, event) => {
-  stage.markedItems = [task.id];
-  assetStore.selectAsset(task);
+const viewCheckpoints = (index, asset, event) => {
+  stage.markedItems = [asset.id];
+  assetStore.selectAsset(asset);
   emitter.emit('view-checkpoints');
   panes.showDetailsPane = true;
 };
 
 // watchers
-watch(() => isTaskInFocus.value, (newItems, oldItems) => {
+watch(() => isAssetInFocus.value, (newItems, oldItems) => {
   if (isEditing.value) {
     isEditing.value = false;
-    editableTaskName.value = props.task.name || '';
+    editableAssetName.value = props.asset.name || '';
   }
   if (statusMenuDisplayed.value) {
     statusMenuDisplayed.value = false;
@@ -1084,7 +1084,7 @@ watch(() => isTaskInFocus.value, (newItems, oldItems) => {
   }
 }, { deep: true });
 
-watch(() => props.task.file_path, async (newPath, oldPath) => {
+watch(() => props.asset.file_path, async (newPath, oldPath) => {
   if (newPath && newPath !== oldPath) {
     osThumbnail.value = '';
     await loadOSThumbnail();
@@ -1113,11 +1113,11 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
-.task-collapsed {
+.asset-collapsed {
   transform: rotate(-90deg);
 }
 
-.task-expanded {
+.asset-expanded {
   transform: rotate(0deg);
 }
 
@@ -1125,7 +1125,7 @@ onBeforeUnmount(() => {
   opacity: .2;
 }
 
-.task-item-main {
+.asset-item-main {
   z-index: 100000;
   display: flex;
   gap: .2rem;
@@ -1147,31 +1147,31 @@ onBeforeUnmount(() => {
   transition: all .2s ease-out;
 }
 
-.task-item-main:hover {
+.asset-item-main:hover {
   background-color: var(--steel);
   border-radius: var(--small-radius);
   outline: 1px solid var(--light-steel);
 }
 
-.task-item-main:hover  .main-task-item-grid-thumb-container{
+.asset-item-main:hover  .main-asset-item-grid-thumb-container{
   border-radius: var(--tiny-radius);
 }
 
-.task-item-selected {
+.asset-item-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--blue-steel);
 }
 
-.task-item-selected:hover {
+.asset-item-selected:hover {
   background-color: var(--solid-blue-steel);
 }
 
-.task-item-cut{
+.asset-item-cut{
   opacity: .5;
 }
 
-.task-item-grid {
+.asset-item-grid {
   align-items: flex-end;
   padding-left: 0px;
   padding: .5rem;
@@ -1180,39 +1180,39 @@ onBeforeUnmount(() => {
   outline-offset: -1.5px;
 }
 
-.task-item-grid-selected {
+.asset-item-grid-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--blue-steel);
 }
 
-.task-item-grid-selected:hover {
+.asset-item-grid-selected:hover {
   background-color: var(--solid-blue-steel);
 }
 
-.task-item-grid-cut {
+.asset-item-grid-cut {
   opacity: .5;
 }
 
-.task-item-grid-last-selected {
+.asset-item-grid-last-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--solid-blue-steel);
 }
 
-.task-item-grid-only-selected {
+.asset-item-grid-only-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--solid-blue-steel);
 }
 
-.task-item-grid-only-selected:hover {
+.asset-item-grid-only-selected:hover {
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--solid-blue-steel);
 }
 
-.main-task-item-grid {
+.main-asset-item-grid {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1221,7 +1221,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
-.main-task-item-grid-bottom-bar {
+.main-asset-item-grid-bottom-bar {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -1234,7 +1234,7 @@ onBeforeUnmount(() => {
   transition: all 0.2s ease-out;
 }
 
-.task-item-grid-bottom-bar-wrapper {
+.asset-item-grid-bottom-bar-wrapper {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1245,11 +1245,11 @@ onBeforeUnmount(() => {
   transition: all 0.2s ease-out;
 }
 
-.task-item-grid:hover .task-item-grid-bottom-bar-wrapper:not(:has(.rename-input-grid)) {
+.asset-item-grid:hover .asset-item-grid-bottom-bar-wrapper:not(:has(.rename-input-grid)) {
   height: 70px;
 }
 
-.task-item-grid-slide-container {
+.asset-item-grid-slide-container {
   display: flex;
   flex-direction: column;
   width: 80%;
@@ -1260,16 +1260,16 @@ onBeforeUnmount(() => {
   transition: all 0.2s ease-in-out;
 }
 
-.task-item-grid-slide-container:has(.rename-input-grid) {
+.asset-item-grid-slide-container:has(.rename-input-grid) {
   width: 100%;
 }
 
-.task-item-grid:hover .task-item-grid-slide-container {
+.asset-item-grid:hover .asset-item-grid-slide-container {
   width: 100%;
   /* transition: all 0.2s ease-out; */
 }
 
-.task-item-grid-meta-row {
+.asset-item-grid-meta-row {
   display: flex;
   align-items: center;
   gap: .3rem;
@@ -1281,7 +1281,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
-.task-item-grid-actions-row {
+.asset-item-grid-actions-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1295,18 +1295,18 @@ onBeforeUnmount(() => {
   width: 80%;
 }
 
-.task-item-grid:hover .task-item-grid-actions-row {
+.asset-item-grid:hover .asset-item-grid-actions-row {
   display: flex;
 }
 
-.task-item-grid-type-icon {
+.asset-item-grid-type-icon {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.task-item-grid-file-state-absolute {
+.asset-item-grid-file-state-absolute {
   position: absolute;
   bottom: 0;
   right: 0;
@@ -1317,7 +1317,7 @@ onBeforeUnmount(() => {
   z-index: 1;
 }
 
-.main-task-item-grid-thumb-container {
+.main-asset-item-grid-thumb-container {
   position: relative;
   display: flex;
   overflow: hidden;
@@ -1331,7 +1331,7 @@ onBeforeUnmount(() => {
   flex: 1; 
 }
 
-.main-task-item-grid-meta {
+.main-asset-item-grid-meta {
   display: block;
   flex: 1;
   text-align: left;
@@ -1345,30 +1345,30 @@ onBeforeUnmount(() => {
   line-height: 1.2;
 }
 
-.task-item-last-selected {
+.asset-item-last-selected {
   outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--solid-blue-steel);
 }
 
-.task-item-only-selected {
+.asset-item-only-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--solid-blue-steel);
 }
 
-.task-item-only-selected:hover {
+.asset-item-only-selected:hover {
   outline: var(--transparent-line);
   outline-offset: -1px;
   background-color: var(--solid-blue-steel);
 }
 
-.task-item-child {
+.asset-item-child {
   padding-left: 0px;
 }
 
-.main-task-item-root {
+.main-asset-item-root {
   display: flex;
   flex-direction: column;
   gap: .2rem;
@@ -1385,7 +1385,7 @@ onBeforeUnmount(() => {
 
 }
 
-.task-item-container {
+.asset-item-container {
   display: flex;
   gap: .5rem;
   color: var(--white);
@@ -1398,7 +1398,7 @@ onBeforeUnmount(() => {
   transition: all .3s ease-out;
 }
 
-.task-spacer {
+.asset-spacer {
   position: relative;
   width: min-content;
   width: 36px;
@@ -1410,7 +1410,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
-.task-spacer-empty {
+.asset-spacer-empty {
   background-color: moccasin;
 }
 
@@ -1441,7 +1441,7 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 
-.task-item-preview-container {
+.asset-item-preview-container {
   position: relative;
   display: flex;
   box-sizing: border-box;
@@ -1453,8 +1453,8 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 
-.task-item-preview-image img,
-.task-item-icon-container img {
+.asset-item-preview-image img,
+.asset-item-icon-container img {
   transition: opacity 0.2s ease-in-out;
 }
 
@@ -1464,8 +1464,8 @@ onBeforeUnmount(() => {
   object-fit: cover;
 }
 
-.task-item-preview-image img[src*="data:image"],
-.task-item-icon-container img[src*="data:image"] {
+.asset-item-preview-image img[src*="data:image"],
+.asset-item-icon-container img[src*="data:image"] {
   animation: fadeIn 0.3s ease-in-out;
 }
 
@@ -1478,7 +1478,7 @@ onBeforeUnmount(() => {
   }
 }
 
-.task-item-preview-image {
+.asset-item-preview-image {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -1488,7 +1488,7 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 
-.task-item-icon-container {
+.asset-item-icon-container {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -1499,7 +1499,7 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 
-.task-item-icon-overlay {
+.asset-item-icon-overlay {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -1514,7 +1514,7 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 
-.task-item-content {
+.asset-item-content {
   gap: .4rem;
   /* flex-direction: column; */
   display: flex;
@@ -1526,19 +1526,19 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
-.task-item-meta-container {
+.asset-item-meta-container {
   width: 100%;
   display: none;
   justify-content: flex-end;
 }
 
-.task-item-main:hover .task-item-meta-container {
+.asset-item-main:hover .asset-item-meta-container {
   display: flex;
   align-items: center;
   gap: .5rem;
 }
 
-.task-item-meta {
+.asset-item-meta {
   display: flex;
   padding: .2rem;
   box-sizing: border-box;
@@ -1550,7 +1550,7 @@ onBeforeUnmount(() => {
   font-weight: 100;
 }
 
-.task-item-details-old {
+.asset-item-details-old {
   padding: .2rem;
   flex-wrap: nowrap;
   overflow: hidden;
@@ -1563,7 +1563,7 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
 }
 
-.task-item-details {
+.asset-item-details {
   padding: .2rem;
   flex-wrap: nowrap;
   overflow: hidden;
@@ -1610,22 +1610,22 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
 }
 
-.task-item-main:hover .weblink-pointer-container {
+.asset-item-main:hover .weblink-pointer-container {
   /* text-decoration: underline; */
   display: flex;
 }
 
-.task-item-assignee-container{
+.asset-item-assignee-container{
   display: flex;
   gap: .5rem;
   min-width: min-content;
 }
 
-.task-item-assignee-button {
+.asset-item-assignee-button {
   display: none;
 }
 
-.task-item-main:hover .task-item-assignee-button {
+.asset-item-main:hover .asset-item-assignee-button {
   /* text-decoration: underline; */
   display: flex;
 }
@@ -1635,7 +1635,7 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 
-.task-item-tag {
+.asset-item-tag {
   display: flex;
   box-sizing: border-box;
   overflow: hidden;
@@ -1646,7 +1646,7 @@ onBeforeUnmount(() => {
 }
 
 
-.task-item-status-container {
+.asset-item-status-container {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -1656,7 +1656,7 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 
-.task-item-status {
+.asset-item-status {
   display: flex;
   border-radius: var(--normal-radius);
   box-sizing: border-box;
@@ -1674,11 +1674,11 @@ onBeforeUnmount(() => {
   transition: all 0.2s ease-out;
 }
 
-.task-item-status:hover {
+.asset-item-status:hover {
   border-radius: 6px;
 }
 
-.task-item-actions {
+.asset-item-actions {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -1706,13 +1706,13 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
 }
 
-.task-item-main:hover .untracked-item-alert {
+.asset-item-main:hover .untracked-item-alert {
   display: none;
   align-items: center;
   gap: .5rem;
 }
 
-.task-item-main:hover .untracked-item-action {
+.asset-item-main:hover .untracked-item-action {
   display: flex;
   align-items: center;
   gap: .5rem;
@@ -1734,7 +1734,7 @@ onBeforeUnmount(() => {
   justify-content: center;
 }
 
-.task-item-assignee {
+.asset-item-assignee {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -1745,13 +1745,13 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 
-.task-item-grid-status-display {
+.asset-item-grid-status-display {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.task-item-status-grid {
+.asset-item-status-grid {
   display: flex;
   border-radius: var(--normal-radius);
   box-sizing: border-box;
@@ -1768,11 +1768,11 @@ onBeforeUnmount(() => {
   transition: all 0.2s ease-out;
 }
 
-.task-item-status-grid:hover {
+.asset-item-status-grid:hover {
   border-radius: 6px;
 }
 
-.task-item-grid-untracked-label {
+.asset-item-grid-untracked-label {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -1780,40 +1780,40 @@ onBeforeUnmount(() => {
   padding: 0 .5rem;
 }
 
-.task-item-grid-untracked-label span {
+.asset-item-grid-untracked-label span {
   font-style: italic;
   font-size: 14px;
   color: var(--white);
   opacity: 0.7;
 }
 
-.task-item-grid-checkpoints-button,
-.task-item-grid-assign-task-button {
+.asset-item-grid-checkpoints-button,
+.asset-item-grid-assign-asset-button {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.task-item-grid-assignee {
+.asset-item-grid-assignee {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.task-item-grid-assignee-overlay-top-right {
+.asset-item-grid-assignee-overlay-top-right {
   position: absolute;
   bottom: 8px;
   right: 8px;
   z-index: 1;
 }
 
-.task-item-grid-assign-button {
+.asset-item-grid-assign-button {
   opacity: 0;
   transition: opacity 0.2s ease-in-out;
 }
 
-.task-item-grid:hover .task-item-grid-assign-button {
+.asset-item-grid:hover .asset-item-grid-assign-button {
   opacity: 1;
 }
 
