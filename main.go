@@ -360,7 +360,6 @@ func main() {
 	// System tray icon with context menu
 	systemTray := app.SystemTray.New()
 	systemTray.SetIcon(trayIcon)
-	systemTray.SetLabel("Clustta")
 
 	trayMenu := app.NewMenu()
 	trayMenu.Add("Show Clustta").OnClick(func(ctx *application.Context) {
