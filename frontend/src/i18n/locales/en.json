@@ -1723,6 +1723,12 @@
       "errorLoggingIn": "Error Logging In",
       "checkCredentials": "Please check your credentials and try again",
       "connectingToStudio": "Connecting to a studio server?",
+      "connectToStudio": "Connect to a studio server",
+      "connectButton": "Connect",
+      "connectionFailed": "Could not reach this server. Check the URL and try again.",
+      "changeServer": "Change server",
+      "loginToCloud": "Login to Clustta Cloud",
+      "signUpToStudio": "Sign up to this studio",
       "enablingOfflineMode": "Enabling offline mode...",
       "offlineModeTitle": "Offline Mode",
       "offlineModeMessage": "You're now using Clustta in offline mode. Some features will be limited.",
@@ -1766,7 +1772,8 @@
       "studioAccountCreated": "Account created on {url}. You can now login.",
       "checkEmailForCode": "Please check your email for a verification code.",
       "registrationFailed": "Registration Failed",
-      "registrationFailedDefault": "Registration failed"
+      "registrationFailedDefault": "Registration failed",
+      "signUpToStudio": "Sign up to a studio server"
     },
     "resetPassword": {
       "title": "Reset Password",

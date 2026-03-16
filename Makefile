@@ -34,6 +34,7 @@ build:
 
 ifeq ($(DETECTED_OS),Windows)
 	wails3 package
+	powershell -ExecutionPolicy Bypass -File ./windows-sign.ps1
 	powershell -Command "Start-Process 'MsixPackagingTool.exe' -ArgumentList 'create-package','--template','.\Clustta_template.xml','-v' -Verb RunAs"
 else ifeq ($(DETECTED_OS),Darwin)
 	wails3 package

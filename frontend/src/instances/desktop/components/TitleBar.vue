@@ -205,7 +205,7 @@ const displayStudioList = ref(false);
 const progressRunning = computed(() => { return stage.operationActive || notificationStore.getProgress.running })
 
 const projectStages = ['browser', 'dependencies', 'trash', 'projectSettings'];
-const showUnsyncedBar = computed(() => { return projectStore.getActiveProject?.is_unsynced && projectStages.includes(stage.activeStage) });
+const showUnsyncedBar = computed(() => { return projectStore.getActiveProject?.has_remote && projectStore.getActiveProject?.is_unsynced && projectStages.includes(stage.activeStage) });
 
 const getAppIcon = (iconName) => {
   const icon = iconStore.getAppIcon(iconName);
