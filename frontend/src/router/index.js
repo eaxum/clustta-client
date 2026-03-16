@@ -159,7 +159,21 @@ router.beforeEach(async (to, from, next) => {
         storesInitialized = true;
       }
     } catch (error) {
-      // Ignore auth errors for public pages
+      // Server unreachable - fall back to cached credentials from the keyring
+      try {
+        const userData = await AuthService.AuthUser();
+        if (!storesInitialized) {
+          const userStore = useUserStore();
+          const accountStore = useAccountStore();
+
+          userStore.user = userData;
+          userStore.isUserAuthenticated = true;
+          await accountStore.initialize();
+          storesInitialized = true;
+        }
+      } catch {
+        // No cached credentials either — continue without auth
+      }
     }
     
     next();
@@ -175,7 +189,13 @@ router.beforeEach(async (to, from, next) => {
     isAuthenticated = result[0] === true;
     userData = result[1]; // User data from auth check
   } catch (error) {
-    isAuthenticated = false;
+    // Server unreachable — fall back to cached credentials from the keyring
+    try {
+      userData = await AuthService.AuthUser();
+      isAuthenticated = true;
+    } catch {
+      isAuthenticated = false;
+    }
   }
 
   // Auth pages: redirect to home if already logged in

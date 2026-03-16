@@ -82,6 +82,8 @@
 
         <!-- toggle -->
         <div class="additional-actions">
+          <div v-if="!platformStore.isWeb" @click="goToStudioSignUp" class="login-toggle">{{ $t('auth.signUp.signUpToStudio') }}</div>
+
           <div @click="toggleLogin" class="login-toggle">
             {{ $t('auth.signUp.haveAccount') }}&nbsp;<span class="bold">{{ $t('auth.signUp.loginLink') }}</span>
           </div>
@@ -117,11 +119,13 @@ import FormInput from '@/instances/desktop/components/FormInput.vue';
 // store imports
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
+import { usePlatformStore } from '@/stores/platform';
 import { useUserStore } from '@/stores/users';
 
 // stores
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
+const platformStore = usePlatformStore();
 const userStore = useUserStore();
 
 const router = useRouter();
@@ -300,6 +304,11 @@ const escapeRegexChars = (string) => {
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
+};
+
+// Navigates to the studio setup page for self-hosted registration.
+const goToStudioSignUp = () => {
+  router.push({ path: '/auth/studio-setup', query: { type: 'self-hosted' } });
 };
 
 // Handles the registration form submission.

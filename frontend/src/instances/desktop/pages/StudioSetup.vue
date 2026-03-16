@@ -375,9 +375,16 @@ const goBack = () => {
   router.push('/auth/welcome');
 };
 
-// Navigates to the login page.
+// Navigates to the login page with the connected studio URL.
 const goToLogin = () => {
-  router.push('/auth/login');
+  if (isServerConnected.value && studioUrl.value) {
+    router.push({
+      path: '/auth/login',
+      query: { studioUrl: studioUrl.value, name: connectedServerName.value }
+    });
+  } else {
+    router.push('/auth/login');
+  }
 };
 
 // Navigates to the personal sign-up page.
@@ -489,9 +496,18 @@ const selectHostingType = (type) => {
 };
 
 // lifecycle hooks
-onMounted(() => {
-  if (route.query.type === 'managed') {
+onMounted(async () => {
+  const queryType = route.query.type;
+  const queryUrl = route.query.url;
+  const queryName = route.query.name;
+
+  if (queryType === 'managed') {
     hostingType.value = 'managed';
+  } else if (queryType === 'self-hosted' && queryUrl) {
+    hostingType.value = 'self-hosted';
+    studioUrl.value = queryUrl;
+    connectedServerName.value = queryName || queryUrl;
+    await connectToServer();
   }
 });
 

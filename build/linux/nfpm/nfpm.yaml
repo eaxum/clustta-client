@@ -6,7 +6,7 @@
 name: "clustta"
 arch: ${GOARCH}
 platform: "linux"
-version: "0.4.30"
+version: "0.4.31"
 section: "default"
 priority: "extra"
 maintainer: ${GIT_COMMITTER_NAME} <${GIT_COMMITTER_EMAIL}>

@@ -9,6 +9,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 
 	"clustta/internal/constants"
 	"clustta/internal/error_service"
@@ -72,7 +73,7 @@ func IsAuthenticated() (bool, error) {
 	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 5 * time.Second}
 	response, err := client.Do(req)
 	if err != nil {
 		return false, err
