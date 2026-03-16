@@ -1,49 +1,68 @@
-**.clustta
-**.clst
-**.blend
-**.blend1
-.VSCodeCounter
-jornal_performance.csv
-cli_program_performance.csv
-*.csv
-*.exe
-tests/
-dist/
+# OS
 .DS_Store
-cmd/demo*
-tmp/
-# data/
+
+# Build output
+bin
+*.exe
+*.syso
+*.mjs
+frontend/dist
+
+# Dependencies
+frontend/node_modules
+
+# Build artifacts
+.task
+build/linux/appimage/build
+build/windows/TrustedSigning
+build/darwin/clustta.entitlements
+
+# Deployment (synced from clustta-deployment)
+macappstore-build.sh
+windows-sign.ps1
+trusted-signing.json
+Clustta_template.xml
+*.provisionprofile
+clustta.pkg
+
+# Project data
+*.clustta
+*.clst
+*.blend
+*.blend1
+*.csv
 projects/
+tests/
+
+# Config
 .env
 config.json
 studio_config.json
-cmd/studio_server/letsencrypt
 
-.task
-bin
-frontend/dist
-frontend/node_modules
-build/linux/appimage/build
-build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
-*.syso
-/test_data
-/svn_bin_win
+# Benchmarks
 /_benchmark/output
+/_benchmark/output**
 /_benchmark/svn_bin_win
 /_benchmark/test_data
 /_benchmark/data_set
 /_benchmark/*.json
-/_benchmark/output**
+
+# Test data
+/test_data
+/svn_bin_win
 newData*
-clustta.pkg
-internal/LICENSE
-*.provisionprofile
-macappstore-build.sh
-Clustta_template.xml
-build/darwin/clustta.entitlements
-*.mjs
-unreal_ignore_list.txt
-scripts/sync-repos.ps1
+
+# Private docs
 docs/clickup-integration.md
 docs/integration-architecture.md
 docs/kitsu-integration.md
+
+# Misc
+.VSCodeCounter
+cmd/demo*
+cmd/studio_server/letsencrypt
+dist/
+tmp/
+internal/LICENSE
+unreal_ignore_list.txt
+scripts/sync-repos.ps1
