@@ -100,6 +100,44 @@ export class AccountInfo {
     }
 }
 
+/**
+ * AgentKeyStatus reports whether an API key is configured and which provider is selected.
+ */
+export class AgentKeyStatus {
+    /**
+     * Creates a new AgentKeyStatus instance.
+     * @param {Partial<AgentKeyStatus>} [$$source = {}] - The source object to create the AgentKeyStatus.
+     */
+    constructor($$source = {}) {
+        if (!("configured" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["configured"] = false;
+        }
+        if (!("provider" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["provider"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AgentKeyStatus instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AgentKeyStatus}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new AgentKeyStatus(/** @type {Partial<AgentKeyStatus>} */($$parsedSource));
+    }
+}
+
 export class AssetStateItem {
     /**
      * Creates a new AssetStateItem instance.
@@ -196,6 +234,61 @@ export class AssetsStates {
             $$parsedSource["outdated"] = $$createField2_0($$parsedSource["outdated"]);
         }
         return new AssetsStates(/** @type {Partial<AssetsStates>} */($$parsedSource));
+    }
+}
+
+/**
+ * ChatUIMessage represents a message in the format the frontend expects for rendering.
+ */
+export class ChatUIMessage {
+    /**
+     * Creates a new ChatUIMessage instance.
+     * @param {Partial<ChatUIMessage>} [$$source = {}] - The source object to create the ChatUIMessage.
+     */
+    constructor($$source = {}) {
+        if (!("type" in $$source)) {
+            /**
+             * "user", "assistant", "tool-group"
+             * @member
+             * @type {string}
+             */
+            this["type"] = "";
+        }
+        if (!("content" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["content"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * tool function name for tool-group
+             * @member
+             * @type {string | undefined}
+             */
+            this["toolName"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * number of calls for tool-group
+             * @member
+             * @type {number | undefined}
+             */
+            this["count"] = undefined;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ChatUIMessage instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ChatUIMessage}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ChatUIMessage(/** @type {Partial<ChatUIMessage>} */($$parsedSource));
     }
 }
 
