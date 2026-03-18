@@ -3,7 +3,28 @@
     <div class="settings-component-scroll">
     <div class="settings-component-container">
 
-      <!-- Integrations Card -->
+      <!-- AI Agent Card -->
+      <div class="settings-section-card">
+        <div class="settings-section-card-header">
+          <h2 class="settings-section-card-title">AI Agent</h2>
+        </div>
+        <div class="settings-section-card-content">
+
+          <div class="settings-item" v-stop-propagation @click="openAgentConfig">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('brain')"></div>
+            <div class="settings-content">
+              <div class="settings-header">LLM Provider</div>
+              <div class="settings-body">{{ agentKeyConfigured ? 'Provider configured' : 'Configure the AI model provider for the console agent' }}</div>
+            </div>
+            <div class="settings-action">
+              <img class="small-icons" :src="getAppIcon('chevron-right')">
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Behaviour Card -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
           <h2 class="settings-section-card-title">{{ $t('settings.behaviour') }}</h2>
@@ -126,7 +147,7 @@ import { useI18n } from 'vue-i18n';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // services
-import { SettingsService } from '@/services';
+import { AgentService, SettingsService } from '@/services';
 
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
@@ -136,6 +157,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useSettingsStore } from '@/stores/settings';
 
 // refs
+const agentKeyConfigured = ref(false);
 const desktopModals = useDesktopModalStore();
 const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
@@ -158,6 +180,11 @@ const connectedIntegrations = computed(() => {
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
+};
+
+// Opens the AI agent configuration modal.
+const openAgentConfig = () => {
+  desktopModals.setModalVisibility('configAgentModal', true);
 };
 
 // Opens the integration authentication modal.
@@ -216,6 +243,8 @@ onMounted(async () => {
     await settingsStore.initializeMinimizeOnClose();
     syncAfterCheckpoint.value = await SettingsService.GetSyncAfterCheckpoint();
     await integrationStore.initialize();
+    const status = await AgentService.GetAPIKeyStatus();
+    agentKeyConfigured.value = status.configured;
   } catch (error) {
     console.log(error);
   }
