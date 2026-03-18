@@ -141,6 +141,7 @@ func main() {
 		FileAssociations: []string{".clst"},
 		Services: []application.Service{
 			application.NewService(&services.AccountService{}),
+			application.NewService(&services.AgentService{}),
 			application.NewService(&services.AppService{}),
 			application.NewService(&services.AssetService{}),
 			application.NewService(&services.AuthService{}),

@@ -93,6 +93,9 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       // squash
       squashModal: false,
 
+      // agent
+      configAgentModal: false,
+
       // diagnostics
       submitDiagnosticsModal: false,
     },
