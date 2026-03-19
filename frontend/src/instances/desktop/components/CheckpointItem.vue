@@ -192,7 +192,7 @@ const revertToVersion = (id, checkpointId) => {
 };
 
 const viewVersion = (id, checkpointId) => {
-    CheckpointService.ViewCheckpoint(projectStore.activeProject.uri, checkpointId, assetStore.selectedAsset.name, assetStore.selectedAsset.extension)
+    CheckpointService.ViewCheckpoint(projectStore.activeProject.uri, checkpointId, id, assetStore.selectedAsset.name, assetStore.selectedAsset.extension)
         .then((response) => {
             //console.log(response)
         })
