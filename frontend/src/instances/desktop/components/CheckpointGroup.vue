@@ -7,7 +7,7 @@
             </div>
 
             <div class="timeline-dot" v-for="checkpoint in group.items" :key="checkpoint.checkpoint_id"
-                :class="{ 'timeline-dot-active': checkpoint.hash === taskHash, 'timeline-dot-alert': !checkpoint.synced }"
+                :class="{ 'timeline-dot-active': checkpoint.hash === assetHash, 'timeline-dot-alert': !checkpoint.synced }"
                 :style="{ top: dotPositions[checkpoint.checkpoint_id] }" v-tooltip="checkpoint.synced ? 'Synced' : 'Not synced'">
             </div>
         </div>
