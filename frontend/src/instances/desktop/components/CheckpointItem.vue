@@ -239,6 +239,7 @@ const deleteVersion = async () => {
     CheckpointService.DeleteCheckpoint(projectStore.activeProject.uri, checkpoint_id)
         .then((response) => {
             emit('refreshCheckpoints');
+            projectStore.refreshActiveProject();
         })
         .catch((error) => {
             notificationStore.addNotification(

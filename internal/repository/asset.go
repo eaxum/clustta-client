@@ -82,18 +82,18 @@ func CreateAssetFast(
 	}
 
 	params := map[string]any{
-		"id":           id,
-		"created_at":   utils.GetCurrentTime(),
-		"name":         name,
-		"description":  description,
-		"extension":    extension,
+		"id":            id,
+		"created_at":    utils.GetCurrentTime(),
+		"name":          name,
+		"description":   description,
+		"extension":     extension,
 		"asset_type_id": assetTypeId,
-		"collection_id":    collectionId,
-		"is_resource":  isResource,
-		"status_id":    statusId,
-		"pointer":      "",
-		"is_link":      false,
-		"preview_id":   previewId,
+		"collection_id": collectionId,
+		"is_resource":   isResource,
+		"status_id":     statusId,
+		"pointer":       "",
+		"is_link":       false,
+		"preview_id":    previewId,
 	}
 	err = base_service.Create(tx, "asset", params)
 	if err != nil {
@@ -180,9 +180,9 @@ func CreateAsset(
 			extension = template.Extension
 
 			conditions := map[string]interface{}{
-				"name":      name,
+				"name":          name,
 				"collection_id": collectionId,
-				"extension": extension,
+				"extension":     extension,
 			}
 			err = base_service.GetBy(tx, "asset", conditions, &asset)
 			if err == nil {
@@ -204,9 +204,9 @@ func CreateAsset(
 			extension = filepath.Ext(template_file_path)
 
 			conditions := map[string]interface{}{
-				"name":      name,
+				"name":          name,
 				"collection_id": collectionId,
-				"extension": extension,
+				"extension":     extension,
 			}
 			err := base_service.GetBy(tx, "asset", conditions, &asset)
 			if err == nil {
@@ -235,7 +235,7 @@ func CreateAsset(
 		}
 	} else {
 		conditions := map[string]interface{}{
-			"name":      name,
+			"name":          name,
 			"collection_id": collectionId,
 		}
 		err := base_service.GetBy(tx, "asset", conditions, &asset)
@@ -253,18 +253,18 @@ func CreateAsset(
 	}
 	statusId := status.Id
 	params := map[string]any{
-		"id":           id,
-		"created_at":   utils.GetCurrentTime(),
-		"name":         name,
-		"description":  description,
-		"extension":    extension,
+		"id":            id,
+		"created_at":    utils.GetCurrentTime(),
+		"name":          name,
+		"description":   description,
+		"extension":     extension,
 		"asset_type_id": assetTypeId,
-		"collection_id":    collectionId,
-		"is_resource":  isResource,
-		"status_id":    statusId,
-		"pointer":      pointer,
-		"is_link":      isLink,
-		"preview_id":   previewId,
+		"collection_id": collectionId,
+		"is_resource":   isResource,
+		"status_id":     statusId,
+		"pointer":       pointer,
+		"is_link":       isLink,
+		"preview_id":    previewId,
 	}
 	err = base_service.Create(tx, "asset", params)
 	if err != nil {
@@ -330,18 +330,18 @@ func AddAsset(
 	}
 
 	params := map[string]interface{}{
-		"id":           id,
-		"created_at":   createdAt,
-		"name":         name,
-		"description":  description,
-		"extension":    extension,
+		"id":            id,
+		"created_at":    createdAt,
+		"name":          name,
+		"description":   description,
+		"extension":     extension,
 		"asset_type_id": assetTypeId,
-		"collection_id":    collectionId,
-		"status_id":    statusId,
-		"pointer":      pointer,
-		"is_link":      isLink,
-		"assignee_id":  assignee_id,
-		"preview_id":   previewId,
+		"collection_id": collectionId,
+		"status_id":     statusId,
+		"pointer":       pointer,
+		"is_link":       isLink,
+		"assignee_id":   assignee_id,
+		"preview_id":    previewId,
 	}
 	err := base_service.Create(tx, "asset", params)
 	if err != nil {
@@ -1576,7 +1576,7 @@ func GetAssetsByCollectionId(tx *sqlx.Tx, collectionId string) ([]models.Asset, 
 	}
 
 	conditions := map[string]interface{}{
-		"trashed":   0,
+		"trashed":       0,
 		"collection_id": collectionId,
 	}
 	err = base_service.GetAllBy(tx, "full_asset", conditions, &assets)
@@ -1632,10 +1632,6 @@ func DeleteAsset(tx *sqlx.Tx, assetId string, removeFromDir bool, recycle bool) 
 	}
 	if recycle {
 		err = base_service.MarkAsDeleted(tx, "asset", assetId)
-		if err != nil {
-			return err
-		}
-		err = base_service.UpdateMtime(tx, "asset", assetId, utils.GetEpochTime())
 		if err != nil {
 			return err
 		}
@@ -1773,9 +1769,9 @@ func UpdateAsset(tx *sqlx.Tx, assetId string, name, assetTypeId string, isResour
 	}
 
 	params := map[string]interface{}{
-		"name":         newAssetName,
-		"pointer":      pointer,
-		"is_resource":  isResource,
+		"name":          newAssetName,
+		"pointer":       pointer,
+		"is_resource":   isResource,
 		"asset_type_id": assetTypeId,
 	}
 	err = base_service.Update(tx, "asset", assetId, params)
@@ -1850,16 +1846,16 @@ func UpdateSyncAsset(tx *sqlx.Tx, assetId string, name, collectionId, assetTypeI
 	}
 
 	params := map[string]any{
-		"name":         newAssetName,
-		"is_resource":  isResource,
-		"is_link":      isLink,
-		"pointer":      pointer,
+		"name":          newAssetName,
+		"is_resource":   isResource,
+		"is_link":       isLink,
+		"pointer":       pointer,
 		"asset_type_id": assetTypeId,
-		"assignee_id":  assigneeId,
-		"assigner_id":  assignerId,
-		"collection_id":    collectionId,
-		"status_id":    statusId,
-		"preview_id":   previewId,
+		"assignee_id":   assigneeId,
+		"assigner_id":   assignerId,
+		"collection_id": collectionId,
+		"status_id":     statusId,
+		"preview_id":    previewId,
 	}
 	err = base_service.Update(tx, "asset", assetId, params)
 	if err != nil {

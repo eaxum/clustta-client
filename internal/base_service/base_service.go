@@ -359,7 +359,11 @@ func MarkAsDeleted(tx *sqlx.Tx, table string, id string) error {
 	}
 	err := Update(tx, table, id, params)
 	if err != nil {
-		return nil
+		return err
+	}
+	err = UpdateMtime(tx, table, id, utils.GetEpochTime())
+	if err != nil {
+		return err
 	}
 	return nil
 }
