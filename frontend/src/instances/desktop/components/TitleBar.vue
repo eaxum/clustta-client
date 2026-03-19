@@ -471,7 +471,7 @@ onBeforeUnmount(() => {
   height: max-content;
   max-width: 40%;
   width: max-content;
-  padding: .5rem 1rem;
+  padding: .3rem .8rem;
   align-items: center;
   position: absolute;
   right: 50%;
@@ -607,7 +607,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   align-items: center;
   gap: .8rem;
-  padding: .5rem 1rem;
+  padding: .3rem .8rem;
 }
 
 .studio-instance-container {
@@ -700,7 +700,7 @@ onBeforeUnmount(() => {
   width: 100%;
   justify-content: space-between;
   align-items: center;
-  min-height: 46px;
+  min-height: 36px;
   color: var(--white);
   overflow: hidden;
   border-bottom: var(--transparent-line);
