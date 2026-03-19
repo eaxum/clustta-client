@@ -6,6 +6,7 @@ import (
 	"clustta/internal/constants"
 	"clustta/internal/repository"
 	"clustta/internal/repository/repositorypb"
+	"clustta/internal/studio_service"
 	"clustta/internal/utils"
 	"encoding/json"
 	"errors"
@@ -18,6 +19,22 @@ import (
 	"github.com/DataDog/zstd"
 	"google.golang.org/protobuf/proto"
 )
+
+// legacyServerVersion is the version threshold below which the server uses legacy table names.
+const legacyServerVersion = "0.4.25"
+
+// shouldUseLegacyNames checks the server version and returns true if tomb table names
+// need to be remapped to legacy names (task/entity instead of asset/collection).
+func shouldUseLegacyNames(remoteUrl string) bool {
+	if !utils.IsValidURL(remoteUrl) {
+		return false
+	}
+	version, err := studio_service.GetServerVersion(remoteUrl)
+	if err != nil || version == "" {
+		return true // default to legacy if we can't determine
+	}
+	return version != legacyServerVersion
+}
 
 func PushData(projectPath, remoteUrl string, userId string, callback func(int, int, string, string)) error {
 	dbConn, err := utils.OpenDb(projectPath)
@@ -46,15 +63,15 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 		return nil
 	}
 	pdData := repositorypb.ProjectData{
-		ProjectPreview:  data.ProjectPreview,
+		ProjectPreview:      data.ProjectPreview,
 		CollectionTypes:     repository.ToPbCollectionTypes(data.CollectionTypes),
-		Collections:        repository.ToPbCollections(data.Collections),
+		Collections:         repository.ToPbCollections(data.Collections),
 		CollectionAssignees: repository.ToPbCollectionAssignees(data.CollectionAssignees),
 
-		AssetTypes:          repository.ToPbAssetTypes(data.AssetTypes),
-		Assets:              repository.ToPbAssets(data.Assets),
-		AssetCheckpoints:   repository.ToPbCheckpoints(data.AssetCheckpoints),
-		AssetDependencies:   repository.ToPbAssetDependencies(data.AssetDependencies),
+		AssetTypes:             repository.ToPbAssetTypes(data.AssetTypes),
+		Assets:                 repository.ToPbAssets(data.Assets),
+		AssetCheckpoints:       repository.ToPbCheckpoints(data.AssetCheckpoints),
+		AssetDependencies:      repository.ToPbAssetDependencies(data.AssetDependencies),
 		CollectionDependencies: repository.ToPbCollectionDependencies(data.CollectionDependencies),
 
 		Statuses:        repository.ToPbStatuses(data.Statuses),
@@ -65,10 +82,10 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 
 		Templates: repository.ToPbTemplates(data.Templates),
 
-		Workflows:        repository.ToPbWorkflows(data.Workflows),
-		WorkflowLinks:    repository.ToPbWorkflowLinks(data.WorkflowLinks),
+		Workflows:           repository.ToPbWorkflows(data.Workflows),
+		WorkflowLinks:       repository.ToPbWorkflowLinks(data.WorkflowLinks),
 		WorkflowCollections: repository.ToPbWorkflowCollections(data.WorkflowCollections),
-		WorkflowAssets:    repository.ToPbWorkflowAssets(data.WorkflowAssets),
+		WorkflowAssets:      repository.ToPbWorkflowAssets(data.WorkflowAssets),
 
 		Tags:      repository.ToPbTags(data.Tags),
 		AssetTags: repository.ToPbAssetTags(data.AssetTags),
@@ -78,6 +95,10 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 		IntegrationProjects:           repository.ToPbIntegrationProjects(data.IntegrationProjects),
 		IntegrationCollectionMappings: repository.ToPbIntegrationCollectionMappings(data.IntegrationCollectionMappings),
 		IntegrationAssetMappings:      repository.ToPbIntegrationAssetMappings(data.IntegrationAssetMappings),
+	}
+
+	if shouldUseLegacyNames(remoteUrl) {
+		repository.RemapTombsToLegacyNames(pdData.Tomb)
 	}
 
 	dataByte, err := proto.Marshal(&pdData)
@@ -266,15 +287,15 @@ func PushPartialData(projectPath, remoteUrl, userId string, data ProjectData, sy
 	}
 
 	pdData := repositorypb.ProjectData{
-		ProjectPreview:  data.ProjectPreview,
+		ProjectPreview:      data.ProjectPreview,
 		CollectionTypes:     repository.ToPbCollectionTypes(data.CollectionTypes),
-		Collections:        repository.ToPbCollections(data.Collections),
+		Collections:         repository.ToPbCollections(data.Collections),
 		CollectionAssignees: repository.ToPbCollectionAssignees(data.CollectionAssignees),
 
-		AssetTypes:          repository.ToPbAssetTypes(data.AssetTypes),
-		Assets:              repository.ToPbAssets(data.Assets),
-		AssetCheckpoints:   repository.ToPbCheckpoints(data.AssetCheckpoints),
-		AssetDependencies:   repository.ToPbAssetDependencies(data.AssetDependencies),
+		AssetTypes:             repository.ToPbAssetTypes(data.AssetTypes),
+		Assets:                 repository.ToPbAssets(data.Assets),
+		AssetCheckpoints:       repository.ToPbCheckpoints(data.AssetCheckpoints),
+		AssetDependencies:      repository.ToPbAssetDependencies(data.AssetDependencies),
 		CollectionDependencies: repository.ToPbCollectionDependencies(data.CollectionDependencies),
 
 		Statuses:        repository.ToPbStatuses(data.Statuses),
@@ -285,10 +306,10 @@ func PushPartialData(projectPath, remoteUrl, userId string, data ProjectData, sy
 
 		Templates: repository.ToPbTemplates(data.Templates),
 
-		Workflows:        repository.ToPbWorkflows(data.Workflows),
-		WorkflowLinks:    repository.ToPbWorkflowLinks(data.WorkflowLinks),
+		Workflows:           repository.ToPbWorkflows(data.Workflows),
+		WorkflowLinks:       repository.ToPbWorkflowLinks(data.WorkflowLinks),
 		WorkflowCollections: repository.ToPbWorkflowCollections(data.WorkflowCollections),
-		WorkflowAssets:    repository.ToPbWorkflowAssets(data.WorkflowAssets),
+		WorkflowAssets:      repository.ToPbWorkflowAssets(data.WorkflowAssets),
 
 		Tags:      repository.ToPbTags(data.Tags),
 		AssetTags: repository.ToPbAssetTags(data.AssetTags),
@@ -298,6 +319,10 @@ func PushPartialData(projectPath, remoteUrl, userId string, data ProjectData, sy
 		IntegrationProjects:           repository.ToPbIntegrationProjects(data.IntegrationProjects),
 		IntegrationCollectionMappings: repository.ToPbIntegrationCollectionMappings(data.IntegrationCollectionMappings),
 		IntegrationAssetMappings:      repository.ToPbIntegrationAssetMappings(data.IntegrationAssetMappings),
+	}
+
+	if shouldUseLegacyNames(remoteUrl) {
+		repository.RemapTombsToLegacyNames(pdData.Tomb)
 	}
 
 	dataByte, err := proto.Marshal(&pdData)
@@ -434,7 +459,7 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 
 	// Serialize and push metadata
 	pdData := repositorypb.ProjectData{
-		Assets:            repository.ToPbAssets(data.Assets),
+		Assets:           repository.ToPbAssets(data.Assets),
 		AssetCheckpoints: repository.ToPbCheckpoints(data.AssetCheckpoints),
 	}
 
