@@ -181,15 +181,11 @@ func GetToolDefinitions() []ToolDefinition {
 					},
 					"task_type_id": map[string]interface{}{
 						"type":        "string",
-						"description": "ID of the task type (e.g., Model, Rig, Animation). Use list_task_types to find available types.",
+						"description": "ID of the asset type (e.g., Model, Rig, Animation). Use list_task_types to find available types.",
 					},
 					"template_id": map[string]interface{}{
 						"type":        "string",
 						"description": "ID of the file template to use. Use list_templates to find available templates.",
-					},
-					"description": map[string]interface{}{
-						"type":        "string",
-						"description": "Optional description for the asset.",
 					},
 					"tags": map[string]interface{}{
 						"type":        "array",
@@ -469,7 +465,7 @@ func execListCollections(projectPath string) ToolResult {
 	}
 	defer tx.Rollback()
 
-	entities, err := repository.GetEntities(tx, false)
+	collections, err := repository.GetCollections(tx, false)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
@@ -481,14 +477,14 @@ func execListCollections(projectPath string) ToolResult {
 		ParentID string `json:"parent_id,omitempty"`
 		Path     string `json:"path"`
 	}
-	summaries := make([]collectionSummary, 0, len(entities))
-	for _, e := range entities {
+	summaries := make([]collectionSummary, 0, len(collections))
+	for _, c := range collections {
 		summaries = append(summaries, collectionSummary{
-			ID:       e.Id,
-			Name:     e.Name,
-			TypeName: e.EntityTypeName,
-			ParentID: e.ParentId,
-			Path:     e.EntityPath,
+			ID:       c.Id,
+			Name:     c.Name,
+			TypeName: c.CollectionTypeName,
+			ParentID: c.ParentId,
+			Path:     c.CollectionPath,
 		})
 	}
 	return ToolResult{Success: true, Data: summaries}
@@ -511,7 +507,7 @@ func execListAssetsInCollection(projectPath string, args map[string]interface{})
 	}
 	defer tx.Rollback()
 
-	tasks, err := repository.GetEntityTasks(tx, collectionID)
+	assets, err := repository.GetCollectionAssets(tx, collectionID)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
@@ -524,15 +520,15 @@ func execListAssetsInCollection(projectPath string, args map[string]interface{})
 		AssigneeName string   `json:"assignee_name,omitempty"`
 		Tags         []string `json:"tags,omitempty"`
 	}
-	summaries := make([]assetSummary, 0, len(tasks))
-	for _, t := range tasks {
+	summaries := make([]assetSummary, 0, len(assets))
+	for _, a := range assets {
 		summaries = append(summaries, assetSummary{
-			ID:           t.Id,
-			Name:         t.Name,
-			TypeName:     t.TaskTypeName,
-			StatusName:   t.StatusShortName,
-			AssigneeName: t.AssigneeName,
-			Tags:         t.Tags,
+			ID:           a.Id,
+			Name:         a.Name,
+			TypeName:     a.AssetTypeName,
+			StatusName:   a.StatusShortName,
+			AssigneeName: a.AssigneeName,
+			Tags:         a.Tags,
 		})
 	}
 	return ToolResult{Success: true, Data: summaries}
@@ -555,11 +551,11 @@ func execGetAssetDetails(projectPath string, args map[string]interface{}) ToolRe
 	}
 	defer tx.Rollback()
 
-	task, err := repository.GetTask(tx, assetID)
+	asset, err := repository.GetAsset(tx, assetID)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
-	return ToolResult{Success: true, Data: task}
+	return ToolResult{Success: true, Data: asset}
 }
 
 func execListUsers(projectPath string) ToolResult {
@@ -628,11 +624,11 @@ func execListTaskTypes(projectPath string) ToolResult {
 	}
 	defer tx.Rollback()
 
-	taskTypes, err := repository.GetTaskTypes(tx)
+	assetTypes, err := repository.GetAssetTypes(tx)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
-	return ToolResult{Success: true, Data: taskTypes}
+	return ToolResult{Success: true, Data: assetTypes}
 }
 
 func execListTags(projectPath string) ToolResult {
@@ -738,7 +734,7 @@ func execCreateAssetType(projectPath string, args map[string]interface{}) ToolRe
 	}
 	defer tx.Rollback()
 
-	taskType, err := repository.CreateTaskType(tx, "", name, icon)
+	assetType, err := repository.CreateAssetType(tx, "", name, icon)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
@@ -748,8 +744,8 @@ func execCreateAssetType(projectPath string, args map[string]interface{}) ToolRe
 	}
 
 	return ToolResult{Success: true, Data: map[string]interface{}{
-		"id":   taskType.Id,
-		"name": taskType.Name,
+		"id":   assetType.Id,
+		"name": assetType.Name,
 	}}
 }
 
@@ -758,7 +754,6 @@ func execCreateCollection(projectPath string, args map[string]interface{}) ToolR
 	if name == "" {
 		return ToolResult{Success: false, Error: "name is required"}
 	}
-	description := getStringArg(args, "description", "")
 	parentID := getStringArg(args, "parent_id", "")
 
 	dbConn, err := utils.OpenDb(projectPath)
@@ -772,14 +767,14 @@ func execCreateCollection(projectPath string, args map[string]interface{}) ToolR
 	}
 	defer tx.Rollback()
 
-	// Get the first entity type as default
-	entityTypes, err := repository.GetEntityTypes(tx)
-	if err != nil || len(entityTypes) == 0 {
-		return ToolResult{Success: false, Error: "no entity types available in project"}
+	// Get the first collection type as default
+	collectionTypes, err := repository.GetCollectionTypes(tx)
+	if err != nil || len(collectionTypes) == 0 {
+		return ToolResult{Success: false, Error: "no collection types available in project"}
 	}
-	entityTypeId := entityTypes[0].Id
+	collectionTypeId := collectionTypes[0].Id
 
-	entity, err := repository.CreateEntity(tx, "", name, description, entityTypeId, parentID, "", false)
+	collection, err := repository.CreateCollection(tx, "", name, "", collectionTypeId, parentID, "", false)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
@@ -790,21 +785,20 @@ func execCreateCollection(projectPath string, args map[string]interface{}) ToolR
 	}
 
 	return ToolResult{Success: true, Data: map[string]interface{}{
-		"id":   entity.Id,
-		"name": entity.Name,
-		"path": entity.EntityPath,
+		"id":   collection.Id,
+		"name": collection.Name,
+		"path": collection.CollectionPath,
 	}}
 }
 
 func execCreateAsset(projectPath string, args map[string]interface{}) ToolResult {
 	name := getStringArg(args, "name", "")
 	collectionID := getStringArg(args, "collection_id", "")
-	taskTypeID := getStringArg(args, "task_type_id", "")
+	assetTypeID := getStringArg(args, "task_type_id", "")
 	templateID := getStringArg(args, "template_id", "")
-	description := getStringArg(args, "description", "")
 	tags := getStringSliceArg(args, "tags")
 
-	if name == "" || collectionID == "" || taskTypeID == "" || templateID == "" {
+	if name == "" || collectionID == "" || assetTypeID == "" || templateID == "" {
 		return ToolResult{Success: false, Error: "name, collection_id, task_type_id, and template_id are required"}
 	}
 
@@ -819,23 +813,7 @@ func execCreateAsset(projectPath string, args map[string]interface{}) ToolResult
 	}
 	defer tx.Rollback()
 
-	callBack := func(current int, total int, message string, extraMessage string) {}
-
-	task, err := repository.CreateTask(
-		tx, "", name, taskTypeID, collectionID,
-		false,      // isResource
-		templateID, // templateId
-		description,
-		"", // templateFilePath
-		tags,
-		"",    // pointer
-		false, // isLink
-		"",    // previewId
-		"",    // userId (agent-created)
-		"Created by Clustta Agent",
-		"", // groupId
-		callBack,
-	)
+	asset, err := repository.CreateAsset(tx, "", name, assetTypeID, collectionID, false, templateID, "", "", tags, "", false, "", "", "Created by Clustta Agent", "", func(int, int, string, string) {})
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
@@ -846,8 +824,8 @@ func execCreateAsset(projectPath string, args map[string]interface{}) ToolResult
 	}
 
 	return ToolResult{Success: true, Data: map[string]interface{}{
-		"id":   task.Id,
-		"name": task.Name,
+		"id":   asset.Id,
+		"name": asset.Name,
 	}}
 }
 
@@ -869,12 +847,12 @@ func execRenameAsset(projectPath string, args map[string]interface{}) ToolResult
 	}
 	defer tx.Rollback()
 
-	_, err = repository.GetTask(tx, assetID)
+	_, err = repository.GetAsset(tx, assetID)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	_, err = repository.RenameTask(tx, assetID, newName)
+	_, err = repository.RenameAsset(tx, assetID, newName)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
@@ -905,7 +883,7 @@ func execRenameCollection(projectPath string, args map[string]interface{}) ToolR
 	}
 	defer tx.Rollback()
 
-	_, err = repository.RenameEntity(tx, collectionID, newName)
+	_, err = repository.RenameCollection(tx, collectionID, newName)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
@@ -936,7 +914,7 @@ func execChangeAssetStatus(projectPath string, args map[string]interface{}) Tool
 	}
 	defer tx.Rollback()
 
-	err = repository.Updatestatus(tx, assetID, statusID)
+	err = repository.UpdateStatus(tx, assetID, statusID)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
@@ -967,7 +945,7 @@ func execAssignAsset(projectPath string, args map[string]interface{}) ToolResult
 	}
 	defer tx.Rollback()
 
-	err = repository.AssignTask(tx, assetID, userID)
+	err = repository.AssignAsset(tx, assetID, userID)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
@@ -997,7 +975,7 @@ func execUnassignAsset(projectPath string, args map[string]interface{}) ToolResu
 	}
 	defer tx.Rollback()
 
-	err = repository.UnAssignTask(tx, assetID)
+	err = repository.UnAssignAsset(tx, assetID)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
@@ -1029,7 +1007,7 @@ func execMoveAssets(projectPath string, args map[string]interface{}) ToolResult 
 	defer tx.Rollback()
 
 	for _, assetID := range assetIDs {
-		err = repository.ChangeEntity(tx, assetID, targetCollectionID)
+		err = repository.ChangeCollection(tx, assetID, targetCollectionID)
 		if err != nil {
 			return ToolResult{Success: false, Error: fmt.Sprintf("failed to move asset %s: %s", assetID, err.Error())}
 		}
@@ -1061,12 +1039,12 @@ func execDeleteAsset(projectPath string, args map[string]interface{}) ToolResult
 	}
 	defer tx.Rollback()
 
-	task, err := repository.GetTask(tx, assetID)
+	asset, err := repository.GetAsset(tx, assetID)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	err = repository.DeleteTask(tx, assetID, removeFiles, true)
+	err = repository.DeleteAsset(tx, assetID, removeFiles, true)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
@@ -1076,7 +1054,7 @@ func execDeleteAsset(projectPath string, args map[string]interface{}) ToolResult
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	return ToolResult{Success: true, Data: map[string]string{"deleted": assetID, "name": task.Name}}
+	return ToolResult{Success: true, Data: map[string]string{"deleted": assetID, "name": asset.Name}}
 }
 
 func execDeleteCollection(projectPath string, args map[string]interface{}) ToolResult {
@@ -1097,12 +1075,12 @@ func execDeleteCollection(projectPath string, args map[string]interface{}) ToolR
 	}
 	defer tx.Rollback()
 
-	entity, err := repository.GetEntity(tx, collectionID)
+	collection, err := repository.GetCollection(tx, collectionID)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	err = repository.DeleteEntity(tx, collectionID, removeFiles, true)
+	err = repository.DeleteCollection(tx, collectionID, removeFiles, true)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
@@ -1112,7 +1090,7 @@ func execDeleteCollection(projectPath string, args map[string]interface{}) ToolR
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	return ToolResult{Success: true, Data: map[string]string{"deleted": collectionID, "name": entity.Name}}
+	return ToolResult{Success: true, Data: map[string]string{"deleted": collectionID, "name": collection.Name}}
 }
 
 func execGenerateScript(args map[string]interface{}) ToolResult {
@@ -1147,13 +1125,13 @@ func BuildProjectContext(projectPath string) (string, error) {
 	var context strings.Builder
 
 	// Collections
-	entities, err := repository.GetEntities(tx, false)
-	if err == nil && len(entities) > 0 {
-		context.WriteString(fmt.Sprintf("Collections (%d):\n", len(entities)))
-		for _, e := range entities {
-			context.WriteString(fmt.Sprintf("- %s (ID: %s, type: %s", e.Name, e.Id, e.EntityTypeName))
-			if e.ParentId != "" {
-				context.WriteString(fmt.Sprintf(", parent: %s", e.ParentId))
+	collections, err := repository.GetCollections(tx, false)
+	if err == nil && len(collections) > 0 {
+		context.WriteString(fmt.Sprintf("Collections (%d):\n", len(collections)))
+		for _, c := range collections {
+			context.WriteString(fmt.Sprintf("- %s (ID: %s, type: %s", c.Name, c.Id, c.CollectionTypeName))
+			if c.ParentId != "" {
+				context.WriteString(fmt.Sprintf(", parent: %s", c.ParentId))
 			}
 			context.WriteString(")\n")
 		}
@@ -1163,14 +1141,14 @@ func BuildProjectContext(projectPath string) (string, error) {
 	}
 
 	// Asset count per collection
-	for _, e := range entities {
-		tasks, err := repository.GetEntityTasks(tx, e.Id)
-		if err == nil && len(tasks) > 0 {
-			context.WriteString(fmt.Sprintf("Assets in '%s' (%d):\n", e.Name, len(tasks)))
-			for _, t := range tasks {
-				line := fmt.Sprintf("- %s (ID: %s, type: %s, status: %s", t.Name, t.Id, t.TaskTypeName, t.StatusShortName)
-				if t.AssigneeName != "" {
-					line += fmt.Sprintf(", assigned to: %s", t.AssigneeName)
+	for _, c := range collections {
+		assets, err := repository.GetCollectionAssets(tx, c.Id)
+		if err == nil && len(assets) > 0 {
+			context.WriteString(fmt.Sprintf("Assets in '%s' (%d):\n", c.Name, len(assets)))
+			for _, a := range assets {
+				line := fmt.Sprintf("- %s (ID: %s, type: %s, status: %s", a.Name, a.Id, a.AssetTypeName, a.StatusShortName)
+				if a.AssigneeName != "" {
+					line += fmt.Sprintf(", assigned to: %s", a.AssigneeName)
 				}
 				line += ")"
 				context.WriteString(line + "\n")
@@ -1189,12 +1167,12 @@ func BuildProjectContext(projectPath string) (string, error) {
 		context.WriteString("\n")
 	}
 
-	// Task types
-	taskTypes, err := repository.GetTaskTypes(tx)
-	if err == nil && len(taskTypes) > 0 {
-		context.WriteString("Available task types:\n")
-		for _, tt := range taskTypes {
-			context.WriteString(fmt.Sprintf("- %s (ID: %s)\n", tt.Name, tt.Id))
+	// Asset types
+	assetTypes, err := repository.GetAssetTypes(tx)
+	if err == nil && len(assetTypes) > 0 {
+		context.WriteString("Available asset types:\n")
+		for _, at := range assetTypes {
+			context.WriteString(fmt.Sprintf("- %s (ID: %s)\n", at.Name, at.Id))
 		}
 		context.WriteString("\n")
 	}
