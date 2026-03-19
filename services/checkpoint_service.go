@@ -439,8 +439,8 @@ func (c *CheckpointService) AddUntrackedAsset(projectPath, projectWorkingDir str
 }
 
 // ViewCheckpoint creates a temporary file from a checkpoint and opens it.
-// Returns an error if the operation fails.
-func (c *CheckpointService) ViewCheckpoint(projectPath, checkpointId, collectionName, extension string) error {
+// The temp file is placed in the same directory as the original asset so relative dependencies resolve correctly.
+func (c *CheckpointService) ViewCheckpoint(projectPath, checkpointId, assetId, collectionName, extension string) error {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -453,14 +453,13 @@ func (c *CheckpointService) ViewCheckpoint(projectPath, checkpointId, collection
 	}
 	defer tx.Rollback()
 
-	f, err := os.CreateTemp("", "ClusttaTmpFile-")
+	asset, err := repository.GetAsset(tx, assetId)
 	if err != nil {
-		output.Error(err.Error())
+		return err
 	}
-	defer f.Close()
-	defer os.Remove(f.Name())
-
-	tempFile := f.Name() + extension
+	assetDir := filepath.Dir(asset.GetFilePath())
+	assetName := strings.TrimSuffix(filepath.Base(asset.GetFilePath()), extension)
+	tempFile := filepath.Join(assetDir, fmt.Sprintf("%s-checkpoint-%s%s", assetName, checkpointId[:4], extension))
 	callBack := func(current int, total int, message string, extraMessage string) {
 		progress := output.ProgressReport{
 			Title:      "Preparing Checkpoint",

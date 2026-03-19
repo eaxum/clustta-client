@@ -171,15 +171,16 @@ export function SquashAssets(projectPath, projectWorkingDir, filePaths, assetNam
 
 /**
  * ViewCheckpoint creates a temporary file from a checkpoint and opens it.
- * Returns an error if the operation fails.
+ * The temp file is placed in the same directory as the original asset so relative dependencies resolve correctly.
  * @param {string} projectPath
  * @param {string} checkpointId
+ * @param {string} assetId
  * @param {string} collectionName
  * @param {string} extension
  * @returns {$CancellablePromise<void>}
  */
-export function ViewCheckpoint(projectPath, checkpointId, collectionName, extension) {
-    return $Call.ByID(674726738, projectPath, checkpointId, collectionName, extension);
+export function ViewCheckpoint(projectPath, checkpointId, assetId, collectionName, extension) {
+    return $Call.ByID(674726738, projectPath, checkpointId, assetId, collectionName, extension);
 }
 
 // Private type creation functions
