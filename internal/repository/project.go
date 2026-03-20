@@ -777,16 +777,7 @@ func VerifyProjectIntegrity(projectPath string) (bool, error) {
 		return false, err
 	}
 	defer db.Close()
-	// tx, err := db.Beginx()
-	// if err != nil {
-	// 	return false, err
-	// }
-	// err = initData(tx)
-	// if err != nil {
-	// 	tx.Rollback()
-	// 	return false, err
-	// }
-	// tx.Commit()
+
 	// Check for tables using either new or legacy (pre-rename) names,
 	// since the project may not have been migrated yet.
 	tableChecks := [][2]string{
