@@ -5,6 +5,7 @@ import (
 	"clustta/internal/chunk_service"
 	"clustta/internal/constants"
 	"clustta/internal/repository"
+	"clustta/internal/repository/migrations"
 	"clustta/internal/repository/models"
 	"clustta/internal/settings"
 	"clustta/internal/utils"
@@ -290,7 +291,7 @@ func CloneProject(ctx context.Context, remoteProjectUri string, projectUri strin
 	if err != nil {
 		return err
 	}
-	err = utils.SetProjectVersion(tx, projectInfo.Version)
+	err = utils.SetProjectVersion(tx, migrations.LatestVersion)
 	if err != nil {
 		return err
 	}
@@ -485,7 +486,10 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 					}
 					isDownloaded = false
 				} else {
-					repository.UpdateProject(projectPath)
+					err := repository.UpdateProject(projectPath)
+					if err != nil {
+						return studioProjects, err
+					}
 					dbConn, err := utils.OpenDb(projectPath)
 					if err != nil {
 						return studioProjects, err
@@ -633,6 +637,13 @@ func GetLocalStudioProjects(studioProjectsDir, studioUrl string, user auth_servi
 		// Verify project integrity
 		valid, err := repository.VerifyProjectIntegrity(projectPath)
 		if !valid || err != nil {
+			continue
+		}
+
+		// Run pending migrations before reading project data
+		err = repository.UpdateProject(projectPath)
+		if err != nil {
+			fmt.Printf("Warning: Failed to update project %s: %v\n", entry.Name(), err)
 			continue
 		}
 
