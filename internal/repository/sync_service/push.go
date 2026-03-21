@@ -2,6 +2,7 @@ package sync_service
 
 import (
 	"bytes"
+	"clustta/internal/auth_service"
 	"clustta/internal/chunk_service"
 	"clustta/internal/constants"
 	"clustta/internal/repository"
@@ -193,6 +194,7 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 			return err
 		}
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{
 			Timeout: 10 * time.Minute, // total time including connection, redirects, reading body
@@ -340,6 +342,7 @@ func PushPartialData(projectPath, remoteUrl, userId string, data ProjectData, sy
 		return err
 	}
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	response, err := client.Do(req)
@@ -478,6 +481,7 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 		return err
 	}
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{Timeout: 5 * time.Minute}
 	response, err := client.Do(req)

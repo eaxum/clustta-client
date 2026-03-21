@@ -2,12 +2,16 @@ package auth_service
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net"
 	"net/http"
+	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
@@ -15,6 +19,18 @@ import (
 	"clustta/internal/error_service"
 	"clustta/internal/repository/models"
 )
+
+// openBrowser opens the specified URL in the system's default browser.
+func openBrowser(url string) {
+	switch runtime.GOOS {
+	case "windows":
+		exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		exec.Command("open", url).Start()
+	default:
+		exec.Command("xdg-open", url).Start()
+	}
+}
 
 type Token struct {
 	SessionId string `json:"session_id"`
@@ -28,6 +44,16 @@ type User struct {
 	FirstName string `db:"first_name" json:"first_name"`
 	LastName  string `db:"last_name" json:"last_name"`
 	Photo     []byte `db:"photo" json:"photo"`
+}
+
+// AttachBearerToken adds the Authorization header with the active session token.
+// Safe to call even when not authenticated (no-op if no token available).
+func AttachBearerToken(req *http.Request) {
+	token, err := GetToken()
+	if err != nil || token.SessionId == "" {
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+token.SessionId)
 }
 
 func GetActiveUser() (User, error) {
@@ -364,6 +390,83 @@ func LoginWithHost(username string, password string, authHost string, authMode A
 		return Token{}, err
 	}
 	return token, nil
+}
+
+// LoginWithSSO initiates Google SSO by opening the system browser and waiting for the callback.
+func LoginWithSSO(authHost string) (Token, error) {
+	if authHost == "" {
+		authHost = DefaultAuthHost
+	}
+
+	resultCh := make(chan ssoResult, 1)
+
+	// Start a local HTTP server on a random port to receive the callback
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return Token{}, fmt.Errorf("failed to start local callback server: %w", err)
+	}
+	port := listener.Addr().(*net.TCPAddr).Port
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /sso/callback", func(w http.ResponseWriter, r *http.Request) {
+		sessionId := r.URL.Query().Get("session_id")
+		userB64 := r.URL.Query().Get("user")
+
+		if sessionId == "" {
+			w.Header().Set("Content-Type", "text/html")
+			w.Write([]byte("<html><body><h2>Login failed</h2><p>No session received. Please try again.</p></body></html>"))
+			resultCh <- ssoResult{err: fmt.Errorf("no session_id in callback")}
+			return
+		}
+
+		var user User
+		if userB64 != "" {
+			userJSON, err := base64.URLEncoding.DecodeString(userB64)
+			if err == nil {
+				json.Unmarshal(userJSON, &user)
+			}
+		}
+
+		token := Token{
+			SessionId: sessionId,
+			User:      user,
+		}
+
+		w.Header().Set("Content-Type", "text/html")
+		w.Write([]byte("<html><body><h2>Login successful!</h2><p>You can close this window and return to Clustta.</p></body></html>"))
+		resultCh <- ssoResult{token: token}
+	})
+
+	server := &http.Server{Handler: mux}
+	go server.Serve(listener)
+
+	// Open the system browser to the SSO URL
+	ssoURL := fmt.Sprintf("%s/auth/sso/google?redirect_port=%d", authHost, port)
+	openBrowser(ssoURL)
+
+	// Wait for the callback (with timeout)
+	select {
+	case result := <-resultCh:
+		server.Close()
+		if result.err != nil {
+			return Token{}, result.err
+		}
+		// Store the token
+		accountToken := FromToken(result.token, AuthModeGlobal, authHost, "")
+		err = AddAccountToken(accountToken)
+		if err != nil {
+			return Token{}, err
+		}
+		return result.token, nil
+	case <-time.After(5 * time.Minute):
+		server.Close()
+		return Token{}, fmt.Errorf("SSO login timed out")
+	}
+}
+
+type ssoResult struct {
+	token Token
+	err   error
 }
 
 // Register creates a new user account on Clustta Cloud

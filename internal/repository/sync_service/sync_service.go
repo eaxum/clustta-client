@@ -1194,6 +1194,7 @@ func FetchData(remoteUrl string, userId string) (ProjectData, error) {
 			return userData, err
 		}
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -1552,6 +1553,7 @@ func FetchChunksInfo(remoteUrl string, userId string, chunks []string) ([]chunk_
 			return []chunk_service.ChunkInfo{}, err
 		}
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -1617,6 +1619,7 @@ func FetchMissingChunks(remoteUrl string, userId string, chunks []string) ([]str
 			return []string{}, err
 		}
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -1685,6 +1688,7 @@ func FetchMissingPreviews(remoteUrl string, userId string, previews []string) ([
 			return []string{}, err
 		}
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)

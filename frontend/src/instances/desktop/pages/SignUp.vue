@@ -13,8 +13,10 @@
       </div>
 
       <div class="auth-container">
+        <AuthLoader v-if="isInitializing" :status="loadingStatus" />
+
         <!-- form container -->
-        <div class="auth-form-container">
+        <div v-if="!isInitializing" class="auth-form-container">
           <!-- actual-form -->
           <form @submit.prevent="handleRegister" class="auth-form" autocomplete="off">
             <!-- first and last names -->
@@ -77,11 +79,12 @@
             {{ error }}
           </div>
 
+          <SSOLogin v-if="!isAwaitingResponse" mode="signup" @success="handleSSOSuccess" @error="handleSSOError" />
 
         </div>
 
         <!-- toggle -->
-        <div class="additional-actions">
+        <div v-if="!isInitializing" class="additional-actions">
           <div v-if="!platformStore.isWeb" @click="goToStudioSignUp" class="login-toggle">{{ $t('auth.signUp.signUpToStudio') }}</div>
 
           <div @click="toggleLogin" class="login-toggle">
@@ -90,7 +93,7 @@
         </div>
 
         <!-- legal agreement -->
-        <div class="legal-agreement">
+        <div v-if="!isInitializing" class="legal-agreement">
           <p>{{ $t('auth.signUp.legalPrefix') }} <span class="legal-link" @click="openPrivacyPolicy">{{ $t('auth.signUp.privacyPolicy') }} <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span> {{ $t('auth.signUp.legalMiddle') }} <span class="legal-link" @click="openTermsOfService">{{ $t('auth.signUp.termsOfService') }} <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span>.</p>
         </div>
 
@@ -109,23 +112,36 @@ import { useRouter } from 'vue-router'
 import { Browser } from "@wailsio/runtime";
 
 // services
-import { AuthService } from "@/services";
+import { AuthService, SettingsService } from "@/services";
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import AuthLoader from '@/instances/desktop/components/AuthLoader.vue';
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import FormInput from '@/instances/desktop/components/FormInput.vue';
+import SSOLogin from '@/instances/desktop/components/SSOLogin.vue';
 
 // store imports
+import { useAccountStore } from '@/stores/accounts';
+import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { usePlatformStore } from '@/stores/platform';
+import { useProjectStore } from '@/stores/projects';
+import { useThemeStore } from '@/stores/theme';
+import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
+import { markStoresInitialized } from '@/router';
 
 // stores
+const accountStore = useAccountStore();
 const iconStore = useIconStore();
+const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const platformStore = usePlatformStore();
+const projectStore = useProjectStore();
+const themeStore = useThemeStore();
+const trayStates = useTrayStates();
 const userStore = useUserStore();
 
 const router = useRouter();
@@ -139,7 +155,9 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const error = ref('');
 const isAwaitingResponse = ref(false);
 const isEmailTaken = ref(false);
+const isInitializing = ref(false);
 const isUsernameTaken = ref(false);
+const loadingStatus = ref('');
 const userNameRegex = /^[a-zA-Z0-9_]{3,}$/
 
 const registerForm = reactive({
@@ -245,7 +263,7 @@ const passwordsMatch = computed(() => {
   return passwordsMatch && registerForm.password.length
 });
 const isRegisterFormFilled = computed(() => {
-  return detailsInputed.value && credentialsValid.value && !passwordValidation.value && passwordsMatch.value
+  return !!detailsInputed.value && !!credentialsValid.value && !passwordValidation.value && !!passwordsMatch.value
 });
 
 // methods
@@ -304,6 +322,48 @@ const escapeRegexChars = (string) => {
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
+};
+
+// Handles SSO error from the SSOLogin component.
+const handleSSOError = (message) => {
+  error.value = message;
+};
+
+// Handles SSO success from the SSOLogin component.
+const handleSSOSuccess = async (data) => {
+  error.value = '';
+  isInitializing.value = true;
+
+  try {
+    userStore.user = data.user;
+    userStore.isUserAuthenticated = true;
+
+    loadingStatus.value = t('auth.login.loadingAccount');
+    await accountStore.initialize();
+
+    loadingStatus.value = t('auth.login.applyingTheme');
+    await themeStore.initializeTheme();
+
+    loadingStatus.value = t('auth.login.loadingStudios');
+    await projectStore.loadStudios();
+
+    const projectDirectoryExists = await SettingsService.GetProjectDirectory();
+    if (projectDirectoryExists) {
+      loadingStatus.value = t('auth.login.loadingProjects');
+      await projectStore.loadProjects();
+      trayStates.refreshData();
+    } else {
+      modals.setModalVisibility('dirOnboardModal', true);
+    }
+
+    markStoresInitialized();
+    router.push('/');
+  } catch (err) {
+    console.log(err);
+    isInitializing.value = false;
+    loadingStatus.value = '';
+    error.value = 'Failed to initialize after sign-up. Please try again.';
+  }
 };
 
 // Navigates to the studio setup page for self-hosted registration.
