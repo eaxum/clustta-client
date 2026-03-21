@@ -870,6 +870,7 @@ func CreateProject(projectUri, studioName, workingDir, templateName string, user
 		req.Header.Set("UserData", string(userJson))
 		req.Header.Set("UserId", user.Id)
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -965,6 +966,7 @@ func GetProjectInfo(projectUri string, user auth_service.User) (ProjectInfo, err
 		req.Header.Set("UserData", string(userJson))
 		req.Header.Set("UserId", user.Id)
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -1080,6 +1082,7 @@ func GetSyncToken(projectUri string, user auth_service.User) (string, error) {
 		req.Header.Set("UserData", string(userJson))
 		req.Header.Set("UserId", user.Id)
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -1170,6 +1173,7 @@ func RenameProject(projectUri, studioName, newName string, user auth_service.Use
 		req.Header.Set("UserId", user.Id)
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 		req.Header.Set("Content-Type", "application/json")
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -1231,6 +1235,7 @@ func SetIcon(projectUri, studioName, icon string, user auth_service.User) error 
 		req.Header.Set("UserId", user.Id)
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 		req.Header.Set("Content-Type", "application/json")
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -1319,6 +1324,7 @@ func ToggleCloseProject(projectUri, studioName string, user auth_service.User) e
 		req.Header.Set("UserId", user.Id)
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 		req.Header.Set("Content-Type", "application/json")
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -1421,6 +1427,7 @@ func DeleteRemoteProject(projectUri, studioName string, user auth_service.User) 
 	req.Header.Set("UserData", string(userJson))
 	req.Header.Set("UserId", user.Id)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{}
 	response, err := client.Do(req)
@@ -1572,6 +1579,7 @@ func SetIgnoreList(projectUri, studioName string, ignoreList []string, user auth
 		req.Header.Set("UserId", user.Id)
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 		req.Header.Set("Content-Type", "application/json")
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)

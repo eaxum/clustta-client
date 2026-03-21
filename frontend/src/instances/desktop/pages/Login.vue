@@ -13,8 +13,11 @@
 
       <div class="auth-container">
 
-        <!-- STATE 1: Cloud login -->
+        <!-- Cloud login -->
         <template v-if="loginMode === 'cloud'">
+          <AuthLoader v-if="isInitializing" :status="loadingStatus" />
+
+          <template v-else>
           <div class="auth-form-container">
             <form @submit.prevent="handleLogin" class="auth-form">
               <FormInput v-model="loginForm.email" :placeholder="$t('auth.login.usernamePlaceholder')" />
@@ -33,6 +36,8 @@
               <div v-if="loadingStatus" class="loading-status">{{ loadingStatus }}</div>
             </form>
 
+            <SSOLogin v-if="!isAwaitingResponse" mode="login" @success="handleSSOSuccess" @error="handleSSOError" />
+
             <div v-if="error" class="error-message">{{ error }}</div>
           </div>
 
@@ -45,9 +50,10 @@
               {{ $t('auth.login.noAccount') }}&nbsp;<span class="bold">{{ $t('auth.login.signUpLink') }}</span>
             </div>
           </div>
+          </template>
         </template>
 
-        <!-- STATE 2: Studio URL connect -->
+        <!-- Studio URL connect -->
         <template v-if="loginMode === 'studio-connect'">
           <div class="auth-form-container">
             <FormInput v-model="studioUrl" :placeholder="$t('auth.login.studioUrl')" :error="studioUrlError" :info="!studioUrlError ? $t('auth.login.studioUrlInfo') : ''" @input="validateStudioUrl" />
@@ -65,7 +71,7 @@
           </div>
         </template>
 
-        <!-- STATE 3: Studio login (connected) -->
+        <!-- Studio login (connected) -->
         <template v-if="loginMode === 'studio-login'">
           <div class="auth-form-container">
             <div class="server-badge">
@@ -120,8 +126,10 @@ import { useRoute, useRouter } from 'vue-router';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import AuthLoader from '@/instances/desktop/components/AuthLoader.vue';
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import FormInput from '@/instances/desktop/components/FormInput.vue';
+import SSOLogin from '@/instances/desktop/components/SSOLogin.vue';
 
 // services
 import { AuthService, SettingsService, StudioService } from '@/services';
@@ -159,6 +167,7 @@ const connectionError = ref('');
 const error = ref('');
 const isAwaitingResponse = ref(false);
 const isConnecting = ref(false);
+const isInitializing = ref(false);
 const loadingStatus = ref('');
 const loginMode = ref('cloud');
 const studioUrl = ref('');
@@ -231,6 +240,48 @@ const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
+// Handles SSO error from the SSOLogin component.
+const handleSSOError = (message) => {
+  error.value = message;
+};
+
+// Handles SSO success from the SSOLogin component.
+const handleSSOSuccess = async (data) => {
+  error.value = '';
+  isInitializing.value = true;
+
+  try {
+    userStore.user = data.user;
+    userStore.isUserAuthenticated = true;
+
+    loadingStatus.value = t('auth.login.loadingAccount');
+    await accountStore.initialize();
+
+    loadingStatus.value = t('auth.login.applyingTheme');
+    await themeStore.initializeTheme();
+
+    loadingStatus.value = t('auth.login.loadingStudios');
+    await projectStore.loadStudios();
+
+    const projectDirectoryExists = await SettingsService.GetProjectDirectory();
+    if (projectDirectoryExists) {
+      loadingStatus.value = t('auth.login.loadingProjects');
+      await projectStore.loadProjects();
+      trayStates.refreshData();
+    } else {
+      modals.setModalVisibility('dirOnboardModal', true);
+    }
+
+    markStoresInitialized();
+    router.push('/');
+  } catch (err) {
+    console.log(err);
+    isInitializing.value = false;
+    loadingStatus.value = '';
+    error.value = 'Failed to initialize after sign-in. Please try again.';
+  }
+};
+
 // Navigates to the studio setup page with the connected server URL.
 const goToStudioSignUp = () => {
   router.push({
@@ -258,6 +309,9 @@ const handleLogin = async () => {
 
     userStore.user = data.user;
     userStore.isUserAuthenticated = true;
+
+    isAwaitingResponse.value = false;
+    isInitializing.value = true;
 
     loadingStatus.value = t('auth.login.loadingAccount');
     await accountStore.initialize();
@@ -287,6 +341,7 @@ const handleLogin = async () => {
   } catch (err) {
     console.log(err);
     isAwaitingResponse.value = false;
+    isInitializing.value = false;
     loadingStatus.value = '';
 
     const errorMessage = err.message || err.toString();

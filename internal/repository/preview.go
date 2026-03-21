@@ -2,6 +2,7 @@ package repository
 
 import (
 	"bytes"
+	"clustta/internal/auth_service"
 	"clustta/internal/base_service"
 	"clustta/internal/constants"
 	"clustta/internal/error_service"
@@ -187,6 +188,7 @@ func PullPreviews(tx *sqlx.Tx, remoteUrl string, previewHashes []string, callbac
 				return err
 			}
 			req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+			auth_service.AttachBearerToken(req)
 			response, err := client.Do(req)
 			if err != nil {
 				return err
@@ -296,6 +298,7 @@ func PushPreviews(tx *sqlx.Tx, remoteUrl string, userId string, previewHashes []
 				return err
 			}
 			req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+			auth_service.AttachBearerToken(req)
 
 			response, err := client.Do(req)
 			if err != nil {

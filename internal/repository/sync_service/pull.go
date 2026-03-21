@@ -443,6 +443,7 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 		req.Header.Set("UserData", string(userJson))
 		req.Header.Set("UserId", user.Id)
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)

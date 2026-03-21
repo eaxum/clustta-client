@@ -40,6 +40,7 @@ package chunk_service
 
 import (
 	"bytes"
+	"clustta/internal/auth_service"
 	"clustta/internal/constants"
 	"clustta/internal/utils"
 	"context"
@@ -314,6 +315,7 @@ func PullChunks(ctx context.Context, projectPath, remoteUrl string, chunkInfos [
 				return err
 			}
 			req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+			auth_service.AttachBearerToken(req)
 			response, err := client.Do(req)
 			if err != nil {
 				return err
@@ -577,6 +579,7 @@ func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missin
 			return err
 		}
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
 		response, err := client.Do(req)
 		if err != nil {
 			return err
@@ -637,6 +640,7 @@ func PushChunks(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []Chunk
 				return err
 			}
 			req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+			auth_service.AttachBearerToken(req)
 
 			response, err := client.Do(req)
 			if err != nil {
@@ -727,6 +731,7 @@ func PushChunksBatch(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []
 				return err
 			}
 			req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+			auth_service.AttachBearerToken(req)
 			resp, err := client.Do(req)
 			if err != nil {
 				return err
