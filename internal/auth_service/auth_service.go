@@ -80,7 +80,7 @@ func IsAuthenticated() (bool, error) {
 	}
 
 	type responseMessage struct {
-		Message string `json: "message" `
+		Message string `json:"message"`
 	}
 
 	authHost := GetAuthHost()
@@ -228,7 +228,7 @@ func FetchUserData(email string) (models.User, error) {
 		var user models.User
 		err = json.Unmarshal(body, &user)
 		if err != nil {
-			return models.User{}, fmt.Errorf("Failed to unmarshal response body: %v", err)
+			return models.User{}, fmt.Errorf("failed to unmarshal response body: %v", err)
 		}
 		userPhoto, err := FetchUserPhoto(user.Id)
 		if err != nil {
@@ -282,7 +282,7 @@ func FetchUserDataById(userId string) (models.User, error) {
 		var user models.User
 		err = json.Unmarshal(body, &user)
 		if err != nil {
-			return models.User{}, fmt.Errorf("Failed to unmarshal response body: %v", err)
+			return models.User{}, fmt.Errorf("failed to unmarshal response body: %v", err)
 		}
 		userPhoto, err := FetchUserPhoto(user.Id)
 		if err != nil {
