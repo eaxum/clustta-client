@@ -24,7 +24,7 @@ type ProjectService struct {
 }
 
 type UntrackedItems struct {
-	Files   []models.UntrackedAsset   `json:"assets"`
+	Files   []models.UntrackedAsset      `json:"assets"`
 	Folders []models.UntrackedCollection `json:"collections"`
 }
 
@@ -61,6 +61,127 @@ func (p *ProjectService) CreateProject(projectUri, studioName, workingDir, templ
 	}
 	projectInfo.WorkingDirectory = workingDir
 	return projectInfo, nil
+}
+
+// MakeProjectRemote uploads a local project to Clustta Cloud as a remote project.
+// Creates the remote project, remaps IDs to match remote, pushes all data, and stores the remote URL locally.
+func (p *ProjectService) MakeProjectRemote(projectPath string) error {
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+
+	authHost := auth_service.GetAuthHost()
+	if authHost == "" {
+		return errors.New("not connected to Clustta Cloud")
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	projectName, err := utils.GetProjectName(tx)
+	if err != nil {
+		return err
+	}
+	workingDir, _ := utils.GetProjectWorkingDir(tx)
+	tx.Rollback()
+	dbConn.Close()
+
+	remoteURL := fmt.Sprintf("%s/user/%s/%s", authHost, user.Id, projectName)
+
+	// Ensure the local project schema is up to date before reading data
+	err = repository.UpdateProject(projectPath)
+	if err != nil {
+		return fmt.Errorf("failed to update local project schema: %w", err)
+	}
+
+	// Create the remote project on the server
+	remoteProjectInfo, err := repository.CreateProject(remoteURL, "", "", "No Template", user)
+	if err != nil {
+		return fmt.Errorf("failed to create remote project: %w", err)
+	}
+
+	// Remap local IDs (project_id, roles, statuses, types) to match the remote project
+	err = sync_service.PrepareProjectForUpload(projectPath, remoteProjectInfo, remoteURL, workingDir, user.Id)
+	if err != nil {
+		return fmt.Errorf("failed to remap project IDs: %w", err)
+	}
+
+	app := application.Get()
+	progressCallback := func(current int, total int, message string, extraMessage string) {
+		app.Event.Emit("progress-update", output.ProgressReport{
+			Title:        "Uploading to Cloud",
+			Message:      message,
+			Percentage:   float64(current) / float64(total) * 100,
+			Current:      1,
+			Total:        1,
+			ExtraMessage: extraMessage,
+		})
+	}
+
+	// Push all data (metadata, chunks, previews)
+	err = sync_service.PushData(projectPath, remoteURL, user.Id, progressCallback)
+	if err != nil {
+		return fmt.Errorf("failed to upload project data: %w", err)
+	}
+
+	InvalidateRemoteCache(projectPath)
+	return nil
+}
+
+// RemoveProjectFromRemote deletes the remote copy and clears the local remote URL.
+// The local project data is preserved.
+func (p *ProjectService) RemoveProjectFromRemote(projectPath string) error {
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	remoteURL, err := utils.GetRemoteUrl(tx)
+	if err != nil || remoteURL == "" {
+		return errors.New("project is not remote")
+	}
+
+	// Delete the remote project from the server
+	err = repository.DeleteRemoteProject(remoteURL, "", user)
+	if err != nil {
+		return fmt.Errorf("failed to delete remote project: %w", err)
+	}
+
+	// Clear the remote URL locally
+	err = utils.SetRemoteUrl(tx, "")
+	if err != nil {
+		return fmt.Errorf("failed to clear remote URL: %w", err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	InvalidateRemoteCache(projectPath)
+	return nil
 }
 
 func (p *ProjectService) ApplyTemplate(projectPath, templateName string) error {
@@ -589,9 +710,9 @@ func (p *ProjectService) GetFolderUntrackedItems(
 			// check if directory is tracked
 			if !utils.Contains(tracked, path) {
 				collection := models.UntrackedCollection{
-					Id:         utils.GetMD5Hash(path),
-					Name:       entry.Name(),
-					FilePath:   path,
+					Id:             utils.GetMD5Hash(path),
+					Name:           entry.Name(),
+					FilePath:       path,
 					CollectionPath: relativePath,
 				}
 				untracked.Folders = append(untracked.Folders, collection)
@@ -601,12 +722,12 @@ func (p *ProjectService) GetFolderUntrackedItems(
 			if !utils.Contains(tracked, path) {
 				assetName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
 				asset := models.UntrackedAsset{
-					Id:         utils.GetMD5Hash(path),
-					Name:       assetName,
-					FilePath:   path,
-					AssetPath:   relativePath,
+					Id:             utils.GetMD5Hash(path),
+					Name:           assetName,
+					FilePath:       path,
+					AssetPath:      relativePath,
 					CollectionPath: filepath.ToSlash(filepath.Dir(relativePath)),
-					Extension:  filepath.Ext(entry.Name()),
+					Extension:      filepath.Ext(entry.Name()),
 				}
 				untracked.Files = append(untracked.Files, asset)
 			}

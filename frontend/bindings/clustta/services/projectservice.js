@@ -179,6 +179,16 @@ export function IsIgnored(itemPath, ignoreList) {
 }
 
 /**
+ * MakeProjectRemote uploads a local project to Clustta Cloud as a remote project.
+ * Creates the remote project, remaps IDs to match remote, pushes all data, and stores the remote URL locally.
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<void>}
+ */
+export function MakeProjectRemote(projectPath) {
+    return $Call.ByID(3213267975, projectPath);
+}
+
+/**
  * @param {string} projectPath
  * @returns {$CancellablePromise<repository$0.ProjectInfo>}
  */
@@ -204,6 +214,16 @@ export function ProjectsInfo(projectPaths) {
  */
 export function Purge(projectPath) {
     return $Call.ByID(2913987721, projectPath);
+}
+
+/**
+ * RemoveProjectFromRemote deletes the remote copy and clears the local remote URL.
+ * The local project data is preserved.
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<void>}
+ */
+export function RemoveProjectFromRemote(projectPath) {
+    return $Call.ByID(3939292029, projectPath);
 }
 
 /**
