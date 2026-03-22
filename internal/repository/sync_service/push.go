@@ -50,7 +50,6 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 	}
 	defer tx.Rollback()
 
-	// data, err := LoadCheckpointData(tx)
 	err = repository.ClearTrash(tx)
 	if err != nil {
 		return err
@@ -63,6 +62,7 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 	if data.IsEmpty() {
 		return nil
 	}
+
 	pdData := repositorypb.ProjectData{
 		ProjectPreview:      data.ProjectPreview,
 		CollectionTypes:     repository.ToPbCollectionTypes(data.CollectionTypes),
@@ -98,9 +98,9 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 		IntegrationAssetMappings:      repository.ToPbIntegrationAssetMappings(data.IntegrationAssetMappings),
 	}
 
-	if shouldUseLegacyNames(remoteUrl) {
-		repository.RemapTombsToLegacyNames(pdData.Tomb)
-	}
+	// if shouldUseLegacyNames(remoteUrl) {
+	// 	repository.RemapTombsToLegacyNames(pdData.Tomb)
+	// }
 
 	dataByte, err := proto.Marshal(&pdData)
 	if err != nil {
@@ -184,11 +184,6 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 	if utils.IsValidURL(remoteUrl) {
 		dataUrl := remoteUrl + "/data"
 
-		// jsonData, err := json.Marshal(data)
-		// if err != nil {
-		// 	return err
-		// }
-
 		req, err := http.NewRequest("POST", dataUrl, bytes.NewBuffer(compressedData))
 		if err != nil {
 			return err
@@ -197,7 +192,7 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{
-			Timeout: 10 * time.Minute, // total time including connection, redirects, reading body
+			Timeout: 10 * time.Minute,
 		}
 		response, err := client.Do(req)
 		if err != nil {
@@ -226,12 +221,6 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 			var result WriteResult
 			if err := json.Unmarshal(body, &result); err != nil {
 				return fmt.Errorf("failed to parse conflict response: %w", err)
-			}
-
-			fmt.Printf("[DEBUG push.go] Received %d conflicts from server\n", len(result.Conflicts))
-			for i, c := range result.Conflicts {
-				fmt.Printf("[DEBUG push.go] Conflict[%d]: type=%s, name=%s, local_id=%s, server_id=%s\n",
-					i, c.Type, c.Name, c.LocalId, c.ExistingId)
 			}
 
 			return &SyncConflictError{Conflicts: result.Conflicts}

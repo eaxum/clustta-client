@@ -861,10 +861,12 @@ func CreateProject(projectUri, studioName, workingDir, templateName string, user
 		fmt.Println(projectUri)
 		req, err := http.NewRequest("POST", projectUri, nil)
 		if err != nil {
+			fmt.Println("POST:", err)
 			return projectInfo, err
 		}
 		userJson, err := json.Marshal(user)
 		if err != nil {
+			fmt.Println("Marshal:", err)
 			return projectInfo, err
 		}
 		req.Header.Set("UserData", string(userJson))
@@ -874,7 +876,9 @@ func CreateProject(projectUri, studioName, workingDir, templateName string, user
 
 		client := &http.Client{}
 		response, err := client.Do(req)
+		fmt.Println(response)
 		if err != nil {
+			fmt.Println("Response Error:", err)
 			return projectInfo, err
 		}
 		defer response.Body.Close()
@@ -896,12 +900,9 @@ func CreateProject(projectUri, studioName, workingDir, templateName string, user
 			projectInfo.Uri = projectUri
 			projectInfo.Remote = projectUri
 			return projectInfo, nil
-		} else if responseCode == 400 {
-			body, err := io.ReadAll(response.Body)
-			if err != nil {
-				return projectInfo, err
-			}
-			return projectInfo, errors.New(string(body))
+		} else {
+			body, _ := io.ReadAll(response.Body)
+			return projectInfo, fmt.Errorf("server error (%d): %s", responseCode, string(body))
 		}
 	} else {
 		projectDir := filepath.Dir(projectUri)
@@ -1048,6 +1049,8 @@ func GetProjectInfo(projectUri string, user auth_service.User) (ProjectInfo, err
 		if err != nil {
 			return ProjectInfo{}, err
 		}
+		remoteUrl, _ := utils.GetRemoteUrl(tx)
+		hasRemote := remoteUrl != "" && utils.IsValidURL(remoteUrl)
 		return ProjectInfo{
 			Id:               projectId,
 			SyncToken:        syncToken,
@@ -1055,11 +1058,11 @@ func GetProjectInfo(projectUri string, user auth_service.User) (ProjectInfo, err
 			Name:             projectName,
 			Icon:             icon,
 			Version:          projectVersion,
-			Remote:           "",
+			Remote:           remoteUrl,
 			Uri:              absProjectPath,
 			WorkingDirectory: workingDir,
 			Status:           "normal",
-			HasRemote:        false,
+			HasRemote:        hasRemote,
 			IsClosed:         isClosed,
 			IgnoreList:       ignoreList,
 		}, nil

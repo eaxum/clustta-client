@@ -44,6 +44,18 @@
       <ActionButton  :icon="getAppIcon('image-plus')" :label="$t('modals.uploadAnImage')" :buttonFunction="selectIcon" />
 
       </div>
+
+      <div v-if="isRemoteLoading" class="settings-section-card">
+        <ProgressSection variant="success" />
+      </div>
+
+      <div v-else-if="showRemoteToggle" class="input-section" @click="toggleRemote">
+        <div class="horizontal-flex toggle-row">
+          <span class="input-label">{{ $t('modals.enableRemote') }}</span>
+          <ToggleSwitch :switchValueProp="projectStore.activeProject.has_remote" :online="projectStore.activeProject.has_remote" />
+        </div>
+      </div>
+
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
         <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateProject()" :isActive="isValueChanged"
@@ -66,20 +78,26 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import EmojiPicker from '@/instances/desktop/components/EmojiPicker.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import ProgressSection from '@/instances/common/components/ProgressSection.vue';
+import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // services
 import { DialogService, ProjectService } from '@/services';
 
 // stores
+import { useAccountStore } from '@/stores/accounts';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
 
+const accountStore = useAccountStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const stage = useStageStore();
 const { t } = useI18n();
 
 // refs
@@ -88,6 +106,7 @@ const displayEmojiSelector = ref(false);
 const fileIsSelected = ref(false);
 const iconType = ref('emoji');
 const isAwaitingResponse = ref(false);
+const isRemoteLoading = ref(false);
 const oldProjectIcon = ref('');
 const oldProjectName = ref('');
 const oldProjectPreview = ref('');
@@ -124,6 +143,11 @@ const isProjectIconChanged = computed(() => {
 const isValueChanged = computed(() => {
   const restrictedEntries = [oldProjectName.value, ''];
   return !restrictedEntries.includes(projectName.value) || isPreviewChanged.value || isProjectIconChanged.value;
+});
+
+// Returns whether the remote toggle should be shown.
+const showRemoteToggle = computed(() => {
+  return accountStore.canUseRemoteFeatures && projectStore.selectedStudio?.name === 'Personal';
 });
 
 // methods
@@ -190,6 +214,32 @@ const selectIcon = async () => {
 // Toggles the emoji selector visibility.
 const toggleEmojiSelector = () => {
   displayEmojiSelector.value = !displayEmojiSelector.value;
+};
+
+// Toggles the project's remote status.
+const toggleRemote = async () => {
+  const project = projectStore.activeProject;
+  isRemoteLoading.value = true;
+  stage.operationActive = true;
+  try {
+    if (project.has_remote) {
+      await ProjectService.RemoveProjectFromRemote(project.uri);
+    } else {
+      await ProjectService.MakeProjectRemote(project.uri);
+    }
+    await projectStore.refreshProjects();
+    const updatedProject = projectStore.projects.find(p => p.name === project.name);
+    if (updatedProject) {
+      projectStore.activeProject = updatedProject;
+    }
+  } catch (error) {
+    console.error(error);
+    const errorKey = project.has_remote ? 'errorRemovingProjectFromRemote' : 'errorMakingProjectRemote';
+    notificationStore.errorNotification(t(`notifications.${errorKey}`), error);
+  } finally {
+    stage.operationActive = false;
+    isRemoteLoading.value = false;
+  }
 };
 
 // Updates the project with all changed values.
@@ -411,6 +461,22 @@ onUnmounted(() => {
 
 .upload-image:hover {
   transform: scale(1.02);
+}
+
+.toggle-row {
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.input-section {
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: .4px;
+  color: var(--white);
 }
 </style>
 

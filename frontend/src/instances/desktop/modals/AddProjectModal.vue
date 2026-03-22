@@ -43,6 +43,13 @@
           :onSelect="selectProjectTemplate" />
       </div>
 
+      <div v-if="showRemoteToggle" class="input-section" @click="makeRemote = !makeRemote">
+        <div class="horizontal-flex toggle-row">
+          <span class="input-label">{{ $t('modals.enableRemote') }}</span>
+          <ToggleSwitch :switchValueProp="makeRemote" :online="makeRemote" />
+        </div>
+      </div>
+
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
         <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createProject" :isActive="isValueChanged"
@@ -64,11 +71,13 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import InputAlert from '@/instances/common/components/InputAlert.vue';
 import ProgressSection from '@/instances/common/components/ProgressSection.vue';
+import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // services
 import { DialogService, ProjectService, SettingsService, SyncService } from '@/services';
 
 // stores
+const accountStore = useAccountStore();
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
@@ -81,6 +90,7 @@ const projectTemplateStore = useProjectTemplateStore();
 const stage = useStageStore();
 const { t } = useI18n();
 
+import { useAccountStore } from '@/stores/accounts';
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
@@ -95,6 +105,7 @@ import { useStageStore } from '@/stores/stages';
 // refs
 const isAwaitingResponse = ref(false);
 const isCloning = ref(false);
+const makeRemote = ref(false);
 const isLoadingLocations = ref(false);
 const modalContainer = ref(null);
 const projectIsCreated = ref(false);
@@ -142,6 +153,11 @@ const restrictedNames = computed(() => {
 const selectedLocationDisplay = computed(() => {
   if (!selectedLocation.value) return '';
   return `${selectedLocation.value.name} - [${selectedLocation.value.path}]`;
+});
+
+// Returns whether the remote toggle should be shown.
+const showRemoteToggle = computed(() => {
+  return accountStore.canUseRemoteFeatures && projectStore.selectedStudio?.name === 'Personal';
 });
 
 // Returns the computed working directory path.
@@ -282,6 +298,8 @@ const createProject = async () => {
         
     if(studio.name !== 'Personal'){
       await cloneProject();
+    } else if (makeRemote.value) {
+      await makeProjectRemote(project);
     } else {
       closeModal();
     }
@@ -347,6 +365,27 @@ const cloneProject = async () => {
   } catch (error) {
     console.error(error);
     notificationStore.errorNotification(t('notifications.errorCloningProject'), error);
+  } finally {
+    stage.operationActive = false;
+    isCloning.value = false;
+  }
+};
+
+// Makes a newly created project remote by uploading to server.
+const makeProjectRemote = async (project) => {
+  isCloning.value = true;
+  stage.operationActive = true;
+  try {
+    await ProjectService.MakeProjectRemote(project.uri);
+    await projectStore.refreshProjects();
+    const updatedProject = projectStore.projects.find(p => p.name === project.name);
+    if (updatedProject) {
+      projectStore.activeProject = updatedProject;
+    }
+    closeModal();
+  } catch (error) {
+    console.error(error);
+    notificationStore.errorNotification(t('notifications.errorMakingProjectRemote'), error);
   } finally {
     stage.operationActive = false;
     isCloning.value = false;
@@ -420,6 +459,12 @@ onMounted(async () => {
 .location-dropdown-wrapper {
   flex: 1;
   width: 100%;
+}
+
+.toggle-row {
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
 }
 </style>
 

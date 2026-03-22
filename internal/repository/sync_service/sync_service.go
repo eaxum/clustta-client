@@ -25,11 +25,11 @@ import (
 )
 
 type ProjectData struct {
-	ProjectPreview     string                    `json:"project_preview"`
-	Assets              []models.Asset             `json:"assets"`
-	AssetTypes          []models.AssetType         `json:"asset_types"`
-	AssetCheckpoints   []models.Checkpoint       `json:"assets_checkpoints"`
-	AssetDependencies   []models.AssetDependency   `json:"asset_dependencies"`
+	ProjectPreview         string                        `json:"project_preview"`
+	Assets                 []models.Asset                `json:"assets"`
+	AssetTypes             []models.AssetType            `json:"asset_types"`
+	AssetCheckpoints       []models.Checkpoint           `json:"assets_checkpoints"`
+	AssetDependencies      []models.AssetDependency      `json:"asset_dependencies"`
 	CollectionDependencies []models.CollectionDependency `json:"collection_dependencies"`
 
 	Statuses        []models.Status         `json:"statuses"`
@@ -39,17 +39,17 @@ type ProjectData struct {
 	Roles []models.Role `json:"roles"`
 
 	CollectionTypes     []models.CollectionType     `json:"collection_types"`
-	Collections        []models.Collection         `json:"collections"`
+	Collections         []models.Collection         `json:"collections"`
 	CollectionAssignees []models.CollectionAssignee `json:"collection_assignees"`
 
 	Templates []models.Template `json:"templates"`
 	Tags      []models.Tag      `json:"tags"`
-	AssetTags []models.AssetTag  `json:"assets_tags"`
+	AssetTags []models.AssetTag `json:"assets_tags"`
 
-	Workflows        []models.Workflow       `json:"workflows"`
-	WorkflowLinks    []models.WorkflowLink   `json:"workflow_links"`
+	Workflows           []models.Workflow           `json:"workflows"`
+	WorkflowLinks       []models.WorkflowLink       `json:"workflow_links"`
 	WorkflowCollections []models.WorkflowCollection `json:"workflow_collections"`
-	WorkflowAssets    []models.WorkflowAsset   `json:"workflow_assets"`
+	WorkflowAssets      []models.WorkflowAsset      `json:"workflow_assets"`
 
 	Tombs []repository.Tomb `json:"tomb"`
 
@@ -218,7 +218,7 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 			RemoveUser: role.RemoveUser,
 			ChangeRole: role.ChangeRole,
 
-			ChangeStatus:  role.ChangeStatus,
+			ChangeStatus:   role.ChangeStatus,
 			SetDoneAsset:   role.SetDoneAsset,
 			SetRetakeAsset: role.SetRetakeAsset,
 
@@ -933,7 +933,7 @@ func OverWriteProjectData(tx *sqlx.Tx, data ProjectData) error {
 			RemoveUser: role.RemoveUser,
 			ChangeRole: role.ChangeRole,
 
-			ChangeStatus:  role.ChangeStatus,
+			ChangeStatus:   role.ChangeStatus,
 			SetDoneAsset:   role.SetDoneAsset,
 			SetRetakeAsset: role.SetRetakeAsset,
 
@@ -1221,15 +1221,15 @@ func FetchData(remoteUrl string, userId string) (ProjectData, error) {
 			}
 
 			userData = ProjectData{
-				ProjectPreview:  userDataPb.ProjectPreview,
+				ProjectPreview:      userDataPb.ProjectPreview,
 				CollectionTypes:     repository.FromPbCollectionTypes(userDataPb.CollectionTypes),
-				Collections:        repository.FromPbCollections(userDataPb.Collections),
+				Collections:         repository.FromPbCollections(userDataPb.Collections),
 				CollectionAssignees: repository.FromPbCollectionAssignees(userDataPb.CollectionAssignees),
 
-				AssetTypes:          repository.FromPbAssetTypes(userDataPb.AssetTypes),
-				Assets:              repository.FromPbAssets(userDataPb.Assets),
-				AssetCheckpoints:   repository.FromPbCheckpoints(userDataPb.AssetCheckpoints),
-				AssetDependencies:   repository.FromPbAssetDependencies(userDataPb.AssetDependencies),
+				AssetTypes:             repository.FromPbAssetTypes(userDataPb.AssetTypes),
+				Assets:                 repository.FromPbAssets(userDataPb.Assets),
+				AssetCheckpoints:       repository.FromPbCheckpoints(userDataPb.AssetCheckpoints),
+				AssetDependencies:      repository.FromPbAssetDependencies(userDataPb.AssetDependencies),
 				CollectionDependencies: repository.FromPbCollectionDependencies(userDataPb.CollectionDependencies),
 
 				Statuses:        repository.FromPbStatuses(userDataPb.Statuses),
@@ -1240,10 +1240,10 @@ func FetchData(remoteUrl string, userId string) (ProjectData, error) {
 
 				Templates: repository.FromPbTemplates(userDataPb.Templates),
 
-				Workflows:        repository.FromPbWorkflows(userDataPb.Workflows),
-				WorkflowLinks:    repository.FromPbWorkflowLinks(userDataPb.WorkflowLinks),
+				Workflows:           repository.FromPbWorkflows(userDataPb.Workflows),
+				WorkflowLinks:       repository.FromPbWorkflowLinks(userDataPb.WorkflowLinks),
 				WorkflowCollections: repository.FromPbWorkflowCollections(userDataPb.WorkflowCollections),
-				WorkflowAssets:    repository.FromPbWorkflowAssets(userDataPb.WorkflowAssets),
+				WorkflowAssets:      repository.FromPbWorkflowAssets(userDataPb.WorkflowAssets),
 
 				Tags:      repository.FromPbTags(userDataPb.Tags),
 				AssetTags: repository.FromPbAssetTags(userDataPb.AssetTags),
