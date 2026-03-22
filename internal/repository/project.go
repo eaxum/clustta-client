@@ -949,7 +949,6 @@ func CreateProject(projectUri, studioName, workingDir, templateName string, user
 		projectInfo.IsDownloaded = true
 		return projectInfo, nil
 	}
-	return ProjectInfo{}, errors.New("invalid uri")
 }
 
 func GetProjectInfo(projectUri string, user auth_service.User) (ProjectInfo, error) {
