@@ -2,6 +2,7 @@ package auth_service
 
 import (
 	"bytes"
+	_ "embed"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -19,6 +20,9 @@ import (
 	"clustta/internal/error_service"
 	"clustta/internal/repository/models"
 )
+
+//go:embed sso_callback.html
+var ssoCallbackHTML []byte
 
 // openBrowser opens the specified URL in the system's default browser.
 func openBrowser(url string) {
@@ -433,7 +437,7 @@ func LoginWithSSO(authHost string) (Token, error) {
 		}
 
 		w.Header().Set("Content-Type", "text/html")
-		w.Write([]byte("<html><body><h2>Login successful!</h2><p>You can close this window and return to Clustta.</p></body></html>"))
+		w.Write(ssoCallbackHTML)
 		resultCh <- ssoResult{token: token}
 	})
 
