@@ -45,15 +45,12 @@
 
       </div>
 
-      <div v-if="isRemoteLoading" class="settings-section-card">
-        <ProgressSection variant="success" />
-      </div>
-
-      <div v-else-if="showRemoteToggle" class="input-section" @click="toggleRemote">
-        <div class="horizontal-flex toggle-row">
+      <div v-if="showRemoteToggle" class="input-section">
+        <div class="horizontal-flex toggle-row" @click="toggleRemote">
           <span class="input-label">{{ $t('modals.enableRemote') }}</span>
-          <ToggleSwitch :switchValueProp="projectStore.activeProject.has_remote" :online="projectStore.activeProject.has_remote" />
+          <ToggleSwitch :switchValueProp="isRemoteEnabled" />
         </div>
+        <p v-if="remoteWarning" class="remote-warning">{{ remoteWarning }}</p>
       </div>
 
       <div class="pop-up-actions">
@@ -78,7 +75,6 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import EmojiPicker from '@/instances/desktop/components/EmojiPicker.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import ProgressSection from '@/instances/common/components/ProgressSection.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // services
@@ -106,10 +102,11 @@ const displayEmojiSelector = ref(false);
 const fileIsSelected = ref(false);
 const iconType = ref('emoji');
 const isAwaitingResponse = ref(false);
-const isRemoteLoading = ref(false);
+const isRemoteEnabled = ref(false);
 const oldProjectIcon = ref('');
 const oldProjectName = ref('');
 const oldProjectPreview = ref('');
+const originalRemoteState = ref(false);
 const projectIcon = ref('');
 const projectName = ref('');
 const projectPreview = ref('');
@@ -139,10 +136,24 @@ const isProjectIconChanged = computed(() => {
   return oldProjectIcon.value !== projectIcon.value;
 });
 
+// Returns whether the remote toggle has changed from its original state.
+const isRemoteChanged = computed(() => {
+  return isRemoteEnabled.value !== originalRemoteState.value;
+});
+
 // Returns whether any form values have changed.
 const isValueChanged = computed(() => {
   const restrictedEntries = [oldProjectName.value, ''];
-  return !restrictedEntries.includes(projectName.value) || isPreviewChanged.value || isProjectIconChanged.value;
+  return !restrictedEntries.includes(projectName.value) || isPreviewChanged.value || isProjectIconChanged.value || isRemoteChanged.value;
+});
+
+// Returns a warning message when the user is about to disable remote.
+const remoteWarning = computed(() => {
+  if (!isRemoteChanged.value) return '';
+  if (!isRemoteEnabled.value) {
+    return t('modals.remoteDisableWarning');
+  }
+  return '';
 });
 
 // Returns whether the remote toggle should be shown.
@@ -216,16 +227,24 @@ const toggleEmojiSelector = () => {
   displayEmojiSelector.value = !displayEmojiSelector.value;
 };
 
-// Toggles the project's remote status.
-const toggleRemote = async () => {
+// Toggles the local remote toggle state.
+const toggleRemote = () => {
+  isRemoteEnabled.value = !isRemoteEnabled.value;
+};
+
+// Applies the remote state change by making the project remote or removing it from remote.
+const updateRemoteState = async () => {
   const project = projectStore.activeProject;
-  isRemoteLoading.value = true;
   stage.operationActive = true;
   try {
-    if (project.has_remote) {
-      await ProjectService.RemoveProjectFromRemote(project.uri);
+    if (isRemoteEnabled.value) {
+      await ProjectService.MakeProjectRemote(project.uri).then(()=>{
+        projectStore.activeProject.has_remote = true;
+      });
     } else {
-      await ProjectService.MakeProjectRemote(project.uri);
+      await ProjectService.RemoveProjectFromRemote(project.uri).then(() => {
+        projectStore.activeProject.has_remote = false;
+      });
     }
     await projectStore.refreshProjects();
     const updatedProject = projectStore.projects.find(p => p.name === project.name);
@@ -234,17 +253,19 @@ const toggleRemote = async () => {
     }
   } catch (error) {
     console.error(error);
-    const errorKey = project.has_remote ? 'errorRemovingProjectFromRemote' : 'errorMakingProjectRemote';
+    const errorKey = isRemoteEnabled.value ? 'errorMakingProjectRemote' : 'errorRemovingProjectFromRemote';
     notificationStore.errorNotification(t(`notifications.${errorKey}`), error);
   } finally {
     stage.operationActive = false;
-    isRemoteLoading.value = false;
   }
 };
 
 // Updates the project with all changed values.
 const updateProject = async () => {
   isAwaitingResponse.value = true;
+  if (isRemoteChanged.value) {
+    await updateRemoteState();
+  }
   if (isPreviewChanged.value) {
     await updateProjectCover();
   }
@@ -328,6 +349,8 @@ onMounted(() => {
   oldProjectIcon.value = project.icon;
   projectPreview.value = project.preview;
   oldProjectPreview.value = project.preview;
+  isRemoteEnabled.value = !!project.has_remote;
+  originalRemoteState.value = !!project.has_remote;
 });
 
 onUnmounted(() => {
@@ -461,6 +484,16 @@ onUnmounted(() => {
 
 .upload-image:hover {
   transform: scale(1.02);
+}
+
+.remote-warning {
+  font-size: 13px;
+  color: var(--danger);
+  line-height: 1.4;
+  margin: 0;
+  padding: 4px;
+  padding-bottom: 0;
+  font-weight: 400;
 }
 
 .toggle-row {

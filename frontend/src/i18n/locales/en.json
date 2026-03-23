@@ -614,6 +614,7 @@
     "finalPath": "Final path:",
     "noTemplate": "No Template",
     "enableRemote": "Enable Remote",
+    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine.",
     "addWebLink": "Add web link",
     "invalidWebLink": "Invalid web link. Must start with 'http://' or 'https://'",
     "shareLink": "Share Link",
