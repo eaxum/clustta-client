@@ -238,17 +238,16 @@ const updateRemoteState = async () => {
   stage.operationActive = true;
   try {
     if (isRemoteEnabled.value) {
-      await ProjectService.MakeProjectRemote(project.uri).then(()=>{
-        projectStore.activeProject.has_remote = true;
-      });
+      await ProjectService.MakeProjectRemote(project.uri);
     } else {
-      await ProjectService.RemoveProjectFromRemote(project.uri).then(() => {
-        projectStore.activeProject.has_remote = false;
-      });
+      await ProjectService.RemoveProjectFromRemote(project.uri);
     }
+    const updatedInfo = await ProjectService.ProjectInfo(project.uri);
     await projectStore.refreshProjects();
     const updatedProject = projectStore.projects.find(p => p.name === project.name);
     if (updatedProject) {
+      updatedProject.remote = updatedInfo.remote;
+      updatedProject.has_remote = updatedInfo.has_remote;
       projectStore.activeProject = updatedProject;
     }
   } catch (error) {

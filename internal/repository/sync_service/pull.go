@@ -393,7 +393,9 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 						return studioProjects, err
 					}
 					projectInfo.Uri = projectPath
-					projectInfo.Remote = projectPath
+					if !projectInfo.HasRemote {
+						projectInfo.Remote = projectPath
+					}
 					projectInfo.IsDownloaded = true
 					projectInfo.IsTracked = true
 					studioProjects = append(studioProjects, projectInfo)
