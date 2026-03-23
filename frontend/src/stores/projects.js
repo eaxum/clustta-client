@@ -86,6 +86,9 @@ export const useProjectStore = defineStore("projects", {
       return state.activeProject;
     },
     getActiveProjectUrl: (state) => {
+      if (state.activeProject?.has_remote && state.activeProject?.remote) {
+        return state.activeProject.remote;
+      }
       let projectName = state.activeProject.name;
       const projectUrl = state.getStudioUrl + "/" + projectName;
       return projectUrl;

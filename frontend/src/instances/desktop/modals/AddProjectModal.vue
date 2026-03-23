@@ -377,9 +377,12 @@ const makeProjectRemote = async (project) => {
   stage.operationActive = true;
   try {
     await ProjectService.MakeProjectRemote(project.uri);
+    const updatedInfo = await ProjectService.ProjectInfo(project.uri);
     await projectStore.refreshProjects();
     const updatedProject = projectStore.projects.find(p => p.name === project.name);
     if (updatedProject) {
+      updatedProject.remote = updatedInfo.remote;
+      updatedProject.has_remote = updatedInfo.has_remote;
       projectStore.activeProject = updatedProject;
     }
     closeModal();
