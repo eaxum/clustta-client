@@ -96,6 +96,9 @@ export const useProjectStore = defineStore("projects", {
     getStudioUrl: (state) => {
       return state.studioUrl;
     },
+    isPersonalRemote: (state) => {
+      return state.selectedStudio?.name === 'Personal' && !!state.activeProject?.has_remote && !!state.activeProject?.remote;
+    },
 
   },
   actions: {

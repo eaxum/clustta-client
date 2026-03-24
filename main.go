@@ -147,6 +147,7 @@ func main() {
 			application.NewService(&services.AuthService{}),
 			application.NewService(&services.CheckpointService{}),
 			application.NewService(&services.ClipboardService{}),
+			application.NewService(&services.CollaboratorService{}),
 			application.NewService(&services.CollectionService{}),
 			application.NewService(&services.DependencyTypeService{}),
 			application.NewService(&services.DeploymentService{}),
