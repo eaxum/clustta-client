@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"reflect"
+	"strings"
 
 	"clustta/internal/auth_service"
 	"clustta/internal/base_service"
@@ -179,13 +180,23 @@ func AddUser(
 	}
 	user := models.User{}
 	addedAt := utils.GetCurrentTime()
+
+	firstName := userData.FirstName
+	lastName := userData.LastName
+	if firstName == "" {
+		firstName = strings.Split(email, "@")[0]
+	}
+	if lastName == "" {
+		lastName = "."
+	}
+
 	params := map[string]interface{}{
 		"id":         userData.Id,
 		"added_at":   addedAt,
 		"username":   userData.Username,
 		"email":      email,
-		"first_name": userData.FirstName,
-		"last_name":  userData.LastName,
+		"first_name": firstName,
+		"last_name":  lastName,
 		"role_id":    role.Id,
 	}
 	err = base_service.Create(tx, "user", params)

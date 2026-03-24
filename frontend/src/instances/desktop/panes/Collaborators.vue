@@ -39,7 +39,7 @@ import PageState from '@/instances/common/components/PageState.vue';
 import SearchBar from '@/instances/desktop/components/SearchBar.vue';
 
 // services
-import { ProjectService } from "@/services";
+import { CollaboratorService, ProjectService } from "@/services";
 
 // stores
 import { useAssetStore } from '@/stores/assets';
@@ -233,19 +233,20 @@ const deleteCollaborator = async (userId) => {
   
   loadingCollaboratorIds.value.push(userId);
   
-  await ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id)
-    .then(() => {
-      const users = userStore.users;
-      const userIndex = users.indexOf(collaborator);
-      userStore.users.splice(userIndex, 1);
-      notificationStore.addNotification(t('notifications.userRemoved'), "", "success");
-    })
-    .catch((error) => {
-      notificationStore.errorNotification(t('notifications.errorRemovingUser'), error);
-    })
-    .finally(() => {
-      loadingCollaboratorIds.value = loadingCollaboratorIds.value.filter(id => id !== userId);
-    });
+  try {
+    if (projectStore.isPersonalRemote) {
+      await CollaboratorService.RemoveCollaborator(projectStore.activeProject.remote, collaborator.id);
+    }
+    await ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id);
+    const users = userStore.users;
+    const userIndex = users.indexOf(collaborator);
+    userStore.users.splice(userIndex, 1);
+    notificationStore.addNotification(t('notifications.userRemoved'), "", "success");
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.errorRemovingUser'), error);
+  } finally {
+    loadingCollaboratorIds.value = loadingCollaboratorIds.value.filter(id => id !== userId);
+  }
 };
 
 // Returns the icon path for the given icon name.

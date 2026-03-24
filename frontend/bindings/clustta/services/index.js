@@ -9,6 +9,7 @@ import * as AssetService from "./assetservice.js";
 import * as AuthService from "./authservice.js";
 import * as CheckpointService from "./checkpointservice.js";
 import * as ClipboardService from "./clipboardservice.js";
+import * as CollaboratorService from "./collaboratorservice.js";
 import * as CollectionService from "./collectionservice.js";
 import * as DependencyTypeService from "./dependencytypeservice.js";
 import * as DeploymentService from "./deploymentservice.js";
@@ -37,6 +38,7 @@ export {
     AuthService,
     CheckpointService,
     ClipboardService,
+    CollaboratorService,
     CollectionService,
     DependencyTypeService,
     DeploymentService,
@@ -66,6 +68,7 @@ export {
     AssetsStates,
     ChatUIMessage,
     ClusttaFileInfo,
+    Collaborator,
     CollectionChildrenState,
     CollectionItems,
     CollectionStateFlags,

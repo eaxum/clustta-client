@@ -1,7 +1,7 @@
 <template>
   <div class="settings-component-root">
     <div class="settings-component-container">
-      <ActionBar v-if="userStore.canDo('add_user')" :itemType="$t('settings.addCollaborator').toLowerCase()" :addFunction="addCollaborator" />
+      <ActionBar v-if="projectStore.isPersonalRemote || userStore.canDo('add_user')" :itemType="$t('settings.addCollaborator').toLowerCase()" :addFunction="addCollaborator" />
 
       <div v-if="projectCollaborators.length" class="collaborators-list-wrapper">
         <div class="collaborators-list">
@@ -28,7 +28,7 @@
 // imports
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ProjectService } from "@/services";
+import { CollaboratorService, ProjectService } from "@/services";
 import utils from '@/services/utils';
 
 // store imports
@@ -61,6 +61,7 @@ const addCollaborator = () => {
 // refs
 
 const isLastAdmin = computed(() => {
+  if (projectStore.isPersonalRemote) return false;
   let projectUsers = userStore.getProjectCollaborators;
   const projectRoles = projectUsers.map((user) => user.role.name);
   const isLastAdmin = projectRoles.filter(roleName => roleName === 'admin').length < 2;
@@ -71,10 +72,11 @@ const activeUserId = computed(() => {
   return userStore.user?.id;
 });
 
-const canRemoveUser = computed(() => { return userStore.canDo('remove_user') });
-const canChangeRole = computed(() => { return userStore.canDo('change_role') });
+const canRemoveUser = computed(() => { return projectStore.isPersonalRemote || userStore.canDo('remove_user') });
+const canChangeRole = computed(() => { return projectStore.isPersonalRemote || userStore.canDo('change_role') });
 
 const availableRoles = computed(() => {
+  if (projectStore.isPersonalRemote) return ['admin', 'artist'];
   return userStore.getRolesNames;
 });
 
@@ -92,7 +94,6 @@ const projectCollaborators = computed(() => {
   }
 
   const users = projectUsers.map(user => {
-    // Find the matching role name from availableRoles (case-insensitive match)
     const userRoleName = user.role?.name || "";
     const matchedRole = userStore.getRolesNames.find(
       role => role.toLowerCase() === userRoleName.toLowerCase()
@@ -106,7 +107,7 @@ const projectCollaborators = computed(() => {
       id: user.id,
       avatarColor: userStore.userProfileColor(user.id),
       can_edit: user.id !== activeUserId.value && canChangeRole.value,
-      can_delete: !assignedUserIds.includes(user.id) && user.id !== activeUserId.value && (user.role?.name !== 'admin' || !isLastAdmin.value) && canRemoveUser.value,
+      can_delete: !assignedUserIds.includes(user.id) && user.id !== activeUserId.value && (projectStore.isPersonalRemote || (user.role?.name !== 'admin' || !isLastAdmin.value)) && canRemoveUser.value,
     };
   });
   return utils.sortAlphabetically(users);
@@ -124,20 +125,22 @@ const changeCollaboratorRole = async (userId, newRole) => {
 };
 
 
-const deleteCollaborator = (userId) => {
+const deleteCollaborator = async (userId) => {
   let allCollaborators = userStore.getProjectCollaborators;
   let collaborator = allCollaborators.find(item => item.id === userId);
-  // let collaborator = userStore.getProjectCollaborators[index];
-  ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id)
-    .then(async (data) => {
-      let users = userStore.users;
-      let userIndex = users.indexOf(collaborator)
-      userStore.users.splice(userIndex, 1)
-      notificationStore.addNotification(t('notifications.userRemoved'), "", "success")
-    })
-    .catch((error) => {
-      notificationStore.errorNotification(t('notifications.errorRemovingUser'), error);
-    })
+
+  try {
+    if (projectStore.isPersonalRemote) {
+      await CollaboratorService.RemoveCollaborator(projectStore.activeProject.remote, collaborator.id);
+    }
+    await ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id);
+    let users = userStore.users;
+    let userIndex = users.indexOf(collaborator);
+    userStore.users.splice(userIndex, 1);
+    notificationStore.addNotification(t('notifications.userRemoved'), "", "success");
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.errorRemovingUser'), error);
+  }
 };
 
 </script>

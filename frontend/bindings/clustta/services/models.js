@@ -373,6 +373,79 @@ export class ClusttaFileInfo {
     }
 }
 
+/**
+ * Collaborator represents a project collaborator returned by the server.
+ */
+export class Collaborator {
+    /**
+     * Creates a new Collaborator instance.
+     * @param {Partial<Collaborator>} [$$source = {}] - The source object to create the Collaborator.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("user_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["user_id"] = "";
+        }
+        if (!("added_at" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["added_at"] = 0;
+        }
+        if (!("first_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["first_name"] = "";
+        }
+        if (!("last_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["last_name"] = "";
+        }
+        if (!("username" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["username"] = "";
+        }
+        if (!("email" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["email"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Collaborator instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Collaborator}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Collaborator(/** @type {Partial<Collaborator>} */($$parsedSource));
+    }
+}
+
 export class CollectionChildrenState {
     /**
      * Creates a new CollectionChildrenState instance.
