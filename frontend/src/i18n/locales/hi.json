@@ -70,7 +70,8 @@
     "hide": "छुपाएं",
     "show": "दिखाएं",
     "link": "लिंक",
-    "manage": "प्रबंधित करें"
+    "manage": "प्रबंधित करें",
+    "finish": "समाप्त"
   },
   "placeholders": {
     "addItem": "आइटम जोड़ें",
@@ -642,6 +643,11 @@
     "getYourCode": "अपना कोड प्राप्त करें",
     "newSelfManagedStudio": "नया स्व-प्रबंधित स्टूडियो",
     "selfManagedDesc": "अपने सर्वर पर अपना Clustta स्टूडियो इंस्टेंस होस्ट और प्रबंधित करें।",
+    "studioCreatedCongrats": "बधाई! आपका स्टूडियो \"{name}\" सफलतापूर्वक बनाया गया है।",
+    "studioSecretKeyLabel": "स्टूडियो गोपनीय कुंजी",
+    "secretKeyWarning": "इस कुंजी को किसी सुरक्षित स्थान पर सहेजें। आप इसे दोबारा नहीं देख पाएंगे।",
+    "environmentFileLabel": "पर्यावरण फ़ाइल",
+    "envFileUsageText": "अपने स्टूडियो इंस्टेंस को कॉन्फ़िगर करने के लिए इसे अपने सर्वर पर .env फ़ाइल में कॉपी करें।",
     "addAssetTypeTitle": "एसेट टाइप जोड़ें",
     "createCheckpoint": "चेकपॉइंट बनाएँ",
     "attachSnapshot": "स्नैपशॉट संलग्न करें",
@@ -670,6 +676,7 @@
     "renameProject": "प्रोजेक्ट का नाम बदलें",
     "totalAssets": "कुल एसेट",
     "totalCollections": "कुल कलेक्शन",
+    "collaborators": "सहयोगी",
     "filesOnDisk": "डिस्क पर फ़ाइलें",
     "clusttaFileSize": "Clustta फ़ाइल आकार",
     "uploadAnImage": "एक छवि अपलोड करें",

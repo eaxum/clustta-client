@@ -70,7 +70,8 @@
     "hide": "Скрыть",
     "show": "Показать",
     "link": "Ссылка",
-    "manage": "Управлять"
+    "manage": "Управлять",
+    "finish": "Завершить"
   },
   "placeholders": {
     "addItem": "Добавить элемент",
@@ -642,6 +643,11 @@
     "getYourCode": "Получите ваш код",
     "newSelfManagedStudio": "Новая самоуправляемая студия",
     "selfManagedDesc": "Размещайте и управляйте собственным экземпляром студии Clustta на своём сервере.",
+    "studioCreatedCongrats": "Поздравляем! Ваша студия \"{name}\" успешно создана.",
+    "studioSecretKeyLabel": "Секретный ключ студии",
+    "secretKeyWarning": "Сохраните этот ключ в надёжном месте. Вы не сможете увидеть его снова.",
+    "environmentFileLabel": "Файл окружения",
+    "envFileUsageText": "Скопируйте это в файл .env на вашем сервере для настройки экземпляра студии.",
     "addAssetTypeTitle": "Добавить тип ресурса",
     "createCheckpoint": "Создать контрольную точку",
     "attachSnapshot": "Прикрепить снимок",
@@ -670,6 +676,7 @@
     "renameProject": "Переименовать проект",
     "totalAssets": "Всего ресурсов",
     "totalCollections": "Всего коллекций",
+    "collaborators": "Сотрудники",
     "filesOnDisk": "Файлы на диске",
     "clusttaFileSize": "Размер файла Clustta",
     "uploadAnImage": "Загрузить изображение",

@@ -68,7 +68,10 @@
     "yes": "Sim",
     "all": "Todos",
     "hide": "Ocultar",
-    "show": "Mostrar"
+    "show": "Mostrar",
+    "link": "Link",
+    "manage": "Gerenciar",
+    "finish": "Concluir"
   },
   "placeholders": {
     "addItem": "Adicionar item",
@@ -640,6 +643,11 @@
     "getYourCode": "Obtenha Seu Código",
     "newSelfManagedStudio": "Novo Estúdio Autogerenciado",
     "selfManagedDesc": "Hospede e gerencie sua própria instância do estúdio Clustta em seu próprio servidor.",
+    "studioCreatedCongrats": "Parabéns! Seu estúdio \"{name}\" foi criado com sucesso.",
+    "studioSecretKeyLabel": "Chave secreta do estúdio",
+    "secretKeyWarning": "Salve esta chave em um local seguro. Você não poderá vê-la novamente.",
+    "environmentFileLabel": "Arquivo de ambiente",
+    "envFileUsageText": "Copie isto em um arquivo .env no seu servidor para configurar sua instância do estúdio.",
     "addAssetTypeTitle": "Adicionar Tipo de Ativo",
     "createCheckpoint": "Criar Checkpoint",
     "attachSnapshot": "Anexar Snapshot",
@@ -668,6 +676,7 @@
     "renameProject": "Renomear Projeto",
     "totalAssets": "Total de Ativos",
     "totalCollections": "Total de Coleções",
+    "collaborators": "Colaboradores",
     "filesOnDisk": "Arquivos no disco",
     "clusttaFileSize": "Tamanho do arquivo Clustta",
     "uploadAnImage": "Enviar uma imagem",
