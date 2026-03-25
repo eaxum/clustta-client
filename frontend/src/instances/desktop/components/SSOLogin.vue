@@ -123,6 +123,7 @@ const handleGoogleSSO = async () => {
 .sso-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  padding: .1rem;
 }
 
 .sso-icon {

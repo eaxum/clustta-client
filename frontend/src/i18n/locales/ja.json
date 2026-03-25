@@ -70,7 +70,8 @@
     "hide": "非表示",
     "show": "表示",
     "link": "リンク",
-    "manage": "管理"
+    "manage": "管理",
+    "finish": "完了"
   },
   "placeholders": {
     "addItem": "アイテムを追加",
@@ -640,6 +641,11 @@
     "getYourCode": "コードを取得",
     "newSelfManagedStudio": "新規セルフマネージドスタジオ",
     "selfManagedDesc": "独自のサーバーでClusttaスタジオインスタンスをホストおよび管理します。",
+    "studioCreatedCongrats": "おめでとうございます！スタジオ「{name}」が正常に作成されました。",
+    "studioSecretKeyLabel": "スタジオシークレットキー",
+    "secretKeyWarning": "このキーを安全な場所に保存してください。再度表示することはできません。",
+    "environmentFileLabel": "環境ファイル",
+    "envFileUsageText": "スタジオインスタンスを設定するために、これをサーバーの .env ファイルにコピーしてください。",
     "addAssetTypeTitle": "アセットタイプを追加",
     "createCheckpoint": "チェックポイントを作成",
     "attachSnapshot": "スナップショットを添付",
@@ -667,6 +673,7 @@
     "renameProject": "プロジェクト名を変更",
     "totalAssets": "アセット合計",
     "totalCollections": "コレクション合計",
+    "collaborators": "コラボレーター",
     "filesOnDisk": "ディスク上のファイル",
     "clusttaFileSize": "Clusttaファイルサイズ",
     "upload": "アップロード",

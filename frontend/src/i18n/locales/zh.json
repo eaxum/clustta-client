@@ -70,7 +70,8 @@
     "hide": "隐藏",
     "show": "显示",
     "link": "链接",
-    "manage": "管理"
+    "manage": "管理",
+    "finish": "完成"
   },
   "placeholders": {
     "addItem": "添加项目",
@@ -641,6 +642,11 @@
     "getYourCode": "获取您的代码",
     "newSelfManagedStudio": "新自管理工作室",
     "selfManagedDesc": "在您自己的服务器上托管和管理您的 Clustta 工作室实例。",
+    "studioCreatedCongrats": "恭喜！您的工作室“{name}”已成功创建。",
+    "studioSecretKeyLabel": "工作室密钥",
+    "secretKeyWarning": "请将此密钥保存在安全的地方。您将无法再次查看它。",
+    "environmentFileLabel": "环境文件",
+    "envFileUsageText": "将此内容复制到您服务器上的 .env 文件中以配置您的工作室实例。",
     "addAssetTypeTitle": "添加资产类型",
     "createCheckpoint": "创建检查点",
     "attachSnapshot": "附加快照",
@@ -669,6 +675,7 @@
     "renameProject": "重命名项目",
     "totalAssets": "资产总数",
     "totalCollections": "集合总数",
+    "collaborators": "协作者",
     "filesOnDisk": "磁盘上的文件",
     "clusttaFileSize": "Clustta 文件大小",
     "uploadAnImage": "上传图片",

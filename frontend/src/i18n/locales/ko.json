@@ -70,7 +70,8 @@
     "hide": "숨기기",
     "show": "보기",
     "link": "링크",
-    "manage": "관리"
+    "manage": "관리",
+    "finish": "완료"
   },
   "placeholders": {
     "addItem": "항목 추가",
@@ -642,6 +643,11 @@
     "getYourCode": "코드 받기",
     "newSelfManagedStudio": "새 자체 관리 스튜디오",
     "selfManagedDesc": "자체 서버에서 Clustta 스튜디오 인스턴스를 호스팅하고 관리합니다.",
+    "studioCreatedCongrats": "축하합니다! 스튜디오 \"{name}\"이(가) 성공적으로 생성되었습니다.",
+    "studioSecretKeyLabel": "스튜디오 비밀 키",
+    "secretKeyWarning": "이 키를 안전한 곳에 저장하세요. 다시 확인할 수 없습니다.",
+    "environmentFileLabel": "환경 파일",
+    "envFileUsageText": "스튜디오 인스턴스를 구성하려면 이것을 서버의 .env 파일에 복사하세요.",
     "addAssetTypeTitle": "에셋 유형 추가",
     "createCheckpoint": "체크포인트 생성",
     "attachSnapshot": "스냅샷 첨부",
@@ -670,6 +676,7 @@
     "renameProject": "프로젝트 이름 변경",
     "totalAssets": "총 에셋",
     "totalCollections": "총 컬렉션",
+    "collaborators": "협업자",
     "filesOnDisk": "디스크의 파일",
     "clusttaFileSize": "Clustta 파일 크기",
     "uploadAnImage": "이미지 업로드",
