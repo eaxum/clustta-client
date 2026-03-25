@@ -60,6 +60,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// IsPersonalRemote returns true if the remote URL points to a personal project on the Clustta server.
+func IsPersonalRemote(remoteUrl string) bool {
+	return strings.Contains(remoteUrl, "/user/")
+}
+
 type Chunk struct {
 	Hash string `db:"hash" json:"hash"`
 	Data []byte `db:"data" json:"data"`
@@ -557,7 +562,7 @@ func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missin
 	}
 
 	// Use presigned URLs for personal projects (server-hosted on R2).
-	if strings.Contains(remoteUrl, "/user/") {
+	if IsPersonalRemote(remoteUrl) {
 		return PullChunksPresigned(ctx, projectPath, remoteUrl, missingChunkHashes, allChunkHashes, totalSize, callback)
 	}
 
@@ -786,6 +791,189 @@ func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, mis
 	return nil
 }
 
+// PushChunksPresigned uploads chunks directly to R2 using presigned PUT URLs.
+// Phase 1: request upload URLs from server. Phase 2: upload to R2. Phase 3: confirm with server.
+func PushChunksPresigned(tx *sqlx.Tx, remoteUrl string, chunkInfos []ChunkInfo, callback func(int, int, string, string)) error {
+	totalChunksSize := 0
+	for _, ci := range chunkInfos {
+		totalChunksSize += ci.Size
+	}
+	processedChunks := 0
+
+	// Phase 1: Request presigned PUT URLs from the server
+	type chunkEntry struct {
+		Hash string `json:"hash"`
+		Size int64  `json:"size"`
+	}
+	entries := make([]chunkEntry, len(chunkInfos))
+	for i, ci := range chunkInfos {
+		entries[i] = chunkEntry{Hash: ci.Hash, Size: int64(ci.Size)}
+	}
+
+	reqBody, err := json.Marshal(map[string]any{"chunks": entries})
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", remoteUrl+"/chunk-upload-urls", bytes.NewBuffer(reqBody))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to get upload URLs: %s", string(body))
+	}
+
+	var urlsResponse struct {
+		URLs     map[string]string `json:"urls"`
+		Existing []string          `json:"existing"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&urlsResponse)
+	if err != nil {
+		return fmt.Errorf("failed to decode upload URLs: %w", err)
+	}
+
+	// Account for already-existing chunks in progress
+	existingSet := make(map[string]bool, len(urlsResponse.Existing))
+	for _, hash := range urlsResponse.Existing {
+		existingSet[hash] = true
+	}
+	for _, ci := range chunkInfos {
+		if existingSet[ci.Hash] {
+			processedChunks += ci.Size
+		}
+	}
+	if processedChunks > 0 {
+		message := fmt.Sprintf("Sending %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
+		callback(processedChunks, totalChunksSize, message, "")
+	}
+
+	if len(urlsResponse.URLs) == 0 {
+		return nil
+	}
+
+	// Phase 2: Upload chunks directly to R2
+	type uploadResult struct {
+		hash string
+		size int
+		err  error
+	}
+
+	const maxConcurrency = 8
+	resultsCh := make(chan uploadResult, len(urlsResponse.URLs))
+	sem := make(chan struct{}, maxConcurrency)
+	var wg sync.WaitGroup
+
+	// Build a size lookup for progress
+	sizeMap := make(map[string]int, len(chunkInfos))
+	for _, ci := range chunkInfos {
+		sizeMap[ci.Hash] = ci.Size
+	}
+
+	for hash, url := range urlsResponse.URLs {
+		var chunkData []byte
+		err := tx.Get(&chunkData, "SELECT data FROM chunk WHERE hash = ?", hash)
+		if err != nil {
+			return fmt.Errorf("error reading chunk %s: %w", hash, err)
+		}
+
+		wg.Add(1)
+		go func(h, u string, data []byte) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			uploadReq, err := http.NewRequest("PUT", u, bytes.NewReader(data))
+			if err != nil {
+				resultsCh <- uploadResult{hash: h, err: err}
+				return
+			}
+			uploadReq.Header.Set("Content-Type", "application/octet-stream")
+			uploadReq.ContentLength = int64(len(data))
+
+			uploadResp, err := http.DefaultClient.Do(uploadReq)
+			if err != nil {
+				resultsCh <- uploadResult{hash: h, err: err}
+				return
+			}
+			defer uploadResp.Body.Close()
+
+			if uploadResp.StatusCode != 200 {
+				resultsCh <- uploadResult{hash: h, err: fmt.Errorf("R2 upload failed for chunk %s: status %d", h, uploadResp.StatusCode)}
+				return
+			}
+
+			resultsCh <- uploadResult{hash: h, size: sizeMap[h]}
+		}(hash, url, chunkData)
+	}
+
+	go func() {
+		wg.Wait()
+		close(resultsCh)
+	}()
+
+	var uploadedHashes []string
+	for result := range resultsCh {
+		if result.err != nil {
+			return result.err
+		}
+		uploadedHashes = append(uploadedHashes, result.hash)
+		processedChunks += result.size
+		message := fmt.Sprintf("Sending %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
+		callback(processedChunks, totalChunksSize, message, "")
+	}
+
+	// Phase 3: Confirm uploads with the server
+	confirmBody, err := json.Marshal(map[string]any{"chunks": uploadedHashes})
+	if err != nil {
+		return err
+	}
+
+	confirmReq, err := http.NewRequest("POST", remoteUrl+"/chunk-upload-confirm", bytes.NewBuffer(confirmBody))
+	if err != nil {
+		return err
+	}
+	confirmReq.Header.Set("Content-Type", "application/json")
+	confirmReq.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(confirmReq)
+
+	confirmResp, err := client.Do(confirmReq)
+	if err != nil {
+		return err
+	}
+	defer confirmResp.Body.Close()
+
+	if confirmResp.StatusCode != 200 {
+		body, _ := io.ReadAll(confirmResp.Body)
+		return fmt.Errorf("failed to confirm uploads: %s", string(body))
+	}
+
+	var confirmResponse struct {
+		FailedChunks []string `json:"failed_chunks"`
+	}
+	err = json.NewDecoder(confirmResp.Body).Decode(&confirmResponse)
+	if err != nil {
+		return fmt.Errorf("failed to decode confirm response: %w", err)
+	}
+
+	if len(confirmResponse.FailedChunks) > 0 {
+		return fmt.Errorf("server failed to confirm %d chunks", len(confirmResponse.FailedChunks))
+	}
+
+	return nil
+}
+
 func PushChunks(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []ChunkInfo, callback func(int, int, string, string)) error {
 	dataUrl := remoteUrl + "/chunks"
 	client := &http.Client{}
@@ -879,6 +1067,11 @@ func PushChunks(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []Chunk
 }
 
 func PushChunksBatch(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []ChunkInfo, callback func(int, int, string, string)) error {
+	// Use presigned uploads for personal projects (server-hosted on R2).
+	if IsPersonalRemote(remoteUrl) {
+		return PushChunksPresigned(tx, remoteUrl, chunkInfos, callback)
+	}
+
 	// const batchSizeLimit = 1 << 20 // 1 MB
 	const batchSizeLimit = 512 * 1024 // 512 KB
 
