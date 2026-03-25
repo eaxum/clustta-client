@@ -52,6 +52,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
+	"sync"
 
 	"github.com/jmoiron/sqlx"
 	kzstd "github.com/klauspost/compress/zstd"
@@ -554,6 +556,11 @@ func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missin
 		return ctx.Err()
 	}
 
+	// Use presigned URLs for personal projects (server-hosted on R2).
+	if strings.Contains(remoteUrl, "/user/") {
+		return PullChunksPresigned(ctx, projectPath, remoteUrl, missingChunkHashes, allChunkHashes, totalSize, callback)
+	}
+
 	downloadedSize, _, chunksCountMap, err := ProcessDownloadedChunksProgress(ctx, projectPath, remoteUrl, missingChunkHashes, allChunkHashes, totalSize, callback)
 	if err != nil {
 		return err
@@ -606,6 +613,176 @@ func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missin
 	} else {
 		return errors.New("invalid url")
 	}
+	return nil
+}
+
+// PullChunksPresigned fetches presigned R2 URLs from the server and downloads
+// chunks directly from R2 with bounded concurrency.
+func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, missingChunkHashes []string, allChunkHashes []string, totalSize int, callback func(int, int, string, string)) error {
+	downloadedSize, _, chunksCountMap, err := ProcessDownloadedChunksProgress(ctx, projectPath, remoteUrl, missingChunkHashes, allChunkHashes, totalSize, callback)
+	if err != nil {
+		return err
+	}
+
+	urlsEndpoint := remoteUrl + "/chunk-urls"
+	data := map[string]any{"chunks": missingChunkHashes}
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", urlsEndpoint, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to get chunk URLs: %s", string(body))
+	}
+
+	var urlsResponse struct {
+		URLs map[string]string `json:"urls"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&urlsResponse)
+	if err != nil {
+		return fmt.Errorf("failed to decode chunk URLs: %w", err)
+	}
+
+	type chunkResult struct {
+		hash string
+		data []byte
+		err  error
+	}
+
+	const maxConcurrency = 8
+	resultsCh := make(chan chunkResult, len(urlsResponse.URLs))
+	sem := make(chan struct{}, maxConcurrency)
+	var wg sync.WaitGroup
+
+	for hash, url := range urlsResponse.URLs {
+		wg.Add(1)
+		go func(h, u string) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			if ctx.Err() != nil {
+				resultsCh <- chunkResult{hash: h, err: ctx.Err()}
+				return
+			}
+
+			dlReq, err := http.NewRequestWithContext(ctx, "GET", u, nil)
+			if err != nil {
+				resultsCh <- chunkResult{hash: h, err: err}
+				return
+			}
+			dlResp, err := http.DefaultClient.Do(dlReq)
+			if err != nil {
+				resultsCh <- chunkResult{hash: h, err: err}
+				return
+			}
+			defer dlResp.Body.Close()
+
+			if dlResp.StatusCode != 200 {
+				resultsCh <- chunkResult{hash: h, err: fmt.Errorf("download failed for chunk %s: status %d", h, dlResp.StatusCode)}
+				return
+			}
+
+			chunkData, err := io.ReadAll(dlResp.Body)
+			if err != nil {
+				resultsCh <- chunkResult{hash: h, err: err}
+				return
+			}
+			resultsCh <- chunkResult{hash: h, data: chunkData}
+		}(hash, url)
+	}
+
+	go func() {
+		wg.Wait()
+		close(resultsCh)
+	}()
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+
+	decoder, err := kzstd.NewReader(nil)
+	if err != nil {
+		return err
+	}
+	defer decoder.Close()
+
+	savedSize := 0
+	for result := range resultsCh {
+		if result.err != nil {
+			return result.err
+		}
+
+		compressedData := result.data
+		decompressedData, err := decoder.DecodeAll(compressedData, nil)
+		if err != nil {
+			return fmt.Errorf("decompression failed for chunk %s: %w", result.hash, err)
+		}
+
+		hashBytes := sha256.Sum256(decompressedData)
+		expectedHash, err := hex.DecodeString(result.hash)
+		if err != nil {
+			return fmt.Errorf("invalid hash %s: %w", result.hash, err)
+		}
+		if !bytes.Equal(hashBytes[:], expectedHash) {
+			return fmt.Errorf("hash mismatch for chunk %s", result.hash)
+		}
+
+		tx, err := dbConn.Beginx()
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.Exec("INSERT INTO chunk (hash, data, size) VALUES (?, ?, ?)",
+			result.hash, compressedData, len(decompressedData))
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("error inserting chunk: %w", err)
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			return fmt.Errorf("error writing chunk: %w", err)
+		}
+
+		compressedSize := len(compressedData)
+		size := len(decompressedData)
+		downloadedSize += size * chunksCountMap[result.hash]
+		savedSize += size - compressedSize
+		if chunksCountMap[result.hash] > 1 {
+			savedSize += size * (chunksCountMap[result.hash] - 1)
+		}
+
+		message := fmt.Sprintf("Receiving %s/%s", utils.BytesToHumanReadable(downloadedSize), utils.BytesToHumanReadable(totalSize))
+		extraMessage := ""
+		dataSavedPercentage := 0.0
+		if totalSize > 0 {
+			dataSavedPercentage = (float64(savedSize) / float64(downloadedSize)) * 100
+		}
+		if savedSize > 0 {
+			extraMessage = fmt.Sprintf("Data saved: %s (%.2f%%)", utils.BytesToHumanReadable(savedSize), dataSavedPercentage)
+		}
+		callback(downloadedSize, totalSize, message, extraMessage)
+	}
+
 	return nil
 }
 
