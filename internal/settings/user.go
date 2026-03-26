@@ -15,13 +15,14 @@ import (
 )
 
 type Studio struct {
-	Id     string `json:"id"`
-	Name   string `json:"name"`
-	Active string `json:"active"`
-	AltUrl string `json:"alt_url"`
-	Url    string `json:"url"`
-	Usage  string `json:"usage"`
-	Users  []models.StudioUserInfo
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	Active      string `json:"active"`
+	AltUrl      string `json:"alt_url"`
+	Url         string `json:"url"`
+	Usage       string `json:"usage"`
+	HostingMode string `json:"hosting_mode"`
+	Users       []models.StudioUserInfo
 }
 
 type ProjectLocation struct {
@@ -895,11 +896,12 @@ func GetStudios() ([]Studio, error) {
 				return settings.Studios, nil
 			}
 			studio := Studio{
-				Id:     userStudio.Id,
-				Name:   userStudio.Name,
-				Url:    userStudio.URL,
-				AltUrl: userStudio.AltURL,
-				Users:  studioUsers,
+				Id:          userStudio.Id,
+				Name:        userStudio.Name,
+				Url:         userStudio.URL,
+				AltUrl:      userStudio.AltURL,
+				HostingMode: userStudio.HostingMode,
+				Users:       studioUsers,
 			}
 			settings.Studios = append(settings.Studios, studio)
 		}

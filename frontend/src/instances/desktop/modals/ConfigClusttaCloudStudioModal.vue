@@ -380,7 +380,7 @@ const createStudio = async () => {
       return;
     }
     
-    const studioResult = await StudioService.RegisterStudio(studioName.value, 'pending');
+    const studioResult = await StudioService.RegisterStudio(studioName.value, 'pending', 'cloud');
     createdStudio.value = studioResult;
     
     const deploymentRequest = {

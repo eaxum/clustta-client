@@ -68,9 +68,9 @@ func (s *StudioService) GetServerVersion(studioUrl string) (string, error) {
 	return version, nil
 }
 
-// Registers a new studio with name and URL
-func (s *StudioService) RegisterStudio(name, studioUrl string) (interface{}, error) {
-	result, err := studio_service.RegisterStudio(name, studioUrl)
+// Registers a new studio with name, URL, and hosting mode.
+func (s *StudioService) RegisterStudio(name, studioUrl, hostingMode string) (interface{}, error) {
+	result, err := studio_service.RegisterStudio(name, studioUrl, hostingMode)
 	if err != nil {
 		return result, err
 	}

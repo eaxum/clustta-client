@@ -96,8 +96,13 @@ export const useProjectStore = defineStore("projects", {
     getStudioUrl: (state) => {
       return state.studioUrl;
     },
-    isPersonalRemote: (state) => {
-      return state.selectedStudio?.name === 'Personal' && !!state.activeProject?.has_remote && !!state.activeProject?.remote;
+    isR2Remote: (state) => {
+      if (state.selectedStudio?.name === 'Personal' && !!state.activeProject?.has_remote && !!state.activeProject?.remote) return true;
+      if (state.selectedStudio?.hosting_mode === 'cloud' && !!state.activeProject?.has_remote && !!state.activeProject?.remote) return true;
+      return false;
+    },
+    supportsIntegrations: (state) => {
+      return state.selectedStudio?.name !== 'Personal';
     },
     isProjectOwner: (state) => {
       return !state.activeProject?.role || state.activeProject.role === 'owner';
@@ -170,7 +175,7 @@ export const useProjectStore = defineStore("projects", {
       SettingsService.GetRecentProjects(studio.name).then((response) => {
         this.recentProjects = response;
       });
-      await ProjectService.GetStudioProjects(studioUrl, studio.name)
+      await ProjectService.GetStudioProjects(studioUrl, studio.name, studio.hosting_mode || '', studio.id || '')
         .then(async (response) => {
           this.projects = response;
         })

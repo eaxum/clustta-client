@@ -180,7 +180,7 @@ function startCheckSycnTokenInterval() {
             setTimeout(run, 1000);
             return
         }
-        if (!projectStore.selectedStudio || (projectStore.selectedStudio.name == "Personal" && !projectStore.isPersonalRemote)) {
+        if (!projectStore.selectedStudio || (projectStore.selectedStudio.name == "Personal" && !projectStore.isR2Remote)) {
             setTimeout(run, 1000);
             return
         }

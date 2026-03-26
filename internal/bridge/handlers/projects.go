@@ -40,19 +40,23 @@ func ListProjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Find the studio URL
+	// Find the studio URL and hosting info
 	studioURL := ""
+	hostingMode := ""
+	studioId := ""
 	studios, err := settings.GetStudios()
 	if err == nil {
 		for _, s := range studios {
 			if s.Name == studioName {
 				studioURL = s.Url
+				hostingMode = s.HostingMode
+				studioId = s.Id
 				break
 			}
 		}
 	}
 
-	projects, err := sync_service.GetStudioProjects(user, studioURL, studioName)
+	projects, err := sync_service.GetStudioProjects(user, studioURL, studioName, hostingMode, studioId)
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -121,17 +125,21 @@ func SwitchProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	studioURL := ""
+	hostingMode := ""
+	studioId := ""
 	studios, err := settings.GetStudios()
 	if err == nil {
 		for _, s := range studios {
 			if s.Name == studioName {
 				studioURL = s.Url
+				hostingMode = s.HostingMode
+				studioId = s.Id
 				break
 			}
 		}
 	}
 
-	projects, err := sync_service.GetStudioProjects(user, studioURL, studioName)
+	projects, err := sync_service.GetStudioProjects(user, studioURL, studioName, hostingMode, studioId)
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return

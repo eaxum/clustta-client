@@ -234,7 +234,7 @@ const deleteCollaborator = async (userId) => {
   loadingCollaboratorIds.value.push(userId);
   
   try {
-    if (projectStore.isPersonalRemote) {
+    if (projectStore.isR2Remote) {
       await CollaboratorService.RemoveCollaborator(projectStore.activeProject.remote, collaborator.id);
     }
     await ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id);

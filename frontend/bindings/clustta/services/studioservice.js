@@ -86,13 +86,14 @@ export function GetStudioUsers(studioId) {
 }
 
 /**
- * Registers a new studio with name and URL
+ * Registers a new studio with name, URL, and hosting mode.
  * @param {string} name
  * @param {string} studioUrl
+ * @param {string} hostingMode
  * @returns {$CancellablePromise<any>}
  */
-export function RegisterStudio(name, studioUrl) {
-    return $Call.ByID(4200145426, name, studioUrl);
+export function RegisterStudio(name, studioUrl, hostingMode) {
+    return $Call.ByID(4200145426, name, studioUrl, hostingMode);
 }
 
 /**

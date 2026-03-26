@@ -504,13 +504,13 @@ func (p *ProjectService) RemoveUser(projectPath, userId string) error {
 	return nil
 }
 
-func (p *ProjectService) GetStudioProjects(url, name string) ([]repository.ProjectInfo, error) {
+func (p *ProjectService) GetStudioProjects(url, name, hostingMode, studioId string) ([]repository.ProjectInfo, error) {
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
 		return []repository.ProjectInfo{}, err
 	}
 
-	projects, err := sync_service.GetStudioProjects(user, url, name)
+	projects, err := sync_service.GetStudioProjects(user, url, name, hostingMode, studioId)
 	if err != nil {
 		return projects, err
 	}

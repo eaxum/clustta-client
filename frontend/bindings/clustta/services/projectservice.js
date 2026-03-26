@@ -122,10 +122,12 @@ export function GetPreview(projectPath) {
 /**
  * @param {string} url
  * @param {string} name
+ * @param {string} hostingMode
+ * @param {string} studioId
  * @returns {$CancellablePromise<repository$0.ProjectInfo[]>}
  */
-export function GetStudioProjects(url, name) {
-    return $Call.ByID(155248386, url, name).then(/** @type {($result: any) => any} */(($result) => {
+export function GetStudioProjects(url, name, hostingMode, studioId) {
+    return $Call.ByID(155248386, url, name, hostingMode, studioId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType4($result);
     }));
 }
