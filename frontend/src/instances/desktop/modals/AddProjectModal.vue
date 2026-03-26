@@ -321,7 +321,7 @@ const cloneProject = async () => {
   const project = projectStore.activeProject;
   const studioDisplayName = projectStore.selectedStudio.name;
   const projectName = project.name;
-  const projectUrl = projectStore.getStudioUrl + '/' + projectName;
+  const projectUrl = (project.has_remote && project.remote) ? project.remote : projectStore.getStudioUrl + '/' + projectName;
   const syncOptions = {
     only_latest_checkpoints: true,
     asset_dependencies: true,

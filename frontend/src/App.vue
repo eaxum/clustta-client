@@ -180,7 +180,7 @@ function startCheckSycnTokenInterval() {
             setTimeout(run, 1000);
             return
         }
-        if (!projectStore.selectedStudio || projectStore.selectedStudio.name == "Personal") {
+        if (!projectStore.selectedStudio || (projectStore.selectedStudio.name == "Personal" && !projectStore.isPersonalRemote)) {
             setTimeout(run, 1000);
             return
         }
@@ -220,7 +220,9 @@ function startCheckSycnTokenInterval() {
                     }
                 }
             }).catch((error) => {
-                studioStore.appOnline = false;
+                if (projectStore.selectedStudio?.name !== 'Personal') {
+                    studioStore.appOnline = false;
+                }
             }).finally(() => {
                 setTimeout(run, 5000);
             });
