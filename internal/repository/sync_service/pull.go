@@ -633,9 +633,11 @@ func mergeServerProjects(localProjects []repository.ProjectInfo, serverProjects 
 			localProjects[idx].OwnerName = sp.OwnerName
 		} else {
 			// Server-only project: add as not-downloaded
+			projectUri := filepath.Join(projectsDir, sp.ProjectName) + ".clst"
 			localProjects = append(localProjects, repository.ProjectInfo{
 				Id:           sp.ProjectId,
 				Name:         sp.ProjectName,
+				Uri:          projectUri,
 				Remote:       remoteUrl,
 				HasRemote:    true,
 				IsDownloaded: false,

@@ -48,14 +48,27 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 		projectName = path.Base(projectUri)
 	} else if utils.FileExists(projectUri) {
 		projectName = strings.Split(filepath.Base(projectUri), ".")[0]
-
 	}
-	projectsDir, err := settings.GetSharedProjectDirectory()
-	fmt.Println(projectsDir)
-	if err != nil {
+
+	// Personal projects store .clst files in ProjectsDir; other studios use SharedProjectsDir/studioName
+	var studioProjectsDir string
+	if studioName == "Personal" {
+		projectsDir, err := settings.GetProjectDirectory()
+		if err != nil {
+			return err
+		}
+		studioProjectsDir = projectsDir
+	} else {
+		sharedDir, err := settings.GetSharedProjectDirectory()
+		if err != nil {
+			return err
+		}
+		studioProjectsDir = filepath.Join(sharedDir, studioName)
+	}
+
+	if err := os.MkdirAll(studioProjectsDir, os.ModePerm); err != nil {
 		return err
 	}
-	studioProjectsDir := filepath.Join(projectsDir, studioName)
 	projectPath := filepath.Join(studioProjectsDir, projectName) + ".clst"
 
 	if _, err := os.Stat(workingDir); os.IsNotExist(err) {
