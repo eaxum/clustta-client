@@ -429,6 +429,14 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 			studioProjects = append(studioProjects, untrackedInLocation...)
 		}
 
+		// Fetch personal remote projects from the server (owned + collaborating)
+		serverProjects, err := fetchUserProjects(user)
+		if err != nil {
+			fmt.Printf("Warning: Failed to fetch server projects: %v\n", err)
+		} else {
+			studioProjects = mergeServerProjects(studioProjects, serverProjects, projectsDir)
+		}
+
 		return studioProjects, nil
 	} else {
 		// Fetch remote studio projects from server
@@ -561,6 +569,92 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 
 		return studioProjects, nil
 	}
+}
+
+// serverProject represents a project returned by the server's /user/projects endpoint.
+type serverProject struct {
+	ProjectId   string `json:"project_id"`
+	ProjectName string `json:"project_name"`
+	OwnerId     string `json:"owner_id"`
+	OwnerName   string `json:"owner_name"`
+	Role        string `json:"role"`
+}
+
+// fetchUserProjects calls the central server to get all projects where the user is owner or collaborator.
+func fetchUserProjects(user auth_service.User) ([]serverProject, error) {
+	url := constants.HOST + "/user/projects"
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("server returned status %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var projects []serverProject
+	err = json.Unmarshal(body, &projects)
+	if err != nil {
+		return nil, err
+	}
+	return projects, nil
+}
+
+// mergeServerProjects merges server-discovered projects into the locally-scanned project list.
+// Local projects get enriched with role/owner info; server-only projects are added as not-downloaded.
+func mergeServerProjects(localProjects []repository.ProjectInfo, serverProjects []serverProject, projectsDir string) []repository.ProjectInfo {
+	// Build index of local projects by remote URL for fast lookup
+	localByRemote := make(map[string]int)
+	for i, lp := range localProjects {
+		if lp.Remote != "" {
+			localByRemote[lp.Remote] = i
+		}
+	}
+
+	for _, sp := range serverProjects {
+		remoteUrl := constants.HOST + "/user/" + sp.OwnerId + "/" + sp.ProjectName
+		if idx, exists := localByRemote[remoteUrl]; exists {
+			// Enrich existing local project with role info
+			localProjects[idx].Role = sp.Role
+			localProjects[idx].OwnerName = sp.OwnerName
+		} else {
+			// Server-only project: add as not-downloaded
+			localProjects = append(localProjects, repository.ProjectInfo{
+				Id:           sp.ProjectId,
+				Name:         sp.ProjectName,
+				Remote:       remoteUrl,
+				HasRemote:    true,
+				IsDownloaded: false,
+				IsTracked:    true,
+				Valid:        true,
+				Role:         sp.Role,
+				OwnerName:    sp.OwnerName,
+			})
+		}
+	}
+
+	// Set role to "owner" for local projects that have no server match (local-only projects)
+	for i, lp := range localProjects {
+		if lp.Role == "" && lp.IsTracked {
+			localProjects[i].Role = "owner"
+		}
+	}
+
+	return localProjects
 }
 
 func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]bool, locationID string) ([]repository.ProjectInfo, error) {

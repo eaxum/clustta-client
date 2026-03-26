@@ -215,7 +215,7 @@ const addUser = (user) => {
       selectedUserEmails.value.push(userEmail);
     }
     
-    if (!userStore.userCanCreateProject) return;
+    if (!projectStore.isProjectOwner) return;
 
     if (user.userType !== 'new') {
       selectedUserEmails.value.push(userEmail);

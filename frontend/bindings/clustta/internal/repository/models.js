@@ -223,6 +223,20 @@ export class ProjectInfo {
              */
             this["ignore_list"] = [];
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["role"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["owner_name"] = undefined;
+        }
 
         Object.assign(this, $$source);
     }

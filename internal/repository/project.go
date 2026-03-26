@@ -56,6 +56,8 @@ type ProjectInfo struct {
 	IsTracked        bool     `json:"is_tracked"`
 	IsOffline        bool     `json:"is_offline"`
 	IgnoreList       []string `json:"ignore_list"`
+	Role             string   `json:"role,omitempty"`
+	OwnerName        string   `json:"owner_name,omitempty"`
 }
 
 type ProjectConfig struct {
