@@ -214,7 +214,7 @@ const launchProject = async (project) => {
 
 // Initiates rename from menu if the project is in focus.
 const menuRename = () => {
-  if (isProjectInFocus.value && userStore.userCanCreateProject) isEditing.value = true;
+  if (isProjectInFocus.value && projectStore.isProjectOwner) isEditing.value = true;
 };
 
 // Opens the context menu for the project item.
@@ -285,12 +285,12 @@ watch(() => isProjectInFocus.value, () => {
 // events
 Events.On('edit-item', async () => {
   if (operationsActive.value) return;
-  if (isProjectInFocus.value && userStore.userCanCreateProject) modals.setModalVisibility('editProjectModal', true);
+  if (isProjectInFocus.value && projectStore.isProjectOwner) modals.setModalVisibility('editProjectModal', true);
 });
 
 Events.On('rename-item', async () => {
   if (operationsActive.value || !props.project.is_tracked) return;
-  if (isProjectInFocus.value && userStore.userCanCreateProject) isEditing.value = true;
+  if (isProjectInFocus.value && projectStore.isProjectOwner) isEditing.value = true;
 });
 
 // lifecycle hooks

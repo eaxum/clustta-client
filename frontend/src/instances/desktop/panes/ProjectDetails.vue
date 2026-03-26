@@ -50,12 +50,12 @@
           :buttonFunction="backupProject" v-tooltip="$t('panes.backupTooltip')" />
 
         <!-- Archive -->
-        <ActionButton v-if="!projectStore.getActiveProject.is_closed && userStore.userCanCreateProject"
+        <ActionButton v-if="!projectStore.getActiveProject.is_closed && projectStore.isProjectOwner"
           :icon="getAppIcon('archive')" :showLabel="true" :fullWidth="true" :label="$t('panes.archiveProject')"
           :buttonFunction="prepCloseProjectPopUpModal" v-tooltip="$t('panes.archiveProjectTooltip')" />
 
 
-        <ActionButton v-else-if="userStore.userCanCreateProject" :icon="getAppIcon('unarchive')" :showLabel="true"
+        <ActionButton v-else-if="projectStore.isProjectOwner" :icon="getAppIcon('unarchive')" :showLabel="true"
           :fullWidth="true" :label="$t('panes.unarchiveProject')" :buttonFunction="toggleCloseProject" v-tooltip="$t('panes.unarchiveProjectTooltip')" />
 
         <!-- Rebuild -->

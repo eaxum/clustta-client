@@ -4,11 +4,11 @@
     <ActionButton :icon="getAppIcon('info')" :showLabel="true" :fullWidth="true"
       :label="$t('modals.projectDetails')" :buttonFunction="showProjectDetails" />
 
-    <ActionButton :icon="getAppIcon('edit')" v-if="userStore.userCanCreateProject" :showLabel="true" :fullWidth="true" :label="$t('modals.renameProject')"
+    <ActionButton :icon="getAppIcon('edit')" v-if="projectStore.isProjectOwner" :showLabel="true" :fullWidth="true" :label="$t('modals.renameProject')"
       :buttonFunction="renameProject" />
 
     <!-- Create -->
-    <ActionButton :icon="getAppIcon('switches')" v-if="userStore.userCanCreateProject" :showLabel="true" :fullWidth="true"
+    <ActionButton :icon="getAppIcon('switches')" v-if="projectStore.isProjectOwner" :showLabel="true" :fullWidth="true"
       :label="$t('menus.editProject')" :buttonFunction="editProject" />
 
     <!-- {{  isPinExceeded  }} -->
@@ -44,12 +44,12 @@
       :buttonFunction="prepTrimProjectPopUpModal" />
       
     <!-- Archive -->
-    <ActionButton v-if="!projectStore.getActiveProject?.is_closed && userStore.userCanCreateProject"
+    <ActionButton v-if="!projectStore.getActiveProject?.is_closed && projectStore.isProjectOwner"
       :icon="getAppIcon('archive')" :showLabel="true" :fullWidth="true" :label="$t('menus.archiveProject')"
       :buttonFunction="prepCloseProjectPopUpModal" />
 
 
-    <ActionButton v-else-if="userStore.userCanCreateProject" :icon="getAppIcon('unarchive')" :showLabel="true"
+    <ActionButton v-else-if="projectStore.isProjectOwner" :icon="getAppIcon('unarchive')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.unarchiveProject')" :buttonFunction="toggleCloseProject" />
 
     <!-- Rebuild -->
@@ -62,7 +62,7 @@
       :buttonFunction="prepRemovePopUpModal" />
 
     <!-- Delete project -->
-    <ActionButton v-if="(projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && userStore.userCanCreateProject" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('menus.deleteProject')"
+    <ActionButton v-if="(projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && projectStore.isProjectOwner" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('menus.deleteProject')"
       :buttonFunction="prepDeletePopUpModal" />
 
 
@@ -241,7 +241,7 @@ const prepDeletePopUpModal = () => {
 
   // Build contextual message
   let message = '';
-  if (project.has_remote && userStore.userCanCreateProject) {
+  if (project.has_remote && projectStore.isProjectOwner) {
     message = t('confirmations.deleteRemoteProject', { name: project.name });
   } else {
     message = t('confirmations.deleteProjectLocal');
@@ -255,7 +255,7 @@ const prepDeletePopUpModal = () => {
   trayStates.dangerousActionIcon = 'trash';
   trayStates.dangerousActionConfirmText = project.name;
   trayStates.dangerousActionShowInput = true;
-  trayStates.dangerousActionFunction = project.has_remote && userStore.userCanCreateProject
+  trayStates.dangerousActionFunction = project.has_remote && projectStore.isProjectOwner
     ? deleteRemoteProject
     : deleteProject;
   trayStates.dangerousActionShowToggle = true;
