@@ -1,7 +1,7 @@
 <template>
   <div class="settings-component-root">
     <div class="settings-component-container">
-      <ActionBar v-if="projectStore.isPersonalRemote || userStore.canDo('add_user')" :itemType="$t('settings.addCollaborator').toLowerCase()" :addFunction="addCollaborator" />
+      <ActionBar v-if="projectStore.isR2Remote || userStore.canDo('add_user')" :itemType="$t('settings.addCollaborator').toLowerCase()" :addFunction="addCollaborator" />
 
       <div v-if="projectCollaborators.length" class="collaborators-list-wrapper">
         <div class="collaborators-list">
@@ -61,7 +61,7 @@ const addCollaborator = () => {
 // refs
 
 const isLastAdmin = computed(() => {
-  if (projectStore.isPersonalRemote) return false;
+  if (projectStore.isR2Remote) return false;
   let projectUsers = userStore.getProjectCollaborators;
   const projectRoles = projectUsers.map((user) => user.role.name);
   const isLastAdmin = projectRoles.filter(roleName => roleName === 'admin').length < 2;
@@ -72,11 +72,11 @@ const activeUserId = computed(() => {
   return userStore.user?.id;
 });
 
-const canRemoveUser = computed(() => { return projectStore.isPersonalRemote || userStore.canDo('remove_user') });
-const canChangeRole = computed(() => { return projectStore.isPersonalRemote || userStore.canDo('change_role') });
+const canRemoveUser = computed(() => { return projectStore.isR2Remote || userStore.canDo('remove_user') });
+const canChangeRole = computed(() => { return projectStore.isR2Remote || userStore.canDo('change_role') });
 
 const availableRoles = computed(() => {
-  if (projectStore.isPersonalRemote) return ['admin', 'artist'];
+  if (projectStore.isR2Remote) return ['admin', 'artist'];
   return userStore.getRolesNames;
 });
 
@@ -107,7 +107,7 @@ const projectCollaborators = computed(() => {
       id: user.id,
       avatarColor: userStore.userProfileColor(user.id),
       can_edit: user.id !== activeUserId.value && canChangeRole.value,
-      can_delete: !assignedUserIds.includes(user.id) && user.id !== activeUserId.value && (projectStore.isPersonalRemote || (user.role?.name !== 'admin' || !isLastAdmin.value)) && canRemoveUser.value,
+      can_delete: !assignedUserIds.includes(user.id) && user.id !== activeUserId.value && (projectStore.isR2Remote || (user.role?.name !== 'admin' || !isLastAdmin.value)) && canRemoveUser.value,
     };
   });
   return utils.sortAlphabetically(users);
@@ -130,7 +130,7 @@ const deleteCollaborator = async (userId) => {
   let collaborator = allCollaborators.find(item => item.id === userId);
 
   try {
-    if (projectStore.isPersonalRemote) {
+    if (projectStore.isR2Remote) {
       await CollaboratorService.RemoveCollaborator(projectStore.activeProject.remote, collaborator.id);
     }
     await ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id);

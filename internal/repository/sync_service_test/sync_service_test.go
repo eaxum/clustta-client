@@ -59,7 +59,7 @@ func TestGetLocalStudioProject(t *testing.T) {
 		t.Error(err.Error())
 	}
 	testutils.Tx.Commit()
-	_, err = sync_service.GetStudioProjects(user, testutils.TestFolder, "Personal")
+	_, err = sync_service.GetStudioProjects(user, testutils.TestFolder, "Personal", "", "")
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -71,7 +71,7 @@ func TestGetStudioProject(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	_, err = sync_service.GetStudioProjects(user, "http://localhost:8080", "Test")
+	_, err = sync_service.GetStudioProjects(user, "http://localhost:8080", "Test", "dedicated", "")
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -84,15 +84,15 @@ func TestGetCloneProject(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	projects, err := sync_service.GetStudioProjects(user, "http://localhost:7774", "Eaxum")
+	projects, err := sync_service.GetStudioProjects(user, "http://localhost:7774", "Eaxum", "dedicated", "")
 	if err != nil {
 		t.Error(err.Error())
 	}
 	project := projects[0]
 	syncOptions := sync_service.SyncOptions{
 		OnlyLatestCheckpoints: true,
-		AssetDependencies:      true,
-		Assets:                 true,
+		AssetDependencies:     true,
+		Assets:                true,
 		Resources:             true,
 		Templates:             true,
 	}

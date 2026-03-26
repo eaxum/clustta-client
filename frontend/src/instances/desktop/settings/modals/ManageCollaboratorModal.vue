@@ -6,23 +6,23 @@
     <div class="general-container">
 
       <div class="horizontal-flex">
-        <CollaboratorSuggestions :allowMultipleEntries="true" :placeholder="placeholder" :selectedItems="selectedUsers" :allItems="isPersonalRemote ? [] : studioUsers"
+        <CollaboratorSuggestions :allowMultipleEntries="true" :placeholder="placeholder" :selectedItems="selectedUsers" :allItems="isR2Remote ? [] : studioUsers"
           @tagAdded="addUser" @tagRemoved="removeUser" />
       </div>
 
-      <div v-if="!isPersonalRemote" class="horizontal-flex">
+      <div v-if="!isR2Remote" class="horizontal-flex">
         <DropDownBox :items="userStore.getRolesNames" :onSelect="selectRole"
           :selectedItem="collaboratorRole" :placeHolder="$t('common.none')" :fullWidth="true" />
       </div>
 
-      <div v-if="isPersonalRemote" class="horizontal-flex">
+      <div v-if="isR2Remote" class="horizontal-flex">
         <DropDownBox :items="personalRemoteRoles" :onSelect="selectRole"
           :selectedItem="collaboratorRole" :placeHolder="$t('common.none')" :fullWidth="true" />
       </div>
 
       <!-- Notification section for non-studio users -->
       <div class="notification-area">
-      <div v-if="!isPersonalRemote && nonStudioUsers.length > 0" class="horizontal-flex">
+      <div v-if="!isR2Remote && nonStudioUsers.length > 0" class="horizontal-flex">
         <NotificationBox 
           type="warning"
           :icon="getAppIcon('alert')"
@@ -103,7 +103,7 @@ const title = t('modals.manageCollaborators');
 // refs
 const allProjectCollaborators = ref([]);
 const collaboratorRole = ref(
-  projectStore.isPersonalRemote
+  projectStore.isR2Remote
     ? 'artist'
     : userStore.getRolesNames[userStore.getRolesNames.length - 1]
 );
@@ -114,7 +114,7 @@ const unregisteredUserEmails = ref([]);
 
 // computed
 // Whether the active project is a personal remote project.
-const isPersonalRemote = computed(() => projectStore.isPersonalRemote);
+const isR2Remote = computed(() => projectStore.isR2Remote);
 
 const newUsers = computed(() => {
   return selectedUsers.value.filter(user => user.userType === 'new');
@@ -125,7 +125,7 @@ const nonStudioUsers = computed(() => {
 });
 
 const selectedUsers = computed(() => {
-  if (isPersonalRemote.value) {
+  if (isR2Remote.value) {
     const registeredUsers = selectedUserEmails.value.map(email => ({
       id: email,
       email: email,
@@ -196,7 +196,7 @@ const addCollaborators = async () => {
   isAwaitingResponse.value = true;
 
   try {
-    if (isPersonalRemote.value) {
+    if (isR2Remote.value) {
       await addPersonalRemoteCollaborators();
     } else {
       await addStudioCollaborators();
@@ -205,7 +205,7 @@ const addCollaborators = async () => {
     console.error('Error in addCollaborators:', error);
     notificationStore.errorNotification(t('notifications.errorAddingUsers'), error);
   } finally {
-    if (!isPersonalRemote.value) {
+    if (!isR2Remote.value) {
       await studioStore.getStudioUsers();
     }
     isAwaitingResponse.value = false;
@@ -350,7 +350,7 @@ const addUser = async (user) => {
     return;
   }
 
-  if (isPersonalRemote.value) {
+  if (isR2Remote.value) {
     try {
       const emailExists = await AuthService.CheckEmailExists(userEmail);
       if (emailExists) {

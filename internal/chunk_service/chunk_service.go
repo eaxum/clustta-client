@@ -60,9 +60,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// IsPersonalRemote returns true if the remote URL points to a personal project on the Clustta server.
-func IsPersonalRemote(remoteUrl string) bool {
-	return strings.Contains(remoteUrl, "/user/")
+// IsR2Remote returns true if the remote URL points to an R2-backed project on the central server.
+// This includes both personal projects (/user/) and cloud studio projects (/studio/).
+func IsR2Remote(remoteUrl string) bool {
+	return strings.Contains(remoteUrl, "/user/") || strings.Contains(remoteUrl, "/studio/")
 }
 
 type Chunk struct {
@@ -561,8 +562,8 @@ func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missin
 		return ctx.Err()
 	}
 
-	// Use presigned URLs for personal projects (server-hosted on R2).
-	if IsPersonalRemote(remoteUrl) {
+	// Use presigned URLs for R2-backed projects (personal or cloud studio).
+	if IsR2Remote(remoteUrl) {
 		return PullChunksPresigned(ctx, projectPath, remoteUrl, missingChunkHashes, allChunkHashes, totalSize, callback)
 	}
 
@@ -1067,8 +1068,8 @@ func PushChunks(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []Chunk
 }
 
 func PushChunksBatch(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []ChunkInfo, callback func(int, int, string, string)) error {
-	// Use presigned uploads for personal projects (server-hosted on R2).
-	if IsPersonalRemote(remoteUrl) {
+	// Use presigned uploads for R2-backed projects (personal or cloud studio).
+	if IsR2Remote(remoteUrl) {
 		return PushChunksPresigned(tx, remoteUrl, chunkInfos, callback)
 	}
 

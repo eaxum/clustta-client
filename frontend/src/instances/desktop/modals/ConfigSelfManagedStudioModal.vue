@@ -218,7 +218,7 @@ const copySecretKey = async () => {
 
 // Creates a new self-managed studio.
 const createStudio = async () => {
-  await StudioService.RegisterStudio(studioName.value, studioUrl.value).then(async (result) => {
+  await StudioService.RegisterStudio(studioName.value, studioUrl.value, 'dedicated').then(async (result) => {
     console.log(result);
     createdStudio.value = result;
     isAwaitingResponse.value = false;

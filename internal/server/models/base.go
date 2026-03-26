@@ -38,11 +38,12 @@ type Studio struct {
 }
 
 type MinimalStudio struct {
-	Id     string `db:"id" json:"id"`
-	Name   string `db:"name" json:"name"`
-	URL    string `db:"url" json:"url"`
-	AltURL string `db:"alt_url" json:"alt_url"`
-	Active string `db:"active" json:"active"`
+	Id          string `db:"id" json:"id"`
+	Name        string `db:"name" json:"name"`
+	URL         string `db:"url" json:"url"`
+	AltURL      string `db:"alt_url" json:"alt_url"`
+	Active      string `db:"active" json:"active"`
+	HostingMode string `db:"hosting_mode" json:"hosting_mode"`
 }
 type StudioUser struct {
 	Id       string `db:"id" json:"id"`

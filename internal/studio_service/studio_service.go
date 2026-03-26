@@ -558,7 +558,7 @@ func GetStudioStatus(studioUrl string) (string, error) {
 
 // RegisterStudio registers a new studio on the global Clustta server.
 // This operation is only available in global auth mode.
-func RegisterStudio(studioName, studioUrl string) (interface{}, error) {
+func RegisterStudio(studioName, studioUrl, hostingMode string) (interface{}, error) {
 	if !isGlobalMode() {
 		return nil, fmt.Errorf("studio registration is only available in global auth mode")
 	}
@@ -566,8 +566,9 @@ func RegisterStudio(studioName, studioUrl string) (interface{}, error) {
 	url := constants.HOST + "/studio"
 
 	requestBody := map[string]string{
-		"name": studioName,
-		"url":  studioUrl,
+		"name":         studioName,
+		"url":          studioUrl,
+		"hosting_mode": hostingMode,
 	}
 
 	jsonData, err := json.Marshal(requestBody)

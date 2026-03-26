@@ -1,9 +1,9 @@
 import { globalApiCall } from './http-client.js';
 
 export const StudioService = {
-  // Registers a new studio with the given name and URL
-  RegisterStudio: async (name, studioUrl) => {
-    return await globalApiCall('/studio', 'POST', { name, url: studioUrl });
+  // Registers a new studio with the given name, URL, and hosting mode
+  RegisterStudio: async (name, studioUrl, hostingMode) => {
+    return await globalApiCall('/studio', 'POST', { name, url: studioUrl, hosting_mode: hostingMode });
   },
 
   // Returns all users in a studio
