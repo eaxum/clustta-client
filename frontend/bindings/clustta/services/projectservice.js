@@ -61,10 +61,12 @@ export function CloseProject(projectPath) {
  * @param {string} studioName
  * @param {string} workingDir
  * @param {string} templateName
+ * @param {string} hostingMode
+ * @param {string} studioId
  * @returns {$CancellablePromise<repository$0.ProjectInfo>}
  */
-export function CreateProject(projectUri, studioName, workingDir, templateName) {
-    return $Call.ByID(914775891, projectUri, studioName, workingDir, templateName).then(/** @type {($result: any) => any} */(($result) => {
+export function CreateProject(projectUri, studioName, workingDir, templateName, hostingMode, studioId) {
+    return $Call.ByID(914775891, projectUri, studioName, workingDir, templateName, hostingMode, studioId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
 }

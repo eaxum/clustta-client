@@ -2,6 +2,7 @@ package services
 
 import (
 	"clustta/internal/auth_service"
+	"clustta/internal/constants"
 	"clustta/internal/error_service"
 	"clustta/internal/ignore"
 	"clustta/internal/repository"
@@ -28,10 +29,17 @@ type UntrackedItems struct {
 	Folders []models.UntrackedCollection `json:"collections"`
 }
 
-func (p *ProjectService) CreateProject(projectUri, studioName, workingDir, templateName string) (repository.ProjectInfo, error) {
+func (p *ProjectService) CreateProject(projectUri, studioName, workingDir, templateName, hostingMode, studioId string) (repository.ProjectInfo, error) {
 	if studioName == "" {
 		return repository.ProjectInfo{}, errors.New("studio name can't be empty")
 	}
+
+	// For cloud studios, construct the proper API URL
+	if hostingMode == "cloud" && studioId != "" {
+		projectName := filepath.Base(projectUri)
+		projectUri = constants.HOST + "/studio/" + studioId + "/" + projectName
+	}
+
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
 		return repository.ProjectInfo{}, err

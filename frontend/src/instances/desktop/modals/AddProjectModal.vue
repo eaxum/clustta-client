@@ -278,7 +278,7 @@ const createProject = async () => {
   console.log(workingDirectory.value)
   console.log(selectedProjectTemplate.value)
 
-  ProjectService.CreateProject(path, studio.name, workingDirectory.value, selectedProjectTemplate.value).then(async (project) => {
+  ProjectService.CreateProject(path, studio.name, workingDirectory.value, selectedProjectTemplate.value, studio.hosting_mode || '', studio.id || '').then(async (project) => {
 
     projectIsCreated.value = true;
 
@@ -321,7 +321,7 @@ const cloneProject = async () => {
   const project = projectStore.activeProject;
   const studioDisplayName = projectStore.selectedStudio.name;
   const projectName = project.name;
-  const projectUrl = (project.has_remote && project.remote) ? project.remote : projectStore.getStudioUrl + '/' + projectName;
+  const projectUrl = project.remote || (projectStore.getStudioUrl + '/' + projectName);
   const syncOptions = {
     only_latest_checkpoints: true,
     asset_dependencies: true,
