@@ -229,7 +229,7 @@ export const useStudioStore = defineStore("studio", {
       const projectStore = useProjectStore();
       const notificationStore = useNotificationStore();
       const studio = projectStore.selectedStudio;
-      if (!studio || studio.name === 'Personal') {
+      if (!studio || studio.name === 'Personal' || studio.hosting_mode === 'cloud') {
         this.appOnline = true;
         return;
       }

@@ -248,7 +248,7 @@ watchEffect(() => {
   }
 });
 
-const studioList = computed(() => { return projectStore.studios.filter(item => item.id !== projectStore.selectedStudio.id && item.url ) });
+const studioList = computed(() => { return projectStore.studios.filter(item => item.id !== projectStore.selectedStudio.id && (item.url || item.hosting_mode) ) });
 
 const operationMessage = computed(() => {
   return ' - ' + t('components.titleBar.working');
