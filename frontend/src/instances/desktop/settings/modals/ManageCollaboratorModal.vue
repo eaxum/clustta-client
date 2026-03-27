@@ -116,6 +116,11 @@ const unregisteredUserEmails = ref([]);
 // Whether the active project is a personal remote project.
 const isR2Remote = computed(() => projectStore.isR2Remote);
 
+// Whether the active project is a studio project (cloud or private).
+const isStudioProject = computed(() => {
+  return projectStore.selectedStudio && projectStore.selectedStudio.name !== 'Personal';
+});
+
 const newUsers = computed(() => {
   return selectedUsers.value.filter(user => user.userType === 'new');
 });
@@ -198,14 +203,16 @@ const addCollaborators = async () => {
   try {
     if (isR2Remote.value) {
       await addPersonalRemoteCollaborators();
+    } else if (isStudioProject.value) {
+      await addStudioProjectCollaborators();
     } else {
-      await addStudioCollaborators();
+      await addLocalCollaborators();
     }
   } catch (error) {
     console.error('Error in addCollaborators:', error);
     notificationStore.errorNotification(t('notifications.errorAddingUsers'), error);
   } finally {
-    if (!isR2Remote.value) {
+    if (isStudioProject.value) {
       await studioStore.getStudioUsers();
     }
     isAwaitingResponse.value = false;
@@ -268,8 +275,79 @@ const addPersonalRemoteCollaborators = async () => {
   await userStore.reloadUsers();
 };
 
-// Adds collaborators to a studio project via the studio server.
-const addStudioCollaborators = async () => {
+// Adds collaborators to a studio project via the server collaborator endpoint.
+// Works for both cloud and private studios — the server handles writing to the .clst file.
+const addStudioProjectCollaborators = async () => {
+  const remoteUrl = projectStore.getActiveProjectUrl;
+  const studioUsersList = [];
+  const globalUsers = [];
+  const newUsersList = [];
+
+  for (const user of selectedUsers.value) {
+    if (user.userType === 'studio') {
+      studioUsersList.push(user);
+    } else {
+      try {
+        const emailExists = await AuthService.CheckEmailExists(user.email);
+        if (emailExists) {
+          globalUsers.push(user);
+        } else {
+          newUsersList.push(user);
+        }
+      } catch (error) {
+        console.error('Error checking email:', error);
+        newUsersList.push(user);
+      }
+    }
+  }
+
+  // Resolve user IDs for studio users (already have IDs) and global users
+  const resolvedUserIds = studioUsersList.map(user => user.id);
+
+  for (const user of globalUsers) {
+    try {
+      // Add to studio first, then to project
+      await StudioService.AddCollaborator(user.email, projectStore.selectedStudio.id, 'user');
+      await studioStore.getStudioUsers();
+      const studioUser = studioStore.studioUsers.find(u => u.email === user.email);
+      if (studioUser) {
+        resolvedUserIds.push(studioUser.id);
+      }
+    } catch (error) {
+      console.error('Error adding global user to studio:', error);
+      notificationStore.errorNotification(t('notifications.errorAddingGlobalUser'), error);
+    }
+  }
+
+  // Add all resolved users to the project via server endpoint
+  if (resolvedUserIds.length > 0) {
+    await CollaboratorService.AddCollaboratorsWithRole(remoteUrl, resolvedUserIds, collaboratorRole.value);
+    notificationStore.addNotification(t('notifications.usersAddedSuccessfully', { count: resolvedUserIds.length }), "", "success");
+  }
+
+  // Send invitations for new/unregistered users
+  for (const user of newUsersList) {
+    try {
+      await AuthService.SendInvitationEmail(
+        user.email,
+        projectStore.selectedStudio.name || 'Clustta Studio',
+        projectStore.activeProject.name || 'Project'
+      );
+    } catch (error) {
+      console.error('Error sending invitation:', error);
+      notificationStore.errorNotification(t('notifications.errorSendingInvitation'), error);
+    }
+  }
+
+  if (newUsersList.length > 0) {
+    notificationStore.addNotification(t('notifications.invitationsSent', { count: newUsersList.length }), "", "info");
+  }
+
+  await userStore.reloadUsers();
+};
+
+// Adds collaborators to a local project (no remote or non-studio project).
+const addLocalCollaborators = async () => {
   const studioUsersList = [];
   const globalUsers = [];
   const newUsersList = [];
@@ -314,7 +392,7 @@ const addStudioCollaborators = async () => {
   for (const user of newUsersList) {
     try {
       await AuthService.SendInvitationEmail(
-        user.email, 
+        user.email,
         projectStore.selectedStudio.name || 'Clustta Studio',
         projectStore.activeProject.name || 'Project'
       );

@@ -100,6 +100,50 @@ func (c *CollaboratorService) AddCollaborators(remoteUrl string, userIds []strin
 	return results, nil
 }
 
+// AddCollaboratorsWithRole adds collaborators to a project with a specific role.
+// Used for studio projects where a per-project role is specified.
+func (c *CollaboratorService) AddCollaboratorsWithRole(remoteUrl string, userIds []string, role string) ([]map[string]string, error) {
+	url := remoteUrl + "/collaborators"
+
+	payload := struct {
+		UserIds []string `json:"user_ids"`
+		Role    string   `json:"role"`
+	}{UserIds: userIds, Role: role}
+
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("failed to add collaborators: %s", string(body))
+	}
+
+	var results []map[string]string
+	err = json.NewDecoder(resp.Body).Decode(&results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 // RemoveCollaborator removes a collaborator from a personal remote project by user ID.
 func (c *CollaboratorService) RemoveCollaborator(remoteUrl, userId string) error {
 	url := remoteUrl + "/collaborators/" + userId

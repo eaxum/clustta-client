@@ -60,6 +60,11 @@ const addCollaborator = () => {
 
 // refs
 
+// Whether the active project is a studio project (cloud or private).
+const isStudioProject = computed(() => {
+  return projectStore.selectedStudio && projectStore.selectedStudio.name !== 'Personal';
+});
+
 const isLastAdmin = computed(() => {
   if (projectStore.isR2Remote) return false;
   let projectUsers = userStore.getProjectCollaborators;
@@ -130,10 +135,13 @@ const deleteCollaborator = async (userId) => {
   let collaborator = allCollaborators.find(item => item.id === userId);
 
   try {
-    if (projectStore.isR2Remote) {
-      await CollaboratorService.RemoveCollaborator(projectStore.activeProject.remote, collaborator.id);
+    if (isStudioProject.value || projectStore.isR2Remote) {
+      const remoteUrl = projectStore.getActiveProjectUrl;
+      await CollaboratorService.RemoveCollaborator(remoteUrl, collaborator.id);
     }
-    await ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id);
+    if (!isStudioProject.value) {
+      await ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id);
+    }
     let users = userStore.users;
     let userIndex = users.indexOf(collaborator);
     userStore.users.splice(userIndex, 1);
