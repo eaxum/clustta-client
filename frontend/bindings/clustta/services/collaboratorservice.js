@@ -28,6 +28,20 @@ export function AddCollaborators(remoteUrl, userIds) {
 }
 
 /**
+ * AddCollaboratorsWithRole adds collaborators to a project with a specific role.
+ * Used for studio projects where a per-project role is specified.
+ * @param {string} remoteUrl
+ * @param {string[]} userIds
+ * @param {string} role
+ * @returns {$CancellablePromise<{ [_: string]: string }[]>}
+ */
+export function AddCollaboratorsWithRole(remoteUrl, userIds, role) {
+    return $Call.ByID(2205027835, remoteUrl, userIds, role).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
  * FetchUserByEmail looks up a Clustta user by email address.
  * Returns the user data if found, or an error if the user does not exist.
  * @param {string} email

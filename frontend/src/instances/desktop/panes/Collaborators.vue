@@ -176,6 +176,12 @@ const studioCollaborators = computed(() => {
   return utils.sortAlphabetically(users);
 });
 
+// computed
+// Whether the active project is a studio project (cloud or private).
+const isStudioProject = computed(() => {
+  return projectStore.selectedStudio && projectStore.selectedStudio.name !== 'Personal';
+});
+
 // methods
 // Adds a studio collaborator to the project with 'Artist' role (or first available).
 const addCollaboratorToProject = async (userId) => {
@@ -196,17 +202,20 @@ const addCollaboratorToProject = async (userId) => {
 
   loadingCollaboratorIds.value.push(userId);
 
-  await ProjectService.AddUser(projectStore.activeProject.uri, collaborator.email, defaultRole)
-    .then(async () => {
-      notificationStore.addNotification(t('notifications.userAddedToProject'), "", "success");
-      await trayStates.refreshData();
-    })
-    .catch((error) => {
-      notificationStore.errorNotification(t('notifications.errorAddingUserToProject'), error);
-    })
-    .finally(() => {
-      loadingCollaboratorIds.value = loadingCollaboratorIds.value.filter(id => id !== userId);
-    });
+  try {
+    if (isStudioProject.value) {
+      const remoteUrl = projectStore.getActiveProjectUrl;
+      await CollaboratorService.AddCollaboratorsWithRole(remoteUrl, [userId], defaultRole);
+    } else {
+      await ProjectService.AddUser(projectStore.activeProject.uri, collaborator.email, defaultRole);
+    }
+    notificationStore.addNotification(t('notifications.userAddedToProject'), "", "success");
+    await trayStates.refreshData();
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.errorAddingUserToProject'), error);
+  } finally {
+    loadingCollaboratorIds.value = loadingCollaboratorIds.value.filter(id => id !== userId);
+  }
 };
 
 // Updates the collaborator's role in the project.
@@ -234,10 +243,13 @@ const deleteCollaborator = async (userId) => {
   loadingCollaboratorIds.value.push(userId);
   
   try {
-    if (projectStore.isR2Remote) {
-      await CollaboratorService.RemoveCollaborator(projectStore.activeProject.remote, collaborator.id);
+    if (isStudioProject.value || projectStore.isR2Remote) {
+      const remoteUrl = projectStore.getActiveProjectUrl;
+      await CollaboratorService.RemoveCollaborator(remoteUrl, collaborator.id);
     }
-    await ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id);
+    if (!isStudioProject.value) {
+      await ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id);
+    }
     const users = userStore.users;
     const userIndex = users.indexOf(collaborator);
     userStore.users.splice(userIndex, 1);
