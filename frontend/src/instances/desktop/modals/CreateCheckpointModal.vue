@@ -1,6 +1,6 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
-    <HeaderArea :title="$t('modals.createCheckpoint')" :icon="'layers-plus'" />
+    <HeaderArea :title="$t('modals.createCheckpoint')" :icon="'plus-stone'" />
     <div class="general-container">
 
       <textarea v-model="message" class="desktop-input-long" type="text" :placeholder="$t('placeholders.makeAComment')" v-focus

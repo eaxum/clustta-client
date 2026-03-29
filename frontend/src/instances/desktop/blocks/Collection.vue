@@ -55,7 +55,7 @@
           <template v-else-if="collection.type === 'untracked_collection' && props.hasChildren">
             <ActionButton @click="prepAllCheckpointModal(props.collection.collection_path)" 
               v-if="userStore.canDo('create_collection') || canImport || isAssigned"
-              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.addCheckpoints')" />
+              :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.addCheckpoints')" />
           </template>
           <template v-else-if="collection.type === 'untracked_collection' && !props.hasChildren">
             <ActionButton @click="" :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
@@ -153,10 +153,10 @@
           <template v-else>
             <ActionButton v-if="collectionStateFlags.has_modified && !(collection.id in stage.expandedCollections)" 
               @click="prepAllCheckpointModal(props.collection.collection_path)" 
-              :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.untrackedModifiedClickCheckpoint')" />
+              :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.untrackedModifiedClickCheckpoint')" />
             <ActionButton v-else-if="collectionStateFlags.has_untracked && !(collection.id in stage.expandedCollections)" 
               @click="prepAllCheckpointModal(props.collection.collection_path)" 
-              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.untrackedClickCheckpoint')" />
+              :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.untrackedClickCheckpoint')" />
             <ActionButton v-if="collectionStateFlags.has_outdated && !(collection.id in stage.expandedCollections)" 
               @click="updateCollectionAssets" 
               :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickToUpdate')" />
@@ -169,7 +169,7 @@
 
         <div v-else-if="!isEditing && collection.type === 'untracked_collection' && props.hasChildren" class="collection-item-actions">
             <ActionButton @click="prepAllCheckpointModal(props.collection.collection_path)" v-if="userStore.canDo('create_collection') || canImport || isAssigned"
-              :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.addCheckpoints')" />
+              :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.addCheckpoints')" />
         </div>
 
         <div v-else-if="!isEditing && collection.type === 'untracked_collection' && !props.hasChildren" class="collection-item-actions">

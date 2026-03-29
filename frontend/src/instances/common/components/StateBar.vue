@@ -8,11 +8,11 @@
 			v-tooltip="$t('components.stateBar.rebuildAll')" :buttonFunction="rebuildAll" />
 
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_untracked && userStore.canDo('create_checkpoint')"
-			:icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
+			:icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
 			:buttonFunction="prepAllCheckpointModal" />
 
 		<ActionButton v-else-if="collectionStore.collectionStateFlags.has_modified && userStore.canDo('create_checkpoint')"
-			:icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
+			:icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
 			:buttonFunction="prepAllCheckpointModal" />
 
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_modified" :icon="getAppIcon('revert')" 

@@ -49,7 +49,7 @@
             @click="prepMoveToCollection($event)" v-tooltip="$t('components.detailsPane.moveToCollectionTooltip')" />
           <ActionButton v-if="!platformStore.isWeb && assetsCanRebuild" :icon="getAppIcon('jigsaw')" :label="$t('components.detailsPane.rebuildAssets')"
             :buttonFunction="revertAllChanges" v-tooltip="$t('components.detailsPane.rebuildAssetsTooltip')" />
-          <ActionButton v-if="assetsModified" :noFilter="true" :icon="getAppIcon('layers-plus')" :useAlert="true" :label="$t('components.detailsPane.createCheckpoints')"
+          <ActionButton v-if="assetsModified" :noFilter="true" :icon="getAppIcon('plus-stone')" :useAlert="true" :label="$t('components.detailsPane.createCheckpoints')"
             :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsTooltip')" />
           <ActionButton v-if="!platformStore.isWeb && assetsModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :label="$t('components.detailsPane.revertAssets')"
             :buttonFunction="prepResetPopUpModal" v-tooltip="$t('components.detailsPane.revertAssetsTooltip')" />
@@ -92,7 +92,7 @@
 
         
         <div v-else-if="onlyUntrackedAssets || onlyUntrackedCollections" class="action-bar">
-          <ActionButton v-if="userStore.canDo('create_asset') && onlyUntrackedAssets" :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsUntrackedTooltip')" />
+          <ActionButton v-if="userStore.canDo('create_asset') && onlyUntrackedAssets" :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsUntrackedTooltip')" />
           <ActionButton v-if="squashEnabled" :icon="getAppIcon('squash')" :label="$t('components.detailsPane.squashAssets')" :buttonFunction="prepSquashModal" v-tooltip="$t('components.detailsPane.squashAssetsTooltip')" />
           <ActionButton :icon="getAppIcon('file-watch')" :label="$t('components.detailsPane.ignoreItems')" :buttonFunction="ignoreItems" v-tooltip="$t('components.detailsPane.ignoreItemsTooltip')" />
           <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleUntrackedAssets" v-tooltip="$t('components.detailsPane.deleteItemsTooltip')" />
@@ -196,7 +196,7 @@ const placeholder = computed(() => t('components.detailsPane.searchCollaborators
 
 const assetDetailPanes = [
   { name: "Details", nameKey: "panes.detailsTab", tab_name: "assetDetails", icon: "info" },
-  { name: "Checkpoints", nameKey: "panes.checkpointsTab", tab_name: "checkpoints", icon: "layers" },
+  { name: "Checkpoints", nameKey: "panes.checkpointsTab", tab_name: "checkpoints", icon: "checkpoint-stone" },
   { name: "Dependencies", nameKey: "panes.dependenciesTab", tab_name: "dependencies", icon: "dependency" },
   { name: "Console", nameKey: "panes.consoleTab", tab_name: "console", icon: "console" },
 ];
@@ -226,7 +226,7 @@ const paneComponents = {
 
 const projectDetailPanes = [
   { name: "Details", nameKey: "panes.detailsTab", tab_name: "projectDetails", icon: "info" },
-  { name: "Checkpoints", nameKey: "panes.checkpointsTab", tab_name: "projectCheckpoints", icon: "layers" },
+  { name: "Checkpoints", nameKey: "panes.checkpointsTab", tab_name: "projectCheckpoints", icon: "checkpoint-stone" },
   { name: "Change Log", nameKey: "panes.changeLogTab", tab_name: "changeLog", icon: "revert" },
   { name: "Collaborators", nameKey: "panes.collaboratorsTab", tab_name: "collaborators", icon: "person" },
   { name: "Console", nameKey: "panes.consoleTab", tab_name: "console", icon: "console" }

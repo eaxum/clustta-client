@@ -1,7 +1,7 @@
 <template>
   <div class="type-mapping-editor">
     <div class="mapping-header">
-      <img :src="getAppIcon('layers')" alt="" class="header-icon" />
+      <img :src="getAppIcon('checkpoint-stone')" alt="" class="header-icon" />
       <span class="header-title">Type Mappings</span>
       <span class="header-subtitle">Map {{ integrationName }} types to Clustta types</span>
     </div>

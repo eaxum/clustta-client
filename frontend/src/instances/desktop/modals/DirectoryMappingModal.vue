@@ -108,7 +108,7 @@ const templateInputRefs = ref({});
 
 const placeholders = computed(() => [
   { key: '<Episode>', label: 'Episode', icon: 'tv' },
-  { key: '<Sequence>', label: 'Sequence', icon: 'layers' },
+  { key: '<Sequence>', label: 'Sequence', icon: 'checkpoint-stone' },
   { key: '<Shot>', label: 'Shot', icon: 'frame' },
   { key: '<Asset>', label: 'Asset', icon: 'cube' },
   { key: '<CollectionType>', label: 'CollectionType', icon: 'folder' },
