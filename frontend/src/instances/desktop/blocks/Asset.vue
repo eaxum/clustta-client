@@ -102,7 +102,7 @@
               
               <!-- View Checkpoints button -->
               <div v-if="!asset.is_link && !isUntracked && userStore.canDo('view_checkpoint')" class="asset-item-grid-checkpoints-button">
-                <ActionButton :icon="getAppIcon('layers')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
+                <ActionButton :icon="getAppIcon('checkpoint-stone')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
               </div>
               
               <!-- Assign Asset button -->
@@ -147,10 +147,10 @@
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" 
                 v-tooltip="$t('blocks.outdatedClickUpdate')" v-else-if="asset.file_status == 'outdated'" 
                 @click="revertAsset(index, asset, $event)" />
-              <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" 
+              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" 
                 v-tooltip="$t('blocks.modifiedAssignedOther')" 
                 v-else-if="asset.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
-              <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" 
+              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" 
                 v-tooltip="$t('blocks.modifiedClickCheckpoint')" 
                 v-else-if="asset.file_status == 'modified' && userStore.canDo('create_checkpoint')"
                 @click="prepCreateCheckpoint(index, asset, $event)" />
@@ -162,7 +162,7 @@
 
             <div v-else-if="isUntracked">
               <ActionButton v-if="userStore.canDo('create_asset') || canImport" 
-                @click="prepCreateCheckpoint(index, asset, $event)" :icon="getAppIcon('layers-plus')" :useDanger="true" 
+                @click="prepCreateCheckpoint(index, asset, $event)" :icon="getAppIcon('plus-stone')" :useDanger="true" 
                 :noFilter="true" v-tooltip="$t('blocks.fileUntrackedClickAdd')" />
               <ActionButton v-else :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" 
                 v-tooltip="$t('blocks.fileUntracked')" />
@@ -241,7 +241,7 @@
           <!-- asset assignation -->
           <div v-if="!isUntracked && (!asset.is_resource || isCurrentUser)" class="asset-item-assignee-container">
             <ActionButton class="asset-item-assignee-button" v-if="!asset.is_link && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
-              :icon="getAppIcon('layers')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
+              :icon="getAppIcon('checkpoint-stone')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
 
             <ActionButton class="asset-item-assignee-button" v-if="userStore.canDo('assign_asset') && !statusMenuDisplayed && !asset.assignee_id"
               :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
@@ -260,7 +260,7 @@
 
           <div v-else-if="!isEditing" class="asset-item-assignee-container">
             <ActionButton class="asset-item-assignee-button" v-if="!asset.is_link && !isUntracked && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
-              :icon="getAppIcon('layers')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
+              :icon="getAppIcon('checkpoint-stone')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
 
             <ActionButton class="asset-item-assignee-button" v-if="userStore.canDo('assign_asset') && !statusMenuDisplayed && !asset.assignee_id && !isUntracked"
               :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
@@ -303,9 +303,9 @@
                 v-tooltip="$t('blocks.noChanges')" v-else-if="asset.file_status == 'normal'" />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickUpdate')"
                 v-else-if="asset.file_status == 'outdated'" @click="revertAsset(index, asset, $event)" />
-              <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedAssignedOther')"
+              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedAssignedOther')"
                 v-else-if="asset.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
-              <ActionButton :icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedClickCheckpoint')"
+              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedClickCheckpoint')"
                 v-else-if="asset.file_status == 'modified' && userStore.canDo('create_checkpoint')"
                 @click="prepCreateCheckpoint(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="$t('blocks.fileMissingClickBuild')"
@@ -322,7 +322,7 @@
 
         <div v-else-if="isUntracked" class="asset-item-actions">
           <ActionButton v-if="userStore.canDo('create_asset') || canImport" @click="prepCreateCheckpoint(index, asset, $event)"
-            :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.fileUntrackedClickAdd')" />
+            :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.fileUntrackedClickAdd')" />
           <ActionButton v-else :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.fileUntracked')" />
         </div>
 
