@@ -31,7 +31,7 @@
           </span>
         </div>
 
-          <ActionButton v-if="userStore.userCanCreateProject && projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('stall-cog')" v-tooltip="$t('components.titleBar.studioSettings')" :buttonFunction="studioSettings" />
+          <ActionButton v-if="studioStore.isStudioAdmin && projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('stall-cog')" v-tooltip="$t('components.titleBar.studioSettings')" :buttonFunction="studioSettings" />
           <ActionButton :icon="getAppIcon('refresh')" v-tooltip="$t('components.titleBar.reloadStudio')" :buttonFunction="reloadStudio" />
       </div>
 
@@ -212,41 +212,7 @@ const getAppIcon = (iconName) => {
   return icon
 };
 
-const userCanCreateProject = () => {
-  const user = userStore.user;
-  const selectedStudio = projectStore.selectedStudio;
 
-  if (!user || !selectedStudio) {
-    userStore.userCanCreateProject = false
-    return false
-  }
-
-  const activeUserId = user.id;
-  const studioName = selectedStudio.name;
-
-  if (studioName === 'Personal') {
-    userStore.userCanCreateProject = true;
-    return true
-  } else {
-    if (!userStore.getUserAuthentication) {
-      userStore.userCanCreateProject = false
-      return false
-    } else {
-      const userStudioRole = studioStore.studioUsers?.find((item) => item.id === activeUserId)?.role_name;
-      const isAdmin = userStudioRole === 'admin';
-      userStore.userCanCreateProject = isAdmin;
-      return userStudioRole === 'admin';
-    }
-  }
-};
-
-watchEffect(() => {
-  if (projectStore.selectedStudio) {
-    // Track studioUsers so permission re-evaluates when users finish loading
-    const _ = studioStore.studioUsers;
-    userCanCreateProject()
-  }
-});
 
 const studioList = computed(() => { return projectStore.studios.filter(item => item.id !== projectStore.selectedStudio.id && (item.url || item.hosting_mode) ) });
 
@@ -328,7 +294,6 @@ const selectStudio = async (studio) => {
     await trayStates.refreshData();
   }
 
-  userCanCreateProject();
 }
 
 const createStudio = () => {

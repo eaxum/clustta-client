@@ -97,6 +97,7 @@ import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
+import { useStudioStore } from '@/stores/studio';
 
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
@@ -111,6 +112,7 @@ const projectStore = useProjectStore();
 const stage = useStageStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
+const studioStore = useStudioStore();
 const { t } = useI18n();
 
 // refs
@@ -137,7 +139,7 @@ const canCopyToOtherProject = computed(() => {
     project.uri !== projectStore.activeProject?.uri
   ).length > 0;
   const assetIsNormal = asset.value?.file_status === 'normal';
-  return hasOtherDownloadedProjects && assetIsNormal && userStore.userCanCreateProject;
+  return hasOtherDownloadedProjects && assetIsNormal && studioStore.isStudioAdmin;
 });
 
 // Checks if any filters are active.

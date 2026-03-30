@@ -1448,6 +1448,35 @@ func DeleteRemoteProject(projectUri, studioName string, user auth_service.User) 
 	return nil
 }
 
+// LeaveProject removes the current user as a collaborator from a remote project.
+func LeaveProject(remoteUrl string) error {
+	if !utils.IsValidURL(remoteUrl) {
+		return errors.New("not a remote project URL")
+	}
+
+	leaveUrl := remoteUrl + "/leave"
+	req, err := http.NewRequest(http.MethodDelete, leaveUrl, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
+
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != 200 {
+		body, _ := io.ReadAll(response.Body)
+		return errors.New(string(body))
+	}
+
+	return nil
+}
+
 // UpdateProjectWorkingDirectory updates the working directory path for a project.
 // It validates the new path, ensures it's added to ProjectLocations for MacOS bookmark handling,
 // creates the directory if needed, and updates the local project database.

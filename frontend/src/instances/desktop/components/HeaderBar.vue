@@ -28,7 +28,7 @@
 
 			<div class="remote-project-actions" v-if="projectStore.getActiveProject?.has_remote && (projectStore.getActiveProject.is_downloaded || platformStore.isWeb) && enabledStages.includes(stage.selectedStage)">
 
-				<div class="actions-divider" ></div>
+				<div v-if="userStore.canDo('create_asset')" class="actions-divider" ></div>
 				
 				<ActionButton :isDisabled="revertButtonDisabled" @click="openChangeLog()" :icon="getAppIcon('revert')"
 					:iconAfter="true" v-tooltip="revertButtonTooltip" />

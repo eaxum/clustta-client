@@ -88,6 +88,7 @@ export const useTrayStates = defineStore("useTrayStates", {
     popUpModalMessage: "",
     popUpModalIcon: "",
     popUpModalFunction: null,
+    popUpModalLoading: false,
     popUpModalInputValue: null,
     popUpModalPlaceholder: "",
     popUpModalButtons: ['Cancel', 'Confirm'],

@@ -50,12 +50,12 @@
           :buttonFunction="backupProject" v-tooltip="$t('panes.backupTooltip')" />
 
         <!-- Archive -->
-        <ActionButton v-if="!projectStore.getActiveProject.is_closed && projectStore.isProjectOwner"
+        <ActionButton v-if="!projectStore.getActiveProject.is_closed && studioStore.canManageProject"
           :icon="getAppIcon('archive')" :showLabel="true" :fullWidth="true" :label="$t('panes.archiveProject')"
           :buttonFunction="prepCloseProjectPopUpModal" v-tooltip="$t('panes.archiveProjectTooltip')" />
 
 
-        <ActionButton v-else-if="projectStore.isProjectOwner" :icon="getAppIcon('unarchive')" :showLabel="true"
+        <ActionButton v-else-if="studioStore.canManageProject" :icon="getAppIcon('unarchive')" :showLabel="true"
           :fullWidth="true" :label="$t('panes.unarchiveProject')" :buttonFunction="toggleCloseProject" v-tooltip="$t('panes.unarchiveProjectTooltip')" />
 
         <!-- Rebuild -->
@@ -162,6 +162,7 @@ import { useCommonStore } from '@/stores/common';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
 import { usePlatformStore } from '@/stores/platform';
+import { useStudioStore } from '@/stores/studio';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
@@ -181,6 +182,7 @@ const projectStore = useProjectStore();
 const commonStore = useCommonStore();
 const iconStore = useIconStore();
 const platformStore = usePlatformStore();
+const studioStore = useStudioStore();
 
 // i18n
 const { t } = useI18n();

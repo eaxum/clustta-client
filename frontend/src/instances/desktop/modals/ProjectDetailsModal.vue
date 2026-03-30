@@ -6,27 +6,27 @@
       <HeaderArea :notModal="true" v-else :title="title" :emoji="projectIcon" />
       <ActionButton v-if="displayEmojiSelector"  :icon="getAppIcon('arrow-left')" :showLabel="false" v-tooltip="$t('modals.backToDetails')"
         :buttonFunction="toggleEmojiSelector" />
-      <ActionButton v-else  :icon="getAppIcon('face-plus')" :showLabel="false" v-tooltip="$t('modals.setProjectIcon')"
+      <ActionButton v-else-if="studioStore.canManageProject" :icon="getAppIcon('face-plus')" :showLabel="false" v-tooltip="$t('modals.setProjectIcon')"
         :buttonFunction="toggleEmojiSelector" />
       <ActionButton v-if="isPreviewChanged" :icon="getAppIcon('revert')" :showLabel="false"
         v-tooltip="$t('modals.revertCoverImage')" :buttonFunction="revertCoverImage" />
-      <ActionButton v-if="projectPreview && !displayEmojiSelector" :icon="getAppIcon('image-cancel')" :showLabel="false"
+      <ActionButton v-if="studioStore.canManageProject && projectPreview && !displayEmojiSelector" :icon="getAppIcon('image-cancel')" :showLabel="false"
         v-tooltip="$t('modals.removeCoverImage')" :buttonFunction="removeCoverImage" />
-      <ActionButton v-if="!projectPreview" :icon="getAppIcon('image-plus')" :showLabel="false" v-tooltip="$t('modals.addCoverImage')"
+      <ActionButton v-if="studioStore.canManageProject && !projectPreview" :icon="getAppIcon('image-plus')" :showLabel="false" v-tooltip="$t('modals.addCoverImage')"
         :buttonFunction="addCoverImage" />
     </div>
 
 
     <div class="general-container">
 
-      <span @click="addCoverImage" v-if="projectPreview && !displayEmojiSelector" v-tooltip="$t('modals.clickToChange')" class="screenshot-preview">
+      <span @click="studioStore.canManageProject ? addCoverImage() : null" v-if="projectPreview && !displayEmojiSelector" v-tooltip="studioStore.canManageProject ? $t('modals.clickToChange') : ''" class="screenshot-preview">
         <img class="screenshot-thumb" :src="projectPreview">
       </span>
 
       <div class="input-section">
         <div v-if="!isEditingName" class="project-name-display">
           <span class="project-name-text">{{ projectName }}</span>
-          <ActionButton :icon="getAppIcon('edit')" v-tooltip="$t('modals.renameProject')" :buttonFunction="toggleEditName" />
+          <ActionButton v-if="studioStore.canManageProject" :icon="getAppIcon('edit')" v-tooltip="$t('modals.renameProject')" :buttonFunction="toggleEditName" />
         </div>
         <RenameInput 
           v-else
@@ -80,7 +80,7 @@
       </div>
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateProject()" :isActive="isValueChanged"
+        <GeneralButton v-if="studioStore.canManageProject" :label="$t('common.update')" :fullWidth="true" @click="updateProject()" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -110,11 +110,13 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
+import { useStudioStore } from '@/stores/studio';
 
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const studioStore = useStudioStore();
 const { t } = useI18n();
 
 // refs

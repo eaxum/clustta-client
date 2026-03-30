@@ -244,13 +244,11 @@ const addPersonalRemoteCollaborators = async () => {
   }
 
   if (resolvedUserIds.length > 0) {
-    await CollaboratorService.AddCollaborators(remoteUrl, resolvedUserIds);
+    await CollaboratorService.AddCollaborators(remoteUrl, resolvedUserIds, collaboratorRole.value);
 
     for (const email of registeredEmails) {
       try {
-        await ProjectService.AddUser(projectUri, email, collaboratorRole.value).then((result)=>{
-          console.log(result)
-        });
+        await ProjectService.AddUserSynced(projectUri, email, collaboratorRole.value);
       } catch (error) {
         console.error('Error adding user to project:', error);
       }
@@ -446,7 +444,7 @@ const addUser = async (user) => {
     selectedUserEmails.value.push(userEmail);
   }
   
-  if (!userStore.userCanCreateProject) return;
+  if (!studioStore.canManageProject) return;
 
   if (user.userType !== 'new') {
     selectedUserEmails.value.push(userEmail);

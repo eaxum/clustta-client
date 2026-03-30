@@ -4,11 +4,11 @@
     <ActionButton :icon="getAppIcon('info')" :showLabel="true" :fullWidth="true"
       :label="$t('modals.projectDetails')" :buttonFunction="showProjectDetails" />
 
-    <ActionButton :icon="getAppIcon('edit')" v-if="projectStore.isProjectOwner" :showLabel="true" :fullWidth="true" :label="$t('modals.renameProject')"
+    <ActionButton :icon="getAppIcon('edit')" v-if="studioStore.canManageProject" :showLabel="true" :fullWidth="true" :label="$t('modals.renameProject')"
       :buttonFunction="renameProject" />
 
     <!-- Create -->
-    <ActionButton :icon="getAppIcon('switches')" v-if="projectStore.isProjectOwner" :showLabel="true" :fullWidth="true"
+    <ActionButton :icon="getAppIcon('switches')" v-if="studioStore.canManageProject" :showLabel="true" :fullWidth="true"
       :label="$t('menus.editProject')" :buttonFunction="editProject" />
 
     <!-- {{  isPinExceeded  }} -->
@@ -44,12 +44,12 @@
       :buttonFunction="prepTrimProjectPopUpModal" />
       
     <!-- Archive -->
-    <ActionButton v-if="!projectStore.getActiveProject?.is_closed && projectStore.isProjectOwner"
+    <ActionButton v-if="!projectStore.getActiveProject?.is_closed && studioStore.canManageProject"
       :icon="getAppIcon('archive')" :showLabel="true" :fullWidth="true" :label="$t('menus.archiveProject')"
       :buttonFunction="prepCloseProjectPopUpModal" />
 
 
-    <ActionButton v-else-if="projectStore.isProjectOwner" :icon="getAppIcon('unarchive')" :showLabel="true"
+    <ActionButton v-else-if="studioStore.canManageProject" :icon="getAppIcon('unarchive')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.unarchiveProject')" :buttonFunction="toggleCloseProject" />
 
     <!-- Rebuild -->
@@ -57,12 +57,16 @@
       :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" :label="$t('menus.rebuildProject')"
       :buttonFunction="rebuildAll" /> -->
 
+    <!-- Leave project (collaborator removes themselves) -->
+    <ActionButton v-if="isPersonalCollaborator" :icon="getAppIcon('logout')" :showLabel="true" :fullWidth="true" :label="$t('menus.leaveProject')"
+      :buttonFunction="prepLeaveProjectPopUpModal" />
+
     <!-- Remove project (local copy only, remote stays) -->
     <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.has_remote && projectStore.getActiveProject?.is_downloaded" :icon="getAppIcon('minus-circle')" :showLabel="true" :fullWidth="true" :label="$t('menus.removeProject')"
       :buttonFunction="prepRemovePopUpModal" />
 
     <!-- Delete project -->
-    <ActionButton v-if="(projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && projectStore.isProjectOwner" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('menus.deleteProject')"
+    <ActionButton v-if="(projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && studioStore.canManageProject" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('menus.deleteProject')"
       :buttonFunction="prepDeletePopUpModal" />
 
 
@@ -94,6 +98,7 @@ import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
+import { useStudioStore } from '@/stores/studio';
 
 const { t } = useI18n();
 const assetStore = useAssetStore();
@@ -106,11 +111,18 @@ const projectStore = useProjectStore();
 const stage = useStageStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
+const studioStore = useStudioStore();
 
 // refs
 const collectionMenu = ref(null);
 
 // computed
+// Checks if the user is a collaborator (not owner) on a Personal remote project.
+const isPersonalCollaborator = computed(() => {
+  const project = projectStore.getActiveProject;
+  return projectStore.selectedStudio?.name === 'Personal' && project?.has_remote && !studioStore.canManageProject;
+});
+
 // Checks if the project is pinned.
 const isProjectPinned = computed(() => {
   const projectId = projectStore.getActiveProject.id;
@@ -241,7 +253,7 @@ const prepDeletePopUpModal = () => {
 
   // Build contextual message
   let message = '';
-  if (project.has_remote && projectStore.isProjectOwner) {
+  if (project.has_remote && studioStore.canManageProject) {
     message = t('confirmations.deleteRemoteProject', { name: project.name });
   } else {
     message = t('confirmations.deleteProjectLocal');
@@ -255,7 +267,7 @@ const prepDeletePopUpModal = () => {
   trayStates.dangerousActionIcon = 'trash';
   trayStates.dangerousActionConfirmText = project.name;
   trayStates.dangerousActionShowInput = true;
-  trayStates.dangerousActionFunction = project.has_remote && projectStore.isProjectOwner
+  trayStates.dangerousActionFunction = project.has_remote && studioStore.canManageProject
     ? deleteRemoteProject
     : deleteProject;
   trayStates.dangerousActionShowToggle = true;
@@ -350,6 +362,42 @@ const relocateWorkingDirectory = async () => {
   } catch (error) {
     notificationStore.errorNotification(t('notifications.errorSelectingDirectory'), error);
   }
+};
+
+// Leaves a project the user is collaborating on.
+const leaveProject = async () => {
+  const project = projectStore.getActiveProject;
+  trayStates.popUpModalLoading = true;
+  try {
+    await ProjectService.LeaveProject(project.remote);
+    if (project.is_downloaded) {
+      await FSService.DeleteFile(project.uri);
+    }
+    await projectStore.loadProjects();
+    notificationStore.addNotification(
+      t('notifications.leftProject'),
+      t('notifications.leftProjectDesc', { name: project.name }),
+      'success',
+      false
+    );
+  } catch (error) {
+    console.error(error);
+    notificationStore.errorNotification(t('notifications.errorLeavingProject'), error);
+  } finally {
+    trayStates.popUpModalLoading = false;
+  }
+  modals.disableAllModals();
+};
+
+// Prepares and shows the leave project confirmation modal.
+const prepLeaveProjectPopUpModal = () => {
+  const project = projectStore.getActiveProject;
+  trayStates.popUpModalTitle = t('menus.leaveProjectTitle', { name: project.name });
+  trayStates.popUpModalMessage = t('confirmations.leaveProject');
+  trayStates.popUpModalIcon = 'logout';
+  trayStates.popUpModalFunction = leaveProject;
+  modals.setModalVisibility('popUpModal', true);
+  menu.hideContextMenu();
 };
 
 // Emits event to rename the project.
