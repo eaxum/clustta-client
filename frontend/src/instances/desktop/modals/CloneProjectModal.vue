@@ -251,6 +251,7 @@ onMounted(async () => {
 }
 
 .settings-section-card{
+  background-color: transparent;
   outline: 0px;
 }
 
