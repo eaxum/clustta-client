@@ -2,11 +2,11 @@
 	<div ref="projectListRoot" class="project-stage-root absolute-pane">
 		<div class="asset-header">
 			<div class="create-menu" >
-				<ActionButton :isDisabled="!userStore.userCanCreateProject || operationsActive" :icon="getAppIcon('briefcase-plus')" 
+				<ActionButton :isDisabled="!studioStore.isStudioAdmin || operationsActive" :icon="getAppIcon('briefcase-plus')" 
 					@click="createProject" v-tooltip="$t('stages.newProject')" :buttonFunction="doNothing" />
 				<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="operationsActive" :icon="getAppIcon('arrow-down-on-square-stack')" 
 					v-tooltip="$t('stages.importProject')" :buttonFunction="importProject" />
-				<ActionButton v-else :isDisabled="!userStore.userCanCreateProject || operationsActive"  :icon="getAppIcon('arrow-down-on-square-stack')" 
+				<ActionButton v-else :isDisabled="!studioStore.isStudioAdmin || operationsActive"  :icon="getAppIcon('arrow-down-on-square-stack')" 
 					v-tooltip="$t('stages.uploadProject')" :buttonFunction="uploadProject" />
 				<ActionButton :isDisabled="operationsActive" :icon="getAppIcon('refresh')" 
 					v-tooltip="$t('common.refresh')" :buttonFunction="refresh" />
@@ -94,6 +94,7 @@ import { useMenu } from '@/stores/menu';
 import { useUserStore } from '@/stores/users';
 import { useIconStore } from '@/stores/icons';
 import { useDndStore } from '@/stores/dnd';
+import { useStudioStore } from '@/stores/studio';
 
 
 import ProjectItem from '@/instances/desktop/blocks/ProjectItem.vue'
@@ -114,6 +115,7 @@ const panes = usePaneStore();
 const menu = useMenu();
 const iconStore = useIconStore();
 const dndStore = useDndStore();
+const studioStore = useStudioStore();
 const { t } = useI18n();
 
 const projectListContainer = ref(null);
@@ -150,7 +152,7 @@ Events.On('reload-view', async () => {
 
 Events.On('new-project', async () => {
 	if (operationsActive.value) return
-	if(userStore.userCanCreateProject){
+	if(studioStore.isStudioAdmin){
 		createProject();
 	}
 });
@@ -311,7 +313,7 @@ const message = () => {
 	if (searching) {
 		return t('stages.noProjectsMatchSearch')
 	} else {
-		if (userStore.userCanCreateProject) {
+		if (studioStore.isStudioAdmin) {
 			return t('stages.noProjects')
 		} else {
 			return t('stages.noProjectAccess')
@@ -341,7 +343,7 @@ const secondaryActionMessage = () => {
 		return ''
 	} else if (!hasTrackedProjects && hasUntrackedProjects) {
 		return t('stages.displayUntrackedProjects')
-	} else if (userStore.userCanCreateProject) {
+	} else if (studioStore.isStudioAdmin) {
 		return t('stages.createNewProject')
 	} else {
 		return ''
@@ -365,7 +367,7 @@ const secondaryActionFunction = () => {
 	
 	if (!hasTrackedProjects && hasUntrackedProjects) {
 		return toggleShowUntrackedProjects();
-	} else if (userStore.userCanCreateProject) {
+	} else if (studioStore.isStudioAdmin) {
 		return createProject();
 	} else {
 		return 

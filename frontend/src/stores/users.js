@@ -9,7 +9,6 @@ export const useUserStore = defineStore("users", {
     users_index: {},
     roles: [],
     isUserAuthenticated: false,
-    userCanCreateProject: false,
     selectedUser: null,
     selectedRole: null,
     pendingVerification: {

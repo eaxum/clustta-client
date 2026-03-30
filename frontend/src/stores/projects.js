@@ -103,9 +103,6 @@ export const useProjectStore = defineStore("projects", {
     supportsIntegrations: (state) => {
       return state.selectedStudio?.name !== 'Personal';
     },
-    isProjectOwner: (state) => {
-      return !state.activeProject?.role || state.activeProject.role === 'owner';
-    },
 
   },
   actions: {

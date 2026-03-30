@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { StudioService } from "@/services";
 import { useProjectStore } from '@/stores/projects';
+import { useUserStore } from './users';
 import { useNotificationStore } from './notifications';
 // import axios from "axios";
 // import studio_service from "@/services/studio_service";
@@ -36,6 +37,29 @@ export const useStudioStore = defineStore("studio", {
     },
     getSelectedStudioUsers: (state) => {
       return state.selectedStudioUsers;
+    },
+    isStudioAdmin: (state) => {
+      const projectStore = useProjectStore();
+      const userStore = useUserStore();
+      const selectedStudio = projectStore.selectedStudio;
+      const user = userStore.user;
+      if (!user || !selectedStudio) return false;
+      if (selectedStudio.name === 'Personal') return true;
+      if (!userStore.isUserAuthenticated) return false;
+      const studioUser = state.studioUsers?.find((item) => item.id === user.id);
+      return studioUser?.role_name === 'admin';
+    },
+    canManageProject: (state) => {
+      const projectStore = useProjectStore();
+      const userStore = useUserStore();
+      const selectedStudio = projectStore.selectedStudio;
+      if (selectedStudio?.name === 'Personal') {
+        return !projectStore.activeProject?.role || projectStore.activeProject.role === 'owner';
+      }
+      const user = userStore.user;
+      if (!user || !userStore.isUserAuthenticated) return false;
+      const studioUser = state.studioUsers?.find((item) => item.id === user.id);
+      return studioUser?.role_name === 'admin';
     },
   },
   actions: {

@@ -19,10 +19,11 @@ import * as $models from "./models.js";
  * Returns the results array from the server indicating which were added, skipped, or errored.
  * @param {string} remoteUrl
  * @param {string[]} userIds
+ * @param {string} role
  * @returns {$CancellablePromise<{ [_: string]: string }[]>}
  */
-export function AddCollaborators(remoteUrl, userIds) {
-    return $Call.ByID(1170433159, remoteUrl, userIds).then(/** @type {($result: any) => any} */(($result) => {
+export function AddCollaborators(remoteUrl, userIds, role) {
+    return $Call.ByID(1170433159, remoteUrl, userIds, role).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
 }

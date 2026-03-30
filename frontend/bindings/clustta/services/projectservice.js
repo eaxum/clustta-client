@@ -30,6 +30,20 @@ export function AddUser(projectPath, email, roleName) {
 }
 
 /**
+ * AddUserSynced adds a user to the local project and marks them as synced.
+ * Used when the server already has the user data via write-through.
+ * @param {string} projectPath
+ * @param {string} email
+ * @param {string} roleName
+ * @returns {$CancellablePromise<models$0.User>}
+ */
+export function AddUserSynced(projectPath, email, roleName) {
+    return $Call.ByID(3539129760, projectPath, email, roleName).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
  * @param {string} projectPath
  * @param {string} templateName
  * @returns {$CancellablePromise<void>}
@@ -180,6 +194,16 @@ export function InspectClusttaFile(filePath) {
  */
 export function IsIgnored(itemPath, ignoreList) {
     return $Call.ByID(2693616968, itemPath, ignoreList);
+}
+
+/**
+ * LeaveProject removes the current user as a collaborator from a remote project.
+ * The project remote URL is used to construct the leave endpoint.
+ * @param {string} remoteUrl
+ * @returns {$CancellablePromise<void>}
+ */
+export function LeaveProject(remoteUrl) {
+    return $Call.ByID(595831886, remoteUrl);
 }
 
 /**

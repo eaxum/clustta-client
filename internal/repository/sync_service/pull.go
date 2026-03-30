@@ -750,8 +750,10 @@ func mergeServerProjects(localProjects []repository.ProjectInfo, serverProjects 
 	for _, sp := range serverProjects {
 		remoteUrl := constants.HOST + "/user/" + sp.OwnerId + "/" + sp.ProjectName
 		if idx, exists := localByRemote[remoteUrl]; exists {
-			// Enrich existing local project with role info
-			localProjects[idx].Role = sp.Role
+			// Enrich existing local project with role info; prefer "owner" over "collaborator"
+			if localProjects[idx].Role != "owner" {
+				localProjects[idx].Role = sp.Role
+			}
 			localProjects[idx].OwnerName = sp.OwnerName
 		} else {
 			// Server-only project: add as not-downloaded
@@ -768,6 +770,8 @@ func mergeServerProjects(localProjects []repository.ProjectInfo, serverProjects 
 				Role:         sp.Role,
 				OwnerName:    sp.OwnerName,
 			})
+			// Update index so duplicate server entries merge instead of appending again
+			localByRemote[remoteUrl] = len(localProjects) - 1
 		}
 	}
 

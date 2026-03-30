@@ -432,6 +432,12 @@ func (p *ProjectService) DeleteRemoteProject(projectUri, studioName string) erro
 	return repository.DeleteRemoteProject(projectUri, studioName, user)
 }
 
+// LeaveProject removes the current user as a collaborator from a remote project.
+// The project remote URL is used to construct the leave endpoint.
+func (p *ProjectService) LeaveProject(remoteUrl string) error {
+	return repository.LeaveProject(remoteUrl)
+}
+
 func (p *ProjectService) AddUser(projectPath, email, roleName string) (models.User, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -450,6 +456,34 @@ func (p *ProjectService) AddUser(projectPath, email, roleName string) (models.Us
 	}
 	tx.Commit()
 	enqueueUserWriteThrough(projectPath, user)
+	return user, nil
+}
+
+// AddUserSynced adds a user to the local project and marks them as synced.
+// Used when the server already has the user data via write-through.
+func (p *ProjectService) AddUserSynced(projectPath, email, roleName string) (models.User, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return models.User{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return models.User{}, err
+	}
+	defer tx.Rollback()
+
+	user, err := repository.AddUser(tx, email, roleName)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	err = utils.SetRowsSynced(tx, "user", []string{user.Id})
+	if err != nil {
+		return models.User{}, err
+	}
+
+	tx.Commit()
 	return user, nil
 }
 

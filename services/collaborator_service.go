@@ -59,12 +59,13 @@ func (c *CollaboratorService) GetCollaborators(remoteUrl string) ([]Collaborator
 
 // AddCollaborators adds one or more collaborators to a personal remote project by user IDs.
 // Returns the results array from the server indicating which were added, skipped, or errored.
-func (c *CollaboratorService) AddCollaborators(remoteUrl string, userIds []string) ([]map[string]string, error) {
+func (c *CollaboratorService) AddCollaborators(remoteUrl string, userIds []string, role string) ([]map[string]string, error) {
 	url := remoteUrl + "/collaborators"
 
 	payload := struct {
 		UserIds []string `json:"user_ids"`
-	}{UserIds: userIds}
+		Role    string   `json:"role"`
+	}{UserIds: userIds, Role: role}
 
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
