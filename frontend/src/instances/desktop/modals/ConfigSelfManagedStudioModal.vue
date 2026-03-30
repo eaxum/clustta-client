@@ -135,6 +135,7 @@ import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
+import { useStudioStore } from '@/stores/studio';
 
 // constants
 const title = t('modals.newSelfManagedStudio');
@@ -258,6 +259,8 @@ const launchStudio = async () => {
     projectStore.selectedStudio = projectStore.studios[0];
   }
 
+  const studioStore = useStudioStore();
+  await studioStore.getStudioUsers();
   await projectStore.loadProjects().then((result) => {
     console.log(result);
   }).catch((error) => {

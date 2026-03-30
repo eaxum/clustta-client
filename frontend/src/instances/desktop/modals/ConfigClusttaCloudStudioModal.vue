@@ -60,6 +60,7 @@ import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
+import { useStudioStore } from '@/stores/studio';
 
 // constants
 const title = t('modals.newClusttaCloudStudio');
@@ -145,6 +146,8 @@ const createStudio = async () => {
       projectStore.selectedStudio = projectStore.studios[0];
     }
 
+    const studioStore = useStudioStore();
+    await studioStore.getStudioUsers();
     await projectStore.loadProjects();
     closeModal();
   } catch (error) {
