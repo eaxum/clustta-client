@@ -37,9 +37,6 @@ func GetStudioInfo(studioUrl string) (StudioInfo, error) {
 
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
-	// Include session if available
-	auth_service.AttachBearerToken(req)
-
 	client := &http.Client{Timeout: 10 * time.Second}
 	response, err := client.Do(req)
 	if err != nil {

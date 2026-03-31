@@ -356,7 +356,15 @@ func LoginWithHost(username string, password string, authHost string, authMode A
 
 	url := authHost + "/auth/login"
 	jsonBody := fmt.Sprintf("{\"email\": \"%s\", \"password\": \"%s\"}", username, password)
-	response, err := http.Post(url, "application/json", strings.NewReader(jsonBody))
+	req, err := http.NewRequest("POST", url, strings.NewReader(jsonBody))
+	if err != nil {
+		return Token{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{}
+	response, err := client.Do(req)
 	if err != nil {
 		return Token{}, err
 	}
