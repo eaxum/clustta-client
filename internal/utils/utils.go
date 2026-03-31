@@ -328,15 +328,14 @@ func GetProjectFile(tx *sqlx.Tx) (string, error) {
 	return filePath, nil
 }
 func GetProjectName(tx *sqlx.Tx) (string, error) {
-	// var name string
-	// err := tx.Get(&name, "SELECT value FROM config WHERE name = 'name'")
-	// if err != nil {
-	// 	return "", err
-	// }
-	// return name, nil
+	var name string
+	err := tx.Get(&name, "SELECT value FROM config WHERE name = 'project_name'")
+	if err == nil {
+		return name, nil
+	}
+	// Fallback: derive from filename for databases created before project_name was stored.
 	var filePath string
-	query := "SELECT file FROM pragma_database_list WHERE name = 'main'"
-	err := tx.Get(&filePath, query)
+	err = tx.Get(&filePath, "SELECT file FROM pragma_database_list WHERE name = 'main'")
 	if err != nil {
 		return "", err
 	}
