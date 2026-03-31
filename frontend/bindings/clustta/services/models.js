@@ -941,6 +941,181 @@ export class DeploymentStatus {
     }
 }
 
+/**
+ * EntitlementBundle is the complete entitlement state for an entity.
+ */
+export class EntitlementBundle {
+    /**
+     * Creates a new EntitlementBundle instance.
+     * @param {Partial<EntitlementBundle>} [$$source = {}] - The source object to create the EntitlementBundle.
+     */
+    constructor($$source = {}) {
+        if (!("plan" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["plan"] = "";
+        }
+        if (!("plan_type" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["plan_type"] = "";
+        }
+        if (!("status" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["status"] = "";
+        }
+        if (!("limits" in $$source)) {
+            /**
+             * @member
+             * @type {EntitlementLimits}
+             */
+            this["limits"] = (new EntitlementLimits());
+        }
+        if (!("usage" in $$source)) {
+            /**
+             * @member
+             * @type {EntitlementUsage}
+             */
+            this["usage"] = (new EntitlementUsage());
+        }
+        if (!("features" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["features"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new EntitlementBundle instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {EntitlementBundle}
+     */
+    static createFrom($$source = {}) {
+        const $$createField3_0 = $$createType6;
+        const $$createField4_0 = $$createType7;
+        const $$createField5_0 = $$createType8;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("limits" in $$parsedSource) {
+            $$parsedSource["limits"] = $$createField3_0($$parsedSource["limits"]);
+        }
+        if ("usage" in $$parsedSource) {
+            $$parsedSource["usage"] = $$createField4_0($$parsedSource["usage"]);
+        }
+        if ("features" in $$parsedSource) {
+            $$parsedSource["features"] = $$createField5_0($$parsedSource["features"]);
+        }
+        return new EntitlementBundle(/** @type {Partial<EntitlementBundle>} */($$parsedSource));
+    }
+}
+
+/**
+ * EntitlementLimits contains the resolved limits for an entity.
+ */
+export class EntitlementLimits {
+    /**
+     * Creates a new EntitlementLimits instance.
+     * @param {Partial<EntitlementLimits>} [$$source = {}] - The source object to create the EntitlementLimits.
+     */
+    constructor($$source = {}) {
+        if (!("storage_bytes" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["storage_bytes"] = 0;
+        }
+        if (!("max_remote_projects" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["max_remote_projects"] = 0;
+        }
+        if (!("max_collaborators" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["max_collaborators"] = 0;
+        }
+        if (!("ai_credits_monthly" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["ai_credits_monthly"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new EntitlementLimits instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {EntitlementLimits}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new EntitlementLimits(/** @type {Partial<EntitlementLimits>} */($$parsedSource));
+    }
+}
+
+/**
+ * EntitlementUsage contains current resource consumption.
+ */
+export class EntitlementUsage {
+    /**
+     * Creates a new EntitlementUsage instance.
+     * @param {Partial<EntitlementUsage>} [$$source = {}] - The source object to create the EntitlementUsage.
+     */
+    constructor($$source = {}) {
+        if (!("storage_bytes" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["storage_bytes"] = 0;
+        }
+        if (!("project_count" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["project_count"] = 0;
+        }
+        if (!("ai_credits_used" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["ai_credits_used"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new EntitlementUsage instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {EntitlementUsage}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new EntitlementUsage(/** @type {Partial<EntitlementUsage>} */($$parsedSource));
+    }
+}
+
 export class FileInfo {
     /**
      * Creates a new FileInfo instance.
@@ -1948,11 +2123,11 @@ export class UserProfile {
      * @returns {UserProfile}
      */
     static createFrom($$source = {}) {
-        const $$createField8_0 = $$createType7;
-        const $$createField9_0 = $$createType7;
-        const $$createField25_0 = $$createType9;
-        const $$createField26_0 = $$createType11;
-        const $$createField27_0 = $$createType13;
+        const $$createField8_0 = $$createType10;
+        const $$createField9_0 = $$createType10;
+        const $$createField25_0 = $$createType12;
+        const $$createField26_0 = $$createType14;
+        const $$createField27_0 = $$createType16;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("country_id" in $$parsedSource) {
             $$parsedSource["country_id"] = $$createField8_0($$parsedSource["country_id"]);
@@ -2145,11 +2320,14 @@ const $$createType2 = $Create.Array($Create.Any);
 const $$createType3 = $Create.Array($Create.Any);
 const $$createType4 = $Create.Array($Create.Any);
 const $$createType5 = $Create.Array($Create.Any);
-const $$createType6 = NullString.createFrom;
-const $$createType7 = $Create.Nullable($$createType6);
-const $$createType8 = UserTool.createFrom;
-const $$createType9 = $Create.Array($$createType8);
-const $$createType10 = UserSkill.createFrom;
-const $$createType11 = $Create.Array($$createType10);
-const $$createType12 = UserStudio.createFrom;
-const $$createType13 = $Create.Array($$createType12);
+const $$createType6 = EntitlementLimits.createFrom;
+const $$createType7 = EntitlementUsage.createFrom;
+const $$createType8 = $Create.Array($Create.Any);
+const $$createType9 = NullString.createFrom;
+const $$createType10 = $Create.Nullable($$createType9);
+const $$createType11 = UserTool.createFrom;
+const $$createType12 = $Create.Array($$createType11);
+const $$createType13 = UserSkill.createFrom;
+const $$createType14 = $Create.Array($$createType13);
+const $$createType15 = UserStudio.createFrom;
+const $$createType16 = $Create.Array($$createType15);
