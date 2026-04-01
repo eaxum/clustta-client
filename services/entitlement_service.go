@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"clustta/internal/auth_service"
 	"clustta/internal/constants"
 	"encoding/json"
@@ -78,6 +79,101 @@ func fetchEntitlements(url string) (EntitlementBundle, error) {
 	err = json.NewDecoder(resp.Body).Decode(&bundle)
 	if err != nil {
 		return bundle, fmt.Errorf("error decoding entitlements: %w", err)
+	}
+
+	return bundle, nil
+}
+
+// Plan represents a subscription plan from the server.
+type Plan struct {
+	Id                string   `json:"id"`
+	Name              string   `json:"name"`
+	Type              string   `json:"type"`
+	StorageBytes      int64    `json:"storage_bytes"`
+	MaxRemoteProjects int      `json:"max_remote_projects"`
+	MaxCollaborators  int      `json:"max_collaborators"`
+	AICreditsMonthly  int      `json:"ai_credits_monthly"`
+	HasSync           bool     `json:"has_sync"`
+	HasAI             bool     `json:"has_ai"`
+	HasCustomRoles    bool     `json:"has_custom_roles"`
+	HasIntegrations   bool     `json:"has_integrations"`
+	PriceCents        int      `json:"price_cents"`
+	DisplayOrder      int      `json:"display_order"`
+	IsActive          bool     `json:"is_active"`
+	FeatureKeys       []string `json:"feature_keys"`
+}
+
+// GetPlans fetches all available plans from the server.
+func (e *EntitlementService) GetPlans() ([]Plan, error) {
+	url := constants.HOST + "/plans"
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching plans: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("server returned %d: %s", resp.StatusCode, string(body))
+	}
+
+	var plans []Plan
+	err = json.NewDecoder(resp.Body).Decode(&plans)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding plans: %w", err)
+	}
+
+	return plans, nil
+}
+
+// ChangePlan changes the subscription to a new plan and returns the updated entitlements.
+func (e *EntitlementService) ChangePlan(planId string) (EntitlementBundle, error) {
+	url := constants.HOST + "/subscription/change-plan"
+
+	body := map[string]string{"plan_id": planId}
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return EntitlementBundle{}, fmt.Errorf("error marshalling request: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewReader(jsonBody))
+	if err != nil {
+		return EntitlementBundle{}, fmt.Errorf("error creating request: %w", err)
+	}
+
+	token, err := auth_service.GetToken()
+	if err != nil {
+		return EntitlementBundle{}, fmt.Errorf("error getting auth token: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+token.SessionId)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return EntitlementBundle{}, fmt.Errorf("error changing plan: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(resp.Body)
+		return EntitlementBundle{}, fmt.Errorf("server returned %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	var bundle EntitlementBundle
+	err = json.NewDecoder(resp.Body).Decode(&bundle)
+	if err != nil {
+		return EntitlementBundle{}, fmt.Errorf("error decoding response: %w", err)
 	}
 
 	return bundle, nil

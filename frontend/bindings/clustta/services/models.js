@@ -1363,6 +1363,139 @@ export class NullString {
     }
 }
 
+/**
+ * Plan represents a subscription plan from the server.
+ */
+export class Plan {
+    /**
+     * Creates a new Plan instance.
+     * @param {Partial<Plan>} [$$source = {}] - The source object to create the Plan.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("type" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["type"] = "";
+        }
+        if (!("storage_bytes" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["storage_bytes"] = 0;
+        }
+        if (!("max_remote_projects" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["max_remote_projects"] = 0;
+        }
+        if (!("max_collaborators" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["max_collaborators"] = 0;
+        }
+        if (!("ai_credits_monthly" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["ai_credits_monthly"] = 0;
+        }
+        if (!("has_sync" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["has_sync"] = false;
+        }
+        if (!("has_ai" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["has_ai"] = false;
+        }
+        if (!("has_custom_roles" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["has_custom_roles"] = false;
+        }
+        if (!("has_integrations" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["has_integrations"] = false;
+        }
+        if (!("price_cents" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["price_cents"] = 0;
+        }
+        if (!("display_order" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["display_order"] = 0;
+        }
+        if (!("is_active" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["is_active"] = false;
+        }
+        if (!("feature_keys" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["feature_keys"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Plan instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Plan}
+     */
+    static createFrom($$source = {}) {
+        const $$createField14_0 = $$createType8;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("feature_keys" in $$parsedSource) {
+            $$parsedSource["feature_keys"] = $$createField14_0($$parsedSource["feature_keys"]);
+        }
+        return new Plan(/** @type {Partial<Plan>} */($$parsedSource));
+    }
+}
+
 export class ProfileUpdateData {
     /**
      * Creates a new ProfileUpdateData instance.

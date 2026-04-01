@@ -87,6 +87,7 @@ export {
     ItemsForCheckpoint,
     ItemsForUpdate,
     NullString,
+    Plan,
     ProfileUpdateData,
     RecycleItem,
     ShareLinkResponse,
