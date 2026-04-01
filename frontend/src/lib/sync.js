@@ -3,6 +3,7 @@ import { useNotificationStore } from "@/stores/notifications";
 import { useProjectStore } from "@/stores/projects";
 import { useTrayStates } from "@/stores/TrayStates";
 import { useAccountStore } from "@/stores/accounts";
+import { useEntitlementStore } from "@/stores/entitlements";
 import emitter from '@/lib/mitt';
 
 // Guard function to check if remote features are available
@@ -46,6 +47,7 @@ export async function syncData() {
     .then(async () => {
       projectStore.activeProject.is_unsynced = false;
       await projectStore.reloadActiveProject();
+      useEntitlementStore().fetchEntitlements();
       emitter.emit('refresh-browser')
     })
     .catch((error) => {
@@ -76,6 +78,7 @@ export async function pullData() {
     .then(async () => {
       projectStore.activeProject.is_unsynced = false;
       await projectStore.reloadActiveProject();
+      useEntitlementStore().fetchEntitlements();
       emitter.emit('refresh-browser')
     })
     .catch((error) => {
@@ -104,6 +107,7 @@ export async function syncFullData() {
     .then(async () => {
       projectStore.activeProject.is_unsynced = false;
       await projectStore.reloadActiveProject();
+      useEntitlementStore().fetchEntitlements();
       emitter.emit('refresh-browser')
     })
     .catch((error) => {

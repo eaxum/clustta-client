@@ -90,6 +90,7 @@ import { CollectionService, DialogService, FSService, ProjectService, SettingsSe
 // stores
 import { useAssetStore } from '@/stores/assets';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
@@ -102,6 +103,7 @@ import { useStudioStore } from '@/stores/studio';
 
 const { t } = useI18n();
 const assetStore = useAssetStore();
+const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
@@ -179,6 +181,7 @@ const deleteRemoteProject = async ({ deleteWorkingFiles } = {}) => {
   }
   
   await projectStore.loadProjects();
+  entitlementStore.fetchEntitlements();
   notificationStore.addNotification(
     t('notifications.projectDeleted'),
     t('notifications.projectDeletedDesc', { name: project.name }),

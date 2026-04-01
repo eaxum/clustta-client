@@ -23,6 +23,7 @@ import { LogService } from '@/services';
 import { useStageStore } from './stores/stages';
 import { useMenu } from '@/stores/menu';
 import { useAccountStore } from '@/stores/accounts';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useSettingsStore } from '@/stores/settings';
 import { useThemeStore } from '@/stores/theme';
 import { usePlatformStore } from '@/stores/platform';
@@ -41,6 +42,7 @@ const stageStore = useStageStore();
 const studioStore = useStudioStore();
 const userStore = useUserStore();
 const accountStore = useAccountStore();
+const entitlementStore = useEntitlementStore();
 
 
 
@@ -137,6 +139,7 @@ async function pullData() {
         .then(async () => {
             await projectStore.reloadActiveProject()
             await userStore.reloadUsers()
+            entitlementStore.fetchEntitlements();
             emitter.emit('refresh-browser');
         }).catch((error) => {
             console.log("Error Syncing Data", error)

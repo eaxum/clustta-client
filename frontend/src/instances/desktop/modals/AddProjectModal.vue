@@ -87,6 +87,7 @@ const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const projectTemplateStore = useProjectTemplateStore();
+const entitlementStore = useEntitlementStore();
 const stage = useStageStore();
 const { t } = useI18n();
 
@@ -101,6 +102,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useProjectTemplateStore } from '@/stores/project_template';
 import { useStageStore } from '@/stores/stages';
+import { useEntitlementStore } from '@/stores/entitlements';
 
 // refs
 const isAwaitingResponse = ref(false);
@@ -157,7 +159,7 @@ const selectedLocationDisplay = computed(() => {
 
 // Returns whether the remote toggle should be shown.
 const showRemoteToggle = computed(() => {
-  return accountStore.canUseRemoteFeatures && projectStore.selectedStudio?.name === 'Personal';
+  return accountStore.canUseRemoteFeatures && projectStore.selectedStudio?.name === 'Personal' && entitlementStore.canCreateRemoteProject;
 });
 
 // Returns the computed working directory path.
@@ -361,6 +363,7 @@ const cloneProject = async () => {
       }
     }
     await projectStore.refreshProjectsPreview();
+    entitlementStore.fetchEntitlements();
     closeModal();
   } catch (error) {
     console.error(error);
@@ -392,6 +395,7 @@ const makeProjectRemote = async (project) => {
   } finally {
     stage.operationActive = false;
     isCloning.value = false;
+    entitlementStore.fetchEntitlements();
   }
 };
 
@@ -469,6 +473,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
 }
+
 </style>
 
 

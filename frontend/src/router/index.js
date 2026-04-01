@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, createMemoryHistory } from "vue-router"
 import { AuthService, SettingsService, AppService, ProjectService } from "@/services";
 import { useUserStore } from '@/stores/users';
 import { useAccountStore } from '@/stores/accounts';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useThemeStore } from '@/stores/theme';
 import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';
@@ -225,6 +226,10 @@ router.beforeEach(async (to, from, next) => {
       // Initialize stores
       setLoaderStatus('Loading account...');
       await accountStore.initialize();
+
+      // Fetch user entitlements
+      const entitlementStore = useEntitlementStore();
+      entitlementStore.fetchEntitlements();
       
       setLoaderStatus('Applying theme...');
       await themeStore.initializeTheme();
