@@ -20,7 +20,9 @@
 			<ActionButton :isDisabled="!projects.length || operationsActive" :icon="getAppIcon(cardView ? 'list' : 'four-squares')" :v-tooltip="cardView ? $t('stages.list') : $t('stages.cards')"
 				:buttonFunction="switchViewLayout" />
 		</div>
-	</div>		<div ref="projectListContainer" class="project-list-root" 
+	</div>
+
+		<div ref="projectListContainer" class="project-list-root" 
 		:class="{ 'project-list-root-hover-drop': isHovered }">
 
 			<ProjectListSkeleton :cardView="cardView" v-if="!projectStore.projectsLoaded" />

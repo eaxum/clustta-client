@@ -67,6 +67,8 @@
       <!-- <ToggleSwitch :switchValueProp="themeStore.isDarkMode" @click="toggleTheme()" />
       <CheckBox v-model="themeStore.isDarkMode" @change="toggleTheme()" /> -->
 
+      <PlanInfo />
+
       <div class="titlebar-button minimize" @click="minimizeWindow">
         <img class="small-icons" :src="getAppIcon('collapse-window')" alt="Minimize">
       </div>
@@ -133,9 +135,11 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import CheckBox from '@/instances/common/components/CheckBox.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
+import PlanInfo from '@/instances/common/components/PlanInfo.vue';
 import { useStudioStore } from '@/stores/studio';
 import { usePlatformStore } from '@/stores/platform';
 import { useAccountStore } from '@/stores/accounts';
+import { useEntitlementStore } from '@/stores/entitlements';
 
 const stage = useStageStore();
 const userStore = useUserStore();
@@ -150,6 +154,7 @@ const collectionStore = useCollectionStore();
 const settingsStore = useSettingsStore();
 const platformStore = usePlatformStore();
 const accountStore = useAccountStore();
+const entitlementStore = useEntitlementStore();
 const route = useRoute();
 const router = useRouter();
 
@@ -267,6 +272,7 @@ const reloadStudio = async () => {
     projectStore.selectedStudio = projectStore.studios[0]
   }
   await projectStore.loadProjects();
+  entitlementStore.fetchEntitlements();
   displayStudioList.value = false;
 }
 

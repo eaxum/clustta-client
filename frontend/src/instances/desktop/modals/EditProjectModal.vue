@@ -83,12 +83,14 @@ import { DialogService, ProjectService } from '@/services';
 // stores
 import { useAccountStore } from '@/stores/accounts';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 
 const accountStore = useAccountStore();
+const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -250,6 +252,7 @@ const updateRemoteState = async () => {
       updatedProject.has_remote = updatedInfo.has_remote;
       projectStore.activeProject = updatedProject;
     }
+    entitlementStore.fetchEntitlements();
   } catch (error) {
     console.error(error);
     const errorKey = isRemoteEnabled.value ? 'errorMakingProjectRemote' : 'errorRemovingProjectFromRemote';
