@@ -22,12 +22,14 @@ import { computed } from 'vue';
 
 // stores
 import { useAccountStore } from '@/stores/accounts';
+import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useEntitlementStore } from '@/stores/entitlements';
 import { useProjectStore } from '@/stores/projects';
 import { useUserStore } from '@/stores/users';
 
 const accountStore = useAccountStore();
 const entitlementStore = useEntitlementStore();
+const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
 
@@ -53,7 +55,7 @@ const storageBarClass = computed(() => {
 // methods
 // Handles click on the plan info widget.
 const handleClick = () => {
-  // Placeholder for future upgrade flow
+  modals.setModalVisibility('clusttaCloudModal', true);
 };
 </script>
 

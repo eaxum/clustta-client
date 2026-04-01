@@ -18,6 +18,7 @@ export const useEntitlementStore = defineStore("entitlements", {
       ai_credits_used: 0,
     },
     features: [],
+    plans: [],
     studioEntitlements: {},
     lastFetched: null,
     isLoading: false,
@@ -108,8 +109,34 @@ export const useEntitlementStore = defineStore("entitlements", {
       this.limits = { storage_bytes: 0, max_remote_projects: 1, max_collaborators: 0, ai_credits_monthly: 0 };
       this.usage = { storage_bytes: 0, project_count: 0, ai_credits_used: 0 };
       this.features = [];
+      this.plans = [];
       this.studioEntitlements = {};
       this.lastFetched = null;
+    },
+
+    // Fetches all available plans from the server.
+    async fetchPlans() {
+      try {
+        const plans = await EntitlementService.GetPlans();
+        this.plans = plans || [];
+        return this.plans;
+      } catch (error) {
+        console.error('Failed to fetch plans:', error);
+        return [];
+      }
+    },
+
+    // Changes the user's plan and applies the returned entitlement bundle.
+    async changePlan(planId) {
+      try {
+        const bundle = await EntitlementService.ChangePlan(planId);
+        this.applyBundle(bundle);
+        this.lastFetched = Date.now();
+        return true;
+      } catch (error) {
+        console.error('Failed to change plan:', error);
+        return false;
+      }
     },
   },
 });

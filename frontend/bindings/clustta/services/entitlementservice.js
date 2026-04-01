@@ -11,12 +11,33 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 import * as $models from "./models.js";
 
 /**
+ * ChangePlan changes the subscription to a new plan and returns the updated entitlements.
+ * @param {string} planId
+ * @returns {$CancellablePromise<$models.EntitlementBundle>}
+ */
+export function ChangePlan(planId) {
+    return $Call.ByID(1517853031, planId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
  * GetEntitlements fetches the current user's entitlement bundle from the server.
  * @returns {$CancellablePromise<$models.EntitlementBundle>}
  */
 export function GetEntitlements() {
     return $Call.ByID(2005214572).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
+    }));
+}
+
+/**
+ * GetPlans fetches all available plans from the server.
+ * @returns {$CancellablePromise<$models.Plan[]>}
+ */
+export function GetPlans() {
+    return $Call.ByID(3186353408).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType2($result);
     }));
 }
 
@@ -33,3 +54,5 @@ export function GetStudioEntitlements(studioId) {
 
 // Private type creation functions
 const $$createType0 = $models.EntitlementBundle.createFrom;
+const $$createType1 = $models.Plan.createFrom;
+const $$createType2 = $Create.Array($$createType1);

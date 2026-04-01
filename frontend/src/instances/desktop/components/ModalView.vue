@@ -73,6 +73,9 @@ import UpdateStudioModal from '@/instances/desktop/modals/UpdateStudioModal.vue'
 // components - sync
 import SyncConflictModal from '@/instances/desktop/modals/SyncConflictModal.vue';
 
+// components - plans
+import ClusttaCloudModal from '@/instances/desktop/modals/ClusttaCloudModal.vue';
+
 // components - integrations
 import DirectoryMappingModal from '@/instances/desktop/modals/DirectoryMappingModal.vue';
 import IntegrationAuthModal from '@/instances/desktop/modals/IntegrationAuthModal.vue';
@@ -169,6 +172,9 @@ const modalComponents = {
 
   // sync
   syncConflictModal: SyncConflictModal,
+
+  // plans
+  clusttaCloudModal: ClusttaCloudModal,
 
   // integrations
   directoryMappingModal: DirectoryMappingModal,
