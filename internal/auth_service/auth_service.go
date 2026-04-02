@@ -404,10 +404,13 @@ func LoginWithHost(username string, password string, authHost string, authMode A
 	return token, nil
 }
 
-// LoginWithSSO initiates Google SSO by opening the system browser and waiting for the callback.
-func LoginWithSSO(authHost string) (Token, error) {
+// LoginWithSSO initiates SSO login by opening the system browser and waiting for the callback.
+func LoginWithSSO(authHost string, provider string) (Token, error) {
 	if authHost == "" {
 		authHost = DefaultAuthHost
+	}
+	if provider == "" {
+		provider = "google"
 	}
 
 	resultCh := make(chan ssoResult, 1)
@@ -453,7 +456,7 @@ func LoginWithSSO(authHost string) (Token, error) {
 	go server.Serve(listener)
 
 	// Open the system browser to the SSO URL
-	ssoURL := fmt.Sprintf("%s/auth/sso/google?redirect_port=%d", authHost, port)
+	ssoURL := fmt.Sprintf("%s/auth/sso/%s?redirect_port=%d", authHost, provider, port)
 	openBrowser(ssoURL)
 
 	// Wait for the callback (with timeout)

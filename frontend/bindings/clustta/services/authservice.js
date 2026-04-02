@@ -156,13 +156,14 @@ export function LoginWithHost(username, password, authHost, authMode, studioId) 
 }
 
 /**
- * LoginWithSSO initiates Google SSO login by opening the system browser.
+ * LoginWithSSO initiates SSO login by opening the system browser.
  * Returns the authentication token after the user completes the SSO flow.
  * @param {string} authHost
+ * @param {string} provider
  * @returns {$CancellablePromise<auth_service$0.Token>}
  */
-export function LoginWithSSO(authHost) {
-    return $Call.ByID(3336914293, authHost).then(/** @type {($result: any) => any} */(($result) => {
+export function LoginWithSSO(authHost, provider) {
+    return $Call.ByID(3336914293, authHost, provider).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
 }

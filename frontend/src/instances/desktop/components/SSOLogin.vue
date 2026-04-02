@@ -6,18 +6,26 @@
       <span class="sso-divider-line"></span>
     </div>
 
-    <button class="sso-button google" @click="handleGoogleSSO" :disabled="isLoading">
-      <img class="sso-icon" src="/brand-logos/google.svg" alt="Google" />
-      <span v-if="!isLoading">{{ buttonLabel }}</span>
-      <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" :noFilter="true" />
-    </button>
+    <div class="sso-buttons">
+      <button class="sso-button" @click="handleSSO('google')" :disabled="isLoading">
+        <img v-if="!isLoading || activeProvider !== 'google'" class="sso-icon" src="/brand-logos/google.svg" alt="Google" />
+        <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" :noFilter="true" />
+        <span>Google</span>
+      </button>
+
+      <button class="sso-button" @click="handleSSO('microsoft')" :disabled="isLoading">
+        <img v-if="!isLoading || activeProvider !== 'microsoft'" class="sso-icon" src="/brand-logos/microsoft.svg" alt="Microsoft" />
+        <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" :noFilter="true" />
+        <span>Microsoft</span>
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
 
 // imports
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -40,12 +48,10 @@ const props = defineProps({
 const emit = defineEmits(['success', 'error']);
 
 // refs
+const activeProvider = ref('');
 const isLoading = ref(false);
 
 // computed properties
-const buttonLabel = computed(() => {
-  return props.mode === 'signup' ? 'Sign up with Google' : 'Login with Google';
-});
 
 // methods
 
@@ -54,19 +60,21 @@ const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
-// Initiates Google SSO by opening the system browser.
-const handleGoogleSSO = async () => {
+// Initiates SSO by opening the system browser for the specified provider.
+const handleSSO = async (provider) => {
   if (isLoading.value) return;
   isLoading.value = true;
+  activeProvider.value = provider;
 
   try {
-    const data = await AuthService.LoginWithSSO('');
+    const data = await AuthService.LoginWithSSO('', provider);
     emit('success', data);
   } catch (err) {
     console.log(err);
-    emit('error', err.message || 'Google sign-in failed. Please try again.');
+    emit('error', err.message || `${provider} sign-in failed. Please try again.`);
   } finally {
     isLoading.value = false;
+    activeProvider.value = '';
   }
 };
 </script>
@@ -76,6 +84,13 @@ const handleGoogleSSO = async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  gap: 0.75rem;
+}
+
+.sso-buttons {
+  display: flex;
+  flex-direction: row;
   width: 100%;
   gap: 0.75rem;
 }
@@ -100,15 +115,15 @@ const handleGoogleSSO = async () => {
 }
 
 .sso-button {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  width: 100%;
-  padding: 0.7rem 1rem;
+  padding: 0.6rem;
   border: none;
   border-radius: var(--large-radius);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s, border-radius 0.2s;
@@ -123,12 +138,11 @@ const handleGoogleSSO = async () => {
 .sso-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  padding: .1rem;
 }
 
 .sso-icon {
   flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 </style>
