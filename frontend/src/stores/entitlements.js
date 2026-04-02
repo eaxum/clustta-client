@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { EntitlementService } from "@/services";
+import utils from "@/services/utils";
 
 export const useEntitlementStore = defineStore("entitlements", {
   state: () => ({
@@ -44,8 +45,8 @@ export const useEntitlementStore = defineStore("entitlements", {
       return (state.usage.storage_bytes / state.limits.storage_bytes) >= 0.9;
     },
     isPaidPlan: (state) => state.plan !== 'free',
-    storageUsedFormatted: (state) => formatBytes(state.usage.storage_bytes),
-    storageLimitFormatted: (state) => formatBytes(state.limits.storage_bytes),
+    storageUsedFormatted: (state) => utils.formatBytes(state.usage.storage_bytes, 2),
+    storageLimitFormatted: (state) => utils.formatBytes(state.limits.storage_bytes, 0),
   },
   actions: {
     // Fetches the current user's entitlements from the server.
@@ -141,9 +142,9 @@ export const useEntitlementStore = defineStore("entitlements", {
     },
 
     // Creates a Stripe Checkout Session for upgrading to a paid plan.
-    async createCheckout(planId) {
+    async createCheckout(planId, studioId = '') {
       try {
-        const url = await EntitlementService.CreateCheckout(planId);
+        const url = await EntitlementService.CreateCheckout(planId, studioId);
         return url || '';
       } catch (error) {
         console.error('Failed to create checkout:', error);
@@ -163,10 +164,3 @@ export const useEntitlementStore = defineStore("entitlements", {
     },
   },
 });
-
-function formatBytes(bytes) {
-  if (bytes === 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + units[i];
-}

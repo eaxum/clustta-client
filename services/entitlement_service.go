@@ -172,10 +172,13 @@ func (e *EntitlementService) ChangePlan(planId string) (EntitlementBundle, error
 }
 
 // CreateCheckout creates a Stripe Checkout Session and returns the checkout URL.
-func (e *EntitlementService) CreateCheckout(planId string) (string, error) {
+func (e *EntitlementService) CreateCheckout(planId, studioId string) (string, error) {
 	url := constants.HOST + "/subscription/create-checkout"
 
 	body := map[string]string{"plan_id": planId}
+	if studioId != "" {
+		body["studio_id"] = studioId
+	}
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return "", fmt.Errorf("error marshalling request: %w", err)

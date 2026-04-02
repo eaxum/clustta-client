@@ -1,26 +1,29 @@
 <template>
-  <div v-if="visible" class="plan-info" :class="{ 'plan-free': !entitlementStore.isPaidPlan }" @click="handleClick" v-stop-propagation>
-    <template v-if="!entitlementStore.isPaidPlan">
+  <div v-if="visible" class="plan-info" :class="{ 'plan-free': !isPaid }" @click="handleClick" v-stop-propagation>
+    <template v-if="!isPaid">
       <span class="plan-label">Free</span>
       <span class="plan-separator">·</span>
       <span class="plan-upgrade">Upgrade</span>
     </template>
 
     <template v-else>
-      <span class="plan-label">{{ planDisplayName }}</span>
-      <div class="storage-bar-container">
-        <div class="storage-bar-fill" :class="storageBarClass" :style="{ width: entitlementStore.storagePercent + '%' }"></div>
-      </div>
-      <span class="storage-text">{{ entitlementStore.storageUsedFormatted }} / {{ entitlementStore.storageLimitFormatted }}</span>
+      <svg class="storage-donut" viewBox="0 0 16 16">
+        <circle class="storage-donut-track" cx="8" cy="8" r="6" />
+        <circle class="storage-donut-fill" :class="storageBarClass" cx="8" cy="8" r="6" :style="{ strokeDashoffset: storageDashOffset }" />
+      </svg>
+      <!-- <span class="plan-label">{{ planDisplayName }}</span> -->
+      <span class="plan-label">Storage</span>
+      <span class="storage-text">{{ storageUsedFormatted }} / {{ storageLimitFormatted }}</span>
     </template>
   </div>
 </template>
 
 <script setup>
 // imports
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 
-// stores
+// stores/services
+import utils from '@/services/utils';
 import { useAccountStore } from '@/stores/accounts';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useEntitlementStore } from '@/stores/entitlements';
@@ -34,21 +37,80 @@ const projectStore = useProjectStore();
 const userStore = useUserStore();
 
 // computed
+// Returns whether the selected studio is a cloud studio.
+const isCloudStudio = computed(() => {
+  return projectStore.selectedStudio?.hosting_mode === 'cloud';
+});
+
+// Returns whether the selected studio is Personal.
+const isPersonal = computed(() => {
+  return projectStore.selectedStudio?.name === 'Personal';
+});
+
+// Returns the studio entitlement bundle when in studio mode.
+const studioBundle = computed(() => {
+  if (!isCloudStudio.value) return null;
+  return entitlementStore.studioEntitlements[projectStore.selectedStudio?.id] || null;
+});
+
 // Returns whether the component should be visible.
 const visible = computed(() => {
-  return userStore.isUserAuthenticated && projectStore.selectedStudio?.name === 'Personal' && !accountStore.isOfflineMode;
+  if (!userStore.isUserAuthenticated || accountStore.isOfflineMode) return false;
+  if (isPersonal.value) return true;
+  return isCloudStudio.value;
+});
+
+// Returns whether the current context has a paid plan.
+const isPaid = computed(() => {
+  if (isCloudStudio.value && studioBundle.value) return studioBundle.value.plan !== 'free';
+  return entitlementStore.isPaidPlan;
 });
 
 // Returns the display name for the current plan.
 const planDisplayName = computed(() => {
-  const name = entitlementStore.plan || 'free';
+  const name = (isCloudStudio.value && studioBundle.value) ? (studioBundle.value.plan || 'free') : (entitlementStore.plan || 'free');
   return name.charAt(0).toUpperCase() + name.slice(1).replace(/_/g, ' ');
 });
 
-// Returns the CSS class for the storage bar based on usage level.
+// Returns storage usage as a percentage.
+const storagePercent = computed(() => {
+  if (isCloudStudio.value && studioBundle.value) {
+    const limit = studioBundle.value.limits?.storage_bytes || 0;
+    if (limit <= 0) return 0;
+    return Math.min((studioBundle.value.usage?.storage_bytes || 0) / limit * 100, 100);
+  }
+  return entitlementStore.storagePercent;
+});
+
+// Returns formatted storage used.
+const storageUsedFormatted = computed(() => {
+  if (isCloudStudio.value && studioBundle.value) return utils.formatBytes(studioBundle.value.usage?.storage_bytes || 0, 2);
+  return entitlementStore.storageUsedFormatted;
+});
+
+// Returns formatted storage limit.
+const storageLimitFormatted = computed(() => {
+  if (isCloudStudio.value && studioBundle.value) return utils.formatBytes(studioBundle.value.limits?.storage_bytes || 0, 0);
+  return entitlementStore.storageLimitFormatted;
+});
+
+// Returns the stroke-dashoffset for the donut ring.
+const storageDashOffset = computed(() => {
+  const circumference = 2 * Math.PI * 6;
+  return circumference * (1 - storagePercent.value / 100);
+});
+
+// Returns the CSS class for the storage donut based on usage level.
 const storageBarClass = computed(() => {
+  if (isCloudStudio.value && studioBundle.value) {
+    const limit = studioBundle.value.limits?.storage_bytes || 0;
+    const used = studioBundle.value.usage?.storage_bytes || 0;
+    if (limit > 0 && used >= limit) return 'storage-danger';
+    if (limit > 0 && used / limit >= 0.7) return 'storage-warning';
+    return '';
+  }
   if (entitlementStore.isOverStorage) return 'storage-danger';
-  if (entitlementStore.isNearQuota) return 'storage-warning';
+  if (storagePercent.value >= 70) return 'storage-warning';
   return '';
 });
 
@@ -57,6 +119,14 @@ const storageBarClass = computed(() => {
 const handleClick = () => {
   modals.setModalVisibility('clusttaCloudModal', true);
 };
+
+// watchers
+// Fetches studio entitlements when switching to a cloud studio.
+watch(() => projectStore.selectedStudio, (studio) => {
+  if (studio && studio.hosting_mode === 'cloud' && studio.id) {
+    entitlementStore.getStudioEntitlements(studio.id);
+  }
+}, { immediate: true });
 </script>
 
 <style scoped>
@@ -64,12 +134,13 @@ const handleClick = () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 10px;
-  border-radius: var(--normal-radius);
+  padding: 3px 5px;
+  padding-right: 10px;
+  border-radius: var(--large-radius);
   cursor: pointer;
   font-size: 11px;
   color: var(--white);
-  background-color: hsla(0, 0%, 100%, 0.08);
+  background-color: var(--steel);
   transition: background-color 0.15s ease;
   white-space: nowrap;
   height: 22px;
@@ -101,31 +172,45 @@ const handleClick = () => {
   opacity: 0.9;
 }
 
-.storage-bar-container {
-  width: 48px;
-  height: 4px;
-  border-radius: 2px;
-  background-color: hsla(0, 0%, 100%, 0.15);
-  overflow: hidden;
+.storage-donut {
+  width: 20px;
+  height: 20px;
+  transform: rotate(-90deg);
 }
 
-.storage-bar-fill {
-  height: 100%;
-  border-radius: 2px;
-  background-color: var(--grape);
-  transition: width 0.3s ease;
+.storage-donut-track {
+  fill: none;
+  stroke: var(--bright-grape);
+  stroke: var(--grape);
+  background-color: var(--dark-steel);
+  stroke-width: 4;
 }
 
-.storage-bar-fill.storage-warning {
-  background-color: var(--attention);
+.storage-donut-fill {
+  fill: none;
+  stroke: var(--grape);
+  stroke: var(--bright-steel);
+  stroke-width: 4;
+  stroke-dasharray: 37.7;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
 }
 
-.storage-bar-fill.storage-danger {
-  background-color: var(--danger);
+[data-theme="dark"] .storage-donut-fill  {
+  stroke: var(--bright-steel);
+  stroke: var(--steel);
+}
+
+.storage-donut-fill.storage-warning {
+  stroke: var(--attention);
+}
+
+.storage-donut-fill.storage-danger {
+  stroke: var(--danger);
 }
 
 .storage-text {
-  font-weight: 300;
+  font-weight: 400;
   opacity: 0.7;
   font-size: 10px;
 }

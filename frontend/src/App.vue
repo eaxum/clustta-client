@@ -139,7 +139,11 @@ async function pullData() {
         .then(async () => {
             await projectStore.reloadActiveProject()
             await userStore.reloadUsers()
-            entitlementStore.fetchEntitlements();
+            if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
+                entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
+            } else {
+                entitlementStore.fetchEntitlements();
+            }
             emitter.emit('refresh-browser');
         }).catch((error) => {
             console.log("Error Syncing Data", error)

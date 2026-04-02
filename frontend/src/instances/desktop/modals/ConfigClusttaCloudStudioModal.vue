@@ -1,7 +1,7 @@
 <template>
   <div ref="modalContainer" class="modal-container">
 
-      <HeaderArea :title="title" :icon="getAppIcon('clustta')" :showSearch="false" />
+    <HeaderArea :title="title" :icon="getAppIcon('clustta')" :showSearch="false" />
 
     <div class="general-container">
 
@@ -9,46 +9,43 @@
         <p>{{ $t('modals.clusttaCloudDesc') }}</p>
       </div>
 
-      <FormInput
-        v-model="studioName"
-        :placeholder="$t('placeholders.studioName')"
-        :error="studioNameError"
-        :loading="checkingStudioNameAvailability"
-        :valid="!!studioName && !studioNameError && !checkingStudioNameAvailability"
-        :showValidation="!!studioName"
-        @input="checkStudioName"
-      />
+      <FormInput v-model="studioName" :placeholder="$t('placeholders.studioName')" :error="studioNameError" :loading="checkingStudioNameAvailability" :valid="!!studioName && !studioNameError && !checkingStudioNameAvailability" :showValidation="!!studioName" @input="checkStudioName" />
+
+      <div v-if="isLoadingPlans" class="plan-loading">Loading plans...</div>
+
+      <div v-else class="plan-select-container">
+        <div class="plan-select-label">Select a plan</div>
+
+        <OptionCard v-for="plan in studioPlans" :key="plan.id" :title="formatPlanName(plan.name)" :description="planDescription(plan)" :selectable="true" :selected="selectedPlanId === plan.id" @select="selectedPlanId = plan.id" />
+      </div>
 
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.back')" :fullWidth="true" :buttonFunction="goBack" :colored="false" />
-        <GeneralButton 
-          :label="$t('common.create')" 
-          :fullWidth="true" 
-          @click="createStudio" 
-          :isActive="isValueChanged"
-          :loading="isAwaitingResponse" 
-        />
+        <GeneralButton :label="createButtonLabel" :fullWidth="true" :buttonFunction="createStudioAndCheckout" :isActive="canProceed" :loading="isAwaitingResponse" />
       </div>
     </div>
-    
+
   </div>
 </template>
 
 <script setup>
 // imports
-import { computed, ref, watchEffect } from 'vue';
+import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { Browser } from '@wailsio/runtime';
 
 // components
 import FormInput from '@/instances/desktop/components/FormInput.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import OptionCard from '@/instances/common/components/OptionCard.vue';
 
 // services
 import { StudioService } from '@/services';
 
 // stores
 const { t } = useI18n();
+const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
@@ -56,6 +53,7 @@ const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
@@ -65,29 +63,41 @@ import { useStudioStore } from '@/stores/studio';
 // constants
 const title = t('modals.newClusttaCloudStudio');
 
+const restrictedNames = ['clustta', 'eaxum', 'pixar', 'disney', 'dreamworks'];
+
 // refs
 const checkingStudioNameAvailability = ref(false);
 const isAwaitingResponse = ref(false);
+const isLoadingPlans = ref(false);
 const isStudioNameTaken = ref(false);
 const modalContainer = ref(null);
+const selectedPlanId = ref(null);
 const studioName = ref('');
 const studioNameError = ref('');
 
 // computed
-const isValueChanged = computed(() => {
-  return !studioNameEmpty.value && !studioNameInUse.value && !studioNameError.value;
+
+// Returns the label for the create button based on the selected plan.
+const createButtonLabel = computed(() => {
+  const plan = studioPlans.value.find(p => p.id === selectedPlanId.value);
+  if (!plan) return t('common.create');
+  if (plan.name === 'studio_enterprise') return 'Contact Sales';
+  return 'Create & Subscribe';
 });
 
-const restrictedNames = computed(() => {
-  return ['clustta', 'eaxum', 'pixar', 'disney', 'dreamworks'];
+// Returns whether the form is ready to proceed.
+const canProceed = computed(() => {
+  return isStudioNameValid.value && !!selectedPlanId.value;
 });
 
-const studioNameEmpty = computed(() => {
-  return studioName.value === '';
+// Returns whether the studio name is valid.
+const isStudioNameValid = computed(() => {
+  return studioName.value !== '' && !studioNameError.value && !isStudioNameTaken.value && !checkingStudioNameAvailability.value;
 });
 
-const studioNameInUse = computed(() => {
-  return restrictedNames.value.includes(studioName.value.toLowerCase()) || isStudioNameTaken.value;
+// Returns only paid studio plans (excludes free).
+const studioPlans = computed(() => {
+  return entitlementStore.plans.filter(p => p.type === 'studio' && p.price_cents !== 0);
 });
 
 // methods
@@ -99,13 +109,13 @@ const checkStudioName = async () => {
     isStudioNameTaken.value = false;
     return;
   }
-  
-  if (restrictedNames.value.includes(studioName.value.toLowerCase())) {
+
+  if (restrictedNames.includes(studioName.value.toLowerCase())) {
     studioNameError.value = t('notifications.studioNameReserved');
     isStudioNameTaken.value = true;
     return;
   }
-  
+
   checkingStudioNameAvailability.value = true;
 
   try {
@@ -117,29 +127,35 @@ const checkStudioName = async () => {
       studioNameError.value = '';
       isStudioNameTaken.value = false;
     }
-    checkingStudioNameAvailability.value = false;
   } catch (error) {
     studioNameError.value = '';
     isStudioNameTaken.value = false;
     console.error('Error checking studio name:', error);
+  } finally {
     checkingStudioNameAvailability.value = false;
   }
 };
 
-// Closes the modal.
-const closeModal = () => {
-  modals.disableAllModals();
-};
+// Creates the studio on the free tier, then redirects to Stripe Checkout for the selected plan.
+const createStudioAndCheckout = async () => {
+  if (!canProceed.value || isAwaitingResponse.value) return;
 
-// Creates a new Clustta Cloud studio.
-const createStudio = async () => {
+  const plan = studioPlans.value.find(p => p.id === selectedPlanId.value);
+  if (!plan) return;
+
+  if (plan.name === 'studio_enterprise') {
+    // TODO: open enterprise contact form
+    return;
+  }
+
   isAwaitingResponse.value = true;
-  
+
   try {
+    // Create the studio on the free tier
     await StudioService.RegisterStudio(studioName.value, '', 'cloud');
 
     await projectStore.loadStudios();
-    let studio = projectStore.studios.find((item) => item.name === studioName.value);
+    const studio = projectStore.studios.find((item) => item.name === studioName.value);
     if (studio) {
       projectStore.selectedStudio = studio;
     } else {
@@ -149,13 +165,30 @@ const createStudio = async () => {
     const studioStore = useStudioStore();
     await studioStore.getStudioUsers();
     await projectStore.loadProjects();
-    closeModal();
+
+    // Redirect to Stripe Checkout for the selected plan
+    const studioId = studio ? studio.id : '';
+    const checkoutUrl = await entitlementStore.createCheckout(plan.id, studioId);
+    if (checkoutUrl) {
+      Browser.OpenURL(checkoutUrl);
+      notificationStore.addNotification('Checkout', 'Complete your payment in the browser', 'info', false);
+    } else {
+      notificationStore.addNotification('Error', 'Failed to start checkout. Please try again.', 'error', false);
+    }
+
+    modals.disableAllModals();
   } catch (error) {
     console.error(error);
     notificationStore.errorNotification(t('notifications.errorCreatingStudio'), error);
   } finally {
     isAwaitingResponse.value = false;
   }
+};
+
+// Returns a human-readable plan name.
+const formatPlanName = (name) => {
+  const names = { studio_cloud: 'Studio Cloud', studio_pro: 'Studio Pro', studio_enterprise: 'Enterprise' };
+  return names[name] || name;
 };
 
 // Returns the app icon for the given icon name.
@@ -168,11 +201,21 @@ const goBack = () => {
   modals.setModalVisibility('selectNewStudioTypeModal', true);
 };
 
-// Handles enter key press.
-const handleEnterKey = (event) => {
-  if (event.key === 'Enter' && isValueChanged.value) {
-    createStudio();
-  }
+// Returns a short description with price for the plan card.
+const planDescription = (plan) => {
+  if (plan.name === 'studio_enterprise') return 'Custom infrastructure — contact us for pricing';
+  const price = '$' + (plan.price_cents / 100) + '/mo';
+  const storage = formatStorage(plan.storage_bytes) + ' storage';
+  const seats = plan.max_collaborators === -1 ? 'Unlimited seats' : plan.max_collaborators + ' seats';
+  return price + ' · ' + storage + ' · ' + seats;
+};
+
+// Formats bytes to human-readable storage string.
+const formatStorage = (bytes) => {
+  if (bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return Math.round(bytes / Math.pow(1024, i)) + ' ' + units[i];
 };
 
 // watchers
@@ -181,14 +224,38 @@ watchEffect(() => {
     menu.clickOutsideMask = modalContainer.value;
   }
 });
+
+// lifecycle hooks
+onMounted(async () => {
+  if (!entitlementStore.plans.length) {
+    isLoadingPlans.value = true;
+    await entitlementStore.fetchPlans();
+    isLoadingPlans.value = false;
+  }
+});
 </script>
 
 <style scoped>
 @import "@/assets/desktop.css";
 @import "@/assets/modals.css";
 
-.general-container{
+.general-container {
   padding-top: 1rem;
+  overflow-y: auto;
+  max-height: 70vh;
+}
+
+.general-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.general-container::-webkit-scrollbar-thumb {
+  border-radius: var(--small-radius);
+  background-color: var(--light-steel);
+}
+
+.general-container::-webkit-scrollbar-track {
+  border-radius: var(--small-radius);
 }
 
 .studio-info-text {
@@ -205,4 +272,28 @@ watchEffect(() => {
 .studio-info-text p {
   margin: 0;
 }
+
+.plan-loading {
+  text-align: center;
+  padding: 1rem;
+  color: var(--white);
+  opacity: 0.6;
+}
+
+.plan-select-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  width: 100%;
+}
+
+.plan-select-label {
+  font-size: 0.85rem;
+  color: var(--white);
+  opacity: 0.6;
+  font-weight: 300;
+}
+
+
 </style>

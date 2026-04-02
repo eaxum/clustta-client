@@ -363,7 +363,11 @@ const cloneProject = async () => {
       }
     }
     await projectStore.refreshProjectsPreview();
-    entitlementStore.fetchEntitlements();
+    if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
+      entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
+    } else {
+      entitlementStore.fetchEntitlements();
+    }
     closeModal();
   } catch (error) {
     console.error(error);
@@ -395,7 +399,11 @@ const makeProjectRemote = async (project) => {
   } finally {
     stage.operationActive = false;
     isCloning.value = false;
-    entitlementStore.fetchEntitlements();
+    if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
+      entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
+    } else {
+      entitlementStore.fetchEntitlements();
+    }
   }
 };
 

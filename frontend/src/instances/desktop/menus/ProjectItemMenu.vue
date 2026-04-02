@@ -181,7 +181,11 @@ const deleteRemoteProject = async ({ deleteWorkingFiles } = {}) => {
   }
   
   await projectStore.loadProjects();
-  entitlementStore.fetchEntitlements();
+  if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
+    entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
+  } else {
+    entitlementStore.fetchEntitlements();
+  }
   notificationStore.addNotification(
     t('notifications.projectDeleted'),
     t('notifications.projectDeletedDesc', { name: project.name }),
