@@ -18,6 +18,12 @@
         <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" :noFilter="true" />
         <span>Microsoft</span>
       </button>
+
+      <button class="sso-button" @click="handleSSO('apple')" :disabled="isLoading">
+        <img v-if="!isLoading || activeProvider !== 'apple'" class="sso-icon apple-icon" src="/brand-logos/apple.svg" alt="Apple" />
+        <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" :noFilter="true" />
+        <span>Apple</span>
+      </button>
     </div>
   </div>
 </template>
@@ -120,7 +126,7 @@ const handleSSO = async (provider) => {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.6rem;
+  padding: 0.1rem;
   border: none;
   border-radius: var(--large-radius);
   font-size: 0.85rem;
@@ -129,6 +135,9 @@ const handleSSO = async (provider) => {
   transition: background-color 0.2s, border-radius 0.2s;
   background-color: var(--silver);
   color: var(--black-steel);
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
 }
 
 .sso-button:hover {
@@ -144,5 +153,13 @@ const handleSSO = async (provider) => {
   flex-shrink: 0;
   width: 20px;
   height: 20px;
+}
+
+.apple-icon {
+  filter: invert(1);
+}
+
+[data-theme="dark"] .apple-icon {
+  filter: none;
 }
 </style>
