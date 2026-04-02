@@ -22,6 +22,15 @@ export function ChangePlan(planId) {
 }
 
 /**
+ * CreateCheckout creates a Stripe Checkout Session and returns the checkout URL.
+ * @param {string} planId
+ * @returns {$CancellablePromise<string>}
+ */
+export function CreateCheckout(planId) {
+    return $Call.ByID(2200075884, planId);
+}
+
+/**
  * GetEntitlements fetches the current user's entitlement bundle from the server.
  * @returns {$CancellablePromise<$models.EntitlementBundle>}
  */
@@ -50,6 +59,14 @@ export function GetStudioEntitlements(studioId) {
     return $Call.ByID(1004503926, studioId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
+}
+
+/**
+ * OpenBillingPortal creates a Stripe Billing Portal session and returns the portal URL.
+ * @returns {$CancellablePromise<string>}
+ */
+export function OpenBillingPortal() {
+    return $Call.ByID(308026693);
 }
 
 // Private type creation functions

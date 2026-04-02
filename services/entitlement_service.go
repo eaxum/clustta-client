@@ -57,11 +57,7 @@ func fetchEntitlements(url string) (EntitlementBundle, error) {
 		return bundle, fmt.Errorf("error creating request: %w", err)
 	}
 
-	token, err := auth_service.GetToken()
-	if err != nil {
-		return bundle, fmt.Errorf("error getting auth token: %w", err)
-	}
-	req.Header.Set("Authorization", "Bearer "+token.SessionId)
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
 	client := &http.Client{}
@@ -150,11 +146,7 @@ func (e *EntitlementService) ChangePlan(planId string) (EntitlementBundle, error
 		return EntitlementBundle{}, fmt.Errorf("error creating request: %w", err)
 	}
 
-	token, err := auth_service.GetToken()
-	if err != nil {
-		return EntitlementBundle{}, fmt.Errorf("error getting auth token: %w", err)
-	}
-	req.Header.Set("Authorization", "Bearer "+token.SessionId)
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
@@ -177,4 +169,88 @@ func (e *EntitlementService) ChangePlan(planId string) (EntitlementBundle, error
 	}
 
 	return bundle, nil
+}
+
+// CreateCheckout creates a Stripe Checkout Session and returns the checkout URL.
+func (e *EntitlementService) CreateCheckout(planId string) (string, error) {
+	url := constants.HOST + "/subscription/create-checkout"
+
+	body := map[string]string{"plan_id": planId}
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling request: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewReader(jsonBody))
+	if err != nil {
+		return "", fmt.Errorf("error creating request: %w", err)
+	}
+
+	auth_service.AttachBearerToken(req)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("error creating checkout: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("server returned %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	var result struct {
+		CheckoutURL string `json:"checkout_url"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		return "", fmt.Errorf("error decoding response: %w", err)
+	}
+
+	return result.CheckoutURL, nil
+}
+
+// OpenBillingPortal creates a Stripe Billing Portal session and returns the portal URL.
+func (e *EntitlementService) OpenBillingPortal() (string, error) {
+	url := constants.HOST + "/subscription/portal"
+
+	body := map[string]string{}
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling request: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewReader(jsonBody))
+	if err != nil {
+		return "", fmt.Errorf("error creating request: %w", err)
+	}
+
+	auth_service.AttachBearerToken(req)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("error opening billing portal: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("server returned %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	var result struct {
+		PortalURL string `json:"portal_url"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		return "", fmt.Errorf("error decoding response: %w", err)
+	}
+
+	return result.PortalURL, nil
 }
