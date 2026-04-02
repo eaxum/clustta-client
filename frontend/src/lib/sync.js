@@ -6,6 +6,18 @@ import { useAccountStore } from "@/stores/accounts";
 import { useEntitlementStore } from "@/stores/entitlements";
 import emitter from '@/lib/mitt';
 
+// Refreshes entitlements based on the current studio context.
+function refreshEntitlements() {
+  const projectStore = useProjectStore();
+  const entitlementStore = useEntitlementStore();
+  const studio = projectStore.selectedStudio;
+  if (studio?.hosting_mode === 'cloud' && studio.id) {
+    entitlementStore.fetchStudioEntitlements(studio.id);
+  } else {
+    entitlementStore.fetchEntitlements();
+  }
+}
+
 // Guard function to check if remote features are available
 function checkRemoteAccess() {
   const accountStore = useAccountStore();
@@ -47,7 +59,7 @@ export async function syncData() {
     .then(async () => {
       projectStore.activeProject.is_unsynced = false;
       await projectStore.reloadActiveProject();
-      useEntitlementStore().fetchEntitlements();
+      refreshEntitlements();
       emitter.emit('refresh-browser')
     })
     .catch((error) => {
@@ -78,7 +90,7 @@ export async function pullData() {
     .then(async () => {
       projectStore.activeProject.is_unsynced = false;
       await projectStore.reloadActiveProject();
-      useEntitlementStore().fetchEntitlements();
+      refreshEntitlements();
       emitter.emit('refresh-browser')
     })
     .catch((error) => {
@@ -107,7 +119,7 @@ export async function syncFullData() {
     .then(async () => {
       projectStore.activeProject.is_unsynced = false;
       await projectStore.reloadActiveProject();
-      useEntitlementStore().fetchEntitlements();
+      refreshEntitlements();
       emitter.emit('refresh-browser')
     })
     .catch((error) => {

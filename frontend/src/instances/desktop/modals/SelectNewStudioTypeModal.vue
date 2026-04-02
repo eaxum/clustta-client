@@ -8,25 +8,7 @@
       </div>
 
       <div class="studio-types-container">
-        <div 
-          v-for="studioType in studioTypes" 
-          :key="studioType.type" 
-          :class="['studio-type-card', { 'studio-type-card-selected': selectedStudioType === studioType.type }]"
-          @click="selectStudioType(studioType.type)"
-        >
-          <div class="studio-icon">
-            <img class="small-icons" :src="getAppIcon(studioType.icon)" :alt="studioType.title" />
-          </div>
-          <div class="studio-details">
-            <div class="studio-type-title">
-              {{ $t(studioType.titleKey) }}
-              <span v-if="studioType.beta" class="beta-badge">BETA</span>
-            </div>
-            <div class="studio-type-description">
-              {{ $t(studioType.messageKey) }}
-            </div>
-          </div>
-        </div>
+        <OptionCard v-for="studioType in studioTypes" :key="studioType.type" :icon="getAppIcon(studioType.icon)" :title="$t(studioType.titleKey)" :description="$t(studioType.messageKey)" @select="selectStudioType(studioType.type)" />
       </div>
 
       <div class="pop-up-actions">
@@ -46,6 +28,7 @@ import { useI18n } from 'vue-i18n';
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import OptionCard from '@/instances/common/components/OptionCard.vue';
 
 // stores
 const { t } = useI18n();
@@ -69,8 +52,7 @@ const studioTypes = ref([
     type: 'clustta-cloud',
     titleKey: 'modals.newClusttaCloudStudio',
     messageKey: 'modals.clusttaCloudDesc',
-    icon: 'clustta',
-    beta: true
+    icon: 'clustta'
   },
   {
     type: 'self-managed',
@@ -151,83 +133,6 @@ onMounted(() => {
   gap: .5rem;
   box-sizing: border-box;
   overflow: hidden;
-}
-
-/* Studio type card styles */
-.studio-type-card {
-  width: 100%;
-  box-sizing: border-box;
-  background-color: var(--dark-steel);
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  border-radius: 8px;
-  gap: .5rem;
-  padding: 1rem .8rem;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.studio-type-card:hover {
-  background-color: #ffffff15;
-  background-color: var(--steel);
-  /* outline: var(--solid-line); */
-}
-
-.studio-type-card-selected {
-  background-color: var(--steel);
-  outline: var(--solid-line);
-}
-
-.studio-type-card-selected:hover {
-  outline: var(--solid-line);
-}
-
-
-.studio-icon {
-  flex-shrink: 0;
-  margin-top: 0.1rem;
-}
-
-.studio-icon img {
-  width: 20px;
-  height: 20px;
-}
-
-.studio-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  width: 100%;
-}
-
-.studio-type-title {
-  font-weight: 400;
-  color: var(--white);
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.beta-badge {
-  display: inline-block;
-  padding: 0.15rem 0.4rem;
-  background-color: #2D9CDB;
-  color: var(--white);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  border-radius: 4px;
-  text-transform: uppercase;
-}
-
-.studio-type-description {
-  font-size: 13px;
-  color: var(--white);
-  line-height: 1.4;
 }
 
 .general-container{

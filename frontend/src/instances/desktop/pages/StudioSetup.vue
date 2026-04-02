@@ -13,31 +13,9 @@
 
         <!-- hosting type selector -->
         <div v-if="!hostingType" class="hosting-selector">
-          <div class="hosting-card" @click="selectHostingType('self-hosted')">
-            <div class="hosting-icon-container">
-              <img :src="getAppIcon('two-drives')" class="large-icons hosting-icon" />
-            </div>
-            <div class="hosting-card-content">
-              <div class="hosting-card-title display-font">{{ $t('auth.studioSetup.selfHostedTitle') }}</div>
-              <div class="hosting-card-description">{{ $t('auth.studioSetup.selfHostedDescription') }}</div>
-            </div>
-            <div class="hosting-card-action">
-              <ActionButton :isInactive="true" :icon="getAppIcon('chevron-right')" />
-            </div>
-          </div>
+          <OptionCard :icon="getAppIcon('two-drives')" :title="$t('auth.studioSetup.selfHostedTitle')" :description="$t('auth.studioSetup.selfHostedDescription')" @select="selectHostingType('self-hosted')" />
 
-          <div class="hosting-card" @click="selectHostingType('managed')">
-            <div class="hosting-icon-container">
-              <img :src="getAppIcon('clustta')" class="large-icons hosting-icon" />
-            </div>
-            <div class="hosting-card-content">
-              <div class="hosting-card-title display-font">{{ $t('auth.studioSetup.managedTitle') }}</div>
-              <div class="hosting-card-description">{{ $t('auth.studioSetup.managedDescription') }}</div>
-            </div>
-            <div class="hosting-card-action">
-              <ActionButton :isInactive="true" :icon="getAppIcon('chevron-right')" />
-            </div>
-          </div>
+          <OptionCard :icon="getAppIcon('clustta')" :title="$t('auth.studioSetup.managedTitle')" :description="$t('auth.studioSetup.managedDescription')" @select="selectHostingType('managed')" />
 
           <!-- back link -->
           <div class="additional-actions">
@@ -186,6 +164,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import FormInput from '@/instances/desktop/components/FormInput.vue';
+import OptionCard from '@/instances/common/components/OptionCard.vue';
 
 // services
 import { AuthService, StudioService } from '@/services';
@@ -551,73 +530,6 @@ const validateStudioUrl = () => {
   gap: 0.75rem;
   width: 100%;
   min-width: 400px;
-}
-
-.hosting-card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  border-radius: var(--very-large-radius);
-  background-color: var(--midnight-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s, border-radius 0.2s;
-}
-
-.hosting-card:hover {
-  border-color: var(--grape);
-  border-radius: var(--large-radius);
-  box-shadow: 0 0px 4px rgba(0, 0, 0, 0.1);
-}
-
-.hosting-icon-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 40px;
-  min-height: 40px;
-  max-width: 40px;
-  max-height: 40px;
-}
-
-.hosting-icon {
-  width: 32px;
-  height: 32px;
-  opacity: .5;
-}
-
-.hosting-card-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.hosting-card-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--white);
-}
-
-.hosting-card-description {
-  font-size: 0.8rem;
-  color: var(--white);
-  opacity: 0.55;
-  font-weight: 300;
-  line-height: 140%;
-}
-
-.hosting-card-action {
-  display: flex;
-  align-items: center;
-  opacity: 0;
-  transition: opacity .5s;
-}
-
-.hosting-card:hover .hosting-card-action {
-  opacity: 1;
 }
 
 .additional-actions {

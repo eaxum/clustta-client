@@ -3,14 +3,14 @@
     <HeaderArea title="ClusttaCloud" icon="clustta" :notModal="false" />
 
     <div class="cloud-modal-body">
-      <div class="cloud-modal-tabs">
+      <!-- <div class="cloud-modal-tabs">
         <PaneHeaderTabs :dataTypes="planTabs" :selectedTab="activeTab" :fullWidth="true" @filter="activeTab = $event" />
-      </div>
+      </div> -->
 
       <div v-if="isLoadingPlans" class="cloud-loading">Loading plans...</div>
 
       <div v-else class="plan-cards">
-        <div v-for="plan in filteredPlans" :key="plan.id" class="plan-card" :class="{ 'plan-card-current': plan.name === entitlementStore.plan, 'plan-card-highlighted': isRecommended(plan) }">
+        <div v-for="plan in filteredPlans" :key="plan.id" class="plan-card" :class="{ 'plan-card-current': plan.name === currentPlanName, 'plan-card-highlighted': isRecommended(plan) }">
 
           <div class="plan-card-header">
             <span class="plan-card-name">{{ formatPlanName(plan.name) }}</span>
@@ -28,7 +28,7 @@
             </template>
           </div>
 
-          <GeneralButton :label="planButtonLabel(plan)" :colored="plan.name !== entitlementStore.plan" :isActive="plan.name !== entitlementStore.plan && !isChanging" :loading="isChanging && changingPlanId === plan.id" :fullWidth="true" :buttonFunction="() => selectPlan(plan)" />
+          <GeneralButton :label="planButtonLabel(plan)" :colored="plan.name !== currentPlanName" :isActive="plan.name !== currentPlanName && !isChanging" :loading="isChanging && changingPlanId === plan.id" :fullWidth="true" :buttonFunction="() => selectPlan(plan)" />
 
           <div class="plan-card-features">
             <div class="plan-feature" v-for="feature in planFeatures(plan)" :key="feature.key" v-tooltip="feature.tooltip">
@@ -39,7 +39,7 @@
         </div>
       </div>
 
-      <div v-if="entitlementStore.isPaidPlan" class="billing-portal-row">
+      <div v-if="entitlementStore.isPaidPlan || isCloudStudio" class="billing-portal-row">
         <GeneralButton label="Manage Billing" :colored="false" :fullWidth="false" :buttonFunction="openBillingPortal" />
       </div>
     </div>
@@ -60,10 +60,12 @@ import PaneHeaderTabs from '@/instances/common/components/PaneHeaderTabs.vue';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useEntitlementStore } from '@/stores/entitlements';
 import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
 
 const entitlementStore = useEntitlementStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
 
 // refs
 const activeTab = ref('individual');
@@ -109,6 +111,20 @@ const featureTooltips = {
 };
 
 // computed
+// Returns whether the selected studio is a cloud studio.
+const isCloudStudio = computed(() => {
+  return projectStore.selectedStudio?.hosting_mode === 'cloud';
+});
+
+// Returns the current plan name based on context (personal or studio).
+const currentPlanName = computed(() => {
+  if (activeTab.value === 'studio' && isCloudStudio.value) {
+    const bundle = entitlementStore.studioEntitlements[projectStore.selectedStudio?.id];
+    return bundle?.plan || 'free';
+  }
+  return entitlementStore.plan;
+});
+
 // Returns plans filtered by the active tab category.
 const filteredPlans = computed(() => {
   const type = activeTab.value === 'individual' ? 'individual' : 'studio';
@@ -150,9 +166,9 @@ const isRecommended = (plan) => {
 
 // Returns the button label for a plan card.
 const planButtonLabel = (plan) => {
-  if (plan.name === entitlementStore.plan) return 'Current Plan';
+  if (plan.name === currentPlanName.value) return 'Current Plan';
   if (plan.name === 'studio_enterprise') return 'Contact Sales';
-  const currentOrder = entitlementStore.plans.find(p => p.name === entitlementStore.plan)?.display_order ?? 0;
+  const currentOrder = entitlementStore.plans.find(p => p.name === currentPlanName.value)?.display_order ?? 0;
   return plan.display_order > currentOrder ? 'Upgrade' : 'Downgrade';
 };
 
@@ -250,14 +266,16 @@ const planTagline = (plan) => {
 
 // Handles clicking a plan button to change plans.
 const selectPlan = async (plan) => {
-  if (plan.name === entitlementStore.plan || isChanging.value) return;
+  if (plan.name === currentPlanName.value || isChanging.value) return;
   if (plan.name === 'studio_enterprise') return;
   isChanging.value = true;
   changingPlanId.value = plan.id;
 
+  const studioId = (plan.type === 'studio' && isCloudStudio.value) ? projectStore.selectedStudio?.id : '';
+
   // Paid plans go through Stripe Checkout; free plan is a direct downgrade
   if (plan.price_cents > 0) {
-    const checkoutUrl = await entitlementStore.createCheckout(plan.id);
+    const checkoutUrl = await entitlementStore.createCheckout(plan.id, studioId);
     isChanging.value = false;
     changingPlanId.value = null;
     if (checkoutUrl) {
@@ -297,7 +315,10 @@ onMounted(async () => {
     await entitlementStore.fetchPlans();
     isLoadingPlans.value = false;
   }
-  if (entitlementStore.planType === 'studio') {
+  if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
+    activeTab.value = 'studio';
+    entitlementStore.getStudioEntitlements(projectStore.selectedStudio.id);
+  } else if (entitlementStore.planType === 'studio') {
     activeTab.value = 'studio';
   }
 });

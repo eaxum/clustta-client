@@ -24,10 +24,11 @@ export function ChangePlan(planId) {
 /**
  * CreateCheckout creates a Stripe Checkout Session and returns the checkout URL.
  * @param {string} planId
+ * @param {string} studioId
  * @returns {$CancellablePromise<string>}
  */
-export function CreateCheckout(planId) {
-    return $Call.ByID(2200075884, planId);
+export function CreateCheckout(planId, studioId) {
+    return $Call.ByID(2200075884, planId, studioId);
 }
 
 /**

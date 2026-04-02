@@ -252,7 +252,11 @@ const updateRemoteState = async () => {
       updatedProject.has_remote = updatedInfo.has_remote;
       projectStore.activeProject = updatedProject;
     }
-    entitlementStore.fetchEntitlements();
+    if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
+      entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
+    } else {
+      entitlementStore.fetchEntitlements();
+    }
   } catch (error) {
     console.error(error);
     const errorKey = isRemoteEnabled.value ? 'errorMakingProjectRemote' : 'errorRemovingProjectFromRemote';

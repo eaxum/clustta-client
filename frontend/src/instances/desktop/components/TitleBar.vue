@@ -272,7 +272,11 @@ const reloadStudio = async () => {
     projectStore.selectedStudio = projectStore.studios[0]
   }
   await projectStore.loadProjects();
-  entitlementStore.fetchEntitlements();
+  if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
+    entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
+  } else {
+    entitlementStore.fetchEntitlements();
+  }
   displayStudioList.value = false;
 }
 
