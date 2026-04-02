@@ -127,6 +127,7 @@ export const useEntitlementStore = defineStore("entitlements", {
     },
 
     // Changes the user's plan and applies the returned entitlement bundle.
+    // Only works for free plan downgrades; paid upgrades use createCheckout.
     async changePlan(planId) {
       try {
         const bundle = await EntitlementService.ChangePlan(planId);
@@ -136,6 +137,28 @@ export const useEntitlementStore = defineStore("entitlements", {
       } catch (error) {
         console.error('Failed to change plan:', error);
         return false;
+      }
+    },
+
+    // Creates a Stripe Checkout Session for upgrading to a paid plan.
+    async createCheckout(planId) {
+      try {
+        const url = await EntitlementService.CreateCheckout(planId);
+        return url || '';
+      } catch (error) {
+        console.error('Failed to create checkout:', error);
+        return '';
+      }
+    },
+
+    // Opens the Stripe billing portal for managing subscriptions.
+    async openBillingPortal() {
+      try {
+        const url = await EntitlementService.OpenBillingPortal();
+        return url || '';
+      } catch (error) {
+        console.error('Failed to open billing portal:', error);
+        return '';
       }
     },
   },

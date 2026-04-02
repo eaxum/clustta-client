@@ -38,6 +38,10 @@
           </div>
         </div>
       </div>
+
+      <div v-if="entitlementStore.isPaidPlan" class="billing-portal-row">
+        <GeneralButton label="Manage Billing" :colored="false" :fullWidth="false" :buttonFunction="openBillingPortal" />
+      </div>
     </div>
   </div>
 </template>
@@ -45,6 +49,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref } from 'vue';
+import { Browser } from '@wailsio/runtime';
 
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
@@ -249,14 +254,39 @@ const selectPlan = async (plan) => {
   if (plan.name === 'studio_enterprise') return;
   isChanging.value = true;
   changingPlanId.value = plan.id;
-  const success = await entitlementStore.changePlan(plan.id);
-  isChanging.value = false;
-  changingPlanId.value = null;
-  if (success) {
-    notificationStore.addNotification('Plan changed', 'You are now on the ' + formatPlanName(plan.name) + ' plan', 'success', false);
-    closeModal();
+
+  // Paid plans go through Stripe Checkout; free plan is a direct downgrade
+  if (plan.price_cents > 0) {
+    const checkoutUrl = await entitlementStore.createCheckout(plan.id);
+    isChanging.value = false;
+    changingPlanId.value = null;
+    if (checkoutUrl) {
+      Browser.OpenURL(checkoutUrl);
+      notificationStore.addNotification('Checkout', 'Complete your payment in the browser', 'info', false);
+      closeModal();
+    } else {
+      notificationStore.addNotification('Error', 'Failed to start checkout. Please try again.', 'error', false);
+    }
   } else {
-    notificationStore.addNotification('Error', 'Failed to change plan. Please try again.', 'error', false);
+    const success = await entitlementStore.changePlan(plan.id);
+    isChanging.value = false;
+    changingPlanId.value = null;
+    if (success) {
+      notificationStore.addNotification('Plan changed', 'You are now on the ' + formatPlanName(plan.name) + ' plan', 'success', false);
+      closeModal();
+    } else {
+      notificationStore.addNotification('Error', 'Failed to change plan. Please try again.', 'error', false);
+    }
+  }
+};
+
+// Opens the Stripe billing portal in the system browser.
+const openBillingPortal = async () => {
+  const portalUrl = await entitlementStore.openBillingPortal();
+  if (portalUrl) {
+    Browser.OpenURL(portalUrl);
+  } else {
+    notificationStore.addNotification('Error', 'Failed to open billing portal.', 'error', false);
   }
 };
 
@@ -454,5 +484,11 @@ onMounted(async () => {
 .plan-card :deep(.general-button.item-inactive) {
   background-color: var(--steel);
   opacity: 0.5;
+}
+
+.billing-portal-row {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
 }
 </style>
