@@ -2,7 +2,7 @@
 	<div ref="pageListRoot" class="page-list-root absolute-pane">
 		<div class="settings-stage-root">
 			<div class="settings-stage-header">
-				<HeaderTabs :dataTypes="settingsItems" @filter="filterList" :fullWidth="true" />
+				<HeaderTabs :dataTypes="settingsItems" @filter="filterList" :fullWidth="true" :useSelected="true" :selectedTab="settings.activeModal" />
 			</div>
 			<div class="settings-stage-body">
 				<div class="settings-stage-body-container">
