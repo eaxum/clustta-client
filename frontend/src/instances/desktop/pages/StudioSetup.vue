@@ -3,6 +3,12 @@
 
     <div class="auth-root">
 
+      <!-- back navigation -->
+      <div v-if="!platformStore.isWeb && hostingType" class="back-nav" @click="handleBack">
+        <img :src="getAppIcon('chevron-left')" class="back-nav-icon small-icons" />
+        <span>{{ backLabel }}</span>
+      </div>
+
       <!-- header -->
       <div class="header-container">
         <ClusttaLogo :colored="true" :inverted="true" />
@@ -35,10 +41,6 @@
           </button>
 
           <div v-if="connectionError" class="error-message">{{ connectionError }}</div>
-
-          <div class="additional-actions">
-            <div @click="resetHostingType" class="back-link">{{ $t('auth.studioSetup.changeHostingType') }}</div>
-          </div>
         </div>
 
         <!-- Self-hosted: Step 2 - Registration form (after server connected) -->
@@ -81,8 +83,6 @@
 
           <!-- back / sign-in links -->
           <div class="additional-actions">
-            <div @click="resetHostingType" class="back-link">{{ $t('auth.studioSetup.changeHostingType') }}</div>
-
             <div @click="goToLogin" class="back-link">
               {{ $t('auth.studioSetup.haveStudioAccount') }}&nbsp;<span class="bold">{{ $t('auth.studioSetup.signInLink') }}</span>
             </div>
@@ -94,55 +94,78 @@
           </div>
         </div>
 
-        <!-- Managed hosting - Contact Sales -->
+        <!-- ClusttaCloud: Studio creation -->
         <div v-if="hostingType === 'managed'" class="auth-form-container">
-          <div v-if="!salesSubmitted">
-            <div class="managed-form-header">
-              <div class="managed-title display-font">{{ $t('auth.studioSetup.contactSalesTitle') }}</div>
-              <div class="managed-description">{{ $t('auth.studioSetup.contactSalesDescription') }}</div>
-            </div>
 
-            <form @submit.prevent="handleContactSales" class="auth-form" autocomplete="off">
-              <FormInput v-model="salesForm.name" :placeholder="$t('auth.studioSetup.salesName')" />
-
-              <FormInput v-model="salesForm.email" :placeholder="$t('auth.studioSetup.salesEmail')" :error="salesEmailError" :info="workEmailNudge" />
-
-              <FormInput v-model="salesForm.company" :placeholder="$t('auth.studioSetup.salesCompany')" />
-
-              <div class="dropdown-spacing">
-                <DropDownBox :items="teamSizeItems" :selectedItem="salesForm.team_size" :onSelect="selectTeamSize" :placeHolder="$t('auth.studioSetup.salesTeamSize')" :useFilter="false" />
+          <!-- Enterprise: Contact Sales -->
+          <div v-if="showEnterpriseSalesForm">
+            <div v-if="!salesSubmitted">
+              <div class="managed-form-header">
+                <div class="managed-title display-font">{{ $t('auth.studioSetup.contactSalesTitle') }}</div>
+                <div class="managed-description">{{ $t('auth.studioSetup.contactSalesDescription') }}</div>
               </div>
 
-              <div class="dropdown-spacing">
-                <DropDownBox :items="sourceItems" :selectedItem="salesForm.source" :onSelect="selectSource" :placeHolder="$t('auth.studioSetup.salesSource')" :useFilter="false" />
-              </div>
+              <form @submit.prevent="handleContactSales" class="auth-form" autocomplete="off">
+                <FormInput v-model="salesForm.name" :placeholder="$t('auth.studioSetup.salesName')" />
 
-              <FormInput v-model="salesForm.website" :placeholder="$t('auth.studioSetup.salesWebsite')" />
+                <FormInput v-model="salesForm.email" :placeholder="$t('auth.studioSetup.salesEmail')" :error="salesEmailError" :info="workEmailNudge" />
 
-              <textarea v-model="salesForm.message" class="desktop-input-long" :placeholder="$t('auth.studioSetup.salesMessage')" rows="3"></textarea>
+                <FormInput v-model="salesForm.company" :placeholder="$t('auth.studioSetup.salesCompany')" />
 
-              <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isSalesFormFilled }">
-                <div v-if="!isSubmittingSales">{{ $t('auth.studioSetup.salesSubmitButton') }}</div>
-                <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" />
-              </button>
-            </form>
+                <div class="dropdown-spacing">
+                  <DropDownBox :items="teamSizeItems" :selectedItem="salesForm.team_size" :onSelect="selectTeamSize" :placeHolder="$t('auth.studioSetup.salesTeamSize')" :useFilter="false" />
+                </div>
 
-            <div v-if="salesError" class="error-message">{{ salesError }}</div>
-          </div>
+                <div class="dropdown-spacing">
+                  <DropDownBox :items="sourceItems" :selectedItem="salesForm.source" :onSelect="selectSource" :placeHolder="$t('auth.studioSetup.salesSource')" :useFilter="false" />
+                </div>
 
-          <div v-else class="managed-content">
-            <div class="managed-icon-container">
-              <img :src="getAppIcon('mail')" class="managed-icon gigantic-icons" />
+                <FormInput v-model="salesForm.website" :placeholder="$t('auth.studioSetup.salesWebsite')" />
+
+                <textarea v-model="salesForm.message" class="desktop-input-long" :placeholder="$t('auth.studioSetup.salesMessage')" rows="3"></textarea>
+
+                <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isSalesFormFilled }">
+                  <div v-if="!isSubmittingSales">{{ $t('auth.studioSetup.salesSubmitButton') }}</div>
+                  <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" />
+                </button>
+              </form>
+
+              <div v-if="salesError" class="error-message">{{ salesError }}</div>
             </div>
-            <div class="managed-title display-font">{{ $t('auth.studioSetup.salesSuccessTitle') }}</div>
-            <div class="managed-description">{{ $t('auth.studioSetup.salesSuccessDescription') }}</div>
+
+            <div v-else class="managed-content">
+              <div class="managed-icon-container">
+                <img :src="getAppIcon('mail')" class="managed-icon gigantic-icons" />
+              </div>
+              <div class="managed-title display-font">{{ $t('auth.studioSetup.salesSuccessTitle') }}</div>
+              <div class="managed-description">{{ $t('auth.studioSetup.salesSuccessDescription') }}</div>
+            </div>
+
+            <div class="additional-actions">
+              <div @click="showEnterpriseSalesForm = false" class="back-link">{{ $t('auth.studioSetup.backToPlanSelection') }}</div>
+            </div>
           </div>
 
-          <div class="additional-actions">
-            <div @click="goToPersonalSignUp" class="back-link">{{ $t('auth.studioSetup.getStartedPersonal') }}</div>
+          <!-- Cloud/Pro: Studio name + plan selection -->
+          <div v-else>
+            <FormInput v-model="cloudStudioName" :placeholder="$t('placeholders.studioName')" :error="cloudStudioNameError" :loading="checkingCloudStudioName" :valid="!!cloudStudioName && !cloudStudioNameError && !checkingCloudStudioName" :showValidation="!!cloudStudioName" :disabled="isEnterprisePlan" @input="checkCloudStudioName" />
 
-            <div @click="goBack" class="back-link">{{ $t('auth.studioSetup.backToWelcome') }}</div>
+            <div v-if="isLoadingPlans" class="plan-loading">Loading plans...</div>
+
+            <div v-else class="plan-select-container">
+              <div class="plan-select-label">Select a plan</div>
+
+              <OptionCard v-for="plan in studioPlans" :key="plan.id" :title="formatPlanName(plan.name)" :description="planDescription(plan)" :selectable="true" :selected="selectedPlanId === plan.id" @select="selectPlan(plan)" />
+            </div>
+
+            <button class="submit-button display-font" :class="{ 'button-inactive': !canCreateCloud }" @click="createCloudStudioAndCheckout">
+              <div v-if="!isCreatingStudio">{{ cloudCreateButtonLabel }}</div>
+              <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" />
+            </button>
+
+            <div v-if="cloudError" class="error-message">{{ cloudError }}</div>
           </div>
+
         </div>
 
       </div>
@@ -167,15 +190,32 @@ import FormInput from '@/instances/desktop/components/FormInput.vue';
 import OptionCard from '@/instances/common/components/OptionCard.vue';
 
 // services
-import { AuthService, StudioService } from '@/services';
+import { AuthService, SettingsService, StudioService } from '@/services';
 
 // store imports
+import { useAccountStore } from '@/stores/accounts';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
+import { usePlatformStore } from '@/stores/platform';
+import { useProjectStore } from '@/stores/projects';
+import { useStudioStore } from '@/stores/studio';
+import { useThemeStore } from '@/stores/theme';
+import { useTrayStates } from '@/stores/TrayStates';
+import { useUserStore } from '@/stores/users';
 
 // stores
+const accountStore = useAccountStore();
+const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
+const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
+const platformStore = usePlatformStore();
+const projectStore = useProjectStore();
+const themeStore = useThemeStore();
+const trayStates = useTrayStates();
+const userStore = useUserStore();
 
 const route = useRoute();
 const router = useRouter();
@@ -194,6 +234,19 @@ const salesError = ref('');
 const salesSubmitted = ref(false);
 const studioUrl = ref('');
 const studioUrlError = ref('');
+
+// ClusttaCloud refs
+const checkingCloudStudioName = ref(false);
+const cloudError = ref('');
+const cloudStudioName = ref('');
+const cloudStudioNameError = ref('');
+const isCloudStudioNameTaken = ref(false);
+const isCreatingStudio = ref(false);
+const isLoadingPlans = ref(false);
+const selectedPlanId = ref(null);
+const showEnterpriseSalesForm = ref(false);
+
+const restrictedNames = ['clustta', 'eaxum', 'pixar', 'disney', 'dreamworks'];
 
 const registerForm = reactive({
   first_name: '',
@@ -273,6 +326,38 @@ const workEmailNudge = computed(() => {
   return freeEmailDomains.includes(domain) ? t('auth.studioSetup.workEmailNudge') : '';
 });
 
+// Returns the label for the back navigation button.
+const backLabel = computed(() => {
+  if (showEnterpriseSalesForm.value) return t('auth.studioSetup.backToPlanSelection');
+  return t('auth.studioSetup.backToWelcome');
+});
+
+// Returns whether the cloud studio form is ready to proceed.
+const canCreateCloud = computed(() => {
+  const plan = studioPlans.value.find(p => p.id === selectedPlanId.value);
+  if (plan && plan.name === 'studio_enterprise') return true;
+  return cloudStudioName.value && !cloudStudioNameError.value && !isCloudStudioNameTaken.value && !checkingCloudStudioName.value && !!selectedPlanId.value;
+});
+
+// Returns the label for the cloud studio create button.
+const cloudCreateButtonLabel = computed(() => {
+  const plan = studioPlans.value.find(p => p.id === selectedPlanId.value);
+  if (!plan) return t('common.create');
+  if (plan.name === 'studio_enterprise') return 'Contact Sales';
+  return 'Create & Subscribe';
+});
+
+// Returns whether the selected plan is enterprise.
+const isEnterprisePlan = computed(() => {
+  const plan = studioPlans.value.find(p => p.id === selectedPlanId.value);
+  return plan && plan.name === 'studio_enterprise';
+});
+
+// Returns studio plans for selection (paid plans + enterprise).
+const studioPlans = computed(() => {
+  return entitlementStore.plans.filter(p => p.type === 'studio' && (p.price_cents !== 0 || p.name === 'studio_enterprise'));
+});
+
 const passwordValidation = computed(() => {
   const password = registerForm.password;
   if (!password) return null;
@@ -314,6 +399,96 @@ const passwordsMatch = computed(() => {
 
 // methods/functions
 
+// Checks if the cloud studio name is available.
+const checkCloudStudioName = async () => {
+  if (!cloudStudioName.value) {
+    cloudStudioNameError.value = '';
+    isCloudStudioNameTaken.value = false;
+    return;
+  }
+
+  if (restrictedNames.includes(cloudStudioName.value.toLowerCase())) {
+    cloudStudioNameError.value = t('notifications.studioNameReserved');
+    isCloudStudioNameTaken.value = true;
+    return;
+  }
+
+  checkingCloudStudioName.value = true;
+
+  try {
+    const nameExists = await StudioService.CheckStudioNameExists(cloudStudioName.value.toLowerCase());
+    if (nameExists) {
+      cloudStudioNameError.value = t('notifications.studioNameTaken');
+      isCloudStudioNameTaken.value = true;
+    } else {
+      cloudStudioNameError.value = '';
+      isCloudStudioNameTaken.value = false;
+    }
+  } catch (err) {
+    cloudStudioNameError.value = '';
+    isCloudStudioNameTaken.value = false;
+    console.error('Error checking studio name:', err);
+  } finally {
+    checkingCloudStudioName.value = false;
+  }
+};
+
+// Creates the ClusttaCloud studio on the free tier, then redirects to Stripe Checkout.
+const createCloudStudioAndCheckout = async () => {
+  if (!canCreateCloud.value || isCreatingStudio.value) return;
+
+  const plan = studioPlans.value.find(p => p.id === selectedPlanId.value);
+  if (!plan) return;
+
+  if (plan.name === 'studio_enterprise') {
+    showEnterpriseSalesForm.value = true;
+    return;
+  }
+
+  isCreatingStudio.value = true;
+  cloudError.value = '';
+
+  try {
+    await StudioService.RegisterStudio(cloudStudioName.value, '', 'cloud');
+
+    await projectStore.loadStudios();
+    const studio = projectStore.studios.find((item) => item.name === cloudStudioName.value);
+    if (studio) {
+      projectStore.selectedStudio = studio;
+    } else {
+      projectStore.selectedStudio = projectStore.studios[0];
+    }
+
+    const studioStore = useStudioStore();
+    await studioStore.getStudioUsers();
+    await projectStore.loadProjects();
+
+    const studioId = studio ? studio.id : '';
+    const checkoutUrl = await entitlementStore.createCheckout(plan.id, studioId);
+    if (checkoutUrl) {
+      Browser.OpenURL(checkoutUrl);
+      notificationStore.addNotification('Checkout', 'Complete your payment in the browser', 'info', false);
+    } else {
+      notificationStore.addNotification('Error', 'Failed to start checkout. Please try again.', 'error', false);
+    }
+
+    accountStore.onboardingIntent = null;
+
+    // Navigate to main app — DirOnboardModal will show if needed
+    const projectDirectoryExists = await SettingsService.GetProjectDirectory();
+    if (!projectDirectoryExists) {
+      modals.setModalVisibility('dirOnboardModal', true);
+    }
+    router.push('/');
+  } catch (err) {
+    console.error(err);
+    cloudError.value = err.message || t('notifications.errorCreatingStudio');
+    notificationStore.errorNotification(t('notifications.errorCreatingStudio'), err);
+  } finally {
+    isCreatingStudio.value = false;
+  }
+};
+
 // Connects to the self-hosted studio server and retrieves its info.
 const connectToServer = async () => {
   if (!isUrlValid.value || isConnecting.value) return;
@@ -344,13 +519,37 @@ const disconnectServer = () => {
   error.value = '';
 };
 
+// Returns a human-readable plan name.
+const formatPlanName = (name) => {
+  const names = { studio_cloud: 'Studio Cloud', studio_pro: 'Studio Pro', studio_enterprise: 'Enterprise' };
+  return names[name] || name;
+};
+
+// Formats bytes to human-readable storage string.
+const formatStorage = (bytes) => {
+  if (bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return Math.round(bytes / Math.pow(1024, i)) + ' ' + units[i];
+};
+
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
+// Navigates back based on current context.
+const handleBack = () => {
+  if (showEnterpriseSalesForm.value) {
+    showEnterpriseSalesForm.value = false;
+    return;
+  }
+  goBack();
+};
+
 // Navigates back to the welcome page.
 const goBack = () => {
+  accountStore.onboardingIntent = null;
   router.push('/auth/welcome');
 };
 
@@ -369,6 +568,24 @@ const goToLogin = () => {
 // Navigates to the personal sign-up page.
 const goToPersonalSignUp = () => {
   router.push('/auth/sign-up');
+};
+
+// Returns a short description with price for the plan card.
+const planDescription = (plan) => {
+  if (plan.name === 'studio_enterprise') return 'Custom infrastructure — contact us for pricing';
+  const price = '$' + (plan.price_cents / 100) + '/mo';
+  const storage = formatStorage(plan.storage_bytes) + ' storage';
+  const seats = plan.max_collaborators === -1 ? 'Unlimited seats' : plan.max_collaborators + ' seats';
+  return price + ' · ' + storage + ' · ' + seats;
+};
+
+// Selects a plan and clears studio name for enterprise.
+const selectPlan = (plan) => {
+  selectedPlanId.value = plan.id;
+  if (plan.name === 'studio_enterprise') {
+    cloudStudioName.value = '';
+    cloudStudioNameError.value = '';
+  }
 };
 
 // Selects a source option from the dropdown.
@@ -480,13 +697,25 @@ onMounted(async () => {
   const queryUrl = route.query.url;
   const queryName = route.query.name;
 
-  if (queryType === 'managed') {
+  // Auto-select hosting type based on onboarding intent
+  if (accountStore.onboardingIntent === 'studio') {
+    hostingType.value = 'managed';
+  } else if (accountStore.onboardingIntent === 'self-hosted') {
+    hostingType.value = 'self-hosted';
+  } else if (queryType === 'managed') {
     hostingType.value = 'managed';
   } else if (queryType === 'self-hosted' && queryUrl) {
     hostingType.value = 'self-hosted';
     studioUrl.value = queryUrl;
     connectedServerName.value = queryName || queryUrl;
     await connectToServer();
+  }
+
+  // Fetch plans for ClusttaCloud studio creation
+  if (!entitlementStore.plans.length) {
+    isLoadingPlans.value = true;
+    await entitlementStore.fetchPlans();
+    isLoadingPlans.value = false;
   }
 });
 
@@ -522,6 +751,32 @@ const validateStudioUrl = () => {
   background-color: var(--black);
   overflow: hidden;
   overflow-y: auto;
+}
+
+.back-nav {
+  position: absolute;
+  top: 0px;
+  left: .5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 300;
+  color: var(--white);
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  z-index: 10;
+}
+
+.back-nav:hover {
+  opacity: 1;
+}
+
+.back-nav-icon {
+  width: 14px;
+  height: 14px;
 }
 
 .hosting-selector {
@@ -766,5 +1021,27 @@ const validateStudioUrl = () => {
   .managed-container {
     min-width: 300px;
   }
+}
+
+.plan-loading {
+  text-align: center;
+  padding: 1rem;
+  color: var(--white);
+  opacity: 0.6;
+}
+
+.plan-select-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  width: 100%;
+}
+
+.plan-select-label {
+  font-size: 0.85rem;
+  color: var(--white);
+  opacity: 0.6;
+  font-weight: 300;
 }
 </style>

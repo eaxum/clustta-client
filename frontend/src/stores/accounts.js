@@ -21,7 +21,8 @@ export const useAccountStore = defineStore('accounts', {
     lastUpdated: null,     // Timestamp for cache invalidation
     isAdditionalAccount: false, // Flag to indicate when adding additional account vs first login
     authMode: 'global',    // Current auth mode: 'global', 'studio', or 'offline'
-    authHost: ''           // Current auth host URL
+    authHost: '',           // Current auth host URL
+    onboardingIntent: null, // Post-auth routing intent: null, 'personal', 'studio', or 'self-hosted'
   }),
 
   getters: {
