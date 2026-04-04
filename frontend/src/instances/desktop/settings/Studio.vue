@@ -1,10 +1,14 @@
 <template>
   <div class="settings-component-root">
+    <div class="settings-component-scroll">
     <div class="settings-component-container">
 
-      <div class="settings-list">
+      <div class="settings-section-card">
+        <div class="settings-section-card-header">
+          <h2 class="settings-section-card-title">{{ $t('settings.studioInfo') }}</h2>
+        </div>
+        <div class="settings-section-card-content">
 
-        <div class="settings-section">
           <div class="settings-item" v-stop-propagation>
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('stall')"></div>
             <div class="settings-content">
@@ -13,8 +17,7 @@
             </div>
           </div>
 
-
-          <div class="settings-item"  @click="launchUpdateStudioModal()" v-stop-propagation>
+          <div class="settings-item" @click="launchUpdateStudioModal()" v-stop-propagation>
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('website')"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.ipAddressUrl') }}</div>
@@ -23,7 +26,7 @@
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
           </div>
 
-          <div v-if="studioInfo?.alt_url" class="settings-item"  @click="launchUpdateStudioModal()" v-stop-propagation>
+          <div v-if="studioInfo?.alt_url" class="settings-item" @click="launchUpdateStudioModal()" v-stop-propagation>
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('website')"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.alternateUrl') }}</div>
@@ -41,9 +44,9 @@
           </div>
 
         </div>
-
       </div>
 
+    </div>
     </div>
   </div>
 </template>
@@ -114,19 +117,36 @@ onMounted(async () => {
 <style scoped>
 @import "@/assets/desktop.css";
 
-.input-short {
-  flex: 1;
-  width: 100%;
-}
-
 .settings-component-root {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  display: flex;
   flex-direction: column;
   gap: 5px;
   box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  display: block;
+  overflow-y: scroll;
+  border-radius: var(--very-large-radius);
+}
+
+.settings-component-root::-webkit-scrollbar {
+  width: 4px;
+}
+
+.settings-component-root::-webkit-scrollbar-thumb {
+  border-radius: var(--small-radius);
+  background-color: var(--light-steel);
+}
+
+.settings-component-root::-webkit-scrollbar-track {
+  border-radius: var(--small-radius);
+}
+
+.settings-component-scroll {
+  overflow: hidden;
+  display: flex;
   align-items: center;
   justify-content: center;
 }
@@ -136,65 +156,34 @@ onMounted(async () => {
   flex-direction: column;
   box-sizing: border-box;
   height: 100%;
-  overflow: hidden;
-  box-sizing: border-box;
-  width: 96%;
-  gap: .5rem;
-  align-items: center;
-  color: var(--white);
-  justify-content: space-between;
-  border-radius: var(--large-radius);
-  padding: 1rem;
-}
-
-.list-item {
-
-  border-radius: 8px;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: flex;
-  gap: 10px;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 5px 5px;
+  gap: 1.5rem;
   width: 100%;
-  color: #fff;
-  overflow: hidden;
-  text-wrap: nowrap;
-}
-
-.list-item:hover {
-  background-color: rgb(121, 121, 121);
-  background-color: #ffffff15;
-}
-
-.list-item:active {
-  background-color: rgb(70, 70, 70);
-  background-color: #00000013;
+  padding-right: .2rem;
+  border-radius: var(--large-radius);
 }
 
 .settings-item {
   color: var(--white);
   box-sizing: border-box;
   overflow: hidden;
-  min-height: 40px;
+  min-height: 50px;
   display: flex;
   padding: .5rem 1rem;
   align-items: center;
   justify-content: space-between;
   width: 100%;
   height: max-content;
-  border-bottom: 1px solid rgba(192,192,192,0.5); 
-  border-bottom: 1px solid color-mix(in srgb, var(--silver) 30%, transparent); 
+  background-color: var(--dark-steel);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid var(--light-steel);
 }
 
 .settings-item:hover {
-  background-color: rgb(121, 121, 121);
   background-color: #ffffff15;
 }
 
 .settings-item:active {
-  background-color: rgb(70, 70, 70);
   background-color: #00000013;
 }
 
@@ -222,6 +211,8 @@ onMounted(async () => {
 
 .settings-header {
   padding: .1rem;
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .settings-body {
@@ -235,62 +226,10 @@ onMounted(async () => {
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   overflow: hidden;
   height: 100%;
   width: max-content;
-}
-
-.fixed-width {
-  min-width: 200px;
-  padding: .1rem;
-  box-sizing: border-box;
-}
-
-.tray-page-content {
-  position: relative;
-  flex-direction: column;
-  box-sizing: border-box;
-  align-items: center;
-}
-
-.settings-list {
-  position: relative;
-  width: 96%;
-  height: 100%;
-  overflow-y: scroll;
-  box-sizing: border-box;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.settings-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.settings-list::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
-}
-
-.settings-list::-webkit-scrollbar-track {
-  border-radius: 10px;
-}
-
-.settings-section {
-  box-sizing: border-box;
-  position: relative;
-  background-color: var(--light-steel);
-  overflow: hidden;
-  height: max-content;
-  border-radius: 8px;
-  flex-direction: column;
-  margin-bottom: 2rem;
-}
-
-.list-item {
-  height: 50px;
-  border-bottom: var(--transparent-line);
 }
 </style>
 
