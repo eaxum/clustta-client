@@ -300,6 +300,12 @@ const selectStudio = async (studio) => {
     console.log('pppppppppp')
   }
 
+  if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
+    entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
+  } else {
+    entitlementStore.fetchEntitlements();
+  }
+
   if (projectStore.projects.length && projectStore.activeProject && projectStore.activeProject.is_downloaded) {
     await trayStates.refreshData();
   }

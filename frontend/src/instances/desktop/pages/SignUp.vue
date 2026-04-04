@@ -1,6 +1,6 @@
 <template>
   <div class="page-root sign-up-page-root">
-
+    
     <!-- responsive root -->
     <div class="auth-root">
 
@@ -85,7 +85,7 @@
 
         <!-- toggle -->
         <div v-if="!isInitializing" class="additional-actions">
-          <div v-if="!platformStore.isWeb" @click="goToStudioSignUp" class="login-toggle">{{ $t('auth.signUp.signUpToStudio') }}</div>
+          <div v-if="!platformStore.isWeb && !accountStore.onboardingIntent" @click="goToStudioSignUp" class="login-toggle">{{ $t('auth.signUp.signUpToStudio') }}</div>
 
           <div @click="toggleLogin" class="login-toggle">
             {{ $t('auth.signUp.haveAccount') }}&nbsp;<span class="bold">{{ $t('auth.signUp.loginLink') }}</span>
@@ -338,6 +338,7 @@ const handleSSOSuccess = async (data) => {
     userStore.user = data.user;
     userStore.isUserAuthenticated = true;
 
+    const savedIntent = accountStore.onboardingIntent;
     loadingStatus.value = t('auth.login.loadingAccount');
     await accountStore.initialize();
 
@@ -352,12 +353,17 @@ const handleSSOSuccess = async (data) => {
       loadingStatus.value = t('auth.login.loadingProjects');
       await projectStore.loadProjects();
       trayStates.refreshData();
-    } else {
+    } else if (savedIntent !== 'studio') {
       modals.setModalVisibility('dirOnboardModal', true);
     }
 
     markStoresInitialized();
-    router.push('/');
+
+    if (savedIntent === 'studio') {
+      router.push('/auth/studio-setup');
+    } else {
+      router.push('/');
+    }
   } catch (err) {
     console.log(err);
     isInitializing.value = false;

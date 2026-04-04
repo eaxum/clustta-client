@@ -46,7 +46,7 @@ const routes = [
         path: 'studio-setup',
         name: 'studio-setup',
         component: () => import('@/instances/desktop/pages/StudioSetup.vue'),
-        meta: { requiresAuth: false, isPublic: true, isAuthPage: true }
+        meta: { requiresAuth: false, isPublic: true, isAuthPage: true, allowAuthenticated: true }
       },
       {
         path: 'verify-email',
@@ -199,8 +199,8 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  // Auth pages: redirect to home if already logged in
-  if (to.meta.isAuthPage && isAuthenticated) {
+  // Auth pages: redirect to home if already logged in (except pages that allow authenticated users)
+  if (to.meta.isAuthPage && isAuthenticated && !to.meta.allowAuthenticated) {
     return next(isWebMode ? '/profile' : '/');
   }
 

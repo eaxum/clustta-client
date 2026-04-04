@@ -254,6 +254,7 @@ const handleSSOSuccess = async (data) => {
     userStore.user = data.user;
     userStore.isUserAuthenticated = true;
 
+    const savedIntent = accountStore.onboardingIntent;
     loadingStatus.value = t('auth.login.loadingAccount');
     await accountStore.initialize();
 
@@ -273,7 +274,13 @@ const handleSSOSuccess = async (data) => {
     }
 
     markStoresInitialized();
-    router.push('/');
+
+    // Route based on onboarding intent
+    if (savedIntent === 'studio') {
+      router.push('/auth/studio-setup');
+    } else {
+      router.push('/');
+    }
   } catch (err) {
     console.log(err);
     isInitializing.value = false;
@@ -313,6 +320,7 @@ const handleLogin = async () => {
     isAwaitingResponse.value = false;
     isInitializing.value = true;
 
+    const savedIntent = accountStore.onboardingIntent;
     loadingStatus.value = t('auth.login.loadingAccount');
     await accountStore.initialize();
 
@@ -337,7 +345,13 @@ const handleLogin = async () => {
     if (isStudioLogin) {
       notificationStore.addNotification(t('auth.login.studioLoginTitle'), t('auth.login.studioLoginSuccess', { url: normalizedUrl }), '●');
     }
-    router.push(platformStore.isWeb ? '/profile' : '/');
+
+    // Route based on onboarding intent
+    if (savedIntent === 'studio') {
+      router.push('/auth/studio-setup');
+    } else {
+      router.push(platformStore.isWeb ? '/profile' : '/');
+    }
   } catch (err) {
     console.log(err);
     isAwaitingResponse.value = false;

@@ -22,8 +22,11 @@
           <!-- Path B: Personal + Collaborate -->
           <OptionCard :icon="getAppIcon('website')" :title="$t('auth.welcome.personalTitle')" :description="$t('auth.welcome.personalDescription')" @select="goToSignUp" />
 
-          <!-- Path C: Studio / Organisation -->
-          <OptionCard :icon="getAppIcon('stall')" :title="$t('auth.welcome.studioTitle')" :description="$t('auth.welcome.studioDescription')" @select="goToStudioSetup" />
+          <!-- Path C: Team / Studio (ClusttaCloud) -->
+          <OptionCard :icon="getAppIcon('clustta')" :title="$t('auth.welcome.teamTitle')" :description="$t('auth.welcome.teamDescription')" @select="goToStudioSetup" />
+
+          <!-- Path D: Studio Server (self-hosted) -->
+          <OptionCard :icon="getAppIcon('stall')" :title="$t('auth.welcome.studioTitle')" :description="$t('auth.welcome.studioDescription')" @select="goToSelfHosted" />
 
         </div>
 
@@ -168,16 +171,20 @@ const goToLogin = () => {
 
 // Navigates to the sign up page.
 const goToSignUp = () => {
+  accountStore.onboardingIntent = 'personal';
   router.push('/auth/signup');
 };
 
-// Navigates to the studio setup page.
+// Navigates to signup with studio intent for ClusttaCloud team creation.
 const goToStudioSetup = () => {
-  if (platformStore.isWeb) {
-    router.push({ path: '/auth/studio-setup', query: { type: 'managed' } });
-  } else {
-    router.push('/auth/studio-setup');
-  }
+  accountStore.onboardingIntent = 'studio';
+  router.push('/auth/signup');
+};
+
+// Navigates directly to studio setup for self-hosted server registration.
+const goToSelfHosted = () => {
+  accountStore.onboardingIntent = 'self-hosted';
+  router.push('/auth/studio-setup');
 };
 </script>
 
