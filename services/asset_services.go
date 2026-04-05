@@ -13,7 +13,6 @@ import (
 	"database/sql"
 	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -36,8 +35,8 @@ type ChangedFiles struct {
 }
 
 type AssetStateItem struct {
-	AssetId      string `json:"asset_id"`      // asset ID for filtering
-	AssetPath    string `json:"asset_path"`    // for checkpoints: "path/to/file"
+	AssetId     string `json:"asset_id"`     // asset ID for filtering
+	AssetPath   string `json:"asset_path"`   // for checkpoints: "path/to/file"
 	DisplayPath string `json:"display_path"` // for UI: "path/to/file.blend"
 }
 
@@ -1534,7 +1533,7 @@ func (t *AssetService) GetRecursiveDependencies(projectPath string, assetId stri
 		for _, asset := range assets {
 			depInfo := dependenciesMap[asset.Id]
 			assetWithDepth := map[string]interface{}{
-				"asset":     asset,
+				"asset":    asset,
 				"name":     asset.Name,
 				"depth":    depInfo.Depth,
 				"parentId": depInfo.ParentID,
@@ -1574,10 +1573,10 @@ func (t *AssetService) GetRecursiveDependencies(projectPath string, assetId stri
 		for _, collection := range collections {
 			depInfo := dependenciesMap[collection.Id]
 			collectionWithDepth := map[string]interface{}{
-				"collection":   collection,
-				"depth":    depInfo.Depth,
-				"parentId": depInfo.ParentID,
-				"type":     "collection",
+				"collection": collection,
+				"depth":      depInfo.Depth,
+				"parentId":   depInfo.ParentID,
+				"type":       "collection",
 			}
 			result = append(result, collectionWithDepth)
 		}
@@ -1869,8 +1868,8 @@ func (t *AssetService) GetAssetsStates(projectPath, projectWorkingDir string, ig
 				displayPath = asset.AssetPath + asset.Extension
 			}
 			assetsStates.Rebuildable = append(assetsStates.Rebuildable, AssetStateItem{
-				AssetId:      asset.Id,
-				AssetPath:    asset.AssetPath,
+				AssetId:     asset.Id,
+				AssetPath:   asset.AssetPath,
 				DisplayPath: displayPath,
 			})
 		}
@@ -1917,8 +1916,8 @@ func (t *AssetService) GetAssetsStates(projectPath, projectWorkingDir string, ig
 				displayPath = asset.AssetPath + asset.Extension
 			}
 			assetsStates.Modifieds = append(assetsStates.Modifieds, AssetStateItem{
-				AssetId:      asset.Id,
-				AssetPath:    asset.AssetPath,
+				AssetId:     asset.Id,
+				AssetPath:   asset.AssetPath,
 				DisplayPath: displayPath,
 			})
 		} else if fileStatus == "outdated" {
@@ -1927,8 +1926,8 @@ func (t *AssetService) GetAssetsStates(projectPath, projectWorkingDir string, ig
 				displayPath = asset.AssetPath + asset.Extension
 			}
 			assetsStates.Outdated = append(assetsStates.Outdated, AssetStateItem{
-				AssetId:      asset.Id,
-				AssetPath:    asset.AssetPath,
+				AssetId:     asset.Id,
+				AssetPath:   asset.AssetPath,
 				DisplayPath: displayPath,
 			})
 		} else if fileStatus == "rebuildable" {
@@ -1937,8 +1936,8 @@ func (t *AssetService) GetAssetsStates(projectPath, projectWorkingDir string, ig
 				displayPath = asset.AssetPath + asset.Extension
 			}
 			assetsStates.Rebuildable = append(assetsStates.Rebuildable, AssetStateItem{
-				AssetId:      asset.Id,
-				AssetPath:    asset.AssetPath,
+				AssetId:     asset.Id,
+				AssetPath:   asset.AssetPath,
 				DisplayPath: displayPath,
 			})
 		}
@@ -2012,7 +2011,7 @@ func (t *AssetService) GetUntrackedFiles(projectPath, projectWorkingDir string, 
 		return nil
 	})
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	return untrackedFiles, nil
