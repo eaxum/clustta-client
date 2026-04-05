@@ -33,6 +33,7 @@ export function CreateCheckout(planId, studioId) {
 
 /**
  * GetEntitlements fetches the current user's entitlement bundle from the server.
+ * Returns default unlimited entitlements for private studio servers.
  * @returns {$CancellablePromise<$models.EntitlementBundle>}
  */
 export function GetEntitlements() {
@@ -53,6 +54,7 @@ export function GetPlans() {
 
 /**
  * GetStudioEntitlements fetches entitlements for a specific studio.
+ * Returns default unlimited entitlements for private studio servers.
  * @param {string} studioId
  * @returns {$CancellablePromise<$models.EntitlementBundle>}
  */
