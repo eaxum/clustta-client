@@ -1,43 +1,5 @@
 package chunk_service
 
-// def get_non_existing_chunks(chunks: str | list) -> list[str]:
-//     """
-//     Check if the chunks are valid.
-//     """
-//     if isinstance(chunks, str):
-//         chunks: list = chunks.split(",")
-//     non_existent_chunks = []
-//     environment = lmdb.open(chunks_db.as_posix(), readonly=True)
-//     with environment.begin() as txn:
-//         for chunk in chunks:
-//             if chunk in non_existent_chunks:
-//                 continue
-//             if not txn.get(chunk.encode()):
-//                 non_existent_chunks.append(chunk)
-//     environment.close()
-//     return non_existent_chunks
-
-// def write_chunks(chunks: bytes) -> list[str]:
-//     """
-//     Write chunks to the database. Return a list of failed chunks.
-//     Chunks are encoded in TLV format.
-//     The tag is a 32-byte hash, the length is a 3-byte integer, and the value is the binary data.
-//     """
-//     environment = lmdb.open(chunks_db.as_posix())
-//     failed_chunks = []
-//     with environment.begin(write=True) as txn:
-//         while chunks:
-//             tag = chunks[:32]
-//             length = int.from_bytes(chunks[32:35], "big")
-//             value = chunks[35 : 35 + length]
-//             chunks = chunks[35 + length :]
-//             if hashlib.sha256(value).digest() != tag:
-//                 failed_chunks.append(tag.hex())
-//                 continue
-//             txn.put(tag, value)
-//     environment.close()
-//     return failed_chunks
-
 import (
 	"bytes"
 	"clustta/internal/auth_service"
@@ -54,6 +16,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	kzstd "github.com/klauspost/compress/zstd"
@@ -297,7 +260,7 @@ func PullChunks(ctx context.Context, projectPath, remoteUrl string, chunkInfos [
 	}
 
 	dataUrl := remoteUrl + "/chunks"
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 
 	totalChunksSize := 0
 	for _, chunkInfo := range chunkInfos {
@@ -573,7 +536,7 @@ func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missin
 	}
 
 	dataUrl := remoteUrl + "/stream-chunks"
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 
 	if utils.IsValidURL(remoteUrl) {
 		if ctx.Err() != nil {
@@ -645,7 +608,7 @@ func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, mis
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 	auth_service.AttachBearerToken(req)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -824,7 +787,7 @@ func PushChunksPresigned(tx *sqlx.Tx, remoteUrl string, chunkInfos []ChunkInfo, 
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 	auth_service.AttachBearerToken(req)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -977,7 +940,7 @@ func PushChunksPresigned(tx *sqlx.Tx, remoteUrl string, chunkInfos []ChunkInfo, 
 
 func PushChunks(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []ChunkInfo, callback func(int, int, string, string)) error {
 	dataUrl := remoteUrl + "/chunks"
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 
 	totalChunksSize := 0
 	for _, chunkInfo := range chunkInfos {
@@ -1077,7 +1040,7 @@ func PushChunksBatch(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []
 	const batchSizeLimit = 512 * 1024 // 512 KB
 
 	dataUrl := remoteUrl + "/chunks"
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 
 	totalChunksSize := 0
 	for _, chunkInfo := range chunkInfos {
