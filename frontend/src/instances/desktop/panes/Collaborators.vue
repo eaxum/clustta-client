@@ -206,6 +206,7 @@ const addCollaboratorToProject = async (userId) => {
     if (isStudioProject.value) {
       const remoteUrl = projectStore.getActiveProjectUrl;
       await CollaboratorService.AddCollaboratorsWithRole(remoteUrl, [userId], defaultRole);
+      await ProjectService.AddUserSynced(projectStore.activeProject.uri, collaborator.email, defaultRole);
     } else {
       await ProjectService.AddUser(projectStore.activeProject.uri, collaborator.email, defaultRole);
     }
@@ -246,13 +247,11 @@ const deleteCollaborator = async (userId) => {
     if (isStudioProject.value || projectStore.isR2Remote) {
       const remoteUrl = projectStore.getActiveProjectUrl;
       await CollaboratorService.RemoveCollaborator(remoteUrl, collaborator.id);
-    }
-    if (!isStudioProject.value) {
+      await ProjectService.RemoveUserSynced(projectStore.activeProject.uri, collaborator.id);
+    } else {
       await ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id);
     }
-    const users = userStore.users;
-    const userIndex = users.indexOf(collaborator);
-    userStore.users.splice(userIndex, 1);
+    await userStore.reloadUsers();
     notificationStore.addNotification(t('notifications.userRemoved'), "", "success");
   } catch (error) {
     notificationStore.errorNotification(t('notifications.errorRemovingUser'), error);

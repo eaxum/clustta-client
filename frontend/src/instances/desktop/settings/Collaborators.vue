@@ -1,7 +1,14 @@
 <template>
   <div class="settings-component-root">
     <div class="settings-component-container">
-      <ActionBar v-if="projectStore.isR2Remote || userStore.canDo('add_user')" :itemType="$t('settings.addCollaborator').toLowerCase()" :addFunction="addCollaborator" />
+      <div class="asset-header">
+        <div class="create-menu">
+          <ActionButton v-if="projectStore.isR2Remote || userStore.canDo('add_user')" :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
+            @click="addCollaborator" v-tooltip="$t('settings.addCollaborator')" />
+          <ActionButton :icon="getAppIcon('refresh')" :label="$t('common.refresh')" v-tooltip="$t('common.refresh')"
+            :buttonFunction="refresh" />
+        </div>
+      </div>
 
       <div v-if="projectCollaborators.length" class="collaborators-list-wrapper">
         <div class="collaborators-list">
@@ -38,24 +45,36 @@ import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';
 
 // components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import CollaboratorItem from '@/instances/desktop/components/CollaboratorItem.vue';
-import ActionBar from '@/instances/desktop/components/ActionBar.vue'
-import { useUserStore } from '@/stores/users';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useUserStore } from '@/stores/users';
 
 
-// states
+// stores
 const assetStore = useAssetStore();
-const userStore = useUserStore();
+const iconStore = useIconStore();
+const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const trayStates = useTrayStates();
+const userStore = useUserStore();
 
-const notificationStore = useNotificationStore();
-const modals = useDesktopModalStore();
 const { t } = useI18n();
 
 const addCollaborator = () => {
   modals.setModalVisibility('manageCollaboratorModal', true);
+};
+
+// Returns the app icon for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Refreshes the project collaborators list.
+const refresh = async () => {
+  await userStore.reloadUsers();
 };
 
 // refs
@@ -138,13 +157,11 @@ const deleteCollaborator = async (userId) => {
     if (isStudioProject.value || projectStore.isR2Remote) {
       const remoteUrl = projectStore.getActiveProjectUrl;
       await CollaboratorService.RemoveCollaborator(remoteUrl, collaborator.id);
-    }
-    if (!isStudioProject.value) {
+      await ProjectService.RemoveUserSynced(projectStore.activeProject.uri, collaborator.id);
+    } else {
       await ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id);
     }
-    let users = userStore.users;
-    let userIndex = users.indexOf(collaborator);
-    userStore.users.splice(userIndex, 1);
+    await userStore.reloadUsers();
     notificationStore.addNotification(t('notifications.userRemoved'), "", "success");
   } catch (error) {
     notificationStore.errorNotification(t('notifications.errorRemovingUser'), error);
@@ -157,6 +174,29 @@ const deleteCollaborator = async (userId) => {
 .input-short {
   flex: 1;
   width: 100%;
+}
+
+.asset-header {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  height: max-content;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: .2rem;
+  box-sizing: border-box;
+  min-width: max-content;
+}
+
+.create-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  width: max-content;
+  height: max-content;
+  padding: .2rem;
 }
 
 .collaborators-list-wrapper {
