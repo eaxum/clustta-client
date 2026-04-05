@@ -264,6 +264,17 @@ export function RemoveUser(projectPath, userId) {
 }
 
 /**
+ * RemoveUserSynced removes a user from the local project and marks the tomb as synced.
+ * Used when the server already has the deletion via its own endpoint.
+ * @param {string} projectPath
+ * @param {string} userId
+ * @returns {$CancellablePromise<void>}
+ */
+export function RemoveUserSynced(projectPath, userId) {
+    return $Call.ByID(3362070715, projectPath, userId);
+}
+
+/**
  * @param {string} projectUri
  * @param {string} studioName
  * @param {string} newName

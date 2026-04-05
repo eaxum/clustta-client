@@ -173,6 +173,11 @@ export const ProjectService = {
     console.warn('RemoveUser not implemented in web mode');
   },
 
+  // Removes a user from a project and marks the tomb as synced
+  RemoveUserSynced: async (projectPath, userId) => {
+    console.warn('RemoveUserSynced not implemented in web mode');
+  },
+
   // Changes a user's role in a project
   ChangeRole: async (projectPath, userId, roleName) => {
     console.warn('ChangeRole not implemented in web mode');

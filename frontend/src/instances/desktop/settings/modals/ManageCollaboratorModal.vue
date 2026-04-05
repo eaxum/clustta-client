@@ -320,6 +320,19 @@ const addStudioProjectCollaborators = async () => {
   // Add all resolved users to the project via server endpoint
   if (resolvedUserIds.length > 0) {
     await CollaboratorService.AddCollaboratorsWithRole(remoteUrl, resolvedUserIds, collaboratorRole.value);
+
+    // Sync to local .clst for immediate availability
+    const projectUri = projectStore.activeProject?.uri;
+    if (projectUri) {
+      for (const user of [...studioUsersList, ...globalUsers]) {
+        try {
+          await ProjectService.AddUserSynced(projectUri, user.email, collaboratorRole.value);
+        } catch (e) {
+          console.error('Error syncing user locally:', e);
+        }
+      }
+    }
+
     notificationStore.addNotification(t('notifications.usersAddedSuccessfully', { count: resolvedUserIds.length }), "", "success");
   }
 

@@ -546,6 +546,37 @@ func (p *ProjectService) RemoveUser(projectPath, userId string) error {
 	return nil
 }
 
+// RemoveUserSynced removes a user from the local project and marks the tomb as synced.
+// Used when the server already has the deletion via its own endpoint.
+func (p *ProjectService) RemoveUserSynced(projectPath, userId string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	err = repository.RemoveUser(tx, userId)
+	if err != nil {
+		if errors.Is(err, error_service.ErrUserHaveAssetAssigned) {
+			return error_service.ErrUserHaveAssetAssigned
+		}
+		return err
+	}
+
+	err = utils.SetRowsSynced(tx, "tomb", []string{userId})
+	if err != nil {
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
 func (p *ProjectService) GetStudioProjects(url, name, hostingMode, studioId string) ([]repository.ProjectInfo, error) {
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
