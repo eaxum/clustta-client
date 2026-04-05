@@ -37,14 +37,40 @@ type EntitlementBundle struct {
 	Features []string          `json:"features"`
 }
 
+// privateServerEntitlements returns a default entitlement bundle for private studio servers.
+// Private servers are self-hosted and do not enforce cloud-based plan limits.
+func privateServerEntitlements() EntitlementBundle {
+	return EntitlementBundle{
+		Plan:     "studio",
+		PlanType: "studio",
+		Status:   "active",
+		Limits: EntitlementLimits{
+			StorageBytes:      -1,
+			MaxRemoteProjects: -1,
+			MaxCollaborators:  -1,
+			AICreditsMonthly:  0,
+		},
+		Usage:    EntitlementUsage{},
+		Features: []string{"sync", "collaboration"},
+	}
+}
+
 // GetEntitlements fetches the current user's entitlement bundle from the server.
+// Returns default unlimited entitlements for private studio servers.
 func (e *EntitlementService) GetEntitlements() (EntitlementBundle, error) {
+	if auth_service.GetActiveAuthMode() != auth_service.AuthModeGlobal {
+		return privateServerEntitlements(), nil
+	}
 	url := constants.HOST + "/entitlements"
 	return fetchEntitlements(url)
 }
 
 // GetStudioEntitlements fetches entitlements for a specific studio.
+// Returns default unlimited entitlements for private studio servers.
 func (e *EntitlementService) GetStudioEntitlements(studioId string) (EntitlementBundle, error) {
+	if auth_service.GetActiveAuthMode() != auth_service.AuthModeGlobal {
+		return privateServerEntitlements(), nil
+	}
 	url := constants.HOST + "/entitlements?studio_id=" + studioId
 	return fetchEntitlements(url)
 }
