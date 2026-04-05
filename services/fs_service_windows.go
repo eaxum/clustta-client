@@ -3,17 +3,22 @@
 package services
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 	"syscall"
 	"unsafe"
 )
 
-//LaunchFileWith opens the Windows "Open With" dialog for a file.
-//Returns an error if the operation fails.
+// LaunchFileWith opens the Windows "Open With" dialog for a file.
+// Validates the path exists before opening to prevent command injection.
 func (f *FSService) LaunchFileWith(path string) error {
 	filePath, err := filepath.Abs(path)
 	if err != nil {
 		return err
+	}
+	if _, err := os.Stat(filePath); err != nil {
+		return fmt.Errorf("file not found: %s", filePath)
 	}
 
 	h := syscall.MustLoadDLL("shell32.dll")

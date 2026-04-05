@@ -215,8 +215,13 @@ func (f *FSService) GetOSThumbnails(filePaths []string, size int) (map[string]st
 }
 
 // LaunchFile opens a file with its default system application.
+// Validates the path exists before opening to prevent command injection.
 func (f *FSService) LaunchFile(path string) error {
-	return open.Start(path)
+	cleanPath := filepath.Clean(path)
+	if _, err := os.Stat(cleanPath); err != nil {
+		return fmt.Errorf("file not found: %s", cleanPath)
+	}
+	return open.Start(cleanPath)
 }
 
 // ExtName returns the file extension of the specified path.

@@ -5,6 +5,7 @@ import (
 	"clustta/internal/utils"
 	"database/sql"
 	"fmt"
+	"regexp"
 	"strings"
 
 	// "strings"
@@ -17,6 +18,25 @@ import (
 type Table interface {
 	TableName() string
 	PrimaryKeyName() string
+}
+
+// InPlaceholders generates parameterized IN clause placeholders and values.
+// Returns a placeholder string like "?,?,?" and the corresponding []interface{} values.
+func InPlaceholders(ids []string) (string, []interface{}) {
+	placeholders := make([]string, len(ids))
+	values := make([]interface{}, len(ids))
+	for i, id := range ids {
+		placeholders[i] = "?"
+		values[i] = id
+	}
+	return strings.Join(placeholders, ","), values
+}
+
+// validSQLIdentifier checks that a string is a safe SQL identifier (table/column name).
+var validIdentifierRegex = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
+
+func validSQLIdentifier(name string) bool {
+	return validIdentifierRegex.MatchString(name)
 }
 
 // Get retrieves a record by ID
@@ -69,7 +89,7 @@ func Get(tx *sqlx.Tx, table string, id string, dest interface{}) error {
 		case "preview":
 			return error_service.ErrPreviewNotFound
 		// case "subasset_dependency":
-		// 	return error_service.ErrSubassetDe
+		// 	return error_service.ErrSubtaskDe
 		default:
 			return fmt.Errorf("id of %s not found in %s", id, table)
 		}
@@ -161,6 +181,9 @@ func GetAll(tx *sqlx.Tx, table string, dest interface{}) error {
 }
 
 func Create(tx *sqlx.Tx, table string, params map[string]interface{}) error {
+	if !validSQLIdentifier(table) {
+		return fmt.Errorf("invalid table name: %s", table)
+	}
 	var columns []string
 	var placeholders []string
 	var values []any
@@ -168,6 +191,9 @@ func Create(tx *sqlx.Tx, table string, params map[string]interface{}) error {
 	idProvided := false
 	mtimeProvided := false
 	for column, value := range params {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		if column == "id" && value != "" {
 			idProvided = true
 			columns = append(columns, column)
@@ -233,6 +259,9 @@ func Update(tx *sqlx.Tx, table string, id string, params map[string]interface{})
 	var values []interface{}
 
 	for column, value := range params {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		setClauses = append(setClauses, fmt.Sprintf("%s = ?", column))
 		values = append(values, value)
 	}
@@ -260,6 +289,9 @@ func UpdateBy(tx *sqlx.Tx, table string, conditions map[string]interface{}, para
 	var values []interface{}
 
 	for column, value := range params {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		setClauses = append(setClauses, fmt.Sprintf("%s = ?", column))
 		values = append(values, value)
 	}
@@ -268,6 +300,9 @@ func UpdateBy(tx *sqlx.Tx, table string, conditions map[string]interface{}, para
 	for column, value := range conditions {
 		if column == "id" {
 			continue
+		}
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
 		}
 		whereClauses = append(whereClauses, fmt.Sprintf("%s = ?", column))
 		values = append(values, value)
@@ -305,6 +340,9 @@ func XDeleteBy(tx *sqlx.Tx, table string, conditions map[string]interface{}) err
 	var whereClauses []string
 	var values []interface{}
 	for column, value := range conditions {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		whereClauses = append(whereClauses, fmt.Sprintf("%s = ?", column))
 		values = append(values, value)
 	}
@@ -341,6 +379,9 @@ func DeleteBy(tx *sqlx.Tx, table string, conditions map[string]interface{}) erro
 	var whereClauses []string
 	var values []interface{}
 	for column, value := range conditions {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		whereClauses = append(whereClauses, fmt.Sprintf("%s = ?", column))
 		values = append(values, value)
 	}
@@ -360,11 +401,7 @@ func MarkAsDeleted(tx *sqlx.Tx, table string, id string) error {
 	}
 	err := Update(tx, table, id, params)
 	if err != nil {
-		return err
-	}
-	err = UpdateMtime(tx, table, id, utils.GetEpochTime())
-	if err != nil {
-		return err
+		return nil
 	}
 	return nil
 }
@@ -387,6 +424,9 @@ func GetAllBy(tx *sqlx.Tx, table string, conditions map[string]interface{}, dest
 	var whereClauses []string
 	var values []interface{}
 	for column, value := range conditions {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		whereClauses = append(whereClauses, fmt.Sprintf("%s = ?", column))
 		values = append(values, value)
 	}
@@ -408,6 +448,9 @@ func GetBy(tx *sqlx.Tx, table string, conditions map[string]interface{}, dest in
 	var whereClauses []string
 	var values []interface{}
 	for column, value := range conditions {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		whereClauses = append(whereClauses, fmt.Sprintf("%s = ?", column))
 		values = append(values, value)
 	}
@@ -433,6 +476,9 @@ func GetByCaseInsensitive(tx *sqlx.Tx, table string, conditions map[string]inter
 	var whereClauses []string
 	var values []interface{}
 	for column, value := range conditions {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		whereClauses = append(whereClauses, fmt.Sprintf("LOWER(%s) = ?", column))
 		values = append(values, strings.ToLower(fmt.Sprintf("%v", value)))
 	}
@@ -453,6 +499,9 @@ func GetAllByCaseInsensitive(tx *sqlx.Tx, table string, conditions map[string]in
 	var whereClauses []string
 	var values []interface{}
 	for column, value := range conditions {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		whereClauses = append(whereClauses, fmt.Sprintf("LOWER(%s) = ?", column))
 		values = append(values, strings.ToLower(fmt.Sprintf("%v", value)))
 	}

@@ -259,6 +259,7 @@ export function JoinPath(...elem) {
 
 /**
  * LaunchFile opens a file with its default system application.
+ * Validates the path exists before opening to prevent command injection.
  * @param {string} path
  * @returns {$CancellablePromise<void>}
  */
@@ -268,7 +269,7 @@ export function LaunchFile(path) {
 
 /**
  * LaunchFileWith opens the Windows "Open With" dialog for a file.
- * Returns an error if the operation fails.
+ * Validates the path exists before opening to prevent command injection.
  * @param {string} path
  * @returns {$CancellablePromise<void>}
  */
