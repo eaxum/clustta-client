@@ -219,8 +219,8 @@ func UpdateMtime(tx *sqlx.Tx, table string, id string, mtime int64) error {
 	if mtime == 0 {
 		mtime = utils.GetEpochTime()
 	}
-	query := fmt.Sprintf("UPDATE %s SET mtime = ? WHERE id = '%s'", table, id)
-	_, err := tx.Exec(query, mtime)
+	query := fmt.Sprintf("UPDATE %s SET mtime = ? WHERE id = ?", table)
+	_, err := tx.Exec(query, mtime, id)
 	if err != nil {
 		return err
 	}
@@ -237,7 +237,8 @@ func Update(tx *sqlx.Tx, table string, id string, params map[string]interface{})
 		values = append(values, value)
 	}
 	setClause := strings.Join(setClauses, ", ")
-	query := fmt.Sprintf("UPDATE %s SET %s WHERE id = '%s'", table, setClause, id)
+	values = append(values, id)
+	query := fmt.Sprintf("UPDATE %s SET %s WHERE id = ?", table, setClause)
 	_, err := tx.Exec(query, values...)
 	if err != nil {
 		return err
@@ -246,8 +247,8 @@ func Update(tx *sqlx.Tx, table string, id string, params map[string]interface{})
 }
 
 func Rename(tx *sqlx.Tx, table string, id string, newName string) error {
-	query := fmt.Sprintf("UPDATE %s SET name = ? WHERE id = '%s'", table, id)
-	_, err := tx.Exec(query, newName)
+	query := fmt.Sprintf("UPDATE %s SET name = ? WHERE id = ?", table)
+	_, err := tx.Exec(query, newName, id)
 	if err != nil {
 		return err
 	}
