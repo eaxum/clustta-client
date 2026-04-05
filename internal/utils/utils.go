@@ -541,8 +541,7 @@ func NormalizePath(path string) string {
 	}
 
 	// Use filepath.Clean to handle . and .. components
-	// This also normalizes path separators to the OS-specific separator
-	// path = filepath.Clean(path)
+	path = filepath.Clean(path)
 
 	return path
 }
