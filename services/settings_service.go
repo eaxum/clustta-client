@@ -134,6 +134,15 @@ func (s *SettingsService) RemoveProjectWorkspace(projectId string, workspaceName
 	return nil
 }
 
+// UpdateProjectWorkspace replaces an existing workspace configuration by name.
+func (s *SettingsService) UpdateProjectWorkspace(projectId string, workspaceName string, workspaceData interface{}) error {
+	err := settings.UpdateProjectWorkspace(projectId, workspaceName, workspaceData)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // GetProjectWorkspaces retrieves all workspace configurations for a project.
 func (s *SettingsService) GetProjectWorkspaces(projectId string) ([]interface{}, error) {
 	projectWorkspaces, err := settings.GetProjectWorkspaces(projectId)

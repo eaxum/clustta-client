@@ -126,6 +126,7 @@ export const useProjectStore = defineStore("projects", {
       await this.setActiveProject(project);
       commonStore.activeWorkspace = "Default";
       commonStore.resetFilters();
+      commonStore.snapshotWorkspace();
 
       collectionStore.collections = [];
       assetStore.assets = [];
@@ -311,6 +312,7 @@ export const useProjectStore = defineStore("projects", {
       this.projects = [];
       this.selectedStudio = studio;
       commonStore.resetFilters();
+      commonStore.snapshotWorkspace();
       await this.loadProjects();
       SettingsService.SetLastStudio(studio.name)
     },

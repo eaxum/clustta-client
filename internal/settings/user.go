@@ -994,6 +994,33 @@ func RemoveProjectWorkspace(projectId string, workspaceName string) error {
 	return saveSettings(settings)
 }
 
+// UpdateProjectWorkspace replaces an existing workspace configuration by name.
+func UpdateProjectWorkspace(projectId string, workspaceName string, workspaceData interface{}) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+
+	if settings.WorkSpaces == nil {
+		return fmt.Errorf("no workspaces found for project %s", projectId)
+	}
+
+	projectWorkspaces, exists := settings.WorkSpaces[projectId]
+	if !exists {
+		return fmt.Errorf("no workspaces found for project %s", projectId)
+	}
+
+	for i, workspace := range projectWorkspaces {
+		if workspaceName == workspace.(map[string]interface{})["name"] {
+			projectWorkspaces[i] = workspaceData
+			settings.WorkSpaces[projectId] = projectWorkspaces
+			return saveSettings(settings)
+		}
+	}
+
+	return fmt.Errorf("workspace %s not found in project %s", workspaceName, projectId)
+}
+
 // ========== Integration Credentials Management ==========
 
 // GetIntegrationCredential retrieves integration credentials for an integration.

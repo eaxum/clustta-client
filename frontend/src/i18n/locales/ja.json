@@ -1318,8 +1318,10 @@
     },
     "workspaceTabs": {
       "deleteWorkspace": "ワークスペースを削除",
+      "resetWorkspace": "保存済みに戻す",
       "saveWorkspace": "ワークスペースを保存",
-      "unableToAddWorkspaces": "新しいワークスペースを追加できません"
+      "unableToAddWorkspaces": "新しいワークスペースを追加できません",
+      "updateWorkspace": "変更を保存"
     },
     "sidePane": {
       "allProjects": "すべてのプロジェクト",

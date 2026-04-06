@@ -1,6 +1,6 @@
 <template>
 	<div ref="browserRoot" v-esc="cancelOps" v-right-click="openMenu" class="dash-board-root absolute-pane">
-		<div v-if="isDefaultWorkspace" ref="browserFilters" class="dash-board-filter">
+		<div ref="browserFilters" class="dash-board-filter">
 			<Breadcrumbs />
 			<SearchBar ref="searchBar" v-model="commonStore.viewSearchQuery" :placeholder="$t('common.search')" :isLoading="!assetStore.assetsLoaded"
 				@input="debouncedUpdateSearch" @clear="clearSearch" />
@@ -8,9 +8,9 @@
 		</div>
 
 		<div class="dash-board-header">
-			<FilterBar v-if="showFilters && isDefaultWorkspace" :kanbanView="kanbanView" />
-			<CreateMenu v-else-if="isDefaultWorkspace" :kanbanView="kanbanView" :importItems="importItems" />
-			<StateBar v-if="(!showFilters || !isDefaultWorkspace) && !kanbanView" :hasData="!!rootData.length" />
+			<FilterBar v-if="showFilters" :kanbanView="kanbanView" />
+			<CreateMenu v-else :kanbanView="kanbanView" :importItems="importItems" :disabled="!canCreateInWorkspace" />
+			<StateBar v-if="!showFilters && !kanbanView" :hasData="!!rootData.length" />
 			<div v-if="rootData.length || commonStore.viewSearchQuery.length || commonStore.showUntracked"
 				class="view-options">
 				<ViewOptions />
@@ -132,6 +132,13 @@ const filtersActive = computed(() => {
 });
 
 const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
+
+// Whether the active workspace allows creating items (Default or a collection-based workspace).
+const canCreateInWorkspace = computed(() => {
+	if (isDefaultWorkspace.value) return true;
+	const workspace = commonStore.workspaces.find(w => w.name === commonStore.activeWorkspace);
+	return !!(workspace && workspace.collection);
+});
 
 const isHovered = computed(() => dndStore.isDropHovering && dndStore.targetItemId === null);
 
@@ -1021,6 +1028,7 @@ onMounted(async () => {
 	commonStore.resetFilters();
 	dndStore.lockUI = true;
 	commonStore.activeWorkspace = 'Default';
+	commonStore.snapshotWorkspace();
 	panes.showDetailsPane = screenWidth.value >= 1000;
 	window.addEventListener('resize', updateScreenWidth);
 	observer.value = new ResizeObserver(trackWidthChange);

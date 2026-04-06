@@ -9,10 +9,21 @@
           <div class="workspace-tab-meta">
             <img v-if="workspace.icon" :src="workspace.icon" class="tab-favicon" alt="favicon">
             <span class="tab-title">{{ workspace.name }}</span>
-            <span v-if="index > 1" v-stop-propagation v-tooltip="$t('components.workspaceTabs.deleteWorkspace')"
-              @click.stop="deleteWorkspace(workspace.name)" class="workspace-tab-button">
-              <img class="small-icons no-cursor" :src="getAppIcon('close')">
-            </span>
+            <div v-if="index > 1" class="workspace-tab-actions" v-stop-propagation>
+              <span v-if="isActiveTab(workspace) && isDirty && !isDefaultWorkspace && canSaveOver"
+                v-tooltip="$t('components.workspaceTabs.updateWorkspace')" @click.stop="saveOverWorkspace" class="workspace-tab-button workspace-hover-button">
+                <img class="small-icons no-cursor" :src="getAppIcon('circle-check')">
+              </span>
+              <span v-if="isActiveTab(workspace) && isDirty && !isDefaultWorkspace"
+                v-tooltip="$t('components.workspaceTabs.resetWorkspace')" @click.stop="resetWorkspace" class="workspace-tab-button workspace-hover-button">
+                <img class="small-icons no-cursor" :src="getAppIcon('revert')">
+              </span>
+              <span v-tooltip="$t('components.workspaceTabs.deleteWorkspace')"
+                @click.stop="deleteWorkspace(workspace.name)" class="workspace-tab-button workspace-hover-button">
+                <img class="small-icons no-cursor" :src="getAppIcon('trash')">
+              </span>
+            </div>
+            <span v-if="isActiveTab(workspace) && isDirty && !isDefaultWorkspace" class="dirty-indicator" />
           </div>
 
         </div>
@@ -86,6 +97,17 @@ const addWorkspaceVisible = computed(() => {
   const showButton = assetFilters || collectionFilters || resourceFilters || !isActive || commonStore.viewSearchQuery;
   return showButton;
 });
+
+// Whether the active workspace can be saved over (only custom workspaces, index > 1).
+const canSaveOver = computed(() => {
+  return activeWorkspaceIndex.value > 1;
+});
+
+// Whether the active workspace is the Default workspace.
+const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
+
+// Whether the active workspace filters have changed from the saved snapshot.
+const isDirty = computed(() => commonStore.isWorkspaceDirty);
 
 const withinLimits = computed(() => {
   return workspaceTabs.value.length < 5
@@ -171,8 +193,72 @@ const deleteWorkspace = async (workspaceName) => {
 const setDefaultWorkspace = () => {
   commonStore.activeWorkspace = 'Default';
   commonStore.resetFilters();
+  commonStore.snapshotWorkspace();
   commonStore.navigatorMode = false;
   collectionStore.navigatedCollection = null;
+};
+
+// Resets the active workspace filters back to the saved snapshot.
+const resetWorkspace = () => {
+  const workspaceName = commonStore.activeWorkspace;
+  if (workspaceName === 'Default') {
+    setDefaultWorkspace();
+    emitter.emit('refresh-browser');
+    return;
+  }
+  const workspace = commonStore.workspaces.find((item) => item.name === workspaceName);
+  if (workspace) {
+    if (workspace.collection) {
+      commonStore.navigatorMode = true;
+      collectionStore.navigatedCollection = workspace.collection;
+    } else {
+      commonStore.navigatorMode = false;
+      collectionStore.navigatedCollection = null;
+    }
+    commonStore.setActiveWorkspace(workspace);
+    emitter.emit('refresh-browser');
+  }
+};
+
+// Saves the current filter state over the active custom workspace.
+const saveOverWorkspace = async () => {
+  const workspaceName = commonStore.activeWorkspace;
+  const workspace = commonStore.workspaces.find((item) => item.name === workspaceName);
+  if (!workspace) return;
+
+  let collectionData = null;
+  if (collectionStore.navigatedCollection) {
+    collectionData = { ...collectionStore.navigatedCollection };
+    delete collectionData.preview;
+  }
+
+  const updatedWorkspace = {
+    name: workspaceName,
+    filters: {
+      assetFilters: commonStore.assetFilters,
+      collectionFilters: commonStore.collectionFilters,
+      resourceFilters: commonStore.resourceFilters,
+      showCollections: commonStore.showCollections,
+      showAssets: commonStore.showAssets,
+      onlyAssets: commonStore.onlyAssets,
+      showResources: commonStore.showResources,
+      showChildCollections: commonStore.showChildCollections,
+      showChildAssets: commonStore.showChildAssets,
+      showChildResources: commonStore.showChildResources,
+      showDependencies: commonStore.showDependencies,
+      useDeep: commonStore.useDeep,
+      hasAssignees: commonStore.hasAssignees,
+      noAssignees: commonStore.noAssignees,
+    },
+    workspaceSearchQuery: commonStore.viewSearchQuery,
+    collection: collectionData,
+    viewMode: commonStore.viewMode,
+  };
+
+  const index = commonStore.workspaces.indexOf(workspace);
+  commonStore.workspaces[index] = updatedWorkspace;
+  commonStore.snapshotWorkspace();
+  await SettingsService.UpdateProjectWorkspace(projectStore.getActiveProject.id, workspaceName, updatedWorkspace);
 };
 
 // Cache initial tab positions
@@ -496,6 +582,26 @@ const getTabStyle = (index) => {
   opacity: 1;
 }
 
+.workspace-tab-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.workspace-hover-button {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tab:hover .workspace-hover-button {
+  opacity: 0.3;
+  pointer-events: auto;
+}
+
+.tab:hover .workspace-hover-button:hover {
+  opacity: 1;
+}
+
 
 .workspace-tab-button-disabled:hover {
   opacity: 0.3;
@@ -529,6 +635,19 @@ const getTabStyle = (index) => {
 
 .tab-list-move {
   transition: transform 0.2s ease;
+}
+
+.dirty-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--attention);
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.tab:hover .dirty-indicator {
+  display: none;
 }
 </style>
 

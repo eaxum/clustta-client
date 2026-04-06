@@ -261,6 +261,15 @@ export const SettingsService = {
     const workspaces = getSetting(`workspaces_${projectId}`, []).filter(w => w.name !== workspaceName);
     setSetting(`workspaces_${projectId}`, workspaces);
   },
+  // Updates an existing workspace by name
+  UpdateProjectWorkspace: async (projectId, workspaceName, workspaceData) => {
+    const workspaces = getSetting(`workspaces_${projectId}`, []);
+    const index = workspaces.findIndex(w => w.name === workspaceName);
+    if (index !== -1) {
+      workspaces[index] = workspaceData;
+      setSetting(`workspaces_${projectId}`, workspaces);
+    }
+  },
 
   // Returns the current application version
   GetCurrentVersion: async () => '0.2.0-web',

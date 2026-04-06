@@ -1144,7 +1144,7 @@
     "formInput": { "hide": "Nascondi", "show": "Mostra" },
     "virtualNode": { "remove": "Rimuovi", "addDependency": "Aggiungi dipendenza" },
     "workflowTemplateItem": { "remove": "Rimuovi" },
-    "workspaceTabs": { "deleteWorkspace": "Elimina workspace", "saveWorkspace": "Salva workspace", "unableToAddWorkspaces": "Impossibile aggiungere nuovi workspace" },
+    "workspaceTabs": { "deleteWorkspace": "Elimina workspace", "resetWorkspace": "Ripristina salvato", "saveWorkspace": "Salva workspace", "unableToAddWorkspaces": "Impossibile aggiungere nuovi workspace", "updateWorkspace": "Salva modifiche" },
     "sidePane": { "allProjects": "Tutti i progetti", "settings": "Impostazioni", "login": "Accesso" },
     "trashItem": { "restore": "Ripristina", "expand": "Espandi", "itemRestored": "Elemento ripristinato", "errorRestoringItem": "Errore nel ripristino dell'elemento" },
     "timelineItem": { "revert": "Ripristina", "expand": "Espandi", "close": "Chiudi", "projectReverted": "Progetto ripristinato con successo", "errorRevertingProject": "Errore nel ripristino del progetto" },
