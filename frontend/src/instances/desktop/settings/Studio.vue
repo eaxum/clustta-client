@@ -45,6 +45,8 @@
       <div v-if="studioEntitlements" class="metrics-row">
         <MetricCard :title="$t('settings.collaborators')" :value="collaboratorsValue" :subtitle="collaboratorsLabel" :icon="getAppIcon('two-persons')" />
 
+        <MetricCard :title="$t('settings.remoteProjects')" :value="projectsValue" :subtitle="projectsLabel" :icon="getAppIcon('briefcase')" />
+
         <MetricCard :title="$t('settings.storageUsed')" :value="storageValue" :subtitle="storageLabel" :icon="getAppIcon('floppy-disk')" :percent="storagePercent" />
 
         <MetricCard v-if="studioEntitlements.limits?.ai_credits_monthly > 0" :title="$t('settings.aiCredits')" :value="aiCreditsValue" :subtitle="aiCreditsLabel" :icon="getAppIcon('brain')" />
@@ -153,6 +155,19 @@ const collaboratorsLabel = computed(() => {
 // Returns whether the studio is cloud-hosted.
 const isCloudHosted = computed(() => {
   return studioInfo.value?.hosting_mode === 'cloud';
+});
+
+// Returns the project count.
+const projectsValue = computed(() => {
+  if (!studioEntitlements.value) return '0';
+  return String(studioEntitlements.value.usage?.project_count || 0);
+});
+
+// Returns a formatted projects usage label.
+const projectsLabel = computed(() => {
+  const limit = studioEntitlements.value?.limits?.max_remote_projects;
+  if (!limit || limit <= 0) return '';
+  return t('settings.projectsOf', { used: projectsValue.value, limit });
 });
 
 // Returns a formatted plan label from a snake_case plan name.
