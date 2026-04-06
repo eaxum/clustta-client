@@ -1155,6 +1155,48 @@ func UpdateDependencyPreset(projectId string, presetName string, updatedPreset i
 	return saveSettings(settings)
 }
 
+// IsPathAllowed checks whether the given path falls within a registered project directory.
+// Allowed roots: ProjectsDir, SharedProjectsDir, all ProjectLocation paths, and OS temp dir.
+func IsPathAllowed(path string) bool {
+	cleaned := filepath.Clean(path)
+	absPath, err := filepath.Abs(cleaned)
+	if err != nil {
+		return false
+	}
+
+	var roots []string
+
+	s, err := loadUserSettings()
+	if err != nil {
+		return false
+	}
+
+	if s.ProjectsDir != "" {
+		roots = append(roots, s.ProjectsDir)
+	}
+	if s.SharedProjectsDir != "" {
+		roots = append(roots, s.SharedProjectsDir)
+	}
+	for _, loc := range s.ProjectLocations {
+		if loc.Path != "" {
+			roots = append(roots, loc.Path)
+		}
+	}
+	roots = append(roots, os.TempDir())
+
+	for _, root := range roots {
+		cleanRoot := filepath.Clean(root)
+		absRoot, err := filepath.Abs(cleanRoot)
+		if err != nil {
+			continue
+		}
+		if strings.EqualFold(absPath, absRoot) || strings.HasPrefix(strings.ToLower(absPath), strings.ToLower(absRoot)+string(os.PathSeparator)) {
+			return true
+		}
+	}
+	return false
+}
+
 // ========== Project Location Management ==========
 
 // GetAllLocationPaths returns all configured project locations
