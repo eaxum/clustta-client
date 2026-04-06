@@ -2,8 +2,14 @@ package bridge
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
 	"time"
 
 	"clustta/internal/bridge/handlers"
@@ -12,6 +18,7 @@ import (
 const bridgePort = "1173"
 
 var server *http.Server
+var bridgeToken string
 
 // Start launches the bridge HTTP server in the background (non-blocking).
 // Safe to call multiple times; does nothing if the server is already running.
@@ -19,6 +26,26 @@ func Start() {
 	if server != nil {
 		return
 	}
+
+	// Generate a random auth token and write it to a known file
+	tokenBytes := make([]byte, 32)
+	if _, err := rand.Read(tokenBytes); err != nil {
+		log.Printf("Failed to generate bridge token: %v", err)
+		return
+	}
+	bridgeToken = hex.EncodeToString(tokenBytes)
+
+	tokenPath, err := getBridgeTokenPath()
+	if err != nil {
+		log.Printf("Failed to get bridge token path: %v", err)
+		return
+	}
+	os.MkdirAll(filepath.Dir(tokenPath), 0700)
+	if err := os.WriteFile(tokenPath, []byte(bridgeToken), 0600); err != nil {
+		log.Printf("Failed to write bridge token: %v", err)
+		return
+	}
+
 	mux := http.NewServeMux()
 
 	// Health
@@ -75,19 +102,60 @@ func Stop() {
 		log.Printf("Bridge shutdown error: %v", err)
 	}
 	server = nil
+
+	// Clean up token file
+	if tokenPath, err := getBridgeTokenPath(); err == nil {
+		os.Remove(tokenPath)
+	}
+	bridgeToken = ""
+
 	log.Println("Clustta Bridge stopped.")
 }
 
-// corsMiddleware allows localhost origins for DCC addon requests.
+// getBridgeTokenPath returns the path for the bridge auth token file.
+func getBridgeTokenPath() (string, error) {
+	var base string
+	switch runtime.GOOS {
+	case "darwin":
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+		base = filepath.Join(home, "Library", "Application Support")
+	default:
+		appData := os.Getenv("APPDATA")
+		if appData == "" {
+			home, err := os.UserHomeDir()
+			if err != nil {
+				return "", err
+			}
+			appData = filepath.Join(home, ".config")
+		}
+		base = appData
+	}
+	return filepath.Join(base, "Clustta", ".bridge-token"), nil
+}
+
+// corsMiddleware validates the bridge auth token and sets CORS headers.
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return
+		}
+
+		// Validate auth token (skip for health check)
+		if r.URL.Path != "/health" {
+			auth := r.Header.Get("Authorization")
+			token := strings.TrimPrefix(auth, "Bearer ")
+			if token == "" || token != bridgeToken {
+				http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
+				return
+			}
 		}
 
 		next.ServeHTTP(w, r)

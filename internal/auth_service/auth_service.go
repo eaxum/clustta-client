@@ -2,8 +2,10 @@ package auth_service
 
 import (
 	"bytes"
+	"crypto/rand"
 	_ "embed"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -415,6 +417,13 @@ func LoginWithSSO(authHost string, provider string) (Token, error) {
 
 	resultCh := make(chan ssoResult, 1)
 
+	// Generate a random state parameter for CSRF protection
+	stateBytes := make([]byte, 16)
+	if _, err := rand.Read(stateBytes); err != nil {
+		return Token{}, fmt.Errorf("failed to generate state parameter: %w", err)
+	}
+	state := hex.EncodeToString(stateBytes)
+
 	// Start a local HTTP server on a random port to receive the callback
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -424,6 +433,14 @@ func LoginWithSSO(authHost string, provider string) (Token, error) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /sso/callback", func(w http.ResponseWriter, r *http.Request) {
+		callbackState := r.URL.Query().Get("state")
+		if callbackState != state {
+			w.Header().Set("Content-Type", "text/html")
+			w.Write([]byte("<html><body><h2>Login failed</h2><p>Invalid state parameter.</p></body></html>"))
+			resultCh <- ssoResult{err: fmt.Errorf("invalid state parameter")}
+			return
+		}
+
 		sessionId := r.URL.Query().Get("session_id")
 		userB64 := r.URL.Query().Get("user")
 
@@ -456,7 +473,7 @@ func LoginWithSSO(authHost string, provider string) (Token, error) {
 	go server.Serve(listener)
 
 	// Open the system browser to the SSO URL
-	ssoURL := fmt.Sprintf("%s/auth/sso/%s?redirect_port=%d", authHost, provider, port)
+	ssoURL := fmt.Sprintf("%s/auth/sso/%s?redirect_port=%d&state=%s", authHost, provider, port, state)
 	openBrowser(ssoURL)
 
 	// Wait for the callback (with timeout)

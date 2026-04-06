@@ -7,7 +7,7 @@
     <Teleport to="#app">
       <div v-if="showIndicator && buttonPosition" class="filter-button-indicator" :style="indicatorStyle"></div>
     </Teleport>
-    <span v-if="emoji" class="button-emoji no-cursor no-filter" v-html="emoji"></span>
+    <span v-if="emoji" class="button-emoji no-cursor no-filter">{{ decodeEmoji(emoji) }}</span>
     <img v-else-if="customIconUrl" class="small-icons no-cursor"  :class="{ 'no-filter' : noFilter}" :src="customIconUrl">
     <img v-else-if="showIcon && !iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter, 'loading-icon' : isLoading }" :src="icon">
     <div v-if="showLabel || label" class="small-icons button-label no-cursor" :class="{ 'label-force-light': forceIconColor === 'light', 'label-force-dark': forceIconColor === 'dark' }">{{ label }}</div>
@@ -17,6 +17,7 @@
 
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import { decodeEmoji } from '@/services/utils';
 import { useStageStore } from '@/stores/stages';
 import { useNotificationStore } from '@/stores/notifications';
 

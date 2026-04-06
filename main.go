@@ -5,11 +5,14 @@ import (
 	"clustta/internal/repository"
 	"clustta/internal/settings"
 	"clustta/services"
+	"crypto/sha256"
 	"embed"
 	"fmt"
 	"log"
 	"log/slog"
+	"os"
 	"os/exec"
+	"os/user"
 	"runtime"
 	"strings"
 	"time"
@@ -38,11 +41,16 @@ func InitializeFullscreenMonitoring() {
 	}
 }
 
-var encryptionKey = [32]byte{
-	0x1e, 0x1f, 0x1c, 0x1d, 0x1a, 0x1b, 0x18, 0x19,
-	0x16, 0x17, 0x14, 0x15, 0x12, 0x13, 0x10, 0x11,
-	0x0e, 0x0f, 0x0c, 0x0d, 0x0a, 0x0b, 0x08, 0x09,
-	0x06, 0x07, 0x04, 0x05, 0x02, 0x03, 0x00, 0x01,
+// generateEncryptionKey generates a machine-specific encryption key for single-instance IPC.
+func generateEncryptionKey() [32]byte {
+	hostname, _ := os.Hostname()
+	u, _ := user.Current()
+	username := ""
+	if u != nil {
+		username = u.Username
+	}
+	seed := "clustta-single-instance:" + hostname + ":" + username
+	return sha256.Sum256([]byte(seed))
 }
 
 var fsServiceInstance *services.FSService
@@ -104,7 +112,7 @@ func main() {
 	if runtime.GOOS != "darwin" {
 		singleInstanceOpt = &application.SingleInstanceOptions{
 			UniqueID:      "com.clustta.clustta.single-instance",
-			EncryptionKey: encryptionKey,
+			EncryptionKey: generateEncryptionKey(),
 			OnSecondInstanceLaunch: func(data application.SecondInstanceData) {
 				window, _ := application.Get().Window.GetByName("main")
 				if window != nil {

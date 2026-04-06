@@ -8,6 +8,7 @@ import (
 	"clustta/internal/utils"
 	"clustta/output"
 	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -113,6 +114,10 @@ func (i *ImportService) ImportFolder(projectPath, parentId string, folders, file
 		err = filepath.WalkDir(rootAbs, func(path string, d os.DirEntry, err error) error {
 			if err != nil {
 				return err
+			}
+
+			if d.Type()&fs.ModeSymlink != 0 {
+				return nil
 			}
 
 			path = filepath.ToSlash(path)

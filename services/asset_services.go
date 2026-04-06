@@ -1990,6 +1990,10 @@ func (t *AssetService) GetUntrackedFiles(projectPath, projectWorkingDir string, 
 			return err
 		}
 
+		if d.Type()&fs.ModeSymlink != 0 {
+			return nil
+		}
+
 		if d.IsDir() {
 			if strings.HasPrefix(filepath.Base(path), ".") {
 				return filepath.SkipDir
