@@ -1319,8 +1319,10 @@
     },
     "workspaceTabs": {
       "deleteWorkspace": "删除工作区",
+      "resetWorkspace": "重置为已保存",
       "saveWorkspace": "保存工作区",
-      "unableToAddWorkspaces": "无法添加新工作区"
+      "unableToAddWorkspaces": "无法添加新工作区",
+      "updateWorkspace": "保存更改"
     },
     "sidePane": {
       "allProjects": "所有项目",

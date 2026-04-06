@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import {
   SettingsService,
 } from "@/services";
+import { useCollectionStore } from "@/stores/collections";
 
 let defaultViewMode = 'dense';
 await SettingsService.GetDefaultViewMode()
@@ -68,6 +69,7 @@ export const useCommonStore = defineStore("common", {
     workspaces: [],
     projectWorkflows: [],
     activeWorkspace: "Default",
+    savedWorkspaceSnapshot: null,
     ghostCardStyle: {
       leaving: false,
       pos: { x: 0, y: 0 },
@@ -85,6 +87,32 @@ export const useCommonStore = defineStore("common", {
     },
     getResources: (state) => {
       return state.resources;
+    },
+    isWorkspaceDirty: (state) => {
+      if (!state.savedWorkspaceSnapshot) return false;
+      const snap = state.savedWorkspaceSnapshot;
+      const collectionStore = useCollectionStore();
+      const currentPath = collectionStore.navigatedCollection?.collection_path
+        || collectionStore.navigatedCollection?.item_path
+        || null;
+      return (
+        JSON.stringify(state.assetFilters) !== JSON.stringify(snap.assetFilters) ||
+        JSON.stringify(state.collectionFilters) !== JSON.stringify(snap.collectionFilters) ||
+        JSON.stringify(state.resourceFilters) !== JSON.stringify(snap.resourceFilters) ||
+        state.showCollections !== snap.showCollections ||
+        state.showAssets !== snap.showAssets ||
+        state.onlyAssets !== snap.onlyAssets ||
+        state.showResources !== snap.showResources ||
+        state.showChildCollections !== snap.showChildCollections ||
+        state.showChildAssets !== snap.showChildAssets ||
+        state.showChildResources !== snap.showChildResources ||
+        state.showDependencies !== snap.showDependencies ||
+        state.useDeep !== snap.useDeep ||
+        state.hasAssignees !== snap.hasAssignees ||
+        state.noAssignees !== snap.noAssignees ||
+        state.viewSearchQuery !== snap.workspaceSearchQuery ||
+        currentPath !== snap.collectionPath
+      );
     },
   },
   actions: {
@@ -108,6 +136,49 @@ export const useCommonStore = defineStore("common", {
       this.noAssignees = workspace.filters.noAssignees;
 
       this.workspaceSearchQuery = workspace.workspaceSearchQuery;
+      this.viewSearchQuery = workspace.workspaceSearchQuery || '';
+      this.snapshotWorkspace();
+    },
+    snapshotWorkspace() {
+      const collectionStore = useCollectionStore();
+      this.savedWorkspaceSnapshot = {
+        assetFilters: JSON.parse(JSON.stringify(this.assetFilters)),
+        collectionFilters: JSON.parse(JSON.stringify(this.collectionFilters)),
+        resourceFilters: JSON.parse(JSON.stringify(this.resourceFilters)),
+        showCollections: this.showCollections,
+        showAssets: this.showAssets,
+        onlyAssets: this.onlyAssets,
+        showResources: this.showResources,
+        showChildCollections: this.showChildCollections,
+        showChildAssets: this.showChildAssets,
+        showChildResources: this.showChildResources,
+        showDependencies: this.showDependencies,
+        useDeep: this.useDeep,
+        hasAssignees: this.hasAssignees,
+        noAssignees: this.noAssignees,
+        workspaceSearchQuery: this.viewSearchQuery,
+        collectionPath: collectionStore.navigatedCollection?.collection_path
+          || collectionStore.navigatedCollection?.item_path
+          || null,
+      };
+    },
+    getCurrentWorkspaceState() {
+      return {
+        assetFilters: this.assetFilters,
+        collectionFilters: this.collectionFilters,
+        resourceFilters: this.resourceFilters,
+        showCollections: this.showCollections,
+        showAssets: this.showAssets,
+        onlyAssets: this.onlyAssets,
+        showResources: this.showResources,
+        showChildCollections: this.showChildCollections,
+        showChildAssets: this.showChildAssets,
+        showChildResources: this.showChildResources,
+        showDependencies: this.showDependencies,
+        useDeep: this.useDeep,
+        hasAssignees: this.hasAssignees,
+        noAssignees: this.noAssignees,
+      };
     },
     resetFilters() {
       (this.showCollections = true),

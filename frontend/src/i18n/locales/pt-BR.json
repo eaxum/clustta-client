@@ -1321,8 +1321,10 @@
     },
     "workspaceTabs": {
       "deleteWorkspace": "Excluir Workspace",
+      "resetWorkspace": "Redefinir para salvo",
       "saveWorkspace": "Salvar Workspace",
-      "unableToAddWorkspaces": "Não é possível adicionar novos workspaces"
+      "unableToAddWorkspaces": "Não é possível adicionar novos workspaces",
+      "updateWorkspace": "Salvar alterações"
     },
     "sidePane": {
       "allProjects": "Todos os Projetos",

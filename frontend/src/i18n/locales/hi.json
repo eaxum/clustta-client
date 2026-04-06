@@ -1321,8 +1321,10 @@
     },
     "workspaceTabs": {
       "deleteWorkspace": "वर्कस्पेस हटाएँ",
+      "resetWorkspace": "सहेजे गए पर रीसेट करें",
       "saveWorkspace": "वर्कस्पेस सहेजें",
-      "unableToAddWorkspaces": "नए वर्कस्पेस जोड़ने में असमर्थ"
+      "unableToAddWorkspaces": "नए वर्कस्पेस जोड़ने में असमर्थ",
+      "updateWorkspace": "परिवर्तन सहेजें"
     },
     "sidePane": {
       "allProjects": "सभी प्रोजेक्ट",

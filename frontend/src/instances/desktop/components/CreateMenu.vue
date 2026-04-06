@@ -1,16 +1,16 @@
 <template>
 	<div class="create-menu">
-		<ActionButton :icon="getAppIcon('file-plus')" :isDisabled="kanbanView || !(canCreateAsset || canModifyCollection)"
+		<ActionButton :icon="getAppIcon('file-plus')" :isDisabled="props.disabled || kanbanView || !(canCreateAsset || canModifyCollection)"
 			@click="createAsset" v-tooltip="$t('components.createMenu.addAsset')" />
-		<ActionButton :icon="getAppIcon('folder-plus')" :isDisabled="kanbanView || !(canCreateCollection || canModifyCollection)"
+		<ActionButton :icon="getAppIcon('folder-plus')" :isDisabled="props.disabled || kanbanView || !(canCreateCollection || canModifyCollection)"
 			@click="createCollection" v-tooltip="$t('components.createMenu.addCollection')" />
-		<ActionButton :icon="getAppIcon('arrow-down-on-square-stack')" v-if="!(platformStore.isWeb || kanbanView)"  :isDisabled="!(canCreateCollection || canModifyCollection)"
+		<ActionButton :icon="getAppIcon('arrow-down-on-square-stack')" v-if="!(platformStore.isWeb || kanbanView)"  :isDisabled="props.disabled || !(canCreateCollection || canModifyCollection)"
 			@click="importItems" v-tooltip="$t('components.createMenu.importItems')" />
-		<ActionButton :icon="getAppIcon('workflow-plus')" :isDisabled="kanbanView || !(canCreateCollection || canModifyCollection)"
+		<ActionButton :icon="getAppIcon('workflow-plus')" :isDisabled="props.disabled || kanbanView || !(canCreateCollection || canModifyCollection)"
 			@click="createWorkflow" v-tooltip="$t('components.createMenu.addWorkflow')" />
-		<ActionButton :icon="getAppIcon('web-plus')" :isDisabled="kanbanView || !(canCreateAsset || canModifyCollection)"
+		<ActionButton :icon="getAppIcon('web-plus')" :isDisabled="props.disabled || kanbanView || !(canCreateAsset || canModifyCollection)"
 			@click="createWebLink" v-tooltip="$t('components.createMenu.addWeblink')" />
-		<ActionButton v-if="integrationStore.linkedIntegration" :icon="getAppIcon('kitsu')"  :isDisabled="kanbanView || !(canCreateAsset || canModifyCollection)"
+		<ActionButton v-if="integrationStore.linkedIntegration" :icon="getAppIcon('kitsu')"  :isDisabled="props.disabled || kanbanView || !(canCreateAsset || canModifyCollection)"
 			v-tooltip="'Sync Now'" :buttonFunction="openSyncModal" />
 		<!-- <ActionButton :icon="getAppIcon('arrow-down-ramp')" :isDisabled="platformStore.isWeb || kanbanView || !canCreateCollection"
 			@click="importItems" v-tooltip="'Import Items'" /> -->
@@ -56,6 +56,7 @@ const workflowStore = useWorkflowStore();
 
 // props
 const props = defineProps({
+	disabled: { type: Boolean, default: false },
 	importItems: { type: Function, required: true },
 	kanbanView: { type: Boolean, default: false },
 });

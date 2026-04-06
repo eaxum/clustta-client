@@ -1318,8 +1318,10 @@
     },
     "workspaceTabs": {
       "deleteWorkspace": "Eliminar espacio de trabajo",
+      "resetWorkspace": "Restablecer a guardado",
       "saveWorkspace": "Guardar espacio de trabajo",
-      "unableToAddWorkspaces": "No se pueden agregar nuevos espacios de trabajo"
+      "unableToAddWorkspaces": "No se pueden agregar nuevos espacios de trabajo",
+      "updateWorkspace": "Guardar cambios"
     },
     "sidePane": {
       "allProjects": "Todos los proyectos",

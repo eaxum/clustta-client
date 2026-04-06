@@ -635,6 +635,17 @@ export function UpdateProjectLocation(locationID, name, path) {
     return $Call.ByID(1079821971, locationID, name, path);
 }
 
+/**
+ * UpdateProjectWorkspace replaces an existing workspace configuration by name.
+ * @param {string} projectId
+ * @param {string} workspaceName
+ * @param {any} workspaceData
+ * @returns {$CancellablePromise<void>}
+ */
+export function UpdateProjectWorkspace(projectId, workspaceName, workspaceData) {
+    return $Call.ByID(289485265, projectId, workspaceName, workspaceData);
+}
+
 // Private type creation functions
 const $$createType0 = settings$0.ProjectLocation.createFrom;
 const $$createType1 = $Create.Array($Create.Any);

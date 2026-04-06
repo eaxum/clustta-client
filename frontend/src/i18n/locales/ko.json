@@ -1321,8 +1321,10 @@
     },
     "workspaceTabs": {
       "deleteWorkspace": "워크스페이스 삭제",
+      "resetWorkspace": "저장된 상태로 초기화",
       "saveWorkspace": "워크스페이스 저장",
-      "unableToAddWorkspaces": "새 워크스페이스를 추가할 수 없습니다"
+      "unableToAddWorkspaces": "새 워크스페이스를 추가할 수 없습니다",
+      "updateWorkspace": "변경사항 저장"
     },
     "sidePane": {
       "allProjects": "모든 프로젝트",

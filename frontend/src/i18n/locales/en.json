@@ -1339,8 +1339,10 @@
     },
     "workspaceTabs": {
       "deleteWorkspace": "Delete Workspace",
+      "resetWorkspace": "Reset to Saved",
       "saveWorkspace": "Save Workspace",
-      "unableToAddWorkspaces": "Unable to add new workspaces"
+      "unableToAddWorkspaces": "Unable to add new workspaces",
+      "updateWorkspace": "Save Changes"
     },
     "sidePane": {
       "allProjects": "All Projects",

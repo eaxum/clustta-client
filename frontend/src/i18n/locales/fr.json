@@ -1317,8 +1317,10 @@
     },
     "workspaceTabs": {
       "deleteWorkspace": "Supprimer l'espace de travail",
+      "resetWorkspace": "Réinitialiser",
       "saveWorkspace": "Enregistrer l'espace de travail",
-      "unableToAddWorkspaces": "Impossible d'ajouter de nouveaux espaces de travail"
+      "unableToAddWorkspaces": "Impossible d'ajouter de nouveaux espaces de travail",
+      "updateWorkspace": "Enregistrer les modifications"
     },
     "sidePane": {
       "allProjects": "Tous les projets",

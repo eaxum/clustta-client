@@ -171,14 +171,13 @@ onBeforeUnmount(() => {
 .filter-bar-root {
 	display: flex;
 	align-items: center;
-	/* padding: .2rem; */
 	height: max-content;
 	justify-content: flex-start;
 	box-sizing: border-box;
-	min-height: 35px;
+	min-height: 30px;
 	overflow: hidden;
-	/* overflow-x: scroll; */
 	width: 100%;
+	/* background-color: crimson; */
 }
 
 .filter-options {

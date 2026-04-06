@@ -1320,8 +1320,10 @@
     },
     "workspaceTabs": {
       "deleteWorkspace": "Удалить рабочее пространство",
+      "resetWorkspace": "Сбросить к сохранённому",
       "saveWorkspace": "Сохранить рабочее пространство",
-      "unableToAddWorkspaces": "Невозможно добавить новые рабочие пространства"
+      "unableToAddWorkspaces": "Невозможно добавить новые рабочие пространства",
+      "updateWorkspace": "Сохранить изменения"
     },
     "sidePane": {
       "allProjects": "Все проекты",
