@@ -30,9 +30,10 @@ const utils = {
   },
   async base64ToFile(dataString) {
     const tempdirPath = await FSService.TempDir();
+    const uniqueName = "clst-preview-" + crypto.randomUUID() + ".png";
     const tempFilePath = await FSService.JoinPath(
       tempdirPath,
-      "clst-preview.png"
+      uniqueName
     );
     await FSService.WriteFile(tempFilePath, dataString)
       .then(() => {
@@ -268,6 +269,13 @@ const utils = {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
   },
 
+};
+
+// Safely decodes HTML entities to plain text, stripping any HTML tags.
+export const decodeEmoji = (html) => {
+  const el = document.createElement('span');
+  el.innerHTML = html;
+  return el.textContent || '';
 };
 
 export default utils;

@@ -677,6 +677,10 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 					return err
 				}
 
+				if d.Type()&fs.ModeSymlink != 0 {
+					return nil
+				}
+
 				if d.IsDir() {
 					if strings.HasPrefix(filepath.Base(path), ".") {
 						return filepath.SkipDir

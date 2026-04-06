@@ -23,7 +23,7 @@
 				@click="projectStore.gotoProject(project)"
 				:class="{ 'project-avatar-item-centered': !sidePaneActive, 'project-avatar-item-active': isActiveProject(project) }">
 
-				<span v-if="project.icon.length < 10" class="project-icon" v-html="project.icon"></span>
+				<span v-if="project.icon.length < 10" class="project-icon">{{ decodeEmoji(project.icon) }}</span>
 				<span v-else class="project-icon">
 					<img class="screenshot-thumb" :src="project.icon">
 				</span>
@@ -47,7 +47,7 @@
 				@click="projectStore.gotoProject(project)"
 				:class="{ 'project-avatar-item-centered': !sidePaneActive, 'project-avatar-item-active': isActiveProject(project) }">
 
-				<span v-if="project.icon.length < 10" class="project-icon" v-html="project.icon"></span>
+				<span v-if="project.icon.length < 10" class="project-icon">{{ decodeEmoji(project.icon) }}</span>
 				<span v-else class="project-icon">
 					<img class="screenshot-thumb" :src="project.icon">
 				</span>
@@ -81,6 +81,7 @@ import { useI18n } from 'vue-i18n';
 
 // services
 import { SettingsService } from '@/services';
+import { decodeEmoji } from '@/services/utils';
 
 // stores/state imports
 import { useStageStore } from '@/stores/stages';
@@ -195,7 +196,6 @@ const clearRecents = () => {
 		notificationStore.addNotification(t('components.projectList.recentProjectsCleared'), t('components.projectList.recentProjectsCleared'), "success");
 	});
 };
-
 
 const projectListRef = ref(null);
 const showTopGradient = ref(false);
