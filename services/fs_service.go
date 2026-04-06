@@ -43,6 +43,14 @@ type FileInfo struct {
 	ModTime       int64  `json:"modTime"`
 }
 
+// validatePath checks that the path is within a registered project directory.
+func validatePath(path string) error {
+	if !settings.IsPathAllowed(path) {
+		return fmt.Errorf("access denied: path is outside registered project directories")
+	}
+	return nil
+}
+
 // AddWatcherFolder registers a directory with the file system watcher.
 // Enables monitoring of file system events within the specified directory.
 func (f *FSService) AddWatcherFolder(dir string) error {
@@ -335,11 +343,17 @@ func (f *FSService) FileHash(path string) (string, error) {
 
 // DeleteFolder removes a folder and all its contents recursively.
 func (f *FSService) DeleteFolder(path string) error {
+	if err := validatePath(path); err != nil {
+		return err
+	}
 	return os.RemoveAll(path)
 }
 
 // DeleteFile removes a single file from the file system.
 func (f *FSService) DeleteFile(path string) error {
+	if err := validatePath(path); err != nil {
+		return err
+	}
 	return os.Remove(path)
 }
 
@@ -356,6 +370,9 @@ func (f *FSService) UserProjectTemplatesPath() (string, error) {
 // WriteFile writes base64-encoded data to a file.
 // Decodes the data before writing to disk.
 func (f *FSService) WriteFile(path string, data string) error {
+	if err := validatePath(path); err != nil {
+		return err
+	}
 	decoded, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
 		return err
@@ -365,6 +382,7 @@ func (f *FSService) WriteFile(path string, data string) error {
 
 // ReadFile reads a file and returns its contents as base64-encoded string.
 func (f *FSService) ReadFile(path string) (string, error) {
+
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
@@ -379,11 +397,20 @@ func (f *FSService) RevealInExplorer(path string) {
 
 // MakeDirs creates a directory and all necessary parent directories.
 func (f *FSService) MakeDirs(path string) {
+	if err := validatePath(path); err != nil {
+		return
+	}
 	os.MkdirAll(path, os.ModePerm)
 }
 
 // Rename moves or renames a file or directory from oldPath to newPath.
 func (f *FSService) Rename(oldPath, newPath string) error {
+	if err := validatePath(oldPath); err != nil {
+		return err
+	}
+	if err := validatePath(newPath); err != nil {
+		return err
+	}
 	return os.Rename(oldPath, newPath)
 }
 
@@ -403,6 +430,12 @@ func (f *FSService) RenameBatch(operationsJSON string) error {
 	}
 
 	for _, op := range operations {
+		if err := validatePath(op.OldPath); err != nil {
+			return err
+		}
+		if err := validatePath(op.NewPath); err != nil {
+			return err
+		}
 		err := os.Rename(op.OldPath, op.NewPath)
 		if err != nil {
 			return err
@@ -414,6 +447,9 @@ func (f *FSService) RenameBatch(operationsJSON string) error {
 // BackupFile creates a backup copy of a file with progress reporting.
 // Sends progress updates to the frontend during the copy operation.
 func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, error) {
+	if err := validatePath(sourcePath); err != nil {
+		return "", err
+	}
 	app := application.Get()
 
 	progress := output.ProgressReport{
@@ -509,6 +545,9 @@ func (f *FSService) BackupFile(sourcePath, destinationPath string) (string, erro
 // DuplicateFile creates a copy of a file to the specified destination.
 // Preserves file permissions and automatically handles directory destinations.
 func (f *FSService) DuplicateFile(sourcePath, destinationPath string) (string, error) {
+	if err := validatePath(destinationPath); err != nil {
+		return "", err
+	}
 	sourceFile, err := os.Open(sourcePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to open source file: %w", err)
@@ -546,6 +585,12 @@ func (f *FSService) DuplicateFile(sourcePath, destinationPath string) (string, e
 // DuplicateFolder recursively copies a folder and all its contents to the destination.
 // Preserves directory structure and file permissions.
 func (f *FSService) DuplicateFolder(sourcePath, destinationPath string) error {
+	if err := validatePath(sourcePath); err != nil {
+		return err
+	}
+	if err := validatePath(destinationPath); err != nil {
+		return err
+	}
 	sourceInfo, err := os.Stat(sourcePath)
 	if err != nil {
 		return fmt.Errorf("failed to stat source folder: %w", err)
@@ -826,6 +871,9 @@ func (f *FSService) processTarReader(tarReader *tar.Reader, destDir string, app 
 // Validates file extensions, checks for existing files, and copies each file with progress updates.
 // Returns an array of destination file paths and any error encountered.
 func (f *FSService) ImportClusttaFiles(sourcePaths []string, destinationDirectory string) ([]string, error) {
+	if err := validatePath(destinationDirectory); err != nil {
+		return nil, err
+	}
 	app := application.Get()
 
 	// Validate that destination exists and is a directory
