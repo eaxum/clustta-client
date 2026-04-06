@@ -155,6 +155,7 @@ func FetchUserPhoto(userId string) ([]byte, error) {
 		return []byte{}, err
 	}
 
+	AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
 	client := &http.Client{Timeout: 30 * time.Second}
@@ -204,12 +205,7 @@ func FetchUserData(email string) (models.User, error) {
 		return models.User{}, err
 	}
 
-	// Set custom headers
-	// token, err := GetToken()
-	// if err != nil {
-	// 	return models.User{}, err
-	// }
-	// req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
 	client := &http.Client{Timeout: 30 * time.Second}
@@ -265,6 +261,7 @@ func FetchUserDataById(userId string) (models.User, error) {
 		return models.User{}, err
 	}
 
+	AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
 	client := &http.Client{Timeout: 30 * time.Second}
