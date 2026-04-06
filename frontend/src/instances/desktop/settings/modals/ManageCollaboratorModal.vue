@@ -202,8 +202,10 @@ const addCollaborators = async () => {
 
   try {
     if (isR2Remote.value) {
+      console.log('one')
       await addPersonalRemoteCollaborators();
     } else if (isStudioProject.value) {
+      console.log('two')
       await addStudioProjectCollaborators();
     } else {
       await addLocalCollaborators();
@@ -319,14 +321,18 @@ const addStudioProjectCollaborators = async () => {
 
   // Add all resolved users to the project via server endpoint
   if (resolvedUserIds.length > 0) {
-    await CollaboratorService.AddCollaboratorsWithRole(remoteUrl, resolvedUserIds, collaboratorRole.value);
+    await CollaboratorService.AddCollaboratorsWithRole(remoteUrl, resolvedUserIds, collaboratorRole.value).then((result)=>{
+      console.log(result)
+    });
 
     // Sync to local .clst for immediate availability
     const projectUri = projectStore.activeProject?.uri;
     if (projectUri) {
       for (const user of [...studioUsersList, ...globalUsers]) {
         try {
-          await ProjectService.AddUserSynced(projectUri, user.email, collaboratorRole.value);
+          await ProjectService.AddUserSynced(projectUri, user.email, collaboratorRole.value).then((result)=>{
+            console.log(result)
+          });
         } catch (e) {
           console.error('Error syncing user locally:', e);
         }
