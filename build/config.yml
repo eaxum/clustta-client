@@ -11,7 +11,7 @@ info:
   description: "Clustta simplifies file management, collaboration and version control for creative workflows." # The application description
   copyright: "(c) 2025, Eaxum" # Copyright text
   comments: "Clustta simplifies file management, collaboration and version control for creative workflows." # Comments
-  version: "0.4.31" # The application version
+  version: "0.4.32" # The application version
 
 # Dev mode configuration
 dev_mode:
