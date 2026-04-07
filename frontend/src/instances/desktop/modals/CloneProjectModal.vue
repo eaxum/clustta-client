@@ -88,13 +88,13 @@ const isValueChanged = computed(() => {
 
 // Returns display names for location dropdown.
 const locationDisplayNames = computed(() => {
-  return projectLocations.value.map(loc => `${loc.name} - [${loc.path}]`);
+  return projectLocations.value.map(loc => `${loc.name}`);
 });
 
 // Returns display string for currently selected location.
 const selectedLocationDisplay = computed(() => {
   if (!selectedLocation.value) return '';
-  return `${selectedLocation.value.name} - [${selectedLocation.value.path}]`;
+  return `${selectedLocation.value.name}`;
 });
 
 // Returns the computed working directory path.
@@ -205,7 +205,7 @@ const loadProjectLocations = async () => {
 // Selects a location from the dropdown by display name.
 const selectLocation = (displayName) => {
   const location = projectLocations.value.find(loc =>
-    `${loc.name} - [${loc.path}]` === displayName
+    `${loc.name}` === displayName
   );
   if (location) {
     selectedLocation.value = location;

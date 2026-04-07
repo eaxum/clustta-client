@@ -1,19 +1,4 @@
 <template>
-  <div v-if="!projectStore.getActiveProject" class="general-pane-header">
-    <HeaderArea :title="$t('panes.noProjectSelected')" />
-  </div>
-
-  <div v-else class="general-pane-header">
-    <HeaderArea v-if="isCustomIcon" :title="projectStore.getActiveProjectName"
-      :customIcon="projectStore.activeProject.icon" :notModal="true" />
-    <HeaderArea v-else :title="projectStore.getActiveProjectName" :notModal="true" 
-      :emoji="projectStore.activeProject.icon" />
-    <ActionButton :icon="getAppIcon('switches')" v-if="userStore.canDo('update_asset')" :showLabel="false"
-      v-tooltip="$t('panes.editProject')" :buttonFunction="editProject" />
-  </div>
-
-
-
   <div v-if="projectStore.getActiveProject" class="general-pane-root">
 
     <div class="general-pane-container">
@@ -22,12 +7,16 @@
 
       <div class="action-bar">
 
-        <!-- {{  isPinExceeded  }} -->
+        <ActionButton v-if="studioStore.canManageProject" :icon="getAppIcon('switches')" :showLabel="true" :fullWidth="true"
+          :label="$t('panes.editProject')" :buttonFunction="editProject" v-tooltip="$t('panes.editProjectTooltip')" />
+
         <ActionButton v-if="isProjectPinned" :icon="getAppIcon('unpin')" :showLabel="true" :fullWidth="true"
           :label="$t('panes.unpinProject')" :buttonFunction="unpinProject" v-tooltip="$t('panes.unpinProjectTooltip')" />
 
         <ActionButton v-else-if="!isPinExceeded" :icon="getAppIcon('pin')" :showLabel="true" :fullWidth="true"
           :label="$t('panes.pinProject')" :buttonFunction="pinProject" v-tooltip="$t('panes.pinProjectTooltip')"/>
+
+        <span v-if="!platformStore.isWeb" class="menu-divider"></span>
 
         <!-- Reveal in Explorer -->
         <span v-if="!platformStore.isWeb" class="horizontal-flex">
@@ -49,11 +38,12 @@
         <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('floppy-disk')" :showLabel="true" :fullWidth="true" :label="$t('panes.backup')"
           :buttonFunction="backupProject" v-tooltip="$t('panes.backupTooltip')" />
 
+        <span class="menu-divider"></span>
+
         <!-- Archive -->
         <ActionButton v-if="!projectStore.getActiveProject.is_closed && studioStore.canManageProject"
           :icon="getAppIcon('archive')" :showLabel="true" :fullWidth="true" :label="$t('panes.archiveProject')"
           :buttonFunction="prepCloseProjectPopUpModal" v-tooltip="$t('panes.archiveProjectTooltip')" />
-
 
         <ActionButton v-else-if="studioStore.canManageProject" :icon="getAppIcon('unarchive')" :showLabel="true"
           :fullWidth="true" :label="$t('panes.unarchiveProject')" :buttonFunction="toggleCloseProject" v-tooltip="$t('panes.unarchiveProjectTooltip')" />
@@ -62,6 +52,8 @@
         <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded && !projectStore.getActiveProject.is_closed"
           :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" :label="$t('panes.rebuildProject')"
           :buttonFunction="rebuildAll" v-tooltip="$t('panes.rebuildProjectTooltip')" />
+
+        <span v-if="!platformStore.isWeb" class="menu-divider"></span>
 
         <!-- Free space -->
         <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" :label="$t('panes.freeUpSpace')"
@@ -166,7 +158,6 @@ import { useStudioStore } from '@/stores/studio';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
 // states/stores
 const trayStates = useTrayStates();
@@ -191,8 +182,6 @@ const getAppIcon = (iconName) => {
   const icon = iconStore.getAppIcon(iconName);
   return icon
 };
-
-const isCustomIcon = computed(() => projectStore.activeProject?.icon?.length > 10);
 
 const isProjectPinned = computed(() => {
   const projectId = projectStore.getActiveProject.id;
@@ -560,7 +549,14 @@ onBeforeUnmount(() => {
   padding: 0;
 }
 
+.menu-divider {
+  display: block;
+  width: 100%;
+  margin: .2rem 0;
+}
+
 .general-pane-root{
+  padding-top: .5rem;
   padding-bottom: 1rem;
   box-sizing: border-box;
   position: relative;
