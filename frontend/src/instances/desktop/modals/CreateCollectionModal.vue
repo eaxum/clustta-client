@@ -31,7 +31,7 @@
           <ToggleSwitch v-tooltip="isMultiple? 'Unmark as library' : 'Mark as a library'" @click="toggleIsMultiple" :switchValueProp="isMultiple" />
         </div>
 
-        <div class="horizontal-flex">
+        <div v-if="projectStore.activeProject?.has_remote" class="horizontal-flex">
           <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="$t('common.library')" />
           <ToggleSwitch v-tooltip="isLibrary? 'Unmark as library' : 'Mark as a library'" @click="toggleIsLibrary" :switchValueProp="isLibrary" />
         </div>

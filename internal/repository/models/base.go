@@ -380,6 +380,7 @@ type Role struct {
 	ViewDoneAsset bool `db:"view_done_asset" json:"view_done_asset"`
 
 	ManageDependencies bool `db:"manage_dependencies" json:"manage_dependencies"`
+	ManageShareLinks   bool `db:"manage_share_links" json:"manage_share_links"`
 }
 
 type RoleAttributes struct {
@@ -418,6 +419,7 @@ type RoleAttributes struct {
 	ViewDoneAsset bool `db:"view_done_asset" json:"view_done_asset"`
 
 	ManageDependencies bool `db:"manage_dependencies" json:"manage_dependencies"`
+	ManageShareLinks   bool `db:"manage_share_links" json:"manage_share_links"`
 }
 type ServerRole struct {
 	Id    string `db:"id" json:"id"`

@@ -4,7 +4,7 @@
 			@click="createAsset" v-tooltip="$t('components.createMenu.addAsset')" />
 		<ActionButton :icon="getAppIcon('folder-plus')" :isDisabled="props.disabled || kanbanView || !(canCreateCollection || canModifyCollection)"
 			@click="createCollection" v-tooltip="$t('components.createMenu.addCollection')" />
-		<ActionButton :icon="getAppIcon('arrow-down-on-square-stack')" v-if="!(platformStore.isWeb || kanbanView)"  :isDisabled="props.disabled || !(canCreateCollection || canModifyCollection)"
+		<ActionButton :icon="getAppIcon('data-download')" v-if="!(platformStore.isWeb || kanbanView)"  :isDisabled="props.disabled || !(canCreateCollection || canModifyCollection)"
 			@click="importItems" v-tooltip="$t('components.createMenu.importItems')" />
 		<ActionButton :icon="getAppIcon('workflow-plus')" :isDisabled="props.disabled || kanbanView || !(canCreateCollection || canModifyCollection)"
 			@click="createWorkflow" v-tooltip="$t('components.createMenu.addWorkflow')" />

@@ -1,5 +1,5 @@
 <template>
-  <button class="general-button" :class="{ 'item-inactive' : !isActive, 'colored' : colored, 'full-width' : fullWidth }"
+  <button class="general-button" :class="{ 'item-inactive' : !isActive, 'colored' : colored, 'full-width' : fullWidth, 'loading' : loading }"
     @click="buttonFunction" v-stop-propagation>
     <div v-if="!loading" class="general-button-text">
       <div v-if="label">{{ label }}</div>
@@ -60,9 +60,20 @@ const props = defineProps({
   color: var(--white);
 }
 
+.loading{
+  width: 35px;
+  min-width: 35px;
+  padding: 0;
+  border-radius: 50%;
+}
+
 .general-button:hover{
   /* transform: scale(1.02); */
   border-radius: 10px ;
+}
+
+.general-button.loading:hover{
+  border-radius: 50%;
 }
 
 .general-button:active{
@@ -71,7 +82,7 @@ const props = defineProps({
 }
 
 .general-button-loading-icon{
-  height: 150%;
+  height: 100%;
   aspect-ratio: 1/1;
   animation: loadingRotate .5s linear infinite;
 }

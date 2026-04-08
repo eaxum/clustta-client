@@ -262,6 +262,7 @@ func initData(tx *sqlx.Tx) error {
 		ViewDoneAsset: true,
 
 		ManageDependencies: true,
+		ManageShareLinks:   true,
 	}
 	productionManagerRoleAttributes := models.RoleAttributes{
 		ViewCollection:   true,
@@ -299,6 +300,7 @@ func initData(tx *sqlx.Tx) error {
 		ViewDoneAsset: true,
 
 		ManageDependencies: true,
+		ManageShareLinks:   false,
 	}
 	supervisorRoleAttributes := models.RoleAttributes{
 		ViewCollection:   true,
@@ -336,6 +338,7 @@ func initData(tx *sqlx.Tx) error {
 		ViewDoneAsset: true,
 
 		ManageDependencies: false,
+		ManageShareLinks:   true,
 	}
 	assistantSupervisorRoleAttributes := models.RoleAttributes{
 		ViewCollection:   false,
@@ -373,6 +376,7 @@ func initData(tx *sqlx.Tx) error {
 		ViewDoneAsset: true,
 
 		ManageDependencies: false,
+		ManageShareLinks:   false,
 	}
 	artistRoleAttributes := models.RoleAttributes{
 		ViewCollection:   false,
@@ -410,6 +414,7 @@ func initData(tx *sqlx.Tx) error {
 		ViewDoneAsset: false,
 
 		ManageDependencies: false,
+		ManageShareLinks:   false,
 	}
 	vendorRoleAttributes := models.RoleAttributes{
 		ViewCollection:   false,
@@ -447,6 +452,7 @@ func initData(tx *sqlx.Tx) error {
 		ViewDoneAsset: false,
 
 		ManageDependencies: false,
+		ManageShareLinks:   false,
 	}
 	_, err = GetOrCreateRole(tx, "admin", adminRoleAttributes)
 	if err != nil {

@@ -33,9 +33,6 @@
             <img class="small-icons" :src="getAppIcon('plus-circle')">
           </span>
         </div>
-        <div v-if="workingDirectory" class="computed-path-display">
-          {{ $t('modals.finalPath') }} {{ workingDirectory }}
-        </div>
       </div>
 
       <div v-if="projectTemplateStore.projectTemplates.length" class="input-section drop-down-box-section">
@@ -51,7 +48,7 @@
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :isActive="!isAwaitingResponse"  :colored="false" />
         <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createProject" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
@@ -128,7 +125,7 @@ const isValueChanged = computed(() => {
 
 // Returns display names for location dropdown.
 const locationDisplayNames = computed(() => {
-  return projectLocations.value.map(loc => `${loc.name} - [${loc.path}]`);
+  return projectLocations.value.map(loc => `${loc.name}`);
 });
 
 // Returns whether the project name field is empty.
@@ -154,7 +151,7 @@ const restrictedNames = computed(() => {
 // Returns display string for currently selected location.
 const selectedLocationDisplay = computed(() => {
   if (!selectedLocation.value) return '';
-  return `${selectedLocation.value.name} - [${selectedLocation.value.path}]`;
+  return `${selectedLocation.value.name}`;
 });
 
 // Returns whether the remote toggle should be shown.
@@ -227,7 +224,7 @@ const loadProjectLocations = async () => {
 // Selects a location from the dropdown by display name.
 const selectLocation = (displayName) => {
   const location = projectLocations.value.find(loc =>
-    `${loc.name} - [${loc.path}]` === displayName
+    `${loc.name}` === displayName
   );
   if (location) {
     selectedLocation.value = location;
@@ -264,7 +261,7 @@ const createProject = async () => {
   }
 
   isAwaitingResponse.value = true;
-
+  
   let studio = projectStore.selectedStudio
   let projectFilepath = studio.url
   let name = projectName.value;

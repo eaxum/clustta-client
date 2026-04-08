@@ -335,6 +335,8 @@ func ToPbRoles(roles []models.Role) []*repositorypb.Role {
 
 			ViewDoneAsset:      r.ViewDoneAsset,
 			ManageDependencies: r.ManageDependencies,
+
+			ManageShareLinks: r.ManageShareLinks,
 		}
 	}
 	return pb
@@ -889,6 +891,8 @@ func FromPbRole(pb *repositorypb.Role) models.Role {
 
 		ViewDoneAsset:      pb.ViewDoneAsset,
 		ManageDependencies: pb.ManageDependencies,
+
+		ManageShareLinks: pb.ManageShareLinks,
 	}
 }
 

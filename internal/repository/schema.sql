@@ -591,6 +591,7 @@ CREATE TABLE IF NOT EXISTS "role" (
     view_done_asset BOOLEAN DEFAULT FALSE NOT NULL,
 
     manage_dependencies BOOLEAN DEFAULT FALSE NOT NULL,
+    manage_share_links BOOLEAN DEFAULT FALSE NOT NULL,
     
     CHECK( typeof(name)='text' AND length(name)>=1)
 );

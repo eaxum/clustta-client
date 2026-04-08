@@ -36,6 +36,10 @@
           @confirm="confirmRename"
           @cancel="cancelRename"
         />
+        <div class="project-id-display">
+          <span class="project-id-text">{{ projectId }}</span>
+          <ActionButton :icon="getAppIcon('copy')" :showLabel="false" v-tooltip="$t('common.copyId')" :buttonFunction="copyProjectId" />
+        </div>
       </div>
 
       <div v-if="!displayEmojiSelector" class="project-stats-section">
@@ -93,6 +97,7 @@
 // imports
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { Clipboard } from '@wailsio/runtime';
 import utils from '@/services/utils';
 
 // components
@@ -136,6 +141,7 @@ const oldProjectIcon = ref('');
 const oldProjectName = ref('');
 const oldProjectPreview = ref('');
 const projectIcon = ref('');
+const projectId = ref('');
 const projectName = ref('');
 const projectPreview = ref('');
 const projectSize = ref(0);
@@ -172,6 +178,12 @@ const isValueChanged = computed(() => {
 });
 
 // methods
+// Copies the project ID to clipboard.
+const copyProjectId = async () => {
+  await Clipboard.SetText(projectId.value);
+  notificationStore.addNotification(t('notifications.idCopied'), '', 'success');
+};
+
 // Opens a dialog to select a cover image.
 const addCoverImage = async () => {
   const result = await DialogService.SelectFileDialog('Select Image File', '*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp');
@@ -386,6 +398,7 @@ onMounted(() => {
   projectsDirectory.value = project.working_directory;
   projectName.value = project.name;
   oldProjectName.value = project.name;
+  projectId.value = project.id;
   projectIcon.value = project.icon;
   oldProjectIcon.value = project.icon;
   projectPreview.value = project.preview;
@@ -434,6 +447,25 @@ onUnmounted(() => {
 .project-name-text {
   flex: 1;
   color: var(--white);
+}
+
+.project-id-display {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-left: .8rem;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.project-id-text {
+  font-size: 12px;
+  color: var(--white);
+  opacity: 0.5;
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .project-stats-section {

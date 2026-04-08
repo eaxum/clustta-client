@@ -439,8 +439,9 @@ onUnmounted(() => {
 
 .console-input-container {
   height: min-content;
-  padding: 0 0.25rem 0.25rem;
+  padding-bottom: 0.4rem;
   box-sizing: border-box;
+  /* background-color: forestgreen; */
 }
 
 .console-input-wrapper {
@@ -448,15 +449,13 @@ onUnmounted(() => {
   flex-direction: column;
   box-sizing: border-box;
   background-color: var(--steel);
-  border-radius: 8px;
-  border: 1px solid transparent;
+  border-radius: var(--large-radius);
   transition: border-color 0.15s;
   outline-offset: -1px;
 }
 
 .console-input-wrapper:focus-within {
-  border-color: var(--gray-700);
-  /* outline: var(--transparent-line); */
+  outline: var(--transparent-line);
 }
 
 .console-toolbar {
@@ -503,7 +502,7 @@ onUnmounted(() => {
 }
 
 .empty-subtext {
-  font-size: 0.875rem;
+  font-size: 12px;
   max-width: 250px;
 }
 

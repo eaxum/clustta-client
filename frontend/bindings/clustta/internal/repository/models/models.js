@@ -701,6 +701,13 @@ export class Role {
              */
             this["manage_dependencies"] = false;
         }
+        if (!("manage_share_links" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_share_links"] = false;
+        }
 
         Object.assign(this, $$source);
     }
@@ -903,6 +910,13 @@ export class RoleAttributes {
              * @type {boolean}
              */
             this["manage_dependencies"] = false;
+        }
+        if (!("manage_share_links" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_share_links"] = false;
         }
 
         Object.assign(this, $$source);

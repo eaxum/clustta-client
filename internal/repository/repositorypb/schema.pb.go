@@ -1713,6 +1713,7 @@ type Role struct {
 	SetRetakeAsset     bool                   `protobuf:"varint,28,opt,name=set_retake_asset,json=setRetakeAsset,proto3" json:"set_retake_asset,omitempty"`
 	ViewDoneAsset      bool                   `protobuf:"varint,29,opt,name=view_done_asset,json=viewDoneAsset,proto3" json:"view_done_asset,omitempty"`
 	ManageDependencies bool                   `protobuf:"varint,30,opt,name=manage_dependencies,json=manageDependencies,proto3" json:"manage_dependencies,omitempty"`
+	ManageShareLinks   bool                   `protobuf:"varint,31,opt,name=manage_share_links,json=manageShareLinks,proto3" json:"manage_share_links,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -1953,6 +1954,13 @@ func (x *Role) GetViewDoneAsset() bool {
 func (x *Role) GetManageDependencies() bool {
 	if x != nil {
 		return x.ManageDependencies
+	}
+	return false
+}
+
+func (x *Role) GetManageShareLinks() bool {
+	if x != nil {
+		return x.ManageShareLinks
 	}
 	return false
 }
@@ -3681,7 +3689,7 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"preview_id\x18\v \x01(\tR\tpreviewId\x12\x18\n" +
 	"\atrashed\x18\f \x01(\bR\atrashed\x12\x16\n" +
 	"\x06synced\x18\r \x01(\bR\x06synced\x12\x19\n" +
-	"\bgroup_id\x18\x0e \x01(\tR\agroupId\"\xc7\b\n" +
+	"\bgroup_id\x18\x0e \x01(\tR\agroupId\"\xf5\b\n" +
 	"\x04Role\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x12\n" +
@@ -3717,7 +3725,8 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\x0eset_done_asset\x18\x1b \x01(\bR\fsetDoneAsset\x12(\n" +
 	"\x10set_retake_asset\x18\x1c \x01(\bR\x0esetRetakeAsset\x12&\n" +
 	"\x0fview_done_asset\x18\x1d \x01(\bR\rviewDoneAsset\x12/\n" +
-	"\x13manage_dependencies\x18\x1e \x01(\bR\x12manageDependencies\"z\n" +
+	"\x13manage_dependencies\x18\x1e \x01(\bR\x12manageDependencies\x12,\n" +
+	"\x12manage_share_links\x18\x1f \x01(\bR\x10manageShareLinks\"z\n" +
 	"\bUserRole\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x17\n" +

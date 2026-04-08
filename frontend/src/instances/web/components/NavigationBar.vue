@@ -58,7 +58,7 @@
             </div>
             <div class="dropdown-divider"></div>
             <div class="dropdown-actions">
-              <ActionButton 
+              <ActionButton v-if="canDiscoverTalent"
                 :icon="getAppIcon('person-search')" 
                 :showLabel="true" 
                 :fullWidth="true" 
@@ -103,6 +103,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useIconStore } from '@/stores/icons';
 import { useUserStore } from '@/stores/users';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { generateAvatar } from '@/lib/avatar';
 
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
@@ -112,12 +113,15 @@ const router = useRouter();
 const route = useRoute();
 const iconStore = useIconStore();
 const userStore = useUserStore();
+const entitlementStore = useEntitlementStore();
 
 const showUserMenu = ref(false);
 const dropdownRef = ref(null);
 const screenWidth = ref(window.innerWidth);
 
 const isWideScreen = computed(() => screenWidth.value >= 500);
+
+const canDiscoverTalent = computed(() => entitlementStore.hasFeature('talent_discovery'));
 
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);

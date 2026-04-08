@@ -160,7 +160,10 @@ const remoteWarning = computed(() => {
 
 // Returns whether the remote toggle should be shown.
 const showRemoteToggle = computed(() => {
-  return accountStore.canUseRemoteFeatures && projectStore.selectedStudio?.name === 'Personal';
+  if (!accountStore.canUseRemoteFeatures) return false;
+  if (projectStore.selectedStudio?.name !== 'Personal') return false;
+  if (isRemoteEnabled.value) return true;
+  return entitlementStore.canCreateRemoteProject;
 });
 
 // methods

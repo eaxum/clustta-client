@@ -297,14 +297,17 @@ const selectStudio = async (studio) => {
 
   if(projectStore.selectedStudio?.name !== 'Personal'){
     await studioStore.getStudioUsers();
-    console.log('pppppppppp')
   }
 
   if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
     entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
+    console.log('boat')
   } else {
     entitlementStore.fetchEntitlements();
+    console.log('float')
   }
+	console.log(entitlementStore.features);
+  
 
   if (projectStore.projects.length && projectStore.activeProject && projectStore.activeProject.is_downloaded) {
     await trayStates.refreshData();

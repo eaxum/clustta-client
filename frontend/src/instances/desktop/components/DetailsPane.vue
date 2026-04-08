@@ -232,6 +232,8 @@ const projectDetailPanes = [
   { name: "Console", nameKey: "panes.consoleTab", tab_name: "console", icon: "console" }
 ];
 
+const remoteOnlyTabs = ['changeLog', 'collaborators', 'dependencies'];
+
 const untrackedDetailPanes = [
   { name: "Details", nameKey: "panes.detailsTab", tab_name: "untrackedItemDetails", icon: "info" },
 ];
@@ -310,8 +312,14 @@ const selectedSettingsContext = computed(() => {
 
 const settingsItems = computed(() => {
   const itemType = stage.selectedItem?.type;
-  if (!stage.markedItems.length) return projectDetailPanes;
-  if (itemType === 'asset') return stage.selectedItem?.is_link ? linkDetailPanes : assetDetailPanes;
+  const isRemote = projectStore.activeProject?.has_remote;
+  if (!stage.markedItems.length) {
+    return isRemote ? projectDetailPanes : projectDetailPanes.filter(p => !remoteOnlyTabs.includes(p.tab_name));
+  }
+  if (itemType === 'asset') {
+    const panes = stage.selectedItem?.is_link ? linkDetailPanes : assetDetailPanes;
+    return isRemote ? panes : panes.filter(p => !remoteOnlyTabs.includes(p.tab_name));
+  }
   if (itemType === 'collection') return collectionDetailPanes;
   return untrackedDetailPanes;
 });

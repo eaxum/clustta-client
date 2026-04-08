@@ -122,9 +122,12 @@ const handleCancel = () => {
   background: var(--midnight-steel);
   outline: var(--transparent-line);
   outline-offset: -1px;
-  border-radius: var(--small-radius);
+  border-radius: var(--normal-radius);
   color: var(--white);
   font-size: 14px;
+  /* max-height: 50% !important;
+  height: 30px; */
+  height: 100%;
   font-family: Inter, sans-serif;
 }
 

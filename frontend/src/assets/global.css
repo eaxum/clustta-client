@@ -546,7 +546,7 @@ animation: loadingRotate .5s linear infinite;
   font-family: 'Inter', sans-serif;
   font-weight: 200;
   padding: 2px;
-  height: 20px;
+  height: 18px;
   overflow: hidden;
   display: flex;
   align-items: center;
