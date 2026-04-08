@@ -26,6 +26,7 @@ func All() []Migration {
 		{Version: 1.6, Description: "Add collection path update trigger", Up: MigrateV1_6},
 		{Version: 1.7, Description: "Add integration tables", Up: MigrateV1_7},
 		{Version: 1.8, Description: "Rename task/entity to asset/collection", Up: MigrateV1_8},
+		{Version: 1.9, Description: "Add manage_share_links permission", Up: MigrateV1_9},
 	}
 }
 

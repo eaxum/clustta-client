@@ -128,8 +128,8 @@ onBeforeUnmount(() => {
 }
 
 .loading-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   padding: 0;
   overflow: hidden;
   animation: loadingRotate .5s linear infinite;

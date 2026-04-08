@@ -20,19 +20,19 @@
               :selectedItem="collectionStore.selectedCollection.collection_type_name" :onSelect="changeCollectionType"
               :fixedWidth="true" />
           </div>
-          <div class="action-bar-section">
+          <div v-if="projectStore.activeProject?.has_remote" class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="$t('panes.library')" />
 
             <ToggleSwitch v-tooltip="collectionStore.selectedCollection.is_library ? $t('panes.unmarkAsLibrary') : $t('panes.markAsLibrary')"
               @click="changeIsLibrary" :switchValueProp="collectionStore.selectedCollection.is_library" />
           </div>
 
-          <div class="vertical-flex assignees-search">
+          <div v-if="projectStore.activeProject?.has_remote" class="vertical-flex assignees-search">
             <ActionButton :isInactive="true" :icon="getAppIcon('two-persons')" :label="$t('panes.assignees')" />
             <CollaboratorSuggestions :displayEmail="false" :placeholder="placeholder" :allItems="projectUsers"
               @tagAdded="addUser" @tagRemoved="removeUser" />
           </div>
-          <div class="assignees" v-if="collaboratorsList.length">
+          <div class="assignees" v-if="projectStore.activeProject?.has_remote && collaboratorsList.length">
             <AssigneeItem v-stop-propagation v-for="(collaborator, index) in collaboratorsList" :key="index"
               :assigneeId="collaborator.id" :name="collaborator.full_name" :userPhoto="collaborator.photo"
               :avatarColor="collaborator.avatarColor">

@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { EntitlementService } from "@/services";
+import { useProjectStore } from "@/stores/projects";
 import utils from "@/services/utils";
 
 export const useEntitlementStore = defineStore("entitlements", {
@@ -25,13 +26,26 @@ export const useEntitlementStore = defineStore("entitlements", {
     isLoading: false,
   }),
   getters: {
-    canSync: (state) => state.features.includes('sync'),
+    // Returns the active feature set based on studio context.
+    activeFeatures() {
+      const projectStore = useProjectStore();
+      const studio = projectStore.selectedStudio;
+      if (studio && studio.name !== 'Personal' && studio.id) {
+        return this.studioEntitlements[studio.id]?.features || [];
+      }
+      return this.features;
+    },
+    canSync() { return this.activeFeatures.includes('sync'); },
     canUseAI: (state) => state.features.includes('ai'),
-    canCollaborate: (state) => state.features.includes('collaboration'),
+    canCollaborate() { return this.activeFeatures.includes('collaboration'); },
     canCreateRemoteProject: (state) => {
       if (state.limits.max_remote_projects === -1) return true;
       return state.usage.project_count < state.limits.max_remote_projects;
     },
+    canDiscoverTalent() { return this.activeFeatures.includes('talent_discovery'); },
+    canShareLink() { return this.activeFeatures.includes('share_link'); },
+    hasCustomRoles() { return this.activeFeatures.includes('custom_roles'); },
+    hasIntegrations() { return this.activeFeatures.includes('integrations'); },
     isOverStorage: (state) => {
       if (state.limits.storage_bytes <= 0) return false;
       return state.usage.storage_bytes >= state.limits.storage_bytes;
@@ -100,6 +114,15 @@ export const useEntitlementStore = defineStore("entitlements", {
       const entitlements = this.studioEntitlements[studioId];
       if (!entitlements) return false;
       return entitlements.features?.includes(feature) || false;
+    },
+
+    // Checks if the current context (user or active studio) has a feature.
+    hasFeature(feature, studioId) {
+      if (this.features.includes(feature)) return true;
+      if (studioId) return this.studioHasFeature(studioId, feature);
+      return Object.values(this.studioEntitlements).some(
+        (e) => e.features?.includes(feature)
+      );
     },
 
     // Resets entitlements to default free-tier state.

@@ -6451,6 +6451,7 @@ export const repository = $root.repository = (() => {
          * @property {boolean|null} [set_retake_asset] Role set_retake_asset
          * @property {boolean|null} [view_done_asset] Role view_done_asset
          * @property {boolean|null} [manage_dependencies] Role manage_dependencies
+         * @property {boolean|null} [manage_share_links] Role manage_share_links
          */
 
         /**
@@ -6709,6 +6710,14 @@ export const repository = $root.repository = (() => {
         Role.prototype.manage_dependencies = false;
 
         /**
+         * Role manage_share_links.
+         * @member {boolean} manage_share_links
+         * @memberof repository.Role
+         * @instance
+         */
+        Role.prototype.manage_share_links = false;
+
+        /**
          * Creates a new Role instance using the specified properties.
          * @function create
          * @memberof repository.Role
@@ -6792,6 +6801,8 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 29, wireType 0 =*/232).bool(message.view_done_asset);
             if (message.manage_dependencies != null && Object.hasOwnProperty.call(message, "manage_dependencies"))
                 writer.uint32(/* id 30, wireType 0 =*/240).bool(message.manage_dependencies);
+            if (message.manage_share_links != null && Object.hasOwnProperty.call(message, "manage_share_links"))
+                writer.uint32(/* id 31, wireType 0 =*/248).bool(message.manage_share_links);
             return writer;
         };
 
@@ -6948,6 +6959,10 @@ export const repository = $root.repository = (() => {
                         message.manage_dependencies = reader.bool();
                         break;
                     }
+                case 31: {
+                        message.manage_share_links = reader.bool();
+                        break;
+                    }
                 default:
                     reader.skipType(tag & 7);
                     break;
@@ -7073,6 +7088,9 @@ export const repository = $root.repository = (() => {
             if (message.manage_dependencies != null && message.hasOwnProperty("manage_dependencies"))
                 if (typeof message.manage_dependencies !== "boolean")
                     return "manage_dependencies: boolean expected";
+            if (message.manage_share_links != null && message.hasOwnProperty("manage_share_links"))
+                if (typeof message.manage_share_links !== "boolean")
+                    return "manage_share_links: boolean expected";
             return null;
         };
 
@@ -7155,6 +7173,8 @@ export const repository = $root.repository = (() => {
                 message.view_done_asset = Boolean(object.view_done_asset);
             if (object.manage_dependencies != null)
                 message.manage_dependencies = Boolean(object.manage_dependencies);
+            if (object.manage_share_links != null)
+                message.manage_share_links = Boolean(object.manage_share_links);
             return message;
         };
 
@@ -7206,6 +7226,7 @@ export const repository = $root.repository = (() => {
                 object.set_retake_asset = false;
                 object.view_done_asset = false;
                 object.manage_dependencies = false;
+                object.manage_share_links = false;
             }
             if (message.id != null && message.hasOwnProperty("id"))
                 object.id = message.id;
@@ -7270,6 +7291,8 @@ export const repository = $root.repository = (() => {
                 object.view_done_asset = message.view_done_asset;
             if (message.manage_dependencies != null && message.hasOwnProperty("manage_dependencies"))
                 object.manage_dependencies = message.manage_dependencies;
+            if (message.manage_share_links != null && message.hasOwnProperty("manage_share_links"))
+                object.manage_share_links = message.manage_share_links;
             return object;
         };
 

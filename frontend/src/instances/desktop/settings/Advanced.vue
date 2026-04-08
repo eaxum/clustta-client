@@ -4,7 +4,7 @@
     <div class="settings-component-container">
 
       <!-- External Integrations Card -->
-      <div class="settings-section-card">
+      <div v-if="entitlementStore.hasIntegrations" class="settings-section-card">
         <div class="settings-section-card-header">
           <h2 class="settings-section-card-title">{{ $t('settings.externalIntegrations') }}</h2>
         </div>
@@ -101,6 +101,7 @@ import { useIconStore } from '@/stores/icons';
 import { useIntegrationStore } from '@/stores/integrations';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
+import { useEntitlementStore } from '@/stores/entitlements';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -108,6 +109,7 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // refs
 const desktopModals = useDesktopModalStore();
+const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
 const notificationStore = useNotificationStore();

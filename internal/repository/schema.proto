@@ -226,6 +226,8 @@ message Role {
   bool view_done_asset = 29;
 
   bool manage_dependencies = 30;
+
+  bool manage_share_links = 31;
 }
 
 message UserRole {

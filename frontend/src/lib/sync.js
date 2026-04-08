@@ -21,6 +21,7 @@ function refreshEntitlements() {
 // Guard function to check if remote features are available
 function checkRemoteAccess() {
   const accountStore = useAccountStore();
+  const entitlementStore = useEntitlementStore();
   const notificationStore = useNotificationStore();
   
   if (accountStore.isOfflineMode) {
@@ -31,6 +32,16 @@ function checkRemoteAccess() {
     );
     return false;
   }
+
+  if (!entitlementStore.canSync) {
+    notificationStore.addNotification(
+      "Sync Unavailable",
+      "Sync is not included in your current plan. Please upgrade to enable sync.",
+      "warning"
+    );
+    return false;
+  }
+
   return true;
 }
 

@@ -28,7 +28,7 @@
     <ActionButton v-if="!platformStore.isWeb && (asset.dependencies.length || asset.collection_dependencies.length)" :icon="getAppIcon('jigsaw')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.buildWithDependencies')" :buttonFunction="buildWithDependencies" />
 
-    <ActionButton v-if="userStore.canDo('manage_dependencies')" :icon="getAppIcon('dependency')" :showLabel="true"
+    <ActionButton v-if="isRemoteProject && userStore.canDo('manage_dependencies')" :icon="getAppIcon('dependency')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.dependencyGraph')" :buttonFunction="goToDependencyGraph" />
 
     <!-- Go to Location -->
@@ -52,7 +52,7 @@
       :label="$t('menus.revertFile')" :buttonFunction="revertAsset" />
 
     <!-- Sync Asset -->
-    <ActionButton v-if="isRemoteProject" :icon="getAppIcon('cloud-up')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="isRemoteProject && !asset.synced" :icon="getAppIcon('cloud-up')" :showLabel="true" :fullWidth="true"
       :label="$t('menus.syncAsset')" :buttonFunction="syncAsset" />
 
     <span v-if="userStore.canDo('delete_asset') || !isNotOnDisk" class="menu-divider"></span>
@@ -182,6 +182,13 @@ const isRemoteProject = computed(() => {
 });
 
 // methods
+// Emits asset data updates to Browser and VirtuaItem components.
+const emitAssetUpdates = (assetId, updates) => {
+  const updateData = { itemId: assetId, updates };
+  emitter.emit('update-root-data', updateData);
+  emitter.emit('update-children', updateData);
+};
+
 // Builds the asset with all its dependencies.
 const buildWithDependencies = async () => {
   menu.hideContextMenu();
@@ -465,6 +472,10 @@ const syncAsset = () => {
   menu.hideContextMenu();
   SyncService.SyncAsset(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, assetId)
     .then(() => {
+      assetStore.selectedAsset.synced = true;
+      emitAssetUpdates(assetId, [
+        { property: 'synced', value: true }
+      ]);
       notificationStore.addNotification(t('common.sync'), t('notifications.assetSyncedSuccessfully'), 'success');
     })
     .catch((error) => {
@@ -508,6 +519,7 @@ onBeforeUnmount(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 @import "@/assets/menu.css";
+
 </style>
 
 

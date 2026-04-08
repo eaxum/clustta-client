@@ -93,22 +93,6 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 		return err
 	}
 	data.Collections = sortedCollections
-	// sort.Slice(data.Collections, func(i, j int) bool {
-	// 	iDepth := strings.Count(data.Collections[i].CollectionPath, "/")
-	// 	jDepth := strings.Count(data.Collections[j].CollectionPath, "/")
-	// 	if iDepth != jDepth {
-	// 		return iDepth < jDepth
-	// 	}
-	// 	return data.Collections[i].CollectionPath < data.Collections[j].CollectionPath
-	// })
-	// sort.Slice(data.Assets, func(i, j int) bool {
-	// 	iDepth := strings.Count(data.Assets[i].AssetPath, "/")
-	// 	jDepth := strings.Count(data.Assets[j].AssetPath, "/")
-	// 	if iDepth != jDepth {
-	// 		return iDepth < jDepth
-	// 	}
-	// 	return data.Assets[i].AssetPath < data.Assets[j].AssetPath
-	// })
 
 	tombItems := make(map[string]bool)
 	tombedItems, err := repository.GetTombedItems(tx)
@@ -225,6 +209,7 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 			ViewDoneAsset: role.ViewDoneAsset,
 
 			ManageDependencies: role.ManageDependencies,
+			ManageShareLinks:   role.ManageShareLinks,
 		}
 		localRole, err := repository.GetRole(tx, role.Id)
 		if err != nil {
@@ -846,22 +831,6 @@ func OverWriteProjectData(tx *sqlx.Tx, data ProjectData) error {
 	data.Collections = sortedCollections
 	elapsed := time.Since(start)
 	fmt.Printf("sort data took %s\n", elapsed)
-	// sort.Slice(data.Collections, func(i, j int) bool {
-	// 	iDepth := strings.Count(data.Collections[i].CollectionPath, "/")
-	// 	jDepth := strings.Count(data.Collections[j].CollectionPath, "/")
-	// 	if iDepth != jDepth {
-	// 		return iDepth < jDepth
-	// 	}
-	// 	return data.Collections[i].CollectionPath < data.Collections[j].CollectionPath
-	// })
-	// sort.Slice(data.Assets, func(i, j int) bool {
-	// 	iDepth := strings.Count(data.Assets[i].AssetPath, "/")
-	// 	jDepth := strings.Count(data.Assets[j].AssetPath, "/")
-	// 	if iDepth != jDepth {
-	// 		return iDepth < jDepth
-	// 	}
-	// 	return data.Assets[i].AssetPath < data.Assets[j].AssetPath
-	// })
 
 	previewIds := []string{}
 	if data.ProjectPreview != "" && !utils.Contains(previewIds, data.ProjectPreview) {
@@ -940,6 +909,7 @@ func OverWriteProjectData(tx *sqlx.Tx, data ProjectData) error {
 			ViewDoneAsset: role.ViewDoneAsset,
 
 			ManageDependencies: role.ManageDependencies,
+			ManageShareLinks:   role.ManageShareLinks,
 		}
 		_, err := repository.CreateRole(tx, role.Id, role.Name, roleAttributes)
 		if err != nil {

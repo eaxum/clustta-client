@@ -1,5 +1,5 @@
 <template>
-  <div class="metric-card">
+  <div class="metric-card" :class="{ 'metric-card-warning': warning }">
     <div class="metric-card-header">
       <img class="metric-card-icon" :src="icon">
       <span class="metric-card-title">{{ title }}</span>
@@ -32,6 +32,7 @@ defineProps({
   actionLabel: { type: String, default: '' },
   actionFunction: { type: Function, default: () => {} },
   percent: { type: Number, default: -1 },
+  warning: { type: Boolean, default: false },
 });
 </script>
 
@@ -102,5 +103,9 @@ defineProps({
 
 .progress-bar-fill.near-quota {
   background-color: var(--error-red, #e05252);
+}
+
+.metric-card-warning {
+  outline-color: var(--error-red, #e05252);
 }
 </style>

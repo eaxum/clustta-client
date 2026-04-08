@@ -7,6 +7,9 @@
 
       <div class="action-bar">
 
+        <ActionButton :icon="getAppIcon('info')" :showLabel="true" :fullWidth="true"
+          :label="$t('panes.projectDetails')" :buttonFunction="showProjectDetails" v-tooltip="$t('panes.projectDetailsTooltip')" />
+
         <ActionButton v-if="studioStore.canManageProject" :icon="getAppIcon('switches')" :showLabel="true" :fullWidth="true"
           :label="$t('panes.editProject')" :buttonFunction="editProject" v-tooltip="$t('panes.editProjectTooltip')" />
 
@@ -232,6 +235,11 @@ const revealInExplorer = () => {
   let project = projectStore.getActiveProject;
   FSService.RevealInExplorer(project.working_directory)
   menu.hideContextMenu();
+};
+
+// Opens the project details modal.
+const showProjectDetails = () => {
+  modals.setModalVisibility('projectDetailsModal', true);
 };
 
 const locateClusttaFile = () => {

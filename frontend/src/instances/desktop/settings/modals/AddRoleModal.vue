@@ -108,6 +108,7 @@ const defaultRole = {
   "set_retake_asset": false,
   "view_done_asset": false,
   "manage_dependencies": false,
+  "manage_share_links": false,
 };
 
 const initialSettings = ref({ ...defaultRole });
@@ -120,6 +121,7 @@ const permissionGroups = {
   status: ['view_done_asset', 'change_status', 'set_done_asset', 'set_retake_asset'],
   templates: ['view_template', 'create_template', 'update_template', 'delete_template'],
   checkpoints: ['view_checkpoint', 'create_checkpoint', 'delete_checkpoint', 'pull_chunk'],
+  sharing: ['manage_share_links'],
 };
 
 const roleParameters = ref({ ...defaultRole });
@@ -206,6 +208,10 @@ const toggleField = (key) => {
 
 <style scoped>
 @import "@/assets/desktop.css";
+
+.general-container{
+  min-width: 500px;
+}
 
 .horizontal-flex {
   font-weight: 400;
@@ -297,7 +303,7 @@ const toggleField = (key) => {
   display: flex;
   gap: 10px;
   align-items: center;
-  padding-left: .3rem;
+  padding: .3rem;
   min-width: max-content;
   min-height: max-content;
   width: 100%;

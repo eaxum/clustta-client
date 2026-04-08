@@ -21,11 +21,13 @@ import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useUserStore } from '@/stores/users';
 import { useProjectStore } from '@/stores/projects';
+import { useEntitlementStore } from '@/stores/entitlements';
 
 // states/stores
 const userStore = useUserStore();
 const settings = useSettingsStore();
 const projectStore = useProjectStore();
+const entitlementStore = useEntitlementStore();
 
 // components
 import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
@@ -56,11 +58,14 @@ const settingsComponents = {
 
 // computed props
 const settingsItems = computed(() => {
-	console.log(userStore.user)
 	const canChangeRole = userStore.canDo('change_role');
 	const canViewTemplate = userStore.canDo('view_template');
 	const isProjectRemote = projectStore.activeProject.has_remote;
-	
+
+	const canCollaborate = entitlementStore.canCollaborate;
+	const hasCustomRoles = entitlementStore.hasCustomRoles;
+	const hasIntegrations = entitlementStore.hasIntegrations;
+
 	const userSettingsIds = ['general', 'directories', 'projecttemplates', 'studio', 'studiocollaborators'];
 	const remoteProjectIds = ['collaborators', 'roles', 'advanced'];
 
@@ -68,7 +73,10 @@ const settingsItems = computed(() => {
 		!userSettingsIds.includes(item.id) &&
 		(canChangeRole || item.id !== 'roles') &&
 		(canChangeRole || item.id !== 'advanced') &&
-		(canViewTemplate || item.id !== 'projecttemplates')
+		(canViewTemplate || item.id !== 'projecttemplates') &&
+		(canCollaborate || item.id !== 'collaborators') &&
+		(hasCustomRoles || item.id !== 'roles') &&
+		(hasIntegrations || item.id !== 'advanced')
 	);
 	
 	const localProjectSettings = projectSettings.filter((item) => !remoteProjectIds.includes(item.id));

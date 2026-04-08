@@ -4,9 +4,9 @@
 			<div class="create-menu" >
 				<ActionButton :isDisabled="!studioStore.isStudioAdmin || operationsActive" :icon="getAppIcon('briefcase-plus')" 
 					@click="createProject" v-tooltip="$t('stages.newProject')" :buttonFunction="doNothing" />
-				<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="operationsActive" :icon="getAppIcon('arrow-down-on-square-stack')" 
+				<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="operationsActive" :icon="getAppIcon('data-download')" 
 					v-tooltip="$t('stages.importProject')" :buttonFunction="importProject" />
-				<ActionButton v-else :isDisabled="!studioStore.isStudioAdmin || operationsActive"  :icon="getAppIcon('arrow-down-on-square-stack')" 
+				<ActionButton v-else :isDisabled="!studioStore.isStudioAdmin || operationsActive"  :icon="getAppIcon('data-download')" 
 					v-tooltip="$t('stages.uploadProject')" :buttonFunction="uploadProject" />
 				<ActionButton :isDisabled="operationsActive" :icon="getAppIcon('refresh')" 
 					v-tooltip="$t('common.refresh')" :buttonFunction="refresh" />

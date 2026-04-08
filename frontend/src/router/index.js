@@ -74,12 +74,20 @@ const routes = [
   { path: '/verify-email', redirect: '/auth/verify-email' },
   { path: '/forgot-password', redirect: '/auth/forgot-password' },
   { path: '/reset-change-password', redirect: '/auth/reset-change-password' },
-  // Discovery page (requires auth)
+  // Discovery page (requires auth + talent_discovery entitlement)
   {
     path: '/discover',
     name: 'discover',
     component: () => import('@/instances/web/DiscoverPage.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
+    beforeEnter: (to, from, next) => {
+      const entitlementStore = useEntitlementStore();
+      if (entitlementStore.hasFeature('talent_discovery')) {
+        next();
+      } else {
+        next('/profile');
+      }
+    }
   },
   // Public profile 
   {
