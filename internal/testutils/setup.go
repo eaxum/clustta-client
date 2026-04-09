@@ -43,7 +43,7 @@ func GenerateFixtureProject() {
 		panic(err)
 	}
 	projectUri := filepath.Join(TestFolder, "test.clst")
-	projectInfo, err := repository.CreateProject(projectUri, "test", "", "No Template", user)
+	projectInfo, err := repository.CreateProject(projectUri, "test", "", "No Template", "", user)
 	if err != nil {
 		panic(err)
 	}

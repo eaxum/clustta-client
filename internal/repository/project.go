@@ -66,7 +66,7 @@ type ProjectConfig struct {
 	Mtime int         `json:"mtime" db:"mtime"`
 }
 
-func InitDB(projectPath string, studioName, workingDir string, user auth_service.User, walMode bool) error {
+func InitDB(projectPath string, studioName, workingDir, projectId string, user auth_service.User, walMode bool) error {
 	db, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -127,8 +127,10 @@ func InitDB(projectPath string, studioName, workingDir string, user auth_service
 	defer tx.Rollback()
 
 	//add project_id to config
-	project_id := uuid.New().String()
-	_, err = tx.Exec("INSERT INTO config (name, value, mtime) VALUES ('project_id', ?, ?)", project_id, utils.GetEpochTime())
+	if projectId == "" {
+		projectId = uuid.New().String()
+	}
+	_, err = tx.Exec("INSERT INTO config (name, value, mtime) VALUES ('project_id', ?, ?)", projectId, utils.GetEpochTime())
 	if err != nil {
 		return err
 	}
@@ -866,14 +868,19 @@ func UpdateProject(projectPath string) error {
 	return migrations.RunMigrations(db, projectVersion, ProjectSchema)
 }
 
-func CreateProject(projectUri, studioName, workingDir, templateName string, user auth_service.User) (ProjectInfo, error) {
+func CreateProject(projectUri, studioName, workingDir, templateName, projectId string, user auth_service.User) (ProjectInfo, error) {
 	projectInfo := ProjectInfo{}
 	if templateName == "" {
 		templateName = "No Template"
 	}
 
 	if utils.IsValidURL(projectUri) {
-		req, err := http.NewRequest("POST", projectUri, nil)
+		var reqBody io.Reader
+		if projectId != "" {
+			bodyBytes, _ := json.Marshal(map[string]string{"project_id": projectId})
+			reqBody = bytes.NewReader(bodyBytes)
+		}
+		req, err := http.NewRequest("POST", projectUri, reqBody)
 		if err != nil {
 			return projectInfo, err
 		}
@@ -932,7 +939,7 @@ func CreateProject(projectUri, studioName, workingDir, templateName string, user
 			}
 			return ProjectInfo{}, error_service.ErrInvalidProjectExists
 		}
-		err := InitDB(projectUri, studioName, workingDir, user, false)
+		err := InitDB(projectUri, studioName, workingDir, projectId, user, false)
 		if err != nil {
 			return ProjectInfo{}, err
 		}

@@ -131,7 +131,7 @@ func loadTemplateDefinitions() (*ProjectTemplatesConfig, error) {
 
 // createDefaultTemplate creates a new template .clst file with the specified metadata
 func createDefaultTemplate(templatePath string, templateDef ProjectTemplateDefinition, user auth_service.User) error {
-	_, err := CreateProject(templatePath, "Personal", "", "", user)
+	_, err := CreateProject(templatePath, "Personal", "", "", "", user)
 	if err != nil {
 		log.Printf("Failed to create template project: %v", err)
 		return fmt.Errorf("failed to create template project: %w", err)
