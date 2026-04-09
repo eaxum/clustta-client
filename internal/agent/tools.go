@@ -27,7 +27,7 @@ type ToolResult struct {
 
 // GetToolDefinitions returns all tool schemas the LLM can call.
 func GetToolDefinitions() []ToolDefinition {
-	return []ToolDefinition{
+	tools := []ToolDefinition{
 		// Query tools
 		{
 			Name:        "list_collections",
@@ -188,7 +188,7 @@ func GetToolDefinitions() []ToolDefinition {
 		},
 		{
 			Name:        "create_asset",
-			Description: "Create a new asset (file) in a collection. Requires a template — use list_templates first to find available templates.",
+			Description: "Create a new asset (file). It can belong to a collection or exist at the project root. Requires a template — use list_templates first to find available templates.",
 			Parameters: map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{
@@ -198,7 +198,7 @@ func GetToolDefinitions() []ToolDefinition {
 					},
 					"collection_id": map[string]interface{}{
 						"type":        "string",
-						"description": "ID of the collection to create the asset in.",
+						"description": "Optional. ID of the collection to create the asset in. Omit to create at the project root.",
 					},
 					"task_type_id": map[string]interface{}{
 						"type":        "string",
@@ -214,7 +214,7 @@ func GetToolDefinitions() []ToolDefinition {
 						"description": "Optional list of tag names to apply.",
 					},
 				},
-				"required": []string{"name", "collection_id", "task_type_id", "template_id"},
+				"required": []string{"name", "task_type_id", "template_id"},
 			},
 		},
 		// Batch creation tools
@@ -254,12 +254,12 @@ func GetToolDefinitions() []ToolDefinition {
 							"type": "object",
 							"properties": map[string]interface{}{
 								"name":          map[string]interface{}{"type": "string", "description": "Name of the asset."},
-								"collection_id": map[string]interface{}{"type": "string", "description": "ID of the target collection."},
+								"collection_id": map[string]interface{}{"type": "string", "description": "Optional. ID of the target collection. Omit to create at the project root."},
 								"task_type_id":  map[string]interface{}{"type": "string", "description": "ID of the asset type."},
 								"template_id":   map[string]interface{}{"type": "string", "description": "ID of the file template."},
 								"tags":          map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "Optional tag names."},
 							},
-							"required": []string{"name", "collection_id", "task_type_id", "template_id"},
+							"required": []string{"name", "task_type_id", "template_id"},
 						},
 						"description": "Array of assets to create.",
 					},
@@ -876,6 +876,11 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 	}
+
+	// Append DCC tool definitions
+	tools = append(tools, GetDCCToolDefinitions()...)
+
+	return tools
 }
 
 // ExecuteTool runs a tool by name with the given arguments against the project.
@@ -930,6 +935,15 @@ var toolPermissions = map[string]toolPermission{
 	"setup_project_types":   {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
 	"add_ignore_pattern":    {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 	"remove_ignore_pattern": {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+
+	// DCC tools
+	"blender_render":       {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"blender_export":       {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"blender_run_script":   {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"blender_run_python":   {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"blender_set_settings": {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"blender_link":         {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"run_terminal_command": {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 }
 
 // checkPermission verifies the current user has the required role permission for a tool.
@@ -1080,6 +1094,25 @@ func ExecuteTool(projectPath string, toolName string, args map[string]interface{
 		return execBatchAddTags(projectPath, args)
 	case "generate_script":
 		return execGenerateScript(args)
+
+	// DCC tools
+	case "open_in_dcc":
+		return execOpenInDCC(projectPath, args)
+	case "blender_render":
+		return execBlenderRender(projectPath, args)
+	case "blender_export":
+		return execBlenderExport(projectPath, args)
+	case "blender_run_script":
+		return execBlenderRunScript(projectPath, args)
+	case "blender_run_python":
+		return execBlenderRunPython(projectPath, args)
+	case "blender_set_settings":
+		return execBlenderSetSettings(projectPath, args)
+	case "blender_link":
+		return execBlenderLink(projectPath, args)
+	case "run_terminal_command":
+		return execRunTerminalCommand(projectPath, args)
+
 	default:
 		return ToolResult{Success: false, Error: fmt.Sprintf("unknown tool: %s", toolName)}
 	}
@@ -1093,6 +1126,15 @@ func getStringArg(args map[string]interface{}, key, defaultVal string) string {
 		}
 	}
 	return defaultVal
+}
+
+// activeUserID returns the signed-in user's ID, or empty string if unavailable.
+func activeUserID(projectPath string) string {
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return ""
+	}
+	return user.Id
 }
 
 // getBoolArg extracts a boolean argument with a default fallback.
@@ -1606,8 +1648,8 @@ func execCreateAsset(projectPath string, args map[string]interface{}) ToolResult
 	templateID := getStringArg(args, "template_id", "")
 	tags := getStringSliceArg(args, "tags")
 
-	if name == "" || collectionID == "" || assetTypeID == "" || templateID == "" {
-		return ToolResult{Success: false, Error: "name, collection_id, task_type_id, and template_id are required"}
+	if name == "" || assetTypeID == "" || templateID == "" {
+		return ToolResult{Success: false, Error: "name, task_type_id, and template_id are required"}
 	}
 
 	dbConn, err := utils.OpenDb(projectPath)
@@ -1621,9 +1663,15 @@ func execCreateAsset(projectPath string, args map[string]interface{}) ToolResult
 	}
 	defer tx.Rollback()
 
-	asset, err := repository.CreateAsset(tx, "", name, assetTypeID, collectionID, false, templateID, "", "", tags, "", false, "", "", "Created by Clustta Agent", "", func(int, int, string, string) {})
+	asset, err := repository.CreateAsset(tx, "", name, assetTypeID, collectionID, false, templateID, "", "", tags, "", false, "", activeUserID(projectPath), "Created by Clustta Agent", "", func(int, int, string, string) {})
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
+	}
+
+	// Materialize the file on disk from stored chunks
+	err = repository.RevertToLatestCheckpoint(tx, asset.Id, asset.GetFilePath(), func(int, int, string, string) {})
+	if err != nil {
+		return ToolResult{Success: false, Error: fmt.Sprintf("asset created but failed to build file: %s", err.Error())}
 	}
 
 	err = tx.Commit()
@@ -2991,13 +3039,19 @@ func execBatchCreateAssets(projectPath string, args map[string]interface{}) Tool
 		templateID := getStringArg(item, "template_id", "")
 		tags := getStringSliceArg(item, "tags")
 
-		if name == "" || collectionID == "" || assetTypeID == "" || templateID == "" {
-			return ToolResult{Success: false, Error: fmt.Sprintf("asset at index %d is missing required fields (name, collection_id, task_type_id, template_id)", i)}
+		if name == "" || assetTypeID == "" || templateID == "" {
+			return ToolResult{Success: false, Error: fmt.Sprintf("asset at index %d is missing required fields (name, task_type_id, template_id)", i)}
 		}
 
-		asset, err := repository.CreateAsset(tx, "", name, assetTypeID, collectionID, false, templateID, "", "", tags, "", false, "", "", "Created by Clustta Agent", "", func(int, int, string, string) {})
+		asset, err := repository.CreateAsset(tx, "", name, assetTypeID, collectionID, false, templateID, "", "", tags, "", false, "", activeUserID(projectPath), "Created by Clustta Agent", "", func(int, int, string, string) {})
 		if err != nil {
 			return ToolResult{Success: false, Error: fmt.Sprintf("failed to create asset '%s': %s", name, err.Error())}
+		}
+
+		// Materialize the file on disk from stored chunks
+		err = repository.RevertToLatestCheckpoint(tx, asset.Id, asset.GetFilePath(), func(int, int, string, string) {})
+		if err != nil {
+			return ToolResult{Success: false, Error: fmt.Sprintf("asset '%s' created but failed to build file: %s", name, err.Error())}
 		}
 
 		created = append(created, createdItem{Name: asset.Name, ID: asset.Id})

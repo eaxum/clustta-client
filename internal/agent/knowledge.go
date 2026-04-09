@@ -33,8 +33,9 @@ Collection operations:
 	"assets": `Assets are individual files being version-controlled in Clustta.
 
 Creating an asset:
-- Provide a name, task type (e.g., Model, Rig, Animation), and target collection
-- Optionally: description, tags, template, preview image
+- Provide a name, task type (e.g., Model, Rig, Animation), and a template
+- Assets can optionally belong to a collection, or exist at the project root level
+- Optionally: description, tags, preview image
 - Assets can be "resources" (shared/reusable) or regular task assets
 - Assets can be "link" assets that point to external files
 
@@ -227,5 +228,38 @@ Common script scenarios:
 - Automated exports: Export assets from DCCs (Digital Content Creation tools)
 - File analysis: Scan assets for issues (missing textures, broken references)
 
-Scripts are generated for review and manual execution — they are never auto-executed by the agent.`,
+Scripts are generated for review and manual execution — they are never auto-executed by the agent.
+Alternatively, you can use the run_terminal_command tool to launch a command in a visible terminal window.`,
+
+	"dcc_tools": `Clustta has built-in DCC (Digital Content Creation) tool integration. All DCC operations are fire-and-forget — they launch in a visible terminal window so the user can monitor progress.
+
+Supported DCC applications:
+- Blender (.blend) — full integration: render, export, link, settings, custom scripts
+- Maya (.ma, .mb) — open files
+- Houdini (.hip, .hipnc, .hiplc) — open files
+- Nuke (.nk) — open files
+- Substance Painter (.spp) — open files
+- Cinema 4D (.c4d) — open files
+
+DCC executable discovery (in order):
+1. Environment variable (e.g., BLENDER_PATH, MAYA_PATH)
+2. Common installation paths for the OS
+3. System PATH lookup
+
+Blender tools:
+- open_in_dcc: Open files in the correct DCC app (auto-detected from extension or specified)
+- blender_render: Headless render with optional frame range, engine, and output path
+- blender_export: Export to FBX, OBJ, glTF, or USD
+- blender_run_python: Run inline Python code on .blend files — the agent writes the code, saves to a temp file, and launches Blender headless. The file is auto-saved after execution. Use this for any Blender-internal operation: creating Blender collections, modifying objects, materials, scenes, etc.
+- blender_run_script: Run a custom .py script file on .blend files
+- blender_set_settings: Batch-modify render engine, resolution, FPS, samples, output format
+- blender_link: Link or append objects from dependency .blend files into a target file
+  - Auto-resolves sources from the asset's Clustta dependency graph
+  - Supports append (copy) or link (reference) modes
+  - Can link Collections, Objects, Materials, NodeTrees, etc.
+
+Terminal command:
+- run_terminal_command: Run any command in a new visible terminal window
+
+All DCC tools require the "Update Asset" permission except open_in_dcc (read-only).`,
 }

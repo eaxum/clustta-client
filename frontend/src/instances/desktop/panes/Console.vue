@@ -152,6 +152,12 @@ const toolIconMap = {
   batch_add_tags: 'tag',
   batch_create_assets: 'file-plus',
   batch_create_collections: 'folder-plus',
+  blender_export: 'console',
+  blender_link: 'link',
+  blender_render: 'console',
+  blender_run_python: 'console',
+  blender_run_script: 'console',
+  blender_set_settings: 'cog',
   bulk_assign: 'person-plus',
   bulk_delete_assets: 'trash',
   change_asset_status: 'workflow-arrow',
@@ -167,7 +173,7 @@ const toolIconMap = {
   generate_script: 'console',
   get_asset_details: 'file-search',
   get_asset_tags: 'tag',
-  get_my_permissions: 'lock',
+  get_my_permissions: 'scale',
   get_project_summary: 'four-squares',
   get_user_activity: 'person',
   list_assets_in_collection: 'file',
@@ -183,6 +189,7 @@ const toolIconMap = {
   list_templates: 'file',
   list_users: 'person',
   move_assets: 'folder-arrow-in',
+  open_in_dcc: 'external-link',
   random_assign: 'person-plus',
   remove_dependency: 'link',
   remove_ignore_pattern: 'eye-off',
@@ -190,6 +197,7 @@ const toolIconMap = {
   remove_user: 'person-minus',
   rename_asset: 'edit',
   rename_collection: 'edit',
+  run_terminal_command: 'console',
   search_assets: 'file-search',
   search_knowledge: 'brain',
   setup_project_types: 'brush',
@@ -305,6 +313,36 @@ const selectAttachment = async () => {
   } catch { /* user cancelled */ }
 };
 
+// Builds a selection context string to inform the agent of what the user is currently viewing.
+const buildSelectionContext = () => {
+  const parts = [];
+
+  if (collectionStore.selectedCollection) {
+    const c = collectionStore.selectedCollection;
+    parts.push(`Viewing collection: "${c.name}" (ID: ${c.id}, type: ${c.collection_type_name || 'default'})`);
+  }
+
+  if (stage.selectedItems.length > 1) {
+    const items = stage.selectedItems.map(i => `"${i.name}" (ID: ${i.id}, type: ${i.type})`).join(', ');
+    parts.push(`Selected items: ${items}`);
+  } else if (stage.selectedItem) {
+    const i = stage.selectedItem;
+    const details = [`ID: ${i.id}`, `type: ${i.type}`];
+    if (i.extension) details.push(`extension: ${i.extension}`);
+    if (i.asset_type_name) details.push(`asset type: ${i.asset_type_name}`);
+    if (i.status_short_name) details.push(`status: ${i.status_short_name}`);
+    if (i.assignee_name) details.push(`assignee: ${i.assignee_name}`);
+    parts.push(`Selected item: "${i.name}" (${details.join(', ')})`);
+  }
+
+  if (stage.activeStage) {
+    parts.push(`Active view: ${stage.activeStage}`);
+  }
+
+  if (!parts.length) return '';
+  return `[Context: ${parts.join(' | ')}]\n`;
+};
+
 // Sends the current message to the agent backend.
 const sendMessage = async () => {
   if (!currentMessage.value.trim() || isProcessing.value) return;
@@ -317,7 +355,8 @@ const sendMessage = async () => {
   }
 
   addMessage('user', currentMessage.value.trim());
-  const messageContent = currentMessage.value.trim();
+  const context = buildSelectionContext();
+  const messageContent = context + currentMessage.value.trim();
   currentMessage.value = '';
   if (textareaRef.value) textareaRef.value.style.height = 'auto';
   isProcessing.value = true;
