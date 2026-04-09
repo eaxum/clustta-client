@@ -109,6 +109,7 @@ export const useProjectStore = defineStore("projects", {
     async setActiveProject(project) {
       const commonStore = useCommonStore();
       this.activeProject = project;
+      FSService.SetProjectContext(project.uri);
       commonStore.workspaces = await SettingsService.GetProjectWorkspaces(
         project.id
       );
