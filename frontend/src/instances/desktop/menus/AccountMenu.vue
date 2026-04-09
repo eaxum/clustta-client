@@ -2,23 +2,30 @@
   <div ref="accountMenu" class="filter-menu-container">
     <!-- Current Account -->
     <div class="current-account-section">
-      <div class="account-item current-account">
-        <div class="account-avatar">
-          <div class="profile-picture" :style="{ backgroundColor: profileColor(currentAccount?.id) }">
-            <img v-if="currentAccount?.photo" class="profile-img" :src="currentAccount.photo">
-            <img v-else class="profile-img" :src="generateAvatar(currentAccount?.id)">
+      <div class="account-item-container">
+        <div class="account-item current-account">
+          <div class="account-avatar">
+            <div class="profile-picture" :style="{ backgroundColor: profileColor(currentAccount?.id) }">
+              <img v-if="currentAccount?.photo" class="profile-img" :src="currentAccount.photo">
+              <img v-else class="profile-img" :src="generateAvatar(currentAccount?.id)">
+            </div>
+          </div>
+          <div class="account-info">
+            <div class="account-name">{{ currentAccount?.first_name }} {{ currentAccount?.last_name }}</div>
+            <div v-if="!isOfflineMode" class="account-email">{{ currentAccount?.email }}</div>
+          </div>
+          <div class="account-status">
+            <span v-if="isOfflineMode" class="status-indicator offline" v-tooltip="$t('menus.offlineModeTooltip')">●</span>
+            <span v-else class="status-indicator active">●</span>
           </div>
         </div>
-        <div class="account-info">
-          <div class="account-name">{{ currentAccount?.first_name }} {{ currentAccount?.last_name }}</div>
-          <div v-if="!isOfflineMode" class="account-email">{{ currentAccount?.email }}</div>
-        </div>
-        <div class="account-status">
-          <span v-if="isOfflineMode" class="status-indicator offline" v-tooltip="$t('menus.offlineModeTooltip')">●</span>
-          <span v-else class="status-indicator active">●</span>
+        <div v-if="!isOfflineMode" class="account-remove">
+          <ActionButton :icon="getAppIcon('cog')" :showLabel="false" :fullWidth="false" v-tooltip="$t('menus.accountSettings')" :buttonFunction="openAccountSettings" />
+          <ActionButton :icon="getAppIcon('logout')" :showLabel="false" :fullWidth="false" v-tooltip="$t('common.signOut')" :buttonFunction="signOutCurrentAccount" />
         </div>
       </div>
-      
+
+      <ActionButton v-if="isOfflineMode" :icon="getAppIcon('login')" :showLabel="true" :fullWidth="true" :label="$t('common.signIn')" :buttonFunction="signInFromOffline" />
     </div>
 
     <span class="menu-divider"></span>
@@ -44,18 +51,9 @@
             <div class="account-name">{{ account.first_name }} {{ account.last_name }}</div>
             <div class="account-email">{{ account.email }}</div>
           </div>
-          <div class="account-status">
-            <img class="small-icons" :src="getAppIcon('switch')">
-          </div>
         </div>
         <div class="account-remove">
-          <ActionButton 
-            :icon="getAppIcon('trash')" 
-            :showLabel="false" 
-            :fullWidth="false" 
-            :buttonFunction="() => removeAccountFromList(account.id)"
-            class="remove-account-btn"
-          />
+          <ActionButton :icon="getAppIcon('logout')" :showLabel="false" :fullWidth="false" v-tooltip="$t('menus.removeAccount')" :buttonFunction="() => removeAccountFromList(account.id)" />
         </div>
       </div>
     </div>
@@ -64,41 +62,7 @@
 
     <!-- Actions -->
     <div class="account-actions">
-      <ActionButton 
-        v-if="isOfflineMode"
-        :icon="getAppIcon('login')" 
-        :showLabel="true" 
-        :fullWidth="true" 
-        :label="$t('common.signIn')"
-        :buttonFunction="signInFromOffline" 
-      />
-      
-      <ActionButton 
-        v-if="!isOfflineMode"
-        :icon="getAppIcon('person-plus')" 
-        :showLabel="true" 
-        :fullWidth="true" 
-        :label="$t('menus.addAccount')"
-        :buttonFunction="addAccount" 
-      />
-      
-      <ActionButton 
-        v-if="!isOfflineMode"
-        :icon="getAppIcon('cog')" 
-        :showLabel="true" 
-        :fullWidth="true" 
-        :label="$t('menus.accountSettings')"
-        :buttonFunction="openAccountSettings" 
-      />
-      
-      <ActionButton 
-        v-if="!isOfflineMode"
-        :icon="getAppIcon('logout')" 
-        :showLabel="true" 
-        :fullWidth="true" 
-        :label="$t('common.signOut')"
-        :buttonFunction="signOutCurrentAccount" 
-      />
+      <ActionButton v-if="!isOfflineMode" :icon="getAppIcon('person-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addAccount')" :buttonFunction="addAccount" />
     </div>
   </div>
 </template>
@@ -300,7 +264,8 @@ onMounted(() => {
 @import "@/assets/desktop.css";
 
 .filter-menu-container {
-  min-width: 280px;
+  min-width: 250px;
+  max-width: 250px;
   padding: 0.5rem;
 }
 
@@ -333,10 +298,23 @@ onMounted(() => {
   border-radius: var(--normal-radius);
   transition: background-color 0.2s ease;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .account-remove {
+  display: flex;
+  gap: 0.25rem;
   flex-shrink: 0;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-width 0.2s ease, opacity 0.2s ease;
+}
+
+.account-item-container:hover .account-remove {
+  max-width: 80px;
+  opacity: 1;
 }
 
 .remove-account-btn {
