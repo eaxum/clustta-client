@@ -153,7 +153,7 @@ func RevealInExplorer(filePath string) {
 
 func LaunchFile(filePath string) error {
 	if runtime.GOOS == "windows" {
-		err := exec.Command("cmd", "/C", "start", filePath).Start()
+		err := exec.Command("cmd", "/C", "start", "", filePath).Start()
 		if err != nil {
 			return err
 		}
