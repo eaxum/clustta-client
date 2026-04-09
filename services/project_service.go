@@ -46,7 +46,7 @@ func (p *ProjectService) CreateProject(projectUri, studioName, workingDir, templ
 	}
 
 	fmt.Println(user)
-	projectInfo, err := repository.CreateProject(projectUri, studioName, workingDir, templateName, user)
+	projectInfo, err := repository.CreateProject(projectUri, studioName, workingDir, templateName, "", user)
 	if err != nil {
 		if !utils.IsValidURL(projectUri) &&
 			utils.FileExists(projectUri) &&
@@ -101,6 +101,7 @@ func (p *ProjectService) MakeProjectRemote(projectPath string) error {
 		return err
 	}
 	workingDir, _ := utils.GetProjectWorkingDir(tx)
+	projectId, _ := utils.GetProjectId(tx)
 	tx.Rollback()
 	dbConn.Close()
 
@@ -113,7 +114,7 @@ func (p *ProjectService) MakeProjectRemote(projectPath string) error {
 	}
 
 	// Create the remote project on the server
-	remoteProjectInfo, err := repository.CreateProject(remoteURL, "", "", "No Template", user)
+	remoteProjectInfo, err := repository.CreateProject(remoteURL, "", "", "No Template", projectId, user)
 	if err != nil {
 		return fmt.Errorf("failed to create remote project: %w", err)
 	}
@@ -1028,7 +1029,7 @@ func (p *ProjectService) UploadProject(sourceClstPath, studioName, workingDir, p
 	}
 
 	// Create empty project on remote
-	remoteProjectInfo, err := repository.CreateProject(remoteProjectUrl, studioName, workingDir, "", user)
+	remoteProjectInfo, err := repository.CreateProject(remoteProjectUrl, studioName, workingDir, "", "", user)
 	if err != nil {
 		return repository.ProjectInfo{}, err
 	}

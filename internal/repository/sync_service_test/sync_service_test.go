@@ -27,7 +27,7 @@ func TestSyncProject(t *testing.T) {
 		t.Error(err.Error())
 	}
 	projectUri := filepath.Join(testutils.TestFolder, "test_2.clst")
-	_, err = repository.CreateProject(projectUri, "test", "", "No Template", user)
+	_, err = repository.CreateProject(projectUri, "test", "", "No Template", "", user)
 	if err != nil {
 		t.Errorf("didnt expect any error but got: %s", err.Error())
 	}
@@ -40,7 +40,7 @@ func TestSyncProject(t *testing.T) {
 		t.Error("Project failed integrity test")
 	}
 
-	_, err = repository.CreateProject(projectUri, "test", "", "No Template", user)
+	_, err = repository.CreateProject(projectUri, "test", "", "No Template", "", user)
 	if err == nil {
 		t.Error("expected error of project exist, but got none")
 	} else {

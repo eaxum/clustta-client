@@ -371,7 +371,7 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 					return studioProjects, err
 				}
 				if fileInfo.Size() == 0 {
-					repository.InitDB(projectPath, studioName, "", user, false)
+					repository.InitDB(projectPath, studioName, "", "", user, false)
 				}
 
 				valid, err := repository.VerifyProjectIntegrity(projectPath)
