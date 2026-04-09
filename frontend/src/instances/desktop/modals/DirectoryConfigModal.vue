@@ -8,7 +8,7 @@
         <div class="horizontal-flex">
           <input v-model="projectsDirectory" class="input-short" type="text" :placeholder="$t('placeholders.projectsDirectory')"
             ref="projectsDirectoryInput" />
-          <span @click="selectDirectoryPath('personal')" class="single-action-button" v-tooltip="$t('common.browsePath')"><img
+          <span @click="selectDirectoryPath('personal')" class="single-action-button" v-tooltip="$t('settings.browsePath')"><img
               class="small-icons" :src="getAppIcon('explorer')"></span>
         </div>
       </div>
@@ -18,7 +18,7 @@
         <div class="horizontal-flex">
           <input v-model="sharedProjectsDirectory" class="input-short" type="text"
             :placeholder="$t('placeholders.sharedProjectsDirectory')" ref="sharedProjectsDirectoryInput"  />
-          <span @click="selectDirectoryPath('shared')" class="single-action-button" v-tooltip="$t('common.browsePath')"><img
+          <span @click="selectDirectoryPath('shared')" class="single-action-button" v-tooltip="$t('settings.browsePath')"><img
               class="small-icons" :src="getAppIcon('explorer')"></span>
         </div>
       </div>
@@ -90,7 +90,7 @@ const saveChanges = async () => {
 
 // Opens a dialog to select a directory path.
 const selectDirectoryPath = async (context) => {
-  const result = await DialogService.SelectFolderDialog(t('modals.selectFolder'));
+  const result = await DialogService.SelectFolderDialog(t('settings.selectFolder'));
   if (result) {
     const fileDir = result.replace(/\\/g, '/');
     if (context === 'shared') {

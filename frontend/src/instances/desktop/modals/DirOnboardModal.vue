@@ -82,27 +82,27 @@
                   :icon="getAppIcon('star')" 
                   :buttonFunction="() => setDefaultLocation(location.id)"
                   :disabled="true"
-                  v-tooltip="$t('modals.defaultLocation')"
+                  v-tooltip="$t('settings.defaultLocation')"
                 />
                 
                 <template v-else>
                   <ActionButton 
                     :icon="getAppIcon('star')" 
                     :buttonFunction="() => setDefaultLocation(location.id)"
-                    v-tooltip="$t('modals.setAsDefault')"
+                    v-tooltip="$t('settings.setAsDefault')"
                     class="hover-action"
                   />
                   <ActionButton 
                     :icon="getAppIcon('explorer')" 
                     :buttonFunction="() => selectPath(location)"
-                    v-tooltip="$t('modals.changeLocation')"
+                    v-tooltip="$t('settings.changeLocation')"
                     class="hover-action"
                   />
                   <ActionButton 
                     :icon="getAppIcon('trash')" 
                     :buttonFunction="() => removeLocation(location.id)"
                     :isDisabled="!canDeleteLocation(location.id)"
-                    v-tooltip="canDeleteLocation(location.id) ? $t('modals.removeLocation') : $t('modals.cannotRemoveLocation')"
+                    v-tooltip="canDeleteLocation(location.id) ? $t('settings.removeLocation') : $t('settings.cannotRemoveLocation')"
                     class="hover-action"
                   />
                 </template>
@@ -253,7 +253,7 @@ const removeLocation = (locationId) => {
   if (!canDeleteLocation(locationId)) {
     notificationStore.addNotification(
       t('notifications.cannotRemoveLocation'),
-      t('notifications.cannotRemoveLocationDesc'),
+      t('notifications.locationInUse'),
       'error',
       false
     );

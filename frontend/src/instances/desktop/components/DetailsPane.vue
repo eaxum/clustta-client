@@ -192,7 +192,7 @@ const props = defineProps({
 const collectionMode = ['basic', 'library'];
 const itemTypes = ['asset', 'resource'];
 const noHeaders = [];
-const placeholder = computed(() => t('components.detailsPane.searchCollaboratorsPlaceholder'));
+const placeholder = computed(() => t('components.detailsPane.searchCollaborators'));
 
 const assetDetailPanes = [
   { name: "Details", nameKey: "panes.detailsTab", tab_name: "assetDetails", icon: "info" },
@@ -419,7 +419,7 @@ const assignCollections = async (user) => {
 const changeCollectionParent = async (collectionIds, parentId) => {
   await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, collectionIds, parentId)
     .then(() => notificationStore.addNotification(t('components.detailsPane.movedSuccessfully'), "", "success"))
-    .catch((error) => { console.error(error); notificationStore.errorNotification(t('components.detailsPane.errorChangingCollectionParent'), error); });
+    .catch((error) => { console.error(error); notificationStore.errorNotification(t('components.detailsPane.errorChangingParent'), error); });
 };
 
 // Changes the type of multiple collections.
@@ -449,7 +449,7 @@ const changeIsLibrary = async (mode) => {
 const changeAssetCollection = async (assetIds, collectionId) => {
   await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, assetIds, collectionId)
     .then(() => notificationStore.addNotification(t('components.detailsPane.movedSuccessfully'), "", "success"))
-    .catch((error) => { console.error(error); notificationStore.errorNotification(t('components.detailsPane.errorChangingAssetCollection'), error); });
+    .catch((error) => { console.error(error); notificationStore.errorNotification(t('components.detailsPane.errorChangingCollection'), error); });
 };
 
 // Changes the type of multiple assets.
@@ -527,7 +527,7 @@ const deleteMultipleUntrackedAssets = async () => {
     if (onlyUntracked.value) { stage.markedItems = []; projectStore.selectedUntrackedItem = null; }
     emitter.emit('refresh-browser');
     notificationStore.addNotification(t('components.detailsPane.untrackedItemsDeleted'), '', "success", false);
-  } catch (error) { console.error(error); notificationStore.errorNotification(t('components.detailsPane.failedToDeleteUntrackedItems'), error); }
+  } catch (error) { console.error(error); notificationStore.errorNotification(t('components.detailsPane.failedToDeleteUntracked'), error); }
   stage.operationActive = false;
 };
 

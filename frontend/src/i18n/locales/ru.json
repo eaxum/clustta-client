@@ -71,7 +71,8 @@
     "show": "Показать",
     "link": "Ссылка",
     "manage": "Управлять",
-    "finish": "Завершить"
+    "finish": "Завершить",
+    "copyId": "Copy ID"
   },
   "placeholders": {
     "addItem": "Добавить элемент",
@@ -97,7 +98,6 @@
     "studioName": "Название студии",
     "studioUrl": "URL студии",
     "assetName": "Название задачи",
-    "assetTypeName": "Название типа задачи",
     "assetTypeName": "Название типа ресурса",
     "templateName": "Название шаблона",
     "webLink": "Веб-ссылка",
@@ -114,7 +114,9 @@
     "workflowItemName": "Название элемента рабочего процесса",
     "workspaceName": "Название рабочего пространства",
     "collectionType": "Тип коллекции",
-    "assetType": "Тип ресурса"
+    "assetType": "Тип ресурса",
+    "projectsDirectory": "Projects directory",
+    "sharedProjectsDirectory": "Shared projects directory"
   },
   "confirmations": {
     "deleteItemPermanently": "Вы уверены, что хотите удалить этот элемент? Это безвозвратно удалит этот элемент. Подтвердите, если хотите продолжить.",
@@ -140,7 +142,8 @@
     "trimProjectMessage": "Это удалит кэшированные данные файлов из архива проекта и удалит рабочий каталог для уменьшения использования диска. Данные можно будет загрузить заново с удалённого сервера при необходимости. Продолжить?",
     "archiveProjectMessage": "Архивация этого проекта также освободит место в рабочем каталоге. Все неотслеживаемые элементы будут потеряны. Продолжить?",
     "relocateWorkingDirectoryMessage": "Изменить рабочий каталог с:\n{from}\n\nНа:\n{to}\n\nПримечание: Файлы НЕ будут перемещены. Будет обновлён только путь.",
-    "deleteRemoteProject": "\"{name}\" будет НАВСЕГДА удалён с сервера. Это действие нельзя отменить. Введите имя проекта для подтверждения:"
+    "deleteRemoteProject": "\"{name}\" будет НАВСЕГДА удалён с сервера. Это действие нельзя отменить. Введите имя проекта для подтверждения:",
+    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner."
   },
   "notifications": {
     "defaultViewUpdated": "Вид по умолчанию обновлён",
@@ -384,16 +387,15 @@
     "userAddedAndAssigned": "Пользователь добавлен в проект и задача назначена.",
     "errorAddingUserToProject": "Ошибка добавления пользователя в проект",
     "errorUnassigningAsset": "Ошибка снятия назначения задачи",
-    "assetFailedToDelete": "Не удалось удалить ресурс.",
+    "assetFailedToDelete": "Не удалось удалить задачу.",
     "failedToDuplicateAsset": "Не удалось дублировать ресурс",
     "fileMustBeDownloaded": "Сначала необходимо скачать файл",
     "failedToNavigate": "Не удалось перейти к расположению",
     "errorRevertingAssets": "Ошибка отката ресурсов",
     "failedToRevertAsset": "Не удалось откатить ресурс",
-    "errorDownloadingAsset": "Ошибка скачивания ресурса",
+    "errorDownloadingAsset": "Ошибка скачивания задачи",
     "errorRevertingAsset": "Ошибка отката задачи",
     "errorRebuildingAsset": "Ошибка перестроения задачи",
-    "assetFailedToDelete": "Не удалось удалить задачу.",
     "downloadComplete": "Скачивание завершено",
     "downloadedSuccessfully": "{fileName} успешно скачан",
     "downloadFailed": "Ошибка скачивания",
@@ -422,7 +424,6 @@
     "errorDiscardingChanges": "Ошибка отмены изменений",
     "errorDiscardingChange": "Ошибка отмены изменения",
     "errorNavigatingToItem": "Ошибка перехода к элементу",
-    "errorDownloadingAsset": "Ошибка скачивания задачи",
     "userAddedToProject": "Пользователь успешно добавлен в проект.",
     "errorLoadingProjectData": "Ошибка загрузки данных проекта",
     "errorLoadingTimeline": "Ошибка загрузки хронологии",
@@ -432,7 +433,18 @@
     "errorAddingDependency": "Ошибка добавления зависимостей",
     "errorRemovingDependency": "Ошибка удаления зависимостей",
     "userAddedSuccessfully": "Пользователь успешно добавлен в проект.",
-    "errorUpdatingWorkingDirectory": "Ошибка обновления рабочего каталога"
+    "errorUpdatingWorkingDirectory": "Ошибка обновления рабочего каталога",
+    "idCopied": "ID copied to clipboard",
+    "leftProject": "Left Project",
+    "leftProjectDesc": "You have left \"{name}\".",
+    "errorLeavingProject": "Error leaving project",
+    "projectsImportedCount": "{count} project(s) imported successfully",
+    "errorMakingProjectRemote": "Error making project remote",
+    "errorRemovingProjectFromRemote": "Error removing project from remote",
+    "syncCompleteMessage": "All data has been synced successfully",
+    "errorSelectingFile": "Error selecting file",
+    "errorDeletingProject": "Error deleting project",
+    "failedToMergeItem": "Failed to merge item"
   },
   "settings": {
     "title": "Настройки",
@@ -467,7 +479,7 @@
     "list": "Список",
     "directories": "Каталоги",
     "templates": "Шаблоны",
-    "collaborators": "Соавторы",
+    "collaborators": "Сотрудники",
     "roles": "Роли",
     "assetTypes": "Типы ресурсов",
     "collectionTypes": "Типы коллекций",
@@ -494,7 +506,6 @@
     "storageOf": "{used} из {limit}",
     "remoteProjects": "Удалённые проекты",
     "projectsOf": "{used} из {limit}",
-    "collaborators": "Сотрудники",
     "collaboratorsOf": "{used} из {limit}",
     "aiCredits": "Кредиты ИИ",
     "aiCreditsOf": "{used} из {limit} в этом месяце",
@@ -562,7 +573,17 @@
     "addATemplate": "Добавить шаблон",
     "addAnAssetType": "Добавить тип ресурса",
     "addACollectionType": "Добавить тип коллекции",
-    "noIgnoreItems": "У вас нет элементов игнорирования"
+    "noIgnoreItems": "У вас нет элементов игнорирования",
+    "studioInfo": "Studio Info",
+    "externalIntegrations": "External Integrations",
+    "linkIntegration": "Link External Project",
+    "linkIntegrationDescription": "Connect this project to Kitsu, ClickUp, or other external project management tools.",
+    "linkedTo": "Linked to {integration}",
+    "connectIntegration": "Connect Integration",
+    "connectIntegrationDescription": "Connect to external services like Kitsu, ClickUp, and more.",
+    "connected": "Connected",
+    "clusttaLocalProjectsData": "Clustta Local Projects Data",
+    "clusttaSharedProjectsData": "Clustta Shared Projects Data"
   },
   "modals": {
     "addAssetType": "Добавить тип ресурса",
@@ -581,11 +602,10 @@
     },
     "duplicateProjectTemplate": "Дублировать шаблон проекта",
     "duplicateTemplateName": "Дублирующееся название шаблона",
-    "editAssetType": "Редактировать тип ресурса",
+    "editAssetType": "Редактировать тип задачи",
     "editCollectionType": "Редактировать тип коллекции",
     "editProjectTemplate": "Редактировать шаблон проекта",
     "editRole": "Редактировать роль",
-    "editAssetType": "Редактировать тип задачи",
     "editTemplate": "Редактировать шаблон",
     "invitationMessage": "1 пользователь ещё не в Clustta. Ему будет отправлено приглашение для регистрации. | {n} пользователей ещё не в Clustta. Им будет отправлено приглашение для регистрации.",
     "invitationRequired": "Требуется приглашение",
@@ -748,7 +768,11 @@
     "loadingCollectionStates": "Загрузка состояний коллекции",
     "modifiedAsset": "Изменённый ресурс",
     "refreshingModifiedItems": "Обновление изменённых элементов",
-    "untrackedAsset": "Неотслеживаемый ресурс"
+    "untrackedAsset": "Неотслеживаемый ресурс",
+    "projectsImportedCount": "{count} project(s) imported",
+    "selectImageFile": "Select Image File",
+    "enableRemote": "Enable Remote",
+    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine."
   },
   "menus": {
     "addAccount": "Добавить аккаунт",
@@ -826,7 +850,11 @@
     "unpinProject": "Открепить проект",
     "updateContents": "Обновить содержимое",
     "uploadItems": "Загрузить элементы",
-    "useExclusive": "Использовать эксклюзивно"
+    "useExclusive": "Использовать эксклюзивно",
+    "removeAccount": "Remove Account",
+    "leaveProject": "Leave Project",
+    "leaveProjectTitle": "Leave \"{name}\"",
+    "switchAccount": "Switch Account"
   },
   "panes": {
     "type": "Тип",
@@ -852,7 +880,7 @@
     "noCheckpointsInProject": "В этом проекте нет контрольных точек",
     "discardAll": "Отменить все",
     "syncNow": "Синхронизировать сейчас",
-    "assets": "Задачи",
+    "assets": "Ресурсы",
     "collections": "Коллекции",
     "other": "Другое",
     "loadingChanges": "Загрузка изменений...",
@@ -863,7 +891,6 @@
     "markAsLibrary": "Пометить как библиотеку",
     "unmarkAsLibrary": "Снять пометку библиотеки",
     "assignees": "Назначенные",
-    "assets": "Ресурсы",
     "searchByNameOrEmail": "Поиск по имени или email",
     "studioMembers": "Участники студии",
     "comingSoon": "[Скоро]",
@@ -927,7 +954,10 @@
     "dependenciesTab": "Зависимости",
     "consoleTab": "Консоль",
     "changeLogTab": "Журнал изменений",
-    "collaboratorsTab": "Соавторы"
+    "collaboratorsTab": "Соавторы",
+    "projectDetails": "Project Details",
+    "projectDetailsTooltip": "View project details and statistics",
+    "editProjectTooltip": "Edit project settings"
   },
   "blocks": {
     "loadingState": "Загрузка состояния",
@@ -1315,8 +1345,8 @@
     "scrollList": {
       "edit": "Редактировать",
       "delete": "Удалить",
-      "assign": "Назначить",
-      "unassign": "Снять назначение"
+      "assign": "Assign",
+      "unassign": "Unassign"
     },
     "formInput": {
       "hide": "Скрыть",
@@ -1652,10 +1682,6 @@
       "nothingSelected": "Ничего не выбрано",
       "noItem": "Нет элемента"
     },
-    "scrollList": {
-      "edit": "Редактировать",
-      "delete": "Удалить"
-    },
     "singleListItem": {
       "edit": "Редактировать",
       "delete": "Удалить"
@@ -1761,7 +1787,13 @@
       "offlineModeMessage": "Вы используете Clustta в автономном режиме. Некоторые функции будут ограничены.",
       "offlineModeFailed": "Не удалось включить автономный режим. Попробуйте снова.",
       "offlineModeErrorTitle": "Ошибка автономного режима",
-      "offlineModeErrorMessage": "Не удалось включить автономный режим"
+      "offlineModeErrorMessage": "Не удалось включить автономный режим",
+      "connectToStudio": "Connect to a studio server",
+      "connectButton": "Connect",
+      "connectionFailed": "Could not reach this server. Check the URL and try again.",
+      "changeServer": "Change server",
+      "loginToCloud": "Login to Clustta Cloud",
+      "signUpToStudio": "Sign up to this studio"
     },
     "signUp": {
       "title": "Регистрация в Clustta",
@@ -1799,7 +1831,8 @@
       "studioAccountCreated": "Аккаунт создан на {url}. Теперь вы можете войти.",
       "checkEmailForCode": "Проверьте почту для получения кода верификации.",
       "registrationFailed": "Ошибка регистрации",
-      "registrationFailedDefault": "Ошибка регистрации"
+      "registrationFailedDefault": "Ошибка регистрации",
+      "signUpToStudio": "Sign up to a studio server"
     },
     "resetPassword": {
       "title": "Сброс пароля",

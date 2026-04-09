@@ -71,7 +71,8 @@
     "show": "显示",
     "link": "链接",
     "manage": "管理",
-    "finish": "完成"
+    "finish": "完成",
+    "copyId": "Copy ID"
   },
   "placeholders": {
     "addItem": "添加项目",
@@ -97,7 +98,6 @@
     "studioName": "工作室名称",
     "studioUrl": "工作室 URL",
     "assetName": "任务名称",
-    "assetTypeName": "任务类型名称",
     "assetTypeName": "资产类型名称",
     "templateName": "模板名称",
     "webLink": "网页链接",
@@ -114,7 +114,9 @@
     "workflowItemName": "工作流项目名称",
     "workspaceName": "工作区名称",
     "collectionType": "集合类型",
-    "assetType": "资产类型"
+    "assetType": "资产类型",
+    "projectsDirectory": "Projects directory",
+    "sharedProjectsDirectory": "Shared projects directory"
   },
   "confirmations": {
     "deleteItemPermanently": "您确定要删除此项目吗？这将永久删除此项目。请确认是否继续。",
@@ -140,7 +142,8 @@
     "trimProjectMessage": "这将从项目存档中删除缓存的文件数据，并删除工作目录以减少磁盘使用量。需要时可以从远程重新下载数据。继续？",
     "archiveProjectMessage": "归档此项目还将释放工作目录中的空间。任何未跟踪的项目将丢失。继续？",
     "relocateWorkingDirectoryMessage": "将工作目录从：\n{from}\n\n更改为：\n{to}\n\n注意：文件不会被移动。只会更新路径。",
-    "deleteRemoteProject": "这将永久删除服务器上的 \"{name}\"。此操作无法撤消。请输入项目名称以确认："
+    "deleteRemoteProject": "这将永久删除服务器上的 \"{name}\"。此操作无法撤消。请输入项目名称以确认：",
+    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner."
   },
   "notifications": {
     "defaultViewUpdated": "默认视图已更新",
@@ -384,16 +387,15 @@
     "userAddedAndAssigned": "用户已添加到项目并分配了任务。",
     "errorAddingUserToProject": "将用户添加到项目时出错",
     "errorUnassigningAsset": "取消分配任务时出错",
-    "assetFailedToDelete": "资产删除失败。",
+    "assetFailedToDelete": "任务删除失败。",
     "failedToDuplicateAsset": "复制资产失败",
     "fileMustBeDownloaded": "必须先下载文件",
     "failedToNavigate": "导航到位置失败",
     "errorRevertingAssets": "还原资产时出错",
     "failedToRevertAsset": "还原资产失败",
-    "errorDownloadingAsset": "下载资产时出错",
+    "errorDownloadingAsset": "下载任务时出错",
     "errorRevertingAsset": "还原任务时出错",
     "errorRebuildingAsset": "重建任务时出错",
-    "assetFailedToDelete": "任务删除失败。",
     "downloadComplete": "下载完成",
     "downloadedSuccessfully": "{fileName} 下载成功",
     "downloadFailed": "下载失败",
@@ -422,7 +424,6 @@
     "errorDiscardingChanges": "丢弃更改时出错",
     "errorDiscardingChange": "丢弃更改时出错",
     "errorNavigatingToItem": "导航到项目时出错",
-    "errorDownloadingAsset": "下载任务时出错",
     "userAddedToProject": "用户已成功添加到项目。",
     "errorLoadingProjectData": "加载项目数据时出错",
     "errorLoadingTimeline": "加载时间线时出错",
@@ -432,7 +433,18 @@
     "errorAddingDependency": "添加依赖项时出错",
     "errorRemovingDependency": "移除依赖项时出错",
     "userAddedSuccessfully": "用户已成功添加到项目。",
-    "errorUpdatingWorkingDirectory": "更新工作目录时出错"
+    "errorUpdatingWorkingDirectory": "更新工作目录时出错",
+    "idCopied": "ID copied to clipboard",
+    "leftProject": "Left Project",
+    "leftProjectDesc": "You have left \"{name}\".",
+    "errorLeavingProject": "Error leaving project",
+    "projectsImportedCount": "{count} project(s) imported successfully",
+    "errorMakingProjectRemote": "Error making project remote",
+    "errorRemovingProjectFromRemote": "Error removing project from remote",
+    "syncCompleteMessage": "All data has been synced successfully",
+    "errorSelectingFile": "Error selecting file",
+    "errorDeletingProject": "Error deleting project",
+    "failedToMergeItem": "Failed to merge item"
   },
   "settings": {
     "title": "设置",
@@ -494,7 +506,6 @@
     "storageOf": "{used} / {limit}",
     "remoteProjects": "远程项目",
     "projectsOf": "{used} / {limit}",
-    "collaborators": "协作者",
     "collaboratorsOf": "{used} / {limit}",
     "aiCredits": "AI 额度",
     "aiCreditsOf": "本月 {used} / {limit}",
@@ -562,7 +573,17 @@
     "addATemplate": "添加模板",
     "addAnAssetType": "添加资产类型",
     "addACollectionType": "添加集合类型",
-    "noIgnoreItems": "您没有忽略项目"
+    "noIgnoreItems": "您没有忽略项目",
+    "compact": "Compact",
+    "externalIntegrations": "External Integrations",
+    "linkIntegration": "Link External Project",
+    "linkIntegrationDescription": "Connect this project to Kitsu, ClickUp, or other external project management tools.",
+    "linkedTo": "Linked to {integration}",
+    "connectIntegration": "Connect Integration",
+    "connectIntegrationDescription": "Connect to external services like Kitsu, ClickUp, and more.",
+    "connected": "Connected",
+    "clusttaLocalProjectsData": "Clustta Local Projects Data",
+    "clusttaSharedProjectsData": "Clustta Shared Projects Data"
   },
   "modals": {
     "addAssetType": "添加资产类型",
@@ -581,11 +602,10 @@
     },
     "duplicateProjectTemplate": "复制项目模板",
     "duplicateTemplateName": "复制模板名称",
-    "editAssetType": "编辑资产类型",
+    "editAssetType": "编辑任务类型",
     "editCollectionType": "编辑集合类型",
     "editProjectTemplate": "编辑项目模板",
     "editRole": "编辑角色",
-    "editAssetType": "编辑任务类型",
     "editTemplate": "编辑模板",
     "invitationMessage": "1 个用户尚未加入 Clustta。将向该用户发送注册邀请。 | {n} 个用户尚未加入 Clustta。将向他们发送注册邀请。",
     "invitationRequired": "需要邀请",
@@ -748,7 +768,11 @@
     "loadingCollectionStates": "正在加载集合状态",
     "modifiedAsset": "已修改的资产",
     "refreshingModifiedItems": "正在刷新已修改的项目",
-    "untrackedAsset": "未跟踪的资产"
+    "untrackedAsset": "未跟踪的资产",
+    "projectsImportedCount": "{count} project(s) imported",
+    "selectImageFile": "Select Image File",
+    "enableRemote": "Enable Remote",
+    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine."
   },
   "menus": {
     "addAccount": "添加账户",
@@ -825,7 +849,12 @@
     "unpinProject": "取消置顶项目",
     "updateContents": "更新内容",
     "uploadItems": "上传项目",
-    "useExclusive": "独占使用"
+    "useExclusive": "独占使用",
+    "compactView": "Compact",
+    "removeAccount": "Remove Account",
+    "leaveProject": "Leave Project",
+    "leaveProjectTitle": "Leave \"{name}\"",
+    "switchAccount": "Switch Account"
   },
   "panes": {
     "type": "类型",
@@ -851,7 +880,7 @@
     "noCheckpointsInProject": "此项目没有检查点",
     "discardAll": "全部丢弃",
     "syncNow": "立即同步",
-    "assets": "任务",
+    "assets": "资产",
     "collections": "集合",
     "other": "其他",
     "loadingChanges": "正在加载更改...",
@@ -862,7 +891,6 @@
     "markAsLibrary": "标记为库",
     "unmarkAsLibrary": "取消库标记",
     "assignees": "分配人",
-    "assets": "资产",
     "searchByNameOrEmail": "按姓名或电子邮箱搜索",
     "studioMembers": "工作室成员",
     "comingSoon": "[即将推出]",
@@ -926,7 +954,10 @@
     "dependenciesTab": "依赖项",
     "consoleTab": "控制台",
     "changeLogTab": "变更日志",
-    "collaboratorsTab": "协作者"
+    "collaboratorsTab": "协作者",
+    "projectDetails": "Project Details",
+    "projectDetailsTooltip": "View project details and statistics",
+    "editProjectTooltip": "Edit project settings"
   },
   "blocks": {
     "loadingState": "正在加载状态",
@@ -1314,8 +1345,8 @@
     "scrollList": {
       "edit": "编辑",
       "delete": "删除",
-      "assign": "分配",
-      "unassign": "取消分配"
+      "assign": "Assign",
+      "unassign": "Unassign"
     },
     "formInput": {
       "hide": "隐藏",
@@ -1651,10 +1682,6 @@
       "nothingSelected": "未选择任何内容",
       "noItem": "无项目"
     },
-    "scrollList": {
-      "edit": "编辑",
-      "delete": "删除"
-    },
     "singleListItem": {
       "edit": "编辑",
       "delete": "删除"
@@ -1760,7 +1787,13 @@
       "offlineModeMessage": "您现在正在离线模式下使用 Clustta。某些功能将受到限制。",
       "offlineModeFailed": "启用离线模式失败。请重试。",
       "offlineModeErrorTitle": "离线模式错误",
-      "offlineModeErrorMessage": "启用离线模式失败"
+      "offlineModeErrorMessage": "启用离线模式失败",
+      "connectToStudio": "Connect to a studio server",
+      "connectButton": "Connect",
+      "connectionFailed": "Could not reach this server. Check the URL and try again.",
+      "changeServer": "Change server",
+      "loginToCloud": "Login to Clustta Cloud",
+      "signUpToStudio": "Sign up to this studio"
     },
     "signUp": {
       "title": "注册 Clustta",
@@ -1798,7 +1831,8 @@
       "studioAccountCreated": "已在 {url} 创建账户。您现在可以登录。",
       "checkEmailForCode": "请检查您的电子邮箱获取验证码。",
       "registrationFailed": "注册失败",
-      "registrationFailedDefault": "注册失败"
+      "registrationFailedDefault": "注册失败",
+      "signUpToStudio": "Sign up to a studio server"
     },
     "resetPassword": {
       "title": "重置密码",

@@ -71,7 +71,8 @@
     "show": "दिखाएं",
     "link": "लिंक",
     "manage": "प्रबंधित करें",
-    "finish": "समाप्त"
+    "finish": "समाप्त",
+    "copyId": "Copy ID"
   },
   "placeholders": {
     "addItem": "आइटम जोड़ें",
@@ -97,7 +98,6 @@
     "studioName": "स्टूडियो का नाम",
     "studioUrl": "स्टूडियो URL",
     "assetName": "टास्क का नाम",
-    "assetTypeName": "टास्क टाइप का नाम",
     "assetTypeName": "एसेट टाइप का नाम",
     "templateName": "टेम्पलेट का नाम",
     "webLink": "वेब लिंक",
@@ -114,7 +114,9 @@
     "workflowItemName": "वर्कफ़्लो आइटम का नाम",
     "workspaceName": "वर्कस्पेस का नाम",
     "collectionType": "कलेक्शन टाइप",
-    "assetType": "एसेट टाइप"
+    "assetType": "एसेट टाइप",
+    "projectsDirectory": "Projects directory",
+    "sharedProjectsDirectory": "Shared projects directory"
   },
   "confirmations": {
     "deleteItemPermanently": "क्या आप वाकई इस आइटम को हटाना चाहते हैं? इससे यह आइटम स्थायी रूप से हटा दिया जाएगा। कृपया पुष्टि करें कि आप आगे बढ़ना चाहते हैं।",
@@ -140,7 +142,8 @@
     "trimProjectMessage": "इससे प्रोजेक्ट आर्काइव से कैश्ड फ़ाइल डेटा हटाया जाएगा और डिस्क उपयोग कम करने के लिए कार्यशील डायरेक्टरी हटाई जाएगी। आवश्यकता पड़ने पर रिमोट से डेटा पुनः डाउनलोड किया जा सकता है। जारी रखें?",
     "archiveProjectMessage": "इस प्रोजेक्ट को आर्काइव करने से कार्यशील डायरेक्टरी में स्थान भी खाली होगा। कोई भी अनट्रैक्ड आइटम खो जाएँगे। आगे बढ़ें?",
     "relocateWorkingDirectoryMessage": "कार्यशील डायरेक्टरी बदलें:\n{from}\n\nसे:\n{to}\n\nनोट: फ़ाइलें स्थानांतरित नहीं होंगी। केवल पथ अपडेट होगा।",
-    "deleteRemoteProject": "यह \"{name}\" को सर्वर से स्थायी रूप से हटा देगा। यह कार्रवाई पूर्ववत नहीं की जा सकती। पुष्टि के लिए प्रोजेक्ट नाम टाइप करें:"
+    "deleteRemoteProject": "यह \"{name}\" को सर्वर से स्थायी रूप से हटा देगा। यह कार्रवाई पूर्ववत नहीं की जा सकती। पुष्टि के लिए प्रोजेक्ट नाम टाइप करें:",
+    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner."
   },
   "notifications": {
     "defaultViewUpdated": "डिफ़ॉल्ट दृश्य अपडेट किया गया",
@@ -384,16 +387,15 @@
     "userAddedAndAssigned": "उपयोगकर्ता प्रोजेक्ट में जोड़ा गया और टास्क असाइन किया गया।",
     "errorAddingUserToProject": "उपयोगकर्ता को प्रोजेक्ट में जोड़ने में त्रुटि",
     "errorUnassigningAsset": "टास्क अनसाइन करने में त्रुटि",
-    "assetFailedToDelete": "एसेट हटाने में विफल।",
+    "assetFailedToDelete": "टास्क हटाने में विफल।",
     "failedToDuplicateAsset": "एसेट डुप्लिकेट करने में विफल",
     "fileMustBeDownloaded": "फ़ाइल पहले डाउनलोड होनी चाहिए",
     "failedToNavigate": "स्थान पर नेविगेट करने में विफल",
     "errorRevertingAssets": "एसेट पूर्ववत करने में त्रुटि",
     "failedToRevertAsset": "एसेट पूर्ववत करने में विफल",
-    "errorDownloadingAsset": "एसेट डाउनलोड करने में त्रुटि",
+    "errorDownloadingAsset": "टास्क डाउनलोड करने में त्रुटि",
     "errorRevertingAsset": "टास्क पूर्ववत करने में त्रुटि",
     "errorRebuildingAsset": "टास्क रीबिल्ड करने में त्रुटि",
-    "assetFailedToDelete": "टास्क हटाने में विफल।",
     "downloadComplete": "डाउनलोड पूर्ण",
     "downloadedSuccessfully": "{fileName} सफलतापूर्वक डाउनलोड किया गया",
     "downloadFailed": "डाउनलोड विफल",
@@ -422,7 +424,6 @@
     "errorDiscardingChanges": "परिवर्तन छोड़ने में त्रुटि",
     "errorDiscardingChange": "परिवर्तन छोड़ने में त्रुटि",
     "errorNavigatingToItem": "आइटम पर नेविगेट करने में त्रुटि",
-    "errorDownloadingAsset": "टास्क डाउनलोड करने में त्रुटि",
     "userAddedToProject": "उपयोगकर्ता सफलतापूर्वक प्रोजेक्ट में जोड़ा गया।",
     "errorLoadingProjectData": "प्रोजेक्ट डेटा लोड करने में त्रुटि",
     "errorLoadingTimeline": "टाइमलाइन लोड करने में त्रुटि",
@@ -432,7 +433,18 @@
     "errorAddingDependency": "डिपेंडेंसी जोड़ने में त्रुटि",
     "errorRemovingDependency": "डिपेंडेंसी हटाने में त्रुटि",
     "userAddedSuccessfully": "उपयोगकर्ता सफलतापूर्वक प्रोजेक्ट में जोड़ा गया।",
-    "errorUpdatingWorkingDirectory": "कार्यशील डायरेक्टरी अपडेट करने में त्रुटि"
+    "errorUpdatingWorkingDirectory": "कार्यशील डायरेक्टरी अपडेट करने में त्रुटि",
+    "idCopied": "ID copied to clipboard",
+    "leftProject": "Left Project",
+    "leftProjectDesc": "You have left \"{name}\".",
+    "errorLeavingProject": "Error leaving project",
+    "projectsImportedCount": "{count} project(s) imported successfully",
+    "errorMakingProjectRemote": "Error making project remote",
+    "errorRemovingProjectFromRemote": "Error removing project from remote",
+    "syncCompleteMessage": "All data has been synced successfully",
+    "errorSelectingFile": "Error selecting file",
+    "errorDeletingProject": "Error deleting project",
+    "failedToMergeItem": "Failed to merge item"
   },
   "settings": {
     "title": "सेटिंग्स",
@@ -495,7 +507,6 @@
     "storageOf": "{limit} में से {used}",
     "remoteProjects": "रिमोट प्रोजेक्ट",
     "projectsOf": "{limit} में से {used}",
-    "collaborators": "सहयोगी",
     "collaboratorsOf": "{limit} में से {used}",
     "aiCredits": "AI क्रेडिट",
     "aiCreditsOf": "इस महीने {limit} में से {used}",
@@ -563,7 +574,16 @@
     "addATemplate": "एक टेम्पलेट जोड़ें",
     "addAnAssetType": "एक एसेट टाइप जोड़ें",
     "addACollectionType": "एक कलेक्शन टाइप जोड़ें",
-    "noIgnoreItems": "आपके कोई नज़रअंदाज़ आइटम नहीं हैं"
+    "noIgnoreItems": "आपके कोई नज़रअंदाज़ आइटम नहीं हैं",
+    "externalIntegrations": "External Integrations",
+    "linkIntegration": "Link External Project",
+    "linkIntegrationDescription": "Connect this project to Kitsu, ClickUp, or other external project management tools.",
+    "linkedTo": "Linked to {integration}",
+    "connectIntegration": "Connect Integration",
+    "connectIntegrationDescription": "Connect to external services like Kitsu, ClickUp, and more.",
+    "connected": "Connected",
+    "clusttaLocalProjectsData": "Clustta Local Projects Data",
+    "clusttaSharedProjectsData": "Clustta Shared Projects Data"
   },
   "modals": {
     "addAssetType": "एसेट टाइप जोड़ें",
@@ -582,11 +602,10 @@
     },
     "duplicateProjectTemplate": "प्रोजेक्ट टेम्पलेट डुप्लिकेट करें",
     "duplicateTemplateName": "टेम्पलेट नाम डुप्लिकेट करें",
-    "editAssetType": "एसेट टाइप संपादित करें",
+    "editAssetType": "टास्क टाइप संपादित करें",
     "editCollectionType": "कलेक्शन टाइप संपादित करें",
     "editProjectTemplate": "प्रोजेक्ट टेम्पलेट संपादित करें",
     "editRole": "भूमिका संपादित करें",
-    "editAssetType": "टास्क टाइप संपादित करें",
     "editTemplate": "टेम्पलेट संपादित करें",
     "invitationMessage": "1 उपयोगकर्ता अभी Clustta पर नहीं है। इस उपयोगकर्ता को साइनअप के लिए निमंत्रण भेजा जाएगा। | {n} उपयोगकर्ता अभी Clustta पर नहीं हैं। उन्हें साइनअप के लिए निमंत्रण भेजा जाएगा।",
     "invitationRequired": "निमंत्रण आवश्यक",
@@ -749,7 +768,11 @@
     "loadingCollectionStates": "संग्रह स्थितियाँ लोड हो रही हैं",
     "modifiedAsset": "संशोधित संपत्ति",
     "refreshingModifiedItems": "संशोधित आइटम रिफ्रेश हो रहे हैं",
-    "untrackedAsset": "अनट्रैक्ड संपत्ति"
+    "untrackedAsset": "अनट्रैक्ड संपत्ति",
+    "projectsImportedCount": "{count} project(s) imported",
+    "selectImageFile": "Select Image File",
+    "enableRemote": "Enable Remote",
+    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine."
   },
   "menus": {
     "addAccount": "खाता जोड़ें",
@@ -827,7 +850,11 @@
     "unpinProject": "प्रोजेक्ट अनपिन करें",
     "updateContents": "सामग्री अपडेट करें",
     "uploadItems": "आइटम अपलोड करें",
-    "useExclusive": "विशेष उपयोग"
+    "useExclusive": "विशेष उपयोग",
+    "removeAccount": "Remove Account",
+    "leaveProject": "Leave Project",
+    "leaveProjectTitle": "Leave \"{name}\"",
+    "switchAccount": "Switch Account"
   },
   "panes": {
     "type": "प्रकार",
@@ -853,7 +880,7 @@
     "noCheckpointsInProject": "इस प्रोजेक्ट में कोई चेकपॉइंट नहीं",
     "discardAll": "सभी छोड़ें",
     "syncNow": "अभी सिंक करें",
-    "assets": "टास्क",
+    "assets": "एसेट",
     "collections": "कलेक्शन",
     "other": "अन्य",
     "loadingChanges": "परिवर्तन लोड हो रहे हैं...",
@@ -864,7 +891,6 @@
     "markAsLibrary": "लाइब्रेरी के रूप में चिह्नित करें",
     "unmarkAsLibrary": "लाइब्रेरी से हटाएँ",
     "assignees": "असाइनी",
-    "assets": "एसेट",
     "searchByNameOrEmail": "नाम या ईमेल से खोजें",
     "studioMembers": "स्टूडियो सदस्य",
     "comingSoon": "[जल्द आ रहा है]",
@@ -928,7 +954,10 @@
     "dependenciesTab": "डिपेंडेंसी",
     "consoleTab": "कंसोल",
     "changeLogTab": "चेंज लॉग",
-    "collaboratorsTab": "सहयोगी"
+    "collaboratorsTab": "सहयोगी",
+    "projectDetails": "Project Details",
+    "projectDetailsTooltip": "View project details and statistics",
+    "editProjectTooltip": "Edit project settings"
   },
   "blocks": {
     "loadingState": "स्थिति लोड हो रही है",
@@ -1316,8 +1345,8 @@
     "scrollList": {
       "edit": "संपादित करें",
       "delete": "हटाएँ",
-      "assign": "असाइन करें",
-      "unassign": "अनसाइन करें"
+      "assign": "Assign",
+      "unassign": "Unassign"
     },
     "formInput": {
       "hide": "छिपाएँ",
@@ -1653,10 +1682,6 @@
       "nothingSelected": "कुछ नहीं चुना गया",
       "noItem": "कोई आइटम नहीं"
     },
-    "scrollList": {
-      "edit": "संपादित करें",
-      "delete": "हटाएँ"
-    },
     "singleListItem": {
       "edit": "संपादित करें",
       "delete": "हटाएँ"
@@ -1762,7 +1787,13 @@
       "offlineModeMessage": "आप अब ऑफ़लाइन मोड में Clustta का उपयोग कर रहे हैं। कुछ सुविधाएँ सीमित होंगी।",
       "offlineModeFailed": "ऑफ़लाइन मोड सक्षम करने में विफल। कृपया पुनः प्रयास करें।",
       "offlineModeErrorTitle": "ऑफ़लाइन मोड त्रुटि",
-      "offlineModeErrorMessage": "ऑफ़लाइन मोड सक्षम करने में विफल"
+      "offlineModeErrorMessage": "ऑफ़लाइन मोड सक्षम करने में विफल",
+      "connectToStudio": "Connect to a studio server",
+      "connectButton": "Connect",
+      "connectionFailed": "Could not reach this server. Check the URL and try again.",
+      "changeServer": "Change server",
+      "loginToCloud": "Login to Clustta Cloud",
+      "signUpToStudio": "Sign up to this studio"
     },
     "signUp": {
       "title": "Clustta के लिए साइन अप करें",
@@ -1800,7 +1831,8 @@
       "studioAccountCreated": "{url} पर खाता बनाया गया। अब आप लॉगिन कर सकते हैं।",
       "checkEmailForCode": "कृपया सत्यापन कोड के लिए अपना ईमेल जाँचें।",
       "registrationFailed": "पंजीकरण विफल",
-      "registrationFailedDefault": "पंजीकरण विफल"
+      "registrationFailedDefault": "पंजीकरण विफल",
+      "signUpToStudio": "Sign up to a studio server"
     },
     "resetPassword": {
       "title": "पासवर्ड रीसेट करें",

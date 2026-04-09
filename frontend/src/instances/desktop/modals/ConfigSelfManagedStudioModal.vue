@@ -197,7 +197,7 @@ const copyEnvFile = async () => {
     }, 2000);
   } catch (error) {
     console.error('Failed to copy:', error);
-    notificationStore.errorNotification(t('notifications.failedToCopyToClipboard'), error);
+    notificationStore.errorNotification(t('notifications.failedToCopy'), error);
   }
 };
 
@@ -213,7 +213,7 @@ const copySecretKey = async () => {
     }
   } catch (error) {
     console.error('Failed to copy:', error);
-    notificationStore.errorNotification(t('notifications.failedToCopyToClipboard'), error);
+    notificationStore.errorNotification(t('notifications.failedToCopy'), error);
   }
 };
 
