@@ -8,7 +8,7 @@
           </div>
 
           <div v-else-if="message.type === 'tool-group'" class="msg-tool">
-            <img class="msg-tool-icon" :src="getAppIcon(getToolIcon(message.toolName))">
+            <img class="msg-tool-icon small-icons" :src="getAppIcon(getToolIcon(message.toolName))">
             <span class="msg-tool-label">{{ formatToolLabel(message.toolName, message.count) }}</span>
           </div>
 
@@ -33,7 +33,7 @@
 
         <div v-if="!messages.length && !isApiKeyConfigured" class="console-empty">
           <div class="empty-text">Set up AI Agent</div>
-          <div class="empty-subtext">Configure your LLM provider in Settings &gt; Advanced to get started</div>
+          <div class="empty-subtext">Configure your LLM provider in <a class="console-link" @click="openAdvancedSettings">Settings</a> to get started</div>
         </div>
       </div>
 
@@ -70,7 +70,7 @@
 
 <script setup>
 // imports
-import { computed, nextTick, onActivated, onMounted, onUnmounted, ref } from 'vue';
+import { computed, nextTick, onActivated, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Events } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
@@ -88,12 +88,14 @@ import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
+import { useSettingsStore } from '@/stores/settings';
 import { useStageStore } from '@/stores/stages';
 
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const iconStore = useIconStore();
 const projectStore = useProjectStore();
+const settings = useSettingsStore();
 const stage = useStageStore();
 
 const { t } = useI18n();
@@ -143,26 +145,55 @@ const itemType = computed(() => {
 
 // constants
 const toolIconMap = {
+  add_dependency: 'link',
+  add_ignore_pattern: 'eye-off',
+  add_tag_to_asset: 'tag',
   assign_asset: 'person-plus',
+  batch_add_tags: 'tag',
+  batch_create_assets: 'file-plus',
+  batch_create_collections: 'folder-plus',
+  bulk_assign: 'person-plus',
+  bulk_delete_assets: 'trash',
   change_asset_status: 'workflow-arrow',
   create_asset: 'file-plus',
   create_asset_type: 'brush',
   create_collection: 'folder-plus',
+  create_collection_type: 'brush',
+  create_tag: 'tag',
   delete_asset: 'trash',
+  delete_asset_type: 'trash',
   delete_collection: 'trash',
+  delete_collection_type: 'trash',
   generate_script: 'console',
   get_asset_details: 'file-search',
+  get_asset_tags: 'tag',
+  get_my_permissions: 'lock',
+  get_project_summary: 'four-squares',
+  get_user_activity: 'person',
   list_assets_in_collection: 'file',
+  list_checkpoints: 'history',
+  list_collection_types: 'folder',
   list_collections: 'folder',
+  list_dependencies: 'link',
+  list_dependency_types: 'link',
+  list_ignore_patterns: 'eye-off',
   list_statuses: 'workflow-arrow',
   list_tags: 'tag',
   list_task_types: 'brush',
   list_templates: 'file',
   list_users: 'person',
   move_assets: 'folder-arrow-in',
+  random_assign: 'person-plus',
+  remove_dependency: 'link',
+  remove_ignore_pattern: 'eye-off',
+  remove_tag_from_asset: 'tag',
+  remove_user: 'person-minus',
   rename_asset: 'edit',
   rename_collection: 'edit',
+  search_assets: 'file-search',
   search_knowledge: 'brain',
+  setup_project_types: 'brush',
+  unassign_all_assets: 'person-minus',
   unassign_asset: 'person-minus',
 };
 
@@ -219,6 +250,12 @@ const formatContent = (text) => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
+// Opens settings page directly to the Advanced tab.
+const openAdvancedSettings = () => {
+  settings.pendingTab = 'advanced';
+  stage.setStageVisibility('settings', true);
+};
 
 // Returns the icon name for a given tool function name.
 const getToolIcon = (toolName) => toolIconMap[toolName] || 'cog';
@@ -355,6 +392,13 @@ const onAgentDone = () => {
   isProcessing.value = false;
   emitter.emit('refresh-browser');
 };
+
+// watchers
+watch(() => projectStore.activeProject, async () => {
+  messages.value = [];
+  await checkApiKeyStatus();
+  await loadChatHistory();
+});
 
 // lifecycle hooks
 onActivated(async () => {
@@ -501,6 +545,12 @@ onUnmounted(() => {
   border-radius: var(--small-radius);
 }
 
+.console-link {
+  color: var(--accent-color);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 .empty-subtext {
   font-size: 12px;
   max-width: 250px;
@@ -509,7 +559,7 @@ onUnmounted(() => {
 .empty-text {
   font-size: 1.125rem;
   font-weight: 500;
-  color: var(--gray-400);
+  color: var(--silver);
 }
 
 .general-pane-root {
@@ -522,6 +572,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: flex-end;
   margin: 0.5rem 0;
+  font-weight: 400;
 }
 
 .msg-user-bubble {
@@ -544,7 +595,8 @@ onUnmounted(() => {
 .msg-assistant-text {
   font-size: 13px;
   line-height: 1.6;
-  color: var(--gray-200);
+  color: var(--white);
+  font-weight: 400;
   word-wrap: break-word;
 }
 
@@ -559,12 +611,12 @@ onUnmounted(() => {
   margin: 0.375rem 0;
   background-color: var(--black-steel);
   border-radius: var(--small-radius);
-  border: 1px solid var(--gray-800);
+  border: 1px solid var(--light-steel);
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
   overflow-x: auto;
   white-space: pre;
-  color: var(--gray-300);
+  color: var(--silver);
 }
 
 .msg-assistant-text :deep(.inline-code) {
@@ -573,7 +625,7 @@ onUnmounted(() => {
   border-radius: 3px;
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
-  color: var(--gray-300);
+  color: var(--silver);
 }
 
 /* Tool call indicator — collapsible inline row */
@@ -587,22 +639,23 @@ onUnmounted(() => {
   cursor: pointer;
   user-select: none;
   transition: background-color 0.15s;
+  color: var(--white);
+  font-weight: 400;
 }
 
 .msg-tool:hover {
-  background-color: #ffffff08;
+  background-color: var(--hover);
 }
 
 .msg-tool-icon {
   width: 14px;
   height: 14px;
   opacity: 0.5;
-  filter: var(--icon-filter, none);
 }
 
 .msg-tool-label {
   font-size: 12px;
-  color: var(--gray-500);
+  color: var(--silver);
   text-transform: capitalize;
 }
 
@@ -617,7 +670,7 @@ onUnmounted(() => {
 
 .msg-status span {
   font-size: 12px;
-  color: var(--gray-500);
+  color: var(--silver);
   font-style: italic;
 }
 
@@ -638,7 +691,7 @@ onUnmounted(() => {
 .msg-error {
   padding: 0.375rem 0.5rem;
   margin: 0.125rem 0;
-  border-left: 2px solid var(--error-color, #e74c3c);
+  border-left: 2px solid var(--danger);
   background-color: rgba(231, 76, 60, 0.06);
   border-radius: 0 var(--small-radius) var(--small-radius) 0;
 }
@@ -646,7 +699,7 @@ onUnmounted(() => {
 .msg-error-text {
   font-size: 13px;
   line-height: 1.5;
-  color: var(--error-color, #e74c3c);
+  color: var(--danger);
   word-wrap: break-word;
 }
 </style>
