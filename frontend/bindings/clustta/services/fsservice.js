@@ -346,6 +346,15 @@ export function SetApp(app) {
 }
 
 /**
+ * SetProjectContext registers the working directory of the given project as an allowed path for file operations.
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetProjectContext(projectPath) {
+    return $Call.ByID(1624105692, projectPath);
+}
+
+/**
  * StartWatching initializes the file system watcher and handles events.
  * Runs a goroutine that monitors file changes and emits debounced events to the frontend.
  * @returns {$CancellablePromise<void>}

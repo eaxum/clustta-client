@@ -51,6 +51,26 @@ func validatePath(path string) error {
 	return nil
 }
 
+// SetProjectContext registers the working directory of the given project as an allowed path for file operations.
+func (f *FSService) SetProjectContext(projectPath string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	workingDir, err := utils.GetProjectWorkingDir(tx)
+	if err != nil {
+		return err
+	}
+	settings.SetActiveProjectWorkingDir(workingDir)
+	return nil
+}
+
 // AddWatcherFolder registers a directory with the file system watcher.
 // Enables monitoring of file system events within the specified directory.
 func (f *FSService) AddWatcherFolder(dir string) error {

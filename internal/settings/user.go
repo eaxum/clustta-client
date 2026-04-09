@@ -12,7 +12,24 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 )
+
+var (
+	activeProjectWorkingDir   string
+	activeProjectWorkingDirMu sync.RWMutex
+)
+
+// SetActiveProjectWorkingDir registers the current project's working directory as an allowed path.
+func SetActiveProjectWorkingDir(path string) {
+	cleaned, err := filepath.Abs(filepath.Clean(path))
+	if err != nil {
+		return
+	}
+	activeProjectWorkingDirMu.Lock()
+	defer activeProjectWorkingDirMu.Unlock()
+	activeProjectWorkingDir = strings.ToLower(cleaned)
+}
 
 type Studio struct {
 	Id          string `json:"id"`
@@ -1194,6 +1211,17 @@ func IsPathAllowed(path string) bool {
 			return true
 		}
 	}
+
+	activeProjectWorkingDirMu.RLock()
+	activeDir := activeProjectWorkingDir
+	activeProjectWorkingDirMu.RUnlock()
+	if activeDir != "" {
+		lowerAbs := strings.ToLower(absPath)
+		if lowerAbs == activeDir || strings.HasPrefix(lowerAbs, activeDir+string(os.PathSeparator)) {
+			return true
+		}
+	}
+
 	return false
 }
 
