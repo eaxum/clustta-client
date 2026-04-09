@@ -55,7 +55,7 @@
             </div>
 
             <div class="console-toolbar-right">
-              <ActionButton :icon="getAppIcon('trash')" :showLabel="false" :isDisabled="!messages.length || isProcessing"
+              <ActionButton :icon="getAppIcon('broom')" :showLabel="false" :isDisabled="!messages.length || isProcessing"
                 v-tooltip="'Clear chat'" :buttonFunction="clearChat" />
 
               <ActionButton :icon="getAppIcon('send')" :showLabel="false" :isDisabled="!currentMessage.trim() || isProcessing"
