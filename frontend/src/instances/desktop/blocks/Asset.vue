@@ -1331,6 +1331,18 @@ onBeforeUnmount(() => {
   flex: 1; 
 }
 
+.main-asset-item-grid-thumb-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.4) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
 .main-asset-item-grid-meta {
   display: block;
   flex: 1;
@@ -1507,6 +1519,7 @@ onBeforeUnmount(() => {
   height: 32px;
   border-radius: 6px;
   min-width: unset;
+  z-index: 1;
 }
 
 .overlay-icons{
@@ -1805,7 +1818,7 @@ onBeforeUnmount(() => {
   position: absolute;
   bottom: 8px;
   right: 8px;
-  z-index: 1;
+  z-index: 2;
 }
 
 .asset-item-grid-assign-button {
