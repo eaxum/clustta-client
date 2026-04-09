@@ -89,7 +89,7 @@
             <div class="simple-text-key">
               {{ $t('panes.location') }}
             </div>
-              <div class="simple-text-value">
+              <div class="simple-text-value truncate-path" v-tooltip="assetStore.selectedAsset.file_path">
                 {{ assetStore.selectedAsset.file_path }}
               </div>
               <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
@@ -507,6 +507,14 @@ onBeforeUnmount(() => {
 
 .simple-text-key {
   white-space: nowrap;
+}
+
+.truncate-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
 }
 
 .status-box-container {

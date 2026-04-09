@@ -42,6 +42,19 @@
             </div>
         </div>
 
+          <div class="pane-parameter-detail">
+            <div class="simple-text-key">
+              {{ $t('panes.location') }}
+            </div>
+            <div class="simple-text-value truncate-path" v-tooltip="itemPath">
+              {{ itemPath }}
+            </div>
+            <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
+              <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('common.copyPath')" @click="copyItemPath" />
+              <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="$t('common.revealInExplorer')" :buttonFunction="revealInExplorer" />
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -53,6 +66,7 @@
 
 
 import { FSService, AssetService, CollectionService } from "@/services";
+import { Clipboard } from '@wailsio/runtime';
 
 // imports
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
@@ -71,6 +85,8 @@ import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
 import { usePaneStore } from '@/stores/panes';
 import { useAssetStore } from '@/stores/assets';
+import { usePlatformStore } from '@/stores/platform';
+import { useNotificationStore } from '@/stores/notifications';
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -93,6 +109,8 @@ const projectStore = useProjectStore();
 const dndStore = useDndStore();
 const panes = usePaneStore();
 const assetStore = useAssetStore();
+const notificationStore = useNotificationStore();
+const platformStore = usePlatformStore();
 
 const { t } = useI18n();
 
@@ -154,6 +172,18 @@ const prepDeleteUntrackedItemPopUpModal = () => {
   trayStates.popUpModalIcon = 'trash';
   trayStates.popUpModalFunction = untrackedItemType === 'untracked_collection' ? deleteUntrackedFolder : deleteUntrackedFile;
   modals.setModalVisibility('popUpModal', true);
+};
+
+const copyItemPath = async () => {
+  if (!itemPath.value) return;
+  await Clipboard.SetText(itemPath.value);
+  const message = t('notifications.pathCopied');
+  notificationStore.addNotification(message, "", "success");
+};
+
+const revealInExplorer = () => {
+  if (!itemPath.value) return;
+  FSService.RevealInExplorer(untrackedItem.value.file_path);
 };
 
 const importItem = () => {
@@ -328,6 +358,14 @@ onBeforeUnmount(() => {
 
 .simple-text-key {
   white-space: nowrap;
+}
+
+.truncate-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
 }
 
 .action-bar {
