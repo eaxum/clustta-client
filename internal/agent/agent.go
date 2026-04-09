@@ -177,6 +177,14 @@ var readOnlyTools = map[string]bool{
 	"get_project_summary":       true,
 	"list_ignore_patterns":      true,
 	"generate_script":           true,
+
+	// DCC tools don't modify the project database
+	"open_in_dcc":    true,
+	"blender_render": true,
+	"blender_export": true, "blender_run_script": true,
+	"blender_run_python":   true,
+	"blender_set_settings": true,
+	"blender_link":         true, "run_terminal_command": true,
 }
 
 // isMutatingTool returns true if the tool modifies project data.
@@ -206,8 +214,19 @@ func buildSystemPrompt(projectContext string) string {
 13. Remove users/collaborators from the project
 14. Manage the ignore list: add, remove, and list patterns
 15. Set up standard type presets for animation, game, VFX, or film pipelines
+16. Open asset files in DCC applications (Blender, Maya, Houdini, etc.)
+17. Launch Blender headless renders in a terminal window (fire-and-forget)
+18. Export Blender files to FBX, OBJ, glTF, or USD via terminal
+19. Run arbitrary commands in a visible terminal window
+20. Run custom Python scripts on .blend files via terminal
+21. Run inline Python code on .blend files (create collections, modify materials, rename objects, etc.)
+22. Batch-modify Blender render settings (engine, resolution, FPS, samples, output format)
+23. Link or append objects from dependency .blend files into a target .blend file (auto-resolves from Clustta dependency graph)
 
 ## Rules
+- Messages may begin with a [Context: ...] block describing what the user currently has selected in the UI. Use this to resolve ambiguous references like "this asset", "these items", "the selected collection", etc. The context provides item names, IDs, types, and other metadata — use these IDs directly when calling tools.
+- When the user asks for Blender-internal operations (creating Blender collections, modifying objects, changing materials, etc.), use blender_run_python to execute inline Python code directly — do not use generate_script.
+- Blender Python best practices: when creating a Blender collection, always link it to the scene with bpy.context.scene.collection.children.link(). When creating objects, always link them to a collection. Data blocks not linked to the scene are invisible in the Outliner.
 - Before any mutating operation (create, delete, rename, assign, etc.), FIRST call get_my_permissions to check the user's role. If the user lacks the required permission, tell them immediately — do not attempt the action.
 - Use search_assets (with no filters) to list all assets directly. Do not assume assets must be inside collections — assets can exist at root level.
 - For destructive operations (delete, remove user), warn the user and ask for confirmation first
@@ -217,6 +236,10 @@ func buildSystemPrompt(projectContext string) string {
 - Be concise and direct in responses
 - When the user asks about Clustta features, use search_knowledge to find accurate information
 - If creating multiple items, use batch tools (batch_create_collections, batch_create_assets) instead of calling single-item tools repeatedly
+- DCC tools (open_in_dcc, blender_render, blender_export) are fire-and-forget — they launch a terminal or process and return immediately. Inform the user the operation was started.
+- For DCC tool detection: .blend files use Blender, .ma/.mb use Maya, .hip use Houdini. Users can also set BLENDER_PATH, MAYA_PATH, etc. environment variables.
+- run_terminal_command launches any command in a visible terminal — use it for custom scripts or operations not covered by other tools
+- blender_link auto-resolves source files from the target asset's Clustta dependency graph when source_asset_ids is omitted. Prefer this for linking dependent assets. Use data_names to link only specific named data blocks (e.g., the asset name) — without data_names, ALL data blocks of the specified types are linked from each source file.
 
 `)
 
