@@ -50,6 +50,7 @@
 // imports
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { formatLabel, permissionGroups } from '@/lib/permissions';
 
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
@@ -78,17 +79,6 @@ const isAwaitingResponse = ref(false);
 
 // constants
 const initialSettings = ref({ ...userStore.selectedRole });
-
-const permissionGroups = {
-  assets: ['view_asset', 'create_asset', 'update_asset', 'delete_asset', 'manage_dependencies'],
-  assignation: ['assign_asset', 'unassign_asset'],
-  collections: ['view_collection', 'create_collection', 'update_collection', 'delete_collection'],
-  users: ['add_user', 'remove_user', 'change_role'],
-  status: ['view_done_asset', 'change_status', 'set_done_asset', 'set_retake_asset'],
-  templates: ['view_template', 'create_template', 'update_template', 'delete_template'],
-  checkpoints: ['view_checkpoint', 'create_checkpoint', 'delete_checkpoint', 'pull_chunk'],
-  sharing: ['manage_share_links'],
-};
 
 const roleParameters = ref({ ...userStore.selectedRole });
 const showSearch = false;
@@ -133,14 +123,6 @@ const closeModal = () => {
 // Closes the modal on escape key.
 const escape = () => {
   modals.setModalVisibility('editRoleModal', false);
-};
-
-// Formats a permission key to display label.
-const formatLabel = (key) => {
-  return key.replace(/_/g, ' ')
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
 };
 
 // Handles enter key press to trigger update role.
