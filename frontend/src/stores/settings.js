@@ -5,6 +5,7 @@ export const useSettingsStore = defineStore("settings", {
   state: () => ({
     bridgeEnabled: false,
     minimizeOnClose: true,
+    pendingTab: null,
     showTypeIcons: true,
     modalStates: {
       general: false,

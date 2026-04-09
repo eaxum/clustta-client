@@ -116,6 +116,11 @@ func RunAgent(projectPath string, history []Message, userMessage, attachmentCont
 					"success": result.Success,
 				})
 
+				// Refresh the browser after mutating operations
+				if result.Success && isMutatingTool(tc.Function.Name) {
+					emit("refresh-browser", nil)
+				}
+
 				// Add tool result message
 				messages = append(messages, Message{
 					Role:       "tool",
@@ -150,6 +155,35 @@ func stripSystemMessages(messages []Message) []Message {
 	return result
 }
 
+// readOnlyTools lists tools that only query data and never modify the project.
+var readOnlyTools = map[string]bool{
+	"list_collections":          true,
+	"list_assets_in_collection": true,
+	"get_asset_details":         true,
+	"list_users":                true,
+	"list_statuses":             true,
+	"list_task_types":           true,
+	"list_tags":                 true,
+	"list_templates":            true,
+	"search_knowledge":          true,
+	"get_my_permissions":        true,
+	"get_user_activity":         true,
+	"list_checkpoints":          true,
+	"get_asset_tags":            true,
+	"list_dependencies":         true,
+	"list_dependency_types":     true,
+	"list_collection_types":     true,
+	"search_assets":             true,
+	"get_project_summary":       true,
+	"list_ignore_patterns":      true,
+	"generate_script":           true,
+}
+
+// isMutatingTool returns true if the tool modifies project data.
+func isMutatingTool(toolName string) bool {
+	return !readOnlyTools[toolName]
+}
+
 // buildSystemPrompt constructs the system prompt with project context and knowledge.
 func buildSystemPrompt(projectContext string) string {
 	var sb strings.Builder
@@ -162,16 +196,27 @@ func buildSystemPrompt(projectContext string) string {
 3. Assign users, change statuses, move assets between collections
 4. Generate scripts for batch file operations (rendering, conversion, exports)
 5. Analyze attached content (like screenplays) and create project structures
+6. Search and filter assets across the entire project by name, status, type, assignee, or tag
+7. View checkpoint (version) history for any asset
+8. Manage tags: create tags, add/remove tags on assets
+9. Manage dependencies between assets: list, add, remove
+10. Manage asset types and collection types: create, delete, list
+11. Get project summaries with breakdowns by status, assignee, and type
+12. Bulk assign, unassign, or randomly distribute assets among users
+13. Remove users/collaborators from the project
+14. Manage the ignore list: add, remove, and list patterns
+15. Set up standard type presets for animation, game, VFX, or film pipelines
 
 ## Rules
-- Always use tools to look up current project data before making changes (list collections, statuses, users, etc.)
-- For destructive operations (delete), warn the user and ask for confirmation first
+- Before any mutating operation (create, delete, rename, assign, etc.), FIRST call get_my_permissions to check the user's role. If the user lacks the required permission, tell them immediately — do not attempt the action.
+- Use search_assets (with no filters) to list all assets directly. Do not assume assets must be inside collections — assets can exist at root level.
+- For destructive operations (delete, remove user), warn the user and ask for confirmation first
 - For bulk operations, present a summary plan before executing
 - For script generation, display the script for user review — never claim to execute it
 - Use exact IDs from the project data when calling tools — never guess IDs
 - Be concise and direct in responses
 - When the user asks about Clustta features, use search_knowledge to find accurate information
-- If creating multiple items, execute the tool calls one by one and report progress
+- If creating multiple items, use batch tools (batch_create_collections, batch_create_assets) instead of calling single-item tools repeatedly
 
 `)
 
