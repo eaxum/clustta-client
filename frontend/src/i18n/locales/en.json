@@ -99,7 +99,6 @@
     "studioUrl": "Studio URL",
     "assetName": "Asset Name",
     "assetTypeName": "Asset type Name",
-    "assetTypeName": "Asset type Name",
     "templateName": "Template Name",
     "webLink": "Web link",
     "workflowName": "Workflow Name",
@@ -115,7 +114,9 @@
     "workflowItemName": "Workflow item Name",
     "workspaceName": "Workspace Name",
     "collectionType": "Collection Type",
-    "assetType": "Asset Type"
+    "assetType": "Asset Type",
+    "projectsDirectory": "Projects directory",
+    "sharedProjectsDirectory": "Shared projects directory"
   },
   "confirmations": {
     "deleteItemPermanently": "Are you sure you want to delete this item? This will permanently remove this item. Please confirm if you wish to proceed.",
@@ -199,6 +200,7 @@
     "backupSuccessful": "Backup successful",
     "collectionsCannotBeCopied": "Collections cannot be copied",
     "importSuccessful": "Import successful",
+    "projectsImportedCount": "{count} project(s) imported successfully",
     "savingChanges": "Saving changes...",
     "writeThroughToggled": "Write-through sync {status}",
     "failedToUpdateWriteThrough": "Failed to update write-through setting",
@@ -312,6 +314,7 @@
     "errorBackingUp": "Error backing up project",
     "syncComplete": "Sync complete",
     "allCheckpointsSynced": "All checkpoints have been synced successfully",
+    "syncCompleteMessage": "All data has been synced successfully",
     "syncFailed": "Sync failed",
     "noFilesSelectedUpload": "No file selected",
     "selectProjectFile": "Please select a .clst file",
@@ -366,6 +369,7 @@
     "couldNotDetermineDirectory": "Could not determine current directory",
     "errorRebuildingAll": "Error Rebuilding All",
     "errorSelectingDirectory": "Error selecting directory",
+    "errorSelectingFile": "Error selecting file",
     "errorClosingProject": "Error closing project",
     "errorDeletingProject": "Error deleting project",
     "projectTrimmed": "Project Trimmed",
@@ -375,6 +379,7 @@
     "assetsMoved": "Assets Moved",
     "assetsMovedDesc": "{count} asset(s) moved successfully",
     "failedToMoveAssets": "Failed to Move Assets",
+    "failedToMergeItem": "Failed to merge item",
     "failedToLoadCollections": "Failed to load collections",
     "noTargetProject": "No target project selected",
     "noAssetSelected": "No asset selected",
@@ -402,7 +407,6 @@
     "errorDownloadingAsset": "Error downloading Asset",
     "errorRevertingAsset": "Error Reverting Asset",
     "errorRebuildingAsset": "Error Rebuilding Asset",
-    "assetFailedToDelete": "Asset failed to delete.",
     "downloadComplete": "Download Complete",
     "downloadedSuccessfully": "{fileName} downloaded successfully",
     "downloadFailed": "Download Failed",
@@ -431,7 +435,6 @@
     "errorDiscardingChanges": "Error discarding changes",
     "errorDiscardingChange": "Error discarding change",
     "errorNavigatingToItem": "Error navigating to item",
-    "errorDownloadingAsset": "Error downloading Asset",
     "userAddedToProject": "User added to project successfully.",
     "errorLoadingProjectData": "Error loading project data",
     "errorLoadingTimeline": "Error loading Timeline",
@@ -504,7 +507,6 @@
     "storageOf": "{used} of {limit}",
     "remoteProjects": "Remote Projects",
     "projectsOf": "{used} of {limit}",
-    "collaborators": "Collaborators",
     "collaboratorsOf": "{used} of {limit}",
     "aiCredits": "AI Credits",
     "aiCreditsOf": "{used} of {limit} this month",
@@ -553,6 +555,8 @@
     "localProjects": "Local projects",
     "sharedProjects": "Shared projects",
     "browsePath": "Browse Path",
+    "clusttaLocalProjectsData": "Clustta Local Projects Data",
+    "clusttaSharedProjectsData": "Clustta Shared Projects Data",
     "projectFolders": "Project folders",
     "addLocation": "Add Location",
     "defaultLocation": "Default location",
@@ -602,7 +606,6 @@
     "editCollectionType": "Edit Collection type",
     "editProjectTemplate": "Edit project template",
     "editRole": "Edit Role",
-    "editAssetType": "Edit asset type",
     "editTemplate": "Edit Template",
     "invitationMessage": "1 user isn't on Clustta yet. This user will be sent an invite to signup. | {n} users aren't on Clustta yet. They will be sent an invite to signup.",
     "invitationRequired": "Invitation Required",
@@ -613,7 +616,9 @@
     "studioAdditionMessage": "1 user is not currently in this studio. This user will be added to the studio first, then to the project. | {n} users are not currently in this studio. They will be added to the studio first, then to the project.",
     "studioAdditionRequired": "Studio Addition Required",
     "templateNameExists": "A template with this name already exists.",
+    "projectsImportedCount": "{count} project(s) imported",
     "selectAssetTemplate": "Select Asset Template",
+    "selectImageFile": "Select Image File",
     "selectLocationFolder": "Select Location Folder",
     "saveWorkspace": "Save Workspace",
     "saveDependencyPreset": "Save Dependency Preset",
@@ -886,7 +891,6 @@
     "markAsLibrary": "Mark as a library",
     "unmarkAsLibrary": "Unmark as library",
     "assignees": "Assignees",
-    "assets": "Assets",
     "searchByNameOrEmail": "Search by name or email",
     "studioMembers": "Studio Members",
     "comingSoon": "[Coming Soon]",
@@ -910,6 +914,7 @@
     "projectDetails": "Project Details",
     "projectDetailsTooltip": "View project details and statistics",
     "editProject": "Edit Project",
+    "editProjectTooltip": "Edit project settings",
     "pinProject": "Pin Project",
     "pinProjectTooltip": "Pin project for quick access",
     "unpinProject": "Unpin Project",
@@ -1337,12 +1342,6 @@
       "clearSearch": "Clear search",
       "search": "Search"
     },
-    "scrollList": {
-      "edit": "Edit",
-      "delete": "Delete",
-      "assign": "Assign",
-      "unassign": "Unassign"
-    },
     "formInput": {
       "hide": "Hide",
       "show": "Show"
@@ -1679,7 +1678,9 @@
     },
     "scrollList": {
       "edit": "Edit",
-      "delete": "Delete"
+      "delete": "Delete",
+      "assign": "Assign",
+      "unassign": "Unassign"
     },
     "singleListItem": {
       "edit": "Edit",

@@ -122,7 +122,7 @@ const addNewLocation = async () => {
     const newLocation = await SettingsService.AddProjectLocation(folderName, path);
     projectLocations.value.push(newLocation);
     selectedLocation.value = newLocation;
-    notificationStore.addNotification(t('notifications.locationAddedSuccessfully'), '', 'success', false);
+    notificationStore.addNotification(t('notifications.locationAdded'), '', 'success', false);
   } catch (error) {
     notificationStore.errorNotification(t('notifications.errorAddingLocation'), error);
   }
@@ -135,7 +135,7 @@ const cloneProject = async () => {
     return;
   }
   if (!workingDirectory.value) {
-    notificationStore.addNotification(t('notifications.invalidWorkingDir'), t('notifications.workingDirEmpty'), 'error', false);
+    notificationStore.addNotification(t('notifications.invalidWorkingDirectory'), t('notifications.workingDirectoryEmpty'), 'error', false);
     return;
   }
   isAwaitingResponse.value = true;

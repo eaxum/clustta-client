@@ -156,7 +156,7 @@ const addNewLocation = async () => {
     const newLocation = await SettingsService.AddProjectLocation(folderName, path);
     projectLocations.value.push(newLocation);
     selectedLocation.value = newLocation;
-    notificationStore.addNotification(t('notifications.locationAddedSuccessfully'), '', 'success', false);
+    notificationStore.addNotification(t('notifications.locationAdded'), '', 'success', false);
   } catch (error) {
     notificationStore.errorNotification(t('notifications.errorAddingLocation'), error);
   }
@@ -246,7 +246,7 @@ const uploadProject = async () => {
   if (!selectedLocation.value) {
     notificationStore.addNotification(
       t('notifications.noLocationSelected'),
-      t('notifications.selectProjectLocation'),
+      t('notifications.selectOrAddLocation'),
       'error',
       false
     );

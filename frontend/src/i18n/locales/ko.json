@@ -71,7 +71,8 @@
     "show": "보기",
     "link": "링크",
     "manage": "관리",
-    "finish": "완료"
+    "finish": "완료",
+    "copyId": "Copy ID"
   },
   "placeholders": {
     "addItem": "항목 추가",
@@ -97,7 +98,6 @@
     "studioName": "스튜디오 이름",
     "studioUrl": "스튜디오 URL",
     "assetName": "작업 이름",
-    "assetTypeName": "작업 유형 이름",
     "assetTypeName": "에셋 유형 이름",
     "templateName": "템플릿 이름",
     "webLink": "웹 링크",
@@ -114,7 +114,9 @@
     "workflowItemName": "워크플로 항목 이름",
     "workspaceName": "워크스페이스 이름",
     "collectionType": "컬렉션 유형",
-    "assetType": "에셋 유형"
+    "assetType": "에셋 유형",
+    "projectsDirectory": "Projects directory",
+    "sharedProjectsDirectory": "Shared projects directory"
   },
   "confirmations": {
     "deleteItemPermanently": "이 항목을 삭제하시겠습니까? 이 항목이 영구적으로 제거됩니다. 계속하려면 확인해 주세요.",
@@ -140,7 +142,8 @@
     "trimProjectMessage": "프로젝트 아카이브에서 캐시된 파일 데이터를 제거하고 작업 디렉터리를 삭제하여 디스크 사용량을 줄입니다. 필요 시 원격에서 다시 다운로드할 수 있습니다. 계속하시겠습니까?",
     "archiveProjectMessage": "이 프로젝트를 보관하면 작업 디렉터리의 공간도 확보됩니다. 추적되지 않은 항목은 손실됩니다. 계속하시겠습니까?",
     "relocateWorkingDirectoryMessage": "작업 디렉터리를 변경합니다:\n{from}\n\n에서:\n{to}\n(으)로\n\n참고: 파일은 이동되지 않습니다. 경로만 업데이트됩니다.",
-    "deleteRemoteProject": "\"{name}\" 이(가) 서버에서 영구적으로 삭제됩니다. 이 작업은 취소할 수 없습니다. 확인을 위해 프로젝트 이름을 입력하세요:"
+    "deleteRemoteProject": "\"{name}\" 이(가) 서버에서 영구적으로 삭제됩니다. 이 작업은 취소할 수 없습니다. 확인을 위해 프로젝트 이름을 입력하세요:",
+    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner."
   },
   "notifications": {
     "defaultViewUpdated": "기본 보기 업데이트됨",
@@ -384,16 +387,15 @@
     "userAddedAndAssigned": "사용자가 프로젝트에 추가되고 작업이 할당됨.",
     "errorAddingUserToProject": "프로젝트에 사용자 추가 오류",
     "errorUnassigningAsset": "작업 할당 해제 오류",
-    "assetFailedToDelete": "에셋 삭제 실패.",
+    "assetFailedToDelete": "작업 삭제 실패.",
     "failedToDuplicateAsset": "에셋 복제 실패",
     "fileMustBeDownloaded": "파일을 먼저 다운로드해야 합니다",
     "failedToNavigate": "위치 탐색 실패",
     "errorRevertingAssets": "에셋 되돌리기 오류",
     "failedToRevertAsset": "에셋 되돌리기 실패",
-    "errorDownloadingAsset": "에셋 다운로드 오류",
+    "errorDownloadingAsset": "작업 다운로드 오류",
     "errorRevertingAsset": "작업 되돌리기 오류",
     "errorRebuildingAsset": "작업 다시 빌드 오류",
-    "assetFailedToDelete": "작업 삭제 실패.",
     "downloadComplete": "다운로드 완료",
     "downloadedSuccessfully": "{fileName} 다운로드 성공",
     "downloadFailed": "다운로드 실패",
@@ -422,7 +424,6 @@
     "errorDiscardingChanges": "변경 사항 폐기 오류",
     "errorDiscardingChange": "변경 사항 폐기 오류",
     "errorNavigatingToItem": "항목 탐색 오류",
-    "errorDownloadingAsset": "작업 다운로드 오류",
     "userAddedToProject": "사용자가 프로젝트에 성공적으로 추가됨.",
     "errorLoadingProjectData": "프로젝트 데이터 로드 오류",
     "errorLoadingTimeline": "타임라인 로드 오류",
@@ -432,7 +433,18 @@
     "errorAddingDependency": "의존성 추가 오류",
     "errorRemovingDependency": "의존성 제거 오류",
     "userAddedSuccessfully": "사용자가 프로젝트에 성공적으로 추가됨.",
-    "errorUpdatingWorkingDirectory": "작업 디렉터리 업데이트 오류"
+    "errorUpdatingWorkingDirectory": "작업 디렉터리 업데이트 오류",
+    "idCopied": "ID copied to clipboard",
+    "leftProject": "Left Project",
+    "leftProjectDesc": "You have left \"{name}\".",
+    "errorLeavingProject": "Error leaving project",
+    "projectsImportedCount": "{count} project(s) imported successfully",
+    "errorMakingProjectRemote": "Error making project remote",
+    "errorRemovingProjectFromRemote": "Error removing project from remote",
+    "syncCompleteMessage": "All data has been synced successfully",
+    "errorSelectingFile": "Error selecting file",
+    "errorDeletingProject": "Error deleting project",
+    "failedToMergeItem": "Failed to merge item"
   },
   "settings": {
     "title": "설정",
@@ -495,7 +507,6 @@
     "storageOf": "{limit} 중 {used}",
     "remoteProjects": "원격 프로젝트",
     "projectsOf": "{limit} 중 {used}",
-    "collaborators": "협업자",
     "collaboratorsOf": "{limit} 중 {used}",
     "aiCredits": "AI 크레딧",
     "aiCreditsOf": "이번 달 {limit} 중 {used}",
@@ -563,7 +574,16 @@
     "addATemplate": "템플릿 추가",
     "addAnAssetType": "에셋 유형 추가",
     "addACollectionType": "컬렉션 유형 추가",
-    "noIgnoreItems": "무시 항목이 없습니다"
+    "noIgnoreItems": "무시 항목이 없습니다",
+    "externalIntegrations": "External Integrations",
+    "linkIntegration": "Link External Project",
+    "linkIntegrationDescription": "Connect this project to Kitsu, ClickUp, or other external project management tools.",
+    "linkedTo": "Linked to {integration}",
+    "connectIntegration": "Connect Integration",
+    "connectIntegrationDescription": "Connect to external services like Kitsu, ClickUp, and more.",
+    "connected": "Connected",
+    "clusttaLocalProjectsData": "Clustta Local Projects Data",
+    "clusttaSharedProjectsData": "Clustta Shared Projects Data"
   },
   "modals": {
     "addAssetType": "에셋 유형 추가",
@@ -582,11 +602,10 @@
     },
     "duplicateProjectTemplate": "프로젝트 템플릿 복제",
     "duplicateTemplateName": "템플릿 이름 복제",
-    "editAssetType": "에셋 유형 편집",
+    "editAssetType": "작업 유형 편집",
     "editCollectionType": "컬렉션 유형 편집",
     "editProjectTemplate": "프로젝트 템플릿 편집",
     "editRole": "역할 편집",
-    "editAssetType": "작업 유형 편집",
     "editTemplate": "템플릿 편집",
     "invitationMessage": "Clustta에 아직 가입하지 않은 사용자가 1명 있습니다. 이 사용자에게 가입 초대가 전송됩니다. | Clustta에 아직 가입하지 않은 사용자가 {n}명 있습니다. 가입 초대가 전송됩니다.",
     "invitationRequired": "초대 필요",
@@ -749,7 +768,11 @@
     "loadingCollectionStates": "컨렉션 상태 로딩 중",
     "modifiedAsset": "수정된 에셋",
     "refreshingModifiedItems": "수정된 항목 새로고침 중",
-    "untrackedAsset": "추적되지 않는 에셋"
+    "untrackedAsset": "추적되지 않는 에셋",
+    "projectsImportedCount": "{count} project(s) imported",
+    "selectImageFile": "Select Image File",
+    "enableRemote": "Enable Remote",
+    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine."
   },
   "menus": {
     "addAccount": "계정 추가",
@@ -827,7 +850,11 @@
     "unpinProject": "프로젝트 고정 해제",
     "updateContents": "콘텐츠 업데이트",
     "uploadItems": "항목 업로드",
-    "useExclusive": "독점 사용"
+    "useExclusive": "독점 사용",
+    "removeAccount": "Remove Account",
+    "leaveProject": "Leave Project",
+    "leaveProjectTitle": "Leave \"{name}\"",
+    "switchAccount": "Switch Account"
   },
   "panes": {
     "type": "유형",
@@ -853,7 +880,7 @@
     "noCheckpointsInProject": "이 프로젝트에 체크포인트 없음",
     "discardAll": "모두 폐기",
     "syncNow": "즉시 동기화",
-    "assets": "작업",
+    "assets": "에셋",
     "collections": "컬렉션",
     "other": "기타",
     "loadingChanges": "변경 사항 로딩 중...",
@@ -864,7 +891,6 @@
     "markAsLibrary": "라이브러리로 표시",
     "unmarkAsLibrary": "라이브러리 표시 해제",
     "assignees": "담당자",
-    "assets": "에셋",
     "searchByNameOrEmail": "이름 또는 이메일로 검색",
     "studioMembers": "스튜디오 멤버",
     "comingSoon": "[곧 출시]",
@@ -928,7 +954,10 @@
     "dependenciesTab": "의존성",
     "consoleTab": "콘솔",
     "changeLogTab": "변경 로그",
-    "collaboratorsTab": "협업자"
+    "collaboratorsTab": "협업자",
+    "projectDetails": "Project Details",
+    "projectDetailsTooltip": "View project details and statistics",
+    "editProjectTooltip": "Edit project settings"
   },
   "blocks": {
     "loadingState": "상태 로딩 중",
@@ -1316,8 +1345,8 @@
     "scrollList": {
       "edit": "편집",
       "delete": "삭제",
-      "assign": "할당",
-      "unassign": "할당 해제"
+      "assign": "Assign",
+      "unassign": "Unassign"
     },
     "formInput": {
       "hide": "숨기기",
@@ -1653,10 +1682,6 @@
       "nothingSelected": "선택된 항목 없음",
       "noItem": "항목 없음"
     },
-    "scrollList": {
-      "edit": "편집",
-      "delete": "삭제"
-    },
     "singleListItem": {
       "edit": "편집",
       "delete": "삭제"
@@ -1762,7 +1787,13 @@
       "offlineModeMessage": "현재 오프라인 모드로 Clustta를 사용하고 있습니다. 일부 기능이 제한됩니다.",
       "offlineModeFailed": "오프라인 모드를 활성화하지 못했습니다. 다시 시도해 주세요.",
       "offlineModeErrorTitle": "오프라인 모드 오류",
-      "offlineModeErrorMessage": "오프라인 모드를 활성화하지 못했습니다"
+      "offlineModeErrorMessage": "오프라인 모드를 활성화하지 못했습니다",
+      "connectToStudio": "Connect to a studio server",
+      "connectButton": "Connect",
+      "connectionFailed": "Could not reach this server. Check the URL and try again.",
+      "changeServer": "Change server",
+      "loginToCloud": "Login to Clustta Cloud",
+      "signUpToStudio": "Sign up to this studio"
     },
     "signUp": {
       "title": "Clustta 가입",
@@ -1800,7 +1831,8 @@
       "studioAccountCreated": "{url}에 계정이 생성되었습니다. 이제 로그인할 수 있습니다.",
       "checkEmailForCode": "이메일에서 인증 코드를 확인해 주세요.",
       "registrationFailed": "가입 실패",
-      "registrationFailedDefault": "가입에 실패했습니다"
+      "registrationFailedDefault": "가입에 실패했습니다",
+      "signUpToStudio": "Sign up to a studio server"
     },
     "resetPassword": {
       "title": "비밀번호 재설정",

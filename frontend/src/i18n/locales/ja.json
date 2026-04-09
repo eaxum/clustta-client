@@ -71,7 +71,8 @@
     "show": "表示",
     "link": "リンク",
     "manage": "管理",
-    "finish": "完了"
+    "finish": "完了",
+    "copyId": "Copy ID"
   },
   "placeholders": {
     "addItem": "アイテムを追加",
@@ -97,7 +98,6 @@
     "studioName": "スタジオ名",
     "studioUrl": "スタジオURL",
     "assetName": "タスク名",
-    "assetTypeName": "タスクタイプ名",
     "assetTypeName": "アセットタイプ名",
     "templateName": "テンプレート名",
     "webLink": "Webリンク",
@@ -114,7 +114,9 @@
     "searchProjects": "プロジェクトを検索",
     "workflowItemName": "ワークフローアイテム名",
     "collectionType": "コレクションタイプ",
-    "assetType": "アセットタイプ"
+    "assetType": "アセットタイプ",
+    "projectsDirectory": "Projects directory",
+    "sharedProjectsDirectory": "Shared projects directory"
   },
   "confirmations": {
     "deleteItemPermanently": "このアイテムを削除してもよろしいですか？このアイテムは完全に削除されます。続行する場合は確認してください。",
@@ -140,7 +142,8 @@
     "trimProjectMessage": "プロジェクトアーカイブからキャッシュされたファイルデータを削除し、作業ディレクトリを削除してディスク使用量を削減します。データは必要に応じてリモートから再ダウンロードできます。続行しますか？",
     "archiveProjectMessage": "このプロジェクトをアーカイブすると、作業ディレクトリのスペースも解放されます。未追跡のアイテムは失われます。続行しますか？",
     "relocateWorkingDirectoryMessage": "作業ディレクトリを変更:\n{from}\n\n先:\n{to}\n\n注意: ファイルは移動されません。パスのみが更新されます。",
-    "deleteRemoteProject": "\"{name}\" がサーバーから完全に削除されます。この操作は元に戻せません。確認のためプロジェクト名を入力してください："
+    "deleteRemoteProject": "\"{name}\" がサーバーから完全に削除されます。この操作は元に戻せません。確認のためプロジェクト名を入力してください：",
+    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner."
   },
   "notifications": {
     "defaultViewUpdated": "デフォルトビューが更新されました",
@@ -384,16 +387,15 @@
     "userAddedAndAssigned": "ユーザーをプロジェクトに追加し、タスクを割り当てました。",
     "errorAddingUserToProject": "ユーザーのプロジェクトへの追加エラー",
     "errorUnassigningAsset": "タスクの割り当て解除エラー",
-    "assetFailedToDelete": "アセットの削除に失敗しました。",
+    "assetFailedToDelete": "タスクの削除に失敗しました。",
     "failedToDuplicateAsset": "アセットの複製に失敗",
     "fileMustBeDownloaded": "ファイルを先にダウンロードする必要があります",
     "failedToNavigate": "場所への移動に失敗",
     "errorRevertingAssets": "アセットの復元エラー",
     "failedToRevertAsset": "アセットの復元に失敗",
-    "errorDownloadingAsset": "アセットのダウンロードエラー",
+    "errorDownloadingAsset": "タスクのダウンロードエラー",
     "errorRevertingAsset": "タスクの復元エラー",
     "errorRebuildingAsset": "タスクの再構築エラー",
-    "assetFailedToDelete": "タスクの削除に失敗しました。",
     "downloadComplete": "ダウンロード完了",
     "downloadedSuccessfully": "{fileName}のダウンロードが完了しました",
     "downloadFailed": "ダウンロード失敗",
@@ -422,7 +424,6 @@
     "errorDiscardingChanges": "変更の破棄エラー",
     "errorDiscardingChange": "変更の破棄エラー",
     "errorNavigatingToItem": "アイテムへのナビゲーションエラー",
-    "errorDownloadingAsset": "タスクのダウンロードエラー",
     "userAddedToProject": "ユーザーがプロジェクトに正常に追加されました。",
     "errorLoadingProjectData": "プロジェクトデータの読み込みエラー",
     "errorLoadingTimeline": "タイムラインの読み込みエラー",
@@ -432,7 +433,18 @@
     "errorAddingDependency": "依存関係の追加エラー",
     "errorRemovingDependency": "依存関係の削除エラー",
     "userAddedSuccessfully": "ユーザーがプロジェクトに正常に追加されました。",
-    "errorUpdatingWorkingDirectory": "作業ディレクトリの更新エラー"
+    "errorUpdatingWorkingDirectory": "作業ディレクトリの更新エラー",
+    "idCopied": "ID copied to clipboard",
+    "leftProject": "Left Project",
+    "leftProjectDesc": "You have left \"{name}\".",
+    "errorLeavingProject": "Error leaving project",
+    "projectsImportedCount": "{count} project(s) imported successfully",
+    "errorMakingProjectRemote": "Error making project remote",
+    "errorRemovingProjectFromRemote": "Error removing project from remote",
+    "syncCompleteMessage": "All data has been synced successfully",
+    "errorSelectingFile": "Error selecting file",
+    "errorDeletingProject": "Error deleting project",
+    "failedToMergeItem": "Failed to merge item"
   },
   "settings": {
     "title": "設定",
@@ -495,7 +507,6 @@
     "storageOf": "{limit}中{used}",
     "remoteProjects": "リモートプロジェクト",
     "projectsOf": "{limit}中{used}",
-    "collaborators": "コラボレーター",
     "collaboratorsOf": "{limit}中{used}",
     "aiCredits": "AIクレジット",
     "aiCreditsOf": "今月{limit}中{used}",
@@ -563,7 +574,16 @@
     "addATemplate": "テンプレートを追加",
     "addAnAssetType": "アセットタイプを追加",
     "addACollectionType": "コレクションタイプを追加",
-    "noIgnoreItems": "無視アイテムがありません"
+    "noIgnoreItems": "無視アイテムがありません",
+    "externalIntegrations": "External Integrations",
+    "linkIntegration": "Link External Project",
+    "linkIntegrationDescription": "Connect this project to Kitsu, ClickUp, or other external project management tools.",
+    "linkedTo": "Linked to {integration}",
+    "connectIntegration": "Connect Integration",
+    "connectIntegrationDescription": "Connect to external services like Kitsu, ClickUp, and more.",
+    "connected": "Connected",
+    "clusttaLocalProjectsData": "Clustta Local Projects Data",
+    "clusttaSharedProjectsData": "Clustta Shared Projects Data"
   },
   "modals": {
     "addAssetType": "アセットタイプを追加",
@@ -582,11 +602,10 @@
     },
     "duplicateProjectTemplate": "プロジェクトテンプレートを複製",
     "duplicateTemplateName": "テンプレート名が重複",
-    "editAssetType": "アセットタイプを編集",
+    "editAssetType": "タスクタイプを編集",
     "editCollectionType": "コレクションタイプを編集",
     "editProjectTemplate": "プロジェクトテンプレートを編集",
     "editRole": "ロールを編集",
-    "editAssetType": "タスクタイプを編集",
     "editTemplate": "テンプレートを編集",
     "emoji": "絵文字",
     "invitationMessage": "1人のユーザーがまだClusttaに登録されていません。登録招待が送信されます。 | {n}人のユーザーがまだClusttaに登録されていません。登録招待が送信されます。",
@@ -746,7 +765,14 @@
     "loadingCollectionStates": "コレクションの状態を読み込み中",
     "modifiedAsset": "変更されたアセット",
     "refreshingModifiedItems": "変更されたアイテムを更新中",
-    "untrackedAsset": "未追跡のアセット"
+    "untrackedAsset": "未追跡のアセット",
+    "projectsImportedCount": "{count} project(s) imported",
+    "selectImageFile": "Select Image File",
+    "studioNameLabel": "Studio Name",
+    "studioUrlLabel": "Studio URL",
+    "alternateUrlLabel": "Alternate URL",
+    "enableRemote": "Enable Remote",
+    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine."
   },
   "menus": {
     "addAccount": "アカウントを追加",
@@ -824,7 +850,11 @@
     "unpinProject": "プロジェクトの固定を解除",
     "updateContents": "コンテンツを更新",
     "uploadItems": "アイテムをアップロード",
-    "useExclusive": "排他的に使用"
+    "useExclusive": "排他的に使用",
+    "removeAccount": "Remove Account",
+    "leaveProject": "Leave Project",
+    "leaveProjectTitle": "Leave \"{name}\"",
+    "switchAccount": "Switch Account"
   },
   "panes": {
     "type": "タイプ",
@@ -850,7 +880,7 @@
     "noCheckpointsInProject": "このプロジェクトにチェックポイントがありません",
     "discardAll": "すべて破棄",
     "syncNow": "今すぐ同期",
-    "assets": "タスク",
+    "assets": "アセット",
     "collections": "コレクション",
     "other": "その他",
     "loadingChanges": "変更を読み込み中...",
@@ -861,7 +891,6 @@
     "markAsLibrary": "ライブラリとしてマーク",
     "unmarkAsLibrary": "ライブラリのマークを解除",
     "assignees": "担当者",
-    "assets": "アセット",
     "searchByNameOrEmail": "名前またはメールで検索",
     "studioMembers": "スタジオメンバー",
     "comingSoon": "[近日公開]",
@@ -925,7 +954,10 @@
     "dependenciesTab": "依存関係",
     "consoleTab": "コンソール",
     "changeLogTab": "変更履歴",
-    "collaboratorsTab": "コラボレーター"
+    "collaboratorsTab": "コラボレーター",
+    "projectDetails": "Project Details",
+    "projectDetailsTooltip": "View project details and statistics",
+    "editProjectTooltip": "Edit project settings"
   },
   "blocks": {
     "loadingState": "読み込み状態",
@@ -1313,8 +1345,8 @@
     "scrollList": {
       "edit": "編集",
       "delete": "削除",
-      "assign": "割り当て",
-      "unassign": "割り当て解除"
+      "assign": "Assign",
+      "unassign": "Unassign"
     },
     "formInput": {
       "hide": "非表示",
@@ -1650,10 +1682,6 @@
       "nothingSelected": "未選択",
       "noItem": "アイテムなし"
     },
-    "scrollList": {
-      "edit": "編集",
-      "delete": "削除"
-    },
     "singleListItem": {
       "edit": "編集",
       "delete": "削除"
@@ -1759,7 +1787,13 @@
       "offlineModeMessage": "Clusttaをオフラインモードで使用しています。一部の機能が制限されます。",
       "offlineModeFailed": "オフラインモードの有効化に失敗しました。もう一度お試しください。",
       "offlineModeErrorTitle": "オフラインモードエラー",
-      "offlineModeErrorMessage": "オフラインモードの有効化に失敗しました"
+      "offlineModeErrorMessage": "オフラインモードの有効化に失敗しました",
+      "connectToStudio": "Connect to a studio server",
+      "connectButton": "Connect",
+      "connectionFailed": "Could not reach this server. Check the URL and try again.",
+      "changeServer": "Change server",
+      "loginToCloud": "Login to Clustta Cloud",
+      "signUpToStudio": "Sign up to this studio"
     },
     "signUp": {
       "title": "Clusttaに登録",
@@ -1797,7 +1831,8 @@
       "studioAccountCreated": "{url}にアカウントが作成されました。ログインできます。",
       "checkEmailForCode": "確認コードについてメールを確認してください。",
       "registrationFailed": "登録に失敗しました",
-      "registrationFailedDefault": "登録に失敗しました"
+      "registrationFailedDefault": "登録に失敗しました",
+      "signUpToStudio": "Sign up to a studio server"
     },
     "resetPassword": {
       "title": "パスワードのリセット",

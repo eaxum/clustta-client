@@ -71,7 +71,8 @@
     "show": "Mostrar",
     "link": "Enlace",
     "manage": "Gestionar",
-    "finish": "Finalizar"
+    "finish": "Finalizar",
+    "copyId": "Copy ID"
   },
   "placeholders": {
     "addItem": "Agregar elemento",
@@ -97,7 +98,6 @@
     "studioName": "Nombre del Estudio",
     "studioUrl": "URL del Estudio",
     "assetName": "Nombre de Tarea",
-    "assetTypeName": "Nombre de tipo de Tarea",
     "assetTypeName": "Nombre de tipo de Activo",
     "templateName": "Nombre de Plantilla",
     "webLink": "Enlace web",
@@ -114,7 +114,9 @@
     "searchProjects": "Buscar proyectos",
     "workflowItemName": "Nombre del elemento de flujo",
     "collectionType": "Tipo de colección",
-    "assetType": "Tipo de activo"
+    "assetType": "Tipo de activo",
+    "projectsDirectory": "Projects directory",
+    "sharedProjectsDirectory": "Shared projects directory"
   },
   "confirmations": {
     "deleteItemPermanently": "¿Está seguro de que desea eliminar este elemento? Esto eliminará permanentemente este elemento. Confirme si desea continuar.",
@@ -140,7 +142,8 @@
     "trimProjectMessage": "Esto eliminará los datos de archivos en caché del archivo del proyecto y eliminará el directorio de trabajo para reducir el uso de disco. Los datos se pueden volver a descargar del servidor remoto cuando sea necesario. ¿Continuar?",
     "archiveProjectMessage": "Archivar este proyecto también liberará espacio en el directorio de trabajo. Cualquier elemento sin seguimiento se perderá. ¿Continuar?",
     "relocateWorkingDirectoryMessage": "Cambiar directorio de trabajo de:\n{from}\n\nA:\n{to}\n\nNota: Los archivos NO se moverán. Solo se actualizará la ruta.",
-    "deleteRemoteProject": "Esto ELIMINARÁ PERMANENTEMENTE \"{name}\" del servidor. Esta acción no se puede deshacer. Escriba el nombre del proyecto para confirmar:"
+    "deleteRemoteProject": "Esto ELIMINARÁ PERMANENTEMENTE \"{name}\" del servidor. Esta acción no se puede deshacer. Escriba el nombre del proyecto para confirmar:",
+    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner."
   },
   "notifications": {
     "defaultViewUpdated": "Vista Predeterminada Actualizada",
@@ -384,16 +387,15 @@
     "userAddedAndAssigned": "Usuario agregado al proyecto y tarea asignada.",
     "errorAddingUserToProject": "Error al agregar usuario al proyecto",
     "errorUnassigningAsset": "Error al desasignar tarea",
-    "assetFailedToDelete": "Error al eliminar asset.",
+    "assetFailedToDelete": "Error al eliminar la tarea.",
     "failedToDuplicateAsset": "Error al duplicar asset",
     "fileMustBeDownloaded": "El archivo debe descargarse primero",
     "failedToNavigate": "Error al navegar a la ubicación",
     "errorRevertingAssets": "Error al revertir assets",
     "failedToRevertAsset": "Error al revertir asset",
-    "errorDownloadingAsset": "Error al descargar asset",
+    "errorDownloadingAsset": "Error al descargar la tarea",
     "errorRevertingAsset": "Error al revertir la tarea",
     "errorRebuildingAsset": "Error al reconstruir la tarea",
-    "assetFailedToDelete": "Error al eliminar la tarea.",
     "downloadComplete": "Descarga completa",
     "downloadedSuccessfully": "{fileName} descargado correctamente",
     "downloadFailed": "Error en la descarga",
@@ -422,7 +424,6 @@
     "errorDiscardingChanges": "Error al descartar los cambios",
     "errorDiscardingChange": "Error al descartar el cambio",
     "errorNavigatingToItem": "Error al navegar al elemento",
-    "errorDownloadingAsset": "Error al descargar la tarea",
     "userAddedToProject": "Usuario agregado al proyecto exitosamente.",
     "errorLoadingProjectData": "Error al cargar datos del proyecto",
     "errorLoadingTimeline": "Error al cargar la línea de tiempo",
@@ -432,7 +433,18 @@
     "errorAddingDependency": "Error al agregar dependencias",
     "errorRemovingDependency": "Error al eliminar dependencias",
     "userAddedSuccessfully": "Usuario agregado al proyecto exitosamente.",
-    "errorUpdatingWorkingDirectory": "Error al actualizar el directorio de trabajo"
+    "errorUpdatingWorkingDirectory": "Error al actualizar el directorio de trabajo",
+    "idCopied": "ID copied to clipboard",
+    "leftProject": "Left Project",
+    "leftProjectDesc": "You have left \"{name}\".",
+    "errorLeavingProject": "Error leaving project",
+    "projectsImportedCount": "{count} project(s) imported successfully",
+    "errorMakingProjectRemote": "Error making project remote",
+    "errorRemovingProjectFromRemote": "Error removing project from remote",
+    "syncCompleteMessage": "All data has been synced successfully",
+    "errorSelectingFile": "Error selecting file",
+    "errorDeletingProject": "Error deleting project",
+    "failedToMergeItem": "Failed to merge item"
   },
   "settings": {
     "title": "Configuración",
@@ -495,7 +507,6 @@
     "storageOf": "{used} de {limit}",
     "remoteProjects": "Proyectos Remotos",
     "projectsOf": "{used} de {limit}",
-    "collaborators": "Colaboradores",
     "collaboratorsOf": "{used} de {limit}",
     "aiCredits": "Créditos de IA",
     "aiCreditsOf": "{used} de {limit} este mes",
@@ -563,7 +574,16 @@
     "addATemplate": "Agregar una plantilla",
     "addAnAssetType": "Agregar un tipo de activo",
     "addACollectionType": "Agregar un tipo de colección",
-    "noIgnoreItems": "No tienes elementos ignorados"
+    "noIgnoreItems": "No tienes elementos ignorados",
+    "externalIntegrations": "External Integrations",
+    "linkIntegration": "Link External Project",
+    "linkIntegrationDescription": "Connect this project to Kitsu, ClickUp, or other external project management tools.",
+    "linkedTo": "Linked to {integration}",
+    "connectIntegration": "Connect Integration",
+    "connectIntegrationDescription": "Connect to external services like Kitsu, ClickUp, and more.",
+    "connected": "Connected",
+    "clusttaLocalProjectsData": "Clustta Local Projects Data",
+    "clusttaSharedProjectsData": "Clustta Shared Projects Data"
   },
   "modals": {
     "addAssetType": "Agregar tipo de activo",
@@ -582,11 +602,10 @@
     },
     "duplicateProjectTemplate": "Duplicar plantilla de proyecto",
     "duplicateTemplateName": "Nombre de plantilla duplicado",
-    "editAssetType": "Editar tipo de activo",
+    "editAssetType": "Editar tipo de tarea",
     "editCollectionType": "Editar tipo de colección",
     "editProjectTemplate": "Editar plantilla de proyecto",
     "editRole": "Editar rol",
-    "editAssetType": "Editar tipo de tarea",
     "editTemplate": "Editar plantilla",
     "emoji": "Emoji",
     "invitationMessage": "1 usuario no está en Clustta aún. Se le enviará una invitación para registrarse. | {n} usuarios no están en Clustta aún. Se les enviará una invitación para registrarse.",
@@ -746,7 +765,14 @@
     "loadingCollectionStates": "Cargando estados de la colección",
     "modifiedAsset": "Recurso modificado",
     "refreshingModifiedItems": "Actualizando elementos modificados",
-    "untrackedAsset": "Recurso sin seguimiento"
+    "untrackedAsset": "Recurso sin seguimiento",
+    "projectsImportedCount": "{count} project(s) imported",
+    "selectImageFile": "Select Image File",
+    "studioNameLabel": "Studio Name",
+    "studioUrlLabel": "Studio URL",
+    "alternateUrlLabel": "Alternate URL",
+    "enableRemote": "Enable Remote",
+    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine."
   },
   "menus": {
     "addAccount": "Agregar cuenta",
@@ -824,7 +850,11 @@
     "unpinProject": "Desfijar proyecto",
     "updateContents": "Actualizar contenido",
     "uploadItems": "Subir elementos",
-    "useExclusive": "Usar exclusivo"
+    "useExclusive": "Usar exclusivo",
+    "removeAccount": "Remove Account",
+    "leaveProject": "Leave Project",
+    "leaveProjectTitle": "Leave \"{name}\"",
+    "switchAccount": "Switch Account"
   },
   "panes": {
     "type": "Tipo",
@@ -850,7 +880,7 @@
     "noCheckpointsInProject": "No hay checkpoints en este proyecto",
     "discardAll": "Descartar todo",
     "syncNow": "Sincronizar ahora",
-    "assets": "Tareas",
+    "assets": "Assets",
     "collections": "Colecciones",
     "other": "Otros",
     "loadingChanges": "Cargando cambios...",
@@ -861,7 +891,6 @@
     "markAsLibrary": "Marcar como biblioteca",
     "unmarkAsLibrary": "Desmarcar como biblioteca",
     "assignees": "Asignados",
-    "assets": "Assets",
     "searchByNameOrEmail": "Buscar por nombre o correo electrónico",
     "studioMembers": "Miembros del estudio",
     "comingSoon": "[Próximamente]",
@@ -925,7 +954,10 @@
     "dependenciesTab": "Dependencias",
     "consoleTab": "Consola",
     "changeLogTab": "Registro de cambios",
-    "collaboratorsTab": "Colaboradores"
+    "collaboratorsTab": "Colaboradores",
+    "projectDetails": "Project Details",
+    "projectDetailsTooltip": "View project details and statistics",
+    "editProjectTooltip": "Edit project settings"
   },
   "blocks": {
     "loadingState": "Estado de carga",
@@ -1313,8 +1345,8 @@
     "scrollList": {
       "edit": "Editar",
       "delete": "Eliminar",
-      "assign": "Asignar",
-      "unassign": "Desasignar"
+      "assign": "Assign",
+      "unassign": "Unassign"
     },
     "formInput": {
       "hide": "Ocultar",
@@ -1650,10 +1682,6 @@
       "nothingSelected": "Nada seleccionado",
       "noItem": "Sin elemento"
     },
-    "scrollList": {
-      "edit": "Editar",
-      "delete": "Eliminar"
-    },
     "singleListItem": {
       "edit": "Editar",
       "delete": "Eliminar"
@@ -1759,7 +1787,13 @@
       "offlineModeMessage": "Ahora estás usando Clustta en modo sin conexión. Algunas funciones estarán limitadas.",
       "offlineModeFailed": "Error al habilitar el modo sin conexión. Por favor, intenta de nuevo.",
       "offlineModeErrorTitle": "Error de modo sin conexión",
-      "offlineModeErrorMessage": "Error al habilitar el modo sin conexión"
+      "offlineModeErrorMessage": "Error al habilitar el modo sin conexión",
+      "connectToStudio": "Connect to a studio server",
+      "connectButton": "Connect",
+      "connectionFailed": "Could not reach this server. Check the URL and try again.",
+      "changeServer": "Change server",
+      "loginToCloud": "Login to Clustta Cloud",
+      "signUpToStudio": "Sign up to this studio"
     },
     "signUp": {
       "title": "Registrarse en Clustta",
@@ -1797,7 +1831,8 @@
       "studioAccountCreated": "Cuenta creada en {url}. Ya puedes iniciar sesión.",
       "checkEmailForCode": "Por favor, revisa tu correo electrónico para obtener un código de verificación.",
       "registrationFailed": "Error en el registro",
-      "registrationFailedDefault": "Error en el registro"
+      "registrationFailedDefault": "Error en el registro",
+      "signUpToStudio": "Sign up to a studio server"
     },
     "resetPassword": {
       "title": "Restablecer contraseña",
