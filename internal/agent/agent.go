@@ -121,6 +121,15 @@ func RunAgent(projectPath string, history []Message, userMessage, attachmentCont
 					emit("refresh-browser", nil)
 				}
 
+				// Sync updated ignore list to frontend when modified
+				if result.Success && (tc.Function.Name == "add_ignore_pattern" || tc.Function.Name == "remove_ignore_pattern") {
+					if dataMap, ok := result.Data.(map[string]interface{}); ok {
+						if updatedList, ok := dataMap["ignore_list"]; ok {
+							emit("ignore-list-updated", updatedList)
+						}
+					}
+				}
+
 				// Add tool result message
 				messages = append(messages, Message{
 					Role:       "tool",

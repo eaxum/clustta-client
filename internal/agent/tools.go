@@ -876,13 +876,13 @@ func GetToolDefinitions() []ToolDefinition {
 		},
 		{
 			Name:        "add_ignore_pattern",
-			Description: "Add a pattern to the project's ignore list (like .gitignore). Examples: '*.tmp', 'node_modules', '*.log'.",
+			Description: "Add a pattern to the project's ignore list. Always use glob format: '*.ext' for extensions (e.g. '*.tmp', '*.log', '*.blend1'), folder names for directories (e.g. 'node_modules'). Bare names like 'json' or '.json' are auto-normalized to '*.json'.",
 			Parameters: map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{
 					"pattern": map[string]interface{}{
 						"type":        "string",
-						"description": "The ignore pattern to add.",
+						"description": "The ignore pattern in glob format, e.g. '*.json', '*.tmp', 'node_modules'.",
 					},
 				},
 				"required": []string{"pattern"},
@@ -2943,6 +2943,18 @@ func execAddIgnorePattern(projectPath string, args map[string]interface{}) ToolR
 		return ToolResult{Success: false, Error: "pattern is required"}
 	}
 
+	// Normalize extension patterns to proper glob format:
+	// ".json" → "*.json", "blend1" → "*.blend1"
+	// Short bare words (≤10 chars, no spaces) without dots are treated as extensions.
+	// Longer names or names with spaces are left as-is (likely folder names).
+	if !strings.ContainsAny(pattern, "*?/\\ ") {
+		if strings.HasPrefix(pattern, ".") {
+			pattern = "*" + pattern
+		} else if !strings.Contains(pattern, ".") && len(pattern) <= 10 {
+			pattern = "*." + pattern
+		}
+	}
+
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
@@ -2976,7 +2988,7 @@ func execAddIgnorePattern(projectPath string, args map[string]interface{}) ToolR
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	return ToolResult{Success: true, Data: map[string]interface{}{"added": pattern, "total_patterns": len(existing)}}
+	return ToolResult{Success: true, Data: map[string]interface{}{"added": pattern, "total_patterns": len(existing), "ignore_list": existing}}
 }
 
 func execRemoveIgnorePattern(projectPath string, args map[string]interface{}) ToolResult {
@@ -3024,7 +3036,7 @@ func execRemoveIgnorePattern(projectPath string, args map[string]interface{}) To
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	return ToolResult{Success: true, Data: map[string]interface{}{"removed": pattern, "total_patterns": len(updated)}}
+	return ToolResult{Success: true, Data: map[string]interface{}{"removed": pattern, "total_patterns": len(updated), "ignore_list": updated}}
 }
 
 // --- Project type setup ---
