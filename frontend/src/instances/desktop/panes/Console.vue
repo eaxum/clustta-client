@@ -4,7 +4,10 @@
       <div class="console-messages" ref="messagesContainer">
         <template v-for="(message, index) in messages" :key="index">
           <div v-if="message.type === 'user'" class="msg-user">
-            <div class="msg-user-bubble">{{ message.content }}</div>
+            <div class="msg-user-bubble">
+              <div v-if="parseUserContext(message.content).context" class="msg-context-tag">{{ parseUserContext(message.content).context }}</div>
+              {{ parseUserContext(message.content).body }}
+            </div>
           </div>
 
           <div v-else-if="message.type === 'tool-group'" class="msg-tool">
@@ -159,6 +162,7 @@ const toolIconMap = {
   blender_run_script: 'console',
   blender_set_settings: 'cog',
   bulk_assign: 'person-plus',
+  bulk_change_status: 'workflow-arrow',
   bulk_delete_assets: 'trash',
   change_asset_status: 'workflow-arrow',
   create_asset: 'file-plus',
@@ -245,6 +249,14 @@ const formatToolLabel = (toolName, count) => {
 const formatContent = (text) => {
   if (!text) return '';
   let escaped = escapeHtml(text);
+  // Format ISO dates (e.g. 2025-04-17T23:36:15Z or 2025-04-17 at 23:36:15Z)
+  escaped = escaped.replace(/(\d{4}-\d{2}-\d{2})[T ](?:at )?((\d{2}):(\d{2})(?::\d{2})?Z?)/g, (match, datePart, timePart, hours, minutes) => {
+    try {
+      const date = new Date(datePart + 'T' + timePart.replace('at ', '') + (timePart.endsWith('Z') ? '' : 'Z'));
+      if (isNaN(date)) return match;
+      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ' at ' + date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    } catch { return match; }
+  });
   // Code blocks
   escaped = escaped.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code class="code-block">$2</code></pre>');
   // Inline code
@@ -258,6 +270,18 @@ const formatContent = (text) => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
+// Extracts [Context: ...] prefix from a user message into separate display tag and body.
+const parseUserContext = (content) => {
+  if (!content) return { context: '', body: content };
+  const match = content.match(/^\[Context:\s*(.+?)\]\n?/);
+  if (match) {
+    // Strip parenthetical metadata (IDs, types) for display — those are for the agent, not the user
+    const display = match[1].replace(/\s*\([^)]*\)/g, '').replace(/"/g, '');
+    return { context: display, body: content.slice(match[0].length) };
+  }
+  return { context: '', body: content };
+};
 
 // Opens settings page directly to the Advanced tab.
 const openAdvancedSettings = () => {
@@ -624,6 +648,22 @@ onUnmounted(() => {
   line-height: 1.45;
   word-wrap: break-word;
   white-space: pre-wrap;
+}
+
+.msg-context-tag {
+  display: inline-block;
+  max-width: 100%;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--silver);
+  background-color: var(--black-steel);
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
 }
 
 /* Assistant message — no bubble, plain left-aligned text */

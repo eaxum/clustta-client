@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
+
+	"github.com/jmoiron/sqlx"
 )
 
 // ToolDefinition describes a tool the LLM can call.
@@ -683,7 +685,7 @@ func GetToolDefinitions() []ToolDefinition {
 		// Search tool
 		{
 			Name:        "search_assets",
-			Description: "Search for assets across all collections. With no filters, returns all assets in the project. Optionally filter by name (substring match), status ID, asset type ID, assignee ID, or tag name.",
+			Description: "Search for assets across all collections. Returns paginated results (default 50 per page). Use offset to page through large result sets. The response includes total_count so you know how many matched overall.",
 			Parameters: map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{
@@ -707,6 +709,14 @@ func GetToolDefinitions() []ToolDefinition {
 						"type":        "string",
 						"description": "Filter by tag name.",
 					},
+					"limit": map[string]interface{}{
+						"type":        "integer",
+						"description": "Maximum number of results to return (default 50, max 200).",
+					},
+					"offset": map[string]interface{}{
+						"type":        "integer",
+						"description": "Number of results to skip for pagination (default 0).",
+					},
 				},
 				"required": []string{},
 			},
@@ -723,24 +733,83 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
-		// Bulk assignment tools
+		// Bulk operation tools
 		{
-			Name:        "bulk_assign",
-			Description: "Assign a user to multiple assets at once.",
+			Name:        "bulk_change_status",
+			Description: "Change the status of multiple assets at once. Accepts explicit asset_ids OR filter criteria (same as search_assets) to match assets server-side — no need to search first.",
 			Parameters: map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{
 					"asset_ids": map[string]interface{}{
 						"type":        "array",
 						"items":       map[string]interface{}{"type": "string"},
-						"description": "List of asset IDs to assign.",
+						"description": "Explicit list of asset IDs. If provided, filters are ignored.",
+					},
+					"status_id": map[string]interface{}{
+						"type":        "string",
+						"description": "ID of the new status to set.",
+					},
+					"filter_name": map[string]interface{}{
+						"type":        "string",
+						"description": "Filter: substring match on asset name (case-insensitive).",
+					},
+					"filter_status_id": map[string]interface{}{
+						"type":        "string",
+						"description": "Filter: match assets with this current status ID.",
+					},
+					"filter_task_type_id": map[string]interface{}{
+						"type":        "string",
+						"description": "Filter: match assets with this asset type ID.",
+					},
+					"filter_assignee_id": map[string]interface{}{
+						"type":        "string",
+						"description": "Filter: match assets assigned to this user ID.",
+					},
+					"filter_tag_name": map[string]interface{}{
+						"type":        "string",
+						"description": "Filter: match assets with this tag.",
+					},
+				},
+				"required": []string{"status_id"},
+			},
+		},
+		{
+			Name:        "bulk_assign",
+			Description: "Assign a user to multiple assets at once. Accepts explicit asset_ids OR filter criteria (same as search_assets) to match assets server-side — no need to search first.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"asset_ids": map[string]interface{}{
+						"type":        "array",
+						"items":       map[string]interface{}{"type": "string"},
+						"description": "Explicit list of asset IDs. If provided, filters are ignored.",
 					},
 					"user_id": map[string]interface{}{
 						"type":        "string",
 						"description": "ID of the user to assign to all listed assets.",
 					},
+					"filter_name": map[string]interface{}{
+						"type":        "string",
+						"description": "Filter: substring match on asset name (case-insensitive).",
+					},
+					"filter_status_id": map[string]interface{}{
+						"type":        "string",
+						"description": "Filter: match assets with this status ID.",
+					},
+					"filter_task_type_id": map[string]interface{}{
+						"type":        "string",
+						"description": "Filter: match assets with this asset type ID.",
+					},
+					"filter_assignee_id": map[string]interface{}{
+						"type":        "string",
+						"description": "Filter: match assets assigned to this user ID.",
+					},
+					"filter_tag_name": map[string]interface{}{
+						"type":        "string",
+						"description": "Filter: match assets with this tag.",
+					},
 				},
-				"required": []string{"asset_ids", "user_id"},
+				"required": []string{"user_id"},
 			},
 		},
 		{
@@ -923,6 +992,7 @@ var toolPermissions = map[string]toolPermission{
 
 	// Status
 	"change_asset_status": {func(r models.Role) bool { return r.ChangeStatus }, "Change Status"},
+	"bulk_change_status":  {func(r models.Role) bool { return r.ChangeStatus }, "Change Status"},
 
 	// Dependencies
 	"add_dependency":    {func(r models.Role) bool { return r.ManageDependencies }, "Manage Dependencies"},
@@ -1072,6 +1142,8 @@ func ExecuteTool(projectPath string, toolName string, args map[string]interface{
 		return execGetProjectSummary(projectPath)
 	case "bulk_assign":
 		return execBulkAssign(projectPath, args)
+	case "bulk_change_status":
+		return execBulkChangeStatus(projectPath, args)
 	case "unassign_all_assets":
 		return execUnassignAllAssets(projectPath, args)
 	case "random_assign":
@@ -2512,7 +2584,36 @@ func execSearchAssets(projectPath string, args map[string]interface{}) ToolResul
 			Tags:           a.Tags,
 		})
 	}
-	return ToolResult{Success: true, Data: map[string]interface{}{"count": len(results), "assets": results}}
+
+	// Pagination
+	totalCount := len(results)
+	limit := getIntArg(args, "limit", 50)
+	offset := getIntArg(args, "offset", 0)
+	if limit < 1 {
+		limit = 50
+	}
+	if limit > 200 {
+		limit = 200
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	if offset > totalCount {
+		offset = totalCount
+	}
+	end := offset + limit
+	if end > totalCount {
+		end = totalCount
+	}
+	paged := results[offset:end]
+
+	return ToolResult{Success: true, Data: map[string]interface{}{
+		"total_count": totalCount,
+		"offset":      offset,
+		"limit":       limit,
+		"returned":    len(paged),
+		"assets":      paged,
+	}}
 }
 
 // --- Project summary tool ---
@@ -2567,11 +2668,64 @@ func execGetProjectSummary(projectPath string) ToolResult {
 
 // --- Bulk assignment tools ---
 
+// filterAssetIDs resolves asset IDs from explicit IDs or filter criteria.
+func filterAssetIDs(tx *sqlx.Tx, args map[string]interface{}) ([]string, error) {
+	explicitIDs := getStringSliceArg(args, "asset_ids")
+	if len(explicitIDs) > 0 {
+		return explicitIDs, nil
+	}
+
+	nameFilter := strings.ToLower(getStringArg(args, "filter_name", ""))
+	statusFilter := getStringArg(args, "filter_status_id", "")
+	typeFilter := getStringArg(args, "filter_task_type_id", "")
+	assigneeFilter := getStringArg(args, "filter_assignee_id", "")
+	tagFilter := strings.ToLower(getStringArg(args, "filter_tag_name", ""))
+
+	if nameFilter == "" && statusFilter == "" && typeFilter == "" && assigneeFilter == "" && tagFilter == "" {
+		return nil, fmt.Errorf("either asset_ids or at least one filter (filter_name, filter_status_id, filter_task_type_id, filter_assignee_id, filter_tag_name) is required")
+	}
+
+	assets, err := repository.GetAssets(tx, false)
+	if err != nil {
+		return nil, err
+	}
+
+	var ids []string
+	for _, a := range assets {
+		if nameFilter != "" && !strings.Contains(strings.ToLower(a.Name), nameFilter) {
+			continue
+		}
+		if statusFilter != "" && a.StatusId != statusFilter {
+			continue
+		}
+		if typeFilter != "" && a.AssetTypeId != typeFilter {
+			continue
+		}
+		if assigneeFilter != "" && a.AssigneeId != assigneeFilter {
+			continue
+		}
+		if tagFilter != "" {
+			hasTag := false
+			for _, t := range a.Tags {
+				if strings.ToLower(t) == tagFilter {
+					hasTag = true
+					break
+				}
+			}
+			if !hasTag {
+				continue
+			}
+		}
+		ids = append(ids, a.Id)
+	}
+	return ids, nil
+}
+
+// execBulkAssign assigns a user to multiple assets by explicit IDs or filter.
 func execBulkAssign(projectPath string, args map[string]interface{}) ToolResult {
-	assetIDs := getStringSliceArg(args, "asset_ids")
 	userID := getStringArg(args, "user_id", "")
-	if len(assetIDs) == 0 || userID == "" {
-		return ToolResult{Success: false, Error: "asset_ids and user_id are required"}
+	if userID == "" {
+		return ToolResult{Success: false, Error: "user_id is required"}
 	}
 
 	dbConn, err := utils.OpenDb(projectPath)
@@ -2585,6 +2739,14 @@ func execBulkAssign(projectPath string, args map[string]interface{}) ToolResult 
 	}
 	defer tx.Rollback()
 
+	assetIDs, err := filterAssetIDs(tx, args)
+	if err != nil {
+		return ToolResult{Success: false, Error: err.Error()}
+	}
+	if len(assetIDs) == 0 {
+		return ToolResult{Success: true, Data: map[string]interface{}{"assigned": 0, "message": "no assets matched the criteria"}}
+	}
+
 	for _, assetID := range assetIDs {
 		err = repository.AssignAsset(tx, assetID, userID)
 		if err != nil {
@@ -2597,6 +2759,46 @@ func execBulkAssign(projectPath string, args map[string]interface{}) ToolResult 
 	}
 
 	return ToolResult{Success: true, Data: map[string]interface{}{"assigned": len(assetIDs), "user_id": userID}}
+}
+
+// execBulkChangeStatus changes the status of multiple assets by explicit IDs or filter.
+func execBulkChangeStatus(projectPath string, args map[string]interface{}) ToolResult {
+	statusID := getStringArg(args, "status_id", "")
+	if statusID == "" {
+		return ToolResult{Success: false, Error: "status_id is required"}
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return ToolResult{Success: false, Error: err.Error()}
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return ToolResult{Success: false, Error: err.Error()}
+	}
+	defer tx.Rollback()
+
+	assetIDs, err := filterAssetIDs(tx, args)
+	if err != nil {
+		return ToolResult{Success: false, Error: err.Error()}
+	}
+	if len(assetIDs) == 0 {
+		return ToolResult{Success: true, Data: map[string]interface{}{"updated": 0, "message": "no assets matched the criteria"}}
+	}
+
+	for _, assetID := range assetIDs {
+		err = repository.UpdateStatus(tx, assetID, statusID)
+		if err != nil {
+			return ToolResult{Success: false, Error: fmt.Sprintf("failed to update status for asset %s: %s", assetID, err.Error())}
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return ToolResult{Success: false, Error: err.Error()}
+	}
+
+	return ToolResult{Success: true, Data: map[string]interface{}{"updated": len(assetIDs), "status_id": statusID}}
 }
 
 func execUnassignAllAssets(projectPath string, args map[string]interface{}) ToolResult {
@@ -3134,20 +3336,34 @@ func BuildProjectContext(projectPath string) (string, error) {
 		context.WriteString("Collections: None yet\n\n")
 	}
 
-	// Asset count per collection
+	// Asset summary per collection (counts only to save context space)
 	for _, c := range collections {
 		assets, err := repository.GetCollectionAssets(tx, c.Id)
 		if err == nil && len(assets) > 0 {
-			context.WriteString(fmt.Sprintf("Assets in '%s' (%d):\n", c.Name, len(assets)))
+			statusBreakdown := map[string]int{}
 			for _, a := range assets {
-				line := fmt.Sprintf("- %s (ID: %s, type: %s, status: %s", a.Name, a.Id, a.AssetTypeName, a.StatusShortName)
-				if a.AssigneeName != "" {
-					line += fmt.Sprintf(", assigned to: %s", a.AssigneeName)
-				}
-				line += ")"
-				context.WriteString(line + "\n")
+				statusBreakdown[a.StatusShortName]++
 			}
-			context.WriteString("\n")
+			parts := []string{}
+			for status, count := range statusBreakdown {
+				parts = append(parts, fmt.Sprintf("%s: %d", status, count))
+			}
+			context.WriteString(fmt.Sprintf("Assets in '%s': %d total (%s)\n", c.Name, len(assets), strings.Join(parts, ", ")))
+		}
+	}
+	context.WriteString("\n")
+
+	// Root-level assets summary
+	allAssets, err := repository.GetAssets(tx, false)
+	if err == nil {
+		rootCount := 0
+		for _, a := range allAssets {
+			if a.CollectionId == "" {
+				rootCount++
+			}
+		}
+		if rootCount > 0 {
+			context.WriteString(fmt.Sprintf("Root-level assets (no collection): %d\n\n", rootCount))
 		}
 	}
 
@@ -3205,10 +3421,15 @@ func BuildProjectContext(projectPath string) (string, error) {
 }
 
 // serializeToolResult converts a ToolResult to a JSON string for the LLM.
+// Large results are truncated to avoid blowing up the context window.
 func SerializeToolResult(result ToolResult) string {
 	data, err := json.Marshal(result)
 	if err != nil {
 		return fmt.Sprintf(`{"success": false, "error": "failed to serialize result: %s"}`, err.Error())
 	}
-	return string(data)
+	content := string(data)
+	if len(content) > 30000 {
+		content = content[:30000] + `... [truncated — result too large. Use pagination or filters to narrow results.]"`
+	}
+	return content
 }

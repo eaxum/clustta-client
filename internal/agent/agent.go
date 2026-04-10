@@ -80,7 +80,7 @@ func RunAgent(projectPath string, history []Message, userMessage, attachmentCont
 
 		response, err := callLLM(apiKey, provider, messages, tools)
 		if err != nil {
-			return stripSystemMessages(messages), fmt.Errorf("LLM API error: %w", err)
+			return stripSystemMessages(messages), err
 		}
 
 		choice := response.Choices[0]
@@ -228,9 +228,9 @@ func buildSystemPrompt(projectContext string) string {
 - When the user asks for Blender-internal operations (creating Blender collections, modifying objects, changing materials, etc.), use blender_run_python to execute inline Python code directly — do not use generate_script.
 - Blender Python best practices: when creating a Blender collection, always link it to the scene with bpy.context.scene.collection.children.link(). When creating objects, always link them to a collection. Data blocks not linked to the scene are invisible in the Outliner.
 - Before any mutating operation (create, delete, rename, assign, etc.), FIRST call get_my_permissions to check the user's role. If the user lacks the required permission, tell them immediately — do not attempt the action.
-- Use search_assets (with no filters) to list all assets directly. Do not assume assets must be inside collections — assets can exist at root level.
+- Use search_assets (with no filters) to list all assets directly. Do not assume assets must be inside collections — assets can exist at root level. search_assets returns paginated results (default 50). Use offset to page through large result sets.
 - For destructive operations (delete, remove user), warn the user and ask for confirmation first
-- For bulk operations, present a summary plan before executing
+- For bulk operations (assign all X, change status of all Y), use bulk_assign or bulk_change_status with filter parameters — these operate server-side and do NOT require searching first. Never search+collect IDs+loop when a bulk tool with filters can do the job in one call.
 - For script generation, display the script for user review — never claim to execute it
 - Use exact IDs from the project data when calling tools — never guess IDs
 - Be concise and direct in responses
@@ -364,7 +364,7 @@ func callOpenAICompat(apiKey, endpoint, model string, messages []Message, tools 
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return openAIResponse{}, fmt.Errorf("LLM API returned status %d: %s", resp.StatusCode, string(respBody))
+		return openAIResponse{}, parseAPIError(resp.StatusCode, respBody, model)
 	}
 
 	var result openAIResponse
@@ -386,6 +386,41 @@ func callOpenAICompat(apiKey, endpoint, model string, messages []Message, tools 
 	}
 
 	return result, nil
+}
+
+// parseAPIError extracts a user-friendly message from an LLM API error response.
+func parseAPIError(statusCode int, body []byte, model string) error {
+	// Try to extract the message from JSON error response
+	var parsed struct {
+		Error struct {
+			Message string `json:"message"`
+			Type    string `json:"type"`
+		} `json:"error"`
+	}
+	msg := ""
+	if json.Unmarshal(body, &parsed) == nil && parsed.Error.Message != "" {
+		msg = parsed.Error.Message
+	}
+
+	switch statusCode {
+	case 429:
+		return fmt.Errorf("Rate limit exceeded for %s. Please wait a moment and try again.", model)
+	case 401:
+		return fmt.Errorf("Invalid API key. Please check your LLM provider settings.")
+	case 403:
+		return fmt.Errorf("Access denied. Your API key may not have permission for %s.", model)
+	case 500, 502, 503:
+		return fmt.Errorf("The LLM service (%s) is temporarily unavailable. Please try again later.", model)
+	default:
+		if msg != "" {
+			// Truncate long messages
+			if len(msg) > 200 {
+				msg = msg[:200] + "..."
+			}
+			return fmt.Errorf("LLM API error (%d): %s", statusCode, msg)
+		}
+		return fmt.Errorf("LLM API returned an unexpected error (status %d). Please try again.", statusCode)
+	}
 }
 
 // callAnthropic calls the Anthropic messages API, translating to/from OpenAI format.
@@ -477,6 +512,10 @@ func callAnthropic(apiKey string, messages []Message, tools []openAITool) (openA
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return openAIResponse{}, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return openAIResponse{}, parseAPIError(resp.StatusCode, respBody, "claude-sonnet-4-20250514")
 	}
 
 	var anthropicResp anthropicResponse
