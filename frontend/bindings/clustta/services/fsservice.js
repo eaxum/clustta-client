@@ -268,8 +268,8 @@ export function LaunchFile(path) {
 }
 
 /**
- * LaunchFileWith opens the Windows "Open With" dialog for a file.
- * Validates the path exists before opening to prevent command injection.
+ * LaunchFileWith is not supported on Linux.
+ * Returns an error indicating unsupported platform.
  * @param {string} path
  * @returns {$CancellablePromise<void>}
  */
