@@ -467,6 +467,12 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 			return studioProjects, err
 		}
 
+		contentType := response.Header.Get("Content-Type")
+		if !strings.Contains(contentType, "application/json") && len(body) > 0 && body[0] != '[' && body[0] != '{' {
+			fmt.Printf("Server returned non-JSON response, loading local projects\n")
+			return GetLocalStudioProjects(studioProjectsDir, constants.HOST+"/studio/"+studioId, user)
+		}
+
 		err = json.Unmarshal(body, &studioProjects)
 		if err != nil {
 			return studioProjects, err
@@ -595,6 +601,12 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
 			return studioProjects, err
+		}
+
+		contentType := response.Header.Get("Content-Type")
+		if !strings.Contains(contentType, "application/json") && len(body) > 0 && body[0] != '[' && body[0] != '{' {
+			fmt.Printf("Server returned non-JSON response, loading local projects\n")
+			return GetLocalStudioProjects(studioProjectsDir, url, user)
 		}
 
 		err = json.Unmarshal(body, &studioProjects)
@@ -726,6 +738,11 @@ func fetchUserProjects(user auth_service.User) ([]serverProject, error) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	contentType := resp.Header.Get("Content-Type")
+	if !strings.Contains(contentType, "application/json") && len(body) > 0 && body[0] != '[' && body[0] != '{' {
+		return nil, fmt.Errorf("server returned non-JSON response (Content-Type: %s)", contentType)
 	}
 
 	var projects []serverProject
