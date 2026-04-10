@@ -149,7 +149,7 @@ const itemType = computed(() => {
 // constants
 const toolIconMap = {
   add_dependency: 'link',
-  add_ignore_pattern: 'eye-off',
+  add_ignore_pattern: 'file-watch',
   add_tag_to_asset: 'tag',
   assign_asset: 'person-plus',
   batch_add_tags: 'tag',
@@ -456,6 +456,13 @@ const onAgentDone = () => {
   emitter.emit('refresh-browser');
 };
 
+// Syncs the ignore list from the agent's DB update to the in-memory project store.
+const onIgnoreListUpdated = (event) => {
+  if (projectStore.activeProject && event.data) {
+    projectStore.activeProject.ignore_list = event.data;
+  }
+};
+
 // watchers
 watch(() => projectStore.activeProject, async () => {
   messages.value = [];
@@ -478,6 +485,7 @@ onMounted(async () => {
   Events.On('agent-response', onAgentResponse);
   Events.On('agent-error', onAgentError);
   Events.On('agent-done', onAgentDone);
+  Events.On('ignore-list-updated', onIgnoreListUpdated);
 });
 
 onUnmounted(() => {
@@ -487,6 +495,7 @@ onUnmounted(() => {
   Events.Off('agent-response');
   Events.Off('agent-error');
   Events.Off('agent-done');
+  Events.Off('ignore-list-updated');
 });
 </script>
 
@@ -648,10 +657,11 @@ onUnmounted(() => {
   line-height: 1.45;
   word-wrap: break-word;
   white-space: pre-wrap;
+  flex-direction: column;
 }
 
 .msg-context-tag {
-  display: inline-block;
+  /* display: inline-block; */
   max-width: 100%;
   font-size: 10px;
   font-weight: 500;
@@ -664,6 +674,8 @@ onUnmounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   letter-spacing: 0.02em;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 /* Assistant message — no bubble, plain left-aligned text */
