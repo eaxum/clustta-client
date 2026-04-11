@@ -182,7 +182,6 @@ const revertToVersion = (id, checkpointId) => {
             assetStore.refreshDisplayedFilesStatus()
         })
         .catch((error) => {
-            console.log(error)
             notificationStore.addNotification(
                 t('components.checkpointItem.errorReverting'),
                 error.message,
@@ -196,7 +195,6 @@ const revertToVersion = (id, checkpointId) => {
 const viewVersion = (id, checkpointId) => {
     CheckpointService.ViewCheckpoint(projectStore.activeProject.uri, checkpointId, id, assetStore.selectedAsset.name, assetStore.selectedAsset.extension)
         .then((response) => {
-            //console.log(response)
         })
         .catch((error) => {
             notificationStore.addNotification(
@@ -211,7 +209,6 @@ const viewVersion = (id, checkpointId) => {
 let timeoutId;
 
 const enterCheckpoint = (event) => {
-    console.log(props.checkpoint)
     if (!isItemExpanded.value) {
         emit('update-expanded', props.checkpoint.checkpoint_id)
 
@@ -258,7 +255,6 @@ const deleteVersion = async () => {
 
 // Opens the share modal with this checkpoint's ID.
 const openShareModal = () => {
-    console.log('ppppppppp');
     trayStates.shareModalData = {
         checkpointIds: [props.checkpoint.checkpoint_id],
         label: props.checkpoint.comment || '',
@@ -277,9 +273,6 @@ const prepDeletePopUpModal = (checkpointId) => {
 
 onMounted(() => {
     // Access the list elements
-    console.log(entitlementStore.canShareLink)
-    console.log(userStore.canDo('manage_share_links'))
-    
     elements.value = document.querySelectorAll('.checkpoint-item-meta');
 });
 

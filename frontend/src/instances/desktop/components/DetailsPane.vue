@@ -897,6 +897,7 @@ onUnmounted(() => {
   justify-content: flex-start;
 }
 
+
 .details-pane-content {
   display: flex;
   width: 100%;

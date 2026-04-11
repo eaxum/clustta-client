@@ -6,15 +6,15 @@
       <!-- AI Agent Card -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">AI Agent</h2>
+          <h2 class="settings-section-card-title">{{ $t('settings.aiAgent') }}</h2>
         </div>
         <div class="settings-section-card-content">
 
           <div class="settings-item" v-stop-propagation @click="openAgentConfig">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('brain')"></div>
             <div class="settings-content">
-              <div class="settings-header">LLM Provider</div>
-              <div class="settings-body">{{ agentKeyConfigured ? 'Provider configured' : 'Configure the AI model provider for the console agent' }}</div>
+              <div class="settings-header">{{ $t('settings.llmProvider') }}</div>
+              <div class="settings-body">{{ agentKeyConfigured ? $t('settings.providerConfigured') : $t('settings.configureProvider') }}</div>
             </div>
             <div class="settings-action">
               <img class="small-icons" :src="getAppIcon('chevron-right')">

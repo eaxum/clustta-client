@@ -35,8 +35,8 @@
         </div>
 
         <div v-if="!messages.length && !isApiKeyConfigured" class="console-empty">
-          <div class="empty-text">Set up AI Agent</div>
-          <div class="empty-subtext">Configure your LLM provider in <a class="console-link" @click="openAdvancedSettings">Settings</a> to get started</div>
+          <div class="empty-text">{{ $t('panes.setupAiAgent') }}</div>
+          <div class="empty-subtext">{{ $t('panes.configureLlmPre') }} <a class="console-link" @click="openAdvancedSettings">{{ $t('common.settings') }}</a> {{ $t('panes.configureLlmPost') }}</div>
         </div>
       </div>
 
@@ -51,7 +51,7 @@
 
           <div class="console-toolbar">
             <div class="console-toolbar-left">
-              <ActionButton :icon="getAppIcon('paper-clip')" :showLabel="false" v-tooltip="'Attach file'" :buttonFunction="selectAttachment" />
+              <ActionButton :icon="getAppIcon('paper-clip')" :showLabel="false" v-tooltip="$t('panes.attachFile')" :buttonFunction="selectAttachment" />
 
               <PaneHeaderTabs :iconsOnly="false" :useSelected="true" :selectedTab="selectedConsoleTab"
                 :dataTypes="consoleTabs" @filter="handleConsoleTabClick" />
@@ -59,7 +59,7 @@
 
             <div class="console-toolbar-right">
               <ActionButton :icon="getAppIcon('broom')" :showLabel="false" :isDisabled="!messages.length || isProcessing"
-                v-tooltip="'Clear chat'" :buttonFunction="clearChat" />
+                v-tooltip="$t('panes.clearChat')" :buttonFunction="clearChat" />
 
               <ActionButton :icon="getAppIcon('send')" :showLabel="false" :isDisabled="!currentMessage.trim() || isProcessing"
                 v-tooltip="$t('panes.sendMessage')" :buttonFunction="sendMessage" />
@@ -134,9 +134,9 @@ const emptyStateTitle = computed(() => {
 });
 
 const inputPlaceholder = computed(() => {
-  if (isProcessing.value) return 'Agent is working...';
-  if (!isApiKeyConfigured.value) return 'Configure LLM in Settings > Advanced';
-  return 'Ask anything about your project...';
+  if (isProcessing.value) return t('panes.agentWorking');
+  if (!isApiKeyConfigured.value) return t('panes.configureLlmInSettings');
+  return t('panes.askAnything');
 });
 
 const itemType = computed(() => {
@@ -635,7 +635,7 @@ onUnmounted(() => {
 }
 
 .general-pane-root {
-  padding: .5rem 0;
+  /* padding: .5rem 0; */
   box-sizing: border-box;
 }
 

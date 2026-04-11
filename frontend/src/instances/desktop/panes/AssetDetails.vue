@@ -116,18 +116,31 @@
           </div>
         </div>
 
-          <div v-if="assetStore.selectedAsset.tags.length" class="pane-parameter-detail">
-            <div class="simple-text-key">
+          <div class="pane-parameter-detail tag-parameter">
+            <div class="simple-text-key tag-key">
               {{ $t('panes.tags') }}
             </div>
+            
+
+            <div class="tag-section">
+              <div class="asset-tag-list">
+                <Chip v-for="tag in assetTags" :key="tag.id" :label="tag.name" :readonly="!userStore.canDo('update_asset')" :onRemove="() => removeTag(tag)" />
+                <Chip v-if="userStore.canDo('update_asset') && !showTagInput" :icon="getAppIcon('plus-circle')" :label="$t('panes.addTag')" :isStatic="false" :readonly="true" @click="openTagInput" />
+                <span v-if="userStore.canDo('update_asset') && showTagInput" class="tag-input-chip">
+                  <input ref="tagInput" v-model="tagInputValue" class="tag-chip-input" type="text" :placeholder="$t('panes.addTag')" :size="Math.max(tagInputValue.length, 6)" @keydown.enter.prevent="addTag" @keydown.escape.prevent="closeTagInput" />
+                  <ActionButton :icon="getAppIcon('check')" v-tooltip="$t('common.confirm')" @click="addTag" />
+                  <ActionButton :icon="getAppIcon('close')" v-tooltip="$t('common.close')" @click="closeTagInput" />
+                </span>
+              </div>
+            </div>
+
           </div>
+
         </div>
 
       </div>
 
-      <div class="pane-parameter-section">
-        <TagContainer :tags="assetStore.selectedAsset.tags" :displayOnly="true" />
-      </div>
+      
 
     </div>
   </div>
@@ -138,9 +151,9 @@
 
 <script setup>
 // imports
-import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, watch, onBeforeUnmount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { FSService } from '@/services';
+import { FSService, TagService } from '@/services';
 import { Clipboard } from '@wailsio/runtime';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
@@ -156,14 +169,14 @@ import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useCommonStore } from '@/stores/common';
 import { usePlatformStore } from '@/stores/platform';
+import { useTagStore } from '@/stores/tags';
 
 // services
 import { AssetService, CheckpointService } from "@/services";
 
 // components
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import TagContainer from '@/instances/common/components/TagContainer.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import Chip from '@/instances/common/components/Chip.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import AssigneeItem from '@/instances/common/components/AssigneeItem.vue';
@@ -179,12 +192,17 @@ const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const commonStore = useCommonStore();
 const platformStore = usePlatformStore();
+const tagStore = useTagStore();
 const { t } = useI18n();
 
 // refs
-const numberOfSelectedAssets = ref(0);
+const assetTags = ref([]);
 const multiStatusChange = ref(false);
 const latestCheckpoint = ref(null);
+const numberOfSelectedAssets = ref(0);
+const showTagInput = ref(false);
+const tagInputValue = ref('');
+const tagInput = ref(null);
 
 // computed properties
 const projectStatuses = computed(() => {
@@ -215,7 +233,27 @@ const selectedAssetIcon = computed(() => {
   }
 });
 
-//methods
+// methods
+const addTag = async () => {
+  const name = tagInputValue.value.trim();
+  if (!name || !assetStore.selectedAsset) return;
+  try {
+    const updatedNames = await tagStore.addTagToAsset(assetStore.selectedAsset.id, name);
+    assetStore.selectedAsset.tags = updatedNames;
+    await loadAssetTags();
+    tagInputValue.value = '';
+    showTagInput.value = false;
+  } catch (error) {
+    notificationStore.addNotification(t('notifications.failedToAddTag'), 'error');
+  }
+};
+
+// Closes the tag input and resets the value.
+const closeTagInput = () => {
+  showTagInput.value = false;
+  tagInputValue.value = '';
+};
+
 const getAppIcon = (iconName) => {
   const icon = iconStore.getAppIcon(iconName);
   return icon
@@ -263,6 +301,26 @@ const showAllAssets = () => {
   }
   commonStore.onlyAssets = true;
   emitter.emit('refresh-browser');
+};
+
+// Opens the tag input field and focuses it.
+const openTagInput = () => {
+  showTagInput.value = true;
+  nextTick(() => {
+    tagInput.value?.focus();
+  });
+};
+
+// Removes a tag from the selected asset.
+const removeTag = async (tag) => {
+  if (!assetStore.selectedAsset) return;
+  try {
+    const updatedNames = await tagStore.removeTagFromAsset(assetStore.selectedAsset.id, tag.id);
+    assetStore.selectedAsset.tags = updatedNames;
+    await loadAssetTags();
+  } catch (error) {
+    notificationStore.addNotification(t('notifications.failedToRemoveTag'), 'error');
+  }
 };
 
 const revealInExplorer = async () => {
@@ -422,6 +480,19 @@ const editAsset = () => {
   modals.setModalVisibility('editAssetModal', true);
 };
 
+// Loads full tag objects for the selected asset.
+const loadAssetTags = async () => {
+  if (!assetStore.selectedAsset) {
+    assetTags.value = [];
+    return;
+  }
+  try {
+    assetTags.value = await TagService.GetAssetTags(projectStore.activeProject.uri, assetStore.selectedAsset.id);
+  } catch (error) {
+    assetTags.value = [];
+  }
+};
+
 const assetSize = ref(0);
 
 const assetPath = computed(() => {
@@ -440,12 +511,14 @@ const getProjectData = async () => {
     return
   }
   getAssetSize();
+  loadAssetTags();
   loadLatestCheckpoint();
 }
 
 watch(() => assetStore.selectedAsset, () => {
   assetSize.value = 0;
   getProjectData();
+  loadAssetTags();
   loadLatestCheckpoint();
 });
 
@@ -469,23 +542,31 @@ onBeforeUnmount(() => {
 
 <style scoped>
 @import "@/assets/desktop.css";
-.asset-details{
+
+.pane-parameter-section {
   overflow: hidden;
-  overflow-y: scroll;
+  overflow-y: auto;
   padding-right: .5rem;
+  height: 100%;
+  width: 96%;
 }
 
-.asset-details::-webkit-scrollbar {
+.pane-parameter-section::-webkit-scrollbar {
   width: 4px;
 }
 
-.asset-details::-webkit-scrollbar-thumb {
-  border-radius: 10px;
+.pane-parameter-section::-webkit-scrollbar-thumb {
+  border-radius: var(--small-radius);
   background-color: var(--light-steel);
 }
 
-.asset-details::-webkit-scrollbar-track {
-  border-radius: 10px;
+.pane-parameter-section::-webkit-scrollbar-track {
+  border-radius: var(--small-radius);
+  margin: 1rem 0;
+}
+
+.asset-details{
+  padding-right: 0;
 }
 .pane-parameter-detail {
   display: flex;
@@ -494,14 +575,14 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  height: 30px;
+  min-height: 30px;
+  height: min-content;
   border-bottom: var(--transparent-line);
 }
 
 .menu-divider {
   height: 5px;
   margin-top: 10px;
-  /* margin-bottom: 10px; */
   width: 100%
 }
 
@@ -586,6 +667,66 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   flex-direction: column;
 }
+
+.tag-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  overflow: hidden;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  height: min-content;
+}
+
+.tag-input-chip {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--steel);
+  border-radius: var(--large-radius);
+  font-size: 0.875rem;
+  color: var(--white);
+  overflow: hidden;
+  height: min-content;
+}
+
+.tag-chip-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--white);
+  font-size: 0.875rem;
+  font-weight: 300;
+  padding: 0.25rem 0.5rem;
+  min-width: 3rem;
+  max-width: 10rem;
+  width: auto;
+}
+
+.tag-parameter {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  border-bottom: 0px;
+}
+
+.tag-key {
+  display: flex;
+  align-items: center;
+  height: 30px;
+}
+
+.asset-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  padding: .2rem;
+  overflow: hidden;
+  box-sizing: border-box;
+  width: 100%;
+}
+
 </style>
 
 

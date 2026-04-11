@@ -1818,7 +1818,7 @@ onBeforeUnmount(() => {
   position: absolute;
   bottom: 8px;
   right: 8px;
-  z-index: 2;
+  z-index: 1;
 }
 
 .asset-item-grid-assign-button {

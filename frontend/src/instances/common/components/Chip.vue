@@ -1,18 +1,18 @@
 <template>
-  <span class="chip" :class="{ 'readonly': readonly }">
-    <div v-if="useImage" class="chip-icon-container">
+  <span class="chip" :class="{ 'readonly': readonly || isStatic }" :style="chipStyle">
+    <div v-if="useImage && !isStatic" class="chip-icon-container">
       <img class="chip-logo no-filter" :src="icon">
     </div>
     <ActionButton
-      v-else
+      v-else-if="!isStatic"
       :icon="icon"
       :isInactive="true"
       :showIcon="true"
       :showLabel="false"
     />
-    <span class="chip-name">{{ label }}</span>
+    <span class="chip-name" :class="{ 'chip-name-static': isStatic }">{{ label }}</span>
     <ActionButton
-      v-if="!readonly"
+      v-if="!readonly && !isStatic"
       :icon="closeIcon"
       :buttonFunction="onRemove"
       :showIcon="true"
@@ -31,7 +31,7 @@ const iconStore = useIconStore();
 const props = defineProps({
   icon: {
     type: String,
-    required: true
+    default: ''
   },
   label: {
     type: String,
@@ -48,9 +48,18 @@ const props = defineProps({
   readonly: {
     type: Boolean,
     default: false
+  },
+  isStatic: {
+    type: Boolean,
+    default: false
+  },
+  color: {
+    type: String,
+    default: ''
   }
 });
 
+const chipStyle = computed(() => props.color ? { 'background-color': props.color } : {});
 const closeIcon = computed(() => iconStore.getAppIcon('close'));
 </script>
 
@@ -67,18 +76,30 @@ const closeIcon = computed(() => iconStore.getAppIcon('close'));
   transition: background-color 0.2s;
   padding: 0px;
   overflow: hidden;
+  max-width: 100%;
 }
 
 .chip:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  /* background-color: rgba(255, 255, 255, 0.1); */
+  background-color: var(--light-steel);
+  outline: var(--transparent-line);
 }
 
 .chip-name {
+  font-weight: 300;
   user-select: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .chip.readonly {
   padding-right: 0.75rem;
+}
+
+.chip-name-static {
+  padding: 0.25rem 0.5rem;
 }
 
 .chip-icon-container {

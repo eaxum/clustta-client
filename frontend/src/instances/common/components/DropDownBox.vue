@@ -251,15 +251,14 @@ onUnmounted(() => {
 .list-box-parent {
   position: relative;
   box-sizing: border-box;
-  color: black;
   color: var(--white);
   display: flex;
   flex-direction: row;
   width: 100%;
-  border-radius: 10px;
+  border-radius: var(--normal-radius);
   height: 35px;
   align-items: center;
-  padding: 4px;
+  padding: 6px;
   overflow: hidden;
   font-family: Inter, sans-serif;
   font-size: 16px;
@@ -269,6 +268,7 @@ onUnmounted(() => {
   flex: 1;
   min-height: 35px;
   background-color: var(--midnight-steel);
+  outline-offset: -1px;
   /* background-color: crimson; */
 }
 

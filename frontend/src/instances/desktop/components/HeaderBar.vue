@@ -30,11 +30,11 @@
 
 				<div v-if="userStore.canDo('create_asset')" class="actions-divider" ></div>
 				
-				<ActionButton :isDisabled="revertButtonDisabled" @click="openChangeLog()" :icon="getAppIcon('revert')"
-					:iconAfter="true" v-tooltip="revertButtonTooltip" />
+				<!-- <ActionButton :isDisabled="revertButtonDisabled" @click="openChangeLog()" :icon="getAppIcon('revert')"
+					:iconAfter="true" v-tooltip="revertButtonTooltip" /> -->
 
 				<ActionButton :isDisabled="syncButtonDisabled" @click="unSynced ? syncData() : pullData()" :icon="getAppIcon(getCloudIcon)"
-					:iconAfter="true" v-tooltip="cloudIconTooltip" />
+					:useOutline="true" :color="cloudIconColor" :isLoading="isSyncing" :label="cloudIconLabel" v-tooltip="cloudIconTooltip" />
 				
 				<!-- <ActionButton :icon="getAppIcon('bell')" @click="panes.setPaneVisibility('notifications', true)" v-tooltip="'Notifications'"  /> -->
 			</div>
@@ -126,13 +126,32 @@ const getCloudIcon = computed(() => {
 	}
 	// Check if any operations are active
 	if (!!notificationStore.getProgress.running) {
-		return 'cloud-clock';
+		return 'loading';
 	}
 	// Server is available
 	if (!unSynced.value) {
-		return 'cloud-down';
+		return 'cloud-check';
 	}
 	return 'cloud-up';
+});
+
+// Returns the color for the cloud/sync button based on its state.
+const cloudIconColor = computed(() => {
+	if (!studioStore.appOnline || projectStore.getActiveProject?.is_offline) return 'var(--danger)';
+	if (!!notificationStore.getProgress.running) return null;
+	if (!unSynced.value) return 'var(--solid-blue-steel)';
+	return 'var(--alert)';
+});
+
+const isSyncing = computed(() => !!notificationStore.getProgress.running);
+
+// Returns the label text for the cloud/sync button.
+const cloudIconLabel = computed(() => {
+	if (!studioStore.appOnline) return t('components.headerBar.serverUnreachable');
+	if (projectStore.getActiveProject?.is_offline) return t('components.headerBar.projectOffline');
+	if (!!notificationStore.getProgress.running) return t('components.headerBar.syncing');
+	if (!unSynced.value) return t('components.headerBar.upToDate');
+	return t('components.headerBar.sync');
 });
 
 // Returns the tooltip text for the cloud/sync icon.
@@ -140,8 +159,8 @@ const cloudIconTooltip = computed(() => {
 	if (!studioStore.appOnline) return t('components.headerBar.serverUnreachable');
 	if (projectStore.getActiveProject?.is_offline) return t('components.headerBar.projectOffline');
 	if (!!notificationStore.getProgress.running) return t('components.headerBar.syncing');
-	if (!unSynced.value) return t('components.headerBar.upToDate');
-	return t('components.headerBar.unsyncedChanges');
+	if (!unSynced.value) return t('components.headerBar.clickToRefresh');
+	return t('components.headerBar.sync');
 });
 
 // computed properties
