@@ -289,7 +289,7 @@ const updateSearch = () => {
 @import "@/assets/desktop.css";
 
 .collaborators-scroll-container {
-  width: 100%;
+  width: 96%;
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;

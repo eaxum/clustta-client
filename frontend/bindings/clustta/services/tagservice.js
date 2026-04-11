@@ -11,12 +11,52 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 import * as models$0 from "../internal/repository/models/models.js";
 
 /**
- * Retrieves all tags from the project database
+ * Adds a tag to an asset by name, creating the tag if it doesn't exist.
+ * Returns the updated list of tags for the asset.
+ * @param {string} projectPath
+ * @param {string} assetId
+ * @param {string} tagName
+ * @returns {$CancellablePromise<models$0.Tag[]>}
+ */
+export function AddTagToAsset(projectPath, assetId, tagName) {
+    return $Call.ByID(2298146177, projectPath, assetId, tagName).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
+ * Retrieves all tags associated with a specific asset.
+ * @param {string} projectPath
+ * @param {string} assetId
+ * @returns {$CancellablePromise<models$0.Tag[]>}
+ */
+export function GetAssetTags(projectPath, assetId) {
+    return $Call.ByID(1932031834, projectPath, assetId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
+ * Retrieves all tags from the project database.
  * @param {string} projectPath
  * @returns {$CancellablePromise<models$0.Tag[]>}
  */
 export function GetTags(projectPath) {
     return $Call.ByID(393450660, projectPath).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
+ * Removes a tag from an asset by tag ID.
+ * Returns the updated list of tags for the asset.
+ * @param {string} projectPath
+ * @param {string} assetId
+ * @param {string} tagId
+ * @returns {$CancellablePromise<models$0.Tag[]>}
+ */
+export function RemoveTagFromAsset(projectPath, assetId, tagId) {
+    return $Call.ByID(4257314151, projectPath, assetId, tagId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
 }

@@ -13,8 +13,11 @@
       <template v-else>
       <div class="input-section">
         <div class="horizontal-flex">
-          <input v-model="projectName" @input="updateWorkingDirectory" class="input-short" type="text" :placeholder="$t('placeholders.projectName')" ref="projectNameInput"
+          <input v-model="projectName" class="input-short" type="text" :placeholder="$t('placeholders.projectName')" ref="projectNameInput"
             @keydown.enter="handleEnterKey" v-focus />
+          <span @click="addExistingFolder" class="single-action-button" v-tooltip="$t('modals.addExistingFolder')">
+            <img class="small-icons" :src="getAppIcon('folder-arrow-in')">
+          </span>
         </div>
         <InputAlert :show="!projectIsCreated && projectNameInUse" :message="$t('modals.projectNameExists')" />
       </div>
@@ -102,10 +105,11 @@ import { useStageStore } from '@/stores/stages';
 import { useEntitlementStore } from '@/stores/entitlements';
 
 // refs
+const existingFolderPath = ref(null);
 const isAwaitingResponse = ref(false);
 const isCloning = ref(false);
-const makeRemote = ref(false);
 const isLoadingLocations = ref(false);
+const makeRemote = ref(false);
 const modalContainer = ref(null);
 const projectIsCreated = ref(false);
 const projectLocations = ref([]);
@@ -161,6 +165,7 @@ const showRemoteToggle = computed(() => {
 
 // Returns the computed working directory path.
 const workingDirectory = computed(() => {
+  if (existingFolderPath.value) return existingFolderPath.value;
   if (!selectedLocation.value || !projectName.value) return '';
   const studioName = projectStore.selectedStudio.name;
   if (studioName === 'Personal') {
@@ -170,6 +175,33 @@ const workingDirectory = computed(() => {
 });
 
 // methods
+// Opens a folder dialog to select an existing project folder.
+const addExistingFolder = async () => {
+  const userDirectory = await SettingsService.GetUserDirectory();
+  const documentsPath = userDirectory + 'Documents';
+  const result = await DialogService.SelectSpecificFolderDialog("Select Existing Project Folder", documentsPath);
+  if (!result) return;
+  const path = result.replace(/\\/g, '/');
+  const pathParts = path.split('/');
+  const folderName = pathParts[pathParts.length - 1] || 'Project';
+  const parentPath = pathParts.slice(0, -1).join('/');
+  const parentName = pathParts[pathParts.length - 2] || `Location ${projectLocations.value.length + 1}`;
+  existingFolderPath.value = path;
+  projectName.value = folderName;
+  const existingLocation = projectLocations.value.find(loc => loc.path === parentPath);
+  if (existingLocation) {
+    selectedLocation.value = existingLocation;
+  } else {
+    try {
+      const newLocation = await SettingsService.AddProjectLocation(parentName, parentPath);
+      projectLocations.value.push(newLocation);
+      selectedLocation.value = newLocation;
+    } catch (error) {
+      notificationStore.errorNotification(t('notifications.errorAddingLocation'), error);
+    }
+  }
+};
+
 // Adds a new project location via folder dialog.
 const addNewLocation = async () => {
   const userDirectory = await SettingsService.GetUserDirectory();
@@ -272,12 +304,9 @@ const createProject = async () => {
     path = path + ".clst"
   }
   
-  console.log(path)
-  console.log(studio.name)
-  console.log(workingDirectory.value)
-  console.log(selectedProjectTemplate.value)
+  const templateName = selectedProjectTemplate.value === t('modals.noTemplate') ? 'No Template' : selectedProjectTemplate.value;
 
-  ProjectService.CreateProject(path, studio.name, workingDirectory.value, selectedProjectTemplate.value, studio.hosting_mode || '', studio.id || '').then(async (project) => {
+  ProjectService.CreateProject(path, studio.name, workingDirectory.value, templateName, studio.hosting_mode || '', studio.id || '').then(async (project) => {
 
     projectIsCreated.value = true;
 
@@ -459,8 +488,9 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  gap: .4px;
+  gap: .5rem;
   color: var(--white);
+
 }
 
 .input-short {

@@ -380,6 +380,30 @@ onBeforeUnmount(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 
+.pane-parameter-section {
+  overflow: hidden;
+  overflow-y: auto;
+  padding-right: .5rem;
+  height: 100%;
+  width: 96%;
+  align-items: center;
+}
+
+.pane-parameter-section::-webkit-scrollbar {
+  width: 4px;
+}
+
+.pane-parameter-section::-webkit-scrollbar-thumb {
+  border-radius: var(--small-radius);
+  background-color: var(--light-steel);
+}
+
+.pane-parameter-section::-webkit-scrollbar-track {
+  border-radius: var(--small-radius);
+  margin: 1rem 0;
+}
+
+
 .menu-divider {
   height: 5px;
   margin-top: 10px;
@@ -434,10 +458,6 @@ onBeforeUnmount(() => {
   justify-content: space-around;
 }
 
-.pane-parameter-section {
-  flex: 1;
-  height: 200px;
-}
 
 .pane-parameter-detail {
   display: flex;

@@ -1,21 +1,21 @@
 <template>
   <div class="modal-container" v-stop-propagation>
-    <HeaderArea :title="'Configure AI Agent'" :icon="getAppIcon('brain')" :showSearch="false" />
+    <HeaderArea :title="t('modals.configureAiAgent')" :icon="getAppIcon('brain')" :showSearch="false" />
     <div class="general-container">
 
       <div class="input-section">
-        <label class="input-label">LLM Provider</label>
-        <DropDownBox :items="providerOptions" :onSelect="onProviderSelect" :selectedItem="selectedProvider" :placeHolder="'Select Provider'" :fullWidth="true" />
+        <label class="input-label">{{ $t('settings.llmProvider') }}</label>
+        <DropDownBox :items="providerOptions" :onSelect="onProviderSelect" :selectedItem="selectedProvider" :placeHolder="t('modals.selectProvider')" :fullWidth="true" />
       </div>
 
       <div v-if="selectedProvider !== 'Ollama'" class="input-section">
-        <label class="input-label">API Key</label>
-        <input v-model="apiKey" type="password" class="input-short" :placeholder="agentKeyConfigured ? 'Enter new key to replace...' : 'Paste your API key...'" @keydown.enter="saveConfig" />
+        <label class="input-label">{{ $t('modals.apiKey') }}</label>
+        <input v-model="apiKey" type="password" class="input-short" :placeholder="agentKeyConfigured ? t('modals.enterNewKey') : t('modals.pasteApiKey')" @keydown.enter="saveConfig" />
       </div>
 
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="'Save'" :fullWidth="true" :buttonFunction="saveConfig" :isActive="canSave" />
+        <GeneralButton :label="$t('common.save')" :fullWidth="true" :buttonFunction="saveConfig" :isActive="canSave" />
       </div>
     </div>
   </div>
@@ -24,6 +24,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
@@ -41,6 +42,7 @@ import { useNotificationStore } from '@/stores/notifications';
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
+const { t } = useI18n();
 
 // refs
 const agentKeyConfigured = ref(false);
@@ -79,7 +81,7 @@ const saveConfig = async () => {
     await AgentService.SetAPIKey(providerKey, apiKey.value.trim());
     agentKeyConfigured.value = true;
     apiKey.value = '';
-    notificationStore.addNotification('AI Agent', 'LLM provider saved successfully.', 'success');
+    notificationStore.addNotification(t('settings.aiAgent'), t('modals.llmProviderSaved'), 'success');
     closeModal();
   } catch (err) {
     notificationStore.addNotification('Error', `Failed to save: ${err}`, 'error');

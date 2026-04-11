@@ -285,6 +285,10 @@ onBeforeUnmount(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 
+.general-pane-header{
+  width: 96%;
+}
+
 .checkpoint-list-container {
   width: 100%;
   height: 100%;

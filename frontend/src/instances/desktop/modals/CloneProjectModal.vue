@@ -246,7 +246,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  gap: .4px;
+  gap: .5rem;
   color: var(--white);
 }
 

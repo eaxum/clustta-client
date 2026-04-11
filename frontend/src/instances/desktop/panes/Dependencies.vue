@@ -510,6 +510,10 @@ onUnmounted(() => {
   justify-content: flex-end;
 }
 
+.general-pane-header{
+  width: 96%;
+}
+
 .sidebar-scroll {
   display: flex;
   flex-direction: column;

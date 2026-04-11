@@ -29,6 +29,7 @@
 
         <div v-if="notification" ref="notificationItem" :class="['message', notification.type]" @mouseenter="stopTimer()"
             @mouseleave="showMessage(notification)">
+            <img :src="getAppIcon(notificationIcon)" class="notification-icon" alt="">
             <span class="text-container" >{{ utils.capitalizeStr(notification.message) }}</span>
         </div>
 
@@ -100,6 +101,11 @@ const bridgeEnabled = computed(() => settingsStore.bridgeEnabled);
 
 const isOutdated = computed(() => {
   return false;
+});
+
+const notificationIcon = computed(() => {
+  const icons = { error: 'close-circle', warning: 'alert', success: 'check-circle', info: 'info' };
+  return icons[notification.value?.type] || 'info';
 });
 
 const isWriteOperation = computed(() => {
@@ -331,17 +337,25 @@ onBeforeUnmount(() => {
   overflow: hidden;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: .3rem;
   border-radius: 3px;
   box-sizing: border-box;
   height: 70%;
   justify-content: flex-end;
   background-color: crimson;
-  padding: .3rem .5rem;
+  padding: .3rem .3rem;
   z-index: 99999;
 }
 
+.notification-icon {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  /* filter: invert(100%); */
+}
+
 .text-container{
+  color: white;
     text-overflow: ellipsis;
     overflow: hidden;
 }

@@ -89,4 +89,53 @@ export const TagService = {
       console.error('DeleteTag local update error:', error);
     }
   },
+
+  // Returns all tags for a specific asset
+  GetAssetTags: async (projectPath, assetId) => {
+    const projectName = getProjectName(projectPath);
+    try {
+      const db = await getDatabase(projectName);
+      const rows = query(db, 'SELECT t.* FROM tag t INNER JOIN asset_tag at ON t.id = at.tag_id WHERE at.asset_id = ? ORDER BY t.name', [assetId]);
+      return rows.map(rowToTag);
+    } catch (error) {
+      console.error('GetAssetTags error:', error);
+      return [];
+    }
+  },
+
+  // Adds a tag to an asset by name, creating the tag if it doesn't exist
+  AddTagToAsset: async (projectPath, assetId, tagName) => {
+    const projectName = getProjectName(projectPath);
+    const studioUrl = getActiveStudioUrl();
+
+    const result = await studioApiCall(studioUrl, `/${projectName}/asset/${assetId}/tag`, 'POST', { name: tagName });
+
+    try {
+      const db = await getDatabase(projectName);
+      const rows = query(db, 'SELECT t.* FROM tag t INNER JOIN asset_tag at ON t.id = at.tag_id WHERE at.asset_id = ? ORDER BY t.name', [assetId]);
+      return rows.map(rowToTag);
+    } catch (error) {
+      console.error('AddTagToAsset local query error:', error);
+      return result || [];
+    }
+  },
+
+  // Removes a tag from an asset by tag ID
+  RemoveTagFromAsset: async (projectPath, assetId, tagId) => {
+    const projectName = getProjectName(projectPath);
+    const studioUrl = getActiveStudioUrl();
+
+    await studioApiCall(studioUrl, `/${projectName}/asset/${assetId}/tag/${tagId}`, 'DELETE');
+
+    try {
+      const db = await getDatabase(projectName);
+      execute(db, 'DELETE FROM asset_tag WHERE asset_id = ? AND tag_id = ?', [assetId, tagId]);
+      await persistDatabase(projectName);
+      const rows = query(db, 'SELECT t.* FROM tag t INNER JOIN asset_tag at ON t.id = at.tag_id WHERE at.asset_id = ? ORDER BY t.name', [assetId]);
+      return rows.map(rowToTag);
+    } catch (error) {
+      console.error('RemoveTagFromAsset local update error:', error);
+      return [];
+    }
+  },
 };

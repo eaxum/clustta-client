@@ -19,6 +19,9 @@
         <ActionButton v-else-if="!isPinExceeded" :icon="getAppIcon('pin')" :showLabel="true" :fullWidth="true"
           :label="$t('panes.pinProject')" :buttonFunction="pinProject" v-tooltip="$t('panes.pinProjectTooltip')"/>
 
+        <ActionButton :icon="getAppIcon('briefcase-cog')" :showLabel="true" :fullWidth="true"
+          :label="$t('panes.projectSettings')" :buttonFunction="openProjectSettings" v-tooltip="$t('panes.projectSettingsTooltip')" />
+
         <span v-if="!platformStore.isWeb" class="menu-divider"></span>
 
         <!-- Reveal in Explorer -->
@@ -205,6 +208,11 @@ const collectionMenu = ref(null);
 const editProject = () => {
   modals.setModalVisibility('editProjectModal', true);
   menu.hideContextMenu();
+};
+
+// Opens the project settings stage.
+const openProjectSettings = () => {
+  stage.setStageVisibility('projectSettings', true);
 };
 
 const pinProject = async () => {
@@ -565,7 +573,7 @@ onBeforeUnmount(() => {
 
 .general-pane-root{
   padding-top: .5rem;
-  padding-bottom: 1rem;
+  padding-bottom: .5rem;
   box-sizing: border-box;
   position: relative;
 }

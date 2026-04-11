@@ -84,21 +84,19 @@ func AddPreviews(tx *sqlx.Tx, previews []models.Preview) error {
 	for _, preview := range previews {
 		_, err := GetPreview(tx, preview.Hash)
 		if err == nil {
-			return nil
-		} else {
-			if err == error_service.ErrPreviewNotFound {
-				_, err = tx.Exec("INSERT INTO preview (hash, preview, extension) VALUES (?, ?, ?)",
-					preview.Hash,
-					preview.Preview,
-					preview.Extension,
-				)
-				if err != nil {
-					return err
-				}
-			}
+			continue
+		}
+		if err != error_service.ErrPreviewNotFound {
 			return err
 		}
-
+		_, err = tx.Exec("INSERT INTO preview (hash, preview, extension) VALUES (?, ?, ?)",
+			preview.Hash,
+			preview.Preview,
+			preview.Extension,
+		)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

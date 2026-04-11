@@ -10,12 +10,32 @@ export const useTagStore = defineStore("tags", {
     getTags: (state) => {
       return state.tags;
     },
+    getTagNames: (state) => {
+      return state.tags.map((tag) => tag.name);
+    },
   },
   actions: {
     async reloadTags() {
       const projectStore = useProjectStore();
       if (!projectStore.activeProject?.uri) return;
       this.tags = await TagService.GetTags(projectStore.activeProject.uri);
+    },
+
+    // Adds a tag to an asset and returns the updated tag names.
+    async addTagToAsset(assetId, tagName) {
+      const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri) return [];
+      const tags = await TagService.AddTagToAsset(projectStore.activeProject.uri, assetId, tagName);
+      await this.reloadTags();
+      return tags.map((tag) => tag.name);
+    },
+
+    // Removes a tag from an asset and returns the updated tag names.
+    async removeTagFromAsset(assetId, tagId) {
+      const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri) return [];
+      const tags = await TagService.RemoveTagFromAsset(projectStore.activeProject.uri, assetId, tagId);
+      return tags.map((tag) => tag.name);
     },
   },
 });
