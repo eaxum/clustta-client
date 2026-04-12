@@ -531,19 +531,14 @@ func BytesToHumanReadable(bytes int) string {
 	}
 }
 
-func NormalizePath(path string) string {
+func NormalizePath(p string) string {
 	// First convert backslashes to forward slashes
-	path = strings.ReplaceAll(path, "\\", "/")
+	p = strings.ReplaceAll(p, "\\", "/")
 
-	// Remove duplicate slashes
-	for strings.Contains(path, "//") {
-		path = strings.ReplaceAll(path, "//", "/")
-	}
+	// Clean the path to resolve . and .. components
+	p = path.Clean(p)
 
-	// Use filepath.Clean to handle . and .. components
-	path = filepath.Clean(path)
-
-	return path
+	return p
 }
 
 func RemoveDuplicates(slice []string) []string {
