@@ -13,7 +13,7 @@
 			<FilterButton :icon="getAppIcon('man-running')" v-tooltip="barIsOverflowing ? $t('components.filterBar.assetType') : ''" :alert="isFilterActive('asset-type')"
 				:label="$t('components.filterBar.assetType')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'assetTypeFilterMenu')"
 				@click="showFilterMenu($event, 'assetTypeFilterMenu')" />
-			<FilterButton v-if="showTagsFilter && viewTags.length" :icon="getAppIcon('tag')" v-tooltip="barIsOverflowing ? $t('components.filterBar.tags') : ''"
+			<FilterButton v-if="showTagsFilter" :icon="getAppIcon('tag')" v-tooltip="barIsOverflowing ? $t('components.filterBar.tags') : ''"
 				:label="$t('components.filterBar.tags')" :alert="isFilterActive('tags')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'tagsFilterMenu')"
 				@click="showFilterMenu($event, 'tagsFilterMenu')" />
 			<FilterButton :icon="getAppIcon('person')" v-tooltip="barIsOverflowing ? $t('components.filterBar.assignation') : ''" :label="$t('components.filterBar.assignees')"
@@ -38,14 +38,12 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue'
 import FilterButton from '@/instances/desktop/components/FilterButton.vue'
 
 //stores
-import { useAssetStore } from '@/stores/assets';
 import { useCommonStore } from '@/stores/common';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useTagStore } from '@/stores/tags';
 
 // states
-const assetStore = useAssetStore();
 const commonStore = useCommonStore();
 const iconStore = useIconStore();
 const menu = useMenu();
@@ -73,23 +71,6 @@ const filtersActive = computed(() => {
 });
 
 const showTagsFilter = computed(() => !!tagStore.tags.length && (commonStore.showAssets || commonStore.showResources));
-
-const viewTags = computed(() => {
-	let tags = tagStore.tags;
-	let viewTagNames = [];
-	let filteredAssetResults = assetStore.getFilteredAssets;
-	for (const asset of filteredAssetResults) {
-		let assetTags = asset.tags;
-		for (let t = 0; t < assetTags.length; t++) {
-			if (!viewTagNames.includes(assetTags[t])) viewTagNames.push(assetTags[t]);
-		}
-	}
-	for (let i = 0; i < tags.length; i++) {
-		tags[i].name = tags[i].name;
-		tags[i].type = 'tags';
-	}
-	return tags.filter((item) => viewTagNames.includes(item.name));
-});
 
 const emit = defineEmits(['selectCrumb']);
 
