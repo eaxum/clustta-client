@@ -18,7 +18,8 @@ export const useTagStore = defineStore("tags", {
     async reloadTags() {
       const projectStore = useProjectStore();
       if (!projectStore.activeProject?.uri) return;
-      this.tags = await TagService.GetTags(projectStore.activeProject.uri);
+      const tags = await TagService.GetTags(projectStore.activeProject.uri);
+      this.tags = tags.map((tag) => ({ ...tag, type: "tags" }));
     },
 
     // Adds a tag to an asset and returns the updated tag names.
