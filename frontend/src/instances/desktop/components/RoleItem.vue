@@ -1,7 +1,7 @@
 <template>
   <div class="role-item-main">
     <div class="role-item-spacer">
-      <img class="role-item-icon" :src="getAppIcon('scale')" />
+      <img class="role-item-icon small-icons" :src="getAppIcon('scale')" />
     </div>
 
     <div class="role-item-root">
