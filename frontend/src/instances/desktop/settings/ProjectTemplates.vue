@@ -298,10 +298,8 @@ const addAssetType = () => {
 };
 
 const prepEditAssetType = (selectedAssetTypeId) => {
-
-    console.log(selectedAssetTypeId);
+    projectTemplateStore.selectedAssetTypeId = selectedAssetTypeId;
     modals.setModalVisibility('editUserAssetTypeModal', true);
-
 };
 
 const deleteAssetType = async (assetTypeId) => {
@@ -314,7 +312,7 @@ const addCollectionType = () => {
 };
 
 const prepEditCollectionType = (selectedCollectionTypeId) => {
-    console.log(selectedCollectionTypeId);
+    projectTemplateStore.selectedCollectionTypeId = selectedCollectionTypeId;
     modals.setModalVisibility('editUserCollectionTypeModal', true);
 };
 

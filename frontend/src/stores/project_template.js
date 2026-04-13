@@ -19,6 +19,8 @@ export const useProjectTemplateStore = defineStore("project_template", {
     assetTemplates: [],
     assetTypes: [],
     collectionTypes: [],
+    selectedAssetTypeId: null,
+    selectedCollectionTypeId: null,
   }),
   getters: {
     getTemplates: (state) => {

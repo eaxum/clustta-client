@@ -3,7 +3,7 @@
 
     <!-- Launch -->
     <ActionButton
-      v-if="userStore.canDo('pull_chunk') && untrackedItemStore.selectedUntrackedItem.type == 'untracked_asset'"
+      v-if="userStore.canDo('pull_chunk') && isUntrackedAsset"
       :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true" :label="$t('common.openWith')"
       :buttonFunction="launchAssetWithCommand" />
 
@@ -17,7 +17,7 @@
     <ActionButton :icon="getAppIcon('file-watch')" :showLabel="true" :fullWidth="true" :label="$t('menus.ignoreFileFolder')"
       :buttonFunction="ignoreItem" />
 
-    <ActionButton v-if="untrackedItemStore.selectedUntrackedItem.type == 'untracked_asset'"
+    <ActionButton v-if="isUntrackedAsset"
       :icon="getAppIcon('file-watch')" :showLabel="true" :fullWidth="true" :label="$t('menus.ignoreExtensionType')"
       :buttonFunction="ignoreExtensionType" />
 
@@ -96,6 +96,11 @@ const props = defineProps({
 const emit = defineEmits(['clicked']);
 
 // computed
+// Checks if the selected untracked item is an untracked asset.
+const isUntrackedAsset = computed(() => {
+  return untrackedItemStore.selectedUntrackedItem?.type === 'untracked_asset';
+});
+
 // Checks if the selected untracked item is an archive.
 const isArchive = computed(() => {
   const archiveFormats = ['.zip', '.rar', '.7z', '.tar', '.gz', '.bz2'];
@@ -238,7 +243,7 @@ const removeLastSlash = (text) => {
 
 // Emits event to rename the item.
 const renameItem = () => {
-  emitter.emit('renameAsset');
+  emitter.emit(isUntrackedAsset.value ? 'renameAsset' : 'renameCollection');
   menu.hideContextMenu();
 };
 

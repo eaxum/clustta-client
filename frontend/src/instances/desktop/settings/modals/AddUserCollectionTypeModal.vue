@@ -44,6 +44,7 @@ const collectionStore = useCollectionStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectTemplateStore = useProjectTemplateStore();
+const { t } = useI18n();
 
 import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';

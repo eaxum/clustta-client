@@ -39,17 +39,16 @@ import IconGrid from '@/instances/desktop/components/IconGrid.vue';
 import { AssetService } from "@/services";
 
 // stores
-const assetStore = useAssetStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const projectStore = useProjectStore();
+const projectTemplateStore = useProjectTemplateStore();
+const { t } = useI18n();
 
-import { useAssetStore } from '@/stores/assets';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
-import { useProjectStore } from '@/stores/projects';
+import { useProjectTemplateStore } from '@/stores/project_template';
 
 // constants
 const title = 'Edit asset type';
@@ -63,7 +62,7 @@ const assetTypeName = ref('');
 // computed
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allAssetTypeIcons = assetStore.assetTypes.map((item) => item.icon);
+  const allAssetTypeIcons = projectTemplateStore.assetTypes.map((item) => item.icon);
   return allIcons.filter((icon) => !allAssetTypeIcons.includes(icon));
 });
 
@@ -97,11 +96,11 @@ const setIcon = (icon) => {
 
 // Updates the asset type with the new values.
 const updateAssetType = () => {
-  AssetService.UpdateAssetType(projectStore.activeProject.uri, assetStore.selectedAssetType.id, assetTypeName.value, assetTypeIcon.value)
-    .then((response) => {
+  const typeId = projectTemplateStore.selectedAssetTypeId;
+  AssetService.UpdateAssetType(projectTemplateStore.activeProjectTemplate.uri, typeId, assetTypeName.value, assetTypeIcon.value)
+    .then(() => {
       notificationStore.addNotification(t('notifications.assetTypeUpdated'), "", "success");
-      const index = assetStore.assetTypes.findIndex(assetType => assetType.id === assetStore.selectedAssetType.id);
-      assetStore.assetTypes[index] = response;
+      projectTemplateStore.reloadProjectTemplate();
       closeModal();
     })
     .catch((error) => {
@@ -111,8 +110,11 @@ const updateAssetType = () => {
 
 // lifecycle
 onMounted(() => {
-  // assetTypeName.value = assetStore.selectedAssetType.name;
-  // assetTypeIcon.value = assetStore.selectedAssetType.icon;
+  const selectedType = projectTemplateStore.assetTypes.find(t => t.id === projectTemplateStore.selectedAssetTypeId);
+  if (selectedType) {
+    assetTypeName.value = selectedType.name;
+    assetTypeIcon.value = selectedType.icon;
+  }
 });
 </script>
 

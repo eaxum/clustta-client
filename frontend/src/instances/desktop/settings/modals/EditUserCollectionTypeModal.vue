@@ -41,15 +41,14 @@ import IconGrid from '@/instances/desktop/components/IconGrid.vue';
 import { CollectionService } from "@/services";
 
 // stores
-const collectionStore = useCollectionStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const projectStore = useProjectStore();
+const projectTemplateStore = useProjectTemplateStore();
+const { t } = useI18n();
 
-import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
-import { useProjectStore } from '@/stores/projects';
+import { useProjectTemplateStore } from '@/stores/project_template';
 
 // constants
 const title = 'Edit Collection type';
@@ -63,7 +62,7 @@ const isAwaitingResponse = ref(false);
 // computed
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allCollectionTypeIcons = collectionStore.getCollectionTypes.map((item) => item.icon);
+  const allCollectionTypeIcons = projectTemplateStore.collectionTypes.map((item) => item.icon);
   return allIcons.filter((icon) => !allCollectionTypeIcons.includes(icon));
 });
 
@@ -92,11 +91,11 @@ const setIcon = (icon) => {
 
 // Updates the collection type with the new values.
 const updateCollectionType = () => {
-  CollectionService.UpdateCollectionType(projectStore.activeProject.uri, collectionStore.selectedCollectionType.id, collectionTypeName.value, collectionTypeIcon.value)
-    .then((response) => {
+  const typeId = projectTemplateStore.selectedCollectionTypeId;
+  CollectionService.UpdateCollectionType(projectTemplateStore.activeProjectTemplate.uri, typeId, collectionTypeName.value, collectionTypeIcon.value)
+    .then(() => {
       notificationStore.addNotification(t('notifications.collectionTypeUpdated'), "", "success");
-      const index = collectionStore.collectionTypes.findIndex(collectionType => collectionType.id === collectionStore.selectedCollectionType.id);
-      collectionStore.collectionTypes[index] = response;
+      projectTemplateStore.reloadProjectTemplate();
       closeModal();
     })
     .catch((error) => {
@@ -106,8 +105,11 @@ const updateCollectionType = () => {
 
 // lifecycle
 onMounted(() => {
-  // collectionTypeName.value = collectionStore.selectedCollectionType.name;
-  // collectionTypeIcon.value = collectionStore.selectedCollectionType.icon;
+  const selectedType = projectTemplateStore.collectionTypes.find(t => t.id === projectTemplateStore.selectedCollectionTypeId);
+  if (selectedType) {
+    collectionTypeName.value = selectedType.name;
+    collectionTypeIcon.value = selectedType.icon;
+  }
 });
 </script>
 
