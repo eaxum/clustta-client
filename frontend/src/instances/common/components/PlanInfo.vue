@@ -1,9 +1,10 @@
 <template>
   <div v-if="visible" class="plan-info" :class="{ 'plan-free': !isPaid }" @click="handleClick" v-stop-propagation>
     <template v-if="!isPaid">
-      <span class="plan-label">Free</span>
-      <span class="plan-separator">·</span>
-      <span class="plan-upgrade">Upgrade</span>
+      <div class="plan-free-content">
+        <img class="plan-free-icon" :src="getAppIcon('diamond')" />
+        <span class="plan-upgrade">Upgrade</span>
+      </div>
     </template>
 
     <template v-else>
@@ -27,11 +28,13 @@ import utils from '@/services/utils';
 import { useAccountStore } from '@/stores/accounts';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useEntitlementStore } from '@/stores/entitlements';
+import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
 import { useUserStore } from '@/stores/users';
 
 const accountStore = useAccountStore();
 const entitlementStore = useEntitlementStore();
+const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
@@ -115,6 +118,11 @@ const storageBarClass = computed(() => {
 });
 
 // methods
+// Returns the app icon for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
 // Handles click on the plan info widget.
 const handleClick = () => {
   modals.setModalVisibility('clusttaCloudModal', true);
@@ -157,6 +165,19 @@ watch(() => projectStore.selectedStudio, (studio) => {
 
 .plan-free:hover {
   background-color: hsl(270, 50%, 38%);
+}
+
+.plan-free-content{
+ color: white;
+ display: flex;
+ align-items: center;
+ gap: .3rem;
+}
+
+.plan-free-icon {
+  width: 18px;
+  height: 18px;
+  /* filter: invert(100%); */
 }
 
 .plan-label {
