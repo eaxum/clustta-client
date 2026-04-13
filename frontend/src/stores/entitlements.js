@@ -10,7 +10,7 @@ export const useEntitlementStore = defineStore("entitlements", {
     status: 'active',
     limits: {
       storage_bytes: 0,
-      max_remote_projects: 1,
+      max_remote_projects: 0,
       max_collaborators: 0,
       ai_credits_monthly: 0,
     },
