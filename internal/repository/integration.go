@@ -118,7 +118,7 @@ func DeleteIntegrationProject(tx *sqlx.Tx, id string) error {
 	return base_service.Delete(tx, "integration_project", id)
 }
 
-// CreateCollectionMapping creates a mapping between external entity and Clustta collection.
+// CreateCollectionMapping creates a mapping between external collection and Clustta collection.
 func CreateCollectionMapping(tx *sqlx.Tx, id, integrationId, externalId, externalType, externalName, externalParentId, externalPath, externalMetadata, collectionId, syncedAt string) (models.IntegrationCollectionMapping, error) {
 	mapping := models.IntegrationCollectionMapping{}
 	params := map[string]interface{}{
@@ -221,7 +221,7 @@ func deleteCollectionMappingsByIntegration(tx *sqlx.Tx, integrationId string) er
 	return err
 }
 
-// CreateAssetMapping creates a mapping between external task and Clustta asset.
+// CreateAssetMapping creates a mapping between external asset and Clustta asset.
 func CreateAssetMapping(tx *sqlx.Tx, id, integrationId, externalId, externalName, externalParentId, externalType, externalStatus, externalAssignees, externalMetadata, assetId, syncedAt string) (models.IntegrationAssetMapping, error) {
 	mapping := models.IntegrationAssetMapping{}
 	params := map[string]interface{}{

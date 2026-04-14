@@ -12,118 +12,118 @@ import (
 // func TestMain(m *testing.M) {
 // 	testutils.Setup()
 // 	testutils.GenerateFixtureTemplate()
-// 	testutils.GenerateFixtureEntityType()
-// 	testutils.GenerateFixtureEntity()
-// 	testutils.GenerateFixtureTaskType()
+// 	testutils.GenerateFixtureCollectionType()
+// 	testutils.GenerateFixtureCollection()
+// 	testutils.GenerateFixtureAssetType()
 // 	code := m.Run()
 // 	testutils.Teardown()
 // 	os.Exit(code)
 // }
 
-func TestCreateTaskType(t *testing.T) {
+func TestCreateAssetType(t *testing.T) {
 	testutils.Setup()
 	defer testutils.Teardown()
-	_, err := repository.CreateTaskType(testutils.Tx, "", "task type 1", "test")
+	_, err := repository.CreateAssetType(testutils.Tx, "", "asset type 1", "test")
 	if err != nil {
 		t.Errorf("didnt expect any error but got: %s", err.Error())
 	}
 }
-func TestDeleteTaskType(t *testing.T) {
+func TestDeleteAssetType(t *testing.T) {
 	testutils.Setup()
 	defer testutils.Teardown()
-	taskType, err := repository.CreateTaskType(testutils.Tx, "", "task type 1", "test")
+	assetType, err := repository.CreateAssetType(testutils.Tx, "", "asset type 1", "test")
 	if err != nil {
 		t.Errorf("didnt expect any error but got: %s", err.Error())
 	}
-	err = repository.DeleteTaskType(testutils.Tx, taskType.Id)
+	err = repository.DeleteAssetType(testutils.Tx, assetType.Id)
 	if err != nil {
 		t.Errorf("didnt expect any error but got: %s", err.Error())
 	}
 
 }
-func TestGetTaskTypes(t *testing.T) {
+func TestGetAssetTypes(t *testing.T) {
 	testutils.Setup()
 	defer testutils.Teardown()
-	_, err := repository.GetTaskTypes(testutils.Tx)
+	_, err := repository.GetAssetTypes(testutils.Tx)
 	if err != nil {
 		t.Errorf("didnt expect any error but got: %s", err.Error())
 	}
 }
 
-func TestCreateTask(t *testing.T) {
+func TestCreateAsset(t *testing.T) {
 	testutils.Setup()
 	testutils.GenerateFixtureTemplate()
-	testutils.GenerateFixtureEntityType()
-	testutils.GenerateFixtureEntity()
-	testutils.GenerateFixtureTaskType()
+	testutils.GenerateFixtureCollectionType()
+	testutils.GenerateFixtureCollection()
+	testutils.GenerateFixtureAssetType()
 	defer testutils.Teardown()
 
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
 		t.Error(err.Error())
 	}
-	_, err = repository.CreateTask(
-		testutils.Tx, "", "task 2", testutils.TaskType.Id, testutils.Entity.Id, false,
+	_, err = repository.CreateAsset(
+		testutils.Tx, "", "asset 2", testutils.AssetType.Id, testutils.Collection.Id, false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
 
 }
-func TestCreateRootTask(t *testing.T) {
+func TestCreateRootAsset(t *testing.T) {
 	testutils.Setup()
 	testutils.GenerateFixtureTemplate()
-	testutils.GenerateFixtureEntityType()
-	testutils.GenerateFixtureEntity()
-	testutils.GenerateFixtureTaskType()
+	testutils.GenerateFixtureCollectionType()
+	testutils.GenerateFixtureCollection()
+	testutils.GenerateFixtureAssetType()
 	defer testutils.Teardown()
 
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
 		t.Error(err.Error())
 	}
-	_, err = repository.CreateTask(
-		testutils.Tx, "", "task 2", testutils.TaskType.Id, "", false,
+	_, err = repository.CreateAsset(
+		testutils.Tx, "", "asset 2", testutils.AssetType.Id, "", false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
 
 }
-func TestGetTask(t *testing.T) {
+func TestGetAsset(t *testing.T) {
 	testutils.Setup()
 	testutils.GenerateFixtureTemplate()
-	testutils.GenerateFixtureEntityType()
-	testutils.GenerateFixtureEntity()
-	testutils.GenerateFixtureTaskType()
+	testutils.GenerateFixtureCollectionType()
+	testutils.GenerateFixtureCollection()
+	testutils.GenerateFixtureAssetType()
 	defer testutils.Teardown()
 
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
 		t.Error(err.Error())
 	}
-	task, err := repository.CreateTask(
-		testutils.Tx, "", "task", testutils.TaskType.Id, testutils.Entity.Id, false,
+	asset, err := repository.CreateAsset(
+		testutils.Tx, "", "asset", testutils.AssetType.Id, testutils.Collection.Id, false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
-	_, err = repository.GetTask(testutils.Tx, task.Id)
+	_, err = repository.GetAsset(testutils.Tx, asset.Id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	_, err = repository.GetTaskByName(testutils.Tx, task.Name, task.EntityId, task.Extension)
+	_, err = repository.GetAssetByName(testutils.Tx, asset.Name, asset.CollectionId, asset.Extension)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
 }
-func TestGetUserTasks(t *testing.T) {
+func TestGetUserAssets(t *testing.T) {
 	testutils.Setup()
 	testutils.GenerateFixtureTemplate()
-	testutils.GenerateFixtureEntityType()
-	testutils.GenerateFixtureEntity()
-	testutils.GenerateFixtureTaskType()
+	testutils.GenerateFixtureCollectionType()
+	testutils.GenerateFixtureCollection()
+	testutils.GenerateFixtureAssetType()
 	defer testutils.Teardown()
 
 	user, err := auth_service.GetActiveUser()
@@ -134,43 +134,43 @@ func TestGetUserTasks(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	task, err := repository.CreateTask(
-		testutils.Tx, "", "task", testutils.TaskType.Id, testutils.Entity.Id, false,
+	asset, err := repository.CreateAsset(
+		testutils.Tx, "", "asset", testutils.AssetType.Id, testutils.Collection.Id, false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
-	err = repository.AssignTask(testutils.Tx, task.Id, users[0].Id)
+	err = repository.AssignAsset(testutils.Tx, asset.Id, users[0].Id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	userTasks, err := repository.GetUserTasks(testutils.Tx, users[0].Id)
+	userAssets, err := repository.GetUserAssets(testutils.Tx, users[0].Id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if len(userTasks) < 1 {
-		t.Errorf("Expected 1 task, got %d", len(userTasks))
+	if len(userAssets) < 1 {
+		t.Errorf("Expected 1 asset, got %d", len(userAssets))
 	}
-	err = repository.UnAssignTask(testutils.Tx, task.Id)
+	err = repository.UnAssignAsset(testutils.Tx, asset.Id)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	userTasks, err = repository.GetUserTasks(testutils.Tx, users[0].Id)
+	userAssets, err = repository.GetUserAssets(testutils.Tx, users[0].Id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	if len(userTasks) != 0 {
-		t.Errorf("Expected 0 task, got %d", len(userTasks))
+	if len(userAssets) != 0 {
+		t.Errorf("Expected 0 asset, got %d", len(userAssets))
 	}
 
 }
-func TestGetTasks(t *testing.T) {
+func TestGetAssets(t *testing.T) {
 	testutils.Setup()
 	testutils.GenerateFixtureTemplate()
-	testutils.GenerateFixtureEntityType()
-	testutils.GenerateFixtureEntity()
-	testutils.GenerateFixtureTaskType()
+	testutils.GenerateFixtureCollectionType()
+	testutils.GenerateFixtureCollection()
+	testutils.GenerateFixtureAssetType()
 	defer testutils.Teardown()
 
 	user, err := auth_service.GetActiveUser()
@@ -178,38 +178,38 @@ func TestGetTasks(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	tasks, err := repository.GetTasks(testutils.Tx, true)
+	assets, err := repository.GetAssets(testutils.Tx, true)
 	if err != nil {
 		t.Error(err.Error())
 	}
 	expectedCount := 0
-	if len(tasks) != expectedCount {
-		t.Errorf("Expected %d tasks, got %d", expectedCount, len(tasks))
+	if len(assets) != expectedCount {
+		t.Errorf("Expected %d assets, got %d", expectedCount, len(assets))
 	}
 
-	_, err = repository.CreateTask(
-		testutils.Tx, "", "task", testutils.TaskType.Id, testutils.Entity.Id, false,
+	_, err = repository.CreateAsset(
+		testutils.Tx, "", "asset", testutils.AssetType.Id, testutils.Collection.Id, false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	tasks, err = repository.GetTasks(testutils.Tx, true)
+	assets, err = repository.GetAssets(testutils.Tx, true)
 	if err != nil {
 		t.Error(err.Error())
 	}
 	expectedCount = 1
-	if len(tasks) != expectedCount {
-		t.Errorf("Expected %d tasks, got %d", expectedCount, len(tasks))
+	if len(assets) != expectedCount {
+		t.Errorf("Expected %d assets, got %d", expectedCount, len(assets))
 	}
 
 }
-func TestDeleteTask(t *testing.T) {
+func TestDeleteAsset(t *testing.T) {
 	testutils.Setup()
 	testutils.GenerateFixtureTemplate()
-	testutils.GenerateFixtureEntityType()
-	testutils.GenerateFixtureEntity()
-	testutils.GenerateFixtureTaskType()
+	testutils.GenerateFixtureCollectionType()
+	testutils.GenerateFixtureCollection()
+	testutils.GenerateFixtureAssetType()
 	defer testutils.Teardown()
 
 	user, err := auth_service.GetActiveUser()
@@ -217,24 +217,24 @@ func TestDeleteTask(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	task, err := repository.CreateTask(
-		testutils.Tx, "", "task 2", testutils.TaskType.Id, testutils.Entity.Id, false,
+	asset, err := repository.CreateAsset(
+		testutils.Tx, "", "asset 2", testutils.AssetType.Id, testutils.Collection.Id, false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
-	err = repository.DeleteTask(testutils.Tx, task.Id, true, true)
+	err = repository.DeleteAsset(testutils.Tx, asset.Id, true, true)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
 }
-func TestUpdateTask(t *testing.T) {
+func TestUpdateAsset(t *testing.T) {
 	testutils.Setup()
 	testutils.GenerateFixtureTemplate()
-	testutils.GenerateFixtureEntityType()
-	testutils.GenerateFixtureEntity()
-	testutils.GenerateFixtureTaskType()
+	testutils.GenerateFixtureCollectionType()
+	testutils.GenerateFixtureCollection()
+	testutils.GenerateFixtureAssetType()
 	defer testutils.Teardown()
 
 	user, err := auth_service.GetActiveUser()
@@ -242,29 +242,29 @@ func TestUpdateTask(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	task, err := repository.CreateTask(
-		testutils.Tx, "", "task 2", testutils.TaskType.Id, testutils.Entity.Id, false,
+	asset, err := repository.CreateAsset(
+		testutils.Tx, "", "asset 2", testutils.AssetType.Id, testutils.Collection.Id, false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
-	updatedTask, err := repository.UpdateTask(testutils.Tx, task.Id, "renamed", task.TaskTypeId, task.IsResource, task.Pointer, []string{})
+	updatedAsset, err := repository.UpdateAsset(testutils.Tx, asset.Id, "renamed", asset.AssetTypeId, asset.IsResource, asset.Pointer, []string{})
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
-	_, err = repository.GetTaskByName(testutils.Tx, updatedTask.Name, updatedTask.EntityId, updatedTask.Extension)
+	_, err = repository.GetAssetByName(testutils.Tx, updatedAsset.Name, updatedAsset.CollectionId, updatedAsset.Extension)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
 }
 
-func TestUpdateTaskStatus(t *testing.T) {
+func TestUpdateAssetStatus(t *testing.T) {
 	testutils.Setup()
 	testutils.GenerateFixtureTemplate()
-	testutils.GenerateFixtureEntityType()
-	testutils.GenerateFixtureEntity()
-	testutils.GenerateFixtureTaskType()
+	testutils.GenerateFixtureCollectionType()
+	testutils.GenerateFixtureCollection()
+	testutils.GenerateFixtureAssetType()
 	defer testutils.Teardown()
 
 	user, err := auth_service.GetActiveUser()
@@ -272,68 +272,68 @@ func TestUpdateTaskStatus(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	task, err := repository.CreateTask(
-		testutils.Tx, "", "task 2", testutils.TaskType.Id, testutils.Entity.Id, false,
+	asset, err := repository.CreateAsset(
+		testutils.Tx, "", "asset 2", testutils.AssetType.Id, testutils.Collection.Id, false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
 	status, err := repository.GetStatusByShortName(testutils.Tx, "wip")
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
-	err = repository.UpdateStatus(testutils.Tx, task.Id, status.Id)
+	err = repository.UpdateStatus(testutils.Tx, asset.Id, status.Id)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 }
 
-func TestDeleteEntityTasks(t *testing.T) {
+func TestDeleteCollectionAssets(t *testing.T) {
 	testutils.Setup()
 	testutils.GenerateFixtureTemplate()
-	testutils.GenerateFixtureEntityType()
-	testutils.GenerateFixtureEntity()
-	testutils.GenerateFixtureTaskType()
+	testutils.GenerateFixtureCollectionType()
+	testutils.GenerateFixtureCollection()
+	testutils.GenerateFixtureAssetType()
 	defer testutils.Teardown()
 
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
 		t.Error(err.Error())
 	}
-	_, err = repository.CreateTask(
-		testutils.Tx, "", "task 2", testutils.TaskType.Id, testutils.Entity.Id, false,
+	_, err = repository.CreateAsset(
+		testutils.Tx, "", "asset 2", testutils.AssetType.Id, testutils.Collection.Id, false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	_, err = repository.CreateTask(
-		testutils.Tx, "", "task 3", testutils.TaskType.Id, testutils.Entity.Id, false,
+	_, err = repository.CreateAsset(
+		testutils.Tx, "", "asset 3", testutils.AssetType.Id, testutils.Collection.Id, false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	err = repository.DeleteEntityTasks(testutils.Tx, testutils.Entity.Id, true)
+	err = repository.DeleteCollectionAssets(testutils.Tx, testutils.Collection.Id, true)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	entityTasks, err := repository.GetTasksByEntityId(testutils.Tx, testutils.Entity.Id)
+	collectionAssets, err := repository.GetAssetsByCollectionId(testutils.Tx, testutils.Collection.Id)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
-	if len(entityTasks) != 0 {
-		t.Errorf("Expected 0 tasks of entity, got %d", len(entityTasks))
+	if len(collectionAssets) != 0 {
+		t.Errorf("Expected 0 assets of collection, got %d", len(collectionAssets))
 	}
 
 }
 
-func TestAddTaskDependency(t *testing.T) {
+func TestAddAssetDependency(t *testing.T) {
 	testutils.Setup()
 	testutils.GenerateFixtureTemplate()
-	testutils.GenerateFixtureEntityType()
-	testutils.GenerateFixtureEntity()
-	testutils.GenerateFixtureTaskType()
+	testutils.GenerateFixtureCollectionType()
+	testutils.GenerateFixtureCollection()
+	testutils.GenerateFixtureAssetType()
 	testutils.GenerateFixtureDependencyType()
 	defer testutils.Teardown()
 
@@ -341,31 +341,31 @@ func TestAddTaskDependency(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	taskA, err := repository.CreateTask(
-		testutils.Tx, "", "task A", testutils.TaskType.Id, testutils.Entity.Id, false,
+	assetA, err := repository.CreateAsset(
+		testutils.Tx, "", "asset A", testutils.AssetType.Id, testutils.Collection.Id, false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
-	taskB, err := repository.CreateTask(
-		testutils.Tx, "", "task B", testutils.TaskType.Id, testutils.Entity.Id, false,
+	assetB, err := repository.CreateAsset(
+		testutils.Tx, "", "asset B", testutils.AssetType.Id, testutils.Collection.Id, false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	_, err = repository.AddDependency(testutils.Tx, "", taskA.Id, taskB.Id, testutils.DependencyType.Id)
+	_, err = repository.AddDependency(testutils.Tx, "", assetA.Id, assetB.Id, testutils.DependencyType.Id)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
 }
-func TestRemoveTaskDependency(t *testing.T) {
+func TestRemoveAssetDependency(t *testing.T) {
 	testutils.Setup()
 	testutils.GenerateFixtureTemplate()
-	testutils.GenerateFixtureEntityType()
-	testutils.GenerateFixtureEntity()
-	testutils.GenerateFixtureTaskType()
+	testutils.GenerateFixtureCollectionType()
+	testutils.GenerateFixtureCollection()
+	testutils.GenerateFixtureAssetType()
 	testutils.GenerateFixtureDependencyType()
 	defer testutils.Teardown()
 
@@ -373,35 +373,35 @@ func TestRemoveTaskDependency(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	taskA, err := repository.CreateTask(
-		testutils.Tx, "", "task A", testutils.TaskType.Id, testutils.Entity.Id, false,
+	assetA, err := repository.CreateAsset(
+		testutils.Tx, "", "asset A", testutils.AssetType.Id, testutils.Collection.Id, false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
-	taskB, err := repository.CreateTask(
-		testutils.Tx, "", "task B", testutils.TaskType.Id, testutils.Entity.Id, false,
+	assetB, err := repository.CreateAsset(
+		testutils.Tx, "", "asset B", testutils.AssetType.Id, testutils.Collection.Id, false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	_, err = repository.AddDependency(testutils.Tx, "", taskA.Id, taskB.Id, testutils.DependencyType.Id)
+	_, err = repository.AddDependency(testutils.Tx, "", assetA.Id, assetB.Id, testutils.DependencyType.Id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	err = repository.RemoveTaskDependency(testutils.Tx, taskA.Id, taskB.Id)
+	err = repository.RemoveAssetDependency(testutils.Tx, assetA.Id, assetB.Id)
 	if err != nil {
 		t.Error(err.Error())
 	}
 
 }
-func TestReAddTaskDependency(t *testing.T) {
+func TestReAddAssetDependency(t *testing.T) {
 	testutils.Setup()
 	testutils.GenerateFixtureTemplate()
-	testutils.GenerateFixtureEntityType()
-	testutils.GenerateFixtureEntity()
-	testutils.GenerateFixtureTaskType()
+	testutils.GenerateFixtureCollectionType()
+	testutils.GenerateFixtureCollection()
+	testutils.GenerateFixtureAssetType()
 	testutils.GenerateFixtureDependencyType()
 	defer testutils.Teardown()
 
@@ -409,28 +409,28 @@ func TestReAddTaskDependency(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	taskA, err := repository.CreateTask(
-		testutils.Tx, "", "task A", testutils.TaskType.Id, testutils.Entity.Id, false,
+	assetA, err := repository.CreateAsset(
+		testutils.Tx, "", "asset A", testutils.AssetType.Id, testutils.Collection.Id, false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
-	taskB, err := repository.CreateTask(
-		testutils.Tx, "", "task B", testutils.TaskType.Id, testutils.Entity.Id, false,
+	assetB, err := repository.CreateAsset(
+		testutils.Tx, "", "asset B", testutils.AssetType.Id, testutils.Collection.Id, false,
 		testutils.Template.Id, "", "", []string{}, "", false, "", user.Id, "Asset created", uuid.New().String(), func(i1, i2 int, s1, s2 string) {})
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	_, err = repository.AddDependency(testutils.Tx, "", taskA.Id, taskB.Id, testutils.DependencyType.Id)
+	_, err = repository.AddDependency(testutils.Tx, "", assetA.Id, assetB.Id, testutils.DependencyType.Id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	err = repository.RemoveTaskDependency(testutils.Tx, taskA.Id, taskB.Id)
+	err = repository.RemoveAssetDependency(testutils.Tx, assetA.Id, assetB.Id)
 	if err != nil {
 		t.Error(err.Error())
 	}
-	_, err = repository.AddDependency(testutils.Tx, "", taskA.Id, taskB.Id, testutils.DependencyType.Id)
+	_, err = repository.AddDependency(testutils.Tx, "", assetA.Id, assetB.Id, testutils.DependencyType.Id)
 	if err != nil {
 		t.Error(err.Error())
 	}

@@ -264,12 +264,12 @@ func ChangeUserRole(tx *sqlx.Tx, userId string, roleId string) error {
 }
 
 func RemoveUser(tx *sqlx.Tx, userId string) error {
-	tasks, err := repository.GetUserTasks(tx, userId)
+	assets, err := repository.GetUserAssets(tx, userId)
 	if err != nil {
 		return err
 	}
-	if len(tasks) != 0 {
-		return error_service.ErrUserHaveTaskAssigned
+	if len(assets) != 0 {
+		return error_service.ErrUserHaveAssetAssigned
 	}
 	activeUser, err := auth_service.GetActiveUser()
 	if err != nil {

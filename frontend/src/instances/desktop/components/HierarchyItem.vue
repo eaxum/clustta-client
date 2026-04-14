@@ -1,11 +1,11 @@
 <template>
-  <div :class="['hierarchy-item', { 'is-directory': item.type === 'entity', 'hierarchy-item-root': isHierarchyRoot }]">
+  <div :class="['hierarchy-item', { 'is-directory': item.type === 'collection', 'hierarchy-item-root': isHierarchyRoot }]">
     <div class="item-header" :class="{ 'item-header-selected': isItemSelected }">
 
       <span class="hierarchy-item-spacer single-action-button" @click="toggleExpand"
-        :class="{ 'no-expand': item.type !== 'entity' || !item.children.length }">
-        <img v-if="item.type === 'entity' && item.children.length" class="large-icons hierarchy-entity-collapsed"
-          :class="{ 'hierarchy-entity-expanded': isExpanded }" :src="getAppIcon('chevron-right')">
+        :class="{ 'no-expand': item.type !== 'collection' || !item.children.length }">
+        <img v-if="item.type === 'collection' && item.children.length" class="large-icons hierarchy-collection-collapsed"
+          :class="{ 'hierarchy-collection-expanded': isExpanded }" :src="getAppIcon('chevron-right')">
       </span>
 
       <span v-if="!isHierarchyRoot" class="hierarchy-item-spacer single-action-button"
@@ -35,13 +35,13 @@
 
       <div v-if="!isHierarchyRoot && !item.is_tracked_parent" class="hierarchy-item-config">
 
-        <DropDownBox v-if="item.entity_type_id" :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType"
-          :onSelect="selectEntityType" :fullWidth="false" />
+        <DropDownBox v-if="item.collection_type_id" :items="collectionStore.getCollectionTypesNames" :selectedItem="collectionType"
+          :onSelect="selectCollectionType" :fullWidth="false" />
 
         <DropDownBox v-else :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" :fullWidth="false" />
 
-        <div v-if="!item.entity_type_id" class="hierarchy-item-type-options">
-          <DropDownBox :items="taskTypeNames" :selectedItem="taskType" :onSelect="selectTaskType" :fullWidth="false" />
+        <div v-if="!item.collection_type_id" class="hierarchy-item-type-options">
+          <DropDownBox :items="assetTypeNames" :selectedItem="assetType" :onSelect="selectAssetType" :fullWidth="false" />
         </div>
 
         <ActionButton :icon="getAppIcon('trash')" v-tooltip="$t('components.hierarchyItem.remove')" @click="removeItem(item)" />
@@ -50,7 +50,7 @@
 
     </div>
 
-    <div v-if="item.type === 'entity' && isExpanded" class="item-children">
+    <div v-if="item.type === 'collection' && isExpanded" class="item-children">
       <HierarchyItem v-for="child in item.children" :key="child.name" :item="child" :isExpanded="child.is_expanded" />
     </div>
   </div>
@@ -99,7 +99,7 @@ const props = defineProps({
 // refs
 const isExpanded = ref(props.isExpanded);
 const itemType = computed(() => {
-  return !props.item.is_resource ? t('components.hierarchyItem.task') : t('components.hierarchyItem.resource');
+  return !props.item.is_resource ? t('components.hierarchyItem.asset') : t('components.hierarchyItem.resource');
 });
 
 
@@ -113,16 +113,16 @@ const isHierarchyRoot = computed(() => {
   return props.item.root
 });
 
-const entityType = computed(() => {
-  return props.item.entity_type_id ? props.item.entity_type_name : '';
+const collectionType = computed(() => {
+  return props.item.collection_type_id ? props.item.collection_type_name : '';
 });
 
 const itemName = computed(() => {
-  return props.item.type === 'entity' ? props.item.name : getItemName(props.item.name);
+  return props.item.type === 'collection' ? props.item.name : getItemName(props.item.name);
 });
 
-const taskType = computed(() => {
-  return props.item.task_type_name;
+const assetType = computed(() => {
+  return props.item.asset_type_name;
 });
 
 const resourceType = computed(() => {
@@ -130,13 +130,13 @@ const resourceType = computed(() => {
 });
 
 
-const taskTypeNames = computed(() => {
-  return assetStore.getAssetTypesNames.filter((item) => item !== taskType.value);
+const assetTypeNames = computed(() => {
+  return assetStore.getAssetTypesNames.filter((item) => item !== assetType.value);
 });
 
 const itemTypes = computed(() => {
 
-  const allItemTypes = ['task', 'resource'];
+  const allItemTypes = ['asset', 'resource'];
   return allItemTypes.filter((item) => item !== itemType.value?.toLowerCase());
 
 });
@@ -144,18 +144,18 @@ const itemTypes = computed(() => {
 const itemIcon = computed(() => {
 
   const item = props.item;
-  const isProjectRoot = !item.entity_type_id && item.root;
+  const isProjectRoot = !item.collection_type_id && item.root;
 
   if (item.root) {
     if (isProjectRoot) {
       return 'home';
     } else {
-      return item.entity_type_icon
+      return item.collection_type_icon
     }
-  } else if (item.entity_type_id) {
-    return item.entity_type_icon
-  } else if (item.task_type_id) {
-    return item.task_type_icon;
+  } else if (item.collection_type_id) {
+    return item.collection_type_icon
+  } else if (item.asset_type_id) {
+    return item.asset_type_icon;
   } else {
     return item.resource_type_icon;
   }
@@ -166,15 +166,15 @@ const itemIcon = computed(() => {
 const handleClick = (event, data) => {
 
   const allData = dndStore.previewData;
-  const parentId = data.parent_id || data.entity_id;
+  const parentId = data.parent_id || data.collection_id;
 
-  const orphanEntities = allData['entities'].filter((item) => !item.parent_id);
-  const orphanTasks = allData['tasks'].filter((item) => !item.entity_id);
-  const orphanItems = [...orphanEntities, ...orphanTasks];
+  const orphanCollections = allData['collections'].filter((item) => !item.parent_id);
+  const orphanAssets = allData['assets'].filter((item) => !item.collection_id);
+  const orphanItems = [...orphanCollections, ...orphanAssets];
 
-  const siblingEntities = allData['entities'].filter((item) => item.parent_id === parentId);
-  const siblingTasks = allData['tasks'].filter((item) => item.entity_id === parentId);
-  const siblingItems = [...siblingEntities, ...siblingTasks];
+  const siblingCollections = allData['collections'].filter((item) => item.parent_id === parentId);
+  const siblingAssets = allData['assets'].filter((item) => item.collection_id === parentId);
+  const siblingItems = [...siblingCollections, ...siblingAssets];
 
   const allItems = parentId ? siblingItems : orphanItems;
 
@@ -196,8 +196,8 @@ const getItemName = (itemName) => {
 
 const pluralize = (word) => {
   const pluralRules = {
-    'entity': 'entities',
-    'task': 'tasks',
+    'collection': 'collections',
+    'asset': 'assets',
     'resource': 'resources'
   };
 
@@ -240,7 +240,7 @@ const removeItem = (item) => {
 };
 
 const toggleExpand = () => {
-  if (props.item.type === 'entity' && props.item.children.length) {
+  if (props.item.type === 'collection' && props.item.children.length) {
     isExpanded.value = !isExpanded.value
   }
 };
@@ -250,56 +250,56 @@ const changeItemType = (newItemTypeName) => {
 
   const itemTypeName = itemType.value.toLowerCase() + 's';
 
-  let previewData = dndStore.previewData['tasks'];
+  let previewData = dndStore.previewData['assets'];
   const itemId = props.item.id;
   const selectedItem = previewData.find(item => item.id === itemId);
 
 
   if (selectedItem) {
     console.log(selectedItem)
-    selectedItem.is_resource = itemTypeName === 'tasks';
-    dndStore.previewData['tasks'] = [...previewData];
+    selectedItem.is_resource = itemTypeName === 'assets';
+    dndStore.previewData['assets'] = [...previewData];
     // itemType.value = newItemTypeName;
   }
 
 };
 
-const selectTaskType = (taskTypeName) => {
+const selectAssetType = (assetTypeName) => {
 
-  let newTaskType;
-  const taskTypes = assetStore.getAssetTypes;
-  newTaskType = taskTypes.find((item) => item.name === taskTypeName);
+  let newAssetType;
+  const assetTypes = assetStore.getAssetTypes;
+  newAssetType = assetTypes.find((item) => item.name === assetTypeName);
 
-  let previewData = dndStore.previewData['tasks'];
+  let previewData = dndStore.previewData['assets'];
   const itemId = props.item.id;
   const selectedItem = previewData.find(item => item.id === itemId);
 
 
   if (selectedItem) {
-    selectedItem.task_type_name = newTaskType.name;
-    selectedItem.task_type_icon = newTaskType.icon;
-    selectedItem.task_type_id = newTaskType.id;
-    dndStore.previewData['tasks'] = [...previewData];
+    selectedItem.asset_type_name = newAssetType.name;
+    selectedItem.asset_type_icon = newAssetType.icon;
+    selectedItem.asset_type_id = newAssetType.id;
+    dndStore.previewData['assets'] = [...previewData];
   }
 
 };
 
-const selectEntityType = (entityTypeName) => {
+const selectCollectionType = (collectionTypeName) => {
 
-  let newEntityType;
-  const entityTypes = collectionStore.getCollectionTypes;
-  newEntityType = entityTypes.find((item) => item.name === entityTypeName);
+  let newCollectionType;
+  const collectionTypes = collectionStore.getCollectionTypes;
+  newCollectionType = collectionTypes.find((item) => item.name === collectionTypeName);
 
-  let previewData = dndStore.previewData['entities'];
+  let previewData = dndStore.previewData['collections'];
   const itemId = props.item.id;
   const selectedItem = previewData.find(item => item.id === itemId);
 
 
   if (selectedItem) {
-    selectedItem.entity_type_name = newEntityType.name;
-    selectedItem.entity_type_icon = newEntityType.icon;
-    selectedItem.entity_type_id = newEntityType.id;
-    dndStore.previewData['entities'] = [...previewData];
+    selectedItem.collection_type_name = newCollectionType.name;
+    selectedItem.collection_type_icon = newCollectionType.icon;
+    selectedItem.collection_type_id = newCollectionType.id;
+    dndStore.previewData['collections'] = [...previewData];
   }
 
 };
@@ -463,11 +463,11 @@ const selectEntityType = (entityTypeName) => {
   /* background-color: salmon; */
 }
 
-.hierarchy-entity-collapsed {
+.hierarchy-collection-collapsed {
   transform: rotate(0deg);
 }
 
-.hierarchy-entity-expanded {
+.hierarchy-collection-expanded {
   transform: rotate(90deg);
 }
 </style>

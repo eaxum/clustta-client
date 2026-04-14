@@ -21,7 +21,7 @@
       <div class="pop-up-actions">
         <GeneralButton v-if="leftButton" :label="leftButton" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
         <GeneralButton v-if="trayStates.popUpModalFunction && rightButton" :label="rightButton" :fullWidth="true"
-          @click="trayStates.popUpModalFunction" :isActive="true" :loading="false" />
+          @click="trayStates.popUpModalFunction" :isActive="true" :loading="trayStates.popUpModalLoading" />
       </div>
 
     </div>

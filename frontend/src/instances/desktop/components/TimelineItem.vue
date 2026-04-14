@@ -50,15 +50,15 @@
         </div>
 
         <transition name="expand" appear>
-            <div v-if="timelineItem.task_paths.length" v-show="isItemExpanded"
+            <div v-if="timelineItem.asset_paths.length" v-show="isItemExpanded"
                 class="trash-checkpoints-root">
                 <div class="trash-checkpoints">
-                    <div class="checkpoint-item-children" v-for="(taskPath, index) in timelineItem.task_paths" :key="index">
+                    <div class="checkpoint-item-children" v-for="(assetPath, index) in timelineItem.asset_paths" :key="index">
                         <div class="trash-item-meta">
                             <span><img class="small-icons" :src="getAppIcon('generic')"></span>
                             <div ref="trash_name" class="trash-item-label" @mouseenter="handleHover($event)"
                                 @mouseleave="resetScroll($event)">
-                                <div @click="selectItem(taskPath)" class="trash-item-label-text">{{ taskPath }}</div>
+                                <div @click="selectItem(assetPath)" class="trash-item-label-text">{{ assetPath }}</div>
                             </div>
                         </div>
 
@@ -175,35 +175,35 @@ const revertProject = async (createdAt) => {
         });
 };
 
-const selectedTaskId = ref('');
+const selectedAssetId = ref('');
 
-const selectItem = async (taskPath) => {
-    await findItem(taskPath);
+const selectItem = async (assetPath) => {
+    await findItem(assetPath);
 }
 
-const findItem = async (taskPath) => {
-    const task = await AssetService.GetAssetByPath(projectStore.activeProject.uri, taskPath);
-    if (!task?.id) return;
-    const taskParent = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, task.entity_id);
-    if(taskParent){
-        collectionStore.navigateToCollection(taskParent);
+const findItem = async (assetPath) => {
+    const asset = await AssetService.GetAssetByPath(projectStore.activeProject.uri, assetPath);
+    if (!asset?.id) return;
+    const assetParent = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, asset.collection_id);
+    if(assetParent){
+        collectionStore.navigateToCollection(assetParent);
         commonStore.navigatorMode = true;
     } 
     stage.deselectAllItems();
-    assetStore.selectAsset(task.id)
-    stage.firstSelectedItemId = task.id;
-    stage.markedItems = [task.id];
-    selectedTaskId.value = task.id; 
+    assetStore.selectAsset(asset.id)
+    stage.firstSelectedItemId = asset.id;
+    stage.markedItems = [asset.id];
+    selectedAssetId.value = asset.id; 
 };
 
 const scrollIntoView = () => {
     
-    const taskId = selectedTaskId.value;
+    const assetId = selectedAssetId.value;
 
     const item_class = 'virtua-item-header';
     const allElements = Array.from(document.querySelectorAll(`.${item_class}`));
     const allItemsIds = allElements.map((item) => item.id);
-    const currentIndex = allItemsIds.indexOf(taskId);
+    const currentIndex = allItemsIds.indexOf(assetId);
     const selectedElement = allElements[currentIndex];
 
     nextTick(() => {
@@ -405,7 +405,7 @@ onMounted(() => {
     width: 100%;
 }
 
-.trash-item-entity {
+.trash-item-collection {
     color: rgb(219, 219, 219);
     background-color: rgba(0, 0, 0, 0.216);
     padding: .3rem;

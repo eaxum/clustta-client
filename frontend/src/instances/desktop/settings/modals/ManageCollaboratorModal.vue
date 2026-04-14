@@ -6,18 +6,23 @@
     <div class="general-container">
 
       <div class="horizontal-flex">
-        <CollaboratorSuggestions :allowMultipleEntries="true" :placeholder="placeholder" :selectedItems="selectedUsers" :allItems="studioUsers"
+        <CollaboratorSuggestions :allowMultipleEntries="true" :placeholder="placeholder" :selectedItems="selectedUsers" :allItems="isR2Remote ? [] : studioUsers"
           @tagAdded="addUser" @tagRemoved="removeUser" />
       </div>
 
-      <div class="horizontal-flex">
+      <div v-if="!isR2Remote" class="horizontal-flex">
         <DropDownBox :items="userStore.getRolesNames" :onSelect="selectRole"
+          :selectedItem="collaboratorRole" :placeHolder="$t('common.none')" :fullWidth="true" />
+      </div>
+
+      <div v-if="isR2Remote" class="horizontal-flex">
+        <DropDownBox :items="personalRemoteRoles" :onSelect="selectRole"
           :selectedItem="collaboratorRole" :placeHolder="$t('common.none')" :fullWidth="true" />
       </div>
 
       <!-- Notification section for non-studio users -->
       <div class="notification-area">
-      <div v-if="nonStudioUsers.length > 0" class="horizontal-flex">
+      <div v-if="!isR2Remote && nonStudioUsers.length > 0" class="horizontal-flex">
         <NotificationBox 
           type="warning"
           :icon="getAppIcon('alert')"
@@ -63,7 +68,7 @@ import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import NotificationBox from '@/instances/common/components/NotificationBox.vue';
 
 // services
-import { AuthService, ProjectService, StudioService } from "@/services";
+import { AuthService, CollaboratorService, ProjectService, StudioService } from "@/services";
 
 // stores
 const iconStore = useIconStore();
@@ -90,19 +95,32 @@ import { useUserStore } from '@/stores/users';
 const emit = defineEmits(['addedCollaborator']);
 
 // constants
+const personalRemoteRoles = ['admin', 'artist'];
 const placeholder = t('placeholders.nameOrEmailSeparated');
 const showSearch = false;
 const title = t('modals.manageCollaborators');
 
 // refs
 const allProjectCollaborators = ref([]);
-const collaboratorRole = ref(userStore.getRolesNames[userStore.getRolesNames.length - 1]);
+const collaboratorRole = ref(
+  projectStore.isR2Remote
+    ? 'artist'
+    : userStore.getRolesNames[userStore.getRolesNames.length - 1]
+);
 const isAwaitingResponse = ref(false);
 const modalContainer = ref(null);
 const selectedUserEmails = ref([]);
 const unregisteredUserEmails = ref([]);
 
 // computed
+// Whether the active project is a personal remote project.
+const isR2Remote = computed(() => projectStore.isR2Remote);
+
+// Whether the active project is a studio project (cloud or private).
+const isStudioProject = computed(() => {
+  return projectStore.selectedStudio && projectStore.selectedStudio.name !== 'Personal';
+});
+
 const newUsers = computed(() => {
   return selectedUsers.value.filter(user => user.userType === 'new');
 });
@@ -112,6 +130,26 @@ const nonStudioUsers = computed(() => {
 });
 
 const selectedUsers = computed(() => {
+  if (isR2Remote.value) {
+    const registeredUsers = selectedUserEmails.value.map(email => ({
+      id: email,
+      email: email,
+      full_name: email,
+      avatarColor: generateAvatarColor(email),
+      userType: 'user'
+    }));
+
+    const unregisteredUsers = unregisteredUserEmails.value.map(email => ({
+      id: email,
+      email: email,
+      full_name: email,
+      avatarColor: generateAvatarColor(email),
+      userType: 'new'
+    }));
+
+    return [...registeredUsers, ...unregisteredUsers];
+  }
+
   const studioUsersList = studioStore.studioUsers
     .map(user => ({
       ...user,
@@ -163,88 +201,242 @@ const addCollaborators = async () => {
   isAwaitingResponse.value = true;
 
   try {
-    const studioUsersList = [];
-    const globalUsers = [];
-    const newUsersList = [];
-
-    for (const user of selectedUsers.value) {
-      if (user.userType === 'studio') {
-        studioUsersList.push(user);
-      } else {
-        try {
-          const emailExists = await AuthService.CheckEmailExists(user.email);
-          if (emailExists) {
-            globalUsers.push(user);
-          } else {
-            newUsersList.push(user);
-          }
-        } catch (error) {
-          console.error('Error checking email:', error);
-          newUsersList.push(user);
-        }
-      }
+    if (isR2Remote.value) {
+      console.log('one')
+      await addPersonalRemoteCollaborators();
+    } else if (isStudioProject.value) {
+      console.log('two')
+      await addStudioProjectCollaborators();
+    } else {
+      await addLocalCollaborators();
     }
-
-    for (const user of studioUsersList) {
-      try {
-        await ProjectService.AddUser(projectStore.activeProject.uri, user.email, collaboratorRole.value);
-      } catch (error) {
-        console.error('Error adding studio user:', error);
-        notificationStore.errorNotification(t('notifications.errorAddingStudioUser'), error);
-      }
-    }
-
-    for (const user of globalUsers) {
-      try {
-        await StudioService.AddCollaborator(user.email, projectStore.selectedStudio.id, 'user');
-        await ProjectService.AddUser(projectStore.activeProject.uri, user.email, collaboratorRole.value);
-      } catch (error) {
-        console.error('Error adding global user:', error);
-        notificationStore.errorNotification(t('notifications.errorAddingGlobalUser'), error);
-      }
-    }
-
-    for (const user of newUsersList) {
-      try {
-        await AuthService.SendInvitationEmail(
-          user.email, 
-          projectStore.selectedStudio.name || 'Clustta Studio',
-          projectStore.activeProject.name || 'Project'
-        );
-      } catch (error) {
-        console.error('Error sending invitation:', error);
-        notificationStore.errorNotification(t('notifications.errorSendingInvitation'), error);
-      }
-    }
-
-    const successCount = studioUsersList.length + globalUsers.length;
-    const invitationCount = newUsersList.length;
-
-    if (successCount > 0) {
-      notificationStore.addNotification(t('notifications.usersAddedSuccessfully', { count: successCount }), "", "success");
-    }
-    
-    if (invitationCount > 0) {
-      notificationStore.addNotification(t('notifications.invitationsSent', { count: invitationCount }), "", "info");
-    }
-
   } catch (error) {
     console.error('Error in addCollaborators:', error);
     notificationStore.errorNotification(t('notifications.errorAddingUsers'), error);
   } finally {
-    await studioStore.getStudioUsers();
+    if (isStudioProject.value) {
+      await studioStore.getStudioUsers();
+    }
     isAwaitingResponse.value = false;
     closeModal();
     await trayStates.refreshData();
   }
 };
 
+// Adds collaborators to a personal remote project via the Clustta server.
+const addPersonalRemoteCollaborators = async () => {
+  const remoteUrl = projectStore.activeProject.remote;
+  const projectUri = projectStore.activeProject.uri;
+  const registeredEmails = [];
+  const resolvedUserIds = [];
+  const newUsersList = [];
+
+  for (const user of selectedUsers.value) {
+    try {
+      const userData = await CollaboratorService.FetchUserByEmail(user.email);
+      if (userData?.id) {
+        resolvedUserIds.push(userData.id);
+        registeredEmails.push(user.email);
+      } else {
+        newUsersList.push(user);
+      }
+    } catch (error) {
+      newUsersList.push(user);
+    }
+  }
+
+  if (resolvedUserIds.length > 0) {
+    await CollaboratorService.AddCollaborators(remoteUrl, resolvedUserIds, collaboratorRole.value);
+
+    for (const email of registeredEmails) {
+      try {
+        await ProjectService.AddUserSynced(projectUri, email, collaboratorRole.value);
+      } catch (error) {
+        console.error('Error adding user to project:', error);
+      }
+    }
+
+    notificationStore.addNotification(t('notifications.usersAddedSuccessfully', { count: resolvedUserIds.length }), "", "success");
+  }
+
+  for (const user of newUsersList) {
+    try {
+      await AuthService.SendInvitationEmail(user.email, 'Clustta', projectStore.activeProject.name || 'Project');
+    } catch (error) {
+      console.error('Error sending invitation:', error);
+      notificationStore.errorNotification(t('notifications.errorSendingInvitation'), error);
+    }
+  }
+
+  if (newUsersList.length > 0) {
+    notificationStore.addNotification(t('notifications.invitationsSent', { count: newUsersList.length }), "", "info");
+  }
+
+  await userStore.reloadUsers();
+};
+
+// Adds collaborators to a studio project via the server collaborator endpoint.
+// Works for both cloud and private studios — the server handles writing to the .clst file.
+const addStudioProjectCollaborators = async () => {
+  const remoteUrl = projectStore.getActiveProjectUrl;
+  const studioUsersList = [];
+  const globalUsers = [];
+  const newUsersList = [];
+
+  for (const user of selectedUsers.value) {
+    if (user.userType === 'studio') {
+      studioUsersList.push(user);
+    } else {
+      try {
+        const emailExists = await AuthService.CheckEmailExists(user.email);
+        if (emailExists) {
+          globalUsers.push(user);
+        } else {
+          newUsersList.push(user);
+        }
+      } catch (error) {
+        console.error('Error checking email:', error);
+        newUsersList.push(user);
+      }
+    }
+  }
+
+  // Resolve user IDs for studio users (already have IDs) and global users
+  const resolvedUserIds = studioUsersList.map(user => user.id);
+
+  for (const user of globalUsers) {
+    try {
+      // Add to studio first, then to project
+      await StudioService.AddCollaborator(user.email, projectStore.selectedStudio.id, 'user');
+      await studioStore.getStudioUsers();
+      const studioUser = studioStore.studioUsers.find(u => u.email === user.email);
+      if (studioUser) {
+        resolvedUserIds.push(studioUser.id);
+      }
+    } catch (error) {
+      console.error('Error adding global user to studio:', error);
+      notificationStore.errorNotification(t('notifications.errorAddingGlobalUser'), error);
+    }
+  }
+
+  // Add all resolved users to the project via server endpoint
+  if (resolvedUserIds.length > 0) {
+    await CollaboratorService.AddCollaboratorsWithRole(remoteUrl, resolvedUserIds, collaboratorRole.value).then((result)=>{
+      console.log(result)
+    });
+
+    // Sync to local .clst for immediate availability
+    const projectUri = projectStore.activeProject?.uri;
+    if (projectUri) {
+      for (const user of [...studioUsersList, ...globalUsers]) {
+        try {
+          await ProjectService.AddUserSynced(projectUri, user.email, collaboratorRole.value).then((result)=>{
+            console.log(result)
+          });
+        } catch (e) {
+          console.error('Error syncing user locally:', e);
+        }
+      }
+    }
+
+    notificationStore.addNotification(t('notifications.usersAddedSuccessfully', { count: resolvedUserIds.length }), "", "success");
+  }
+
+  // Send invitations for new/unregistered users
+  for (const user of newUsersList) {
+    try {
+      await AuthService.SendInvitationEmail(
+        user.email,
+        projectStore.selectedStudio.name || 'Clustta Studio',
+        projectStore.activeProject.name || 'Project'
+      );
+    } catch (error) {
+      console.error('Error sending invitation:', error);
+      notificationStore.errorNotification(t('notifications.errorSendingInvitation'), error);
+    }
+  }
+
+  if (newUsersList.length > 0) {
+    notificationStore.addNotification(t('notifications.invitationsSent', { count: newUsersList.length }), "", "info");
+  }
+
+  await userStore.reloadUsers();
+};
+
+// Adds collaborators to a local project (no remote or non-studio project).
+const addLocalCollaborators = async () => {
+  const studioUsersList = [];
+  const globalUsers = [];
+  const newUsersList = [];
+
+  for (const user of selectedUsers.value) {
+    if (user.userType === 'studio') {
+      studioUsersList.push(user);
+    } else {
+      try {
+        const emailExists = await AuthService.CheckEmailExists(user.email);
+        if (emailExists) {
+          globalUsers.push(user);
+        } else {
+          newUsersList.push(user);
+        }
+      } catch (error) {
+        console.error('Error checking email:', error);
+        newUsersList.push(user);
+      }
+    }
+  }
+
+  for (const user of studioUsersList) {
+    try {
+      await ProjectService.AddUser(projectStore.activeProject.uri, user.email, collaboratorRole.value);
+    } catch (error) {
+      console.error('Error adding studio user:', error);
+      notificationStore.errorNotification(t('notifications.errorAddingStudioUser'), error);
+    }
+  }
+
+  for (const user of globalUsers) {
+    try {
+      await StudioService.AddCollaborator(user.email, projectStore.selectedStudio.id, 'user');
+      await ProjectService.AddUser(projectStore.activeProject.uri, user.email, collaboratorRole.value);
+    } catch (error) {
+      console.error('Error adding global user:', error);
+      notificationStore.errorNotification(t('notifications.errorAddingGlobalUser'), error);
+    }
+  }
+
+  for (const user of newUsersList) {
+    try {
+      await AuthService.SendInvitationEmail(
+        user.email,
+        projectStore.selectedStudio.name || 'Clustta Studio',
+        projectStore.activeProject.name || 'Project'
+      );
+    } catch (error) {
+      console.error('Error sending invitation:', error);
+      notificationStore.errorNotification(t('notifications.errorSendingInvitation'), error);
+    }
+  }
+
+  const successCount = studioUsersList.length + globalUsers.length;
+  const invitationCount = newUsersList.length;
+
+  if (successCount > 0) {
+    notificationStore.addNotification(t('notifications.usersAddedSuccessfully', { count: successCount }), "", "success");
+  }
+  
+  if (invitationCount > 0) {
+    notificationStore.addNotification(t('notifications.invitationsSent', { count: invitationCount }), "", "info");
+  }
+};
+
 // Adds a user to the selection list for collaboration.
-const addUser = (user) => {
+const addUser = async (user) => {
   const userEmail = user.email.toLowerCase();
   const projectUserEmails = userStore.getProjectCollaborators.map((user) => user.email);
   
-  if (selectedUserEmails.value.includes(userEmail)) {
+  if (selectedUserEmails.value.includes(userEmail) || unregisteredUserEmails.value.includes(userEmail)) {
     return;
   }
   
@@ -253,11 +445,25 @@ const addUser = (user) => {
     return;
   }
 
+  if (isR2Remote.value) {
+    try {
+      const emailExists = await AuthService.CheckEmailExists(userEmail);
+      if (emailExists) {
+        selectedUserEmails.value.push(userEmail);
+      } else {
+        unregisteredUserEmails.value.push(userEmail);
+      }
+    } catch (error) {
+      unregisteredUserEmails.value.push(userEmail);
+    }
+    return;
+  }
+
   if (!user.userType) {
     selectedUserEmails.value.push(userEmail);
   }
   
-  if (!userStore.userCanCreateProject) return;
+  if (!studioStore.canManageProject) return;
 
   if (user.userType !== 'new') {
     selectedUserEmails.value.push(userEmail);

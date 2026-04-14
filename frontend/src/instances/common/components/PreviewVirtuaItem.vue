@@ -1,10 +1,10 @@
 <template>
   <div ref="previewItemRef" class="preview-virtua-item" :style="{ '--depth': depth }">
     <div class="preview-item-header" :style="{ height: `${itemHeight}px` }">
-      <PreviewCollection v-if="item.type === 'entity'" :entity="item" :isSelected="isItemSelected" 
+      <PreviewCollection v-if="item.type === 'collection'" :collection="item" :isSelected="isItemSelected" 
         :hasChildren="hasChildren" :isExpanded="isExpanded" :childCount="childCount" @toggle="toggleExpand" 
         @toggle-selection="handleToggleSelection" />
-      <PreviewAsset v-else :task="item" :isSelected="isItemSelected" @toggle-selection="handleToggleSelection" />
+      <PreviewAsset v-else :asset="item" :isSelected="isItemSelected" @toggle-selection="handleToggleSelection" />
     </div>
     <template v-if="isExpanded && hasChildren">
       <div class="preview-item-children">

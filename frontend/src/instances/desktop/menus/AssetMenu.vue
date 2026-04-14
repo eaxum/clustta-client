@@ -6,29 +6,29 @@
 
     <span v-if="!platformStore.isWeb && userStore.canDo('pull_chunk')" class="menu-divider"></span>
 
-    <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="userStore.canDo('update_asset')" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
       :label="$t('common.rename')" :buttonFunction="renameAsset" />
 
-    <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('switches')" :showLabel="true"
+    <ActionButton v-if="userStore.canDo('update_asset')" :icon="getAppIcon('switches')" :showLabel="true"
       :fullWidth="true" :label="$t('common.edit')" :buttonFunction="editAsset" />
 
-    <ActionButton v-if="userStore.canDo('create_task')" :icon="getAppIcon('duplicate')" :showLabel="true"
+    <ActionButton v-if="userStore.canDo('create_asset')" :icon="getAppIcon('duplicate')" :showLabel="true"
       :fullWidth="true" :label="$t('common.duplicate')" :buttonFunction="duplicateAsset" />
 
     <!-- Copy to Project -->
-    <ActionButton v-if="!platformStore.isWeb && userStore.canDo('create_task') && canCopyToOtherProject" 
+    <ActionButton v-if="!platformStore.isWeb && userStore.canDo('create_asset') && canCopyToOtherProject" 
       :icon="getAppIcon('briefcase')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.copyToProject')" :buttonFunction="copyToProject" />
 
     <!-- Move to Collection -->
-    <ActionButton v-if="!platformStore.isWeb && userStore.canDo('update_task')" 
+    <ActionButton v-if="!platformStore.isWeb && userStore.canDo('update_asset')" 
       :icon="getAppIcon('folder-arrow-in')" :showLabel="true"
       :fullWidth="true" :label="$t('common.move')" :buttonFunction="moveToCollection" />
 
-    <ActionButton v-if="!platformStore.isWeb && (asset.dependencies.length || asset.entity_dependencies.length)" :icon="getAppIcon('jigsaw')" :showLabel="true"
+    <ActionButton v-if="!platformStore.isWeb && (asset.dependencies.length || asset.collection_dependencies.length)" :icon="getAppIcon('jigsaw')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.buildWithDependencies')" :buttonFunction="buildWithDependencies" />
 
-    <ActionButton v-if="userStore.canDo('manage_dependencies')" :icon="getAppIcon('dependency')" :showLabel="true"
+    <ActionButton v-if="isRemoteProject && userStore.canDo('manage_dependencies')" :icon="getAppIcon('dependency')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.dependencyGraph')" :buttonFunction="goToDependencyGraph" />
 
     <!-- Go to Location -->
@@ -52,18 +52,18 @@
       :label="$t('menus.revertFile')" :buttonFunction="revertAsset" />
 
     <!-- Sync Asset -->
-    <ActionButton v-if="isRemoteProject" :icon="getAppIcon('cloud-up')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="isRemoteProject && !asset.synced" :icon="getAppIcon('cloud-up')" :showLabel="true" :fullWidth="true"
       :label="$t('menus.syncAsset')" :buttonFunction="syncAsset" />
 
-    <span v-if="userStore.canDo('delete_task') || !isNotOnDisk" class="menu-divider"></span>
+    <span v-if="userStore.canDo('delete_asset') || !isNotOnDisk" class="menu-divider"></span>
 
     <!-- Free space -->
     <ActionButton :icon="getAppIcon('broom')" v-if="!platformStore.isWeb && !isNotOnDisk" :showLabel="true" :fullWidth="true"
       :label="$t('common.freeUpSpace')" :buttonFunction="prepFreeUpSpacePopUpModal" />
 
-    <!-- Delete Task -->
+    <!-- Delete Asset -->
     <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.delete')"
-      v-if="userStore.canDo('delete_task')" :buttonFunction="deleteAsset" />
+      v-if="userStore.canDo('delete_asset')" :buttonFunction="deleteAsset" />
 
   </div>
 
@@ -97,6 +97,7 @@ import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
+import { useStudioStore } from '@/stores/studio';
 
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
@@ -111,6 +112,7 @@ const projectStore = useProjectStore();
 const stage = useStageStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
+const studioStore = useStudioStore();
 const { t } = useI18n();
 
 // refs
@@ -137,17 +139,17 @@ const canCopyToOtherProject = computed(() => {
     project.uri !== projectStore.activeProject?.uri
   ).length > 0;
   const assetIsNormal = asset.value?.file_status === 'normal';
-  return hasOtherDownloadedProjects && assetIsNormal && userStore.userCanCreateProject;
+  return hasOtherDownloadedProjects && assetIsNormal && studioStore.isStudioAdmin;
 });
 
 // Checks if any filters are active.
 const filtersActive = computed(() => {
   const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
-  const entityFilters = commonStore.entityFilters.length > 0;
-  const taskFilters = commonStore.taskFilters.length > 0;
+  const collectionFilters = commonStore.collectionFilters.length > 0;
+  const assetFilters = commonStore.assetFilters.length > 0;
   const resourceFilters = commonStore.resourceFilters.length > 0;
   const generalFilter = isFilterActive('general');
-  return assigneeFilters || entityFilters || taskFilters || resourceFilters || generalFilter;
+  return assigneeFilters || collectionFilters || assetFilters || resourceFilters || generalFilter;
 });
 
 // Checks if there are collections to move to or the asset is in a collection (can move to root).
@@ -180,15 +182,22 @@ const isRemoteProject = computed(() => {
 });
 
 // methods
+// Emits asset data updates to Browser and VirtuaItem components.
+const emitAssetUpdates = (assetId, updates) => {
+  const updateData = { itemId: assetId, updates };
+  emitter.emit('update-root-data', updateData);
+  emitter.emit('update-children', updateData);
+};
+
 // Builds the asset with all its dependencies.
 const buildWithDependencies = async () => {
   menu.hideContextMenu();
   let assetIds = [asset.value.id, ...asset.value.dependencies];
-  for (let entityId of asset.value.entity_dependencies) {
-    let entityAssets = assetStore.getEntityAssets(entityId, true);
-    for (let entityAsset of entityAssets) {
-      if (!assetIds.includes(entityAsset.id)) {
-        assetIds.push(entityAsset.id);
+  for (let collectionId of asset.value.collection_dependencies) {
+    let collectionAssets = assetStore.getCollectionAssets(collectionId, true);
+    for (let collectionAsset of collectionAssets) {
+      if (!assetIds.includes(collectionAsset.id)) {
+        assetIds.push(collectionAsset.id);
       }
     }
   }
@@ -329,9 +338,9 @@ const freeUpSpace = async () => {
   await FSService.DeleteFile(assetDir)
     .then(() => {
       asset.file_status = 'rebuildable';
-      assetStore.rebuildableAssetsPath.push(asset.task_path);
-      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.task_path);
-      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(assetPath => assetPath !== asset.task_path);
+      assetStore.rebuildableAssetsPath.push(asset.asset_path);
+      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.asset_path);
+      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(assetPath => assetPath !== asset.asset_path);
       emitter.emit('refresh-browser');
     })
     .catch((error) => {
@@ -361,11 +370,11 @@ const goToLocation = async () => {
   try {
     commonStore.navigatorMode = true;
     const selectedAsset = assetStore.selectedAsset;
-    if (selectedAsset && selectedAsset.entity_id) {
-      const parentEntity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, selectedAsset.entity_id);
-      if (parentEntity) {
-        collectionStore.navigatedCollection = parentEntity;
-        collectionStore.selectedCollection = parentEntity;
+    if (selectedAsset && selectedAsset.collection_id) {
+      const parentCollection = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, selectedAsset.collection_id);
+      if (parentCollection) {
+        collectionStore.navigatedCollection = parentCollection;
+        collectionStore.selectedCollection = parentCollection;
       }
     }
   } catch (error) {
@@ -377,18 +386,18 @@ const goToLocation = async () => {
 // Checks if a specific filter type is active.
 const isFilterActive = (filter) => {
   if (filter.includes('general')) {
-    const isActive = commonStore.showEntities && commonStore.showTasks
-      && commonStore.showResources && commonStore.showChildEntities
-      && commonStore.showChildTasks && commonStore.showDependencies && !commonStore.onlyAssets;
+    const isActive = commonStore.showCollections && commonStore.showAssets
+      && commonStore.showResources && commonStore.showChildCollections
+      && commonStore.showChildAssets && commonStore.showDependencies && !commonStore.onlyAssets;
     return !isActive;
-  } else if (filter.includes('entity')) {
-    return commonStore.entityFilters.some((item) => item.type === filter);
+  } else if (filter.includes('collection')) {
+    return commonStore.collectionFilters.some((item) => item.type === filter);
   } else if (filter.includes('assignation')) {
     const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
-    const assignationFilters = commonStore.taskFilters.some((item) => item.type === filter);
+    const assignationFilters = commonStore.assetFilters.some((item) => item.type === filter);
     return assigneeFilters || assignationFilters;
   } else {
-    return commonStore.taskFilters.some((item) => item.type === filter);
+    return commonStore.assetFilters.some((item) => item.type === filter);
   }
 };
 
@@ -420,7 +429,7 @@ const launchAssetWithCommand = async () => {
 // Shows the move to collection sub-menu.
 const moveToCollection = () => {
   menu.subMenuState.selectedAssetIds = [assetStore.selectedAsset.id];
-  menu.subMenuState.startingEntityId = assetStore.selectedAsset.entity_id || '';
+  menu.subMenuState.startingCollectionId = assetStore.selectedAsset.collection_id || '';
   menu.showSubMenu('assetMenu', {
     type: 'move-to-collection',
     title: t('menus.selectCollection')
@@ -463,6 +472,10 @@ const syncAsset = () => {
   menu.hideContextMenu();
   SyncService.SyncAsset(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, assetId)
     .then(() => {
+      assetStore.selectedAsset.synced = true;
+      emitAssetUpdates(assetId, [
+        { property: 'synced', value: true }
+      ]);
       notificationStore.addNotification(t('common.sync'), t('notifications.assetSyncedSuccessfully'), 'success');
     })
     .catch((error) => {
@@ -479,8 +492,8 @@ const revealInExplorer = async () => {
   if (assetStore.selectedAsset.file_status == "rebuildable") {
     await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [assetId])
       .then(async () => {
-        assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(assetPath => assetPath !== asset.task_path);
-        assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.task_path);
+        assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(assetPath => assetPath !== asset.asset_path);
+        assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.asset_path);
         emitter.emit('get-project-data');
       })
       .catch((error) => {
@@ -506,6 +519,7 @@ onBeforeUnmount(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 @import "@/assets/menu.css";
+
 </style>
 
 

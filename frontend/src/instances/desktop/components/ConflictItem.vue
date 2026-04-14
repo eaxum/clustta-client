@@ -7,7 +7,7 @@
     <div class="conflict-item-content">
       <RenameInput v-if="isRenaming" v-model="newName" :originalValue="conflict.name" :placeholder="$t('components.conflictItem.enterNewName')" @confirm="handleRenameConfirm" @cancel="handleRenameCancel" />
       <span v-else class="conflict-item-name">{{ displayName }}</span>
-      <!-- <span v-else class="conflict-item-name">{{ conflict.entity_path }}</span> -->
+      <!-- <span v-else class="conflict-item-name">{{ conflict.collection_path }}</span> -->
     </div>
 
     <div v-if="!isResolved && !isRenaming" class="conflict-item-actions">
@@ -74,17 +74,17 @@ const newName = ref('');
 const displayName = computed(() => {
   const name = currentName.value || props.conflict.name;
   
-  if (props.showFullPath && props.conflict.entity_path) {
-    if (props.conflict.type === 'entity') {
-      return `${props.conflict.entity_path}`;
+  if (props.showFullPath && props.conflict.collection_path) {
+    if (props.conflict.type === 'collection') {
+      return `${props.conflict.collection_path}`;
     }
-    if (props.conflict.type === 'task' && props.conflict.extension && !props.hideExtensions) {
-      return `${props.conflict.entity_path}${name}${props.conflict.extension}`;
+    if (props.conflict.type === 'asset' && props.conflict.extension && !props.hideExtensions) {
+      return `${props.conflict.collection_path}${name}${props.conflict.extension}`;
     }
-    return `${props.conflict.entity_path}${name}`;
+    return `${props.conflict.collection_path}${name}`;
   }
   
-  if (props.conflict.type === 'task' && props.conflict.extension && !props.hideExtensions) {
+  if (props.conflict.type === 'asset' && props.conflict.extension && !props.hideExtensions) {
     return `${name}${props.conflict.extension}`;
   }
   return name;
@@ -117,7 +117,7 @@ const handleRenameConfirm = async (confirmedName) => {
   }
 
   try {
-    if (props.conflict.type === 'entity') {
+    if (props.conflict.type === 'collection') {
       await CollectionService.RenameCollection(projectUri, props.conflict.local_id, confirmedName);
     } else {
       await AssetService.RenameAsset(projectUri, props.conflict.local_id, confirmedName);
@@ -142,8 +142,8 @@ const handleRenameConfirm = async (confirmedName) => {
 const loadIcon = async () => {
   isCustomIcon.value = false;
   
-  if (props.conflict.type === 'entity') {
-    itemIcon.value = getAppIcon(props.conflict.entity_type_icon || 'folder');
+  if (props.conflict.type === 'collection') {
+    itemIcon.value = getAppIcon(props.conflict.collection_type_icon || 'folder');
   } else {
     if (props.conflict.extension) {
       const ext = props.conflict.extension.toLowerCase().replace(/^\./, '');
@@ -152,10 +152,10 @@ const loadIcon = async () => {
         itemIcon.value = iconPath;
         isCustomIcon.value = true;
       } else {
-        itemIcon.value = getAppIcon(props.conflict.task_type_icon || 'file');
+        itemIcon.value = getAppIcon(props.conflict.asset_type_icon || 'file');
       }
     } else {
-      itemIcon.value = getAppIcon(props.conflict.task_type_icon || 'file');
+      itemIcon.value = getAppIcon(props.conflict.asset_type_icon || 'file');
     }
   }
 };

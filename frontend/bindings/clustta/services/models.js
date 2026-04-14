@@ -100,27 +100,65 @@ export class AccountInfo {
     }
 }
 
+/**
+ * AgentKeyStatus reports whether an API key is configured and which provider is selected.
+ */
+export class AgentKeyStatus {
+    /**
+     * Creates a new AgentKeyStatus instance.
+     * @param {Partial<AgentKeyStatus>} [$$source = {}] - The source object to create the AgentKeyStatus.
+     */
+    constructor($$source = {}) {
+        if (!("configured" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["configured"] = false;
+        }
+        if (!("provider" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["provider"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AgentKeyStatus instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AgentKeyStatus}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new AgentKeyStatus(/** @type {Partial<AgentKeyStatus>} */($$parsedSource));
+    }
+}
+
 export class AssetStateItem {
     /**
      * Creates a new AssetStateItem instance.
      * @param {Partial<AssetStateItem>} [$$source = {}] - The source object to create the AssetStateItem.
      */
     constructor($$source = {}) {
-        if (!("task_id" in $$source)) {
+        if (!("asset_id" in $$source)) {
             /**
-             * task ID for filtering
+             * asset ID for filtering
              * @member
              * @type {string}
              */
-            this["task_id"] = "";
+            this["asset_id"] = "";
         }
-        if (!("task_path" in $$source)) {
+        if (!("asset_path" in $$source)) {
             /**
              * for checkpoints: "path/to/file"
              * @member
              * @type {string}
              */
-            this["task_path"] = "";
+            this["asset_path"] = "";
         }
         if (!("display_path" in $$source)) {
             /**
@@ -196,6 +234,61 @@ export class AssetsStates {
             $$parsedSource["outdated"] = $$createField2_0($$parsedSource["outdated"]);
         }
         return new AssetsStates(/** @type {Partial<AssetsStates>} */($$parsedSource));
+    }
+}
+
+/**
+ * ChatUIMessage represents a message in the format the frontend expects for rendering.
+ */
+export class ChatUIMessage {
+    /**
+     * Creates a new ChatUIMessage instance.
+     * @param {Partial<ChatUIMessage>} [$$source = {}] - The source object to create the ChatUIMessage.
+     */
+    constructor($$source = {}) {
+        if (!("type" in $$source)) {
+            /**
+             * "user", "assistant", "tool-group"
+             * @member
+             * @type {string}
+             */
+            this["type"] = "";
+        }
+        if (!("content" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["content"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * tool function name for tool-group
+             * @member
+             * @type {string | undefined}
+             */
+            this["toolName"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * number of calls for tool-group
+             * @member
+             * @type {number | undefined}
+             */
+            this["count"] = undefined;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ChatUIMessage instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ChatUIMessage}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ChatUIMessage(/** @type {Partial<ChatUIMessage>} */($$parsedSource));
     }
 }
 
@@ -280,51 +373,124 @@ export class ClusttaFileInfo {
     }
 }
 
+/**
+ * Collaborator represents a project collaborator returned by the server.
+ */
+export class Collaborator {
+    /**
+     * Creates a new Collaborator instance.
+     * @param {Partial<Collaborator>} [$$source = {}] - The source object to create the Collaborator.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("user_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["user_id"] = "";
+        }
+        if (!("added_at" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["added_at"] = 0;
+        }
+        if (!("first_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["first_name"] = "";
+        }
+        if (!("last_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["last_name"] = "";
+        }
+        if (!("username" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["username"] = "";
+        }
+        if (!("email" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["email"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Collaborator instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Collaborator}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Collaborator(/** @type {Partial<Collaborator>} */($$parsedSource));
+    }
+}
+
 export class CollectionChildrenState {
     /**
      * Creates a new CollectionChildrenState instance.
      * @param {Partial<CollectionChildrenState>} [$$source = {}] - The source object to create the CollectionChildrenState.
      */
     constructor($$source = {}) {
-        if (!("modified_tasks" in $$source)) {
+        if (!("modified_assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.Task[]}
+             * @type {models$0.Asset[]}
              */
-            this["modified_tasks"] = [];
+            this["modified_assets"] = [];
         }
-        if (!("outdated_tasks" in $$source)) {
+        if (!("outdated_assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.Task[]}
+             * @type {models$0.Asset[]}
              */
-            this["outdated_tasks"] = [];
+            this["outdated_assets"] = [];
         }
-        if (!("rebuildable_tasks" in $$source)) {
+        if (!("rebuildable_assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.Task[]}
+             * @type {models$0.Asset[]}
              */
-            this["rebuildable_tasks"] = [];
+            this["rebuildable_assets"] = [];
         }
-        if (!("normal_tasks" in $$source)) {
+        if (!("normal_assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.Task[]}
+             * @type {models$0.Asset[]}
              */
-            this["normal_tasks"] = [];
+            this["normal_assets"] = [];
         }
         if (!("untracked_files" in $$source)) {
             /**
              * @member
-             * @type {models$0.UntrackedTask[]}
+             * @type {models$0.UntrackedAsset[]}
              */
             this["untracked_files"] = [];
         }
         if (!("untracked_folders" in $$source)) {
             /**
              * @member
-             * @type {models$0.UntrackedEntity[]}
+             * @type {models$0.UntrackedCollection[]}
              */
             this["untracked_folders"] = [];
         }
@@ -345,17 +511,17 @@ export class CollectionChildrenState {
         const $$createField4_0 = $$createType3;
         const $$createField5_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("modified_tasks" in $$parsedSource) {
-            $$parsedSource["modified_tasks"] = $$createField0_0($$parsedSource["modified_tasks"]);
+        if ("modified_assets" in $$parsedSource) {
+            $$parsedSource["modified_assets"] = $$createField0_0($$parsedSource["modified_assets"]);
         }
-        if ("outdated_tasks" in $$parsedSource) {
-            $$parsedSource["outdated_tasks"] = $$createField1_0($$parsedSource["outdated_tasks"]);
+        if ("outdated_assets" in $$parsedSource) {
+            $$parsedSource["outdated_assets"] = $$createField1_0($$parsedSource["outdated_assets"]);
         }
-        if ("rebuildable_tasks" in $$parsedSource) {
-            $$parsedSource["rebuildable_tasks"] = $$createField2_0($$parsedSource["rebuildable_tasks"]);
+        if ("rebuildable_assets" in $$parsedSource) {
+            $$parsedSource["rebuildable_assets"] = $$createField2_0($$parsedSource["rebuildable_assets"]);
         }
-        if ("normal_tasks" in $$parsedSource) {
-            $$parsedSource["normal_tasks"] = $$createField3_0($$parsedSource["normal_tasks"]);
+        if ("normal_assets" in $$parsedSource) {
+            $$parsedSource["normal_assets"] = $$createField3_0($$parsedSource["normal_assets"]);
         }
         if ("untracked_files" in $$parsedSource) {
             $$parsedSource["untracked_files"] = $$createField4_0($$parsedSource["untracked_files"]);
@@ -364,6 +530,71 @@ export class CollectionChildrenState {
             $$parsedSource["untracked_folders"] = $$createField5_0($$parsedSource["untracked_folders"]);
         }
         return new CollectionChildrenState(/** @type {Partial<CollectionChildrenState>} */($$parsedSource));
+    }
+}
+
+export class CollectionItems {
+    /**
+     * Creates a new CollectionItems instance.
+     * @param {Partial<CollectionItems>} [$$source = {}] - The source object to create the CollectionItems.
+     */
+    constructor($$source = {}) {
+        if (!("assets" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.Asset[]}
+             */
+            this["assets"] = [];
+        }
+        if (!("collections" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.Collection[]}
+             */
+            this["collections"] = [];
+        }
+        if (!("untracked_assets" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.UntrackedAsset[]}
+             */
+            this["untracked_assets"] = [];
+        }
+        if (!("untracked_collections" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.UntrackedCollection[]}
+             */
+            this["untracked_collections"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CollectionItems instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CollectionItems}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType2;
+        const $$createField1_0 = $$createType5;
+        const $$createField2_0 = $$createType3;
+        const $$createField3_0 = $$createType4;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("assets" in $$parsedSource) {
+            $$parsedSource["assets"] = $$createField0_0($$parsedSource["assets"]);
+        }
+        if ("collections" in $$parsedSource) {
+            $$parsedSource["collections"] = $$createField1_0($$parsedSource["collections"]);
+        }
+        if ("untracked_assets" in $$parsedSource) {
+            $$parsedSource["untracked_assets"] = $$createField2_0($$parsedSource["untracked_assets"]);
+        }
+        if ("untracked_collections" in $$parsedSource) {
+            $$parsedSource["untracked_collections"] = $$createField3_0($$parsedSource["untracked_collections"]);
+        }
+        return new CollectionItems(/** @type {Partial<CollectionItems>} */($$parsedSource));
     }
 }
 
@@ -710,68 +941,178 @@ export class DeploymentStatus {
     }
 }
 
-export class EntityItems {
+/**
+ * EntitlementBundle is the complete entitlement state for an entity.
+ */
+export class EntitlementBundle {
     /**
-     * Creates a new EntityItems instance.
-     * @param {Partial<EntityItems>} [$$source = {}] - The source object to create the EntityItems.
+     * Creates a new EntitlementBundle instance.
+     * @param {Partial<EntitlementBundle>} [$$source = {}] - The source object to create the EntitlementBundle.
      */
     constructor($$source = {}) {
-        if (!("tasks" in $$source)) {
+        if (!("plan" in $$source)) {
             /**
              * @member
-             * @type {models$0.Task[]}
+             * @type {string}
              */
-            this["tasks"] = [];
+            this["plan"] = "";
         }
-        if (!("entities" in $$source)) {
+        if (!("plan_type" in $$source)) {
             /**
              * @member
-             * @type {models$0.Entity[]}
+             * @type {string}
              */
-            this["entities"] = [];
+            this["plan_type"] = "";
         }
-        if (!("untracked_tasks" in $$source)) {
+        if (!("status" in $$source)) {
             /**
              * @member
-             * @type {models$0.UntrackedTask[]}
+             * @type {string}
              */
-            this["untracked_tasks"] = [];
+            this["status"] = "";
         }
-        if (!("untracked_entities" in $$source)) {
+        if (!("limits" in $$source)) {
             /**
              * @member
-             * @type {models$0.UntrackedEntity[]}
+             * @type {EntitlementLimits}
              */
-            this["untracked_entities"] = [];
+            this["limits"] = (new EntitlementLimits());
+        }
+        if (!("usage" in $$source)) {
+            /**
+             * @member
+             * @type {EntitlementUsage}
+             */
+            this["usage"] = (new EntitlementUsage());
+        }
+        if (!("features" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["features"] = [];
         }
 
         Object.assign(this, $$source);
     }
 
     /**
-     * Creates a new EntityItems instance from a string or object.
+     * Creates a new EntitlementBundle instance from a string or object.
      * @param {any} [$$source = {}]
-     * @returns {EntityItems}
+     * @returns {EntitlementBundle}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType2;
-        const $$createField1_0 = $$createType5;
-        const $$createField2_0 = $$createType3;
-        const $$createField3_0 = $$createType4;
+        const $$createField3_0 = $$createType6;
+        const $$createField4_0 = $$createType7;
+        const $$createField5_0 = $$createType8;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("tasks" in $$parsedSource) {
-            $$parsedSource["tasks"] = $$createField0_0($$parsedSource["tasks"]);
+        if ("limits" in $$parsedSource) {
+            $$parsedSource["limits"] = $$createField3_0($$parsedSource["limits"]);
         }
-        if ("entities" in $$parsedSource) {
-            $$parsedSource["entities"] = $$createField1_0($$parsedSource["entities"]);
+        if ("usage" in $$parsedSource) {
+            $$parsedSource["usage"] = $$createField4_0($$parsedSource["usage"]);
         }
-        if ("untracked_tasks" in $$parsedSource) {
-            $$parsedSource["untracked_tasks"] = $$createField2_0($$parsedSource["untracked_tasks"]);
+        if ("features" in $$parsedSource) {
+            $$parsedSource["features"] = $$createField5_0($$parsedSource["features"]);
         }
-        if ("untracked_entities" in $$parsedSource) {
-            $$parsedSource["untracked_entities"] = $$createField3_0($$parsedSource["untracked_entities"]);
+        return new EntitlementBundle(/** @type {Partial<EntitlementBundle>} */($$parsedSource));
+    }
+}
+
+/**
+ * EntitlementLimits contains the resolved limits for an entity.
+ */
+export class EntitlementLimits {
+    /**
+     * Creates a new EntitlementLimits instance.
+     * @param {Partial<EntitlementLimits>} [$$source = {}] - The source object to create the EntitlementLimits.
+     */
+    constructor($$source = {}) {
+        if (!("storage_bytes" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["storage_bytes"] = 0;
         }
-        return new EntityItems(/** @type {Partial<EntityItems>} */($$parsedSource));
+        if (!("max_remote_projects" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["max_remote_projects"] = 0;
+        }
+        if (!("max_collaborators" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["max_collaborators"] = 0;
+        }
+        if (!("ai_credits_monthly" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["ai_credits_monthly"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new EntitlementLimits instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {EntitlementLimits}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new EntitlementLimits(/** @type {Partial<EntitlementLimits>} */($$parsedSource));
+    }
+}
+
+/**
+ * EntitlementUsage contains current resource consumption.
+ */
+export class EntitlementUsage {
+    /**
+     * Creates a new EntitlementUsage instance.
+     * @param {Partial<EntitlementUsage>} [$$source = {}] - The source object to create the EntitlementUsage.
+     */
+    constructor($$source = {}) {
+        if (!("storage_bytes" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["storage_bytes"] = 0;
+        }
+        if (!("project_count" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["project_count"] = 0;
+        }
+        if (!("ai_credits_used" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["ai_credits_used"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new EntitlementUsage instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {EntitlementUsage}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new EntitlementUsage(/** @type {Partial<EntitlementUsage>} */($$parsedSource));
     }
 }
 
@@ -872,19 +1213,19 @@ export class ImportItems {
      * @param {Partial<ImportItems>} [$$source = {}] - The source object to create the ImportItems.
      */
     constructor($$source = {}) {
-        if (!("tasks" in $$source)) {
+        if (!("assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.Task[]}
+             * @type {models$0.Asset[]}
              */
-            this["tasks"] = [];
+            this["assets"] = [];
         }
-        if (!("entities" in $$source)) {
+        if (!("collections" in $$source)) {
             /**
              * @member
-             * @type {models$0.Entity[]}
+             * @type {models$0.Collection[]}
              */
-            this["entities"] = [];
+            this["collections"] = [];
         }
 
         Object.assign(this, $$source);
@@ -899,11 +1240,11 @@ export class ImportItems {
         const $$createField0_0 = $$createType2;
         const $$createField1_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("tasks" in $$parsedSource) {
-            $$parsedSource["tasks"] = $$createField0_0($$parsedSource["tasks"]);
+        if ("assets" in $$parsedSource) {
+            $$parsedSource["assets"] = $$createField0_0($$parsedSource["assets"]);
         }
-        if ("entities" in $$parsedSource) {
-            $$parsedSource["entities"] = $$createField1_0($$parsedSource["entities"]);
+        if ("collections" in $$parsedSource) {
+            $$parsedSource["collections"] = $$createField1_0($$parsedSource["collections"]);
         }
         return new ImportItems(/** @type {Partial<ImportItems>} */($$parsedSource));
     }
@@ -915,17 +1256,17 @@ export class ItemsForCheckpoint {
      * @param {Partial<ItemsForCheckpoint>} [$$source = {}] - The source object to create the ItemsForCheckpoint.
      */
     constructor($$source = {}) {
-        if (!("modified_tasks" in $$source)) {
+        if (!("modified_assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.Task[]}
+             * @type {models$0.Asset[]}
              */
-            this["modified_tasks"] = [];
+            this["modified_assets"] = [];
         }
         if (!("untracked_files" in $$source)) {
             /**
              * @member
-             * @type {models$0.UntrackedTask[]}
+             * @type {models$0.UntrackedAsset[]}
              */
             this["untracked_files"] = [];
         }
@@ -942,8 +1283,8 @@ export class ItemsForCheckpoint {
         const $$createField0_0 = $$createType2;
         const $$createField1_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("modified_tasks" in $$parsedSource) {
-            $$parsedSource["modified_tasks"] = $$createField0_0($$parsedSource["modified_tasks"]);
+        if ("modified_assets" in $$parsedSource) {
+            $$parsedSource["modified_assets"] = $$createField0_0($$parsedSource["modified_assets"]);
         }
         if ("untracked_files" in $$parsedSource) {
             $$parsedSource["untracked_files"] = $$createField1_0($$parsedSource["untracked_files"]);
@@ -958,12 +1299,12 @@ export class ItemsForUpdate {
      * @param {Partial<ItemsForUpdate>} [$$source = {}] - The source object to create the ItemsForUpdate.
      */
     constructor($$source = {}) {
-        if (!("outdated_tasks" in $$source)) {
+        if (!("outdated_assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.Task[]}
+             * @type {models$0.Asset[]}
              */
-            this["outdated_tasks"] = [];
+            this["outdated_assets"] = [];
         }
 
         Object.assign(this, $$source);
@@ -977,8 +1318,8 @@ export class ItemsForUpdate {
     static createFrom($$source = {}) {
         const $$createField0_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("outdated_tasks" in $$parsedSource) {
-            $$parsedSource["outdated_tasks"] = $$createField0_0($$parsedSource["outdated_tasks"]);
+        if ("outdated_assets" in $$parsedSource) {
+            $$parsedSource["outdated_assets"] = $$createField0_0($$parsedSource["outdated_assets"]);
         }
         return new ItemsForUpdate(/** @type {Partial<ItemsForUpdate>} */($$parsedSource));
     }
@@ -1019,6 +1360,139 @@ export class NullString {
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new NullString(/** @type {Partial<NullString>} */($$parsedSource));
+    }
+}
+
+/**
+ * Plan represents a subscription plan from the server.
+ */
+export class Plan {
+    /**
+     * Creates a new Plan instance.
+     * @param {Partial<Plan>} [$$source = {}] - The source object to create the Plan.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("type" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["type"] = "";
+        }
+        if (!("storage_bytes" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["storage_bytes"] = 0;
+        }
+        if (!("max_remote_projects" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["max_remote_projects"] = 0;
+        }
+        if (!("max_collaborators" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["max_collaborators"] = 0;
+        }
+        if (!("ai_credits_monthly" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["ai_credits_monthly"] = 0;
+        }
+        if (!("has_sync" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["has_sync"] = false;
+        }
+        if (!("has_ai" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["has_ai"] = false;
+        }
+        if (!("has_custom_roles" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["has_custom_roles"] = false;
+        }
+        if (!("has_integrations" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["has_integrations"] = false;
+        }
+        if (!("price_cents" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["price_cents"] = 0;
+        }
+        if (!("display_order" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["display_order"] = 0;
+        }
+        if (!("is_active" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["is_active"] = false;
+        }
+        if (!("feature_keys" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["feature_keys"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Plan instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Plan}
+     */
+    static createFrom($$source = {}) {
+        const $$createField14_0 = $$createType8;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("feature_keys" in $$parsedSource) {
+            $$parsedSource["feature_keys"] = $$createField14_0($$parsedSource["feature_keys"]);
+        }
+        return new Plan(/** @type {Partial<Plan>} */($$parsedSource));
     }
 }
 
@@ -1524,19 +1998,19 @@ export class UntrackedItems {
      * @param {Partial<UntrackedItems>} [$$source = {}] - The source object to create the UntrackedItems.
      */
     constructor($$source = {}) {
-        if (!("tasks" in $$source)) {
+        if (!("assets" in $$source)) {
             /**
              * @member
-             * @type {models$0.UntrackedTask[]}
+             * @type {models$0.UntrackedAsset[]}
              */
-            this["tasks"] = [];
+            this["assets"] = [];
         }
-        if (!("entities" in $$source)) {
+        if (!("collections" in $$source)) {
             /**
              * @member
-             * @type {models$0.UntrackedEntity[]}
+             * @type {models$0.UntrackedCollection[]}
              */
-            this["entities"] = [];
+            this["collections"] = [];
         }
 
         Object.assign(this, $$source);
@@ -1551,11 +2025,11 @@ export class UntrackedItems {
         const $$createField0_0 = $$createType3;
         const $$createField1_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("tasks" in $$parsedSource) {
-            $$parsedSource["tasks"] = $$createField0_0($$parsedSource["tasks"]);
+        if ("assets" in $$parsedSource) {
+            $$parsedSource["assets"] = $$createField0_0($$parsedSource["assets"]);
         }
-        if ("entities" in $$parsedSource) {
-            $$parsedSource["entities"] = $$createField1_0($$parsedSource["entities"]);
+        if ("collections" in $$parsedSource) {
+            $$parsedSource["collections"] = $$createField1_0($$parsedSource["collections"]);
         }
         return new UntrackedItems(/** @type {Partial<UntrackedItems>} */($$parsedSource));
     }
@@ -1782,11 +2256,11 @@ export class UserProfile {
      * @returns {UserProfile}
      */
     static createFrom($$source = {}) {
-        const $$createField8_0 = $$createType7;
-        const $$createField9_0 = $$createType7;
-        const $$createField25_0 = $$createType9;
-        const $$createField26_0 = $$createType11;
-        const $$createField27_0 = $$createType13;
+        const $$createField8_0 = $$createType10;
+        const $$createField9_0 = $$createType10;
+        const $$createField25_0 = $$createType12;
+        const $$createField26_0 = $$createType14;
+        const $$createField27_0 = $$createType16;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("country_id" in $$parsedSource) {
             $$parsedSource["country_id"] = $$createField8_0($$parsedSource["country_id"]);
@@ -1979,11 +2453,14 @@ const $$createType2 = $Create.Array($Create.Any);
 const $$createType3 = $Create.Array($Create.Any);
 const $$createType4 = $Create.Array($Create.Any);
 const $$createType5 = $Create.Array($Create.Any);
-const $$createType6 = NullString.createFrom;
-const $$createType7 = $Create.Nullable($$createType6);
-const $$createType8 = UserTool.createFrom;
-const $$createType9 = $Create.Array($$createType8);
-const $$createType10 = UserSkill.createFrom;
-const $$createType11 = $Create.Array($$createType10);
-const $$createType12 = UserStudio.createFrom;
-const $$createType13 = $Create.Array($$createType12);
+const $$createType6 = EntitlementLimits.createFrom;
+const $$createType7 = EntitlementUsage.createFrom;
+const $$createType8 = $Create.Array($Create.Any);
+const $$createType9 = NullString.createFrom;
+const $$createType10 = $Create.Nullable($$createType9);
+const $$createType11 = UserTool.createFrom;
+const $$createType12 = $Create.Array($$createType11);
+const $$createType13 = UserSkill.createFrom;
+const $$createType14 = $Create.Array($$createType13);
+const $$createType15 = UserStudio.createFrom;
+const $$createType16 = $Create.Array($$createType15);

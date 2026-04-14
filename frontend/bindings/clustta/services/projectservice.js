@@ -30,6 +30,20 @@ export function AddUser(projectPath, email, roleName) {
 }
 
 /**
+ * AddUserSynced adds a user to the local project and marks them as synced.
+ * Used when the server already has the user data via write-through.
+ * @param {string} projectPath
+ * @param {string} email
+ * @param {string} roleName
+ * @returns {$CancellablePromise<models$0.User>}
+ */
+export function AddUserSynced(projectPath, email, roleName) {
+    return $Call.ByID(3539129760, projectPath, email, roleName).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
  * @param {string} projectPath
  * @param {string} templateName
  * @returns {$CancellablePromise<void>}
@@ -61,10 +75,12 @@ export function CloseProject(projectPath) {
  * @param {string} studioName
  * @param {string} workingDir
  * @param {string} templateName
+ * @param {string} hostingMode
+ * @param {string} studioId
  * @returns {$CancellablePromise<repository$0.ProjectInfo>}
  */
-export function CreateProject(projectUri, studioName, workingDir, templateName) {
-    return $Call.ByID(914775891, projectUri, studioName, workingDir, templateName).then(/** @type {($result: any) => any} */(($result) => {
+export function CreateProject(projectUri, studioName, workingDir, templateName, hostingMode, studioId) {
+    return $Call.ByID(914775891, projectUri, studioName, workingDir, templateName, hostingMode, studioId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
 }
@@ -122,10 +138,12 @@ export function GetPreview(projectPath) {
 /**
  * @param {string} url
  * @param {string} name
+ * @param {string} hostingMode
+ * @param {string} studioId
  * @returns {$CancellablePromise<repository$0.ProjectInfo[]>}
  */
-export function GetStudioProjects(url, name) {
-    return $Call.ByID(155248386, url, name).then(/** @type {($result: any) => any} */(($result) => {
+export function GetStudioProjects(url, name, hostingMode, studioId) {
+    return $Call.ByID(155248386, url, name, hostingMode, studioId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType4($result);
     }));
 }
@@ -179,6 +197,26 @@ export function IsIgnored(itemPath, ignoreList) {
 }
 
 /**
+ * LeaveProject removes the current user as a collaborator from a remote project.
+ * The project remote URL is used to construct the leave endpoint.
+ * @param {string} remoteUrl
+ * @returns {$CancellablePromise<void>}
+ */
+export function LeaveProject(remoteUrl) {
+    return $Call.ByID(595831886, remoteUrl);
+}
+
+/**
+ * MakeProjectRemote uploads a local project to Clustta Cloud as a remote project.
+ * Creates the remote project, remaps IDs to match remote, pushes all data, and stores the remote URL locally.
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<void>}
+ */
+export function MakeProjectRemote(projectPath) {
+    return $Call.ByID(3213267975, projectPath);
+}
+
+/**
  * @param {string} projectPath
  * @returns {$CancellablePromise<repository$0.ProjectInfo>}
  */
@@ -207,12 +245,33 @@ export function Purge(projectPath) {
 }
 
 /**
+ * RemoveProjectFromRemote deletes the remote copy and clears the local remote URL.
+ * The local project data is preserved.
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<void>}
+ */
+export function RemoveProjectFromRemote(projectPath) {
+    return $Call.ByID(3939292029, projectPath);
+}
+
+/**
  * @param {string} projectPath
  * @param {string} userId
  * @returns {$CancellablePromise<void>}
  */
 export function RemoveUser(projectPath, userId) {
     return $Call.ByID(4241326069, projectPath, userId);
+}
+
+/**
+ * RemoveUserSynced removes a user from the local project and marks the tomb as synced.
+ * Used when the server already has the deletion via its own endpoint.
+ * @param {string} projectPath
+ * @param {string} userId
+ * @returns {$CancellablePromise<void>}
+ */
+export function RemoveUserSynced(projectPath, userId) {
+    return $Call.ByID(3362070715, projectPath, userId);
 }
 
 /**

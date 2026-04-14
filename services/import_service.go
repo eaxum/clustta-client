@@ -8,6 +8,7 @@ import (
 	"clustta/internal/utils"
 	"clustta/output"
 	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,8 +20,8 @@ import (
 type ImportService struct{}
 
 type ImportItems struct {
-	Tasks    []models.Task   `json:"tasks"`
-	Entities []models.Entity `json:"entities"`
+	Assets    []models.Asset   `json:"assets"`
+	Collections []models.Collection `json:"collections"`
 }
 
 func getItemPath(root, itemFilepath string, isFile bool) string {
@@ -71,9 +72,9 @@ func (i *ImportService) ImportFolder(projectPath, parentId string, folders, file
 		return ImportItems{}, errors.New("missing or invalid parameter: folders/files")
 	}
 
-	var tasks []string
+	var assets []string
 	var dirs []string
-	entitiesMap := map[string]models.Entity{}
+	collectionsMap := map[string]models.Collection{}
 
 	for _, file := range files {
 		file, err := filepath.Abs(file)
@@ -90,7 +91,7 @@ func (i *ImportService) ImportFolder(projectPath, parentId string, folders, file
 			continue
 		}
 
-		tasks = append(tasks, file)
+		assets = append(assets, file)
 	}
 
 	for _, folder := range folders {
@@ -113,6 +114,10 @@ func (i *ImportService) ImportFolder(projectPath, parentId string, folders, file
 		err = filepath.WalkDir(rootAbs, func(path string, d os.DirEntry, err error) error {
 			if err != nil {
 				return err
+			}
+
+			if d.Type()&fs.ModeSymlink != 0 {
+				return nil
 			}
 
 			path = filepath.ToSlash(path)
@@ -152,7 +157,7 @@ func (i *ImportService) ImportFolder(projectPath, parentId string, folders, file
 					return nil
 				}
 
-				tasks = append(tasks, path)
+				assets = append(assets, path)
 			}
 			return nil
 		})
@@ -161,76 +166,76 @@ func (i *ImportService) ImportFolder(projectPath, parentId string, folders, file
 		}
 	}
 
-	entitiesData := []models.Entity{}
-	tasksData := []models.Task{}
+	collectionsData := []models.Collection{}
+	assetsData := []models.Asset{}
 	for _, dir := range dirs {
 		parentPath := filepath.ToSlash(filepath.Dir(dir))
 		dirName := filepath.Base(dir)
-		entityParentId := parentId
+		collectionParentId := parentId
 		if utils.Contains(dirs, parentPath) {
-			entityParentId = entitiesMap[parentPath].Id
-			if entityParentId == "" {
+			collectionParentId = collectionsMap[parentPath].Id
+			if collectionParentId == "" {
 				return ImportItems{}, errors.New("parent not found in map")
 			}
 		}
-		ruleEntityType, err := repository.GetEntityTypeByName(tx, "Generic")
+		ruleCollectionType, err := repository.GetCollectionTypeByName(tx, "Generic")
 		if err != nil {
 			return ImportItems{}, err
 		}
-		entityPath := getItemPath(rootFolder, dir, false)
-		entity := models.Entity{
+		collectionPath := getItemPath(rootFolder, dir, false)
+		collection := models.Collection{
 			Id:             uuid.New().String(),
 			Name:           dirName,
-			ParentId:       entityParentId,
-			EntityTypeId:   ruleEntityType.Id,
-			EntityTypeIcon: ruleEntityType.Icon,
-			EntityTypeName: ruleEntityType.Name,
+			ParentId:       collectionParentId,
+			CollectionTypeId:   ruleCollectionType.Id,
+			CollectionTypeIcon: ruleCollectionType.Icon,
+			CollectionTypeName: ruleCollectionType.Name,
 			FilePath:       dir,
-			EntityPath:     entityPath,
+			CollectionPath:     collectionPath,
 		}
-		entitiesMap[dir] = entity
-		entitiesData = append(entitiesData, entity)
+		collectionsMap[dir] = collection
+		collectionsData = append(collectionsData, collection)
 	}
 
-	for _, task := range tasks {
-		parentPath := filepath.ToSlash(filepath.Dir(task))
-		taskName := strings.TrimSuffix(filepath.Base(task), filepath.Ext(task))
+	for _, asset := range assets {
+		parentPath := filepath.ToSlash(filepath.Dir(asset))
+		assetName := strings.TrimSuffix(filepath.Base(asset), filepath.Ext(asset))
 
-		entityParentId := parentId
+		collectionParentId := parentId
 		if utils.Contains(dirs, parentPath) {
-			entityParentId = entitiesMap[parentPath].Id
-			if entityParentId == "" {
+			collectionParentId = collectionsMap[parentPath].Id
+			if collectionParentId == "" {
 				return ImportItems{}, errors.New("parent not found in map")
 			}
 		}
 
-		ruleTaskType, err := repository.GetTaskTypeByName(tx, "Generic")
+		ruleAssetType, err := repository.GetAssetTypeByName(tx, "Generic")
 		if err != nil {
 			return ImportItems{}, err
 		}
-		taskPath := getItemPath(rootFolder, task, true)
-		taskData := models.Task{
+		assetPath := getItemPath(rootFolder, asset, true)
+		assetData := models.Asset{
 			Id:           uuid.New().String(),
-			Name:         taskName,
-			TaskTypeId:   ruleTaskType.Id,
-			TaskTypeName: ruleTaskType.Name,
-			TaskTypeIcon: ruleTaskType.Icon,
-			EntityId:     entityParentId,
-			FilePath:     task,
+			Name:         assetName,
+			AssetTypeId:   ruleAssetType.Id,
+			AssetTypeName: ruleAssetType.Name,
+			AssetTypeIcon: ruleAssetType.Icon,
+			CollectionId:     collectionParentId,
+			FilePath:     asset,
 			IsResource:   true,
-			TaskPath:     taskPath,
+			AssetPath:     assetPath,
 		}
-		tasksData = append(tasksData, taskData)
+		assetsData = append(assetsData, assetData)
 	}
 
 	importItems := ImportItems{
-		Tasks:    tasksData,
-		Entities: entitiesData,
+		Assets:    assetsData,
+		Collections: collectionsData,
 	}
 	return importItems, nil
 }
 
-func (e *ImportService) CreateItems(projectPath string, entities []models.Entity, tasks []models.Task, comment, groupId string) error {
+func (e *ImportService) CreateItems(projectPath string, collections []models.Collection, assets []models.Asset, comment, groupId string) error {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -243,7 +248,7 @@ func (e *ImportService) CreateItems(projectPath string, entities []models.Entity
 	}
 	defer tx.Rollback()
 
-	if len(entities)+len(tasks) == 0 {
+	if len(collections)+len(assets) == 0 {
 		return errors.New("missing or invalid parameter: no item passed")
 	}
 
@@ -261,42 +266,42 @@ func (e *ImportService) CreateItems(projectPath string, entities []models.Entity
 	}
 	app.Event.Emit("progress-update", progress)
 
-	totalTasks := len(tasks)
-	totalEntities := len(entities)
+	totalAssets := len(assets)
+	totalCollections := len(collections)
 	// totalItems := totalDirs + totalFiles
 
-	for i, entity := range entities {
-		_, err = repository.CreateEntity(
-			tx, entity.Id, entity.Name, entity.Description, entity.EntityTypeId, entity.ParentId, entity.PreviewId, entity.IsLibrary)
+	for i, collection := range collections {
+		_, err = repository.CreateCollection(
+			tx, collection.Id, collection.Name, collection.Description, collection.CollectionTypeId, collection.ParentId, collection.PreviewId, collection.IsLibrary)
 		if err != nil {
 			return err
 		}
 
 		progress := output.ProgressReport{
-			Title:      "Creating Entities",
-			Message:    entity.Name,
-			Percentage: float64(i+1) / float64(totalEntities) * 99,
+			Title:      "Creating Collections",
+			Message:    collection.Name,
+			Percentage: float64(i+1) / float64(totalCollections) * 99,
 			Current:    i + 1,
-			Total:      totalEntities,
+			Total:      totalCollections,
 		}
 		app.Event.Emit("progress-update", progress)
 	}
 
-	for i, task := range tasks {
+	for i, asset := range assets {
 		callBack := func(current int, total int, message string, extraMessage string) {
 			progress := output.ProgressReport{
-				Title:      "Creating Tasks",
-				Message:    task.Name,
+				Title:      "Creating Assets",
+				Message:    asset.Name,
 				Percentage: float64(current) / float64(total) * 99,
 				Current:    i + 1,
-				Total:      totalTasks,
+				Total:      totalAssets,
 			}
 			app.Event.Emit("progress-update", progress)
 		}
-		_, err = repository.CreateTask(
-			tx, task.Id, task.Name, task.TaskTypeId, task.EntityId, task.IsResource,
-			"", task.Description, task.FilePath, task.Tags,
-			task.Pointer, task.IsLink, task.PreviewId, user.Id, comment, groupId, callBack)
+		_, err = repository.CreateAsset(
+			tx, asset.Id, asset.Name, asset.AssetTypeId, asset.CollectionId, asset.IsResource,
+			"", asset.Description, asset.FilePath, asset.Tags,
+			asset.Pointer, asset.IsLink, asset.PreviewId, user.Id, comment, groupId, callBack)
 		if err != nil {
 			return err
 		}
@@ -318,7 +323,7 @@ func (e *ImportService) CreateItems(projectPath string, entities []models.Entity
 	return nil
 }
 
-func (e *ImportService) CreateEntities(projectPath string, entities []models.Entity, completed, totalEntities int) error {
+func (e *ImportService) CreateCollections(projectPath string, collections []models.Collection, completed, totalCollections int) error {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -331,7 +336,7 @@ func (e *ImportService) CreateEntities(projectPath string, entities []models.Ent
 	}
 	defer tx.Rollback()
 
-	if len(entities) == 0 {
+	if len(collections) == 0 {
 		return errors.New("missing or invalid parameter: no item passed")
 	}
 
@@ -345,19 +350,19 @@ func (e *ImportService) CreateEntities(projectPath string, entities []models.Ent
 	app.Event.Emit("progress-update", progress)
 
 	state := completed
-	for i, entity := range entities {
-		_, err = repository.CreateEntity(
-			tx, entity.Id, entity.Name, entity.Description, entity.EntityTypeId, entity.ParentId, entity.PreviewId, entity.IsLibrary)
+	for i, collection := range collections {
+		_, err = repository.CreateCollection(
+			tx, collection.Id, collection.Name, collection.Description, collection.CollectionTypeId, collection.ParentId, collection.PreviewId, collection.IsLibrary)
 		if err != nil {
 			return err
 		}
 
 		progress := output.ProgressReport{
-			Title:      "Creating Entities",
-			Message:    entity.Name,
-			Percentage: float64(i+1) / float64(totalEntities) * 99,
+			Title:      "Creating Collections",
+			Message:    collection.Name,
+			Percentage: float64(i+1) / float64(totalCollections) * 99,
 			Current:    completed + (i + 1),
-			Total:      totalEntities,
+			Total:      totalCollections,
 		}
 		app.Event.Emit("progress-update", progress)
 		state = completed + (i + 1)
@@ -367,7 +372,7 @@ func (e *ImportService) CreateEntities(projectPath string, entities []models.Ent
 	if err != nil {
 		return err
 	}
-	if state == totalEntities {
+	if state == totalCollections {
 		progress = output.ProgressReport{
 			Title:      "Finishing Import",
 			Message:    "Finishing Import",
@@ -381,7 +386,7 @@ func (e *ImportService) CreateEntities(projectPath string, entities []models.Ent
 	return nil
 }
 
-func (e *ImportService) CreateTasks(projectPath string, tasks []models.Task, completed, totalTasks int, comment, groupId string) error {
+func (e *ImportService) CreateAssets(projectPath string, assets []models.Asset, completed, totalAssets int, comment, groupId string) error {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -394,7 +399,7 @@ func (e *ImportService) CreateTasks(projectPath string, tasks []models.Task, com
 	}
 	defer tx.Rollback()
 
-	if len(tasks) == 0 {
+	if len(assets) == 0 {
 		return errors.New("missing or invalid parameter: no item passed")
 	}
 
@@ -412,21 +417,21 @@ func (e *ImportService) CreateTasks(projectPath string, tasks []models.Task, com
 	}
 	app.Event.Emit("progress-update", progress)
 	state := completed
-	for i, task := range tasks {
+	for i, asset := range assets {
 		callBack := func(current int, total int, message string, extraMessage string) {
 			progress := output.ProgressReport{
-				Title:      "Creating Tasks",
-				Message:    task.Name,
+				Title:      "Creating Assets",
+				Message:    asset.Name,
 				Percentage: float64(current) / float64(total) * 99,
 				Current:    completed + (i + 1),
-				Total:      totalTasks,
+				Total:      totalAssets,
 			}
 			app.Event.Emit("progress-update", progress)
 		}
-		_, err = repository.CreateTask(
-			tx, task.Id, task.Name, task.TaskTypeId, task.EntityId, task.IsResource,
-			"", task.Description, task.FilePath, task.Tags,
-			task.Pointer, task.IsLink, task.PreviewId, user.Id, comment, groupId, callBack)
+		_, err = repository.CreateAsset(
+			tx, asset.Id, asset.Name, asset.AssetTypeId, asset.CollectionId, asset.IsResource,
+			"", asset.Description, asset.FilePath, asset.Tags,
+			asset.Pointer, asset.IsLink, asset.PreviewId, user.Id, comment, groupId, callBack)
 		if err != nil {
 			return err
 		}
@@ -437,7 +442,7 @@ func (e *ImportService) CreateTasks(projectPath string, tasks []models.Task, com
 	if err != nil {
 		return err
 	}
-	if state == totalTasks {
+	if state == totalAssets {
 		progress = output.ProgressReport{
 			Title:      "Finishing Import",
 			Message:    "Finishing Import",

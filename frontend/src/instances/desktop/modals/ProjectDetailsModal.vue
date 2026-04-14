@@ -6,27 +6,27 @@
       <HeaderArea :notModal="true" v-else :title="title" :emoji="projectIcon" />
       <ActionButton v-if="displayEmojiSelector"  :icon="getAppIcon('arrow-left')" :showLabel="false" v-tooltip="$t('modals.backToDetails')"
         :buttonFunction="toggleEmojiSelector" />
-      <ActionButton v-else  :icon="getAppIcon('face-plus')" :showLabel="false" v-tooltip="$t('modals.setProjectIcon')"
+      <ActionButton v-else-if="studioStore.canManageProject" :icon="getAppIcon('face-plus')" :showLabel="false" v-tooltip="$t('modals.setProjectIcon')"
         :buttonFunction="toggleEmojiSelector" />
       <ActionButton v-if="isPreviewChanged" :icon="getAppIcon('revert')" :showLabel="false"
         v-tooltip="$t('modals.revertCoverImage')" :buttonFunction="revertCoverImage" />
-      <ActionButton v-if="projectPreview && !displayEmojiSelector" :icon="getAppIcon('image-cancel')" :showLabel="false"
+      <ActionButton v-if="studioStore.canManageProject && projectPreview && !displayEmojiSelector" :icon="getAppIcon('image-cancel')" :showLabel="false"
         v-tooltip="$t('modals.removeCoverImage')" :buttonFunction="removeCoverImage" />
-      <ActionButton v-if="!projectPreview" :icon="getAppIcon('image-plus')" :showLabel="false" v-tooltip="$t('modals.addCoverImage')"
+      <ActionButton v-if="studioStore.canManageProject && !projectPreview" :icon="getAppIcon('image-plus')" :showLabel="false" v-tooltip="$t('modals.addCoverImage')"
         :buttonFunction="addCoverImage" />
     </div>
 
 
     <div class="general-container">
 
-      <span @click="addCoverImage" v-if="projectPreview && !displayEmojiSelector" v-tooltip="$t('modals.clickToChange')" class="screenshot-preview">
+      <span @click="studioStore.canManageProject ? addCoverImage() : null" v-if="projectPreview && !displayEmojiSelector" v-tooltip="studioStore.canManageProject ? $t('modals.clickToChange') : ''" class="screenshot-preview">
         <img class="screenshot-thumb" :src="projectPreview">
       </span>
 
       <div class="input-section">
         <div v-if="!isEditingName" class="project-name-display">
           <span class="project-name-text">{{ projectName }}</span>
-          <ActionButton :icon="getAppIcon('edit')" v-tooltip="$t('modals.renameProject')" :buttonFunction="toggleEditName" />
+          <ActionButton v-if="studioStore.canManageProject" :icon="getAppIcon('edit')" v-tooltip="$t('modals.renameProject')" :buttonFunction="toggleEditName" />
         </div>
         <RenameInput 
           v-else
@@ -36,6 +36,10 @@
           @confirm="confirmRename"
           @cancel="cancelRename"
         />
+        <div class="project-id-display">
+          <span class="project-id-text">{{ projectId }}</span>
+          <ActionButton :icon="getAppIcon('copy')" :showLabel="false" v-tooltip="$t('common.copyId')" :buttonFunction="copyProjectId" />
+        </div>
       </div>
 
       <div v-if="!displayEmojiSelector" class="project-stats-section">
@@ -80,7 +84,7 @@
       </div>
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateProject()" :isActive="isValueChanged"
+        <GeneralButton v-if="studioStore.canManageProject" :label="$t('common.update')" :fullWidth="true" @click="updateProject()" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -93,6 +97,7 @@
 // imports
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { Clipboard } from '@wailsio/runtime';
 import utils from '@/services/utils';
 
 // components
@@ -110,11 +115,13 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
+import { useStudioStore } from '@/stores/studio';
 
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const studioStore = useStudioStore();
 const { t } = useI18n();
 
 // refs
@@ -134,6 +141,7 @@ const oldProjectIcon = ref('');
 const oldProjectName = ref('');
 const oldProjectPreview = ref('');
 const projectIcon = ref('');
+const projectId = ref('');
 const projectName = ref('');
 const projectPreview = ref('');
 const projectSize = ref(0);
@@ -170,6 +178,12 @@ const isValueChanged = computed(() => {
 });
 
 // methods
+// Copies the project ID to clipboard.
+const copyProjectId = async () => {
+  await Clipboard.SetText(projectId.value);
+  notificationStore.addNotification(t('notifications.idCopied'), '', 'success');
+};
+
 // Opens a dialog to select a cover image.
 const addCoverImage = async () => {
   const result = await DialogService.SelectFileDialog('Select Image File', '*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp');
@@ -262,7 +276,7 @@ const getProjectSize = async () => {
 // Handles emoji selection from picker.
 const handleEmojiSelect = (emojiData) => {
   selectedEmoji.value = emojiData;
-  projectIcon.value = selectedEmoji.value.entity;
+  projectIcon.value = selectedEmoji.value.collection;
   displayEmojiSelector.value = false;
 };
 
@@ -384,6 +398,7 @@ onMounted(() => {
   projectsDirectory.value = project.working_directory;
   projectName.value = project.name;
   oldProjectName.value = project.name;
+  projectId.value = project.id;
   projectIcon.value = project.icon;
   oldProjectIcon.value = project.icon;
   projectPreview.value = project.preview;
@@ -432,6 +447,25 @@ onUnmounted(() => {
 .project-name-text {
   flex: 1;
   color: var(--white);
+}
+
+.project-id-display {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-left: .8rem;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.project-id-text {
+  font-size: 12px;
+  color: var(--white);
+  opacity: 0.5;
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .project-stats-section {

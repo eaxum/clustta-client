@@ -9,6 +9,7 @@ import { useStageStore } from '@/stores/stages';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIntegrationStore } from '@/stores/integrations';
 import { useIconStore } from '@/stores/icons';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { setLocale } from '@/i18n';
 
 export const useAccountStore = defineStore('accounts', {
@@ -20,7 +21,8 @@ export const useAccountStore = defineStore('accounts', {
     lastUpdated: null,     // Timestamp for cache invalidation
     isAdditionalAccount: false, // Flag to indicate when adding additional account vs first login
     authMode: 'global',    // Current auth mode: 'global', 'studio', or 'offline'
-    authHost: ''           // Current auth host URL
+    authHost: '',           // Current auth host URL
+    onboardingIntent: null, // Post-auth routing intent: null, 'personal', 'studio', or 'self-hosted'
   }),
 
   getters: {
@@ -250,6 +252,10 @@ export const useAccountStore = defineStore('accounts', {
         userStore.$reset();
         projectStore.$reset();
         
+        // Reset and re-fetch entitlements for the new user
+        const entitlementStore = useEntitlementStore();
+        entitlementStore.reset();
+        
         // Reload user-specific settings
         await this.reloadUserSettings();
         
@@ -261,6 +267,9 @@ export const useAccountStore = defineStore('accounts', {
           // Refresh application data for the new user
           await themeStore.initializeTheme();
           await projectStore.loadStudios();
+          
+          // Fetch entitlements for the switched user
+          entitlementStore.fetchEntitlements();
           
           // Check if project directory exists before loading projects
           const projectDirectoryExists = await SettingsService.GetProjectDirectory();

@@ -8,65 +8,65 @@ function getProjectName(projectPath) {
 }
 
 /**
- * Compute entity_path based on parent's path and entity name
+ * Compute collection_path based on parent's path and collection name
  * Mirrors the SQLite trigger logic from schema.sql
  * @param {object} db - Database connection
- * @param {string} parentId - Parent entity ID (empty string for root)
- * @param {string} name - Entity name
- * @returns {string} - Computed entity path like '/Parent/Child/'
+ * @param {string} parentId - Parent collection ID (empty string for root)
+ * @param {string} name - Collection name
+ * @returns {string} - Computed collection path like '/Parent/Child/'
  */
-function computeEntityPath(db, parentId, name) {
+function computeCollectionPath(db, parentId, name) {
   if (!parentId || parentId === '') {
-    // Root level entity
+    // Root level collection
     return '/' + name + '/';
   }
-  // Get parent's entity_path
-  const parent = queryOne(db, 'SELECT entity_path FROM entity WHERE id = ?', [parentId]);
-  if (parent && parent.entity_path) {
-    return parent.entity_path + name + '/';
+  // Get parent's collection_path
+  const parent = queryOne(db, 'SELECT collection_path FROM collection WHERE id = ?', [parentId]);
+  if (parent && parent.collection_path) {
+    return parent.collection_path + name + '/';
   }
   // Fallback if parent not found
   return '/' + name + '/';
 }
 
 /**
- * Convert database row to entity object with proper types
- * Optionally enriches with entity type info
+ * Convert database row to collection object with proper types
+ * Optionally enriches with collection type info
  */
-function rowToEntity(row, entityTypeMap = {}) {
+function rowToCollection(row, collectionTypeMap = {}) {
   if (!row) return null;
-  const entityType = entityTypeMap[row.entity_type_id] || {};
+  const collectionType = collectionTypeMap[row.collection_type_id] || {};
   return {
     ...row,
     trashed: !!row.trashed,
     is_trashed: !!row.trashed,
     is_library: !!row.is_library,
     synced: !!row.synced,
-    type: 'entity',
-    entity_type: entityType.name || '',
-    entity_type_icon: entityType.icon || '',
+    type: 'collection',
+    collection_type: collectionType.name || '',
+    collection_type_icon: collectionType.icon || '',
   };
 }
 
 /**
- * Convert database row to task object with proper types
- * Optionally enriches with status, tags, entity type info, and dependencies
- * Also computes entity_path and task_path from entity
+ * Convert database row to asset object with proper types
+ * Optionally enriches with status, tags, collection type info, and dependencies
+ * Also computes collection_path and asset_path from collection
  */
-function rowToTask(row, statusMap = {}, taskTypeMap = {}, taskTagsMap = {}, tagMap = {}, taskDependenciesMap = {}, entityDependenciesMap = {}, entityMap = {}) {
+function rowToAsset(row, statusMap = {}, assetTypeMap = {}, assetTagsMap = {}, tagMap = {}, assetDependenciesMap = {}, collectionDependenciesMap = {}, collectionMap = {}) {
   if (!row) return null;
   const status = statusMap[row.status_id] || {};
-  const taskType = taskTypeMap[row.task_type_id] || {};
-  const tagIds = taskTagsMap[row.id] || [];
+  const assetType = assetTypeMap[row.asset_type_id] || {};
+  const tagIds = assetTagsMap[row.id] || [];
   const tags = tagIds.map(tagId => tagMap[tagId]?.name || tagId).filter(Boolean);
-  const dependencies = taskDependenciesMap[row.id] || [];
-  const entity_dependencies = entityDependenciesMap[row.id] || [];
+  const dependencies = assetDependenciesMap[row.id] || [];
+  const collection_dependencies = collectionDependenciesMap[row.id] || [];
   
-  // Compute entity_path and task_path from parent entity (mirrors full_task view)
-  const entity = entityMap[row.entity_id] || {};
-  const entityPath = entity.entity_path || '';
-  const taskPath = entityPath ? entityPath + row.name : '/' + row.name;
-  const entityName = entity.name || '';
+  // Compute collection_path and asset_path from parent collection (mirrors full_asset view)
+  const collection = collectionMap[row.collection_id] || {};
+  const collectionPath = collection.collection_path || '';
+  const assetPath = collectionPath ? collectionPath + row.name : '/' + row.name;
+  const collectionName = collection.name || '';
   
   return {
     ...row,
@@ -75,25 +75,25 @@ function rowToTask(row, statusMap = {}, taskTypeMap = {}, taskTagsMap = {}, tagM
     trashed: !!row.trashed,
     is_trashed: !!row.trashed,
     synced: !!row.synced,
-    type: 'task',
+    type: 'asset',
     // Status object
     status: status,
     status_name: status.name || '',
     status_short_name: status.short_name || '',
     status_color: status.color || '',
-    // Task type info
-    task_type: taskType.name || '',
-    task_type_name: taskType.name || '',
-    task_type_icon: taskType.icon || '',
+    // Asset type info
+    asset_type: assetType.name || '',
+    asset_type_name: assetType.name || '',
+    asset_type_icon: assetType.icon || '',
     // Tags array
     tags: tags,
     // Dependencies arrays
     dependencies: dependencies,
-    entity_dependencies: entity_dependencies,
-    // Entity-related paths
-    entity_path: entityPath,
-    task_path: taskPath,
-    entity_name: entityName,
+    collection_dependencies: collection_dependencies,
+    // Collection-related paths
+    collection_path: collectionPath,
+    asset_path: assetPath,
+    collection_name: collectionName,
     // Web mode specific - no local file tracking
     file_status: 'normal',
   };
@@ -106,15 +106,15 @@ export const CollectionService = {
     try {
       const db = await getDatabase(projectName);
       
-      // Build entity type lookup map
-      const entityTypeRows = query(db, 'SELECT * FROM entity_type');
-      const entityTypeMap = {};
-      for (const et of entityTypeRows) {
-        entityTypeMap[et.id] = et;
+      // Build collection type lookup map
+      const collectionTypeRows = query(db, 'SELECT * FROM collection_type');
+      const collectionTypeMap = {};
+      for (const et of collectionTypeRows) {
+        collectionTypeMap[et.id] = et;
       }
       
-      const rows = query(db, 'SELECT * FROM entity WHERE trashed = 0');
-      return rows.map(row => rowToEntity(row, entityTypeMap));
+      const rows = query(db, 'SELECT * FROM collection WHERE trashed = 0');
+      return rows.map(row => rowToCollection(row, collectionTypeMap));
     } catch (error) {
       console.error('GetCollections error:', error);
       return [];
@@ -127,15 +127,15 @@ export const CollectionService = {
     try {
       const db = await getDatabase(projectName);
       
-      // Build entity type lookup map
-      const entityTypeRows = query(db, 'SELECT * FROM entity_type');
-      const entityTypeMap = {};
-      for (const et of entityTypeRows) {
-        entityTypeMap[et.id] = et;
+      // Build collection type lookup map
+      const collectionTypeRows = query(db, 'SELECT * FROM collection_type');
+      const collectionTypeMap = {};
+      for (const et of collectionTypeRows) {
+        collectionTypeMap[et.id] = et;
       }
       
-      const row = queryOne(db, 'SELECT * FROM entity WHERE id = ?', [collectionId]);
-      return rowToEntity(row, entityTypeMap) || {};
+      const row = queryOne(db, 'SELECT * FROM collection WHERE id = ?', [collectionId]);
+      return rowToCollection(row, collectionTypeMap) || {};
     } catch (error) {
       console.error('GetCollection error:', error);
       return {};
@@ -143,22 +143,22 @@ export const CollectionService = {
   },
 
   // Alias for GetCollection - retrieves a collection by its ID
-  GetCollectionByID: async (projectPath, entityId) => {
+  GetCollectionByID: async (projectPath, collectionId) => {
     // Handle root as empty string
-    const normalizedId = entityId === 'root' ? '' : entityId;
+    const normalizedId = collectionId === 'root' ? '' : collectionId;
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
       
-      // Build entity type lookup map
-      const entityTypeRows = query(db, 'SELECT * FROM entity_type');
-      const entityTypeMap = {};
-      for (const et of entityTypeRows) {
-        entityTypeMap[et.id] = et;
+      // Build collection type lookup map
+      const collectionTypeRows = query(db, 'SELECT * FROM collection_type');
+      const collectionTypeMap = {};
+      for (const et of collectionTypeRows) {
+        collectionTypeMap[et.id] = et;
       }
       
-      const row = queryOne(db, 'SELECT * FROM entity WHERE id = ?', [normalizedId]);
-      return rowToEntity(row, entityTypeMap) || {};
+      const row = queryOne(db, 'SELECT * FROM collection WHERE id = ?', [normalizedId]);
+      return rowToCollection(row, collectionTypeMap) || {};
     } catch (error) {
       console.error('GetCollectionByID error:', error);
       return {};
@@ -166,40 +166,40 @@ export const CollectionService = {
   },
 
   // Returns a specific collection by its path
-  GetCollectionByPath: async (projectPath, entityPath) => {
+  GetCollectionByPath: async (projectPath, collectionPath) => {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
       
-      // Build entity type lookup map
-      const entityTypeRows = query(db, 'SELECT * FROM entity_type');
-      const entityTypeMap = {};
-      for (const et of entityTypeRows) {
-        entityTypeMap[et.id] = et;
+      // Build collection type lookup map
+      const collectionTypeRows = query(db, 'SELECT * FROM collection_type');
+      const collectionTypeMap = {};
+      for (const et of collectionTypeRows) {
+        collectionTypeMap[et.id] = et;
       }
       
       // Handle root path
-      const normalizedPath = entityPath === '/' ? '' : entityPath;
+      const normalizedPath = collectionPath === '/' ? '' : collectionPath;
       
-      const row = queryOne(db, 'SELECT * FROM entity WHERE entity_path = ?', [normalizedPath]);
-      return rowToEntity(row, entityTypeMap) || {};
+      const row = queryOne(db, 'SELECT * FROM collection WHERE collection_path = ?', [normalizedPath]);
+      return rowToCollection(row, collectionTypeMap) || {};
     } catch (error) {
       console.error('GetCollectionByPath error:', error);
       return {};
     }
   },
 
-  // Returns all children of a collection (entities, tasks, untracked items)
-  GetCollectionChildren: async (projectPath, entityId, projectWorkingDir, entityFolderPath, ignoreList, isUntracked) => {
+  // Returns all children of a collection (collections, assets, untracked items)
+  GetCollectionChildren: async (projectPath, collectionId, projectWorkingDir, collectionFolderPath, ignoreList, isUntracked) => {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
       
       // Build lookup maps for enrichment
-      const entityTypeRows = query(db, 'SELECT * FROM entity_type');
-      const entityTypeMap = {};
-      for (const et of entityTypeRows) {
-        entityTypeMap[et.id] = et;
+      const collectionTypeRows = query(db, 'SELECT * FROM collection_type');
+      const collectionTypeMap = {};
+      for (const et of collectionTypeRows) {
+        collectionTypeMap[et.id] = et;
       }
       
       const statusRows = query(db, 'SELECT * FROM status');
@@ -208,10 +208,10 @@ export const CollectionService = {
         statusMap[s.id] = s;
       }
       
-      const taskTypeRows = query(db, 'SELECT * FROM task_type');
-      const taskTypeMap = {};
-      for (const tt of taskTypeRows) {
-        taskTypeMap[tt.id] = tt;
+      const assetTypeRows = query(db, 'SELECT * FROM asset_type');
+      const assetTypeMap = {};
+      for (const tt of assetTypeRows) {
+        assetTypeMap[tt.id] = tt;
       }
       
       const tagRows = query(db, 'SELECT * FROM tag');
@@ -220,96 +220,96 @@ export const CollectionService = {
         tagMap[t.id] = t;
       }
       
-      const taskTagRows = query(db, 'SELECT * FROM task_tag');
-      const taskTagsMap = {};
-      for (const tt of taskTagRows) {
-        if (!taskTagsMap[tt.task_id]) {
-          taskTagsMap[tt.task_id] = [];
+      const assetTagRows = query(db, 'SELECT * FROM asset_tag');
+      const assetTagsMap = {};
+      for (const tt of assetTagRows) {
+        if (!assetTagsMap[tt.asset_id]) {
+          assetTagsMap[tt.asset_id] = [];
         }
-        taskTagsMap[tt.task_id].push(tt.tag_id);
+        assetTagsMap[tt.asset_id].push(tt.tag_id);
       }
       
-      // Build task dependency map
-      const taskDependencyRows = query(db, 'SELECT * FROM task_dependency');
-      const taskDependenciesMap = {};
-      for (const td of taskDependencyRows) {
-        if (!taskDependenciesMap[td.task_id]) {
-          taskDependenciesMap[td.task_id] = [];
+      // Build asset dependency map
+      const assetDependencyRows = query(db, 'SELECT * FROM asset_dependency');
+      const assetDependenciesMap = {};
+      for (const td of assetDependencyRows) {
+        if (!assetDependenciesMap[td.asset_id]) {
+          assetDependenciesMap[td.asset_id] = [];
         }
-        taskDependenciesMap[td.task_id].push({
+        assetDependenciesMap[td.asset_id].push({
           id: td.dependency_id,
           type_id: td.dependency_type_id
         });
       }
       
-      // Build entity dependency map
-      const entityDependencyRows = query(db, 'SELECT * FROM entity_dependency');
-      const entityDependenciesMap = {};
-      for (const ed of entityDependencyRows) {
-        if (!entityDependenciesMap[ed.task_id]) {
-          entityDependenciesMap[ed.task_id] = [];
+      // Build collection dependency map
+      const collectionDependencyRows = query(db, 'SELECT * FROM collection_dependency');
+      const collectionDependenciesMap = {};
+      for (const ed of collectionDependencyRows) {
+        if (!collectionDependenciesMap[ed.asset_id]) {
+          collectionDependenciesMap[ed.asset_id] = [];
         }
-        entityDependenciesMap[ed.task_id].push({
-          id: ed.entity_id,
+        collectionDependenciesMap[ed.asset_id].push({
+          id: ed.collection_id,
           type_id: ed.dependency_type_id
         });
       }
       
-      // Get child entities
-      const parentCondition = entityId === 'root' 
+      // Get child collections
+      const parentCondition = collectionId === 'root' 
         ? "(parent_id IS NULL OR parent_id = '')"
-        : `parent_id = '${entityId}'`;
+        : `parent_id = '${collectionId}'`;
       
-      const entityRows = query(db, `SELECT * FROM entity WHERE ${parentCondition} AND trashed = 0`);
-      const entities = entityRows.map(row => rowToEntity(row, entityTypeMap));
+      const collectionRows = query(db, `SELECT * FROM collection WHERE ${parentCondition} AND trashed = 0`);
+      const collections = collectionRows.map(row => rowToCollection(row, collectionTypeMap));
       
-      // Build entityMap for task_path computation
-      const allEntityRows = query(db, 'SELECT id, name, entity_path FROM entity');
-      const entityMapForTasks = {};
-      for (const e of allEntityRows) {
-        entityMapForTasks[e.id] = e;
+      // Build collectionMap for asset_path computation
+      const allCollectionRows = query(db, 'SELECT id, name, collection_path FROM collection');
+      const collectionMapForAssets = {};
+      for (const e of allCollectionRows) {
+        collectionMapForAssets[e.id] = e;
       }
       
-      // Get child tasks
-      const taskCondition = entityId === 'root'
-        ? "(entity_id IS NULL OR entity_id = '')"
-        : `entity_id = '${entityId}'`;
+      // Get child assets
+      const assetCondition = collectionId === 'root'
+        ? "(collection_id IS NULL OR collection_id = '')"
+        : `collection_id = '${collectionId}'`;
       
-      const taskRows = query(db, `SELECT * FROM task WHERE ${taskCondition} AND trashed = 0`);
-      const tasks = taskRows.map(row => rowToTask(row, statusMap, taskTypeMap, taskTagsMap, tagMap, taskDependenciesMap, entityDependenciesMap, entityMapForTasks));
+      const assetRows = query(db, `SELECT * FROM asset WHERE ${assetCondition} AND trashed = 0`);
+      const assets = assetRows.map(row => rowToAsset(row, statusMap, assetTypeMap, assetTagsMap, tagMap, assetDependenciesMap, collectionDependenciesMap, collectionMapForAssets));
       
       return {
-        entities,
-        tasks,
-        untracked_tasks: [],      // No untracked items in web mode
-        untracked_entities: [],   // No untracked items in web mode
+        collections,
+        assets,
+        untracked_assets: [],      // No untracked items in web mode
+        untracked_collections: [],   // No untracked items in web mode
       };
     } catch (error) {
       console.error('GetCollectionChildren error:', error);
       return {
-        entities: [],
-        tasks: [],
-        untracked_tasks: [],
-        untracked_entities: [],
+        collections: [],
+        assets: [],
+        untracked_assets: [],
+        untracked_collections: [],
       };
     }
   },
 
   // Returns state flags for a collection's children
-  GetCollectionChildrenState: async (projectPath, entityId, projectWorkingDir, ignoreList) => {
+  GetCollectionChildrenState: async (projectPath, collectionId, projectWorkingDir, ignoreList) => {
     // In web mode, we don't track local file states
     return {
-      modified_tasks: [],
-      outdated_tasks: [],
-      rebuildable_tasks: [],
-      normal_tasks: [],
+      modified_assets: [],
+      outdated_assets: [],
+      rebuildable_assets: [],
+      normal_assets: [],
       untracked_files: [],
       untracked_folders: [],
     };
   },
 
   // Returns collection state flags (has_untracked, has_modified, has_outdated, has_rebuildable)
-  GetCollectionStateFlags: async (projectPath, entityId, projectWorkingDir, ignoreList) => {
+  GetCollectionStateFlags: async (projectPath, collectionId, projectWorkingDir, ignoreList) => {
     // In web mode, we don't track local file states, so return all false
     return {
       has_untracked: false,
@@ -320,33 +320,33 @@ export const CollectionService = {
   },
 
   // Changes the parent of a collection (local-first approach)
-  ChangeCollectionParent: async (projectPath, entityId, newParentId) => {
+  ChangeCollectionParent: async (projectPath, collectionId, newParentId) => {
     const projectName = getProjectName(projectPath);
     
     try {
       const db = await getDatabase(projectName);
       
-      // Get entity's current name to recompute path
-      const entity = queryOne(db, 'SELECT name, entity_path FROM entity WHERE id = ?', [entityId]);
-      if (!entity) {
-        throw new Error('Entity not found');
+      // Get collection's current name to recompute path
+      const collection = queryOne(db, 'SELECT name, collection_path FROM collection WHERE id = ?', [collectionId]);
+      if (!collection) {
+        throw new Error('Collection not found');
       }
       
-      // Compute new entity_path based on new parent
-      const newEntityPath = computeEntityPath(db, newParentId, entity.name);
-      const oldEntityPath = entity.entity_path;
+      // Compute new collection_path based on new parent
+      const newCollectionPath = computeCollectionPath(db, newParentId, collection.name);
+      const oldCollectionPath = collection.collection_path;
       
-      // Update entity with new parent and path
-      execute(db, 'UPDATE entity SET parent_id = ?, entity_path = ?, mtime = ?, synced = 0 WHERE id = ?', 
-        [newParentId, newEntityPath, Date.now(), entityId]);
+      // Update collection with new parent and path
+      execute(db, 'UPDATE collection SET parent_id = ?, collection_path = ?, mtime = ?, synced = 0 WHERE id = ?', 
+        [newParentId, newCollectionPath, Date.now(), collectionId]);
       
-      // Update all descendants' entity_paths
-      if (oldEntityPath) {
-        const descendants = query(db, "SELECT id, name, entity_path FROM entity WHERE entity_path LIKE ? AND id != ?", 
-          [oldEntityPath + '%', entityId]);
+      // Update all descendants' collection_paths
+      if (oldCollectionPath) {
+        const descendants = query(db, "SELECT id, name, collection_path FROM collection WHERE collection_path LIKE ? AND id != ?", 
+          [oldCollectionPath + '%', collectionId]);
         for (const desc of descendants) {
-          const newDescPath = newEntityPath + desc.entity_path.substring(oldEntityPath.length);
-          execute(db, 'UPDATE entity SET entity_path = ?, mtime = ?, synced = 0 WHERE id = ?', 
+          const newDescPath = newCollectionPath + desc.collection_path.substring(oldCollectionPath.length);
+          execute(db, 'UPDATE collection SET collection_path = ?, mtime = ?, synced = 0 WHERE id = ?', 
             [newDescPath, Date.now(), desc.id]);
         }
       }
@@ -359,8 +359,8 @@ export const CollectionService = {
   },
 
   // Creates a new collection (local-first approach)
-  // Signature matches Wails: CreateCollection(projectPath, name, description, entityTypeId, parentId, previewPath, isLibrary)
-  CreateCollection: async (projectPath, name, description, entityTypeId, parentId, previewPath, isLibrary) => {
+  // Signature matches Wails: CreateCollection(projectPath, name, description, collectionTypeId, parentId, previewPath, isLibrary)
+  CreateCollection: async (projectPath, name, description, collectionTypeId, parentId, previewPath, isLibrary) => {
     const projectName = getProjectName(projectPath);
     const id = crypto.randomUUID();
     const now = Date.now();
@@ -369,25 +369,25 @@ export const CollectionService = {
     try {
       const db = await getDatabase(projectName);
       
-      // Compute entity_path based on parent (mimics SQLite trigger behavior)
-      const entityPath = computeEntityPath(db, parentId, name || '');
+      // Compute collection_path based on parent (mimics SQLite trigger behavior)
+      const collectionPath = computeCollectionPath(db, parentId, name || '');
       
       execute(db, `
-        INSERT INTO entity (id, created_at, mtime, name, description, entity_type_id, parent_id, entity_path, preview_id, is_library, trashed, synced)
+        INSERT INTO collection (id, created_at, mtime, name, description, collection_type_id, parent_id, collection_path, preview_id, is_library, trashed, synced)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
-      `, [id, createdAt, now, name || '', description || '', entityTypeId || '', parentId || '', entityPath, previewPath || '', isLibrary ? 1 : 0]);
+      `, [id, createdAt, now, name || '', description || '', collectionTypeId || '', parentId || '', collectionPath, previewPath || '', isLibrary ? 1 : 0]);
       await persistDatabase(projectName);
       
-      // Build entity type lookup map
-      const entityTypeRows = query(db, 'SELECT * FROM entity_type');
-      const entityTypeMap = {};
-      for (const et of entityTypeRows) {
-        entityTypeMap[et.id] = et;
+      // Build collection type lookup map
+      const collectionTypeRows = query(db, 'SELECT * FROM collection_type');
+      const collectionTypeMap = {};
+      for (const et of collectionTypeRows) {
+        collectionTypeMap[et.id] = et;
       }
       
-      // Return the created entity
-      const row = queryOne(db, 'SELECT * FROM entity WHERE id = ?', [id]);
-      return rowToEntity(row, entityTypeMap);
+      // Return the created collection
+      const row = queryOne(db, 'SELECT * FROM collection WHERE id = ?', [id]);
+      return rowToCollection(row, collectionTypeMap);
     } catch (error) {
       console.error('CreateCollection error:', error);
       throw error;
@@ -401,21 +401,21 @@ export const CollectionService = {
     try {
       const db = await getDatabase(projectName);
       execute(db, `
-        UPDATE entity SET name = ?, parent_id = ?, entity_type_id = ?, entity_path = ?, mtime = ?, synced = 0
+        UPDATE collection SET name = ?, parent_id = ?, collection_type_id = ?, collection_path = ?, mtime = ?, synced = 0
         WHERE id = ?
-      `, [collection.name || '', collection.parent_id || '', collection.entity_type_id || '', collection.entity_path || '', Date.now(), collection.id]);
+      `, [collection.name || '', collection.parent_id || '', collection.collection_type_id || '', collection.collection_path || '', Date.now(), collection.id]);
       await persistDatabase(projectName);
       
-      // Build entity type lookup map
-      const entityTypeRows = query(db, 'SELECT * FROM entity_type');
-      const entityTypeMap = {};
-      for (const et of entityTypeRows) {
-        entityTypeMap[et.id] = et;
+      // Build collection type lookup map
+      const collectionTypeRows = query(db, 'SELECT * FROM collection_type');
+      const collectionTypeMap = {};
+      for (const et of collectionTypeRows) {
+        collectionTypeMap[et.id] = et;
       }
       
-      // Return the updated entity
-      const row = queryOne(db, 'SELECT * FROM entity WHERE id = ?', [collection.id]);
-      return rowToEntity(row, entityTypeMap);
+      // Return the updated collection
+      const row = queryOne(db, 'SELECT * FROM collection WHERE id = ?', [collection.id]);
+      return rowToCollection(row, collectionTypeMap);
     } catch (error) {
       console.error('UpdateCollection error:', error);
       throw error;
@@ -429,9 +429,9 @@ export const CollectionService = {
     try {
       const db = await getDatabase(projectName);
       if (moveToTrash) {
-        execute(db, 'UPDATE entity SET trashed = 1, mtime = ?, synced = 0 WHERE id = ?', [Date.now(), collectionId]);
+        execute(db, 'UPDATE collection SET trashed = 1, mtime = ?, synced = 0 WHERE id = ?', [Date.now(), collectionId]);
       } else {
-        execute(db, 'DELETE FROM entity WHERE id = ?', [collectionId]);
+        execute(db, 'DELETE FROM collection WHERE id = ?', [collectionId]);
       }
       await persistDatabase(projectName);
     } catch (error) {
@@ -452,7 +452,7 @@ export const CollectionService = {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      return query(db, 'SELECT * FROM entity_type');
+      return query(db, 'SELECT * FROM collection_type');
     } catch (error) {
       console.error('GetCollectionTypes error:', error);
       return [];
@@ -466,7 +466,7 @@ export const CollectionService = {
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'INSERT INTO entity_type (id, mtime, name, icon, synced) VALUES (?, ?, ?, ?, 0)', 
+      execute(db, 'INSERT INTO collection_type (id, mtime, name, icon, synced) VALUES (?, ?, ?, ?, 0)', 
         [id, Date.now(), type.name || '', type.icon || '']);
       await persistDatabase(projectName);
       
@@ -483,7 +483,7 @@ export const CollectionService = {
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'UPDATE entity_type SET name = ?, icon = ?, mtime = ?, synced = 0 WHERE id = ?',
+      execute(db, 'UPDATE collection_type SET name = ?, icon = ?, mtime = ?, synced = 0 WHERE id = ?',
         [type.name || '', type.icon || '', Date.now(), type.id]);
       await persistDatabase(projectName);
       
@@ -500,7 +500,7 @@ export const CollectionService = {
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'DELETE FROM entity_type WHERE id = ?', [typeId]);
+      execute(db, 'DELETE FROM collection_type WHERE id = ?', [typeId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('DeleteCollectionType error:', error);
@@ -509,49 +509,49 @@ export const CollectionService = {
   },
 
   // Renames an existing collection (local-first approach)
-  RenameCollection: async (projectPath, entityId, newName) => {
+  RenameCollection: async (projectPath, collectionId, newName) => {
     const projectName = getProjectName(projectPath);
     
     try {
       const db = await getDatabase(projectName);
       
-      // Get entity's current info to recompute path
-      const entity = queryOne(db, 'SELECT name, parent_id, entity_path FROM entity WHERE id = ?', [entityId]);
-      if (!entity) {
-        throw new Error('Entity not found');
+      // Get collection's current info to recompute path
+      const collection = queryOne(db, 'SELECT name, parent_id, collection_path FROM collection WHERE id = ?', [collectionId]);
+      if (!collection) {
+        throw new Error('Collection not found');
       }
       
-      // Compute new entity_path with the new name
-      const newEntityPath = computeEntityPath(db, entity.parent_id, newName);
-      const oldEntityPath = entity.entity_path;
+      // Compute new collection_path with the new name
+      const newCollectionPath = computeCollectionPath(db, collection.parent_id, newName);
+      const oldCollectionPath = collection.collection_path;
       
-      // Update entity with new name and path
-      execute(db, 'UPDATE entity SET name = ?, entity_path = ?, mtime = ?, synced = 0 WHERE id = ?', 
-        [newName, newEntityPath, Date.now(), entityId]);
+      // Update collection with new name and path
+      execute(db, 'UPDATE collection SET name = ?, collection_path = ?, mtime = ?, synced = 0 WHERE id = ?', 
+        [newName, newCollectionPath, Date.now(), collectionId]);
       
-      // Update all descendants' entity_paths
-      if (oldEntityPath) {
-        const descendants = query(db, "SELECT id, entity_path FROM entity WHERE entity_path LIKE ? AND id != ?", 
-          [oldEntityPath + '%', entityId]);
+      // Update all descendants' collection_paths
+      if (oldCollectionPath) {
+        const descendants = query(db, "SELECT id, collection_path FROM collection WHERE collection_path LIKE ? AND id != ?", 
+          [oldCollectionPath + '%', collectionId]);
         for (const desc of descendants) {
-          const newDescPath = newEntityPath + desc.entity_path.substring(oldEntityPath.length);
-          execute(db, 'UPDATE entity SET entity_path = ?, mtime = ?, synced = 0 WHERE id = ?', 
+          const newDescPath = newCollectionPath + desc.collection_path.substring(oldCollectionPath.length);
+          execute(db, 'UPDATE collection SET collection_path = ?, mtime = ?, synced = 0 WHERE id = ?', 
             [newDescPath, Date.now(), desc.id]);
         }
       }
       
       await persistDatabase(projectName);
       
-      // Build entity type lookup map
-      const entityTypeRows = query(db, 'SELECT * FROM entity_type');
-      const entityTypeMap = {};
-      for (const et of entityTypeRows) {
-        entityTypeMap[et.id] = et;
+      // Build collection type lookup map
+      const collectionTypeRows = query(db, 'SELECT * FROM collection_type');
+      const collectionTypeMap = {};
+      for (const et of collectionTypeRows) {
+        collectionTypeMap[et.id] = et;
       }
       
-      // Return the updated entity
-      const row = queryOne(db, 'SELECT * FROM entity WHERE id = ?', [entityId]);
-      return rowToEntity(row, entityTypeMap);
+      // Return the updated collection
+      const row = queryOne(db, 'SELECT * FROM collection WHERE id = ?', [collectionId]);
+      return rowToCollection(row, collectionTypeMap);
     } catch (error) {
       console.error('RenameCollection error:', error);
       throw error;
@@ -559,12 +559,12 @@ export const CollectionService = {
   },
 
   // Changes the type of a collection (local-first approach)
-  ChangeType: async (projectPath, entityId, entityTypeId) => {
+  ChangeType: async (projectPath, collectionId, collectionTypeId) => {
     const projectName = getProjectName(projectPath);
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'UPDATE entity SET entity_type_id = ?, mtime = ?, synced = 0 WHERE id = ?', [entityTypeId, Date.now(), entityId]);
+      execute(db, 'UPDATE collection SET collection_type_id = ?, mtime = ?, synced = 0 WHERE id = ?', [collectionTypeId, Date.now(), collectionId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('ChangeType error:', error);
@@ -573,12 +573,12 @@ export const CollectionService = {
   },
 
   // Toggles the library flag on a collection (local-first approach)
-  ChangeIsLibrary: async (projectPath, entityId, isLibrary) => {
+  ChangeIsLibrary: async (projectPath, collectionId, isLibrary) => {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'UPDATE entity SET is_library = ?, mtime = ?, synced = 0 WHERE id = ?', 
-        [isLibrary ? 1 : 0, Date.now(), entityId]);
+      execute(db, 'UPDATE collection SET is_library = ?, mtime = ?, synced = 0 WHERE id = ?', 
+        [isLibrary ? 1 : 0, Date.now(), collectionId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('ChangeIsLibrary error:', error);
@@ -587,20 +587,20 @@ export const CollectionService = {
   },
 
   // Assigns a user to a collection (local-first approach)
-  // Uses entity_assignee junction table
-  Assign: async (projectPath, entityId, userId) => {
+  // Uses collection_assignee junction table
+  Assign: async (projectPath, collectionId, userId) => {
     const projectName = getProjectName(projectPath);
     const id = crypto.randomUUID();
     const now = Date.now();
     try {
       const db = await getDatabase(projectName);
       // Check if already assigned
-      const existing = queryOne(db, 'SELECT id FROM entity_assignee WHERE entity_id = ? AND assignee_id = ?', [entityId, userId]);
+      const existing = queryOne(db, 'SELECT id FROM collection_assignee WHERE collection_id = ? AND assignee_id = ?', [collectionId, userId]);
       if (!existing) {
         execute(db, `
-          INSERT INTO entity_assignee (id, mtime, entity_id, assignee_id, assigner_id, synced)
+          INSERT INTO collection_assignee (id, mtime, collection_id, assignee_id, assigner_id, synced)
           VALUES (?, ?, ?, ?, ?, 0)
-        `, [id, now, entityId, userId, '']);
+        `, [id, now, collectionId, userId, '']);
         await persistDatabase(projectName);
       }
     } catch (error) {
@@ -610,12 +610,12 @@ export const CollectionService = {
   },
 
   // Unassigns a user from a collection (local-first approach)
-  // Uses entity_assignee junction table
-  Unassign: async (projectPath, entityId, userId) => {
+  // Uses collection_assignee junction table
+  Unassign: async (projectPath, collectionId, userId) => {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'DELETE FROM entity_assignee WHERE entity_id = ? AND assignee_id = ?', [entityId, userId]);
+      execute(db, 'DELETE FROM collection_assignee WHERE collection_id = ? AND assignee_id = ?', [collectionId, userId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('Unassign error:', error);
@@ -624,12 +624,12 @@ export const CollectionService = {
   },
 
   // Updates the preview image for a collection (local-first approach)
-  UpdatePreview: async (projectPath, entityId, previewPath) => {
+  UpdatePreview: async (projectPath, collectionId, previewPath) => {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'UPDATE entity SET preview_id = ?, mtime = ?, synced = 0 WHERE id = ?', 
-        [previewPath || '', Date.now(), entityId]);
+      execute(db, 'UPDATE collection SET preview_id = ?, mtime = ?, synced = 0 WHERE id = ?', 
+        [previewPath || '', Date.now(), collectionId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('UpdatePreview error:', error);
@@ -638,25 +638,25 @@ export const CollectionService = {
   },
 
   // Reveals a collection in the file explorer - not available in web mode
-  RevealCollection: async (projectPath, entityId) => {
+  RevealCollection: async (projectPath, collectionId) => {
     console.warn('RevealCollection not available in web mode (no file system)');
     return {};
   },
 
   // Reverts collections - not available in web mode
-  RevertCollections: async (projectPath, entityIds) => {
+  RevertCollections: async (projectPath, collectionIds) => {
     console.warn('RevertCollections not available in web mode (no file system)');
     return {};
   },
 
   // Returns items for checkpoint - not available in web mode
-  GetItemsForCheckpoint: async (projectPath, entityId, targetPath, projectWorkingDir, ignoreList) => {
+  GetItemsForCheckpoint: async (projectPath, collectionId, targetPath, projectWorkingDir, ignoreList) => {
     console.warn('GetItemsForCheckpoint not available in web mode (no file system)');
     return [];
   },
 
   // Returns outdated items in collection - not available in web mode
-  GetOutdatedItemsInCollection: async (projectPath, entityId, projectWorkingDir, ignoreList) => {
+  GetOutdatedItemsInCollection: async (projectPath, collectionId, projectWorkingDir, ignoreList) => {
     console.warn('GetOutdatedItemsInCollection not available in web mode (no file system)');
     return [];
   },
@@ -666,7 +666,7 @@ export const CollectionService = {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      const row = queryOne(db, 'SELECT COUNT(*) as count FROM entity WHERE trashed = 0');
+      const row = queryOne(db, 'SELECT COUNT(*) as count FROM collection WHERE trashed = 0');
       return row?.count || 0;
     } catch (error) {
       console.error('GetCollectionCount error:', error);
@@ -674,8 +674,8 @@ export const CollectionService = {
     }
   },
 
-  // Returns tasks for a collection
-  GetCollectionTasks: async (projectPath, entityId) => {
+  // Returns assets for a collection
+  GetCollectionAssets: async (projectPath, collectionId) => {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
@@ -687,10 +687,10 @@ export const CollectionService = {
         statusMap[s.id] = s;
       }
       
-      const taskTypeRows = query(db, 'SELECT * FROM task_type');
-      const taskTypeMap = {};
-      for (const tt of taskTypeRows) {
-        taskTypeMap[tt.id] = tt;
+      const assetTypeRows = query(db, 'SELECT * FROM asset_type');
+      const assetTypeMap = {};
+      for (const tt of assetTypeRows) {
+        assetTypeMap[tt.id] = tt;
       }
       
       const tagRows = query(db, 'SELECT * FROM tag');
@@ -699,64 +699,64 @@ export const CollectionService = {
         tagMap[t.id] = t;
       }
       
-      const taskTagRows = query(db, 'SELECT * FROM task_tag');
-      const taskTagsMap = {};
-      for (const tt of taskTagRows) {
-        if (!taskTagsMap[tt.task_id]) {
-          taskTagsMap[tt.task_id] = [];
+      const assetTagRows = query(db, 'SELECT * FROM asset_tag');
+      const assetTagsMap = {};
+      for (const tt of assetTagRows) {
+        if (!assetTagsMap[tt.asset_id]) {
+          assetTagsMap[tt.asset_id] = [];
         }
-        taskTagsMap[tt.task_id].push(tt.tag_id);
+        assetTagsMap[tt.asset_id].push(tt.tag_id);
       }
       
-      // Build task dependency map
-      const taskDependencyRows = query(db, 'SELECT * FROM task_dependency');
-      const taskDependenciesMap = {};
-      for (const td of taskDependencyRows) {
-        if (!taskDependenciesMap[td.task_id]) {
-          taskDependenciesMap[td.task_id] = [];
+      // Build asset dependency map
+      const assetDependencyRows = query(db, 'SELECT * FROM asset_dependency');
+      const assetDependenciesMap = {};
+      for (const td of assetDependencyRows) {
+        if (!assetDependenciesMap[td.asset_id]) {
+          assetDependenciesMap[td.asset_id] = [];
         }
-        taskDependenciesMap[td.task_id].push({
+        assetDependenciesMap[td.asset_id].push({
           id: td.dependency_id,
           type_id: td.dependency_type_id
         });
       }
       
-      // Build entity dependency map
-      const entityDependencyRows = query(db, 'SELECT * FROM entity_dependency');
-      const entityDependenciesMap = {};
-      for (const ed of entityDependencyRows) {
-        if (!entityDependenciesMap[ed.task_id]) {
-          entityDependenciesMap[ed.task_id] = [];
+      // Build collection dependency map
+      const collectionDependencyRows = query(db, 'SELECT * FROM collection_dependency');
+      const collectionDependenciesMap = {};
+      for (const ed of collectionDependencyRows) {
+        if (!collectionDependenciesMap[ed.asset_id]) {
+          collectionDependenciesMap[ed.asset_id] = [];
         }
-        entityDependenciesMap[ed.task_id].push({
-          id: ed.entity_id,
+        collectionDependenciesMap[ed.asset_id].push({
+          id: ed.collection_id,
           type_id: ed.dependency_type_id
         });
       }
       
-      // Build entityMap for task_path computation
-      const entityRows = query(db, 'SELECT id, name, entity_path FROM entity');
-      const entityMapForTasks = {};
-      for (const e of entityRows) {
-        entityMapForTasks[e.id] = e;
+      // Build collectionMap for asset_path computation
+      const collectionRows = query(db, 'SELECT id, name, collection_path FROM collection');
+      const collectionMapForAssets = {};
+      for (const e of collectionRows) {
+        collectionMapForAssets[e.id] = e;
       }
       
-      // Get tasks for this entity
-      const taskCondition = entityId === 'root' || !entityId
-        ? "(entity_id IS NULL OR entity_id = '')"
-        : `entity_id = '${entityId}'`;
+      // Get assets for this collection
+      const assetCondition = collectionId === 'root' || !collectionId
+        ? "(collection_id IS NULL OR collection_id = '')"
+        : `collection_id = '${collectionId}'`;
       
-      const taskRows = query(db, `SELECT * FROM task WHERE ${taskCondition} AND trashed = 0`);
-      return taskRows.map(row => rowToTask(row, statusMap, taskTypeMap, taskTagsMap, tagMap, taskDependenciesMap, entityDependenciesMap, entityMapForTasks));
+      const assetRows = query(db, `SELECT * FROM asset WHERE ${assetCondition} AND trashed = 0`);
+      return assetRows.map(row => rowToAsset(row, statusMap, assetTypeMap, assetTagsMap, tagMap, assetDependenciesMap, collectionDependenciesMap, collectionMapForAssets));
     } catch (error) {
-      console.error('GetCollectionTasks error:', error);
+      console.error('GetCollectionAssets error:', error);
       return [];
     }
   },
 
   // Creates multiple collections at once (local-first approach)
-  // Signature matches Wails: CreateCollections(projectPath, name, description, entityTypeId, parentId)
-  CreateCollections: async (projectPath, name, description, entityTypeId, parentId) => {
+  // Signature matches Wails: CreateCollections(projectPath, name, description, collectionTypeId, parentId)
+  CreateCollections: async (projectPath, name, description, collectionTypeId, parentId) => {
     const projectName = getProjectName(projectPath);
     const id = crypto.randomUUID();
     const now = Date.now();
@@ -765,25 +765,25 @@ export const CollectionService = {
     try {
       const db = await getDatabase(projectName);
       
-      // Compute entity_path based on parent (mimics SQLite trigger behavior)
-      const entityPath = computeEntityPath(db, parentId, name || '');
+      // Compute collection_path based on parent (mimics SQLite trigger behavior)
+      const collectionPath = computeCollectionPath(db, parentId, name || '');
       
       execute(db, `
-        INSERT INTO entity (id, created_at, mtime, name, description, entity_type_id, parent_id, entity_path, preview_id, is_library, trashed, synced)
+        INSERT INTO collection (id, created_at, mtime, name, description, collection_type_id, parent_id, collection_path, preview_id, is_library, trashed, synced)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
-      `, [id, createdAt, now, name || '', description || '', entityTypeId || '', parentId || '', entityPath, '', 0]);
+      `, [id, createdAt, now, name || '', description || '', collectionTypeId || '', parentId || '', collectionPath, '', 0]);
       await persistDatabase(projectName);
       
-      // Build entity type lookup map
-      const entityTypeRows = query(db, 'SELECT * FROM entity_type');
-      const entityTypeMap = {};
-      for (const et of entityTypeRows) {
-        entityTypeMap[et.id] = et;
+      // Build collection type lookup map
+      const collectionTypeRows = query(db, 'SELECT * FROM collection_type');
+      const collectionTypeMap = {};
+      for (const et of collectionTypeRows) {
+        collectionTypeMap[et.id] = et;
       }
       
-      // Return the created entity
-      const row = queryOne(db, 'SELECT * FROM entity WHERE id = ?', [id]);
-      return [rowToEntity(row, entityTypeMap)];
+      // Return the created collection
+      const row = queryOne(db, 'SELECT * FROM collection WHERE id = ?', [id]);
+      return [rowToCollection(row, collectionTypeMap)];
     } catch (error) {
       console.error('CreateCollections error:', error);
       throw error;
@@ -791,33 +791,33 @@ export const CollectionService = {
   },
 
   // Checks if a user is assigned to a collection or any of its ancestor collections.
-  IsUserAssignedToCollectionOrAncestor: async (projectPath, entityId, userId) => {
+  IsUserAssignedToCollectionOrAncestor: async (projectPath, collectionId, userId) => {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
 
-      // Check the entity itself first.
+      // Check the collection itself first.
       const direct = queryOne(db,
-        `SELECT EXISTS(SELECT 1 FROM entity_assignee WHERE entity_id = ? AND assignee_id = ?) AS result`,
-        [entityId, userId]
+        `SELECT EXISTS(SELECT 1 FROM collection_assignee WHERE collection_id = ? AND assignee_id = ?) AS result`,
+        [collectionId, userId]
       );
       if (direct?.result === 1) return true;
 
-      // Check ancestor entities recursively.
+      // Check ancestor collections recursively.
       const ancestor = queryOne(db, `
         WITH RECURSIVE ancestors AS (
-          SELECT parent_id FROM entity WHERE id = ? AND parent_id != ''
+          SELECT parent_id FROM collection WHERE id = ? AND parent_id != ''
           UNION ALL
-          SELECT e.parent_id FROM entity e
+          SELECT e.parent_id FROM collection e
           JOIN ancestors a ON e.id = a.parent_id
           WHERE a.parent_id != ''
         )
         SELECT EXISTS(
-          SELECT 1 FROM entity_assignee ea
-          JOIN ancestors a ON ea.entity_id = a.parent_id
+          SELECT 1 FROM collection_assignee ea
+          JOIN ancestors a ON ea.collection_id = a.parent_id
           WHERE ea.assignee_id = ?
         ) AS result
-      `, [entityId, userId]);
+      `, [collectionId, userId]);
       return ancestor?.result === 1;
     } catch (error) {
       console.error('IsUserAssignedToCollectionOrAncestor error:', error);

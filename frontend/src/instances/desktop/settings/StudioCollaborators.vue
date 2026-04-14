@@ -2,7 +2,7 @@
   <div class="settings-component-root">
     <div class="settings-component-container">
 
-        <div class="task-header">
+        <div class="asset-header">
 			<div class="create-menu">
 				<ActionButton :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
 					@click="addCollaborator" v-tooltip="$t('settings.addCollaborator')" />
@@ -12,7 +12,7 @@
 		</div>
 
 
-      <TaskListSkeleton v-if="!studioStore.studioUsers.length" />
+      <AssetListSkeleton v-if="!studioStore.studioUsers.length" />
 
         <div v-else class="project-list-container" ref="openProjectsContainer">
             <div class="project-list" >
@@ -46,7 +46,7 @@ import { useProjectStore } from '@/stores/projects';
 // components
 import CollaboratorItem from '@/instances/desktop/components/CollaboratorItem.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
-import TaskListSkeleton from '@/instances/desktop/components/TaskListSkeleton.vue'
+import AssetListSkeleton from '@/instances/desktop/components/AssetListSkeleton.vue'
 
 
 // states
@@ -122,7 +122,7 @@ onMounted( async () => {
   align-items: center;
   color: var(--white);
   /* justify-content: space-between; */
-  border-radius: var(--large-radius);
+  border-radius: var(--gigantic-radius);
   padding: 1rem;
   background-color: crimson;
   background-color: var(--black-steel);
@@ -213,7 +213,7 @@ onMounted( async () => {
 	border-radius: 10px;
 }
 
-.task-header {
+.asset-header {
 	position: relative;
 	display: flex;
 	width: 100%;

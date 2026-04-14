@@ -1,0 +1,92 @@
+export const ignoreTemplates = {
+  'Unreal Engine': [
+    '/Binaries', '/Build', '/DerivedDataCache', '/Intermediate', '/Saved',
+    '/.vs', '/.vscode', '/.idea',
+    '/Plugins/*/Binaries', '/Plugins/*/Intermediate',
+    '/node_modules', '/__pycache__',
+    '.DS_Store', 'Thumbs.db',
+    '*.tmp', '*.bak', '*.log',
+    '*.sln', '*.suo', '*.opensdf', '*.sdf',
+    '*.VC.db', '*.VC.opendb', '*.code-workspace',
+  ],
+  'Unity': [
+    '/Library', '/Temp', '/Obj', '/Build', '/Builds', '/Logs',
+    '/UserSettings', '/MemoryCaptures', '/Recordings',
+    '/.vs', '/.vscode', '/.idea',
+    '/node_modules', '/__pycache__',
+    '.DS_Store', 'Thumbs.db',
+    '*.csproj', '*.sln', '*.suo', '*.user', '*.pidb', '*.booproj',
+    '*.svd', '*.pdb', '*.mdb', '*.opendb', '*.VC.db',
+    '*.tmp', '*.bak', '*.log',
+    '/ExportedObj', '/UnityGenerated',
+    'crashlytics-buildid.txt',
+  ],
+  'Blender': [
+    '*.blend1', '*.blend2',
+    '/tmp/', '/cache/',
+    '.DS_Store', 'Thumbs.db',
+    '*.bak', '*.log', '*.tmp',
+  ],
+  'Godot': [
+    '/.godot/', '/.import/',
+    '/export/', '/build/',
+    '.DS_Store', 'Thumbs.db',
+    '*.tmp', '*.bak', '*.log',
+    '*.import',
+  ],
+  'Houdini': [
+    '/backup/', '*.hip.bak', '*.hipnc.bak',
+    '*.bgeo', '*.geo', '*.sim', '*.simdata',
+    '.DS_Store', 'Thumbs.db',
+    '*.tmp', '*.bak', '*.log',
+  ],
+  'Toon Boom Harmony': [
+    '/frames/',
+    '*.tvg.bak', '*.aux',
+    '.DS_Store', 'Thumbs.db',
+    '*.tmp', '*.bak', '*.log',
+  ],
+  'Maya': [
+    '*.ma.swp', '*.mb.swp',
+    '/incrementalSave/', '/Time Editor/',
+    '.DS_Store', 'Thumbs.db',
+    '*.tmp', '*.bak', '*.log',
+  ],
+  '3ds Max': [
+    '*.max.bak', '/autoback/',
+    '/proxies/', '/sceneassets/renderoutput/',
+    '.DS_Store', 'Thumbs.db',
+    '*.tmp', '*.bak', '*.log',
+  ],
+  'Cinema 4D': [
+    '/backup/', '*.c4d.bak',
+    '/illum/',
+    '.DS_Store', 'Thumbs.db',
+    '*.tmp', '*.bak', '*.log',
+  ],
+  'Nuke': [
+    '*.autosave', '*.nk~',
+    '.DS_Store', 'Thumbs.db',
+    '*.tmp', '*.bak', '*.log',
+  ],
+  'DaVinci Resolve': [
+    '/CacheClip/', '/Optimized Media/',
+    '*.drp.backup',
+    '.DS_Store', 'Thumbs.db',
+    '*.tmp', '*.bak', '*.log',
+  ],
+  'After Effects': [
+    '/Adobe After Effects Auto-Save/',
+    '*.aep.bak',
+    '.DS_Store', 'Thumbs.db',
+    '*.tmp', '*.bak', '*.log',
+  ],
+  'Substance': [
+    '*.autosave.*', '*.sbs.bak', '*.spp.bak',
+    '/_export/',
+    '.DS_Store', 'Thumbs.db',
+    '*.tmp', '*.bak', '*.log',
+  ],
+}
+
+export const ignoreTemplateNames = Object.keys(ignoreTemplates)

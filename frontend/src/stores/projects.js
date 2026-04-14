@@ -86,6 +86,9 @@ export const useProjectStore = defineStore("projects", {
       return state.activeProject;
     },
     getActiveProjectUrl: (state) => {
+      if (state.activeProject?.has_remote && state.activeProject?.remote) {
+        return state.activeProject.remote;
+      }
       let projectName = state.activeProject.name;
       const projectUrl = state.getStudioUrl + "/" + projectName;
       return projectUrl;
@@ -93,12 +96,20 @@ export const useProjectStore = defineStore("projects", {
     getStudioUrl: (state) => {
       return state.studioUrl;
     },
+    isR2Remote: (state) => {
+      if (state.selectedStudio?.name === 'Personal' && !!state.activeProject?.has_remote && !!state.activeProject?.remote) return true;
+      return false;
+    },
+    supportsIntegrations: (state) => {
+      return state.selectedStudio?.name !== 'Personal';
+    },
 
   },
   actions: {
     async setActiveProject(project) {
       const commonStore = useCommonStore();
       this.activeProject = project;
+      FSService.SetProjectContext(project.uri);
       commonStore.workspaces = await SettingsService.GetProjectWorkspaces(
         project.id
       );
@@ -116,6 +127,7 @@ export const useProjectStore = defineStore("projects", {
       await this.setActiveProject(project);
       commonStore.activeWorkspace = "Default";
       commonStore.resetFilters();
+      commonStore.snapshotWorkspace();
 
       collectionStore.collections = [];
       assetStore.assets = [];
@@ -125,7 +137,7 @@ export const useProjectStore = defineStore("projects", {
       collectionStore.selectedCollection = null;
       assetStore.selectedAsset = null;
 
-      stage.expandedEntities = {};
+      stage.expandedCollections = {};
       stage.setStageVisibility("browser", true);
       panes.setPaneVisibility("projectDetails", true);
       const studioName = this.getSelectedStudioName;
@@ -161,7 +173,7 @@ export const useProjectStore = defineStore("projects", {
       SettingsService.GetRecentProjects(studio.name).then((response) => {
         this.recentProjects = response;
       });
-      await ProjectService.GetStudioProjects(studioUrl, studio.name)
+      await ProjectService.GetStudioProjects(studioUrl, studio.name, studio.hosting_mode || '', studio.id || '')
         .then(async (response) => {
           this.projects = response;
         })
@@ -301,6 +313,7 @@ export const useProjectStore = defineStore("projects", {
       this.projects = [];
       this.selectedStudio = studio;
       commonStore.resetFilters();
+      commonStore.snapshotWorkspace();
       await this.loadProjects();
       SettingsService.SetLastStudio(studio.name)
     },
@@ -329,38 +342,38 @@ export const useProjectStore = defineStore("projects", {
       }
       this.untrackedFiles = untrackedFiles;
       this.untrackedFolders = untrackedFolders;
-      await this.rebuildUntrackedTaskIndex();
-      await this.rebuildUntrackedEntityIndex();
+      await this.rebuildUntrackedAssetIndex();
+      await this.rebuildUntrackedCollectionIndex();
     },
-    async rebuildUntrackedTaskIndex() {
+    async rebuildUntrackedAssetIndex() {
       let untrackedFilesIndex = {};
       for (let i = 0; i < this.untrackedFiles.length; i++) {
-        let untrackedTaskId = this.untrackedFiles[i].id;
-        untrackedFilesIndex[untrackedTaskId] = i;
+        let untrackedAssetId = this.untrackedFiles[i].id;
+        untrackedFilesIndex[untrackedAssetId] = i;
       }
       this.untrackedFilesIndex = untrackedFilesIndex;
     },
-    async rebuildUntrackedEntityIndex() {
+    async rebuildUntrackedCollectionIndex() {
       let untrackedFoldersIndex = {};
       for (let i = 0; i < this.untrackedFolders.length; i++) {
-        let untrackedEntityId = this.untrackedFolders[i].id;
-        untrackedFoldersIndex[untrackedEntityId] = i;
+        let untrackedCollectionId = this.untrackedFolders[i].id;
+        untrackedFoldersIndex[untrackedCollectionId] = i;
       }
       this.untrackedFoldersIndex = untrackedFoldersIndex;
     },
-    findUntrackedTask(id) {
-      let untrackedTaskIndex = this.untrackedFilesIndex[id];
-      return this.untrackedFiles[untrackedTaskIndex];
+    findUntrackedAsset(id) {
+      let untrackedAssetIndex = this.untrackedFilesIndex[id];
+      return this.untrackedFiles[untrackedAssetIndex];
     },
-    findUntrackedEntity(id) {
+    findUntrackedCollection(id) {
       let untrackedFolderIndex = this.untrackedFoldersIndex[id];
       return this.untrackedFolders[untrackedFolderIndex];
     },
-    removeUntrackedTask(id) {
-      let untrackedTaskIndex = this.untrackedFilesIndex[id];
-      this.untrackedFiles.splice(untrackedTaskIndex, 1);
+    removeUntrackedAsset(id) {
+      let untrackedAssetIndex = this.untrackedFilesIndex[id];
+      this.untrackedFiles.splice(untrackedAssetIndex, 1);
     },
-    removeUntrackedEntity(id) {
+    removeUntrackedCollection(id) {
       let untrackedFolderIndex = this.untrackedFoldersIndex[id];
       this.untrackedFolders.splice(untrackedFolderIndex, 1);
     },
@@ -385,62 +398,62 @@ export const useProjectStore = defineStore("projects", {
         // let untrackedFiles = [];
         // let untrackedFolders = [];
         // let projectWorkingDir = project.working_directory;
-        // let tasks = untrackedItems.tasks;
-        // let entities = untrackedItems.entities;
-        // for (let task of tasks) {
-        //   const itemPath = task.task_path
+        // let assets = untrackedItems.assets;
+        // let collections = untrackedItems.collections;
+        // for (let asset of assets) {
+        //   const itemPath = asset.asset_path
         //     .replace(/^\/+|\/+$/g, "")
         //     .replace(/\\/g, "/");
-        //   let entityPath = "";
-        //   const itemPathEntities = itemPath.split("/");
+        //   let collectionPath = "";
+        //   const itemPathCollections = itemPath.split("/");
 
-        //   if (itemPathEntities.length > 1) {
+        //   if (itemPathCollections.length > 1) {
         //     // Take all elements except the last one
-        //     const pathWithoutLast = itemPathEntities.slice(0, -1);
-        //     entityPath = pathWithoutLast.join("/");
+        //     const pathWithoutLast = itemPathCollections.slice(0, -1);
+        //     collectionPath = pathWithoutLast.join("/");
         //   }
         //   let untrackedFile = {
-        //     ...task,
-        //     task_type_icon: "generic",
+        //     ...asset,
+        //     asset_type_icon: "generic",
         //     item_path: itemPath,
-        //     entity_path: entityPath,
+        //     collection_path: collectionPath,
         //     item_type: "file",
-        //     type: "untracked_task",
+        //     type: "untracked_asset",
         //   };
         //   untrackedFiles.push(untrackedFile);
         // }
-        // for (let entity of entities) {
-        //   if (entity.file_path == "") {
+        // for (let collection of collections) {
+        //   if (collection.file_path == "") {
         //     continue;
         //   }
-        //   const itemPath = entity.entity_path
+        //   const itemPath = collection.collection_path
         //     .replace(/^\/+|\/+$/g, "")
         //     .replace(/\\/g, "/");
-        //   // Handle entity path calculation
-        //   let entityPath = "";
-        //   const itemPathEntities = itemPath.split("/");
+        //   // Handle collection path calculation
+        //   let collectionPath = "";
+        //   const itemPathCollections = itemPath.split("/");
 
-        //   if (itemPathEntities.length > 1) {
+        //   if (itemPathCollections.length > 1) {
         //     // Take all elements except the last one
-        //     const pathWithoutLast = itemPathEntities.slice(0, -1);
-        //     entityPath = pathWithoutLast.join("/");
+        //     const pathWithoutLast = itemPathCollections.slice(0, -1);
+        //     collectionPath = pathWithoutLast.join("/");
         //   }
         //   let untrackedFolder = {
-        //     ...entity,
-        //     entity_type_icon: "folder",
+        //     ...collection,
+        //     collection_type_icon: "folder",
         //     item_path: itemPath,
-        //     entity_path: entityPath,
+        //     collection_path: collectionPath,
         //     item_type: "folder",
-        //     type: "untracked_entity",
+        //     type: "untracked_collection",
         //   };
         //   untrackedFolders.push(untrackedFolder);
         // }
 
         // // Sort function for both files and folders
         // const sortByPathAndName = (a, b) => {
-        //   // First compare by entity_path
-        //   if (a.entity_path !== b.entity_path) {
-        //     return a.entity_path.localeCompare(b.entity_path);
+        //   // First compare by collection_path
+        //   if (a.collection_path !== b.collection_path) {
+        //     return a.collection_path.localeCompare(b.collection_path);
         //   }
         //   // Then compare by name
         //   return a.name.localeCompare(b.name);

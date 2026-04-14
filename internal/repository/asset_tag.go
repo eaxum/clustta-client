@@ -65,96 +65,96 @@ func GetOrCreateTag(tx *sqlx.Tx, name string) (models.Tag, error) {
 	return tag, nil
 }
 
-func AddTagToTask(tx *sqlx.Tx, taskId string, tag string) error {
+func AddTagToAsset(tx *sqlx.Tx, assetId string, tag string) error {
 	tagObj, err := GetOrCreateTag(tx, tag)
 	if err != nil {
 		return err
 	}
 	params := map[string]interface{}{
-		"task_id": taskId,
+		"asset_id": assetId,
 		"tag_id":  tagObj.Id,
 	}
-	err = base_service.Create(tx, "task_tag", params)
+	err = base_service.Create(tx, "asset_tag", params)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func AddTagToTaskById(tx *sqlx.Tx, id, taskId string, tagId string) error {
+func AddTagToAssetById(tx *sqlx.Tx, id, assetId string, tagId string) error {
 	params := map[string]interface{}{
 		"id":      id,
-		"task_id": taskId,
+		"asset_id": assetId,
 		"tag_id":  tagId,
 	}
-	err := base_service.Create(tx, "task_tag", params)
+	err := base_service.Create(tx, "asset_tag", params)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetTaskTag(tx *sqlx.Tx, Id string) (models.TaskTag, error) {
-	taskTag := models.TaskTag{}
-	err := base_service.Get(tx, "task_tag", Id, &taskTag)
+func GetAssetTag(tx *sqlx.Tx, Id string) (models.AssetTag, error) {
+	assetTag := models.AssetTag{}
+	err := base_service.Get(tx, "asset_tag", Id, &assetTag)
 	if err != nil {
-		return taskTag, err
+		return assetTag, err
 	}
-	return taskTag, nil
+	return assetTag, nil
 }
 
-func GetTaskTags(tx *sqlx.Tx, taskId string) ([]models.Tag, error) {
+func GetAssetTags(tx *sqlx.Tx, assetId string) ([]models.Tag, error) {
 	tags := []models.Tag{}
-	err := tx.Select(&tags, "SELECT * FROM tag WHERE id IN (SELECT tag_id FROM task_tag WHERE task_id = ?)", taskId)
+	err := tx.Select(&tags, "SELECT * FROM tag WHERE id IN (SELECT tag_id FROM asset_tag WHERE asset_id = ?)", assetId)
 	if err != nil {
 		return tags, err
 	}
 	return tags, nil
 }
 
-func RemoveTagFromTask(tx *sqlx.Tx, taskId string, tagId string) error {
+func RemoveTagFromAsset(tx *sqlx.Tx, assetId string, tagId string) error {
 	conditions := map[string]interface{}{
-		"task_id": taskId,
+		"asset_id": assetId,
 		"tag_id":  tagId,
 	}
-	err := base_service.DeleteBy(tx, "task_tag", conditions)
+	err := base_service.DeleteBy(tx, "asset_tag", conditions)
 	return err
 }
 
-func RemoveAllTagsFromTask(tx *sqlx.Tx, taskId string) error {
+func RemoveAllTagsFromAsset(tx *sqlx.Tx, assetId string) error {
 	conditions := map[string]interface{}{
-		"task_id": taskId,
+		"asset_id": assetId,
 	}
-	err := base_service.DeleteBy(tx, "task_tag", conditions)
+	err := base_service.DeleteBy(tx, "asset_tag", conditions)
 	return err
 }
 
-// func GetTaskTagsByTagId(tx *sqlx.Tx, tagId string) []Task {
+// func GetAssetTagsByTagId(tx *sqlx.Tx, tagId string) []Asset {
 // 	dbConn, err := utils.OpenDb( projectPath)
 // 	if err != nil {
 // 		panic(err)
 // 	}
-// 	tasks := []Task{}
-// 	tx.Select(&tasks, "SELECT * FROM task WHERE id IN (SELECT task_id FROM task_tag WHERE tag_id = ?)", tagId)
-// 	return tasks
+// 	assets := []Asset{}
+// 	tx.Select(&assets, "SELECT * FROM asset WHERE id IN (SELECT asset_id FROM asset_tag WHERE tag_id = ?)", tagId)
+// 	return assets
 // }
 
-// func GetTaskTagsByTagName(tx *sqlx.Tx, tagName string) []Task {
+// func GetAssetTagsByTagName(tx *sqlx.Tx, tagName string) []Asset {
 // 	dbConn, err := utils.OpenDb( projectPath)
 // 	if err != nil {
 // 		panic(err)
 // 	}
-// 	tasks := []Task{}
-// 	tx.Select(&tasks, "SELECT * FROM task WHERE id IN (SELECT task_id FROM task_tag WHERE tag_id IN (SELECT id FROM tag WHERE name = ?))", tagName)
-// 	return tasks
+// 	assets := []Asset{}
+// 	tx.Select(&assets, "SELECT * FROM asset WHERE id IN (SELECT asset_id FROM asset_tag WHERE tag_id IN (SELECT id FROM tag WHERE name = ?))", tagName)
+// 	return assets
 // }
 
-// func GetTaskTagsByTaskId(tx *sqlx.Tx, taskId string) []models.Tag {
+// func GetAssetTagsByAssetId(tx *sqlx.Tx, assetId string) []models.Tag {
 // 	dbConn, err := utils.OpenDb( projectPath)
 // 	if err != nil {
 // 		panic(err)
 // 	}
 // 	tags := []models.Tag{}
-// 	tx.Select(&tags, "SELECT * FROM tag WHERE id IN (SELECT tag_id FROM task_tag WHERE task_id = ?)", taskId)
+// 	tx.Select(&tags, "SELECT * FROM tag WHERE id IN (SELECT tag_id FROM asset_tag WHERE asset_id = ?)", assetId)
 // 	return tags
 // }

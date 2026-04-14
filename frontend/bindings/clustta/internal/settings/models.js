@@ -276,6 +276,13 @@ export class Studio {
              */
             this["usage"] = "";
         }
+        if (!("hosting_mode" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["hosting_mode"] = "";
+        }
         if (!("Users" in $$source)) {
             /**
              * @member
@@ -293,10 +300,10 @@ export class Studio {
      * @returns {Studio}
      */
     static createFrom($$source = {}) {
-        const $$createField6_0 = $$createType2;
+        const $$createField7_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("Users" in $$parsedSource) {
-            $$parsedSource["Users"] = $$createField6_0($$parsedSource["Users"]);
+            $$parsedSource["Users"] = $$createField7_0($$parsedSource["Users"]);
         }
         return new Studio(/** @type {Partial<Studio>} */($$parsedSource));
     }

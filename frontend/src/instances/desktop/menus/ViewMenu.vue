@@ -14,10 +14,10 @@
     <ActionButton v-if="isDefaultWorkspace" :icon="getAppIcon('kanban')" :showLabel="true" :fullWidth="true" :label="$t('menus.kanbanView')"
       :color="isKanbanActive ? 'var(--steel)' : undefined" :buttonFunction="setKanbanView" />
 
-    <span  v-if="isDefaultWorkspace && !isKanbanActive && userStore.canDo('update_entity')" class="menu-divider"></span> -->
+    <span  v-if="isDefaultWorkspace && !isKanbanActive && userStore.canDo('update_collection')" class="menu-divider"></span> -->
 
     <!-- Display Options Section -->
-    <ActionButton v-if="isDefaultWorkspace && !isKanbanActive && userStore.canDo('update_entity')"
+    <ActionButton v-if="isDefaultWorkspace && !isKanbanActive && userStore.canDo('update_collection')"
       :icon="dndStore.lockUI ? getAppIcon('lock-closed') : getAppIcon('lock-open')" :showLabel="true" :fullWidth="true"
       :label="dndStore.lockUI ? $t('menus.unlockUI') : $t('menus.lockUI')" :buttonFunction="toggleLockUI" />
 
@@ -81,7 +81,7 @@ const isListActive = computed(() => commonStore.viewMode === 'compact');
 
 // methods
 
-// Collapses all expanded entities.
+// Collapses all expanded collections.
 const collapseAll = () => {
   emitter.emit('collapse-all');
   menu.hideContextMenu();

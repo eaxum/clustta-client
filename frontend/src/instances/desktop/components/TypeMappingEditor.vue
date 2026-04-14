@@ -1,7 +1,7 @@
 <template>
   <div class="type-mapping-editor">
     <div class="mapping-header">
-      <img :src="getAppIcon('layers')" alt="" class="header-icon" />
+      <img :src="getAppIcon('checkpoint-stone')" alt="" class="header-icon" />
       <span class="header-title">Type Mappings</span>
       <span class="header-subtitle">Map {{ integrationName }} types to Clustta types</span>
     </div>
@@ -9,12 +9,12 @@
     <div class="mapping-sections">
       <div class="mapping-section">
         <div class="section-header">
-          <span class="section-title">Entity Types</span>
-          <span class="section-count">{{ entityMappings.length }}</span>
+          <span class="section-title">Collection Types</span>
+          <span class="section-count">{{ collectionMappings.length }}</span>
         </div>
 
         <div class="mapping-rows">
-          <div v-for="mapping in entityMappings" :key="mapping.external_type" class="mapping-row">
+          <div v-for="mapping in collectionMappings" :key="mapping.external_type" class="mapping-row">
             <div class="external-type">
               <span class="type-name">{{ mapping.external_name || mapping.external_type }}</span>
             </div>
@@ -22,7 +22,7 @@
             <img :src="getAppIcon('arrow-right')" alt="" class="arrow-icon" />
 
             <div class="local-type">
-              <DropDownBox :items="localEntityTypes" :selectedItem="mapping.local_type" :onSelect="(value) => updateEntityMapping(mapping.external_type, value)"
+              <DropDownBox :items="localCollectionTypes" :selectedItem="mapping.local_type" :onSelect="(value) => updateCollectionMapping(mapping.external_type, value)"
                 :placeHolder="'Select type'" :useFilter="false" :fullWidth="true" />
             </div>
           </div>
@@ -31,12 +31,12 @@
 
       <div class="mapping-section">
         <div class="section-header">
-          <span class="section-title">Task Types</span>
-          <span class="section-count">{{ taskMappings.length }}</span>
+          <span class="section-title">Asset Types</span>
+          <span class="section-count">{{ assetMappings.length }}</span>
         </div>
 
         <div class="mapping-rows">
-          <div v-for="mapping in taskMappings" :key="mapping.external_type" class="mapping-row">
+          <div v-for="mapping in assetMappings" :key="mapping.external_type" class="mapping-row">
             <div class="external-type">
               <span class="type-name">{{ mapping.external_name || mapping.external_type }}</span>
             </div>
@@ -44,7 +44,7 @@
             <img :src="getAppIcon('arrow-right')" alt="" class="arrow-icon" />
 
             <div class="local-type">
-              <DropDownBox :items="localTaskTypes" :selectedItem="mapping.local_type" :onSelect="(value) => updateTaskMapping(mapping.external_type, value)"
+              <DropDownBox :items="localAssetTypes" :selectedItem="mapping.local_type" :onSelect="(value) => updateAssetMapping(mapping.external_type, value)"
                 :placeHolder="'Select type'" :useFilter="false" :fullWidth="true" />
             </div>
           </div>
@@ -68,15 +68,15 @@ const iconStore = useIconStore();
 
 // props
 const props = defineProps({
-  entityMappings: { type: Array, default: () => [] },
+  collectionMappings: { type: Array, default: () => [] },
   integrationName: { type: String, default: 'External' },
-  localEntityTypes: { type: Array, default: () => [] },
-  localTaskTypes: { type: Array, default: () => [] },
-  taskMappings: { type: Array, default: () => [] },
+  localCollectionTypes: { type: Array, default: () => [] },
+  localAssetTypes: { type: Array, default: () => [] },
+  assetMappings: { type: Array, default: () => [] },
 });
 
 // emits
-const emit = defineEmits(['update:entityMappings', 'update:taskMappings']);
+const emit = defineEmits(['update:collectionMappings', 'update:assetMappings']);
 
 // methods
 // Returns the app icon path.
@@ -84,26 +84,26 @@ const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
-// Updates an entity type mapping.
-const updateEntityMapping = (externalType, localType) => {
-  const updated = props.entityMappings.map(mapping => {
+// Updates an collection type mapping.
+const updateCollectionMapping = (externalType, localType) => {
+  const updated = props.collectionMappings.map(mapping => {
     if (mapping.external_type === externalType) {
       return { ...mapping, local_type: localType };
     }
     return mapping;
   });
-  emit('update:entityMappings', updated);
+  emit('update:collectionMappings', updated);
 };
 
-// Updates a task type mapping.
-const updateTaskMapping = (externalType, localType) => {
-  const updated = props.taskMappings.map(mapping => {
+// Updates a asset type mapping.
+const updateAssetMapping = (externalType, localType) => {
+  const updated = props.assetMappings.map(mapping => {
     if (mapping.external_type === externalType) {
       return { ...mapping, local_type: localType };
     }
     return mapping;
   });
-  emit('update:taskMappings', updated);
+  emit('update:assetMappings', updated);
 };
 </script>
 

@@ -3,11 +3,25 @@ import { useNotificationStore } from "@/stores/notifications";
 import { useProjectStore } from "@/stores/projects";
 import { useTrayStates } from "@/stores/TrayStates";
 import { useAccountStore } from "@/stores/accounts";
+import { useEntitlementStore } from "@/stores/entitlements";
 import emitter from '@/lib/mitt';
+
+// Refreshes entitlements based on the current studio context.
+function refreshEntitlements() {
+  const projectStore = useProjectStore();
+  const entitlementStore = useEntitlementStore();
+  const studio = projectStore.selectedStudio;
+  if (studio?.hosting_mode === 'cloud' && studio.id) {
+    entitlementStore.fetchStudioEntitlements(studio.id);
+  } else {
+    entitlementStore.fetchEntitlements();
+  }
+}
 
 // Guard function to check if remote features are available
 function checkRemoteAccess() {
   const accountStore = useAccountStore();
+  const entitlementStore = useEntitlementStore();
   const notificationStore = useNotificationStore();
   
   if (accountStore.isOfflineMode) {
@@ -18,6 +32,16 @@ function checkRemoteAccess() {
     );
     return false;
   }
+
+  if (!entitlementStore.canSync) {
+    notificationStore.addNotification(
+      "Sync Unavailable",
+      "Sync is not included in your current plan. Please upgrade to enable sync.",
+      "warning"
+    );
+    return false;
+  }
+
   return true;
 }
 
@@ -33,8 +57,8 @@ export async function syncData() {
   
   let syncOptions = {
     only_latest_checkpoints: false,
-    task_dependencies: false,
-    tasks: false,
+    asset_dependencies: false,
+    assets: false,
     templates: false,
   };
   await SyncService.SyncData(
@@ -46,6 +70,7 @@ export async function syncData() {
     .then(async () => {
       projectStore.activeProject.is_unsynced = false;
       await projectStore.reloadActiveProject();
+      refreshEntitlements();
       emitter.emit('refresh-browser')
     })
     .catch((error) => {
@@ -62,8 +87,8 @@ export async function pullData() {
   
   let syncOptions = {
       only_latest_checkpoints: false,
-      task_dependencies: false,
-      tasks: false,
+      asset_dependencies: false,
+      assets: false,
       templates: false,
   };
 
@@ -76,6 +101,7 @@ export async function pullData() {
     .then(async () => {
       projectStore.activeProject.is_unsynced = false;
       await projectStore.reloadActiveProject();
+      refreshEntitlements();
       emitter.emit('refresh-browser')
     })
     .catch((error) => {
@@ -91,8 +117,8 @@ export async function syncFullData() {
   const notificationStore = useNotificationStore();
   let syncOptions = {
     only_latest_checkpoints: false,
-    task_dependencies: true,
-    tasks: true,
+    asset_dependencies: true,
+    assets: true,
     templates: true,
   };
   await SyncService.SyncData(
@@ -104,6 +130,7 @@ export async function syncFullData() {
     .then(async () => {
       projectStore.activeProject.is_unsynced = false;
       await projectStore.reloadActiveProject();
+      refreshEntitlements();
       emitter.emit('refresh-browser')
     })
     .catch((error) => {

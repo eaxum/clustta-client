@@ -37,12 +37,6 @@ func GetStudioInfo(studioUrl string) (StudioInfo, error) {
 
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
-	// Include session if available
-	token, err := auth_service.GetToken()
-	if err == nil && token.SessionId != "" {
-		req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
-	}
-
 	client := &http.Client{Timeout: 10 * time.Second}
 	response, err := client.Do(req)
 	if err != nil {
@@ -104,11 +98,7 @@ func GetUserStudios() ([]models.MinimalStudio, error) {
 	}
 
 	// Set custom headers
-	token, err := auth_service.GetToken()
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
 	client := &http.Client{}
@@ -119,10 +109,9 @@ func GetUserStudios() ([]models.MinimalStudio, error) {
 	defer response.Body.Close()
 
 	responseCode := response.StatusCode
-	if responseCode == 201 {
+	if responseCode == 200 || responseCode == 201 {
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
-			// Handle error
 			return nil, fmt.Errorf("error reading response body: %s", err)
 		}
 
@@ -159,11 +148,7 @@ func GetUserPhoto(userId string) ([]byte, error) {
 	}
 
 	// Set custom headers
-	token, err := auth_service.GetToken()
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
 	client := &http.Client{}
@@ -212,11 +197,7 @@ func GetStudioUsers(studioId string) ([]models.StudioUserInfo, error) {
 	}
 
 	// Set custom headers
-	token, err := auth_service.GetToken()
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
 	client := &http.Client{}
@@ -227,7 +208,7 @@ func GetStudioUsers(studioId string) ([]models.StudioUserInfo, error) {
 	defer response.Body.Close()
 
 	responseCode := response.StatusCode
-	if responseCode == 201 {
+	if responseCode == 200 || responseCode == 201 {
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
 			return nil, fmt.Errorf("error reading response body: %s", err)
@@ -288,11 +269,7 @@ func AddCollaborator(email, studioId, roleName string) (interface{}, error) {
 	}
 
 	// Set custom headers
-	token, err := auth_service.GetToken()
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -365,11 +342,7 @@ func ChangeCollaboratorRole(userId, studioId, roleName string) (interface{}, err
 	}
 
 	// Set custom headers
-	token, err := auth_service.GetToken()
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -427,11 +400,7 @@ func RemoveCollaborator(userId, studioId string) (interface{}, error) {
 	}
 
 	// Set custom headers
-	token, err := auth_service.GetToken()
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
 	client := &http.Client{}
@@ -521,11 +490,7 @@ func GetStudioStatus(studioUrl string) (string, error) {
 	}
 
 	// Set custom headers
-	token, err := auth_service.GetToken()
-	if err != nil {
-		return "offline", nil
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
 	client := &http.Client{}
@@ -558,7 +523,7 @@ func GetStudioStatus(studioUrl string) (string, error) {
 
 // RegisterStudio registers a new studio on the global Clustta server.
 // This operation is only available in global auth mode.
-func RegisterStudio(studioName, studioUrl string) (interface{}, error) {
+func RegisterStudio(studioName, studioUrl, hostingMode string) (interface{}, error) {
 	if !isGlobalMode() {
 		return nil, fmt.Errorf("studio registration is only available in global auth mode")
 	}
@@ -566,8 +531,9 @@ func RegisterStudio(studioName, studioUrl string) (interface{}, error) {
 	url := constants.HOST + "/studio"
 
 	requestBody := map[string]string{
-		"name": studioName,
-		"url":  studioUrl,
+		"name":         studioName,
+		"url":          studioUrl,
+		"hosting_mode": hostingMode,
 	}
 
 	jsonData, err := json.Marshal(requestBody)
@@ -581,11 +547,7 @@ func RegisterStudio(studioName, studioUrl string) (interface{}, error) {
 	}
 
 	// Set custom headers
-	token, err := auth_service.GetToken()
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -648,11 +610,7 @@ func UpdateStudio(studioName, url, altUrl, port, key string) (interface{}, error
 	}
 
 	// Set custom headers
-	token, err := auth_service.GetToken()
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -712,11 +670,7 @@ func VerifyDeploymentCode(code string) (bool, string, error) {
 	}
 
 	// Set custom headers
-	token, err := auth_service.GetToken()
-	if err != nil {
-		return false, "", err
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -764,11 +718,7 @@ func CheckStudioNameExists(studioName string) (bool, error) {
 	}
 
 	// Set custom headers
-	token, err := auth_service.GetToken()
-	if err != nil {
-		return false, err
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
 	client := &http.Client{}
@@ -809,11 +759,7 @@ func pingStudioUrl(ctx context.Context, studioUrl string, ch chan<- string) {
 		return
 	}
 
-	token, err := auth_service.GetToken()
-	if err != nil {
-		return
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
 	client := &http.Client{Timeout: 5 * time.Second}

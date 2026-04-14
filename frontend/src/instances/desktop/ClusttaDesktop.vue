@@ -84,7 +84,7 @@ watchEffect(() => {
 		menu.contextMenuBounds = mainAreaContainer.value;
 	}
 	if (isUserActivated.value) {
-		if (userStore.canDo('create_task')) {
+		if (userStore.canDo('create_asset')) {
 			dndStore.userCanDrag = true;
 		} else {
 			dndStore.userCanDrag = false;

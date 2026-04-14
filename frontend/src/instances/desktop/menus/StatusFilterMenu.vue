@@ -47,9 +47,9 @@ const allStatuses = computed(() => {
 });
 
 // methods
-// Adds a filter to the task filters list.
+// Adds a filter to the asset filters list.
 const addFilter = (filter) => {
-  commonStore.taskFilters.push(filter);
+  commonStore.assetFilters.push(filter);
 };
 
 // Returns the status icon path for a given status.
@@ -59,17 +59,17 @@ const getStatusIcon = (status) => {
 
 // Checks if a filter is currently active.
 const isFilterActive = (filter) => {
-  return commonStore.taskFilters.includes(filter);
+  return commonStore.assetFilters.includes(filter);
 };
 
-// Removes a filter from the task filters list.
+// Removes a filter from the asset filters list.
 const removeFilter = (filter) => {
-  commonStore.taskFilters = commonStore.taskFilters.filter((item) => item !== filter);
+  commonStore.assetFilters = commonStore.assetFilters.filter((item) => item !== filter);
 };
 
 // Toggles a filter on or off and refreshes browser.
 const toggleFilter = (filter) => {
-  if (commonStore.taskFilters.includes(filter)) {
+  if (commonStore.assetFilters.includes(filter)) {
     removeFilter(filter);
   } else {
     addFilter(filter);

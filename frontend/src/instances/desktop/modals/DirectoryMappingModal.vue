@@ -108,7 +108,7 @@ const templateInputRefs = ref({});
 
 const placeholders = computed(() => [
   { key: '<Episode>', label: 'Episode', icon: 'tv' },
-  { key: '<Sequence>', label: 'Sequence', icon: 'layers' },
+  { key: '<Sequence>', label: 'Sequence', icon: 'checkpoint-stone' },
   { key: '<Shot>', label: 'Shot', icon: 'frame' },
   { key: '<Asset>', label: 'Asset', icon: 'cube' },
   { key: '<CollectionType>', label: 'CollectionType', icon: 'folder' },
@@ -304,7 +304,7 @@ onMounted(async () => {
 
 .general-container::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--bright-steel);
+  background-color: var(--white);
 }
 
 .general-container::-webkit-scrollbar-track {
@@ -339,7 +339,7 @@ onMounted(async () => {
 
 .config-label {
   font-size: 0.875rem;
-  color: var(--bright-steel);
+  color: var(--white);
 }
 
 .templates-section,
@@ -358,7 +358,7 @@ onMounted(async () => {
 
 .section-description {
   font-size: 0.75rem;
-  color: var(--bright-steel);
+  color: var(--white);
   margin: 0;
 }
 
@@ -399,7 +399,7 @@ onMounted(async () => {
 
 .template-name-input:focus {
   outline: none;
-  border-color: var(--bright-steel);
+  border-color: var(--white);
   background-color: var(--midnight-steel);
 }
 
@@ -413,7 +413,7 @@ onMounted(async () => {
   width: 100%;
   padding: 0.5rem 0.75rem;
   background-color: var(--midnight-steel);
-  border: 1px solid var(--bright-steel);
+  border: 1px solid var(--white);
   border-radius: var(--small-radius);
   color: var(--white);
   font-family: monospace;
@@ -423,7 +423,7 @@ onMounted(async () => {
 
 .template-input:focus {
   outline: none;
-  border-color: var(--primary);
+  border-color: var(--white);
 }
 
 .template-preview {
@@ -433,11 +433,11 @@ onMounted(async () => {
 }
 
 .preview-label {
-  color: var(--bright-steel);
+  color: var(--white);
 }
 
 .preview-path {
-  color: var(--primary);
+  color: var(--white);
   font-family: monospace;
 }
 
@@ -452,7 +452,7 @@ onMounted(async () => {
 }
 
 .placeholders-grid .chip:hover {
-  background-color: var(--primary);
+  background-color: var(--white);
 }
 
 .pop-up-actions {

@@ -31,8 +31,8 @@ func (t *WorkflowService) GetWorkflows(projectPath string) ([]models.Workflow, e
 	return workflows, nil
 }
 
-// Creates a new workflow with tasks, entities, and links
-func (t *WorkflowService) CreateWorkflow(projectPath, name string, workflowTasks []models.WorkflowTask, workflowEntities []models.WorkflowEntity, workflowLinks []models.WorkflowLink) (models.Workflow, error) {
+// Creates a new workflow with assets, collections, and links
+func (t *WorkflowService) CreateWorkflow(projectPath, name string, workflowAssets []models.WorkflowAsset, workflowCollections []models.WorkflowCollection, workflowLinks []models.WorkflowLink) (models.Workflow, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.Workflow{}, err
@@ -44,7 +44,7 @@ func (t *WorkflowService) CreateWorkflow(projectPath, name string, workflowTasks
 	}
 	defer tx.Rollback()
 
-	workflow, err := repository.CreateWorkflow(tx, "", name, workflowTasks, workflowEntities, workflowLinks)
+	workflow, err := repository.CreateWorkflow(tx, "", name, workflowAssets, workflowCollections, workflowLinks)
 	if err != nil {
 		tx.Rollback()
 		return models.Workflow{}, err
@@ -54,8 +54,8 @@ func (t *WorkflowService) CreateWorkflow(projectPath, name string, workflowTasks
 	return workflow, nil
 }
 
-// Adds a workflow to an entity with specified parent and type
-func (t *WorkflowService) AddWorkflow(projectPath, workflow_id, name, entityTypeId, parentId string) error {
+// Adds a workflow to an collection with specified parent and type
+func (t *WorkflowService) AddWorkflow(projectPath, workflow_id, name, collectionTypeId, parentId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -72,7 +72,7 @@ func (t *WorkflowService) AddWorkflow(projectPath, workflow_id, name, entityType
 		return err
 	}
 
-	err = repository.AddWorkflow(tx, workflow_id, name, entityTypeId, parentId, user)
+	err = repository.AddWorkflow(tx, workflow_id, name, collectionTypeId, parentId, user)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -82,8 +82,8 @@ func (t *WorkflowService) AddWorkflow(projectPath, workflow_id, name, entityType
 	return nil
 }
 
-// Updates an existing workflow including tasks, entities, and links
-func (t *WorkflowService) UpdateWorkflow(projectPath, workflowId, name string, workflowTasks []models.WorkflowTask, workflowEntities []models.WorkflowEntity, workflowLinks []models.WorkflowLink) (models.Workflow, error) {
+// Updates an existing workflow including assets, collections, and links
+func (t *WorkflowService) UpdateWorkflow(projectPath, workflowId, name string, workflowAssets []models.WorkflowAsset, workflowCollections []models.WorkflowCollection, workflowLinks []models.WorkflowLink) (models.Workflow, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.Workflow{}, err
@@ -95,7 +95,7 @@ func (t *WorkflowService) UpdateWorkflow(projectPath, workflowId, name string, w
 	}
 	defer tx.Rollback()
 
-	workflow, err := repository.UpdateWorkflow(tx, workflowId, name, workflowTasks, workflowEntities, workflowLinks)
+	workflow, err := repository.UpdateWorkflow(tx, workflowId, name, workflowAssets, workflowCollections, workflowLinks)
 	if err != nil {
 		tx.Rollback()
 		return models.Workflow{}, err

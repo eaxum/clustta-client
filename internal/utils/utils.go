@@ -153,7 +153,7 @@ func RevealInExplorer(filePath string) {
 
 func LaunchFile(filePath string) error {
 	if runtime.GOOS == "windows" {
-		err := exec.Command("cmd", "/C", "start", filePath).Start()
+		err := exec.Command("cmd", "/C", "start", "", filePath).Start()
 		if err != nil {
 			return err
 		}
@@ -328,15 +328,14 @@ func GetProjectFile(tx *sqlx.Tx) (string, error) {
 	return filePath, nil
 }
 func GetProjectName(tx *sqlx.Tx) (string, error) {
-	// var name string
-	// err := tx.Get(&name, "SELECT value FROM config WHERE name = 'name'")
-	// if err != nil {
-	// 	return "", err
-	// }
-	// return name, nil
+	var name string
+	err := tx.Get(&name, "SELECT value FROM config WHERE name = 'project_name'")
+	if err == nil {
+		return name, nil
+	}
+	// Fallback: derive from filename for databases created before project_name was stored.
 	var filePath string
-	query := "SELECT file FROM pragma_database_list WHERE name = 'main'"
-	err := tx.Get(&filePath, query)
+	err = tx.Get(&filePath, "SELECT file FROM pragma_database_list WHERE name = 'main'")
 	if err != nil {
 		return "", err
 	}
@@ -532,20 +531,14 @@ func BytesToHumanReadable(bytes int) string {
 	}
 }
 
-func NormalizePath(path string) string {
+func NormalizePath(p string) string {
 	// First convert backslashes to forward slashes
-	path = strings.ReplaceAll(path, "\\", "/")
+	p = strings.ReplaceAll(p, "\\", "/")
 
-	// Remove duplicate slashes
-	for strings.Contains(path, "//") {
-		path = strings.ReplaceAll(path, "//", "/")
-	}
+	// Clean the path to resolve . and .. components
+	p = path.Clean(p)
 
-	// Use filepath.Clean to handle . and .. components
-	// This also normalizes path separators to the OS-specific separator
-	// path = filepath.Clean(path)
-
-	return path
+	return p
 }
 
 func RemoveDuplicates(slice []string) []string {
@@ -571,14 +564,14 @@ func GetParent(p string) string {
 	return "/" + dir + "/"
 }
 
-func GetEntityPaths(entityPath string) []string {
-	entityPath, _ = strings.CutSuffix(entityPath, "/")
-	entityPath, _ = strings.CutPrefix(entityPath, "/")
-	parts := strings.Split(entityPath, "/")
-	var entityPaths []string
+func GetCollectionPaths(collectionPath string) []string {
+	collectionPath, _ = strings.CutSuffix(collectionPath, "/")
+	collectionPath, _ = strings.CutPrefix(collectionPath, "/")
+	parts := strings.Split(collectionPath, "/")
+	var collectionPaths []string
 	var current string
 
-	if entityPath == "" {
+	if collectionPath == "" {
 		return []string{}
 	}
 
@@ -589,8 +582,8 @@ func GetEntityPaths(entityPath string) []string {
 			current = path.Join(current, part)
 		}
 		current = current + "/"
-		entityPaths = append(entityPaths, current)
+		collectionPaths = append(collectionPaths, current)
 	}
 
-	return entityPaths
+	return collectionPaths
 }

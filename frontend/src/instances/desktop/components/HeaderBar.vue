@@ -19,22 +19,22 @@
 		<div class="header-bar-actions">
 
 			<div class="local-project-actions" v-if="stage.selectedStage === 'browser'">
-				<ActionButton v-if="userStore.canDo('delete_task')" :icon="getAppIcon('trash')" @click="goToTrash()"
+				<ActionButton v-if="userStore.canDo('delete_asset')" :icon="getAppIcon('trash')" @click="goToTrash()"
 					v-tooltip="$t('components.headerBar.trash')" />
-				<ActionButton v-if="userStore.canDo('create_task')" :icon="getAppIcon('briefcase-cog')"
+				<ActionButton v-if="userStore.canDo('create_asset')" :icon="getAppIcon('briefcase-cog')"
 					@click="goToSettings()" v-tooltip="$t('components.headerBar.projectSettings')" />
 
 			</div>
 
 			<div class="remote-project-actions" v-if="projectStore.getActiveProject?.has_remote && (projectStore.getActiveProject.is_downloaded || platformStore.isWeb) && enabledStages.includes(stage.selectedStage)">
 
-				<div class="actions-divider" ></div>
+				<div v-if="userStore.canDo('create_asset')" class="actions-divider" ></div>
 				
-				<ActionButton :isDisabled="revertButtonDisabled" @click="openChangeLog()" :icon="getAppIcon('revert')"
-					:iconAfter="true" v-tooltip="revertButtonTooltip" />
+				<!-- <ActionButton :isDisabled="revertButtonDisabled" @click="openChangeLog()" :icon="getAppIcon('revert')"
+					:iconAfter="true" v-tooltip="revertButtonTooltip" /> -->
 
 				<ActionButton :isDisabled="syncButtonDisabled" @click="unSynced ? syncData() : pullData()" :icon="getAppIcon(getCloudIcon)"
-					:iconAfter="true" v-tooltip="cloudIconTooltip" />
+					:useOutline="true" :color="cloudIconColor" :isLoading="isSyncing" :label="cloudIconLabel" v-tooltip="cloudIconTooltip" />
 				
 				<!-- <ActionButton :icon="getAppIcon('bell')" @click="panes.setPaneVisibility('notifications', true)" v-tooltip="'Notifications'"  /> -->
 			</div>
@@ -112,7 +112,7 @@ const enabledStages = ref(['browser', 'projectSettings']);
 const projectIsActive = computed(() => { return projectStore.getActiveProject && (platformStore.isWeb || projectStore.getActiveProject.is_downloaded) });
 
 // refs
-const fullTaskPath = ref(true);
+const fullAssetPath = ref(true);
 
 const getAppIcon = (iconName) => {
 	const icon = iconStore.getAppIcon(iconName);
@@ -126,13 +126,32 @@ const getCloudIcon = computed(() => {
 	}
 	// Check if any operations are active
 	if (!!notificationStore.getProgress.running) {
-		return 'cloud-clock';
+		return 'loading';
 	}
 	// Server is available
 	if (!unSynced.value) {
-		return 'cloud-down';
+		return 'cloud-check';
 	}
 	return 'cloud-up';
+});
+
+// Returns the color for the cloud/sync button based on its state.
+const cloudIconColor = computed(() => {
+	if (!studioStore.appOnline || projectStore.getActiveProject?.is_offline) return 'var(--danger)';
+	if (!!notificationStore.getProgress.running) return null;
+	if (!unSynced.value) return 'var(--solid-blue-steel)';
+	return 'var(--alert)';
+});
+
+const isSyncing = computed(() => !!notificationStore.getProgress.running);
+
+// Returns the label text for the cloud/sync button.
+const cloudIconLabel = computed(() => {
+	if (!studioStore.appOnline) return t('components.headerBar.serverUnreachable');
+	if (projectStore.getActiveProject?.is_offline) return t('components.headerBar.projectOffline');
+	if (!!notificationStore.getProgress.running) return t('components.headerBar.syncing');
+	if (!unSynced.value) return t('components.headerBar.upToDate');
+	return t('components.headerBar.sync');
 });
 
 // Returns the tooltip text for the cloud/sync icon.
@@ -140,33 +159,33 @@ const cloudIconTooltip = computed(() => {
 	if (!studioStore.appOnline) return t('components.headerBar.serverUnreachable');
 	if (projectStore.getActiveProject?.is_offline) return t('components.headerBar.projectOffline');
 	if (!!notificationStore.getProgress.running) return t('components.headerBar.syncing');
-	if (!unSynced.value) return t('components.headerBar.upToDate');
-	return t('components.headerBar.unsyncedChanges');
+	if (!unSynced.value) return t('components.headerBar.clickToRefresh');
+	return t('components.headerBar.sync');
 });
 
 // computed properties
-const taskName = computed(() => {
-	const task = assetStore.selectedAsset;
-	if (!task) {
+const assetName = computed(() => {
+	const asset = assetStore.selectedAsset;
+	if (!asset) {
 		return
 	}
-	if (!fullTaskPath.value) {
-		return utils.capitalizeStr(task.name)
+	if (!fullAssetPath.value) {
+		return utils.capitalizeStr(asset.name)
 	} else {
-		const fullPath = task.task_path;
+		const fullPath = asset.asset_path;
 		return fullPath?.replace(/\//g, ' / ');
 	}
 });
 
-const toggleFullTaskPath = () => {
-	fullTaskPath.value = !fullTaskPath.value;
+const toggleFullAssetPath = () => {
+	fullAssetPath.value = !fullAssetPath.value;
 }
 
 // Returns the header configuration for the active stage.
 const activeHeaderConfig = computed(() => {
 	const configs = {
 		projects: { icon: 'home', isInactive: true, title: t('components.headerBar.projects') },
-		dependencies: { icon: 'chevron-left', action: goToList, title: taskName.value, customIcon: assetStore.selectedAsset?.icon, containerClick: toggleFullTaskPath, tooltip: t('components.headerBar.back') },
+		dependencies: { icon: 'chevron-left', action: goToList, title: assetName.value, customIcon: assetStore.selectedAsset?.icon, containerClick: toggleFullAssetPath, tooltip: t('components.headerBar.back') },
 		trash: { icon: 'chevron-left', action: goToList, title: t('components.headerBar.trash'), tooltip: t('components.headerBar.back') },
 		projectSettings: { icon: 'chevron-left', action: goToList, title: t('components.headerBar.projectSettings'), tooltip: t('components.headerBar.back') },
 		studioSettings: { icon: 'chevron-left', action: goToProjects, title: t('components.headerBar.studioSettings'), tooltip: t('components.headerBar.back') },
@@ -246,8 +265,8 @@ const emptyTrash = async () => {
 
 const goToList = () => {
 	if (assetStore.selectedAsset) {
-		const taskId = assetStore.selectedAsset.id;
-		stage.markedTasks = [taskId];
+		const assetId = assetStore.selectedAsset.id;
+		stage.markedAssets = [assetId];
 	}
 	stage.setStageVisibility('browser', true);
 };

@@ -1,5 +1,7 @@
 package auth_service
 
+import "clustta/internal/constants"
+
 // AuthMode represents the type of authentication being used
 type AuthMode string
 
@@ -14,8 +16,9 @@ const (
 	AuthModeOffline AuthMode = "offline"
 )
 
-// DefaultAuthHost is the default Clustta Cloud authentication endpoint
-const DefaultAuthHost = "https://api.clustta.com"
+// DefaultAuthHost is the default Clustta Cloud authentication endpoint.
+// Uses constants.HOST so the build-time -ldflags override is respected.
+var DefaultAuthHost = constants.HOST
 
 // OfflineUserID is a special identifier for the offline mode pseudo-account
 const OfflineUserID = "offline-user"

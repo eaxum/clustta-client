@@ -27,13 +27,13 @@ function rowToRole(row) {
   if (!row) return null;
   return {
     ...row,
-    view_task: !!row.view_task,
-    create_task: !!row.create_task,
-    edit_task: !!row.edit_task,
-    delete_task: !!row.delete_task,
-    create_entity: !!row.create_entity,
-    edit_entity: !!row.edit_entity,
-    delete_entity: !!row.delete_entity,
+    view_asset: !!row.view_asset,
+    create_asset: !!row.create_asset,
+    edit_asset: !!row.edit_asset,
+    delete_asset: !!row.delete_asset,
+    create_collection: !!row.create_collection,
+    edit_collection: !!row.edit_collection,
+    delete_collection: !!row.delete_collection,
     create_checkpoint: !!row.create_checkpoint,
     revert_checkpoint: !!row.revert_checkpoint,
     delete_checkpoint: !!row.delete_checkpoint,
@@ -144,16 +144,16 @@ export const UserService = {
     try {
       const db = await getDatabase(projectName);
       execute(db, `
-        INSERT INTO role (id, mtime, name, view_task, create_task, edit_task, delete_task,
-                         create_entity, edit_entity, delete_entity, create_checkpoint,
+        INSERT INTO role (id, mtime, name, view_asset, create_asset, edit_asset, delete_asset,
+                         create_collection, edit_collection, delete_collection, create_checkpoint,
                          revert_checkpoint, delete_checkpoint, download_checkpoint,
                          change_assignee, create_tag, delete_tag, create_status, delete_status,
                          create_type, delete_type, synced)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
       `, [
         result.id, Date.now(), result.name,
-        result.view_task ? 1 : 0, result.create_task ? 1 : 0, result.edit_task ? 1 : 0, result.delete_task ? 1 : 0,
-        result.create_entity ? 1 : 0, result.edit_entity ? 1 : 0, result.delete_entity ? 1 : 0,
+        result.view_asset ? 1 : 0, result.create_asset ? 1 : 0, result.edit_asset ? 1 : 0, result.delete_asset ? 1 : 0,
+        result.create_collection ? 1 : 0, result.edit_collection ? 1 : 0, result.delete_collection ? 1 : 0,
         result.create_checkpoint ? 1 : 0, result.revert_checkpoint ? 1 : 0, result.delete_checkpoint ? 1 : 0,
         result.download_checkpoint ? 1 : 0, result.change_assignee ? 1 : 0, result.create_tag ? 1 : 0,
         result.delete_tag ? 1 : 0, result.create_status ? 1 : 0, result.delete_status ? 1 : 0,
@@ -177,15 +177,15 @@ export const UserService = {
     try {
       const db = await getDatabase(projectName);
       execute(db, `
-        UPDATE role SET name = ?, view_task = ?, create_task = ?, edit_task = ?, delete_task = ?,
-                       create_entity = ?, edit_entity = ?, delete_entity = ?, create_checkpoint = ?,
+        UPDATE role SET name = ?, view_asset = ?, create_asset = ?, edit_asset = ?, delete_asset = ?,
+                       create_collection = ?, edit_collection = ?, delete_collection = ?, create_checkpoint = ?,
                        revert_checkpoint = ?, delete_checkpoint = ?, download_checkpoint = ?,
                        change_assignee = ?, create_tag = ?, delete_tag = ?, create_status = ?,
                        delete_status = ?, create_type = ?, delete_type = ?, mtime = ?
         WHERE id = ?
       `, [
-        role.name, role.view_task ? 1 : 0, role.create_task ? 1 : 0, role.edit_task ? 1 : 0, role.delete_task ? 1 : 0,
-        role.create_entity ? 1 : 0, role.edit_entity ? 1 : 0, role.delete_entity ? 1 : 0,
+        role.name, role.view_asset ? 1 : 0, role.create_asset ? 1 : 0, role.edit_asset ? 1 : 0, role.delete_asset ? 1 : 0,
+        role.create_collection ? 1 : 0, role.edit_collection ? 1 : 0, role.delete_collection ? 1 : 0,
         role.create_checkpoint ? 1 : 0, role.revert_checkpoint ? 1 : 0, role.delete_checkpoint ? 1 : 0,
         role.download_checkpoint ? 1 : 0, role.change_assignee ? 1 : 0, role.create_tag ? 1 : 0,
         role.delete_tag ? 1 : 0, role.create_status ? 1 : 0, role.delete_status ? 1 : 0,

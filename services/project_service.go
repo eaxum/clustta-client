@@ -2,6 +2,7 @@ package services
 
 import (
 	"clustta/internal/auth_service"
+	"clustta/internal/constants"
 	"clustta/internal/error_service"
 	"clustta/internal/ignore"
 	"clustta/internal/repository"
@@ -24,21 +25,28 @@ type ProjectService struct {
 }
 
 type UntrackedItems struct {
-	Files   []models.UntrackedTask   `json:"tasks"`
-	Folders []models.UntrackedEntity `json:"entities"`
+	Files   []models.UntrackedAsset      `json:"assets"`
+	Folders []models.UntrackedCollection `json:"collections"`
 }
 
-func (p *ProjectService) CreateProject(projectUri, studioName, workingDir, templateName string) (repository.ProjectInfo, error) {
+func (p *ProjectService) CreateProject(projectUri, studioName, workingDir, templateName, hostingMode, studioId string) (repository.ProjectInfo, error) {
 	if studioName == "" {
 		return repository.ProjectInfo{}, errors.New("studio name can't be empty")
 	}
+
+	// For cloud studios, construct the proper API URL
+	if hostingMode == "cloud" && studioId != "" {
+		projectName := filepath.Base(projectUri)
+		projectUri = constants.HOST + "/studio/" + studioId + "/" + projectName
+	}
+
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
 		return repository.ProjectInfo{}, err
 	}
 
 	fmt.Println(user)
-	projectInfo, err := repository.CreateProject(projectUri, studioName, workingDir, templateName, user)
+	projectInfo, err := repository.CreateProject(projectUri, studioName, workingDir, templateName, "", user)
 	if err != nil {
 		if !utils.IsValidURL(projectUri) &&
 			utils.FileExists(projectUri) &&
@@ -61,6 +69,128 @@ func (p *ProjectService) CreateProject(projectUri, studioName, workingDir, templ
 	}
 	projectInfo.WorkingDirectory = workingDir
 	return projectInfo, nil
+}
+
+// MakeProjectRemote uploads a local project to Clustta Cloud as a remote project.
+// Creates the remote project, remaps IDs to match remote, pushes all data, and stores the remote URL locally.
+func (p *ProjectService) MakeProjectRemote(projectPath string) error {
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+
+	authHost := auth_service.GetAuthHost()
+	if authHost == "" {
+		return errors.New("not connected to Clustta Cloud")
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	projectName, err := utils.GetProjectName(tx)
+	if err != nil {
+		return err
+	}
+	workingDir, _ := utils.GetProjectWorkingDir(tx)
+	projectId, _ := utils.GetProjectId(tx)
+	tx.Rollback()
+	dbConn.Close()
+
+	remoteURL := fmt.Sprintf("%s/user/%s/%s", authHost, user.Id, projectName)
+
+	// Ensure the local project schema is up to date before reading data
+	err = repository.UpdateProject(projectPath)
+	if err != nil {
+		return fmt.Errorf("failed to update local project schema: %w", err)
+	}
+
+	// Create the remote project on the server
+	remoteProjectInfo, err := repository.CreateProject(remoteURL, "", "", "No Template", projectId, user)
+	if err != nil {
+		return fmt.Errorf("failed to create remote project: %w", err)
+	}
+
+	// Remap local IDs (project_id, roles, statuses, types) to match the remote project
+	err = sync_service.PrepareProjectForUpload(projectPath, remoteProjectInfo, remoteURL, workingDir, user.Id)
+	if err != nil {
+		return fmt.Errorf("failed to remap project IDs: %w", err)
+	}
+
+	app := application.Get()
+	progressCallback := func(current int, total int, message string, extraMessage string) {
+		app.Event.Emit("progress-update", output.ProgressReport{
+			Title:        "Uploading to Cloud",
+			Message:      message,
+			Percentage:   float64(current) / float64(total) * 100,
+			Current:      1,
+			Total:        1,
+			ExtraMessage: extraMessage,
+		})
+	}
+
+	// Push all data (metadata, chunks, previews)
+	err = sync_service.PushData(projectPath, remoteURL, user.Id, progressCallback)
+	if err != nil {
+		return fmt.Errorf("failed to upload project data: %w", err)
+	}
+
+	InvalidateRemoteCache(projectPath)
+	return nil
+}
+
+// RemoveProjectFromRemote deletes the remote copy and clears the local remote URL.
+// The local project data is preserved.
+func (p *ProjectService) RemoveProjectFromRemote(projectPath string) error {
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	remoteURL, err := utils.GetRemoteUrl(tx)
+	if err != nil || remoteURL == "" {
+		return errors.New("project is not remote")
+	}
+
+	// Delete the remote project from the server
+	err = repository.DeleteRemoteProject(remoteURL, "", user)
+	if err != nil {
+		return fmt.Errorf("failed to delete remote project: %w", err)
+	}
+
+	// Clear the remote URL locally
+	err = utils.SetRemoteUrl(tx, "")
+	if err != nil {
+		return fmt.Errorf("failed to clear remote URL: %w", err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	InvalidateRemoteCache(projectPath)
+	return nil
 }
 
 func (p *ProjectService) ApplyTemplate(projectPath, templateName string) error {
@@ -303,6 +433,12 @@ func (p *ProjectService) DeleteRemoteProject(projectUri, studioName string) erro
 	return repository.DeleteRemoteProject(projectUri, studioName, user)
 }
 
+// LeaveProject removes the current user as a collaborator from a remote project.
+// The project remote URL is used to construct the leave endpoint.
+func (p *ProjectService) LeaveProject(remoteUrl string) error {
+	return repository.LeaveProject(remoteUrl)
+}
+
 func (p *ProjectService) AddUser(projectPath, email, roleName string) (models.User, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -321,6 +457,34 @@ func (p *ProjectService) AddUser(projectPath, email, roleName string) (models.Us
 	}
 	tx.Commit()
 	enqueueUserWriteThrough(projectPath, user)
+	return user, nil
+}
+
+// AddUserSynced adds a user to the local project and marks them as synced.
+// Used when the server already has the user data via write-through.
+func (p *ProjectService) AddUserSynced(projectPath, email, roleName string) (models.User, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return models.User{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return models.User{}, err
+	}
+	defer tx.Rollback()
+
+	user, err := repository.AddUser(tx, email, roleName)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	err = utils.SetRowsSynced(tx, "user", []string{user.Id})
+	if err != nil {
+		return models.User{}, err
+	}
+
+	tx.Commit()
 	return user, nil
 }
 
@@ -369,8 +533,8 @@ func (p *ProjectService) RemoveUser(projectPath, userId string) error {
 
 	err = repository.RemoveUser(tx, userId)
 	if err != nil {
-		if errors.Is(err, error_service.ErrUserHaveTaskAssigned) {
-			return error_service.ErrUserHaveTaskAssigned
+		if errors.Is(err, error_service.ErrUserHaveAssetAssigned) {
+			return error_service.ErrUserHaveAssetAssigned
 		}
 		return err
 	}
@@ -383,13 +547,44 @@ func (p *ProjectService) RemoveUser(projectPath, userId string) error {
 	return nil
 }
 
-func (p *ProjectService) GetStudioProjects(url, name string) ([]repository.ProjectInfo, error) {
+// RemoveUserSynced removes a user from the local project and marks the tomb as synced.
+// Used when the server already has the deletion via its own endpoint.
+func (p *ProjectService) RemoveUserSynced(projectPath, userId string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	err = repository.RemoveUser(tx, userId)
+	if err != nil {
+		if errors.Is(err, error_service.ErrUserHaveAssetAssigned) {
+			return error_service.ErrUserHaveAssetAssigned
+		}
+		return err
+	}
+
+	err = utils.SetRowsSynced(tx, "tomb", []string{userId})
+	if err != nil {
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+func (p *ProjectService) GetStudioProjects(url, name, hostingMode, studioId string) ([]repository.ProjectInfo, error) {
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
 		return []repository.ProjectInfo{}, err
 	}
 
-	projects, err := sync_service.GetStudioProjects(user, url, name)
+	projects, err := sync_service.GetStudioProjects(user, url, name, hostingMode, studioId)
 	if err != nil {
 		return projects, err
 	}
@@ -561,8 +756,8 @@ func (p *ProjectService) GetFolderUntrackedItems(
 
 	// Initialize result structure with thread-safe slices
 	untracked := UntrackedItems{
-		Files:   make([]models.UntrackedTask, 0),
-		Folders: make([]models.UntrackedEntity, 0),
+		Files:   make([]models.UntrackedAsset, 0),
+		Folders: make([]models.UntrackedCollection, 0),
 	}
 
 	ignoreObject := ignore.CompileIgnoreLines(ignoreList...)
@@ -588,27 +783,27 @@ func (p *ProjectService) GetFolderUntrackedItems(
 		if entry.IsDir() {
 			// check if directory is tracked
 			if !utils.Contains(tracked, path) {
-				entity := models.UntrackedEntity{
-					Id:         utils.GetMD5Hash(path),
-					Name:       entry.Name(),
-					FilePath:   path,
-					EntityPath: relativePath,
+				collection := models.UntrackedCollection{
+					Id:             utils.GetMD5Hash(path),
+					Name:           entry.Name(),
+					FilePath:       path,
+					CollectionPath: relativePath,
 				}
-				untracked.Folders = append(untracked.Folders, entity)
+				untracked.Folders = append(untracked.Folders, collection)
 			}
 		} else {
 			// check if file is tracked
 			if !utils.Contains(tracked, path) {
-				taskName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
-				task := models.UntrackedTask{
-					Id:         utils.GetMD5Hash(path),
-					Name:       taskName,
-					FilePath:   path,
-					TaskPath:   relativePath,
-					EntityPath: filepath.ToSlash(filepath.Dir(relativePath)),
-					Extension:  filepath.Ext(entry.Name()),
+				assetName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
+				asset := models.UntrackedAsset{
+					Id:             utils.GetMD5Hash(path),
+					Name:           assetName,
+					FilePath:       path,
+					AssetPath:      relativePath,
+					CollectionPath: filepath.ToSlash(filepath.Dir(relativePath)),
+					Extension:      filepath.Ext(entry.Name()),
 				}
-				untracked.Files = append(untracked.Files, task)
+				untracked.Files = append(untracked.Files, asset)
 			}
 		}
 	}
@@ -834,7 +1029,7 @@ func (p *ProjectService) UploadProject(sourceClstPath, studioName, workingDir, p
 	}
 
 	// Create empty project on remote
-	remoteProjectInfo, err := repository.CreateProject(remoteProjectUrl, studioName, workingDir, "", user)
+	remoteProjectInfo, err := repository.CreateProject(remoteProjectUrl, studioName, workingDir, "", "", user)
 	if err != nil {
 		return repository.ProjectInfo{}, err
 	}

@@ -152,6 +152,7 @@ export async function studioDataFetch(studioUrl, endpoint, method = 'POST', body
     method: 'POST', // Always POST to proxy - proxy converts to GET with body
     headers,
     body: body ? JSON.stringify(body) : null,
+    credentials: isDev ? 'omit' : 'include',
   });
 
   if (!response.ok) {
@@ -227,6 +228,7 @@ export async function studioRawFetch(studioUrl, endpoint, method = 'POST', body 
     method: 'POST',
     headers,
     body: body ? JSON.stringify(body) : null,
+    credentials: isDev ? 'omit' : 'include',
   });
 
   if (!response.ok) {

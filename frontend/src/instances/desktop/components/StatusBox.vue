@@ -29,7 +29,7 @@ const selectStatus = (status) => {
 };
 
 const handleClickOutside = (event) => {
-  if (menu.showStatusOptions && !event.target.closest('.task-item-status')) {
+  if (menu.showStatusOptions && !event.target.closest('.asset-item-status')) {
     menu.showStatusOptions = false;
     //console.log('clicked outside');
   }

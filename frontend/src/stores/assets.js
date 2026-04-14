@@ -19,12 +19,12 @@ export const useAssetStore = defineStore("asset", {
     assetTypes: [],
     assets_index: {},
     collection_assets_index: {},
-    isAssetTaskStatus: false,
+    isAssetAssetStatus: false,
     selectedAsset: null,
     selectedAssetType: null,
     assetsLoaded: false,
     projectTags: [],
-    showDoneTasks: true,
+    showDoneAssets: true,
     loadingAssetStates: false,
     assetListTags: [],
     projectExtensions: [],
@@ -68,7 +68,7 @@ export const useAssetStore = defineStore("asset", {
         let asset = state.assets[i];
         if (
           asset.trashed === false &&
-          (state.showDoneTasks || asset.status.name !== "done") &&
+          (state.showDoneAssets || asset.status.name !== "done") &&
           (!state.showTraySearch ||
             state.assetListTags.every((tag) => asset.tags.includes(tag))) &&
           (commonStore.viewSearchQuery === "" ||
@@ -81,7 +81,7 @@ export const useAssetStore = defineStore("asset", {
         }
       }
 
-      // Sort entitys with closed entitys at the bottom
+      // Sort collections with closed collections at the bottom
       // assets.sort((a, b) => {
       //   return a.name.localeCompare(b.name);
       // });
@@ -100,7 +100,7 @@ export const useAssetStore = defineStore("asset", {
         }
       }
 
-      // Sort entitys with closed entitys at the bottom
+      // Sort collections with closed collections at the bottom
       assets.sort((a, b) => {
         return a.name.localeCompare(b.name);
       });
@@ -115,7 +115,7 @@ export const useAssetStore = defineStore("asset", {
         let asset = state.assets[i];
         if (
           asset.trashed === false &&
-          (state.showDoneTasks || asset.status.name !== "done") &&
+          (state.showDoneAssets || asset.status.name !== "done") &&
           (!state.showTraySearch ||
             state.assetListTags.every((tag) => asset.tags.includes(tag))) &&
           (commonStore.viewSearchQuery === "" ||
@@ -135,27 +135,27 @@ export const useAssetStore = defineStore("asset", {
 
       const assigneeFilters =
         commonStore.hasAssignees || commonStore.noAssignees;
-      const filtersActive = commonStore.taskFilters.length || assigneeFilters;
+      const filtersActive = commonStore.assetFilters.length || assigneeFilters;
 
       if (filtersActive) {
         console.log("Filters active");
-        const selectedStatus = commonStore.taskFilters
+        const selectedStatus = commonStore.assetFilters
           .filter((filter) => filter.type === "status")
           .map((filter) => filter.name.toLowerCase());
-        const selectedTags = commonStore.taskFilters
+        const selectedTags = commonStore.assetFilters
           .filter((filter) => filter.type === "tags")
           .map((filter) => filter.name.toLowerCase());
-        const selectedAssignees = commonStore.taskFilters
+        const selectedAssignees = commonStore.assetFilters
           .filter((filter) => filter.type === "assignation")
           .map((filter) => filter.id);
-        const selectedState = commonStore.taskFilters
+        const selectedState = commonStore.assetFilters
           .filter((filter) => filter.type === "state")
           .map((filter) => filter.name.toLowerCase());
-        const selectedExtensions = commonStore.taskFilters
+        const selectedExtensions = commonStore.assetFilters
           .filter((filter) => filter.type === "extension")
           .map((filter) => filter.extension.toLowerCase());
-        const selectedAssetTypes = commonStore.taskFilters
-          .filter((filter) => filter.type === "task-type")
+        const selectedAssetTypes = commonStore.assetFilters
+          .filter((filter) => filter.type === "asset-type")
           .map((filter) => filter.name.toLowerCase());
 
         filteredAsset = assets
@@ -214,7 +214,7 @@ export const useAssetStore = defineStore("asset", {
 
             // matched asset types
             const assetType = state.assetTypes.find(
-              (item) => item.id === asset.task_type_id
+              (item) => item.id === asset.asset_type_id
             );
             const assetTypeMatch =
               selectedAssetTypes.length === 0 ||
@@ -270,17 +270,17 @@ export const useAssetStore = defineStore("asset", {
       const commonStore = useCommonStore();
       const collectionStore = useCollectionStore();
       let filteredAssets = state.getFilteredAssets;
-      let showEntities = commonStore.showEntities;
+      let showCollections = commonStore.showCollections;
 
-      let expandedEntities = stageStore.expandedEntities;
+      let expandedCollections = stageStore.expandedCollections;
       let displayedAssets = [];
 
       for (let i = 0; i < filteredAssets.length; i++) {
         let asset = filteredAssets[i];
-        if (showEntities) {
+        if (showCollections) {
           if (
-            asset.entity_id === "" ||
-            asset.entity_id in expandedEntities // Changed from expandedEntities.includes(asset.entity_id)
+            asset.collection_id === "" ||
+            asset.collection_id in expandedCollections // Changed from expandedCollections.includes(asset.collection_id)
           ) {
             displayedAssets.push(asset);
           }
@@ -298,7 +298,7 @@ export const useAssetStore = defineStore("asset", {
         if (asset.trashed) {
           continue;
         }
-        if (state.showDoneTasks || asset.status.name === "done") {
+        if (state.showDoneAssets || asset.status.name === "done") {
           return true;
         }
       }
@@ -349,25 +349,25 @@ export const useAssetStore = defineStore("asset", {
 
       const assigneeFilters =
         commonStore.hasAssignees || commonStore.noAssignees;
-      const filtersActive = commonStore.taskFilters.length || assigneeFilters;
+      const filtersActive = commonStore.assetFilters.length || assigneeFilters;
 
       if (filtersActive) {
-        const selectedStatus = commonStore.taskFilters
+        const selectedStatus = commonStore.assetFilters
           .filter((filter) => filter.type === "status")
           .map((filter) => filter.name.toLowerCase());
-        const selectedTags = commonStore.taskFilters
+        const selectedTags = commonStore.assetFilters
           .filter((filter) => filter.type === "tags")
           .map((filter) => filter.name.toLowerCase());
-        const selectedAssignees = commonStore.taskFilters
+        const selectedAssignees = commonStore.assetFilters
           .filter((filter) => filter.type === "assignation")
           .map((filter) => filter.id);
-        const selectedState = commonStore.taskFilters
+        const selectedState = commonStore.assetFilters
           .filter((filter) => filter.type === "state")
           .map((filter) => filter.name.toLowerCase());
-        const selectedExtensions = commonStore.taskFilters
+        const selectedExtensions = commonStore.assetFilters
           .filter((filter) => filter.type === "extension")
           .map((filter) => filter.extension.toLowerCase());
-        const selectedAssetTypes = commonStore.taskFilters
+        const selectedAssetTypes = commonStore.assetFilters
           .filter((filter) => filter.type === "asset-type")
           .map((filter) => filter.name.toLowerCase());
 
@@ -427,7 +427,7 @@ export const useAssetStore = defineStore("asset", {
 
             // matched asset types
             const assetType = this.assetTypes.find(
-              (item) => item.id === asset.task_type_id
+              (item) => item.id === asset.asset_type_id
             );
             const assetTypeMatch =
               selectedAssetTypes.length === 0 ||
@@ -491,10 +491,10 @@ export const useAssetStore = defineStore("asset", {
       }
     },
 
-    async refreshEntityFilesStatus(entity_id) {
+    async refreshCollectionFilesStatus(collection_id) {
       let assetIds = [];
       for (let asset of this.assets) {
-        if (entity_id == asset.entity_id || entity_id === "") {
+        if (collection_id == asset.collection_id || collection_id === "") {
           assetIds.push(asset.id);
         }
       }
@@ -567,13 +567,13 @@ export const useAssetStore = defineStore("asset", {
       return this.assets[assetIndex];
     },
 
-    getEntityAssets(entityId, recursive = false, entityMap = {}) {
-      let entityAssetIds = this.collection_assets_index[entityId] || [];
-      let assets = entityAssetIds.map((assetId) => this.findAsset(assetId));
+    getCollectionAssets(collectionId, recursive = false, collectionMap = {}) {
+      let collectionAssetIds = this.collection_assets_index[collectionId] || [];
+      let assets = collectionAssetIds.map((assetId) => this.findAsset(assetId));
 
-      if (recursive && entityMap[entityId]) {
-        for (let childId of entityMap[entityId]) {
-          assets = assets.concat(this.getEntityAssets(childId, true, entityMap));
+      if (recursive && collectionMap[collectionId]) {
+        for (let childId of collectionMap[collectionId]) {
+          assets = assets.concat(this.getCollectionAssets(childId, true, collectionMap));
         }
       }
 
@@ -625,14 +625,14 @@ export const useAssetStore = defineStore("asset", {
       emitter.emit("refresh-browser");
     },
     toggleShowDoneAssets() {
-      this.showDoneTasks = !this.showDoneTasks;
+      this.showDoneAssets = !this.showDoneAssets;
     },
     addDependency(asset_id, dependency_id, itemType) {
       let assetIndex = this.assets_index[asset_id];
       if (itemType === "asset") {
         this.assets[assetIndex].dependencies.push(dependency_id);
       } else {
-        this.assets[assetIndex].entity_dependencies.push(dependency_id);
+        this.assets[assetIndex].collection_dependencies.push(dependency_id);
       }
     },
     removeDependency(asset_id, dependency_id, itemType) {
@@ -643,19 +643,19 @@ export const useAssetStore = defineStore("asset", {
           (dep) => dep !== dependency_id
         );
       } else {
-        let entity_dependencies = this.assets[assetIndex].entity_dependencies;
-        this.assets[assetIndex].entity_dependencies = entity_dependencies.filter(
+        let collection_dependencies = this.assets[assetIndex].collection_dependencies;
+        this.assets[assetIndex].collection_dependencies = collection_dependencies.filter(
           (dep) => dep !== dependency_id
         );
       }
     },
-    changeAssetEntity(asset_id, entityId) {
+    changeAssetCollection(asset_id, collectionId) {
       let assetIndex = this.assets_index[asset_id];
-      this.assets[assetIndex].entity_id = entityId;
+      this.assets[assetIndex].collection_id = collectionId;
     },
     addAssetsCheckpoint(checkpoints) {
       for (let checkpoint of checkpoints) {
-        let assetId = checkpoint.task_id;
+        let assetId = checkpoint.asset_id;
         let assetIndex = this.assets_index[assetId];
         console.log(this.assets[assetIndex]);
         this.assets[assetIndex].checkpoints.unshift(checkpoint);
@@ -714,26 +714,26 @@ export const useAssetStore = defineStore("asset", {
 
       return "modified";
     },
-    getAssetEntity(assetId, recursive = false) {
+    getAssetCollection(assetId, recursive = false) {
       const collectionStore = useCollectionStore();
       let assetIndex = this.assets_index[assetId];
       let asset = this.assets[assetIndex];
-      let entityId = asset.entity_id;
-      let parentEntities = [];
+      let collectionId = asset.collection_id;
+      let parentCollections = [];
 
-      if (entityId) {
-        let parentEntity = collectionStore.findCollection(entityId);
-        if (parentEntity) {
-          parentEntities.push(parentEntity);
+      if (collectionId) {
+        let parentCollection = collectionStore.findCollection(collectionId);
+        if (parentCollection) {
+          parentCollections.push(parentCollection);
         }
         if (recursive) {
-          let parentId = parentEntity.parent_id;
+          let parentId = parentCollection.parent_id;
           let depth = 0;
           while (parentId && depth < 20) {
-            let parentEntity = collectionStore.findCollection(parentId);
-            if (parentEntity) {
-              parentEntities.push(parentEntity);
-              parentId = parentEntity.parent_id;
+            let parentCollection = collectionStore.findCollection(parentId);
+            if (parentCollection) {
+              parentCollections.push(parentCollection);
+              parentId = parentCollection.parent_id;
             } else {
               break;
             }
@@ -741,7 +741,7 @@ export const useAssetStore = defineStore("asset", {
           }
         }
       }
-      return parentEntities;
+      return parentCollections;
     },
 
     async processAssetsIconsAndPreviews(assets) {

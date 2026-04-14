@@ -1,8 +1,8 @@
 <template>
-    <div class="task-skeleton-container"  :class="{ 'task-skeleton-container-cards': cardView }">
+    <div class="asset-skeleton-container"  :class="{ 'asset-skeleton-container-cards': cardView }">
 
-    <div v-for="(skeleton, index) in skeletonArray" :key="index" class="task-skeleton-item" 
-    :class="{ 'task-skeleton-item-cards': cardView }"
+    <div v-for="(skeleton, index) in skeletonArray" :key="index" class="asset-skeleton-item" 
+    :class="{ 'asset-skeleton-item-cards': cardView }"
     :style="{ animationDelay : `${(skeleton - 1) * 0.2}s` }">
         
         <!-- Preview image skeleton (only in card view) -->
@@ -54,7 +54,7 @@ onMounted(async () => {
 
 <style scoped>
 
-.task-skeleton-container{
+.asset-skeleton-container{
   padding: .5rem;
 	box-sizing: border-box;
 	height: max-content;
@@ -63,14 +63,14 @@ onMounted(async () => {
 	gap: 10px;
 	width: 100%;
 }
-.task-skeleton-container-cards{
+.asset-skeleton-container-cards{
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 10px;
   width: 100%;
 }
 
-.task-skeleton-item{
+.asset-skeleton-item{
     display: flex;
     flex-direction: column;
     gap: .2rem;
@@ -92,7 +92,7 @@ onMounted(async () => {
     outline-offset: -1px;
 }
 
-.task-skeleton-item-cards{
+.asset-skeleton-item-cards{
     min-width: 300px;
     height: 200px;
     gap: 0;

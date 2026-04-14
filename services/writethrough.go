@@ -160,25 +160,25 @@ func InvalidateEnabledCache(projectPath string) {
 
 // mergeProjectData appends all slices from src into dst.
 func mergeProjectData(dst, src *sync_service.ProjectData) {
-	dst.Tasks = append(dst.Tasks, src.Tasks...)
-	dst.TaskTypes = append(dst.TaskTypes, src.TaskTypes...)
-	dst.TasksCheckpoints = append(dst.TasksCheckpoints, src.TasksCheckpoints...)
-	dst.TaskDependencies = append(dst.TaskDependencies, src.TaskDependencies...)
-	dst.EntityDependencies = append(dst.EntityDependencies, src.EntityDependencies...)
+	dst.Assets = append(dst.Assets, src.Assets...)
+	dst.AssetTypes = append(dst.AssetTypes, src.AssetTypes...)
+	dst.AssetCheckpoints = append(dst.AssetCheckpoints, src.AssetCheckpoints...)
+	dst.AssetDependencies = append(dst.AssetDependencies, src.AssetDependencies...)
+	dst.CollectionDependencies = append(dst.CollectionDependencies, src.CollectionDependencies...)
 	dst.Statuses = append(dst.Statuses, src.Statuses...)
 	dst.DependencyTypes = append(dst.DependencyTypes, src.DependencyTypes...)
 	dst.Users = append(dst.Users, src.Users...)
 	dst.Roles = append(dst.Roles, src.Roles...)
-	dst.EntityTypes = append(dst.EntityTypes, src.EntityTypes...)
-	dst.Entities = append(dst.Entities, src.Entities...)
-	dst.EntityAssignees = append(dst.EntityAssignees, src.EntityAssignees...)
+	dst.CollectionTypes = append(dst.CollectionTypes, src.CollectionTypes...)
+	dst.Collections = append(dst.Collections, src.Collections...)
+	dst.CollectionAssignees = append(dst.CollectionAssignees, src.CollectionAssignees...)
 	dst.Templates = append(dst.Templates, src.Templates...)
 	dst.Tags = append(dst.Tags, src.Tags...)
-	dst.TasksTags = append(dst.TasksTags, src.TasksTags...)
+	dst.AssetTags = append(dst.AssetTags, src.AssetTags...)
 	dst.Workflows = append(dst.Workflows, src.Workflows...)
 	dst.WorkflowLinks = append(dst.WorkflowLinks, src.WorkflowLinks...)
-	dst.WorkflowEntities = append(dst.WorkflowEntities, src.WorkflowEntities...)
-	dst.WorkflowTasks = append(dst.WorkflowTasks, src.WorkflowTasks...)
+	dst.WorkflowCollections = append(dst.WorkflowCollections, src.WorkflowCollections...)
+	dst.WorkflowAssets = append(dst.WorkflowAssets, src.WorkflowAssets...)
 	dst.Tombs = append(dst.Tombs, src.Tombs...)
 }
 
@@ -196,24 +196,24 @@ func enqueueWriteThrough(projectPath, table, id string, data sync_service.Projec
 // Convenience wrappers that accept pre-read model data from the service method's
 // existing transaction, avoiding any additional DB reads.
 
-// enqueueTaskWriteThrough queues a task for batched push.
-func enqueueTaskWriteThrough(projectPath string, task models.Task) {
-	enqueueWriteThrough(projectPath, "task", task.Id, sync_service.ProjectData{
-		Tasks: []models.Task{task},
+// enqueueAssetWriteThrough queues a asset for batched push.
+func enqueueAssetWriteThrough(projectPath string, asset models.Asset) {
+	enqueueWriteThrough(projectPath, "asset", asset.Id, sync_service.ProjectData{
+		Assets: []models.Asset{asset},
 	})
 }
 
-// enqueueEntityWriteThrough queues an entity for batched push.
-func enqueueEntityWriteThrough(projectPath string, entity models.Entity) {
-	enqueueWriteThrough(projectPath, "entity", entity.Id, sync_service.ProjectData{
-		Entities: []models.Entity{entity},
+// enqueueCollectionWriteThrough queues an collection for batched push.
+func enqueueCollectionWriteThrough(projectPath string, collection models.Collection) {
+	enqueueWriteThrough(projectPath, "collection", collection.Id, sync_service.ProjectData{
+		Collections: []models.Collection{collection},
 	})
 }
 
-// enqueueEntityAssigneeWriteThrough queues an entity assignee for batched push.
-func enqueueEntityAssigneeWriteThrough(projectPath string, assignee models.EntityAssignee) {
-	enqueueWriteThrough(projectPath, "entity_assignee", assignee.Id, sync_service.ProjectData{
-		EntityAssignees: []models.EntityAssignee{assignee},
+// enqueueCollectionAssigneeWriteThrough queues an collection assignee for batched push.
+func enqueueCollectionAssigneeWriteThrough(projectPath string, assignee models.CollectionAssignee) {
+	enqueueWriteThrough(projectPath, "collection_assignee", assignee.Id, sync_service.ProjectData{
+		CollectionAssignees: []models.CollectionAssignee{assignee},
 	})
 }
 
@@ -231,40 +231,40 @@ func enqueueTombWriteThrough(projectPath string, tomb repository.Tomb) {
 	})
 }
 
-// enqueueDependencyWriteThrough queues a task dependency for batched push.
-func enqueueDependencyWriteThrough(projectPath string, dep models.TaskDependency) {
-	enqueueWriteThrough(projectPath, "task_dependency", dep.Id, sync_service.ProjectData{
-		TaskDependencies: []models.TaskDependency{dep},
+// enqueueDependencyWriteThrough queues a asset dependency for batched push.
+func enqueueDependencyWriteThrough(projectPath string, dep models.AssetDependency) {
+	enqueueWriteThrough(projectPath, "asset_dependency", dep.Id, sync_service.ProjectData{
+		AssetDependencies: []models.AssetDependency{dep},
 	})
 }
 
-// enqueueEntityDependencyWriteThrough queues an entity dependency for batched push.
-// Accepts models.TaskDependency since repository.AddEntityDependency returns that type,
-// then converts to models.EntityDependency for the ProjectData payload.
-func enqueueEntityDependencyWriteThrough(projectPath string, dep models.TaskDependency) {
-	entityDep := models.EntityDependency{
+// enqueueCollectionDependencyWriteThrough queues an collection dependency for batched push.
+// Accepts models.AssetDependency since repository.AddCollectionDependency returns that type,
+// then converts to models.CollectionDependency for the ProjectData payload.
+func enqueueCollectionDependencyWriteThrough(projectPath string, dep models.AssetDependency) {
+	collectionDep := models.CollectionDependency{
 		Id:               dep.Id,
 		MTime:            dep.MTime,
-		TaskId:           dep.TaskId,
+		AssetId:           dep.AssetId,
 		DependencyId:     dep.DependencyId,
 		DependencyTypeId: dep.DependencyTypeId,
 		Synced:           dep.Synced,
 	}
-	enqueueWriteThrough(projectPath, "entity_dependency", dep.Id, sync_service.ProjectData{
-		EntityDependencies: []models.EntityDependency{entityDep},
+	enqueueWriteThrough(projectPath, "collection_dependency", dep.Id, sync_service.ProjectData{
+		CollectionDependencies: []models.CollectionDependency{collectionDep},
 	})
 }
 
-// enqueueTaskTypeWriteThrough queues a task type for batched push.
-func enqueueTaskTypeWriteThrough(projectPath string, taskType models.TaskType) {
-	enqueueWriteThrough(projectPath, "task_type", taskType.Id, sync_service.ProjectData{
-		TaskTypes: []models.TaskType{taskType},
+// enqueueAssetTypeWriteThrough queues a asset type for batched push.
+func enqueueAssetTypeWriteThrough(projectPath string, assetType models.AssetType) {
+	enqueueWriteThrough(projectPath, "asset_type", assetType.Id, sync_service.ProjectData{
+		AssetTypes: []models.AssetType{assetType},
 	})
 }
 
-// enqueueEntityTypeWriteThrough queues an entity type for batched push.
-func enqueueEntityTypeWriteThrough(projectPath string, entityType models.EntityType) {
-	enqueueWriteThrough(projectPath, "entity_type", entityType.Id, sync_service.ProjectData{
-		EntityTypes: []models.EntityType{entityType},
+// enqueueCollectionTypeWriteThrough queues an collection type for batched push.
+func enqueueCollectionTypeWriteThrough(projectPath string, collectionType models.CollectionType) {
+	enqueueWriteThrough(projectPath, "collection_type", collectionType.Id, sync_service.ProjectData{
+		CollectionTypes: []models.CollectionType{collectionType},
 	})
 }

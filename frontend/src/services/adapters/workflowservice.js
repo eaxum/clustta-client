@@ -22,21 +22,21 @@ function getProjectName(projectPath) {
 }
 
 /**
- * Compute entity path from parent path and name
+ * Compute collection path from parent path and name
  */
-function computeEntityPath(db, parentId, name) {
+function computeCollectionPath(db, parentId, name) {
   if (!parentId || parentId === '') {
     return '/' + name + '/';
   }
-  const parent = queryOne(db, 'SELECT entity_path FROM entity WHERE id = ?', [parentId]);
-  if (parent && parent.entity_path) {
-    return parent.entity_path + name + '/';
+  const parent = queryOne(db, 'SELECT collection_path FROM collection WHERE id = ?', [parentId]);
+  if (parent && parent.collection_path) {
+    return parent.collection_path + name + '/';
   }
   return '/' + name + '/';
 }
 
 /**
- * Convert database row to workflow object, including links, entities, and tasks
+ * Convert database row to workflow object, including links, collections, and assets
  */
 async function rowToWorkflow(db, row) {
   if (!row) return null;
@@ -44,18 +44,18 @@ async function rowToWorkflow(db, row) {
   // Get workflow links
   const links = query(db, 'SELECT * FROM workflow_link WHERE workflow_id = ?', [row.id]);
   
-  // Get workflow entities
-  const entities = query(db, 'SELECT * FROM workflow_entity WHERE workflow_id = ?', [row.id]);
+  // Get workflow collections
+  const collections = query(db, 'SELECT * FROM workflow_collection WHERE workflow_id = ?', [row.id]);
   
-  // Get workflow tasks
-  const tasks = query(db, 'SELECT * FROM workflow_task WHERE workflow_id = ?', [row.id]);
+  // Get workflow assets
+  const assets = query(db, 'SELECT * FROM workflow_asset WHERE workflow_id = ?', [row.id]);
   
   return {
     ...row,
     synced: !!row.synced,
     links: links || [],
-    entities: entities || [],
-    tasks: tasks || [],
+    collections: collections || [],
+    assets: assets || [],
   };
 }
 
@@ -92,9 +92,9 @@ export const WorkflowService = {
       if (result.links && result.links.length > 0) {
         for (const link of result.links) {
           execute(db, `
-            INSERT INTO workflow_link (id, mtime, workflow_id, source_task_type_id, target_task_type_id, synced)
+            INSERT INTO workflow_link (id, mtime, workflow_id, source_asset_type_id, target_asset_type_id, synced)
             VALUES (?, ?, ?, ?, ?, 1)
-          `, [link.id, Date.now(), result.id, link.source_task_type_id, link.target_task_type_id]);
+          `, [link.id, Date.now(), result.id, link.source_asset_type_id, link.target_asset_type_id]);
         }
       }
       
@@ -123,9 +123,9 @@ export const WorkflowService = {
       if (workflow.links && workflow.links.length > 0) {
         for (const link of workflow.links) {
           execute(db, `
-            INSERT INTO workflow_link (id, mtime, workflow_id, source_task_type_id, target_task_type_id, synced)
+            INSERT INTO workflow_link (id, mtime, workflow_id, source_asset_type_id, target_asset_type_id, synced)
             VALUES (?, ?, ?, ?, ?, 1)
-          `, [link.id, Date.now(), workflow.id, link.source_task_type_id, link.target_task_type_id]);
+          `, [link.id, Date.now(), workflow.id, link.source_asset_type_id, link.target_asset_type_id]);
         }
       }
       
@@ -148,17 +148,17 @@ export const WorkflowService = {
       const db = await getDatabase(projectName);
       execute(db, 'DELETE FROM workflow WHERE id = ?', [workflowId]);
       execute(db, 'DELETE FROM workflow_link WHERE workflow_id = ?', [workflowId]);
-      execute(db, 'DELETE FROM workflow_entity WHERE workflow_id = ?', [workflowId]);
-      execute(db, 'DELETE FROM workflow_task WHERE workflow_id = ?', [workflowId]);
+      execute(db, 'DELETE FROM workflow_collection WHERE workflow_id = ?', [workflowId]);
+      execute(db, 'DELETE FROM workflow_asset WHERE workflow_id = ?', [workflowId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('DeleteWorkflow local update error:', error);
     }
   },
 
-  // Adds a workflow to an entity - creates entities and tasks based on workflow definition
-  // This matches the Go implementation which creates actual entities and tasks
-  AddWorkflow: async (projectPath, workflowId, name, entityTypeId, parentId) => {
+  // Adds a workflow to an collection - creates collections and assets based on workflow definition
+  // This matches the Go implementation which creates actual collections and assets
+  AddWorkflow: async (projectPath, workflowId, name, collectionTypeId, parentId) => {
     const projectName = getProjectName(projectPath);
     const now = Date.now();
     const createdAt = new Date().toISOString();
@@ -173,40 +173,40 @@ export const WorkflowService = {
         throw new Error('Workflow not found');
       }
       
-      // Get workflow entities (child entity templates)
-      const workflowEntities = query(db, 'SELECT * FROM workflow_entity WHERE workflow_id = ?', [workflowId]);
+      // Get workflow collections (child collection templates)
+      const workflowCollections = query(db, 'SELECT * FROM workflow_collection WHERE workflow_id = ?', [workflowId]);
       
-      // Get workflow tasks (task templates)
-      const workflowTasks = query(db, 'SELECT * FROM workflow_task WHERE workflow_id = ?', [workflowId]);
+      // Get workflow assets (asset templates)
+      const workflowAssets = query(db, 'SELECT * FROM workflow_asset WHERE workflow_id = ?', [workflowId]);
       
       // Get workflow links (linked workflows)
       const workflowLinks = query(db, 'SELECT * FROM workflow_link WHERE workflow_id = ?', [workflowId]);
       
-      // 1. Create the parent entity with the workflow name
-      const parentEntityId = crypto.randomUUID();
-      const parentEntityPath = computeEntityPath(db, parentId, name);
+      // 1. Create the parent collection with the workflow name
+      const parentCollectionId = crypto.randomUUID();
+      const parentCollectionPath = computeCollectionPath(db, parentId, name);
       execute(db, `
-        INSERT INTO entity (id, created_at, mtime, name, description, entity_type_id, parent_id, entity_path, is_library, trashed, synced)
+        INSERT INTO collection (id, created_at, mtime, name, description, collection_type_id, parent_id, collection_path, is_library, trashed, synced)
         VALUES (?, ?, ?, ?, '', ?, ?, ?, 0, 0, 0)
-      `, [parentEntityId, createdAt, now, name, entityTypeId, parentId || '', parentEntityPath]);
+      `, [parentCollectionId, createdAt, now, name, collectionTypeId, parentId || '', parentCollectionPath]);
       
-      // 2. Create child entities from workflow entity templates
-      for (const we of workflowEntities) {
-        const childEntityId = crypto.randomUUID();
-        const childEntityPath = computeEntityPath(db, parentEntityId, we.name);
+      // 2. Create child collections from workflow collection templates
+      for (const we of workflowCollections) {
+        const childCollectionId = crypto.randomUUID();
+        const childCollectionPath = computeCollectionPath(db, parentCollectionId, we.name);
         execute(db, `
-          INSERT INTO entity (id, created_at, mtime, name, description, entity_type_id, parent_id, entity_path, is_library, trashed, synced)
+          INSERT INTO collection (id, created_at, mtime, name, description, collection_type_id, parent_id, collection_path, is_library, trashed, synced)
           VALUES (?, ?, ?, ?, '', ?, ?, ?, 0, 0, 0)
-        `, [childEntityId, createdAt, now, we.name, we.entity_type_id, parentEntityId, childEntityPath]);
+        `, [childCollectionId, createdAt, now, we.name, we.collection_type_id, parentCollectionId, childCollectionPath]);
       }
       
       // Get the default status (status with short_name = 'todo')
       const defaultStatus = queryOne(db, "SELECT id FROM status WHERE short_name = 'todo' LIMIT 1");
       const defaultStatusId = defaultStatus?.id || '';
       
-      // 3. Create tasks from workflow task templates
-      for (const wt of workflowTasks) {
-        const taskId = crypto.randomUUID();
+      // 3. Create assets from workflow asset templates
+      for (const wt of workflowAssets) {
+        const assetId = crypto.randomUUID();
         const checkpointId = crypto.randomUUID();
         const groupId = crypto.randomUUID();
         
@@ -225,24 +225,24 @@ export const WorkflowService = {
           }
         }
         
-        // Create the task
+        // Create the asset
         execute(db, `
-          INSERT INTO task (id, mtime, created_at, name, description, extension, is_resource, 
-                           status_id, task_type_id, entity_id, assignee_id, assigner_id, 
+          INSERT INTO asset (id, mtime, created_at, name, description, extension, is_resource, 
+                           status_id, asset_type_id, collection_id, assignee_id, assigner_id, 
                            is_link, pointer, preview_id, trashed, synced)
           VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, ?, '', '', ?, ?, '', 0, 0)
         `, [
-          taskId, now, createdAt, wt.name, extension, wt.is_resource ? 1 : 0,
-          defaultStatusId, wt.task_type_id, parentEntityId, wt.is_link ? 1 : 0, wt.pointer || ''
+          assetId, now, createdAt, wt.name, extension, wt.is_resource ? 1 : 0,
+          defaultStatusId, wt.asset_type_id, parentCollectionId, wt.is_link ? 1 : 0, wt.pointer || ''
         ]);
         
-        // Create initial checkpoint for the task
+        // Create initial checkpoint for the asset
         execute(db, `
-          INSERT INTO task_checkpoint (id, created_at, mtime, task_id, xxhash_checksum, 
+          INSERT INTO asset_checkpoint (id, created_at, mtime, asset_id, xxhash_checksum, 
                                        time_modified, file_size, chunks, comment, 
                                        author_id, group_id, preview_id, trashed, synced)
           VALUES (?, ?, ?, ?, '', ?, 0, ?, 'Asset created', ?, ?, '', 0, 0)
-        `, [checkpointId, createdAt, now, taskId, now, chunks, userId, groupId]);
+        `, [checkpointId, createdAt, now, assetId, now, chunks, userId, groupId]);
       }
       
       // 4. Recursively apply linked workflows
@@ -253,8 +253,8 @@ export const WorkflowService = {
             projectPath, 
             wl.linked_workflow_id, 
             wl.name || workflow.name, 
-            wl.entity_type_id || entityTypeId, 
-            parentEntityId
+            wl.collection_type_id || collectionTypeId, 
+            parentCollectionId
           );
         }
       }

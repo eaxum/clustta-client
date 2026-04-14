@@ -1,49 +1,88 @@
 <template>
   <div class="settings-component-root">
+    <div class="settings-component-scroll">
     <div class="settings-component-container">
 
-      <div class="settings-list">
-
-        <div class="settings-section">
-          <div class="settings-item" v-stop-propagation>
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('stall')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.studioName') }}</div>
-              <div class="settings-body">{{ studioInfo.name }}</div>
-            </div>
+      <!-- Studio Info -->
+      <ProfileCard :title="$t('settings.studioInfo')" :showEditButton="!isCloudHosted" @toggleEdit="launchUpdateStudioModal()">
+        <div class="header-layout">
+          <div class="studio-avatar">
+            <img class="studio-avatar-icon" :src="getAppIcon('stall')">
           </div>
 
-
-          <div class="settings-item"  @click="launchUpdateStudioModal()" v-stop-propagation>
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('website')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.ipAddressUrl') }}</div>
-              <div class="settings-body">{{ studioInfo.url }}</div>
+          <div class="header-info">
+            <div class="profile-name-row">
+              <div class="profile-name">{{ studioInfo?.name }}</div>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
-          </div>
 
-          <div v-if="studioInfo?.alt_url" class="settings-item"  @click="launchUpdateStudioModal()" v-stop-propagation>
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('website')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.alternateUrl') }}</div>
-              <div class="settings-body">{{ studioInfo?.alt_url }}</div>
+            <div v-if="studioEntitlements || studioInfo?.hosting_mode" class="meta-info">
+              <span v-if="studioEntitlements" class="meta-badge">{{ planLabel }}</span>
+              <span v-if="studioEntitlements && studioInfo?.hosting_mode" class="meta-dot">•</span>
+              <span v-if="studioInfo?.hosting_mode" class="meta-badge">{{ studioInfo.hosting_mode }}</span>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
-          </div>
 
-          <div class="settings-item" v-stop-propagation>
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('clustta')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.clusttaServerVersion') }}</div>
-              <div class="settings-body">{{ serverVersion || $t('common.loading') + '...' }}</div>
+            <div class="studio-details">
+              <div v-if="studioInfo?.id" class="info-item" @click="copyStudioId">
+                <span>{{ studioInfo.id }}</span>
+                <img class="info-icon small-icons" :src="getAppIcon(idCopied ? 'check-circle' : 'copy')">
+              </div>
+
+              <div v-if="!isCloudHosted" class="info-item">
+                <img class="info-icon small-icons" :src="getAppIcon('website')">
+                <span>{{ studioInfo?.url }}</span>
+              </div>
+
+              <div v-if="!isCloudHosted" class="info-item">
+                <img class="info-icon small-icons" :src="getAppIcon('clustta')">
+                <span>{{ serverVersion || $t('common.loading') + '...' }}</span>
+              </div>
             </div>
           </div>
-
         </div>
+      </ProfileCard>
 
+      <!-- Metrics Row -->
+      <div v-if="studioEntitlements" class="metrics-row">
+        <MetricCard :title="$t('settings.collaborators')" :value="collaboratorsValue" :subtitle="collaboratorsLabel" :icon="getAppIcon('two-persons')" />
+
+        <MetricCard :title="$t('settings.remoteProjects')" :value="projectsValue" :subtitle="projectsLabel" :icon="getAppIcon('briefcase')" />
+
+        <MetricCard :title="$t('settings.storageUsed')" :value="storageValue" :subtitle="storageLabel" :icon="getAppIcon('floppy-disk')" :percent="storagePercent" :warning="storagePercent >= 90" />
+
+        <MetricCard v-if="studioEntitlements.limits?.ai_credits_monthly > 0" :title="$t('settings.aiCredits')" :value="aiCreditsValue" :subtitle="aiCreditsLabel" :icon="getAppIcon('brain')" />
       </div>
 
+      <!-- Administration Card -->
+      <ProfileCard :title="$t('settings.administration')">
+        <div class="admin-list">
+          <div v-if="isCloudHosted" class="settings-item" @click="openBillingPortal">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('credit-card')"></div>
+            <div class="settings-content">
+              <div class="settings-header">{{ $t('settings.billing') }}</div>
+              <div class="settings-body">{{ $t('settings.manageBilling') }}</div>
+            </div>
+            <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
+          </div>
+
+          <div class="settings-item disabled">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('file')"></div>
+            <div class="settings-content">
+              <div class="settings-header">{{ $t('settings.auditLogs') }}</div>
+              <div class="settings-body">{{ $t('settings.comingSoon') }}</div>
+            </div>
+          </div>
+        </div>
+      </ProfileCard>
+
+      <!-- Danger Zone -->
+      <ProfileCard :title="$t('stages.dangerZone')">
+        <div class="danger-zone">
+          <p class="danger-message">{{ $t('settings.deleteStudioWarning') }}</p>
+          <ActionButton :iconAfter="true" :icon="getAppIcon('trash')" :label="$t('settings.deleteStudio')" @click="prepDeleteStudio()" :color="'crimson'" :useBackground="true" />
+        </div>
+      </ProfileCard>
+
+    </div>
     </div>
   </div>
 </template>
@@ -52,33 +91,139 @@
 // imports
 import { ref, computed, onMounted } from "vue";
 import { useI18n } from 'vue-i18n';
-import { SettingsService, StudioService } from "@/services";
+import { StudioService } from "@/services";
+import { Browser } from "@wailsio/runtime";
 
 // services
 import utils from '@/services/utils';
 
-// stores/state imports
-import { useProjectStore } from '@/stores/projects';
-import { useTrayStates } from '@/stores/TrayStates';
-import { useIconStore } from '@/stores/icons';
-import { useDesktopModalStore } from '@/stores/desktopModals';
+// components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import MetricCard from '@/instances/desktop/components/MetricCard.vue';
+import ProfileCard from '@/instances/desktop/components/ProfileCard.vue';
 
-// refs
-const trayStates = useTrayStates();
-const projectStore = useProjectStore();
+// stores
+const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
+const settings = useSettingsStore();
+const studioStore = useStudioStore();
 const { t } = useI18n();
 
-// vars
-const autoStart = ref(trayStates.autoStart);
-const clusttaVersion = ref("");
+// stores/state imports
+import { useProjectStore } from '@/stores/projects';
+import { useIconStore } from '@/stores/icons';
+import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useEntitlementStore } from '@/stores/entitlements';
+import { useNotificationStore } from '@/stores/notifications';
+import { useSettingsStore } from '@/stores/settings';
+import { useStudioStore } from '@/stores/studio';
+
+// refs
+const idCopied = ref(false);
 const serverVersion = ref("");
 
-const studioInfo = computed(() => {
-  return projectStore.selectedStudio
-})
+// computed
 
+// Returns the AI credits usage count.
+const aiCreditsValue = computed(() => {
+  if (!studioEntitlements.value) return '0';
+  return String(studioEntitlements.value.usage?.ai_credits_used || 0);
+});
+
+// Returns a formatted AI credits usage label.
+const aiCreditsLabel = computed(() => {
+  if (!studioEntitlements.value) return '';
+  const limit = studioEntitlements.value.limits?.ai_credits_monthly || 0;
+  return t('settings.aiCreditsOf', { used: aiCreditsValue.value, limit });
+});
+
+// Returns the collaborators count.
+const collaboratorsValue = computed(() => {
+  return String(studioStore.studioUsers?.length || 0);
+});
+
+// Returns a formatted collaborators usage label.
+const collaboratorsLabel = computed(() => {
+  const limit = studioEntitlements.value?.limits?.max_collaborators;
+  if (!limit || limit <= 0) return '';
+  return t('settings.collaboratorsOf', { used: collaboratorsValue.value, limit });
+});
+
+// Returns whether the studio is cloud-hosted.
+const isCloudHosted = computed(() => {
+  return studioInfo.value?.hosting_mode === 'cloud';
+});
+
+// Returns the project count.
+const projectsValue = computed(() => {
+  if (!studioEntitlements.value) return '0';
+  return String(studioEntitlements.value.usage?.project_count || 0);
+});
+
+// Returns a formatted projects usage label.
+const projectsLabel = computed(() => {
+  const limit = studioEntitlements.value?.limits?.max_remote_projects;
+  if (!limit || limit <= 0) return '';
+  return t('settings.projectsOf', { used: projectsValue.value, limit });
+});
+
+// Returns a formatted plan label from a snake_case plan name.
+const planLabel = computed(() => {
+  if (!studioEntitlements.value) return '';
+  const plan = studioEntitlements.value.plan || 'free';
+  return plan.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+});
+
+// Returns the storage usage as a percentage (0–100).
+const storagePercent = computed(() => {
+  if (!studioEntitlements.value) return -1;
+  const limit = studioEntitlements.value.limits?.storage_bytes;
+  if (!limit || limit <= 0) return -1;
+  const used = studioEntitlements.value.usage?.storage_bytes || 0;
+  return Math.min((used / limit) * 100, 100);
+});
+
+// Returns the formatted storage usage value.
+const storageValue = computed(() => {
+  if (!studioEntitlements.value) return '0 B';
+  return utils.formatBytes(studioEntitlements.value.usage?.storage_bytes || 0, 2);
+});
+
+// Returns a formatted storage usage label.
+const storageLabel = computed(() => {
+  if (!studioEntitlements.value) return '';
+  const limit = studioEntitlements.value.limits?.storage_bytes;
+  if (!limit || limit <= 0) return '';
+  return t('settings.storageOf', { used: storageValue.value, limit: utils.formatBytes(limit, 0) });
+});
+
+// Returns the cached entitlement bundle for the selected studio.
+const studioEntitlements = computed(() => {
+  const id = studioInfo.value?.id;
+  if (!id) return null;
+  return entitlementStore.studioEntitlements[id] || null;
+});
+
+// Returns the selected studio metadata.
+const studioInfo = computed(() => {
+  return projectStore.selectedStudio;
+});
+
+// methods
+
+// Copies the studio ID to the clipboard.
+const copyStudioId = async () => {
+  if (!studioInfo.value?.id) return;
+  await navigator.clipboard.writeText(studioInfo.value.id);
+  notificationStore.addNotification(t('common.copied'), t('settings.studioIdCopied'), 'success');
+  idCopied.value = true;
+  setTimeout(() => { idCopied.value = false; }, 2000);
+};
+
+// Fetches the studio server version.
 const fetchServerVersion = async () => {
   try {
     const studioUrl = studioInfo.value?.url;
@@ -93,40 +238,71 @@ const fetchServerVersion = async () => {
   }
 };
 
+// Returns the resolved icon path for an icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Opens the update studio modal.
 const launchUpdateStudioModal = () => {
   modals.setModalVisibility('updateStudioModal', true);
 };
 
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
+// Opens the Stripe billing portal in the system browser.
+const openBillingPortal = async () => {
+  const portalUrl = await entitlementStore.openBillingPortal();
+  if (portalUrl) {
+    Browser.OpenURL(portalUrl);
+  }
 };
 
-onMounted(async () => {
-  autoStart.value = trayStates.autoStart;
-  clusttaVersion.value = await utils.getRawClusttaVersion();
-  await fetchServerVersion();
-});
+// Prepares the delete studio confirmation.
+const prepDeleteStudio = () => {
+  modals.setModalVisibility('deleteStudioModal', true);
+};
 
+// lifecycle hooks
+onMounted(async () => {
+  if (!isCloudHosted.value) {
+    await fetchServerVersion();
+  }
+  const studioId = studioInfo.value?.id;
+  if (studioId) {
+    await entitlementStore.fetchStudioEntitlements(studioId);
+  }
+});
 </script>
 
 
 <style scoped>
 @import "@/assets/desktop.css";
 
-.input-short {
-  flex: 1;
-  width: 100%;
-}
-
 .settings-component-root {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+  display: block;
+  overflow-y: scroll;
+  border-radius: var(--very-large-radius);
   box-sizing: border-box;
+}
+
+.settings-component-root::-webkit-scrollbar {
+  width: 4px;
+}
+
+.settings-component-root::-webkit-scrollbar-thumb {
+  border-radius: var(--small-radius);
+  background-color: var(--light-steel);
+}
+
+.settings-component-root::-webkit-scrollbar-track {
+  border-radius: var(--small-radius);
+}
+
+.settings-component-scroll {
+  overflow: hidden;
+  display: flex;
   align-items: center;
   justify-content: center;
 }
@@ -136,66 +312,144 @@ onMounted(async () => {
   flex-direction: column;
   box-sizing: border-box;
   height: 100%;
-  overflow: hidden;
-  box-sizing: border-box;
-  width: 96%;
-  gap: .5rem;
-  align-items: center;
-  color: var(--white);
-  justify-content: space-between;
-  border-radius: var(--large-radius);
-  padding: 1rem;
-}
-
-.list-item {
-
-  border-radius: 8px;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: flex;
-  gap: 10px;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 5px 5px;
+  gap: 1.5rem;
   width: 100%;
-  color: #fff;
-  overflow: hidden;
-  text-wrap: nowrap;
+  padding-right: .2rem;
+  border-radius: var(--large-radius);
 }
 
-.list-item:hover {
-  background-color: rgb(121, 121, 121);
-  background-color: #ffffff15;
+/* Studio Info Header — matches UserProfile header-layout */
+.header-layout {
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
+  align-items: flex-start;
 }
 
-.list-item:active {
-  background-color: rgb(70, 70, 70);
-  background-color: #00000013;
+.studio-avatar {
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.studio-avatar-icon {
+  width: 44px;
+  height: 44px;
+  opacity: 0.9;
+}
+
+.header-info {
+  flex: 1;
+  width: 100%;
+}
+
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-name {
+  font-size: 2rem;
+  font-weight: 500;
+  margin: 0 0 0.25rem 0;
+  color: var(--white);
+}
+
+.meta-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.meta-badge {
+  font-size: 0.875rem;
+  color: var(--silver);
+  text-transform: capitalize;
+}
+
+.meta-dot {
+  font-size: 0.875rem;
+  color: var(--silver);
+  opacity: 0.6;
+}
+
+.studio-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--silver);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.info-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+/* Metrics Row */
+.metrics-row {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Administration */
+.admin-list {
+  display: flex;
+  flex-direction: column;
+  margin: -1.5rem;
 }
 
 .settings-item {
   color: var(--white);
   box-sizing: border-box;
   overflow: hidden;
-  min-height: 40px;
+  min-height: 50px;
   display: flex;
   padding: .5rem 1rem;
   align-items: center;
   justify-content: space-between;
   width: 100%;
   height: max-content;
-  border-bottom: 1px solid rgba(192,192,192,0.5); 
-  border-bottom: 1px solid color-mix(in srgb, var(--silver) 30%, transparent); 
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid var(--light-steel);
+}
+
+.settings-item:last-child {
+  border-bottom: none;
 }
 
 .settings-item:hover {
-  background-color: rgb(121, 121, 121);
   background-color: #ffffff15;
 }
 
 .settings-item:active {
-  background-color: rgb(70, 70, 70);
   background-color: #00000013;
+}
+
+.settings-item.disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.settings-item.disabled:hover {
+  background-color: transparent;
 }
 
 .settings-icon {
@@ -222,6 +476,8 @@ onMounted(async () => {
 
 .settings-header {
   padding: .1rem;
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .settings-body {
@@ -235,62 +491,28 @@ onMounted(async () => {
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   overflow: hidden;
   height: 100%;
   width: max-content;
 }
 
-.fixed-width {
-  min-width: 200px;
-  padding: .1rem;
-  box-sizing: border-box;
-}
-
-.tray-page-content {
-  position: relative;
+/* Danger Zone */
+.danger-zone {
+  display: flex;
   flex-direction: column;
-  box-sizing: border-box;
-  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: rgba(220, 38, 38, 0.1);
+  border-radius: var(--normal-radius);
+  border: 1px solid rgba(220, 38, 38, 0.3);
 }
 
-.settings-list {
-  position: relative;
-  width: 96%;
-  height: 100%;
-  overflow-y: scroll;
-  box-sizing: border-box;
-  flex-direction: column;
-  gap: 2rem;
+.danger-message {
+  color: var(--white);
+  margin: 0;
+  font-size: 0.875rem;
 }
 
-.settings-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.settings-list::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
-}
-
-.settings-list::-webkit-scrollbar-track {
-  border-radius: 10px;
-}
-
-.settings-section {
-  box-sizing: border-box;
-  position: relative;
-  background-color: var(--light-steel);
-  overflow: hidden;
-  height: max-content;
-  border-radius: 8px;
-  flex-direction: column;
-  margin-bottom: 2rem;
-}
-
-.list-item {
-  height: 50px;
-  border-bottom: var(--transparent-line);
-}
 </style>
 

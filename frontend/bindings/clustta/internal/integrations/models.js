@@ -324,7 +324,7 @@ export class MissingType {
         }
         if (!("type_category" in $$source)) {
             /**
-             * "entity" or "task"
+             * "collection" or "asset"
              * @member
              * @type {string}
              */
@@ -388,7 +388,7 @@ export class PreviewItem {
         }
         if (!("item_type" in $$source)) {
             /**
-             * "entity", "task", "virtual"
+             * "collection", "asset", "virtual"
              * @member
              * @type {string}
              */
@@ -428,7 +428,7 @@ export class PreviewItem {
         }
         if (!("external_type_id" in $$source)) {
             /**
-             * External type ID (for tasks)
+             * External type ID (for assets)
              * @member
              * @type {string}
              */
@@ -444,7 +444,7 @@ export class PreviewItem {
         }
         if (!("type_name" in $$source)) {
             /**
-             * Clustta type name (entity_type or task_type)
+             * Clustta type name (collection_type or asset_type)
              * @member
              * @type {string}
              */
@@ -492,7 +492,7 @@ export class PreviewItem {
         }
         if (!("template_id" in $$source)) {
             /**
-             * Clustta template ID for this task type
+             * Clustta template ID for this asset type
              * @member
              * @type {string}
              */
@@ -560,7 +560,7 @@ export class SyncAsset {
         }
         if (!("external_type" in $$source)) {
             /**
-             * Task type name (e.g., "Animation")
+             * Asset type name (e.g., "Animation")
              * @member
              * @type {string}
              */
@@ -568,7 +568,7 @@ export class SyncAsset {
         }
         if (!("external_type_id" in $$source)) {
             /**
-             * External task type ID
+             * External asset type ID
              * @member
              * @type {string}
              */
@@ -612,20 +612,20 @@ export class SyncAsset {
              */
             this["asset_id"] = "";
         }
-        if (!("task_type_name" in $$source)) {
+        if (!("asset_type_name" in $$source)) {
             /**
-             * Clustta task type to use
+             * Clustta asset type to use
              * @member
              * @type {string}
              */
-            this["task_type_name"] = "";
+            this["asset_type_name"] = "";
         }
-        if (!("task_type_icon" in $$source)) {
+        if (!("asset_type_icon" in $$source)) {
             /**
              * @member
              * @type {string}
              */
-            this["task_type_icon"] = "";
+            this["asset_type_icon"] = "";
         }
         if (!("selected" in $$source)) {
             /**
@@ -636,7 +636,7 @@ export class SyncAsset {
         }
         if (!("template_id" in $$source)) {
             /**
-             * Clustta template ID for this task type
+             * Clustta template ID for this asset type
              * @member
              * @type {string}
              */
@@ -750,21 +750,21 @@ export class SyncCollection {
              */
             this["collection_id"] = "";
         }
-        if (!("entity_type_name" in $$source)) {
+        if (!("collection_type_name" in $$source)) {
             /**
-             * Clustta entity type to use
+             * Clustta collection type to use
              * @member
              * @type {string}
              */
-            this["entity_type_name"] = "";
+            this["collection_type_name"] = "";
         }
-        if (!("entity_type_icon" in $$source)) {
+        if (!("collection_type_icon" in $$source)) {
             /**
-             * Icon for the entity type
+             * Icon for the collection type
              * @member
              * @type {string}
              */
-            this["entity_type_icon"] = "";
+            this["collection_type_icon"] = "";
         }
         if (!("selected" in $$source)) {
             /**
@@ -798,29 +798,29 @@ export class SyncOptions {
      * @param {Partial<SyncOptions>} [$$source = {}] - The source object to create the SyncOptions.
      */
     constructor($$source = {}) {
-        if (!("entity_type_mappings" in $$source)) {
+        if (!("collection_type_mappings" in $$source)) {
             /**
-             * External entity type → Clustta collection type
+             * External collection type → Clustta collection type
              * @member
              * @type {{ [_: string]: TypeMapping }}
              */
-            this["entity_type_mappings"] = {};
+            this["collection_type_mappings"] = {};
         }
-        if (!("task_type_mappings" in $$source)) {
+        if (!("asset_type_mappings" in $$source)) {
             /**
-             * External task type → Clustta asset type
+             * External asset type → Clustta asset type
              * @member
              * @type {{ [_: string]: TypeMapping }}
              */
-            this["task_type_mappings"] = {};
+            this["asset_type_mappings"] = {};
         }
-        if (!("task_type_templates" in $$source)) {
+        if (!("asset_type_templates" in $$source)) {
             /**
-             * External task type ID → Clustta template ID
+             * External asset type ID → Clustta template ID
              * @member
              * @type {{ [_: string]: string }}
              */
-            this["task_type_templates"] = {};
+            this["asset_type_templates"] = {};
         }
         if (!("directory_structure" in $$source)) {
             /**
@@ -852,14 +852,14 @@ export class SyncOptions {
         const $$createField2_0 = $$createType4;
         const $$createField3_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("entity_type_mappings" in $$parsedSource) {
-            $$parsedSource["entity_type_mappings"] = $$createField0_0($$parsedSource["entity_type_mappings"]);
+        if ("collection_type_mappings" in $$parsedSource) {
+            $$parsedSource["collection_type_mappings"] = $$createField0_0($$parsedSource["collection_type_mappings"]);
         }
-        if ("task_type_mappings" in $$parsedSource) {
-            $$parsedSource["task_type_mappings"] = $$createField1_0($$parsedSource["task_type_mappings"]);
+        if ("asset_type_mappings" in $$parsedSource) {
+            $$parsedSource["asset_type_mappings"] = $$createField1_0($$parsedSource["asset_type_mappings"]);
         }
-        if ("task_type_templates" in $$parsedSource) {
-            $$parsedSource["task_type_templates"] = $$createField2_0($$parsedSource["task_type_templates"]);
+        if ("asset_type_templates" in $$parsedSource) {
+            $$parsedSource["asset_type_templates"] = $$createField2_0($$parsedSource["asset_type_templates"]);
         }
         if ("directory_structure" in $$parsedSource) {
             $$parsedSource["directory_structure"] = $$createField3_0($$parsedSource["directory_structure"]);
@@ -1050,7 +1050,7 @@ export class TypeMapping {
         }
         if (!("clustta_type_id" in $$source)) {
             /**
-             * Clustta entity_type or task_type ID
+             * Clustta collection_type or asset_type ID
              * @member
              * @type {string}
              */

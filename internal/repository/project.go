@@ -14,12 +14,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"clustta/internal/auth_service"
 	"clustta/internal/chunk_service"
 	"clustta/internal/constants"
 	"clustta/internal/error_service"
+	"clustta/internal/repository/migrations"
 	"clustta/internal/repository/models"
 	"clustta/internal/settings"
 	"clustta/internal/utils"
@@ -56,6 +56,8 @@ type ProjectInfo struct {
 	IsTracked        bool     `json:"is_tracked"`
 	IsOffline        bool     `json:"is_offline"`
 	IgnoreList       []string `json:"ignore_list"`
+	Role             string   `json:"role,omitempty"`
+	OwnerName        string   `json:"owner_name,omitempty"`
 }
 
 type ProjectConfig struct {
@@ -64,7 +66,7 @@ type ProjectConfig struct {
 	Mtime int         `json:"mtime" db:"mtime"`
 }
 
-func InitDB(projectPath string, studioName, workingDir string, user auth_service.User, walMode bool) error {
+func InitDB(projectPath string, studioName, workingDir, projectId string, user auth_service.User, walMode bool) error {
 	db, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -125,8 +127,17 @@ func InitDB(projectPath string, studioName, workingDir string, user auth_service
 	defer tx.Rollback()
 
 	//add project_id to config
-	project_id := uuid.New().String()
-	_, err = tx.Exec("INSERT INTO config (name, value, mtime) VALUES ('project_id', ?, ?)", project_id, utils.GetEpochTime())
+	if projectId == "" {
+		projectId = uuid.New().String()
+	}
+	_, err = tx.Exec("INSERT INTO config (name, value, mtime) VALUES ('project_id', ?, ?)", projectId, utils.GetEpochTime())
+	if err != nil {
+		return err
+	}
+
+	// Store project display name from filename
+	projectName := strings.TrimSuffix(filepath.Base(projectPath), filepath.Ext(projectPath))
+	err = utils.SetProjectName(tx, projectName)
 	if err != nil {
 		return err
 	}
@@ -165,7 +176,7 @@ func InitDB(projectPath string, studioName, workingDir string, user auth_service
 	if err != nil {
 		return err
 	}
-	err = utils.SetProjectVersion(tx, 1.4)
+	err = utils.SetProjectVersion(tx, migrations.LatestVersion)
 	if err != nil {
 		return err
 	}
@@ -218,15 +229,15 @@ func initData(tx *sqlx.Tx) error {
 	}
 
 	adminRoleAttributes := models.RoleAttributes{
-		ViewEntity:   true,
-		CreateEntity: true,
-		UpdateEntity: true,
-		DeleteEntity: true,
+		ViewCollection:   true,
+		CreateCollection: true,
+		UpdateCollection: true,
+		DeleteCollection: true,
 
-		ViewTask:   true,
-		CreateTask: true,
-		UpdateTask: true,
-		DeleteTask: true,
+		ViewAsset:   true,
+		CreateAsset: true,
+		UpdateAsset: true,
+		DeleteAsset: true,
 
 		ViewTemplate:   true,
 		CreateTemplate: true,
@@ -239,31 +250,32 @@ func initData(tx *sqlx.Tx) error {
 
 		PullChunk: true,
 
-		AssignTask:   true,
-		UnassignTask: true,
+		AssignAsset:   true,
+		UnassignAsset: true,
 
 		AddUser:    true,
 		RemoveUser: true,
 		ChangeRole: true,
 
-		ChangeStatus:  true,
-		SetDoneTask:   true,
-		SetRetakeTask: true,
+		ChangeStatus:   true,
+		SetDoneAsset:   true,
+		SetRetakeAsset: true,
 
-		ViewDoneTask: true,
+		ViewDoneAsset: true,
 
 		ManageDependencies: true,
+		ManageShareLinks:   true,
 	}
 	productionManagerRoleAttributes := models.RoleAttributes{
-		ViewEntity:   true,
-		CreateEntity: true,
-		UpdateEntity: true,
-		DeleteEntity: false,
+		ViewCollection:   true,
+		CreateCollection: true,
+		UpdateCollection: true,
+		DeleteCollection: false,
 
-		ViewTask:   true,
-		CreateTask: true,
-		UpdateTask: true,
-		DeleteTask: false,
+		ViewAsset:   true,
+		CreateAsset: true,
+		UpdateAsset: true,
+		DeleteAsset: false,
 
 		ViewTemplate:   true,
 		CreateTemplate: true,
@@ -276,31 +288,32 @@ func initData(tx *sqlx.Tx) error {
 
 		PullChunk: false,
 
-		AssignTask:   true,
-		UnassignTask: true,
+		AssignAsset:   true,
+		UnassignAsset: true,
 
 		AddUser:    false,
 		RemoveUser: false,
 		ChangeRole: false,
 
-		ChangeStatus:  true,
-		SetDoneTask:   true,
-		SetRetakeTask: true,
+		ChangeStatus:   true,
+		SetDoneAsset:   true,
+		SetRetakeAsset: true,
 
-		ViewDoneTask: true,
+		ViewDoneAsset: true,
 
 		ManageDependencies: true,
+		ManageShareLinks:   false,
 	}
 	supervisorRoleAttributes := models.RoleAttributes{
-		ViewEntity:   true,
-		CreateEntity: false,
-		UpdateEntity: false,
-		DeleteEntity: false,
+		ViewCollection:   true,
+		CreateCollection: false,
+		UpdateCollection: false,
+		DeleteCollection: false,
 
-		ViewTask:   true,
-		CreateTask: false,
-		UpdateTask: false,
-		DeleteTask: false,
+		ViewAsset:   true,
+		CreateAsset: false,
+		UpdateAsset: false,
+		DeleteAsset: false,
 
 		ViewTemplate:   false,
 		CreateTemplate: false,
@@ -313,31 +326,32 @@ func initData(tx *sqlx.Tx) error {
 
 		PullChunk: true,
 
-		AssignTask:   true,
-		UnassignTask: true,
+		AssignAsset:   true,
+		UnassignAsset: true,
 
 		AddUser:    false,
 		RemoveUser: false,
 		ChangeRole: false,
 
-		ChangeStatus:  true,
-		SetDoneTask:   true,
-		SetRetakeTask: true,
+		ChangeStatus:   true,
+		SetDoneAsset:   true,
+		SetRetakeAsset: true,
 
-		ViewDoneTask: true,
+		ViewDoneAsset: true,
 
 		ManageDependencies: false,
+		ManageShareLinks:   true,
 	}
 	assistantSupervisorRoleAttributes := models.RoleAttributes{
-		ViewEntity:   false,
-		CreateEntity: false,
-		UpdateEntity: false,
-		DeleteEntity: false,
+		ViewCollection:   false,
+		CreateCollection: false,
+		UpdateCollection: false,
+		DeleteCollection: false,
 
-		ViewTask:   true,
-		CreateTask: false,
-		UpdateTask: false,
-		DeleteTask: false,
+		ViewAsset:   true,
+		CreateAsset: false,
+		UpdateAsset: false,
+		DeleteAsset: false,
 
 		ViewTemplate:   false,
 		CreateTemplate: false,
@@ -350,31 +364,32 @@ func initData(tx *sqlx.Tx) error {
 
 		PullChunk: true,
 
-		AssignTask:   false,
-		UnassignTask: false,
+		AssignAsset:   false,
+		UnassignAsset: false,
 
 		AddUser:    false,
 		RemoveUser: false,
 		ChangeRole: false,
 
-		ChangeStatus:  true,
-		SetDoneTask:   true,
-		SetRetakeTask: true,
+		ChangeStatus:   true,
+		SetDoneAsset:   true,
+		SetRetakeAsset: true,
 
-		ViewDoneTask: true,
+		ViewDoneAsset: true,
 
 		ManageDependencies: false,
+		ManageShareLinks:   false,
 	}
 	artistRoleAttributes := models.RoleAttributes{
-		ViewEntity:   false,
-		CreateEntity: false,
-		UpdateEntity: false,
-		DeleteEntity: false,
+		ViewCollection:   false,
+		CreateCollection: false,
+		UpdateCollection: false,
+		DeleteCollection: false,
 
-		ViewTask:   false,
-		CreateTask: false,
-		UpdateTask: false,
-		DeleteTask: false,
+		ViewAsset:   false,
+		CreateAsset: false,
+		UpdateAsset: false,
+		DeleteAsset: false,
 
 		ViewTemplate:   false,
 		CreateTemplate: false,
@@ -387,31 +402,32 @@ func initData(tx *sqlx.Tx) error {
 
 		PullChunk: true,
 
-		AssignTask:   false,
-		UnassignTask: false,
+		AssignAsset:   false,
+		UnassignAsset: false,
 
 		AddUser:    false,
 		RemoveUser: false,
 		ChangeRole: false,
 
-		ChangeStatus:  true,
-		SetDoneTask:   false,
-		SetRetakeTask: false,
+		ChangeStatus:   true,
+		SetDoneAsset:   false,
+		SetRetakeAsset: false,
 
-		ViewDoneTask: false,
+		ViewDoneAsset: false,
 
 		ManageDependencies: false,
+		ManageShareLinks:   false,
 	}
 	vendorRoleAttributes := models.RoleAttributes{
-		ViewEntity:   false,
-		CreateEntity: false,
-		UpdateEntity: false,
-		DeleteEntity: false,
+		ViewCollection:   false,
+		CreateCollection: false,
+		UpdateCollection: false,
+		DeleteCollection: false,
 
-		ViewTask:   false,
-		CreateTask: false,
-		UpdateTask: false,
-		DeleteTask: false,
+		ViewAsset:   false,
+		CreateAsset: false,
+		UpdateAsset: false,
+		DeleteAsset: false,
 
 		ViewTemplate:   false,
 		CreateTemplate: false,
@@ -424,20 +440,21 @@ func initData(tx *sqlx.Tx) error {
 
 		PullChunk: true,
 
-		AssignTask:   false,
-		UnassignTask: false,
+		AssignAsset:   false,
+		UnassignAsset: false,
 
 		AddUser:    false,
 		RemoveUser: false,
 		ChangeRole: false,
 
-		ChangeStatus:  true,
-		SetDoneTask:   false,
-		SetRetakeTask: false,
+		ChangeStatus:   true,
+		SetDoneAsset:   false,
+		SetRetakeAsset: false,
 
-		ViewDoneTask: false,
+		ViewDoneAsset: false,
 
 		ManageDependencies: false,
+		ManageShareLinks:   false,
 	}
 	_, err = GetOrCreateRole(tx, "admin", adminRoleAttributes)
 	if err != nil {
@@ -464,17 +481,17 @@ func initData(tx *sqlx.Tx) error {
 		return err
 	}
 
-	_, err = GetOrCreateTaskType(tx, "generic", "generic")
+	_, err = GetOrCreateAssetType(tx, "generic", "generic")
 	if err != nil {
 		return err
 	}
 
-	_, err = GetOrCreateTaskType(tx, "weblink", "website")
+	_, err = GetOrCreateAssetType(tx, "weblink", "website")
 	if err != nil {
 		return err
 	}
 
-	_, err = GetOrCreateEntityType(tx, "generic", "folder")
+	_, err = GetOrCreateCollectionType(tx, "generic", "folder")
 	if err != nil {
 		return err
 	}
@@ -482,102 +499,102 @@ func initData(tx *sqlx.Tx) error {
 }
 
 func ClearTrash(tx *sqlx.Tx) error {
-	deleteTaskAndEntities := `
-		-- Delete task_checkpoint records
-		WITH RECURSIVE trashed_entities AS (
-			SELECT id FROM entity WHERE trashed = 1
+	deleteAssetAndCollections := `
+		-- Delete asset_checkpoint records
+		WITH RECURSIVE trashed_collections AS (
+			SELECT id FROM collection WHERE trashed = 1
 			UNION
-			SELECT e.id FROM entity e
-			INNER JOIN trashed_entities te ON e.parent_id = te.id
+			SELECT e.id FROM collection e
+			INNER JOIN trashed_collections te ON e.parent_id = te.id
 		)
-		DELETE FROM task_checkpoint 
+		DELETE FROM asset_checkpoint 
 		WHERE trashed = 1 
-		OR task_id IN (
-			SELECT id FROM task 
+		OR asset_id IN (
+			SELECT id FROM asset 
 			WHERE trashed = 1 
-			OR entity_id IN (SELECT id FROM trashed_entities)
+			OR collection_id IN (SELECT id FROM trashed_collections)
 		);
 
-		-- Delete task dependencies
-		WITH RECURSIVE trashed_entities AS (
-			SELECT id FROM entity WHERE trashed = 1
+		-- Delete asset dependencies
+		WITH RECURSIVE trashed_collections AS (
+			SELECT id FROM collection WHERE trashed = 1
 			UNION
-			SELECT e.id FROM entity e
-			INNER JOIN trashed_entities te ON e.parent_id = te.id
+			SELECT e.id FROM collection e
+			INNER JOIN trashed_collections te ON e.parent_id = te.id
 		)
-		DELETE FROM task_dependency 
-		WHERE task_id IN (
-			SELECT id FROM task 
+		DELETE FROM asset_dependency 
+		WHERE asset_id IN (
+			SELECT id FROM asset 
 			WHERE trashed = 1 
-			OR entity_id IN (SELECT id FROM trashed_entities)
+			OR collection_id IN (SELECT id FROM trashed_collections)
 		)
 		OR dependency_id IN (
-			SELECT id FROM task 
+			SELECT id FROM asset 
 			WHERE trashed = 1 
-			OR entity_id IN (SELECT id FROM trashed_entities)
+			OR collection_id IN (SELECT id FROM trashed_collections)
 		);
 
-		-- Delete entity dependencies
-		WITH RECURSIVE trashed_entities AS (
-			SELECT id FROM entity WHERE trashed = 1
+		-- Delete collection dependencies
+		WITH RECURSIVE trashed_collections AS (
+			SELECT id FROM collection WHERE trashed = 1
 			UNION
-			SELECT e.id FROM entity e
-			INNER JOIN trashed_entities te ON e.parent_id = te.id
+			SELECT e.id FROM collection e
+			INNER JOIN trashed_collections te ON e.parent_id = te.id
 		)
-		DELETE FROM entity_dependency 
-		WHERE task_id IN (
-			SELECT id FROM task 
+		DELETE FROM collection_dependency 
+		WHERE asset_id IN (
+			SELECT id FROM asset 
 			WHERE trashed = 1 
-			OR entity_id IN (SELECT id FROM trashed_entities)
+			OR collection_id IN (SELECT id FROM trashed_collections)
 		)
-		OR dependency_id IN (SELECT id FROM trashed_entities);
+		OR dependency_id IN (SELECT id FROM trashed_collections);
 
-		-- Delete task tags
-		WITH RECURSIVE trashed_entities AS (
-			SELECT id FROM entity WHERE trashed = 1
+		-- Delete asset tags
+		WITH RECURSIVE trashed_collections AS (
+			SELECT id FROM collection WHERE trashed = 1
 			UNION
-			SELECT e.id FROM entity e
-			INNER JOIN trashed_entities te ON e.parent_id = te.id
+			SELECT e.id FROM collection e
+			INNER JOIN trashed_collections te ON e.parent_id = te.id
 		)
-		DELETE FROM task_tag 
-		WHERE task_id IN (
-			SELECT id FROM task 
+		DELETE FROM asset_tag 
+		WHERE asset_id IN (
+			SELECT id FROM asset 
 			WHERE trashed = 1 
-			OR entity_id IN (SELECT id FROM trashed_entities)
+			OR collection_id IN (SELECT id FROM trashed_collections)
 		);
 
-		-- Delete tasks
-		WITH RECURSIVE trashed_entities AS (
-			SELECT id FROM entity WHERE trashed = 1
+		-- Delete assets
+		WITH RECURSIVE trashed_collections AS (
+			SELECT id FROM collection WHERE trashed = 1
 			UNION
-			SELECT e.id FROM entity e
-			INNER JOIN trashed_entities te ON e.parent_id = te.id
+			SELECT e.id FROM collection e
+			INNER JOIN trashed_collections te ON e.parent_id = te.id
 		)
-		DELETE FROM task 
+		DELETE FROM asset 
 		WHERE trashed = 1 
-		OR entity_id IN (SELECT id FROM trashed_entities);
+		OR collection_id IN (SELECT id FROM trashed_collections);
 
 		-- Delete templates
 		DELETE FROM template WHERE trashed = 1;
 
-		-- Delete entities
-		WITH RECURSIVE trashed_entities AS (
-			SELECT id FROM entity WHERE trashed = 1
+		-- Delete collections
+		WITH RECURSIVE trashed_collections AS (
+			SELECT id FROM collection WHERE trashed = 1
 			UNION
-			SELECT e.id FROM entity e
-			INNER JOIN trashed_entities te ON e.parent_id = te.id
+			SELECT e.id FROM collection e
+			INNER JOIN trashed_collections te ON e.parent_id = te.id
 		)
-		DELETE FROM entity WHERE id IN (SELECT id FROM trashed_entities);
+		DELETE FROM collection WHERE id IN (SELECT id FROM trashed_collections);
 
 		-- Clean up hanging references
-		DELETE FROM task WHERE entity_id != '' AND entity_id NOT IN (SELECT id FROM entity);
-		DELETE FROM task_checkpoint WHERE task_id NOT IN (SELECT id FROM task);
-		DELETE FROM task_dependency WHERE task_id NOT IN (SELECT id FROM task) OR dependency_id NOT IN (SELECT id FROM task);
-		DELETE FROM entity_dependency WHERE task_id NOT IN (SELECT id FROM task) OR dependency_id NOT IN (SELECT id FROM entity);
-		DELETE FROM task_tag WHERE task_id NOT IN (SELECT id FROM task) OR tag_id NOT IN (SELECT id FROM tag);
+		DELETE FROM asset WHERE collection_id != '' AND collection_id NOT IN (SELECT id FROM collection);
+		DELETE FROM asset_checkpoint WHERE asset_id NOT IN (SELECT id FROM asset);
+		DELETE FROM asset_dependency WHERE asset_id NOT IN (SELECT id FROM asset) OR dependency_id NOT IN (SELECT id FROM asset);
+		DELETE FROM collection_dependency WHERE asset_id NOT IN (SELECT id FROM asset) OR dependency_id NOT IN (SELECT id FROM collection);
+		DELETE FROM asset_tag WHERE asset_id NOT IN (SELECT id FROM asset) OR tag_id NOT IN (SELECT id FROM tag);
 	`
 
-	_, err := tx.Exec(deleteTaskAndEntities)
+	_, err := tx.Exec(deleteAssetAndCollections)
 	if err != nil {
 		return err
 	}
@@ -608,9 +625,9 @@ func Purge(projectPath string) error {
 		FROM template, json_each('["' || REPLACE(chunks, ',', '","') || '"]')
 		WHERE chunks != ''
 		UNION
-		-- Chunks used in task_checkpoints
+		-- Chunks used in asset_checkpoints
 		SELECT DISTINCT TRIM(value) as hash
-		FROM task_checkpoint, json_each('["' || REPLACE(chunks, ',', '","') || '"]')
+		FROM asset_checkpoint, json_each('["' || REPLACE(chunks, ',', '","') || '"]')
 		WHERE chunks != ''
 	)
 	DELETE FROM chunk 
@@ -700,68 +717,68 @@ func ClearProjectOrphans(projectPath string) error {
 	defer tx.Rollback()
 
 	query := `
-		CREATE TEMPORARY TABLE IF NOT EXISTS temp_orphan_entities (id TEXT PRIMARY KEY);
-		CREATE TEMPORARY TABLE IF NOT EXISTS temp_orphan_tasks (id TEXT PRIMARY KEY);
+		CREATE TEMPORARY TABLE IF NOT EXISTS temp_orphan_collections (id TEXT PRIMARY KEY);
+		CREATE TEMPORARY TABLE IF NOT EXISTS temp_orphan_assets (id TEXT PRIMARY KEY);
 
-		DELETE FROM temp_orphan_entities;
-		DELETE FROM temp_orphan_tasks;
+		DELETE FROM temp_orphan_collections;
+		DELETE FROM temp_orphan_assets;
 
-		INSERT OR REPLACE INTO temp_orphan_entities
-		WITH RECURSIVE orphan_entities AS (
-			-- Base case: entities with non-empty parent_id that doesn't exist in entity table
+		INSERT OR REPLACE INTO temp_orphan_collections
+		WITH RECURSIVE orphan_collections AS (
+			-- Base case: collections with non-empty parent_id that doesn't exist in collection table
 			SELECT DISTINCT id
-			FROM entity
+			FROM collection
 			WHERE parent_id != '' 
-			AND NOT EXISTS (SELECT 1 FROM entity parent WHERE parent.id = entity.parent_id)
+			AND NOT EXISTS (SELECT 1 FROM collection parent WHERE parent.id = collection.parent_id)
 			
 			UNION
 			
-			-- Recursive case: entities whose parent is an orphan
+			-- Recursive case: collections whose parent is an orphan
 			SELECT DISTINCT e.id
-			FROM entity e
-			JOIN orphan_entities oe ON e.parent_id = oe.id
+			FROM collection e
+			JOIN orphan_collections oe ON e.parent_id = oe.id
 		)
-		SELECT id FROM orphan_entities;
+		SELECT id FROM orphan_collections;
 
-		-- Find orphan tasks and store in temp table
-		INSERT OR REPLACE INTO temp_orphan_tasks
+		-- Find orphan assets and store in temp table
+		INSERT OR REPLACE INTO temp_orphan_assets
 		SELECT DISTINCT id
-		FROM task
+		FROM asset
 		WHERE 
-			-- Tasks with non-empty entity_id that doesn't exist
-			(entity_id != '' AND NOT EXISTS (SELECT 1 FROM entity e WHERE e.id = entity_id))
-			-- Or tasks whose entity is an orphan
-			OR (entity_id IN (SELECT id FROM temp_orphan_entities));
+			-- Assets with non-empty collection_id that doesn't exist
+			(collection_id != '' AND NOT EXISTS (SELECT 1 FROM collection e WHERE e.id = collection_id))
+			-- Or assets whose collection is an orphan
+			OR (collection_id IN (SELECT id FROM temp_orphan_collections));
 
-		-- Delete task_checkpoint records related to orphan tasks
-		DELETE FROM task_checkpoint
-		WHERE task_id IN (SELECT id FROM temp_orphan_tasks);
+		-- Delete asset_checkpoint records related to orphan assets
+		DELETE FROM asset_checkpoint
+		WHERE asset_id IN (SELECT id FROM temp_orphan_assets);
 
-		-- Delete task_tag records related to orphan tasks
-		DELETE FROM task_tag
-		WHERE task_id IN (SELECT id FROM temp_orphan_tasks);
+		-- Delete asset_tag records related to orphan assets
+		DELETE FROM asset_tag
+		WHERE asset_id IN (SELECT id FROM temp_orphan_assets);
 
-		-- Delete task_dependency records where either task is an orphan
-		DELETE FROM task_dependency
-		WHERE task_id IN (SELECT id FROM temp_orphan_tasks)
-		OR dependency_id IN (SELECT id FROM temp_orphan_tasks);
+		-- Delete asset_dependency records where either asset is an orphan
+		DELETE FROM asset_dependency
+		WHERE asset_id IN (SELECT id FROM temp_orphan_assets)
+		OR dependency_id IN (SELECT id FROM temp_orphan_assets);
 
-		-- Delete entity_dependency records related to orphan tasks or entities
-		DELETE FROM entity_dependency
-		WHERE task_id IN (SELECT id FROM temp_orphan_tasks)
-		OR dependency_id IN (SELECT id FROM temp_orphan_entities);
+		-- Delete collection_dependency records related to orphan assets or collections
+		DELETE FROM collection_dependency
+		WHERE asset_id IN (SELECT id FROM temp_orphan_assets)
+		OR dependency_id IN (SELECT id FROM temp_orphan_collections);
 
-		-- Now delete the orphan tasks
-		DELETE FROM task
-		WHERE id IN (SELECT id FROM temp_orphan_tasks);
+		-- Now delete the orphan assets
+		DELETE FROM asset
+		WHERE id IN (SELECT id FROM temp_orphan_assets);
 
-		-- Delete orphan entities
-		DELETE FROM entity
-		WHERE id IN (SELECT id FROM temp_orphan_entities);
+		-- Delete orphan collections
+		DELETE FROM collection
+		WHERE id IN (SELECT id FROM temp_orphan_collections);
 
 		-- Clean up temporary tables
-		DROP TABLE IF EXISTS temp_orphan_entities;
-		DROP TABLE IF EXISTS temp_orphan_tasks;
+		DROP TABLE IF EXISTS temp_orphan_collections;
+		DROP TABLE IF EXISTS temp_orphan_assets;
 	`
 	_, err = tx.Exec(query)
 	if err != nil {
@@ -777,25 +794,28 @@ func VerifyProjectIntegrity(projectPath string) (bool, error) {
 		return false, err
 	}
 	defer db.Close()
-	// tx, err := db.Beginx()
-	// if err != nil {
-	// 	return false, err
-	// }
-	// err = initData(tx)
-	// if err != nil {
-	// 	tx.Rollback()
-	// 	return false, err
-	// }
-	// tx.Commit()
-	tableNames := []string{
-		"config", "template", "tag", "status",
-		"entity", "entity_type", "task", "task_type",
-		"dependency_type", "task_dependency", "task_tag",
-		"task_checkpoint", "chunk",
-		"user",
+
+	// Check for tables using either new or legacy (pre-rename) names,
+	// since the project may not have been migrated yet.
+	tableChecks := [][2]string{
+		{"config", "config"},
+		{"template", "template"},
+		{"tag", "tag"},
+		{"status", "status"},
+		{"collection", "entity"},
+		{"collection_type", "entity_type"},
+		{"asset", "task"},
+		{"asset_type", "task_type"},
+		{"dependency_type", "dependency_type"},
+		{"asset_dependency", "task_dependency"},
+		{"asset_tag", "task_tag"},
+		{"asset_checkpoint", "task_checkpoint"},
+		{"chunk", "chunk"},
+		{"user", "user"},
 	}
-	for _, tableName := range tableNames {
-		rows, err := db.Query("SELECT name FROM sqlite_master WHERE type='table' AND name=?", tableName)
+	for _, check := range tableChecks {
+		newName, oldName := check[0], check[1]
+		rows, err := db.Query("SELECT name FROM sqlite_master WHERE type='table' AND name IN (?, ?)", newName, oldName)
 		if err != nil {
 			return false, err
 		}
@@ -821,91 +841,7 @@ func VerifyProjectIntegrity(projectPath string) (bool, error) {
 	return true, nil
 }
 
-func AutoGroupCheckpoints(tx *sqlx.Tx) error {
-	type GroupedTimeline struct {
-		CreatedAt     string   `db:"created_at" json:"created_at"`
-		CheckpointIds []string `db:"checkpoint_ids" json:"checkpoint_ids"`
-		Comment       string   `db:"comment" json:"comment"`
-		AuthorUID     string   `db:"author_id" json:"author_id"`
-		GroupId       string
-	}
-	type MiniCheckpoint struct {
-		Id        string `db:"id" json:"id"`
-		CreatedAt string `db:"created_at" json:"created_at"`
-		Comment   string `db:"comment" json:"comment"`
-		AuthorUID string `db:"author_id" json:"author_id"`
-	}
-	timeline := []GroupedTimeline{}
-	checkpoints := []MiniCheckpoint{}
-	query := `SELECT 
-		task_checkpoint.id,
-		task_checkpoint.created_at,
-		task_checkpoint.comment,
-		task_checkpoint.author_id
-	FROM 
-		task_checkpoint
-	ORDER BY task_checkpoint.created_at DESC;`
-	err := tx.Select(&checkpoints, query)
-	if err != nil && err == sql.ErrNoRows {
-		return errors.New("no checkpoints")
-	} else if err != nil {
-		return err
-	}
-
-	previousCheckpoint := GroupedTimeline{}
-	for i, checkpoint := range checkpoints {
-		if previousCheckpoint.CreatedAt == "" {
-			previousCheckpoint = GroupedTimeline{
-				CreatedAt:     checkpoint.CreatedAt,
-				CheckpointIds: []string{checkpoint.Id},
-				Comment:       checkpoint.Comment,
-				AuthorUID:     checkpoint.AuthorUID,
-				GroupId:       uuid.New().String(),
-			}
-			if i == len(checkpoints)-1 {
-				timeline = append(timeline, previousCheckpoint)
-			}
-			continue
-		}
-		checkpointTime, err := time.Parse(time.RFC3339, checkpoint.CreatedAt)
-		if err != nil {
-			return err
-		}
-		prevCheckpointTime, err := time.Parse(time.RFC3339, previousCheckpoint.CreatedAt)
-		if err != nil {
-			return err
-		}
-
-		// Calculate the difference
-		diff := prevCheckpointTime.Sub(checkpointTime)
-		if previousCheckpoint.AuthorUID == checkpoint.AuthorUID && previousCheckpoint.Comment == checkpoint.Comment && diff.Seconds() <= 120 {
-			previousCheckpoint.CheckpointIds = append(previousCheckpoint.CheckpointIds, checkpoint.Id)
-		} else {
-			timeline = append(timeline, previousCheckpoint)
-			previousCheckpoint = GroupedTimeline{
-				CreatedAt:     checkpoint.CreatedAt,
-				CheckpointIds: []string{checkpoint.Id},
-				Comment:       checkpoint.Comment,
-				AuthorUID:     checkpoint.AuthorUID,
-				GroupId:       uuid.New().String(),
-			}
-		}
-		if i == len(checkpoints)-1 {
-			timeline = append(timeline, previousCheckpoint)
-		}
-	}
-
-	for _, group := range timeline {
-		for _, checkpointId := range group.CheckpointIds {
-			_, err := tx.Exec("UPDATE task_checkpoint SET group_id = ? WHERE id = ?", group.GroupId, checkpointId)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
+// UpdateProject runs all pending migrations on a project database.
 func UpdateProject(projectPath string) error {
 	db, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -919,11 +855,6 @@ func UpdateProject(projectPath string) error {
 	}
 	defer tx.Rollback()
 
-	err = utils.CreateSchema(db, ProjectSchema)
-	if err != nil {
-		return err
-	}
-
 	projectVersion, err := utils.GetProjectVersion(tx)
 	if err != nil {
 		tx.Rollback()
@@ -934,309 +865,39 @@ func UpdateProject(projectPath string) error {
 		return err
 	}
 
-	// if projectVersion <= 1.1 {
-	// 	return errors.New("unsupported project file")
-	// }
-
-	if projectVersion == 1.2 {
-		err = utils.RenameColumn(db, "task_checkpoint", "entity_id", "task_id")
-		if err != nil {
-			return err
-		}
-
-		err = utils.AddColumnIfNotExist(db, "task", "is_resource", "BOOLEAN", "0", false)
-		if err != nil {
-			return err
-		}
-
-		err = utils.AddColumnIfNotExist(db, "config", "synced", "BOOLEAN", "0", false)
-		if err != nil {
-			return err
-		}
-
-		err = utils.AddColumnIfNotExist(db, "entity", "is_library", "BOOLEAN", "0", false)
-		if err != nil {
-			return err
-		}
-
-		tx, err := db.Beginx()
-		if err != nil {
-			return err
-		}
-		defer tx.Rollback()
-		iconMap := map[string]string{
-			"hdri":                 "image",
-			"character creation":   "masks",
-			"prop creation":        "drum",
-			"environment creation": "stall",
-			"concept art":          "palette",
-			"modeling":             "cube",
-			"rigging":              "bone",
-			"texturing":            "texture",
-			"lookdev":              "mystery-ball",
-			"editing":              "scissors",
-			"previz":               "video-camera",
-			"layout":               "shapes",
-			"animation":            "man-running",
-			"fx":                   "fire",
-			"lighting":             "bulb",
-			"rendering":            "camera-flash",
-			"compositing":          "flow-chart",
-			"character":            "masks",
-			"prop":                 "drum",
-			"environment":          "stall",
-			"scene":                "tree",
-			"shot":                 "clapboard",
-			"sequence":             "film-strip",
-			"episode":              "film-reel",
-		}
-		taskTypes, err := GetTaskTypes(tx)
-		if err != nil {
-			return err
-		}
-		entityTypes, err := GetEntityTypes(tx)
-		if err != nil {
-			return err
-		}
-		for _, taskType := range taskTypes {
-			if icon, exists := iconMap[taskType.Icon]; exists {
-				if _, err = UpdateTaskType(tx, taskType.Id, taskType.Name, icon); err != nil {
-					if err.Error() == "UNIQUE constraint failed: task_type.icon" {
-						continue
-					}
-					return err
-				}
-			}
-		}
-		for _, entityType := range entityTypes {
-			if icon, exists := iconMap[entityType.Icon]; exists {
-				if _, err = UpdateEntityType(tx, entityType.Id, entityType.Name, icon); err != nil {
-					if err.Error() == "UNIQUE constraint failed: entity_type.icon" {
-						continue
-					}
-					return err
-				}
-			}
-		}
-		err = tx.Commit()
-		if err != nil {
-			return err
-		}
-	}
-
-	if projectVersion <= 1.3 {
-		tx, err := db.Beginx()
-		if err != nil {
-			return err
-		}
-		defer tx.Rollback()
-		projectWorkingDir := ""
-		if !settings.IsServer() {
-			user, err := auth_service.GetActiveUser()
-			if err != nil {
-				return err
-			}
-
-			workingDir, err := settings.GetUserDataFolder(user)
-			if err != nil {
-				return err
-			}
-			studioName, err := utils.GetStudioName(tx)
-			if err != nil {
-				return err
-			}
-			projectName, err := utils.GetProjectName(tx)
-			if err != nil {
-				return err
-			}
-			filePath := filepath.Join(workingDir, studioName, projectName)
-			projectWorkingDir = filePath
-		} else {
-			homeDir, err := os.UserHomeDir()
-			if err != nil {
-				return err
-			}
-			workingDir := filepath.Join(homeDir, "Documents", "clustta")
-			os.MkdirAll(workingDir, os.ModePerm)
-
-			projectName, err := utils.GetProjectName(tx)
-			if err != nil {
-				return err
-			}
-			filePath := filepath.Join(workingDir, projectName)
-			projectWorkingDir = filePath
-		}
-
-		err = utils.SetProjectWorkingDir(tx, projectWorkingDir)
-		if err != nil {
-			return err
-		}
-
-		err = tx.Commit()
-		if err != nil {
-			return err
-		}
-
-	}
-
-	if projectVersion <= 1.4 {
-		err = utils.AddColumnIfNotExist(db, "task_checkpoint", "group_id", "TEXT", "", false)
-		if err != nil {
-			return err
-		}
-
-		tx, err := db.Beginx()
-		if err != nil {
-			return err
-		}
-		defer tx.Rollback()
-
-		err = AutoGroupCheckpoints(tx)
-		if err != nil {
-			return err
-		}
-
-		err = tx.Commit()
-		if err != nil {
-			return err
-		}
-
-	}
-
-	if projectVersion <= 1.5 {
-		err = utils.AddColumnIfNotExist(db, "entity", "entity_path", "TEXT", "", false)
-		if err != nil {
-			return err
-		}
-
-		_, err = db.Exec("CREATE INDEX IF NOT EXISTS idx_entity_path ON entity(entity_path);")
-		if err != nil {
-			return err
-		}
-
-		tx, err := db.Beginx()
-		if err != nil {
-			return err
-		}
-		defer tx.Rollback()
-
-		type EntityPath struct {
-			Id         string `db:"id" json:"id"`
-			EntityPath string `db:"entity_path" json:"entity_path"`
-		}
-		entitiesPath := []EntityPath{}
-		err = tx.Select(&entitiesPath, "SELECT id, entity_path FROM entity_hierarchy")
-		if err != nil {
-			return err
-		}
-
-		updateEntityPathQuery := `
-		UPDATE entity SET entity_path = ? WHERE id = ?;
-	`
-		updateEntityPathStmt, err := tx.Prepare(updateEntityPathQuery)
-		if err != nil {
-			return err
-		}
-
-		for _, entityPathData := range entitiesPath {
-			_, err := updateEntityPathStmt.Exec(entityPathData.EntityPath, entityPathData.Id)
-			if err != nil {
-				return err
-			}
-		}
-
-		err = tx.Commit()
-		if err != nil {
-			return err
-		}
-
-	}
-
-	if projectVersion <= 1.6 {
-		_, err = db.Exec(`
-			DROP TRIGGER IF EXISTS entity_path_update;
-			
-			CREATE TRIGGER entity_path_update 
-			AFTER UPDATE OF name, parent_id ON entity
-			FOR EACH ROW
-			WHEN OLD.name != NEW.name OR OLD.parent_id != NEW.parent_id
-			BEGIN
-				-- Recalculate this entity's path
-			UPDATE entity
-			SET entity_path =
-				CASE
-				WHEN NEW.parent_id IS NULL THEN '/' || NEW.name || '/'
-				ELSE COALESCE(
-					(SELECT entity_path || NEW.name || '/' FROM entity WHERE id = NEW.parent_id),
-					'/' || NEW.name || '/'
-				)
-				END
-			WHERE id = NEW.id;
-
-			-- Recalculate all descendant paths
-			UPDATE entity
-			SET entity_path =
-				(SELECT entity_path FROM entity WHERE id = NEW.id) || substr(entity_path, length(OLD.entity_path) + 1)
-			WHERE entity_path LIKE OLD.entity_path || '%'
-				AND id != NEW.id;
-			END;
-		`)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Version 1.8: Integration tables (Kitsu, ShotGrid, etc.)
-	// Running schema adds new tables without affecting existing ones (CREATE TABLE IF NOT EXISTS)
-	if projectVersion <= 1.7 {
-		err = utils.CreateSchema(db, ProjectSchema)
-		if err != nil {
-			return err
-		}
-	}
-
-	tx, err = db.Beginx()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	err = utils.SetProjectVersion(tx, 1.8)
-	if err != nil {
-		return err
-	}
-
-	return tx.Commit()
+	return migrations.RunMigrations(db, projectVersion, ProjectSchema)
 }
 
-func CreateProject(projectUri, studioName, workingDir, templateName string, user auth_service.User) (ProjectInfo, error) {
+func CreateProject(projectUri, studioName, workingDir, templateName, projectId string, user auth_service.User) (ProjectInfo, error) {
 	projectInfo := ProjectInfo{}
 	if templateName == "" {
 		templateName = "No Template"
 	}
 
-	// userDataDir, err := settings.GetUserDataFolder()
-	// if err != nil {
-	// 	return projectInfo, err
-	// }
-
 	if utils.IsValidURL(projectUri) {
-		fmt.Println(projectUri)
-		req, err := http.NewRequest("POST", projectUri, nil)
+		var reqBody io.Reader
+		if projectId != "" {
+			bodyBytes, _ := json.Marshal(map[string]string{"project_id": projectId})
+			reqBody = bytes.NewReader(bodyBytes)
+		}
+		req, err := http.NewRequest("POST", projectUri, reqBody)
 		if err != nil {
 			return projectInfo, err
 		}
 		userJson, err := json.Marshal(user)
 		if err != nil {
+			fmt.Println("Marshal:", err)
 			return projectInfo, err
 		}
 		req.Header.Set("UserData", string(userJson))
 		req.Header.Set("UserId", user.Id)
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
 		if err != nil {
+			fmt.Println("Response Error:", err)
 			return projectInfo, err
 		}
 		defer response.Body.Close()
@@ -1257,15 +918,10 @@ func CreateProject(projectUri, studioName, workingDir, templateName string, user
 			projectInfo.HasRemote = false
 			projectInfo.Uri = projectUri
 			projectInfo.Remote = projectUri
-			// projectInfo.WorkingData = workingData
-			// projectInfo.WorkingDirectory = workingDir
 			return projectInfo, nil
-		} else if responseCode == 400 {
-			body, err := io.ReadAll(response.Body)
-			if err != nil {
-				return projectInfo, err
-			}
-			return projectInfo, errors.New(string(body))
+		} else {
+			body, _ := io.ReadAll(response.Body)
+			return projectInfo, fmt.Errorf("server error (%d): %s", responseCode, string(body))
 		}
 	} else {
 		projectDir := filepath.Dir(projectUri)
@@ -1283,7 +939,7 @@ func CreateProject(projectUri, studioName, workingDir, templateName string, user
 			}
 			return ProjectInfo{}, error_service.ErrInvalidProjectExists
 		}
-		err := InitDB(projectUri, studioName, workingDir, user, false)
+		err := InitDB(projectUri, studioName, workingDir, projectId, user, false)
 		if err != nil {
 			return ProjectInfo{}, err
 		}
@@ -1312,23 +968,10 @@ func CreateProject(projectUri, studioName, workingDir, templateName string, user
 		projectInfo.IsDownloaded = true
 		return projectInfo, nil
 	}
-	return ProjectInfo{}, errors.New("invalid uri")
 }
 
 func GetProjectInfo(projectUri string, user auth_service.User) (ProjectInfo, error) {
-	// userDataDir, err := settings.GetUserDataFolder()
-	// if err != nil {
-	// 	return ProjectInfo{}, err
-	// }
 
-	// var projectName string
-	// hasRemote := false
-	// if utils.IsValidURL(projectUri) {
-	// 	projectName = path.Base(projectUri)
-	// 	hasRemote = true
-	// } else if utils.FileExists(projectUri) {
-	// 	projectName = strings.Split(filepath.Base(projectUri), ".")[0]
-	// }
 	if utils.IsValidURL(projectUri) {
 		projectUrl := projectUri
 		req, err := http.NewRequest("GET", projectUrl, nil)
@@ -1342,6 +985,7 @@ func GetProjectInfo(projectUri string, user auth_service.User) (ProjectInfo, err
 		req.Header.Set("UserData", string(userJson))
 		req.Header.Set("UserId", user.Id)
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -1423,6 +1067,8 @@ func GetProjectInfo(projectUri string, user auth_service.User) (ProjectInfo, err
 		if err != nil {
 			return ProjectInfo{}, err
 		}
+		remoteUrl, _ := utils.GetRemoteUrl(tx)
+		hasRemote := remoteUrl != "" && utils.IsValidURL(remoteUrl)
 		return ProjectInfo{
 			Id:               projectId,
 			SyncToken:        syncToken,
@@ -1430,11 +1076,11 @@ func GetProjectInfo(projectUri string, user auth_service.User) (ProjectInfo, err
 			Name:             projectName,
 			Icon:             icon,
 			Version:          projectVersion,
-			Remote:           "",
+			Remote:           remoteUrl,
 			Uri:              absProjectPath,
 			WorkingDirectory: workingDir,
 			Status:           "normal",
-			HasRemote:        false,
+			HasRemote:        hasRemote,
 			IsClosed:         isClosed,
 			IgnoreList:       ignoreList,
 		}, nil
@@ -1457,6 +1103,7 @@ func GetSyncToken(projectUri string, user auth_service.User) (string, error) {
 		req.Header.Set("UserData", string(userJson))
 		req.Header.Set("UserId", user.Id)
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -1547,6 +1194,7 @@ func RenameProject(projectUri, studioName, newName string, user auth_service.Use
 		req.Header.Set("UserId", user.Id)
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 		req.Header.Set("Content-Type", "application/json")
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -1586,7 +1234,23 @@ func RenameProject(projectUri, studioName, newName string, user auth_service.Use
 		if err != nil {
 			return err
 		}
-		return nil
+
+		// Update project_name in config table
+		dbConn, err := utils.OpenDb(newProjectPath)
+		if err != nil {
+			return err
+		}
+		defer dbConn.Close()
+		tx, err := dbConn.Beginx()
+		if err != nil {
+			return err
+		}
+		defer tx.Rollback()
+		err = utils.SetProjectName(tx, newName)
+		if err != nil {
+			return err
+		}
+		return tx.Commit()
 	}
 
 }
@@ -1608,6 +1272,7 @@ func SetIcon(projectUri, studioName, icon string, user auth_service.User) error 
 		req.Header.Set("UserId", user.Id)
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 		req.Header.Set("Content-Type", "application/json")
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -1696,6 +1361,7 @@ func ToggleCloseProject(projectUri, studioName string, user auth_service.User) e
 		req.Header.Set("UserId", user.Id)
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 		req.Header.Set("Content-Type", "application/json")
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -1798,6 +1464,36 @@ func DeleteRemoteProject(projectUri, studioName string, user auth_service.User) 
 	req.Header.Set("UserData", string(userJson))
 	req.Header.Set("UserId", user.Id)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
+
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != 200 {
+		body, _ := io.ReadAll(response.Body)
+		return errors.New(string(body))
+	}
+
+	return nil
+}
+
+// LeaveProject removes the current user as a collaborator from a remote project.
+func LeaveProject(remoteUrl string) error {
+	if !utils.IsValidURL(remoteUrl) {
+		return errors.New("not a remote project URL")
+	}
+
+	leaveUrl := remoteUrl + "/leave"
+	req, err := http.NewRequest(http.MethodDelete, leaveUrl, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{}
 	response, err := client.Do(req)
@@ -1949,6 +1645,7 @@ func SetIgnoreList(projectUri, studioName string, ignoreList []string, user auth
 		req.Header.Set("UserId", user.Id)
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 		req.Header.Set("Content-Type", "application/json")
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -2074,12 +1771,12 @@ func SetProjectPreviewSynced(tx *sqlx.Tx) error {
 
 // TemplateData holds all data extracted from a project template
 type TemplateData struct {
-	TaskTypes      []models.TaskType
-	EntityTypes    []models.EntityType
-	IgnoreList     []string
-	TaskTemplates  []models.Template
-	ChunksInfo     []chunk_service.ChunkInfo
-	AllChunkHashes []string
+	AssetTypes      []models.AssetType
+	CollectionTypes []models.CollectionType
+	IgnoreList      []string
+	AssetTemplates  []models.Template
+	ChunksInfo      []chunk_service.ChunkInfo
+	AllChunkHashes  []string
 }
 
 // LoadProjectTemplateData loads template data into a newly created project.
@@ -2111,7 +1808,7 @@ func LoadProjectTemplateData(projectPath, templatePath string) error {
 	}
 
 	//Add template definitions to project
-	err = addTemplateDefinitions(projectPath, templateData.TaskTemplates)
+	err = addTemplateDefinitions(projectPath, templateData.AssetTemplates)
 	if err != nil {
 		return fmt.Errorf("failed to add template definitions: %w", err)
 	}
@@ -2134,16 +1831,16 @@ func extractTemplateData(templatePath string) (*TemplateData, error) {
 	}
 	defer templateTx.Rollback()
 
-	// Extract task types (asset types)
-	taskTypes, err := GetTaskTypes(templateTx)
+	// Extract asset types (asset types)
+	assetTypes, err := GetAssetTypes(templateTx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get task types: %w", err)
+		return nil, fmt.Errorf("failed to get asset types: %w", err)
 	}
 
-	// Extract entity types (collection types)
-	entityTypes, err := GetEntityTypes(templateTx)
+	// Extract collection types (collection types)
+	collectionTypes, err := GetCollectionTypes(templateTx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get entity types: %w", err)
+		return nil, fmt.Errorf("failed to get collection types: %w", err)
 	}
 
 	// Extract ignore list
@@ -2152,14 +1849,14 @@ func extractTemplateData(templatePath string) (*TemplateData, error) {
 		return nil, fmt.Errorf("failed to get ignore list: %w", err)
 	}
 
-	// Extract task templates
-	taskTemplates, err := GetTemplates(templateTx, false)
+	// Extract asset templates
+	assetTemplates, err := GetTemplates(templateTx, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get templates: %w", err)
 	}
 
 	// Collect all unique chunk hashes from templates
-	allChunkHashes := collectChunkHashes(taskTemplates)
+	allChunkHashes := collectChunkHashes(assetTemplates)
 
 	// Get chunk info for all chunks
 	chunksInfo, err := chunk_service.GetChunksInfo(templateTx, allChunkHashes)
@@ -2168,12 +1865,12 @@ func extractTemplateData(templatePath string) (*TemplateData, error) {
 	}
 
 	return &TemplateData{
-		TaskTypes:      taskTypes,
-		EntityTypes:    entityTypes,
-		IgnoreList:     ignoreList,
-		TaskTemplates:  taskTemplates,
-		ChunksInfo:     chunksInfo,
-		AllChunkHashes: allChunkHashes,
+		AssetTypes:      assetTypes,
+		CollectionTypes: collectionTypes,
+		IgnoreList:      ignoreList,
+		AssetTemplates:  assetTemplates,
+		ChunksInfo:      chunksInfo,
+		AllChunkHashes:  allChunkHashes,
 	}, nil
 }
 
@@ -2198,25 +1895,25 @@ func copyTemplateMetadata(projectPath string, data *TemplateData) ([]string, err
 		return nil, fmt.Errorf("failed to set ignore list: %w", err)
 	}
 
-	// Copy task types
-	for _, taskType := range data.TaskTypes {
-		_, err = GetOrCreateTaskType(projectTx, taskType.Name, taskType.Icon)
+	// Copy asset types
+	for _, assetType := range data.AssetTypes {
+		_, err = GetOrCreateAssetType(projectTx, assetType.Name, assetType.Icon)
 		if err != nil {
-			if err.Error() == "UNIQUE constraint failed: task_type.icon" {
+			if err.Error() == "UNIQUE constraint failed: asset_type.icon" {
 				continue
 			}
-			return nil, fmt.Errorf("failed to create task type %s: %w", taskType.Name, err)
+			return nil, fmt.Errorf("failed to create asset type %s: %w", assetType.Name, err)
 		}
 	}
 
-	// Copy entity types
-	for _, entityType := range data.EntityTypes {
-		_, err = GetOrCreateEntityType(projectTx, entityType.Name, entityType.Icon)
+	// Copy collection types
+	for _, collectionType := range data.CollectionTypes {
+		_, err = GetOrCreateCollectionType(projectTx, collectionType.Name, collectionType.Icon)
 		if err != nil {
-			if err.Error() == "UNIQUE constraint failed: entity_type.icon" {
+			if err.Error() == "UNIQUE constraint failed: collection_type.icon" {
 				continue
 			}
-			return nil, fmt.Errorf("failed to create entity type %s: %w", entityType.Name, err)
+			return nil, fmt.Errorf("failed to create collection type %s: %w", collectionType.Name, err)
 		}
 	}
 
@@ -2254,7 +1951,7 @@ func transferTemplateChunks(projectPath, templatePath string, chunksInfo []chunk
 }
 
 // addTemplateDefinitions adds template metadata to the project database.
-func addTemplateDefinitions(projectPath string, taskTemplates []models.Template) error {
+func addTemplateDefinitions(projectPath string, assetTemplates []models.Template) error {
 	projectDbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -2267,7 +1964,7 @@ func addTemplateDefinitions(projectPath string, taskTemplates []models.Template)
 	}
 	defer projectTx.Rollback()
 
-	for _, template := range taskTemplates {
+	for _, template := range assetTemplates {
 		// Check if template already exists
 		_, err := GetTemplateByName(projectTx, template.Name)
 		if err == nil {

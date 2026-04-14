@@ -88,13 +88,13 @@ const isValueChanged = computed(() => {
 
 // Returns display names for location dropdown.
 const locationDisplayNames = computed(() => {
-  return projectLocations.value.map(loc => `${loc.name} - [${loc.path}]`);
+  return projectLocations.value.map(loc => `${loc.name}`);
 });
 
 // Returns display string for currently selected location.
 const selectedLocationDisplay = computed(() => {
   if (!selectedLocation.value) return '';
-  return `${selectedLocation.value.name} - [${selectedLocation.value.path}]`;
+  return `${selectedLocation.value.name}`;
 });
 
 // Returns the computed working directory path.
@@ -122,7 +122,7 @@ const addNewLocation = async () => {
     const newLocation = await SettingsService.AddProjectLocation(folderName, path);
     projectLocations.value.push(newLocation);
     selectedLocation.value = newLocation;
-    notificationStore.addNotification(t('notifications.locationAddedSuccessfully'), '', 'success', false);
+    notificationStore.addNotification(t('notifications.locationAdded'), '', 'success', false);
   } catch (error) {
     notificationStore.errorNotification(t('notifications.errorAddingLocation'), error);
   }
@@ -135,7 +135,7 @@ const cloneProject = async () => {
     return;
   }
   if (!workingDirectory.value) {
-    notificationStore.addNotification(t('notifications.invalidWorkingDir'), t('notifications.workingDirEmpty'), 'error', false);
+    notificationStore.addNotification(t('notifications.invalidWorkingDirectory'), t('notifications.workingDirectoryEmpty'), 'error', false);
     return;
   }
   isAwaitingResponse.value = true;
@@ -144,11 +144,11 @@ const cloneProject = async () => {
   const project = projectStore.activeProject;
   const studioDisplayName = projectStore.selectedStudio.name;
   const projectName = project.name;
-  const projectUrl = projectStore.getStudioUrl + '/' + projectName;
+  const projectUrl = (project.has_remote && project.remote) ? project.remote : projectStore.getStudioUrl + '/' + projectName;
   const syncOptions = {
     only_latest_checkpoints: true,
-    task_dependencies: true,
-    tasks: false,
+    asset_dependencies: true,
+    assets: false,
     templates: true,
   };
   notificationStore.cancleFunction = SyncService.CancelSync;
@@ -205,7 +205,7 @@ const loadProjectLocations = async () => {
 // Selects a location from the dropdown by display name.
 const selectLocation = (displayName) => {
   const location = projectLocations.value.find(loc =>
-    `${loc.name} - [${loc.path}]` === displayName
+    `${loc.name}` === displayName
   );
   if (location) {
     selectedLocation.value = location;
@@ -246,11 +246,12 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  gap: .4px;
+  gap: .5rem;
   color: var(--white);
 }
 
 .settings-section-card{
+  background-color: transparent;
   outline: 0px;
 }
 

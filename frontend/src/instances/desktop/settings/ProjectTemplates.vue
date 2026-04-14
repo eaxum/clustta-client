@@ -32,21 +32,21 @@
 
             <div v-if="projectTemplateStore.projectTemplates.length" class="settings-component-body">
 
-                <ScrollList v-if="projectTemplateStore.taskTemplates.length && activeTemplateContext === 'templates'"
+                <ScrollList v-if="projectTemplateStore.assetTemplates.length && activeTemplateContext === 'templates'"
                     :items="assetTemplates" :customIcons="true" :useItemId="true" :wrapItems="true"
                     :editItems="true" :editListItem="prepEditTemplate" :deleteItems="true"
-                    :deleteListItem="deleteTaskTemplate" />
+                    :deleteListItem="deleteAssetTemplate" />
 
                 <ScrollList v-else-if="projectTemplateStore.assetTypes.length && activeTemplateContext === 'assettypes'"
                     :items="assetTypes" :useIcons="true" :useItemId="true" :wrapItems="true"
-                    :editItems="true" :editListItem="prepEditTaskType" :deleteItems="true"
-                    :deleteListItem="deleteTaskType" />
+                    :editItems="true" :editListItem="prepEditAssetType" :deleteItems="true"
+                    :deleteListItem="deleteAssetType" />
 
                 <ScrollList
                     v-else-if="projectTemplateStore.collectionTypes.length && activeTemplateContext === 'collectiontypes'"
                     :items="collectionTypes" :useIcons="true" :useItemId="true" :wrapItems="true"
-                    :editItems="true" :editListItem="prepEditEntityType" :deleteItems="true"
-                    :deleteListItem="deleteEntityType" />
+                    :editItems="true" :editListItem="prepEditCollectionType" :deleteItems="true"
+                    :deleteListItem="deleteCollectionType" />
 
                 <IgnoreListBox v-else-if="activeTemplateContext === 'ignorelist'" :placeholder="$t('placeholders.addItem')"
                     :selectedItems="ignoreList" @itemAdded="addIgnoredItem" @itemRemoved="removeIgnoredItem" />
@@ -124,8 +124,8 @@ const templateContexts = computed(() => {
 
 const assetTemplates = computed(() => {
 
-    let taskTemplates = projectTemplateStore.taskTemplates;
-    const allTypes =  taskTemplates.map(type => ({
+    let assetTemplates = projectTemplateStore.assetTemplates;
+    const allTypes =  assetTemplates.map(type => ({
     ...type,
     can_delete: true,
     can_edit: true,
@@ -203,11 +203,11 @@ const contextPropmtMessage = () => {
 const contextAddFunction = () => {
     let templateContext = activeTemplateContext.value;
     if (templateContext === 'templates') {
-        addTaskTemplate();
+        addAssetTemplate();
     } else if (templateContext === 'assettypes') {
-        addTaskType();
+        addAssetType();
     } else if (templateContext === 'collectiontypes') {
-        addEntityType();
+        addCollectionType();
     } else {
         return
     }
@@ -279,7 +279,7 @@ const removeIgnoredItem = (item) => {
         });
 };
 
-const addTaskTemplate = () => {
+const addAssetTemplate = () => {
     modals.setModalVisibility('addUserTemplateModal', true);
 };
 
@@ -288,38 +288,36 @@ const prepEditTemplate = (selectedTemplateId) => {
     modals.setModalVisibility('editUserTemplateModal', true);
 };
 
-const deleteTaskTemplate = async (taskTemplateId) => {
-    projectTemplateStore.taskTemplates = projectTemplateStore.taskTemplates.filter((taskTemplate) => taskTemplate.id !== taskTemplateId);
+const deleteAssetTemplate = async (assetTemplateId) => {
+    projectTemplateStore.assetTemplates = projectTemplateStore.assetTemplates.filter((assetTemplate) => assetTemplate.id !== assetTemplateId);
 };
 
-// task types
-const addTaskType = () => {
+// asset types
+const addAssetType = () => {
     modals.setModalVisibility('addUserAssetTypeModal', true);
 };
 
-const prepEditTaskType = (selectedTaskTypeId) => {
-
-    console.log(selectedTaskTypeId);
+const prepEditAssetType = (selectedAssetTypeId) => {
+    projectTemplateStore.selectedAssetTypeId = selectedAssetTypeId;
     modals.setModalVisibility('editUserAssetTypeModal', true);
-
 };
 
-const deleteTaskType = async (taskTypeId) => {
-    projectTemplateStore.assetTypes = projectTemplateStore.assetTypes.filter((taskType) => taskType.id !== taskTypeId);
+const deleteAssetType = async (assetTypeId) => {
+    projectTemplateStore.assetTypes = projectTemplateStore.assetTypes.filter((assetType) => assetType.id !== assetTypeId);
 };
 
-// entity types
-const addEntityType = () => {
+// collection types
+const addCollectionType = () => {
     modals.setModalVisibility('addUserCollectionTypeModal', true);
 };
 
-const prepEditEntityType = (selectedEntityTypeId) => {
-    console.log(selectedEntityTypeId);
+const prepEditCollectionType = (selectedCollectionTypeId) => {
+    projectTemplateStore.selectedCollectionTypeId = selectedCollectionTypeId;
     modals.setModalVisibility('editUserCollectionTypeModal', true);
 };
 
-const deleteEntityType = async (entityTypeId) => {
-    projectTemplateStore.collectionTypes = projectTemplateStore.collectionTypes.filter((entityType) => entityType.id !== entityTypeId);
+const deleteCollectionType = async (collectionTypeId) => {
+    projectTemplateStore.collectionTypes = projectTemplateStore.collectionTypes.filter((collectionType) => collectionType.id !== collectionTypeId);
 };
 
 const prepDeletePopUpModal = () => {

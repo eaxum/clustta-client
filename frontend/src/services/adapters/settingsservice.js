@@ -207,14 +207,14 @@ export const SettingsService = {
     const defaultWorkspace = {
       name: 'Default',
       filters: {
-        taskFilters: [],
-        entityFilters: [],
+        assetFilters: [],
+        collectionFilters: [],
         resourceFilters: [],
-        showEntities: true,
-        showTasks: true,
+        showCollections: true,
+        showAssets: true,
         showResources: true,
-        showChildEntities: true,
-        showChildTasks: true,
+        showChildCollections: true,
+        showChildAssets: true,
         showDependencies: true,
         onlyAssets: false,
       },
@@ -222,10 +222,10 @@ export const SettingsService = {
       collection: null,
     };
     
-    const assignedTasksWorkspace = {
-      name: 'My Tasks',
+    const assignedAssetsWorkspace = {
+      name: 'My Assets',
       filters: {
-        taskFilters: user ? [{
+        assetFilters: user ? [{
           email: user.email,
           first_name: user.first_name,
           id: user.id,
@@ -233,14 +233,14 @@ export const SettingsService = {
           type: 'assignation',
           username: user.username,
         }] : [],
-        entityFilters: [],
+        collectionFilters: [],
         resourceFilters: [],
-        showTasks: true,
+        showAssets: true,
         onlyAssets: true,
-        showEntities: true,
+        showCollections: true,
         showResources: true,
-        showChildEntities: true,
-        showChildTasks: true,
+        showChildCollections: true,
+        showChildAssets: true,
         showDependencies: true,
       },
       workspaceSearchQuery: '',
@@ -248,7 +248,7 @@ export const SettingsService = {
     };
     
     const customWorkspaces = getSetting(`workspaces_${projectId}`, []);
-    return [defaultWorkspace, assignedTasksWorkspace, ...customWorkspaces];
+    return [defaultWorkspace, assignedAssetsWorkspace, ...customWorkspaces];
   },
   // Adds a workspace to a project
   AddProjectWorkspace: async (projectId, workspace) => {
@@ -260,6 +260,15 @@ export const SettingsService = {
   RemoveProjectWorkspace: async (projectId, workspaceName) => {
     const workspaces = getSetting(`workspaces_${projectId}`, []).filter(w => w.name !== workspaceName);
     setSetting(`workspaces_${projectId}`, workspaces);
+  },
+  // Updates an existing workspace by name
+  UpdateProjectWorkspace: async (projectId, workspaceName, workspaceData) => {
+    const workspaces = getSetting(`workspaces_${projectId}`, []);
+    const index = workspaces.findIndex(w => w.name === workspaceName);
+    if (index !== -1) {
+      workspaces[index] = workspaceData;
+      setSetting(`workspaces_${projectId}`, workspaces);
+    }
   },
 
   // Returns the current application version

@@ -117,7 +117,7 @@
   --solid-blue-steel: hsl(215, 67%, 52%);
 
   --resource-item-selected: hsl(177, 81%, 29%);
-  --task-item-selected: hsl(215, 74%, 49%);
+  --asset-item-selected: hsl(215, 74%, 49%);
   --entity-item-selected: hsl(251, 48%, 32%);
   --project-item-selected: hsl(215, 74%, 49%);
   --transparent-black: rgba(0, 0, 0, 0.4);
@@ -130,6 +130,7 @@
   --online: #20d949;
   
   --attention: #EBBA16  ;
+  --alert: #d69c37  ;
   --danger: crimson;
   --calm: blue;
 
@@ -546,7 +547,7 @@ animation: loadingRotate .5s linear infinite;
   font-family: 'Inter', sans-serif;
   font-weight: 200;
   padding: 2px;
-  height: 20px;
+  height: 18px;
   overflow: hidden;
   display: flex;
   align-items: center;

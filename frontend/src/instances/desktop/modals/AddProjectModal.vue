@@ -13,8 +13,11 @@
       <template v-else>
       <div class="input-section">
         <div class="horizontal-flex">
-          <input v-model="projectName" @input="updateWorkingDirectory" class="input-short" type="text" :placeholder="$t('placeholders.projectName')" ref="projectNameInput"
+          <input v-model="projectName" class="input-short" type="text" :placeholder="$t('placeholders.projectName')" ref="projectNameInput"
             @keydown.enter="handleEnterKey" v-focus />
+          <span @click="addExistingFolder" class="single-action-button" v-tooltip="$t('modals.addExistingFolder')">
+            <img class="small-icons" :src="getAppIcon('folder-arrow-in')">
+          </span>
         </div>
         <InputAlert :show="!projectIsCreated && projectNameInUse" :message="$t('modals.projectNameExists')" />
       </div>
@@ -33,9 +36,6 @@
             <img class="small-icons" :src="getAppIcon('plus-circle')">
           </span>
         </div>
-        <div v-if="workingDirectory" class="computed-path-display">
-          {{ $t('modals.finalPath') }} {{ workingDirectory }}
-        </div>
       </div>
 
       <div v-if="projectTemplateStore.projectTemplates.length" class="input-section drop-down-box-section">
@@ -43,8 +43,15 @@
           :onSelect="selectProjectTemplate" />
       </div>
 
+      <div v-if="showRemoteToggle" class="input-section" @click="makeRemote = !makeRemote">
+        <div class="horizontal-flex toggle-row">
+          <span class="input-label">{{ $t('modals.enableRemote') }}</span>
+          <ToggleSwitch :switchValueProp="makeRemote" :online="makeRemote" />
+        </div>
+      </div>
+
       <div class="pop-up-actions">
-        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :isActive="!isAwaitingResponse"  :colored="false" />
         <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createProject" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
@@ -64,11 +71,13 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import InputAlert from '@/instances/common/components/InputAlert.vue';
 import ProgressSection from '@/instances/common/components/ProgressSection.vue';
+import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // services
 import { DialogService, ProjectService, SettingsService, SyncService } from '@/services';
 
 // stores
+const accountStore = useAccountStore();
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
@@ -78,9 +87,11 @@ const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const projectTemplateStore = useProjectTemplateStore();
+const entitlementStore = useEntitlementStore();
 const stage = useStageStore();
 const { t } = useI18n();
 
+import { useAccountStore } from '@/stores/accounts';
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
@@ -91,11 +102,14 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useProjectTemplateStore } from '@/stores/project_template';
 import { useStageStore } from '@/stores/stages';
+import { useEntitlementStore } from '@/stores/entitlements';
 
 // refs
+const existingFolderPath = ref(null);
 const isAwaitingResponse = ref(false);
 const isCloning = ref(false);
 const isLoadingLocations = ref(false);
+const makeRemote = ref(false);
 const modalContainer = ref(null);
 const projectIsCreated = ref(false);
 const projectLocations = ref([]);
@@ -115,7 +129,7 @@ const isValueChanged = computed(() => {
 
 // Returns display names for location dropdown.
 const locationDisplayNames = computed(() => {
-  return projectLocations.value.map(loc => `${loc.name} - [${loc.path}]`);
+  return projectLocations.value.map(loc => `${loc.name}`);
 });
 
 // Returns whether the project name field is empty.
@@ -141,11 +155,17 @@ const restrictedNames = computed(() => {
 // Returns display string for currently selected location.
 const selectedLocationDisplay = computed(() => {
   if (!selectedLocation.value) return '';
-  return `${selectedLocation.value.name} - [${selectedLocation.value.path}]`;
+  return `${selectedLocation.value.name}`;
+});
+
+// Returns whether the remote toggle should be shown.
+const showRemoteToggle = computed(() => {
+  return accountStore.canUseRemoteFeatures && projectStore.selectedStudio?.name === 'Personal' && entitlementStore.canCreateRemoteProject;
 });
 
 // Returns the computed working directory path.
 const workingDirectory = computed(() => {
+  if (existingFolderPath.value) return existingFolderPath.value;
   if (!selectedLocation.value || !projectName.value) return '';
   const studioName = projectStore.selectedStudio.name;
   if (studioName === 'Personal') {
@@ -155,6 +175,33 @@ const workingDirectory = computed(() => {
 });
 
 // methods
+// Opens a folder dialog to select an existing project folder.
+const addExistingFolder = async () => {
+  const userDirectory = await SettingsService.GetUserDirectory();
+  const documentsPath = userDirectory + 'Documents';
+  const result = await DialogService.SelectSpecificFolderDialog("Select Existing Project Folder", documentsPath);
+  if (!result) return;
+  const path = result.replace(/\\/g, '/');
+  const pathParts = path.split('/');
+  const folderName = pathParts[pathParts.length - 1] || 'Project';
+  const parentPath = pathParts.slice(0, -1).join('/');
+  const parentName = pathParts[pathParts.length - 2] || `Location ${projectLocations.value.length + 1}`;
+  existingFolderPath.value = path;
+  projectName.value = folderName;
+  const existingLocation = projectLocations.value.find(loc => loc.path === parentPath);
+  if (existingLocation) {
+    selectedLocation.value = existingLocation;
+  } else {
+    try {
+      const newLocation = await SettingsService.AddProjectLocation(parentName, parentPath);
+      projectLocations.value.push(newLocation);
+      selectedLocation.value = newLocation;
+    } catch (error) {
+      notificationStore.errorNotification(t('notifications.errorAddingLocation'), error);
+    }
+  }
+};
+
 // Adds a new project location via folder dialog.
 const addNewLocation = async () => {
   const userDirectory = await SettingsService.GetUserDirectory();
@@ -209,7 +256,7 @@ const loadProjectLocations = async () => {
 // Selects a location from the dropdown by display name.
 const selectLocation = (displayName) => {
   const location = projectLocations.value.find(loc =>
-    `${loc.name} - [${loc.path}]` === displayName
+    `${loc.name}` === displayName
   );
   if (location) {
     selectedLocation.value = location;
@@ -246,7 +293,7 @@ const createProject = async () => {
   }
 
   isAwaitingResponse.value = true;
-
+  
   let studio = projectStore.selectedStudio
   let projectFilepath = studio.url
   let name = projectName.value;
@@ -257,12 +304,9 @@ const createProject = async () => {
     path = path + ".clst"
   }
   
-  console.log(path)
-  console.log(studio.name)
-  console.log(workingDirectory.value)
-  console.log(selectedProjectTemplate.value)
+  const templateName = selectedProjectTemplate.value === t('modals.noTemplate') ? 'No Template' : selectedProjectTemplate.value;
 
-  ProjectService.CreateProject(path, studio.name, workingDirectory.value, selectedProjectTemplate.value).then(async (project) => {
+  ProjectService.CreateProject(path, studio.name, workingDirectory.value, templateName, studio.hosting_mode || '', studio.id || '').then(async (project) => {
 
     projectIsCreated.value = true;
 
@@ -282,6 +326,8 @@ const createProject = async () => {
         
     if(studio.name !== 'Personal'){
       await cloneProject();
+    } else if (makeRemote.value) {
+      await makeProjectRemote(project);
     } else {
       closeModal();
     }
@@ -303,11 +349,11 @@ const cloneProject = async () => {
   const project = projectStore.activeProject;
   const studioDisplayName = projectStore.selectedStudio.name;
   const projectName = project.name;
-  const projectUrl = projectStore.getStudioUrl + '/' + projectName;
+  const projectUrl = project.remote || (projectStore.getStudioUrl + '/' + projectName);
   const syncOptions = {
     only_latest_checkpoints: true,
-    task_dependencies: true,
-    tasks: false,
+    asset_dependencies: true,
+    assets: false,
     templates: true,
   };
   notificationStore.cancleFunction = SyncService.CancelSync;
@@ -327,8 +373,8 @@ const cloneProject = async () => {
         await ProjectService.ApplyTemplate(localProjectPath, selectedProjectTemplate.value);
         const templateSyncOptions = {
           only_latest_checkpoints: false,
-          task_dependencies: false,
-          tasks: false,
+          asset_dependencies: false,
+          assets: false,
           templates: false,
         };
         try {
@@ -343,6 +389,11 @@ const cloneProject = async () => {
       }
     }
     await projectStore.refreshProjectsPreview();
+    if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
+      entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
+    } else {
+      entitlementStore.fetchEntitlements();
+    }
     closeModal();
   } catch (error) {
     console.error(error);
@@ -350,6 +401,35 @@ const cloneProject = async () => {
   } finally {
     stage.operationActive = false;
     isCloning.value = false;
+  }
+};
+
+// Makes a newly created project remote by uploading to server.
+const makeProjectRemote = async (project) => {
+  isCloning.value = true;
+  stage.operationActive = true;
+  try {
+    await ProjectService.MakeProjectRemote(project.uri);
+    const updatedInfo = await ProjectService.ProjectInfo(project.uri);
+    await projectStore.refreshProjects();
+    const updatedProject = projectStore.projects.find(p => p.name === project.name);
+    if (updatedProject) {
+      updatedProject.remote = updatedInfo.remote;
+      updatedProject.has_remote = updatedInfo.has_remote;
+      projectStore.activeProject = updatedProject;
+    }
+    closeModal();
+  } catch (error) {
+    console.error(error);
+    notificationStore.errorNotification(t('notifications.errorMakingProjectRemote'), error);
+  } finally {
+    stage.operationActive = false;
+    isCloning.value = false;
+    if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
+      entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
+    } else {
+      entitlementStore.fetchEntitlements();
+    }
   }
 };
 
@@ -361,7 +441,7 @@ const resetProjectData = () => {
   assetStore.assets = [];
   collectionStore.selectedCollection = null;
   assetStore.selectedAsset = null;
-  stage.expandedEntities = {};
+  stage.expandedCollections = {};
 };
 
 // watchers
@@ -408,8 +488,9 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  gap: .4px;
+  gap: .5rem;
   color: var(--white);
+
 }
 
 .input-short {
@@ -421,6 +502,13 @@ onMounted(async () => {
   flex: 1;
   width: 100%;
 }
+
+.toggle-row {
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+}
+
 </style>
 
 

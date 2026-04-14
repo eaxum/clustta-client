@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import {
   SettingsService,
 } from "@/services";
+import { useCollectionStore } from "@/stores/collections";
 
 let defaultViewMode = 'dense';
 await SettingsService.GetDefaultViewMode()
@@ -14,8 +15,8 @@ export const useCommonStore = defineStore("common", {
   state: () => ({
     activeFilters: [],
     resourceFilters: [],
-    taskFilters: [],
-    entityFilters: [],
+    assetFilters: [],
+    collectionFilters: [],
     hasAssignees: false,
     noAssignees: false,
     reloadFilters: false,
@@ -23,12 +24,12 @@ export const useCommonStore = defineStore("common", {
     hideExtensions: true,
     showThumbs: true,
     showUntracked: true,
-    showEntities: true,
-    showTasks: true,
+    showCollections: true,
+    showAssets: true,
     onlyAssets: false,
     showResources: true,
-    showChildEntities: true,
-    showChildTasks: true,
+    showChildCollections: true,
+    showChildAssets: true,
     showChildResources: true,
     showDependencies: true,
     useDeep: false,
@@ -62,12 +63,13 @@ export const useCommonStore = defineStore("common", {
         icon: "layers",
       },
       { name: "Dependencies", active: true, icon: "dependency" },
-      { name: "All Tasks/Resources", active: false, icon: "brush" },
+      { name: "All Assets/Resources", active: false, icon: "brush" },
       { name: "Templates", active: false, icon: "file" },
     ],
     workspaces: [],
     projectWorkflows: [],
     activeWorkspace: "Default",
+    savedWorkspaceSnapshot: null,
     ghostCardStyle: {
       leaving: false,
       pos: { x: 0, y: 0 },
@@ -77,29 +79,55 @@ export const useCommonStore = defineStore("common", {
     },
   }),
   getters: {
-    getEntities: (state) => {
-      return state.entities;
+    getCollections: (state) => {
+      return state.collections;
     },
-    getTasks: (state) => {
-      return state.tasks;
+    getAssets: (state) => {
+      return state.assets;
     },
     getResources: (state) => {
       return state.resources;
+    },
+    isWorkspaceDirty: (state) => {
+      if (!state.savedWorkspaceSnapshot) return false;
+      const snap = state.savedWorkspaceSnapshot;
+      const collectionStore = useCollectionStore();
+      const currentPath = collectionStore.navigatedCollection?.collection_path
+        || collectionStore.navigatedCollection?.item_path
+        || null;
+      return (
+        JSON.stringify(state.assetFilters) !== JSON.stringify(snap.assetFilters) ||
+        JSON.stringify(state.collectionFilters) !== JSON.stringify(snap.collectionFilters) ||
+        JSON.stringify(state.resourceFilters) !== JSON.stringify(snap.resourceFilters) ||
+        state.showCollections !== snap.showCollections ||
+        state.showAssets !== snap.showAssets ||
+        state.onlyAssets !== snap.onlyAssets ||
+        state.showResources !== snap.showResources ||
+        state.showChildCollections !== snap.showChildCollections ||
+        state.showChildAssets !== snap.showChildAssets ||
+        state.showChildResources !== snap.showChildResources ||
+        state.showDependencies !== snap.showDependencies ||
+        state.useDeep !== snap.useDeep ||
+        state.hasAssignees !== snap.hasAssignees ||
+        state.noAssignees !== snap.noAssignees ||
+        state.viewSearchQuery !== snap.workspaceSearchQuery ||
+        currentPath !== snap.collectionPath
+      );
     },
   },
   actions: {
     setActiveWorkspace(workspace) {
       this.activeWorkspace = workspace.name;
-      this.taskFilters = workspace.filters.taskFilters;
-      this.entityFilters = workspace.filters.entityFilters;
+      this.assetFilters = workspace.filters.assetFilters;
+      this.collectionFilters = workspace.filters.collectionFilters;
       this.resourceFilters = workspace.filters.resourceFilters;
 
-      this.showEntities = workspace.filters.showEntities;
-      this.showTasks = workspace.filters.showTasks;
+      this.showCollections = workspace.filters.showCollections;
+      this.showAssets = workspace.filters.showAssets;
       this.onlyAssets = workspace.filters.onlyAssets;
       this.showResources = workspace.filters.showResources;
-      this.showChildEntities = workspace.filters.showChildEntities;
-      this.showChildTasks = workspace.filters.showChildTasks;
+      this.showChildCollections = workspace.filters.showChildCollections;
+      this.showChildAssets = workspace.filters.showChildAssets;
       this.showChildResources = workspace.filters.showChildResources;
       this.showDependencies = workspace.filters.showDependencies;
       this.useDeep = workspace.filters.useDeep;
@@ -108,21 +136,64 @@ export const useCommonStore = defineStore("common", {
       this.noAssignees = workspace.filters.noAssignees;
 
       this.workspaceSearchQuery = workspace.workspaceSearchQuery;
+      this.viewSearchQuery = workspace.workspaceSearchQuery || '';
+      this.snapshotWorkspace();
+    },
+    snapshotWorkspace() {
+      const collectionStore = useCollectionStore();
+      this.savedWorkspaceSnapshot = {
+        assetFilters: JSON.parse(JSON.stringify(this.assetFilters)),
+        collectionFilters: JSON.parse(JSON.stringify(this.collectionFilters)),
+        resourceFilters: JSON.parse(JSON.stringify(this.resourceFilters)),
+        showCollections: this.showCollections,
+        showAssets: this.showAssets,
+        onlyAssets: this.onlyAssets,
+        showResources: this.showResources,
+        showChildCollections: this.showChildCollections,
+        showChildAssets: this.showChildAssets,
+        showChildResources: this.showChildResources,
+        showDependencies: this.showDependencies,
+        useDeep: this.useDeep,
+        hasAssignees: this.hasAssignees,
+        noAssignees: this.noAssignees,
+        workspaceSearchQuery: this.viewSearchQuery,
+        collectionPath: collectionStore.navigatedCollection?.collection_path
+          || collectionStore.navigatedCollection?.item_path
+          || null,
+      };
+    },
+    getCurrentWorkspaceState() {
+      return {
+        assetFilters: this.assetFilters,
+        collectionFilters: this.collectionFilters,
+        resourceFilters: this.resourceFilters,
+        showCollections: this.showCollections,
+        showAssets: this.showAssets,
+        onlyAssets: this.onlyAssets,
+        showResources: this.showResources,
+        showChildCollections: this.showChildCollections,
+        showChildAssets: this.showChildAssets,
+        showChildResources: this.showChildResources,
+        showDependencies: this.showDependencies,
+        useDeep: this.useDeep,
+        hasAssignees: this.hasAssignees,
+        noAssignees: this.noAssignees,
+      };
     },
     resetFilters() {
-      (this.showEntities = true),
-        (this.showTasks = true),
+      (this.showCollections = true),
+        (this.showAssets = true),
         (this.onlyAssets = false),
         (this.showResources = true),
-        (this.showChildEntities = true),
-        (this.showChildTasks = true),
+        (this.showChildCollections = true),
+        (this.showChildAssets = true),
         (this.showChildResources = true),
         (this.useDeep = false);
       this.hasAssignees = false;
       this.noAssignees = false;
       this.showDependencies = true;
-      this.taskFilters = [];
-      this.entityFilters = [];
+      this.assetFilters = [];
+      this.collectionFilters = [];
       this.resourceFilters = [];
       this.workspaceSearchQuery = "";
       this.viewSearchQuery = "";

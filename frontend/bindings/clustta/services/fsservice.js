@@ -259,6 +259,7 @@ export function JoinPath(...elem) {
 
 /**
  * LaunchFile opens a file with its default system application.
+ * Validates the path exists before opening to prevent command injection.
  * @param {string} path
  * @returns {$CancellablePromise<void>}
  */
@@ -268,7 +269,7 @@ export function LaunchFile(path) {
 
 /**
  * LaunchFileWith opens the Windows "Open With" dialog for a file.
- * Returns an error if the operation fails.
+ * Validates the path exists before opening to prevent command injection.
  * @param {string} path
  * @returns {$CancellablePromise<void>}
  */
@@ -342,6 +343,15 @@ export function RevealInExplorer(path) {
  */
 export function SetApp(app) {
     return $Call.ByID(4086601803, app);
+}
+
+/**
+ * SetProjectContext registers the working directory of the given project as an allowed path for file operations.
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetProjectContext(projectPath) {
+    return $Call.ByID(1624105692, projectPath);
 }
 
 /**

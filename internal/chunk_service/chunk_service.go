@@ -1,45 +1,8 @@
 package chunk_service
 
-// def get_non_existing_chunks(chunks: str | list) -> list[str]:
-//     """
-//     Check if the chunks are valid.
-//     """
-//     if isinstance(chunks, str):
-//         chunks: list = chunks.split(",")
-//     non_existent_chunks = []
-//     environment = lmdb.open(chunks_db.as_posix(), readonly=True)
-//     with environment.begin() as txn:
-//         for chunk in chunks:
-//             if chunk in non_existent_chunks:
-//                 continue
-//             if not txn.get(chunk.encode()):
-//                 non_existent_chunks.append(chunk)
-//     environment.close()
-//     return non_existent_chunks
-
-// def write_chunks(chunks: bytes) -> list[str]:
-//     """
-//     Write chunks to the database. Return a list of failed chunks.
-//     Chunks are encoded in TLV format.
-//     The tag is a 32-byte hash, the length is a 3-byte integer, and the value is the binary data.
-//     """
-//     environment = lmdb.open(chunks_db.as_posix())
-//     failed_chunks = []
-//     with environment.begin(write=True) as txn:
-//         while chunks:
-//             tag = chunks[:32]
-//             length = int.from_bytes(chunks[32:35], "big")
-//             value = chunks[35 : 35 + length]
-//             chunks = chunks[35 + length :]
-//             if hashlib.sha256(value).digest() != tag:
-//                 failed_chunks.append(tag.hex())
-//                 continue
-//             txn.put(tag, value)
-//     environment.close()
-//     return failed_chunks
-
 import (
 	"bytes"
+	"clustta/internal/auth_service"
 	"clustta/internal/constants"
 	"clustta/internal/utils"
 	"context"
@@ -50,12 +13,49 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"strings"
+	"sync"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	kzstd "github.com/klauspost/compress/zstd"
 	_ "github.com/mattn/go-sqlite3"
 )
+
+// idleTimeoutConn wraps a net.Conn and resets the read deadline on every Read call.
+// If no data arrives within the idle duration, the connection is closed.
+type idleTimeoutConn struct {
+	net.Conn
+	idle time.Duration
+}
+
+func (c *idleTimeoutConn) Read(b []byte) (int, error) {
+	c.Conn.SetReadDeadline(time.Now().Add(c.idle))
+	return c.Conn.Read(b)
+}
+
+// streamTransport returns an HTTP transport suited for long-running downloads.
+// It enforces a 30s header wait and kills reads that stall for more than 60s.
+func streamTransport() *http.Transport {
+	return &http.Transport{
+		ResponseHeaderTimeout: 30 * time.Second,
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			conn, err := (&net.Dialer{Timeout: 15 * time.Second}).DialContext(ctx, network, addr)
+			if err != nil {
+				return nil, err
+			}
+			return &idleTimeoutConn{Conn: conn, idle: 60 * time.Second}, nil
+		},
+	}
+}
+
+// IsR2Remote returns true if the remote URL points to an R2-backed project on the central server.
+// This includes both personal projects (/user/) and cloud studio projects (/studio/).
+func IsR2Remote(remoteUrl string) bool {
+	return strings.Contains(remoteUrl, "/user/") || strings.Contains(remoteUrl, "/studio/")
+}
 
 type Chunk struct {
 	Hash string `db:"hash" json:"hash"`
@@ -288,7 +288,7 @@ func PullChunks(ctx context.Context, projectPath, remoteUrl string, chunkInfos [
 	}
 
 	dataUrl := remoteUrl + "/chunks"
-	client := &http.Client{}
+	client := &http.Client{Transport: streamTransport()}
 
 	totalChunksSize := 0
 	for _, chunkInfo := range chunkInfos {
@@ -314,6 +314,7 @@ func PullChunks(ctx context.Context, projectPath, remoteUrl string, chunkInfos [
 				return err
 			}
 			req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+			auth_service.AttachBearerToken(req)
 			response, err := client.Do(req)
 			if err != nil {
 				return err
@@ -552,13 +553,18 @@ func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missin
 		return ctx.Err()
 	}
 
+	// Use presigned URLs for R2-backed projects (personal or cloud studio).
+	if IsR2Remote(remoteUrl) {
+		return PullChunksPresigned(ctx, projectPath, remoteUrl, missingChunkHashes, allChunkHashes, totalSize, callback)
+	}
+
 	downloadedSize, _, chunksCountMap, err := ProcessDownloadedChunksProgress(ctx, projectPath, remoteUrl, missingChunkHashes, allChunkHashes, totalSize, callback)
 	if err != nil {
 		return err
 	}
 
 	dataUrl := remoteUrl + "/stream-chunks"
-	client := &http.Client{}
+	client := &http.Client{Transport: streamTransport()}
 
 	if utils.IsValidURL(remoteUrl) {
 		if ctx.Err() != nil {
@@ -577,6 +583,7 @@ func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missin
 			return err
 		}
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
 		response, err := client.Do(req)
 		if err != nil {
 			return err
@@ -606,9 +613,362 @@ func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missin
 	return nil
 }
 
+// PullChunksPresigned fetches presigned R2 URLs from the server and downloads
+// chunks directly from R2 with bounded concurrency.
+func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, missingChunkHashes []string, allChunkHashes []string, totalSize int, callback func(int, int, string, string)) error {
+	downloadedSize, _, chunksCountMap, err := ProcessDownloadedChunksProgress(ctx, projectPath, remoteUrl, missingChunkHashes, allChunkHashes, totalSize, callback)
+	if err != nil {
+		return err
+	}
+
+	urlsEndpoint := remoteUrl + "/chunk-urls"
+	data := map[string]any{"chunks": missingChunkHashes}
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", urlsEndpoint, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to get chunk URLs: %s", string(body))
+	}
+
+	var urlsResponse struct {
+		URLs map[string]string `json:"urls"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&urlsResponse)
+	if err != nil {
+		return fmt.Errorf("failed to decode chunk URLs: %w", err)
+	}
+
+	type chunkResult struct {
+		hash string
+		data []byte
+		err  error
+	}
+
+	const maxConcurrency = 8
+	resultsCh := make(chan chunkResult, len(urlsResponse.URLs))
+	sem := make(chan struct{}, maxConcurrency)
+	var wg sync.WaitGroup
+
+	for hash, url := range urlsResponse.URLs {
+		wg.Add(1)
+		go func(h, u string) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			if ctx.Err() != nil {
+				resultsCh <- chunkResult{hash: h, err: ctx.Err()}
+				return
+			}
+
+			dlReq, err := http.NewRequestWithContext(ctx, "GET", u, nil)
+			if err != nil {
+				resultsCh <- chunkResult{hash: h, err: err}
+				return
+			}
+			dlResp, err := http.DefaultClient.Do(dlReq)
+			if err != nil {
+				resultsCh <- chunkResult{hash: h, err: err}
+				return
+			}
+			defer dlResp.Body.Close()
+
+			if dlResp.StatusCode != 200 {
+				resultsCh <- chunkResult{hash: h, err: fmt.Errorf("download failed for chunk %s: status %d", h, dlResp.StatusCode)}
+				return
+			}
+
+			chunkData, err := io.ReadAll(dlResp.Body)
+			if err != nil {
+				resultsCh <- chunkResult{hash: h, err: err}
+				return
+			}
+			resultsCh <- chunkResult{hash: h, data: chunkData}
+		}(hash, url)
+	}
+
+	go func() {
+		wg.Wait()
+		close(resultsCh)
+	}()
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+
+	decoder, err := kzstd.NewReader(nil)
+	if err != nil {
+		return err
+	}
+	defer decoder.Close()
+
+	savedSize := 0
+	for result := range resultsCh {
+		if result.err != nil {
+			return result.err
+		}
+
+		compressedData := result.data
+		decompressedData, err := decoder.DecodeAll(compressedData, nil)
+		if err != nil {
+			return fmt.Errorf("decompression failed for chunk %s: %w", result.hash, err)
+		}
+
+		hashBytes := sha256.Sum256(decompressedData)
+		expectedHash, err := hex.DecodeString(result.hash)
+		if err != nil {
+			return fmt.Errorf("invalid hash %s: %w", result.hash, err)
+		}
+		if !bytes.Equal(hashBytes[:], expectedHash) {
+			return fmt.Errorf("hash mismatch for chunk %s", result.hash)
+		}
+
+		tx, err := dbConn.Beginx()
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.Exec("INSERT INTO chunk (hash, data, size) VALUES (?, ?, ?)",
+			result.hash, compressedData, len(decompressedData))
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("error inserting chunk: %w", err)
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			return fmt.Errorf("error writing chunk: %w", err)
+		}
+
+		compressedSize := len(compressedData)
+		size := len(decompressedData)
+		downloadedSize += size * chunksCountMap[result.hash]
+		savedSize += size - compressedSize
+		if chunksCountMap[result.hash] > 1 {
+			savedSize += size * (chunksCountMap[result.hash] - 1)
+		}
+
+		message := fmt.Sprintf("Receiving %s/%s", utils.BytesToHumanReadable(downloadedSize), utils.BytesToHumanReadable(totalSize))
+		extraMessage := ""
+		dataSavedPercentage := 0.0
+		if totalSize > 0 {
+			dataSavedPercentage = (float64(savedSize) / float64(downloadedSize)) * 100
+		}
+		if savedSize > 0 {
+			extraMessage = fmt.Sprintf("Data saved: %s (%.2f%%)", utils.BytesToHumanReadable(savedSize), dataSavedPercentage)
+		}
+		callback(downloadedSize, totalSize, message, extraMessage)
+	}
+
+	return nil
+}
+
+// PushChunksPresigned uploads chunks directly to R2 using presigned PUT URLs.
+// Phase 1: request upload URLs from server. Phase 2: upload to R2. Phase 3: confirm with server.
+func PushChunksPresigned(tx *sqlx.Tx, remoteUrl string, chunkInfos []ChunkInfo, callback func(int, int, string, string)) error {
+	totalChunksSize := 0
+	for _, ci := range chunkInfos {
+		totalChunksSize += ci.Size
+	}
+	processedChunks := 0
+
+	// Phase 1: Request presigned PUT URLs from the server
+	type chunkEntry struct {
+		Hash string `json:"hash"`
+		Size int64  `json:"size"`
+	}
+	entries := make([]chunkEntry, len(chunkInfos))
+	for i, ci := range chunkInfos {
+		entries[i] = chunkEntry{Hash: ci.Hash, Size: int64(ci.Size)}
+	}
+
+	reqBody, err := json.Marshal(map[string]any{"chunks": entries})
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", remoteUrl+"/chunk-upload-urls", bytes.NewBuffer(reqBody))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to get upload URLs: %s", string(body))
+	}
+
+	var urlsResponse struct {
+		URLs     map[string]string `json:"urls"`
+		Existing []string          `json:"existing"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&urlsResponse)
+	if err != nil {
+		return fmt.Errorf("failed to decode upload URLs: %w", err)
+	}
+
+	// Account for already-existing chunks in progress
+	existingSet := make(map[string]bool, len(urlsResponse.Existing))
+	for _, hash := range urlsResponse.Existing {
+		existingSet[hash] = true
+	}
+	for _, ci := range chunkInfos {
+		if existingSet[ci.Hash] {
+			processedChunks += ci.Size
+		}
+	}
+	if processedChunks > 0 {
+		message := fmt.Sprintf("Sending %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
+		callback(processedChunks, totalChunksSize, message, "")
+	}
+
+	if len(urlsResponse.URLs) == 0 {
+		return nil
+	}
+
+	// Phase 2: Upload chunks directly to R2
+	type uploadResult struct {
+		hash string
+		size int
+		err  error
+	}
+
+	const maxConcurrency = 8
+	resultsCh := make(chan uploadResult, len(urlsResponse.URLs))
+	sem := make(chan struct{}, maxConcurrency)
+	var wg sync.WaitGroup
+
+	// Build a size lookup for progress
+	sizeMap := make(map[string]int, len(chunkInfos))
+	for _, ci := range chunkInfos {
+		sizeMap[ci.Hash] = ci.Size
+	}
+
+	for hash, url := range urlsResponse.URLs {
+		var chunkData []byte
+		err := tx.Get(&chunkData, "SELECT data FROM chunk WHERE hash = ?", hash)
+		if err != nil {
+			return fmt.Errorf("error reading chunk %s: %w", hash, err)
+		}
+
+		wg.Add(1)
+		go func(h, u string, data []byte) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			uploadReq, err := http.NewRequest("PUT", u, bytes.NewReader(data))
+			if err != nil {
+				resultsCh <- uploadResult{hash: h, err: err}
+				return
+			}
+			uploadReq.Header.Set("Content-Type", "application/octet-stream")
+			uploadReq.ContentLength = int64(len(data))
+
+			uploadResp, err := http.DefaultClient.Do(uploadReq)
+			if err != nil {
+				resultsCh <- uploadResult{hash: h, err: err}
+				return
+			}
+			defer uploadResp.Body.Close()
+
+			if uploadResp.StatusCode != 200 {
+				resultsCh <- uploadResult{hash: h, err: fmt.Errorf("R2 upload failed for chunk %s: status %d", h, uploadResp.StatusCode)}
+				return
+			}
+
+			resultsCh <- uploadResult{hash: h, size: sizeMap[h]}
+		}(hash, url, chunkData)
+	}
+
+	go func() {
+		wg.Wait()
+		close(resultsCh)
+	}()
+
+	var uploadedHashes []string
+	for result := range resultsCh {
+		if result.err != nil {
+			return result.err
+		}
+		uploadedHashes = append(uploadedHashes, result.hash)
+		processedChunks += result.size
+		message := fmt.Sprintf("Sending %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
+		callback(processedChunks, totalChunksSize, message, "")
+	}
+
+	// Phase 3: Confirm uploads with the server
+	confirmBody, err := json.Marshal(map[string]any{"chunks": uploadedHashes})
+	if err != nil {
+		return err
+	}
+
+	confirmReq, err := http.NewRequest("POST", remoteUrl+"/chunk-upload-confirm", bytes.NewBuffer(confirmBody))
+	if err != nil {
+		return err
+	}
+	confirmReq.Header.Set("Content-Type", "application/json")
+	confirmReq.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(confirmReq)
+
+	confirmResp, err := client.Do(confirmReq)
+	if err != nil {
+		return err
+	}
+	defer confirmResp.Body.Close()
+
+	if confirmResp.StatusCode != 200 {
+		body, _ := io.ReadAll(confirmResp.Body)
+		return fmt.Errorf("failed to confirm uploads: %s", string(body))
+	}
+
+	var confirmResponse struct {
+		FailedChunks []string `json:"failed_chunks"`
+	}
+	err = json.NewDecoder(confirmResp.Body).Decode(&confirmResponse)
+	if err != nil {
+		return fmt.Errorf("failed to decode confirm response: %w", err)
+	}
+
+	if len(confirmResponse.FailedChunks) > 0 {
+		return fmt.Errorf("server failed to confirm %d chunks", len(confirmResponse.FailedChunks))
+	}
+
+	return nil
+}
+
 func PushChunks(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []ChunkInfo, callback func(int, int, string, string)) error {
 	dataUrl := remoteUrl + "/chunks"
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 
 	totalChunksSize := 0
 	for _, chunkInfo := range chunkInfos {
@@ -637,6 +997,7 @@ func PushChunks(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []Chunk
 				return err
 			}
 			req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+			auth_service.AttachBearerToken(req)
 
 			response, err := client.Do(req)
 			if err != nil {
@@ -698,11 +1059,16 @@ func PushChunks(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []Chunk
 }
 
 func PushChunksBatch(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []ChunkInfo, callback func(int, int, string, string)) error {
+	// Use presigned uploads for R2-backed projects (personal or cloud studio).
+	if IsR2Remote(remoteUrl) {
+		return PushChunksPresigned(tx, remoteUrl, chunkInfos, callback)
+	}
+
 	// const batchSizeLimit = 1 << 20 // 1 MB
 	const batchSizeLimit = 512 * 1024 // 512 KB
 
 	dataUrl := remoteUrl + "/chunks"
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 
 	totalChunksSize := 0
 	for _, chunkInfo := range chunkInfos {
@@ -727,6 +1093,7 @@ func PushChunksBatch(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []
 				return err
 			}
 			req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+			auth_service.AttachBearerToken(req)
 			resp, err := client.Do(req)
 			if err != nil {
 				return err

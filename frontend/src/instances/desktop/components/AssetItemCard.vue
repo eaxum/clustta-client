@@ -1,38 +1,38 @@
 <template>
-  <div class="entity-item-wrapper" @click="console.log(task)">
+  <div class="collection-item-wrapper" @click="console.log(asset)">
     <!-- thumbnail -->
-    <div v-if="commonStore.showThumbs" class="entity-item-preview-container">
-      <div class="entity-item-preview-image">
-        <img v-if="task.preview" class="screenshot-thumb" :src="task.preview">
+    <div v-if="commonStore.showThumbs" class="collection-item-preview-container">
+      <div class="collection-item-preview-image">
+        <img v-if="asset.preview" class="screenshot-thumb" :src="asset.preview">
       </div>
     </div>
     <!-- name and app icon -->
-    <div class="entity-item-data">
-      <div class="entity-item-content">
-        <div v-if="task.task_type_icon && !commonStore.showThumbs" class="entity-item-type-container">
-          <img  class="large-icons" :src="getAppIcon(task.task_type_icon)">
+    <div class="collection-item-data">
+      <div class="collection-item-content">
+        <div v-if="asset.asset_type_icon && !commonStore.showThumbs" class="collection-item-type-container">
+          <img  class="large-icons" :src="getAppIcon(asset.asset_type_icon)">
         </div>
-        <div class="entity-item-info">
-          <div class="entity-item-text">
-            {{ utils.capitalizeStr(task.name) }}
+        <div class="collection-item-info">
+          <div class="collection-item-text">
+            {{ utils.capitalizeStr(asset.name) }}
           </div>
         </div>
-        <div class="entity-item-icon-container">
-          <img v-if="task.icon" class="large-icons no-filter" :src="task.icon">
+        <div class="collection-item-icon-container">
+          <img v-if="asset.icon" class="large-icons no-filter" :src="asset.icon">
         </div>
       </div>
       <!-- assignee -->
-      <div v-if="task.assignee_id" class="entity-item-assignee">
+      <div v-if="asset.assignee_id" class="collection-item-assignee">
         <div class="single-action-button" v-tooltip="userFullName">
-          <div class="profile-picture" :style="{ backgroundColor: profileColor(task.assignee_id) }">
+          <div class="profile-picture" :style="{ backgroundColor: profileColor(asset.assignee_id) }">
               <img v-if="userPhoto" class="profile-img" :src="userPhoto">
-              <img v-else class="profile-img" :src="generateAvatar(task.assignee_id)">
+              <img v-else class="profile-img" :src="generateAvatar(asset.assignee_id)">
           </div>
         </div>
       </div>
-      <div v-else class="entity-item-assignee">
+      <div v-else class="collection-item-assignee">
         <div class="single-action-button">
-          <div class="entity-item-unassigned">
+          <div class="collection-item-unassigned">
             <!-- Not Assigned -->
           </div>
         </div>
@@ -79,14 +79,14 @@ const getAppIcon = (iconName) => {
 
 // props
 const props = defineProps({
-  task: Object,
+  asset: Object,
   index: Number,
 });
 
 // refs
 
 const userFullName = computed(() => {
-  let user = userStore.getUserData(props.task.assignee_id);
+  let user = userStore.getUserData(props.asset.assignee_id);
   if (!user) {
     return 'No User'
   } else {
@@ -95,7 +95,7 @@ const userFullName = computed(() => {
 });
 
 const userPhoto = computed(() => {
-  const userPhoto = userStore.userProfilePhoto(props.task.assignee_id);
+  const userPhoto = userStore.userProfilePhoto(props.asset.assignee_id);
   return userPhoto
 });
 
@@ -111,7 +111,7 @@ const profileColor = (uuid) => {
 <style scoped>
 @import "@/assets/desktop.css";
 
-.entity-item-wrapper {
+.collection-item-wrapper {
   display: flex;
   gap: .2rem;
   color: var(--white);
@@ -129,12 +129,12 @@ const profileColor = (uuid) => {
 }
 
 
-.entity-item-wrapper:hover {
+.collection-item-wrapper:hover {
   outline: var(--transparent-line);
   outline-offset: -1.5px;
 }
 
-.entity-item-root {
+.collection-item-root {
   display: flex;
   flex-direction: column;
   gap: .5rem;
@@ -150,16 +150,16 @@ const profileColor = (uuid) => {
   /* transition: all .3s ease-out; */
 }
 
-/* .entity-item-root:hover>*:last-child {
+/* .collection-item-root:hover>*:last-child {
   opacity: 0;
   transition: opacity 0.2s ease-in-out;
 } */
 
-.entity-item-root-minimized {
+.collection-item-root-minimized {
   width: 100%;
 }
 
-.entity-item-container {
+.collection-item-container {
   display: flex;
   flex-direction: column;
   gap: .5rem;
@@ -175,21 +175,21 @@ const profileColor = (uuid) => {
   border-radius: var(--normal-radius);
 }
 
-.entity-item-container-minimized {
+.collection-item-container-minimized {
   justify-content: center;
 }
 
-.entity-item-container-selected {
+.collection-item-container-selected {
   outline: 1.5px solid rgb(255, 255, 255);
   outline-offset: -1.5px;
 }
 
-.entity-item-container-selected:hover {
+.collection-item-container-selected:hover {
   outline: 1.5px solid rgb(255, 255, 255);
   outline-offset: -1.5px;
 }
 
-.entity-item-preview-container {
+.collection-item-preview-container {
 
   display: flex;
   box-sizing: border-box;
@@ -205,7 +205,7 @@ const profileColor = (uuid) => {
   border-radius: var(--large-radius);
 }
 
-.entity-item-preview-image {
+.collection-item-preview-image {
   display: flex;
   position: relative;
   box-sizing: border-box;
@@ -220,7 +220,7 @@ const profileColor = (uuid) => {
   pointer-events: none;
 }
 
-.entity-item-type-container {
+.collection-item-type-container {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -232,7 +232,7 @@ const profileColor = (uuid) => {
   /* background-color: firebrick; */
 }
 
-.entity-item-icon-container {
+.collection-item-icon-container {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -244,7 +244,7 @@ const profileColor = (uuid) => {
   /* background-color: firebrick; */
 }
 
-.entity-item-content {
+.collection-item-content {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -257,7 +257,7 @@ const profileColor = (uuid) => {
   overflow: hidden;
 }
 
-.entity-item-data {
+.collection-item-data {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -273,7 +273,7 @@ const profileColor = (uuid) => {
   overflow: hidden;
 }
 
-.entity-item-info {
+.collection-item-info {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -285,7 +285,7 @@ const profileColor = (uuid) => {
   overflow: hidden;
 }
 
-.entity-item-text {
+.collection-item-text {
   padding: .2rem;
   flex-wrap: nowrap;
   overflow: hidden;
@@ -300,7 +300,7 @@ const profileColor = (uuid) => {
   /* font-weight: 200; */
 }
 
-.entity-item-meta {
+.collection-item-meta {
   display: flex;
   padding: .2rem;
   box-sizing: border-box;
@@ -312,7 +312,7 @@ const profileColor = (uuid) => {
   /* background-color: rosybrown; */
 }
 
-.entity-item-type-indicator {
+.collection-item-type-indicator {
   color: rgb(219, 219, 219);
   color: var(--white);
   background-color: rgba(0, 0, 0, 0.216);
@@ -321,7 +321,7 @@ const profileColor = (uuid) => {
   font-size: 12px;
 }
 
-.entity-item-tag {
+.collection-item-tag {
   display: flex;
   box-sizing: border-box;
   overflow: hidden;
@@ -332,7 +332,7 @@ const profileColor = (uuid) => {
 }
 
 
-.entity-item-assignee {
+.collection-item-assignee {
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -347,18 +347,18 @@ const profileColor = (uuid) => {
   /* flex: 1; */
 }
 
-.entity-item-assignee-name {
+.collection-item-assignee-name {
   font-size: 14px;
 }
 
-.entity-item-unassigned {
+.collection-item-unassigned {
   font-size: 14px;
   opacity: .5;
   /* font-weight: 100; */
   font-style: italic;
 }
 
-.entity-item-actions {
+.collection-item-actions {
   display: flex;
   box-sizing: border-box;
   align-items: center;

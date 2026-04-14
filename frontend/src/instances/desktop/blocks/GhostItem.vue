@@ -2,10 +2,10 @@
   <div v-if="data" class="ghost-card" :class="ghostCardClasses" :style="ghostCardStyles">
     <div class="ghost-item-main">
       <div v-if="stage.markedItems.length === 1" class="ghost-item-wrapper">
-        <Collection v-if="data.type === 'entity'" :loadingChildren="false" :isGhost="true" :entity="data" :index="index" />
-        <Asset v-if="data.type === 'task'" :loadingAssetState="false" :isGhost="true" :task="data" :index="index" />
-        <Collection v-if="data.type === 'untracked_entity'" :isGhost="true" :isUntracked="true" :entity="data" :index="index" />
-        <Asset v-if="data.type === 'untracked_task'" :isGhost="true" :isUntracked="true" :task="data" :index="index" />
+        <Collection v-if="data.type === 'collection'" :loadingChildren="false" :isGhost="true" :collection="data" :index="index" />
+        <Asset v-if="data.type === 'asset'" :loadingAssetState="false" :isGhost="true" :asset="data" :index="index" />
+        <Collection v-if="data.type === 'untracked_collection'" :isGhost="true" :isUntracked="true" :collection="data" :index="index" />
+        <Asset v-if="data.type === 'untracked_asset'" :isGhost="true" :isUntracked="true" :asset="data" :index="index" />
       </div>
       <div v-else-if="stage.markedItems.length" class="single-ghost-item">
         <div class="box depth-1">{{ $t('blocks.itemsSelected', { count: stage.markedItems.length }) }} {{ dropMessage }}</div>
@@ -66,13 +66,13 @@ const dropMessage = computed(() => {
       return t('blocks.releaseToMoveToRoot');
     }
 
-    if (targetItemType === 'untracked_task') {
+    if (targetItemType === 'untracked_asset') {
       isErrMsg.value = true;
       return t('blocks.cannotDropUntracked', { name: targetItem.name });
     }
 
-    if (targetItemType === 'untracked_entity') {
-      if (draggedItemType === 'untracked_task' || draggedItemType === 'untracked_entity') {
+    if (targetItemType === 'untracked_collection') {
+      if (draggedItemType === 'untracked_asset' || draggedItemType === 'untracked_collection') {
         isErrMsg.value = false;
         return t('blocks.releaseToMoveIntoFolder');
       } else {
@@ -81,13 +81,13 @@ const dropMessage = computed(() => {
       }
     }
 
-    if (targetItemType === 'entity') {
+    if (targetItemType === 'collection') {
       isErrMsg.value = false;
       return t('blocks.releaseToMoveInto', { name: targetItem.name });
     }
 
-    if (targetItemType === 'task') {
-      if (draggedItemType === 'entity' || draggedItemType === 'task') {
+    if (targetItemType === 'asset') {
+      if (draggedItemType === 'collection' || draggedItemType === 'asset') {
         isErrMsg.value = false;
         return t('blocks.releaseToMakeDependency', { name: targetItem.name });
       } else {

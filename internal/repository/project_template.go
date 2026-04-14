@@ -131,7 +131,7 @@ func loadTemplateDefinitions() (*ProjectTemplatesConfig, error) {
 
 // createDefaultTemplate creates a new template .clst file with the specified metadata
 func createDefaultTemplate(templatePath string, templateDef ProjectTemplateDefinition, user auth_service.User) error {
-	_, err := CreateProject(templatePath, "Personal", "", "", user)
+	_, err := CreateProject(templatePath, "Personal", "", "", "", user)
 	if err != nil {
 		log.Printf("Failed to create template project: %v", err)
 		return fmt.Errorf("failed to create template project: %w", err)
@@ -158,7 +158,7 @@ func createDefaultTemplate(templatePath string, templateDef ProjectTemplateDefin
 	}
 
 	for _, assetType := range templateDef.AssetTypes {
-		_, err = GetOrCreateTaskType(tx, assetType.Name, assetType.Icon)
+		_, err = GetOrCreateAssetType(tx, assetType.Name, assetType.Icon)
 		if err != nil {
 			if strings.Contains(err.Error(), "UNIQUE constraint failed") {
 				continue
@@ -169,7 +169,7 @@ func createDefaultTemplate(templatePath string, templateDef ProjectTemplateDefin
 	}
 
 	for _, collectionType := range templateDef.CollectionTypes {
-		_, err = GetOrCreateEntityType(tx, collectionType.Name, collectionType.Icon)
+		_, err = GetOrCreateCollectionType(tx, collectionType.Name, collectionType.Icon)
 		if err != nil {
 			if strings.Contains(err.Error(), "UNIQUE constraint failed") {
 				continue

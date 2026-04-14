@@ -50,6 +50,7 @@
 // imports
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { formatLabel, permissionGroups } from '@/lib/permissions';
 
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
@@ -82,14 +83,14 @@ const defaultRole = {
   "mtime": 1738949861,
   "name": "artist",
   "synced": true,
-  "view_entity": false,
-  "create_entity": false,
-  "update_entity": false,
-  "delete_entity": false,
-  "view_task": false,
-  "create_task": false,
-  "update_task": false,
-  "delete_task": false,
+  "view_collection": false,
+  "create_collection": false,
+  "update_collection": false,
+  "delete_collection": false,
+  "view_asset": false,
+  "create_asset": false,
+  "update_asset": false,
+  "delete_asset": false,
   "view_template": false,
   "create_template": false,
   "update_template": false,
@@ -98,29 +99,20 @@ const defaultRole = {
   "create_checkpoint": true,
   "delete_checkpoint": false,
   "pull_chunk": true,
-  "assign_task": false,
-  "unassign_task": false,
+  "assign_asset": false,
+  "unassign_asset": false,
   "add_user": false,
   "remove_user": false,
   "change_role": false,
   "change_status": true,
-  "set_done_task": false,
-  "set_retake_task": false,
-  "view_done_task": false,
+  "set_done_asset": false,
+  "set_retake_asset": false,
+  "view_done_asset": false,
   "manage_dependencies": false,
+  "manage_share_links": false,
 };
 
 const initialSettings = ref({ ...defaultRole });
-
-const permissionGroups = {
-  tasks: ['view_task', 'create_task', 'update_task', 'delete_task', 'manage_dependencies'],
-  assignation: ['assign_task', 'unassign_task'],
-  entities: ['view_entity', 'create_entity', 'update_entity', 'delete_entity'],
-  users: ['add_user', 'remove_user', 'change_role'],
-  status: ['view_done_task', 'change_status', 'set_done_task', 'set_retake_task'],
-  templates: ['view_template', 'create_template', 'update_template', 'delete_template'],
-  checkpoints: ['view_checkpoint', 'create_checkpoint', 'delete_checkpoint', 'pull_chunk'],
-};
 
 const roleParameters = ref({ ...defaultRole });
 const showSearch = false;
@@ -183,14 +175,6 @@ const escape = () => {
   modals.setModalVisibility('addRoleModal', false);
 };
 
-// Formats a permission key to display label.
-const formatLabel = (key) => {
-  return key.replace(/_/g, ' ')
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-};
-
 // Handles enter key press to trigger add role.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter') {
@@ -206,6 +190,10 @@ const toggleField = (key) => {
 
 <style scoped>
 @import "@/assets/desktop.css";
+
+.general-container{
+  min-width: 500px;
+}
 
 .horizontal-flex {
   font-weight: 400;
@@ -297,7 +285,7 @@ const toggleField = (key) => {
   display: flex;
   gap: 10px;
   align-items: center;
-  padding-left: .3rem;
+  padding: .3rem;
   min-width: max-content;
   min-height: max-content;
   width: 100%;

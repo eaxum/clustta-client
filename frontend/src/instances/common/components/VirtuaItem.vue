@@ -2,25 +2,25 @@
   <div ref="virtuaItemRef" class="virtua-item" :style="{ '--depth': depth, '--lightness': `${65 + (depth * 5)}%` }">
     <div class="virtua-item-header drop-zone" :data-id="child.id" :data-other="JSON.stringify(child)" :id="child.id"
       :style="{ height: `${itemHeight}px` }" :class="{ 'drop-zone-hovered': isHovered }">
-      <Collection ref="entityItemRef" v-if="child.type == 'entity'" @toggleEditMode="toggleEditMode"
+      <Collection ref="collectionItemRef" v-if="child.type == 'collection'" @toggleEditMode="toggleEditMode"
         v-right-click="openCollectionMenu" :hasChildren="hasChildren" :loadingChildren="loadingChildren" :isGhost="isGhost" @toggle="handleToggle"
-        :entity="child" :index="index" :entityChildren="entityChildren" :loadingCollectionState="loadingCollectionState && child.type === 'entity'" />
-      <Asset v-if="child.type == 'task'" @refreshData="emit('refreshData')" @toggleEditMode="toggleEditMode"
-        v-right-click="openAssetMenu" :task="child" :index="index" :loadingAssetState="loadingAssetState && child.type === 'task'" />
-      <Collection ref="entityItemRef" v-if="child.type == 'untracked_entity'" @toggleEditMode="toggleEditMode"
-        v-right-click="openUntrackedItemMenu" :hasChildren="hasChildren" :loadingChildren="loadingChildren" :isUntracked="true" :entity="child"
-        @toggle="handleToggle" :index="index" :entityChildren="entityChildren" :loadingCollectionState="loadingCollectionState && child.type === 'entity'"/>
-      <Asset v-if="child.type == 'untracked_task'" @toggleEditMode="toggleEditMode"
-        v-right-click="openUntrackedItemMenu" :isUntracked="true" :task="child" :index="index" />
+        :collection="child" :index="index" :collectionChildren="collectionChildren" :loadingCollectionState="loadingCollectionState && child.type === 'collection'" />
+      <Asset v-if="child.type == 'asset'" @refreshData="emit('refreshData')" @toggleEditMode="toggleEditMode"
+        v-right-click="openAssetMenu" :asset="child" :index="index" :loadingAssetState="loadingAssetState && child.type === 'asset'" />
+      <Collection ref="collectionItemRef" v-if="child.type == 'untracked_collection'" @toggleEditMode="toggleEditMode"
+        v-right-click="openUntrackedItemMenu" :hasChildren="hasChildren" :loadingChildren="loadingChildren" :isUntracked="true" :collection="child"
+        @toggle="handleToggle" :index="index" :collectionChildren="collectionChildren" :loadingCollectionState="loadingCollectionState && child.type === 'collection'"/>
+      <Asset v-if="child.type == 'untracked_asset'" @toggleEditMode="toggleEditMode"
+        v-right-click="openUntrackedItemMenu" :isUntracked="true" :asset="child" :index="index" />
     </div>
     <template v-if="isExpanded">
       <ListSkeleton v-if="loadingChildrenSkeleton" :itemHeight="commonStore.listItemHeight" :height="virtuaIndentHeight" :depth="depth + 1" />
-      <div ref="virtuaChildrenRef" v-else-if="entityChildren.length" class="virtua-item-children">
+      <div ref="virtuaChildrenRef" v-else-if="collectionChildren.length" class="virtua-item-children">
         <div class="indent-guide" :style="{ height: `${indentHeight}px` }"
           :class="{ 'indent-guide-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === child.id }">
         </div>
-        <VirtuaList @refreshData="loadEntityChildren" @updateChildren="handleUpdateChildren" @updateChildrenUntrackedItems="handleUpdateUntrackedItems" 
-          :collectionId="child.id" :collectionType="child.type" @shiftParents="handleToggle" :items="entityChildren"
+        <VirtuaList @refreshData="loadCollectionChildren" @updateChildren="handleUpdateChildren" @updateChildrenUntrackedItems="handleUpdateUntrackedItems" 
+          :collectionId="child.id" :collectionType="child.type" @shiftParents="handleToggle" :items="collectionChildren"
           :containerHeight="scrollStore.scrollRootHeight || 0" :depth="depth + 1" :parentOffset="totalOffset"
           :itemHeight="commonStore.listItemHeight" />
       </div>
@@ -87,8 +87,8 @@ const props = defineProps({
 const emit = defineEmits(['refreshData']);
 
 // refs
-const entityChildren = ref([]);
-const entityItemRef = ref(null);
+const collectionChildren = ref([]);
+const collectionItemRef = ref(null);
 const hasChildren = ref(false);
 const indentPadding = ref(4);
 const isEditing = ref(false);
@@ -107,16 +107,16 @@ const virtuaItemRef = ref(null);
 // Checks if any filters are currently active.
 const filtersActive = computed(() => {
   const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
-  const entityFilters = commonStore.entityFilters.length > 0;
-  const taskFilters = commonStore.taskFilters.length > 0;
+  const collectionFilters = commonStore.collectionFilters.length > 0;
+  const assetFilters = commonStore.assetFilters.length > 0;
   let generalFilter;
-  return assigneeFilters || entityFilters || taskFilters || generalFilter;
+  return assigneeFilters || collectionFilters || assetFilters || generalFilter;
 });
 
 // Calculates the indent guide height for nested items.
 const indentHeight = computed(() => {
-  const itemHeight = stage.expandedEntities[props.child.id]["height"];
-  entityChildren.value;
+  const itemHeight = stage.expandedCollections[props.child.id]["height"];
+  collectionChildren.value;
   const height = virtuaChildrenRef.value?.getBoundingClientRect().height;
   return height - indentPadding.value;
 });
@@ -128,7 +128,7 @@ const isItemInFocus = computed(() => {
 
 // Checks if the item is expanded in the tree view.
 const isExpanded = computed(() => {
-  return props.child.id in stage.expandedEntities;
+  return props.child.id in stage.expandedCollections;
 });
 
 // Checks if the item is currently hovered for drag and drop.
@@ -142,7 +142,7 @@ const totalOffset = computed(() => {
 
 // Calculates the height for the virtua indent skeleton.
 const virtuaIndentHeight = computed(() => {
-  const rootHeight = stage.expandedEntities[props.child.id]["height"];
+  const rootHeight = stage.expandedCollections[props.child.id]["height"];
   return rootHeight - props.itemHeight - indentPadding.value;
 });
 
@@ -160,13 +160,13 @@ const handleKeyArrowKeys = async (event) => {
       const type = item.type;
 
       if (event.key === 'ArrowRight') {
-        if (type.includes('entity') && entityChildren.value.length && !(item.id in stage.expandedEntities)) {
-          if (type === 'untracked_entity') {
-            stage.expandEntity(item, true);
+        if (type.includes('collection') && collectionChildren.value.length && !(item.id in stage.expandedCollections)) {
+          if (type === 'untracked_collection') {
+            stage.expandCollection(item, true);
           } else {
-            stage.expandEntity(item);
+            stage.expandCollection(item);
           }
-          const firstChild = entityChildren.value[0];
+          const firstChild = collectionChildren.value[0];
           const firstChildId = firstChild.id;
           handleToggle();
           stage.markedItems = [firstChildId];
@@ -177,34 +177,34 @@ const handleKeyArrowKeys = async (event) => {
         let parent;
         const allItems = dndStore.allViewItems;
 
-        if (type === 'entity') {
-          parent = allItems.find((entity) => entity.id === item.parent_id);
-        } else if (type === 'task' || type === 'untracked_task') {
-          // Both tracked and untracked tasks have entity_id pointing to parent
-          parent = allItems.find((entity) => entity.id === item.entity_id);
-        } else if (type === 'untracked_entity') {
-          // For untracked entities, derive parent from path
-          const currentPath = item.entity_path || item.item_path;
+        if (type === 'collection') {
+          parent = allItems.find((collection) => collection.id === item.parent_id);
+        } else if (type === 'asset' || type === 'untracked_asset') {
+          // Both tracked and untracked assets have collection_id pointing to parent
+          parent = allItems.find((collection) => collection.id === item.collection_id);
+        } else if (type === 'untracked_collection') {
+          // For untracked collections, derive parent from path
+          const currentPath = item.collection_path || item.item_path;
           const pathParts = currentPath.split('/').filter(part => part.trim() !== '');
           
           if (pathParts.length >= 2) {
             const parentPath = '/' + pathParts.slice(0, -1).join('/') + '/';
-            // First try to find a tracked entity with this path
-            parent = allItems.find((entity) => entity.entity_path === parentPath);
+            // First try to find a tracked collection with this path
+            parent = allItems.find((collection) => collection.collection_path === parentPath);
             
-            // If not found, generate an untracked entity reference
+            // If not found, generate an untracked collection reference
             if (!parent) {
               const projectPath = projectStore.activeProject.working_directory.replace(/\\/g, '/').replace(/\/$/, '');
               const parentAbsPath = projectPath + parentPath.slice(0, -1);
               const parentId = utils.getMD5Hash(parentAbsPath);
-              parent = allItems.find((entity) => entity.id === parentId);
+              parent = allItems.find((collection) => collection.id === parentId);
             }
           }
         }
 
         if (parent) {
-          const isParentUntracked = parent.type === 'untracked_entity';
-          stage.expandEntity(parent, isParentUntracked);
+          const isParentUntracked = parent.type === 'untracked_collection';
+          stage.expandCollection(parent, isParentUntracked);
           handleToggle();
           stage.markedItems = [parent.id];
           stage.firstSelectedItemId = parent.id;
@@ -228,25 +228,25 @@ const handleUpdateChildren = (eventData) => {
   if (Array.isArray(eventData)) {
     loadFlags = false;
     eventData.forEach(({ itemId, updates }) => {
-      const itemIndex = entityChildren.value.findIndex(item => item.id === itemId);
+      const itemIndex = collectionChildren.value.findIndex(item => item.id === itemId);
       if (itemIndex !== -1 && updates && Array.isArray(updates)) {
         updates.forEach(update => {
           if (update.property && update.value !== undefined) {
-            entityChildren.value[itemIndex][update.property] = update.value;
+            collectionChildren.value[itemIndex][update.property] = update.value;
           }
         });
       }
     });
   } else {
     const { itemId, property, value, updates } = eventData;
-    const itemIndex = entityChildren.value.findIndex(item => item.id === itemId);
+    const itemIndex = collectionChildren.value.findIndex(item => item.id === itemId);
     if (itemIndex !== -1) {
       if (property && value !== undefined) {
-        entityChildren.value[itemIndex][property] = value;
+        collectionChildren.value[itemIndex][property] = value;
       }
       if (updates && Array.isArray(updates)) {
         updates.forEach(update => {
-          entityChildren.value[itemIndex][update.property] = update.value;
+          collectionChildren.value[itemIndex][update.property] = update.value;
         });
       }
     }
@@ -262,11 +262,11 @@ const handleUpdateChildren = (eventData) => {
 const handleUpdateUntrackedItems = (untrackedItems) => {
   if (!untrackedItems) return;
   
-  entityChildren.value = entityChildren.value.filter(
-    item => item.type !== 'untracked_entity' && item.type !== 'untracked_task'
+  collectionChildren.value = collectionChildren.value.filter(
+    item => item.type !== 'untracked_collection' && item.type !== 'untracked_asset'
   );
   
-  entityChildren.value.push(...untrackedItems);
+  collectionChildren.value.push(...untrackedItems);
   
   emitter.emit('get-project-data');
   collectionStore.loadCollectionStateFlags();
@@ -274,9 +274,9 @@ const handleUpdateUntrackedItems = (untrackedItems) => {
 
 // Loads the file status state for an asset.
 const loadAssetState = async () => {
-  const task = props.child;
+  const asset = props.child;
   
-  if (task.type !== 'task' || task.is_link) return;
+  if (asset.type !== 'asset' || asset.is_link) return;
 
   const loadingTimer = setTimeout(() => {
     loadingAssetState.value = true;
@@ -285,13 +285,13 @@ const loadAssetState = async () => {
   try {
     const fileStatus = await AssetService.GetAssetState(
       projectStore.activeProject.uri,
-      task.id
+      asset.id
     );
 
     props.child.file_status = fileStatus;
   } catch (error) {
-    console.error(`Error loading asset state for ${task.id}:`, error);
-    task.file_status = 'rebuildable';
+    console.error(`Error loading asset state for ${asset.id}:`, error);
+    asset.file_status = 'rebuildable';
   } finally {
     clearTimeout(loadingTimer);
     loadingAssetState.value = false;
@@ -300,9 +300,9 @@ const loadAssetState = async () => {
 
 // Loads the state flags for a collection.
 const loadCollectionState = async () => {
-  const entity = props.child;
+  const collection = props.child;
   
-  if (entity.type !== 'entity') return;
+  if (collection.type !== 'collection') return;
 
   const loadingTimer = setTimeout(() => {
     loadingCollectionState.value = true;
@@ -311,14 +311,14 @@ const loadCollectionState = async () => {
   try {
     const flags = await CollectionService.GetCollectionStateFlags(
       projectStore.activeProject.uri,
-      entity.id,
+      collection.id,
       projectStore.activeProject.working_directory,
       projectStore.activeProject.ignore_list
     );
 
     props.child.collectionStateFlags = flags;
   } catch (error) {
-    console.error(`Error loading collection state for ${entity.id}:`, error);
+    console.error(`Error loading collection state for ${collection.id}:`, error);
     props.child.collectionStateFlags = {
       has_untracked: false,
       has_modified: false,
@@ -331,8 +331,8 @@ const loadCollectionState = async () => {
   }
 };
 
-// Loads children for an entity or untracked entity.
-const loadEntityChildren = async () => {
+// Loads children for an collection or untracked collection.
+const loadCollectionChildren = async () => {
   if (stage.operationActive) {
     loadingChildrenSkeleton.value = true;
     return;
@@ -344,21 +344,21 @@ const loadEntityChildren = async () => {
     loadingChildren.value = true;
   }, loadingDelay);
 
-  if (props.child.type == "entity" || props.child.type == 'untracked_entity') {
-    let isUntracked = props.child.type == 'untracked_entity';
+  if (props.child.type == "collection" || props.child.type == 'untracked_collection') {
+    let isUntracked = props.child.type == 'untracked_collection';
     let project = projectStore.activeProject;
     let children = await CollectionService.GetCollectionChildren(project.uri, props.child.id, project.working_directory, props.child.file_path, project.ignore_list, isUntracked);
-    await assetStore.processAssetsIconsAndPreviews(children.tasks);
-    await assetStore.processUntrackedAssetsIcons(children.untracked_tasks);
+    await assetStore.processAssetsIconsAndPreviews(children.assets);
+    await assetStore.processUntrackedAssetsIcons(children.untracked_assets);
 
-    let childrenEntities = filtersActive.value ? await collectionStore.filterCollections(children.entities) : children.entities;
-    let childrenTasks = filtersActive.value ? await assetStore.filterAssets(children.tasks) : children.tasks;
+    let childrenCollections = filtersActive.value ? await collectionStore.filterCollections(children.collections) : children.collections;
+    let childrenAssets = filtersActive.value ? await assetStore.filterAssets(children.assets) : children.assets;
 
-    entityChildren.value = [...childrenEntities, ...children.untracked_entities, ...childrenTasks, ...children.untracked_tasks];
-    hasChildren.value = entityChildren.value.length > 0;
+    collectionChildren.value = [...childrenCollections, ...children.untracked_collections, ...childrenAssets, ...children.untracked_assets];
+    hasChildren.value = collectionChildren.value.length > 0;
     
-    if (!hasChildren.value && props.child.id in stage.expandedEntities) {
-      stage.expandEntity(props.child, isUntracked);
+    if (!hasChildren.value && props.child.id in stage.expandedCollections) {
+      stage.expandCollection(props.child, isUntracked);
     }
   }
   clearTimeout(loadingChildrenTimer);
@@ -369,25 +369,25 @@ const loadEntityChildren = async () => {
 // Opens the asset context menu.
 const openAssetMenu = (event) => {
   const id = props.child.id;
-  const task = props.child;
-  assetStore.selectAsset(task);
-  stage.markedTasks = [id];
+  const asset = props.child;
+  assetStore.selectAsset(asset);
+  stage.markedAssets = [id];
   menu.showContextMenu(event, 'assetMenu', true);
 };
 
 // Opens the collection context menu.
 const openCollectionMenu = (event) => {
   const id = props.child.id;
-  const entity = props.child;
-  stage.markedEntities = [id];
-  collectionStore.selectCollection(entity);
+  const collection = props.child;
+  stage.markedCollections = [id];
+  collectionStore.selectCollection(collection);
   menu.showContextMenu(event, 'collectionMenu', true);
 };
 
 // Opens the untracked item context menu.
 const openUntrackedItemMenu = (event) => {
   const id = props.child.id;
-  stage.markedEntities = [id];
+  stage.markedCollections = [id];
   untrackedItemStore.selectUntrackedItem(props.child);
   menu.showContextMenu(event, 'untrackedItemMenu', true);
 };
@@ -408,21 +408,21 @@ const updateItemHeight = async () => {
 // watchers
 watch(() => stage.operationActive, (newValue, oldValue) => {
   if (oldValue && !newValue && loadingChildrenSkeleton.value) {
-    loadEntityChildren();
+    loadCollectionChildren();
   }
 });
 
 // lifecycle hooks
 onMounted(async () => {
-  if (props.child.type === 'entity' || props.child.type === 'untracked_entity') {
-    await loadEntityChildren();
+  if (props.child.type === 'collection' || props.child.type === 'untracked_collection') {
+    await loadCollectionChildren();
   }
   
-  if (props.child.type === 'entity') {
+  if (props.child.type === 'collection') {
     await loadCollectionState();
   }
   
-  if (props.child.type === 'task') {
+  if (props.child.type === 'asset') {
     await loadAssetState();
   }
   

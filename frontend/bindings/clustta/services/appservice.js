@@ -49,7 +49,7 @@ export function Hide() {
 
 /**
  * Minimize minimizes the main application window.
- * Gets the main window instance and minimizes it to the taskbar.
+ * Gets the main window instance and minimizes it to the assetbar.
  * @returns {$CancellablePromise<void>}
  */
 export function Minimize() {

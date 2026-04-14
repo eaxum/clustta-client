@@ -2,7 +2,7 @@
 	<div ref="pageListRoot" class="page-list-root absolute-pane">
 		<div class="settings-stage-root">
 			<div class="settings-stage-header">
-				<HeaderTabs :dataTypes="settingsItems" @filter="filterList" :fullWidth="true" />
+				<HeaderTabs :dataTypes="settingsItems" @filter="filterList" :fullWidth="true" :useSelected="true" :selectedTab="settings.activeModal" />
 			</div>
 			<div class="settings-stage-body">
 				<div class="settings-stage-body-container">
@@ -20,10 +20,14 @@ import { computed, ref, onMounted, onUnmounted, watchEffect } from 'vue';
 // state imports
 import { useSettingsStore } from '@/stores/settings';
 import { useMenu } from '@/stores/menu';
+import { useProjectStore } from '@/stores/projects';
+import { useEntitlementStore } from '@/stores/entitlements';
 
 // states/stores
 const settings = useSettingsStore();
 const menu = useMenu();
+const projectStore = useProjectStore();
+const entitlementStore = useEntitlementStore();
 
 const pageListRoot = ref(null);
 
@@ -44,7 +48,12 @@ const settingsComponents = {
 // computed props
 const settingsItems = computed(() => {
 	const studioSettingsIds = ['studio', 'studiocollaborators'];
-	const studioSettings = settings.settingsItems.filter((item) => studioSettingsIds.includes(item.id));
+	const canCollaborate = entitlementStore.canCollaborate;
+
+	const studioSettings = settings.settingsItems.filter((item) =>
+		studioSettingsIds.includes(item.id) &&
+		(canCollaborate || item.id !== 'studiocollaborators')
+	);
 	return studioSettings;
 });
 

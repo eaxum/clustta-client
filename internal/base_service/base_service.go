@@ -5,6 +5,7 @@ import (
 	"clustta/internal/utils"
 	"database/sql"
 	"fmt"
+	"regexp"
 	"strings"
 
 	// "strings"
@@ -19,6 +20,25 @@ type Table interface {
 	PrimaryKeyName() string
 }
 
+// InPlaceholders generates parameterized IN clause placeholders and values.
+// Returns a placeholder string like "?,?,?" and the corresponding []interface{} values.
+func InPlaceholders(ids []string) (string, []interface{}) {
+	placeholders := make([]string, len(ids))
+	values := make([]interface{}, len(ids))
+	for i, id := range ids {
+		placeholders[i] = "?"
+		values[i] = id
+	}
+	return strings.Join(placeholders, ","), values
+}
+
+// validSQLIdentifier checks that a string is a safe SQL identifier (table/column name).
+var validIdentifierRegex = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
+
+func validSQLIdentifier(name string) bool {
+	return validIdentifierRegex.MatchString(name)
+}
+
 // Get retrieves a record by ID
 func Get(tx *sqlx.Tx, table string, id string, dest interface{}) error {
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id = ?", table)
@@ -27,14 +47,14 @@ func Get(tx *sqlx.Tx, table string, id string, dest interface{}) error {
 		switch table {
 		case "status":
 			return error_service.ErrStatusNotFound
-		case "task_type":
-			return error_service.ErrTaskTypeNotFound
-		case "full_task":
-			return error_service.ErrTaskNotFound
-		case "task":
-			return error_service.ErrTaskNotFound
-		case "task_checkpoint":
-			return error_service.ErrTaskCheckPointNotFound
+		case "asset_type":
+			return error_service.ErrAssetTypeNotFound
+		case "full_asset":
+			return error_service.ErrAssetNotFound
+		case "asset":
+			return error_service.ErrAssetNotFound
+		case "asset_checkpoint":
+			return error_service.ErrAssetCheckPointNotFound
 
 		case "user":
 			return error_service.ErrUserNotFound
@@ -42,33 +62,33 @@ func Get(tx *sqlx.Tx, table string, id string, dest interface{}) error {
 			return error_service.ErrRoleNotFound
 		case "dependency_type":
 			return error_service.ErrDependencyTypeNotFound
-		case "entity":
-			return error_service.ErrEntityNotFound
-		case "entity_assignee":
-			return error_service.ErrEntityAssigneeNotFound
-		case "full_entity":
-			return error_service.ErrEntityNotFound
-		case "entity_type":
-			return error_service.ErrEntityTypeNotFound
+		case "collection":
+			return error_service.ErrCollectionNotFound
+		case "collection_assignee":
+			return error_service.ErrCollectionAssigneeNotFound
+		case "full_collection":
+			return error_service.ErrCollectionNotFound
+		case "collection_type":
+			return error_service.ErrCollectionTypeNotFound
 		case "template":
 			return error_service.ErrTemplateNotFound
 		case "workflow":
 			return error_service.ErrWorkflowNotFound
-		case "workflow_entity":
-			return error_service.ErrWorkflowEntityNotFound
-		case "workflow_task":
-			return error_service.ErrWorkflowTaskNotFound
+		case "workflow_collection":
+			return error_service.ErrWorkflowCollectionNotFound
+		case "workflow_asset":
+			return error_service.ErrWorkflowAssetNotFound
 		case "tag":
 			return error_service.ErrTagNotFound
-		case "task_tag":
-			return error_service.ErrTaskTagNotFound
-		case "task_dependency":
-			return error_service.ErrTaskDependencyNotFound
-		case "entity_dependency":
-			return error_service.ErrEntityDependencyNotFound
+		case "asset_tag":
+			return error_service.ErrAssetTagNotFound
+		case "asset_dependency":
+			return error_service.ErrAssetDependencyNotFound
+		case "collection_dependency":
+			return error_service.ErrCollectionDependencyNotFound
 		case "preview":
 			return error_service.ErrPreviewNotFound
-		// case "subtask_dependency":
+		// case "subasset_dependency":
 		// 	return error_service.ErrSubtaskDe
 		default:
 			return fmt.Errorf("id of %s not found in %s", id, table)
@@ -86,14 +106,14 @@ func GetByName(tx *sqlx.Tx, table string, name string, dest interface{}) error {
 		switch table {
 		case "status":
 			return error_service.ErrStatusNotFound
-		case "task_type":
-			return error_service.ErrTaskTypeNotFound
-		case "full_task":
-			return error_service.ErrTaskNotFound
-		case "task":
-			return error_service.ErrTaskNotFound
-		case "task_checkpoint":
-			return error_service.ErrTaskCheckPointNotFound
+		case "asset_type":
+			return error_service.ErrAssetTypeNotFound
+		case "full_asset":
+			return error_service.ErrAssetNotFound
+		case "asset":
+			return error_service.ErrAssetNotFound
+		case "asset_checkpoint":
+			return error_service.ErrAssetCheckPointNotFound
 
 		case "user":
 			return error_service.ErrUserNotFound
@@ -101,30 +121,30 @@ func GetByName(tx *sqlx.Tx, table string, name string, dest interface{}) error {
 			return error_service.ErrRoleNotFound
 		case "dependency_type":
 			return error_service.ErrDependencyTypeNotFound
-		case "entity":
-			return error_service.ErrEntityNotFound
-		case "entity_assignee":
-			return error_service.ErrEntityAssigneeNotFound
-		case "full_entity":
-			return error_service.ErrEntityNotFound
-		case "entity_type":
-			return error_service.ErrEntityTypeNotFound
+		case "collection":
+			return error_service.ErrCollectionNotFound
+		case "collection_assignee":
+			return error_service.ErrCollectionAssigneeNotFound
+		case "full_collection":
+			return error_service.ErrCollectionNotFound
+		case "collection_type":
+			return error_service.ErrCollectionTypeNotFound
 		case "template":
 			return error_service.ErrTemplateNotFound
 		case "workflow":
 			return error_service.ErrWorkflowNotFound
-		case "workflow_entity":
-			return error_service.ErrWorkflowEntityNotFound
-		case "workflow_task":
-			return error_service.ErrWorkflowTaskNotFound
+		case "workflow_collection":
+			return error_service.ErrWorkflowCollectionNotFound
+		case "workflow_asset":
+			return error_service.ErrWorkflowAssetNotFound
 		case "tag":
 			return error_service.ErrTagNotFound
-		case "task_tag":
-			return error_service.ErrTaskTagNotFound
-		case "task_dependency":
-			return error_service.ErrTaskDependencyNotFound
-		case "entity_dependency":
-			return error_service.ErrEntityDependencyNotFound
+		case "asset_tag":
+			return error_service.ErrAssetTagNotFound
+		case "asset_dependency":
+			return error_service.ErrAssetDependencyNotFound
+		case "collection_dependency":
+			return error_service.ErrCollectionDependencyNotFound
 		case "preview":
 			return error_service.ErrPreviewNotFound
 		default:
@@ -161,6 +181,9 @@ func GetAll(tx *sqlx.Tx, table string, dest interface{}) error {
 }
 
 func Create(tx *sqlx.Tx, table string, params map[string]interface{}) error {
+	if !validSQLIdentifier(table) {
+		return fmt.Errorf("invalid table name: %s", table)
+	}
 	var columns []string
 	var placeholders []string
 	var values []any
@@ -168,6 +191,9 @@ func Create(tx *sqlx.Tx, table string, params map[string]interface{}) error {
 	idProvided := false
 	mtimeProvided := false
 	for column, value := range params {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		if column == "id" && value != "" {
 			idProvided = true
 			columns = append(columns, column)
@@ -219,8 +245,8 @@ func UpdateMtime(tx *sqlx.Tx, table string, id string, mtime int64) error {
 	if mtime == 0 {
 		mtime = utils.GetEpochTime()
 	}
-	query := fmt.Sprintf("UPDATE %s SET mtime = ? WHERE id = '%s'", table, id)
-	_, err := tx.Exec(query, mtime)
+	query := fmt.Sprintf("UPDATE %s SET mtime = ? WHERE id = ?", table)
+	_, err := tx.Exec(query, mtime, id)
 	if err != nil {
 		return err
 	}
@@ -233,11 +259,15 @@ func Update(tx *sqlx.Tx, table string, id string, params map[string]interface{})
 	var values []interface{}
 
 	for column, value := range params {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		setClauses = append(setClauses, fmt.Sprintf("%s = ?", column))
 		values = append(values, value)
 	}
 	setClause := strings.Join(setClauses, ", ")
-	query := fmt.Sprintf("UPDATE %s SET %s WHERE id = '%s'", table, setClause, id)
+	values = append(values, id)
+	query := fmt.Sprintf("UPDATE %s SET %s WHERE id = ?", table, setClause)
 	_, err := tx.Exec(query, values...)
 	if err != nil {
 		return err
@@ -246,8 +276,8 @@ func Update(tx *sqlx.Tx, table string, id string, params map[string]interface{})
 }
 
 func Rename(tx *sqlx.Tx, table string, id string, newName string) error {
-	query := fmt.Sprintf("UPDATE %s SET name = ? WHERE id = '%s'", table, id)
-	_, err := tx.Exec(query, newName)
+	query := fmt.Sprintf("UPDATE %s SET name = ? WHERE id = ?", table)
+	_, err := tx.Exec(query, newName, id)
 	if err != nil {
 		return err
 	}
@@ -259,6 +289,9 @@ func UpdateBy(tx *sqlx.Tx, table string, conditions map[string]interface{}, para
 	var values []interface{}
 
 	for column, value := range params {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		setClauses = append(setClauses, fmt.Sprintf("%s = ?", column))
 		values = append(values, value)
 	}
@@ -267,6 +300,9 @@ func UpdateBy(tx *sqlx.Tx, table string, conditions map[string]interface{}, para
 	for column, value := range conditions {
 		if column == "id" {
 			continue
+		}
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
 		}
 		whereClauses = append(whereClauses, fmt.Sprintf("%s = ?", column))
 		values = append(values, value)
@@ -304,6 +340,9 @@ func XDeleteBy(tx *sqlx.Tx, table string, conditions map[string]interface{}) err
 	var whereClauses []string
 	var values []interface{}
 	for column, value := range conditions {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		whereClauses = append(whereClauses, fmt.Sprintf("%s = ?", column))
 		values = append(values, value)
 	}
@@ -340,6 +379,9 @@ func DeleteBy(tx *sqlx.Tx, table string, conditions map[string]interface{}) erro
 	var whereClauses []string
 	var values []interface{}
 	for column, value := range conditions {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		whereClauses = append(whereClauses, fmt.Sprintf("%s = ?", column))
 		values = append(values, value)
 	}
@@ -382,6 +424,9 @@ func GetAllBy(tx *sqlx.Tx, table string, conditions map[string]interface{}, dest
 	var whereClauses []string
 	var values []interface{}
 	for column, value := range conditions {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		whereClauses = append(whereClauses, fmt.Sprintf("%s = ?", column))
 		values = append(values, value)
 	}
@@ -403,6 +448,9 @@ func GetBy(tx *sqlx.Tx, table string, conditions map[string]interface{}, dest in
 	var whereClauses []string
 	var values []interface{}
 	for column, value := range conditions {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		whereClauses = append(whereClauses, fmt.Sprintf("%s = ?", column))
 		values = append(values, value)
 	}
@@ -428,6 +476,9 @@ func GetByCaseInsensitive(tx *sqlx.Tx, table string, conditions map[string]inter
 	var whereClauses []string
 	var values []interface{}
 	for column, value := range conditions {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		whereClauses = append(whereClauses, fmt.Sprintf("LOWER(%s) = ?", column))
 		values = append(values, strings.ToLower(fmt.Sprintf("%v", value)))
 	}
@@ -448,6 +499,9 @@ func GetAllByCaseInsensitive(tx *sqlx.Tx, table string, conditions map[string]in
 	var whereClauses []string
 	var values []interface{}
 	for column, value := range conditions {
+		if !validSQLIdentifier(column) {
+			return fmt.Errorf("invalid column name: %s", column)
+		}
 		whereClauses = append(whereClauses, fmt.Sprintf("LOWER(%s) = ?", column))
 		values = append(values, strings.ToLower(fmt.Sprintf("%v", value)))
 	}

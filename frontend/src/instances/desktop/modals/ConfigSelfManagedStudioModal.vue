@@ -135,6 +135,7 @@ import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
+import { useStudioStore } from '@/stores/studio';
 
 // constants
 const title = t('modals.newSelfManagedStudio');
@@ -196,7 +197,7 @@ const copyEnvFile = async () => {
     }, 2000);
   } catch (error) {
     console.error('Failed to copy:', error);
-    notificationStore.errorNotification(t('notifications.failedToCopyToClipboard'), error);
+    notificationStore.errorNotification(t('notifications.failedToCopy'), error);
   }
 };
 
@@ -212,13 +213,13 @@ const copySecretKey = async () => {
     }
   } catch (error) {
     console.error('Failed to copy:', error);
-    notificationStore.errorNotification(t('notifications.failedToCopyToClipboard'), error);
+    notificationStore.errorNotification(t('notifications.failedToCopy'), error);
   }
 };
 
 // Creates a new self-managed studio.
 const createStudio = async () => {
-  await StudioService.RegisterStudio(studioName.value, studioUrl.value).then(async (result) => {
+  await StudioService.RegisterStudio(studioName.value, studioUrl.value, 'dedicated').then(async (result) => {
     console.log(result);
     createdStudio.value = result;
     isAwaitingResponse.value = false;
@@ -258,6 +259,8 @@ const launchStudio = async () => {
     projectStore.selectedStudio = projectStore.studios[0];
   }
 
+  const studioStore = useStudioStore();
+  await studioStore.getStudioUsers();
   await projectStore.loadProjects().then((result) => {
     console.log(result);
   }).catch((error) => {
@@ -457,7 +460,7 @@ onMounted(async () => {
   display: flex;
 }
 
-.task-options-container {
+.asset-options-container {
   position: relative;
   box-sizing: border-box;
   width: 100%;
@@ -470,7 +473,7 @@ onMounted(async () => {
   margin: 0;
 }
 
-.task-options-container-closed {
+.asset-options-container-closed {
   height: 0px;
   padding: 0;
   margin-bottom: -1rem;

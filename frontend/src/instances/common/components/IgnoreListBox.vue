@@ -3,15 +3,7 @@
       <div @click="focusOnInput()" class="ignore-list-container tint combo-linear">
             <div class="added-users">
                 <div v-if="selectedItems.length" class="ignored-item-wrapper">
-                    <div v-for="item in selectedItems" 
-                    class="ignored-item" :class="{ 'ignored-folder': isFileWithExtension(item) }">
-                        <div class="ignored-item-name">
-                            {{item}}
-                        </div>
-                        <span class="single-action-button"  @click="removeItem(item)"  v-tooltip="$t('components.ignoreListBox.remove')">
-                          <img class="small-icons" src="/icons/close.svg">
-                        </span>
-                    </div>
+                    <Chip v-for="item in selectedItems" :key="item" :label="item" :onRemove="() => removeItem(item)" :color="getChipColor(item)" />
                 </div>
                 <input ref="listBoxParent" v-focus :placeholder="placeholder" v-model="searchQuery"
                     v-return="handleEnterKey" @keydown.delete.stop="removeLastItem" @blur="handleInputBlur"
@@ -24,6 +16,9 @@
 <script setup>
 
 import { ref, computed, onMounted, onBeforeUnmount, onUnmounted, watchEffect } from 'vue';
+
+// components
+import Chip from '@/instances/common/components/Chip.vue';
 
 // stores
 import { useMenu } from '@/stores/menu';
@@ -57,15 +52,10 @@ const searchQuery = ref('');
 const isInputActive = ref(false);
   
 // methods
-const isFileWithExtension = (item) => {
-  return item && 
-         typeof item === 'string' && 
-         !item.includes('/') && 
-         !item.includes('\\');
-};
-
-const trimLeadingPeriods = (str) => {
-  return str.replace(/^\.+/, '');
+// Returns a color for the chip based on whether the item is a folder pattern.
+const getChipColor = (item) => {
+  const isFolder = item && typeof item === 'string' && (item.includes('/') || item.includes('\\'));
+  return isFolder ? 'rgb(0, 161, 86)' : '';
 };
 
 const addItem = (event) => {
@@ -179,32 +169,6 @@ onUnmounted(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 
-/* User Item Styles */
-.ignored-item {
-  color: var(--white);
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  font-size: medium;
-  width: min-content;
-  height: min-content;
-  padding: .1rem .1rem .1rem .8rem;
-  background-color: var(--steel);
-  border-radius: var(--small-radius);
-}
-
-.ignored-folder {
-    background-color: rgb(0, 161, 86);
-}
-
-.ignored-item-name {
-  width: min-content;
-  height: min-content;
-  display: flex;
-  align-items: center;
-  text-wrap: nowrap;
-}
-
 /* Container Styles */
 .added-users {
   position: relative;
@@ -243,7 +207,6 @@ onUnmounted(() => {
   gap: .5rem;
   width: 100%;
   height: 100%;
-  /* background-color: cadetblue; */
 }
 
 .ignore-list-container {
@@ -254,7 +217,7 @@ onUnmounted(() => {
   flex-wrap: wrap;
   gap: .1rem;
   padding: .1rem;
-  border-radius: var(--small-radius);
+  border-radius: var(--large-radius);
   background-color: var(--transparent-black);
   overflow-y: auto;
 }

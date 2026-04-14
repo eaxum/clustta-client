@@ -18,8 +18,8 @@ import (
 
 type Timeline struct {
 	CreatedAt string `db:"created_at" json:"created_at"`
-	TaskId    string `db:"task_id" json:"task_id"`
-	TaskPath  string `db:"task_path" json:"task_path"`
+	AssetId    string `db:"asset_id" json:"asset_id"`
+	AssetPath  string `db:"asset_path" json:"asset_path"`
 	Comment   string `db:"comment" json:"comment"`
 	AuthorUID string `db:"author_id" json:"author_id"`
 	GroupId   string `db:"group_id" json:"group_id"`
@@ -27,15 +27,15 @@ type Timeline struct {
 }
 type CompatTimeline struct {
 	CreatedAt string   `db:"created_at" json:"created_at"`
-	TaskPaths []string `db:"task_paths" json:"task_paths"`
+	AssetPaths []string `db:"asset_paths" json:"asset_paths"`
 	GroupId   string   `db:"group_id" json:"group_id"`
 	Comment   string   `db:"comment" json:"comment"`
 	AuthorUID string   `db:"author_id" json:"author_id"`
 	Preview   []byte   `db:"preview" json:"preview"`
 }
 
-func CreateNewTaskCheckpoint(
-	tx *sqlx.Tx, taskId, message, chunkSequence, checksum string, timeModified int, fileSize int, filePath, author_id, previewId, groupId string,
+func CreateNewAssetCheckpoint(
+	tx *sqlx.Tx, assetId, message, chunkSequence, checksum string, timeModified int, fileSize int, filePath, author_id, previewId, groupId string,
 	callback func(int, int, string, string)) error {
 	if groupId == "" {
 		return errors.New("group_id can't be empty")
@@ -102,7 +102,7 @@ func CreateNewTaskCheckpoint(
 
 	params := map[string]interface{}{
 		"created_at":      utils.GetEpochTime(),
-		"task_id":         taskId,
+		"asset_id":         assetId,
 		"xxhash_checksum": checkpointChecksum,
 		"time_modified":   timeModified,
 		"file_size":       fileSize,
@@ -112,7 +112,7 @@ func CreateNewTaskCheckpoint(
 		"preview_id":      previewId,
 		"group_id":        groupId,
 	}
-	err := base_service.Create(tx, "task_checkpoint", params)
+	err := base_service.Create(tx, "asset_checkpoint", params)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func CreateNewTaskCheckpoint(
 }
 
 func CreateCheckpoint(
-	tx *sqlx.Tx, taskId, message, chunkSequence, checksum string, timeModified int, fileSize int, filePath, author_id, previewId, groupId string,
+	tx *sqlx.Tx, assetId, message, chunkSequence, checksum string, timeModified int, fileSize int, filePath, author_id, previewId, groupId string,
 	callback func(int, int, string, string)) (models.Checkpoint, error) {
 	if groupId == "" {
 		return models.Checkpoint{}, errors.New("group_id can't be empty")
@@ -134,7 +134,7 @@ func CreateCheckpoint(
 		}
 	}
 	var checkpointChecksum string
-	lastCheckpoint, err := GetLatestCheckpoint(tx, taskId)
+	lastCheckpoint, err := GetLatestCheckpoint(tx, assetId)
 	if err != nil && err.Error() == "no checkpoints" {
 		// do nothing
 	} else if err != nil {
@@ -196,7 +196,7 @@ func CreateCheckpoint(
 
 	params := map[string]interface{}{
 		"created_at":      utils.GetEpochTime(),
-		"task_id":         taskId,
+		"asset_id":         assetId,
 		"xxhash_checksum": checkpointChecksum,
 		"time_modified":   timeModified,
 		"file_size":       fileSize,
@@ -206,17 +206,17 @@ func CreateCheckpoint(
 		"preview_id":      previewId,
 		"group_id":        groupId,
 	}
-	err = base_service.Create(tx, "task_checkpoint", params)
+	err = base_service.Create(tx, "asset_checkpoint", params)
 	if err != nil {
 		return models.Checkpoint{}, err
 	}
 
 	checkpoint := models.Checkpoint{}
 	conditions := map[string]interface{}{
-		"task_id":         taskId,
+		"asset_id":         assetId,
 		"xxhash_checksum": checkpointChecksum,
 	}
-	err = base_service.GetBy(tx, "task_checkpoint", conditions, &checkpoint)
+	err = base_service.GetBy(tx, "asset_checkpoint", conditions, &checkpoint)
 	if err != nil {
 		return models.Checkpoint{}, err
 	}
@@ -232,13 +232,13 @@ func CreateCheckpoint(
 
 func AddCheckpoint(
 	tx *sqlx.Tx, id string, created_at int64,
-	taskId string, xxHashChecksum string, timeModified int, fileSize int, message string,
+	assetId string, xxHashChecksum string, timeModified int, fileSize int, message string,
 	chunkSequence string, author_id string, preview_id string, synced bool) error {
 
 	params := map[string]interface{}{
 		"id":              id,
 		"created_at":      created_at,
-		"task_id":         taskId,
+		"asset_id":         assetId,
 		"xxhash_checksum": xxHashChecksum,
 		"time_modified":   timeModified,
 		"file_size":       fileSize,
@@ -248,7 +248,7 @@ func AddCheckpoint(
 		"preview_id":      preview_id,
 		"synced":          synced,
 	}
-	err := base_service.Create(tx, "task_checkpoint", params)
+	err := base_service.Create(tx, "asset_checkpoint", params)
 	if err != nil {
 		if sqliteErr, ok := err.(sqlite3.Error); ok {
 			if sqliteErr.Code == sqlite3.ErrConstraint {
@@ -260,18 +260,18 @@ func AddCheckpoint(
 	return nil
 }
 
-func GetLatestCheckpoint(tx *sqlx.Tx, taskId string) (models.Checkpoint, error) {
+func GetLatestCheckpoint(tx *sqlx.Tx, assetId string) (models.Checkpoint, error) {
 	checkpoint := models.Checkpoint{}
 	query := `SELECT 
-		task_checkpoint.*,
+		asset_checkpoint.*,
 		IFNULL(preview.extension, '') AS preview_extension,
 		preview.preview AS preview
 	FROM 
-		task_checkpoint
+		asset_checkpoint
 	LEFT JOIN 
-		preview ON task_checkpoint.preview_id = preview.hash
-	WHERE task_checkpoint.task_id = ? AND trashed = 0 ORDER BY created_at DESC LIMIT 1;`
-	err := tx.Get(&checkpoint, query, taskId)
+		preview ON asset_checkpoint.preview_id = preview.hash
+	WHERE asset_checkpoint.asset_id = ? AND trashed = 0 ORDER BY created_at DESC LIMIT 1;`
+	err := tx.Get(&checkpoint, query, assetId)
 	if err != nil && err == sql.ErrNoRows {
 		return checkpoint, errors.New("no checkpoints")
 	} else if err != nil {
@@ -282,7 +282,7 @@ func GetLatestCheckpoint(tx *sqlx.Tx, taskId string) (models.Checkpoint, error) 
 
 func GetSimpleCheckpoints(tx *sqlx.Tx) ([]models.Checkpoint, error) {
 	checkpoints := []models.Checkpoint{}
-	query := `SELECT * FROM task_checkpoint;`
+	query := `SELECT * FROM asset_checkpoint;`
 	err := tx.Select(&checkpoints, query)
 	if err != nil && err == sql.ErrNoRows {
 		return checkpoints, error_service.ErrCheckpointNotFound
@@ -295,14 +295,14 @@ func GetSimpleCheckpoints(tx *sqlx.Tx) ([]models.Checkpoint, error) {
 func GetCheckpoint(tx *sqlx.Tx, id string) (models.Checkpoint, error) {
 	checkpoint := models.Checkpoint{}
 	query := `SELECT 
-		task_checkpoint.*,
+		asset_checkpoint.*,
 		IFNULL(preview.extension, '') AS preview_extension,
 		preview.preview AS preview
 	FROM 
-		task_checkpoint
+		asset_checkpoint
 	LEFT JOIN 
-		preview ON task_checkpoint.preview_id = preview.hash
-	WHERE task_checkpoint.id = ?;`
+		preview ON asset_checkpoint.preview_id = preview.hash
+	WHERE asset_checkpoint.id = ?;`
 	err := tx.Get(&checkpoint, query, id)
 	if err != nil && err == sql.ErrNoRows {
 		return checkpoint, error_service.ErrCheckpointNotFound
@@ -316,29 +316,29 @@ func SetPublished(tx *sqlx.Tx, id string) error {
 	params := map[string]interface{}{
 		"synced": true,
 	}
-	err := base_service.Update(tx, "task_checkpoint", id, params)
+	err := base_service.Update(tx, "asset_checkpoint", id, params)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetCheckpoints(tx *sqlx.Tx, taskId string, withDeleted bool) ([]models.Checkpoint, error) {
+func GetCheckpoints(tx *sqlx.Tx, assetId string, withDeleted bool) ([]models.Checkpoint, error) {
 	checkpoints := []models.Checkpoint{}
-	queryWhereClause := "WHERE task_id = ?"
+	queryWhereClause := "WHERE asset_id = ?"
 	if !withDeleted {
-		queryWhereClause = "WHERE task_id = ? AND trashed = 0"
+		queryWhereClause = "WHERE asset_id = ? AND trashed = 0"
 	}
 	query := fmt.Sprintf(`SELECT 
-		task_checkpoint.*,
+		asset_checkpoint.*,
 		IFNULL(preview.extension, '') AS preview_extension,
 		preview.preview AS preview
 	FROM 
-		task_checkpoint
+		asset_checkpoint
 	LEFT JOIN 
-		preview ON task_checkpoint.preview_id = preview.hash 
+		preview ON asset_checkpoint.preview_id = preview.hash 
 	%s ORDER BY created_at DESC;`, queryWhereClause)
-	err := tx.Select(&checkpoints, query, taskId)
+	err := tx.Select(&checkpoints, query, assetId)
 	if err != nil && err == sql.ErrNoRows {
 		return checkpoints, errors.New("no checkpoints")
 	} else if err != nil {
@@ -354,21 +354,21 @@ func GetTimeline(tx *sqlx.Tx) ([]CompatTimeline, error) {
 	timeline := []CompatTimeline{}
 	checkpoints := []Timeline{}
 	query := `SELECT 
-		task_checkpoint.created_at,
-		task_checkpoint.comment,
-		task_checkpoint.task_id,
-		task_checkpoint.author_id,
-		task_checkpoint.group_id,
+		asset_checkpoint.created_at,
+		asset_checkpoint.comment,
+		asset_checkpoint.asset_id,
+		asset_checkpoint.author_id,
+		asset_checkpoint.group_id,
 		preview.preview AS preview,
-		IFNULL(full_task.task_path, '') AS task_path
+		IFNULL(full_asset.asset_path, '') AS asset_path
 	FROM 
-		task_checkpoint
+		asset_checkpoint
 	LEFT JOIN 
-		preview ON task_checkpoint.preview_id = preview.hash
+		preview ON asset_checkpoint.preview_id = preview.hash
 	LEFT JOIN 
-		full_task ON task_checkpoint.task_id = full_task.id
-	WHERE task_checkpoint.trashed = 0
-	ORDER BY task_checkpoint.created_at DESC;`
+		full_asset ON asset_checkpoint.asset_id = full_asset.id
+	WHERE asset_checkpoint.trashed = 0
+	ORDER BY asset_checkpoint.created_at DESC;`
 	err := tx.Select(&checkpoints, query)
 	if err != nil && err == sql.ErrNoRows {
 		return timeline, errors.New("no checkpoints")
@@ -381,7 +381,7 @@ func GetTimeline(tx *sqlx.Tx) ([]CompatTimeline, error) {
 		if previousCheckpoint.GroupId == "" {
 			previousCheckpoint = CompatTimeline{
 				CreatedAt: checkpoint.CreatedAt,
-				TaskPaths: []string{checkpoint.TaskPath},
+				AssetPaths: []string{checkpoint.AssetPath},
 				GroupId:   checkpoint.GroupId,
 				Comment:   checkpoint.Comment,
 				AuthorUID: checkpoint.AuthorUID,
@@ -394,12 +394,12 @@ func GetTimeline(tx *sqlx.Tx) ([]CompatTimeline, error) {
 		}
 
 		if previousCheckpoint.GroupId == checkpoint.GroupId {
-			previousCheckpoint.TaskPaths = append(previousCheckpoint.TaskPaths, checkpoint.TaskPath)
+			previousCheckpoint.AssetPaths = append(previousCheckpoint.AssetPaths, checkpoint.AssetPath)
 		} else {
 			timeline = append(timeline, previousCheckpoint)
 			previousCheckpoint = CompatTimeline{
 				CreatedAt: checkpoint.CreatedAt,
-				TaskPaths: []string{checkpoint.TaskPath},
+				AssetPaths: []string{checkpoint.AssetPath},
 				Comment:   checkpoint.Comment,
 				AuthorUID: checkpoint.AuthorUID,
 				Preview:   checkpoint.Preview,
@@ -418,9 +418,9 @@ func GetLatestCheckpointsBtwTime(tx *sqlx.Tx, higherTime, lowerTime int) ([]mode
 	query := `WITH latest_checkpoints AS (
 		SELECT 
 		  tc.*,
-		  ROW_NUMBER() OVER (PARTITION BY tc.task_id ORDER BY tc.created_at DESC) AS rn
+		  ROW_NUMBER() OVER (PARTITION BY tc.asset_id ORDER BY tc.created_at DESC) AS rn
 		FROM 
-		  task_checkpoint tc
+		  asset_checkpoint tc
 		WHERE 
 		  tc.created_at >= ? -- Replace with your lower Unix timestamp
 		  AND tc.created_at <= ? -- Replace with your higher Unix timestamp
@@ -441,13 +441,13 @@ func GetLatestCheckpointsByTime(tx *sqlx.Tx, checkpointTime int64) ([]models.Che
 	query := `WITH latest_checkpoints AS (
 		SELECT 
 		  tc.*,
-		  ROW_NUMBER() OVER (PARTITION BY tc.task_id ORDER BY tc.created_at DESC) AS rn
+		  ROW_NUMBER() OVER (PARTITION BY tc.asset_id ORDER BY tc.created_at DESC) AS rn
 		FROM 
-		  task_checkpoint tc
+		  asset_checkpoint tc
 		WHERE tc.created_at <= ? -- Replace with your higher Unix timestamp
 		  AND tc.trashed = 0
 	  )
-	  SELECT id, created_at, mtime, task_id, xxhash_checksum, time_modified, file_size, chunks, comment, author_id, preview_id, trashed, synced
+	  SELECT id, created_at, mtime, asset_id, xxhash_checksum, time_modified, file_size, chunks, comment, author_id, preview_id, trashed, synced
 	  FROM latest_checkpoints WHERE rn = 1 ORDER BY latest_checkpoints.created_at DESC;`
 	err := tx.Select(&checkpoints, query, checkpointTime)
 	if err != nil && err == sql.ErrNoRows {
@@ -473,7 +473,7 @@ func GetFirstAndLastCheckpointTime(tx *sqlx.Tx) (firstTime, lastTime int, err er
         MIN(created_at) AS first_time,
         MAX(created_at) AS last_time
     FROM 
-        task_checkpoint
+        asset_checkpoint
     WHERE 
         trashed = 0
     `
@@ -492,14 +492,14 @@ func GetFirstAndLastCheckpointTime(tx *sqlx.Tx) (firstTime, lastTime int, err er
 func GetDeletedCheckpoints(tx *sqlx.Tx) ([]models.Checkpoint, error) {
 	checkpoints := []models.Checkpoint{}
 	query := `SELECT 
-		task_checkpoint.*,
+		asset_checkpoint.*,
 		IFNULL(preview.extension, '') AS preview_extension,
 		preview.preview AS preview
 	FROM 
-		task_checkpoint
+		asset_checkpoint
 	LEFT JOIN 
-		preview ON task_checkpoint.preview_id = preview.hash 
-	WHERE task_checkpoint.trashed = 1;`
+		preview ON asset_checkpoint.preview_id = preview.hash 
+	WHERE asset_checkpoint.trashed = 1;`
 	err := tx.Select(&checkpoints, query)
 	if err != nil {
 		return checkpoints, err
@@ -527,8 +527,8 @@ func RevertToCheckpoint(tx *sqlx.Tx, checkpointId string, filePath string, callb
 	return nil
 }
 
-func RevertToLatestCheckpoint(tx *sqlx.Tx, taskId string, filePath string, callback func(int, int, string, string)) error {
-	latestCheckpoint, err := GetLatestCheckpoint(tx, taskId)
+func RevertToLatestCheckpoint(tx *sqlx.Tx, assetId string, filePath string, callback func(int, int, string, string)) error {
+	latestCheckpoint, err := GetLatestCheckpoint(tx, assetId)
 	if err != nil {
 		return err
 	}
@@ -544,9 +544,9 @@ func DeleteCheckpoint(tx *sqlx.Tx, checkpointId string, checkIfLast bool, recycl
 	if err != nil {
 		return err
 	}
-	taskId := checkpoint.TaskId
+	assetId := checkpoint.AssetId
 	if checkIfLast {
-		checkpoints, err := GetCheckpoints(tx, taskId, false)
+		checkpoints, err := GetCheckpoints(tx, assetId, false)
 		if err != nil {
 			return err
 		}
@@ -559,9 +559,9 @@ func DeleteCheckpoint(tx *sqlx.Tx, checkpointId string, checkIfLast bool, recycl
 		return errors.New("checkpoint not found")
 	}
 	if recycle {
-		err = base_service.MarkAsDeleted(tx, "task_checkpoint", checkpointId)
+		err = base_service.MarkAsDeleted(tx, "asset_checkpoint", checkpointId)
 	} else {
-		err = base_service.Delete(tx, "task_checkpoint", checkpointId)
+		err = base_service.Delete(tx, "asset_checkpoint", checkpointId)
 	}
 	if err != nil {
 		return err
@@ -569,8 +569,8 @@ func DeleteCheckpoint(tx *sqlx.Tx, checkpointId string, checkIfLast bool, recycl
 	return nil
 }
 
-func DeleteCheckpoints(tx *sqlx.Tx, taskId string) error {
-	checkpoints, err := GetCheckpoints(tx, taskId, true)
+func DeleteCheckpoints(tx *sqlx.Tx, assetId string) error {
+	checkpoints, err := GetCheckpoints(tx, assetId, true)
 	if err != nil {
 		return err
 	}
@@ -596,7 +596,7 @@ func AddMissingGroupIds(tx *sqlx.Tx) (int, int, error) {
 
 	query := `
 		SELECT id, created_at, author_id, comment
-		FROM task_checkpoint 
+		FROM asset_checkpoint 
 		WHERE (group_id = '' OR group_id IS NULL) AND trashed = 0
 		ORDER BY author_id, created_at ASC
 	`
@@ -650,7 +650,7 @@ func AddMissingGroupIds(tx *sqlx.Tx) (int, int, error) {
 		}
 
 		// Update the checkpoint with the current group_id and mark as not synced
-		updateQuery := `UPDATE task_checkpoint SET group_id = ?, synced = 0 WHERE id = ?`
+		updateQuery := `UPDATE asset_checkpoint SET group_id = ?, synced = 0 WHERE id = ?`
 		_, err = tx.Exec(updateQuery, currentGroupId, checkpoint.Id)
 		if err != nil {
 			return 0, 0, fmt.Errorf("failed to update group_id for checkpoint %s: %w", checkpoint.Id, err)

@@ -7,7 +7,7 @@
             </div>
 
             <div class="timeline-dot" v-for="checkpoint in group.items" :key="checkpoint.checkpoint_id"
-                :class="{ 'timeline-dot-active': checkpoint.hash === taskHash, 'timeline-dot-alert': !checkpoint.synced }"
+                :class="{ 'timeline-dot-active': checkpoint.hash === assetHash, 'timeline-dot-alert': !checkpoint.synced }"
                 :style="{ top: dotPositions[checkpoint.checkpoint_id] }" v-tooltip="checkpoint.synced ? 'Synced' : 'Not synced'">
             </div>
         </div>
@@ -16,8 +16,8 @@
             <CheckpointGroupHeader :label="group.label" />
 
             <CheckpointItem v-for="checkpoint in group.items" :ref="el => setItemRef(checkpoint.checkpoint_id, el)"
-                :key="checkpoint.checkpoint_id" :checkpoint="checkpoint" :taskHash="taskHash" :expandedId="expandedId"
-                @refreshCheckpoints="$emit('refreshCheckpoints')" @updateTaskHash="$emit('updateTaskHash')"
+                :key="checkpoint.checkpoint_id" :checkpoint="checkpoint" :assetHash="assetHash" :expandedId="expandedId"
+                @refreshCheckpoints="$emit('refreshCheckpoints')" @updateAssetHash="$emit('updateAssetHash')"
                 @updateExpanded="$emit('updateExpanded', $event)" />
         </div>
 
@@ -38,7 +38,7 @@ const props = defineProps({
         type: Object,
         required: true
     },
-    taskHash: {
+    assetHash: {
         type: String,
         default: ''
     },
@@ -57,7 +57,7 @@ const props = defineProps({
 });
 
 // emits
-const emit = defineEmits(['refreshCheckpoints', 'updateTaskHash', 'updateExpanded']);
+const emit = defineEmits(['refreshCheckpoints', 'updateAssetHash', 'updateExpanded']);
 
 // refs
 const dotPositions = ref({});

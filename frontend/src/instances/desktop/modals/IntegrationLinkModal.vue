@@ -274,12 +274,13 @@ onMounted(async () => {
 
 .project-name {
   font-weight: 300;
-  color: var(--text-primary);
+  color: var(--white);
 }
 
 .integration-name {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--white);
+  font-weight: 400;
   text-transform: capitalize;
 }
 
@@ -291,7 +292,8 @@ onMounted(async () => {
 
 .section-label {
   font-size: 13px;
-  color: var(--text-secondary);
+  font-weight: 400;
+  color: var(--white);
   margin-bottom: 12px;
 }
 
@@ -348,13 +350,18 @@ onMounted(async () => {
 
 .project-desc {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--white);
 }
 
 .integration-icon {
   width: 32px;
   height: 32px;
   object-fit: contain;
+  filter: invert(100%);
+}
+
+[data-theme="dark"] .integration-icon {
+  filter: none;
 }
 
 .selection-header {
@@ -374,7 +381,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   padding: 32px;
-  color: var(--text-secondary);
+  color: var(--white);
   text-align: center;
   gap: 12px;
 }

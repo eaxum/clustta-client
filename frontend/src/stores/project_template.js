@@ -16,9 +16,11 @@ export const useProjectTemplateStore = defineStore("project_template", {
   state: () => ({
     projectTemplates: [],
     activeProjectTemplate: {},
-    taskTemplates: [],
+    assetTemplates: [],
     assetTypes: [],
     collectionTypes: [],
+    selectedAssetTypeId: null,
+    selectedCollectionTypeId: null,
   }),
   getters: {
     getTemplates: (state) => {
@@ -65,7 +67,7 @@ export const useProjectTemplateStore = defineStore("project_template", {
       let templates = await TemplateService.GetTemplates(
         this.activeProjectTemplate.uri
       );
-      this.taskTemplates = [];
+      this.assetTemplates = [];
       for (let i = 0; i < templates.length; i++) {
         let template = templates[i];
         let extension = "";
@@ -73,7 +75,7 @@ export const useProjectTemplateStore = defineStore("project_template", {
         extension = templates[i].extension.toLowerCase().substring(1);
         iconPath = (await iconStore.getIcon(extension)) || "";
         template.icon = iconPath;
-        this.taskTemplates.push(template);
+        this.assetTemplates.push(template);
       }
 
       let assetTypes = await AssetService.GetAssetTypes(

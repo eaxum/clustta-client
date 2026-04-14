@@ -15,15 +15,15 @@ type assetResponse struct {
 	ID           string `json:"id"`
 	Name         string `json:"name"`
 	Extension    string `json:"extension"`
-	EntityName   string `json:"entity_name"`
-	EntityPath   string `json:"entity_path"`
-	TaskPath     string `json:"task_path"`
+	CollectionName   string `json:"collection_name"`
+	CollectionPath   string `json:"collection_path"`
+	AssetPath     string `json:"asset_path"`
 	FilePath     string `json:"file_path"`
 	AssigneeId   string `json:"assignee_id"`
 	AssigneeName string `json:"assignee_name"`
 	StatusName   string `json:"status_short_name"`
-	TaskTypeName string `json:"task_type_name"`
-	TaskTypeIcon string `json:"task_type_icon"`
+	AssetTypeName string `json:"asset_type_name"`
+	AssetTypeIcon string `json:"asset_type_icon"`
 	FileStatus   string `json:"file_status"`
 	IsResource   bool   `json:"is_resource"`
 	PreviewId    string `json:"preview_id"`
@@ -62,8 +62,8 @@ func ListAssets(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback()
 
-	// Check user role to decide between all tasks or user-assigned tasks
-	var tasks []models.Task
+	// Check user role to decide between all assets or user-assigned assets
+	var assets []models.Asset
 	userData, err := repository.GetUser(tx, user.Id)
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, "user not in project: "+err.Error())
@@ -76,18 +76,18 @@ func ListAssets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userRole.ViewTask {
-		tasks, err = repository.GetTasks(tx, false)
+	if userRole.ViewAsset {
+		assets, err = repository.GetAssets(tx, false)
 	} else {
-		tasks, err = repository.GetUserTasks(tx, user.Id)
+		assets, err = repository.GetUserAssets(tx, user.Id)
 	}
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	result := make([]assetResponse, 0, len(tasks))
-	for _, t := range tasks {
+	result := make([]assetResponse, 0, len(assets))
+	for _, t := range assets {
 		// Filter by extension if specified
 		if ext != "" && t.Extension != ext {
 			continue
@@ -97,15 +97,15 @@ func ListAssets(w http.ResponseWriter, r *http.Request) {
 			ID:           t.Id,
 			Name:         t.Name,
 			Extension:    t.Extension,
-			EntityName:   t.EntityName,
-			EntityPath:   t.EntityPath,
-			TaskPath:     t.TaskPath,
+			CollectionName:   t.CollectionName,
+			CollectionPath:   t.CollectionPath,
+			AssetPath:     t.AssetPath,
 			FilePath:     t.GetFilePath(),
 			AssigneeId:   t.AssigneeId,
 			AssigneeName: t.AssigneeName,
 			StatusName:   t.StatusShortName,
-			TaskTypeName: t.TaskTypeName,
-			TaskTypeIcon: t.TaskTypeIcon,
+			AssetTypeName: t.AssetTypeName,
+			AssetTypeIcon: t.AssetTypeIcon,
 			FileStatus:   t.FileStatus,
 			IsResource:   t.IsResource,
 			PreviewId:    t.PreviewId,

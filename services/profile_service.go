@@ -172,11 +172,7 @@ func (p *ProfileService) makeRequest(method, url string, body interface{}) ([]by
 	}
 
 	// Set headers
-	token, err := auth_service.GetToken()
-	if err != nil {
-		return nil, fmt.Errorf("error getting auth token: %w", err)
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 

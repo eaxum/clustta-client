@@ -5,6 +5,7 @@ export const useSettingsStore = defineStore("settings", {
   state: () => ({
     bridgeEnabled: false,
     minimizeOnClose: true,
+    pendingTab: null,
     showTypeIcons: true,
     modalStates: {
       general: false,
@@ -30,18 +31,18 @@ export const useSettingsStore = defineStore("settings", {
     activeModalName: "",
     selectedStage: null,
     modalMaskVisible: false,
-    showTaskCheckboxes: false,
-    expandAllSubtasks: false,
-    firstSelectedTaskId: "",
-    lastSelectedTaskId: "",
+    showAssetCheckboxes: false,
+    expandAllSubassets: false,
+    firstSelectedAssetId: "",
+    lastSelectedAssetId: "",
 
     sidePaneActive: false,
 
-    allTasks: [],
-    allTasksCollapsed: true,
+    allAssets: [],
+    allAssetsCollapsed: true,
 
-    markedTasks: [],
-    allTasksMarked: true,
+    markedAssets: [],
+    allAssetsMarked: true,
 
     settingsItems: [
       { id: "general", nameKey: "settings.general", name: "General", icon: "monitor" },
@@ -148,57 +149,57 @@ export const useSettingsStore = defineStore("settings", {
     isAnyModalActive() {
       return Object.values(this.modalStates).some((isVisible) => isVisible);
     },
-    toggleTaskCheckboxVisibility() {
-      this.showTaskCheckboxes = !this.showTaskCheckboxes;
+    toggleAssetCheckboxVisibility() {
+      this.showAssetCheckboxes = !this.showAssetCheckboxes;
     },
 
-    toggleSubtasks(id) {
+    toggleSubassets(id) {
       //check if active sequence's index is included and then add it if not
-      if (this.allTasks.includes(id)) {
-        this.allTasks = this.allTasks.filter((i) => i !== id);
+      if (this.allAssets.includes(id)) {
+        this.allAssets = this.allAssets.filter((i) => i !== id);
       } else {
-        this.allTasks.push(id);
+        this.allAssets.push(id);
       }
 
-      //collapse/expand all sequences based on whether the allTasks is empty
-      if (this.allTasks.length >= 0) {
-        this.allTasksCollapsed = false;
+      //collapse/expand all sequences based on whether the allAssets is empty
+      if (this.allAssets.length >= 0) {
+        this.allAssetsCollapsed = false;
       }
-      if (this.allTasks.length == 0) {
-        this.allTasksCollapsed = true;
+      if (this.allAssets.length == 0) {
+        this.allAssetsCollapsed = true;
       }
     },
 
-    toggleSubtaskVisibility(fullData) {
+    toggleSubassetVisibility(fullData) {
       //ifthere are open sequences collapse all
-      if (this.allTasks.length != 0) {
-        this.allTasksCollapsed = !this.allTasksCollapsed;
-        this.allTasks = [];
+      if (this.allAssets.length != 0) {
+        this.allAssetsCollapsed = !this.allAssetsCollapsed;
+        this.allAssets = [];
       } else {
         //if there are none, expand all
-        const idArray = fullData.map((task) => task.id);
-        this.allTasksCollapsed = !this.allTasksCollapsed;
-        this.allTasks = idArray;
+        const idArray = fullData.map((asset) => asset.id);
+        this.allAssetsCollapsed = !this.allAssetsCollapsed;
+        this.allAssets = idArray;
       }
     },
 
-    markTask(id) {
+    markAsset(id) {
       //check if active sequence's id is included and then add it if not
-      if (this.markedTasks.includes(id)) {
-        this.markedTasks = this.markedTasks.filter((i) => i !== id);
-        console.log(this.markedTasks);
+      if (this.markedAssets.includes(id)) {
+        this.markedAssets = this.markedAssets.filter((i) => i !== id);
+        console.log(this.markedAssets);
       } else {
-        this.markedTasks.push(id);
-        console.log(this.markedTasks);
+        this.markedAssets.push(id);
+        console.log(this.markedAssets);
       }
 
-      //collapse/expand all sequences based on whether the markedTasks is empty
+      //collapse/expand all sequences based on whether the markedAssets is empty
 
-      if (this.markedTasks.length >= 2) {
-        this.allTasksMarked = false;
+      if (this.markedAssets.length >= 2) {
+        this.allAssetsMarked = false;
       } else {
-        this.allTasksMarked = true;
-        console.log(this.allTasksMarked);
+        this.allAssetsMarked = true;
+        console.log(this.allAssetsMarked);
       }
     },
   },

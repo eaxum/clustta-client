@@ -115,7 +115,7 @@ const props = defineProps({
 const listBoxParent = ref(null);
 const searchTagsRoot = ref(null);
 const searchTags = ref(false);
-const searchPlaceholder = ref(t('components.searchSuggestions.searchTasks'))
+const searchPlaceholder = ref(t('components.searchSuggestions.searchAssets'))
 const outerChipWrapper = ref(null);
 const comboBoxRoot = ref(null);
 const tagItem = ref(null);
@@ -209,7 +209,7 @@ const toggleSearchTags = () => {
     searchPlaceholder.value = t('components.searchSuggestions.searchTags');
     emit('changePlaceholder', searchPlaceholder.value);
   } else {
-    searchPlaceholder.value = t('components.searchSuggestions.searchTasks');
+    searchPlaceholder.value = t('components.searchSuggestions.searchAssets');
     emit('changePlaceholder', searchPlaceholder.value);
   }
 

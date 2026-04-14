@@ -2,13 +2,13 @@
   <div ref="virtuaItemRef" class="virtua-item" >
     <div class="virtua-item-header drop-zone" :data-id="child.id" :data-other="JSON.stringify(child)" :id="child.id"
       :class="{ 'drop-zone-hovered': isHovered }">
-      <Collection ref="entityItemRef" v-if="child.type == 'entity'" @toggleEditMode="toggleEditMode" v-right-click="openCollectionMenu"
-        :isGhost="isGhost" :entity="child" :index="index" :loadingCollectionState="loadingCollectionState" />
-      <Asset v-if="child.type == 'task'" @toggleEditMode="toggleEditMode" v-right-click="openAssetMenu" :task="child" :index="index" :loadingAssetState="loadingAssetState" />
-      <Collection ref="entityItemRef" v-if="child.type == 'untracked_entity'" @toggleEditMode="toggleEditMode" v-right-click="openUntrackedItemMenu"
-        :isUntracked="true" :entity="child" :index="index" />
-      <Asset v-if="child.type == 'untracked_task'" @toggleEditMode="toggleEditMode" v-right-click="openUntrackedItemMenu" :isUntracked="true"
-        :task="child" :index="index" />
+      <Collection ref="collectionItemRef" v-if="child.type == 'collection'" @toggleEditMode="toggleEditMode" v-right-click="openCollectionMenu"
+        :isGhost="isGhost" :collection="child" :index="index" :loadingCollectionState="loadingCollectionState" />
+      <Asset v-if="child.type == 'asset'" @toggleEditMode="toggleEditMode" v-right-click="openAssetMenu" :asset="child" :index="index" :loadingAssetState="loadingAssetState" />
+      <Collection ref="collectionItemRef" v-if="child.type == 'untracked_collection'" @toggleEditMode="toggleEditMode" v-right-click="openUntrackedItemMenu"
+        :isUntracked="true" :collection="child" :index="index" />
+      <Asset v-if="child.type == 'untracked_asset'" @toggleEditMode="toggleEditMode" v-right-click="openUntrackedItemMenu" :isUntracked="true"
+        :asset="child" :index="index" />
     </div>
   </div>
 </template>
@@ -42,8 +42,8 @@ const projectStore = useProjectStore();
 const loadingDelay = 250;
 const virtuaItemRef = ref(null);
 const virtuaChildrenRef = ref(null);
-const entityItemRef = ref(null);
-const entityChildren = ref(null);
+const collectionItemRef = ref(null);
+const collectionChildren = ref(null);
 const loadingAssetState = ref(false);
 const loadingCollectionState = ref(false);
 
@@ -61,30 +61,30 @@ const props = defineProps({
 // menu methods
 const openCollectionMenu = (event) => {
   const id = props.child.id;
-  const entity = props.child;
-  stage.markedEntities = [id];
-  collectionStore.selectCollection(entity);
+  const collection = props.child;
+  stage.markedCollections = [id];
+  collectionStore.selectCollection(collection);
   menu.showContextMenu(event, 'collectionMenu', true);
 };
 
 const openAssetMenu = (event) => {
   const id = props.child.id;
-  const task = props.child;
-  assetStore.selectAsset(task);
-  stage.markedTasks = [id];
+  const asset = props.child;
+  assetStore.selectAsset(asset);
+  stage.markedAssets = [id];
   menu.showContextMenu(event, 'assetMenu', true);
 };
 
 const openUntrackedItemMenu = (event) => {
   const id = props.child.id;
-  stage.markedEntities = [id];
+  stage.markedCollections = [id];
   untrackedItemStore.selectUntrackedItem(props.child)
   menu.showContextMenu(event, 'untrackedItemMenu', true);
 };
 
 // computed
 const isExpanded = computed(() => {
-  return props.child.id in stage.expandedEntities;
+  return props.child.id in stage.expandedCollections;
 });
 
 const calculateRelativePosition = () => {
@@ -111,8 +111,8 @@ const handleToggle = async () => {
 const isHovered = computed(() => { return dndStore.targetItemId === props.child.id })
 
 // Watch for changes to the computed property
-watch(() => entityItemRef.value?.entityData, (newValue) => {
-  entityChildren.value = newValue
+watch(() => collectionItemRef.value?.collectionData, (newValue) => {
+  collectionChildren.value = newValue
 });
 
 const isEditing = ref(false);
@@ -123,9 +123,9 @@ const toggleEditMode = (value) => {
 
 // Loads the file status state for an asset.
 const loadAssetState = async () => {
-  const task = props.child;
+  const asset = props.child;
   
-  if (task.type !== 'task' || task.is_link) return;
+  if (asset.type !== 'asset' || asset.is_link) return;
 
   const loadingTimer = setTimeout(() => {
     loadingAssetState.value = true;
@@ -134,13 +134,13 @@ const loadAssetState = async () => {
   try {
     const fileStatus = await AssetService.GetAssetState(
       projectStore.activeProject.uri,
-      task.id
+      asset.id
     );
 
     props.child.file_status = fileStatus;
   } catch (error) {
-    console.error(`Error loading asset state for ${task.id}:`, error);
-    task.file_status = 'rebuildable';
+    console.error(`Error loading asset state for ${asset.id}:`, error);
+    asset.file_status = 'rebuildable';
   } finally {
     clearTimeout(loadingTimer);
     loadingAssetState.value = false;
@@ -149,9 +149,9 @@ const loadAssetState = async () => {
 
 // Loads the state flags for a collection.
 const loadCollectionState = async () => {
-  const entity = props.child;
+  const collection = props.child;
   
-  if (entity.type !== 'entity') return;
+  if (collection.type !== 'collection') return;
 
   const loadingTimer = setTimeout(() => {
     loadingCollectionState.value = true;
@@ -160,14 +160,14 @@ const loadCollectionState = async () => {
   try {
     const flags = await CollectionService.GetCollectionStateFlags(
       projectStore.activeProject.uri,
-      entity.id,
+      collection.id,
       projectStore.activeProject.working_directory,
       projectStore.activeProject.ignore_list
     );
 
     props.child.collectionStateFlags = flags;
   } catch (error) {
-    console.error(`Error loading collection state for ${entity.id}:`, error);
+    console.error(`Error loading collection state for ${collection.id}:`, error);
     props.child.collectionStateFlags = {
       has_untracked: false,
       has_modified: false,
@@ -196,9 +196,9 @@ const handleKeyArrowKeys = (event) => {
       const type = item.type;
       
       if(event.key === 'ArrowRight'){
-        if(type.includes('entity')  && entityChildren.value.length && !(item.id in stage.expandedEntities)){
-          stage.expandEntity(item);
-          const firstChildId = entityChildren.value[0].id;
+        if(type.includes('collection')  && collectionChildren.value.length && !(item.id in stage.expandedCollections)){
+          stage.expandCollection(item);
+          const firstChildId = collectionChildren.value[0].id;
           handleToggle();
           stage.markedItems = [firstChildId]
           stage.firstSelectedItemId = firstChildId;
@@ -209,23 +209,23 @@ const handleKeyArrowKeys = (event) => {
         
         let parent; 
         
-        const allEntities = collectionStore.getCollections;
+        const allCollections = collectionStore.getCollections;
         const alluntrackedFolders = projectStore.untrackedFolders;
-        const allItems = [ ...allEntities, ...alluntrackedFolders];
+        const allItems = [ ...allCollections, ...alluntrackedFolders];
 
-        if(type === 'entity'){
-          parent = allEntities.find((entity) => entity.id === item.parent_id);
-        } else if ( type === 'task'){
-          parent = allEntities.find((entity) => entity.id === item.entity_id);
+        if(type === 'collection'){
+          parent = allCollections.find((collection) => collection.id === item.parent_id);
+        } else if ( type === 'asset'){
+          parent = allCollections.find((collection) => collection.id === item.collection_id);
         } else {
-          const entityPath = item.entity_path;
-          const parentEntity = allEntities.find((entity) => entity.entity_path === entityPath);
-          const parentUntrackedEntity = alluntrackedFolders.find((entity) => entity.item_path === entityPath);
-          parent = parentEntity ? parentEntity : parentUntrackedEntity;
+          const collectionPath = item.collection_path;
+          const parentCollection = allCollections.find((collection) => collection.collection_path === collectionPath);
+          const parentUntrackedCollection = alluntrackedFolders.find((collection) => collection.item_path === collectionPath);
+          parent = parentCollection ? parentCollection : parentUntrackedCollection;
         }
 
         if(parent){
-          stage.expandEntity(parent);
+          stage.expandCollection(parent);
           handleToggle();
           stage.markedItems = [parent.id]
           stage.firstSelectedItemId = parent.id;
@@ -238,15 +238,15 @@ const handleKeyArrowKeys = (event) => {
 };
 
 onMounted(async () => {
-  if (props.child.entity_type_id) {
-    entityChildren.value = entityItemRef.value.entityData
+  if (props.child.collection_type_id) {
+    collectionChildren.value = collectionItemRef.value.collectionData
   }
   
-  if (props.child.type === 'entity') {
+  if (props.child.type === 'collection') {
     await loadCollectionState();
   }
   
-  if (props.child.type === 'task') {
+  if (props.child.type === 'asset') {
     await loadAssetState();
   }
   
@@ -292,7 +292,7 @@ onBeforeUnmount(() => {
   border-left: var(--solid-line);
 }
 
-.entity-drop-zone-hovered {
+.collection-drop-zone-hovered {
   width: 100%;
   height: 100%;
   position: absolute;

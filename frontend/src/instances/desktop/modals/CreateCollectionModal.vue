@@ -3,13 +3,13 @@
 
     <HeaderArea :title="title" :icon="headerIcon"/>
 
-    <div class="general-container" :style="{ gap: showTaskOptions ? 10 + 'px' : 20 + 'px' }">
+    <div class="general-container" :style="{ gap: showAssetOptions ? 10 + 'px' : 20 + 'px' }">
 
       <!-- Collection Creation Context -->
       <template v-if="!displayTypeCreator">
         <div v-if="!isMultiple" class="input-section">
           <div class="compound-input-section">
-            <input v-model="entityName" class="input-short" type="text" :placeholder="$t('placeholders.collectionName')" v-focus v-return="handleEnterKey" />
+            <input v-model="collectionName" class="input-short" type="text" :placeholder="$t('placeholders.collectionName')" v-focus v-return="handleEnterKey" />
           </div>
         </div>
 
@@ -18,7 +18,7 @@
         <div class="input-section">
           <div class="horizontal-flex">
             <div class="dropdown-wrapper">
-              <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType" :onSelect="selectEntityType" :useFilter="false" :placeHolder="$t('placeholders.collectionType')" />
+              <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="collectionType" :onSelect="selectCollectionType" :useFilter="false" :placeHolder="$t('placeholders.collectionType')" />
             </div>
             <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addCollectionTypeTitle')">
               <img class="small-icons" :src="getAppIcon('plus-circle')">
@@ -31,7 +31,7 @@
           <ToggleSwitch v-tooltip="isMultiple? 'Unmark as library' : 'Mark as a library'" @click="toggleIsMultiple" :switchValueProp="isMultiple" />
         </div>
 
-        <div class="horizontal-flex">
+        <div v-if="projectStore.activeProject?.has_remote" class="horizontal-flex">
           <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="$t('common.library')" />
           <ToggleSwitch v-tooltip="isLibrary? 'Unmark as library' : 'Mark as a library'" @click="toggleIsLibrary" :switchValueProp="isLibrary" />
         </div>
@@ -97,8 +97,8 @@ const { t } = useI18n();
 const batchGen = ref(null);
 const collections = ref([]);
 const displayTypeCreator = ref(false);
-const entityName = ref('');
-const entityType = ref('');
+const collectionName = ref('');
+const collectionType = ref('');
 const isAwaitingResponse = ref(false);
 const isLibrary = ref(false);
 const isMultiple = ref(false);
@@ -106,32 +106,32 @@ const itemsToGroup = ref([]);
 const modalContainer = ref(null);
 const newTypeIcon = ref('generic');
 const popUpActions = ref(null);
-const showTaskOptions = ref(true);
+const showAssetOptions = ref(true);
 const typeFormRef = ref(null);
 
 // computed
-// Returns the header icon based on selected entity type or new type icon.
+// Returns the header icon based on selected collection type or new type icon.
 const headerIcon = computed(() => {
   if (displayTypeCreator.value) {
     return newTypeIcon.value || 'folder-plus';
   }
-  const selectedType = collectionStore.collectionTypes.find(item => item.name === entityType.value);
+  const selectedType = collectionStore.collectionTypes.find(item => item.name === collectionType.value);
   return selectedType?.icon || 'folder-plus';
 });
 
 // Returns whether the form is valid for submission.
 const isValueChanged = computed(() => {
-  if (!entityType.value) return false;
+  if (!collectionType.value) return false;
   if (isMultiple.value) {
     return !batchGen.value?.invalidPattern;
   } else {
-    return entityName.value !== '';
+    return collectionName.value !== '';
   }
 });
 
 // Returns the parent ID for the new collection.
 const parentId = computed(() => {
-  if (stage.selectedItem && stage.selectedItem.type === 'entity') {
+  if (stage.selectedItem && stage.selectedItem.type === 'collection') {
     return stage.selectedItem?.id;
   } else if (collectionStore.navigatedCollection) {
     return collectionStore.navigatedCollection.id;
@@ -140,10 +140,10 @@ const parentId = computed(() => {
   }
 });
 
-// Returns the selected entity type ID.
-const selectedEntityTypeId = computed(() => {
-  const selectedEntityType = collectionStore.collectionTypes.find(item => item.name === entityType.value);
-  return selectedEntityType?.id;
+// Returns the selected collection type ID.
+const selectedCollectionTypeId = computed(() => {
+  const selectedCollectionType = collectionStore.collectionTypes.find(item => item.name === collectionType.value);
+  return selectedCollectionType?.id;
 });
 
 // Returns the modal title based on current mode.
@@ -158,27 +158,27 @@ const title = computed(() => {
 });
 
 // methods
-// Changes the parent of one or more entities.
-const changeEntityParent = async (entityIds, parentId) => {
-  await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityIds, parentId)
+// Changes the parent of one or more collections.
+const changeCollectionParent = async (collectionIds, parentId) => {
+  await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, collectionIds, parentId)
     .then(() => {
       notificationStore.addNotification(t('notifications.movedSuccessfully'), '', 'success');
     })
     .catch((error) => {
       console.error(error);
-      notificationStore.errorNotification(t('notifications.errorChangingEntityParent'), error);
+      notificationStore.errorNotification(t('notifications.errorChangingCollectionParent'), error);
     });
 };
 
-// Moves one or more tasks to a different collection.
-const changeTaskEntity = async (taskIds, entityId) => {
-  await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskIds, entityId)
+// Moves one or more assets to a different collection.
+const changeAssetCollection = async (assetIds, collectionId) => {
+  await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, assetIds, collectionId)
     .then(() => {
       notificationStore.addNotification(t('notifications.movedSuccessfully'), '', 'success');
     })
     .catch((error) => {
       console.error(error);
-      notificationStore.errorNotification(t('notifications.errorChangingTaskEntity'), error);
+      notificationStore.errorNotification(t('notifications.errorChangingAssetCollection'), error);
     });
 };
 
@@ -191,80 +191,80 @@ const closeModal = () => {
 const createCollections = async () => {
   isAwaitingResponse.value = true;
   if (stage.groupItems) {
-    await createEntityAndMove();
+    await createCollectionAndMove();
   } else if (isMultiple.value) {
-    await createMultipleEntities();
+    await createMultipleCollections();
     const successMessage = t('notifications.collectionsCreated', { count: collections.value.length });
     notificationStore.addNotification(successMessage, '', 'success');
   } else {
-    await createSingleEntity();
+    await createSingleCollection();
   }
   isAwaitingResponse.value = false;
   emitter.emit('refresh-browser');
   closeModal();
 };
 
-// Creates an entity and moves selected items into it.
-const createEntityAndMove = async () => {
+// Creates an collection and moves selected items into it.
+const createCollectionAndMove = async () => {
   const referenceItem = stage.selectedItems.at(-1);
   const type = referenceItem.type;
   const project = projectStore.activeProject;
   let parent;
-  if (type === 'task') {
-    parent = await CollectionService.GetCollectionByID(project.uri, referenceItem.entity_id);
+  if (type === 'asset') {
+    parent = await CollectionService.GetCollectionByID(project.uri, referenceItem.collection_id);
   } else {
     parent = await CollectionService.GetCollectionByID(project.uri, referenceItem.parent_id);
   }
   if (!parent) return;
   const parentIdValue = parent?.id;
   isAwaitingResponse.value = true;
-  const selectedEntityType = collectionStore.collectionTypes.find(item => item.name === entityType.value);
-  CollectionService.CreateCollection(projectStore.activeProject.uri, entityName.value, '', selectedEntityType.id, parentIdValue, '', isLibrary.value)
+  const selectedCollectionType = collectionStore.collectionTypes.find(item => item.name === collectionType.value);
+  CollectionService.CreateCollection(projectStore.activeProject.uri, collectionName.value, '', selectedCollectionType.id, parentIdValue, '', isLibrary.value)
     .then(async data => {
-      const newEntity = data;
-      collectionStore.selectedCollection = newEntity;
+      const newCollection = data;
+      collectionStore.selectedCollection = newCollection;
       isAwaitingResponse.value = false;
-      await moveIntoFolder(newEntity.id);
+      await moveIntoFolder(newCollection.id);
       closeModal();
-      notificationStore.addNotification(t('notifications.collectionCreated', { name: entityName.value }), '', 'success');
-      if (parentIdValue && !(parentIdValue in stage.expandedEntities)) {
-        stage.expandEntity(parent);
+      notificationStore.addNotification(t('notifications.collectionCreated', { name: collectionName.value }), '', 'success');
+      if (parentIdValue && !(parentIdValue in stage.expandedCollections)) {
+        stage.expandCollection(parent);
       }
-      stage.firstSelectedItemId = newEntity.id;
-      stage.markedItems = [newEntity.id];
+      stage.firstSelectedItemId = newCollection.id;
+      stage.markedItems = [newCollection.id];
       emitter.emit('refresh-browser');
     })
     .catch((error) => {
       console.log(error);
-      notificationStore.errorNotification(t('notifications.errorCreatingEntity'), error);
+      notificationStore.errorNotification(t('notifications.errorCreatingCollection'), error);
     });
 };
 
-// Creates multiple entities from batch generator.
-const createMultipleEntities = async () => {
+// Creates multiple collections from batch generator.
+const createMultipleCollections = async () => {
   const collectionNames = collections.value;
   for (const collectionName of collectionNames) {
-    entityName.value = collectionName;
-    await createSingleEntity();
+    collectionName.value = collectionName;
+    await createSingleCollection();
   }
 };
 
-// Creates a single entity.
-const createSingleEntity = async () => {
-  await CollectionService.CreateCollection(projectStore.activeProject.uri, entityName.value, '', selectedEntityTypeId.value, parentId.value, '', isLibrary.value)
+// Creates a single collection.
+const createSingleCollection = async () => {
+  await CollectionService.CreateCollection(projectStore.activeProject.uri, collectionName.value, '', selectedCollectionTypeId.value, parentId.value, '', isLibrary.value)
     .then(async data => {
       if (!isMultiple.value) {
-        const newEntity = data;
-        collectionStore.selectedCollection = newEntity;
-        stage.selectedItem = newEntity;
-        notificationStore.addNotification(t('notifications.collectionCreated', { name: entityName.value }), '', 'success');
-        stage.firstSelectedItemId = newEntity.id;
-        stage.markedItems = [newEntity.id];
+        const newCollection = data;
+        collectionStore.selectedCollection = newCollection;
+        stage.selectedItem = newCollection;
+        notificationStore.addNotification(t('notifications.collectionCreated', { name: collectionName.value }), '', 'success');
+        stage.firstSelectedItemId = newCollection.id;
+        stage.markedItems = [newCollection.id];
       }
     })
     .catch((error) => {
       console.log(error);
-      notificationStore.errorNotification(t('notifications.errorCreatingEntity'), error);
+      notificationStore.errorNotification(t('notifications.errorCreatingCollection'), error);
     });
 };
 
@@ -280,7 +280,7 @@ const handleEnterKey = () => {
 
 // Handles successful type creation from the form.
 const handleTypeCreated = (response) => {
-  entityType.value = response.name;
+  collectionType.value = response.name;
   displayTypeCreator.value = false;
 };
 
@@ -294,27 +294,27 @@ const moveIntoFolder = async (activeItemId) => {
   const selectedItems = stage.selectedItems;
 
   // Collect items by type for batch operations
-  const entityIds = [];
-  const taskIds = [];
+  const collectionIds = [];
+  const assetIds = [];
   const untrackedItems = [];
 
   for (const item of selectedItems) {
-    if (item.type === 'entity') entityIds.push(item.id);
-    else if (item.type === 'task') taskIds.push(item.id);
+    if (item.type === 'collection') collectionIds.push(item.id);
+    else if (item.type === 'asset') assetIds.push(item.id);
     else untrackedItems.push(item);
   }
 
   // Execute batch operations for tracked items
-  if (entityIds.length) await changeEntityParent(entityIds, activeItemId);
-  if (taskIds.length) await changeTaskEntity(taskIds, activeItemId);
+  if (collectionIds.length) await changeCollectionParent(collectionIds, activeItemId);
+  if (assetIds.length) await changeAssetCollection(assetIds, activeItemId);
 
   // Handle untracked items
   if (untrackedItems.length) {
-    const entity = collectionStore.selectedCollection;
-    await FSService.MakeDirs(entity.file_path);
+    const collection = collectionStore.selectedCollection;
+    await FSService.MakeDirs(collection.file_path);
     const renameOperations = [];
     for (const item of untrackedItems) {
-      const newPath = await FSService.JoinPath(entity.file_path, item.name);
+      const newPath = await FSService.JoinPath(collection.file_path, item.name);
       renameOperations.push({ oldPath: item.file_path, newPath });
     }
     await FSService.RenameBatch(JSON.stringify(renameOperations));
@@ -326,9 +326,9 @@ const onUpdateCollections = (allCollections) => {
   collections.value = allCollections;
 };
 
-// Selects an entity type from the dropdown.
-const selectEntityType = (entityTypeName) => {
-  entityType.value = entityTypeName;
+// Selects an collection type from the dropdown.
+const selectCollectionType = (collectionTypeName) => {
+  collectionType.value = collectionTypeName;
 };
 
 // Toggles the library flag.
@@ -366,7 +366,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   stage.groupItems = false;
-  stage.markedEntities = [];
+  stage.markedCollections = [];
   stage.selectedItem = null;
 });
 
