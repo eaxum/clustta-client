@@ -17,47 +17,16 @@
           <div class="welcome-subheader">{{ $t('auth.welcome.subtitle') }}</div>
 
           <!-- Path A: Work Locally (desktop only) -->
-          <div v-if="!platformStore.isWeb" class="welcome-card" @click="enableOfflineMode">
-            <div class="card-icon-container">
-              <img :src="getAppIcon('monitor')" class="large-icons card-icon" />
-            </div>
-            <div class="card-content">
-              <div class="card-title display-font">{{ $t('auth.welcome.localTitle') }}</div>
-              <div class="card-description">{{ $t('auth.welcome.localDescription') }}</div>
-            </div>
-            <div class="card-action">
-              <ActionButton v-if="!isEnablingOffline" :isInactive="true" :icon="getAppIcon('chevron-right')" />
-              <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" :noFilter="true" />
-            </div>
-          </div>
+          <OptionCard v-if="!platformStore.isWeb" :icon="getAppIcon('monitor')" :title="$t('auth.welcome.localTitle')" :description="$t('auth.welcome.localDescription')" :loading="isEnablingOffline" @select="enableOfflineMode" />
 
           <!-- Path B: Personal + Collaborate -->
-          <div class="welcome-card" @click="goToSignUp">
-            <div class="card-icon-container">
-              <img :src="getAppIcon('website')" class="large-icons card-icon" />
-            </div>
-            <div class="card-content">
-              <div class="card-title display-font">{{ $t('auth.welcome.personalTitle') }}</div>
-              <div class="card-description">{{ $t('auth.welcome.personalDescription') }}</div>
-            </div>
-            <div class="card-action">
-              <ActionButton :isInactive="true" :icon="getAppIcon('chevron-right')" />
-            </div>
-          </div>
+          <OptionCard :icon="getAppIcon('website')" :title="$t('auth.welcome.personalTitle')" :description="$t('auth.welcome.personalDescription')" @select="goToSignUp" />
 
-          <!-- Path C: Studio / Organisation -->
-          <div class="welcome-card" @click="goToStudioSetup">
-            <div class="card-icon-container">
-              <img :src="getAppIcon('stall')" class="large-icons card-icon" />
-            </div>
-            <div class="card-content">
-              <div class="card-title display-font">{{ $t('auth.welcome.studioTitle') }}</div>
-              <div class="card-description">{{ $t('auth.welcome.studioDescription') }}</div>
-            </div>
-            <div class="card-action">
-              <ActionButton :isInactive="true" :icon="getAppIcon('chevron-right')" />
-            </div>
-          </div>
+          <!-- Path C: Team / Studio (ClusttaCloud) -->
+          <OptionCard :icon="getAppIcon('clustta')" :title="$t('auth.welcome.teamTitle')" :description="$t('auth.welcome.teamDescription')" @select="goToStudioSetup" />
+
+          <!-- Path D: Studio Server (self-hosted) -->
+          <OptionCard :icon="getAppIcon('stall')" :title="$t('auth.welcome.studioTitle')" :description="$t('auth.welcome.studioDescription')" @select="goToSelfHosted" />
 
         </div>
 
@@ -88,8 +57,8 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 // components
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
+import OptionCard from '@/instances/common/components/OptionCard.vue';
 
 // services
 import { AuthService, SettingsService } from '@/services';
@@ -202,16 +171,20 @@ const goToLogin = () => {
 
 // Navigates to the sign up page.
 const goToSignUp = () => {
+  accountStore.onboardingIntent = 'personal';
   router.push('/auth/signup');
 };
 
-// Navigates to the studio setup page.
+// Navigates to signup with studio intent for ClusttaCloud team creation.
 const goToStudioSetup = () => {
-  if (platformStore.isWeb) {
-    router.push({ path: '/auth/studio-setup', query: { type: 'managed' } });
-  } else {
-    router.push('/auth/studio-setup');
-  }
+  accountStore.onboardingIntent = 'studio';
+  router.push('/auth/signup');
+};
+
+// Navigates directly to studio setup for self-hosted server registration.
+const goToSelfHosted = () => {
+  accountStore.onboardingIntent = 'self-hosted';
+  router.push('/auth/studio-setup');
 };
 </script>
 
@@ -246,74 +219,7 @@ const goToStudioSetup = () => {
   min-width: 400px;
 }
 
-.welcome-card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  border-radius: var(--very-large-radius);
-  background-color: var(--midnight-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s, border-radius 0.2s;
-}
 
-.welcome-card:hover {
-  border-color: var(--grape);
-  border-radius: var(--large-radius);
-  box-shadow: 0 0px 4px rgba(0, 0, 0, 0.1);
-}
-
-.card-icon-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 40px;
-  min-height: 40px;
-  max-width: 40px;
-  max-height: 40px;
-}
-
-.card-icon {
-  width: 32px;
-  height: 32px;
-  opacity: .5;
-}
-
-.card-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  min-width: 0;
-}
-
-.card-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--white);
-  line-height: 120%;
-}
-
-.card-description {
-  font-size: 0.8rem;
-  color: var(--white);
-  opacity: 0.55;
-  font-weight: 300;
-  line-height: 130%;
-}
-
-.card-action {
-  display: flex;
-  align-items: center;
-  opacity: 0;
-  transition: opacity .5s;
-}
-
-.welcome-card:hover .card-action {
-  opacity: 1;
-}
 
 .welcome-footer {
   display: flex;

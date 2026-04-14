@@ -31,15 +31,15 @@ func TestRenameTemplate(t *testing.T) {
 	defer testutils.Teardown()
 	template, err := repository.CreateTemplate(testutils.Tx, "Template 1", testutils.TestFile)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 	err = repository.RenameTemplate(testutils.Tx, template.Id, "renamed")
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 	renameTemplate, err := repository.GetTemplateByName(testutils.Tx, "renamed")
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	} else {
 		if renameTemplate.Name != "renamed" {
 			t.Errorf("Unexpected template name: %s", renameTemplate.Name)
@@ -53,11 +53,11 @@ func TestUpdateTemplateFile(t *testing.T) {
 	defer testutils.Teardown()
 	template, err := repository.CreateTemplate(testutils.Tx, "Template 1", testutils.TestFile)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 	updatedTemplate, err := repository.UpdateTemplateFile(testutils.Tx, template.Id, testutils.TestPreviewFile)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	} else {
 		if updatedTemplate.Extension != filepath.Ext(testutils.TestPreviewFile) {
 			t.Errorf("Unexpected template file extension: %s", updatedTemplate.Extension)
@@ -70,7 +70,7 @@ func TestGetOrCreateTemplate(t *testing.T) {
 	defer testutils.Teardown()
 	_, err := repository.GetOrCreateTemplate(testutils.Tx, "New Template", testutils.TestFile)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 
 }
@@ -80,15 +80,15 @@ func TestDeleteTemplate(t *testing.T) {
 	defer testutils.Teardown()
 	template, err := repository.CreateTemplate(testutils.Tx, "Template 1", testutils.TestFile)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 	err = repository.DeleteTemplate(testutils.Tx, template.Id, true)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 	deletedTemplates, err := repository.GetDeletedTemplates(testutils.Tx)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	} else {
 		if len(deletedTemplates) != 1 {
 			t.Errorf("expected 1 deleted template, but got %d", len(deletedTemplates))

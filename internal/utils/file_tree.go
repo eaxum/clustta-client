@@ -4,12 +4,12 @@ import (
 	"path/filepath"
 )
 
-func BuildEntityPath(rootFolder, entityPath string) (string, error) {
-	taskFilePath := filepath.Join(rootFolder, entityPath)
-	return taskFilePath, nil
+func BuildCollectionPath(rootFolder, collectionPath string) (string, error) {
+	assetFilePath := filepath.Join(rootFolder, collectionPath)
+	return assetFilePath, nil
 }
-func BuildTaskPath(rootFolder, entityPath, taskName, extension string) (string, error) {
-	taskFileName := taskName + extension
-	taskFilePath := filepath.Join(rootFolder, entityPath, taskFileName)
-	return taskFilePath, nil
+func BuildAssetPath(rootFolder, collectionPath, assetName, extension string) (string, error) {
+	assetFileName := assetName + extension
+	assetFilePath := filepath.Join(rootFolder, collectionPath, assetFileName)
+	return assetFilePath, nil
 }

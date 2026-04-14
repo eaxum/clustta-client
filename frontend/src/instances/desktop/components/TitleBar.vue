@@ -31,7 +31,7 @@
           </span>
         </div>
 
-          <ActionButton v-if="userStore.userCanCreateProject && projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('stall-cog')" v-tooltip="$t('components.titleBar.studioSettings')" :buttonFunction="studioSettings" />
+          <ActionButton v-if="studioStore.isStudioAdmin && projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('stall-cog')" v-tooltip="$t('components.titleBar.studioSettings')" :buttonFunction="studioSettings" />
           <ActionButton :icon="getAppIcon('refresh')" v-tooltip="$t('components.titleBar.reloadStudio')" :buttonFunction="reloadStudio" />
       </div>
 
@@ -66,6 +66,8 @@
     <div v-else-if="!platformStore.isWeb" class="titlebar-buttons">
       <!-- <ToggleSwitch :switchValueProp="themeStore.isDarkMode" @click="toggleTheme()" />
       <CheckBox v-model="themeStore.isDarkMode" @change="toggleTheme()" /> -->
+
+      <PlanInfo />
 
       <div class="titlebar-button minimize" @click="minimizeWindow">
         <img class="small-icons" :src="getAppIcon('collapse-window')" alt="Minimize">
@@ -133,9 +135,11 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import CheckBox from '@/instances/common/components/CheckBox.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
+import PlanInfo from '@/instances/common/components/PlanInfo.vue';
 import { useStudioStore } from '@/stores/studio';
 import { usePlatformStore } from '@/stores/platform';
 import { useAccountStore } from '@/stores/accounts';
+import { useEntitlementStore } from '@/stores/entitlements';
 
 const stage = useStageStore();
 const userStore = useUserStore();
@@ -150,6 +154,7 @@ const collectionStore = useCollectionStore();
 const settingsStore = useSettingsStore();
 const platformStore = usePlatformStore();
 const accountStore = useAccountStore();
+const entitlementStore = useEntitlementStore();
 const route = useRoute();
 const router = useRouter();
 
@@ -212,43 +217,9 @@ const getAppIcon = (iconName) => {
   return icon
 };
 
-const userCanCreateProject = () => {
-  const user = userStore.user;
-  const selectedStudio = projectStore.selectedStudio;
 
-  if (!user || !selectedStudio) {
-    userStore.userCanCreateProject = false
-    return false
-  }
 
-  const activeUserId = user.id;
-  const studioName = selectedStudio.name;
-
-  if (studioName === 'Personal') {
-    userStore.userCanCreateProject = true;
-    return true
-  } else {
-    if (!userStore.getUserAuthentication) {
-      userStore.userCanCreateProject = false
-      return false
-    } else {
-      const userStudioRole = studioStore.studioUsers?.find((item) => item.id === activeUserId)?.role_name;
-      const isAdmin = userStudioRole === 'admin';
-      userStore.userCanCreateProject = isAdmin;
-      return userStudioRole === 'admin';
-    }
-  }
-};
-
-watchEffect(() => {
-  if (projectStore.selectedStudio) {
-    // Track studioUsers so permission re-evaluates when users finish loading
-    const _ = studioStore.studioUsers;
-    userCanCreateProject()
-  }
-});
-
-const studioList = computed(() => { return projectStore.studios.filter(item => item.id !== projectStore.selectedStudio.id && item.url ) });
+const studioList = computed(() => { return projectStore.studios.filter(item => item.id !== projectStore.selectedStudio.id && (item.url || item.hosting_mode) ) });
 
 const operationMessage = computed(() => {
   return ' - ' + t('components.titleBar.working');
@@ -301,6 +272,11 @@ const reloadStudio = async () => {
     projectStore.selectedStudio = projectStore.studios[0]
   }
   await projectStore.loadProjects();
+  if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
+    entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
+  } else {
+    entitlementStore.fetchEntitlements();
+  }
   displayStudioList.value = false;
 }
 
@@ -321,14 +297,22 @@ const selectStudio = async (studio) => {
 
   if(projectStore.selectedStudio?.name !== 'Personal'){
     await studioStore.getStudioUsers();
-    console.log('pppppppppp')
   }
+
+  if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
+    entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
+    console.log('boat')
+  } else {
+    entitlementStore.fetchEntitlements();
+    console.log('float')
+  }
+	console.log(entitlementStore.features);
+  
 
   if (projectStore.projects.length && projectStore.activeProject && projectStore.activeProject.is_downloaded) {
     await trayStates.refreshData();
   }
 
-  userCanCreateProject();
 }
 
 const createStudio = () => {
@@ -471,7 +455,7 @@ onBeforeUnmount(() => {
   height: max-content;
   max-width: 40%;
   width: max-content;
-  padding: .5rem 1rem;
+  padding: .3rem .8rem;
   align-items: center;
   position: absolute;
   right: 50%;
@@ -607,7 +591,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   align-items: center;
   gap: .8rem;
-  padding: .5rem 1rem;
+  padding: .3rem .8rem;
 }
 
 .studio-instance-container {
@@ -700,7 +684,7 @@ onBeforeUnmount(() => {
   width: 100%;
   justify-content: space-between;
   align-items: center;
-  min-height: 46px;
+  min-height: 36px;
   color: var(--white);
   overflow: hidden;
   border-bottom: var(--transparent-line);

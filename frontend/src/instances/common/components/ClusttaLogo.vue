@@ -94,8 +94,8 @@ const getAppIcon = (iconName) => {
 }
 
 .logo-size-small .clustta-logo {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
 }
 
 .logo-size-small .clustta-logo img {

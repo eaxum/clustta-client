@@ -1,6 +1,6 @@
 <template>
   <div class="modal-container" v-stop-propagation>
-    <HeaderArea :title="$t('modals.createCheckpoints')" :icon="getAppIcon('layers-plus')" />
+    <HeaderArea :title="$t('modals.createCheckpoints')" :icon="getAppIcon('plus-stone')" />
     
     <div class="general-container">
       <textarea v-model="message" class="desktop-input-long" type="text" :placeholder="$t('placeholders.writeAComment')" v-focus
@@ -31,22 +31,22 @@
 
     <div v-if="showCheckpointItems" class="modified-items">
 
-      <div v-for="assetState in currentModifiedDisplayPaths" class="modified-item" :key="assetState.task_path">
+      <div v-for="assetState in currentModifiedDisplayPaths" class="modified-item" :key="assetState.asset_path">
         <ActionButton :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="$t('modals.modifiedAsset')" />
         <div class="modified-item-name">
           {{ assetState.display_path }}
         </div>
-        <span class="single-action-button" @click="removeItem(assetState.task_path)" v-tooltip="$t('common.remove')">
+        <span class="single-action-button" @click="removeItem(assetState.asset_path)" v-tooltip="$t('common.remove')">
           <img class="small-icons" src="/icons/close.svg">
         </span>
       </div>
 
-      <div v-for="taskPath in currentUntrackedPaths" class="modified-item">
+      <div v-for="assetPath in currentUntrackedPaths" class="modified-item">
         <ActionButton :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="$t('modals.untrackedAsset')" />
         <div class="modified-item-name">
-          {{ taskPath }}
+          {{ assetPath }}
         </div>
-        <span class="single-action-button" @click="removeItem(taskPath)" v-tooltip="$t('common.remove')">
+        <span class="single-action-button" @click="removeItem(assetPath)" v-tooltip="$t('common.remove')">
           <img class="small-icons" src="/icons/close.svg">
         </span>
       </div>
@@ -115,31 +115,31 @@ const forbiddenComments = ['wip', 'wfa', 'retake', 'retook', 'todo', 'fmf'];
 // Returns modified asset display paths after filtering.
 const currentModifiedDisplayPaths = computed(() => {
   let filteredAssets = assetStore.modifiedAssets.modified || [];
-  filteredAssets = filteredAssets.filter((assetState) => !removedPaths.value.includes(assetState.task_path));
-  if (trayStates.createMultipleCheckpointsEntityPath) {
-    filteredAssets = filteredAssets.filter((assetState) => assetState.task_path.startsWith(trayStates.createMultipleCheckpointsEntityPath));
+  filteredAssets = filteredAssets.filter((assetState) => !removedPaths.value.includes(assetState.asset_path));
+  if (trayStates.createMultipleCheckpointsCollectionPath) {
+    filteredAssets = filteredAssets.filter((assetState) => assetState.asset_path.startsWith(trayStates.createMultipleCheckpointsCollectionPath));
   }
   if (!trayStates.createMultipleCheckpoints) {
-    filteredAssets = filteredAssets.filter((assetState) => stage.markedItems.includes(assetState.task_id));
+    filteredAssets = filteredAssets.filter((assetState) => stage.markedItems.includes(assetState.asset_id));
   }
   return filteredAssets;
 });
 
 // Returns untracked file paths after filtering.
 const currentUntrackedPaths = computed(() => {
-  let filteredTasks = assetStore.modifiedAssets.untracked || [];
-  filteredTasks = filteredTasks.filter((untrackedTaskPath) => !removedPaths.value.includes(untrackedTaskPath));
-  if (trayStates.createMultipleCheckpointsEntityPath) {
-    filteredTasks = filteredTasks.filter((untrackedTaskPath) => untrackedTaskPath.startsWith(trayStates.createMultipleCheckpointsEntityPath));
+  let filteredAssets = assetStore.modifiedAssets.untracked || [];
+  filteredAssets = filteredAssets.filter((untrackedAssetPath) => !removedPaths.value.includes(untrackedAssetPath));
+  if (trayStates.createMultipleCheckpointsCollectionPath) {
+    filteredAssets = filteredAssets.filter((untrackedAssetPath) => untrackedAssetPath.startsWith(trayStates.createMultipleCheckpointsCollectionPath));
   }
   if (trayStates.createMultipleCheckpoints) {
-    return filteredTasks;
+    return filteredAssets;
   } else {
-    const selectedUntrackedTasks = stage.selectedItems
-      .filter(item => item.type === 'untracked_task')
-      .map(item => item.task_path)
-      .filter(path => path && filteredTasks.includes(path));
-    return selectedUntrackedTasks;
+    const selectedUntrackedAssets = stage.selectedItems
+      .filter(item => item.type === 'untracked_asset')
+      .map(item => item.asset_path)
+      .filter(path => path && filteredAssets.includes(path));
+    return selectedUntrackedAssets;
   }
 });
 
@@ -181,11 +181,11 @@ const createCheckPoints = async () => {
   const comment = message.value;
   const previewPath = '';
   const groupId = uuidv4();
-  const taskPathsForCheckpoints = currentModifiedDisplayPaths.value.map(assetState => assetState.task_path);
-  await CheckpointService.AddCheckpoint(projectStore.activeProject.uri, taskPathsForCheckpoints, comment, previewPath, groupId, useImageAsCover.value)
+  const assetPathsForCheckpoints = currentModifiedDisplayPaths.value.map(assetState => assetState.asset_path);
+  await CheckpointService.AddCheckpoint(projectStore.activeProject.uri, assetPathsForCheckpoints, comment, previewPath, groupId, useImageAsCover.value)
     .then(() => {
       assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter(
-        (item) => !taskPathsForCheckpoints.includes(item.task_path)
+        (item) => !assetPathsForCheckpoints.includes(item.asset_path)
       );
     })
     .catch((error) => {
@@ -197,14 +197,14 @@ const createCheckPoints = async () => {
   try {
     for (let i = 0; i < untracked.length; i += 100) {
       const batch = untracked.slice(i, i + 100);
-      await CheckpointService.AddUntrackedTask(projectStore.activeProject.uri, projectStore.activeProject.working_directory, batch, i, untracked.length, comment, previewPath, groupId);
+      await CheckpointService.AddUntrackedAsset(projectStore.activeProject.uri, projectStore.activeProject.working_directory, batch, i, untracked.length, comment, previewPath, groupId);
     }
   } catch (error) {
     isAwaitingResponse.value = false;
     notificationStore.errorNotification(t('notifications.errorCreatingCheckpoint'), error);
   }
   assetStore.modifiedAssets.untracked = assetStore.modifiedAssets.untracked.filter(
-    (untrackedTaskPath) => !currentUntrackedPaths.value.includes(untrackedTaskPath)
+    (untrackedAssetPath) => !currentUntrackedPaths.value.includes(untrackedAssetPath)
   );
   emitter.emit('refresh-browser');
   isAwaitingResponse.value = false;
@@ -248,15 +248,15 @@ onMounted(async () => {
     let targetPath = null;
     const selectedItem = stage.selectedItem;
     let selectedCollection;
-    if (selectedItem?.type?.includes('entity')) {
+    if (selectedItem?.type?.includes('collection')) {
       selectedCollection = selectedItem;
     } else {
       selectedCollection = collectionStore.navigatedCollection;
     }
     if (selectedCollection) {
-      if (selectedCollection.type === 'entity') {
+      if (selectedCollection.type === 'collection') {
         collectionId = selectedCollection.id;
-      } else if (selectedCollection.type === 'untracked_entity') {
+      } else if (selectedCollection.type === 'untracked_collection') {
         targetPath = selectedCollection.file_path;
       }
     }
@@ -269,7 +269,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   trayStates.createMultipleCheckpoints = true;
-  trayStates.createMultipleCheckpointsEntityPath = '';
+  trayStates.createMultipleCheckpointsCollectionPath = '';
 });
 </script>
 

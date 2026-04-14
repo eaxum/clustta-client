@@ -1,6 +1,6 @@
 <template>
   <div class="modal-container large-modal" v-esc="closeModal">
-    <HeaderArea :title="'Task Type Templates'" :icon="'extension'" />
+    <HeaderArea :title="'Asset Type Templates'" :icon="'extension'" />
 
     <div class="general-container">
       <!-- Loading State -->
@@ -9,33 +9,31 @@
       </div>
 
       <!-- No Templates Warning -->
-      <div v-else-if="templates.length === 0" class="empty-state">
-        <img :src="getAppIcon('warning')" alt="" class="empty-icon" />
-        <span class="empty-title">No Templates Found</span>
-        <span class="empty-description">Create asset templates in your project before mapping task types.</span>
+      <div v-else-if="!templates.length" class="page-state-container">
+        <PageState :message="'No templates found. Create asset templates in your project before mapping asset types'" :illustration="'/page-states/template.png'" />
       </div>
 
       <div v-else class="mapping-content">
         <p class="section-description">
-          Map each task type from Kitsu to an asset template. The template determines which file is created for each task.
+          Map each asset type from Kitsu to an asset template. The template determines which file is created for each asset.
         </p>
 
         <!-- Mapping Table -->
         <div class="mapping-table">
           <div class="table-header">
-            <span class="col-task-type">Kitsu Task Type</span>
+            <span class="col-asset-type">Kitsu Asset Type</span>
             <span class="col-template">Asset template</span>
           </div>
 
           <div class="table-body">
-            <div v-for="taskType in externalTaskTypes" :key="taskType.id" class="mapping-row">
-              <div class="col-task-type">
-                <img :src="getTaskTypeIcon(taskType.id)" alt="" class="row-icon" />
-                <span class="type-name">{{ taskType.name }}</span>
+            <div v-for="assetType in externalAssetTypes" :key="assetType.id" class="mapping-row">
+              <div class="col-asset-type">
+                <img :src="getAssetTypeIcon(assetType.id)" alt="" class="row-icon small-icons" :class="{ 'no-filter': mappings[assetType.id] }" />
+                <span class="type-name">{{ assetType.name }}</span>
               </div>
               <div class="col-template">
-                <DropDownBox :items="templateOptions" :selectedItem="getSelectedTemplateName(taskType.id)"
-                  :onSelect="(val) => setMapping(taskType.id, val)" :placeHolder="'Select template'"
+                <DropDownBox :items="templateOptions" :selectedItem="getSelectedTemplateName(assetType.id)"
+                  :onSelect="(val) => setMapping(assetType.id, val)" :placeHolder="'Select template'"
                   :useFilter="true" :fullWidth="true" />
               </div>
             </div>
@@ -45,15 +43,16 @@
         <!-- Unmapped Warning -->
         <div v-if="unmappedCount > 0" class="warning-banner">
           <img :src="getAppIcon('alert')" alt="" class="warning-icon" />
-          <span>{{ unmappedCount }} task type{{ unmappedCount > 1 ? 's' : '' }} not mapped. Unmapped types won't create files during sync.</span>
+          <span>{{ unmappedCount }} asset type{{ unmappedCount > 1 ? 's' : '' }} not mapped. Unmapped types won't create files during sync.</span>
         </div>
+        
       </div>
     </div>
 
     <!-- Actions -->
     <div class="pop-up-actions">
       <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-      <GeneralButton :label="'Save'" :fullWidth="true" :buttonFunction="saveMapping" :isActive="true" :loading="isSaving" />
+      <GeneralButton :label="'Save'" :fullWidth="true" :buttonFunction="saveMapping" :isActive="unmappedCount === 0 && templates.length > 0" :loading="isSaving" />
     </div>
   </div>
 </template>
@@ -67,6 +66,7 @@ import { useI18n } from 'vue-i18n';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import PageState from '@/instances/common/components/PageState.vue';
 
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
@@ -88,8 +88,8 @@ const isSaving = ref(false);
 const mappings = ref({});
 
 // computed
-const externalTaskTypes = computed(() => {
-  return integrationStore.externalTaskTypes || [];
+const externalAssetTypes = computed(() => {
+  return integrationStore.externalAssetTypes || [];
 });
 
 const templates = computed(() => {
@@ -104,13 +104,13 @@ const templateOptions = computed(() => {
 });
 
 const unmappedCount = computed(() => {
-  return externalTaskTypes.value.filter(tt => !mappings.value[tt.id]).length;
+  return externalAssetTypes.value.filter(tt => !mappings.value[tt.id]).length;
 });
 
 // methods
 // Closes the modal.
 const closeModal = () => {
-  desktopModals.setModalVisibility('taskTypeMappingModal', false);
+  desktopModals.setModalVisibility('assetTypeMappingModal', false);
 };
 
 // Returns the app icon path.
@@ -118,41 +118,41 @@ const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
-// Gets the icon for a task type based on its mapped template extension.
-const getTaskTypeIcon = (taskTypeId) => {
-  const templateId = mappings.value[taskTypeId];
-  if (!templateId) return getAppIcon('tag');
+// Gets the icon for a asset type based on its mapped template extension.
+const getAssetTypeIcon = (assetTypeId) => {
+  const templateId = mappings.value[assetTypeId];
+  if (!templateId) return getAppIcon('file');
   const template = templates.value.find(t => t.id === templateId);
-  if (!template?.extension) return getAppIcon('tag');
+  if (!template?.extension) return getAppIcon('file');
   const ext = template.extension.replace('.', '').toLowerCase();
   return `/file-icons/${ext}.svg`;
 };
 
-// Gets the currently selected template name for a task type.
-const getSelectedTemplateName = (taskTypeId) => {
-  const templateId = mappings.value[taskTypeId];
+// Gets the currently selected template name for a asset type.
+const getSelectedTemplateName = (assetTypeId) => {
+  const templateId = mappings.value[assetTypeId];
   if (!templateId) return null;
   const template = templates.value.find(t => t.id === templateId);
   return template ? `${template.name} (${template.extension})` : null;
 };
 
-// Sets a mapping between task type and template.
-const setMapping = (taskTypeId, selectedName) => {
+// Sets a mapping between asset type and template.
+const setMapping = (assetTypeId, selectedName) => {
   // Find template by display name
   const template = templateOptions.value.find(t => t.name === selectedName);
   if (template) {
-    mappings.value[taskTypeId] = template.id;
+    mappings.value[assetTypeId] = template.id;
   } else {
-    delete mappings.value[taskTypeId];
+    delete mappings.value[assetTypeId];
   }
 };
 
-// Saves the task type template mappings.
+// Saves the asset type template mappings.
 const saveMapping = async () => {
   isSaving.value = true;
   try {
-    await integrationStore.saveTaskTypeTemplates(mappings.value);
-    notificationStore.addNotification('Task type templates saved','', 'success');
+    await integrationStore.saveAssetTypeTemplates(mappings.value);
+    notificationStore.addNotification('Asset type templates saved','', 'success');
     closeModal();
   } catch (error) {
     notificationStore.addNotification(error.message || 'Failed to save', '', 'error');
@@ -173,18 +173,18 @@ onMounted(async () => {
     await integrationStore.loadLinkedIntegration();
     await integrationStore.loadTokens();
 
-    // Load external task types if not already loaded
-    if (integrationStore.externalTaskTypes.length === 0) {
+    // Load external asset types if not already loaded
+    if (integrationStore.externalAssetTypes.length === 0) {
       await integrationStore.getExternalTypes();
     }
 
     // Load existing mappings
     await integrationStore.loadTypeMappings();
-    const existing = integrationStore.typeMappings?.task_type_templates || {};
+    const existing = integrationStore.typeMappings?.asset_type_templates || {};
     mappings.value = { ...existing };
   } catch (error) {
-    console.error('Failed to load task type mappings:', error);
-    notificationStore.addNotification(error.message || 'Failed to load task types', 'error');
+    console.error('Failed to load asset type mappings:', error);
+    notificationStore.addNotification(error.message || 'Failed to load asset types', 'error');
   } finally {
     isLoading.value = false;
   }
@@ -205,6 +205,7 @@ onMounted(async () => {
   gap: 1rem;
   padding: 1rem;
   overflow-y: auto;
+  overflow: hidden;
   width: 500px;
   max-width: 500px;
 }
@@ -264,14 +265,13 @@ onMounted(async () => {
 
 .section-description {
   font-size: 0.875rem;
-  color: var(--bright-steel);
   margin: 0;
+  color: var(--white);
 }
 
 .mapping-table {
   display: flex;
   flex-direction: column;
-  /* border: 1px solid var(--bright-steel); */
   outline: var(--transparent-line);
   outline-offset: -1px;
   border-radius: var(--large-radius);
@@ -291,7 +291,7 @@ onMounted(async () => {
 .table-body {
   display: flex;
   flex-direction: column;
-  max-height: 400px;
+  max-height: 300px;
   overflow-y: auto;
 }
 
@@ -315,15 +315,17 @@ onMounted(async () => {
   background-color: var(--steel);
 }
 
-.col-task-type {
+.col-asset-type {
   flex: 1;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  color: var(--white);
 }
 
 .col-template {
   flex: 1;
+  color: var(--white);
 }
 
 .row-icon {

@@ -151,10 +151,10 @@ func (k *KitsuClient) GetProjects(token, apiUrl string) ([]ExternalProject, erro
 	return projects, nil
 }
 
-// GetProjectEntities fetches all hierarchy entities (episodes, sequences, shots).
-func (k *KitsuClient) GetProjectEntities(token, apiUrl, projectID string) ([]ExternalEntity, error) {
+// GetProjectCollections fetches all hierarchy collections (episodes, sequences, shots).
+func (k *KitsuClient) GetProjectCollections(token, apiUrl, projectID string) ([]ExternalCollection, error) {
 	apiUrl = strings.TrimSuffix(apiUrl, "/")
-	entities := []ExternalEntity{}
+	collections := []ExternalCollection{}
 
 	// Fetch asset types first to build lookup map for resolving asset type names
 	assetTypeMap := make(map[string]string)
@@ -168,16 +168,16 @@ func (k *KitsuClient) GetProjectEntities(token, apiUrl, projectID string) ([]Ext
 		}
 	}
 
-	// Create virtual folder entities for asset types (Characters, Props, etc.)
+	// Create virtual folder collections for asset types (Characters, Props, etc.)
 	// These serve as parent containers for assets
 	for typeID, typeName := range assetTypeMap {
-		entities = append(entities, ExternalEntity{
-			ID:       "asset-type-" + typeID,
-			ParentID: "",
-			Name:     typeName,
-			Type:     "folder",
-			Path:     typeName,
-			HasTasks: false,
+		collections = append(collections, ExternalCollection{
+			ID:        "asset-type-" + typeID,
+			ParentID:  "",
+			Name:      typeName,
+			Type:      "folder",
+			Path:      typeName,
+			HasAssets: false,
 		})
 	}
 
@@ -186,34 +186,34 @@ func (k *KitsuClient) GetProjectEntities(token, apiUrl, projectID string) ([]Ext
 	if err != nil {
 		return nil, err
 	}
-	entities = append(entities, episodes...)
+	collections = append(collections, episodes...)
 
 	// Fetch sequences
 	sequences, err := k.getSequences(token, apiUrl, projectID)
 	if err != nil {
 		return nil, err
 	}
-	entities = append(entities, sequences...)
+	collections = append(collections, sequences...)
 
 	// Fetch shots
 	shots, err := k.getShots(token, apiUrl, projectID)
 	if err != nil {
 		return nil, err
 	}
-	entities = append(entities, shots...)
+	collections = append(collections, shots...)
 
 	// Fetch assets (3D models, rigs, etc.)
 	assets, err := k.getAssets(token, apiUrl, projectID, assetTypeMap)
 	if err != nil {
 		return nil, err
 	}
-	entities = append(entities, assets...)
+	collections = append(collections, assets...)
 
-	return entities, nil
+	return collections, nil
 }
 
-// GetProjectTasks fetches all tasks from the project.
-func (k *KitsuClient) GetProjectTasks(token, apiUrl, projectID string) ([]ExternalTask, error) {
+// GetProjectAssets fetches all assets from the project.
+func (k *KitsuClient) GetProjectAssets(token, apiUrl, projectID string) ([]ExternalAsset, error) {
 	apiUrl = strings.TrimSuffix(apiUrl, "/")
 
 	// Fetch task types first to build lookup map
@@ -238,7 +238,7 @@ func (k *KitsuClient) GetProjectTasks(token, apiUrl, projectID string) ([]Extern
 		return nil, err
 	}
 
-	tasks := make([]ExternalTask, 0, len(kitsuTasks))
+	assets := make([]ExternalAsset, 0, len(kitsuTasks))
 	for _, t := range kitsuTasks {
 		// Resolve task type name from ID if not provided
 		taskTypeName := t.TaskTypeName
@@ -252,38 +252,38 @@ func (k *KitsuClient) GetProjectTasks(token, apiUrl, projectID string) ([]Extern
 		if displayName == "" {
 			displayName = t.Name
 		}
-		tasks = append(tasks, ExternalTask{
+		assets = append(assets, ExternalAsset{
 			ID:          t.ID,
 			ParentID:    t.EntityID,
 			Name:        displayName,
-			Type:        "task",
+			Type:        "asset",
 			Status:      t.TaskStatusID,
 			Assignees:   t.Assignees,
-			TaskType:    taskTypeName,
-			TaskTypeID:  t.TaskTypeID,
+			AssetType:   taskTypeName,
+			AssetTypeID: t.TaskTypeID,
 			Description: t.Description,
 		})
 	}
-	return tasks, nil
+	return assets, nil
 }
 
-// UpdateTaskStatus updates a task's status in Kitsu.
-func (k *KitsuClient) UpdateTaskStatus(token, apiUrl, taskID, status string) error {
+// UpdateAssetStatus updates an asset's status in Kitsu.
+func (k *KitsuClient) UpdateAssetStatus(token, apiUrl, assetID, status string) error {
 	apiUrl = strings.TrimSuffix(apiUrl, "/")
 	payload := map[string]string{
 		"task_status_id": status,
 	}
-	_, err := k.put(token, apiUrl+"/api/data/tasks/"+taskID, payload)
+	_, err := k.put(token, apiUrl+"/api/data/tasks/"+assetID, payload)
 	return err
 }
 
-// UploadPreview uploads a preview file to a task.
-func (k *KitsuClient) UploadPreview(token, apiUrl, taskID, filePath, comment string) error {
+// UploadPreview uploads a preview file to an asset.
+func (k *KitsuClient) UploadPreview(token, apiUrl, assetID, filePath, comment string) error {
 	apiUrl = strings.TrimSuffix(apiUrl, "/")
 
 	// First, create a comment with the preview
 	commentPayload := map[string]string{
-		"task_id": taskID,
+		"task_id": assetID,
 		"text":    comment,
 	}
 	commentData, err := k.post(token, apiUrl+"/api/data/comments", commentPayload)
@@ -302,13 +302,13 @@ func (k *KitsuClient) UploadPreview(token, apiUrl, taskID, filePath, comment str
 	return k.uploadFile(token, apiUrl+"/api/data/comments/"+commentResp.ID+"/preview", filePath)
 }
 
-// GetEntityTypes fetches all entity types (asset types) from Kitsu.
-// Kitsu has built-in entity types: Episode, Sequence, Shot plus user-defined asset types.
-func (k *KitsuClient) GetEntityTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error) {
+// GetCollectionTypes fetches all collection types (asset types) from Kitsu.
+// Kitsu has built-in collection types: Episode, Sequence, Shot plus user-defined asset types.
+func (k *KitsuClient) GetCollectionTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error) {
 	apiUrl = strings.TrimSuffix(apiUrl, "/")
 	types := []ExternalTypeInfo{}
 
-	// Built-in entity types that Kitsu always has
+	// Built-in collection types that Kitsu always has
 	builtinTypes := []ExternalTypeInfo{
 		{ID: "episode", Name: "Episode"},
 		{ID: "sequence", Name: "Sequence"},
@@ -316,7 +316,7 @@ func (k *KitsuClient) GetEntityTypes(token, apiUrl, projectID string) ([]Externa
 	}
 	types = append(types, builtinTypes...)
 
-	// Fetch asset types (user-defined entity types like Character, Prop, Environment)
+	// Fetch asset types (user-defined collection types like Character, Prop, Environment)
 	data, err := k.get(token, apiUrl+"/api/data/asset-types")
 	if err != nil {
 		// If we can't fetch asset types, still return built-in types
@@ -338,9 +338,9 @@ func (k *KitsuClient) GetEntityTypes(token, apiUrl, projectID string) ([]Externa
 	return types, nil
 }
 
-// GetTaskTypes fetches task types used in a specific Kitsu project.
+// GetAssetTypes fetches task types used in a specific Kitsu project.
 // Only returns task types that have actual tasks in the project.
-func (k *KitsuClient) GetTaskTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error) {
+func (k *KitsuClient) GetAssetTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error) {
 	apiUrl = strings.TrimSuffix(apiUrl, "/")
 
 	// Fetch all studio task types
@@ -505,7 +505,7 @@ func (k *KitsuClient) uploadFile(token, url, filePath string) error {
 	return nil
 }
 
-func (k *KitsuClient) getEpisodes(token, apiUrl, projectID string) ([]ExternalEntity, error) {
+func (k *KitsuClient) getEpisodes(token, apiUrl, projectID string) ([]ExternalCollection, error) {
 	data, err := k.get(token, apiUrl+"/api/data/projects/"+projectID+"/episodes")
 	if err != nil {
 		return nil, err
@@ -516,21 +516,21 @@ func (k *KitsuClient) getEpisodes(token, apiUrl, projectID string) ([]ExternalEn
 		return nil, err
 	}
 
-	entities := make([]ExternalEntity, 0, len(kitsuEpisodes))
+	collections := make([]ExternalCollection, 0, len(kitsuEpisodes))
 	for _, e := range kitsuEpisodes {
-		entities = append(entities, ExternalEntity{
-			ID:       e.ID,
-			ParentID: projectID,
-			Name:     e.Name,
-			Type:     "episode",
-			Path:     e.Name,
-			HasTasks: false,
+		collections = append(collections, ExternalCollection{
+			ID:        e.ID,
+			ParentID:  projectID,
+			Name:      e.Name,
+			Type:      "episode",
+			Path:      e.Name,
+			HasAssets: false,
 		})
 	}
-	return entities, nil
+	return collections, nil
 }
 
-func (k *KitsuClient) getSequences(token, apiUrl, projectID string) ([]ExternalEntity, error) {
+func (k *KitsuClient) getSequences(token, apiUrl, projectID string) ([]ExternalCollection, error) {
 	data, err := k.get(token, apiUrl+"/api/data/projects/"+projectID+"/sequences")
 	if err != nil {
 		return nil, err
@@ -541,21 +541,21 @@ func (k *KitsuClient) getSequences(token, apiUrl, projectID string) ([]ExternalE
 		return nil, err
 	}
 
-	entities := make([]ExternalEntity, 0, len(kitsuSequences))
+	collections := make([]ExternalCollection, 0, len(kitsuSequences))
 	for _, s := range kitsuSequences {
-		entities = append(entities, ExternalEntity{
-			ID:       s.ID,
-			ParentID: s.ParentID,
-			Name:     s.Name,
-			Type:     "sequence",
-			Path:     s.Name, // Full path built later during sync
-			HasTasks: false,
+		collections = append(collections, ExternalCollection{
+			ID:        s.ID,
+			ParentID:  s.ParentID,
+			Name:      s.Name,
+			Type:      "sequence",
+			Path:      s.Name, // Full path built later during sync
+			HasAssets: false,
 		})
 	}
-	return entities, nil
+	return collections, nil
 }
 
-func (k *KitsuClient) getShots(token, apiUrl, projectID string) ([]ExternalEntity, error) {
+func (k *KitsuClient) getShots(token, apiUrl, projectID string) ([]ExternalCollection, error) {
 	data, err := k.get(token, apiUrl+"/api/data/projects/"+projectID+"/shots")
 	if err != nil {
 		return nil, err
@@ -566,26 +566,26 @@ func (k *KitsuClient) getShots(token, apiUrl, projectID string) ([]ExternalEntit
 		return nil, err
 	}
 
-	entities := make([]ExternalEntity, 0, len(kitsuShots))
+	collections := make([]ExternalCollection, 0, len(kitsuShots))
 	for _, s := range kitsuShots {
 		// Use sequence_id if available, otherwise fall back to parent_id
 		parentID := s.SequenceID
 		if parentID == "" {
 			parentID = s.ParentID
 		}
-		entities = append(entities, ExternalEntity{
-			ID:       s.ID,
-			ParentID: parentID,
-			Name:     s.Name,
-			Type:     "shot",
-			Path:     s.Name,
-			HasTasks: true,
+		collections = append(collections, ExternalCollection{
+			ID:        s.ID,
+			ParentID:  parentID,
+			Name:      s.Name,
+			Type:      "shot",
+			Path:      s.Name,
+			HasAssets: true,
 		})
 	}
-	return entities, nil
+	return collections, nil
 }
 
-func (k *KitsuClient) getAssets(token, apiUrl, projectID string, assetTypeMap map[string]string) ([]ExternalEntity, error) {
+func (k *KitsuClient) getAssets(token, apiUrl, projectID string, assetTypeMap map[string]string) ([]ExternalCollection, error) {
 	data, err := k.get(token, apiUrl+"/api/data/projects/"+projectID+"/assets")
 	if err != nil {
 		return nil, err
@@ -596,7 +596,7 @@ func (k *KitsuClient) getAssets(token, apiUrl, projectID string, assetTypeMap ma
 		return nil, err
 	}
 
-	entities := make([]ExternalEntity, 0, len(kitsuAssets))
+	collections := make([]ExternalCollection, 0, len(kitsuAssets))
 	for _, a := range kitsuAssets {
 		// Use asset type name directly from response, fallback to lookup, then default
 		typeName := a.AssetTypeName
@@ -612,16 +612,16 @@ func (k *KitsuClient) getAssets(token, apiUrl, projectID string, assetTypeMap ma
 		if a.AssetTypeID != "" {
 			parentID = "asset-type-" + a.AssetTypeID
 		}
-		entities = append(entities, ExternalEntity{
-			ID:       a.ID,
-			ParentID: parentID,
-			Name:     a.Name,
-			Type:     typeName,
-			Path:     a.Name,
-			HasTasks: true,
+		collections = append(collections, ExternalCollection{
+			ID:        a.ID,
+			ParentID:  parentID,
+			Name:      a.Name,
+			Type:      typeName,
+			Path:      a.Name,
+			HasAssets: true,
 		})
 	}
-	return entities, nil
+	return collections, nil
 }
 
 type kitsuAuthResponse struct {

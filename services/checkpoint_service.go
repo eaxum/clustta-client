@@ -50,9 +50,9 @@ func (c *CheckpointService) DeleteCheckpoint(projectPath, checkpointId string) e
 	return nil
 }
 
-// RevertToCheckpoint reverts a task to a specific checkpoint state.
+// RevertToCheckpoint reverts a asset to a specific checkpoint state.
 // Downloads missing chunks if needed and supports cancellation.
-func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, taskId, checkpointId string) error {
+func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, assetId, checkpointId string) error {
 	defer reset()
 
 	ctx := getContext()
@@ -101,7 +101,7 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, taskId, c
 	case <-ctx.Done():
 		return errors.New("operation cancelled")
 	case progressChan <- output.ProgressReport{
-		Title:      "Reverting Task",
+		Title:      "Reverting Asset",
 		Message:    "Preparing to Revert",
 		Percentage: 0,
 		Current:    1,
@@ -109,7 +109,7 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, taskId, c
 	}:
 	}
 
-	task, err := repository.GetTask(tx, taskId)
+	asset, err := repository.GetAsset(tx, assetId)
 	if err != nil {
 		return err
 	}
@@ -182,23 +182,23 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, taskId, c
 
 	callBack := func(current int, total int, message string, extraMessage string) {
 		progress := output.ProgressReport{
-			Title:      "Reverting Task",
-			Message:    task.Name,
+			Title:      "Reverting Asset",
+			Message:    asset.Name,
 			Percentage: float64(current) / float64(total) * 100,
 			Current:    1,
 			Total:      1,
 		}
 		app.Event.Emit("progress-update", progress)
 	}
-	err = repository.RevertToCheckpoint(tx, checkpointId, task.FilePath, callBack)
+	err = repository.RevertToCheckpoint(tx, checkpointId, asset.FilePath, callBack)
 	if err != nil {
 		return err
 	}
 
 	close(progressChan)
 	progress := output.ProgressReport{
-		Title:      "Reverting Task",
-		Message:    task.Name,
+		Title:      "Reverting Asset",
+		Message:    asset.Name,
 		Percentage: 100,
 		Current:    1,
 		Total:      1,
@@ -207,9 +207,9 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, taskId, c
 	return nil
 }
 
-// AddCheckpoint creates new checkpoints for multiple tasks.
+// AddCheckpoint creates new checkpoints for multiple assets.
 // Returns the created checkpoints or an error if the operation fails.
-func (c *CheckpointService) AddCheckpoint(projectPath string, taskPaths []string, message, previewPath, groupId string, useAsThumbnail bool) ([]models.Checkpoint, error) {
+func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths []string, message, previewPath, groupId string, useAsThumbnail bool) ([]models.Checkpoint, error) {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -223,7 +223,7 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, taskPaths []string
 	}
 	authorId := user.Id
 
-	totalTasks := len(taskPaths)
+	totalAssets := len(assetPaths)
 	previewId := ""
 	if previewPath != "" {
 		tx, err := dbConn.Beginx()
@@ -243,36 +243,36 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, taskPaths []string
 		}
 	}
 	checkpoints := []models.Checkpoint{}
-	for i, taskPath := range taskPaths {
+	for i, assetPath := range assetPaths {
 		tx, err := dbConn.Beginx()
 		if err != nil {
 			return []models.Checkpoint{}, err
 		}
 
-		task, err := repository.GetTaskByPath(tx, taskPath)
+		asset, err := repository.GetAssetByPath(tx, assetPath)
 		if err != nil {
 			return []models.Checkpoint{}, err
 		}
 		callBack := func(current int, total int, message string, extraMessage string) {
 			progress := output.ProgressReport{
 				Title:      "Creating Checkpoint",
-				Message:    task.Name,
+				Message:    asset.Name,
 				Percentage: float64(current) / float64(total) * 99,
 				Current:    i + 1,
-				Total:      totalTasks,
+				Total:      totalAssets,
 			}
 			app.Event.Emit("progress-update", progress)
 		}
 
 		checkpoint, err := repository.CreateCheckpoint(
 			tx,
-			task.Id,
+			asset.Id,
 			message,
 			"",
 			"",
 			0,
 			0,
-			task.FilePath,
+			asset.FilePath,
 			authorId,
 			previewId,
 			groupId,
@@ -283,7 +283,7 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, taskPaths []string
 			return []models.Checkpoint{}, err
 		}
 		if previewPath != "" && useAsThumbnail {
-			err = repository.SetEntityPreview(tx, task.Id, "task", previewId)
+			err = repository.SetCollectionPreview(tx, asset.Id, "asset", previewId)
 			if err != nil {
 				tx.Rollback()
 				return []models.Checkpoint{}, err
@@ -300,147 +300,147 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, taskPaths []string
 		Title:      "Creating Checkpoint",
 		Message:    "finishing up",
 		Percentage: 100,
-		Current:    totalTasks,
-		Total:      totalTasks,
+		Current:    totalAssets,
+		Total:      totalAssets,
 		EntityData: checkpoints,
 	}
 	app.Event.Emit("progress-update", progress)
 	return checkpoints, nil
 }
 
-// AddUntrackedTask tracks previously untracked files and creates checkpoints for them.
-// Returns the newly tracked tasks or an error if the operation fails.
-func (c *CheckpointService) AddUntrackedTask(projectPath, projectWorkingDir string, taskPaths []string, completed, totalTasks int, message, previewPath, groupId string) ([]models.Task, error) {
+// AddUntrackedAsset tracks previously untracked files and creates checkpoints for them.
+// Returns the newly tracked assets or an error if the operation fails.
+func (c *CheckpointService) AddUntrackedAsset(projectPath, projectWorkingDir string, assetPaths []string, completed, totalAssets int, message, previewPath, groupId string) ([]models.Asset, error) {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
 	defer dbConn.Close()
 
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
 	defer tx.Rollback()
 
-	entities := []models.Entity{}
-	err = tx.Select(&entities, "SELECT id, entity_path FROM full_entity")
+	collections := []models.Collection{}
+	err = tx.Select(&collections, "SELECT id, collection_path FROM full_collection")
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
-	entityType, err := repository.GetEntityTypeByName(tx, "generic")
+	collectionType, err := repository.GetCollectionTypeByName(tx, "generic")
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
-	taskType, err := repository.GetTaskTypeByName(tx, "generic")
+	assetType, err := repository.GetAssetTypeByName(tx, "generic")
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
 	status, err := repository.GetStatusByShortName(tx, "todo")
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
 	statusId := status.Id
 	tx.Rollback()
 
-	entityPathsIndex := map[string]string{}
-	for _, entity := range entities {
-		entityPathsIndex[entity.EntityPath] = entity.Id
+	collectionPathsIndex := map[string]string{}
+	for _, collection := range collections {
+		collectionPathsIndex[collection.CollectionPath] = collection.Id
 	}
 
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
-		return []models.Task{}, err
+		return []models.Asset{}, err
 	}
 
 	previewId := ""
 	if previewPath != "" {
 		tx, err := dbConn.Beginx()
 		if err != nil {
-			return []models.Task{}, err
+			return []models.Asset{}, err
 		}
 
 		preview, err := repository.CreatePreview(tx, previewPath)
 		if err != nil {
 			tx.Rollback()
-			return []models.Task{}, err
+			return []models.Asset{}, err
 		}
 		previewId = preview.Hash
 		err = tx.Commit()
 		if err != nil {
-			return []models.Task{}, err
+			return []models.Asset{}, err
 		}
 	}
-	tasks := []models.Task{}
+	assets := []models.Asset{}
 	state := completed
-	for i, taskPath := range taskPaths {
+	for i, assetPath := range assetPaths {
 		tx, err := dbConn.Beginx()
 		if err != nil {
-			return []models.Task{}, err
+			return []models.Asset{}, err
 		}
 		defer tx.Rollback()
 
-		taskFilePath := filepath.Join(projectWorkingDir, taskPath)
-		entityPath := utils.GetParent(taskPath)
-		taskEntityId := ""
+		assetFilePath := filepath.Join(projectWorkingDir, assetPath)
+		collectionPath := utils.GetParent(assetPath)
+		assetCollectionId := ""
 
-		for _, curentEntityPath := range utils.GetEntityPaths(entityPath) {
-			entityId, exists := entityPathsIndex[curentEntityPath]
+		for _, curentCollectionPath := range utils.GetCollectionPaths(collectionPath) {
+			collectionId, exists := collectionPathsIndex[curentCollectionPath]
 			if !exists {
-				entityName := filepath.Base(curentEntityPath)
-				parentEntityId := entityPathsIndex[utils.GetParent(curentEntityPath)]
-				entityId = uuid.New().String()
-				err = repository.CreateEntityFast(tx, entityId, entityName, "", entityType.Id, parentEntityId, "", false)
+				collectionName := filepath.Base(curentCollectionPath)
+				parentCollectionId := collectionPathsIndex[utils.GetParent(curentCollectionPath)]
+				collectionId = uuid.New().String()
+				err = repository.CreateCollectionFast(tx, collectionId, collectionName, "", collectionType.Id, parentCollectionId, "", false)
 				if err != nil {
-					return []models.Task{}, err
+					return []models.Asset{}, err
 				}
-				entityPathsIndex[curentEntityPath] = entityId
+				collectionPathsIndex[curentCollectionPath] = collectionId
 			}
-			taskEntityId = entityId
+			assetCollectionId = collectionId
 		}
 
-		taskName := strings.TrimSuffix(filepath.Base(taskPath), filepath.Ext(taskPath))
+		assetName := strings.TrimSuffix(filepath.Base(assetPath), filepath.Ext(assetPath))
 
 		callBack := func(current int, total int, message string, extraMessage string) {
 			progress := output.ProgressReport{
 				Title:      "Creating Checkpoint",
-				Message:    taskName,
+				Message:    assetName,
 				Percentage: float64(current) / float64(total) * 99,
 				Current:    completed + (i + 1),
-				Total:      totalTasks,
+				Total:      totalAssets,
 			}
 			app.Event.Emit("progress-update", progress)
 		}
-		err = repository.CreateTaskFast(tx, "", taskName, taskType.Id, taskEntityId, true, "", taskFilePath, previewId, user.Id, message, groupId, taskPath, statusId, callBack)
+		err = repository.CreateAssetFast(tx, "", assetName, assetType.Id, assetCollectionId, true, "", assetFilePath, previewId, user.Id, message, groupId, assetPath, statusId, callBack)
 		if err != nil {
 			tx.Rollback()
-			return []models.Task{}, err
+			return []models.Asset{}, err
 		}
 
 		err = tx.Commit()
 		if err != nil {
-			return []models.Task{}, err
+			return []models.Asset{}, err
 		}
 		state = completed + (i + 1)
 	}
 
-	if state == totalTasks {
+	if state == totalAssets {
 		progress := output.ProgressReport{
 			Title:      "Creating Checkpoint",
 			Message:    "finishing up",
 			Percentage: 100,
-			Current:    totalTasks,
-			Total:      totalTasks,
+			Current:    totalAssets,
+			Total:      totalAssets,
 		}
 		app.Event.Emit("progress-update", progress)
 	}
-	return tasks, nil
+	return assets, nil
 }
 
 // ViewCheckpoint creates a temporary file from a checkpoint and opens it.
-// Returns an error if the operation fails.
-func (c *CheckpointService) ViewCheckpoint(projectPath, checkpointId, entityName, extension string) error {
+// The temp file is placed in the same directory as the original asset so relative dependencies resolve correctly.
+func (c *CheckpointService) ViewCheckpoint(projectPath, checkpointId, assetId, collectionName, extension string) error {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -453,18 +453,17 @@ func (c *CheckpointService) ViewCheckpoint(projectPath, checkpointId, entityName
 	}
 	defer tx.Rollback()
 
-	f, err := os.CreateTemp("", "ClusttaTmpFile-")
+	asset, err := repository.GetAsset(tx, assetId)
 	if err != nil {
-		output.Error(err.Error())
+		return err
 	}
-	defer f.Close()
-	defer os.Remove(f.Name())
-
-	tempFile := f.Name() + extension
+	assetDir := filepath.Dir(asset.GetFilePath())
+	assetName := strings.TrimSuffix(filepath.Base(asset.GetFilePath()), extension)
+	tempFile := filepath.Join(assetDir, fmt.Sprintf("%s-checkpoint-%s%s", assetName, checkpointId[:4], extension))
 	callBack := func(current int, total int, message string, extraMessage string) {
 		progress := output.ProgressReport{
 			Title:      "Preparing Checkpoint",
-			Message:    entityName,
+			Message:    collectionName,
 			Percentage: float64(current) / float64(total) * 100,
 			Current:    1,
 			Total:      1,
@@ -483,9 +482,9 @@ func (c *CheckpointService) ViewCheckpoint(projectPath, checkpointId, entityName
 	return nil
 }
 
-// GetCheckpoints retrieves all checkpoints for a specific task.
+// GetCheckpoints retrieves all checkpoints for a specific asset.
 // Returns the list of checkpoints or an error if the operation fails.
-func (c *CheckpointService) GetCheckpoints(projectPath, taskId string) ([]models.Checkpoint, error) {
+func (c *CheckpointService) GetCheckpoints(projectPath, assetId string) ([]models.Checkpoint, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return []models.Checkpoint{}, err
@@ -497,16 +496,16 @@ func (c *CheckpointService) GetCheckpoints(projectPath, taskId string) ([]models
 	}
 	defer tx.Rollback()
 
-	checkPoints, err := repository.GetCheckpoints(tx, taskId, false)
+	checkPoints, err := repository.GetCheckpoints(tx, assetId, false)
 	if err != nil {
 		return []models.Checkpoint{}, err
 	}
 	return checkPoints, nil
 }
 
-// GetLatestCheckpoint retrieves the most recent checkpoint for a task.
+// GetLatestCheckpoint retrieves the most recent checkpoint for a asset.
 // Returns the latest checkpoint or an error if not found.
-func (c *CheckpointService) GetLatestCheckpoint(projectPath, taskId string) (models.Checkpoint, error) {
+func (c *CheckpointService) GetLatestCheckpoint(projectPath, assetId string) (models.Checkpoint, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.Checkpoint{}, err
@@ -518,7 +517,7 @@ func (c *CheckpointService) GetLatestCheckpoint(projectPath, taskId string) (mod
 	}
 	defer tx.Rollback()
 
-	checkpoint, err := repository.GetLatestCheckpoint(tx, taskId)
+	checkpoint, err := repository.GetLatestCheckpoint(tx, assetId)
 	if err != nil {
 		return models.Checkpoint{}, err
 	}
@@ -546,9 +545,9 @@ func (c *CheckpointService) GetTimeline(projectPath string) ([]repository.Compat
 	return timeline, nil
 }
 
-// Revert reverts multiple tasks to their latest checkpoints.
+// Revert reverts multiple assets to their latest checkpoints.
 // Downloads missing chunks if needed and supports cancellation.
-func (c *CheckpointService) Revert(projectPath, remoteUrl string, taskIds []string) error {
+func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []string) error {
 	defer reset()
 
 	ctx := getContext()
@@ -602,23 +601,23 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, taskIds []stri
 	}:
 	}
 
-	quotedTaskIds := make([]string, len(taskIds))
-	for i, id := range taskIds {
-		quotedTaskIds[i] = fmt.Sprintf("\"%s\"", id)
+	quotedAssetIds := make([]string, len(assetIds))
+	for i, id := range assetIds {
+		quotedAssetIds[i] = fmt.Sprintf("\"%s\"", id)
 	}
 	checkpoints := []models.Checkpoint{}
-	err = tx.Select(&checkpoints, fmt.Sprintf("SELECT * FROM task_checkpoint WHERE trashed = 0 AND task_id IN (%s) ORDER BY created_at DESC", strings.Join(quotedTaskIds, ",")))
+	err = tx.Select(&checkpoints, fmt.Sprintf("SELECT * FROM asset_checkpoint WHERE trashed = 0 AND asset_id IN (%s) ORDER BY created_at DESC", strings.Join(quotedAssetIds, ",")))
 	if err != nil {
 		return err
 	}
-	taskCheckpoints := map[string][]models.Checkpoint{}
-	for _, taskCheckpoint := range checkpoints {
-		taskCheckpoints[taskCheckpoint.TaskId] = append(taskCheckpoints[taskCheckpoint.TaskId], taskCheckpoint)
+	assetCheckpoints := map[string][]models.Checkpoint{}
+	for _, assetCheckpoint := range checkpoints {
+		assetCheckpoints[assetCheckpoint.AssetId] = append(assetCheckpoints[assetCheckpoint.AssetId], assetCheckpoint)
 	}
 
 	checkpointIdsToDownload := []string{}
-	for _, taskId := range taskIds {
-		latestCheckpoint := taskCheckpoints[taskId][0]
+	for _, assetId := range assetIds {
+		latestCheckpoint := assetCheckpoints[assetId][0]
 		isMisssingChunks, err := latestCheckpoint.HasMissingChunks(tx)
 		if err != nil {
 			return err
@@ -678,28 +677,28 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, taskIds []stri
 		return ctx.Err()
 	}
 
-	totalTasks := len(taskIds)
-	for i, taskId := range taskIds {
+	totalAssets := len(assetIds)
+	for i, assetId := range assetIds {
 		tx, err := dbConn.Beginx()
 		if err != nil {
 			return err
 		}
-		task, err := repository.GetTask(tx, taskId)
+		asset, err := repository.GetAsset(tx, assetId)
 		if err != nil {
 			return err
 		}
 		callBack := func(current int, total int, message string, extraMessage string) {
 			progress := output.ProgressReport{
 				Title:      "Reverting",
-				Message:    task.Name,
+				Message:    asset.Name,
 				Percentage: float64(current) / float64(total) * 100,
 				Current:    i + 1,
-				Total:      totalTasks,
+				Total:      totalAssets,
 			}
 			app.Event.Emit("progress-update", progress)
 		}
 
-		err = repository.RevertToLatestCheckpoint(tx, taskId, task.FilePath, callBack)
+		err = repository.RevertToLatestCheckpoint(tx, assetId, asset.FilePath, callBack)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -719,9 +718,9 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, taskIds []stri
 	return nil
 }
 
-// RevertTaskPaths reverts tasks by their file paths to latest checkpoints.
+// RevertAssetPaths reverts assets by their file paths to latest checkpoints.
 // Downloads missing chunks if needed and supports cancellation.
-func (c *CheckpointService) RevertTaskPaths(projectPath, remoteUrl string, taskPaths []string) error {
+func (c *CheckpointService) RevertAssetPaths(projectPath, remoteUrl string, assetPaths []string) error {
 	defer reset()
 
 	ctx := getContext()
@@ -763,13 +762,13 @@ func (c *CheckpointService) RevertTaskPaths(projectPath, remoteUrl string, taskP
 	}
 	defer tx.Rollback()
 
-	quotedTaskPaths := make([]string, len(taskPaths))
-	for i, taskPath := range taskPaths {
-		quotedTaskPaths[i] = fmt.Sprintf("\"%s\"", taskPath)
+	quotedAssetPaths := make([]string, len(assetPaths))
+	for i, assetPath := range assetPaths {
+		quotedAssetPaths[i] = fmt.Sprintf("\"%s\"", assetPath)
 	}
 
-	taskIds := []string{}
-	err = tx.Select(&taskIds, fmt.Sprintf("SELECT id FROM full_task WHERE trashed = 0 AND task_path IN (%s) ORDER BY created_at DESC", strings.Join(quotedTaskPaths, ",")))
+	assetIds := []string{}
+	err = tx.Select(&assetIds, fmt.Sprintf("SELECT id FROM full_asset WHERE trashed = 0 AND asset_path IN (%s) ORDER BY created_at DESC", strings.Join(quotedAssetPaths, ",")))
 	if err != nil {
 		return err
 	}
@@ -786,23 +785,23 @@ func (c *CheckpointService) RevertTaskPaths(projectPath, remoteUrl string, taskP
 	}:
 	}
 
-	quotedTaskIds := make([]string, len(taskIds))
-	for i, id := range taskIds {
-		quotedTaskIds[i] = fmt.Sprintf("\"%s\"", id)
+	quotedAssetIds := make([]string, len(assetIds))
+	for i, id := range assetIds {
+		quotedAssetIds[i] = fmt.Sprintf("\"%s\"", id)
 	}
 	checkpoints := []models.Checkpoint{}
-	err = tx.Select(&checkpoints, fmt.Sprintf("SELECT * FROM task_checkpoint WHERE trashed = 0 AND task_id IN (%s) ORDER BY created_at DESC", strings.Join(quotedTaskIds, ",")))
+	err = tx.Select(&checkpoints, fmt.Sprintf("SELECT * FROM asset_checkpoint WHERE trashed = 0 AND asset_id IN (%s) ORDER BY created_at DESC", strings.Join(quotedAssetIds, ",")))
 	if err != nil {
 		return err
 	}
-	taskCheckpoints := map[string][]models.Checkpoint{}
-	for _, taskCheckpoint := range checkpoints {
-		taskCheckpoints[taskCheckpoint.TaskId] = append(taskCheckpoints[taskCheckpoint.TaskId], taskCheckpoint)
+	assetCheckpoints := map[string][]models.Checkpoint{}
+	for _, assetCheckpoint := range checkpoints {
+		assetCheckpoints[assetCheckpoint.AssetId] = append(assetCheckpoints[assetCheckpoint.AssetId], assetCheckpoint)
 	}
 
 	checkpointIdsToDownload := []string{}
-	for _, taskId := range taskIds {
-		latestCheckpoint := taskCheckpoints[taskId][0]
+	for _, assetId := range assetIds {
+		latestCheckpoint := assetCheckpoints[assetId][0]
 		isMisssingChunks, err := latestCheckpoint.HasMissingChunks(tx)
 		if err != nil {
 			return err
@@ -862,28 +861,28 @@ func (c *CheckpointService) RevertTaskPaths(projectPath, remoteUrl string, taskP
 		return ctx.Err()
 	}
 
-	totalTasks := len(taskIds)
-	for i, taskId := range taskIds {
+	totalAssets := len(assetIds)
+	for i, assetId := range assetIds {
 		tx, err := dbConn.Beginx()
 		if err != nil {
 			return err
 		}
-		task, err := repository.GetTask(tx, taskId)
+		asset, err := repository.GetAsset(tx, assetId)
 		if err != nil {
 			return err
 		}
 		callBack := func(current int, total int, message string, extraMessage string) {
 			progress := output.ProgressReport{
 				Title:      "Reverting",
-				Message:    task.Name,
+				Message:    asset.Name,
 				Percentage: float64(current) / float64(total) * 100,
 				Current:    i + 1,
-				Total:      totalTasks,
+				Total:      totalAssets,
 			}
 			app.Event.Emit("progress-update", progress)
 		}
 
-		err = repository.RevertToLatestCheckpoint(tx, taskId, task.FilePath, callBack)
+		err = repository.RevertToLatestCheckpoint(tx, assetId, asset.FilePath, callBack)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -1030,14 +1029,14 @@ func (c *CheckpointService) RevertProject(projectPath, remoteUrl string, checkpo
 		return ctx.Err()
 	}
 
-	totalTasks := len(checkpoints)
+	totalAssets := len(checkpoints)
 	for i, checkpoint := range checkpoints {
 		tx, err := dbConn.Beginx()
 		if err != nil {
 			return err
 		}
 		defer tx.Rollback()
-		task, err := repository.GetTask(tx, checkpoint.TaskId)
+		asset, err := repository.GetAsset(tx, checkpoint.AssetId)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -1045,32 +1044,32 @@ func (c *CheckpointService) RevertProject(projectPath, remoteUrl string, checkpo
 		callBack := func(current int, total int, message string, extraMessage string) {
 			progress := output.ProgressReport{
 				Title:      "Reverting",
-				Message:    task.Name,
+				Message:    asset.Name,
 				Percentage: float64(current) / float64(total) * 100,
 				Current:    i + 1,
-				Total:      totalTasks,
+				Total:      totalAssets,
 			}
 			app.Event.Emit("progress-update", progress)
 		}
-		if utils.FileExists(task.FilePath) {
-			fileXXHash, err := utils.GenerateXXHashChecksum(task.FilePath)
+		if utils.FileExists(asset.FilePath) {
+			fileXXHash, err := utils.GenerateXXHashChecksum(asset.FilePath)
 			if err != nil {
 				return err
 			}
 			if fileXXHash == checkpoint.XXHashChecksum {
 				progress := output.ProgressReport{
 					Title:      "Reverting",
-					Message:    task.Name,
+					Message:    asset.Name,
 					Percentage: 100,
 					Current:    i + 1,
-					Total:      totalTasks,
+					Total:      totalAssets,
 				}
 				app.Event.Emit("progress-update", progress)
 				tx.Rollback()
 				continue // Skip if the file is already in the correct state
 			}
 		}
-		err = repository.RevertToCheckpoint(tx, checkpoint.Id, task.FilePath, callBack)
+		err = repository.RevertToCheckpoint(tx, checkpoint.Id, asset.FilePath, callBack)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -1116,71 +1115,71 @@ func (c *CheckpointService) AddMissingGroupIds(projectPath string) error {
 
 // SquashAssets combines multiple untracked files into a single asset with sequential checkpoints.
 // The first file becomes the initial checkpoint, and subsequent files are added as additional checkpoints.
-func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, filePaths []string, assetName, entityId string, deleteSourceFiles bool, checkpointComments []string) (models.Task, error) {
+func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, filePaths []string, assetName, collectionId string, deleteSourceFiles bool, checkpointComments []string) (models.Asset, error) {
 	if len(filePaths) < 2 {
-		return models.Task{}, errors.New("at least two files are required for squash")
+		return models.Asset{}, errors.New("at least two files are required for squash")
 	}
 	if len(filePaths) > 99 {
-		return models.Task{}, errors.New("cannot squash more than 99 files")
+		return models.Asset{}, errors.New("cannot squash more than 99 files")
 	}
 	if assetName == "" {
-		return models.Task{}, errors.New("asset name cannot be empty")
+		return models.Asset{}, errors.New("asset name cannot be empty")
 	}
 	if len(checkpointComments) != len(filePaths) {
-		return models.Task{}, errors.New("checkpoint comments count must match file paths count")
+		return models.Asset{}, errors.New("checkpoint comments count must match file paths count")
 	}
 
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer dbConn.Close()
 
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 
 	// Look up required types and status
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
-	taskType, err := repository.GetTaskTypeByName(tx, "generic")
+	assetType, err := repository.GetAssetTypeByName(tx, "generic")
 	if err != nil {
 		tx.Rollback()
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	status, err := repository.GetStatusByShortName(tx, "todo")
 	if err != nil {
 		tx.Rollback()
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	statusId := status.Id
 	tx.Rollback()
 
 	totalFiles := len(filePaths)
 	groupId := uuid.New().String()
-	taskId := uuid.New().String()
+	assetId := uuid.New().String()
 
-	// Determine the task path relative to working dir using the first file
+	// Determine the asset path relative to working dir using the first file
 	firstFilePath := filePaths[0]
 	if projectWorkingDir == "" {
-		return models.Task{}, errors.New("project working directory cannot be empty")
+		return models.Asset{}, errors.New("project working directory cannot be empty")
 	}
 	firstRelPath, err := filepath.Rel(projectWorkingDir, firstFilePath)
 	if err != nil {
-		return models.Task{}, fmt.Errorf("failed to compute relative path: %w", err)
+		return models.Asset{}, fmt.Errorf("failed to compute relative path: %w", err)
 	}
 
-	// Rebuild the task path with the new asset name
+	// Rebuild the asset path with the new asset name
 	extension := filepath.Ext(firstFilePath)
-	taskDir := filepath.Dir(firstRelPath)
-	taskRelPath := filepath.Join(taskDir, assetName+extension)
-	taskAbsPath := filepath.Join(projectWorkingDir, taskRelPath)
+	assetDir := filepath.Dir(firstRelPath)
+	assetRelPath := filepath.Join(assetDir, assetName+extension)
+	assetAbsPath := filepath.Join(projectWorkingDir, assetRelPath)
 
-	// Step 1: Create the task + first checkpoint from the first file
+	// Step 1: Create the asset + first checkpoint from the first file
 	app.Event.Emit("progress-update", output.ProgressReport{
 		Title:      "Squashing Assets",
 		Message:    filepath.Base(filePaths[0]),
@@ -1191,7 +1190,7 @@ func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, 
 
 	tx, err = dbConn.Beginx()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	comment := checkpointComments[0]
 	callBack := func(current int, total int, message string, extraMessage string) {
@@ -1204,14 +1203,14 @@ func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, 
 		}
 		app.Event.Emit("progress-update", progress)
 	}
-	err = repository.CreateTaskFast(tx, taskId, assetName, taskType.Id, entityId, true, "", firstFilePath, "", user.Id, comment, groupId, taskRelPath, statusId, callBack)
+	err = repository.CreateAssetFast(tx, assetId, assetName, assetType.Id, collectionId, true, "", firstFilePath, "", user.Id, comment, groupId, assetRelPath, statusId, callBack)
 	if err != nil {
 		tx.Rollback()
-		return models.Task{}, fmt.Errorf("failed to create asset from first file: %w", err)
+		return models.Asset{}, fmt.Errorf("failed to create asset from first file: %w", err)
 	}
 	err = tx.Commit()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 
 	// Step 2: Create checkpoints from subsequent files
@@ -1221,7 +1220,7 @@ func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, 
 
 		tx, err = dbConn.Beginx()
 		if err != nil {
-			return models.Task{}, err
+			return models.Asset{}, err
 		}
 
 		callBack := func(current int, total int, message string, extraMessage string) {
@@ -1235,30 +1234,30 @@ func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, 
 			app.Event.Emit("progress-update", progress)
 		}
 
-		_, err = repository.CreateCheckpoint(tx, taskId, checkpointComment, "", "", 0, 0, filePath, user.Id, "", groupId, callBack)
+		_, err = repository.CreateCheckpoint(tx, assetId, checkpointComment, "", "", 0, 0, filePath, user.Id, "", groupId, callBack)
 		if err != nil {
 			tx.Rollback()
 			if err.Error() == "file not modified" {
 				continue
 			}
-			return models.Task{}, fmt.Errorf("failed to create checkpoint %s: %w", checkpointComment, err)
+			return models.Asset{}, fmt.Errorf("failed to create checkpoint %s: %w", checkpointComment, err)
 		}
 
 		err = tx.Commit()
 		if err != nil {
-			return models.Task{}, err
+			return models.Asset{}, err
 		}
 	}
 
 	// Step 3: Fix checkpoint timestamps so they sort correctly (first=oldest, last=newest)
 	tx, err = dbConn.Beginx()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
-	checkpoints, err := repository.GetCheckpoints(tx, taskId, false)
+	checkpoints, err := repository.GetCheckpoints(tx, assetId, false)
 	if err != nil {
 		tx.Rollback()
-		return models.Task{}, fmt.Errorf("failed to fetch checkpoints for reordering: %w", err)
+		return models.Asset{}, fmt.Errorf("failed to fetch checkpoints for reordering: %w", err)
 	}
 
 	// Build a lookup from comment to desired order index
@@ -1275,55 +1274,55 @@ func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, 
 	baseEpoch := time.Now().Unix() - int64(len(checkpoints))
 	for i, cp := range checkpoints {
 		newTime := baseEpoch + int64(i)
-		_, err = tx.Exec("UPDATE task_checkpoint SET created_at = ? WHERE id = ?", newTime, cp.Id)
+		_, err = tx.Exec("UPDATE asset_checkpoint SET created_at = ? WHERE id = ?", newTime, cp.Id)
 		if err != nil {
 			tx.Rollback()
-			return models.Task{}, fmt.Errorf("failed to update checkpoint timestamp: %w", err)
+			return models.Asset{}, fmt.Errorf("failed to update checkpoint timestamp: %w", err)
 		}
 	}
 	err = tx.Commit()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 
-	// Step 4: Rename/copy the latest file to the task's working path
+	// Step 4: Rename/copy the latest file to the asset's working path
 	latestFilePath := filePaths[len(filePaths)-1]
-	if latestFilePath != taskAbsPath {
-		taskDir := filepath.Dir(taskAbsPath)
-		err = os.MkdirAll(taskDir, os.ModePerm)
+	if latestFilePath != assetAbsPath {
+		assetDir := filepath.Dir(assetAbsPath)
+		err = os.MkdirAll(assetDir, os.ModePerm)
 		if err != nil {
-			return models.Task{}, fmt.Errorf("failed to create directory for working file: %w", err)
+			return models.Asset{}, fmt.Errorf("failed to create directory for working file: %w", err)
 		}
 		data, err := os.ReadFile(latestFilePath)
 		if err != nil {
-			return models.Task{}, fmt.Errorf("failed to read latest file: %w", err)
+			return models.Asset{}, fmt.Errorf("failed to read latest file: %w", err)
 		}
-		err = os.WriteFile(taskAbsPath, data, 0644)
+		err = os.WriteFile(assetAbsPath, data, 0644)
 		if err != nil {
-			return models.Task{}, fmt.Errorf("failed to write working file: %w", err)
+			return models.Asset{}, fmt.Errorf("failed to write working file: %w", err)
 		}
 	}
 
 	// Step 5: Delete source files if requested
 	if deleteSourceFiles {
 		for _, filePath := range filePaths {
-			if filePath == taskAbsPath {
+			if filePath == assetAbsPath {
 				continue
 			}
 			os.Remove(filePath)
 		}
 	}
 
-	// Step 6: Retrieve and return the created task
+	// Step 6: Retrieve and return the created asset
 	tx, err = dbConn.Beginx()
 	if err != nil {
-		return models.Task{}, err
+		return models.Asset{}, err
 	}
 	defer tx.Rollback()
 
-	task, err := repository.GetTask(tx, taskId)
+	asset, err := repository.GetAsset(tx, assetId)
 	if err != nil {
-		return models.Task{}, fmt.Errorf("failed to retrieve created task: %w", err)
+		return models.Asset{}, fmt.Errorf("failed to retrieve created asset: %w", err)
 	}
 
 	app.Event.Emit("progress-update", output.ProgressReport{
@@ -1334,5 +1333,5 @@ func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, 
 		Total:      totalFiles,
 	})
 
-	return task, nil
+	return asset, nil
 }

@@ -219,5 +219,11 @@ onUnmounted(() => {
   opacity: 0;
   height: 0;
 }
+
+
+.horizontal-flex{
+  padding: 0px;
+}
+
 </style>
 

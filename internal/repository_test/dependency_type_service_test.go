@@ -12,7 +12,7 @@ func TestCreateDependencyType(t *testing.T) {
 	defer testutils.Teardown()
 	_, err := repository.CreateDependencyType(testutils.Tx, "", "dependency type 1")
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 }
 func TestGetDependencyType(t *testing.T) {
@@ -20,7 +20,7 @@ func TestGetDependencyType(t *testing.T) {
 	defer testutils.Teardown()
 	_, err := repository.GetDependencyType(testutils.Tx, "not found")
 	if err == nil {
-		t.Error("expected error of task dependency type not found, but got none")
+		t.Error("expected error of asset dependency type not found, but got none")
 	} else {
 		if err != error_service.ErrDependencyTypeNotFound {
 			t.Error(err.Error())
@@ -33,7 +33,7 @@ func TestGetDependencyTypes(t *testing.T) {
 	defer testutils.Teardown()
 	_, err := repository.GetDependencyTypes(testutils.Tx)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 }
 func TestRenameDependencyType(t *testing.T) {
@@ -41,15 +41,15 @@ func TestRenameDependencyType(t *testing.T) {
 	defer testutils.Teardown()
 	dependencyType, err := repository.CreateDependencyType(testutils.Tx, "", "dependency type 1")
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 	err = repository.RenameDependencyType(testutils.Tx, dependencyType.Id, "renamed")
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 	renamedependencyType, err := repository.GetDependencyTypeByName(testutils.Tx, "renamed")
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	} else {
 		if renamedependencyType.Name != "renamed" {
 			t.Errorf("expected dependency type name to be 'renamed', but got '%s'", renamedependencyType.Name)
@@ -62,15 +62,15 @@ func TestDeleteDependencyType(t *testing.T) {
 	defer testutils.Teardown()
 	dependencyType, err := repository.CreateDependencyType(testutils.Tx, "", "dependency type 1")
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 	err = repository.DeleteDependencyType(testutils.Tx, dependencyType.Id)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err.Error())
 	}
 	_, err = repository.GetDependencyTypeByName(testutils.Tx, dependencyType.Name)
 	if err == nil {
-		t.Error("expected error of task dependency type not found, but got none")
+		t.Error("expected error of asset dependency type not found, but got none")
 	} else {
 		if err != error_service.ErrDependencyTypeNotFound {
 			t.Error(err.Error())

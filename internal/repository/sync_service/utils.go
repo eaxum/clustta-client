@@ -10,8 +10,8 @@ import (
 
 type SyncOptions struct {
 	OnlyLatestCheckpoints bool `json:"only_latest_checkpoints"`
-	TaskDependencies      bool `json:"task_dependencies"`
-	Tasks                 bool `json:"tasks"`
+	AssetDependencies      bool `json:"asset_dependencies"`
+	Assets                 bool `json:"assets"`
 	Resources             bool `json:"resources"`
 	Templates             bool `json:"templates"`
 	Force                 bool `json:"force"`
@@ -19,10 +19,10 @@ type SyncOptions struct {
 
 var ProjectTables = []string{
 	"role", "user", "status", "tag",
-	"task_type", "task", "dependency_type", "task_dependency", "entity_dependency",
-	"entity_type", "entity", "entity_assignee", "template",
-	"workflow", "workflow_link", "workflow_entity", "workflow_task",
-	"task_tag", "task_checkpoint", "tomb",
+	"asset_type", "asset", "dependency_type", "asset_dependency", "collection_dependency",
+	"collection_type", "collection", "collection_assignee", "template",
+	"workflow", "workflow_link", "workflow_collection", "workflow_asset",
+	"asset_tag", "asset_checkpoint", "tomb",
 	"integration_project", "integration_collection_mapping", "integration_asset_mapping",
 }
 

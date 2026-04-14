@@ -3,20 +3,20 @@
   <div class="modal-container" ref="modalContainer" v-stop-propagation v-esc="closeModal">
 
     <div class="general-pane-header">
-      <HeaderArea :title="title" :icon="taskTypeIcon" />
+      <HeaderArea :title="title" :icon="assetTypeIcon" />
     </div>
 
 
     <div class="general-container">
       <div class="input-section">
-        <input v-model="taskTypeName" class="input-short" type="text" :placeholder="$t('placeholders.taskTypeName')" v-focus
+        <input v-model="assetTypeName" class="input-short" type="text" :placeholder="$t('placeholders.assetTypeName')" v-focus
           @keydown.enter="handleEnterKey" />
       </div>
 
       <IconGrid v-if="displayIconSelector" @iconSelected="setIcon" :icons="icons" />
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateTaskType" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateAssetType" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -39,36 +39,35 @@ import IconGrid from '@/instances/desktop/components/IconGrid.vue';
 import { AssetService } from "@/services";
 
 // stores
-const assetStore = useAssetStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const projectStore = useProjectStore();
+const projectTemplateStore = useProjectTemplateStore();
+const { t } = useI18n();
 
-import { useAssetStore } from '@/stores/assets';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
-import { useProjectStore } from '@/stores/projects';
+import { useProjectTemplateStore } from '@/stores/project_template';
 
 // constants
-const title = 'Edit task type';
+const title = 'Edit asset type';
 
 // refs
 const displayIconSelector = ref(true);
 const isAwaitingResponse = ref(false);
-const taskTypeIcon = ref('generic');
-const taskTypeName = ref('');
+const assetTypeIcon = ref('generic');
+const assetTypeName = ref('');
 
 // computed
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allTaskTypeIcons = assetStore.assetTypes.map((item) => item.icon);
-  return allIcons.filter((icon) => !allTaskTypeIcons.includes(icon));
+  const allAssetTypeIcons = projectTemplateStore.assetTypes.map((item) => item.icon);
+  return allIcons.filter((icon) => !allAssetTypeIcons.includes(icon));
 });
 
 const isValueChanged = computed(() => {
-  return !!taskTypeName.value && taskTypeIcon.value !== 'generic';
+  return !!assetTypeName.value && assetTypeIcon.value !== 'generic';
 });
 
 // methods
@@ -86,33 +85,36 @@ const getAppIcon = (iconName) => {
 // Handles enter key press.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter') {
-    // updateTaskType();
+    // updateAssetType();
   }
 };
 
 // Sets the selected icon.
 const setIcon = (icon) => {
-  taskTypeIcon.value = icon;
+  assetTypeIcon.value = icon;
 };
 
-// Updates the task type with the new values.
-const updateTaskType = () => {
-  AssetService.UpdateAssetType(projectStore.activeProject.uri, assetStore.selectedAssetType.id, taskTypeName.value, taskTypeIcon.value)
-    .then((response) => {
-      notificationStore.addNotification(t('notifications.taskTypeUpdated'), "", "success");
-      const index = assetStore.assetTypes.findIndex(taskType => taskType.id === assetStore.selectedAssetType.id);
-      assetStore.assetTypes[index] = response;
+// Updates the asset type with the new values.
+const updateAssetType = () => {
+  const typeId = projectTemplateStore.selectedAssetTypeId;
+  AssetService.UpdateAssetType(projectTemplateStore.activeProjectTemplate.uri, typeId, assetTypeName.value, assetTypeIcon.value)
+    .then(() => {
+      notificationStore.addNotification(t('notifications.assetTypeUpdated'), "", "success");
+      projectTemplateStore.reloadProjectTemplate();
       closeModal();
     })
     .catch((error) => {
-      notificationStore.errorNotification(t('notifications.errorUpdatingTaskType'), error);
+      notificationStore.errorNotification(t('notifications.errorUpdatingAssetType'), error);
     });
 };
 
 // lifecycle
 onMounted(() => {
-  // taskTypeName.value = assetStore.selectedAssetType.name;
-  // taskTypeIcon.value = assetStore.selectedAssetType.icon;
+  const selectedType = projectTemplateStore.assetTypes.find(t => t.id === projectTemplateStore.selectedAssetTypeId);
+  if (selectedType) {
+    assetTypeName.value = selectedType.name;
+    assetTypeIcon.value = selectedType.icon;
+  }
 });
 </script>
 

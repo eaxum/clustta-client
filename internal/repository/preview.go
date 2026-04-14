@@ -2,6 +2,7 @@ package repository
 
 import (
 	"bytes"
+	"clustta/internal/auth_service"
 	"clustta/internal/base_service"
 	"clustta/internal/constants"
 	"clustta/internal/error_service"
@@ -83,21 +84,19 @@ func AddPreviews(tx *sqlx.Tx, previews []models.Preview) error {
 	for _, preview := range previews {
 		_, err := GetPreview(tx, preview.Hash)
 		if err == nil {
-			return nil
-		} else {
-			if err == error_service.ErrPreviewNotFound {
-				_, err = tx.Exec("INSERT INTO preview (hash, preview, extension) VALUES (?, ?, ?)",
-					preview.Hash,
-					preview.Preview,
-					preview.Extension,
-				)
-				if err != nil {
-					return err
-				}
-			}
+			continue
+		}
+		if err != error_service.ErrPreviewNotFound {
 			return err
 		}
-
+		_, err = tx.Exec("INSERT INTO preview (hash, preview, extension) VALUES (?, ?, ?)",
+			preview.Hash,
+			preview.Preview,
+			preview.Extension,
+		)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -115,7 +114,7 @@ func GetPreview(tx *sqlx.Tx, hash string) (models.Preview, error) {
 	return preview, nil
 }
 
-func AddEntityPreview(tx *sqlx.Tx, entityId, entityModel, previewPath string) (models.Preview, error) {
+func AddCollectionPreview(tx *sqlx.Tx, collectionId, collectionModel, previewPath string) (models.Preview, error) {
 	preview, err := CreatePreview(tx, previewPath)
 	if err != nil {
 		return preview, err
@@ -124,25 +123,25 @@ func AddEntityPreview(tx *sqlx.Tx, entityId, entityModel, previewPath string) (m
 	params := map[string]any{
 		"preview_id": preview.Hash,
 	}
-	err = base_service.Update(tx, entityModel, entityId, params)
+	err = base_service.Update(tx, collectionModel, collectionId, params)
 	if err != nil {
 		return preview, err
 	}
-	err = base_service.UpdateMtime(tx, entityModel, entityId, utils.GetEpochTime())
+	err = base_service.UpdateMtime(tx, collectionModel, collectionId, utils.GetEpochTime())
 	if err != nil {
 		return preview, err
 	}
 	return preview, nil
 }
-func SetEntityPreview(tx *sqlx.Tx, entityId, entityModel, previewHash string) error {
+func SetCollectionPreview(tx *sqlx.Tx, collectionId, collectionModel, previewHash string) error {
 	params := map[string]any{
 		"preview_id": previewHash,
 	}
-	err := base_service.Update(tx, entityModel, entityId, params)
+	err := base_service.Update(tx, collectionModel, collectionId, params)
 	if err != nil {
 		return err
 	}
-	err = base_service.UpdateMtime(tx, entityModel, entityId, utils.GetEpochTime())
+	err = base_service.UpdateMtime(tx, collectionModel, collectionId, utils.GetEpochTime())
 	if err != nil {
 		return err
 	}
@@ -187,6 +186,7 @@ func PullPreviews(tx *sqlx.Tx, remoteUrl string, previewHashes []string, callbac
 				return err
 			}
 			req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+			auth_service.AttachBearerToken(req)
 			response, err := client.Do(req)
 			if err != nil {
 				return err
@@ -296,6 +296,7 @@ func PushPreviews(tx *sqlx.Tx, remoteUrl string, userId string, previewHashes []
 				return err
 			}
 			req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+			auth_service.AttachBearerToken(req)
 
 			response, err := client.Do(req)
 			if err != nil {

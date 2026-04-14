@@ -286,7 +286,7 @@ const platformStore = usePlatformStore()
   border-radius: var(--large-radius);
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, border-radius 0.2s;
   font-family: 'Bricolage Grotesque', sans-serif;
   font-weight: 600;
   line-height: 90%;
@@ -294,6 +294,7 @@ const platformStore = usePlatformStore()
 
 .submit-button:hover {
   background-color: var(--bright-grape);
+  border-radius: var(--normal-radius);
 }
 
 .button-inactive{

@@ -12,16 +12,34 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 )
 
+var (
+	activeProjectWorkingDir   string
+	activeProjectWorkingDirMu sync.RWMutex
+)
+
+// SetActiveProjectWorkingDir registers the current project's working directory as an allowed path.
+func SetActiveProjectWorkingDir(path string) {
+	cleaned, err := filepath.Abs(filepath.Clean(path))
+	if err != nil {
+		return
+	}
+	activeProjectWorkingDirMu.Lock()
+	defer activeProjectWorkingDirMu.Unlock()
+	activeProjectWorkingDir = strings.ToLower(cleaned)
+}
+
 type Studio struct {
-	Id     string `json:"id"`
-	Name   string `json:"name"`
-	Active string `json:"active"`
-	AltUrl string `json:"alt_url"`
-	Url    string `json:"url"`
-	Usage  string `json:"usage"`
-	Users  []models.StudioUserInfo
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	Active      string `json:"active"`
+	AltUrl      string `json:"alt_url"`
+	Url         string `json:"url"`
+	Usage       string `json:"usage"`
+	HostingMode string `json:"hosting_mode"`
+	Users       []models.StudioUserInfo
 }
 
 type ProjectLocation struct {
@@ -895,11 +913,12 @@ func GetStudios() ([]Studio, error) {
 				return settings.Studios, nil
 			}
 			studio := Studio{
-				Id:     userStudio.Id,
-				Name:   userStudio.Name,
-				Url:    userStudio.URL,
-				AltUrl: userStudio.AltURL,
-				Users:  studioUsers,
+				Id:          userStudio.Id,
+				Name:        userStudio.Name,
+				Url:         userStudio.URL,
+				AltUrl:      userStudio.AltURL,
+				HostingMode: userStudio.HostingMode,
+				Users:       studioUsers,
 			}
 			settings.Studios = append(settings.Studios, studio)
 		}
@@ -925,12 +944,12 @@ func GetProjectWorkspaces(projectId string) ([]interface{}, error) {
 
 	defaultWorkspace := map[string]interface{}{
 		"name":                 "Default",
-		"filters":              map[string]interface{}{"taskFilters": []interface{}{}, "entityFilters": []interface{}{}, "resourceFilters": []interface{}{}},
+		"filters":              map[string]interface{}{"assetFilters": []interface{}{}, "collectionFilters": []interface{}{}, "resourceFilters": []interface{}{}},
 		"workspaceSearchQuery": "",
 		"collection":           nil,
 	}
 
-	taskFilter := map[string]interface{}{
+	assetFilter := map[string]interface{}{
 		"email":      user.Email,
 		"first_name": user.FirstName,
 		"id":         user.Id,
@@ -938,9 +957,9 @@ func GetProjectWorkspaces(projectId string) ([]interface{}, error) {
 		"type":       "assignation",
 		"username":   user.Username,
 	}
-	assignedTasksWorkspace := map[string]interface{}{
-		"name":                 "My Tasks",
-		"filters":              map[string]interface{}{"taskFilters": []interface{}{taskFilter}, "entityFilters": []interface{}{}, "resourceFilters": []interface{}{}, "showTasks": true, "onlyAssets": true},
+	assignedAssetsWorkspace := map[string]interface{}{
+		"name":                 "My Assets",
+		"filters":              map[string]interface{}{"assetFilters": []interface{}{assetFilter}, "collectionFilters": []interface{}{}, "resourceFilters": []interface{}{}, "showAssets": true, "onlyAssets": true},
 		"workspaceSearchQuery": "",
 		"collection":           nil,
 	}
@@ -948,10 +967,10 @@ func GetProjectWorkspaces(projectId string) ([]interface{}, error) {
 	projectWorkspaces, exists := settings.WorkSpaces[projectId]
 	if !exists {
 		projectWorkspaces = append(projectWorkspaces, defaultWorkspace)
-		projectWorkspaces = append(projectWorkspaces, assignedTasksWorkspace)
+		projectWorkspaces = append(projectWorkspaces, assignedAssetsWorkspace)
 		return projectWorkspaces, nil
 	}
-	projectWorkspaces = append([]interface{}{defaultWorkspace, assignedTasksWorkspace}, projectWorkspaces...)
+	projectWorkspaces = append([]interface{}{defaultWorkspace, assignedAssetsWorkspace}, projectWorkspaces...)
 	return projectWorkspaces, nil
 }
 
@@ -990,6 +1009,33 @@ func RemoveProjectWorkspace(projectId string, workspaceName string) error {
 	}
 	settings.WorkSpaces[projectId] = projectWorkspaces
 	return saveSettings(settings)
+}
+
+// UpdateProjectWorkspace replaces an existing workspace configuration by name.
+func UpdateProjectWorkspace(projectId string, workspaceName string, workspaceData interface{}) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+
+	if settings.WorkSpaces == nil {
+		return fmt.Errorf("no workspaces found for project %s", projectId)
+	}
+
+	projectWorkspaces, exists := settings.WorkSpaces[projectId]
+	if !exists {
+		return fmt.Errorf("no workspaces found for project %s", projectId)
+	}
+
+	for i, workspace := range projectWorkspaces {
+		if workspaceName == workspace.(map[string]interface{})["name"] {
+			projectWorkspaces[i] = workspaceData
+			settings.WorkSpaces[projectId] = projectWorkspaces
+			return saveSettings(settings)
+		}
+	}
+
+	return fmt.Errorf("workspace %s not found in project %s", workspaceName, projectId)
 }
 
 // ========== Integration Credentials Management ==========
@@ -1124,6 +1170,59 @@ func UpdateDependencyPreset(projectId string, presetName string, updatedPreset i
 	}
 	settings.DependencyPresets[projectId] = projectPresets
 	return saveSettings(settings)
+}
+
+// IsPathAllowed checks whether the given path falls within a registered project directory.
+// Allowed roots: ProjectsDir, SharedProjectsDir, all ProjectLocation paths, and OS temp dir.
+func IsPathAllowed(path string) bool {
+	cleaned := filepath.Clean(path)
+	absPath, err := filepath.Abs(cleaned)
+	if err != nil {
+		return false
+	}
+
+	var roots []string
+
+	s, err := loadUserSettings()
+	if err != nil {
+		return false
+	}
+
+	if s.ProjectsDir != "" {
+		roots = append(roots, s.ProjectsDir)
+	}
+	if s.SharedProjectsDir != "" {
+		roots = append(roots, s.SharedProjectsDir)
+	}
+	for _, loc := range s.ProjectLocations {
+		if loc.Path != "" {
+			roots = append(roots, loc.Path)
+		}
+	}
+	roots = append(roots, os.TempDir())
+
+	for _, root := range roots {
+		cleanRoot := filepath.Clean(root)
+		absRoot, err := filepath.Abs(cleanRoot)
+		if err != nil {
+			continue
+		}
+		if strings.EqualFold(absPath, absRoot) || strings.HasPrefix(strings.ToLower(absPath), strings.ToLower(absRoot)+string(os.PathSeparator)) {
+			return true
+		}
+	}
+
+	activeProjectWorkingDirMu.RLock()
+	activeDir := activeProjectWorkingDir
+	activeProjectWorkingDirMu.RUnlock()
+	if activeDir != "" {
+		lowerAbs := strings.ToLower(absPath)
+		if lowerAbs == activeDir || strings.HasPrefix(lowerAbs, activeDir+string(os.PathSeparator)) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // ========== Project Location Management ==========

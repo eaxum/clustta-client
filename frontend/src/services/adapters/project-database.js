@@ -89,17 +89,17 @@ async function loadFromIndexedDB(projectName) {
  * Create database schema
  */
 function createSchema(db) {
-  // Entity (Collection) table
+  // Collection (Collection) table
   db.run(`
-    CREATE TABLE IF NOT EXISTS entity (
+    CREATE TABLE IF NOT EXISTS collection (
       id TEXT PRIMARY KEY,
       created_at TEXT,
       mtime INTEGER,
       name TEXT,
       description TEXT,
-      entity_type_id TEXT,
+      collection_type_id TEXT,
       parent_id TEXT,
-      entity_path TEXT,
+      collection_path TEXT,
       preview_id TEXT DEFAULT '',
       is_library INTEGER DEFAULT 0,
       trashed INTEGER DEFAULT 0,
@@ -107,9 +107,9 @@ function createSchema(db) {
     )
   `);
 
-  // Task table
+  // Asset table
   db.run(`
-    CREATE TABLE IF NOT EXISTS task (
+    CREATE TABLE IF NOT EXISTS asset (
       id TEXT PRIMARY KEY,
       mtime INTEGER,
       created_at TEXT,
@@ -118,8 +118,8 @@ function createSchema(db) {
       extension TEXT,
       is_resource INTEGER DEFAULT 0,
       status_id TEXT,
-      task_type_id TEXT,
-      entity_id TEXT,
+      asset_type_id TEXT,
+      collection_id TEXT,
       assignee_id TEXT,
       assigner_id TEXT,
       is_link INTEGER DEFAULT 0,
@@ -132,11 +132,11 @@ function createSchema(db) {
 
   // Checkpoint table
   db.run(`
-    CREATE TABLE IF NOT EXISTS task_checkpoint (
+    CREATE TABLE IF NOT EXISTS asset_checkpoint (
       id TEXT PRIMARY KEY,
       mtime INTEGER,
       created_at TEXT,
-      task_id TEXT,
+      asset_id TEXT,
       xxhash_checksum TEXT,
       time_modified INTEGER,
       file_size INTEGER,
@@ -172,14 +172,14 @@ function createSchema(db) {
       id TEXT PRIMARY KEY,
       mtime INTEGER,
       name TEXT,
-      view_entity INTEGER DEFAULT 0,
-      create_entity INTEGER DEFAULT 0,
-      update_entity INTEGER DEFAULT 0,
-      delete_entity INTEGER DEFAULT 0,
-      view_task INTEGER DEFAULT 0,
-      create_task INTEGER DEFAULT 0,
-      update_task INTEGER DEFAULT 0,
-      delete_task INTEGER DEFAULT 0,
+      view_collection INTEGER DEFAULT 0,
+      create_collection INTEGER DEFAULT 0,
+      update_collection INTEGER DEFAULT 0,
+      delete_collection INTEGER DEFAULT 0,
+      view_asset INTEGER DEFAULT 0,
+      create_asset INTEGER DEFAULT 0,
+      update_asset INTEGER DEFAULT 0,
+      delete_asset INTEGER DEFAULT 0,
       view_template INTEGER DEFAULT 0,
       create_template INTEGER DEFAULT 0,
       update_template INTEGER DEFAULT 0,
@@ -188,15 +188,15 @@ function createSchema(db) {
       create_checkpoint INTEGER DEFAULT 0,
       delete_checkpoint INTEGER DEFAULT 0,
       pull_chunk INTEGER DEFAULT 0,
-      assign_task INTEGER DEFAULT 0,
-      unassign_task INTEGER DEFAULT 0,
+      assign_asset INTEGER DEFAULT 0,
+      unassign_asset INTEGER DEFAULT 0,
       add_user INTEGER DEFAULT 0,
       remove_user INTEGER DEFAULT 0,
       change_role INTEGER DEFAULT 0,
       change_status INTEGER DEFAULT 0,
-      set_done_task INTEGER DEFAULT 0,
-      set_retake_task INTEGER DEFAULT 0,
-      view_done_task INTEGER DEFAULT 0,
+      set_done_asset INTEGER DEFAULT 0,
+      set_retake_asset INTEGER DEFAULT 0,
+      view_done_asset INTEGER DEFAULT 0,
       manage_dependencies INTEGER DEFAULT 0,
       synced INTEGER DEFAULT 1
     )
@@ -214,9 +214,9 @@ function createSchema(db) {
     )
   `);
 
-  // Entity type table
+  // Collection type table
   db.run(`
-    CREATE TABLE IF NOT EXISTS entity_type (
+    CREATE TABLE IF NOT EXISTS collection_type (
       id TEXT PRIMARY KEY,
       mtime INTEGER,
       name TEXT,
@@ -225,9 +225,9 @@ function createSchema(db) {
     )
   `);
 
-  // Task type table
+  // Asset type table
   db.run(`
-    CREATE TABLE IF NOT EXISTS task_type (
+    CREATE TABLE IF NOT EXISTS asset_type (
       id TEXT PRIMARY KEY,
       mtime INTEGER,
       name TEXT,
@@ -247,12 +247,12 @@ function createSchema(db) {
     )
   `);
 
-  // Task tag junction table
+  // Asset tag junction table
   db.run(`
-    CREATE TABLE IF NOT EXISTS task_tag (
+    CREATE TABLE IF NOT EXISTS asset_tag (
       id TEXT PRIMARY KEY,
       mtime INTEGER,
-      task_id TEXT,
+      asset_id TEXT,
       tag_id TEXT,
       synced INTEGER DEFAULT 1
     )
@@ -268,36 +268,36 @@ function createSchema(db) {
     )
   `);
 
-  // Task dependency table
+  // Asset dependency table
   db.run(`
-    CREATE TABLE IF NOT EXISTS task_dependency (
+    CREATE TABLE IF NOT EXISTS asset_dependency (
       id TEXT PRIMARY KEY,
       mtime INTEGER,
-      task_id TEXT,
+      asset_id TEXT,
       dependency_id TEXT,
       dependency_type_id TEXT,
       synced INTEGER DEFAULT 1
     )
   `);
 
-  // Entity dependency table
+  // Collection dependency table
   db.run(`
-    CREATE TABLE IF NOT EXISTS entity_dependency (
+    CREATE TABLE IF NOT EXISTS collection_dependency (
       id TEXT PRIMARY KEY,
       mtime INTEGER,
-      task_id TEXT,
-      entity_id TEXT,
+      asset_id TEXT,
+      collection_id TEXT,
       dependency_type_id TEXT,
       synced INTEGER DEFAULT 1
     )
   `);
 
-  // Entity assignee table
+  // Collection assignee table
   db.run(`
-    CREATE TABLE IF NOT EXISTS entity_assignee (
+    CREATE TABLE IF NOT EXISTS collection_assignee (
       id TEXT PRIMARY KEY,
       mtime INTEGER,
-      entity_id TEXT,
+      collection_id TEXT,
       assignee_id TEXT DEFAULT '',
       assigner_id TEXT DEFAULT '',
       synced INTEGER DEFAULT 1
@@ -343,12 +343,12 @@ function createSchema(db) {
   `);
 
   db.run(`
-    CREATE TABLE IF NOT EXISTS workflow_entity (
+    CREATE TABLE IF NOT EXISTS workflow_collection (
       id TEXT PRIMARY KEY,
       mtime INTEGER,
       workflow_id TEXT,
       name TEXT,
-      entity_type_id TEXT,
+      collection_type_id TEXT,
       pos_x REAL,
       pos_y REAL,
       synced INTEGER DEFAULT 1
@@ -356,13 +356,13 @@ function createSchema(db) {
   `);
 
   db.run(`
-    CREATE TABLE IF NOT EXISTS workflow_task (
+    CREATE TABLE IF NOT EXISTS workflow_asset (
       id TEXT PRIMARY KEY,
       mtime INTEGER,
       workflow_id TEXT,
-      workflow_entity_id TEXT,
+      workflow_collection_id TEXT,
       name TEXT,
-      task_type_id TEXT,
+      asset_type_id TEXT,
       extension TEXT,
       template_id TEXT,
       is_resource INTEGER DEFAULT 0,
@@ -447,11 +447,11 @@ function createSchema(db) {
   `);
 
   // Create indexes for common queries
-  db.run('CREATE INDEX IF NOT EXISTS idx_entity_parent ON entity(parent_id)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_task_entity ON task(entity_id)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_checkpoint_task ON task_checkpoint(task_id)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_task_tag_task ON task_tag(task_id)');
-  db.run('CREATE INDEX IF NOT EXISTS idx_task_dependency_task ON task_dependency(task_id)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_collection_parent ON collection(parent_id)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_asset_collection ON asset(collection_id)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_checkpoint_asset ON asset_checkpoint(asset_id)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_asset_tag_asset ON asset_tag(asset_id)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_asset_dependency_asset ON asset_dependency(asset_id)');
   db.run('CREATE INDEX IF NOT EXISTS idx_tomb_table ON tomb(table_name)');
   db.run('CREATE INDEX IF NOT EXISTS idx_integration_collection_mapping_collection ON integration_collection_mapping(collection_id)');
   db.run('CREATE INDEX IF NOT EXISTS idx_integration_collection_mapping_external ON integration_collection_mapping(integration_id, external_id)');
@@ -496,10 +496,10 @@ function bool(value) {
 function populateFromProjectData(db, projectData) {
   // Clear existing data
   const tables = [
-    'entity', 'task', 'task_checkpoint', 'user', 'role', 'status',
-    'entity_type', 'task_type', 'tag', 'task_tag', 'dependency_type',
-    'task_dependency', 'entity_dependency', 'entity_assignee', 'template',
-    'workflow', 'workflow_link', 'workflow_entity', 'workflow_task', 'tomb',
+    'collection', 'asset', 'asset_checkpoint', 'user', 'role', 'status',
+    'collection_type', 'asset_type', 'tag', 'asset_tag', 'dependency_type',
+    'asset_dependency', 'collection_dependency', 'collection_assignee', 'template',
+    'workflow', 'workflow_link', 'workflow_collection', 'workflow_asset', 'tomb',
     'integration_project', 'integration_collection_mapping', 'integration_asset_mapping'
   ];
   
@@ -507,29 +507,29 @@ function populateFromProjectData(db, projectData) {
     db.run(`DELETE FROM ${table}`);
   }
 
-  // Insert entities
-  if (projectData.entities?.length) {
+  // Insert collections
+  if (projectData.collections?.length) {
     const stmt = db.prepare(`
-      INSERT INTO entity (id, mtime, name, parent_id, entity_type_id, entity_path, trashed, synced)
+      INSERT INTO collection (id, mtime, name, parent_id, collection_type_id, collection_path, trashed, synced)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    for (const e of projectData.entities) {
-      stmt.run([n(e.id), num(e.mtime), str(e.name), n(e.parent_id), n(e.entity_type_id), str(e.entity_path), bool(e.trashed), 1]);
+    for (const e of projectData.collections) {
+      stmt.run([n(e.id), num(e.mtime), str(e.name), n(e.parent_id), n(e.collection_type_id), str(e.collection_path), bool(e.trashed), 1]);
     }
     stmt.free();
   }
 
-  // Insert tasks
-  if (projectData.tasks?.length) {
+  // Insert assets
+  if (projectData.assets?.length) {
     const stmt = db.prepare(`
-      INSERT INTO task (id, mtime, created_at, name, description, extension, is_resource, status_id, 
-                       task_type_id, entity_id, assignee_id, assigner_id, is_link, pointer, preview_id, trashed, synced)
+      INSERT INTO asset (id, mtime, created_at, name, description, extension, is_resource, status_id, 
+                       asset_type_id, collection_id, assignee_id, assigner_id, is_link, pointer, preview_id, trashed, synced)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    for (const t of projectData.tasks) {
+    for (const t of projectData.assets) {
       stmt.run([
         n(t.id), num(t.mtime), str(t.created_at), str(t.name), str(t.description), str(t.extension),
-        bool(t.is_resource), n(t.status_id), n(t.task_type_id), n(t.entity_id),
+        bool(t.is_resource), n(t.status_id), n(t.asset_type_id), n(t.collection_id),
         n(t.assignee_id), n(t.assigner_id), bool(t.is_link), str(t.pointer), n(t.preview_id),
         bool(t.trashed), 1
       ]);
@@ -538,14 +538,14 @@ function populateFromProjectData(db, projectData) {
   }
 
   // Insert checkpoints
-  if (projectData.tasks_checkpoints?.length) {
+  if (projectData.assets_checkpoints?.length) {
     const stmt = db.prepare(`
-      INSERT INTO task_checkpoint (id, mtime, created_at, task_id, xxhash_checksum, time_modified, file_size, comment, chunks, author_id, preview_id, group_id, trashed, synced)
+      INSERT INTO asset_checkpoint (id, mtime, created_at, asset_id, xxhash_checksum, time_modified, file_size, comment, chunks, author_id, preview_id, group_id, trashed, synced)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    for (const c of projectData.tasks_checkpoints) {
+    for (const c of projectData.assets_checkpoints) {
       stmt.run([
-        n(c.id), num(c.mtime), str(c.created_at), n(c.task_id), str(c.xxhash_checksum),
+        n(c.id), num(c.mtime), str(c.created_at), n(c.asset_id), str(c.xxhash_checksum),
         num(c.time_modified), num(c.file_size), str(c.comment),
         str(c.chunks), str(c.author_uid), n(c.preview_id), str(c.group_id),
         bool(c.trashed), 1
@@ -572,24 +572,24 @@ function populateFromProjectData(db, projectData) {
   // Insert roles
   if (projectData.roles?.length) {
     const stmt = db.prepare(`
-      INSERT INTO role (id, mtime, name, view_entity, create_entity, update_entity, delete_entity,
-                       view_task, create_task, update_task, delete_task,
+      INSERT INTO role (id, mtime, name, view_collection, create_collection, update_collection, delete_collection,
+                       view_asset, create_asset, update_asset, delete_asset,
                        view_template, create_template, update_template, delete_template,
                        view_checkpoint, create_checkpoint, delete_checkpoint, pull_chunk,
-                       assign_task, unassign_task, add_user, remove_user, change_role,
-                       change_status, set_done_task, set_retake_task, view_done_task,
+                       assign_asset, unassign_asset, add_user, remove_user, change_role,
+                       change_status, set_done_asset, set_retake_asset, view_done_asset,
                        manage_dependencies, synced)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     for (const r of projectData.roles) {
       stmt.run([
         n(r.id), num(r.mtime), str(r.name),
-        bool(r.view_entity), bool(r.create_entity), bool(r.update_entity), bool(r.delete_entity),
-        bool(r.view_task), bool(r.create_task), bool(r.update_task), bool(r.delete_task),
+        bool(r.view_collection), bool(r.create_collection), bool(r.update_collection), bool(r.delete_collection),
+        bool(r.view_asset), bool(r.create_asset), bool(r.update_asset), bool(r.delete_asset),
         bool(r.view_template), bool(r.create_template), bool(r.update_template), bool(r.delete_template),
         bool(r.view_checkpoint), bool(r.create_checkpoint), bool(r.delete_checkpoint), bool(r.pull_chunk),
-        bool(r.assign_task), bool(r.unassign_task), bool(r.add_user), bool(r.remove_user), bool(r.change_role),
-        bool(r.change_status), bool(r.set_done_task), bool(r.set_retake_task), bool(r.view_done_task),
+        bool(r.assign_asset), bool(r.unassign_asset), bool(r.add_user), bool(r.remove_user), bool(r.change_role),
+        bool(r.change_status), bool(r.set_done_asset), bool(r.set_retake_asset), bool(r.view_done_asset),
         bool(r.manage_dependencies), 1
       ]);
     }
@@ -605,19 +605,19 @@ function populateFromProjectData(db, projectData) {
     stmt.free();
   }
 
-  // Insert entity types
-  if (projectData.entity_types?.length) {
-    const stmt = db.prepare('INSERT INTO entity_type (id, mtime, name, icon, synced) VALUES (?, ?, ?, ?, ?)');
-    for (const t of projectData.entity_types) {
+  // Insert collection types
+  if (projectData.collection_types?.length) {
+    const stmt = db.prepare('INSERT INTO collection_type (id, mtime, name, icon, synced) VALUES (?, ?, ?, ?, ?)');
+    for (const t of projectData.collection_types) {
       stmt.run([n(t.id), num(t.mtime), str(t.name), str(t.icon), 1]);
     }
     stmt.free();
   }
 
-  // Insert task types
-  if (projectData.task_types?.length) {
-    const stmt = db.prepare('INSERT INTO task_type (id, mtime, name, icon, synced) VALUES (?, ?, ?, ?, ?)');
-    for (const t of projectData.task_types) {
+  // Insert asset types
+  if (projectData.asset_types?.length) {
+    const stmt = db.prepare('INSERT INTO asset_type (id, mtime, name, icon, synced) VALUES (?, ?, ?, ?, ?)');
+    for (const t of projectData.asset_types) {
       stmt.run([n(t.id), num(t.mtime), str(t.name), str(t.icon), 1]);
     }
     stmt.free();
@@ -632,11 +632,11 @@ function populateFromProjectData(db, projectData) {
     stmt.free();
   }
 
-  // Insert task tags
-  if (projectData.tasks_tags?.length) {
-    const stmt = db.prepare('INSERT INTO task_tag (id, mtime, task_id, tag_id, synced) VALUES (?, ?, ?, ?, ?)');
-    for (const tt of projectData.tasks_tags) {
-      stmt.run([n(tt.id), num(tt.mtime), n(tt.task_id), n(tt.tag_id), 1]);
+  // Insert asset tags
+  if (projectData.assets_tags?.length) {
+    const stmt = db.prepare('INSERT INTO asset_tag (id, mtime, asset_id, tag_id, synced) VALUES (?, ?, ?, ?, ?)');
+    for (const tt of projectData.assets_tags) {
+      stmt.run([n(tt.id), num(tt.mtime), n(tt.asset_id), n(tt.tag_id), 1]);
     }
     stmt.free();
   }
@@ -650,29 +650,29 @@ function populateFromProjectData(db, projectData) {
     stmt.free();
   }
 
-  // Insert task dependencies
-  if (projectData.task_dependencies?.length) {
-    const stmt = db.prepare('INSERT INTO task_dependency (id, mtime, task_id, dependency_id, dependency_type_id, synced) VALUES (?, ?, ?, ?, ?, ?)');
-    for (const td of projectData.task_dependencies) {
-      stmt.run([n(td.id), num(td.mtime), n(td.task_id), n(td.dependency_id), n(td.dependency_type_id), 1]);
+  // Insert asset dependencies
+  if (projectData.asset_dependencies?.length) {
+    const stmt = db.prepare('INSERT INTO asset_dependency (id, mtime, asset_id, dependency_id, dependency_type_id, synced) VALUES (?, ?, ?, ?, ?, ?)');
+    for (const td of projectData.asset_dependencies) {
+      stmt.run([n(td.id), num(td.mtime), n(td.asset_id), n(td.dependency_id), n(td.dependency_type_id), 1]);
     }
     stmt.free();
   }
 
-  // Insert entity dependencies
-  if (projectData.entity_dependencies?.length) {
-    const stmt = db.prepare('INSERT INTO entity_dependency (id, mtime, task_id, entity_id, dependency_type_id, synced) VALUES (?, ?, ?, ?, ?, ?)');
-    for (const ed of projectData.entity_dependencies) {
-      stmt.run([n(ed.id), num(ed.mtime), n(ed.task_id), n(ed.entity_id), n(ed.dependency_type_id), 1]);
+  // Insert collection dependencies
+  if (projectData.collection_dependencies?.length) {
+    const stmt = db.prepare('INSERT INTO collection_dependency (id, mtime, asset_id, collection_id, dependency_type_id, synced) VALUES (?, ?, ?, ?, ?, ?)');
+    for (const ed of projectData.collection_dependencies) {
+      stmt.run([n(ed.id), num(ed.mtime), n(ed.asset_id), n(ed.collection_id), n(ed.dependency_type_id), 1]);
     }
     stmt.free();
   }
 
-  // Insert entity assignees
-  if (projectData.entity_assignees?.length) {
-    const stmt = db.prepare('INSERT INTO entity_assignee (id, mtime, entity_id, assignee_id, assigner_id, synced) VALUES (?, ?, ?, ?, ?, ?)');
-    for (const ea of projectData.entity_assignees) {
-      stmt.run([n(ea.id), num(ea.mtime), n(ea.entity_id), n(ea.assignee_id), n(ea.assigner_id), 1]);
+  // Insert collection assignees
+  if (projectData.collection_assignees?.length) {
+    const stmt = db.prepare('INSERT INTO collection_assignee (id, mtime, collection_id, assignee_id, assigner_id, synced) VALUES (?, ?, ?, ?, ?, ?)');
+    for (const ea of projectData.collection_assignees) {
+      stmt.run([n(ea.id), num(ea.mtime), n(ea.collection_id), n(ea.assignee_id), n(ea.assigner_id), 1]);
     }
     stmt.free();
   }
@@ -710,28 +710,28 @@ function populateFromProjectData(db, projectData) {
     stmt.free();
   }
 
-  // Insert workflow entities
-  if (projectData.workflow_entities?.length) {
+  // Insert workflow collections
+  if (projectData.workflow_collections?.length) {
     const stmt = db.prepare(`
-      INSERT INTO workflow_entity (id, mtime, workflow_id, name, entity_type_id, pos_x, pos_y, synced)
+      INSERT INTO workflow_collection (id, mtime, workflow_id, name, collection_type_id, pos_x, pos_y, synced)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    for (const we of projectData.workflow_entities) {
-      stmt.run([n(we.id), num(we.mtime), n(we.workflow_id), str(we.name), n(we.entity_type_id), num(we.pos_x), num(we.pos_y), 1]);
+    for (const we of projectData.workflow_collections) {
+      stmt.run([n(we.id), num(we.mtime), n(we.workflow_id), str(we.name), n(we.collection_type_id), num(we.pos_x), num(we.pos_y), 1]);
     }
     stmt.free();
   }
 
-  // Insert workflow tasks
-  if (projectData.workflow_tasks?.length) {
+  // Insert workflow assets
+  if (projectData.workflow_assets?.length) {
     const stmt = db.prepare(`
-      INSERT INTO workflow_task (id, mtime, workflow_id, workflow_entity_id, name, task_type_id, extension, template_id, is_resource, pos_x, pos_y, synced)
+      INSERT INTO workflow_asset (id, mtime, workflow_id, workflow_collection_id, name, asset_type_id, extension, template_id, is_resource, pos_x, pos_y, synced)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    for (const wt of projectData.workflow_tasks) {
+    for (const wt of projectData.workflow_assets) {
       stmt.run([
-        n(wt.id), num(wt.mtime), n(wt.workflow_id), n(wt.workflow_entity_id), str(wt.name),
-        n(wt.task_type_id), str(wt.extension), n(wt.template_id), bool(wt.is_resource),
+        n(wt.id), num(wt.mtime), n(wt.workflow_id), n(wt.workflow_collection_id), str(wt.name),
+        n(wt.asset_type_id), str(wt.extension), n(wt.template_id), bool(wt.is_resource),
         num(wt.pos_x), num(wt.pos_y), 1
       ]);
     }

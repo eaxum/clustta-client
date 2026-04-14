@@ -3,12 +3,12 @@
   <div class="modal-container" ref="modalContainer" v-stop-propagation v-esc="closeModal">
 
     <div class="general-pane-header">
-      <HeaderArea :title="title" :icon="entityTypeIcon" />
+      <HeaderArea :title="title" :icon="collectionTypeIcon" />
     </div>
 
     <div class="general-container">
       <div class="input-section">
-        <input v-model="entityTypeName" class="input-short" type="text" :placeholder="$t('placeholders.collectionTypeName')" v-focus
+        <input v-model="collectionTypeName" class="input-short" type="text" :placeholder="$t('placeholders.collectionTypeName')" v-focus
           @keydown.enter="handleEnterKey" />
       </div>
 
@@ -16,7 +16,7 @@
 
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createEntityType" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createCollectionType" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -44,6 +44,7 @@ const collectionStore = useCollectionStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectTemplateStore = useProjectTemplateStore();
+const { t } = useI18n();
 
 import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
@@ -55,19 +56,19 @@ const title = 'Add Collection type';
 
 // refs
 const displayIconSelector = ref(true);
-const entityTypeIcon = ref('generic');
-const entityTypeName = ref('');
+const collectionTypeIcon = ref('generic');
+const collectionTypeName = ref('');
 const isAwaitingResponse = ref(false);
 
 // computed
 const icons = computed(() => {
   const allIcons = iconData.icons;
-  const allEntityTypeIcons = collectionStore.getCollectionTypes.map((item) => item.icon);
-  return allIcons.filter((icon) => !allEntityTypeIcons.includes(icon));
+  const allCollectionTypeIcons = collectionStore.getCollectionTypes.map((item) => item.icon);
+  return allIcons.filter((icon) => !allCollectionTypeIcons.includes(icon));
 });
 
 const isValueChanged = computed(() => {
-  return !!entityTypeName.value && entityTypeIcon.value !== 'generic';
+  return !!collectionTypeName.value && collectionTypeIcon.value !== 'generic';
 });
 
 // methods
@@ -78,8 +79,8 @@ const closeModal = () => {
 };
 
 // Creates a new collection type.
-const createEntityType = () => {
-  CollectionService.CreateCollectionType(projectTemplateStore.activeProjectTemplate.uri, entityTypeName.value, entityTypeIcon.value)
+const createCollectionType = () => {
+  CollectionService.CreateCollectionType(projectTemplateStore.activeProjectTemplate.uri, collectionTypeName.value, collectionTypeIcon.value)
     .then(() => {
       notificationStore.addNotification(t('notifications.collectionTypeCreated'), "", "success");
       projectTemplateStore.reloadProjectTemplate();
@@ -93,13 +94,13 @@ const createEntityType = () => {
 // Handles enter key press.
 const handleEnterKey = (event) => {
   if (event.key === 'Enter') {
-    // createEntityType();
+    // createCollectionType();
   }
 };
 
 // Sets the selected icon.
 const setIcon = (icon) => {
-  entityTypeIcon.value = icon;
+  collectionTypeIcon.value = icon;
 };
 </script>
 

@@ -18,12 +18,12 @@
       :fullWidth="true" :label="$t('menus.moveToRoot')" :buttonFunction="() => moveToLocation('')" />
 
     <!-- Search input -->
-    <div v-if="childEntities.length > 10" class="input-section">
+    <div v-if="childCollections.length > 10" class="input-section">
       <input ref="searchInput" v-stop-propagation v-model="searchTerm" class="input-short" type="text"
         :placeholder="$t('placeholders.searchCollections')" />
     </div>
 
-    <span v-if="childEntities.length > 10" class="menu-divider"></span>
+    <span v-if="childCollections.length > 10" class="menu-divider"></span>
 
     <!-- Loading state -->
     <div v-if="isLoading" class="sub-menu-loading">
@@ -34,17 +34,17 @@
     <div v-else class="scrollable-list-container">
       
       <!-- Child collections -->
-      <template v-for="entity in filteredEntities" :key="entity.id">
-        <ActionButton :customIconUrl="getAppIcon(entity.entity_type_icon || 'folder')" :icon="getAppIcon('chevron-right')" 
-          :showLabel="true" :fullWidth="true" :iconAfter="true" :label="entity.name" 
-          :buttonFunction="() => navigateIntoEntity(entity)" />
+      <template v-for="collection in filteredCollections" :key="collection.id">
+        <ActionButton :customIconUrl="getAppIcon(collection.collection_type_icon || 'folder')" :icon="getAppIcon('chevron-right')" 
+          :showLabel="true" :fullWidth="true" :iconAfter="true" :label="collection.name" 
+          :buttonFunction="() => navigateIntoCollection(collection)" />
       </template>
 
-      <div v-if="filteredEntities.length === 0 && childEntities.length > 0" class="sub-menu-empty">
+      <div v-if="filteredCollections.length === 0 && childCollections.length > 0" class="sub-menu-empty">
         <span class="menu-item-text subtle">{{ $t('menus.noMatchingCollections') }}</span>
       </div>
 
-      <div v-if="childEntities.length === 0" class="sub-menu-empty">
+      <div v-if="childCollections.length === 0" class="sub-menu-empty">
         <span class="menu-item-text subtle">{{ $t('menus.noSubCollections') }}</span>
       </div>
 
@@ -84,7 +84,7 @@ const projectStore = useProjectStore();
 const stage = useStageStore();
 
 // refs
-const childEntities = ref([]);
+const childCollections = ref([]);
 const isLoading = ref(false);
 const searchInput = ref(null);
 const searchTerm = ref('');
@@ -97,13 +97,13 @@ const assetIds = computed(() => menu.subMenuState.selectedAssetIds || []);
 
 // Checks if user can move to the current location (not the starting location).
 const canMoveHere = computed(() => {
-  const startingId = menu.subMenuState.startingEntityId || '';
+  const startingId = menu.subMenuState.startingCollectionId || '';
   return currentParentId.value !== startingId;
 });
 
 // Checks if user can move to root (not at root and didn't start at root).
 const canMoveToRoot = computed(() => {
-  const startingId = menu.subMenuState.startingEntityId || '';
+  const startingId = menu.subMenuState.startingCollectionId || '';
   return !isAtRoot.value && startingId !== '';
 });
 
@@ -113,14 +113,14 @@ const currentNavItem = computed(() => {
   return stack.length > 0 ? stack[stack.length - 1] : null;
 });
 
-// Returns the current parent entity ID.
+// Returns the current parent collection ID.
 const currentParentId = computed(() => currentNavItem.value?.parentId ?? '');
 
-// Returns entities filtered by search term.
-const filteredEntities = computed(() => {
-  if (!searchTerm.value) return childEntities.value;
+// Returns collections filtered by search term.
+const filteredCollections = computed(() => {
+  if (!searchTerm.value) return childCollections.value;
   const term = searchTerm.value.toLowerCase();
-  return childEntities.value.filter(entity => entity.name.toLowerCase().includes(term));
+  return childCollections.value.filter(collection => collection.name.toLowerCase().includes(term));
 });
 
 // Returns the header title based on current location.
@@ -152,7 +152,7 @@ const goBack = async () => {
   try {
     // Get the parent of the current collection
     const currentCollection = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, currentId);
-    const parentId = currentCollection?.entity_id || '';
+    const parentId = currentCollection?.collection_id || '';
     
     // Get parent name for the header
     let parentName = projectStore.activeProject?.name || t('menus.projectRoot');
@@ -169,31 +169,31 @@ const goBack = async () => {
       title: parentName
     }];
     
-    await loadEntities(parentId);
+    await loadCollections(parentId);
   } catch (error) {
     console.error('Error navigating back:', error);
   }
 };
 
-// Loads child entities for a parent.
-const loadEntities = async (parentId) => {
+// Loads child collections for a parent.
+const loadCollections = async (parentId) => {
   isLoading.value = true;
-  childEntities.value = [];
+  childCollections.value = [];
   
   try {
     const project = projectStore.activeProject;
-    const entityId = parentId || 'root';
+    const collectionId = parentId || 'root';
     
     // Get the folder path for the parent
     let folderPath = project.working_directory;
     if (parentId) {
-      const parentEntity = await CollectionService.GetCollectionByID(project.uri, parentId);
-      if (parentEntity) folderPath = parentEntity.file_path;
+      const parentCollection = await CollectionService.GetCollectionByID(project.uri, parentId);
+      if (parentCollection) folderPath = parentCollection.file_path;
     }
     
     const children = await CollectionService.GetCollectionChildren(
       project.uri,
-      entityId,
+      collectionId,
       project.working_directory,
       folderPath,
       project.ignore_list || [],
@@ -201,11 +201,11 @@ const loadEntities = async (parentId) => {
     );
     
     // Filter out the assets being moved (if they're collections - shouldn't happen but safety check)
-    childEntities.value = (children.entities || [])
-      .filter(entity => !assetIds.value.includes(entity.id))
+    childCollections.value = (children.collections || [])
+      .filter(collection => !assetIds.value.includes(collection.id))
       .sort((a, b) => a.name.localeCompare(b.name));
   } catch (error) {
-    console.error('Error loading entities:', error);
+    console.error('Error loading collections:', error);
     notificationStore.errorNotification(t('notifications.failedToLoadCollections'), error);
   } finally {
     isLoading.value = false;
@@ -213,7 +213,7 @@ const loadEntities = async (parentId) => {
 };
 
 // Moves the assets to the specified collection.
-const moveToLocation = async (targetEntityId) => {
+const moveToLocation = async (targetCollectionId) => {
   if (!assetIds.value.length) {
     notificationStore.errorNotification(t('common.error'), t('notifications.noAssetsSelected'));
     return;
@@ -225,7 +225,7 @@ const moveToLocation = async (targetEntityId) => {
     await AssetService.MoveAssetsToCollection(
       projectStore.activeProject.uri,
       assetIds.value,
-      targetEntityId
+      targetCollectionId
     );
     
     const count = assetIds.value.length;
@@ -246,18 +246,18 @@ const moveToLocation = async (targetEntityId) => {
   }
 };
 
-// Navigates into an entity to show its children.
-const navigateIntoEntity = async (entity) => {
+// Navigates into an collection to show its children.
+const navigateIntoCollection = async (collection) => {
   searchTerm.value = '';
   
   menu.navigateSubMenuForward({
     type: 'move-to-collection',
-    parentId: entity.id,
-    entityFilePath: entity.file_path,
-    title: entity.name
+    parentId: collection.id,
+    collectionFilePath: collection.file_path,
+    title: collection.name
   });
   
-  await loadEntities(entity.id);
+  await loadCollections(collection.id);
 };
 
 // watchers
@@ -267,7 +267,7 @@ watch(
     if (newLength > 0) {
       const navItem = currentNavItem.value;
       if (navItem?.type === 'move-to-collection') {
-        await loadEntities(navItem.parentId || '');
+        await loadCollections(navItem.parentId || '');
       }
     }
   }
@@ -284,7 +284,7 @@ onMounted(async () => {
   }
   
   // Initialize navigation stack with starting collection info
-  const startingId = menu.subMenuState.startingEntityId || '';
+  const startingId = menu.subMenuState.startingCollectionId || '';
   
   if (startingId) {
     // Starting from a collection - get its info to initialize the stack
@@ -303,7 +303,7 @@ onMounted(async () => {
   }
   // If startingId is empty, stack stays empty = at root
   
-  await loadEntities(startingId);
+  await loadCollections(startingId);
 });
 
 onBeforeUnmount(() => {

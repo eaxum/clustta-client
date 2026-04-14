@@ -140,7 +140,7 @@ const fetchEnrichedDependencies = async () => {
         }
         
         let iconPath = "";
-        if (item.type === "task") {
+        if (item.type === "asset") {
             if (item.is_link && isValidWeblink(item.pointer)) {
                 iconPath = await iconStore.getWebIcon(item.pointer);
             } else {
@@ -167,22 +167,22 @@ const getAppIcon = (iconName) => {
 // Navigates to the dependency item in the browser.
 const goToItem = async (dep) => {
     try {
-        if (dep.type === 'task') {
-            const task = await AssetService.GetAssetByID(projectStore.activeProject.uri, dep.id);
-            if (!task?.id) return;
-            const taskParent = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, task.entity_id);
-            if (taskParent) {
-                collectionStore.navigateToCollection(taskParent);
+        if (dep.type === 'asset') {
+            const asset = await AssetService.GetAssetByID(projectStore.activeProject.uri, dep.id);
+            if (!asset?.id) return;
+            const assetParent = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, asset.collection_id);
+            if (assetParent) {
+                collectionStore.navigateToCollection(assetParent);
                 commonStore.navigatorMode = true;
             }
             stage.deselectAllItems();
-            assetStore.selectAsset(task.id);
-            stage.firstSelectedItemId = task.id;
-            stage.markedItems = [task.id];
-        } else if (dep.type === 'entity') {
-            const entity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, dep.id);
-            if (entity) {
-                collectionStore.navigateToCollection(entity);
+            assetStore.selectAsset(asset.id);
+            stage.firstSelectedItemId = asset.id;
+            stage.markedItems = [asset.id];
+        } else if (dep.type === 'collection') {
+            const collection = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, dep.id);
+            if (collection) {
+                collectionStore.navigateToCollection(collection);
                 commonStore.navigatorMode = true;
             }
         }

@@ -47,12 +47,12 @@ function rowToCheckpoint(row) {
 }
 
 export const CheckpointService = {
-  // Returns all checkpoints for a task
-  GetCheckpoints: async (projectPath, taskId) => {
+  // Returns all checkpoints for a asset
+  GetCheckpoints: async (projectPath, assetId) => {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      const rows = query(db, 'SELECT * FROM task_checkpoint WHERE task_id = ? AND trashed = 0 ORDER BY created_at DESC', [taskId]);
+      const rows = query(db, 'SELECT * FROM asset_checkpoint WHERE asset_id = ? AND trashed = 0 ORDER BY created_at DESC', [assetId]);
       return rows.map(rowToCheckpoint);
     } catch (error) {
       console.error('GetCheckpoints error:', error);
@@ -65,7 +65,7 @@ export const CheckpointService = {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      const row = queryOne(db, 'SELECT * FROM task_checkpoint WHERE id = ?', [checkpointId]);
+      const row = queryOne(db, 'SELECT * FROM asset_checkpoint WHERE id = ?', [checkpointId]);
       return rowToCheckpoint(row) || {};
     } catch (error) {
       console.error('GetCheckpoint error:', error);
@@ -84,10 +84,10 @@ export const CheckpointService = {
       const db = await getDatabase(projectName);
       const now = Date.now();
       execute(db, `
-        INSERT INTO task_checkpoint (id, mtime, created_at, task_id, xxhash_checksum, time_modified, file_size, comment, chunks, author_uid, preview_id, group_id, trashed, synced)
+        INSERT INTO asset_checkpoint (id, mtime, created_at, asset_id, xxhash_checksum, time_modified, file_size, comment, chunks, author_uid, preview_id, group_id, trashed, synced)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 1)
       `, [
-        result.id, now, result.created_at || new Date().toISOString(), result.task_id,
+        result.id, now, result.created_at || new Date().toISOString(), result.asset_id,
         result.xxhash_checksum || '', result.time_modified || now, result.file_size || 0,
         result.comment || '', result.chunks || '', result.author_uid || '',
         result.preview_id || '', result.group_id || ''
@@ -117,19 +117,19 @@ export const CheckpointService = {
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'DELETE FROM task_checkpoint WHERE id = ?', [checkpointId]);
+      execute(db, 'DELETE FROM asset_checkpoint WHERE id = ?', [checkpointId]);
       await persistDatabase(projectName);
     } catch (error) {
       console.error('DeleteCheckpoint local update error:', error);
     }
   },
 
-  // Returns the latest checkpoint for a task
-  GetLatestCheckpoint: async (projectPath, taskId) => {
+  // Returns the latest checkpoint for a asset
+  GetLatestCheckpoint: async (projectPath, assetId) => {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      const row = queryOne(db, 'SELECT * FROM task_checkpoint WHERE task_id = ? AND trashed = 0 ORDER BY created_at DESC LIMIT 1', [taskId]);
+      const row = queryOne(db, 'SELECT * FROM asset_checkpoint WHERE asset_id = ? AND trashed = 0 ORDER BY created_at DESC LIMIT 1', [assetId]);
       return rowToCheckpoint(row) || {};
     } catch (error) {
       console.error('GetLatestCheckpoint error:', error);
@@ -143,39 +143,39 @@ export const CheckpointService = {
     try {
       const db = await getDatabase(projectName);
       
-      // Get all checkpoints with task info, grouped by date
+      // Get all checkpoints with asset info, grouped by date
       const checkpointRows = query(db, `
-        SELECT tc.*, t.name as task_name, t.entity_id
-        FROM task_checkpoint tc
-        LEFT JOIN task t ON tc.task_id = t.id
+        SELECT tc.*, t.name as asset_name, t.collection_id
+        FROM asset_checkpoint tc
+        LEFT JOIN asset t ON tc.asset_id = t.id
         WHERE tc.trashed = 0
         ORDER BY tc.created_at DESC
       `);
       
-      // Build task type map
-      const taskTypeRows = query(db, 'SELECT * FROM task_type');
-      const taskTypeMap = {};
-      for (const tt of taskTypeRows) {
-        taskTypeMap[tt.id] = tt;
+      // Build asset type map
+      const assetTypeRows = query(db, 'SELECT * FROM asset_type');
+      const assetTypeMap = {};
+      for (const tt of assetTypeRows) {
+        assetTypeMap[tt.id] = tt;
       }
       
-      // Build entity map for path info
-      const entityRows = query(db, 'SELECT * FROM entity');
-      const entityMap = {};
-      for (const e of entityRows) {
-        entityMap[e.id] = e;
+      // Build collection map for path info
+      const collectionRows = query(db, 'SELECT * FROM collection');
+      const collectionMap = {};
+      for (const e of collectionRows) {
+        collectionMap[e.id] = e;
       }
       
       // Transform checkpoints to timeline format
       const timeline = checkpointRows.map(row => {
-        const entity = entityMap[row.entity_id] || {};
+        const collection = collectionMap[row.collection_id] || {};
         return {
           id: row.id,
-          task_id: row.task_id,
-          task_name: row.task_name || '',
-          entity_id: row.entity_id || '',
-          entity_name: entity.name || '',
-          entity_path: entity.entity_path || '',
+          asset_id: row.asset_id,
+          asset_name: row.asset_name || '',
+          collection_id: row.collection_id || '',
+          collection_name: collection.name || '',
+          collection_path: collection.collection_path || '',
           created_at: row.created_at,
           time_modified: Number(row.time_modified || 0),
           file_size: Number(row.file_size || 0),
@@ -197,32 +197,32 @@ export const CheckpointService = {
   /**
    * Downloads an asset file by fetching chunks, reassembling, decompressing, and triggering browser download.
    * @param {string} projectPath - The project path/uri
-   * @param {string} taskId - The task ID to download
+   * @param {string} assetId - The asset ID to download
    * @param {string} [checkpointId] - Optional specific checkpoint ID (defaults to latest)
    * @param {function} [onProgress] - Optional callback for progress updates (current, total)
    * @returns {Promise<void>}
    */
-  DownloadAsset: async (projectPath, taskId, checkpointId = null, onProgress = null) => {
+  DownloadAsset: async (projectPath, assetId, checkpointId = null, onProgress = null) => {
     const projectName = getProjectName(projectPath);
     const studioUrl = getActiveStudioUrl();
     
     try {
       const db = await getDatabase(projectName);
-      const task = queryOne(db, 'SELECT * FROM task WHERE id = ?', [taskId]);
-      if (!task) {
-        throw new Error('Task not found');
+      const asset = queryOne(db, 'SELECT * FROM asset WHERE id = ?', [assetId]);
+      if (!asset) {
+        throw new Error('Asset not found');
       }
       
       // Get checkpoint (either specified or latest)
       let checkpoint;
       if (checkpointId) {
-        checkpoint = queryOne(db, 'SELECT * FROM task_checkpoint WHERE id = ?', [checkpointId]);
+        checkpoint = queryOne(db, 'SELECT * FROM asset_checkpoint WHERE id = ?', [checkpointId]);
       } else {
-        checkpoint = queryOne(db, 'SELECT * FROM task_checkpoint WHERE task_id = ? AND trashed = 0 ORDER BY created_at DESC LIMIT 1', [taskId]);
+        checkpoint = queryOne(db, 'SELECT * FROM asset_checkpoint WHERE asset_id = ? AND trashed = 0 ORDER BY created_at DESC LIMIT 1', [assetId]);
       }
       
       if (!checkpoint || !checkpoint.chunks) {
-        throw new Error('No checkpoint found for this task');
+        throw new Error('No checkpoint found for this asset');
       }
       
       // Parse chunk hashes from comma-separated string
@@ -231,8 +231,8 @@ export const CheckpointService = {
         throw new Error('Checkpoint has no chunks');
       }
       
-      const filename = `${task.name}${task.extension}`;
-      const displayName = `${utils.capitalizeStr(task.name)}${task.extension}`;
+      const filename = `${asset.name}${asset.extension}`;
+      const displayName = `${utils.capitalizeStr(asset.name)}${asset.extension}`;
       const totalChunks = chunkHashes.length;
       const totalSize = checkpoint.file_size || 0;  // Get from checkpoint record
       
@@ -293,14 +293,14 @@ export const CheckpointService = {
     const projectName = getProjectName(projectPath);
     const db = await getDatabase(projectName);
     
-    // Get checkpoint to find the associated task
-    const checkpoint = queryOne(db, 'SELECT * FROM task_checkpoint WHERE id = ?', [checkpointId]);
+    // Get checkpoint to find the associated asset
+    const checkpoint = queryOne(db, 'SELECT * FROM asset_checkpoint WHERE id = ?', [checkpointId]);
     if (!checkpoint) {
       throw new Error('Checkpoint not found');
     }
     
     // Use DownloadAsset with the specific checkpoint
-    return CheckpointService.DownloadAsset(projectPath, checkpoint.task_id, checkpointId, onProgress);
+    return CheckpointService.DownloadAsset(projectPath, checkpoint.asset_id, checkpointId, onProgress);
   },
 
 };

@@ -1,6 +1,6 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
-    <HeaderArea :title="$t('modals.newWorkflow')" :icon="getAppIcon(entityTypeIcon)" />
+    <HeaderArea :title="$t('modals.newWorkflow')" :icon="getAppIcon(collectionTypeIcon)" />
 
     <div class="general-container general-container-wide">
       <div class="input-section">
@@ -13,19 +13,19 @@
       <div class="workflow-items-container">
         <div class="workflow-item" v-for="workflow in workflowLinks">
           <WorkflowItem v-if="!isEditing(workflow.id)" @edit="editWorkflow" @delete="deleteWorkflowItem"
-            :entity="workflow" :isParent="true" />
+            :collection="workflow" :isParent="true" />
           <EditWorkflowItem v-else :isUpdate="true" :workflowItemData="workflow" @update="update" @cancel="cancel" />
         </div>
 
-        <div class="workflow-item" v-for="workflow in workflowEntities">
+        <div class="workflow-item" v-for="workflow in workflowCollections">
           <WorkflowItem v-if="!isEditing(workflow.id)" @edit="editWorkflow" @delete="deleteWorkflowItem"
-            :entity="workflow" :isParent="true" />
+            :collection="workflow" :isParent="true" />
           <EditWorkflowItem v-else :isUpdate="true" :workflowItemData="workflow" @update="update" @cancel="cancel" />
         </div>
 
-        <div class="workflow-item" v-for="workflow in workflowTasks">
+        <div class="workflow-item" v-for="workflow in workflowAssets">
           <WorkflowItem v-if="!isEditing(workflow.id)" @edit="editWorkflow" @delete="deleteWorkflowItem"
-            :entity="workflow" :isParent="true" />
+            :collection="workflow" :isParent="true" />
           <EditWorkflowItem v-else :isUpdate="true" :workflowItemData="workflow" @update="update" @cancel="cancel" />
         </div>
 
@@ -84,25 +84,25 @@ import { useWorkflowStore } from '@/stores/workflow';
 
 // refs
 const editableWorkflowId = ref('');
-const entityType = ref('folder type');
+const collectionType = ref('folder type');
 const isAdding = ref(false);
 const isAwaitingResponse = ref(false);
 const isUpdate = ref(false);
 const modalContainer = ref(null);
-const workflowEntities = ref([]);
+const workflowCollections = ref([]);
 const workflowIcon = ref('');
 const workflowId = ref('');
 const workflowLinks = ref([]);
 const workflowName = ref('');
-const workflowTasks = ref([]);
+const workflowAssets = ref([]);
 
 // computed
-const entityTypeIcon = computed(() => {
-  const selectedEntityType = collectionStore.getCollectionTypes.find((item) => item.name === entityType.value);
-  if (!selectedEntityType) {
+const collectionTypeIcon = computed(() => {
+  const selectedCollectionType = collectionStore.getCollectionTypes.find((item) => item.name === collectionType.value);
+  if (!selectedCollectionType) {
     return 'folder';
   }
-  return selectedEntityType.icon;
+  return selectedCollectionType.icon;
 });
 
 const isValueChanged = computed(() => {
@@ -110,7 +110,7 @@ const isValueChanged = computed(() => {
     && workflowId.value !== ''
     && editableWorkflowId.value === ''
     && !isAdding.value
-    && !!(workflowTasks.value.length || workflowEntities.value.length || workflowLinks.value.length);
+    && !!(workflowAssets.value.length || workflowCollections.value.length || workflowLinks.value.length);
 });
 
 // methods
@@ -137,10 +137,10 @@ const confirm = (workflowData) => {
   editableWorkflowId.value = '';
 
   let type = workflowData.type;
-  if (type === 'Task') {
-    workflowTasks.value.push(workflowData);
-  } else if (type === 'Entity') {
-    workflowEntities.value.push(workflowData);
+  if (type === 'Asset') {
+    workflowAssets.value.push(workflowData);
+  } else if (type === 'Collection') {
+    workflowCollections.value.push(workflowData);
   } else if (type === 'Workflow') {
     workflowLinks.value.push(workflowData);
   }
@@ -153,12 +153,12 @@ const createWorkflow = async () => {
     name: workflowName.value,
     id: workflowId.value,
     icon: workflowIcon.value,
-    tasks: workflowTasks.value,
-    entities: workflowEntities.value,
+    assets: workflowAssets.value,
+    collections: workflowCollections.value,
     links: workflowLinks.value
   };
   if (isUpdate.value) {
-    WorkflowService.UpdateWorkflow(projectStore.activeProject.uri, workflowId.value, workflowName.value, workflowTasks.value, workflowEntities.value, workflowLinks.value)
+    WorkflowService.UpdateWorkflow(projectStore.activeProject.uri, workflowId.value, workflowName.value, workflowAssets.value, workflowCollections.value, workflowLinks.value)
       .then((response) => {
         workflowStore.workflows = workflowStore.workflows.filter((workflowItem) => workflowItem.id !== workflow.id);
         workflowStore.workflows.push(response);
@@ -168,7 +168,7 @@ const createWorkflow = async () => {
         notificationStore.errorNotification(t('notifications.errorUpdatingWorkflow'), error);
       });
   } else {
-    WorkflowService.CreateWorkflow(projectStore.activeProject.uri, workflowName.value, workflowTasks.value, workflowEntities.value, workflowLinks.value)
+    WorkflowService.CreateWorkflow(projectStore.activeProject.uri, workflowName.value, workflowAssets.value, workflowCollections.value, workflowLinks.value)
       .then((response) => {
         workflowStore.workflows.push(response);
       })
@@ -185,8 +185,8 @@ const createWorkflow = async () => {
 const deleteWorkflowItem = (workflowId) => {
   isAdding.value = false;
   editableWorkflowId.value = '';
-  workflowTasks.value = workflowTasks.value.filter((item) => item.id !== workflowId);
-  workflowEntities.value = workflowEntities.value.filter((item) => item.id !== workflowId);
+  workflowAssets.value = workflowAssets.value.filter((item) => item.id !== workflowId);
+  workflowCollections.value = workflowCollections.value.filter((item) => item.id !== workflowId);
   workflowLinks.value = workflowLinks.value.filter((item) => item.id !== workflowId);
 };
 
@@ -223,12 +223,12 @@ const update = (workflowData) => {
   editableWorkflowId.value = '';
 
   let type = workflowData.type;
-  if (type === 'Task') {
-    workflowTasks.value = workflowTasks.value.filter((workflowItem) => workflowItem.id !== workflowData.id);
-    workflowTasks.value.push(workflowData);
-  } else if (type === 'Entity') {
-    workflowEntities.value = workflowEntities.value.filter((workflowItem) => workflowItem.id !== workflowData.id);
-    workflowEntities.value.push(workflowData);
+  if (type === 'Asset') {
+    workflowAssets.value = workflowAssets.value.filter((workflowItem) => workflowItem.id !== workflowData.id);
+    workflowAssets.value.push(workflowData);
+  } else if (type === 'Collection') {
+    workflowCollections.value = workflowCollections.value.filter((workflowItem) => workflowItem.id !== workflowData.id);
+    workflowCollections.value.push(workflowData);
   } else if (type === 'Workflow') {
     workflowLinks.value = workflowLinks.value.filter((workflowItem) => workflowItem.id !== workflowData.id);
     workflowLinks.value.push(workflowData);
@@ -254,8 +254,8 @@ onMounted(() => {
     workflowName.value = selectedWorkflow.name;
     workflowId.value = selectedWorkflow.id;
     workflowIcon.value = selectedWorkflow.icon;
-    workflowTasks.value = selectedWorkflow.tasks;
-    workflowEntities.value = selectedWorkflow.entities;
+    workflowAssets.value = selectedWorkflow.assets;
+    workflowCollections.value = selectedWorkflow.collections;
     workflowLinks.value = selectedWorkflow.links;
   } else {
     workflowId.value = uuidv4();

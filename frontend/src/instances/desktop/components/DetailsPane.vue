@@ -6,36 +6,36 @@
     <div class="details-pane-inner">
       <div v-if="isMultipleItems" class="details-pane-content">
 
-        <div v-if="itemsIsEntity" class="pane-parameter-detail">
-          {{ itemCounts.entity + ' ' + $t('components.detailsPane.collections') }}
+        <div v-if="itemsIsCollection" class="pane-parameter-detail">
+          {{ itemCounts.collection + ' ' + $t('components.detailsPane.collections') }}
         </div>
 
-        <div v-if="itemsIsTask" class="pane-parameter-detail">
-          {{ itemCounts.task + ' ' + $t('components.detailsPane.assets') }}
+        <div v-if="itemsIsAsset" class="pane-parameter-detail">
+          {{ itemCounts.asset + ' ' + $t('components.detailsPane.assets') }}
         </div>
 
         <div v-if="itemsIsUntracked" class="pane-parameter-detail">
-          {{ (itemCounts.untracked_task + itemCounts.untracked_entity) + ' ' + $t('components.detailsPane.untrackedItems') }}
+          {{ (itemCounts.untracked_asset + itemCounts.untracked_collection) + ' ' + $t('components.detailsPane.untrackedItems') }}
         </div>
 
 
-        <div v-if="showTaskEntityActions || showEntityTaskActions" class="action-bar">
-          <ActionButton v-if="activeIsTask" :icon="getAppIcon('dependency')" :label="$t('components.detailsPane.makeDependencies')"
+        <div v-if="showAssetCollectionActions || showCollectionAssetActions" class="action-bar">
+          <ActionButton v-if="activeIsAsset" :icon="getAppIcon('dependency')" :label="$t('components.detailsPane.makeDependencies')"
             :buttonFunction="makeDependenciesOfActive" v-tooltip="$t('components.detailsPane.makeDependenciesTooltip')" />
-          <ActionButton v-if="activeIsEntity" :icon="getAppIcon('folder-arrow-in')"
+          <ActionButton v-if="activeIsCollection" :icon="getAppIcon('folder-arrow-in')"
             :label="$t('components.detailsPane.moveIntoCollection')" :buttonFunction="moveIntoFolder" v-tooltip="$t('components.detailsPane.moveIntoCollectionTooltip')" />
         </div>
 
 
-        <div v-if="onlyTasks" class="action-bar">
+        <div v-if="onlyAssets" class="action-bar">
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('shapes')" :label="$t('components.detailsPane.type')" />
-            <DropDownBox :items="itemTypes" :selectedItem="''" :onSelect="toggleIsTask" :fixedWidth="true" />
+            <DropDownBox :items="itemTypes" :selectedItem="''" :onSelect="toggleIsAsset" :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('file-plus')" :label="$t('components.detailsPane.assetType')" />
-            <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="taskType" :onSelect="changeTaskType"
+            <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="assetType" :onSelect="changeAssetType"
               :fixedWidth="true" />
           </div>
 
@@ -47,27 +47,27 @@
           
           <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :label="$t('components.detailsPane.moveToCollection')"
             @click="prepMoveToCollection($event)" v-tooltip="$t('components.detailsPane.moveToCollectionTooltip')" />
-          <ActionButton v-if="!platformStore.isWeb && tasksCanRebuild" :icon="getAppIcon('jigsaw')" :label="$t('components.detailsPane.rebuildAssets')"
+          <ActionButton v-if="!platformStore.isWeb && assetsCanRebuild" :icon="getAppIcon('jigsaw')" :label="$t('components.detailsPane.rebuildAssets')"
             :buttonFunction="revertAllChanges" v-tooltip="$t('components.detailsPane.rebuildAssetsTooltip')" />
-          <ActionButton v-if="tasksModified" :noFilter="true" :icon="getAppIcon('layers-plus')" :useAlert="true" :label="$t('components.detailsPane.createCheckpoints')"
+          <ActionButton v-if="assetsModified" :noFilter="true" :icon="getAppIcon('plus-stone')" :useAlert="true" :label="$t('components.detailsPane.createCheckpoints')"
             :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsTooltip')" />
-          <ActionButton v-if="!platformStore.isWeb && tasksModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :label="$t('components.detailsPane.revertTasks')"
-            :buttonFunction="prepResetPopUpModal" v-tooltip="$t('components.detailsPane.revertTasksTooltip')" />
+          <ActionButton v-if="!platformStore.isWeb && assetsModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :label="$t('components.detailsPane.revertAssets')"
+            :buttonFunction="prepResetPopUpModal" v-tooltip="$t('components.detailsPane.revertAssetsTooltip')" />
           <ActionButton :icon="getAppIcon('person-plus')" :label="$t('components.detailsPane.assignAssets')"
-            @click="prepAssignTask($event)" v-tooltip="$t('components.detailsPane.assignAssetsTooltip')" />
+            @click="prepAssignAsset($event)" v-tooltip="$t('components.detailsPane.assignAssetsTooltip')" />
           <ActionButton :icon="getAppIcon('person-minus')" :label="$t('components.detailsPane.unassignAssets')"
-            :buttonFunction="unassignTasks" v-tooltip="$t('components.detailsPane.unassignAssetsTooltip')" />
-          <ActionButton v-if="!platformStore.isWeb && tasksOnDisk" :icon="getAppIcon('broom')" :label="$t('components.detailsPane.freeUpSpace')"
-            :buttonFunction="prepFreeUpSpacePopUpModal" v-tooltip="$t('components.detailsPane.freeUpSpaceTaskTooltip')" />
+            :buttonFunction="unassignAssets" v-tooltip="$t('components.detailsPane.unassignAssetsTooltip')" />
+          <ActionButton v-if="!platformStore.isWeb && assetsOnDisk" :icon="getAppIcon('broom')" :label="$t('components.detailsPane.freeUpSpace')"
+            :buttonFunction="prepFreeUpSpacePopUpModal" v-tooltip="$t('components.detailsPane.freeUpSpaceAssetTooltip')" />
           <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteSelectedAssets')"
-            :buttonFunction="deleteMultipleTasks" v-tooltip="$t('components.detailsPane.deleteSelectedAssetsTooltip')" />
+            :buttonFunction="deleteMultipleAssets" v-tooltip="$t('components.detailsPane.deleteSelectedAssetsTooltip')" />
         </div>
 
-        <div v-else-if="onlyEntities" class="action-bar">
+        <div v-else-if="onlyCollections" class="action-bar">
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="$t('components.detailsPane.collectionType')" />
-            <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="entityType"
-              :onSelect="changeEntityType" :fixedWidth="true" />
+            <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="collectionType"
+              :onSelect="changeCollectionType" :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
@@ -87,15 +87,15 @@
           <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :label="$t('components.detailsPane.freeUpSpace')"
             :buttonFunction="freeUpCollectionSpacePopUpModal" v-tooltip="$t('components.detailsPane.freeUpSpaceCollectionTooltip')" />
           <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteCollections')"
-            :buttonFunction="deleteMultipleEntities" v-tooltip="$t('components.detailsPane.deleteCollectionsTooltip')" />
+            :buttonFunction="deleteMultipleCollections" v-tooltip="$t('components.detailsPane.deleteCollectionsTooltip')" />
         </div>
 
         
         <div v-else-if="onlyUntrackedAssets || onlyUntrackedCollections" class="action-bar">
-          <ActionButton v-if="userStore.canDo('create_task') && onlyUntrackedAssets" :icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsUntrackedTooltip')" />
+          <ActionButton v-if="userStore.canDo('create_asset') && onlyUntrackedAssets" :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsUntrackedTooltip')" />
           <ActionButton v-if="squashEnabled" :icon="getAppIcon('squash')" :label="$t('components.detailsPane.squashAssets')" :buttonFunction="prepSquashModal" v-tooltip="$t('components.detailsPane.squashAssetsTooltip')" />
           <ActionButton :icon="getAppIcon('file-watch')" :label="$t('components.detailsPane.ignoreItems')" :buttonFunction="ignoreItems" v-tooltip="$t('components.detailsPane.ignoreItemsTooltip')" />
-          <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleUntrackedTasks" v-tooltip="$t('components.detailsPane.deleteItemsTooltip')" />
+          <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleUntrackedAssets" v-tooltip="$t('components.detailsPane.deleteItemsTooltip')" />
         </div>
 
         <div v-else class="action-bar">
@@ -190,13 +190,13 @@ const props = defineProps({
 
 // constants
 const collectionMode = ['basic', 'library'];
-const itemTypes = ['task', 'resource'];
+const itemTypes = ['asset', 'resource'];
 const noHeaders = [];
-const placeholder = computed(() => t('components.detailsPane.searchCollaboratorsPlaceholder'));
+const placeholder = computed(() => t('components.detailsPane.searchCollaborators'));
 
 const assetDetailPanes = [
   { name: "Details", nameKey: "panes.detailsTab", tab_name: "assetDetails", icon: "info" },
-  { name: "Checkpoints", nameKey: "panes.checkpointsTab", tab_name: "checkpoints", icon: "layers" },
+  { name: "Checkpoints", nameKey: "panes.checkpointsTab", tab_name: "checkpoints", icon: "checkpoint-stone" },
   { name: "Dependencies", nameKey: "panes.dependenciesTab", tab_name: "dependencies", icon: "dependency" },
   { name: "Console", nameKey: "panes.consoleTab", tab_name: "console", icon: "console" },
 ];
@@ -226,11 +226,13 @@ const paneComponents = {
 
 const projectDetailPanes = [
   { name: "Details", nameKey: "panes.detailsTab", tab_name: "projectDetails", icon: "info" },
-  { name: "Checkpoints", nameKey: "panes.checkpointsTab", tab_name: "projectCheckpoints", icon: "layers" },
+  { name: "Checkpoints", nameKey: "panes.checkpointsTab", tab_name: "projectCheckpoints", icon: "checkpoint-stone" },
   { name: "Change Log", nameKey: "panes.changeLogTab", tab_name: "changeLog", icon: "revert" },
   { name: "Collaborators", nameKey: "panes.collaboratorsTab", tab_name: "collaborators", icon: "person" },
   { name: "Console", nameKey: "panes.consoleTab", tab_name: "console", icon: "console" }
 ];
+
+const remoteOnlyTabs = ['changeLog', 'collaborators', 'dependencies'];
 
 const untrackedDetailPanes = [
   { name: "Details", nameKey: "panes.detailsTab", tab_name: "untrackedItemDetails", icon: "info" },
@@ -240,54 +242,54 @@ const untrackedDetailPanes = [
 const activeTabIndex = ref(0);
 const defaultStatus = ref('TODO');
 const detailsPaneRoot = ref(null);
-const entityType = ref(collectionStore.getCollectionTypesNames[0]);
-const taskType = ref(assetStore.getAssetTypesNames[0]);
+const collectionType = ref(collectionStore.getCollectionTypesNames[0]);
+const assetType = ref(assetStore.getAssetTypesNames[0]);
 
 // computed properties
-const activeIsEntity = computed(() => {
-  const activeEntity = stage.selectedItems.find((item) => item.id === stage.lastSelectedItemId);
-  return activeEntity?.type === 'entity';
+const activeIsCollection = computed(() => {
+  const activeCollection = stage.selectedItems.find((item) => item.id === stage.lastSelectedItemId);
+  return activeCollection?.type === 'collection';
 });
 
-const activeIsTask = computed(() => {
-  const activeTask = stage.selectedItems.find((item) => item.id === stage.lastSelectedItemId);
-  return activeTask?.type === 'task';
+const activeIsAsset = computed(() => {
+  const activeAsset = stage.selectedItems.find((item) => item.id === stage.lastSelectedItemId);
+  return activeAsset?.type === 'asset';
 });
 
 const isMultipleItems = computed(() => stage.markedItems.length > 1);
 
 const itemCounts = computed(() => {
-  const counts = { entity: 0, task: 0, untracked_task: 0, untracked_entity: 0, resource: 0 };
+  const counts = { collection: 0, asset: 0, untracked_asset: 0, untracked_collection: 0, resource: 0 };
   stage.selectedItems.forEach(item => { if (item.type in counts) counts[item.type]++; });
   return counts;
 });
 
-const itemsIsEntity = computed(() => itemCounts.value.entity > 0);
+const itemsIsCollection = computed(() => itemCounts.value.collection > 0);
 
-const itemsIsTask = computed(() => itemCounts.value.task > 0);
+const itemsIsAsset = computed(() => itemCounts.value.asset > 0);
 
-const itemsIsUntracked = computed(() => stage.selectedItems.some((item) => item.type === 'untracked_task' || item.type === 'untracked_entity'));
+const itemsIsUntracked = computed(() => stage.selectedItems.some((item) => item.type === 'untracked_asset' || item.type === 'untracked_collection'));
 
-const onlyEntities = computed(() => stage.selectedItems.every((item) => item.type === 'entity'));
+const onlyCollections = computed(() => stage.selectedItems.every((item) => item.type === 'collection'));
 
-const onlyTasks = computed(() => stage.selectedItems.every((item) => item.type === 'task'));
+const onlyAssets = computed(() => stage.selectedItems.every((item) => item.type === 'asset'));
 
 const onlyUntracked = computed(() => onlyUntrackedAssets.value || onlyUntrackedCollections.value);
 
 // Determines whether the "Move to Collection" button should be shown.
 const hasCollections = computed(() => {
   const collectionsExist = collectionStore.collections.length > 0;
-  const selectedTasksHaveParent = stage.selectedItems.some(item => item.type === 'task' && item.parent_id);
-  return collectionsExist || selectedTasksHaveParent;
+  const selectedAssetsHaveParent = stage.selectedItems.some(item => item.type === 'asset' && item.parent_id);
+  return collectionsExist || selectedAssetsHaveParent;
 });
 
-const onlyUntrackedAssets = computed(() => stage.selectedItems.every((item) => item.type === 'untracked_task'));
+const onlyUntrackedAssets = computed(() => stage.selectedItems.every((item) => item.type === 'untracked_asset'));
 
-const onlyUntrackedCollections = computed(() => stage.selectedItems.every((item) => item.type === 'untracked_entity'));
+const onlyUntrackedCollections = computed(() => stage.selectedItems.every((item) => item.type === 'untracked_collection'));
 
 const projectStatuses = computed(() => {
   const allStatuses = statusStore.statuses;
-  if (!userStore.canDo('set_done_task')) {
+  if (!userStore.canDo('set_done_asset')) {
     const limitedStatus = ['done', 'retake'];
     return allStatuses.filter((item) => !limitedStatus.includes(item.short_name)).map((status) => toSentenceCase(status.short_name));
   }
@@ -310,36 +312,42 @@ const selectedSettingsContext = computed(() => {
 
 const settingsItems = computed(() => {
   const itemType = stage.selectedItem?.type;
-  if (!stage.markedItems.length) return projectDetailPanes;
-  if (itemType === 'task') return stage.selectedItem?.is_link ? linkDetailPanes : assetDetailPanes;
-  if (itemType === 'entity') return collectionDetailPanes;
+  const isRemote = projectStore.activeProject?.has_remote;
+  if (!stage.markedItems.length) {
+    return isRemote ? projectDetailPanes : projectDetailPanes.filter(p => !remoteOnlyTabs.includes(p.tab_name));
+  }
+  if (itemType === 'asset') {
+    const panes = stage.selectedItem?.is_link ? linkDetailPanes : assetDetailPanes;
+    return isRemote ? panes : panes.filter(p => !remoteOnlyTabs.includes(p.tab_name));
+  }
+  if (itemType === 'collection') return collectionDetailPanes;
   return untrackedDetailPanes;
 });
 
-const showEntityTaskActions = computed(() => {
-  const hasTasksOrEntities = stage.selectedItems.some(item => item.type === 'task' || item.type === 'entity');
-  return hasTasksOrEntities && activeIsEntity.value;
+const showCollectionAssetActions = computed(() => {
+  const hasAssetsOrCollections = stage.selectedItems.some(item => item.type === 'asset' || item.type === 'collection');
+  return hasAssetsOrCollections && activeIsCollection.value;
 });
 
 // Determines whether the squash button should be shown.
 const squashEnabled = computed(() => {
-  if (!userStore.canDo('create_task')) return false;
+  if (!userStore.canDo('create_asset')) return false;
   return canSquash(stage.selectedItems).valid;
 });
 
-const showTaskEntityActions = computed(() => {
-  const hasTasksOrEntities = stage.selectedItems.some(item => item.type === 'task' || item.type === 'entity');
-  return hasTasksOrEntities && activeIsTask.value;
+const showAssetCollectionActions = computed(() => {
+  const hasAssetsOrCollections = stage.selectedItems.some(item => item.type === 'asset' || item.type === 'collection');
+  return hasAssetsOrCollections && activeIsAsset.value;
 });
 
-const tasksCanRebuild = computed(() => stage.selectedItems.filter((item) => item.type === 'task').some((item) => item.file_status === 'rebuildable'));
+const assetsCanRebuild = computed(() => stage.selectedItems.filter((item) => item.type === 'asset').some((item) => item.file_status === 'rebuildable'));
 
-const tasksModified = computed(() => {
+const assetsModified = computed(() => {
   const modifiedAssetsState = assetStore.getModifiedDisplayPaths;
-  return modifiedAssetsState.some((assetState) => stage.markedItems.includes(assetState.task_id));
+  return modifiedAssetsState.some((assetState) => stage.markedItems.includes(assetState.asset_id));
 });
 
-const tasksOnDisk = computed(() => stage.selectedItems.filter((item) => item.type === 'task').some((item) => item.file_status !== 'rebuildable'));
+const assetsOnDisk = computed(() => stage.selectedItems.filter((item) => item.type === 'asset').some((item) => item.file_status !== 'rebuildable'));
 
 const visiblePanes = computed(() => {
   if (stage.activeStage === 'browser') {
@@ -361,25 +369,25 @@ const visiblePanes = computed(() => {
 
 // methods
 
-// Adds an entity dependency to a task.
-const addEntityDependency = async (task, dependencyId) => {
+// Adds an collection dependency to a asset.
+const addCollectionDependency = async (asset, dependencyId) => {
   let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
-  await AssetService.AddEntityDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+  await AssetService.AddCollectionDependency(projectStore.activeProject.uri, asset.id, dependencyId, dependencyTypeID)
     .then(() => {
-      if (!task.entity_dependencies) task.entity_dependencies = [];
-      task.entity_dependencies.push(dependencyId);
+      if (!asset.collection_dependencies) asset.collection_dependencies = [];
+      asset.collection_dependencies.push(dependencyId);
       notificationStore.addNotification(t('components.detailsPane.dependencyAdded'), "", "success");
     })
     .catch((error) => { console.log(error); notificationStore.errorNotification(t('components.detailsPane.errorAddingDependencies'), error); });
 };
 
-// Adds a task dependency to a task.
-const addTaskDependency = async (task, dependencyId) => {
+// Adds a asset dependency to a asset.
+const addAssetDependency = async (asset, dependencyId) => {
   let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
-  await AssetService.AddAssetDependency(projectStore.activeProject.uri, task.id, dependencyId, dependencyTypeID)
+  await AssetService.AddAssetDependency(projectStore.activeProject.uri, asset.id, dependencyId, dependencyTypeID)
     .then(() => {
-      if (!task.dependencies) task.dependencies = [];
-      task.dependencies.push(dependencyId);
+      if (!asset.dependencies) asset.dependencies = [];
+      asset.dependencies.push(dependencyId);
       notificationStore.addNotification(t('components.detailsPane.dependencyAdded'), "", "success");
     })
     .catch((error) => { console.log(error); notificationStore.errorNotification(t('components.detailsPane.errorAddingDependencies'), error); });
@@ -388,14 +396,14 @@ const addTaskDependency = async (task, dependencyId) => {
 // Assigns collections to a user.
 const assignCollections = async (user) => {
   stage.operationActive = true;
-  const entityIds = stage.markedItems;
+  const collectionIds = stage.markedItems;
   const userId = user.id;
-  for (let entityId of entityIds) {
-    const item = stage.selectedItems.find(item => item.id === entityId);
+  for (let collectionId of collectionIds) {
+    const item = stage.selectedItems.find(item => item.id === collectionId);
     if (item && item.assignee_ids && item.assignee_ids.includes(userId)) continue;
-    await CollectionService.Assign(projectStore.activeProject.uri, entityId, userId)
+    await CollectionService.Assign(projectStore.activeProject.uri, collectionId, userId)
       .then(() => {
-        const itemIndex = stage.selectedItems.findIndex(item => item.id === entityId);
+        const itemIndex = stage.selectedItems.findIndex(item => item.id === collectionId);
         if (itemIndex !== -1 && !stage.selectedItems[itemIndex].assignee_ids.includes(userId)) {
           stage.selectedItems[itemIndex].assignee_ids.push(userId);
         }
@@ -407,20 +415,20 @@ const assignCollections = async (user) => {
   stage.operationActive = false;
 };
 
-// Changes the parent collection of one or more entities.
-const changeEntityParent = async (entityIds, parentId) => {
-  await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, entityIds, parentId)
+// Changes the parent collection of one or more collections.
+const changeCollectionParent = async (collectionIds, parentId) => {
+  await CollectionService.ChangeCollectionParent(projectStore.activeProject.uri, collectionIds, parentId)
     .then(() => notificationStore.addNotification(t('components.detailsPane.movedSuccessfully'), "", "success"))
-    .catch((error) => { console.error(error); notificationStore.errorNotification(t('components.detailsPane.errorChangingEntityParent'), error); });
+    .catch((error) => { console.error(error); notificationStore.errorNotification(t('components.detailsPane.errorChangingParent'), error); });
 };
 
-// Changes the type of multiple entities.
-const changeEntityType = async (entityTypeName) => {
+// Changes the type of multiple collections.
+const changeCollectionType = async (collectionTypeName) => {
   stage.operationActive = true;
-  const newEntityType = collectionStore.getCollectionTypes.find((item) => item.name === entityTypeName);
-  entityType.value = entityTypeName;
-  for (const entityId of stage.markedItems) {
-    await CollectionService.ChangeType(projectStore.activeProject.uri, entityId, newEntityType.id).catch((error) => console.error('Error:', error));
+  const newCollectionType = collectionStore.getCollectionTypes.find((item) => item.name === collectionTypeName);
+  collectionType.value = collectionTypeName;
+  for (const collectionId of stage.markedItems) {
+    await CollectionService.ChangeType(projectStore.activeProject.uri, collectionId, newCollectionType.id).catch((error) => console.error('Error:', error));
   }
   emitter.emit('refresh-browser');
   stage.operationActive = false;
@@ -437,20 +445,20 @@ const changeIsLibrary = async (mode) => {
   stage.operationActive = false;
 };
 
-// Moves one or more tasks to a different collection.
-const changeTaskEntity = async (taskIds, entityId) => {
-  await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, taskIds, entityId)
+// Moves one or more assets to a different collection.
+const changeAssetCollection = async (assetIds, collectionId) => {
+  await AssetService.ChangeAssetCollection(projectStore.activeProject.uri, assetIds, collectionId)
     .then(() => notificationStore.addNotification(t('components.detailsPane.movedSuccessfully'), "", "success"))
-    .catch((error) => { console.error(error); notificationStore.errorNotification(t('components.detailsPane.errorChangingTaskEntity'), error); });
+    .catch((error) => { console.error(error); notificationStore.errorNotification(t('components.detailsPane.errorChangingCollection'), error); });
 };
 
-// Changes the type of multiple tasks.
-const changeTaskType = async (taskTypeName) => {
+// Changes the type of multiple assets.
+const changeAssetType = async (assetTypeName) => {
   stage.operationActive = true;
-  const newTaskType = assetStore.getAssetTypes.find((item) => item.name === taskTypeName);
-  taskType.value = taskTypeName;
-  for (const taskId of stage.markedItems) {
-    await AssetService.ChangeAssetType(projectStore.activeProject.uri, taskId, newTaskType.id).catch((error) => console.error('Error:', error));
+  const newAssetType = assetStore.getAssetTypes.find((item) => item.name === assetTypeName);
+  assetType.value = assetTypeName;
+  for (const assetId of stage.markedItems) {
+    await AssetService.ChangeAssetType(projectStore.activeProject.uri, assetId, newAssetType.id).catch((error) => console.error('Error:', error));
   }
   emitter.emit('refresh-browser');
   stage.operationActive = false;
@@ -469,13 +477,13 @@ const clearSelection = () => {
 // Closes all modals.
 const closeModals = () => modals.disableAllModals();
 
-// Deletes multiple entities.
-const deleteMultipleEntities = async () => {
+// Deletes multiple collections.
+const deleteMultipleCollections = async () => {
   stage.operationActive = true;
-  for (let entityId of stage.markedItems) {
-    await CollectionService.DeleteCollection(projectStore.activeProject.uri, entityId, true)
-      .then(() => { if (onlyEntities.value) { stage.markedItems = []; collectionStore.selectedCollection = null; } })
-      .catch((error) => { console.log(error); notificationStore.errorNotification(t('components.detailsPane.entitiesFailedToDelete'), error); });
+  for (let collectionId of stage.markedItems) {
+    await CollectionService.DeleteCollection(projectStore.activeProject.uri, collectionId, true)
+      .then(() => { if (onlyCollections.value) { stage.markedItems = []; collectionStore.selectedCollection = null; } })
+      .catch((error) => { console.log(error); notificationStore.errorNotification(t('components.detailsPane.collectionsFailedToDelete'), error); });
   }
   clearSelection();
   notificationStore.addNotification(t('components.detailsPane.collectionsMovedToTrash'), '', "success", false);
@@ -483,49 +491,49 @@ const deleteMultipleEntities = async () => {
   stage.operationActive = false;
 };
 
-// Deletes multiple items (tasks and entities).
+// Deletes multiple items (assets and collections).
 const deleteMultipleItems = async () => {
   panes.setPaneVisibility('projectDetails', true);
-  await deleteMultipleEntities();
-  await deleteMultipleTasks();
+  await deleteMultipleCollections();
+  await deleteMultipleAssets();
   stage.markedItems = [];
   collectionStore.selectedCollection = null;
 };
 
-// Deletes multiple tasks.
-const deleteMultipleTasks = async () => {
+// Deletes multiple assets.
+const deleteMultipleAssets = async () => {
   stage.operationActive = true;
-  for (let taskId of stage.markedItems) {
-    await AssetService.DeleteAsset(projectStore.activeProject.uri, taskId, true)
+  for (let assetId of stage.markedItems) {
+    await AssetService.DeleteAsset(projectStore.activeProject.uri, assetId, true)
       .then(() => { emitter.emit('refresh-browser'); notificationStore.addNotification(t('components.detailsPane.assetsMovedToTrash'), '', "success", false); })
-      .catch((error) => { if (onlyTasks.value) { console.log(error); notificationStore.errorNotification(t('components.detailsPane.assetsFailedToDelete'), error); } });
+      .catch((error) => { if (onlyAssets.value) { console.log(error); notificationStore.errorNotification(t('components.detailsPane.assetsFailedToDelete'), error); } });
   }
   stage.operationActive = false;
 };
 
 // Deletes multiple untracked items.
-const deleteMultipleUntrackedTasks = async () => {
+const deleteMultipleUntrackedAssets = async () => {
   stage.operationActive = true;
   try {
     for (let untrackedItem of stage.selectedItems) {
-      if (untrackedItem.type === 'untracked_task') {
+      if (untrackedItem.type === 'untracked_asset') {
         await FSService.DeleteFile(untrackedItem.file_path);
-        projectStore.removeUntrackedTask(untrackedItem.id);
-      } else if (untrackedItem.type === 'untracked_entity') {
+        projectStore.removeUntrackedAsset(untrackedItem.id);
+      } else if (untrackedItem.type === 'untracked_collection') {
         await FSService.DeleteFolder(untrackedItem.file_path);
-        projectStore.removeUntrackedEntity(untrackedItem.id);
+        projectStore.removeUntrackedCollection(untrackedItem.id);
       }
     }
     if (onlyUntracked.value) { stage.markedItems = []; projectStore.selectedUntrackedItem = null; }
     emitter.emit('refresh-browser');
     notificationStore.addNotification(t('components.detailsPane.untrackedItemsDeleted'), '', "success", false);
-  } catch (error) { console.error(error); notificationStore.errorNotification(t('components.detailsPane.failedToDeleteUntrackedItems'), error); }
+  } catch (error) { console.error(error); notificationStore.errorNotification(t('components.detailsPane.failedToDeleteUntracked'), error); }
   stage.operationActive = false;
 };
 
 // Emits item data updates to notify components.
-const emitItemUpdates = (taskId, updates) => {
-  const selectedItemIndex = stage.selectedItems.findIndex(item => item.id === taskId);
+const emitItemUpdates = (assetId, updates) => {
+  const selectedItemIndex = stage.selectedItems.findIndex(item => item.id === assetId);
   if (selectedItemIndex !== -1) {
     if (typeof updates === 'object' && !Array.isArray(updates)) {
       Object.assign(stage.selectedItems[selectedItemIndex], updates);
@@ -533,7 +541,7 @@ const emitItemUpdates = (taskId, updates) => {
       updates.forEach(update => { if (update.property && update.value !== undefined) stage.selectedItems[selectedItemIndex][update.property] = update.value; });
     }
   }
-  const updateData = { itemId: taskId, updates };
+  const updateData = { itemId: assetId, updates };
   emitter.emit('update-root-data', updateData);
   emitter.emit('update-children', updateData);
 };
@@ -546,7 +554,7 @@ const filterList = (selectedTab) => {
 
 // Frees up collection space by deleting contents.
 const freeUpCollectionSpace = async () => {
-  const selectedCollections = stage.selectedItems.filter(item => item.type === 'entity');
+  const selectedCollections = stage.selectedItems.filter(item => item.type === 'collection');
   for (const collection of selectedCollections) {
     let collectionPath = collection.file_path.replace(/\\/g, '/');
     await FSService.DeleteFolder(collectionPath).catch((error) => { console.error(error); notificationStore.errorNotification('Error freeing collection space', error); });
@@ -564,20 +572,20 @@ const freeUpCollectionSpacePopUpModal = () => {
   modals.setModalVisibility('popUpModal', true);
 };
 
-// Frees up task space by deleting working files.
+// Frees up asset space by deleting working files.
 const freeUpSpace = async () => {
-  const selectedTasks = stage.selectedItems.filter(item => item.type === 'task');
+  const selectedAssets = stage.selectedItems.filter(item => item.type === 'asset');
   const fileStatus = ['missing', 'rebuildable'];
-  const tasksToProcess = selectedTasks.filter(task => !fileStatus.includes(task.file_status));
-  for (const task of tasksToProcess) {
-    let taskPath = task.file_path.replace(/\\/g, '/');
-    await FSService.DeleteFile(taskPath)
+  const assetsToProcess = selectedAssets.filter(asset => !fileStatus.includes(asset.file_status));
+  for (const asset of assetsToProcess) {
+    let assetPath = asset.file_path.replace(/\\/g, '/');
+    await FSService.DeleteFile(assetPath)
       .then(() => {
-        task.file_status = 'rebuildable';
-        assetStore.rebuildableAssetsPath.push(task.task_path);
-        assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(taskPath => taskPath !== task.task_path);
-        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(taskPath => taskPath !== task.task_path);
-        emitItemUpdates(task.id, [{ property: 'file_status', value: 'rebuildable' }]);
+        asset.file_status = 'rebuildable';
+        assetStore.rebuildableAssetsPath.push(asset.asset_path);
+        assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.asset_path);
+        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(assetPath => assetPath !== asset.asset_path);
+        emitItemUpdates(asset.id, [{ property: 'file_status', value: 'rebuildable' }]);
       })
       .catch((error) => console.error(error));
   }
@@ -592,11 +600,11 @@ const ignoreItems = async () => {
   stage.operationActive = true;
   try {
     for (let untrackedItem of stage.selectedItems) {
-      if (untrackedItem.type == "untracked_task") {
-        await addIgnoredItem(untrackedItem.task_path);
+      if (untrackedItem.type == "untracked_asset") {
+        await addIgnoredItem(untrackedItem.asset_path);
       } else {
-        const untrackedEntity = removeLastSlash(untrackedItem.item_path);
-        await addIgnoredItem(untrackedEntity);
+        const untrackedCollection = removeLastSlash(untrackedItem.item_path);
+        await addIgnoredItem(untrackedCollection);
       }
     }
     panes.setPaneVisibility('projectDetails', true);
@@ -609,26 +617,26 @@ const ignoreItems = async () => {
   stage.operationActive = false;
 };
 
-// Makes selected items dependencies of the active task.
+// Makes selected items dependencies of the active asset.
 const makeDependenciesOfActive = async () => {
   stage.operationActive = true;
   const activeItemId = stage.lastSelectedItemId;
   const selectedItems = stage.selectedItems.filter((item) => item.id !== activeItemId);
-  const task = stage.selectedItems.find((item) => item.id === activeItemId);
+  const asset = stage.selectedItems.find((item) => item.id === activeItemId);
   for (const item of selectedItems) {
-    if (item.type === 'entity') {
-      if (item.id !== task.entity_id && !task.entity_dependencies?.includes(item.id)) {
-        await addEntityDependency(task, item.id);
+    if (item.type === 'collection') {
+      if (item.id !== asset.collection_id && !asset.collection_dependencies?.includes(item.id)) {
+        await addCollectionDependency(asset, item.id);
       }
     } else {
-      if (!task.dependencies?.includes(item.id)) {
-        await addTaskDependency(task, item.id);
+      if (!asset.dependencies?.includes(item.id)) {
+        await addAssetDependency(asset, item.id);
       }
     }
   }
-  emitItemUpdates(task.id, [
-    { property: 'dependencies', value: task.dependencies },
-    { property: 'entity_dependencies', value: task.entity_dependencies }
+  emitItemUpdates(asset.id, [
+    { property: 'dependencies', value: asset.dependencies },
+    { property: 'collection_dependencies', value: asset.collection_dependencies }
   ]);
   stage.operationActive = false;
 };
@@ -640,53 +648,53 @@ const moveIntoFolder = async () => {
   const selectedItems = stage.selectedItems.filter((item) => item.id !== activeItemId);
 
   // Collect items by type for batch operations
-  const entityIds = [];
-  const taskIds = [];
+  const collectionIds = [];
+  const assetIds = [];
   const untrackedItems = [];
 
   for (const item of selectedItems) {
-    if (item.type === 'entity') entityIds.push(item.id);
-    else if (item.type === 'task') taskIds.push(item.id);
+    if (item.type === 'collection') collectionIds.push(item.id);
+    else if (item.type === 'asset') assetIds.push(item.id);
     else untrackedItems.push(item);
   }
 
   // Execute batch operations for tracked items
-  if (entityIds.length) await changeEntityParent(entityIds, activeItemId);
-  if (taskIds.length) await changeTaskEntity(taskIds, activeItemId);
+  if (collectionIds.length) await changeCollectionParent(collectionIds, activeItemId);
+  if (assetIds.length) await changeAssetCollection(assetIds, activeItemId);
 
   // Handle untracked items (need path computation for each)
   if (untrackedItems.length) {
-    let entity = collectionStore.findCollection(activeItemId);
-    await FSService.MakeDirs(entity.file_path);
+    let collection = collectionStore.findCollection(activeItemId);
+    await FSService.MakeDirs(collection.file_path);
     const renameOperations = [];
     const itemUpdates = [];
 
     for (const item of untrackedItems) {
-      let newPath = await FSService.JoinPath(entity.file_path, item.name);
+      let newPath = await FSService.JoinPath(collection.file_path, item.name);
       const untrackedPath = newPath.replace(/^\/+|\/+$/g, "").replace(/\\/g, "/");
       const workingDir = projectStore.activeProject.working_directory.replace(/^\/+|\/+$/g, "").replace(/\\/g, "/");
       const itemPath = getRelativePath(workingDir, untrackedPath);
-      let entityPath = "";
-      const itemPathEntities = itemPath.split("/");
-      if (itemPathEntities.length > 1) entityPath = itemPathEntities.slice(0, -1).join("/");
+      let collectionPath = "";
+      const itemPathCollections = itemPath.split("/");
+      if (itemPathCollections.length > 1) collectionPath = itemPathCollections.slice(0, -1).join("/");
       renameOperations.push({ oldPath: item.file_path, newPath });
-      itemUpdates.push({ item, itemPath, newPath, entityPath });
+      itemUpdates.push({ item, itemPath, newPath, collectionPath });
     }
 
     await FSService.RenameBatch(JSON.stringify(renameOperations));
 
     // Update local state after successful rename
-    for (const { item, itemPath, newPath, entityPath } of itemUpdates) {
-      if (item.type == "untracked_task") {
-        let untrackedTaskIndex = projectStore.untrackedFilesIndex[item.id];
-        projectStore.untrackedFiles[untrackedTaskIndex].item_path = itemPath;
-        projectStore.untrackedFiles[untrackedTaskIndex].file_path = newPath;
-        projectStore.untrackedFiles[untrackedTaskIndex].entity_path = entityPath;
-      } else if (item.type == "untracked_entity") {
+    for (const { item, itemPath, newPath, collectionPath } of itemUpdates) {
+      if (item.type == "untracked_asset") {
+        let untrackedAssetIndex = projectStore.untrackedFilesIndex[item.id];
+        projectStore.untrackedFiles[untrackedAssetIndex].item_path = itemPath;
+        projectStore.untrackedFiles[untrackedAssetIndex].file_path = newPath;
+        projectStore.untrackedFiles[untrackedAssetIndex].collection_path = collectionPath;
+      } else if (item.type == "untracked_collection") {
         let untrackedFolderIndex = projectStore.untrackedFoldersIndex[item.id];
         projectStore.untrackedFolders[untrackedFolderIndex].item_path = itemPath;
         projectStore.untrackedFolders[untrackedFolderIndex].file_path = newPath;
-        projectStore.untrackedFolders[untrackedFolderIndex].entity_path = entityPath;
+        projectStore.untrackedFolders[untrackedFolderIndex].collection_path = collectionPath;
       }
     }
   }
@@ -707,22 +715,22 @@ const prepSquashModal = () => {
 };
 
 // Opens the assign menu.
-const prepAssignTask = (event) => menu.showContextMenu(event, 'assignMenu', true);
+const prepAssignAsset = (event) => menu.showContextMenu(event, 'assignMenu', true);
 
-// Shows the free up task space confirmation modal.
+// Shows the free up asset space confirmation modal.
 const prepFreeUpSpacePopUpModal = () => {
-  trayStates.popUpModalTitle = t('components.detailsPane.freeUpTaskSpaceTitle');
-  trayStates.popUpModalMessage = t('components.detailsPane.freeUpTaskSpaceMessage');
+  trayStates.popUpModalTitle = t('components.detailsPane.freeUpAssetSpaceTitle');
+  trayStates.popUpModalMessage = t('components.detailsPane.freeUpAssetSpaceMessage');
   trayStates.popUpModalIcon = 'broom';
   trayStates.popUpModalFunction = freeUpSpace;
   modals.setModalVisibility('popUpModal', true);
 };
 
-// Shows the revert tasks confirmation modal.
+// Shows the revert assets confirmation modal.
 const prepResetPopUpModal = () => {
   trayStates.popUpModalIcon = 'revert';
-  trayStates.popUpModalTitle = t('components.detailsPane.revertSelectedTasksTitle');
-  trayStates.popUpModalMessage = t('components.detailsPane.revertSelectedTasksMessage');
+  trayStates.popUpModalTitle = t('components.detailsPane.revertSelectedAssetsTitle');
+  trayStates.popUpModalMessage = t('components.detailsPane.revertSelectedAssetsMessage');
   trayStates.popUpModalFunction = revertAllChanges;
   modals.setModalVisibility('popUpModal', true);
 };
@@ -732,10 +740,10 @@ const rebuildCollections = async () => {
   notificationStore.cancleFunction = SyncService.CancelSync;
   notificationStore.canCancel = true;
   try {
-    const entityIdsString = stage.markedItems.join(',');
-    await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entityIdsString)
+    const collectionIdsString = stage.markedItems.join(',');
+    await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, collectionIdsString)
       .then(() => {
-        assetStore.refreshEntityFilesStatus();
+        assetStore.refreshCollectionFilesStatus();
         notificationStore.addNotification(t('components.detailsPane.collectionsRebuiltSuccessfully', { count: stage.markedItems.length }), '', "success", false);
       })
       .catch((error) => { console.error('Error rebuilding collections:', error); notificationStore.errorNotification(t('components.detailsPane.errorRebuildingCollections'), error); });
@@ -753,32 +761,32 @@ const removeLastSlash = (path) => path.replace(/\/+$/, '');
 
 // Prepares and opens the Move to Collection sub-menu for multi-selection.
 const prepMoveToCollection = (event) => {
-  const selectedTaskIds = stage.markedItems.filter(id => stage.selectedItems.find(item => item.id === id && item.type === 'task'));
-  if (selectedTaskIds.length === 0) return;
-  const firstTask = stage.selectedItems.find(item => item.id === selectedTaskIds[0] && item.type === 'task');
-  menu.subMenuState.selectedAssetIds = selectedTaskIds;
-  menu.subMenuState.startingEntityId = firstTask?.parent_id || '';
+  const selectedAssetIds = stage.markedItems.filter(id => stage.selectedItems.find(item => item.id === id && item.type === 'asset'));
+  if (selectedAssetIds.length === 0) return;
+  const firstAsset = stage.selectedItems.find(item => item.id === selectedAssetIds[0] && item.type === 'asset');
+  menu.subMenuState.selectedAssetIds = selectedAssetIds;
+  menu.subMenuState.startingCollectionId = firstAsset?.parent_id || '';
   menu.position = { x: event.clientX, y: event.clientY };
   menu.showSubMenu('move-to-collection');
 };
 
-// Reverts all selected tasks to their last checkpoint.
+// Reverts all selected assets to their last checkpoint.
 const revertAllChanges = async () => {
   modals.setModalVisibility('popUpModal', false);
   notificationStore.cancleFunction = SyncService.CancelSync;
   notificationStore.canCancel = true;
   await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, stage.markedItems)
     .then(() => {
-      const revertedTasks = stage.selectedItems.filter(item => item.type === 'task');
-      for (const task of revertedTasks) {
-        task.file_status = 'normal';
-        emitItemUpdates(task.id, [{ property: 'file_status', value: 'normal' }]);
+      const revertedAssets = stage.selectedItems.filter(item => item.type === 'asset');
+      for (const asset of revertedAssets) {
+        asset.file_status = 'normal';
+        emitItemUpdates(asset.id, [{ property: 'file_status', value: 'normal' }]);
       }
     })
-    .catch((error) => { notificationStore.errorNotification(t('components.detailsPane.errorRevertingTasks'), error); console.error(error); });
+    .catch((error) => { notificationStore.errorNotification(t('components.detailsPane.errorRevertingAssets'), error); console.error(error); });
 };
 
-// Sets the status of multiple tasks.
+// Sets the status of multiple assets.
 const setMultipleStatus = async (statusName) => {
   stage.operationActive = true;
   const status = statusStore.statuses.find(item => item.short_name === statusName.toLowerCase());
@@ -787,12 +795,12 @@ const setMultipleStatus = async (statusName) => {
   stage.operationActive = false;
 };
 
-// Toggles between task and resource type.
-const toggleIsTask = async (newAssetType) => {
+// Toggles between asset and resource type.
+const toggleIsAsset = async (newAssetType) => {
   stage.operationActive = true;
-  let isResource = newAssetType === 'task';
-  for (const taskId of stage.markedItems) {
-    await AssetService.ToggleIsTask(projectStore.activeProject.uri, taskId, isResource).catch((error) => console.error('Error:', error));
+  let isResource = newAssetType === 'asset';
+  for (const assetId of stage.markedItems) {
+    await AssetService.ToggleIsAsset(projectStore.activeProject.uri, assetId, isResource).catch((error) => console.error('Error:', error));
   }
   emitter.emit('refresh-browser');
   stage.operationActive = false;
@@ -823,13 +831,13 @@ const unassignCollections = async () => {
   stage.operationActive = false;
 };
 
-// Unassigns all collaborators from tasks.
-const unassignTasks = async () => {
-  for (const taskId of stage.markedItems) {
-    await AssetService.UnassignAsset(projectStore.activeProject.uri, taskId).catch((error) => { console.log(error); notificationStore.errorNotification(t('components.detailsPane.errorAssigningTask'), error); });
+// Unassigns all collaborators from assets.
+const unassignAssets = async () => {
+  for (const assetId of stage.markedItems) {
+    await AssetService.UnassignAsset(projectStore.activeProject.uri, assetId).catch((error) => { console.log(error); notificationStore.errorNotification(t('components.detailsPane.errorAssigningAsset'), error); });
   }
   emitter.emit('refresh-browser');
-  notificationStore.addNotification(t('components.detailsPane.tasksUnassignedSuccessfully'), "", "success");
+  notificationStore.addNotification(t('components.detailsPane.assetsUnassignedSuccessfully'), "", "success");
 };
 
 // Switches to the checkpoints tab.
@@ -888,6 +896,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: flex-start;
 }
+
 
 .details-pane-content {
   display: flex;

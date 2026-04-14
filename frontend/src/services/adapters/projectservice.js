@@ -34,7 +34,7 @@ const fetchProjectPreview = async (project, studioUrl) => {
 
 export const ProjectService = {
   // Returns all projects for a studio
-  GetStudioProjects: async (url, studioName) => {
+  GetStudioProjects: async (url, studioName, hostingMode, studioId) => {
     // Personal studio in web mode has no real URL - return empty
     if (!url || url.startsWith('/')) {
       return [];
@@ -173,6 +173,11 @@ export const ProjectService = {
     console.warn('RemoveUser not implemented in web mode');
   },
 
+  // Removes a user from a project and marks the tomb as synced
+  RemoveUserSynced: async (projectPath, userId) => {
+    console.warn('RemoveUserSynced not implemented in web mode');
+  },
+
   // Changes a user's role in a project
   ChangeRole: async (projectPath, userId, roleName) => {
     console.warn('ChangeRole not implemented in web mode');
@@ -200,7 +205,7 @@ export const ProjectService = {
 
   // Returns untracked items in a folder
   GetFolderUntrackedItems: async (projectWorkingDir, directory, ignoreList, tracked) => {
-    return { tasks: [], entities: [] };
+    return { assets: [], collections: [] };
   },
 
   // Checks if an item is ignored

@@ -107,7 +107,7 @@ export const useDndStore = defineStore("dnd", {
       const stage = useStageStore();
       const commonStore = useCommonStore();
 
-      if (this.lockUI || !this.userCanDrag || (!commonStore.useGrid && id in stage.expandedEntities)) {
+      if (this.lockUI || !this.userCanDrag || (!commonStore.useGrid && id in stage.expandedCollections)) {
         return;
       }
 
@@ -189,13 +189,13 @@ export const useDndStore = defineStore("dnd", {
             this.dropType = "untracked";
           }
 
-          // if this is an entity make the selected items children
-          if (this.targetItem.entity_type_id) {
+          // if this is an collection make the selected items children
+          if (this.targetItem.collection_type_id) {
             this.dropType = "child";
           }
 
-          // if this is a task make the selected items dependencies
-          if (this.targetItem.task_type_id) {
+          // if this is a asset make the selected items dependencies
+          if (this.targetItem.asset_type_id) {
             this.dropType = "dependency";
           }
 

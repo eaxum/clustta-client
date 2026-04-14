@@ -15,6 +15,7 @@ import AddProjectModal from '@/instances/desktop/modals/AddProjectModal.vue';
 import AddWebLinkModal from '@/instances/desktop/modals/AddWebLinkModal.vue';
 import AddWorkspaceModal from '@/instances/desktop/modals/AddWorkspaceModal.vue';
 import CloneProjectModal from '@/instances/desktop/modals/CloneProjectModal.vue';
+import ConfigAgentModal from '@/instances/desktop/modals/ConfigAgentModal.vue';
 import CreateAssetModal from '@/instances/desktop/modals/CreateAssetModal.vue';
 import CreateCheckpointModal from '@/instances/desktop/modals/CreateCheckpointModal.vue';
 import CreateCollectionModal from '@/instances/desktop/modals/CreateCollectionModal.vue';
@@ -72,13 +73,16 @@ import UpdateStudioModal from '@/instances/desktop/modals/UpdateStudioModal.vue'
 // components - sync
 import SyncConflictModal from '@/instances/desktop/modals/SyncConflictModal.vue';
 
+// components - plans
+import ClusttaCloudModal from '@/instances/desktop/modals/ClusttaCloudModal.vue';
+
 // components - integrations
 import DirectoryMappingModal from '@/instances/desktop/modals/DirectoryMappingModal.vue';
 import IntegrationAuthModal from '@/instances/desktop/modals/IntegrationAuthModal.vue';
 import IntegrationLinkModal from '@/instances/desktop/modals/IntegrationLinkModal.vue';
 import IntegrationSyncModal from '@/instances/desktop/modals/IntegrationSyncModal.vue';
 import SquashModal from '@/instances/desktop/modals/SquashModal.vue';
-import TaskTypeMappingModal from '@/instances/desktop/modals/TaskTypeMappingModal.vue';
+import AssetTypeMappingModal from '@/instances/desktop/modals/AssetTypeMappingModal.vue';
 
 // components - diagnostics
 import SubmitDiagnosticsModal from '@/instances/desktop/modals/SubmitDiagnosticsModal.vue';
@@ -111,6 +115,7 @@ const modalComponents = {
   addWebLinkModal: AddWebLinkModal,
   addWorkspaceModal: AddWorkspaceModal,
   cloneProjectModal: CloneProjectModal,
+  configAgentModal: ConfigAgentModal,
   createAssetModal: CreateAssetModal,
   createCheckpointModal: CreateCheckpointModal,
   createCollectionModal: CreateCollectionModal,
@@ -168,13 +173,16 @@ const modalComponents = {
   // sync
   syncConflictModal: SyncConflictModal,
 
+  // plans
+  clusttaCloudModal: ClusttaCloudModal,
+
   // integrations
   directoryMappingModal: DirectoryMappingModal,
   integrationAuthModal: IntegrationAuthModal,
   integrationLinkModal: IntegrationLinkModal,
   integrationSyncModal: IntegrationSyncModal,
   squashModal: SquashModal,
-  taskTypeMappingModal: TaskTypeMappingModal,
+  assetTypeMappingModal: AssetTypeMappingModal,
 
   // diagnostics
   submitDiagnosticsModal: SubmitDiagnosticsModal,

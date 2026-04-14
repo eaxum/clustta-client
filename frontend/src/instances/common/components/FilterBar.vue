@@ -13,7 +13,7 @@
 			<FilterButton :icon="getAppIcon('man-running')" v-tooltip="barIsOverflowing ? $t('components.filterBar.assetType') : ''" :alert="isFilterActive('asset-type')"
 				:label="$t('components.filterBar.assetType')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'assetTypeFilterMenu')"
 				@click="showFilterMenu($event, 'assetTypeFilterMenu')" />
-			<FilterButton v-if="showTagsFilter && viewTags.length" :icon="getAppIcon('tag')" v-tooltip="barIsOverflowing ? $t('components.filterBar.tags') : ''"
+			<FilterButton v-if="showTagsFilter" :icon="getAppIcon('tag')" v-tooltip="barIsOverflowing ? $t('components.filterBar.tags') : ''"
 				:label="$t('components.filterBar.tags')" :alert="isFilterActive('tags')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'tagsFilterMenu')"
 				@click="showFilterMenu($event, 'tagsFilterMenu')" />
 			<FilterButton :icon="getAppIcon('person')" v-tooltip="barIsOverflowing ? $t('components.filterBar.assignation') : ''" :label="$t('components.filterBar.assignees')"
@@ -38,14 +38,12 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue'
 import FilterButton from '@/instances/desktop/components/FilterButton.vue'
 
 //stores
-import { useAssetStore } from '@/stores/assets';
 import { useCommonStore } from '@/stores/common';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useTagStore } from '@/stores/tags';
 
 // states
-const assetStore = useAssetStore();
 const commonStore = useCommonStore();
 const iconStore = useIconStore();
 const menu = useMenu();
@@ -65,31 +63,14 @@ const props = defineProps({
 // computed properties
 const filtersActive = computed(() => {
 	const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
-	const entityFilters = commonStore.entityFilters.length > 0;
-	const taskFilters = commonStore.taskFilters.length > 0;
+	const collectionFilters = commonStore.collectionFilters.length > 0;
+	const assetFilters = commonStore.assetFilters.length > 0;
 	const resourceFilters = commonStore.resourceFilters.length > 0;
 	const generalFilter = isFilterActive('general');
-	return assigneeFilters || entityFilters || taskFilters || resourceFilters || generalFilter;
+	return assigneeFilters || collectionFilters || assetFilters || resourceFilters || generalFilter;
 });
 
-const showTagsFilter = computed(() => !!tagStore.tags.length && (commonStore.showTasks || commonStore.showResources));
-
-const viewTags = computed(() => {
-	let tags = tagStore.tags;
-	let viewTagNames = [];
-	let filteredTaskResults = assetStore.getFilteredAssets;
-	for (const task of filteredTaskResults) {
-		let taskTags = task.tags;
-		for (let t = 0; t < taskTags.length; t++) {
-			if (!viewTagNames.includes(taskTags[t])) viewTagNames.push(taskTags[t]);
-		}
-	}
-	for (let i = 0; i < tags.length; i++) {
-		tags[i].name = tags[i].name;
-		tags[i].type = 'tags';
-	}
-	return tags.filter((item) => viewTagNames.includes(item.name));
-});
+const showTagsFilter = computed(() => !!tagStore.tags.length && (commonStore.showAssets || commonStore.showResources));
 
 const emit = defineEmits(['selectCrumb']);
 
@@ -101,13 +82,13 @@ const clearFilters = () => { commonStore.resetFilters(); emitter.emit('refresh-b
 // Checks if a specific filter type is currently active.
 const isFilterActive = (filter) => {
 	if (filter.includes('general')) {
-		const isActive = commonStore.showEntities && commonStore.showTasks && commonStore.showResources && commonStore.showChildEntities && commonStore.showChildTasks && commonStore.showDependencies && !commonStore.onlyAssets;
+		const isActive = commonStore.showCollections && commonStore.showAssets && commonStore.showResources && commonStore.showChildCollections && commonStore.showChildAssets && commonStore.showDependencies && !commonStore.onlyAssets;
 		return !isActive;
-	} else if (filter.includes('entity')) return commonStore.entityFilters.some((item) => item.type === filter);
+	} else if (filter.includes('collection')) return commonStore.collectionFilters.some((item) => item.type === filter);
 	else if (filter.includes('assignation')) {
 		const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
-		return assigneeFilters || commonStore.taskFilters.some((item) => item.type === filter);
-	} else return commonStore.taskFilters.some((item) => item.type === filter);
+		return assigneeFilters || commonStore.assetFilters.some((item) => item.type === filter);
+	} else return commonStore.assetFilters.some((item) => item.type === filter);
 };
 
 // Shows a filter menu for the selected filter button.
@@ -171,14 +152,13 @@ onBeforeUnmount(() => {
 .filter-bar-root {
 	display: flex;
 	align-items: center;
-	/* padding: .2rem; */
 	height: max-content;
 	justify-content: flex-start;
 	box-sizing: border-box;
-	min-height: 35px;
+	min-height: 30px;
 	overflow: hidden;
-	/* overflow-x: scroll; */
 	width: 100%;
+	/* background-color: crimson; */
 }
 
 .filter-options {

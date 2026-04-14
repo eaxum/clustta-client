@@ -156,7 +156,7 @@ export const SyncService = {
    * In web mode, always returns empty (read-only).
    */
   GetPendingChanges: async (projectPath) => {
-    return { tasks: [], entities: [], other: [], total_count: 0 };
+    return { assets: [], collections: [], other: [], total_count: 0 };
   },
 
   /**

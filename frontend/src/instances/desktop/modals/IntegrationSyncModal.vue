@@ -157,10 +157,10 @@ const loadSyncPreview = async () => {
     await integrationStore.loadTypeMappings();
 
     // Auto-generate 1:1 type mappings for any unmapped types
-    const entityTypeMappingsMap = { ...(integrationStore.typeMappings?.entity_type_mappings || {}) };
-    for (const type of integrationStore.externalEntityTypes) {
-      if (!entityTypeMappingsMap[type.name]) {
-        entityTypeMappingsMap[type.name] = {
+    const collectionTypeMappingsMap = { ...(integrationStore.typeMappings?.collection_type_mappings || {}) };
+    for (const type of integrationStore.externalCollectionTypes) {
+      if (!collectionTypeMappingsMap[type.name]) {
+        collectionTypeMappingsMap[type.name] = {
           external_name: type.name,
           external_id: type.id,
           clustta_name: type.name,
@@ -169,10 +169,10 @@ const loadSyncPreview = async () => {
       }
     }
 
-    const taskTypeMappingsMap = { ...(integrationStore.typeMappings?.task_type_mappings || {}) };
-    for (const type of integrationStore.externalTaskTypes) {
-      if (!taskTypeMappingsMap[type.name]) {
-        taskTypeMappingsMap[type.name] = {
+    const assetTypeMappingsMap = { ...(integrationStore.typeMappings?.asset_type_mappings || {}) };
+    for (const type of integrationStore.externalAssetTypes) {
+      if (!assetTypeMappingsMap[type.name]) {
+        assetTypeMappingsMap[type.name] = {
           external_name: type.name,
           external_id: type.id,
           clustta_name: type.name,
@@ -181,12 +181,12 @@ const loadSyncPreview = async () => {
       }
     }
 
-    // Save auto-generated mappings (preserving existing directory_structure and task_type_templates)
+    // Save auto-generated mappings (preserving existing directory_structure and asset_type_templates)
     loadingMessage.value = 'Saving type mappings...';
     await integrationStore.saveTypeMappings({
       ...integrationStore.typeMappings,
-      entity_type_mappings: entityTypeMappingsMap,
-      task_type_mappings: taskTypeMappingsMap,
+      collection_type_mappings: collectionTypeMappingsMap,
+      asset_type_mappings: assetTypeMappingsMap,
     });
 
     // Load the sync preview (missing types are auto-created during ExecuteSync)

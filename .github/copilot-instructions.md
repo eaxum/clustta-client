@@ -250,3 +250,20 @@ OS-specific implementations use build tags:
 - `internal/repository/schema.sql` - Database schema
 - `internal/repository/schema.proto` - Protobuf definitions
 - `frontend/src/App.vue` - Root Vue component with global event listeners
+
+## Security Audit Reference
+A comprehensive security audit checklist for all three Clustta repos (server, client, studio) is maintained at `docs/SECURITY-AUDIT.md` in the client repo. It covers:
+
+1. **Authentication & Session Management** — sessions, API tokens, OAuth, rate limiting
+2. **Authorization & Access Control** — IDOR, role enforcement, frontend-only guards
+3. **Input Validation & Injection** — SQL injection, path traversal, command injection, XSS
+4. **File System & Storage Security** — `.clst` access, R2 presigned URLs, symlinks, temp files
+5. **Network & Transport Security** — TLS, CORS, presigned URL transport
+6. **Secrets & Configuration Management** — hardcoded secrets, leaked credentials, error messages
+7. **Denial of Service & Resource Exhaustion** — unbounded uploads, goroutine leaks, SQLite locking
+8. **Dependency & Supply Chain** — Go module CVEs, npm CVEs
+9. **Desktop Client Specific (Wails v3)** — IPC boundary, local server, deep links, auto-update
+10. **Data Integrity & Cryptography** — chunk hashing, checkpoint integrity
+11. **Logging & Monitoring** — sensitive data in logs, audit trails
+
+When performing security work, consult `docs/SECURITY-AUDIT.md` for the full checklist with attack scenarios and expected output format.

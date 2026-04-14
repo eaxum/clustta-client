@@ -38,49 +38,49 @@ const workflowTemplateItemData = computed(() => {
 // methods
 
 const transformData = (data) => {
-  const entitiesMap = new Map();
-  let rootEntity = null;
+  const collectionsMap = new Map();
+  let rootCollection = null;
 
-  // Create a map of entities for easy lookup
-  for (const entity of data.entities) {
-    entitiesMap.set(entity.id, { ...entity, children: [] });
+  // Create a map of collections for easy lookup
+  for (const collection of data.collections) {
+    collectionsMap.set(collection.id, { ...collection, children: [] });
   }
 
-  // Get the parent ID from either entity_id or parent_id
-  const getParentId = (item) => item.entity_id || item.parent_id;
+  // Get the parent ID from either collection_id or parent_id
+  const getParentId = (item) => item.collection_id || item.parent_id;
 
-  // Process resources and tasks, assigning them to their parent entities
+  // Process resources and assets, assigning them to their parent collections
   const processItems = (items) => {
     for (const item of items) {
       const parentId = getParentId(item);
-      if (parentId && entitiesMap.has(parentId)) {
-        entitiesMap.get(parentId).children.push(item);
+      if (parentId && collectionsMap.has(parentId)) {
+        collectionsMap.get(parentId).children.push(item);
       }
     }
   };
 
-  // Process resources and tasks if they exist
+  // Process resources and assets if they exist
   if (data.resources) {
     processItems(data.resources);
   }
-  if (data.tasks) {
-    processItems(data.tasks);
+  if (data.assets) {
+    processItems(data.assets);
   }
 
-  // Build the nested structure and find root entity
-  for (const entity of data.entities) {
-    const parentId = getParentId(entity);
-    if (!parentId || !entitiesMap.has(parentId)) {
-      rootEntity = entitiesMap.get(entity.id);
+  // Build the nested structure and find root collection
+  for (const collection of data.collections) {
+    const parentId = getParentId(collection);
+    if (!parentId || !collectionsMap.has(parentId)) {
+      rootCollection = collectionsMap.get(collection.id);
     } else {
-      const parent = entitiesMap.get(parentId);
+      const parent = collectionsMap.get(parentId);
       if (parent) {
-        parent.children.push(entitiesMap.get(entity.id));
+        parent.children.push(collectionsMap.get(collection.id));
       }
     }
   }
 
-  return rootEntity;
+  return rootCollection;
 };
 
 onMounted(async () => {

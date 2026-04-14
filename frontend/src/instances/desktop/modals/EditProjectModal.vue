@@ -44,6 +44,15 @@
       <ActionButton  :icon="getAppIcon('image-plus')" :label="$t('modals.uploadAnImage')" :buttonFunction="selectIcon" />
 
       </div>
+
+      <div v-if="showRemoteToggle" class="input-section">
+        <div class="horizontal-flex toggle-row" @click="toggleRemote">
+          <span class="input-label">{{ $t('modals.enableRemote') }}</span>
+          <ToggleSwitch :switchValueProp="isRemoteEnabled" />
+        </div>
+        <p v-if="remoteWarning" class="remote-warning">{{ remoteWarning }}</p>
+      </div>
+
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
         <GeneralButton :label="$t('common.update')" :fullWidth="true" @click="updateProject()" :isActive="isValueChanged"
@@ -66,20 +75,27 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import EmojiPicker from '@/instances/desktop/components/EmojiPicker.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // services
 import { DialogService, ProjectService } from '@/services';
 
 // stores
+import { useAccountStore } from '@/stores/accounts';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
+import { useStageStore } from '@/stores/stages';
 
+const accountStore = useAccountStore();
+const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const stage = useStageStore();
 const { t } = useI18n();
 
 // refs
@@ -88,9 +104,11 @@ const displayEmojiSelector = ref(false);
 const fileIsSelected = ref(false);
 const iconType = ref('emoji');
 const isAwaitingResponse = ref(false);
+const isRemoteEnabled = ref(false);
 const oldProjectIcon = ref('');
 const oldProjectName = ref('');
 const oldProjectPreview = ref('');
+const originalRemoteState = ref(false);
 const projectIcon = ref('');
 const projectName = ref('');
 const projectPreview = ref('');
@@ -120,10 +138,32 @@ const isProjectIconChanged = computed(() => {
   return oldProjectIcon.value !== projectIcon.value;
 });
 
+// Returns whether the remote toggle has changed from its original state.
+const isRemoteChanged = computed(() => {
+  return isRemoteEnabled.value !== originalRemoteState.value;
+});
+
 // Returns whether any form values have changed.
 const isValueChanged = computed(() => {
   const restrictedEntries = [oldProjectName.value, ''];
-  return !restrictedEntries.includes(projectName.value) || isPreviewChanged.value || isProjectIconChanged.value;
+  return !restrictedEntries.includes(projectName.value) || isPreviewChanged.value || isProjectIconChanged.value || isRemoteChanged.value;
+});
+
+// Returns a warning message when the user is about to disable remote.
+const remoteWarning = computed(() => {
+  if (!isRemoteChanged.value) return '';
+  if (!isRemoteEnabled.value) {
+    return t('modals.remoteDisableWarning');
+  }
+  return '';
+});
+
+// Returns whether the remote toggle should be shown.
+const showRemoteToggle = computed(() => {
+  if (!accountStore.canUseRemoteFeatures) return false;
+  if (projectStore.selectedStudio?.name !== 'Personal') return false;
+  if (isRemoteEnabled.value) return true;
+  return entitlementStore.canCreateRemoteProject;
 });
 
 // methods
@@ -157,7 +197,7 @@ const getAppIcon = (iconName) => {
 // Handles emoji selection from picker.
 const handleEmojiSelect = (emojiData) => {
   selectedEmoji.value = emojiData;
-  projectIcon.value = selectedEmoji.value.entity;
+  projectIcon.value = selectedEmoji.value.collection;
   displayEmojiSelector.value = false;
 };
 
@@ -192,9 +232,49 @@ const toggleEmojiSelector = () => {
   displayEmojiSelector.value = !displayEmojiSelector.value;
 };
 
+// Toggles the local remote toggle state.
+const toggleRemote = () => {
+  isRemoteEnabled.value = !isRemoteEnabled.value;
+};
+
+// Applies the remote state change by making the project remote or removing it from remote.
+const updateRemoteState = async () => {
+  const project = projectStore.activeProject;
+  stage.operationActive = true;
+  try {
+    if (isRemoteEnabled.value) {
+      await ProjectService.MakeProjectRemote(project.uri);
+    } else {
+      await ProjectService.RemoveProjectFromRemote(project.uri);
+    }
+    const updatedInfo = await ProjectService.ProjectInfo(project.uri);
+    await projectStore.refreshProjects();
+    const updatedProject = projectStore.projects.find(p => p.name === project.name);
+    if (updatedProject) {
+      updatedProject.remote = updatedInfo.remote;
+      updatedProject.has_remote = updatedInfo.has_remote;
+      projectStore.activeProject = updatedProject;
+    }
+    if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
+      entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
+    } else {
+      entitlementStore.fetchEntitlements();
+    }
+  } catch (error) {
+    console.error(error);
+    const errorKey = isRemoteEnabled.value ? 'errorMakingProjectRemote' : 'errorRemovingProjectFromRemote';
+    notificationStore.errorNotification(t(`notifications.${errorKey}`), error);
+  } finally {
+    stage.operationActive = false;
+  }
+};
+
 // Updates the project with all changed values.
 const updateProject = async () => {
   isAwaitingResponse.value = true;
+  if (isRemoteChanged.value) {
+    await updateRemoteState();
+  }
   if (isPreviewChanged.value) {
     await updateProjectCover();
   }
@@ -278,6 +358,8 @@ onMounted(() => {
   oldProjectIcon.value = project.icon;
   projectPreview.value = project.preview;
   oldProjectPreview.value = project.preview;
+  isRemoteEnabled.value = !!project.has_remote;
+  originalRemoteState.value = !!project.has_remote;
 });
 
 onUnmounted(() => {
@@ -411,6 +493,32 @@ onUnmounted(() => {
 
 .upload-image:hover {
   transform: scale(1.02);
+}
+
+.remote-warning {
+  font-size: 13px;
+  color: var(--danger);
+  line-height: 1.4;
+  margin: 0;
+  padding: 4px;
+  padding-bottom: 0;
+  font-weight: 400;
+}
+
+.toggle-row {
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.input-section {
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: .4px;
+  color: var(--white);
 }
 </style>
 

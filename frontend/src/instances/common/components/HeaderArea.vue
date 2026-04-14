@@ -2,7 +2,7 @@
   <div v-if="!displaySearchBar" class="page-header-area-container" :class="{ 'not-modal' : notModal}">
     <div class="page-header-area-container-title">
 
-      <span v-if="emoji" class="project-icon" v-html="emoji"></span>
+      <span v-if="emoji" class="project-icon">{{ decodeEmoji(emoji) }}</span>
 
       <span v-else-if="icon"><img class="large-icons header-icons" :class="{ 'no-filter' : useIconBlob}" :src="getAppIcon(icon)"></span>
       <span v-else-if="customIcon"><img class="large-icons header-icons no-filter" :src="customIcon"></span>
@@ -36,6 +36,7 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue';
+import { decodeEmoji } from '@/services/utils';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useIconStore } from '@/stores/icons';
 
@@ -114,7 +115,6 @@ onMounted(() => {
   displaySearchBar.value = false;
 
 })
-
 
 </script>
 

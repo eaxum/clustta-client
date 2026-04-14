@@ -24,11 +24,6 @@ defineProps({
 <style scoped>
 @import "@/assets/desktop.css";
 
-.button-background {
-	background-color: var(--white);
-	color: var(--black);
-}
-
 .centered {
 	justify-content: space-around;
 }
@@ -53,7 +48,7 @@ defineProps({
 	cursor: pointer;
 	display: flex;
 	align-items: center;
-	padding: .3rem;
+	padding: .2rem;
 	padding-right: .5rem;
 	gap: .2rem;
 	height: max-content;
@@ -85,6 +80,11 @@ defineProps({
 
 [data-theme="dark"] .inverted-icon {
 	filter: invert(1);
+}
+
+.button-background {
+	background-color: var(--white);
+	color: var(--black);
 }
 
 .label-text {

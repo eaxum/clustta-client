@@ -94,13 +94,13 @@ const listItemsAnchor = computed(() => {
 
 const listItemsLeft = computed(() => breadcrumbContent.value?.getBoundingClientRect().left || 0);
 
-const navigatedEntity = computed(() => collectionStore.navigatedCollection);
+const navigatedCollection = computed(() => collectionStore.navigatedCollection);
 
 const path = computed(() => {
 	if (commonStore.navigatorMode) {
-		return navigatedEntity.value?.type === 'entity'
-			? navigatedEntity.value?.entity_path
-			: navigatedEntity.value?.item_path;
+		return navigatedCollection.value?.type === 'collection'
+			? navigatedCollection.value?.collection_path
+			: navigatedCollection.value?.item_path;
 	}
 	return 'Home';
 });
@@ -174,8 +174,8 @@ const copyDirectoryPath = async () => {
 		explorerPath = project.working_directory.replace(/\\/g, '/');
 		await FSService.MakeDirs(explorerPath);
 	} else {
-		const navPath = collectionStore.navigatedCollection?.type === 'entity'
-			? collectionStore.navigatedCollection.entity_path
+		const navPath = collectionStore.navigatedCollection?.type === 'collection'
+			? collectionStore.navigatedCollection.collection_path
 			: collectionStore.navigatedCollection.item_path;
 		explorerPath = `${project.working_directory}${navPath}`.replace(/\\/g, '/');
 		await FSService.MakeDirs(explorerPath);
@@ -185,12 +185,12 @@ const copyDirectoryPath = async () => {
 	notificationStore.addNotification(t('components.breadcrumbs.pathCopiedToClipboard'), '', 'success');
 };
 
-// Generates an untracked entity object from a given path.
-const generateUntrackedEntityFromPath = (targetPath, projectPath) => {
+// Generates an untracked collection object from a given path.
+const generateUntrackedCollectionFromPath = (targetPath, projectPath) => {
 	const pathParts = targetPath.split('/').filter(part => part.trim() !== '');
 	if (pathParts.length === 0) return null;
 
-	const entityName = pathParts[pathParts.length - 1];
+	const collectionName = pathParts[pathParts.length - 1];
 	const normalizedProjectPath = projectPath.replace(/\\/g, '/').replace(/\/$/, '');
 	const absPath = normalizedProjectPath + targetPath.slice(0, -1);
 
@@ -203,20 +203,20 @@ const generateUntrackedEntityFromPath = (targetPath, projectPath) => {
 
 	return {
 		id: utils.getMD5Hash(absPath),
-		name: entityName,
-		entity_path: targetPath,
+		name: collectionName,
+		collection_path: targetPath,
 		item_path: targetPath,
 		file_path: absPath,
 		parent_id: parentId,
-		type: 'untracked_entity'
+		type: 'untracked_collection'
 	};
 };
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
-// Returns the parent entity for an untracked entity.
-const getUntrackedEntityParent = () => {
+// Returns the parent collection for an untracked collection.
+const getUntrackedCollectionParent = () => {
 	const currentPath = path.value;
 	const projectPath = projectStore.activeProject.working_directory;
 	const pathParts = currentPath.split('/').filter(part => part.trim() !== '');
@@ -226,8 +226,8 @@ const getUntrackedEntityParent = () => {
 		return null;
 	}
 
-	const parentEntityPath = '/' + pathParts.slice(0, -1).join('/') + '/';
-	return generateUntrackedEntityFromPath(parentEntityPath, projectPath);
+	const parentCollectionPath = '/' + pathParts.slice(0, -1).join('/') + '/';
+	return generateUntrackedCollectionFromPath(parentCollectionPath, projectPath);
 };
 
 // Navigates to a specific collection by path.
@@ -237,19 +237,19 @@ const goToCollection = async (selectedPath) => {
 
 	if (clickedPath === path.value) return;
 
-	const navigatedEntityType = collectionStore.navigatedCollection?.type;
+	const navigatedCollectionType = collectionStore.navigatedCollection?.type;
 	const projectPath = projectStore.activeProject.working_directory;
 
-	let targetEntity = null;
-	if (navigatedEntityType === 'entity') {
-		targetEntity = await CollectionService.GetCollectionByPath(projectStore.activeProject.uri, clickedPath);
+	let targetCollection = null;
+	if (navigatedCollectionType === 'collection') {
+		targetCollection = await CollectionService.GetCollectionByPath(projectStore.activeProject.uri, clickedPath);
 	} else {
-		targetEntity = generateUntrackedEntityFromPath(clickedPath, projectPath);
+		targetCollection = generateUntrackedCollectionFromPath(clickedPath, projectPath);
 	}
 
-	if (targetEntity) {
-		collectionStore.navigatedCollection = targetEntity;
-		collectionStore.selectedCollection = targetEntity;
+	if (targetCollection) {
+		collectionStore.navigatedCollection = targetCollection;
+		collectionStore.selectedCollection = targetCollection;
 	} else {
 		notificationStore.addNotification(t('components.breadcrumbs.navigationFailed'), t('components.breadcrumbs.couldNotFindSelectedPath'), 'error');
 	}
@@ -264,39 +264,39 @@ const goHome = () => {
 
 // Navigates up one level in the breadcrumb hierarchy.
 const goUpALevel = async () => {
-	const entity = collectionStore.navigatedCollection;
-	const entityType = entity.type;
-	let parentEntityId = entity.parent_id;
+	const collection = collectionStore.navigatedCollection;
+	const collectionType = collection.type;
+	let parentCollectionId = collection.parent_id;
 
-	if (!parentEntityId) {
+	if (!parentCollectionId) {
 		commonStore.navigatorMode = false;
 		collectionStore.navigatedCollection = null;
 		clearAllSelections();
 		return;
 	}
 
-	let parentEntity;
-	if (entityType === 'untracked_entity') {
-		parentEntity = getUntrackedEntityParent();
-		if (parentEntity?.entity_path) {
+	let parentCollection;
+	if (collectionType === 'untracked_collection') {
+		parentCollection = getUntrackedCollectionParent();
+		if (parentCollection?.collection_path) {
 			try {
-				const trackedParent = await CollectionService.GetCollectionByPath(projectStore.activeProject.uri, parentEntity.entity_path);
-				if (trackedParent) parentEntity = trackedParent;
+				const trackedParent = await CollectionService.GetCollectionByPath(projectStore.activeProject.uri, parentCollection.collection_path);
+				if (trackedParent) parentCollection = trackedParent;
 			} catch (error) {
-				// console.log('Parent entity not found in DB, using untracked entity');
+				// console.log('Parent collection not found in DB, using untracked collection');
 			}
 		}
 	} else {
-		parentEntity = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, parentEntityId);
+		parentCollection = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, parentCollectionId);
 	}
 
-	if (parentEntity) {
-		collectionStore.navigatedCollection = parentEntity;
+	if (parentCollection) {
+		collectionStore.navigatedCollection = parentCollection;
 		stage.lastSelectedItemId = '';
-		stage.firstSelectedItemId = parentEntity.id;
-		stage.markedItems = [parentEntity.id];
-		stage.selectedItems = [parentEntity];
-		stage.selectItem(parentEntity, parentEntity.type, true);
+		stage.firstSelectedItemId = parentCollection.id;
+		stage.markedItems = [parentCollection.id];
+		stage.selectedItems = [parentCollection];
+		stage.selectItem(parentCollection, parentCollection.type, true);
 	} else {
 		commonStore.navigatorMode = false;
 	}
@@ -316,8 +316,8 @@ const revealInExplorer = async () => {
 		await FSService.MakeDirs(project.working_directory);
 		FSService.RevealInExplorer(project.working_directory);
 	} else {
-		const navPath = collectionStore.navigatedCollection?.type === 'entity'
-			? collectionStore.navigatedCollection.entity_path
+		const navPath = collectionStore.navigatedCollection?.type === 'collection'
+			? collectionStore.navigatedCollection.collection_path
 			: collectionStore.navigatedCollection.item_path;
 		const trimmedPath = navPath.endsWith('/') ? navPath.slice(0, -1) : navPath;
 		let explorerPath = `${project.working_directory}${trimmedPath}`.replace(/\\/g, '/');

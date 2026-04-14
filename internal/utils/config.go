@@ -231,6 +231,12 @@ func GetRemoteUrl(tx *sqlx.Tx) (string, error) {
 	return remoteUrl, nil
 }
 
+// SetRemoteUrl writes the remote project URL to the config table.
+func SetRemoteUrl(tx *sqlx.Tx, remoteUrl string) error {
+	_, err := tx.Exec("UPDATE config SET value = ?, mtime = ? WHERE name = 'remote'", remoteUrl, GetEpochTime())
+	return err
+}
+
 // GetWriteThroughEnabled reads the write_through_enabled config value for a project.
 // Returns false if the key is missing (default off).
 func GetWriteThroughEnabled(tx *sqlx.Tx) (bool, error) {
@@ -256,6 +262,16 @@ func SetWriteThroughEnabled(tx *sqlx.Tx, enabled bool) error {
 		VALUES ('write_through_enabled', ?, ?)
 		ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value, mtime = EXCLUDED.mtime
 	`, val, GetEpochTime())
+	return err
+}
+
+// SetProjectName stores the project display name in the config table.
+func SetProjectName(tx *sqlx.Tx, name string) error {
+	_, err := tx.Exec(`
+		INSERT INTO config (name, value, mtime)
+		VALUES ('project_name', $1, $2)
+		ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value, mtime = EXCLUDED.mtime
+	`, name, GetEpochTime())
 	return err
 }
 

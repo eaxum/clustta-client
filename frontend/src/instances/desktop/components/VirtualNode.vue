@@ -15,13 +15,13 @@
         <div class="virtual-node-icon-container">
           <img v-if="data.icon" class="large-icons no-filter" :src="data.icon">
         </div>
-        <div class="virtual-node-content" v-tooltip="data.task_path">
+        <div class="virtual-node-content" v-tooltip="data.asset_path">
           <div class="virtual-node-details">
             {{ utils.capitalizeStr(data.name) }}
           </div>
         </div>
         
-        <!-- <div v-if="forList && data.type === 'task'" class="virtual-node-count">
+        <!-- <div v-if="forList && data.type === 'asset'" class="virtual-node-count">
           <div class="virtual-node-details">
             {{ dependenciesCount }}
           </div>
@@ -73,14 +73,14 @@ const props = defineProps({
 const nodeStyle = computed(() => {
   const item = props.data;
   let itemType;
-  if (item.entity_type_id) {
-    itemType = 'entity';
+  if (item.collection_type_id) {
+    itemType = 'collection';
     return {
-      background: 'var(--entity-item-color)',
-      outline: '1px solid var(--entity-item-color)',
+      background: 'var(--collection-item-color)',
+      outline: '1px solid var(--collection-item-color)',
       outlineOffset: '-1px'
     }
-  } else if (item.task_type_id) {
+  } else if (item.asset_type_id) {
     if (item.is_resource) {
       itemType = 'resource';
       return {
@@ -89,10 +89,10 @@ const nodeStyle = computed(() => {
         outlineOffset: '-1px'
       }
     } else {
-      itemType = 'task';
+      itemType = 'asset';
       return {
-        background: 'var(--task-item-color)',
-        outline: '1px solid var(--task-item-color)',
+        background: 'var(--asset-item-color)',
+        outline: '1px solid var(--asset-item-color)',
         outlineOffset: '-1px'
       }
     }
@@ -101,14 +101,14 @@ const nodeStyle = computed(() => {
 
 const itemTypeIcon = computed(() => {
   const item = props.data;
-  return item.entity_type_icon ? getAppIcon(item.entity_type_icon) : getAppIcon(item.task_type_icon)
+  return item.collection_type_icon ? getAppIcon(item.collection_type_icon) : getAppIcon(item.asset_type_icon)
 });
 
 const dependenciesCount = computed(() => {
   const item = props.data;
   if(!item.dependencies) return
-  if(item?.type !== 'task' ) return 0
-  return item.dependencies.length + item.entity_dependencies.length
+  if(item?.type !== 'asset' ) return 0
+  return item.dependencies.length + item.collection_dependencies.length
 });
 
 // methods
@@ -128,7 +128,7 @@ const addDependency = () => {
 };
 
 const selectItem = () => {
-  if (!props.data.task_type_id) {
+  if (!props.data.asset_type_id) {
     return
   }
   emitter.emit('selectItem', { message: props.data.id });
@@ -185,11 +185,11 @@ const selectItem = () => {
   pointer-events: none;
 }
 
-.task-collapsed {
+.asset-collapsed {
   transform: rotate(-90deg);
 }
 
-.task-expanded {
+.asset-expanded {
   transform: rotate(0deg);
 }
 
@@ -244,7 +244,7 @@ const selectItem = () => {
   outline-offset: -1.5px;
 }
 
-.task-spacer {
+.asset-spacer {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -255,7 +255,7 @@ const selectItem = () => {
   overflow: hidden;
 }
 
-.task-spacer-empty {
+.asset-spacer-empty {
   background-color: moccasin;
 }
 

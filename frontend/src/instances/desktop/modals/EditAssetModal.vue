@@ -8,22 +8,22 @@
       <!-- Asset Edit Context -->
       <template v-if="!displayTypeCreator">
         <div class="input-section">
-          <input v-model="taskName" class="input-short" type="text" :placeholder="$t('placeholders.taskName')" v-focus />
+          <input v-model="assetName" class="input-short" type="text" :placeholder="$t('placeholders.assetName')" v-focus />
         </div>
 
-        <div v-if="task.is_link" class="input-section">
+        <div v-if="asset.is_link" class="input-section">
           <div class="horizontal-flex">
-            <input v-model="taskWebLink" class="input-short" type="text" :placeholder="$t('placeholders.webLink')" ref="taskWebLinkInput" />
+            <input v-model="assetWebLink" class="input-short" type="text" :placeholder="$t('placeholders.webLink')" ref="assetWebLinkInput" />
             <span @click="pasteWebLink" class="single-action-button" v-tooltip="$t('modals.pasteLink')">
               <img class="small-icons" :src="getAppIcon('clipboard')">
             </span>
           </div>
         </div>
 
-        <div v-if="!task.is_link" class="input-section drop-down-box-section">
+        <div v-if="!asset.is_link" class="input-section drop-down-box-section">
           <div class="horizontal-flex">
             <div class="dropdown-wrapper">
-              <DropDownBox :items="taskTypeNames" :selectedItem="taskType" :onSelect="selectTaskType" />
+              <DropDownBox :items="assetTypeNames" :selectedItem="assetType" :onSelect="selectAssetType" />
             </div>
             <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addNewAssetType')">
               <img class="small-icons" :src="getAppIcon('plus-circle')">
@@ -33,7 +33,7 @@
 
         <div class="pop-up-actions">
           <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-          <GeneralButton :label="$t('common.confirm')" :fullWidth="true" @click="updateTask()" :isActive="isValueChanged" :loading="isAwaitingResponse" />
+          <GeneralButton :label="$t('common.confirm')" :fullWidth="true" @click="updateAsset()" :isActive="isValueChanged" :loading="isAwaitingResponse" />
         </div>
       </template>
 
@@ -90,55 +90,55 @@ const isResource = ref(false);
 const modalContainer = ref(null);
 const newTypeIcon = ref('generic');
 const oldTags = ref([]);
-const oldTaskName = ref('');
-const oldTaskWebLink = ref('');
+const oldAssetName = ref('');
+const oldAssetWebLink = ref('');
 const tags = ref([]);
-const taskName = ref('');
-const taskType = ref('');
-const taskTypeId = ref('');
-const taskWebLink = ref('');
+const assetName = ref('');
+const assetType = ref('');
+const assetTypeId = ref('');
+const assetWebLink = ref('');
 const typeFormRef = ref(null);
 
 // computed
-// Returns the custom icon path from the task (used in edit context).
+// Returns the custom icon path from the asset (used in edit context).
 const customIcon = computed(() => {
   if (displayTypeCreator.value) {
     return null;
   }
-  return task.value.icon;
+  return asset.value.icon;
 });
 
 // Returns whether form values have changed.
 const isValueChanged = computed(() => {
-  const currentTask = assetStore.selectedAsset;
-  if (!currentTask) {
+  const currentAsset = assetStore.selectedAsset;
+  if (!currentAsset) {
     return false;
   }
-  const restrictedEntries = [oldTaskName.value, ''];
-  const isNameChanged = !restrictedEntries.includes(taskName.value);
-  const isPointerChanged = isValidWeblink(taskWebLink.value) && (taskWebLink.value !== oldTaskWebLink.value) && !!taskWebLink.value.length;
-  const isTaskTypeChanged = currentTask.task_type_id !== taskTypeId.value;
+  const restrictedEntries = [oldAssetName.value, ''];
+  const isNameChanged = !restrictedEntries.includes(assetName.value);
+  const isPointerChanged = isValidWeblink(assetWebLink.value) && (assetWebLink.value !== oldAssetWebLink.value) && !!assetWebLink.value.length;
+  const isAssetTypeChanged = currentAsset.asset_type_id !== assetTypeId.value;
   const isTagsUpdated = tags.value.length === oldTags.value.length &&
     tags.value.every(tag => oldTags.value.includes(tag));
-  return isNameChanged || isTaskTypeChanged || !isTagsUpdated || isPointerChanged;
+  return isNameChanged || isAssetTypeChanged || !isTagsUpdated || isPointerChanged;
 });
 
-// Returns the currently selected task.
-const task = computed(() => {
+// Returns the currently selected asset.
+const asset = computed(() => {
   return assetStore.selectedAsset;
 });
 
 // Returns the list of asset type names.
-const taskTypeNames = computed(() => {
+const assetTypeNames = computed(() => {
   return assetStore.getAssetTypesNames;
 });
 
-// Returns the modal title based on task type or type creator.
+// Returns the modal title based on asset type or type creator.
 const title = computed(() => {
   if (displayTypeCreator.value) {
     return t('modals.addAssetTypeTitle');
   }
-  return task.value.is_link ? t('modals.editLink') : t('modals.editTask');
+  return asset.value.is_link ? t('modals.editLink') : t('modals.editAsset');
 });
 
 // Returns the type icon name (used in type creation context).
@@ -162,8 +162,8 @@ const getAppIcon = (iconName) => {
 
 // Handles successful type creation from the form.
 const handleTypeCreated = (response) => {
-  taskType.value = response.name;
-  taskTypeId.value = response.id;
+  assetType.value = response.name;
+  assetTypeId.value = response.id;
   displayTypeCreator.value = false;
 };
 
@@ -177,7 +177,7 @@ const pasteWebLink = async () => {
   ClipboardService.ReadText()
     .then(link => {
       if (isValidWeblink(link)) {
-        taskWebLink.value = link;
+        assetWebLink.value = link;
       }
     })
     .catch(err => {
@@ -185,16 +185,16 @@ const pasteWebLink = async () => {
     });
 };
 
-// Selects a task type from the dropdown.
-const selectTaskType = (taskTypeName) => {
-  const taskTypes = assetStore.getAssetTypes;
-  const newTaskType = taskTypes.find((item) => item.name === taskTypeName);
-  taskType.value = taskTypeName;
-  taskTypeId.value = newTaskType.id;
-  const allTaskTypeNames = taskTypeNames.value;
-  const currentTaskName = taskName.value.toLowerCase();
-  if (allTaskTypeNames.includes(currentTaskName)) {
-    taskName.value = utils.capitalizeStr(taskTypeName);
+// Selects a asset type from the dropdown.
+const selectAssetType = (assetTypeName) => {
+  const assetTypes = assetStore.getAssetTypes;
+  const newAssetType = assetTypes.find((item) => item.name === assetTypeName);
+  assetType.value = assetTypeName;
+  assetTypeId.value = newAssetType.id;
+  const allAssetTypeNames = assetTypeNames.value;
+  const currentAssetName = assetName.value.toLowerCase();
+  if (allAssetTypeNames.includes(currentAssetName)) {
+    assetName.value = utils.capitalizeStr(assetTypeName);
   }
 };
 
@@ -206,27 +206,27 @@ const toggleTypeCreator = () => {
   }
 };
 
-// Updates the task with the new values.
-const updateTask = async () => {
+// Updates the asset with the new values.
+const updateAsset = async () => {
   isAwaitingResponse.value = true;
-  const taskId = assetStore.selectedAsset.id;
-  const currentTask = assetStore.selectedAsset;
-  const newTaskTags = tags.value;
-  const taskTypes = assetStore.getAssetTypes;
-  const newTaskType = taskTypes.find((item) => item.id === taskTypeId.value);
-  if (taskName.value === '') {
-    notificationStore.addNotification('Task name cant be empty', 'Task name cant be empty', 'error');
+  const assetId = assetStore.selectedAsset.id;
+  const currentAsset = assetStore.selectedAsset;
+  const newAssetTags = tags.value;
+  const assetTypes = assetStore.getAssetTypes;
+  const newAssetType = assetTypes.find((item) => item.id === assetTypeId.value);
+  if (assetName.value === '') {
+    notificationStore.addNotification('Asset name cant be empty', 'Asset name cant be empty', 'error');
     return;
   }
-  await AssetService.UpdateAsset(projectStore.activeProject.uri, taskId, taskName.value, taskTypeId.value, isResource.value, taskWebLink.value, newTaskTags)
+  await AssetService.UpdateAsset(projectStore.activeProject.uri, assetId, assetName.value, assetTypeId.value, isResource.value, assetWebLink.value, newAssetTags)
     .then(() => {
-      currentTask.name = taskName.value;
-      currentTask.pointer = taskWebLink.value;
-      currentTask.is_resource = isResource.value;
-      currentTask.tags = newTaskTags;
-      currentTask.task_type_name = newTaskType.name;
-      currentTask.task_type_icon = newTaskType.icon;
-      currentTask.task_type_id = newTaskType.id;
+      currentAsset.name = assetName.value;
+      currentAsset.pointer = assetWebLink.value;
+      currentAsset.is_resource = isResource.value;
+      currentAsset.tags = newAssetTags;
+      currentAsset.asset_type_name = newAssetType.name;
+      currentAsset.asset_type_icon = newAssetType.icon;
+      currentAsset.asset_type_id = newAssetType.id;
       emitter.emit('refresh-browser');
       isAwaitingResponse.value = false;
     })
@@ -247,16 +247,16 @@ watchEffect(() => {
 // lifecycle hooks
 onMounted(() => {
   trayStates.tagSearchQuery = '';
-  const currentTask = assetStore.selectedAsset;
-  taskName.value = currentTask.name;
-  taskWebLink.value = currentTask.pointer;
-  isResource.value = currentTask.is_resource;
-  taskType.value = currentTask.task_type_name;
-  taskTypeId.value = currentTask.task_type_id;
-  oldTaskName.value = currentTask.name;
-  oldTaskWebLink.value = currentTask.pointer;
-  tags.value = Array.from(currentTask.tags);
-  oldTags.value = Array.from(currentTask.tags);
+  const currentAsset = assetStore.selectedAsset;
+  assetName.value = currentAsset.name;
+  assetWebLink.value = currentAsset.pointer;
+  isResource.value = currentAsset.is_resource;
+  assetType.value = currentAsset.asset_type_name;
+  assetTypeId.value = currentAsset.asset_type_id;
+  oldAssetName.value = currentAsset.name;
+  oldAssetWebLink.value = currentAsset.pointer;
+  tags.value = Array.from(currentAsset.tags);
+  oldTags.value = Array.from(currentAsset.tags);
 });
 </script>
 

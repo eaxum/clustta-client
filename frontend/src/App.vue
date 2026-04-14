@@ -23,6 +23,7 @@ import { LogService } from '@/services';
 import { useStageStore } from './stores/stages';
 import { useMenu } from '@/stores/menu';
 import { useAccountStore } from '@/stores/accounts';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useSettingsStore } from '@/stores/settings';
 import { useThemeStore } from '@/stores/theme';
 import { usePlatformStore } from '@/stores/platform';
@@ -41,6 +42,7 @@ const stageStore = useStageStore();
 const studioStore = useStudioStore();
 const userStore = useUserStore();
 const accountStore = useAccountStore();
+const entitlementStore = useEntitlementStore();
 
 
 
@@ -127,8 +129,8 @@ async function updateFileStates() {
 async function pullData() {
     let syncOptions = {
         only_latest_checkpoints: false,
-        task_dependencies: false,
-        tasks: false,
+        asset_dependencies: false,
+        assets: false,
         templates: false,
     };
     await SyncService.PullData(
@@ -137,6 +139,11 @@ async function pullData() {
         .then(async () => {
             await projectStore.reloadActiveProject()
             await userStore.reloadUsers()
+            if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
+                entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
+            } else {
+                entitlementStore.fetchEntitlements();
+            }
             emitter.emit('refresh-browser');
         }).catch((error) => {
             console.log("Error Syncing Data", error)
@@ -180,7 +187,7 @@ function startCheckSycnTokenInterval() {
             setTimeout(run, 1000);
             return
         }
-        if (!projectStore.selectedStudio || projectStore.selectedStudio.name == "Personal") {
+        if (!projectStore.selectedStudio || (projectStore.selectedStudio.name == "Personal" && !projectStore.isR2Remote)) {
             setTimeout(run, 1000);
             return
         }
@@ -220,7 +227,9 @@ function startCheckSycnTokenInterval() {
                     }
                 }
             }).catch((error) => {
-                studioStore.appOnline = false;
+                if (projectStore.selectedStudio?.name !== 'Personal') {
+                    studioStore.appOnline = false;
+                }
             }).finally(() => {
                 setTimeout(run, 5000);
             });

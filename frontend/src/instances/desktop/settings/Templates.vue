@@ -117,7 +117,7 @@ const deleteTemplate = async (selectedTemplateId) => {
 };
 
 const undoTemplateDelete = async () => {
-  TrashService.Restore(projectStore.activeProject.uri, trayStates.undoItemId, "task")
+  TrashService.Restore(projectStore.activeProject.uri, trayStates.undoItemId, "asset")
     .then(async (response) => {
       templateStore.unmarkTemplateAsDeleted(trayStates.undoItemId)
     })

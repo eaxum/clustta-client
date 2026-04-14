@@ -16,14 +16,14 @@ export const useSyncConflictStore = defineStore("syncConflict", {
     // Returns all conflicts regardless of parent-child relationships.
     allConflicts: (state) => state.conflicts,
 
-    // Returns only entity type conflicts.
-    entityConflicts: (state) => state.conflicts.filter(c => c.type === 'entity'),
+    // Returns only collection type conflicts.
+    collectionConflicts: (state) => state.conflicts.filter(c => c.type === 'collection'),
 
     // Returns true if there are any conflicts remaining.
     hasConflicts: (state) => state.conflicts.length > 0,
 
-    // Returns only task type conflicts.
-    taskConflicts: (state) => state.conflicts.filter(c => c.type === 'task'),
+    // Returns only asset type conflicts.
+    assetConflicts: (state) => state.conflicts.filter(c => c.type === 'asset'),
 
     // Returns only top-level conflicts (items without a conflicted parent).
     topLevelConflicts: (state) => filterTopLevelConflicts(state.conflicts),
@@ -36,7 +36,7 @@ export const useSyncConflictStore = defineStore("syncConflict", {
       this.remoteURL = "";
     },
 
-    // Finds all child conflicts of a parent entity.
+    // Finds all child conflicts of a parent collection.
     getChildConflicts(parent) {
       return findChildConflicts(parent, this.conflicts);
     },

@@ -33,10 +33,10 @@ export const useMenu = defineStore("useMenu", {
     subMenuState: {
       active: false,
       sourceMenu: null, // The menu that triggered the sub-menu
-      navigationStack: [], // Stack of { type: 'projects' | 'entities', projectUri?: string, parentId?: string, title: string }
+      navigationStack: [], // Stack of { type: 'projects' | 'collections', projectUri?: string, parentId?: string, title: string }
       selectedProject: null, // The project being navigated into
       selectedAssetIds: [], // Assets being moved (for move-to-collection)
-      startingEntityId: '', // Starting collection for navigation (for move-to-collection)
+      startingCollectionId: '', // Starting collection for navigation (for move-to-collection)
       slideDirection: 'left', // 'left' for entering deeper, 'right' for going back
     },
 
@@ -59,7 +59,7 @@ export const useMenu = defineStore("useMenu", {
     anchorMenu: false,
     isAnimating: false,
     contextMenuVisible: false,
-    taskPopUpMenuVisible: false,
+    assetPopUpMenuVisible: false,
     popupTrigger: null,
 
     popUpMenuTop: 0,
@@ -73,7 +73,7 @@ export const useMenu = defineStore("useMenu", {
     contextMenu: null,
 
     popUpMenu: null,
-    taskListContainer: null,
+    assetListContainer: null,
 
     flyoutTop: 0,
     flyoutLeft: 0,
@@ -227,7 +227,7 @@ export const useMenu = defineStore("useMenu", {
     },
 
     hidePopUpMenu() {
-      this.taskPopUpMenuVisible = false;
+      this.assetPopUpMenuVisible = false;
     },
 
     // Force reposition of menu (useful when menu content changes height)
@@ -296,7 +296,7 @@ export const useMenu = defineStore("useMenu", {
       this.subMenuState.navigationStack = [];
       this.subMenuState.selectedProject = null;
       this.subMenuState.selectedAssetIds = [];
-      this.subMenuState.startingEntityId = '';
+      this.subMenuState.startingCollectionId = '';
       this.subMenuState.slideDirection = 'left';
       
       // Hide sub-menus and show source menu
@@ -314,7 +314,7 @@ export const useMenu = defineStore("useMenu", {
       this.subMenuState.navigationStack = [];
       this.subMenuState.selectedProject = null;
       this.subMenuState.selectedAssetIds = [];
-      this.subMenuState.startingEntityId = '';
+      this.subMenuState.startingCollectionId = '';
       this.subMenuState.slideDirection = 'left';
     },
   },

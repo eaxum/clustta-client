@@ -11,7 +11,7 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 import * as $models from "./models.js";
 
 /**
- * Retrieves all deleted items from project database including entities, templates, tasks, and checkpoints
+ * Retrieves all deleted items from project database including collections, templates, assets, and checkpoints
  * @param {string} projectPath
  * @returns {$CancellablePromise<$models.RecycleItem[]>}
  */

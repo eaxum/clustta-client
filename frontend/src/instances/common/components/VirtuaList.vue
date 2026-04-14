@@ -120,7 +120,7 @@ const offsetY = computed(() => {
 
 // Gets all untracked items from root items.
 const previousUntracked = computed(() => {
-  const allUntracked = props.items.filter((item) => item.type === 'untracked_task' || item.type === 'untracked_entity');
+  const allUntracked = props.items.filter((item) => item.type === 'untracked_asset' || item.type === 'untracked_collection');
   return allUntracked;
 });
 
@@ -252,8 +252,8 @@ const findStartNode = (scrollTop, nodePositions, itemCount) => {
 // Gets height of child item considering expanded state.
 const getChildHeight = (index) => {
   const item = props.items[index];
-  return item && item.id in stage.expandedEntities ?
-    stage.expandedEntities[item.id]["height"] || props.itemHeight : props.itemHeight;
+  return item && item.id in stage.expandedCollections ?
+    stage.expandedCollections[item.id]["height"] || props.itemHeight : props.itemHeight;
 };
 
 // Gets position of item by index.
@@ -318,7 +318,7 @@ const onHeightChange = (index, height) => {
   if (height > props.itemHeight) {
     const item = props.items[index];
     if (item && item.id) {
-      stage.expandedEntities[item.id]["height"] = height;
+      stage.expandedCollections[item.id]["height"] = height;
     }
   }
   calculateChildPositions();
@@ -330,13 +330,13 @@ const onMouseDown = (event, item, index) => {
   const allItems = props.items;
   let itemType;
 
-  if (item.entity_type_id) {
-    itemType = 'entity';
-  } else if (item.task_type_id) {
+  if (item.collection_type_id) {
+    itemType = 'collection';
+  } else if (item.asset_type_id) {
     if (item.is_resource) {
       itemType = 'resource';
     } else {
-      itemType = 'task';
+      itemType = 'asset';
     }
   } else if (item.item_type) {
     itemType = item.item_type;
@@ -359,13 +359,13 @@ const onMouseUp = (event, item) => {
   const allItems = props.items;
   let itemType;
 
-  if (item.entity_type_id) {
-    itemType = 'entity';
-  } else if (item.task_type_id) {
+  if (item.collection_type_id) {
+    itemType = 'collection';
+  } else if (item.asset_type_id) {
     if (item.is_resource) {
       itemType = 'resource';
     } else {
-      itemType = 'task';
+      itemType = 'asset';
     }
   } else if (item.item_type) {
     itemType = item.item_type;
@@ -386,10 +386,10 @@ const onRootScroll = () => {
 // Parses collection state into simpler structure with just IDs.
 const parseCollectionState = (state) => {
   return {
-    modified: state.modified_tasks?.map(t => t.id).sort() || [],
-    normal: state.normal_tasks?.map(t => t.id).sort() || [],
-    outdated: state.outdated_tasks?.map(t => t.id).sort() || [],
-    rebuildable: state.rebuildable_tasks?.map(t => t.id).sort() || [],
+    modified: state.modified_assets?.map(t => t.id).sort() || [],
+    normal: state.normal_assets?.map(t => t.id).sort() || [],
+    outdated: state.outdated_assets?.map(t => t.id).sort() || [],
+    rebuildable: state.rebuildable_assets?.map(t => t.id).sort() || [],
     untracked_files: state.untracked_files?.map(f => f.id).sort() || [],
     untracked_folders: state.untracked_folders?.map(f => f.id).sort() || []
   };
@@ -401,8 +401,8 @@ const refreshView = async (isRoot = false) => {
   const collectionType = isRoot ? collectionStore.navigatedCollection?.type : props.collectionType;
   const collectionId = isRoot ? collectionStore.navigatedCollection?.id : props.collectionId;
   
-  // For untracked entities, emit refresh-browser to reload the view with new untracked items
-  if (collectionType === 'untracked_entity') {
+  // For untracked collections, emit refresh-browser to reload the view with new untracked items
+  if (collectionType === 'untracked_collection') {
     if (isRoot) {
       emitter.emit('refresh-browser');
     }
@@ -425,10 +425,10 @@ const refreshView = async (isRoot = false) => {
     
     // Batch all file status updates into a single array
     const statusUpdates = [
-      ...(state.normal_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'normal' }] })),
-      ...(state.modified_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'modified' }] })),
-      ...(state.outdated_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'outdated' }] })),
-      ...(state.rebuildable_tasks || []).map(task => ({ itemId: task.id, updates: [{ property: 'file_status', value: 'rebuildable' }] }))
+      ...(state.normal_assets || []).map(asset => ({ itemId: asset.id, updates: [{ property: 'file_status', value: 'normal' }] })),
+      ...(state.modified_assets || []).map(asset => ({ itemId: asset.id, updates: [{ property: 'file_status', value: 'modified' }] })),
+      ...(state.outdated_assets || []).map(asset => ({ itemId: asset.id, updates: [{ property: 'file_status', value: 'outdated' }] })),
+      ...(state.rebuildable_assets || []).map(asset => ({ itemId: asset.id, updates: [{ property: 'file_status', value: 'rebuildable' }] }))
     ];
     
     // Emit all updates at once as a single array
@@ -453,7 +453,7 @@ const refreshView = async (isRoot = false) => {
 
 // Refreshes state of virtuaList on mouse enter.
 const refreshVirtuaItems = () => {
-  if (props.isRoot || props.collectionType == 'untracked_entity' ) return;
+  if (props.isRoot || props.collectionType == 'untracked_collection' ) return;
   console.log(props.collectionType)
   refreshView();
 };

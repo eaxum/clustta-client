@@ -13,9 +13,9 @@
           </div>
         </div>
 
-        <div class="task-details">
+        <div class="asset-details">
 
-          <div v-if="projectStore.selectedUntrackedItem.type === 'untracked_task'" class="pane-parameter-detail">
+          <div v-if="projectStore.selectedUntrackedItem.type === 'untracked_asset'" class="pane-parameter-detail">
             <div class="simple-text-key">
               {{ $t('panes.extension') }}
             </div>
@@ -24,7 +24,7 @@
             </div>
           </div>
 
-          <div v-if="projectStore.selectedUntrackedItem.type === 'untracked_task'" class="pane-parameter-detail">
+          <div v-if="projectStore.selectedUntrackedItem.type === 'untracked_asset'" class="pane-parameter-detail">
             <div class="simple-text-key">
             {{ $t('panes.size') }}
             </div>
@@ -33,7 +33,7 @@
             </div>
           </div>
 
-          <div v-if="projectStore.selectedUntrackedItem.type === 'untracked_entity'" class="pane-parameter-detail">
+          <div v-if="projectStore.selectedUntrackedItem.type === 'untracked_collection'" class="pane-parameter-detail">
             <div class="simple-text-key">
             {{ $t('panes.size') }}
             </div>
@@ -41,6 +41,19 @@
               {{  collectionSize }}
             </div>
         </div>
+
+          <div class="pane-parameter-detail">
+            <div class="simple-text-key">
+              {{ $t('panes.location') }}
+            </div>
+            <div class="simple-text-value truncate-path" v-tooltip="itemPath">
+              {{ itemPath }}
+            </div>
+            <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
+              <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('common.copyPath')" @click="copyItemPath" />
+              <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="$t('common.revealInExplorer')" :buttonFunction="revealInExplorer" />
+            </div>
+          </div>
 
         </div>
 
@@ -53,6 +66,7 @@
 
 
 import { FSService, AssetService, CollectionService } from "@/services";
+import { Clipboard } from '@wailsio/runtime';
 
 // imports
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
@@ -71,6 +85,8 @@ import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
 import { usePaneStore } from '@/stores/panes';
 import { useAssetStore } from '@/stores/assets';
+import { usePlatformStore } from '@/stores/platform';
+import { useNotificationStore } from '@/stores/notifications';
 
 // state imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -93,6 +109,8 @@ const projectStore = useProjectStore();
 const dndStore = useDndStore();
 const panes = usePaneStore();
 const assetStore = useAssetStore();
+const notificationStore = useNotificationStore();
+const platformStore = usePlatformStore();
 
 const { t } = useI18n();
 
@@ -112,9 +130,9 @@ const parentName = computed(() => {
 
 const itemIcon = computed(() => {
   const item = projectStore.selectedUntrackedItem;
-  if (item?.type === 'untracked_task') {
+  if (item?.type === 'untracked_asset') {
     return 'file'
-  } else if (item?.type === 'untracked_entity') {
+  } else if (item?.type === 'untracked_collection') {
     return 'folder'
   }
 });
@@ -129,7 +147,7 @@ const deleteItem = () => {
 
 const deleteUntrackedFolder = () => {
   FSService.DeleteFolder(untrackedItem.value.file_path);
-  projectStore.removeUntrackedEntity(untrackedItem.value.id);
+  projectStore.removeUntrackedCollection(untrackedItem.value.id);
   panes.setPaneVisibility('projectDetails', true)
   collectionStore.selectedCollection = null;
   stage.markedItems = [];
@@ -139,7 +157,7 @@ const deleteUntrackedFolder = () => {
 
 const deleteUntrackedFile = () => {
   FSService.DeleteFile(untrackedItem.value.file_path);
-  projectStore.removeUntrackedTask(untrackedItem.value.id);
+  projectStore.removeUntrackedAsset(untrackedItem.value.id);
   panes.setPaneVisibility('projectDetails', true)
   assetStore.selectedAsset = null;
   stage.markedItems = [];
@@ -152,27 +170,39 @@ const prepDeleteUntrackedItemPopUpModal = () => {
   trayStates.popUpModalTitle = t('common.delete');
   trayStates.popUpModalMessage = t('confirmations.deleteItemPermanently');
   trayStates.popUpModalIcon = 'trash';
-  trayStates.popUpModalFunction = untrackedItemType === 'untracked_entity' ? deleteUntrackedFolder : deleteUntrackedFile;
+  trayStates.popUpModalFunction = untrackedItemType === 'untracked_collection' ? deleteUntrackedFolder : deleteUntrackedFile;
   modals.setModalVisibility('popUpModal', true);
 };
 
+const copyItemPath = async () => {
+  if (!itemPath.value) return;
+  await Clipboard.SetText(itemPath.value);
+  const message = t('notifications.pathCopied');
+  notificationStore.addNotification(message, "", "success");
+};
+
+const revealInExplorer = () => {
+  if (!itemPath.value) return;
+  FSService.RevealInExplorer(untrackedItem.value.file_path);
+};
+
 const importItem = () => {
-  if (untrackedItem.value.type === 'untracked_task') {
-    importTask();
-  } else if (untrackedItem.value.type === 'untracked_entity') {
+  if (untrackedItem.value.type === 'untracked_asset') {
+    importAsset();
+  } else if (untrackedItem.value.type === 'untracked_collection') {
     importFolder();
   }
 };
 
 const importFolder = () => {
-  const inRoot = untrackedItem.value.entity_path === ""
+  const inRoot = untrackedItem.value.collection_path === ""
   const folderPath = untrackedItem.value.file_path;
   let parentId = ""
   let untrackedParents = []
-  let parentPaths = utils.getParentPaths(untrackedItem.value.entity_path)
+  let parentPaths = utils.getParentPaths(untrackedItem.value.collection_path)
   if (!inRoot) {
     for (let parent of parentPaths) {
-      parentId = collectionStore.collections.find((item) => item.entity_path === parent)?.id;
+      parentId = collectionStore.collections.find((item) => item.collection_path === parent)?.id;
       if (parentId !== undefined) {
         break
       }
@@ -187,15 +217,15 @@ const importFolder = () => {
   modals.setModalVisibility('importItemsModal', true);
 };
 
-const importTask = () => {
-  const inRoot = untrackedItem.value.entity_path === ""
-  const taskPath = untrackedItem.value.file_path;
+const importAsset = () => {
+  const inRoot = untrackedItem.value.collection_path === ""
+  const assetPath = untrackedItem.value.file_path;
   let parentId = ""
   let untrackedParents = []
-  let parentPaths = utils.getParentPaths(untrackedItem.value.entity_path)
+  let parentPaths = utils.getParentPaths(untrackedItem.value.collection_path)
   if (!inRoot) {
     for (let parent of parentPaths) {
-      parentId = collectionStore.collections.find((item) => item.entity_path === parent)?.id;
+      parentId = collectionStore.collections.find((item) => item.collection_path === parent)?.id;
       if (parentId !== undefined) {
         break
       }
@@ -204,7 +234,7 @@ const importTask = () => {
   }
   dndStore.untrackedParents = untrackedParents
   dndStore.targetItemId = parentId;
-  dndStore.droppedFiles.push(taskPath);
+  dndStore.droppedFiles.push(assetPath);
   panes.setPaneVisibility('projectDetails', true);
   modals.setModalVisibility('importItemsModal', true);
 };
@@ -245,13 +275,13 @@ const getCollectionSize = async() => {
 const getProjectData = async () => {
   if (!itemPath.value) return;
   
-  if(itemType.value === 'untracked_task'){
+  if(itemType.value === 'untracked_asset'){
     if (!await FSService.Exists(itemPath.value)){
       itemSize.value = 'Not on disk'
       return
     }
     getItemSize();
-  } else if (itemType.value === 'untracked_entity') {
+  } else if (itemType.value === 'untracked_collection') {
     getCollectionSize();
   }
 }
@@ -265,7 +295,7 @@ watch(() => projectStore.selectedUntrackedItem, () => {
 
 // onMounted
 onMounted(() => {
-  stage.markedTasks = [];
+  stage.markedAssets = [];
   
   getProjectData();
 	emitter.on('get-project-data', getProjectData);
@@ -297,22 +327,22 @@ onBeforeUnmount(() => {
   height: 200px;
 }
 
-.task-details{
+.asset-details{
   overflow: hidden;
   overflow-y: scroll;
   padding-right: .5rem;
 }
 
-.task-details::-webkit-scrollbar {
+.asset-details::-webkit-scrollbar {
   width: 4px;
 }
 
-.task-details::-webkit-scrollbar-thumb {
+.asset-details::-webkit-scrollbar-thumb {
   border-radius: 10px;
   background-color: var(--light-steel);
 }
 
-.task-details::-webkit-scrollbar-track {
+.asset-details::-webkit-scrollbar-track {
   border-radius: 10px;
 }
 .pane-parameter-detail {
@@ -328,6 +358,14 @@ onBeforeUnmount(() => {
 
 .simple-text-key {
   white-space: nowrap;
+}
+
+.truncate-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
 }
 
 .action-bar {

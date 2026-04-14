@@ -245,6 +245,7 @@ const handleVerification = async () => {
       userStore.isUserAuthenticated = true;
 
       // Initialize stores that require authentication
+      const savedIntent = accountStore.onboardingIntent;
       loadingStatus.value = t('auth.verifyEmail.loadingAccount');
       await accountStore.initialize();
       
@@ -260,7 +261,7 @@ const handleVerification = async () => {
         loadingStatus.value = t('auth.verifyEmail.loadingProjects');
         await projectStore.loadProjects();
         trayStates.refreshData();
-      } else {
+      } else if (savedIntent !== 'studio') {
         modals.setModalVisibility('dirOnboardModal', true);
       }
 
@@ -268,7 +269,13 @@ const handleVerification = async () => {
       markStoresInitialized();
       
       userStore.clearPendingVerification();
-      router.push('/');
+
+      // Route based on onboarding intent
+      if (savedIntent === 'studio') {
+        router.push('/auth/studio-setup');
+      } else {
+        router.push('/');
+      }
       
     } catch (loginError) {
       console.log("Auto-login failed:", loginError);

@@ -1,7 +1,14 @@
 <template>
   <div class="settings-component-root">
     <div class="settings-component-container">
-      <ActionBar v-if="userStore.canDo('add_user')" :itemType="$t('settings.addCollaborator').toLowerCase()" :addFunction="addCollaborator" />
+      <div class="asset-header">
+        <div class="create-menu">
+          <ActionButton v-if="projectStore.isR2Remote || userStore.canDo('add_user')" :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
+            @click="addCollaborator" v-tooltip="$t('settings.addCollaborator')" />
+          <ActionButton :icon="getAppIcon('refresh')" :label="$t('common.refresh')" v-tooltip="$t('common.refresh')"
+            :buttonFunction="refresh" />
+        </div>
+      </div>
 
       <div v-if="projectCollaborators.length" class="collaborators-list-wrapper">
         <div class="collaborators-list">
@@ -28,7 +35,7 @@
 // imports
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ProjectService } from "@/services";
+import { CollaboratorService, ProjectService } from "@/services";
 import utils from '@/services/utils';
 
 // store imports
@@ -38,29 +45,47 @@ import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';
 
 // components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import CollaboratorItem from '@/instances/desktop/components/CollaboratorItem.vue';
-import ActionBar from '@/instances/desktop/components/ActionBar.vue'
-import { useUserStore } from '@/stores/users';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
+import { useUserStore } from '@/stores/users';
 
 
-// states
+// stores
 const assetStore = useAssetStore();
-const userStore = useUserStore();
+const iconStore = useIconStore();
+const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const trayStates = useTrayStates();
+const userStore = useUserStore();
 
-const notificationStore = useNotificationStore();
-const modals = useDesktopModalStore();
 const { t } = useI18n();
 
 const addCollaborator = () => {
   modals.setModalVisibility('manageCollaboratorModal', true);
 };
 
+// Returns the app icon for the given icon name.
+const getAppIcon = (iconName) => {
+  return iconStore.getAppIcon(iconName);
+};
+
+// Refreshes the project collaborators list.
+const refresh = async () => {
+  await userStore.reloadUsers();
+};
+
 // refs
 
+// Whether the active project is a studio project (cloud or private).
+const isStudioProject = computed(() => {
+  return projectStore.selectedStudio && projectStore.selectedStudio.name !== 'Personal';
+});
+
 const isLastAdmin = computed(() => {
+  if (projectStore.isR2Remote) return false;
   let projectUsers = userStore.getProjectCollaborators;
   const projectRoles = projectUsers.map((user) => user.role.name);
   const isLastAdmin = projectRoles.filter(roleName => roleName === 'admin').length < 2;
@@ -71,10 +96,11 @@ const activeUserId = computed(() => {
   return userStore.user?.id;
 });
 
-const canRemoveUser = computed(() => { return userStore.canDo('remove_user') });
-const canChangeRole = computed(() => { return userStore.canDo('change_role') });
+const canRemoveUser = computed(() => { return projectStore.isR2Remote || userStore.canDo('remove_user') });
+const canChangeRole = computed(() => { return projectStore.isR2Remote || userStore.canDo('change_role') });
 
 const availableRoles = computed(() => {
+  if (projectStore.isR2Remote) return ['admin', 'artist'];
   return userStore.getRolesNames;
 });
 
@@ -82,17 +108,16 @@ const projectCollaborators = computed(() => {
 
   let projectUsers = userStore.getProjectCollaborators;
   let assignedUserIds = [];
-  let tasks = assetStore.assets;
+  let assets = assetStore.assets;
 
-  for (const task of tasks) {
-    let taskAssigneeId = task.assignee_id;
-    if (!assignedUserIds.includes(taskAssigneeId)) {
-      assignedUserIds.push(taskAssigneeId)
+  for (const asset of assets) {
+    let assetAssigneeId = asset.assignee_id;
+    if (!assignedUserIds.includes(assetAssigneeId)) {
+      assignedUserIds.push(assetAssigneeId)
     }
   }
 
   const users = projectUsers.map(user => {
-    // Find the matching role name from availableRoles (case-insensitive match)
     const userRoleName = user.role?.name || "";
     const matchedRole = userStore.getRolesNames.find(
       role => role.toLowerCase() === userRoleName.toLowerCase()
@@ -106,7 +131,7 @@ const projectCollaborators = computed(() => {
       id: user.id,
       avatarColor: userStore.userProfileColor(user.id),
       can_edit: user.id !== activeUserId.value && canChangeRole.value,
-      can_delete: !assignedUserIds.includes(user.id) && user.id !== activeUserId.value && (user.role?.name !== 'admin' || !isLastAdmin.value) && canRemoveUser.value,
+      can_delete: !assignedUserIds.includes(user.id) && user.id !== activeUserId.value && (projectStore.isR2Remote || (user.role?.name !== 'admin' || !isLastAdmin.value)) && canRemoveUser.value,
     };
   });
   return utils.sortAlphabetically(users);
@@ -124,20 +149,23 @@ const changeCollaboratorRole = async (userId, newRole) => {
 };
 
 
-const deleteCollaborator = (userId) => {
+const deleteCollaborator = async (userId) => {
   let allCollaborators = userStore.getProjectCollaborators;
   let collaborator = allCollaborators.find(item => item.id === userId);
-  // let collaborator = userStore.getProjectCollaborators[index];
-  ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id)
-    .then(async (data) => {
-      let users = userStore.users;
-      let userIndex = users.indexOf(collaborator)
-      userStore.users.splice(userIndex, 1)
-      notificationStore.addNotification(t('notifications.userRemoved'), "", "success")
-    })
-    .catch((error) => {
-      notificationStore.errorNotification(t('notifications.errorRemovingUser'), error);
-    })
+
+  try {
+    if (isStudioProject.value || projectStore.isR2Remote) {
+      const remoteUrl = projectStore.getActiveProjectUrl;
+      await CollaboratorService.RemoveCollaborator(remoteUrl, collaborator.id);
+      await ProjectService.RemoveUserSynced(projectStore.activeProject.uri, collaborator.id);
+    } else {
+      await ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id);
+    }
+    await userStore.reloadUsers();
+    notificationStore.addNotification(t('notifications.userRemoved'), "", "success");
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.errorRemovingUser'), error);
+  }
 };
 
 </script>
@@ -146,6 +174,29 @@ const deleteCollaborator = (userId) => {
 .input-short {
   flex: 1;
   width: 100%;
+}
+
+.asset-header {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  height: max-content;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: .2rem;
+  box-sizing: border-box;
+  min-width: max-content;
+}
+
+.create-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  width: max-content;
+  height: max-content;
+  padding: .2rem;
 }
 
 .collaborators-list-wrapper {

@@ -12,81 +12,81 @@ import (
 )
 
 func CreateDependencyType(tx *sqlx.Tx, id string, name string) (models.DependencyType, error) {
-	taskDependencyType := models.DependencyType{}
+	assetDependencyType := models.DependencyType{}
 	params := map[string]interface{}{
 		"id":   id,
 		"name": name,
 	}
 	base_service.Create(tx, "dependency_type", params)
-	err := base_service.GetByName(tx, "dependency_type", name, &taskDependencyType)
+	err := base_service.GetByName(tx, "dependency_type", name, &assetDependencyType)
 	if err != nil {
-		return taskDependencyType, err
+		return assetDependencyType, err
 	}
-	return taskDependencyType, nil
+	return assetDependencyType, nil
 }
 
 func GetDependencyType(tx *sqlx.Tx, id string) (models.DependencyType, error) {
-	taskDependencyType := models.DependencyType{}
-	err := base_service.Get(tx, "dependency_type", id, &taskDependencyType)
+	assetDependencyType := models.DependencyType{}
+	err := base_service.Get(tx, "dependency_type", id, &assetDependencyType)
 	if err != nil {
-		return taskDependencyType, err
+		return assetDependencyType, err
 	}
-	return taskDependencyType, nil
+	return assetDependencyType, nil
 }
 
 func GetDependencyTypes(tx *sqlx.Tx) ([]models.DependencyType, error) {
-	taskDependencyTypes := []models.DependencyType{}
-	err := base_service.GetAll(tx, "dependency_type", &taskDependencyTypes)
+	assetDependencyTypes := []models.DependencyType{}
+	err := base_service.GetAll(tx, "dependency_type", &assetDependencyTypes)
 	if err != nil {
-		return taskDependencyTypes, err
+		return assetDependencyTypes, err
 	}
-	return taskDependencyTypes, nil
+	return assetDependencyTypes, nil
 }
 
 func GetDependencyTypeByName(tx *sqlx.Tx, name string) (models.DependencyType, error) {
-	taskDependencyType := models.DependencyType{}
-	err := base_service.GetByName(tx, "dependency_type", name, &taskDependencyType)
+	assetDependencyType := models.DependencyType{}
+	err := base_service.GetByName(tx, "dependency_type", name, &assetDependencyType)
 	if err != nil {
-		return taskDependencyType, err
+		return assetDependencyType, err
 	}
-	return taskDependencyType, nil
+	return assetDependencyType, nil
 }
 
 func GetOrCreateDependencyType(tx *sqlx.Tx, name string) (models.DependencyType, error) {
-	taskDependencyType, err := GetDependencyTypeByName(tx, name)
+	assetDependencyType, err := GetDependencyTypeByName(tx, name)
 	if err == nil {
-		return taskDependencyType, nil
+		return assetDependencyType, nil
 	}
-	taskDependencyType, err = CreateDependencyType(tx, "", name)
+	assetDependencyType, err = CreateDependencyType(tx, "", name)
 	if err != nil {
-		return taskDependencyType, err
+		return assetDependencyType, err
 	}
-	return taskDependencyType, nil
+	return assetDependencyType, nil
 }
 
-func DeleteDependencyType(tx *sqlx.Tx, taskDependencyTypeId string) error {
-	//check if there are tasks of this type
-	taskDependencies := []models.TaskDependency{}
+func DeleteDependencyType(tx *sqlx.Tx, assetDependencyTypeId string) error {
+	//check if there are assets of this type
+	assetDependencies := []models.AssetDependency{}
 	conditions := map[string]interface{}{
-		"dependency_type_id": taskDependencyTypeId,
+		"dependency_type_id": assetDependencyTypeId,
 	}
-	err := base_service.GetAllBy(tx, "task_dependency", conditions, &taskDependencies)
+	err := base_service.GetAllBy(tx, "asset_dependency", conditions, &assetDependencies)
 	if err != nil {
 		return err
 	}
-	if len(taskDependencies) > 0 {
-		return errors.New("cannot delete task type, there are tasks of this type")
+	if len(assetDependencies) > 0 {
+		return errors.New("cannot delete asset type, there are assets of this type")
 	}
-	err = base_service.Delete(tx, "dependency_type", taskDependencyTypeId)
+	err = base_service.Delete(tx, "dependency_type", assetDependencyTypeId)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func RenameDependencyType(tx *sqlx.Tx, taskDependencyTypeId string, newName string) error {
+func RenameDependencyType(tx *sqlx.Tx, assetDependencyTypeId string, newName string) error {
 	newName = strings.TrimSpace(newName)
-	err := base_service.Rename(tx, "dependency_type", taskDependencyTypeId, newName)
+	err := base_service.Rename(tx, "dependency_type", assetDependencyTypeId, newName)
 	if err != nil {
 		return err
 	}

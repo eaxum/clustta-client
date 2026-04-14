@@ -107,20 +107,20 @@ const getPathParent = (path) => {
   return path.substring(0, lastSlashIndex);
 };
 
-// Imports the previewed items by creating entities and tasks.
+// Imports the previewed items by creating collections and assets.
 const importItems = async (comment = 'Asset created') => {
-  const entities = dndStore.previewData.entities.filter(entity => !entity.is_tracked_parent);
-  const tasks = dndStore.previewData.tasks;
+  const collections = dndStore.previewData.collections.filter(collection => !collection.is_tracked_parent);
+  const assets = dndStore.previewData.assets;
   let success = false;
   let errorMessage;
   try {
-    for (let i = 0; i < entities.length; i += 100) {
-      const batch = entities.slice(i, i + 100);
-      await ImportService.CreateEntities(projectStore.activeProject.uri, batch, i, entities.length);
+    for (let i = 0; i < collections.length; i += 100) {
+      const batch = collections.slice(i, i + 100);
+      await ImportService.CreateCollections(projectStore.activeProject.uri, batch, i, collections.length);
     }
-    for (let i = 0; i < tasks.length; i += 100) {
-      const batch = tasks.slice(i, i + 100);
-      await ImportService.CreateTasks(projectStore.activeProject.uri, batch, i, tasks.length, comment);
+    for (let i = 0; i < assets.length; i += 100) {
+      const batch = assets.slice(i, i + 100);
+      await ImportService.CreateAssets(projectStore.activeProject.uri, batch, i, assets.length, comment);
     }
     success = true;
   } catch (error) {
@@ -148,8 +148,8 @@ const previewImportItems = async () => {
   const files = dndStore.droppedFiles;
   let parentId = dndStore.targetItemId;
   const parentPath = dndStore.targetItemPath;
-  const entitiesId = {};
-  entitiesId[parentPath] = parentId;
+  const collectionsId = {};
+  collectionsId[parentPath] = parentId;
 
   if (parentId === undefined) {
     parentId = '';
@@ -160,27 +160,27 @@ const previewImportItems = async () => {
   await ImportService.ImportFolder(projectStore.activeProject.uri, parentId, folders, files, workingDir, projectStore.activeProject.ignore_list)
     .then((response) => {
       if (dndStore.trackedParents.length + dndStore.untrackedParents.length > 0) {
-        const entityTypeId = collectionStore.collectionTypes.find((item) => item.name === 'generic')?.id;
+        const collectionTypeId = collectionStore.collectionTypes.find((item) => item.name === 'generic')?.id;
         for (const trackedParent of dndStore.trackedParents) {
-          const entityData = collectionStore.collections.find((item) => item.entity_path === trackedParent);
-          entityData.is_tracked_parent = true;
-          entityData.is_expanded = true;
-          trackedParentData.push(entityData);
-          entitiesId[trackedParent] = entityData.id;
+          const collectionData = collectionStore.collections.find((item) => item.collection_path === trackedParent);
+          collectionData.is_tracked_parent = true;
+          collectionData.is_expanded = true;
+          trackedParentData.push(collectionData);
+          collectionsId[trackedParent] = collectionData.id;
         }
         for (const untrackedParent of dndStore.untrackedParents) {
           const untrackedParentPath = getPathParent(untrackedParent);
-          const untrackedParentId = entitiesId[untrackedParentPath];
+          const untrackedParentId = collectionsId[untrackedParentPath];
           const name = untrackedParent.split('/').pop();
           const uid = uuidv4();
           const data = {
             id: uid,
             created_at: '',
             description: '',
-            entity_path: '',
-            entity_type_icon: 'generic',
-            entity_type_id: entityTypeId,
-            entity_type_name: 'generic',
+            collection_path: '',
+            collection_type_icon: 'generic',
+            collection_type_id: collectionTypeId,
+            collection_type_name: 'generic',
             file_path: workingDir + '/' + untrackedParent,
             is_dependency: false,
             mtime: 0,
@@ -194,26 +194,26 @@ const previewImportItems = async () => {
             is_expanded: true,
           };
           untrackedParentData.push(data);
-          entitiesId[untrackedParent] = uid;
+          collectionsId[untrackedParent] = uid;
         }
 
-        response.entities.forEach(entity => {
-          const entityParentPath = getPathParent(entity.entity_path);
-          const entityParentId = entitiesId[entityParentPath];
-          if (entityParentId) {
-            entity.parent_id = entityParentId;
+        response.collections.forEach(collection => {
+          const collectionParentPath = getPathParent(collection.collection_path);
+          const collectionParentId = collectionsId[collectionParentPath];
+          if (collectionParentId) {
+            collection.parent_id = collectionParentId;
           }
         });
 
-        response.tasks.forEach(task => {
-          const taskParentPath = getPathParent(task.task_path);
-          const taskParentId = entitiesId[taskParentPath];
-          if (taskParentId) {
-            task.entity_id = taskParentId;
+        response.assets.forEach(asset => {
+          const assetParentPath = getPathParent(asset.asset_path);
+          const assetParentId = collectionsId[assetParentPath];
+          if (assetParentId) {
+            asset.collection_id = assetParentId;
           }
         });
 
-        response.entities = [...trackedParentData, ...untrackedParentData, ...response.entities];
+        response.collections = [...trackedParentData, ...untrackedParentData, ...response.collections];
       }
       dndStore.previewData = response;
       isAwaitingResponse.value = false;

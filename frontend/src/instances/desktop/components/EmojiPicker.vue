@@ -39,7 +39,7 @@ import SearchBar from '@/instances/desktop/components/SearchBar.vue';
 const selectedCategory = ref(Object.keys(emojiData)[0]);
 const selectedEmoji = ref('');
 const selectedUnicode = ref('');
-const selectedEmojiEntity = ref('');
+const selectedEmojiCollection = ref('');
 const searchTerm = ref('');
 
 const clearSearch = () => {
@@ -56,23 +56,23 @@ return [...emoji].map(char =>
 ).join(' ');
 };
 
-const unicodeToNumericEntity = (unicode) =>  {
+const unicodeToNumericCollection = (unicode) =>  {
 // Remove the 'U+' prefix and convert the hexadecimal to decimal
 const hex = unicode.replace('U+', '');
 const decimal = parseInt(hex, 16);
 
-// Return the numeric entity
+// Return the numeric collection
 return `&#${decimal}`;
 }
 
 const selectEmoji = (emoji) => {
 selectedEmoji.value = emoji;
 selectedUnicode.value = getEmojiUnicode(emoji);
-selectedEmojiEntity.value = unicodeToNumericEntity(selectedUnicode.value);
+selectedEmojiCollection.value = unicodeToNumericCollection(selectedUnicode.value);
 emit('select', {
 emoji,
 unicode: selectedUnicode.value,
-entity: unicodeToNumericEntity(selectedUnicode.value)
+collection: unicodeToNumericCollection(selectedUnicode.value)
 });
 };
 

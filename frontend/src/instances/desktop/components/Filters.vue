@@ -6,16 +6,16 @@
                 <div v-if="useAvatar" class="profile-picture" :style="{ backgroundColor: item.avatarColor}">
                     <img class="profile-img"  :src=" item.profile ? item.profile : generateAvatar(item.id)">
                 </div>
-                <div v-else-if="useIcons && item.icon" class="task-item-icon-container">
+                <div v-else-if="useIcons && item.icon" class="asset-item-icon-container">
                     <img class="small-icons" :src="item.icon">
                 </div>
 
-                <div class="task-item-content" >
-                    <div  class="task-item-details">
+                <div class="asset-item-content" >
+                    <div  class="asset-item-details">
                         {{ item.name.toUpperCase().replace(/_/g, " ") }}
                     </div>
                 </div>
-                <!-- <div  class="task-item-actions">
+                <!-- <div  class="asset-item-actions">
                     <span v-if="editItems" class="filter-action-button">
                         <img class="small-icons" src="/icons/close.svg">
                     </span>
@@ -252,7 +252,7 @@ const handleWheel = (event) => {
   outline-offset: -1px;
 }
 
-.task-item-container{
+.asset-item-container{
   display: flex;
   gap: .5rem;
   color: white;
@@ -264,17 +264,17 @@ const handleWheel = (event) => {
   justify-content: space-between;
 }
 
-.task-item-container-cards{
+.asset-item-container-cards{
   height: 100%;
   flex-direction: column;
 }
 
-.task-item-container-selected{
+.asset-item-container-selected{
   outline: 1px solid rgb(255, 255, 255);
   outline-offset: -1px;
 }
 
-.task-item-container-selected:hover{
+.asset-item-container-selected:hover{
   outline: 1px solid rgb(255, 255, 255);
   outline-offset: -1px;
 }
@@ -287,7 +287,7 @@ const handleWheel = (event) => {
   outline: 1px solid white;
   outline-offset: -1px;
 }
-.task-spacer{
+.asset-spacer{
   display: flex;
   align-items: center;
   justify-content: center;
@@ -300,7 +300,7 @@ const handleWheel = (event) => {
   /* flex: 1; */
 }
 
-.task-spacer-empty{
+.asset-spacer-empty{
   background-color: moccasin;
 }
 
@@ -333,7 +333,7 @@ const handleWheel = (event) => {
 }
 
 
-.task-item-icon-container{
+.asset-item-icon-container{
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -345,7 +345,7 @@ const handleWheel = (event) => {
   /* background-color: firebrick; */
 }
 
-.task-item-content{
+.asset-item-content{
   gap: .4rem;
   display: flex;
   box-sizing: border-box;
@@ -357,11 +357,11 @@ const handleWheel = (event) => {
   overflow: hidden;
 }
 
-.task-item-content-cards{
+.asset-item-content-cards{
   height: max-content;
 }
 
-.task-item-details{
+.asset-item-details{
     /* display: flex; */
     padding: .2rem;
     flex-wrap: nowrap;
@@ -380,7 +380,7 @@ const handleWheel = (event) => {
     /* background-color: forestgreen; */
 }
 
-.task-item-meta{
+.asset-item-meta{
   display: flex;
   padding: .2rem;
   box-sizing: border-box;
@@ -391,7 +391,7 @@ const handleWheel = (event) => {
   overflow: hidden;
   /* background-color: rosybrown; */
 }
-.task-item-tag{
+.asset-item-tag{
   display: flex;
   box-sizing: border-box;
   overflow: hidden;
@@ -402,7 +402,7 @@ const handleWheel = (event) => {
 }
 
 
-.task-item-status-container{
+.asset-item-status-container{
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -414,7 +414,7 @@ const handleWheel = (event) => {
   /* flex: 1; */
 }
 
-.task-item-container-footer{
+.asset-item-container-footer{
   /* background-color: royalblue; */
   align-items: center;
   display: flex;
@@ -424,12 +424,12 @@ const handleWheel = (event) => {
   /* opacity: 0; */
 }
 
-.task-item-container-footer-cards{
+.asset-item-container-footer-cards{
   width: 100%;
   justify-content: space-between;
 
 }
-.task-item-status{
+.asset-item-status{
   display: flex;
   border-radius: var(--normal-radius);
   box-sizing: border-box;
@@ -446,7 +446,7 @@ const handleWheel = (event) => {
   color: black;
 }
 
-.task-item-actions{
+.asset-item-actions{
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -461,7 +461,7 @@ const handleWheel = (event) => {
   /* flex: 1; */
 }
 
-.task-item-assignee{
+.asset-item-assignee{
   display: flex;
   box-sizing: border-box;
   align-items: center;

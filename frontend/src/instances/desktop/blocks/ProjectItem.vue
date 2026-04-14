@@ -65,6 +65,7 @@
               v-tooltip="$t('notifications.openFolder')" @click="revealInExplorer" />
           </div>
           <div class="project-item-actions-persistent">
+            <ActionButton v-if="project.has_remote && projectStore.selectedStudio?.name === 'Personal'" :icon="getAppIcon('two-persons')" class="remote-indicator" />
             <ActionButton v-if="!platformStore.isWeb && isProjectPinned && project.is_downloaded" :icon="getAppIcon('pin')"
               v-tooltip="$t('blocks.unpinProject')" @click="unpinProject" />
             <ActionButton v-if="project.has_remote && project.is_unsynced" :icon="getAppIcon('dot-big')" :useAlert="true"
@@ -104,6 +105,7 @@ import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
+import { useStudioStore } from '@/stores/studio';
 
 // stores
 const iconStore = useIconStore();
@@ -113,6 +115,7 @@ const notificationStore = useNotificationStore();
 const platformStore = usePlatformStore();
 const projectStore = useProjectStore();
 const stage = useStageStore();
+const studioStore = useStudioStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
 
@@ -214,7 +217,7 @@ const launchProject = async (project) => {
 
 // Initiates rename from menu if the project is in focus.
 const menuRename = () => {
-  if (isProjectInFocus.value && userStore.userCanCreateProject) isEditing.value = true;
+  if (isProjectInFocus.value && studioStore.canManageProject) isEditing.value = true;
 };
 
 // Opens the context menu for the project item.
@@ -285,12 +288,12 @@ watch(() => isProjectInFocus.value, () => {
 // events
 Events.On('edit-item', async () => {
   if (operationsActive.value) return;
-  if (isProjectInFocus.value && userStore.userCanCreateProject) modals.setModalVisibility('editProjectModal', true);
+  if (isProjectInFocus.value && studioStore.canManageProject) modals.setModalVisibility('editProjectModal', true);
 });
 
 Events.On('rename-item', async () => {
   if (operationsActive.value || !props.project.is_tracked) return;
-  if (isProjectInFocus.value && userStore.userCanCreateProject) isEditing.value = true;
+  if (isProjectInFocus.value && studioStore.canManageProject) isEditing.value = true;
 });
 
 // lifecycle hooks
@@ -336,6 +339,11 @@ onBeforeUnmount(() => {
 .project-item-root:hover .project-item-actions-hover,
 .project-item-root:hover .hover-action {
   opacity: 1;
+}
+
+.remote-indicator {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .hover-action {

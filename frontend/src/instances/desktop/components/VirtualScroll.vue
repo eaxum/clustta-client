@@ -8,7 +8,7 @@
         <div v-for="(item, index) in visibleItems" :key="firstVisibleIndex + index"
           :data-index="firstVisibleIndex + index" :ref="el => handleRef(item.id, el?.$el || el)"
           @mousedown="onMouseDown($event, item, index)" class="dropper">
-          <component :is="itemComponent" :item="item" :data="item" :task="item" class="virtual-scroll-item"
+          <component :is="itemComponent" :item="item" :data="item" :asset="item" class="virtual-scroll-item"
             :class="{ 'virtual-scroll-item-tray': isTray, 'darker': index % 2 === 1 }" />
         </div>
       </div>
@@ -74,13 +74,13 @@ const onMouseDown = (event, item, index) => {
 
   let itemType;
 
-  if (item.entity_type_id) {
-    itemType = 'entity';
-  } else if (item.task_type_id) {
+  if (item.collection_type_id) {
+    itemType = 'collection';
+  } else if (item.asset_type_id) {
     if (item.is_resource) {
       itemType = 'resource';
     } else {
-      itemType = 'task';
+      itemType = 'asset';
     }
   } else if (item.item_type) {
     itemType = item.item_type;

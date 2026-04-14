@@ -2,7 +2,7 @@
 	<div ref="pageListRoot" class="page-list-root absolute-pane">
 		<div class="settings-stage-root">
 			<div class="settings-stage-header">
-				<HeaderTabs :dataTypes="settingsItems" @filter="filterList" :fullWidth="true" />
+				<HeaderTabs :dataTypes="settingsItems" @filter="filterList" :fullWidth="true" :useSelected="true" :selectedTab="selectedSettingsTab" />
 			</div>
 			<div class="settings-stage-body">
 				<div class="settings-stage-body-container">
@@ -15,7 +15,7 @@
 
 <script setup>
 // imports
-import { computed, ref, onMounted, onUnmounted, watchEffect } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue';
 
 // state imports
 import { useSettingsStore } from '@/stores/settings';
@@ -26,6 +26,7 @@ const settings = useSettingsStore();
 const menu = useMenu();
 
 const pageListRoot = ref(null);
+const selectedSettingsTab = ref('general');
 
 // components
 import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
@@ -64,6 +65,7 @@ const visiblePages = computed(() => {
 
 // methods
 const filterList = (selectedTab) => {
+	selectedSettingsTab.value = selectedTab;
 	settings.setModalVisibility(selectedTab, true);
 };
 
@@ -73,9 +75,16 @@ watchEffect(() => {
   }
 });
 
-// onmounted hook
+// lifecycle hooks
 onMounted(() => {
-	settings.setModalVisibility('general', true);
+	const tab = settings.pendingTab || 'general';
+	settings.pendingTab = null;
+	selectedSettingsTab.value = tab;
+	settings.setModalVisibility(tab, true);
+});
+
+onUnmounted(() => {
+	settings.pendingTab = null;
 });
 
 onUnmounted(() => {

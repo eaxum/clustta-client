@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, createMemoryHistory } from "vue-router"
 import { AuthService, SettingsService, AppService, ProjectService } from "@/services";
 import { useUserStore } from '@/stores/users';
 import { useAccountStore } from '@/stores/accounts';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useThemeStore } from '@/stores/theme';
 import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';
@@ -45,7 +46,7 @@ const routes = [
         path: 'studio-setup',
         name: 'studio-setup',
         component: () => import('@/instances/desktop/pages/StudioSetup.vue'),
-        meta: { requiresAuth: false, isPublic: true, isAuthPage: true }
+        meta: { requiresAuth: false, isPublic: true, isAuthPage: true, allowAuthenticated: true }
       },
       {
         path: 'verify-email',
@@ -73,12 +74,20 @@ const routes = [
   { path: '/verify-email', redirect: '/auth/verify-email' },
   { path: '/forgot-password', redirect: '/auth/forgot-password' },
   { path: '/reset-change-password', redirect: '/auth/reset-change-password' },
-  // Discovery page (requires auth)
+  // Discovery page (requires auth + talent_discovery entitlement)
   {
     path: '/discover',
     name: 'discover',
     component: () => import('@/instances/web/DiscoverPage.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
+    beforeEnter: (to, from, next) => {
+      const entitlementStore = useEntitlementStore();
+      if (entitlementStore.hasFeature('talent_discovery')) {
+        next();
+      } else {
+        next('/profile');
+      }
+    }
   },
   // Public profile 
   {
@@ -198,8 +207,8 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  // Auth pages: redirect to home if already logged in
-  if (to.meta.isAuthPage && isAuthenticated) {
+  // Auth pages: redirect to home if already logged in (except pages that allow authenticated users)
+  if (to.meta.isAuthPage && isAuthenticated && !to.meta.allowAuthenticated) {
     return next(isWebMode ? '/profile' : '/');
   }
 
@@ -225,6 +234,10 @@ router.beforeEach(async (to, from, next) => {
       // Initialize stores
       setLoaderStatus('Loading account...');
       await accountStore.initialize();
+
+      // Fetch user entitlements
+      const entitlementStore = useEntitlementStore();
+      entitlementStore.fetchEntitlements();
       
       setLoaderStatus('Applying theme...');
       await themeStore.initializeTheme();

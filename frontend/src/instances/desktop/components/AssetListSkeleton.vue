@@ -1,6 +1,6 @@
 <template>
-<div class="task-skeleton-container" >
-  <div v-for="(skeleton, index) in skeletonArray" :key="index" class="task-skeleton-item" 
+<div class="asset-skeleton-container" >
+  <div v-for="(skeleton, index) in skeletonArray" :key="index" class="asset-skeleton-item" 
   :style="{ animationDelay : `${(skeleton - 1) * 0.2}s` }">
   </div>
   
@@ -35,7 +35,7 @@ onMounted(async () => {
 <style scoped>
   /* @import "@/assets/tray.css"; */
 
-.task-skeleton-container{
+.asset-skeleton-container{
   width: 100%;
   height: 100%;
   display: flex;
@@ -43,7 +43,7 @@ onMounted(async () => {
   gap: 4px;
 }
 
-.task-skeleton-item{
+.asset-skeleton-item{
   display: flex;
   gap: .5rem;
   color: var(--white);
@@ -64,7 +64,7 @@ onMounted(async () => {
   
 }
 
-.task-skeleton-item-launcher{
+.asset-skeleton-item-launcher{
     box-sizing: border-box;
     background-color: var(--white);
     opacity: .1;
@@ -74,7 +74,7 @@ onMounted(async () => {
     border-radius: 12px;
 }
 
-.task-skeleton-spacer{
+.asset-skeleton-spacer{
     box-sizing: border-box;
     /* background-color: var(--white); */
     opacity: .1;

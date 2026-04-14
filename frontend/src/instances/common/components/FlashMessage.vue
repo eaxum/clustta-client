@@ -29,7 +29,7 @@
       </div>
 
       <div class="progress-bar-loader tint">
-        <ProgressBar :taskProgress="notificationStore.getProgress.percentage" v-stop-propagation />
+        <ProgressBar :assetProgress="notificationStore.getProgress.percentage" v-stop-propagation />
       </div>
 
       <div class="pop-up-actions">
@@ -118,7 +118,7 @@ const progressIcon = computed(() => {
   } else if (message.includes('sync')) {
     return 'cloud-up';
   } else if (message.includes('checkpoint')) {
-    return 'layers';
+    return 'checkpoint-stone';
   } else if (message.includes('trim') || message.includes('compact')) {
     return 'scissors';
   } else if (message.includes('delete') || message.includes('trash')) {

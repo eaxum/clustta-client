@@ -8,11 +8,11 @@
 			v-tooltip="$t('components.stateBar.rebuildAll')" :buttonFunction="rebuildAll" />
 
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_untracked && userStore.canDo('create_checkpoint')"
-			:icon="getAppIcon('layers-plus')" :useDanger="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
+			:icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
 			:buttonFunction="prepAllCheckpointModal" />
 
 		<ActionButton v-else-if="collectionStore.collectionStateFlags.has_modified && userStore.canDo('create_checkpoint')"
-			:icon="getAppIcon('layers-plus')" :useAlert="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
+			:icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
 			:buttonFunction="prepAllCheckpointModal" />
 
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_modified" :icon="getAppIcon('revert')" 
@@ -89,7 +89,7 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 const prepAllCheckpointModal = () => {
 	clearSelection();
 	trayStates.createMultipleCheckpoints = true;
-	trayStates.createMultipleCheckpointsEntityPath = "";
+	trayStates.createMultipleCheckpointsCollectionPath = "";
 	modals.setModalVisibility('createMultipleCheckpointsModal', true);
 };
 
@@ -105,56 +105,56 @@ const prepResetPopUpModal = () => {
 
 // Rebuilds all rebuildable assets in the current view.
 const rebuildAll = async () => {
-	const path = collectionStore.navigatedCollection?.entity_path;
-	const navigatedEntityId = collectionStore.navigatedCollection?.id;
+	const path = collectionStore.navigatedCollection?.collection_path;
+	const navigatedCollectionId = collectionStore.navigatedCollection?.id;
 	notificationStore.cancleFunction = SyncService.CancelSync;
 	notificationStore.canCancel = true;
-	if (commonStore.activeWorkspace === 'My Tasks') {
-		const userTaskIds = assetStore.getAssets.filter(task => task.assignee_id === userStore.user?.id && !task.trashed).map(task => task.id);
-		if (userTaskIds.length) {
-			await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, userTaskIds)
+	if (commonStore.activeWorkspace === 'My Assets') {
+		const userAssetIds = assetStore.getAssets.filter(asset => asset.assignee_id === userStore.user?.id && !asset.trashed).map(asset => asset.id);
+		if (userAssetIds.length) {
+			await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, userAssetIds)
 				.then(() => emitter.emit('refresh-browser'))
-				.catch((error) => console.error(`Error rebuilding tasks:`, error));
+				.catch((error) => console.error(`Error rebuilding assets:`, error));
 		}
 	} else {
-		await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedEntityId)
+		await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedCollectionId)
 			.then(() => { if (!path) assetStore.rebuildableAssetsPath = []; emitter.emit('refresh-browser'); })
 			.catch((error) => notificationStore.errorNotification(t('components.stateBar.errorRebuildingAll'), error));
 	}
 };
 
-// Reverts all modified tasks to their last checkpointed state.
+// Reverts all modified assets to their last checkpointed state.
 const revertAllChanges = async () => {
 	modals.setModalVisibility('popUpModal', false);
 	const navigated = collectionStore.navigatedCollection;
 	let collectionId = null, targetPath = null;
-	if (navigated?.type === 'entity') collectionId = navigated.id;
-	else if (navigated?.type === 'untracked_entity') targetPath = navigated.file_path;
+	if (navigated?.type === 'collection') collectionId = navigated.id;
+	else if (navigated?.type === 'untracked_collection') targetPath = navigated.file_path;
 	await collectionStore.reloadItemsForCheckpoint(collectionId, targetPath);
-	const filteredPaths = assetStore.modifiedAssets.modified.map(asset => asset.task_path);
+	const filteredPaths = assetStore.modifiedAssets.modified.map(asset => asset.asset_path);
 	if (filteredPaths.length === 0) return;
-	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
+	await CheckpointService.RevertAssetPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
 		.then(() => { 
-			assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter((item) => !filteredPaths.includes(item.task_path)); 
+			assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter((item) => !filteredPaths.includes(item.asset_path)); 
 			emitter.emit('refresh-browser'); 
 		})
-		.catch((error) => { notificationStore.errorNotification(t('components.stateBar.failedToRevertTasks'), error); console.error(error); });
+		.catch((error) => { notificationStore.errorNotification(t('components.stateBar.failedToRevertAssets'), error); console.error(error); });
 };
 
-// Updates all outdated tasks to their latest server version.
+// Updates all outdated assets to their latest server version.
 const updateAll = async () => {
 	clearSelection();
 	notificationStore.cancleFunction = SyncService.CancelSync;
 	notificationStore.canCancel = true;
 	const navigated = collectionStore.navigatedCollection;
 	let collectionId = null;
-	if (navigated?.type === 'entity') collectionId = navigated.id;
-	const outdatedTasks = await collectionStore.getOutdatedItems(collectionId);
-	const filteredPaths = outdatedTasks.map(task => task.task_path);
+	if (navigated?.type === 'collection') collectionId = navigated.id;
+	const outdatedAssets = await collectionStore.getOutdatedItems(collectionId);
+	const filteredPaths = outdatedAssets.map(asset => asset.asset_path);
 	if (filteredPaths.length === 0) return;
-	await CheckpointService.RevertTaskPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
+	await CheckpointService.RevertAssetPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
 		.then(() => emitter.emit('refresh-browser'))
-		.catch((error) => { notificationStore.errorNotification(t('components.stateBar.failedToRevertTasks'), error); console.error(error); });
+		.catch((error) => { notificationStore.errorNotification(t('components.stateBar.failedToRevertAssets'), error); console.error(error); });
 };
 </script>
 

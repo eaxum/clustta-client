@@ -16,10 +16,10 @@ export const useIntegrationStore = defineStore('integrations', {
     // Type mapping state
     typeMappings: null,           // Current sync options with type mappings
     missingTypes: [],             // Types that need to be created
-    externalEntityTypes: [],      // Entity types from external system
-    externalTaskTypes: [],        // Task types from external system
-    localEntityTypes: [],         // Clustta entity types
-    localTaskTypes: [],           // Clustta task types
+    externalCollectionTypes: [],      // Collection types from external system
+    externalAssetTypes: [],        // Asset types from external system
+    localCollectionTypes: [],         // Clustta collection types
+    localAssetTypes: [],           // Clustta asset types
   }),
 
   getters: {
@@ -76,12 +76,12 @@ export const useIntegrationStore = defineStore('integrations', {
         const children = childrenMap.get(item.collection_path) || [];
         return {
           id: item.id,
-          type: item.item_type === 'task' ? 'task' : 'entity',
+          type: item.item_type === 'asset' ? 'asset' : 'collection',
           name: item.name,
-          entity_type_name: item.type_name,
-          entity_type_icon: item.type_icon || 'folder',
-          task_type_name: item.type_name,
-          task_type_icon: item.type_icon || 'generic',
+          collection_type_name: item.type_name,
+          collection_type_icon: item.type_icon || 'folder',
+          asset_type_name: item.type_name,
+          asset_type_icon: item.type_icon || 'generic',
           external_id: item.external_id,
           external_type: item.external_type,
           external_type_id: item.external_type_id,
@@ -406,8 +406,8 @@ export const useIntegrationStore = defineStore('integrations', {
       }
     },
 
-    // Save task type templates to backend (merges with existing sync options)
-    async saveTaskTypeTemplates(taskTypeTemplates) {
+    // Save asset type templates to backend (merges with existing sync options)
+    async saveAssetTypeTemplates(assetTypeTemplates) {
       const projectStore = useProjectStore();
 
       if (!projectStore.activeProject?.uri) {
@@ -417,7 +417,7 @@ export const useIntegrationStore = defineStore('integrations', {
       // Merge with existing type mappings
       const syncOptions = {
         ...this.typeMappings,
-        task_type_templates: taskTypeTemplates,
+        asset_type_templates: assetTypeTemplates,
       };
 
       try {
@@ -442,10 +442,10 @@ export const useIntegrationStore = defineStore('integrations', {
           projectStore.activeProject.uri,
           tokenData.token
         );
-        // Result is [entityTypes, taskTypes]
-        this.externalEntityTypes = result[0] || [];
-        this.externalTaskTypes = result[1] || [];
-        return { entityTypes: this.externalEntityTypes, taskTypes: this.externalTaskTypes };
+        // Result is [collectionTypes, assetTypes]
+        this.externalCollectionTypes = result[0] || [];
+        this.externalAssetTypes = result[1] || [];
+        return { collectionTypes: this.externalCollectionTypes, assetTypes: this.externalAssetTypes };
       } catch (error) {
         console.error('Failed to get external types:', error);
         throw error;
@@ -508,21 +508,21 @@ export const useIntegrationStore = defineStore('integrations', {
       const projectStore = useProjectStore();
 
       if (!projectStore.activeProject?.uri) {
-        this.localEntityTypes = [];
-        this.localTaskTypes = [];
+        this.localCollectionTypes = [];
+        this.localAssetTypes = [];
         return;
       }
 
       try {
         const result = await IntegrationService.GetLocalTypes(projectStore.activeProject.uri);
-        // Result is [entityTypes, taskTypes]
-        this.localEntityTypes = result[0] || [];
-        this.localTaskTypes = result[1] || [];
-        return { entityTypes: this.localEntityTypes, taskTypes: this.localTaskTypes };
+        // Result is [collectionTypes, assetTypes]
+        this.localCollectionTypes = result[0] || [];
+        this.localAssetTypes = result[1] || [];
+        return { collectionTypes: this.localCollectionTypes, assetTypes: this.localAssetTypes };
       } catch (error) {
         console.error('Failed to get local types:', error);
-        this.localEntityTypes = [];
-        this.localTaskTypes = [];
+        this.localCollectionTypes = [];
+        this.localAssetTypes = [];
       }
     },
 
@@ -534,10 +534,10 @@ export const useIntegrationStore = defineStore('integrations', {
       this.isSyncing = false;
       this.typeMappings = null;
       this.missingTypes = [];
-      this.externalEntityTypes = [];
-      this.externalTaskTypes = [];
-      this.localEntityTypes = [];
-      this.localTaskTypes = [];
+      this.externalCollectionTypes = [];
+      this.externalAssetTypes = [];
+      this.localCollectionTypes = [];
+      this.localAssetTypes = [];
     },
   },
 });

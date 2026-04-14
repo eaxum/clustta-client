@@ -1,6 +1,6 @@
 <template>
     <div @click="enterCheckpoint" class="checkpoint-item" v-esc="closeAllCheckpoints"
-        :class="{ 'checkpoint-item-recent': justViewed === checkpoint.checkpoint_id, 'checkpoint-active': checkpoint.hash === taskHash }"
+        :class="{ 'checkpoint-item-recent': justViewed === checkpoint.checkpoint_id, 'checkpoint-active': checkpoint.hash === assetHash }"
         :style="{ animationDelay: '0s' }">
 
         <div class="checkpoint-item-content" :class="{ 'checkpoint-item-content-active': isItemExpanded }">
@@ -56,7 +56,7 @@
                 <ActionButton v-else :icon="getAppIcon('launch')" v-tooltip="$t('components.checkpointItem.openCheckpoint')"
                     @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
             </template>
-            <ActionButton v-if="userStore.canDo('delete_checkpoint') && checkpoint.synced && !accountStore.isStudioAuth" :icon="getAppIcon('send')" v-tooltip="$t('components.checkpointItem.shareCheckpoint')" @click="openShareModal" />
+            <ActionButton v-if="entitlementStore.canShareLink && userStore.canDo('manage_share_links') && checkpoint.synced && !accountStore.isStudioAuth" :icon="getAppIcon('data-upload')" v-tooltip="$t('components.checkpointItem.shareCheckpoint')" @click="openShareModal" />
             <ActionButton v-if="userStore.canDo('delete_checkpoint')" :icon="getAppIcon('trash')" v-tooltip="$t('components.checkpointItem.deleteCheckpoint')"
                 @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>
@@ -68,7 +68,7 @@
                 v-tooltip="$t('components.checkpointItem.downloadCheckpoint')" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
             <ActionButton v-if="!platformStore.isWeb && checkpoint.is_downloaded" :icon="getAppIcon('launch')"
                 v-tooltip="$t('components.checkpointItem.openCheckpoint')" @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
-            <ActionButton v-if="userStore.canDo('delete_checkpoint') && checkpoint.synced && !accountStore.isStudioAuth" :icon="getAppIcon('send')" v-tooltip="$t('components.checkpointItem.shareCheckpoint')" @click="openShareModal" />
+            <ActionButton v-if="entitlementStore.canShareLink && userStore.canDo('manage_share_links') && checkpoint.synced && !accountStore.isStudioAuth" :icon="getAppIcon('data-upload')" v-tooltip="$t('components.checkpointItem.shareCheckpoint')" @click="openShareModal" />
             <ActionButton v-if="userStore.canDo('delete_checkpoint')" :icon="getAppIcon('trash')" v-tooltip="$t('components.checkpointItem.deleteCheckpoint')"
                 @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>
@@ -102,6 +102,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { usePlatformStore } from '@/stores/platform';
 import { useAccountStore } from '@/stores/accounts';
+import { useEntitlementStore } from '@/stores/entitlements';
 
 const { t, locale } = useI18n();
 
@@ -117,7 +118,7 @@ const props = defineProps({
         type: Object,
         required: true
     },
-    taskHash: {
+    assetHash: {
         type: String,
         default: ''
     },
@@ -128,7 +129,7 @@ const props = defineProps({
 });
 
 // emits
-const emit = defineEmits(['refreshCheckpoints', 'update-task-hash', 'update-expanded']);
+const emit = defineEmits(['refreshCheckpoints', 'update-asset-hash', 'update-expanded']);
 
 // stores/states
 const modals = useDesktopModalStore();
@@ -139,6 +140,7 @@ const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const platformStore = usePlatformStore();
 const accountStore = useAccountStore();
+const entitlementStore = useEntitlementStore();
 
 // refs
 const itemVersionId = ref(null);
@@ -175,12 +177,11 @@ const revertToVersion = (id, checkpointId) => {
     notificationStore.canCancel = true
     CheckpointService.RevertToCheckpoint(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, id, checkpointId)
         .then((response) => {
-            emit('update-task-hash');
+            emit('update-asset-hash');
             emit('refreshCheckpoints');
             assetStore.refreshDisplayedFilesStatus()
         })
         .catch((error) => {
-            console.log(error)
             notificationStore.addNotification(
                 t('components.checkpointItem.errorReverting'),
                 error.message,
@@ -192,9 +193,8 @@ const revertToVersion = (id, checkpointId) => {
 };
 
 const viewVersion = (id, checkpointId) => {
-    CheckpointService.ViewCheckpoint(projectStore.activeProject.uri, checkpointId, assetStore.selectedAsset.name, assetStore.selectedAsset.extension)
+    CheckpointService.ViewCheckpoint(projectStore.activeProject.uri, checkpointId, id, assetStore.selectedAsset.name, assetStore.selectedAsset.extension)
         .then((response) => {
-            //console.log(response)
         })
         .catch((error) => {
             notificationStore.addNotification(
@@ -209,7 +209,6 @@ const viewVersion = (id, checkpointId) => {
 let timeoutId;
 
 const enterCheckpoint = (event) => {
-    console.log(props.checkpoint)
     if (!isItemExpanded.value) {
         emit('update-expanded', props.checkpoint.checkpoint_id)
 
@@ -239,6 +238,7 @@ const deleteVersion = async () => {
     CheckpointService.DeleteCheckpoint(projectStore.activeProject.uri, checkpoint_id)
         .then((response) => {
             emit('refreshCheckpoints');
+            projectStore.refreshActiveProject();
         })
         .catch((error) => {
             notificationStore.addNotification(
@@ -255,7 +255,6 @@ const deleteVersion = async () => {
 
 // Opens the share modal with this checkpoint's ID.
 const openShareModal = () => {
-    console.log('ppppppppp');
     trayStates.shareModalData = {
         checkpointIds: [props.checkpoint.checkpoint_id],
         label: props.checkpoint.comment || '',

@@ -23,6 +23,7 @@
     /* aspect-ratio: 1/1; */
     transition: all 0.3s ease;
     /* background-color: rebeccapurple; */
+    padding: .3rem;
     
   border-radius: var(--normal-radius);
 }

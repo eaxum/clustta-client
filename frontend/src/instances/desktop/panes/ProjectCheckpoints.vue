@@ -150,7 +150,7 @@ onMounted(async () => {
 
         let timelineItem = {
           created_at: item.created_at,
-          task_paths: item.task_paths,
+          asset_paths: item.asset_paths,
           comment: item.comment,
           author_id: item.author_id,
           preview: item.preview,

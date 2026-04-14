@@ -2,45 +2,45 @@
   <div ref="collectionMenu" class="filter-menu-container">
 
     <ActionButton :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true" :label="$t('common.rename')"
-      v-if="userStore.canDo('update_entity')" :buttonFunction="renameEntity" />
+      v-if="userStore.canDo('update_collection')" :buttonFunction="renameCollection" />
 
     <ActionButton :icon="getAppIcon('switches')" :showLabel="true" :fullWidth="true" :label="$t('common.edit')"
-      v-if="userStore.canDo('update_entity')" :buttonFunction="editEntity" />
+      v-if="userStore.canDo('update_collection')" :buttonFunction="editCollection" />
 
     <ActionButton v-if="canSelectContent" :icon="getAppIcon('checkbox-selected')" :showLabel="true" :fullWidth="true"
       :label="$t('menus.selectContent')" :buttonFunction="selectContent" />
 
-    <span v-if="userStore.canDo('update_entity')" class="menu-divider"></span>
+    <span v-if="userStore.canDo('update_collection')" class="menu-divider"></span>
 
     <!-- Create -->
     <ActionButton :icon="getAppIcon('file-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addAsset')"
-      v-if="templateStore.getTemplates.length && (userStore.canDo('create_task') || collectionStore.selectedCollection.can_modify)" :buttonFunction="createTask" />
+      v-if="templateStore.getTemplates.length && (userStore.canDo('create_asset') || collectionStore.selectedCollection.can_modify)" :buttonFunction="createAsset" />
 
     <ActionButton :icon="getAppIcon('folder-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addCollection')"
-      v-if="userStore.canDo('create_entity') || collectionStore.selectedCollection.can_modify" :buttonFunction="createEntity" />
+      v-if="userStore.canDo('create_collection') || collectionStore.selectedCollection.can_modify" :buttonFunction="createCollection" />
 
     <ActionButton :icon="getAppIcon('workflow-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addWorkflow')"
-      v-if="workflowStore.workflows.length && userStore.canDo('create_task')" :buttonFunction="addWorkflow" />
+      v-if="workflowStore.workflows.length && userStore.canDo('create_asset')" :buttonFunction="addWorkflow" />
 
     
 
     <ActionButton :icon="getAppIcon('web-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.newLink')"
-      v-if="userStore.canDo('create_task') || collectionStore.selectedCollection.can_modify" :buttonFunction="createLink" />
+      v-if="userStore.canDo('create_asset') || collectionStore.selectedCollection.can_modify" :buttonFunction="createLink" />
 
-    <ActionButton :icon="getAppIcon('arrow-down-on-square-stack')" :showLabel="true" :fullWidth="true" :label="$t('modals.importItems')"
-      v-if="!platformStore.isWeb && userStore.canDo('create_task')" :buttonFunction="importItems" />
+    <ActionButton :icon="getAppIcon('data-download')" :showLabel="true" :fullWidth="true" :label="$t('modals.importItems')"
+      v-if="!platformStore.isWeb && userStore.canDo('create_asset')" :buttonFunction="importItems" />
 
     <ActionButton :icon="getAppIcon('arrow-up-ramp')" :showLabel="true" :fullWidth="true" :label="$t('menus.uploadItems')"
-      v-if="platformStore.isWeb && userStore.canDo('create_task')" :buttonFunction="uploadItems" />
+      v-if="platformStore.isWeb && userStore.canDo('create_asset')" :buttonFunction="uploadItems" />
 
     <ActionButton :icon="getAppIcon('clipboard')" :showLabel="true" :fullWidth="true" :label="$t('common.paste')"
-      v-if="hasClipboardItems && userStore.canDo('update_entity')" :buttonFunction="pasteItems" />
+      v-if="hasClipboardItems && userStore.canDo('update_collection')" :buttonFunction="pasteItems" />
 
     
     <!-- Collection State Actions -->
     <span v-if="collectionStateFlags.has_untracked || collectionStateFlags.has_modified || collectionStateFlags.has_outdated || collectionStateFlags.has_rebuildable" class="menu-divider"></span>
 
-    <ActionButton v-if="collectionStateFlags.has_untracked || collectionStateFlags.has_modified" :icon="getAppIcon('layers-plus')" :useAlert="collectionStateFlags.has_modified" :useDanger="collectionStateFlags.has_untracked" :showLabel="true" :fullWidth="true" :label="$t('modals.createCheckpoints')"
+    <ActionButton v-if="collectionStateFlags.has_untracked || collectionStateFlags.has_modified" :icon="getAppIcon('plus-stone')" :useAlert="collectionStateFlags.has_modified" :useDanger="collectionStateFlags.has_untracked" :showLabel="true" :fullWidth="true" :label="$t('modals.createCheckpoints')"
       :buttonFunction="prepCreateCheckpointsModal" />
 
     <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" :label="$t('menus.rebuildContents')"
@@ -55,13 +55,13 @@
 
 
 
-    <span v-if="userStore.canDo('update_entity') || collectionStore.selectedCollection.can_modify" class="menu-divider"></span>
+    <span v-if="userStore.canDo('update_collection') || collectionStore.selectedCollection.can_modify" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
     <span v-if="!platformStore.isWeb" class="horizontal-flex">
       <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
         :buttonFunction="revealInExplorer" />
-      <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyEntityPath('entity')"
+      <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyCollectionPath('collection')"
         v-tooltip="$t('common.copyPath')" />
     </span>
 
@@ -69,9 +69,9 @@
     <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" :label="$t('common.freeUpSpace')"
       :buttonFunction="prepFreeUpSpacePopUpModal" />
 
-    <!-- Delete Task -->
+    <!-- Delete Asset -->
     <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.delete')"
-      v-if="userStore.canDo('delete_entity')" :buttonFunction="deleteEntity" />
+      v-if="userStore.canDo('delete_collection')" :buttonFunction="deleteCollection" />
 
   </div>
 
@@ -128,21 +128,21 @@ const collectionMenu = ref(null);
 // computed
 // Checks if content can be selected.
 const canSelectContent = computed(() => {
-  const entityId = collectionStore.selectedCollection.id;
-  return entityId in stage.expandedEntities && stage.entityDataIds.length;
+  const collectionId = collectionStore.selectedCollection.id;
+  return collectionId in stage.expandedCollections && stage.collectionDataIds.length;
 });
 
 // Returns the collection state flags.
 const collectionStateFlags = computed(() => {
-  const entity = collectionStore.selectedCollection;
-  if (!entity) return {
+  const collection = collectionStore.selectedCollection;
+  if (!collection) return {
     has_untracked: false,
     has_modified: false,
     has_outdated: false,
     has_rebuildable: false
   };
   
-  return entity.collectionStateFlags || {
+  return collection.collectionStateFlags || {
     has_untracked: false,
     has_modified: false,
     has_outdated: false,
@@ -162,43 +162,43 @@ const addWorkflow = () => {
   menu.hideContextMenu();
 };
 
-// Copies the entity path to clipboard.
-const copyEntityPath = async () => {
-  let entity = collectionStore.selectedCollection;
-  let entityDir = entity.file_path;
-  entityDir = entityDir.replace(/\\/g, '/');
-  FSService.MakeDirs(entityDir);
-  await Clipboard.SetText(entityDir);
+// Copies the collection path to clipboard.
+const copyCollectionPath = async () => {
+  let collection = collectionStore.selectedCollection;
+  let collectionDir = collection.file_path;
+  collectionDir = collectionDir.replace(/\\/g, '/');
+  FSService.MakeDirs(collectionDir);
+  await Clipboard.SetText(collectionDir);
   notificationStore.addNotification(t('notifications.pathCopied'), "", "success");
   menu.hideContextMenu();
 };
 
 // Opens the create collection modal.
-const createEntity = () => {
-  stage.expandEntity(collectionStore.selectedCollection);
+const createCollection = () => {
+  stage.expandCollection(collectionStore.selectedCollection);
   modals.setModalVisibility('createCollectionModal', true);
   menu.hideContextMenu();
 };
 
 // Opens the add web link modal.
 const createLink = () => {
-  stage.expandEntity(collectionStore.selectedCollection);
+  stage.expandCollection(collectionStore.selectedCollection);
   modals.setModalVisibility('addWebLinkModal', true);
   menu.hideContextMenu();
 };
 
 // Opens the select app modal to create an asset.
-const createTask = () => {
-  stage.expandEntity(collectionStore.selectedCollection);
+const createAsset = () => {
+  stage.expandCollection(collectionStore.selectedCollection);
   modals.setModalVisibility('selectAppModal', true);
   menu.hideContextMenu();
 };
 
 // Deletes the selected collection.
-const deleteEntity = async () => {
-  let entity = collectionStore.selectedCollection;
+const deleteCollection = async () => {
+  let collection = collectionStore.selectedCollection;
   panes.setPaneVisibility('projectDetails', true);
-  CollectionService.DeleteCollection(projectStore.activeProject.uri, entity.id)
+  CollectionService.DeleteCollection(projectStore.activeProject.uri, collection.id)
     .then(async () => {
       stage.markedItems = [];
       collectionStore.selectedCollection = null;
@@ -207,22 +207,22 @@ const deleteEntity = async () => {
     .catch((error) => {
       console.error(error);
     });
-  let longMessage = t('notifications.movedToTrash', { item: entity.name });
+  let longMessage = t('notifications.movedToTrash', { item: collection.name });
   notificationStore.addNotification(t('notifications.movedToTrash', { item: 'Collection' }), longMessage, "success", true);
   menu.hideContextMenu();
 };
 
 // Opens the edit collection modal.
-const editEntity = () => {
+const editCollection = () => {
   modals.setModalVisibility('editCollectionModal', true);
   menu.hideContextMenu();
 };
 
-// Frees up space by deleting the entity's working files.
+// Frees up space by deleting the collection's working files.
 const freeUpSpace = async () => {
-  let entity = collectionStore.selectedCollection;
-  let entityDir = entity.file_path.replace(/\\/g, '/');
-  await FSService.DeleteFolder(entityDir)
+  let collection = collectionStore.selectedCollection;
+  let collectionDir = collection.file_path.replace(/\\/g, '/');
+  await FSService.DeleteFolder(collectionDir)
     .then(() => {
       emitter.emit('refresh-browser');
     })
@@ -325,7 +325,7 @@ const importItems = async () => {
     }
 
     if (successCount > 0) {
-      stage.expandEntity(collectionStore.selectedCollection);
+      stage.expandCollection(collectionStore.selectedCollection);
       emitter.emit('refresh-browser');
     }
   } catch (error) {
@@ -338,30 +338,30 @@ const importItems = async () => {
 
 // Pastes clipboard items into the selected collection.
 const pasteItems = async () => {
-  const entity = collectionStore.selectedCollection;
-  if (!entity) return;
+  const collection = collectionStore.selectedCollection;
+  if (!collection) return;
   
   menu.hideContextMenu();
   
-  const result = await stage.pasteItems(entity.id, entity.file_path);
+  const result = await stage.pasteItems(collection.id, collection.file_path);
   if (result.needsRefresh) {
-    stage.expandEntity(entity);
+    stage.expandCollection(collection);
     emitter.emit('refresh-browser');
   }
 };
 
 // Prepares and shows the create checkpoints modal.
 const prepCreateCheckpointsModal = () => {
-  const entity = collectionStore.selectedCollection;
-  trayStates.createMultipleCheckpointsEntityPath = entity.entity_path;
+  const collection = collectionStore.selectedCollection;
+  trayStates.createMultipleCheckpointsCollectionPath = collection.collection_path;
   modals.setModalVisibility('createMultipleCheckpointsModal', true);
   menu.hideContextMenu();
 };
 
 // Prepares and shows the free up space confirmation modal.
 const prepFreeUpSpacePopUpModal = () => {
-  trayStates.popUpModalTitle = t('menus.freeUpEntitySpace');
-  trayStates.popUpModalMessage = t('confirmations.deleteWorkingFiles', { item: 'entity' });
+  trayStates.popUpModalTitle = t('menus.freeUpCollectionSpace');
+  trayStates.popUpModalMessage = t('confirmations.deleteWorkingFiles', { item: 'collection' });
   trayStates.popUpModalIcon = 'broom';
   trayStates.popUpModalFunction = freeUpSpace;
   modals.setModalVisibility('popUpModal', true);
@@ -381,12 +381,12 @@ const prepRevertContentsPopUpModal = () => {
 // Rebuilds the collection contents.
 const rebuildCollection = () => {
   menu.hideContextMenu();
-  let entity = collectionStore.selectedCollection;
+  let collection = collectionStore.selectedCollection;
   notificationStore.cancleFunction = SyncService.CancelSync;
   notificationStore.canCancel = true;
-  CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, entity.id)
+  CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, collection.id)
     .then(() => {
-      assetStore.refreshEntityFilesStatus(entity.id);
+      assetStore.refreshCollectionFilesStatus(collection.id);
       emitter.emit('refresh-browser');
     })
     .catch((error) => {
@@ -396,8 +396,8 @@ const rebuildCollection = () => {
 };
 
 // Emits event to rename the collection.
-const renameEntity = () => {
-  emitter.emit('renameEntity');
+const renameCollection = () => {
+  emitter.emit('renameCollection');
   menu.hideContextMenu();
 };
 
@@ -405,12 +405,12 @@ const renameEntity = () => {
 const revertContents = async () => {
   modals.setModalVisibility('popUpModal', false);
   
-  const entity = collectionStore.selectedCollection;
-  if (!entity) return;
+  const collection = collectionStore.selectedCollection;
+  if (!collection) return;
   
-  const collectionId = entity.id;
+  const collectionId = collection.id;
   await collectionStore.reloadItemsForCheckpoint(collectionId, null);
-  const filteredPaths = assetStore.modifiedAssets.modified.map(asset => asset.task_path);
+  const filteredPaths = assetStore.modifiedAssets.modified.map(asset => asset.asset_path);
   
   if (filteredPaths.length === 0) {
     notificationStore.addNotification(t('notifications.noModifiedContents'), "", "info");
@@ -418,14 +418,14 @@ const revertContents = async () => {
   }
   
   try {
-    await CheckpointService.RevertTaskPaths(
+    await CheckpointService.RevertAssetPaths(
       projectStore.activeProject.uri, 
       projectStore.getActiveProjectUrl, 
       filteredPaths
     );
     
     assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter(
-      (item) => !filteredPaths.includes(item.task_path)
+      (item) => !filteredPaths.includes(item.asset_path)
     );
     
     emitter.emit('refresh-browser');
@@ -447,7 +447,7 @@ const revealInExplorer = async () => {
 
 // Selects all content in the collection.
 const selectContent = () => {
-  stage.markedItems = stage.entityDataIds;
+  stage.markedItems = stage.collectionDataIds;
   menu.hideContextMenu();
 };
 
@@ -455,14 +455,14 @@ const selectContent = () => {
 const updateContents = async () => {
   menu.hideContextMenu();
   
-  const entity = collectionStore.selectedCollection;
-  if (!entity) return;
+  const collection = collectionStore.selectedCollection;
+  if (!collection) return;
   
-  const entityPath = entity.entity_path;
-  const outdatedTasksPath = assetStore.outdatedAssetsPath;
-  const entityOutdatedPaths = outdatedTasksPath.filter(taskPath => taskPath.startsWith(entityPath));
+  const collectionPath = collection.collection_path;
+  const outdatedAssetsPath = assetStore.outdatedAssetsPath;
+  const collectionOutdatedPaths = outdatedAssetsPath.filter(assetPath => assetPath.startsWith(collectionPath));
   
-  if (entityOutdatedPaths.length === 0) {
+  if (collectionOutdatedPaths.length === 0) {
     notificationStore.addNotification(t('notifications.noOutdatedContents'), "", "info");
     return;
   }
@@ -471,19 +471,19 @@ const updateContents = async () => {
     notificationStore.cancleFunction = SyncService.CancelSync;
     notificationStore.canCancel = true;
     
-    await CheckpointService.RevertTaskPaths(
+    await CheckpointService.RevertAssetPaths(
       projectStore.activeProject.uri, 
       projectStore.getActiveProjectUrl, 
-      entityOutdatedPaths
+      collectionOutdatedPaths
     );
     
     assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(
-      taskPath => !entityOutdatedPaths.includes(taskPath)
+      assetPath => !collectionOutdatedPaths.includes(assetPath)
     );
     
     emitter.emit('refresh-browser');
     
-    const message = t('notifications.itemsUpdatedSuccessfully', entityOutdatedPaths.length);
+    const message = t('notifications.itemsUpdatedSuccessfully', collectionOutdatedPaths.length);
     notificationStore.addNotification(message, "", "success");
   } catch (error) {
     notificationStore.errorNotification(t('notifications.failedToUpdateContents'), error);
@@ -495,7 +495,7 @@ const updateContents = async () => {
 
 // Opens the upload items modal for web platform.
 const uploadItems = () => {
-  stage.expandEntity(collectionStore.selectedCollection);
+  stage.expandCollection(collectionStore.selectedCollection);
   modals.setModalVisibility('uploadItemsModal', true);
   menu.hideContextMenu();
 };

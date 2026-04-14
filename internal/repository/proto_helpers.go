@@ -28,10 +28,10 @@ func ToPbUsers(users []models.User) []*repositorypb.User {
 	return pb
 }
 
-func ToPbEntityTypes(entityTypes []models.EntityType) []*repositorypb.EntityType {
-	pb := make([]*repositorypb.EntityType, len(entityTypes))
-	for i, et := range entityTypes {
-		pb[i] = &repositorypb.EntityType{
+func ToPbCollectionTypes(collectionTypes []models.CollectionType) []*repositorypb.CollectionType {
+	pb := make([]*repositorypb.CollectionType, len(collectionTypes))
+	for i, et := range collectionTypes {
+		pb[i] = &repositorypb.CollectionType{
 			Id:     et.Id,
 			Mtime:  int64(et.MTime),
 			Name:   et.Name,
@@ -42,10 +42,10 @@ func ToPbEntityTypes(entityTypes []models.EntityType) []*repositorypb.EntityType
 	return pb
 }
 
-func ToPbTaskTypes(types []models.TaskType) []*repositorypb.TaskType {
-	pb := make([]*repositorypb.TaskType, len(types))
+func ToPbAssetTypes(types []models.AssetType) []*repositorypb.AssetType {
+	pb := make([]*repositorypb.AssetType, len(types))
 	for i, t := range types {
-		pb[i] = &repositorypb.TaskType{
+		pb[i] = &repositorypb.AssetType{
 			Id:     t.Id,
 			Mtime:  int64(t.MTime),
 			Name:   t.Name,
@@ -56,75 +56,75 @@ func ToPbTaskTypes(types []models.TaskType) []*repositorypb.TaskType {
 	return pb
 }
 
-func ToPbTasks(tasks []models.Task) []*repositorypb.Task {
-	pb := make([]*repositorypb.Task, len(tasks))
-	for i, t := range tasks {
-		pb[i] = &repositorypb.Task{
-			Id:          t.Id,
-			Mtime:       int64(t.MTime),
-			CreatedAt:   t.CreatedAt,
-			Name:        t.Name,
-			Description: t.Description,
-			Extension:   t.Extension,
-			IsResource:  t.IsResource,
-			StatusId:    t.StatusId,
-			TaskTypeId:  t.TaskTypeId,
-			EntityId:    t.EntityId,
-			AssigneeId:  t.AssigneeId,
-			AssignerId:  t.AssignerId,
-			IsLink:      t.IsLink,
-			Pointer:     t.Pointer,
-			PreviewId:   t.PreviewId,
-			Trashed:     t.Trashed,
-			Synced:      t.Synced,
+func ToPbAssets(assets []models.Asset) []*repositorypb.Asset {
+	pb := make([]*repositorypb.Asset, len(assets))
+	for i, t := range assets {
+		pb[i] = &repositorypb.Asset{
+			Id:           t.Id,
+			Mtime:        int64(t.MTime),
+			CreatedAt:    t.CreatedAt,
+			Name:         t.Name,
+			Description:  t.Description,
+			Extension:    t.Extension,
+			IsResource:   t.IsResource,
+			StatusId:     t.StatusId,
+			AssetTypeId:  t.AssetTypeId,
+			CollectionId: t.CollectionId,
+			AssigneeId:   t.AssigneeId,
+			AssignerId:   t.AssignerId,
+			IsLink:       t.IsLink,
+			Pointer:      t.Pointer,
+			PreviewId:    t.PreviewId,
+			Trashed:      t.Trashed,
+			Synced:       t.Synced,
 		}
 	}
 	return pb
 }
 
-func ToPbEntities(entities []models.Entity) []*repositorypb.Entity {
-	pb := make([]*repositorypb.Entity, len(entities))
-	for i, e := range entities {
-		pb[i] = &repositorypb.Entity{
-			Id:           e.Id,
-			Mtime:        int64(e.MTime),
-			CreatedAt:    e.CreatedAt,
-			Name:         e.Name,
-			Description:  e.Description,
-			EntityPath:   e.EntityPath,
-			Trashed:      e.Trashed,
-			EntityTypeId: e.EntityTypeId,
-			ParentId:     e.ParentId,
-			PreviewId:    e.PreviewId,
-			Synced:       e.Synced,
-			IsLibrary:    e.IsLibrary,
+func ToPbCollections(collections []models.Collection) []*repositorypb.Collection {
+	pb := make([]*repositorypb.Collection, len(collections))
+	for i, e := range collections {
+		pb[i] = &repositorypb.Collection{
+			Id:               e.Id,
+			Mtime:            int64(e.MTime),
+			CreatedAt:        e.CreatedAt,
+			Name:             e.Name,
+			Description:      e.Description,
+			CollectionPath:   e.CollectionPath,
+			Trashed:          e.Trashed,
+			CollectionTypeId: e.CollectionTypeId,
+			ParentId:         e.ParentId,
+			PreviewId:        e.PreviewId,
+			Synced:           e.Synced,
+			IsLibrary:        e.IsLibrary,
 		}
 	}
 	return pb
 }
 
-func ToPbEntityAssignees(entityAssignees []models.EntityAssignee) []*repositorypb.EntityAssignee {
-	pb := make([]*repositorypb.EntityAssignee, len(entityAssignees))
-	for i, ea := range entityAssignees {
-		pb[i] = &repositorypb.EntityAssignee{
-			Id:         ea.Id,
-			Mtime:      int64(ea.MTime),
-			EntityId:   ea.EntityId,
-			AssigneeId: ea.AssigneeId,
-			AssignerId: ea.AssignerId,
-			Synced:     ea.Synced,
+func ToPbCollectionAssignees(collectionAssignees []models.CollectionAssignee) []*repositorypb.CollectionAssignee {
+	pb := make([]*repositorypb.CollectionAssignee, len(collectionAssignees))
+	for i, ea := range collectionAssignees {
+		pb[i] = &repositorypb.CollectionAssignee{
+			Id:           ea.Id,
+			Mtime:        int64(ea.MTime),
+			CollectionId: ea.CollectionId,
+			AssigneeId:   ea.AssigneeId,
+			AssignerId:   ea.AssignerId,
+			Synced:       ea.Synced,
 		}
 	}
 	return pb
 }
 
-func ToPbTaskDependencies(taskDependencies []models.TaskDependency) []*repositorypb.TaskDependency {
-	pb := make([]*repositorypb.TaskDependency, len(taskDependencies))
-	for i, td := range taskDependencies {
-		pb[i] = &repositorypb.TaskDependency{
+func ToPbAssetDependencies(assetDependencies []models.AssetDependency) []*repositorypb.AssetDependency {
+	pb := make([]*repositorypb.AssetDependency, len(assetDependencies))
+	for i, td := range assetDependencies {
+		pb[i] = &repositorypb.AssetDependency{
 			Id:               td.Id,
 			Mtime:            int64(td.MTime),
-			TaskId:           td.TaskId,
+			AssetId:          td.AssetId,
 			DependencyId:     td.DependencyId,
 			DependencyTypeId: td.DependencyTypeId,
 			Synced:           td.Synced,
@@ -133,13 +133,13 @@ func ToPbTaskDependencies(taskDependencies []models.TaskDependency) []*repositor
 	return pb
 }
 
-func ToPbEntityDependencies(entityDependencies []models.EntityDependency) []*repositorypb.EntityDependency {
-	pb := make([]*repositorypb.EntityDependency, len(entityDependencies))
-	for i, ed := range entityDependencies {
-		pb[i] = &repositorypb.EntityDependency{
+func ToPbCollectionDependencies(collectionDependencies []models.CollectionDependency) []*repositorypb.CollectionDependency {
+	pb := make([]*repositorypb.CollectionDependency, len(collectionDependencies))
+	for i, ed := range collectionDependencies {
+		pb[i] = &repositorypb.CollectionDependency{
 			Id:               ed.Id,
 			Mtime:            int64(ed.MTime),
-			TaskId:           ed.TaskId,
+			AssetId:          ed.AssetId,
 			DependencyId:     ed.DependencyId,
 			DependencyTypeId: ed.DependencyTypeId,
 			Synced:           ed.Synced,
@@ -161,37 +161,37 @@ func ToPbWorkflows(workflows []models.Workflow) []*repositorypb.Workflow {
 	return pb
 }
 
-func ToPbWorkflowTasks(workflowTasks []models.WorkflowTask) []*repositorypb.WorkflowTask {
-	pb := make([]*repositorypb.WorkflowTask, len(workflowTasks))
-	for i, wt := range workflowTasks {
-		pb[i] = &repositorypb.WorkflowTask{
-			Id:               wt.Id,
-			Mtime:            int64(wt.MTime),
-			Name:             wt.Name,
-			TemplateId:       wt.TemplateId,
-			IsResource:       wt.IsResource,
-			WorkflowId:       wt.WorkflowId,
-			TaskTypeId:       wt.TaskTypeId,
-			WorkflowEntityId: wt.WorkflowEntityId,
-			IsLink:           wt.IsLink,
-			Pointer:          wt.Pointer,
-			Synced:           wt.Synced,
+func ToPbWorkflowAssets(workflowAssets []models.WorkflowAsset) []*repositorypb.WorkflowAsset {
+	pb := make([]*repositorypb.WorkflowAsset, len(workflowAssets))
+	for i, wt := range workflowAssets {
+		pb[i] = &repositorypb.WorkflowAsset{
+			Id:                   wt.Id,
+			Mtime:                int64(wt.MTime),
+			Name:                 wt.Name,
+			TemplateId:           wt.TemplateId,
+			IsResource:           wt.IsResource,
+			WorkflowId:           wt.WorkflowId,
+			AssetTypeId:          wt.AssetTypeId,
+			WorkflowCollectionId: wt.WorkflowCollectionId,
+			IsLink:               wt.IsLink,
+			Pointer:              wt.Pointer,
+			Synced:               wt.Synced,
 		}
 	}
 	return pb
 }
 
-func ToPbWorkflowEntities(workflowEntities []models.WorkflowEntity) []*repositorypb.WorkflowEntity {
-	pb := make([]*repositorypb.WorkflowEntity, len(workflowEntities))
-	for i, we := range workflowEntities {
-		pb[i] = &repositorypb.WorkflowEntity{
-			Id:           we.Id,
-			Mtime:        int64(we.MTime),
-			Name:         we.Name,
-			WorkflowId:   we.WorkflowId,
-			EntityTypeId: we.EntityTypeId,
-			ParentId:     we.ParentId,
-			Synced:       we.Synced,
+func ToPbWorkflowCollections(workflowCollections []models.WorkflowCollection) []*repositorypb.WorkflowCollection {
+	pb := make([]*repositorypb.WorkflowCollection, len(workflowCollections))
+	for i, we := range workflowCollections {
+		pb[i] = &repositorypb.WorkflowCollection{
+			Id:               we.Id,
+			Mtime:            int64(we.MTime),
+			Name:             we.Name,
+			WorkflowId:       we.WorkflowId,
+			CollectionTypeId: we.CollectionTypeId,
+			ParentId:         we.ParentId,
+			Synced:           we.Synced,
 		}
 	}
 	return pb
@@ -204,7 +204,7 @@ func ToPbWorkflowLinks(workflowLinks []models.WorkflowLink) []*repositorypb.Work
 			Id:                 wl.Id,
 			Mtime:              int64(wl.MTime),
 			Name:               wl.Name,
-			EntityTypeId:       wl.EntityTypeId,
+			CollectionTypeId:   wl.CollectionTypeId,
 			WorkflowId:         wl.WorkflowId,
 			LinkedWorkflowId:   wl.LinkedWorkflowId,
 			LinkedWorkflowName: wl.LinkedWorkflowName,
@@ -255,15 +255,15 @@ func ToPbTags(tags []models.Tag) []*repositorypb.Tag {
 	return pb
 }
 
-func ToPbTaskTags(taskTags []models.TaskTag) []*repositorypb.TaskTag {
-	pb := make([]*repositorypb.TaskTag, len(taskTags))
-	for i, tt := range taskTags {
-		pb[i] = &repositorypb.TaskTag{
-			Id:     tt.Id,
-			Mtime:  int64(tt.MTime),
-			TaskId: tt.TaskId,
-			TagId:  tt.TagId,
-			Synced: tt.Synced,
+func ToPbAssetTags(assetTags []models.AssetTag) []*repositorypb.AssetTag {
+	pb := make([]*repositorypb.AssetTag, len(assetTags))
+	for i, tt := range assetTags {
+		pb[i] = &repositorypb.AssetTag{
+			Id:      tt.Id,
+			Mtime:   int64(tt.MTime),
+			AssetId: tt.AssetId,
+			TagId:   tt.TagId,
+			Synced:  tt.Synced,
 		}
 	}
 	return pb
@@ -276,7 +276,7 @@ func ToPbCheckpoints(checkpoints []models.Checkpoint) []*repositorypb.Checkpoint
 			Id:             c.Id,
 			Mtime:          int64(c.MTime),
 			CreatedAt:      c.CreatedAt,
-			TaskId:         c.TaskId,
+			AssetId:        c.AssetId,
 			XxhashChecksum: c.XXHashChecksum,
 			TimeModified:   int64(c.TimeModified),
 			FileSize:       int64(c.FileSize),
@@ -301,15 +301,15 @@ func ToPbRoles(roles []models.Role) []*repositorypb.Role {
 			Name:   r.Name,
 			Synced: r.Synced,
 
-			ViewEntity:   r.ViewEntity,
-			CreateEntity: r.CreateEntity,
-			UpdateEntity: r.UpdateEntity,
-			DeleteEntity: r.DeleteEntity,
+			ViewCollection:   r.ViewCollection,
+			CreateCollection: r.CreateCollection,
+			UpdateCollection: r.UpdateCollection,
+			DeleteCollection: r.DeleteCollection,
 
-			ViewTask:   r.ViewTask,
-			CreateTask: r.CreateTask,
-			UpdateTask: r.UpdateTask,
-			DeleteTask: r.DeleteTask,
+			ViewAsset:   r.ViewAsset,
+			CreateAsset: r.CreateAsset,
+			UpdateAsset: r.UpdateAsset,
+			DeleteAsset: r.DeleteAsset,
 
 			ViewTemplate:   r.ViewTemplate,
 			CreateTemplate: r.CreateTemplate,
@@ -322,19 +322,21 @@ func ToPbRoles(roles []models.Role) []*repositorypb.Role {
 
 			PullChunk: r.PullChunk,
 
-			AssignTask:   r.AssignTask,
-			UnassignTask: r.UnassignTask,
+			AssignAsset:   r.AssignAsset,
+			UnassignAsset: r.UnassignAsset,
 
 			AddUser:    r.AddUser,
 			RemoveUser: r.RemoveUser,
 			ChangeRole: r.ChangeRole,
 
-			ChangeStatus:  r.ChangeStatus,
-			SetDoneTask:   r.SetDoneTask,
-			SetRetakeTask: r.SetRetakeTask,
+			ChangeStatus:   r.ChangeStatus,
+			SetDoneAsset:   r.SetDoneAsset,
+			SetRetakeAsset: r.SetRetakeAsset,
 
-			ViewDoneTask:       r.ViewDoneTask,
+			ViewDoneAsset:      r.ViewDoneAsset,
 			ManageDependencies: r.ManageDependencies,
+
+			ManageShareLinks: r.ManageShareLinks,
 		}
 	}
 	return pb
@@ -394,6 +396,20 @@ func ToPbChunkInfos(chunkInfos []chunk_service.ChunkInfo) []*repositorypb.ChunkI
 	return pb
 }
 
+// LegacyTableNames maps new client table names to legacy server table names.
+// Remove this once the server has been updated to use the new names.
+var LegacyTableNames = map[string]string{
+	"asset":                 "task",
+	"asset_type":            "task_type",
+	"asset_checkpoint":      "task_checkpoint",
+	"asset_dependency":      "task_dependency",
+	"asset_tag":             "task_tag",
+	"collection":            "entity",
+	"collection_type":       "entity_type",
+	"collection_assignee":   "entity_assignee",
+	"collection_dependency": "entity_dependency",
+}
+
 func ToPbTombs(tombs []Tomb) []*repositorypb.Tomb {
 	pb := make([]*repositorypb.Tomb, len(tombs))
 	for i, t := range tombs {
@@ -407,100 +423,62 @@ func ToPbTombs(tombs []Tomb) []*repositorypb.Tomb {
 	return pb
 }
 
-// type FullTask struct {
-// 	Id              string `db:"id" json:"id"`
-// 	MTime           int    `db:"mtime" json:"mtime"`
-// 	CreatedAt       string `db:"created_at" json:"created_at"`
-// 	Name            string `db:"name" json:"name"`
-// 	Description     string `db:"description" json:"description"`
-// 	Extension       string `db:"extension" json:"extension"`
-// 	IsResource      bool   `db:"is_resource" json:"is_resource"`
-// 	StatusId        string `db:"status_id" json:"status_id"`
-// 	StatusShortName string `db:"status_short_name" json:"status_short_name"`
-// 	TaskTypeId      string `db:"task_type_id" json:"task_type_id"`
-// 	TaskTypeName    string `db:"task_type_name" json:"task_type_name"`
-// 	TaskTypeIcon    string `db:"task_type_icon" json:"task_type_icon"`
-// 	EntityId        string `db:"entity_id" json:"entity_id"`
-// 	EntityName      string `db:"entity_name" json:"entity_name"`
-// 	EntityPath      string `db:"entity_path" json:"entity_path"`
-// 	TaskPath        string `db:"task_path" json:"task_path"`
-// 	AssigneeId      string `db:"assignee_id" json:"assignee_id"`
-// 	AssigneeEmail   string `db:"assignee_email" json:"assignee_email"`
-// 	AssigneeName    string `db:"assignee_name" json:"assignee_name"`
-// 	AssignerId      string `db:"assigner_id" json:"assigner_id"`
-// 	AssignerEmail   string `db:"assigner_email" json:"assigner_email"`
-// 	AssignerName    string `db:"assigner_name" json:"assigner_name"`
-// 	// RelationshipType string   `db:"relationship_type" json:"relationship_type"`
-// 	IsDependency    bool     `db:"is_dependency" json:"is_dependency"`
-// 	DependencyLevel int      `db:"dependency_level" json:"-"`
-// 	FilePath        string   `db:"file_path" json:"file_path"`
-// 	Tags            []string `db:"-" json:"tags"`
-// 	TagsRaw         string   `db:"tags" json:"-"`
-// 	// Tags             []string `db:"tags" json:"tags"`
-// 	EntityDependencies    []string `db:"-" json:"entity_dependencies"`
-// 	EntityDependenciesRaw string   `db:"entity_dependencies" json:"-"`
-// 	Dependencies          []string `db:"-" json:"dependencies"`
-// 	DependenciesRaw       string   `db:"dependencies" json:"-"`
-// 	// Dependencies     []string `db:"dependencies" json:"dependencies"`
-// 	FileStatus       string       `db:"file_status" json:"file_status"`
-// 	Status           Status       `db:"status" json:"status"`
-// 	IsLink           bool         `db:"is_link" json:"is_link"`
-// 	Pointer          string       `db:"pointer" json:"pointer"`
-// 	PreviewId        string       `db:"preview_id" json:"preview_id"`
-// 	Preview          []byte       `db:"preview" json:"preview"`
-// 	PreviewExtension string       `db:"preview_extension" json:"preview_extension"`
-// 	Checkpoints      []Checkpoint `db:"-" json:"checkpoints"`
-// 	Trashed          bool         `db:"trashed" json:"trashed"`
-// 	Synced           bool         `db:"synced" json:"synced"`
-// 	Type             string       `db:"type" json:"type"`
-// }
+// RemapTombsToLegacyNames replaces new table names with legacy server names.
+// Call this on the protobuf tombs before pushing to servers that haven't been updated.
+func RemapTombsToLegacyNames(tombs []*repositorypb.Tomb) {
+	for _, t := range tombs {
+		if legacy, ok := LegacyTableNames[t.TableName]; ok {
+			t.TableName = legacy
+		}
+	}
+}
 
-func ToPbFullTasks(tasks []models.Task) []*repositorypb.FullTask {
-	pb := make([]*repositorypb.FullTask, len(tasks))
-	for i, t := range tasks {
-		pb[i] = &repositorypb.FullTask{
-			Id:                    t.Id,
-			Mtime:                 int64(t.MTime),
-			CreatedAt:             t.CreatedAt,
-			Name:                  t.Name,
-			Description:           t.Description,
-			Extension:             t.Extension,
-			IsResource:            t.IsResource,
-			StatusId:              t.StatusId,
-			StatusShortName:       t.StatusShortName,
-			TaskTypeId:            t.TaskTypeId,
-			TaskTypeName:          t.TaskTypeName,
-			TaskTypeIcon:          t.TaskTypeIcon,
-			EntityId:              t.EntityId,
-			EntityName:            t.EntityName,
-			EntityPath:            t.EntityPath,
-			TaskPath:              t.TaskPath,
-			AssigneeId:            t.AssigneeId,
-			AssigneeEmail:         t.AssigneeEmail,
-			AssigneeName:          t.AssigneeName,
-			AssignerId:            t.AssignerId,
-			AssignerEmail:         t.AssignerEmail,
-			AssignerName:          t.AssignerName,
-			IsDependency:          t.IsDependency,
-			DependencyLevel:       int32(t.DependencyLevel),
-			FilePath:              t.FilePath,
-			Tags:                  t.Tags,
-			TagsRaw:               t.TagsRaw,
-			EntityDependencies:    t.EntityDependencies,
-			EntityDependenciesRaw: t.EntityDependenciesRaw,
-			Dependencies:          t.Dependencies,
-			DependenciesRaw:       t.DependenciesRaw,
-			FileStatus:            t.FileStatus,
-			Status:                ToPbStatus(t.Status),
-			IsLink:                t.IsLink,
-			Pointer:               t.Pointer,
-			PreviewId:             t.PreviewId,
-			Preview:               t.Preview,
-			PreviewExtension:      t.PreviewExtension,
-			Checkpoints:           ToPbCheckpoints(t.Checkpoints),
-			Trashed:               t.Trashed,
-			Synced:                t.Synced,
-			Type:                  "task",
+func ToPbFullAssets(assets []models.Asset) []*repositorypb.FullAsset {
+	pb := make([]*repositorypb.FullAsset, len(assets))
+	for i, t := range assets {
+		pb[i] = &repositorypb.FullAsset{
+			Id:                        t.Id,
+			Mtime:                     int64(t.MTime),
+			CreatedAt:                 t.CreatedAt,
+			Name:                      t.Name,
+			Description:               t.Description,
+			Extension:                 t.Extension,
+			IsResource:                t.IsResource,
+			StatusId:                  t.StatusId,
+			StatusShortName:           t.StatusShortName,
+			AssetTypeId:               t.AssetTypeId,
+			AssetTypeName:             t.AssetTypeName,
+			AssetTypeIcon:             t.AssetTypeIcon,
+			CollectionId:              t.CollectionId,
+			CollectionName:            t.CollectionName,
+			CollectionPath:            t.CollectionPath,
+			AssetPath:                 t.AssetPath,
+			AssigneeId:                t.AssigneeId,
+			AssigneeEmail:             t.AssigneeEmail,
+			AssigneeName:              t.AssigneeName,
+			AssignerId:                t.AssignerId,
+			AssignerEmail:             t.AssignerEmail,
+			AssignerName:              t.AssignerName,
+			IsDependency:              t.IsDependency,
+			DependencyLevel:           int32(t.DependencyLevel),
+			FilePath:                  t.FilePath,
+			Tags:                      t.Tags,
+			TagsRaw:                   t.TagsRaw,
+			CollectionDependencies:    t.CollectionDependencies,
+			CollectionDependenciesRaw: t.CollectionDependenciesRaw,
+			Dependencies:              t.Dependencies,
+			DependenciesRaw:           t.DependenciesRaw,
+			FileStatus:                t.FileStatus,
+			Status:                    ToPbStatus(t.Status),
+			IsLink:                    t.IsLink,
+			Pointer:                   t.Pointer,
+			PreviewId:                 t.PreviewId,
+			Preview:                   t.Preview,
+			PreviewExtension:          t.PreviewExtension,
+			Checkpoints:               ToPbCheckpoints(t.Checkpoints),
+			Trashed:                   t.Trashed,
+			Synced:                    t.Synced,
+			Type:                      "asset",
 		}
 	}
 	return pb
@@ -544,8 +522,8 @@ func FromPbUsers(pbs []*repositorypb.User) []models.User {
 	return users
 }
 
-func FromPbEntityType(pb *repositorypb.EntityType) models.EntityType {
-	return models.EntityType{
+func FromPbCollectionType(pb *repositorypb.CollectionType) models.CollectionType {
+	return models.CollectionType{
 		Id:     pb.Id,
 		MTime:  int(pb.Mtime),
 		Name:   pb.Name,
@@ -554,16 +532,16 @@ func FromPbEntityType(pb *repositorypb.EntityType) models.EntityType {
 	}
 }
 
-func FromPbEntityTypes(pbs []*repositorypb.EntityType) []models.EntityType {
-	entityTypes := make([]models.EntityType, len(pbs))
+func FromPbCollectionTypes(pbs []*repositorypb.CollectionType) []models.CollectionType {
+	collectionTypes := make([]models.CollectionType, len(pbs))
 	for i, pb := range pbs {
-		entityTypes[i] = FromPbEntityType(pb)
+		collectionTypes[i] = FromPbCollectionType(pb)
 	}
-	return entityTypes
+	return collectionTypes
 }
 
-func FromPbTaskType(pb *repositorypb.TaskType) models.TaskType {
-	return models.TaskType{
+func FromPbAssetType(pb *repositorypb.AssetType) models.AssetType {
+	return models.AssetType{
 		Id:     pb.Id,
 		MTime:  int(pb.Mtime),
 		Name:   pb.Name,
@@ -572,124 +550,124 @@ func FromPbTaskType(pb *repositorypb.TaskType) models.TaskType {
 	}
 }
 
-func FromPbTaskTypes(pbs []*repositorypb.TaskType) []models.TaskType {
-	taskTypes := make([]models.TaskType, len(pbs))
+func FromPbAssetTypes(pbs []*repositorypb.AssetType) []models.AssetType {
+	assetTypes := make([]models.AssetType, len(pbs))
 	for i, pb := range pbs {
-		taskTypes[i] = FromPbTaskType(pb)
+		assetTypes[i] = FromPbAssetType(pb)
 	}
-	return taskTypes
+	return assetTypes
 }
 
-func FromPbTask(pb *repositorypb.Task) models.Task {
-	return models.Task{
-		Id:          pb.Id,
-		MTime:       int(pb.Mtime),
-		CreatedAt:   pb.CreatedAt,
-		Name:        pb.Name,
-		Description: pb.Description,
-		Extension:   pb.Extension,
-		IsResource:  pb.IsResource,
-		StatusId:    pb.StatusId,
-		TaskTypeId:  pb.TaskTypeId,
-		EntityId:    pb.EntityId,
-		AssigneeId:  pb.AssigneeId,
-		AssignerId:  pb.AssignerId,
-		IsLink:      pb.IsLink,
-		Pointer:     pb.Pointer,
-		PreviewId:   pb.PreviewId,
-		Trashed:     pb.Trashed,
-		Synced:      pb.Synced,
-	}
-}
-
-func FromPbTasks(pbs []*repositorypb.Task) []models.Task {
-	tasks := make([]models.Task, len(pbs))
-	for i, pb := range pbs {
-		tasks[i] = FromPbTask(pb)
-	}
-	return tasks
-}
-
-func FromPbEntity(pb *repositorypb.Entity) models.Entity {
-	return models.Entity{
+func FromPbAsset(pb *repositorypb.Asset) models.Asset {
+	return models.Asset{
 		Id:           pb.Id,
 		MTime:        int(pb.Mtime),
 		CreatedAt:    pb.CreatedAt,
 		Name:         pb.Name,
 		Description:  pb.Description,
-		EntityPath:   pb.EntityPath,
-		Trashed:      pb.Trashed,
-		EntityTypeId: pb.EntityTypeId,
-		ParentId:     pb.ParentId,
+		Extension:    pb.Extension,
+		IsResource:   pb.IsResource,
+		StatusId:     pb.StatusId,
+		AssetTypeId:  pb.AssetTypeId,
+		CollectionId: pb.CollectionId,
+		AssigneeId:   pb.AssigneeId,
+		AssignerId:   pb.AssignerId,
+		IsLink:       pb.IsLink,
+		Pointer:      pb.Pointer,
 		PreviewId:    pb.PreviewId,
+		Trashed:      pb.Trashed,
 		Synced:       pb.Synced,
-		IsLibrary:    pb.IsLibrary,
 	}
 }
 
-func FromPbEntities(pbs []*repositorypb.Entity) []models.Entity {
-	entities := make([]models.Entity, len(pbs))
+func FromPbAssets(pbs []*repositorypb.Asset) []models.Asset {
+	assets := make([]models.Asset, len(pbs))
 	for i, pb := range pbs {
-		entities[i] = FromPbEntity(pb)
+		assets[i] = FromPbAsset(pb)
 	}
-	return entities
+	return assets
 }
 
-func FromPbEntityAssignee(pb *repositorypb.EntityAssignee) models.EntityAssignee {
-	return models.EntityAssignee{
-		Id:         pb.Id,
-		MTime:      int(pb.Mtime),
-		EntityId:   pb.EntityId,
-		AssigneeId: pb.AssigneeId,
-		AssignerId: pb.AssignerId,
-		Synced:     pb.Synced,
-	}
-}
-
-func FromPbEntityAssignees(pbs []*repositorypb.EntityAssignee) []models.EntityAssignee {
-	entityAssignees := make([]models.EntityAssignee, len(pbs))
-	for i, pb := range pbs {
-		entityAssignees[i] = FromPbEntityAssignee(pb)
-	}
-	return entityAssignees
-}
-
-func FromPbTaskDependency(pb *repositorypb.TaskDependency) models.TaskDependency {
-	return models.TaskDependency{
+func FromPbCollection(pb *repositorypb.Collection) models.Collection {
+	return models.Collection{
 		Id:               pb.Id,
 		MTime:            int(pb.Mtime),
-		TaskId:           pb.TaskId,
+		CreatedAt:        pb.CreatedAt,
+		Name:             pb.Name,
+		Description:      pb.Description,
+		CollectionPath:   pb.CollectionPath,
+		Trashed:          pb.Trashed,
+		CollectionTypeId: pb.CollectionTypeId,
+		ParentId:         pb.ParentId,
+		PreviewId:        pb.PreviewId,
+		Synced:           pb.Synced,
+		IsLibrary:        pb.IsLibrary,
+	}
+}
+
+func FromPbCollections(pbs []*repositorypb.Collection) []models.Collection {
+	collections := make([]models.Collection, len(pbs))
+	for i, pb := range pbs {
+		collections[i] = FromPbCollection(pb)
+	}
+	return collections
+}
+
+func FromPbCollectionAssignee(pb *repositorypb.CollectionAssignee) models.CollectionAssignee {
+	return models.CollectionAssignee{
+		Id:           pb.Id,
+		MTime:        int(pb.Mtime),
+		CollectionId: pb.CollectionId,
+		AssigneeId:   pb.AssigneeId,
+		AssignerId:   pb.AssignerId,
+		Synced:       pb.Synced,
+	}
+}
+
+func FromPbCollectionAssignees(pbs []*repositorypb.CollectionAssignee) []models.CollectionAssignee {
+	collectionAssignees := make([]models.CollectionAssignee, len(pbs))
+	for i, pb := range pbs {
+		collectionAssignees[i] = FromPbCollectionAssignee(pb)
+	}
+	return collectionAssignees
+}
+
+func FromPbAssetDependency(pb *repositorypb.AssetDependency) models.AssetDependency {
+	return models.AssetDependency{
+		Id:               pb.Id,
+		MTime:            int(pb.Mtime),
+		AssetId:          pb.AssetId,
 		DependencyId:     pb.DependencyId,
 		DependencyTypeId: pb.DependencyTypeId,
 		Synced:           pb.Synced,
 	}
 }
 
-func FromPbTaskDependencies(pbs []*repositorypb.TaskDependency) []models.TaskDependency {
-	taskDependencies := make([]models.TaskDependency, len(pbs))
+func FromPbAssetDependencies(pbs []*repositorypb.AssetDependency) []models.AssetDependency {
+	assetDependencies := make([]models.AssetDependency, len(pbs))
 	for i, pb := range pbs {
-		taskDependencies[i] = FromPbTaskDependency(pb)
+		assetDependencies[i] = FromPbAssetDependency(pb)
 	}
-	return taskDependencies
+	return assetDependencies
 }
 
-func FromPbEntityDependency(pb *repositorypb.EntityDependency) models.EntityDependency {
-	return models.EntityDependency{
+func FromPbCollectionDependency(pb *repositorypb.CollectionDependency) models.CollectionDependency {
+	return models.CollectionDependency{
 		Id:               pb.Id,
 		MTime:            int(pb.Mtime),
-		TaskId:           pb.TaskId,
+		AssetId:          pb.AssetId,
 		DependencyId:     pb.DependencyId,
 		DependencyTypeId: pb.DependencyTypeId,
 		Synced:           pb.Synced,
 	}
 }
 
-func FromPbEntityDependencies(pbs []*repositorypb.EntityDependency) []models.EntityDependency {
-	entityDependencies := make([]models.EntityDependency, len(pbs))
+func FromPbCollectionDependencies(pbs []*repositorypb.CollectionDependency) []models.CollectionDependency {
+	collectionDependencies := make([]models.CollectionDependency, len(pbs))
 	for i, pb := range pbs {
-		entityDependencies[i] = FromPbEntityDependency(pb)
+		collectionDependencies[i] = FromPbCollectionDependency(pb)
 	}
-	return entityDependencies
+	return collectionDependencies
 }
 
 func FromPbWorkflow(pb *repositorypb.Workflow) models.Workflow {
@@ -709,48 +687,48 @@ func FromPbWorkflows(pbs []*repositorypb.Workflow) []models.Workflow {
 	return workflows
 }
 
-func FromPbWorkflowTask(pb *repositorypb.WorkflowTask) models.WorkflowTask {
-	return models.WorkflowTask{
+func FromPbWorkflowAsset(pb *repositorypb.WorkflowAsset) models.WorkflowAsset {
+	return models.WorkflowAsset{
+		Id:                   pb.Id,
+		MTime:                int(pb.Mtime),
+		Name:                 pb.Name,
+		TemplateId:           pb.TemplateId,
+		IsResource:           pb.IsResource,
+		WorkflowId:           pb.WorkflowId,
+		AssetTypeId:          pb.AssetTypeId,
+		WorkflowCollectionId: pb.WorkflowCollectionId,
+		IsLink:               pb.IsLink,
+		Pointer:              pb.Pointer,
+		Synced:               pb.Synced,
+	}
+}
+
+func FromPbWorkflowAssets(pbs []*repositorypb.WorkflowAsset) []models.WorkflowAsset {
+	workflowAssets := make([]models.WorkflowAsset, len(pbs))
+	for i, pb := range pbs {
+		workflowAssets[i] = FromPbWorkflowAsset(pb)
+	}
+	return workflowAssets
+}
+
+func FromPbWorkflowCollection(pb *repositorypb.WorkflowCollection) models.WorkflowCollection {
+	return models.WorkflowCollection{
 		Id:               pb.Id,
 		MTime:            int(pb.Mtime),
 		Name:             pb.Name,
-		TemplateId:       pb.TemplateId,
-		IsResource:       pb.IsResource,
 		WorkflowId:       pb.WorkflowId,
-		TaskTypeId:       pb.TaskTypeId,
-		WorkflowEntityId: pb.WorkflowEntityId,
-		IsLink:           pb.IsLink,
-		Pointer:          pb.Pointer,
+		CollectionTypeId: pb.CollectionTypeId,
+		ParentId:         pb.ParentId,
 		Synced:           pb.Synced,
 	}
 }
 
-func FromPbWorkflowTasks(pbs []*repositorypb.WorkflowTask) []models.WorkflowTask {
-	workflowTasks := make([]models.WorkflowTask, len(pbs))
+func FromPbWorkflowCollections(pbs []*repositorypb.WorkflowCollection) []models.WorkflowCollection {
+	workflowCollections := make([]models.WorkflowCollection, len(pbs))
 	for i, pb := range pbs {
-		workflowTasks[i] = FromPbWorkflowTask(pb)
+		workflowCollections[i] = FromPbWorkflowCollection(pb)
 	}
-	return workflowTasks
-}
-
-func FromPbWorkflowEntity(pb *repositorypb.WorkflowEntity) models.WorkflowEntity {
-	return models.WorkflowEntity{
-		Id:           pb.Id,
-		MTime:        int(pb.Mtime),
-		Name:         pb.Name,
-		WorkflowId:   pb.WorkflowId,
-		EntityTypeId: pb.EntityTypeId,
-		ParentId:     pb.ParentId,
-		Synced:       pb.Synced,
-	}
-}
-
-func FromPbWorkflowEntities(pbs []*repositorypb.WorkflowEntity) []models.WorkflowEntity {
-	workflowEntities := make([]models.WorkflowEntity, len(pbs))
-	for i, pb := range pbs {
-		workflowEntities[i] = FromPbWorkflowEntity(pb)
-	}
-	return workflowEntities
+	return workflowCollections
 }
 
 func FromPbWorkflowLink(pb *repositorypb.WorkflowLink) models.WorkflowLink {
@@ -758,7 +736,7 @@ func FromPbWorkflowLink(pb *repositorypb.WorkflowLink) models.WorkflowLink {
 		Id:                 pb.Id,
 		MTime:              int(pb.Mtime),
 		Name:               pb.Name,
-		EntityTypeId:       pb.EntityTypeId,
+		CollectionTypeId:   pb.CollectionTypeId,
 		WorkflowId:         pb.WorkflowId,
 		LinkedWorkflowId:   pb.LinkedWorkflowId,
 		LinkedWorkflowName: pb.LinkedWorkflowName,
@@ -827,22 +805,22 @@ func FromPbTags(pbs []*repositorypb.Tag) []models.Tag {
 	return tags
 }
 
-func FromPbTaskTag(pb *repositorypb.TaskTag) models.TaskTag {
-	return models.TaskTag{
-		Id:     pb.Id,
-		MTime:  int(pb.Mtime),
-		TaskId: pb.TaskId,
-		TagId:  pb.TagId,
-		Synced: pb.Synced,
+func FromPbAssetTag(pb *repositorypb.AssetTag) models.AssetTag {
+	return models.AssetTag{
+		Id:      pb.Id,
+		MTime:   int(pb.Mtime),
+		AssetId: pb.AssetId,
+		TagId:   pb.TagId,
+		Synced:  pb.Synced,
 	}
 }
 
-func FromPbTaskTags(pbs []*repositorypb.TaskTag) []models.TaskTag {
-	taskTags := make([]models.TaskTag, len(pbs))
+func FromPbAssetTags(pbs []*repositorypb.AssetTag) []models.AssetTag {
+	assetTags := make([]models.AssetTag, len(pbs))
 	for i, pb := range pbs {
-		taskTags[i] = FromPbTaskTag(pb)
+		assetTags[i] = FromPbAssetTag(pb)
 	}
-	return taskTags
+	return assetTags
 }
 
 func FromPbCheckpoint(pb *repositorypb.Checkpoint) models.Checkpoint {
@@ -850,7 +828,7 @@ func FromPbCheckpoint(pb *repositorypb.Checkpoint) models.Checkpoint {
 		Id:             pb.Id,
 		MTime:          int(pb.Mtime),
 		CreatedAt:      pb.CreatedAt,
-		TaskId:         pb.TaskId,
+		AssetId:        pb.AssetId,
 		XXHashChecksum: pb.XxhashChecksum,
 		TimeModified:   int(pb.TimeModified),
 		FileSize:       int(pb.FileSize),
@@ -879,15 +857,15 @@ func FromPbRole(pb *repositorypb.Role) models.Role {
 		Name:   pb.Name,
 		Synced: pb.Synced,
 
-		ViewEntity:   pb.ViewEntity,
-		CreateEntity: pb.CreateEntity,
-		UpdateEntity: pb.UpdateEntity,
-		DeleteEntity: pb.DeleteEntity,
+		ViewCollection:   pb.ViewCollection,
+		CreateCollection: pb.CreateCollection,
+		UpdateCollection: pb.UpdateCollection,
+		DeleteCollection: pb.DeleteCollection,
 
-		ViewTask:   pb.ViewTask,
-		CreateTask: pb.CreateTask,
-		UpdateTask: pb.UpdateTask,
-		DeleteTask: pb.DeleteTask,
+		ViewAsset:   pb.ViewAsset,
+		CreateAsset: pb.CreateAsset,
+		UpdateAsset: pb.UpdateAsset,
+		DeleteAsset: pb.DeleteAsset,
 
 		ViewTemplate:   pb.ViewTemplate,
 		CreateTemplate: pb.CreateTemplate,
@@ -900,19 +878,21 @@ func FromPbRole(pb *repositorypb.Role) models.Role {
 
 		PullChunk: pb.PullChunk,
 
-		AssignTask:   pb.AssignTask,
-		UnassignTask: pb.UnassignTask,
+		AssignAsset:   pb.AssignAsset,
+		UnassignAsset: pb.UnassignAsset,
 
 		AddUser:    pb.AddUser,
 		RemoveUser: pb.RemoveUser,
 		ChangeRole: pb.ChangeRole,
 
-		ChangeStatus:  pb.ChangeStatus,
-		SetDoneTask:   pb.SetDoneTask,
-		SetRetakeTask: pb.SetRetakeTask,
+		ChangeStatus:   pb.ChangeStatus,
+		SetDoneAsset:   pb.SetDoneAsset,
+		SetRetakeAsset: pb.SetRetakeAsset,
 
-		ViewDoneTask:       pb.ViewDoneTask,
+		ViewDoneAsset:      pb.ViewDoneAsset,
 		ManageDependencies: pb.ManageDependencies,
+
+		ManageShareLinks: pb.ManageShareLinks,
 	}
 }
 

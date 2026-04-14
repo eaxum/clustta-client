@@ -14,10 +14,10 @@ const utils = {
     return hash;
   },
   async getClusttaVersion() {
-    return `v0.4.32-beta`;
+    return `v0.4.33-beta`;
   },
    async getRawClusttaVersion() {
-    return `0.4.32`;
+    return `0.4.33`;
   },
   base64ToUint8Array(base64) {
     const binary = atob(base64);
@@ -30,9 +30,10 @@ const utils = {
   },
   async base64ToFile(dataString) {
     const tempdirPath = await FSService.TempDir();
+    const uniqueName = "clst-preview-" + crypto.randomUUID() + ".png";
     const tempFilePath = await FSService.JoinPath(
       tempdirPath,
-      "clst-preview.png"
+      uniqueName
     );
     await FSService.WriteFile(tempFilePath, dataString)
       .then(() => {
@@ -101,10 +102,10 @@ const utils = {
     return data.sort((a, b) => a.name.localeCompare(b.name));
   },
   sortPathAlphabetically(data, type) {
-    if (type === "task") {
-      return data.sort((a, b) => a.task_path.localeCompare(b.task_path));
-    } else if (type === "entity") {
-      return data.sort((a, b) => a.entity_path.localeCompare(b.entity_path));
+    if (type === "asset") {
+      return data.sort((a, b) => a.asset_path.localeCompare(b.asset_path));
+    } else if (type === "collection") {
+      return data.sort((a, b) => a.collection_path.localeCompare(b.collection_path));
     } else if (type === "resource") {
       return data.sort((a, b) =>
         a.resource_path.localeCompare(b.resource_path)
@@ -242,15 +243,15 @@ const utils = {
 
     return paths;
   },
-  getUntrackedEntityparent(untracked) {
+  getUntrackedCollectionparent(untracked) {
     const collectionStore = useCollectionStore();
-    let parentPaths = this.getParentPaths(untracked.entity_path);
+    let parentPaths = this.getParentPaths(untracked.collection_path);
     for (let parent of parentPaths) {
-      let entity = collectionStore.collections.find(
-        (item) => item.entity_path === parent
+      let collection = collectionStore.collections.find(
+        (item) => item.collection_path === parent
       );
-      if (entity !== undefined) {
-        return entity;
+      if (collection !== undefined) {
+        return collection;
       }
     }
     return null;
@@ -260,6 +261,21 @@ const utils = {
     return md5(text);
   },
 
+  formatBytes(bytes, decimals = 1) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
+  },
+
+};
+
+// Safely decodes HTML entities to plain text, stripping any HTML tags.
+export const decodeEmoji = (html) => {
+  const el = document.createElement('span');
+  el.innerHTML = html;
+  return el.textContent || '';
 };
 
 export default utils;

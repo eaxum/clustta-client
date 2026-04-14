@@ -48,13 +48,27 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 		projectName = path.Base(projectUri)
 	} else if utils.FileExists(projectUri) {
 		projectName = strings.Split(filepath.Base(projectUri), ".")[0]
-
 	}
-	projectsDir, err := settings.GetSharedProjectDirectory()
-	if err != nil {
+
+	// Personal projects store .clst files in ProjectsDir; other studios use SharedProjectsDir/studioName
+	var studioProjectsDir string
+	if studioName == "Personal" {
+		projectsDir, err := settings.GetProjectDirectory()
+		if err != nil {
+			return err
+		}
+		studioProjectsDir = projectsDir
+	} else {
+		sharedDir, err := settings.GetSharedProjectDirectory()
+		if err != nil {
+			return err
+		}
+		studioProjectsDir = filepath.Join(sharedDir, studioName)
+	}
+
+	if err := os.MkdirAll(studioProjectsDir, os.ModePerm); err != nil {
 		return err
 	}
-	studioProjectsDir := filepath.Join(projectsDir, studioName)
 	projectPath := filepath.Join(studioProjectsDir, projectName) + ".clst"
 
 	if _, err := os.Stat(workingDir); os.IsNotExist(err) {
@@ -743,7 +757,7 @@ func (s *SyncService) GetPendingChanges(projectPath string) (sync_service.Change
 }
 
 // DiscardChanges reverts specific items to their server state by fetching remote data
-// and selectively replacing local rows. itemType should be "task" or "entity".
+// and selectively replacing local rows. itemType should be "asset" or "collection".
 func (s *SyncService) DiscardChanges(projectPath, remoteURL string, itemIds []string, itemType string) error {
 	if !utils.FileExists(projectPath) {
 		return error_service.ErrProjectNotFound
@@ -773,10 +787,10 @@ func (s *SyncService) DiscardChanges(projectPath, remoteURL string, itemIds []st
 
 	for _, itemId := range itemIds {
 		switch itemType {
-		case "task":
-			err = sync_service.DiscardTaskChanges(tx, serverData, itemId)
-		case "entity":
-			err = sync_service.DiscardEntityChanges(tx, serverData, itemId)
+		case "asset":
+			err = sync_service.DiscardAssetChanges(tx, serverData, itemId)
+		case "collection":
+			err = sync_service.DiscardCollectionChanges(tx, serverData, itemId)
 		default:
 			return fmt.Errorf("unsupported item type: %s", itemType)
 		}

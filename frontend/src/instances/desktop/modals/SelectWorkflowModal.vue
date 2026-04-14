@@ -3,7 +3,7 @@
 
     <HeaderArea :title="title" :icon="'workflow-arrow'" :showSearch="showSearch" />
 
-    <div class="general-container general-container-wide" :style="{ gap: showTaskOptions ? 10 + 'px' : 20 + 'px' }">
+    <div class="general-container general-container-wide" :style="{ gap: showAssetOptions ? 10 + 'px' : 20 + 'px' }">
 
       <div v-if="!workflowStore.workflows.length" class="page-state-container">
         <PageState :message="$t('modals.noWorkflowTemplates')" :illustration="'/page-states/workflow.png'" />
@@ -11,7 +11,7 @@
 
       <div v-else class="workflow-template-list">
         <WorkflowItem v-for="workflow in workflowStore.workflows" @expand="expandWorkflowItem"
-             :entity="workflow" @select="selectWorkflowTemplate" :selectable="true"
+             :collection="workflow" @select="selectWorkflowTemplate" :selectable="true"
             :isExpanded="isExpanded(workflow.id)" :isParent="true" />
       </div>
 
@@ -62,7 +62,7 @@ const title = t('modals.selectWorkflowTemplate');
 const expandedWorkflowId = ref('');
 const modalContainer = ref(null);
 const popUpActions = ref(null);
-const showTaskOptions = ref(true);
+const showAssetOptions = ref(true);
 
 // methods
 // Closes the select workflow modal.

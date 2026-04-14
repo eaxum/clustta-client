@@ -51,6 +51,16 @@ func (a *AuthService) EnableOfflineMode() error {
 	return auth_service.EnableOfflineMode()
 }
 
+// LoginWithSSO initiates SSO login by opening the system browser.
+// Returns the authentication token after the user completes the SSO flow.
+func (a *AuthService) LoginWithSSO(authHost string, provider string) (auth_service.Token, error) {
+	token, err := auth_service.LoginWithSSO(authHost, provider)
+	if err != nil {
+		return token, err
+	}
+	return token, nil
+}
+
 // IsOfflineMode checks if the current session is in offline mode.
 func (a *AuthService) IsOfflineMode() bool {
 	return auth_service.IsOfflineMode()

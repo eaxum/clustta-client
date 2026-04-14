@@ -5,6 +5,7 @@ import (
 	"clustta/internal/chunk_service"
 	"clustta/internal/constants"
 	"clustta/internal/repository"
+	"clustta/internal/repository/migrations"
 	"clustta/internal/repository/models"
 	"clustta/internal/settings"
 	"clustta/internal/utils"
@@ -220,8 +221,8 @@ func PullLatestCheckpoints(ctx context.Context, projectPath, remoteUrl string, u
 
 	syncOptions := SyncOptions{
 		OnlyLatestCheckpoints: true,
-		Tasks:                 true,
-		TaskDependencies:      true,
+		Assets:                true,
+		AssetDependencies:     true,
 		Resources:             true,
 	}
 
@@ -290,7 +291,7 @@ func CloneProject(ctx context.Context, remoteProjectUri string, projectUri strin
 	if err != nil {
 		return err
 	}
-	err = utils.SetProjectVersion(tx, projectInfo.Version)
+	err = utils.SetProjectVersion(tx, migrations.LatestVersion)
 	if err != nil {
 		return err
 	}
@@ -328,9 +329,10 @@ func CloneProject(ctx context.Context, remoteProjectUri string, projectUri strin
 
 // GetStudioProjects retrieves all projects for a given studio, including both tracked (.clst) projects
 // and untracked project folders. For Personal studios, it scans the projects directory and all configured
-// working locations. For remote studios, it fetches the project list from the server.
+// working locations. For cloud studios, it fetches from the central server. For dedicated studios,
+// it fetches the project list from the studio VM.
 // These .clst files are located in the projects/shared projects directory
-func GetStudioProjects(user auth_service.User, url string, studioName string) ([]repository.ProjectInfo, error) {
+func GetStudioProjects(user auth_service.User, url string, studioName string, hostingMode string, studioId string) ([]repository.ProjectInfo, error) {
 	isLocal := studioName == "Personal"
 	studioProjects := []repository.ProjectInfo{}
 	projectsDir, err := settings.GetProjectDirectory()
@@ -369,7 +371,7 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 					return studioProjects, err
 				}
 				if fileInfo.Size() == 0 {
-					repository.InitDB(projectPath, studioName, "", user, false)
+					repository.InitDB(projectPath, studioName, "", "", user, false)
 				}
 
 				valid, err := repository.VerifyProjectIntegrity(projectPath)
@@ -392,7 +394,9 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 						return studioProjects, err
 					}
 					projectInfo.Uri = projectPath
-					projectInfo.Remote = projectPath
+					if !projectInfo.HasRemote {
+						projectInfo.Remote = projectPath
+					}
 					projectInfo.IsDownloaded = true
 					projectInfo.IsTracked = true
 					studioProjects = append(studioProjects, projectInfo)
@@ -426,6 +430,141 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 			studioProjects = append(studioProjects, untrackedInLocation...)
 		}
 
+		// Fetch personal remote projects from the server (owned + collaborating)
+		serverProjects, err := fetchUserProjects(user)
+		if err != nil {
+			fmt.Printf("Warning: Failed to fetch server projects: %v\n", err)
+		} else {
+			studioProjects = mergeServerProjects(studioProjects, serverProjects, projectsDir)
+		}
+
+		return studioProjects, nil
+	} else if hostingMode == "cloud" {
+		// Fetch cloud studio projects from central server
+		studioProjectUrl := constants.HOST + "/studio/" + studioId + "/projects"
+		req, err := http.NewRequest("GET", studioProjectUrl, nil)
+		if err != nil {
+			return GetLocalStudioProjects(studioProjectsDir, constants.HOST+"/studio/"+studioId, user)
+		}
+		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
+
+		client := &http.Client{}
+		response, err := client.Do(req)
+		if err != nil {
+			fmt.Printf("Server unreachable, loading local projects: %v\n", err)
+			return GetLocalStudioProjects(studioProjectsDir, constants.HOST+"/studio/"+studioId, user)
+		}
+		defer response.Body.Close()
+
+		if response.StatusCode != 200 {
+			fmt.Printf("Server returned status %d, loading local projects\n", response.StatusCode)
+			return GetLocalStudioProjects(studioProjectsDir, constants.HOST+"/studio/"+studioId, user)
+		}
+
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			return studioProjects, err
+		}
+
+		contentType := response.Header.Get("Content-Type")
+		if !strings.Contains(contentType, "application/json") && len(body) > 0 && body[0] != '[' && body[0] != '{' {
+			fmt.Printf("Server returned non-JSON response, loading local projects\n")
+			return GetLocalStudioProjects(studioProjectsDir, constants.HOST+"/studio/"+studioId, user)
+		}
+
+		err = json.Unmarshal(body, &studioProjects)
+		if err != nil {
+			return studioProjects, err
+		}
+
+		// Process each cloud studio project and check local status
+		for i, studioProject := range studioProjects {
+			workingDir := ""
+			projectPath := filepath.Join(studioProjectsDir, studioProject.Name) + ".clst"
+			isDownloaded := utils.FileExists(projectPath)
+			projectUrl := constants.HOST + "/studio/" + studioId + "/" + studioProject.Name
+			syncToken := ""
+
+			if isDownloaded {
+				valid, err := repository.VerifyProjectIntegrity(projectPath)
+				if !valid || err != nil {
+					err := os.Remove(projectPath)
+					if err != nil {
+						return studioProjects, err
+					}
+					isDownloaded = false
+				} else {
+					err := repository.UpdateProject(projectPath)
+					if err != nil {
+						return studioProjects, err
+					}
+					dbConn, err := utils.OpenDb(projectPath)
+					if err != nil {
+						return studioProjects, err
+					}
+					defer dbConn.Close()
+					tx, err := dbConn.Beginx()
+					if err != nil {
+						return studioProjects, err
+					}
+					defer tx.Rollback()
+
+					// Sync project preview if needed
+					isSynced, err := repository.IsProjectPreviewSynced(tx)
+					if err != nil {
+						return studioProjects, err
+					}
+					if isSynced && studioProject.PreviewId != "" {
+						projectPreviewId := studioProject.PreviewId
+						missingPreviews, err := CalculateMissingPreviews(tx, ProjectData{
+							ProjectPreview: projectPreviewId,
+						})
+						if err != nil {
+							return studioProjects, err
+						}
+						if len(missingPreviews) > 0 {
+							err = repository.PullPreviews(tx, projectUrl, missingPreviews, func(i1, i2 int, s1, s2 string) {})
+							if err != nil {
+								return studioProjects, err
+							}
+						}
+						_, err = tx.Exec(`
+							INSERT INTO config (name, value, mtime, synced)
+							VALUES ('project_preview', $1, $2, 1)
+							ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value, mtime = EXCLUDED.mtime, synced = 1
+						`, projectPreviewId, utils.GetEpochTime())
+						if err != nil {
+							return studioProjects, err
+						}
+					}
+
+					workingDir, err = utils.GetProjectWorkingDir(tx)
+					if err != nil {
+						return studioProjects, err
+					}
+
+					syncToken, err = utils.GetProjectSyncToken(tx)
+					if err != nil {
+						return studioProjects, err
+					}
+
+					err = tx.Commit()
+					if err != nil {
+						return studioProjects, err
+					}
+				}
+			}
+
+			studioProjects[i].HasRemote = true
+			studioProjects[i].Uri = projectPath
+			studioProjects[i].Remote = projectUrl
+			studioProjects[i].WorkingDirectory = workingDir
+			studioProjects[i].IsDownloaded = isDownloaded
+			studioProjects[i].IsTracked = true
+			studioProjects[i].SyncToken = syncToken
+		}
+
 		return studioProjects, nil
 	} else {
 		// Fetch remote studio projects from server
@@ -442,6 +581,7 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 		req.Header.Set("UserData", string(userJson))
 		req.Header.Set("UserId", user.Id)
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
 		response, err := client.Do(req)
@@ -461,6 +601,12 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
 			return studioProjects, err
+		}
+
+		contentType := response.Header.Get("Content-Type")
+		if !strings.Contains(contentType, "application/json") && len(body) > 0 && body[0] != '[' && body[0] != '{' {
+			fmt.Printf("Server returned non-JSON response, loading local projects\n")
+			return GetLocalStudioProjects(studioProjectsDir, url, user)
 		}
 
 		err = json.Unmarshal(body, &studioProjects)
@@ -485,7 +631,10 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 					}
 					isDownloaded = false
 				} else {
-					repository.UpdateProject(projectPath)
+					err := repository.UpdateProject(projectPath)
+					if err != nil {
+						return studioProjects, err
+					}
 					dbConn, err := utils.OpenDb(projectPath)
 					if err != nil {
 						return studioProjects, err
@@ -554,6 +703,103 @@ func GetStudioProjects(user auth_service.User, url string, studioName string) ([
 
 		return studioProjects, nil
 	}
+}
+
+// serverProject represents a project returned by the server's /user/projects endpoint.
+type serverProject struct {
+	ProjectId   string `json:"project_id"`
+	ProjectName string `json:"project_name"`
+	OwnerId     string `json:"owner_id"`
+	OwnerName   string `json:"owner_name"`
+	Role        string `json:"role"`
+}
+
+// fetchUserProjects calls the central server to get all projects where the user is owner or collaborator.
+func fetchUserProjects(user auth_service.User) ([]serverProject, error) {
+	url := constants.HOST + "/user/projects"
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("server returned status %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	contentType := resp.Header.Get("Content-Type")
+	if !strings.Contains(contentType, "application/json") && len(body) > 0 && body[0] != '[' && body[0] != '{' {
+		return nil, fmt.Errorf("server returned non-JSON response (Content-Type: %s)", contentType)
+	}
+
+	var projects []serverProject
+	err = json.Unmarshal(body, &projects)
+	if err != nil {
+		return nil, err
+	}
+	return projects, nil
+}
+
+// mergeServerProjects merges server-discovered projects into the locally-scanned project list.
+// Local projects get enriched with role/owner info; server-only projects are added as not-downloaded.
+func mergeServerProjects(localProjects []repository.ProjectInfo, serverProjects []serverProject, projectsDir string) []repository.ProjectInfo {
+	// Build index of local projects by remote URL for fast lookup
+	localByRemote := make(map[string]int)
+	for i, lp := range localProjects {
+		if lp.Remote != "" {
+			localByRemote[lp.Remote] = i
+		}
+	}
+
+	for _, sp := range serverProjects {
+		remoteUrl := constants.HOST + "/user/" + sp.OwnerId + "/" + sp.ProjectName
+		if idx, exists := localByRemote[remoteUrl]; exists {
+			// Enrich existing local project with role info; prefer "owner" over "collaborator"
+			if localProjects[idx].Role != "owner" {
+				localProjects[idx].Role = sp.Role
+			}
+			localProjects[idx].OwnerName = sp.OwnerName
+		} else {
+			// Server-only project: add as not-downloaded
+			projectUri := filepath.Join(projectsDir, sp.ProjectName) + ".clst"
+			localProjects = append(localProjects, repository.ProjectInfo{
+				Id:           sp.ProjectId,
+				Name:         sp.ProjectName,
+				Uri:          projectUri,
+				Remote:       remoteUrl,
+				HasRemote:    true,
+				IsDownloaded: false,
+				IsTracked:    true,
+				Valid:        true,
+				Role:         sp.Role,
+				OwnerName:    sp.OwnerName,
+			})
+			// Update index so duplicate server entries merge instead of appending again
+			localByRemote[remoteUrl] = len(localProjects) - 1
+		}
+	}
+
+	// Set role to "owner" for local projects that have no server match (local-only projects)
+	for i, lp := range localProjects {
+		if lp.Role == "" && lp.IsTracked {
+			localProjects[i].Role = "owner"
+		}
+	}
+
+	return localProjects
 }
 
 func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]bool, locationID string) ([]repository.ProjectInfo, error) {
@@ -633,6 +879,13 @@ func GetLocalStudioProjects(studioProjectsDir, studioUrl string, user auth_servi
 		// Verify project integrity
 		valid, err := repository.VerifyProjectIntegrity(projectPath)
 		if !valid || err != nil {
+			continue
+		}
+
+		// Run pending migrations before reading project data
+		err = repository.UpdateProject(projectPath)
+		if err != nil {
+			fmt.Printf("Warning: Failed to update project %s: %v\n", entry.Name(), err)
 			continue
 		}
 

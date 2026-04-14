@@ -39,7 +39,7 @@ import PageState from '@/instances/common/components/PageState.vue';
 import SearchBar from '@/instances/desktop/components/SearchBar.vue';
 
 // services
-import { ProjectService } from "@/services";
+import { CollaboratorService, ProjectService } from "@/services";
 
 // stores
 import { useAssetStore } from '@/stores/assets';
@@ -125,12 +125,12 @@ const isLastAdmin = computed(() => {
 const projectCollaborators = computed(() => {
   const projectUsers = userStore.getProjectCollaborators;
   const assignedUserIds = [];
-  const tasks = assetStore.assets;
+  const assets = assetStore.assets;
 
-  for (const task of tasks) {
-    const taskAssigneeId = task.assignee_id;
-    if (!assignedUserIds.includes(taskAssigneeId)) {
-      assignedUserIds.push(taskAssigneeId);
+  for (const asset of assets) {
+    const assetAssigneeId = asset.assignee_id;
+    if (!assignedUserIds.includes(assetAssigneeId)) {
+      assignedUserIds.push(assetAssigneeId);
     }
   }
 
@@ -176,6 +176,12 @@ const studioCollaborators = computed(() => {
   return utils.sortAlphabetically(users);
 });
 
+// computed
+// Whether the active project is a studio project (cloud or private).
+const isStudioProject = computed(() => {
+  return projectStore.selectedStudio && projectStore.selectedStudio.name !== 'Personal';
+});
+
 // methods
 // Adds a studio collaborator to the project with 'Artist' role (or first available).
 const addCollaboratorToProject = async (userId) => {
@@ -196,17 +202,21 @@ const addCollaboratorToProject = async (userId) => {
 
   loadingCollaboratorIds.value.push(userId);
 
-  await ProjectService.AddUser(projectStore.activeProject.uri, collaborator.email, defaultRole)
-    .then(async () => {
-      notificationStore.addNotification(t('notifications.userAddedToProject'), "", "success");
-      await trayStates.refreshData();
-    })
-    .catch((error) => {
-      notificationStore.errorNotification(t('notifications.errorAddingUserToProject'), error);
-    })
-    .finally(() => {
-      loadingCollaboratorIds.value = loadingCollaboratorIds.value.filter(id => id !== userId);
-    });
+  try {
+    if (isStudioProject.value) {
+      const remoteUrl = projectStore.getActiveProjectUrl;
+      await CollaboratorService.AddCollaboratorsWithRole(remoteUrl, [userId], defaultRole);
+      await ProjectService.AddUserSynced(projectStore.activeProject.uri, collaborator.email, defaultRole);
+    } else {
+      await ProjectService.AddUser(projectStore.activeProject.uri, collaborator.email, defaultRole);
+    }
+    notificationStore.addNotification(t('notifications.userAddedToProject'), "", "success");
+    await trayStates.refreshData();
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.errorAddingUserToProject'), error);
+  } finally {
+    loadingCollaboratorIds.value = loadingCollaboratorIds.value.filter(id => id !== userId);
+  }
 };
 
 // Updates the collaborator's role in the project.
@@ -233,19 +243,21 @@ const deleteCollaborator = async (userId) => {
   
   loadingCollaboratorIds.value.push(userId);
   
-  await ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id)
-    .then(() => {
-      const users = userStore.users;
-      const userIndex = users.indexOf(collaborator);
-      userStore.users.splice(userIndex, 1);
-      notificationStore.addNotification(t('notifications.userRemoved'), "", "success");
-    })
-    .catch((error) => {
-      notificationStore.errorNotification(t('notifications.errorRemovingUser'), error);
-    })
-    .finally(() => {
-      loadingCollaboratorIds.value = loadingCollaboratorIds.value.filter(id => id !== userId);
-    });
+  try {
+    if (isStudioProject.value || projectStore.isR2Remote) {
+      const remoteUrl = projectStore.getActiveProjectUrl;
+      await CollaboratorService.RemoveCollaborator(remoteUrl, collaborator.id);
+      await ProjectService.RemoveUserSynced(projectStore.activeProject.uri, collaborator.id);
+    } else {
+      await ProjectService.RemoveUser(projectStore.activeProject.uri, collaborator.id);
+    }
+    await userStore.reloadUsers();
+    notificationStore.addNotification(t('notifications.userRemoved'), "", "success");
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.errorRemovingUser'), error);
+  } finally {
+    loadingCollaboratorIds.value = loadingCollaboratorIds.value.filter(id => id !== userId);
+  }
 };
 
 // Returns the icon path for the given icon name.
@@ -277,7 +289,7 @@ const updateSearch = () => {
 @import "@/assets/desktop.css";
 
 .collaborators-scroll-container {
-  width: 100%;
+  width: 96%;
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;

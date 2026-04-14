@@ -34,14 +34,14 @@ type User struct {
 	Role      Role   `json:"role"`
 }
 
-type EntityType struct {
+type CollectionType struct {
 	Id     string `db:"id" json:"id"`
 	MTime  int    `db:"mtime" json:"mtime"`
 	Name   string `db:"name" json:"name"`
 	Icon   string `db:"icon" json:"icon"`
 	Synced bool   `db:"synced" json:"synced"`
 }
-type TaskType struct {
+type AssetType struct {
 	Id     string `db:"id" json:"id"`
 	MTime  int    `db:"mtime" json:"mtime"`
 	Name   string `db:"name" json:"name"`
@@ -49,7 +49,7 @@ type TaskType struct {
 	Synced bool   `db:"synced" json:"synced"`
 }
 
-type Task struct {
+type Asset struct {
 	Id              string `db:"id" json:"id"`
 	MTime           int    `db:"mtime" json:"mtime"`
 	CreatedAt       string `db:"created_at" json:"created_at"`
@@ -59,13 +59,13 @@ type Task struct {
 	IsResource      bool   `db:"is_resource" json:"is_resource"`
 	StatusId        string `db:"status_id" json:"status_id"`
 	StatusShortName string `db:"status_short_name" json:"status_short_name"`
-	TaskTypeId      string `db:"task_type_id" json:"task_type_id"`
-	TaskTypeName    string `db:"task_type_name" json:"task_type_name"`
-	TaskTypeIcon    string `db:"task_type_icon" json:"task_type_icon"`
-	EntityId        string `db:"entity_id" json:"entity_id"`
-	EntityName      string `db:"entity_name" json:"entity_name"`
-	EntityPath      string `db:"entity_path" json:"entity_path"`
-	TaskPath        string `db:"task_path" json:"task_path"`
+	AssetTypeId     string `db:"asset_type_id" json:"asset_type_id"`
+	AssetTypeName   string `db:"asset_type_name" json:"asset_type_name"`
+	AssetTypeIcon   string `db:"asset_type_icon" json:"asset_type_icon"`
+	CollectionId    string `db:"collection_id" json:"collection_id"`
+	CollectionName  string `db:"collection_name" json:"collection_name"`
+	CollectionPath  string `db:"collection_path" json:"collection_path"`
+	AssetPath       string `db:"asset_path" json:"asset_path"`
 	AssigneeId      string `db:"assignee_id" json:"assignee_id"`
 	AssigneeEmail   string `db:"assignee_email" json:"assignee_email"`
 	AssigneeName    string `db:"assignee_name" json:"assignee_name"`
@@ -79,10 +79,10 @@ type Task struct {
 	Tags            []string `db:"-" json:"tags"`
 	TagsRaw         string   `db:"tags" json:"-"`
 	// Tags             []string `db:"tags" json:"tags"`
-	EntityDependencies    []string `db:"-" json:"entity_dependencies"`
-	EntityDependenciesRaw string   `db:"entity_dependencies" json:"-"`
-	Dependencies          []string `db:"-" json:"dependencies"`
-	DependenciesRaw       string   `db:"dependencies" json:"-"`
+	CollectionDependencies    []string `db:"-" json:"collection_dependencies"`
+	CollectionDependenciesRaw string   `db:"collection_dependencies" json:"-"`
+	Dependencies              []string `db:"-" json:"dependencies"`
+	DependenciesRaw           string   `db:"dependencies" json:"-"`
 	// Dependencies     []string `db:"dependencies" json:"dependencies"`
 	FileStatus       string       `db:"file_status" json:"file_status"`
 	Status           Status       `db:"status" json:"status"`
@@ -96,170 +96,170 @@ type Task struct {
 	Synced           bool         `db:"synced" json:"synced"`
 }
 
-func (t Task) MarshalJSON() ([]byte, error) {
-	type Alias Task
+func (t Asset) MarshalJSON() ([]byte, error) {
+	type Alias Asset
 	return json.Marshal(&struct {
 		Alias
 		Type string `json:"type"`
 	}{
 		Alias: Alias(t),
-		Type:  "task",
+		Type:  "asset",
 	})
 }
 
-func (t *Task) GetFilePath() string {
+func (t *Asset) GetFilePath() string {
 	if t.Pointer == "" {
 		return t.FilePath
 	}
 	return t.Pointer
 }
 
-type Entity struct {
-	Id               string   `db:"id" json:"id"`
-	MTime            int      `db:"mtime" json:"mtime"`
-	CreatedAt        string   `db:"created_at" json:"created_at"`
-	Name             string   `db:"name" json:"name"`
-	Description      string   `db:"description" json:"description"`
-	EntityPath       string   `db:"entity_path" json:"entity_path"`
-	FilePath         string   `db:"file_path" json:"file_path"`
-	Trashed          bool     `db:"trashed" json:"trashed"`
-	EntityTypeId     string   `db:"entity_type_id" json:"entity_type_id"`
-	EntityTypeIcon   string   `db:"entity_type_icon" json:"entity_type_icon"`
-	ParentId         string   `db:"parent_id" json:"parent_id"`
-	AssigneeIdsRaw   string   `db:"assignee_ids" json:"-"`
-	AssigneeIds      []string `db:"-" json:"assignee_ids"`
-	EntityTypeName   string   `db:"entity_type_name" json:"entity_type_name"`
-	PreviewId        string   `db:"preview_id" json:"preview_id"`
-	Preview          []byte   `db:"preview" json:"preview"`
-	PreviewExtension string   `db:"preview_extension" json:"preview_extension"`
-	Synced           bool     `db:"synced" json:"synced"`
-	IsDependency     bool     `db:"is_dependency" json:"is_dependency"`
-	IsLibrary        bool     `db:"is_library" json:"is_library"`
-	CanModify        bool     `db:"can_modify" json:"can_modify"`
-	Level            int      `db:"level" json:"-"`
-	HasChildren      bool     `db:"-" json:"has_children"`
+type Collection struct {
+	Id                 string   `db:"id" json:"id"`
+	MTime              int      `db:"mtime" json:"mtime"`
+	CreatedAt          string   `db:"created_at" json:"created_at"`
+	Name               string   `db:"name" json:"name"`
+	Description        string   `db:"description" json:"description"`
+	CollectionPath     string   `db:"collection_path" json:"collection_path"`
+	FilePath           string   `db:"file_path" json:"file_path"`
+	Trashed            bool     `db:"trashed" json:"trashed"`
+	CollectionTypeId   string   `db:"collection_type_id" json:"collection_type_id"`
+	CollectionTypeIcon string   `db:"collection_type_icon" json:"collection_type_icon"`
+	ParentId           string   `db:"parent_id" json:"parent_id"`
+	AssigneeIdsRaw     string   `db:"assignee_ids" json:"-"`
+	AssigneeIds        []string `db:"-" json:"assignee_ids"`
+	CollectionTypeName string   `db:"collection_type_name" json:"collection_type_name"`
+	PreviewId          string   `db:"preview_id" json:"preview_id"`
+	Preview            []byte   `db:"preview" json:"preview"`
+	PreviewExtension   string   `db:"preview_extension" json:"preview_extension"`
+	Synced             bool     `db:"synced" json:"synced"`
+	IsDependency       bool     `db:"is_dependency" json:"is_dependency"`
+	IsLibrary          bool     `db:"is_library" json:"is_library"`
+	CanModify          bool     `db:"can_modify" json:"can_modify"`
+	Level              int      `db:"level" json:"-"`
+	HasChildren        bool     `db:"-" json:"has_children"`
 }
-type EntityAssignee struct {
-	Id         string `db:"id" json:"id"`
-	MTime      int    `db:"mtime" json:"mtime"`
-	EntityId   string `db:"entity_id" json:"entity_id"`
-	AssigneeId string `db:"assignee_id" json:"assignee_id"`
-	AssignerId string `db:"assigner_id" json:"assigner_id"`
-	Synced     bool   `db:"synced" json:"synced"`
+type CollectionAssignee struct {
+	Id           string `db:"id" json:"id"`
+	MTime        int    `db:"mtime" json:"mtime"`
+	CollectionId string `db:"collection_id" json:"collection_id"`
+	AssigneeId   string `db:"assignee_id" json:"assignee_id"`
+	AssignerId   string `db:"assigner_id" json:"assigner_id"`
+	Synced       bool   `db:"synced" json:"synced"`
 }
 
-func (e Entity) MarshalJSON() ([]byte, error) {
-	type Alias Entity
+func (e Collection) MarshalJSON() ([]byte, error) {
+	type Alias Collection
 	return json.Marshal(&struct {
 		Alias
 		Type string `json:"type"`
 	}{
 		Alias: Alias(e),
-		Type:  "entity",
+		Type:  "collection",
 	})
 }
 
-func (e *Entity) GetFilePath() string {
+func (e *Collection) GetFilePath() string {
 	return e.FilePath
 }
 
-type UntrackedTask struct {
-	Id           string `db:"id" json:"id"`
-	Name         string `db:"name" json:"name"`
-	Extension    string `db:"extension" json:"extension"`
-	EntityId     string `db:"entity_id" json:"entity_id"`
-	EntityName   string `db:"entity_name" json:"entity_name"`
-	EntityPath   string `db:"entity_path" json:"entity_path"`
-	TaskPath     string `db:"task_path" json:"task_path"`
-	FilePath     string `db:"file_path" json:"file_path"`
-	ItemPath     string `db:"item_type" json:"item_type"`
-	TaskTypeIcon string `db:"task_type_icon" json:"task_type_icon"`
+type UntrackedAsset struct {
+	Id             string `db:"id" json:"id"`
+	Name           string `db:"name" json:"name"`
+	Extension      string `db:"extension" json:"extension"`
+	CollectionId   string `db:"collection_id" json:"collection_id"`
+	CollectionName string `db:"collection_name" json:"collection_name"`
+	CollectionPath string `db:"collection_path" json:"collection_path"`
+	AssetPath      string `db:"asset_path" json:"asset_path"`
+	FilePath       string `db:"file_path" json:"file_path"`
+	ItemPath       string `db:"item_type" json:"item_type"`
+	AssetTypeIcon  string `db:"asset_type_icon" json:"asset_type_icon"`
 }
 
-func (ut UntrackedTask) MarshalJSON() ([]byte, error) {
-	type Alias UntrackedTask
+func (ut UntrackedAsset) MarshalJSON() ([]byte, error) {
+	type Alias UntrackedAsset
 	return json.Marshal(&struct {
 		Alias
 		Type string `json:"type"`
 	}{
 		Alias: Alias(ut),
-		Type:  "untracked_task",
+		Type:  "untracked_asset",
 	})
 }
 
-type UntrackedEntity struct {
-	Id         string `db:"id" json:"id"`
-	Name       string `db:"name" json:"name"`
-	EntityPath string `db:"entity_path" json:"entity_path"`
-	ItemPath   string `db:"item_path" json:"item_path"`
-	FilePath   string `db:"file_path" json:"file_path"`
-	ParentId   string `db:"parent_id" json:"parent_id"`
+type UntrackedCollection struct {
+	Id             string `db:"id" json:"id"`
+	Name           string `db:"name" json:"name"`
+	CollectionPath string `db:"collection_path" json:"collection_path"`
+	ItemPath       string `db:"item_path" json:"item_path"`
+	FilePath       string `db:"file_path" json:"file_path"`
+	ParentId       string `db:"parent_id" json:"parent_id"`
 }
 
-func (ue UntrackedEntity) MarshalJSON() ([]byte, error) {
-	type Alias UntrackedEntity
+func (ue UntrackedCollection) MarshalJSON() ([]byte, error) {
+	type Alias UntrackedCollection
 	return json.Marshal(&struct {
 		Alias
 		Type string `json:"type"`
 	}{
 		Alias: Alias(ue),
-		Type:  "untracked_entity",
+		Type:  "untracked_collection",
 	})
 }
 
-type TaskDependency struct {
+type AssetDependency struct {
 	Id               string `db:"id" json:"id"`
 	MTime            int    `db:"mtime" json:"mtime"`
-	TaskId           string `db:"task_id" json:"task_id"`
+	AssetId          string `db:"asset_id" json:"asset_id"`
 	DependencyId     string `db:"dependency_id" json:"dependency_id"`
 	DependencyTypeId string `db:"dependency_type_id" json:"dependency_type_id"`
 	Synced           bool   `db:"synced" json:"synced"`
 }
-type EntityDependency struct {
+type CollectionDependency struct {
 	Id               string `db:"id" json:"id"`
 	MTime            int    `db:"mtime" json:"mtime"`
-	TaskId           string `db:"task_id" json:"task_id"`
+	AssetId          string `db:"asset_id" json:"asset_id"`
 	DependencyId     string `db:"dependency_id" json:"dependency_id"`
 	DependencyTypeId string `db:"dependency_type_id" json:"dependency_type_id"`
 	Synced           bool   `db:"synced" json:"synced"`
 }
 type Workflow struct {
-	Id       string           `db:"id" json:"id"`
-	MTime    int              `db:"mtime" json:"mtime"`
-	Name     string           `db:"name" json:"name"`
-	Synced   bool             `db:"synced" json:"synced"`
-	Tasks    []WorkflowTask   `db:"-" json:"tasks"`
-	Entities []WorkflowEntity `db:"-" json:"entities"`
-	Links    []WorkflowLink   `db:"-" json:"links"`
+	Id          string               `db:"id" json:"id"`
+	MTime       int                  `db:"mtime" json:"mtime"`
+	Name        string               `db:"name" json:"name"`
+	Synced      bool                 `db:"synced" json:"synced"`
+	Assets      []WorkflowAsset      `db:"-" json:"assets"`
+	Collections []WorkflowCollection `db:"-" json:"collections"`
+	Links       []WorkflowLink       `db:"-" json:"links"`
 }
-type WorkflowTask struct {
+type WorkflowAsset struct {
+	Id                   string `db:"id" json:"id"`
+	MTime                int    `db:"mtime" json:"mtime"`
+	Name                 string `db:"name" json:"name"`
+	TemplateId           string `db:"template_id" json:"template_id"`
+	IsResource           bool   `db:"is_resource" json:"is_resource"`
+	WorkflowId           string `db:"workflow_id" json:"workflow_id"`
+	AssetTypeId          string `db:"asset_type_id" json:"asset_type_id"`
+	WorkflowCollectionId string `db:"workflow_collection_id" json:"workflow_collection_id"`
+	IsLink               bool   `db:"is_link" json:"is_link"`
+	Pointer              string `db:"pointer" json:"pointer"`
+	Synced               bool   `db:"synced" json:"synced"`
+}
+type WorkflowCollection struct {
 	Id               string `db:"id" json:"id"`
 	MTime            int    `db:"mtime" json:"mtime"`
 	Name             string `db:"name" json:"name"`
-	TemplateId       string `db:"template_id" json:"template_id"`
-	IsResource       bool   `db:"is_resource" json:"is_resource"`
 	WorkflowId       string `db:"workflow_id" json:"workflow_id"`
-	TaskTypeId       string `db:"task_type_id" json:"task_type_id"`
-	WorkflowEntityId string `db:"workflow_entity_id" json:"workflow_entity_id"`
-	IsLink           bool   `db:"is_link" json:"is_link"`
-	Pointer          string `db:"pointer" json:"pointer"`
+	CollectionTypeId string `db:"collection_type_id" json:"collection_type_id"`
+	ParentId         string `db:"parent_id" json:"parent_id"`
 	Synced           bool   `db:"synced" json:"synced"`
-}
-type WorkflowEntity struct {
-	Id           string `db:"id" json:"id"`
-	MTime        int    `db:"mtime" json:"mtime"`
-	Name         string `db:"name" json:"name"`
-	WorkflowId   string `db:"workflow_id" json:"workflow_id"`
-	EntityTypeId string `db:"entity_type_id" json:"entity_type_id"`
-	ParentId     string `db:"parent_id" json:"parent_id"`
-	Synced       bool   `db:"synced" json:"synced"`
 }
 
 type WorkflowLink struct {
 	Id                 string `db:"id" json:"id"`
 	MTime              int    `db:"mtime" json:"mtime"`
 	Name               string `db:"name" json:"name"`
-	EntityTypeId       string `db:"entity_type_id" json:"entity_type_id"`
+	CollectionTypeId   string `db:"collection_type_id" json:"collection_type_id"`
 	WorkflowId         string `db:"workflow_id" json:"workflow_id"`
 	LinkedWorkflowId   string `db:"linked_workflow_id" json:"linked_workflow_id"`
 	LinkedWorkflowName string `db:"-" json:"linked_workflow_name"`
@@ -289,19 +289,19 @@ type Tag struct {
 	Synced bool   `db:"synced" json:"synced"`
 }
 
-type TaskTag struct {
-	Id     string `db:"id"`
-	MTime  int    `db:"mtime" json:"mtime"`
-	TaskId string `db:"task_id"`
-	TagId  string `db:"tag_id"`
-	Synced bool   `db:"synced" json:"synced"`
+type AssetTag struct {
+	Id      string `db:"id"`
+	MTime   int    `db:"mtime" json:"mtime"`
+	AssetId string `db:"asset_id"`
+	TagId   string `db:"tag_id"`
+	Synced  bool   `db:"synced" json:"synced"`
 }
 
 type Checkpoint struct {
 	Id               string `db:"id" json:"id"`
 	MTime            int    `db:"mtime" json:"mtime"`
 	CreatedAt        string `db:"created_at" json:"created_at"`
-	TaskId           string `db:"task_id" json:"task_id"`
+	AssetId          string `db:"asset_id" json:"asset_id"`
 	XXHashChecksum   string `db:"xxhash_checksum" json:"xxhash_checksum"`
 	TimeModified     int    `db:"time_modified" json:"time_modified"`
 	FileSize         int    `db:"file_size" json:"file_size"`
@@ -345,15 +345,15 @@ type Role struct {
 	Name   string `db:"name" json:"name"`
 	Synced bool   `db:"synced" json:"synced"`
 
-	ViewEntity   bool `db:"view_entity" json:"view_entity"`
-	CreateEntity bool `db:"create_entity" json:"create_entity"`
-	UpdateEntity bool `db:"update_entity" json:"update_entity"`
-	DeleteEntity bool `db:"delete_entity" json:"delete_entity"`
+	ViewCollection   bool `db:"view_collection" json:"view_collection"`
+	CreateCollection bool `db:"create_collection" json:"create_collection"`
+	UpdateCollection bool `db:"update_collection" json:"update_collection"`
+	DeleteCollection bool `db:"delete_collection" json:"delete_collection"`
 
-	ViewTask   bool `db:"view_task" json:"view_task"`
-	CreateTask bool `db:"create_task" json:"create_task"`
-	UpdateTask bool `db:"update_task" json:"update_task"`
-	DeleteTask bool `db:"delete_task" json:"delete_task"`
+	ViewAsset   bool `db:"view_asset" json:"view_asset"`
+	CreateAsset bool `db:"create_asset" json:"create_asset"`
+	UpdateAsset bool `db:"update_asset" json:"update_asset"`
+	DeleteAsset bool `db:"delete_asset" json:"delete_asset"`
 
 	ViewTemplate   bool `db:"view_template" json:"view_template"`
 	CreateTemplate bool `db:"create_template" json:"create_template"`
@@ -366,32 +366,33 @@ type Role struct {
 
 	PullChunk bool `db:"pull_chunk" json:"pull_chunk"`
 
-	AssignTask   bool `db:"assign_task" json:"assign_task"`
-	UnassignTask bool `db:"unassign_task" json:"unassign_task"`
+	AssignAsset   bool `db:"assign_asset" json:"assign_asset"`
+	UnassignAsset bool `db:"unassign_asset" json:"unassign_asset"`
 
 	AddUser    bool `db:"add_user" json:"add_user"`
 	RemoveUser bool `db:"remove_user" json:"remove_user"`
 	ChangeRole bool `db:"change_role" json:"change_role"`
 
-	ChangeStatus  bool `db:"change_status" json:"change_status"`
-	SetDoneTask   bool `db:"set_done_task" json:"set_done_task"`
-	SetRetakeTask bool `db:"set_retake_task" json:"set_retake_task"`
+	ChangeStatus   bool `db:"change_status" json:"change_status"`
+	SetDoneAsset   bool `db:"set_done_asset" json:"set_done_asset"`
+	SetRetakeAsset bool `db:"set_retake_asset" json:"set_retake_asset"`
 
-	ViewDoneTask bool `db:"view_done_task" json:"view_done_task"`
+	ViewDoneAsset bool `db:"view_done_asset" json:"view_done_asset"`
 
 	ManageDependencies bool `db:"manage_dependencies" json:"manage_dependencies"`
+	ManageShareLinks   bool `db:"manage_share_links" json:"manage_share_links"`
 }
 
 type RoleAttributes struct {
-	ViewEntity   bool `db:"view_entity" json:"view_entity"`
-	CreateEntity bool `db:"create_entity" json:"create_entity"`
-	UpdateEntity bool `db:"update_entity" json:"update_entity"`
-	DeleteEntity bool `db:"delete_entity" json:"delete_entity"`
+	ViewCollection   bool `db:"view_collection" json:"view_collection"`
+	CreateCollection bool `db:"create_collection" json:"create_collection"`
+	UpdateCollection bool `db:"update_collection" json:"update_collection"`
+	DeleteCollection bool `db:"delete_collection" json:"delete_collection"`
 
-	ViewTask   bool `db:"view_task" json:"view_task"`
-	CreateTask bool `db:"create_task" json:"create_task"`
-	UpdateTask bool `db:"update_task" json:"update_task"`
-	DeleteTask bool `db:"delete_task" json:"delete_task"`
+	ViewAsset   bool `db:"view_asset" json:"view_asset"`
+	CreateAsset bool `db:"create_asset" json:"create_asset"`
+	UpdateAsset bool `db:"update_asset" json:"update_asset"`
+	DeleteAsset bool `db:"delete_asset" json:"delete_asset"`
 
 	ViewTemplate   bool `db:"view_template" json:"view_template"`
 	CreateTemplate bool `db:"create_template" json:"create_template"`
@@ -404,20 +405,21 @@ type RoleAttributes struct {
 
 	PullChunk bool `db:"pull_chunk" json:"pull_chunk"`
 
-	AssignTask   bool `db:"assign_task" json:"assign_task"`
-	UnassignTask bool `db:"unassign_task" json:"unassign_task"`
+	AssignAsset   bool `db:"assign_asset" json:"assign_asset"`
+	UnassignAsset bool `db:"unassign_asset" json:"unassign_asset"`
 
 	AddUser    bool `db:"add_user" json:"add_user"`
 	RemoveUser bool `db:"remove_user" json:"remove_user"`
 	ChangeRole bool `db:"change_role" json:"change_role"`
 
-	ChangeStatus  bool `db:"change_status" json:"change_status"`
-	SetDoneTask   bool `db:"set_done_task" json:"set_done_task"`
-	SetRetakeTask bool `db:"set_retake_task" json:"set_retake_task"`
+	ChangeStatus   bool `db:"change_status" json:"change_status"`
+	SetDoneAsset   bool `db:"set_done_asset" json:"set_done_asset"`
+	SetRetakeAsset bool `db:"set_retake_asset" json:"set_retake_asset"`
 
-	ViewDoneTask bool `db:"view_done_task" json:"view_done_task"`
+	ViewDoneAsset bool `db:"view_done_asset" json:"view_done_asset"`
 
 	ManageDependencies bool `db:"manage_dependencies" json:"manage_dependencies"`
+	ManageShareLinks   bool `db:"manage_share_links" json:"manage_share_links"`
 }
 type ServerRole struct {
 	Id    string `db:"id" json:"id"`

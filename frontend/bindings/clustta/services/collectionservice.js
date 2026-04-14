@@ -18,12 +18,12 @@ import * as $models from "./models.js";
  * Assign assigns a user to a collection.
  * Returns an error if the operation fails.
  * @param {string} projectPath
- * @param {string} entityId
+ * @param {string} collectionId
  * @param {string} userId
  * @returns {$CancellablePromise<void>}
  */
-export function Assign(projectPath, entityId, userId) {
-    return $Call.ByID(2838915874, projectPath, entityId, userId);
+export function Assign(projectPath, collectionId, userId) {
+    return $Call.ByID(2838915874, projectPath, collectionId, userId);
 }
 
 /**
@@ -31,80 +31,80 @@ export function Assign(projectPath, entityId, userId) {
  * Checks for name conflicts in the target parent before moving.
  * Returns an error if any collection would conflict or if the operation fails.
  * @param {string} projectPath
- * @param {string[]} entityIds
+ * @param {string[]} collectionIds
  * @param {string} parentId
  * @returns {$CancellablePromise<void>}
  */
-export function ChangeCollectionParent(projectPath, entityIds, parentId) {
-    return $Call.ByID(2168719759, projectPath, entityIds, parentId);
+export function ChangeCollectionParent(projectPath, collectionIds, parentId) {
+    return $Call.ByID(2168719759, projectPath, collectionIds, parentId);
 }
 
 /**
  * ChangeIsLibrary toggles the library flag on a collection.
  * Returns an error if the operation fails.
  * @param {string} projectPath
- * @param {string} entityId
+ * @param {string} collectionId
  * @param {boolean} isLibrary
  * @returns {$CancellablePromise<void>}
  */
-export function ChangeIsLibrary(projectPath, entityId, isLibrary) {
-    return $Call.ByID(2948869046, projectPath, entityId, isLibrary);
+export function ChangeIsLibrary(projectPath, collectionId, isLibrary) {
+    return $Call.ByID(2948869046, projectPath, collectionId, isLibrary);
 }
 
 /**
  * ChangeType changes the type of a collection.
  * Returns an error if the operation fails.
  * @param {string} projectPath
- * @param {string} entityId
- * @param {string} entityTypeId
+ * @param {string} collectionId
+ * @param {string} collectionTypeId
  * @returns {$CancellablePromise<void>}
  */
-export function ChangeType(projectPath, entityId, entityTypeId) {
-    return $Call.ByID(489875783, projectPath, entityId, entityTypeId);
+export function ChangeType(projectPath, collectionId, collectionTypeId) {
+    return $Call.ByID(489875783, projectPath, collectionId, collectionTypeId);
 }
 
 /**
  * CreateCollection creates a new collection in the project.
- * Returns the created entity or an error if the operation fails.
+ * Returns the created collection or an error if the operation fails.
  * @param {string} projectPath
  * @param {string} name
  * @param {string} description
- * @param {string} entityTypeId
+ * @param {string} collectionTypeId
  * @param {string} parentId
  * @param {string} previewPath
  * @param {boolean} isLibrary
- * @returns {$CancellablePromise<models$0.Entity>}
+ * @returns {$CancellablePromise<models$0.Collection>}
  */
-export function CreateCollection(projectPath, name, description, entityTypeId, parentId, previewPath, isLibrary) {
-    return $Call.ByID(1857306755, projectPath, name, description, entityTypeId, parentId, previewPath, isLibrary);
+export function CreateCollection(projectPath, name, description, collectionTypeId, parentId, previewPath, isLibrary) {
+    return $Call.ByID(1857306755, projectPath, name, description, collectionTypeId, parentId, previewPath, isLibrary);
 }
 
 /**
  * CreateCollectionType creates a new collection type in the project.
  * Returns an error if a type with the same name already exists.
  * @param {string} projectPath
- * @param {string} entityTypeName
- * @param {string} entityTypeIcon
- * @returns {$CancellablePromise<models$0.EntityType>}
+ * @param {string} collectionTypeName
+ * @param {string} collectionTypeIcon
+ * @returns {$CancellablePromise<models$0.CollectionType>}
  */
-export function CreateCollectionType(projectPath, entityTypeName, entityTypeIcon) {
-    return $Call.ByID(4202352859, projectPath, entityTypeName, entityTypeIcon).then(/** @type {($result: any) => any} */(($result) => {
+export function CreateCollectionType(projectPath, collectionTypeName, collectionTypeIcon) {
+    return $Call.ByID(4202352859, projectPath, collectionTypeName, collectionTypeIcon).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
 }
 
 /**
- * CreateCollections creates multiple collection entities in bulk.
+ * CreateCollections creates multiple collection collections in bulk.
  * Currently a stub implementation for future batch creation functionality.
  * @param {string} projectPath
  * @param {string} name
  * @param {string} description
- * @param {string} entityTypeId
+ * @param {string} collectionTypeId
  * @param {string} parentId
- * @returns {$CancellablePromise<models$0.Entity[]>}
+ * @returns {$CancellablePromise<models$0.Collection[]>}
  */
-export function CreateCollections(projectPath, name, description, entityTypeId, parentId) {
-    return $Call.ByID(901921232, projectPath, name, description, entityTypeId, parentId).then(/** @type {($result: any) => any} */(($result) => {
+export function CreateCollections(projectPath, name, description, collectionTypeId, parentId) {
+    return $Call.ByID(901921232, projectPath, name, description, collectionTypeId, parentId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
 }
@@ -113,12 +113,12 @@ export function CreateCollections(projectPath, name, description, entityTypeId, 
  * DeleteCollection removes a collection from the project.
  * Optionally removes associated files if removeFiles is true.
  * @param {string} projectPath
- * @param {string} entityId
+ * @param {string} collectionId
  * @param {boolean} removeFiles
  * @returns {$CancellablePromise<void>}
  */
-export function DeleteCollection(projectPath, entityId, removeFiles) {
-    return $Call.ByID(3363308644, projectPath, entityId, removeFiles);
+export function DeleteCollection(projectPath, collectionId, removeFiles) {
+    return $Call.ByID(3363308644, projectPath, collectionId, removeFiles);
 }
 
 /**
@@ -133,56 +133,69 @@ export function DeleteCollectionType(projectPath, id) {
 }
 
 /**
- * GetCollectionByID retrieves a collection by its ID.
- * Returns the entity or an error if not found.
+ * GetCollectionAssets retrieves all assets belonging to a specific collection.
+ * Returns the list of assets or an error if the operation fails.
  * @param {string} projectPath
- * @param {string} entityId
- * @returns {$CancellablePromise<models$0.Entity>}
+ * @param {string} collectionId
+ * @returns {$CancellablePromise<models$0.Asset[]>}
  */
-export function GetCollectionByID(projectPath, entityId) {
-    return $Call.ByID(1116836093, projectPath, entityId);
-}
-
-/**
- * GetCollectionByPath retrieves a collection by its filesystem path.
- * Returns the entity or an error if not found.
- * @param {string} projectPath
- * @param {string} entityPath
- * @returns {$CancellablePromise<models$0.Entity>}
- */
-export function GetCollectionByPath(projectPath, entityPath) {
-    return $Call.ByID(2488608455, projectPath, entityPath);
-}
-
-/**
- * GetCollectionChildren retrieves all children of a collection including tracked and untracked items.
- * Returns separate lists for tasks, entities, and untracked items.
- * @param {string} projectPath
- * @param {string} entityId
- * @param {string} projectWorkingDir
- * @param {string} entityFolderPath
- * @param {string[]} ignoreList
- * @param {boolean} isUntracked
- * @returns {$CancellablePromise<$models.EntityItems>}
- */
-export function GetCollectionChildren(projectPath, entityId, projectWorkingDir, entityFolderPath, ignoreList, isUntracked) {
-    return $Call.ByID(985363246, projectPath, entityId, projectWorkingDir, entityFolderPath, ignoreList, isUntracked).then(/** @type {($result: any) => any} */(($result) => {
+export function GetCollectionAssets(projectPath, collectionId) {
+    return $Call.ByID(282805764, projectPath, collectionId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType2($result);
     }));
 }
 
 /**
- * GetCollectionChildrenState analyzes the immediate children of a collection to determine their state.
- * Returns state containing modified, outdated, rebuildable tasks and untracked items.
+ * GetCollectionByID retrieves a collection by its ID.
+ * Returns the collection or an error if not found.
  * @param {string} projectPath
- * @param {string} entityId
+ * @param {string} collectionId
+ * @returns {$CancellablePromise<models$0.Collection>}
+ */
+export function GetCollectionByID(projectPath, collectionId) {
+    return $Call.ByID(1116836093, projectPath, collectionId);
+}
+
+/**
+ * GetCollectionByPath retrieves a collection by its filesystem path.
+ * Returns the collection or an error if not found.
+ * @param {string} projectPath
+ * @param {string} collectionPath
+ * @returns {$CancellablePromise<models$0.Collection>}
+ */
+export function GetCollectionByPath(projectPath, collectionPath) {
+    return $Call.ByID(2488608455, projectPath, collectionPath);
+}
+
+/**
+ * GetCollectionChildren retrieves all children of a collection including tracked and untracked items.
+ * Returns separate lists for assets, collections, and untracked items.
+ * @param {string} projectPath
+ * @param {string} collectionId
+ * @param {string} projectWorkingDir
+ * @param {string} collectionFolderPath
+ * @param {string[]} ignoreList
+ * @param {boolean} isUntracked
+ * @returns {$CancellablePromise<$models.CollectionItems>}
+ */
+export function GetCollectionChildren(projectPath, collectionId, projectWorkingDir, collectionFolderPath, ignoreList, isUntracked) {
+    return $Call.ByID(985363246, projectPath, collectionId, projectWorkingDir, collectionFolderPath, ignoreList, isUntracked).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType3($result);
+    }));
+}
+
+/**
+ * GetCollectionChildrenState analyzes the immediate children of a collection to determine their state.
+ * Returns state containing modified, outdated, rebuildable assets and untracked items.
+ * @param {string} projectPath
+ * @param {string} collectionId
  * @param {string} projectWorkingDir
  * @param {string[]} ignoreList
  * @returns {$CancellablePromise<$models.CollectionChildrenState>}
  */
-export function GetCollectionChildrenState(projectPath, entityId, projectWorkingDir, ignoreList) {
-    return $Call.ByID(1931303187, projectPath, entityId, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+export function GetCollectionChildrenState(projectPath, collectionId, projectWorkingDir, ignoreList) {
+    return $Call.ByID(1931303187, projectPath, collectionId, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType4($result);
     }));
 }
 
@@ -200,35 +213,22 @@ export function GetCollectionCount(projectPath) {
  * GetCollectionStateFlags checks if a collection has any recursive children with specific states.
  * Returns flags indicating presence of untracked, modified, outdated, or rebuildable items.
  * @param {string} projectPath
- * @param {string} entityId
+ * @param {string} collectionId
  * @param {string} projectWorkingDir
  * @param {string[]} ignoreList
  * @returns {$CancellablePromise<$models.CollectionStateFlags>}
  */
-export function GetCollectionStateFlags(projectPath, entityId, projectWorkingDir, ignoreList) {
-    return $Call.ByID(144595661, projectPath, entityId, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType4($result);
-    }));
-}
-
-/**
- * GetCollectionTasks retrieves all tasks belonging to a specific collection.
- * Returns the list of tasks or an error if the operation fails.
- * @param {string} projectPath
- * @param {string} entityId
- * @returns {$CancellablePromise<models$0.Task[]>}
- */
-export function GetCollectionTasks(projectPath, entityId) {
-    return $Call.ByID(1367523417, projectPath, entityId).then(/** @type {($result: any) => any} */(($result) => {
+export function GetCollectionStateFlags(projectPath, collectionId, projectWorkingDir, ignoreList) {
+    return $Call.ByID(144595661, projectPath, collectionId, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType5($result);
     }));
 }
 
 /**
  * GetCollectionTypes retrieves all collection types in the project.
- * Returns the list of entity types or an error if the operation fails.
+ * Returns the list of collection types or an error if the operation fails.
  * @param {string} projectPath
- * @returns {$CancellablePromise<models$0.EntityType[]>}
+ * @returns {$CancellablePromise<models$0.CollectionType[]>}
  */
 export function GetCollectionTypes(projectPath) {
     return $Call.ByID(1279663726, projectPath).then(/** @type {($result: any) => any} */(($result) => {
@@ -238,9 +238,9 @@ export function GetCollectionTypes(projectPath) {
 
 /**
  * GetCollections retrieves collections based on user permissions.
- * Returns all entities or only user-accessible entities based on role.
+ * Returns all collections or only user-accessible collections based on role.
  * @param {string} projectPath
- * @returns {$CancellablePromise<models$0.Entity[]>}
+ * @returns {$CancellablePromise<models$0.Collection[]>}
  */
 export function GetCollections(projectPath) {
     return $Call.ByID(1787506934, projectPath).then(/** @type {($result: any) => any} */(($result) => {
@@ -250,31 +250,31 @@ export function GetCollections(projectPath) {
 
 /**
  * GetItemsForCheckpoint efficiently collects all modified and untracked items in a collection hierarchy.
- * Returns deduplicated modified tasks and untracked files.
+ * Returns deduplicated modified assets and untracked files.
  * @param {string} projectPath
- * @param {string} entityId
+ * @param {string} collectionId
  * @param {string} targetPath
  * @param {string} projectWorkingDir
  * @param {string[]} ignoreList
  * @returns {$CancellablePromise<$models.ItemsForCheckpoint>}
  */
-export function GetItemsForCheckpoint(projectPath, entityId, targetPath, projectWorkingDir, ignoreList) {
-    return $Call.ByID(621025292, projectPath, entityId, targetPath, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
+export function GetItemsForCheckpoint(projectPath, collectionId, targetPath, projectWorkingDir, ignoreList) {
+    return $Call.ByID(621025292, projectPath, collectionId, targetPath, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType7($result);
     }));
 }
 
 /**
  * GetOutdatedItemsInCollection efficiently collects all outdated items in a collection hierarchy.
- * Returns deduplicated outdated tasks.
+ * Returns deduplicated outdated assets.
  * @param {string} projectPath
- * @param {string} entityId
+ * @param {string} collectionId
  * @param {string} projectWorkingDir
  * @param {string[]} ignoreList
  * @returns {$CancellablePromise<$models.ItemsForUpdate>}
  */
-export function GetOutdatedItemsInCollection(projectPath, entityId, projectWorkingDir, ignoreList) {
-    return $Call.ByID(86452480, projectPath, entityId, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
+export function GetOutdatedItemsInCollection(projectPath, collectionId, projectWorkingDir, ignoreList) {
+    return $Call.ByID(86452480, projectPath, collectionId, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType8($result);
     }));
 }
@@ -283,12 +283,12 @@ export function GetOutdatedItemsInCollection(projectPath, entityId, projectWorki
  * IsUserAssignedToCollectionOrAncestor checks if a user is assigned to a collection
  * or any of its parent collections recursively.
  * @param {string} projectPath
- * @param {string} entityId
+ * @param {string} collectionId
  * @param {string} userId
  * @returns {$CancellablePromise<boolean>}
  */
-export function IsUserAssignedToCollectionOrAncestor(projectPath, entityId, userId) {
-    return $Call.ByID(3770501513, projectPath, entityId, userId);
+export function IsUserAssignedToCollectionOrAncestor(projectPath, collectionId, userId) {
+    return $Call.ByID(3770501513, projectPath, collectionId, userId);
 }
 
 /**
@@ -296,58 +296,58 @@ export function IsUserAssignedToCollectionOrAncestor(projectPath, entityId, user
  * Supports cancellation and sends progress updates via application events.
  * @param {string} projectPath
  * @param {string} remoteUrl
- * @param {string} entityIds
+ * @param {string} collectionIds
  * @param {string} userId
  * @returns {$CancellablePromise<void>}
  */
-export function Rebuild(projectPath, remoteUrl, entityIds, userId) {
-    return $Call.ByID(1269618418, projectPath, remoteUrl, entityIds, userId);
+export function Rebuild(projectPath, remoteUrl, collectionIds, userId) {
+    return $Call.ByID(1269618418, projectPath, remoteUrl, collectionIds, userId);
 }
 
 /**
  * RenameCollection renames an existing collection.
- * Returns the updated entity or an error if the operation fails.
+ * Returns the updated collection or an error if the operation fails.
  * @param {string} projectPath
- * @param {string} entityId
+ * @param {string} collectionId
  * @param {string} newName
- * @returns {$CancellablePromise<models$0.Entity>}
+ * @returns {$CancellablePromise<models$0.Collection>}
  */
-export function RenameCollection(projectPath, entityId, newName) {
-    return $Call.ByID(3064640869, projectPath, entityId, newName);
+export function RenameCollection(projectPath, collectionId, newName) {
+    return $Call.ByID(3064640869, projectPath, collectionId, newName);
 }
 
 /**
  * RevealCollection opens the file explorer to show a collection's folder.
- * Returns an error if the entity is not found or the operation fails.
+ * Returns an error if the collection is not found or the operation fails.
  * @param {string} projectPath
- * @param {string} entityId
+ * @param {string} collectionId
  * @returns {$CancellablePromise<void>}
  */
-export function RevealCollection(projectPath, entityId) {
-    return $Call.ByID(1753210934, projectPath, entityId);
+export function RevealCollection(projectPath, collectionId) {
+    return $Call.ByID(1753210934, projectPath, collectionId);
 }
 
 /**
  * RevertCollections reverts multiple collections to their latest checkpoints.
- * Sends progress updates for each entity processed.
+ * Sends progress updates for each collection processed.
  * @param {string} projectPath
- * @param {string[]} entityIds
+ * @param {string[]} collectionIds
  * @returns {$CancellablePromise<void>}
  */
-export function RevertCollections(projectPath, entityIds) {
-    return $Call.ByID(1570908726, projectPath, entityIds);
+export function RevertCollections(projectPath, collectionIds) {
+    return $Call.ByID(1570908726, projectPath, collectionIds);
 }
 
 /**
  * Unassign removes a user assignment from a collection.
  * Returns an error if the operation fails.
  * @param {string} projectPath
- * @param {string} entityId
+ * @param {string} collectionId
  * @param {string} userId
  * @returns {$CancellablePromise<void>}
  */
-export function Unassign(projectPath, entityId, userId) {
-    return $Call.ByID(3540910669, projectPath, entityId, userId);
+export function Unassign(projectPath, collectionId, userId) {
+    return $Call.ByID(3540910669, projectPath, collectionId, userId);
 }
 
 /**
@@ -355,12 +355,12 @@ export function Unassign(projectPath, entityId, userId) {
  * Returns an error if a type with the new name already exists.
  * @param {string} projectPath
  * @param {string} id
- * @param {string} entityTypeName
- * @param {string} entityTypeIcon
- * @returns {$CancellablePromise<models$0.EntityType>}
+ * @param {string} collectionTypeName
+ * @param {string} collectionTypeIcon
+ * @returns {$CancellablePromise<models$0.CollectionType>}
  */
-export function UpdateCollectionType(projectPath, id, entityTypeName, entityTypeIcon) {
-    return $Call.ByID(4261460618, projectPath, id, entityTypeName, entityTypeIcon).then(/** @type {($result: any) => any} */(($result) => {
+export function UpdateCollectionType(projectPath, id, collectionTypeName, collectionTypeIcon) {
+    return $Call.ByID(4261460618, projectPath, id, collectionTypeName, collectionTypeIcon).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
 }
@@ -369,21 +369,21 @@ export function UpdateCollectionType(projectPath, id, entityTypeName, entityType
  * UpdatePreview updates the preview image for a collection.
  * Returns an error if the project is not found or the operation fails.
  * @param {string} projectPath
- * @param {string} entityId
+ * @param {string} collectionId
  * @param {string} previewPath
  * @returns {$CancellablePromise<void>}
  */
-export function UpdatePreview(projectPath, entityId, previewPath) {
-    return $Call.ByID(406683254, projectPath, entityId, previewPath);
+export function UpdatePreview(projectPath, collectionId, previewPath) {
+    return $Call.ByID(406683254, projectPath, collectionId, previewPath);
 }
 
 // Private type creation functions
-const $$createType0 = models$0.EntityType.createFrom;
+const $$createType0 = models$0.CollectionType.createFrom;
 const $$createType1 = $Create.Array($Create.Any);
-const $$createType2 = $models.EntityItems.createFrom;
-const $$createType3 = $models.CollectionChildrenState.createFrom;
-const $$createType4 = $models.CollectionStateFlags.createFrom;
-const $$createType5 = $Create.Array($Create.Any);
+const $$createType2 = $Create.Array($Create.Any);
+const $$createType3 = $models.CollectionItems.createFrom;
+const $$createType4 = $models.CollectionChildrenState.createFrom;
+const $$createType5 = $models.CollectionStateFlags.createFrom;
 const $$createType6 = $Create.Array($$createType0);
 const $$createType7 = $models.ItemsForCheckpoint.createFrom;
 const $$createType8 = $models.ItemsForUpdate.createFrom;

@@ -2,12 +2,19 @@ package auth_service
 
 import (
 	"bytes"
+	"crypto/rand"
+	_ "embed"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net"
 	"net/http"
+	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
@@ -15,6 +22,21 @@ import (
 	"clustta/internal/error_service"
 	"clustta/internal/repository/models"
 )
+
+//go:embed sso_callback.html
+var ssoCallbackHTML []byte
+
+// openBrowser opens the specified URL in the system's default browser.
+func openBrowser(url string) {
+	switch runtime.GOOS {
+	case "windows":
+		exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		exec.Command("open", url).Start()
+	default:
+		exec.Command("xdg-open", url).Start()
+	}
+}
 
 type Token struct {
 	SessionId string `json:"session_id"`
@@ -28,6 +50,16 @@ type User struct {
 	FirstName string `db:"first_name" json:"first_name"`
 	LastName  string `db:"last_name" json:"last_name"`
 	Photo     []byte `db:"photo" json:"photo"`
+}
+
+// AttachBearerToken adds the Authorization header with the active session token.
+// Safe to call even when not authenticated (no-op if no token available).
+func AttachBearerToken(req *http.Request) {
+	token, err := GetToken()
+	if err != nil || token.SessionId == "" {
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+token.SessionId)
 }
 
 func GetActiveUser() (User, error) {
@@ -50,7 +82,7 @@ func IsAuthenticated() (bool, error) {
 	}
 
 	type responseMessage struct {
-		Message string `json: "message" `
+		Message string `json:"message"`
 	}
 
 	authHost := GetAuthHost()
@@ -123,9 +155,10 @@ func FetchUserPhoto(userId string) ([]byte, error) {
 		return []byte{}, err
 	}
 
+	AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	response, err := client.Do(req)
 	if err != nil {
 		return []byte{}, err
@@ -172,15 +205,10 @@ func FetchUserData(email string) (models.User, error) {
 		return models.User{}, err
 	}
 
-	// Set custom headers
-	// token, err := GetToken()
-	// if err != nil {
-	// 	return models.User{}, err
-	// }
-	// req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	response, err := client.Do(req)
 	if err != nil {
 		return models.User{}, err
@@ -198,7 +226,7 @@ func FetchUserData(email string) (models.User, error) {
 		var user models.User
 		err = json.Unmarshal(body, &user)
 		if err != nil {
-			return models.User{}, fmt.Errorf("Failed to unmarshal response body: %v", err)
+			return models.User{}, fmt.Errorf("failed to unmarshal response body: %v", err)
 		}
 		userPhoto, err := FetchUserPhoto(user.Id)
 		if err != nil {
@@ -233,9 +261,10 @@ func FetchUserDataById(userId string) (models.User, error) {
 		return models.User{}, err
 	}
 
+	AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	response, err := client.Do(req)
 	if err != nil {
 		return models.User{}, err
@@ -252,7 +281,7 @@ func FetchUserDataById(userId string) (models.User, error) {
 		var user models.User
 		err = json.Unmarshal(body, &user)
 		if err != nil {
-			return models.User{}, fmt.Errorf("Failed to unmarshal response body: %v", err)
+			return models.User{}, fmt.Errorf("failed to unmarshal response body: %v", err)
 		}
 		userPhoto, err := FetchUserPhoto(user.Id)
 		if err != nil {
@@ -326,7 +355,15 @@ func LoginWithHost(username string, password string, authHost string, authMode A
 
 	url := authHost + "/auth/login"
 	jsonBody := fmt.Sprintf("{\"email\": \"%s\", \"password\": \"%s\"}", username, password)
-	response, err := http.Post(url, "application/json", strings.NewReader(jsonBody))
+	req, err := http.NewRequest("POST", url, strings.NewReader(jsonBody))
+	if err != nil {
+		return Token{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	response, err := client.Do(req)
 	if err != nil {
 		return Token{}, err
 	}
@@ -366,6 +403,101 @@ func LoginWithHost(username string, password string, authHost string, authMode A
 	return token, nil
 }
 
+// LoginWithSSO initiates SSO login by opening the system browser and waiting for the callback.
+func LoginWithSSO(authHost string, provider string) (Token, error) {
+	if authHost == "" {
+		authHost = DefaultAuthHost
+	}
+	if provider == "" {
+		provider = "google"
+	}
+
+	resultCh := make(chan ssoResult, 1)
+
+	// Generate a random state parameter for CSRF protection
+	stateBytes := make([]byte, 16)
+	if _, err := rand.Read(stateBytes); err != nil {
+		return Token{}, fmt.Errorf("failed to generate state parameter: %w", err)
+	}
+	state := hex.EncodeToString(stateBytes)
+
+	// Start a local HTTP server on a random port to receive the callback
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return Token{}, fmt.Errorf("failed to start local callback server: %w", err)
+	}
+	port := listener.Addr().(*net.TCPAddr).Port
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /sso/callback", func(w http.ResponseWriter, r *http.Request) {
+		callbackState := r.URL.Query().Get("state")
+		if callbackState != state {
+			w.Header().Set("Content-Type", "text/html")
+			w.Write([]byte("<html><body><h2>Login failed</h2><p>Invalid state parameter.</p></body></html>"))
+			resultCh <- ssoResult{err: fmt.Errorf("invalid state parameter")}
+			return
+		}
+
+		sessionId := r.URL.Query().Get("session_id")
+		userB64 := r.URL.Query().Get("user")
+
+		if sessionId == "" {
+			w.Header().Set("Content-Type", "text/html")
+			w.Write([]byte("<html><body><h2>Login failed</h2><p>No session received. Please try again.</p></body></html>"))
+			resultCh <- ssoResult{err: fmt.Errorf("no session_id in callback")}
+			return
+		}
+
+		var user User
+		if userB64 != "" {
+			userJSON, err := base64.URLEncoding.DecodeString(userB64)
+			if err == nil {
+				json.Unmarshal(userJSON, &user)
+			}
+		}
+
+		token := Token{
+			SessionId: sessionId,
+			User:      user,
+		}
+
+		w.Header().Set("Content-Type", "text/html")
+		w.Write(ssoCallbackHTML)
+		resultCh <- ssoResult{token: token}
+	})
+
+	server := &http.Server{Handler: mux}
+	go server.Serve(listener)
+
+	// Open the system browser to the SSO URL
+	ssoURL := fmt.Sprintf("%s/auth/sso/%s?redirect_port=%d&state=%s", authHost, provider, port, state)
+	openBrowser(ssoURL)
+
+	// Wait for the callback (with timeout)
+	select {
+	case result := <-resultCh:
+		server.Close()
+		if result.err != nil {
+			return Token{}, result.err
+		}
+		// Store the token
+		accountToken := FromToken(result.token, AuthModeGlobal, authHost, "")
+		err = AddAccountToken(accountToken)
+		if err != nil {
+			return Token{}, err
+		}
+		return result.token, nil
+	case <-time.After(5 * time.Minute):
+		server.Close()
+		return Token{}, fmt.Errorf("SSO login timed out")
+	}
+}
+
+type ssoResult struct {
+	token Token
+	err   error
+}
+
 // Register creates a new user account on Clustta Cloud
 func Register(firstName, lastName, username, email, password, confirmPassword string) (User, error) {
 	return RegisterWithHost(firstName, lastName, username, email, password, confirmPassword, DefaultAuthHost)
@@ -380,7 +512,8 @@ func RegisterWithHost(firstName, lastName, username, email, password, confirmPas
 	url := authHost + "/auth/register"
 	jsonBody := fmt.Sprintf("{\"first_name\": \"%s\", \"last_name\": \"%s\", \"username\": \"%s\", \"email\": \"%s\", \"password\": \"%s\", \"confirm_password\": \"%s\"}",
 		firstName, lastName, username, email, password, confirmPassword)
-	response, err := http.Post(url, "application/json", strings.NewReader(jsonBody))
+	client := &http.Client{Timeout: 30 * time.Second}
+	response, err := client.Post(url, "application/json", strings.NewReader(jsonBody))
 	if err != nil {
 		return User{}, err
 	}
@@ -433,7 +566,7 @@ func UpdateUser(firstName, lastName, username, email string) (User, error) {
 	}
 	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	response, err := client.Do(req)
 	if err != nil {
 		return User{}, err
@@ -486,7 +619,7 @@ func Logout() error {
 	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	response, err := client.Do(req)
 	if err != nil {
 		return err
@@ -525,7 +658,7 @@ func CheckUsernameExists(username string) (bool, error) {
 		return false, err
 	}
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return false, err
@@ -560,7 +693,7 @@ func CheckEmailExists(email string) (bool, error) {
 		return false, err
 	}
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return false, err
@@ -616,7 +749,7 @@ func UpdateUserPhoto(photo []byte) error {
 	}
 	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -650,7 +783,7 @@ func DeactivateUserAccount() error {
 	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -703,7 +836,7 @@ func SendInvitationEmail(email, studioName, projectName string) error {
 	}
 	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send request: %v", err)
@@ -743,7 +876,7 @@ func VerifyOTP(email, token string) error {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send request: %v", err)
@@ -782,7 +915,7 @@ func ResendToken(email string) error {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send request: %v", err)
@@ -830,7 +963,7 @@ func ChangePassword(currentPassword, newPassword, confirmPassword string) error 
 	}
 	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send request: %v", err)
@@ -853,7 +986,8 @@ func ResetPassword(email string) error {
 
 	url := authHost + "/auth/reset-password"
 	jsonBody := fmt.Sprintf("{\"email\": \"%s\"}", email)
-	response, err := http.Post(url, "application/json", strings.NewReader(jsonBody))
+	client := &http.Client{Timeout: 30 * time.Second}
+	response, err := client.Post(url, "application/json", strings.NewReader(jsonBody))
 	if err != nil {
 		return err
 	}
@@ -911,7 +1045,7 @@ func ContactSales(name, email, company, teamSize, source, website, message strin
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send request: %v", err)
@@ -964,7 +1098,7 @@ func SubmitDiagnostics(email, description, os, arch, clusttaVersion, logContents
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send request: %v", err)

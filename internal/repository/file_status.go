@@ -10,12 +10,12 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func GetTaskFileStatus(task *models.Task, checkpoints []models.Checkpoint) (string, error) {
-	filePath := task.GetFilePath()
-	if task.IsLink && utils.IsValidPointer(task.Pointer) {
+func GetAssetFileStatus(asset *models.Asset, checkpoints []models.Checkpoint) (string, error) {
+	filePath := asset.GetFilePath()
+	if asset.IsLink && utils.IsValidPointer(asset.Pointer) {
 		return "normal", nil
 	}
-	if task.IsLink && !utils.IsValidPointer(task.Pointer) {
+	if asset.IsLink && !utils.IsValidPointer(asset.Pointer) {
 		return "missing", nil
 	}
 
@@ -47,19 +47,19 @@ func GetTaskFileStatus(task *models.Task, checkpoints []models.Checkpoint) (stri
 	return "modified", nil
 }
 
-func GetAssetState(tx *sqlx.Tx, taskId string) (string, error) {
-	// Fetch checkpoints for this task
-	checkpointQuery := "SELECT * FROM task_checkpoint WHERE task_id = ? AND trashed = 0 ORDER BY created_at DESC"
+func GetAssetState(tx *sqlx.Tx, assetId string) (string, error) {
+	// Fetch checkpoints for this asset
+	checkpointQuery := "SELECT * FROM asset_checkpoint WHERE asset_id = ? AND trashed = 0 ORDER BY created_at DESC"
 	checkpoints := []models.Checkpoint{}
-	err := tx.Select(&checkpoints, checkpointQuery, taskId)
+	err := tx.Select(&checkpoints, checkpointQuery, assetId)
 	if err != nil {
 		return "", err
 	}
 
-	// Fetch the task
-	taskQuery := "SELECT * FROM full_task WHERE id = ?"
-	task := models.Task{}
-	err = tx.Get(&task, taskQuery, taskId)
+	// Fetch the asset
+	assetQuery := "SELECT * FROM full_asset WHERE id = ?"
+	asset := models.Asset{}
+	err = tx.Get(&asset, assetQuery, assetId)
 	if err != nil {
 		return "", err
 	}
@@ -71,14 +71,14 @@ func GetAssetState(tx *sqlx.Tx, taskId string) (string, error) {
 	}
 
 	// Build file path
-	taskFilePath, err := utils.BuildTaskPath(rootFolder, task.EntityPath, task.Name, task.Extension)
+	assetFilePath, err := utils.BuildAssetPath(rootFolder, asset.CollectionPath, asset.Name, asset.Extension)
 	if err != nil {
 		return "", err
 	}
-	task.FilePath = taskFilePath
+	asset.FilePath = assetFilePath
 
 	// Compute status
-	status, err := GetTaskFileStatus(&task, checkpoints)
+	status, err := GetAssetFileStatus(&asset, checkpoints)
 	if err != nil {
 		return "", err
 	}
@@ -86,19 +86,19 @@ func GetAssetState(tx *sqlx.Tx, taskId string) (string, error) {
 	return status, nil
 }
 
-func GetFilesStatus(tx *sqlx.Tx, taskIds []string) (map[string]string, error) {
-	taskFilesStatus := map[string]string{}
+func GetFilesStatus(tx *sqlx.Tx, assetIds []string) (map[string]string, error) {
+	assetFilesStatus := map[string]string{}
 
-	checkpointQuery := "SELECT * FROM task_checkpoint WHERE trashed = 0 ORDER BY created_at DESC"
-	tasksCheckpoints := []models.Checkpoint{}
-	tx.Select(&tasksCheckpoints, checkpointQuery)
+	checkpointQuery := "SELECT * FROM asset_checkpoint WHERE trashed = 0 ORDER BY created_at DESC"
+	assetsCheckpoints := []models.Checkpoint{}
+	tx.Select(&assetsCheckpoints, checkpointQuery)
 
-	taskCheckpoints := map[string][]models.Checkpoint{}
-	for _, taskCheckpoint := range tasksCheckpoints {
-		taskCheckpoints[taskCheckpoint.TaskId] = append(taskCheckpoints[taskCheckpoint.TaskId], taskCheckpoint)
+	assetCheckpoints := map[string][]models.Checkpoint{}
+	for _, assetCheckpoint := range assetsCheckpoints {
+		assetCheckpoints[assetCheckpoint.AssetId] = append(assetCheckpoints[assetCheckpoint.AssetId], assetCheckpoint)
 	}
 
-	for _, taskId := range taskIds {
+	for _, assetId := range assetIds {
 		query := `SELECT 
 			t.id,
 			t.name,
@@ -109,29 +109,29 @@ func GetFilesStatus(tx *sqlx.Tx, taskIds []string) (map[string]string, error) {
 			t.is_link,
 			t.pointer,
 			t.status_id,
-			t.entity_path
+			t.collection_path
 		FROM 
-			full_task t
+			full_asset t
 		WHERE 
 			t.id = ?;`
 		// t.trashed = 0;`
-		task := models.Task{}
-		err := tx.Get(&task, query, taskId)
+		asset := models.Asset{}
+		err := tx.Get(&asset, query, assetId)
 		if err != nil {
-			return taskFilesStatus, err
+			return assetFilesStatus, err
 		}
 
-		// taskFilePath, err := utils.BuildTaskPath(tx, task.EntityPath, task.Name, task.Extension)
+		// assetFilePath, err := utils.BuildAssetPath(tx, asset.CollectionPath, asset.Name, asset.Extension)
 		// if err != nil {
-		// 	return taskFilesStatus, err
+		// 	return assetFilesStatus, err
 		// }
-		// task.FilePath = taskFilePath
+		// asset.FilePath = assetFilePath
 
-		status, err := GetTaskFileStatus(&task, taskCheckpoints[task.Id])
+		status, err := GetAssetFileStatus(&asset, assetCheckpoints[asset.Id])
 		if err != nil {
-			return taskFilesStatus, err
+			return assetFilesStatus, err
 		}
-		taskFilesStatus[taskId] = status
+		assetFilesStatus[assetId] = status
 	}
-	return taskFilesStatus, nil
+	return assetFilesStatus, nil
 }

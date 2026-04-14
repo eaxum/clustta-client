@@ -2,10 +2,12 @@ package sync_service
 
 import (
 	"bytes"
+	"clustta/internal/auth_service"
 	"clustta/internal/chunk_service"
 	"clustta/internal/constants"
 	"clustta/internal/repository"
 	"clustta/internal/repository/repositorypb"
+	"clustta/internal/studio_service"
 	"clustta/internal/utils"
 	"encoding/json"
 	"errors"
@@ -18,6 +20,22 @@ import (
 	"github.com/DataDog/zstd"
 	"google.golang.org/protobuf/proto"
 )
+
+// legacyServerVersion is the version threshold below which the server uses legacy table names.
+const legacyServerVersion = "0.4.25"
+
+// shouldUseLegacyNames checks the server version and returns true if tomb table names
+// need to be remapped to legacy names (task/entity instead of asset/collection).
+func shouldUseLegacyNames(remoteUrl string) bool {
+	if !utils.IsValidURL(remoteUrl) {
+		return false
+	}
+	version, err := studio_service.GetServerVersion(remoteUrl)
+	if err != nil || version == "" {
+		return true // default to legacy if we can't determine
+	}
+	return version != legacyServerVersion
+}
 
 func PushData(projectPath, remoteUrl string, userId string, callback func(int, int, string, string)) error {
 	dbConn, err := utils.OpenDb(projectPath)
@@ -32,7 +50,6 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 	}
 	defer tx.Rollback()
 
-	// data, err := LoadCheckpointData(tx)
 	err = repository.ClearTrash(tx)
 	if err != nil {
 		return err
@@ -45,17 +62,18 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 	if data.IsEmpty() {
 		return nil
 	}
-	pdData := repositorypb.ProjectData{
-		ProjectPreview:  data.ProjectPreview,
-		EntityTypes:     repository.ToPbEntityTypes(data.EntityTypes),
-		Entities:        repository.ToPbEntities(data.Entities),
-		EntityAssignees: repository.ToPbEntityAssignees(data.EntityAssignees),
 
-		TaskTypes:          repository.ToPbTaskTypes(data.TaskTypes),
-		Tasks:              repository.ToPbTasks(data.Tasks),
-		TasksCheckpoints:   repository.ToPbCheckpoints(data.TasksCheckpoints),
-		TaskDependencies:   repository.ToPbTaskDependencies(data.TaskDependencies),
-		EntityDependencies: repository.ToPbEntityDependencies(data.EntityDependencies),
+	pdData := repositorypb.ProjectData{
+		ProjectPreview:      data.ProjectPreview,
+		CollectionTypes:     repository.ToPbCollectionTypes(data.CollectionTypes),
+		Collections:         repository.ToPbCollections(data.Collections),
+		CollectionAssignees: repository.ToPbCollectionAssignees(data.CollectionAssignees),
+
+		AssetTypes:             repository.ToPbAssetTypes(data.AssetTypes),
+		Assets:                 repository.ToPbAssets(data.Assets),
+		AssetCheckpoints:       repository.ToPbCheckpoints(data.AssetCheckpoints),
+		AssetDependencies:      repository.ToPbAssetDependencies(data.AssetDependencies),
+		CollectionDependencies: repository.ToPbCollectionDependencies(data.CollectionDependencies),
 
 		Statuses:        repository.ToPbStatuses(data.Statuses),
 		DependencyTypes: repository.ToPbDependencyTypes(data.DependencyTypes),
@@ -65,13 +83,13 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 
 		Templates: repository.ToPbTemplates(data.Templates),
 
-		Workflows:        repository.ToPbWorkflows(data.Workflows),
-		WorkflowLinks:    repository.ToPbWorkflowLinks(data.WorkflowLinks),
-		WorkflowEntities: repository.ToPbWorkflowEntities(data.WorkflowEntities),
-		WorkflowTasks:    repository.ToPbWorkflowTasks(data.WorkflowTasks),
+		Workflows:           repository.ToPbWorkflows(data.Workflows),
+		WorkflowLinks:       repository.ToPbWorkflowLinks(data.WorkflowLinks),
+		WorkflowCollections: repository.ToPbWorkflowCollections(data.WorkflowCollections),
+		WorkflowAssets:      repository.ToPbWorkflowAssets(data.WorkflowAssets),
 
 		Tags:      repository.ToPbTags(data.Tags),
-		TasksTags: repository.ToPbTaskTags(data.TasksTags),
+		AssetTags: repository.ToPbAssetTags(data.AssetTags),
 
 		Tomb: repository.ToPbTombs(data.Tombs),
 
@@ -79,6 +97,10 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 		IntegrationCollectionMappings: repository.ToPbIntegrationCollectionMappings(data.IntegrationCollectionMappings),
 		IntegrationAssetMappings:      repository.ToPbIntegrationAssetMappings(data.IntegrationAssetMappings),
 	}
+
+	// if shouldUseLegacyNames(remoteUrl) {
+	// 	repository.RemapTombsToLegacyNames(pdData.Tomb)
+	// }
 
 	dataByte, err := proto.Marshal(&pdData)
 	if err != nil {
@@ -91,8 +113,8 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 	}
 
 	chunks := []string{}
-	for _, TaskCheckpoint := range data.TasksCheckpoints {
-		chunksString := TaskCheckpoint.Chunks
+	for _, AssetCheckpoint := range data.AssetCheckpoints {
+		chunksString := AssetCheckpoint.Chunks
 		chunkHashes := strings.Split(chunksString, ",")
 		for _, chunkHash := range chunkHashes {
 			if !utils.Contains(chunks, chunkHash) {
@@ -131,19 +153,19 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 	if data.ProjectPreview != "" && !utils.Contains(previewIds, data.ProjectPreview) {
 		previewIds = append(previewIds, data.ProjectPreview)
 	}
-	for _, task := range data.Tasks {
-		if task.PreviewId != "" && !utils.Contains(previewIds, task.PreviewId) {
-			previewIds = append(previewIds, task.PreviewId)
+	for _, asset := range data.Assets {
+		if asset.PreviewId != "" && !utils.Contains(previewIds, asset.PreviewId) {
+			previewIds = append(previewIds, asset.PreviewId)
 		}
 	}
-	for _, entity := range data.Entities {
-		if entity.PreviewId != "" && !utils.Contains(previewIds, entity.PreviewId) {
-			previewIds = append(previewIds, entity.PreviewId)
+	for _, collection := range data.Collections {
+		if collection.PreviewId != "" && !utils.Contains(previewIds, collection.PreviewId) {
+			previewIds = append(previewIds, collection.PreviewId)
 		}
 	}
-	for _, taskCheckpoint := range data.TasksCheckpoints {
-		if taskCheckpoint.PreviewId != "" && !utils.Contains(previewIds, taskCheckpoint.PreviewId) {
-			previewIds = append(previewIds, taskCheckpoint.PreviewId)
+	for _, assetCheckpoint := range data.AssetCheckpoints {
+		if assetCheckpoint.PreviewId != "" && !utils.Contains(previewIds, assetCheckpoint.PreviewId) {
+			previewIds = append(previewIds, assetCheckpoint.PreviewId)
 		}
 	}
 
@@ -162,19 +184,15 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 	if utils.IsValidURL(remoteUrl) {
 		dataUrl := remoteUrl + "/data"
 
-		// jsonData, err := json.Marshal(data)
-		// if err != nil {
-		// 	return err
-		// }
-
 		req, err := http.NewRequest("POST", dataUrl, bytes.NewBuffer(compressedData))
 		if err != nil {
 			return err
 		}
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{
-			Timeout: 10 * time.Minute, // total time including connection, redirects, reading body
+			Timeout: 10 * time.Minute,
 		}
 		response, err := client.Do(req)
 		if err != nil {
@@ -203,12 +221,6 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 			var result WriteResult
 			if err := json.Unmarshal(body, &result); err != nil {
 				return fmt.Errorf("failed to parse conflict response: %w", err)
-			}
-
-			fmt.Printf("[DEBUG push.go] Received %d conflicts from server\n", len(result.Conflicts))
-			for i, c := range result.Conflicts {
-				fmt.Printf("[DEBUG push.go] Conflict[%d]: type=%s, name=%s, local_id=%s, server_id=%s\n",
-					i, c.Type, c.Name, c.LocalId, c.ExistingId)
 			}
 
 			return &SyncConflictError{Conflicts: result.Conflicts}
@@ -266,16 +278,16 @@ func PushPartialData(projectPath, remoteUrl, userId string, data ProjectData, sy
 	}
 
 	pdData := repositorypb.ProjectData{
-		ProjectPreview:  data.ProjectPreview,
-		EntityTypes:     repository.ToPbEntityTypes(data.EntityTypes),
-		Entities:        repository.ToPbEntities(data.Entities),
-		EntityAssignees: repository.ToPbEntityAssignees(data.EntityAssignees),
+		ProjectPreview:      data.ProjectPreview,
+		CollectionTypes:     repository.ToPbCollectionTypes(data.CollectionTypes),
+		Collections:         repository.ToPbCollections(data.Collections),
+		CollectionAssignees: repository.ToPbCollectionAssignees(data.CollectionAssignees),
 
-		TaskTypes:          repository.ToPbTaskTypes(data.TaskTypes),
-		Tasks:              repository.ToPbTasks(data.Tasks),
-		TasksCheckpoints:   repository.ToPbCheckpoints(data.TasksCheckpoints),
-		TaskDependencies:   repository.ToPbTaskDependencies(data.TaskDependencies),
-		EntityDependencies: repository.ToPbEntityDependencies(data.EntityDependencies),
+		AssetTypes:             repository.ToPbAssetTypes(data.AssetTypes),
+		Assets:                 repository.ToPbAssets(data.Assets),
+		AssetCheckpoints:       repository.ToPbCheckpoints(data.AssetCheckpoints),
+		AssetDependencies:      repository.ToPbAssetDependencies(data.AssetDependencies),
+		CollectionDependencies: repository.ToPbCollectionDependencies(data.CollectionDependencies),
 
 		Statuses:        repository.ToPbStatuses(data.Statuses),
 		DependencyTypes: repository.ToPbDependencyTypes(data.DependencyTypes),
@@ -285,19 +297,23 @@ func PushPartialData(projectPath, remoteUrl, userId string, data ProjectData, sy
 
 		Templates: repository.ToPbTemplates(data.Templates),
 
-		Workflows:        repository.ToPbWorkflows(data.Workflows),
-		WorkflowLinks:    repository.ToPbWorkflowLinks(data.WorkflowLinks),
-		WorkflowEntities: repository.ToPbWorkflowEntities(data.WorkflowEntities),
-		WorkflowTasks:    repository.ToPbWorkflowTasks(data.WorkflowTasks),
+		Workflows:           repository.ToPbWorkflows(data.Workflows),
+		WorkflowLinks:       repository.ToPbWorkflowLinks(data.WorkflowLinks),
+		WorkflowCollections: repository.ToPbWorkflowCollections(data.WorkflowCollections),
+		WorkflowAssets:      repository.ToPbWorkflowAssets(data.WorkflowAssets),
 
 		Tags:      repository.ToPbTags(data.Tags),
-		TasksTags: repository.ToPbTaskTags(data.TasksTags),
+		AssetTags: repository.ToPbAssetTags(data.AssetTags),
 
 		Tomb: repository.ToPbTombs(data.Tombs),
 
 		IntegrationProjects:           repository.ToPbIntegrationProjects(data.IntegrationProjects),
 		IntegrationCollectionMappings: repository.ToPbIntegrationCollectionMappings(data.IntegrationCollectionMappings),
 		IntegrationAssetMappings:      repository.ToPbIntegrationAssetMappings(data.IntegrationAssetMappings),
+	}
+
+	if shouldUseLegacyNames(remoteUrl) {
+		repository.RemapTombsToLegacyNames(pdData.Tomb)
 	}
 
 	dataByte, err := proto.Marshal(&pdData)
@@ -315,6 +331,7 @@ func PushPartialData(projectPath, remoteUrl, userId string, data ProjectData, sy
 		return err
 	}
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	response, err := client.Do(req)
@@ -377,7 +394,7 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 
 	// Collect chunk hashes from checkpoints
 	chunks := []string{}
-	for _, cp := range data.TasksCheckpoints {
+	for _, cp := range data.AssetCheckpoints {
 		if cp.Chunks == "" {
 			continue
 		}
@@ -408,12 +425,12 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 
 	// Collect and upload missing previews
 	previewIds := []string{}
-	for _, task := range data.Tasks {
-		if task.PreviewId != "" && !utils.Contains(previewIds, task.PreviewId) {
-			previewIds = append(previewIds, task.PreviewId)
+	for _, asset := range data.Assets {
+		if asset.PreviewId != "" && !utils.Contains(previewIds, asset.PreviewId) {
+			previewIds = append(previewIds, asset.PreviewId)
 		}
 	}
-	for _, cp := range data.TasksCheckpoints {
+	for _, cp := range data.AssetCheckpoints {
 		if cp.PreviewId != "" && !utils.Contains(previewIds, cp.PreviewId) {
 			previewIds = append(previewIds, cp.PreviewId)
 		}
@@ -434,8 +451,8 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 
 	// Serialize and push metadata
 	pdData := repositorypb.ProjectData{
-		Tasks:            repository.ToPbTasks(data.Tasks),
-		TasksCheckpoints: repository.ToPbCheckpoints(data.TasksCheckpoints),
+		Assets:           repository.ToPbAssets(data.Assets),
+		AssetCheckpoints: repository.ToPbCheckpoints(data.AssetCheckpoints),
 	}
 
 	dataByte, err := proto.Marshal(&pdData)
@@ -453,6 +470,7 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 		return err
 	}
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{Timeout: 5 * time.Minute}
 	response, err := client.Do(req)
@@ -465,11 +483,11 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 	case 200:
 		// Mark only the specific rows as synced
 		syncTargets := map[string][]string{}
-		for _, t := range data.Tasks {
-			syncTargets["task"] = append(syncTargets["task"], t.Id)
+		for _, t := range data.Assets {
+			syncTargets["asset"] = append(syncTargets["asset"], t.Id)
 		}
-		for _, cp := range data.TasksCheckpoints {
-			syncTargets["task_checkpoint"] = append(syncTargets["task_checkpoint"], cp.Id)
+		for _, cp := range data.AssetCheckpoints {
+			syncTargets["asset_checkpoint"] = append(syncTargets["asset_checkpoint"], cp.Id)
 		}
 		for table, ids := range syncTargets {
 			err = utils.SetRowsSynced(tx, table, ids)

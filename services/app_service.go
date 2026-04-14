@@ -164,7 +164,7 @@ func (s *AppService) Show() {
 }
 
 // Minimize minimizes the main application window.
-// Gets the main window instance and minimizes it to the taskbar.
+// Gets the main window instance and minimizes it to the assetbar.
 func (s *AppService) Minimize() {
 	app := application.Get()
 	if app != nil {

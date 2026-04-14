@@ -3,21 +3,21 @@
 
     <!-- Launch -->
     <ActionButton
-      v-if="userStore.canDo('pull_chunk') && untrackedItemStore.selectedUntrackedItem.type == 'untracked_task'"
+      v-if="userStore.canDo('pull_chunk') && isUntrackedAsset"
       :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true" :label="$t('common.openWith')"
-      :buttonFunction="launchTaskWithCommand" />
+      :buttonFunction="launchAssetWithCommand" />
 
     <!-- <span v-if="userStore.canDo('pull_chunk')" class="menu-divider"></span> -->
 
     <!-- Rename -->
-    <ActionButton v-if="userStore.canDo('update_task')" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="userStore.canDo('update_asset')" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
       :label="$t('common.rename')" :buttonFunction="renameItem" />
 
     <!-- Ignore -->
     <ActionButton :icon="getAppIcon('file-watch')" :showLabel="true" :fullWidth="true" :label="$t('menus.ignoreFileFolder')"
       :buttonFunction="ignoreItem" />
 
-    <ActionButton v-if="untrackedItemStore.selectedUntrackedItem.type == 'untracked_task'"
+    <ActionButton v-if="isUntrackedAsset"
       :icon="getAppIcon('file-watch')" :showLabel="true" :fullWidth="true" :label="$t('menus.ignoreExtensionType')"
       :buttonFunction="ignoreExtensionType" />
 
@@ -25,7 +25,7 @@
     <span class="horizontal-flex">
       <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
         :buttonFunction="revealInExplorer" />
-      <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyItemPath('task')"
+      <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyItemPath('asset')"
         v-tooltip="$t('common.copyPath')" />
     </span>
 
@@ -96,11 +96,16 @@ const props = defineProps({
 const emit = defineEmits(['clicked']);
 
 // computed
+// Checks if the selected untracked item is an untracked asset.
+const isUntrackedAsset = computed(() => {
+  return untrackedItemStore.selectedUntrackedItem?.type === 'untracked_asset';
+});
+
 // Checks if the selected untracked item is an archive.
 const isArchive = computed(() => {
   const archiveFormats = ['.zip', '.rar', '.7z', '.tar', '.gz', '.bz2'];
   const item = untrackedItemStore.selectedUntrackedItem;
-  if (item?.type !== 'untracked_task') {
+  if (item?.type !== 'untracked_asset') {
     return false;
   }
   const extension = item?.extension?.toLowerCase() || '';
@@ -130,14 +135,14 @@ const copyItemPath = async (pathType) => {
 const deleteItem = async () => {
   panes.setPaneVisibility('projectDetails', true);
   let item = untrackedItemStore.selectedUntrackedItem;
-  if (item.type == 'untracked_task') {
+  if (item.type == 'untracked_asset') {
     assetStore.selectedAsset = null;
     FSService.DeleteFile(item.file_path);
-    projectStore.removeUntrackedTask(item.id);
-  } else if (item.type == 'untracked_entity') {
+    projectStore.removeUntrackedAsset(item.id);
+  } else if (item.type == 'untracked_collection') {
     collectionStore.selectedCollection = null;
     FSService.DeleteFolder(item.file_path);
-    projectStore.removeUntrackedEntity(item.id);
+    projectStore.removeUntrackedCollection(item.id);
   }
   stage.markedItems = [];
   emitter.emit('refresh-browser');
@@ -152,7 +157,7 @@ const extractArchive = async () => {
   try {
     const selectedItem = untrackedItemStore.selectedUntrackedItem;
     
-    if (selectedItem.type !== 'untracked_task') {
+    if (selectedItem.type !== 'untracked_asset') {
       notificationStore.errorNotification(t('notifications.cannotExtract'), t('notifications.onlyFilesExtracted'));
       return;
     }
@@ -195,18 +200,18 @@ const ignoreExtensionType = async () => {
 // Adds the item to the ignore list.
 const ignoreItem = async () => {
   let item = untrackedItemStore.selectedUntrackedItem;
-  if (item.type == "untracked_task") {
-    await addIgnoredItem(item.task_path);
+  if (item.type == "untracked_asset") {
+    await addIgnoredItem(item.asset_path);
   } else {
-    const untrackedEntity = removeLastSlash(item.item_path);
-    await addIgnoredItem(untrackedEntity);
+    const untrackedCollection = removeLastSlash(item.item_path);
+    await addIgnoredItem(untrackedCollection);
   }
   emitter.emit('refresh-browser');
   menu.hideContextMenu();
 };
 
 // Launches the item with the system's default application.
-const launchTaskWithCommand = async () => {
+const launchAssetWithCommand = async () => {
   let item = untrackedItemStore.selectedUntrackedItem;
   let file_path = item.file_path;
   if (await FSService.Exists(file_path)) {
@@ -238,7 +243,7 @@ const removeLastSlash = (text) => {
 
 // Emits event to rename the item.
 const renameItem = () => {
-  emitter.emit('renameAsset');
+  emitter.emit(isUntrackedAsset.value ? 'renameAsset' : 'renameCollection');
   menu.hideContextMenu();
 };
 

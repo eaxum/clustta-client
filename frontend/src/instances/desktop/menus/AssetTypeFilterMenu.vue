@@ -1,11 +1,11 @@
 <template>
   <div ref="collectionMenu" class="filter-menu-container" v-stop-propagation>
 
-    <span v-for="taskType in projectTaskTypes" class="filter-menu-item" @click="toggleFilter(taskType)">
-      <img class="small-icons" :src="getAppIcon(taskType.icon)">
+    <span v-for="assetType in projectAssetTypes" class="filter-menu-item" @click="toggleFilter(assetType)">
+      <img class="small-icons" :src="getAppIcon(assetType.icon)">
       <div class="horizontal-flex">
-        <div class="menu-item-text"> {{ utils.capitalizeStr(taskType.name) }} </div>
-        <ToggleSwitch :switchValueProp="isFilterActive(taskType)" />
+        <div class="menu-item-text"> {{ utils.capitalizeStr(assetType.name) }} </div>
+        <ToggleSwitch :switchValueProp="isFilterActive(assetType)" />
       </div>
     </span>
 
@@ -38,14 +38,14 @@ const collectionMenu = ref(null);
 
 // computed properties
 // Returns list of asset types available in the project.
-const projectTaskTypes = computed(() => {
+const projectAssetTypes = computed(() => {
   return assetStore.getAssetTypes;
 });
 
 // methods
-// Adds a filter to the task filters list.
+// Adds a filter to the asset filters list.
 const addFilter = (filter) => {
-  commonStore.taskFilters.push(filter);
+  commonStore.assetFilters.push(filter);
 };
 
 // Returns the icon path for a given icon name.
@@ -55,17 +55,17 @@ const getAppIcon = (iconName) => {
 
 // Checks if a filter is currently active.
 const isFilterActive = (filter) => {
-  return commonStore.taskFilters.includes(filter);
+  return commonStore.assetFilters.includes(filter);
 };
 
-// Removes a filter from the task filters list.
+// Removes a filter from the asset filters list.
 const removeFilter = (filter) => {
-  commonStore.taskFilters = commonStore.taskFilters.filter((item) => item.id !== filter.id);
+  commonStore.assetFilters = commonStore.assetFilters.filter((item) => item.id !== filter.id);
 };
 
 // Toggles a filter on or off and refreshes browser.
 const toggleFilter = (filter) => {
-  if (commonStore.taskFilters.includes(filter)) {
+  if (commonStore.assetFilters.includes(filter)) {
     removeFilter(filter);
   } else {
     addFilter(filter);
