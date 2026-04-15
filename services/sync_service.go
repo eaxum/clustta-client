@@ -260,7 +260,7 @@ func (s *SyncService) SyncData(projectPath, remoteURL string, pullChunk bool, sy
 
 	// Push data with cancellation
 	go func() {
-		err := sync_service.PushData(projectPath, remoteURL, activeUser.Id, pushCallBack)
+		err := sync_service.PushData(ctx, projectPath, remoteURL, activeUser.Id, pushCallBack)
 		if ctx.Err() == nil { // Only send error if not cancelled
 			errChan <- err
 		}
@@ -542,6 +542,13 @@ func (s *SyncService) PullData(projectPath string, remoteURL string, pullChunk b
 }
 
 func (s *SyncService) PushCheckpoints(projectPath string, remoteURL string, pullChunk bool, syncOptions sync_service.SyncOptions) error {
+	defer reset()
+
+	ctx := getContext()
+	if ctx.Err() != nil {
+		return errors.New("operation cancelled before starting")
+	}
+
 	app := application.Get()
 
 	activeUser, err := auth_service.GetActiveUser()
@@ -569,10 +576,13 @@ func (s *SyncService) PushCheckpoints(projectPath string, remoteURL string, pull
 		}
 		app.Event.Emit("progress-update", progress)
 	}
-	err = sync_service.PushData(projectPath, remoteURL, activeUser.Id, pushCallBack)
+	err = sync_service.PushData(ctx, projectPath, remoteURL, activeUser.Id, pushCallBack)
 	if err != nil {
 		if errors.Is(err, syscall.ECONNREFUSED) {
 			return errors.New("pushing failed, connection refused")
+		}
+		if ctx.Err() != nil {
+			return errors.New("upload cancelled")
 		}
 		return errors.New("pushing failed, check your connection")
 	}

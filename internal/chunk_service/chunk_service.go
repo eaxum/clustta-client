@@ -785,7 +785,11 @@ func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, mis
 
 // PushChunksPresigned uploads chunks directly to R2 using presigned PUT URLs.
 // Phase 1: request upload URLs from server. Phase 2: upload to R2. Phase 3: confirm with server.
-func PushChunksPresigned(tx *sqlx.Tx, remoteUrl string, chunkInfos []ChunkInfo, callback func(int, int, string, string)) error {
+func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chunkInfos []ChunkInfo, callback func(int, int, string, string)) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+
 	totalChunksSize := 0
 	for _, ci := range chunkInfos {
 		totalChunksSize += ci.Size
@@ -807,7 +811,7 @@ func PushChunksPresigned(tx *sqlx.Tx, remoteUrl string, chunkInfos []ChunkInfo, 
 		return err
 	}
 
-	req, err := http.NewRequest("POST", remoteUrl+"/chunk-upload-urls", bytes.NewBuffer(reqBody))
+	req, err := http.NewRequestWithContext(ctx, "POST", remoteUrl+"/chunk-upload-urls", bytes.NewBuffer(reqBody))
 	if err != nil {
 		return err
 	}
@@ -835,6 +839,8 @@ func PushChunksPresigned(tx *sqlx.Tx, remoteUrl string, chunkInfos []ChunkInfo, 
 	if err != nil {
 		return fmt.Errorf("failed to decode upload URLs: %w", err)
 	}
+
+	fmt.Printf("push presigned: %d to upload, %d already on R2\n", len(urlsResponse.URLs), len(urlsResponse.Existing))
 
 	// Account for already-existing chunks in progress
 	existingSet := make(map[string]bool, len(urlsResponse.Existing))
@@ -886,27 +892,46 @@ func PushChunksPresigned(tx *sqlx.Tx, remoteUrl string, chunkInfos []ChunkInfo, 
 			sem <- struct{}{}
 			defer func() { <-sem }()
 
-			uploadReq, err := http.NewRequest("PUT", u, bytes.NewReader(data))
-			if err != nil {
-				resultsCh <- uploadResult{hash: h, err: err}
+			const maxRetries = 3
+			for attempt := 1; attempt <= maxRetries; attempt++ {
+				if ctx.Err() != nil {
+					resultsCh <- uploadResult{hash: h, err: ctx.Err()}
+					return
+				}
+
+				uploadReq, err := http.NewRequestWithContext(ctx, "PUT", u, bytes.NewReader(data))
+				if err != nil {
+					resultsCh <- uploadResult{hash: h, err: err}
+					return
+				}
+				uploadReq.Header.Set("Content-Type", "application/octet-stream")
+				uploadReq.ContentLength = int64(len(data))
+
+				uploadResp, err := http.DefaultClient.Do(uploadReq)
+				if err != nil {
+					fmt.Printf("push presigned: chunk %s attempt %d/%d failed: %v\n", h[:8], attempt, maxRetries, err)
+					if attempt == maxRetries {
+						resultsCh <- uploadResult{hash: h, err: err}
+						return
+					}
+					time.Sleep(time.Duration(attempt) * 2 * time.Second)
+					continue
+				}
+				uploadResp.Body.Close()
+
+				if uploadResp.StatusCode != 200 {
+					fmt.Printf("push presigned: chunk %s attempt %d/%d status %d\n", h[:8], attempt, maxRetries, uploadResp.StatusCode)
+					if attempt == maxRetries {
+						resultsCh <- uploadResult{hash: h, err: fmt.Errorf("R2 upload failed for chunk %s: status %d", h, uploadResp.StatusCode)}
+						return
+					}
+					time.Sleep(time.Duration(attempt) * 2 * time.Second)
+					continue
+				}
+
+				resultsCh <- uploadResult{hash: h, size: sizeMap[h]}
 				return
 			}
-			uploadReq.Header.Set("Content-Type", "application/octet-stream")
-			uploadReq.ContentLength = int64(len(data))
-
-			uploadResp, err := http.DefaultClient.Do(uploadReq)
-			if err != nil {
-				resultsCh <- uploadResult{hash: h, err: err}
-				return
-			}
-			defer uploadResp.Body.Close()
-
-			if uploadResp.StatusCode != 200 {
-				resultsCh <- uploadResult{hash: h, err: fmt.Errorf("R2 upload failed for chunk %s: status %d", h, uploadResp.StatusCode)}
-				return
-			}
-
-			resultsCh <- uploadResult{hash: h, size: sizeMap[h]}
 		}(hash, url, chunkData)
 	}
 
@@ -927,12 +952,16 @@ func PushChunksPresigned(tx *sqlx.Tx, remoteUrl string, chunkInfos []ChunkInfo, 
 	}
 
 	// Phase 3: Confirm uploads with the server
+	fmt.Printf("push presigned: all %d chunks uploaded, confirming with server...\n", len(uploadedHashes))
+	callback(processedChunks, totalChunksSize, "Finishing up...", "")
+	confirmStart := time.Now()
+
 	confirmBody, err := json.Marshal(map[string]any{"chunks": uploadedHashes})
 	if err != nil {
 		return err
 	}
 
-	confirmReq, err := http.NewRequest("POST", remoteUrl+"/chunk-upload-confirm", bytes.NewBuffer(confirmBody))
+	confirmReq, err := http.NewRequestWithContext(ctx, "POST", remoteUrl+"/chunk-upload-confirm", bytes.NewBuffer(confirmBody))
 	if err != nil {
 		return err
 	}
@@ -960,8 +989,11 @@ func PushChunksPresigned(tx *sqlx.Tx, remoteUrl string, chunkInfos []ChunkInfo, 
 	}
 
 	if len(confirmResponse.FailedChunks) > 0 {
+		fmt.Printf("push presigned: confirm completed in %s, %d chunks failed\n", time.Since(confirmStart), len(confirmResponse.FailedChunks))
 		return fmt.Errorf("server failed to confirm %d chunks", len(confirmResponse.FailedChunks))
 	}
+
+	fmt.Printf("push presigned: confirm completed in %s, all %d chunks confirmed\n", time.Since(confirmStart), len(uploadedHashes))
 
 	return nil
 }
@@ -1058,10 +1090,10 @@ func PushChunks(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []Chunk
 	return nil
 }
 
-func PushChunksBatch(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []ChunkInfo, callback func(int, int, string, string)) error {
+func PushChunksBatch(ctx context.Context, tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []ChunkInfo, callback func(int, int, string, string)) error {
 	// Use presigned uploads for R2-backed projects (personal or cloud studio).
 	if IsR2Remote(remoteUrl) {
-		return PushChunksPresigned(tx, remoteUrl, chunkInfos, callback)
+		return PushChunksPresigned(ctx, tx, remoteUrl, chunkInfos, callback)
 	}
 
 	// const batchSizeLimit = 1 << 20 // 1 MB

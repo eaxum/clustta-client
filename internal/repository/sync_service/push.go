@@ -9,6 +9,7 @@ import (
 	"clustta/internal/repository/repositorypb"
 	"clustta/internal/studio_service"
 	"clustta/internal/utils"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -37,7 +38,11 @@ func shouldUseLegacyNames(remoteUrl string) bool {
 	return version != legacyServerVersion
 }
 
-func PushData(projectPath, remoteUrl string, userId string, callback func(int, int, string, string)) error {
+func PushData(ctx context.Context, projectPath, remoteUrl string, userId string, callback func(int, int, string, string)) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -138,12 +143,16 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 	if err != nil {
 		return err
 	}
+	fmt.Printf("push: %d total chunks, %d missing on remote, %d already exist\n", len(chunks), len(remoteMissingChunks), len(chunks)-len(remoteMissingChunks))
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
 	if len(remoteMissingChunks) > 0 {
 		remoteMissingChunksInfo, err := chunk_service.GetChunksInfo(tx, remoteMissingChunks)
 		if err != nil {
 			return err
 		}
-		err = chunk_service.PushChunksBatch(tx, remoteUrl, userId, remoteMissingChunksInfo, callback)
+		err = chunk_service.PushChunksBatch(ctx, tx, remoteUrl, userId, remoteMissingChunksInfo, callback)
 		if err != nil {
 			return err
 		}
@@ -182,9 +191,12 @@ func PushData(projectPath, remoteUrl string, userId string, callback func(int, i
 	}
 
 	if utils.IsValidURL(remoteUrl) {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
 		dataUrl := remoteUrl + "/data"
 
-		req, err := http.NewRequest("POST", dataUrl, bytes.NewBuffer(compressedData))
+		req, err := http.NewRequestWithContext(ctx, "POST", dataUrl, bytes.NewBuffer(compressedData))
 		if err != nil {
 			return err
 		}
@@ -416,7 +428,7 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 			if err != nil {
 				return err
 			}
-			err = chunk_service.PushChunksBatch(tx, remoteUrl, userId, chunkInfos, callback)
+			err = chunk_service.PushChunksBatch(context.Background(), tx, remoteUrl, userId, chunkInfos, callback)
 			if err != nil {
 				return err
 			}
