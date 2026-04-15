@@ -11,6 +11,7 @@ import (
 	"clustta/internal/settings"
 	"clustta/internal/utils"
 	"clustta/output"
+	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -138,7 +139,7 @@ func (p *ProjectService) MakeProjectRemote(projectPath string) error {
 	}
 
 	// Push all data (metadata, chunks, previews)
-	err = sync_service.PushData(projectPath, remoteURL, user.Id, progressCallback)
+	err = sync_service.PushData(context.Background(), projectPath, remoteURL, user.Id, progressCallback)
 	if err != nil {
 		return fmt.Errorf("failed to upload project data: %w", err)
 	}
