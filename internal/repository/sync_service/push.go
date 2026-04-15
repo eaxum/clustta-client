@@ -118,11 +118,13 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 	}
 
 	chunks := []string{}
+	chunkSet := make(map[string]bool)
 	for _, AssetCheckpoint := range data.AssetCheckpoints {
 		chunksString := AssetCheckpoint.Chunks
 		chunkHashes := strings.Split(chunksString, ",")
 		for _, chunkHash := range chunkHashes {
-			if !utils.Contains(chunks, chunkHash) {
+			if !chunkSet[chunkHash] {
+				chunkSet[chunkHash] = true
 				chunks = append(chunks, chunkHash)
 			}
 		}
@@ -132,18 +134,18 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 		chunksString := Template.Chunks
 		chunkHashes := strings.Split(chunksString, ",")
 		for _, chunkHash := range chunkHashes {
-			if !utils.Contains(chunks, chunkHash) {
+			if !chunkSet[chunkHash] {
+				chunkSet[chunkHash] = true
 				chunks = append(chunks, chunkHash)
 			}
 		}
 
 	}
 
-	remoteMissingChunks, err := FetchMissingChunks(remoteUrl, userId, chunks)
+	remoteMissingChunks, err := FetchMissingChunks(ctx, remoteUrl, userId, chunks)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("push: %d total chunks, %d missing on remote, %d already exist\n", len(chunks), len(remoteMissingChunks), len(chunks)-len(remoteMissingChunks))
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
@@ -159,26 +161,31 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 	}
 
 	previewIds := []string{}
-	if data.ProjectPreview != "" && !utils.Contains(previewIds, data.ProjectPreview) {
+	previewSet := make(map[string]bool)
+	if data.ProjectPreview != "" && !previewSet[data.ProjectPreview] {
+		previewSet[data.ProjectPreview] = true
 		previewIds = append(previewIds, data.ProjectPreview)
 	}
 	for _, asset := range data.Assets {
-		if asset.PreviewId != "" && !utils.Contains(previewIds, asset.PreviewId) {
+		if asset.PreviewId != "" && !previewSet[asset.PreviewId] {
+			previewSet[asset.PreviewId] = true
 			previewIds = append(previewIds, asset.PreviewId)
 		}
 	}
 	for _, collection := range data.Collections {
-		if collection.PreviewId != "" && !utils.Contains(previewIds, collection.PreviewId) {
+		if collection.PreviewId != "" && !previewSet[collection.PreviewId] {
+			previewSet[collection.PreviewId] = true
 			previewIds = append(previewIds, collection.PreviewId)
 		}
 	}
 	for _, assetCheckpoint := range data.AssetCheckpoints {
-		if assetCheckpoint.PreviewId != "" && !utils.Contains(previewIds, assetCheckpoint.PreviewId) {
+		if assetCheckpoint.PreviewId != "" && !previewSet[assetCheckpoint.PreviewId] {
+			previewSet[assetCheckpoint.PreviewId] = true
 			previewIds = append(previewIds, assetCheckpoint.PreviewId)
 		}
 	}
 
-	remoteMissingPreviews, err := FetchMissingPreviews(remoteUrl, userId, previewIds)
+	remoteMissingPreviews, err := FetchMissingPreviews(ctx, remoteUrl, userId, previewIds)
 	if err != nil {
 		return err
 	}
@@ -406,12 +413,14 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 
 	// Collect chunk hashes from checkpoints
 	chunks := []string{}
+	chunkSet := make(map[string]bool)
 	for _, cp := range data.AssetCheckpoints {
 		if cp.Chunks == "" {
 			continue
 		}
 		for _, hash := range strings.Split(cp.Chunks, ",") {
-			if !utils.Contains(chunks, hash) {
+			if !chunkSet[hash] {
+				chunkSet[hash] = true
 				chunks = append(chunks, hash)
 			}
 		}
@@ -419,7 +428,7 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 
 	// Upload missing chunks
 	if len(chunks) > 0 {
-		remoteMissing, err := FetchMissingChunks(remoteUrl, userId, chunks)
+		remoteMissing, err := FetchMissingChunks(context.Background(), remoteUrl, userId, chunks)
 		if err != nil {
 			return err
 		}
@@ -437,19 +446,22 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 
 	// Collect and upload missing previews
 	previewIds := []string{}
+	previewSet := make(map[string]bool)
 	for _, asset := range data.Assets {
-		if asset.PreviewId != "" && !utils.Contains(previewIds, asset.PreviewId) {
+		if asset.PreviewId != "" && !previewSet[asset.PreviewId] {
+			previewSet[asset.PreviewId] = true
 			previewIds = append(previewIds, asset.PreviewId)
 		}
 	}
 	for _, cp := range data.AssetCheckpoints {
-		if cp.PreviewId != "" && !utils.Contains(previewIds, cp.PreviewId) {
+		if cp.PreviewId != "" && !previewSet[cp.PreviewId] {
+			previewSet[cp.PreviewId] = true
 			previewIds = append(previewIds, cp.PreviewId)
 		}
 	}
 
 	if len(previewIds) > 0 {
-		remoteMissingPreviews, err := FetchMissingPreviews(remoteUrl, userId, previewIds)
+		remoteMissingPreviews, err := FetchMissingPreviews(context.Background(), remoteUrl, userId, previewIds)
 		if err != nil {
 			return err
 		}
