@@ -397,6 +397,31 @@ func processTLVStream(ctx context.Context, projectPath string, r io.Reader, down
 
 	savedSize := downloadedSize
 
+	// Batch commits for better SQLite performance.
+	const batchSize = 50
+	pendingCount := 0
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+
+	// commitBatch commits the current transaction and starts a new one.
+	commitBatch := func() error {
+		if err := tx.Commit(); err != nil {
+			return fmt.Errorf("error writing data: %w", err)
+		}
+		pendingCount = 0
+		newTx, err := dbConn.Beginx()
+		if err != nil {
+			return err
+		}
+		tx = newTx
+		return nil
+	}
+
+	defer tx.Rollback()
+
 	for {
 		if ctx.Err() != nil {
 			return ctx.Err()
@@ -430,21 +455,9 @@ func processTLVStream(ctx context.Context, projectPath string, r io.Reader, down
 			return fmt.Errorf("error reading value: %w", err)
 		}
 
-		tx, err := dbConn.Beginx()
-		if err != nil {
-			return err
-		}
-		defer tx.Rollback()
-
 		if ChunkExists(hex.EncodeToString(tag), tx, seenChunks) {
-			tx.Rollback()
 			continue
 		}
-
-		// Validate Zstandard magic number
-		// if len(compressedValue) < 4 || !bytes.Equal(compressedValue[:4], []byte{0x28, 0xB5, 0x2F, 0xFD}) {
-		// 	return fmt.Errorf("invalid input: magic number mismatch")
-		// }
 
 		decompressedValue, err := decoder.DecodeAll(compressedValue, nil)
 		if err != nil {
@@ -466,9 +479,12 @@ func processTLVStream(ctx context.Context, projectPath string, r io.Reader, down
 		if err != nil {
 			return fmt.Errorf("error inserting into DB: %w", err)
 		}
-		err = tx.Commit()
-		if err != nil {
-			return fmt.Errorf("error writing data: %w", err)
+
+		pendingCount++
+		if pendingCount >= batchSize {
+			if err := commitBatch(); err != nil {
+				return err
+			}
 		}
 
 		downloadedSize += size * chunksCountMap[hex.EncodeToString(tag)]
@@ -488,6 +504,13 @@ func processTLVStream(ctx context.Context, projectPath string, r io.Reader, down
 		}
 
 		callback(downloadedSize, totalSize, message, extraMessage)
+	}
+
+	// Commit any remaining pending inserts.
+	if pendingCount > 0 {
+		if err := tx.Commit(); err != nil {
+			return fmt.Errorf("error writing data: %w", err)
+		}
 	}
 
 	return nil
@@ -840,8 +863,6 @@ func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chu
 		return fmt.Errorf("failed to decode upload URLs: %w", err)
 	}
 
-	fmt.Printf("push presigned: %d to upload, %d already on R2\n", len(urlsResponse.URLs), len(urlsResponse.Existing))
-
 	// Account for already-existing chunks in progress
 	existingSet := make(map[string]bool, len(urlsResponse.Existing))
 	for _, hash := range urlsResponse.Existing {
@@ -909,7 +930,6 @@ func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chu
 
 				uploadResp, err := http.DefaultClient.Do(uploadReq)
 				if err != nil {
-					fmt.Printf("push presigned: chunk %s attempt %d/%d failed: %v\n", h[:8], attempt, maxRetries, err)
 					if attempt == maxRetries {
 						resultsCh <- uploadResult{hash: h, err: err}
 						return
@@ -920,7 +940,6 @@ func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chu
 				uploadResp.Body.Close()
 
 				if uploadResp.StatusCode != 200 {
-					fmt.Printf("push presigned: chunk %s attempt %d/%d status %d\n", h[:8], attempt, maxRetries, uploadResp.StatusCode)
 					if attempt == maxRetries {
 						resultsCh <- uploadResult{hash: h, err: fmt.Errorf("R2 upload failed for chunk %s: status %d", h, uploadResp.StatusCode)}
 						return
@@ -952,9 +971,7 @@ func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chu
 	}
 
 	// Phase 3: Confirm uploads with the server
-	fmt.Printf("push presigned: all %d chunks uploaded, confirming with server...\n", len(uploadedHashes))
 	callback(processedChunks, totalChunksSize, "Finishing up...", "")
-	confirmStart := time.Now()
 
 	confirmBody, err := json.Marshal(map[string]any{"chunks": uploadedHashes})
 	if err != nil {
@@ -989,11 +1006,8 @@ func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chu
 	}
 
 	if len(confirmResponse.FailedChunks) > 0 {
-		fmt.Printf("push presigned: confirm completed in %s, %d chunks failed\n", time.Since(confirmStart), len(confirmResponse.FailedChunks))
 		return fmt.Errorf("server failed to confirm %d chunks", len(confirmResponse.FailedChunks))
 	}
-
-	fmt.Printf("push presigned: confirm completed in %s, all %d chunks confirmed\n", time.Since(confirmStart), len(uploadedHashes))
 
 	return nil
 }
@@ -1116,11 +1130,14 @@ func PushChunksBatch(ctx context.Context, tx *sqlx.Tx, remoteUrl string, userId 
 			if len(batch) == 0 {
 				return nil
 			}
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
 			encodedChunk, err := EncodeChunks(batch)
 			if err != nil {
 				return err
 			}
-			req, err := http.NewRequest("POST", dataUrl, bytes.NewBuffer(encodedChunk))
+			req, err := http.NewRequestWithContext(ctx, "POST", dataUrl, bytes.NewBuffer(encodedChunk))
 			if err != nil {
 				return err
 			}
@@ -1148,6 +1165,9 @@ func PushChunksBatch(ctx context.Context, tx *sqlx.Tx, remoteUrl string, userId 
 		}
 
 		for _, chunkInfo := range chunkInfos {
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
 			var chunkData []byte
 			err := tx.Get(&chunkData, "SELECT data FROM chunk WHERE hash = ?", chunkInfo.Hash)
 			if err != nil {
@@ -1228,4 +1248,30 @@ func ChunkExists(chunkHash string, tx *sqlx.Tx, seenChunks map[string]bool) bool
 	var hash string
 	tx.Get(&hash, "SELECT hash FROM chunk WHERE hash = ?", chunkHash)
 	return hash != ""
+}
+
+// PreloadChunkExistence queries existing chunk hashes in batch and populates seenChunks.
+// SQLite supports up to 999 variables, so we batch in groups of 500.
+func PreloadChunkExistence(tx *sqlx.Tx, hashes []string, seenChunks map[string]bool) error {
+	const batchSize = 500
+	for i := 0; i < len(hashes); i += batchSize {
+		end := i + batchSize
+		if end > len(hashes) {
+			end = len(hashes)
+		}
+		batch := hashes[i:end]
+		query, args, err := sqlx.In("SELECT hash FROM chunk WHERE hash IN (?)", batch)
+		if err != nil {
+			return err
+		}
+		query = tx.Rebind(query)
+		var found []string
+		if err := tx.Select(&found, query, args...); err != nil {
+			return err
+		}
+		for _, h := range found {
+			seenChunks[h] = true
+		}
+	}
+	return nil
 }

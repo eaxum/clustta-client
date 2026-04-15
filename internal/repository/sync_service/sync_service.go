@@ -17,7 +17,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/DataDog/zstd"
 	"github.com/jmoiron/sqlx"
@@ -365,7 +364,6 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 		}
 	}
 
-	start := time.Now()
 	localCollections, err := repository.GetSimpleCollections(tx)
 	if err != nil {
 		return err
@@ -431,8 +429,6 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 
 		}
 	}
-	elapsed := time.Since(start)
-	fmt.Printf("collection write took %s\n", elapsed)
 
 	for _, collectionAssignee := range data.CollectionAssignees {
 		if tombItems[collectionAssignee.Id] {
@@ -452,7 +448,6 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 		}
 	}
 
-	start = time.Now()
 	localAssets, err := repository.GetSimpleAssets(tx)
 	if err != nil {
 		return err
@@ -494,10 +489,7 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 			}
 		}
 	}
-	elapsed = time.Since(start)
-	fmt.Printf("asset write took %s\n", elapsed)
 
-	start = time.Now()
 	localAssetCheckpoints, err := repository.GetSimpleCheckpoints(tx)
 	if err != nil {
 		return err
@@ -536,8 +528,6 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 			continue
 		}
 	}
-	elapsed = time.Since(start)
-	fmt.Printf("checkpoint write took %s\n", elapsed)
 
 	for _, dependency := range data.AssetDependencies {
 		if tombItems[dependency.Id] {
@@ -823,14 +813,11 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 
 func OverWriteProjectData(tx *sqlx.Tx, data ProjectData) error {
 	// Sort
-	start := time.Now()
 	sortedCollections, err := repository.TopologicalSort(data.Collections)
 	if err != nil {
 		return err
 	}
 	data.Collections = sortedCollections
-	elapsed := time.Since(start)
-	fmt.Printf("sort data took %s\n", elapsed)
 
 	previewIds := []string{}
 	if data.ProjectPreview != "" && !utils.Contains(previewIds, data.ProjectPreview) {
@@ -965,7 +952,6 @@ func OverWriteProjectData(tx *sqlx.Tx, data ProjectData) error {
 		}
 	}
 
-	start = time.Now()
 	for _, collection := range data.Collections {
 		err = repository.AddCollection(
 			tx, collection.Id, collection.Name, collection.Description, collection.CollectionTypeId, collection.ParentId, collection.PreviewId, collection.IsLibrary)
@@ -976,8 +962,6 @@ func OverWriteProjectData(tx *sqlx.Tx, data ProjectData) error {
 			return err
 		}
 	}
-	elapsed = time.Since(start)
-	fmt.Printf("collection write took %s\n", elapsed)
 
 	for _, collectionAssignee := range data.CollectionAssignees {
 		err = repository.AddAssignee(
@@ -987,7 +971,6 @@ func OverWriteProjectData(tx *sqlx.Tx, data ProjectData) error {
 		}
 	}
 
-	start = time.Now()
 	localAssets, err := repository.GetSimpleAssets(tx)
 	if err != nil {
 		return err
@@ -1013,10 +996,7 @@ func OverWriteProjectData(tx *sqlx.Tx, data ProjectData) error {
 			return err
 		}
 	}
-	elapsed = time.Since(start)
-	fmt.Printf("asset write took %s\n", elapsed)
 
-	start = time.Now()
 	createCheckpointQuery := `
 		INSERT INTO asset_checkpoint 
 		(id, mtime, created_at, asset_id, xxhash_checksum, time_modified, file_size, comment, chunks, author_id, preview_id, group_id) 
@@ -1037,8 +1017,6 @@ func OverWriteProjectData(tx *sqlx.Tx, data ProjectData) error {
 			return err
 		}
 	}
-	elapsed = time.Since(start)
-	fmt.Printf("checkpoint write took %s\n", elapsed)
 
 	for _, dependency := range data.AssetDependencies {
 		_, err = repository.AddDependency(
@@ -1260,22 +1238,27 @@ func FetchData(remoteUrl string, userId string) (ProjectData, error) {
 
 func CalculateMissingPreviews(tx *sqlx.Tx, data ProjectData) ([]string, error) {
 	previewIds := []string{}
-	if data.ProjectPreview != "" && !utils.Contains(previewIds, data.ProjectPreview) {
+	previewSet := make(map[string]bool)
+	if data.ProjectPreview != "" && !previewSet[data.ProjectPreview] {
+		previewSet[data.ProjectPreview] = true
 		previewIds = append(previewIds, data.ProjectPreview)
 	}
 
 	for _, asset := range data.Assets {
-		if asset.PreviewId != "" && !utils.Contains(previewIds, asset.PreviewId) {
+		if asset.PreviewId != "" && !previewSet[asset.PreviewId] {
+			previewSet[asset.PreviewId] = true
 			previewIds = append(previewIds, asset.PreviewId)
 		}
 	}
 	for _, collection := range data.Collections {
-		if collection.PreviewId != "" && !utils.Contains(previewIds, collection.PreviewId) {
+		if collection.PreviewId != "" && !previewSet[collection.PreviewId] {
+			previewSet[collection.PreviewId] = true
 			previewIds = append(previewIds, collection.PreviewId)
 		}
 	}
 	for _, assetCheckpoint := range data.AssetCheckpoints {
-		if assetCheckpoint.PreviewId != "" && !utils.Contains(previewIds, assetCheckpoint.PreviewId) {
+		if assetCheckpoint.PreviewId != "" && !previewSet[assetCheckpoint.PreviewId] {
+			previewSet[assetCheckpoint.PreviewId] = true
 			previewIds = append(previewIds, assetCheckpoint.PreviewId)
 		}
 	}
@@ -1285,15 +1268,15 @@ func CalculateMissingPreviews(tx *sqlx.Tx, data ProjectData) ([]string, error) {
 }
 
 func CalculateMissingChunks(tx *sqlx.Tx, data ProjectData, userId string, syncOptions SyncOptions) ([]string, []string, int, error) {
-	assetsIds := []string{}
+	assetIdSet := make(map[string]bool)
 
 	for _, asset := range data.Assets {
 		if asset.AssigneeId == userId {
-			assetsIds = append(assetsIds, asset.Id)
+			assetIdSet[asset.Id] = true
 		} else if syncOptions.AssetDependencies && asset.IsDependency {
-			assetsIds = append(assetsIds, asset.Id)
+			assetIdSet[asset.Id] = true
 		} else if syncOptions.Assets {
-			assetsIds = append(assetsIds, asset.Id)
+			assetIdSet[asset.Id] = true
 		}
 	}
 
@@ -1305,7 +1288,7 @@ func CalculateMissingChunks(tx *sqlx.Tx, data ProjectData, userId string, syncOp
 		latestAssetCheckpoints := make(map[string]models.Checkpoint)
 		// Iterate over asset checkpoints to find the latest for each collection
 		for _, assetCheckpoint := range data.AssetCheckpoints {
-			if utils.Contains(assetsIds, assetCheckpoint.AssetId) {
+			if assetIdSet[assetCheckpoint.AssetId] {
 				existingCheckpoint, found := latestAssetCheckpoints[assetCheckpoint.AssetId]
 				if !found || assetCheckpoint.CreatedAt > existingCheckpoint.CreatedAt {
 					latestAssetCheckpoints[assetCheckpoint.AssetId] = assetCheckpoint
@@ -1319,15 +1302,34 @@ func CalculateMissingChunks(tx *sqlx.Tx, data ProjectData, userId string, syncOp
 	} else {
 		// Include ALL checkpoints for selected assets
 		for _, assetCheckpoint := range data.AssetCheckpoints {
-			if utils.Contains(assetsIds, assetCheckpoint.AssetId) {
+			if assetIdSet[assetCheckpoint.AssetId] {
 				checkpointsToProcess = append(checkpointsToProcess, assetCheckpoint)
 			}
 		}
 	}
 
 	// Now gather all the chunks from the checkpoints
-	// chunks := []string{}
 	seenChunks := make(map[string]bool)
+
+	// Collect all unique hashes upfront for batch preloading.
+	allHashSet := make(map[string]bool)
+	for _, checkpoint := range checkpointsToProcess {
+		for _, h := range strings.Split(checkpoint.Chunks, ",") {
+			allHashSet[h] = true
+		}
+	}
+	for _, template := range data.Templates {
+		for _, h := range strings.Split(template.Chunks, ",") {
+			allHashSet[h] = true
+		}
+	}
+	allHashes := make([]string, 0, len(allHashSet))
+	for h := range allHashSet {
+		allHashes = append(allHashes, h)
+	}
+	chunk_service.PreloadChunkExistence(tx, allHashes, seenChunks)
+
+	missingSet := make(map[string]bool)
 	missingChunks := []string{}
 	allChunks := []string{}
 	totalSize := 0
@@ -1338,8 +1340,9 @@ func CalculateMissingChunks(tx *sqlx.Tx, data ProjectData, userId string, syncOp
 			if chunk_service.ChunkExists(chunkHash, tx, seenChunks) {
 				continue
 			}
-			if !utils.Contains(missingChunks, chunkHash) {
+			if !missingSet[chunkHash] {
 				checkpointFullyDownloaded = false
+				missingSet[chunkHash] = true
 				missingChunks = append(missingChunks, chunkHash)
 			}
 		}
@@ -1356,8 +1359,9 @@ func CalculateMissingChunks(tx *sqlx.Tx, data ProjectData, userId string, syncOp
 			if chunk_service.ChunkExists(chunkHash, tx, seenChunks) {
 				continue
 			}
-			if !utils.Contains(missingChunks, chunkHash) {
+			if !missingSet[chunkHash] {
 				templateFullyDownloaded = false
+				missingSet[chunkHash] = true
 				missingChunks = append(missingChunks, chunkHash)
 			}
 		}
@@ -1371,8 +1375,22 @@ func CalculateMissingChunks(tx *sqlx.Tx, data ProjectData, userId string, syncOp
 }
 func CalculateCheckpointsMissingChunks(tx *sqlx.Tx, checkpoints []models.Checkpoint) ([]string, []string, int, error) {
 	// Now gather all the chunks from the latest checkpoints
-	// chunks := []string{}
 	seenChunks := make(map[string]bool)
+
+	// Collect all unique hashes upfront for batch preloading.
+	allHashSet := make(map[string]bool)
+	for _, checkpoint := range checkpoints {
+		for _, h := range strings.Split(checkpoint.Chunks, ",") {
+			allHashSet[h] = true
+		}
+	}
+	allHashes := make([]string, 0, len(allHashSet))
+	for h := range allHashSet {
+		allHashes = append(allHashes, h)
+	}
+	chunk_service.PreloadChunkExistence(tx, allHashes, seenChunks)
+
+	missingSet := make(map[string]bool)
 	missingChunks := []string{}
 	allChunks := []string{}
 	totalSize := 0
@@ -1383,8 +1401,9 @@ func CalculateCheckpointsMissingChunks(tx *sqlx.Tx, checkpoints []models.Checkpo
 			if chunk_service.ChunkExists(chunkHash, tx, seenChunks) {
 				continue
 			}
-			if !utils.Contains(missingChunks, chunkHash) {
+			if !missingSet[chunkHash] {
 				checkpointFullyDownloaded = false
+				missingSet[chunkHash] = true
 				missingChunks = append(missingChunks, chunkHash)
 			}
 		}
@@ -1574,7 +1593,7 @@ func FetchChunksInfo(remoteUrl string, userId string, chunks []string) ([]chunk_
 	}
 }
 
-func FetchMissingChunks(remoteUrl string, userId string, chunks []string) ([]string, error) {
+func FetchMissingChunks(ctx context.Context, remoteUrl string, userId string, chunks []string) ([]string, error) {
 	if utils.IsValidURL(remoteUrl) {
 
 		dataUrl := remoteUrl + "/chunks-missing"
@@ -1584,7 +1603,7 @@ func FetchMissingChunks(remoteUrl string, userId string, chunks []string) ([]str
 			return []string{}, err
 		}
 
-		req, err := http.NewRequest("GET", dataUrl, bytes.NewBuffer(jsonData))
+		req, err := http.NewRequestWithContext(ctx, "GET", dataUrl, bytes.NewBuffer(jsonData))
 		if err != nil {
 			return []string{}, err
 		}
@@ -1631,6 +1650,7 @@ func FetchMissingChunks(remoteUrl string, userId string, chunks []string) ([]str
 
 		missingChunks := []string{}
 		seenChunks := make(map[string]bool)
+		chunk_service.PreloadChunkExistence(remoteTx, chunks, seenChunks)
 		for _, chunkHash := range chunks {
 			if chunk_service.ChunkExists(chunkHash, remoteTx, seenChunks) {
 				continue
@@ -1643,7 +1663,7 @@ func FetchMissingChunks(remoteUrl string, userId string, chunks []string) ([]str
 	}
 }
 
-func FetchMissingPreviews(remoteUrl string, userId string, previews []string) ([]string, error) {
+func FetchMissingPreviews(ctx context.Context, remoteUrl string, userId string, previews []string) ([]string, error) {
 	if utils.IsValidURL(remoteUrl) {
 
 		dataUrl := remoteUrl + "/previews-exist"
@@ -1653,7 +1673,7 @@ func FetchMissingPreviews(remoteUrl string, userId string, previews []string) ([
 			return []string{}, err
 		}
 
-		req, err := http.NewRequest("GET", dataUrl, bytes.NewBuffer(jsonData))
+		req, err := http.NewRequestWithContext(ctx, "GET", dataUrl, bytes.NewBuffer(jsonData))
 		if err != nil {
 			return []string{}, err
 		}
