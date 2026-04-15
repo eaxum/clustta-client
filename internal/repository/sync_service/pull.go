@@ -17,14 +17,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 )
 
 func PullData(ctx context.Context, projectPath, remoteUrl string, userId string, pullChunk bool, syncOptions SyncOptions, callback func(int, int, string, string)) error {
-	fmt.Printf("start pull for %s\n", projectPath)
-	trueStart := time.Now()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -69,10 +66,8 @@ func PullData(ctx context.Context, projectPath, remoteUrl string, userId string,
 
 	if !syncOptions.Force && projectInfo.SyncToken != "" && projectInfo.SyncToken == syncToken {
 		isUpToDate = true
-		println("Project is up to date")
 	}
 
-	start := time.Now()
 	data := ProjectData{}
 	if isUpToDate {
 		data, err = LoadUserData(tx, userId)
@@ -85,8 +80,6 @@ func PullData(ctx context.Context, projectPath, remoteUrl string, userId string,
 			return err
 		}
 	}
-	elapsed := time.Since(start)
-	fmt.Printf("data transfer took %s\n", elapsed)
 
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -107,49 +100,37 @@ func PullData(ctx context.Context, projectPath, remoteUrl string, userId string,
 		}
 	}
 
-	start = time.Now()
 	missingPreviews, err := CalculateMissingPreviews(tx, data)
 	if err != nil {
 		return err
 	}
-	elapsed = time.Since(start)
-	fmt.Printf("preview processing took %s\n", elapsed)
 
-	start = time.Now()
 	if len(missingPreviews) > 0 {
 		err = repository.PullPreviews(tx, remoteUrl, missingPreviews, callback)
 		if err != nil {
 			return err
 		}
 	}
-	elapsed = time.Since(start)
-	fmt.Printf("%d preview download took %s\n", len(missingPreviews), elapsed)
 
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
 
 	if !isUpToDate {
-		start = time.Now()
 		err = ClearLocalDataDrop(tx)
 		if err != nil {
 			return err
 		}
-		elapsed = time.Since(start)
-		fmt.Printf("clear data took %s\n", elapsed)
 
 		err = utils.SetProjectSyncToken(tx, projectInfo.SyncToken)
 		if err != nil {
 			return err
 		}
 
-		start = time.Now()
 		err = OverWriteProjectData(tx, data)
 		if err != nil {
 			return err
 		}
-		elapsed = time.Since(start)
-		fmt.Printf("writing transfered data took %s\n", elapsed)
 
 		err = utils.SetLastSyncTime(tx, utils.GetEpochTime())
 		if err != nil {
@@ -162,7 +143,6 @@ func PullData(ctx context.Context, projectPath, remoteUrl string, userId string,
 		}
 	}
 
-	start = time.Now()
 	missingChunks := []string{}
 	allChunks := []string{}
 	totalSize := 0
@@ -172,8 +152,6 @@ func PullData(ctx context.Context, projectPath, remoteUrl string, userId string,
 			return err
 		}
 	}
-	elapsed = time.Since(start)
-	fmt.Printf("missing chunks took %s\n", elapsed)
 
 	err = tx.Commit()
 	if err != nil {
@@ -188,8 +166,6 @@ func PullData(ctx context.Context, projectPath, remoteUrl string, userId string,
 			}
 		}
 	}
-	trueElapsed := time.Since(trueStart)
-	fmt.Printf("total took %s\n", trueElapsed)
 	return nil
 }
 
