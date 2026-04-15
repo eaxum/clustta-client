@@ -280,7 +280,7 @@ const selectPlan = async (plan) => {
     changingPlanId.value = null;
     if (checkoutUrl) {
       Browser.OpenURL(checkoutUrl);
-      notificationStore.addNotification('Checkout', 'Complete your payment in the browser', 'info', false);
+      notificationStore.addNotification('Checkout', 'Complete your payment in the browser', 'success', false);
       closeModal();
     } else {
       notificationStore.addNotification('Error', 'Failed to start checkout. Please try again.', 'error', false);

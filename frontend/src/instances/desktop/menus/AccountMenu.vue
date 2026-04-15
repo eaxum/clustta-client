@@ -213,12 +213,12 @@ const signOutCurrentAccount = async () => {
         await projectStore.loadProjects();
         trayStates.refreshData();
         
-        notificationStore.addNotification(t('notifications.accountSwitched'), `Switched to ${activeAccount.user.first_name} ${activeAccount.user.last_name}`);
+        notificationStore.addNotification(t('notifications.accountSwitched'), `Switched to ${activeAccount.user.first_name} ${activeAccount.user.last_name}`, "success");
       }
     } else {
       userStore.user = null;
       userStore.isUserAuthenticated = false;
-      notificationStore.addNotification(t('notifications.signedOut'), t('notifications.allAccountsSignedOut'));
+      notificationStore.addNotification(t('notifications.signedOut'), t('notifications.allAccountsSignedOut'), "info");
       resetStoreInitialization();
       router.push('/auth/login');
     }
