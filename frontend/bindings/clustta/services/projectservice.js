@@ -362,15 +362,18 @@ export function UpdateWorkingDirectory(projectUri, studioName, newWorkingDir) {
 /**
  * UploadProject uploads a local .clst project to a remote studio.
  * It creates the project on the remote, copies the file, remaps IDs, and prepares for sync.
+ * For cloud-hosted studios, set hostingMode to "cloud" and provide the studioId.
  * @param {string} sourceClstPath
  * @param {string} studioName
  * @param {string} workingDir
  * @param {string} projectName
  * @param {string} remoteProjectUrl
+ * @param {string} hostingMode
+ * @param {string} studioId
  * @returns {$CancellablePromise<repository$0.ProjectInfo>}
  */
-export function UploadProject(sourceClstPath, studioName, workingDir, projectName, remoteProjectUrl) {
-    return $Call.ByID(3550877976, sourceClstPath, studioName, workingDir, projectName, remoteProjectUrl).then(/** @type {($result: any) => any} */(($result) => {
+export function UploadProject(sourceClstPath, studioName, workingDir, projectName, remoteProjectUrl, hostingMode, studioId) {
+    return $Call.ByID(3550877976, sourceClstPath, studioName, workingDir, projectName, remoteProjectUrl, hostingMode, studioId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
 }

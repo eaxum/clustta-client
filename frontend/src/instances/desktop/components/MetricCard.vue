@@ -1,7 +1,7 @@
 <template>
   <div class="metric-card" :class="{ 'metric-card-warning': warning }">
     <div class="metric-card-header">
-      <img class="metric-card-icon" :src="icon">
+      <img class="metric-card-icon small-icons" :src="icon">
       <span class="metric-card-title">{{ title }}</span>
     </div>
 

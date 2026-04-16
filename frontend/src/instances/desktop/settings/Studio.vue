@@ -7,7 +7,7 @@
       <ProfileCard :title="$t('settings.studioInfo')" :showEditButton="!isCloudHosted" @toggleEdit="launchUpdateStudioModal()">
         <div class="header-layout">
           <div class="studio-avatar">
-            <img class="studio-avatar-icon" :src="getAppIcon('stall')">
+            <img class="studio-avatar-icon large-icons" :src="getAppIcon('stall')">
           </div>
 
           <div class="header-info">

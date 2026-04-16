@@ -1010,7 +1010,8 @@ func isInProjectsDirectory(absPath string) bool {
 
 // UploadProject uploads a local .clst project to a remote studio.
 // It creates the project on the remote, copies the file, remaps IDs, and prepares for sync.
-func (p *ProjectService) UploadProject(sourceClstPath, studioName, workingDir, projectName, remoteProjectUrl string) (repository.ProjectInfo, error) {
+// For cloud-hosted studios, set hostingMode to "cloud" and provide the studioId.
+func (p *ProjectService) UploadProject(sourceClstPath, studioName, workingDir, projectName, remoteProjectUrl, hostingMode, studioId string) (repository.ProjectInfo, error) {
 	if studioName == "" {
 		return repository.ProjectInfo{}, errors.New("studio name can't be empty")
 	}
@@ -1029,7 +1030,17 @@ func (p *ProjectService) UploadProject(sourceClstPath, studioName, workingDir, p
 		return repository.ProjectInfo{}, errors.New("invalid project file")
 	}
 
-	// Create empty project on remote
+	isCloud := hostingMode == "cloud"
+
+	// For cloud studios, build URL targeting the global server
+	if isCloud {
+		if studioId == "" {
+			return repository.ProjectInfo{}, errors.New("studio ID required for cloud upload")
+		}
+		remoteProjectUrl = constants.HOST + "/studio/" + studioId + "/" + projectName
+	}
+
+	// Create empty project on remote (server generates a new ID)
 	remoteProjectInfo, err := repository.CreateProject(remoteProjectUrl, studioName, workingDir, "", "", user)
 	if err != nil {
 		return repository.ProjectInfo{}, err
@@ -1050,8 +1061,14 @@ func (p *ProjectService) UploadProject(sourceClstPath, studioName, workingDir, p
 		return repository.ProjectInfo{}, errors.New("failed to copy project file: " + err.Error())
 	}
 
-	// Prepare the project for upload (remap IDs, update config)
-	err = sync_service.PrepareProjectForUpload(destClstPath, remoteProjectInfo, remoteProjectUrl, workingDir, user.Id)
+	// Prepare the project for upload
+	if isCloud {
+		// Cloud upload: remap type IDs to match remote, but preserve custom types
+		err = sync_service.PrepareProjectForCloudUpload(destClstPath, remoteProjectInfo.Id, remoteProjectUrl, workingDir, user.Id)
+	} else {
+		// Dedicated studio: remap IDs to match remote types
+		err = sync_service.PrepareProjectForUpload(destClstPath, remoteProjectInfo, remoteProjectUrl, workingDir, user.Id)
+	}
 	if err != nil {
 		// Clean up copied file on error
 		os.Remove(destClstPath)
