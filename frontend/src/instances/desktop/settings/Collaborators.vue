@@ -3,7 +3,7 @@
     <div class="settings-component-container">
       <div class="asset-header">
         <div class="create-menu">
-          <ActionButton v-if="projectStore.isR2Remote || userStore.canDo('add_user')" :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
+          <ActionButton v-if="projectStore.isCloudHosted || userStore.canDo('add_user')" :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
             @click="addCollaborator" v-tooltip="$t('settings.addCollaborator')" />
           <ActionButton :icon="getAppIcon('refresh')" :label="$t('common.refresh')" v-tooltip="$t('common.refresh')"
             :buttonFunction="refresh" />
@@ -85,7 +85,7 @@ const isStudioProject = computed(() => {
 });
 
 const isLastAdmin = computed(() => {
-  if (projectStore.isR2Remote) return false;
+  if (projectStore.isCloudHosted) return false;
   let projectUsers = userStore.getProjectCollaborators;
   const projectRoles = projectUsers.map((user) => user.role.name);
   const isLastAdmin = projectRoles.filter(roleName => roleName === 'admin').length < 2;
@@ -96,11 +96,11 @@ const activeUserId = computed(() => {
   return userStore.user?.id;
 });
 
-const canRemoveUser = computed(() => { return projectStore.isR2Remote || userStore.canDo('remove_user') });
-const canChangeRole = computed(() => { return projectStore.isR2Remote || userStore.canDo('change_role') });
+const canRemoveUser = computed(() => { return projectStore.isCloudHosted || userStore.canDo('remove_user') });
+const canChangeRole = computed(() => { return projectStore.isCloudHosted || userStore.canDo('change_role') });
 
 const availableRoles = computed(() => {
-  if (projectStore.isR2Remote) return ['admin', 'artist'];
+  if (projectStore.isCloudHosted) return ['admin', 'artist'];
   return userStore.getRolesNames;
 });
 
@@ -131,7 +131,7 @@ const projectCollaborators = computed(() => {
       id: user.id,
       avatarColor: userStore.userProfileColor(user.id),
       can_edit: user.id !== activeUserId.value && canChangeRole.value,
-      can_delete: !assignedUserIds.includes(user.id) && user.id !== activeUserId.value && (projectStore.isR2Remote || (user.role?.name !== 'admin' || !isLastAdmin.value)) && canRemoveUser.value,
+      can_delete: !assignedUserIds.includes(user.id) && user.id !== activeUserId.value && (projectStore.isCloudHosted || (user.role?.name !== 'admin' || !isLastAdmin.value)) && canRemoveUser.value,
     };
   });
   return utils.sortAlphabetically(users);
@@ -154,7 +154,7 @@ const deleteCollaborator = async (userId) => {
   let collaborator = allCollaborators.find(item => item.id === userId);
 
   try {
-    if (isStudioProject.value || projectStore.isR2Remote) {
+    if (isStudioProject.value || projectStore.isCloudHosted) {
       const remoteUrl = projectStore.getActiveProjectUrl;
       await CollaboratorService.RemoveCollaborator(remoteUrl, collaborator.id);
       await ProjectService.RemoveUserSynced(projectStore.activeProject.uri, collaborator.id);

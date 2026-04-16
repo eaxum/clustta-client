@@ -96,7 +96,7 @@ export const useProjectStore = defineStore("projects", {
     getStudioUrl: (state) => {
       return state.studioUrl;
     },
-    isR2Remote: (state) => {
+    isCloudHosted: (state) => {
       if (state.selectedStudio?.name === 'Personal' && !!state.activeProject?.has_remote && !!state.activeProject?.remote) return true;
       if (state.selectedStudio?.hosting_mode === 'cloud') return true;
       return false;

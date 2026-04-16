@@ -42,7 +42,7 @@ const userStore = useUserStore();
 // computed
 // Returns whether the selected studio is a cloud studio.
 const isCloudStudio = computed(() => {
-  return projectStore.selectedStudio?.hosting_mode === 'cloud';
+  return projectStore.isCloudHosted;
 });
 
 // Returns whether the selected studio is Personal.
@@ -131,7 +131,7 @@ const handleClick = () => {
 // watchers
 // Fetches studio entitlements when switching to a cloud studio.
 watch(() => projectStore.selectedStudio, (studio) => {
-  if (studio && studio.hosting_mode === 'cloud' && studio.id) {
+  if (projectStore.isCloudHosted && studio?.id) {
     entitlementStore.getStudioEntitlements(studio.id);
   }
 }, { immediate: true });

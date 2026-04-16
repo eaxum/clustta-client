@@ -51,9 +51,9 @@ func streamTransport() *http.Transport {
 	}
 }
 
-// IsR2Remote returns true if the remote URL points to an R2-backed project on the central server.
+// IsCloudHosted returns true if the remote URL points to a cloud-hosted project on the central server.
 // This includes both personal projects (/user/) and cloud studio projects (/studio/).
-func IsR2Remote(remoteUrl string) bool {
+func IsCloudHosted(remoteUrl string) bool {
 	return strings.Contains(remoteUrl, "/user/") || strings.Contains(remoteUrl, "/studio/")
 }
 
@@ -576,8 +576,8 @@ func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missin
 		return ctx.Err()
 	}
 
-	// Use presigned URLs for R2-backed projects (personal or cloud studio).
-	if IsR2Remote(remoteUrl) {
+	// Use presigned URLs for cloud-hosted projects (personal or cloud studio).
+	if IsCloudHosted(remoteUrl) {
 		return PullChunksPresigned(ctx, projectPath, remoteUrl, missingChunkHashes, allChunkHashes, totalSize, callback)
 	}
 
@@ -636,8 +636,8 @@ func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missin
 	return nil
 }
 
-// PullChunksPresigned fetches presigned R2 URLs from the server and downloads
-// chunks directly from R2 with bounded concurrency.
+// PullChunksPresigned fetches presigned URLs from the server and downloads
+// chunks directly from cloud storage with bounded concurrency.
 func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, missingChunkHashes []string, allChunkHashes []string, totalSize int, callback func(int, int, string, string)) error {
 	downloadedSize, _, chunksCountMap, err := ProcessDownloadedChunksProgress(ctx, projectPath, remoteUrl, missingChunkHashes, allChunkHashes, totalSize, callback)
 	if err != nil {
@@ -806,8 +806,8 @@ func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, mis
 	return nil
 }
 
-// PushChunksPresigned uploads chunks directly to R2 using presigned PUT URLs.
-// Phase 1: request upload URLs from server. Phase 2: upload to R2. Phase 3: confirm with server.
+// PushChunksPresigned uploads chunks directly to cloud storage using presigned PUT URLs.
+// Phase 1: request upload URLs from server. Phase 2: upload to cloud storage. Phase 3: confirm with server.
 func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chunkInfos []ChunkInfo, callback func(int, int, string, string)) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -882,7 +882,7 @@ func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chu
 		return nil
 	}
 
-	// Phase 2: Upload chunks directly to R2
+	// Phase 2: Upload chunks directly to cloud storage
 	type uploadResult struct {
 		hash string
 		size int
@@ -941,7 +941,7 @@ func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chu
 
 				if uploadResp.StatusCode != 200 {
 					if attempt == maxRetries {
-						resultsCh <- uploadResult{hash: h, err: fmt.Errorf("R2 upload failed for chunk %s: status %d", h, uploadResp.StatusCode)}
+						resultsCh <- uploadResult{hash: h, err: fmt.Errorf("cloud upload failed for chunk %s: status %d", h, uploadResp.StatusCode)}
 						return
 					}
 					time.Sleep(time.Duration(attempt) * 2 * time.Second)
@@ -1105,8 +1105,8 @@ func PushChunks(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []Chunk
 }
 
 func PushChunksBatch(ctx context.Context, tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []ChunkInfo, callback func(int, int, string, string)) error {
-	// Use presigned uploads for R2-backed projects (personal or cloud studio).
-	if IsR2Remote(remoteUrl) {
+	// Use presigned uploads for cloud-hosted projects (personal or cloud studio).
+	if IsCloudHosted(remoteUrl) {
 		return PushChunksPresigned(ctx, tx, remoteUrl, chunkInfos, callback)
 	}
 

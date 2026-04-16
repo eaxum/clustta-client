@@ -84,6 +84,7 @@ import { DialogService, ProjectService } from '@/services';
 import { useAccountStore } from '@/stores/accounts';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useEntitlementStore } from '@/stores/entitlements';
+import { refreshEntitlements } from '@/lib/sync';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
@@ -255,11 +256,7 @@ const updateRemoteState = async () => {
       updatedProject.has_remote = updatedInfo.has_remote;
       projectStore.activeProject = updatedProject;
     }
-    if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
-      entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
-    } else {
-      entitlementStore.fetchEntitlements();
-    }
+    refreshEntitlements();
   } catch (error) {
     console.error(error);
     const errorKey = isRemoteEnabled.value ? 'errorMakingProjectRemote' : 'errorRemovingProjectFromRemote';
