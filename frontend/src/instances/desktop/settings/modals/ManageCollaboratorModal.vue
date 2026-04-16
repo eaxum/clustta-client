@@ -6,23 +6,23 @@
     <div class="general-container">
 
       <div class="horizontal-flex">
-        <CollaboratorSuggestions :allowMultipleEntries="true" :placeholder="placeholder" :selectedItems="selectedUsers" :allItems="isR2Remote ? [] : studioUsers"
+        <CollaboratorSuggestions :allowMultipleEntries="true" :placeholder="placeholder" :selectedItems="selectedUsers" :allItems="isCloudHosted ? [] : studioUsers"
           @tagAdded="addUser" @tagRemoved="removeUser" />
       </div>
 
-      <div v-if="!isR2Remote" class="horizontal-flex">
+      <div v-if="!isCloudHosted" class="horizontal-flex">
         <DropDownBox :items="userStore.getRolesNames" :onSelect="selectRole"
           :selectedItem="collaboratorRole" :placeHolder="$t('common.none')" :fullWidth="true" />
       </div>
 
-      <div v-if="isR2Remote" class="horizontal-flex">
+      <div v-if="isCloudHosted" class="horizontal-flex">
         <DropDownBox :items="personalRemoteRoles" :onSelect="selectRole"
           :selectedItem="collaboratorRole" :placeHolder="$t('common.none')" :fullWidth="true" />
       </div>
 
       <!-- Notification section for non-studio users -->
       <div class="notification-area">
-      <div v-if="!isR2Remote && nonStudioUsers.length > 0" class="horizontal-flex">
+      <div v-if="!isCloudHosted && nonStudioUsers.length > 0" class="horizontal-flex">
         <NotificationBox 
           type="warning"
           :icon="getAppIcon('alert')"
@@ -103,7 +103,7 @@ const title = t('modals.manageCollaborators');
 // refs
 const allProjectCollaborators = ref([]);
 const collaboratorRole = ref(
-  projectStore.isR2Remote
+  projectStore.isCloudHosted
     ? 'artist'
     : userStore.getRolesNames[userStore.getRolesNames.length - 1]
 );
@@ -113,8 +113,8 @@ const selectedUserEmails = ref([]);
 const unregisteredUserEmails = ref([]);
 
 // computed
-// Whether the active project is a personal remote project.
-const isR2Remote = computed(() => projectStore.isR2Remote);
+// Whether the active project is a cloud-hosted remote project.
+const isCloudHosted = computed(() => projectStore.isCloudHosted);
 
 // Whether the active project is a studio project (cloud or private).
 const isStudioProject = computed(() => {
@@ -130,7 +130,7 @@ const nonStudioUsers = computed(() => {
 });
 
 const selectedUsers = computed(() => {
-  if (isR2Remote.value) {
+  if (isCloudHosted.value) {
     const registeredUsers = selectedUserEmails.value.map(email => ({
       id: email,
       email: email,
@@ -201,7 +201,7 @@ const addCollaborators = async () => {
   isAwaitingResponse.value = true;
 
   try {
-    if (isR2Remote.value) {
+    if (isCloudHosted.value) {
       console.log('one')
       await addPersonalRemoteCollaborators();
     } else if (isStudioProject.value) {
@@ -445,7 +445,7 @@ const addUser = async (user) => {
     return;
   }
 
-  if (isR2Remote.value) {
+  if (isCloudHosted.value) {
     try {
       const emailExists = await AuthService.CheckEmailExists(userEmail);
       if (emailExists) {

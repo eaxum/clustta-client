@@ -7,11 +7,11 @@ import { useEntitlementStore } from "@/stores/entitlements";
 import emitter from '@/lib/mitt';
 
 // Refreshes entitlements based on the current studio context.
-function refreshEntitlements() {
+export function refreshEntitlements() {
   const projectStore = useProjectStore();
   const entitlementStore = useEntitlementStore();
   const studio = projectStore.selectedStudio;
-  if (studio?.hosting_mode === 'cloud' && studio.id) {
+  if (projectStore.isCloudHosted && studio?.id) {
     entitlementStore.fetchStudioEntitlements(studio.id);
   } else {
     entitlementStore.fetchEntitlements();

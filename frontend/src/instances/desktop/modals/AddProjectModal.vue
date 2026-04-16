@@ -103,6 +103,7 @@ import { useProjectStore } from '@/stores/projects';
 import { useProjectTemplateStore } from '@/stores/project_template';
 import { useStageStore } from '@/stores/stages';
 import { useEntitlementStore } from '@/stores/entitlements';
+import { refreshEntitlements } from '@/lib/sync';
 
 // refs
 const existingFolderPath = ref(null);
@@ -389,11 +390,7 @@ const cloneProject = async () => {
       }
     }
     await projectStore.refreshProjectsPreview();
-    if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
-      entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
-    } else {
-      entitlementStore.fetchEntitlements();
-    }
+    refreshEntitlements();
     closeModal();
   } catch (error) {
     console.error(error);
@@ -425,11 +422,7 @@ const makeProjectRemote = async (project) => {
   } finally {
     stage.operationActive = false;
     isCloning.value = false;
-    if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
-      entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
-    } else {
-      entitlementStore.fetchEntitlements();
-    }
+    refreshEntitlements();
   }
 };
 

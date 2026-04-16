@@ -12,6 +12,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useSyncConflictStore } from '@/stores/syncConflict';
 import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
+import { refreshEntitlements } from '@/lib/sync';
 
 import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from './stores/projects';
@@ -139,11 +140,7 @@ async function pullData() {
         .then(async () => {
             await projectStore.reloadActiveProject()
             await userStore.reloadUsers()
-            if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
-                entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
-            } else {
-                entitlementStore.fetchEntitlements();
-            }
+            refreshEntitlements();
             emitter.emit('refresh-browser');
         }).catch((error) => {
             console.log("Error Syncing Data", error)
@@ -187,7 +184,7 @@ function startCheckSycnTokenInterval() {
             setTimeout(run, 1000);
             return
         }
-        if (!projectStore.selectedStudio || (projectStore.selectedStudio.name == "Personal" && !projectStore.isR2Remote)) {
+        if (!projectStore.selectedStudio || (projectStore.selectedStudio.name == "Personal" && !projectStore.isCloudHosted)) {
             setTimeout(run, 1000);
             return
         }

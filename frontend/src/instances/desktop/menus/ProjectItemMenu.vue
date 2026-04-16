@@ -91,6 +91,7 @@ import { CollectionService, DialogService, FSService, ProjectService, SettingsSe
 import { useAssetStore } from '@/stores/assets';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useEntitlementStore } from '@/stores/entitlements';
+import { refreshEntitlements } from '@/lib/sync';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
@@ -181,11 +182,7 @@ const deleteRemoteProject = async ({ deleteWorkingFiles } = {}) => {
   }
   
   await projectStore.loadProjects();
-  if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
-    entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
-  } else {
-    entitlementStore.fetchEntitlements();
-  }
+  refreshEntitlements();
   notificationStore.addNotification(
     t('notifications.projectDeleted'),
     t('notifications.projectDeletedDesc', { name: project.name }),

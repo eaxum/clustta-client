@@ -113,7 +113,7 @@ const featureTooltips = {
 // computed
 // Returns whether the selected studio is a cloud studio.
 const isCloudStudio = computed(() => {
-  return projectStore.selectedStudio?.hosting_mode === 'cloud';
+  return projectStore.isCloudHosted;
 });
 
 // Returns the current plan name based on context (personal or studio).
@@ -315,7 +315,7 @@ onMounted(async () => {
     await entitlementStore.fetchPlans();
     isLoadingPlans.value = false;
   }
-  if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
+  if (projectStore.isCloudHosted) {
     activeTab.value = 'studio';
     entitlementStore.getStudioEntitlements(projectStore.selectedStudio.id);
   } else if (entitlementStore.planType === 'studio') {

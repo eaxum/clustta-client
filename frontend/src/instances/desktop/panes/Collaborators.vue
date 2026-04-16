@@ -244,7 +244,7 @@ const deleteCollaborator = async (userId) => {
   loadingCollaboratorIds.value.push(userId);
   
   try {
-    if (isStudioProject.value || projectStore.isR2Remote) {
+    if (isStudioProject.value || projectStore.isCloudHosted) {
       const remoteUrl = projectStore.getActiveProjectUrl;
       await CollaboratorService.RemoveCollaborator(remoteUrl, collaborator.id);
       await ProjectService.RemoveUserSynced(projectStore.activeProject.uri, collaborator.id);

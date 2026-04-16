@@ -131,8 +131,6 @@ import { useThemeStore } from '@/stores/theme';
 import { useCollectionStore } from '@/stores/collections';
 import { useSettingsStore } from '@/stores/settings';
 
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
-import CheckBox from '@/instances/common/components/CheckBox.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import PlanInfo from '@/instances/common/components/PlanInfo.vue';
@@ -140,6 +138,7 @@ import { useStudioStore } from '@/stores/studio';
 import { usePlatformStore } from '@/stores/platform';
 import { useAccountStore } from '@/stores/accounts';
 import { useEntitlementStore } from '@/stores/entitlements';
+import { refreshEntitlements } from '@/lib/sync';
 
 const stage = useStageStore();
 const userStore = useUserStore();
@@ -272,11 +271,7 @@ const reloadStudio = async () => {
     projectStore.selectedStudio = projectStore.studios[0]
   }
   await projectStore.loadProjects();
-  if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
-    entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
-  } else {
-    entitlementStore.fetchEntitlements();
-  }
+  refreshEntitlements();
   displayStudioList.value = false;
 }
 
@@ -299,13 +294,7 @@ const selectStudio = async (studio) => {
     await studioStore.getStudioUsers();
   }
 
-  if (projectStore.selectedStudio?.hosting_mode === 'cloud') {
-    entitlementStore.fetchStudioEntitlements(projectStore.selectedStudio.id);
-    console.log('boat')
-  } else {
-    entitlementStore.fetchEntitlements();
-    console.log('float')
-  }
+  refreshEntitlements();
 	console.log(entitlementStore.features);
   
 
