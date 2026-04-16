@@ -18,10 +18,10 @@ type TypeMapping struct {
 
 // TypeMappings holds all type mappings for a project upload.
 type TypeMappings struct {
-	StatusMappings     []TypeMapping
+	StatusMappings         []TypeMapping
 	CollectionTypeMappings []TypeMapping
-	AssetTypeMappings   []TypeMapping
-	RoleMappings       []TypeMapping
+	AssetTypeMappings      []TypeMapping
+	RoleMappings           []TypeMapping
 }
 
 // FetchLocalTypes retrieves all types from the local project database.
@@ -275,6 +275,9 @@ func MarkAllTablesUnsynced(tx *sqlx.Tx) error {
 		"asset_dependency",
 		"collection_dependency",
 		"dependency_type",
+		"status",
+		"collection_type",
+		"asset_type",
 		"user",
 		"role",
 		"template",
@@ -284,6 +287,9 @@ func MarkAllTablesUnsynced(tx *sqlx.Tx) error {
 		"workflow_asset",
 		"tag",
 		"asset_tag",
+		"integration_project",
+		"integration_collection_mapping",
+		"integration_asset_mapping",
 	}
 
 	for _, table := range tables {
@@ -311,6 +317,107 @@ func FetchRemoteProjectTypes(remoteUrl string, userId string) ([]models.Status, 
 	}
 
 	return data.Statuses, data.CollectionTypes, data.AssetTypes, data.Roles, nil
+}
+
+// RemapTypeTableIds updates the primary key IDs in type tables to match the remote project.
+// Unlike ReplaceTypeTables, this preserves custom types that only exist locally.
+func RemapTypeTableIds(tx *sqlx.Tx, mappings TypeMappings) error {
+	for _, m := range mappings.StatusMappings {
+		_, err := tx.Exec("UPDATE status SET id = ? WHERE id = ?", m.RemoteID, m.LocalID)
+		if err != nil {
+			return fmt.Errorf("failed to remap status id %s to %s: %w", m.LocalID, m.RemoteID, err)
+		}
+	}
+
+	for _, m := range mappings.CollectionTypeMappings {
+		_, err := tx.Exec("UPDATE collection_type SET id = ? WHERE id = ?", m.RemoteID, m.LocalID)
+		if err != nil {
+			return fmt.Errorf("failed to remap collection_type id %s to %s: %w", m.LocalID, m.RemoteID, err)
+		}
+	}
+
+	for _, m := range mappings.AssetTypeMappings {
+		_, err := tx.Exec("UPDATE asset_type SET id = ? WHERE id = ?", m.RemoteID, m.LocalID)
+		if err != nil {
+			return fmt.Errorf("failed to remap asset_type id %s to %s: %w", m.LocalID, m.RemoteID, err)
+		}
+	}
+
+	for _, m := range mappings.RoleMappings {
+		_, err := tx.Exec("UPDATE role SET id = ? WHERE id = ?", m.RemoteID, m.LocalID)
+		if err != nil {
+			return fmt.Errorf("failed to remap role id %s to %s: %w", m.LocalID, m.RemoteID, err)
+		}
+	}
+
+	return nil
+}
+
+// PrepareProjectForCloudUpload prepares a local .clst file for upload to a cloud-hosted studio.
+// It remaps type IDs to match the remote project (avoiding UNIQUE constraint conflicts on push)
+// but preserves custom types that only exist locally.
+func PrepareProjectForCloudUpload(projectPath string, projectId string, remoteUrl string, workingDirectory string, userId string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return fmt.Errorf("failed to open project database: %w", err)
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	// Fetch local and remote types
+	localStatuses, localCollectionTypes, localAssetTypes, localRoles, err := FetchLocalTypes(tx)
+	if err != nil {
+		return err
+	}
+
+	remoteStatuses, remoteCollectionTypes, remoteAssetTypes, remoteRoles, err := FetchRemoteProjectTypes(remoteUrl, userId)
+	if err != nil {
+		return err
+	}
+
+	// Build mappings between local and remote types by name
+	mappings := BuildTypeMappings(
+		localStatuses, remoteStatuses,
+		localCollectionTypes, remoteCollectionTypes,
+		localAssetTypes, remoteAssetTypes,
+		localRoles, remoteRoles,
+	)
+
+	// Remap FK references in assets, collections, and users
+	err = RemapProjectIds(tx, mappings)
+	if err != nil {
+		return err
+	}
+
+	// Remap PKs in type tables to match remote IDs (preserves custom types)
+	err = RemapTypeTableIds(tx, mappings)
+	if err != nil {
+		return err
+	}
+
+	// Update config with remote project settings
+	err = UpdateProjectConfig(tx, projectId, remoteUrl, workingDirectory)
+	if err != nil {
+		return err
+	}
+
+	// Mark all tables as unsynced so the next sync pushes everything
+	err = MarkAllTablesUnsynced(tx)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
 }
 
 // PrepareProjectForUpload prepares a local .clst file for upload to a remote studio.

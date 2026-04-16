@@ -112,7 +112,7 @@ const isValueChanged = computed(() => {
 
 // Returns display names for location dropdown.
 const locationDisplayNames = computed(() => {
-  return projectLocations.value.map(loc => `${loc.name} - [${loc.path}]`);
+  return projectLocations.value.map(loc => `${loc.name}`);
 });
 
 // Checks if project name field is empty.
@@ -129,7 +129,7 @@ const projectNameInUse = computed(() => {
 // Returns display string for selected location.
 const selectedLocationDisplay = computed(() => {
   if (!selectedLocation.value) return '';
-  return `${selectedLocation.value.name} - [${selectedLocation.value.path}]`;
+  return `${selectedLocation.value.name}`;
 });
 
 // Computes the working directory path.
@@ -209,7 +209,7 @@ const resetProjectData = () => {
 // Selects a location from the dropdown.
 const selectLocation = (displayName) => {
   const location = projectLocations.value.find(loc => 
-    `${loc.name} - [${loc.path}]` === displayName
+    `${loc.name}` === displayName
   );
   if (location) {
     selectedLocation.value = location;
@@ -285,7 +285,9 @@ const uploadProject = async () => {
       studio.name,
       workingDirectory.value,
       projectName.value,
-      remoteProjectUrl
+      remoteProjectUrl,
+      studio.hosting_mode || '',
+      studio.id || ''
     );
 
     projectIsUploaded.value = true;
@@ -341,7 +343,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  gap: .4px;
+  gap: .5rem;
   color: var(--white);
 }
 
