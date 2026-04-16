@@ -98,11 +98,7 @@ func IsAuthenticated() (bool, error) {
 	}
 
 	// Set custom headers
-	token, err := GetToken()
-	if err != nil {
-		return false, err
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
 	client := &http.Client{Timeout: 5 * time.Second}
@@ -558,13 +554,7 @@ func UpdateUser(firstName, lastName, username, email string) (User, error) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
-
-	// Attach session cookie
-	token, err := GetToken()
-	if err != nil {
-		return User{}, err
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	AttachBearerToken(req)
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	response, err := client.Do(req)
@@ -612,11 +602,7 @@ func Logout() error {
 	}
 
 	// Set custom headers
-	token, err := GetToken()
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
 	client := &http.Client{Timeout: 30 * time.Second}
@@ -742,12 +728,7 @@ func UpdateUserPhoto(photo []byte) error {
 	}
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
-
-	token, err := GetToken()
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	AttachBearerToken(req)
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
@@ -775,12 +756,7 @@ func DeactivateUserAccount() error {
 	if err != nil {
 		return err
 	}
-	// Attach session cookie
-	token, err := GetToken()
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	AttachBearerToken(req)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 
 	client := &http.Client{Timeout: 30 * time.Second}
@@ -828,13 +804,7 @@ func SendInvitationEmail(email, studioName, projectName string) error {
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
-
-	// Attach session cookie
-	token, err := GetToken()
-	if err != nil {
-		return fmt.Errorf("failed to get token: %v", err)
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	AttachBearerToken(req)
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
@@ -955,13 +925,7 @@ func ChangePassword(currentPassword, newPassword, confirmPassword string) error 
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
-
-	// Attach session cookie
-	token, err := GetToken()
-	if err != nil {
-		return fmt.Errorf("failed to get token: %v", err)
-	}
-	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	AttachBearerToken(req)
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
@@ -1097,6 +1061,7 @@ func SubmitDiagnostics(email, description, os, arch, clusttaVersion, logContents
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	AttachBearerToken(req)
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
