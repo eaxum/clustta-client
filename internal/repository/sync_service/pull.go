@@ -465,10 +465,12 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 			if isDownloaded {
 				valid, err := repository.VerifyProjectIntegrity(projectPath)
 				if !valid || err != nil {
-					err := os.Remove(projectPath)
+					corruptedPath := projectPath + ".corrupted"
+					err := os.Rename(projectPath, corruptedPath)
 					if err != nil {
 						return studioProjects, err
 					}
+					fmt.Printf("Corrupted project renamed: %s -> %s\n", projectPath, corruptedPath)
 					isDownloaded = false
 				} else {
 					err := repository.UpdateProject(projectPath)
@@ -601,10 +603,12 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 			if isDownloaded {
 				valid, err := repository.VerifyProjectIntegrity(projectPath)
 				if !valid || err != nil {
-					err := os.Remove(projectPath)
+					corruptedPath := projectPath + ".corrupted"
+					err := os.Rename(projectPath, corruptedPath)
 					if err != nil {
 						return studioProjects, err
 					}
+					fmt.Printf("Corrupted project renamed: %s -> %s\n", projectPath, corruptedPath)
 					isDownloaded = false
 				} else {
 					err := repository.UpdateProject(projectPath)
