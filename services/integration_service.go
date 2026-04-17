@@ -1785,47 +1785,43 @@ func (s *IntegrationService) SaveStatusMappings(projectPath string, statusMappin
 }
 
 // PushToIntegration pushes a checkpoint's preview and status to the linked external integration.
-// Designed to be called asynchronously after checkpoint creation. Failures are logged, not returned.
-func (s *IntegrationService) PushToIntegration(projectPath string, assetIds []string, checkpointId, previewPath, message string) {
+// Returns an error if the push fails. A nil error means the push completed (or was skipped).
+func (s *IntegrationService) PushToIntegration(projectPath string, assetIds []string, checkpointId, previewPath, message string) error {
 	app := application.Get()
 
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		log.Printf("integration push: failed to open db: %v", err)
-		return
+		return fmt.Errorf("failed to open db: %w", err)
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		log.Printf("integration push: failed to begin tx: %v", err)
-		return
+		return fmt.Errorf("failed to begin tx: %w", err)
 	}
 	defer tx.Rollback()
 
 	// Check if project has a linked integration
 	integrationProject, err := repository.GetIntegrationProject(tx)
 	if err != nil || !integrationProject.Enabled {
-		return // No integration linked — silent return
+		return nil // No integration linked — not an error
 	}
 
 	// Load integration client
 	integration, err := integrations.Get(integrationProject.IntegrationId)
 	if err != nil {
-		log.Printf("integration push: unknown integration %s: %v", integrationProject.IntegrationId, err)
-		return
+		return fmt.Errorf("unknown integration %s: %w", integrationProject.IntegrationId, err)
 	}
 
 	// Load stored credentials
 	cred, err := settings.GetIntegrationCredential(integrationProject.IntegrationId)
 	if err != nil || cred.AccessToken == "" {
-		return // Not authenticated — silent return
+		return nil // Not authenticated — not an error
 	}
 
 	// Validate token is still valid
 	valid, err := integration.ValidateToken(cred.AccessToken, integrationProject.ApiUrl)
 	if err != nil || !valid {
-		log.Printf("integration push: token invalid for %s", integrationProject.IntegrationId)
-		return
+		return fmt.Errorf("token invalid for %s", integrationProject.IntegrationId)
 	}
 
 	// Load sync options for status mappings
@@ -1897,11 +1893,16 @@ func (s *IntegrationService) PushToIntegration(projectPath string, assetIds []st
 			"failed":      failedCount,
 			"integration": integrationProject.IntegrationId,
 		})
-	} else if failedCount > 0 {
+	}
+
+	if failedCount > 0 {
 		app.Event.Emit("integration-push-failed", map[string]interface{}{
 			"failed":      failedCount,
 			"integration": integrationProject.IntegrationId,
 			"error":       fmt.Sprintf("%d asset(s) failed to push", failedCount),
 		})
+		return fmt.Errorf("%d asset(s) failed to push to %s", failedCount, integrationProject.IntegrationId)
 	}
+
+	return nil
 }

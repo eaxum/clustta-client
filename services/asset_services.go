@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"clustta/internal/auth_service"
+	"clustta/internal/constants"
 	"clustta/internal/error_service"
 	"clustta/internal/ignore"
 	"clustta/internal/repository"
@@ -11,8 +12,11 @@ import (
 	"clustta/internal/utils"
 	"clustta/output"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io"
 	"io/fs"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -606,7 +610,22 @@ func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceAssetId, targ
 	return newAsset, nil
 }
 
-func (t *AssetService) ChangeStatus(projectPath, assetId, statusId string) error {
+// ChangeStatus updates asset statuses on the remote server first, then locally.
+// If no remote is configured, falls back to local-only update.
+func (t *AssetService) ChangeStatus(projectPath string, assetIds []string, statusId string) error {
+	remoteURL, _ := batcher.getRemoteURL(projectPath)
+
+	// Remote-first: push to server, only update local on confirmation
+	remoteConfirmed := false
+	if remoteURL != "" {
+		err := postStatusChangeRemote(remoteURL, assetIds, statusId)
+		if err != nil {
+			return fmt.Errorf("remote status update failed: %w", err)
+		}
+		remoteConfirmed = true
+	}
+
+	// Apply locally after remote confirmation (or directly if no remote)
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -618,19 +637,63 @@ func (t *AssetService) ChangeStatus(projectPath, assetId, statusId string) error
 	}
 	defer tx.Rollback()
 
-	err = repository.UpdateStatus(tx, assetId, statusId)
-	if err != nil {
-		return err
-	}
-	asset, err := repository.GetSimpleAsset(tx, assetId)
-	if err != nil {
-		return err
+	for _, assetId := range assetIds {
+		if remoteConfirmed {
+			err = repository.UpdateStatusOnly(tx, assetId, statusId)
+		} else {
+			err = repository.UpdateStatus(tx, assetId, statusId)
+		}
+		if err != nil {
+			return err
+		}
 	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
-	enqueueAssetWriteThrough(projectPath, asset)
+
+	return nil
+}
+
+// postStatusChangeRemote sends a status change request to the remote server.
+func postStatusChangeRemote(remoteURL string, assetIds []string, statusId string) error {
+	type assetStatus struct {
+		AssetId  string `json:"asset_id"`
+		StatusId string `json:"status_id"`
+	}
+	assets := make([]assetStatus, len(assetIds))
+	for i, id := range assetIds {
+		assets[i] = assetStatus{AssetId: id, StatusId: statusId}
+	}
+	payload := struct {
+		Assets []assetStatus `json:"assets"`
+	}{Assets: assets}
+
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("PUT", remoteURL+"/status", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	auth_service.AttachBearerToken(req)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("server returned %d: %s", resp.StatusCode, string(body))
+	}
+
 	return nil
 }
 

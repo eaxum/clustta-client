@@ -599,7 +599,7 @@ export const useAssetStore = defineStore("asset", {
       const projectStore = useProjectStore();
       await AssetService.ChangeStatus(
         projectStore.activeProject.uri,
-        assetId,
+        [assetId],
         status.id
       )
         .then((data) => {
@@ -611,17 +611,15 @@ export const useAssetStore = defineStore("asset", {
     },
     async setMultipleStatus(status, assetIds) {
       const projectStore = useProjectStore();
-      for (const assetId of assetIds) {
-        await AssetService.ChangeStatus(
-          projectStore.activeProject.uri,
-          assetId,
-          status.id
-        )
-          .then((data) => {})
-          .catch((error) => {
-            console.error("Error:", error);
-          });
-      }
+      await AssetService.ChangeStatus(
+        projectStore.activeProject.uri,
+        assetIds,
+        status.id
+      )
+        .then((data) => {})
+        .catch((error) => {
+          console.error("Error:", error);
+        });
       emitter.emit("refresh-browser");
     },
     toggleShowDoneAssets() {

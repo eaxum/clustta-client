@@ -705,6 +705,7 @@
     "deleteSnapshot": "スナップショットを削除",
     "useImageAsThumbnail": "画像をアセットのサムネイルとして使用",
     "syncAfterCheckpoint": "チェックポイント後に同期",
+    "sendToIntegration": "{name}に送信",
     "createCollection": "コレクションを作成",
     "addCollectionTypeTitle": "新しいコレクションタイプを追加",
     "moveIntoNewCollection": "新しいコレクションに移動",

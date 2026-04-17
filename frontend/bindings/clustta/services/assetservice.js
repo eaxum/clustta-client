@@ -107,13 +107,15 @@ export function ChangeAssetType(projectPath, assetId, assetTypeId) {
 }
 
 /**
+ * ChangeStatus updates asset statuses on the remote server first, then locally.
+ * If no remote is configured, falls back to local-only update.
  * @param {string} projectPath
- * @param {string} assetId
+ * @param {string[]} assetIds
  * @param {string} statusId
  * @returns {$CancellablePromise<void>}
  */
-export function ChangeStatus(projectPath, assetId, statusId) {
-    return $Call.ByID(2581918589, projectPath, assetId, statusId);
+export function ChangeStatus(projectPath, assetIds, statusId) {
+    return $Call.ByID(2581918589, projectPath, assetIds, statusId);
 }
 
 /**

@@ -430,7 +430,7 @@ const setStatus = async () => {
   try {
     const projectPath = projectStore.activeProject?.uri;
     if (projectPath && assetId && status) {
-      await AssetService.ChangeStatus(projectPath, assetId, status.id);
+      await AssetService.ChangeStatus(projectPath, [assetId], status.id);
       
       // The card position has already been updated in putCardInColumn
       // No need to update local data again here since putCardInColumn handles positioning

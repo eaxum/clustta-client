@@ -705,6 +705,7 @@
     "deleteSnapshot": "Eliminar captura",
     "useImageAsThumbnail": "Usar imagen como miniatura del activo",
     "syncAfterCheckpoint": "Sincronizar después del checkpoint",
+    "sendToIntegration": "Enviar a {name}",
     "createCollection": "Crear colección",
     "addCollectionTypeTitle": "Agregar nuevo tipo de colección",
     "moveIntoNewCollection": "Mover a nueva colección",

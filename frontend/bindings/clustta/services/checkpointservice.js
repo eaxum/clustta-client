@@ -22,10 +22,11 @@ import * as models$0 from "../internal/repository/models/models.js";
  * @param {string} previewPath
  * @param {string} groupId
  * @param {boolean} useAsThumbnail
+ * @param {boolean} sendToIntegration
  * @returns {$CancellablePromise<models$0.Checkpoint[]>}
  */
-export function AddCheckpoint(projectPath, assetPaths, message, previewPath, groupId, useAsThumbnail) {
-    return $Call.ByID(3142003966, projectPath, assetPaths, message, previewPath, groupId, useAsThumbnail).then(/** @type {($result: any) => any} */(($result) => {
+export function AddCheckpoint(projectPath, assetPaths, message, previewPath, groupId, useAsThumbnail, sendToIntegration) {
+    return $Call.ByID(3142003966, projectPath, assetPaths, message, previewPath, groupId, useAsThumbnail, sendToIntegration).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
 }
