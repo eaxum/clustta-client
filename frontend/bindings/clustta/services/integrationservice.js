@@ -82,6 +82,19 @@ export function GetExternalProjects(integrationId, token, apiUrl) {
 }
 
 /**
+ * GetExternalStatuses fetches task statuses from the external integration.
+ * Returns the list of available statuses for mapping.
+ * @param {string} projectPath
+ * @param {string} token
+ * @returns {$CancellablePromise<integrations$0.ExternalStatusInfo[]>}
+ */
+export function GetExternalStatuses(projectPath, token) {
+    return $Call.ByID(2866478662, projectPath, token).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType6($result);
+    }));
+}
+
+/**
  * GetExternalTypes fetches collection and asset types from the external integration.
  * Requires valid token and linked integration.
  * @param {string} projectPath
@@ -90,8 +103,8 @@ export function GetExternalProjects(integrationId, token, apiUrl) {
  */
 export function GetExternalTypes(projectPath, token) {
     return $Call.ByID(1578626957, projectPath, token).then(/** @type {($result: any) => any} */(($result) => {
-        $result[0] = $$createType6($result[0]);
-        $result[1] = $$createType6($result[1]);
+        $result[0] = $$createType8($result[0]);
+        $result[1] = $$createType8($result[1]);
         return $result;
     }));
 }
@@ -104,7 +117,7 @@ export function GetExternalTypes(projectPath, token) {
  */
 export function GetLinkedIntegration(projectPath) {
     return $Call.ByID(3555362308, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType7($result);
+        return $$createType9($result);
     }));
 }
 
@@ -116,8 +129,8 @@ export function GetLinkedIntegration(projectPath) {
  */
 export function GetLocalTypes(projectPath) {
     return $Call.ByID(443978039, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        $result[0] = $$createType9($result[0]);
-        $result[1] = $$createType11($result[1]);
+        $result[0] = $$createType11($result[0]);
+        $result[1] = $$createType13($result[1]);
         return $result;
     }));
 }
@@ -131,7 +144,7 @@ export function GetLocalTypes(projectPath) {
  */
 export function GetMissingTypes(projectPath, token) {
     return $Call.ByID(3905082754, projectPath, token).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType13($result);
+        return $$createType15($result);
     }));
 }
 
@@ -144,7 +157,7 @@ export function GetMissingTypes(projectPath, token) {
  */
 export function GetSyncPreview(projectPath, token) {
     return $Call.ByID(1539504252, projectPath, token).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType14($result);
+        return $$createType16($result);
     }));
 }
 
@@ -156,7 +169,7 @@ export function GetSyncPreview(projectPath, token) {
  */
 export function GetTypeMappings(projectPath) {
     return $Call.ByID(2092174792, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType15($result);
+        return $$createType17($result);
     }));
 }
 
@@ -174,8 +187,32 @@ export function GetTypeMappings(projectPath) {
  */
 export function LinkProject(projectPath, integrationId, externalProjectId, externalProjectName, apiUrl, syncOptions, userId) {
     return $Call.ByID(3276450698, projectPath, integrationId, externalProjectId, externalProjectName, apiUrl, syncOptions, userId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType7($result);
+        return $$createType9($result);
     }));
+}
+
+/**
+ * PushToIntegration pushes a checkpoint's preview and status to the linked external integration.
+ * Designed to be called asynchronously after checkpoint creation. Failures are logged, not returned.
+ * @param {string} projectPath
+ * @param {string[]} assetIds
+ * @param {string} checkpointId
+ * @param {string} previewPath
+ * @param {string} message
+ * @returns {$CancellablePromise<void>}
+ */
+export function PushToIntegration(projectPath, assetIds, checkpointId, previewPath, message) {
+    return $Call.ByID(224699366, projectPath, assetIds, checkpointId, previewPath, message);
+}
+
+/**
+ * SaveStatusMappings saves status mappings to sync_options (Clustta status ID → external status ID).
+ * @param {string} projectPath
+ * @param {{ [_: string]: string }} statusMappings
+ * @returns {$CancellablePromise<void>}
+ */
+export function SaveStatusMappings(projectPath, statusMappings) {
+    return $Call.ByID(1555028661, projectPath, statusMappings);
 }
 
 /**
@@ -204,14 +241,16 @@ const $$createType1 = integrations$0.IntegrationInfo.createFrom;
 const $$createType2 = $Create.Array($$createType1);
 const $$createType3 = integrations$0.ExternalProject.createFrom;
 const $$createType4 = $Create.Array($$createType3);
-const $$createType5 = integrations$0.ExternalTypeInfo.createFrom;
+const $$createType5 = integrations$0.ExternalStatusInfo.createFrom;
 const $$createType6 = $Create.Array($$createType5);
-const $$createType7 = models$0.IntegrationProject.createFrom;
-const $$createType8 = models$0.CollectionType.createFrom;
-const $$createType9 = $Create.Array($$createType8);
-const $$createType10 = models$0.AssetType.createFrom;
+const $$createType7 = integrations$0.ExternalTypeInfo.createFrom;
+const $$createType8 = $Create.Array($$createType7);
+const $$createType9 = models$0.IntegrationProject.createFrom;
+const $$createType10 = models$0.CollectionType.createFrom;
 const $$createType11 = $Create.Array($$createType10);
-const $$createType12 = integrations$0.MissingType.createFrom;
+const $$createType12 = models$0.AssetType.createFrom;
 const $$createType13 = $Create.Array($$createType12);
-const $$createType14 = integrations$0.SyncPreview.createFrom;
-const $$createType15 = integrations$0.SyncOptions.createFrom;
+const $$createType14 = integrations$0.MissingType.createFrom;
+const $$createType15 = $Create.Array($$createType14);
+const $$createType16 = integrations$0.SyncPreview.createFrom;
+const $$createType17 = integrations$0.SyncOptions.createFrom;

@@ -270,36 +270,68 @@ func (k *KitsuClient) GetProjectAssets(token, apiUrl, projectID string) ([]Exter
 // UpdateAssetStatus updates an asset's status in Kitsu.
 func (k *KitsuClient) UpdateAssetStatus(token, apiUrl, assetID, status string) error {
 	apiUrl = strings.TrimSuffix(apiUrl, "/")
+
+	// Kitsu status changes are done via the comment action endpoint
 	payload := map[string]string{
 		"task_status_id": status,
+		"comment":        "",
 	}
-	_, err := k.put(token, apiUrl+"/api/data/tasks/"+assetID, payload)
+	_, err := k.post(token, apiUrl+"/api/actions/tasks/"+assetID+"/comment", payload)
 	return err
 }
 
-// UploadPreview uploads a preview file to an asset.
-func (k *KitsuClient) UploadPreview(token, apiUrl, assetID, filePath, comment string) error {
+// UploadPreview uploads a preview file to a task's comment.
+// If taskStatusId is provided, the comment will also set that status. Otherwise the current status is preserved.
+func (k *KitsuClient) UploadPreview(token, apiUrl, assetID, filePath, comment, taskStatusId string) error {
 	apiUrl = strings.TrimSuffix(apiUrl, "/")
 
-	// First, create a comment with the preview
-	commentPayload := map[string]string{
-		"task_id": assetID,
-		"text":    comment,
+	// If no status provided, fetch the current task status to preserve it
+	if taskStatusId == "" {
+		taskData, err := k.get(token, apiUrl+"/api/data/tasks/"+assetID)
+		if err != nil {
+			return fmt.Errorf("failed to fetch task: %w", err)
+		}
+		var task struct {
+			TaskStatusID string `json:"task_status_id"`
+		}
+		if err := json.Unmarshal(taskData, &task); err != nil {
+			return fmt.Errorf("failed to parse task: %w", err)
+		}
+		taskStatusId = task.TaskStatusID
 	}
-	commentData, err := k.post(token, apiUrl+"/api/data/comments", commentPayload)
+
+	// Step 1: Create comment via the action endpoint
+	commentPayload := map[string]string{
+		"task_status_id": taskStatusId,
+		"comment":        comment,
+	}
+	commentData, err := k.post(token, apiUrl+"/api/actions/tasks/"+assetID+"/comment", commentPayload)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create comment: %w", err)
 	}
 
 	var commentResp struct {
 		ID string `json:"id"`
 	}
 	if err := json.Unmarshal(commentData, &commentResp); err != nil {
-		return err
+		return fmt.Errorf("failed to parse comment response: %w", err)
 	}
 
-	// Upload preview to the comment
-	return k.uploadFile(token, apiUrl+"/api/data/comments/"+commentResp.ID+"/preview", filePath)
+	// Step 2: Create a preview slot on the comment
+	previewData, err := k.post(token, apiUrl+"/api/actions/tasks/"+assetID+"/comments/"+commentResp.ID+"/add-preview", map[string]string{})
+	if err != nil {
+		return fmt.Errorf("failed to create preview slot: %w", err)
+	}
+
+	var previewResp struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(previewData, &previewResp); err != nil {
+		return fmt.Errorf("failed to parse preview response: %w", err)
+	}
+
+	// Step 3: Upload the actual file to the preview slot
+	return k.uploadFile(token, apiUrl+"/api/pictures/preview-files/"+previewResp.ID, filePath)
 }
 
 // GetCollectionTypes fetches all collection types (asset types) from Kitsu.
@@ -397,6 +429,31 @@ func (k *KitsuClient) GetAssetTypes(token, apiUrl, projectID string) ([]External
 	}
 
 	return types, nil
+}
+
+// GetTaskStatuses fetches all task statuses from Kitsu.
+func (k *KitsuClient) GetTaskStatuses(token, apiUrl string) ([]ExternalStatusInfo, error) {
+	apiUrl = strings.TrimSuffix(apiUrl, "/")
+	data, err := k.get(token, apiUrl+"/api/data/task-status")
+	if err != nil {
+		return nil, err
+	}
+
+	var kitsuStatuses []kitsuTaskStatus
+	if err := json.Unmarshal(data, &kitsuStatuses); err != nil {
+		return nil, err
+	}
+
+	statuses := make([]ExternalStatusInfo, 0, len(kitsuStatuses))
+	for _, s := range kitsuStatuses {
+		statuses = append(statuses, ExternalStatusInfo{
+			ID:        s.ID,
+			Name:      s.Name,
+			ShortName: s.ShortName,
+			Color:     s.Color,
+		})
+	}
+	return statuses, nil
 }
 
 func (k *KitsuClient) get(token, url string) ([]byte, error) {
@@ -681,6 +738,13 @@ type kitsuAssetType struct {
 type kitsuTaskType struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type kitsuTaskStatus struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	ShortName string `json:"short_name"`
+	Color     string `json:"color"`
 }
 
 // init registers the Kitsu client.

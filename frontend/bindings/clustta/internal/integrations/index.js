@@ -6,6 +6,7 @@ export {
     AuthResult,
     DirectoryStructure,
     ExternalProject,
+    ExternalStatusInfo,
     ExternalTypeInfo,
     IntegrationInfo,
     MissingType,

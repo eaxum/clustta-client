@@ -46,6 +46,18 @@
             </div>
           </div>
 
+          <!-- Status Mapping (only when integration linked) -->
+          <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openStatusMapping">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('sync')"></div>
+            <div class="settings-content">
+              <div class="settings-header">Status Mapping</div>
+              <div class="settings-body">Map statuses to push on checkpoint</div>
+            </div>
+            <div class="settings-action" v-stop-propagation>
+              <ActionButton :icon="getAppIcon('settings')" :label="'Configure'" :buttonFunction="openStatusMapping" />
+            </div>
+          </div>
+
           <!-- No Integration Linked -->
           <div v-else class="settings-item" v-stop-propagation @click="openIntegrationLink">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('plug')"></div>
@@ -138,6 +150,11 @@ const openDirectoryMapping = () => {
 // Opens the asset type mapping modal to configure template mappings.
 const openAssetTypeMapping = () => {
   desktopModals.setModalVisibility('assetTypeMappingModal', true);
+};
+
+// Opens the status mapping modal to configure status sync.
+const openStatusMapping = () => {
+  desktopModals.setModalVisibility('statusMappingModal', true);
 };
 
 // Toggles the write-through sync experimental feature for the active project.

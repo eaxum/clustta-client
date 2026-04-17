@@ -192,6 +192,58 @@ export class ExternalProject {
 }
 
 /**
+ * ExternalStatusInfo represents a status definition from an external system.
+ */
+export class ExternalStatusInfo {
+    /**
+     * Creates a new ExternalStatusInfo instance.
+     * @param {Partial<ExternalStatusInfo>} [$$source = {}] - The source object to create the ExternalStatusInfo.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("short_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["short_name"] = "";
+        }
+        if (!("color" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["color"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ExternalStatusInfo instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ExternalStatusInfo}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ExternalStatusInfo(/** @type {Partial<ExternalStatusInfo>} */($$parsedSource));
+    }
+}
+
+/**
  * ExternalTypeInfo represents a type definition from an external system.
  */
 export class ExternalTypeInfo {
@@ -822,6 +874,14 @@ export class SyncOptions {
              */
             this["asset_type_templates"] = {};
         }
+        if (!("status_mappings" in $$source)) {
+            /**
+             * Clustta status ID → external status ID
+             * @member
+             * @type {{ [_: string]: string }}
+             */
+            this["status_mappings"] = {};
+        }
         if (!("directory_structure" in $$source)) {
             /**
              * Folder path templates
@@ -850,7 +910,8 @@ export class SyncOptions {
         const $$createField0_0 = $$createType3;
         const $$createField1_0 = $$createType3;
         const $$createField2_0 = $$createType4;
-        const $$createField3_0 = $$createType5;
+        const $$createField3_0 = $$createType4;
+        const $$createField4_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("collection_type_mappings" in $$parsedSource) {
             $$parsedSource["collection_type_mappings"] = $$createField0_0($$parsedSource["collection_type_mappings"]);
@@ -861,8 +922,11 @@ export class SyncOptions {
         if ("asset_type_templates" in $$parsedSource) {
             $$parsedSource["asset_type_templates"] = $$createField2_0($$parsedSource["asset_type_templates"]);
         }
+        if ("status_mappings" in $$parsedSource) {
+            $$parsedSource["status_mappings"] = $$createField3_0($$parsedSource["status_mappings"]);
+        }
         if ("directory_structure" in $$parsedSource) {
-            $$parsedSource["directory_structure"] = $$createField3_0($$parsedSource["directory_structure"]);
+            $$parsedSource["directory_structure"] = $$createField4_0($$parsedSource["directory_structure"]);
         }
         return new SyncOptions(/** @type {Partial<SyncOptions>} */($$parsedSource));
     }
