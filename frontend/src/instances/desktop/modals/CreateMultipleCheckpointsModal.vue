@@ -182,7 +182,7 @@ const createCheckPoints = async () => {
   const previewPath = '';
   const groupId = uuidv4();
   const assetPathsForCheckpoints = currentModifiedDisplayPaths.value.map(assetState => assetState.asset_path);
-  await CheckpointService.AddCheckpoint(projectStore.activeProject.uri, assetPathsForCheckpoints, comment, previewPath, groupId, useImageAsCover.value)
+  await CheckpointService.AddCheckpoint(projectStore.activeProject.uri, assetPathsForCheckpoints, comment, previewPath, groupId, useImageAsCover.value, false)
     .then(() => {
       assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter(
         (item) => !assetPathsForCheckpoints.includes(item.asset_path)

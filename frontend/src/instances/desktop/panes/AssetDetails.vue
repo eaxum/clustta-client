@@ -400,7 +400,7 @@ const setStatus = async (statusName) => {
   const status = statusStore.statuses.find(item => item.short_name === statusName.toLowerCase());
   let asset = assetStore.selectedAsset;
   
-  await AssetService.ChangeStatus(projectPath, asset.id, status.id)
+  await AssetService.ChangeStatus(projectPath, [asset.id], status.id)
     .then((data) => {
       asset.status_short_name = status.short_name;
       asset.status = status;

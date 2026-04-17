@@ -43,6 +43,11 @@
         <ToggleSwitch :switchValueProp="syncAfterCheckpointEnabled" @click="toggleSyncAfterCheckpoint()" />
       </div>
 
+      <div v-if="hasLinkedIntegration" class="horizontal-flex">
+        <div class="input-label"> {{ $t('modals.sendToIntegration', { name: integrationName }) }}</div>
+        <ToggleSwitch :switchValueProp="sendToIntegrationEnabled" @click="toggleSendToIntegration()" />
+      </div>
+
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
         <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createCheckPoint" :isActive="isValueChanged"
@@ -78,6 +83,7 @@ import { CheckpointService, ClipboardService, DialogService, SettingsService, Sy
 import { useAssetStore } from '@/stores/assets';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
+import { useIntegrationStore } from '@/stores/integrations';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useStatusStore } from '@/stores/status';
@@ -86,6 +92,7 @@ import { useUserStore } from '@/stores/users';
 
 const assetStore = useAssetStore();
 const iconStore = useIconStore();
+const integrationStore = useIntegrationStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
@@ -99,6 +106,7 @@ const displayStatusMenu = ref(false);
 const isAwaitingResponse = ref(false);
 const message = ref('');
 const modalContainer = ref(null);
+const sendToIntegrationEnabled = ref(true);
 const syncAfterCheckpointEnabled = ref(false);
 const useImageAsCover = ref(true);
 
@@ -118,6 +126,19 @@ const isValueChanged = computed(() => {
 // Returns whether the status menu should be displayed.
 const isRemoteProject = computed(() => {
   return projectStore.activeProject?.has_remote;
+});
+
+// Returns whether the project has a linked integration.
+const hasLinkedIntegration = computed(() => {
+  return !!integrationStore.linkedIntegration;
+});
+
+// Returns the display name of the linked integration.
+const integrationName = computed(() => {
+  const id = integrationStore.linkedIntegrationId;
+  if (!id) return '';
+  const info = integrationStore.getIntegration(id);
+  return info?.name || id;
 });
 
 const statusMenuDisplayed = computed(() => {
@@ -179,7 +200,7 @@ const createCheckPoint = async () => {
   const previewPath = trayStates.previewFullPath;
   const groupId = uuidv4();
   if (assetStore.selectedAsset.type === 'asset') {
-    CheckpointService.AddCheckpoint(projectStore.activeProject.uri, [assetPath], comment, previewPath, groupId, useImageAsCover.value)
+    CheckpointService.AddCheckpoint(projectStore.activeProject.uri, [assetPath], comment, previewPath, groupId, useImageAsCover.value, sendToIntegrationEnabled.value)
       .then(() => {
         emitter.emit('refresh-browser');
         emitter.emit('update-checkpoints');
@@ -252,6 +273,11 @@ const syncAsset = () => {
 // Toggles the sync after checkpoint toggle.
 const toggleSyncAfterCheckpoint = () => {
   syncAfterCheckpointEnabled.value = !syncAfterCheckpointEnabled.value;
+};
+
+// Toggles the send to integration toggle.
+const toggleSendToIntegration = () => {
+  sendToIntegrationEnabled.value = !sendToIntegrationEnabled.value;
 };
 
 // Opens a dialog to select a preview file.

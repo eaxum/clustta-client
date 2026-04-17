@@ -193,7 +193,7 @@ export function LinkProject(projectPath, integrationId, externalProjectId, exter
 
 /**
  * PushToIntegration pushes a checkpoint's preview and status to the linked external integration.
- * Designed to be called asynchronously after checkpoint creation. Failures are logged, not returned.
+ * Returns an error if the push fails. A nil error means the push completed (or was skipped).
  * @param {string} projectPath
  * @param {string[]} assetIds
  * @param {string} checkpointId

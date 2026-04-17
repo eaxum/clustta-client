@@ -733,6 +733,7 @@
     "deleteSnapshot": "Delete Snapshot",
     "useImageAsThumbnail": "Use Image as Asset thumbnail",
     "syncAfterCheckpoint": "Sync after checkpoint",
+    "sendToIntegration": "Send to {name}",
     "createCollection": "Create Collection",
     "addCollectionTypeTitle": "Add new Collection Type",
     "moveIntoNewCollection": "Move into new Collection",

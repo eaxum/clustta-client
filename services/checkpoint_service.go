@@ -9,6 +9,7 @@ import (
 	"clustta/output"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -209,7 +210,7 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, assetId, 
 
 // AddCheckpoint creates new checkpoints for multiple assets.
 // Returns the created checkpoints or an error if the operation fails.
-func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths []string, message, previewPath, groupId string, useAsThumbnail bool) ([]models.Checkpoint, error) {
+func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths []string, message, previewPath, groupId string, useAsThumbnail, sendToIntegration bool) ([]models.Checkpoint, error) {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -306,11 +307,16 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths []strin
 	}
 	app.Event.Emit("progress-update", progress)
 
-	// Push to external integration asynchronously (preview upload + status sync)
+	// Push to external integration (preview upload + status sync)
 	// Only for single-asset checkpoints to avoid flooding the external system
-	if len(checkpoints) == 1 {
+	if sendToIntegration && len(checkpoints) == 1 {
 		integrationSvc := &IntegrationService{}
-		go integrationSvc.PushToIntegration(projectPath, []string{checkpoints[0].AssetId}, checkpoints[0].Id, previewPath, message)
+		if err := integrationSvc.PushToIntegration(projectPath, []string{checkpoints[0].AssetId}, checkpoints[0].Id, previewPath, message); err != nil {
+			log.Printf("integration push failed (checkpoint still created): %v", err)
+			app.Event.Emit("integration-push-failed", map[string]interface{}{
+				"error": err.Error(),
+			})
+		}
 	}
 
 	return checkpoints, nil

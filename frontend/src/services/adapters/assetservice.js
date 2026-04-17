@@ -635,13 +635,15 @@ export const AssetService = {
     }
   },
 
-  // Changes the status of an asset (local-first approach)
-  ChangeStatus: async (projectPath, assetId, statusId) => {
+  // Changes the status of one or more assets (remote-first approach)
+  ChangeStatus: async (projectPath, assetIds, statusId) => {
     const projectName = getProjectName(projectPath);
     
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'UPDATE asset SET status_id = ?, mtime = ?, synced = 0 WHERE id = ?', [statusId, Date.now(), assetId]);
+      for (const assetId of assetIds) {
+        execute(db, 'UPDATE asset SET status_id = ?, mtime = ?, synced = 0 WHERE id = ?', [statusId, Date.now(), assetId]);
+      }
       await persistDatabase(projectName);
     } catch (error) {
       console.error('ChangeStatus error:', error);

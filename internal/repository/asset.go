@@ -1684,6 +1684,15 @@ func UpdateStatus(tx *sqlx.Tx, assetId string, statusId string) error {
 	return nil
 }
 
+// UpdateStatusOnly sets the status_id without bumping mtime.
+// Used after a remote-confirmed status change to avoid flagging the row as dirty.
+func UpdateStatusOnly(tx *sqlx.Tx, assetId string, statusId string) error {
+	params := map[string]interface{}{
+		"status_id": statusId,
+	}
+	return base_service.Update(tx, "asset", assetId, params)
+}
+
 func ChangeCollection(tx *sqlx.Tx, assetId string, collectionId string) error {
 	oldAsset, err := GetAsset(tx, assetId)
 	if err != nil {

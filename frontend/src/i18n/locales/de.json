@@ -707,6 +707,7 @@
     "deleteSnapshot": "Schnappschuss löschen",
     "useImageAsThumbnail": "Bild als Asset-Miniaturansicht verwenden",
     "syncAfterCheckpoint": "Nach Checkpoint synchronisieren",
+    "sendToIntegration": "An {name} senden",
     "createCollection": "Sammlung erstellen",
     "addCollectionTypeTitle": "Neuen Sammlungstyp hinzufügen",
     "moveIntoNewCollection": "In neue Sammlung verschieben",
