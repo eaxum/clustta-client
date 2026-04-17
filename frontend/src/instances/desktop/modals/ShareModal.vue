@@ -141,7 +141,7 @@ const generateLink = async () => {
   isLoading.value = true;
   try {
     const result = await ShareService.CreateShareLink(
-      projectStore.studioUrl,
+      projectStore.selectedStudio.id,
       projectStore.activeProject.name,
       shareData.value.checkpointIds,
       label.value.trim(),
