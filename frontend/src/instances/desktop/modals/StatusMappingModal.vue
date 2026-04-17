@@ -1,6 +1,6 @@
 <template>
   <div class="modal-container large-modal" v-esc="closeModal">
-    <HeaderArea :title="'Status Mapping'" :icon="'sync'" />
+    <HeaderArea :title="'Status Mapping'" :icon="'clock'" />
 
     <div class="general-container">
       <!-- Loading State -->
