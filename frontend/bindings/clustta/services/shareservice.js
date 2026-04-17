@@ -12,19 +12,28 @@ import * as $models from "./models.js";
 
 /**
  * CreateShareLink creates a shareable download link for one or more checkpoints.
- * The studioUrl should be the resolved studio server URL (e.g. "http://studio.example.com").
- * The projectName should be the project identifier (without .clst extension).
- * @param {string} studioUrl
+ * Calls the global server directly with user Bearer token auth.
+ * @param {string} studioId
  * @param {string} projectName
  * @param {string[]} checkpointIds
  * @param {string} label
  * @param {number} expiresInHours
  * @returns {$CancellablePromise<$models.ShareLinkResponse>}
  */
-export function CreateShareLink(studioUrl, projectName, checkpointIds, label, expiresInHours) {
-    return $Call.ByID(2035526811, studioUrl, projectName, checkpointIds, label, expiresInHours).then(/** @type {($result: any) => any} */(($result) => {
+export function CreateShareLink(studioId, projectName, checkpointIds, label, expiresInHours) {
+    return $Call.ByID(2035526811, studioId, projectName, checkpointIds, label, expiresInHours).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
+}
+
+/**
+ * RevokeShareLink revokes a share link.
+ * Calls the global server directly with user Bearer token auth.
+ * @param {string} token
+ * @returns {$CancellablePromise<void>}
+ */
+export function RevokeShareLink(token) {
+    return $Call.ByID(1054847977, token);
 }
 
 // Private type creation functions
