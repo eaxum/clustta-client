@@ -23,6 +23,16 @@ import (
 
 type CheckpointService struct{}
 
+// isImageFile checks whether a file path has an image extension.
+func isImageFile(path string) bool {
+	ext := strings.ToLower(filepath.Ext(path))
+	switch ext {
+	case ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".webp":
+		return true
+	}
+	return false
+}
+
 // DeleteCheckpoint removes a checkpoint from the project.
 // Returns an error if the deletion fails.
 func (c *CheckpointService) DeleteCheckpoint(projectPath, checkpointId string) error {
@@ -226,7 +236,7 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths []strin
 
 	totalAssets := len(assetPaths)
 	previewId := ""
-	if previewPath != "" {
+	if previewPath != "" && isImageFile(previewPath) {
 		tx, err := dbConn.Beginx()
 		if err != nil {
 			return []models.Checkpoint{}, err
@@ -283,7 +293,7 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths []strin
 			tx.Rollback()
 			return []models.Checkpoint{}, err
 		}
-		if previewPath != "" && useAsThumbnail {
+		if previewId != "" && useAsThumbnail {
 			err = repository.SetCollectionPreview(tx, asset.Id, "asset", previewId)
 			if err != nil {
 				tx.Rollback()

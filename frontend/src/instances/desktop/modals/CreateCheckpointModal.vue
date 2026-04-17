@@ -19,7 +19,7 @@
           :buttonFunction="selectPreviewFile" />
         <ActionButton :icon="getAppIcon('clipboard')" v-tooltip="$t('modals.pasteSnapshot')" v-stop-propagation
           :buttonFunction="addImageFromClipBoard" />
-        <ActionButton v-if="trayStates.screenshot" :icon="getAppIcon('trash')" v-tooltip="$t('modals.deleteSnapshot')"
+        <ActionButton v-if="trayStates.previewFullPath" :icon="getAppIcon('trash')" v-tooltip="$t('modals.deleteSnapshot')"
           v-stop-propagation :buttonFunction="removePreveiw" />
       </div>
 
@@ -33,7 +33,12 @@
         <img class="screenshot-thumb" :src="trayStates.screenshot">
       </span>
 
-      <div v-if="trayStates.screenshot" class="horizontal-flex">
+      <div v-if="trayStates.previewFullPath && !isAttachmentImage" class="attachment-indicator">
+        <img class="attachment-icon" :src="getAppIcon('paperclip')">
+        <span class="attachment-name">{{ trayStates.previewFile }}</span>
+      </div>
+
+      <div v-if="isAttachmentImage" class="horizontal-flex">
         <div class="input-label"> {{ $t('modals.useImageAsThumbnail') }}</div>
         <ToggleSwitch :switchValueProp="useImageAsCover" @click="useAsCover()" />
       </div>
@@ -114,6 +119,13 @@ const useImageAsCover = ref(true);
 const forbiddenComments = ['wip', 'wfa', 'retake', 'retook', 'todo', 'fmf'];
 
 // computed
+// Returns whether the attachment is an image file.
+const isAttachmentImage = computed(() => {
+  if (!trayStates.previewFullPath) return false;
+  const ext = trayStates.previewFullPath.split('.').pop().toLowerCase();
+  return ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp'].includes(ext);
+});
+
 // Returns whether the message is valid for submission.
 const isValueChanged = computed(() => {
   const messageWords = message.value.toLowerCase().split(/\s+/);
@@ -285,14 +297,19 @@ const selectPreviewFile = async () => {
   if (!trayStates.userPin) {
     await trayStates.togglePin();
   }
-  const result = await DialogService.SelectFileDialog('Select Image File', '*.png; *.jpg; *.jpeg; *.gif; *.bmp; *.tiff; *.webp');
+  const result = await DialogService.SelectFileDialog('Select Attachment', '*.png; *.jpg; *.jpeg; *.gif; *.bmp; *.tiff; *.webp; *.mp4; *.mov; *.avi; *.webm; *.mkv; *.wmv');
   if (result) {
     const filePath = result.replace(/\\/g, '/');
     const fileName = filePath.split('/').pop();
-    const base64Image = await utils.base64FromFile(filePath);
+    const ext = fileName.split('.').pop().toLowerCase();
+    const imageExts = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp'];
     trayStates.previewFile = fileName;
     trayStates.previewFullPath = filePath;
-    trayStates.screenshot = base64Image;
+    if (imageExts.includes(ext)) {
+      trayStates.screenshot = await utils.base64FromFile(filePath);
+    } else {
+      trayStates.screenshot = null;
+    }
   }
   if (!trayStates.userPin) {
     await trayStates.togglePin();
@@ -418,6 +435,31 @@ onUnmounted(() => {
   font-size: 14px;
   white-space: nowrap;
   flex: 1;
+}
+
+.attachment-indicator {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .5rem .6rem;
+  border-radius: var(--normal-radius);
+  background-color: var(--dark-steel);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.attachment-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+.attachment-name {
+  font-size: 13px;
+  color: var(--light-steel);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
 
