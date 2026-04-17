@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -651,6 +652,14 @@ func (t *AssetService) ChangeStatus(projectPath string, assetIds []string, statu
 	if err != nil {
 		return err
 	}
+
+	// Push status to external integration (non-blocking)
+	go func() {
+		integrationSvc := &IntegrationService{}
+		if pushErr := integrationSvc.PushToIntegration(projectPath, assetIds, "", "", ""); pushErr != nil {
+			log.Printf("integration status push failed: %v", pushErr)
+		}
+	}()
 
 	return nil
 }
