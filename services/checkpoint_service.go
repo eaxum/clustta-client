@@ -305,6 +305,14 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths []strin
 		EntityData: checkpoints,
 	}
 	app.Event.Emit("progress-update", progress)
+
+	// Push to external integration asynchronously (preview upload + status sync)
+	// Only for single-asset checkpoints to avoid flooding the external system
+	if len(checkpoints) == 1 {
+		integrationSvc := &IntegrationService{}
+		go integrationSvc.PushToIntegration(projectPath, []string{checkpoints[0].AssetId}, checkpoints[0].Id, previewPath, message)
+	}
+
 	return checkpoints, nil
 }
 

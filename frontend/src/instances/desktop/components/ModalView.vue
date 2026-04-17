@@ -83,6 +83,7 @@ import IntegrationLinkModal from '@/instances/desktop/modals/IntegrationLinkModa
 import IntegrationSyncModal from '@/instances/desktop/modals/IntegrationSyncModal.vue';
 import SquashModal from '@/instances/desktop/modals/SquashModal.vue';
 import AssetTypeMappingModal from '@/instances/desktop/modals/AssetTypeMappingModal.vue';
+import StatusMappingModal from '@/instances/desktop/modals/StatusMappingModal.vue';
 
 // components - diagnostics
 import SubmitDiagnosticsModal from '@/instances/desktop/modals/SubmitDiagnosticsModal.vue';
@@ -183,6 +184,7 @@ const modalComponents = {
   integrationSyncModal: IntegrationSyncModal,
   squashModal: SquashModal,
   assetTypeMappingModal: AssetTypeMappingModal,
+  statusMappingModal: StatusMappingModal,
 
   // diagnostics
   submitDiagnosticsModal: SubmitDiagnosticsModal,

@@ -26,9 +26,12 @@ type Integration interface {
 	GetCollectionTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error)
 	GetAssetTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error)
 
+	// Status discovery (for mapping configuration)
+	GetTaskStatuses(token, apiUrl string) ([]ExternalStatusInfo, error)
+
 	// Push operations
 	UpdateAssetStatus(token, apiUrl, assetID, status string) error
-	UploadPreview(token, apiUrl, assetID, filePath, comment string) error
+	UploadPreview(token, apiUrl, assetID, filePath, comment, taskStatusId string) error
 }
 
 // AuthResult contains the result of an authentication attempt.
@@ -194,6 +197,7 @@ type SyncOptions struct {
 	CollectionTypeMappings map[string]TypeMapping `json:"collection_type_mappings"` // External collection type → Clustta collection type
 	AssetTypeMappings   map[string]TypeMapping `json:"asset_type_mappings"`   // External asset type → Clustta asset type
 	AssetTypeTemplates  map[string]string      `json:"asset_type_templates"`  // External asset type ID → Clustta template ID
+	StatusMappings      map[string]string      `json:"status_mappings"`       // Clustta status ID → external status ID
 	DirectoryStructure DirectoryStructure     `json:"directory_structure"`  // Folder path templates
 	LastSyncAt         string                 `json:"last_sync_at"`
 }
@@ -218,6 +222,14 @@ type MissingType struct {
 type ExternalTypeInfo struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+// ExternalStatusInfo represents a status definition from an external system.
+type ExternalStatusInfo struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	ShortName string `json:"short_name"`
+	Color     string `json:"color"`
 }
 
 var (

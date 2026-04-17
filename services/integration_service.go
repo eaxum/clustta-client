@@ -5,10 +5,13 @@ import (
 	"clustta/internal/integrations"
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
+	"clustta/internal/settings"
 	"clustta/internal/utils"
 	"clustta/output"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
 	"sort"
 	"strings"
 	"time"
@@ -1710,4 +1713,193 @@ func (s *IntegrationService) GetLocalTypes(projectPath string) ([]models.Collect
 	}
 
 	return collectionTypes, assetTypes, nil
+}
+
+// GetExternalStatuses fetches task statuses from the external integration.
+// Returns the list of available statuses for mapping.
+func (s *IntegrationService) GetExternalStatuses(projectPath, token string) ([]integrations.ExternalStatusInfo, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return nil, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	integrationProject, err := repository.GetIntegrationProject(tx)
+	if err != nil {
+		return nil, errors.New("no integration linked to this project")
+	}
+
+	integration, err := integrations.Get(integrationProject.IntegrationId)
+	if err != nil {
+		return nil, err
+	}
+
+	return integration.GetTaskStatuses(token, integrationProject.ApiUrl)
+}
+
+// SaveStatusMappings saves status mappings to sync_options (Clustta status ID → external status ID).
+func (s *IntegrationService) SaveStatusMappings(projectPath string, statusMappings map[string]string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	integrationProject, err := repository.GetIntegrationProject(tx)
+	if err != nil {
+		return errors.New("no integration linked to this project")
+	}
+
+	var syncOptions integrations.SyncOptions
+	if integrationProject.SyncOptions != "" && integrationProject.SyncOptions != "{}" {
+		json.Unmarshal([]byte(integrationProject.SyncOptions), &syncOptions)
+	}
+
+	syncOptions.StatusMappings = statusMappings
+
+	syncOptionsJSON, err := json.Marshal(syncOptions)
+	if err != nil {
+		return err
+	}
+
+	err = repository.UpdateIntegrationProject(tx, integrationProject.Id, map[string]interface{}{
+		"sync_options": string(syncOptionsJSON),
+	})
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+// PushToIntegration pushes a checkpoint's preview and status to the linked external integration.
+// Designed to be called asynchronously after checkpoint creation. Failures are logged, not returned.
+func (s *IntegrationService) PushToIntegration(projectPath string, assetIds []string, checkpointId, previewPath, message string) {
+	app := application.Get()
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		log.Printf("integration push: failed to open db: %v", err)
+		return
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		log.Printf("integration push: failed to begin tx: %v", err)
+		return
+	}
+	defer tx.Rollback()
+
+	// Check if project has a linked integration
+	integrationProject, err := repository.GetIntegrationProject(tx)
+	if err != nil || !integrationProject.Enabled {
+		return // No integration linked — silent return
+	}
+
+	// Load integration client
+	integration, err := integrations.Get(integrationProject.IntegrationId)
+	if err != nil {
+		log.Printf("integration push: unknown integration %s: %v", integrationProject.IntegrationId, err)
+		return
+	}
+
+	// Load stored credentials
+	cred, err := settings.GetIntegrationCredential(integrationProject.IntegrationId)
+	if err != nil || cred.AccessToken == "" {
+		return // Not authenticated — silent return
+	}
+
+	// Validate token is still valid
+	valid, err := integration.ValidateToken(cred.AccessToken, integrationProject.ApiUrl)
+	if err != nil || !valid {
+		log.Printf("integration push: token invalid for %s", integrationProject.IntegrationId)
+		return
+	}
+
+	// Load sync options for status mappings
+	var syncOptions integrations.SyncOptions
+	if integrationProject.SyncOptions != "" && integrationProject.SyncOptions != "{}" {
+		json.Unmarshal([]byte(integrationProject.SyncOptions), &syncOptions)
+	}
+
+	pushedCount := 0
+	failedCount := 0
+
+	for _, assetId := range assetIds {
+		// Look up integration mapping for this asset
+		mapping, err := repository.GetAssetMappingByAssetId(tx, assetId)
+		if err != nil {
+			continue // Asset not mapped to integration — skip
+		}
+
+		// Resolve external status ID if mapping exists
+		externalStatusId := ""
+		if syncOptions.StatusMappings != nil {
+			asset, err := repository.GetAsset(tx, assetId)
+			if err == nil && asset.StatusId != "" {
+				if sid, ok := syncOptions.StatusMappings[asset.StatusId]; ok {
+					externalStatusId = sid
+				}
+			}
+		}
+
+		// Upload preview if provided — includes status change in the same comment when mapped
+		statusPushedWithPreview := false
+		if previewPath != "" {
+			err = integration.UploadPreview(cred.AccessToken, integrationProject.ApiUrl, mapping.ExternalId, previewPath, message, externalStatusId)
+			if err != nil {
+				log.Printf("integration push: preview upload failed for asset %s: %v", assetId, err)
+				failedCount++
+				continue
+			}
+			if externalStatusId != "" {
+				statusPushedWithPreview = true
+			}
+		}
+
+		// Push status update only if not already included in the preview comment
+		if externalStatusId != "" && !statusPushedWithPreview {
+			err = integration.UpdateAssetStatus(cred.AccessToken, integrationProject.ApiUrl, mapping.ExternalId, externalStatusId)
+			if err != nil {
+				log.Printf("integration push: status update failed for asset %s: %v", assetId, err)
+			}
+		}
+
+		// Update last_pushed_checkpoint_id on the mapping
+		if checkpointId != "" {
+			repository.UpdateAssetMapping(tx, mapping.Id, map[string]interface{}{
+				"last_pushed_checkpoint_id": checkpointId,
+				"synced_at":                time.Now().UTC().Format(time.RFC3339),
+			})
+		}
+
+		pushedCount++
+	}
+
+	tx.Commit()
+
+	// Emit completion event for UI feedback
+	if pushedCount > 0 {
+		app.Event.Emit("integration-push-complete", map[string]interface{}{
+			"pushed":      pushedCount,
+			"failed":      failedCount,
+			"integration": integrationProject.IntegrationId,
+		})
+	} else if failedCount > 0 {
+		app.Event.Emit("integration-push-failed", map[string]interface{}{
+			"failed":      failedCount,
+			"integration": integrationProject.IntegrationId,
+			"error":       fmt.Sprintf("%d asset(s) failed to push", failedCount),
+		})
+	}
 }

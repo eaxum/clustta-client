@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
-import { IntegrationService, SettingsService } from '@/services';
+import { IntegrationService, SettingsService, StatusService } from '@/services';
 
 export const useIntegrationStore = defineStore('integrations', {
   state: () => ({
@@ -20,6 +20,9 @@ export const useIntegrationStore = defineStore('integrations', {
     externalAssetTypes: [],        // Asset types from external system
     localCollectionTypes: [],         // Clustta collection types
     localAssetTypes: [],           // Clustta asset types
+    // Status mapping state
+    externalStatuses: [],          // Task statuses from external system
+    localStatuses: [],             // Clustta statuses
   }),
 
   getters: {
@@ -526,6 +529,68 @@ export const useIntegrationStore = defineStore('integrations', {
       }
     },
 
+    // Fetch external statuses from integration
+    async getExternalStatuses() {
+      const projectStore = useProjectStore();
+      const tokenData = this.tokens[this.linkedIntegration?.integration_id];
+
+      if (!projectStore.activeProject?.uri || !tokenData?.token) {
+        throw new Error('Not ready to fetch statuses');
+      }
+
+      try {
+        const statuses = await IntegrationService.GetExternalStatuses(
+          projectStore.activeProject.uri,
+          tokenData.token
+        );
+        this.externalStatuses = statuses || [];
+        return this.externalStatuses;
+      } catch (error) {
+        console.error('Failed to get external statuses:', error);
+        throw error;
+      }
+    },
+
+    // Load local Clustta statuses
+    async getLocalStatuses() {
+      const projectStore = useProjectStore();
+
+      if (!projectStore.activeProject?.uri) {
+        this.localStatuses = [];
+        return;
+      }
+
+      try {
+        const statuses = await StatusService.GetStatuses(projectStore.activeProject.uri);
+        this.localStatuses = statuses || [];
+        return this.localStatuses;
+      } catch (error) {
+        console.error('Failed to get local statuses:', error);
+        this.localStatuses = [];
+      }
+    },
+
+    // Save status mappings (Clustta status ID → external status ID)
+    async saveStatusMappings(statusMappings) {
+      const projectStore = useProjectStore();
+      const notificationStore = useNotificationStore();
+
+      if (!projectStore.activeProject?.uri) {
+        throw new Error('No active project');
+      }
+
+      try {
+        await IntegrationService.SaveStatusMappings(projectStore.activeProject.uri, statusMappings);
+        if (this.typeMappings) {
+          this.typeMappings.status_mappings = statusMappings;
+        }
+        notificationStore.addNotification('Status mappings saved', '', 'success');
+      } catch (error) {
+        notificationStore.addNotification(error.message || 'Failed to save status mappings', '', 'error');
+        throw error;
+      }
+    },
+
     // Reset store state (called when project changes)
     // Note: tokens are NOT reset because they are user-level, not project-level
     reset() {
@@ -538,6 +603,8 @@ export const useIntegrationStore = defineStore('integrations', {
       this.externalAssetTypes = [];
       this.localCollectionTypes = [];
       this.localAssetTypes = [];
+      this.externalStatuses = [];
+      this.localStatuses = [];
     },
   },
 });

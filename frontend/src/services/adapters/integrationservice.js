@@ -193,4 +193,36 @@ export const IntegrationService = {
     const db = await getDatabase(projectName);
     return queryOne(db, 'SELECT * FROM integration_collection_mapping WHERE collection_id = ?', [collectionId]) || {};
   },
+
+  // Fetches task statuses from the external integration
+  GetExternalStatuses: async (projectPath, token) => {
+    const projectName = getProjectName(projectPath);
+    const db = await getDatabase(projectName);
+    const integrationProject = queryOne(db, 'SELECT * FROM integration_project LIMIT 1');
+    if (!integrationProject) {
+      throw new Error('No integration linked to this project');
+    }
+    try {
+      return await globalApiCall(`/api/integrations/${integrationProject.integration_id}/task-statuses`, 'POST', {
+        token,
+        api_url: integrationProject.api_url,
+      }) || [];
+    } catch {
+      return [];
+    }
+  },
+
+  // Saves status mappings (Clustta status ID → external status ID)
+  SaveStatusMappings: async (projectPath, statusMappings) => {
+    const projectName = getProjectName(projectPath);
+    const db = await getDatabase(projectName);
+    const integrationProject = queryOne(db, 'SELECT * FROM integration_project LIMIT 1');
+    if (!integrationProject) {
+      throw new Error('No integration linked to this project');
+    }
+    const syncOptions = JSON.parse(integrationProject.sync_options || '{}');
+    syncOptions.status_mappings = statusMappings;
+    execute(db, 'UPDATE integration_project SET sync_options = ? WHERE id = ?', [JSON.stringify(syncOptions), integrationProject.id]);
+    await persistDatabase(projectName);
+  },
 };
