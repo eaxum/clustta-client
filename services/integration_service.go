@@ -1,6 +1,8 @@
 package services
 
 import (
+	"clustta/internal/auth_service"
+	"clustta/internal/constants"
 	error_service "clustta/internal/error_service"
 	"clustta/internal/integrations"
 	"clustta/internal/repository"
@@ -377,8 +379,8 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 	}
 
 	// Build missing types list
-	collectionIcons := []string{"folder", "episode", "sequence", "shot", "character", "prop", "environment", "scene"}
-	assetIcons := []string{"animation", "lighting", "compositing", "modeling", "rigging", "texturing", "fx", "rendering", "concept art", "layout"}
+	collectionIcons := constants.CollectionTypeIcons
+	assetIcons := constants.AssetTypeIcons
 
 	i := 0
 	for typeName := range missingCollectionTypes {
@@ -772,6 +774,12 @@ func getPathSegmentName(path string) string {
 func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON string, assetsJSON string) error {
 	app := application.Get()
 
+	// Get the currently signed-in user as the author for created assets
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return errors.New("must be signed in to sync")
+	}
+
 	// Parse collections and assets from JSON
 	var collections []integrations.SyncCollection
 	var assets []integrations.SyncAsset
@@ -868,7 +876,7 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 		Total:   totalItems,
 	})
 
-	assetMap, err := s.createAssetsWithProgress(tx, assets, &syncOptions, app, collectionsToCreate, totalItems)
+	assetMap, err := s.createAssetsWithProgress(tx, assets, &syncOptions, app, collectionsToCreate, totalItems, user.Id)
 	if err != nil {
 		return err
 	}
@@ -971,17 +979,11 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 	return tx.Commit()
 }
 
-// Available icons for collection types (from types-icons folder)
-var collectionTypeIcons = []string{
-	"episode", "sequence", "shot", "scene", "character", "environment", "prop", "folder", "library", "generic", "other",
-}
+// Available icons for collection types
+var collectionTypeIcons = constants.CollectionTypeIcons
 
-// Available icons for asset types (from types-icons folder)
-var assetTypeIcons = []string{
-	"animation", "audio", "character creation", "compositing", "concept art", "design", "editing",
-	"environment creation", "fx", "hdri", "image", "layout", "lighting", "lookdev", "modeling",
-	"previz", "prop creation", "rendering", "rigging", "texture", "texturing", "video", "generic", "other",
-}
+// Available icons for asset types
+var assetTypeIcons = constants.AssetTypeIcons
 
 // ensureTypesExist validates that all required types exist, auto-creating if needed.
 // Returns true if syncOptions was modified.
@@ -1253,7 +1255,7 @@ func (s *IntegrationService) createCollectionsWithProgress(tx *sqlx.Tx, collecti
 
 // createAssetsWithProgress creates assets with templates and emits progress events grouped by type.
 // Returns map of external_id -> created asset_id.
-func (s *IntegrationService) createAssetsWithProgress(tx *sqlx.Tx, assets []integrations.SyncAsset, syncOptions *integrations.SyncOptions, app *application.App, startIndex int, totalItems int) (map[string]string, error) {
+func (s *IntegrationService) createAssetsWithProgress(tx *sqlx.Tx, assets []integrations.SyncAsset, syncOptions *integrations.SyncOptions, app *application.App, startIndex int, totalItems int, userId string) (map[string]string, error) {
 	// Group assets by type
 	typeGroups := make(map[string][]integrations.SyncAsset)
 	for _, asset := range assets {
@@ -1321,7 +1323,7 @@ func (s *IntegrationService) createAssetsWithProgress(tx *sqlx.Tx, assets []inte
 				"",
 				false,
 				"",
-				"",
+				userId,
 				"Synced from external integration",
 				checkpointGroupID,
 				nil,
@@ -1528,9 +1530,9 @@ func (s *IntegrationService) GetMissingTypes(projectPath, token string) ([]integ
 
 	missingTypes := []integrations.MissingType{}
 
-	// Available icons for random selection
-	collectionIcons := []string{"folder", "episode", "sequence", "shot", "character", "prop", "environment", "scene"}
-	assetIcons := []string{"animation", "lighting", "compositing", "modeling", "rigging", "texturing", "fx", "rendering", "concept art", "layout"}
+	// Available icons for selection
+	collectionIcons := constants.CollectionTypeIcons
+	assetIcons := constants.AssetTypeIcons
 
 	// Check collection types
 	for i, et := range externalCollectionTypes {
