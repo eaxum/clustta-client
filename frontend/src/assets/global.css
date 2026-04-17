@@ -123,8 +123,8 @@
   --transparent-black: rgba(0, 0, 0, 0.4);
 
   
-  --entity-item-color: hsl(215, 87%, 59%);
-  --task-item-color: hsl(130, 57%, 42%);
+  --collection-item-color: hsl(215, 87%, 59%);
+  --asset-item-color: hsl(130, 57%, 42%);
   --resource-item-color: hsl(49, 93%, 63%);
   
   --online: #20d949;
