@@ -48,7 +48,7 @@
 
           <!-- Status Mapping (only when integration linked) -->
           <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openStatusMapping">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('sync')"></div>
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('clock')"></div>
             <div class="settings-content">
               <div class="settings-header">Status Mapping</div>
               <div class="settings-body">Map statuses to push on checkpoint</div>
