@@ -14,9 +14,12 @@
       </div>
 
       <div v-else class="mapping-content">
-        <p class="section-description">
-          Map each asset type from Kitsu to an asset template. The template determines which file is created for each asset.
-        </p>
+        <div class="section-header">
+          <p class="section-description">
+            Map each asset type from Kitsu to an asset template. The template determines which file is created for each asset.
+          </p>
+          <ActionButton :icon="getAppIcon('sparkles')" :label="'Auto'" :buttonFunction="autoAssign" :showLabel="true" :useBackground="true" />
+        </div>
 
         <!-- Mapping Table -->
         <div class="mapping-table">
@@ -63,6 +66,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -108,6 +112,62 @@ const unmappedCount = computed(() => {
 });
 
 // methods
+// Software keywords associated with common creative task types.
+const SOFTWARE_HINTS = {
+  modelling: ['blender', 'maya', 'zbrush', '3ds', 'max', 'modo', 'houdini', 'cinema'],
+  modeling: ['blender', 'maya', 'zbrush', '3ds', 'max', 'modo', 'houdini', 'cinema'],
+  rigging: ['blender', 'maya', 'houdini'],
+  animation: ['blender', 'maya', 'harmony', 'toon boom', 'animate', 'houdini', 'ase', 'spine'],
+  layout: ['blender', 'maya', 'houdini', 'cinema'],
+  lighting: ['blender', 'maya', 'houdini', 'cinema', 'katana'],
+  rendering: ['blender', 'maya', 'houdini', 'cinema', 'katana'],
+  compositing: ['nuke', 'after effects', 'fusion', 'natron'],
+  'fx': ['houdini', 'blender', 'maya', 'embergen'],
+  'effects': ['houdini', 'blender', 'maya', 'embergen'],
+  concept: ['photoshop', 'clip studio', 'krita', 'procreate', 'sai', 'sketchbook'],
+  texture: ['substance', 'photoshop', 'quixel', 'mari', 'krita'],
+  lookdev: ['substance', 'blender', 'maya', 'katana'],
+  storyboard: ['storyboard pro', 'photoshop', 'clip studio', 'krita', 'toon boom'],
+  previz: ['blender', 'maya', 'unreal', 'unity'],
+  edit: ['premiere', 'davinci', 'resolve', 'final cut', 'avid'],
+  editing: ['premiere', 'davinci', 'resolve', 'final cut', 'avid'],
+  sound: ['audition', 'audacity', 'pro tools', 'reaper', 'logic'],
+  audio: ['audition', 'audacity', 'pro tools', 'reaper', 'logic'],
+};
+
+// Attempts to auto-assign templates to external asset types by matching names.
+const autoAssign = () => {
+  for (const assetType of externalAssetTypes.value) {
+    if (mappings.value[assetType.id]) continue;
+
+    const externalName = assetType.name.toLowerCase().trim();
+
+    // Pass 1: exact or substring match on template name
+    const nameMatch = templates.value.find(t =>
+      t.name.toLowerCase().includes(externalName) || externalName.includes(t.name.toLowerCase())
+    );
+    if (nameMatch) {
+      mappings.value[assetType.id] = nameMatch.id;
+      continue;
+    }
+
+    // Pass 2: match using software hints for the task type
+    const hintKey = Object.keys(SOFTWARE_HINTS).find(key => externalName.includes(key));
+    if (hintKey) {
+      const softwareKeywords = SOFTWARE_HINTS[hintKey];
+      const softwareMatch = templates.value.find(t => {
+        const tName = t.name.toLowerCase();
+        const tExt = (t.extension || '').toLowerCase();
+        return softwareKeywords.some(sw => tName.includes(sw) || tExt.includes(sw));
+      });
+      if (softwareMatch) {
+        mappings.value[assetType.id] = softwareMatch.id;
+        continue;
+      }
+    }
+  }
+};
+
 // Closes the modal.
 const closeModal = () => {
   desktopModals.setModalVisibility('assetTypeMappingModal', false);
@@ -261,6 +321,13 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .section-description {

@@ -16,9 +16,12 @@
       </div>
 
       <div v-else class="mapping-content">
-        <p class="section-description">
-          Map each Clustta status to a {{ integrationName }} status. When a checkpoint is created, the mapped status will be pushed automatically.
-        </p>
+        <div class="section-header">
+          <p class="section-description">
+            Map each Clustta status to a {{ integrationName }} status. When a checkpoint is created, the mapped status will be pushed automatically.
+          </p>
+          <ActionButton :icon="getAppIcon('sparkles')" :label="'Auto'" :buttonFunction="autoAssign" :showLabel="true" :useBackground="true" />
+        </div>
 
         <!-- Mapping Table -->
         <div class="mapping-table">
@@ -64,6 +67,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -111,6 +115,21 @@ const unmappedCount = computed(() => {
 });
 
 // methods
+// Attempts to auto-assign external statuses by matching names.
+const autoAssign = () => {
+  for (const status of localStatuses.value) {
+    if (mappings.value[status.id]) continue;
+
+    const localName = status.name.toLowerCase().trim();
+    const match = externalStatusOptions.value.find(ext =>
+      ext.name.toLowerCase().includes(localName) || localName.includes(ext.name.toLowerCase())
+    );
+    if (match) {
+      mappings.value[status.id] = match.id;
+    }
+  }
+};
+
 // Closes the modal.
 const closeModal = () => {
   desktopModals.setModalVisibility('statusMappingModal', false);
@@ -248,6 +267,13 @@ onMounted(async () => {
   gap: 1rem;
 }
 
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
 .section-description {
   font-size: 0.875rem;
   color: var(--bright-steel);
@@ -276,7 +302,7 @@ onMounted(async () => {
 .table-body {
   display: flex;
   flex-direction: column;
-  max-height: 400px;
+  max-height: 300px;
   overflow-y: auto;
 }
 
