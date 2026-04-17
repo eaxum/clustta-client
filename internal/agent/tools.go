@@ -2,6 +2,7 @@ package agent
 
 import (
 	"clustta/internal/auth_service"
+	"clustta/internal/constants"
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
 	"clustta/internal/utils"
@@ -1625,15 +1626,7 @@ func execGetUserActivity(projectPath string) ToolResult {
 // --- CRUD tool implementations ---
 
 // validAssetTypeIcons lists the allowed icon names for asset types.
-var validAssetTypeIcons = map[string]bool{
-	"bezier": true, "bone": true, "book": true, "boxes": true, "bulb": true,
-	"camera-flash": true, "camera": true, "clapboard": true, "compass": true, "cube": true,
-	"drum": true, "film-reel": true, "film-strip": true, "fire": true, "flow-chart": true,
-	"four-squares": true, "home": true, "image": true, "lamp": true, "link": true,
-	"man-running": true, "masks": true, "music": true, "mystery-ball": true, "open-book": true,
-	"package": true, "palette": true, "scissors": true, "shapes": true, "stall": true,
-	"texture": true, "tree": true, "video-camera": true, "website": true,
-}
+var validAssetTypeIcons = constants.ValidTypeIcons
 
 func execCreateAssetType(projectPath string, args map[string]interface{}) ToolResult {
 	name := getStringArg(args, "name", "")
