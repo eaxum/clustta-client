@@ -1,6 +1,7 @@
 package sync_service
 
 import (
+	"clustta/internal/utils"
 	"database/sql"
 
 	"github.com/jmoiron/sqlx"
@@ -8,19 +9,45 @@ import (
 
 // ChangeSummaryItem represents a single unsynced change for the changelog UI.
 type ChangeSummaryItem struct {
-	ID         string `db:"id" json:"id"`
-	Name       string `db:"name" json:"name"`
-	Source     string `db:"source" json:"source"`
-	ChangeType string `json:"change_type"`
-	Mtime      int    `db:"mtime" json:"mtime"`
+	ID          string `db:"id" json:"id"`
+	Name        string `db:"name" json:"name"`
+	Source      string `db:"source" json:"source"`
+	ChangeType  string `json:"change_type"`
+	Description string `json:"description,omitempty"`
+	Mtime       int    `db:"mtime" json:"mtime"`
+}
+
+// changeSummaryRow is used internally for scanning asset/collection queries that include created_at.
+type changeSummaryRow struct {
+	ID        string `db:"id"`
+	Name      string `db:"name"`
+	Source    string `db:"source"`
+	Mtime     int    `db:"mtime"`
+	CreatedAt string `db:"created_at"`
+	Trashed   bool   `db:"trashed"`
 }
 
 // ChangeSummary groups all pending changes by category for frontend display.
 type ChangeSummary struct {
 	Assets      []ChangeSummaryItem `json:"assets"`
-	Collections   []ChangeSummaryItem `json:"collections"`
-	Other      []ChangeSummaryItem `json:"other"`
-	TotalCount int                 `json:"total_count"`
+	Collections []ChangeSummaryItem `json:"collections"`
+	Other       []ChangeSummaryItem `json:"other"`
+	TotalCount  int                 `json:"total_count"`
+}
+
+// classifyChangeType returns "deleted" if trashed, "new" if created after last sync, otherwise "modified".
+func classifyChangeType(trashed bool, createdAt string, lastSyncTime int64) string {
+	if trashed {
+		return "deleted"
+	}
+	createdEpoch, err := utils.RFC3339ToEpoch(createdAt)
+	if err != nil {
+		return "modified"
+	}
+	if createdEpoch > lastSyncTime {
+		return "new"
+	}
+	return "modified"
 }
 
 // LoadChangeSummary returns a lightweight summary of all unsynced rows grouped by category.
@@ -28,25 +55,39 @@ type ChangeSummary struct {
 func LoadChangeSummary(tx *sqlx.Tx) (ChangeSummary, error) {
 	summary := ChangeSummary{}
 
-	// Assets (modified or newly created)
-	assetItems := []ChangeSummaryItem{}
-	err := tx.Select(&assetItems, "SELECT id, name, 'asset' AS source, mtime FROM asset WHERE synced = 0")
+	// Get last sync time to distinguish new vs modified items
+	lastSyncTime, err := utils.GetLastSyncTime(tx)
+	if err != nil {
+		lastSyncTime = 0
+	}
+
+	// Assets (modified, newly created, or trashed)
+	assetRows := []changeSummaryRow{}
+	err = tx.Select(&assetRows, "SELECT id, name, 'asset' AS source, mtime, created_at, trashed FROM asset WHERE synced = 0")
 	if err != nil && err != sql.ErrNoRows {
 		return summary, err
 	}
-	for i := range assetItems {
-		assetItems[i].ChangeType = "modified"
+	assetItems := make([]ChangeSummaryItem, len(assetRows))
+	for i, row := range assetRows {
+		assetItems[i] = ChangeSummaryItem{
+			ID: row.ID, Name: row.Name, Source: row.Source, Mtime: row.Mtime,
+			ChangeType: classifyChangeType(row.Trashed, row.CreatedAt, lastSyncTime),
+		}
 	}
 	summary.Assets = assetItems
 
-	// Collections (modified or newly created)
-	collectionItems := []ChangeSummaryItem{}
-	err = tx.Select(&collectionItems, "SELECT id, name, 'collection' AS source, mtime FROM collection WHERE synced = 0")
+	// Collections (modified, newly created, or trashed)
+	collectionRows := []changeSummaryRow{}
+	err = tx.Select(&collectionRows, "SELECT id, name, 'collection' AS source, mtime, created_at, trashed FROM collection WHERE synced = 0")
 	if err != nil && err != sql.ErrNoRows {
 		return summary, err
 	}
-	for i := range collectionItems {
-		collectionItems[i].ChangeType = "modified"
+	collectionItems := make([]ChangeSummaryItem, len(collectionRows))
+	for i, row := range collectionRows {
+		collectionItems[i] = ChangeSummaryItem{
+			ID: row.ID, Name: row.Name, Source: row.Source, Mtime: row.Mtime,
+			ChangeType: classifyChangeType(row.Trashed, row.CreatedAt, lastSyncTime),
+		}
 	}
 	summary.Collections = collectionItems
 
@@ -75,35 +116,61 @@ func LoadChangeSummary(tx *sqlx.Tx) (ChangeSummary, error) {
 		case "collection":
 			summary.Collections = append(summary.Collections, item)
 		default:
+			item.Description = tomb.TableName + " deleted"
 			summary.Other = append(summary.Other, item)
 		}
 	}
 
-	// Other changes — collection_assignee, asset_dependency, collection_dependency, asset_checkpoint, asset_tag
-	otherQueries := []struct {
-		query  string
-		source string
-	}{
-		{"SELECT id, collection_id AS name, 'collection_assignee' AS source, mtime FROM collection_assignee WHERE synced = 0", "collection_assignee"},
-		{"SELECT id, asset_id AS name, 'asset_dependency' AS source, mtime FROM asset_dependency WHERE synced = 0", "asset_dependency"},
-		{"SELECT id, asset_id AS name, 'collection_dependency' AS source, mtime FROM collection_dependency WHERE synced = 0", "collection_dependency"},
-		{"SELECT id, asset_id AS name, 'asset_checkpoint' AS source, mtime FROM asset_checkpoint WHERE synced = 0", "asset_checkpoint"},
-		{"SELECT id, asset_id AS name, 'asset_tag' AS source, mtime FROM asset_tag WHERE synced = 0", "asset_tag"},
-		{"SELECT id, username AS name, 'user' AS source, mtime FROM user WHERE synced = 0", "user"},
-		{"SELECT id, name, 'role' AS source, mtime FROM role WHERE synced = 0", "role"},
-		{"SELECT id, name, 'status' AS source, mtime FROM status WHERE synced = 0", "status"},
-		{"SELECT id, name, 'workflow' AS source, mtime FROM workflow WHERE synced = 0", "workflow"},
+	// Other changes with descriptive names via JOINs
+	type otherRow struct {
+		ID     string `db:"id"`
+		Name   string `db:"name"`
+		Source string `db:"source"`
+		Mtime  int    `db:"mtime"`
 	}
+	otherQueries := []string{
+		`SELECT ca.id, COALESCE(c.name, ca.collection_id) AS name, 'collection_assignee' AS source, ca.mtime
+		 FROM collection_assignee ca LEFT JOIN collection c ON ca.collection_id = c.id WHERE ca.synced = 0`,
+		`SELECT ad.id, COALESCE(a.name, ad.asset_id) AS name, 'asset_dependency' AS source, ad.mtime
+		 FROM asset_dependency ad LEFT JOIN asset a ON ad.asset_id = a.id WHERE ad.synced = 0`,
+		`SELECT cd.id, COALESCE(a.name, cd.asset_id) AS name, 'collection_dependency' AS source, cd.mtime
+		 FROM collection_dependency cd LEFT JOIN asset a ON cd.asset_id = a.id WHERE cd.synced = 0`,
+		`SELECT ac.id, COALESCE(a.name, ac.asset_id) AS name, 'asset_checkpoint' AS source, ac.mtime
+		 FROM asset_checkpoint ac LEFT JOIN asset a ON ac.asset_id = a.id WHERE ac.synced = 0`,
+		`SELECT at2.id, COALESCE(a.name, at2.asset_id) AS name, 'asset_tag' AS source, at2.mtime
+		 FROM asset_tag at2 LEFT JOIN asset a ON at2.asset_id = a.id WHERE at2.synced = 0`,
+		`SELECT id, username AS name, 'user' AS source, mtime FROM user WHERE synced = 0`,
+		`SELECT id, name, 'role' AS source, mtime FROM role WHERE synced = 0`,
+		`SELECT id, name, 'status' AS source, mtime FROM status WHERE synced = 0`,
+		`SELECT id, name, 'workflow' AS source, mtime FROM workflow WHERE synced = 0`,
+	}
+
+	// sourceDescriptions maps source table names to human-readable descriptions.
+	sourceDescriptions := map[string]string{
+		"collection_assignee":   "assignee updated",
+		"asset_dependency":      "dependency updated",
+		"collection_dependency": "dependency updated",
+		"asset_checkpoint":      "checkpoint updated",
+		"asset_tag":             "tag updated",
+		"user":                  "user updated",
+		"role":                  "role updated",
+		"status":                "status updated",
+		"workflow":              "workflow updated",
+	}
+
 	for _, q := range otherQueries {
-		items := []ChangeSummaryItem{}
-		err = tx.Select(&items, q.query)
+		rows := []otherRow{}
+		err = tx.Select(&rows, q)
 		if err != nil && err != sql.ErrNoRows {
 			return summary, err
 		}
-		for i := range items {
-			items[i].ChangeType = "modified"
+		for _, row := range rows {
+			desc := row.Name + " " + sourceDescriptions[row.Source]
+			summary.Other = append(summary.Other, ChangeSummaryItem{
+				ID: row.ID, Name: row.Name, Source: row.Source, Mtime: row.Mtime,
+				ChangeType: "modified", Description: desc,
+			})
 		}
-		summary.Other = append(summary.Other, items...)
 	}
 
 	summary.TotalCount = len(summary.Assets) + len(summary.Collections) + len(summary.Other)

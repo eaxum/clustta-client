@@ -4,14 +4,14 @@
       <div class="changelog-item-meta">
         <img class="changelog-item-icon small-icons" :src="itemIcon" />
         <div class="changelog-item-label">
-          <div class="changelog-item-label-text">{{ item.name || item.id }}</div>
+          <div class="changelog-item-label-text">{{ displayText }}</div>
         </div>
         <span class="changelog-change-badge" :class="'badge-' + item.change_type">{{ item.change_type }}</span>
       </div>
 
       <div class="changelog-item-actions">
-        <ActionButton v-if="item.change_type !== 'deleted'" :icon="getAppIcon('file-search')" v-tooltip="$t('components.changeLogItem.goToItem')" :buttonFunction="() => $emit('find', item.id)" :isDisabled="isLoading" />
-        <ActionButton :icon="getAppIcon('revert')" v-tooltip="$t('components.changeLogItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
+        <ActionButton v-if="item.change_type !== 'deleted' && itemType !== 'other'" :icon="getAppIcon('file-search')" v-tooltip="$t('components.changeLogItem.goToItem')" :buttonFunction="() => $emit('find', item.id)" :isDisabled="isLoading" />
+        <ActionButton v-if="itemType !== 'other'" :icon="getAppIcon('revert')" v-tooltip="$t('components.changeLogItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
       </div>
     </div>
   </div>
@@ -43,6 +43,11 @@ const emit = defineEmits(['find', 'discard']);
 const isHovered = ref(false);
 
 // computed properties
+const displayText = computed(() => {
+  if (props.itemType === 'other' && props.item.description) return props.item.description;
+  return props.item.name || props.item.id;
+});
+
 const itemIcon = computed(() => {
   if (props.itemType === 'collection') return getAppIcon('folder');
   return getAppIcon('generic');
@@ -145,6 +150,11 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 .badge-modified {
   background-color: rgba(59, 130, 246, 0.15);
   color: #60a5fa;
+}
+
+.badge-new {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
 }
 
 .changelog-item-actions {
