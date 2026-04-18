@@ -2,8 +2,13 @@ package integrations
 
 import (
 	"errors"
+	"io"
 	"sync"
+	"time"
 )
+
+// UploadProgressFunc is called during file uploads with bytes sent and total size.
+type UploadProgressFunc func(bytesSent, totalBytes int64)
 
 // Integration defines the contract that all external integrations must implement.
 // All operations are stateless - tokens are passed per call for flexibility.
@@ -31,7 +36,7 @@ type Integration interface {
 
 	// Push operations
 	UpdateAssetStatus(token, apiUrl, assetID, status string) error
-	UploadPreview(token, apiUrl, assetID, filePath, comment, taskStatusId string) error
+	UploadPreview(token, apiUrl, assetID, filePath, comment, taskStatusId string, onProgress UploadProgressFunc) error
 }
 
 // AuthResult contains the result of an authentication attempt.
@@ -64,13 +69,13 @@ type ExternalProject struct {
 // ExternalCollection represents a hierarchy item in the external system.
 // This can be an episode, sequence, shot, folder, list, asset type, etc.
 type ExternalCollection struct {
-	ID           string                 `json:"id"`
-	ParentID     string                 `json:"parent_id,omitempty"`
-	Name         string                 `json:"name"`
-	Type         string                 `json:"type"` // "episode", "sequence", "shot", "folder", "list", "asset_type"
-	Path         string                 `json:"path"` // Full path for display
-	Children     []ExternalCollection       `json:"children,omitempty"`
-	Metadata     map[string]interface{} `json:"metadata,omitempty"`
+	ID            string                 `json:"id"`
+	ParentID      string                 `json:"parent_id,omitempty"`
+	Name          string                 `json:"name"`
+	Type          string                 `json:"type"` // "episode", "sequence", "shot", "folder", "list", "asset_type"
+	Path          string                 `json:"path"` // Full path for display
+	Children      []ExternalCollection   `json:"children,omitempty"`
+	Metadata      map[string]interface{} `json:"metadata,omitempty"`
 	HasAssets     bool                   `json:"has_assets"`
 	AssetTypeName string                 `json:"asset_type_name,omitempty"` // For asset type collections
 }
@@ -84,16 +89,16 @@ type ExternalAsset struct {
 	Status      string   `json:"status"`
 	Assignees   []string `json:"assignees,omitempty"`
 	DueDate     string   `json:"due_date,omitempty"`
-	AssetType    string   `json:"asset_type,omitempty"`    // e.g., "Animation", "Lighting"
-	AssetTypeID  string   `json:"asset_type_id,omitempty"` // External asset type ID
+	AssetType   string   `json:"asset_type,omitempty"`    // e.g., "Animation", "Lighting"
+	AssetTypeID string   `json:"asset_type_id,omitempty"` // External asset type ID
 	Description string   `json:"description,omitempty"`
 }
 
 // ProjectHierarchy contains the full hierarchy of a project.
 type ProjectHierarchy struct {
-	Project  ExternalProject  `json:"project"`
+	Project     ExternalProject      `json:"project"`
 	Collections []ExternalCollection `json:"collections"`
-	Assets    []ExternalAsset   `json:"assets"`
+	Assets      []ExternalAsset      `json:"assets"`
 }
 
 // SyncPreview contains preview data for what will be synced.
@@ -129,18 +134,18 @@ type PreviewItem struct {
 
 // SyncCollection represents a collection to be created or linked.
 type SyncCollection struct {
-	TempID           string `json:"temp_id"`            // Temporary ID for UI
-	ExternalID       string `json:"external_id"`        // ID in external system
-	ExternalType     string `json:"external_type"`      // "episode", "sequence", "shot", etc.
-	ExternalName     string `json:"external_name"`      // Name in external system
-	ExternalParentID string `json:"external_parent_id"` // Parent in external system
-	ExternalPath     string `json:"external_path"`      // Full path in external system
-	CollectionPath   string `json:"collection_path"`    // Proposed Clustta collection path
-	Action           string `json:"action"`             // "create", "link", "skip"
-	CollectionID     string `json:"collection_id"`      // Existing Clustta collection ID (if linking)
-	CollectionTypeName   string `json:"collection_type_name"`   // Clustta collection type to use
-	CollectionTypeIcon   string `json:"collection_type_icon"`   // Icon for the collection type
-	Selected         bool   `json:"selected"`           // User selected for sync
+	TempID             string `json:"temp_id"`              // Temporary ID for UI
+	ExternalID         string `json:"external_id"`          // ID in external system
+	ExternalType       string `json:"external_type"`        // "episode", "sequence", "shot", etc.
+	ExternalName       string `json:"external_name"`        // Name in external system
+	ExternalParentID   string `json:"external_parent_id"`   // Parent in external system
+	ExternalPath       string `json:"external_path"`        // Full path in external system
+	CollectionPath     string `json:"collection_path"`      // Proposed Clustta collection path
+	Action             string `json:"action"`               // "create", "link", "skip"
+	CollectionID       string `json:"collection_id"`        // Existing Clustta collection ID (if linking)
+	CollectionTypeName string `json:"collection_type_name"` // Clustta collection type to use
+	CollectionTypeIcon string `json:"collection_type_icon"` // Icon for the collection type
+	Selected           bool   `json:"selected"`             // User selected for sync
 }
 
 // SyncAsset represents an asset to be created or linked.
@@ -156,8 +161,8 @@ type SyncAsset struct {
 	CollectionPath    string   `json:"collection_path"` // Parent collection path
 	Action            string   `json:"action"`          // "create", "link", "skip"
 	AssetID           string   `json:"asset_id"`        // Existing Clustta asset ID (if linking)
-	AssetTypeName      string   `json:"asset_type_name"`  // Clustta asset type to use
-	AssetTypeIcon      string   `json:"asset_type_icon"`
+	AssetTypeName     string   `json:"asset_type_name"` // Clustta asset type to use
+	AssetTypeIcon     string   `json:"asset_type_icon"`
 	Selected          bool     `json:"selected"`
 	TemplateID        string   `json:"template_id"`        // Clustta template ID for this asset type
 	TemplateExtension string   `json:"template_extension"` // File extension from template (e.g., ".blend")
@@ -195,11 +200,11 @@ type TypeMapping struct {
 // SyncOptions contains configuration stored in integration_project.sync_options.
 type SyncOptions struct {
 	CollectionTypeMappings map[string]TypeMapping `json:"collection_type_mappings"` // External collection type → Clustta collection type
-	AssetTypeMappings   map[string]TypeMapping `json:"asset_type_mappings"`   // External asset type → Clustta asset type
-	AssetTypeTemplates  map[string]string      `json:"asset_type_templates"`  // External asset type ID → Clustta template ID
-	StatusMappings      map[string]string      `json:"status_mappings"`       // Clustta status ID → external status ID
-	DirectoryStructure DirectoryStructure     `json:"directory_structure"`  // Folder path templates
-	LastSyncAt         string                 `json:"last_sync_at"`
+	AssetTypeMappings      map[string]TypeMapping `json:"asset_type_mappings"`      // External asset type → Clustta asset type
+	AssetTypeTemplates     map[string]string      `json:"asset_type_templates"`     // External asset type ID → Clustta template ID
+	StatusMappings         map[string]string      `json:"status_mappings"`          // Clustta status ID → external status ID
+	DirectoryStructure     DirectoryStructure     `json:"directory_structure"`      // Folder path templates
+	LastSyncAt             string                 `json:"last_sync_at"`
 }
 
 // DirectoryStructure defines path templates for synced items.
@@ -236,6 +241,29 @@ var (
 	registry     = make(map[string]Integration)
 	registryLock sync.RWMutex
 )
+
+// progressReader wraps an io.Reader and reports bytes read to a callback.
+// Throttles callbacks to at most once per 100ms to avoid flooding the event bridge.
+type progressReader struct {
+	reader     io.Reader
+	total      int64
+	read       int64
+	onProgress UploadProgressFunc
+	lastEmit   time.Time
+}
+
+func (pr *progressReader) Read(p []byte) (int, error) {
+	n, err := pr.reader.Read(p)
+	pr.read += int64(n)
+	if pr.onProgress != nil {
+		now := time.Now()
+		if now.Sub(pr.lastEmit) >= 100*time.Millisecond || pr.read >= pr.total {
+			pr.lastEmit = now
+			pr.onProgress(pr.read, pr.total)
+		}
+	}
+	return n, err
+}
 
 // Register adds an integration to the registry.
 func Register(integration Integration) {

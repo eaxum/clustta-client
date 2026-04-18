@@ -282,7 +282,7 @@ func (k *KitsuClient) UpdateAssetStatus(token, apiUrl, assetID, status string) e
 
 // UploadPreview uploads a preview file to a task's comment.
 // If taskStatusId is provided, the comment will also set that status. Otherwise the current status is preserved.
-func (k *KitsuClient) UploadPreview(token, apiUrl, assetID, filePath, comment, taskStatusId string) error {
+func (k *KitsuClient) UploadPreview(token, apiUrl, assetID, filePath, comment, taskStatusId string, onProgress UploadProgressFunc) error {
 	apiUrl = strings.TrimSuffix(apiUrl, "/")
 
 	// If no status provided, fetch the current task status to preserve it
@@ -331,7 +331,7 @@ func (k *KitsuClient) UploadPreview(token, apiUrl, assetID, filePath, comment, t
 	}
 
 	// Step 3: Upload the actual file to the preview slot
-	return k.uploadFile(token, apiUrl+"/api/pictures/preview-files/"+previewResp.ID, filePath)
+	return k.uploadFile(token, apiUrl+"/api/pictures/preview-files/"+previewResp.ID, filePath, onProgress)
 }
 
 // GetCollectionTypes fetches all collection types (asset types) from Kitsu.
@@ -523,7 +523,7 @@ func (k *KitsuClient) put(token, url string, payload interface{}) ([]byte, error
 	return io.ReadAll(resp.Body)
 }
 
-func (k *KitsuClient) uploadFile(token, url, filePath string) error {
+func (k *KitsuClient) uploadFile(token, url, filePath string, onProgress UploadProgressFunc) error {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return err
@@ -541,12 +541,19 @@ func (k *KitsuClient) uploadFile(token, url, filePath string) error {
 	}
 	writer.Close()
 
-	req, err := http.NewRequest("POST", url, body)
+	totalSize := int64(body.Len())
+	var reqBody io.Reader = body
+	if onProgress != nil {
+		reqBody = &progressReader{reader: body, total: totalSize, onProgress: onProgress}
+	}
+
+	req, err := http.NewRequest("POST", url, reqBody)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.ContentLength = totalSize
 
 	resp, err := k.httpClient.Do(req)
 	if err != nil {

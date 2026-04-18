@@ -154,11 +154,12 @@ const integrationName = computed(() => {
 });
 
 const statusMenuDisplayed = computed(() => {
-  return assetStore.selectedAsset.type !== 'untracked_asset' && displayStatusMenu.value;
+  return assetStore.selectedAsset?.type !== 'untracked_asset' && displayStatusMenu.value;
 });
 
 // Returns the current asset status.
 const assetStatus = computed(() => {
+  if (!assetStore.selectedAsset) return null;
   if (assetStore.selectedAsset.type === 'untracked_asset') {
     return statusStore.statuses.find((item) => item.name === 'todo');
   }
@@ -217,7 +218,7 @@ const createCheckPoint = async () => {
         emitter.emit('refresh-browser');
         emitter.emit('update-checkpoints');
         assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter((modifiedAssetPath) => modifiedAssetPath !== assetPath);
-        assetStore.selectedAsset.file_status = 'normal';
+        if (assetStore.selectedAsset) assetStore.selectedAsset.file_status = 'normal';
         projectStore.refreshProjects();
         isAwaitingResponse.value = false;
         closeModal();
@@ -456,7 +457,8 @@ onUnmounted(() => {
 
 .attachment-name {
   font-size: 13px;
-  color: var(--light-steel);
+  color: var(--bright-steel);
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

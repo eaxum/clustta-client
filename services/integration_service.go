@@ -1832,29 +1832,60 @@ func (s *IntegrationService) PushToIntegration(projectPath string, assetIds []st
 
 	pushedCount := 0
 	failedCount := 0
+	totalAssets := len(assetIds)
+	showProgress := previewPath != ""
+	integrationName := integration.Name()
 
-	for _, assetId := range assetIds {
+	for i, assetId := range assetIds {
+
 		// Look up integration mapping for this asset
 		mapping, err := repository.GetAssetMappingByAssetId(tx, assetId)
 		if err != nil {
 			continue // Asset not mapped to integration — skip
 		}
 
-		// Resolve external status ID if mapping exists
+		// Resolve asset name and external status ID
+		assetName := ""
 		externalStatusId := ""
-		if syncOptions.StatusMappings != nil {
-			asset, err := repository.GetAsset(tx, assetId)
-			if err == nil && asset.StatusId != "" {
+		asset, err := repository.GetAsset(tx, assetId)
+		if err == nil {
+			assetName = asset.Name
+			if syncOptions.StatusMappings != nil && asset.StatusId != "" {
 				if sid, ok := syncOptions.StatusMappings[asset.StatusId]; ok {
 					externalStatusId = sid
 				}
 			}
 		}
 
+		// Emit initial progress for this asset
+		if showProgress {
+			app.Event.Emit("progress-update", output.ProgressReport{
+				Title:      "Uploading to " + integrationName,
+				Message:    "Updating preview for " + assetName,
+				Percentage: float64(i) / float64(totalAssets) * 100,
+				Current:    i + 1,
+				Total:      totalAssets + 1,
+			})
+		}
+
 		// Upload preview if provided — includes status change in the same comment when mapped
 		statusPushedWithPreview := false
 		if previewPath != "" {
-			err = integration.UploadPreview(cred.AccessToken, integrationProject.ApiUrl, mapping.ExternalId, previewPath, message, externalStatusId)
+			var onProgress integrations.UploadProgressFunc
+			if showProgress {
+				onProgress = func(bytesSent, totalBytes int64) {
+					pct := (float64(i) + float64(bytesSent)/float64(totalBytes)) / float64(totalAssets) * 100
+					app.Event.Emit("progress-update", output.ProgressReport{
+						Title:        "Uploading to " + integrationName,
+						Message:      "Updating preview for " + assetName,
+						Percentage:   pct,
+						Current:      i + 1,
+						Total:        totalAssets + 1,
+						ExtraMessage: formatBytes(bytesSent) + " / " + formatBytes(totalBytes),
+					})
+				}
+			}
+			err = integration.UploadPreview(cred.AccessToken, integrationProject.ApiUrl, mapping.ExternalId, previewPath, message, externalStatusId, onProgress)
 			if err != nil {
 				log.Printf("integration push: preview upload failed for asset %s: %v", assetId, err)
 				failedCount++
@@ -1877,11 +1908,18 @@ func (s *IntegrationService) PushToIntegration(projectPath string, assetIds []st
 		if checkpointId != "" {
 			repository.UpdateAssetMapping(tx, mapping.Id, map[string]interface{}{
 				"last_pushed_checkpoint_id": checkpointId,
-				"synced_at":                time.Now().UTC().Format(time.RFC3339),
+				"synced_at":                 time.Now().UTC().Format(time.RFC3339),
 			})
 		}
 
 		pushedCount++
+	}
+
+	// Dismiss progress bar
+	if showProgress {
+		app.Event.Emit("progress-update", output.ProgressReport{
+			Title: "Uploading to " + integrationName, Message: "complete", Percentage: 100, Current: totalAssets + 1, Total: totalAssets + 1,
+		})
 	}
 
 	tx.Commit()
@@ -1905,4 +1943,18 @@ func (s *IntegrationService) PushToIntegration(projectPath string, assetIds []st
 	}
 
 	return nil
+}
+
+// formatBytes returns a human-readable byte size string.
+func formatBytes(b int64) string {
+	const mb = 1024 * 1024
+	const kb = 1024
+	switch {
+	case b >= mb:
+		return fmt.Sprintf("%.1f MB", float64(b)/float64(mb))
+	case b >= kb:
+		return fmt.Sprintf("%.0f KB", float64(b)/float64(kb))
+	default:
+		return fmt.Sprintf("%d B", b)
+	}
 }
