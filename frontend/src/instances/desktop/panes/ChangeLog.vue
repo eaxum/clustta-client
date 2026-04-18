@@ -52,7 +52,7 @@
 
 <script setup>
 // imports
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { syncData } from '@/lib/sync';
@@ -70,6 +70,7 @@ import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useDndStore } from '@/stores/dnd';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
@@ -80,6 +81,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
+const dndStore = useDndStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -174,21 +176,42 @@ const findItem = async (itemId, itemType) => {
     if (itemType === 'asset') {
       const asset = await AssetService.GetAssetByID(projectStore.activeProject.uri, itemId);
       if (!asset?.id) return;
-      const assetParent = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, asset.collection_id);
-      if (assetParent) {
-        collectionStore.navigateToCollection(assetParent);
+      if (asset.collection_id) {
+        const assetParent = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, asset.collection_id);
+        if (assetParent) {
+          collectionStore.navigateToCollection(assetParent);
+          commonStore.navigatorMode = true;
+        }
+      } else {
+        collectionStore.navigatedCollection = null;
         commonStore.navigatorMode = true;
       }
       stage.deselectAllItems();
       assetStore.selectAsset(asset.id);
       stage.firstSelectedItemId = asset.id;
       stage.markedItems = [asset.id];
+      await nextTick();
+      const el = dndStore.visibleItemRefs[asset.id];
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else if (itemType === 'collection') {
       const collection = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, itemId);
-      if (collection) {
-        collectionStore.navigateToCollection(collection);
-        commonStore.navigatorMode = true;
+      if (!collection) return;
+      if (collection.parent_id) {
+        const parent = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, collection.parent_id);
+        if (parent) {
+          collectionStore.navigateToCollection(parent);
+        }
+      } else {
+        collectionStore.navigatedCollection = null;
       }
+      commonStore.navigatorMode = true;
+      stage.deselectAllItems();
+      collectionStore.selectCollection(collection);
+      stage.firstSelectedItemId = collection.id;
+      stage.markedItems = [collection.id];
+      await nextTick();
+      const el = dndStore.visibleItemRefs[collection.id];
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   } catch (error) {
     console.error(error);

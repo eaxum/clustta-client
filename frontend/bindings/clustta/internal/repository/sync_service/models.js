@@ -107,6 +107,13 @@ export class ChangeSummaryItem {
              */
             this["change_type"] = "";
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["description"] = undefined;
+        }
         if (!("mtime" in $$source)) {
             /**
              * @member
