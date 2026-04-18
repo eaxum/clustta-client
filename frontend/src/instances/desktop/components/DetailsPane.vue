@@ -76,7 +76,7 @@
           </div>
 
           <div class="vertical-flex assignees-search">
-            <ActionButton :isInactive="true" :icon="getAppIcon('two-persons')" :label="$t('components.detailsPane.assignees')" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('person')" :label="$t('components.detailsPane.assignees')" />
             <CollaboratorSuggestions :displayEmail="false" :placeholder="placeholder" :allItems="projectUsers"
               @tagAdded="assignCollections"/>
           </div>
@@ -189,7 +189,7 @@ const props = defineProps({
 });
 
 // constants
-const collectionMode = ['basic', 'shared'];
+const collectionMode = ['not shared', 'shared'];
 const itemTypes = ['asset', 'resource'];
 const noHeaders = [];
 const placeholder = computed(() => t('components.detailsPane.searchCollaborators'));
