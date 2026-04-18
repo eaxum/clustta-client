@@ -22,7 +22,7 @@
       
       <div class="horizontal-flex">
         {{ $t('modals.generateMultipleItems') }}
-        <ToggleSwitch v-tooltip="isMultiple? 'Unmark as library' : 'Mark as a library'" @click="toggleIsMultiple" :switchValueProp="isMultiple" />
+        <ToggleSwitch v-tooltip="isMultiple? 'Disable batch mode' : 'Enable batch mode'" @click="toggleIsMultiple" :switchValueProp="isMultiple" />
       </div>
 
       <div class="pop-up-actions" ref="popUpActions">

@@ -97,7 +97,7 @@ func ToPbCollections(collections []models.Collection) []*repositorypb.Collection
 			ParentId:         e.ParentId,
 			PreviewId:        e.PreviewId,
 			Synced:           e.Synced,
-			IsLibrary:        e.IsLibrary,
+			IsShared:        e.IsShared,
 		}
 	}
 	return pb
@@ -601,7 +601,7 @@ func FromPbCollection(pb *repositorypb.Collection) models.Collection {
 		ParentId:         pb.ParentId,
 		PreviewId:        pb.PreviewId,
 		Synced:           pb.Synced,
-		IsLibrary:        pb.IsLibrary,
+		IsShared:        pb.IsShared,
 	}
 }
 

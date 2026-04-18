@@ -71,8 +71,8 @@
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="$t('components.detailsPane.library')" />
-            <DropDownBox :items="collectionMode" :selectedItem="''" :onSelect="changeIsLibrary" :fixedWidth="true" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('shared')" :label="$t('components.detailsPane.shared')" />
+            <DropDownBox :items="collectionMode" :selectedItem="''" :onSelect="changeIsShared" :fixedWidth="true" />
           </div>
 
           <div class="vertical-flex assignees-search">
@@ -189,7 +189,7 @@ const props = defineProps({
 });
 
 // constants
-const collectionMode = ['basic', 'library'];
+const collectionMode = ['basic', 'shared'];
 const itemTypes = ['asset', 'resource'];
 const noHeaders = [];
 const placeholder = computed(() => t('components.detailsPane.searchCollaborators'));
@@ -434,12 +434,12 @@ const changeCollectionType = async (collectionTypeName) => {
   stage.operationActive = false;
 };
 
-// Changes the library mode of multiple collections.
-const changeIsLibrary = async (mode) => {
+// Changes the shared mode of multiple collections.
+const changeIsShared = async (mode) => {
   stage.operationActive = true;
-  let isLibrary = mode === 'library';
+  let isShared = mode === 'shared';
   for (const collectionId of stage.markedItems) {
-    await CollectionService.ChangeIsLibrary(projectStore.activeProject.uri, collectionId, isLibrary).catch((error) => console.error('Error:', error));
+    await CollectionService.ChangeIsShared(projectStore.activeProject.uri, collectionId, isShared).catch((error) => console.error('Error:', error));
   }
   emitter.emit('refresh-browser');
   stage.operationActive = false;

@@ -27,9 +27,9 @@
           </div>
         </div>
 
-        <div v-if="projectStore.activeProject?.has_remote" class="horizontal-flex is-library-prompt">
-          <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="$t('common.library')" />
-          <ToggleSwitch v-tooltip="isLibrary? 'Unmark as library' : 'Mark as a library'" @click="toggleIsLibrary" :switchValueProp="isLibrary" />
+        <div v-if="projectStore.activeProject?.has_remote" class="horizontal-flex is-shared-prompt">
+          <ActionButton :isInactive="true" :icon="getAppIcon('shared')" :label="$t('common.shared')" />
+          <ToggleSwitch v-tooltip="isShared? $t('panes.unmarkAsShared') : $t('panes.markAsShared')" @click="toggleIsShared" :switchValueProp="isShared" />
         </div>
 
         <div class="pop-up-actions">
@@ -91,13 +91,13 @@ const collectionTypeIcon = ref('');
 const collectionTypeId = ref('');
 const collectionTypeName = ref('');
 const isAwaitingResponse = ref(false);
-const isLibrary = ref(null);
+const isShared = ref(null);
 const modalContainer = ref(null);
 const newTypeIcon = ref('generic');
 const oldCollectionName = ref('');
 const oldCollectionPreview = ref(null);
 const oldCollectionType = ref('');
-const OldisLibrary = ref(null);
+const oldIsShared = ref(null);
 const selectedCollection = ref(null);
 const typeFormRef = ref(null);
 
@@ -115,9 +115,9 @@ const collection = computed(() => {
   return collectionStore.selectedCollection;
 });
 
-// Returns whether the library flag has changed.
-const isLibraryChanged = computed(() => {
-  return OldisLibrary.value !== isLibrary.value;
+// Returns whether the shared flag has changed.
+const isSharedChanged = computed(() => {
+  return oldIsShared.value !== isShared.value;
 });
 
 // Returns whether the collection name has changed.
@@ -138,7 +138,7 @@ const isTypeChanged = computed(() => {
 
 // Returns whether any form values have changed.
 const isValueChanged = computed(() => {
-  return isTypeChanged.value || isNameChanged.value || isPreviewChanged.value || isLibraryChanged.value;
+  return isTypeChanged.value || isNameChanged.value || isPreviewChanged.value || isSharedChanged.value;
 });
 
 // methods
@@ -202,9 +202,9 @@ const revertCoverImage = () => {
   collectionPreview.value = oldCollectionPreview.value;
 };
 
-// Toggles the library flag.
-const toggleIsLibrary = () => {
-  isLibrary.value = !isLibrary.value;
+// Toggles the shared flag.
+const toggleIsShared = () => {
+  isShared.value = !isShared.value;
 };
 
 // Toggles the type creator context.
@@ -218,7 +218,7 @@ const toggleTypeCreator = () => {
 // Updates the collection with all changed values.
 const updateCollection = async () => {
   isAwaitingResponse.value = true;
-  if (isTypeChanged.value || isNameChanged.value || isLibraryChanged.value) {
+  if (isTypeChanged.value || isNameChanged.value || isSharedChanged.value) {
     await updateCollectionMeta();
   }
   if (isPreviewChanged.value) {
@@ -245,7 +245,7 @@ const updateCollectionCover = async () => {
     });
 };
 
-// Updates the collection metadata (name, type, library flag).
+// Updates the collection metadata (name, type, shared flag).
 const updateCollectionMeta = async () => {
   const collectionId = collectionStore.selectedCollection.id;
   const currentCollection = collectionStore.selectedCollection;
@@ -272,10 +272,10 @@ const updateCollectionMeta = async () => {
         console.error('Error:', error);
       });
   }
-  if (currentCollection.isLibrary != isLibrary.value) {
-    await CollectionService.ChangeIsLibrary(projectStore.activeProject.uri, collectionId, isLibrary.value)
+  if (currentCollection.isShared != isShared.value) {
+    await CollectionService.ChangeIsShared(projectStore.activeProject.uri, collectionId, isShared.value)
       .then(() => {
-        currentCollection.isLibrary = isLibrary.value;
+        currentCollection.isShared = isShared.value;
       })
       .catch((error) => {
         isAwaitingResponse.value = false;
@@ -303,8 +303,8 @@ onMounted(() => {
   oldCollectionType.value = currentCollection.collection_type_name;
   collectionTypeName.value = currentCollection.collection_type_name;
   collectionTypeIcon.value = currentCollection.collection_type_icon;
-  OldisLibrary.value = currentCollection.is_library;
-  isLibrary.value = currentCollection.is_library;
+  oldIsShared.value = currentCollection.is_shared;
+  isShared.value = currentCollection.is_shared;
 });
 </script>
 

@@ -130,7 +130,7 @@ func TopologicalSort(collections []models.Collection) ([]models.Collection, erro
 }
 
 func CreateCollectionFast(
-	tx *sqlx.Tx, id string, name, description, collection_type_id, parent_id, previewId string, isLibrary bool,
+	tx *sqlx.Tx, id string, name, description, collection_type_id, parent_id, previewId string, isShared bool,
 ) error {
 	name = strings.TrimSpace(name)
 	if name == "" {
@@ -153,7 +153,7 @@ func CreateCollectionFast(
 		"collection_type_id": collection_type_id,
 		"parent_id":      parent_id,
 		"preview_id":     previewId,
-		"is_library":     isLibrary,
+		"is_shared":     isShared,
 	}
 	err := base_service.Create(tx, "collection", params)
 	if err != nil {
@@ -169,7 +169,7 @@ func CreateCollectionFast(
 }
 
 func CreateCollection(
-	tx *sqlx.Tx, id string, name, description, collection_type_id, parent_id, previewId string, isLibrary bool,
+	tx *sqlx.Tx, id string, name, description, collection_type_id, parent_id, previewId string, isShared bool,
 ) (models.Collection, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
@@ -206,7 +206,7 @@ func CreateCollection(
 		"collection_type_id": collection_type_id,
 		"parent_id":      parent_id,
 		"preview_id":     previewId,
-		"is_library":     isLibrary,
+		"is_shared":     isShared,
 	}
 	err = base_service.Create(tx, "collection", params)
 	if err != nil {
@@ -226,7 +226,7 @@ func CreateCollection(
 }
 
 func AddCollection(
-	tx *sqlx.Tx, id string, name, description, collection_type_id, parent_id, previewId string, isLibrary bool,
+	tx *sqlx.Tx, id string, name, description, collection_type_id, parent_id, previewId string, isShared bool,
 ) error {
 	name = strings.TrimSpace(name)
 	if name == "" {
@@ -249,7 +249,7 @@ func AddCollection(
 		"collection_type_id": collection_type_id,
 		"parent_id":      parent_id,
 		"preview_id":     previewId,
-		"is_library":     isLibrary,
+		"is_shared":     isShared,
 	}
 	err := base_service.Create(tx, "collection", params)
 	if err != nil {
@@ -662,7 +662,7 @@ func OLDGetUserCollections(tx *sqlx.Tx, userId string) ([]models.Collection, err
 			FROM collection e
 			LEFT JOIN collection_dependencies ed ON e.id = ed.id
 			WHERE e.trashed = 0
-			AND (ed.id IS NOT NULL OR e.is_library = 1)
+			AND (ed.id IS NOT NULL OR e.is_shared = 1)
 			
 			UNION ALL
 			
@@ -694,7 +694,7 @@ func OLDGetUserCollections(tx *sqlx.Tx, userId string) ([]models.Collection, err
 			FROM collection e
 			JOIN collection_hierarchy_full ehf ON e.parent_id = ehf.id
 			WHERE e.trashed = 0
-			AND e.is_library = 1
+			AND e.is_shared = 1
 			AND e.id NOT IN (
 				SELECT value 
 				FROM json_each('["' || REPLACE(ehf.hierarchy_path, ',', '","') || '"]')
@@ -782,9 +782,9 @@ func GetUserCollections(tx *sqlx.Tx, userAssetInfos []models.Asset, userId strin
 		return nil, err
 	}
 
-	libraryCollections := []string{}
-	query = "select id from collection where is_library = 1"
-	err = tx.Select(&libraryCollections, query, userId)
+	sharedCollections := []string{}
+	query = "select id from collection where is_shared = 1"
+	err = tx.Select(&sharedCollections, query, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -815,7 +815,7 @@ func GetUserCollections(tx *sqlx.Tx, userAssetInfos []models.Asset, userId strin
 			canModifyCollectionsIds[child] = struct{}{}
 		}
 	}
-	for _, collectionId := range libraryCollections {
+	for _, collectionId := range sharedCollections {
 		userCollectionsIds[collectionId] = struct{}{}
 		for _, parent := range getCollectionParents(collectionId, allCollectionInfo) {
 			userCollectionsIds[parent] = struct{}{}
@@ -1070,9 +1070,9 @@ func ChangeCollectionType(tx *sqlx.Tx, collectionId string, collectionTypeId str
 	return nil
 }
 
-func ChangeIsLibrary(tx *sqlx.Tx, collectionId string, isLibrary bool) error {
+func ChangeIsShared(tx *sqlx.Tx, collectionId string, isShared bool) error {
 	params := map[string]any{
-		"is_library": isLibrary,
+		"is_shared": isShared,
 	}
 	err := base_service.Update(tx, "collection", collectionId, params)
 	if err != nil {

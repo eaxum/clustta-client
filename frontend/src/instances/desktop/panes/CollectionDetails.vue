@@ -21,14 +21,14 @@
               :fixedWidth="true" />
           </div>
           <div v-if="projectStore.activeProject?.has_remote" class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="$t('panes.library')" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('shared')" :label="$t('panes.shared')" />
 
-            <ToggleSwitch v-tooltip="collectionStore.selectedCollection.is_library ? $t('panes.unmarkAsLibrary') : $t('panes.markAsLibrary')"
-              @click="changeIsLibrary" :switchValueProp="collectionStore.selectedCollection.is_library" />
+            <ToggleSwitch v-tooltip="collectionStore.selectedCollection.is_shared ? $t('panes.unmarkAsShared') : $t('panes.markAsShared')"
+              @click="changeIsShared" :switchValueProp="collectionStore.selectedCollection.is_shared" />
           </div>
 
           <div v-if="projectStore.activeProject?.has_remote" class="vertical-flex assignees-search">
-            <ActionButton :isInactive="true" :icon="getAppIcon('two-persons')" :label="$t('panes.assignees')" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('person')" :label="$t('panes.assignees')" />
             <CollaboratorSuggestions :displayEmail="false" :placeholder="placeholder" :allItems="projectUsers"
               @tagAdded="addUser" @tagRemoved="removeUser" />
           </div>
@@ -286,19 +286,19 @@ const changeCollectionType = async (collectionTypeName) => {
   stage.operationActive = false;
 
 };
-const changeIsLibrary = async () => {
+const changeIsShared = async () => {
   stage.operationActive = true;
   const projectPath = projectStore.activeProject.uri;
   let collection = collectionStore.selectedCollection;
 
-  await CollectionService.ChangeIsLibrary(projectPath, collection.id, !collectionStore.selectedCollection.is_library)
+  await CollectionService.ChangeIsShared(projectPath, collection.id, !collectionStore.selectedCollection.is_shared)
     .then((data) => {
       // Update local collection data
-      collectionStore.selectedCollection.is_library = !collectionStore.selectedCollection.is_library;
+      collectionStore.selectedCollection.is_shared = !collectionStore.selectedCollection.is_shared;
       
       // Emit updates using helper function
       emitCollectionUpdates(collection.id, [
-        { property: 'is_library', value: collectionStore.selectedCollection.is_library }
+        { property: 'is_shared', value: collectionStore.selectedCollection.is_shared }
       ]);
       
       projectStore.refreshActiveProject();
@@ -515,7 +515,7 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 
-.is-library-prompt {
+.is-shared-prompt {
   padding: 1rem .5rem;
 }
 </style>

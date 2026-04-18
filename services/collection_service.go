@@ -79,7 +79,7 @@ func (t *CollectionService) GetCollectionCount(projectPath string) (int, error) 
 
 // CreateCollection creates a new collection in the project.
 // Returns the created collection or an error if the operation fails.
-func (e *CollectionService) CreateCollection(projectPath, name, description, collectionTypeId, parentId, previewPath string, isLibrary bool) (models.Collection, error) {
+func (e *CollectionService) CreateCollection(projectPath, name, description, collectionTypeId, parentId, previewPath string, isShared bool) (models.Collection, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.Collection{}, err
@@ -109,7 +109,7 @@ func (e *CollectionService) CreateCollection(projectPath, name, description, col
 		collectionTypeId,
 		parentId,
 		previewId,
-		isLibrary,
+		isShared,
 	)
 	if err != nil {
 		tx.Rollback()
@@ -1758,9 +1758,9 @@ func (e *CollectionService) ChangeType(projectPath, collectionId, collectionType
 	return nil
 }
 
-// ChangeIsLibrary toggles the library flag on a collection.
+// ChangeIsShared toggles the shared flag on a collection.
 // Returns an error if the operation fails.
-func (e *CollectionService) ChangeIsLibrary(projectPath, collectionId string, isLibrary bool) error {
+func (e *CollectionService) ChangeIsShared(projectPath, collectionId string, isShared bool) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -1772,7 +1772,7 @@ func (e *CollectionService) ChangeIsLibrary(projectPath, collectionId string, is
 	}
 	defer tx.Rollback()
 
-	err = repository.ChangeIsLibrary(tx, collectionId, isLibrary)
+	err = repository.ChangeIsShared(tx, collectionId, isShared)
 	if err != nil {
 		return err
 	}

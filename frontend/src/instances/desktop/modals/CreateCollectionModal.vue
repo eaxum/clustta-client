@@ -34,8 +34,8 @@
         </div>
 
         <div v-if="projectStore.activeProject?.has_remote" class="horizontal-flex">
-          <ActionButton :isInactive="true" :icon="getAppIcon('library')" :label="$t('common.library')" />
-          <ToggleSwitch v-tooltip="isLibrary? 'Unmark as library' : 'Mark as a library'" @click="toggleIsLibrary" :switchValueProp="isLibrary" />
+          <ActionButton :isInactive="true" :icon="getAppIcon('shared')" :label="$t('common.shared')" />
+          <ToggleSwitch v-tooltip="isShared? $t('panes.unmarkAsShared') : $t('panes.markAsShared')" @click="toggleIsShared" :switchValueProp="isShared" />
         </div>
 
         <div class="pop-up-actions" ref="popUpActions">
@@ -102,7 +102,7 @@ const displayTypeCreator = ref(false);
 const collectionName = ref('');
 const collectionType = ref('');
 const isAwaitingResponse = ref(false);
-const isLibrary = ref(false);
+const isShared = ref(false);
 const isMultiple = ref(false);
 const itemsToGroup = ref([]);
 const modalContainer = ref(null);
@@ -221,7 +221,7 @@ const createCollectionAndMove = async () => {
   const parentIdValue = parent?.id;
   isAwaitingResponse.value = true;
   const selectedCollectionType = collectionStore.collectionTypes.find(item => item.name === collectionType.value);
-  CollectionService.CreateCollection(projectStore.activeProject.uri, collectionName.value, '', selectedCollectionType.id, parentIdValue, '', isLibrary.value)
+  CollectionService.CreateCollection(projectStore.activeProject.uri, collectionName.value, '', selectedCollectionType.id, parentIdValue, '', isShared.value)
     .then(async data => {
       const newCollection = data;
       collectionStore.selectedCollection = newCollection;
@@ -253,7 +253,7 @@ const createMultipleCollections = async () => {
 
 // Creates a single collection.
 const createSingleCollection = async () => {
-  await CollectionService.CreateCollection(projectStore.activeProject.uri, collectionName.value, '', selectedCollectionTypeId.value, parentId.value, '', isLibrary.value)
+  await CollectionService.CreateCollection(projectStore.activeProject.uri, collectionName.value, '', selectedCollectionTypeId.value, parentId.value, '', isShared.value)
     .then(async data => {
       if (!isMultiple.value) {
         const newCollection = data;
@@ -333,9 +333,9 @@ const selectCollectionType = (collectionTypeName) => {
   collectionType.value = collectionTypeName;
 };
 
-// Toggles the library flag.
-const toggleIsLibrary = () => {
-  isLibrary.value = !isLibrary.value;
+// Toggles the shared flag.
+const toggleIsShared = () => {
+  isShared.value = !isShared.value;
 };
 
 // Toggles the multiple mode.

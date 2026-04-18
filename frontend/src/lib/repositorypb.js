@@ -1704,7 +1704,7 @@ export const repository = $root.repository = (() => {
          * @property {string|null} [parent_id] Collection parent_id
          * @property {string|null} [preview_id] Collection preview_id
          * @property {boolean|null} [synced] Collection synced
-         * @property {boolean|null} [is_library] Collection is_library
+         * @property {boolean|null} [is_shared] Collection is_shared
          */
 
         /**
@@ -1811,12 +1811,12 @@ export const repository = $root.repository = (() => {
         Collection.prototype.synced = false;
 
         /**
-         * Collection is_library.
-         * @member {boolean} is_library
+         * Collection is_shared.
+         * @member {boolean} is_shared
          * @memberof repository.Collection
          * @instance
          */
-        Collection.prototype.is_library = false;
+        Collection.prototype.is_shared = false;
 
         /**
          * Creates a new Collection instance using the specified properties.
@@ -1864,8 +1864,8 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 10, wireType 2 =*/82).string(message.preview_id);
             if (message.synced != null && Object.hasOwnProperty.call(message, "synced"))
                 writer.uint32(/* id 11, wireType 0 =*/88).bool(message.synced);
-            if (message.is_library != null && Object.hasOwnProperty.call(message, "is_library"))
-                writer.uint32(/* id 12, wireType 0 =*/96).bool(message.is_library);
+            if (message.is_shared != null && Object.hasOwnProperty.call(message, "is_shared"))
+                writer.uint32(/* id 12, wireType 0 =*/96).bool(message.is_shared);
             return writer;
         };
 
@@ -1947,7 +1947,7 @@ export const repository = $root.repository = (() => {
                         break;
                     }
                 case 12: {
-                        message.is_library = reader.bool();
+                        message.is_shared = reader.bool();
                         break;
                     }
                 default:
@@ -2018,9 +2018,9 @@ export const repository = $root.repository = (() => {
             if (message.synced != null && message.hasOwnProperty("synced"))
                 if (typeof message.synced !== "boolean")
                     return "synced: boolean expected";
-            if (message.is_library != null && message.hasOwnProperty("is_library"))
-                if (typeof message.is_library !== "boolean")
-                    return "is_library: boolean expected";
+            if (message.is_shared != null && message.hasOwnProperty("is_shared"))
+                if (typeof message.is_shared !== "boolean")
+                    return "is_shared: boolean expected";
             return null;
         };
 
@@ -2065,8 +2065,8 @@ export const repository = $root.repository = (() => {
                 message.preview_id = String(object.preview_id);
             if (object.synced != null)
                 message.synced = Boolean(object.synced);
-            if (object.is_library != null)
-                message.is_library = Boolean(object.is_library);
+            if (object.is_shared != null)
+                message.is_shared = Boolean(object.is_shared);
             return message;
         };
 
@@ -2099,7 +2099,7 @@ export const repository = $root.repository = (() => {
                 object.parent_id = "";
                 object.preview_id = "";
                 object.synced = false;
-                object.is_library = false;
+                object.is_shared = false;
             }
             if (message.id != null && message.hasOwnProperty("id"))
                 object.id = message.id;
@@ -2126,8 +2126,8 @@ export const repository = $root.repository = (() => {
                 object.preview_id = message.preview_id;
             if (message.synced != null && message.hasOwnProperty("synced"))
                 object.synced = message.synced;
-            if (message.is_library != null && message.hasOwnProperty("is_library"))
-                object.is_library = message.is_library;
+            if (message.is_shared != null && message.hasOwnProperty("is_shared"))
+                object.is_shared = message.is_shared;
             return object;
         };
 

@@ -27,13 +27,13 @@ func BatchCreateCollections(tx *sqlx.Tx, collections []models.Collection) error 
 			collection.CollectionTypeId,
 			collection.ParentId,
 			collection.PreviewId,
-			collection.IsLibrary,
+			collection.IsShared,
 			utils.GetEpochTime(), // mtime
 		)
 	}
 
 	stmt := fmt.Sprintf(`
-		INSERT INTO collection (id, name, description, collection_type_id, parent_id, preview_id, is_library, mtime)
+		INSERT INTO collection (id, name, description, collection_type_id, parent_id, preview_id, is_shared, mtime)
 		VALUES %s
 	`, strings.Join(valueStrings, ","))
 
@@ -52,27 +52,27 @@ func BatchUpdateCollections(tx *sqlx.Tx, collections []models.Collection) error 
 	nameMap := make(map[string]string)
 	parentMap := make(map[string]string)
 	previewMap := make(map[string]string)
-	libraryMap := make(map[string]bool)
+	sharedMap := make(map[string]bool)
 
 	for i, collection := range collections {
 		ids[i] = collection.Id
 		nameMap[collection.Id] = collection.Name
 		parentMap[collection.Id] = collection.ParentId
 		previewMap[collection.Id] = collection.PreviewId
-		libraryMap[collection.Id] = collection.IsLibrary
+		sharedMap[collection.Id] = collection.IsShared
 	}
 
 	// Build CASE statements
 	nameCases := make([]string, 0, len(collections))
 	parentCases := make([]string, 0, len(collections))
 	previewCases := make([]string, 0, len(collections))
-	libraryCases := make([]string, 0, len(collections))
+	sharedCases := make([]string, 0, len(collections))
 
 	for _, collection := range collections {
 		nameCases = append(nameCases, fmt.Sprintf("WHEN id = '%s' THEN '%s'", collection.Id, collection.Name))
 		parentCases = append(parentCases, fmt.Sprintf("WHEN id = '%s' THEN '%s'", collection.Id, collection.ParentId))
 		previewCases = append(previewCases, fmt.Sprintf("WHEN id = '%s' THEN '%s'", collection.Id, collection.PreviewId))
-		libraryCases = append(libraryCases, fmt.Sprintf("WHEN id = '%s' THEN %t", collection.Id, collection.IsLibrary))
+		sharedCases = append(sharedCases, fmt.Sprintf("WHEN id = '%s' THEN %t", collection.Id, collection.IsShared))
 	}
 
 	query := fmt.Sprintf(`
@@ -80,14 +80,14 @@ func BatchUpdateCollections(tx *sqlx.Tx, collections []models.Collection) error 
 			name = CASE %s END,
 			parent_id = CASE %s END,
 			preview_id = CASE %s END,
-			is_library = CASE %s END,
+			is_shared = CASE %s END,
 			mtime = %d
 		WHERE id IN ('%s')
 	`,
 		strings.Join(nameCases, " "),
 		strings.Join(parentCases, " "),
 		strings.Join(previewCases, " "),
-		strings.Join(libraryCases, " "),
+		strings.Join(sharedCases, " "),
 		utils.GetEpochTime(),
 		strings.Join(ids, "','"),
 	)
@@ -240,7 +240,7 @@ func BatchCreateCheckpoints(tx *sqlx.Tx, checkpoints []models.Checkpoint) error 
 func GetAllCollections(tx *sqlx.Tx) ([]models.Collection, error) {
 	var collections []models.Collection
 	query := `
-		SELECT id, name, description, collection_type_id, parent_id, preview_id, is_library, mtime
+		SELECT id, name, description, collection_type_id, parent_id, preview_id, is_shared, mtime
 		FROM collection
 	`
 	err := tx.Select(&collections, query)
@@ -254,7 +254,7 @@ func BatchCreateCollectionsWithPreparedStmt(tx *sqlx.Tx, collections []models.Co
 	}
 
 	stmt, err := tx.Preparex(`
-		INSERT INTO collection (id, name, description, collection_type_id, parent_id, preview_id, is_library, mtime)
+		INSERT INTO collection (id, name, description, collection_type_id, parent_id, preview_id, is_shared, mtime)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
@@ -270,7 +270,7 @@ func BatchCreateCollectionsWithPreparedStmt(tx *sqlx.Tx, collections []models.Co
 			collection.CollectionTypeId,
 			collection.ParentId,
 			collection.PreviewId,
-			collection.IsLibrary,
+			collection.IsShared,
 			utils.GetEpochTime(),
 		)
 		if err != nil {

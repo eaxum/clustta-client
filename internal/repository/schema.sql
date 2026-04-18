@@ -212,7 +212,7 @@ CREATE TABLE IF NOT EXISTS collection (
 	trashed BOOLEAN DEFAULT 0 NOT NULL,
     preview_id TEXT DEFAULT '' NOT NULL,
 	synced BOOLEAN DEFAULT 0 NOT NULL,
-	is_library BOOLEAN DEFAULT 0 NOT NULL,
+	is_shared BOOLEAN DEFAULT 0 NOT NULL,
     FOREIGN KEY (collection_type_id) REFERENCES collection_type(id),
     FOREIGN KEY (parent_id) REFERENCES collection(id),
     FOREIGN KEY (preview_id) REFERENCES preview(hash),

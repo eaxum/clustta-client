@@ -272,7 +272,7 @@ func (e *ImportService) CreateItems(projectPath string, collections []models.Col
 
 	for i, collection := range collections {
 		_, err = repository.CreateCollection(
-			tx, collection.Id, collection.Name, collection.Description, collection.CollectionTypeId, collection.ParentId, collection.PreviewId, collection.IsLibrary)
+			tx, collection.Id, collection.Name, collection.Description, collection.CollectionTypeId, collection.ParentId, collection.PreviewId, collection.IsShared)
 		if err != nil {
 			return err
 		}
@@ -352,7 +352,7 @@ func (e *ImportService) CreateCollections(projectPath string, collections []mode
 	state := completed
 	for i, collection := range collections {
 		_, err = repository.CreateCollection(
-			tx, collection.Id, collection.Name, collection.Description, collection.CollectionTypeId, collection.ParentId, collection.PreviewId, collection.IsLibrary)
+			tx, collection.Id, collection.Name, collection.Description, collection.CollectionTypeId, collection.ParentId, collection.PreviewId, collection.IsShared)
 		if err != nil {
 			return err
 		}

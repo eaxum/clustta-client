@@ -381,7 +381,7 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 		if !exists {
 			fmt.Println("Creating: ", collection.Name)
 			err = repository.AddCollection(
-				tx, collection.Id, collection.Name, collection.Description, collection.CollectionTypeId, collection.ParentId, collection.PreviewId, collection.IsLibrary)
+				tx, collection.Id, collection.Name, collection.Description, collection.CollectionTypeId, collection.ParentId, collection.PreviewId, collection.IsShared)
 			if err != nil {
 				if err.Error() == "parent collection not found" {
 					continue
@@ -396,7 +396,7 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 
 			parentId := collection.ParentId
 			previewId := collection.PreviewId
-			isLibrary := collection.IsLibrary
+			isShared := collection.IsShared
 
 			collection, err = repository.RenameCollection(tx, collection.Id, collection.Name)
 			if err != nil {
@@ -405,7 +405,7 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 
 			collection.ParentId = parentId
 			collection.PreviewId = previewId
-			collection.IsLibrary = isLibrary
+			collection.IsShared = isShared
 
 			if localCollection.ParentId != collection.ParentId {
 				err = repository.ChangeParent(tx, collection.Id, collection.ParentId)
@@ -420,8 +420,8 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 					return err
 				}
 			}
-			if localCollection.IsLibrary != collection.IsLibrary {
-				err = repository.ChangeIsLibrary(tx, collection.Id, collection.IsLibrary)
+			if localCollection.IsShared != collection.IsShared {
+				err = repository.ChangeIsShared(tx, collection.Id, collection.IsShared)
 				if err != nil {
 					return err
 				}
@@ -954,7 +954,7 @@ func OverWriteProjectData(tx *sqlx.Tx, data ProjectData) error {
 
 	for _, collection := range data.Collections {
 		err = repository.AddCollection(
-			tx, collection.Id, collection.Name, collection.Description, collection.CollectionTypeId, collection.ParentId, collection.PreviewId, collection.IsLibrary)
+			tx, collection.Id, collection.Name, collection.Description, collection.CollectionTypeId, collection.ParentId, collection.PreviewId, collection.IsShared)
 		if err != nil {
 			if err.Error() == "parent collection not found" {
 				continue

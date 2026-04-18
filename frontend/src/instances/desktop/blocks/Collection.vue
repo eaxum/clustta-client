@@ -144,7 +144,7 @@
         </div>
         
         
-        <div v-if="collaboratorsList.length && collection.is_library && !isEditing && !isGhost" class="horizontal-divider">
+        <div v-if="collaboratorsList.length && collection.is_shared && !isEditing && !isGhost" class="horizontal-divider">
         </div>
 
         <!-- Optimized collection-item-actions using GetCollectionStateFlags -->
@@ -163,7 +163,7 @@
             <ActionButton v-if="collectionStateFlags.has_rebuildable && !(collection.id in stage.expandedCollections)" 
               @click="rebuildCollection" 
               :icon="getAppIcon('jigsaw')" v-tooltip="$t('blocks.itemsMissingClickRebuild')" />
-              <ActionButton v-if="collection.is_library" :icon="getAppIcon('library')" v-tooltip="$t('blocks.thisIsALibrary')" />
+              <ActionButton v-if="collection.is_shared" :icon="getAppIcon('shared')" v-tooltip="$t('blocks.thisIsShared')" />
           </template>
         </div>
 

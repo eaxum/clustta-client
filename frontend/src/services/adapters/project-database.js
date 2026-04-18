@@ -101,7 +101,7 @@ function createSchema(db) {
       parent_id TEXT,
       collection_path TEXT,
       preview_id TEXT DEFAULT '',
-      is_library INTEGER DEFAULT 0,
+      is_shared INTEGER DEFAULT 0,
       trashed INTEGER DEFAULT 0,
       synced INTEGER DEFAULT 1
     )

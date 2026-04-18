@@ -217,8 +217,8 @@ func DiscardCollectionChanges(tx *sqlx.Tx, serverData ProjectData, collectionId 
 	// Re-insert from server data
 	for _, collection := range serverData.Collections {
 		if collection.Id == collectionId {
-			_, err = tx.Exec(`INSERT INTO collection (id, mtime, created_at, name, description, collection_type_id, parent_id, trashed, preview_id, is_library, synced) VALUES (?,?,?,?,?,?,?,?,?,?,1)`,
-				collection.Id, collection.MTime, collection.CreatedAt, collection.Name, collection.Description, collection.CollectionTypeId, collection.ParentId, collection.Trashed, collection.PreviewId, collection.IsLibrary)
+			_, err = tx.Exec(`INSERT INTO collection (id, mtime, created_at, name, description, collection_type_id, parent_id, trashed, preview_id, is_shared, synced) VALUES (?,?,?,?,?,?,?,?,?,?,1)`,
+				collection.Id, collection.MTime, collection.CreatedAt, collection.Name, collection.Description, collection.CollectionTypeId, collection.ParentId, collection.Trashed, collection.PreviewId, collection.IsShared)
 			if err != nil {
 				return err
 			}
