@@ -1,8 +1,8 @@
 <template>
   <div class="general-pane-root">
       <div class="changelog-actions">
-        <ActionButton :icon="getAppIcon('revert')" :label="$t('panes.discardAll')" :showLabel="true" :buttonFunction="prepDiscardAll" :useDanger="true" :useBackground="true" :isDisabled="isLoading" />
-        <ActionButton :icon="getAppIcon(getCloudIcon)" :label="$t('panes.syncNow')" :showLabel="true" :buttonFunction="syncNow" :useBackground="true" :isDisabled="isLoading" />
+        <ActionButton :icon="getAppIcon('revert')" :label="$t('panes.discardAll')" :showLabel="true" :buttonFunction="prepDiscardAll" :useDanger="true" :useOutline="true" :fullWidth="true" :useBackground="false" :isDisabled="isLoading" />
+        <ActionButton :icon="getAppIcon(getCloudIcon)" :label="$t('panes.syncNow')" :showLabel="true" :buttonFunction="syncNow" :useOutline="true" :fullWidth="true" :useBackground="false" :isDisabled="isLoading" />
       </div>
     <div v-if="hasChanges" class="changelog-scroll-container">
 

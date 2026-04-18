@@ -182,6 +182,7 @@ label {
     width: 100%;
     display: flex;
     padding: .5rem;
+    font-size: 14px;
     box-sizing: border-box;
     color: var(--white);
 }
