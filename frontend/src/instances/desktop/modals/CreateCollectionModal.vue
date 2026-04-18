@@ -27,7 +27,9 @@
         </div>
 
         <div v-if="!stage.groupItems" class="horizontal-flex">
-          {{ $t('modals.generateMultipleItems') }}
+          <div class="batch-text">
+            {{ $t('modals.generateMultipleItems') }}
+          </div>
           <ToggleSwitch v-tooltip="isMultiple? 'Unmark as library' : 'Mark as a library'" @click="toggleIsMultiple" :switchValueProp="isMultiple" />
         </div>
 
@@ -386,6 +388,11 @@ onUnmounted(() => {
 .dropdown-wrapper {
   flex: 1;
   width: 100%;
+}
+
+.batch-text{
+  font-size: 14px;
+  padding-left: .5rem;
 }
 
 .input-short {
