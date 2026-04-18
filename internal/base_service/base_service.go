@@ -401,9 +401,9 @@ func MarkAsDeleted(tx *sqlx.Tx, table string, id string) error {
 	}
 	err := Update(tx, table, id, params)
 	if err != nil {
-		return nil
+		return err
 	}
-	return nil
+	return UpdateMtime(tx, table, id, 0)
 }
 
 func Restore(tx *sqlx.Tx, table string, id string) error {
@@ -412,9 +412,9 @@ func Restore(tx *sqlx.Tx, table string, id string) error {
 	}
 	err := Update(tx, table, id, params)
 	if err != nil {
-		return nil
+		return err
 	}
-	return nil
+	return UpdateMtime(tx, table, id, 0)
 }
 
 // GetAllBy retrieves all records by multiple column and value conditions

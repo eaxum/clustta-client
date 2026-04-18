@@ -7,6 +7,72 @@
 import { Create as $Create } from "@wailsio/runtime";
 
 /**
+ * ChangeChild represents a nested sub-change belonging to a parent asset or collection.
+ */
+export class ChangeChild {
+    /**
+     * Creates a new ChangeChild instance.
+     * @param {Partial<ChangeChild>} [$$source = {}] - The source object to create the ChangeChild.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("parent_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["parent_id"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["ref_id"] = undefined;
+        }
+        if (!("source" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["source"] = "";
+        }
+        if (!("description" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["description"] = "";
+        }
+        if (!("change_type" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["change_type"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ChangeChild instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ChangeChild}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ChangeChild(/** @type {Partial<ChangeChild>} */($$parsedSource));
+    }
+}
+
+/**
  * ChangeSummary groups all pending changes by category for frontend display.
  */
 export class ChangeSummary {
@@ -93,6 +159,20 @@ export class ChangeSummaryItem {
              */
             this["name"] = "";
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["icon"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["extension"] = undefined;
+        }
         if (!("source" in $$source)) {
             /**
              * @member
@@ -107,19 +187,19 @@ export class ChangeSummaryItem {
              */
             this["change_type"] = "";
         }
-        if (/** @type {any} */(false)) {
-            /**
-             * @member
-             * @type {string | undefined}
-             */
-            this["description"] = undefined;
-        }
         if (!("mtime" in $$source)) {
             /**
              * @member
              * @type {number}
              */
             this["mtime"] = 0;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {ChangeChild[] | undefined}
+             */
+            this["children"] = undefined;
         }
 
         Object.assign(this, $$source);
@@ -131,7 +211,11 @@ export class ChangeSummaryItem {
      * @returns {ChangeSummaryItem}
      */
     static createFrom($$source = {}) {
+        const $$createField7_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("children" in $$parsedSource) {
+            $$parsedSource["children"] = $$createField7_0($$parsedSource["children"]);
+        }
         return new ChangeSummaryItem(/** @type {Partial<ChangeSummaryItem>} */($$parsedSource));
     }
 }
@@ -202,3 +286,5 @@ export class SyncOptions {
 // Private type creation functions
 const $$createType0 = ChangeSummaryItem.createFrom;
 const $$createType1 = $Create.Array($$createType0);
+const $$createType2 = ChangeChild.createFrom;
+const $$createType3 = $Create.Array($$createType2);

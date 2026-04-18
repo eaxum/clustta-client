@@ -15,7 +15,7 @@
         </div>
 
         <div v-if="expandedGroups.assets" class="changelog-group-items">
-          <ChangeLogItem v-for="item in summary.assets" :key="item.id" :item="item" itemType="asset" :isLoading="isLoading" @find="(id) => findItem(id, 'asset')" @discard="(id) => discardItem(id, 'asset')" />
+          <ChangeLogItem v-for="item in summary.assets" :key="item.id" :item="item" itemType="asset" :isLoading="isLoading" @find="(id) => findItem(id, 'asset')" @discard="(id) => discardItem(id, 'asset')" @restore="(id) => restoreItem(id, 'asset')" @undoChild="undoChild" />
         </div>
       </div>
 
@@ -28,20 +28,20 @@
         </div>
 
         <div v-if="expandedGroups.collections" class="changelog-group-items">
-          <ChangeLogItem v-for="item in summary.collections" :key="item.id" :item="item" itemType="collection" :isLoading="isLoading" @find="(id) => findItem(id, 'collection')" @discard="(id) => discardItem(id, 'collection')" />
+          <ChangeLogItem v-for="item in summary.collections" :key="item.id" :item="item" itemType="collection" :isLoading="isLoading" @find="(id) => findItem(id, 'collection')" @discard="(id) => discardItem(id, 'collection')" @restore="(id) => restoreItem(id, 'collection')" @undoChild="undoChild" />
         </div>
       </div>
 
       <div v-if="summary.other.length" class="changelog-group">
         <div class="changelog-group-header" @click="toggleGroup('other')">
           <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.other }" />
-          <span class="changelog-group-title">{{ $t('panes.other') }}</span>
+          <span class="changelog-group-title">{{ $t('panes.templates') }}</span>
           <span class="changelog-group-count">{{ summary.other.length }}</span>
           <div class="menu-divider"></div>
         </div>
 
         <div v-if="expandedGroups.other" class="changelog-group-items">
-          <ChangeLogItem v-for="item in summary.other" :key="item.id + item.source" :item="item" itemType="other" :isLoading="isLoading" />
+          <ChangeLogItem v-for="item in summary.other" :key="item.id" :item="item" itemType="other" :isLoading="isLoading" @restore="(id) => restoreItem(id, 'template')" />
         </div>
       </div>
     </div>
@@ -63,7 +63,7 @@ import ChangeLogItem from '@/instances/desktop/components/ChangeLogItem.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 
 // services
-import { AssetService, CollectionService, SyncService } from '@/services';
+import { AssetService, CheckpointService, CollectionService, SyncService, TagService, TrashService } from '@/services';
 
 // stores
 import { useAssetStore } from '@/stores/assets';
@@ -221,6 +221,49 @@ const findItem = async (itemId, itemType) => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
+// Restores a trashed item back to its original state.
+const restoreItem = async (itemId, itemType) => {
+  isLoading.value = true;
+  try {
+    await TrashService.Restore(projectStore.activeProject.uri, itemId, itemType);
+    notificationStore.addNotification(t('notifications.itemRestored'), '', 'success', false);
+    emitter.emit('refresh-browser');
+    await loadChanges();
+  } catch (error) {
+    console.error(error);
+    notificationStore.errorNotification(t('notifications.errorRestoringItem'), error);
+  }
+  isLoading.value = false;
+};
+
+// Undoes a child change (restore deleted or remove added).
+const undoChild = async (child) => {
+  isLoading.value = true;
+  try {
+    const uri = projectStore.activeProject.uri;
+    if (child.source === 'asset_checkpoint') {
+      if (child.change_type === 'deleted') {
+        await TrashService.Restore(uri, child.id, 'asset_checkpoint');
+      } else {
+        await CheckpointService.DeleteCheckpoint(uri, child.id);
+      }
+    } else if (child.source === 'asset_dependency') {
+      await AssetService.RemoveAssetDependency(uri, child.parent_id, child.ref_id);
+    } else if (child.source === 'collection_dependency') {
+      await AssetService.RemoveCollectionDependency(uri, child.parent_id, child.ref_id);
+    } else if (child.source === 'asset_tag') {
+      await TagService.RemoveTagFromAsset(uri, child.parent_id, child.ref_id);
+    }
+    notificationStore.addNotification(t('notifications.changeDiscarded'), '', 'success', false);
+    emitter.emit('refresh-browser');
+    await loadChanges();
+  } catch (error) {
+    console.error(error);
+    notificationStore.errorNotification(t('notifications.errorDiscardingChange'), error);
+  }
+  isLoading.value = false;
+};
 
 // Loads the pending change summary from the backend.
 const loadChanges = async () => {
