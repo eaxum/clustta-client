@@ -245,8 +245,8 @@ const createCollectionAndMove = async () => {
 // Creates multiple collections from batch generator.
 const createMultipleCollections = async () => {
   const collectionNames = collections.value;
-  for (const collectionName of collectionNames) {
-    collectionName.value = collectionName;
+  for (const name of collectionNames) {
+    collectionName.value = name;
     await createSingleCollection();
   }
 };
