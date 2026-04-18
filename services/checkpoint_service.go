@@ -307,26 +307,32 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths []strin
 		}
 	}
 
-	progress := output.ProgressReport{
-		Title:      "Creating Checkpoint",
-		Message:    "finishing up",
-		Percentage: 100,
-		Current:    totalAssets,
-		Total:      totalAssets,
-		EntityData: checkpoints,
-	}
-	app.Event.Emit("progress-update", progress)
-
-	// Push to external integration (preview upload + status sync)
+	// Push to external integration in background (preview upload + status sync)
 	// Only for single-asset checkpoints to avoid flooding the external system
-	if sendToIntegration && len(checkpoints) == 1 {
-		integrationSvc := &IntegrationService{}
-		if err := integrationSvc.PushToIntegration(projectPath, []string{checkpoints[0].AssetId}, checkpoints[0].Id, previewPath, message); err != nil {
-			log.Printf("integration push failed (checkpoint still created): %v", err)
-			app.Event.Emit("integration-push-failed", map[string]interface{}{
-				"error": err.Error(),
-			})
+	willPushToIntegration := sendToIntegration && len(checkpoints) == 1 && previewPath != ""
+
+	if !willPushToIntegration {
+		progress := output.ProgressReport{
+			Title:      "Creating Checkpoint",
+			Message:    "finishing up",
+			Percentage: 100,
+			Current:    totalAssets,
+			Total:      totalAssets,
+			EntityData: checkpoints,
 		}
+		app.Event.Emit("progress-update", progress)
+	}
+
+	if sendToIntegration && len(checkpoints) == 1 {
+		go func() {
+			integrationSvc := &IntegrationService{}
+			if err := integrationSvc.PushToIntegration(projectPath, []string{checkpoints[0].AssetId}, checkpoints[0].Id, previewPath, message); err != nil {
+				log.Printf("integration push failed (checkpoint still created): %v", err)
+				app.Event.Emit("integration-push-failed", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
+		}()
 	}
 
 	return checkpoints, nil
