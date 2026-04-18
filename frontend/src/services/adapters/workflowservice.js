@@ -186,7 +186,7 @@ export const WorkflowService = {
       const parentCollectionId = crypto.randomUUID();
       const parentCollectionPath = computeCollectionPath(db, parentId, name);
       execute(db, `
-        INSERT INTO collection (id, created_at, mtime, name, description, collection_type_id, parent_id, collection_path, is_library, trashed, synced)
+        INSERT INTO collection (id, created_at, mtime, name, description, collection_type_id, parent_id, collection_path, is_shared, trashed, synced)
         VALUES (?, ?, ?, ?, '', ?, ?, ?, 0, 0, 0)
       `, [parentCollectionId, createdAt, now, name, collectionTypeId, parentId || '', parentCollectionPath]);
       
@@ -195,7 +195,7 @@ export const WorkflowService = {
         const childCollectionId = crypto.randomUUID();
         const childCollectionPath = computeCollectionPath(db, parentCollectionId, we.name);
         execute(db, `
-          INSERT INTO collection (id, created_at, mtime, name, description, collection_type_id, parent_id, collection_path, is_library, trashed, synced)
+          INSERT INTO collection (id, created_at, mtime, name, description, collection_type_id, parent_id, collection_path, is_shared, trashed, synced)
           VALUES (?, ?, ?, ?, '', ?, ?, ?, 0, 0, 0)
         `, [childCollectionId, createdAt, now, we.name, we.collection_type_id, parentCollectionId, childCollectionPath]);
       }

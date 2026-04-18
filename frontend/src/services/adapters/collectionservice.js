@@ -40,7 +40,7 @@ function rowToCollection(row, collectionTypeMap = {}) {
     ...row,
     trashed: !!row.trashed,
     is_trashed: !!row.trashed,
-    is_library: !!row.is_library,
+    is_shared: !!row.is_shared,
     synced: !!row.synced,
     type: 'collection',
     collection_type: collectionType.name || '',
@@ -359,8 +359,8 @@ export const CollectionService = {
   },
 
   // Creates a new collection (local-first approach)
-  // Signature matches Wails: CreateCollection(projectPath, name, description, collectionTypeId, parentId, previewPath, isLibrary)
-  CreateCollection: async (projectPath, name, description, collectionTypeId, parentId, previewPath, isLibrary) => {
+  // Signature matches Wails: CreateCollection(projectPath, name, description, collectionTypeId, parentId, previewPath, isShared)
+  CreateCollection: async (projectPath, name, description, collectionTypeId, parentId, previewPath, isShared) => {
     const projectName = getProjectName(projectPath);
     const id = crypto.randomUUID();
     const now = Date.now();
@@ -373,9 +373,9 @@ export const CollectionService = {
       const collectionPath = computeCollectionPath(db, parentId, name || '');
       
       execute(db, `
-        INSERT INTO collection (id, created_at, mtime, name, description, collection_type_id, parent_id, collection_path, preview_id, is_library, trashed, synced)
+        INSERT INTO collection (id, created_at, mtime, name, description, collection_type_id, parent_id, collection_path, preview_id, is_shared, trashed, synced)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
-      `, [id, createdAt, now, name || '', description || '', collectionTypeId || '', parentId || '', collectionPath, previewPath || '', isLibrary ? 1 : 0]);
+      `, [id, createdAt, now, name || '', description || '', collectionTypeId || '', parentId || '', collectionPath, previewPath || '', isShared ? 1 : 0]);
       await persistDatabase(projectName);
       
       // Build collection type lookup map
@@ -572,16 +572,16 @@ export const CollectionService = {
     }
   },
 
-  // Toggles the library flag on a collection (local-first approach)
-  ChangeIsLibrary: async (projectPath, collectionId, isLibrary) => {
+  // Toggles the shared flag on a collection (local-first approach)
+  ChangeIsShared: async (projectPath, collectionId, isShared) => {
     const projectName = getProjectName(projectPath);
     try {
       const db = await getDatabase(projectName);
-      execute(db, 'UPDATE collection SET is_library = ?, mtime = ?, synced = 0 WHERE id = ?', 
-        [isLibrary ? 1 : 0, Date.now(), collectionId]);
+      execute(db, 'UPDATE collection SET is_shared = ?, mtime = ?, synced = 0 WHERE id = ?', 
+        [isShared ? 1 : 0, Date.now(), collectionId]);
       await persistDatabase(projectName);
     } catch (error) {
-      console.error('ChangeIsLibrary error:', error);
+      console.error('ChangeIsShared error:', error);
       throw error;
     }
   },
@@ -769,7 +769,7 @@ export const CollectionService = {
       const collectionPath = computeCollectionPath(db, parentId, name || '');
       
       execute(db, `
-        INSERT INTO collection (id, created_at, mtime, name, description, collection_type_id, parent_id, collection_path, preview_id, is_library, trashed, synced)
+        INSERT INTO collection (id, created_at, mtime, name, description, collection_type_id, parent_id, collection_path, preview_id, is_shared, trashed, synced)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
       `, [id, createdAt, now, name || '', description || '', collectionTypeId || '', parentId || '', collectionPath, '', 0]);
       await persistDatabase(projectName);

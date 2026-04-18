@@ -24,7 +24,7 @@ func MigrateV1_2(db *sqlx.DB, _ string) error {
 		return err
 	}
 
-	err = utils.AddColumnIfNotExist(db, "entity", "is_library", "BOOLEAN", "0", false)
+	err = utils.AddColumnIfNotExist(db, "entity", "is_shared", "BOOLEAN", "0", false)
 	if err != nil {
 		return err
 	}

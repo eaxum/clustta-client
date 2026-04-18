@@ -65,7 +65,7 @@ message Collection {
   string parent_id = 9;
   string preview_id = 10;
   bool synced = 11;
-  bool is_library = 12;
+  bool is_shared = 12;
 }
 
 message CollectionAssignee {

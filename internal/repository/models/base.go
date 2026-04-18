@@ -134,7 +134,7 @@ type Collection struct {
 	PreviewExtension   string   `db:"preview_extension" json:"preview_extension"`
 	Synced             bool     `db:"synced" json:"synced"`
 	IsDependency       bool     `db:"is_dependency" json:"is_dependency"`
-	IsLibrary          bool     `db:"is_library" json:"is_library"`
+	IsShared           bool     `db:"is_shared" json:"is_shared"`
 	CanModify          bool     `db:"can_modify" json:"can_modify"`
 	Level              int      `db:"level" json:"-"`
 	HasChildren        bool     `db:"-" json:"has_children"`

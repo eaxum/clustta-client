@@ -482,7 +482,7 @@ type Collection struct {
 	ParentId         string                 `protobuf:"bytes,9,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
 	PreviewId        string                 `protobuf:"bytes,10,opt,name=preview_id,json=previewId,proto3" json:"preview_id,omitempty"`
 	Synced           bool                   `protobuf:"varint,11,opt,name=synced,proto3" json:"synced,omitempty"`
-	IsLibrary        bool                   `protobuf:"varint,12,opt,name=is_library,json=isLibrary,proto3" json:"is_library,omitempty"`
+	IsShared         bool                   `protobuf:"varint,12,opt,name=is_shared,json=isShared,proto3" json:"is_shared,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -594,9 +594,9 @@ func (x *Collection) GetSynced() bool {
 	return false
 }
 
-func (x *Collection) GetIsLibrary() bool {
+func (x *Collection) GetIsShared() bool {
 	if x != nil {
-		return x.IsLibrary
+		return x.IsShared
 	}
 	return false
 }
@@ -3564,7 +3564,7 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\n" +
 	"preview_id\x18\x0f \x01(\tR\tpreviewId\x12\x18\n" +
 	"\atrashed\x18\x10 \x01(\bR\atrashed\x12\x16\n" +
-	"\x06synced\x18\x11 \x01(\bR\x06synced\"\xeb\x02\n" +
+	"\x06synced\x18\x11 \x01(\bR\x06synced\"\xe9\x02\n" +
 	"\n" +
 	"Collection\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
@@ -3580,9 +3580,8 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\n" +
 	"preview_id\x18\n" +
 	" \x01(\tR\tpreviewId\x12\x16\n" +
-	"\x06synced\x18\v \x01(\bR\x06synced\x12\x1d\n" +
-	"\n" +
-	"is_library\x18\f \x01(\bR\tisLibrary\"\xb9\x01\n" +
+	"\x06synced\x18\v \x01(\bR\x06synced\x12\x1b\n" +
+	"\tis_shared\x18\f \x01(\bR\bisShared\"\xb9\x01\n" +
 	"\x12CollectionAssignee\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12#\n" +

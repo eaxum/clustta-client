@@ -40,15 +40,15 @@ export function ChangeCollectionParent(projectPath, collectionIds, parentId) {
 }
 
 /**
- * ChangeIsLibrary toggles the library flag on a collection.
+ * ChangeIsShared toggles the shared flag on a collection.
  * Returns an error if the operation fails.
  * @param {string} projectPath
  * @param {string} collectionId
- * @param {boolean} isLibrary
+ * @param {boolean} isShared
  * @returns {$CancellablePromise<void>}
  */
-export function ChangeIsLibrary(projectPath, collectionId, isLibrary) {
-    return $Call.ByID(2948869046, projectPath, collectionId, isLibrary);
+export function ChangeIsShared(projectPath, collectionId, isShared) {
+    return $Call.ByID(2304525050, projectPath, collectionId, isShared);
 }
 
 /**
@@ -72,11 +72,11 @@ export function ChangeType(projectPath, collectionId, collectionTypeId) {
  * @param {string} collectionTypeId
  * @param {string} parentId
  * @param {string} previewPath
- * @param {boolean} isLibrary
+ * @param {boolean} isShared
  * @returns {$CancellablePromise<models$0.Collection>}
  */
-export function CreateCollection(projectPath, name, description, collectionTypeId, parentId, previewPath, isLibrary) {
-    return $Call.ByID(1857306755, projectPath, name, description, collectionTypeId, parentId, previewPath, isLibrary);
+export function CreateCollection(projectPath, name, description, collectionTypeId, parentId, previewPath, isShared) {
+    return $Call.ByID(1857306755, projectPath, name, description, collectionTypeId, parentId, previewPath, isShared);
 }
 
 /**
