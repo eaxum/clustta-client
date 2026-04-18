@@ -3,28 +3,31 @@ package sync_service
 import (
 	"clustta/internal/utils"
 	"database/sql"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
 
-// ChangeSummaryItem represents a single unsynced change for the changelog UI.
-type ChangeSummaryItem struct {
-	ID          string `db:"id" json:"id"`
-	Name        string `db:"name" json:"name"`
-	Source      string `db:"source" json:"source"`
+// ChangeChild represents a nested sub-change belonging to a parent asset or collection.
+type ChangeChild struct {
+	ID          string `json:"id"`
+	ParentID    string `json:"parent_id"`
+	RefID       string `json:"ref_id,omitempty"`
+	Source      string `json:"source"`
+	Description string `json:"description"`
 	ChangeType  string `json:"change_type"`
-	Description string `json:"description,omitempty"`
-	Mtime       int    `db:"mtime" json:"mtime"`
 }
 
-// changeSummaryRow is used internally for scanning asset/collection queries that include created_at.
-type changeSummaryRow struct {
-	ID        string `db:"id"`
-	Name      string `db:"name"`
-	Source    string `db:"source"`
-	Mtime     int    `db:"mtime"`
-	CreatedAt string `db:"created_at"`
-	Trashed   bool   `db:"trashed"`
+// ChangeSummaryItem represents a single unsynced change for the changelog UI.
+type ChangeSummaryItem struct {
+	ID         string        `json:"id"`
+	Name       string        `json:"name"`
+	Icon       string        `json:"icon,omitempty"`
+	Extension  string        `json:"extension,omitempty"`
+	Source     string        `json:"source"`
+	ChangeType string        `json:"change_type"`
+	Mtime      int           `json:"mtime"`
+	Children   []ChangeChild `json:"children,omitempty"`
 }
 
 // ChangeSummary groups all pending changes by category for frontend display.
@@ -33,6 +36,28 @@ type ChangeSummary struct {
 	Collections []ChangeSummaryItem `json:"collections"`
 	Other       []ChangeSummaryItem `json:"other"`
 	TotalCount  int                 `json:"total_count"`
+}
+
+// changeSummaryRow is used internally for scanning asset/collection queries that include created_at.
+type changeSummaryRow struct {
+	ID        string `db:"id"`
+	Name      string `db:"name"`
+	Icon      string `db:"icon"`
+	Extension string `db:"extension"`
+	Source    string `db:"source"`
+	Mtime     int    `db:"mtime"`
+	CreatedAt string `db:"created_at"`
+	Trashed   bool   `db:"trashed"`
+}
+
+// childRow is used internally for scanning child table queries.
+type childRow struct {
+	ID          string `db:"id"`
+	ParentID    string `db:"parent_id"`
+	RefID       string `db:"ref_id"`
+	Source      string `db:"source"`
+	Description string `db:"description"`
+	Trashed     bool   `db:"trashed"`
 }
 
 // classifyChangeType returns "deleted" if trashed, "new" if created after last sync, otherwise "modified".
@@ -50,8 +75,60 @@ func classifyChangeType(trashed bool, createdAt string, lastSyncTime int64) stri
 	return "modified"
 }
 
+// classifyCheckpointChangeType returns "deleted" if trashed, otherwise "added".
+func classifyCheckpointChangeType(trashed bool) string {
+	if trashed {
+		return "deleted"
+	}
+	return "added"
+}
+
+// formatCheckpointDate formats a created_at datetime string into a readable date.
+func formatCheckpointDate(createdAt string) string {
+	t, err := time.Parse(time.RFC3339, createdAt)
+	if err != nil {
+		t, err = time.Parse("2006-01-02 15:04:05", createdAt)
+		if err != nil {
+			return "checkpoint"
+		}
+	}
+	return t.Format("Jan 2, 2006")
+}
+
+// lookupAssetInfo returns the name, type icon, and extension for an asset by ID.
+func lookupAssetInfo(tx *sqlx.Tx, assetID string) (string, string, string) {
+	var info struct {
+		Name      string `db:"name"`
+		Icon      string `db:"icon"`
+		Extension string `db:"extension"`
+	}
+	err := tx.Get(&info,
+		`SELECT a.name, COALESCE(at.icon, '') AS icon, a.extension
+		 FROM asset a LEFT JOIN asset_type at ON a.asset_type_id = at.id WHERE a.id = ?`, assetID)
+	if err != nil {
+		return assetID, "", ""
+	}
+	return info.Name, info.Icon, info.Extension
+}
+
+// lookupCollectionInfo returns the name and type icon for a collection by ID.
+func lookupCollectionInfo(tx *sqlx.Tx, collectionID string) (string, string) {
+	var info struct {
+		Name string `db:"name"`
+		Icon string `db:"icon"`
+	}
+	err := tx.Get(&info,
+		`SELECT c.name, COALESCE(ct.icon, '') AS icon
+		 FROM collection c LEFT JOIN collection_type ct ON c.collection_type_id = ct.id WHERE c.id = ?`, collectionID)
+	if err != nil {
+		return collectionID, ""
+	}
+	return info.Name, info.Icon
+}
+
 // LoadChangeSummary returns a lightweight summary of all unsynced rows grouped by category.
-// This is much cheaper than LoadChangedData as it only fetches id, name, and mtime.
+// Asset and collection children (checkpoints, dependencies, tags, assignees) are nested
+// under their parent item. "Other" only includes templates.
 func LoadChangeSummary(tx *sqlx.Tx) (ChangeSummary, error) {
 	summary := ChangeSummary{}
 
@@ -61,37 +138,145 @@ func LoadChangeSummary(tx *sqlx.Tx) (ChangeSummary, error) {
 		lastSyncTime = 0
 	}
 
-	// Assets (modified, newly created, or trashed)
+	// --- Assets ---
 	assetRows := []changeSummaryRow{}
-	err = tx.Select(&assetRows, "SELECT id, name, 'asset' AS source, mtime, created_at, trashed FROM asset WHERE synced = 0")
+	err = tx.Select(&assetRows,
+		`SELECT a.id, a.name, COALESCE(at.icon, '') AS icon, a.extension, 'asset' AS source, a.mtime, a.created_at, a.trashed
+		 FROM asset a LEFT JOIN asset_type at ON a.asset_type_id = at.id WHERE a.synced = 0`)
 	if err != nil && err != sql.ErrNoRows {
 		return summary, err
 	}
-	assetItems := make([]ChangeSummaryItem, len(assetRows))
-	for i, row := range assetRows {
-		assetItems[i] = ChangeSummaryItem{
-			ID: row.ID, Name: row.Name, Source: row.Source, Mtime: row.Mtime,
+	assetMap := make(map[string]*ChangeSummaryItem, len(assetRows))
+	for _, row := range assetRows {
+		item := ChangeSummaryItem{
+			ID: row.ID, Name: row.Name, Icon: row.Icon, Extension: row.Extension, Source: row.Source, Mtime: row.Mtime,
 			ChangeType: classifyChangeType(row.Trashed, row.CreatedAt, lastSyncTime),
 		}
+		assetMap[row.ID] = &item
 	}
-	summary.Assets = assetItems
 
-	// Collections (modified, newly created, or trashed)
+	// Batch-query all asset child tables and attach to parents
+	// Checkpoints (have trashed field)
+	checkpointRows := []childRow{}
+	err = tx.Select(&checkpointRows,
+		`SELECT ac.id, ac.asset_id AS parent_id, '' AS ref_id, 'asset_checkpoint' AS source, ac.created_at AS description, ac.trashed
+		 FROM asset_checkpoint ac WHERE ac.synced = 0`)
+	if err != nil && err != sql.ErrNoRows {
+		return summary, err
+	}
+	for _, row := range checkpointRows {
+		child := ChangeChild{
+			ID: row.ID, ParentID: row.ParentID, Source: row.Source,
+			Description: formatCheckpointDate(row.Description),
+			ChangeType:  classifyCheckpointChangeType(row.Trashed),
+		}
+		if parent, ok := assetMap[row.ParentID]; ok {
+			parent.Children = append(parent.Children, child)
+		} else {
+			name, icon, ext := lookupAssetInfo(tx, row.ParentID)
+			container := &ChangeSummaryItem{
+				ID: row.ParentID, Name: name, Icon: icon, Extension: ext, Source: "asset",
+				ChangeType: "unchanged",
+				Children:   []ChangeChild{child},
+			}
+			assetMap[row.ParentID] = container
+		}
+	}
+
+	// Dependencies and tags (no trashed field — live rows are "added")
+	depQueries := []string{
+		`SELECT ad.id, ad.asset_id AS parent_id, ad.dependency_id AS ref_id, 'asset_dependency' AS source,
+		 COALESCE(a2.name, ad.dependency_id) AS description, 0 AS trashed
+		 FROM asset_dependency ad LEFT JOIN asset a2 ON ad.dependency_id = a2.id WHERE ad.synced = 0`,
+		`SELECT at2.id, at2.asset_id AS parent_id, at2.tag_id AS ref_id, 'asset_tag' AS source,
+		 COALESCE(t.name, at2.tag_id) AS description, 0 AS trashed
+		 FROM asset_tag at2 LEFT JOIN tag t ON at2.tag_id = t.id WHERE at2.synced = 0`,
+		`SELECT cd.id, cd.asset_id AS parent_id, cd.dependency_id AS ref_id, 'collection_dependency' AS source,
+		 COALESCE(c2.name, cd.dependency_id) AS description, 0 AS trashed
+		 FROM collection_dependency cd LEFT JOIN collection c2 ON cd.dependency_id = c2.id WHERE cd.synced = 0`,
+	}
+	for _, q := range depQueries {
+		rows := []childRow{}
+		err = tx.Select(&rows, q)
+		if err != nil && err != sql.ErrNoRows {
+			return summary, err
+		}
+		for _, row := range rows {
+			child := ChangeChild{
+				ID: row.ID, ParentID: row.ParentID, RefID: row.RefID, Source: row.Source,
+				Description: row.Description,
+				ChangeType:  "added",
+			}
+			if parent, ok := assetMap[row.ParentID]; ok {
+				parent.Children = append(parent.Children, child)
+			} else {
+				name, icon, ext := lookupAssetInfo(tx, row.ParentID)
+				container := &ChangeSummaryItem{
+					ID: row.ParentID, Name: name, Icon: icon, Extension: ext, Source: "asset",
+					ChangeType: "unchanged",
+					Children:   []ChangeChild{child},
+				}
+				assetMap[row.ParentID] = container
+			}
+		}
+	}
+	for _, item := range assetMap {
+		summary.Assets = append(summary.Assets, *item)
+	}
+
+	// --- Collections ---
 	collectionRows := []changeSummaryRow{}
-	err = tx.Select(&collectionRows, "SELECT id, name, 'collection' AS source, mtime, created_at, trashed FROM collection WHERE synced = 0")
+	err = tx.Select(&collectionRows,
+		`SELECT c.id, c.name, COALESCE(ct.icon, '') AS icon, '' AS extension, 'collection' AS source, c.mtime, c.created_at, c.trashed
+		 FROM collection c LEFT JOIN collection_type ct ON c.collection_type_id = ct.id WHERE c.synced = 0`)
 	if err != nil && err != sql.ErrNoRows {
 		return summary, err
 	}
-	collectionItems := make([]ChangeSummaryItem, len(collectionRows))
-	for i, row := range collectionRows {
-		collectionItems[i] = ChangeSummaryItem{
-			ID: row.ID, Name: row.Name, Source: row.Source, Mtime: row.Mtime,
+	collectionMap := make(map[string]*ChangeSummaryItem, len(collectionRows))
+	for _, row := range collectionRows {
+		item := ChangeSummaryItem{
+			ID: row.ID, Name: row.Name, Icon: row.Icon, Source: row.Source, Mtime: row.Mtime,
 			ChangeType: classifyChangeType(row.Trashed, row.CreatedAt, lastSyncTime),
 		}
+		collectionMap[row.ID] = &item
 	}
-	summary.Collections = collectionItems
 
-	// Tombs (deleted items) — categorize by table_name
+	// Batch-query all collection child tables and attach to parents
+	collectionChildQueries := []string{
+		`SELECT ca.id, ca.collection_id AS parent_id, ca.assignee_id AS ref_id, 'collection_assignee' AS source,
+		 COALESCE(u.first_name || ' ' || u.last_name, ca.assignee_id) AS description, 0 AS trashed
+		 FROM collection_assignee ca LEFT JOIN user u ON ca.assignee_id = u.id WHERE ca.synced = 0`,
+	}
+	for _, q := range collectionChildQueries {
+		rows := []childRow{}
+		err = tx.Select(&rows, q)
+		if err != nil && err != sql.ErrNoRows {
+			return summary, err
+		}
+		for _, row := range rows {
+			child := ChangeChild{
+				ID: row.ID, ParentID: row.ParentID, RefID: row.RefID, Source: row.Source,
+				Description: row.Description,
+				ChangeType:  "added",
+			}
+			if parent, ok := collectionMap[row.ParentID]; ok {
+				parent.Children = append(parent.Children, child)
+			} else {
+				name, icon := lookupCollectionInfo(tx, row.ParentID)
+				container := &ChangeSummaryItem{
+					ID: row.ParentID, Name: name, Icon: icon, Source: "collection",
+					ChangeType: "unchanged",
+					Children:   []ChangeChild{child},
+				}
+				collectionMap[row.ParentID] = container
+			}
+		}
+	}
+	for _, item := range collectionMap {
+		summary.Collections = append(summary.Collections, *item)
+	}
+
+	// --- Tombstones ---
 	type tombRow struct {
 		ID        string `db:"id"`
 		TableName string `db:"table_name"`
@@ -103,74 +288,50 @@ func LoadChangeSummary(tx *sqlx.Tx) (ChangeSummary, error) {
 		return summary, err
 	}
 	for _, tomb := range tombItems {
-		item := ChangeSummaryItem{
-			ID:         tomb.ID,
-			Name:       tomb.ID,
-			Source:     tomb.TableName,
-			ChangeType: "deleted",
-			Mtime:      tomb.Mtime,
-		}
 		switch tomb.TableName {
 		case "asset":
-			summary.Assets = append(summary.Assets, item)
+			if _, ok := assetMap[tomb.ID]; !ok {
+				summary.Assets = append(summary.Assets, ChangeSummaryItem{
+					ID: tomb.ID, Name: tomb.ID, Source: "asset",
+					ChangeType: "deleted", Mtime: tomb.Mtime,
+				})
+			}
 		case "collection":
-			summary.Collections = append(summary.Collections, item)
-		default:
-			item.Description = tomb.TableName + " deleted"
-			summary.Other = append(summary.Other, item)
-		}
-	}
-
-	// Other changes with descriptive names via JOINs
-	type otherRow struct {
-		ID     string `db:"id"`
-		Name   string `db:"name"`
-		Source string `db:"source"`
-		Mtime  int    `db:"mtime"`
-	}
-	otherQueries := []string{
-		`SELECT ca.id, COALESCE(c.name, ca.collection_id) AS name, 'collection_assignee' AS source, ca.mtime
-		 FROM collection_assignee ca LEFT JOIN collection c ON ca.collection_id = c.id WHERE ca.synced = 0`,
-		`SELECT ad.id, COALESCE(a.name, ad.asset_id) AS name, 'asset_dependency' AS source, ad.mtime
-		 FROM asset_dependency ad LEFT JOIN asset a ON ad.asset_id = a.id WHERE ad.synced = 0`,
-		`SELECT cd.id, COALESCE(a.name, cd.asset_id) AS name, 'collection_dependency' AS source, cd.mtime
-		 FROM collection_dependency cd LEFT JOIN asset a ON cd.asset_id = a.id WHERE cd.synced = 0`,
-		`SELECT ac.id, COALESCE(a.name, ac.asset_id) AS name, 'asset_checkpoint' AS source, ac.mtime
-		 FROM asset_checkpoint ac LEFT JOIN asset a ON ac.asset_id = a.id WHERE ac.synced = 0`,
-		`SELECT at2.id, COALESCE(a.name, at2.asset_id) AS name, 'asset_tag' AS source, at2.mtime
-		 FROM asset_tag at2 LEFT JOIN asset a ON at2.asset_id = a.id WHERE at2.synced = 0`,
-		`SELECT id, username AS name, 'user' AS source, mtime FROM user WHERE synced = 0`,
-		`SELECT id, name, 'role' AS source, mtime FROM role WHERE synced = 0`,
-		`SELECT id, name, 'status' AS source, mtime FROM status WHERE synced = 0`,
-		`SELECT id, name, 'workflow' AS source, mtime FROM workflow WHERE synced = 0`,
-	}
-
-	// sourceDescriptions maps source table names to human-readable descriptions.
-	sourceDescriptions := map[string]string{
-		"collection_assignee":   "assignee updated",
-		"asset_dependency":      "dependency updated",
-		"collection_dependency": "dependency updated",
-		"asset_checkpoint":      "checkpoint updated",
-		"asset_tag":             "tag updated",
-		"user":                  "user updated",
-		"role":                  "role updated",
-		"status":                "status updated",
-		"workflow":              "workflow updated",
-	}
-
-	for _, q := range otherQueries {
-		rows := []otherRow{}
-		err = tx.Select(&rows, q)
-		if err != nil && err != sql.ErrNoRows {
-			return summary, err
-		}
-		for _, row := range rows {
-			desc := row.Name + " " + sourceDescriptions[row.Source]
+			if _, ok := collectionMap[tomb.ID]; !ok {
+				summary.Collections = append(summary.Collections, ChangeSummaryItem{
+					ID: tomb.ID, Name: tomb.ID, Source: "collection",
+					ChangeType: "deleted", Mtime: tomb.Mtime,
+				})
+			}
+		case "template":
 			summary.Other = append(summary.Other, ChangeSummaryItem{
-				ID: row.ID, Name: row.Name, Source: row.Source, Mtime: row.Mtime,
-				ChangeType: "modified", Description: desc,
+				ID: tomb.ID, Name: tomb.ID, Source: "template",
+				ChangeType: "deleted", Mtime: tomb.Mtime,
 			})
 		}
+	}
+
+	// --- Other: Templates only ---
+	type templateRow struct {
+		ID      string `db:"id"`
+		Name    string `db:"name"`
+		Mtime   int    `db:"mtime"`
+		Trashed bool   `db:"trashed"`
+	}
+	templateRows := []templateRow{}
+	err = tx.Select(&templateRows, "SELECT id, name, mtime, trashed FROM template WHERE synced = 0")
+	if err != nil && err != sql.ErrNoRows {
+		return summary, err
+	}
+	for _, row := range templateRows {
+		changeType := "modified"
+		if row.Trashed {
+			changeType = "deleted"
+		}
+		summary.Other = append(summary.Other, ChangeSummaryItem{
+			ID: row.ID, Name: row.Name, Source: "template",
+			ChangeType: changeType, Mtime: row.Mtime,
+		})
 	}
 
 	summary.TotalCount = len(summary.Assets) + len(summary.Collections) + len(summary.Other)

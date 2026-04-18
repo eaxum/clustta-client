@@ -2,7 +2,7 @@
   <div class="changelog-item-container" @mouseenter="isHovered = true" @mouseleave="isHovered = false">
     <div class="changelog-item">
       <div class="changelog-item-meta">
-        <img class="changelog-item-icon small-icons" :src="itemIcon" />
+        <img class="changelog-item-icon small-icons" :class="{ 'no-filter': resolvedIcon }" :src="itemIcon" />
         <div class="changelog-item-label">
           <div class="changelog-item-label-text">{{ displayText }}</div>
         </div>
@@ -10,16 +10,32 @@
       </div>
 
       <div class="changelog-item-actions">
+        <ActionButton v-if="hasChildren && item.change_type === 'deleted'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeLogItem.restore')" :buttonFunction="() => $emit('restore', item.id)" :isDisabled="isLoading" />
         <ActionButton v-if="item.change_type !== 'deleted' && itemType !== 'other'" :icon="getAppIcon('file-search')" v-tooltip="$t('components.changeLogItem.goToItem')" :buttonFunction="() => $emit('find', item.id)" :isDisabled="isLoading" />
-        <ActionButton v-if="itemType !== 'other'" :icon="getAppIcon('revert')" v-tooltip="$t('components.changeLogItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
+        <ActionButton v-if="hasChildren && item.change_type !== 'deleted' && item.change_type !== 'unchanged'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeLogItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
       </div>
+      <ActionButton v-if="!hasChildren && item.change_type === 'deleted'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeLogItem.restore')" :buttonFunction="() => $emit('restore', item.id)" :isDisabled="isLoading" />
+      <ActionButton v-if="!hasChildren && item.change_type !== 'deleted' && item.change_type !== 'unchanged'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeLogItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
+      <ActionButton v-if="hasChildren" :icon="getAppIcon('chevron-right')" :class="{ 'chevron-expanded': isExpanded }" :buttonFunction="toggleChildren" />
+
     </div>
+
+    <transition name="expand" appear>
+      <div v-if="hasChildren" v-show="isExpanded" class="changelog-children">
+        <div class="changelog-child" v-for="child in item.children" :key="child.id">
+          <img class="changelog-child-icon small-icons" :src="childIcon(child.source)" />
+          <div class="changelog-child-label">{{ child.description }}</div>
+          <span class="changelog-change-badge badge-child" :class="'badge-' + child.change_type">{{ child.change_type }}</span>
+          <ActionButton :icon="getAppIcon('undo')" v-tooltip="child.change_type === 'deleted' ? $t('components.changeLogItem.restore') : $t('components.changeLogItem.discard')" :buttonFunction="() => $emit('undoChild', child)" :isDisabled="isLoading" />
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
 // imports
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -37,29 +53,158 @@ const props = defineProps({
 });
 
 // emits
-const emit = defineEmits(['find', 'discard']);
+const emit = defineEmits(['find', 'discard', 'restore', 'undoChild']);
 
 // refs
+const isExpanded = ref(false);
 const isHovered = ref(false);
+const resolvedIcon = ref('');
 
 // computed properties
 const displayText = computed(() => {
-  if (props.itemType === 'other' && props.item.description) return props.item.description;
   return props.item.name || props.item.id;
 });
 
+const hasChildren = computed(() => {
+  return props.item.children && props.item.children.length > 0;
+});
+
 const itemIcon = computed(() => {
+  if (resolvedIcon.value) return resolvedIcon.value;
+  if (props.item.icon) return getAppIcon(props.item.icon);
   if (props.itemType === 'collection') return getAppIcon('folder');
   return getAppIcon('generic');
 });
 
 // methods
+// Returns the icon for a child item based on its source type.
+const childIcon = (source) => {
+  if (source === 'asset_checkpoint') return getAppIcon('checkpoint-stone');
+  if (source === 'asset_dependency' || source === 'collection_dependency') return getAppIcon('dependency');
+  if (source === 'asset_tag') return getAppIcon('tag');
+  if (source === 'collection_assignee') return getAppIcon('person');
+  return getAppIcon('generic');
+};
+
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
+// Toggles the expanded state of child items.
+const toggleChildren = () => {
+  isExpanded.value = !isExpanded.value;
+};
+
+// Resolves the file icon for assets with an extension.
+const resolveIcon = async () => {
+  if (props.item.extension) {
+    const ext = props.item.extension.startsWith('.') ? props.item.extension.substring(1) : props.item.extension;
+    resolvedIcon.value = await iconStore.getIcon(ext) || '/file-icons/default.svg';
+  } else {
+    resolvedIcon.value = '';
+  }
+};
+
+// watchers
+watch(() => props.item.extension, resolveIcon);
+
+// lifecycle hooks
+onMounted(resolveIcon);
 </script>
 
 <style scoped>
 @import "@/assets/desktop.css";
+
+.badge-child {
+  font-size: 9px;
+}
+
+.badge-added {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.badge-deleted,
+.badge-removed {
+  background-color: rgba(220, 50, 50, 0.15);
+  color: #f87171;
+}
+
+.badge-modified {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.badge-new {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.badge-unchanged {
+  background-color: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+
+.changelog-change-badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 1px 5px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.changelog-child {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .3rem .5rem .3rem 1.5rem;
+  min-height: 28px;
+}
+
+.changelog-child-icon {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  object-fit: contain;
+  opacity: .5;
+}
+
+.changelog-child-label {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--white);
+  opacity: .7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.changelog-children {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.03);
+  border-bottom-left-radius: var(--large-radius);
+  border-bottom-right-radius: var(--large-radius);
+  overflow: hidden;
+}
+
+.changelog-item {
+  position: relative;
+  cursor: auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 .5rem;
+  overflow: hidden;
+}
+
+.changelog-item-actions {
+  display: none;
+}
 
 .changelog-item-container {
   position: relative;
@@ -84,29 +229,8 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
   background-color: var(--steel);
 }
 
-.changelog-item {
-  position: relative;
-  cursor: auto;
-  box-sizing: border-box;
+.changelog-item-container:hover .changelog-item-actions {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0 .5rem;
-  overflow: hidden;
-}
-
-.changelog-item-meta {
-  padding-left: .2rem;
-  box-sizing: border-box;
-  overflow: hidden;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: .5rem;
-  width: 100%;
-  min-height: 40px;
 }
 
 .changelog-item-icon {
@@ -132,36 +256,31 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
   white-space: nowrap;
 }
 
-.changelog-change-badge {
-  font-size: 10px;
-  font-weight: 500;
-  padding: 1px 5px;
-  border-radius: 4px;
-  text-transform: uppercase;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.badge-deleted {
-  background-color: rgba(220, 50, 50, 0.15);
-  color: #f87171;
-}
-
-.badge-modified {
-  background-color: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
-}
-
-.badge-new {
-  background-color: rgba(34, 197, 94, 0.15);
-  color: #4ade80;
-}
-
-.changelog-item-actions {
-  display: none;
-}
-
-.changelog-item-container:hover .changelog-item-actions {
+.changelog-item-meta {
+  padding-left: .2rem;
+  box-sizing: border-box;
+  overflow: hidden;
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: .5rem;
+  width: 100%;
+  min-height: 40px;
+}
+
+.chevron-expanded {
+  transform: rotate(90deg);
+}
+
+.expand-enter-active,
+.expand-leave-active {
+  transition: all .2s ease-in-out;
+  max-height: 300px;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+  max-height: 0;
+  opacity: 0;
 }
 </style>
