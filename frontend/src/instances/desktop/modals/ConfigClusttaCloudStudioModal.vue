@@ -50,15 +50,12 @@ const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
-const projectStore = useProjectStore();
 
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useEntitlementStore } from '@/stores/entitlements';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
-import { useProjectStore } from '@/stores/projects';
-import { useStudioStore } from '@/stores/studio';
 
 // constants
 const title = t('modals.newClusttaCloudStudio');
@@ -151,27 +148,17 @@ const createStudioAndCheckout = async () => {
   isAwaitingResponse.value = true;
 
   try {
-    // Create the studio on the free tier
-    await StudioService.RegisterStudio(studioName.value, '', 'cloud');
+    // Create the studio (inactive until checkout completes)
+    const result = await StudioService.RegisterStudio(studioName.value, '', 'cloud');
 
-    await projectStore.loadStudios();
-    const studio = projectStore.studios.find((item) => item.name === studioName.value);
-    if (studio) {
-      projectStore.selectedStudio = studio;
-    } else {
-      projectStore.selectedStudio = projectStore.studios[0];
-    }
-
-    const studioStore = useStudioStore();
-    await studioStore.getStudioUsers();
-    await projectStore.loadProjects();
+    // Get the studio ID from the creation response
+    const studioId = result?.studio?.id || '';
 
     // Redirect to Stripe Checkout for the selected plan
-    const studioId = studio ? studio.id : '';
     const checkoutUrl = await entitlementStore.createCheckout(plan.id, studioId);
     if (checkoutUrl) {
       Browser.OpenURL(checkoutUrl);
-      notificationStore.addNotification('Checkout', 'Complete your payment in the browser', 'info', false);
+      notificationStore.addNotification('Checkout', 'Complete your payment in the browser. Your studio will be activated once payment is confirmed.', 'info', false);
     } else {
       notificationStore.addNotification('Error', 'Failed to start checkout. Please try again.', 'error', false);
     }
@@ -187,8 +174,7 @@ const createStudioAndCheckout = async () => {
 
 // Returns a human-readable plan name.
 const formatPlanName = (name) => {
-  const names = { studio_cloud: 'Studio Cloud', studio_pro: 'Studio Pro', studio_enterprise: 'Enterprise' };
-  return names[name] || name;
+  return name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 };
 
 // Returns the app icon for the given icon name.

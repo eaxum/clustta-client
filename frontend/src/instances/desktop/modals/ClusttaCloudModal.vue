@@ -3,10 +3,6 @@
     <HeaderArea title="ClusttaCloud" icon="clustta" :notModal="false" />
 
     <div class="cloud-modal-body">
-      <!-- <div class="cloud-modal-tabs">
-        <PaneHeaderTabs :dataTypes="planTabs" :selectedTab="activeTab" :fullWidth="true" @filter="activeTab = $event" />
-      </div> -->
-
       <div v-if="isLoadingPlans" class="cloud-loading">Loading plans...</div>
 
       <div v-else class="plan-cards">
@@ -20,8 +16,7 @@
           <div class="plan-card-tagline">{{ planTagline(plan) }}</div>
 
           <div class="plan-card-price">
-            <span v-if="plan.name === 'studio_enterprise'" class="price-amount price-contact">Contact</span>
-            <span v-else-if="plan.price_cents === 0" class="price-amount">$0</span>
+            <span v-if="plan.price_cents === 0" class="price-amount price-contact">Contact</span>
             <template v-else>
               <span class="price-amount">${{ (plan.price_cents / 100) }}</span>
               <span class="price-period">/mo</span>
@@ -54,7 +49,6 @@ import { Browser } from '@wailsio/runtime';
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import PaneHeaderTabs from '@/instances/common/components/PaneHeaderTabs.vue';
 
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
@@ -74,11 +68,6 @@ const isChanging = ref(false);
 const isLoadingPlans = ref(false);
 
 // constants
-const planTabs = [
-  { name: 'individual', icon: 'person' },
-  { name: 'studio', icon: 'stall' },
-];
-
 const featureTooltips = {
   storage: 'Cloud storage for your project files and assets',
   remote_projects: 'Projects hosted on ClusttaCloud for remote access',
@@ -139,15 +128,7 @@ const closeModal = () => {
 
 // Returns a human-readable plan name.
 const formatPlanName = (name) => {
-  const names = {
-    free: 'Free',
-    starter: 'Starter',
-    pro: 'Pro',
-    studio_cloud: 'Studio Cloud',
-    studio_pro: 'Studio Pro',
-    studio_enterprise: 'Enterprise',
-  };
-  return names[name] || name.charAt(0).toUpperCase() + name.slice(1).replace(/_/g, ' ');
+  return name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 };
 
 // Formats bytes to human-readable storage string.
