@@ -268,6 +268,7 @@
     "errorAddingUserToStudio": "Fehler beim Hinzufügen des Benutzers zum Studio",
     "errorSendingInvitation": "Fehler beim Senden der Einladung",
     "errorAddingUsers": "Fehler beim Hinzufügen der Benutzer",
+    "studioInactive": "Studio ist inaktiv. Kontaktieren Sie Ihren Studio-Administrator.",
     "userAlreadyInProject": "Benutzer ist bereits im Projekt.",
     "userAlreadyInStudio": "Benutzer ist bereits im Studio.",
     "errorCreatingItems": "Fehler beim Erstellen der Elemente",

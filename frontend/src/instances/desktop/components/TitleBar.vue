@@ -1,6 +1,6 @@
 <template>
   <div style="--wails-draggable:drag" @click="handleClickOutside" @dblclick="toggleMaximize" class="titlebar"
-    :class="{ 'title-only': titleOnly, 'titlebar-unsynced': showUnsyncedBar }" v-stop-propagation>
+    :class="{ 'title-only': titleOnly, 'titlebar-unsynced': showUnsyncedBar, 'titlebar-inactive': studioInactive }" v-stop-propagation>
 
     <div v-if="!titleOnly" class="titlebar-left" :class="{ 'titlebar-left-inactive': modalsActive }">
 
@@ -211,6 +211,8 @@ const progressRunning = computed(() => { return stage.operationActive || notific
 const projectStages = ['browser', 'dependencies', 'trash', 'projectSettings'];
 const showUnsyncedBar = computed(() => { return projectStore.getActiveProject?.has_remote && projectStore.getActiveProject?.is_unsynced && projectStages.includes(stage.activeStage) });
 
+const studioInactive = computed(() => !entitlementStore.isStudioActive);
+
 const getAppIcon = (iconName) => {
   const icon = iconStore.getAppIcon(iconName);
   return icon
@@ -296,7 +298,6 @@ const selectStudio = async (studio) => {
 
   refreshEntitlements();
   
-
   if (projectStore.projects.length && projectStore.activeProject && projectStore.activeProject.is_downloaded) {
     await trayStates.refreshData();
   }
@@ -688,6 +689,11 @@ onBeforeUnmount(() => {
 
 [data-theme="dark"] .titlebar-unsynced {
   background-color: hsl(49, 74%, 35%);
+}
+
+.titlebar-inactive,
+[data-theme="dark"] .titlebar-inactive {
+  background-color: var(--danger);
 }
 
 .title-only {

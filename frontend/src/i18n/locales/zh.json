@@ -268,6 +268,7 @@
     "errorAddingUserToStudio": "将用户添加到工作室时出错",
     "errorSendingInvitation": "发送邀请时出错",
     "errorAddingUsers": "添加用户时出错",
+    "studioInactive": "工作室未激活。请联系工作室管理员。",
     "userAlreadyInProject": "用户已在项目中。",
     "userAlreadyInStudio": "用户已在工作室中。",
     "errorCreatingItems": "创建项目时出错",

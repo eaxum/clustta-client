@@ -251,9 +251,9 @@ export class Studio {
         if (!("active" in $$source)) {
             /**
              * @member
-             * @type {string}
+             * @type {flexBool}
              */
-            this["active"] = "";
+            this["active"] = null;
         }
         if (!("alt_url" in $$source)) {
             /**
@@ -308,6 +308,12 @@ export class Studio {
         return new Studio(/** @type {Partial<Studio>} */($$parsedSource));
     }
 }
+
+/**
+ * flexBool tolerates legacy persisted values where Studio.active was a string ("", "0", "false", "1", "true").
+ * It always marshals back as a real JSON boolean.
+ * @typedef {any} flexBool
+ */
 
 // Private type creation functions
 const $$createType0 = $Create.Array($Create.Any);

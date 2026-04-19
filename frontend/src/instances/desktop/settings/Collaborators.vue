@@ -3,8 +3,8 @@
     <div class="settings-component-container">
       <div class="asset-header">
         <div class="create-menu">
-          <ActionButton v-if="projectStore.isCloudHosted || userStore.canDo('add_user')" :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
-            @click="addCollaborator" v-tooltip="$t('settings.addCollaborator')" />
+          <ActionButton v-if="projectStore.isCloudHosted || userStore.canDo('add_user')" :isDisabled="studioInactive" :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
+            @click="addCollaborator" v-tooltip="studioInactive ? $t('notifications.studioInactive') : $t('settings.addCollaborator')" />
           <ActionButton :icon="getAppIcon('refresh')" :label="$t('common.refresh')" v-tooltip="$t('common.refresh')"
             :buttonFunction="refresh" />
         </div>
@@ -40,6 +40,7 @@ import utils from '@/services/utils';
 
 // store imports
 import { useAssetStore } from '@/stores/assets';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';
@@ -54,6 +55,7 @@ import { useUserStore } from '@/stores/users';
 
 // stores
 const assetStore = useAssetStore();
+const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -63,7 +65,13 @@ const userStore = useUserStore();
 
 const { t } = useI18n();
 
+const studioInactive = computed(() => !entitlementStore.isStudioActive);
+
 const addCollaborator = () => {
+  if (studioInactive.value) {
+    notificationStore.addNotification(t('notifications.studioInactive'), "", "error");
+    return;
+  }
   modals.setModalVisibility('manageCollaboratorModal', true);
 };
 

@@ -293,6 +293,7 @@ export const useProjectStore = defineStore("projects", {
       await SettingsService.GetStudios()
         .then(async (data) => {
           this.studios = data;
+          console.log(data)
           let lastSelectedStudio = this.studios.find((item) => item.name === lastStudio)
           this.selectedStudio = lastSelectedStudio ? lastSelectedStudio: data[0] ;
 
