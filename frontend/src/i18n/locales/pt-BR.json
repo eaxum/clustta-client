@@ -886,6 +886,7 @@
     "assets": "Ativos",
     "collections": "Coleções",
     "other": "Outro",
+    "templates": "Modelos",
     "loadingChanges": "Carregando alterações...",
     "noPendingChanges": "Nenhuma alteração pendente",
     "discardAllChanges": "Descartar Todas as Alterações",
@@ -1177,7 +1178,8 @@
     },
     "changeItem": {
       "goToItem": "Ir para Item",
-      "discard": "Descartar"
+      "discard": "Descartar",
+      "restore": "Restaurar"
     },
     "batchGenerator": {
       "firstItem": "Primeiro Item",

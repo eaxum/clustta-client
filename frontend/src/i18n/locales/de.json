@@ -887,6 +887,7 @@
     "assets": "Assets",
     "collections": "Sammlungen",
     "other": "Sonstiges",
+    "templates": "Vorlagen",
     "loadingChanges": "Änderungen werden geladen...",
     "noPendingChanges": "Keine ausstehenden Änderungen",
     "discardAllChanges": "Alle Änderungen verwerfen",
@@ -1178,7 +1179,8 @@
     },
     "changeItem": {
       "goToItem": "Zum Element gehen",
-      "discard": "Verwerfen"
+      "discard": "Verwerfen",
+      "restore": "Wiederherstellen"
     },
     "batchGenerator": {
       "firstItem": "Erstes Element",

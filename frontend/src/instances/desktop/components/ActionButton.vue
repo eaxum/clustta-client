@@ -9,7 +9,7 @@
     </Teleport>
     <span v-if="emoji" class="button-emoji no-cursor no-filter">{{ decodeEmoji(emoji) }}</span>
     <img v-else-if="customIconUrl" class="small-icons no-cursor"  :class="{ 'no-filter' : noFilter}" :src="customIconUrl">
-    <img v-else-if="showIcon && !iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter, 'loading-icon' : isLoading }" :src="icon">
+    <img v-else-if="showIcon && !iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter, 'loading-icon' : isLoading, 'loading-icon-reverse' : reverseLoading }" :src="icon">
     <div v-if="showLabel || label" class="small-icons button-label no-cursor" :class="{ 'label-force-light': forceIconColor === 'light', 'label-force-dark': forceIconColor === 'dark' }">{{ label }}</div>
     <img v-if="showIcon && iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter }" :src="icon">
   </span>
@@ -43,6 +43,7 @@ const props = defineProps({
   useBackground: { type: Boolean, default: false },
   isAlert: { type: Boolean, default: false },
   isLoading: { type: Boolean, default: false },
+  reverseLoading: { type: Boolean, default: false },
   useAlert: { type: Boolean, default: false },
   useDanger: { type: Boolean, default: false },
   useGo: { type: Boolean, default: false },
@@ -133,6 +134,23 @@ onBeforeUnmount(() => {
   padding: 0;
   overflow: hidden;
   animation: loadingRotate .5s linear infinite;
+}
+
+@keyframes loadingRotateReverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.loading-icon-reverse {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  overflow: hidden;
+  animation: loadingRotateReverse .5s linear infinite;
 }
 
 .chevron {

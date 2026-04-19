@@ -908,6 +908,7 @@
     "assets": "에셋",
     "collections": "컬렉션",
     "other": "기타",
+    "templates": "템플릿",
     "loadingChanges": "변경 사항 로딩 중...",
     "noPendingChanges": "대기 중인 변경 사항 없음",
     "discardAllChanges": "모든 변경 사항 폐기",
@@ -1206,7 +1207,8 @@
     },
     "changeItem": {
       "goToItem": "항목으로 이동",
-      "discard": "폐기"
+      "discard": "폐기",
+      "restore": "복원"
     },
     "batchGenerator": {
       "firstItem": "첫 번째 항목",

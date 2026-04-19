@@ -26,7 +26,7 @@
           <div v-if="index > 0" class="changelog-child-divider"></div>
           <div class="changelog-child">
             <img class="changelog-child-icon small-icons" :src="childIcon(child.source)" />
-            <div class="changelog-child-label">{{ child.description }}</div>
+            <div class="changelog-child-label">{{ childDescription(child) }}</div>
             <span class="changelog-change-badge badge-child" :class="'badge-' + child.change_type">{{ child.change_type }}</span>
             <ActionButton :icon="getAppIcon('undo')" v-tooltip="child.change_type === 'deleted' ? $t('components.changeItem.restore') : $t('components.changeItem.discard')" :buttonFunction="() => $emit('undoChild', child)" :isDisabled="isLoading" />
           </div>
@@ -39,6 +39,8 @@
 <script setup>
 // imports
 import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import utils from '@/services/utils';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -47,6 +49,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { useIconStore } from '@/stores/icons';
 
 const iconStore = useIconStore();
+const { locale } = useI18n();
 
 // props
 const props = defineProps({
@@ -80,6 +83,12 @@ const itemIcon = computed(() => {
 });
 
 // methods
+// Returns the formatted description for a child item.
+const childDescription = (child) => {
+  if (child.source === 'asset_checkpoint') return utils.formatDate(child.description, locale.value);
+  return child.description;
+};
+
 // Returns the icon for a child item based on its source type.
 const childIcon = (source) => {
   if (source === 'asset_checkpoint') return getAppIcon('checkpoint-stone');

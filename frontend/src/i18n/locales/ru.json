@@ -886,6 +886,7 @@
     "assets": "Ресурсы",
     "collections": "Коллекции",
     "other": "Другое",
+    "templates": "Шаблоны",
     "loadingChanges": "Загрузка изменений...",
     "noPendingChanges": "Нет ожидающих изменений",
     "discardAllChanges": "Отменить все изменения",
@@ -1177,7 +1178,8 @@
     },
     "changeItem": {
       "goToItem": "Перейти к элементу",
-      "discard": "Отменить"
+      "discard": "Отменить",
+      "restore": "Восстановить"
     },
     "batchGenerator": {
       "firstItem": "Первый элемент",

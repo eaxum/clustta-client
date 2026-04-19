@@ -227,12 +227,12 @@ const restoreItem = async (itemId, itemType) => {
   isLoading.value = true;
   try {
     await TrashService.Restore(projectStore.activeProject.uri, itemId, itemType);
-    notificationStore.addNotification(t('notifications.itemRestored'), '', 'success', false);
+    notificationStore.addNotification(t('components.trashItem.itemRestored'), '', 'success', false);
     emitter.emit('refresh-browser');
     await loadChanges();
   } catch (error) {
     console.error(error);
-    notificationStore.errorNotification(t('notifications.errorRestoringItem'), error);
+    notificationStore.errorNotification(t('components.trashItem.errorRestoringItem'), error);
   }
   isLoading.value = false;
 };

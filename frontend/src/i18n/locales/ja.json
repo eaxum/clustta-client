@@ -887,6 +887,7 @@
     "assets": "アセット",
     "collections": "コレクション",
     "other": "その他",
+    "templates": "テンプレート",
     "loadingChanges": "変更を読み込み中...",
     "noPendingChanges": "保留中の変更はありません",
     "discardAllChanges": "すべての変更を破棄",
@@ -1178,7 +1179,8 @@
     },
     "changeItem": {
       "goToItem": "アイテムに移動",
-      "discard": "破棄"
+      "discard": "破棄",
+      "restore": "復元"
     },
     "batchGenerator": {
       "firstItem": "最初のアイテム",

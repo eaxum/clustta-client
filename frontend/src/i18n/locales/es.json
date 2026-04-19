@@ -887,6 +887,7 @@
     "assets": "Assets",
     "collections": "Colecciones",
     "other": "Otros",
+    "templates": "Plantillas",
     "loadingChanges": "Cargando cambios...",
     "noPendingChanges": "Sin cambios pendientes",
     "discardAllChanges": "Descartar todos los cambios",
@@ -1178,7 +1179,8 @@
     },
     "changeItem": {
       "goToItem": "Ir al elemento",
-      "discard": "Descartar"
+      "discard": "Descartar",
+      "restore": "Restaurar"
     },
     "batchGenerator": {
       "firstItem": "Primer elemento",
