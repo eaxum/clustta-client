@@ -956,7 +956,7 @@
     "checkpointsTab": "检查点",
     "dependenciesTab": "依赖项",
     "consoleTab": "控制台",
-    "changeLogTab": "变更日志",
+    "changesTab": "更改",
     "collaboratorsTab": "协作者",
     "projectDetails": "项目详情",
     "projectDetailsTooltip": "查看项目详情和统计",
@@ -1175,7 +1175,7 @@
     "actionBar": {
       "add": "添加"
     },
-    "changeLogItem": {
+    "changeItem": {
       "goToItem": "转到项目",
       "discard": "丢弃"
     },

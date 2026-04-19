@@ -993,7 +993,7 @@
     "checkpointsTab": "Checkpoints",
     "dependenciesTab": "Dependencies",
     "consoleTab": "Console",
-    "changeLogTab": "Change Log",
+    "changesTab": "Changes",
     "collaboratorsTab": "Collaborators"
   },
   "blocks": {
@@ -1206,7 +1206,7 @@
     "actionBar": {
       "add": "Add"
     },
-    "changeLogItem": {
+    "changeItem": {
       "goToItem": "Go to Item",
       "discard": "Discard"
     },

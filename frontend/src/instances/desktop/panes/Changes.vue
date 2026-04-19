@@ -1,7 +1,7 @@
 <template>
   <div class="general-pane-root">
       <div class="changelog-actions">
-        <ActionButton :icon="getAppIcon('revert')" :label="$t('panes.discardAll')" :showLabel="true" :buttonFunction="prepDiscardAll" :useDanger="true" :useOutline="true" :fullWidth="true" :useBackground="false" :isDisabled="isLoading" />
+        <ActionButton :icon="getAppIcon('revert')" :label="$t('panes.discardAll')" :showLabel="true" :buttonFunction="prepDiscardAll" :useDanger="true" :useOutline="true" :fullWidth="true" :useBackground="false" :isDisabled="isLoading || !hasChanges" />
         <ActionButton :icon="getAppIcon(getCloudIcon)" :label="$t('panes.syncNow')" :showLabel="true" :buttonFunction="syncNow" :useOutline="true" :fullWidth="true" :useBackground="false" :isDisabled="isLoading" />
       </div>
     <div v-if="hasChanges" class="changelog-scroll-container">
@@ -15,7 +15,7 @@
         </div>
 
         <div v-if="expandedGroups.assets" class="changelog-group-items">
-          <ChangeLogItem v-for="item in summary.assets" :key="item.id" :item="item" itemType="asset" :isLoading="isLoading" @find="(id) => findItem(id, 'asset')" @discard="(id) => discardItem(id, 'asset')" @restore="(id) => restoreItem(id, 'asset')" @undoChild="undoChild" />
+          <ChangeItem v-for="item in summary.assets" :key="item.id" :item="item" itemType="asset" :isLoading="isLoading" @find="(id) => findItem(id, 'asset')" @discard="(id) => discardItem(id, 'asset')" @restore="(id) => restoreItem(id, 'asset')" @undoChild="undoChild" />
         </div>
       </div>
 
@@ -28,7 +28,7 @@
         </div>
 
         <div v-if="expandedGroups.collections" class="changelog-group-items">
-          <ChangeLogItem v-for="item in summary.collections" :key="item.id" :item="item" itemType="collection" :isLoading="isLoading" @find="(id) => findItem(id, 'collection')" @discard="(id) => discardItem(id, 'collection')" @restore="(id) => restoreItem(id, 'collection')" @undoChild="undoChild" />
+          <ChangeItem v-for="item in summary.collections" :key="item.id" :item="item" itemType="collection" :isLoading="isLoading" @find="(id) => findItem(id, 'collection')" @discard="(id) => discardItem(id, 'collection')" @restore="(id) => restoreItem(id, 'collection')" @undoChild="undoChild" />
         </div>
       </div>
 
@@ -41,7 +41,7 @@
         </div>
 
         <div v-if="expandedGroups.other" class="changelog-group-items">
-          <ChangeLogItem v-for="item in summary.other" :key="item.id" :item="item" itemType="other" :isLoading="isLoading" @restore="(id) => restoreItem(id, 'template')" />
+          <ChangeItem v-for="item in summary.other" :key="item.id" :item="item" itemType="other" :isLoading="isLoading" @restore="(id) => restoreItem(id, 'template')" />
         </div>
       </div>
     </div>
@@ -59,7 +59,7 @@ import { syncData } from '@/lib/sync';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import ChangeLogItem from '@/instances/desktop/components/ChangeLogItem.vue';
+import ChangeItem from '@/instances/desktop/components/ChangeItem.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 
 // services

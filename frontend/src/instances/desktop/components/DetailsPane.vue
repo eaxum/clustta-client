@@ -129,7 +129,7 @@ import utils from "@/services/utils";
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import AssetDetails from "@/instances/desktop/panes/AssetDetails.vue";
-import ChangeLog from "@/instances/desktop/panes/ChangeLog.vue";
+import Changes from "@/instances/desktop/panes/Changes.vue";
 import Checkpoints from "@/instances/desktop/panes/Checkpoints.vue";
 import Clipboard from '@/instances/desktop/components/Clipboard.vue';
 import CollaboratorSuggestions from '@/instances/common/components/CollaboratorSuggestions.vue';
@@ -213,7 +213,7 @@ const linkDetailPanes = [
 
 const paneComponents = {
   assetDetails: AssetDetails,
-  changeLog: ChangeLog,
+  changes: Changes,
   checkpoints: Checkpoints,
   collaborators: Collaborators,
   collectionDetails: CollectionDetails,
@@ -227,12 +227,12 @@ const paneComponents = {
 const projectDetailPanes = [
   { name: "Details", nameKey: "panes.detailsTab", tab_name: "projectDetails", icon: "info" },
   { name: "Checkpoints", nameKey: "panes.checkpointsTab", tab_name: "projectCheckpoints", icon: "checkpoint-stone" },
-  { name: "Change Log", nameKey: "panes.changeLogTab", tab_name: "changeLog", icon: "revert" },
+  { name: "Changes", nameKey: "panes.changesTab", tab_name: "changes", icon: "revert" },
   { name: "Collaborators", nameKey: "panes.collaboratorsTab", tab_name: "collaborators", icon: "person" },
   { name: "Console", nameKey: "panes.consoleTab", tab_name: "console", icon: "console" }
 ];
 
-const remoteOnlyTabs = ['changeLog', 'collaborators', 'dependencies'];
+const remoteOnlyTabs = ['changes', 'collaborators', 'dependencies'];
 
 const untrackedDetailPanes = [
   { name: "Details", nameKey: "panes.detailsTab", tab_name: "untrackedItemDetails", icon: "info" },
@@ -843,8 +843,8 @@ const unassignAssets = async () => {
 // Switches to the checkpoints tab.
 const viewCheckpoints = () => filterList('Checkpoints');
 
-// Switches to the change log tab.
-const viewChangeLog = () => filterList('Change Log');
+// Switches to the changes tab.
+const viewChanges = () => filterList('Changes');
 
 // watchers
 watch(() => settingsItems.value, () => { activeTabIndex.value = 0; });
@@ -855,13 +855,13 @@ watchEffect(() => { if (detailsPaneRoot.value) menu.clickOutsideMask = detailsPa
 onMounted(() => {
   panes.setPaneVisibility('projectDetails', true);
   emitter.on('view-checkpoints', viewCheckpoints);
-  emitter.on('view-changelog', viewChangeLog);
+  emitter.on('view-changelog', viewChanges);
 });
 
 onUnmounted(() => {
   panes.setPaneVisibility('projectDetails', true);
   emitter.off('view-checkpoints', viewCheckpoints);
-  emitter.off('view-changelog', viewChangeLog);
+  emitter.off('view-changelog', viewChanges);
 });
 </script>
 
