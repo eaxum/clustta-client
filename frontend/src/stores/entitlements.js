@@ -59,6 +59,12 @@ export const useEntitlementStore = defineStore("entitlements", {
       return (state.usage.storage_bytes / state.limits.storage_bytes) >= 0.9;
     },
     isPaidPlan: (state) => state.plan !== 'free',
+    isStudioActive() {
+      const projectStore = useProjectStore();
+      const studio = projectStore.selectedStudio;
+      if (!studio || studio.name === 'Personal') return true;
+      return studio.active !== false;
+    },
     storageUsedFormatted: (state) => utils.formatBytes(state.usage.storage_bytes, 2),
     storageLimitFormatted: (state) => utils.formatBytes(state.limits.storage_bytes, 0),
   },

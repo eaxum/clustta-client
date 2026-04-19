@@ -31,14 +31,47 @@ func SetActiveProjectWorkingDir(path string) {
 	activeProjectWorkingDir = strings.ToLower(cleaned)
 }
 
+// flexBool tolerates legacy persisted values where Studio.active was a string ("", "0", "false", "1", "true").
+// It always marshals back as a real JSON boolean.
+type flexBool bool
+
+func (b *flexBool) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 || string(data) == "null" {
+		return nil
+	}
+	if data[0] == '"' {
+		var s string
+		if err := json.Unmarshal(data, &s); err != nil {
+			return err
+		}
+		switch strings.ToLower(s) {
+		case "1", "true":
+			*b = true
+		default:
+			*b = false
+		}
+		return nil
+	}
+	var v bool
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	*b = flexBool(v)
+	return nil
+}
+
+func (b flexBool) MarshalJSON() ([]byte, error) {
+	return json.Marshal(bool(b))
+}
+
 type Studio struct {
-	Id          string `json:"id"`
-	Name        string `json:"name"`
-	Active      string `json:"active"`
-	AltUrl      string `json:"alt_url"`
-	Url         string `json:"url"`
-	Usage       string `json:"usage"`
-	HostingMode string `json:"hosting_mode"`
+	Id          string   `json:"id"`
+	Name        string   `json:"name"`
+	Active      flexBool `json:"active"`
+	AltUrl      string   `json:"alt_url"`
+	Url         string   `json:"url"`
+	Usage       string   `json:"usage"`
+	HostingMode string   `json:"hosting_mode"`
 	Users       []models.StudioUserInfo
 }
 
@@ -917,6 +950,7 @@ func GetStudios() ([]Studio, error) {
 				Name:        userStudio.Name,
 				Url:         userStudio.URL,
 				AltUrl:      userStudio.AltURL,
+				Active:      flexBool(userStudio.Active),
 				HostingMode: userStudio.HostingMode,
 				Users:       studioUsers,
 			}

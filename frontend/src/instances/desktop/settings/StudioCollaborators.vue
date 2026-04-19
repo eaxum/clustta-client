@@ -4,8 +4,8 @@
 
         <div class="asset-header">
 			<div class="create-menu">
-				<ActionButton :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
-					@click="addCollaborator" v-tooltip="$t('settings.addCollaborator')" />
+				<ActionButton :isDisabled="studioInactive" :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
+					@click="addCollaborator" v-tooltip="studioInactive ? $t('notifications.studioInactive') : $t('settings.addCollaborator')" />
 				<ActionButton :icon="getAppIcon('refresh')" :label="$t('common.refresh')" v-tooltip="$t('common.refresh')"
 					:buttonFunction="refresh" />
 			</div>
@@ -36,9 +36,12 @@
 // imports
 import { ref, computed, onMounted } from 'vue';
 import { useStudioStore } from '@/stores/studio';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useIconStore } from '@/stores/icons';
+import { useNotificationStore } from '@/stores/notifications';
 import { useUserStore } from '@/stores/users';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useI18n } from 'vue-i18n';
 
 // store imports
 import { useProjectStore } from '@/stores/projects';
@@ -51,9 +54,15 @@ import AssetListSkeleton from '@/instances/desktop/components/AssetListSkeleton.
 
 // states
 const studioStore = useStudioStore();
+const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
+const notificationStore = useNotificationStore();
 const userStore = useUserStore();
 const modals = useDesktopModalStore();
+
+const { t } = useI18n();
+
+const studioInactive = computed(() => !entitlementStore.isStudioActive);
 
 // Studio roles
 const studioRoles = computed(() => ['Admin', 'User']);
@@ -72,6 +81,10 @@ const canDeleteCollaborator = (collaborator) => {
 };
 
 const addCollaborator = () => {
+  if (studioInactive.value) {
+    notificationStore.addNotification(t('notifications.studioInactive'), "", "error");
+    return;
+  }
   modals.setModalVisibility('addCollaboratorModal', true);
 };
 

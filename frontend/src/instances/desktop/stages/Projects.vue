@@ -2,12 +2,12 @@
 	<div ref="projectListRoot" class="project-stage-root absolute-pane">
 		<div class="asset-header">
 			<div class="create-menu" >
-				<ActionButton :isDisabled="!studioStore.isStudioAdmin || operationsActive" :icon="getAppIcon('briefcase-plus')" 
-					@click="createProject" v-tooltip="$t('stages.newProject')" :buttonFunction="doNothing" />
+				<ActionButton :isDisabled="!studioStore.isStudioAdmin || operationsActive || studioInactive" :icon="getAppIcon('briefcase-plus')" 
+					@click="createProject" v-tooltip="studioInactive ? $t('notifications.studioInactive') : $t('stages.newProject')" :buttonFunction="doNothing" />
 				<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="operationsActive" :icon="getAppIcon('data-download')" 
 					v-tooltip="$t('stages.importProject')" :buttonFunction="importProject" />
-				<ActionButton v-else :isDisabled="!studioStore.isStudioAdmin || operationsActive"  :icon="getAppIcon('data-download')" 
-					v-tooltip="$t('stages.uploadProject')" :buttonFunction="uploadProject" />
+				<ActionButton v-else :isDisabled="!studioStore.isStudioAdmin || operationsActive || studioInactive"  :icon="getAppIcon('data-download')" 
+					v-tooltip="studioInactive ? $t('notifications.studioInactive') : $t('stages.uploadProject')" :buttonFunction="uploadProject" />
 				<ActionButton :isDisabled="operationsActive" :icon="getAppIcon('refresh')" 
 					v-tooltip="$t('common.refresh')" :buttonFunction="refresh" />
 			</div>
@@ -96,6 +96,7 @@ import { useMenu } from '@/stores/menu';
 import { useUserStore } from '@/stores/users';
 import { useIconStore } from '@/stores/icons';
 import { useDndStore } from '@/stores/dnd';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useStudioStore } from '@/stores/studio';
 
 
@@ -117,6 +118,7 @@ const panes = usePaneStore();
 const menu = useMenu();
 const iconStore = useIconStore();
 const dndStore = useDndStore();
+const entitlementStore = useEntitlementStore();
 const studioStore = useStudioStore();
 const { t } = useI18n();
 
@@ -141,6 +143,8 @@ const cardView = computed(() => {
 const operationsActive = computed(() => {
 	return stage.operationActive || !!modals.activeModal || !!menu.activeMenu || !projectStore.projectsLoaded
 });
+
+const studioInactive = computed(() => !entitlementStore.isStudioActive);
 
 Events.On('search', async () => {
 	if (operationsActive.value) return

@@ -275,6 +275,7 @@
     "errorAddingUserToStudio": "Error Adding User to Studio",
     "errorSendingInvitation": "Error Sending Invitation",
     "errorAddingUsers": "Error Adding Users",
+    "studioInactive": "Studio is inactive. Contact your studio admin.",
     "userAlreadyInProject": "User is already in the project.",
     "userAlreadyInStudio": "User is already in the studio.",
     "errorCreatingItems": "Error creating items",

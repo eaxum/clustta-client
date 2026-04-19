@@ -1,6 +1,13 @@
 <template>
-  <div v-if="visible" class="plan-info" :class="{ 'plan-free': !isPaid }" @click="handleClick" v-stop-propagation>
-    <template v-if="!isPaid">
+  <div v-if="visible" class="plan-info" :class="{ 'plan-free': !isPaid && !isInactive, 'plan-inactive': isInactive }" @click="handleClick" v-stop-propagation>
+    <template v-if="isInactive">
+      <div class="plan-free-content">
+        <img class="plan-free-icon" :src="getAppIcon('alert')" />
+        <span class="plan-upgrade">Inactive — click to fix</span>
+      </div>
+    </template>
+
+    <template v-else-if="!isPaid">
       <div class="plan-free-content">
         <img class="plan-free-icon" :src="getAppIcon('diamond')" />
         <span class="plan-upgrade">Upgrade</span>
@@ -67,6 +74,13 @@ const visible = computed(() => {
 const isPaid = computed(() => {
   if (isCloudStudio.value && studioBundle.value) return studioBundle.value.plan !== 'free';
   return entitlementStore.isPaidPlan;
+});
+
+// Returns whether the selected studio is deactivated.
+const isInactive = computed(() => {
+  const studio = projectStore.selectedStudio;
+  if (!studio || studio.name === 'Personal') return false;
+  return studio.active === false;
 });
 
 // Returns the display name for the current plan.
@@ -165,6 +179,14 @@ watch(() => projectStore.selectedStudio, (studio) => {
 
 .plan-free:hover {
   background-color: hsl(270, 50%, 38%);
+}
+
+.plan-inactive {
+  background-color: var(--danger);
+}
+
+.plan-inactive:hover {
+  background-color: hsl(0, 70%, 45%);
 }
 
 .plan-free-content{

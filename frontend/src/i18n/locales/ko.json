@@ -269,6 +269,7 @@
     "errorAddingUserToStudio": "스튜디오에 사용자 추가 오류",
     "errorSendingInvitation": "초대 전송 오류",
     "errorAddingUsers": "사용자 추가 오류",
+    "studioInactive": "스튜디오가 비활성 상태입니다. 스튜디오 관리자에게 문의하세요.",
     "userAlreadyInProject": "사용자가 이미 프로젝트에 있습니다.",
     "userAlreadyInStudio": "사용자가 이미 스튜디오에 있습니다.",
     "errorCreatingItems": "항목 생성 오류",

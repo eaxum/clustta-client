@@ -42,7 +42,7 @@ type MinimalStudio struct {
 	Name        string `db:"name" json:"name"`
 	URL         string `db:"url" json:"url"`
 	AltURL      string `db:"alt_url" json:"alt_url"`
-	Active      string `db:"active" json:"active"`
+	Active      bool   `db:"active" json:"active"`
 	HostingMode string `db:"hosting_mode" json:"hosting_mode"`
 }
 type StudioUser struct {

@@ -55,6 +55,7 @@ import { AuthService, StudioService } from "@/services";
 
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
@@ -63,6 +64,7 @@ import { useStudioStore } from '@/stores/studio';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
 
+const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
@@ -132,7 +134,18 @@ const selectedUsers = computed(() => {
 // methods
 // Adds all selected collaborators to the studio.
 const addCollaborators = async () => {
+  if (!entitlementStore.isStudioActive) {
+    notificationStore.addNotification(t('notifications.studioInactive'), "", "error");
+    return;
+  }
+
   isAwaitingResponse.value = true;
+
+  let successCount = 0;
+  let failCount = 0;
+  let invitationCount = 0;
+  let invitationFailCount = 0;
+  let lastError = null;
 
   try {
     const globalUsers = [];
@@ -159,9 +172,11 @@ const addCollaborators = async () => {
     for (const user of globalUsers) {
       try {
         await StudioService.AddCollaborator(user.email, projectStore.selectedStudio.id, studioCollaboratorRole.value);
+        successCount++;
       } catch (error) {
         console.error('Error adding global user to studio:', error);
-        notificationStore.errorNotification(t('notifications.errorAddingUserToStudio'), error);
+        failCount++;
+        lastError = error;
       }
     }
 
@@ -172,21 +187,22 @@ const addCollaborators = async () => {
           projectStore.selectedStudio.name || 'Clustta Studio',
           ''
         );
+        invitationCount++;
       } catch (error) {
         console.error('Error sending invitation:', error);
-        notificationStore.errorNotification(t('notifications.errorSendingInvitation'), error);
+        invitationFailCount++;
+        lastError = error;
       }
     }
-
-    const successCount = globalUsers.length;
-    const invitationCount = newUsersList.length;
 
     if (successCount > 0) {
       notificationStore.addNotification(t('notifications.usersAddedToStudioSuccessfully', { count: successCount }), "", "success");
     }
-    
     if (invitationCount > 0) {
       notificationStore.addNotification(t('notifications.invitationsSent', { count: invitationCount }), "", "info");
+    }
+    if (failCount > 0 || invitationFailCount > 0) {
+      notificationStore.errorNotification(t('notifications.errorAddingUsers'), lastError);
     }
 
   } catch (error) {
