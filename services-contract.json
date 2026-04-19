@@ -1,0 +1,4131 @@
+{
+  "AccountService": {
+    "file": "services/account_service.go",
+    "methods": [
+      {
+        "name": "AddAccount",
+        "params": [
+          "token:auth_service.Token"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "GetAccountCount",
+        "params": null,
+        "returns": [
+          "int",
+          "error"
+        ]
+      },
+      {
+        "name": "GetActiveAccount",
+        "params": null,
+        "returns": [
+          "auth_service.Token",
+          "error"
+        ]
+      },
+      {
+        "name": "GetActiveAccountWithContext",
+        "params": null,
+        "returns": [
+          "AccountInfo",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAllAccounts",
+        "params": null,
+        "returns": [
+          "map[string]auth_service.Token",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAllAccountsWithContext",
+        "params": null,
+        "returns": [
+          "map[string]AccountInfo",
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveAccount",
+        "params": [
+          "userId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SwitchAccount",
+        "params": [
+          "userId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "AgentService": {
+    "file": "services/agent_service.go",
+    "methods": [
+      {
+        "name": "ClearChatSession",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "GetAPIKeyStatus",
+        "params": null,
+        "returns": [
+          "AgentKeyStatus"
+        ]
+      },
+      {
+        "name": "GetChatHistory",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]ChatUIMessage"
+        ]
+      },
+      {
+        "name": "RemoveAPIKey",
+        "params": null,
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SendMessage",
+        "params": [
+          "projectPath:string",
+          "message:string",
+          "attachmentPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetAPIKey",
+        "params": [
+          "provider:string",
+          "apiKey:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "AppService": {
+    "file": "services/app_service.go",
+    "methods": [
+      {
+        "name": "GetOS",
+        "params": null,
+        "returns": [
+          "string"
+        ]
+      },
+      {
+        "name": "GetPendingOpenFile",
+        "params": null,
+        "returns": [
+          "string"
+        ]
+      },
+      {
+        "name": "GetSystemInfo",
+        "params": null,
+        "returns": [
+          "SystemInfo"
+        ]
+      },
+      {
+        "name": "Hide",
+        "params": null,
+        "returns": null
+      },
+      {
+        "name": "Minimize",
+        "params": null,
+        "returns": null
+      },
+      {
+        "name": "Quit",
+        "params": null,
+        "returns": null
+      },
+      {
+        "name": "ServiceStartup",
+        "params": [
+          "ctx:context.Context",
+          "options:application.ServiceOptions"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "Show",
+        "params": null,
+        "returns": null
+      }
+    ]
+  },
+  "AssetService": {
+    "file": "services/asset_services.go",
+    "methods": [
+      {
+        "name": "AddAssetDependency",
+        "params": [
+          "projectPath:string",
+          "assetId:string",
+          "dependencyId:string",
+          "dependencyTypeId:string"
+        ],
+        "returns": [
+          "models.AssetDependency",
+          "error"
+        ]
+      },
+      {
+        "name": "AddCollectionDependency",
+        "params": [
+          "projectPath:string",
+          "assetId:string",
+          "dependencyId:string",
+          "dependencyTypeId:string"
+        ],
+        "returns": [
+          "models.AssetDependency",
+          "error"
+        ]
+      },
+      {
+        "name": "AddPreview",
+        "params": [
+          "projectPath:string",
+          "assetId:string",
+          "previewPath:string"
+        ],
+        "returns": [
+          "models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "AssetFileStatus",
+        "params": [
+          "projectPath:string",
+          "assetId:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "AssetFilesStatus",
+        "params": [
+          "projectPath:string",
+          "assetIds:[]string"
+        ],
+        "returns": [
+          "map[string]string",
+          "error"
+        ]
+      },
+      {
+        "name": "AssignAsset",
+        "params": [
+          "projectPath:string",
+          "assetId:string",
+          "userId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ChangeAssetCollection",
+        "params": [
+          "projectPath:string",
+          "assetIds:[]string",
+          "collectionId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ChangeAssetType",
+        "params": [
+          "projectPath:string",
+          "assetId:string",
+          "assetTypeId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ChangeStatus",
+        "params": [
+          "projectPath:string",
+          "assetIds:[]string",
+          "statusId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "CopyAssetToProject",
+        "params": [
+          "sourceProjectPath:string",
+          "sourceAssetId:string",
+          "targetProjectPath:string",
+          "targetCollectionId:string",
+          "copyAllCheckpoints:bool"
+        ],
+        "returns": [
+          "models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "CreateAsset",
+        "params": [
+          "projectPath:string",
+          "name:string",
+          "description:string",
+          "assetTypeId:string",
+          "collectionId:string",
+          "isResource:bool",
+          "templateId:string",
+          "templateFilePath:string",
+          "pointer:string",
+          "isLink:bool",
+          "tags:[]string",
+          "previewPath:string",
+          "comment:string"
+        ],
+        "returns": [
+          "models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "CreateAssetType",
+        "params": [
+          "projectPath:string",
+          "name:string",
+          "icon:string"
+        ],
+        "returns": [
+          "models.AssetType",
+          "error"
+        ]
+      },
+      {
+        "name": "DeleteAsset",
+        "params": [
+          "projectPath:string",
+          "assetId:string",
+          "removeFiles:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "DeleteAssetType",
+        "params": [
+          "projectPath:string",
+          "id:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "DuplicateAsset",
+        "params": [
+          "projectPath:string",
+          "sourceAssetId:string",
+          "targetCollectionId:string"
+        ],
+        "returns": [
+          "models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAssetAssets",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAssetByID",
+        "params": [
+          "projectPath:string",
+          "assetId:string"
+        ],
+        "returns": [
+          "models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAssetByPath",
+        "params": [
+          "projectPath:string",
+          "assetPath:string"
+        ],
+        "returns": [
+          "models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAssetCount",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "int",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAssetDependencies",
+        "params": [
+          "projectPath:string",
+          "assetIds:[]string"
+        ],
+        "returns": [
+          "[]interface{}",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAssetDependencies2",
+        "params": [
+          "projectPath:string",
+          "assetIds:[]string"
+        ],
+        "returns": [
+          "[]models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAssetState",
+        "params": [
+          "projectPath:string",
+          "assetId:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAssetTypes",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]models.AssetType",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAssets",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAssetsPB",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]byte",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAssetsStates",
+        "params": [
+          "projectPath:string",
+          "projectWorkingDir:string",
+          "ignoreList:[]string"
+        ],
+        "returns": [
+          "AssetsStates",
+          "error"
+        ]
+      },
+      {
+        "name": "GetRecursiveDependencies",
+        "params": [
+          "projectPath:string",
+          "assetId:string",
+          "maxDepth:int"
+        ],
+        "returns": [
+          "[]interface{}",
+          "error"
+        ]
+      },
+      {
+        "name": "GetSiblingAssetNames",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "extension:string"
+        ],
+        "returns": [
+          "[]string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetUntrackedFiles",
+        "params": [
+          "projectPath:string",
+          "projectWorkingDir:string",
+          "ignoreList:[]string"
+        ],
+        "returns": [
+          "[]string",
+          "error"
+        ]
+      },
+      {
+        "name": "MoveAssetsToCollection",
+        "params": [
+          "projectPath:string",
+          "assetIds:[]string",
+          "targetCollectionId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveAssetDependency",
+        "params": [
+          "projectPath:string",
+          "assetId:string",
+          "dependencyId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveCollectionDependency",
+        "params": [
+          "projectPath:string",
+          "assetId:string",
+          "dependencyId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RenameAsset",
+        "params": [
+          "projectPath:string",
+          "assetId:string",
+          "name:string"
+        ],
+        "returns": [
+          "models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "RevealAsset",
+        "params": [
+          "projectPath:string",
+          "assetId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "TestData",
+        "params": null,
+        "returns": [
+          "string"
+        ]
+      },
+      {
+        "name": "ToggleIsAsset",
+        "params": [
+          "projectPath:string",
+          "assetId:string",
+          "isAsset:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ToggleIsResource",
+        "params": [
+          "projectPath:string",
+          "assetIds:[]string",
+          "isResource:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UnassignAsset",
+        "params": [
+          "projectPath:string",
+          "assetId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UnassignAssets",
+        "params": [
+          "projectPath:string",
+          "assetIds:[]string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateAsset",
+        "params": [
+          "projectPath:string",
+          "assetId:string",
+          "name:string",
+          "assetTypeId:string",
+          "isResource:bool",
+          "pointer:string",
+          "tags:[]string"
+        ],
+        "returns": [
+          "models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateAssetType",
+        "params": [
+          "projectPath:string",
+          "id:string",
+          "name:string",
+          "icon:string"
+        ],
+        "returns": [
+          "models.AssetType",
+          "error"
+        ]
+      }
+    ]
+  },
+  "AuthService": {
+    "file": "services/auth_service.go",
+    "methods": [
+      {
+        "name": "AuthUser",
+        "params": null,
+        "returns": [
+          "auth_service.User",
+          "error"
+        ]
+      },
+      {
+        "name": "ChangePassword",
+        "params": [
+          "currentPassword:string",
+          "newPassword:string",
+          "confirmPassword:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "CheckEmailExists",
+        "params": [
+          "email:string"
+        ],
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "CheckUsernameExists",
+        "params": [
+          "username:string"
+        ],
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "ContactSales",
+        "params": [
+          "name:string",
+          "email:string",
+          "company:string",
+          "teamSize:string",
+          "source:string",
+          "website:string",
+          "message:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "DeactivateUserAccount",
+        "params": null,
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "EnableOfflineMode",
+        "params": null,
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "GetAuthHost",
+        "params": null,
+        "returns": [
+          "string"
+        ]
+      },
+      {
+        "name": "GetAuthMode",
+        "params": null,
+        "returns": [
+          "string"
+        ]
+      },
+      {
+        "name": "IsAuthenticated",
+        "params": null,
+        "returns": [
+          "bool",
+          "auth_service.User",
+          "error"
+        ]
+      },
+      {
+        "name": "IsOfflineMode",
+        "params": null,
+        "returns": [
+          "bool"
+        ]
+      },
+      {
+        "name": "Login",
+        "params": [
+          "username:string",
+          "password:string"
+        ],
+        "returns": [
+          "auth_service.Token",
+          "error"
+        ]
+      },
+      {
+        "name": "LoginWithHost",
+        "params": [
+          "username:string",
+          "password:string",
+          "authHost:string",
+          "authMode:string",
+          "studioId:string"
+        ],
+        "returns": [
+          "auth_service.Token",
+          "error"
+        ]
+      },
+      {
+        "name": "LoginWithSSO",
+        "params": [
+          "authHost:string",
+          "provider:string"
+        ],
+        "returns": [
+          "auth_service.Token",
+          "error"
+        ]
+      },
+      {
+        "name": "Logout",
+        "params": [
+          "username:string",
+          "password:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "Register",
+        "params": [
+          "firstName:string",
+          "lastName:string",
+          "username:string",
+          "email:string",
+          "password:string",
+          "confirmPassword:string"
+        ],
+        "returns": [
+          "auth_service.User",
+          "error"
+        ]
+      },
+      {
+        "name": "RegisterWithHost",
+        "params": [
+          "firstName:string",
+          "lastName:string",
+          "username:string",
+          "email:string",
+          "password:string",
+          "confirmPassword:string",
+          "authHost:string"
+        ],
+        "returns": [
+          "auth_service.User",
+          "error"
+        ]
+      },
+      {
+        "name": "ResendToken",
+        "params": [
+          "email:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ResetPassword",
+        "params": [
+          "email:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SendInvitationEmail",
+        "params": [
+          "email:string",
+          "studioName:string",
+          "projectName:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SubmitDiagnostics",
+        "params": [
+          "email:string",
+          "description:string",
+          "os:string",
+          "arch:string",
+          "clusttaVersion:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateUser",
+        "params": [
+          "firstName:string",
+          "lastName:string",
+          "username:string",
+          "email:string"
+        ],
+        "returns": [
+          "auth_service.User",
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateUserPhoto",
+        "params": [
+          "photo:[]byte"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "VerifyOTP",
+        "params": [
+          "email:string",
+          "token:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "CheckpointService": {
+    "file": "services/checkpoint_service.go",
+    "methods": [
+      {
+        "name": "AddCheckpoint",
+        "params": [
+          "projectPath:string",
+          "assetPaths:[]string",
+          "message:string",
+          "previewPath:string",
+          "groupId:string",
+          "useAsThumbnail:bool",
+          "sendToIntegration:bool"
+        ],
+        "returns": [
+          "[]models.Checkpoint",
+          "error"
+        ]
+      },
+      {
+        "name": "AddMissingGroupIds",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "AddUntrackedAsset",
+        "params": [
+          "projectPath:string",
+          "projectWorkingDir:string",
+          "assetPaths:[]string",
+          "completed:int",
+          "totalAssets:int",
+          "message:string",
+          "previewPath:string",
+          "groupId:string"
+        ],
+        "returns": [
+          "[]models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "DeleteCheckpoint",
+        "params": [
+          "projectPath:string",
+          "checkpointId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "GetCheckpoints",
+        "params": [
+          "projectPath:string",
+          "assetId:string"
+        ],
+        "returns": [
+          "[]models.Checkpoint",
+          "error"
+        ]
+      },
+      {
+        "name": "GetLatestCheckpoint",
+        "params": [
+          "projectPath:string",
+          "assetId:string"
+        ],
+        "returns": [
+          "models.Checkpoint",
+          "error"
+        ]
+      },
+      {
+        "name": "GetTimeline",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]repository.CompatTimeline",
+          "error"
+        ]
+      },
+      {
+        "name": "Revert",
+        "params": [
+          "projectPath:string",
+          "remoteUrl:string",
+          "assetIds:[]string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RevertAssetPaths",
+        "params": [
+          "projectPath:string",
+          "remoteUrl:string",
+          "assetPaths:[]string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RevertProject",
+        "params": [
+          "projectPath:string",
+          "remoteUrl:string",
+          "checkpointTime:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RevertToCheckpoint",
+        "params": [
+          "projectPath:string",
+          "remoteUrl:string",
+          "assetId:string",
+          "checkpointId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SquashAssets",
+        "params": [
+          "projectPath:string",
+          "projectWorkingDir:string",
+          "filePaths:[]string",
+          "assetName:string",
+          "collectionId:string",
+          "deleteSourceFiles:bool",
+          "checkpointComments:[]string"
+        ],
+        "returns": [
+          "models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "ViewCheckpoint",
+        "params": [
+          "projectPath:string",
+          "checkpointId:string",
+          "assetId:string",
+          "collectionName:string",
+          "extension:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "ClipboardService": {
+    "file": "services/clipboard_service.go",
+    "methods": [
+      {
+        "name": "ReadImageBase64",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "ReadText",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "WriteText",
+        "params": [
+          "text:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "CollaboratorService": {
+    "file": "services/collaborator_service.go",
+    "methods": [
+      {
+        "name": "AddCollaborators",
+        "params": [
+          "remoteUrl:string",
+          "userIds:[]string",
+          "role:string"
+        ],
+        "returns": [
+          "[]map[string]string",
+          "error"
+        ]
+      },
+      {
+        "name": "AddCollaboratorsWithRole",
+        "params": [
+          "remoteUrl:string",
+          "userIds:[]string",
+          "role:string"
+        ],
+        "returns": [
+          "[]map[string]string",
+          "error"
+        ]
+      },
+      {
+        "name": "FetchUserByEmail",
+        "params": [
+          "email:string"
+        ],
+        "returns": [
+          "models.User",
+          "error"
+        ]
+      },
+      {
+        "name": "GetCollaborators",
+        "params": [
+          "remoteUrl:string"
+        ],
+        "returns": [
+          "[]Collaborator",
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveCollaborator",
+        "params": [
+          "remoteUrl:string",
+          "userId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "CollectionService": {
+    "file": "services/collection_service.go",
+    "methods": [
+      {
+        "name": "Assign",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "userId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ChangeCollectionParent",
+        "params": [
+          "projectPath:string",
+          "collectionIds:[]string",
+          "parentId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ChangeIsShared",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "isShared:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ChangeType",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "collectionTypeId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "CreateCollection",
+        "params": [
+          "projectPath:string",
+          "name:string",
+          "description:string",
+          "collectionTypeId:string",
+          "parentId:string",
+          "previewPath:string",
+          "isShared:bool"
+        ],
+        "returns": [
+          "models.Collection",
+          "error"
+        ]
+      },
+      {
+        "name": "CreateCollectionType",
+        "params": [
+          "projectPath:string",
+          "collectionTypeName:string",
+          "collectionTypeIcon:string"
+        ],
+        "returns": [
+          "models.CollectionType",
+          "error"
+        ]
+      },
+      {
+        "name": "CreateCollections",
+        "params": [
+          "projectPath:string",
+          "name:string",
+          "description:string",
+          "collectionTypeId:string",
+          "parentId:string"
+        ],
+        "returns": [
+          "[]models.Collection",
+          "error"
+        ]
+      },
+      {
+        "name": "DeleteCollection",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "removeFiles:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "DeleteCollectionType",
+        "params": [
+          "projectPath:string",
+          "id:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "GetCollectionAssets",
+        "params": [
+          "projectPath:string",
+          "collectionId:string"
+        ],
+        "returns": [
+          "[]models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "GetCollectionByID",
+        "params": [
+          "projectPath:string",
+          "collectionId:string"
+        ],
+        "returns": [
+          "models.Collection",
+          "error"
+        ]
+      },
+      {
+        "name": "GetCollectionByPath",
+        "params": [
+          "projectPath:string",
+          "collectionPath:string"
+        ],
+        "returns": [
+          "models.Collection",
+          "error"
+        ]
+      },
+      {
+        "name": "GetCollectionChildren",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "projectWorkingDir:string",
+          "collectionFolderPath:string",
+          "ignoreList:[]string",
+          "isUntracked:bool"
+        ],
+        "returns": [
+          "CollectionItems",
+          "error"
+        ]
+      },
+      {
+        "name": "GetCollectionChildrenState",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "projectWorkingDir:string",
+          "ignoreList:[]string"
+        ],
+        "returns": [
+          "CollectionChildrenState",
+          "error"
+        ]
+      },
+      {
+        "name": "GetCollectionCount",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "int",
+          "error"
+        ]
+      },
+      {
+        "name": "GetCollectionStateFlags",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "projectWorkingDir:string",
+          "ignoreList:[]string"
+        ],
+        "returns": [
+          "CollectionStateFlags",
+          "error"
+        ]
+      },
+      {
+        "name": "GetCollectionTypes",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]models.CollectionType",
+          "error"
+        ]
+      },
+      {
+        "name": "GetCollections",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]models.Collection",
+          "error"
+        ]
+      },
+      {
+        "name": "GetItemsForCheckpoint",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "targetPath:string",
+          "projectWorkingDir:string",
+          "ignoreList:[]string"
+        ],
+        "returns": [
+          "ItemsForCheckpoint",
+          "error"
+        ]
+      },
+      {
+        "name": "GetOutdatedItemsInCollection",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "projectWorkingDir:string",
+          "ignoreList:[]string"
+        ],
+        "returns": [
+          "ItemsForUpdate",
+          "error"
+        ]
+      },
+      {
+        "name": "IsUserAssignedToCollectionOrAncestor",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "userId:string"
+        ],
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "Rebuild",
+        "params": [
+          "projectPath:string",
+          "remoteUrl:string",
+          "collectionIds:string",
+          "userId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RenameCollection",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "newName:string"
+        ],
+        "returns": [
+          "models.Collection",
+          "error"
+        ]
+      },
+      {
+        "name": "RevealCollection",
+        "params": [
+          "projectPath:string",
+          "collectionId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RevertCollections",
+        "params": [
+          "projectPath:string",
+          "collectionIds:[]string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "Unassign",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "userId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateCollectionType",
+        "params": [
+          "projectPath:string",
+          "id:string",
+          "collectionTypeName:string",
+          "collectionTypeIcon:string"
+        ],
+        "returns": [
+          "models.CollectionType",
+          "error"
+        ]
+      },
+      {
+        "name": "UpdatePreview",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "previewPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "DependencyTypeService": {
+    "file": "services/dependency_type_service.go",
+    "methods": [
+      {
+        "name": "GetDependencyTypes",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]models.DependencyType",
+          "error"
+        ]
+      }
+    ]
+  },
+  "DeploymentService": {
+    "file": "services/deployment_service.go",
+    "methods": [
+      {
+        "name": "DeployStudio",
+        "params": [
+          "request:DeploymentRequest"
+        ],
+        "returns": [
+          "*DeploymentResponse",
+          "error"
+        ]
+      },
+      {
+        "name": "DestroyDeployment",
+        "params": [
+          "deploymentID:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "GetDeploymentStatus",
+        "params": [
+          "deploymentID:string"
+        ],
+        "returns": [
+          "*DeploymentStatus",
+          "error"
+        ]
+      }
+    ]
+  },
+  "DialogService": {
+    "file": "services/dialog_service.go",
+    "methods": [
+      {
+        "name": "SelectFileDialog",
+        "params": [
+          "title:string",
+          "filters:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "SelectFilesDialog",
+        "params": null,
+        "returns": [
+          "[]string",
+          "error"
+        ]
+      },
+      {
+        "name": "SelectFolderDialog",
+        "params": [
+          "title:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "SelectIconDialog",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "SelectItemsDialog",
+        "params": null,
+        "returns": [
+          "[]string",
+          "error"
+        ]
+      },
+      {
+        "name": "SelectSpecificFolderDialog",
+        "params": [
+          "title:string",
+          "defaultPath:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      }
+    ]
+  },
+  "EntitlementService": {
+    "file": "services/entitlement_service.go",
+    "methods": [
+      {
+        "name": "ChangePlan",
+        "params": [
+          "planId:string"
+        ],
+        "returns": [
+          "EntitlementBundle",
+          "error"
+        ]
+      },
+      {
+        "name": "CreateCheckout",
+        "params": [
+          "planId:string",
+          "studioId:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetEntitlements",
+        "params": null,
+        "returns": [
+          "EntitlementBundle",
+          "error"
+        ]
+      },
+      {
+        "name": "GetPlans",
+        "params": null,
+        "returns": [
+          "[]Plan",
+          "error"
+        ]
+      },
+      {
+        "name": "GetStudioEntitlements",
+        "params": [
+          "studioId:string"
+        ],
+        "returns": [
+          "EntitlementBundle",
+          "error"
+        ]
+      },
+      {
+        "name": "OpenBillingPortal",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      }
+    ]
+  },
+  "FSService": {
+    "file": "services/fs_service.go",
+    "methods": [
+      {
+        "name": "AddWatcherFolder",
+        "params": [
+          "dir:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "BackupFile",
+        "params": [
+          "sourcePath:string",
+          "destinationPath:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "BaseName",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "string"
+        ]
+      },
+      {
+        "name": "DeleteFile",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "DeleteFolder",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "DirExists",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "bool"
+        ]
+      },
+      {
+        "name": "DuplicateFile",
+        "params": [
+          "sourcePath:string",
+          "destinationPath:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "DuplicateFolder",
+        "params": [
+          "sourcePath:string",
+          "destinationPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "Exists",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "bool"
+        ]
+      },
+      {
+        "name": "ExtName",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "string"
+        ]
+      },
+      {
+        "name": "ExtractAll",
+        "params": [
+          "archivePath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "FileCount",
+        "params": [
+          "folderPath:string"
+        ],
+        "returns": [
+          "int",
+          "error"
+        ]
+      },
+      {
+        "name": "FileHash",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "FileStat",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "FileInfo",
+          "error"
+        ]
+      },
+      {
+        "name": "FolderCount",
+        "params": [
+          "folderPath:string"
+        ],
+        "returns": [
+          "int",
+          "error"
+        ]
+      },
+      {
+        "name": "FolderSize",
+        "params": [
+          "folderPath:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetCachedOSThumbnail",
+        "params": [
+          "filePath:string",
+          "size:int"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetFileIcon",
+        "params": [
+          "ext:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetOSThumbnail",
+        "params": [
+          "filePath:string",
+          "size:int"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetOSThumbnails",
+        "params": [
+          "filePaths:[]string",
+          "size:int"
+        ],
+        "returns": [
+          "map[string]string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetPersonalProjectsDirectory",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "ImportClusttaFiles",
+        "params": [
+          "sourcePaths:[]string",
+          "destinationDirectory:string"
+        ],
+        "returns": [
+          "[]string",
+          "error"
+        ]
+      },
+      {
+        "name": "IsFile",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "JoinPath",
+        "params": [
+          "elem:...string"
+        ],
+        "returns": [
+          "string"
+        ]
+      },
+      {
+        "name": "LaunchFile",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "LaunchFileWith",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "LaunchFileWith",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "LaunchFileWith",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "MakeDirs",
+        "params": [
+          "path:string"
+        ],
+        "returns": null
+      },
+      {
+        "name": "ReadFile",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveWatcherFolder",
+        "params": [
+          "dir:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "Rename",
+        "params": [
+          "oldPath:string",
+          "newPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RenameBatch",
+        "params": [
+          "operationsJSON:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RevealInExplorer",
+        "params": [
+          "path:string"
+        ],
+        "returns": null
+      },
+      {
+        "name": "SetApp",
+        "params": [
+          "app:*application.App"
+        ],
+        "returns": null
+      },
+      {
+        "name": "SetProjectContext",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "StartWatching",
+        "params": null,
+        "returns": null
+      },
+      {
+        "name": "TempDir",
+        "params": null,
+        "returns": [
+          "string"
+        ]
+      },
+      {
+        "name": "UserProjectTemplatesPath",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "WriteFile",
+        "params": [
+          "path:string",
+          "data:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "ImportService": {
+    "file": "services/import_service.go",
+    "methods": [
+      {
+        "name": "CreateAssets",
+        "params": [
+          "projectPath:string",
+          "assets:[]models.Asset",
+          "completed:int",
+          "totalAssets:int",
+          "comment:string",
+          "groupId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "CreateCollections",
+        "params": [
+          "projectPath:string",
+          "collections:[]models.Collection",
+          "completed:int",
+          "totalCollections:int"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "CreateItems",
+        "params": [
+          "projectPath:string",
+          "collections:[]models.Collection",
+          "assets:[]models.Asset",
+          "comment:string",
+          "groupId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ImportFolder",
+        "params": [
+          "projectPath:string",
+          "parentId:string",
+          "folders:[]string",
+          "files:[]string",
+          "projectWorkingDir:string",
+          "ignoreList:[]string"
+        ],
+        "returns": [
+          "ImportItems",
+          "error"
+        ]
+      }
+    ]
+  },
+  "IntegrationService": {
+    "file": "services/integration_service.go",
+    "methods": [
+      {
+        "name": "Authenticate",
+        "params": [
+          "integrationId:string",
+          "credentials:map[string]string"
+        ],
+        "returns": [
+          "integrations.AuthResult",
+          "error"
+        ]
+      },
+      {
+        "name": "CreateMissingTypes",
+        "params": [
+          "projectPath:string",
+          "missingTypes:[]integrations.MissingType"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ExecuteSync",
+        "params": [
+          "projectPath:string",
+          "collectionsJSON:string",
+          "assetsJSON:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "GetAvailableIntegrations",
+        "params": null,
+        "returns": [
+          "[]integrations.IntegrationInfo"
+        ]
+      },
+      {
+        "name": "GetExternalProjects",
+        "params": [
+          "integrationId:string",
+          "token:string",
+          "apiUrl:string"
+        ],
+        "returns": [
+          "[]integrations.ExternalProject",
+          "error"
+        ]
+      },
+      {
+        "name": "GetExternalStatuses",
+        "params": [
+          "projectPath:string",
+          "token:string"
+        ],
+        "returns": [
+          "[]integrations.ExternalStatusInfo",
+          "error"
+        ]
+      },
+      {
+        "name": "GetExternalTypes",
+        "params": [
+          "projectPath:string",
+          "token:string"
+        ],
+        "returns": [
+          "[]integrations.ExternalTypeInfo",
+          "[]integrations.ExternalTypeInfo",
+          "error"
+        ]
+      },
+      {
+        "name": "GetLinkedIntegration",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "models.IntegrationProject",
+          "error"
+        ]
+      },
+      {
+        "name": "GetLocalTypes",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]models.CollectionType",
+          "[]models.AssetType",
+          "error"
+        ]
+      },
+      {
+        "name": "GetMissingTypes",
+        "params": [
+          "projectPath:string",
+          "token:string"
+        ],
+        "returns": [
+          "[]integrations.MissingType",
+          "error"
+        ]
+      },
+      {
+        "name": "GetSyncPreview",
+        "params": [
+          "projectPath:string",
+          "token:string"
+        ],
+        "returns": [
+          "integrations.SyncPreview",
+          "error"
+        ]
+      },
+      {
+        "name": "GetTypeMappings",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "integrations.SyncOptions",
+          "error"
+        ]
+      },
+      {
+        "name": "LinkProject",
+        "params": [
+          "projectPath:string",
+          "integrationId:string",
+          "externalProjectId:string",
+          "externalProjectName:string",
+          "apiUrl:string",
+          "syncOptions:string",
+          "userId:string"
+        ],
+        "returns": [
+          "models.IntegrationProject",
+          "error"
+        ]
+      },
+      {
+        "name": "PushToIntegration",
+        "params": [
+          "projectPath:string",
+          "assetIds:[]string",
+          "checkpointId:string",
+          "previewPath:string",
+          "message:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SaveStatusMappings",
+        "params": [
+          "projectPath:string",
+          "statusMappings:map[string]string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SaveTypeMappings",
+        "params": [
+          "projectPath:string",
+          "syncOptions:integrations.SyncOptions"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UnlinkProject",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "LogService": {
+    "file": "services/log.go",
+    "methods": [
+      {
+        "name": "Error",
+        "params": [
+          "message:string"
+        ],
+        "returns": null
+      },
+      {
+        "name": "Info",
+        "params": [
+          "message:string"
+        ],
+        "returns": null
+      },
+      {
+        "name": "Log",
+        "params": [
+          "message:string"
+        ],
+        "returns": null
+      },
+      {
+        "name": "LogError",
+        "params": [
+          "message:string"
+        ],
+        "returns": null
+      },
+      {
+        "name": "LogToConsole",
+        "params": [
+          "level:string",
+          "message:string"
+        ],
+        "returns": null
+      },
+      {
+        "name": "Warn",
+        "params": [
+          "message:string"
+        ],
+        "returns": null
+      }
+    ]
+  },
+  "ProfileService": {
+    "file": "services/profile_service.go",
+    "methods": [
+      {
+        "name": "AddUserSkill",
+        "params": [
+          "userId:string",
+          "skillData:SkillData"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "AddUserTool",
+        "params": [
+          "userId:string",
+          "toolData:ToolData"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "GetAllCountries",
+        "params": null,
+        "returns": [
+          "[]Country",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAllGenders",
+        "params": null,
+        "returns": [
+          "[]Gender",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAllSkills",
+        "params": null,
+        "returns": [
+          "[]Skill",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAllTools",
+        "params": null,
+        "returns": [
+          "[]Tool",
+          "error"
+        ]
+      },
+      {
+        "name": "GetSkillsByCategory",
+        "params": [
+          "category:string"
+        ],
+        "returns": [
+          "[]Skill",
+          "error"
+        ]
+      },
+      {
+        "name": "GetToolsByCategory",
+        "params": [
+          "category:string"
+        ],
+        "returns": [
+          "[]Tool",
+          "error"
+        ]
+      },
+      {
+        "name": "GetUserProfile",
+        "params": [
+          "userId:string"
+        ],
+        "returns": [
+          "UserProfile",
+          "error"
+        ]
+      },
+      {
+        "name": "GetUserSkills",
+        "params": [
+          "userId:string"
+        ],
+        "returns": [
+          "[]UserSkill",
+          "error"
+        ]
+      },
+      {
+        "name": "GetUserTools",
+        "params": [
+          "userId:string"
+        ],
+        "returns": [
+          "[]UserTool",
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveUserSkill",
+        "params": [
+          "userId:string",
+          "skillId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveUserTool",
+        "params": [
+          "userId:string",
+          "toolId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateUserPhoto",
+        "params": [
+          "photoPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateUserProfile",
+        "params": [
+          "userId:string",
+          "updateData:ProfileUpdateData"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateUserSkill",
+        "params": [
+          "userId:string",
+          "skillId:string",
+          "proficiencyLevel:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateUserTool",
+        "params": [
+          "userId:string",
+          "toolId:string",
+          "proficiencyLevel:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "ProjectService": {
+    "file": "services/project_service.go",
+    "methods": [
+      {
+        "name": "AddUser",
+        "params": [
+          "projectPath:string",
+          "email:string",
+          "roleName:string"
+        ],
+        "returns": [
+          "models.User",
+          "error"
+        ]
+      },
+      {
+        "name": "AddUserSynced",
+        "params": [
+          "projectPath:string",
+          "email:string",
+          "roleName:string"
+        ],
+        "returns": [
+          "models.User",
+          "error"
+        ]
+      },
+      {
+        "name": "ApplyTemplate",
+        "params": [
+          "projectPath:string",
+          "templateName:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ChangeRole",
+        "params": [
+          "projectPath:string",
+          "userId:string",
+          "roleName:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "CloseProject",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "CreateProject",
+        "params": [
+          "projectUri:string",
+          "studioName:string",
+          "workingDir:string",
+          "templateName:string",
+          "hostingMode:string",
+          "studioId:string"
+        ],
+        "returns": [
+          "repository.ProjectInfo",
+          "error"
+        ]
+      },
+      {
+        "name": "DeleteRemoteProject",
+        "params": [
+          "projectUri:string",
+          "studioName:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "GetFolderUntrackedItems",
+        "params": [
+          "projectWorkingDir:string",
+          "directory:string",
+          "ignoreList:[]string",
+          "tracked:[]string"
+        ],
+        "returns": [
+          "UntrackedItems",
+          "error"
+        ]
+      },
+      {
+        "name": "GetIgnoreList",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetIsClose",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "GetPreview",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetStudioProjects",
+        "params": [
+          "url:string",
+          "name:string",
+          "hostingMode:string",
+          "studioId:string"
+        ],
+        "returns": [
+          "[]repository.ProjectInfo",
+          "error"
+        ]
+      },
+      {
+        "name": "GetSyncToken",
+        "params": [
+          "projectUri:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetTemplates",
+        "params": null,
+        "returns": [
+          "[]repository.ProjectInfo",
+          "error"
+        ]
+      },
+      {
+        "name": "GetWriteThroughEnabled",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "InspectClusttaFile",
+        "params": [
+          "filePath:string"
+        ],
+        "returns": [
+          "ClusttaFileInfo",
+          "error"
+        ]
+      },
+      {
+        "name": "IsIgnored",
+        "params": [
+          "itemPath:string",
+          "ignoreList:[]string"
+        ],
+        "returns": [
+          "bool"
+        ]
+      },
+      {
+        "name": "LeaveProject",
+        "params": [
+          "remoteUrl:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "MakeProjectRemote",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ProjectInfo",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "repository.ProjectInfo",
+          "error"
+        ]
+      },
+      {
+        "name": "ProjectsInfo",
+        "params": [
+          "projectPaths:[]string"
+        ],
+        "returns": [
+          "[]repository.ProjectInfo",
+          "error"
+        ]
+      },
+      {
+        "name": "Purge",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveProjectFromRemote",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveUser",
+        "params": [
+          "projectPath:string",
+          "userId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveUserSynced",
+        "params": [
+          "projectPath:string",
+          "userId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "Rename",
+        "params": [
+          "projectUri:string",
+          "studioName:string",
+          "newName:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ResetDefaultTemplates",
+        "params": null,
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetIgnoreList",
+        "params": [
+          "projectUri:string",
+          "studioName:string",
+          "ignoreList:[]string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetWriteThroughEnabled",
+        "params": [
+          "projectPath:string",
+          "enabled:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ToggleCloseProject",
+        "params": [
+          "projectUri:string",
+          "studioName:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "TrimProject",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateIcon",
+        "params": [
+          "projectUri:string",
+          "studioName:string",
+          "iconValue:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UpdatePreview",
+        "params": [
+          "projectPath:string",
+          "previewPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateWorkingDirectory",
+        "params": [
+          "projectUri:string",
+          "studioName:string",
+          "newWorkingDir:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UploadProject",
+        "params": [
+          "sourceClstPath:string",
+          "studioName:string",
+          "workingDir:string",
+          "projectName:string",
+          "remoteProjectUrl:string",
+          "hostingMode:string",
+          "studioId:string"
+        ],
+        "returns": [
+          "repository.ProjectInfo",
+          "error"
+        ]
+      },
+      {
+        "name": "UserInProject",
+        "params": [
+          "projectPath:string",
+          "userId:string"
+        ],
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "ValidateProjectFile",
+        "params": [
+          "filePath:string"
+        ],
+        "returns": [
+          "bool",
+          "error"
+        ]
+      }
+    ]
+  },
+  "SettingsService": {
+    "file": "services/settings_service.go",
+    "methods": [
+      {
+        "name": "AddDependencyPreset",
+        "params": [
+          "projectId:string",
+          "presetData:interface{}"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "AddProjectLocation",
+        "params": [
+          "name:string",
+          "path:string"
+        ],
+        "returns": [
+          "settings.ProjectLocation",
+          "error"
+        ]
+      },
+      {
+        "name": "AddProjectWorkspace",
+        "params": [
+          "projectId:string",
+          "workspaceData:interface{}"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "AddRecentProject",
+        "params": [
+          "studioName:string",
+          "projectId:string"
+        ],
+        "returns": [
+          "[]string",
+          "error"
+        ]
+      },
+      {
+        "name": "AssignProjectToLocation",
+        "params": [
+          "projectID:string",
+          "locationID:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "CanDeleteLocation",
+        "params": [
+          "locationID:string"
+        ],
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "CheckAllLocationsHealth",
+        "params": null,
+        "returns": [
+          "[]settings.LocationHealth",
+          "error"
+        ]
+      },
+      {
+        "name": "CheckLocationHealth",
+        "params": [
+          "locationID:string"
+        ],
+        "returns": [
+          "settings.LocationHealth",
+          "error"
+        ]
+      },
+      {
+        "name": "ClearRecentProject",
+        "params": [
+          "studioName:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "DeleteIntegrationCredential",
+        "params": [
+          "integrationId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "GetAllLocationPaths",
+        "params": null,
+        "returns": [
+          "[]settings.ProjectLocation",
+          "error"
+        ]
+      },
+      {
+        "name": "GetBridgeEnabled",
+        "params": null,
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "GetCurrentVersion",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetDefaultLocation",
+        "params": null,
+        "returns": [
+          "settings.ProjectLocation",
+          "error"
+        ]
+      },
+      {
+        "name": "GetDefaultViewMode",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetEulaAccepted",
+        "params": null,
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "GetIconScheme",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetIntegrationCredential",
+        "params": [
+          "integrationId:string"
+        ],
+        "returns": [
+          "settings.IntegrationCredential",
+          "error"
+        ]
+      },
+      {
+        "name": "GetLanguage",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetLastStudio",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetLocationUsage",
+        "params": [
+          "locationID:string"
+        ],
+        "returns": [
+          "int",
+          "error"
+        ]
+      },
+      {
+        "name": "GetLogContents",
+        "params": [
+          "maxLines:int"
+        ],
+        "returns": [
+          "[]string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetLogPath",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetMinimizeOnClose",
+        "params": null,
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "GetPinnedProjects",
+        "params": [
+          "studioName:string"
+        ],
+        "returns": [
+          "[]string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetProjectDependencyPresets",
+        "params": [
+          "projectId:string"
+        ],
+        "returns": [
+          "[]interface{}",
+          "error"
+        ]
+      },
+      {
+        "name": "GetProjectDirectory",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetProjectLocation",
+        "params": [
+          "projectID:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetProjectWorkspaces",
+        "params": [
+          "projectId:string"
+        ],
+        "returns": [
+          "[]interface{}",
+          "error"
+        ]
+      },
+      {
+        "name": "GetRecentProjects",
+        "params": [
+          "studioName:string"
+        ],
+        "returns": [
+          "[]string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetSharedProjectDirectory",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetShowTypeIcons",
+        "params": null,
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "GetStudios",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "[]settings.Studio",
+          "error"
+        ]
+      },
+      {
+        "name": "GetSyncAfterCheckpoint",
+        "params": null,
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "GetTheme",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetUseGrid",
+        "params": null,
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "GetUserDirectory",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetUsername",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetWorkingDirectory",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "IsProjectGridView",
+        "params": null,
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "IsShowUntrackedProjects",
+        "params": null,
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "PinProject",
+        "params": [
+          "studioName:string",
+          "projectId:string"
+        ],
+        "returns": [
+          "[]string",
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveDependencyPreset",
+        "params": [
+          "projectId:string",
+          "presetName:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveProjectLocation",
+        "params": [
+          "locationID:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveProjectWorkspace",
+        "params": [
+          "projectId:string",
+          "workspaceName:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SaveIntegrationCredential",
+        "params": [
+          "cred:settings.IntegrationCredential"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetBridgeEnabled",
+        "params": [
+          "enabled:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetCurrentVersion",
+        "params": [
+          "versionNumber:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetDefaultLocation",
+        "params": [
+          "locationID:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetDefaultViewMode",
+        "params": [
+          "viewMode:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetEulaAccepted",
+        "params": [
+          "eulaAccepted:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetIconScheme",
+        "params": [
+          "iconScheme:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetLanguage",
+        "params": [
+          "language:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetLastStudio",
+        "params": [
+          "lastStudioName:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetMinimizeOnClose",
+        "params": [
+          "enabled:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetProjectDirectory",
+        "params": [
+          "dir:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetSharedProjectDirectory",
+        "params": [
+          "dir:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetShowTypeIcons",
+        "params": [
+          "enabled:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetSyncAfterCheckpoint",
+        "params": [
+          "enabled:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetTheme",
+        "params": [
+          "theme:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetUseGrid",
+        "params": [
+          "useGrid:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetWorkingDirectory",
+        "params": [
+          "dir:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ToggleProjectGridView",
+        "params": null,
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ToggleShowUntrackedProjects",
+        "params": null,
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UnpinProject",
+        "params": [
+          "studioName:string",
+          "projectId:string"
+        ],
+        "returns": [
+          "[]string",
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateDependencyPreset",
+        "params": [
+          "projectId:string",
+          "presetName:string",
+          "updatedPreset:interface{}"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateProjectLocation",
+        "params": [
+          "locationID:string",
+          "name:string",
+          "path:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateProjectWorkspace",
+        "params": [
+          "projectId:string",
+          "workspaceName:string",
+          "workspaceData:interface{}"
+        ],
+        "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "ShareService": {
+    "file": "services/share_service.go",
+    "methods": [
+      {
+        "name": "CreateShareLink",
+        "params": [
+          "studioId:string",
+          "projectName:string",
+          "checkpointIds:[]string",
+          "label:string",
+          "expiresInHours:int"
+        ],
+        "returns": [
+          "ShareLinkResponse",
+          "error"
+        ]
+      },
+      {
+        "name": "RevokeShareLink",
+        "params": [
+          "token:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "StatusService": {
+    "file": "services/status_service.go",
+    "methods": [
+      {
+        "name": "GetStatuses",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]models.Status",
+          "error"
+        ]
+      }
+    ]
+  },
+  "StudioService": {
+    "file": "services/studio_service.go",
+    "methods": [
+      {
+        "name": "AddCollaborator",
+        "params": [
+          "email:string",
+          "studioId:string",
+          "roleName:string"
+        ],
+        "returns": [
+          "interface{}",
+          "error"
+        ]
+      },
+      {
+        "name": "ChangeCollaboratorRole",
+        "params": [
+          "userId:string",
+          "studioId:string",
+          "roleName:string"
+        ],
+        "returns": [
+          "interface{}",
+          "error"
+        ]
+      },
+      {
+        "name": "CheckStudioNameExists",
+        "params": [
+          "studioName:string"
+        ],
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "GetServerVersion",
+        "params": [
+          "studioUrl:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetStudioInfo",
+        "params": [
+          "studioUrl:string"
+        ],
+        "returns": [
+          "studio_service.StudioInfo",
+          "error"
+        ]
+      },
+      {
+        "name": "GetStudioStatus",
+        "params": [
+          "studioUrl:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetStudioUsers",
+        "params": [
+          "studioId:string"
+        ],
+        "returns": [
+          "[]models.StudioUserInfo",
+          "error"
+        ]
+      },
+      {
+        "name": "RegisterStudio",
+        "params": [
+          "name:string",
+          "studioUrl:string",
+          "hostingMode:string"
+        ],
+        "returns": [
+          "interface{}",
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveCollaborator",
+        "params": [
+          "userId:string",
+          "studioId:string"
+        ],
+        "returns": [
+          "interface{}",
+          "error"
+        ]
+      },
+      {
+        "name": "ResolveStudioUrl",
+        "params": [
+          "url:string",
+          "altUrl:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateStudio",
+        "params": [
+          "studioName:string",
+          "url:string",
+          "altUrl:string",
+          "port:string",
+          "key:string"
+        ],
+        "returns": [
+          "interface{}",
+          "error"
+        ]
+      },
+      {
+        "name": "VerifyDeploymentCode",
+        "params": [
+          "code:string"
+        ],
+        "returns": [
+          "bool",
+          "string",
+          "error"
+        ]
+      }
+    ]
+  },
+  "SyncService": {
+    "file": "services/sync_service.go",
+    "methods": [
+      {
+        "name": "CancelSync",
+        "params": null,
+        "returns": null
+      },
+      {
+        "name": "CloneProject",
+        "params": [
+          "projectUri:string",
+          "studioName:string",
+          "workingDir:string",
+          "syncOptions:sync_service.SyncOptions"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "DiscardAllChanges",
+        "params": [
+          "projectPath:string",
+          "remoteURL:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "DiscardChanges",
+        "params": [
+          "projectPath:string",
+          "remoteURL:string",
+          "itemIds:[]string",
+          "itemType:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "DownloadCheckpoint",
+        "params": [
+          "projectPath:string",
+          "remoteURL:string",
+          "checkpointId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "GetPendingChanges",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "sync_service.ChangeSummary",
+          "error"
+        ]
+      },
+      {
+        "name": "IsUnsynced",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "PullData",
+        "params": [
+          "projectPath:string",
+          "remoteURL:string",
+          "pullChunk:bool",
+          "syncOptions:sync_service.SyncOptions"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "PullLatestCheckpoints",
+        "params": [
+          "projectPath:string",
+          "remoteURL:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "PushCheckpoints",
+        "params": [
+          "projectPath:string",
+          "remoteURL:string",
+          "pullChunk:bool",
+          "syncOptions:sync_service.SyncOptions"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ResolveConflicts",
+        "params": [
+          "projectPath:string",
+          "conflictsJSON:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SyncAsset",
+        "params": [
+          "projectPath:string",
+          "remoteURL:string",
+          "assetId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SyncData",
+        "params": [
+          "projectPath:string",
+          "remoteURL:string",
+          "pullChunk:bool",
+          "syncOptions:sync_service.SyncOptions"
+        ],
+        "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "TagService": {
+    "file": "services/tag_service.go",
+    "methods": [
+      {
+        "name": "AddTagToAsset",
+        "params": [
+          "projectPath:string",
+          "assetId:string",
+          "tagName:string"
+        ],
+        "returns": [
+          "[]models.Tag",
+          "error"
+        ]
+      },
+      {
+        "name": "GetAssetTags",
+        "params": [
+          "projectPath:string",
+          "assetId:string"
+        ],
+        "returns": [
+          "[]models.Tag",
+          "error"
+        ]
+      },
+      {
+        "name": "GetTags",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]models.Tag",
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveTagFromAsset",
+        "params": [
+          "projectPath:string",
+          "assetId:string",
+          "tagId:string"
+        ],
+        "returns": [
+          "[]models.Tag",
+          "error"
+        ]
+      }
+    ]
+  },
+  "TemplateService": {
+    "file": "services/template_service.go",
+    "methods": [
+      {
+        "name": "ChangeTemplateFile",
+        "params": [
+          "projectPath:string",
+          "templateName:string",
+          "filePath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "CreateTemplate",
+        "params": [
+          "projectPath:string",
+          "templateName:string",
+          "filePath:string"
+        ],
+        "returns": [
+          "models.Template",
+          "error"
+        ]
+      },
+      {
+        "name": "DeleteTemplate",
+        "params": [
+          "projectPath:string",
+          "templateName:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "GetTemplate",
+        "params": [
+          "projectPath:string",
+          "templateId:string"
+        ],
+        "returns": [
+          "models.Template",
+          "error"
+        ]
+      },
+      {
+        "name": "GetTemplates",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]models.Template",
+          "error"
+        ]
+      },
+      {
+        "name": "RenameTemplate",
+        "params": [
+          "projectPath:string",
+          "templateName:string",
+          "newName:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "TrashService": {
+    "file": "services/trash_service.go",
+    "methods": [
+      {
+        "name": "GetTrashs",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]RecycleItem",
+          "error"
+        ]
+      },
+      {
+        "name": "Restore",
+        "params": [
+          "projectPath:string",
+          "id:string",
+          "itemType:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "UserService": {
+    "file": "services/user_service.go",
+    "methods": [
+      {
+        "name": "AddRole",
+        "params": [
+          "projectPath:string",
+          "name:string",
+          "attributes:models.RoleAttributes"
+        ],
+        "returns": [
+          "models.Role",
+          "error"
+        ]
+      },
+      {
+        "name": "DeleteRole",
+        "params": [
+          "projectPath:string",
+          "id:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "FetchUserById",
+        "params": [
+          "userId:string"
+        ],
+        "returns": [
+          "models.User",
+          "error"
+        ]
+      },
+      {
+        "name": "GetRoles",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]models.Role",
+          "error"
+        ]
+      },
+      {
+        "name": "GetUser",
+        "params": [
+          "projectPath:string",
+          "userId:string"
+        ],
+        "returns": [
+          "models.User",
+          "error"
+        ]
+      },
+      {
+        "name": "GetUsers",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]models.User",
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateRole",
+        "params": [
+          "projectPath:string",
+          "id:string",
+          "name:string",
+          "attributes:models.RoleAttributes"
+        ],
+        "returns": [
+          "models.Role",
+          "error"
+        ]
+      }
+    ]
+  },
+  "WorkflowService": {
+    "file": "services/workflow_service.go",
+    "methods": [
+      {
+        "name": "AddWorkflow",
+        "params": [
+          "projectPath:string",
+          "workflow_id:string",
+          "name:string",
+          "collectionTypeId:string",
+          "parentId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "CreateWorkflow",
+        "params": [
+          "projectPath:string",
+          "name:string",
+          "workflowAssets:[]models.WorkflowAsset",
+          "workflowCollections:[]models.WorkflowCollection",
+          "workflowLinks:[]models.WorkflowLink"
+        ],
+        "returns": [
+          "models.Workflow",
+          "error"
+        ]
+      },
+      {
+        "name": "GetWorkflows",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]models.Workflow",
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateWorkflow",
+        "params": [
+          "projectPath:string",
+          "workflowId:string",
+          "name:string",
+          "workflowAssets:[]models.WorkflowAsset",
+          "workflowCollections:[]models.WorkflowCollection",
+          "workflowLinks:[]models.WorkflowLink"
+        ],
+        "returns": [
+          "models.Workflow",
+          "error"
+        ]
+      }
+    ]
+  }
+}
