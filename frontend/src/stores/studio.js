@@ -23,7 +23,6 @@ export const useStudioStore = defineStore("studio", {
   }),
   getters: {
     getStudiosNames: (state) => {
-      console.log(state.studios);
       if (state.studios) {
         return state.studios.map((studio) => studio.name);
       }
@@ -71,7 +70,6 @@ export const useStudioStore = defineStore("studio", {
         const studiosResponse = await axios.get("/api/person/studios");
         let allStudios = studiosResponse.data;
         this.studios = allStudios.filter((studio) => studio.url);
-        console.log(this.studios)
         // sort studios by name
         this.studios.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -217,15 +215,6 @@ export const useStudioStore = defineStore("studio", {
         }
       });
 
-      // studio_service
-      //   .getStudioUsers(studio.id)
-      //   .then((response) => {
-      //     this.selectedStudio = studio;
-      //     this.selectedStudioUsers = response;
-      //   })
-      //   .catch((error) => {
-      //     console.log(error);
-      //   });
     },
 
     async getStudioUsers() {

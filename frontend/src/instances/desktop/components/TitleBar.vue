@@ -295,7 +295,6 @@ const selectStudio = async (studio) => {
   }
 
   refreshEntitlements();
-	console.log(entitlementStore.features);
   
 
   if (projectStore.projects.length && projectStore.activeProject && projectStore.activeProject.is_downloaded) {
