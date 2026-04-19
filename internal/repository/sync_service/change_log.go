@@ -176,7 +176,7 @@ func LoadChangeSummary(tx *sqlx.Tx) (ChangeSummary, error) {
 			name, icon, ext := lookupAssetInfo(tx, row.ParentID)
 			container := &ChangeSummaryItem{
 				ID: row.ParentID, Name: name, Icon: icon, Extension: ext, Source: "asset",
-				ChangeType: "unchanged",
+				ChangeType: "modified",
 				Children:   []ChangeChild{child},
 			}
 			assetMap[row.ParentID] = container
@@ -213,7 +213,7 @@ func LoadChangeSummary(tx *sqlx.Tx) (ChangeSummary, error) {
 				name, icon, ext := lookupAssetInfo(tx, row.ParentID)
 				container := &ChangeSummaryItem{
 					ID: row.ParentID, Name: name, Icon: icon, Extension: ext, Source: "asset",
-					ChangeType: "unchanged",
+					ChangeType: "modified",
 					Children:   []ChangeChild{child},
 				}
 				assetMap[row.ParentID] = container
@@ -265,7 +265,7 @@ func LoadChangeSummary(tx *sqlx.Tx) (ChangeSummary, error) {
 				name, icon := lookupCollectionInfo(tx, row.ParentID)
 				container := &ChangeSummaryItem{
 					ID: row.ParentID, Name: name, Icon: icon, Source: "collection",
-					ChangeType: "unchanged",
+					ChangeType: "modified",
 					Children:   []ChangeChild{child},
 				}
 				collectionMap[row.ParentID] = container

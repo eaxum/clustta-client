@@ -957,7 +957,7 @@
     "checkpointsTab": "チェックポイント",
     "dependenciesTab": "依存関係",
     "consoleTab": "コンソール",
-    "changeLogTab": "変更履歴",
+    "changesTab": "変更",
     "collaboratorsTab": "コラボレーター",
     "projectDetails": "プロジェクト詳細",
     "projectDetailsTooltip": "プロジェクトの詳細と統計を表示",
@@ -1176,7 +1176,7 @@
     "actionBar": {
       "add": "追加"
     },
-    "changeLogItem": {
+    "changeItem": {
       "goToItem": "アイテムに移動",
       "discard": "破棄"
     },

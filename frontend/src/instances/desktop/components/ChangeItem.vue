@@ -6,28 +6,31 @@
         <div class="changelog-item-label">
           <div class="changelog-item-label-text">{{ displayText }}</div>
         </div>
-        <span class="changelog-change-badge" :class="'badge-' + item.change_type">{{ item.change_type }}</span>
+        <span v-if="!isExpanded" class="changelog-change-badge" :class="'badge-' + item.change_type">{{ item.change_type }}</span>
       </div>
 
       <div class="changelog-item-actions">
-        <ActionButton v-if="hasChildren && item.change_type === 'deleted'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeLogItem.restore')" :buttonFunction="() => $emit('restore', item.id)" :isDisabled="isLoading" />
-        <ActionButton v-if="item.change_type !== 'deleted' && itemType !== 'other'" :icon="getAppIcon('file-search')" v-tooltip="$t('components.changeLogItem.goToItem')" :buttonFunction="() => $emit('find', item.id)" :isDisabled="isLoading" />
-        <ActionButton v-if="hasChildren && item.change_type !== 'deleted' && item.change_type !== 'unchanged'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeLogItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
+        <ActionButton v-if="hasChildren && item.change_type === 'deleted'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeItem.restore')" :buttonFunction="() => $emit('restore', item.id)" :isDisabled="isLoading" />
+        <ActionButton v-if="item.change_type !== 'deleted' && itemType !== 'other'" :icon="getAppIcon('file-search')" v-tooltip="$t('components.changeItem.goToItem')" :buttonFunction="() => $emit('find', item.id)" :isDisabled="isLoading" />
+        <ActionButton v-if="hasChildren && item.change_type !== 'deleted' && item.change_type !== 'unchanged'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
       </div>
-      <ActionButton v-if="!hasChildren && item.change_type === 'deleted'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeLogItem.restore')" :buttonFunction="() => $emit('restore', item.id)" :isDisabled="isLoading" />
-      <ActionButton v-if="!hasChildren && item.change_type !== 'deleted' && item.change_type !== 'unchanged'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeLogItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
+      <ActionButton v-if="!hasChildren && item.change_type === 'deleted'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeItem.restore')" :buttonFunction="() => $emit('restore', item.id)" :isDisabled="isLoading" />
+      <ActionButton v-if="!hasChildren && item.change_type !== 'deleted' && item.change_type !== 'unchanged'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
       <ActionButton v-if="hasChildren" :icon="getAppIcon('chevron-right')" :class="{ 'chevron-expanded': isExpanded }" :buttonFunction="toggleChildren" />
 
     </div>
 
     <transition name="expand" appear>
       <div v-if="hasChildren" v-show="isExpanded" class="changelog-children">
-        <div class="changelog-child" v-for="child in item.children" :key="child.id">
-          <img class="changelog-child-icon small-icons" :src="childIcon(child.source)" />
-          <div class="changelog-child-label">{{ child.description }}</div>
-          <span class="changelog-change-badge badge-child" :class="'badge-' + child.change_type">{{ child.change_type }}</span>
-          <ActionButton :icon="getAppIcon('undo')" v-tooltip="child.change_type === 'deleted' ? $t('components.changeLogItem.restore') : $t('components.changeLogItem.discard')" :buttonFunction="() => $emit('undoChild', child)" :isDisabled="isLoading" />
-        </div>
+        <template v-for="(child, index) in item.children" :key="child.id">
+          <div v-if="index > 0" class="changelog-child-divider"></div>
+          <div class="changelog-child">
+            <img class="changelog-child-icon small-icons" :src="childIcon(child.source)" />
+            <div class="changelog-child-label">{{ child.description }}</div>
+            <span class="changelog-change-badge badge-child" :class="'badge-' + child.change_type">{{ child.change_type }}</span>
+            <ActionButton :icon="getAppIcon('undo')" v-tooltip="child.change_type === 'deleted' ? $t('components.changeItem.restore') : $t('components.changeItem.discard')" :buttonFunction="() => $emit('undoChild', child)" :isDisabled="isLoading" />
+          </div>
+        </template>
       </div>
     </transition>
   </div>
@@ -162,6 +165,12 @@ onMounted(resolveIcon);
   min-height: 28px;
 }
 
+.changelog-child-divider {
+  height: 1px;
+  margin: 0 .75rem 0 1.5rem;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
 .changelog-child-icon {
   width: 16px;
   height: 16px;
@@ -183,9 +192,9 @@ onMounted(resolveIcon);
 
 .changelog-children {
   width: 100%;
-  background-color: rgba(255, 255, 255, 0.03);
-  border-bottom-left-radius: var(--large-radius);
-  border-bottom-right-radius: var(--large-radius);
+  /* background-color: rgba(255, 255, 255, 0.03); */
+  /* border-bottom-left-radius: var(--large-radius);
+  border-bottom-right-radius: var(--large-radius); */
   overflow: hidden;
 }
 
@@ -199,6 +208,8 @@ onMounted(resolveIcon);
   justify-content: space-between;
   width: 100%;
   padding: 0 .5rem;
+  background-color: var(--dark-steel);
+  border-radius: var(--small-radius);
   overflow: hidden;
 }
 
@@ -220,12 +231,12 @@ onMounted(resolveIcon);
   min-height: max-content;
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--dark-steel);
+  background-color: var(--steel);
   transition: all .2s ease-in-out;
 }
 
 .changelog-item-container:hover {
-  border-radius: var(--normal-radius);
+  border-radius: var(--small-radius);
   background-color: var(--steel);
 }
 

@@ -956,7 +956,7 @@
     "checkpointsTab": "चेकपॉइंट",
     "dependenciesTab": "डिपेंडेंसी",
     "consoleTab": "कंसोल",
-    "changeLogTab": "चेंज लॉग",
+    "changesTab": "बदलाव",
     "collaboratorsTab": "सहयोगी",
     "projectDetails": "प्रोजेक्ट विवरण",
     "projectDetailsTooltip": "प्रोजेक्ट विवरण और आँकड़े देखें",
@@ -1175,7 +1175,7 @@
     "actionBar": {
       "add": "जोड़ें"
     },
-    "changeLogItem": {
+    "changeItem": {
       "goToItem": "आइटम पर जाएँ",
       "discard": "छोड़ें"
     },

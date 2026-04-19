@@ -956,7 +956,7 @@
     "checkpointsTab": "Контрольные точки",
     "dependenciesTab": "Зависимости",
     "consoleTab": "Консоль",
-    "changeLogTab": "Журнал изменений",
+    "changesTab": "Изменения",
     "collaboratorsTab": "Соавторы",
     "projectDetails": "Детали проекта",
     "projectDetailsTooltip": "Посмотреть детали и статистику проекта",
@@ -1175,7 +1175,7 @@
     "actionBar": {
       "add": "Добавить"
     },
-    "changeLogItem": {
+    "changeItem": {
       "goToItem": "Перейти к элементу",
       "discard": "Отменить"
     },

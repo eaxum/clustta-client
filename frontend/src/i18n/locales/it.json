@@ -956,7 +956,7 @@
     "checkpointsTab": "Checkpoint",
     "dependenciesTab": "Dipendenze",
     "consoleTab": "Console",
-    "changeLogTab": "Registro modifiche",
+    "changesTab": "Modifiche",
     "collaboratorsTab": "Collaboratori",
     "projectDetails": "Dettagli progetto",
     "projectDetailsTooltip": "Visualizza dettagli e statistiche del progetto",
@@ -1175,7 +1175,7 @@
     "actionBar": {
       "add": "Aggiungi"
     },
-    "changeLogItem": {
+    "changeItem": {
       "goToItem": "Vai all'elemento",
       "discard": "Scarta"
     },
