@@ -152,7 +152,7 @@ const createStudioAndCheckout = async () => {
     const result = await StudioService.RegisterStudio(studioName.value, '', 'cloud');
 
     // Get the studio ID from the creation response
-    const studioId = result?.studio?.id || '';
+    const studioId = result?.id || '';
 
     // Redirect to Stripe Checkout for the selected plan
     const checkoutUrl = await entitlementStore.createCheckout(plan.id, studioId);

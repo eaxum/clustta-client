@@ -453,7 +453,7 @@ const createCloudStudioAndCheckout = async () => {
     const result = await StudioService.RegisterStudio(cloudStudioName.value, '', 'cloud');
 
     // Get the studio ID from the creation response
-    const studioId = result?.studio?.id || '';
+    const studioId = result?.id || '';
 
     const checkoutUrl = await entitlementStore.createCheckout(plan.id, studioId);
     if (checkoutUrl) {
