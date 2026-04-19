@@ -1698,6 +1698,13 @@ export class RecycleItem {
              */
             this["id"] = "";
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["extension"] = undefined;
+        }
         if (!("parent_id" in $$source)) {
             /**
              * @member

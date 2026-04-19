@@ -910,6 +910,7 @@
     "assets": "Assets",
     "collections": "Collections",
     "other": "Other",
+    "templates": "Templates",
     "loadingChanges": "Loading changes...",
     "noPendingChanges": "No pending changes",
     "discardAllChanges": "Discard All Changes",
@@ -1208,7 +1209,8 @@
     },
     "changeItem": {
       "goToItem": "Go to Item",
-      "discard": "Discard"
+      "discard": "Discard",
+      "restore": "Restore"
     },
     "batchGenerator": {
       "firstItem": "First Item",

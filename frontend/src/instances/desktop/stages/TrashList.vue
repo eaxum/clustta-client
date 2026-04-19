@@ -1,21 +1,14 @@
 <template>
-  <div class="page-list-root absolute-pane">
-    <div class="trash-list-stage-root">
-      <div class="trash-list-stage-header">
-        <HeaderTabs :useTooltip="false" :dataTypes="trashTypes" @filter="filterList" :fullWidth="true" />
-      </div>
-      <div class="trash-list-stage-body">
-        <div class="trash-list-stage-body-root">
-          <div class="trash-list-stage-body-container">
+  <div class="settings-component-root">
+    <div class="trash-list-header">
+      <HeaderTabs :useTooltip="false" :dataTypes="trashTypes" @filter="filterList" :fullWidth="true" />
+    </div>
 
-            <PageState v-if="!filteredtrashItems.length" :message="message()" :illustration="illustration()" />
+    <div class="settings-component-container">
+      <PageState v-if="!filteredTrashItems.length" :message="emptyMessage" :illustration="emptyIllustration" />
 
-            <TrashItem class="asset-item" v-for="(trashItem, index) in filteredtrashItems" :key="index"
-              :trashItem="trashItem" :trashItemIndex="index" :allTrash="filteredtrashItems"
-              :style="{ animationDelay: index < 10 ? `${(index - 1) * 0.05}s` : '0s' }" />
-
-          </div>
-        </div>
+      <div v-else class="trash-list-body">
+        <TrashItem v-for="(trashItem, index) in filteredTrashItems" :key="index" :trashItem="trashItem" :trashItemIndex="index" :style="{ animationDelay: index < 10 ? `${(index - 1) * 0.05}s` : '0s' }" />
       </div>
     </div>
   </div>
@@ -23,60 +16,75 @@
 
 <script setup>
 // imports
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { computed, onBeforeMount, onBeforeUnmount, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-// services
-import { TrashService } from "@/services";
-
-// state and store imports
-import { useModalStore } from '@/stores/modals';
-import { useTrayStates } from '@/stores/TrayStates';
-
 // components
-import TrashItem from '@/instances/desktop/components/TrashItem.vue';
 import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
 import PageState from '@/instances/common/components/PageState.vue';
-import { useCollectionStore } from '@/stores/collections';
-import { useAssetStore } from '@/stores/assets';
-import { onBeforeMount } from 'vue';
-import { useProjectStore } from '@/stores/projects';
+import TrashItem from '@/instances/desktop/components/TrashItem.vue';
 
-// states and stores
-const trayStates = useTrayStates();
-const modalStore = useModalStore();
-const collectionStore = useCollectionStore();
+// services
+import { TrashService } from '@/services';
+
+// stores
+import { useAssetStore } from '@/stores/assets';
+import { useProjectStore } from '@/stores/projects';
+import { useTrayStates } from '@/stores/TrayStates';
+
 const assetStore = useAssetStore();
 const projectStore = useProjectStore();
+const trayStates = useTrayStates();
 const { t } = useI18n();
 
 // refs
 const assets = ref([]);
-const resources = ref([]);
-const filterIndex = ref(0);
-const trashTypefilter = ref('all');
+const trashTypeFilter = ref('all');
 
-// computed
-const trashTypes = computed(() => {
-  const trashTypes = trayStates.trashTypes;
-  // console.log(trashTypes);
-  return trashTypes.filter(trashType => !trashType.name.includes('checkpoint'));
+// computed properties
+// Returns the empty state illustration based on the current filter.
+const emptyIllustration = computed(() => {
+  const illustrations = {
+    collection: '/page-states/collections.png',
+    asset: '/page-states/assets.png',
+    template: '/page-states/template.png',
+    all: '/page-states/resources.png',
+  };
+  return illustrations[trashTypeFilter.value] || '/page-states/resources.png';
 });
 
-const sortedTrashItems = computed(() => {
+// Returns the empty state message based on the current filter.
+const emptyMessage = computed(() => {
+  if (trashTypeFilter.value === 'all') return t('stages.noDeletedItems');
+  return t('stages.noDeletedItemsByType', { type: trashTypeFilter.value });
+});
 
+// Returns trash items filtered by type and search query.
+const filteredTrashItems = computed(() => {
+  const data = sortedTrashItems.value;
+  const query = trayStates.trashSearchQuery?.toLowerCase() || '';
+  const hasSearch = trayStates.showTraySearch && query !== '';
+  const typeFilter = trashTypeFilter.value;
+
+  return data.filter((item) => {
+    const matchesType = typeFilter === 'all' || item.type === typeFilter;
+    const matchesSearch = !hasSearch || item.name.toLowerCase().includes(query);
+    return matchesType && matchesSearch;
+  });
+});
+
+// Returns trash items sorted by name with checkpoints nested under parents.
+const sortedTrashItems = computed(() => {
   const trashables = trayStates.trashables;
   const allTrash = [];
+
   for (const key in trashables) {
     if (trashables.hasOwnProperty(key)) {
       const item = trashables[key];
-      const collectionName = getMeta(item.type, item.id, item.parent_id, item.data).name;
-      allTrash.push({
-        ...item,
-        collection_name: collectionName,
-      });
+      const collectionName = getMeta(item.type, item.id, item.parent_id);
+      allTrash.push({ ...item, collection_name: collectionName });
     }
-  };
+  }
 
   const ids = new Set(allTrash.map(item => item.id));
   const orphanItems = allTrash.filter(item => !ids.has(item.parent_id));
@@ -87,289 +95,120 @@ const sortedTrashItems = computed(() => {
       if (!parentMap[item.parent_id]) {
         parentMap[item.parent_id] = {
           name: item.name.slice(0, -21),
-          type: item.type.replace("_checkpoint", ""),
+          type: item.type.replace('_checkpoint', ''),
           id: item.parent_id,
           collection_name: item.collection_name,
           asset_name: item.asset_name,
           parent_id: item.parent_id,
-          checkpoints: []
+          checkpoints: [],
         };
       }
       parentMap[item.parent_id].checkpoints.push(item);
-    }
-    else {
-      parentMap[item.id] = {
-        ...item,
-        checkpoints: []
-      };
+    } else {
+      parentMap[item.id] = { ...item, checkpoints: [] };
     }
   });
 
   const result = Object.values(parentMap).map(parent => {
     const originalItem = orphanItems.find(item => item.id === parent.id);
-    if (originalItem) {
-      return {
-        ...originalItem,
-        checkpoints: parent.checkpoints
-      };
-    }
-    return parent;
+    return originalItem ? { ...originalItem, checkpoints: parent.checkpoints } : parent;
   });
 
-  // console.log(result);
-
-  return sortByName(result);
+  return result.sort((a, b) => a.name.localeCompare(b.name));
 });
 
-const filteredtrashItems = computed(() => {
-  const data = sortedTrashItems.value;
-  if (!trayStates.showTraySearch || trayStates.trashSearchQuery === "") {
-    if (trashTypefilter.value === 'all') {
-      return data;
-    } else {
-      return data.filter((item) => item.type === trashTypefilter.value);
-    }
-  } else {
-    if (trashTypefilter.value === 'all') {
-      return data.filter((item) => item.name.toLowerCase().includes(trayStates.trashSearchQuery.toLowerCase()));
-    } else {
-      return data.filter((item) => item.type === trashTypefilter.value && item.name.toLowerCase().includes(trayStates.trashSearchQuery.toLowerCase()));
-    }
-  }
+// Returns trash type filters excluding checkpoints.
+const trashTypes = computed(() => {
+  return trayStates.trashTypes.filter(trashType => !trashType.name.includes('checkpoint'));
 });
-
 
 // methods
-const message = () => {
-  const type = trashTypefilter.value;
-  if (type === 'all') { return t('stages.noDeletedItems') }
-  else { return t('stages.noDeletedItemsByType', { type: type }) };
-};
-
-const illustration = () => {
-  const type = trashTypefilter.value;
-  if(type === 'collection'){
-    return  '/page-states/collections.png';
-  } else if ( type === 'asset'){
-    return '/page-states/assets.png'
-  } else if ( type === 'resource'){
-    return '/page-states/resources.png'
-  } else if ( type === 'template'){
-    return '/page-states/template.png'
-  } else if ( type === 'all'){
-    return '/page-states/resources.png'
-  }
-};
-
-const secondaryActionMessage = () => {
-  const type = trashTypefilter.value;
-  if (type === 'all') { return t('stages.importResource') }
-  else { return t('stages.importByType', { type: type }) };
-};
-
-const highlightFilter = (index) => {
-  filterIndex.value = index;
-};
-
-const sortByName = (arr) => {
-  return arr.sort((a, b) => a.name.localeCompare(b.name));
-};
-
-const getMeta = (type, id, parent_id, data) => {
-
-  if (type === 'asset') {
-    const collectionName = assets.value.find(item => item.id === id)?.collection_name;
-    return { name: collectionName, asset: '' };
-
-  } else if (type === 'asset_checkpoint') {
-    const collectionName = assets.value.find(item => item.id === parent_id)?.collection_name;
-    console.log(collectionName)
-    return { name: collectionName, asset: '' };
-  }
-  else {
-    return ''
-  }
-
-};
-
-const findParentID = (id) => {
-  const collectionId = assets.value.filter(item => item.id === id)[0].collection_id;
-  const collectionName = collectionStore.collections.filter(item => item.id === collectionId)[0].name;
-  // console.log(collectionName);
-  return collectionName;
-};
-
-
+// Filters the trash list by type.
 const filterList = (trashType) => {
-  let trashTypeName
-  if(trashType === 'collections'){
-    trashTypeName = 'collection'
-  } else {
-    trashTypeName = trashType
+  trashTypeFilter.value = trashType === 'collections' ? 'collection' : trashType;
+};
+
+// Returns the collection name for a trash item.
+const getMeta = (type, id, parentId) => {
+  if (type === 'asset' || type === 'asset_checkpoint') {
+    const lookupId = type === 'asset_checkpoint' ? parentId : id;
+    return assets.value.find(item => item.id === lookupId)?.collection_name || '';
   }
-  trashTypefilter.value = trashTypeName;
+  return '';
 };
 
-const editParams = (itemType) => {
-  modalStore.setModalVisibility(itemType, true);
-};
-
-// onMounted hook
+// lifecycle hooks
 onBeforeMount(async () => {
   trayStates.showMeta = false;
   assets.value = assetStore.assets;
   trayStates.trashables = await TrashService.GetTrashs(projectStore.activeProject.uri);
 });
 
-onBeforeUnmount(async () => {
+onBeforeUnmount(() => {
   trayStates.trashables = [];
 });
-
-
-
 </script>
 
 <style scoped>
 @import "@/assets/desktop.css";
 
-.page-list-root {
-  box-sizing: border-box;
-  padding: .4rem;
+.settings-component-root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
   align-items: center;
   justify-content: center;
+}
+
+.settings-component-container {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 100%;
+  overflow: hidden;
+  width: 96%;
+  gap: .5rem;
+  align-items: center;
   color: white;
-  /* background-color: darkblue; */
+  padding: 1rem;
+  background-color: var(--black-steel);
+  border-radius: var(--very-large-radius);
 }
 
-.trash-list-stage-root {
+.trash-list-header {
+  width: 100%;
+  display: flex;
+  box-sizing: border-box;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.trash-list-body {
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  /* background-color: firebrick; */
-  width: 100%;
-  height: 100%;
   gap: .5rem;
-
-}
-
-.trash-list-stage-header {
-  width: 100%;
-  display: flex;
-  box-sizing: border-box;
-  /* background-color: rebeccapurple; */
-  align-items: flex-start;
-  justify-content: flex-start;
-}
-
-.trash-list-stage-body {
-  width: 100%;
-  /* max-width: 1200px; */
-  height: 100%;
-  display: flex;
-  box-sizing: border-box;
-  /* background-color: teal; */
-  align-items: flex-start;
-  justify-content: flex-start;
-  justify-content: center;
-  overflow: hidden;
-  padding: .5rem;
-}
-
-.trash-list-stage-body-root {
-
-  /* background-color: tomato; */
-  max-width: 960px;
-  position: relative;
-  display: flex;
-  padding-right: .4rem;
   overflow: hidden;
   overflow-y: scroll;
-  height: 100%;
-  width: 100%;
-  box-sizing: border-box;
-  /* max-width: 600px; */
-}
-
-.trash-list-stage-body-root::-webkit-scrollbar {
-  width: 8px;
-}
-
-.trash-list-stage-body-root::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--dark-steel);
-}
-
-.trash-list-stage-body-root::-webkit-scrollbar-track {
-  border-radius: 10px;
-}
-
-.trash-list-stage-body-container {
-  width: 100%;
-  gap: .5rem;
-  max-width: 960px;
-  /* height: 100%; */
-  height: max-content;
-  display: flex;
-  box-sizing: border-box;
-  flex-direction: column;
-  /* background-color: tomato; */
-  align-items: flex-start;
-  justify-content: flex-start;
-  overflow: hidden;
-  padding: .5rem;
-}
-
-.page-list {
-  background-color: rgb(125, 192, 59);
-  padding: .4rem;
-  display: flex;
-  gap: .4rem;
-  flex-direction: column;
-  box-sizing: border-box;
-  height: 100%;
-  width: 100%;
-  /* overflow: hidden; */
-  height: max-content;
-}
-
-.page-list-container {
-  display: flex;
   padding-right: .4rem;
-  overflow: hidden;
-  overflow-y: scroll;
-  height: 100%;
-  width: 100%;
-  box-sizing: border-box;
-  /* max-width: 600px; */
-  min-width: 300px;
 }
 
-.page-list-container::-webkit-scrollbar {
-  width: 8px;
+.trash-list-body::-webkit-scrollbar {
+  width: 4px;
 }
 
-.page-list-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgb(36, 49, 59);
+.trash-list-body::-webkit-scrollbar-thumb {
+  border-radius: var(--small-radius);
+  background-color: var(--light-steel);
 }
 
-.page-list-container::-webkit-scrollbar-track {
-  border-radius: 10px;
-}
-
-.page-header {
-  position: relative;
-  display: flex;
-  width: 100%;
-  align-items: center;
-  height: max-content;
-  gap: 1rem;
-  justify-content: space-between;
-  background-color: khaki;
-  padding: .2rem;
-  box-sizing: border-box;
-  min-width: max-content;
+.trash-list-body::-webkit-scrollbar-track {
+  border-radius: var(--small-radius);
 }
 </style>
 

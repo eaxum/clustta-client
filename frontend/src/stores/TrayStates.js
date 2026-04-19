@@ -68,8 +68,6 @@ export const useTrayStates = defineStore("useTrayStates", {
       { name: "collections", icon: "folder" },
       { name: "asset", icon: "brush" },
       { name: "asset_checkpoint", icon: "layers" },
-      { name: "resource_checkpoint", icon: "layers" },
-      { name: "resource", icon: "paperclip" },
       { name: "template", icon: "file" },
     ],
     trashables: [],

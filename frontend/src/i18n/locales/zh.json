@@ -886,6 +886,7 @@
     "assets": "资产",
     "collections": "集合",
     "other": "其他",
+    "templates": "模板",
     "loadingChanges": "正在加载更改...",
     "noPendingChanges": "没有待处理的更改",
     "discardAllChanges": "丢弃所有更改",
@@ -1177,7 +1178,8 @@
     },
     "changeItem": {
       "goToItem": "转到项目",
-      "discard": "丢弃"
+      "discard": "丢弃",
+      "restore": "恢复"
     },
     "batchGenerator": {
       "firstItem": "第一个项目",

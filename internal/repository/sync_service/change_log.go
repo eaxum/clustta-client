@@ -3,7 +3,6 @@ package sync_service
 import (
 	"clustta/internal/utils"
 	"database/sql"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -83,18 +82,6 @@ func classifyCheckpointChangeType(trashed bool) string {
 	return "added"
 }
 
-// formatCheckpointDate formats a created_at datetime string into a readable date.
-func formatCheckpointDate(createdAt string) string {
-	t, err := time.Parse(time.RFC3339, createdAt)
-	if err != nil {
-		t, err = time.Parse("2006-01-02 15:04:05", createdAt)
-		if err != nil {
-			return "checkpoint"
-		}
-	}
-	return t.Format("Jan 2, 2006")
-}
-
 // lookupAssetInfo returns the name, type icon, and extension for an asset by ID.
 func lookupAssetInfo(tx *sqlx.Tx, assetID string) (string, string, string) {
 	var info struct {
@@ -167,7 +154,7 @@ func LoadChangeSummary(tx *sqlx.Tx) (ChangeSummary, error) {
 	for _, row := range checkpointRows {
 		child := ChangeChild{
 			ID: row.ID, ParentID: row.ParentID, Source: row.Source,
-			Description: formatCheckpointDate(row.Description),
+			Description: row.Description,
 			ChangeType:  classifyCheckpointChangeType(row.Trashed),
 		}
 		if parent, ok := assetMap[row.ParentID]; ok {

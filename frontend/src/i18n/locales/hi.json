@@ -886,6 +886,7 @@
     "assets": "एसेट",
     "collections": "कलेक्शन",
     "other": "अन्य",
+    "templates": "टेम्पलेट",
     "loadingChanges": "परिवर्तन लोड हो रहे हैं...",
     "noPendingChanges": "कोई लंबित परिवर्तन नहीं",
     "discardAllChanges": "सभी परिवर्तन छोड़ें",
@@ -1177,7 +1178,8 @@
     },
     "changeItem": {
       "goToItem": "आइटम पर जाएँ",
-      "discard": "छोड़ें"
+      "discard": "छोड़ें",
+      "restore": "पुनर्स्थापित करें"
     },
     "batchGenerator": {
       "firstItem": "पहला आइटम",

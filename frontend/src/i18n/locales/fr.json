@@ -887,6 +887,7 @@
     "assets": "Assets",
     "collections": "Collections",
     "other": "Autre",
+    "templates": "Modèles",
     "loadingChanges": "Chargement des modifications...",
     "noPendingChanges": "Aucune modification en attente",
     "discardAllChanges": "Annuler toutes les modifications",
@@ -1178,7 +1179,8 @@
     },
     "changeItem": {
       "goToItem": "Aller à l'élément",
-      "discard": "Annuler"
+      "discard": "Annuler",
+      "restore": "Restaurer"
     },
     "batchGenerator": {
       "firstItem": "Premier élément",

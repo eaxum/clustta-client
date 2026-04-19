@@ -13,6 +13,7 @@ type RecycleItem struct {
 	Name       string      `json:"name"`
 	Type       string      `json:"type"`
 	Id         string      `json:"id"`
+	Extension  string      `json:"extension,omitempty"`
 	ParentId   string      `json:"parent_id"`
 	ParentName string      `json:"parent_name"`
 	Data       interface{} `json:"data"`
@@ -56,9 +57,10 @@ func (t *TrashService) GetTrashs(projectPath string) ([]RecycleItem, error) {
 	}
 	for _, template := range templates {
 		recycleItem := RecycleItem{
-			Name: template.Name,
-			Type: "template",
-			Id:   template.Id,
+			Name:      template.Name,
+			Type:      "template",
+			Id:        template.Id,
+			Extension: template.Extension,
 		}
 		recycleItems = append(recycleItems, recycleItem)
 
@@ -75,6 +77,7 @@ func (t *TrashService) GetTrashs(projectPath string) ([]RecycleItem, error) {
 			Name:       asset.Name,
 			Type:       "asset",
 			Id:         asset.Id,
+			Extension:  asset.Extension,
 			ParentId:   asset.CollectionId,
 			ParentName: asset.CollectionName,
 		}
