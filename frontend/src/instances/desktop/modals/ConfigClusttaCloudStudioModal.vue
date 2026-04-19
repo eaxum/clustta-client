@@ -158,7 +158,7 @@ const createStudioAndCheckout = async () => {
     const checkoutUrl = await entitlementStore.createCheckout(plan.id, studioId);
     if (checkoutUrl) {
       Browser.OpenURL(checkoutUrl);
-      notificationStore.addNotification('Checkout', 'Complete your payment in the browser. Your studio will be activated once payment is confirmed.', 'info', false);
+      notificationStore.addNotification('Checkout', 'Complete your payment in the browser. Your studio will be activated once payment is confirmed.', 'success', false);
     } else {
       notificationStore.addNotification('Error', 'Failed to start checkout. Please try again.', 'error', false);
     }
