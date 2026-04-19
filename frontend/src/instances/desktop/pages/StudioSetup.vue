@@ -449,25 +449,16 @@ const createCloudStudioAndCheckout = async () => {
   cloudError.value = '';
 
   try {
-    await StudioService.RegisterStudio(cloudStudioName.value, '', 'cloud');
+    // Create the studio (inactive until checkout completes)
+    const result = await StudioService.RegisterStudio(cloudStudioName.value, '', 'cloud');
 
-    await projectStore.loadStudios();
-    const studio = projectStore.studios.find((item) => item.name === cloudStudioName.value);
-    if (studio) {
-      projectStore.selectedStudio = studio;
-    } else {
-      projectStore.selectedStudio = projectStore.studios[0];
-    }
+    // Get the studio ID from the creation response
+    const studioId = result?.studio?.id || '';
 
-    const studioStore = useStudioStore();
-    await studioStore.getStudioUsers();
-    await projectStore.loadProjects();
-
-    const studioId = studio ? studio.id : '';
     const checkoutUrl = await entitlementStore.createCheckout(plan.id, studioId);
     if (checkoutUrl) {
       Browser.OpenURL(checkoutUrl);
-      notificationStore.addNotification('Checkout', 'Complete your payment in the browser', 'info', false);
+      notificationStore.addNotification('Checkout', 'Complete your payment in the browser. Your studio will be activated once payment is confirmed.', 'info', false);
     } else {
       notificationStore.addNotification('Error', 'Failed to start checkout. Please try again.', 'error', false);
     }
@@ -521,8 +512,7 @@ const disconnectServer = () => {
 
 // Returns a human-readable plan name.
 const formatPlanName = (name) => {
-  const names = { studio_cloud: 'Studio Cloud', studio_pro: 'Studio Pro', studio_enterprise: 'Enterprise' };
-  return names[name] || name;
+  return name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 };
 
 // Formats bytes to human-readable storage string.
