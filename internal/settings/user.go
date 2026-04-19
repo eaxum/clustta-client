@@ -901,18 +901,22 @@ func GetStudios() ([]Studio, error) {
 		if err != nil {
 			// If we can't get studio info, use fallback with auth host
 			privateStudio := Studio{
-				Id:     accountToken.StudioId,
-				Name:   "Private Studio",
-				Url:    accountToken.AuthHost,
-				AltUrl: "",
+				Id:          accountToken.StudioId,
+				Name:        "Private Studio",
+				Url:         accountToken.AuthHost,
+				AltUrl:      "",
+				Active:      true,
+				HostingMode: "private",
 			}
 			settings.Studios = []Studio{privateStudio}
 		} else {
 			privateStudio := Studio{
-				Id:     studioInfo.Id,
-				Name:   studioInfo.Name,
-				Url:    studioInfo.Url,
-				AltUrl: studioInfo.AltUrl,
+				Id:          studioInfo.Id,
+				Name:        studioInfo.Name,
+				Url:         studioInfo.Url,
+				AltUrl:      studioInfo.AltUrl,
+				Active:      true,
+				HostingMode: "private",
 			}
 			// If name is empty, use a default
 			if privateStudio.Name == "" {

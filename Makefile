@@ -27,6 +27,51 @@ all: build
 client:
 	wails3 dev
 
+# Run the dashboard (web) dev server from the sibling clustta-dashboard repo
+.PHONY: dashboard
+dashboard:
+ifeq ($(DETECTED_OS),Windows)
+	cd ..\clustta-dashboard && yarn dev
+else
+	cd ../clustta-dashboard && yarn dev
+endif
+
+# Run the dashboard against the live (production) API.
+.PHONY: dashboard-live
+dashboard-live:
+ifeq ($(DETECTED_OS),Windows)
+	cd ..\clustta-dashboard && yarn live
+else
+	cd ../clustta-dashboard && yarn live
+endif
+
+# Sync this client's frontend into the sibling clustta-dashboard repo
+# Pass ARGS="-DryRun" or ARGS="-IncludeUntracked" to forward flags.
+.PHONY: sync
+sync:
+ifeq ($(DETECTED_OS),Windows)
+	powershell -ExecutionPolicy Bypass -File ..\clustta-dashboard\scripts\sync-repos.ps1 $(ARGS)
+else
+	pwsh -File ../clustta-dashboard/scripts/sync-repos.ps1 $(ARGS)
+endif
+
+# Regenerate services-contract.json from the Go service layer.
+# Commit the result. CI fails if this file is out of date.
+.PHONY: contract
+contract:
+	go run ./cmd/extract-services
+
+# Verify the contract is up to date (CI gate). Fails if `make contract` would
+# produce a different file than what's committed.
+.PHONY: contract-check
+contract-check:
+	go run ./cmd/extract-services
+ifeq ($(DETECTED_OS),Windows)
+	powershell -Command "if ((git status --porcelain services-contract.json) -ne '') { Write-Error 'services-contract.json is out of date. Run: make contract'; exit 1 }"
+else
+	@if [ -n "$$(git status --porcelain services-contract.json)" ]; then echo 'services-contract.json is out of date. Run: make contract'; exit 1; fi
+endif
+
 
 # Build the Clustta Engine project
 .PHONY: build

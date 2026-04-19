@@ -3,6 +3,25 @@ import { EntitlementService } from "@/services";
 import { useProjectStore } from "@/stores/projects";
 import utils from "@/services/utils";
 
+// Synthetic bundle for self-hosted (private) studios. 
+const PRIVATE_STUDIO_BUNDLE = Object.freeze({
+  plan: 'private',
+  plan_type: 'studio',
+  status: 'active',
+  limits: Object.freeze({
+    storage_bytes: -1,
+    max_remote_projects: -1,
+    max_collaborators: -1,
+    ai_credits_monthly: 0,
+  }),
+  usage: Object.freeze({ storage_bytes: 0, project_count: 0, ai_credits_used: 0 }),
+  features: Object.freeze(['sync', 'collaboration', 'custom_roles', 'integrations']),
+});
+
+function isPrivateStudio(studio) {
+  return !!studio && studio.name !== 'Personal' && studio.hosting_mode && studio.hosting_mode !== 'cloud';
+}
+
 export const useEntitlementStore = defineStore("entitlements", {
   state: () => ({
     plan: 'free',
@@ -26,47 +45,65 @@ export const useEntitlementStore = defineStore("entitlements", {
     isLoading: false,
   }),
   getters: {
-    // Returns the active feature set based on studio context.
-    activeFeatures() {
+    // Returns the resolved bundle for the current studio context.
+    // Personal/global → user's own bundle from state.
+    // Private studio → synthetic unlimited bundle (global server has no authority).
+    // Cloud studio → cached studioEntitlements[id] (or empty placeholder).
+    activeBundle() {
       const projectStore = useProjectStore();
       const studio = projectStore.selectedStudio;
+      if (isPrivateStudio(studio)) return PRIVATE_STUDIO_BUNDLE;
       if (studio && studio.name !== 'Personal' && studio.id) {
-        return this.studioEntitlements[studio.id]?.features || [];
+        return this.studioEntitlements[studio.id] || { features: [], limits: this.limits, usage: this.usage };
       }
-      return this.features;
+      return { features: this.features, limits: this.limits, usage: this.usage };
     },
+    activeFeatures() { return this.activeBundle.features || []; },
+    activeLimits() { return this.activeBundle.limits || this.limits; },
+    activeUsage() { return this.activeBundle.usage || this.usage; },
     canSync() { return this.activeFeatures.includes('sync'); },
     canUseAI: (state) => state.features.includes('ai'),
     canCollaborate() { return this.activeFeatures.includes('collaboration'); },
-    canCreateRemoteProject: (state) => {
-      if (state.limits.max_remote_projects === -1) return true;
-      return state.usage.project_count < state.limits.max_remote_projects;
+    canCreateRemoteProject() {
+      const limits = this.activeLimits;
+      const usage = this.activeUsage;
+      if (limits.max_remote_projects === -1) return true;
+      return usage.project_count < limits.max_remote_projects;
     },
     canDiscoverTalent() { return this.activeFeatures.includes('talent_discovery'); },
     canShareLink() { return this.activeFeatures.includes('share_link'); },
     hasCustomRoles() { return this.activeFeatures.includes('custom_roles'); },
     hasIntegrations() { return this.activeFeatures.includes('integrations'); },
-    isOverStorage: (state) => {
-      if (state.limits.storage_bytes <= 0) return false;
-      return state.usage.storage_bytes >= state.limits.storage_bytes;
+    isOverStorage() {
+      const limits = this.activeLimits;
+      const usage = this.activeUsage;
+      if (limits.storage_bytes <= 0) return false;
+      return usage.storage_bytes >= limits.storage_bytes;
     },
-    storagePercent: (state) => {
-      if (state.limits.storage_bytes <= 0) return 0;
-      return Math.min((state.usage.storage_bytes / state.limits.storage_bytes) * 100, 100);
+    storagePercent() {
+      const limits = this.activeLimits;
+      const usage = this.activeUsage;
+      if (limits.storage_bytes <= 0) return 0;
+      return Math.min((usage.storage_bytes / limits.storage_bytes) * 100, 100);
     },
-    isNearQuota: (state) => {
-      if (state.limits.storage_bytes <= 0) return false;
-      return (state.usage.storage_bytes / state.limits.storage_bytes) >= 0.9;
+    isNearQuota() {
+      const limits = this.activeLimits;
+      const usage = this.activeUsage;
+      if (limits.storage_bytes <= 0) return false;
+      return (usage.storage_bytes / limits.storage_bytes) >= 0.9;
     },
     isPaidPlan: (state) => state.plan !== 'free',
     isStudioActive() {
       const projectStore = useProjectStore();
       const studio = projectStore.selectedStudio;
       if (!studio || studio.name === 'Personal') return true;
+      // Only cloud-hosted studios can be deactivated (Stripe / admin toggle).
+      // Private/self-hosted studios have no such concept and are always active.
+      if (studio.hosting_mode && studio.hosting_mode !== 'cloud') return true;
       return studio.active !== false;
     },
-    storageUsedFormatted: (state) => utils.formatBytes(state.usage.storage_bytes, 2),
-    storageLimitFormatted: (state) => utils.formatBytes(state.limits.storage_bytes, 0),
+    storageUsedFormatted() { return utils.formatBytes(this.activeUsage.storage_bytes, 2); },
+    storageLimitFormatted() { return utils.formatBytes(this.activeLimits.storage_bytes, 0); },
   },
   actions: {
     // Fetches the current user's entitlements from the server.
