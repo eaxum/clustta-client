@@ -383,13 +383,6 @@ func LoginWithHost(username string, password string, authHost string, authMode A
 		return token, err
 	}
 
-	cookies := response.Cookies()
-	for _, c := range cookies {
-		if c.Name == "session" {
-			token.SessionId = c.Value
-		}
-	}
-
 	// Create AccountToken with full auth context and store it
 	accountToken := FromToken(token, authMode, authHost, studioId)
 	err = AddAccountToken(accountToken)
