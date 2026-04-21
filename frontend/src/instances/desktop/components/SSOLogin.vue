@@ -162,4 +162,14 @@ const handleSSO = async (provider) => {
 [data-theme="dark"] .apple-icon {
   filter: none;
 }
+
+@media (max-width: 768px) {
+  .sso-button span {
+    display: none;
+  }
+
+  .sso-button {
+    gap: 0;
+  }
+}
 </style>
