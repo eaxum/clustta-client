@@ -17,14 +17,16 @@ export default defineConfig(async () => {
   // Using array format to guarantee order - more specific aliases must come first
   const aliases = [];
 
-  // In web mode, redirect services to the @clustta/web-adapters package and
-  // mock @wailsio/runtime. The package is the single source of truth for HTTP
-  // shims (shared with clustta-dashboard via a file: dependency).
+  // Per-file imports of `@/services/adapters/*` always resolve to the
+  // @clustta/web-adapters package. Web-only Vue files (ResetChangePassword,
+  // ShareDownloadPage, etc.) are part of the desktop bundle even though their
+  // services only fire in web mode, so this alias must apply unconditionally.
+  aliases.push({ find: /^@\/services\/adapters\/(.+?)(\.js)?$/, replacement: "@clustta/web-adapters/$1" });
+
+  // In web mode, also redirect the bare `@/services` import and mock
+  // @wailsio/runtime so we can run without the desktop bindings.
   if (isWebMode) {
-    // Bare-import: `import { X } from '@/services'` -> package index
     aliases.push({ find: /^@\/services$/, replacement: "@clustta/web-adapters" });
-    // Per-file: `import { X } from '@/services/adapters/foo'` -> package file
-    aliases.push({ find: /^@\/services\/adapters\/(.+)$/, replacement: "@clustta/web-adapters/$1" });
     aliases.push({ find: '@wailsio/runtime', replacement: "@clustta/web-adapters/runtime/index.js" });
   }
 
