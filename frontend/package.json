@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "dev:web": "cross-env VITE_PLATFORM=web vite",
-    "dev:dashboard": "cross-env VITE_PLATFORM=web vite",
+    "dev:dashboard": "cross-env VITE_PLATFORM=web VITE_API_URL=http://localhost:5000 vite",
+    "live:dashboard": "cross-env VITE_PLATFORM=web VITE_API_URL=https://api.clustta.com vite",
     "build:dev": "vite build --minify false --mode development",
     "build": "vite build --mode production",
     "build:web": "cross-env VITE_PLATFORM=web vite build --mode production",
@@ -16,6 +17,7 @@
     "proto:generate": "pbjs -t static-module -w es6 -o src/protos/example.js src/protos/example.proto && pbts -o src/protos/example.d.ts src/protos/example.js"
   },
   "dependencies": {
+    "@clustta/web-adapters": "file:../../clustta-dashboard/packages/web-adapters",
     "@dagrejs/dagre": "^1.1.4",
     "@dicebear/big-smile": "^9.3.2",
     "@dicebear/core": "^9.4.1",
