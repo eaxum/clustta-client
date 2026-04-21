@@ -16,10 +16,15 @@
           <div class="plan-card-tagline">{{ planTagline(plan) }}</div>
 
           <div class="plan-card-price">
-            <span v-if="plan.price_cents === 0" class="price-amount price-contact">Contact</span>
-            <template v-else>
+            <template v-if="plan.price_cents > 0">
               <span class="price-amount">${{ (plan.price_cents / 100) }}</span>
               <span class="price-period">/mo</span>
+            </template>
+            <template v-else-if="plan.type === 'studio'">
+              <span class="price-amount">Custom</span>
+            </template>
+            <template v-else>
+              <span class="price-amount">Free</span>
             </template>
           </div>
 
@@ -148,7 +153,7 @@ const isRecommended = (plan) => {
 // Returns the button label for a plan card.
 const planButtonLabel = (plan) => {
   if (plan.name === currentPlanName.value) return 'Current Plan';
-  if (plan.name === 'studio_enterprise') return 'Contact Sales';
+  if (!plan.price_cents && plan.type === 'studio') return 'Contact Sales';
   const currentOrder = entitlementStore.plans.find(p => p.name === currentPlanName.value)?.display_order ?? 0;
   return plan.display_order > currentOrder ? 'Upgrade' : 'Downgrade';
 };
@@ -248,7 +253,11 @@ const planTagline = (plan) => {
 // Handles clicking a plan button to change plans.
 const selectPlan = async (plan) => {
   if (plan.name === currentPlanName.value || isChanging.value) return;
-  if (plan.name === 'studio_enterprise') return;
+  if (!plan.price_cents && plan.type === 'studio') {
+    Browser.OpenURL('mailto:sales@clustta.com?subject=Enterprise%20Studio%20Inquiry');
+    closeModal();
+    return;
+  }
   isChanging.value = true;
   changingPlanId.value = plan.id;
 
@@ -413,11 +422,6 @@ onMounted(async () => {
   font-size: 28px;
   font-weight: 700;
   color: var(--white);
-}
-
-.price-contact {
-  font-size: 22px;
-  font-weight: 600;
 }
 
 .price-period {
