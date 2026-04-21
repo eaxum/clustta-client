@@ -17,11 +17,15 @@ export default defineConfig(async () => {
   // Using array format to guarantee order - more specific aliases must come first
   const aliases = [];
 
-  // In web mode, redirect services to HTTP adapter and mock @wailsio/runtime
+  // In web mode, redirect services to the @clustta/web-adapters package and
+  // mock @wailsio/runtime. The package is the single source of truth for HTTP
+  // shims (shared with clustta-dashboard via a file: dependency).
   if (isWebMode) {
-    // Use regex with $ to match exact import (not @/services/utils etc)
-    aliases.push({ find: /^@\/services$/, replacement: join(PACKAGE_ROOT, "src/services/adapters/http.js") });
-    aliases.push({ find: '@wailsio/runtime', replacement: join(PACKAGE_ROOT, "src/services/runtime/index.js") });
+    // Bare-import: `import { X } from '@/services'` -> package index
+    aliases.push({ find: /^@\/services$/, replacement: "@clustta/web-adapters" });
+    // Per-file: `import { X } from '@/services/adapters/foo'` -> package file
+    aliases.push({ find: /^@\/services\/adapters\/(.+)$/, replacement: "@clustta/web-adapters/$1" });
+    aliases.push({ find: '@wailsio/runtime', replacement: "@clustta/web-adapters/runtime/index.js" });
   }
 
   // The @ alias should come after more specific aliases
@@ -214,7 +218,7 @@ export default defineConfig(async () => {
         },
         // Global API proxy
         '/api': {
-          target: 'https://api.clustta.com',
+          target: process.env.VITE_API_URL || 'https://api.clustta.com',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
           secure: true,

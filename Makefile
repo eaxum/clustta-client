@@ -27,30 +27,22 @@ all: build
 client:
 	wails3 dev
 
-# Run the dashboard (web) dev server from the sibling clustta-dashboard repo
+# Run the dashboard (web) dev server from this repo's frontend/ in web mode
 .PHONY: dashboard
 dashboard:
-ifeq ($(DETECTED_OS),Windows)
-	cd ..\clustta-dashboard && yarn dev
-else
-	cd ../clustta-dashboard && yarn dev
-endif
+	cd frontend && yarn dev:dashboard
 
 # Run the dashboard against the live (production) API.
 .PHONY: dashboard-live
 dashboard-live:
-ifeq ($(DETECTED_OS),Windows)
-	cd ..\clustta-dashboard && yarn live
-else
-	cd ../clustta-dashboard && yarn live
-endif
+	cd frontend && yarn live:dashboard
 
 # Sync this client's frontend into the sibling clustta-dashboard repo
-# Pass ARGS="-DryRun" or ARGS="-IncludeUntracked" to forward flags.
+# Pass ARGS="-DryRun" or ARGS="-UseGit" to forward flags.
 .PHONY: sync
 sync:
 ifeq ($(DETECTED_OS),Windows)
-	powershell -ExecutionPolicy Bypass -File ..\clustta-dashboard\scripts\sync-repos.ps1 $(ARGS)
+	powershell -ExecutionPolicy Bypass -File ../clustta-dashboard/scripts/sync-repos.ps1 $(ARGS)
 else
 	pwsh -File ../clustta-dashboard/scripts/sync-repos.ps1 $(ARGS)
 endif
