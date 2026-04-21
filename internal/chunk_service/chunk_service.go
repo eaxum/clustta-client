@@ -980,9 +980,13 @@ func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chu
 		}()
 
 		var uploadedHashes []string
+		var uploadErr error
 		for result := range resultsCh {
 			if result.err != nil {
-				return result.err
+				if uploadErr == nil {
+					uploadErr = result.err
+				}
+				continue
 			}
 			uploadedHashes = append(uploadedHashes, result.hash)
 			processedChunks += result.size
@@ -990,13 +994,29 @@ func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chu
 			callback(processedChunks, totalChunksSize, message, "")
 		}
 
-		// Phase 3: Confirm this batch's uploads with the server
+		// Phase 3: Confirm this batch's uploads with the server.
+		// Use a detached context if the original was cancelled so that
+		// successfully-uploaded chunks still get recorded for quota tracking.
+		confirmCtx := ctx
+		if ctx.Err() != nil && len(uploadedHashes) > 0 {
+			var cancel context.CancelFunc
+			confirmCtx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+		}
+
+		if len(uploadedHashes) == 0 {
+			if uploadErr != nil {
+				return uploadErr
+			}
+			continue
+		}
+
 		confirmBody, err := json.Marshal(map[string]any{"chunks": uploadedHashes})
 		if err != nil {
 			return err
 		}
 
-		confirmReq, err := http.NewRequestWithContext(ctx, "POST", remoteUrl+"/chunk-upload-confirm", bytes.NewBuffer(confirmBody))
+		confirmReq, err := http.NewRequestWithContext(confirmCtx, "POST", remoteUrl+"/chunk-upload-confirm", bytes.NewBuffer(confirmBody))
 		if err != nil {
 			return err
 		}
@@ -1026,6 +1046,10 @@ func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chu
 
 		if len(confirmResponse.FailedChunks) > 0 {
 			return fmt.Errorf("server failed to confirm %d chunks", len(confirmResponse.FailedChunks))
+		}
+
+		if uploadErr != nil {
+			return uploadErr
 		}
 	}
 
