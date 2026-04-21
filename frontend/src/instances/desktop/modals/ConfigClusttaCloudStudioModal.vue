@@ -1,15 +1,15 @@
 <template>
   <div ref="modalContainer" class="modal-container">
 
-    <HeaderArea :title="title" :icon="getAppIcon('clustta')" :showSearch="false" />
+    <HeaderArea :title="title" :icon="'stall'" :showSearch="false" />
 
     <div class="general-container">
 
       <div class="studio-info-text">
-        <p>{{ $t('modals.clusttaCloudDesc') }}</p>
+        <p>{{ $t('modals.studioDescription') }}</p>
       </div>
 
-      <FormInput v-model="studioName" :placeholder="$t('placeholders.studioName')" :error="studioNameError" :loading="checkingStudioNameAvailability" :valid="!!studioName && !studioNameError && !checkingStudioNameAvailability" :showValidation="!!studioName" @input="checkStudioName" />
+      <FormInput v-model="studioName" :placeholder="$t('placeholders.studioName')" :error="studioNameError" :loading="checkingStudioNameAvailability" :valid="!!studioName && !studioNameError && !checkingStudioNameAvailability" :showValidation="!!studioName" :disabled="isEnterpriseSelected" @input="checkStudioName" />
 
       <div v-if="isLoadingPlans" class="plan-loading">Loading plans...</div>
 
@@ -20,7 +20,7 @@
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="$t('common.back')" :fullWidth="true" :buttonFunction="goBack" :colored="false" />
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="cancel" :colored="false" />
         <GeneralButton :label="createButtonLabel" :fullWidth="true" :buttonFunction="createStudioAndCheckout" :isActive="canProceed" :loading="isAwaitingResponse" />
       </div>
     </div>
@@ -30,7 +30,7 @@
 
 <script setup>
 // imports
-import { computed, onMounted, ref, watchEffect } from 'vue';
+import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Browser } from '@wailsio/runtime';
 
@@ -50,15 +50,17 @@ const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
+const projectStore = useProjectStore();
 
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useEntitlementStore } from '@/stores/entitlements';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
+import { useProjectStore } from '@/stores/projects';
 
 // constants
-const title = t('modals.newClusttaCloudStudio');
+const title = t('modals.newStudio');
 
 const restrictedNames = ['clustta', 'eaxum', 'pixar', 'disney', 'dreamworks'];
 
@@ -78,13 +80,21 @@ const studioNameError = ref('');
 const createButtonLabel = computed(() => {
   const plan = studioPlans.value.find(p => p.id === selectedPlanId.value);
   if (!plan) return t('common.create');
-  if (plan.name === 'studio_enterprise') return 'Contact Sales';
+  if (!plan.price_cents) return 'Contact Sales';
   return 'Create & Subscribe';
+});
+
+// True when the currently selected plan is a contact-sales tier (no price).
+const isEnterpriseSelected = computed(() => {
+  const plan = studioPlans.value.find(p => p.id === selectedPlanId.value);
+  return !!plan && !plan.price_cents;
 });
 
 // Returns whether the form is ready to proceed.
 const canProceed = computed(() => {
-  return isStudioNameValid.value && !!selectedPlanId.value;
+  if (!selectedPlanId.value) return false;
+  if (isEnterpriseSelected.value) return true;
+  return isStudioNameValid.value;
 });
 
 // Returns whether the studio name is valid.
@@ -94,7 +104,7 @@ const isStudioNameValid = computed(() => {
 
 // Returns only paid studio plans (excludes free).
 const studioPlans = computed(() => {
-  return entitlementStore.plans.filter(p => p.type === 'studio' && p.price_cents !== 0);
+  return entitlementStore.plans.filter(p => p.type === 'studio');
 });
 
 // methods
@@ -140,8 +150,9 @@ const createStudioAndCheckout = async () => {
   const plan = studioPlans.value.find(p => p.id === selectedPlanId.value);
   if (!plan) return;
 
-  if (plan.name === 'studio_enterprise') {
-    // TODO: open enterprise contact form
+  if (!plan.price_cents) {
+    Browser.OpenURL('mailto:sales@clustta.com?subject=Enterprise%20Studio%20Inquiry');
+    modals.disableAllModals();
     return;
   }
 
@@ -153,6 +164,8 @@ const createStudioAndCheckout = async () => {
 
     // Get the studio ID from the creation response
     const studioId = result?.id || '';
+
+    await projectStore.loadStudios();
 
     // Redirect to Stripe Checkout for the selected plan
     const checkoutUrl = await entitlementStore.createCheckout(plan.id, studioId);
@@ -182,14 +195,14 @@ const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
-// Goes back to the studio type selection modal.
-const goBack = () => {
-  modals.setModalVisibility('selectNewStudioTypeModal', true);
+// Closes the modal.
+const cancel = () => {
+  modals.disableAllModals();
 };
 
 // Returns a short description with price for the plan card.
 const planDescription = (plan) => {
-  if (plan.name === 'studio_enterprise') return 'Custom infrastructure — contact us for pricing';
+  if (!plan.price_cents) return 'Custom infrastructure - contact us for pricing';
   const price = '$' + (plan.price_cents / 100) + '/mo';
   const storage = formatStorage(plan.storage_bytes) + ' storage';
   const seats = plan.max_collaborators === -1 ? 'Unlimited seats' : plan.max_collaborators + ' seats';
@@ -205,6 +218,16 @@ const formatStorage = (bytes) => {
 };
 
 // watchers
+
+// Clear the studio name when switching to the enterprise plan since it is not used.
+watch(isEnterpriseSelected, (enterprise) => {
+  if (enterprise) {
+    studioName.value = '';
+    studioNameError.value = '';
+    isStudioNameTaken.value = false;
+  }
+});
+
 watchEffect(() => {
   if (modalContainer.value) {
     menu.clickOutsideMask = modalContainer.value;

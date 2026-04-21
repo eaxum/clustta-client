@@ -66,8 +66,6 @@ import EditUserTemplateModal from '@/instances/desktop/settings/modals/EditUserT
 
 // components - studio
 import ConfigClusttaCloudStudioModal from '@/instances/desktop/modals/ConfigClusttaCloudStudioModal.vue';
-import ConfigSelfManagedStudioModal from '@/instances/desktop/modals/ConfigSelfManagedStudioModal.vue';
-import SelectNewStudioTypeModal from '@/instances/desktop/modals/SelectNewStudioTypeModal.vue';
 import UpdateStudioModal from '@/instances/desktop/modals/UpdateStudioModal.vue';
 
 // components - sync
@@ -167,8 +165,6 @@ const modalComponents = {
 
   // studio
   configClusttaCloudStudioModal: ConfigClusttaCloudStudioModal,
-  configSelfManagedStudioModal: ConfigSelfManagedStudioModal,
-  selectNewStudioTypeModal: SelectNewStudioTypeModal,
   updateStudioModal: UpdateStudioModal,
 
   // sync

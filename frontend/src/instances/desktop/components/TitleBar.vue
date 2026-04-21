@@ -306,7 +306,19 @@ const selectStudio = async (studio) => {
 
 const createStudio = () => {
   displayStudioList.value = false;
-  modals.setModalVisibility('selectNewStudioTypeModal', true);
+
+  const inactive = projectStore.studios.find((s) => s.active === false && s.hosting_mode === 'cloud');
+  if (inactive) {
+    notificationStore.addNotification(
+      'Finish setting up your studio',
+      `Complete checkout for "${inactive.name}" or delete it before creating another studio.`,
+      'error',
+      false,
+    );
+    return;
+  }
+
+  modals.setModalVisibility('configClusttaCloudStudioModal', true);
 };
 
 const handleClickOutside = (event) => {
