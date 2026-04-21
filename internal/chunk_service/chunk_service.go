@@ -808,10 +808,16 @@ func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, mis
 
 // PushChunksPresigned uploads chunks directly to cloud storage using presigned PUT URLs.
 // Phase 1: request upload URLs from server. Phase 2: upload to cloud storage. Phase 3: confirm with server.
+// PushChunksPresigned uploads chunks via presigned URLs in batches.
+// Each batch requests URLs, uploads concurrently, and confirms with the server
+// to avoid timeouts and URL expiry at scale.
 func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chunkInfos []ChunkInfo, callback func(int, int, string, string)) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
+
+	const batchSize = 500
+	const maxConcurrency = 8
 
 	totalChunksSize := 0
 	for _, ci := range chunkInfos {
@@ -819,194 +825,208 @@ func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chu
 	}
 	processedChunks := 0
 
-	// Phase 1: Request presigned PUT URLs from the server
-	type chunkEntry struct {
-		Hash string `json:"hash"`
-		Size int64  `json:"size"`
-	}
-	entries := make([]chunkEntry, len(chunkInfos))
-	for i, ci := range chunkInfos {
-		entries[i] = chunkEntry{Hash: ci.Hash, Size: int64(ci.Size)}
-	}
-
-	reqBody, err := json.Marshal(map[string]any{"chunks": entries})
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "POST", remoteUrl+"/chunk-upload-urls", bytes.NewBuffer(reqBody))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
-	auth_service.AttachBearerToken(req)
-
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("failed to get upload URLs: %s", string(body))
-	}
-
-	var urlsResponse struct {
-		URLs     map[string]string `json:"urls"`
-		Existing []string          `json:"existing"`
-	}
-	err = json.NewDecoder(resp.Body).Decode(&urlsResponse)
-	if err != nil {
-		return fmt.Errorf("failed to decode upload URLs: %w", err)
-	}
-
-	// Account for already-existing chunks in progress
-	existingSet := make(map[string]bool, len(urlsResponse.Existing))
-	for _, hash := range urlsResponse.Existing {
-		existingSet[hash] = true
-	}
-	for _, ci := range chunkInfos {
-		if existingSet[ci.Hash] {
-			processedChunks += ci.Size
-		}
-	}
-	if processedChunks > 0 {
-		message := fmt.Sprintf("Sending %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
-		callback(processedChunks, totalChunksSize, message, "")
-	}
-
-	if len(urlsResponse.URLs) == 0 {
-		return nil
-	}
-
-	// Phase 2: Upload chunks directly to cloud storage
-	type uploadResult struct {
-		hash string
-		size int
-		err  error
-	}
-
-	const maxConcurrency = 8
-	resultsCh := make(chan uploadResult, len(urlsResponse.URLs))
-	sem := make(chan struct{}, maxConcurrency)
-	var wg sync.WaitGroup
-
-	// Build a size lookup for progress
+	// Build a size lookup for progress tracking
 	sizeMap := make(map[string]int, len(chunkInfos))
 	for _, ci := range chunkInfos {
 		sizeMap[ci.Hash] = ci.Size
 	}
 
-	for hash, url := range urlsResponse.URLs {
-		var chunkData []byte
-		err := tx.Get(&chunkData, "SELECT data FROM chunk WHERE hash = ?", hash)
-		if err != nil {
-			return fmt.Errorf("error reading chunk %s: %w", hash, err)
+	type chunkEntry struct {
+		Hash string `json:"hash"`
+		Size int64  `json:"size"`
+	}
+
+	client := &http.Client{Timeout: 60 * time.Second}
+
+	// Process chunks in batches
+	for batchStart := 0; batchStart < len(chunkInfos); batchStart += batchSize {
+		if ctx.Err() != nil {
+			return ctx.Err()
 		}
 
-		wg.Add(1)
-		go func(h, u string, data []byte) {
-			defer wg.Done()
-			sem <- struct{}{}
-			defer func() { <-sem }()
+		batchEnd := batchStart + batchSize
+		if batchEnd > len(chunkInfos) {
+			batchEnd = len(chunkInfos)
+		}
+		batch := chunkInfos[batchStart:batchEnd]
 
-			const maxRetries = 3
-			for attempt := 1; attempt <= maxRetries; attempt++ {
-				if ctx.Err() != nil {
-					resultsCh <- uploadResult{hash: h, err: ctx.Err()}
-					return
-				}
+		// Phase 1: Request presigned PUT URLs for this batch
+		entries := make([]chunkEntry, len(batch))
+		for i, ci := range batch {
+			entries[i] = chunkEntry{Hash: ci.Hash, Size: int64(ci.Size)}
+		}
 
-				uploadReq, err := http.NewRequestWithContext(ctx, "PUT", u, bytes.NewReader(data))
-				if err != nil {
-					resultsCh <- uploadResult{hash: h, err: err}
-					return
-				}
-				uploadReq.Header.Set("Content-Type", "application/octet-stream")
-				uploadReq.ContentLength = int64(len(data))
+		reqBody, err := json.Marshal(map[string]any{"chunks": entries})
+		if err != nil {
+			return err
+		}
 
-				uploadResp, err := http.DefaultClient.Do(uploadReq)
-				if err != nil {
-					if attempt == maxRetries {
+		req, err := http.NewRequestWithContext(ctx, "POST", remoteUrl+"/chunk-upload-urls", bytes.NewBuffer(reqBody))
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(req)
+
+		resp, err := client.Do(req)
+		if err != nil {
+			return err
+		}
+
+		if resp.StatusCode != 200 {
+			body, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			return fmt.Errorf("failed to get upload URLs: %s", string(body))
+		}
+
+		var urlsResponse struct {
+			URLs     map[string]string `json:"urls"`
+			Existing []string          `json:"existing"`
+		}
+		err = json.NewDecoder(resp.Body).Decode(&urlsResponse)
+		resp.Body.Close()
+		if err != nil {
+			return fmt.Errorf("failed to decode upload URLs: %w", err)
+		}
+
+		// Account for already-existing chunks in progress
+		existingSet := make(map[string]bool, len(urlsResponse.Existing))
+		for _, hash := range urlsResponse.Existing {
+			existingSet[hash] = true
+		}
+		for _, ci := range batch {
+			if existingSet[ci.Hash] {
+				processedChunks += ci.Size
+			}
+		}
+		if len(urlsResponse.Existing) > 0 {
+			message := fmt.Sprintf("Sending %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
+			callback(processedChunks, totalChunksSize, message, "")
+		}
+
+		if len(urlsResponse.URLs) == 0 {
+			continue
+		}
+
+		// Phase 2: Upload chunks directly to cloud storage
+		type uploadResult struct {
+			hash string
+			size int
+			err  error
+		}
+
+		resultsCh := make(chan uploadResult, len(urlsResponse.URLs))
+		sem := make(chan struct{}, maxConcurrency)
+		var wg sync.WaitGroup
+
+		for hash, url := range urlsResponse.URLs {
+			var chunkData []byte
+			err := tx.Get(&chunkData, "SELECT data FROM chunk WHERE hash = ?", hash)
+			if err != nil {
+				return fmt.Errorf("error reading chunk %s: %w", hash, err)
+			}
+
+			wg.Add(1)
+			go func(h, u string, data []byte) {
+				defer wg.Done()
+				sem <- struct{}{}
+				defer func() { <-sem }()
+
+				const maxRetries = 3
+				for attempt := 1; attempt <= maxRetries; attempt++ {
+					if ctx.Err() != nil {
+						resultsCh <- uploadResult{hash: h, err: ctx.Err()}
+						return
+					}
+
+					uploadReq, err := http.NewRequestWithContext(ctx, "PUT", u, bytes.NewReader(data))
+					if err != nil {
 						resultsCh <- uploadResult{hash: h, err: err}
 						return
 					}
-					time.Sleep(time.Duration(attempt) * 2 * time.Second)
-					continue
-				}
-				uploadResp.Body.Close()
+					uploadReq.Header.Set("Content-Type", "application/octet-stream")
+					uploadReq.ContentLength = int64(len(data))
 
-				if uploadResp.StatusCode != 200 {
-					if attempt == maxRetries {
-						resultsCh <- uploadResult{hash: h, err: fmt.Errorf("cloud upload failed for chunk %s: status %d", h, uploadResp.StatusCode)}
-						return
+					uploadResp, err := http.DefaultClient.Do(uploadReq)
+					if err != nil {
+						if attempt == maxRetries {
+							resultsCh <- uploadResult{hash: h, err: err}
+							return
+						}
+						time.Sleep(time.Duration(attempt) * 2 * time.Second)
+						continue
 					}
-					time.Sleep(time.Duration(attempt) * 2 * time.Second)
-					continue
+					uploadResp.Body.Close()
+
+					if uploadResp.StatusCode != 200 {
+						if attempt == maxRetries {
+							resultsCh <- uploadResult{hash: h, err: fmt.Errorf("cloud upload failed for chunk %s: status %d", h, uploadResp.StatusCode)}
+							return
+						}
+						time.Sleep(time.Duration(attempt) * 2 * time.Second)
+						continue
+					}
+
+					resultsCh <- uploadResult{hash: h, size: sizeMap[h]}
+					return
 				}
-
-				resultsCh <- uploadResult{hash: h, size: sizeMap[h]}
-				return
-			}
-		}(hash, url, chunkData)
-	}
-
-	go func() {
-		wg.Wait()
-		close(resultsCh)
-	}()
-
-	var uploadedHashes []string
-	for result := range resultsCh {
-		if result.err != nil {
-			return result.err
+			}(hash, url, chunkData)
 		}
-		uploadedHashes = append(uploadedHashes, result.hash)
-		processedChunks += result.size
-		message := fmt.Sprintf("Sending %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
-		callback(processedChunks, totalChunksSize, message, "")
-	}
 
-	// Phase 3: Confirm uploads with the server
-	callback(processedChunks, totalChunksSize, "Finishing up...", "")
+		go func() {
+			wg.Wait()
+			close(resultsCh)
+		}()
 
-	confirmBody, err := json.Marshal(map[string]any{"chunks": uploadedHashes})
-	if err != nil {
-		return err
-	}
+		var uploadedHashes []string
+		for result := range resultsCh {
+			if result.err != nil {
+				return result.err
+			}
+			uploadedHashes = append(uploadedHashes, result.hash)
+			processedChunks += result.size
+			message := fmt.Sprintf("Sending %s/%s", utils.BytesToHumanReadable(processedChunks), utils.BytesToHumanReadable(totalChunksSize))
+			callback(processedChunks, totalChunksSize, message, "")
+		}
 
-	confirmReq, err := http.NewRequestWithContext(ctx, "POST", remoteUrl+"/chunk-upload-confirm", bytes.NewBuffer(confirmBody))
-	if err != nil {
-		return err
-	}
-	confirmReq.Header.Set("Content-Type", "application/json")
-	confirmReq.Header.Set("Clustta-Agent", constants.USER_AGENT)
-	auth_service.AttachBearerToken(confirmReq)
+		// Phase 3: Confirm this batch's uploads with the server
+		confirmBody, err := json.Marshal(map[string]any{"chunks": uploadedHashes})
+		if err != nil {
+			return err
+		}
 
-	confirmResp, err := client.Do(confirmReq)
-	if err != nil {
-		return err
-	}
-	defer confirmResp.Body.Close()
+		confirmReq, err := http.NewRequestWithContext(ctx, "POST", remoteUrl+"/chunk-upload-confirm", bytes.NewBuffer(confirmBody))
+		if err != nil {
+			return err
+		}
+		confirmReq.Header.Set("Content-Type", "application/json")
+		confirmReq.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		auth_service.AttachBearerToken(confirmReq)
 
-	if confirmResp.StatusCode != 200 {
-		body, _ := io.ReadAll(confirmResp.Body)
-		return fmt.Errorf("failed to confirm uploads: %s", string(body))
-	}
+		confirmResp, err := client.Do(confirmReq)
+		if err != nil {
+			return err
+		}
 
-	var confirmResponse struct {
-		FailedChunks []string `json:"failed_chunks"`
-	}
-	err = json.NewDecoder(confirmResp.Body).Decode(&confirmResponse)
-	if err != nil {
-		return fmt.Errorf("failed to decode confirm response: %w", err)
-	}
+		if confirmResp.StatusCode != 200 {
+			body, _ := io.ReadAll(confirmResp.Body)
+			confirmResp.Body.Close()
+			return fmt.Errorf("failed to confirm uploads: %s", string(body))
+		}
 
-	if len(confirmResponse.FailedChunks) > 0 {
-		return fmt.Errorf("server failed to confirm %d chunks", len(confirmResponse.FailedChunks))
+		var confirmResponse struct {
+			FailedChunks []string `json:"failed_chunks"`
+		}
+		err = json.NewDecoder(confirmResp.Body).Decode(&confirmResponse)
+		confirmResp.Body.Close()
+		if err != nil {
+			return fmt.Errorf("failed to decode confirm response: %w", err)
+		}
+
+		if len(confirmResponse.FailedChunks) > 0 {
+			return fmt.Errorf("server failed to confirm %d chunks", len(confirmResponse.FailedChunks))
+		}
 	}
 
 	return nil
