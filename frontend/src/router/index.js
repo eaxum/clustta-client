@@ -103,6 +103,14 @@ const routes = [
     component: () => import('@/instances/web/ShareDownloadPage.vue'),
     meta: { requiresAuth: false, isPublic: true }
   },
+  // SSO callback target for the web flow. The server redirects here with
+  // session_id+user in the query string after a successful OAuth round-trip.
+  {
+    path: '/auth/callback',
+    name: 'auth-callback',
+    component: () => import('@/instances/web/AuthCallbackPage.vue'),
+    meta: { requiresAuth: false, isPublic: true }
+  },
   // User profile page (web authenticated users)
   {
     path: '/profile',
