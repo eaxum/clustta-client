@@ -26,7 +26,7 @@
           <OptionCard :icon="getAppIcon('clustta')" :title="$t('auth.welcome.teamTitle')" :description="$t('auth.welcome.teamDescription')" @select="goToStudioSetup" />
 
           <!-- Path D: Studio Server (self-hosted) -->
-          <OptionCard :icon="getAppIcon('stall')" :title="$t('auth.welcome.studioTitle')" :description="$t('auth.welcome.studioDescription')" @select="goToSelfHosted" />
+          <OptionCard v-if="!platformStore.isWeb" :icon="getAppIcon('stall')" :title="$t('auth.welcome.studioTitle')" :description="$t('auth.welcome.studioDescription')" @select="goToSelfHosted" />
 
         </div>
 
