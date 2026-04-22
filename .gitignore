@@ -19,11 +19,12 @@ build/darwin/clustta.entitlements
 
 # Deployment (synced from clustta-deployment)
 macappstore-build.sh
+website-build.sh
 windows-sign.ps1
 trusted-signing.json
 Clustta_template.xml
 *.provisionprofile
-clustta.pkg
+*.pkg
 
 # Project data
 *.clustta

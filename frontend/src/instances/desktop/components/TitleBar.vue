@@ -54,8 +54,10 @@
       </div>
     </div>
 
-
-    <ClusttaLogo v-if="os === 'darwin'" :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="$t('components.titleBar.aboutClustta')" :class="{ 'is-disabled': progressRunning }" />
+    <div v-if="os === 'darwin'" class="titlebar-buttons">
+      <PlanInfo />
+      <ClusttaLogo  :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="$t('components.titleBar.aboutClustta')" :class="{ 'is-disabled': progressRunning }" />
+    </div>
 
     <!-- Web mode auth buttons (only when not logged in) -->
     <div v-else-if="platformStore.isWeb && !userStore.isUserAuthenticated" class="titlebar-auth-buttons">
@@ -64,9 +66,6 @@
     </div>
 
     <div v-else-if="!platformStore.isWeb" class="titlebar-buttons">
-      <!-- <ToggleSwitch :switchValueProp="themeStore.isDarkMode" @click="toggleTheme()" />
-      <CheckBox v-model="themeStore.isDarkMode" @change="toggleTheme()" /> -->
-
       <PlanInfo />
 
       <div class="titlebar-button minimize" @click="minimizeWindow">
