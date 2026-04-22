@@ -37,14 +37,14 @@ dashboard:
 dashboard-live:
 	cd frontend && yarn live:dashboard
 
-# Sync this client's frontend into the sibling clustta-dashboard repo
+# Sync this client's frontend into the sibling clustta-app repo
 # Pass ARGS="-DryRun" or ARGS="-UseGit" to forward flags.
 .PHONY: sync
 sync:
 ifeq ($(DETECTED_OS),Windows)
-	powershell -ExecutionPolicy Bypass -File ../clustta-dashboard/scripts/sync-repos.ps1 $(ARGS)
+	powershell -ExecutionPolicy Bypass -File ../clustta-app/scripts/sync-repos.ps1 $(ARGS)
 else
-	pwsh -File ../clustta-dashboard/scripts/sync-repos.ps1 $(ARGS)
+	pwsh -File ../clustta-app/scripts/sync-repos.ps1 $(ARGS)
 endif
 
 # Regenerate services-contract.json from the Go service layer.
