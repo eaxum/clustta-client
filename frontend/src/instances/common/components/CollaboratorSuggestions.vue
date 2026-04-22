@@ -631,7 +631,7 @@ onUnmounted(() => {
   gap: .1rem;
   padding: .1rem;
   max-height: 50vh;
-  border-radius: var(--normal-radius);
+  border-radius: var(--large-radius);
   background-color: var(--light-steel);
   overflow-y: auto;
 }
@@ -659,7 +659,6 @@ onUnmounted(() => {
   border: 0;
   outline: none;
   white-space: nowrap;
-  /* background-color: hotpink; */
   width: 100%;
   box-sizing: border-box;
 }

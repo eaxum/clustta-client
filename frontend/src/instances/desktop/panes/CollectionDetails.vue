@@ -412,16 +412,13 @@ onBeforeUnmount(() => {
 }
 
 .assignees {
-  /* display: flex; */
   flex-direction: column;
   width: 100%;
   align-items: flex-start;
   justify-content: flex-start;
   max-height: 100%;
-  max-height: 200px;
   flex: 1;
   overflow: hidden;
-  overflow-y: scroll;
 }
 
 .assignees::-webkit-scrollbar {
@@ -466,7 +463,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  height: 30px;
+  min-height: 30px;
   border-bottom: var(--transparent-line);
   overflow: hidden;
 }
