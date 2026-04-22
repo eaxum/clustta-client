@@ -76,6 +76,7 @@ ifeq ($(DETECTED_OS),Windows)
 else ifeq ($(DETECTED_OS),Darwin)
 	wails3 package
 	bash ./macappstore-build.sh
+	bash ./website-build.sh
 endif
 
 # Build for development
