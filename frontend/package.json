@@ -17,7 +17,7 @@
     "proto:generate": "pbjs -t static-module -w es6 -o src/protos/example.js src/protos/example.proto && pbts -o src/protos/example.d.ts src/protos/example.js"
   },
   "dependencies": {
-    "@clustta/web-adapters": "file:../../clustta-dashboard/packages/web-adapters",
+    "@clustta/web-adapters": "file:../../clustta-app/packages/web-adapters",
     "@dagrejs/dagre": "^1.1.4",
     "@dicebear/big-smile": "^9.3.2",
     "@dicebear/core": "^9.4.1",

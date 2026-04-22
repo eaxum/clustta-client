@@ -12,7 +12,7 @@
 					<div ref="mainAreaContainer" class="main-area">
 						<CenterStage />
 					</div>
-        			<InfoBar v-if="!platformStore.isWeb" />
+					<InfoBar v-if="!platformStore.isWeb" />
 				</div>
 			</div>
 		</div>
@@ -140,9 +140,6 @@ onBeforeUnmount(async () => {
 	display: flex;
 	box-sizing: border-box;
 	flex-direction: column;
-	border-radius: 10px;
-	outline: var(--transparent-line);
-	outline-offset: -1px;
 }
 
 .desktop-container {
