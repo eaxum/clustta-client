@@ -6,13 +6,13 @@
 name: "clustta"
 arch: ${GOARCH}
 platform: "linux"
-version: "0.4.33"
+version: 0.4.33
 section: "default"
 priority: "extra"
 maintainer: ${GIT_COMMITTER_NAME} <${GIT_COMMITTER_EMAIL}>
 description: "Clustta simplifies file management, collaboration and version control for creative workflows."
 vendor: "Eaxum"
-homepage: "https://wails.io"
+homepage: "https://clustta.com"
 license: "MIT"
 release: "1"
 
@@ -23,6 +23,8 @@ contents:
     dst: "/usr/share/icons/hicolor/128x128/apps/clustta.png"
   - src: "./build/linux/clustta.desktop"
     dst: "/usr/share/applications/clustta.desktop"
+  - src: "./build/linux/clustta-clst.xml"
+    dst: "/usr/share/mime/packages/clustta-clst.xml"
 
 # Default dependencies for Debian 12/Ubuntu 22.04+ with WebKit 4.1
 depends:
@@ -46,22 +48,4 @@ overrides:
 # scripts section to ensure desktop database is updated after install
 scripts:
   postinstall: "./build/linux/nfpm/scripts/postinstall.sh"
-  # You can also add preremove, postremove if needed
-  # preremove: "./build/linux/nfpm/scripts/preremove.sh"
-  # postremove: "./build/linux/nfpm/scripts/postremove.sh"
-
-# replaces:
-#   - foobar
-# provides:
-#   - bar
-# depends:
-#   - gtk3
-#   - libwebkit2gtk
-# recommends:
-#   - whatever
-# suggests:
-#   - something-else
-# conflicts:
-#   - not-foo
-#   - not-bar
-# changelog: "changelog.yaml"
+  postremove: "./build/linux/nfpm/scripts/postremove.sh"

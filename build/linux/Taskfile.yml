@@ -3,6 +3,10 @@ version: '3'
 includes:
   common: ../Taskfile.yml
 
+vars:
+  APP_VERSION:
+    sh: grep '^\s\+version:' ./build/config.yml | grep -oP '"\K[^"]+' | head -1
+
 tasks:
   build:
     summary: Builds the application for Linux
@@ -42,12 +46,13 @@ tasks:
       - task: generate:dotdesktop
     cmds:
       - cp {{.APP_BINARY}} {{.APP_NAME}}
-      - cp ../../appicon.png appicon.png
+      - cp ../../appicon.png {{.APP_NAME}}.png
       - wails3 generate appimage -binary {{.APP_NAME}} -icon {{.ICON}} -desktopfile {{.DESKTOP_FILE}} -outputdir {{.OUTPUT_DIR}} -builddir {{.ROOT_DIR}}/build/linux/appimage/build
+      - mv {{.OUTPUT_DIR}}/{{.APP_NAME}}-x86_64.AppImage {{.OUTPUT_DIR}}/{{.APP_NAME}}-{{.APP_VERSION}}-linux-amd64.AppImage
     vars:
       APP_NAME: '{{.APP_NAME}}'
       APP_BINARY: '../../../bin/{{.APP_NAME}}'
-      ICON: '../../appicon.png'
+      ICON: '{{.APP_NAME}}.png'
       DESKTOP_FILE: '../{{.APP_NAME}}.desktop'
       OUTPUT_DIR: '../../../bin'
 
@@ -83,30 +88,37 @@ tasks:
 
   generate:deb:
     summary: Creates a deb package
-    cmds: 
+    cmds:
+      - "sed -i 's/^version:.*/version: {{.APP_VERSION}}/' ./build/linux/nfpm/nfpm.yaml"
       - wails3 tool package -name {{.APP_NAME}} -format deb -config ./build/linux/nfpm/nfpm.yaml -out {{.ROOT_DIR}}/bin
+      - mv {{.ROOT_DIR}}/bin/{{.APP_NAME}}.deb {{.ROOT_DIR}}/bin/{{.APP_NAME}}-{{.APP_VERSION}}-linux-amd64.deb
 
   generate:rpm:
     summary: Creates a rpm package
-    cmds: 
+    cmds:
+      - "sed -i 's/^version:.*/version: {{.APP_VERSION}}/' ./build/linux/nfpm/nfpm.yaml"
       - wails3 tool package -name {{.APP_NAME}} -format rpm -config ./build/linux/nfpm/nfpm.yaml -out {{.ROOT_DIR}}/bin
+      - mv {{.ROOT_DIR}}/bin/{{.APP_NAME}}.rpm {{.ROOT_DIR}}/bin/{{.APP_NAME}}-{{.APP_VERSION}}-linux-amd64.rpm
 
   generate:aur:
     summary: Creates a arch linux packager package
-    cmds: 
+    cmds:
+      - "sed -i 's/^version:.*/version: {{.APP_VERSION}}/' ./build/linux/nfpm/nfpm.yaml"
       - wails3 tool package -name {{.APP_NAME}} -format archlinux -config ./build/linux/nfpm/nfpm.yaml -out {{.ROOT_DIR}}/bin
+      - mv {{.ROOT_DIR}}/bin/{{.APP_NAME}}.pkg.tar.zst {{.ROOT_DIR}}/bin/{{.APP_NAME}}-{{.APP_VERSION}}-linux-amd64.pkg.tar.zst
 
   generate:dotdesktop:
     summary: Generates a `.desktop` file
     dir: build
     cmds:
       - mkdir -p {{.ROOT_DIR}}/build/linux/appimage
-      - wails3 generate .desktop -name "{{.APP_NAME}}" -exec "{{.EXEC}}" -icon "{{.ICON}}" -outputfile {{.ROOT_DIR}}/build/linux/{{.APP_NAME}}.desktop -categories "{{.CATEGORIES}}"
+      - wails3 generate .desktop -name "{{.APP_NAME}}" -exec "{{.EXEC}}" -icon "{{.ICON}}" -outputfile {{.ROOT_DIR}}/build/linux/{{.APP_NAME}}.desktop -categories "{{.CATEGORIES}}" -mimetype "{{.MIMETYPE}}"
     vars:
       APP_NAME: '{{.APP_NAME}}'
       EXEC: '{{.APP_NAME}}'
-      ICON: 'appicon'
+      ICON: 'clustta'
       CATEGORIES: 'Development;'
+      MIMETYPE: 'application/x-clustta-project;'
       OUTPUTFILE: '{{.ROOT_DIR}}/build/linux/{{.APP_NAME}}.desktop'
 
   run:
