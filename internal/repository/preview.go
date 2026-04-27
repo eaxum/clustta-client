@@ -18,7 +18,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/DataDog/zstd"
+	kzstd "github.com/klauspost/compress/zstd"
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/protobuf/proto"
 )
@@ -199,7 +199,12 @@ func PullPreviews(tx *sqlx.Tx, remoteUrl string, previewHashes []string, callbac
 					return fmt.Errorf("error reading response body: %s", err.Error())
 				}
 
-				decompressedData, err := zstd.Decompress(nil, body)
+				decoder, err := kzstd.NewReader(nil)
+				if err != nil {
+					return err
+				}
+				defer decoder.Close()
+				decompressedData, err := decoder.DecodeAll(body, nil)
 				if err != nil {
 					return err
 				}
@@ -286,10 +291,12 @@ func PushPreviews(tx *sqlx.Tx, remoteUrl string, userId string, previewHashes []
 				return err
 			}
 
-			compressedData, err := zstd.CompressLevel(nil, pbPreviewsListByte, 3)
+			encoder, err := kzstd.NewWriter(nil, kzstd.WithEncoderLevel(kzstd.SpeedDefault))
 			if err != nil {
 				return err
 			}
+			compressedData := encoder.EncodeAll(pbPreviewsListByte, nil)
+			encoder.Close()
 
 			req, err := http.NewRequest("POST", dataUrl, bytes.NewBuffer(compressedData))
 			if err != nil {

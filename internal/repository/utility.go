@@ -14,7 +14,6 @@ import (
 
 	kzstd "github.com/klauspost/compress/zstd"
 
-	"github.com/DataDog/zstd"
 	"github.com/jmoiron/sqlx"
 	"github.com/jotfs/fastcdc-go"
 
@@ -70,17 +69,12 @@ func StoreFileChunks(tx *sqlx.Tx, filePath string, callback func(int, int, strin
 			continue
 		}
 
-		compressedData, err := zstd.CompressLevel(nil, data, 3)
+		encoder, err := kzstd.NewWriter(nil, kzstd.WithEncoderLevel(kzstd.SpeedDefault))
 		if err != nil {
 			return "", err
 		}
-
-		// encoder, err := kzstd.NewWriter(nil, kzstd.WithEncoderLevel(3))
-		// if err != nil {
-		// 	return "", err
-		// }
-		// defer encoder.Close()
-		// compressedData := encoder.EncodeAll(data, nil)
+		compressedData := encoder.EncodeAll(data, nil)
+		encoder.Close()
 
 		size := len(compressedData)
 

@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DataDog/zstd"
+	kzstd "github.com/klauspost/compress/zstd"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -112,10 +112,12 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 		return err
 	}
 
-	compressedData, err := zstd.CompressLevel(nil, dataByte, 3)
+	encoder, err := kzstd.NewWriter(nil, kzstd.WithEncoderLevel(kzstd.SpeedDefault))
 	if err != nil {
 		return err
 	}
+	compressedData := encoder.EncodeAll(dataByte, nil)
+	encoder.Close()
 
 	chunks := []string{}
 	chunkSet := make(map[string]bool)
@@ -339,10 +341,12 @@ func PushPartialData(projectPath, remoteUrl, userId string, data ProjectData, sy
 	if err != nil {
 		return err
 	}
-	compressedData, err := zstd.CompressLevel(nil, dataByte, 3)
+	encoder, err := kzstd.NewWriter(nil, kzstd.WithEncoderLevel(kzstd.SpeedDefault))
 	if err != nil {
 		return err
 	}
+	compressedData := encoder.EncodeAll(dataByte, nil)
+	encoder.Close()
 
 	dataUrl := remoteUrl + "/data"
 	req, err := http.NewRequest("POST", dataUrl, bytes.NewBuffer(compressedData))
@@ -483,10 +487,12 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 	if err != nil {
 		return err
 	}
-	compressedData, err := zstd.CompressLevel(nil, dataByte, 3)
+	encoder, err := kzstd.NewWriter(nil, kzstd.WithEncoderLevel(kzstd.SpeedDefault))
 	if err != nil {
 		return err
 	}
+	compressedData := encoder.EncodeAll(dataByte, nil)
+	encoder.Close()
 
 	dataUrl := remoteUrl + "/data"
 	req, err := http.NewRequest("POST", dataUrl, bytes.NewBuffer(compressedData))

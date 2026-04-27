@@ -18,7 +18,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/DataDog/zstd"
+	kzstd "github.com/klauspost/compress/zstd"
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/protobuf/proto"
 )
@@ -1158,7 +1158,12 @@ func FetchData(remoteUrl string, userId string) (ProjectData, error) {
 				return userData, fmt.Errorf("error reading response body: %s", err.Error())
 			}
 
-			decompressedData, err := zstd.Decompress(nil, body)
+			decoder, err := kzstd.NewReader(nil)
+			if err != nil {
+				return userData, err
+			}
+			defer decoder.Close()
+			decompressedData, err := decoder.DecodeAll(body, nil)
 			if err != nil {
 				return userData, err
 			}

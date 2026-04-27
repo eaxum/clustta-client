@@ -3,7 +3,6 @@ module clustta
 go 1.25.8
 
 require (
-	github.com/DataDog/zstd v1.5.5
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0

@@ -10,7 +10,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/DataDog/zstd"
+	kzstd "github.com/klauspost/compress/zstd"
 )
 
 type BlenderExtractor struct{}
@@ -32,7 +32,12 @@ func (b *BlenderExtractor) ExtractThumbnail(filePath string) ([]byte, error) {
 
 	// Check for Zstandard compression (Blender 3.0+)
 	if len(fileData) >= 4 && fileData[0] == 0x28 && fileData[1] == 0xB5 && fileData[2] == 0x2F && fileData[3] == 0xFD {
-		decompressed, err := zstd.Decompress(make([]byte, 0, 256*1024*1024), fileData)
+		decoder, err := kzstd.NewReader(nil)
+		if err != nil {
+			return nil, nil
+		}
+		defer decoder.Close()
+		decompressed, err := decoder.DecodeAll(fileData, make([]byte, 0, 256*1024*1024))
 		if err != nil {
 			return nil, nil
 		}
