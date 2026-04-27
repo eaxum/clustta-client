@@ -18,7 +18,7 @@ require (
 	github.com/zeebo/xxh3 v1.0.2
 	golang.design/x/clipboard v0.7.0
 	golang.org/x/crypto v0.45.0
-	golang.org/x/text v0.31.0
+	golang.org/x/text v0.35.0
 	google.golang.org/protobuf v1.36.6
 )
 
@@ -36,8 +36,8 @@ require (
 	github.com/ebitengine/purego v0.8.2 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
-	github.com/go-git/go-billy/v5 v5.6.2 // indirect
-	github.com/go-git/go-git/v5 v5.16.5 // indirect
+	github.com/go-git/go-billy/v5 v5.8.0 // indirect
+	github.com/go-git/go-git/v5 v5.17.1 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
@@ -61,7 +61,7 @@ require (
 	github.com/wailsapp/go-webview2 v1.0.22 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	golang.org/x/exp/shiny v0.0.0-20250106191152-7588d65b2ba8 // indirect
-	golang.org/x/image v0.24.0 // indirect
+	golang.org/x/image v0.38.0 // indirect
 	golang.org/x/mobile v0.0.0-20231127183840-76ac6878050a // indirect
 	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/sys v0.38.0 // indirect

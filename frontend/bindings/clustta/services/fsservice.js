@@ -268,8 +268,8 @@ export function LaunchFile(path) {
 }
 
 /**
- * LaunchFileWith opens the macOS Finder at the specified path.
- * Returns an error if the operation fails.
+ * LaunchFileWith opens the Windows "Open With" dialog for a file.
+ * Validates the path exists before opening to prevent command injection.
  * @param {string} path
  * @returns {$CancellablePromise<void>}
  */
