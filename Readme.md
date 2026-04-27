@@ -10,7 +10,8 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](Contributing.md)
 [![Wails v3](https://img.shields.io/badge/Wails-v3-DF0000)](https://wails.io)
 [![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.gg/NuR4uAuTZd)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20|%20macOS%20|%20Linux-lightgrey)]()
+[![Platform](https://img.shields.io/badge/Platform-Windows%20|%20macOS%20|%20Linux-lightgrey)][![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Feaxum%2Fclustta-client.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Feaxum%2Fclustta-client?ref=badge_shield)
+()
 
 <img src="./frontend/public/assets/clustta-hero.png" alt="Clustta Desktop Client" />
 
@@ -146,6 +147,9 @@ Special thanks to **Francesco Siddi** ([Blender Studio](https://studio.blender.o
 ## License
 
 Clustta is released under the GNU Affero General Public License v3.0. See the [LICENSE](LICENSE) file for details.
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Feaxum%2Fclustta-client.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Feaxum%2Fclustta-client?ref=badge_large)
 
 ## About
 
