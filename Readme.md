@@ -8,6 +8,7 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](Contributing.md)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Feaxum%2Fclustta-client.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Feaxum%2Fclustta-client?ref=badge_small)
 [![Wails v3](https://img.shields.io/badge/Wails-v3-DF0000)](https://wails.io)
 [![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.gg/NuR4uAuTZd)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20|%20macOS%20|%20Linux-lightgrey)]()
