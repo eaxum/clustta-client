@@ -147,7 +147,20 @@ func RevealInExplorer(filePath string) {
 	} else if runtime.GOOS == "darwin" {
 		exec.Command("open", "-R", filePath).Start()
 	} else {
-		exec.Command("xdg-open", "--select", filePath).Start()
+		// Use D-Bus FileManager1.ShowItems to highlight the path in the file manager.
+		// Falls back to xdg-open on the parent directory if D-Bus call fails.
+		absPath, err := filepath.Abs(filePath)
+		if err != nil {
+			absPath = filePath
+		}
+		fileURI := "file://" + absPath
+		err = exec.Command("dbus-send", "--session", "--dest=org.freedesktop.FileManager1",
+			"--type=method_call", "/org/freedesktop/FileManager1",
+			"org.freedesktop.FileManager1.ShowItems",
+			"array:string:"+fileURI, "string:").Start()
+		if err != nil {
+			exec.Command("xdg-open", filepath.Dir(absPath)).Start()
+		}
 	}
 }
 
