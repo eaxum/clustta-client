@@ -71,10 +71,15 @@ export const useIconStore = defineStore("icons", {
             }
             this.icons[ext] = iconPath;
           } else {
-            let fileExt = "." + ext;
-            let iconStr = await FSService.GetFileIcon(fileExt);
-            iconPath = "data:image/png;base64," + iconStr;
-            this.icons[ext] = "data:image/png;base64," + iconStr;
+            try {
+              let fileExt = "." + ext;
+              let iconStr = await FSService.GetFileIcon(fileExt);
+              iconPath = "data:image/png;base64," + iconStr;
+              this.icons[ext] = iconPath;
+            } catch {
+              iconPath = '/file-icons/default.svg';
+              this.icons[ext] = iconPath;
+            }
           }
         }
       }
