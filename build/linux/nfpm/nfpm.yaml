@@ -20,7 +20,7 @@ contents:
   - src: "./bin/clustta"
     dst: "/usr/local/bin/clustta"
   - src: "./build/appicon.png"
-    dst: "/usr/share/icons/hicolor/128x128/apps/clustta.png"
+    dst: "/usr/share/icons/hicolor/256x256/apps/clustta.png"
   - src: "./build/linux/clustta.desktop"
     dst: "/usr/share/applications/clustta.desktop"
   - src: "./build/linux/clustta-clst.xml"
