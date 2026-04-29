@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
   <id>com.clustta.clustta</id>
-  <metadata_license>MIT</metadata_license>
-  <project_license>MIT</project_license>
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>AGPL-3.0-or-later</project_license>
   <name>Clustta</name>
   <summary>Version control, asset management and collaboration for creative workflows</summary>
   <developer id="com.clustta">
@@ -26,7 +26,7 @@
     </ul>
   </description>
 
-  <launchable type="desktop-id">clustta.desktop</launchable>
+  <launchable type="desktop-id">com.clustta.clustta.desktop</launchable>
 
   <url type="homepage">https://clustta.com</url>
   <url type="help">https://docs.clustta.com</url>

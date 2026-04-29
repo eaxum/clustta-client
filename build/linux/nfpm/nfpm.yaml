@@ -13,7 +13,7 @@ maintainer: "Eaxum <support@clustta.com>"
 description: "Clustta simplifies file management, collaboration and version control for creative workflows."
 vendor: "Eaxum"
 homepage: "https://clustta.com"
-license: "MIT"
+license: "AGPL-3.0-or-later"
 release: "1"
 
 contents:

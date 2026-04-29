@@ -34,6 +34,22 @@ tasks:
       - task: create:deb
       - task: create:rpm
 
+  create:flatpak:
+    summary: Creates a Flatpak bundle
+    deps:
+      - task: build
+        vars:
+          PRODUCTION: "true"
+    cmds:
+      - ffmpeg -y -i ./build/appicon.png -vf scale=256:256 ./build/linux/flatpak/appicon-256.png
+      - flatpak-builder --user --force-clean {{.BUILD_DIR}} {{.MANIFEST}} --repo={{.REPO_DIR}}
+      - flatpak build-bundle {{.REPO_DIR}} {{.ROOT_DIR}}/bin/{{.APP_NAME}}-{{.APP_VERSION}}-linux-amd64.flatpak {{.FLATPAK_ID}}
+    vars:
+      FLATPAK_ID: 'com.clustta.clustta'
+      MANIFEST: './build/linux/flatpak/com.clustta.clustta.yml'
+      BUILD_DIR: './build/linux/flatpak/build'
+      REPO_DIR: './build/linux/flatpak/repo'
+
   create:deb:
     summary: Creates a deb package
     deps:

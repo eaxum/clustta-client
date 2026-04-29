@@ -79,6 +79,7 @@ else ifeq ($(DETECTED_OS),Darwin)
 	bash ./website-build.sh
 else ifeq ($(DETECTED_OS),Linux)
 	wails3 package
+	wails3 task linux:create:flatpak
 endif
 
 # Build for development

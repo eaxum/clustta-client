@@ -13,7 +13,12 @@ frontend/node_modules
 
 # Build artifacts
 .task
+.flatpak-builder
 build/linux/clustta.desktop
+build/linux/flatpak/build
+build/linux/flatpak/repo
+build/linux/flatpak/.flatpak-builder
+build/linux/flatpak/appicon-256.png
 build/windows/TrustedSigning
 build/darwin/clustta.entitlements
 
