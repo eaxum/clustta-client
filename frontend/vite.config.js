@@ -12,15 +12,34 @@ const PACKAGE_ROOT = __dirname;
 // Check if we're building for web mode
 const isWebMode = process.env.VITE_PLATFORM === 'web';
 
+// In desktop mode, web-only views still exist in the source tree but their
+// adapter imports (e.g. `@clustta/web-adapters`) are unreachable at runtime.
+// This plugin resolves those imports to an empty module so the build succeeds.
+function webAdaptersStub() {
+  const VIRTUAL_ID = '\0web-adapters-stub';
+  return {
+    name: 'web-adapters-stub',
+    resolveId(id) {
+      if (!isWebMode && (id === '@clustta/web-adapters' || id.startsWith('@clustta/web-adapters/'))) {
+        return { id: VIRTUAL_ID, syntheticNamedExports: true };
+      }
+    },
+    load(id) {
+      if (id === VIRTUAL_ID) {
+        return 'export default {}';
+      }
+    }
+  };
+}
+
 export default defineConfig(async () => {
   // Build aliases based on platform
   // Using array format to guarantee order - more specific aliases must come first
   const aliases = [];
 
-  // Per-file imports of `@/services/adapters/*` always resolve to the
-  // @clustta/web-adapters package. Web-only Vue files (ResetChangePassword,
-  // ShareDownloadPage, etc.) are part of the desktop bundle even though their
-  // services only fire in web mode, so this alias must apply unconditionally.
+  // Resolve `@/services/adapters/*` to @clustta/web-adapters in both modes.
+  // In web mode the real package is used; in desktop mode the stub plugin above
+  // returns an empty module so the build doesn't need the package installed.
   aliases.push({ find: /^@\/services\/adapters\/(.+?)(\.js)?$/, replacement: "@clustta/web-adapters/$1" });
 
   // In web mode, also redirect the bare `@/services` import and mock
@@ -34,7 +53,7 @@ export default defineConfig(async () => {
   aliases.push({ find: '@', replacement: join(PACKAGE_ROOT, "src") });
 
   return {
-    plugins: [vue()],
+    plugins: [webAdaptersStub(), vue()],
 
     // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
     //

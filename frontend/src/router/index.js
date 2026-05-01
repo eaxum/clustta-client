@@ -60,12 +60,12 @@ const routes = [
         component: () => import('@/instances/desktop/pages/ResetPassword.vue'),
         meta: { requiresAuth: false, isPublic: true, isAuthPage: true }
       },
-      {
+      ...(isWebMode ? [{
         path: 'reset-change-password',
         name: 'reset-change-password',
         component: () => import('@/instances/web/ResetChangePassword.vue'),
         meta: { requiresAuth: false, isPublic: true, isAuthPage: true }
-      },
+      }] : []),
     ]
   },
   // Legacy auth redirects (for compatibility)
@@ -74,7 +74,8 @@ const routes = [
   { path: '/verify-email', redirect: '/auth/verify-email' },
   { path: '/forgot-password', redirect: '/auth/forgot-password' },
   { path: '/reset-change-password', redirect: '/auth/reset-change-password' },
-  // Discovery page (requires auth + talent_discovery entitlement)
+  // Web-only routes (only included in web builds to avoid bundling web-adapters in desktop)
+  ...(isWebMode ? [
   {
     path: '/discover',
     name: 'discover',
@@ -89,35 +90,31 @@ const routes = [
       }
     }
   },
-  // Public profile 
   {
     path: '/user/:username',
     name: 'public-profile',
     component: () => import('@/instances/web/PublicUserProfile.vue'),
     meta: { requiresAuth: false, isPublic: true }
   },
-  // Share download page (public)
   {
     path: '/share/:token',
     name: 'share-download',
     component: () => import('@/instances/web/ShareDownloadPage.vue'),
     meta: { requiresAuth: false, isPublic: true }
   },
-  // SSO callback target for the web flow. The server redirects here with
-  // session_id+user in the query string after a successful OAuth round-trip.
   {
     path: '/auth/callback',
     name: 'auth-callback',
     component: () => import('@/instances/web/AuthCallbackPage.vue'),
     meta: { requiresAuth: false, isPublic: true }
   },
-  // User profile page (web authenticated users)
   {
     path: '/profile',
     name: 'profile',
     component: () => import('@/instances/web/ProfilePage.vue'),
     meta: { requiresAuth: true }
   },
+  ] : []),
   // Protected routes (main app)
   {
     path: '/',
