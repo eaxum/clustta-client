@@ -109,7 +109,14 @@ func main() {
 
 	var singleInstanceOpt *application.SingleInstanceOptions = nil
 
-	if runtime.GOOS != "darwin" {
+	// macOS handles single-instance natively via app bundle.
+	// Flatpak sandboxes the app per D-Bus session, making this redundant.
+	isFlatpak := false
+	if _, err := os.Stat("/.flatpak-info"); err == nil {
+		isFlatpak = true
+	}
+
+	if runtime.GOOS != "darwin" && !isFlatpak {
 		singleInstanceOpt = &application.SingleInstanceOptions{
 			UniqueID:      "com.clustta.clustta.single-instance",
 			EncryptionKey: generateEncryptionKey(),
