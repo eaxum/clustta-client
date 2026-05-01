@@ -71,12 +71,12 @@ build:
 
 ifeq ($(DETECTED_OS),Windows)
 	wails3 package
-	powershell -ExecutionPolicy Bypass -File ./windows-sign.ps1
-	powershell -Command "Start-Process 'MsixPackagingTool.exe' -ArgumentList 'create-package','--template','.\Clustta_template.xml','-v' -Verb RunAs"
+	powershell -ExecutionPolicy Bypass -File ../clustta-deployment/windows/windows-sign.ps1
+	powershell -Command "Start-Process 'MsixPackagingTool.exe' -ArgumentList 'create-package','--template','../clustta-deployment/windows/Clustta_template.xml','-v' -Verb RunAs"
 else ifeq ($(DETECTED_OS),Darwin)
 	wails3 package
-	bash ./macappstore-build.sh
-	bash ./website-build.sh
+	bash ../clustta-deployment/darwin/macappstore-build.sh
+	bash ../clustta-deployment/darwin/website-build.sh
 else ifeq ($(DETECTED_OS),Linux)
 	wails3 package
 	wails3 task linux:create:flatpak
@@ -116,3 +116,45 @@ endif
 bridge-dev:
 	@echo "Building Clustta Bridge (dev)"
 	go build -o bin$(PATH_SEP)clustta-bridge$(BINARY_EXT) ./cmd/bridge
+
+# ─── Flatpak / Flathub ───────────────────────────────────────────────────────
+
+DEPLOYMENT_DIR := ../clustta-deployment
+FLATHUB_DIR := ../flathub
+FLATPAK_SCRIPTS := $(DEPLOYMENT_DIR)/linux/flatpak
+
+# Check that required sibling repos exist
+.PHONY: flatpak-check
+flatpak-check:
+	@test -d $(DEPLOYMENT_DIR) || (echo "Error: $(DEPLOYMENT_DIR) not found. Clone clustta-deployment alongside this repo." && exit 1)
+	@test -d $(FLATHUB_DIR) || (echo "Error: $(FLATHUB_DIR) not found. Clone the flathub fork alongside this repo." && exit 1)
+
+# Generate go-sources.json and generated-sources.json for offline Flatpak builds
+.PHONY: flatpak-sources
+flatpak-sources: flatpak-check
+	@echo "Generating go-sources.json..."
+	python3 $(FLATPAK_SCRIPTS)/generate_go_sources.py . $(FLATHUB_DIR)/go-sources.json
+	@echo "Generating generated-sources.json..."
+	python3 $(FLATPAK_SCRIPTS)/generate_yarn_sources.py . $(FLATHUB_DIR)/generated-sources.json
+
+# Tag and update the Flathub manifest
+.PHONY: flatpak-tag
+flatpak-tag: flatpak-check
+	@if [ -z "$(VERSION)" ]; then echo "Error: VERSION required. Usage: make flatpak-tag VERSION=v0.4.34-flatpak.1"; exit 1; fi
+	git tag $(VERSION)
+	git push origin $(VERSION)
+	@COMMIT=$$(git rev-parse $(VERSION)); \
+	sed -i "s|tag: v.*|tag: $(VERSION)|" $(FLATHUB_DIR)/com.clustta.clustta.yml; \
+	sed -i "s|commit: .*|commit: $$COMMIT|" $(FLATHUB_DIR)/com.clustta.clustta.yml; \
+	echo "Updated manifest: tag=$(VERSION) commit=$$COMMIT"
+
+# Push Flathub changes
+.PHONY: flatpak-push
+flatpak-push: flatpak-check
+	cd $(FLATHUB_DIR) && git add -A && git commit -m "release: update to $(VERSION)" && git push
+	@echo ""
+	@echo "Done. Comment 'bot, build' on the Flathub PR to trigger CI."
+
+# Full flatpak release pipeline
+.PHONY: flatpak
+flatpak: flatpak-sources flatpak-tag flatpak-push
