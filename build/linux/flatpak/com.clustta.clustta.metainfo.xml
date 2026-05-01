@@ -30,6 +30,7 @@
 
   <url type="homepage">https://clustta.com</url>
   <url type="help">https://docs.clustta.com</url>
+  <url type="vcs-browser">https://github.com/eaxum/clustta-client</url>
 
   <screenshots>
     <screenshot type="default">
