@@ -10,7 +10,7 @@ import (
 	"unsafe"
 )
 
-// LaunchFileWith opens the Windows "Open With" dialog for a file.
+// LaunchFileWith opens a file using the platform's "Open With" mechanism.
 // Validates the path exists before opening to prevent command injection.
 func (f *FSService) LaunchFileWith(path string) error {
 	filePath, err := filepath.Abs(path)
