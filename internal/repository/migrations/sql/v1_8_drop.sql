@@ -1,3 +1,6 @@
+-- Drop legacy resource views (must precede entity_hierarchy drop)
+DROP VIEW IF EXISTS full_resource;
+
 -- Drop old-name (entity/task) views
 DROP VIEW IF EXISTS entity_hierarchy;
 DROP VIEW IF EXISTS entity_assignees;
@@ -69,6 +72,22 @@ DROP TRIGGER IF EXISTS workflow_collection_update;
 DROP TRIGGER IF EXISTS workflow_collection_delete;
 DROP TRIGGER IF EXISTS workflow_asset_update;
 DROP TRIGGER IF EXISTS workflow_asset_delete;
+
+-- Drop legacy resource triggers
+DROP TRIGGER IF EXISTS resource_update;
+DROP TRIGGER IF EXISTS resource_delete;
+DROP TRIGGER IF EXISTS resource_type_update;
+DROP TRIGGER IF EXISTS resource_type_delete;
+DROP TRIGGER IF EXISTS resource_checkpoint_update;
+DROP TRIGGER IF EXISTS resource_checkpoint_delete;
+DROP TRIGGER IF EXISTS resource_dependency_update;
+DROP TRIGGER IF EXISTS resource_dependency_delete;
+
+-- Drop legacy resource tables
+DROP TABLE IF EXISTS resource_checkpoint;
+DROP TABLE IF EXISTS resource_dependency;
+DROP TABLE IF EXISTS resource;
+DROP TABLE IF EXISTS resource_type;
 
 -- Drop old-name indexes
 DROP INDEX IF EXISTS idx_task_assignee;
