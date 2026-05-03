@@ -552,12 +552,7 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 			// Fallback to local projects when request creation fails
 			return GetLocalStudioProjects(studioProjectsDir, url, user)
 		}
-		userJson, err := json.Marshal(user)
-		if err != nil {
-			return studioProjects, err
-		}
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
-		req.Header.Set("UserData", string(userJson))
 		req.Header.Set("UserId", user.Id)
 		auth_service.AttachBearerToken(req)
 
