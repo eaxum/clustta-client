@@ -20,6 +20,15 @@ export function GetOS() {
 }
 
 /**
+ * GetPendingDeepLink returns and clears any buffered deep link URL.
+ * Called by the frontend after store initialization to handle cold-launch deep links.
+ * @returns {$CancellablePromise<string>}
+ */
+export function GetPendingDeepLink() {
+    return $Call.ByID(817664357);
+}
+
+/**
  * GetPendingOpenFile returns and clears any buffered .clst file path.
  * Called by the frontend after store initialization to handle cold-launch file opens.
  * @returns {$CancellablePromise<string>}

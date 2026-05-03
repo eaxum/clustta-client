@@ -275,6 +275,17 @@ router.beforeEach(async (to, from, next) => {
         } catch (error) {
           console.error('Failed to open pending project file:', error);
         }
+
+        // Check for a deep link URL that was received before the frontend was ready
+        try {
+          const pendingDeepLink = await AppService.GetPendingDeepLink();
+          if (pendingDeepLink) {
+            const { default: emitter } = await import('@/lib/mitt');
+            emitter.emit('handle-deep-link', pendingDeepLink);
+          }
+        } catch (error) {
+          console.error('Failed to process pending deep link:', error);
+        }
       }
     } catch (error) {
       console.error('Failed to initialize stores:', error);

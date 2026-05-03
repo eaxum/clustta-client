@@ -97,6 +97,40 @@ const handleopenClusttaFile = async (filePath) => {
     }
 };
 
+// handleDeepLink processes a clustta:// URL and navigates accordingly.
+const handleDeepLink = (rawUrl) => {
+    if (!rawUrl) return;
+    try {
+        const url = new URL(rawUrl);
+        if (url.protocol !== 'clustta:') return;
+
+        const action = url.hostname || url.pathname.replace(/^\/+/, '');
+        if (action === 'invite') {
+            const studioName = url.searchParams.get('studio');
+            if (studioName) {
+                const matchingStudio = projectStore.studios.find(
+                    (s) => s.name.toLowerCase() === studioName.toLowerCase()
+                );
+                if (matchingStudio) {
+                    projectStore.selectStudio(matchingStudio);
+                    notificationStore.successNotification(
+                        "Studio Invitation",
+                        `Switched to studio "${matchingStudio.name}"`
+                    );
+                } else {
+                    notificationStore.addNotification(
+                        "Studio Not Found",
+                        `Studio "${studioName}" was not found. You may need to sync first.`,
+                        "warning"
+                    );
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Failed to process deep link:', error);
+    }
+};
+
 if (platformStore.isWeb) {
     emitter.on('progress-update', handleProgressUpdate);
     emitter.on('sync-conflict', handleSyncConflict);
@@ -112,6 +146,12 @@ if (platformStore.isWeb) {
         console.log('Opening project file:', filePath);
         await handleopenClusttaFile(filePath);
     });
+    Events.On('deep-link', async (message) => {
+        const rawUrl = message.data;
+        console.log('Deep link received:', rawUrl);
+        handleDeepLink(rawUrl);
+    });
+    emitter.on('handle-deep-link', handleDeepLink);
 }
 
 disableMenu();

@@ -19,6 +19,19 @@
 				<string>Owner</string>
 			</dict>
 		</array>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleURLName</key>
+				<string>com.clustta.clustta</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>clustta</string>
+				</array>
+				<key>CFBundleTypeRole</key>
+				<string>Viewer</string>
+			</dict>
+		</array>
 		<key>CFBundleExecutable</key>
 		<string>clustta</string>
 		<key>CFBundleGetInfoString</key>

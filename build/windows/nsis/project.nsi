@@ -93,6 +93,12 @@ Section
 
     !insertmacro wails.associateFiles
 
+    ; Register clustta:// URL protocol
+    WriteRegStr SHCTX "Software\Classes\clustta" "" "URL:Clustta Protocol"
+    WriteRegStr SHCTX "Software\Classes\clustta" "URL Protocol" ""
+    WriteRegStr SHCTX "Software\Classes\clustta\DefaultIcon" "" "$INSTDIR\${PRODUCT_EXECUTABLE},0"
+    WriteRegStr SHCTX "Software\Classes\clustta\shell\open\command" "" '"$INSTDIR\${PRODUCT_EXECUTABLE}" "%1"'
+
     !insertmacro wails.writeUninstaller
 SectionEnd
 
@@ -107,6 +113,9 @@ Section "uninstall"
     Delete "$DESKTOP\${INFO_PRODUCTNAME}.lnk"
 
     !insertmacro wails.unassociateFiles
+
+    ; Unregister clustta:// URL protocol
+    DeleteRegKey SHCTX "Software\Classes\clustta"
 
     !insertmacro wails.deleteUninstaller
 SectionEnd

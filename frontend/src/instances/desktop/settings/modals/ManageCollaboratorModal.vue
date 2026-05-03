@@ -259,7 +259,9 @@ const addPersonalRemoteCollaborators = async () => {
     notificationStore.addNotification(t('notifications.usersAddedSuccessfully', { count: resolvedUserIds.length }), "", "success");
   }
 
-  for (const user of newUsersList) {
+  // Send invitation emails to all added users
+  const allInvitees = [...registeredEmails.map(email => ({ email })), ...newUsersList];
+  for (const user of allInvitees) {
     try {
       await AuthService.SendInvitationEmail(user.email, 'Clustta', projectStore.activeProject.name || 'Project');
     } catch (error) {
@@ -268,15 +270,15 @@ const addPersonalRemoteCollaborators = async () => {
     }
   }
 
-  if (newUsersList.length > 0) {
-    notificationStore.addNotification(t('notifications.invitationsSent', { count: newUsersList.length }), "", "info");
+  if (allInvitees.length > 0) {
+    notificationStore.addNotification(t('notifications.invitationsSent', { count: allInvitees.length }), "", "info");
   }
 
   await userStore.reloadUsers();
 };
 
 // Adds collaborators to a studio project via the server collaborator endpoint.
-// Works for both cloud and private studios — the server handles writing to the .clst file.
+// Works for both cloud and private studios - the server handles writing to the .clst file.
 const addStudioProjectCollaborators = async () => {
   const remoteUrl = projectStore.getActiveProjectUrl;
   const studioUsersList = [];
@@ -342,8 +344,9 @@ const addStudioProjectCollaborators = async () => {
     notificationStore.addNotification(t('notifications.usersAddedSuccessfully', { count: resolvedUserIds.length }), "", "success");
   }
 
-  // Send invitations for new/unregistered users
-  for (const user of newUsersList) {
+  // Send invitation emails to all added users (registered and new)
+  const allInvitees = [...studioUsersList, ...globalUsers, ...newUsersList];
+  for (const user of allInvitees) {
     try {
       await AuthService.SendInvitationEmail(
         user.email,
@@ -356,8 +359,8 @@ const addStudioProjectCollaborators = async () => {
     }
   }
 
-  if (newUsersList.length > 0) {
-    notificationStore.addNotification(t('notifications.invitationsSent', { count: newUsersList.length }), "", "info");
+  if (allInvitees.length > 0) {
+    notificationStore.addNotification(t('notifications.invitationsSent', { count: allInvitees.length }), "", "info");
   }
 
   await userStore.reloadUsers();
@@ -406,7 +409,9 @@ const addLocalCollaborators = async () => {
     }
   }
 
-  for (const user of newUsersList) {
+  // Send invitation emails to all added users (registered and new)
+  const allInvitees = [...studioUsersList, ...globalUsers, ...newUsersList];
+  for (const user of allInvitees) {
     try {
       await AuthService.SendInvitationEmail(
         user.email,
@@ -420,14 +425,13 @@ const addLocalCollaborators = async () => {
   }
 
   const successCount = studioUsersList.length + globalUsers.length;
-  const invitationCount = newUsersList.length;
 
   if (successCount > 0) {
     notificationStore.addNotification(t('notifications.usersAddedSuccessfully', { count: successCount }), "", "success");
   }
   
-  if (invitationCount > 0) {
-    notificationStore.addNotification(t('notifications.invitationsSent', { count: invitationCount }), "", "info");
+  if (allInvitees.length > 0) {
+    notificationStore.addNotification(t('notifications.invitationsSent', { count: allInvitees.length }), "", "info");
   }
 };
 

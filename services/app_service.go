@@ -17,6 +17,12 @@ var (
 	pendingOpenFileMu sync.Mutex
 )
 
+// pendingDeepLinkURL stores a clustta:// URL received before the frontend was ready.
+var (
+	pendingDeepLinkURL   string
+	pendingDeepLinkURLMu sync.Mutex
+)
+
 // SystemInfo contains detailed system information.
 type SystemInfo struct {
 	OS        string `json:"os"`
@@ -191,4 +197,21 @@ func (s *AppService) GetPendingOpenFile() string {
 	filePath := pendingOpenFile
 	pendingOpenFile = ""
 	return filePath
+}
+
+// SetPendingDeepLink stores a clustta:// URL for the frontend to retrieve after initialization.
+func SetPendingDeepLink(deepLink string) {
+	pendingDeepLinkURLMu.Lock()
+	defer pendingDeepLinkURLMu.Unlock()
+	pendingDeepLinkURL = deepLink
+}
+
+// GetPendingDeepLink returns and clears any buffered deep link URL.
+// Called by the frontend after store initialization to handle cold-launch deep links.
+func (s *AppService) GetPendingDeepLink() string {
+	pendingDeepLinkURLMu.Lock()
+	defer pendingDeepLinkURLMu.Unlock()
+	link := pendingDeepLinkURL
+	pendingDeepLinkURL = ""
+	return link
 }

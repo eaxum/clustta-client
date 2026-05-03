@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"net/url"
 	"os"
 	"os/exec"
 	"os/user"
@@ -29,6 +30,30 @@ var assets embed.FS
 var trayIcon []byte
 
 var app *application.App
+
+// handleDeepLink processes a clustta:// URL and emits the appropriate event.
+func handleDeepLink(rawURL string) {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		log.Printf("Failed to parse deep link URL: %v", err)
+		return
+	}
+	if parsed.Scheme != "clustta" {
+		return
+	}
+	log.Printf("Deep link received: %s", rawURL)
+
+	if app != nil {
+		window, _ := application.Get().Window.GetByName("main")
+		if window != nil {
+			window.Show()
+			window.Focus()
+		}
+		app.Event.Emit("deep-link", rawURL)
+	} else {
+		services.SetPendingDeepLink(rawURL)
+	}
+}
 
 // InitializeFullscreenMonitoring starts fullscreen state monitoring for the application window.
 // Logs warnings if monitoring cannot be started.
@@ -139,6 +164,10 @@ func main() {
 						app.Event.Emit("open-project-file", arg)
 						break
 					}
+					if strings.HasPrefix(strings.ToLower(arg), "clustta://") {
+						handleDeepLink(arg)
+						break
+					}
 				}
 			},
 			AdditionalData: map[string]string{
@@ -200,6 +229,14 @@ func main() {
 		log.Printf("Application opened with file: %s", filePath)
 		services.SetPendingOpenFile(filePath)
 		app.Event.Emit("open-project-file", filePath)
+	})
+
+	// Listen for URL open events (deep links like clustta://invite?studio=...)
+	// Handles cold launch on all platforms and macOS warm launch via Apple Events.
+	app.Event.OnApplicationEvent(events.Common.ApplicationLaunchedWithUrl, func(event *application.ApplicationEvent) {
+		rawURL := event.Context().URL()
+		log.Printf("Application launched with URL: %s", rawURL)
+		handleDeepLink(rawURL)
 	})
 
 	if fsServiceInstance != nil {
@@ -357,10 +394,6 @@ func main() {
 
 	window.OnWindowEvent(events.Common.WindowFocus, func(event *application.WindowEvent) {
 		app.Event.Emit("window-focused", nil)
-	})
-
-	window.OnWindowEvent(events.Windows.WindowDragOver, func(event *application.WindowEvent) {
-		//TODO
 	})
 
 	window.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {

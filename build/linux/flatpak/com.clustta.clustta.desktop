@@ -9,5 +9,5 @@ Terminal=false
 Keywords=version-control;collaboration;assets;creative;
 Version=1.0
 StartupNotify=false
-MimeType=application/x-clustta-project;
+MimeType=application/x-clustta-project;x-scheme-handler/clustta;
 StartupWMClass=clustta
