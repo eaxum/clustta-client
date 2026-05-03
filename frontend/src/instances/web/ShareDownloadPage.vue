@@ -87,7 +87,6 @@ const errorTitle = ref('');
 const files = ref([]);
 const loading = ref(true);
 const shareInfo = ref({});
-const studioUrl = ref('');
 
 // computed properties
 // Returns formatted expiry date string.
@@ -127,7 +126,7 @@ const downloadSingleFile = async (file) => {
   downloadingFileId.value = file.checkpoint_id;
   downloadProgress.value = '';
   try {
-    const url = studioUrl.value + '/share/' + route.params.token + '/download/' + file.checkpoint_id;
+    const url = GLOBAL_API + '/share/' + route.params.token + '/download/' + file.checkpoint_id;
     const response = await fetch(url);
     if (!response.ok) throw new Error('Download failed');
     const onProgress = (receivedBytes, totalBytes) => {
@@ -199,15 +198,10 @@ const loadShareData = async () => {
 
     const data = await shareResp.json();
     shareInfo.value = data;
-    studioUrl.value = data.studio_url;
 
-    // Fetch file metadata from studio server
-    const metaResp = await fetch(data.studio_url + '/share/' + token + '/metadata');
-    if (metaResp.ok) {
-      const meta = await metaResp.json();
-      files.value = meta.files || [];
-      await processFileIcons(files.value);
-    }
+    // Use files from the share link response
+    files.value = data.files || [];
+    await processFileIcons(files.value);
   } catch (err) {
     setError(t('share.loadError'), t('share.loadErrorMessage'));
   } finally {
