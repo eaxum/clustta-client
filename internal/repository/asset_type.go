@@ -60,6 +60,16 @@ func GetAssetTypeByName(tx *sqlx.Tx, name string) (models.AssetType, error) {
 	return assetType, nil
 }
 
+func GetAssetTypeByIcon(tx *sqlx.Tx, icon string) (models.AssetType, error) {
+	assetType := models.AssetType{}
+	conditions := map[string]interface{}{"icon": icon}
+	err := base_service.GetBy(tx, "asset_type", conditions, &assetType)
+	if err != nil {
+		return assetType, err
+	}
+	return assetType, nil
+}
+
 func GetOrCreateAssetType(tx *sqlx.Tx, name, icon string) (models.AssetType, error) {
 	assetType, err := GetAssetTypeByName(tx, name)
 	if err == nil {

@@ -60,6 +60,16 @@ func GetCollectionTypeByName(tx *sqlx.Tx, name string) (models.CollectionType, e
 	return collectionType, nil
 }
 
+func GetCollectionTypeByIcon(tx *sqlx.Tx, icon string) (models.CollectionType, error) {
+	collectionType := models.CollectionType{}
+	conditions := map[string]interface{}{"icon": icon}
+	err := base_service.GetBy(tx, "collection_type", conditions, &collectionType)
+	if err != nil {
+		return collectionType, err
+	}
+	return collectionType, nil
+}
+
 func GetOrCreateCollectionType(tx *sqlx.Tx, name, icon string) (models.CollectionType, error) {
 	collectionType, err := GetCollectionTypeByName(tx, name)
 	if err == nil {
