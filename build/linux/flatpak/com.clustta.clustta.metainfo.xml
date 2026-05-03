@@ -4,7 +4,7 @@
   <metadata_license>FSFAP</metadata_license>
   <project_license>AGPL-3.0-or-later</project_license>
   <name>Clustta</name>
-  <summary>Version control, asset management and collaboration for creative workflows</summary>
+  <summary>Version control for creative work</summary>
   <developer id="com.clustta">
     <name>Eaxum</name>
   </developer>
@@ -48,6 +48,16 @@
     <color type="primary" scheme_preference="light">#f0f0f0</color>
     <color type="primary" scheme_preference="dark">#1a1a1a</color>
   </branding>
+
+  <keywords>
+    <keyword>version control</keyword>
+    <keyword>asset management</keyword>
+    <keyword>collaboration</keyword>
+    <keyword>creative</keyword>
+    <keyword>art</keyword>
+    <keyword>design</keyword>
+    <keyword>3D</keyword>
+  </keywords>
 
   <content_rating type="oars-1.1" />
 
