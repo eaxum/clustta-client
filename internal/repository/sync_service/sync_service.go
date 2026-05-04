@@ -18,8 +18,8 @@ import (
 	"net/http"
 	"strings"
 
-	kzstd "github.com/klauspost/compress/zstd"
 	"github.com/jmoiron/sqlx"
+	kzstd "github.com/klauspost/compress/zstd"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -266,27 +266,6 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 		localCollectionType, err := repository.GetCollectionType(tx, collectionType.Id)
 		if err != nil {
 			if errors.Is(err, error_service.ErrCollectionTypeNotFound) {
-				// Check if a local type with the same name or icon already exists
-				existing, nameErr := repository.GetCollectionTypeByName(tx, collectionType.Name)
-				if nameErr == nil {
-					if existing.MTime < collectionType.MTime {
-						_, err = repository.UpdateCollectionType(tx, existing.Id, collectionType.Name, collectionType.Icon)
-						if err != nil {
-							return err
-						}
-					}
-					continue
-				}
-				existing, iconErr := repository.GetCollectionTypeByIcon(tx, collectionType.Icon)
-				if iconErr == nil {
-					if existing.MTime < collectionType.MTime {
-						_, err = repository.UpdateCollectionType(tx, existing.Id, collectionType.Name, collectionType.Icon)
-						if err != nil {
-							return err
-						}
-					}
-					continue
-				}
 				_, err = repository.CreateCollectionType(
 					tx, collectionType.Id, collectionType.Name, collectionType.Icon)
 				if err != nil {
@@ -312,27 +291,6 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 		localAssetType, err := repository.GetAssetType(tx, assetType.Id)
 		if err != nil {
 			if errors.Is(err, error_service.ErrAssetTypeNotFound) {
-				// Check if a local type with the same name or icon already exists
-				existing, nameErr := repository.GetAssetTypeByName(tx, assetType.Name)
-				if nameErr == nil {
-					if existing.MTime < assetType.MTime {
-						_, err = repository.UpdateAssetType(tx, existing.Id, assetType.Name, assetType.Icon)
-						if err != nil {
-							return err
-						}
-					}
-					continue
-				}
-				existing, iconErr := repository.GetAssetTypeByIcon(tx, assetType.Icon)
-				if iconErr == nil {
-					if existing.MTime < assetType.MTime {
-						_, err = repository.UpdateAssetType(tx, existing.Id, assetType.Name, assetType.Icon)
-						if err != nil {
-							return err
-						}
-					}
-					continue
-				}
 				_, err = repository.CreateAssetType(
 					tx, assetType.Id, assetType.Name, assetType.Icon)
 				if err != nil {
