@@ -16,6 +16,7 @@ import AddWebLinkModal from '@/instances/desktop/modals/AddWebLinkModal.vue';
 import AddWorkspaceModal from '@/instances/desktop/modals/AddWorkspaceModal.vue';
 import CloneProjectModal from '@/instances/desktop/modals/CloneProjectModal.vue';
 import ConfigAgentModal from '@/instances/desktop/modals/ConfigAgentModal.vue';
+import ConsoleModal from '@/instances/desktop/modals/ConsoleModal.vue';
 import CreateAssetModal from '@/instances/desktop/modals/CreateAssetModal.vue';
 import CreateCheckpointModal from '@/instances/desktop/modals/CreateCheckpointModal.vue';
 import CreateCollectionModal from '@/instances/desktop/modals/CreateCollectionModal.vue';
@@ -115,6 +116,7 @@ const modalComponents = {
   addWorkspaceModal: AddWorkspaceModal,
   cloneProjectModal: CloneProjectModal,
   configAgentModal: ConfigAgentModal,
+  consoleModal: ConsoleModal,
   createAssetModal: CreateAssetModal,
   createCheckpointModal: CreateCheckpointModal,
   createCollectionModal: CreateCollectionModal,

@@ -1,6 +1,11 @@
 <template>
   <div class="general-pane-root">
-    <div class="console-container">
+    <div v-if="!isModal && isConsoleModalOpen" class="console-placeholder">
+      <div class="empty-text">{{ $t('panes.consoleOpenInModal') }}</div>
+      <div class="empty-subtext">{{ $t('panes.consoleOpenInModalSubtext') }}</div>
+    </div>
+
+    <div v-else class="console-container">
       <div class="console-messages" ref="messagesContainer">
         <template v-for="(message, index) in messages" :key="index">
           <div v-if="message.type === 'user'" class="msg-user">
@@ -58,6 +63,9 @@
             </div>
 
             <div class="console-toolbar-right">
+              <ActionButton v-if="!isModal && selectedConsoleTab === 'Agent'" :icon="getAppIcon('arrows-expand')" :showLabel="false"
+                v-tooltip="$t('panes.expandConsole')" :buttonFunction="openConsoleModal" />
+
               <ActionButton :icon="getAppIcon('broom')" :showLabel="false" :isDisabled="!messages.length || isProcessing"
                 v-tooltip="$t('panes.clearChat')" :buttonFunction="clearChat" />
 
@@ -89,6 +97,7 @@ import { AgentService, DialogService } from '@/services';
 // stores
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
+import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
 import { useSettingsStore } from '@/stores/settings';
@@ -97,9 +106,15 @@ import { useStageStore } from '@/stores/stages';
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const iconStore = useIconStore();
+const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
 const settings = useSettingsStore();
 const stage = useStageStore();
+
+// props
+const props = defineProps({
+  isModal: { type: Boolean, default: false }
+});
 
 const { t } = useI18n();
 
@@ -138,6 +153,8 @@ const inputPlaceholder = computed(() => {
   if (!isApiKeyConfigured.value) return t('panes.configureLlmInSettings');
   return t('panes.askAnything');
 });
+
+const isConsoleModalOpen = computed(() => modals.modalStates.consoleModal);
 
 const itemType = computed(() => {
   if (assetStore.selectedAsset) return 'asset';
@@ -219,6 +236,11 @@ const checkApiKeyStatus = async () => {
   } catch {
     isApiKeyConfigured.value = false;
   }
+};
+
+// Opens the console in an expanded modal view.
+const openConsoleModal = () => {
+  modals.setModalVisibility('consoleModal', true);
 };
 
 // Clears the chat history for the current project.
@@ -502,6 +524,17 @@ onUnmounted(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 
+.console-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: var(--white);
+  gap: 0.5rem;
+}
+
 .console-attachment-row {
   display: flex;
   flex-wrap: wrap;
@@ -532,7 +565,7 @@ onUnmounted(() => {
 .console-input {
   font-family: 'Inter', sans-serif;
   font-weight: 300;
-  font-size: 14px;
+  font-size: 13px;
   box-sizing: border-box;
   width: 100%;
   min-height: 36px;

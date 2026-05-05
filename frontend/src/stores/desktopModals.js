@@ -97,6 +97,7 @@ export const useDesktopModalStore = defineStore("desktopModals", {
 
       // agent
       configAgentModal: false,
+      consoleModal: false,
 
       // diagnostics
       submitDiagnosticsModal: false,
