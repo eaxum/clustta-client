@@ -2,7 +2,7 @@
   <div ref="collectionMenu" class="filter-menu-container" v-stop-propagation>
 
     <span v-for="assetType in projectAssetTypes" class="filter-menu-item" @click="toggleFilter(assetType)">
-      <img class="small-icons" :src="getAppIcon(assetType.icon)">
+      <component :is="resolveIcon(assetType.icon)" class="small-icons" :size="20" />
       <div class="horizontal-flex">
         <div class="menu-item-text"> {{ utils.capitalizeStr(assetType.name) }} </div>
         <ToggleSwitch :switchValueProp="isFilterActive(assetType)" />
@@ -17,6 +17,7 @@
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
+import { resolveIcon } from '@/lib/icon-map';
 import utils from '@/services/utils';
 
 // components
@@ -25,12 +26,10 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 // stores
 import { useAssetStore } from '@/stores/assets';
 import { useCommonStore } from '@/stores/common';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 
 const assetStore = useAssetStore();
 const commonStore = useCommonStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 
 // refs
@@ -46,11 +45,6 @@ const projectAssetTypes = computed(() => {
 // Adds a filter to the asset filters list.
 const addFilter = (filter) => {
   commonStore.assetFilters.push(filter);
-};
-
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
 };
 
 // Checks if a filter is currently active.

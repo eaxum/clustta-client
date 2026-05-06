@@ -3,8 +3,7 @@
 
     <div class="collection-spacer">
       <span v-if="!collection.asset_type_id" @click="expandItem" class="single-action-button">
-        <img class="small-icons collection-collapsed" :class="{ 'collection-expanded': isExpanded }"
-          :src="getAppIcon('chevron-down')">
+        <CiChevronDown :size="20" class="collection-collapsed" />
       </span>
 
       <span v-else class="single-action-button">
@@ -17,8 +16,8 @@
       <div class="collection-item-container drop-zone">
 
         <div class="collection-item-icon-container">
-          <img v-if="!collection.asset_type_id" class="large-icons" :src="getAppIcon(workflowItemIcon)">
-          <img v-else class="large-icons" :src="getAppIcon(workflowAssetIcon)">
+          <img v-if="!collection.asset_type_id" class="large-icons" :src="resolveIcon(workflowItemIcon)">
+          <img v-else class="large-icons" :src="resolveIcon(workflowAssetIcon)">
         </div>
 
         <div class="collection-item-content selection-area">
@@ -27,12 +26,12 @@
           </div>
         </div>
 
-        <ActionButton v-if="isParent && !selectable" @click="editWorkflowItem" :icon="getAppIcon('edit')"
+        <ActionButton v-if="isParent && !selectable" @click="editWorkflowItem" :icon="CiEdit"
           v-tooltip="$t('blocks.editWorkflow')" />
-        <ActionButton v-if="isParent && !selectable" @click="deleteWorkflowItem" :icon="getAppIcon('trash')"
+        <ActionButton v-if="isParent && !selectable" @click="deleteWorkflowItem" :icon="CiTrash"
           v-tooltip="$t('blocks.deleteWorkflow')" />
         <ActionButton v-if="selectable" :label="$t('blocks.addWorkflow')" @click="selectWorkflowItem"
-          :icon="getAppIcon('plus-circle')" />
+          :icon="CiPlusCircle" />
 
       </div>
 
@@ -59,6 +58,8 @@
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
+import { CiChevronDown, CiEdit, CiPlusCircle, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // states/store imports
 import { useIconStore } from '@/stores/icons';
@@ -114,7 +115,7 @@ const templateIcon = computed(() => {
 
 // methods
 const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
+  const icon = iconStore.resolveIcon(iconName);
   return icon
 };
 

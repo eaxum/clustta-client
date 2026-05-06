@@ -12,9 +12,9 @@
           </div>
         </div>
         <div v-if="!isEditing" class="project-item-actions">
-          <ActionButton class="hover-action" :isLoading="isCreatingProject" :icon="getAppIcon(isCreatingProject ? 'loading' : 'plus-circle')"
+          <ActionButton class="hover-action" :isLoading="isCreatingProject" :icon="resolveIcon(isCreatingProject ? 'loading' : 'plus-circle')"
             v-tooltip="$t('notifications.startTrackingWithClustta')" @click="goToProject(project)" />
-          <ActionButton class="hover-action" :icon="getAppIcon('folder-arrow-up-right')"
+          <ActionButton class="hover-action" :icon="CiFolderArrowUpRight"
             v-tooltip="$t('notifications.openFolder')" @click="revealInExplorer" />
         </div>
       </div>
@@ -22,7 +22,7 @@
 
     <div v-else-if="!cardView && !project.is_tracked" class="project-item-container untracked-list-item">
       <div class="project-item-icon">
-        <img class="large-icons" :src="getAppIcon('folder')">
+        <CiFolder :size="28" />
       </div>
       <div class="project-item-content">
         <div class="project-item-details">
@@ -32,9 +32,9 @@
         <div class="project-item-path">{{ project.working_directory }}</div>
       </div>
       <div class="project-item-actions">
-        <ActionButton class="hover-action" :isLoading="isCreatingProject" :icon="getAppIcon(isCreatingProject ? 'loading' : 'plus-circle')"
+        <ActionButton class="hover-action" :isLoading="isCreatingProject" :icon="resolveIcon(isCreatingProject ? 'loading' : 'plus-circle')"
           v-tooltip="$t('notifications.startTrackingWithClustta')" @click="goToProject(project)" />
-        <ActionButton class="hover-action" :icon="getAppIcon('folder-arrow-up-right')"
+        <ActionButton class="hover-action" :icon="CiFolderArrowUpRight"
           v-tooltip="$t('notifications.openFolder')" @click="revealInExplorer" />
       </div>
     </div>
@@ -59,18 +59,18 @@
 
         <div v-if="!isEditing" class="project-item-actions">
           <div class="project-item-actions-hover">
-            <ActionButton v-if="!platformStore.isWeb && !project.has_remote" :icon="getAppIcon('folder-arrow-up-right')"
+            <ActionButton v-if="!platformStore.isWeb && !project.has_remote" :icon="CiFolderArrowUpRight"
               v-tooltip="$t('notifications.openFolder')" @click="revealInExplorer" />
-            <ActionButton v-else-if="!platformStore.isWeb && project.is_downloaded" :icon="getAppIcon('folder-arrow-up-right')"
+            <ActionButton v-else-if="!platformStore.isWeb && project.is_downloaded" :icon="CiFolderArrowUpRight"
               v-tooltip="$t('notifications.openFolder')" @click="revealInExplorer" />
           </div>
           <div class="project-item-actions-persistent">
-            <ActionButton v-if="project.has_remote && projectStore.selectedStudio?.name === 'Personal'" :icon="getAppIcon('two-persons')" class="remote-indicator" />
-            <ActionButton v-if="!platformStore.isWeb && isProjectPinned && project.is_downloaded" :icon="getAppIcon('pin')"
+            <ActionButton v-if="project.has_remote && projectStore.selectedStudio?.name === 'Personal'" :icon="CiTwoPersons" class="remote-indicator" />
+            <ActionButton v-if="!platformStore.isWeb && isProjectPinned && project.is_downloaded" :icon="CiPin"
               v-tooltip="$t('blocks.unpinProject')" @click="unpinProject" />
-            <ActionButton v-if="project.has_remote && project.is_unsynced" :icon="getAppIcon('dot-big')" :useAlert="true"
+            <ActionButton v-if="project.has_remote && project.is_unsynced" :icon="CiDotBig" :useAlert="true"
               :noFilter="true" v-tooltip="$t('notifications.projectNotSynced')" />
-            <ActionButton v-if="!platformStore.isWeb && !project.is_downloaded" :icon="getAppIcon('cloud-down')" v-tooltip="$t('notifications.downloadProject')"
+            <ActionButton v-if="!platformStore.isWeb && !project.is_downloaded" :icon="CiCloudDown" v-tooltip="$t('notifications.downloadProject')"
               @click="cloneProject(project)" />
           </div>
         </div>
@@ -86,6 +86,8 @@ import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
+import { CiCloudDown, CiDotBig, CiFolder, CiFolderArrowUpRight, CiPin, CiTwoPersons } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -166,7 +168,7 @@ const confirmRename = async () => {
 };
 
 // Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+const getAppIcon = (iconName) => iconStore.resolveIcon(iconName);
 
 // Navigates to the project or creates it if untracked.
 const goToProject = async (project) => {

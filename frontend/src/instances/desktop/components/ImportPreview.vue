@@ -5,7 +5,7 @@
     {{ stage.firstSelectedItemId }} -->
 
 
-    <ActionButton v-if="itemsSelected" :icon="getAppIcon('close')" v-tooltip="$t('components.importPreview.deselectAll')" @click="deselectItems" />
+    <ActionButton v-if="itemsSelected" :icon="CiClose" v-tooltip="$t('components.importPreview.deselectAll')" @click="deselectItems" />
 
     <div v-if="collections.length || assets.length" class="selected-items-meta">
       {{ message }}
@@ -28,11 +28,11 @@
           :fullWidth="false" />
       </div>
 
-      <ActionButton v-if="itemsSelected" :icon="getAppIcon('trash')" :iconAfter="true"
+      <ActionButton v-if="itemsSelected" :icon="CiTrash" :iconAfter="true"
         :label="(collectionsSelected || assetsSelected) ? '' : $t('components.importPreview.removeSelected')" v-tooltip="$t('components.importPreview.removeSelectedTooltip')"
         @click="removeItems" />
 
-      <ActionButton v-if="!itemsSelected && emptyCollectionIds?.length" :icon="getAppIcon('trash')" :iconAfter="true"
+      <ActionButton v-if="!itemsSelected && emptyCollectionIds?.length" :icon="CiTrash" :iconAfter="true"
         :label="$t('components.importPreview.removeEmptyFolders')" v-tooltip="$t('components.importPreview.removeSelectedTooltip')" @click="removeEmptyFolders" />
 
     </div>
@@ -53,10 +53,12 @@ import { useIconStore } from '@/stores/icons';
 const iconStore = useIconStore();
 
 const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
+  const icon = iconStore.resolveIcon(iconName);
   return icon
 };
 // imports
+import { CiClose, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 import emitter from '@/lib/mitt';
 

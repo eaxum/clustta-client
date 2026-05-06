@@ -18,7 +18,7 @@
           <p class="section-description">
             Map each asset type from Kitsu to an asset template. The template determines which file is created for each asset.
           </p>
-          <ActionButton :icon="getAppIcon('sparkles')" :label="'Auto'" :buttonFunction="autoAssign" :showLabel="true" :useBackground="true" />
+          <ActionButton :icon="CiSparkles" :label="'Auto'" :buttonFunction="autoAssign" :showLabel="true" :useBackground="true" />
         </div>
 
         <!-- Mapping Table -->
@@ -45,7 +45,7 @@
 
         <!-- Unmapped Warning -->
         <div v-if="unmappedCount > 0" class="warning-banner">
-          <img :src="getAppIcon('alert')" alt="" class="warning-icon" />
+          <CiAlert :size="20" class="warning-icon" />
           <span>{{ unmappedCount }} asset type{{ unmappedCount > 1 ? 's' : '' }} not mapped. Unmapped types won't create files during sync.</span>
         </div>
         
@@ -64,6 +64,8 @@
 // imports
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiAlert, CiFile, CiSparkles } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -175,15 +177,15 @@ const closeModal = () => {
 
 // Returns the app icon path.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Gets the icon for a asset type based on its mapped template extension.
 const getAssetTypeIcon = (assetTypeId) => {
   const templateId = mappings.value[assetTypeId];
-  if (!templateId) return getAppIcon('file');
+  if (!templateId) return CiFile;
   const template = templates.value.find(t => t.id === templateId);
-  if (!template?.extension) return getAppIcon('file');
+  if (!template?.extension) return CiFile;
   const ext = template.extension.replace('.', '').toLowerCase();
   return `/file-icons/${ext}.svg`;
 };

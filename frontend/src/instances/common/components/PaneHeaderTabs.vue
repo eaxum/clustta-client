@@ -7,7 +7,7 @@
       @click="filterList(index, dataType.id || dataType.name)" class="tab-button"
       :class="{ 'selected-tab-button': selectedTab === (dataType.id || dataType.name), 'fullwidth-tab-button': fullWidth }">
       <div class="tab-content">
-        <img class="small-icons" :src="getAppIcon(dataType.icon)">
+        <component :is="resolveIcon(dataType.icon)" :size="16" class="tab-icon" />
         <div v-if="!iconsOnly && (selectedTab === (dataType.id || dataType.name) || fullWidth)" class="selected-tab-button-text"> {{
           dataType.nameKey ? $t(dataType.nameKey) : utils.capitalizeStr(dataType.name) }}</div>
       </div>
@@ -18,22 +18,7 @@
 
 <script setup>
 
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const formattedIconName = getIconName(iconName)
-  const icon = iconStore.getAppIcon(formattedIconName);
-  return icon
-};
-
-const getIconName = (path) => {
-  if (!path.includes('/') && !path.includes('.svg')) {
-    return path;
-  }
-  return path.split('/').pop().replace('.svg', '');
-};
-
+import { resolveIcon } from '@/lib/icon-map';
 import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
 import { useTrayStates } from '@/stores/TrayStates';
 import utils from '@/services/utils';
@@ -192,6 +177,14 @@ onMounted(() => {
   font-size: 14px;
   align-items: center;
   overflow: hidden;
+}
+
+.tab-icon {
+  stroke: var(--light-steel);
+}
+
+.selected-tab-button .tab-icon {
+  stroke: var(--white);
 }
 
 .alert-items {

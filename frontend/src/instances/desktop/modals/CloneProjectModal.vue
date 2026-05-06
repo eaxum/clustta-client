@@ -1,7 +1,7 @@
 <template>
   <div ref="modalContainer" class="modal-container">
 
-      <HeaderArea :title="title" :icon="getAppIcon('briefcase-plus')" :showSearch="false" />
+      <HeaderArea :title="title" :icon="CiBriefcasePlus" :showSearch="false" />
 
     <div class="general-container">
 
@@ -25,7 +25,7 @@
             />
           </div>
           <span @click="addNewLocation" class="single-action-button" v-tooltip="$t('modals.addNewLocation')">
-            <img class="small-icons" :src="getAppIcon('plus-circle')">
+            <CiPlusCircle :size="20" />
           </span>
         </div>
       </div>
@@ -43,6 +43,8 @@
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiBriefcasePlus, CiPlusCircle } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
@@ -184,7 +186,7 @@ const closeModal = () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Loads available project locations from settings.

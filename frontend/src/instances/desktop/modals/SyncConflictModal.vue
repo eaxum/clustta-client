@@ -1,12 +1,12 @@
 <template>
   <div class="modal-container" ref="modalContainer" v-stop-propagation>
-    <HeaderArea :title="$t('modals.resolveConflicts')" :icon="getAppIcon('cloud-error')" :showSearch="false" />
+    <HeaderArea :title="$t('modals.resolveConflicts')" :icon="CiCloudError" :showSearch="false" />
 
     <div class="general-container">
       <div class="conflict-message">
         <p>{{ $t('modals.conflictsDescription') }}</p>
 
-        <p>{{ $t('modals.conflictsInstruction') }} <span class="learn-more-link" @click="openLearnMore">{{ $t('modals.learnMore') }} <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span></p>
+        <p>{{ $t('modals.conflictsInstruction') }} <span class="learn-more-link" @click="openLearnMore">{{ $t('modals.learnMore') }} <ActionButton :icon="CiSquareArrowRightUp" :allowDeactivate="true" :isMini="true" /></span></p>
       </div>
 
       <div class="conflict-tabs-header">
@@ -15,15 +15,15 @@
         </div>
 
         <div class="conflict-tabs-options">
-          <ActionButton :icon="hideExtensions ? getAppIcon('extension-cancel') : getAppIcon('extension')" v-tooltip="hideExtensions ? $t('modals.showExtensions') : $t('modals.hideExtensions')" :buttonFunction="toggleHideExtensions" />
+          <ActionButton :icon="hideExtensions ? CiExtensionCancel : CiExtension" v-tooltip="hideExtensions ? $t('modals.showExtensions') : $t('modals.hideExtensions')" :buttonFunction="toggleHideExtensions" />
 
-          <ActionButton :icon="showFullPath ? getAppIcon('file-name') : getAppIcon('file-path')" v-tooltip="showFullPath ? $t('modals.nameColumn') : $t('modals.pathColumn')" :buttonFunction="toggleShowFullPath" />
+          <ActionButton :icon="showFullPath ? CiFileName : CiFilePath" v-tooltip="showFullPath ? $t('modals.nameColumn') : $t('modals.pathColumn')" :buttonFunction="toggleShowFullPath" />
         </div>
       </div>
 
       <div class="conflict-list-container conflict-list-empty" v-if="isEnriching">
         <div class="conflict-loading">
-          <img :src="getAppIcon('loading')" alt="loading" class="loading-icon" />
+          <CiLoading :size="20" class="loading-icon" />
 
           <span>{{ $t('modals.loadingConflicts') }}</span>
         </div>
@@ -53,6 +53,8 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
+import { CiCloudError, CiExtension, CiExtensionCancel, CiFileName, CiFilePath, CiLoading, CiSquareArrowRightUp } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import {
   filterTopLevelConflicts,
   getResolutionSummary,
@@ -204,7 +206,7 @@ const enrichConflicts = async () => {
 
 // Returns icon path from icon store.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Cancels conflict resolution and closes modal.

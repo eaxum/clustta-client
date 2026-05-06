@@ -7,14 +7,14 @@
 					
 		
 					<div v-if="!isEditing" class="dashboard-actions">
-						<ActionButton  :iconAfter="true" :icon="getAppIcon('edit')"
+						<ActionButton  :iconAfter="true" :icon="CiEdit"
 							:label="$t('stages.editProfile')" @click="startEditing" />
-						<!-- <ActionButton  :iconAfter="true" :icon="getAppIcon('key')"
+						<!-- <ActionButton  :iconAfter="true" :icon="CiKey"
 							label="Change Password" @click="goToChangePassword" /> -->
 					</div>
 
 					<div v-else class="dashboard-actions">
-						<ActionButton :color="'crimson'" :iconAfter="true" :icon="getAppIcon('close-circle')" :label="$t('common.cancel')"
+						<ActionButton :color="'crimson'" :iconAfter="true" :icon="CiCloseCircle" :label="$t('common.cancel')"
 							@click="cancelEditing" />
 					</div>
 
@@ -31,7 +31,7 @@
 						<div class="photo-overlay"></div>
 						<div class="photo-actions">
 							<div class="change-action-button">
-							<img class="alert-icons" :src="getAppIcon('camera')" />
+							<CiCamera :size="16" />
 							<input type="file" @change="handlePhotoChange" accept="image/*" ref="photoInput" class="photo-input" />
 							</div>
 							<div class="change-action-button">
@@ -63,10 +63,10 @@
 						<div class="compound-form-input">
 							<input class="form-input input-short" @input="checkUsername" v-model="formData.username" type="text" :disabled="!isEditing" />
 							<div v-if="formData.username" class="form-input-icon">
-								<img v-if="errors.username || !usernameValid" class="alert-icons" :src="getAppIcon('alert')" />
+								<CiAlert v-if="errors.username || !usernameValid" class="alert-icons ci-inline-icon" />
 								<img v-else-if="checkingUsernameAvailability" class="alert-icons" src="/icons/loading.svg"
 								:class="{ 'loading-icon': checkingUsernameAvailability }" />
-								<img v-else class="alert-icons" :src="getAppIcon('circle-check')" />
+								<CiCircleCheck v-else class="alert-icons ci-inline-icon" />
 							</div>
 						</div>
 					</div>
@@ -76,10 +76,10 @@
 						<div class="compound-form-input">
 							<input class="form-input input-short" @input="checkEmail" v-model="formData.email" type="email" :disabled="!isEditing" />
 							<div v-if="formData.email" class="form-input-icon">
-								<img v-if="errors.email || !emailValid" class="alert-icons" :src="getAppIcon('alert')" />
+								<CiAlert v-if="errors.email || !emailValid" class="alert-icons ci-inline-icon" />
 								<img v-else-if="checkingEmailAvailability" class="alert-icons" src="/icons/loading.svg"
 									:class="{ 'loading-icon': checkingEmailAvailability }" />
-								<img v-else class="alert-icons" :src="getAppIcon('circle-check')" />
+								<CiCircleCheck v-else class="alert-icons ci-inline-icon" />
 							</div>
 						</div>
 					</div>
@@ -87,10 +87,10 @@
 					</form>
 
 						
-						<ActionButton v-if="isEditing" :isDisabled="!isDataValid"  :iconAfter="true" :icon="getAppIcon('check-circle')"
+						<ActionButton v-if="isEditing" :isDisabled="!isDataValid"  :iconAfter="true" :icon="CiCheckCircle"
 							:label="$t('stages.saveChanges')" @click="handleUpdate" />
 
-						<ActionButton v-else  :iconAfter="true" :icon="getAppIcon('trash')"
+						<ActionButton v-else  :iconAfter="true" :icon="CiTrash"
 							:label="$t('stages.deleteAccount')" @click="prepDeleteAccountModal()" />
 				</div>
 			</div>
@@ -107,15 +107,14 @@ import { AuthService } from "@/services";
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { generateAvatar } from '@/lib/avatar';
+import { CiAlert, CiCamera, CiCheckCircle, CiCircleCheck, CiCloseCircle, CiEdit, CiTrash } from '@clustta/icons-vue';
 
 // state imports
-import { useIconStore } from '@/stores/icons';
 import { useUserStore } from '@/stores/users';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useTrayStates } from '@/stores/TrayStates';
 
 // states/stores
-const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const userStore = useUserStore();
 const trayStates = useTrayStates();
@@ -198,11 +197,6 @@ const userPhoto = computed(() => {
 
 
 // methods
-const getAppIcon = (iconName) => {
-	const icon = iconStore.getAppIcon(iconName);
-	return icon
-};
-
 const prepDeleteAccountModal = () => {
 	trayStates.popUpModalIcon = 'trash'
 	trayStates.popUpModalTitle = t('stages.deleteAccount');

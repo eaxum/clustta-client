@@ -10,7 +10,7 @@
         </div>
       </div>
 
-      <PageState v-else :message="message()" :illustration="illustration()" :secondaryIcon="getAppIcon('plus-circle')" :secondaryActionMessage="secondaryActionMessage()" :secondaryActionFunction="secondaryActionFunction" />
+      <PageState v-else :message="message()" :illustration="illustration()" :secondaryIcon="CiPlusCircle" :secondaryActionMessage="secondaryActionMessage()" :secondaryActionFunction="secondaryActionFunction" />
 
     </div>
   </div>
@@ -21,6 +21,8 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
+import { CiPlusCircle } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionBar from '@/instances/desktop/components/ActionBar.vue';
@@ -86,7 +88,7 @@ const deleteRole = async (roleId) => {
 
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Returns the empty state illustration path.

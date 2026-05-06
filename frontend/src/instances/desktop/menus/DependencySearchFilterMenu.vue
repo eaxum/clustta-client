@@ -2,7 +2,7 @@
   <div ref="collectionMenu" class="filter-menu-container" v-stop-propagation>
 
     <span class="filter-menu-item" @click="toggleShowCollections()">
-      <img class="small-icons" :src="getAppIcon('folder')">
+      <CiFolder class="small-icons" :size="20" />
       <div class="horizontal-flex">
         <div class="menu-item-text" >{{ $t('menus.collections') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.filterDependencyCollections" />
@@ -10,7 +10,7 @@
     </span>
 
     <span class="filter-menu-item" @click="toggleShowAssets()">
-      <img class="small-icons" :src="getAppIcon('brush')">
+      <CiBrush class="small-icons" :size="20" />
       <div class="horizontal-flex">
         <div class="menu-item-text">{{ $t('menus.assets') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.filterDependencyAssets" />
@@ -19,7 +19,7 @@
 
 
     <span class="filter-menu-item" @click="toggleShowResources()">
-      <img class="small-icons" :src="getAppIcon('paperclip')">
+      <CiPaperclip class="small-icons" :size="20" />
       <div class="horizontal-flex">
         <div class="menu-item-text">{{ $t('menus.resources') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.filterDependencyResources" />
@@ -33,6 +33,7 @@
 <script setup>
 // imports
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { CiBrush, CiFolder, CiPaperclip } from '@clustta/icons-vue';
 import { useI18n } from 'vue-i18n';
 
 // components
@@ -40,11 +41,9 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // stores
 import { useCommonStore } from '@/stores/common';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 
 const commonStore = useCommonStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 
 const { t } = useI18n();
@@ -53,11 +52,6 @@ const { t } = useI18n();
 const collectionMenu = ref(null);
 
 // methods
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
-};
-
 // Toggles the filter for showing collections in dependency search.
 const toggleShowCollections = () => {
   commonStore.filterDependencyCollections = !commonStore.filterDependencyCollections;

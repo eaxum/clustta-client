@@ -11,13 +11,13 @@
         <div class="settings-section-card-content">
 
           <div class="settings-item" v-stop-propagation @click="openAgentConfig">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('brain')"></div>
+            <div class="settings-icon"><CiBrain :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.llmProvider') }}</div>
               <div class="settings-body">{{ agentKeyConfigured ? $t('settings.providerConfigured') : $t('settings.configureProvider') }}</div>
             </div>
             <div class="settings-action">
-              <img class="small-icons" :src="getAppIcon('chevron-right')">
+              <CiChevronRight :size="20" />
             </div>
           </div>
 
@@ -32,7 +32,7 @@
         <div class="settings-section-card-content">
 
           <div class="settings-item" @click="toggleMinimizeOnClose">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('minimize')"></div>
+            <div class="settings-icon"><CiMinimize :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.minimizeOnClose') }}</div>
               <div class="settings-body">{{ $t('settings.minimizeOnCloseDescription') }}</div>
@@ -54,7 +54,7 @@
 
           <!-- Connected Integrations List -->
           <div v-for="integration in connectedIntegrations" :key="integration.id" class="settings-item" @click="openIntegrationAuth">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon(integration.icon)"></div>
+            <div class="settings-icon"><img class="small-icons" :src="resolveIcon(integration.icon)"></div>
             <div class="settings-content">
               <div class="settings-header">{{ integration.name }}</div>
               <div class="settings-body">{{ $t('settings.connected') }}</div>
@@ -66,13 +66,13 @@
 
           <!-- Connect New Integration -->
           <div class="settings-item" v-stop-propagation @click="openIntegrationAuth">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('plug')"></div>
+            <div class="settings-icon"><CiPlug :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.connectIntegration') }}</div>
               <div class="settings-body">{{ $t('settings.connectIntegrationDescription') }}</div>
             </div>
             <div class="settings-action">
-              <img class="small-icons" :src="getAppIcon('chevron-right')">
+              <CiChevronRight :size="20" />
             </div>
           </div>
 
@@ -87,7 +87,7 @@
         <div class="settings-section-card-content">
 
           <div class="settings-item" @click="toggleBridgeEnabled">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('brick')"></div>
+            <div class="settings-icon"><CiBrick :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ bridgeEnabled ? $t('settings.disableBridge') : $t('settings.enableBridge') }}</div>
               <div class="settings-body">{{ $t('settings.bridgeEnabledDescription') }}</div>
@@ -98,13 +98,13 @@
           </div>
 
           <div class="settings-item" @click="Browser.OpenURL('https://www.clustta.com/plugins')">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('download')"></div>
+            <div class="settings-icon"><CiDownload :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.downloadPlugins') }}</div>
               <div class="settings-body">{{ $t('settings.downloadPluginsDescription') }}</div>
             </div>
             <div class="settings-action">
-              <img class="small-icons" :src="getAppIcon('chevron-right')">
+              <CiChevronRight :size="20" />
             </div>
           </div>
 
@@ -119,7 +119,7 @@
         <div class="settings-section-card-content">
 
           <div class="settings-item" @click="toggleSyncAfterCheckpoint">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('refresh')"></div>
+            <div class="settings-icon"><CiRefresh :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.syncAfterCheckpoint') }}</div>
               <div class="settings-body">{{ $t('settings.syncAfterCheckpointDescription') }}</div>
@@ -142,6 +142,8 @@
 import { computed, ref, onMounted } from 'vue';
 import { Browser } from '@wailsio/runtime';
 import { useI18n } from 'vue-i18n';
+import { CiBrain, CiBrick, CiChevronRight, CiDownload, CiMinimize, CiPlug, CiRefresh } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
@@ -179,7 +181,7 @@ const connectedIntegrations = computed(() => {
 // methods
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Opens the AI agent configuration modal.

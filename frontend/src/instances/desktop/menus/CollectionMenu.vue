@@ -1,56 +1,56 @@
 <template>
   <div ref="collectionMenu" class="filter-menu-container">
 
-    <ActionButton :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true" :label="$t('common.rename')"
+    <ActionButton :icon="CiEdit" :showLabel="true" :fullWidth="true" :label="$t('common.rename')"
       v-if="userStore.canDo('update_collection')" :buttonFunction="renameCollection" />
 
-    <ActionButton :icon="getAppIcon('switches')" :showLabel="true" :fullWidth="true" :label="$t('common.edit')"
+    <ActionButton :icon="CiSwitches" :showLabel="true" :fullWidth="true" :label="$t('common.edit')"
       v-if="userStore.canDo('update_collection')" :buttonFunction="editCollection" />
 
-    <ActionButton v-if="canSelectContent" :icon="getAppIcon('checkbox-selected')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="canSelectContent" :icon="CiCheckboxSelected" :showLabel="true" :fullWidth="true"
       :label="$t('menus.selectContent')" :buttonFunction="selectContent" />
 
     <span v-if="userStore.canDo('update_collection')" class="menu-divider"></span>
 
     <!-- Create -->
-    <ActionButton :icon="getAppIcon('file-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addAsset')"
+    <ActionButton :icon="CiFilePlus" :showLabel="true" :fullWidth="true" :label="$t('menus.addAsset')"
       v-if="templateStore.getTemplates.length && (userStore.canDo('create_asset') || collectionStore.selectedCollection.can_modify)" :buttonFunction="createAsset" />
 
-    <ActionButton :icon="getAppIcon('folder-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addCollection')"
+    <ActionButton :icon="CiFolderPlus" :showLabel="true" :fullWidth="true" :label="$t('menus.addCollection')"
       v-if="userStore.canDo('create_collection') || collectionStore.selectedCollection.can_modify" :buttonFunction="createCollection" />
 
-    <ActionButton :icon="getAppIcon('workflow-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addWorkflow')"
+    <ActionButton :icon="CiWorkflowPlus" :showLabel="true" :fullWidth="true" :label="$t('menus.addWorkflow')"
       v-if="workflowStore.workflows.length && userStore.canDo('create_asset')" :buttonFunction="addWorkflow" />
 
     
 
-    <ActionButton :icon="getAppIcon('web-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.newLink')"
+    <ActionButton :icon="CiWebPlus" :showLabel="true" :fullWidth="true" :label="$t('menus.newLink')"
       v-if="userStore.canDo('create_asset') || collectionStore.selectedCollection.can_modify" :buttonFunction="createLink" />
 
-    <ActionButton :icon="getAppIcon('data-download')" :showLabel="true" :fullWidth="true" :label="$t('modals.importItems')"
+    <ActionButton :icon="CiDataDownload" :showLabel="true" :fullWidth="true" :label="$t('modals.importItems')"
       v-if="!platformStore.isWeb && userStore.canDo('create_asset')" :buttonFunction="importItems" />
 
-    <ActionButton :icon="getAppIcon('arrow-up-ramp')" :showLabel="true" :fullWidth="true" :label="$t('menus.uploadItems')"
+    <ActionButton :icon="CiArrowUpRamp" :showLabel="true" :fullWidth="true" :label="$t('menus.uploadItems')"
       v-if="platformStore.isWeb && userStore.canDo('create_asset')" :buttonFunction="uploadItems" />
 
-    <ActionButton :icon="getAppIcon('clipboard')" :showLabel="true" :fullWidth="true" :label="$t('common.paste')"
+    <ActionButton :icon="CiClipboard" :showLabel="true" :fullWidth="true" :label="$t('common.paste')"
       v-if="hasClipboardItems && userStore.canDo('update_collection')" :buttonFunction="pasteItems" />
 
     
     <!-- Collection State Actions -->
     <span v-if="collectionStateFlags.has_untracked || collectionStateFlags.has_modified || collectionStateFlags.has_outdated || collectionStateFlags.has_rebuildable" class="menu-divider"></span>
 
-    <ActionButton v-if="collectionStateFlags.has_untracked || collectionStateFlags.has_modified" :icon="getAppIcon('plus-stone')" :useAlert="collectionStateFlags.has_modified" :useDanger="collectionStateFlags.has_untracked" :showLabel="true" :fullWidth="true" :label="$t('modals.createCheckpoints')"
+    <ActionButton v-if="collectionStateFlags.has_untracked || collectionStateFlags.has_modified" :icon="CiPlusStone" :useAlert="collectionStateFlags.has_modified" :useDanger="collectionStateFlags.has_untracked" :showLabel="true" :fullWidth="true" :label="$t('modals.createCheckpoints')"
       :buttonFunction="prepCreateCheckpointsModal" />
 
-    <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" :label="$t('menus.rebuildContents')"
+    <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_rebuildable" :icon="CiJigsaw" :showLabel="true" :fullWidth="true" :label="$t('menus.rebuildContents')"
       :buttonFunction="rebuildCollection" />
 
-    <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" :showLabel="true" :fullWidth="true" :label="$t('menus.updateContents')"
+    <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_outdated" :icon="CiCircleCheck" :useAlert="true" :noFilter="true" :showLabel="true" :fullWidth="true" :label="$t('menus.updateContents')"
       :buttonFunction="updateContents" />
 
     <!-- Revert Contents -->
-    <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_modified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :showLabel="true" :fullWidth="true" 
+    <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_modified" :noFilter="true" :icon="CiRevert" :useAlert="true" :showLabel="true" :fullWidth="true" 
       :label="$t('menus.revertContents')" :buttonFunction="prepRevertContentsPopUpModal" />
 
 
@@ -59,18 +59,18 @@
 
     <!-- Reveal in Explorer -->
     <span v-if="!platformStore.isWeb" class="horizontal-flex">
-      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
+      <ActionButton :icon="CiFolderArrowUpRight" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
         :buttonFunction="revealInExplorer" />
-      <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyCollectionPath('collection')"
+      <ActionButton :icon="CiCopy" :showLabel="false" :fullWidth="false" @click="copyCollectionPath('collection')"
         v-tooltip="$t('common.copyPath')" />
     </span>
 
     <!-- Free space -->
-    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" :label="$t('common.freeUpSpace')"
+    <ActionButton v-if="!platformStore.isWeb" :icon="CiBroom" :showLabel="true" :fullWidth="true" :label="$t('common.freeUpSpace')"
       :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Delete Asset -->
-    <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.delete')"
+    <ActionButton :icon="CiTrash" :showLabel="true" :fullWidth="true" :label="$t('common.delete')"
       v-if="userStore.canDo('delete_collection')" :buttonFunction="deleteCollection" />
 
   </div>
@@ -80,6 +80,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { CiArrowUpRamp, CiBroom, CiCheckboxSelected, CiCircleCheck, CiClipboard, CiCopy, CiDataDownload, CiEdit, CiFilePlus, CiFolderArrowUpRight, CiFolderPlus, CiJigsaw, CiPlusStone, CiRevert, CiSwitches, CiTrash, CiWebPlus, CiWorkflowPlus } from '@clustta/icons-vue';
 import { useI18n } from 'vue-i18n';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
@@ -94,7 +95,6 @@ import { CheckpointService, CollectionService, DialogService, FSService, SyncSer
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { usePaneStore } from '@/stores/panes';
@@ -108,7 +108,6 @@ import { useWorkflowStore } from '@/stores/workflow';
 
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -260,11 +259,6 @@ const generateUniqueDestinationPath = async (directory, fileName) => {
   const timestamp = Date.now();
   const timestampFileName = `${baseName}_${timestamp}${extension}`;
   return await FSService.JoinPath(directory, timestampFileName);
-};
-
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
 };
 
 // Returns the current directory path.

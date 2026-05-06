@@ -4,14 +4,13 @@
 
       <span class="hierarchy-item-spacer single-action-button" @click="toggleExpand"
         :class="{ 'no-expand': item.type !== 'collection' || !item.children.length }">
-        <img v-if="item.type === 'collection' && item.children.length" class="large-icons hierarchy-collection-collapsed"
-          :class="{ 'hierarchy-collection-expanded': isExpanded }" :src="getAppIcon('chevron-right')">
+        <CiChevronRight :size="28" class="hierarchy-collection-collapsed" />
       </span>
 
       <span v-if="!isHierarchyRoot" class="hierarchy-item-spacer single-action-button"
         @click="stage.selectPreviewItem(item)">
         <img class="large-icons"
-          :src="isItemSelected ? getAppIcon('checkbox-selected') : getAppIcon('checkbox-unselected')">
+          :src="isItemSelected ? CiCheckboxSelected : CiCheckboxUnselected">
       </span>
 
 
@@ -19,7 +18,7 @@
       <div class="hierarchy-item-title" @click="handleClick($event, item)">
 
         <div class="hierarchy-item-type-icon-container">
-          <img v-if="itemIcon" class="large-icons" :src="getAppIcon(itemIcon)">
+          <img v-if="itemIcon" class="large-icons" :src="resolveIcon(itemIcon)">
         </div>
 
         <div v-if="item.icon" class="hierarchy-item-icon-container">
@@ -44,7 +43,7 @@
           <DropDownBox :items="assetTypeNames" :selectedItem="assetType" :onSelect="selectAssetType" :fullWidth="false" />
         </div>
 
-        <ActionButton :icon="getAppIcon('trash')" v-tooltip="$t('components.hierarchyItem.remove')" @click="removeItem(item)" />
+        <ActionButton :icon="CiTrash" v-tooltip="$t('components.hierarchyItem.remove')" @click="removeItem(item)" />
       </div>
 
 
@@ -57,11 +56,13 @@
 </template>
 
 <script setup>
+import { CiCheckboxSelected, CiCheckboxUnselected, CiChevronRight, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { useIconStore } from '@/stores/icons';
 const iconStore = useIconStore();
 
 const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
+  const icon = iconStore.resolveIcon(iconName);
   return icon
 };
 import { ref, computed } from 'vue';

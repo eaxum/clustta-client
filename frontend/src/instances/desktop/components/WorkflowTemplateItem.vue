@@ -5,8 +5,7 @@
 
       <span class="hierarchy-item-spacer single-action-button" @click="toggleExpand"
         :class="{ 'no-expand': item.type !== 'collection' || !item.children.length }">
-        <img v-if="item.type === 'collection' && item.children.length" class="large-icons hierarchy-collection-collapsed"
-          :class="{ 'hierarchy-collection-expanded': isExpanded }" :src="getAppIcon('chevron_down_white_slim')">
+        <CiChevronDown :size="28" class="hierarchy-collection-collapsed" />
       </span>
 
       <div class="hierarchy-item-type-icon-container">
@@ -20,7 +19,7 @@
       <span class="item-name">{{ item.name }}</span>
 
       <div v-if="isHierarchyRoot" class="hierarchy-header-config">
-        <ActionButton v-if="isHierarchyRoot" :icon="getAppIcon('plus-circle')" v-tooltip="$t('components.workflowTemplateItem.remove')" @click="addWorkflow()" />
+        <ActionButton v-if="isHierarchyRoot" :icon="CiPlusCircle" v-tooltip="$t('components.workflowTemplateItem.remove')" @click="addWorkflow()" />
       </div>
 
       <div v-else class="hierarchy-item-config">
@@ -28,7 +27,7 @@
           <ListBox v-if="item.asset_type_id" :items="assetStore.getAssetTypesNames" :selectedItem="assetType"
             :onSelect="selectAssetType" />
         </div>
-        <ActionButton :icon="getAppIcon('trash')" v-tooltip="$t('components.workflowTemplateItem.remove')" @click="removeItem(item)" />
+        <ActionButton :icon="CiTrash" v-tooltip="$t('components.workflowTemplateItem.remove')" @click="removeItem(item)" />
       </div>
 
 
@@ -41,11 +40,13 @@
 </template>
 
 <script setup>
+import { CiChevronDown, CiPlusCircle, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { useIconStore } from '@/stores/icons';
 const iconStore = useIconStore();
 
 const getAppIcon = (iconName) => {
-    const icon = iconStore.getAppIcon(iconName);
+    const icon = iconStore.resolveIcon(iconName);
     return icon
 };
 import { ref, computed } from 'vue'

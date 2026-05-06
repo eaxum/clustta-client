@@ -8,7 +8,7 @@
       </div>
 
       <div class="studio-types-container">
-        <OptionCard v-for="studioType in studioTypes" :key="studioType.type" :icon="getAppIcon(studioType.icon)" :title="$t(studioType.titleKey)" :description="$t(studioType.messageKey)" @select="selectStudioType(studioType.type)" />
+        <OptionCard v-for="studioType in studioTypes" :key="studioType.type" :icon="resolveIcon(studioType.icon)" :title="$t(studioType.titleKey)" :description="$t(studioType.messageKey)" @select="selectStudioType(studioType.type)" />
       </div>
 
       <div class="pop-up-actions">
@@ -21,6 +21,7 @@
 </template>
 
 <script setup>
+import { resolveIcon } from '@/lib/icon-map';
 // imports
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -76,7 +77,7 @@ const closeModal = () => {
 
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles the next button click to open the appropriate config modal.

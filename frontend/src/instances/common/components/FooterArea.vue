@@ -1,12 +1,11 @@
 <template>
   <div class="page-footer-area-container">
-    <span v-if="showLogout" class="footer-item" @click="logUserOut" v-stop-propagation><img class="small-icons"
-        :src="getAppIcon('logout')">{{ $t('components.footerArea.logout') }}</span>
+    <span v-if="showLogout" class="footer-item" @click="logUserOut" v-stop-propagation><CiLogout class="small-icons" />{{ $t('components.footerArea.logout') }}</span>
 
     <span v-if="showProject" class="footer-item" @click="modalStore.setModalVisibility('projectMenu', true)"
       v-stop-propagation>
-      <img v-if="projectStore.projects.length" class="small-icons" :src="getAppIcon('briefcase')">
-      <img v-else class="small-icons" :src="getAppIcon('studio')">
+      <CiBriefcase v-if="projectStore.projects.length" class="small-icons" :size="20" />
+      <img v-else class="small-icons" :src="iconStore.CiStudio">
 
       <div class="list-item-text" @mouseenter="trayStates.handleHover($event)"
         @mouseleave="trayStates.resetScroll($event)">
@@ -18,21 +17,20 @@
 
     <div class="footer-actions">
 
-      <!-- <ActionButton :icon="getAppIcon('arrow-down-ramp')" v-tooltip="'Sync Project'" @click="syncProject()"  /> -->
+      <!-- <ActionButton :icon="CiArrowDownRamp" v-tooltip="'Sync Project'" @click="syncProject()"  /> -->
 
       <!-- <span v-if="showSync && hasRemote" class="single-action-button" :class="{ 'project-unsynced': unSynced }"
         @click="syncProject()" v-tooltip="'Sync Project'">
-        <img class="small-icons" :src="getAppIcon('sync_all')">
+        <CiSyncAll :size="20" />
       </span> -->
 
       <!-- :class="{ 'button-disabled': processRunning }" -->
-      <span v-if="showReturn" @click="goBack()" class="action-button" v-tooltip="$t('components.footerArea.goBack')"><img class="small-icons"
-          :src="getAppIcon('arrow-left')">
+      <span v-if="showReturn" @click="goBack()" class="action-button" v-tooltip="$t('components.footerArea.goBack')"><CiArrowLeft class="small-icons" :size="20" />
       </span>
       <span v-if="showPin" @click="trayStates.togglePin(true)" class="action-button"
         v-tooltip="trayStates.pin ? $t('components.footerArea.unpin') : $t('components.footerArea.pin')">
-        <img v-if="trayStates.pin" class="small-icons" :src="getAppIcon('unpin')">
-        <img v-else class="small-icons" :src="getAppIcon('pin')">
+        <CiUnpin v-if="trayStates.pin" class="small-icons" :size="20" />
+        <CiPin v-else class="small-icons" :size="20" />
       </span>
     </div>
 
@@ -43,11 +41,7 @@
 <script setup>
 import { useIconStore } from '@/stores/icons';
 const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
+import { CiArrowDownRamp, CiArrowLeft, CiBriefcase, CiLogout, CiPin, CiStudio, CiSyncAll, CiUnpin } from '@clustta/icons-vue';
 
 // imports
 import { ref, computed } from 'vue';

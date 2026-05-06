@@ -1,18 +1,18 @@
 <template>
 	<div class="create-menu">
-		<ActionButton :icon="getAppIcon('file-plus')" :isDisabled="props.disabled || kanbanView || !(canCreateAsset || canModifyCollection)"
+		<ActionButton :icon="CiFilePlus" :isDisabled="props.disabled || kanbanView || !(canCreateAsset || canModifyCollection)"
 			@click="createAsset" v-tooltip="$t('components.createMenu.addAsset')" />
-		<ActionButton :icon="getAppIcon('folder-plus')" :isDisabled="props.disabled || kanbanView || !(canCreateCollection || canModifyCollection)"
+		<ActionButton :icon="CiFolderPlus" :isDisabled="props.disabled || kanbanView || !(canCreateCollection || canModifyCollection)"
 			@click="createCollection" v-tooltip="$t('components.createMenu.addCollection')" />
-		<ActionButton :icon="getAppIcon('data-download')" v-if="!(platformStore.isWeb || kanbanView)"  :isDisabled="props.disabled || !(canCreateCollection || canModifyCollection)"
+		<ActionButton :icon="CiDataDownload" v-if="!(platformStore.isWeb || kanbanView)"  :isDisabled="props.disabled || !(canCreateCollection || canModifyCollection)"
 			@click="importItems" v-tooltip="$t('components.createMenu.importItems')" />
-		<ActionButton :icon="getAppIcon('workflow-plus')" :isDisabled="props.disabled || kanbanView || !(canCreateCollection || canModifyCollection)"
+		<ActionButton :icon="CiWorkflowPlus" :isDisabled="props.disabled || kanbanView || !(canCreateCollection || canModifyCollection)"
 			@click="createWorkflow" v-tooltip="$t('components.createMenu.addWorkflow')" />
-		<ActionButton :icon="getAppIcon('web-plus')" :isDisabled="props.disabled || kanbanView || !(canCreateAsset || canModifyCollection)"
+		<ActionButton :icon="CiWebPlus" :isDisabled="props.disabled || kanbanView || !(canCreateAsset || canModifyCollection)"
 			@click="createWebLink" v-tooltip="$t('components.createMenu.addWeblink')" />
-		<ActionButton v-if="integrationStore.linkedIntegration" :icon="getAppIcon('kitsu')"  :isDisabled="props.disabled || kanbanView || !(canCreateAsset || canModifyCollection)"
+		<ActionButton v-if="integrationStore.linkedIntegration" :icon="CiKitsu"  :isDisabled="props.disabled || kanbanView || !(canCreateAsset || canModifyCollection)"
 			v-tooltip="'Sync Now'" :buttonFunction="openSyncModal" />
-		<!-- <ActionButton :icon="getAppIcon('arrow-down-ramp')" :isDisabled="platformStore.isWeb || kanbanView || !canCreateCollection"
+		<!-- <ActionButton :icon="CiArrowDownRamp" :isDisabled="platformStore.isWeb || kanbanView || !canCreateCollection"
 			@click="importItems" v-tooltip="'Import Items'" /> -->
 	</div>
 </template>
@@ -22,6 +22,8 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
+import { CiArrowDownRamp, CiDataDownload, CiFilePlus, CiFolderPlus, CiKitsu, CiWebPlus, CiWorkflowPlus } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 const { t } = useI18n();
 
@@ -119,7 +121,7 @@ const createWebLink = () => { clearSelection(); modals.setModalVisibility('addWe
 const createWorkflow = () => { clearSelection(); modals.setModalVisibility('selectWorkflowModal', true); };
 
 // Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+const getAppIcon = (iconName) => iconStore.resolveIcon(iconName);
 
 // Opens the integration sync modal.
 const openSyncModal = () => { modals.setModalVisibility('integrationSyncModal', true); };

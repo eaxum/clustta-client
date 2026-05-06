@@ -1,24 +1,24 @@
 <template>
 	<div v-if="isLoading" class="state-bar">
-		<ActionButton :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="$t('components.stateBar.loadingCollectionStates')" />
+		<ActionButton :isLoading="true" :icon="CiLoading" v-tooltip="$t('components.stateBar.loadingCollectionStates')" />
 	</div>
 
 	<div v-else-if="hasData" class="state-bar">
-		<ActionButton v-if="collectionStore.collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" 
+		<ActionButton v-if="collectionStore.collectionStateFlags.has_rebuildable" :icon="CiJigsaw" 
 			v-tooltip="$t('components.stateBar.rebuildAll')" :buttonFunction="rebuildAll" />
 
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_untracked && userStore.canDo('create_checkpoint')"
-			:icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
+			:icon="CiPlusStone" :useDanger="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
 			:buttonFunction="prepAllCheckpointModal" />
 
 		<ActionButton v-else-if="collectionStore.collectionStateFlags.has_modified && userStore.canDo('create_checkpoint')"
-			:icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
+			:icon="CiPlusStone" :useAlert="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
 			:buttonFunction="prepAllCheckpointModal" />
 
-		<ActionButton v-if="collectionStore.collectionStateFlags.has_modified" :icon="getAppIcon('revert')" 
+		<ActionButton v-if="collectionStore.collectionStateFlags.has_modified" :icon="CiRevert" 
 			:useAlert="true" :noFilter="true" v-tooltip="$t('components.stateBar.revertAll')" :buttonFunction="prepResetPopUpModal" />
 
-		<ActionButton v-if="collectionStore.collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check')" 
+		<ActionButton v-if="collectionStore.collectionStateFlags.has_outdated" :icon="CiCircleCheck" 
 			:useAlert="true" :noFilter="true" v-tooltip="$t('components.stateBar.updateAll')" :buttonFunction="updateAll" />
 	</div>
 </template>
@@ -28,6 +28,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
+import { CiCircleCheck, CiJigsaw, CiLoading, CiPlusStone, CiRevert } from '@clustta/icons-vue';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -40,7 +41,6 @@ import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
@@ -50,7 +50,6 @@ import { useUserStore } from '@/stores/users';
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
-const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
@@ -81,9 +80,6 @@ const clearSelection = () => {
 	assetStore.selectedAsset = null;
 	collectionStore.selectedCollection = null;
 };
-
-// Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 // Prepares and shows the create multiple checkpoints modal.
 const prepAllCheckpointModal = () => {

@@ -11,11 +11,11 @@
     </div>
 
     <div v-if="!isResolved && !isRenaming" class="conflict-item-actions">
-      <ActionButton :icon="getAppIcon('edit')" v-tooltip="$t('components.conflictItem.rename')" :buttonFunction="startRename" />
-      <ActionButton :icon="getAppIcon('merge')" v-tooltip="$t('components.conflictItem.merge')" :buttonFunction="handleMerge" />
+      <ActionButton :icon="CiEdit" v-tooltip="$t('components.conflictItem.rename')" :buttonFunction="startRename" />
+      <ActionButton :icon="CiMerge" v-tooltip="$t('components.conflictItem.merge')" :buttonFunction="handleMerge" />
     </div>
 
-    <ActionButton v-if="isResolved && !isRenaming" :icon="getAppIcon('circle-check')" :isDisabled="true" :useGo="true" :allowDeactivate="true" />
+    <ActionButton v-if="isResolved && !isRenaming" :icon="CiCircleCheck" :isDisabled="true" :useGo="true" :allowDeactivate="true" />
   </div>
 </template>
 
@@ -23,6 +23,8 @@
 // imports
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiCircleCheck, CiEdit, CiMerge } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -93,7 +95,7 @@ const displayName = computed(() => {
 // methods
 // Returns icon path from icon store.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Emits merge event to parent for handling.
@@ -143,7 +145,7 @@ const loadIcon = async () => {
   isCustomIcon.value = false;
   
   if (props.conflict.type === 'collection') {
-    itemIcon.value = getAppIcon(props.conflict.collection_type_icon || 'folder');
+    itemIcon.value = resolveIcon(props.conflict.collection_type_icon || 'folder');
   } else {
     if (props.conflict.extension) {
       const ext = props.conflict.extension.toLowerCase().replace(/^\./, '');
@@ -152,10 +154,10 @@ const loadIcon = async () => {
         itemIcon.value = iconPath;
         isCustomIcon.value = true;
       } else {
-        itemIcon.value = getAppIcon(props.conflict.asset_type_icon || 'file');
+        itemIcon.value = resolveIcon(props.conflict.asset_type_icon || 'file');
       }
     } else {
-      itemIcon.value = getAppIcon(props.conflict.asset_type_icon || 'file');
+      itemIcon.value = resolveIcon(props.conflict.asset_type_icon || 'file');
     }
   }
 };

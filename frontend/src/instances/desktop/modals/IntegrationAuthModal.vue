@@ -7,7 +7,7 @@
       <div v-if="!selectedIntegration" class="integration-list">
         <div v-for="integration in availableIntegrations" :key="integration.id" class="integration-item"
           :class="{ 'authenticated': isAuthenticated(integration.id) }" v-stop-propagation @click="selectIntegration(integration)">
-          <img :src="getAppIcon(integration.icon)" :alt="integration.name" class="integration-icon" />
+          <img :src="resolveIcon(integration.icon)" :alt="integration.name" class="integration-icon" />
           <div class="integration-info">
             <span class="integration-name">{{ integration.name }}</span>
             <span class="integration-desc">{{ integration.description }}</span>
@@ -42,7 +42,7 @@
 
         <!-- Disconnect Option -->
         <div v-if="isAuthenticated(selectedIntegration.id)" class="disconnect-section">
-          <ActionButton :icon="getAppIcon('disconnect')" :label="'Disconnect'" :buttonFunction="disconnect" />
+          <ActionButton :icon="CiExtensionCancel" :label="'Disconnect'" :buttonFunction="disconnect" />
         </div>
       </div>
 
@@ -58,6 +58,8 @@
 // imports
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiExtensionCancel } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -165,7 +167,7 @@ const disconnect = () => {
 
 // Returns the app icon path.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles enter key press.

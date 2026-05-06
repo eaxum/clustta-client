@@ -29,19 +29,19 @@
 
         <div v-if="notification" ref="notificationItem" :class="['message', notification.type]" @mouseenter="stopTimer()"
             @mouseleave="showMessage(notification)">
-            <img :src="getAppIcon(notificationIcon)" class="notification-icon" alt="">
+            <img :src="resolveIcon(notificationIcon)" class="notification-icon" alt="">
             <span class="text-container" >{{ utils.capitalizeStr(notification.message) }}</span>
         </div>
 
         
 
-        <ActionButton :icon="getAppIcon(bridgeEnabled ? 'brick-cancel' : 'brick')" v-tooltip="bridgeEnabled ? $t('components.infoBar.clickToStopBridge') : $t('components.infoBar.clickToStartBridge')" :buttonFunction="toggleBridge" />
+        <ActionButton :icon="resolveIcon(bridgeEnabled ? 'brick-cancel' : 'brick')" v-tooltip="bridgeEnabled ? $t('components.infoBar.clickToStopBridge') : $t('components.infoBar.clickToStartBridge')" :buttonFunction="toggleBridge" />
 
-        <ActionButton :icon="getAppIcon('console')" v-tooltip="debugModeEnabled ? $t('components.infoBar.closeConsole') : $t('components.infoBar.openConsole')" :buttonFunction="toggleDebugConsole" />
+        <ActionButton :icon="CiConsole" v-tooltip="debugModeEnabled ? $t('components.infoBar.closeConsole') : $t('components.infoBar.openConsole')" :buttonFunction="toggleDebugConsole" />
 
         <div class="version-info" :class="{ 'oudated' : isOutdated}" v-tooltip="isOutdated ? $t('components.infoBar.clickToUpdate') : ''">
             <div v-if="isOutdated" class="outdated-icon-button">
-                <img :src="getAppIcon('info-triangle')" alt="Maximize">
+                <CiInfoTriangle :size="20" />
             </div>
             <div>{{ clusttaVersion }}</div>
         </div>
@@ -58,6 +58,8 @@ import { useI18n } from 'vue-i18n';
 import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
+import { CiConsole, CiInfoTriangle } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 const { t } = useI18n();
 
@@ -203,7 +205,7 @@ const detectModifier = (event) => {
 };
 
 // Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+const getAppIcon = (iconName) => iconStore.resolveIcon(iconName);
 
 // Restores the progress indicator from minimized state.
 const restoreProgress = () => {

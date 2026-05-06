@@ -1,28 +1,13 @@
 <template>
 	<div class="action-bar-root">
 		<div class="create-menu">
-			<ActionButton :icon="getAppIcon(itemIcon)" :label="itemType ? itemType : $t('components.actionBar.add')"  v-tooltip="itemType ? itemType : $t('components.actionBar.add')" :buttonFunction="addFunction" />
+			<ActionButton :icon="resolveIcon(itemIcon)" :label="itemType ? itemType : $t('components.actionBar.add')"  v-tooltip="itemType ? itemType : $t('components.actionBar.add')" :buttonFunction="addFunction" />
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const formattedIconName = getIconName(iconName)
-  const icon = iconStore.getAppIcon(formattedIconName);
-  return icon
-};
-
-const getIconName = (path) => {
-  // If the string doesn't contain '/' or '.svg', return it as is
-  if (!path.includes('/') && !path.includes('.svg')) {
-    return path;
-  }
-  return path.split('/').pop().replace('.svg', '');
-};
+import { resolveIcon } from '@/lib/icon-map';
 
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
 

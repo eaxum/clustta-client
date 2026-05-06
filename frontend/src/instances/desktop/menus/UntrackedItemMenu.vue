@@ -4,37 +4,37 @@
     <!-- Launch -->
     <ActionButton
       v-if="userStore.canDo('pull_chunk') && isUntrackedAsset"
-      :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true" :label="$t('common.openWith')"
+      :icon="CiLaunch" :showLabel="true" :fullWidth="true" :label="$t('common.openWith')"
       :buttonFunction="launchAssetWithCommand" />
 
     <!-- <span v-if="userStore.canDo('pull_chunk')" class="menu-divider"></span> -->
 
     <!-- Rename -->
-    <ActionButton v-if="userStore.canDo('update_asset')" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="userStore.canDo('update_asset')" :icon="CiEdit" :showLabel="true" :fullWidth="true"
       :label="$t('common.rename')" :buttonFunction="renameItem" />
 
     <!-- Ignore -->
-    <ActionButton :icon="getAppIcon('file-watch')" :showLabel="true" :fullWidth="true" :label="$t('menus.ignoreFileFolder')"
+    <ActionButton :icon="CiFileWatch" :showLabel="true" :fullWidth="true" :label="$t('menus.ignoreFileFolder')"
       :buttonFunction="ignoreItem" />
 
     <ActionButton v-if="isUntrackedAsset"
-      :icon="getAppIcon('file-watch')" :showLabel="true" :fullWidth="true" :label="$t('menus.ignoreExtensionType')"
+      :icon="CiFileWatch" :showLabel="true" :fullWidth="true" :label="$t('menus.ignoreExtensionType')"
       :buttonFunction="ignoreExtensionType" />
 
     <!-- Reveal in Explorer -->
     <span class="horizontal-flex">
-      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
+      <ActionButton :icon="CiFolderArrowUpRight" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
         :buttonFunction="revealInExplorer" />
-      <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyItemPath('asset')"
+      <ActionButton :icon="CiCopy" :showLabel="false" :fullWidth="false" @click="copyItemPath('asset')"
         v-tooltip="$t('common.copyPath')" />
     </span>
 
     <!-- Extract Archive -->
-    <ActionButton v-if="isArchive" :icon="getAppIcon('unarchive')" :showLabel="true" :fullWidth="true" 
+    <ActionButton v-if="isArchive" :icon="CiUnarchive" :showLabel="true" :fullWidth="true" 
       :label="$t('common.extract')" :buttonFunction="extractArchive" />
 
     <!-- Delete -->
-    <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.delete')"
+    <ActionButton :icon="CiTrash" :showLabel="true" :fullWidth="true" :label="$t('common.delete')"
       :buttonFunction="prepDeleteItemPopUpModal" />
 
   </div>
@@ -44,6 +44,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { CiCopy, CiEdit, CiFileWatch, CiFolderArrowUpRight, CiLaunch, CiTrash, CiUnarchive } from '@clustta/icons-vue';
 import { useI18n } from 'vue-i18n';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
@@ -59,7 +60,6 @@ import { FSService } from '@/services';
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { usePaneStore } from '@/stores/panes';
@@ -71,7 +71,6 @@ import { useUserStore } from '@/stores/users';
 
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -182,11 +181,6 @@ const extractArchive = async () => {
     console.error('Error extracting archive:', error);
     notificationStore.errorNotification(t('notifications.failedToExtractArchive'), error);
   }
-};
-
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
 };
 
 // Adds the item's extension to the ignore list.

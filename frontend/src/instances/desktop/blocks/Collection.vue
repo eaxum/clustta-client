@@ -22,7 +22,7 @@
 
       <div class="main-collection-item-grid-bottom-bar">
         <div v-if="!isEditing && settingsStore.showTypeIcons" class="collection-item-grid-type-icon">
-          <img class="small-icons" :src="getAppIcon(collectionTypeIcon)" v-tooltip="collectionTypeName">
+          <component :is="resolveIcon(collectionTypeIcon)" class="small-icons" :size="20" v-tooltip="collectionTypeName" />
         </div>
         
         <div v-if="!isEditing" class="main-collection-item-grid-meta">
@@ -40,25 +40,25 @@
         </div>
         
         <div v-if="!isEditing" class="collection-item-grid-status">
-          <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="$t('blocks.loadingState')" />
+          <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="CiLoading" v-tooltip="$t('blocks.loadingState')" />
           <template v-else-if="!isUntracked">
             <ActionButton v-if="collectionStateFlags.has_outdated" 
               @click="updateCollectionAssets" 
-              :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickToUpdate')" />
+              :icon="CiDotBig" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickToUpdate')" />
             <ActionButton v-else-if="collectionStateFlags.has_modified" 
               @click="prepAllCheckpointModal(props.collection.collection_path)" 
-              :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.untrackedModifiedClickCheckpoint')" />
+              :icon="CiDotBig" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.untrackedModifiedClickCheckpoint')" />
             <ActionButton v-else-if="collectionStateFlags.has_untracked" 
               @click="prepAllCheckpointModal(props.collection.collection_path)" 
-              :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.untrackedClickCheckpoint')" />
+              :icon="CiDotBig" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.untrackedClickCheckpoint')" />
           </template>
           <template v-else-if="collection.type === 'untracked_collection' && props.hasChildren">
             <ActionButton @click="prepAllCheckpointModal(props.collection.collection_path)" 
               v-if="userStore.canDo('create_collection') || canImport || isAssigned"
-              :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.addCheckpoints')" />
+              :icon="CiPlusStone" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.addCheckpoints')" />
           </template>
           <template v-else-if="collection.type === 'untracked_collection' && !props.hasChildren">
-            <ActionButton @click="" :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
+            <ActionButton @click="" :icon="CiDotBig" :useDanger="true" :noFilter="true"
               v-tooltip="$t('blocks.untrackedCollection')" />
           </template>
         </div>
@@ -86,14 +86,13 @@
     }">
 
     <div v-if="loadingChildren && !isGhost" class="collection-spacer">
-      <ActionButton :isLoading="true" :icon="getAppIcon('loading')" 
+      <ActionButton :isLoading="true" :icon="CiLoading" 
         v-tooltip="$t('common.loading')" />
     </div>
 
     <div v-else class="collection-spacer" :class="{ 'collection-spacer-inactive': !!!props.hasChildren }">
       <span @click="expandCollection()" class="single-action-button">
-        <img class="small-icons collection-collapsed" :class="{ 'collection-expanded': collection.id in stage.expandedCollections }"
-          :src="getAppIcon('chevron-down')">
+        <CiChevronDown class="small-icons collection-collapsed" :class="{ 'collection-expanded': collection.id in stage.expandedCollections }" :size="20" />
       </span>
     </div>
 
@@ -108,7 +107,7 @@
         </div> -->
 
         <div v-if="settingsStore.showTypeIcons" @click="console.log(entity)" class="entity-item-icon-container">
-          <img class="large-icons" :src="getAppIcon(collectionTypeIcon)" v-tooltip="collectionTypeName">
+          <component :is="resolveIcon(collectionTypeIcon)" class="large-icons" :size="20" v-tooltip="collectionTypeName" />
         </div>
 
         <div class="collection-item-content selection-area">
@@ -149,31 +148,31 @@
 
         <!-- Optimized collection-item-actions using GetCollectionStateFlags -->
         <div v-if="!isEditing && !isUntracked" class="collection-item-actions">
-          <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="$t('blocks.loadingState')" />
+          <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="CiLoading" v-tooltip="$t('blocks.loadingState')" />
           <template v-else>
             <ActionButton v-if="collectionStateFlags.has_modified && !(collection.id in stage.expandedCollections)" 
               @click="prepAllCheckpointModal(props.collection.collection_path)" 
-              :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.untrackedModifiedClickCheckpoint')" />
+              :icon="CiPlusStone" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.untrackedModifiedClickCheckpoint')" />
             <ActionButton v-else-if="collectionStateFlags.has_untracked && !(collection.id in stage.expandedCollections)" 
               @click="prepAllCheckpointModal(props.collection.collection_path)" 
-              :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.untrackedClickCheckpoint')" />
+              :icon="CiPlusStone" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.untrackedClickCheckpoint')" />
             <ActionButton v-if="collectionStateFlags.has_outdated && !(collection.id in stage.expandedCollections)" 
               @click="updateCollectionAssets" 
-              :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickToUpdate')" />
+              :icon="CiCircleCheck" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickToUpdate')" />
             <ActionButton v-if="collectionStateFlags.has_rebuildable && !(collection.id in stage.expandedCollections)" 
               @click="rebuildCollection" 
-              :icon="getAppIcon('jigsaw')" v-tooltip="$t('blocks.itemsMissingClickRebuild')" />
-              <ActionButton v-if="collection.is_shared" :icon="getAppIcon('shared')" v-tooltip="$t('blocks.thisIsShared')" />
+              :icon="CiJigsaw" v-tooltip="$t('blocks.itemsMissingClickRebuild')" />
+              <ActionButton v-if="collection.is_shared" :icon="CiShared" v-tooltip="$t('blocks.thisIsShared')" />
           </template>
         </div>
 
         <div v-else-if="!isEditing && collection.type === 'untracked_collection' && props.hasChildren" class="collection-item-actions">
             <ActionButton @click="prepAllCheckpointModal(props.collection.collection_path)" v-if="userStore.canDo('create_collection') || canImport || isAssigned"
-              :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.addCheckpoints')" />
+              :icon="CiPlusStone" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.addCheckpoints')" />
         </div>
 
         <div v-else-if="!isEditing && collection.type === 'untracked_collection' && !props.hasChildren" class="collection-item-actions">
-            <ActionButton @click="" :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
+            <ActionButton @click="" :icon="CiDotBig" :useDanger="true" :noFilter="true"
               v-tooltip="$t('blocks.untrackedCollection')" />
         </div>
 
@@ -193,6 +192,8 @@ import emitter from '@/lib/mitt';
 import { getParentPath } from '@/lib/pathlib';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
+import { CiChevronDown, CiCircleCheck, CiDotBig, CiJigsaw, CiLoading, CiPlusStone, CiShared } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -208,7 +209,6 @@ import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useDndStore } from '@/stores/dnd';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { usePaneStore } from '@/stores/panes';
@@ -222,7 +222,6 @@ const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const dndStore = useDndStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -507,12 +506,6 @@ const freeUpSpace = async () => {
       console.error(error);
     });
   modals.disableAllModals();
-};
-
-// Returns the icon path for the given icon name.
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon;
 };
 
 // Prepares the modal for adding checkpoints to all items.

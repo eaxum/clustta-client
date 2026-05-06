@@ -8,8 +8,7 @@
         <div class="horizontal-flex">
           <input v-model="projectsDirectory" class="input-short" type="text" :placeholder="$t('placeholders.projectsDirectory')"
             ref="projectsDirectoryInput" />
-          <span @click="selectDirectoryPath('personal')" class="single-action-button" v-tooltip="$t('settings.browsePath')"><img
-              class="small-icons" :src="getAppIcon('explorer')"></span>
+          <span @click="selectDirectoryPath('personal')" class="single-action-button" v-tooltip="$t('settings.browsePath')"><CiExplorer :size="20" /></span>
         </div>
       </div>
 
@@ -18,8 +17,7 @@
         <div class="horizontal-flex">
           <input v-model="sharedProjectsDirectory" class="input-short" type="text"
             :placeholder="$t('placeholders.sharedProjectsDirectory')" ref="sharedProjectsDirectoryInput"  />
-          <span @click="selectDirectoryPath('shared')" class="single-action-button" v-tooltip="$t('settings.browsePath')"><img
-              class="small-icons" :src="getAppIcon('explorer')"></span>
+          <span @click="selectDirectoryPath('shared')" class="single-action-button" v-tooltip="$t('settings.browsePath')"><CiExplorer :size="20" /></span>
         </div>
       </div>
 
@@ -37,6 +35,8 @@
 // imports
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiExplorer } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -73,7 +73,7 @@ const closeModal = () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Saves the directory configuration changes.

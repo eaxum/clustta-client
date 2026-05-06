@@ -12,7 +12,7 @@
 
     <!-- Error State -->
     <div v-else-if="error" class="state-container">
-      <img :src="getAppIcon('alert-circle')" alt="Error" class="state-icon" />
+      <CiInfoTriangle class="state-icon" :size="20" />
       <h2>{{ errorTitle }}</h2>
       <p class="state-message">{{ errorMessage }}</p>
     </div>
@@ -22,7 +22,7 @@
       <div class="share-download-container">
 
         <div class="share-info-section">
-          <img :src="getAppIcon('send')" alt="Share" class="share-icon" />
+          <CiSend class="share-icon" :size="20" />
           <h1 class="share-label">{{ shareInfo.label }}</h1>
           <p class="share-meta">{{ shareInfo.project_name }} &middot; {{ $t('share.fileCount', { count: files.length }) }} &middot; {{ formattedTotalSize }}</p>
           <p class="share-expiry">{{ $t('share.expiresOn', { date: formattedExpiry }) }}</p>
@@ -33,7 +33,7 @@
             <span class="files-title">{{ $t('share.files') }}</span>
             <button class="download-all-btn" @click="downloadAll" :disabled="downloadingAll || !!downloadingFileId">
               <div v-if="downloadingAll" class="btn-spinner"></div>
-              <img v-else :src="getAppIcon('download')" class="btn-icon" />
+              <CiDownload v-else class="btn-icon" :size="20" />
               <span>{{ downloadingAll ? $t('share.downloading') : $t('share.downloadAll') }}</span>
             </button>
           </div>
@@ -41,14 +41,14 @@
           <div class="files-list">
             <div v-for="file in files" :key="file.checkpoint_id" class="file-item">
               <div class="file-info">
-                <img :src="file.icon || getAppIcon('file')" class="file-icon" />
+                <img :src="file.icon || CiFile" class="file-icon" />
                 <span class="file-name">{{ file.file_name }}</span>
                 <span v-if="downloadingFileId === file.checkpoint_id" class="file-size progress">{{ downloadProgress }}</span>
                 <span v-else class="file-size">{{ formatFileSize(file.file_size) }}</span>
               </div>
               <button class="file-download-btn" @click="downloadFile(file)" :disabled="downloadingAll || !!downloadingFileId">
                 <div v-if="downloadingFileId === file.checkpoint_id" class="btn-spinner small"></div>
-                <img v-else :src="getAppIcon('download')" class="btn-icon" />
+                <CiDownload v-else class="btn-icon" :size="20" />
               </button>
             </div>
           </div>
@@ -64,6 +64,8 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { CiDownload, CiFile, CiInfoTriangle, CiSend } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { GLOBAL_API } from '@/services/adapters/config.js';
 import { streamTLVAndDecompress, triggerBrowserDownload } from '@/services/adapters/checkpointservice.js';
 
@@ -157,7 +159,7 @@ const formatFileSize = (bytes) => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Resolves file icons for all files using the icon store.

@@ -94,7 +94,7 @@ const createAssetType = () => {
 
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles enter key press.

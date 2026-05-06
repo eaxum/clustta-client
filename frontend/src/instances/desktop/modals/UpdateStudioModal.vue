@@ -1,7 +1,7 @@
 <template>
   <div ref="modalContainer" class="modal-container">
 
-    <HeaderArea :title="title" :icon="getAppIcon('stall')" :showSearch="false" />
+    <HeaderArea :title="title" :icon="CiStall" :showSearch="false" />
 
     <div class="general-container">
 
@@ -64,6 +64,8 @@
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiStall } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
@@ -125,7 +127,7 @@ const closeModal = () => {
 
 // Returns icon path from icon store.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles enter key press to trigger update.

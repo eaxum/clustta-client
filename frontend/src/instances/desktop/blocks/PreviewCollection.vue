@@ -28,6 +28,8 @@
 // imports
 import { computed } from 'vue';
 import utils from '@/services/utils';
+import { CiChevronDown } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // stores
 import { useIconStore } from '@/stores/icons';
@@ -49,7 +51,7 @@ const emit = defineEmits(['toggle']);
 // computed
 // Returns the chevron icon.
 const chevronIcon = computed(() => {
-  return iconStore.getAppIcon('chevron-down');
+  return iconStore.CiChevronDown;
 });
 
 // Returns true if this is a virtual folder (directory structure node, not a Kitsu collection).
@@ -60,7 +62,7 @@ const isVirtual = computed(() => {
 // Returns the type icon path.
 const typeIcon = computed(() => {
   const iconName = props.collection.collection_type_icon || 'folder';
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 });
 
 // Returns the capitalized external type name.

@@ -13,7 +13,7 @@
       </div>
 
       <PageState v-else :message="message()" :illustration="illustration()"
-        :secondaryIcon="getAppIcon('plus-circle')" />
+        :secondaryIcon="CiPlusCircle" />
 
     </div>
   </div>
@@ -24,12 +24,12 @@
 // imports
 import { onMounted, computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiPlusCircle } from '@clustta/icons-vue';
 
 // store imports
 import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
-import { useIconStore } from '@/stores/icons';
 import { useWorkflowStore } from '@/stores/workflow';
 
 // components
@@ -39,7 +39,6 @@ import PageState from '@/instances/common/components/PageState.vue';
 
 // states
 const modals = useDesktopModalStore();
-const iconStore = useIconStore();
 const workflowStore = useWorkflowStore();
 const { t } = useI18n();
 
@@ -52,11 +51,6 @@ const isExpanded = (id) => {
 };
 
 // methods
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
-
 const expandWorkflowItem = (workflowId) => {
   if (expandedWorkflowId.value === workflowId) {
     expandedWorkflowId.value = ''

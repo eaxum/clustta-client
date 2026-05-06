@@ -8,7 +8,7 @@
 			</div>
 
 			<div v-if="activeHeaderConfig" class="header-bar-dependencies">
-				<ActionButton :icon="getAppIcon(activeHeaderConfig.icon)" :isInactive="activeHeaderConfig.isInactive" @click="activeHeaderConfig.action?.()" v-tooltip="activeHeaderConfig.tooltip" />
+				<ActionButton :icon="resolveIcon(activeHeaderConfig.icon)" :isInactive="activeHeaderConfig.isInactive" @click="activeHeaderConfig.action?.()" v-tooltip="activeHeaderConfig.tooltip" />
 				<div class="header-area-container" @click="activeHeaderConfig.containerClick?.()">
 					<HeaderArea :notModal="true" :title="activeHeaderConfig.title" :miniDisplay="true" :customIcon="activeHeaderConfig.customIcon" />
 				</div>
@@ -19,9 +19,9 @@
 		<div class="header-bar-actions">
 
 			<div class="local-project-actions" v-if="stage.selectedStage === 'browser'">
-				<ActionButton v-if="userStore.canDo('delete_asset')" :icon="getAppIcon('trash')" @click="goToTrash()"
+				<ActionButton v-if="userStore.canDo('delete_asset')" :icon="CiTrash" @click="goToTrash()"
 					v-tooltip="$t('components.headerBar.trash')" />
-				<ActionButton v-if="userStore.canDo('create_asset')" :icon="getAppIcon('briefcase-cog')"
+				<ActionButton v-if="userStore.canDo('create_asset')" :icon="CiBriefcaseCog"
 					@click="goToSettings()" v-tooltip="$t('components.headerBar.projectSettings')" />
 
 			</div>
@@ -30,25 +30,25 @@
 
 				<div v-if="userStore.canDo('create_asset')" class="actions-divider" ></div>
 				
-				<!-- <ActionButton :isDisabled="revertButtonDisabled" @click="openChangeLog()" :icon="getAppIcon('revert')"
+				<!-- <ActionButton :isDisabled="revertButtonDisabled" @click="openChangeLog()" :icon="CiRevert"
 					:iconAfter="true" v-tooltip="revertButtonTooltip" /> -->
 
-				<ActionButton :isDisabled="syncButtonDisabled" @click="unSynced ? syncData() : pullData()" :icon="getAppIcon(getCloudIcon)"
+				<ActionButton :isDisabled="syncButtonDisabled" @click="unSynced ? syncData() : pullData()" :icon="resolveIcon(getCloudIcon)"
 					:useOutline="true" :color="cloudIconColor" :isLoading="isSyncing" :label="cloudIconLabel" v-tooltip="cloudIconTooltip" />
 				
-				<!-- <ActionButton :icon="getAppIcon('bell')" @click="panes.setPaneVisibility('notifications', true)" v-tooltip="'Notifications'"  /> -->
+				<!-- <ActionButton :icon="CiBell" @click="panes.setPaneVisibility('notifications', true)" v-tooltip="'Notifications'"  /> -->
 			</div>
 
 		</div>
 
 		<div class="header-bar-actions" v-if="stage.selectedStage === 'trash' && trayStates.trashables.length">
-			<ActionButton :icon="getAppIcon('trash')" :label="$t('components.headerBar.empty')" :showLabel="true" @click="prepEmptyTrashPopUpModal"
+			<ActionButton :icon="CiTrash" :label="$t('components.headerBar.empty')" :showLabel="true" @click="prepEmptyTrashPopUpModal"
 				v-tooltip="$t('components.headerBar.emptyTrash')" :useBackground="true" :color="'var(--danger)'" />
 		</div>
 
 		<!-- Web mode logout button -->
 		<div class="header-bar-actions" v-if="platformStore.isWeb && stage.activeStage === 'account'">
-			<ActionButton :icon="getAppIcon('logout')" :label="$t('common.logout')" :showLabel="true" @click="logUserOut"
+			<ActionButton :icon="CiLogout" :label="$t('common.logout')" :showLabel="true" @click="logUserOut"
 				v-tooltip="$t('common.logout')" :useBackground="true" />
 		</div>
 	</div>
@@ -66,6 +66,8 @@ import { ProjectService, AuthService } from '@/services';
 import { syncData, pullData } from '@/lib/sync';
 import { resetStoreInitialization } from '@/router';
 import utils from '@/services/utils';
+import { CiBell, CiBriefcaseCog, CiLogout, CiRevert, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 import emitter from '@/lib/mitt';
 
@@ -115,7 +117,7 @@ const projectIsActive = computed(() => { return projectStore.getActiveProject &&
 const fullAssetPath = ref(true);
 
 const getAppIcon = (iconName) => {
-	const icon = iconStore.getAppIcon(iconName);
+	const icon = iconStore.resolveIcon(iconName);
 	return icon
 };
 

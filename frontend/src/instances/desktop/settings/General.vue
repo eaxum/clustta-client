@@ -11,7 +11,7 @@
         <div class="settings-section-card-content">
           
           <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('palette')"></div>
+            <div class="settings-icon"><CiPalette :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.iconScheme') }}</div>
               <div class="settings-body">{{ $t('settings.iconSchemeDescription') }}</div>
@@ -23,7 +23,7 @@
           </div>
 
           <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="themeStore.isDarkMode ? getAppIcon('moon') : getAppIcon('sun')"></div>
+            <div class="settings-icon"><img class="small-icons" :src="themeStore.isDarkMode ? CiMoon : CiSun"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.theme') }}</div>
               <div class="settings-body">{{ $t('settings.themeDescription') }}</div>
@@ -35,7 +35,7 @@
           </div>
 
           <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('translation')"></div>
+            <div class="settings-icon"><CiTranslation :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.language') }}</div>
               <div class="settings-body">{{ $t('settings.languageDescription') }}</div>
@@ -47,7 +47,7 @@
           </div>
 
           <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon(defaultViewIcon)"></div>
+            <div class="settings-icon"><img class="small-icons" :src="resolveIcon(defaultViewIcon)"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.defaultView') }}</div>
               <div class="settings-body">{{ $t('settings.defaultViewDescription') }}</div>
@@ -68,12 +68,12 @@
         <div class="settings-section-card-content">
 
           <div class="settings-item" @click="clearRecents">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('broom')"></div>
+            <div class="settings-icon"><CiBroom :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.clearRecents') }}</div>
               <div class="settings-body">{{ $t('settings.clearRecentsDescription') }}</div>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
+            <div class="settings-action"><CiChevronRight :size="20" /></div>
           </div>
           
         </div>
@@ -86,48 +86,48 @@
         </div>
         <div class="settings-section-card-content">
           <div class="settings-item" @click="Browser.OpenURL('https://docs.clustta.com')">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('book')"></div>
+            <div class="settings-icon"><CiBook :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.documentation') }}</div>
               <div class="settings-body">{{ $t('settings.documentationDescription') }}</div>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
+            <div class="settings-action"><CiSquareArrowRightUp :size="20" /></div>
           </div>
 
           <div class="settings-item" @click="Browser.OpenURL('https://youtube.com/playlist?list=PLy9tuKQd1hzzuUktc6UVFUhhQxNQtkDqR&si=f2TQRtOYSHeqXma9')">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('youtube')"></div>
+            <div class="settings-icon"><CiYoutube :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.videoGuides') }}</div>
               <div class="settings-body">{{ $t('settings.videoGuidesDescription') }}</div>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
+            <div class="settings-action"><CiSquareArrowRightUp :size="20" /></div>
           </div>
 
           <div class="settings-item" @click="Browser.OpenURL('https://discord.gg/NuR4uAuTZd')">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('help')"></div>
+            <div class="settings-icon"><CiHelp :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.communitySupport') }}</div>
               <div class="settings-body">{{ $t('settings.communitySupportDescription') }}</div>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
+            <div class="settings-action"><CiSquareArrowRightUp :size="20" /></div>
           </div>
 
           <div class="settings-item" @click="Browser.OpenURL('https://clustta.com/')">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('website')"></div>
+            <div class="settings-icon"><CiWebsite :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.visitWebsite') }}</div>
               <div class="settings-body">{{ $t('settings.visitWebsiteDescription') }}</div>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
+            <div class="settings-action"><CiSquareArrowRightUp :size="20" /></div>
           </div>
 
           <div class="settings-item" @click="openDiagnosticsModal" v-stop-propagation>
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('megaphone')"></div>
+            <div class="settings-icon"><CiMegaphone :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.submitFeedback') }}</div>
               <div class="settings-body">{{ $t('settings.submitFeedbackDescription') }}</div>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
+            <div class="settings-action"><CiChevronRight :size="20" /></div>
           </div>
         </div>
       </div>
@@ -139,12 +139,12 @@
         </div>
         <div class="settings-section-card-content">
           <div class="settings-item" @click="displayAppInfo()" v-stop-propagation>
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('info')"></div>
+            <div class="settings-icon"><CiInfo :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.aboutClustta') }}</div>
               <div class="settings-body">{{ clusttaVersion }}</div>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
+            <div class="settings-action"><CiChevronRight :size="20" /></div>
           </div>
         </div>
       </div>
@@ -159,6 +159,8 @@
 import { ref, computed, onMounted } from "vue";
 import { SettingsService } from "@/services";
 import { useLocale } from '@/composables/useLocale';
+import { CiBook, CiBroom, CiChevronRight, CiHelp, CiInfo, CiMegaphone, CiMoon, CiPalette, CiSquareArrowRightUp, CiSun, CiTranslation, CiWebsite, CiYoutube } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // services
 import utils from '@/services/utils';
@@ -285,7 +287,7 @@ const selectDefaultView = (viewLabel) => {
 };
 
 const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
+  const icon = iconStore.resolveIcon(iconName);
   return icon
 };
 

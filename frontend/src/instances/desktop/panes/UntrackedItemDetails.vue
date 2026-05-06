@@ -1,6 +1,6 @@
 <template>
   <div v-if="debugging" class="general-pane-header">
-    <HeaderArea :title="utils.capitalizeStr(projectStore.selectedUntrackedItem?.name)" :notModal="true" :icon="getAppIcon(itemIcon)" />
+    <HeaderArea :title="utils.capitalizeStr(projectStore.selectedUntrackedItem?.name)" :notModal="true" :icon="resolveIcon(itemIcon)" />
   </div>
 
   <div v-if="debugging" class="general-pane-root">
@@ -9,7 +9,7 @@
         <div class="action-bar">
 
           <div class="action-bar-section">
-            <ActionButton @click="deleteItem" :icon="getAppIcon('trash')" :label="$t('panes.deleteItem')" />
+            <ActionButton @click="deleteItem" :icon="CiTrash" :label="$t('panes.deleteItem')" />
           </div>
         </div>
 
@@ -50,8 +50,8 @@
               {{ itemPath }}
             </div>
             <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
-              <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('common.copyPath')" @click="copyItemPath" />
-              <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="$t('common.revealInExplorer')" :buttonFunction="revealInExplorer" />
+              <ActionButton :icon="CiCopy" v-tooltip="$t('common.copyPath')" @click="copyItemPath" />
+              <ActionButton :icon="CiFolderArrowUpRight" v-tooltip="$t('common.revealInExplorer')" :buttonFunction="revealInExplorer" />
             </div>
           </div>
 
@@ -73,6 +73,8 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
+import { CiCopy, CiFolderArrowUpRight, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // store imports
 import { useIconStore } from '@/stores/icons';
@@ -118,7 +120,7 @@ const { t } = useI18n();
 const debugging = ref(true);
 
 const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
+  const icon = iconStore.resolveIcon(iconName);
   return icon
 };
 

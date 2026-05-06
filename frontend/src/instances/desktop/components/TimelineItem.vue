@@ -26,7 +26,7 @@
             <div v-if="!isItemExpanded" class="checkpoint-item-actions">
 
                 <span @click="revertProject(timelineItem.created_at)" class="single-action-button" v-tooltip="$t('components.timelineItem.revert')">
-                    <img class="small-icons" :src="getAppIcon('revert')">
+                    <CiRevert :size="20" />
                 </span>
 
                 <span @click="toggleVersions" class="single-action-button" v-tooltip="$t('components.timelineItem.expand')">
@@ -38,12 +38,11 @@
             <div v-else class="checkpoint-item-actions">
 
                 <span @click="revertProject(timelineItem.created_at)" class="single-action-button" v-tooltip="$t('components.timelineItem.revert')">
-                    <img class="small-icons" :src="getAppIcon('revert')">
+                    <CiRevert :size="20" />
                 </span>
 
                 <span @click="toggleVersions" class="single-action-button" v-tooltip="$t('components.timelineItem.close')">
-                    <img class="small-icons" :src="getAppIcon('close')"
-                        :class="{ 'is-active': isItemExpanded }">
+                    <CiClose :size="20" />
                 </span>
             </div>
 
@@ -55,7 +54,7 @@
                 <div class="trash-checkpoints">
                     <div class="checkpoint-item-children" v-for="(assetPath, index) in timelineItem.asset_paths" :key="index">
                         <div class="trash-item-meta">
-                            <span><img class="small-icons" :src="getAppIcon('generic')"></span>
+                            <span><CiGeneric :size="20" /></span>
                             <div ref="trash_name" class="trash-item-label" @mouseenter="handleHover($event)"
                                 @mouseleave="resetScroll($event)">
                                 <div @click="selectItem(assetPath)" class="trash-item-label-text">{{ assetPath }}</div>
@@ -71,6 +70,8 @@
 </template>
 
 <script setup>
+import { CiClose, CiGeneric, CiRevert } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { CheckpointService, CollectionService, AssetService, TrashService } from "@/services";
@@ -108,7 +109,7 @@ const commonStore = useCommonStore();
 const { t, locale } = useI18n();
 
 const getAppIcon = (iconName) => {
-    const icon = iconStore.getAppIcon(iconName);
+    const icon = iconStore.resolveIcon(iconName);
     return icon
 };
 

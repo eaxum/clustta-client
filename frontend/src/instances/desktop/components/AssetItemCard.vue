@@ -10,7 +10,7 @@
     <div class="collection-item-data">
       <div class="collection-item-content">
         <div v-if="asset.asset_type_icon && !commonStore.showThumbs" class="collection-item-type-container">
-          <img  class="large-icons" :src="getAppIcon(asset.asset_type_icon)">
+          <component :is="resolveIcon(asset.asset_type_icon)" class="large-icons" :size="20" />
         </div>
         <div class="collection-item-info">
           <div class="collection-item-text">
@@ -46,6 +46,7 @@
 import { computed, ref, onMounted } from 'vue';;
 import utils from '@/services/utils';
 import { generateAvatar } from '@/lib/avatar';
+import { resolveIcon } from '@/lib/icon-map';
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -56,7 +57,6 @@ import { useUserStore } from '@/stores/users';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
 import { useCommonStore } from '@/stores/common';
-import { useIconStore } from '@/stores/icons';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
@@ -70,12 +70,6 @@ const panes = usePaneStore();
 const stage = useStageStore();
 const assetStore = useAssetStore();
 const commonStore = useCommonStore();
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon
-};
 
 // props
 const props = defineProps({

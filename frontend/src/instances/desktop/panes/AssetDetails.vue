@@ -14,19 +14,19 @@
         <div class="action-bar" v-if="userStore.canDo('update_asset')">
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('file-plus')" :label="$t('panes.type')" />
+            <ActionButton :isInactive="true" :icon="CiFilePlus" :label="$t('panes.type')" />
             <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="assetStore.selectedAsset?.asset_type_name"
               :onSelect="changeAssetType" :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('clock')" :label="$t('panes.status')" />
+            <ActionButton :isInactive="true" :icon="CiClock" :label="$t('panes.status')" />
             <DropDownBox :items="projectStatuses" :selectedItem="assetStore.selectedAsset.status_short_name"
               :onSelect="setStatus" :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('shapes')" :label="$t('panes.asset')" />
+            <ActionButton :isInactive="true" :icon="CiShapes" :label="$t('panes.asset')" />
 
             <ToggleSwitch v-tooltip="!assetStore.selectedAsset.is_resource ? $t('panes.unsetAsAsset') : $t('panes.setAsAsset')"
               @click="toggleIsAsset" :switchValueProp="!assetStore.selectedAsset.is_resource" />
@@ -93,8 +93,8 @@
                 {{ assetStore.selectedAsset.file_path }}
               </div>
               <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
-                <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('common.copyPath')" @click="copyAssetPath('asset')"/>
-                <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="$t('common.revealInExplorer')" :buttonFunction="revealInExplorer"/>
+                <ActionButton :icon="CiCopy" v-tooltip="$t('common.copyPath')" @click="copyAssetPath('asset')"/>
+                <ActionButton :icon="CiFolderArrowUpRight" v-tooltip="$t('common.revealInExplorer')" :buttonFunction="revealInExplorer"/>
               </div>
           </div>
 
@@ -125,11 +125,11 @@
             <div class="tag-section">
               <div class="asset-tag-list">
                 <Chip v-for="tag in assetTags" :key="tag.id" :label="tag.name" :readonly="!userStore.canDo('update_asset')" :onRemove="() => removeTag(tag)" />
-                <Chip v-if="userStore.canDo('update_asset') && !showTagInput" :icon="getAppIcon('plus-circle')" :label="$t('panes.addTag')" :isStatic="false" :readonly="true" @click="openTagInput" />
+                <Chip v-if="userStore.canDo('update_asset') && !showTagInput" :icon="CiPlusCircle" :label="$t('panes.addTag')" :isStatic="false" :readonly="true" @click="openTagInput" />
                 <span v-if="userStore.canDo('update_asset') && showTagInput" class="tag-input-chip">
                   <input ref="tagInput" v-model="tagInputValue" class="tag-chip-input" type="text" :placeholder="$t('panes.addTag')" :size="Math.max(tagInputValue.length, 6)" @keydown.enter.prevent="addTag" @keydown.escape.prevent="closeTagInput" />
-                  <ActionButton :icon="getAppIcon('check')" v-tooltip="$t('common.confirm')" @click="addTag" />
-                  <ActionButton :icon="getAppIcon('close')" v-tooltip="$t('common.close')" @click="closeTagInput" />
+                  <ActionButton :icon="CiCheck" v-tooltip="$t('common.confirm')" @click="addTag" />
+                  <ActionButton :icon="CiClose" v-tooltip="$t('common.close')" @click="closeTagInput" />
                 </span>
               </div>
             </div>
@@ -157,6 +157,8 @@ import { FSService, TagService } from '@/services';
 import { Clipboard } from '@wailsio/runtime';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
+import { CiCheck, CiClock, CiClose, CiCopy, CiFilePlus, CiFolderArrowUpRight, CiPlusCircle, CiShapes } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // store imports
 import { useProjectStore } from '@/stores/projects';
@@ -255,7 +257,7 @@ const closeTagInput = () => {
 };
 
 const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
+  const icon = iconStore.resolveIcon(iconName);
   return icon
 };
 

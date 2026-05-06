@@ -12,12 +12,12 @@
     />
     <ActionButton 
       :isDisabled="!isNameChanged" 
-      :icon="getAppIcon('check')" 
+      :icon="CiCheck" 
       v-tooltip="$t('components.renameInput.confirm')"
       @click="handleConfirm" 
     />
     <ActionButton 
-      :icon="getAppIcon('close')" 
+      :icon="CiClose" 
       v-tooltip="$t('components.renameInput.cancel')" 
       @click="handleCancel" 
     />
@@ -25,6 +25,8 @@
 </template>
 
 <script setup>
+import { CiCheck, CiClose } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { ref, computed, watch } from 'vue';
 import { useIconStore } from '@/stores/icons';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -63,7 +65,7 @@ watch(localValue, (newValue) => {
 });
 
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 const isNameChanged = computed(() => {

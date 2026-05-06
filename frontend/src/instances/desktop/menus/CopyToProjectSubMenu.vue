@@ -3,14 +3,14 @@
     
     <!-- Header with back button -->
     <div class="sub-menu-header" @click.stop>
-      <ActionButton :icon="getAppIcon('chevron-left')" :showLabel="true" :fullWidth="true"
+      <ActionButton :icon="CiChevronLeft" :showLabel="true" :fullWidth="true"
         :label="headerTitle" :buttonFunction="goBack" />
     </div>
 
     <span class="menu-divider"></span>
 
     <!-- Copy here option -->
-    <ActionButton v-if="currentView === 'collections'" :icon="getAppIcon('arrow-down-ramp')" :showLabel="true"
+    <ActionButton v-if="currentView === 'collections'" :icon="CiArrowDownRamp" :showLabel="true"
       :fullWidth="true" :label="$t('menus.copyHere')" :buttonFunction="() => copyToLocation(currentParentId)" />
 
     <!-- <span v-if="filteredCollections.length > 0" class="menu-divider"></span> -->
@@ -35,7 +35,7 @@
       <template v-if="currentView === 'projects'">
         <template v-for="project in filteredProjects" :key="project.uri">
           <ActionButton :emoji="project.icon && project.icon.length < 10 ? project.icon : ''"
-            :customIconUrl="project.icon && project.icon.length >= 10 ? project.icon : ''" :icon="getAppIcon('chevron-right')" 
+            :customIconUrl="project.icon && project.icon.length >= 10 ? project.icon : ''" :icon="CiChevronRight" 
             :showLabel="true" :fullWidth="true" :iconAfter="true" :label="project.name"
             :buttonFunction="() => navigateIntoProject(project)" />
         </template>
@@ -50,7 +50,7 @@
 
         <!-- Child collections -->
         <template v-for="collection in filteredCollections" :key="collection.id">
-          <ActionButton :customIconUrl="getAppIcon(collection.collection_type_icon || 'folder')" :icon="getAppIcon('chevron-right')" 
+          <ActionButton :customIconUrl="iconStore.resolveIcon(collection.collection_type_icon || 'folder')" :icon="CiChevronRight" 
             :showLabel="true" :fullWidth="true" :iconAfter="true" :label="collection.name" 
             :buttonFunction="() => navigateIntoCollection(collection)" />
         </template>
@@ -72,6 +72,8 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { CiArrowDownRamp, CiChevronLeft, CiChevronRight } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 
@@ -211,11 +213,6 @@ const copyToLocation = async (targetCollectionId, projectOverride = null) => {
   } finally {
     stage.operationActive = false;
   }
-};
-
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
 };
 
 // Navigates back in the sub-menu.

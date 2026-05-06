@@ -1,12 +1,12 @@
 <template>
   <div class="view-options-root" @mouseenter="expanded = true" @mouseleave="expanded = false">
-    <ActionButton v-if="!expanded" :icon="getAppIcon(activeIcon)" v-tooltip="activeTooltip" />
+    <ActionButton v-if="!expanded" :icon="resolveIcon(activeIcon)" v-tooltip="activeTooltip" />
 
     <template v-else>
-      <ActionButton :icon="getAppIcon('list')" v-tooltip="$t('menus.listView')" :buttonFunction="setListView" />
-      <ActionButton :icon="getAppIcon('list-compact')" v-tooltip="$t('menus.compactView')" :buttonFunction="setDenseView" />
-      <ActionButton :icon="getAppIcon('four-squares')" v-tooltip="$t('menus.gridView')" :buttonFunction="setGridView" />
-      <ActionButton v-if="isDefaultWorkspace" :icon="getAppIcon('kanban')" v-tooltip="$t('menus.kanbanView')" :buttonFunction="setKanbanView" />
+      <ActionButton :icon="CiList" v-tooltip="$t('menus.listView')" :buttonFunction="setListView" />
+      <ActionButton :icon="CiListCompact" v-tooltip="$t('menus.compactView')" :buttonFunction="setDenseView" />
+      <ActionButton :icon="CiFourSquares" v-tooltip="$t('menus.gridView')" :buttonFunction="setGridView" />
+      <ActionButton v-if="isDefaultWorkspace" :icon="CiKanban" v-tooltip="$t('menus.kanbanView')" :buttonFunction="setKanbanView" />
     </template>
   </div>
 </template>
@@ -15,16 +15,16 @@
 // imports
 import { computed, ref } from 'vue';
 import emitter from '@/lib/mitt';
+import { CiFourSquares, CiKanban, CiList, CiListCompact } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 // stores
 import { useCommonStore } from '@/stores/common';
-import { useIconStore } from '@/stores/icons';
 
 const commonStore = useCommonStore();
-const iconStore = useIconStore();
 
 // refs
 const expanded = ref(false);
@@ -50,9 +50,6 @@ const activeTooltip = computed(() => {
 });
 
 // methods
-
-// Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 // Sets the view to dense list mode.
 const setDenseView = () => {

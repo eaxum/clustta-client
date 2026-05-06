@@ -12,12 +12,12 @@
 
     <!-- Error State -->
     <div v-else-if="error" class="error-container">
-      <img :src="getAppIcon('alert-circle')" alt="Error" class="error-icon" />
+      <CiInfoTriangle class="error-icon" :size="20" />
       <h2>{{ errorTitle }}</h2>
       <p>{{ errorMessage }}</p>
       <ActionButton 
         label="Go Home"
-        :icon="getAppIcon('home')"
+        :icon="CiHome"
         :iconAfter="false"
         :useBackground="true"
         @click="goHome"
@@ -43,13 +43,13 @@
               <div class="display-mode-fields">
                 <div class="profile-name-row">
                   <div class="profile-name">{{ fullName }}</div>
-                  <ActionButton :icon="getAppIcon('copy')" v-tooltip="'Copy profile link'" @click="copyProfileLink" />
+                  <ActionButton :icon="CiCopy" v-tooltip="'Copy profile link'" @click="copyProfileLink" />
                 </div>
                 <div v-if="profileData.bio" class="profile-title">{{ profileData.bio }}</div>
                 
                 <div class="meta-info">
                   <div v-if="profileData.country" class="info-item">
-                    <img class="info-icon small-icons" :src="getAppIcon('map-pin')" alt="">
+                    <CiMapPin class="info-icon small-icons" :size="20" />
                     <span>{{ profileData.country }}</span>
                   </div>
                   
@@ -58,7 +58,7 @@
                     class="availability-badge"
                     :style="{ backgroundColor: profileData.availability === 'available' ? '#24811E' : 'rgba(255, 255, 255, 0.1)' }"
                   >
-                    <img class="info-icon small-icons" :src="getAppIcon('check-circle')" alt="">
+                    <CiCheckCircle class="info-icon small-icons" :size="20" />
                     <span>{{ capitalizeStr(profileData.availability) }}</span>
                   </div>
                 </div>
@@ -92,11 +92,10 @@
                 class="studio-logo"
                 @error="handleStudioLogoError"
               />
-              <img 
+              <CiStall 
                 v-else 
-                :src="getAppIcon('stall')" 
-                alt="Studio" 
                 class="studio-logo studio-icon-default"
+                :size="20"
               />
               <span class="studio-name">{{ studio.name }}</span>
             </div>
@@ -136,6 +135,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { CiCheckCircle, CiCopy, CiHome, CiInfoTriangle, CiMapPin, CiStall } from '@clustta/icons-vue';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { ProfileService } from '@/services/adapters/profileservice.js';
@@ -199,12 +199,8 @@ const capitalizeStr = (str) => {
     .join(' ');
 };
 
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
-};
-
 const handleStudioLogoError = (event) => {
-  event.target.src = getAppIcon('stall');
+  event.target.src = iconStore.CiStall;
   event.target.classList.add('studio-icon-default');
 };
 

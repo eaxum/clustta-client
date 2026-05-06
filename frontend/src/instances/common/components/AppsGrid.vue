@@ -22,7 +22,7 @@
 
     </div>
 
-    <ActionButton v-if="userStore.canDo('create_template')" :icon="getAppIcon('squares-plus')" :label="label"
+    <ActionButton v-if="userStore.canDo('create_template')" :icon="CiSquaresPlus" :label="label"
       :buttonFunction="manageTemplates" />
   </div>
 
@@ -32,6 +32,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
+import { CiSquaresPlus } from '@clustta/icons-vue';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
@@ -39,7 +40,6 @@ import PageState from '@/instances/common/components/PageState.vue'
 
 // states
 import { useTrayStates } from '@/stores/TrayStates';
-import { useIconStore } from '@/stores/icons';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useTemplateStore } from '@/stores/template';
 import { useStageStore } from '@/stores/stages';
@@ -48,7 +48,6 @@ import { useSettingsStore } from '@/stores/settings';
 
 // states
 const trayStates = useTrayStates();
-const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const templateStore = useTemplateStore();
 const stage = useStageStore();
@@ -72,11 +71,6 @@ const manageTemplates = () => {
   settings.activeModalName = 'Templates';
   stage.setStageVisibility('projectSettings', true);
 	settings.setModalVisibility('templates', true);
-};
-
-const getAppIcon = (iconName) => {
-	const icon = iconStore.getAppIcon(iconName);
-	return icon
 };
 
 const selectApp = (name, icon) => {

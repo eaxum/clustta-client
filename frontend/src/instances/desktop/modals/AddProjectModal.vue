@@ -1,7 +1,7 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
 
-    <HeaderArea :title="title" :icon="getAppIcon('briefcase-plus')" :showSearch="false" />
+    <HeaderArea :title="title" :icon="CiBriefcasePlus" :showSearch="false" />
 
     <div class="general-container">
 
@@ -16,7 +16,7 @@
           <input v-model="projectName" class="input-short" type="text" :placeholder="$t('placeholders.projectName')" ref="projectNameInput"
             @keydown.enter="handleEnterKey" v-focus />
           <span @click="addExistingFolder" class="single-action-button" v-tooltip="$t('modals.addExistingFolder')">
-            <img class="small-icons" :src="getAppIcon('folder-arrow-in')">
+            <CiFolderArrowIn class="small-icons" :size="20" />
           </span>
         </div>
         <InputAlert :show="!projectIsCreated && projectNameInUse" :message="$t('modals.projectNameExists')" />
@@ -33,7 +33,7 @@
             />
           </div>
           <span @click="addNewLocation" class="single-action-button" v-tooltip="$t('modals.addNewLocation')">
-            <img class="small-icons" :src="getAppIcon('plus-circle')">
+            <CiPlusCircle class="small-icons" :size="20" />
           </span>
         </div>
       </div>
@@ -64,6 +64,7 @@
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiBriefcasePlus, CiFolderArrowIn, CiPlusCircle } from '@clustta/icons-vue';
 
 // components
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
@@ -81,7 +82,6 @@ const accountStore = useAccountStore();
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -96,7 +96,6 @@ import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
@@ -225,11 +224,6 @@ const addNewLocation = async () => {
 // Closes the modal.
 const closeModal = () => {
   modals.disableAllModals();
-};
-
-// Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
 };
 
 // Handles enter key press to submit form.

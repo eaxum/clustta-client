@@ -1,24 +1,28 @@
 <template>
 	<span v-stop-propagation @click="buttonFunction" class="filter-button"
 		:class="{ 'button-background': alert, 'full-width': fullWidth, 'icon-after': iconAfter, 'centered': centered }">
-		<img class="small-icons no-cursor" :class="{ 'inverted-icon': alert }" :src="icon">
+		<component v-if="isIconComponent" :is="icon" :size="16" class="ci-btn-icon no-cursor" :class="{ 'inverted-icon': alert }" />
+		<img v-else class="small-icons no-cursor" :class="{ 'inverted-icon': alert }" :src="icon">
 		<div v-if="showLabel && label" class="label-text no-cursor" :class="{ 'label-text-inverted': alert }">{{ label }}</div>
 		<img class="small-icons chevron no-cursor" :class="{ 'inverted-icon': alert }" src="/icons/chevron_down_white.svg">
 	</span>
 </template>
 
 <script setup>
+import { computed } from 'vue';
 // props
-defineProps({
+const props = defineProps({
 	alert: { type: Boolean, default: false },
 	buttonFunction: { type: Function, default: () => {} },
 	centered: { type: Boolean, default: false },
 	fullWidth: { type: Boolean, default: false },
-	icon: { type: String, default: '' },
+	icon: { type: [String, Object, Function], default: '' },
 	iconAfter: { type: Boolean, default: false },
 	label: { type: String, default: '' },
 	showLabel: { type: Boolean, default: false },
 });
+
+const isIconComponent = computed(() => props.icon && typeof props.icon !== 'string');
 </script>
 
 <style scoped>
@@ -99,6 +103,10 @@ defineProps({
 
 .no-cursor {
 	pointer-events: none;
+}
+
+.ci-btn-icon {
+	stroke: var(--light-steel);
 }
 </style>  
   

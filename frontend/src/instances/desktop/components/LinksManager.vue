@@ -51,7 +51,7 @@
     <div v-else class="links-display-mode">
       <ActionButton
         v-if="safeLinks.portfolio"
-        :icon="getAppIcon('video-camera')"
+        :icon="CiVideoCamera"
         :label="showLabels ? $t('components.linksManager.portfolio') : ''"
         :iconAfter="false"
         :useOutline="true"
@@ -59,7 +59,7 @@
       />
       <ActionButton
         v-if="safeLinks.artstation"
-        :icon="getAppIcon('brand-artstation')"
+        :icon="CiBrandArtstation"
         :label="showLabels ? $t('components.linksManager.artstation') : ''"
         :iconAfter="false"
         :useOutline="true"
@@ -67,7 +67,7 @@
       />
       <ActionButton
         v-if="safeLinks.behance"
-        :icon="getAppIcon('brand-behance')"
+        :icon="CiBrandBehance"
         :label="showLabels ? $t('components.linksManager.behance') : ''"
         :iconAfter="false"
         :useOutline="true"
@@ -75,7 +75,7 @@
       />
       <ActionButton
         v-if="safeLinks.linkedin"
-        :icon="getAppIcon('brand-linkedin')"
+        :icon="CiBrandLinkedin"
         :label="showLabels ? $t('components.linksManager.linkedin') : ''"
         :iconAfter="false"
         :useOutline="true"
@@ -83,7 +83,7 @@
       />
       <ActionButton
         v-if="safeLinks.instagram"
-        :icon="getAppIcon('brand-instagram')"
+        :icon="CiBrandInstagram"
         :label="showLabels ? $t('components.linksManager.instagram') : ''"
         :iconAfter="false"
         :useOutline="true"
@@ -97,6 +97,8 @@
 </template>
 
 <script setup>
+import { CiBrandArtstation, CiBrandBehance, CiBrandInstagram, CiBrandLinkedin, CiVideoCamera } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useIconStore } from '@/stores/icons';
@@ -259,7 +261,7 @@ const openLink = (url) => {
 };
 
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 </script>
 

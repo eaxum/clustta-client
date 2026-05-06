@@ -2,14 +2,14 @@
   <div v-if="visible" class="plan-info" :class="{ 'plan-free': !isPaid && !isInactive, 'plan-inactive': isInactive }" @click="handleClick" v-stop-propagation>
     <template v-if="isInactive">
       <div class="plan-free-content">
-        <img class="plan-free-icon" :src="getAppIcon('alert')" />
+        <CiAlert :size="20" class="plan-free-icon" />
         <span class="plan-upgrade">Inactive — click to fix</span>
       </div>
     </template>
 
     <template v-else-if="!isPaid">
       <div class="plan-free-content">
-        <img class="plan-free-icon" :src="getAppIcon('diamond')" />
+        <CiDiamond :size="20" class="plan-free-icon" />
         <span class="plan-upgrade">Upgrade</span>
       </div>
     </template>
@@ -29,6 +29,8 @@
 <script setup>
 // imports
 import { computed, watch } from 'vue';
+import { CiAlert, CiDiamond } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // stores/services
 import utils from '@/services/utils';
@@ -134,7 +136,7 @@ const storageBarClass = computed(() => {
 // methods
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles click on the plan info widget.

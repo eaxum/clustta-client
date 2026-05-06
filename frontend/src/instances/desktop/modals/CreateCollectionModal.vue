@@ -21,7 +21,7 @@
               <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="collectionType" :onSelect="selectCollectionType" :useFilter="false" :placeHolder="$t('placeholders.collectionType')" />
             </div>
             <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addCollectionTypeTitle')">
-              <img class="small-icons" :src="getAppIcon('plus-circle')">
+              <CiPlusCircle :size="20" />
             </span>
           </div>
         </div>
@@ -34,7 +34,7 @@
         </div>
 
         <div v-if="projectStore.activeProject?.has_remote" class="horizontal-flex">
-          <ActionButton :isInactive="true" :icon="getAppIcon('shared')" :label="$t('common.shared')" />
+          <ActionButton :isInactive="true" :icon="CiShared" :label="$t('common.shared')" />
           <ToggleSwitch v-tooltip="isShared? $t('panes.unmarkAsShared') : $t('panes.markAsShared')" @click="toggleIsShared" :switchValueProp="isShared" />
         </div>
 
@@ -60,6 +60,8 @@ import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue';
 import { getRelativePath } from '@/lib/pathlib';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
+import { CiPlusCircle, CiShared } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -272,7 +274,7 @@ const createSingleCollection = async () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles enter key press to submit form.

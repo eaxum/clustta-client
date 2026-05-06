@@ -4,7 +4,7 @@
 
       <span v-if="emoji" class="project-icon">{{ decodeEmoji(emoji) }}</span>
 
-      <span v-else-if="icon"><img class="large-icons header-icons" :class="{ 'no-filter' : useIconBlob}" :src="getAppIcon(icon)"></span>
+      <span v-else-if="icon"><component :is="resolveIcon(icon)" :size="20" class="large-icons header-icons ci-icon" /></span>
       <span v-else-if="customIcon"><img class="large-icons header-icons no-filter" :src="customIcon"></span>
 
       <div v-if="profileImage" class="large-icons header-icons profile-picture"
@@ -35,6 +35,7 @@
 </template>
 
 <script setup>
+import { resolveIcon } from '@/lib/icon-map';
 import { ref, watch, onMounted } from 'vue';
 import { decodeEmoji } from '@/services/utils';
 import { useTrayStates } from '@/stores/TrayStates';
@@ -47,7 +48,7 @@ const iconStore = useIconStore();
 const props = defineProps({
 
   title: String,
-  icon: String,
+  icon: [String, Object, Function],
   emoji: String,
   customIcon: String,
   backgroundColor: String,
@@ -79,7 +80,7 @@ const getAppIcon = (iconName) => {
   }
 
   const formattedIconName = getIconName(iconName)
-  const icon = iconStore.getAppIcon(formattedIconName);
+  const icon = iconStore.resolveIcon(formattedIconName);
   return icon
 };
 
@@ -119,6 +120,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
+
+.ci-icon {
+  stroke: var(--light-steel);
+}
 
 .header-icons {
   padding: 2px;

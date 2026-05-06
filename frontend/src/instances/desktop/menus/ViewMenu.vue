@@ -2,42 +2,42 @@
   <div ref="viewMenu" class="filter-menu-container" v-stop-propagation>
 
     <!-- View Mode Section -->
-    <!-- <ActionButton :icon="getAppIcon('list')" :showLabel="true" :fullWidth="true" :label="$t('menus.listView')"
+    <!-- <ActionButton :icon="CiList" :showLabel="true" :fullWidth="true" :label="$t('menus.listView')"
       :color="isListActive ? 'var(--steel)' : undefined" :buttonFunction="setListView" />
 
-    <ActionButton :icon="getAppIcon('list-compact')" :showLabel="true" :fullWidth="true" :label="$t('menus.compactView')"
+    <ActionButton :icon="CiListCompact" :showLabel="true" :fullWidth="true" :label="$t('menus.compactView')"
       :color="isDenseActive ? 'var(--steel)' : undefined" :buttonFunction="setDenseView" />
 
-    <ActionButton :icon="getAppIcon('four-squares')" :showLabel="true" :fullWidth="true" :label="$t('menus.gridView')"
+    <ActionButton :icon="CiFourSquares" :showLabel="true" :fullWidth="true" :label="$t('menus.gridView')"
       :color="isGridActive ? 'var(--steel)' : undefined" :buttonFunction="setGridView" />
 
-    <ActionButton v-if="isDefaultWorkspace" :icon="getAppIcon('kanban')" :showLabel="true" :fullWidth="true" :label="$t('menus.kanbanView')"
+    <ActionButton v-if="isDefaultWorkspace" :icon="CiKanban" :showLabel="true" :fullWidth="true" :label="$t('menus.kanbanView')"
       :color="isKanbanActive ? 'var(--steel)' : undefined" :buttonFunction="setKanbanView" />
 
     <span  v-if="isDefaultWorkspace && !isKanbanActive && userStore.canDo('update_collection')" class="menu-divider"></span> -->
 
     <!-- Display Options Section -->
     <ActionButton v-if="isDefaultWorkspace && !isKanbanActive && userStore.canDo('update_collection')"
-      :icon="dndStore.lockUI ? getAppIcon('lock-closed') : getAppIcon('lock-open')" :showLabel="true" :fullWidth="true"
+      :icon="dndStore.lockUI ? CiLockClosed : CiLockOpen" :showLabel="true" :fullWidth="true"
       :label="dndStore.lockUI ? $t('menus.unlockUI') : $t('menus.lockUI')" :buttonFunction="toggleLockUI" />
 
     <ActionButton v-if="!isKanbanActive"
-      :icon="commonStore.hideExtensions ? getAppIcon('extension-cancel') : getAppIcon('extension')" :showLabel="true" :fullWidth="true"
+      :icon="commonStore.hideExtensions ? CiExtensionCancel : CiExtension" :showLabel="true" :fullWidth="true"
       :label="commonStore.hideExtensions ? $t('modals.showExtensions') : $t('modals.hideExtensions')" :buttonFunction="toggleHideExtensions" />
 
     <ActionButton v-if="!isKanbanActive"
-      :icon="commonStore.showFullPath ? getAppIcon('file-name') : getAppIcon('file-path')" :showLabel="true" :fullWidth="true"
+      :icon="commonStore.showFullPath ? CiFileName : CiFilePath" :showLabel="true" :fullWidth="true"
       :label="commonStore.showFullPath ? $t('menus.showNameOnly') : $t('menus.showFullPath')" :buttonFunction="toggleShowFullPath" />
 
     <ActionButton v-if="!isKanbanActive"
-      :icon="getAppIcon('shapes')" :showLabel="true" :fullWidth="true"
+      :icon="CiShapes" :showLabel="true" :fullWidth="true"
       :label="settingsStore.showTypeIcons ? $t('modals.hideTypeIcons') : $t('modals.showTypeIcons')" :buttonFunction="toggleShowTypeIcons" />
 
     <span v-if="!isKanbanActive && !commonStore.useGrid" class="menu-divider"></span>
 
     <!-- Collapse Section -->
     <ActionButton v-if="!isKanbanActive && !commonStore.useGrid"
-      :icon="getAppIcon('collapse-up')" :showLabel="true" :fullWidth="true" :label="$t('menus.collapseAll')"
+      :icon="CiCollapseUp" :showLabel="true" :fullWidth="true" :label="$t('menus.collapseAll')"
       :buttonFunction="collapseAll" />
 
   </div>
@@ -46,6 +46,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { CiCollapseUp, CiExtension, CiExtensionCancel, CiFileName, CiFilePath, CiFourSquares, CiKanban, CiList, CiListCompact, CiLockClosed, CiLockOpen, CiShapes } from '@clustta/icons-vue';
 import emitter from '@/lib/mitt';
 import { useI18n } from 'vue-i18n';
 
@@ -55,14 +56,12 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 // stores
 import { useCommonStore } from '@/stores/common';
 import { useDndStore } from '@/stores/dnd';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useSettingsStore } from '@/stores/settings';
 import { useUserStore } from '@/stores/users';
 
 const commonStore = useCommonStore();
 const dndStore = useDndStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const settingsStore = useSettingsStore();
 const userStore = useUserStore();
@@ -86,9 +85,6 @@ const collapseAll = () => {
   emitter.emit('collapse-all');
   menu.hideContextMenu();
 };
-
-// Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 // Sets the view to dense list mode.
 const setDenseView = () => {

@@ -5,7 +5,7 @@
 
       <!-- back navigation -->
       <div v-if="!platformStore.isWeb && hostingType" class="back-nav" @click="handleBack">
-        <img :src="getAppIcon('chevron-left')" class="back-nav-icon small-icons" />
+        <CiChevronLeft :size="20" class="back-nav-icon" />
         <span>{{ backLabel }}</span>
       </div>
 
@@ -19,9 +19,9 @@
 
         <!-- hosting type selector -->
         <div v-if="!hostingType" class="hosting-selector">
-          <OptionCard :icon="getAppIcon('two-drives')" :title="$t('auth.studioSetup.selfHostedTitle')" :description="$t('auth.studioSetup.selfHostedDescription')" @select="selectHostingType('self-hosted')" />
+          <OptionCard :icon="CiTwoDrives" :title="$t('auth.studioSetup.selfHostedTitle')" :description="$t('auth.studioSetup.selfHostedDescription')" @select="selectHostingType('self-hosted')" />
 
-          <OptionCard :icon="getAppIcon('clustta')" :title="$t('auth.studioSetup.managedTitle')" :description="$t('auth.studioSetup.managedDescription')" @select="selectHostingType('managed')" />
+          <OptionCard :icon="CiClustta" :title="$t('auth.studioSetup.managedTitle')" :description="$t('auth.studioSetup.managedDescription')" @select="selectHostingType('managed')" />
 
           <!-- back link -->
           <div class="additional-actions">
@@ -37,7 +37,7 @@
 
           <button class="submit-button display-font" :class="{ 'button-inactive': !isUrlValid }" @click="connectToServer">
             <div v-if="!isConnecting">{{ $t('auth.studioSetup.connectButton') }}</div>
-            <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" />
+            <ActionButton v-else :icon="CiLoading" :isLoading="true" :showLabel="false" />
           </button>
 
           <div v-if="connectionError" class="error-message">{{ connectionError }}</div>
@@ -75,7 +75,7 @@
 
             <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isFormFilled }">
               <div v-if="!isAwaitingResponse">{{ $t('auth.studioSetup.createAccountButton') }}</div>
-              <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" />
+              <ActionButton v-else :icon="CiLoading" :isLoading="true" :showLabel="false" />
             </button>
           </form>
 
@@ -90,7 +90,7 @@
 
           <!-- legal agreement -->
           <div class="legal-agreement">
-            <p>{{ $t('auth.signUp.legalPrefix') }} <span class="legal-link" @click="openPrivacyPolicy">{{ $t('auth.signUp.privacyPolicy') }} <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span> {{ $t('auth.signUp.legalMiddle') }} <span class="legal-link" @click="openTermsOfService">{{ $t('auth.signUp.termsOfService') }} <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span>.</p>
+            <p>{{ $t('auth.signUp.legalPrefix') }} <span class="legal-link" @click="openPrivacyPolicy">{{ $t('auth.signUp.privacyPolicy') }} <ActionButton :icon="CiSquareArrowRightUp" :allowDeactivate="true" :isMini="true" /></span> {{ $t('auth.signUp.legalMiddle') }} <span class="legal-link" @click="openTermsOfService">{{ $t('auth.signUp.termsOfService') }} <ActionButton :icon="CiSquareArrowRightUp" :allowDeactivate="true" :isMini="true" /></span>.</p>
           </div>
         </div>
 
@@ -126,7 +126,7 @@
 
                 <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isSalesFormFilled }">
                   <div v-if="!isSubmittingSales">{{ $t('auth.studioSetup.salesSubmitButton') }}</div>
-                  <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" />
+                  <ActionButton v-else :icon="CiLoading" :isLoading="true" :showLabel="false" />
                 </button>
               </form>
 
@@ -135,7 +135,7 @@
 
             <div v-else class="managed-content">
               <div class="managed-icon-container">
-                <img :src="getAppIcon('mail')" class="managed-icon gigantic-icons" />
+                <CiMail :size="20" class="managed-icon gigantic-icons" />
               </div>
               <div class="managed-title display-font">{{ $t('auth.studioSetup.salesSuccessTitle') }}</div>
               <div class="managed-description">{{ $t('auth.studioSetup.salesSuccessDescription') }}</div>
@@ -160,7 +160,7 @@
 
             <button class="submit-button display-font" :class="{ 'button-inactive': !canCreateCloud }" @click="createCloudStudioAndCheckout">
               <div v-if="!isCreatingStudio">{{ cloudCreateButtonLabel }}</div>
-              <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" />
+              <ActionButton v-else :icon="CiLoading" :isLoading="true" :showLabel="false" />
             </button>
 
             <div v-if="cloudError" class="error-message">{{ cloudError }}</div>
@@ -181,6 +181,8 @@ import { onMounted, ref, reactive, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { Browser } from '@wailsio/runtime';
+import { CiChevronLeft, CiClustta, CiLoading, CiMail, CiSquareArrowRightUp, CiTwoDrives } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -525,7 +527,7 @@ const formatStorage = (bytes) => {
 
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Navigates back based on current context.

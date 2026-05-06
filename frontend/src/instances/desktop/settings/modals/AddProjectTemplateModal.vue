@@ -1,7 +1,7 @@
 <template>
   <div ref="modalContainer" class="modal-container">
 
-      <HeaderArea :title="title" :icon="getAppIcon('briefcase-plus')" :showSearch="false" />
+      <HeaderArea :title="title" :icon="CiBriefcasePlus" :showSearch="false" />
 
     <div class="general-container">
 
@@ -28,6 +28,8 @@
 // imports
 import { computed, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiBriefcasePlus } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
@@ -108,7 +110,7 @@ const createProject = async () => {
 
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles enter key press to create project.

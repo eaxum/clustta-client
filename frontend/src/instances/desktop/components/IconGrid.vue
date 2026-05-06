@@ -6,7 +6,7 @@
         <div v-for="icon in icons" class="apps-grid-item-container"
           @click="selectIcon(icon)">
           <div class="apps-grid-item" :class="{ 'apps-grid-item-selected' : selectedIcon === icon}" >
-            <img class="small-icons icon-picker-icon" :src="getAppIcon(icon)">
+            <component :is="resolveIcon(icon)" :size="16" class="small-icons icon-picker-icon ci-icon" />
           </div>
         </div>
       </div>
@@ -16,6 +16,7 @@
 </template>
   
 <script setup>
+import { resolveIcon } from '@/lib/icon-map';
 import { ref, computed, onMounted } from 'vue';
 import { useIconStore } from '@/stores/icons';
 
@@ -33,7 +34,7 @@ const selectedIcon = ref('generic');
 const selectedIconType = ref(iconStore.iconTypes[0]);
 
 const getAppIcon = (iconName) => {
-    const icon = iconStore.getAppIcon(iconName);
+    const icon = iconStore.resolveIcon(iconName);
     return icon
 };
 

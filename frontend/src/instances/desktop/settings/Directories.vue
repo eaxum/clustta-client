@@ -13,7 +13,7 @@
           <div class="location-item">
             <!-- Location Icon -->
             <div class="location-icon">
-              <img class="small-icons" :src="getAppIcon('folder')">
+              <CiFolder :size="20" />
             </div>
             
             <!-- Location Content -->
@@ -32,7 +32,7 @@
             <!-- Location Actions -->
             <div class="location-actions">
               <ActionButton 
-                :icon="getAppIcon('explorer')" 
+                :icon="CiExplorer" 
                 :buttonFunction="() => selectDirectoryPath('personal')"
                 v-tooltip="$t('settings.browsePath')"
               />
@@ -43,7 +43,7 @@
           <div class="location-item" v-if="!accountStore.isOfflineMode">
             <!-- Location Icon -->
             <div class="location-icon">
-              <img class="small-icons" :src="getAppIcon('folder')">
+              <CiFolder :size="20" />
             </div>
             
             <!-- Location Content -->
@@ -62,7 +62,7 @@
             <!-- Location Actions -->
             <div class="location-actions">
               <ActionButton 
-                :icon="getAppIcon('explorer')" 
+                :icon="CiExplorer" 
                 :buttonFunction="() => selectDirectoryPath('shared')"
                 v-tooltip="$t('settings.browsePath')"
               />
@@ -76,7 +76,7 @@
         <div class="settings-section-card-header">
           <h2 class="settings-section-card-title">{{ $t('settings.projectFolders') }}</h2>
           <ActionButton 
-            :icon="getAppIcon('plus-circle')" 
+            :icon="CiPlusCircle" 
             :label="$t('settings.addLocation')" 
             :buttonFunction="addLocation"
             :showLabel="true"
@@ -90,13 +90,13 @@
               <div class="location-icon">
                 <!-- <ActionButton 
                   v-if="locationHealthMap[location.id] && !locationHealthMap[location.id].exists"
-                  :icon="getAppIcon('alert')" 
+                  :icon="CiAlert" 
                   :useAlert="true"
                   :isInactive="true"
                   v-tooltip="'Path does not exist'"
                 /> -->
-                <img v-if="locationHealthMap[location.id] && !locationHealthMap[location.id].exists" class="small-icons" :src="getAppIcon('alert')">
-                <img v-else class="small-icons" :src="getAppIcon('folder')">
+                <CiAlert :size="20" />
+                <CiFolder :size="20" />
               </div>
               
               <!-- Location Content -->
@@ -128,7 +128,7 @@
                 <!-- Star button - always visible for default location -->
                 <ActionButton 
                   v-if="location.is_default"
-                  :icon="getAppIcon('star')" 
+                  :icon="CiStar" 
                   :buttonFunction="() => setDefaultLocation(location.id)"
                   :disabled="true"
                   v-tooltip="$t('settings.defaultLocation')"
@@ -137,26 +137,26 @@
                 <!-- Other actions - visible on hover -->
                 <template v-if="editingLocationId !== location.id">
                   <ActionButton 
-                    :icon="getAppIcon('edit')" 
+                    :icon="CiEdit" 
                     :buttonFunction="() => startEditingLocation(location)"
                     v-tooltip="$t('settings.editName')"
                     class="hover-action"
                   />
                   <ActionButton 
                     v-if="!location.is_default"
-                    :icon="getAppIcon('star')" 
+                    :icon="CiStar" 
                     :buttonFunction="() => setDefaultLocation(location.id)"
                     v-tooltip="$t('settings.setAsDefault')"
                     class="hover-action"
                   />
                   <ActionButton 
-                    :icon="getAppIcon('explorer')" 
+                    :icon="CiExplorer" 
                     :buttonFunction="() => selectPath(location)"
                     v-tooltip="$t('settings.changeLocation')"
                     class="hover-action"
                   />
                   <ActionButton 
-                    :icon="getAppIcon('trash')" 
+                    :icon="CiTrash" 
                     :buttonFunction="() => removeLocation(location.id)"
                     :isDisabled="!canDeleteLocation(location.id)"
                     v-tooltip="canDeleteLocation(location.id) ? $t('settings.removeLocation') : $t('settings.cannotRemoveLocation')"
@@ -176,6 +176,8 @@
 </template>
 
 <script setup>
+import { CiAlert, CiEdit, CiExplorer, CiFolder, CiPlusCircle, CiStar, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { ref, onMounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useIconStore } from '@/stores/icons';
@@ -191,7 +193,7 @@ const accountStore = useAccountStore();
 const { t } = useI18n();
 
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Refs

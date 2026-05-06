@@ -5,9 +5,9 @@
             <div class="input-section drop-down-box-section">
                 <input v-model="workflowName" class="input-short" type="text" :placeholder="$t('placeholders.workflowItemName')" v-focus
                     @keydown.enter="handleEnterKey" />
-                <ActionButton :isDisabled="isWorkflowItemModified" :icon="getAppIcon('check')" v-tooltip="$t('common.confirm')"
+                <ActionButton :isDisabled="isWorkflowItemModified" :icon="CiCheck" v-tooltip="$t('common.confirm')"
                     @click="confirm()" />
-                <ActionButton :icon="getAppIcon('close')" v-tooltip="$t('common.cancel')" @click="cancel()" />
+                <ActionButton :icon="CiClose" v-tooltip="$t('common.cancel')" @click="cancel()" />
             </div>
             <div class="input-section drop-down-box-section">
                 <DropDownBox :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" />
@@ -44,14 +44,13 @@ import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useTemplateStore } from '@/stores/template';
 import { useWorkflowStore } from '@/stores/workflow';
-import { useIconStore } from '@/stores/icons';
+import { CiCheck, CiClose } from '@clustta/icons-vue';
 
 // states imports
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const templateStore = useTemplateStore();
 const workflowStore = useWorkflowStore();
-const iconStore = useIconStore();
 
 const { t } = useI18n();
 
@@ -240,11 +239,6 @@ const confirm = () => {
 
 const cancel = () => {
     emit('cancel');
-};
-
-const getAppIcon = (iconName) => {
-    const icon = iconStore.getAppIcon(iconName);
-    return icon
 };
 
 const selectAssetType = (assetTypeName) => {

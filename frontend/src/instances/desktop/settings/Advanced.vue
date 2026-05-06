@@ -12,61 +12,61 @@
 
           <!-- Linked Integration -->
           <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openIntegrationLink">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon(linkedIntegration.integration_id)"></div>
+            <div class="settings-icon"><img class="small-icons" :src="resolveIcon(linkedIntegration.integration_id)"></div>
             <div class="settings-content">
               <div class="settings-header">{{ linkedIntegration.external_project_name }}</div>
               <div class="settings-body">{{ $t('settings.linkedTo', { integration: linkedIntegration.integration_id }) }}</div>
             </div>
             <div class="settings-action" v-stop-propagation>
-              <ActionButton :icon="getAppIcon('settings')" :label="$t('common.manage')" :buttonFunction="openIntegrationLink" />
+              <ActionButton :icon="CiSettings" :label="$t('common.manage')" :buttonFunction="openIntegrationLink" />
             </div>
           </div>
 
           <!-- Directory Mapping (only when integration linked) -->
           <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openDirectoryMapping">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('file-path')"></div>
+            <div class="settings-icon"><CiFilePath :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">Directory Mapping</div>
               <div class="settings-body">Configure folder structure for synced items</div>
             </div>
             <div class="settings-action" v-stop-propagation>
-              <ActionButton :icon="getAppIcon('settings')" :label="'Configure'" :buttonFunction="openDirectoryMapping" />
+              <ActionButton :icon="CiSettings" :label="'Configure'" :buttonFunction="openDirectoryMapping" />
             </div>
           </div>
 
           <!-- Asset Type Templates (only when integration linked) -->
           <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openAssetTypeMapping">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('extension')"></div>
+            <div class="settings-icon"><CiExtension :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">Asset Type Templates</div>
               <div class="settings-body">Map asset types to file templates</div>
             </div>
             <div class="settings-action" v-stop-propagation>
-              <ActionButton :icon="getAppIcon('settings')" :label="'Configure'" :buttonFunction="openAssetTypeMapping" />
+              <ActionButton :icon="CiSettings" :label="'Configure'" :buttonFunction="openAssetTypeMapping" />
             </div>
           </div>
 
           <!-- Status Mapping (only when integration linked) -->
           <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openStatusMapping">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('clock')"></div>
+            <div class="settings-icon"><CiClock :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">Status Mapping</div>
               <div class="settings-body">Map statuses to push on checkpoint</div>
             </div>
             <div class="settings-action" v-stop-propagation>
-              <ActionButton :icon="getAppIcon('settings')" :label="'Configure'" :buttonFunction="openStatusMapping" />
+              <ActionButton :icon="CiSettings" :label="'Configure'" :buttonFunction="openStatusMapping" />
             </div>
           </div>
 
           <!-- No Integration Linked -->
           <div v-else class="settings-item" v-stop-propagation @click="openIntegrationLink">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('plug')"></div>
+            <div class="settings-icon"><CiPlug :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.linkIntegration') }}</div>
               <div class="settings-body">{{ $t('settings.linkIntegrationDescription') }}</div>
             </div>
             <div class="settings-action">
-              <ActionButton :icon="getAppIcon('link')" :label="$t('common.link')" :buttonFunction="openIntegrationLink" />
+              <ActionButton :icon="CiLink" :label="$t('common.link')" :buttonFunction="openIntegrationLink" />
             </div>
           </div>
 
@@ -81,7 +81,7 @@
         <div class="settings-section-card-content">
 
           <div class="settings-item" @click="toggleWriteThrough">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('arrow-big-up-lines')"></div>
+            <div class="settings-icon"><CiArrowBigUpLines :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.writeThroughSync') }}</div>
               <div class="settings-body">{{ $t('settings.writeThroughDescription') }}</div>
@@ -103,6 +103,8 @@
 // imports
 import { computed, ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiArrowBigUpLines, CiClock, CiExtension, CiFilePath, CiLink, CiPlug, CiSettings } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // services
 import { ProjectService } from '@/services';
@@ -134,7 +136,7 @@ const linkedIntegration = computed(() => integrationStore.linkedIntegration);
 
 // methods
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Opens the integration link modal to manage project integration.

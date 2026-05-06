@@ -3,18 +3,18 @@
     
     <!-- Header with back button -->
     <div class="sub-menu-header" @click.stop>
-      <ActionButton :icon="isAtRoot ? null : getAppIcon('chevron-left')" :showLabel="true" :fullWidth="true"
+      <ActionButton :icon="isAtRoot ? null : CiChevronLeft" :showLabel="true" :fullWidth="true"
         :label="headerTitle" :buttonFunction="isAtRoot ? null : goBack" :isInactive="isAtRoot" />
     </div>
 
     <span class="menu-divider"></span>
 
     <!-- Move here option -->
-    <ActionButton v-if="canMoveHere" :icon="getAppIcon('arrow-down-ramp')" :showLabel="true"
+    <ActionButton v-if="canMoveHere" :icon="CiArrowDownRamp" :showLabel="true"
       :fullWidth="true" :label="$t('menus.moveHere')" :buttonFunction="() => moveToLocation(currentParentId)" />
 
     <!-- Move to root option (when not at root and didn't start at root) -->
-    <ActionButton v-if="canMoveToRoot" :icon="getAppIcon('home')" :showLabel="true"
+    <ActionButton v-if="canMoveToRoot" :icon="CiHome" :showLabel="true"
       :fullWidth="true" :label="$t('menus.moveToRoot')" :buttonFunction="() => moveToLocation('')" />
 
     <!-- Search input -->
@@ -35,7 +35,7 @@
       
       <!-- Child collections -->
       <template v-for="collection in filteredCollections" :key="collection.id">
-        <ActionButton :customIconUrl="getAppIcon(collection.collection_type_icon || 'folder')" :icon="getAppIcon('chevron-right')" 
+        <ActionButton :customIconUrl="iconStore.resolveIcon(collection.collection_type_icon || 'folder')" :icon="CiChevronRight" 
           :showLabel="true" :fullWidth="true" :iconAfter="true" :label="collection.name" 
           :buttonFunction="() => navigateIntoCollection(collection)" />
       </template>
@@ -56,6 +56,8 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { CiArrowDownRamp, CiChevronLeft, CiChevronRight, CiHome } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 
@@ -136,9 +138,6 @@ const isAtRoot = computed(() => currentParentId.value === '');
 const navigationDepth = computed(() => menu.subMenuState.navigationStack.length);
 
 // methods
-
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 // Navigates back in the sub-menu (to parent collection).
 const goBack = async () => {

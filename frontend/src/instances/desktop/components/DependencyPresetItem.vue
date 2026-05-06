@@ -14,15 +14,15 @@
 
             <div class="preset-item-actions">
                 <span @click="applyPreset" class="single-action-button" v-tooltip="$t('components.dependencyPresetItem.apply')">
-                    <img class="small-icons" :src="getAppIcon('plus-circle')">
+                    <CiPlusCircle :size="20" />
                 </span>
 
                 <span @click="deletePreset" class="single-action-button" v-tooltip="$t('components.dependencyPresetItem.delete')">
-                    <img class="small-icons" :src="getAppIcon('trash')">
+                    <CiTrash :size="20" />
                 </span>
 
                 <span @click="toggleExpanded" class="single-action-button" v-tooltip="isExpanded ? $t('components.dependencyPresetItem.collapse') : $t('components.dependencyPresetItem.expand')">
-                    <img class="small-icons" :src="getAppIcon('chevron-down')" :class="{ 'is-expanded': isExpanded }">
+                    <CiChevronDown :size="20" />
                 </span>
             </div>
         </div>
@@ -30,21 +30,21 @@
         <transition name="expand" appear>
             <div v-if="preset.dependencies?.length" v-show="isExpanded || isLoading" class="preset-dependencies-root">
                 <div v-if="isLoading" class="preset-dependencies loading">
-                    <ActionButton :icon="getAppIcon('spinner')" class="spinner-icon" :isDisabled="true" />
+                    <ActionButton :icon="CiLoading" class="spinner-icon" :isDisabled="true" />
                 </div>
 
                 <div v-else class="preset-dependencies">
                     <div class="preset-dependencies-list">
                         <div class="dependency-child-item" v-for="(dep, index) in enrichedDependencies" :key="dep.id || index">
                             <div class="dependency-item-meta">
-                                <span><img class="small-icons no-filter" :src="dep.icon || getAppIcon('generic')"></span>
+                                <span><img class="small-icons no-filter" :src="dep.icon || CiGeneric"></span>
                                 <div class="dependency-item-label">
                                     <div @click="goToItem(dep)" class="dependency-item-label-text">{{ dep.name || dep.id }}</div>
                                 </div>
                             </div>
                             <div class="dependency-item-actions">
                                 <span @click="removeDependencyFromPreset(dep, index)" class="single-action-button" v-tooltip="$t('components.dependencyPresetItem.remove')">
-                                    <img class="small-icons" :src="getAppIcon('minus-circle')">
+                                    <CiMinusCircle :size="20" />
                                 </span>
                             </div>
                         </div>
@@ -59,6 +59,8 @@
 // imports
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiChevronDown, CiGeneric, CiLoading, CiMinusCircle, CiPlusCircle, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -160,7 +162,7 @@ const fetchEnrichedDependencies = async () => {
 };
 
 const getAppIcon = (iconName) => {
-    const icon = iconStore.getAppIcon(iconName);
+    const icon = iconStore.resolveIcon(iconName);
     return icon;
 };
 

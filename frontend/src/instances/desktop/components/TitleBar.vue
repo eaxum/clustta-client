@@ -14,14 +14,14 @@
               <span class="online-indicator" :class="studioStore.appOnline ? 'online' : 'offline'" v-tooltip="studioStore.appOnline ? $t('components.titleBar.connected') : $t('components.titleBar.offline')"></span>
               {{ utils.capitalizeStr(projectStore.getSelectedStudioName) }}
             </div>
-            <img v-if="!accountStore.isStudioAuth" class="small-icons chevron" :src="getAppIcon('chevron-down')">
+            <CiChevronDown :size="20" class="chevron" />
 
             <div v-if="displayStudioList" class="studio-list-container" :style="{ left: parentLocation?.left + 'px', top: parentLocation?.top + parentLocation?.height + 'px' }">
               <div class="studio-instance-container">
 
                 <div v-for="(studio, index) in studioList" :key="index" class="studio-instance" @click="selectStudio(studio)">
                   <div class="studio-instance-meta">
-                    <img class="large-icons" :src="studio.name === 'Personal' ? getAppIcon('two-drives') : getAppIcon('website')">
+                    <img class="large-icons" :src="studio.name === 'Personal' ? CiTwoDrives : CiWebsite">
                     <div>{{ studio.name }}</div>
                   </div>
                 </div>
@@ -31,8 +31,8 @@
           </span>
         </div>
 
-          <ActionButton v-if="studioStore.isStudioAdmin && projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('stall-cog')" v-tooltip="$t('components.titleBar.studioSettings')" :buttonFunction="studioSettings" />
-          <ActionButton :icon="getAppIcon('refresh')" v-tooltip="$t('components.titleBar.reloadStudio')" :buttonFunction="reloadStudio" />
+          <ActionButton v-if="studioStore.isStudioAdmin && projectStore.selectedStudio?.name !== 'Personal'" :icon="CiStallCog" v-tooltip="$t('components.titleBar.studioSettings')" :buttonFunction="studioSettings" />
+          <ActionButton :icon="CiRefresh" v-tooltip="$t('components.titleBar.reloadStudio')" :buttonFunction="reloadStudio" />
       </div>
 
     </div>
@@ -61,21 +61,21 @@
 
     <!-- Web mode auth buttons (only when not logged in) -->
     <div v-else-if="platformStore.isWeb && !userStore.isUserAuthenticated" class="titlebar-auth-buttons">
-      <ActionButton :icon="getAppIcon('launch')" :label="$t('components.titleBar.signUp')" color="var(--grape)" forceIconColor="light" :buttonFunction="goToSignUp" v-tooltip="isWideScreen ? '' : $t('components.titleBar.signUp')" />
-      <ActionButton :icon="getAppIcon('login')" :label="isWideScreen ? $t('components.titleBar.login') : ''" :useOutline="true" :buttonFunction="goToLogin" v-tooltip="isWideScreen ? '' : $t('components.titleBar.login')" />
+      <ActionButton :icon="CiLaunch" :label="$t('components.titleBar.signUp')" color="var(--grape)" forceIconColor="light" :buttonFunction="goToSignUp" v-tooltip="isWideScreen ? '' : $t('components.titleBar.signUp')" />
+      <ActionButton :icon="CiLogin" :label="isWideScreen ? $t('components.titleBar.login') : ''" :useOutline="true" :buttonFunction="goToLogin" v-tooltip="isWideScreen ? '' : $t('components.titleBar.login')" />
     </div>
 
     <div v-else-if="!platformStore.isWeb" class="titlebar-buttons">
       <PlanInfo />
 
       <div class="titlebar-button minimize" @click="minimizeWindow">
-        <img class="small-icons" :src="getAppIcon('collapse-window')" alt="Minimize">
+        <CiCollapseWindow :size="20" />
       </div>
       <div class="titlebar-button maximize" @click="toggleMaximize">
-        <img class="small-icons" :src="isWindowMaximized ? getAppIcon('minimize-window') : getAppIcon('maximize-window')" alt="Maximize">
+        <img class="small-icons" :src="isWindowMaximized ? CiMinimizeWindow : CiMaximizeWindow" alt="Maximize">
       </div>
       <div class="titlebar-button close" @click="closeWindow">
-        <img class="small-icons" :src="getAppIcon('close')" alt="Close">
+        <CiClose :size="20" />
       </div>
     </div>
 
@@ -100,7 +100,7 @@
 
       <div class="studio-instance" @click="createStudio()" v-stop-propagation >
         <div class="studio-instance-meta">
-          <img class="large-icons" :src="getAppIcon('stall')">
+          <CiStall :size="28" />
           <div>{{ $t('components.titleBar.newStudio') }}</div>
         </div>
       </div>
@@ -111,6 +111,8 @@
 </template>
 
 <script setup>
+import { CiChevronDown, CiClose, CiCollapseWindow, CiLaunch, CiLogin, CiMaximizeWindow, CiMinimizeWindow, CiRefresh, CiStall, CiStallCog, CiTwoDrives, CiWebsite } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -213,7 +215,7 @@ const showUnsyncedBar = computed(() => { return projectStore.getActiveProject?.h
 const studioInactive = computed(() => !entitlementStore.isStudioActive);
 
 const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
+  const icon = iconStore.resolveIcon(iconName);
   return icon
 };
 

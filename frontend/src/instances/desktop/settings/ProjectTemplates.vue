@@ -10,17 +10,17 @@
                         :selectedItem="projectTemplateStore.activeProjectTemplateName" :placeHolder="'None'"
                         :fixedWidth="true" />
 
-                    <ActionButton :icon="getAppIcon('edit')" @click="editProjectTemplate" v-tooltip="$t('settings.editTemplate')" />
+                    <ActionButton :icon="CiEdit" @click="editProjectTemplate" v-tooltip="$t('settings.editTemplate')" />
 
-                    <ActionButton :icon="getAppIcon('duplicate')" @click="duplicateProjectTemplate"
+                    <ActionButton :icon="CiDuplicate" @click="duplicateProjectTemplate"
                         v-tooltip="$t('settings.duplicateTemplate')" />
 
-                    <ActionButton :icon="getAppIcon('trash')" @click="prepDeletePopUpModal"
+                    <ActionButton :icon="CiTrash" @click="prepDeletePopUpModal"
                         v-tooltip="$t('settings.deleteTemplate')" />
 
                 </div>
 
-                <ActionButton :icon="getAppIcon('plus-circle')" @click="addNewProjectTemplate"
+                <ActionButton :icon="CiPlusCircle" @click="addNewProjectTemplate"
                     :label="$t('settings.newProjectTemplate')" v-tooltip="$t('settings.newTemplate')" />
 
             </div>
@@ -62,7 +62,7 @@
                 </div>
 
             <div v-if="projectTemplateStore.projectTemplates.length && activeTemplateContext !== 'ignorelist'" class="settings-component-footer">
-                <ActionButton :icon="getAppIcon('plus-circle')" @click="contextAddFunction"
+                <ActionButton :icon="CiPlusCircle" @click="contextAddFunction"
                     :label="contextPropmtMessage()" v-tooltip="$t('settings.newTemplate')" />
             </div>
 
@@ -72,6 +72,8 @@
 </template>
 
 <script setup>
+import { CiDuplicate, CiEdit, CiPlusCircle, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { onMounted, computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
@@ -214,7 +216,7 @@ const contextAddFunction = () => {
 };
 
 const getAppIcon = (iconName) => {
-    const icon = iconStore.getAppIcon(iconName);
+    const icon = iconStore.resolveIcon(iconName);
     return icon
 };
 

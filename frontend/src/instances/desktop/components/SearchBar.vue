@@ -38,7 +38,7 @@ const inputRef = ref(null);
 // methods
 
 // Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+const getAppIcon = (iconName) => iconStore.resolveIcon(iconName);
 
 // Clears the search input and emits clear event.
 const handleClear = () => {

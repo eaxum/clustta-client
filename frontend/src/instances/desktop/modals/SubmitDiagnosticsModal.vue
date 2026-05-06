@@ -15,7 +15,7 @@
 
       <div class="system-info-section">
         <div class="system-info-header">
-          <img class="small-icons" :src="getAppIcon('monitor')">
+          <CiMonitor :size="20" />
           <span>{{ $t('modals.systemInformation') }}</span>
         </div>
         <div class="system-info-content">
@@ -27,7 +27,7 @@
       </div>
 
       <div class="attachment-section">
-        <img class="small-icons" :src="getAppIcon('paperclip')">
+        <CiPaperclip :size="20" />
         <span class="attachment-label">{{ logFileName || $t('modals.noLogFile') }}</span>
       </div>
 
@@ -46,6 +46,8 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
+import { CiMonitor, CiPaperclip } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import FormInput from '@/instances/desktop/components/FormInput.vue';
@@ -118,7 +120,7 @@ const closeModal = () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles enter key press to submit form.

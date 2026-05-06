@@ -26,7 +26,7 @@
             </div>
 
             <div v-if="isItemExpanded" class="checkpoint-item-actions close-button">
-                <ActionButton :plainBackground="true" :icon="getAppIcon('close')" v-tooltip="$t('components.checkpointItem.close')"
+                <ActionButton :plainBackground="true" :icon="CiClose" v-tooltip="$t('components.checkpointItem.close')"
                     @click="leaveCheckpoint" />
             </div>
         </div>
@@ -42,34 +42,34 @@
         </div>
 
         <div v-if="checkpoint.preview && !isItemExpanded" class="checkpoint-item-attachment">
-            <ActionButton :icon="getAppIcon('paper-clip')" v-tooltip="$t('components.checkpointItem.viewAttachment')"/>
+            <ActionButton :icon="CiPaperclip" v-tooltip="$t('components.checkpointItem.viewAttachment')"/>
         </div>
 
         <div v-if="isItemExpanded" class="menu-divider"></div>
 
         <div v-if="!isItemExpanded" class="checkpoint-item-actions">
-            <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('revert')" v-tooltip="$t('components.checkpointItem.revertToCheckpoint')"
+            <ActionButton v-if="!platformStore.isWeb" :icon="CiRevert" v-tooltip="$t('components.checkpointItem.revertToCheckpoint')"
                 @click="revertToVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
             <template v-if="!platformStore.isWeb" >
-                <ActionButton v-if="!checkpoint.is_downloaded" :icon="getAppIcon('cloud-down')"
+                <ActionButton v-if="!checkpoint.is_downloaded" :icon="CiCloudDown"
                     v-tooltip="$t('components.checkpointItem.downloadCheckpoint')" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
-                <ActionButton v-else :icon="getAppIcon('launch')" v-tooltip="$t('components.checkpointItem.openCheckpoint')"
+                <ActionButton v-else :icon="CiLaunch" v-tooltip="$t('components.checkpointItem.openCheckpoint')"
                     @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
             </template>
-            <ActionButton v-if="entitlementStore.canShareLink && userStore.canDo('manage_share_links') && checkpoint.synced && !accountStore.isStudioAuth" :icon="getAppIcon('data-upload')" v-tooltip="$t('components.checkpointItem.shareCheckpoint')" @click="openShareModal" />
-            <ActionButton v-if="userStore.canDo('delete_checkpoint')" :icon="getAppIcon('trash')" v-tooltip="$t('components.checkpointItem.deleteCheckpoint')"
+            <ActionButton v-if="entitlementStore.canShareLink && userStore.canDo('manage_share_links') && checkpoint.synced && !accountStore.isStudioAuth" :icon="CiDataUpload" v-tooltip="$t('components.checkpointItem.shareCheckpoint')" @click="openShareModal" />
+            <ActionButton v-if="userStore.canDo('delete_checkpoint')" :icon="CiTrash" v-tooltip="$t('components.checkpointItem.deleteCheckpoint')"
                 @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>
 
         <div v-else class="full-checkpoint-item-actions">
-            <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('revert')" v-tooltip="$t('components.checkpointItem.revertToCheckpoint')"
+            <ActionButton v-if="!platformStore.isWeb" :icon="CiRevert" v-tooltip="$t('components.checkpointItem.revertToCheckpoint')"
                 @click="revertToVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
-            <ActionButton v-if="!platformStore.isWeb && !checkpoint.is_downloaded" :icon="getAppIcon('cloud-down')"
+            <ActionButton v-if="!platformStore.isWeb && !checkpoint.is_downloaded" :icon="CiCloudDown"
                 v-tooltip="$t('components.checkpointItem.downloadCheckpoint')" @click="downloadCheckpoint(checkpoint.checkpoint_id)" />
-            <ActionButton v-if="!platformStore.isWeb && checkpoint.is_downloaded" :icon="getAppIcon('launch')"
+            <ActionButton v-if="!platformStore.isWeb && checkpoint.is_downloaded" :icon="CiLaunch"
                 v-tooltip="$t('components.checkpointItem.openCheckpoint')" @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
-            <ActionButton v-if="entitlementStore.canShareLink && userStore.canDo('manage_share_links') && checkpoint.synced && !accountStore.isStudioAuth" :icon="getAppIcon('data-upload')" v-tooltip="$t('components.checkpointItem.shareCheckpoint')" @click="openShareModal" />
-            <ActionButton v-if="userStore.canDo('delete_checkpoint')" :icon="getAppIcon('trash')" v-tooltip="$t('components.checkpointItem.deleteCheckpoint')"
+            <ActionButton v-if="entitlementStore.canShareLink && userStore.canDo('manage_share_links') && checkpoint.synced && !accountStore.isStudioAuth" :icon="CiDataUpload" v-tooltip="$t('components.checkpointItem.shareCheckpoint')" @click="openShareModal" />
+            <ActionButton v-if="userStore.canDo('delete_checkpoint')" :icon="CiTrash" v-tooltip="$t('components.checkpointItem.deleteCheckpoint')"
                 @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>
 
@@ -77,13 +77,7 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-    const icon = iconStore.getAppIcon(iconName);
-    return icon
-};
+import { CiClose, CiCloudDown, CiDataUpload, CiLaunch, CiPaperclip, CiRevert, CiTrash } from '@clustta/icons-vue';
 // imports
 import { ref, onMounted, onBeforeUnmount, computed, nextTick, watch } from 'vue';
 import { useI18n } from 'vue-i18n';

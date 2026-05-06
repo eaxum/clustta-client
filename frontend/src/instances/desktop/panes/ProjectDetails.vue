@@ -7,84 +7,84 @@
 
       <div class="action-bar">
 
-        <ActionButton :icon="getAppIcon('info')" :showLabel="true" :fullWidth="true"
+        <ActionButton :icon="CiInfo" :showLabel="true" :fullWidth="true"
           :label="$t('panes.projectDetails')" :buttonFunction="showProjectDetails" v-tooltip="$t('panes.projectDetailsTooltip')" />
 
-        <ActionButton v-if="studioStore.canManageProject" :icon="getAppIcon('switches')" :showLabel="true" :fullWidth="true"
+        <ActionButton v-if="studioStore.canManageProject" :icon="CiSwitches" :showLabel="true" :fullWidth="true"
           :label="$t('panes.editProject')" :buttonFunction="editProject" v-tooltip="$t('panes.editProjectTooltip')" />
 
-        <ActionButton v-if="isProjectPinned" :icon="getAppIcon('unpin')" :showLabel="true" :fullWidth="true"
+        <ActionButton v-if="isProjectPinned" :icon="CiUnpin" :showLabel="true" :fullWidth="true"
           :label="$t('panes.unpinProject')" :buttonFunction="unpinProject" v-tooltip="$t('panes.unpinProjectTooltip')" />
 
-        <ActionButton v-else-if="!isPinExceeded" :icon="getAppIcon('pin')" :showLabel="true" :fullWidth="true"
+        <ActionButton v-else-if="!isPinExceeded" :icon="CiPin" :showLabel="true" :fullWidth="true"
           :label="$t('panes.pinProject')" :buttonFunction="pinProject" v-tooltip="$t('panes.pinProjectTooltip')"/>
 
-        <ActionButton :icon="getAppIcon('briefcase-cog')" :showLabel="true" :fullWidth="true"
+        <ActionButton :icon="CiBriefcaseCog" :showLabel="true" :fullWidth="true"
           :label="$t('panes.projectSettings')" :buttonFunction="openProjectSettings" v-tooltip="$t('panes.projectSettingsTooltip')" />
 
         <span v-if="!platformStore.isWeb" class="menu-divider"></span>
 
         <!-- Reveal in Explorer -->
         <span v-if="!platformStore.isWeb" class="horizontal-flex">
-          <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('panes.showInExplorer')"
+          <ActionButton :icon="CiFolderArrowUpRight" :showLabel="true" :fullWidth="true" :label="$t('panes.showInExplorer')"
             :buttonFunction="revealInExplorer" v-tooltip="$t('panes.showInExplorerTooltip')" />
-          <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyProjectPath()"
+          <ActionButton :icon="CiCopy" :showLabel="false" :fullWidth="false" @click="copyProjectPath()"
             v-tooltip="$t('common.copyPath')" />
         </span>
 
         <!-- Locate Clustta file -->
-        <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded" :icon="getAppIcon('clustta')" :showLabel="true"
+        <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded" :icon="CiClustta" :showLabel="true"
           :fullWidth="true" :label="$t('panes.locateClusttaFile')" :buttonFunction="locateClusttaFile" v-tooltip="$t('panes.locateClusttaFileTooltip')" />
 
         <!-- Relocate Working Directory -->
-        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" :label="$t('panes.relocate')"
+        <ActionButton v-if="!platformStore.isWeb" :icon="CiFolderArrowIn" :showLabel="true" :fullWidth="true" :label="$t('panes.relocate')"
           :buttonFunction="relocateWorkingDirectory" v-tooltip="$t('panes.relocateTooltip')" />
 
         <!-- Backup Project -->
-        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('floppy-disk')" :showLabel="true" :fullWidth="true" :label="$t('panes.backup')"
+        <ActionButton v-if="!platformStore.isWeb" :icon="CiFloppyDisk" :showLabel="true" :fullWidth="true" :label="$t('panes.backup')"
           :buttonFunction="backupProject" v-tooltip="$t('panes.backupTooltip')" />
 
         <span class="menu-divider"></span>
 
         <!-- Archive -->
         <ActionButton v-if="!projectStore.getActiveProject.is_closed && studioStore.canManageProject"
-          :icon="getAppIcon('archive')" :showLabel="true" :fullWidth="true" :label="$t('panes.archiveProject')"
+          :icon="CiArchive" :showLabel="true" :fullWidth="true" :label="$t('panes.archiveProject')"
           :buttonFunction="prepCloseProjectPopUpModal" v-tooltip="$t('panes.archiveProjectTooltip')" />
 
-        <ActionButton v-else-if="studioStore.canManageProject" :icon="getAppIcon('unarchive')" :showLabel="true"
+        <ActionButton v-else-if="studioStore.canManageProject" :icon="CiUnarchive" :showLabel="true"
           :fullWidth="true" :label="$t('panes.unarchiveProject')" :buttonFunction="toggleCloseProject" v-tooltip="$t('panes.unarchiveProjectTooltip')" />
 
         <!-- Rebuild -->
         <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded && !projectStore.getActiveProject.is_closed"
-          :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" :label="$t('panes.rebuildProject')"
+          :icon="CiJigsaw" :showLabel="true" :fullWidth="true" :label="$t('panes.rebuildProject')"
           :buttonFunction="rebuildAll" v-tooltip="$t('panes.rebuildProjectTooltip')" />
 
         <span v-if="!platformStore.isWeb" class="menu-divider"></span>
 
         <!-- Free space -->
-        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" :label="$t('panes.freeUpSpace')"
+        <ActionButton v-if="!platformStore.isWeb" :icon="CiBroom" :showLabel="true" :fullWidth="true" :label="$t('panes.freeUpSpace')"
           :buttonFunction="prepFreeUpSpacePopUpModal" v-tooltip="$t('panes.freeUpSpaceTooltip')" />
 
         <!-- Trim Project - only for remote projects that are synced -->
         <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.has_remote && !projectStore.getActiveProject.is_unsynced"
-          :icon="getAppIcon('scissors')" :showLabel="true" :fullWidth="true" :label="$t('panes.trimProject')"
+          :icon="CiScissors" :showLabel="true" :fullWidth="true" :label="$t('panes.trimProject')"
           :buttonFunction="prepTrimProjectPopUpModal" v-tooltip="$t('panes.trimProjectTooltip')" />
 
         <!-- Delete project -->
-        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
+        <ActionButton v-if="!platformStore.isWeb" :icon="CiTrash" :showLabel="true" :fullWidth="true"
           :label="$t('panes.emptyTrash')" :buttonFunction="prepEmptyTrashPopUpModal" v-tooltip="$t('panes.emptyTrashTooltip')" />
 
       </div>
 
       <div v-if="!projectStore.isProjectStatsExpanded" class="project-stats project-stats-collapsed">
 
-        <ActionButton :icon="getAppIcon('info')" :showLabel="true" :fullWidth="true"
+        <ActionButton :icon="CiInfo" :showLabel="true" :fullWidth="true"
           :label="$t('panes.projectStats')" :buttonFunction="toggleProjectStats" />
 
       </div>
       <div v-else class="project-stats project-stats-collapsed">
 
-        <ActionButton :icon="getAppIcon('chevron-down')" :showLabel="true" :fullWidth="true"
+        <ActionButton :icon="CiChevronDown" :showLabel="true" :fullWidth="true"
           :label="$t('panes.projectStats')" :buttonFunction="toggleProjectStats" />
 
           <div class="project-stats-content">
@@ -141,6 +141,8 @@ import { SettingsService, ProjectService, SyncService, AssetService } from "@/se
 import { FSService, DialogService } from '@/services';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
+import { CiArchive, CiBriefcaseCog, CiBroom, CiChevronDown, CiClustta, CiCopy, CiFloppyDisk, CiFolderArrowIn, CiFolderArrowUpRight, CiInfo, CiJigsaw, CiPin, CiScissors, CiSwitches, CiTrash, CiUnarchive, CiUnpin } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // services
 import { CollectionService } from "@/services";
@@ -185,7 +187,7 @@ const studioStore = useStudioStore();
 const { t } = useI18n();
 
 const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
+  const icon = iconStore.resolveIcon(iconName);
   return icon
 };
 

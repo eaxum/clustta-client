@@ -4,7 +4,7 @@
 
     <div class="general-pane-header">
       <HeaderArea :title="title" :icon="'folder-arrow-in'" :showSearch="false" />
-      <!-- <ActionButton :icon="getAppIcon('edit')" :showLabel="false" :isActive="dndStore.importEditMode"
+      <!-- <ActionButton :icon="CiEdit" :showLabel="false" :isActive="dndStore.importEditMode"
         v-tooltip="'Edit Items'" :buttonFunction="toggleEditItems" /> -->
     </div>
 
@@ -31,6 +31,8 @@
 import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { v4 as uuidv4 } from 'uuid';
+import { CiEdit } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
@@ -95,7 +97,7 @@ const closeModal = () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Returns the parent path from a given path.

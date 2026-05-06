@@ -1,6 +1,6 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
-    <HeaderArea :title="$t('modals.newWorkflow')" :icon="getAppIcon(collectionTypeIcon)" />
+    <HeaderArea :title="$t('modals.newWorkflow')" :icon="resolveIcon(collectionTypeIcon)" />
 
     <div class="general-container general-container-wide">
       <div class="input-section">
@@ -32,7 +32,7 @@
         <EditWorkflowItem v-if="isAdding && !editableWorkflowId" @confirm="confirm" @cancel="cancel" />
 
         <div v-else class="workflow-items-action">
-          <ActionButton :label="$t('modals.addItem')" :icon="getAppIcon('plus-circle')" v-tooltip="$t('common.confirm')"
+          <ActionButton :label="$t('modals.addItem')" :icon="CiPlusCircle" v-tooltip="$t('common.confirm')"
             @click="addItem()" />
         </div>
       </div>
@@ -51,6 +51,8 @@
 import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { v4 as uuidv4 } from 'uuid';
+import { CiPlusCircle } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -202,7 +204,7 @@ const editWorkflow = (workflowId) => {
 
 // Returns icon path from icon store.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles enter key press to trigger workflow creation.

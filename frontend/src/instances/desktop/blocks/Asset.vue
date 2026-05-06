@@ -38,7 +38,7 @@
           <!-- Icon container at bottom left when preview is present -->
           <div class="asset-item-icon-container asset-item-icon-overlay">
             <img v-if="asset.icon" class="small-icons no-filter overlay-icons" :src="asset.icon">
-            <img v-else-if="isUntracked" class="small-icons overlay-icons" :src="getAppIcon(getFileTypeIcon(asset))" @error="$event.target.src = getAppIcon('file')">
+            <img v-else-if="isUntracked" class="small-icons overlay-icons" :src="resolveIcon(getFileTypeIcon(asset))" @error="$event.target.src = CiFile">
             <span v-else class="app-ext">
             </span>
           </div>
@@ -75,8 +75,8 @@
             <!-- Row 1: Name/Meta (always visible) -->
             <div class="asset-item-grid-meta-row">
               <div v-if="settingsStore.showTypeIcons" class="asset-item-grid-type-icon" >
-                <img v-if="isUntracked" class="small-icons" :src="getAppIcon('generic')">
-                <img v-else class="small-icons" :src="getAppIcon(asset.asset_type_icon)" v-tooltip="assetTypeName">
+                <CiGeneric v-if="isUntracked" class="small-icons" :size="20" />
+                <component v-else :is="resolveIcon(asset.asset_type_icon)" class="small-icons" :size="20" v-tooltip="assetTypeName" />
               </div>
               
               <div class="main-asset-item-grid-meta">
@@ -102,12 +102,12 @@
               
               <!-- View Checkpoints button -->
               <div v-if="!asset.is_link && !isUntracked && userStore.canDo('view_checkpoint')" class="asset-item-grid-checkpoints-button">
-                <ActionButton :icon="getAppIcon('checkpoint-stone')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
+                <ActionButton :icon="CiCheckpointStone" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
               </div>
               
               <!-- Assign Asset button -->
               <div v-if="!isUntracked && userStore.canDo('assign_asset')" class="asset-item-grid-assign-asset-button">
-                <ActionButton :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
+                <ActionButton :icon="CiPersonPlus" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
               </div>
               
             </div>
@@ -131,40 +131,40 @@
           <div v-if="!isEditing" class="asset-item-grid-file-state-absolute">
 
             <div v-if="loadingAssetState" class="file-state">
-              <ActionButton :isLoading="true" :icon="getAppIcon('loading')"  
+              <ActionButton :isLoading="true" :icon="CiLoading"  
                 v-tooltip="$t('common.loading')" />
             </div>
 
             <div v-else-if="!isUntracked && userStore.canDo('pull_chunk')" class="file-state">
-              <ActionButton v-if="asset.is_link" :icon="getAppIcon('square-arrow-right-up')" 
+              <ActionButton v-if="asset.is_link" :icon="CiSquareArrowRightUp" 
                 v-tooltip="$t('blocks.visitLink')" @click="openLink()" />
-              <ActionButton v-else-if="platformStore.isWeb" :icon="getAppIcon(isDownloading ? 'loading' : 'arrow-down-ramp')" 
+              <ActionButton v-else-if="platformStore.isWeb" :icon="isDownloading ? CiLoading : CiArrowDownRamp" 
                 v-tooltip="isDownloading ? $t('blocks.downloading') : $t('common.download')" 
                 :isLoading="isDownloading"
                 @click="downloadAsset(index, asset, $event)" />
-              <ActionButton v-else-if="asset.file_status == 'normal'" :icon="getAppIcon('circle-check-go')" :noFilter="true" 
+              <ActionButton v-else-if="asset.file_status == 'normal'" :icon="CiCircleCheckGo" :noFilter="true" 
                 v-tooltip="$t('blocks.noChanges')"  />
-              <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" 
+              <ActionButton :icon="CiCircleCheck" :useAlert="true" :noFilter="true" 
                 v-tooltip="$t('blocks.outdatedClickUpdate')" v-else-if="asset.file_status == 'outdated'" 
                 @click="revertAsset(index, asset, $event)" />
-              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" 
+              <ActionButton :icon="CiPlusStone" :useAlert="true" :noFilter="true" 
                 v-tooltip="$t('blocks.modifiedAssignedOther')" 
                 v-else-if="asset.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
-              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" 
+              <ActionButton :icon="CiPlusStone" :useAlert="true" :noFilter="true" 
                 v-tooltip="$t('blocks.modifiedClickCheckpoint')" 
                 v-else-if="asset.file_status == 'modified' && userStore.canDo('create_checkpoint')"
                 @click="prepCreateCheckpoint(index, asset, $event)" />
-              <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="$t('blocks.fileMissingClickBuild')"
+              <ActionButton :icon="CiJigsaw" v-tooltip="$t('blocks.fileMissingClickBuild')"
                 v-else-if="asset.file_status == 'rebuildable'" @click="revertAsset(index, asset, $event)" />
-              <ActionButton :icon="getAppIcon('alert')" :noFilter="true" 
+              <ActionButton :icon="CiAlert" :noFilter="true" 
                 v-tooltip="$t('blocks.assetMissingResync')" v-else-if="asset.file_status == 'missing'" />
             </div>
 
             <div v-else-if="isUntracked">
               <ActionButton v-if="userStore.canDo('create_asset') || canImport" 
-                @click="prepCreateCheckpoint(index, asset, $event)" :icon="getAppIcon('plus-stone')" :useDanger="true" 
+                @click="prepCreateCheckpoint(index, asset, $event)" :icon="CiPlusStone" :useDanger="true" 
                 :noFilter="true" v-tooltip="$t('blocks.fileUntrackedClickAdd')" />
-              <ActionButton v-else :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" 
+              <ActionButton v-else :icon="CiDotBig" :useDanger="true" :noFilter="true" 
                 v-tooltip="$t('blocks.fileUntracked')" />
             </div>
           </div>
@@ -194,10 +194,10 @@
 
     <div v-if="settingsStore.showTypeIcons" class="asset-spacer" v-tooltip="assetTypeName" @click="console.log(asset)">
       <span v-if="isUntracked" class="single-action-button single-action-button-disabled">
-        <img class="small-icons collection-collapsed" :src="getAppIcon('generic')">
+        <CiGeneric class="small-icons collection-collapsed" :size="20" />
       </span>
       <span v-else class="single-action-button single-action-button-disabled">
-        <img class="small-icons collection-collapsed" :src="getAppIcon(asset.asset_type_icon)">
+        <component :is="resolveIcon(asset.asset_type_icon)" class="small-icons collection-collapsed" :size="20" />
       </span>
     </div>
 
@@ -207,7 +207,7 @@
 
         <div class="asset-item-icon-container" @click="console.log(asset)" >
           <img v-if="asset.icon" class="large-icons no-filter" :src="asset.icon">
-          <img v-else-if="isUntracked" class="large-icons " :src="getAppIcon(getFileTypeIcon(asset))" @error="$event.target.src = getAppIcon('file')">
+          <img v-else-if="isUntracked" class="large-icons " :src="resolveIcon(getFileTypeIcon(asset))" @error="$event.target.src = CiFile">
           <span v-else class="app-ext">
           </span>
         </div>
@@ -241,10 +241,10 @@
           <!-- asset assignation -->
           <div v-if="!isUntracked && (!asset.is_resource || isCurrentUser)" class="asset-item-assignee-container">
             <ActionButton class="asset-item-assignee-button" v-if="!asset.is_link && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
-              :icon="getAppIcon('checkpoint-stone')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
+              :icon="CiCheckpointStone" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
 
             <ActionButton class="asset-item-assignee-button" v-if="userStore.canDo('assign_asset') && !statusMenuDisplayed && !asset.assignee_id"
-              :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
+              :icon="CiPersonPlus" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
 
             <div v-else-if="asset.assignee_id" @click="prepAssignAsset(index, asset, $event)" v-stop-propagation
               class="asset-item-assignee">
@@ -260,10 +260,10 @@
 
           <div v-else-if="!isEditing" class="asset-item-assignee-container">
             <ActionButton class="asset-item-assignee-button" v-if="!asset.is_link && !isUntracked && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
-              :icon="getAppIcon('checkpoint-stone')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
+              :icon="CiCheckpointStone" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
 
             <ActionButton class="asset-item-assignee-button" v-if="userStore.canDo('assign_asset') && !statusMenuDisplayed && !asset.assignee_id && !isUntracked"
-              :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
+              :icon="CiPersonPlus" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
           </div>
 
           <!-- asset status -->
@@ -289,41 +289,41 @@
           <!-- asset actions -->
           <div v-if="!isEditing && !isUntracked && !statusMenuDisplayed" class="asset-item-actions">
             <div v-if="loadingAssetState" class="file-state">
-                <ActionButton :isLoading="true" :icon="getAppIcon('loading')" 
+                <ActionButton :isLoading="true" :icon="CiLoading" 
                   v-tooltip="$t('common.loading')" />
             </div>
 
             <div v-else-if="userStore.canDo('pull_chunk')" class="file-state">
               
-              <ActionButton v-if="platformStore.isWeb" :icon="getAppIcon(isDownloading ? 'loading' : 'arrow-down-ramp')" 
+              <ActionButton v-if="platformStore.isWeb" :icon="isDownloading ? CiLoading : CiArrowDownRamp" 
                 v-tooltip="isDownloading ? $t('blocks.downloading') : $t('common.download')" 
                 :isLoading="isDownloading"
                 @click="downloadAsset(index, asset, $event)" />
-              <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" @click="handleClick(index, asset, $event)"
+              <ActionButton :icon="CiCircleCheckGo" :noFilter="true" @click="handleClick(index, asset, $event)"
                 v-tooltip="$t('blocks.noChanges')" v-else-if="asset.file_status == 'normal'" />
-              <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickUpdate')"
+              <ActionButton :icon="CiCircleCheck" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickUpdate')"
                 v-else-if="asset.file_status == 'outdated'" @click="revertAsset(index, asset, $event)" />
-              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedAssignedOther')"
+              <ActionButton :icon="CiPlusStone" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedAssignedOther')"
                 v-else-if="asset.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
-              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedClickCheckpoint')"
+              <ActionButton :icon="CiPlusStone" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedClickCheckpoint')"
                 v-else-if="asset.file_status == 'modified' && userStore.canDo('create_checkpoint')"
                 @click="prepCreateCheckpoint(index, asset, $event)" />
-              <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="$t('blocks.fileMissingClickBuild')"
+              <ActionButton :icon="CiJigsaw" v-tooltip="$t('blocks.fileMissingClickBuild')"
                 v-else-if="asset.file_status == 'rebuildable'" @click="revertAsset(index, asset, $event)" />
-              <ActionButton :icon="getAppIcon('alert')" :noFilter="true" v-tooltip="$t('blocks.assetMissingResync')"
+              <ActionButton :icon="CiAlert" :noFilter="true" v-tooltip="$t('blocks.assetMissingResync')"
                 v-else-if="asset.file_status == 'missing'" />
             </div>
           </div>
         </template>
 
         <div v-if="asset.is_link" class="asset-item-actions link-item-actions" >
-          <ActionButton :icon="getAppIcon('square-arrow-right-up')" v-tooltip="$t('blocks.visitLink')" v-stop-propagation @click="openLink()" />
+          <ActionButton :icon="CiSquareArrowRightUp" v-tooltip="$t('blocks.visitLink')" v-stop-propagation @click="openLink()" />
         </div>
 
         <div v-else-if="isUntracked" class="asset-item-actions">
           <ActionButton v-if="userStore.canDo('create_asset') || canImport" @click="prepCreateCheckpoint(index, asset, $event)"
-            :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.fileUntrackedClickAdd')" />
-          <ActionButton v-else :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.fileUntracked')" />
+            :icon="CiPlusStone" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.fileUntrackedClickAdd')" />
+          <ActionButton v-else :icon="CiDotBig" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.fileUntracked')" />
         </div>
 
 
@@ -343,6 +343,8 @@ import { getParentPath } from '@/lib/pathlib';
 import { isValidWeblink } from '@/lib/pointer';
 import utils from '@/services/utils';
 import { generateAvatar } from '@/lib/avatar';
+import { CiAlert, CiArrowDownRamp, CiCheckpointStone, CiCircleCheck, CiCircleCheckGo, CiDotBig, CiFile, CiGeneric, CiJigsaw, CiLoading, CiPersonPlus, CiPlusStone, CiSquareArrowRightUp } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -457,7 +459,7 @@ const displayThumbnail = computed(() => {
     return props.asset.icon;
   }
   
-  return getAppIcon(getFileTypeIcon(props.asset));
+  return resolveIcon(getFileTypeIcon(props.asset));
 });
 
 // Returns the grid styles for the asset item.
@@ -714,7 +716,7 @@ const freeUpSpace = async () => {
 
 // Returns the icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
+  const icon = iconStore.resolveIcon(iconName);
   return icon;
 };
 

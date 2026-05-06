@@ -15,7 +15,7 @@
       <div v-else-if="!error" class="step-content">
         <div class="preview-header">
           <span class="preview-summary">{{ assetsToCreate }} Assets in {{ collectionsToCreate }} Collections</span>
-          <ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Refresh'" :buttonFunction="loadSyncPreview" />
+          <ActionButton :icon="CiRefresh" v-tooltip="'Refresh'" :buttonFunction="loadSyncPreview" />
         </div>
 
         <div class="preview-divider"></div>
@@ -23,7 +23,7 @@
         <!-- Tree View -->
         <div class="sync-preview-scroll">
           <div v-if="syncPreviewTree.length === 0" class="empty-preview">
-            <img :src="getAppIcon('check-circle')" alt="" class="empty-icon" />
+            <CiCheckCircle :size="20" class="empty-icon" />
             <span class="empty-text">Everything is up to date</span>
           </div>
           <div v-else class="preview-tree-content">
@@ -54,6 +54,8 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
+import { CiCheckCircle, CiRefresh } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -139,7 +141,7 @@ const executeSync = async () => {
 
 // Returns the app icon path.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Loads sync preview, auto-creating type mappings.

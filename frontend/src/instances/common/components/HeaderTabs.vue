@@ -5,7 +5,7 @@
       <div v-for="(dataType, index) in dataTypes" :key="'m-' + (dataType.id || dataType.name)" class="tab-button tab-measure-item">
         <div class="tab-content">
           <div class="selected-tab-button-text">{{ dataType.nameKey ? $t(dataType.nameKey) : utils.capitalizeStr(dataType.name) }}</div>
-          <img class="small-icons" :src="getAppIcon(dataType.icon)">
+          <component :is="resolveIcon(dataType.icon)" :size="16" class="tab-icon" />
         </div>
       </div>
     </div>
@@ -25,14 +25,14 @@
       </div>
       <div class="tab-content">
         <div v-if="!iconsOnly && (filterIndex === dataType._originalIndex || fullWidth)" class="selected-tab-button-text">{{ dataType.nameKey ? $t(dataType.nameKey) : utils.capitalizeStr(dataType.name) }}</div>
-        <img v-if="!hideIcons" class="small-icons" :src="getAppIcon(dataType.icon)">
+        <component v-if="!hideIcons" :is="resolveIcon(dataType.icon)" :size="16" class="tab-icon" />
       </div>
     </div>
 
     <div v-if="overflowTabs.length" class="tab-button more-button" :class="{ 'selected-tab-button': isOverflowTabSelected }" @click.stop="toggleOverflow">
       <div class="tab-content">
         <div class="selected-tab-button-text">{{ $t('common.more') || 'More' }}</div>
-        <img class="small-icons more-chevron" :class="{ 'more-chevron-open': showOverflow }" :src="getAppIcon('chevron-down')">
+        <CiChevronDown :size="20" class="more-chevron" />
       </div>
     </div>
 
@@ -42,7 +42,7 @@
         <div v-for="dataType in overflowTabs" :key="'o-' + (dataType.id || dataType.name)"
           @click="selectOverflowTab(dataType._originalIndex, dataType.id || dataType.name)" class="overflow-menu-item"
           :class="{ 'overflow-menu-item-selected': useSelected ? selectedTab === (dataType.id || dataType.name) : filterIndex === dataType._originalIndex }">
-          <img class="small-icons" :src="getAppIcon(dataType.icon)">
+          <component :is="resolveIcon(dataType.icon)" :size="16" class="tab-icon" />
           <span>{{ dataType.nameKey ? $t(dataType.nameKey) : utils.capitalizeStr(dataType.name) }}</span>
           <div v-if="useFunctions && alertItems(dataType.id || dataType.name).value" class="overflow-alert-dot"
             :class="{ 'critical-items': criticalItems(dataType.id || dataType.name).value }">
@@ -58,6 +58,8 @@
 // imports
 import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
 import utils from '@/services/utils';
+import { CiChevronDown } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // stores
 import { useIconStore } from '@/stores/icons';
@@ -199,7 +201,7 @@ const filterList = (index, dataType) => {
 
 const getAppIcon = (iconName) => {
   const formattedIconName = getIconName(iconName);
-  return iconStore.getAppIcon(formattedIconName);
+  return iconStore.resolveIcon(formattedIconName);
 };
 
 const getIconName = (path) => {
@@ -249,6 +251,14 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.tab-icon {
+  stroke: var(--light-steel);
+}
+
+.selected-tab-button .tab-icon {
+  stroke: var(--white);
+}
+
 .header-tab-root {
   display: flex;
   flex-direction: row;

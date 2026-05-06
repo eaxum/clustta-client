@@ -1,6 +1,6 @@
 <template>
   <div ref="modalContainer" class="modal-container">
-      <HeaderArea :title="title" :icon="getAppIcon('two-drives')" :showSearch="false" />
+      <HeaderArea :title="title" :icon="CiTwoDrives" :showSearch="false" />
 
     <div v-if="!isStudioCreated" class="general-container">
       <div class="studio-info-text">
@@ -28,12 +28,12 @@
           <div class="studio-info-label">{{ $t('modals.studioSecretKeyLabel') }}</div>
           <div class="secret-key-actions">
             <ActionButton 
-              :icon="getAppIcon(showSecretKey ? 'eye-cancel' : 'eye')" 
+              :icon="resolveIcon(showSecretKey ? 'eye-cancel' : 'eye')" 
               :buttonFunction="toggleSecretKey"
               v-tooltip="showSecretKey ? $t('common.hide') : $t('common.show')"
             />
             <ActionButton 
-              :icon="getAppIcon('copy')" 
+              :icon="CiCopy" 
               :buttonFunction="copySecretKey"
               :label="secretKeyCopied ? $t('common.copied') : $t('common.copy')"
               :showLabel="true"
@@ -68,12 +68,12 @@
           <div class="studio-info-label">{{ $t('modals.environmentFileLabel') }}</div>
           <div class="env-file-actions">
             <ActionButton 
-              :icon="getAppIcon(showEnvFile ? 'eye-cancel' : 'eye')" 
+              :icon="resolveIcon(showEnvFile ? 'eye-cancel' : 'eye')" 
               :buttonFunction="toggleEnvFile"
               v-tooltip="showEnvFile ? $t('common.hide') : $t('common.show')"
             />
             <ActionButton 
-              :icon="getAppIcon('copy')" 
+              :icon="CiCopy" 
               :buttonFunction="copyEnvFile"
               :label="envCopied ? $t('common.copied') : $t('common.copy')"
               :showLabel="true"
@@ -110,6 +110,8 @@
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiCopy, CiTwoDrives } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -233,7 +235,7 @@ const createStudio = async () => {
 
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Goes back to the studio type selection modal.

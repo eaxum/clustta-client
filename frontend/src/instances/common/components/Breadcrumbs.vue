@@ -1,30 +1,30 @@
 <template>
 	<div ref="breadcrumbRoot" class="breadcrumb-root">
-		<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon(commonStore.navigatorMode ? 'home' : 'forward-slash')" v-tooltip="$t('components.breadcrumbs.home')" :buttonFunction="goHome" />
-		<ActionButton :icon="getAppIcon('refresh')" v-tooltip="$t('components.breadcrumbs.refresh')" :buttonFunction="refresh" />
+		<ActionButton v-if="commonStore.navigatorMode" :icon="CiHome" v-tooltip="$t('components.breadcrumbs.home')" :buttonFunction="goHome" />
+		<ActionButton :icon="CiRefresh" v-tooltip="$t('components.breadcrumbs.refresh')" :buttonFunction="refresh" />
 
-		<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon('arrow-back-ramp')"
+		<ActionButton v-if="commonStore.navigatorMode" :icon="CiArrowBackRamp"
 			:allowDeactivate="true" v-tooltip="$t('components.breadcrumbs.upALevel')" :buttonFunction="goUpALevel" />
 
-		<ActionButton v-if="!commonStore.navigatorMode" :icon="getAppIcon('forward-slash')" v-tooltip="commonStore.navigatorMode ? 'Home' : ''" 
+		<ActionButton v-if="!commonStore.navigatorMode" :icon="CiForwardSlash" v-tooltip="commonStore.navigatorMode ? 'Home' : ''" 
 			:label="projectStore.activeProject?.name" :buttonFunction="goHome" />
 
 		<div ref="breadcrumbWrapper" class="breadcrumb-wrapper">
 			<div ref="breadcrumbContainer" class="breadcrumb-container">
 				<nav v-if="path" ref="breadcrumbContent" class="nav">
-					<ActionButton v-if="showEllipsis" :icon="getAppIcon('dots')" :allowDeactivate="true" @click="toggleOverflowList" />
+					<ActionButton v-if="showEllipsis" :icon="CiDots" :allowDeactivate="true" @click="toggleOverflowList" />
 					<div v-for="(segment, index) in visibleSegments" :key="`${segment}-${index}`" class="breadcrumb-segment">
-						<ActionButton v-if="path !== 'Home'" :icon="getAppIcon('forward-slash')" :allowDeactivate="true" 
+						<ActionButton v-if="path !== 'Home'" :icon="CiForwardSlash" :allowDeactivate="true" 
 							:label="segment.split('/').pop()" @click="goToCollection(segment)" />
 					</div>
 				</nav>
 			</div>
 		</div>
 
-		<ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" 
+		<ActionButton v-if="!platformStore.isWeb" :icon="CiCopy" :showLabel="false" :fullWidth="false" 
 			v-tooltip="$t('components.breadcrumbs.copyPath')" @click="copyDirectoryPath" />
 
-		<ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-up-right')" :showLabel="false" :fullWidth="false" 
+		<ActionButton v-if="!platformStore.isWeb" :icon="CiFolderArrowUpRight" :showLabel="false" :fullWidth="false" 
 			v-tooltip="$t('components.breadcrumbs.showInExplorer')" @click="revealInExplorer" />
 	</div>
 
@@ -48,6 +48,7 @@ import { useI18n } from 'vue-i18n';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
+import { CiArrowBackRamp, CiCopy, CiDots, CiFolderArrowUpRight, CiForwardSlash, CiHome, CiRefresh } from '@clustta/icons-vue';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -59,7 +60,6 @@ import { CollectionService, FSService } from '@/services';
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
-import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { usePlatformStore } from '@/stores/platform';
 import { useProjectStore } from '@/stores/projects';
@@ -68,7 +68,6 @@ import { useStageStore } from '@/stores/stages';
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
-const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const platformStore = usePlatformStore();
 const projectStore = useProjectStore();
@@ -212,8 +211,7 @@ const generateUntrackedCollectionFromPath = (targetPath, projectPath) => {
 	};
 };
 
-// Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
 
 // Returns the parent collection for an untracked collection.
 const getUntrackedCollectionParent = () => {

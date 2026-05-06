@@ -13,7 +13,7 @@
     <span class="chip-name" :class="{ 'chip-name-static': isStatic }">{{ label }}</span>
     <ActionButton
       v-if="!readonly && !isStatic"
-      :icon="closeIcon"
+      :icon="CiClose"
       :buttonFunction="onRemove"
       :showIcon="true"
       :showLabel="false"
@@ -23,14 +23,12 @@
 
 <script setup>
 import { computed } from 'vue';
-import { useIconStore } from '@/stores/icons';
+import { CiClose } from '@clustta/icons-vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-
-const iconStore = useIconStore();
 
 const props = defineProps({
   icon: {
-    type: String,
+    type: [String, Object, Function],
     default: ''
   },
   label: {
@@ -60,7 +58,6 @@ const props = defineProps({
 });
 
 const chipStyle = computed(() => props.color ? { 'background-color': props.color } : {});
-const closeIcon = computed(() => iconStore.getAppIcon('close'));
 </script>
 
 <style scoped>

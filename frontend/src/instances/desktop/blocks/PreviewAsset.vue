@@ -50,7 +50,7 @@ const fileExtension = computed(() => {
 // Returns the type icon path.
 const typeIcon = computed(() => {
   const iconName = props.asset.asset_type_icon || 'generic';
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 });
 
 // Returns the capitalized external type name.

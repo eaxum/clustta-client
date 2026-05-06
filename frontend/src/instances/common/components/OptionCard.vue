@@ -34,6 +34,7 @@
 <script setup>
 // imports
 import { ref, watch } from 'vue';
+import { CiChevronDown, CiChevronRight, CiChevronUp, CiLoading } from '@clustta/icons-vue';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -60,10 +61,10 @@ const emit = defineEmits(['select']);
 const isExpanded = ref(false);
 
 // computed icons
-const chevronIcon = iconStore.getAppIcon('chevron-right');
-const collapseIcon = iconStore.getAppIcon('chevron-up');
-const expandIcon = iconStore.getAppIcon('chevron-down');
-const loadingIcon = iconStore.getAppIcon('loading');
+const chevronIcon = iconStore.CiChevronRight;
+const collapseIcon = iconStore.CiChevronUp;
+const expandIcon = iconStore.CiChevronDown;
+const loadingIcon = iconStore.CiLoading;
 
 // methods
 

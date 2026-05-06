@@ -2,7 +2,8 @@
   <div class="changelog-item-container" @mouseenter="isHovered = true" @mouseleave="isHovered = false">
     <div class="changelog-item">
       <div class="changelog-item-meta">
-        <img class="changelog-item-icon small-icons" :class="{ 'no-filter': resolvedIcon }" :src="itemIcon" />
+        <img v-if="resolvedIcon" class="changelog-item-icon small-icons no-filter" :src="resolvedIcon" />
+        <component v-else :is="itemIcon" class="changelog-item-icon small-icons" :size="20" />
         <div class="changelog-item-label">
           <div class="changelog-item-label-text">{{ displayText }}</div>
         </div>
@@ -10,13 +11,13 @@
       </div>
 
       <div class="changelog-item-actions">
-        <ActionButton v-if="hasChildren && item.change_type === 'deleted'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeItem.restore')" :buttonFunction="() => $emit('restore', item.id)" :isDisabled="isLoading" />
-        <ActionButton v-if="item.change_type !== 'deleted' && itemType !== 'other'" :icon="getAppIcon('file-search')" v-tooltip="$t('components.changeItem.goToItem')" :buttonFunction="() => $emit('find', item.id)" :isDisabled="isLoading" />
-        <ActionButton v-if="hasChildren && item.change_type !== 'deleted' && item.change_type !== 'unchanged'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
+        <ActionButton v-if="hasChildren && item.change_type === 'deleted'" :icon="CiUndo" v-tooltip="$t('components.changeItem.restore')" :buttonFunction="() => $emit('restore', item.id)" :isDisabled="isLoading" />
+        <ActionButton v-if="item.change_type !== 'deleted' && itemType !== 'other'" :icon="CiFileSearch" v-tooltip="$t('components.changeItem.goToItem')" :buttonFunction="() => $emit('find', item.id)" :isDisabled="isLoading" />
+        <ActionButton v-if="hasChildren && item.change_type !== 'deleted' && item.change_type !== 'unchanged'" :icon="CiUndo" v-tooltip="$t('components.changeItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
       </div>
-      <ActionButton v-if="!hasChildren && item.change_type === 'deleted'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeItem.restore')" :buttonFunction="() => $emit('restore', item.id)" :isDisabled="isLoading" />
-      <ActionButton v-if="!hasChildren && item.change_type !== 'deleted' && item.change_type !== 'unchanged'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
-      <ActionButton v-if="hasChildren" :icon="getAppIcon('chevron-right')" :class="{ 'chevron-expanded': isExpanded }" :buttonFunction="toggleChildren" />
+      <ActionButton v-if="!hasChildren && item.change_type === 'deleted'" :icon="CiUndo" v-tooltip="$t('components.changeItem.restore')" :buttonFunction="() => $emit('restore', item.id)" :isDisabled="isLoading" />
+      <ActionButton v-if="!hasChildren && item.change_type !== 'deleted' && item.change_type !== 'unchanged'" :icon="CiUndo" v-tooltip="$t('components.changeItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
+      <ActionButton v-if="hasChildren" :icon="CiChevronRight" :class="{ 'chevron-expanded': isExpanded }" :buttonFunction="toggleChildren" />
 
     </div>
 
@@ -25,10 +26,10 @@
         <template v-for="(child, index) in item.children" :key="child.id">
           <div v-if="index > 0" class="changelog-child-divider"></div>
           <div class="changelog-child">
-            <img class="changelog-child-icon small-icons" :src="childIcon(child.source)" />
+            <component :is="childIcon(child.source)" class="changelog-child-icon small-icons" :size="20" />
             <div class="changelog-child-label">{{ childDescription(child) }}</div>
             <span class="changelog-change-badge badge-child" :class="'badge-' + child.change_type">{{ child.change_type }}</span>
-            <ActionButton :icon="getAppIcon('undo')" v-tooltip="child.change_type === 'deleted' ? $t('components.changeItem.restore') : $t('components.changeItem.discard')" :buttonFunction="() => $emit('undoChild', child)" :isDisabled="isLoading" />
+            <ActionButton :icon="CiUndo" v-tooltip="child.change_type === 'deleted' ? $t('components.changeItem.restore') : $t('components.changeItem.discard')" :buttonFunction="() => $emit('undoChild', child)" :isDisabled="isLoading" />
           </div>
         </template>
       </div>
@@ -41,6 +42,8 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
+import { CiChevronRight, CiFileSearch, CiUndo } from '@clustta/icons-vue';
+import { resolveIcon as resolveIconComponent } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -76,10 +79,9 @@ const hasChildren = computed(() => {
 });
 
 const itemIcon = computed(() => {
-  if (resolvedIcon.value) return resolvedIcon.value;
-  if (props.item.icon) return getAppIcon(props.item.icon);
-  if (props.itemType === 'collection') return getAppIcon('folder');
-  return getAppIcon('generic');
+  if (props.item.icon) return resolveIconComponent(props.item.icon);
+  if (props.itemType === 'collection') return resolveIconComponent('folder');
+  return resolveIconComponent('generic');
 });
 
 // methods
@@ -91,15 +93,12 @@ const childDescription = (child) => {
 
 // Returns the icon for a child item based on its source type.
 const childIcon = (source) => {
-  if (source === 'asset_checkpoint') return getAppIcon('checkpoint-stone');
-  if (source === 'asset_dependency' || source === 'collection_dependency') return getAppIcon('dependency');
-  if (source === 'asset_tag') return getAppIcon('tag');
-  if (source === 'collection_assignee') return getAppIcon('person');
-  return getAppIcon('generic');
+  if (source === 'asset_checkpoint') return resolveIconComponent('checkpoint-stone');
+  if (source === 'asset_dependency' || source === 'collection_dependency') return resolveIconComponent('dependency');
+  if (source === 'asset_tag') return resolveIconComponent('tag');
+  if (source === 'collection_assignee') return resolveIconComponent('person');
+  return resolveIconComponent('generic');
 };
-
-// Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 // Toggles the expanded state of child items.
 const toggleChildren = () => {

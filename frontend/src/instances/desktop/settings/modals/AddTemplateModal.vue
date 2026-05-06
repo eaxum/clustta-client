@@ -4,7 +4,7 @@
 
     <div class="general-container">
       <div v-if="selectedFiles.length === 0" class="category-item">
-        <ActionButton :icon="getAppIcon('plus-circle')" :label="$t('modals.selectFiles')" :showLabel="true" :buttonFunction="selectFiles" />
+        <ActionButton :icon="CiPlusCircle" :label="$t('modals.selectFiles')" :showLabel="true" :buttonFunction="selectFiles" />
       </div>
 
       <div v-else class="category-area">
@@ -15,7 +15,7 @@
               <input v-model="file.name" class="input-short" type="text" :placeholder="$t('placeholders.templateName')" />
               <span v-if="file.extension" class="extension-badge">{{ file.extension }}</span>
               <div class="category-item-actions">
-                <ActionButton :icon="getAppIcon('trash')" :useDanger="true" :noFilter="true" :buttonFunction="() => removeFile(index)" />
+                <ActionButton :icon="CiTrash" :useDanger="true" :noFilter="true" :buttonFunction="() => removeFile(index)" />
               </div>
             </div>
             <InputAlert 
@@ -24,7 +24,7 @@
             />
           </div>
         </div>
-        <ActionButton :icon="getAppIcon('plus-circle')" :label="$t('modals.addMoreFiles')" :showLabel="true" :buttonFunction="selectFiles" />
+        <ActionButton :icon="CiPlusCircle" :label="$t('modals.addMoreFiles')" :showLabel="true" :buttonFunction="selectFiles" />
       </div>
 
 
@@ -43,6 +43,8 @@
 // imports
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiPlusCircle, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -158,7 +160,7 @@ const createTemplate = async () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Processes icons for template files.

@@ -4,7 +4,7 @@
       <div class="header-content">
         <h2 class="clipboard-title">{{ clipboardTitle }}</h2>
       </div>
-      <ActionButton :icon="getAppIcon('broom')" v-tooltip="$t('components.clipboard.clearClipboard')" :buttonFunction="clearClipboard" />
+      <ActionButton :icon="CiBroom" v-tooltip="$t('components.clipboard.clearClipboard')" :buttonFunction="clearClipboard" />
     </div>
 
     <div class="clipboard-list-container">
@@ -17,16 +17,15 @@
 // imports
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiBroom } from '@clustta/icons-vue';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import ItemsList from '@/instances/desktop/components/ItemsList.vue';
 
 // stores
-import { useIconStore } from '@/stores/icons';
 import { useStageStore } from '@/stores/stages';
 
-const iconStore = useIconStore();
 const stage = useStageStore();
 
 const { t } = useI18n();
@@ -62,9 +61,6 @@ const clearClipboard = () => {
   stage.cutItems = [];
   stage.copiedItems = [];
 };
-
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 </script>
 
 <style scoped>

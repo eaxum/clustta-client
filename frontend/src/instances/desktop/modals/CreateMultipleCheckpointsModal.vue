@@ -1,6 +1,6 @@
 <template>
   <div class="modal-container" v-stop-propagation>
-    <HeaderArea :title="$t('modals.createCheckpoints')" :icon="getAppIcon('plus-stone')" />
+    <HeaderArea :title="$t('modals.createCheckpoints')" :icon="CiPlusStone" />
     
     <div class="general-container">
       <textarea v-model="message" class="desktop-input-long" type="text" :placeholder="$t('placeholders.writeAComment')" v-focus
@@ -10,7 +10,7 @@
 
       
     <div v-if="assetStore.loadingAssetStates" class="horizontal-flex input-alert loading-items-count">
-      <ActionButton :isLoading="true" :icon="getAppIcon('loading')"  
+      <ActionButton :isLoading="true" :icon="CiLoading"  
 					v-tooltip="$t('modals.loadingCollectionStates')" />
 
       <div class="refresh-label">
@@ -25,14 +25,14 @@
       {{ $t('modals.itemsModified', { count: currentModifiedDisplayPaths.length + currentUntrackedPaths.length }) }}
 
       <ActionButton :isInactive="true" :label="showCheckpointItems ? $t('common.hide') : $t('common.show')"
-        :icon="getAppIcon(showCheckpointItems ? 'eye-cancel' : 'eye')" />
+        :icon="resolveIcon(showCheckpointItems ? 'eye-cancel' : 'eye')" />
     </div>
 
 
     <div v-if="showCheckpointItems" class="modified-items">
 
       <div v-for="assetState in currentModifiedDisplayPaths" class="modified-item" :key="assetState.asset_path">
-        <ActionButton :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="$t('modals.modifiedAsset')" />
+        <ActionButton :icon="CiDotBig" :useAlert="true" :noFilter="true" v-tooltip="$t('modals.modifiedAsset')" />
         <div class="modified-item-name">
           {{ assetState.display_path }}
         </div>
@@ -42,7 +42,7 @@
       </div>
 
       <div v-for="assetPath in currentUntrackedPaths" class="modified-item">
-        <ActionButton :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="$t('modals.untrackedAsset')" />
+        <ActionButton :icon="CiDotBig" :useDanger="true" :noFilter="true" v-tooltip="$t('modals.untrackedAsset')" />
         <div class="modified-item-name">
           {{ assetPath }}
         </div>
@@ -71,6 +71,8 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { v4 as uuidv4 } from 'uuid';
 import emitter from '@/lib/mitt';
+import { CiDotBig, CiLoading, CiPlusStone } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -218,7 +220,7 @@ const createCheckPoints = async () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles enter key press to submit form.

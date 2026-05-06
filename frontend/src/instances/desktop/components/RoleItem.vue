@@ -1,7 +1,7 @@
 <template>
   <div class="role-item-main">
     <div class="role-item-spacer">
-      <img class="role-item-icon small-icons" :src="getAppIcon('scale')" />
+      <CiScale :size="20" class="role-item-icon" />
     </div>
 
     <div class="role-item-root">
@@ -14,8 +14,8 @@
         </div>
 
         <div class="role-item-actions">
-          <ActionButton v-if="canEdit" :icon="getAppIcon('edit')" @click="onEdit(role.id)" v-tooltip="$t('common.edit')" />
-          <ActionButton v-if="canDelete" :icon="getAppIcon('trash')" @click="onDelete(role.id)" v-tooltip="$t('common.delete')" />
+          <ActionButton v-if="canEdit" :icon="CiEdit" @click="onEdit(role.id)" v-tooltip="$t('common.edit')" />
+          <ActionButton v-if="canDelete" :icon="CiTrash" @click="onDelete(role.id)" v-tooltip="$t('common.delete')" />
         </div>
       </div>
     </div>
@@ -26,6 +26,8 @@
 // imports
 import { computed } from 'vue';
 import { getPermissionSummary } from '@/lib/permissions';
+import { CiEdit, CiScale, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -53,7 +55,7 @@ const permissionSummary = computed(() => {
 // methods
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 </script>
 

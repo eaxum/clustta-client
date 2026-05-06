@@ -49,7 +49,7 @@
               </div>
               <ActionButton
                 v-else
-                :icon="getAppIcon('loading')"
+                :icon="CiLoading"
                 :isLoading="true"
                 :showLabel="false"
                 :noFilter="true"
@@ -82,14 +82,13 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { CiLoading } from '@clustta/icons-vue';
 import { AuthService } from "@/services/adapters/authservice.js";
 import { useNotificationStore } from '@/stores/notifications';
-import { useIconStore } from '@/stores/icons';
 
 const route = useRoute();
 const router = useRouter();
 const notificationStore = useNotificationStore();
-const iconStore = useIconStore();
 
 // refs
 const error = ref('');
@@ -158,11 +157,6 @@ const isFormValid = computed(() => {
 });
 
 // methods
-
-// Returns the app icon for the given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
-};
 
 // Navigates back to the login page.
 const backToLogin = () => {

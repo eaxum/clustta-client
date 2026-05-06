@@ -12,15 +12,15 @@
             <div v-if="index > 1" class="workspace-tab-actions" v-stop-propagation>
               <span v-if="isActiveTab(workspace) && isDirty && !isDefaultWorkspace && canSaveOver"
                 v-tooltip="$t('components.workspaceTabs.updateWorkspace')" @click.stop="saveOverWorkspace" class="workspace-tab-button workspace-hover-button">
-                <img class="small-icons no-cursor" :src="getAppIcon('circle-check')">
+                <CiCircleCheck :size="20" class="no-cursor" />
               </span>
               <span v-if="isActiveTab(workspace) && isDirty && !isDefaultWorkspace"
                 v-tooltip="$t('components.workspaceTabs.resetWorkspace')" @click.stop="resetWorkspace" class="workspace-tab-button workspace-hover-button">
-                <img class="small-icons no-cursor" :src="getAppIcon('revert')">
+                <CiRevert :size="20" class="no-cursor" />
               </span>
               <span v-tooltip="$t('components.workspaceTabs.deleteWorkspace')"
                 @click.stop="deleteWorkspace(workspace.name)" class="workspace-tab-button workspace-hover-button">
-                <img class="small-icons no-cursor" :src="getAppIcon('trash')">
+                <CiTrash :size="20" class="no-cursor" />
               </span>
             </div>
             <span v-if="isActiveTab(workspace) && isDirty && !isDefaultWorkspace" class="dirty-indicator" />
@@ -30,7 +30,7 @@
       </TransitionGroup>
       
       <span class="workspace-tab-button">
-          <ActionButton v-if="addWorkspaceVisible" :icon="getAppIcon('plus-circle')" 
+          <ActionButton v-if="addWorkspaceVisible" :icon="CiPlusCircle" 
           v-tooltip="withinLimits ? $t('components.workspaceTabs.saveWorkspace') : $t('components.workspaceTabs.unableToAddWorkspaces')"
               :buttonFunction="addWorkspace" />
       </span>
@@ -45,6 +45,8 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { SettingsService } from "@/services";
 import emitter from '@/lib/mitt';
+import { CiCircleCheck, CiPlusCircle, CiRevert, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
@@ -114,7 +116,7 @@ const withinLimits = computed(() => {
 })
 
 const getAppIcon = (iconName) => {
-    const icon = iconStore.getAppIcon(iconName);
+    const icon = iconStore.resolveIcon(iconName);
     return icon
 };
 

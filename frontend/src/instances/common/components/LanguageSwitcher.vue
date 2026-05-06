@@ -1,9 +1,9 @@
 <template>
   <div class="language-switcher" ref="switcherRoot">
     <div class="language-trigger" @click="toggleDropdown">
-      <img :src="getAppIcon('translation')" class="language-icon small-icons" />
+      <CiTranslation :size="20" class="language-icon" />
       <span class="language-label">{{ currentLanguageName }}</span>
-      <img :src="getAppIcon('chevron-down')" class="chevron-icon small-icons" :class="{ 'chevron-open': isOpen }" />
+      <CiChevronDown :size="20" class="chevron-icon" />
     </div>
 
     <div v-if="isOpen" class="language-dropdown">
@@ -19,6 +19,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { SUPPORTED_LANGUAGES, setLocale } from '@/i18n';
+import { CiChevronDown, CiTranslation } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // store imports
 import { useIconStore } from '@/stores/icons';
@@ -52,7 +54,7 @@ const handleClickOutside = (event) => {
 
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Selects a language and persists it to localStorage.

@@ -30,7 +30,7 @@
         @itemAdded="addTool"
       />
       <div v-else class="limit-message">
-        <img :src="getAppIcon('info')" alt="Info" class="limit-icon" />
+        <CiInfo :size="20" class="limit-icon" />
         <span>{{ $t('components.toolsManager.maxReached') }}</span>
       </div>
     </div>
@@ -38,6 +38,8 @@
 </template>
 
 <script setup>
+import { CiInfo } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useIconStore } from '@/stores/icons';
@@ -134,7 +136,7 @@ const handleImageError = (event) => {
 };
 
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 </script>
 

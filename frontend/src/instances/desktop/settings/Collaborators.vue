@@ -3,9 +3,9 @@
     <div class="settings-component-container">
       <div class="asset-header">
         <div class="create-menu">
-          <ActionButton v-if="projectStore.isCloudHosted || userStore.canDo('add_user')" :isDisabled="studioInactive" :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
+          <ActionButton v-if="projectStore.isCloudHosted || userStore.canDo('add_user')" :isDisabled="studioInactive" :icon="CiPersonPlus" :label="$t('settings.addCollaborator')" :showLabel="true"
             @click="addCollaborator" v-tooltip="studioInactive ? $t('notifications.studioInactive') : $t('settings.addCollaborator')" />
-          <ActionButton :icon="getAppIcon('refresh')" :label="$t('common.refresh')" v-tooltip="$t('common.refresh')"
+          <ActionButton :icon="CiRefresh" :label="$t('common.refresh')" v-tooltip="$t('common.refresh')"
             :buttonFunction="refresh" />
         </div>
       </div>
@@ -37,6 +37,8 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { CollaboratorService, ProjectService } from "@/services";
 import utils from '@/services/utils';
+import { CiPersonPlus, CiRefresh } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // store imports
 import { useAssetStore } from '@/stores/assets';
@@ -77,7 +79,7 @@ const addCollaborator = () => {
 
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Refreshes the project collaborators list.

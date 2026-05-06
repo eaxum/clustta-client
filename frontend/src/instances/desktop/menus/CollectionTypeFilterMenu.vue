@@ -20,7 +20,7 @@
     <span v-if="stage.activeStage === 'browser'" class="menu-divider"></span>
 
     <span v-for="collectionType in collectionTypes" class="filter-menu-item" @click="toggleFilter(collectionType)">
-      <img class="small-icons" :src="getAppIcon(collectionType.icon)">
+      <component :is="resolveIcon(collectionType.icon)" class="small-icons" :size="20" />
       <div class="horizontal-flex">
         <div class="menu-item-text"> {{ utils.capitalizeStr(collectionType.name) }} </div>
         <ToggleSwitch :switchValueProp="isFilterActive(collectionType)" />
@@ -34,6 +34,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { resolveIcon } from '@/lib/icon-map';
 import utils from '@/services/utils';
 import { useI18n } from 'vue-i18n';
 
@@ -43,13 +44,11 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 // stores
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useStageStore } from '@/stores/stages';
 
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const stage = useStageStore();
 
@@ -69,11 +68,6 @@ const collectionTypes = computed(() => {
 // Adds a filter to the collection filters list.
 const addFilter = (filter) => {
   commonStore.collectionFilters.push(filter);
-};
-
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
 };
 
 // Checks if a filter is currently active.

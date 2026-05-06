@@ -26,7 +26,7 @@
 
         <div class="user-location">
           <ActionButton
-            :icon="getAppIcon('map-pin')"
+            :icon="CiMapPin"
             :isInactive="true"
             :showIcon="true"
             :showLabel="false"
@@ -91,7 +91,7 @@
       <!-- Contact Section -->
       <div class="contact-section">
         <ActionButton
-          :icon="getAppIcon('mail')"
+          :icon="CiMail"
           label="Get in touch"
           :showIcon="true"
           :showLabel="true"
@@ -113,6 +113,8 @@
 </template>
 
 <script setup>
+import { CiMail, CiMapPin } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { computed } from 'vue';
 import { useIconStore } from '@/stores/icons';
 import { generateAvatar } from '@/lib/avatar';
@@ -150,7 +152,7 @@ defineEmits(['click']);
 const iconStore = useIconStore();
 
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Computed properties

@@ -1,6 +1,6 @@
 <template>
   <div class="modal-container" v-stop-propagation>
-    <HeaderArea :title="t('modals.configureAiAgent')" :icon="getAppIcon('brain')" :showSearch="false" />
+    <HeaderArea :title="t('modals.configureAiAgent')" :icon="CiBrain" :showSearch="false" />
     <div class="general-container">
 
       <div class="input-section">
@@ -25,6 +25,8 @@
 // imports
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiBrain } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
@@ -66,7 +68,7 @@ const closeModal = () => {
 };
 
 // Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+const getAppIcon = (iconName) => iconStore.resolveIcon(iconName);
 
 // Handles provider dropdown selection.
 const onProviderSelect = (displayName) => {

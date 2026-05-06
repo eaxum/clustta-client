@@ -16,7 +16,7 @@
           </div>
 
           <div v-else-if="message.type === 'tool-group'" class="msg-tool">
-            <img class="msg-tool-icon small-icons" :src="getAppIcon(getToolIcon(message.toolName))">
+            <img class="msg-tool-icon small-icons" :src="resolveIcon(getToolIcon(message.toolName))">
             <span class="msg-tool-label">{{ formatToolLabel(message.toolName, message.count) }}</span>
           </div>
 
@@ -48,7 +48,7 @@
       <div class="console-input-container">
         <div class="console-input-wrapper">
           <div v-if="attachmentPath" class="console-attachment-row">
-            <Chip :icon="getAppIcon('paper-clip')" :label="attachmentName" :onRemove="removeAttachment" />
+            <Chip :icon="CiPaperclip" :label="attachmentName" :onRemove="removeAttachment" />
           </div>
 
           <textarea ref="textareaRef" v-model="currentMessage" class="console-input" type="text" :placeholder="inputPlaceholder"
@@ -56,20 +56,20 @@
 
           <div class="console-toolbar">
             <div class="console-toolbar-left">
-              <ActionButton :icon="getAppIcon('paper-clip')" :showLabel="false" v-tooltip="$t('panes.attachFile')" :buttonFunction="selectAttachment" />
+              <ActionButton :icon="CiPaperclip" :showLabel="false" v-tooltip="$t('panes.attachFile')" :buttonFunction="selectAttachment" />
 
               <PaneHeaderTabs :iconsOnly="false" :useSelected="true" :selectedTab="selectedConsoleTab"
                 :dataTypes="consoleTabs" @filter="handleConsoleTabClick" />
             </div>
 
             <div class="console-toolbar-right">
-              <ActionButton v-if="!isModal && selectedConsoleTab === 'Agent'" :icon="getAppIcon('arrows-expand')" :showLabel="false"
+              <ActionButton v-if="!isModal && selectedConsoleTab === 'Agent'" :icon="CiArrowsExpand" :showLabel="false"
                 v-tooltip="$t('panes.expandConsole')" :buttonFunction="openConsoleModal" />
 
-              <ActionButton :icon="getAppIcon('broom')" :showLabel="false" :isDisabled="!messages.length || isProcessing"
+              <ActionButton :icon="CiBroom" :showLabel="false" :isDisabled="!messages.length || isProcessing"
                 v-tooltip="$t('panes.clearChat')" :buttonFunction="clearChat" />
 
-              <ActionButton :icon="getAppIcon('send')" :showLabel="false" :isDisabled="!currentMessage.trim() || isProcessing"
+              <ActionButton :icon="CiSend" :showLabel="false" :isDisabled="!currentMessage.trim() || isProcessing"
                 v-tooltip="$t('panes.sendMessage')" :buttonFunction="sendMessage" />
             </div>
           </div>
@@ -85,6 +85,8 @@ import { computed, nextTick, onActivated, onMounted, onUnmounted, ref, watch } f
 import { useI18n } from 'vue-i18n';
 import { Events } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
+import { CiArrowsExpand, CiBroom, CiPaperclip, CiSend } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -291,7 +293,7 @@ const formatContent = (text) => {
 };
 
 // Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+const getAppIcon = (iconName) => iconStore.resolveIcon(iconName);
 
 // Extracts [Context: ...] prefix from a user message into separate display tag and body.
 const parseUserContext = (content) => {

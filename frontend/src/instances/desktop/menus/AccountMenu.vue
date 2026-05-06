@@ -20,12 +20,12 @@
           </div>
         </div>
         <div v-if="!isOfflineMode" class="account-remove">
-          <ActionButton :icon="getAppIcon('cog')" :showLabel="false" :fullWidth="false" v-tooltip="$t('menus.accountSettings')" :buttonFunction="openAccountSettings" />
-          <ActionButton :icon="getAppIcon('logout')" :showLabel="false" :fullWidth="false" v-tooltip="$t('common.signOut')" :buttonFunction="signOutCurrentAccount" />
+          <ActionButton :icon="CiCog" :showLabel="false" :fullWidth="false" v-tooltip="$t('menus.accountSettings')" :buttonFunction="openAccountSettings" />
+          <ActionButton :icon="CiLogout" :showLabel="false" :fullWidth="false" v-tooltip="$t('common.signOut')" :buttonFunction="signOutCurrentAccount" />
         </div>
       </div>
 
-      <ActionButton v-if="isOfflineMode" :icon="getAppIcon('login')" :showLabel="true" :fullWidth="true" :label="$t('common.signIn')" :buttonFunction="signInFromOffline" />
+      <ActionButton v-if="isOfflineMode" :icon="CiLogin" :showLabel="true" :fullWidth="true" :label="$t('common.signIn')" :buttonFunction="signInFromOffline" />
     </div>
 
     <span class="menu-divider"></span>
@@ -53,7 +53,7 @@
           </div>
         </div>
         <div class="account-remove">
-          <ActionButton :icon="getAppIcon('logout')" :showLabel="false" :fullWidth="false" v-tooltip="$t('menus.removeAccount')" :buttonFunction="() => removeAccountFromList(account.id)" />
+          <ActionButton :icon="CiLogout" :showLabel="false" :fullWidth="false" v-tooltip="$t('menus.removeAccount')" :buttonFunction="() => removeAccountFromList(account.id)" />
         </div>
       </div>
     </div>
@@ -62,7 +62,7 @@
 
     <!-- Actions -->
     <div class="account-actions">
-      <ActionButton v-if="!isOfflineMode" :icon="getAppIcon('person-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addAccount')" :buttonFunction="addAccount" />
+      <ActionButton v-if="!isOfflineMode" :icon="CiPersonPlus" :showLabel="true" :fullWidth="true" :label="$t('menus.addAccount')" :buttonFunction="addAccount" />
     </div>
   </div>
 </template>
@@ -70,6 +70,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref } from 'vue';
+import { CiCog, CiLogin, CiLogout, CiPersonPlus } from '@clustta/icons-vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { resetStoreInitialization } from '@/router';
@@ -84,7 +85,6 @@ import { AccountService, AuthService } from "@/services";
 // stores
 import { useAccountStore } from '@/stores/accounts';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
@@ -95,7 +95,6 @@ import { useUserStore } from '@/stores/users';
 
 const { t } = useI18n();
 const accountStore = useAccountStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -129,11 +128,6 @@ const addAccount = () => {
   } catch (error) {
     notificationStore.errorNotification(t('notifications.addAccountFailed'), error);
   }
-};
-
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
 };
 
 // Opens the account settings view.

@@ -140,7 +140,7 @@ const filterList = (selectedTab) => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Removes an extension from the ignore list.

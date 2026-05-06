@@ -2,22 +2,22 @@
 	<div ref="projectListRoot" class="project-stage-root absolute-pane">
 		<div class="asset-header">
 			<div class="create-menu" >
-				<ActionButton :isDisabled="!studioStore.isStudioAdmin || operationsActive || studioInactive" :icon="getAppIcon('briefcase-plus')" 
+				<ActionButton :isDisabled="!studioStore.isStudioAdmin || operationsActive || studioInactive" :icon="CiBriefcasePlus" 
 					@click="createProject" v-tooltip="studioInactive ? $t('notifications.studioInactive') : $t('stages.newProject')" :buttonFunction="doNothing" />
-				<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="operationsActive" :icon="getAppIcon('data-download')" 
+				<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="operationsActive" :icon="CiDataDownload" 
 					v-tooltip="$t('stages.importProject')" :buttonFunction="importProject" />
-				<ActionButton v-else :isDisabled="!studioStore.isStudioAdmin || operationsActive || studioInactive"  :icon="getAppIcon('data-download')" 
+				<ActionButton v-else :isDisabled="!studioStore.isStudioAdmin || operationsActive || studioInactive"  :icon="CiDataDownload" 
 					v-tooltip="studioInactive ? $t('notifications.studioInactive') : $t('stages.uploadProject')" :buttonFunction="uploadProject" />
-				<ActionButton :isDisabled="operationsActive" :icon="getAppIcon('refresh')" 
+				<ActionButton :isDisabled="operationsActive" :icon="CiRefresh" 
 					v-tooltip="$t('common.refresh')" :buttonFunction="refresh" />
 			</div>
 			<div class="action-bar" v-if="projects.length && projectStore.projectsLoaded || projectStore.projectSearchQuery">
 				<SearchBar ref="searchBar" v-model="projectStore.projectSearchQuery" :placeholder="$t('stages.searchProjects')" :isLoading="!projectStore.projectsLoaded" @input="updateSearch" @clear="clearSearch" />
 			</div>
 		<div class="view-options">
-			<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="!untrackedProjects.length || operationsActive" :icon="getAppIcon(projectStore.showUntrackedProjects ? 'eye-cancel' : 'eye')" v-tooltip="projectStore.showUntrackedProjects ? $t('stages.hideUntrackedProjects') : $t('stages.showUntrackedProjects')"
+			<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="!untrackedProjects.length || operationsActive" :icon="projectStore.showUntrackedProjects ? CiEyeCancel : CiEye" v-tooltip="projectStore.showUntrackedProjects ? $t('stages.hideUntrackedProjects') : $t('stages.showUntrackedProjects')"
 				:buttonFunction="toggleShowUntrackedProjects" />
-			<ActionButton :isDisabled="!projects.length || operationsActive" :icon="getAppIcon(cardView ? 'list' : 'four-squares')" :v-tooltip="cardView ? $t('stages.list') : $t('stages.cards')"
+			<ActionButton :isDisabled="!projects.length || operationsActive" :icon="cardView ? CiList : CiFourSquares" :v-tooltip="cardView ? $t('stages.list') : $t('stages.cards')"
 				:buttonFunction="switchViewLayout" />
 		</div>
 	</div>
@@ -86,6 +86,7 @@
 // imports
 import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiBriefcasePlus, CiDataDownload, CiEye, CiEyeCancel, CiFourSquares, CiList, CiPlusCircle, CiRefresh } from '@clustta/icons-vue';
 
 // stores/state imports
 import { useStageStore } from '@/stores/stages';
@@ -94,7 +95,6 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { usePaneStore } from '@/stores/panes';
 import { useMenu } from '@/stores/menu';
 import { useUserStore } from '@/stores/users';
-import { useIconStore } from '@/stores/icons';
 import { useDndStore } from '@/stores/dnd';
 import { useEntitlementStore } from '@/stores/entitlements';
 import { useStudioStore } from '@/stores/studio';
@@ -116,7 +116,6 @@ const modals = useDesktopModalStore();
 const userStore = useUserStore();
 const panes = usePaneStore();
 const menu = useMenu();
-const iconStore = useIconStore();
 const dndStore = useDndStore();
 const entitlementStore = useEntitlementStore();
 const studioStore = useStudioStore();
@@ -131,10 +130,6 @@ const closedProjectsVisible = ref(false);
 const untrackedProjectsVisible = ref(true);
 const searchBar = ref(null);
 
-const getAppIcon = (iconName) => {
-	const icon = iconStore.getAppIcon(iconName);
-	return icon
-};
 
 const cardView = computed(() => {
 	return projectStore.isProjectGridView
@@ -361,9 +356,9 @@ const secondaryActionIcon = () => {
 	const hasTrackedProjects = trackedProjects.value.length > 0;
 
 	if (!hasTrackedProjects && hasUntrackedProjects) {
-		return getAppIcon('eye');
+		return CiEye;
 	} else {
-		return getAppIcon('plus-circle');
+		return CiPlusCircle;
 	}
 };
 

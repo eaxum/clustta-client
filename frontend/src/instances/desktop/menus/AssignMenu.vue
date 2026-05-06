@@ -20,7 +20,7 @@
           >
             <template #actions>
               <span v-stop-propagation class="single-action-button" @click="unassignAsset()" v-tooltip="$t('common.unassign')">
-                <img class="small-icons" :src="getAppIcon('person-minus')">
+                <CiPersonMinus class="small-icons" :size="20" />
               </span>
             </template>
           </AssigneeItem>
@@ -73,6 +73,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { CiPersonMinus } from '@clustta/icons-vue';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
@@ -85,7 +86,6 @@ import { AssetService, ProjectService } from "@/services";
 
 // stores
 import { useAssetStore } from '@/stores/assets';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
@@ -95,7 +95,6 @@ import { useUserStore } from '@/stores/users';
 
 const { t } = useI18n();
 const assetStore = useAssetStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
@@ -278,11 +277,6 @@ const formatCollaborators = (arr) => {
     id: user.id,
     index: index.toString(),
   }));
-};
-
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
 };
 
 // Unassigns a asset, handling single or multiple selection.

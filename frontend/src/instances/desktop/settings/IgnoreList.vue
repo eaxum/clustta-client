@@ -14,7 +14,7 @@
         <div class="template-actions">
           <DropDownBox :items="templateNames" :selectedItem="selectedTemplate" :onSelect="applyTemplate" :placeHolder="$t('settings.selectTemplate')" :fixedWidth="true" />
 
-          <ActionButton :icon="getAppIcon('trash')" :label="$t('settings.clearAll')" @click="prepClearAll" v-tooltip="$t('settings.clearAll')" />
+          <ActionButton :icon="CiTrash" :label="$t('settings.clearAll')" @click="prepClearAll" v-tooltip="$t('settings.clearAll')" />
         </div>
       </div>
 
@@ -31,6 +31,8 @@ import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ProjectService } from '@/services';
 import { ignoreTemplates, ignoreTemplateNames } from '@/lib/ignoreTemplates';
+import { CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -79,7 +81,7 @@ const applyTemplate = (templateName) => {
 };
 
 const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
+  const icon = iconStore.resolveIcon(iconName);
   return icon;
 };
 

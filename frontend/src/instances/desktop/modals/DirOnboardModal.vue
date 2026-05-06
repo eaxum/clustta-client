@@ -1,6 +1,6 @@
 <template>
   <div class="modal-container" v-stop-propagation>
-    <HeaderArea :title="$t('modals.setupClustta')" :icon="getAppIcon('clustta')" :showSearch="false" />
+    <HeaderArea :title="$t('modals.setupClustta')" :icon="CiClustta" :showSearch="false" />
     <div class="general-container">
 
       <!-- Card 1: Select data storage location -->
@@ -23,7 +23,7 @@
           <!-- Selected Path Display -->
           <div v-if="selectedClusttaDirectory" class="location-item location-item-single">
             <div class="location-icon">
-              <img class="small-icons" :src="getAppIcon('folder')">
+              <CiFolder :size="20" />
             </div>
             <div class="location-content">
               <div class="location-header">
@@ -59,10 +59,8 @@
             <div v-for="location in locations" :key="location.id" class="location-item">
               <!-- Location Icon -->
               <div class="location-icon">
-                <img v-if="locationHealthMap[location.id] && !locationHealthMap[location.id].exists" 
-                     class="small-icons" 
-                     :src="getAppIcon('alert')">
-                <img v-else class="small-icons" :src="getAppIcon('folder')">
+                <CiAlert :size="20" />
+                <CiFolder :size="20" />
               </div>
               
               <!-- Location Content -->
@@ -79,7 +77,7 @@
               <div class="location-actions">
                 <ActionButton 
                   v-if="location.is_default"
-                  :icon="getAppIcon('star')" 
+                  :icon="CiStar" 
                   :buttonFunction="() => setDefaultLocation(location.id)"
                   :disabled="true"
                   v-tooltip="$t('settings.defaultLocation')"
@@ -87,19 +85,19 @@
                 
                 <template v-else>
                   <ActionButton 
-                    :icon="getAppIcon('star')" 
+                    :icon="CiStar" 
                     :buttonFunction="() => setDefaultLocation(location.id)"
                     v-tooltip="$t('settings.setAsDefault')"
                     class="hover-action"
                   />
                   <ActionButton 
-                    :icon="getAppIcon('explorer')" 
+                    :icon="CiExplorer" 
                     :buttonFunction="() => selectPath(location)"
                     v-tooltip="$t('settings.changeLocation')"
                     class="hover-action"
                   />
                   <ActionButton 
-                    :icon="getAppIcon('trash')" 
+                    :icon="CiTrash" 
                     :buttonFunction="() => removeLocation(location.id)"
                     :isDisabled="!canDeleteLocation(location.id)"
                     v-tooltip="canDeleteLocation(location.id) ? $t('settings.removeLocation') : $t('settings.cannotRemoveLocation')"
@@ -131,6 +129,8 @@
 // imports
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiAlert, CiClustta, CiExplorer, CiFolder, CiStar, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -222,7 +222,7 @@ const closeModal = () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Returns the project count for a location.

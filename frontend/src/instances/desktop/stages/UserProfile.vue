@@ -15,7 +15,7 @@
             
             <ActionButton 
               :iconAfter="true" 
-              :icon="getAppIcon('key')"
+              :icon="CiKey"
               :label="$t('stages.changePassword')" 
               @click="toggleSectionEdit('password')"
               :useOutline="true"
@@ -94,7 +94,7 @@
                     <label class="form-label">{{ $t('stages.availability') }}</label>
                     <ActionButton
                       @click="toggleAvailability"
-                      :icon="getAppIcon('check-circle')"
+                      :icon="CiCheckCircle"
                       :label="utils.capitalizeStr(formData.availability)"
                       :iconAfter="false"
                       :useBackground="true"
@@ -115,14 +115,14 @@
                 <div v-else class="display-mode-fields">
                   <div class="profile-name-row">
                     <div class="profile-name">{{ fullName }}</div>
-                    <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('stages.copyProfileLink')" @click="copyProfileLink" />
-                    <ActionButton v-if="!isWebMode" :icon="getAppIcon('person-search')" v-tooltip="$t('stages.openProfileInBrowser')" @click="openProfileInBrowser" />
+                    <ActionButton :icon="CiCopy" v-tooltip="$t('stages.copyProfileLink')" @click="copyProfileLink" />
+                    <ActionButton v-if="!isWebMode" :icon="CiPersonSearch" v-tooltip="$t('stages.openProfileInBrowser')" @click="openProfileInBrowser" />
                   </div>
                   <div v-if="formData.bio" class="profile-title">{{ formData.bio }}</div>
                   
                   <div class="meta-info">
                     <div v-if="formData.country" class="info-item">
-                      <img class="info-icon small-icons" :src="getAppIcon('map-pin')" alt="">
+                      <CiMapPin class="info-icon small-icons" :size="20" />
                       <span>{{ formData.country }}</span>
                     </div>
                     
@@ -131,7 +131,7 @@
                       class="availability-badge"
                       :style="{ backgroundColor: formData.availability === 'available' ? '#24811E' : 'rgba(255, 255, 255, 0.1)' }"
                     >
-                      <img class="info-icon small-icons" :src="getAppIcon('check-circle')" alt="">
+                      <CiCheckCircle class="info-icon small-icons" :size="20" />
                       <span>{{ utils.capitalizeStr(formData.availability) }}</span>
                     </div>
                   </div>
@@ -165,11 +165,10 @@
                   class="studio-logo"
                   @error="handleStudioLogoError"
                 />
-                <img 
+                <CiStall 
                   v-else 
-                  :src="getAppIcon('stall')" 
-                  alt="Studio" 
                   class="studio-logo studio-icon-default"
+                  :size="20"
                 />
                 <span class="studio-name">{{ studio.name }}</span>
               </div>
@@ -237,7 +236,7 @@
               <ActionButton
                 :isDisabled="!isPasswordValid"
                 :iconAfter="true"
-                :icon="getAppIcon('check-circle')"
+                :icon="CiCheckCircle"
                 :label="$t('stages.updatePassword')"
                 @click="handlePasswordUpdate"
                 :useBackground="true"
@@ -258,7 +257,7 @@
               </p>
               <ActionButton
                 :iconAfter="true"
-                :icon="getAppIcon('trash')"
+                :icon="CiTrash"
                 :label="$t('stages.deleteAccount')"
                 @click="prepDeleteAccountModal()"
                 :color="'crimson'"
@@ -277,7 +276,7 @@
         <template v-if="isSavingChanges">
           <ActionButton 
             :isLoading="true"
-            :icon="getAppIcon('loading')"
+            :icon="CiLoading"
             :label="$t('stages.savingChanges')"
             :useBackground="true"
           />
@@ -286,14 +285,14 @@
           <ActionButton 
             :color="'crimson'" 
             :iconAfter="true" 
-            :icon="getAppIcon('close-circle')" 
+            :icon="CiCloseCircle" 
             :label="$t('common.cancel')"
             @click="cancelAllEdits"
           />
           <ActionButton 
             :isDisabled="!isDataValid"  
             :iconAfter="true" 
-            :icon="getAppIcon('check-circle')"
+            :icon="CiCheckCircle"
             :label="$t('stages.saveChanges')" 
             @click="saveAllChanges"
             :useBackground="true"
@@ -306,6 +305,7 @@
 <script setup>
 import { ref, reactive, computed, onBeforeMount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiCheckCircle, CiCloseCircle, CiCopy, CiKey, CiLoading, CiMapPin, CiPersonSearch, CiStall, CiTrash } from '@clustta/icons-vue';
 import { AuthService, ProfileService, FSService, ClipboardService } from "@/services";
 import { generateAvatar } from '@/lib/avatar';
 
@@ -521,10 +521,6 @@ const scrollToTop = () => {
   }
 };
 
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
-};
-
 const startEditing = () => {
   isEditing.value = true;
 };
@@ -593,7 +589,7 @@ const removePhoto = () => {
 
 const handleStudioLogoError = (event) => {
   // If studio logo fails to load, replace with default icon
-  event.target.src = iconStore.getAppIcon('stall');
+  event.target.src = iconStore.CiStall;
   event.target.classList.add('studio-icon-default');
 };
 

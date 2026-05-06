@@ -4,7 +4,7 @@
 			<Breadcrumbs />
 			<SearchBar ref="searchBar" v-model="commonStore.viewSearchQuery" :placeholder="$t('common.search')" :isLoading="!assetStore.assetsLoaded"
 				@input="debouncedUpdateSearch" @clear="clearSearch" />
-			<ActionButton :icon="getAppIcon('filter')" :buttonFunction="toggleShowFilters" :isActive="showFilters" :showIndicator="filtersActive" v-tooltip="$t('stages.filters')" />
+			<ActionButton :icon="CiFilter" :buttonFunction="toggleShowFilters" :isActive="showFilters" :showIndicator="filtersActive" v-tooltip="$t('stages.filters')" />
 		</div>
 
 		<div class="dash-board-header">
@@ -14,9 +14,9 @@
 			<div v-if="rootData.length || commonStore.viewSearchQuery.length || commonStore.showUntracked"
 				class="view-options">
 				<ViewOptions />
-				<ActionButton v-if="!kanbanView" :icon="getAppIcon('arrows-sort')" v-tooltip="$t('stages.sort')" :buttonFunction="openSortMenu" />
-				<ActionButton :icon="getAppIcon('eye-cog')" v-tooltip="$t('stages.viewOptions')" :buttonFunction="openViewMenu" />
-				<ActionButton v-if="!kanbanView && isWideScreen" :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
+				<ActionButton v-if="!kanbanView" :icon="CiArrowsSort" v-tooltip="$t('stages.sort')" :buttonFunction="openSortMenu" />
+				<ActionButton :icon="CiEyeCog" v-tooltip="$t('stages.viewOptions')" :buttonFunction="openViewMenu" />
+				<ActionButton v-if="!kanbanView && isWideScreen" :icon="panes.showDetailsPane ? CiCollapseRight : CiCollapseLeft"
 					v-tooltip="panes.showDetailsPane ? $t('stages.closePane') : $t('stages.openPane')" :buttonFunction="toggleDetailsPane" />
 			</div>
 		</div>
@@ -47,6 +47,7 @@ import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
 import { useDebounce } from '@/lib/debounce';
+import { CiArrowsSort, CiCollapseLeft, CiCollapseRight, CiEyeCog, CiFilter } from '@clustta/icons-vue';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -73,7 +74,6 @@ import { useCommonStore } from '@/stores/common';
 import { useDependencyStore } from '@/stores/dependency';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useDndStore } from '@/stores/dnd';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { usePaneStore } from '@/stores/panes';
@@ -92,7 +92,6 @@ const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const dependencyStore = useDependencyStore();
 const dndStore = useDndStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -408,8 +407,7 @@ const generateUniqueDestinationPath = async (directory, fileName) => {
 	return await FSService.JoinPath(directory, `${baseName}_${timestamp}${extension}`);
 };
 
-// Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
 
 // Returns the current directory path based on navigation context.
 const getCurrentDirectory = () => {

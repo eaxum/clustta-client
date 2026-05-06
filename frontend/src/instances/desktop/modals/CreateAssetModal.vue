@@ -8,7 +8,7 @@
         <div class="input-section">
           <div class="compound-input-section">
             <input v-model="assetName" class="input-short" type="text" :placeholder="$t('placeholders.assetName')" v-focus @keydown.enter="handleEnterKey" />
-            <ActionButton :icon="getAppIcon('switches')" :buttonFunction="toggleOptions" :isActive="exposeParams" v-tooltip="'Show Options'" />
+            <ActionButton :icon="CiSwitches" :buttonFunction="toggleOptions" :isActive="exposeParams" v-tooltip="'Show Options'" />
           </div>
         </div>
 
@@ -18,7 +18,7 @@
               <DropDownBox :items="assetTypeNames" :selectedItem="assetType" :onSelect="selectAssetType" :useFilter="false" :placeHolder="$t('placeholders.assetType')" />
             </div>
             <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addNewAssetType')">
-              <img class="small-icons" :src="getAppIcon('plus-circle')">
+              <CiPlusCircle :size="20" />
             </span>
           </div>
         </div>
@@ -50,6 +50,8 @@ import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
+import { CiPlusCircle, CiSwitches } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -206,7 +208,7 @@ const createAsset = async (launch = false, comment = 'Asset created') => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles enter key press to submit form.

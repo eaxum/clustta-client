@@ -20,86 +20,86 @@
 
 
         <div v-if="showAssetCollectionActions || showCollectionAssetActions" class="action-bar">
-          <ActionButton v-if="activeIsAsset" :icon="getAppIcon('dependency')" :label="$t('components.detailsPane.makeDependencies')"
+          <ActionButton v-if="activeIsAsset" :icon="CiDependency" :label="$t('components.detailsPane.makeDependencies')"
             :buttonFunction="makeDependenciesOfActive" v-tooltip="$t('components.detailsPane.makeDependenciesTooltip')" />
-          <ActionButton v-if="activeIsCollection" :icon="getAppIcon('folder-arrow-in')"
+          <ActionButton v-if="activeIsCollection" :icon="CiFolderArrowIn"
             :label="$t('components.detailsPane.moveIntoCollection')" :buttonFunction="moveIntoFolder" v-tooltip="$t('components.detailsPane.moveIntoCollectionTooltip')" />
         </div>
 
 
         <div v-if="onlyAssets" class="action-bar">
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('shapes')" :label="$t('components.detailsPane.type')" />
+            <ActionButton :isInactive="true" :icon="CiShapes" :label="$t('components.detailsPane.type')" />
             <DropDownBox :items="itemTypes" :selectedItem="''" :onSelect="toggleIsAsset" :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('file-plus')" :label="$t('components.detailsPane.assetType')" />
+            <ActionButton :isInactive="true" :icon="CiFilePlus" :label="$t('components.detailsPane.assetType')" />
             <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="assetType" :onSelect="changeAssetType"
               :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('clock')" :label="$t('components.detailsPane.status')" />
+            <ActionButton :isInactive="true" :icon="CiClock" :label="$t('components.detailsPane.status')" />
             <DropDownBox :items="projectStatuses" :selectedItem="defaultStatus" :onSelect="setMultipleStatus"
               :fixedWidth="true" />
           </div>
           
-          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :label="$t('components.detailsPane.moveToCollection')"
+          <ActionButton v-if="!platformStore.isWeb" :icon="CiFolderArrowIn" :label="$t('components.detailsPane.moveToCollection')"
             @click="prepMoveToCollection($event)" v-tooltip="$t('components.detailsPane.moveToCollectionTooltip')" />
-          <ActionButton v-if="!platformStore.isWeb && assetsCanRebuild" :icon="getAppIcon('jigsaw')" :label="$t('components.detailsPane.rebuildAssets')"
+          <ActionButton v-if="!platformStore.isWeb && assetsCanRebuild" :icon="CiJigsaw" :label="$t('components.detailsPane.rebuildAssets')"
             :buttonFunction="revertAllChanges" v-tooltip="$t('components.detailsPane.rebuildAssetsTooltip')" />
-          <ActionButton v-if="assetsModified" :noFilter="true" :icon="getAppIcon('plus-stone')" :useAlert="true" :label="$t('components.detailsPane.createCheckpoints')"
+          <ActionButton v-if="assetsModified" :noFilter="true" :icon="CiPlusStone" :useAlert="true" :label="$t('components.detailsPane.createCheckpoints')"
             :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsTooltip')" />
-          <ActionButton v-if="!platformStore.isWeb && assetsModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :label="$t('components.detailsPane.revertAssets')"
+          <ActionButton v-if="!platformStore.isWeb && assetsModified" :noFilter="true" :icon="CiRevert" :useAlert="true" :label="$t('components.detailsPane.revertAssets')"
             :buttonFunction="prepResetPopUpModal" v-tooltip="$t('components.detailsPane.revertAssetsTooltip')" />
-          <ActionButton :icon="getAppIcon('person-plus')" :label="$t('components.detailsPane.assignAssets')"
+          <ActionButton :icon="CiPersonPlus" :label="$t('components.detailsPane.assignAssets')"
             @click="prepAssignAsset($event)" v-tooltip="$t('components.detailsPane.assignAssetsTooltip')" />
-          <ActionButton :icon="getAppIcon('person-minus')" :label="$t('components.detailsPane.unassignAssets')"
+          <ActionButton :icon="CiPersonMinus" :label="$t('components.detailsPane.unassignAssets')"
             :buttonFunction="unassignAssets" v-tooltip="$t('components.detailsPane.unassignAssetsTooltip')" />
-          <ActionButton v-if="!platformStore.isWeb && assetsOnDisk" :icon="getAppIcon('broom')" :label="$t('components.detailsPane.freeUpSpace')"
+          <ActionButton v-if="!platformStore.isWeb && assetsOnDisk" :icon="CiBroom" :label="$t('components.detailsPane.freeUpSpace')"
             :buttonFunction="prepFreeUpSpacePopUpModal" v-tooltip="$t('components.detailsPane.freeUpSpaceAssetTooltip')" />
-          <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteSelectedAssets')"
+          <ActionButton :icon="CiTrash" :label="$t('components.detailsPane.deleteSelectedAssets')"
             :buttonFunction="deleteMultipleAssets" v-tooltip="$t('components.detailsPane.deleteSelectedAssetsTooltip')" />
         </div>
 
         <div v-else-if="onlyCollections" class="action-bar">
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="$t('components.detailsPane.collectionType')" />
+            <ActionButton :isInactive="true" :icon="CiFolder" :label="$t('components.detailsPane.collectionType')" />
             <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="collectionType"
               :onSelect="changeCollectionType" :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('shared')" :label="$t('components.detailsPane.shared')" />
+            <ActionButton :isInactive="true" :icon="CiShared" :label="$t('components.detailsPane.shared')" />
             <DropDownBox :items="collectionMode" :selectedItem="''" :onSelect="changeIsShared" :fixedWidth="true" />
           </div>
 
           <div class="vertical-flex assignees-search">
-            <ActionButton :isInactive="true" :icon="getAppIcon('person')" :label="$t('components.detailsPane.assignees')" />
+            <ActionButton :isInactive="true" :icon="CiPerson" :label="$t('components.detailsPane.assignees')" />
             <CollaboratorSuggestions :displayEmail="false" :placeholder="placeholder" :allItems="projectUsers"
               @tagAdded="assignCollections"/>
           </div>
           
-          <ActionButton :icon="getAppIcon('person-minus')" :label="$t('components.detailsPane.unassignCollections')"
+          <ActionButton :icon="CiPersonMinus" :label="$t('components.detailsPane.unassignCollections')"
             :buttonFunction="unassignCollections" v-tooltip="$t('components.detailsPane.unassignCollectionsTooltip')" />
-          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('jigsaw')" :label="$t('components.detailsPane.rebuildCollections')" :buttonFunction="rebuildCollections" v-tooltip="$t('components.detailsPane.rebuildCollectionsTooltip')" />
-          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :label="$t('components.detailsPane.freeUpSpace')"
+          <ActionButton v-if="!platformStore.isWeb" :icon="CiJigsaw" :label="$t('components.detailsPane.rebuildCollections')" :buttonFunction="rebuildCollections" v-tooltip="$t('components.detailsPane.rebuildCollectionsTooltip')" />
+          <ActionButton v-if="!platformStore.isWeb" :icon="CiBroom" :label="$t('components.detailsPane.freeUpSpace')"
             :buttonFunction="freeUpCollectionSpacePopUpModal" v-tooltip="$t('components.detailsPane.freeUpSpaceCollectionTooltip')" />
-          <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteCollections')"
+          <ActionButton :icon="CiTrash" :label="$t('components.detailsPane.deleteCollections')"
             :buttonFunction="deleteMultipleCollections" v-tooltip="$t('components.detailsPane.deleteCollectionsTooltip')" />
         </div>
 
         
         <div v-else-if="onlyUntrackedAssets || onlyUntrackedCollections" class="action-bar">
-          <ActionButton v-if="userStore.canDo('create_asset') && onlyUntrackedAssets" :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsUntrackedTooltip')" />
-          <ActionButton v-if="squashEnabled" :icon="getAppIcon('squash')" :label="$t('components.detailsPane.squashAssets')" :buttonFunction="prepSquashModal" v-tooltip="$t('components.detailsPane.squashAssetsTooltip')" />
-          <ActionButton :icon="getAppIcon('file-watch')" :label="$t('components.detailsPane.ignoreItems')" :buttonFunction="ignoreItems" v-tooltip="$t('components.detailsPane.ignoreItemsTooltip')" />
-          <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleUntrackedAssets" v-tooltip="$t('components.detailsPane.deleteItemsTooltip')" />
+          <ActionButton v-if="userStore.canDo('create_asset') && onlyUntrackedAssets" :icon="CiPlusStone" :useDanger="true" :noFilter="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsUntrackedTooltip')" />
+          <ActionButton v-if="squashEnabled" :icon="CiSquash" :label="$t('components.detailsPane.squashAssets')" :buttonFunction="prepSquashModal" v-tooltip="$t('components.detailsPane.squashAssetsTooltip')" />
+          <ActionButton :icon="CiFileWatch" :label="$t('components.detailsPane.ignoreItems')" :buttonFunction="ignoreItems" v-tooltip="$t('components.detailsPane.ignoreItemsTooltip')" />
+          <ActionButton :icon="CiTrash" :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleUntrackedAssets" v-tooltip="$t('components.detailsPane.deleteItemsTooltip')" />
         </div>
 
         <div v-else class="action-bar">
-          <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleItems" v-tooltip="$t('components.detailsPane.deleteAllItemsTooltip')" />
+          <ActionButton :icon="CiTrash" :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleItems" v-tooltip="$t('components.detailsPane.deleteAllItemsTooltip')" />
         </div>
 
       </div>
@@ -125,6 +125,8 @@ import { getRelativePath } from '@/lib/pathlib';
 import { addIgnoredItem } from '@/lib/untracked';
 import { canSquash } from '@/utils/squash';
 import utils from "@/services/utils";
+import { CiBroom, CiClock, CiDependency, CiFilePlus, CiFileWatch, CiFolder, CiFolderArrowIn, CiJigsaw, CiPerson, CiPersonMinus, CiPersonPlus, CiPlusStone, CiRevert, CiShapes, CiShared, CiSquash, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -593,7 +595,7 @@ const freeUpSpace = async () => {
 };
 
 // Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+const getAppIcon = (iconName) => iconStore.resolveIcon(iconName);
 
 // Adds items to the ignore list.
 const ignoreItems = async () => {

@@ -4,9 +4,9 @@
 
         <div class="asset-header">
 			<div class="create-menu">
-				<ActionButton :isDisabled="studioInactive" :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
+				<ActionButton :isDisabled="studioInactive" :icon="CiPersonPlus" :label="$t('settings.addCollaborator')" :showLabel="true"
 					@click="addCollaborator" v-tooltip="studioInactive ? $t('notifications.studioInactive') : $t('settings.addCollaborator')" />
-				<ActionButton :icon="getAppIcon('refresh')" :label="$t('common.refresh')" v-tooltip="$t('common.refresh')"
+				<ActionButton :icon="CiRefresh" :label="$t('common.refresh')" v-tooltip="$t('common.refresh')"
 					:buttonFunction="refresh" />
 			</div>
 		</div>
@@ -42,6 +42,8 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useUserStore } from '@/stores/users';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useI18n } from 'vue-i18n';
+import { CiPersonPlus, CiRefresh } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // store imports
 import { useProjectStore } from '@/stores/projects';
@@ -94,7 +96,7 @@ const refresh = () => {
 };
 
 const getAppIcon = (iconName) => {
-	const icon = iconStore.getAppIcon(iconName);
+	const icon = iconStore.resolveIcon(iconName);
 	return icon
 };
 

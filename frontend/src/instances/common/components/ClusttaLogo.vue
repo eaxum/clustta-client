@@ -2,7 +2,7 @@
     <div class="logo-container" :class="sizeClass">
         <div class="clustta-logo">
             <img v-if="colored" src="/icons/clustta.png"  :alt="$t('components.clusttaLogo.altText')">
-            <img v-else :src="getAppIcon('clustta')"  :alt="$t('components.clusttaLogo.altText')">
+            <CiClustta v-else :alt="$t('components.clusttaLogo.altText')" />
         </div>
         <div v-if="showText" class="clustta-logo-text" :class="{ 'inverted' : inverted,  'clustta-logo-bold' : boldText}" >
             Clustta
@@ -12,8 +12,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
+import { CiClustta } from '@clustta/icons-vue';
 
 // props
 const props = defineProps({
@@ -26,12 +25,6 @@ const props = defineProps({
 
 // computed
 const sizeClass = computed(() => `logo-size-${props.size}`);
-
-// methods
-const getAppIcon = (iconName) => {
-	const icon = iconStore.getAppIcon(iconName);
-	return icon
-};
 
 </script>
 

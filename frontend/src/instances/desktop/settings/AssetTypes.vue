@@ -8,7 +8,7 @@
         :wrapItems="true" :editItems="true" :editListItem="prepEditAssetType" :deleteItems="true"
         :deleteListItem="deleteAssetType" />
 
-      <PageState v-else :message="message()" :illustration="illustration()" :secondaryIcon="getAppIcon('plus-circle')"
+      <PageState v-else :message="message()" :illustration="illustration()" :secondaryIcon="CiPlusCircle"
         :secondaryActionMessage="secondaryActionMessage()" :secondaryActionFunction="secondaryActionFunction" />
 
     </div>
@@ -20,7 +20,7 @@ import { useIconStore } from '@/stores/icons';
 const iconStore = useIconStore();
 
 const getAppIcon = (iconName) => {
-    const icon = iconStore.getAppIcon(iconName);
+    const icon = iconStore.resolveIcon(iconName);
     return icon
 };
 
@@ -28,6 +28,8 @@ const getAppIcon = (iconName) => {
 import { onMounted, computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
+import { CiPlusCircle } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // services
 import { AssetService } from "@/services";

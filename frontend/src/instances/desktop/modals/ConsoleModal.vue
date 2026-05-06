@@ -2,10 +2,10 @@
   <div class="modal-container console-modal-container" v-stop-propagation>
     <div class="console-modal-header">
       <div class="console-modal-title">
-        <img class="console-modal-icon" :src="getAppIcon('console')">
+        <CiConsole :size="20" class="console-modal-icon" />
         <span>{{ t('panes.consoleTab') }}</span>
       </div>
-      <ActionButton :icon="getAppIcon('close')" :showLabel="false" v-tooltip="$t('common.close')" :buttonFunction="closeModal" />
+      <ActionButton :icon="CiClose" :showLabel="false" v-tooltip="$t('common.close')" :buttonFunction="closeModal" />
     </div>
 
     <div class="console-modal-body">
@@ -17,6 +17,8 @@
 <script setup>
 // imports
 import { useI18n } from 'vue-i18n';
+import { CiClose, CiConsole } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -38,7 +40,7 @@ const closeModal = () => {
 };
 
 // Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+const getAppIcon = (iconName) => iconStore.resolveIcon(iconName);
 </script>
 
 <style scoped>

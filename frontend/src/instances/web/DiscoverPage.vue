@@ -81,7 +81,7 @@
           <span class="active-filters-label">Active filters:</span>
           <Chip
             v-if="filters.availability"
-            :icon="getAppIcon('clock')"
+            :icon="CiClock"
             :label="filters.availability"
             :onRemove="() => clearFilter('availability')"
           />
@@ -100,13 +100,13 @@
           />
           <Chip
             v-if="filters.country"
-            :icon="getAppIcon('map-pin')"
+            :icon="CiMapPin"
             :label="getCountryName(filters.country)"
             :onRemove="() => clearFilter('country')"
           />
           <Chip
             v-if="searchQuery"
-            :icon="getAppIcon('search')"
+            :icon="CiMagnifyingGlass"
             :label="`&quot;${searchQuery}&quot;`"
             :onRemove="clearSearch"
           />
@@ -129,7 +129,7 @@
           <div class="results-controls">
             <!-- Show Details Toggle -->
             <ActionButton
-              :icon="getAppIcon(showDetails ? 'eye-cancel' : 'eye')"
+              :icon="showDetails ? CiEyeCancel : CiEye"
               :label="showDetails ? 'Hide Details' : 'Show Details'"
               :buttonFunction="() => showDetails = !showDetails"
               :showIcon="true"
@@ -158,7 +158,7 @@
 
         <!-- Error State -->
         <div v-else-if="error" class="error-container">
-          <img :src="getAppIcon('alert-circle')" alt="Error" class="error-icon" />
+          <CiInfoTriangle class="error-icon" :size="20" />
           <h2>Error Loading Results</h2>
           <p>{{ errorMessage }}</p>
           <ActionButton
@@ -172,7 +172,7 @@
 
         <!-- Empty State -->
         <div v-else-if="users.length === 0" class="empty-container">
-          <img :src="getAppIcon('users')" alt="No users" class="empty-icon" />
+          <CiTwoPersons class="empty-icon" :size="20" />
           <h2>No Professionals Found</h2>
           <p>Try adjusting your filters or search query</p>
           <ActionButton
@@ -204,7 +204,7 @@
           <div class="pagination-controls">
             <ActionButton
               :label="'Previous'"
-              :icon="getAppIcon('chevron-left')"
+              :icon="CiChevronLeft"
               :buttonFunction="() => goToPage(pagination.page - 1)"
               :isDisabled="!pagination.has_prev"
               :useOutline="true"
@@ -213,7 +213,7 @@
             <span class="pagination-current">Page {{ pagination.page }} of {{ pagination.total_pages }}</span>
             <ActionButton
               :label="'Next'"
-              :icon="getAppIcon('chevron-right')"
+              :icon="CiChevronRight"
               :buttonFunction="() => goToPage(pagination.page + 1)"
               :isDisabled="!pagination.has_next"
               :useOutline="true"
@@ -230,7 +230,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useIconStore } from '@/stores/icons';
+import { CiChevronLeft, CiChevronRight, CiClock, CiEye, CiEyeCancel, CiInfoTriangle, CiMagnifyingGlass, CiMapPin, CiTwoPersons } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { DiscoveryService } from '@/services/adapters/discoveryservice.js';
 import { getToolLogo, getSkillIcon } from '@/utils/iconMappers';
 
@@ -244,7 +245,6 @@ import Chip from '@/instances/common/components/Chip.vue';
 
 const route = useRoute();
 const router = useRouter();
-const iconStore = useIconStore();
 
 // State
 const loading = ref(true);
@@ -327,10 +327,6 @@ const sortOptions = computed(() => [
 ]);
 
 // Methods
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
-};
-
 const getToolIconPath = (toolName) => {
   return getToolLogo(toolName);
 };
@@ -339,7 +335,7 @@ const getSkillIconPath = (skillName) => {
   const skill = availableSkills.value.find(s => s.name === skillName);
   const category = skill?.category || '';
   const iconName = getSkillIcon(skillName, category);
-  return iconStore.getAppIcon(iconName);
+  return resolveIcon(iconName);
 };
 
 const getCountryName = (code) => {

@@ -1,7 +1,7 @@
 <template>
   <div class="type-mapping-editor">
     <div class="mapping-header">
-      <img :src="getAppIcon('checkpoint-stone')" alt="" class="header-icon" />
+      <CiCheckpointStone :size="20" class="header-icon" />
       <span class="header-title">Type Mappings</span>
       <span class="header-subtitle">Map {{ integrationName }} types to Clustta types</span>
     </div>
@@ -19,7 +19,7 @@
               <span class="type-name">{{ mapping.external_name || mapping.external_type }}</span>
             </div>
 
-            <img :src="getAppIcon('arrow-right')" alt="" class="arrow-icon" />
+            <CiArrowRight :size="20" class="arrow-icon" />
 
             <div class="local-type">
               <DropDownBox :items="localCollectionTypes" :selectedItem="mapping.local_type" :onSelect="(value) => updateCollectionMapping(mapping.external_type, value)"
@@ -41,7 +41,7 @@
               <span class="type-name">{{ mapping.external_name || mapping.external_type }}</span>
             </div>
 
-            <img :src="getAppIcon('arrow-right')" alt="" class="arrow-icon" />
+            <CiArrowRight :size="20" class="arrow-icon" />
 
             <div class="local-type">
               <DropDownBox :items="localAssetTypes" :selectedItem="mapping.local_type" :onSelect="(value) => updateAssetMapping(mapping.external_type, value)"
@@ -57,6 +57,8 @@
 <script setup>
 // imports
 import { computed } from 'vue';
+import { CiArrowRight, CiCheckpointStone } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
@@ -81,7 +83,7 @@ const emit = defineEmits(['update:collectionMappings', 'update:assetMappings']);
 // methods
 // Returns the app icon path.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Updates an collection type mapping.

@@ -9,7 +9,7 @@
         <div v-if="useSelected ? selectedTab === dataType.name : filterIndex === index" class="tab-gradient"></div>
         
         <div class="header-tab-meta" :class="{ 'icons-only': iconsOnly }" >
-          <img v-if="dataType.icon" :src="getAppIcon(dataType.icon)" class="tab-favicon" alt="tab-icon">
+          <component :is="resolveIcon(dataType.icon)" :size="16" class="tab-favicon ci-icon" />
           <span v-if="!iconsOnly && (filterIndex === index || fullWidth)" class="tab-title">{{ utils.capitalizeStr(dataType.name) }}</span>
           
           <!-- Alert indicators from HeaderTabs functionality -->
@@ -30,6 +30,7 @@
 </template>
 
 <script setup>
+import { resolveIcon } from '@/lib/icon-map';
 import { ref, computed } from 'vue';
 import { useIconStore } from '@/stores/icons';
 import { useTrayStates } from '@/stores/TrayStates';
@@ -68,7 +69,7 @@ const filterIndex = ref(0);
 
 const getAppIcon = (iconName) => {
   const formattedIconName = getIconName(iconName)
-  const icon = iconStore.getAppIcon(formattedIconName);
+  const icon = iconStore.resolveIcon(formattedIconName);
   return icon
 };
 

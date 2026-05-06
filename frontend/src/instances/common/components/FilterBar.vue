@@ -1,28 +1,28 @@
 <template>
   <div ref="filterBarRoot" class="filter-bar-root">
   	<div ref="filterOptions" class="filter-options">
-			<FilterButton v-if="!kanbanView" :icon="getAppIcon('clock')" v-tooltip="barIsOverflowing ? $t('components.filterBar.status') : ''" :label="$t('components.filterBar.status')"
+			<FilterButton v-if="!kanbanView" :icon="CiClock" v-tooltip="barIsOverflowing ? $t('components.filterBar.status') : ''" :label="$t('components.filterBar.status')"
 				:alert="isFilterActive('status')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'statusFilterMenu')"
 				@click="showFilterMenu($event, 'statusFilterMenu')" />
-			<FilterButton v-if="!kanbanView" :icon="getAppIcon('circle-check')" v-tooltip="barIsOverflowing ? $t('components.filterBar.state') : ''" :alert="isFilterActive('state')"
+			<FilterButton v-if="!kanbanView" :icon="CiCircleCheck" v-tooltip="barIsOverflowing ? $t('components.filterBar.state') : ''" :alert="isFilterActive('state')"
 				:label="$t('components.filterBar.state')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'stateFilterMenu')"
 				@click="showFilterMenu($event, 'stateFilterMenu')" />
-			<FilterButton :icon="getAppIcon('extension')" v-tooltip="barIsOverflowing ? $t('components.filterBar.extension') : ''" :alert="isFilterActive('extension')"
+			<FilterButton :icon="CiExtension" v-tooltip="barIsOverflowing ? $t('components.filterBar.extension') : ''" :alert="isFilterActive('extension')"
 				:label="$t('components.filterBar.extension')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'extensionFilterMenu')"
 				@click="showFilterMenu($event, 'extensionFilterMenu')" />
-			<FilterButton :icon="getAppIcon('man-running')" v-tooltip="barIsOverflowing ? $t('components.filterBar.assetType') : ''" :alert="isFilterActive('asset-type')"
+			<FilterButton :icon="CiManRunning" v-tooltip="barIsOverflowing ? $t('components.filterBar.assetType') : ''" :alert="isFilterActive('asset-type')"
 				:label="$t('components.filterBar.assetType')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'assetTypeFilterMenu')"
 				@click="showFilterMenu($event, 'assetTypeFilterMenu')" />
-			<FilterButton v-if="showTagsFilter" :icon="getAppIcon('tag')" v-tooltip="barIsOverflowing ? $t('components.filterBar.tags') : ''"
+			<FilterButton v-if="showTagsFilter" :icon="CiTag" v-tooltip="barIsOverflowing ? $t('components.filterBar.tags') : ''"
 				:label="$t('components.filterBar.tags')" :alert="isFilterActive('tags')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'tagsFilterMenu')"
 				@click="showFilterMenu($event, 'tagsFilterMenu')" />
-			<FilterButton :icon="getAppIcon('person')" v-tooltip="barIsOverflowing ? $t('components.filterBar.assignation') : ''" :label="$t('components.filterBar.assignees')"
+			<FilterButton :icon="CiPerson" v-tooltip="barIsOverflowing ? $t('components.filterBar.assignation') : ''" :label="$t('components.filterBar.assignees')"
 				:alert="isFilterActive('assignation')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'assigneeFilterMenu')"
 				@click="showFilterMenu($event, 'assigneeFilterMenu')" />
-			<FilterButton v-if="!kanbanView" :icon="getAppIcon('shapes')" v-tooltip="barIsOverflowing ? $t('components.filterBar.type') : ''" :alert="isFilterActive('general')"
+			<FilterButton v-if="!kanbanView" :icon="CiShapes" v-tooltip="barIsOverflowing ? $t('components.filterBar.type') : ''" :alert="isFilterActive('general')"
 			 :showLabel="!barIsOverflowing"	@mouseenter="flashFilterMenu($event, 'typeFilterMenu')"
 				@click="showFilterMenu($event, 'typeFilterMenu')" />
-			<ActionButton v-if="filtersActive" :icon="getAppIcon('close')" :allowDeactivate="true"
+			<ActionButton v-if="filtersActive" :icon="CiClose" :allowDeactivate="true"
 				v-tooltip="$t('components.filterBar.resetFilters')" :buttonFunction="clearFilters" />
 		</div>
 	</div>
@@ -32,6 +32,7 @@
 // imports
 import { computed, onMounted, ref, nextTick, onBeforeUnmount } from 'vue';
 import emitter from '@/lib/mitt';
+import { CiCircleCheck, CiClock, CiClose, CiExtension, CiManRunning, CiPerson, CiShapes, CiTag } from '@clustta/icons-vue';
 
 //components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
@@ -39,13 +40,11 @@ import FilterButton from '@/instances/desktop/components/FilterButton.vue'
 
 //stores
 import { useCommonStore } from '@/stores/common';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useTagStore } from '@/stores/tags';
 
 // states
 const commonStore = useCommonStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const tagStore = useTagStore();
 
@@ -97,9 +96,6 @@ const flashFilterMenu = (event, menuName) => {
 		menu.showContextMenu(event, menuName, true, true);
 	}
 };
-
-// Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 // Toggles or shows a filter menu on click.
 const showFilterMenu = (event, menuName) => {

@@ -2,15 +2,19 @@
   <span v-stop-propagation @click="buttonFunction" 
   :class="{'button-background': useBackground, 'full-width' : fullWidth, 'active-button' : isActive, 
   'icon-after' : iconAfter, 'centered' : centered, 'is-disabled': stage.operationActive }" class="action-button">
-    <img v-if="!iconAfter && smallIcons" class="small-icons" :src="icon">
-    <img v-else-if="!smallIcons" class="extra-large-icons" :src="icon">
+    <component v-if="!iconAfter && isIconComponent && smallIcons" :is="icon" :size="16" class="ci-btn-icon" />
+    <component v-else-if="!iconAfter && isIconComponent" :is="icon" :size="20" class="ci-btn-icon" />
+    <img v-else-if="!iconAfter && smallIcons" class="small-icons" :src="icon">
+    <img v-else-if="!iconAfter && !smallIcons" class="extra-large-icons" :src="icon">
     <div v-if="showLabel">{{ label }}</div>
-    <img v-if="iconAfter" class="extra-large-icons" :src="icon">
+    <component v-if="iconAfter && isIconComponent" :is="icon" :size="20" class="ci-btn-icon" />
+    <img v-else-if="iconAfter" class="extra-large-icons" :src="icon">
   </span>
 </template>
   
 <script setup>
 
+import { computed } from 'vue';
 import { useModalStore } from '@/stores/modals';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useStageStore } from '@/stores/stages';
@@ -23,7 +27,7 @@ const editParams = (itemType) => {
 };
 
 const props = defineProps({
-  icon: String,
+  icon: [String, Object, Function],
   label: String,
   buttonFunction: Function,
   showLabel: { type: Boolean, default: false},
@@ -34,6 +38,10 @@ const props = defineProps({
   isActive: { type: Boolean, default: false},
   smallIcons: { type: Boolean, default: false},
 
+});
+
+const isIconComponent = computed(() => {
+  return props.icon && typeof props.icon !== 'string';
 });
  
 </script>
@@ -76,6 +84,14 @@ const props = defineProps({
 .action-button:active{
   opacity: 1;
   /* background-color: #00000013; */
+}
+
+.ci-btn-icon {
+  stroke: var(--light-steel);
+}
+
+.active-button .ci-btn-icon {
+  stroke: var(--white);
 }
 
 .action-button-pressed {

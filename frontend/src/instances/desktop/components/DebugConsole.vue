@@ -2,17 +2,17 @@
   <div class="debug-console">
     <div class="debug-console-header">
       <div class="debug-console-title">
-        <img class="small-icons" :src="getAppIcon('console')">
+        <CiConsole :size="20" />
         <span>{{ $t('components.debugConsole.title') }}</span>
         <span class="log-count">({{ searchQuery ? `${filteredLogs.length}/${logs.length}` : logs.length }})</span>
       </div>
       <div class="debug-console-actions">
         <SearchBar v-model="searchQuery" :placeholder="$t('components.debugConsole.filterPlaceholder')" />
-        <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('components.debugConsole.copyLogs')" :buttonFunction="copyLogs" />
-        <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="$t('components.debugConsole.openLogsFolder')" :buttonFunction="openLogsFolder" />
-        <ActionButton :icon="getAppIcon('megaphone')" v-tooltip="$t('components.debugConsole.submitDiagnostics')" :buttonFunction="openDiagnosticsModal" />
-        <ActionButton :icon="getAppIcon('broom')" v-tooltip="$t('components.debugConsole.clear')" :buttonFunction="clearLogs" />
-        <ActionButton :icon="getAppIcon('close')" v-tooltip="$t('components.debugConsole.close')" :buttonFunction="closeConsole" />
+        <ActionButton :icon="CiCopy" v-tooltip="$t('components.debugConsole.copyLogs')" :buttonFunction="copyLogs" />
+        <ActionButton :icon="CiFolderArrowUpRight" v-tooltip="$t('components.debugConsole.openLogsFolder')" :buttonFunction="openLogsFolder" />
+        <ActionButton :icon="CiMegaphone" v-tooltip="$t('components.debugConsole.submitDiagnostics')" :buttonFunction="openDiagnosticsModal" />
+        <ActionButton :icon="CiBroom" v-tooltip="$t('components.debugConsole.clear')" :buttonFunction="clearLogs" />
+        <ActionButton :icon="CiClose" v-tooltip="$t('components.debugConsole.close')" :buttonFunction="closeConsole" />
       </div>
     </div>
 
@@ -34,6 +34,8 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Events } from "@wailsio/runtime";
+import { CiBroom, CiClose, CiConsole, CiCopy, CiFolderArrowUpRight, CiMegaphone } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -121,7 +123,7 @@ const formatMessage = (args) => {
 };
 
 // Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+const getAppIcon = (iconName) => iconStore.resolveIcon(iconName);
 
 // Opens the diagnostics modal for submitting logs via email.
 const openDiagnosticsModal = () => {

@@ -15,7 +15,7 @@
           <div class="horizontal-flex">
             <input v-model="assetWebLink" class="input-short" type="text" :placeholder="$t('placeholders.webLink')" ref="assetWebLinkInput" />
             <span @click="pasteWebLink" class="single-action-button" v-tooltip="$t('modals.pasteLink')">
-              <img class="small-icons" :src="getAppIcon('clipboard')">
+              <CiClipboard :size="20" />
             </span>
           </div>
         </div>
@@ -26,7 +26,7 @@
               <DropDownBox :items="assetTypeNames" :selectedItem="assetType" :onSelect="selectAssetType" />
             </div>
             <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addNewAssetType')">
-              <img class="small-icons" :src="getAppIcon('plus-circle')">
+              <CiPlusCircle :size="20" />
             </span>
           </div>
         </div>
@@ -53,6 +53,8 @@ import { useI18n } from 'vue-i18n';
 import { isValidWeblink } from '@/lib/pointer';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
+import { CiClipboard, CiPlusCircle } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import AssetTypeForm from '@/instances/common/components/AssetTypeForm.vue';
@@ -157,7 +159,7 @@ const closeModal = () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles successful type creation from the form.

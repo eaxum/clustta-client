@@ -1,6 +1,6 @@
 <template>
   <div class="modal-container" v-stop-propagation>
-    <HeaderArea :title="$t('modals.backupProject')" :icon="getAppIcon('clustta')" :showSearch="false" />
+    <HeaderArea :title="$t('modals.backupProject')" :icon="CiClustta" :showSearch="false" />
     <div class="general-container">
 
       <!-- Project Info Display -->
@@ -17,7 +17,7 @@
           <!-- Source File Display -->
           <div class="location-item location-item-single">
             <div class="location-icon">
-              <img class="small-icons" :src="getAppIcon('clustta')">
+              <CiClustta :size="20" />
             </div>
             <div class="location-content">
               <div class="location-header">
@@ -51,7 +51,7 @@
           <!-- Selected Backup Path Display -->
           <div v-if="selectedBackupDirectory" class="location-item location-item-single">
             <div class="location-icon">
-              <img class="small-icons" :src="getAppIcon('folder')">
+              <CiFolder :size="20" />
             </div>
             <div class="location-content">
               <div class="location-header">
@@ -101,7 +101,7 @@
         <div class="settings-section-card-content">
           <div class="location-item location-item-single">
             <div class="location-icon">
-              <img class="small-icons" :src="getAppIcon('folder')">
+              <CiFolder :size="20" />
             </div>
             <div class="location-content">
               <div class="location-header">
@@ -113,7 +113,7 @@
             </div>
             <div class="location-actions">
               <ActionButton 
-                :icon="getAppIcon('folder-arrow-up-right')" 
+                :icon="CiFolderArrowUpRight" 
                 :buttonFunction="() => locateBackupFile()"
                 v-tooltip="$t('modals.locateInExplorer')"
               />
@@ -161,6 +161,8 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { syncFullData } from '@/lib/sync';
+import { CiClustta, CiFolder, CiFolderArrowUpRight } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -240,7 +242,7 @@ const closeModal = () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Opens the backup file location in file explorer.

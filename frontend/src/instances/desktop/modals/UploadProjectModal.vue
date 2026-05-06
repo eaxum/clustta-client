@@ -1,7 +1,7 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
 
-    <HeaderArea :title="title" :icon="getAppIcon('arrow-up-ramp')" :showSearch="false" />
+    <HeaderArea :title="title" :icon="CiArrowUpRamp" :showSearch="false" />
 
     <div class="general-container">
 
@@ -10,7 +10,7 @@
         <div class="horizontal-flex">
           <input v-model="selectedFilePath" class="input-short" type="text" :placeholder="$t('placeholders.selectClusttaFile')" readonly />
           <span @click="selectProjectFile" class="single-action-button" v-tooltip="$t('common.browse')">
-            <img class="small-icons" :src="getAppIcon('clustta')">
+            <CiClustta :size="20" />
           </span>
         </div>
         <InputAlert :show="fileError" :message="fileErrorMessage" />
@@ -36,7 +36,7 @@
             />
           </div>
           <span @click="addNewLocation" class="single-action-button" v-tooltip="$t('modals.addNewLocation')">
-            <img class="small-icons" :src="getAppIcon('plus-circle')">
+            <CiPlusCircle :size="20" />
           </span>
         </div>
         <div v-if="workingDirectory" class="computed-path-display">
@@ -57,6 +57,8 @@
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiArrowUpRamp, CiClustta, CiPlusCircle } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
@@ -169,7 +171,7 @@ const closeModal = () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles enter key press to trigger upload.

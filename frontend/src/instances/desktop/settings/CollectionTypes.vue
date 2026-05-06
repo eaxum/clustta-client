@@ -7,7 +7,7 @@
       <ScrollList v-if="projectCollectionTypes.length" :items="projectCollectionTypes" :useIcons="true" :useItemId="true"
         :wrapItems="true" :editItems="true" :editListItem="prepEditCollectionType" :deleteItems="true"
         :deleteListItem="deleteCollectionType" />
-      <PageState v-else :message="message()" :illustration="illustration()" :secondaryIcon="getAppIcon('plus-circle')"
+      <PageState v-else :message="message()" :illustration="illustration()" :secondaryIcon="CiPlusCircle"
         :secondaryActionMessage="secondaryActionMessage()" :secondaryActionFunction="secondaryActionFunction" />
 
     </div>
@@ -20,6 +20,8 @@
 import { onMounted, computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
+import { CiPlusCircle } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // store imports
 import { useCollectionStore } from '@/stores/collections';
@@ -70,7 +72,7 @@ const projectCollectionTypes = computed(() => {
 
 // methods
 const getAppIcon = (iconName) => {
-    const icon = iconStore.getAppIcon(iconName);
+    const icon = iconStore.resolveIcon(iconName);
     return icon
 };
 

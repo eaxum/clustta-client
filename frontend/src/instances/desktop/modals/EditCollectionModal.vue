@@ -2,7 +2,7 @@
 
   <div ref="modalContainer" class="modal-container" v-esc="closeModal" v-return="handleEnterKey" v-stop-propagation>
 
-      <HeaderArea :title="title" :icon="getAppIcon(displayTypeCreator ? newTypeIcon : collectionTypeIcon)" :showSearch="false" />
+      <HeaderArea :title="title" :icon="resolveIcon(displayTypeCreator ? newTypeIcon : collectionTypeIcon)" :showSearch="false" />
 
     <div class="general-container">
 
@@ -22,13 +22,13 @@
               <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="collectionType" :onSelect="changeCollectionType" />
             </div>
             <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addNewCollectionType')">
-              <img class="small-icons" :src="getAppIcon('plus-circle')">
+              <CiPlusCircle :size="20" />
             </span>
           </div>
         </div>
 
         <div v-if="projectStore.activeProject?.has_remote" class="horizontal-flex is-shared-prompt">
-          <ActionButton :isInactive="true" :icon="getAppIcon('shared')" :label="$t('common.shared')" />
+          <ActionButton :isInactive="true" :icon="CiShared" :label="$t('common.shared')" />
           <ToggleSwitch v-tooltip="isShared? $t('panes.unmarkAsShared') : $t('panes.markAsShared')" @click="toggleIsShared" :switchValueProp="isShared" />
         </div>
 
@@ -53,6 +53,8 @@ import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
+import { CiPlusCircle, CiShared } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -169,7 +171,7 @@ const closeModal = () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles enter key press to submit form.

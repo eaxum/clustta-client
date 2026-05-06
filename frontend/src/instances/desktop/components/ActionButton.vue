@@ -9,14 +9,16 @@
     </Teleport>
     <span v-if="emoji" class="button-emoji no-cursor no-filter">{{ decodeEmoji(emoji) }}</span>
     <img v-else-if="customIconUrl" class="small-icons no-cursor"  :class="{ 'no-filter' : noFilter}" :src="customIconUrl">
+    <component v-else-if="showIcon && !iconAfter && isIconComponent" :is="icon" :size="20" class="ci-btn-icon no-cursor" :class="{ 'loading-icon' : isLoading, 'loading-icon-reverse' : reverseLoading }" />
     <img v-else-if="showIcon && !iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter, 'loading-icon' : isLoading, 'loading-icon-reverse' : reverseLoading }" :src="icon">
     <div v-if="showLabel || label" class="small-icons button-label no-cursor" :class="{ 'label-force-light': forceIconColor === 'light', 'label-force-dark': forceIconColor === 'dark' }">{{ label }}</div>
-    <img v-if="showIcon && iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter }" :src="icon">
+    <component v-if="showIcon && iconAfter && isIconComponent" :is="icon" :size="20" class="ci-btn-icon no-cursor" />
+    <img v-else-if="showIcon && iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter }" :src="icon">
   </span>
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount, watch, markRaw } from 'vue';
 import { decodeEmoji } from '@/services/utils';
 import { useStageStore } from '@/stores/stages';
 import { useNotificationStore } from '@/stores/notifications';
@@ -26,7 +28,7 @@ const notificationStore = useNotificationStore();
 
 
 const props = defineProps({
-  icon: String,
+  icon: [String, Object, Function],
   label: String,
   color: String,
   emoji: { type: String, default: '' },
@@ -57,6 +59,8 @@ const props = defineProps({
   forceIconColor: { type: String, default: '', validator: (value) => ['', 'light', 'dark'].includes(value) },
 
 });
+
+const isIconComponent = computed(() => props.icon && typeof props.icon === 'object');
 
 const isDead = computed(() => {
   // Check if write operation is active
@@ -357,6 +361,53 @@ onBeforeUnmount(() => {
 
 .label-force-dark {
   color: var(--black) !important;
+}
+
+.ci-btn-icon {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  stroke: var(--white);
+}
+
+[data-theme="dark"] .use-alert .ci-btn-icon {
+  stroke: #e8a838;
+}
+
+.use-alert .ci-btn-icon {
+  stroke: #c47a1a;
+}
+
+[data-theme="dark"] .use-danger .ci-btn-icon {
+  stroke: #c41a1a;
+}
+
+.use-danger .ci-btn-icon {
+  stroke: #c41a1a;
+}
+
+[data-theme="dark"] .use-go .ci-btn-icon {
+  stroke: #4caf50;
+}
+
+.use-go .ci-btn-icon {
+  stroke: #4caf50;
+}
+
+.force-light .ci-btn-icon {
+  stroke: white !important;
+}
+
+.force-dark .ci-btn-icon {
+  stroke: var(--black) !important;
+}
+
+.is-mini .ci-btn-icon {
+  width: 12px;
+  height: 12px;
+  min-width: 12px;
+  min-height: 12px;
 }
 
 </style>

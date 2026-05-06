@@ -15,11 +15,11 @@
             {{ assetStatus.short_name }}
           </div>
         </div>
-        <ActionButton :icon="getAppIcon('paperclip')" v-tooltip="$t('modals.attachSnapshot')" v-stop-propagation
+        <ActionButton :icon="CiPaperclip" v-tooltip="$t('modals.attachSnapshot')" v-stop-propagation
           :buttonFunction="selectPreviewFile" />
-        <ActionButton :icon="getAppIcon('clipboard')" v-tooltip="$t('modals.pasteSnapshot')" v-stop-propagation
+        <ActionButton :icon="CiClipboard" v-tooltip="$t('modals.pasteSnapshot')" v-stop-propagation
           :buttonFunction="addImageFromClipBoard" />
-        <ActionButton v-if="trayStates.previewFullPath" :icon="getAppIcon('trash')" v-tooltip="$t('modals.deleteSnapshot')"
+        <ActionButton v-if="trayStates.previewFullPath" :icon="CiTrash" v-tooltip="$t('modals.deleteSnapshot')"
           v-stop-propagation :buttonFunction="removePreveiw" />
       </div>
 
@@ -34,7 +34,7 @@
       </span>
 
       <div v-if="trayStates.previewFullPath && !isAttachmentImage" class="attachment-indicator">
-        <img class="attachment-icon" :src="getAppIcon('paperclip')">
+        <CiPaperclip :size="20" class="attachment-icon" />
         <span class="attachment-name">{{ trayStates.previewFile }}</span>
       </div>
 
@@ -72,6 +72,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
+import { CiClipboard, CiPaperclip, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -252,7 +254,7 @@ const createCheckPoint = async () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles enter key press to submit form.

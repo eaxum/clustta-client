@@ -3,7 +3,7 @@
 		<div class="side-pane-content">
 			<div class="project-section">
 				<div class="project-list-items">
-				<TabButton :icon="getAppIcon('four-squares')" v-tooltip="$t('components.sidePane.allProjects')" @click="goToProjects"
+				<TabButton :icon="CiFourSquares" v-tooltip="$t('components.sidePane.allProjects')" @click="goToProjects"
 					:showLabel="sidePaneActive" :fullWidth="sidePaneActive" :label="$t('components.sidePane.allProjects')"
 						:buttonFunction="doNothing" />
 					<ProjectList />
@@ -21,12 +21,12 @@
 					</span>
 				</div>
 
-				<TabButton :icon="getAppIcon('cog')" v-tooltip="$t('components.sidePane.settings')"
+				<TabButton :icon="CiCog" v-tooltip="$t('components.sidePane.settings')"
 					@click="stage.setStageVisibility('settings', true)" :isActive="stage.activeStage === 'settings'"
 					:showLabel="sidePaneActive" :fullWidth="sidePaneActive" :label="$t('components.sidePane.settings')" />
-				<TabButton v-if="!userStore.getUserAuthentication" :icon="getAppIcon('login')" v-tooltip="$t('components.sidePane.login')"
+				<TabButton v-if="!userStore.getUserAuthentication" :icon="CiLogin" v-tooltip="$t('components.sidePane.login')"
 					:showLabel="sidePaneIsOpen" :fullWidth="sidePaneIsOpen" :buttonFunction="logUserIn" />
-				<!-- <TabButton v-else :icon="getAppIcon('logout')" v-tooltip="'Logout'" :showLabel="sidePaneIsOpen"
+				<!-- <TabButton v-else :icon="CiLogout" v-tooltip="'Logout'" :showLabel="sidePaneIsOpen"
 					:fullWidth="sidePaneIsOpen" :buttonFunction="logUserOut" /> -->
 			</div>
 		</div>
@@ -52,6 +52,8 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useMenu } from '@/stores/menu';
 
 // imports
+import { CiCog, CiFourSquares, CiLogin, CiLogout } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 const stage = useStageStore();
 const panes = usePaneStore();
 const trayStates = useTrayStates();
@@ -95,7 +97,7 @@ const showPin = computed(() => { return !projectListClosed.value && projectListP
 
 // methods
 const getAppIcon = (iconName) => {
-	const icon = iconStore.getAppIcon(iconName);
+	const icon = iconStore.resolveIcon(iconName);
 	return icon
 };
 

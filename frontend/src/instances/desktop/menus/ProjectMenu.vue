@@ -2,48 +2,48 @@
   <div ref="collectionMenu" class="filter-menu-container">
 
     <!-- Create -->
-     <ActionButton :icon="getAppIcon('file-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addAsset')"
+     <ActionButton :icon="CiFilePlus" :showLabel="true" :fullWidth="true" :label="$t('menus.addAsset')"
       v-if="templateStore.getTemplates.length && userStore.canDo('create_asset')" :buttonFunction="createAsset" />
 
-    <ActionButton :icon="getAppIcon('folder-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addCollection')"
+    <ActionButton :icon="CiFolderPlus" :showLabel="true" :fullWidth="true" :label="$t('menus.addCollection')"
       v-if="userStore.canDo('create_collection')" :buttonFunction="createCollection" />
 
-    <ActionButton :icon="getAppIcon('workflow-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addWorkflow')"
+    <ActionButton :icon="CiWorkflowPlus" :showLabel="true" :fullWidth="true" :label="$t('menus.addWorkflow')"
       v-if="workflowStore.workflows.length && userStore.canDo('create_asset')" :buttonFunction="addWorkflow" />
 
-    <ActionButton :icon="getAppIcon('data-download')" :showLabel="true" :fullWidth="true" :label="$t('modals.importItems')"
+    <ActionButton :icon="CiDataDownload" :showLabel="true" :fullWidth="true" :label="$t('modals.importItems')"
       v-if="!platformStore.isWeb && userStore.canDo('create_asset')" :buttonFunction="importItems" />
 
-    <ActionButton :icon="getAppIcon('arrow-up-ramp')" :showLabel="true" :fullWidth="true" :label="$t('menus.uploadItems')"
+    <ActionButton :icon="CiArrowUpRamp" :showLabel="true" :fullWidth="true" :label="$t('menus.uploadItems')"
       v-if="platformStore.isWeb && userStore.canDo('create_asset')" :buttonFunction="uploadItems" />
 
-    <ActionButton :icon="getAppIcon('clipboard')" :showLabel="true" :fullWidth="true" :label="$t('common.paste')"
+    <ActionButton :icon="CiClipboard" :showLabel="true" :fullWidth="true" :label="$t('common.paste')"
       v-if="hasClipboardItems && userStore.canDo('update_collection')" :buttonFunction="pasteItems" />
 
     <span v-if="userStore.canDo('create_collection') && !platformStore.isWeb" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
     <span v-if="!platformStore.isWeb" class="horizontal-flex">
-      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
+      <ActionButton :icon="CiFolderArrowUpRight" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
         :buttonFunction="revealInExplorer" />
-      <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyDirectoryPath()"
+      <ActionButton :icon="CiCopy" :showLabel="false" :fullWidth="false" @click="copyDirectoryPath()"
         v-tooltip="$t('common.copyPath')" />
     </span>
 
     <!-- Relocate Working Directory -->
-    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" :label="$t('menus.relocate')"
+    <ActionButton v-if="!platformStore.isWeb" :icon="CiFolderArrowIn" :showLabel="true" :fullWidth="true" :label="$t('menus.relocate')"
       :buttonFunction="relocateWorkingDirectory" />
 
     <!-- Rebuild -->
-    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" :label="$t('menus.buildProject')"
+    <ActionButton v-if="!platformStore.isWeb" :icon="CiJigsaw" :showLabel="true" :fullWidth="true" :label="$t('menus.buildProject')"
       :buttonFunction="rebuildAll" />
 
     <!-- Free space -->
-    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" :label="$t('common.freeUpSpace')"
+    <ActionButton v-if="!platformStore.isWeb" :icon="CiBroom" :showLabel="true" :fullWidth="true" :label="$t('common.freeUpSpace')"
       :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Clear Trash -->
-    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.emptyTrash')"
+    <ActionButton v-if="!platformStore.isWeb" :icon="CiTrash" :showLabel="true" :fullWidth="true" :label="$t('common.emptyTrash')"
       :buttonFunction="prepEmptyTrashPopUpModal" />
 
 
@@ -54,6 +54,7 @@
 <script setup>
 // imports
 import { onBeforeUnmount, onMounted, ref, computed } from 'vue';
+import { CiArrowUpRamp, CiBroom, CiClipboard, CiCopy, CiDataDownload, CiFilePlus, CiFolderArrowIn, CiFolderArrowUpRight, CiFolderPlus, CiJigsaw, CiTrash, CiWorkflowPlus } from '@clustta/icons-vue';
 import { useI18n } from 'vue-i18n';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
@@ -69,7 +70,6 @@ import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { usePlatformStore } from '@/stores/platform';
@@ -84,7 +84,6 @@ const { t } = useI18n();
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -226,11 +225,6 @@ const generateUniqueDestinationPath = async (directory, fileName) => {
   const timestamp = Date.now();
   const timestampFileName = `${baseName}_${timestamp}${extension}`;
   return await FSService.JoinPath(directory, timestampFileName);
-};
-
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
 };
 
 // Returns the current directory path based on navigation state.

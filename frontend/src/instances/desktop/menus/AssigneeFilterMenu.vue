@@ -2,7 +2,7 @@
   <div ref="collectionMenu" class="filter-menu-container" v-stop-propagation>
 
     <span class="filter-menu-item" @click="toggleHasAssignees()">
-      <img class="small-icons" :src="getAppIcon('person-plus')">
+      <CiPersonPlus class="small-icons" :size="20" />
       <div class="horizontal-flex">
         <div class="menu-item-text" >{{ $t('menus.isAssigned') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.hasAssignees" />
@@ -10,7 +10,7 @@
     </span>
 
     <span class="filter-menu-item" @click="toggleNoAssignees()">
-      <img class="small-icons" :src="getAppIcon('person-minus')">
+      <CiPersonMinus class="small-icons" :size="20" />
       <div class="horizontal-flex">
         <div class="menu-item-text" >{{ $t('menus.isNotAssigned') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.noAssignees" />
@@ -36,6 +36,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { CiPersonMinus, CiPersonPlus } from '@clustta/icons-vue';
 import emitter from '@/lib/mitt';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
@@ -46,12 +47,10 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // stores
 import { useCommonStore } from '@/stores/common';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useUserStore } from '@/stores/users';
 
 const commonStore = useCommonStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const userStore = useUserStore();
 
@@ -84,11 +83,6 @@ const assigneeFilterActive = computed(() => {
 // Adds a filter to the asset filters list.
 const addFilter = (filter) => {
   commonStore.assetFilters.push(filter);
-};
-
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
 };
 
 // Checks if a filter is currently active.

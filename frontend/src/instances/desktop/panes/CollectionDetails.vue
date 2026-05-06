@@ -15,20 +15,20 @@
         <div class="action-bar" v-if="userStore.canDo('update_collection')">
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="$t('panes.collectionType')" />
+            <ActionButton :isInactive="true" :icon="CiFolder" :label="$t('panes.collectionType')" />
             <DropDownBox :items="collectionStore.getCollectionTypesNames"
               :selectedItem="collectionStore.selectedCollection.collection_type_name" :onSelect="changeCollectionType"
               :fixedWidth="true" />
           </div>
           <div v-if="projectStore.activeProject?.has_remote" class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('shared')" :label="$t('panes.shared')" />
+            <ActionButton :isInactive="true" :icon="CiShared" :label="$t('panes.shared')" />
 
             <ToggleSwitch v-tooltip="collectionStore.selectedCollection.is_shared ? $t('panes.unmarkAsShared') : $t('panes.markAsShared')"
               @click="changeIsShared" :switchValueProp="collectionStore.selectedCollection.is_shared" />
           </div>
 
           <div v-if="projectStore.activeProject?.has_remote" class="vertical-flex assignees-search">
-            <ActionButton :isInactive="true" :icon="getAppIcon('person')" :label="$t('panes.assignees')" />
+            <ActionButton :isInactive="true" :icon="CiPerson" :label="$t('panes.assignees')" />
             <CollaboratorSuggestions :displayEmail="false" :placeholder="placeholder" :allItems="projectUsers"
               @tagAdded="addUser" @tagRemoved="removeUser" />
           </div>
@@ -66,8 +66,8 @@
               {{ collectionStore.selectedCollection.file_path }}
             </div>
             <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
-              <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('common.copyPath')" @click="copyCollectionPath('collection')"/>
-              <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="$t('common.revealInExplorer')" :buttonFunction="revealInExplorer"/>
+              <ActionButton :icon="CiCopy" v-tooltip="$t('common.copyPath')" @click="copyCollectionPath('collection')"/>
+              <ActionButton :icon="CiFolderArrowUpRight" v-tooltip="$t('common.revealInExplorer')" :buttonFunction="revealInExplorer"/>
             </div>
         </div>
 
@@ -112,7 +112,7 @@ import { useIconStore } from '@/stores/icons';
 const iconStore = useIconStore();
 
 const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
+  const icon = iconStore.resolveIcon(iconName);
   return icon
 };
 
@@ -127,6 +127,8 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
+import { CiCopy, CiFolder, CiFolderArrowUpRight, CiPerson, CiShared } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // store imports
 import { useUserStore } from '@/stores/users';

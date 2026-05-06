@@ -2,15 +2,16 @@
   <div class="trash-item-container">
     <div class="trash-item">
       <div class="trash-item-meta">
-        <img class="trash-item-icon small-icons" :class="{ 'no-filter': resolvedIcon }" :src="trashItemIcon(trashItem.type)" />
+        <img v-if="resolvedIcon" class="trash-item-icon small-icons no-filter" :src="resolvedIcon" />
+        <component v-else :is="trashItemIcon(trashItem.type)" :size="20" class="trash-item-icon" />
         <div class="trash-item-label">
           <div class="trash-item-label-text" @mouseenter="trayStates.handleHover($event)" @mouseleave="trayStates.resetScroll($event)"><span>{{ trashItem.name.replace(/_/g, " ") }}</span></div>
           <div v-if="trashItem.type === 'asset'" class="trash-item-collection">{{ trashItem.collection_name }}</div>
         </div>
       </div>
 
-      <ActionButton v-if="!trashItem.checkpoints.length" :icon="getAppIcon(restoringIds.has(trashItem.id) ? 'loading' : 'undo')" :reverseLoading="restoringIds.has(trashItem.id)" v-tooltip="$t('components.trashItem.restore')" :buttonFunction="() => restoreItem(trashItem.id, trashItem.type)" />
-      <ActionButton v-else :icon="getAppIcon('chevron-right')" :class="{ 'chevron-expanded': isExpanded === trashItemIndex }" :buttonFunction="() => toggleVersions(trashItemIndex)" />
+      <ActionButton v-if="!trashItem.checkpoints.length" :icon="resolveIconComponent(restoringIds.has(trashItem.id) ? 'loading' : 'undo')" :reverseLoading="restoringIds.has(trashItem.id)" v-tooltip="$t('components.trashItem.restore')" :buttonFunction="() => restoreItem(trashItem.id, trashItem.type)" />
+      <ActionButton v-else :icon="CiChevronRight" :class="{ 'chevron-expanded': isExpanded === trashItemIndex }" :buttonFunction="() => toggleVersions(trashItemIndex)" />
     </div>
 
     <transition name="expand" appear>
@@ -18,9 +19,9 @@
         <template v-for="(checkpoint, index) in trashItem.checkpoints" :key="index">
           <div v-if="index > 0" class="trash-child-divider"></div>
           <div class="trash-child">
-            <img class="trash-child-icon small-icons" :src="getAppIcon('checkpoint-stone')" />
+            <CiCheckpointStone :size="20" class="trash-child-icon" />
             <div class="trash-child-label">{{ formatName(checkpoint.name) }}</div>
-            <ActionButton :icon="getAppIcon(restoringIds.has(checkpoint.id) ? 'loading' : 'undo')" :reverseLoading="restoringIds.has(checkpoint.id)" v-tooltip="$t('components.trashItem.restore')" :buttonFunction="() => restoreItem(checkpoint.id, checkpoint.type)" />
+            <ActionButton :icon="resolveIconComponent(restoringIds.has(checkpoint.id) ? 'loading' : 'undo')" :reverseLoading="restoringIds.has(checkpoint.id)" v-tooltip="$t('components.trashItem.restore')" :buttonFunction="() => restoreItem(checkpoint.id, checkpoint.type)" />
           </div>
         </template>
       </div>
@@ -33,6 +34,8 @@
 import { nextTick, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
+import { CiCategories, CiCheckpointStone, CiChevronRight, CiFolder, CiGeneric } from '@clustta/icons-vue';
+import { resolveIcon as resolveIconComponent } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -69,9 +72,6 @@ const formatName = (name) => {
   return utils.formatDate(name.slice(-20), locale.value);
 };
 
-// Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
-
 // Resolves the file icon for assets with an extension.
 const resolveIcon = async () => {
   if (props.trashItem.extension) {
@@ -104,14 +104,12 @@ const toggleVersions = (index) => {
   });
 };
 
-// Returns the icon for a trash item based on its type.
+// Returns the icon component for a trash item based on its type.
 const trashItemIcon = (type) => {
-  if (type === 'asset' && resolvedIcon.value) return resolvedIcon.value;
-  if (type === 'template' && resolvedIcon.value) return resolvedIcon.value;
-  if (type === 'collection') return getAppIcon('folder');
-  if (type === 'asset') return getAppIcon('generic');
-  if (type === 'template') return getAppIcon('categories');
-  return getAppIcon('generic');
+  if (type === 'collection') return CiFolder;
+  if (type === 'asset') return CiGeneric;
+  if (type === 'template') return CiCategories;
+  return CiGeneric;
 };
 
 // lifecycle hooks

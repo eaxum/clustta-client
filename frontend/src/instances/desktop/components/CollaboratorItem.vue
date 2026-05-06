@@ -23,20 +23,20 @@
         </div>
 
         <div v-if="!compact" class="collaborator-item-actions">
-          <ActionButton v-if="canDeleteUser" :icon="getAppIcon('person-minus')" @click="deleteCollaborator(collaborator.id)" v-tooltip="$t('components.collaboratorItem.remove')" />
-          <ActionButton :icon="getAppIcon('person-search')" @click="openUserProfile" v-tooltip="$t('components.collaboratorItem.viewProfile')" />
+          <ActionButton v-if="canDeleteUser" :icon="CiPersonMinus" @click="deleteCollaborator(collaborator.id)" v-tooltip="$t('components.collaboratorItem.remove')" />
+          <ActionButton :icon="CiPersonSearch" @click="openUserProfile" v-tooltip="$t('components.collaboratorItem.viewProfile')" />
         </div>
 
         <div v-if="compact && !isEditing && isProjectMember" class="collaborator-item-actions compact-actions-container">
           <div class="compact-role-meta" v-tooltip="displayRole">{{ displayRole }}</div>
           <div class="compact-hover-actions">
-            <ActionButton v-if="canEditRole" :icon="getAppIcon('edit')" @click="startEditing" v-tooltip="$t('components.collaboratorItem.editRole')" />
-            <ActionButton v-if="canDeleteUser" :icon="getAppIcon(isLoading ? 'loading' : 'person-minus')" :isLoading="isLoading" @click="deleteCollaborator(collaborator.id)" v-tooltip="isLoading ? $t('components.collaboratorItem.removing') : $t('components.collaboratorItem.remove')" />
+            <ActionButton v-if="canEditRole" :icon="CiEdit" @click="startEditing" v-tooltip="$t('components.collaboratorItem.editRole')" />
+            <ActionButton v-if="canDeleteUser" :icon="isLoading ? CiLoading : CiPersonMinus" :isLoading="isLoading" @click="deleteCollaborator(collaborator.id)" v-tooltip="isLoading ? $t('components.collaboratorItem.removing') : $t('components.collaboratorItem.remove')" />
           </div>
         </div>
 
         <div v-if="compact && !isProjectMember" class="collaborator-item-actions compact-actions-container">
-          <ActionButton v-if="canEditRole" :icon="getAppIcon(isLoading ? 'loading' : 'person-plus')" :isLoading="isLoading" @click="addToProject" v-tooltip="isLoading ? $t('components.collaboratorItem.adding') : $t('components.collaboratorItem.addToProject')" />
+          <ActionButton v-if="canEditRole" :icon="isLoading ? CiLoading : CiPersonPlus" :isLoading="isLoading" @click="addToProject" v-tooltip="isLoading ? $t('components.collaboratorItem.adding') : $t('components.collaboratorItem.addToProject')" />
         </div>
 
       </div>
@@ -49,6 +49,7 @@
 import { computed, ref, watch, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Browser } from "@wailsio/runtime";
+import { CiEdit, CiLoading, CiPersonMinus, CiPersonPlus, CiPersonSearch } from '@clustta/icons-vue';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -59,13 +60,11 @@ import ProfilePhoto from '@/instances/common/components/ProfilePhoto.vue';
 import { StudioService } from "@/services";
 
 // stores
-import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useStudioStore } from '@/stores/studio';
 import { useUserStore } from '@/stores/users';
 
-const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const studioStore = useStudioStore();
@@ -141,11 +140,6 @@ const deleteCollaborator = (collaboratorId) => {
     .catch((error) => {
       notificationStore.errorNotification(t('components.collaboratorItem.errorRemovingCollaborator'), error.response.data);
     });
-};
-
-// Returns the icon path for the given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
 };
 
 // Handles the escape key press to exit editing mode.

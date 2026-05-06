@@ -13,7 +13,7 @@
             @click="selectPhoto"
             v-tooltip="$t('components.profileAvatar.changePhoto')"
           >
-            <img class="action-icon" :src="getAppIcon('camera')" alt="Change">
+            <CiCamera :size="20" class="action-icon" />
           </button>
           <button 
             v-if="photoPreview || userPhoto" 
@@ -21,7 +21,7 @@
             @click="removePhoto"
             v-tooltip="$t('components.profileAvatar.removePhoto')"
           >
-            <img class="action-icon" :src="getAppIcon('close')" alt="Remove">
+            <CiClose :size="20" class="action-icon" />
           </button>
         </div>
       </div>
@@ -30,6 +30,8 @@
 </template>
 
 <script setup>
+import { CiCamera, CiClose } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useIconStore } from '@/stores/icons';
@@ -107,7 +109,7 @@ const removePhoto = () => {
 };
 
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 </script>
 

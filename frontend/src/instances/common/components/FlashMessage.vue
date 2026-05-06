@@ -17,7 +17,7 @@
         <div class="header-with-minimize">
           <HeaderArea :title="notificationStore.getProgress.title" :icon="progressIcon" :showSearch="showSearch" :notModal="true" />
           <button @click="minimizeProgress" class="minimize-button single-action-button" v-tooltip="$t('components.flashMessage.minimize')">
-            <img :src="getAppIcon('chevron-down')" class="minimize-icon small-icons" />
+            <CiChevronDown class="minimize-icon small-icons" :size="20" />
           </button>
         </div>
       </div>
@@ -66,20 +66,10 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 import { useStageStore } from '@/stores/stages';
-import { useIconStore } from '@/stores/icons';
 import { usePlatformStore } from '@/stores/platform';
+import { CiChevronDown } from '@clustta/icons-vue';
 
 const platformStore = usePlatformStore();
-
-// vars
-let showSearch = false;
-
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
-  return icon;
-};
 
 const props = defineProps({
   isDesktop: {

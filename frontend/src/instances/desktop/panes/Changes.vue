@@ -1,14 +1,14 @@
 <template>
   <div class="general-pane-root">
       <div class="changelog-actions">
-        <ActionButton :icon="getAppIcon('revert')" :label="$t('panes.discardAll')" :showLabel="true" :buttonFunction="prepDiscardAll" :useDanger="true" :useOutline="true" :fullWidth="true" :useBackground="false" :isDisabled="isLoading || !hasChanges" />
-        <ActionButton :icon="getAppIcon(getCloudIcon)" :label="$t('panes.syncNow')" :showLabel="true" :buttonFunction="syncNow" :useOutline="true" :fullWidth="true" :useBackground="false" :isDisabled="isLoading" />
+        <ActionButton :icon="CiRevert" :label="$t('panes.discardAll')" :showLabel="true" :buttonFunction="prepDiscardAll" :useDanger="true" :useOutline="true" :fullWidth="true" :useBackground="false" :isDisabled="isLoading || !hasChanges" />
+        <ActionButton :icon="resolveIcon(getCloudIcon)" :label="$t('panes.syncNow')" :showLabel="true" :buttonFunction="syncNow" :useOutline="true" :fullWidth="true" :useBackground="false" :isDisabled="isLoading" />
       </div>
     <div v-if="hasChanges" class="changelog-scroll-container">
 
       <div v-if="summary.assets.length" class="changelog-group">
         <div class="changelog-group-header" @click="toggleGroup('assets')">
-          <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.assets }" />
+          <ActionButton :icon="CiChevronRight" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.assets }" />
           <span class="changelog-group-title">{{ $t('panes.assets') }}</span>
           <span class="changelog-group-count">{{ summary.assets.length }}</span>
           <div class="menu-divider"></div>
@@ -21,7 +21,7 @@
 
       <div v-if="summary.collections.length" class="changelog-group">
         <div class="changelog-group-header" @click="toggleGroup('collections')">
-          <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.collections }" />
+          <ActionButton :icon="CiChevronRight" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.collections }" />
           <span class="changelog-group-title">{{ $t('panes.collections') }}</span>
           <span class="changelog-group-count">{{ summary.collections.length }}</span>
           <div class="menu-divider"></div>
@@ -34,7 +34,7 @@
 
       <div v-if="summary.other.length" class="changelog-group">
         <div class="changelog-group-header" @click="toggleGroup('other')">
-          <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.other }" />
+          <ActionButton :icon="CiChevronRight" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.other }" />
           <span class="changelog-group-title">{{ $t('panes.templates') }}</span>
           <span class="changelog-group-count">{{ summary.other.length }}</span>
           <div class="menu-divider"></div>
@@ -56,6 +56,8 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { syncData } from '@/lib/sync';
+import { CiChevronRight, CiRevert } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -220,7 +222,7 @@ const findItem = async (itemId, itemType) => {
 };
 
 // Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+const getAppIcon = (iconName) => iconStore.resolveIcon(iconName);
 
 // Restores a trashed item back to its original state.
 const restoreItem = async (itemId, itemType) => {

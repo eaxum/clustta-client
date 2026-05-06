@@ -6,7 +6,7 @@
       <slot name="actions"></slot>
     </div>
     <div v-if="isLoading" class="assignee-loading-indicator">
-      <img class="small-icons loading-icon" :src="loadingIcon" />
+      <CiLoading class="small-icons loading-icon" :size="20" />
     </div>
   </div>
 </template>
@@ -14,9 +14,7 @@
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import ProfilePhoto from '@/instances/common/components/ProfilePhoto.vue'
-import { useIconStore } from '@/stores/icons';
-
-const iconStore = useIconStore();
+import { CiLoading } from '@clustta/icons-vue';
 
 const props = defineProps({
   name: {
@@ -42,8 +40,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['click']);
-
-const loadingIcon = computed(() => iconStore.getAppIcon('loading'));
 
 const triggerAction = () => {
   if (props.isLoading) return;

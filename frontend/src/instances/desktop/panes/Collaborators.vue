@@ -262,7 +262,7 @@ const deleteCollaborator = async (userId) => {
 
 // Returns the icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Returns the illustration path for the empty state.

@@ -1,6 +1,6 @@
 <template>
   <div class="modal-container" v-stop-propagation>
-    <HeaderArea :title="$t('modals.importProjects')" :icon="getAppIcon('arrow-down-ramp')" :showSearch="false" />
+    <HeaderArea :title="$t('modals.importProjects')" :icon="CiArrowDownRamp" :showSearch="false" />
     <div class="general-container">
 
       <!-- File Selection Card -->
@@ -22,7 +22,7 @@
           <div class="file-list">
             <div v-for="(file, index) in selectedFiles" :key="index" class="file-item">
               <div class="file-icon-wrapper">
-                <img class="small-icons no-filter" :src="getAppIcon('clustta')">
+                <CiClustta :size="20" class="no-filter" />
               </div>
               <div class="file-info">
                 <div class="file-name">{{ file.name }}</div>
@@ -30,7 +30,7 @@
               </div>
               <div class="file-actions">
                 <ActionButton 
-                  :icon="getAppIcon('trash')" 
+                  :icon="CiTrash" 
                   :useDanger="true"
                   :noFilter="true"
                   :buttonFunction="() => removeFile(index)"
@@ -58,7 +58,7 @@
           <div class="file-list">
             <div v-for="(filePath, index) in importedFiles" :key="index" class="file-item">
               <div class="file-icon-wrapper">
-                <img class="small-icons no-filter" :src="getAppIcon('clustta')">
+                <CiClustta :size="20" class="no-filter" />
               </div>
               <div class="file-info">
                 <div class="file-name">{{ getFileName(filePath) }}</div>
@@ -66,7 +66,7 @@
               </div>
               <div class="file-actions">
                 <ActionButton 
-                  :icon="getAppIcon('folder-arrow-up-right')" 
+                  :icon="CiFolderArrowUpRight" 
                   :buttonFunction="() => locateFile(filePath)"
                   v-tooltip="$t('modals.locateInExplorer')"
                 />
@@ -107,6 +107,8 @@
 // imports
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiArrowDownRamp, CiClustta, CiFolderArrowUpRight, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -149,7 +151,7 @@ const closeModal = async () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Extracts the filename from a path.

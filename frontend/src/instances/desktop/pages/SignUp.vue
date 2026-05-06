@@ -67,7 +67,7 @@
               </div>
               <ActionButton
                 v-else
-                :icon="getAppIcon('loading')"
+                :icon="CiLoading"
                 :isLoading="true"
                 :showLabel="false"
               />
@@ -94,7 +94,7 @@
 
         <!-- legal agreement -->
         <div v-if="!isInitializing" class="legal-agreement">
-          <p>{{ $t('auth.signUp.legalPrefix') }} <span class="legal-link" @click="openPrivacyPolicy">{{ $t('auth.signUp.privacyPolicy') }} <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span> {{ $t('auth.signUp.legalMiddle') }} <span class="legal-link" @click="openTermsOfService">{{ $t('auth.signUp.termsOfService') }} <ActionButton :icon="getAppIcon('square-arrow-right-up')" :allowDeactivate="true" :isMini="true" /></span>.</p>
+          <p>{{ $t('auth.signUp.legalPrefix') }} <span class="legal-link" @click="openPrivacyPolicy">{{ $t('auth.signUp.privacyPolicy') }} <ActionButton :icon="CiSquareArrowRightUp" :allowDeactivate="true" :isMini="true" /></span> {{ $t('auth.signUp.legalMiddle') }} <span class="legal-link" @click="openTermsOfService">{{ $t('auth.signUp.termsOfService') }} <ActionButton :icon="CiSquareArrowRightUp" :allowDeactivate="true" :isMini="true" /></span>.</p>
         </div>
 
       </div>
@@ -110,6 +110,8 @@ import { ref, reactive, computed, onMounted, onBeforeMount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { Browser } from "@wailsio/runtime";
+import { CiLoading, CiSquareArrowRightUp } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // services
 import { AuthService, SettingsService } from "@/services";
@@ -321,7 +323,7 @@ const escapeRegexChars = (string) => {
 
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles SSO error from the SSOLogin component.

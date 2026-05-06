@@ -4,15 +4,15 @@
     <div class="general-pane-header">
       <HeaderArea :notModal="true" v-if="isCustomIcon" :title="title" :customIcon="projectIcon" />
       <HeaderArea :notModal="true" v-else :title="title" :emoji="projectIcon" />
-      <ActionButton v-if="displayEmojiSelector"  :icon="getAppIcon('arrow-left')" :showLabel="false" v-tooltip="$t('modals.backToDetails')"
+      <ActionButton v-if="displayEmojiSelector"  :icon="CiArrowLeft" :showLabel="false" v-tooltip="$t('modals.backToDetails')"
         :buttonFunction="toggleEmojiSelector" />
-      <ActionButton v-else  :icon="getAppIcon('face-plus')" :showLabel="false" v-tooltip="$t('modals.setProjectIcon')"
+      <ActionButton v-else  :icon="CiFacePlus" :showLabel="false" v-tooltip="$t('modals.setProjectIcon')"
         :buttonFunction="toggleEmojiSelector" />
-      <ActionButton v-if="isPreviewChanged" :icon="getAppIcon('revert')" :showLabel="false"
+      <ActionButton v-if="isPreviewChanged" :icon="CiRevert" :showLabel="false"
         v-tooltip="$t('modals.revertCoverImage')" :buttonFunction="revertCoverImage" />
-      <ActionButton v-if="projectPreview && !displayEmojiSelector" :icon="getAppIcon('image-cancel')" :showLabel="false"
+      <ActionButton v-if="projectPreview && !displayEmojiSelector" :icon="CiImageCancel" :showLabel="false"
         v-tooltip="$t('modals.removeCoverImage')" :buttonFunction="removeCoverImage" />
-      <ActionButton v-if="!projectPreview" :icon="getAppIcon('image-plus')" :showLabel="false" v-tooltip="$t('modals.addCoverImage')"
+      <ActionButton v-if="!projectPreview" :icon="CiImagePlus" :showLabel="false" v-tooltip="$t('modals.addCoverImage')"
         :buttonFunction="addCoverImage" />
     </div>
 
@@ -41,7 +41,7 @@
       <EmojiPicker v-if="displayEmojiSelector && iconType == 'emoji'" @select="handleEmojiSelect" />
       <div v-if="displayEmojiSelector && iconType == 'upload'">
         
-      <ActionButton  :icon="getAppIcon('image-plus')" :label="$t('modals.uploadAnImage')" :buttonFunction="selectIcon" />
+      <ActionButton  :icon="CiImagePlus" :label="$t('modals.uploadAnImage')" :buttonFunction="selectIcon" />
 
       </div>
 
@@ -69,6 +69,8 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
+import { CiArrowLeft, CiFacePlus, CiImageCancel, CiImagePlus, CiRevert } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -192,7 +194,7 @@ const closeModal = () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles emoji selection from picker.

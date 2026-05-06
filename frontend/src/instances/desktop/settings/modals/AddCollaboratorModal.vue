@@ -1,6 +1,6 @@
 <template>
   <div class="modal-container" ref="modalContainer" v-stop-propagation v-esc="closeModal">
-    <HeaderArea :title="$t('modals.addStudioCollaborator')" :icon="getAppIcon('person-plus')" :showSearch="false" />
+    <HeaderArea :title="$t('modals.addStudioCollaborator')" :icon="CiPersonPlus" :showSearch="false" />
     <div class="general-container">
 
       <div class="horizontal-flex">
@@ -20,7 +20,7 @@
       <div v-if="newUsers.length > 0" class="horizontal-flex">
         <NotificationBox 
           type="invitation"
-          :icon="getAppIcon('mail')"
+          :icon="CiMail"
           :iconAlt="$t('common.invitation')"
           :title="$t('modals.invitationRequired')"
           :message="$t('modals.invitationMessage', newUsers.length)"
@@ -42,6 +42,8 @@
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiMail, CiPersonPlus } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import CollaboratorSuggestions from '@/instances/common/components/CollaboratorSuggestions.vue';
@@ -258,7 +260,7 @@ const generateAvatarColor = (email) => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Removes a user from the selected list.

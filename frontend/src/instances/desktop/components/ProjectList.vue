@@ -12,7 +12,7 @@
 			class="pinned-indicator" :class="{ 'clickable': isHoveringPinned }"
 			@mouseenter="isHoveringPinned = true" @mouseleave="isHoveringPinned = false" @click="togglePinProject">
 			<div class="menu-divider"></div>
-			<img class="tiny-icons" :src="getAppIcon(pinnedIndicatorIcon)">
+			<component :is="resolveIcon(pinnedIndicatorIcon)" :size="14" class="tiny-icon" />
 			<div class="menu-divider"></div>
 		</div>
 
@@ -36,7 +36,7 @@
 			 class="pinned-indicator" :class="{ 'clickable': isHoveringRecents }"
 			 @mouseenter="isHoveringRecents = true" @mouseleave="isHoveringRecents = false" @click="clearRecents">
 			<div class="menu-divider"></div>
-			<img class="tiny-icons" :src="getAppIcon(isHoveringRecents ? 'broom' : 'clock')">
+			<component :is="resolveIcon(isHoveringRecents ? 'broom' : 'clock')" :size="14" class="tiny-icon" />
 			<div class="menu-divider"></div>
 		</div>
 
@@ -67,13 +67,7 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-
-const getAppIcon = (iconName) => {
-	const icon = iconStore.getAppIcon(iconName);
-	return icon
-};
+import { resolveIcon } from '@/lib/icon-map';
 
 // imports
 import { computed, ref, onMounted } from 'vue';
@@ -235,7 +229,8 @@ const handleScroll = () => {
 	cursor: pointer;
 }
 
-.pinned-indicator.clickable .tiny-icons {
+.pinned-indicator.clickable .tiny-icons,
+.pinned-indicator.clickable .tiny-icon {
 	opacity: .7;
 }
 
@@ -243,6 +238,11 @@ const handleScroll = () => {
 	padding-top: .3rem;
 	height: 20px;
 	opacity: .3;
+}
+
+.tiny-icon {
+	opacity: .3;
+	stroke: var(--light-steel);
 }
 
 .alert-items {

@@ -22,7 +22,7 @@
       <div class="asset-graph-container">
         <div class="graph-container">
           <div class="fit-view-button">
-            <ActionButton :icon="getAppIcon('arrows-expand')" v-tooltip="$t('components.dependencyGraph.fitView')" @click="fitViewToAllNodes()" />
+            <ActionButton :icon="CiArrowsExpand" v-tooltip="$t('components.dependencyGraph.fitView')" @click="fitViewToAllNodes()" />
           </div>
           <VueFlow v-model="graphElements" :default-viewport="{ zoom: 1 }" :fit-view-on-init="true"
             :no-drag-class-name="noDragClassName">
@@ -43,13 +43,13 @@
 
         <div class="deps-graph-filter">
           <div class="filter-options">
-            <FilterButton :icon="getAppIcon('folder')" v-tooltip="$t('components.dependencyGraph.collectionType')"
+            <FilterButton :icon="CiFolder" v-tooltip="$t('components.dependencyGraph.collectionType')"
               :alert="isFilterActive('collection-type')" @mouseenter="flashFilterMenu($event, 'collectionTypeFilterMenu')"
               @click="showFilterMenu($event, 'collectionTypeFilterMenu')" />
-            <FilterButton :icon="getAppIcon('brush')" v-tooltip="$t('components.dependencyGraph.assetType')" :alert="isFilterActive('asset-type')"
+            <FilterButton :icon="CiBrush" v-tooltip="$t('components.dependencyGraph.assetType')" :alert="isFilterActive('asset-type')"
               @mouseenter="flashFilterMenu($event, 'assetTypeFilterMenu')"
               @click="showFilterMenu($event, 'assetTypeFilterMenu')" />
-            <FilterButton :icon="getAppIcon('filter')" v-tooltip="$t('components.dependencyGraph.type')" :alert="isFilterActive('general')"
+            <FilterButton :icon="CiFilter" v-tooltip="$t('components.dependencyGraph.type')" :alert="isFilterActive('general')"
               @mouseenter="flashFilterMenu($event, 'typeFilterMenu')"
               @click="showFilterMenu($event, 'typeFilterMenu')" />
           </div>
@@ -75,6 +75,8 @@ import dagre from '@dagrejs/dagre'
 import { AssetService, CollectionService } from "@/services";
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
+import { CiArrowsExpand, CiBrush, CiFilter, CiFolder } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // vue flow
 import { VueFlow, useVueFlow, Position } from '@vue-flow/core'
@@ -143,7 +145,7 @@ const filtersActive = computed(() => {
 
 // methods
 const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
+  const icon = iconStore.resolveIcon(iconName);
   return icon
 };
 

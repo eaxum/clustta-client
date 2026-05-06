@@ -143,7 +143,7 @@ const filteredItems = computed(() => {
 
 // Methods
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Get icon/logo for an item based on itemType
@@ -157,10 +157,10 @@ const getItemIcon = (item) => {
     const skillName = item.skill_name || item.SkillName || item.name || '';
     const category = item.skill_category || item.SkillCategory || item.category || '';
     const iconName = getSkillIcon(skillName, category);
-    return iconStore.getAppIcon(iconName);
+    return iconStore.resolveIcon(iconName);
   }
   // Fallback for other item types
-  return item.icon ? iconStore.getAppIcon(item.icon) : null;
+  return item.icon ? iconStore.resolveIcon(item.icon) : null;
 };
 
 const addItem = (item) => {

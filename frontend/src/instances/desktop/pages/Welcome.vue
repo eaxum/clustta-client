@@ -17,16 +17,16 @@
           <div class="welcome-subheader">{{ $t('auth.welcome.subtitle') }}</div>
 
           <!-- Path A: Work Locally (desktop only) -->
-          <OptionCard v-if="!platformStore.isWeb" :icon="getAppIcon('monitor')" :title="$t('auth.welcome.localTitle')" :description="$t('auth.welcome.localDescription')" :loading="isEnablingOffline" @select="enableOfflineMode" />
+          <OptionCard v-if="!platformStore.isWeb" :icon="CiMonitor" :title="$t('auth.welcome.localTitle')" :description="$t('auth.welcome.localDescription')" :loading="isEnablingOffline" @select="enableOfflineMode" />
 
           <!-- Path B: Personal + Collaborate -->
-          <OptionCard :icon="getAppIcon('website')" :title="$t('auth.welcome.personalTitle')" :description="$t('auth.welcome.personalDescription')" @select="goToSignUp" />
+          <OptionCard :icon="CiWebsite" :title="$t('auth.welcome.personalTitle')" :description="$t('auth.welcome.personalDescription')" @select="goToSignUp" />
 
           <!-- Path C: Team / Studio (ClusttaCloud) -->
-          <OptionCard :icon="getAppIcon('clustta')" :title="$t('auth.welcome.teamTitle')" :description="$t('auth.welcome.teamDescription')" @select="goToStudioSetup" />
+          <OptionCard :icon="CiClustta" :title="$t('auth.welcome.teamTitle')" :description="$t('auth.welcome.teamDescription')" @select="goToStudioSetup" />
 
           <!-- Path D: Studio Server (self-hosted) -->
-          <OptionCard v-if="!platformStore.isWeb" :icon="getAppIcon('stall')" :title="$t('auth.welcome.studioTitle')" :description="$t('auth.welcome.studioDescription')" @select="goToSelfHosted" />
+          <OptionCard v-if="!platformStore.isWeb" :icon="CiStall" :title="$t('auth.welcome.studioTitle')" :description="$t('auth.welcome.studioDescription')" @select="goToSelfHosted" />
 
         </div>
 
@@ -55,6 +55,8 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+import { CiClustta, CiMonitor, CiStall, CiWebsite } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
@@ -161,7 +163,7 @@ const enableOfflineMode = async () => {
 
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Navigates to the login page.

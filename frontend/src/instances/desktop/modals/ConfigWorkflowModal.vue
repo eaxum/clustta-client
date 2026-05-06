@@ -165,7 +165,7 @@ const closeModal = () => {
 
 // Returns icon path from icon store.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles enter key press to trigger workflow addition.

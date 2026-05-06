@@ -7,14 +7,14 @@
       <div v-if="linkedIntegration" class="linked-container">
         <div class="linked-info">
           <div class="linked-header">
-            <img :src="getAppIcon(linkedIntegration.integration_id)" class="integration-icon" />
+            <img :src="resolveIcon(linkedIntegration.integration_id)" class="integration-icon" />
             <div class="linked-details">
               <span class="project-name">{{ linkedIntegration.external_project_name }}</span>
               <span class="integration-name">{{ linkedIntegration.integration_id }}</span>
             </div>
           </div>
           <div class="linked-actions">
-            <ActionButton :icon="getAppIcon('plug')" v-tooltip="'Unlink'" :buttonFunction="unlinkProject" />
+            <ActionButton :icon="CiPlug" v-tooltip="'Unlink'" :buttonFunction="unlinkProject" />
           </div>
         </div>
       </div>
@@ -25,7 +25,7 @@
         <div class="integration-list">
           <div v-for="integration in authenticatedIntegrations" :key="integration.id" class="integration-item"
             @click="selectIntegration(integration)">
-            <img :src="getAppIcon(integration.icon)" class="integration-icon" />
+            <img :src="resolveIcon(integration.icon)" class="integration-icon" />
             <span class="integration-name">{{ integration.name }}</span>
           </div>
         </div>
@@ -73,6 +73,8 @@
 // imports
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiPlug } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -146,7 +148,7 @@ const closeModal = () => {
 
 // Returns the app icon path.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Links the current project to the selected external project.

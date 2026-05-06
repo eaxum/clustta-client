@@ -10,7 +10,7 @@
 
       <!-- No Statuses Warning -->
       <div v-else-if="localStatuses.length === 0" class="empty-state">
-        <img :src="getAppIcon('warning')" alt="" class="empty-icon" />
+        <CiInfoTriangle :size="20" class="empty-icon" />
         <span class="empty-title">No Statuses Found</span>
         <span class="empty-description">Create statuses in your project before mapping them to the external integration.</span>
       </div>
@@ -20,7 +20,7 @@
           <p class="section-description">
             Map each Clustta status to a {{ integrationName }} status. When a checkpoint is created, the mapped status will be pushed automatically.
           </p>
-          <ActionButton :icon="getAppIcon('sparkles')" :label="'Auto'" :buttonFunction="autoAssign" :showLabel="true" :useBackground="true" />
+          <ActionButton :icon="CiSparkles" :label="'Auto'" :buttonFunction="autoAssign" :showLabel="true" :useBackground="true" />
         </div>
 
         <!-- Mapping Table -->
@@ -47,7 +47,7 @@
 
         <!-- Unmapped Info -->
         <div v-if="unmappedCount > 0" class="warning-banner">
-          <img :src="getAppIcon('alert')" alt="" class="warning-icon" />
+          <CiAlert :size="20" class="warning-icon" />
           <span>{{ unmappedCount }} status{{ unmappedCount > 1 ? 'es' : '' }} not mapped. Unmapped statuses won't be pushed on checkpoint.</span>
         </div>
       </div>
@@ -65,6 +65,8 @@
 // imports
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiAlert, CiInfoTriangle, CiSparkles } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -137,7 +139,7 @@ const closeModal = () => {
 
 // Returns the app icon path.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Gets the currently selected external status name for a local status.

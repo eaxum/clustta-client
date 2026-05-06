@@ -32,7 +32,7 @@
           <div v-for="template in customTemplates" :key="template.id" class="template-item">
             <div class="template-header">
               <input type="text" class="template-name-input" v-model="template.name" placeholder="Template name" />
-              <ActionButton :icon="getAppIcon('minus-circle')" v-tooltip="'Remove template'" :buttonFunction="() => removeTemplate(template.id)" />
+              <ActionButton :icon="CiMinusCircle" v-tooltip="'Remove template'" :buttonFunction="() => removeTemplate(template.id)" />
             </div>
             <input :ref="(el) => setTemplateInputRef(template.id, el)" type="text" class="template-input"
               v-model="template.template" @focus="activeTemplateId = template.id"
@@ -44,7 +44,7 @@
           </div>
 
           <!-- Add Template Button -->
-          <ActionButton :icon="getAppIcon('plus-circle')" :label="'Add Template'" :showLabel="true" :useOutline="true"
+          <ActionButton :icon="CiPlusCircle" :label="'Add Template'" :showLabel="true" :useOutline="true"
             :buttonFunction="addTemplate" />
         </div>
 
@@ -53,7 +53,7 @@
           <h3 class="section-title">Available Placeholders</h3>
           <p class="section-description">Click to insert at cursor position</p>
           <div class="placeholders-grid">
-            <Chip v-for="placeholder in placeholders" :key="placeholder.key" :icon="getAppIcon(placeholder.icon)"
+            <Chip v-for="placeholder in placeholders" :key="placeholder.key" :icon="resolveIcon(placeholder.icon)"
               :label="placeholder.label" :readonly="true" @click="insertPlaceholder(placeholder.key)" />
           </div>
         </div>
@@ -72,6 +72,8 @@
 // imports
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiMinusCircle, CiPlusCircle } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -151,7 +153,7 @@ const closeModal = () => {
 
 // Returns the app icon path.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Returns preview for a template.

@@ -1,6 +1,6 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
-    <HeaderArea :title="$t('modals.shareLink')" :icon="getAppIcon('send')" :showSearch="false" />
+    <HeaderArea :title="$t('modals.shareLink')" :icon="CiSend" :showSearch="false" />
     <div class="general-container">
 
       <div v-if="!shareUrl" class="share-form">
@@ -31,7 +31,7 @@
         <div class="share-link-container">
           <div class="share-link-header">
             <div class="share-info-label">{{ $t('modals.shareLink') }}</div>
-            <ActionButton :icon="getAppIcon('copy')" :buttonFunction="copyLink" :label="linkCopied ? $t('common.copied') : $t('common.copy')" :showLabel="true" />
+            <ActionButton :icon="CiCopy" :buttonFunction="copyLink" :label="linkCopied ? $t('common.copied') : $t('common.copy')" :showLabel="true" />
           </div>
           <input :value="shareUrl" readonly class="share-link-input" @click="selectShareUrl" />
         </div>
@@ -53,6 +53,8 @@
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiCopy, CiSend } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -158,7 +160,7 @@ const generateLink = async () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Selects an expiry option from the dropdown.

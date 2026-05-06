@@ -30,7 +30,7 @@
 
               <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isLoginFormFilled }">
                 <div v-if="!isAwaitingResponse">{{ $t('auth.login.loginButton') }}</div>
-                <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" :noFilter="true" />
+                <ActionButton v-else :icon="CiLoading" :isLoading="true" :showLabel="false" :noFilter="true" />
               </button>
 
               <div v-if="loadingStatus" class="loading-status">{{ loadingStatus }}</div>
@@ -60,7 +60,7 @@
 
             <button class="submit-button display-font" :class="{ 'button-inactive': !isUrlValid }" @click="connectToServer">
               <div v-if="!isConnecting">{{ $t('auth.login.connectButton') }}</div>
-              <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" />
+              <ActionButton v-else :icon="CiLoading" :isLoading="true" :showLabel="false" />
             </button>
 
             <div v-if="connectionError" class="error-message">{{ connectionError }}</div>
@@ -92,7 +92,7 @@
 
               <button type="submit" class="submit-button display-font" :class="{ 'button-inactive': !isLoginFormFilled }">
                 <div v-if="!isAwaitingResponse">{{ $t('auth.login.loginButton') }}</div>
-                <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" :noFilter="true" />
+                <ActionButton v-else :icon="CiLoading" :isLoading="true" :showLabel="false" :noFilter="true" />
               </button>
 
               <div v-if="loadingStatus" class="loading-status">{{ loadingStatus }}</div>
@@ -123,6 +123,8 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
+import { CiLoading } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -237,7 +239,7 @@ const disconnectServer = () => {
 
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles SSO error from the SSOLogin component.

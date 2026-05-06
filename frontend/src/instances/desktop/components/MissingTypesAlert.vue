@@ -1,7 +1,7 @@
 <template>
   <div v-if="hasMissingTypes" class="missing-types-alert">
     <div class="alert-icon">
-      <img :src="getAppIcon('warning')" alt="warning" />
+      <CiInfoTriangle :size="20" />
     </div>
 
     <div class="alert-content">
@@ -36,6 +36,8 @@
 <script setup>
 // imports
 import { computed } from 'vue';
+import { CiInfoTriangle } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // stores
 import { useIconStore } from '@/stores/icons';
@@ -72,7 +74,7 @@ const assetCount = computed(() => {
 // methods
 // Returns the app icon path.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Returns the type icon path.

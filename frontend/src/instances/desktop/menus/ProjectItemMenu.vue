@@ -1,72 +1,72 @@
 <template>
   <div ref="collectionMenu" class="filter-menu-container">
 
-    <ActionButton :icon="getAppIcon('info')" :showLabel="true" :fullWidth="true"
+    <ActionButton :icon="CiInfo" :showLabel="true" :fullWidth="true"
       :label="$t('modals.projectDetails')" :buttonFunction="showProjectDetails" />
 
-    <ActionButton :icon="getAppIcon('edit')" v-if="studioStore.canManageProject" :showLabel="true" :fullWidth="true" :label="$t('modals.renameProject')"
+    <ActionButton :icon="CiEdit" v-if="studioStore.canManageProject" :showLabel="true" :fullWidth="true" :label="$t('modals.renameProject')"
       :buttonFunction="renameProject" />
 
     <!-- Create -->
-    <ActionButton :icon="getAppIcon('switches')" v-if="studioStore.canManageProject" :showLabel="true" :fullWidth="true"
+    <ActionButton :icon="CiSwitches" v-if="studioStore.canManageProject" :showLabel="true" :fullWidth="true"
       :label="$t('menus.editProject')" :buttonFunction="editProject" />
 
     <!-- {{  isPinExceeded  }} -->
-    <ActionButton v-if="(projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && isProjectPinned" :icon="getAppIcon('unpin')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="(projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && isProjectPinned" :icon="CiUnpin" :showLabel="true" :fullWidth="true"
       :label="$t('menus.unpinProject')" :buttonFunction="unpinProject" />
 
-    <ActionButton v-else-if="!isPinExceeded" :icon="getAppIcon('pin')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-else-if="!isPinExceeded" :icon="CiPin" :showLabel="true" :fullWidth="true"
       :label="$t('menus.pinProject')" :buttonFunction="pinProject" />
 
     <span v-if="userStore.canDo('create_collection') && !platformStore.isWeb" class="menu-divider"></span>
 
     <!-- Reveal in Explorer -->
     <span v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded" class="horizontal-flex">
-      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
+      <ActionButton :icon="CiFolderArrowUpRight" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
         :buttonFunction="revealInExplorer" />
-      <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyProjectPath()"
+      <ActionButton :icon="CiCopy" :showLabel="false" :fullWidth="false" @click="copyProjectPath()"
         v-tooltip="$t('common.copyPath')" />
     </span>
 
     <!-- Locate Clustta file -->
-    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded" :icon="getAppIcon('clustta')" :showLabel="true"
+    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded" :icon="CiClustta" :showLabel="true"
       :fullWidth="true" :label="$t('menus.locateClusttaFile')" :buttonFunction="locateClusttaFile" />
 
     <!-- Relocate Working Directory -->
-    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" :label="$t('menus.relocate')"
+    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded" :icon="CiFolderArrowIn" :showLabel="true" :fullWidth="true" :label="$t('menus.relocate')"
       :buttonFunction="relocateWorkingDirectory" />
 
     <span v-if="projectStore.getActiveProject?.is_downloaded || platformStore.isWeb" class="menu-divider"></span>
 
     <!-- Trim Project - only for remote projects that are synced -->
     <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.has_remote && !projectStore.getActiveProject?.is_unsynced"
-      :icon="getAppIcon('scissors')" :showLabel="true" :fullWidth="true" :label="$t('menus.trimProject')"
+      :icon="CiScissors" :showLabel="true" :fullWidth="true" :label="$t('menus.trimProject')"
       :buttonFunction="prepTrimProjectPopUpModal" />
       
     <!-- Archive -->
     <ActionButton v-if="!projectStore.getActiveProject?.is_closed && studioStore.canManageProject"
-      :icon="getAppIcon('archive')" :showLabel="true" :fullWidth="true" :label="$t('menus.archiveProject')"
+      :icon="CiArchive" :showLabel="true" :fullWidth="true" :label="$t('menus.archiveProject')"
       :buttonFunction="prepCloseProjectPopUpModal" />
 
 
-    <ActionButton v-else-if="studioStore.canManageProject" :icon="getAppIcon('unarchive')" :showLabel="true"
+    <ActionButton v-else-if="studioStore.canManageProject" :icon="CiUnarchive" :showLabel="true"
       :fullWidth="true" :label="$t('menus.unarchiveProject')" :buttonFunction="toggleCloseProject" />
 
     <!-- Rebuild -->
     <!-- <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded && !projectStore.getActiveProject?.is_closed"
-      :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" :label="$t('menus.rebuildProject')"
+      :icon="CiJigsaw" :showLabel="true" :fullWidth="true" :label="$t('menus.rebuildProject')"
       :buttonFunction="rebuildAll" /> -->
 
     <!-- Leave project (collaborator removes themselves) -->
-    <ActionButton v-if="isPersonalCollaborator" :icon="getAppIcon('logout')" :showLabel="true" :fullWidth="true" :label="$t('menus.leaveProject')"
+    <ActionButton v-if="isPersonalCollaborator" :icon="CiLogout" :showLabel="true" :fullWidth="true" :label="$t('menus.leaveProject')"
       :buttonFunction="prepLeaveProjectPopUpModal" />
 
     <!-- Remove project (local copy only, remote stays) -->
-    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.has_remote && projectStore.getActiveProject?.is_downloaded" :icon="getAppIcon('minus-circle')" :showLabel="true" :fullWidth="true" :label="$t('menus.removeProject')"
+    <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.has_remote && projectStore.getActiveProject?.is_downloaded" :icon="CiMinusCircle" :showLabel="true" :fullWidth="true" :label="$t('menus.removeProject')"
       :buttonFunction="prepRemovePopUpModal" />
 
     <!-- Delete project -->
-    <ActionButton v-if="(projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && studioStore.canManageProject" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('menus.deleteProject')"
+    <ActionButton v-if="(projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && studioStore.canManageProject" :icon="CiTrash" :showLabel="true" :fullWidth="true" :label="$t('menus.deleteProject')"
       :buttonFunction="prepDeletePopUpModal" />
 
 
@@ -77,6 +77,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { CiArchive, CiClustta, CiCopy, CiEdit, CiFolderArrowIn, CiFolderArrowUpRight, CiInfo, CiJigsaw, CiLogout, CiMinusCircle, CiPin, CiScissors, CiSwitches, CiTrash, CiUnarchive, CiUnpin } from '@clustta/icons-vue';
 import { useI18n } from 'vue-i18n';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
@@ -92,7 +93,6 @@ import { useAssetStore } from '@/stores/assets';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useEntitlementStore } from '@/stores/entitlements';
 import { refreshEntitlements } from '@/lib/sync';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { usePlatformStore } from '@/stores/platform';
@@ -105,7 +105,6 @@ import { useStudioStore } from '@/stores/studio';
 const { t } = useI18n();
 const assetStore = useAssetStore();
 const entitlementStore = useEntitlementStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -211,11 +210,6 @@ const deleteProjectWorkData = async () => {
 const editProject = () => {
   modals.setModalVisibility('editProjectModal', true);
   menu.hideContextMenu();
-};
-
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
 };
 
 // Opens the Clustta file location in the file explorer.

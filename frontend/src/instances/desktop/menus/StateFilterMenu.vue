@@ -2,7 +2,7 @@
   <div ref="collectionMenu" class="filter-menu-container" v-stop-propagation>
 
     <span v-for="state in allStates" class="filter-menu-item" @click="toggleFilter(state)">
-      <img class="small-icons" :class="{ 'no-filter' : isColored(state?.name)}" :src="getAppIcon(state.icon)">
+      <component :is="resolveIcon(state.icon)" class="small-icons" :class="{ 'no-filter' : isColored(state?.name)}" :size="20" />
       <div class="horizontal-flex">
         <div class="menu-item-text"> {{ utils.capitalizeStr(state.name) }} </div>
         <ToggleSwitch :switchValueProp="isFilterActive(state)" />
@@ -17,6 +17,7 @@
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
+import { resolveIcon } from '@/lib/icon-map';
 import utils from '@/services/utils';
 
 // components
@@ -24,11 +25,9 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // stores
 import { useCommonStore } from '@/stores/common';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 
 const commonStore = useCommonStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 
 // refs
@@ -45,11 +44,6 @@ const allStates = computed(() => {
 const addFilter = (filter) => {
   commonStore.assetFilters.push(filter);
   commonStore.resourceFilters.push(filter);
-};
-
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
 };
 
 // Checks if a state should display in color.

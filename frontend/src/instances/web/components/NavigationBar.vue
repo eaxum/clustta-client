@@ -13,7 +13,7 @@
 
     <!-- <div class="nav-center">
       <router-link to="/discover" class="nav-link" :class="{ active: isActive('/discover') }">
-        <img :src="getAppIcon('person')" class="nav-icon" />
+        <CiPerson :size="20" class="nav-icon" />
         <span>Discover</span>
       </router-link>
     </div> -->
@@ -22,7 +22,7 @@
       <!-- Auth buttons when not logged in -->
       <template v-if="!userStore.isUserAuthenticated">
         <ActionButton 
-          :icon="getAppIcon('launch')" 
+          :icon="CiLaunch" 
           :label="isWideScreen ? 'Sign Up' : ''" 
           color="var(--grape)" 
           forceIconColor="light" 
@@ -30,7 +30,7 @@
           v-tooltip="!isWideScreen ? 'Sign Up' : ''" 
         />
         <ActionButton 
-          :icon="getAppIcon('login')" 
+          :icon="CiLogin" 
           :label="isWideScreen ? 'Login' : ''" 
           :useOutline="true" 
           :buttonFunction="goToLogin" 
@@ -59,21 +59,21 @@
             <div class="dropdown-divider"></div>
             <div class="dropdown-actions">
               <ActionButton v-if="canDiscoverTalent"
-                :icon="getAppIcon('person-search')" 
+                :icon="CiPersonSearch" 
                 :showLabel="true" 
                 :fullWidth="true" 
                 label="Discover"
                 :buttonFunction="goToDiscover" 
               />
               <ActionButton 
-                :icon="getAppIcon('person')" 
+                :icon="CiPerson" 
                 :showLabel="true" 
                 :fullWidth="true" 
                 label="My Profile"
                 :buttonFunction="goToProfile" 
               />
               <ActionButton 
-                :icon="getAppIcon('cog')" 
+                :icon="CiCog" 
                 :showLabel="true" 
                 :fullWidth="true" 
                 label="Settings"
@@ -83,7 +83,7 @@
             <div class="dropdown-divider"></div>
             <div class="dropdown-actions">
               <ActionButton 
-                :icon="getAppIcon('logout')" 
+                :icon="CiLogout" 
                 :showLabel="true" 
                 :fullWidth="true" 
                 label="Logout"
@@ -101,7 +101,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useIconStore } from '@/stores/icons';
+import { CiCog, CiLaunch, CiLogin, CiLogout, CiPerson, CiPersonSearch } from '@clustta/icons-vue';
 import { useUserStore } from '@/stores/users';
 import { useEntitlementStore } from '@/stores/entitlements';
 import { generateAvatar } from '@/lib/avatar';
@@ -111,7 +111,6 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 const router = useRouter();
 const route = useRoute();
-const iconStore = useIconStore();
 const userStore = useUserStore();
 const entitlementStore = useEntitlementStore();
 
@@ -122,10 +121,6 @@ const screenWidth = ref(window.innerWidth);
 const isWideScreen = computed(() => screenWidth.value >= 500);
 
 const canDiscoverTalent = computed(() => entitlementStore.hasFeature('talent_discovery'));
-
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
-};
 
 const isActive = (path) => {
   return route.path.startsWith(path);

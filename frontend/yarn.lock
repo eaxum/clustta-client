@@ -27,6 +27,18 @@
     "@babel/helper-string-parser" "^7.25.9"
     "@babel/helper-validator-identifier" "^7.25.9"
 
+"@clustta/icons-vue@0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@clustta/icons-vue/-/icons-vue-0.1.1.tgz#f8cd337d7c233e86648b334ff20a555796f105f1"
+  integrity sha512-CbY/hExN6Nm+LMMNaj6SVhQBvD31ukPoWWGlvwemRNk8FhFSGAIRTmqdawTTiaqUSLybMDv4/RgYiiOtD9OgSA==
+  dependencies:
+    "@clustta/icons" "^0.1.0"
+
+"@clustta/icons@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@clustta/icons/-/icons-0.1.0.tgz#eae61129658158f5a0e73bbf0d7a1532bfc62aa6"
+  integrity sha512-adk8wpyzWrXz+t1HH5Xm4vflnMtj5AGSipUb+qkkaZiBgTjlXd8sUWIrSh1QulCXjzxcHmBfX9WV3/anFxiQsg==
+
 "@clustta/web-adapters@file:../../clustta-app/packages/web-adapters":
   version "0.1.0"
   dependencies:

@@ -6,14 +6,14 @@
         <input ref="inputRef" :type="inputType" :value="modelValue" @input="handleInput" :disabled="disabled"
           :placeholder="placeholder" class="form-input" :class="{ 'has-icon': showValidation || isSecret }" />
         <div v-if="needsValidation && showValidation" class="form-input-icon">
-          <ActionButton v-if="error" :icon="getAppIcon('alert')" :isInactive="true" useAlert :showLabel="false" />
-          <ActionButton v-else-if="loading" :icon="getAppIcon('loading')" :isInactive="true" :isLoading="true" :showLabel="false" />
-          <ActionButton v-else-if="valid" :icon="getAppIcon('circle-check')" :isInactive="true" useGo :showLabel="false" />
+          <ActionButton v-if="error" :icon="CiAlert" :isInactive="true" useAlert :showLabel="false" />
+          <ActionButton v-else-if="loading" :icon="CiLoading" :isInactive="true" :isLoading="true" :showLabel="false" />
+          <ActionButton v-else-if="valid" :icon="CiCircleCheck" :isInactive="true" useGo :showLabel="false" />
         </div>
         <div v-if="isSecret && modelValue" class="form-input-icon">
           <ActionButton
             v-tooltip="isSecretVisible ? $t('components.formInput.hide') : $t('components.formInput.show')"
-            :icon="isSecretVisible ? getAppIcon('eye-cancel') : getAppIcon('eye')"
+            :icon="isSecretVisible ? CiEyeCancel : CiEye"
             :buttonFunction="toggleSecretVisibility"
             :showLabel="false"
           />
@@ -28,6 +28,8 @@
 <script setup>
 // imports
 import { computed, onMounted, ref } from 'vue';
+import { CiAlert, CiCircleCheck, CiEye, CiEyeCancel, CiLoading } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -115,7 +117,7 @@ const emit = defineEmits(['update:modelValue', 'input']);
 
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Handles input events and emits the new value.

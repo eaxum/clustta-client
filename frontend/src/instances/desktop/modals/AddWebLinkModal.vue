@@ -1,6 +1,6 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
-    <HeaderArea :title="title" :icon="getAppIcon('web-plus')" :showSearch="showSearch" />
+    <HeaderArea :title="title" :icon="CiWebPlus" :showSearch="showSearch" />
     <div class="general-container">
 
       <div class="input-section">
@@ -13,8 +13,7 @@
       <div class="input-section">
         <div class="horizontal-flex">
           <input v-model="assetWebLink" class="input-short" type="text" :placeholder="$t('placeholders.webLink')" ref="assetWebLinkInput" @keydown.enter="handleEnterKey"/>
-          <span @click="pasteWebLink" class="single-action-button" v-tooltip="$t('modals.pasteLink')"><img class="small-icons"
-              :src="getAppIcon('clipboard')"></span>
+          <span @click="pasteWebLink" class="single-action-button" v-tooltip="$t('modals.pasteLink')"><CiClipboard class="small-icons" :size="20" /></span>
         </div>
         <InputAlert :show="!isValidWeblink(assetWebLink) && assetWebLink !== 'https://'" :message="$t('modals.invalidWebLink')" />
       </div>
@@ -34,6 +33,7 @@
 // imports
 import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiClipboard, CiWebPlus } from '@clustta/icons-vue';
 import { isValidWeblink } from '@/lib/pointer';
 import emitter from '@/lib/mitt';
 
@@ -50,7 +50,6 @@ import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
@@ -60,7 +59,6 @@ import { useTrayStates } from '@/stores/TrayStates';
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -168,11 +166,6 @@ const ensureWeblinkAssetType = async () => {
     }
   }
   return weblinkType;
-};
-
-// Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
 };
 
 // Handles enter key press to submit form.

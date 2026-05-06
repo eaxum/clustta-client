@@ -8,7 +8,7 @@
           <img class="profile-img" :src="item.profile ? item.profile : generateAvatar(item.id)">
         </div>
         <div v-else-if="useIcons" class="asset-item-icon-container">
-          <img class="large-icons" :src="getAppIcon(item.icon)">
+          <img class="large-icons" :src="resolveIcon(item.icon)">
         </div>
         <div v-else-if="customIcons" class="asset-item-icon-container">
           <img class="large-icons no-filter" :src="item.icon">
@@ -25,27 +25,27 @@
         </div>
         <div class="asset-item-container-footer">
           <div v-if="useItemId" class="asset-item-actions">
-            <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="$t('components.scrollList.edit')"
+            <ActionButton v-if="item.can_edit" :icon="CiEdit" v-tooltip="$t('components.scrollList.edit')"
               @click="editListItem(item.id)" />
-            <ActionButton v-if="item.can_delete" :icon="getAppIcon('trash')"
+            <ActionButton v-if="item.can_delete" :icon="CiTrash"
               :class="{ 'item-inactive': buttonInactive(item.id) }" @click="deleteListItem(item.id)"
               v-tooltip="$t('components.scrollList.delete')" />
-            <ActionButton v-if="assignItems" :icon="getAppIcon('person-plus')"
+            <ActionButton v-if="assignItems" :icon="CiPersonPlus"
               :class="{ 'item-inactive': buttonInactive(item.id) }" @click="assignListItem(item.id)" :label="$t('components.scrollList.assign')"
               v-tooltip="$t('components.scrollList.assign')" />
-            <ActionButton v-if="unassignItems" :icon="getAppIcon('person-minus')"
+            <ActionButton v-if="unassignItems" :icon="CiPersonMinus"
               :class="{ 'item-inactive': buttonInactive(item.id) }" @click="unassignListItem(item.id)"
               :label="$t('components.scrollList.unassign')" v-tooltip="$t('components.scrollList.unassign')" />
           </div>
           <div v-else class="asset-item-actions">
-            <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="$t('components.scrollList.edit')"
+            <ActionButton v-if="item.can_edit" :icon="CiEdit" v-tooltip="$t('components.scrollList.edit')"
               @click="editListItem(index)" />
-            <ActionButton v-if="item.can_delete" :icon="getAppIcon('trash')"
+            <ActionButton v-if="item.can_delete" :icon="CiTrash"
               :class="{ 'item-inactive': buttonInactive(index) }" @click="deleteListItem(index)" v-tooltip="$t('components.scrollList.delete')" />
-            <ActionButton v-if="assignItems" :icon="getAppIcon('person-plus')"
+            <ActionButton v-if="assignItems" :icon="CiPersonPlus"
               :class="{ 'item-inactive': buttonInactive(index) }" @click="assignListItem(index)" :label="$t('components.scrollList.assign')"
               v-tooltip="$t('components.scrollList.assign')" />
-            <ActionButton v-if="unassignItems" :icon="getAppIcon('person-minus')"
+            <ActionButton v-if="unassignItems" :icon="CiPersonMinus"
               :class="{ 'item-inactive': buttonInactive(index) }" @click="unassignListItem(index)" :label="$t('components.scrollList.unassign')"
               v-tooltip="$t('components.scrollList.unassign')" />
           </div>
@@ -63,7 +63,7 @@
             <img class="profile-img" :src="item.profile ? item.profile : generateAvatar(item.id)">
           </div>
           <div v-else-if="useIcons" class="asset-item-icon-container">
-            <img class="large-icons" :src="getAppIcon(item.icon)">
+            <img class="large-icons" :src="resolveIcon(item.icon)">
           </div>
           <div v-else-if="customIcons" class="asset-item-icon-container">
             <img class="large-icons no-filter" :src="item.icon">
@@ -79,40 +79,40 @@
 
         <div class="asset-item-container-footer">
           <div v-if="useItemId" class="asset-item-actions">
-            <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="$t('components.scrollList.edit')"
+            <ActionButton v-if="item.can_edit" :icon="CiEdit" v-tooltip="$t('components.scrollList.edit')"
               @click="editListItem(item.id)" />
-            <ActionButton v-if="item.can_delete" :icon="forCollab ? getAppIcon('person-minus') : getAppIcon('trash')"
+            <ActionButton v-if="item.can_delete" :icon="forCollab ? CiPersonMinus : CiTrash"
               :class="{ 'item-inactive': buttonInactive(item.id) }" @click="deleteListItem(item.id)"
               v-tooltip="$t('components.scrollList.delete')" />
-            <ActionButton v-if="assignItems" :icon="getAppIcon('person-plus')"
+            <ActionButton v-if="assignItems" :icon="CiPersonPlus"
               :class="{ 'item-inactive': buttonInactive(item.id) }" @click="assignListItem(item.id)" :label="$t('components.scrollList.assign')"
               v-tooltip="$t('components.scrollList.assign')" />
-            <ActionButton v-if="unassignItems" :icon="getAppIcon('person-minus')"
+            <ActionButton v-if="unassignItems" :icon="CiPersonMinus"
               :class="{ 'item-inactive': buttonInactive(item.id) }" @click="unassignListItem(item.id)"
               :label="$t('components.scrollList.unassign')" v-tooltip="$t('components.scrollList.unassign')" />
           </div>
           <div v-else-if="useItemName" class="asset-item-actions">
-            <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="$t('components.scrollList.edit')"
+            <ActionButton v-if="item.can_edit" :icon="CiEdit" v-tooltip="$t('components.scrollList.edit')"
               @click="editListItem(item.name)" />
-            <ActionButton v-if="item.can_delete" :icon="forCollab ? getAppIcon('person-minus') : getAppIcon('trash')"
+            <ActionButton v-if="item.can_delete" :icon="forCollab ? CiPersonMinus : CiTrash"
               :class="{ 'item-inactive': buttonInactive(item.name) }" @click="deleteListItem(item.name)"
               v-tooltip="$t('components.scrollList.delete')" />
-            <ActionButton v-if="assignItems" :icon="getAppIcon('person-plus')"
+            <ActionButton v-if="assignItems" :icon="CiPersonPlus"
               :class="{ 'item-inactive': buttonInactive(item.name) }" @click="assignListItem(item.name)" :label="$t('components.scrollList.assign')"
               v-tooltip="$t('components.scrollList.assign')" />
-            <ActionButton v-if="unassignItems" :icon="getAppIcon('person-minus')"
+            <ActionButton v-if="unassignItems" :icon="CiPersonMinus"
               :class="{ 'item-inactive': buttonInactive(item.name) }" @click="unassignListItem(item.name)"
               :label="$t('components.scrollList.unassign')" v-tooltip="$t('components.scrollList.unassign')" />
           </div>
           <div v-else class="asset-item-actions">
-            <ActionButton v-if="item.can_edit" :icon="getAppIcon('edit')" v-tooltip="$t('components.scrollList.edit')"
+            <ActionButton v-if="item.can_edit" :icon="CiEdit" v-tooltip="$t('components.scrollList.edit')"
               @click="editListItem(index)" />
-            <ActionButton v-if="item.can_delete" :icon="forCollab ? getAppIcon('person-minus') : getAppIcon('trash')"
+            <ActionButton v-if="item.can_delete" :icon="forCollab ? CiPersonMinus : CiTrash"
               :class="{ 'item-inactive': buttonInactive(index) }" @click="deleteListItem(index)" v-tooltip="$t('components.scrollList.delete')" />
-            <ActionButton v-if="assignItems" :icon="getAppIcon('person-plus')"
+            <ActionButton v-if="assignItems" :icon="CiPersonPlus"
               :class="{ 'item-inactive': buttonInactive(index) }" @click="assignListItem(index)" :label="$t('components.scrollList.assign')"
               v-tooltip="$t('components.scrollList.assign')" />
-            <ActionButton v-if="unassignItems" :icon="getAppIcon('person-minus')"
+            <ActionButton v-if="unassignItems" :icon="CiPersonMinus"
               :class="{ 'item-inactive': buttonInactive(index) }" @click="unassignListItem(index)" :label="$t('components.scrollList.unassign')"
               v-tooltip="$t('components.scrollList.unassign')" />
           </div>
@@ -124,13 +124,15 @@
 </template>
 
 <script setup>
+import { CiEdit, CiPersonMinus, CiPersonPlus, CiTrash } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { useIconStore } from '@/stores/icons';
 import { generateAvatar } from '@/lib/avatar';
 const iconStore = useIconStore();
 
 const getAppIcon = (iconName) => {
   const formattedIconName = getIconName(iconName)
-  const icon = iconStore.getAppIcon(formattedIconName);
+  const icon = iconStore.resolveIcon(formattedIconName);
   return icon
 };
 

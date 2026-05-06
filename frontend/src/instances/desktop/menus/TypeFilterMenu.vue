@@ -2,7 +2,7 @@
   <div ref="collectionMenu" class="filter-menu-container" v-stop-propagation>
 
     <span :class="{ 'disabled' : commonStore.onlyAssets }" class="filter-menu-item" @click="toggleShowCollections()">
-      <img class="small-icons" :src="getAppIcon('folder')">
+      <CiFolder class="small-icons" :size="20" />
       <div class="horizontal-flex">
         <div class="menu-item-text" >{{ $t('menus.collections') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.showCollections" />
@@ -10,7 +10,7 @@
     </span>
 
     <span :class="{ 'disabled' : commonStore.onlyAssets }" class="filter-menu-item" @click="toggleShowAssets()">
-      <img class="small-icons" :src="getAppIcon('brush')">
+      <CiBrush class="small-icons" :size="20" />
       <div class="horizontal-flex">
         <div class="menu-item-text">{{ $t('menus.assets') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.showAssets" />
@@ -20,7 +20,7 @@
     <span class="menu-divider"></span>
 
      <span :class="{ 'disabled' : !commonStore.showAssets }" v-if="!commonStore.navigatorMode && stage.activeStage === 'browser'" class="filter-menu-item" @click="toggleOnlyAssets()">
-      <img class="small-icons" :src="getAppIcon('shapes')">
+      <CiShapes class="small-icons" :size="20" />
       <div class="horizontal-flex">
         <div class="menu-item-text">{{ $t('menus.onlyProjectAssets') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.onlyAssets" />
@@ -28,7 +28,7 @@
     </span>
 
     <span :class="{ 'disabled' : !commonStore.showAssets }" class="filter-menu-item" @click="toggleShowResources()">
-      <img class="small-icons" :src="getAppIcon('paperclip')">
+      <CiPaperclip class="small-icons" :size="20" />
       <div class="horizontal-flex">
         <div class="menu-item-text">{{ $t('menus.resources') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.showResources" />
@@ -42,6 +42,7 @@
 <script setup>
 // imports
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { CiBrush, CiFolder, CiPaperclip, CiShapes } from '@clustta/icons-vue';
 import emitter from '@/lib/mitt';
 import { useI18n } from 'vue-i18n';
 
@@ -50,12 +51,10 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // stores
 import { useCommonStore } from '@/stores/common';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useStageStore } from '@/stores/stages';
 
 const commonStore = useCommonStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const stage = useStageStore();
 
@@ -65,11 +64,6 @@ const { t } = useI18n();
 const collectionMenu = ref(null);
 
 // methods
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
-};
-
 // Toggles only assets filter and refreshes browser.
 const toggleOnlyAssets = () => {
   commonStore.onlyAssets = !commonStore.onlyAssets;

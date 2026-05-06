@@ -1,7 +1,8 @@
 <template>
   <div class="metric-card" :class="{ 'metric-card-warning': warning }">
     <div class="metric-card-header">
-      <img class="metric-card-icon small-icons" :src="icon">
+      <component v-if="isIconComponent" :is="icon" :size="16" class="metric-card-icon ci-icon" />
+      <img v-else class="metric-card-icon small-icons" :src="icon">
       <span class="metric-card-title">{{ title }}</span>
     </div>
 
@@ -20,20 +21,23 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 // components
 import ActionButton from './ActionButton.vue';
 
-defineProps({
+const props = defineProps({
   title: { type: String, required: true },
   value: { type: [String, Number], required: true },
   subtitle: { type: String, default: '' },
-  icon: { type: String, required: true },
-  actionIcon: { type: String, default: '' },
+  icon: { type: [String, Object, Function], required: true },
+  actionIcon: { type: [String, Object, Function], default: '' },
   actionLabel: { type: String, default: '' },
   actionFunction: { type: Function, default: () => {} },
   percent: { type: Number, default: -1 },
   warning: { type: Boolean, default: false },
 });
+
+const isIconComponent = computed(() => props.icon && typeof props.icon !== 'string');
 </script>
 
 <style scoped>
@@ -61,6 +65,10 @@ defineProps({
   width: 16px;
   height: 16px;
   opacity: 0.7;
+}
+
+.ci-icon {
+  stroke: var(--light-steel);
 }
 
 .metric-card-title {

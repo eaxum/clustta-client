@@ -4,7 +4,7 @@
     <SearchBar v-model="searchQuery" :placeholder="$t('panes.searchDependencies')" :isLoading="isLoadingData"
       @input="debouncedUpdateSearch" @clear="clearSearch" />
 
-    <FilterButton v-if="searchQuery" :icon="getAppIcon('filter')" v-tooltip="$t('panes.filter')"
+    <FilterButton v-if="searchQuery" :icon="CiFilter" v-tooltip="$t('panes.filter')"
       :showLabel="false" :alert="isFilterActive" @click="showFilterMenu($event, 'dependencySearchFilterMenu')" />
   </div>
 
@@ -25,8 +25,8 @@
       <ItemsList :items="assetDependencies" :isDependency="true" :showRemove="true" :forList="true"/>
       
       <div class="bottom-bar">
-        <ActionButton :icon="getAppIcon('floppy-disk')" v-tooltip="$t('panes.saveAsPreset')" :buttonFunction="openSavePresetModal" />
-        <ActionButton :icon="getAppIcon('square-arrow-right-up')"  v-tooltip="$t('panes.viewInGraph')" :buttonFunction="goToDependencyGraph" />
+        <ActionButton :icon="CiFloppyDisk" v-tooltip="$t('panes.saveAsPreset')" :buttonFunction="openSavePresetModal" />
+        <ActionButton :icon="CiSquareArrowRightUp"  v-tooltip="$t('panes.viewInGraph')" :buttonFunction="goToDependencyGraph" />
       </div>
     </div>
 
@@ -44,6 +44,8 @@ import { useDebounce } from '@/lib/debounce';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 import { isValidWeblink } from '@/lib/pointer';
+import { CiFilter, CiFloppyDisk, CiFolder, CiSquareArrowRightUp } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // services
 import { AssetService, CollectionService, SettingsService } from "@/services";
@@ -176,7 +178,7 @@ const illustration = () => {
 };
 
 const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
+  const icon = iconStore.resolveIcon(iconName);
   return icon
 };
 
@@ -313,7 +315,7 @@ const getAssetDependencies = async() => {
           iconPath = (await iconStore.getIcon(extension)) || "";
         }
       } else{
-          // iconPath = getAppIcon('folder')
+          // iconPath = CiFolder
       }
       children[i].icon = iconPath;
       let preview = null;

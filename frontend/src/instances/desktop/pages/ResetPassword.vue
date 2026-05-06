@@ -41,7 +41,7 @@
               </div>
               <ActionButton
                 v-else
-                :icon="getAppIcon('loading')"
+                :icon="CiLoading"
                 :isLoading="true"
                 :showLabel="false"
                 :isInactive="true"
@@ -73,6 +73,8 @@
 
 
 <script setup>
+import { CiLoading } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 import { ref, reactive, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
@@ -111,7 +113,7 @@ const isResetFormFilled = computed(() => {
 
 // methods
 const getAppIcon = (iconName) => {
-	const icon = iconStore.getAppIcon(iconName);
+	const icon = iconStore.resolveIcon(iconName);
 	return icon
 };
 

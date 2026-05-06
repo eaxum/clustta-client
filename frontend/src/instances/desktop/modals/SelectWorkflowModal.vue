@@ -16,7 +16,7 @@
       </div>
 
       <div class="pop-up-actions" ref="popUpActions">
-        <ActionButton v-if="userStore.canDo('create_template')" :icon="getAppIcon('workflow-plus')" :label="$t('modals.manageWorkflows')"
+        <ActionButton v-if="userStore.canDo('create_template')" :icon="CiWorkflowPlus" :label="$t('modals.manageWorkflows')"
           :buttonFunction="manageTemplates" />
         <!-- <GeneralButton :label="'Cancel'" :fullWidth="false" :buttonFunction="closeModal" :colored="false" /> -->
       </div>
@@ -31,6 +31,8 @@
 // imports
 import { onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { CiWorkflowPlus } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -81,7 +83,7 @@ const expandWorkflowItem = (workflowId) => {
 
 // Returns icon path from icon store.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Checks if a workflow item is expanded.

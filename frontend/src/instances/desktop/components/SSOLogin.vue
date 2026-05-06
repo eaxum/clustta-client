@@ -9,19 +9,19 @@
     <div class="sso-buttons">
       <button class="sso-button" @click="handleSSO('google')" :disabled="isLoading">
         <img v-if="!isLoading || activeProvider !== 'google'" class="sso-icon" src="/brand-logos/google.svg" alt="Google" />
-        <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" :noFilter="true" />
+        <ActionButton v-else :icon="CiLoading" :isLoading="true" :showLabel="false" :noFilter="true" />
         <span>Google</span>
       </button>
 
       <button class="sso-button" @click="handleSSO('microsoft')" :disabled="isLoading">
         <img v-if="!isLoading || activeProvider !== 'microsoft'" class="sso-icon" src="/brand-logos/microsoft.svg" alt="Microsoft" />
-        <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" :noFilter="true" />
+        <ActionButton v-else :icon="CiLoading" :isLoading="true" :showLabel="false" :noFilter="true" />
         <span>Microsoft</span>
       </button>
 
       <button class="sso-button" @click="handleSSO('apple')" :disabled="isLoading">
         <img v-if="!isLoading || activeProvider !== 'apple'" class="sso-icon apple-icon" src="/brand-logos/apple.svg" alt="Apple" />
-        <ActionButton v-else :icon="getAppIcon('loading')" :isLoading="true" :showLabel="false" :noFilter="true" />
+        <ActionButton v-else :icon="CiLoading" :isLoading="true" :showLabel="false" :noFilter="true" />
         <span>Apple</span>
       </button>
     </div>
@@ -32,6 +32,8 @@
 
 // imports
 import { ref } from 'vue';
+import { CiLoading } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -63,7 +65,7 @@ const isLoading = ref(false);
 
 // Returns the app icon for the given icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Initiates SSO by opening the system browser for the specified provider.

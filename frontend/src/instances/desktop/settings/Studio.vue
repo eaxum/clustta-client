@@ -7,7 +7,7 @@
       <ProfileCard :title="$t('settings.studioInfo')" :showEditButton="!isCloudHosted" @toggleEdit="launchUpdateStudioModal()">
         <div class="header-layout">
           <div class="studio-avatar">
-            <img class="studio-avatar-icon large-icons" :src="getAppIcon('stall')">
+            <CiStall :size="28" class="studio-avatar-icon" />
           </div>
 
           <div class="header-info">
@@ -24,16 +24,16 @@
             <div class="studio-details">
               <div v-if="studioInfo?.id" class="info-item" @click="copyStudioId">
                 <span>{{ studioInfo.id }}</span>
-                <img class="info-icon small-icons" :src="getAppIcon(idCopied ? 'check-circle' : 'copy')">
+                <img class="info-icon small-icons" :src="resolveIcon(idCopied ? 'check-circle' : 'copy')">
               </div>
 
               <div v-if="!isCloudHosted" class="info-item">
-                <img class="info-icon small-icons" :src="getAppIcon('website')">
+                <CiWebsite :size="20" class="info-icon" />
                 <span>{{ studioInfo?.url }}</span>
               </div>
 
               <div v-if="!isCloudHosted" class="info-item">
-                <img class="info-icon small-icons" :src="getAppIcon('clustta')">
+                <CiClustta :size="20" class="info-icon" />
                 <span>{{ serverVersion || $t('common.loading') + '...' }}</span>
               </div>
             </div>
@@ -43,29 +43,29 @@
 
       <!-- Metrics Row -->
       <div v-if="studioEntitlements" class="metrics-row">
-        <MetricCard :title="$t('settings.collaborators')" :value="collaboratorsValue" :subtitle="collaboratorsLabel" :icon="getAppIcon('two-persons')" />
+        <MetricCard :title="$t('settings.collaborators')" :value="collaboratorsValue" :subtitle="collaboratorsLabel" :icon="CiTwoPersons" />
 
-        <MetricCard :title="$t('settings.remoteProjects')" :value="projectsValue" :subtitle="projectsLabel" :icon="getAppIcon('briefcase')" />
+        <MetricCard :title="$t('settings.remoteProjects')" :value="projectsValue" :subtitle="projectsLabel" :icon="CiBriefcase" />
 
-        <MetricCard :title="$t('settings.storageUsed')" :value="storageValue" :subtitle="storageLabel" :icon="getAppIcon('floppy-disk')" :percent="storagePercent" :warning="storagePercent >= 90" />
+        <MetricCard :title="$t('settings.storageUsed')" :value="storageValue" :subtitle="storageLabel" :icon="CiFloppyDisk" :percent="storagePercent" :warning="storagePercent >= 90" />
 
-        <MetricCard v-if="studioEntitlements.limits?.ai_credits_monthly > 0" :title="$t('settings.aiCredits')" :value="aiCreditsValue" :subtitle="aiCreditsLabel" :icon="getAppIcon('brain')" />
+        <MetricCard v-if="studioEntitlements.limits?.ai_credits_monthly > 0" :title="$t('settings.aiCredits')" :value="aiCreditsValue" :subtitle="aiCreditsLabel" :icon="CiBrain" />
       </div>
 
       <!-- Administration Card -->
       <ProfileCard :title="$t('settings.administration')">
         <div class="admin-list">
           <div v-if="isCloudHosted" class="settings-item" @click="openBillingPortal">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('credit-card')"></div>
+            <div class="settings-icon"><CiCreditCard :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.billing') }}</div>
               <div class="settings-body">{{ $t('settings.manageBilling') }}</div>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
+            <div class="settings-action"><CiSquareArrowRightUp :size="20" /></div>
           </div>
 
           <div class="settings-item disabled">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('file')"></div>
+            <div class="settings-icon"><CiFile :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.auditLogs') }}</div>
               <div class="settings-body">{{ $t('settings.comingSoon') }}</div>
@@ -78,7 +78,7 @@
       <ProfileCard :title="$t('stages.dangerZone')">
         <div class="danger-zone">
           <p class="danger-message">{{ $t('settings.deleteStudioWarning') }}</p>
-          <ActionButton :iconAfter="true" :icon="getAppIcon('trash')" :label="$t('settings.deleteStudio')" @click="prepDeleteStudio()" :color="'crimson'" :useBackground="true" />
+          <ActionButton :iconAfter="true" :icon="CiTrash" :label="$t('settings.deleteStudio')" @click="prepDeleteStudio()" :color="'crimson'" :useBackground="true" />
         </div>
       </ProfileCard>
 
@@ -93,6 +93,8 @@ import { ref, computed, onMounted } from "vue";
 import { useI18n } from 'vue-i18n';
 import { StudioService } from "@/services";
 import { Browser } from "@wailsio/runtime";
+import { CiBrain, CiBriefcase, CiClustta, CiCreditCard, CiFile, CiFloppyDisk, CiSquareArrowRightUp, CiStall, CiTrash, CiTwoPersons, CiWebsite } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // services
 import utils from '@/services/utils';
@@ -240,7 +242,7 @@ const fetchServerVersion = async () => {
 
 // Returns the resolved icon path for an icon name.
 const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+  return iconStore.resolveIcon(iconName);
 };
 
 // Opens the update studio modal.

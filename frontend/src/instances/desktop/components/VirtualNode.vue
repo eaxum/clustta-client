@@ -22,9 +22,9 @@
         </div>
         
         <div class="virtual-node-actions" v-if="userStore.canDo('manage_dependencies')" >
-          <ActionButton v-if="(data.depth === 1 || isDependency) && showRemove" :icon="getAppIcon('minus-circle')" v-tooltip="$t('components.virtualNode.remove')"
+          <ActionButton v-if="(data.depth === 1 || isDependency) && showRemove" :icon="CiMinusCircle" v-tooltip="$t('components.virtualNode.remove')"
             @click="removeDependency" />
-          <ActionButton v-if="forList && showAdd" :icon="getAppIcon('plus-circle')" v-tooltip="$t('components.virtualNode.addDependency')"
+          <ActionButton v-if="forList && showAdd" :icon="CiPlusCircle" v-tooltip="$t('components.virtualNode.addDependency')"
             @click="addDependency" />
         </div>
       </div>
@@ -41,6 +41,8 @@ import { Handle } from '@vue-flow/core';
 import { Position } from '@vue-flow/core';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
+import { CiMinusCircle, CiPlusCircle } from '@clustta/icons-vue';
+import { resolveIcon } from '@/lib/icon-map';
 
 // states/store imports
 import { useCommonStore } from '@/stores/common';
@@ -96,7 +98,7 @@ const nodeStyle = computed(() => {
 
 const itemTypeIcon = computed(() => {
   const item = props.data;
-  return item.collection_type_icon ? getAppIcon(item.collection_type_icon) : getAppIcon(item.asset_type_icon)
+  return item.collection_type_icon ? resolveIcon(item.collection_type_icon) : resolveIcon(item.asset_type_icon)
 });
 
 const dependenciesCount = computed(() => {
@@ -108,7 +110,7 @@ const dependenciesCount = computed(() => {
 
 // methods
 const getAppIcon = (iconName) => {
-  const icon = iconStore.getAppIcon(iconName);
+  const icon = iconStore.resolveIcon(iconName);
   return icon
 };
 

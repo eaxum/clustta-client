@@ -1,68 +1,68 @@
 <template>
   <div ref="popUpMenu" class="filter-menu-container">
 
-    <ActionButton v-if="!platformStore.isWeb && userStore.canDo('pull_chunk')" :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="!platformStore.isWeb && userStore.canDo('pull_chunk')" :icon="CiLaunch" :showLabel="true" :fullWidth="true"
       :label="$t('common.openWith')" :buttonFunction="launchAssetWithCommand" />
 
     <span v-if="!platformStore.isWeb && userStore.canDo('pull_chunk')" class="menu-divider"></span>
 
-    <ActionButton v-if="userStore.canDo('update_asset')" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="userStore.canDo('update_asset')" :icon="CiEdit" :showLabel="true" :fullWidth="true"
       :label="$t('common.rename')" :buttonFunction="renameAsset" />
 
-    <ActionButton v-if="userStore.canDo('update_asset')" :icon="getAppIcon('switches')" :showLabel="true"
+    <ActionButton v-if="userStore.canDo('update_asset')" :icon="CiSwitches" :showLabel="true"
       :fullWidth="true" :label="$t('common.edit')" :buttonFunction="editAsset" />
 
-    <ActionButton v-if="userStore.canDo('create_asset')" :icon="getAppIcon('duplicate')" :showLabel="true"
+    <ActionButton v-if="userStore.canDo('create_asset')" :icon="CiDuplicate" :showLabel="true"
       :fullWidth="true" :label="$t('common.duplicate')" :buttonFunction="duplicateAsset" />
 
     <!-- Copy to Project -->
     <ActionButton v-if="!platformStore.isWeb && userStore.canDo('create_asset') && canCopyToOtherProject" 
-      :icon="getAppIcon('briefcase')" :showLabel="true"
+      :icon="CiBriefcase" :showLabel="true"
       :fullWidth="true" :label="$t('menus.copyToProject')" :buttonFunction="copyToProject" />
 
     <!-- Move to Collection -->
     <ActionButton v-if="!platformStore.isWeb && userStore.canDo('update_asset')" 
-      :icon="getAppIcon('folder-arrow-in')" :showLabel="true"
+      :icon="CiFolderArrowIn" :showLabel="true"
       :fullWidth="true" :label="$t('common.move')" :buttonFunction="moveToCollection" />
 
-    <ActionButton v-if="!platformStore.isWeb && (asset.dependencies.length || asset.collection_dependencies.length)" :icon="getAppIcon('jigsaw')" :showLabel="true"
+    <ActionButton v-if="!platformStore.isWeb && (asset.dependencies.length || asset.collection_dependencies.length)" :icon="CiJigsaw" :showLabel="true"
       :fullWidth="true" :label="$t('menus.buildWithDependencies')" :buttonFunction="buildWithDependencies" />
 
-    <ActionButton v-if="isRemoteProject && userStore.canDo('manage_dependencies')" :icon="getAppIcon('dependency')" :showLabel="true"
+    <ActionButton v-if="isRemoteProject && userStore.canDo('manage_dependencies')" :icon="CiDependency" :showLabel="true"
       :fullWidth="true" :label="$t('menus.dependencyGraph')" :buttonFunction="goToDependencyGraph" />
 
     <!-- Go to Location -->
-    <ActionButton v-if="commonStore.viewSearchQuery || filtersActive" :icon="getAppIcon('file-search')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="commonStore.viewSearchQuery || filtersActive" :icon="CiFileSearch" :showLabel="true" :fullWidth="true"
       :label="$t('menus.goToAsset')" :buttonFunction="goToLocation" />
 
     <!-- Reveal in Explorer -->
     <span v-if="!platformStore.isWeb" class="horizontal-flex">
-      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
+      <ActionButton :icon="CiFolderArrowUpRight" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
         :buttonFunction="revealInExplorer" />
-      <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyAssetPath('asset')"
+      <ActionButton :icon="CiCopy" :showLabel="false" :fullWidth="false" @click="copyAssetPath('asset')"
         v-tooltip="$t('common.copyPath')" />
     </span>
 
     <!-- Extract Archive -->
-    <ActionButton v-if="!platformStore.isWeb && isArchive" :icon="getAppIcon('unarchive')" :showLabel="true" :fullWidth="true" 
+    <ActionButton v-if="!platformStore.isWeb && isArchive" :icon="CiUnarchive" :showLabel="true" :fullWidth="true" 
       :label="$t('common.extract')" :buttonFunction="extractArchive" />
 
     <!-- Checkpoints -->
-    <ActionButton v-if="!platformStore.isWeb && isAssetModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="!platformStore.isWeb && isAssetModified" :noFilter="true" :icon="CiRevert" :useAlert="true" :showLabel="true" :fullWidth="true"
       :label="$t('menus.revertFile')" :buttonFunction="revertAsset" />
 
     <!-- Sync Asset -->
-    <ActionButton v-if="isRemoteProject && !asset.synced" :icon="getAppIcon('cloud-up')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="isRemoteProject && !asset.synced" :icon="CiCloudUp" :showLabel="true" :fullWidth="true"
       :label="$t('menus.syncAsset')" :buttonFunction="syncAsset" />
 
     <span v-if="userStore.canDo('delete_asset') || !isNotOnDisk" class="menu-divider"></span>
 
     <!-- Free space -->
-    <ActionButton :icon="getAppIcon('broom')" v-if="!platformStore.isWeb && !isNotOnDisk" :showLabel="true" :fullWidth="true"
+    <ActionButton :icon="CiBroom" v-if="!platformStore.isWeb && !isNotOnDisk" :showLabel="true" :fullWidth="true"
       :label="$t('common.freeUpSpace')" :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Delete Asset -->
-    <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.delete')"
+    <ActionButton :icon="CiTrash" :showLabel="true" :fullWidth="true" :label="$t('common.delete')"
       v-if="userStore.canDo('delete_asset')" :buttonFunction="deleteAsset" />
 
   </div>
@@ -72,6 +72,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { CiBriefcase, CiBroom, CiCloudUp, CiCopy, CiDependency, CiDuplicate, CiEdit, CiFileSearch, CiFolderArrowIn, CiFolderArrowUpRight, CiJigsaw, CiLaunch, CiRevert, CiSwitches, CiTrash, CiUnarchive } from '@clustta/icons-vue';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
 import { isValidWeblink } from '@/lib/pointer';
@@ -88,7 +89,6 @@ import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { usePaneStore } from '@/stores/panes';
@@ -102,7 +102,6 @@ import { useStudioStore } from '@/stores/studio';
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -347,11 +346,6 @@ const freeUpSpace = async () => {
       console.error(error);
     });
   modals.disableAllModals();
-};
-
-// Returns the icon path for a given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
 };
 
 // Navigates to the dependency graph view.
